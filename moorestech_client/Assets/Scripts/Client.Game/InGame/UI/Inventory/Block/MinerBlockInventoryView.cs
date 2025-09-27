@@ -17,8 +17,6 @@ namespace Client.Game.InGame.UI.Inventory.Block
 {
     public class MinerBlockInventoryView : CommonBlockInventoryViewBase 
     {
-        [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
-        
         [SerializeField] private RectTransform miningItemSlotParent;
         [SerializeField] private RectTransform minerResultsParent;
         
@@ -58,7 +56,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
             {
                 for (var i = 0; i < outputCount; i++)
                 {
-                    var slotObject = Instantiate(itemSlotObjectPrefab, minerResultsParent);
+                    var slotObject = Instantiate(ItemSlotView.Prefab, minerResultsParent);
                     SubInventorySlotObjectsInternal.Add(slotObject);
                     itemList.Add(ServerContext.ItemStackFactory.CreatEmpty());
                 }
@@ -75,31 +73,24 @@ namespace Client.Game.InGame.UI.Inventory.Block
             
             void UpdateMinerProgressArrow()
             {
-                // ここが重かったら検討
-                var commonProcessor = (CommonMachineBlockStateChangeProcessor)BlockGameObject.BlockStateChangeProcessors.FirstOrDefault(x => x as CommonMachineBlockStateChangeProcessor);
-                if (commonProcessor == null)
+                var state = BlockGameObject.GetStateDetail<CommonMachineBlockStateDetail>(CommonMachineBlockStateDetail.BlockStateDetailKey);
+                if (state == null)
                 {
-                    Debug.LogError("CommonMachineBlockStateChangeProcessorがアタッチされていません。");
+                    Debug.LogError("CommonMachineBlockStateDetailが取得できません。");
                     return;
                 }
                 
-                var state = commonProcessor.CurrentMachineState;
-                var rate = state?.ProcessingRate ?? 0.0f;
+                var rate = state.ProcessingRate;
                 minerProgressArrow.SetProgress(rate);
                 
-                var powerRate = state?.PowerRate ?? 0.0f;
-                var requiredPower = state?.RequestPower ?? 0.0f;
-                var currentPower = state?.CurrentPower ?? 0.0f;
+                var powerRate = state.PowerRate;
+                var requiredPower = state.RequestPower;
+                var currentPower = state.CurrentPower;
                 
                 var colorTag = powerRate < 1.0f ? "<color=red>" : string.Empty;
                 var resetTag = powerRate < 1.0f ? "</color>" : string.Empty;
                 
                 powerRateText.text = $"エネルギー {colorTag}{powerRate * 100:F2}{resetTag}% {colorTag}{currentPower:F2}{resetTag}/{requiredPower:F2}";
-                
-                if (state == null)
-                {
-                    Debug.LogError("CommonMachineBlockStateが取得できませんでした。");
-                }
             }
             
   #endregion
@@ -127,7 +118,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
             foreach (var itemId in state.GetCurrentMiningItemIds())
             {
                 var itemView = ClientContext.ItemImageContainer.GetItemView(itemId);
-                var slot = Instantiate(itemSlotObjectPrefab, miningItemSlotParent);
+                var slot = Instantiate(ItemSlotView.Prefab, miningItemSlotParent);
                 slot.SetItem(itemView, 0);
             }
         } 

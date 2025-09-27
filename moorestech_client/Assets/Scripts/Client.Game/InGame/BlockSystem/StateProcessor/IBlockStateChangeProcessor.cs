@@ -1,3 +1,4 @@
+using Client.Game.InGame.Block;
 using Server.Event.EventReceive;
 
 namespace Client.Game.InGame.BlockSystem.StateProcessor
@@ -8,6 +9,8 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
     /// </summary>
     public interface IBlockStateChangeProcessor
     {
+        public void Initialize(BlockGameObject blockGameObject);
+        
         /// <summary>
         ///     ブロックのステートに基づいてアニメーションを再生する
         ///     タイプに応じてアニメーションを再生する

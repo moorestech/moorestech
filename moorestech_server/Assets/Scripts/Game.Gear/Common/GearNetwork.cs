@@ -178,7 +178,7 @@ namespace Game.Gear.Common
                 }
                 
                 // 要求されたトルクの量が供給量を上回ってるとき、その量に応じてRPMを減速させる
-                var rpmRate = Mathf.Min(1, totalGeneratePower / totalRequiredGearPower);
+                var rpmRate = totalRequiredGearPower == 0 ? 1 : Mathf.Min(1, totalGeneratePower / totalRequiredGearPower);
                 
                 CurrentGearNetworkInfo = new GearNetworkInfo(totalRequiredGearPower, totalGeneratePower, rpmRate);
                 

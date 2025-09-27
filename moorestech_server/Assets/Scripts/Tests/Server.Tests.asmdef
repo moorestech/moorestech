@@ -60,7 +60,9 @@
     "precompiledReferences": [
         "nunit.framework.dll",
         "Microsoft.Extensions.DependencyInjection.Abstractions.dll",
-        "Microsoft.Extensions.DependencyInjection.dll"
+        "Microsoft.Extensions.DependencyInjection.dll",
+        "MessagePack.dll",
+        "MessagePack.Annotations.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],

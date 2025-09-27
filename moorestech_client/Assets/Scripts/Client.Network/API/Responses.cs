@@ -19,8 +19,7 @@ namespace Client.Network.API
         public WorldDataResponse WorldData { get; }
         public List<MapObjectsInfoMessagePack> MapObjects { get; }
         public PlayerInventoryResponse Inventory { get; }
-        public ChallengeResponse Challenge { get; }
-        public List<BlockStateMessagePack> BlockStates { get; }
+        public List<ChallengeCategoryResponse> Challenges { get; }
         public UnlockStateResponse UnlockState { get; }
         public CraftTreeResponse CraftTree { get; }
         
@@ -29,9 +28,8 @@ namespace Client.Network.API
             (
                 List<MapObjectsInfoMessagePack> mapObjects, 
                 WorldDataResponse worldData, 
-                PlayerInventoryResponse inventory, 
-                ChallengeResponse challenge, 
-                List<BlockStateMessagePack> blockStates,
+                PlayerInventoryResponse inventory,
+                List<ChallengeCategoryResponse> challenges, 
                 UnlockStateResponse unlockState,
                 CraftTreeResponse craftTree) responses)
         {
@@ -39,8 +37,7 @@ namespace Client.Network.API
             WorldData = responses.worldData;
             MapObjects = responses.mapObjects;
             Inventory = responses.inventory;
-            Challenge = responses.challenge;
-            BlockStates = responses.blockStates;
+            Challenges = responses.challenges;
             UnlockState = responses.unlockState;
             CraftTree = responses.craftTree;
         }
@@ -100,13 +97,19 @@ namespace Client.Network.API
         }
     }
     
-    public class ChallengeResponse
+    public class ChallengeCategoryResponse
     {
-        public readonly List<ChallengeMasterElement> CompletedChallenges;
-        public readonly List<ChallengeMasterElement> CurrentChallenges;
+        public readonly ChallengeCategoryMasterElement Category;
+        public readonly bool IsUnlocked;
         
-        public ChallengeResponse(List<ChallengeMasterElement> currentChallenges, List<ChallengeMasterElement> completedChallenges)
+        public readonly List<ChallengeMasterElement> CurrentChallenges;
+        public readonly List<ChallengeMasterElement> CompletedChallenges;
+
+        
+        public ChallengeCategoryResponse(ChallengeCategoryMasterElement category, bool isUnlocked, List<ChallengeMasterElement> currentChallenges, List<ChallengeMasterElement> completedChallenges)
         {
+            Category = category;
+            IsUnlocked = isUnlocked;
             CurrentChallenges = currentChallenges;
             CompletedChallenges = completedChallenges;
         }
@@ -120,20 +123,20 @@ namespace Client.Network.API
         public readonly List<ItemId> LockedItemIds;
         public readonly List<ItemId> UnlockedItemIds;
 
-        public readonly List<Guid> LockedChallengeGuids; // Added for challenges
-        public readonly List<Guid> UnlockedChallengeGuids; // Added for challenges
+        public readonly List<Guid> LockedChallengeCategoryGuids;
+        public readonly List<Guid> UnlockedChallengeCategoryGuids;
         
         public UnlockStateResponse(
             List<Guid> lockedCraftRecipeGuids, List<Guid> unlockedCraftRecipeGuids,
             List<ItemId> lockedItemIds, List<ItemId> unlockedItemIds,
-            List<Guid> lockedChallengeGuids, List<Guid> unlockedChallengeGuids) // Added challenge parameters
+            List<Guid> lockedChallengeCategoryGuids, List<Guid> unlockedChallengeCategoryGuids)
         {
             LockedCraftRecipeGuids = lockedCraftRecipeGuids;
             UnlockedCraftRecipeGuids = unlockedCraftRecipeGuids;
             LockedItemIds = lockedItemIds;
             UnlockedItemIds = unlockedItemIds;
-            LockedChallengeGuids = lockedChallengeGuids; // Added assignment
-            UnlockedChallengeGuids = unlockedChallengeGuids; // Added assignment
+            LockedChallengeCategoryGuids = lockedChallengeCategoryGuids;
+            UnlockedChallengeCategoryGuids = unlockedChallengeCategoryGuids;
         }
     }
     

@@ -11,22 +11,28 @@ using VContainer;
 
 namespace Client.Game.InGame.Tutorial
 {
-    public class MapObjectPin : MonoBehaviour, ITutorialView, ITutorialViewManager
+    public interface IMapObjectPin : ITutorialViewManager, ITutorialView
+    {
+        public void SetActive(bool active);
+    }
+    
+    public class MapObjectPin : MonoBehaviour, IMapObjectPin
     {
         [SerializeField] private TMP_Text pinText;
         
         private InGameCameraController _inGameCameraController;
         private MapObjectGameObjectDatastore _mapObjectGameObjectDatastore;
-        private IPlayerObjectController _playerObjectController;
         
         private MapObjectPinTutorialParam _currentTutorialParam;
         
         [Inject]
-        public void Construct(InGameCameraController inGameCameraController, MapObjectGameObjectDatastore mapObjectGameObjectDatastore, IPlayerObjectController playerObjectController)
+        public void Construct(InGameCameraController inGameCameraController, MapObjectGameObjectDatastore mapObjectGameObjectDatastore)
         {
             _inGameCameraController = inGameCameraController;
             _mapObjectGameObjectDatastore = mapObjectGameObjectDatastore;
-            _playerObjectController = playerObjectController;
+            
+            var options = new HudArrowOptions(hideWhenTargetInactive: true);
+            HudArrowManager.RegisterHudArrowTarget(gameObject, options);
         }
         
         private void Update()
@@ -43,7 +49,7 @@ namespace Client.Game.InGame.Tutorial
             void NearestPinMapObject()
             {
                 // 近くのMapObjectを探してピンを表示
-                var playerPos = _playerObjectController.Position;
+                var playerPos = PlayerSystemContainer.Instance.PlayerObjectController.Position;
                 var mapObject = _mapObjectGameObjectDatastore.SearchNearestMapObject(_currentTutorialParam.MapObjectGuid, playerPos);
                 
                 if (mapObject == null)
@@ -80,6 +86,11 @@ namespace Client.Game.InGame.Tutorial
         public void SetActive(bool active)
         {
             gameObject.SetActive(active);
+        }
+        
+        private void OnDestroy()
+        {
+            HudArrowManager.UnregisterHudArrowTarget(gameObject);
         }
     }
 }

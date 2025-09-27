@@ -1,3 +1,5 @@
+using Client.Game.InGame.Player;
+using UniRx;
 using UnityEngine;
 
 namespace Client.Game.Skit.Starter
@@ -6,7 +8,12 @@ namespace Client.Game.Skit.Starter
     {
         [SerializeField] private GameObject startStoryPanel;
         
-        public void ShowStartStoryUI(bool enable)
+        private void Start()
+        {
+            PlayerSystemContainer.Instance.PlayerSkitStarterDetector.OnStateChange.Subscribe(ShowStartStoryUI).AddTo(this);
+        }
+        
+        private void ShowStartStoryUI(bool enable)
         {
             startStoryPanel.SetActive(enable);
         }

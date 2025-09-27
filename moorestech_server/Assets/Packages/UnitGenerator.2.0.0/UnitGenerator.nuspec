@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>UnitGenerator</id>
+    <version>2.0.0</version>
+    <authors>Cysharp</authors>
+    <developmentDependency>true</developmentDependency>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <icon>Icon.png</icon>
+    <projectUrl>https://github.com/Cysharp/UnitGenerator</projectUrl>
+    <description>C# Source Generator to create value-object, inspired by units of measure.</description>
+    <copyright>© Cysharp, Inc.</copyright>
+    <tags>sourcegenerator valueobject</tags>
+    <repository type="git" url="https://github.com/Cysharp/UnitGenerator" commit="00c2e3f424066c0a2cc84e0fec0286e79c55ef8e" />
+  </metadata>
+</package>

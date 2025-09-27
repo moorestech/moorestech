@@ -22,7 +22,7 @@ namespace Server.Protocol.PacketResponse
         {
             var sendMapObjects = new List<MapObjectsInfoMessagePack>();
             foreach (var mapObject in ServerContext.MapObjectDatastore.MapObjects)
-                sendMapObjects.Add(new MapObjectsInfoMessagePack(mapObject.InstanceId, mapObject.IsDestroyed));
+                sendMapObjects.Add(new MapObjectsInfoMessagePack(mapObject.InstanceId, mapObject.IsDestroyed, mapObject.CurrentHp));
             
             var response = new ResponseMapObjectInfosMessagePack(sendMapObjects);
             
@@ -60,13 +60,15 @@ namespace Server.Protocol.PacketResponse
         {
             [Key(0)] public int InstanceId { get; set; }
             [Key(1)] public bool IsDestroyed { get; set; }
+            [Key(2)] public int CurrentHp { get; set; }
             
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public MapObjectsInfoMessagePack() { }
-            public MapObjectsInfoMessagePack(int instanceId, bool isDestroyed)
+            public MapObjectsInfoMessagePack(int instanceId, bool isDestroyed, int currentHp)
             {
                 InstanceId = instanceId;
                 IsDestroyed = isDestroyed;
+                CurrentHp = currentHp;
             }
         }
     }

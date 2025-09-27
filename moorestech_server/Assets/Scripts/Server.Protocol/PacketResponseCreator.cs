@@ -26,6 +26,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(SendPlaceHotBarBlockProtocol.ProtocolTag, new SendPlaceHotBarBlockProtocol(serviceProvider));
             _packetResponseDictionary.Add(BlockInventoryRequestProtocol.ProtocolTag, new BlockInventoryRequestProtocol(serviceProvider));
             _packetResponseDictionary.Add(RemoveBlockProtocol.ProtocolTag, new RemoveBlockProtocol(serviceProvider));
+            _packetResponseDictionary.Add(CompleteBaseCampProtocol.ProtocolTag, new CompleteBaseCampProtocol(serviceProvider));
             _packetResponseDictionary.Add(SendCommandProtocol.ProtocolTag, new SendCommandProtocol(serviceProvider));
             _packetResponseDictionary.Add(BlockInventoryOpenCloseProtocol.ProtocolTag, new BlockInventoryOpenCloseProtocol(serviceProvider));
             _packetResponseDictionary.Add(SaveProtocol.ProtocolTag, new SaveProtocol(serviceProvider));
@@ -36,12 +37,14 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(GetChallengeInfoProtocol.ProtocolTag, new GetChallengeInfoProtocol(serviceProvider));
             _packetResponseDictionary.Add(AllBlockStateProtocol.ProtocolTag, new AllBlockStateProtocol(serviceProvider));
             _packetResponseDictionary.Add(BlockStateProtocol.ProtocolTag, new BlockStateProtocol(serviceProvider));
+            _packetResponseDictionary.Add(InvokeBlockStateEventProtocol.ProtocolTag, new InvokeBlockStateEventProtocol(serviceProvider));
             _packetResponseDictionary.Add(DebugBlockInfoRequestProtocol.ProtocolTag, new DebugBlockInfoRequestProtocol(serviceProvider));
             _packetResponseDictionary.Add(SetCraftChainerCrafterRecipeProtocol.ProtocolTag, new SetCraftChainerCrafterRecipeProtocol(serviceProvider));
             _packetResponseDictionary.Add(SetCraftChainerMainComputerRequestItemProtocol.ProtocolTag, new SetCraftChainerMainComputerRequestItemProtocol(serviceProvider));
             _packetResponseDictionary.Add(ApplyCraftTreeProtocol.ProtocolTag, new ApplyCraftTreeProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetCraftTreeProtocol.ProtocolTag, new GetCraftTreeProtocol(serviceProvider));
             _packetResponseDictionary.Add(RegisterPlayedSkitProtocol.ProtocolTag, new RegisterPlayedSkitProtocol(serviceProvider));
+            _packetResponseDictionary.Add(GetFluidInventoryProtocol.ProtocolTag, new GetFluidInventoryProtocol(serviceProvider));
         }
         
         public List<List<byte>> GetPacketResponse(List<byte> payload)

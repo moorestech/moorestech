@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using Client.Common.Asset;
 using Client.Game.InGame.Context;
-using Client.Game.InGame.Define;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Input;
 using Core.Item.Interface;
 using Core.Master;
+using Cysharp.Threading.Tasks;
 using Game.PlayerInventory.Interface;
 using UnityEngine;
 using VContainer;
@@ -16,13 +18,13 @@ namespace Client.Game.InGame.UI.Inventory
     public class HotBarView : MonoBehaviour
     {
         [SerializeField] private List<HotBarItem> hotBarItems;
-        [SerializeField] private ItemObjectContainer itemObjectContainer;
-        [SerializeField] private PlayerGrabItemManager playerGrabItemManager;
         [Inject] private ILocalPlayerInventory _localPlayerInventory;
         public event Action<int> OnSelectHotBar;
         
         
         private GameObject _currentGrabItem;
+        private CancellationTokenSource _loadCancellationTokenSource;
+        private LoadedAsset<GameObject> _currentLoadedAsset;
         
         public IItemStack CurrentItem => _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(SelectIndex)];
         public int SelectIndex { get; private set; }
@@ -45,7 +47,7 @@ namespace Client.Game.InGame.UI.Inventory
             if (nextSelectIndex != -1 && nextSelectIndex != SelectIndex)
             {
                 UpdateSelectedView(SelectIndex, nextSelectIndex);
-                UpdateHoldItem(nextSelectIndex); //アイテムの再生成があるので変化を検知して変更する
+                UpdateHoldItemAsync(nextSelectIndex).Forget(); //アイテムの再生成があるので変化を検知して変更する
                 
                 SelectIndex = nextSelectIndex;
             }
@@ -84,19 +86,52 @@ namespace Client.Game.InGame.UI.Inventory
             }
             
             
-            void UpdateHoldItem(int selectIndex)
+            async UniTaskVoid UpdateHoldItemAsync(int selectIndex)
             {
-                if (_currentGrabItem != null) Destroy(_currentGrabItem.gameObject);
+                // 既存のロード処理をキャンセル
+                _loadCancellationTokenSource?.Cancel();
+                _loadCancellationTokenSource?.Dispose();
+                _loadCancellationTokenSource = new CancellationTokenSource();
+                
+                // 既存のアイテムをクリーンアップ
+                if (_currentGrabItem != null) 
+                {
+                    Destroy(_currentGrabItem.gameObject);
+                    _currentGrabItem = null;
+                }
+                
+                // Addressableリソースを解放
+                _currentLoadedAsset?.Dispose();
+                _currentLoadedAsset = null;
                 
                 var itemId = _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(selectIndex)].Id;
                 
                 if (itemId == ItemMaster.EmptyItemId) return;
                 
-                var itemObjectData = itemObjectContainer.GetItemPrefab(itemId);
-                if (itemObjectData != null)
+                try
                 {
-                    _currentGrabItem = Instantiate(itemObjectData.ItemPrefab);
-                    playerGrabItemManager.SetItem(_currentGrabItem, false, itemObjectData.Position, Quaternion.Euler(itemObjectData.Rotation));
+                    var itemMaster = MasterHolder.ItemMaster.GetItemMaster(itemId);
+                    var token = _loadCancellationTokenSource.Token;
+                    
+                    // handGrabModelAddressablePathが設定されているかチェック
+                    if (!string.IsNullOrEmpty(itemMaster.HandGrabModelAddressablePath))
+                    {
+                        // Addressableからロード
+                        _currentLoadedAsset = await AddressableLoader.LoadAsync<GameObject>(itemMaster.HandGrabModelAddressablePath);
+                        
+                        if (token.IsCancellationRequested) return;
+                        
+                        if (_currentLoadedAsset?.Asset != null)
+                        {
+                            _currentGrabItem = Instantiate(_currentLoadedAsset.Asset);
+                            PlayerSystemContainer.Instance.PlayerGrabItemManager.SetItem(_currentGrabItem, false);
+                            return;
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"Failed to load hand grab model for item {itemId}: {e.Message}");
                 }
             }
             
@@ -113,6 +148,22 @@ namespace Client.Game.InGame.UI.Inventory
         public void SetActive(bool active)
         {
             gameObject.SetActive(active);
+        }
+        
+        private void OnDestroy()
+        {
+            // キャンセルトークンソースをクリーンアップ
+            _loadCancellationTokenSource?.Cancel();
+            _loadCancellationTokenSource?.Dispose();
+            
+            // Addressableリソースを解放
+            _currentLoadedAsset?.Dispose();
+            
+            // ゲームオブジェクトを破棄
+            if (_currentGrabItem != null)
+            {
+                Destroy(_currentGrabItem);
+            }
         }
     }
 }

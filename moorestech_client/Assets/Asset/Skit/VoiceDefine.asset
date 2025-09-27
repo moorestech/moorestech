@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: VoiceDefine
   m_EditorClassIdentifier: 
   characterVoices:
-  - characterKey: "\u4E3B\u4EBA\u516C"
+  - characterKey: chr_001
     voiceInfos:
-    - sentence: "\u3075\u308F\u3041\u2026\u2026\u3088\u304F\u5BDD\u305F\\n\u3093\u3093\u2026\u2026\u3053\u3053\u306F\u4E00\u4F53\u2026\u2026\uFF1F"
+    - sentence: "\u3075\u308F\u3041"
       voiceClip: {fileID: 8300000, guid: 3dbe7f3934c31f94396db688f2379f32, type: 3}
     - sentence: "\u3061\u3087\u3063\u3068\u5F85\u3063\u3066\u2026\u2026\\n\u79C1\u304C\u4F4F\u3093\u3067\u308B\u306E\u306F\u60D1\u661FA\u306A\u3093\u3060\u3051\u3069\u2026\u2026\\n\u3042\u306F\u306F\u2026\u2026\u60D1\u661FB\u3063\u3066\u3069\u3053\uFF1F\u3000\u5197\u8AC7\u3001\u3060\u3088\u306D\uFF01\uFF1F"
       voiceClip: {fileID: 8300000, guid: 56807af21e403ea41b8664fd062462f4, type: 3}

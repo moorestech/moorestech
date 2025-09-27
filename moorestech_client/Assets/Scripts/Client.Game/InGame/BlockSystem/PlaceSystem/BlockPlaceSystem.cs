@@ -31,7 +31,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         private readonly HotBarView _hotBarView;
         private readonly ILocalPlayerInventory _localPlayerInventory;
         private readonly Camera _mainCamera;
-        private readonly PlayerObjectController _playerObjectController;
         private readonly BlockPlacePointCalculator _blockPlacePointCalculator;
         
         private BlockDirection _currentBlockDirection = BlockDirection.North;
@@ -50,8 +49,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             HotBarView hotBarView,
             IBlockPlacePreview blockPlacePreview,
             ILocalPlayerInventory localPlayerInventory,
-            BlockGameObjectDataStore blockGameObjectDataStore,
-            PlayerObjectController playerObjectController
+            BlockGameObjectDataStore blockGameObjectDataStore
         )
         {
             Instance = this;
@@ -59,7 +57,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             _mainCamera = mainCamera;
             _blockPlacePreview = blockPlacePreview;
             _localPlayerInventory = localPlayerInventory;
-            _playerObjectController = playerObjectController;
             _blockPlacePointCalculator = new BlockPlacePointCalculator(blockGameObjectDataStore);
         }
         
@@ -72,11 +69,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             if (enable)
             {
                 Instance._clickStartHeightOffset = -1;
-                Instance._baseHeight = Mathf.RoundToInt(Instance._playerObjectController.Position.y);
+                var playerObjectController = PlayerSystemContainer.Instance.PlayerObjectController;
+                Instance._baseHeight = Mathf.RoundToInt(playerObjectController.Position.y);
             }
             else
             {
                 Instance._blockPlacePreview.SetActive(false);
+                // 連続設置状態をリセット
+                Instance._clickStartPosition = null;
+                Instance._isStartZDirection = null;
+                Instance._currentPlaceInfos.Clear();
             }
         }
         
@@ -199,7 +201,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             bool IsBlockPlaceableDistance(float maxDistance)
             {
                 var placePosition = (Vector3)placePoint;
-                var playerPosition = _playerObjectController.transform.position;
+                var playerPosition = PlayerSystemContainer.Instance.PlayerObjectController.Position;
                 
                 return Vector3.Distance(playerPosition, placePosition) <= maxDistance;
             }
@@ -222,44 +224,45 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                     return point;
                 }
                 
+                Debug.Log(boundingBoxSurface.PreviewSurfaceType);
                 switch (boundingBoxSurface.PreviewSurfaceType)
                 {
                     case PreviewSurfaceType.YX_Origin:
                         return new Vector3Int(
-                            Mathf.FloorToInt(hitPoint.x),
+                            Mathf.FloorToInt(hitPoint.x) - Mathf.FloorToInt(rotatedSize.x / 2f),
                             Mathf.FloorToInt(hitPoint.y),
                             Mathf.FloorToInt(hitPoint.z) - Mathf.RoundToInt(rotatedSize.z / 2f)
                         );
                     case PreviewSurfaceType.YX_Z:
                         return new Vector3Int(
-                            Mathf.FloorToInt(hitPoint.x),
+                            Mathf.FloorToInt(hitPoint.x) - Mathf.FloorToInt(rotatedSize.x / 2f),
                             Mathf.FloorToInt(hitPoint.y),
-                            Mathf.FloorToInt(hitPoint.z) + Mathf.RoundToInt(rotatedSize.z / 2f)
+                            Mathf.FloorToInt(hitPoint.z)
                         );
                     case PreviewSurfaceType.YZ_Origin:
                         return new Vector3Int(
                             Mathf.FloorToInt(hitPoint.x) - Mathf.RoundToInt(rotatedSize.x / 2f),
                             Mathf.FloorToInt(hitPoint.y),
-                            Mathf.FloorToInt(hitPoint.z)
+                            Mathf.FloorToInt(hitPoint.z) - Mathf.FloorToInt(rotatedSize.z / 2f)
                         );
                     case PreviewSurfaceType.YZ_X:
                         return new Vector3Int(
-                            Mathf.FloorToInt(hitPoint.x) + Mathf.RoundToInt(rotatedSize.x / 2f),
+                            Mathf.FloorToInt(hitPoint.x),
                             Mathf.FloorToInt(hitPoint.y),
-                            Mathf.FloorToInt(hitPoint.z)
+                            Mathf.FloorToInt(hitPoint.z) - Mathf.FloorToInt(rotatedSize.z / 2f)
                         );
                     
                     case PreviewSurfaceType.XZ_Origin:
                         return new Vector3Int(
-                            Mathf.FloorToInt(hitPoint.x),
+                            Mathf.FloorToInt(hitPoint.x) - Mathf.FloorToInt(rotatedSize.x / 2f),
                             Mathf.FloorToInt(hitPoint.y) - rotatedSize.y,
-                            Mathf.FloorToInt(hitPoint.z)
+                            Mathf.FloorToInt(hitPoint.z) - Mathf.FloorToInt(rotatedSize.z / 2f)
                         );
                     case PreviewSurfaceType.XZ_Y:
                         return new Vector3Int(
-                            Mathf.FloorToInt(hitPoint.x),
+                            Mathf.FloorToInt(hitPoint.x) - Mathf.FloorToInt(rotatedSize.x / 2f),
                             Mathf.FloorToInt(hitPoint.y),
-                            Mathf.FloorToInt(hitPoint.z)
+                            Mathf.FloorToInt(hitPoint.z) - Mathf.FloorToInt(rotatedSize.z / 2f)
                         );
                     
                     default:

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
 using Core.Update;
@@ -8,6 +9,7 @@ using Game.Block.Interface.Component;
 using Game.Fluid;
 using MessagePack;
 using Mooresmaster.Model.BlockConnectInfoModule;
+using Newtonsoft.Json;
 using UniRx;
 
 namespace Game.Block.Blocks.Fluid
@@ -18,18 +20,26 @@ namespace Game.Block.Blocks.Fluid
         private readonly Subject<Unit> _onChangeBlockState = new();
         private BlockPositionInfo _blockPositionInfo;
         
-        public FluidPipeComponent(BlockPositionInfo blockPositionInfo, BlockConnectorComponent<IFluidInventory> connectorComponent, float capacity)
+        public FluidPipeComponent(BlockPositionInfo blockPositionInfo, BlockConnectorComponent<IFluidInventory> connectorComponent, float capacity, Dictionary<string, string> componentStates)
         {
             _blockPositionInfo = blockPositionInfo;
             _connectorComponent = connectorComponent;
-            FluidContainer = new FluidContainer(capacity);
+            _fluidContainer = new FluidContainer(capacity);
+            
+            // セーブデータがある場合はロード
+            if (componentStates != null && componentStates.TryGetValue(FluidPipeSaveComponent.SaveKeyStatic, out var savedState))
+            {
+                var jsonObject = JsonConvert.DeserializeObject<FluidPipeSaveJsonObject>(savedState);
+                _fluidContainer.FluidId = jsonObject.FluidId;
+                _fluidContainer.Amount = jsonObject.Amount;
+            }
         }
         
         public BlockStateDetail[] GetBlockStateDetails()
         {
             var fluidStateDetail = GetFluidPipeStateDetail();
             var blockStateDetail = new BlockStateDetail(
-                FluidPipeStateDetail.FluidPipeStateDetailKey,
+                FluidPipeStateDetail.BlockStateDetailKey,
                 MessagePackSerializer.Serialize(fluidStateDetail)
             );
             
@@ -38,17 +48,19 @@ namespace Game.Block.Blocks.Fluid
         
         public IObservable<Unit> OnChangeBlockState => _onChangeBlockState;
         
-        public FluidContainer FluidContainer { get; }
+        // Private field - tests access via reflection
+        private readonly FluidContainer _fluidContainer;
+        private bool _hasReceivedThisUpdate = false;
         
-        public void OnContainerChanged()
+        public FluidStack AddLiquid(FluidStack fluidStack, FluidContainer source)
         {
-            _onChangeBlockState.OnNext(Unit.Default);
-        }
-        
-        public void AddLiquid(FluidStack fluidStack, FluidContainer source, out FluidStack? remain)
-        {
-            FluidContainer.AddLiquid(fluidStack, source, out remain);
-            _onChangeBlockState.OnNext(Unit.Default);
+            var remain = _fluidContainer.AddLiquid(fluidStack, source);
+            if (remain.Amount < fluidStack.Amount) // 何か受け入れた場合
+            {
+                _hasReceivedThisUpdate = true;
+                _onChangeBlockState.OnNext(Unit.Default);
+            }
+            return remain;
         }
         
         public bool IsDestroy { get; private set; }
@@ -59,71 +71,113 @@ namespace Game.Block.Blocks.Fluid
         
         public void Update()
         {
-            if (FluidContainer.Amount <= 0) return;
+            // PreviousSourceFluidContainersを常にクリアする必要があるため、
+            // 液体がない場合でもUpdate処理を続ける
+            var hasFluid = _fluidContainer.Amount > 0;
             
-            // 流入対象のコンテナを列挙する
-            var targetContainers = _connectorComponent.ConnectedTargets
-                .Select(kvp => (kvp.Key, kvp.Value, GetMaxFlowRate(kvp.Key.FluidContainer, kvp.Value)))
-                .Where(kvp => !FluidContainer.PreviousSourceFluidContainers.Contains(kvp.Key.FluidContainer))
-                .Where(kvp => kvp.Key.FluidContainer.FluidId == FluidMaster.EmptyFluidId || kvp.Key.FluidContainer.FluidId == FluidContainer.FluidId)
-                .OrderBy(kvp => GetMaxFlowRate(kvp.Key.FluidContainer, kvp.Value))
-                .ToList();
-            
-            // 対象のコンテナに向かって流す
-            
-            for (var i = 0; i < targetContainers.Count; i++)
+            // Don't send fluid if we received some this update (prevents ping-pong)
+            if (hasFluid && !_hasReceivedThisUpdate)
             {
-                var (_, _, maxFlowRate) = targetContainers[i];
+                // 流入対象を列挙する
+                var targetInventories = GetTargetInventories();
                 
-                var flowPerContainer = FluidContainer.Amount / (targetContainers.Count - i);
-                var flowRate = Math.Min(flowPerContainer, maxFlowRate);
+                // 流入対象に流す
+                ExecuteFlow(targetInventories);
+            }
+            
+            _fluidContainer.PreviousSourceFluidContainers.Clear();
+            if (_fluidContainer.Amount <= 0) _fluidContainer.FluidId = FluidMaster.EmptyFluidId;
+            
+            // Reset the flag for next update
+            _hasReceivedThisUpdate = false;
+            
+            #region Internal
+            
+            List<(IFluidInventory inventory, ConnectedInfo info, double maxFlowRate)> GetTargetInventories()
+            {
                 
-                if (flowRate <= 0) break;
-                
-                for (var j = i; j < targetContainers.Count; j++)
+                var result = new List<(IFluidInventory inventory, ConnectedInfo info, double maxFlowRate)>();
+                foreach (var kvp in _connectorComponent.ConnectedTargets)
                 {
-                    FluidContainer.Amount -= flowRate;
-                    var otherInventory = targetContainers[j].Key;
-                    var otherContainer = otherInventory.FluidContainer;
-                    otherContainer.Amount += flowRate;
-                    targetContainers[j] = (targetContainers[j].Key, targetContainers[j].Value, targetContainers[j].Item3 - flowRate);
+                    var targetInventory = kvp.Key;
+                    var connectedInfo = kvp.Value;
                     
-                    otherContainer.FluidId = FluidContainer.FluidId;
-                    otherContainer.PreviousSourceFluidContainers.Add(FluidContainer);
+                    // 全てのIFluidInventoryに対して同じ処理
+                    var maxFlowRate = GetMaxFlowRateFromConnection(connectedInfo);
+                    if (maxFlowRate > 0)
+                    {
+                        result.Add((targetInventory, connectedInfo, maxFlowRate));
+                    }
+                }
+                
+                return result;
+            }
+            
+            void ExecuteFlow(List<(IFluidInventory inventory, ConnectedInfo info, double maxFlowRate)> targetInventories)
+            {
+                if (targetInventories.Count <= 0) return;
+                
+                // 流量でソート
+                targetInventories = targetInventories.OrderBy(t => t.maxFlowRate).ToList();
+                
+                // 対象に向かって流す
+                // Instead of trying to equalize, just send up to maxFlowRate to each target
+                var totalTransferred = 0.0;
+                foreach (var target in targetInventories)
+                {
+                    if (_fluidContainer.Amount <= 0) break;
                     
-                    otherInventory.OnContainerChanged();
+                    var flowRate = Math.Min(_fluidContainer.Amount, target.maxFlowRate);
+                    if (flowRate <= 0) continue;
+                    
+                    var fluidStack = new FluidStack(flowRate, _fluidContainer.FluidId);
+                    var remain = target.inventory.AddLiquid(fluidStack, _fluidContainer);
+                    
+                    var actualTransferred = flowRate - remain.Amount;
+                    _fluidContainer.Amount -= actualTransferred;
+                    totalTransferred += actualTransferred;
+                }
+                
+                // Notify state change if we sent any fluid
+                if (totalTransferred > 0)
+                {
+                    _onChangeBlockState.OnNext(Unit.Default);
                 }
             }
             
-            FluidContainer.PreviousSourceFluidContainers.Clear();
-            if (FluidContainer.Amount <= 0) FluidContainer.FluidId = FluidMaster.EmptyFluidId;
-            
-            // ソートする
-            // 最小の流量と渡せる量のどちらか小さい方を対象のすべてに渡す
-            // 満たされた対象はリストから削除
-            // 元のコンテナから液体がなくなったら終了
-            // 全ての対象に繰り返す
+#endregion
         }
         
         public FluidPipeStateDetail GetFluidPipeStateDetail()
         {
-            var fluidId = FluidContainer.FluidId;
-            var amount = FluidContainer.Amount;
-            var capacity = FluidContainer.Capacity;
+            var fluidId = _fluidContainer.FluidId;
+            var amount = _fluidContainer.Amount;
+            var capacity = _fluidContainer.Capacity;
             return new FluidPipeStateDetail(fluidId, (float)amount, (float)capacity);
         }
         
-        private double GetMaxFlowRate(FluidContainer container, ConnectedInfo connectedInfo)
+        public List<FluidStack> GetFluidInventory()
+        {
+            var fluidStacks = new List<FluidStack>();
+            if (_fluidContainer.Amount > 0)
+            {
+                fluidStacks.Add(new FluidStack(_fluidContainer.Amount, _fluidContainer.FluidId));
+            }
+            return fluidStacks;
+        }
+        
+        /// <summary>
+        ///     2つのIFluidInventory間の最大流体搬送速度を取得する
+        ///    搬送速度は、2つのIFluidInventoryの流体搬送能力の最小値に、1ゲームアップデートの時間(秒)を乗じた値
+        /// </summary>
+        private double GetMaxFlowRateFromConnection(ConnectedInfo connectedInfo)
         {
             var selfOption = connectedInfo.SelfOption as FluidConnectOption;
             var targetOption = connectedInfo.TargetOption as FluidConnectOption;
             
             if (selfOption == null || targetOption == null) throw new ArgumentException();
             
-            var flowRate = Math.Min(selfOption.FlowCapacity, targetOption.FlowCapacity) * GameUpdater.UpdateSecondTime;
-            flowRate = Math.Min(flowRate, container.Capacity - container.Amount);
-            
-            return flowRate;
+            return Math.Min(selfOption.FlowCapacity, targetOption.FlowCapacity) * GameUpdater.UpdateSecondTime;
         }
     }
 }

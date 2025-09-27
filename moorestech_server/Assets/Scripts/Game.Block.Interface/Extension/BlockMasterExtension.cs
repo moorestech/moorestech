@@ -20,12 +20,12 @@ namespace Game.Block.Interface.Extension
                 return MasterHolder.BlockMaster.GetBlockId(up.Value);
             }
             var down = overrideBlock.DownBlockGuid;
-            if (verticalDirection is BlockVerticalDirection.Horizontal && down.HasValue && down != Guid.Empty)
+            if (verticalDirection is BlockVerticalDirection.Down && down.HasValue && down != Guid.Empty)
             {
                 return MasterHolder.BlockMaster.GetBlockId(down.Value);
             }
             var horizontal = overrideBlock.HorizontalBlockGuid;
-            if (verticalDirection is  BlockVerticalDirection.Down && horizontal.HasValue && horizontal != Guid.Empty)
+            if (verticalDirection is  BlockVerticalDirection.Horizontal && horizontal.HasValue && horizontal != Guid.Empty)
             {
                 return MasterHolder.BlockMaster.GetBlockId(horizontal.Value);
             }

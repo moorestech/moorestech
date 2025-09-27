@@ -14,7 +14,7 @@ namespace Client.Skit.Define
             var characterVoice = characterVoices.Find(x => x.CharacterKey == characterKey);
             if (characterVoice == null) return null;
             
-            var voiceInfo = characterVoice.VoiceInfos.Find(x => x.Sentence == sentence);
+            var voiceInfo = characterVoice.VoiceInfos.Find(x => sentence.Contains(x.Sentence));
             return voiceInfo?.VoiceClip;
         }
     }

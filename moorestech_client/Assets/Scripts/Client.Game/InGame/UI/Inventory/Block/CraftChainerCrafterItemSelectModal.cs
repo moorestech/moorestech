@@ -12,7 +12,6 @@ namespace Client.Game.InGame.UI.Inventory.Block.ChainerCrafter
 {
     public class CraftChainerCrafterItemSelectModal : MonoBehaviour
     {
-        [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
         [SerializeField] private RectTransform itemsParent;
         [SerializeField] private TMP_InputField countInputField;
         
@@ -20,7 +19,7 @@ namespace Client.Game.InGame.UI.Inventory.Block.ChainerCrafter
         [SerializeField] private Button cancelButton;
         [SerializeField] private Button clearButton;
         
-        private readonly List<ItemSlotObject> _itemSlotObjects = new();
+        private readonly List<ItemSlotView> _itemSlotObjects = new();
         
         private ItemId _selectedItemId;
         
@@ -32,7 +31,7 @@ namespace Client.Game.InGame.UI.Inventory.Block.ChainerCrafter
             foreach (var itemId in MasterHolder.ItemMaster.GetItemAllIds())
             {
                 var itemView = ClientContext.ItemImageContainer.GetItemView(itemId);
-                var slotObject = Instantiate(itemSlotObjectPrefab, itemsParent);
+                var slotObject = Instantiate(ItemSlotView.Prefab, itemsParent);
                 slotObject.OnLeftClickUp.Subscribe(ClickItem);
                 slotObject.SetItem(itemView, 0);
                 _itemSlotObjects.Add(slotObject);
@@ -60,10 +59,10 @@ namespace Client.Game.InGame.UI.Inventory.Block.ChainerCrafter
                 
                 foreach (var slotObject in _itemSlotObjects)
                 {
-                    slotObject.SetHotBarSelect(false);
+                    slotObject.SetHotBarSelected(false);
                     if (slotObject.ItemViewData.ItemId == currentItemId)
                     {
-                        slotObject.SetHotBarSelect(true);
+                        slotObject.SetHotBarSelected(true);
                     }
                 }
                 
@@ -98,15 +97,15 @@ namespace Client.Game.InGame.UI.Inventory.Block.ChainerCrafter
   #endregion
         }
         
-        private void ClickItem(ItemSlotObject itemSlotObject)
+        private void ClickItem(ItemSlotView itemSlotView)
         {
             foreach (var slotObject in _itemSlotObjects)
             {
-                slotObject.SetHotBarSelect(false);
+                slotObject.SetHotBarSelected(false);
             }
             
-            itemSlotObject.SetHotBarSelect(true);
-            _selectedItemId = itemSlotObject.ItemViewData.ItemId;
+            itemSlotView.SetHotBarSelected(true);
+            _selectedItemId = itemSlotView.ItemViewData.ItemId;
             
             UpdateOkButton(countInputField.text);
         }

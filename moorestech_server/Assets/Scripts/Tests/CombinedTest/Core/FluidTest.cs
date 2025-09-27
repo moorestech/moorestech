@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.Fluid;
@@ -30,7 +31,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void FluidTransportTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
@@ -43,10 +44,10 @@ namespace Tests.CombinedTest.Core
             // fluidPipeのflowCapacityは10だから3倍の量の量の液体
             const double addingAmount = 30;
             var addingStack = new FluidStack(addingAmount, FluidId);
-            fluidPipe0.FluidContainer.AddLiquid(addingStack, FluidContainer.Empty, out FluidStack? remainAmount);
+            var remainAmount = fluidPipe0.AddLiquid(addingStack, FluidContainer.Empty);
             
             // fluidPipeのcapacityは100だから溢れない
-            if (remainAmount.HasValue) Assert.Fail();
+            if (remainAmount.Amount > 0) Assert.Fail();
             
             //TODO: どこかのタイミングで仮想化する必要がある。このままだと実際にかかる時間分テストでも時間がかかる
             var startTime = DateTime.Now;
@@ -60,8 +61,8 @@ namespace Tests.CombinedTest.Core
                 if (elapsedTime.TotalSeconds > fillTime) break;
             }
             
-            Assert.AreEqual(0f, fluidPipe0.FluidContainer.Amount, 1f);
-            Assert.AreEqual(30f, fluidPipe1.FluidContainer.Amount, 1f);
+            Assert.AreEqual(0f, fluidPipe0.GetAmount(), 1f);
+            Assert.AreEqual(30f, fluidPipe1.GetAmount(), 1f);
         }
         
         /// <summary>
@@ -74,7 +75,7 @@ namespace Tests.CombinedTest.Core
             const float pipeFlowCapacity = 10f;
             var fillTime = amount / pipeFlowCapacity; // 全て搬入するのにかかる時間
             
-            new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
@@ -86,10 +87,10 @@ namespace Tests.CombinedTest.Core
             
             // fluidPipeのflowCapacityは10だから3倍の量の量の液体
             var addingStack = new FluidStack(amount, FluidId);
-            fluidPipe0.FluidContainer.AddLiquid(addingStack, FluidContainer.Empty, out FluidStack? remainAmount);
+            var remainAmount = fluidPipe0.AddLiquid(addingStack, FluidContainer.Empty);
             
             // fluidPipeのcapacityは100だから溢れない
-            if (remainAmount.HasValue) Assert.Fail();
+            if (remainAmount.Amount > 0) Assert.Fail();
             
             //TODO: どこかのタイミングで仮想化する必要がある。このままだと実際にかかる時間分テストでも時間がかかる
             var startTime = DateTime.Now;
@@ -101,14 +102,14 @@ namespace Tests.CombinedTest.Core
                 
                 // 輸送済み液体量
                 var currentTransportedAmount = (pipeFlowCapacity * elapsedTime).TotalSeconds;
-                Assert.AreEqual(amount - currentTransportedAmount, fluidPipe0.FluidContainer.Amount, 1f);
-                Assert.AreEqual(currentTransportedAmount, fluidPipe1.FluidContainer.Amount, 1f);
+                Assert.AreEqual(amount - currentTransportedAmount, fluidPipe0.GetAmount(), 1f);
+                Assert.AreEqual(currentTransportedAmount, fluidPipe1.GetAmount(), 1f);
                 
                 if (elapsedTime.TotalSeconds > fillTime) break;
             }
             
-            Assert.AreEqual(0f, fluidPipe0.FluidContainer.Amount, 1f);
-            Assert.AreEqual(30f, fluidPipe1.FluidContainer.Amount, 1f);
+            Assert.AreEqual(0f, fluidPipe0.GetAmount(), 1f);
+            Assert.AreEqual(30f, fluidPipe1.GetAmount(), 1f);
         }
         
         /// <summary>
@@ -118,7 +119,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void SetFluidPipeTest()
         {
-            new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var blockFactory = ServerContext.BlockFactory;
             
@@ -140,7 +141,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void FluidPipeConnectTest()
         {
-            new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
@@ -175,7 +176,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void FlowBlockTest()
         {
-            new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
@@ -204,9 +205,9 @@ namespace Tests.CombinedTest.Core
             // 10fは1秒間に流れる流体の量
             const double addingAmount = 10d;
             var addingStack = new FluidStack(addingAmount, FluidId);
-            fluidPipe0.FluidContainer.AddLiquid(addingStack, FluidContainer.Empty, out FluidStack? remainAmount);
+            var remainAmount = fluidPipe0.AddLiquid(addingStack, FluidContainer.Empty);
             
-            Assert.Null(remainAmount);
+            Assert.AreEqual(0, remainAmount.Amount);
             
             // fluidPipe0からoneWayFluidPipe、fluidPipe1に流れる
             // oneWayFluidPipeはfluidPipe1方向にしか流れないからfluidPipe0には流れない
@@ -220,11 +221,11 @@ namespace Tests.CombinedTest.Core
                 if (elapsedTime.TotalSeconds > 5) break;
             }
             
-            Assert.AreEqual(0, fluidPipe0.FluidContainer.Amount, 0.01d);
-            Assert.AreEqual(0, oneWayFluidPipe.FluidContainer.Amount, 0.01d);
-            Assert.AreEqual(10, fluidPipe1.FluidContainer.Amount, 0.01d);
-            Assert.AreEqual(FluidMaster.EmptyFluidId, fluidPipe0.FluidContainer.FluidId);
-            Assert.AreEqual(FluidMaster.EmptyFluidId, oneWayFluidPipe.FluidContainer.FluidId);
+            Assert.AreEqual(0, fluidPipe0.GetAmount(), 0.01d);
+            Assert.AreEqual(0, oneWayFluidPipe.GetAmount(), 0.01d);
+            Assert.AreEqual(10, fluidPipe1.GetAmount(), 0.01d);
+            Assert.AreEqual(FluidMaster.EmptyFluidId, fluidPipe0.GetFluidId());
+            Assert.AreEqual(FluidMaster.EmptyFluidId, oneWayFluidPipe.GetFluidId());
         }
         
         /// <summary>
@@ -233,7 +234,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void FluidTotalAmountTest()
         {
-            new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
@@ -249,11 +250,11 @@ namespace Tests.CombinedTest.Core
             // 10fは1秒間に流れる流体の量
             const double addingAmount = 10d;
             var addingStack = new FluidStack(addingAmount, FluidId);
-            fluidPipe0.FluidContainer.AddLiquid(addingStack, FluidContainer.Empty, out FluidStack? remainAmount);
+            var remainAmount = fluidPipe0.AddLiquid(addingStack, FluidContainer.Empty);
             
-            Assert.Null(remainAmount);
+            Assert.AreEqual(0, remainAmount.Amount);
             
-            var totalAmount = fluidPipe0.FluidContainer.Amount + fluidPipe1.FluidContainer.Amount + fluidPipe2.FluidContainer.Amount;
+            var totalAmount = fluidPipe0.GetAmount() + fluidPipe1.GetAmount() + fluidPipe2.GetAmount();
             
             // fluidPipe0からfluidPipe1に流れる
             var startTime = DateTime.Now;
@@ -265,7 +266,7 @@ namespace Tests.CombinedTest.Core
                 if (elapsedTime.TotalSeconds > 10) break;
             }
             
-            var lastTotalAmount = fluidPipe0.FluidContainer.Amount + fluidPipe1.FluidContainer.Amount + fluidPipe2.FluidContainer.Amount;
+            var lastTotalAmount = fluidPipe0.GetAmount() + fluidPipe1.GetAmount() + fluidPipe2.GetAmount();
             Assert.AreEqual(totalAmount, lastTotalAmount, 0.01d);
         }
         
@@ -273,7 +274,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void FluidSplitTest()
         {
-            new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
@@ -290,7 +291,7 @@ namespace Tests.CombinedTest.Core
             // 20fは1秒間に二つの方向へ流れる流体の量
             const double addingAmount = 20d;
             var addingStack = new FluidStack(addingAmount, FluidId);
-            fluidPipe1.FluidContainer.AddLiquid(addingStack, FluidContainer.Empty, out _);
+            fluidPipe1.AddLiquid(addingStack, FluidContainer.Empty);
             
             var startTime = DateTime.Now;
             while (true)
@@ -300,24 +301,20 @@ namespace Tests.CombinedTest.Core
                 var elapsedTime = DateTime.Now - startTime;
                 if (elapsedTime.TotalSeconds > 1) break;
             }
-            // for (var i = 0; i < 10; i++)
-            // {
-            //     GameUpdater.SpecifiedDeltaTimeUpdate(0.1);
-            // }
             
             // 0と2に流れる
-            Assert.AreEqual(10f, fluidPipe0.FluidContainer.Amount, 1d);
-            Assert.AreEqual(10f, fluidPipe2.FluidContainer.Amount, 1d);
+            Assert.AreEqual(10f, fluidPipe0.GetAmount(), 1d);
+            Assert.AreEqual(10f, fluidPipe2.GetAmount(), 1d);
             
             // 総量をテスト
-            Assert.AreEqual(20d, fluidPipe0.FluidContainer.Amount + fluidPipe1.FluidContainer.Amount + fluidPipe2.FluidContainer.Amount, 0.01d);
+            Assert.AreEqual(20d, fluidPipe0.GetAmount() + fluidPipe1.GetAmount() + fluidPipe2.GetAmount(), 0.01d);
         }
         
         // 水が跳ね返ることの確認
         [Test]
         public void FluidBounceTest()
         {
-            new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
@@ -330,7 +327,7 @@ namespace Tests.CombinedTest.Core
             // 10dは1秒間に流れる量
             const double amount = 10d;
             var addingStack = new FluidStack(amount, FluidId);
-            fluidPipe0.FluidContainer.AddLiquid(addingStack, FluidContainer.Empty, out _);
+            fluidPipe0.AddLiquid(addingStack, FluidContainer.Empty);
             
             {
                 var startTime = DateTime.Now;
@@ -344,8 +341,8 @@ namespace Tests.CombinedTest.Core
             }
             
             // fluidPipe1に全て流れたことを確認
-            Assert.AreEqual(0d, fluidPipe0.FluidContainer.Amount, 1d);
-            Assert.AreEqual(10d, fluidPipe1.FluidContainer.Amount, 1d);
+            Assert.AreEqual(0d, fluidPipe0.GetAmount(), 1d);
+            Assert.AreEqual(10d, fluidPipe1.GetAmount(), 1d);
             
             {
                 var startTime = DateTime.Now;
@@ -359,8 +356,8 @@ namespace Tests.CombinedTest.Core
             }
             
             // fluidPipe0に全て流れたことを確認
-            Assert.AreEqual(10d, fluidPipe0.FluidContainer.Amount, 1d);
-            Assert.AreEqual(0d, fluidPipe1.FluidContainer.Amount, 1d);
+            Assert.AreEqual(10d, fluidPipe0.GetAmount(), 1d);
+            Assert.AreEqual(0d, fluidPipe1.GetAmount(), 1d);
         }
         
         /// <summary>
@@ -369,7 +366,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void FluidMixTest()
         {
-            new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
@@ -387,15 +384,15 @@ namespace Tests.CombinedTest.Core
             const double fluid0Amount = 10d;
             const double fluid1Amount = 20d;
             
-            fluidPipe0.FluidContainer.AddLiquid(new FluidStack(fluid0Amount, fluid0), FluidContainer.Empty, out _);
-            fluidPipe1.FluidContainer.AddLiquid(new FluidStack(fluid1Amount, fluid1), FluidContainer.Empty, out _);
+            fluidPipe0.AddLiquid(new FluidStack(fluid0Amount, fluid0), FluidContainer.Empty);
+            fluidPipe1.AddLiquid(new FluidStack(fluid1Amount, fluid1), FluidContainer.Empty);
             
             for (var i = 0; i < 10; i++)
             {
                 GameUpdater.SpecifiedDeltaTimeUpdate(0.1);
                 
-                Assert.AreEqual(fluid0Amount, fluidPipe0.FluidContainer.Amount);
-                Assert.AreEqual(fluid1Amount, fluidPipe1.FluidContainer.Amount);
+                Assert.AreEqual(fluid0Amount, fluidPipe0.GetAmount());
+                Assert.AreEqual(fluid1Amount, fluidPipe1.GetAmount());
             }
         }
         
@@ -405,7 +402,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void FluidMasterTest()
         {
-            new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var fluidMaster = MasterHolder.FluidMaster;
             
@@ -421,7 +418,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void FluidPipeNetworkTest()
         {
-            new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
@@ -437,8 +434,8 @@ namespace Tests.CombinedTest.Core
             const double fluid0Amount = 10d;
             const double fluid1Amount = 20d;
             
-            fluidPipe0.FluidContainer.AddLiquid(new FluidStack(fluid0Amount, fluid), FluidContainer.Empty, out _);
-            fluidPipe1.FluidContainer.AddLiquid(new FluidStack(fluid1Amount, fluid), FluidContainer.Empty, out _);
+            fluidPipe0.AddLiquid(new FluidStack(fluid0Amount, fluid), FluidContainer.Empty);
+            fluidPipe1.AddLiquid(new FluidStack(fluid1Amount, fluid), FluidContainer.Empty);
             
             var callCount = 0;
             
@@ -453,7 +450,30 @@ namespace Tests.CombinedTest.Core
             
             for (var i = 0; i < steps; i++) GameUpdater.SpecifiedDeltaTimeUpdate(0.1);
             
-            Assert.AreEqual(steps, callCount);
+            // First update: no fluid movement (both pipes have receive flag from initial AddLiquid)
+            // Updates 2-10: both pipes change state (sender and receiver)
+            // Total: 0 + 9*2 = 18 state changes
+            Assert.AreEqual(18, callCount);
         }
+    }
+    
+    public static class FluidPipeExtension
+    {
+        public static FluidContainer GetFluidContainer(this FluidPipeComponent fluidPipe){
+            // リフレクションでFluidContainerを取得する
+            var field = typeof(FluidPipeComponent).GetField("_fluidContainer", BindingFlags.NonPublic | BindingFlags.Instance);
+            return (FluidContainer)field.GetValue(fluidPipe);
+        }
+
+        
+        public static double GetAmount(this FluidPipeComponent fluidPipe){
+            return fluidPipe.GetFluidContainer().Amount;
+        }
+        
+        public static FluidId GetFluidId(this FluidPipeComponent fluidPipe)
+        {
+            return fluidPipe.GetFluidContainer().FluidId;
+        }
+        
     }
 }

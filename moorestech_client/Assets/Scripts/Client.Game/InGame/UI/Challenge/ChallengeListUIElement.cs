@@ -17,7 +17,7 @@ namespace Client.Game.InGame.UI.Challenge
         public ChallengeListUIElementState CurrentState { get; private set; }
         
         [SerializeField] private RectTransform rectTransform;
-        [SerializeField] private ItemSlotObject itemSlotObject;
+        [SerializeField] private ItemSlotView itemSlotView;
         [SerializeField] private RectTransform connectLinePrefab;
         [SerializeField] private GameObject currentObject;
         [SerializeField] private GameObject completedObject;
@@ -52,10 +52,10 @@ namespace Client.Game.InGame.UI.Challenge
                 // Icon specification
                 if (param.IconItem != null)
                 {
-                    var itemView = ClientContext.ItemImageContainer.GetItemView(param.IconItem.Value);
-                    itemSlotObject.SetItem(itemView, 0);
+                    var itemView = ClientContext.ItemImageContainer.GetItemView(param.IconItem);
+                    itemSlotView.SetItem(itemView, 0);
                 }
-                itemSlotObject.SetItemSlotObjectOption(new ItemSlotObjectBehaviourOption
+                itemSlotView.SetSlotViewOption(new CommonSlotViewOption
                 {
                     IsShowToolTip = false,
                 });
@@ -194,13 +194,5 @@ namespace Client.Game.InGame.UI.Challenge
             
             _connectLines.Clear();
         }
-    }
-    
-    public enum ChallengeListUIElementState
-    {
-        Before,
-        Current,
-        Completed,
-        Locked,
     }
 }

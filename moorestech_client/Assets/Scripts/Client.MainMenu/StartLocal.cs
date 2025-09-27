@@ -34,8 +34,7 @@ namespace Client.MainMenu
             SceneManager.sceneLoaded -= OnMainGameSceneLoaded;
             var starter = FindObjectOfType<InitializeScenePipeline>();
             
-            starter.SetProperty(new InitializeProprieties(
-                true, _serverProcess,
+            starter.SetProperty(new InitializeProprieties(_serverProcess,
                 ServerConst.LocalServerIp,
                 ServerConst.LocalServerPort,
                 PlayerPrefs.GetInt(PlayerPrefsKeys.PlayerIdKey)));

@@ -48,10 +48,14 @@ namespace Server.Event.EventReceive
     [MessagePackObject]
     public class OpenableBlockInventoryUpdateEventMessagePack
     {
+        [Key(0)] public Vector3IntMessagePack Position { get; set; }
+        [Key(1)] public int Slot { get; set; }
+        [Key(2)] public ItemMessagePack Item { get; set; }
+        
+        
+        
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public OpenableBlockInventoryUpdateEventMessagePack()
-        {
-        }
+        public OpenableBlockInventoryUpdateEventMessagePack() { }
         
         public OpenableBlockInventoryUpdateEventMessagePack(Vector3Int pos, int slot, IItemStack item)
         {
@@ -59,11 +63,5 @@ namespace Server.Event.EventReceive
             Slot = slot;
             Item = new ItemMessagePack(item.Id, item.Count);
         }
-        
-        [Key(0)] public Vector3IntMessagePack Position { get; set; }
-        
-        [Key(1)] public int Slot { get; set; }
-        
-        [Key(2)] public ItemMessagePack Item { get; set; }
     }
 }

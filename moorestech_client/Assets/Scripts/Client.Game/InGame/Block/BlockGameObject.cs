@@ -9,7 +9,9 @@ using Client.Game.InGame.Context;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
+using MessagePack;
 using Mooresmaster.Model.BlocksModule;
+using Server.Event.EventReceive;
 using UniRx;
 using UnityEngine;
 using UnityEngine.VFX;
@@ -29,9 +31,10 @@ namespace Client.Game.InGame.Block
         private BlockShaderAnimation _blockShaderAnimation;
         private RendererMaterialReplacerController _rendererMaterialReplacerController;
         private List<VisualEffect> _visualEffects = new();
-        private List<PreviewOnlyObject> _previewOnlyObjects = new();
+        private List<IPreviewOnlyObject> _previewOnlyObjects = new();
         private const string PreviewBoundingBoxAddressablePath = "Vanilla/Block/Util/BlockPreviewBoundingBox";
         
+        private BlockStateMessagePack _blockStateMessagePack;
         private bool _isShaderAnimating;
         
         public void Initialize(BlockMasterElement blockMasterElement, BlockPositionInfo posInfo)
@@ -54,20 +57,54 @@ namespace Client.Game.InGame.Block
                 groundCollisionDetector.enabled = false;
             }
             
+            // BlockStateChangeProcessorsの初期化
+            foreach (var state in BlockStateChangeProcessors) state.Initialize(this);
+            
             // プレビュー限定オブジェクトをオフに
             // Turn off preview-only object
-            _previewOnlyObjects = gameObject.GetComponentsInChildren<PreviewOnlyObject>(true).ToList();
-            _previewOnlyObjects.ForEach(obj =>
-            {
-                obj.Initialize();
-                obj.SetActive(false);
-            });
+            OffPreviewOnlyObjectsActive();
             
-            LoadBoundingBox().Forget();
+            // ブロックのステート変化を購読
+            // Subscribe to block state changes
+            SubscribeBlockState();
             
             // バウンディングボックス用オブジェクトを作成
             // Create a bounding box object
+            LoadBoundingBox().Forget();
+            
             #region Internal
+            
+            void OffPreviewOnlyObjectsActive()
+            {
+                _previewOnlyObjects = gameObject.GetComponentsInChildren<IPreviewOnlyObject>(true).ToList();
+                _previewOnlyObjects.ForEach(obj =>
+                {
+                    obj.Initialize(BlockId);
+                    obj.SetActive(false);
+                });
+            }
+            
+            void SubscribeBlockState()
+            {
+                var eventTag = ChangeBlockStateEventPacket.CreateSpecifiedBlockEventTag(posInfo);
+                ClientContext.VanillaApi.Event.SubscribeEventResponse(eventTag,
+                    payload =>
+                    {
+                        var data = MessagePackSerializer.Deserialize<BlockStateMessagePack>(payload);
+                        if (data.Position != BlockPosInfo.OriginalPos) return;
+                        
+                        foreach (var processor in BlockStateChangeProcessors)
+                        {
+                            processor.OnChangeState(data);
+                        }
+                        
+                        _blockStateMessagePack = data;
+                    }).AddTo(this.GetCancellationTokenOnDestroy());
+                
+                // ブロックの初期状態を取得するためにサーバーに問い合わせる
+                // Request the server for the initial block state
+                ClientContext.VanillaApi.SendOnly.InvokeBlockState(BlockPosInfo.OriginalPos);
+            }
             
             async UniTask LoadBoundingBox()
             {
@@ -76,7 +113,7 @@ namespace Client.Game.InGame.Block
                 previewBoundingBoxObj.GetComponent<BlockPreviewBoundingBox>().SetBoundingBox(blockMasterElement.BlockSize, posInfo.BlockDirection);
                 
                 var previewOnlyObject = previewBoundingBoxObj.GetComponent<PreviewOnlyObject>();
-                previewOnlyObject.Initialize();
+                previewOnlyObject.Initialize(BlockId);
                 previewOnlyObject.SetActive(false);
                 _previewOnlyObjects.Add(previewOnlyObject);
             }
@@ -126,6 +163,11 @@ namespace Client.Game.InGame.Block
             await _blockShaderAnimation.RemoveAnimation();
             Destroy(gameObject);
         }
+        
+        public TBlockState GetStateDetail<TBlockState>(string stateKey)
+        {
+            return _blockStateMessagePack == null ? default : _blockStateMessagePack.GetStateDetail<TBlockState>(stateKey);
+        } 
         
         private void SetVfxActive(bool isActive)
         {

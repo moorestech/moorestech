@@ -34,7 +34,6 @@ namespace Client.Game.InGame.UI.Challenge
             
             // チャレンジUIの作成
             // Create challenge UI
-            CreateChallenges();
             
             // チャレンジの初期状態を設定
             // Set the initial state of the challenge
@@ -48,72 +47,8 @@ namespace Client.Game.InGame.UI.Challenge
             
             #region Internal
             
-            void CreateChallenges()
-            {
-                foreach (var challenge in MasterHolder.ChallengeMaster.ChallengeMasterElements)
-                {
-                    var guid = challenge.ChallengeGuid;
-                    var challengeListUIElement = Instantiate(challengeListUIElementPrefab, challengeListParent);
-                    challengeListUIElement.Initialize(challenge);
-                    
-                    _challengeListUIElements.Add(guid, challengeListUIElement);
-
-                    // アンロック状態に基づいて初期表示を設定
-                    // Set initial visibility based on unlock state
-                    var isUnlocked = _gameUnlockStateData.ChallengeUnlockStateInfos.TryGetValue(guid, out var state) && state.IsUnlocked;
-                    var uiState = isUnlocked ? ChallengeListUIElementState.Before : ChallengeListUIElementState.Locked;
-                    challengeListUIElement.SetStatus(uiState);
-                }
-                
-                foreach (var challengeListUIElement in _challengeListUIElements.Values)
-                {
-                    challengeListUIElement.CreateConnect(connectLineParent, _challengeListUIElements);
-                }
-            }
-            
             void SetInitialChallengeState()
             {
-                // 挑戦中と完了したチャレンジの状態を設定
-                // Set the status of the challenges in progress and completed
-                var currentOrCompleted = new HashSet<Guid>();
-                foreach (var currentChallenge in initial.Challenge.CurrentChallenges)
-                {
-                    if (_challengeListUIElements.TryGetValue(currentChallenge.ChallengeGuid, out var challengeListUIElement))
-                    {
-                        challengeListUIElement.SetStatus(ChallengeListUIElementState.Current);
-                        currentOrCompleted.Add(currentChallenge.ChallengeGuid);
-                    }
-                }
-                foreach (var completedChallenge in initial.Challenge.CompletedChallenges)
-                {
-                    if (_challengeListUIElements.TryGetValue(completedChallenge.ChallengeGuid, out var challengeListUIElement))
-                    {
-                        challengeListUIElement.SetStatus(ChallengeListUIElementState.Completed);
-                        currentOrCompleted.Add(completedChallenge.ChallengeGuid);
-                    }
-                }
-                
-                // 挑戦前の状態を設定
-                foreach (var challengeListUIElement in _challengeListUIElements.Values)
-                {
-                    var guid = challengeListUIElement.ChallengeMasterElement.ChallengeGuid;
-                    var isUnlocked = _gameUnlockStateData.ChallengeUnlockStateInfos.TryGetValue(guid, out var state) && state.IsUnlocked;
-                    
-                    ChallengeListUIElementState? uiState = isUnlocked switch
-                    {
-                        // アンロックされていて、かつ挑戦中でも完了済みでもない場合のみBefore状態にする
-                        // Set to Before state only if unlocked AND not current or completed
-                        true when !currentOrCompleted.Contains(guid) => ChallengeListUIElementState.Before,
-                        // アンロックされていない場合は Locked 状態のまま
-                        // If not unlocked, remain in Locked state
-                        false => ChallengeListUIElementState.Locked,
-                        _ => null,
-                    };
-                    if (uiState.HasValue)
-                    {
-                        challengeListUIElement.SetStatus(uiState.Value);
-                    }
-                }
             }
             
             void SetScrollContentRectTransform()
@@ -196,20 +131,6 @@ namespace Client.Game.InGame.UI.Challenge
         
         public void UpdateUnlockState()
         {
-            // アンロック状態を更新
-            // Update unlock state
-            foreach (var ui in _challengeListUIElements.Values)
-            {
-                var guid = ui.ChallengeMasterElement.ChallengeGuid;
-                var isUnlocked = _gameUnlockStateData.ChallengeUnlockStateInfos.TryGetValue(guid, out var state) && state.IsUnlocked;
-                
-                if (ui.CurrentState == ChallengeListUIElementState.Locked && isUnlocked)
-                {
-                    // アンロックされた場合、状態をBeforeに変更
-                    // If unlocked, change state to Before
-                    ui.SetStatus(ChallengeListUIElementState.Before);
-                }
-            }
         }
     }
 }

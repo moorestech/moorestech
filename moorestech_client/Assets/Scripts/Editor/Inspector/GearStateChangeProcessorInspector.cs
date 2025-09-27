@@ -85,14 +85,14 @@ public class GearStateChangeProcessorInspector : Editor
             // 現在の状態を表示
             // Display the current state
             EditorGUILayout.LabelField("Current Gear State", EditorStyles.boldLabel);
-            if (processor.CurrentGearState == null)
+            if (processor.DebugCurrentGearState == null)
             {
                 EditorGUILayout.LabelField("State data is null");
             }
             else
             {
-                EditorGUILayout.LabelField($"RPM: {processor.CurrentGearState.CurrentRpm}");
-                EditorGUILayout.LabelField($"Is Clockwise: {processor.CurrentGearState.IsClockwise}");
+                EditorGUILayout.LabelField($"RPM: {processor.DebugCurrentGearState.CurrentRpm}");
+                EditorGUILayout.LabelField($"Is Clockwise: {processor.DebugCurrentGearState.IsClockwise}");
             }
         }
         

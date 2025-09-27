@@ -1,6 +1,7 @@
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.ProgressBar;
 using Client.Input;
+using Common.Debug;
 using Mooresmaster.Model.MapObjectsModule;
 
 namespace Client.Game.InGame.Mining
@@ -11,12 +12,12 @@ namespace Client.Game.InGame.Mining
         
         private float _currentMiningProgressTime;
         
-        public MapObjectMiningMiningState(MiningToolsElement miningToolsElement, IPlayerObjectController playerObjectController)
+        public MapObjectMiningMiningState(MiningToolsElement miningToolsElement)
         {
             _miningToolsElement = miningToolsElement;
             _currentMiningProgressTime = 0;
             
-            playerObjectController.SetAnimationState(PlayerAnimationState.Axe);
+            PlayerSystemContainer.Instance.PlayerObjectController.SetAnimationState(PlayerAnimationState.Axe);
             ProgressBarView.Instance.Show();
         }
         
@@ -26,7 +27,7 @@ namespace Client.Game.InGame.Mining
             var next = GetNextUpdateInternal(context, dt);
             if (next != this)
             {
-                context.PlayerObjectController.SetAnimationState(PlayerAnimationState.IdleWalkRunBlend);
+                PlayerSystemContainer.Instance.PlayerObjectController.SetAnimationState(PlayerAnimationState.IdleWalkRunBlend);
                 ProgressBarView.Instance.Hide();
             }
             return next;
@@ -46,6 +47,13 @@ namespace Client.Game.InGame.Mining
             if (!InputManager.Playable.ScreenLeftClick.GetKey)
             {
                 return new MapObjectMiningFocusState();
+            }
+            
+            // デバッグ用で高速マイニングする
+            // For debugging, mine super fast
+            if (DebugParameters.GetValueOrDefaultBool(DebugConst.MapObjectSuperMineKey))
+            {
+                dt *= 1000;
             }
             
             _currentMiningProgressTime += dt;

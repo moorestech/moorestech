@@ -8,14 +8,8 @@ namespace Client.Game.InGame.Presenter.Player
 {
     public class PlayerPositionSender : ITickable
     {
-        private readonly IPlayerObjectController _playerObjectController;
-        
         private float _timer;
         
-        public PlayerPositionSender(IPlayerObjectController playerObjectController)
-        {
-            _playerObjectController = playerObjectController;
-        }
         
         /// <summary>
         ///     Updateと同じタイミングで呼ばれる
@@ -25,7 +19,9 @@ namespace Client.Game.InGame.Presenter.Player
             _timer += Time.deltaTime;
             if (_timer < NetworkConst.UpdateIntervalSeconds) return;
             _timer = 0;
-            ClientContext.VanillaApi.SendOnly.SendPlayerPosition(_playerObjectController.Position);
+            
+            var playerObjectController = PlayerSystemContainer.Instance.PlayerObjectController;
+            ClientContext.VanillaApi.SendOnly.SendPlayerPosition(playerObjectController.Position);
         }
     }
 }

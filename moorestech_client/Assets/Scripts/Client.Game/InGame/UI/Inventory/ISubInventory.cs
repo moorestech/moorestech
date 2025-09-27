@@ -10,7 +10,12 @@ namespace Client.Game.InGame.UI.Inventory
         public List<IItemStack> SubInventory { get; }
         public int Count { get; }
         public ItemMoveInventoryInfo ItemMoveInventoryInfo { get; }
-        public IReadOnlyList<ItemSlotObject> SubInventorySlotObjects { get; }
+        public IReadOnlyList<ItemSlotView> SubInventorySlotObjects { get; }
+    }
+    
+    public static class ISubInventoryExtension
+    {
+        public static bool IsEnableSubInventory(this ISubInventory subInventory) => subInventory.Count > 0;
     }
     
     public class EmptySubInventory : ISubInventory
@@ -18,12 +23,12 @@ namespace Client.Game.InGame.UI.Inventory
         public EmptySubInventory()
         {
             Count = 0;
-            SubInventorySlotObjects = new List<ItemSlotObject>();
+            SubInventorySlotObjects = new List<ItemSlotView>();
             SubInventory = new List<IItemStack>();
             ItemMoveInventoryInfo = null;
         }
         
-        public IReadOnlyList<ItemSlotObject> SubInventorySlotObjects { get; }
+        public IReadOnlyList<ItemSlotView> SubInventorySlotObjects { get; }
         public List<IItemStack> SubInventory { get; }
         public int Count { get; }
         public ItemMoveInventoryInfo ItemMoveInventoryInfo { get; }

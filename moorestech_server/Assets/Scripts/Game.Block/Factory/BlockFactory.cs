@@ -31,8 +31,15 @@ namespace Game.Block.Factory
             var dictionary = _vanillaIBlockTemplates.BlockTypesDictionary;
             
             var blockElement = MasterHolder.BlockMaster.GetBlockMaster(blockGuid);
-            if (dictionary.TryGetValue(blockElement.BlockType, out var value))
-                return value.Load(state, blockElement, blockInstanceId, blockPositionInfo);
+            try
+            {
+                if (dictionary.TryGetValue(blockElement.BlockType, out var value))
+                    return value.Load(state, blockElement, blockInstanceId, blockPositionInfo);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Block Load Error name:{blockElement.Name} guid:{blockElement.BlockGuid} \n Message:{e.Message} \nStackTrace:{e.StackTrace}", e);
+            }
             
             throw new Exception("Block type not found :" + blockElement.BlockType);
         }

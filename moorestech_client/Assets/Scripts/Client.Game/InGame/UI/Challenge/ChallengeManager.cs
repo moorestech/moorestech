@@ -20,25 +20,25 @@ namespace Client.Game.InGame.UI.Challenge
         [SerializeField] private CurrentChallengeHudView currentChallengeHudView;
         [SerializeField] private BackgroundSkitManager backgroundSkitManager;
         
-        [SerializeField] private List<ChallengeTextAsset> challengeTextAssets;
-        
         [Inject] private TutorialManager _tutorialManager;
+        private ChallengeListView _challengeListView;
         
         [Inject]
-        public void Construct(InitialHandshakeResponse initialHandshakeResponse)
+        public void Construct(ChallengeListView challengeListView, InitialHandshakeResponse initialHandshakeResponse)
         {
-            //TODO 複数のチャレンジを表示する
-            if (initialHandshakeResponse.Challenge.CurrentChallenges.Count != 0)
+            foreach (var challengeCategory in initialHandshakeResponse.Challenges)
             {
-                var currentChallenges = initialHandshakeResponse.Challenge.CurrentChallenges;
-                currentChallengeHudView.SetCurrentChallenge(currentChallenges);
-                
-                ClientContext.VanillaApi.Event.SubscribeEventResponse(CompletedChallengeEventPacket.EventTag, OnCompletedChallenge);
-                
                 // チュートリアルの適用
                 // Apply tutorial
-                initialHandshakeResponse.Challenge.CurrentChallenges.ForEach(c => _tutorialManager.ApplyTutorial(c.ChallengeGuid));
+                challengeCategory.CurrentChallenges.ForEach(c => _tutorialManager.ApplyTutorial(c.ChallengeGuid));
             }
+            
+            var currentChallenges = initialHandshakeResponse.Challenges.SelectMany(c => c.CurrentChallenges).ToList();
+            currentChallengeHudView.SetCurrentChallenge(currentChallenges);
+            _challengeListView = challengeListView;
+            _challengeListView.SetUI(initialHandshakeResponse.Challenges);
+            
+            ClientContext.VanillaApi.Event.SubscribeEventResponse(CompletedChallengeEventPacket.EventTag, OnCompletedChallenge);
         }
         
         private void OnCompletedChallenge(byte[] packet)
@@ -46,45 +46,35 @@ namespace Client.Game.InGame.UI.Challenge
             var message = MessagePackSerializer.Deserialize<CompletedChallengeEventMessagePack>(packet);
             var nextChallenges = message.NextChallengeGuids.Select(c => MasterHolder.ChallengeMaster.GetChallenge(c)).ToList();
             
+            // チャレンジリストを更新
+            _challengeListView.UpdateUI(message.ChallengeCategories);
+            
             // チュートリアルを完了
             _tutorialManager.CompleteChallenge(message.CompletedChallengeGuid);
             
-            // スキットの再生
-            // Play background skit
-            PlaySkit(nextChallenges).Forget();
+            // 完了したチャレンジのアニメーションを再生してから次のチャレンジを表示
+            ProcessChallengeCompletion(message.CompletedChallengeGuid, nextChallenges).Forget();
             
-            // チャレンジのテキストの更新 TODO 複数のチャレンジに対応させる
-            // Update challenge text TODO Correspond to multiple challenges
-            if (nextChallenges.Count != 0)
-            {
-                currentChallengeHudView.SetCurrentChallenge(nextChallenges);
-            }
+            #region Internal
             
-            // チュートリアルの適用
-            // Apply tutorial
-            nextChallenges.ForEach(id => _tutorialManager.ApplyTutorial(id.ChallengeGuid));
-        }
-        
-        private async UniTask PlaySkit(List<ChallengeMasterElement> nextChallenges)
-        {
-            foreach (var challenge in nextChallenges)
+            async UniTask ProcessChallengeCompletion(Guid completedChallengeGuid, List<ChallengeMasterElement> nextList)
             {
-                if (challenge.PlaySkitType == "BackgroundSkit") // TODO いい感じの位置に置きたい
+                // チャレンジのテキストの更新
+                // Update challenge text
+                if (nextList.Count != 0)
                 {
-                    var skitParam = (BackgroundSkitPlaySkitParam) challenge.PlaySkitParam;
-                    var challengeTextAsset = challengeTextAssets.FirstOrDefault(x => x.SkitName == skitParam.FireSkitName);
-                    if (challengeTextAsset == null) continue;
-                    
-                    await backgroundSkitManager.StartBackgroundSkit(challengeTextAsset.TextAsset);
+                    currentChallengeHudView.SetCurrentChallenge(nextList);
                 }
+                
+                // チュートリアルの適用
+                // Apply tutorial
+                nextList.ForEach(id => _tutorialManager.ApplyTutorial(id.ChallengeGuid));
+                
+                // 完了したチャレンジのアニメーションを再生
+                await currentChallengeHudView.OnChallengeCompleted(completedChallengeGuid);
             }
+            
+            #endregion
         }
-    }
-    
-    [Serializable]
-    public class ChallengeTextAsset
-    {
-        public string SkitName;
-        public TextAsset TextAsset;
     }
 }
