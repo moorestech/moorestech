@@ -3907,12 +3907,12 @@
       "blockType": "ElectricMachine",
       "itemGuid": "1eb89d18-53d1-4d8c-86b2-3b63a9880e1b",
       "blockSize": [
-        1,
-        1,
-        1
+        7,
+        3,
+        6
       ],
       "blockPrefabAddressablesPath": "Vanilla/Block/Electronic_component_manufacturing_equipment",
-      "blockUIAddressablesPath": "",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
       "overrideVerticalBlock": {
         "upBlockGuid": "",
         "horizontalBlockGuid": "",
@@ -3921,6 +3921,106 @@
       "enableConveyorPlacement": false,
       "blockParam": {
         "requiredPower": 50,
+        "inputSlotCount": 3,
+        "outputSlotCount": 3,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                1,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            },
+            {
+              "connectType": "Inventory",
+              "offset": [
+                3,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ]
+            },
+            {
+              "connectType": "Inventory",
+              "offset": [
+                5,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ]
+            }
+          ],
+          "outputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                3,
+                0,
+                5
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ]
+            }
+          ]
+        },
+        "inputTankCount": 0,
+        "outputTankCount": 0,
+        "innerTankCapacity": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        }
+      }
+    },
+    {
+      "blockGuid": "8a076155-a863-40b2-a65e-d6584ec2e395",
+      "name": "アーク炉",
+      "blockType": "ElectricMachine",
+      "itemGuid": "d30f78dd-536d-4d23-a09e-30f9770ca096",
+      "blockSize": [
+        5,
+        3,
+        6
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Arc_furnace",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "requiredPower": 100,
         "inputSlotCount": 3,
         "outputSlotCount": 3,
         "inventoryConnectors": {
