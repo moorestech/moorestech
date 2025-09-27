@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "env": {
+    "MCP_TOOL_TIMEOUT": "1000000",
+    "BASH_DEFAULT_TIMEOUT_MS": "7200000",
+    "BASH_MAX_TIMEOUT_MS": "7200000"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(grep:*)",
+      "Bash(ls:*)",
+      "Bash(touch:*)",
+      "Bash(./unity-compile.sh:*)",
+      "Bash(rm:*)",
+      "Bash(sed:*)",
+      "Bash(./unity-test.sh:*)",
+      "Bash(find:*)",
+      "Bash(mkdir:*)",
+      "Bash(mv:*)",
+      "Bash(rg:*)",
+      "mcp__moorestec_client__RefreshAssets",
+      "mcp__moorestec_client__GetCompileLogs",
+      "mcp__moorestech_server__RefreshAssets",
+      "mcp__moorestech_server__GetCompileLogs",
+      "mcp__moorestech_server__RunEditModeTests",
+      "mcp__moorestech_server__ClearConsoleLogs",
+      "mcp__unityMCP__compile_and_reload",
+      "mcp__moorestec_client__ClearConsoleLogs",
+      "mcp__moorestec_client__GetCurrentConsoleLogs",
+      "mcp__moorestech_client__RefreshAssets",
+      "mcp__moorestech_client__GetCompileLogs",
+      "mcp__moorestech_client__GetCurrentConsoleLogs",
+      "mcp__moorestech_server__GetCurrentConsoleLogs",
+      "WebFetch(domain:github.com)",
+      "mcp__moorestech_client__ClearConsoleLogs",
+      "Bash(cat:*)",
+      "Bash(gemini:*)",
+      "mcp__moorestech_client__RunPlayModeTests",
+      "mcp__serena__check_onboarding_performed",
+      "mcp__serena__onboarding",
+      "mcp__serena__list_dir",
+      "mcp__serena__find_file",
+      "mcp__serena__write_memory",
+      "mcp__moorestech_client__RunEditModeTests",
+      "Bash(./tools/unity-test.sh:*)",
+      "mcp__serena__search_for_pattern",
+      "mcp__serena__find_symbol",
+      "mcp__serena__get_symbols_overview"
+    ],
+    "deny": []
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "moorestech_server",
+    "moorestech_client"
+  ],
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "afplay /System/Library/Sounds/Hero.aiff"
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "node ./.claude/statusline.js"
+  }
+}

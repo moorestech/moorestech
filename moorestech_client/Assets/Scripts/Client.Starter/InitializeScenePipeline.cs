@@ -1,20 +1,23 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Client.Common;
 using Client.Common.Asset;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.UI.Inventory.Common;
 using Client.Mod.Texture;
 using Client.Network;
 using Client.Network.API;
 using Client.Network.Settings;
-using Common.Debug;
 using Core.Master;
 using Cysharp.Threading.Tasks;
+using Game.Context;
 using Server.Boot;
+using Server.Boot.Args;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -37,7 +40,11 @@ namespace Client.Starter
         [SerializeField] private TMP_Text loadingLog;
         [SerializeField] private Button backToMainMenuButton;
         
-        private InitializeProprieties _proprieties;
+        private InitializeProprieties _proprieties = InitializeProprieties.CreateDefault();
+        public void SetProperty(InitializeProprieties proprieties)
+        {
+            _proprieties = proprieties;
+        }
         
         private void Awake()
         {
@@ -46,12 +53,14 @@ namespace Client.Starter
         
         private void Start()
         {
-            var serverDirectory = ServerDirectory.GetDirectory();
-            Initialize(serverDirectory).Forget();
+            Initialize().Forget();
         }
         
-        private async UniTask Initialize(string serverDirectory)
+        private async UniTask Initialize()
         {
+            var args = CliConvert.Parse<StartServerSettings>(_proprieties.CreateLocalServerArgs);
+            var serverDirectory = args.ServerDataDirectory;
+            
             var loadingStopwatch = new Stopwatch();
             loadingStopwatch.Start();
             
@@ -63,11 +72,14 @@ namespace Client.Starter
             var handle = await AddressableLoader.LoadAsync<GameObject>("Vanilla/UI/Block/ChestBlockInventory");
             handle.Dispose();
             
-            
-            _proprieties ??= new InitializeProprieties(false, null, ServerConst.LocalServerIp, ServerConst.LocalServerPort, ServerConst.DefaultPlayerId);
+            _proprieties ??= InitializeProprieties.CreateDefault();
             
             // DIコンテナによるServerContextの作成
-            new MoorestechServerDIContainerGenerator().Create(serverDirectory);
+            if (!ServerContext.IsInitialized)
+            {
+                var options = new MoorestechServerDIContainerOptions(serverDirectory);
+                new MoorestechServerDIContainerGenerator().Create(options);
+            }
             
             //Vanilla APIのロードに必要なものを作成
             var playerConnectionSetting = new PlayerConnectionSetting(_proprieties.PlayerId);
@@ -76,24 +88,25 @@ namespace Client.Starter
             //セットされる変数
             BlockGameObjectContainer blockGameObjectContainer = null;
             ItemImageContainer itemImageContainer = null;
+            FluidImageContainer fluidImageContainer = null;
             AsyncOperation sceneLoadTask = null;
             InitialHandshakeResponse handshakeResponse = null;
             
             //各種ロードを並列実行
             try
             {
-                await UniTask.WhenAll(CreateAndStartVanillaApi(), LoadBlockAndItemAssets(), MainGameSceneLoad());
+                await UniTask.WhenAll(CreateAndStartVanillaApi(), LoadModAssets(), MainGameSceneLoad(), LoadStaticAsset());
             }
             catch (Exception e)
             {
-                Debug.LogError($"初期化処理中にエラーが発生しました: {e.Message}\n{e.StackTrace}");
+                Debug.LogError($"初期化処理中にエラーが発生しました: {e.GetType()} {e.Message}\n{e.StackTrace}");
                 // 初期化に失敗した場合はメインメニューへ戻る
                 SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
                 return;
             }
             
             //staticアクセスできるコンテキストの作成
-            var clientContext = new ClientContext(blockGameObjectContainer, itemImageContainer, playerConnectionSetting, vanillaApi);
+            var clientContext = new ClientContext(blockGameObjectContainer, itemImageContainer, fluidImageContainer , playerConnectionSetting, vanillaApi);
             
             //シーンに遷移し、初期データを渡す
             SceneManager.sceneLoaded += MainGameSceneLoaded;
@@ -135,38 +148,51 @@ namespace Client.Starter
             
             async UniTask<ServerCommunicator> ConnectionToServer()
             {
-                var serverConfig = new ConnectionServerConfig(_proprieties.ServerIp, _proprieties.ServerPort);
+                var serverProperties = new ConnectionServerProperties(_proprieties.ServerIp, _proprieties.ServerPort);
+                var timeOut = TimeSpan.FromSeconds(3);
                 try
                 {
                     // 10秒以内にサーバー接続できなければタイムアウト
-                    var serverCommunicator = await ServerCommunicator.CreateConnectedInstance(serverConfig)
-                        .Timeout(TimeSpan.FromSeconds(10));
+                    var serverCommunicator = await ServerCommunicator.CreateConnectedInstance(serverProperties).Timeout(timeOut);
                     
                     Debug.Log("接続完了");
                     return serverCommunicator;
                 }
-                catch (TimeoutException)
+                catch (SocketException)
                 {
-                    Debug.LogError("サーバーへの接続がタイムアウトしました");
-                    loadingLog.text += "\nサーバーへの接続がタイムアウトしました。メインメニューに戻ります。";
-                    await UniTask.Delay(2000);
-                    SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
-                    throw; // 再度スローして後続処理中断
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError($"サーバーへの接続に失敗しました: {e.Message}");
-                    loadingLog.text += "\nサーバーへの接続に失敗しました。メインメニューに戻ります。";
-                    await UniTask.Delay(2000);
-                    SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
-                    throw;
+                    loadingLog.text += "\nサーバーの接続が失敗しました。サーバーを起動します。";
+                    try
+                    {
+                        var serverInstanceGameObject = new GameObject("ServerInstance");
+                        var serverStarter = serverInstanceGameObject.AddComponent<ServerStarter>();
+                        if (_proprieties.CreateLocalServerArgs != null)
+                        {
+                            serverStarter.SetArgs(_proprieties.CreateLocalServerArgs);
+                        }
+                        DontDestroyOnLoad(serverInstanceGameObject);
+                        
+                        await UniTask.Delay(1000);
+                        
+                        var serverCommunicator = await ServerCommunicator.CreateConnectedInstance(serverProperties).Timeout(timeOut);
+                        
+                        Debug.Log("接続完了");
+                        return serverCommunicator;
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogError($"サーバーへの接続に失敗しました: {e.Message}");
+                        loadingLog.text += "\nサーバーへの接続に失敗しました。メインメニューに戻ります。";
+                        await UniTask.Delay(2000);
+                        SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
+                        throw;
+                    }
                 }
             }
             
-            async UniTask LoadBlockAndItemAssets()
+            async UniTask LoadModAssets()
             {
                 // ブロックとアイテムのアセットをロード
-                await UniTask.WhenAll(LoadBlockAssets(), LoadItemAssets());
+                await UniTask.WhenAll(LoadBlockAssets(), LoadItemAssets(), LoadFluidAssets());
                 
                 // アイテム画像がロードされていないブロックのアイテム画像をロードする
                 await TakeBlockItemImage();
@@ -188,13 +214,22 @@ namespace Client.Starter
                 loadingLog.text += $"\nアイテム画像ロード完了  {loadingStopwatch.Elapsed}";
             }
             
+            async UniTask LoadFluidAssets()
+            {
+                //通常の液体画像をロード
+                //TODO 非同期で実行できるようにする
+                var modDirectory = ServerConst.CreateServerModsDirectory(serverDirectory);
+                fluidImageContainer = FluidImageContainer.CreateAndLoadFluidImageContainer(modDirectory);
+                loadingLog.text += $"\n液体画像ロード完了  {loadingStopwatch.Elapsed}";
+            }
+            
             async UniTask TakeBlockItemImage()
             {
                 // スクリーンショットを取る必要があるブロックを集める
                 // Collect the blocks that need to be screenshot.
                 var takeBlockInfos = new List<BlockObjectInfo>();
                 var itemIds = new List<ItemId>();
-                foreach (var blockId in MasterHolder.BlockMaster.GetBlockIds())
+                foreach (var blockId in MasterHolder.BlockMaster.GetBlockAllIds())
                 {
                     var itemId = MasterHolder.BlockMaster.GetItemId(blockId);
                     var itemViewData = itemImageContainer.GetItemView(itemId);
@@ -242,13 +277,13 @@ namespace Client.Starter
                 loadingLog.text += $"\nシーンロード完了  {loadingStopwatch.Elapsed}";
             }
             
+            // staticなアセットをロード
+            async UniTask LoadStaticAsset()
+            {
+                await UniTask.WhenAll(ItemSlotView.LoadItemSlotViewPrefab(), FluidSlotView.LoadItemSlotViewPrefab());
+            }
+            
             #endregion
-        }
-        
-        
-        public void SetProperty(InitializeProprieties proprieties)
-        {
-            _proprieties = proprieties;
         }
     }
 }

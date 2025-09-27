@@ -12,6 +12,9 @@ namespace Server.Protocol.PacketResponse
     {
         public const string ProtocolTag = "va:sendCommand";
         
+        public const string GiveCommand = "give";
+        public const string ClearInventoryCommand = "clearInventory";
+        
         
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         
@@ -27,7 +30,7 @@ namespace Server.Protocol.PacketResponse
             var command = data.Command.Split(' '); //command text
             
             //他のコマンドを実装する場合、この実装方法をやめる
-            if (command[0] == "give")
+            if (command[0] == GiveCommand)
             {
                 var inventory = _playerInventoryDataStore.GetInventoryData(int.Parse(command[1]));
                 
@@ -36,6 +39,14 @@ namespace Server.Protocol.PacketResponse
                 
                 var item = ServerContext.ItemStackFactory.Create(itemId, count);
                 inventory.MainOpenableInventory.InsertItem(item);
+            }
+            else if (command[0] == ClearInventoryCommand)
+            {
+                var inventory = _playerInventoryDataStore.GetInventoryData(int.Parse(command[1]));
+                for (var i = 0; i < inventory.MainOpenableInventory.InventoryItems.Count; i++)
+                {
+                    inventory.MainOpenableInventory.SetItem(i, ServerContext.ItemStackFactory.CreatEmpty());
+                }
             }
             
             return null;

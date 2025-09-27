@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.Context;
+using CommandForgeGenerator.Command;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
@@ -11,13 +12,16 @@ using UnityEngine;
 
 namespace Client.Game.InGame.Block
 {
-    public class BlockGameObjectDataStore : MonoBehaviour
+    public class BlockGameObjectDataStore : MonoBehaviour, IBlockObjectControl
     {
         public IReadOnlyDictionary<Vector3Int, BlockGameObject> BlockGameObjectDictionary => _blockObjectsDictionary;
         private readonly Dictionary<Vector3Int, BlockGameObject> _blockObjectsDictionary = new();
         
         public IObservable<BlockGameObject> OnBlockPlaced => _onBlockPlaced;
         private readonly Subject<BlockGameObject> _onBlockPlaced = new();
+        
+        public IObservable<Vector3Int> OnBlockRemoved => _onBlockRemoved;
+        private readonly Subject<Vector3Int> _onBlockRemoved = new();
         
         
         public BlockGameObject GetBlockGameObject(Vector3Int position)
@@ -35,6 +39,10 @@ namespace Client.Game.InGame.Block
             return _blockObjectsDictionary.TryGetValue(position, out blockGameObject);
         }
         
+        public void SetActive(bool active)
+        {
+            gameObject.SetActive(active);
+        }
         
         public void PlaceBlock(Vector3Int blockPosition, BlockId blockId, BlockDirection blockDirection)
         {
@@ -71,6 +79,9 @@ namespace Client.Game.InGame.Block
             
             _blockObjectsDictionary[blockPosition].DestroyBlock().Forget();
             _blockObjectsDictionary.Remove(blockPosition);
+            
+            // ブロック削除イベントを発行
+            _onBlockRemoved.OnNext(blockPosition);
         }
         
         public bool IsOverlapPositionInfo(BlockPositionInfo target)

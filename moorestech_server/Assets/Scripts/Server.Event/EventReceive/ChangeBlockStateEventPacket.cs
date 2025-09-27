@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Game.Block.Interface;
 using Game.Block.Interface.State;
 using Game.Context;
 using Game.World.Interface.DataStore;
@@ -22,12 +23,18 @@ namespace Server.Event.EventReceive
             ServerContext.WorldBlockDatastore.OnBlockStateChange.Subscribe(ChangeState);
         }
         
-        private void ChangeState((BlockState state, WorldBlockData blockData) state)
+        public void ChangeState((BlockState state, WorldBlockData blockData) state)
         {
             var messagePack = new BlockStateMessagePack(state.state, state.blockData.BlockPositionInfo.OriginalPos);
             var payload = MessagePackSerializer.Serialize(messagePack);
             
-            _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
+            var eventTag = CreateSpecifiedBlockEventTag(state.blockData.BlockPositionInfo);
+            _eventProtocolProvider.AddBroadcastEvent(eventTag, payload);
+        }
+        
+        public static string CreateSpecifiedBlockEventTag(BlockPositionInfo posInfo)
+        {
+            return $"{EventTag}:{posInfo.OriginalPos}";
         }
     }
     

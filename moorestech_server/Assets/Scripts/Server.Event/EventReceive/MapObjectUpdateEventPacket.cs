@@ -29,12 +29,21 @@ namespace Server.Event.EventReceive
             
             _eventProtocolProvider.AddBroadcastEvent(EventTag, data);
         }
+        
+        public void SendHpUpdateEvent(IMapObject mapObject)
+        {
+            var messagePack = new MapObjectUpdateEventMessagePack(MapObjectUpdateEventMessagePack.HpUpdateEventType, mapObject.InstanceId, mapObject.CurrentHp);
+            var data = MessagePackSerializer.Serialize(messagePack);
+            
+            _eventProtocolProvider.AddBroadcastEvent(EventTag, data);
+        }
     }
     
     [MessagePackObject]
     public class MapObjectUpdateEventMessagePack
     {
         public const string DestroyEventType = "destroy";
+        public const string HpUpdateEventType = "hpUpdate";
         
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
@@ -48,8 +57,15 @@ namespace Server.Event.EventReceive
             InstanceId = instanceId;
         }
         
+        public MapObjectUpdateEventMessagePack(string eventType, int instanceId, int currentHp) : this(eventType, instanceId)
+        {
+            CurrentHp = currentHp;
+        }
+        
         [Key(0)] public string EventType { get; set; }
         
         [Key(1)] public int InstanceId { get; set; }
+        
+        [Key(2)] public int CurrentHp { get; set; }
     }
 }

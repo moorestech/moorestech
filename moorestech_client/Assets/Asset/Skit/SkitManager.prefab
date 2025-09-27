@@ -48,7 +48,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skitUI: {fileID: 0}
   skitCamera: {fileID: 366237098242407697}
-  characterDefine: {fileID: 11400000, guid: 6ebd59b4837234f869c3f4310dbadad8, type: 2}
   voiceDefine: {fileID: 11400000, guid: 35e15cc239b931343ac758d613d94927, type: 2}
 --- !u!114 &3483818303739046987
 MonoBehaviour:
@@ -74,7 +73,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6503156365737348571}
-  - component: {fileID: 8442513079322989859}
+  - component: {fileID: 1768411171940466688}
   - component: {fileID: 5582720763282835230}
   - component: {fileID: 692725054523003779}
   - component: {fileID: 366237098242407697}
@@ -101,7 +100,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 3805122595465063641}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &8442513079322989859
+--- !u!114 &1768411171940466688
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -110,7 +109,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 8889034664745369174}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4c876a43851d4f4195795a17fb288335, type: 3}
+  m_Script: {fileID: 11500000, guid: f139cd41b9d04baa82a3e210c269eb8c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!20 &5582720763282835230
@@ -144,8 +143,8 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.3
-  far clip plane: 1000
+  near clip plane: 0.05
+  far clip plane: 5000
   field of view: 60
   orthographic: 0
   orthographic size: 5
@@ -202,12 +201,12 @@ MonoBehaviour:
   m_RequiresColorTexture: 0
   m_Version: 2
   m_TaaSettings:
-    quality: 3
-    frameInfluence: 0.1
-    jitterScale: 1
-    mipBias: 0
-    varianceClampScale: 0.9
-    contrastAdaptiveSharpening: 0
+    m_Quality: 3
+    m_FrameInfluence: 0.1
+    m_JitterScale: 1
+    m_MipBias: 0
+    m_VarianceClampScale: 0.9
+    m_ContrastAdaptiveSharpening: 0
 --- !u!114 &366237098242407697
 MonoBehaviour:
   m_ObjectHideFlags: 0

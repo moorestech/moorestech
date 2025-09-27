@@ -1,0 +1,12 @@
+# 名前と説明は必須要素ではないが、とりあえず用意しています
+projectName: SampleProject
+projectDescription: Description
+
+# スキーマのyamlファイルが入っているパス。相対パスは指定方法の一例
+schemaPath: "../../../../../../../../VanillaSchema"
+
+# その他のスキーマパスの指定方法
+# 絶対パス /Users/moorestech/schema
+# 環境変数をプレースホルダとして使う $MOORESTECH_APP_DIR//Users/moorestech/schema
+
+masterPath: "./master"

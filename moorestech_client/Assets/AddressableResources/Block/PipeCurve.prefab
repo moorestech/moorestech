@@ -258,6 +258,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3382196639776096241}
+  - component: {fileID: -5336047301400799531}
   m_Layer: 7
   m_Name: PipeCurve
   m_TagString: Untagged
@@ -281,6 +282,18 @@ Transform:
   - {fileID: 5186433513112368884}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &-5336047301400799531
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6189306409457112356}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3c066278b17743f88969765e1ea135e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &6948656583862600872
 GameObject:
   m_ObjectHideFlags: 0

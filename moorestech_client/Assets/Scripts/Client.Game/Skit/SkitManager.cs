@@ -1,25 +1,52 @@
+using System;
 using System.Collections.Generic;
+using System.Threading;
 using Client.Common;
 using Client.Common.Asset;
+using Client.Game.InGame.Block;
+using Client.Game.InGame.Environment;
+using Client.Game.InGame.Tutorial;
+using Client.Skit.Context;
 using Client.Skit.Define;
 using Client.Skit.Skit;
-using Client.Skit.SkitTrack;
 using Client.Skit.UI;
+using CommandForgeGenerator.Command;
+using Core.Master;
 using Cysharp.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using UniRx;
 using UnityEngine;
+using VContainer;
+using VContainer.Unity;
 
 namespace Client.Game.Skit
 {
-    public class SkitManager : MonoBehaviour
+    public class SkitManager : MonoBehaviour, IInitializable
     {
         [SerializeField] private SkitUI skitUI;
-        
         [SerializeField] private SkitCamera skitCamera;
-        
-        [SerializeField] private CharacterDefine characterDefine;
         [SerializeField] private VoiceDefine voiceDefine;
         
+        [Inject] private ISkitActionContext _skitActionContext;
+        [Inject] private EnvironmentRoot environmentRoot;
+        [Inject] private BlockGameObjectDataStore blockGameObjectDataStore;
+        [Inject] private IMapObjectPin mapObjectPin;
+        
         public bool IsPlayingSkit { get; private set; }
+        private bool _isSkip;
+        
+        private void Awake()
+        {
+            skitUI.SetActive(false);
+        }
+        public void Initialize()
+        {
+            _skitActionContext.OnSkip.Subscribe(_ =>
+            {
+                _isSkip = true;
+            }).AddTo(this);
+        }
         
         public async UniTask StartSkit(string addressablePath)
         {
@@ -33,102 +60,83 @@ namespace Client.Game.Skit
             await StartSkit(storyCsv);
         }
         
-        public async UniTask StartSkit(TextAsset storyCsv)
+        private async UniTask StartSkit(TextAsset skitJson)
         {
             IsPlayingSkit = true;
+            _isSkip = false;
+            var commandsToken = (JToken)JsonConvert.DeserializeObject(skitJson.text);
+            var commands = CommandForgeLoader.LoadCommands(commandsToken);
             
             //前処理 Pre process
-            var storyContext = PreProcess();
-            var lines = storyCsv.text.Split('\n');
-            var tagIndexTable = CreateTagIndexTable(storyCsv.text.Split('\n'));
+            using var storyContext = await PreProcess();
+            CameraManager.RegisterCamera(skitCamera);
             
-            CameraManager.Instance.RegisterCamera(skitCamera);
-            
-            //トラックの実行処理 Execute track
-            for (var i = 0; i < lines.Length; i++)
+            foreach (var command in commands)
             {
-                var values = lines[i].Split(',');
-                
-                //トラックの取得と終了判定
-                var trackKey = values[1];
-                if (trackKey == string.Empty) continue; //空行はスキップ
-                if (trackKey == "End") break;
-                
-                var track = StoryTrackDefine.GetStoryTrack(trackKey);
-                if (track == null)
+                try
                 {
-                    Debug.LogError($"トラックが見つかりません : {trackKey}\nパラメータ : {string.Join(", ", values)}");
-                    break;
+                    await command.ExecuteAsync(storyContext);
                 }
-                
-                //トラックの実行
-                var parameters = CreateParameter(values);
-                var nextTag = await track.ExecuteTrack(storyContext, parameters);
-                
-                //タグがなかったのでそのまま継続
-                if (nextTag == null) continue;
-                
-                //次のタグにジャンプ
-                if (!tagIndexTable.TryGetValue(nextTag, out var nextIndex))
+                catch (Exception e)
                 {
-                    Debug.LogError($"次のタグが見つかりません : トラック : {trackKey} 当該タグ : {nextTag}\nパラメータ : {string.Join(", ", values)}");
-                    break;
+                    Debug.LogException(e);
                 }
-                
-                i = nextIndex - 1;
             }
             
             //後処理 Post process
-            skitUI.gameObject.SetActive(false);
-            storyContext.DestroyCharacter();
+            skitUI.SetActive(false);
+            HudArrowManager.SetActive(true);
+            mapObjectPin.SetActive(true);
+            var characterContainer = storyContext.GetService<CharacterObjectContainer>();
+            characterContainer.DestroyAllCharacters();
             IsPlayingSkit = false;
+            _isSkip = false;
+            CameraManager.UnRegisterCamera(skitCamera);
             
             #region Internal
             
-            StoryContext PreProcess()
+            async UniTask<StoryContext> PreProcess()
             {
                 //キャラクターを生成
                 var characters = new Dictionary<string, SkitCharacter>();
-                foreach (var characterInfo in characterDefine.CharacterInfos)
+                
+                // CharacterMasterから全キャラクター情報を取得
+                var characterMaster = MasterHolder.CharacterMaster;
+                foreach (var characterElement in characterMaster.ChallengeMasterElements)
                 {
-                    var character = Instantiate(characterInfo.CharacterPrefab);
-                    character.Initialize(transform, characterInfo.CharacterKey);
-                    characters.Add(characterInfo.CharacterKey, character);
+                    // Addressableからキャラクターモデルをロード
+                    var path = characterElement.SkitModelAddresablePath;
+                    var characterPrefab = await AddressableLoader.LoadAsyncDefault<GameObject>(path);
+                    if (characterPrefab != null)
+                    {
+                        var characterInstance = Instantiate(characterPrefab);
+                        var skitCharacter = characterInstance.GetComponent<SkitCharacter>();
+                        skitCharacter.Initialize(transform);
+                        characters.Add(characterElement.CharacterId, skitCharacter);
+                    }
+                    else
+                    {
+                        Debug.LogError($"キャラクターモデルのロードに失敗しました: {path}");
+                    }
                 }
                 
                 // 表示の設定
-                skitUI.gameObject.SetActive(true);
+                skitUI.SetActive(true);
+                mapObjectPin.SetActive(false);
+                HudArrowManager.SetActive(false);
                 
-                return new StoryContext(skitUI, characters, skitCamera, voiceDefine);
-            }
-            
-            List<string> CreateParameter(string[] values)
-            {
-                var parameters = new List<string>();
-                for (var j = 2; j < values.Length; j++) parameters.Add(values[j]);
+                // DIコンテナをセットアップ
+                var builder = new ContainerBuilder();
+                builder.RegisterInstance(skitUI);
+                builder.RegisterInstance<ISkitCamera>(skitCamera);
+                builder.RegisterInstance(voiceDefine);
+                builder.RegisterInstance(new CharacterObjectContainer(characters));
+                builder.RegisterInstance<IEnvironmentRoot>(environmentRoot);
+                builder.RegisterInstance<IBlockObjectControl>(blockGameObjectDataStore);
+                builder.RegisterInstance<ISkitEnvironmentManager>(new SkitEnvironmentManager(transform));
+                builder.RegisterInstance(_skitActionContext);
                 
-                return parameters;
-            }
-            
-            Dictionary<string, int> CreateTagIndexTable(string[] lines)
-            {
-                var tagIndex = new Dictionary<string, int>();
-                for (var i = 0; i < lines.Length; i++)
-                {
-                    var values = lines[i].Split(',');
-                    var tag = values[0];
-                    if (tag == string.Empty) continue;
-                    
-                    if (tagIndex.ContainsKey(tag))
-                    {
-                        Debug.LogError($"タグが重複しています : {tag} {i}");
-                        break;
-                    }
-                    
-                    tagIndex.Add(tag, i);
-                }
-                
-                return tagIndex;
+                return new StoryContext(builder.Build());
             }
             
             #endregion

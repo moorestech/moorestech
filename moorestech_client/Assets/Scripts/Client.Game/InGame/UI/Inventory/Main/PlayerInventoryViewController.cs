@@ -22,8 +22,8 @@ namespace Client.Game.InGame.UI.Inventory.Main
     {
         [SerializeField] private GameObject mainInventoryObject;
         
-        [SerializeField] private List<ItemSlotObject> mainInventorySlotObjects;
-        [SerializeField] private ItemSlotObject grabInventorySlotObject;
+        [SerializeField] private List<ItemSlotView> mainInventorySlotObjects;
+        [SerializeField] private ItemSlotView grabInventorySlotView;
         
         public Transform SubInventoryParent => subInventoryParent.transform;
         [SerializeField] private Transform subInventoryParent;
@@ -64,7 +64,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
             foreach (var sub in _subInventory.SubInventorySlotObjects) _subInventorySlotUIEventUnsubscriber.Add(sub.OnPointerEvent.Subscribe(ItemSlotUIEvent));
         }
         
-        private void ItemSlotUIEvent((ItemSlotObject slotObject, ItemUIEventType itemUIEvent) eventProperty)
+        private void ItemSlotUIEvent((ItemSlotView slotObject, ItemUIEventType itemUIEvent) eventProperty)
         {
             var (slotObject, itemUIEvent) = eventProperty;
             var index = mainInventorySlotObjects.IndexOf(slotObject);
@@ -285,17 +285,116 @@ namespace Client.Game.InGame.UI.Inventory.Main
         
         private void DirectMove(int slotIndex)
         {
-            //そのスロットがメインインベントリかサブインベントリを判定する
-            var isMain = slotIndex < PlayerInventoryConst.MainInventorySize;
+            // 移動するアイテムが空の場合は何もしない
+            var sourceItem = _playerInventory.LocalPlayerInventory[slotIndex];
+            if (sourceItem.Id == ItemMaster.EmptyItemId) return;
+
+            // サブインベントリの有無を判定
+            var hasSubInventory = _subInventory != null && _subInventory.IsEnableSubInventory();
             
-            var startIndex = isMain ? 0 : PlayerInventoryConst.MainInventorySize;
-            var endIndex = isMain ? PlayerInventoryConst.MainInventorySize : PlayerInventoryConst.MainInventorySize + _subInventory.Count;
-            for (var i = startIndex; i < endIndex; i++)
+            // 移動元の種類を判定
+            var sourceType = GetInventoryType(slotIndex, hasSubInventory);
+            
+            // 移動先の範囲を決定
+            var (startIndex, endIndex) = GetTargetRange(sourceType, hasSubInventory);
+            
+            // 移動先を探して移動
+            TryMoveToSlots(slotIndex, sourceItem, startIndex, endIndex);
+            
+            #region Internal
+            
+            InventoryType GetInventoryType(int index, bool hasSub)
             {
-                _playerInventory.MoveItem(LocalMoveInventoryType.MainOrSub, slotIndex, LocalMoveInventoryType.MainOrSub, i, _playerInventory.LocalPlayerInventory[slotIndex].Count);
-                //アイテムがなくなったら終了する
-                if (_playerInventory.LocalPlayerInventory[slotIndex].Count == 0) break;
+                if (hasSub && index >= PlayerInventoryConst.MainInventorySize)
+                    return InventoryType.SubInventory;
+                
+                // ホットバーの判定
+                if (PlayerInventoryConst.IsHotBarSlot(index))
+                    return InventoryType.HotBar;
+                
+                return InventoryType.MainInventory;
             }
+            
+            (int start, int end) GetTargetRange(InventoryType source, bool hasSub)
+            {
+                switch (source)
+                {
+                    case InventoryType.MainInventory:
+                        // メインインベントリから：サブがあればサブへ、なければホットバーへ
+                        if (hasSub)
+                            return (PlayerInventoryConst.MainInventorySize, PlayerInventoryConst.MainInventorySize + _subInventory.Count);
+                        else
+                            return ((PlayerInventoryConst.MainInventoryRows - 1) * PlayerInventoryConst.MainInventoryColumns, PlayerInventoryConst.MainInventorySize);
+                    
+                    case InventoryType.HotBar:
+                        // ホットバーから：サブがあればサブへ、なければメインインベントリへ
+                        if (hasSub)
+                            return (PlayerInventoryConst.MainInventorySize, PlayerInventoryConst.MainInventorySize + _subInventory.Count);
+                        else
+                            return (0, (PlayerInventoryConst.MainInventoryRows - 1) * PlayerInventoryConst.MainInventoryColumns);
+                    
+                    case InventoryType.SubInventory:
+                        // サブインベントリから：メインインベントリへ（ホットバーを除く）
+                        return (0, (PlayerInventoryConst.MainInventoryRows - 1) * PlayerInventoryConst.MainInventoryColumns);
+                    
+                    default:
+                        return (0, 0);
+                }
+            }
+            
+            void TryMoveToSlots(int sourceSlot, IItemStack sourceItemStack, int start, int end)
+            {
+                // まず同じアイテムがあるスロットを探す
+                for (var i = start; i < end; i++)
+                {
+                    if (TryMoveToStackableSlot(sourceSlot, sourceItemStack, i)) return;
+                }
+                
+                // 次に空のスロットを探す
+                for (var i = start; i < end; i++)
+                {
+                    if (TryMoveToEmptySlot(sourceSlot, i)) return;
+                }
+            }
+            
+            bool TryMoveToStackableSlot(int sourceSlot, IItemStack sourceItemStack, int targetSlot)
+            {
+                var targetItem = _playerInventory.LocalPlayerInventory[targetSlot];
+                
+                // 空のスロットまたは異なるアイテムの場合はスキップ
+                if (targetItem.Id == ItemMaster.EmptyItemId || targetItem.Id != sourceItemStack.Id) 
+                    return false;
+                
+                var maxStack = MasterHolder.ItemMaster.GetItemMaster(targetItem.Id).MaxStack;
+                if (targetItem.Count >= maxStack) 
+                    return false;
+                
+                var moveCount = _playerInventory.LocalPlayerInventory[sourceSlot].Count;
+                _playerInventory.MoveItem(LocalMoveInventoryType.MainOrSub, sourceSlot, LocalMoveInventoryType.MainOrSub, targetSlot, moveCount);
+                
+                return _playerInventory.LocalPlayerInventory[sourceSlot].Count == 0;
+            }
+            
+            bool TryMoveToEmptySlot(int sourceSlot, int targetSlot)
+            {
+                var targetItem = _playerInventory.LocalPlayerInventory[targetSlot];
+                if (targetItem.Id != ItemMaster.EmptyItemId) 
+                    return false;
+                
+                var moveCount = _playerInventory.LocalPlayerInventory[sourceSlot].Count;
+                _playerInventory.MoveItem(LocalMoveInventoryType.MainOrSub, sourceSlot, LocalMoveInventoryType.MainOrSub, targetSlot, moveCount);
+                
+                return _playerInventory.LocalPlayerInventory[sourceSlot].Count == 0;
+            }
+            
+            #endregion
+        }
+        
+        private enum InventoryType
+        {
+            MainInventory,
+            HotBar,
+            SubInventory
         }
         
         public void SetActive(bool isActive)
@@ -321,9 +420,9 @@ namespace Client.Game.InGame.UI.Inventory.Main
                 }
             }
             
-            grabInventorySlotObject.SetActive(IsGrabItem);
+            grabInventorySlotView.SetActive(IsGrabItem);
             var garbItemView = ClientContext.ItemImageContainer.GetItemView(_playerInventory.GrabInventory.Id);
-            grabInventorySlotObject.SetItem(garbItemView, _playerInventory.GrabInventory.Count);
+            grabInventorySlotView.SetItem(garbItemView, _playerInventory.GrabInventory.Count);
         }
     }
     

@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using System.Linq;
 using Core.Master;
 using Game.Block.Blocks;
+using Game.Block.Blocks.Fluid;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Component;
@@ -45,6 +47,20 @@ namespace Game.Block.Factory.BlockTemplate
                 inputConnectorComponent,
             };
             
+            // 流体接続のサポートを追加（流体インベントリコネクタが定義されている場合）
+            if (machineParam.FluidInventoryConnectors != null && (machineParam.InputTankCount > 0 || machineParam.OutputTankCount > 0))
+            {
+                var fluidConnector = IFluidInventory.CreateFluidInventoryConnector(machineParam.FluidInventoryConnectors, blockPositionInfo);
+                var fluidInventory = new VanillaMachineFluidInventoryComponent(
+                    input,
+                    output,
+                    fluidConnector
+                );
+                
+                components.Add(fluidConnector);
+                components.Add(fluidInventory);
+            }
+            
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
         
@@ -71,7 +87,22 @@ namespace Game.Block.Factory.BlockTemplate
                 inputConnectorComponent,
             };
             
+            // 流体接続のサポートを追加（流体インベントリコネクタが定義されている場合）
+            if (machineParam.FluidInventoryConnectors != null && (machineParam.InputTankCount > 0 || machineParam.OutputTankCount > 0))
+            {
+                var fluidConnector = IFluidInventory.CreateFluidInventoryConnector(machineParam.FluidInventoryConnectors, blockPositionInfo);
+                var fluidInventory = new VanillaMachineFluidInventoryComponent(
+                    input,
+                    output,
+                    fluidConnector
+                );
+                
+                components.Add(fluidConnector);
+                components.Add(fluidInventory);
+            }
+            
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
+        
     }
 }

@@ -15,8 +15,6 @@ namespace Client.Game.InGame.UI.Inventory.Block
 {
     public class CraftChainerMainComputerInventoryView : CommonBlockInventoryViewBase
     {
-        [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
-        
         [SerializeField] private RectTransform chestSlotsParent;
         
         [SerializeField] private Button requestButton;
@@ -43,7 +41,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
                 var param = (CraftChainerMainComputerBlockParam)blockGameObject.BlockMasterElement.BlockParam;
                 for (var i = 0; i < param.ItemSlotCount; i++)
                 {
-                    var slotObject = Instantiate(itemSlotObjectPrefab, chestSlotsParent);
+                    var slotObject = Instantiate(ItemSlotView.Prefab, chestSlotsParent);
                     SubInventorySlotObjectsInternal.Add(slotObject);
                     itemList.Add(ServerContext.ItemStackFactory.CreatEmpty());
                 }

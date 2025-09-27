@@ -18,13 +18,11 @@ namespace Client.Game.InGame.Mining
         
         public readonly HotBarView HotBarView;
         public readonly ILocalPlayerInventory LocalPlayerInventory;
-        public readonly IPlayerObjectController PlayerObjectController;
         
-        public MapObjectMiningControllerContext(HotBarView hotBarView, ILocalPlayerInventory localPlayerInventory, IPlayerObjectController playerObjectController)
+        public MapObjectMiningControllerContext(HotBarView hotBarView, ILocalPlayerInventory localPlayerInventory)
         {
             HotBarView = hotBarView;
             LocalPlayerInventory = localPlayerInventory;
-            PlayerObjectController = playerObjectController;
         }
         
         
@@ -33,8 +31,8 @@ namespace Client.Game.InGame.Mining
         {
             if (mapObjectGameObject != CurrentFocusMapObjectGameObject)
             {
-                CurrentFocusMapObjectGameObject?.OutlineEnable(false);
-                mapObjectGameObject?.OutlineEnable(true);
+                CurrentFocusMapObjectGameObject?.OnFocus(false);
+                mapObjectGameObject?.OnFocus(true);
             }
             
             CurrentFocusMapObjectGameObject = mapObjectGameObject;

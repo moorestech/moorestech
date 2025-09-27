@@ -29,7 +29,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         {
             // 1. DIコンテナ生成
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
-                .Create(TestModDirectory.ForUnitTestModDirectory);
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
             // 2. 必要な参照を取得
             var blockFactory = ServerContext.BlockFactory;
@@ -55,7 +55,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             // 8. ロードのDIコンテナ再生成
             var (_, loadServiceProvider) = new MoorestechServerDIContainerGenerator()
-                .Create(TestModDirectory.ForUnitTestModDirectory);
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var loadJson = loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson;
 
             // 9. ロード
@@ -83,7 +83,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         {
             // 1. DIコンテナ生成
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
-                .Create(TestModDirectory.ForUnitTestModDirectory);
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             // 2. 必要な参照を取得
             var blockFactory = ServerContext.BlockFactory;
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
@@ -127,7 +127,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             RailGraphDatastore.ResetInstance();
             //8 ロード
             var (_, loadServiceProvider) = new MoorestechServerDIContainerGenerator()
-                .Create(TestModDirectory.ForUnitTestModDirectory);
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var loadJson = loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson;
             loadJson.Load(json);
             //9 ロード後にRailBlockを再取得

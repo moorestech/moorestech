@@ -10,8 +10,6 @@ namespace Client.Game.InGame.UI.Inventory.Block
 {
     public class ChestBlockInventoryView : CommonBlockInventoryViewBase
     {
-        [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
-        
         [SerializeField] private RectTransform chestSlotsParent;
         
         public override void Initialize(BlockGameObject blockGameObject)
@@ -34,7 +32,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
             var param = (IChestParam)blockGameObject.BlockMasterElement.BlockParam;
             for (var i = 0; i < param.ItemSlotCount; i++)
             {
-                var slotObject = Instantiate(itemSlotObjectPrefab, chestSlotsParent);
+                var slotObject = Instantiate(ItemSlotView.Prefab, chestSlotsParent);
                 SubInventorySlotObjectsInternal.Add(slotObject);
                 itemList.Add(ServerContext.ItemStackFactory.CreatEmpty());
             }

@@ -1,4 +1,5 @@
-﻿using Game.Block.Component;
+﻿using System.Collections.Generic;
+using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Fluid;
@@ -8,7 +9,8 @@ namespace Game.Block.Blocks.Fluid
 {
     public interface IFluidInventory : IBlockComponent
     {
-        public FluidContainer FluidContainer { get; }
+        public List<FluidStack> GetFluidInventory();
+        public FluidStack AddLiquid(FluidStack fluidStack, FluidContainer source);
         
         public static BlockConnectorComponent<IFluidInventory> CreateFluidInventoryConnector(FluidInventoryConnects fluidInventoryConnects, BlockPositionInfo blockPositionInfo)
         {
@@ -18,9 +20,5 @@ namespace Game.Block.Blocks.Fluid
                 blockPositionInfo
             );
         }
-        
-        //TODO: FluidContainerの更新用メソッドを追加した場合はそちらでOnNextを呼ぶ
-        public void OnContainerChanged();
-        public void AddLiquid(FluidStack fluidStack, FluidContainer source, out FluidStack? remain);
     }
 }

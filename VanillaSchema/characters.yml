@@ -1,0 +1,19 @@
+id: characters
+type: object
+isDefaultOpen: true
+properties:
+- key: data
+  type: array
+  openedByDefault: true
+  overrideCodeGeneratePropertyName: CharacterMasterElement
+  items:
+    type: object
+    properties:
+    - key: characterId
+      type: string
+    - key: displayName
+      type: string
+    - key: modelAddresablePath
+      type: string
+    - key: skitModelAddresablePath
+      type: string

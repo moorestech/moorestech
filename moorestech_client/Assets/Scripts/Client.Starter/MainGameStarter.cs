@@ -1,18 +1,18 @@
 using System.Diagnostics;
 using Client.Common;
 using Client.Game.Common;
+using Client.Game.InGame.BackgroundSkit;
 using Client.Game.InGame.Block;
-using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.CraftTree.TreeView;
 using Client.Game.InGame.Electric;
 using Client.Game.InGame.Entity;
+using Client.Game.InGame.Environment;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Mining;
 using Client.Game.InGame.Player;
-using Client.Game.InGame.Presenter.Command;
 using Client.Game.InGame.Presenter.PauseMenu;
 using Client.Game.InGame.Presenter.Player;
 using Client.Game.InGame.Skit;
@@ -27,10 +27,10 @@ using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Game.InGame.UnlockState;
 using Client.Game.InGame.World;
-using Client.Game.Sequence;
 using Client.Game.Skit;
-using Client.Game.Skit.Starter;
 using Client.Network.API;
+using Client.Skit.Skit;
+using Client.Skit.UI;
 using Game.UnlockState;
 using UnityEngine;
 using VContainer;
@@ -50,13 +50,14 @@ namespace Client.Starter
         [Header("InHierarchy")] [SerializeField]
         private Camera mainCamera;
         
+        [SerializeField] private GameStateController gameStateController;
         [SerializeField] private BlockGameObjectDataStore blockGameObjectDataStore;
         [SerializeField] private MapObjectGameObjectDatastore mapObjectGameObjectDatastore;
+        [SerializeField] private EnvironmentRoot environmentRoot;
         
-        [SerializeField] private CommandUIInput commandUIInput;
         [SerializeField] private HotBarView hotBarView;
-        [SerializeField] private PlayerObjectController playerObjectController;
         [SerializeField] private MapObjectMiningController mapObjectMiningController;
+        [SerializeField] private PlayerSystemContainer playerSystemContainer;
         
         [SerializeField] private EntityObjectDatastore entityObjectDatastore;
         
@@ -69,8 +70,8 @@ namespace Client.Starter
         [SerializeField] private RecipeViewerView recipeViewerView;
         [SerializeField] private ItemListView itemListView;
         [SerializeField] private RecipeTabView recipeTabView;
-        [SerializeField] private ChallengeListUI challengeListUI;
         [SerializeField] private CraftTreeViewManager craftTreeViewManager;
+        [SerializeField] private ChallengeListView challengeListView;
         
         [SerializeField] private MapObjectPin mapObjectPin;
         [SerializeField] private UIHighlightTutorialManager uiHighlightTutorialManager;
@@ -83,8 +84,9 @@ namespace Client.Starter
         [SerializeField] private NetworkDisconnectPresenter networkDisconnectPresenter;
         [SerializeField] private ChallengeManager challengeManager;
         
-        [SerializeField] private PlayerSkitStarterDetector playerSkitStarterDetector;
         [SerializeField] private SkitManager skitManager;
+        [SerializeField] private SkitUI skitUI;
+        [SerializeField] private BackgroundSkitManager backgroundSkitManager;
         
         [SerializeField] private DisplayEnergizedRange displayEnergizedRange;
         
@@ -126,7 +128,6 @@ namespace Client.Starter
             builder.RegisterEntryPoint<CommonMachineBlockStateChangeProcessor>();
             builder.RegisterEntryPoint<WorldDataHandler>();
             builder.RegisterEntryPoint<PlayerPositionSender>();
-            builder.RegisterEntryPoint<BlockStateEventHandler>();
             builder.RegisterEntryPoint<BlockPlaceSystem>().AsSelf();
             builder.RegisterEntryPoint<SkitFireManager>();
             
@@ -144,6 +145,12 @@ namespace Client.Starter
             builder.Register<ChallengeListState>(Lifetime.Singleton);
             builder.Register<ItemRecipeViewerDataContainer>(Lifetime.Singleton);
             
+            // スキット関連
+            // register skit related
+            var skitActionContext = new SkitActionContext();
+            builder.RegisterInstance<ISkitActionContext>(skitActionContext);
+            builder.RegisterInstance<ISkitActionController>(skitActionContext);
+            
             // その他インスタンス
             // register other instance
             builder.Register<TutorialManager>(Lifetime.Singleton);
@@ -152,11 +159,12 @@ namespace Client.Starter
             
             //Hierarchy上にあるcomponent
             // register component on hierarchy
+            builder.RegisterComponent(gameStateController);
             builder.RegisterComponent(blockGameObjectDataStore);
             builder.RegisterComponent(mapObjectGameObjectDatastore);
+            builder.RegisterComponent(environmentRoot);
             
             builder.RegisterComponent(mainCamera);
-            builder.RegisterComponent(commandUIInput);
             builder.RegisterComponent(hotBarView);
             
             builder.RegisterComponent(uIStateControl);
@@ -176,20 +184,21 @@ namespace Client.Starter
             builder.RegisterComponent(recipeViewerView);
             builder.RegisterComponent(itemListView);
             builder.RegisterComponent(recipeTabView);
-            builder.RegisterComponent(challengeListUI);
             builder.RegisterComponent(craftTreeViewManager);
+            builder.RegisterComponent(challengeListView);
             
-            builder.RegisterComponent(mapObjectPin);
+            builder.RegisterComponent<IMapObjectPin>(mapObjectPin);
             builder.RegisterComponent(uiHighlightTutorialManager);
             builder.RegisterComponent(keyControlTutorialManager);
             builder.RegisterComponent(itemViewHighLightTutorialManager);
             
-            builder.RegisterComponent(playerSkitStarterDetector);
-            builder.RegisterComponent(skitManager);
+            builder.RegisterComponent(playerSystemContainer);
+            builder.RegisterComponent(skitManager).As<IInitializable>();
+            builder.RegisterComponent(skitUI);
+            builder.RegisterComponent(backgroundSkitManager);
             
             builder.RegisterComponent(inGameCameraController).As<IInitializable>();
             
-            builder.RegisterComponent<IPlayerObjectController>(playerObjectController).AsSelf();
             builder.RegisterComponent<IBlockPlacePreview>(blockPlacePreview);
             
             builder.RegisterBuildCallback(objectResolver => { });
@@ -198,11 +207,12 @@ namespace Client.Starter
             // resolve dependency
             _resolver = builder.Build();
             _resolver.Resolve<BlockGameObjectDataStore>();
-            _resolver.Resolve<CommandUIInput>();
             _resolver.Resolve<UIStateControl>();
             _resolver.Resolve<DisplayEnergizedRange>();
             _resolver.Resolve<EntityObjectDatastore>();
             _resolver.Resolve<ChallengeManager>();
+            _resolver.Resolve<PlayerSystemContainer>();
+            _resolver.Resolve<SkitUI>();
             
             return _resolver;
         }

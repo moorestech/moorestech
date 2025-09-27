@@ -1,0 +1,32 @@
+fileFormatVersion: 2
+guid: 9c215eb4998ef427896d2b5fe2f880e4
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Material.001
+    second: {fileID: 2100000, guid: eb478f3cc9545409ba73e3ee23e4009a, type: 2}
+  - first:
+      type: UnityEngine:Texture
+      assembly: UnityEngine.CoreModule
+      name: texture_pbr_v128
+    second: {fileID: 2800000, guid: 33602b795faac4d409b42c9a0569b517, type: 3}
+  - first:
+      type: UnityEngine:Texture
+      assembly: UnityEngine.CoreModule
+      name: texture_pbr_v128_metallic-texture_pbr_v128_roughness.standard
+    second: {fileID: 2800000, guid: d2156d849a81b4feb82fe1692e691f30, type: 3}
+  - first:
+      type: UnityEngine:Texture
+      assembly: UnityEngine.CoreModule
+      name: texture_pbr_v128_normal.normal
+    second: {fileID: 2800000, guid: 883277b032809474dbe58e11d2612902, type: 3}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: cc45016b844e7624dae3aec10fb443ea, type: 3}
+  reverseAxis: 0
+  renderPipeline: 0

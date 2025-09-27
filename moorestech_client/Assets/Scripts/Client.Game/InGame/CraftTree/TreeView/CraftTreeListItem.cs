@@ -11,7 +11,7 @@ namespace Client.Game.InGame.CraftTree.TreeView
 {
     public class CraftTreeListItem : MonoBehaviour
     {
-        [SerializeField] private ItemSlotObject itemSlotObject;
+        [SerializeField] private ItemSlotView itemSlotView;
         [SerializeField] private TMP_Text itemNameText;
         
         [SerializeField] private Button selectButton;
@@ -43,7 +43,7 @@ namespace Client.Game.InGame.CraftTree.TreeView
             _craftTreeNode = craftTreeNode;
             var itemViewData = ClientContext.ItemImageContainer.GetItemView(craftTreeNode.TargetItemId);
             itemNameText.text = $"{itemViewData.ItemName}";
-            itemSlotObject.SetItem(itemViewData, 0);
+            itemSlotView.SetItem(itemViewData, 0);
         }
     }
 }

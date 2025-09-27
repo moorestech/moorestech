@@ -1,4 +1,5 @@
 using Client.Game.InGame.UI.Challenge;
+using Client.Game.InGame.UI.KeyControl;
 using Client.Input;
 using UnityEngine;
 
@@ -6,18 +7,18 @@ namespace Client.Game.InGame.UI.UIState
 {
     public class ChallengeListState : IUIState
     {
-        private readonly ChallengeListUI _challengeListUI;
+        private readonly ChallengeListView _challengeListView;
         
-        public ChallengeListState(ChallengeListUI challengeListUI)
+        public ChallengeListState(ChallengeListView challengeListView)
         {
-            _challengeListUI = challengeListUI;
+            _challengeListView = challengeListView;
         }
         
         public void OnEnter(UIStateEnum lastStateEnum)
         {
-            _challengeListUI.UpdateUnlockState();
-            _challengeListUI.SetActive(true);
+            _challengeListView.SetActive(true);
             InputManager.MouseCursorVisible(true);
+            KeyControlDescription.Instance.SetText("T: リストを閉じる");
         }
         public UIStateEnum GetNextUpdate()
         {
@@ -28,7 +29,7 @@ namespace Client.Game.InGame.UI.UIState
         }
         public void OnExit()
         {
-            _challengeListUI.SetActive(false);
+            _challengeListView.SetActive(false);
             InputManager.MouseCursorVisible(false);
         }
     }

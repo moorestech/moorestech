@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Client.Game.InGame.Block;
 using Game.Gear.Common;
 using Server.Event.EventReceive;
 using UnityEngine;
@@ -11,26 +12,46 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         public IReadOnlyList<RotationInfo> RotationInfos => rotationInfos;
         [SerializeField] private List<RotationInfo> rotationInfos;
         
-        public GearStateDetail CurrentGearState { get; private set; }
+        private GearStateDetail _currentGearState;
+        
+        public void Initialize(BlockGameObject blockGameObject) { }
         
         public void OnChangeState(BlockStateMessagePack blockState)
         {
-            CurrentGearState = blockState.GetStateDetail<GearStateDetail>(GearStateDetail.BlockStateDetailKey);
+            _currentGearState = blockState.GetStateDetail<GearStateDetail>(GearStateDetail.BlockStateDetailKey);
         }
         
         private void Update()
         {
-            if (CurrentGearState == null) return;
+            if (_currentGearState == null) return;
             
-            Rotate(CurrentGearState);
+            Rotate(_currentGearState);
         }
         
         public void Rotate(GearStateDetail gearStateDetail)
         {
-            var rpm = gearStateDetail.CurrentRpm;
-            var rotation = rpm / 60 * Time.deltaTime * 360;
             foreach (var rotationInfo in rotationInfos)
             {
+                switch (rotationInfo.RotationMode)
+                {
+                    case RotationMode.TransformRotate:
+                        TransformRotate(rotationInfo);
+                        break;
+                    case RotationMode.Animator:
+                        AnimationRotate(rotationInfo);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+            
+            #region Internal
+            
+            void TransformRotate(RotationInfo rotationInfo)
+            {
+                var rpm = gearStateDetail.CurrentRpm;
+                var rotation = rpm / 60 * Time.deltaTime * 360;
+                
                 var rotate = rotationInfo.RotationAxis switch
                 {
                     RotationAxis.X => new Vector3(rotation, 0, 0),
@@ -44,19 +65,46 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
                 
                 rotationInfo.RotationTransform.Rotate(rotate);
             }
+            
+            void AnimationRotate(RotationInfo rotationInfo)
+            {
+                var rpmRate = gearStateDetail.CurrentRpm / 60f;
+                var speed = rotationInfo.Rpm60Speed * (rotationInfo.IsReverse ? -1 : 1) * (gearStateDetail.IsClockwise ? 1 : -1) * rpmRate;
+                rotationInfo.Animator.speed = speed;
+            }
+            
+  #endregion
         }
+        
+        #if UNITY_EDITOR
+        public GearStateDetail DebugCurrentGearState => _currentGearState;
+        #endif
     }
     
     [Serializable]
     public class RotationInfo
     {
+        [SerializeField] private RotationMode rotationMode;
+        
+        [Header("TransformRotate Only")]
         [SerializeField] private RotationAxis rotationAxis;
         [SerializeField] private Transform rotationTransform;
+        
+        [Header("Animator Only")]
+        [SerializeField] private Animator animator;
+        [SerializeField] private float rpm60Speed = 1;
+        
         [SerializeField] private bool isReverse;
         [SerializeField] private float rotationSpeed = 1;
         
+        public RotationMode RotationMode => rotationMode;
+        
         public RotationAxis RotationAxis => rotationAxis;
         public Transform RotationTransform => rotationTransform;
+        
+        public Animator Animator => animator;
+        public float Rpm60Speed => rpm60Speed;
+        
         public bool IsReverse => isReverse;
         public float RotationSpeed => rotationSpeed;
     }
@@ -66,5 +114,11 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         X,
         Y,
         Z,
+    }
+    
+    public enum RotationMode
+    {
+        TransformRotate,
+        Animator,
     }
 }

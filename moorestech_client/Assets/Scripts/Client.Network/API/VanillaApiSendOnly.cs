@@ -94,5 +94,23 @@ namespace Client.Network.API
             var request = new ApplyCraftTreeProtocol.ApplyCraftProtocolMessagePack(_playerId, target, craftTree);
             _packetSender.Send(request);
         }
+        
+        public void RegisterPlayedSkit(string skitId)
+        {
+            var request = new RegisterPlayedSkitProtocol.RegisterPlayedSkitMessagePack(_playerId, skitId);
+            _packetSender.Send(request);
+        }
+        
+        public void InvokeBlockState(Vector3Int position)
+        {
+            var request = new InvokeBlockStateEventProtocol.RequestInvokeBlockStateProtocolMessagePack(position);
+            _packetSender.Send(request);
+        }
+        
+        public void CompleteBaseCamp(Vector3Int position)
+        {
+            var request = new CompleteBaseCampProtocol.CompleteBaseCampProtocolMessagePack(_playerId, position);
+            _packetSender.Send(request);
+        }
     }
 }

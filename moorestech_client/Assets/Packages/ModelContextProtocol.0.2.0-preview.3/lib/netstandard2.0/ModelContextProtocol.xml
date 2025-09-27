@@ -1,0 +1,1377 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ModelContextProtocol</name>
+    </assembly>
+    <members>
+        <member name="T:Microsoft.Extensions.DependencyInjection.DefaultMcpServerBuilder">
+            <summary>
+            Default implementation of <see cref="T:Microsoft.Extensions.DependencyInjection.IMcpServerBuilder"/> that enables fluent configuration
+            of the Model Context Protocol (MCP) server. This builder is returned by the
+            <see cref="M:Microsoft.Extensions.DependencyInjection.McpServerServiceCollectionExtensions.AddMcpServer(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{ModelContextProtocol.Server.McpServerOptions})"/> extension method and
+            provides access to the service collection for registering additional MCP components.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Extensions.DependencyInjection.DefaultMcpServerBuilder.Services">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.DefaultMcpServerBuilder.#ctor(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.Extensions.DependencyInjection.DefaultMcpServerBuilder"/> class.
+            </summary>
+            <param name="services">The service collection to which MCP server services will be added. This collection
+            is exposed through the <see cref="P:Microsoft.Extensions.DependencyInjection.DefaultMcpServerBuilder.Services"/> property to allow additional configuration.</param>
+            <exception cref="T:System.ArgumentNullException">Thrown when <paramref name="services"/> is null.</exception>
+        </member>
+        <member name="T:Microsoft.Extensions.DependencyInjection.IMcpServerBuilder">
+            <summary>
+            Provides a builder for configuring <see cref="T:ModelContextProtocol.Server.IMcpServer"/> instances.
+            </summary>
+            <remarks>
+            <para>
+            The <see cref="T:Microsoft.Extensions.DependencyInjection.IMcpServerBuilder"/> interface provides a fluent API for configuring Model Context Protocol (MCP) servers
+            when using dependency injection. It exposes methods for registering tools, prompts, custom request handlers,
+            and server transports, allowing for comprehensive server configuration through a chain of method calls.
+            </para>
+            <para>
+            The builder is obtained from the <see cref="M:Microsoft.Extensions.DependencyInjection.McpServerServiceCollectionExtensions.AddMcpServer(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{ModelContextProtocol.Server.McpServerOptions})"/> extension
+            method and provides access to the underlying service collection via the <see cref="P:Microsoft.Extensions.DependencyInjection.IMcpServerBuilder.Services"/> property.
+            </para>
+            </remarks>
+        </member>
+        <member name="P:Microsoft.Extensions.DependencyInjection.IMcpServerBuilder.Services">
+            <summary>
+            Gets the associated service collection.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions">
+            <summary>
+            Provides methods for configuring MCP servers via dependency injection.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithTools``1(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Text.Json.JsonSerializerOptions)">
+            <summary>Adds <see cref="T:ModelContextProtocol.Server.McpServerTool"/> instances to the service collection backing <paramref name="builder"/>.</summary>
+            <typeparam name="TToolType">The tool type.</typeparam>
+            <param name="builder">The builder instance.</param>
+            <param name="serializerOptions">The serializer options governing tool parameter marshalling.</param>
+            <returns>The builder provided in <paramref name="builder"/>.</returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="builder"/> is <see langword="null"/>.</exception>
+            <remarks>
+            This method discovers all instance and static methods (public and non-public) on the specified <typeparamref name="TToolType"/>
+            type, where the methods are attributed as <see cref="T:ModelContextProtocol.Server.McpServerToolAttribute"/>, and adds an <see cref="T:ModelContextProtocol.Server.McpServerTool"/>
+            instance for each. For instance methods, an instance will be constructed for each invocation of the tool.
+            </remarks>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithTools(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Collections.Generic.IEnumerable{ModelContextProtocol.Server.McpServerTool})">
+            <summary>Adds <see cref="T:ModelContextProtocol.Server.McpServerTool"/> instances to the service collection backing <paramref name="builder"/>.</summary>
+            <param name="builder">The builder instance.</param>
+            <param name="tools">The <see cref="T:ModelContextProtocol.Server.McpServerTool"/> instances to add to the server.</param>
+            <returns>The builder provided in <paramref name="builder"/>.</returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="builder"/> is <see langword="null"/>.</exception>
+            <exception cref="T:System.ArgumentNullException"><paramref name="tools"/> is <see langword="null"/>.</exception>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithTools(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Collections.Generic.IEnumerable{System.Type},System.Text.Json.JsonSerializerOptions)">
+            <summary>Adds <see cref="T:ModelContextProtocol.Server.McpServerTool"/> instances to the service collection backing <paramref name="builder"/>.</summary>
+            <param name="builder">The builder instance.</param>
+            <param name="toolTypes">Types with <see cref="T:ModelContextProtocol.Server.McpServerToolAttribute"/>-attributed methods to add as tools to the server.</param>
+            <param name="serializerOptions">The serializer options governing tool parameter marshalling.</param>
+            <returns>The builder provided in <paramref name="builder"/>.</returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="builder"/> is <see langword="null"/>.</exception>
+            <exception cref="T:System.ArgumentNullException"><paramref name="toolTypes"/> is <see langword="null"/>.</exception>
+            <remarks>
+            This method discovers all instance and static methods (public and non-public) on the specified <paramref name="toolTypes"/>
+            types, where the methods are attributed as <see cref="T:ModelContextProtocol.Server.McpServerToolAttribute"/>, and adds an <see cref="T:ModelContextProtocol.Server.McpServerTool"/>
+            instance for each. For instance methods, an instance will be constructed for each invocation of the tool.
+            </remarks>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithToolsFromAssembly(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Reflection.Assembly,System.Text.Json.JsonSerializerOptions)">
+            <summary>
+            Adds types marked with the <see cref="T:ModelContextProtocol.Server.McpServerToolTypeAttribute"/> attribute from the given assembly as tools to the server.
+            </summary>
+            <param name="builder">The builder instance.</param>
+            <param name="serializerOptions">The serializer options governing tool parameter marshalling.</param>
+            <param name="toolAssembly">The assembly to load the types from. If <see langword="null"/>, the calling assembly will be used.</param>
+            <returns>The builder provided in <paramref name="builder"/>.</returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="builder"/> is <see langword="null"/>.</exception>
+            <remarks>
+            <para>
+            This method scans the specified assembly (or the calling assembly if none is provided) for classes
+            marked with the <see cref="T:ModelContextProtocol.Server.McpServerToolTypeAttribute"/>. It then discovers all methods within those
+            classes that are marked with the <see cref="T:ModelContextProtocol.Server.McpServerToolAttribute"/> and registers them as <see cref="T:ModelContextProtocol.Server.McpServerTool"/>s
+            in the <paramref name="builder"/>'s <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/>.
+            </para>
+            <para>
+            The method automatically handles both static and instance methods. For instance methods, a new instance
+            of the containing class will be constructed for each invocation of the tool.
+            </para>
+            <para>
+            Tools registered through this method can be discovered by clients using the <c>list_tools</c> request
+            and invoked using the <c>call_tool</c> request.
+            </para>
+            <para>
+            Note that this method performs reflection at runtime and may not work in Native AOT scenarios. For
+            Native AOT compatibility, consider using the generic <see cref="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithTools``1(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Text.Json.JsonSerializerOptions)"/> method instead.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithPrompts``1(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Text.Json.JsonSerializerOptions)">
+            <summary>Adds <see cref="T:ModelContextProtocol.Server.McpServerPrompt"/> instances to the service collection backing <paramref name="builder"/>.</summary>
+            <typeparam name="TPromptType">The prompt type.</typeparam>
+            <param name="builder">The builder instance.</param>
+            <param name="serializerOptions">The serializer options governing prompt parameter marshalling.</param>
+            <returns>The builder provided in <paramref name="builder"/>.</returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="builder"/> is <see langword="null"/>.</exception>
+            <remarks>
+            This method discovers all instance and static methods (public and non-public) on the specified <typeparamref name="TPromptType"/>
+            type, where the methods are attributed as <see cref="T:ModelContextProtocol.Server.McpServerPromptAttribute"/>, and adds an <see cref="T:ModelContextProtocol.Server.McpServerPrompt"/>
+            instance for each. For instance methods, an instance will be constructed for each invocation of the prompt.
+            </remarks>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithPrompts(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Collections.Generic.IEnumerable{ModelContextProtocol.Server.McpServerPrompt})">
+            <summary>Adds <see cref="T:ModelContextProtocol.Server.McpServerPrompt"/> instances to the service collection backing <paramref name="builder"/>.</summary>
+            <param name="builder">The builder instance.</param>
+            <param name="prompts">The <see cref="T:ModelContextProtocol.Server.McpServerPrompt"/> instances to add to the server.</param>
+            <returns>The builder provided in <paramref name="builder"/>.</returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="builder"/> is <see langword="null"/>.</exception>
+            <exception cref="T:System.ArgumentNullException"><paramref name="prompts"/> is <see langword="null"/>.</exception>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithPrompts(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Collections.Generic.IEnumerable{System.Type},System.Text.Json.JsonSerializerOptions)">
+            <summary>Adds <see cref="T:ModelContextProtocol.Server.McpServerPrompt"/> instances to the service collection backing <paramref name="builder"/>.</summary>
+            <param name="builder">The builder instance.</param>
+            <param name="promptTypes">Types with marked methods to add as prompts to the server.</param>
+            <param name="serializerOptions">The serializer options governing prompt parameter marshalling.</param>
+            <returns>The builder provided in <paramref name="builder"/>.</returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="builder"/> is <see langword="null"/>.</exception>
+            <exception cref="T:System.ArgumentNullException"><paramref name="promptTypes"/> is <see langword="null"/>.</exception>
+            <remarks>
+            This method discovers all instance and static methods (public and non-public) on the specified <paramref name="promptTypes"/>
+            types, where the methods are attributed as <see cref="T:ModelContextProtocol.Server.McpServerPromptAttribute"/>, and adds an <see cref="T:ModelContextProtocol.Server.McpServerPrompt"/>
+            instance for each. For instance methods, an instance will be constructed for each invocation of the prompt.
+            </remarks>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithPromptsFromAssembly(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Reflection.Assembly,System.Text.Json.JsonSerializerOptions)">
+            <summary>
+            Adds types marked with the <see cref="T:ModelContextProtocol.Server.McpServerPromptTypeAttribute"/> attribute from the given assembly as prompts to the server.
+            </summary>
+            <param name="builder">The builder instance.</param>
+            <param name="serializerOptions">The serializer options governing prompt parameter marshalling.</param>
+            <param name="promptAssembly">The assembly to load the types from. If <see langword="null"/>, the calling assembly will be used.</param>
+            <returns>The builder provided in <paramref name="builder"/>.</returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="builder"/> is <see langword="null"/>.</exception>
+            <remarks>
+            <para>
+            This method scans the specified assembly (or the calling assembly if none is provided) for classes
+            marked with the <see cref="T:ModelContextProtocol.Server.McpServerPromptTypeAttribute"/>. It then discovers all methods within those
+            classes that are marked with the <see cref="T:ModelContextProtocol.Server.McpServerPromptAttribute"/> and registers them as <see cref="T:ModelContextProtocol.Server.McpServerPrompt"/>s
+            in the <paramref name="builder"/>'s <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/>.
+            </para>
+            <para>
+            The method automatically handles both static and instance methods. For instance methods, a new instance
+            of the containing class will be constructed for each invocation of the prompt.
+            </para>
+            <para>
+            Prompts registered through this method can be discovered by clients using the <c>list_prompts</c> request
+            and invoked using the <c>call_prompt</c> request.
+            </para>
+            <para>
+            Note that this method performs reflection at runtime and may not work in Native AOT scenarios. For
+            Native AOT compatibility, consider using the generic <see cref="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithPrompts``1(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Text.Json.JsonSerializerOptions)"/> method instead.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithResources``1(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder)">
+            <summary>Adds <see cref="T:ModelContextProtocol.Server.McpServerResource"/> instances to the service collection backing <paramref name="builder"/>.</summary>
+            <typeparam name="TResourceType">The resource type.</typeparam>
+            <param name="builder">The builder instance.</param>
+            <returns>The builder provided in <paramref name="builder"/>.</returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="builder"/> is <see langword="null"/>.</exception>
+            <remarks>
+            This method discovers all instance and static methods (public and non-public) on the specified <typeparamref name="TResourceType"/>
+            type, where the members are attributed as <see cref="T:ModelContextProtocol.Server.McpServerResourceAttribute"/>, and adds an <see cref="T:ModelContextProtocol.Server.McpServerResource"/>
+            instance for each. For instance members, an instance will be constructed for each invocation of the resource.
+            </remarks>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithResources(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Collections.Generic.IEnumerable{ModelContextProtocol.Server.McpServerResource})">
+            <summary>Adds <see cref="T:ModelContextProtocol.Server.McpServerResource"/> instances to the service collection backing <paramref name="builder"/>.</summary>
+            <param name="builder">The builder instance.</param>
+            <param name="resourceTemplates">The <see cref="T:ModelContextProtocol.Server.McpServerResource"/> instances to add to the server.</param>
+            <returns>The builder provided in <paramref name="builder"/>.</returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="builder"/> is <see langword="null"/>.</exception>
+            <exception cref="T:System.ArgumentNullException"><paramref name="resourceTemplates"/> is <see langword="null"/>.</exception>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithResources(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Collections.Generic.IEnumerable{System.Type})">
+            <summary>Adds <see cref="T:ModelContextProtocol.Server.McpServerResource"/> instances to the service collection backing <paramref name="builder"/>.</summary>
+            <param name="builder">The builder instance.</param>
+            <param name="resourceTemplateTypes">Types with marked methods to add as resources to the server.</param>
+            <returns>The builder provided in <paramref name="builder"/>.</returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="builder"/> is <see langword="null"/>.</exception>
+            <exception cref="T:System.ArgumentNullException"><paramref name="resourceTemplateTypes"/> is <see langword="null"/>.</exception>
+            <remarks>
+            This method discovers all instance and static methods (public and non-public) on the specified <paramref name="resourceTemplateTypes"/>
+            types, where the methods are attributed as <see cref="T:ModelContextProtocol.Server.McpServerResourceAttribute"/>, and adds an <see cref="T:ModelContextProtocol.Server.McpServerResource"/>
+            instance for each. For instance methods, an instance will be constructed for each invocation of the resource.
+            </remarks>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithResourcesFromAssembly(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Reflection.Assembly)">
+            <summary>
+            Adds types marked with the <see cref="T:ModelContextProtocol.Server.McpServerResourceTypeAttribute"/> attribute from the given assembly as resources to the server.
+            </summary>
+            <param name="builder">The builder instance.</param>
+            <param name="resourceAssembly">The assembly to load the types from. If <see langword="null"/>, the calling assembly will be used.</param>
+            <returns>The builder provided in <paramref name="builder"/>.</returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="builder"/> is <see langword="null"/>.</exception>
+            <remarks>
+            <para>
+            This method scans the specified assembly (or the calling assembly if none is provided) for classes
+            marked with the <see cref="T:ModelContextProtocol.Server.McpServerResourceTypeAttribute"/>. It then discovers all members within those
+            classes that are marked with the <see cref="T:ModelContextProtocol.Server.McpServerResourceAttribute"/> and registers them as <see cref="T:ModelContextProtocol.Server.McpServerResource"/>s
+            in the <paramref name="builder"/>'s <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/>.
+            </para>
+            <para>
+            The method automatically handles both static and instance members. For instance members, a new instance
+            of the containing class will be constructed for each invocation of the resource.
+            </para>
+            <para>
+            Resource templates registered through this method can be discovered by clients using the <c>list_resourceTemplates</c> request
+            and invoked using the <c>read_resource</c> request.
+            </para>
+            <para>
+            Note that this method performs reflection at runtime and may not work in Native AOT scenarios. For
+            Native AOT compatibility, consider using the generic <see cref="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithResources``1(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder)"/> method instead.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithListResourceTemplatesHandler(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Func{ModelContextProtocol.Server.RequestContext{ModelContextProtocol.Protocol.ListResourceTemplatesRequestParams},System.Threading.CancellationToken,System.Threading.Tasks.ValueTask{ModelContextProtocol.Protocol.ListResourceTemplatesResult}})">
+            <summary>
+            Configures a handler for listing resource templates available from the Model Context Protocol server.
+            </summary>
+            <param name="builder">The builder instance.</param>
+            <param name="handler">The handler function that processes resource template list requests.</param>
+            <returns>The builder provided in <paramref name="builder"/>.</returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="builder"/> is <see langword="null"/>.</exception>
+            <remarks>
+            <para>
+            This handler is responsible for providing clients with information about available resource templates
+            that can be used to construct resource URIs.
+            </para>
+            <para>
+            Resource templates describe the structure of resource URIs that the server can handle. They include
+            URI templates (according to RFC 6570) that clients can use to construct valid resource URIs.
+            </para>
+            <para>
+            This handler is typically paired with <see cref="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithReadResourceHandler(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Func{ModelContextProtocol.Server.RequestContext{ModelContextProtocol.Protocol.ReadResourceRequestParams},System.Threading.CancellationToken,System.Threading.Tasks.ValueTask{ModelContextProtocol.Protocol.ReadResourceResult}})"/> to provide a complete
+            resource system where templates define the URI patterns and the read handler provides the actual content.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithListToolsHandler(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Func{ModelContextProtocol.Server.RequestContext{ModelContextProtocol.Protocol.ListToolsRequestParams},System.Threading.CancellationToken,System.Threading.Tasks.ValueTask{ModelContextProtocol.Protocol.ListToolsResult}})">
+            <summary>
+            Configures a handler for listing tools available from the Model Context Protocol server.
+            </summary>
+            <param name="builder">The builder instance.</param>
+            <param name="handler">The handler that processes list tools requests.</param>
+            <returns>The builder provided in <paramref name="builder"/>.</returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="builder"/> is <see langword="null"/>.</exception>
+            <remarks>
+            <para>
+            This handler is called when a client requests a list of available tools. It should return all tools
+            that can be invoked through the server, including their names, descriptions, and parameter specifications.
+            The handler can optionally support pagination via the cursor mechanism for large or dynamically-generated
+            tool collections.
+            </para>
+            <para>
+            When tools are also defined using <see cref="T:ModelContextProtocol.Server.McpServerTool"/> collection, both sets of tools
+            will be combined in the response to clients. This allows for a mix of programmatically defined
+            tools and dynamically generated tools.
+            </para>
+            <para>
+            This method is typically paired with <see cref="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithCallToolHandler(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Func{ModelContextProtocol.Server.RequestContext{ModelContextProtocol.Protocol.CallToolRequestParams},System.Threading.CancellationToken,System.Threading.Tasks.ValueTask{ModelContextProtocol.Protocol.CallToolResponse}})"/> to provide a complete tools implementation,
+            where <see cref="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithListToolsHandler(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Func{ModelContextProtocol.Server.RequestContext{ModelContextProtocol.Protocol.ListToolsRequestParams},System.Threading.CancellationToken,System.Threading.Tasks.ValueTask{ModelContextProtocol.Protocol.ListToolsResult}})"/> advertises available tools and <see cref="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithCallToolHandler(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Func{ModelContextProtocol.Server.RequestContext{ModelContextProtocol.Protocol.CallToolRequestParams},System.Threading.CancellationToken,System.Threading.Tasks.ValueTask{ModelContextProtocol.Protocol.CallToolResponse}})"/>
+            executes them when invoked by clients.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithCallToolHandler(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Func{ModelContextProtocol.Server.RequestContext{ModelContextProtocol.Protocol.CallToolRequestParams},System.Threading.CancellationToken,System.Threading.Tasks.ValueTask{ModelContextProtocol.Protocol.CallToolResponse}})">
+            <summary>
+            Configures a handler for calling tools available from the Model Context Protocol server.
+            </summary>
+            <param name="builder">The builder instance.</param>
+            <param name="handler">The handler function that processes tool calls.</param>
+            <returns>The builder provided in <paramref name="builder"/>.</returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="builder"/> is <see langword="null"/>.</exception>
+            <remarks>
+            The call tool handler is responsible for executing custom tools and returning their results to clients.
+            This method is typically paired with <see cref="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithListToolsHandler(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Func{ModelContextProtocol.Server.RequestContext{ModelContextProtocol.Protocol.ListToolsRequestParams},System.Threading.CancellationToken,System.Threading.Tasks.ValueTask{ModelContextProtocol.Protocol.ListToolsResult}})"/> to provide a complete tools implementation,
+            where <see cref="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithListToolsHandler(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Func{ModelContextProtocol.Server.RequestContext{ModelContextProtocol.Protocol.ListToolsRequestParams},System.Threading.CancellationToken,System.Threading.Tasks.ValueTask{ModelContextProtocol.Protocol.ListToolsResult}})"/> advertises available tools and this handler executes them.
+            </remarks>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithListPromptsHandler(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Func{ModelContextProtocol.Server.RequestContext{ModelContextProtocol.Protocol.ListPromptsRequestParams},System.Threading.CancellationToken,System.Threading.Tasks.ValueTask{ModelContextProtocol.Protocol.ListPromptsResult}})">
+            <summary>
+            Configures a handler for listing prompts available from the Model Context Protocol server.
+            </summary>
+            <param name="builder">The builder instance.</param>
+            <param name="handler">The handler that processes list prompts requests.</param>
+            <returns>The builder provided in <paramref name="builder"/>.</returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="builder"/> is <see langword="null"/>.</exception>
+            <remarks>
+            <para>
+            This handler is called when a client requests a list of available prompts. It should return all prompts
+            that can be invoked through the server, including their names, descriptions, and parameter specifications.
+            The handler can optionally support pagination via the cursor mechanism for large or dynamically-generated
+            prompt collections.
+            </para>
+            <para>
+            When prompts are also defined using <see cref="T:ModelContextProtocol.Server.McpServerPrompt"/> collection, both sets of prompts
+            will be combined in the response to clients. This allows for a mix of programmatically defined
+            prompts and dynamically generated prompts.
+            </para>
+            <para>
+            This method is typically paired with <see cref="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithGetPromptHandler(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Func{ModelContextProtocol.Server.RequestContext{ModelContextProtocol.Protocol.GetPromptRequestParams},System.Threading.CancellationToken,System.Threading.Tasks.ValueTask{ModelContextProtocol.Protocol.GetPromptResult}})"/> to provide a complete prompts implementation,
+            where <see cref="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithListPromptsHandler(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Func{ModelContextProtocol.Server.RequestContext{ModelContextProtocol.Protocol.ListPromptsRequestParams},System.Threading.CancellationToken,System.Threading.Tasks.ValueTask{ModelContextProtocol.Protocol.ListPromptsResult}})"/> advertises available prompts and <see cref="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithGetPromptHandler(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Func{ModelContextProtocol.Server.RequestContext{ModelContextProtocol.Protocol.GetPromptRequestParams},System.Threading.CancellationToken,System.Threading.Tasks.ValueTask{ModelContextProtocol.Protocol.GetPromptResult}})"/>
+            produces them when invoked by clients.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithGetPromptHandler(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Func{ModelContextProtocol.Server.RequestContext{ModelContextProtocol.Protocol.GetPromptRequestParams},System.Threading.CancellationToken,System.Threading.Tasks.ValueTask{ModelContextProtocol.Protocol.GetPromptResult}})">
+            <summary>
+            Configures a handler for getting a prompt available from the Model Context Protocol server.
+            </summary>
+            <param name="builder">The builder instance.</param>
+            <param name="handler">The handler function that processes prompt requests.</param>
+            <returns>The builder provided in <paramref name="builder"/>.</returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="builder"/> is <see langword="null"/>.</exception>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithListResourcesHandler(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Func{ModelContextProtocol.Server.RequestContext{ModelContextProtocol.Protocol.ListResourcesRequestParams},System.Threading.CancellationToken,System.Threading.Tasks.ValueTask{ModelContextProtocol.Protocol.ListResourcesResult}})">
+            <summary>
+            Configures a handler for listing resources available from the Model Context Protocol server.
+            </summary>
+            <param name="builder">The builder instance.</param>
+            <param name="handler">The handler function that processes resource list requests.</param>
+            <returns>The builder provided in <paramref name="builder"/>.</returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="builder"/> is <see langword="null"/>.</exception>
+            <remarks>
+            <para>
+            This handler is typically paired with <see cref="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithReadResourceHandler(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Func{ModelContextProtocol.Server.RequestContext{ModelContextProtocol.Protocol.ReadResourceRequestParams},System.Threading.CancellationToken,System.Threading.Tasks.ValueTask{ModelContextProtocol.Protocol.ReadResourceResult}})"/> to provide a complete resources implementation,
+            where this handler advertises available resources and the read handler provides their content when requested.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithReadResourceHandler(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Func{ModelContextProtocol.Server.RequestContext{ModelContextProtocol.Protocol.ReadResourceRequestParams},System.Threading.CancellationToken,System.Threading.Tasks.ValueTask{ModelContextProtocol.Protocol.ReadResourceResult}})">
+            <summary>
+            Configures a handler for reading a resource available from the Model Context Protocol server.
+            </summary>
+            <param name="builder">The builder instance.</param>
+            <param name="handler">The handler function that processes resource read requests.</param>
+            <returns>The builder provided in <paramref name="builder"/>.</returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="builder"/> is <see langword="null"/>.</exception>
+            <remarks>
+            This handler is typically paired with <see cref="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithListResourcesHandler(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Func{ModelContextProtocol.Server.RequestContext{ModelContextProtocol.Protocol.ListResourcesRequestParams},System.Threading.CancellationToken,System.Threading.Tasks.ValueTask{ModelContextProtocol.Protocol.ListResourcesResult}})"/> to provide a complete resources implementation,
+            where the list handler advertises available resources and the read handler provides their content when requested.
+            </remarks>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithCompleteHandler(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Func{ModelContextProtocol.Server.RequestContext{ModelContextProtocol.Protocol.CompleteRequestParams},System.Threading.CancellationToken,System.Threading.Tasks.ValueTask{ModelContextProtocol.Protocol.CompleteResult}})">
+            <summary>
+            Configures a handler for auto-completion suggestions for prompt arguments or resource references available from the Model Context Protocol server.
+            </summary>
+            <param name="builder">The builder instance.</param>
+            <param name="handler">The handler function that processes completion requests.</param>
+            <returns>The builder provided in <paramref name="builder"/>.</returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="builder"/> is <see langword="null"/>.</exception>
+            <remarks>
+            The completion handler is invoked when clients request suggestions for argument values.
+            This enables auto-complete functionality for both prompt arguments and resource references.
+            </remarks>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithSubscribeToResourcesHandler(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Func{ModelContextProtocol.Server.RequestContext{ModelContextProtocol.Protocol.SubscribeRequestParams},System.Threading.CancellationToken,System.Threading.Tasks.ValueTask{ModelContextProtocol.Protocol.EmptyResult}})">
+            <summary>
+            Configures a handler for resource subscription requests.
+            </summary>
+            <param name="builder">The builder instance.</param>
+            <param name="handler">The handler function that processes resource subscription requests.</param>
+            <returns>The builder provided in <paramref name="builder"/>.</returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="builder"/> is <see langword="null"/>.</exception>
+            <remarks>
+            <para>
+            The subscribe handler is responsible for registering client interest in specific resources. When a resource
+            changes, the server can notify all subscribed clients about the change.
+            </para>
+            <para>
+            This handler is typically paired with <see cref="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithUnsubscribeFromResourcesHandler(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Func{ModelContextProtocol.Server.RequestContext{ModelContextProtocol.Protocol.UnsubscribeRequestParams},System.Threading.CancellationToken,System.Threading.Tasks.ValueTask{ModelContextProtocol.Protocol.EmptyResult}})"/> to provide a complete
+            subscription management system. Resource subscriptions allow clients to maintain up-to-date information without
+            needing to poll resources constantly.
+            </para>
+            <para>
+            After registering a subscription, it's the server's responsibility to track which client is subscribed to which
+            resources and to send appropriate notifications through the connection when resources change.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithUnsubscribeFromResourcesHandler(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Func{ModelContextProtocol.Server.RequestContext{ModelContextProtocol.Protocol.UnsubscribeRequestParams},System.Threading.CancellationToken,System.Threading.Tasks.ValueTask{ModelContextProtocol.Protocol.EmptyResult}})">
+            <summary>
+            Configures a handler for resource unsubscription requests.
+            </summary>
+            <param name="builder">The builder instance.</param>
+            <param name="handler">The handler function that processes resource unsubscription requests.</param>
+            <returns>The builder provided in <paramref name="builder"/>.</returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="builder"/> is <see langword="null"/>.</exception>
+            <remarks>
+            <para>
+            The unsubscribe handler is responsible for removing client interest in specific resources. When a client
+            no longer needs to receive notifications about resource changes, it can send an unsubscribe request.
+            </para>
+            <para>
+            This handler is typically paired with <see cref="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithSubscribeToResourcesHandler(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Func{ModelContextProtocol.Server.RequestContext{ModelContextProtocol.Protocol.SubscribeRequestParams},System.Threading.CancellationToken,System.Threading.Tasks.ValueTask{ModelContextProtocol.Protocol.EmptyResult}})"/> to provide a complete
+            subscription management system. The unsubscribe operation is idempotent, meaning it can be called multiple
+            times for the same resource without causing errors, even if there is no active subscription.
+            </para>
+            <para>
+            After removing a subscription, the server should stop sending notifications to the client about changes
+            to the specified resource.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithSetLoggingLevelHandler(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Func{ModelContextProtocol.Server.RequestContext{ModelContextProtocol.Protocol.SetLevelRequestParams},System.Threading.CancellationToken,System.Threading.Tasks.ValueTask{ModelContextProtocol.Protocol.EmptyResult}})">
+            <summary>
+            Configures a handler for processing logging level change requests from clients.
+            </summary>
+            <param name="builder">The server builder instance.</param>
+            <param name="handler">The handler that processes requests to change the logging level.</param>
+            <returns>The builder provided in <paramref name="builder"/>.</returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="builder"/> is <see langword="null"/>.</exception>
+            <remarks>
+            <para>
+            When a client sends a <c>logging/setLevel</c> request, this handler will be invoked to process
+            the requested level change. The server typically adjusts its internal logging level threshold
+            and may begin sending log messages at or above the specified level to the client.
+            </para>
+            <para>
+            Regardless of whether a handler is provided, an <see cref="T:ModelContextProtocol.Server.IMcpServer"/> should itself handle
+            such notifications by updating its <see cref="P:ModelContextProtocol.Server.IMcpServer.LoggingLevel"/> property to return the
+            most recently set level.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithStdioServerTransport(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder)">
+            <summary>
+            Adds a server transport that uses standard input (stdin) and standard output (stdout) for communication.
+            </summary>
+            <param name="builder">The builder instance.</param>
+            <returns>The builder provided in <paramref name="builder"/>.</returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="builder"/> is <see langword="null"/>.</exception>
+            <remarks>
+            <para>
+            This method configures the server to communicate using the standard input and output streams,
+            which is commonly used when the Model Context Protocol server is launched locally by a client process.
+            </para>
+            <para>
+            When using this transport, the server runs as a single-session service that exits when the
+            stdin stream is closed. This makes it suitable for scenarios where the server should terminate
+            when the parent process disconnects.
+            </para>
+            </remarks>
+            <exception cref="T:System.ArgumentNullException"><paramref name="builder"/> is <see langword="null"/>.</exception>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithStreamServerTransport(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.IO.Stream,System.IO.Stream)">
+            <summary>
+            Adds a server transport that uses the specified input and output streams for communication.
+            </summary>
+            <param name="builder">The builder instance.</param>
+            <param name="inputStream">The input <see cref="T:System.IO.Stream"/> to use as standard input.</param>
+            <param name="outputStream">The output <see cref="T:System.IO.Stream"/> to use as standard output.</param>
+            <returns>The builder provided in <paramref name="builder"/>.</returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="builder"/> is <see langword="null"/>.</exception>
+            <exception cref="T:System.ArgumentNullException"><paramref name="inputStream"/> is <see langword="null"/>.</exception>
+            <exception cref="T:System.ArgumentNullException"><paramref name="outputStream"/> is <see langword="null"/>.</exception>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.CreateTarget(System.IServiceProvider,System.Type)">
+            <summary>Creates an instance of the target object.</summary>
+        </member>
+        <member name="T:Microsoft.Extensions.DependencyInjection.McpServerServiceCollectionExtensions">
+            <summary>
+            Provides extension methods for configuring MCP servers with dependency injection.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.McpServerServiceCollectionExtensions.AddMcpServer(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{ModelContextProtocol.Server.McpServerOptions})">
+            <summary>
+            Adds the Model Context Protocol (MCP) server to the service collection with default options.
+            </summary>
+            <param name="services">The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> to add the server to.</param>
+            <param name="configureOptions">Optional callback to configure the <see cref="T:ModelContextProtocol.Server.McpServerOptions"/>.</param>
+            <returns>An <see cref="T:Microsoft.Extensions.DependencyInjection.IMcpServerBuilder"/> that can be used to further configure the MCP server.</returns>
+        </member>
+        <member name="T:ModelContextProtocol.Server.McpServerHandlers">
+            <summary>
+            Provides a container for handlers used in the creation of an MCP server.
+            </summary>
+            <remarks>
+            <para>
+            This class provides a centralized collection of delegates that implement various capabilities of the Model Context Protocol.
+            Each handler in this class corresponds to a specific endpoint in the Model Context Protocol and
+            is responsible for processing a particular type of request. The handlers are used to customize
+            the behavior of the MCP server by providing implementations for the various protocol operations.
+            </para>
+            <para>
+            Handlers can be configured individually using the extension methods in <see cref="T:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions"/>
+            such as <see cref="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithListToolsHandler(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Func{ModelContextProtocol.Server.RequestContext{ModelContextProtocol.Protocol.ListToolsRequestParams},System.Threading.CancellationToken,System.Threading.Tasks.ValueTask{ModelContextProtocol.Protocol.ListToolsResult}})"/> and
+            <see cref="M:Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions.WithCallToolHandler(Microsoft.Extensions.DependencyInjection.IMcpServerBuilder,System.Func{ModelContextProtocol.Server.RequestContext{ModelContextProtocol.Protocol.CallToolRequestParams},System.Threading.CancellationToken,System.Threading.Tasks.ValueTask{ModelContextProtocol.Protocol.CallToolResponse}})"/>.
+            </para>
+            <para>
+            When a client sends a request to the server, the appropriate handler is invoked to process the
+            request and produce a response according to the protocol specification. Which handler is selected
+            is done based on an ordinal, case-sensitive string comparison.
+            </para>
+            </remarks>
+        </member>
+        <member name="P:ModelContextProtocol.Server.McpServerHandlers.ListToolsHandler">
+            <summary>
+            Gets or sets the handler for <see cref="F:ModelContextProtocol.Protocol.RequestMethods.ToolsList"/> requests.
+            </summary>
+            <remarks>
+            <para>
+            The handler should return a list of available tools when requested by a client.
+            It supports pagination through the cursor mechanism, where the client can make
+            repeated calls with the cursor returned by the previous call to retrieve more tools.
+            </para>
+            <para>
+            This handler works alongside any tools defined in the <see cref="T:ModelContextProtocol.Server.McpServerTool"/> collection.
+            Tools from both sources will be combined when returning results to clients.
+            </para>
+            </remarks>
+        </member>
+        <member name="P:ModelContextProtocol.Server.McpServerHandlers.CallToolHandler">
+            <summary>
+            Gets or sets the handler for <see cref="F:ModelContextProtocol.Protocol.RequestMethods.ToolsCall"/> requests.
+            </summary>
+            <remarks>
+            This handler is invoked when a client makes a call to a tool that isn't found in the <see cref="T:ModelContextProtocol.Server.McpServerTool"/> collection.
+            The handler should implement logic to execute the requested tool and return appropriate results.
+            </remarks>
+        </member>
+        <member name="P:ModelContextProtocol.Server.McpServerHandlers.ListPromptsHandler">
+            <summary>
+            Gets or sets the handler for <see cref="F:ModelContextProtocol.Protocol.RequestMethods.PromptsList"/> requests.
+            </summary>
+            <remarks>
+            <para>
+            The handler should return a list of available prompts when requested by a client.
+            It supports pagination through the cursor mechanism, where the client can make
+            repeated calls with the cursor returned by the previous call to retrieve more prompts.
+            </para>
+            <para>
+            This handler works alongside any prompts defined in the <see cref="T:ModelContextProtocol.Server.McpServerPrompt"/> collection.
+            Prompts from both sources will be combined when returning results to clients.
+            </para>
+            </remarks>
+        </member>
+        <member name="P:ModelContextProtocol.Server.McpServerHandlers.GetPromptHandler">
+            <summary>
+            Gets or sets the handler for <see cref="F:ModelContextProtocol.Protocol.RequestMethods.PromptsGet"/> requests.
+            </summary>
+            <remarks>
+            This handler is invoked when a client requests details for a specific prompt that isn't found in the <see cref="T:ModelContextProtocol.Server.McpServerPrompt"/> collection.
+            The handler should implement logic to fetch or generate the requested prompt and return appropriate results.
+            </remarks>
+        </member>
+        <member name="P:ModelContextProtocol.Server.McpServerHandlers.ListResourceTemplatesHandler">
+            <summary>
+            Gets or sets the handler for <see cref="F:ModelContextProtocol.Protocol.RequestMethods.ResourcesTemplatesList"/> requests.
+            </summary>
+            <remarks>
+            The handler should return a list of available resource templates when requested by a client.
+            It supports pagination through the cursor mechanism, where the client can make
+            repeated calls with the cursor returned by the previous call to retrieve more resource templates.
+            </remarks>
+        </member>
+        <member name="P:ModelContextProtocol.Server.McpServerHandlers.ListResourcesHandler">
+            <summary>
+            Gets or sets the handler for <see cref="F:ModelContextProtocol.Protocol.RequestMethods.ResourcesList"/> requests.
+            </summary>
+            <remarks>
+            The handler should return a list of available resources when requested by a client.
+            It supports pagination through the cursor mechanism, where the client can make
+            repeated calls with the cursor returned by the previous call to retrieve more resources.
+            </remarks>
+        </member>
+        <member name="P:ModelContextProtocol.Server.McpServerHandlers.ReadResourceHandler">
+            <summary>
+            Gets or sets the handler for <see cref="F:ModelContextProtocol.Protocol.RequestMethods.ResourcesRead"/> requests.
+            </summary>
+            <remarks>
+            This handler is invoked when a client requests the content of a specific resource identified by its URI.
+            The handler should implement logic to locate and retrieve the requested resource.
+            </remarks>
+        </member>
+        <member name="P:ModelContextProtocol.Server.McpServerHandlers.CompleteHandler">
+            <summary>
+            Gets or sets the handler for <see cref="F:ModelContextProtocol.Protocol.RequestMethods.CompletionComplete"/> requests.
+            </summary>
+            <remarks>
+            This handler provides auto-completion suggestions for prompt arguments or resource references in the Model Context Protocol.
+            The handler processes auto-completion requests, returning a list of suggestions based on the 
+            reference type and current argument value.
+            </remarks>
+        </member>
+        <member name="P:ModelContextProtocol.Server.McpServerHandlers.SubscribeToResourcesHandler">
+            <summary>
+            Gets or sets the handler for <see cref="F:ModelContextProtocol.Protocol.RequestMethods.ResourcesSubscribe"/> requests.
+            </summary>
+            <remarks>
+            <para>
+            This handler is invoked when a client wants to receive notifications about changes to specific resources or resource patterns.
+            The handler should implement logic to register the client's interest in the specified resources
+            and set up the necessary infrastructure to send notifications when those resources change.
+            </para>
+            <para>
+            After a successful subscription, the server should send resource change notifications to the client
+            whenever a relevant resource is created, updated, or deleted.
+            </para>
+            </remarks>
+        </member>
+        <member name="P:ModelContextProtocol.Server.McpServerHandlers.UnsubscribeFromResourcesHandler">
+            <summary>
+            Gets or sets the handler for <see cref="F:ModelContextProtocol.Protocol.RequestMethods.ResourcesUnsubscribe"/> requests.
+            </summary>
+            <remarks>
+            <para>
+            This handler is invoked when a client wants to stop receiving notifications about previously subscribed resources.
+            The handler should implement logic to remove the client's subscriptions to the specified resources
+            and clean up any associated resources.
+            </para>
+            <para>
+            After a successful unsubscription, the server should no longer send resource change notifications
+            to the client for the specified resources.
+            </para>
+            </remarks>
+        </member>
+        <member name="P:ModelContextProtocol.Server.McpServerHandlers.SetLoggingLevelHandler">
+            <summary>
+            Gets or sets the handler for <see cref="F:ModelContextProtocol.Protocol.RequestMethods.LoggingSetLevel"/> requests.
+            </summary>
+            <remarks>
+            <para>
+            This handler processes <see cref="F:ModelContextProtocol.Protocol.RequestMethods.LoggingSetLevel"/> requests from clients. When set, it enables
+            clients to control which log messages they receive by specifying a minimum severity threshold.
+            </para>
+            <para>
+            After handling a level change request, the server typically begins sending log messages
+            at or above the specified level to the client as notifications/message notifications.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:ModelContextProtocol.Server.McpServerHandlers.OverwriteWithSetHandlers(ModelContextProtocol.Server.McpServerOptions)">
+            <summary>
+            Overwrite any handlers in McpServerOptions with non-null handlers from this instance.
+            </summary>
+            <param name="options"></param>
+            <returns></returns>
+        </member>
+        <member name="T:ModelContextProtocol.McpServerOptionsSetup">
+            <summary>
+            Configures the McpServerOptions using addition services from DI.
+            </summary>
+            <param name="serverHandlers">The server handlers configuration options.</param>
+            <param name="serverTools">Tools individually registered.</param>
+            <param name="serverPrompts">Prompts individually registered.</param>
+            <param name="serverResources">Resources individually registered.</param>
+        </member>
+        <member name="M:ModelContextProtocol.McpServerOptionsSetup.#ctor(Microsoft.Extensions.Options.IOptions{ModelContextProtocol.Server.McpServerHandlers},System.Collections.Generic.IEnumerable{ModelContextProtocol.Server.McpServerTool},System.Collections.Generic.IEnumerable{ModelContextProtocol.Server.McpServerPrompt},System.Collections.Generic.IEnumerable{ModelContextProtocol.Server.McpServerResource})">
+            <summary>
+            Configures the McpServerOptions using addition services from DI.
+            </summary>
+            <param name="serverHandlers">The server handlers configuration options.</param>
+            <param name="serverTools">Tools individually registered.</param>
+            <param name="serverPrompts">Prompts individually registered.</param>
+            <param name="serverResources">Resources individually registered.</param>
+        </member>
+        <member name="M:ModelContextProtocol.McpServerOptionsSetup.Configure(ModelContextProtocol.Server.McpServerOptions)">
+            <summary>
+            Configures the given McpServerOptions instance by setting server information
+            and applying custom server handlers and tools.
+            </summary>
+            <param name="options">The options instance to be configured.</param>
+        </member>
+        <member name="T:ModelContextProtocol.SingleSessionMcpServerHostedService">
+            <summary>
+            Hosted service for a single-session (e.g. stdio) MCP server.
+            </summary>
+            <param name="session">The server representing the session being hosted.</param>
+            <param name="lifetime">
+            The host's application lifetime. If available, it will have termination requested when the session's run completes.
+            </param>
+        </member>
+        <member name="M:ModelContextProtocol.SingleSessionMcpServerHostedService.#ctor(ModelContextProtocol.Server.IMcpServer,Microsoft.Extensions.Hosting.IHostApplicationLifetime)">
+            <summary>
+            Hosted service for a single-session (e.g. stdio) MCP server.
+            </summary>
+            <param name="session">The server representing the session being hosted.</param>
+            <param name="lifetime">
+            The host's application lifetime. If available, it will have termination requested when the session's run completes.
+            </param>
+        </member>
+        <member name="M:ModelContextProtocol.SingleSessionMcpServerHostedService.ExecuteAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ModelContextProtocol.Throw">
+            <summary>Provides helper methods for throwing exceptions.</summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembersAttribute">
+             <summary>
+             Indicates that certain members on a specified <see cref="T:System.Type"/> are accessed dynamically,
+             for example through <see cref="N:System.Reflection"/>.
+             </summary>
+             <remarks>
+             This allows tools to understand which members are being accessed during the execution
+             of a program.
+            
+             This attribute is valid on members whose type is <see cref="T:System.Type"/> or <see cref="T:System.String"/>.
+            
+             When this attribute is applied to a location of type <see cref="T:System.String"/>, the assumption is
+             that the string represents a fully qualified type name.
+            
+             When this attribute is applied to a class, interface, or struct, the members specified
+             can be accessed dynamically on <see cref="T:System.Type"/> instances returned from calling
+             <see cref="M:System.Object.GetType"/> on instances of that class, interface, or struct.
+            
+             If the attribute is applied to a method it's treated as a special case and it implies
+             the attribute should be applied to the "this" parameter of the method. As such the attribute
+             should only be used on instance methods of types assignable to System.Type (or string, but no methods
+             will use it there).
+             </remarks>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembersAttribute.#ctor(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes)">
+            <summary>
+            Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembersAttribute"/> class
+            with the specified member types.
+            </summary>
+            <param name="memberTypes">The types of members dynamically accessed.</param>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembersAttribute.MemberTypes">
+            <summary>
+            Gets the <see cref="T:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes"/> which specifies the type
+            of members dynamically accessed.
+            </summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes">
+             <summary>
+             Specifies the types of members that are dynamically accessed.
+            
+             This enumeration has a <see cref="T:System.FlagsAttribute"/> attribute that allows a
+             bitwise combination of its member values.
+             </summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.None">
+            <summary>
+            Specifies no members.
+            </summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicParameterlessConstructor">
+            <summary>
+            Specifies the default, parameterless public constructor.
+            </summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicConstructors">
+            <summary>
+            Specifies all public constructors.
+            </summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicConstructors">
+            <summary>
+            Specifies all non-public constructors.
+            </summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicMethods">
+            <summary>
+            Specifies all public methods.
+            </summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicMethods">
+            <summary>
+            Specifies all non-public methods.
+            </summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicFields">
+            <summary>
+            Specifies all public fields.
+            </summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicFields">
+            <summary>
+            Specifies all non-public fields.
+            </summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicNestedTypes">
+            <summary>
+            Specifies all public nested types.
+            </summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicNestedTypes">
+            <summary>
+            Specifies all non-public nested types.
+            </summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicProperties">
+            <summary>
+            Specifies all public properties.
+            </summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicProperties">
+            <summary>
+            Specifies all non-public properties.
+            </summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicEvents">
+            <summary>
+            Specifies all public events.
+            </summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicEvents">
+            <summary>
+            Specifies all non-public events.
+            </summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.Interfaces">
+            <summary>
+            Specifies all interfaces implemented by the type.
+            </summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicConstructorsWithInherited">
+            <summary>
+            Specifies all non-public constructors, including those inherited from base classes.
+            </summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicMethodsWithInherited">
+            <summary>
+            Specifies all non-public methods, including those inherited from base classes.
+            </summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicFieldsWithInherited">
+            <summary>
+            Specifies all non-public fields, including those inherited from base classes.
+            </summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicNestedTypesWithInherited">
+            <summary>
+            Specifies all non-public nested types, including those inherited from base classes.
+            </summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicPropertiesWithInherited">
+            <summary>
+            Specifies all non-public properties, including those inherited from base classes.
+            </summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.NonPublicEventsWithInherited">
+            <summary>
+            Specifies all non-public events, including those inherited from base classes.
+            </summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicConstructorsWithInherited">
+            <summary>
+            Specifies all public constructors, including those inherited from base classes.
+            </summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicNestedTypesWithInherited">
+            <summary>
+            Specifies all public nested types, including those inherited from base classes.
+            </summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.AllConstructors">
+            <summary>
+            Specifies all constructors, including those inherited from base classes.
+            </summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.AllMethods">
+            <summary>
+            Specifies all methods, including those inherited from base classes.
+            </summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.AllFields">
+            <summary>
+            Specifies all fields, including those inherited from base classes.
+            </summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.AllNestedTypes">
+            <summary>
+            Specifies all nested types, including those inherited from base classes.
+            </summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.AllProperties">
+            <summary>
+            Specifies all properties, including those inherited from base classes.
+            </summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.AllEvents">
+            <summary>
+            Specifies all events, including those inherited from base classes.
+            </summary>
+        </member>
+        <member name="F:System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.All">
+            <summary>
+            Specifies all members.
+            </summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.AllowNullAttribute">
+            <summary>Specifies that null is allowed as an input even if the corresponding type disallows it.</summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.DisallowNullAttribute">
+            <summary>Specifies that null is disallowed as an input even if the corresponding type allows it.</summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.MaybeNullAttribute">
+            <summary>Specifies that an output may be null even if the corresponding type disallows it.</summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.NotNullAttribute">
+            <summary>Specifies that an output will not be null even if the corresponding type allows it. Specifies that an input argument was not null when the call returns.</summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute">
+            <summary>Specifies that when a method returns <see cref="P:System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute.ReturnValue"/>, the parameter may be null even if the corresponding type disallows it.</summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute.#ctor(System.Boolean)">
+            <summary>Initializes the attribute with the specified return value condition.</summary>
+            <param name="returnValue">
+            The return value condition. If the method returns this value, the associated parameter may be null.
+            </param>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute.ReturnValue">
+            <summary>Gets the return value condition.</summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.NotNullWhenAttribute">
+            <summary>Specifies that when a method returns <see cref="P:System.Diagnostics.CodeAnalysis.NotNullWhenAttribute.ReturnValue"/>, the parameter will not be null even if the corresponding type allows it.</summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.NotNullWhenAttribute.#ctor(System.Boolean)">
+            <summary>Initializes the attribute with the specified return value condition.</summary>
+            <param name="returnValue">
+            The return value condition. If the method returns this value, the associated parameter will not be null.
+            </param>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.NotNullWhenAttribute.ReturnValue">
+            <summary>Gets the return value condition.</summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute">
+            <summary>Specifies that the output will be non-null if the named parameter is non-null.</summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute.#ctor(System.String)">
+            <summary>Initializes the attribute with the associated parameter name.</summary>
+            <param name="parameterName">
+            The associated parameter name.  The output will be non-null if the argument to the parameter specified is non-null.
+            </param>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute.ParameterName">
+            <summary>Gets the associated parameter name.</summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.DoesNotReturnAttribute">
+            <summary>Applied to a method that will never return under any circumstance.</summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute">
+            <summary>Specifies that the method will not return if the associated Boolean parameter is passed the specified value.</summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute.#ctor(System.Boolean)">
+            <summary>Initializes the attribute with the specified parameter value.</summary>
+            <param name="parameterValue">
+            The condition parameter value. Code after the method will be considered unreachable by diagnostics if the argument to
+            the associated parameter matches this value.
+            </param>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute.ParameterValue">
+            <summary>Gets the condition parameter value.</summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.MemberNotNullAttribute">
+            <summary>Specifies that the method or property will ensure that the listed field and property members have not-null values.</summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.MemberNotNullAttribute.#ctor(System.String)">
+            <summary>Initializes the attribute with a field or property member.</summary>
+            <param name="member">
+            The field or property member that is promised to be not-null.
+            </param>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.MemberNotNullAttribute.#ctor(System.String[])">
+            <summary>Initializes the attribute with the list of field and property members.</summary>
+            <param name="members">
+            The list of field and property members that are promised to be not-null.
+            </param>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.MemberNotNullAttribute.Members">
+            <summary>Gets field or property member names.</summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.MemberNotNullWhenAttribute">
+            <summary>Specifies that the method or property will ensure that the listed field and property members have not-null values when returning with the specified return value condition.</summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.MemberNotNullWhenAttribute.#ctor(System.Boolean,System.String)">
+            <summary>Initializes the attribute with the specified return value condition and a field or property member.</summary>
+            <param name="returnValue">
+            The return value condition. If the method returns this value, the associated field or property member will not be null.
+            </param>
+            <param name="member">
+            The field or property member that is promised to be not-null.
+            </param>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.MemberNotNullWhenAttribute.#ctor(System.Boolean,System.String[])">
+            <summary>Initializes the attribute with the specified return value condition and list of field and property members.</summary>
+            <param name="returnValue">
+            The return value condition. If the method returns this value, the associated field and property members will not be null.
+            </param>
+            <param name="members">
+            The list of field and property members that are promised to be not-null.
+            </param>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.MemberNotNullWhenAttribute.ReturnValue">
+            <summary>Gets the return value condition.</summary>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.MemberNotNullWhenAttribute.Members">
+            <summary>Gets field or property member names.</summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.RequiresDynamicCodeAttribute">
+            <summary>
+            Indicates that the specified method requires the ability to generate new code at runtime,
+            for example through <see cref="N:System.Reflection"/>.
+            </summary>
+            <remarks>
+            This allows tools to understand which methods are unsafe to call when compiling ahead of time.
+            </remarks>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.RequiresDynamicCodeAttribute.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.RequiresDynamicCodeAttribute"/> class
+            with the specified message.
+            </summary>
+            <param name="message">
+            A message that contains information about the usage of dynamic code.
+            </param>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.RequiresDynamicCodeAttribute.Message">
+            <summary>
+            Gets a message that contains information about the usage of dynamic code.
+            </summary>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.RequiresDynamicCodeAttribute.Url">
+            <summary>
+            Gets or sets an optional URL that contains more information about the method,
+            why it requires dynamic code, and what options a consumer has to deal with it.
+            </summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.RequiresUnreferencedCodeAttribute">
+            <summary>
+            Indicates that the specified method requires dynamic access to code that is not referenced
+            statically, for example through <see cref="N:System.Reflection"/>.
+            </summary>
+            <remarks>
+            This allows tools to understand which methods are unsafe to call when removing unreferenced
+            code from an application.
+            </remarks>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.RequiresUnreferencedCodeAttribute.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.RequiresUnreferencedCodeAttribute"/> class
+            with the specified message.
+            </summary>
+            <param name="message">
+            A message that contains information about the usage of unreferenced code.
+            </param>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.RequiresUnreferencedCodeAttribute.Message">
+            <summary>
+            Gets a message that contains information about the usage of unreferenced code.
+            </summary>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.RequiresUnreferencedCodeAttribute.Url">
+            <summary>
+            Gets or sets an optional URL that contains more information about the method,
+            why it requires unreferenced code, and what options a consumer has to deal with it.
+            </summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessageAttribute">
+            <summary>
+            /// Suppresses reporting of a specific rule violation, allowing multiple suppressions on a
+            single code artifact.
+            </summary>
+            <remarks>
+            <see cref="T:System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessageAttribute"/> is different than
+            <see cref="T:System.Diagnostics.CodeAnalysis.SuppressMessageAttribute"/> in that it doesn't have a
+            <see cref="T:System.Diagnostics.ConditionalAttribute"/>. So it is always preserved in the compiled assembly.
+            </remarks>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessageAttribute.#ctor(System.String,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessageAttribute"/>
+            class, specifying the category of the tool and the identifier for an analysis rule.
+            </summary>
+            <param name="category">The category for the attribute.</param>
+            <param name="checkId">The identifier of the analysis rule the attribute applies to.</param>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessageAttribute.Category">
+            <summary>
+            Gets the category identifying the classification of the attribute.
+            </summary>
+            <remarks>
+            The <see cref="P:System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessageAttribute.Category"/> property describes the tool or tool analysis category
+            for which a message suppression attribute applies.
+            </remarks>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessageAttribute.CheckId">
+            <summary>
+            Gets the identifier of the analysis tool rule to be suppressed.
+            </summary>
+            <remarks>
+            Concatenated together, the <see cref="P:System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessageAttribute.Category"/> and <see cref="P:System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessageAttribute.CheckId"/>
+            properties form a unique check identifier.
+            </remarks>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessageAttribute.Scope">
+            <summary>
+            Gets or sets the scope of the code that is relevant for the attribute.
+            </summary>
+            <remarks>
+            The Scope property is an optional argument that specifies the metadata scope for which
+            the attribute is relevant.
+            </remarks>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessageAttribute.Target">
+            <summary>
+            Gets or sets a fully qualified path that represents the target of the attribute.
+            </summary>
+            <remarks>
+            The <see cref="P:System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessageAttribute.Target"/> property is an optional argument identifying the analysis target
+            of the attribute. An example value is "System.IO.Stream.ctor():System.Void".
+            Because it is fully qualified, it can be long, particularly for targets such as parameters.
+            The analysis tool user interface should be capable of automatically formatting the parameter.
+            </remarks>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessageAttribute.MessageId">
+            <summary>
+            Gets or sets an optional argument expanding on exclusion criteria.
+            </summary>
+            <remarks>
+            The <see cref="P:System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessageAttribute.MessageId"/> property is an optional argument that specifies additional
+            exclusion where the literal metadata target is not sufficiently precise. For example,
+            the <see cref="T:System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessageAttribute"/> cannot be applied within a method,
+            and it may be desirable to suppress a violation against a statement in the method that will
+            give a rule violation, but not against all statements in the method.
+            </remarks>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessageAttribute.Justification">
+            <summary>
+            Gets or sets the justification for suppressing the code analysis message.
+            </summary>
+        </member>
+        <member name="T:System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute">
+            <summary>
+            Indicates that compiler support for a particular feature is required for the location where this attribute is applied.
+            </summary>
+        </member>
+        <member name="P:System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute.FeatureName">
+            <summary>
+            The name of the compiler feature.
+            </summary>
+        </member>
+        <member name="P:System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute.IsOptional">
+            <summary>
+            If true, the compiler can choose to allow access to the location where this attribute is applied if it does not understand <see cref="P:System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute.FeatureName"/>.
+            </summary>
+        </member>
+        <member name="F:System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute.RequiredMembers">
+            <summary>
+            The <see cref="P:System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute.FeatureName"/> used for the required members C# feature.
+            </summary>
+        </member>
+        <member name="T:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler">
+            <summary>Provides a handler used by the language compiler to process interpolated strings into <see cref="T:System.String"/> instances.</summary>
+        </member>
+        <member name="F:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.GuessedLengthPerHole">
+            <summary>Expected average length of formatted data used for an individual interpolation expression result.</summary>
+            <remarks>
+            This is inherited from string.Format, and could be changed based on further data.
+            string.Format actually uses `format.Length + args.Length * 8`, but format.Length
+            includes the format items themselves, e.g. "{0}", and since it's rare to have double-digit
+            numbers of items, we bump the 8 up to 11 to account for the three extra characters in "{d}",
+            since the compiler-provided base length won't include the equivalent character count.
+            </remarks>
+        </member>
+        <member name="F:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.MinimumArrayPoolLength">
+            <summary>Minimum size array to rent from the pool.</summary>
+            <remarks>Same as stack-allocation size used today by string.Format.</remarks>
+        </member>
+        <member name="F:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler._provider">
+            <summary>Optional provider to pass to IFormattable.ToString or ISpanFormattable.TryFormat calls.</summary>
+        </member>
+        <member name="F:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler._arrayToReturnToPool">
+            <summary>Array rented from the array pool and used to back <see cref="F:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler._chars"/>.</summary>
+        </member>
+        <member name="F:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler._chars">
+            <summary>The span to write into.</summary>
+        </member>
+        <member name="F:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler._pos">
+            <summary>Position at which to write the next character.</summary>
+        </member>
+        <member name="F:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler._hasCustomFormatter">
+            <summary>Whether <see cref="F:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler._provider"/> provides an ICustomFormatter.</summary>
+            <remarks>
+            Custom formatters are very rare.  We want to support them, but it's ok if we make them more expensive
+            in order to make them as pay-for-play as possible.  So, we avoid adding another reference type field
+            to reduce the size of the handler and to reduce required zero'ing, by only storing whether the provider
+            provides a formatter, rather than actually storing the formatter.  This in turn means, if there is a
+            formatter, we pay for the extra interface call on each AppendFormatted that needs it.
+            </remarks>
+        </member>
+        <member name="M:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.#ctor(System.Int32,System.Int32)">
+            <summary>Creates a handler used to translate an interpolated string into a <see cref="T:System.String"/>.</summary>
+            <param name="literalLength">The number of constant characters outside of interpolation expressions in the interpolated string.</param>
+            <param name="formattedCount">The number of interpolation expressions in the interpolated string.</param>
+            <remarks>This is intended to be called only by compiler-generated code. Arguments are not validated as they'd otherwise be for members intended to be used directly.</remarks>
+        </member>
+        <member name="M:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.#ctor(System.Int32,System.Int32,System.IFormatProvider)">
+            <summary>Creates a handler used to translate an interpolated string into a <see cref="T:System.String"/>.</summary>
+            <param name="literalLength">The number of constant characters outside of interpolation expressions in the interpolated string.</param>
+            <param name="formattedCount">The number of interpolation expressions in the interpolated string.</param>
+            <param name="provider">An object that supplies culture-specific formatting information.</param>
+            <remarks>This is intended to be called only by compiler-generated code. Arguments are not validated as they'd otherwise be for members intended to be used directly.</remarks>
+        </member>
+        <member name="M:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.#ctor(System.Int32,System.Int32,System.IFormatProvider,System.Span{System.Char})">
+            <summary>Creates a handler used to translate an interpolated string into a <see cref="T:System.String"/>.</summary>
+            <param name="literalLength">The number of constant characters outside of interpolation expressions in the interpolated string.</param>
+            <param name="formattedCount">The number of interpolation expressions in the interpolated string.</param>
+            <param name="provider">An object that supplies culture-specific formatting information.</param>
+            <param name="initialBuffer">A buffer temporarily transferred to the handler for use as part of its formatting.  Contents may be overwritten.</param>
+            <remarks>This is intended to be called only by compiler-generated code. Arguments are not validated as they'd otherwise be for members intended to be used directly.</remarks>
+        </member>
+        <member name="M:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.GetDefaultLength(System.Int32,System.Int32)">
+            <summary>Derives a default length with which to seed the handler.</summary>
+            <param name="literalLength">The number of constant characters outside of interpolation expressions in the interpolated string.</param>
+            <param name="formattedCount">The number of interpolation expressions in the interpolated string.</param>
+        </member>
+        <member name="M:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToString">
+            <summary>Gets the built <see cref="T:System.String"/>.</summary>
+            <returns>The built string.</returns>
+        </member>
+        <member name="M:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear">
+            <summary>Gets the built <see cref="T:System.String"/> and clears the handler.</summary>
+            <returns>The built string.</returns>
+            <remarks>
+            This releases any resources used by the handler. The method should be invoked only
+            once and as the last thing performed on the handler. Subsequent use is erroneous, ill-defined,
+            and may destabilize the process, as may using any other copies of the handler after
+            <see cref="M:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear" /> is called on any one of them.
+            </remarks>
+        </member>
+        <member name="M:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.Clear">
+            <summary>Clears the handler.</summary>
+            <remarks>
+            This releases any resources used by the handler. The method should be invoked only
+            once and as the last thing performed on the handler. Subsequent use is erroneous, ill-defined,
+            and may destabilize the process, as may using any other copies of the handler after <see cref="M:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.Clear"/>
+            is called on any one of them.
+            </remarks>
+        </member>
+        <member name="P:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.Text">
+            <summary>Gets a span of the characters appended to the handler.</summary>
+        </member>
+        <member name="M:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(System.String)">
+            <summary>Writes the specified string to the handler.</summary>
+            <param name="value">The string to write.</param>
+        </member>
+        <member name="M:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted``1(``0)">
+            <summary>Writes the specified value to the handler.</summary>
+            <param name="value">The value to write.</param>
+            <typeparam name="T">The type of the value to write.</typeparam>
+        </member>
+        <member name="M:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted``1(``0,System.String)">
+            <summary>Writes the specified value to the handler.</summary>
+            <param name="value">The value to write.</param>
+            <param name="format">The format string.</param>
+            <typeparam name="T">The type of the value to write.</typeparam>
+        </member>
+        <member name="M:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted``1(``0,System.Int32)">
+            <summary>Writes the specified value to the handler.</summary>
+            <param name="value">The value to write.</param>
+            <param name="alignment">Minimum number of characters that should be written for this value.  If the value is negative, it indicates left-aligned and the required minimum is the absolute value.</param>
+            <typeparam name="T">The type of the value to write.</typeparam>
+        </member>
+        <member name="M:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted``1(``0,System.Int32,System.String)">
+            <summary>Writes the specified value to the handler.</summary>
+            <param name="value">The value to write.</param>
+            <param name="format">The format string.</param>
+            <param name="alignment">Minimum number of characters that should be written for this value.  If the value is negative, it indicates left-aligned and the required minimum is the absolute value.</param>
+            <typeparam name="T">The type of the value to write.</typeparam>
+        </member>
+        <member name="M:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(System.ReadOnlySpan{System.Char})">
+            <summary>Writes the specified character span to the handler.</summary>
+            <param name="value">The span to write.</param>
+        </member>
+        <member name="M:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(System.ReadOnlySpan{System.Char},System.Int32,System.String)">
+            <summary>Writes the specified string of chars to the handler.</summary>
+            <param name="value">The span to write.</param>
+            <param name="alignment">Minimum number of characters that should be written for this value.  If the value is negative, it indicates left-aligned and the required minimum is the absolute value.</param>
+            <param name="format">The format string.</param>
+        </member>
+        <member name="M:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(System.String)">
+            <summary>Writes the specified value to the handler.</summary>
+            <param name="value">The value to write.</param>
+        </member>
+        <member name="M:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormattedSlow(System.String)">
+            <summary>Writes the specified value to the handler.</summary>
+            <param name="value">The value to write.</param>
+            <remarks>
+            Slow path to handle a custom formatter, potentially null value,
+            or a string that doesn't fit in the current buffer.
+            </remarks>
+        </member>
+        <member name="M:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(System.String,System.Int32,System.String)">
+            <summary>Writes the specified value to the handler.</summary>
+            <param name="value">The value to write.</param>
+            <param name="alignment">Minimum number of characters that should be written for this value.  If the value is negative, it indicates left-aligned and the required minimum is the absolute value.</param>
+            <param name="format">The format string.</param>
+        </member>
+        <member name="M:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(System.Object,System.Int32,System.String)">
+            <summary>Writes the specified value to the handler.</summary>
+            <param name="value">The value to write.</param>
+            <param name="alignment">Minimum number of characters that should be written for this value.  If the value is negative, it indicates left-aligned and the required minimum is the absolute value.</param>
+            <param name="format">The format string.</param>
+        </member>
+        <member name="M:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.HasCustomFormatter(System.IFormatProvider)">
+            <summary>Gets whether the provider provides a custom formatter.</summary>
+        </member>
+        <member name="M:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendCustomFormatter``1(``0,System.String)">
+            <summary>Formats the value using the custom formatter from the provider.</summary>
+            <param name="value">The value to write.</param>
+            <param name="format">The format string.</param>
+            <typeparam name="T">The type of the value to write.</typeparam>
+        </member>
+        <member name="M:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendOrInsertAlignmentIfNeeded(System.Int32,System.Int32)">
+            <summary>Handles adding any padding required for aligning a formatted value in an interpolation expression.</summary>
+            <param name="startingPos">The position at which the written value started.</param>
+            <param name="alignment">Non-zero minimum number of characters that should be written for this value.  If the value is negative, it indicates left-aligned and the required minimum is the absolute value.</param>
+        </member>
+        <member name="M:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.EnsureCapacityForAdditionalChars(System.Int32)">
+            <summary>Ensures <see cref="F:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler._chars"/> has the capacity to store <paramref name="additionalChars"/> beyond <see cref="F:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler._pos"/>.</summary>
+        </member>
+        <member name="M:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.GrowThenCopyString(System.String)">
+            <summary>Fallback for fast path in <see cref="M:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(System.String)"/> when there's not enough space in the destination.</summary>
+            <param name="value">The string to write.</param>
+        </member>
+        <member name="M:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.GrowThenCopySpan(System.ReadOnlySpan{System.Char})">
+            <summary>Fallback for <see cref="M:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(System.ReadOnlySpan{System.Char})"/> for when not enough space exists in the current buffer.</summary>
+            <param name="value">The span to write.</param>
+        </member>
+        <member name="M:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.Grow(System.Int32)">
+            <summary>Grows <see cref="F:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler._chars"/> to have the capacity to store at least <paramref name="additionalChars"/> beyond <see cref="F:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler._pos"/>.</summary>
+        </member>
+        <member name="M:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.Grow">
+            <summary>Grows the size of <see cref="F:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler._chars"/>.</summary>
+        </member>
+        <member name="M:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.GrowCore(System.UInt32)">
+            <summary>Grow the size of <see cref="F:System.Runtime.CompilerServices.DefaultInterpolatedStringHandler._chars"/> to at least the specified <paramref name="requiredMinCapacity"/>.</summary>
+        </member>
+        <member name="T:System.Runtime.CompilerServices.IsExternalInit">
+            <summary>
+            Reserved to be used by the compiler for tracking metadata.
+            This class should not be used by developers in source code.
+            </summary>
+        </member>
+        <member name="T:System.Runtime.CompilerServices.RequiredMemberAttribute">
+            <summary>Specifies that a type has required members or that a member is required.</summary>
+        </member>
+        <member name="T:System.Threading.ForceYielding">
+            <summary>
+            await default(ForceYielding) to provide the same behavior as
+            await Task.CompletedTask.ConfigureAwait(ConfigureAwaitOptions.ForceYielding).
+            </summary>
+        </member>
+    </members>
+</doc>

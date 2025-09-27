@@ -26,12 +26,22 @@ namespace Client.Game.InGame.Map.MapObject
             ClientContext.VanillaApi.Event.SubscribeEventResponse(MapObjectUpdateEventPacket.EventTag, OnUpdateMapObject);
             
             // mapObjectの破壊状況の初期設定
-            foreach (var mapObject in mapObjects) _allMapObjects.Add(mapObject.InstanceId, mapObject);
+            foreach (var mapObject in mapObjects)
+            {
+                if (mapObject == null)
+                {
+                    Debug.LogError("MapObjectGameObjectDatastore: mapObjectsにnullが含まれています。moorestech/MapExportAndSettingを実行して設定してください");
+                    continue;
+                }
+                _allMapObjects.Add(mapObject.InstanceId, mapObject);
+            }
             
             foreach (var mapObjectInfo in handshakeResponse.MapObjects)
             {
-                var mapObject = _allMapObjects[mapObjectInfo.InstanceId];
-                if (mapObjectInfo.IsDestroyed) mapObject.DestroyMapObject();
+                if (_allMapObjects.TryGetValue(mapObjectInfo.InstanceId, out var mapObject))
+                {
+                    mapObject.Initialize(mapObjectInfo);
+                }
             }
         }
         
@@ -43,6 +53,9 @@ namespace Client.Game.InGame.Map.MapObject
             {
                 case MapObjectUpdateEventMessagePack.DestroyEventType:
                     _allMapObjects[data.InstanceId].DestroyMapObject();
+                    break;
+                case MapObjectUpdateEventMessagePack.HpUpdateEventType:
+                    _allMapObjects[data.InstanceId].UpdateHp(data.CurrentHp);
                     break;
                 default:
                     throw new Exception("MapObjectUpdateEventProtocol: EventTypeが不正か実装されていません");
@@ -77,7 +90,7 @@ namespace Client.Game.InGame.Map.MapObject
         
         public void FindMapObjects()
         {
-            mapObjects = FindObjectsOfType<MapObjectGameObject>().ToList();
+            mapObjects = FindObjectsOfType<MapObjectGameObject>(true).ToList();
             mapObjects.Sort((a, b) => string.Compare(a.gameObject.name, b.gameObject.name, StringComparison.Ordinal));
         }
 #endif

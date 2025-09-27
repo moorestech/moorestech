@@ -21,6 +21,7 @@ using Game.Map;
 using Game.Map.Interface.Json;
 using Game.Map.Interface.MapObject;
 using Game.Map.Interface.Vein;
+using Game.Paths;
 using Game.PlayerInventory;
 using Game.PlayerInventory.Event;
 using Game.PlayerInventory.Interface;
@@ -46,24 +47,37 @@ using Server.Protocol;
 
 namespace Server.Boot
 {
+    public class MoorestechServerDIContainerOptions
+    {
+        public readonly string ServerDataDirectory;
+        
+        public static readonly string DefaultSaveJsonFilePath = GameSystemPaths.GetSaveFilePath("save_1.json"); 
+        public SaveJsonFilePath saveJsonFilePath { get; set; } = new(DefaultSaveJsonFilePath);
+        
+        public MoorestechServerDIContainerOptions(string serverDataDirectory)
+        {
+            ServerDataDirectory = serverDataDirectory;
+        }
+    }
+    
+    
     public class MoorestechServerDIContainerGenerator
     {
         //TODO セーブファイルのディレクトリもここで指定できるようにする
-        public (PacketResponseCreator, ServiceProvider) Create(string serverDirectory)
+        public (PacketResponseCreator, ServiceProvider) Create(MoorestechServerDIContainerOptions options)
         {
             GameUpdater.ResetUpdate();
 
             //必要な各種インスタンスを手動で作成
-            var modDirectory = Path.Combine(serverDirectory, "mods");
+            var modDirectory = Path.Combine(options.ServerDataDirectory, "mods");
 
             // マスターをロード
             var modResource = new ModsResource(modDirectory);
-            Dictionary<string, MasterJsonCpntens> configJsons = ModJsonStringLoader.GetConfigString(modResource);
-            var configJsonFileContainer = new MasterJsonFileContainer(configJsons);
-            MasterHolder.Load(configJsonFileContainer);
+            var masterJsonFileContainer = new MasterJsonFileContainer(ModJsonStringLoader.GetMasterString(modResource));
+            MasterHolder.Load(masterJsonFileContainer);
 
             var initializerCollection = new ServiceCollection();
-            initializerCollection.AddSingleton(configJsonFileContainer);
+            initializerCollection.AddSingleton(masterJsonFileContainer);
             initializerCollection.AddSingleton<IItemStackFactory, ItemStackFactory>();
             initializerCollection.AddSingleton<VanillaIBlockTemplates, VanillaIBlockTemplates>();
             initializerCollection.AddSingleton<IBlockFactory, BlockFactory>();
@@ -76,7 +90,7 @@ namespace Server.Boot
             initializerCollection.AddSingleton<TrainUpdateService>();
             initializerCollection.AddSingleton<TrainDiagramManager>();
 
-            var mapPath = Path.Combine(serverDirectory, "map", "map.json");
+            var mapPath = Path.Combine(options.ServerDataDirectory, "map", "map.json");
             initializerCollection.AddSingleton(JsonConvert.DeserializeObject<MapInfoJson>(File.ReadAllText(mapPath)));
             initializerCollection.AddSingleton<IMapVeinDatastore, MapVeinDatastore>();
             initializerCollection.AddSingleton<IMapObjectDatastore, MapObjectDatastore>();
@@ -105,8 +119,9 @@ namespace Server.Boot
 
             services.AddSingleton<IGameUnlockStateDataController, GameUnlockStateDataController>();
             services.AddSingleton<CraftTreeManager>();
-
-            services.AddSingleton(configJsonFileContainer);
+            
+            services.AddSingleton(initializerProvider.GetService<MapInfoJson>());
+            services.AddSingleton(masterJsonFileContainer);
             services.AddSingleton<ChallengeDatastore, ChallengeDatastore>();
             services.AddSingleton<ChallengeEvent, ChallengeEvent>();
 
@@ -114,7 +129,7 @@ namespace Server.Boot
             services.AddSingleton(modResource);
             services.AddSingleton<IWorldSaveDataSaver, WorldSaverForJson>();
             services.AddSingleton<IWorldSaveDataLoader, WorldLoaderFromJson>();
-            services.AddSingleton(new SaveJsonFileName("save_1.json"));
+            services.AddSingleton(options.saveJsonFilePath);
 
             //イベントを登録
             services.AddSingleton<IMainInventoryUpdateEvent, MainInventoryUpdateEvent>();
@@ -165,9 +180,6 @@ namespace Server.Boot
 
             // CraftChainerの初期化
             CraftChainerEntryPoint.Entry();
-
-            // アップデート時間をリセット
-            GameUpdater.ResetTime();
 
             return (packetResponse, serviceProvider);
         }

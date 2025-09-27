@@ -44,10 +44,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             
             // プレビュー限定オブジェクトをオンに
             // Turn on preview-only object
-            var previewOnlyObjects = gameObject.GetComponentsInChildren<PreviewOnlyObject>(true).ToList();
+            var previewOnlyObjects = gameObject.GetComponentsInChildren<IPreviewOnlyObject>(true).ToList();
             previewOnlyObjects.ForEach(obj =>
             {
-                obj.Initialize();
+                obj.Initialize(blockId);
                 obj.SetActive(true);
             });
         }

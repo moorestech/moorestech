@@ -14,7 +14,7 @@ namespace Client.Game.InGame.Control
         public Vector3 CameraEulerAngle => transform.rotation.eulerAngles;
         public float CameraDistance => _cinemachineFraming.m_CameraDistance;
         
-        public Camera MainCamera => mainCamera;
+        public Camera Camera => mainCamera;
         [SerializeField] private Camera mainCamera;
         
         [SerializeField] private CinemachineVirtualCamera virtualCamera;
@@ -30,7 +30,7 @@ namespace Client.Game.InGame.Control
         
         public void Initialize()
         {
-            CameraManager.Instance.RegisterCamera(this);
+            CameraManager.RegisterCamera(this);
         }
         
         private void Awake()

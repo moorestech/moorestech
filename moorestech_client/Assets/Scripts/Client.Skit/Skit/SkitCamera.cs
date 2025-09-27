@@ -9,11 +9,12 @@ namespace Client.Skit.Skit
         public void TweenCamera(Vector3 fromPos, Vector3 fromRot, Vector3 toPos, Vector3 toRot, float duration, Ease easing);
         
         public void SetTransform(Vector3 pos, Vector3 rot);
+        public void SetFov(float fov);
     }
     
     public class SkitCamera : MonoBehaviour, ISkitCamera, IGameCamera
     {
-        public Camera MainCamera => camera;
+        public Camera Camera => camera;
         [SerializeField] private Camera camera;
         
         public void TweenCamera(Vector3 fromPos, Vector3 fromRot, Vector3 toPos, Vector3 toRot, float duration, Ease easing)
@@ -30,6 +31,11 @@ namespace Client.Skit.Skit
             camera.transform.position = pos;
             camera.transform.eulerAngles = rot;
         }
+        public void SetFov(float fov)
+        {
+            camera.fieldOfView = fov;
+        }
+        
         public void SetEnabled(bool cameraEnabled)
         {
             camera.enabled = cameraEnabled;

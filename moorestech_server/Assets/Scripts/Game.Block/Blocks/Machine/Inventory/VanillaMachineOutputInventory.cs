@@ -11,6 +11,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Event;
 using Game.Context;
+using Game.Fluid;
 using Mooresmaster.Model.MachineRecipesModule;
 using UniRx;
 
@@ -19,6 +20,7 @@ namespace Game.Block.Blocks.Machine.Inventory
     public class VanillaMachineOutputInventory
     {
         public IReadOnlyList<IItemStack> OutputSlot => _itemDataStoreService.InventoryItems;
+        public IReadOnlyList<FluidContainer> FluidOutputSlot => _fluidContainers;
         
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
         private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
@@ -26,8 +28,9 @@ namespace Game.Block.Blocks.Machine.Inventory
         
         private readonly int _inputSlotSize;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
+        private readonly FluidContainer[] _fluidContainers;
         
-        public VanillaMachineOutputInventory(int outputSlot, IItemStackFactory itemStackFactory,
+        public VanillaMachineOutputInventory(int outputSlot, int outputTankCount, float innerTankCapacity, IItemStackFactory itemStackFactory,
             BlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockInstanceId blockInstanceId, int inputSlotSize, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
         {
             _blockInventoryUpdate = blockInventoryUpdate;
@@ -35,6 +38,13 @@ namespace Game.Block.Blocks.Machine.Inventory
             _inputSlotSize = inputSlotSize;
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, itemStackFactory, outputSlot);
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(blockConnectorComponent);
+            
+            _fluidContainers = new FluidContainer[outputTankCount];
+            for (var i = 0; i < outputTankCount; i++)
+            {
+                _fluidContainers[i] = new FluidContainer(innerTankCapacity);
+            }
+            
             GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
         
@@ -60,6 +70,26 @@ namespace Game.Block.Blocks.Machine.Inventory
                 if (!isAllowed) return false;
             }
             
+            // 液体の出力スペースをチェック
+            for (var i = 0; i < machineRecipe.OutputFluids.Length; i++)
+            {
+                if (i >= _fluidContainers.Length) return false;
+                
+                var outputFluid = machineRecipe.OutputFluids[i];
+                var fluidId = MasterHolder.FluidMaster.GetFluidId(outputFluid.FluidGuid);
+                
+                // 既に異なる液体が入っている場合、または容量が不足している場合
+                if (_fluidContainers[i].FluidId != FluidMaster.EmptyFluidId && _fluidContainers[i].FluidId != fluidId)
+                {
+                    return false;
+                }
+                
+                if (_fluidContainers[i].Capacity - _fluidContainers[i].Amount < outputFluid.Amount)
+                {
+                    return false;
+                }
+            }
+            
             return true;
         }
         
@@ -78,6 +108,18 @@ namespace Game.Block.Blocks.Machine.Inventory
                     _itemDataStoreService.SetItem(i, item);
                     break;
                 }
+            
+            //アウトプットスロットに液体を格納する
+            for (var i = 0; i < machineRecipe.OutputFluids.Length; i++)
+            {
+                if (i >= _fluidContainers.Length) break;
+                
+                var outputFluid = machineRecipe.OutputFluids[i];
+                var fluidId = MasterHolder.FluidMaster.GetFluidId(outputFluid.FluidGuid);
+                var fluidStack = new FluidStack(outputFluid.Amount, fluidId);
+                
+                _fluidContainers[i].AddLiquid(fluidStack, FluidContainer.Empty);
+            }
         }
         
         private void InsertConnectInventory()

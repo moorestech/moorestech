@@ -30,8 +30,8 @@ namespace Client.Game.InGame.BlockSystem
             //実際のブロックのモデルは+0.5した値が中心になる
             var blockObjectPos = blockPosition.AddBlockPlaceOffset(); //TODo ←システムが変わったのでおそらくこの行は不要
             
-            var frontPoint = GetGroundPoint(GetBlockFrontRayOffset(blockDirection) + blockObjectPos);
-            var backPoint = GetGroundPoint(-GetBlockFrontRayOffset(blockDirection) + blockObjectPos);
+            var frontPoint = GetGroundPoint(GetBlockFrontRayOffset(blockDirection) + blockObjectPos).Value; //TODO null check
+            var backPoint = GetGroundPoint(-GetBlockFrontRayOffset(blockDirection) + blockObjectPos).Value;
             
             //斜辺の長さを求める
             var hypotenuse = Vector3.Distance(frontPoint, backPoint);
@@ -55,12 +55,16 @@ namespace Client.Game.InGame.BlockSystem
             return (resultBlockPos, blockRotation, blockScale);
         }
         
-        public static Vector3 GetGroundPoint(Vector3 pos, Color debugRayColor = default)
+        public static Vector3? GetGroundPoint(Vector3 pos, Color debugRayColor = default)
         {
             var checkRay = new Ray(new Vector3(pos.x, 1000, pos.z), Vector3.down);
             Debug.DrawRay(checkRay.origin, checkRay.direction * 1000, debugRayColor, 3);
             
-            if (!Physics.Raycast(checkRay, out var checkHit, 1500, GroundLayerMask)) throw new Exception("地面が見つかりませんでした pos:" + pos + " layer:" + GroundLayerMask);
+            if (!Physics.Raycast(checkRay, out var checkHit, 1500, GroundLayerMask))
+            {
+                Debug.LogError("地面が見つかりませんでした pos:" + pos + " layer:" + GroundLayerMask);
+                return null;
+            }
             return checkHit.point;
         }
         
@@ -69,10 +73,10 @@ namespace Client.Game.InGame.BlockSystem
             var (minPos, maxPos) = blockPos.GetWorldBlockBoundingBox(blockDirection, blockSize);
             var heights = new List<float>
             {
-                GetGroundPoint(new Vector2(minPos.x, minPos.y), Color.red).y,
-                GetGroundPoint(new Vector2(minPos.x, maxPos.y), Color.magenta).y,
-                GetGroundPoint(new Vector2(maxPos.x, minPos.y), Color.cyan).y,
-                GetGroundPoint(new Vector2(maxPos.x, maxPos.y), Color.blue).y,
+                GetGroundPoint(new Vector2(minPos.x, minPos.y), Color.red).Value.y, // todo null check
+                GetGroundPoint(new Vector2(minPos.x, maxPos.y), Color.magenta).Value.y,
+                GetGroundPoint(new Vector2(maxPos.x, minPos.y), Color.cyan).Value.y,
+                GetGroundPoint(new Vector2(maxPos.x, maxPos.y), Color.blue).Value.y,
             };
             
             return Mathf.Max(heights.ToArray());

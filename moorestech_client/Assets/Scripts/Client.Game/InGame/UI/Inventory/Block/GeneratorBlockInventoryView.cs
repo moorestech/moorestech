@@ -10,8 +10,6 @@ namespace Client.Game.InGame.UI.Inventory.Block
 {
     public class GeneratorBlockInventoryView : CommonBlockInventoryViewBase
     {
-        [SerializeField] private ItemSlotObject itemSlotObjectPrefab;
-        
         [SerializeField] private RectTransform powerGeneratorFuelItemParent;
         
         public override void Initialize(BlockGameObject blockGameObject)
@@ -24,7 +22,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
             var generatorParam = (ElectricGeneratorBlockParam)param;
             for (var i = 0; i < generatorParam.FuelItemSlotCount; i++)
             {
-                var slotObject = Instantiate(itemSlotObjectPrefab, powerGeneratorFuelItemParent);
+                var slotObject = Instantiate(ItemSlotView.Prefab, powerGeneratorFuelItemParent);
                 SubInventorySlotObjectsInternal.Add(slotObject);
                 itemList.Add(ServerContext.ItemStackFactory.CreatEmpty());
             }
