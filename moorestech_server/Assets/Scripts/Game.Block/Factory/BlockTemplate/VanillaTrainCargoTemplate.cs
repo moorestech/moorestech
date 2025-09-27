@@ -7,6 +7,7 @@ using Game.Block.Interface.Component;
 using Mooresmaster.Model.BlocksModule;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Factory.BlockTemplate.Utility;
+using Game.Train.RailGraph;
 
 
 namespace Game.Block.Factory.BlockTemplate
@@ -29,15 +30,23 @@ namespace Game.Block.Factory.BlockTemplate
             );//②stationをつなげて設置した場合に自動でrailComponentを接続するための処理もここでやってる
 
             var stationParam = masterElement.BlockParam as TrainCargoPlatformBlockParam;
-            //var inventoryComponents = CreateInventoryComponents(null, instanceId, stationParam, positionInfo);
+            var inventoryComponents = CreateInventoryComponents(null, instanceId, stationParam, positionInfo);
 
             // 生成したコンポーネントをブロックに登録する
             var blockComponents = new List<IBlockComponent>();
             blockComponents.Add(railSaverComponent);
             blockComponents.AddRange(railComponents);
             blockComponents.Add(station);
-            //blockComponents.AddRange(inventoryComponents);
-            return new BlockSystem(instanceId, masterElement.BlockGuid, blockComponents, positionInfo);
+            blockComponents.AddRange(inventoryComponents);
+            
+            // ここで各RailNodeにStationReferenceを設定  
+            var createdBlock = new BlockSystem(instanceId, masterElement.BlockGuid, blockComponents, positionInfo);
+            // 各RailComponentのNodeにStationReferenceを設定
+            railComponents[0].FrontNode.StationRef.SetStationReference(createdBlock, StationNodeRole.Entry);
+            railComponents[1].FrontNode.StationRef.SetStationReference(createdBlock, StationNodeRole.Exit);
+            railComponents[1].BackNode.StationRef.SetStationReference(createdBlock, StationNodeRole.Entry);
+            railComponents[0].BackNode.StationRef.SetStationReference(createdBlock, StationNodeRole.Exit);
+            return createdBlock;
         }
 
         public IBlock Load(
@@ -47,22 +56,30 @@ namespace Game.Block.Factory.BlockTemplate
             BlockPositionInfo positionInfo)
         {
             // 保存されたRailComponent群を復元。railSaverComponentからセーブ情報の中にrailcomponent同士の接続情報が含まれているのでそれを復元(これで①1つのstation内にある2つのRailComponentを直線で接続と、②stationをつなげて設置した場合に自動でrailComponentを接続、の両方が満たされる)
+            var stationParam = masterElement.BlockParam as TrainCargoPlatformBlockParam;
             var railComponents = RailComponentUtility.RestoreRailComponents(componentStates, positionInfo);
             var railSaverComponent = new RailSaverComponent(railComponents);
-
-            var stationParam = masterElement.BlockParam as TrainCargoPlatformBlockParam;
             var station = new CargoplatformComponent(stationParam.PlatformDistance, stationParam.InputSlotCount, stationParam.OutputSlotCount);
+
+            var inventoryComponents = CreateInventoryComponents(componentStates, instanceId, stationParam, positionInfo);
 
             // 復元したコンポーネントをブロックに登録する
             var blockComponents = new List<IBlockComponent>();
             blockComponents.Add(railSaverComponent);
             blockComponents.AddRange(railComponents);
             blockComponents.Add(station);
-            return new BlockSystem(instanceId, masterElement.BlockGuid, blockComponents, positionInfo);
+            blockComponents.AddRange(inventoryComponents);
+
+            // ここで各RailNodeにStationReferenceを設定  
+            var createdBlock = new BlockSystem(instanceId, masterElement.BlockGuid, blockComponents, positionInfo);
+            // 各RailComponentのNodeにStationReferenceを設定
+            railComponents[0].FrontNode.StationRef.SetStationReference(createdBlock, StationNodeRole.Entry);
+            railComponents[1].FrontNode.StationRef.SetStationReference(createdBlock, StationNodeRole.Exit);
+            railComponents[1].BackNode.StationRef.SetStationReference(createdBlock, StationNodeRole.Entry);
+            railComponents[0].BackNode.StationRef.SetStationReference(createdBlock, StationNodeRole.Exit);
+            return createdBlock;
         }
 
-
-        /*
         /// <summary>
         /// インベントリ関連のコンポーネントを作成する
         /// </summary>
@@ -72,8 +89,8 @@ namespace Game.Block.Factory.BlockTemplate
             var inserter = new ConnectingInventoryListPriorityInsertItemService(inputConnectorComponent);
 
             var chestComponent = componentStates == null ?
-                new VanillaChestComponent(instanceId, param.ItemSlotCount, inserter) :
-                new VanillaChestComponent(componentStates, instanceId, param.ItemSlotCount, inserter);
+                new VanillaChestComponent(instanceId, param.InputSlotCount, inserter) :
+                new VanillaChestComponent(componentStates, instanceId, param.InputSlotCount, inserter);
 
             return new List<IBlockComponent>
             {
@@ -81,10 +98,5 @@ namespace Game.Block.Factory.BlockTemplate
                 inputConnectorComponent,
             };
         }
-        */
-
     }
-
-
-
 }

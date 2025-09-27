@@ -12,7 +12,8 @@
     "Game.Context",
     "Game.Challenge",
     "Game.UnlockState",
-    "Game.CraftTree"
+    "Game.CraftTree",
+    "Game.Train"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
