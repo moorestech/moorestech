@@ -445,6 +445,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9b3e727208e72475d9570e3d360d29f4
+    m_Address: Vanilla/Block/Chemical Plants
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 9eeb8bbe6d88443e9b523c4b3ed49807
     m_Address: Vanilla/UI/Block/GeneratorBlockInventory
     m_ReadOnly: 0
