@@ -3827,6 +3827,79 @@
           ]
         }
       }
+    },
+    {
+      "blockGuid": "97442edb-57c3-4163-8ca8-e1fa9863ddf0",
+      "name": "化学プラント",
+      "blockType": "ElectricMachine",
+      "itemGuid": "c7f4e03c-cf17-4e68-8e11-8ef1f49a0800",
+      "blockSize": [
+        7,
+        16,
+        11
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Chemical Plants",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "requiredPower": 100,
+        "inputSlotCount": 0,
+        "outputSlotCount": 3,
+        "inputTankCount": 1,
+        "outputTankCount": 3,
+        "innerTankCapacity": 100,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [
+            {
+              "connectType": "Fluid",
+              "offset": [
+                3,
+                1,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 100,
+                "connectTankIndex": 0
+              }
+            }
+          ],
+          "outflowConnects": []
+        },
+        "inventoryConnectors": {
+          "outputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                3,
+                0,
+                10
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ]
+        }
+      }
     }
   ]
 }
