@@ -1402,6 +1402,16 @@
       "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "53077e0e-77b2-4028-8fec-fc7190ef720f",
+      "imagePath": "",
+      "name": "半導体製造装置",
+      "maxStack": 100,
+      "sortPriority": 1520,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
     }
   ]
 }
