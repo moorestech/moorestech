@@ -824,16 +824,6 @@
       "handGrabModelAddressablePath": ""
     },
     {
-      "itemGuid": "4f83e639-37bb-4d08-baa5-0ff146432c0b",
-      "imagePath": "",
-      "name": "モーター",
-      "maxStack": 100,
-      "sortPriority": 960,
-      "initialUnlocked": false,
-      "recipeViewType": "IsUnlocked",
-      "handGrabModelAddressablePath": ""
-    },
-    {
       "itemGuid": "f7460000-36c0-4dfa-b97b-046750df6855",
       "imagePath": "",
       "name": "電柱",
