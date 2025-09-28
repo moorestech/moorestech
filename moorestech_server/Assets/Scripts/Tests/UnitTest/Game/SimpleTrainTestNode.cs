@@ -16,7 +16,7 @@ namespace Tests.UnitTest.Game
         {
             //Notionの図を参照
             //Yの字の左上がA、右上がB、真ん中がC1とC2、下がD1とD2
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             //railGraphDatastoreに登録
             var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
@@ -76,7 +76,7 @@ namespace Tests.UnitTest.Game
         public void ConnectedNodesTest()
         {
             //Yの字の左上がA、右上がB、真ん中がC1とC2、下がD1とD2
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             //railGraphDatastoreに登録
             var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
