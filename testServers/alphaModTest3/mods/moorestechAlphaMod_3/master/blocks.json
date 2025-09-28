@@ -4100,6 +4100,72 @@
           "outflowConnects": []
         }
       }
+    },
+    {
+      "blockGuid": "0bfa5f36-d31f-4b6c-bcd5-fc8720522292",
+      "name": "半導体 製造装置",
+      "blockType": "ElectricMachine",
+      "itemGuid": "53077e0e-77b2-4028-8fec-fc7190ef720f",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Semiconductor_Manufacturing_Equipment",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "requiredPower": 20,
+        "inputSlotCount": 3,
+        "outputSlotCount": 3,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                1,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ]
+            },
+            {
+              "connectType": "Inventory",
+              "offset": [
+                3,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ]
+            }
+          ],
+          "outputConnects": []
+        },
+        "inputTankCount": 0,
+        "outputTankCount": 0,
+        "innerTankCapacity": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        }
+      }
     }
   ]
 }
