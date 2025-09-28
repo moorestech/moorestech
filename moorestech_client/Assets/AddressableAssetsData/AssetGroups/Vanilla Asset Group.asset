@@ -385,6 +385,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 82c5a9bbcacd7407db450e1634f29464
+    m_Address: Vanilla/Block/Chainer_Fast_BeltConveyor_Cross Variant
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 86e61f81bcc934fea864ebdccb57122f
     m_Address: Vanilla/UI/Block/CraftChainerMainComputerInventory
     m_ReadOnly: 0
