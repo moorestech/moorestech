@@ -4126,7 +4126,7 @@
     },
     {
       "blockGuid": "0bfa5f36-d31f-4b6c-bcd5-fc8720522292",
-      "name": "半導体 製造装置",
+      "name": "半導体製造装置",
       "blockType": "ElectricMachine",
       "itemGuid": "53077e0e-77b2-4028-8fec-fc7190ef720f",
       "blockSize": [
@@ -4179,7 +4179,23 @@
               ]
             }
           ],
-          "outputConnects": []
+          "outputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                3,
+                0,
+                3
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ]
+              ]
+            }
+          ]
         },
         "inputTankCount": 0,
         "outputTankCount": 0,
@@ -4187,6 +4203,97 @@
         "fluidInventoryConnectors": {
           "inflowConnects": [],
           "outflowConnects": []
+        }
+      }
+    },
+    {
+      "blockGuid": "1b00c5dd-ebb3-451c-8ad4-4b5ab0f344c1",
+      "name": "チェイナーコンベア",
+      "blockType": "CraftChainerTransporter",
+      "itemGuid": "22aee05f-f45b-48e7-929a-aa642a73e794",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Fast_BeltConveyor_Cross",
+      "blockUIAddressablesPath": "",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "transporterConveyorItemCount": 1,
+        "timeOfItemEnterToExit": 1,
+        "slopeType": "",
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ],
+          "outputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ]
         }
       }
     }
