@@ -1,3 +1,4 @@
+using Game.Train.Utility;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -38,41 +39,29 @@ namespace Game.Train.RailGraph
         private void ValidatePosition()
         {
             // 現在のRailNodeリストと距離が列車の長さに収まっているかを確認
-            int totalDistance = CalculateTotalDistance();
+
+            //int totalDistance = CalculateTotalDistance()
+            int totalDistance = RailNodeCalculate.CalculateTotalDistance(_railNodes);
             if (totalDistance + _distanceToNextNode < _trainLength)
             {
                 throw new InvalidOperationException("RailNodeリストと距離が列車の長さに収まっていない");
             }
         }
 
-        private int CalculateTotalDistance()
-        {
-            int totalDistance = 0;
-            for (int i = 0; i < _railNodes.Count - 1; i++) 
-            {
-                totalDistance += _railNodes[i + 1].GetDistanceToNode(_railNodes[i]);
-            }
-            //万が一int maxを超える場合エラー
-            if (totalDistance < 0) 
-            {
-                throw new InvalidOperationException("列車の長さがintの最大値を超えています。");
-            }   
-            return totalDistance;
-        }
 
-        // 距離だけ進むメソッド
+        // 距離int進むメソッド。ただし分岐点でとまる
         // マイナスの距離がはいることも考慮する
-        //整数で入力された距離だけ進む。ただしRailNodeを超えそうなときは、一旦RailNodeで停止し残りの進むべき距離を整数で返す
-        //進んだときにリストの経路の中でいらない情報を削除する
+        // 進んだ距離を整数で返す
+        // 進んだときにリストの経路の中でいらない情報を削除する
         public int MoveForward(int distance)
         {
             // 進む距離が負なら反転してfowardで計算しまた反転する
             if (distance < 0) 
             {
                 Reverse();
-                var result = MoveForward(-distance);
+                var result = -MoveForward(-distance);
                 Reverse();
-                return -result;
+                return result;
             }
 
             // あとは進む距離が正のみを考える
@@ -80,14 +69,14 @@ namespace Game.Train.RailGraph
             {
                 _distanceToNextNode -= distance;
                 RemoveUnnecessaryNodes();
-                return 0;
+                return distance;
             }
             else 
             {
-                distance -= _distanceToNextNode;
+                var ret = _distanceToNextNode;
                 _distanceToNextNode = 0;
                 RemoveUnnecessaryNodes();
-                return distance;
+                return ret;
             }
         }
 
@@ -100,7 +89,7 @@ namespace Game.Train.RailGraph
                 _railNodes[i] = _railNodes[i].OppositeNode; // RailNode自体の反転
             }
             //_distanceToNextNode再計算
-            _distanceToNextNode = CalculateTotalDistance() - _distanceToNextNode - _trainLength;
+            _distanceToNextNode = RailNodeCalculate.CalculateTotalDistance(_railNodes) - _distanceToNextNode - _trainLength;
         }
 
         // 今持っているリストの中でいらない情報を削除する
@@ -120,8 +109,8 @@ namespace Game.Train.RailGraph
             for (int i = 0; i < _railNodes.Count - 1; i++)
             {
                 totalListDistance += _railNodes[i + 1].GetDistanceToNode(_railNodes[i]);
-                //はじめてtotalListDistanceがdistanceFromFrontを超えたら
-                if (totalListDistance > distanceFromFront)
+                //はじめてtotalListDistanceがdistanceFromFront以上なら、そのi + 1のnodeは残してあと削除
+                if (totalListDistance >= distanceFromFront)
                 {
                     if (i + 2 == _railNodes.Count) break;
                     //それ以降の情報はいらない
@@ -198,6 +187,26 @@ namespace Game.Train.RailGraph
             }
             _trainLength = newLength;
             RemoveUnnecessaryNodes();
+        }
+
+        // intの距離を入力として、railpositionの先頭からその距離さかのぼったところにちょうどあるRailNodeをlistですべて取得する
+        // 事実上ドッキング判定のみに使う
+        public List<RailNode> GetNodesAtDistance(int distance)
+        {
+            List<RailNode> nodesAtDistance = new List<RailNode>();
+            int totalDistance = _distanceToNextNode + distance;//この地点をみたい
+            for (int i = 0; i < _railNodes.Count; i++)
+            {
+                if (totalDistance == 0) 
+                {
+                    nodesAtDistance.Add(_railNodes[i]);
+                }
+                if (i == _railNodes.Count - 1) break; // 最後のノードまで到達したら終了
+                int segmentDistance = _railNodes[i + 1].GetDistanceToNode(_railNodes[i]);
+                totalDistance -= segmentDistance;
+                if (totalDistance < 0) break;
+            }
+            return nodesAtDistance;
         }
 
         //テスト用

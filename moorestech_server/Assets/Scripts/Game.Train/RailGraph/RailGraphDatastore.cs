@@ -1,3 +1,4 @@
+using Game.Train.Common;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -85,9 +86,9 @@ namespace Game.Train.RailGraph
             return Instance.GetRailComponentIDInternal(node);
         }
 
-        public static int GetDistanceBetweenNodes(RailNode start, RailNode target)
+        public static int GetDistanceBetweenNodes(RailNode start, RailNode target, bool logging = true)
         {
-            return Instance.GetDistanceBetweenNodesInternal(start, target);
+            return Instance.GetDistanceBetweenNodesInternal(start, target, logging);
         }
 
         /// <summary>
@@ -167,6 +168,7 @@ namespace Game.Train.RailGraph
             nextidQueue.Insert(nodeid);
             connectNodes[nodeid].Clear();
             RemoveNodeTo(nodeid);
+            TrainDiagramManager.Instance.NotifyNodeRemoval(node);
         }
 
         private void RemoveNodeTo(int nodeid)
@@ -201,11 +203,12 @@ namespace Game.Train.RailGraph
             return connectNodes[nodeId].Select(x => (railNodes[x.Item1], x.Item2)).ToList();
         }
 
-        private int GetDistanceBetweenNodesInternal(RailNode start, RailNode target)
+        private int GetDistanceBetweenNodesInternal(RailNode start, RailNode target, bool logging = true)
         {
             if (!railIdDic.ContainsKey(start) || !railIdDic.ContainsKey(target))
             {
-                Debug.LogWarning("RailNodeが登録されていません");
+                if (logging)
+                    Debug.LogWarning("RailNodeが登録されていません");
                 return -1;
             }
             int startid = railIdDic[start];
@@ -215,7 +218,8 @@ namespace Game.Train.RailGraph
                 if (neighbor == targetid)
                     return distance;
             }
-            Debug.LogWarning("RailNodeがつながっていません " + startid + " to " + targetid);
+            if (logging)
+                Debug.LogWarning("RailNodeがつながっていません " + startid + " to " + targetid);
             return -1;
         }
 

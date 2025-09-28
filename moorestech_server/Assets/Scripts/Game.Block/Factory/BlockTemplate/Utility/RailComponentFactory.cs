@@ -8,6 +8,8 @@ namespace Game.Block.Factory.BlockTemplate.Utility
     {
         /// <summary>
         /// 指定数のRailComponentを作成し、必要に応じて自動的に接続します。
+        /// 今のところstation,cargoなど1つのブロックに2つのRailComponentを持つものだけを想定しています。
+        /// 一応countが3以上でも動くが要調整
         /// </summary>
         public static RailComponent[] CreateRailComponents(int count, BlockPositionInfo positionInfo)
         {
