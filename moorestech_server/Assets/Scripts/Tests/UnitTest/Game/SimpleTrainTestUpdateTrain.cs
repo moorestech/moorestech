@@ -38,7 +38,7 @@ namespace Tests.UnitTest.Game
 
             // --- 1. レールノードを用意 ---
             // 例として直線上のノード3つ (A <- B <- C) を作り、距離を設定
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
 
@@ -158,7 +158,7 @@ namespace Tests.UnitTest.Game
             const bool DEBUG_LOG_FLAG = false;
             // --- 1. レールノードを用意 ---
             // 例として直線上のノード3つ (A <- B <- C) を作る
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             //var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
 
@@ -236,7 +236,7 @@ namespace Tests.UnitTest.Game
         public void LoopTrainTest()
         {
             // サーバーDIを立てて、WorldBlockDatastore や RailGraphDatastore を取得
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             //var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
@@ -353,7 +353,7 @@ namespace Tests.UnitTest.Game
                 return list;
             }
 
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
 
             //10000回のTryAddBlockし、それぞれが10つのRailComponentにつながる。距離は1
@@ -521,7 +521,7 @@ namespace Tests.UnitTest.Game
             railComponentAの座標(2.50, 15.50, 0.00)W
             railComponentBの座標(2.50, 15.50, 22.00)W
              */
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             RailComponent[] railComponentsData = new RailComponent[2 * 4 + 3];//1本の駅の入口と出口のrailcomponentを記憶、あと追加点
             BlockDirection[] blockDirections = new BlockDirection[] { BlockDirection.East, BlockDirection.North, BlockDirection.South, BlockDirection.West };

@@ -224,7 +224,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         {
             // 1. DIコンテナ生成
             var (_, diProvider) = new MoorestechServerDIContainerGenerator()
-                .Create(TestModDirectory.ForUnitTestModDirectory);
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
             // 2. 必要なサービス取得
             var blockFactory = ServerContext.BlockFactory;
@@ -273,7 +273,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             // 8. ロード処理
             var (_, loadProvider) = new MoorestechServerDIContainerGenerator()
-                .Create(TestModDirectory.ForUnitTestModDirectory);
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldLoader = loadProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson;
             worldLoader.Load(saveJson);
 
