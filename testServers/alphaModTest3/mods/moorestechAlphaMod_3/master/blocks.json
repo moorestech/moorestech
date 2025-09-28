@@ -4296,6 +4296,151 @@
           ]
         }
       }
+    },
+    {
+      "blockGuid": "6342aad1-763e-4422-83ad-62a20f7930e6",
+      "name": "チェイナー上りコンベア",
+      "blockType": "CraftChainerTransporter",
+      "itemGuid": "ef8f0fae-2e88-4e91-9386-a70f3a572cb7",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Chainer_Fast_BeltConveyor_Up",
+      "blockUIAddressablesPath": "",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "blockParam": {
+        "slopeType": "",
+        "timeOfItemEnterToExit": 1,
+        "beltConveyorItemCount": 1,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ],
+          "outputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  1,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ]
+        },
+        "itemSlotCount": 5,
+        "transporterConveyorItemCount": 1
+      },
+      "enableConveyorPlacement": false
+    },
+    {
+      "blockGuid": "0f9793e7-fae6-4460-9380-8e77813a30d4",
+      "name": "チェイナー下りコンベア",
+      "blockType": "CraftChainerTransporter",
+      "itemGuid": "829fa968-9e21-4a53-af5c-5e41595ef0d9",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Chainer_Fast_BeltConveyor_Down",
+      "blockUIAddressablesPath": "",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "blockParam": {
+        "beltConveyorItemCount": 6,
+        "timeOfItemEnterToExit": 1,
+        "slopeType": "",
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  1,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ],
+          "outputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ]
+        },
+        "transporterConveyorItemCount": 1
+      },
+      "enableConveyorPlacement": false
     }
   ]
 }
