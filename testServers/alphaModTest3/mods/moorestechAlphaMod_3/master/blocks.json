@@ -3744,6 +3744,10 @@
         "inputTankCount": 1,
         "outputTankCount": 3,
         "innerTankCapacity": 100,
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        },
         "fluidInventoryConnectors": {
           "inflowConnects": [
             {
@@ -3878,6 +3882,7 @@
           "outflowConnects": []
         },
         "inventoryConnectors": {
+          "inputConnects": [],
           "outputConnects": [
             {
               "connectType": "Inventory",
@@ -3956,7 +3961,10 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
             },
             {
               "connectType": "Inventory",
@@ -3971,7 +3979,10 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "outputConnects": [
@@ -3988,7 +3999,10 @@
                   0,
                   1
                 ]
-              ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         },
@@ -4056,7 +4070,10 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
             },
             {
               "connectType": "Inventory",
@@ -4071,7 +4088,10 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "outputConnects": [
@@ -4088,7 +4108,10 @@
                   0,
                   1
                 ]
-              ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         },
