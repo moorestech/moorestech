@@ -135,6 +135,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2755d2b0f52ee4d2d87a18c12a206e7d
+    m_Address: Vanilla/Block/Chainer_Fast_BeltConveyor_Down
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 278ea2ee295354217ab12bd5e9c2aad4
     m_Address: Vanilla/Block/SmallGear
     m_ReadOnly: 0
@@ -370,6 +375,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7d2d6647768134bdd8bed5cd77d70333
+    m_Address: Vanilla/Block/Chainer_Fast_BeltConveyor_Straight
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 7f11cff8c8744412fabe737ce09dc92d
     m_Address: Vanilla/Skit/Animations/anim_wait01_lp
     m_ReadOnly: 0
@@ -382,6 +392,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 87d6ff3663a4142acb81c53850b3aa39
     m_Address: Vanilla/Block/Engine_Generator
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8a3e0eea8546c4da7a0e6f96b9f665d5
+    m_Address: Vanilla/Block/Chainer_Fast_BeltConveyor_Up
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -602,6 +617,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: cd1c955822767a148878352e9611cbed
     m_Address: Vanilla/Block/HighPerformanceMetalPlatform
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ce68f139f233122469f4a7392d6450c8
+    m_Address: Vanilla/Block/Semiconductor_Manufacturing_Equipment
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
