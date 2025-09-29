@@ -4130,9 +4130,9 @@
       "blockType": "ElectricMachine",
       "itemGuid": "53077e0e-77b2-4028-8fec-fc7190ef720f",
       "blockSize": [
-        1,
-        1,
-        1
+        4,
+        4,
+        4
       ],
       "blockPrefabAddressablesPath": "Vanilla/Block/Semiconductor_Manufacturing_Equipment",
       "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
