@@ -17,7 +17,7 @@ namespace Tests.UnitTest.Game
         //ダイクストラ法が正しく動いているか 0-1-2-3
         public void DijkstraTest0()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             //railGraphDatastoreに登録
             var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
@@ -45,7 +45,7 @@ namespace Tests.UnitTest.Game
         //ダイクストラ法が正しく動いているか、分岐あり 0=(1,2)=3
         public void DijkstraTest1()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             //railGraphDatastoreに登録
             var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
@@ -74,7 +74,7 @@ namespace Tests.UnitTest.Game
         //ダイクストラ法が正しく動いているか、複雑
         public void DijkstraTest2()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
 
@@ -141,7 +141,7 @@ namespace Tests.UnitTest.Game
                 return list;
             }
             // Initialize the RailGraphDatastore
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
             const int size = 8;//立方体の一辺の長さ40でも通ることを確認。計算量はO(size^6)以上

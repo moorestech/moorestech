@@ -14,7 +14,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void MoveForward_LongTrain_MovesAcrossMultipleNodes()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var railGraph = serviceProvider.GetService<RailGraphDatastore>();
 
@@ -60,7 +60,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void MoveBackward_LongTrain_MovesAcrossMultipleNodes()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(TestModDirectory.ForUnitTestModDirectory);
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var railGraph = serviceProvider.GetService<RailGraphDatastore>();
 
