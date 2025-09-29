@@ -658,7 +658,11 @@
           ]
         },
         "fuelFluidTankCapacity": 0,
-        "fuelFluids": []
+        "fuelFluids": [],
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        }
       },
       "itemGuid": "00000000-0000-0000-1234-000000000008",
       "blockGuid": "00000000-0000-0000-0000-000000000008",
@@ -749,7 +753,11 @@
           ]
         },
         "fuelFluidTankCapacity": 0,
-        "fuelFluids": []
+        "fuelFluids": [],
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        }
       },
       "overrideVerticalBlock": {}
     },
@@ -827,7 +835,11 @@
         },
         "fuelItems": [],
         "fuelFluidTankCapacity": 0,
-        "fuelFluids": []
+        "fuelFluids": [],
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        }
       },
       "overrideVerticalBlock": {}
     },
@@ -915,7 +927,11 @@
         },
         "fuelItems": [],
         "fuelFluidTankCapacity": 0,
-        "fuelFluids": []
+        "fuelFluids": [],
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        }
       },
       "overrideVerticalBlock": {}
     },
