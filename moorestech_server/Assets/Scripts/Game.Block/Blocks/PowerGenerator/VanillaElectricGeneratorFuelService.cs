@@ -10,7 +10,8 @@ using Mooresmaster.Model.BlocksModule;
 namespace Game.Block.Blocks.PowerGenerator
 {
     /// <summary>
-    ///     バニラ発電機の燃料管理を一手に担い、コンポーネント本体から責務を切り離すサービス。
+    /// 発電機の燃料管理を一手に担い、コンポーネント本体から責務を切り離すサービス。
+    /// A service that takes full responsibility for generator fuel management, separating responsibility from the component itself.
     /// </summary>
     public class VanillaElectricGeneratorFuelService
     {
@@ -63,16 +64,22 @@ namespace Game.Block.Blocks.PowerGenerator
         public void Update()
         {
             // 1. タンク状態を整えてからタイマーや燃料選択を処理する。
+            // 1. First, maintain the tank state before processing timers and fuel selection.
             MaintainFluidContainer();
 
             if (_currentFuelType != FuelType.None)
             {
                 // 2. 稼働中の燃料を先に消費し、継続中なら以降の処理は不要。
+                // 2. Consume the fuel in operation first, and if it continues, no further processing is required.
                 TickFuelTimer();
+                
+                // 燃料消費中なら以降の処理は不要
+                // If fuel is being consumed, no further processing is required.
                 if (_currentFuelType != FuelType.None) return;
             }
 
             // 3. 固体燃料を優先して次の燃料を探し、無ければ液体燃料を使用する。
+            // 3. First look for the next fuel with solid fuel, and if not, use liquid fuel.
             if (TryStartItemFuel()) return;
 
             TryStartFluidFuel();
@@ -174,6 +181,7 @@ namespace Game.Block.Blocks.PowerGenerator
         public void WritSaveData(VanillaElectricGeneratorSaveJsonObject saveData)
         {
             // 現在の燃焼状況と残量を記録し、セーブ・ロード後に同じ状態を再現できるようにする。
+            // Record the current combustion status and remaining amount so that the same state can be reproduced after saving and loading.
             saveData.RemainingFuelTime = _remainingFuelTime;
             saveData.ActiveFuelType = _currentFuelType.ToString();
 
@@ -206,6 +214,7 @@ namespace Game.Block.Blocks.PowerGenerator
             if (saveData == null) return;
 
             // 保存データから燃焼状態とタンクを復元し、液体燃料が無効ならアイドルへ戻す。
+            // Restore the combustion state and tank from the saved data, and return to idle if liquid fuel is disabled.
             _remainingFuelTime = saveData.RemainingFuelTime;
 
             if (!string.IsNullOrEmpty(saveData.ActiveFuelType) && Enum.TryParse(saveData.ActiveFuelType, out FuelType parsedType))
