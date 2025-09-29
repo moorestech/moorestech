@@ -41,7 +41,9 @@ namespace Client.Game.InGame.Control
         
         private void Update()
         {
-            var distance = _cinemachineFraming.m_CameraDistance + InputManager.UI.SwitchHotBar.ReadValue<float>() / -200f;
+            var distance = _cinemachineFraming.m_CameraDistance;
+            if (UnityEngine.Input.GetKey(KeyCode.F1)) distance -= Time.deltaTime * 1f;
+            if (UnityEngine.Input.GetKey(KeyCode.F2)) distance += Time.deltaTime * 1f;
             _cinemachineFraming.m_CameraDistance = Mathf.Clamp(distance, 0.6f, 10);
             
             if (!_isControllable && _currentSequence == null) return;
