@@ -37,10 +37,12 @@ namespace Tests.CombinedTest.Core
         {
             var item = _itemStackFactory.Create(new ItemId(5), 1);
 
+            // ベルトコンベアにアイテムをセット
             var (chest, chestComponent) = CreateChest(new BlockInstanceId(0));
             var (beltConveyor, beltConveyorComponent) = CreateBeltConveyor(new BlockInstanceId(int.MaxValue));
             beltConveyorComponent.InsertItem(item);
 
+            // ベルトコンベアとチェストを接続
             ConnectInventory(beltConveyor, chestComponent);
             WaitUntilChestHasItem(chestComponent, item);
 
@@ -48,11 +50,14 @@ namespace Tests.CombinedTest.Core
         }
         
         [Test]
+        // チェストからベルトコンベアへアイテムを搬出する
         public void BeltConveyorOutputChestLogicTest()
         {
+            // チェストにアイテムをセット
             var (chest, chestComponent) = CreateChest(new BlockInstanceId(0));
             var (beltConveyor, beltConveyorComponent) = CreateBeltConveyor(new BlockInstanceId(0));
 
+            // ベルトコンベアとチェストを接続
             chestComponent.SetItem(0, new ItemId(1), 1);
             ConnectInventory(chest, beltConveyorComponent);
             GameUpdater.UpdateWithWait();
