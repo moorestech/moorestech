@@ -7,7 +7,6 @@ using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.Fluid;
-using Game.Block.Component;
 using Game.Block.Event;
 using Game.Block.Factory.BlockTemplate;
 using Game.Block.Interface;
@@ -23,38 +22,31 @@ namespace Game.Block.Blocks.PowerGenerator
 {
     public class VanillaElectricGeneratorComponent : IElectricGenerator, IBlockInventory, IOpenableInventory, IBlockSaveState, IUpdatableBlockComponent, IFluidInventory
     {
-        private readonly BlockComponentManager _blockComponentManager = new();
         private readonly ElectricPower _infinityPower;
         private readonly bool _isInfinityPower;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
         private readonly VanillaElectricGeneratorFuelService _fuelService;
         
-        public VanillaElectricGeneratorComponent(VanillaPowerGeneratorProperties data)
+        public VanillaElectricGeneratorComponent(
+            BlockInstanceId blockInstanceId,
+            BlockPositionInfo blockPositionInfo,
+            ElectricGeneratorBlockParam param)
         {
-            BlockPositionInfo = data.BlockPositionInfo;
-            BlockInstanceId = data.BlockInstanceId;
-            _isInfinityPower = data.IsInfinityPower;
-            _infinityPower = data.InfinityPower;
-            
-            _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, data.FuelItemSlot);
-            _fuelService = new VanillaElectricGeneratorFuelService(
-                data.FuelSettings,
-                data.FluidFuelSettings,
-                _itemDataStoreService,
-                data.FuelFluidTankCapacity);
-            
-            if (data.InventoryInputConnectorComponent != null)
-            {
-                _blockComponentManager.AddComponent(data.InventoryInputConnectorComponent);
-            }
+            BlockPositionInfo = blockPositionInfo;
+            BlockInstanceId = blockInstanceId;
+            _isInfinityPower = param.IsInfinityPower;
+            _infinityPower = new ElectricPower(param.InfinityPower);
 
-            if (data.FluidInputConnectorComponent != null)
-            {
-                _blockComponentManager.AddComponent(data.FluidInputConnectorComponent);
-            }
+            _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, param.FuelItemSlotCount);
+            _fuelService = new VanillaElectricGeneratorFuelService(param, _itemDataStoreService);
         }
-        
-        public VanillaElectricGeneratorComponent(Dictionary<string, string> componentStates, VanillaPowerGeneratorProperties data) : this(data)
+
+        public VanillaElectricGeneratorComponent(
+            Dictionary<string, string> componentStates,
+            BlockInstanceId blockInstanceId,
+            BlockPositionInfo blockPositionInfo,
+            ElectricGeneratorBlockParam param)
+            : this(blockInstanceId, blockPositionInfo, param)
         {
             if (!componentStates.TryGetValue(SaveKey, out var stateRaw)) return;
 
@@ -116,7 +108,7 @@ namespace Game.Block.Blocks.PowerGenerator
             {
                 Items = _itemDataStoreService.InventoryItems.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
             };
-            _fuelService.WritSaveData(saveData);
+            _fuelService.WriteSaveData(saveData);
             return JsonConvert.SerializeObject(saveData);
         }
         

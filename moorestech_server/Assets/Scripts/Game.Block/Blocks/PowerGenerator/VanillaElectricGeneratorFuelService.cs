@@ -32,18 +32,47 @@ namespace Game.Block.Blocks.PowerGenerator
         private FuelType _currentFuelType = FuelType.None;
         private double _remainingFuelTime;
 
-        public VanillaElectricGeneratorFuelService(
-            Dictionary<ItemId, FuelItemsElement> fuelSettings,
-            Dictionary<FluidId, FuelFluidsElement> fluidFuelSettings,
-            OpenableInventoryItemDataStoreService itemDataStoreService,
-            double fuelFluidTankCapacity)
+        public VanillaElectricGeneratorFuelService(ElectricGeneratorBlockParam param, OpenableInventoryItemDataStoreService itemDataStoreService)
         {
-            _fuelSettings = fuelSettings ?? new Dictionary<ItemId, FuelItemsElement>();
-            _fluidFuelSettings = fluidFuelSettings ?? new Dictionary<FluidId, FuelFluidsElement>();
             _itemDataStoreService = itemDataStoreService;
+            _fuelSettings = BuildFuelSettings(param);
+            _fluidFuelSettings = BuildFluidFuelSettings(param);
+
             // マスターで液体燃料が設定されている場合のみタンクを生成し、無い場合はダミーで済ませる。
-            var hasFluidTank = _fluidFuelSettings.Count > 0 && fuelFluidTankCapacity > 0;
-            _fuelFluidContainer = hasFluidTank ? new FluidContainer(fuelFluidTankCapacity) : null;
+            var hasFluidTank = _fluidFuelSettings.Count > 0 && param.FuelFluidTankCapacity > 0;
+            _fuelFluidContainer = hasFluidTank ? new FluidContainer(param.FuelFluidTankCapacity) : null;
+
+            #region Internal
+
+            Dictionary<ItemId, FuelItemsElement> BuildFuelSettings(ElectricGeneratorBlockParam generatorParam)
+            {
+                var settings = new Dictionary<ItemId, FuelItemsElement>();
+                if (generatorParam.FuelItems == null) return settings;
+
+                foreach (var fuelItem in generatorParam.FuelItems)
+                {
+                    var itemId = MasterHolder.ItemMaster.GetItemId(fuelItem.ItemGuid);
+                    settings[itemId] = fuelItem;
+                }
+
+                return settings;
+            }
+
+            Dictionary<FluidId, FuelFluidsElement> BuildFluidFuelSettings(ElectricGeneratorBlockParam generatorParam)
+            {
+                var settings = new Dictionary<FluidId, FuelFluidsElement>();
+                if (generatorParam.FuelFluids == null) return settings;
+
+                foreach (var fuelFluid in generatorParam.FuelFluids)
+                {
+                    var fluidId = MasterHolder.FluidMaster.GetFluidId(fuelFluid.FluidGuid);
+                    settings[fluidId] = fuelFluid;
+                }
+
+                return settings;
+            }
+
+            #endregion
         }
 
         public ElectricPower GetOutputEnergy()
@@ -178,7 +207,7 @@ namespace Game.Block.Blocks.PowerGenerator
             return fluidStacks;
         }
 
-        public void WritSaveData(VanillaElectricGeneratorSaveJsonObject saveData)
+        public void WriteSaveData(VanillaElectricGeneratorSaveJsonObject saveData)
         {
             // 現在の燃焼状況と残量を記録し、セーブ・ロード後に同じ状態を再現できるようにする。
             // Record the current combustion status and remaining amount so that the same state can be reproduced after saving and loading.
