@@ -4775,6 +4775,99 @@
           ]
         }
       }
+    },
+    {
+      "blockGuid": "d400bb71-f72f-416c-a7d4-9559bad7d72c",
+      "name": "重水​素​抽​出​装置",
+      "blockType": "ElectricMachine",
+      "itemGuid": "6fb78a16-9b4a-48ad-954d-6406bf73c765",
+      "blockSize": [
+        3,
+        2,
+        3
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Deuterium_extraction_equipment",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "requiredPower": 1000,
+        "inputSlotCount": 3,
+        "outputSlotCount": 3,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                2,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ],
+          "outputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                1,
+                0,
+                2
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ]
+        },
+        "inputTankCount": 1,
+        "outputTankCount": 0,
+        "innerTankCapacity": 100,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [
+            {
+              "connectType": "Fluid",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 10,
+                "connectTankIndex": 0
+              }
+            }
+          ],
+          "outflowConnects": []
+        }
+      }
     }
   ]
 }
