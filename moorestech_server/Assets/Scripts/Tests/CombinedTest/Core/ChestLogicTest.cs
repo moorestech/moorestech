@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.BeltConveyor;
@@ -13,64 +14,82 @@ using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
-using Random = System.Random;
 
 namespace Tests.CombinedTest.Core
 {
     public class ChestLogicTest
     {
+        private IItemStackFactory _itemStackFactory;
+        private IBlockFactory _blockFactory;
+
+        [SetUp]
+        public void SetUp()
+        {
+            _ = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            _itemStackFactory = ServerContext.ItemStackFactory;
+            _blockFactory = ServerContext.BlockFactory;
+        }
+
         //ベルトコンベアからアイテムを搬入する
         [Test]
         public void BeltConveyorInsertChestLogicTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            
-            var itemStackFactory = ServerContext.ItemStackFactory;
-            var blockFactory = ServerContext.BlockFactory;
-            
-            var random = new Random(4123);
-            
-            var id = new ItemId(random.Next(1, 11));
-            var count = 1;
-            var item = itemStackFactory.Create(id, count);
-            
-            var chest = blockFactory.Create(ForUnitTestModBlockId.ChestId, new BlockInstanceId(0), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
-            var chestComponent = chest.GetComponent<VanillaChestComponent>();
-            
-            var beltConveyor = blockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, new BlockInstanceId(int.MaxValue), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
-            var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
+            var item = _itemStackFactory.Create(new ItemId(5), 1);
+
+            var (chest, chestComponent) = CreateChest(new BlockInstanceId(0));
+            var (beltConveyor, beltConveyorComponent) = CreateBeltConveyor(new BlockInstanceId(int.MaxValue));
             beltConveyorComponent.InsertItem(item);
-            
-            var beltConnectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
-            beltConnectInventory.Add(chestComponent, new ConnectedInfo());
-            
-            
-            while (!chestComponent.GetItem(0).Equals(item)) GameUpdater.UpdateWithWait();
-            
+
+            ConnectInventory(beltConveyor, chestComponent);
+            WaitUntilChestHasItem(chestComponent, item);
+
             Assert.True(chestComponent.GetItem(0).Equals(item));
         }
         
         [Test]
         public void BeltConveyorOutputChestLogicTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            
-            var blockFactory = ServerContext.BlockFactory;
-            
-            var chest = blockFactory.Create(ForUnitTestModBlockId.ChestId, new BlockInstanceId(0), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
-            var chestComponent = chest.GetComponent<VanillaChestComponent>();
-            
-            var beltconveyor = blockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, new BlockInstanceId(0), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
-            var beltConveyorComponent = beltconveyor.GetComponent<VanillaBeltConveyorComponent>();
-            
+            var (chest, chestComponent) = CreateChest(new BlockInstanceId(0));
+            var (beltConveyor, beltConveyorComponent) = CreateBeltConveyor(new BlockInstanceId(0));
+
             chestComponent.SetItem(0, new ItemId(1), 1);
-            
-            var chestConnectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)chest.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
-            chestConnectInventory.Add(beltConveyorComponent, new ConnectedInfo());
+            ConnectInventory(chest, beltConveyorComponent);
             GameUpdater.UpdateWithWait();
-            
-            
+
             Assert.AreEqual(chestComponent.GetItem(0).Count, 0);
         }
+
+        #region Internal
+
+        private (IBlock block, VanillaChestComponent component) CreateChest(BlockInstanceId blockInstanceId)
+        {
+            var block = _blockFactory.Create(ForUnitTestModBlockId.ChestId, blockInstanceId, CreateDefaultPosition());
+            return (block, block.GetComponent<VanillaChestComponent>());
+        }
+
+        private (IBlock block, VanillaBeltConveyorComponent component) CreateBeltConveyor(BlockInstanceId blockInstanceId)
+        {
+            var block = _blockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, blockInstanceId, CreateDefaultPosition());
+            return (block, block.GetComponent<VanillaBeltConveyorComponent>());
+        }
+
+        private static void ConnectInventory(IBlock sourceBlock, IBlockInventory targetInventory)
+        {
+            var connections = (Dictionary<IBlockInventory, ConnectedInfo>)sourceBlock.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
+            connections[targetInventory] = new ConnectedInfo();
+        }
+
+        private static void WaitUntilChestHasItem(VanillaChestComponent chestComponent, IItemStack expected)
+        {
+            while (!chestComponent.GetItem(0).Equals(expected)) GameUpdater.UpdateWithWait();
+        }
+
+        private static BlockPositionInfo CreateDefaultPosition()
+        {
+            return new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one);
+        }
+
+        #endregion
     }
 }
