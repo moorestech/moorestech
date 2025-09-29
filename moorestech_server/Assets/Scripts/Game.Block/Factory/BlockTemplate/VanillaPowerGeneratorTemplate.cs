@@ -26,11 +26,11 @@ namespace Game.Block.Factory.BlockTemplate
             var param = (ElectricGeneratorBlockParam)blockMasterElement.BlockParam;
 
             var inventoryConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(param.InventoryConnectors, blockPositionInfo);
-            var fluidConnectorComponent =  IFluidInventory.CreateFluidInventoryConnector(param.FluidInventoryConnectors, blockPositionInfo);
+            var fluidConnectorComponent = IFluidInventory.CreateFluidInventoryConnector(param.FluidInventoryConnectors, blockPositionInfo);
 
             var generatorComponent = componentStates == null
-                ? new VanillaElectricGeneratorComponent(blockInstanceId, blockPositionInfo, param, inventoryConnectorComponent, fluidConnectorComponent)
-                : new VanillaElectricGeneratorComponent(componentStates, blockInstanceId, blockPositionInfo, param, inventoryConnectorComponent, fluidConnectorComponent);
+                ? new VanillaElectricGeneratorComponent(blockInstanceId, blockPositionInfo, param)
+                : new VanillaElectricGeneratorComponent(componentStates, blockInstanceId, blockPositionInfo, param);
 
             var components = new List<IBlockComponent>
             {
