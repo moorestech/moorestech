@@ -19,7 +19,6 @@ namespace Tests.CombinedTest.Core
 {
     public class ChestLogicTest
     {
-        private IItemStackFactory _itemStackFactory;
         private IBlockFactory _blockFactory;
 
         [SetUp]
@@ -27,7 +26,6 @@ namespace Tests.CombinedTest.Core
         {
             _ = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            _itemStackFactory = ServerContext.ItemStackFactory;
             _blockFactory = ServerContext.BlockFactory;
         }
 
@@ -35,7 +33,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void BeltConveyorInsertChestLogicTest()
         {
-            var item = _itemStackFactory.Create(new ItemId(5), 1);
+            var item = ServerContext.ItemStackFactory.Create(new ItemId(5), 1);
 
             // ベルトコンベアにアイテムをセット
             var (chest, chestComponent) = CreateChest(new BlockInstanceId(0));
