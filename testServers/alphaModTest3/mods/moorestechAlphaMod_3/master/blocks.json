@@ -4441,6 +4441,84 @@
         "transporterConveyorItemCount": 1
       },
       "enableConveyorPlacement": false
+    },
+    {
+      "blockGuid": "9afbd9fa-320d-4b4f-98c8-05d8362a62de",
+      "name": "チェイナー供給チェスト",
+      "blockType": "CraftChainerProviderChest",
+      "itemGuid": "c29398db-5f77-41be-b536-51dc916d56e2",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Old/CraftChainerProviderChest",
+      "blockUIAddressablesPath": "",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "itemSlotCount": 5,
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        }
+      }
+    },
+    {
+      "blockGuid": "397411e4-4d55-421a-b812-be8e98a88829",
+      "name": "チェイナークラフター",
+      "blockType": "CraftChainerCrafter",
+      "itemGuid": "513bac94-7339-45b7-93e6-5d4437bd6ad3",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Old/CraftChainerCrafter",
+      "blockUIAddressablesPath": "",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "itemSlotCount": 5,
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        }
+      }
+    },
+    {
+      "blockGuid": "d891269a-7e5b-4927-99f8-f791ec7518a7",
+      "name": "チェイナーメインコンピュータ",
+      "blockType": "CraftChainerMainComputer",
+      "itemGuid": "20d09467-1ae7-4daa-a762-44392ba370f0",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Old/CraftChainerMainComputer",
+      "blockUIAddressablesPath": "",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "itemSlotCount": 5,
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        }
+      }
     }
   ]
 }
