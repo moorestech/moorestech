@@ -4219,11 +4219,11 @@
       "blockPrefabAddressablesPath": "Vanilla/Block/Fast_BeltConveyor_Cross",
       "blockUIAddressablesPath": "",
       "overrideVerticalBlock": {
-        "upBlockGuid": "",
-        "horizontalBlockGuid": "",
-        "downBlockGuid": ""
+        "upBlockGuid": "6342aad1-763e-4422-83ad-62a20f7930e6",
+        "horizontalBlockGuid": "1b00c5dd-ebb3-451c-8ad4-4b5ab0f344c1",
+        "downBlockGuid": "0f9793e7-fae6-4460-9380-8e77813a30d4"
       },
-      "enableConveyorPlacement": false,
+      "enableConveyorPlacement": true,
       "blockParam": {
         "transporterConveyorItemCount": 1,
         "timeOfItemEnterToExit": 1,
@@ -4310,9 +4310,9 @@
       "blockPrefabAddressablesPath": "Vanilla/Block/Chainer_Fast_BeltConveyor_Up",
       "blockUIAddressablesPath": "",
       "overrideVerticalBlock": {
-        "upBlockGuid": "",
-        "horizontalBlockGuid": "",
-        "downBlockGuid": ""
+        "upBlockGuid": "6342aad1-763e-4422-83ad-62a20f7930e6",
+        "horizontalBlockGuid": "1b00c5dd-ebb3-451c-8ad4-4b5ab0f344c1",
+        "downBlockGuid": "0f9793e7-fae6-4460-9380-8e77813a30d4"
       },
       "blockParam": {
         "slopeType": "",
@@ -4368,7 +4368,7 @@
         "itemSlotCount": 5,
         "transporterConveyorItemCount": 1
       },
-      "enableConveyorPlacement": false
+      "enableConveyorPlacement": true
     },
     {
       "blockGuid": "0f9793e7-fae6-4460-9380-8e77813a30d4",
@@ -4383,9 +4383,9 @@
       "blockPrefabAddressablesPath": "Vanilla/Block/Chainer_Fast_BeltConveyor_Down",
       "blockUIAddressablesPath": "",
       "overrideVerticalBlock": {
-        "upBlockGuid": "",
-        "horizontalBlockGuid": "",
-        "downBlockGuid": ""
+        "upBlockGuid": "6342aad1-763e-4422-83ad-62a20f7930e6",
+        "horizontalBlockGuid": "1b00c5dd-ebb3-451c-8ad4-4b5ab0f344c1",
+        "downBlockGuid": "0f9793e7-fae6-4460-9380-8e77813a30d4"
       },
       "blockParam": {
         "beltConveyorItemCount": 6,
@@ -4440,7 +4440,7 @@
         },
         "transporterConveyorItemCount": 1
       },
-      "enableConveyorPlacement": false
+      "enableConveyorPlacement": true
     },
     {
       "blockGuid": "9afbd9fa-320d-4b4f-98c8-05d8362a62de",
