@@ -656,7 +656,9 @@
               }
             }
           ]
-        }
+        },
+        "fuelFluidTankCapacity": 0,
+        "fuelFluids": []
       },
       "itemGuid": "00000000-0000-0000-1234-000000000008",
       "blockGuid": "00000000-0000-0000-0000-000000000008",
@@ -745,7 +747,9 @@
               }
             }
           ]
-        }
+        },
+        "fuelFluidTankCapacity": 0,
+        "fuelFluids": []
       },
       "overrideVerticalBlock": {}
     },
@@ -821,7 +825,9 @@
           ],
           "inputConnects": []
         },
-        "fuelItems": []
+        "fuelItems": [],
+        "fuelFluidTankCapacity": 0,
+        "fuelFluids": []
       },
       "overrideVerticalBlock": {}
     },
@@ -907,7 +913,9 @@
             }
           ]
         },
-        "fuelItems": []
+        "fuelItems": [],
+        "fuelFluidTankCapacity": 0,
+        "fuelFluids": []
       },
       "overrideVerticalBlock": {}
     },
@@ -4100,7 +4108,11 @@
       "itemGuid": "11110000-0000-0000-0000-000000000000",
       "name": "TestGearElectricGenerator",
       "blockType": "GearElectricGenerator",
-      "blockSize": [1, 1, 1],
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
       "blockPrefabAddressablesPath": "",
       "blockUIAddressablesPath": "",
       "blockParam": {
@@ -4111,16 +4123,36 @@
         "gear": {
           "gearConnects": [
             {
-              "offset": [0, 0, 0],
+              "offset": [
+                0,
+                0,
+                0
+              ],
               "connectType": "Gear",
               "connectOption": {
                 "isReverse": false
               },
               "directions": [
-                [0, 0, -1],
-                [0, 0, 1],
-                [1, 0, 0],
-                [-1, 0, 0]
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
               ]
             }
           ]
