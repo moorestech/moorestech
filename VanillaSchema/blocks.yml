@@ -211,6 +211,33 @@ properties:
               default: 10
         - key: inventoryConnectors
           ref: inventoryConnects
+        - key: fuelFluidTankCapacity
+          type: number
+          default: 0
+        - key: fuelFluids
+          type: array
+          optional: true
+          items:
+            type: object
+            properties:
+            - key: fluidGuid
+              type: uuid
+              foreignKey:
+                schemaId: fluids
+                foreignKeyIdPath: /data/[*]/fluidGuid
+                displayElementPath: /data/[*]/name
+            - key: amount
+              type: number
+              default: 1
+            - key: time
+              type: number
+              default: 1
+            - key: power
+              type: number
+              default: 10
+        - key: fluidInventoryConnectors
+          ref: fluidInventoryConnects
+          optional: true
       - when: ElectricMiner
         type: object
         implementationInterface:
