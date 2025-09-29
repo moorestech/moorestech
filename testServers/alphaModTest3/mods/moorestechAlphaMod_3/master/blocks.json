@@ -4453,7 +4453,7 @@
         1
       ],
       "blockPrefabAddressablesPath": "Vanilla/Block/Old/CraftChainerProviderChest",
-      "blockUIAddressablesPath": "",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/ChestBlockInventory",
       "overrideVerticalBlock": {
         "upBlockGuid": "",
         "horizontalBlockGuid": "",
@@ -4463,8 +4463,76 @@
       "blockParam": {
         "itemSlotCount": 5,
         "inventoryConnectors": {
-          "inputConnects": [],
-          "outputConnects": []
+          "inputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ],
+          "outputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ]
         }
       }
     },
@@ -4479,7 +4547,7 @@
         1
       ],
       "blockPrefabAddressablesPath": "Vanilla/Block/Old/CraftChainerCrafter",
-      "blockUIAddressablesPath": "",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/CraftChainerCrafterInventory",
       "overrideVerticalBlock": {
         "upBlockGuid": "",
         "horizontalBlockGuid": "",
@@ -4489,8 +4557,72 @@
       "blockParam": {
         "itemSlotCount": 5,
         "inventoryConnectors": {
-          "inputConnects": [],
-          "outputConnects": []
+          "inputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ],
+          "outputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ]
         }
       }
     },
@@ -4505,7 +4637,7 @@
         1
       ],
       "blockPrefabAddressablesPath": "Vanilla/Block/Old/CraftChainerMainComputer",
-      "blockUIAddressablesPath": "",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/CraftChainerMainComputerInventory",
       "overrideVerticalBlock": {
         "upBlockGuid": "",
         "horizontalBlockGuid": "",
@@ -4515,8 +4647,72 @@
       "blockParam": {
         "itemSlotCount": 5,
         "inventoryConnectors": {
-          "inputConnects": [],
-          "outputConnects": []
+          "inputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ],
+          "outputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ]
         }
       }
     }
