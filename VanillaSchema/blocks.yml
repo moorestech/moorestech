@@ -237,7 +237,6 @@ properties:
               default: 10
         - key: fluidInventoryConnectors
           ref: fluidInventoryConnects
-          optional: true
       - when: ElectricMiner
         type: object
         implementationInterface:
