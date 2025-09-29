@@ -23,50 +23,59 @@ namespace Tests.UnitTest.Game.SaveLoad
         public void PowerGeneratorTest()
         {
             // テスト用の依存関係を初期化し、必要なサービスを取得する
+            // Initialize the test-specific dependencies and obtain required services.
             _ = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var blockFactory = ServerContext.BlockFactory;
             var itemStackFactory = ServerContext.ItemStackFactory;
 
             // テスト対象の発電機ブロックを生成する
+            // Create the generator block that will be validated in this test.
             var fuelSlotCount = (MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GeneratorId).BlockParam as ElectricGeneratorBlockParam).FuelItemSlotCount;
             var generatorPosInfo = new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one);
             var powerGeneratorBlock = blockFactory.Create(ForUnitTestModBlockId.GeneratorId, new BlockInstanceId(10), generatorPosInfo);
             var powerGenerator = powerGeneratorBlock.GetComponent<VanillaElectricGeneratorComponent>();
 
             // 検証したい燃料・液体状態をマスターデータから取得する
+            // Fetch the fuel and fluid states to verify from master data.
             var fuelItemId = MasterHolder.ItemMaster.GetItemId(Guid.Parse("00000000-0000-0000-1234-000000000001"));
             var secondaryItemId = MasterHolder.ItemMaster.GetItemId(Guid.Parse("00000000-0000-0000-1234-000000000002"));
             var fuelFluidId = MasterHolder.FluidMaster.GetFluidId(Guid.Parse("00000000-0000-0000-1234-000000000003"));
             const double remainingFuelTime = 567d;
 
             // プライベートフィールドを利用して燃料状態とインベントリを直接構築する
+            // Directly configure fuel state and inventory through private fields.
             SetFuelState(powerGenerator, fuelItemId, remainingFuelTime);
             powerGenerator.SetItem(0, itemStackFactory.Create(fuelItemId, 5));
             powerGenerator.SetItem(2, itemStackFactory.Create(secondaryItemId, 5));
 
             // セーブ前の比較用スナップショットを取得する
+            // Capture snapshots of the state before serialization for later comparison.
             var expectedFuelState = CaptureFuelState(powerGenerator);
             var expectedInventory = CaptureInventorySnapshot(powerGenerator);
 
             
             
             // セーブデータを生成してディクショナリに格納する
+            // Generate the save data and wrap it in the dictionary expected by the loader.
             var states = powerGeneratorBlock.GetSaveState();
 
             
             
             // セーブデータを用いて発電機ブロックを復元する
+            // Recreate the generator block from the produced save payload.
             var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GeneratorId).BlockGuid;
             var loadedPowerGeneratorBlock = blockFactory.Load(blockGuid, new BlockInstanceId(10), states, generatorPosInfo);
             var loadedPowerGenerator = loadedPowerGeneratorBlock.GetComponent<VanillaElectricGeneratorComponent>();
 
             // 復元後の燃料状態を検証する
+            // Verify that the restored fuel state matches the original snapshot.
             var loadedFuelState = CaptureFuelState(loadedPowerGenerator);
             Assert.AreEqual(expectedFuelState.CurrentFuelItemId, loadedFuelState.CurrentFuelItemId);
             Assert.AreEqual(expectedFuelState.RemainingFuelTime, loadedFuelState.RemainingFuelTime);
             Assert.AreEqual(expectedFuelState.FuelType, loadedFuelState.FuelType);
 
             // インベントリの内容が一致することを確認する
+            // Assert that the restored inventory contents mirror the original state.
             var loadedInventory = CaptureInventorySnapshot(loadedPowerGenerator);
             Assert.AreEqual(expectedInventory.Count, loadedInventory.Count);
             for (var i = 0; i < fuelSlotCount; i++)
@@ -80,6 +89,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             void SetFuelState(VanillaElectricGeneratorComponent component, ItemId itemId, double fuelTime)
             {
                 // 燃料サービスのプライベートフィールドを書き換えて任意の燃焼状態を作る
+                // Modify the fuel service's private fields to emulate the desired combustion state.
                 var fuelService = GetFuelService(component);
                 var fuelServiceType = fuelService.GetType();
                 var fuelTypeEnum = fuelServiceType.GetNestedType("FuelType", BindingFlags.NonPublic);
@@ -103,6 +113,7 @@ namespace Tests.UnitTest.Game.SaveLoad
                 if (fuelContainer != null)
                 {
                     // 併設された液体タンクが存在する場合は流体情報も初期化しておく
+                    // Initialize the companion fluid tank when it is available.
                     fuelContainer.FluidId = fuelFluidId;
                     fuelContainer.Amount = 0;
                 }
@@ -111,6 +122,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             (ItemId CurrentFuelItemId, double RemainingFuelTime, string FuelType) CaptureFuelState(VanillaElectricGeneratorComponent component)
             {
                 // 燃料サービスから現在の燃焼状況を読み取って比較用データを作成する
+                // Inspect the fuel service to build comparison data for the current burn state.
                 var fuelService = GetFuelService(component);
                 var fuelServiceType = fuelService.GetType();
 
@@ -131,6 +143,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             List<(ItemId ItemId, int Count)> CaptureInventorySnapshot(VanillaElectricGeneratorComponent component)
             {
                 // オープン可能インベントリの状態を一覧化する
+                // Enumerate the openable inventory to snapshot its current contents.
                 var inventoryService = (OpenableInventoryItemDataStoreService)typeof(VanillaElectricGeneratorComponent)
                     .GetField("_itemDataStoreService", BindingFlags.NonPublic | BindingFlags.Instance)
                     .GetValue(component);
@@ -147,6 +160,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             object GetFuelService(VanillaElectricGeneratorComponent component)
             {
                 // コンポーネントが保持する燃料サービスを取得する
+                // Retrieve the fuel service instance held by the component.
                 return typeof(VanillaElectricGeneratorComponent)
                     .GetField("_fuelService", BindingFlags.NonPublic | BindingFlags.Instance)
                     .GetValue(component);
