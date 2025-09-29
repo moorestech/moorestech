@@ -314,6 +314,54 @@
             "itemGuid": "00000000-0000-0000-1234-000000000002"
           }
         ],
+        "fuelFluidTankCapacity": 100,
+        "fuelFluids": [
+          {
+            "fluidGuid": "00000000-0000-0000-1234-000000000003",
+            "amount": 10,
+            "time": 3,
+            "power": 150
+          }
+        ],
+        "fluidInventoryConnectors": {
+          "inflowConnects": [
+            {
+              "connectType": "Fluid",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 100,
+                "connectTankIndex": 0
+              }
+            }
+          ],
+          "outflowConnects": []
+        },
         "inventoryConnectors": {
           "outputConnects": [],
           "inputConnects": []
