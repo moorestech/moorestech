@@ -28,8 +28,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var itemStackFactory = ServerContext.ItemStackFactory;
 
             // テスト対象の発電機ブロックを生成する
-            var generatorMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GeneratorId);
-            var fuelSlotCount = (generatorMaster.BlockParam as ElectricGeneratorBlockParam).FuelItemSlotCount;
+            var fuelSlotCount = (MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GeneratorId).BlockParam as ElectricGeneratorBlockParam).FuelItemSlotCount;
             var generatorPosInfo = new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one);
             var powerGeneratorBlock = blockFactory.Create(ForUnitTestModBlockId.GeneratorId, new BlockInstanceId(10), generatorPosInfo);
             var powerGenerator = powerGeneratorBlock.GetComponent<VanillaElectricGeneratorComponent>();
@@ -57,7 +56,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             
             // セーブデータを用いて発電機ブロックを復元する
-            var blockGuid = generatorMaster.BlockGuid;
+            var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GeneratorId).BlockGuid;
             var loadedPowerGeneratorBlock = blockFactory.Load(blockGuid, new BlockInstanceId(10), states, generatorPosInfo);
             var loadedPowerGenerator = loadedPowerGeneratorBlock.GetComponent<VanillaElectricGeneratorComponent>();
 
