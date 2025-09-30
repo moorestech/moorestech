@@ -490,16 +490,6 @@
       "recipeViewType": "IsUnlocked"
     },
     {
-      "itemGuid": "43497878-788b-40e7-987c-4064b1a2642a",
-      "imagePath": "",
-      "name": "核融合炉",
-      "maxStack": 100,
-      "sortPriority": 640,
-      "initialUnlocked": false,
-      "recipeViewType": "IsUnlocked",
-      "handGrabModelAddressablePath": ""
-    },
-    {
       "itemGuid": "0c5396c1-b7b2-4cc6-a406-18433f58de56",
       "imagePath": "",
       "name": "チェスト",
