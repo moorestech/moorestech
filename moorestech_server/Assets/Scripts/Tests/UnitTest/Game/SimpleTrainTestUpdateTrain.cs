@@ -3,13 +3,11 @@ using System.Linq;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Block.Blocks.TrainRail;
-using Game.Context;
 using Game.Train.Train;
 using Game.Train.RailGraph;
-using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
-using Server.Boot;
 using Tests.Module.TestMod;
+using Tests.Util;
 using UnityEngine;
 using Game.Train.Utility;
 
@@ -27,10 +25,10 @@ namespace Tests.UnitTest.Game
         public void LoopTrainTest()
         {
             // サーバーDIを立てて、WorldBlockDatastore や RailGraphDatastore を取得
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var env = TrainTestHelper.CreateEnvironment();
 
-            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            //var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
+            var worldBlockDatastore = env.WorldBlockDatastore;
+            //var railGraphDatastore = env.GetRailGraphDatastore();
 
             // 1) ワールド上にいくつかレールを「TryAddBlock」して、RailComponentを取得
             //    例として4本だけ設置
@@ -126,9 +124,9 @@ namespace Tests.UnitTest.Game
             const bool DEBUG_LOG_FLAG = false;
             // --- 1. レールノードを用意 ---
             // 例として直線上のノード3つ (A <- B <- C) を作る
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            //var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
+            var env = TrainTestHelper.CreateEnvironment();
+            var worldBlockDatastore = env.WorldBlockDatastore;
+            //var railGraphDatastore = env.GetRailGraphDatastore();
 
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(0, 0, 0), BlockDirection.North, out var railA);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(2162, 2, -1667), BlockDirection.North, out var railB);
@@ -243,8 +241,8 @@ namespace Tests.UnitTest.Game
             railComponentAの座標(2.50, 15.50, 0.00)W
             railComponentBの座標(2.50, 15.50, 22.00)W
              */
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            var env = TrainTestHelper.CreateEnvironment();
+            var worldBlockDatastore = env.WorldBlockDatastore;
             RailComponent[] railComponentsData = new RailComponent[2 * 4 + 3];//1本の駅の入口と出口のrailcomponentを記憶、あと追加点
             BlockDirection[] blockDirections = new BlockDirection[] { BlockDirection.East, BlockDirection.North, BlockDirection.South, BlockDirection.West };
             Vector3Int[] dirarray = new Vector3Int[] { new Vector3Int(0, 0, -1), new Vector3Int(1, 0, 0), new Vector3Int(-1, 0, 0), new Vector3Int(0, 0, 1) };
@@ -343,6 +341,268 @@ namespace Tests.UnitTest.Game
             {
                 Debug.Log("列車編成が無事目的地につきました");
             }
+        }
+
+
+        [Test]
+        public void ComplexTrainTest()
+        {
+            //順列を作成し、順番をシャッフルする関数
+            List<int> ReturnShuffleList(int n)
+            {
+                List<int> list = new List<int>();
+                for (int i = 0; i < n; i++)
+                {
+                    list.Add(i);
+                }
+                for (int i = 0; i < list.Count; i++)
+                {
+                    int j = UnityEngine.Random.Range(i, list.Count);
+                    var tmp = list[i];
+                    list[i] = list[j];
+                    list[j] = tmp;
+                }
+                return list;
+            }
+
+            var env = TrainTestHelper.CreateEnvironment();
+            var worldBlockDatastore = env.WorldBlockDatastore;
+            _ = env.GetRailGraphDatastore();
+
+            //10000回のTryAddBlockし、それぞれが10つのRailComponentにつながる。距離は1
+            const int nodenum_powerexponent = 3;//4でも確認済み
+            int nodenum = (int)System.Math.Pow(10, nodenum_powerexponent);
+
+            List<RailComponent> railComponents = new List<RailComponent>();
+            //blockの位置をきめる
+            //xの順列(0～nodenum)を作成、そのあとランダムシャッフルする
+            var xlist = ReturnShuffleList(nodenum);
+            var ylist = ReturnShuffleList(nodenum);
+            var zlist = ReturnShuffleList(nodenum);
+            for (int i = 0; i < nodenum; i++)
+            {
+                var railComponent = TrainTestHelper.PlaceRail(env, new Vector3Int(xlist[i], ylist[i], zlist[i]), BlockDirection.North);
+                railComponents.Add(railComponent);
+            }
+            //これでnode生成はおわった。あとはつなげる。Bを作成→Aを作成→Bを削除という操作を行う
+
+
+            //Bを作成
+            Dictionary<(int, int, bool, bool), bool> connectB = new Dictionary<(int, int, bool, bool), bool>();//つながる元、つながる先、isFront_this,is_front_target
+            const int blistnum = 1000;
+            for (int i = 0; i < blistnum; i++)
+            {
+                int rand0 = UnityEngine.Random.Range(0, nodenum);
+                int rand1 = UnityEngine.Random.Range(0, nodenum);
+                bool isFront_this = UnityEngine.Random.Range(0, 2) == 0;
+                bool isFront_target = UnityEngine.Random.Range(0, 2) == 0;
+                if (rand0 == rand1) continue;
+                if (connectB.ContainsKey((rand1, rand0, !isFront_target, !isFront_this))) continue;
+                if (connectB.ContainsKey((rand0, rand1, isFront_this, isFront_target))) continue;
+                connectB.Add((rand0, rand1, isFront_this, isFront_target), true);
+            }
+            //connectBを実行
+            foreach (var key in connectB.Keys)
+            {
+                railComponents[key.Item1].ConnectRailComponent(railComponents[key.Item2], key.Item3, key.Item4);
+            }
+
+            //Aを作成
+            //つながる規則は桁シフト(*10)して下位桁の数字を0-9とし、そのノードに対してつながる
+            for (int i = 0; i < nodenum; i++)
+            {
+                for (int j = 0; j < 10; j++)
+                {
+                    var next = (i * 10) % nodenum + j;
+                    railComponents[i].ConnectRailComponent(railComponents[next], true, true);
+                }
+            }
+
+            //Bを一部または全部削除
+            //ここではランダムに50%削除
+            foreach (var key in connectB.Keys)
+            {
+                if (UnityEngine.Random.Range(0, 2) == 0)
+                {
+                    var next = (key.Item1 * 10) % nodenum / 10;
+                    if ((key.Item2 / 10 == next) & (key.Item3) & (key.Item4)) continue;
+                    railComponents[key.Item1].DisconnectRailComponent(railComponents[key.Item2], key.Item3, key.Item4);
+                }
+            }
+
+
+
+            //あとは列車を走らせる
+            //複数の長さの列車を走らせる。短い～長い
+            //列車を乗せるためのレールを新規に生成
+            var railComponentStart = TrainTestHelper.PlaceRail(env, new Vector3Int(-100000, 0, 0), BlockDirection.South);
+            railComponentStart.ConnectRailComponent(railComponents[0], true, true);
+
+            // ノード列を組み立てる
+            // 列車がrailComponents[0]に向かっているという状況
+            var nodeList = new List<RailNode>();
+            nodeList.Add(railComponents[0].FrontNode);
+            nodeList.Add(railComponentStart.FrontNode);
+
+            // 列車の長さを適当にランダムに決めて計算
+            for (int testnum = 0; testnum < 2; testnum++)//1000で大丈夫なことを確認
+            {
+                var trainLength = UnityEngine.Random.Range(1, 1000000);
+                //RailPosition を作って先頭を配置
+                //initialDistanceToNextNode=5あたりから開始する例
+                //nodeListのdeepcopy。これをしないといけないことに注意
+                var nodeList2 = new List<RailNode>(nodeList);
+                var railPosition = new RailPosition(nodeList2, trainLength, 5);
+
+                // --- TrainUnit を生成 ---
+                var destinationid = UnityEngine.Random.Range(0, nodenum);
+                var destination = railComponents[destinationid].FrontNode;//目的地をセット
+                var cars = new List<TrainCar>
+                {
+                    new TrainCar(tractionForce: 600000, inventorySlots: 0, length: trainLength),  // 仮: 動力車
+                };
+                var trainUnit = new TrainUnit(railPosition, cars, destination);
+                trainUnit.TurnOnAutoRun();//factorioでいう自動運転on
+
+                //進んで目的地についたら次の目的地をランダムにセット。100回繰り返し終了
+                for (int i = 0; i < 100; i++)
+                {
+                    for (int j = 0; j < 65535; j++)//目的地に到達するまで→testフリーズは避けたいので有限で
+                    {
+                        trainUnit.UpdateTrainByTime(1f / 60f);
+                        if (!trainUnit.IsAutoRun)
+                            break;
+                        if (j == 65534)
+                            Assert.Fail("列車が目的地に到達しませんでした");
+                    }
+                    destinationid = UnityEngine.Random.Range(0, nodenum);
+                    destination = railComponents[destinationid].FrontNode;//目的地をセット
+                    trainUnit.SetDestination(destination);
+                }
+            }
+        }
+
+
+        [Test]
+        public void SplitTrain_BasicTest()
+        {
+            // RailPosition の列車長をテスト用に取得するためのヘルパーメソッド。
+            int GetTrainLengthForTest(RailPosition railPosition)
+            {
+                // railPosition が null なら -1 などを返しておく
+                if (railPosition == null) return -1;
+                var fieldInfo = typeof(RailPosition)
+                    .GetField("_trainLength", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (fieldInfo == null) return -1;
+                return (int)fieldInfo.GetValue(railPosition);
+            }
+
+            // --- 1. レールノードを用意 ---
+            // 例として直線上のノード3つ (A <- B <- C) を作り、距離を設定
+            var env = TrainTestHelper.CreateEnvironment();
+            var worldBlockDatastore = env.WorldBlockDatastore;
+            _ = env.GetRailGraphDatastore();
+
+            var railComponentA = TrainTestHelper.PlaceRail(env, new Vector3Int(0, 0, 0), BlockDirection.North);
+            var railComponentB = TrainTestHelper.PlaceRail(env, new Vector3Int(1, 0, 0), BlockDirection.North);
+            var railComponentC = TrainTestHelper.PlaceRail(env, new Vector3Int(1, 0, 0), BlockDirection.North);
+
+            // Connect the two RailComponents
+            railComponentC.ConnectRailComponent(railComponentB, true, true, 40);
+            railComponentB.ConnectRailComponent(railComponentA, true, true, 20);
+
+            // これで A -> B -> C の合計距離は 60
+            var nodeA = railComponentA.FrontNode;
+            var nodeB = railComponentB.FrontNode;
+            var nodeC = railComponentC.FrontNode;
+
+            // --- 2. 編成を構成する車両を用意 ---
+            // 例：5両編成で各車両の長さは 10, 20, 5, 5, 10 (トータル 50)
+            var cars = new List<TrainCar>
+            {
+                new TrainCar(tractionForce: 1000, inventorySlots: 0, length: 10),  // 仮: 動力車
+                new TrainCar(tractionForce: 0, inventorySlots: 10, length: 20),   // 貨車
+                new TrainCar(tractionForce: 0, inventorySlots: 10, length: 5),
+                new TrainCar(tractionForce: 0, inventorySlots: 10, length: 5),
+                new TrainCar(tractionForce: 0, inventorySlots: 10, length: 10),
+            };
+            int totalTrainLength = cars.Sum(car => car.Length);  // 10+20+5+5+10 = 50
+            // --- 3. 初期の RailPosition を用意 ---
+            //   ノードリスト = [A, B, C], 列車長さ = 50
+            //   先頭が “A にあと10 で到達する位置” とする → initialDistanceToNextNode=10
+            //   （イメージ：A--(10進んだ場所で先頭)-->B----->C ...合計60）
+            var railNodes = new List<RailNode> { nodeA, nodeB, nodeC };
+            var initialRailPosition = new RailPosition(
+                railNodes,
+                totalTrainLength,
+                initialDistanceToNextNode: 10  // 先頭が A まであと10
+            );
+
+            // --- 4. TrainUnit を生成 ---
+            var destination = nodeA;   // 適当な目的地を A にしておく
+            var trainUnit = new TrainUnit(initialRailPosition, cars, destination);
+
+            // --- 5. SplitTrain(...) で後ろから 2 両切り離す ---
+            //   5両 → (前3両) + (後ろ2両) に分割
+            var splittedUnit = trainUnit.SplitTrain(2);
+
+            // --- 6. 結果の検証 ---
+            // 6-1) 戻り値（splittedUnit）は null ではない
+            Assert.NotNull(splittedUnit, "SplitTrain の結果が null になっています。");
+
+            // 6-2) オリジナル列車の車両数は 3 両になっている
+            //      新たに生成された列車の車両数は 2 両
+            Assert.AreEqual(3, trainUnit
+                .GetType()
+                .GetField("_cars", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                ?.GetValue(trainUnit) is List<TrainCar> carsAfterSplit1
+                    ? carsAfterSplit1.Count
+                    : -1);
+
+            Assert.AreEqual(2, splittedUnit
+                .GetType()
+                .GetField("_cars", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                ?.GetValue(splittedUnit) is List<TrainCar> carsAfterSplit2
+                    ? carsAfterSplit2.Count
+                    : -1);
+
+            // 6-3) 列車長さが正しく更新されているか
+            // オリジナル列車: 前3両 = 10 + 20 + 5 = 35
+            // 後続列車: 後ろ2両 = 5 + 10 = 15
+            // ※上の例では 10,20,5,5,10 の順で「後ろ2両」は後ろから 5,10 のはずなので合計15
+            // SplitTrain 内で _railPosition.SetTrainLength(...) を行うことで長さが更新されているはず
+
+            var mainRailPos = trainUnit._railPosition;
+            var splittedRailPos = splittedUnit._railPosition;
+
+            var nodelist1 = mainRailPos.TestGet_railNodes();
+            var nodelist2 = splittedRailPos.TestGet_railNodes();
+            //nodelist1のid表示
+            //RailGraphDatastore._instance.Test_ListIdLog(nodelist1);
+            //nodelist2のid表示
+            //RailGraphDatastore._instance.Test_ListIdLog(nodelist2);
+            // RailPosition の列車長を直接取得するための Getter が無い場合は、
+            // 同様に Reflection や専用のテスト用メソッド (TestGetTrainLength() 等) を用意する形になります。
+            // ここではテスト用に「TestGetTrainLength」があると仮定している例を示します。
+            var mainTrainLength = GetTrainLengthForTest(mainRailPos);
+            var splittedTrainLength = GetTrainLengthForTest(splittedRailPos);
+
+            Assert.AreEqual(35, mainTrainLength, "分割後の先頭列車の長さが想定外です。");
+            Assert.AreEqual(15, splittedTrainLength, "分割後の後続列車の長さが想定外です。");
+
+            //mainRailPosはnodeAから10の距離にいるはず
+            Assert.AreEqual(nodeA, mainRailPos.GetNodeApproaching());
+            Assert.AreEqual(10, mainRailPos.GetDistanceToNextNode());
+            mainRailPos.Reverse();
+            //nodeCまで15の距離にいるはず
+            Assert.AreEqual(nodeC.OppositeNode, mainRailPos.GetNodeApproaching());
+            Assert.AreEqual(15, mainRailPos.GetDistanceToNextNode());
+
+            // 6-4) 新しい後続列車の RailPosition が「後ろ側」に連続した状態で生成されているか
+            //      → SplitTrain 内部では DeepCopy + Reverse + SetTrainLength + Reverse で位置を調整。
+            //splittedRailPosはnodeBから25の距離にいるはず
+            Assert.AreEqual(nodeB, splittedRailPos.GetNodeApproaching());
+            Assert.AreEqual(25, splittedRailPos.GetDistanceToNextNode());
         }
 
 
