@@ -16,6 +16,11 @@ namespace Game.Block.Blocks.Fluid
 {
     public class FluidPipeComponent : IUpdatableBlockComponent, IFluidInventory, IBlockStateObservable
     {
+        public IObservable<Unit> OnChangeBlockState => _onChangeBlockState;
+        
+        private readonly FluidContainer _fluidContainer;
+        private bool _hasReceivedThisUpdate = false;
+        
         private readonly BlockConnectorComponent<IFluidInventory> _connectorComponent;
         private readonly Subject<Unit> _onChangeBlockState = new();
         private BlockPositionInfo _blockPositionInfo;
@@ -45,12 +50,6 @@ namespace Game.Block.Blocks.Fluid
             
             return new[] { blockStateDetail };
         }
-        
-        public IObservable<Unit> OnChangeBlockState => _onChangeBlockState;
-        
-        // Private field - tests access via reflection
-        private readonly FluidContainer _fluidContainer;
-        private bool _hasReceivedThisUpdate = false;
         
         public FluidStack AddLiquid(FluidStack fluidStack, FluidContainer source)
         {

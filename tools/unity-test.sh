@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # unity_test.sh
 # 使い方:
-#   ./unity_test.sh <UnityProjectPath> 'Regex' [isBatch]
-#     または ./unity_test.sh <UnityProjectPath> -testRegex 'Regex' [isBatch]
-#   ※ isBatch を付けると Unity をバッチモード(-batchmode)で起動します
+#   ./unity_test.sh <UnityProjectPath> 'Regex' [isGui]
+#     または ./unity_test.sh <UnityProjectPath> -testRegex 'Regex' [isGui]
+#   ※ デフォルトでバッチモード(-batchmode)で起動。isGui を付けるとGUIモードで起動します
 
 UNITY="/Applications/Unity/Hub/Editor/6000.1.6f1/Unity.app/Contents/MacOS/Unity"
 
@@ -11,7 +11,7 @@ UNITY="/Applications/Unity/Hub/Editor/6000.1.6f1/Unity.app/Contents/MacOS/Unity"
 # 引数パース
 ###############################################################################
 if [ $# -lt 2 ]; then
-  echo "Usage: $0 <UnityProjectPath> '<Regex>' [isBatch]"
+  echo "Usage: $0 <UnityProjectPath> '<Regex>' [isGui]"
   exit 1
 fi
 
@@ -19,19 +19,19 @@ PROJECT="$1"; shift
 case "$1" in -testRegex|-r|--regex) shift ;; esac
 REGEX="$1"
 
-# ### 変更: isBatch の有無を検出してフラグ化
-IS_BATCH=0
+# ### 変更: isGui の有無を検出してフラグ化（デフォルトはバッチモード）
+IS_GUI=0
 for arg in "$@"; do
-  if [ "$arg" = "isBatch" ] || [ "$arg" = "-b" ] || [ "$arg" = "--batch" ]; then
-    IS_BATCH=1
+  if [ "$arg" = "isGui" ] || [ "$arg" = "-g" ] || [ "$arg" = "--gui" ]; then
+    IS_GUI=1
     break
   fi
 done
 
-# ### 変更: バッチモードのオプションを組み立て
-BATCH_OPTS=""
-if [ $IS_BATCH -eq 1 ]; then
-  BATCH_OPTS="-batchmode"
+# ### 変更: バッチモードのオプションを組み立て（デフォルトでバッチモード）
+BATCH_OPTS="-batchmode"
+if [ $IS_GUI -eq 1 ]; then
+  BATCH_OPTS=""
 fi
 
 ###############################################################################

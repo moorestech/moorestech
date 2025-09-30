@@ -279,6 +279,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 60a2352d66534463be31e9a8c114f4ad, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  rootRectTransform: {fileID: 1014375675779259833}
   itemImage: {fileID: 1885320552950913259}
   normalFrame: {fileID: 4299517632762084330}
   machineSlotFrame: {fileID: 8384614708635708959}
@@ -358,6 +359,7 @@ MonoBehaviour:
   textKey: 
   displayEnable: 0
   fontSize: 36
+  localize: 1
 --- !u!114 &5583253362659883424
 MonoBehaviour:
   m_ObjectHideFlags: 0

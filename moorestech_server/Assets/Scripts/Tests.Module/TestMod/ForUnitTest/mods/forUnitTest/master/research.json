@@ -1,0 +1,131 @@
+{
+  "data": [
+    {
+      "researchNodeGuid": "cd05e30d-d599-46d3-a079-769113cbbf17",
+      "researchNodeName": "Test Research 1",
+      "researchNodeDescription": "2 and 3’s previous",
+      "prevResearchNodeGuid": "",
+      "clearedActions": [],
+      "graphViewSettings": {
+        "UIPosition": [
+          0,
+          0
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      },
+      "consumeItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000001",
+          "itemCount": 1
+        }
+      ],
+      "prevResearchNodeGuids": []
+    },
+    {
+      "researchNodeGuid": "7f1464a7-ba55-4b96-9257-cfdeddf5bbdd",
+      "researchNodeName": "Test Research 2",
+      "researchNodeDescription": "3’s previous",
+      "prevResearchNodeGuids": [
+        "cd05e30d-d599-46d3-a079-769113cbbf17"
+      ],
+      "clearedActions": [],
+      "graphViewSettings": {
+        "UIPosition": [
+          0,
+          0
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      },
+      "consumeItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000001",
+          "itemCount": 1
+        }
+      ]
+    },
+    {
+      "researchNodeGuid": "d18ea842-7d03-42f1-ac80-29370083d040",
+      "researchNodeName": "Test Research 3",
+      "researchNodeDescription": "Test Research 3",
+      "prevResearchNodeGuids": [
+        "7f1464a7-ba55-4b96-9257-cfdeddf5bbdd",
+        "d18ea842-7d03-42f1-ac80-29370083d040"
+      ],
+      "clearedActions": [],
+      "graphViewSettings": {
+        "UIPosition": [
+          0,
+          0
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      },
+      "consumeItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000001",
+          "itemCount": 2
+        },
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000002",
+          "itemCount": 2
+        }
+      ]
+    },
+    {
+      "researchNodeGuid": "bf9bda9e-dace-43c4-9a33-75f248fd17f6",
+      "researchNodeName": "Test Research 4",
+      "researchNodeDescription": "Don't have previous",
+      "prevResearchNodeGuids": [],
+      "clearedActions": [
+        {
+          "challengeActionType": "unlockItemRecipeView",
+          "challengeActionParam": {
+            "unlockItemGuids": [
+              "00000000-0000-0000-1234-000000000003"
+            ]
+          }
+        },
+        {
+          "challengeActionType": "unlockCraftRecipe",
+          "challengeActionParam": {
+            "unlockRecipeGuids": [
+              "00000010-0000-0000-0000-000000000000"
+            ]
+          }
+        }
+      ],
+      "graphViewSettings": {
+        "UIPosition": [
+          0,
+          0
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      },
+      "consumeItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000001",
+          "itemCount": 2
+        }
+      ]
+    }
+  ]
+}

@@ -72,6 +72,11 @@ namespace Core.Master
             return itemId;
         }
         
+        public bool ExistItemId(Guid guid)
+        {
+            return _itemGuidToItemId.ContainsKey(guid);
+        }
+        
         public IEnumerable<ItemId> GetItemAllIds()
         {
             return _itemElementTableById.Keys;

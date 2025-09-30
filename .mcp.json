@@ -18,7 +18,9 @@
         "--context",
         "ide-assistant",
         "--project",
-        "/Users/sato-katsumi/moorestech"
+        "/Users/sato-katsumi/moorestech",
+        "--enable-web-dashboard", 
+        "False"
       ],
       "env": {}
     }

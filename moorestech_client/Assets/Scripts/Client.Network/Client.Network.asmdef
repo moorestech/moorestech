@@ -42,7 +42,8 @@
     "Game.Challenge.Interface",
     "Core.Master",
     "Game.CraftChainer",
-    "Game.CraftTree"
+    "Game.CraftTree",
+    "Game.Research"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

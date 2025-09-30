@@ -48,7 +48,8 @@ namespace Core.Master
                 var itemId = itemMaster.GetItemId(blockElement.ItemGuid);
                 if (_itemIdToBlockId.TryGetValue(itemId, out var blockId))
                 {
-                    throw new InvalidOperationException($"Duplicate itemId. ItemId:{blockElement.ItemGuid} BlockId:{blockElement.BlockGuid}");
+                    var existingBlockElement = GetBlockMaster(blockId);
+                    throw new InvalidOperationException($"Duplicate itemId. Name1: {blockElement.Name}  Name2: {existingBlockElement.Name} ItemId:{blockElement.ItemGuid} BlockId:{blockElement.BlockGuid}");
                 }
                 else
                 {
@@ -77,7 +78,7 @@ namespace Core.Master
         {
             if (!_blockGuidToBlockId.TryGetValue(blockGuid, out var blockId))
             {
-                throw new InvalidOperationException($"ItemElement not found. ItemGuid:{blockGuid}");
+                throw new InvalidOperationException($"BlockElement not found. BlockGuid:{blockGuid}");
             }
             
             return blockId;

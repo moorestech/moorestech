@@ -14,7 +14,8 @@
     "Game.World",
     "Game.World.Interface",
     "Core.Master",
-    "Game.UnlockState"
+    "Game.UnlockState",
+    "Game.Action"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

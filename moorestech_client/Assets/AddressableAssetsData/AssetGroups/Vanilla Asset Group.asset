@@ -31,7 +31,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 04a0e8da3bd0f4c9d874fdba9cd907f0
-    m_Address: Vanilla/Block/Old/CraftChainerMainComputer
+    m_Address: Vanilla/Block/Old/CraftChainerProviderChest
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -90,6 +90,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1a088e8122e2a44a49f89266225121ab
+    m_Address: Vanilla/UI/Block/ResearchTable/ResearchTreeUI
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 1a88e4a88a3e44292894c14234324d60
     m_Address: Vanilla/Skit/skits/sample_short
     m_ReadOnly: 0
@@ -130,13 +135,18 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2755d2b0f52ee4d2d87a18c12a206e7d
+    m_Address: Vanilla/Block/Chainer_Fast_BeltConveyor_Down
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 278ea2ee295354217ab12bd5e9c2aad4
     m_Address: Vanilla/Block/SmallGear
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 28dddce8f5fb04af3883632a8d31ee9e
-    m_Address: Vanilla/Block/iron_crasher
+  - m_GUID: 2983e03b6176b4abd95ec81a3bae0c48
+    m_Address: Vanilla/UI/Modal/OneButtonModal
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -170,6 +180,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3e42fbd0cb5944d839e7f0de78886d9b
+    m_Address: Vanilla/UI/Block/ResearchTable/ResearchTreeElement
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 4330922e5f42eeb47a769eb9d3ef359f
     m_Address: Vanilla/Block/BeltConveyor_Down
     m_ReadOnly: 0
@@ -195,8 +210,18 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4b7ddb70ca42f4b029bbb102809b22de
+    m_Address: Vanilla/Block/Deuterium_extraction_equipment
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 4c74988d44f6aa44184b9c89d585c25f
     m_Address: Vanilla/Block/bronze_sawmill
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4d6b7f79778db43549cd9b3291d2bd2f
+    m_Address: Vanilla/Block/Electronic_component_manufacturing_equipment
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -351,7 +376,12 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 7b4696d31466c1c44a6d4a34d4c0c5ec
-    m_Address: Vanilla/Block/Old/precision assembler
+    m_Address: Vanilla/Block/Old/CraftChainerMainComputer
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7d2d6647768134bdd8bed5cd77d70333
+    m_Address: Vanilla/Block/Chainer_Fast_BeltConveyor_Straight
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -360,13 +390,33 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 82c5a9bbcacd7407db450e1634f29464
+    m_Address: Vanilla/Block/Chainer_Fast_BeltConveyor_Cross Variant
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 86e61f81bcc934fea864ebdccb57122f
     m_Address: Vanilla/UI/Block/CraftChainerMainComputerInventory
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 87d6ff3663a4142acb81c53850b3aa39
+    m_Address: Vanilla/Block/Engine_Generator
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8a3e0eea8546c4da7a0e6f96b9f665d5
+    m_Address: Vanilla/Block/Chainer_Fast_BeltConveyor_Up
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 8b1d523ce7c92403490cc41115519a02
     m_Address: Vanilla/Block/Shaft Vertical
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8c9a616c44001473593a4473ce1f2b5c
+    m_Address: Vanilla/Block/GearGenerator
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -387,6 +437,16 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 90e31bd775ec74542975d914c3ae3336
     m_Address: Vanilla/Skit/skits/100_start_game
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 91113de485c1847d3abc5f0fa061b0b0
+    m_Address: Vanilla/UI/Modal/CommonModalBase
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9142fcb884dd340289d8c1f4a6dc04b4
+    m_Address: Vanilla/Block/Vacuum_pump
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -417,6 +477,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 9996f482af5df4c57a7029608a75d9b9
     m_Address: Vanilla/Skit/Animations/anim_surprise01_lp_fbx
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9b3e727208e72475d9570e3d360d29f4
+    m_Address: Vanilla/Block/Chemical Plants
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -460,8 +525,23 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a908ab188a0fc4d869906b034cee290e
+    m_Address: Vanilla/Block/Electric_miner
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a9e2e36a8281341579f99adcc8f9347a
     m_Address: Vanilla/Block/Util/GearConnectorLineView
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: aa6c93f707827450ba679d52727164eb
+    m_Address: Vanilla/Block/Electric_pole
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ac4682b0a2d3e456caa2201a66fc3142
+    m_Address: Vanilla/Block/Arc_furnace
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -525,6 +605,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c2fd1730c690f4d1e84728af3cab6139
+    m_Address: Vanilla/Block/Rocket
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: c337d044e0b938b4986eee09c082e90c
     m_Address: Vanilla/Block/water wheel
     m_ReadOnly: 0
@@ -547,6 +632,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: cd1c955822767a148878352e9611cbed
     m_Address: Vanilla/Block/HighPerformanceMetalPlatform
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ce68f139f233122469f4a7392d6450c8
+    m_Address: Vanilla/Block/Semiconductor_Manufacturing_Equipment
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -587,6 +677,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: d793aaf0184d71c448ea70d6f7a7fab9
     m_Address: Vanilla/Block/itemshooter down
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d83514a389dfe4f7e9da9d2375529bcd
+    m_Address: Vanilla/Block/Hydrogen_reduction_furnace
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -695,6 +790,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fbe000f72185746d0a7c722fcc35f14e
+    m_Address: Vanilla/Block/Antimatter_manufacturing_equipment
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: fd2ecb5ff8511444d98665186b558b07
     m_Address: Vanilla/Block/primitive miner
     m_ReadOnly: 0
@@ -711,7 +811,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: ff0ce874150644b289f1028c53a9c17f
-    m_Address: Vanilla/Block/bronze_crasher
+    m_Address: Vanilla/Block/iron_crasher
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

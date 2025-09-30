@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -7,6 +8,7 @@ using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Context;
 using Game.CraftTree.Models;
+using Game.Research;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
@@ -151,7 +153,15 @@ namespace Client.Network.API
                 response.LockedItemIds, response.UnlockedItemIds,
                 response.LockedCategoryChallengeGuids, response.UnlockedCategoryChallengeGuids);
         }
-        
+
+        public async UniTask<Dictionary<Guid, ResearchNodeState>> GetResearchNodeStates(CancellationToken ct)
+        {
+            var request = new GetResearchInfoProtocol.RequestResearchInfoMessagePack(_playerConnectionSetting.PlayerId);
+            var response = await _packetExchangeManager.GetPacketResponse<GetResearchInfoProtocol.ResponseResearchInfoMessagePack>(request, ct);
+            
+            return response.ToDictionary();
+        }
+
         public async UniTask<CraftTreeResponse> GetCraftTree(int playerId, CancellationToken ct)
         {
             var request = new GetCraftTreeProtocol.RequestGetCraftTreeMessagePack(playerId);
@@ -173,6 +183,14 @@ namespace Client.Network.API
             var response = await _packetExchangeManager.GetPacketResponse<GetPlayedSkitIdsProtocol.ResponseGetPlayedSkitIdsMessagePack>(request, ct);
             
             return response.PlayedSkitIds;
+        }
+        
+        public async UniTask<CompleteResearchProtocol.ResponseCompleteResearchMessagePack> CompleteResearch(Guid researchGuid, CancellationToken ct)
+        {
+            var request = new CompleteResearchProtocol.RequestCompleteResearchMessagePack(_playerConnectionSetting.PlayerId, researchGuid);
+            var response = await _packetExchangeManager.GetPacketResponse<CompleteResearchProtocol.ResponseCompleteResearchMessagePack>(request, ct);
+            
+            return response;
         }
     }
 }

@@ -1,4 +1,5 @@
 using System.Reflection;
+using UnityEngine;
 
 namespace Client.Game.InGame.UI.Inventory.Common
 {
@@ -33,5 +34,10 @@ namespace Client.Game.InGame.UI.Inventory.Common
         public static void SetCountTextFontSize(this CommonSlotView view, int fontSize) => view.SetSlotViewOption(GetCountTextFontSizeOption(fontSize));
         public static void SetCountTextFontSize(this ItemSlotView obj, int fontSize)  => obj.SetSlotViewOption(GetCountTextFontSizeOption(fontSize));
         private  static CommonSlotViewOption GetCountTextFontSizeOption(int fontSize)   => new() { CountTextFontSize = fontSize };
+        
+        // ----- SizeDelta -----
+        public static void SetSizeDelta(this CommonSlotView view, Vector2 sizeDelta) => view.SetSlotViewOption(GetSizeDeltaOption(sizeDelta));
+        public static void SetSizeDelta(this ItemSlotView obj, Vector2 sizeDelta)  => obj.SetSlotViewOption(GetSizeDeltaOption(sizeDelta));
+        private  static CommonSlotViewOption GetSizeDeltaOption(Vector2 sizeDelta)   => new() { SizeDelta = sizeDelta };
     }
 }

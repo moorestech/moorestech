@@ -490,16 +490,6 @@
       "recipeViewType": "IsUnlocked"
     },
     {
-      "itemGuid": "43497878-788b-40e7-987c-4064b1a2642a",
-      "imagePath": "",
-      "name": "核融合炉",
-      "maxStack": 100,
-      "sortPriority": 640,
-      "initialUnlocked": false,
-      "recipeViewType": "IsUnlocked",
-      "handGrabModelAddressablePath": ""
-    },
-    {
       "itemGuid": "0c5396c1-b7b2-4cc6-a406-18433f58de56",
       "imagePath": "",
       "name": "チェスト",
@@ -705,7 +695,7 @@
       "name": "石灰岩",
       "maxStack": 100,
       "sortPriority": 860,
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
     },
@@ -715,7 +705,7 @@
       "name": "生石灰石",
       "maxStack": 100,
       "sortPriority": 870,
-      "initialUnlocked": true,
+      "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
     },
@@ -754,7 +744,7 @@
       "imagePath": "",
       "name": "2x2",
       "maxStack": 100,
-      "sortPriority": 910,
+      "sortPriority": 911,
       "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
@@ -764,7 +754,7 @@
       "imagePath": "",
       "name": "3x3",
       "maxStack": 100,
-      "sortPriority": 920,
+      "sortPriority": 912,
       "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
@@ -774,7 +764,651 @@
       "imagePath": "",
       "name": "4x4",
       "maxStack": 100,
-      "sortPriority": 930,
+      "sortPriority": 913,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "06aff80a-2edd-499c-9292-141ca365b17a",
+      "imagePath": "",
+      "name": "研究テーブル",
+      "maxStack": 100,
+      "sortPriority": 910,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "21869384-905a-48ba-983e-600a4182d1de",
+      "name": "ミキサー",
+      "maxStack": 100,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "sortPriority": 920
+    },
+    {
+      "itemGuid": "7756da68-35db-4dbb-8372-e93fc86bbfa7",
+      "name": "コンクリート",
+      "maxStack": 100,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "sortPriority": 930
+    },
+    {
+      "itemGuid": "9fa494c0-c5eb-442b-8385-507b94e04d33",
+      "name": "土台",
+      "maxStack": 100,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "sortPriority": 940
+    },
+    {
+      "itemGuid": "9434e1fc-23dd-4fa4-9b1c-00daa78ae65f",
+      "imagePath": "",
+      "name": "鋼鉄フレーム",
+      "maxStack": 100,
+      "sortPriority": 950,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "f7460000-36c0-4dfa-b97b-046750df6855",
+      "imagePath": "",
+      "name": "電柱",
+      "maxStack": 100,
+      "sortPriority": 965,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "d3f6e08d-761e-4156-abec-e32c8423f595",
+      "imagePath": "",
+      "name": "電気採掘機",
+      "maxStack": 100,
+      "sortPriority": 970,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "0f3706d3-3246-4167-9b9b-565f3151e154",
+      "imagePath": "",
+      "name": "回転発電機",
+      "maxStack": 100,
+      "sortPriority": 980,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "1dcb0e95-ca98-4b7f-82ad-6485d364832e",
+      "imagePath": "",
+      "name": "鉄線",
+      "maxStack": 100,
+      "sortPriority": 990,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "88a420fd-d33c-411b-810d-9504a840f937",
+      "imagePath": "",
+      "name": "抵抗器",
+      "maxStack": 100,
+      "sortPriority": 1000,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "d9cbebc7-6742-48bd-ad2b-2b45e4d4b435",
+      "imagePath": "",
+      "name": "水素還元炉",
+      "maxStack": 100,
+      "sortPriority": 1010,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "5b4febdb-95fd-47c5-a020-d09144ad167d",
+      "imagePath": "",
+      "name": "タングステン鉱石",
+      "maxStack": 100,
+      "sortPriority": 1020,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "7200c815-71fa-42bc-9a5d-34e0fcdf12c4",
+      "imagePath": "",
+      "name": "タングステン鉱石の粉",
+      "maxStack": 100,
+      "sortPriority": 1030,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "ba675c32-a8e0-4aa2-a5a0-82ef13e9ca2a",
+      "imagePath": "",
+      "name": "タングステンフィラメント",
+      "maxStack": 100,
+      "sortPriority": 1040,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "78a0b523-a27b-44f3-8f99-12e33f425ef8",
+      "imagePath": "",
+      "name": "真空ポンプ",
+      "maxStack": 100,
+      "sortPriority": 1050,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "4311e162-958c-44ed-829c-aea38003d4ba",
+      "imagePath": "",
+      "name": "ガラス管",
+      "maxStack": 100,
+      "sortPriority": 1055,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "7b000985-6823-4dec-a02f-ddbfbadf6c11",
+      "imagePath": "",
+      "name": "真空管",
+      "maxStack": 100,
+      "sortPriority": 1060,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "de1918d4-bd93-4989-a79c-16a47d9d7966",
+      "imagePath": "",
+      "name": "基本回路",
+      "maxStack": 100,
+      "sortPriority": 1070,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "b1002714-bed8-4f25-87f9-88237a9376f8",
+      "imagePath": "",
+      "name": "簡易組立機",
+      "maxStack": 100,
+      "sortPriority": 1080,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "3e34cc08-4c08-4e7e-9efd-81c492574380",
+      "imagePath": "",
+      "name": "石油採掘機",
+      "maxStack": 100,
+      "sortPriority": 1090,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "884a085e-d4a7-4abd-b504-f7db263f1bd6",
+      "imagePath": "",
+      "name": "タンク",
+      "maxStack": 100,
+      "sortPriority": 1100,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "cb996e54-eb0a-4f82-ab49-c3e6aa51be65",
+      "imagePath": "",
+      "name": "蒸留塔",
+      "maxStack": 100,
+      "sortPriority": 1110,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "c7f4e03c-cf17-4e68-8e11-8ef1f49a0800",
+      "imagePath": "",
+      "name": "化学プラント",
+      "maxStack": 100,
+      "sortPriority": 1120,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "115f4ba3-8c0a-4444-85c8-100d2735044d",
+      "imagePath": "",
+      "name": "ゴム",
+      "maxStack": 100,
+      "sortPriority": 1130,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "9b2a04eb-81dd-4058-98c0-6c768f3ce7ea",
+      "imagePath": "",
+      "name": "プラスチック",
+      "maxStack": 100,
+      "sortPriority": 1140,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "1eb89d18-53d1-4d8c-86b2-3b63a9880e1b",
+      "imagePath": "",
+      "name": "電子部品製造装置",
+      "maxStack": 100,
+      "sortPriority": 1150,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "f3389f1f-e9cd-4426-aa3d-8ef93f83f2e8",
+      "imagePath": "",
+      "name": "ゲルマニウム鉱石",
+      "maxStack": 100,
+      "sortPriority": 1160,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "4c047abc-f595-4e34-aa56-de819dd2c275",
+      "imagePath": "",
+      "name": "ゲルマニウムインゴット",
+      "maxStack": 100,
+      "sortPriority": 1170,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "6d899158-1ffc-473a-9c33-e261748133c9",
+      "imagePath": "",
+      "name": "トランジスタ",
+      "maxStack": 100,
+      "sortPriority": 1180,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "d30f78dd-536d-4d23-a09e-30f9770ca096",
+      "imagePath": "",
+      "name": "アーク炉",
+      "maxStack": 100,
+      "sortPriority": 1190,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "c23a6df7-627c-4391-bdd6-8b47a8e445fd",
+      "imagePath": "",
+      "name": "精密モーター",
+      "maxStack": 100,
+      "sortPriority": 1200,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "6ee0697c-e4bf-4534-a1c4-76e2314cd821",
+      "imagePath": "",
+      "name": "バナジウム粉末",
+      "maxStack": 100,
+      "sortPriority": 1210,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "139f93e4-688d-4c41-b425-ff446d353314",
+      "imagePath": "",
+      "name": "バナジウムインゴット",
+      "maxStack": 100,
+      "sortPriority": 1220,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "1110b0bb-cf52-4e5a-9303-055270218e99",
+      "imagePath": "",
+      "name": "高強度鋼鉄",
+      "maxStack": 100,
+      "sortPriority": 1230,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "bbc4a5a0-a1f2-4029-8a20-c9343e90389a",
+      "imagePath": "",
+      "name": "ガソリンエンジン発電機",
+      "maxStack": 100,
+      "sortPriority": 1240,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "59df1464-6617-4e88-b3cc-626f275984cc",
+      "imagePath": "",
+      "name": "高純度シリコン",
+      "maxStack": 100,
+      "sortPriority": 1250,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "bbb14072-f371-4410-b1b1-2555f72ec0e8",
+      "imagePath": "",
+      "name": "ICチップ",
+      "maxStack": 100,
+      "sortPriority": 1260,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "22aee05f-f45b-48e7-929a-aa642a73e794",
+      "imagePath": "",
+      "name": "チェイナーコンベア",
+      "maxStack": 100,
+      "sortPriority": 1270,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "ef8f0fae-2e88-4e91-9386-a70f3a572cb7",
+      "imagePath": "",
+      "name": "チェイナー上りコンベア",
+      "maxStack": 100,
+      "sortPriority": 1271,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "829fa968-9e21-4a53-af5c-5e41595ef0d9",
+      "imagePath": "",
+      "name": "チェイナー下りコンベア",
+      "maxStack": 100,
+      "sortPriority": 1272,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "c29398db-5f77-41be-b536-51dc916d56e2",
+      "imagePath": "",
+      "name": "チェイナー供給チェスト",
+      "maxStack": 100,
+      "sortPriority": 1280,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "20d09467-1ae7-4daa-a762-44392ba370f0",
+      "imagePath": "",
+      "name": "チェイナーコンピュータ",
+      "maxStack": 100,
+      "sortPriority": 1290,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "513bac94-7339-45b7-93e6-5d4437bd6ad3",
+      "imagePath": "",
+      "name": "チェイナークラフター",
+      "maxStack": 100,
+      "sortPriority": 1300,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "36332284-c350-46c2-b9e2-debfc7a432f4",
+      "imagePath": "",
+      "name": "チタン鉱石",
+      "maxStack": 100,
+      "sortPriority": 1310,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "5a7b234a-7458-47b3-854a-2b7f7a180214",
+      "imagePath": "",
+      "name": "チタン鉱石粉末",
+      "maxStack": 100,
+      "sortPriority": 1320,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "f70252a7-2903-41ea-b29d-3bc81ff14bfd",
+      "imagePath": "",
+      "name": "チタンインゴット",
+      "maxStack": 100,
+      "sortPriority": 1330,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "418f7c04-04bb-4e12-8432-2865d32c65f8",
+      "imagePath": "",
+      "name": "超伝導体",
+      "maxStack": 100,
+      "sortPriority": 1340,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "c6e050a9-00aa-4dfc-87f2-8e10174fd8a6",
+      "imagePath": "",
+      "name": "トカマク式磁場コイル",
+      "maxStack": 100,
+      "sortPriority": 1350,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "cf354196-2437-4526-8be7-a806c3a46f5a",
+      "imagePath": "",
+      "name": "バナジウム合金",
+      "maxStack": 100,
+      "sortPriority": 1360,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "45c62529-9afa-4acc-81b6-f1cdb2732d30",
+      "imagePath": "",
+      "name": "核融合ブランケット",
+      "maxStack": 100,
+      "sortPriority": 1370,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "4a8f0136-6a0c-48ec-b75c-b882cbdd1bda",
+      "imagePath": "",
+      "name": "真空ポンプ",
+      "maxStack": 100,
+      "sortPriority": 1380,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "376b10f5-293a-4bd2-8fff-ad9e13c8cff9",
+      "imagePath": "",
+      "name": "真空容器",
+      "maxStack": 100,
+      "sortPriority": 1390,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "ed8fb788-1ea4-4643-a073-46ccb990a4b4",
+      "imagePath": "",
+      "name": "核融合炉",
+      "maxStack": 100,
+      "sortPriority": 1400,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "6fb78a16-9b4a-48ad-954d-6406bf73c765",
+      "imagePath": "",
+      "name": "重水素抽出装置",
+      "maxStack": 100,
+      "sortPriority": 1410,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "92fe76fc-19b9-4b2d-938e-1c906b07d37d",
+      "imagePath": "",
+      "name": "重水素タンク",
+      "maxStack": 100,
+      "sortPriority": 1420,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "29b1aefb-4546-4ce3-842f-bbb2c4ac9eab",
+      "imagePath": "",
+      "name": "磁気格納箱",
+      "maxStack": 100,
+      "sortPriority": 1430,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "aa96a24a-2e21-425b-bd0e-c7481b349123",
+      "imagePath": "",
+      "name": "反物質製造装置",
+      "maxStack": 100,
+      "sortPriority": 1440,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "94d2f658-6585-4f48-b0a3-d92772f924de",
+      "imagePath": "",
+      "name": "反物質",
+      "maxStack": 100,
+      "sortPriority": 1450,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "f76879b7-4ae1-4537-9e26-c484f2b0fa8d",
+      "imagePath": "",
+      "name": "制御コンピュータ",
+      "maxStack": 100,
+      "sortPriority": 1460,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "625b6026-dd76-40bf-9f87-58083f050146",
+      "imagePath": "",
+      "name": "反物質爆弾",
+      "maxStack": 100,
+      "sortPriority": 1470,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "3ba2ba1a-efba-4466-bb20-240e886ad34c",
+      "imagePath": "",
+      "name": "ロケット燃料",
+      "maxStack": 100,
+      "sortPriority": 1480,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "6c7e9098-703c-4172-b85e-477519026204",
+      "imagePath": "",
+      "name": "燃料タンク",
+      "maxStack": 100,
+      "sortPriority": 1490,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "19928a62-3c00-417e-81a2-ad2427582663",
+      "imagePath": "",
+      "name": "ロケットエンジン",
+      "maxStack": 100,
+      "sortPriority": 1500,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "76f8a502-96c4-4bd9-bdb3-d5b9f7c0d534",
+      "imagePath": "",
+      "name": "ロケット",
+      "maxStack": 100,
+      "sortPriority": 1510,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "53077e0e-77b2-4028-8fec-fc7190ef720f",
+      "imagePath": "",
+      "name": "半導体製造装置",
+      "maxStack": 100,
+      "sortPriority": 1520,
       "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""

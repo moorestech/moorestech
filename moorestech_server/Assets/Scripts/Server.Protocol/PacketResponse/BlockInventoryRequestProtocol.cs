@@ -28,13 +28,14 @@ namespace Server.Protocol.PacketResponse
             
             //開けるインベントリを持つブロックが存在するかどうかをチェック
             var blockDatastore = ServerContext.WorldBlockDatastore;
+            var blockId = blockDatastore.GetBlock(data.Pos).BlockId;
             if (!blockDatastore.ExistsComponent<IOpenableBlockInventoryComponent>(data.Pos))
-                return null;
+            {
+                return new BlockInventoryResponseProtocolMessagePack(blockId, new List<IItemStack>());
+            }
             
             
             //存在したらアイテム数とアイテムIDをまとめてレスポンスする
-            var blockId = blockDatastore.GetBlock(data.Pos).BlockId;
-            
             return new BlockInventoryResponseProtocolMessagePack(blockId, blockDatastore.GetBlock<IOpenableBlockInventoryComponent>(data.Pos).InventoryItems);
         }
         

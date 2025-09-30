@@ -1,8 +1,8 @@
 using System;
 using Core.Master;
-using Core.Update;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
+using Game.Block.Blocks.Pump;
 using Game.EnergySystem;
 using Game.Fluid;
 using Game.Gear.Common;
@@ -18,9 +18,9 @@ namespace Game.Block.Blocks.Gear
     {
         private readonly GearPumpBlockParam _param;
         private readonly GearEnergyTransformer _gearEnergyTransformer;
-        private readonly GearPumpFluidOutputComponent _output;
+        private readonly PumpFluidOutputComponent _output;
 
-        public GearPumpComponent(GearPumpBlockParam param, GearEnergyTransformer gearEnergyTransformer, GearPumpFluidOutputComponent output)
+        public GearPumpComponent(GearPumpBlockParam param, GearEnergyTransformer gearEnergyTransformer, PumpFluidOutputComponent output)
         {
             _param = param;
             _gearEnergyTransformer = gearEnergyTransformer;
@@ -32,26 +32,17 @@ namespace Game.Block.Blocks.Gear
             BlockException.CheckDestroy(this);
 
             // Calculate power rate based on current RPM and Torque vs requirements
-            var requiredRpm = new RPM(Math.Max(0.0001f, _param.RequiredRpm));
-            var requiredTorque = new Torque(Math.Max(0.0001f, _param.RequireTorque));
-            var supplied = _gearEnergyTransformer.CalcMachineSupplyPower(requiredRpm, requiredTorque);
-            var requiredPower = requiredRpm.AsPrimitive() * requiredTorque.AsPrimitive();
-            var powerRate = requiredPower <= 0 ? 0f : supplied.AsPrimitive() / requiredPower;
-            powerRate = Mathf.Clamp(powerRate, 0f, 1f);
+            var requiredRpm = Mathf.Max(0.0001f, _param.RequiredRpm);
+            var requiredTorque = Mathf.Max(0.0001f, _param.RequireTorque);
+            var supplied = _gearEnergyTransformer.CalcMachineSupplyPower(new RPM(requiredRpm), new Torque(requiredTorque));
+            var powerRate = supplied.AsPrimitive() / (requiredRpm * requiredTorque);
+            powerRate = Mathf.Clamp01(powerRate);
 
             // Generate fluids scaled by powerRate
-            var dt = (float)GameUpdater.UpdateSecondTime;
-            foreach (var gen in _param.GenerateFluid)
-            {
-                if (gen.GenerateTime <= 0) continue;
-                var perSec = gen.Amount / Math.Max(0.0001f, gen.GenerateTime);
-                var add = perSec * powerRate * dt;
-                if (add <= 0) continue;
-
-                var fluidId = MasterHolder.FluidMaster.GetFluidId(gen.FluidGuid);
-                var stack = new FluidStack(add, fluidId);
-                _output.Tank.AddLiquid(stack, FluidContainer.Empty);
-            }
+            PumpFluidGenerationUtility.GenerateFluids(
+                _param.GenerateFluid.items,
+                powerRate,
+                _output);
         }
 
         public bool IsDestroy { get; private set; }
