@@ -210,6 +210,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4b7ddb70ca42f4b029bbb102809b22de
+    m_Address: Vanilla/Block/Deuterium_extraction_equipment
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 4c74988d44f6aa44184b9c89d585c25f
     m_Address: Vanilla/Block/bronze_sawmill
     m_ReadOnly: 0
@@ -777,6 +782,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: fa6ffc3aa92fe475ababb0509162752d
     m_Address: Vanilla/Skit/Environment/100_start_1_SpaceShip
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fbe000f72185746d0a7c722fcc35f14e
+    m_Address: Vanilla/Block/Antimatter_manufacturing_equipment
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
