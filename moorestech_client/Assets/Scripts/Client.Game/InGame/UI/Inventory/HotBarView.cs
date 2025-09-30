@@ -28,6 +28,7 @@ namespace Client.Game.InGame.UI.Inventory
         
         public IItemStack CurrentItem => _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(SelectIndex)];
         public int SelectIndex { get; private set; }
+        private float _switchHotBarDeltaTotal;
         
         private void Start()
         {
@@ -75,14 +76,39 @@ namespace Client.Game.InGame.UI.Inventory
             
             int SelectedHotBar()
             {
+                // スクロールで変化
+                _switchHotBarDeltaTotal += InputManager.UI.SwitchHotBar.ReadValue<float>() / 100f;
+                
+                if (_switchHotBarDeltaTotal > 1)
+                {
+                    var s = Mathf.FloorToInt(_switchHotBarDeltaTotal);
+                    _switchHotBarDeltaTotal -= s;
+                    var selected = SelectIndex + s;
+                    selected = (selected + hotBarItems.Count) % hotBarItems.Count;
+                    OnSelectHotBar?.Invoke(selected);
+                    return selected;
+                }
+                if (_switchHotBarDeltaTotal < -1)
+                {
+                    var s = Mathf.CeilToInt(_switchHotBarDeltaTotal);
+                    _switchHotBarDeltaTotal -= s;
+                    var selected = SelectIndex + s;
+                    selected = (selected + hotBarItems.Count) % hotBarItems.Count;
+                    OnSelectHotBar?.Invoke(selected);
+                    return selected;
+                }
+                
+                
                 //キーボード入力で選択
                 if (InputManager.UI.HotBar.ReadValue<int>() == 0) return -1;
                 
-                //キー入力で得られる値は1〜9なので-1する
-                var selected = InputManager.UI.HotBar.ReadValue<int>() - 1;
-                
-                OnSelectHotBar?.Invoke(selected);
-                return selected;
+                {
+                    //キー入力で得られる値は1〜9なので-1する
+                    var selected = InputManager.UI.HotBar.ReadValue<int>() - 1;
+                    
+                    OnSelectHotBar?.Invoke(selected);
+                    return selected;
+                }
             }
             
             
