@@ -1276,7 +1276,7 @@
     {
       "itemGuid": "4a8f0136-6a0c-48ec-b75c-b882cbdd1bda",
       "imagePath": "",
-      "name": "真​空ポンプ",
+      "name": "真空ポンプ",
       "maxStack": 100,
       "sortPriority": 1380,
       "initialUnlocked": false,
@@ -1306,7 +1306,7 @@
     {
       "itemGuid": "6fb78a16-9b4a-48ad-954d-6406bf73c765",
       "imagePath": "",
-      "name": "重水​素​抽​出​装置",
+      "name": "重水素抽出装置",
       "maxStack": 100,
       "sortPriority": 1410,
       "initialUnlocked": false,
@@ -1326,7 +1326,7 @@
     {
       "itemGuid": "29b1aefb-4546-4ce3-842f-bbb2c4ac9eab",
       "imagePath": "",
-      "name": "磁​気格​納箱",
+      "name": "磁気格納箱",
       "maxStack": 100,
       "sortPriority": 1430,
       "initialUnlocked": false,
@@ -1336,7 +1336,7 @@
     {
       "itemGuid": "aa96a24a-2e21-425b-bd0e-c7481b349123",
       "imagePath": "",
-      "name": "反物​質製​造​装置",
+      "name": "反物質製造装置",
       "maxStack": 100,
       "sortPriority": 1440,
       "initialUnlocked": false,
@@ -1366,7 +1366,7 @@
     {
       "itemGuid": "625b6026-dd76-40bf-9f87-58083f050146",
       "imagePath": "",
-      "name": "反物​質爆弾​",
+      "name": "反物質爆弾",
       "maxStack": 100,
       "sortPriority": 1470,
       "initialUnlocked": false,
