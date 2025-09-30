@@ -4147,7 +4147,8 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": {}
             },
             {
               "connectType": "Inventory",
@@ -4162,7 +4163,8 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": {}
             }
           ],
           "outputConnects": [
@@ -4179,7 +4181,8 @@
                   0,
                   0
                 ]
-              ]
+              ],
+              "connectOption": {}
             }
           ]
         },
@@ -4758,7 +4761,8 @@
                 "connectTankIndex": 0
               }
             }
-          ]
+          ],
+          "outflowConnects": []
         }
       }
     },
@@ -4965,7 +4969,8 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": {}
             },
             {
               "connectType": "Inventory",
@@ -4980,7 +4985,8 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectOption": {}
             }
           ],
           "outputConnects": []
