@@ -28,6 +28,7 @@ namespace Client.Game.InGame.Skit
             _skitManager = skitManager;
             _initialHandshakeResponse = initialHandshakeResponse;
             _backgroundSkitManager = backgroundSkitManager;
+            PlayedSkitIds.AddRange(initialHandshakeResponse.PlayedSkitIds);
             ClientContext.VanillaApi.Event.SubscribeEventResponse(CompletedChallengeEventPacket.EventTag, OnCompletedChallenge);
             ClientContext.VanillaApi.Event.SubscribeEventResponse(SkitRegisterEventPacket.EventTag, OnSkitRegister);
         }
@@ -74,6 +75,8 @@ namespace Client.Game.InGame.Skit
                 if (action.ChallengeActionType != ChallengeActionElement.ChallengeActionTypeConst.playSkit) continue;
                 
                 var param = (PlaySkitChallengeActionParam)action.ChallengeActionParam;
+                if (PlayedSkitIds.Contains(param.SkitAddressablePath)) continue;
+                
                 skitActions.Add(param);
             }
             
