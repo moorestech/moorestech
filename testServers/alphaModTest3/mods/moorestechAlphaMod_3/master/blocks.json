@@ -3370,7 +3370,7 @@
     },
     {
       "blockGuid": "0f70bc10-25d4-4906-9c79-2403e3d3626f",
-      "name": "水素​還​元​炉",
+      "name": "水素還元炉",
       "blockType": "ElectricMachine",
       "itemGuid": "d9cbebc7-6742-48bd-ad2b-2b45e4d4b435",
       "blockSize": [
@@ -3908,7 +3908,7 @@
     },
     {
       "blockGuid": "1c5c8073-4c5d-44da-bec1-cec270836537",
-      "name": "電子​部品​製​造​装置",
+      "name": "電子部品製造装置",
       "blockType": "ElectricMachine",
       "itemGuid": "1eb89d18-53d1-4d8c-86b2-3b63a9880e1b",
       "blockSize": [
@@ -4778,7 +4778,7 @@
     },
     {
       "blockGuid": "d400bb71-f72f-416c-a7d4-9559bad7d72c",
-      "name": "重水​素​抽​出​装置",
+      "name": "重水素抽出装置",
       "blockType": "ElectricMachine",
       "itemGuid": "6fb78a16-9b4a-48ad-954d-6406bf73c765",
       "blockSize": [
@@ -4871,7 +4871,7 @@
     },
     {
       "blockGuid": "1c0bceeb-a31f-4d01-8651-51fe0fd7b360",
-      "name": "反物質製造​装置",
+      "name": "反物質製造装置",
       "blockType": "ElectricMachine",
       "itemGuid": "78a0b523-a27b-44f3-8f99-12e33f425ef8",
       "blockSize": [
