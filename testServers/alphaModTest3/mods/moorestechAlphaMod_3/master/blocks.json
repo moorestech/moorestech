@@ -4932,14 +4932,14 @@
       "blockGuid": "fea729e1-e658-4b04-bff3-9e70bc0ade63",
       "name": "核融合炉",
       "blockType": "ElectricGenerator",
-      "itemGuid": "43497878-788b-40e7-987c-4064b1a2642a",
+      "itemGuid": "ed8fb788-1ea4-4643-a073-46ccb990a4b4",
       "blockSize": [
-        1,
-        1,
-        1
+        19,
+        10,
+        17
       ],
-      "blockPrefabAddressablesPath": "",
-      "blockUIAddressablesPath": "",
+      "blockPrefabAddressablesPath": "Vanilla/Block/FusionReactor",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/GeneratorBlockInventory",
       "overrideVerticalBlock": {
         "upBlockGuid": "",
         "horizontalBlockGuid": "",
@@ -4958,7 +4958,14 @@
         "fluidInventoryConnectors": {
           "inflowConnects": [],
           "outflowConnects": []
-        }
+        },
+        "fuelItems": [
+          {
+            "itemGuid": "92fe76fc-19b9-4b2d-938e-1c906b07d37d",
+            "time": 10,
+            "power": 5000
+          }
+        ]
       }
     }
   ]
