@@ -112,5 +112,11 @@ namespace Client.Network.API
             var request = new CompleteBaseCampProtocol.CompleteBaseCampProtocolMessagePack(_playerId, position);
             _packetSender.Send(request);
         }
+
+        public void CompleteResearch(Guid researchGuid)
+        {
+            var request = new CompleteResearchProtocol.RequestCompleteResearchMessagePack(_playerId, researchGuid);
+            _packetSender.Send(request);
+        }
     }
 }

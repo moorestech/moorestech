@@ -9,6 +9,7 @@ using Client.Common.Asset;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Common;
+using Client.Game.InGame.UI.Modal;
 using Client.Mod.Texture;
 using Client.Network;
 using Client.Network.API;
@@ -91,6 +92,7 @@ namespace Client.Starter
             FluidImageContainer fluidImageContainer = null;
             AsyncOperation sceneLoadTask = null;
             InitialHandshakeResponse handshakeResponse = null;
+            ModalManager modalManager = new ModalManager();
             
             //各種ロードを並列実行
             try
@@ -106,7 +108,7 @@ namespace Client.Starter
             }
             
             //staticアクセスできるコンテキストの作成
-            var clientContext = new ClientContext(blockGameObjectContainer, itemImageContainer, fluidImageContainer , playerConnectionSetting, vanillaApi);
+            var clientContext = new ClientContext(blockGameObjectContainer, itemImageContainer, fluidImageContainer , playerConnectionSetting, vanillaApi, modalManager);
             
             //シーンに遷移し、初期データを渡す
             SceneManager.sceneLoaded += MainGameSceneLoaded;

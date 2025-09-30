@@ -1,0 +1,505 @@
+{
+  "data": [
+    {
+      "researchNodeGuid": "0f97e445-1ac0-4313-b3c3-6c32b24eaaed",
+      "researchNodetName": "研究1",
+      "researchNodeDescription": "",
+      "prevResearchNodeGuid": "0f97e445-1ac0-4313-b3c3-6c32b24eaaed",
+      "clearedActions": [
+        {
+          "challengeActionType": "unlockItemRecipeView",
+          "challengeActionParam": {
+            "unlockItemGuids": [
+              "4abdae31-6e3b-42c5-a097-4cf6021751ca",
+              "5c5b7ee0-d1ea-420e-951e-2b2b49fee81b"
+            ]
+          }
+        }
+      ],
+      "graphViewSettings": {
+        "UIPosition": [
+          0,
+          0
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      },
+      "prevResearchNodeGuids": [],
+      "consumeItems": [
+        {
+          "itemGuid": "44cb69e9-c703-4393-94c4-bad4477da10f",
+          "itemCount": 30
+        }
+      ],
+      "researchNodeName": "低品質鉄の加工"
+    },
+    {
+      "researchNodeGuid": "a3d1c63b-b14c-44ba-aae9-22f7c621b72d",
+      "researchNodetName": "研究2",
+      "researchNodeDescription": "",
+      "prevResearchNodeGuid": "",
+      "clearedActions": [
+        {
+          "challengeActionType": "unlockItemRecipeView",
+          "challengeActionParam": {
+            "unlockChallengeCategoryGuids": [],
+            "unlockItemGuids": [
+              "efd714bf-150c-48ff-8257-a8e9fb70b7ee",
+              "26cbb01d-bede-4194-b0a4-d32f6c1c56e9",
+              "a9d9cdc5-ac74-4853-8d23-aafe2dd04605",
+              "792e5527-7678-40ab-8c0d-ef2f516200db",
+              "967a60e2-41a0-4866-9901-0baab7a350aa"
+            ]
+          }
+        }
+      ],
+      "graphViewSettings": {
+        "UIPosition": [
+          800,
+          800
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": "5def2be9-1bfa-4d6b-b827-8d82712bf70b"
+      },
+      "prevResearchNodeGuids": [
+        "0f97e445-1ac0-4313-b3c3-6c32b24eaaed"
+      ],
+      "consumeItems": [
+        {
+          "itemGuid": "5c5b7ee0-d1ea-420e-951e-2b2b49fee81b",
+          "itemCount": 30
+        }
+      ],
+      "researchNodeName": "鉄インゴット"
+    },
+    {
+      "researchNodeGuid": "d4e0b2bb-9f20-4e0f-bfef-26c7f9449cd0",
+      "researchNodetName": "研究3",
+      "researchNodeDescription": "",
+      "prevResearchNodeGuids": [
+        "a3d1c63b-b14c-44ba-aae9-22f7c621b72d"
+      ],
+      "clearedActions": [
+        {
+          "challengeActionType": "unlockItemRecipeView",
+          "challengeActionParam": {
+            "unlockItemGuids": [
+              "2895b52f-8285-41a8-82d2-4fbd43786a65"
+            ]
+          }
+        }
+      ],
+      "graphViewSettings": {
+        "UIPosition": [
+          800,
+          0
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      },
+      "consumeItems": [
+        {
+          "itemGuid": "5c5b7ee0-d1ea-420e-951e-2b2b49fee81b",
+          "itemCount": 30
+        }
+      ],
+      "researchNodeName": "石の粉砕機"
+    },
+    {
+      "researchNodeGuid": "db40b978-097e-4fdc-b4a1-617c62e32e24",
+      "researchNodeName": "鉄の加工",
+      "researchNodeDescription": "",
+      "consumeItems": [
+        {
+          "itemGuid": "967a60e2-41a0-4866-9901-0baab7a350aa",
+          "itemCount": 50
+        }
+      ],
+      "prevResearchNodeGuids": [
+        "d4e0b2bb-9f20-4e0f-bfef-26c7f9449cd0"
+      ],
+      "clearedActions": [
+        {
+          "challengeActionType": "unlockItemRecipeView",
+          "challengeActionParam": {
+            "unlockItemGuids": [
+              "4a8b6001-3081-4885-89b5-9300424db13f",
+              "2df8862b-dfd1-4e64-b688-952b69212902",
+              "844f3264-e055-4d41-bd54-e46570a15ba5",
+              "29d5ebb8-abf7-495c-8f0f-ca94d201ac5f"
+            ]
+          }
+        }
+      ],
+      "graphViewSettings": {
+        "UIPosition": [
+          1600,
+          0
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      }
+    },
+    {
+      "researchNodeGuid": "cb0ff934-2972-48f5-9241-c2b2d61f2bf9",
+      "researchNodeName": "蒸気機関",
+      "researchNodeDescription": "",
+      "consumeItems": [],
+      "prevResearchNodeGuids": [
+        "db40b978-097e-4fdc-b4a1-617c62e32e24"
+      ],
+      "clearedActions": [
+        {
+          "challengeActionType": "unlockItemRecipeView",
+          "challengeActionParam": {
+            "unlockItemGuids": [
+              "9afa0b21-b918-4d38-82c7-5013fab65845",
+              "83e24258-bd99-4b0d-afc7-e6174c0366f2",
+              "b62e1cf2-ab6c-4a43-b134-74e3d85e3caa",
+              "2b40caf7-bec9-45f8-81a5-a95a10c311de"
+            ]
+          }
+        }
+      ],
+      "graphViewSettings": {
+        "UIPosition": [
+          2400,
+          800
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      }
+    },
+    {
+      "researchNodeGuid": "ad802d42-b548-40d4-9e3b-bc7181174271",
+      "researchNodeName": "石灰採掘",
+      "researchNodeDescription": "",
+      "consumeItems": [
+        {
+          "itemGuid": "29d5ebb8-abf7-495c-8f0f-ca94d201ac5f",
+          "itemCount": 40
+        }
+      ],
+      "prevResearchNodeGuids": [
+        "db40b978-097e-4fdc-b4a1-617c62e32e24"
+      ],
+      "clearedActions": [
+        {
+          "challengeActionType": "unlockItemRecipeView",
+          "challengeActionParam": {
+            "unlockItemGuids": [
+              "ec21231e-7ea3-4179-8653-84a37f00716d",
+              "296417d6-7499-49aa-ac6c-f2787114b833",
+              "a3a70c5e-fa15-4e22-8a0e-4b65342cba5a"
+            ]
+          }
+        }
+      ],
+      "graphViewSettings": {
+        "UIPosition": [
+          2400,
+          0
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      }
+    },
+    {
+      "researchNodeGuid": "56f43949-6e70-40f8-a2e3-cbffac35d621",
+      "researchNodeName": "石灰加工",
+      "researchNodeDescription": "",
+      "consumeItems": [
+        {
+          "itemGuid": "a3a70c5e-fa15-4e22-8a0e-4b65342cba5a",
+          "itemCount": 40
+        }
+      ],
+      "prevResearchNodeGuids": [
+        "ad802d42-b548-40d4-9e3b-bc7181174271"
+      ],
+      "clearedActions": [
+        {
+          "challengeActionType": "unlockItemRecipeView",
+          "challengeActionParam": {
+            "unlockChallengeCategoryGuids": [],
+            "unlockItemGuids": [
+              "21869384-905a-48ba-983e-600a4182d1de",
+              "7756da68-35db-4dbb-8372-e93fc86bbfa7"
+            ]
+          }
+        }
+      ],
+      "graphViewSettings": {
+        "UIPosition": [
+          3200,
+          0
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      }
+    },
+    {
+      "researchNodeGuid": "9ae3acda-4026-44fa-953d-28d9222bf2c3",
+      "researchNodeName": "土台",
+      "researchNodeDescription": "",
+      "consumeItems": [
+        {
+          "itemGuid": "7756da68-35db-4dbb-8372-e93fc86bbfa7",
+          "itemCount": 40
+        }
+      ],
+      "prevResearchNodeGuids": [
+        "56f43949-6e70-40f8-a2e3-cbffac35d621"
+      ],
+      "clearedActions": [
+        {
+          "challengeActionType": "unlockItemRecipeView",
+          "challengeActionParam": {
+            "unlockItemGuids": [
+              "9fa494c0-c5eb-442b-8385-507b94e04d33"
+            ]
+          }
+        }
+      ],
+      "graphViewSettings": {
+        "UIPosition": [
+          4000,
+          800
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      }
+    },
+    {
+      "researchNodeGuid": "d2c20322-547b-40eb-8dd5-d603b6b70b9e",
+      "researchNodeName": "鋼鉄",
+      "researchNodeDescription": "",
+      "consumeItems": [
+        {
+          "itemGuid": "a3a70c5e-fa15-4e22-8a0e-4b65342cba5a",
+          "itemCount": 40
+        },
+        {
+          "itemGuid": "967a60e2-41a0-4866-9901-0baab7a350aa",
+          "itemCount": 40
+        }
+      ],
+      "prevResearchNodeGuids": [
+        "56f43949-6e70-40f8-a2e3-cbffac35d621"
+      ],
+      "clearedActions": [
+        {
+          "challengeActionType": "unlockItemRecipeView",
+          "challengeActionParam": {
+            "unlockItemGuids": [
+              "dbc02d8c-6f1e-4d9c-a83c-c7964d579d8a"
+            ]
+          }
+        }
+      ],
+      "graphViewSettings": {
+        "UIPosition": [
+          4800,
+          0
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      }
+    },
+    {
+      "researchNodeGuid": "d481206a-4587-4cbd-b7be-608514af68e5",
+      "researchNodeName": "鉄の粉砕機",
+      "researchNodeDescription": "",
+      "consumeItems": [
+        {
+          "itemGuid": "dbc02d8c-6f1e-4d9c-a83c-c7964d579d8a",
+          "itemCount": 40
+        },
+        {
+          "itemGuid": "967a60e2-41a0-4866-9901-0baab7a350aa",
+          "itemCount": 100
+        }
+      ],
+      "prevResearchNodeGuids": [
+        "d481206a-4587-4cbd-b7be-608514af68e5"
+      ],
+      "clearedActions": [
+        {
+          "challengeActionType": "unlockItemRecipeView",
+          "challengeActionParam": {
+            "unlockItemGuids": [
+              "3321e27b-38b7-4de0-9a20-e8a1c7fd2cc8",
+              "93b2a5cc-3cbc-4072-9770-7337c4904906"
+            ]
+          }
+        }
+      ],
+      "graphViewSettings": {
+        "UIPosition": [
+          5600,
+          0
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      }
+    },
+    {
+      "researchNodeGuid": "6d031323-4bce-44a1-addb-90cbeffe6705",
+      "researchNodeName": "鋼鉄フレーム",
+      "researchNodeDescription": "",
+      "consumeItems": [
+        {
+          "itemGuid": "dbc02d8c-6f1e-4d9c-a83c-c7964d579d8a",
+          "itemCount": 100
+        }
+      ],
+      "prevResearchNodeGuids": [
+        "d2c20322-547b-40eb-8dd5-d603b6b70b9e"
+      ],
+      "clearedActions": [
+        {
+          "challengeActionType": "unlockItemRecipeView",
+          "challengeActionParam": {
+            "unlockItemGuids": [
+              "9434e1fc-23dd-4fa4-9b1c-00daa78ae65f"
+            ]
+          }
+        }
+      ],
+      "graphViewSettings": {
+        "UIPosition": [
+          7200,
+          1600
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      }
+    },
+    {
+      "researchNodeGuid": "9c71f783-e902-43a5-b5f2-5ed4323a7d98",
+      "researchNodeName": "モーター",
+      "researchNodeDescription": "",
+      "consumeItems": [
+        {
+          "itemGuid": "dbc02d8c-6f1e-4d9c-a83c-c7964d579d8a",
+          "itemCount": 100
+        },
+        {
+          "itemGuid": "e7c8be8b-ecaf-4d40-9c3c-22f55fce73d1",
+          "itemCount": 100
+        }
+      ],
+      "prevResearchNodeGuids": [
+        "d2c20322-547b-40eb-8dd5-d603b6b70b9e"
+      ],
+      "clearedActions": [
+        {
+          "challengeActionType": "unlockItemRecipeView",
+          "challengeActionParam": {
+            "unlockItemGuids": [
+              "9993466d-1790-4008-afaf-cce42943a17f",
+              "2e7c64a5-8349-4ca1-a41b-d3658e67b1ba"
+            ]
+          }
+        }
+      ],
+      "graphViewSettings": {
+        "UIPosition": [
+          7200,
+          0
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      }
+    },
+    {
+      "researchNodeGuid": "cffb59a5-97fb-4c4e-b8fe-0eb958c8b2f1",
+      "researchNodeName": "電柱",
+      "researchNodeDescription": "",
+      "consumeItems": [
+        {
+          "itemGuid": "dbc02d8c-6f1e-4d9c-a83c-c7964d579d8a",
+          "itemCount": 100
+        },
+        {
+          "itemGuid": "e7c8be8b-ecaf-4d40-9c3c-22f55fce73d1",
+          "itemCount": 100
+        }
+      ],
+      "prevResearchNodeGuids": [
+        "9c71f783-e902-43a5-b5f2-5ed4323a7d98"
+      ],
+      "clearedActions": [
+        {
+          "challengeActionType": "unlockItemRecipeView",
+          "challengeActionParam": {
+            "unlockItemGuids": [
+              "9993466d-1790-4008-afaf-cce42943a17f",
+              "2e7c64a5-8349-4ca1-a41b-d3658e67b1ba"
+            ]
+          }
+        }
+      ],
+      "graphViewSettings": {
+        "UIPosition": [
+          8000,
+          0
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      }
+    }
+  ]
+}

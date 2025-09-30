@@ -58,7 +58,8 @@
         "Game.CraftChainer",
         "Game.UnlockState",
         "Common.Debug",
-        "Game.Fluid"
+        "Game.Fluid",
+        "Game.Research"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

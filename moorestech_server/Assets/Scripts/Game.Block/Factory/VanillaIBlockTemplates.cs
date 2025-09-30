@@ -34,6 +34,7 @@ namespace Game.Block.Factory
             BlockTypesDictionary.Add(BlockTypeConst.Shaft, new VanillaShaftTemplate());
             BlockTypesDictionary.Add(BlockTypeConst.SimpleGearGenerator, new VanillaSimpleGearGeneratorTemplate());
             BlockTypesDictionary.Add(BlockTypeConst.SteamGearGenerator, new VanillaSteamGearGeneratorTemplate());
+            BlockTypesDictionary.Add(BlockTypeConst.GearElectricGenerator, new VanillaGearElectricGeneratorTemplate());
             BlockTypesDictionary.Add(BlockTypeConst.GearMiner, new VanillaGearMinerTemplate(blockInventoryEvent));
             BlockTypesDictionary.Add(BlockTypeConst.GearMapObjectMiner, new VanillaGearMapObjectMinerTemplate());
             BlockTypesDictionary.Add(BlockTypeConst.GearMachine, new VanillaGearMachineTemplate(blockInventoryEvent));
@@ -43,9 +44,8 @@ namespace Game.Block.Factory
             BlockTypesDictionary.Add(BlockTypeConst.TrainStation, new VanillaTrainStationTemplate());
             BlockTypesDictionary.Add(BlockTypeConst.TrainCargoPlatform, new VanillaTrainCargoTemplate());
             BlockTypesDictionary.Add(BlockTypeConst.BaseCamp, new BaseCampBlockTemplate());
-            
-            // Test/extended blocks
-            BlockTypesDictionary.Add(BlockTypeConst.GearPump, new BlockTemplate.VanillaGearPumpTemplate());
+            BlockTypesDictionary.Add(BlockTypeConst.GearPump, new VanillaGearPumpTemplate());
+            BlockTypesDictionary.Add(BlockTypeConst.ElectricPump, new VanillaElectricPumpTemplate());
         }
     }
 }

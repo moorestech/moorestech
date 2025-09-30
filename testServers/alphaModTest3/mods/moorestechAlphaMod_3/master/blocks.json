@@ -1339,7 +1339,8 @@
         "horizontalBlockGuid": "529f4fba-2ad0-4d19-bc17-2b62bb3a8192",
         "downBlockGuid": "f8d85e81-e75e-498d-a9c0-f7f33e2fc115"
       },
-      "blockPrefabAddressablesPath": "Vanilla/Block/itemshooter straight"
+      "blockPrefabAddressablesPath": "Vanilla/Block/itemshooter straight",
+      "enableConveyorPlacement": true
     },
     {
       "blockSize": [
@@ -2140,20 +2141,6 @@
       "overrideVerticalBlock": {}
     },
     {
-      "blockGuid": "3a3804bb-30d8-4864-a798-ca67f0057a6c",
-      "name": "核融合炉",
-      "blockType": "Block",
-      "itemGuid": "43497878-788b-40e7-987c-4064b1a2642a",
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
-      "blockPrefabAddressablesPath": "Vanilla/Block/FusionReactor",
-      "blockUIAddressablesPath": "",
-      "blockParam": {}
-    },
-    {
       "blockGuid": "1833dd62-501a-403d-812f-334ecdc47fd0",
       "name": "直進高速ベルトコンベア",
       "blockType": "BeltConveyor",
@@ -2247,7 +2234,7 @@
           ]
         }
       },
-      "enableConveyorPlacement": true
+      "enableConveyorPlacement": false
     },
     {
       "blockGuid": "34e6a343-8b3a-4cee-80ef-7bc16a5ae6d0",
@@ -2318,7 +2305,7 @@
           ]
         }
       },
-      "enableConveyorPlacement": true
+      "enableConveyorPlacement": false
     },
     {
       "blockGuid": "24d1bb84-d44a-43e6-8c78-d886c140085f",
@@ -2389,7 +2376,7 @@
           ]
         }
       },
-      "enableConveyorPlacement": true
+      "enableConveyorPlacement": false
     },
     {
       "blockGuid": "1438c454-8951-422b-9257-e6d7f129ae32",
@@ -2638,7 +2625,7 @@
       "enableConveyorPlacement": false,
       "blockParam": {
         "teethCount": 5,
-        "requireTorque": 20,
+        "requireTorque": 30,
         "requiredRpm": 10,
         "outputItemSlotCount": 5,
         "mineSettings": [
@@ -2694,38 +2681,9 @@
         },
         "inventoryConnectors": {
           "inputConnects": [],
-          "outputConnects": []
-        }
-      }
-    },
-    {
-      "blockGuid": "7cae339a-9f03-4cf6-a9eb-98713ee04607",
-      "name": "鉄の粉砕機",
-      "blockType": "GearMachine",
-      "itemGuid": "3321e27b-38b7-4de0-9a20-e8a1c7fd2cc8",
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
-      "blockPrefabAddressablesPath": "Vanilla/Block/iron_crasher",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/GearMachineBlockInventory",
-      "overrideVerticalBlock": {
-        "upBlockGuid": "",
-        "horizontalBlockGuid": "",
-        "downBlockGuid": ""
-      },
-      "enableConveyorPlacement": false,
-      "blockParam": {
-        "inputSlotCount": 3,
-        "outputSlotCount": 3,
-        "teethCount": 10,
-        "requireTorque": 10,
-        "requiredRpm": 10,
-        "gear": {
-          "gearConnects": [
+          "outputConnects": [
             {
-              "connectType": "Gear",
+              "connectType": "Inventory",
               "offset": [
                 0,
                 0,
@@ -2733,44 +2691,131 @@
               ],
               "directions": [
                 [
-                  1,
-                  0,
-                  0
-                ],
-                [
-                  -1,
-                  0,
-                  0
-                ],
-                [
-                  0,
-                  0,
-                  1
-                ],
-                [
                   0,
                   0,
                   -1
                 ]
               ],
               "connectOption": {
-                "isReverse": false
+                "inventoryOptions": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "blockSize": [
+        3,
+        2,
+        3
+      ],
+      "itemGuid": "3321e27b-38b7-4de0-9a20-e8a1c7fd2cc8",
+      "blockPrefabAddressablesPath": "Vanilla/Block/iron_crasher",
+      "name": "鉄の粉砕機",
+      "blockGuid": "0a437406-6d31-4e62-b09f-f53bd09c03c8",
+      "blockType": "GearMachine",
+      "blockParam": {
+        "requiredRpm": 10,
+        "requireTorque": 30,
+        "teethCount": 10,
+        "outputSlotCount": 3,
+        "inputSlotCount": 3,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                1,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "connectOption": {
+                "isReverse": true,
+                "inventoryOptions": []
+              },
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ]
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                1,
+                0,
+                2
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "isReverse": true,
+                "inventoryOptions": []
               }
             }
           ]
         },
-        "inputTankCount": 0,
-        "outputTankCount": 0,
-        "innerTankCapacity": 0,
-        "inventoryConnectors": {
-          "inputConnects": [],
-          "outputConnects": []
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ]
+            }
+          ]
         },
+        "fluidContainerCapacity": 0,
+        "fluidContainerCount": 0,
+        "inputFluidSlotCount": 0,
+        "outputFluidSlotCount": 0,
         "fluidInventoryConnectors": {
           "inflowConnects": [],
           "outflowConnects": []
-        }
-      }
+        },
+        "outputTankCount": 0,
+        "inputTankCount": 0,
+        "innerTankCapacity": 0
+      },
+      "overrideVerticalBlock": {},
+      "blockUIAddressablesPath": "Vanilla/UI/Block/GearMachineBlockInventory"
     },
     {
       "blockGuid": "7d35321c-98b7-49db-8fc7-6f23854dd1c7",
@@ -3006,8 +3051,8 @@
       "enableConveyorPlacement": false,
       "blockParam": {
         "teethCount": 10,
-        "generateMaxRpm": 60,
-        "generateMaxTorque": 100,
+        "generateMaxRpm": 30,
+        "generateMaxTorque": 300,
         "timeToMax": 30,
         "timeToMaxEasing": "Linear",
         "gear": {
@@ -3174,6 +3219,433 @@
       }
     },
     {
+      "blockGuid": "ff8d2077-7ae6-4fbf-b1be-4b4844856273",
+      "name": "研究テーブル",
+      "blockType": "Block",
+      "itemGuid": "06aff80a-2edd-499c-9292-141ca365b17a",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockParam": {},
+      "blockPrefabAddressablesPath": "Vanilla/Block/BaseCamp2",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/ResearchTable/ResearchTreeUI"
+    },
+    {
+      "blockGuid": "4b6baecb-24c3-4482-95eb-f18471065181",
+      "name": "電柱",
+      "blockType": "ElectricPole",
+      "itemGuid": "f7460000-36c0-4dfa-b97b-046750df6855",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Electric_pole",
+      "blockUIAddressablesPath": "",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "poleConnectionRange": 5,
+        "machineConnectionRange": 5
+      }
+    },
+    {
+      "blockGuid": "8458ae4c-97c4-432c-9dbc-6739e8ece43a",
+      "name": "電気採掘機",
+      "blockType": "GearMiner",
+      "itemGuid": "d3f6e08d-761e-4156-abec-e32c8423f595",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Electric_miner",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MinerBlockInventory",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "teethCount": 5,
+        "requireTorque": 30,
+        "requiredRpm": 10,
+        "outputItemSlotCount": 5,
+        "mineSettings": [
+          {
+            "itemGuid": "d9a19e4f-bc3b-4b2e-93b2-d6be5a5c6f44",
+            "time": 3
+          },
+          {
+            "itemGuid": "f59ed4c5-991d-48f6-a5e0-0d707608fed0",
+            "time": 3
+          },
+          {
+            "itemGuid": "6f5a5586-1140-4593-8835-049ba8323110",
+            "time": 3
+          }
+        ],
+        "gear": {
+          "gearConnects": [
+            {
+              "connectType": "Gear",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "isReverse": false
+              }
+            }
+          ]
+        },
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "blockGuid": "0f70bc10-25d4-4906-9c79-2403e3d3626f",
+      "name": "水素還元炉",
+      "blockType": "ElectricMachine",
+      "itemGuid": "d9cbebc7-6742-48bd-ad2b-2b45e4d4b435",
+      "blockSize": [
+        3,
+        1,
+        3
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Hydrogen_reduction_furnace",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "requiredPower": 5,
+        "inputSlotCount": 3,
+        "outputSlotCount": 3,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                1,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ],
+          "outputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                1,
+                0,
+                2
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ]
+        },
+        "inputTankCount": 1,
+        "outputTankCount": 0,
+        "innerTankCapacity": 100,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        }
+      }
+    },
+    {
+      "blockGuid": "055df35d-2c45-4f8b-8887-664653b2b202",
+      "name": "真空ポンプ",
+      "blockType": "ElectricMachine",
+      "itemGuid": "78a0b523-a27b-44f3-8f99-12e33f425ef8",
+      "blockSize": [
+        3,
+        2,
+        3
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Vacuum_pump",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "requiredPower": 10,
+        "inputSlotCount": 3,
+        "outputSlotCount": 3,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                1,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ],
+          "outputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                1,
+                0,
+                2
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ]
+        },
+        "inputTankCount": 0,
+        "outputTankCount": 0,
+        "innerTankCapacity": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [
+            {
+              "connectType": "Fluid",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 10,
+                "connectTankIndex": 0
+              }
+            }
+          ],
+          "outflowConnects": []
+        }
+      }
+    },
+    {
+      "blockGuid": "93cd95b0-b1a8-45dd-b56c-62296053b878",
+      "name": "石油採掘機",
+      "blockType": "ElectricPump",
+      "itemGuid": "3e34cc08-4c08-4e7e-9efd-81c492574380",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/OilWell",
+      "blockUIAddressablesPath": "",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "itemSlotCount": 5,
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        },
+        "generateFluid": [
+          {
+            "fluidGuid": "15fdf899-d9d9-4f6b-b71f-5951045e9d19",
+            "amount": 5,
+            "generateTime": 1
+          }
+        ],
+        "innerTankCapacity": 100,
+        "requiredPower": 5,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": [
+            {
+              "connectType": "Fluid",
+              "offset": [
+                1,
+                1,
+                8
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 100,
+                "connectTankIndex": 0
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "blockGuid": "a13bd02e-f641-4f3d-81fb-afe5d9289a56",
+      "name": "タンク",
+      "blockType": "FluidPipe",
+      "itemGuid": "884a085e-d4a7-4abd-b504-f7db263f1bd6",
+      "blockSize": [
+        8,
+        8,
+        9
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/OilTank",
+      "blockUIAddressablesPath": "",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "fluidInventoryConnectors": {
+          "inflowConnects": [
+            {
+              "connectType": "Fluid",
+              "offset": [
+                2,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 100,
+                "connectTankIndex": 0
+              }
+            }
+          ],
+          "outflowConnects": [
+            {
+              "connectType": "Fluid",
+              "offset": [
+                5,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 100,
+                "connectTankIndex": 0
+              }
+            }
+          ]
+        },
+        "capacity": 1000
+      }
+    },
+    {
       "blockGuid": "e0b3ecee-3752-4e13-b6c3-f31aa8b39c46",
       "name": "2x2",
       "blockType": "Block",
@@ -3232,6 +3704,1326 @@
         "downBlockGuid": ""
       },
       "enableConveyorPlacement": false
+    },
+    {
+      "blockGuid": "e82b0491-8436-4b96-9187-8f55345e8a7c",
+      "name": "蒸留塔",
+      "blockType": "ElectricMachine",
+      "itemGuid": "cb996e54-eb0a-4f82-ab49-c3e6aa51be65",
+      "blockSize": [
+        7,
+        16,
+        11
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/OilRefinery",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "requiredPower": 100,
+        "inputSlotCount": 0,
+        "outputSlotCount": 0,
+        "inputTankCount": 1,
+        "outputTankCount": 3,
+        "innerTankCapacity": 100,
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        },
+        "fluidInventoryConnectors": {
+          "inflowConnects": [
+            {
+              "connectType": "Fluid",
+              "offset": [
+                3,
+                1,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 100,
+                "connectTankIndex": 0
+              }
+            }
+          ],
+          "outflowConnects": [
+            {
+              "connectType": "Fluid",
+              "offset": [
+                1,
+                1,
+                10
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 100,
+                "connectTankIndex": 0
+              }
+            },
+            {
+              "connectType": "Fluid",
+              "offset": [
+                3,
+                1,
+                10
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "connectTankIndex": 1,
+                "flowCapacity": 100
+              }
+            },
+            {
+              "connectType": "Fluid",
+              "offset": [
+                5,
+                1,
+                10
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 100,
+                "connectTankIndex": 2
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "blockGuid": "97442edb-57c3-4163-8ca8-e1fa9863ddf0",
+      "name": "化学プラント",
+      "blockType": "ElectricMachine",
+      "itemGuid": "c7f4e03c-cf17-4e68-8e11-8ef1f49a0800",
+      "blockSize": [
+        7,
+        16,
+        11
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Chemical Plants",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "requiredPower": 100,
+        "inputSlotCount": 0,
+        "outputSlotCount": 3,
+        "inputTankCount": 1,
+        "outputTankCount": 3,
+        "innerTankCapacity": 100,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [
+            {
+              "connectType": "Fluid",
+              "offset": [
+                3,
+                1,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 100,
+                "connectTankIndex": 0
+              }
+            }
+          ],
+          "outflowConnects": []
+        },
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                3,
+                0,
+                10
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "blockGuid": "1c5c8073-4c5d-44da-bec1-cec270836537",
+      "name": "電子部品製造装置",
+      "blockType": "ElectricMachine",
+      "itemGuid": "1eb89d18-53d1-4d8c-86b2-3b63a9880e1b",
+      "blockSize": [
+        7,
+        3,
+        6
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Electronic_component_manufacturing_equipment",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "requiredPower": 50,
+        "inputSlotCount": 3,
+        "outputSlotCount": 3,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                1,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            },
+            {
+              "connectType": "Inventory",
+              "offset": [
+                3,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            },
+            {
+              "connectType": "Inventory",
+              "offset": [
+                5,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ],
+          "outputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                3,
+                0,
+                5
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ]
+        },
+        "inputTankCount": 0,
+        "outputTankCount": 0,
+        "innerTankCapacity": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        }
+      }
+    },
+    {
+      "blockGuid": "8a076155-a863-40b2-a65e-d6584ec2e395",
+      "name": "アーク炉",
+      "blockType": "ElectricMachine",
+      "itemGuid": "d30f78dd-536d-4d23-a09e-30f9770ca096",
+      "blockSize": [
+        5,
+        3,
+        6
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Arc_furnace",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "requiredPower": 100,
+        "inputSlotCount": 3,
+        "outputSlotCount": 3,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                1,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            },
+            {
+              "connectType": "Inventory",
+              "offset": [
+                3,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            },
+            {
+              "connectType": "Inventory",
+              "offset": [
+                5,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ],
+          "outputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                3,
+                0,
+                5
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ]
+        },
+        "inputTankCount": 0,
+        "outputTankCount": 0,
+        "innerTankCapacity": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        }
+      }
+    },
+    {
+      "blockGuid": "0bfa5f36-d31f-4b6c-bcd5-fc8720522292",
+      "name": "半導体製造装置",
+      "blockType": "ElectricMachine",
+      "itemGuid": "53077e0e-77b2-4028-8fec-fc7190ef720f",
+      "blockSize": [
+        4,
+        4,
+        4
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Semiconductor_Manufacturing_Equipment",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "requiredPower": 20,
+        "inputSlotCount": 3,
+        "outputSlotCount": 3,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                1,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {}
+            },
+            {
+              "connectType": "Inventory",
+              "offset": [
+                3,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ],
+          "outputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                3,
+                0,
+                3
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ]
+              ],
+              "connectOption": {}
+            }
+          ]
+        },
+        "inputTankCount": 0,
+        "outputTankCount": 0,
+        "innerTankCapacity": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        }
+      }
+    },
+    {
+      "blockGuid": "1b00c5dd-ebb3-451c-8ad4-4b5ab0f344c1",
+      "name": "チェイナーコンベア",
+      "blockType": "CraftChainerTransporter",
+      "itemGuid": "22aee05f-f45b-48e7-929a-aa642a73e794",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Fast_BeltConveyor_Cross",
+      "blockUIAddressablesPath": "",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "6342aad1-763e-4422-83ad-62a20f7930e6",
+        "horizontalBlockGuid": "1b00c5dd-ebb3-451c-8ad4-4b5ab0f344c1",
+        "downBlockGuid": "0f9793e7-fae6-4460-9380-8e77813a30d4"
+      },
+      "enableConveyorPlacement": true,
+      "blockParam": {
+        "transporterConveyorItemCount": 1,
+        "timeOfItemEnterToExit": 1,
+        "slopeType": "",
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ],
+          "outputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "blockGuid": "6342aad1-763e-4422-83ad-62a20f7930e6",
+      "name": "チェイナー上りコンベア",
+      "blockType": "CraftChainerTransporter",
+      "itemGuid": "ef8f0fae-2e88-4e91-9386-a70f3a572cb7",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Chainer_Fast_BeltConveyor_Up",
+      "blockUIAddressablesPath": "",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "6342aad1-763e-4422-83ad-62a20f7930e6",
+        "horizontalBlockGuid": "1b00c5dd-ebb3-451c-8ad4-4b5ab0f344c1",
+        "downBlockGuid": "0f9793e7-fae6-4460-9380-8e77813a30d4"
+      },
+      "blockParam": {
+        "slopeType": "",
+        "timeOfItemEnterToExit": 1,
+        "beltConveyorItemCount": 1,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ],
+          "outputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  1,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ]
+        },
+        "itemSlotCount": 5,
+        "transporterConveyorItemCount": 1
+      },
+      "enableConveyorPlacement": true
+    },
+    {
+      "blockGuid": "0f9793e7-fae6-4460-9380-8e77813a30d4",
+      "name": "チェイナー下りコンベア",
+      "blockType": "CraftChainerTransporter",
+      "itemGuid": "829fa968-9e21-4a53-af5c-5e41595ef0d9",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Chainer_Fast_BeltConveyor_Down",
+      "blockUIAddressablesPath": "",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "6342aad1-763e-4422-83ad-62a20f7930e6",
+        "horizontalBlockGuid": "1b00c5dd-ebb3-451c-8ad4-4b5ab0f344c1",
+        "downBlockGuid": "0f9793e7-fae6-4460-9380-8e77813a30d4"
+      },
+      "blockParam": {
+        "beltConveyorItemCount": 6,
+        "timeOfItemEnterToExit": 1,
+        "slopeType": "",
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  1,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ],
+          "outputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ]
+        },
+        "transporterConveyorItemCount": 1
+      },
+      "enableConveyorPlacement": true
+    },
+    {
+      "blockGuid": "9afbd9fa-320d-4b4f-98c8-05d8362a62de",
+      "name": "チェイナー供給チェスト",
+      "blockType": "CraftChainerProviderChest",
+      "itemGuid": "c29398db-5f77-41be-b536-51dc916d56e2",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Old/CraftChainerProviderChest",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/ChestBlockInventory",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "itemSlotCount": 5,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ],
+          "outputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "blockGuid": "397411e4-4d55-421a-b812-be8e98a88829",
+      "name": "チェイナークラフター",
+      "blockType": "CraftChainerCrafter",
+      "itemGuid": "513bac94-7339-45b7-93e6-5d4437bd6ad3",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Old/CraftChainerCrafter",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/CraftChainerCrafterInventory",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "itemSlotCount": 5,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ],
+          "outputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "blockGuid": "d891269a-7e5b-4927-99f8-f791ec7518a7",
+      "name": "チェイナーメインコンピュータ",
+      "blockType": "CraftChainerMainComputer",
+      "itemGuid": "20d09467-1ae7-4daa-a762-44392ba370f0",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Old/CraftChainerMainComputer",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/CraftChainerMainComputerInventory",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "itemSlotCount": 5,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ],
+          "outputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "blockGuid": "7d3399d0-2daa-4ef8-8e0b-39482f0c0f27",
+      "name": "ガソリンエンジン発電機",
+      "blockType": "ElectricGenerator",
+      "itemGuid": "bbc4a5a0-a1f2-4029-8a20-c9343e90389a",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Engine_Generator",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/GeneratorBlockInventory",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "fuelItemSlotCount": 0,
+        "isInfinityPower": false,
+        "infinityPower": 0,
+        "fuelFluidTankCapacity": 100,
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        },
+        "fuelFluids": [
+          {
+            "fluidGuid": "24da4332-f347-401e-93e6-6e8a1ecb6827",
+            "amount": 10,
+            "time": 3,
+            "power": 100
+          }
+        ],
+        "fluidInventoryConnectors": {
+          "inflowConnects": [
+            {
+              "connectType": "Fluid",
+              "offset": [
+                3,
+                1,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 100,
+                "connectTankIndex": 0
+              }
+            }
+          ],
+          "outflowConnects": []
+        }
+      }
+    },
+    {
+      "blockGuid": "d400bb71-f72f-416c-a7d4-9559bad7d72c",
+      "name": "重水素抽出装置",
+      "blockType": "ElectricMachine",
+      "itemGuid": "6fb78a16-9b4a-48ad-954d-6406bf73c765",
+      "blockSize": [
+        3,
+        2,
+        3
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Deuterium_extraction_equipment",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "requiredPower": 100,
+        "inputSlotCount": 3,
+        "outputSlotCount": 3,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                2,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ],
+          "outputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                1,
+                0,
+                2
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ]
+        },
+        "inputTankCount": 1,
+        "outputTankCount": 0,
+        "innerTankCapacity": 100,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [
+            {
+              "connectType": "Fluid",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 10,
+                "connectTankIndex": 0
+              }
+            }
+          ],
+          "outflowConnects": []
+        }
+      }
+    },
+    {
+      "blockGuid": "1c0bceeb-a31f-4d01-8651-51fe0fd7b360",
+      "name": "反物質製造装置",
+      "blockType": "ElectricMachine",
+      "itemGuid": "aa96a24a-2e21-425b-bd0e-c7481b349123",
+      "blockSize": [
+        3,
+        4,
+        3
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Antimatter_manufacturing_equipment",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "requiredPower": 1000,
+        "inputSlotCount": 3,
+        "outputSlotCount": 3,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                1,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ],
+          "outputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                1,
+                0,
+                2
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ]
+        },
+        "inputTankCount": 0,
+        "outputTankCount": 0,
+        "innerTankCapacity": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        }
+      }
+    },
+    {
+      "blockGuid": "fea729e1-e658-4b04-bff3-9e70bc0ade63",
+      "name": "核融合炉",
+      "blockType": "ElectricGenerator",
+      "itemGuid": "ed8fb788-1ea4-4643-a073-46ccb990a4b4",
+      "blockSize": [
+        19,
+        10,
+        17
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/FusionReactor",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/GeneratorBlockInventory",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "fuelItemSlotCount": 3,
+        "isInfinityPower": false,
+        "infinityPower": 0,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                9,
+                1,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {}
+            },
+            {
+              "connectType": "Inventory",
+              "offset": [
+                9,
+                1,
+                16
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {}
+            }
+          ],
+          "outputConnects": []
+        },
+        "fuelFluidTankCapacity": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        },
+        "fuelItems": [
+          {
+            "itemGuid": "92fe76fc-19b9-4b2d-938e-1c906b07d37d",
+            "time": 10,
+            "power": 5000
+          }
+        ]
+      }
+    },
+    {
+      "blockGuid": "aa312f32-35d4-4dae-9e3e-a292e1a70a70",
+      "name": "ロケット",
+      "blockType": "Block",
+      "itemGuid": "76f8a502-96c4-4bd9-bdb3-d5b9f7c0d534",
+      "blockSize": [
+        10,
+        21,
+        10
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Rocket",
+      "blockUIAddressablesPath": "",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {}
     }
   ]
 }

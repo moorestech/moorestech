@@ -1,8 +1,11 @@
-using System.Linq;
-using Game.Block.Interface.Extension;
 using System;
+using System.Linq;
+using System.Reflection;
+using Game.Block.Blocks.Pump;
+using Game.Block.Interface.Extension;
 using Core.Master;
 using Core.Update;
+using Game.Block.Blocks.Fluid;
 using Game.Block.Interface;
 using Game.Context;
 using Game.Fluid;
@@ -20,13 +23,11 @@ namespace Tests.CombinedTest.Core
     {
         // テストで使用する流体（Water）のFluidId
         private static readonly Guid DefaultFluidGuid = new("00000000-0000-0000-1234-000000000001");
-        private static FluidId DefaultFluidId => MasterHolder.FluidMaster.GetFluidId(DefaultFluidGuid);
-
+        
         [Test]
         public void GenerateFluid_ScalesWithGearPower()
         {
-            // Arrange: DI起動 + BlockMasterからGearPumpを特定
-            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
             var world = ServerContext.WorldBlockDatastore;
 
@@ -40,7 +41,7 @@ namespace Tests.CombinedTest.Core
 
             // 期待生成レート（full power時の1秒あたり）
             var pumpParam = (GearPumpBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearPump).BlockParam;
-            var fullRatePerSec = pumpParam.GenerateFluid.Sum(g => g.Amount / Math.Max(0.0001f, g.GenerateTime));
+            var fullRatePerSec = pumpParam.GenerateFluid.items.Sum(g => g.Amount / Math.Max(0.0001f, g.GenerateTime));
 
             // テストウィンドウ
             const float testSeconds = 4f;
@@ -88,10 +89,45 @@ namespace Tests.CombinedTest.Core
         }
 
         [Test]
+        public void SaveLoad_PreservesInnerTankState()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            // ブロックの作成
+            // Create block
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearPump, Vector3Int.zero, BlockDirection.North, out var originalPump);
+            var outputComponent = originalPump.GetComponent<PumpFluidOutputComponent>();
+            
+            // ブロックに液体を追加
+            // Add fluid to the block
+            var pumpParam = (GearPumpBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearPump).BlockParam;
+            var fluidGuid = pumpParam.GenerateFluid.items[0].FluidGuid;
+            var fluidId = MasterHolder.FluidMaster.GetFluidId(fluidGuid);
+            var targetAmount = Math.Min(pumpParam.InnerTankCapacity * 0.5f, pumpParam.InnerTankCapacity);
+            outputComponent.EnqueueGeneratedFluid(new FluidStack(targetAmount, fluidId));
+
+            // ブロック内の液体量を保存
+            // Save the amount of fluid in the block
+            var originalTank = GetPumpTankState(outputComponent);
+            Assert.Greater(originalTank.Amount, 0d, "Original pump should hold fluid before save.");
+
+            // ブロックをロードする
+            // Load the block
+            var saveState = originalPump.GetSaveState();
+            var guid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearPump).BlockGuid;
+            var loadedPump = ServerContext.BlockFactory.Load(guid, new BlockInstanceId(1), saveState, originalPump.BlockPositionInfo);
+            var loadedTank = GetPumpTankState(loadedPump.GetComponent<PumpFluidOutputComponent>());
+
+            // ロード後も液体量が維持されていることを確認
+            // Verify that the amount of fluid is maintained after loading
+            Assert.AreEqual(originalTank.FluidId, loadedTank.FluidId, "Loaded pump should retain fluid type.");
+            Assert.AreEqual(originalTank.Amount, loadedTank.Amount, "Loaded pump should retain fluid amount.");
+        }
+
+        [Test]
         public void GenerateFluid_WithAdjacentInfinityTorqueGenerator()
         {
-            // Arrange: DI起動
-            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
             var world = ServerContext.WorldBlockDatastore;
 
@@ -119,17 +155,19 @@ namespace Tests.CombinedTest.Core
             
         }
 
-        #region Internal
-
         private static double GetPipeAmount(IBlock pipeBlock)
         {
-            var comp = pipeBlock.GetComponent<global::Game.Block.Blocks.Fluid.FluidPipeComponent>();
-            var field = typeof(global::Game.Block.Blocks.Fluid.FluidPipeComponent)
-                .GetField("_fluidContainer", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var comp = pipeBlock.GetComponent<FluidPipeComponent>();
+            var field = typeof(FluidPipeComponent).GetField("_fluidContainer", BindingFlags.NonPublic | BindingFlags.Instance);
             var container = (FluidContainer)field.GetValue(comp);
             return container.Amount;
         }
 
-        #endregion
+        private static (double Amount, FluidId FluidId) GetPumpTankState(PumpFluidOutputComponent outputComponent)
+        {
+            var tankField = typeof(PumpFluidOutputComponent).GetField("_tank", BindingFlags.NonPublic | BindingFlags.Instance);
+            var container = (FluidContainer)tankField.GetValue(outputComponent);
+            return (container.Amount, container.FluidId);
+        }
     }
 }

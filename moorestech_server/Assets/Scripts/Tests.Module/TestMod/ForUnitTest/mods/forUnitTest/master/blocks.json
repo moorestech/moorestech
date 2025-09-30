@@ -314,6 +314,54 @@
             "itemGuid": "00000000-0000-0000-1234-000000000002"
           }
         ],
+        "fuelFluidTankCapacity": 100,
+        "fuelFluids": [
+          {
+            "fluidGuid": "00000000-0000-0000-1234-000000000003",
+            "amount": 10,
+            "time": 3,
+            "power": 150
+          }
+        ],
+        "fluidInventoryConnectors": {
+          "inflowConnects": [
+            {
+              "connectType": "Fluid",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 100,
+                "connectTankIndex": 0
+              }
+            }
+          ],
+          "outflowConnects": []
+        },
         "inventoryConnectors": {
           "outputConnects": [],
           "inputConnects": []
@@ -608,6 +656,12 @@
               }
             }
           ]
+        },
+        "fuelFluidTankCapacity": 0,
+        "fuelFluids": [],
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
         }
       },
       "itemGuid": "00000000-0000-0000-1234-000000000008",
@@ -697,6 +751,12 @@
               }
             }
           ]
+        },
+        "fuelFluidTankCapacity": 0,
+        "fuelFluids": [],
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
         }
       },
       "overrideVerticalBlock": {}
@@ -773,7 +833,13 @@
           ],
           "inputConnects": []
         },
-        "fuelItems": []
+        "fuelItems": [],
+        "fuelFluidTankCapacity": 0,
+        "fuelFluids": [],
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        }
       },
       "overrideVerticalBlock": {}
     },
@@ -859,7 +925,13 @@
             }
           ]
         },
-        "fuelItems": []
+        "fuelItems": [],
+        "fuelFluidTankCapacity": 0,
+        "fuelFluids": [],
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        }
       },
       "overrideVerticalBlock": {}
     },
@@ -3977,6 +4049,132 @@
           ]
         }
       }
+    },
+    {
+      "blockGuid": "3829088a-5a78-43d7-8c3c-d3e4bb91b90a",
+      "name": "ElectricPump",
+      "blockType": "ElectricPump",
+      "itemGuid": "0393ee28-cec8-4a37-94bd-15d79e027721",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "",
+      "blockUIAddressablesPath": "",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {
+        "generateFluid": [
+          {
+            "fluidGuid": "00000000-0000-0000-1234-000000000001",
+            "amount": 10,
+            "generateTime": 4
+          }
+        ],
+        "innerTankCapacity": 100,
+        "requiredPower": 50,
+        "fluidInventoryConnectors": {
+          "outflowConnects": [
+            {
+              "connectType": "Fluid",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 100,
+                "connectTankIndex": 0
+              }
+            }
+          ],
+          "inflowConnects": []
+        }
+      }
+    },
+    {
+      "blockGuid": "00000000-0000-0000-0000-000000000028",
+      "itemGuid": "11110000-0000-0000-0000-000000000000",
+      "name": "TestGearElectricGenerator",
+      "blockType": "GearElectricGenerator",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "",
+      "blockUIAddressablesPath": "",
+      "blockParam": {
+        "teethCount": 10,
+        "requiredRpm": 120,
+        "requiredTorque": 100,
+        "maxGeneratedPower": 100,
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ]
+            }
+          ]
+        }
+      },
+      "overrideVerticalBlock": {}
     }
   ]
 }

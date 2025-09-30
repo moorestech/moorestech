@@ -11,6 +11,8 @@ namespace Client.Game.InGame.UI.Inventory.Common
 {
     public class CommonSlotView : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerEnterHandler, IPointerClickHandler, IPointerExitHandler, IPointerMoveHandler
     {
+        [SerializeField] private RectTransform rootRectTransform;
+        
         [SerializeField] private Image itemImage;
         
         [SerializeField] private GameObject normalFrame;
@@ -83,6 +85,7 @@ namespace Client.Game.InGame.UI.Inventory.Common
             if (slotOption.ItemSlotType != null) SetItemSlotType(slotOption.ItemSlotType.Value);
             if (slotOption.IsShowToolTip != null) uGuiTooltipTarget.DisplayEnable(slotOption.IsShowToolTip.Value);
             if (slotOption.CountTextFontSize != null) countText.fontSize = slotOption.CountTextFontSize.Value; 
+            if (slotOption.SizeDelta != null) rootRectTransform.sizeDelta = slotOption.SizeDelta.Value;
             
             #region Internal
             

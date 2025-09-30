@@ -8,11 +8,10 @@ using UnityEngine;
 
 namespace Client.Game.InGame.UI.Challenge
 {
-    public class ChallengeTreeViewElement : MonoBehaviour
+    public class ChallengeTreeViewElement : MonoBehaviour, ITreeViewElement
     {
-        public Vector2 AnchoredPosition => rectTransform.anchoredPosition;
-        public ChallengeMasterElement ChallengeMasterElement { get; private set; }
         public RectTransform RectTransform => rectTransform;
+        public ChallengeMasterElement ChallengeMasterElement { get; private set; }
         
         [SerializeField] private RectTransform rectTransform;
         [SerializeField] private RectTransform connectLinePrefab;
@@ -70,8 +69,8 @@ namespace Client.Game.InGame.UI.Challenge
             void CreateLine(ChallengeTreeViewElement prevChallengeElement, Transform parent)
             {
                 // 線の長さと角度を計算して適用
-                var currentPosition = AnchoredPosition;
-                var targetPosition = prevChallengeElement.AnchoredPosition;
+                var currentPosition = RectTransform.anchoredPosition;
+                var targetPosition = prevChallengeElement.RectTransform.anchoredPosition;
                 
                 // 接続線を取得または作成
                 var connectLine = Instantiate(connectLinePrefab, transform);

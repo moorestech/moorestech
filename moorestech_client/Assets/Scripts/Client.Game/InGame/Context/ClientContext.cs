@@ -1,3 +1,4 @@
+using Client.Game.InGame.UI.Modal;
 using Client.Network.API;
 using Client.Network.Settings;
 
@@ -7,16 +8,17 @@ namespace Client.Game.InGame.Context
     {
         public static BlockGameObjectContainer BlockGameObjectContainer { get; private set; }
         public static ItemImageContainer ItemImageContainer { get; private set; }
-        public static FluidImageContainer FluidImageContiner { get; private set; }
+        public static FluidImageContainer FluidImageContainer { get; private set; }
         public static PlayerConnectionSetting PlayerConnectionSetting { get; private set; }
         public static VanillaApi VanillaApi { get; private set; }
+        public static ModalManager ModalManager { get; private set; }
         public static DIContainer DIContainer { get; private set; }
         
-        public ClientContext(BlockGameObjectContainer blockGameObjectContainer, ItemImageContainer itemImageContainer, FluidImageContainer fluidImageContainer, PlayerConnectionSetting playerConnectionSetting, VanillaApi vanillaApi)
+        public ClientContext(BlockGameObjectContainer blockGameObjectContainer, ItemImageContainer itemImageContainer, FluidImageContainer fluidImageContainer, PlayerConnectionSetting playerConnectionSetting, VanillaApi vanillaApi, ModalManager modalManager)
         {
             BlockGameObjectContainer = blockGameObjectContainer;
             ItemImageContainer = itemImageContainer;
-            FluidImageContiner = fluidImageContainer;
+            FluidImageContainer = fluidImageContainer;
             PlayerConnectionSetting = playerConnectionSetting;
             VanillaApi = vanillaApi;
         }

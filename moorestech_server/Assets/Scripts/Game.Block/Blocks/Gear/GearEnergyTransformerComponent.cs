@@ -26,12 +26,12 @@ namespace Game.Block.Blocks.Gear
         
         private readonly IBlockConnectorComponent<IGearEnergyTransformer> _connectorComponent;
         
-        private readonly Torque _requiredTorque;
+        protected readonly Torque RequiredTorque;
         private readonly SimpleGearService _simpleGearService;
         
         public GearEnergyTransformer(Torque requiredTorque, BlockInstanceId blockInstanceId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent)
         {
-            _requiredTorque = requiredTorque;
+            RequiredTorque = requiredTorque;
             BlockInstanceId = blockInstanceId;
             _connectorComponent = connectorComponent;
             _simpleGearService = new SimpleGearService(blockInstanceId);
@@ -46,7 +46,7 @@ namespace Game.Block.Blocks.Gear
         
         public Torque GetRequiredTorque(RPM rpm, bool isClockwise)
         {
-            return _requiredTorque;
+            return RequiredTorque;
         }
         
         public void Rocked()

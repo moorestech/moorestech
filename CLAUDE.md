@@ -1,31 +1,3 @@
-## 【MUST GLOBAL】Gemini活用（プロジェクトのCLAUDE.mdより優先）
-
-### 三位一体の開発原則
-ユーザーの**意思決定**、Claudeの**分析と実行**、Geminiの**検証と助言**を組み合わせ、開発の質と速度を最大化する：
-- **ユーザー**：プロジェクトの目的・要件・最終ゴールを定義し、最終的な意思決定を行う**意思決定者**
-  - 反面、具体的なコーディングや詳細な計画を立てる力、タスク管理能力ははありません。
-- **Claude**：高度な計画力・高品質な実装・リファクタリング・ファイル操作・タスク管理を担う**実行者**
-  - 指示に対して忠実に、順序立てて実行する能力はありますが、意志がなく、思い込みは勘違いも多く、思考力は少し劣ります。
-- **Gemini**：深いコード理解・Web検索 (Google検索) による最新情報へのアクセス・多角的な視点からの助言・技術的検証を行う**助言者**
-  - プロジェクトのコードと、インターネット上の膨大な情報を整理し、的確な助言を与えてくれますが、実行力はありません。
-
-### 実践ガイド
-- **ユーザーの要求を受けたら即座に`gemini -p <質問内容>`で壁打ち**を必ず実施
-- Geminiの意見を鵜呑みにせず、1意見として判断。聞き方を変えて多角的な意見を抽出
-- Claude Code内蔵のWebSearchツールは使用しない
-- Geminiがエラーの場合は、聞き方を工夫してリトライ：
-  - ファイル名や実行コマンドを渡す（Geminiがコマンドを実行可能）
-  - 複数回に分割して聞く
-
-### 主要な活用場面
-1. **実現不可能な依頼**: Claude Codeでは実現できない要求への対処 (例: `今日の天気は？`)
-2. **前提確認**: ユーザー、Claude自身に思い込みや勘違い、過信がないかどうか逐一確認 (例: `この前提は正しいか？`）
-3. **技術調査**: 最新情報・エラー解決・ドキュメント検索・調査方法の確認（例: `Rails 7.2の新機能を調べて`）
-4. **設計検証**: アーキテクチャ・実装方針の妥当性確認（例: `この設計パターンは適切か？`）
-5. **コードレビュー**: 品質・保守性・パフォーマンスの評価（例: `このコードの改善点は？`）
-6. **計画立案**: タスクの実行計画レビュー・改善提案（例: `この実装計画の問題点は？`）
-7. **技術選定**: ライブラリ・手法の比較検討 （例: `このライブラリは他と比べてどうか？`）
-
 # 気をつけること
 XY問題に気をつけてください、目先の問題にとらわれず、根本的な解決を常に行ってください
 
@@ -89,43 +61,147 @@ Reflect on 5-7 different possible sources of the problem, distill those down to 
 # ドキュメントの更新
 *このドキュメントは継続的に更新されます。新しい決定事項や実装パターンが確立された場合は、このファイルに反映してください。*
 
+# マスターデータシステムについて
+このゲームのすべてのマスターデータ（ブロック、アイテム、液体、レシピ、チャレンジ、研究等）は、以下の一貫した仕組みで管理されています。
 
-# コンパイルエラー確認時の注意事項
-コンパイルエラーを確認する際は、編集したコードのパスによって適切に判断してください：
-- `moorestech_server/`配下のコードを編集した場合：サーバー側のMCPツールを使用してコンパイルとテストを実行
-- `moorestech_client/`配下のコードを編集した場合：クライアント側のMCPツールでコンパイルエラーの確認のみ（テストは不要）
+## 概要
+マスターデータシステムは次の4段階のプロセスで動作します：
+1. **YAMLでスキーマ定義** - データ構造とプロパティを定義
+2. **SourceGeneratorで自動生成** - C#のデータクラスとローダーを生成
+3. **JSONで実データ作成** - 実際のゲームデータを記述
+4. **実行時にロード** - MasterHolderで一元管理してゲーム内で利用
 
-**重要：ユーザーからコンパイルエラーが出ている旨を聞いたら、必ずMCPツールでコンパイルエラーを確認してください。**
+## システムの主要構成
 
-# サーバー側の開発
-moorestech_server配下の開発はTDDで行っています。server側のコードを変更する際は、MCPツールを使用してコンパイルとテストを実行してください：
-- `mcp__moorestech_server__RefreshAssets`: アセットをリフレッシュしてコンパイルを実行
-- `mcp__moorestech_server__GetCompileLogs`: コンパイルエラーを確認
-- `mcp__moorestech_server__RunEditModeTests`: テストを実行（必要に応じてregexでフィルタリング）
+### スキーマ定義 (VanillaSchema/)
+- `blocks.yml`, `items.yml`, `fluids.yml` など各種YAMLファイル
+- データ構造、型、デフォルト値、外部キー参照などを定義
+- 詳細な仕様は `moorestech_server/Assets/yaml仕様書v1.md` を参照
 
-## MCPテスト実行時の重要事項
-**テストを実行する際は、必ずgroupNamesパラメータと正規表現を活用して、実行するテストを適切に絞り込んでください。**
+### 自動生成される名前空間
+- **Mooresmaster.Model.*Module** - SourceGeneratorによって自動生成
+  - `Mooresmaster.Model.BlocksModule` - ブロック関連のクラス
+  - `Mooresmaster.Model.ItemsModule` - アイテム関連のクラス
+  - `Mooresmaster.Model.FluidsModule` - 液体関連のクラス
+  - その他、各マスターデータに対応するモジュール
 
-例：
-- 特定のnamespaceのテストのみ実行: `groupNames: ["^MyNamespace\\."]`
-- 特定のクラスのテストのみ実行: `groupNames: ["^MyNamespace\\.MyTestClass$"]`
-- 特定の機能に関連するテストのみ実行: `groupNames: ["^.*\\.Inventory\\."]`
+### マスターデータ管理クラス
+- **MasterHolder** (`Core.Master.MasterHolder`)
+  - すべてのマスターデータを静的プロパティで保持
+  - `ItemMaster`, `BlockMaster`, `FluidMaster` など各種Masterへのアクセスポイント
+  - `Load(MasterJsonFileContainer)` メソッドでJSONからデータをロード
 
-これにより、関連するテストのみを効率的に実行でき、開発サイクルを高速化できます。全テストを実行すると時間がかかるため、変更に関連するテストに限定することが重要です。
+- **個別のMasterクラス**
+  - `ItemMaster`, `BlockMaster`, `FluidMaster` など
+  - 各種マスターデータのID検索、データ取得機能を提供
 
-# クライアント側の開発
-moorestech_client配下の開発について
+## データフロー
+```
+VanillaSchema/*.yml (スキーマ定義)
+    ↓ SourceGenerator (ビルド時に自動生成)
+Mooresmaster.Model.*Module (C#クラス)
+    ↓ 実行時
+mods/*/master/*.json (JSONファイル)
+    ↓ MasterJsonFileContainer
+MasterHolder.Load()
+    ↓
+ゲーム内で利用 (MasterHolder.ItemMaster等でアクセス)
+```
+
+## 開発時の重要事項
+
+### 絶対に守るべきルール
+1. **手動でのクラス作成禁止**: `Mooresmaster.Model.*` 名前空間のクラスは絶対に手動で作成しない
+2. **BlockParamなどは自動生成**: ブロックパラメータ等もSourceGeneratorが生成するため手動実装禁止
+
+### スキーマを変更する場合
+1. `VanillaSchema/*.yml` の該当ファイルを編集
+2. プロジェクトをリビルドして自動生成を実行
+3. 生成されたクラスを確認
+
+### 新しいマスターデータを追加する場合
+1. `VanillaSchema/` に新しいYAMLファイルを作成
+2. `Core.Master.MasterHolder` にプロパティを追加
+3. 対応するMasterクラス（例：`NewDataMaster`）を実装
+4. `MasterHolder.Load()` メソッドに読み込み処理を追加
+
+## テスト時の注意事項
+ユニットテストでマスターデータが必要な場合は、以下のテスト用マスターデータを使用してください：
+
+### テスト用マスターデータの場所
+- **パス**: `moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/`
+- **含まれるファイル**:
+  - `items.json` - テスト用アイテムデータ
+  - `blocks.json` - テスト用ブロックデータ
+  - `fluids.json` - テスト用液体データ
+  - `craftRecipes.json` - テスト用レシピデータ
+  - その他、各種マスターデータのテスト用JSON
+
+### テスト用ブロックIDの定義
+- `ForUnitTestModBlockId.cs` でテスト用のブロックIDを定義
+- テストコードではこれらの定義済みIDを使用すること
+
+### テスト用マスターデータの更新
+新しいテストケースでマスターデータが必要な場合：
+1. 上記のテスト用JSONファイルを更新
+2. 必要に応じて `ForUnitTestModBlockId.cs` に新しいIDを追加
+3. 既存のテストに影響しないよう注意して編集
+
+
+# テストとコンパイルの実行方針
+
+## 基本方針
+このプロジェクトでは、**MCPツールを優先的に使用**し、Unityエディタが使用できない場合**シェルスクリプトをフォールバック**として使用します。
 
 ## テストの実行
-クライアント側のテスト実行には `tools/unity-test.sh` を使用してください。
 
-**重要：テスト実行時の注意事項**
-- **必ず正規表現を使用して実施したいテストのみを実行してください**
-- 全てのテストを一括で実行すると、結果が安定しない等の不具合が生じる恐れがあります
-- 例：
-  - 特定のnamespaceのテストのみ: `./tools/unity-test.sh "^MyNamespace\."`
-  - 特定のクラスのテストのみ: `./tools/unity-test.sh "^MyNamespace\.MyTestClass$"`
-  - 特定の機能に関連するテストのみ: `./tools/unity-test.sh ".*\.Feature\."`
+### 1. MCPツールでのテスト実行（推奨）
+Unityエディタが起動している場合は、MCPツールを使用してテストを実行します。
+
+#### サーバー側テスト
+```
+mcp__moorestech_server__RunEditModeTests
+```
+- 必ず`groupNames`パラメータで実行対象を限定
+- 例: `groupNames: ["^Tests\\.CombinedTest\\.Core\\.ElectricPumpTest$"]`
+
+#### クライアント側テスト
+```
+mcp__moorestech_client__RunEditModeTests
+```
+- 必ず`groupNames`パラメータで実行対象を限定
+- 例: `groupNames: ["^ClientTests\\.Feature\\.InventoryTest$"]`
+
+### 2. シェルスクリプトでのテスト実行（フォールバック）
+Unityエディタが使用できない場合やMCPツールリストに上記MCPが無い場合では `tools/unity-test.sh` を使用します。
+
+```bash
+# サーバー側のテスト
+./tools/unity-test.sh moorestech_server "^Tests\\.CombinedTest\\.Core\\.ElectricPumpTest$"
+
+# クライアント側のテスト クライアント側の場合、バッチモードでは結果が安定しないことがあるため、 isGui オプションを追加してください。
+./tools/unity-test.sh moorestech_client "^ClientTests\\.Feature\\.InventoryTest$" isGui
+```
+
+### 重要な注意事項
+- **必ず正規表現で実行対象を限定してください**
+- 全テストの一括実行は時間がかかり、不安定になる可能性があります
+- 関連するテストのみを実行して開発サイクルを高速化しましょう
+
+## コンパイルエラーの確認
+
+### MCPツールでのコンパイル（推奨）
+編集したコードのパスに応じて適切なMCPツールを使用：
+
+- **サーバー側**（`moorestech_server/`配下）
+  - `mcp__moorestech_server__RefreshAssets`: コンパイル実行
+  - `mcp__moorestech_server__GetCompileLogs`: エラー確認
+
+- **クライアント側**（`moorestech_client/`配下）
+  - `mcp__moorestech_client__RefreshAssets`: コンパイル実行
+  - `mcp__moorestech_client__GetCompileLogs`: エラー確認
+
+**重要：ユーザーからコンパイルエラーが出ている旨を聞いたら、必ずMCPツールでコンパイルエラーを確認してください。**
 
 ## ビルドの実行
 CLIからUnityプロジェクトをビルドする場合は `tools/unity-build-test.sh` を使用してください。
@@ -171,6 +247,19 @@ public class MySingleton : MonoBehaviour
 }
 ```
 
+# 大規模コードベースとの向き合い方
+このゲームのコードベースは非常に大規模で、あらゆる機能が複数のサブシステム、長年の設計判断、無数の依存関係によって成立しています。
+そのため、新しいタスクに着手する際は「手元のファイルだけを眺めて素早く解決する」発想を捨て、過去の設計意図を追体験するつもりでコードを丹念に読み込み、各モジュールがどのように連携しているのかを把握してください。既存のパターンを見つけ出し、命名規則や責務の分担、データフローやイベントの流れを精査することで初めて、チーム全体の文脈を壊さずに改修するための正解が見えてきます。
+中途半端な理解のまま手を動かすと、思わぬ副作用や重複実装、既存APIとの齟齬を生み出しリグレッションリスクが跳ね上がりますが、徹底した読解を経てから設計を考えれば、既に存在する拡張ポイントや抽象化を安全に活用でき、レビュー時の説得力も飛躍的に向上します。
+何より、過去のエンジニアが積み上げた知見を踏まえて意思決定することは、空気を読んだ改善を行ううえで不可欠です。常に「既存のどの原則に則るべきか」「既存資産をどう再利用できるか」「この変更が全体最適にどう寄与するか」を問い続け、状況に応じてドキュメントや履歴、関連スクリプトを貪欲に参照しながら、設計と実装を丁寧に積み上げていきましょう。
+
+## プロジェクト全体での一貫性保持
+周りの空気を読み、ファイル全体、ネームスペース全体、アセンブリ全体、プロジェクト全体で一貫性のあるコードを書いてください。
+単一の箇所だけが美しく整っていても、隣接する処理や他チームの前提と噛み合わなければ即座に技術的負債へと転化します。
+必ず既存の命名規約やAPI構成、データ表現、エラー伝播の方針、コメントスタイルまで細かく観察し、どの層でも矛盾が起きないよう調整してください。
+各レイヤーで当たり前のように踏襲されている設計は、長期運用の知恵と失敗の歴史によって磨かれた暗黙知の結晶であり、それを尊重することが品質維持と開発速度の両立につながります。
+コードを追加・変更するときは「この書き方は同じ責務を持つ隣の型でも採用されているか」「この例外パターンは別のアセンブリでも同様に扱われているか」「レビュー担当が違和感なく読み進められるか」を自問し、全体の拍に合わせた筆運びを徹底しましょう。
+
 # 既存システムの活用原則
 このプロジェクトは大規模なプロジェクトです。新機能の実装要望がある場合、多くの場合その基盤となるシステムはすでに存在しています。
 
@@ -182,35 +271,6 @@ public class MySingleton : MonoBehaviour
 
 早計に新しい概念やシステムを追加するのではなく、既存システムの上に実装を積み重ねることを原則としてください。
 
-# Physics.SyncTransforms()の使用指針
-Unityの物理演算において、`Physics.SyncTransforms()`を呼ぶ必要があるケースは以下の通りです：
-
-## 呼び出しが必要なケース
-
-2. **テストコード内での物理演算**
-   - PlayModeテストで物理オブジェクトを配置・移動した後
-   - アサーションで位置や衝突を検証する前
-   - 「Calling EndWrite before BeginWrite」エラーを防ぐため
-   
-## PlayModeテストでの使用例
-```csharp
-// オブジェクト配置後
-PlaceBlock("ベルトコンベア", position, direction);
-Physics.SyncTransforms();
-await UniTask.WaitForFixedUpdate();
-
-// アサーションループ内
-while (testRunning)
-{
-    // 位置のチェック
-    Assert.IsTrue(bounds.Contains(position));
-    
-    // 次のフレームの前に同期
-    Physics.SyncTransforms();
-    await UniTask.WaitForFixedUpdate();
-}
-```
-
 # 追加指示
 
 NEVER:.metaファイルは生成しないでください。これはUnityが自動的に生成します。このmetaファイルの有無はコンパイル結果に影響を与えません。.metaの作成は思わぬ不具合の原因になります。
@@ -221,10 +281,9 @@ YOU MUST:コードを書き終わったから必ずコンパイルを実行し�
 
 IMPORTANT:サーバーの実装をする際はdocs/ServerGuide.mdを、クライアントの実装をする際はdocs/ClientGuide.mdを必ず参照してください。
 IMPORTANT:サーバーのプロトコル（通常のレスポンスプロトコル、イベントプロトコル）を実装する際は、docs/ProtocolImplementationGuide.mdを必ず参照してください。
-IMPORTANT:このゲームのコードベースは非常に大規模であり、たいていタスクもすでにある実装の拡張であることが多いです。そのため、良くコードを読み、コードの性質を理解し、周り合わせて空気を読んだコードを記述することを心がけてください。
 IMPORTANT:テスト用のブロックIDは moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTestModBlockId.cs に定義し、それを使うようにしてください。
 IMPORTANT:try-catchは基本的に使用禁止です。エラーハンドリングが必要な場合は、適切な条件分岐やnullチェックで対応してください。
-IMPORTANT:各種ブロックパラメータ（BlockParam）はSourceGeneratorによって自動生成されます。Mooresmaster.Model.BlocksModule名前空間に生成されるため、手動で作成しないでください。
+IMPORTANT:各種ブロックパラメータ（BlockParam）はSourceGeneratorによって自動生成されます。詳細は「マスターデータシステムについて」セクションを参照してください。
 
 ## Development Best Practices
 - プログラムの基本的な部分はnullではない前提でコードを書くように意識してください。
