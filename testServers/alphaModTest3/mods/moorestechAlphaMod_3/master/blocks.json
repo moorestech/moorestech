@@ -4951,7 +4951,38 @@
         "isInfinityPower": false,
         "infinityPower": 0,
         "inventoryConnectors": {
-          "inputConnects": [],
+          "inputConnects": [
+            {
+              "connectType": "Inventory",
+              "offset": [
+                9,
+                1,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ]
+            },
+            {
+              "connectType": "Inventory",
+              "offset": [
+                9,
+                1,
+                16
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ]
+            }
+          ],
           "outputConnects": []
         },
         "fuelFluidTankCapacity": 0,
