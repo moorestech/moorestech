@@ -876,7 +876,7 @@
     {
       "itemGuid": "d9cbebc7-6742-48bd-ad2b-2b45e4d4b435",
       "imagePath": "",
-      "name": "水素​還​元​炉",
+      "name": "水素還元炉",
       "maxStack": 100,
       "sortPriority": 1010,
       "initialUnlocked": false,
@@ -956,7 +956,7 @@
     {
       "itemGuid": "b1002714-bed8-4f25-87f9-88237a9376f8",
       "imagePath": "",
-      "name": "簡易​組立機",
+      "name": "簡易組立機",
       "maxStack": 100,
       "sortPriority": 1080,
       "initialUnlocked": false,
@@ -1026,7 +1026,7 @@
     {
       "itemGuid": "1eb89d18-53d1-4d8c-86b2-3b63a9880e1b",
       "imagePath": "",
-      "name": "電子​部品​製​造​装置",
+      "name": "電子部品製造装置",
       "maxStack": 100,
       "sortPriority": 1150,
       "initialUnlocked": false,
@@ -1106,7 +1106,7 @@
     {
       "itemGuid": "1110b0bb-cf52-4e5a-9303-055270218e99",
       "imagePath": "",
-      "name": "高​強度​鋼​鉄",
+      "name": "高強度鋼鉄",
       "maxStack": 100,
       "sortPriority": 1230,
       "initialUnlocked": false,
@@ -1236,7 +1236,7 @@
     {
       "itemGuid": "418f7c04-04bb-4e12-8432-2865d32c65f8",
       "imagePath": "",
-      "name": "超伝​導体​",
+      "name": "超伝導体",
       "maxStack": 100,
       "sortPriority": 1340,
       "initialUnlocked": false,
