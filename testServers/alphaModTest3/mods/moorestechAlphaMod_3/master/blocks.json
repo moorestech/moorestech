@@ -4998,6 +4998,26 @@
           }
         ]
       }
+    },
+    {
+      "blockGuid": "aa312f32-35d4-4dae-9e3e-a292e1a70a70",
+      "name": "ロケット",
+      "blockType": "Block",
+      "itemGuid": "76f8a502-96c4-4bd9-bdb3-d5b9f7c0d534",
+      "blockSize": [
+        10,
+        21,
+        10
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/Rocket",
+      "blockUIAddressablesPath": "",
+      "overrideVerticalBlock": {
+        "upBlockGuid": "",
+        "horizontalBlockGuid": "",
+        "downBlockGuid": ""
+      },
+      "enableConveyorPlacement": false,
+      "blockParam": {}
     }
   ]
 }
