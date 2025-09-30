@@ -111,6 +111,9 @@ namespace Game.UnlockState
             {
                 foreach (var itemUnlockStateInfo in stateJsonObject.ItemUnlockStateInfos)
                 {
+                    // マスタに存在しないアイテムはスキップ
+                    if (!MasterHolder.ItemMaster.ExistItemId(Guid.Parse(itemUnlockStateInfo.ItemGuid))) continue;
+                    
                     var state = new ItemUnlockStateInfo(itemUnlockStateInfo);
                     _itemUnlockStateInfos[state.ItemId] = state;
                 }
