@@ -1,0 +1,71 @@
+name: Check zero-width characters in JSON
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  zws-json-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check JSON files for zero-width characters
+        run: |
+          python3 - <<'PY'
+          import sys, pathlib
+
+          # 対象とする不可視文字（ゼロ幅系 + BOM/Word Joiner）
+          ZW_CHARS = {
+              '\u200b': 'ZERO WIDTH SPACE (U+200B)',
+              '\u200c': 'ZERO WIDTH NON-JOINER (U+200C)',
+              '\u200d': 'ZERO WIDTH JOINER (U+200D)',
+              '\ufeff': 'ZERO WIDTH NO-BREAK SPACE / BOM (U+FEFF)',
+              '\u2060': 'WORD JOINER (U+2060)',
+          }
+
+          EXCLUDE_DIRS = {'.git', 'node_modules', '.venv', 'venv', 'dist', 'build', 'out', '.next', '.cache'}
+
+          def is_excluded(path: pathlib.Path) -> bool:
+              # 除外ディレクトリが経路の一部に含まれていれば除外
+              return any(part in EXCLUDE_DIRS for part in path.parts)
+
+          def mark_invisible(line: str) -> str:
+              marked = line
+              for ch, label in ZW_CHARS.items():
+                  short = label.split('(')[0].strip()
+                  marked = marked.replace(ch, f"[{short}]")
+              # 長すぎる行は適度に省略
+              return (marked[:200] + "…") if len(marked) > 200 else marked
+
+          had_issues = False
+          findings = []
+
+          for path in pathlib.Path('.').rglob('*.json'):
+              if is_excluded(path):
+                  continue
+              try:
+                  # BOM を含めて検出したいので utf-8 を使用（utf-8-sig は使わない）
+                  text = path.read_text(encoding='utf-8', errors='ignore')
+              except Exception as e:
+                  print(f"::warning file={path}::Failed to read file: {e}")
+                  continue
+
+              for lineno, line in enumerate(text.splitlines(), start=1):
+                  found_types = [label for ch, label in ZW_CHARS.items() if ch in line]
+                  if found_types:
+                      had_issues = True
+                      visual = mark_invisible(line)
+                      labels_str = ', '.join(found_types)
+                      # PR のアノテーションとして表示
+                      print(f"::error file={path},line={lineno}::{labels_str} detected. Context: {visual}")
+                      findings.append((str(path), lineno, labels_str, visual))
+
+          if had_issues:
+              print("\nDetected zero-width / invisible characters in JSON files:\n")
+              for f, l, t, v in findings:
+                  print(f"{f}:{l}: {t}\n  {v}")
+              sys.exit(1)
+          else:
+              print("No zero-width characters found in JSON files.")
+          PY

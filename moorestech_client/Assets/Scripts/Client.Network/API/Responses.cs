@@ -22,6 +22,7 @@ namespace Client.Network.API
         public List<ChallengeCategoryResponse> Challenges { get; }
         public UnlockStateResponse UnlockState { get; }
         public CraftTreeResponse CraftTree { get; }
+        public List<string> PlayedSkitIds { get; }
         
         public InitialHandshakeResponse(
             ResponseInitialHandshakeMessagePack initialHandshake,
@@ -31,7 +32,8 @@ namespace Client.Network.API
                 PlayerInventoryResponse inventory,
                 List<ChallengeCategoryResponse> challenges, 
                 UnlockStateResponse unlockState,
-                CraftTreeResponse craftTree) responses)
+                CraftTreeResponse craftTree,
+                List<string> playedSkitIds) responses)
         {
             PlayerPos = initialHandshake.PlayerPos;
             WorldData = responses.worldData;
@@ -40,6 +42,7 @@ namespace Client.Network.API
             Challenges = responses.challenges;
             UnlockState = responses.unlockState;
             CraftTree = responses.craftTree;
+            PlayedSkitIds = responses.playedSkitIds;
         }
     }
     
