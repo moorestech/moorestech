@@ -41,7 +41,8 @@ namespace Client.Network.API
                 GetPlayerInventory(playerId, ct), 
                 GetChallengeResponse(ct), 
                 GetUnlockState(ct), 
-                GetCraftTree(playerId, ct));
+                GetCraftTree(playerId, ct),
+                GetPlayedSkitIds(ct));
             
             return new InitialHandshakeResponse(initialHandShake, responses);
         }
@@ -175,7 +176,15 @@ namespace Client.Network.API
             
             return new CraftTreeResponse(craftTreeNodes, response.CurrentTargetNode);
         }
-
+        
+        public async UniTask<List<string>> GetPlayedSkitIds(CancellationToken ct)
+        {
+            var request = new GetPlayedSkitIdsProtocol.RequestGetPlayedSkitIdsMessagePack();
+            var response = await _packetExchangeManager.GetPacketResponse<GetPlayedSkitIdsProtocol.ResponseGetPlayedSkitIdsMessagePack>(request, ct);
+            
+            return response.PlayedSkitIds;
+        }
+        
         public async UniTask<CompleteResearchProtocol.ResponseCompleteResearchMessagePack> CompleteResearch(Guid researchGuid, CancellationToken ct)
         {
             var request = new CompleteResearchProtocol.RequestCompleteResearchMessagePack(_playerConnectionSetting.PlayerId, researchGuid);

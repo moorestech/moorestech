@@ -321,7 +321,7 @@
     },
     {
       "itemGuid": "a9d9cdc5-ac74-4853-8d23-aafe2dd04605",
-      "name": "低品​質​鉄粉",
+      "name": "低品質鉄粉",
       "maxStack": 100,
       "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
@@ -712,7 +712,7 @@
     {
       "itemGuid": "296417d6-7499-49aa-ac6c-f2787114b833",
       "imagePath": "",
-      "name": "生石​灰石",
+      "name": "生石灰石",
       "maxStack": 100,
       "sortPriority": 870,
       "initialUnlocked": false,
