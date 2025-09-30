@@ -17,7 +17,15 @@ namespace Client.Common.Asset
             }
             
             var handle = Addressables.LoadAssetAsync<T>(address);
-            await handle.ToUniTask();
+            try
+            {
+                await handle.ToUniTask();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Addressables Load Error: {address}\n{e.Message}\n{e.StackTrace}");
+                return null;
+            }
             
             return handle.Status == AsyncOperationStatus.Succeeded ? new LoadedAsset<T>(handle.Result) : null;
         }
