@@ -212,7 +212,7 @@ namespace Game.Challenge
                 currentChallenges.AddRange(CollectAndExecuteInitializeChallenges());
             }
             
-            CurrentChallengeInfo = new CurrentChallengeInfo(currentChallenges, completedChallengeElements);
+            CurrentChallengeInfo = new CurrentChallengeInfo(currentChallenges, completedChallengeElements, challengeJsonObject.PlayedSkitIds);
             
             #region Internal
             
@@ -333,11 +333,11 @@ namespace Game.Challenge
         public List<ChallengeMasterElement> CompletedChallenges { get; }
         public List<string> PlayedSkitIds { get; }
         
-        public CurrentChallengeInfo(List<IChallengeTask> currentChallenges, List<ChallengeMasterElement> completedChallenges)
+        public CurrentChallengeInfo(List<IChallengeTask> currentChallenges, List<ChallengeMasterElement> completedChallenges, List<string> playedSkitIds)
         {
             CurrentChallenges = currentChallenges;
             CompletedChallenges = completedChallenges;
-            PlayedSkitIds = new List<string>();
+            PlayedSkitIds = playedSkitIds;
         }
         
         public CurrentChallengeInfo()
