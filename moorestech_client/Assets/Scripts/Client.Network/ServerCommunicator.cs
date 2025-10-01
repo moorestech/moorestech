@@ -1,6 +1,7 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using Client.Network.API;
 using Client.Network.Settings;
@@ -21,12 +22,15 @@ namespace Client.Network
         private readonly IPAddress _ipAddress;
         private readonly Subject<Unit> _onDisconnect = new();
         
+
         private readonly Socket _socket;
-        
+        private CancellationTokenSource _cancellationTokenSource;
+
         private ServerCommunicator(Socket connectedSocket)
         {
             //ソケットを作成
             _socket = connectedSocket;
+            _cancellationTokenSource = new CancellationTokenSource();
         }
         
         public IObservable<Unit> OnDisconnect => _onDisconnect;
@@ -50,20 +54,25 @@ namespace Client.Network
         }
         
         
-        public Task StartCommunicat(PacketExchangeManager packetExchangeManager)
+        public void StartCommunicat(PacketExchangeManager packetExchangeManager)
+        {
+            Task.Run(() => CommunicationLoop(packetExchangeManager, _cancellationTokenSource.Token));
+        }
+
+        private void CommunicationLoop(PacketExchangeManager packetExchangeManager, CancellationToken cancellationToken)
         {
             var buffer = new byte[4096];
             
             var parser = new PacketBufferParser();
             try
             {
-                while (true)
+                while (!cancellationToken.IsCancellationRequested)
                 {
                     //Receiveで受信
                     var length = _socket.Receive(buffer);
                     if (length == 0)
                     {
-                        Debug.LogError("ストリームがゼロによる切断");
+                        Debug.Log("サーバーから正常に切断されました");
                         break;
                     }
                     
@@ -72,31 +81,42 @@ namespace Client.Network
                     foreach (var packet in packets) packetExchangeManager.ExchangeReceivedPacket(packet).Forget();
                 }
             }
+            catch (SocketException e)
+            {
+                // ソケットがクローズされた場合は正常終了
+                if (!cancellationToken.IsCancellationRequested)
+                {
+                    Debug.LogError($"ソケットエラー: {e.Message}");
+                }
+            }
+            catch (ObjectDisposedException)
+            {
+                // ソケットが破棄された場合は正常終了（キャンセル時は何も出力しない）
+            }
             catch (Exception e)
             {
-                Debug.LogError("エラーによりサーバーから切断されました");
-                Debug.LogError($"Message {e.Message} StackTrace {e.StackTrace}");
-                if (_socket.Connected) _socket.Close();
-                
-                try
+                if (!cancellationToken.IsCancellationRequested)
                 {
-                    var json = MessagePackSerializer.ConvertToJson(buffer);
-                    Debug.LogError("受信パケット内容 JSON:" + json);
+                    Debug.LogError("エラーによりサーバーから切断されました");
+                    Debug.LogError($"Message {e.Message} StackTrace {e.StackTrace}");
+
+                    try
+                    {
+                        var json = MessagePackSerializer.ConvertToJson(buffer);
+                        Debug.LogError("受信パケット内容 JSON:" + json);
+                    }
+                    catch (Exception exception)
+                    {
+                        Debug.LogError("受信パケット内容 JSON:解析に失敗");
+                    }
                 }
-                catch (Exception exception)
-                {
-                    Debug.LogError("受信パケット内容 JSON:解析に失敗");
-                }
-                
-                throw;
             }
             finally
             {
                 Debug.Log("通信ループ終了");
+                if (_socket.Connected) _socket.Close();
                 InvokeDisconnect().Forget();
             }
-            
-            return Task.CompletedTask;
         }
         
         private async UniTask InvokeDisconnect()
@@ -107,18 +127,28 @@ namespace Client.Network
         
         public void Send(byte[] data)
         {
+            if (_cancellationTokenSource.IsCancellationRequested) return;
+
             //先頭にパケット長を設定して送信
             var byteCount = ToByteList.Convert(data.Length);
             var newData = new byte[byteCount.Count + data.Length];
-            
+
             byteCount.CopyTo(newData, 0);
             data.CopyTo(newData, byteCount.Count);
-            
-            _socket.Send(newData);
+
+            try
+            {
+                _socket.Send(newData);
+            }
+            catch (ObjectDisposedException)
+            {
+                // ソケットがクローズされている場合は何もしない
+            }
         }
         
         public void Close()
         {
+            _cancellationTokenSource?.Cancel();
             _socket.Close();
         }
     }
