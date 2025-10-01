@@ -69,8 +69,6 @@ namespace Tools.Logging
             static bool EnsureReflection()
             {
                 if (_ready) return true;
-                
-                UnityEditor.LogEntries
 
                 var asm = typeof(Editor).Assembly;
                 _tLogEntries = asm.GetType("UnityEditor.LogEntries");
