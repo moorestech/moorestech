@@ -40,7 +40,7 @@ namespace Tools.Logging
             {
                 if (!EnsureReflection())
                 {
-                    Debug.LogWarning("[LogBuffer] UnityEditor.LogEntries 反射の初期化に失敗しました（Unity バージョン差の可能性）。");
+                    Debug.LogError("[LogBuffer] UnityEditor.LogEntries 反射の初期化に失敗しました（Unity バージョン差の可能性）。");
                     yield break;
                 }
 
@@ -69,6 +69,8 @@ namespace Tools.Logging
             static bool EnsureReflection()
             {
                 if (_ready) return true;
+                
+                UnityEditor.LogEntries
 
                 var asm = typeof(Editor).Assembly;
                 _tLogEntries = asm.GetType("UnityEditor.LogEntries");
