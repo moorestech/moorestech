@@ -9,7 +9,7 @@ using UnityEngine;
 namespace Tools.Logging
 {
     /// <summary>
-    /// Editor 専用: Console に溜まっている内容を反射で吸い出し、TSV でエクスポートする。
+    /// Editor 専用: Console に溜まっている内容を反射で吸い出す。
     /// ※ Unity の内部 API を用いるため、バージョン差で壊れる可能性があります。
     /// </summary>
     public static class LogBuffer
@@ -31,9 +31,7 @@ namespace Tools.Logging
         private static class EditorConsole
         {
             static Type _tLogEntries;
-            static Type _tLogEntry;
-            static MethodInfo _miStart, _miEnd, _miGetCount, _miGetEntryInternal;
-            static FieldInfo _fiConditionOrMessage, _fiStackTrace, _fiMode;
+            static MethodInfo _miStart, _miEnd, _miGetCount, _miGetEntryCount, _miGetLinesAndModeFromEntryInternal;
             static bool _ready;
 
             public static IEnumerable<Entry> EnumerateConsoleEntries()
@@ -44,25 +42,35 @@ namespace Tools.Logging
                     yield break;
                 }
 
-                object logEntryObj = Activator.CreateInstance(_tLogEntry);
                 _miStart.Invoke(null, null);
                 int count = (int)_miGetCount.Invoke(null, null);
 
                 for (int i = 0; i < count; i++)
                 {
-                    _miGetEntryInternal.Invoke(null, new object[] { i, logEntryObj });
+                    // Unity 6000 系: GetEntryCount と GetLinesAndModeFromEntryInternal を使用して全文とモードを取得
+                    int numberOfLines = (int)_miGetEntryCount.Invoke(null, new object[] { i });
 
-                    string condition = (_fiConditionOrMessage.GetValue(logEntryObj) as string) ?? string.Empty;
-                    string stack     = (_fiStackTrace.GetValue(logEntryObj) as string) ?? string.Empty;
-                    int mode         = _fiMode != null ? (int)_fiMode.GetValue(logEntryObj) : 0;
+                    object maskObj = 0;
+                    object textObj = string.Empty;
+                    var args = new object[] { i, numberOfLines, maskObj, textObj };
+                    _miGetLinesAndModeFromEntryInternal.Invoke(null, args);
+
+                    int mask = (int)args[2];
+                    string allLines = (string)args[3] ?? string.Empty;
+
+                    // 1行目をメッセージ、それ以降をスタックトレースとして扱う
+                    string[] lines = allLines.Split(new[] { '\n' }, StringSplitOptions.None);
+                    string condition = lines.Length > 0 ? lines[0].TrimEnd('\r') : string.Empty;
+                    string stack = lines.Length > 1 ? string.Join("\n", lines.Skip(1)) : string.Empty;
 
                     yield return new Entry
                     {
-                        type = ModeToLogType(mode, condition),
+                        type = ModeToLogType(mask, condition),
                         message = condition,
                         stackTrace = stack,
                     };
                 }
+
                 _miEnd.Invoke(null, null);
             }
 
@@ -72,43 +80,37 @@ namespace Tools.Logging
 
                 var asm = typeof(Editor).Assembly;
                 _tLogEntries = asm.GetType("UnityEditor.LogEntries");
-                _tLogEntry   = asm.GetType("UnityEditor.LogEntry");
-                if (_tLogEntries == null || _tLogEntry == null) return false;
+                if (_tLogEntries == null) return false;
 
                 BindingFlags S = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
-                BindingFlags I = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
 
-                _miStart            = _tLogEntries.GetMethod("StartGettingEntries", S);
-                _miEnd              = _tLogEntries.GetMethod("EndGettingEntries", S);
-                _miGetCount         = _tLogEntries.GetMethod("GetCount", S);
-                _miGetEntryInternal = _tLogEntries.GetMethod("GetEntryInternal", S);
+                _miStart  = _tLogEntries.GetMethod("StartGettingEntries", S);
+                _miEnd    = _tLogEntries.GetMethod("EndGettingEntries", S);
+                _miGetCount = _tLogEntries.GetMethod("GetCount", S);
 
-                // フィールド名はバージョン差あり（condition/message, stacktrace/stackTrace）
-                _fiConditionOrMessage = _tLogEntry.GetField("condition", I)
-                                        ?? _tLogEntry.GetField("message", I);
-                _fiStackTrace         = _tLogEntry.GetField("stacktrace", I)
-                                        ?? _tLogEntry.GetField("stackTrace", I);
-                _fiMode               = _tLogEntry.GetField("mode", I);
+                // Unity 6000 系 API
+                _miGetEntryCount = _tLogEntries.GetMethod("GetEntryCount", S);
+                _miGetLinesAndModeFromEntryInternal = _tLogEntries.GetMethod("GetLinesAndModeFromEntryInternal", S);
 
-                _ready = (_miStart != null && _miEnd != null && _miGetCount != null && _miGetEntryInternal != null
-                          && _fiConditionOrMessage != null && _fiStackTrace != null && _fiMode != null);
+                _ready = (_miStart != null && _miEnd != null && _miGetCount != null
+                          && _miGetEntryCount != null && _miGetLinesAndModeFromEntryInternal != null);
                 return _ready;
             }
 
-            // 内部 mode ビットをざっくり LogType に落とす（必要なら調整可）
-            static LogType ModeToLogType(int mode, string condition)
+            // 内部 mask ビットをざっくり LogType に落とす（必要なら調整可）
+            static LogType ModeToLogType(int mask, string condition)
             {
                 // Error/Exception 相当
-                if ((mode & 1) != 0 || (mode & 32) != 0 ||
+                if ((mask & 1) != 0 || (mask & 32) != 0 ||
                     condition.IndexOf("Exception", StringComparison.OrdinalIgnoreCase) >= 0)
                     return LogType.Error;
 
                 // Warning 相当
-                if ((mode & 2) != 0 || (mode & 4) != 0 || (mode & 64) != 0)
+                if ((mask & 2) != 0 || (mask & 4) != 0 || (mask & 64) != 0)
                     return LogType.Warning;
 
                 // Assert 相当（稀）
-                if ((mode & 8) != 0)
+                if ((mask & 8) != 0)
                     return LogType.Assert;
 
                 return LogType.Log;
