@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # unity_test.sh
 # 使い方:
-#   ./unity_test.sh <UnityProjectPath> 'Regex' [isGui]
-#     または ./unity_test.sh <UnityProjectPath> -testRegex 'Regex' [isGui]
+#   ./unity_test.sh <UnityProjectPath> 'Regex' [isGui] [-requiredString 'string']
+#     または ./unity_test.sh <UnityProjectPath> -testRegex 'Regex' [isGui] [-requiredString 'string']
 #   ※ デフォルトでバッチモード(-batchmode)で起動。isGui を付けるとGUIモードで起動します
+#   ※ -requiredString を指定すると、出力に指定した文字列が含まれていない場合エラーとします
 
 UNITY="/Applications/Unity/Hub/Editor/6000.1.6f1/Unity.app/Contents/MacOS/Unity"
 
@@ -11,21 +12,37 @@ UNITY="/Applications/Unity/Hub/Editor/6000.1.6f1/Unity.app/Contents/MacOS/Unity"
 # 引数パース
 ###############################################################################
 if [ $# -lt 2 ]; then
-  echo "Usage: $0 <UnityProjectPath> '<Regex>' [isGui]"
+  echo "Usage: $0 <UnityProjectPath> '<Regex>' [isGui] [-requiredString 'string']"
   exit 1
 fi
 
 PROJECT="$1"; shift
 case "$1" in -testRegex|-r|--regex) shift ;; esac
-REGEX="$1"
+REGEX="$1"; shift
 
 # ### 変更: isGui の有無を検出してフラグ化（デフォルトはバッチモード）
 IS_GUI=0
-for arg in "$@"; do
-  if [ "$arg" = "isGui" ] || [ "$arg" = "-g" ] || [ "$arg" = "--gui" ]; then
-    IS_GUI=1
-    break
-  fi
+REQUIRED_STRING=""
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -requiredString|-rs|--required-string)
+      if [ -n "$2" ] && [ "${2#-}" = "$2" ]; then
+        REQUIRED_STRING="$2"
+        shift 2
+      else
+        echo "Error: $1 requires an argument"
+        exit 1
+      fi
+      ;;
+    isGui|-g|--gui)
+      IS_GUI=1
+      shift
+      ;;
+    *)
+      shift
+      ;;
+  esac
 done
 
 # ### 変更: バッチモードのオプションを組み立て（デフォルトでバッチモード）
@@ -84,6 +101,16 @@ elif [ $RET -eq 0 ]; then
   echo "✅  All matching tests passed"
 else
   echo "❌  Some matching tests failed or compilation failed"
+fi
+
+###############################################################################
+# 必須文字列チェック
+###############################################################################
+if [ -n "$REQUIRED_STRING" ]; then
+  if ! grep -qF "$REQUIRED_STRING" "$LOGFILE"; then
+    echo "規定のテストが実行できませんでした。テストを再実行してください。"
+    RET=1
+  fi
 fi
 
 rm -f "$LOGFILE"
