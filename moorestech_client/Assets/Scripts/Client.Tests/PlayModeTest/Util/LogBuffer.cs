@@ -19,6 +19,7 @@ namespace Tools.Logging
             public LogType type;
             public string message;
             public string stackTrace;
+            public int mask; // デバッグ用: Unityの内部mask値
         }
 
         /// <summary>
@@ -78,6 +79,7 @@ namespace Tools.Logging
                         type = ModeToLogType(mask, condition),
                         message = condition,
                         stackTrace = stack,
+                        mask = mask,
                     };
                 }
 
@@ -129,6 +131,7 @@ namespace Tools.Logging
                         type = ModeToLogType(mask, condition),
                         message = condition,
                         stackTrace = stack,
+                        mask = mask,
                     };
                 }
 
@@ -161,9 +164,17 @@ namespace Tools.Logging
             // 内部 mask ビットをざっくり LogType に落とす（必要なら調整可）
             static LogType ModeToLogType(int mask, string condition)
             {
-                // Error/Exception 相当
-                if ((mask & 1) != 0 || (mask & 32) != 0 ||
-                    condition.IndexOf("Exception", StringComparison.OrdinalIgnoreCase) >= 0)
+                // Unity 6000系では、bit 8 (256) が立っている場合はError（Debug.LogErrorで出力されたログ）
+                // bit 17 (131072)やbit 22 (4194304)はException系のログで立つ
+                if ((mask & 256) != 0)
+                    return LogType.Error;
+
+                // Exceptionという文字列が含まれている場合もError
+                if (condition.IndexOf("Exception", StringComparison.OrdinalIgnoreCase) >= 0)
+                    return LogType.Error;
+
+                // 従来のビットパターンもチェック（後方互換性のため）
+                if ((mask & 1) != 0 || (mask & 32) != 0)
                     return LogType.Error;
 
                 // Warning 相当
