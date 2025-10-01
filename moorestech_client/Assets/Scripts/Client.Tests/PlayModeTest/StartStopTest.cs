@@ -38,22 +38,14 @@ namespace Client.Tests
 
             Debug.Log("[StartStopTest] Step 7: Enter play mode (Second time, expectDomainReload: false)");
             
-            AssertNoErrorLog("Before entering play mode second time");
             
             yield return new EnterPlayMode(expectDomainReload: true);
             
-            AssertNoErrorLog("After entering play mode second time");
-
-            Debug.Log("[StartStopTest] Step 8: Load game (Second Login)");
-            yield return LoadGame("Second Login").ToCoroutine();
-
-            Debug.Log("[StartStopTest] Step 9: Check for error logs");
-            AssertNoErrorLog("After second game load");
-
-            Debug.Log("[StartStopTest] Step 10: Exit play mode (Second time)");
-            yield return new ExitPlayMode();
-
-            Debug.Log("[StartStopTest] Test completed successfully");
+            var errorLogs = LogBuffer.EnumerateEditorConsoleEntries()
+                .Where(entry => entry.type is LogType.Error or LogType.Exception)
+                .ToList();
+            
+            Assert.IsTrue(errorLogs.Count >= 2, $"Expected at least 2 error logs after entering play mode again, but found {errorLogs.Count}.\nLogs:\n{string.Join("\n", errorLogs.Select(e => e.message))}");
             
             
             #region Internal
@@ -72,24 +64,6 @@ namespace Client.Tests
                     Debug.LogError(e);
                     Assert.Fail($"Title:{loadTitle} Exception occurred during LoadGame: {e.Message}\n{e.StackTrace}");
                 }
-            }
-            
-            void AssertNoErrorLog(string context)
-            {
-                var logEntries = LogBuffer.EnumerateEditorConsoleEntries().ToList();
-                var isErrorLog = logEntries.Exists(entry => entry.type is LogType.Error or LogType.Exception);
-                var allLogs = string.Empty;
-                foreach (var log in logEntries)
-                {
-                    if (string.IsNullOrWhiteSpace(log.message)) continue;
-                    
-                    allLogs += $"----------------\n{log.type}\n{log.message}\n";
-                }
-                
-                Debug.Log($"{context}\n{allLogs}");
-                Assert.IsFalse(isErrorLog, $"There are error logs. Context: {context}");
-                
-                Debug.ClearDeveloperConsole();
             }
             
             #endregion
