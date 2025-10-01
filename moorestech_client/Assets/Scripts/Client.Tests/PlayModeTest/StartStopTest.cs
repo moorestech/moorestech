@@ -84,7 +84,7 @@ namespace Client.Tests
                     if (string.IsNullOrWhiteSpace(log.message)) continue;
                     if (log.type is LogType.Log) continue; // 通常のログは無視
                     
-                    allLogs += $"----------------\n{log.type}\n{log.message}\n";
+                    allLogs += $"----------------\n{log.type}\n{log.message}\n{log.stackTrace}";
                 }
                 
                 Debug.Log($"{context}\n{allLogs}");
