@@ -18,8 +18,7 @@ namespace Server.Boot
     {
         private Thread _connectionUpdateThread;
         private CancellationTokenSource _cancellationTokenSource;
-        private PacketHandler _packetHandler;
-
+        
         private readonly string[] _args;
         
         public ServerInstanceManager(string[] args)
@@ -29,10 +28,10 @@ namespace Server.Boot
         
         public void Start()
         {
-            (_connectionUpdateThread, _cancellationTokenSource, _packetHandler) = Start(_args);
+            (_connectionUpdateThread, _cancellationTokenSource) = Start(_args);
         }
-
-        private static (Thread connectionUpdateThread, CancellationTokenSource cancellationTokenSource, PacketHandler packetHandler) Start(string[] args)
+        
+        private static (Thread connectionUpdateThread, CancellationTokenSource cancellationTokenSource) Start(string[] args)
         {
             // これはコンパイルエラーを避ける仮対応
             var settings = CliConvert.Parse<StartServerSettings>(args);
@@ -65,9 +64,8 @@ namespace Server.Boot
             //サーバーの起動とゲームアップデートの開始
             var cancellationToken = new CancellationTokenSource();
             var token = cancellationToken.Token;
-
-            var packetHandler = new PacketHandler();
-            var connectionUpdateThread = new Thread(() => packetHandler.StartServer(packet, token));
+            
+            var connectionUpdateThread = new Thread(() => new PacketHandler().StartServer(packet, token));
             connectionUpdateThread.Name = "[moorestech]通信受け入れスレッド";
             connectionUpdateThread.Start();
             
@@ -76,8 +74,8 @@ namespace Server.Boot
                 Task.Run(() => AutoSaveSystem.AutoSave(serviceProvider.GetService<IWorldSaveDataSaver>(), token), cancellationToken.Token);
             }
             Task.Run(() => ServerGameUpdater.StartUpdate(token), cancellationToken.Token);
-
-            return (connectionUpdateThread, cancellationToken, packetHandler);
+            
+            return (connectionUpdateThread, cancellationToken);
         }
         
         
@@ -85,7 +83,6 @@ namespace Server.Boot
         {
             try
             {
-                // CancellationTokenをキャンセルして、各種タスクに終了を通知
                 _cancellationTokenSource?.Cancel();
             }
             catch (Exception e)
@@ -94,20 +91,7 @@ namespace Server.Boot
             }
             try
             {
-                // PacketHandlerのlistenerソケットをクローズ
-                // これによりAccept()がSocketExceptionを投げて通信スレッドが終了する
-                _packetHandler?.Dispose();
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-            }
-            try
-            {
-                // 通信スレッドが終了するまで最大5秒間待機
-                // Join()は指定したスレッドの終了を待つメソッド
-                // タイムアウトを指定することで、スレッドが終了しない場合でも処理を続行できる
-                _connectionUpdateThread?.Join(TimeSpan.FromSeconds(5));
+                _connectionUpdateThread?.Abort();
             }
             catch (Exception e)
             {

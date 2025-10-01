@@ -7,8 +7,7 @@ namespace Server.Boot
     {
         private ServerInstanceManager _startServer;
         private string[] _args = Array.Empty<string>();
-        private bool _isServerFinished;
-
+        
         public void SetArgs(string[] args)
         {
             _args = args;
@@ -32,11 +31,8 @@ namespace Server.Boot
         
         private void FinishServer()
         {
-            if (_isServerFinished) return;
-            _isServerFinished = true;
-
             Debug.Log("サーバーを終了します");
-            _startServer?.Dispose();
+            _startServer.Dispose();
             Debug.Log("サーバーを終了しました");
         }
     }

@@ -41,10 +41,7 @@ namespace Client.Starter
         [SerializeField] private TMP_Text loadingLog;
         [SerializeField] private Button backToMainMenuButton;
         
-
         private InitializeProprieties _proprieties = InitializeProprieties.CreateDefault();
-        private VanillaApi _vanillaApi;
-
         public void SetProperty(InitializeProprieties proprieties)
         {
             _proprieties = proprieties;
@@ -54,12 +51,7 @@ namespace Client.Starter
         {
             backToMainMenuButton.onClick.AddListener(() => SceneManager.LoadScene(SceneConstant.MainMenuSceneName));
         }
-
-        private void OnDestroy()
-        {
-            _vanillaApi?.Disconnect();
-        }
-
+        
         private void Start()
         {
             Initialize().Forget();
@@ -92,7 +84,8 @@ namespace Client.Starter
             
             //Vanilla APIのロードに必要なものを作成
             var playerConnectionSetting = new PlayerConnectionSetting(_proprieties.PlayerId);
-
+            VanillaApi vanillaApi = null;
+            
             //セットされる変数
             BlockGameObjectContainer blockGameObjectContainer = null;
             ItemImageContainer itemImageContainer = null;
@@ -115,7 +108,7 @@ namespace Client.Starter
             }
             
             //staticアクセスできるコンテキストの作成
-            var clientContext = new ClientContext(blockGameObjectContainer, itemImageContainer, fluidImageContainer , playerConnectionSetting, _vanillaApi, modalManager);
+            var clientContext = new ClientContext(blockGameObjectContainer, itemImageContainer, fluidImageContainer , playerConnectionSetting, vanillaApi, modalManager);
             
             //シーンに遷移し、初期データを渡す
             SceneManager.sceneLoaded += MainGameSceneLoaded;
@@ -144,13 +137,13 @@ namespace Client.Starter
                 //データの受付開始
                 var packetSender = new PacketSender(serverCommunicator);
                 var exchangeManager = new PacketExchangeManager(packetSender);
-                serverCommunicator.StartCommunicat(exchangeManager);
+                Task.Run(() => serverCommunicator.StartCommunicat(exchangeManager));
                 
                 //Vanilla APIの作成
-                _vanillaApi = new VanillaApi(exchangeManager, packetSender, serverCommunicator, playerConnectionSetting, _proprieties.LocalServerProcess);
+                vanillaApi = new VanillaApi(exchangeManager, packetSender, serverCommunicator, playerConnectionSetting, _proprieties.LocalServerProcess);
                 
                 //最初に必要なデータを取得
-                handshakeResponse = await _vanillaApi.Response.InitialHandShake(playerConnectionSetting.PlayerId, default);
+                handshakeResponse = await vanillaApi.Response.InitialHandShake(playerConnectionSetting.PlayerId, default);
                 
                 loadingLog.text += $"\n初期データ取得完了  {loadingStopwatch.Elapsed}";
             }
