@@ -82,6 +82,7 @@ namespace Client.Tests
                 foreach (var log in logEntries)
                 {
                     if (string.IsNullOrWhiteSpace(log.message)) continue;
+                    if (log.type is LogType.Log) continue; // 通常のログは無視
                     
                     allLogs += $"----------------\n{log.type}\n{log.message}\n";
                 }
