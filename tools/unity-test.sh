@@ -4,6 +4,7 @@
 #   ./unity_test.sh <UnityProjectPath> 'Regex' [isGui] [-requiredString 'string']
 #     または ./unity_test.sh <UnityProjectPath> -testRegex 'Regex' [isGui] [-requiredString 'string']
 #   ※ デフォルトでバッチモード(-batchmode)で起動。isGui を付けるとGUIモードで起動します
+#   ※ isGui指定時は、まずバッチモードでコンパイルチェックを行い、エラーがなければGUIモードで実行します
 #   ※ -requiredString を指定すると、出力に指定した文字列が含まれていない場合エラーとします
 
 UNITY="/Applications/Unity/Hub/Editor/6000.1.6f1/Unity.app/Contents/MacOS/Unity"
@@ -45,15 +46,49 @@ while [ $# -gt 0 ]; do
   esac
 done
 
+###############################################################################
+# isGuiモードの場合: まずバッチモードでコンパイルチェック
+###############################################################################
+if [ $IS_GUI -eq 1 ]; then
+  echo "🔍 Checking for compile errors in batch mode..."
+  COMPILE_CHECK_LOG="$(mktemp -t unity_compile_check_XXXX).log"
+
+  "$UNITY" \
+    -projectPath "$PROJECT" \
+    -executeMethod CliTestRunner.Run \
+    -testRegex "$REGEX" \
+    -isFromShellScript \
+    -logFile "$COMPILE_CHECK_LOG" \
+    -batchmode
+
+  COMPILE_RET=$?
+
+  # コンパイルエラーチェック
+  if [ $COMPILE_RET -eq 2 ] || \
+     grep -q "Scripts have compiler errors" "$COMPILE_CHECK_LOG" || \
+     grep -qE "error CS[0-9]{4}:" "$COMPILE_CHECK_LOG" || \
+     grep -q "Safe Mode" "$COMPILE_CHECK_LOG"
+  then
+    echo "❌ Compile errors detected"
+    grep -E "error CS[0-9]{4}:" "$COMPILE_CHECK_LOG" | sed 's/^/    /'
+    echo "❌ Compilation failed — tests were not executed"
+    rm -f "$COMPILE_CHECK_LOG"
+    exit 1
+  fi
+
+  rm -f "$COMPILE_CHECK_LOG"
+  echo "✅ No compile errors detected. Starting GUI mode test..."
+fi
+
+###############################################################################
+# Unity 実行（本番）
+###############################################################################
 # ### 変更: バッチモードのオプションを組み立て（デフォルトでバッチモード）
 BATCH_OPTS="-batchmode"
 if [ $IS_GUI -eq 1 ]; then
   BATCH_OPTS=""
 fi
 
-###############################################################################
-# Unity 実行
-###############################################################################
 LOGFILE="$(mktemp -t unity_cli_XXXX).log"
 
 "$UNITY" \
