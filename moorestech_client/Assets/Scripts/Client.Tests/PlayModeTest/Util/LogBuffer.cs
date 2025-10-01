@@ -25,6 +25,16 @@ namespace Tools.Logging
         /// Console の全ログを列挙（Editor 専用）。
         /// </summary>
         public static List<Entry> EnumerateEditorConsoleEntries() => EditorConsole.EnumerateConsoleEntries().ToList();
+
+        /// <summary>
+        /// 現在のログ数を取得（Editor 専用）。
+        /// </summary>
+        public static int GetCurrentLogCount() => EditorConsole.GetLogCount();
+        
+        /// <summary>
+        /// 指定されたインデックス以降のログのみを列挙（Editor 専用）。
+        /// </summary>
+        public static List<Entry> EnumerateEditorConsoleEntriesFrom(int startIndex) => EditorConsole.EnumerateConsoleEntriesFrom(startIndex).ToList();
         
         
         // ----- 内部実装（UnityEditor.LogEntries の反射） -----
@@ -46,6 +56,57 @@ namespace Tools.Logging
                 int count = (int)_miGetCount.Invoke(null, null);
 
                 for (int i = 0; i < count; i++)
+                {
+                    // Unity 6000 系: GetEntryCount と GetLinesAndModeFromEntryInternal を使用して全文とモードを取得
+                    int numberOfLines = (int)_miGetEntryCount.Invoke(null, new object[] { i });
+
+                    object maskObj = 0;
+                    object textObj = string.Empty;
+                    var args = new object[] { i, numberOfLines, maskObj, textObj };
+                    _miGetLinesAndModeFromEntryInternal.Invoke(null, args);
+
+                    int mask = (int)args[2];
+                    string allLines = (string)args[3] ?? string.Empty;
+
+                    // 1行目をメッセージ、それ以降をスタックトレースとして扱う
+                    string[] lines = allLines.Split(new[] { '\n' }, StringSplitOptions.None);
+                    string condition = lines.Length > 0 ? lines[0].TrimEnd('\r') : string.Empty;
+                    string stack = lines.Length > 1 ? string.Join("\n", lines.Skip(1)) : string.Empty;
+
+                    yield return new Entry
+                    {
+                        type = ModeToLogType(mask, condition),
+                        message = condition,
+                        stackTrace = stack,
+                    };
+                }
+
+                _miEnd.Invoke(null, null);
+            }
+
+            public static int GetLogCount()
+            {
+                if (!EnsureReflection())
+                {
+                    Debug.LogError("[LogBuffer] UnityEditor.LogEntries 反射の初期化に失敗しました（Unity バージョン差の可能性）。");
+                    return 0;
+                }
+
+                return (int)_miGetCount.Invoke(null, null);
+            }
+
+            public static IEnumerable<Entry> EnumerateConsoleEntriesFrom(int startIndex)
+            {
+                if (!EnsureReflection())
+                {
+                    Debug.LogError("[LogBuffer] UnityEditor.LogEntries 反射の初期化に失敗しました（Unity バージョン差の可能性）。");
+                    yield break;
+                }
+
+                _miStart.Invoke(null, null);
+                int count = (int)_miGetCount.Invoke(null, null);
+
+                for (int i = startIndex; i < count; i++)
                 {
                     // Unity 6000 系: GetEntryCount と GetLinesAndModeFromEntryInternal を使用して全文とモードを取得
                     int numberOfLines = (int)_miGetEntryCount.Invoke(null, new object[] { i });

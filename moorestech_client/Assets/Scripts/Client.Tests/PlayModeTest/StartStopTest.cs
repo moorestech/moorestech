@@ -81,11 +81,15 @@ namespace Client.Tests
                 var allLogs = string.Empty;
                 foreach (var log in logEntries)
                 {
-                    allLogs += $"-----------------------------\n{log.type}\n{log.message}\n";
+                    if (string.IsNullOrWhiteSpace(log.message)) continue;
+                    
+                    allLogs += $"----------------\n{log.type}\n{log.message}\n";
                 }
                 
                 Debug.Log($"{context}\n{allLogs}");
                 Assert.IsFalse(isErrorLog, $"There are error logs. Context: {context}");
+                
+                Debug.ClearDeveloperConsole();
             }
             
             #endregion
