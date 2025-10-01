@@ -1,11 +1,13 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Client.Game.InGame.UI.Challenge;
 using Client.Tests.PlayModeTest.Util;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using Server.Boot;
+using Tools.Logging;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -13,30 +15,23 @@ namespace Client.Tests
 {
     public class StartStopTest
     {
-        private static List<(string condition, string stackTrace, LogType type)> logEntries = new();
-        
         [UnityTest]
         public IEnumerator PlayAndStartStop()
         {
-            Debug.Log("[StartStopTest] Step 1: Initialize log entries");
-            logEntries = new();
-            Application.logMessageReceived += (condition, stackTrace, type) =>
-            {
-                logEntries.Add((condition, stackTrace, type));
-            };
-
             Debug.Log("[StartStopTest] Step 2: Enter play mode (First time, expectDomainReload: true)");
             yield return new EnterPlayMode(expectDomainReload: true);
 
             Debug.Log("[StartStopTest] Step 3: Load game (First Login)");
             yield return LoadGame("First Login").ToCoroutine();
 
+            var logs = LogBuffer.EnumerateEditorConsoleEntries().ToList();
+            Assert.IsTrue(logs.Count > 0, "There are no logs after first game load.");
+            
             Debug.Log("[StartStopTest] Step 4: Exit play mode (First time)");
             yield return new ExitPlayMode();
 
             Debug.Log("[StartStopTest] Step 5: Clear logs");
             Debug.ClearDeveloperConsole();
-            logEntries.Clear();
 
             Debug.Log("[StartStopTest] Step 6: Wait for 3 seconds");
             yield return new WaitForSeconds(3f);
@@ -81,11 +76,12 @@ namespace Client.Tests
             
             void AssertNoErrorLog(string context)
             {
+                var logEntries = LogBuffer.EnumerateEditorConsoleEntries().ToList();
                 var isErrorLog = logEntries.Exists(entry => entry.type is LogType.Error or LogType.Exception);
                 var allLogs = string.Empty;
-                foreach (var (condition, stackTrace, logType) in logEntries)
+                foreach (var log in logEntries)
                 {
-                    allLogs += $"-----------------------------\n{condition}\n{stackTrace}\n{logType}\n";
+                    allLogs += $"-----------------------------\n{log.type}\n{log.message}\n";
                 }
                 
                 Debug.Log($"{context}\n{allLogs}");
