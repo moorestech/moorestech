@@ -1,6 +1,7 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using Client.Network.API;
 using Client.Network.Settings;
@@ -63,7 +64,7 @@ namespace Client.Network
                     var length = _socket.Receive(buffer);
                     if (length == 0)
                     {
-                        Debug.LogError("ストリームがゼロによる切断");
+                        Debug.Log("ストリームがゼロによる切断が発生しました");
                         break;
                     }
                     
@@ -71,6 +72,18 @@ namespace Client.Network
                     var packets = parser.Parse(buffer, length);
                     foreach (var packet in packets) packetExchangeManager.ExchangeReceivedPacket(packet).Forget();
                 }
+            }
+            catch (ThreadAbortException)
+            {
+                Thread.ResetAbort();
+            }
+            catch (ObjectDisposedException)
+            {
+                Debug.Log("ソケットが破棄されたため通信を終了しました");
+            }
+            catch (SocketException socketException) when (socketException.SocketErrorCode == SocketError.Interrupted || socketException.SocketErrorCode == SocketError.OperationAborted)
+            {
+                Debug.Log("ソケット通信が中断されました");
             }
             catch (Exception e)
             {
@@ -83,7 +96,7 @@ namespace Client.Network
                     var json = MessagePackSerializer.ConvertToJson(buffer);
                     Debug.LogError("受信パケット内容 JSON:" + json);
                 }
-                catch (Exception exception)
+                catch (Exception)
                 {
                     Debug.LogError("受信パケット内容 JSON:解析に失敗");
                 }
@@ -92,6 +105,7 @@ namespace Client.Network
             }
             finally
             {
+                _socket.Close();
                 Debug.Log("通信ループ終了");
                 InvokeDisconnect().Forget();
             }
