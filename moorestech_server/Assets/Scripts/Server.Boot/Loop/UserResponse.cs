@@ -47,6 +47,21 @@ namespace Server.Boot.Loop
                 _client.Close();
                 Debug.Log("切断されました");
             }
+            catch (ThreadAbortException)
+            {
+                _client.Close();
+                Thread.ResetAbort();
+            }
+            catch (ObjectDisposedException)
+            {
+                _client.Close();
+                Debug.Log("ユーザー受信ソケットが破棄されました");
+            }
+            catch (SocketException socketException) when (socketException.SocketErrorCode == SocketError.Interrupted || socketException.SocketErrorCode == SocketError.OperationAborted)
+            {
+                _client.Close();
+                Debug.Log("ユーザー受信ソケットが中断されました");
+            }
             catch (Exception e)
             {
                 _client.Close();

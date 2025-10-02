@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Core.Update;
+using Game.Context;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,6 +34,8 @@ namespace Server.Boot
         
         private static (Thread connectionUpdateThread, CancellationTokenSource cancellationTokenSource) Start(string[] args)
         {
+            Debug.Log($"[ServerInstanceManager] Start invoked. ServerContext.IsInitialized={ServerContext.IsInitialized}");
+
             // これはコンパイルエラーを避ける仮対応
             var settings = CliConvert.Parse<StartServerSettings>(args);
             
@@ -81,6 +84,7 @@ namespace Server.Boot
         
         public void Dispose()
         {
+            Debug.Log($"[ServerInstanceManager] Dispose invoked. ServerContext.IsInitialized={ServerContext.IsInitialized}");
             try
             {
                 _cancellationTokenSource?.Cancel();
@@ -89,14 +93,20 @@ namespace Server.Boot
             {
                 Debug.LogException(e);
             }
-            try
+
+            if (_connectionUpdateThread != null)
             {
-                _connectionUpdateThread?.Abort();
+                if (_connectionUpdateThread.IsAlive)
+                {
+                    _connectionUpdateThread.Join(TimeSpan.FromSeconds(5));
+                }
+
+                _connectionUpdateThread = null;
             }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-            }
+
+            _cancellationTokenSource?.Dispose();
+            _cancellationTokenSource = null;
+
             try
             {
                 GameUpdater.Dispose();
