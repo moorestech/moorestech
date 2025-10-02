@@ -31,8 +31,11 @@ namespace Server.Boot
         
         private void FinishServer()
         {
+            if (_startServer == null) return;
+            
             Debug.Log("サーバーを終了します");
             _startServer.Dispose();
+            _startServer = null;
             Debug.Log("サーバーを終了しました");
         }
     }
