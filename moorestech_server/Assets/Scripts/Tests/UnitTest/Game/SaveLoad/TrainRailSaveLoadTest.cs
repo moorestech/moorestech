@@ -22,10 +22,10 @@ namespace Tests.UnitTest.Game.SaveLoad
     /// <summary>
     ///     RailComponentを1つをロードセーブするテスト
     /// </summary>
-    public class TralRailSaveLoadTest
+    public class TrainRailSaveLoadTest
     {
         [Test]
-        public void TralRailOneBlockSaveLoadTest()
+        public void TrainRailOneBlockSaveLoadTest()
         {
             // 1. DIコンテナ生成
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
@@ -79,7 +79,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
         //複数のRailComponentの接続情報を含むセーブロードテスト
         [Test]
-        public void TralRailMultiBlockSaveLoadTest()
+        public void TrainRailMultiBlockSaveLoadTest()
         {
             // 1. DIコンテナ生成
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
