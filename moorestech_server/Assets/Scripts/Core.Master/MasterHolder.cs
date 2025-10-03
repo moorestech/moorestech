@@ -18,6 +18,7 @@ namespace Core.Master
         public static void Load(MasterJsonFileContainer masterJsonFileContainer)
         {
             ItemMaster = new ItemMaster(GetJson(masterJsonFileContainer, new JsonFileName("items")));
+            FluidMaster = new FluidMaster(GetJson(masterJsonFileContainer, new JsonFileName("fluids")));
             BlockMaster = new BlockMaster(GetJson(masterJsonFileContainer, new JsonFileName("blocks")), ItemMaster);
             ChallengeMaster = new ChallengeMaster(GetJson(masterJsonFileContainer, new JsonFileName("challenges")));
             
@@ -25,7 +26,6 @@ namespace Core.Master
             
             MachineRecipesMaster = new MachineRecipesMaster(GetJson(masterJsonFileContainer, new JsonFileName("machineRecipes")));
             MapObjectMaster = new MapObjectMaster(GetJson(masterJsonFileContainer, new JsonFileName("mapObjects")));
-            FluidMaster = new FluidMaster(GetJson(masterJsonFileContainer, new JsonFileName("fluids")));
             CharacterMaster = new CharacterMaster(GetJson(masterJsonFileContainer, new JsonFileName("characters")));
             ResearchMaster = new ResearchMaster(GetJson(masterJsonFileContainer, new JsonFileName("research")));
         }
