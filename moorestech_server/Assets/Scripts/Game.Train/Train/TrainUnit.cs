@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Core.Update;
 using Game.Train.Common;
 using Game.Train.RailGraph;
 using Game.Train.Utility;
@@ -55,7 +54,7 @@ namespace Game.Train.Train
         }
 
 
-        public void Update() 
+        public void Update(double deltaTime) 
         {
             if (IsAutoRun)
             {
@@ -79,7 +78,7 @@ namespace Game.Train.Train
                 {
                     // ドッキング中でなければ目的地に向かって進む
                     _destinationNode = trainDiagram.GetNextDestination();//これは手動でRailNodeが消されたときに毎フレーム"必ず存在する"目的地を見るため
-                    UpdateTrainByTime(GameUpdater.UpdateSecondTime);
+                    UpdateTrainByTime(deltaTime);
                 }
             }
             else 
@@ -99,7 +98,7 @@ namespace Game.Train.Train
                 {
                     // ドッキング中でなければキー操作で目的地に向かって進む
                     _destinationNode = trainDiagram.GetNextDestination();
-                    UpdateTrainByTime(GameUpdater.UpdateSecondTime);
+                    UpdateTrainByTime(deltaTime);
                 }
             }
                 

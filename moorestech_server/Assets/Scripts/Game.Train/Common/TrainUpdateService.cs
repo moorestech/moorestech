@@ -31,9 +31,10 @@ namespace Game.Train.Common
 
         private void UpdateTrains()
         {
+            var deltaTime = GameUpdater.UpdateSecondTime;
             foreach (var trainUnit in _trainUnits)
             {
-                trainUnit.Update();
+                trainUnit.Update(deltaTime);
             }
         }
 
