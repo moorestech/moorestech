@@ -26,9 +26,9 @@ namespace Tests.UnitTest.Game
         {
             // サーバーDIを立てて、WorldBlockDatastore や RailGraphDatastore を取得
             var env = TrainTestHelper.CreateEnvironment();
+            _ = env.GetRailGraphDatastore();
 
             var worldBlockDatastore = env.WorldBlockDatastore;
-            //var railGraphDatastore = env.GetRailGraphDatastore();
 
             // 1) ワールド上にいくつかレールを「TryAddBlock」して、RailComponentを取得
             //    例として4本だけ設置
@@ -125,8 +125,8 @@ namespace Tests.UnitTest.Game
             // --- 1. レールノードを用意 ---
             // 例として直線上のノード3つ (A <- B <- C) を作る
             var env = TrainTestHelper.CreateEnvironment();
+            _ = env.GetRailGraphDatastore();
             var worldBlockDatastore = env.WorldBlockDatastore;
-            //var railGraphDatastore = env.GetRailGraphDatastore();
 
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(0, 0, 0), BlockDirection.North, out var railA);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(2162, 2, -1667), BlockDirection.North, out var railB);
@@ -242,6 +242,7 @@ namespace Tests.UnitTest.Game
             railComponentBの座標(2.50, 15.50, 22.00)W
              */
             var env = TrainTestHelper.CreateEnvironment();
+            _ = env.GetRailGraphDatastore();
             var worldBlockDatastore = env.WorldBlockDatastore;
             RailComponent[] railComponentsData = new RailComponent[2 * 4 + 3];//1本の駅の入口と出口のrailcomponentを記憶、あと追加点
             BlockDirection[] blockDirections = new BlockDirection[] { BlockDirection.East, BlockDirection.North, BlockDirection.South, BlockDirection.West };

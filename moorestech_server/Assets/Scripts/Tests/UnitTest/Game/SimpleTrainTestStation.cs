@@ -2,12 +2,10 @@ using System.Linq;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Block.Blocks.TrainRail;
-using Game.Context;
 using Game.Train.RailGraph;
-using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
-using Server.Boot;
 using Tests.Module.TestMod;
+using Tests.Util;
 using UnityEngine;
 using Game.Block.Interface.Component;
 
@@ -21,9 +19,9 @@ namespace Tests.UnitTest.Game
         public void TestRailComponentsAreConnected()
         {
             // Initialize the RailGraphDatastore
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            var railGraphDatastore = serviceProvider.GetService<RailGraphDatastore>();
+            var env = TrainTestHelper.CreateEnvironment();
+            var worldBlockDatastore = env.WorldBlockDatastore;
+            _ = env.GetRailGraphDatastore();
 
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(0, 0, 0), BlockDirection.North, out var rail1);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(1, 0, 0), BlockDirection.North, out var rail2);
@@ -66,8 +64,9 @@ namespace Tests.UnitTest.Game
         [Test]
         public void StationDirectionSimple()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            var env = TrainTestHelper.CreateEnvironment();
+            var worldBlockDatastore = env.WorldBlockDatastore;
+            _ = env.GetRailGraphDatastore();
             // 1) 駅をつくってrailcomponentの座標を確認
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainStation, new Vector3Int(0, 0, 0), BlockDirection.North, out var stationBlockA);
 
@@ -84,8 +83,9 @@ namespace Tests.UnitTest.Game
         [Test]
         public void StationDirectionMain()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            var env = TrainTestHelper.CreateEnvironment();
+            var worldBlockDatastore = env.WorldBlockDatastore;
+            _ = env.GetRailGraphDatastore();
 
             //以下のを4方向でloopで確認する
 
@@ -108,8 +108,9 @@ namespace Tests.UnitTest.Game
         [Test]
         public void StationConnectionSimple()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            var env = TrainTestHelper.CreateEnvironment();
+            var worldBlockDatastore = env.WorldBlockDatastore;
+            _ = env.GetRailGraphDatastore();
 
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainStation, new Vector3Int(0, 0, 0), BlockDirection.North, out var stationBlockA);
             var railcompos = stationBlockA.GetComponent<RailSaverComponent>();
