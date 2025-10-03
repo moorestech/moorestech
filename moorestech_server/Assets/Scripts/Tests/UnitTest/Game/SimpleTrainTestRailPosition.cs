@@ -1,10 +1,7 @@
 using System.Collections.Generic;
-using Game.Context;
 using Game.Train.RailGraph;
-using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
-using Server.Boot;
-using Tests.Module.TestMod;
+using Tests.Util;
 
 namespace Tests.UnitTest.Game
 {
@@ -14,9 +11,8 @@ namespace Tests.UnitTest.Game
         [Test]
         public void MoveForward_LongTrain_MovesAcrossMultipleNodes()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            var railGraph = serviceProvider.GetService<RailGraphDatastore>();
+            var env = TrainTestHelper.CreateEnvironment();
+            _ = env.GetRailGraphDatastore();
 
             // ノードを準備
             var nodeA = new RailNode();
@@ -60,9 +56,8 @@ namespace Tests.UnitTest.Game
         [Test]
         public void MoveBackward_LongTrain_MovesAcrossMultipleNodes()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            var railGraph = serviceProvider.GetService<RailGraphDatastore>();
+            var env = TrainTestHelper.CreateEnvironment();
+            _ = env.GetRailGraphDatastore();
 
             // ノードを準備
             // 表

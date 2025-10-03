@@ -1,21 +1,19 @@
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
+using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
+using Game.Train.RailGraph;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
-using Server.Boot;
 using Tests.Module.TestMod;
+using Tests.Util;
 using UnityEngine;
-using Game.Train.RailGraph;
-using System.Collections.Generic;
-using UnityEngine.UIElements;
 using Core.Master;
-using Game.Block.Interface.Component;
 using Core.Update;
-using System;
+using System.Collections.Generic;
 
 namespace Tests.UnitTest.Game.SaveLoad
 {
@@ -27,14 +25,11 @@ namespace Tests.UnitTest.Game.SaveLoad
         [Test]
         public void TrainRailOneBlockSaveLoadTest()
         {
-            // 1. DIコンテナ生成
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
-                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-
-            // 2. 必要な参照を取得
-            var blockFactory = ServerContext.BlockFactory;
-            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
+            // 1. テスト環境を初期化
+            var env = TrainTestHelper.CreateEnvironment();
+            var worldBlockDatastore = env.WorldBlockDatastore;
+            _ = env.GetRailGraphDatastore();
+            var assembleSaveJsonText = env.ServiceProvider.GetService<AssembleSaveJsonText>();
 
             // 3. ブロックマスタ上のRailBlockIdを用意
             // 4. レールブロック設置
@@ -54,15 +49,15 @@ namespace Tests.UnitTest.Game.SaveLoad
             RailGraphDatastore.ResetInstance();
 
             // 8. ロードのDIコンテナ再生成
-            var (_, loadServiceProvider) = new MoorestechServerDIContainerGenerator()
-                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var loadJson = loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson;
+            var loadEnv = TrainTestHelper.CreateEnvironment();
+            _ = loadEnv.GetRailGraphDatastore();
+            var loadJson = loadEnv.ServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson;
 
             // 9. ロード
             loadJson.Load(json);
 
             // 10. ロード後にRailBlockを再取得
-            var loadedRailBlock = ServerContext.WorldBlockDatastore.GetBlock(pos);
+            var loadedRailBlock = loadEnv.WorldBlockDatastore.GetBlock(pos);
             Assert.IsNotNull(loadedRailBlock, "RailBlockが正しくロードされていません");
 
             // 11. セーブしたメモ文字列が一致しているか確認
@@ -81,13 +76,11 @@ namespace Tests.UnitTest.Game.SaveLoad
         [Test]
         public void TrainRailMultiBlockSaveLoadTest()
         {
-            // 1. DIコンテナ生成
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
-                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            // 2. 必要な参照を取得
-            var blockFactory = ServerContext.BlockFactory;
-            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
+            // 1. テスト環境を初期化
+            var env = TrainTestHelper.CreateEnvironment();
+            var worldBlockDatastore = env.WorldBlockDatastore;
+            _ = env.GetRailGraphDatastore();
+            var assembleSaveJsonText = env.ServiceProvider.GetService<AssembleSaveJsonText>();
             // 3. レールブロック設置
             const int num = 8;
             var AllRailComponents = new RailComponent[num];
@@ -126,14 +119,14 @@ namespace Tests.UnitTest.Game.SaveLoad
             //接続情報もリセット
             RailGraphDatastore.ResetInstance();
             //8 ロード
-            var (_, loadServiceProvider) = new MoorestechServerDIContainerGenerator()
-                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var loadJson = loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson;
+            var loadEnv = TrainTestHelper.CreateEnvironment();
+            _ = loadEnv.GetRailGraphDatastore();
+            var loadJson = loadEnv.ServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson;
             loadJson.Load(json);
             //9 ロード後にRailBlockを再取得
             for (int i = 0; i < num; i++)
             {
-                var loadedRailBlock = ServerContext.WorldBlockDatastore.GetBlock(pos[i]);
+                var loadedRailBlock = loadEnv.WorldBlockDatastore.GetBlock(pos[i]);
                 Assert.IsNotNull(loadedRailBlock, "RailBlockが正しくロードされていません");
                 var loadedRailComp = loadedRailBlock.GetComponent<RailSaverComponent>();
                 Assert.IsNotNull(loadedRailComp, "ロード後のRailComponentがnullです");
@@ -222,14 +215,11 @@ namespace Tests.UnitTest.Game.SaveLoad
         [Test]
         public void TrainStationSaveLoadTest()
         {
-            // 1. DIコンテナ生成
-            var (_, diProvider) = new MoorestechServerDIContainerGenerator()
-                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-
-            // 2. 必要なサービス取得
-            var blockFactory = ServerContext.BlockFactory;
-            var blockStore = ServerContext.WorldBlockDatastore;
-            var saveJsonAssembler = diProvider.GetService<AssembleSaveJsonText>();
+            // 1. テスト環境を初期化
+            var env = TrainTestHelper.CreateEnvironment();
+            var blockStore = env.WorldBlockDatastore;
+            _ = env.GetRailGraphDatastore();
+            var saveJsonAssembler = env.ServiceProvider.GetService<AssembleSaveJsonText>();
 
             // 3. 駅ブロック設置
             var stationPos = new Vector3Int(0, 0, 0);
@@ -272,13 +262,13 @@ namespace Tests.UnitTest.Game.SaveLoad
             RailGraphDatastore.ResetInstance();
 
             // 8. ロード処理
-            var (_, loadProvider) = new MoorestechServerDIContainerGenerator()
-                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var worldLoader = loadProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson;
+            var loadEnv = TrainTestHelper.CreateEnvironment();
+            _ = loadEnv.GetRailGraphDatastore();
+            var worldLoader = loadEnv.ServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson;
             worldLoader.Load(saveJson);
 
             // 駅のインベントリにアイテムが存在することを確認
-            blockStore = ServerContext.WorldBlockDatastore;
+            blockStore = loadEnv.WorldBlockDatastore;
             var loadedStationBlock = blockStore.GetBlock(stationPos);
             Assert.IsNotNull(loadedStationBlock, "ロード後の駅ブロックが見つからない");
 
