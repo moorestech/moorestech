@@ -18,282 +18,235 @@ using System.Collections.Generic;
 namespace Tests.UnitTest.Game.SaveLoad
 {
     /// <summary>
-    ///     RailComponentを1つをロードセーブするテスト
+    ///     RailComponent関連のセーブ・ロードを検証するテスト
     /// </summary>
     public class TrainRailSaveLoadTest
     {
         [Test]
         public void TrainRailOneBlockSaveLoadTest()
         {
-            // 1. テスト環境を初期化
-            var env = TrainTestHelper.CreateEnvironment();
+            var env = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
             var worldBlockDatastore = env.WorldBlockDatastore;
-            _ = env.GetRailGraphDatastore();
             var assembleSaveJsonText = env.ServiceProvider.GetService<AssembleSaveJsonText>();
 
-            // 3. ブロックマスタ上のRailBlockIdを用意
-            // 4. レールブロック設置
             var pos = new Vector3Int(10, 0, 10);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, pos, BlockDirection.North, out var railBlock);
+            var (_, railSaverComponent) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+                env,
+                ForUnitTestModBlockId.TestTrainRail,
+                pos,
+                BlockDirection.North);
+            Assert.IsNotNull(railSaverComponent, "RailSaverComponentが取得できませんでした");
 
-            // 5. RailSaverComponentを取得
-            var railSaverComponent = railBlock.GetComponent<RailSaverComponent>();
-
-            // 6. セーブ実行
             var json = assembleSaveJsonText.AssembleSaveJson();
             Debug.Log("[RailComponentSaveLoadTest] SaveJson:\n" + json);
 
-            // 7. 一旦ワールドからブロック削除(テスト用)
             worldBlockDatastore.RemoveBlock(pos);
-            //接続情報もリセット
             RailGraphDatastore.ResetInstance();
 
-            // 8. ロードのDIコンテナ再生成
-            var loadEnv = TrainTestHelper.CreateEnvironment();
-            _ = loadEnv.GetRailGraphDatastore();
+            var loadEnv = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
             var loadJson = loadEnv.ServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson;
-
-            // 9. ロード
+            Assert.IsNotNull(loadJson, "WorldLoaderFromJsonが解決できませんでした");
             loadJson.Load(json);
 
-            // 10. ロード後にRailBlockを再取得
             var loadedRailBlock = loadEnv.WorldBlockDatastore.GetBlock(pos);
             Assert.IsNotNull(loadedRailBlock, "RailBlockが正しくロードされていません");
 
-            // 11. セーブしたメモ文字列が一致しているか確認
             var loadedRailComp = loadedRailBlock.GetComponent<RailSaverComponent>();
             Assert.IsNotNull(loadedRailComp, "ロード後のRailComponentがnullです");
 
-            var isdestroy = loadedRailComp.RailComponents[0].IsDestroy;
-            Assert.AreEqual(false, isdestroy,
-                "RailComponentが読み込まれませんでした");
+            var isDestroy = loadedRailComp.RailComponents[0].IsDestroy;
+            Assert.AreEqual(false, isDestroy, "RailComponentが読み込まれませんでした");
         }
 
-
-
-
-        //複数のRailComponentの接続情報を含むセーブロードテスト
         [Test]
         public void TrainRailMultiBlockSaveLoadTest()
         {
-            // 1. テスト環境を初期化
-            var env = TrainTestHelper.CreateEnvironment();
+            var env = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
             var worldBlockDatastore = env.WorldBlockDatastore;
-            _ = env.GetRailGraphDatastore();
             var assembleSaveJsonText = env.ServiceProvider.GetService<AssembleSaveJsonText>();
-            // 3. レールブロック設置
+
             const int num = 8;
-            var AllRailComponents = new RailComponent[num];
-            //4 場所をランダムに設定
-            Vector3Int[] pos = new Vector3Int[num];
+            var allRailComponents = new RailComponent[num];
+            var positions = new Vector3Int[num];
+
             for (int i = 0; i < num; i++)
             {
-                pos[i] = new Vector3Int(UnityEngine.Random.Range(-100, 100), 0, UnityEngine.Random.Range(-100, 100));
-                worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, pos[i], BlockDirection.North, out var railBlock);
-                var railSaverComponent = railBlock.GetComponent<RailSaverComponent>();
-                AllRailComponents[i] = railSaverComponent.RailComponents[0];
+                positions[i] = new Vector3Int(UnityEngine.Random.Range(-100, 100), 0, UnityEngine.Random.Range(-100, 100));
+                var (_, railSaverComponent) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+                    env,
+                    ForUnitTestModBlockId.TestTrainRail,
+                    positions[i],
+                    BlockDirection.North);
+                Assert.IsNotNull(railSaverComponent, $"RailSaverComponent[{i}]が取得できませんでした");
+                allRailComponents[i] = railSaverComponent.RailComponents[0];
             }
-            //5 適当に接続情報
-            Dictionary<(int, int, bool, bool), bool> allconnect = new Dictionary<(int, int, bool, bool), bool>();
+
+            var allConnect = new Dictionary<(int, int, bool, bool), bool>();
             for (int i = 0; i < num; i++)
             {
                 for (int j = 0; j < num; j++)
                 {
                     if (i == j) continue;
                     if (UnityEngine.Random.Range(0, 5) != 0) continue;
+
                     bool isFrontThis = UnityEngine.Random.Range(0, 2) == 0;
                     bool isFrontTarget = UnityEngine.Random.Range(0, 2) == 0;
-                    AllRailComponents[i].ConnectRailComponent(AllRailComponents[j], isFrontThis, isFrontTarget);
-                    allconnect[(i, j, isFrontThis, isFrontTarget)] = true;
-                    allconnect[(j, i, !isFrontTarget, !isFrontThis)] = true;
+
+                    allRailComponents[i].ConnectRailComponent(allRailComponents[j], isFrontThis, isFrontTarget);
+                    allConnect[(i, j, isFrontThis, isFrontTarget)] = true;
+                    allConnect[(j, i, !isFrontTarget, !isFrontThis)] = true;
                 }
             }
-            //6 セーブ
+
             var json = assembleSaveJsonText.AssembleSaveJson();
             Debug.Log("[RailComponentSaveLoadTest] SaveJson:\n" + json);
-            //7 ワールドから削除
+
             for (int i = 0; i < num; i++)
             {
-                worldBlockDatastore.RemoveBlock(pos[i]);
-            }
-            //接続情報もリセット
-            RailGraphDatastore.ResetInstance();
-            //8 ロード
-            var loadEnv = TrainTestHelper.CreateEnvironment();
-            _ = loadEnv.GetRailGraphDatastore();
-            var loadJson = loadEnv.ServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson;
-            loadJson.Load(json);
-            //9 ロード後にRailBlockを再取得
-            for (int i = 0; i < num; i++)
-            {
-                var loadedRailBlock = loadEnv.WorldBlockDatastore.GetBlock(pos[i]);
-                Assert.IsNotNull(loadedRailBlock, "RailBlockが正しくロードされていません");
-                var loadedRailComp = loadedRailBlock.GetComponent<RailSaverComponent>();
-                Assert.IsNotNull(loadedRailComp, "ロード後のRailComponentがnullです");
-                AllRailComponents[i] = loadedRailComp.RailComponents[0];
+                worldBlockDatastore.RemoveBlock(positions[i]);
             }
 
-            //接続情報の確認
+            RailGraphDatastore.ResetInstance();
+
+            var loadEnv = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
+            var loadJson = loadEnv.ServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson;
+            Assert.IsNotNull(loadJson, "WorldLoaderFromJsonが解決できませんでした");
+            loadJson.Load(json);
+
+            for (int i = 0; i < num; i++)
+            {
+                var loadedRailBlock = loadEnv.WorldBlockDatastore.GetBlock(positions[i]);
+                Assert.IsNotNull(loadedRailBlock, "RailBlockが正しくロードされていません");
+
+                var loadedRailComp = loadedRailBlock.GetComponent<RailSaverComponent>();
+                Assert.IsNotNull(loadedRailComp, "ロード後のRailComponentがnullです");
+                allRailComponents[i] = loadedRailComp.RailComponents[0];
+            }
+
             for (int i = 0; i < num; i++)
             {
                 for (int j = 0; j < num; j++)
                 {
                     if (i == j) continue;
-                    if (allconnect.ContainsKey((i, j, true, true)))
+
+                    if (allConnect.ContainsKey((i, j, true, true)))
                     {
-                        var nodes = AllRailComponents[i].FrontNode.ConnectedNodes;
-                        //nodesの中にAllRailComponents[j]のFrontNodeがあるか
-                        bool isconnect = false;
-                        foreach (var node in nodes)
-                        {
-                            if (node == AllRailComponents[j].FrontNode)
-                            {
-                                isconnect = true;
-                                break;
-                            }
-                        }
-                        Assert.AreEqual(true, isconnect, "接続情報が正しくロードされていません");
-                    }
-                    if (allconnect.ContainsKey((i, j, true, false)))
-                    {
-                        var nodes = AllRailComponents[i].FrontNode.ConnectedNodes;
-                        //nodesの中にAllRailComponents[j]のBackNodeがあるか
-                        bool isconnect = false;
-                        foreach (var node in nodes)
-                        {
-                            if (node == AllRailComponents[j].BackNode)
-                            {
-                                isconnect = true;
-                                break;
-                            }
-                        }
-                        Assert.AreEqual(true, isconnect, "接続情報が正しくロードされていません");
-                    }
-                    if (allconnect.ContainsKey((i, j, false, true)))
-                    {
-                        var nodes = AllRailComponents[i].BackNode.ConnectedNodes;
-                        //nodesの中にAllRailComponents[j]のFrontNodeがあるか
-                        bool isconnect = false;
-                        foreach (var node in nodes)
-                        {
-                            if (node == AllRailComponents[j].FrontNode)
-                            {
-                                isconnect = true;
-                                break;
-                            }
-                        }
-                        Assert.AreEqual(true, isconnect, "接続情報が正しくロードされていません");
-                    }
-                    if (allconnect.ContainsKey((i, j, false, false)))
-                    {
-                        var nodes = AllRailComponents[i].BackNode.ConnectedNodes;
-                        //nodesの中にAllRailComponents[j]のBackNodeがあるか
-                        bool isconnect = false;
-                        foreach (var node in nodes)
-                        {
-                            if (node == AllRailComponents[j].BackNode)
-                            {
-                                isconnect = true;
-                                break;
-                            }
-                        }
-                        Assert.AreEqual(true, isconnect, "接続情報が正しくロードされていません");
+                        AssertConnection(allRailComponents[i].FrontNode.ConnectedNodes, allRailComponents[j].FrontNode);
                     }
 
+                    if (allConnect.ContainsKey((i, j, true, false)))
+                    {
+                        AssertConnection(allRailComponents[i].FrontNode.ConnectedNodes, allRailComponents[j].BackNode);
+                    }
+
+                    if (allConnect.ContainsKey((i, j, false, true)))
+                    {
+                        AssertConnection(allRailComponents[i].BackNode.ConnectedNodes, allRailComponents[j].FrontNode);
+                    }
+
+                    if (allConnect.ContainsKey((i, j, false, false)))
+                    {
+                        AssertConnection(allRailComponents[i].BackNode.ConnectedNodes, allRailComponents[j].BackNode);
+                    }
                 }
             }
         }
 
-
-
-        // 駅のインベントリにアイテムを入れた状態でセーブ・ロードを検証するテスト
-        // 1 inputChestとstationを設置
-        // 2 inputChestにアイテムを入れ、時間を進めてstationにアイテムが搬入されてセーブ
-        // 3 ロード後にstationのインベントリにアイテムが入っていることを確認
-        // 4 その後、outputChestを設置して、時間を進めてstationからアイテムが搬出されることを確認
-        // これでstationのアイテム情報のセーブ・ロードの正しさ、ロード後の新規itemInventoryの接続に問題がないことがわかる
         [Test]
         public void TrainStationSaveLoadTest()
         {
-            // 1. テスト環境を初期化
-            var env = TrainTestHelper.CreateEnvironment();
+            var env = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
             var blockStore = env.WorldBlockDatastore;
-            _ = env.GetRailGraphDatastore();
             var saveJsonAssembler = env.ServiceProvider.GetService<AssembleSaveJsonText>();
 
-            // 3. 駅ブロック設置
             var stationPos = new Vector3Int(0, 0, 0);
-            blockStore.TryAddBlock(ForUnitTestModBlockId.TestTrainStation, stationPos, BlockDirection.North, out var stationBlock);
-            Assert.IsNotNull(stationBlock, "駅ブロックの設置に失敗");
+            var (stationBlock, stationComponent) = TrainTestHelper.PlaceBlockWithComponent<StationComponent>(
+                env,
+                ForUnitTestModBlockId.TestTrainStation,
+                stationPos,
+                BlockDirection.North);
+            Assert.IsNotNull(stationBlock, "駐車場ブロックの設置に失敗しました");
+            Assert.IsNotNull(stationComponent, "StationComponentが見つかりません");
 
-            var stationComponent = stationBlock.GetComponent<StationComponent>();
-            Assert.IsNotNull(stationComponent, "StationComponentが見つからない");
-
-            // 4. 入力チェスト設置・テストアイテム投入
             var inputChestPos = new Vector3Int(4, 0, -1);
-            blockStore.TryAddBlock(ForUnitTestModBlockId.ChestId, inputChestPos, BlockDirection.North, out var inputChestBlock);
+            var (_, inputInventory) = TrainTestHelper.PlaceBlockWithComponent<IBlockInventory>(
+                env,
+                ForUnitTestModBlockId.ChestId,
+                inputChestPos,
+                BlockDirection.North);
 
-            var inputInventory = inputChestBlock.GetComponent<IBlockInventory>();
             var testItemStack = ServerContext.ItemStackFactory.Create(new ItemId(1), 10);
             inputInventory.InsertItem(testItemStack);
 
             var insertedStack = inputInventory.GetItem(0);
-            Assert.AreEqual(new ItemId(1), insertedStack.Id, "テストアイテムの挿入に失敗");
-            Assert.AreEqual(10, insertedStack.Count, "テストアイテム数が不一致");
+            Assert.AreEqual(new ItemId(1), insertedStack.Id, "チェストへの挿入に失敗しました");
+            Assert.AreEqual(10, insertedStack.Count, "チェスト内のアイテム数が一致しません");
 
-            // 駅との接続は自動（BeltConveyorTestパターン）
             var stationInventory = stationBlock.GetComponent<IBlockInventory>();
+            Assert.IsNotNull(stationInventory, "Stationのインベントリが取得できません");
 
-            // 5. 搬送処理の進行
             for (int i = 0; i < 10; i++)
+            {
                 GameUpdater.Update();
+            }
 
-            // 入力チェストからアイテムが減っていることを確認
             var inputChestRemainder = inputInventory.GetItem(0);
-            Assert.IsTrue(inputChestRemainder.Count < 10, "入力チェストのアイテムが減っていない");
+            Assert.IsTrue(inputChestRemainder.Count < 10, "入力チェスト内のアイテム数が減っていません");
 
-            // 6. セーブ処理
             var saveJson = saveJsonAssembler.AssembleSaveJson();
             Debug.Log("[TrainStationSaveLoadTest] SaveJson:\n" + saveJson);
 
-            // 7. ワールドから駅・入力チェスト削除
             blockStore.RemoveBlock(stationPos);
             blockStore.RemoveBlock(inputChestPos);
             RailGraphDatastore.ResetInstance();
 
-            // 8. ロード処理
-            var loadEnv = TrainTestHelper.CreateEnvironment();
-            _ = loadEnv.GetRailGraphDatastore();
+            var loadEnv = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
             var worldLoader = loadEnv.ServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson;
+            Assert.IsNotNull(worldLoader, "WorldLoaderFromJsonが解決できませんでした");
             worldLoader.Load(saveJson);
 
-            // 駅のインベントリにアイテムが存在することを確認
             blockStore = loadEnv.WorldBlockDatastore;
             var loadedStationBlock = blockStore.GetBlock(stationPos);
-            Assert.IsNotNull(loadedStationBlock, "ロード後の駅ブロックが見つからない");
+            Assert.IsNotNull(loadedStationBlock, "ロード後にStationブロックが見つかりません");
 
             var loadedStationComponent = loadedStationBlock.GetComponent<StationComponent>();
-            Assert.IsNotNull(loadedStationComponent, "ロード後のStationComponentが見つからない");
+            Assert.IsNotNull(loadedStationComponent, "ロード後のStationComponentが見つかりません");
 
             var loadedStationInventory = loadedStationBlock.GetComponent<IBlockInventory>();
             var stationStack = loadedStationInventory.GetItem(0);
-            Assert.AreEqual(new ItemId(1), stationStack.Id, "ロード後の駅インベントリにアイテムが無い");
-            Assert.IsTrue(stationStack.Count > 0, "ロード後の駅アイテム数が0");
+            Assert.AreEqual(new ItemId(1), stationStack.Id, "ロード後のStationインベントリにアイテムが存在しません");
+            Assert.IsTrue(stationStack.Count > 0, "ロード後のStationインベントリ数が0です");
 
-            // 9. 出力チェスト設置
             var outputChestPos = new Vector3Int(6, 0, -1);
-            blockStore.TryAddBlock(ForUnitTestModBlockId.ChestId, outputChestPos, BlockDirection.North, out var outputChestBlock);
-            var outputInventory = outputChestBlock.GetComponent<IBlockInventory>();
+            var (_, outputInventory) = TrainTestHelper.PlaceBlockWithComponent<IBlockInventory>(
+                loadEnv,
+                ForUnitTestModBlockId.ChestId,
+                outputChestPos,
+                BlockDirection.North);
 
-            // 10. 駅→出力チェストへの搬送を進行
             for (int i = 0; i < 10; i++)
+            {
                 GameUpdater.Update();
+            }
 
-            // 11. 出力チェストへの搬出確認
             var outputStack = outputInventory.GetItem(0);
-            Assert.AreEqual(new ItemId(1), outputStack.Id, "出力チェストにアイテムが移動していない");
-            Assert.IsTrue(outputStack.Count > 0, "出力チェストのアイテム数が0");
+            Assert.AreEqual(new ItemId(1), outputStack.Id, "出力チェストにアイテムが移動していません");
+            Assert.IsTrue(outputStack.Count > 0, "出力チェストのアイテム数が0です");
         }
 
+        private static void AssertConnection(IEnumerable<RailNode> nodes, RailNode expected)
+        {
+            var isConnect = false;
+            foreach (var node in nodes)
+            {
+                if (node == expected)
+                {
+                    isConnect = true;
+                    break;
+                }
+            }
+
+            Assert.IsTrue(isConnect, "接続情報が正しくロードされていません");
+        }
     }
 }

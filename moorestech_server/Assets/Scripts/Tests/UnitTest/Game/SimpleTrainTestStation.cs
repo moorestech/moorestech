@@ -13,126 +13,105 @@ namespace Tests.UnitTest.Game
 {
     public class SimpleTrainTestStation
     {
-
-        //ブロック設置してrailComponentの表裏テスト
         [Test]
         public void TestRailComponentsAreConnected()
         {
-            // Initialize the RailGraphDatastore
-            var env = TrainTestHelper.CreateEnvironment();
-            var worldBlockDatastore = env.WorldBlockDatastore;
-            _ = env.GetRailGraphDatastore();
+            var env = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
 
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(0, 0, 0), BlockDirection.North, out var rail1);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(1, 0, 0), BlockDirection.North, out var rail2);
+            var railComponent1 = TrainTestHelper.PlaceRail(env, new Vector3Int(0, 0, 0), BlockDirection.North);
+            var railComponent2 = TrainTestHelper.PlaceRail(env, new Vector3Int(1, 0, 0), BlockDirection.North);
 
-            //assert rail1が存在する
-            Assert.NotNull(rail1, "Rail1 does not exist.");
+            Assert.NotNull(railComponent1, "Rail1 does not exist.");
+            Assert.NotNull(railComponent2, "Rail2 does not exist.");
 
-            // Get two RailComponents
-            var railComponent1 = rail1.GetComponent<RailComponent>();
-            var railComponent2 = rail2.GetComponent<RailComponent>();
+            railComponent1.ConnectRailComponent(railComponent2, true, true);
 
-            // Connect the two RailComponents
-            railComponent1.ConnectRailComponent(railComponent2, true, true); // Front of railComponent1 to front of railComponent2
-
-            // Validate connections
             var connectedNodes = railComponent1.FrontNode.ConnectedNodesWithDistance;
             var connectedNode = connectedNodes.FirstOrDefault();
 
             Assert.NotNull(connectedNode, "RailComponent1 is not connected to RailComponent2.");
             Assert.AreEqual(railComponent2.FrontNode, connectedNode.Item1, "RailComponent1's FrontNode is not connected to RailComponent2's FrontNode.");
-            //Assert.AreEqual(1, connectedNode.Item2, "The connection distance is not correct.");
-            //Debug.Log("Node1からNode2の距離" + connectedNode.Item2);
 
-            //表
-            var outListPath = RailGraphDatastore.FindShortestPath(railComponent1.FrontNode, railComponent2.FrontNode);
-            // outListPathの長さが0でないことを確認
-            Assert.AreNotEqual(0, outListPath.Count);
-            //裏
-            outListPath = RailGraphDatastore.FindShortestPath(railComponent2.BackNode, railComponent2.BackNode);
-            // outListPathの長さが0でないことを確認
-            Assert.AreNotEqual(0, outListPath.Count);
+            var path = RailGraphDatastore.FindShortestPath(railComponent1.FrontNode, railComponent2.FrontNode);
+            Assert.AreNotEqual(0, path.Count);
 
+            path = RailGraphDatastore.FindShortestPath(railComponent2.BackNode, railComponent2.BackNode);
+            Assert.AreNotEqual(0, path.Count);
         }
 
-
         /// <summary>
-        /// 駅の向きテスト
-        /// 駅を設置したときにRailComponentが真ん中を通るようにならないといけない
+        /// 駅ブロックの向きごとのRailComponent位置を検証
         /// </summary>
         [Test]
         public void StationDirectionSimple()
         {
-            var env = TrainTestHelper.CreateEnvironment();
-            var worldBlockDatastore = env.WorldBlockDatastore;
-            _ = env.GetRailGraphDatastore();
-            // 1) 駅をつくってrailcomponentの座標を確認
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainStation, new Vector3Int(0, 0, 0), BlockDirection.North, out var stationBlockA);
+            var env = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
 
-            // RailComponent を取得
-            var railcompos = stationBlockA.GetComponent<RailSaverComponent>();
-            //2つあるかassert
-            Assert.AreEqual(2, railcompos.RailComponents.Length);
-            var railComponentA = railcompos.RailComponents[0];
-            var railComponentB = railcompos.RailComponents[1];
-            Debug.Log("railComponentAの座標" + railComponentA.Position);
-            Debug.Log("railComponentBの座標" + railComponentB.Position);
+            var (stationBlockA, railSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+                env,
+                ForUnitTestModBlockId.TestTrainStation,
+                new Vector3Int(0, 0, 0),
+                BlockDirection.North);
+            Assert.IsNotNull(stationBlockA, "Station block placement failed");
+            Assert.IsNotNull(railSaver, "RailSaverComponent is missing");
+
+            Assert.AreEqual(2, railSaver.RailComponents.Length);
+            var railComponentA = railSaver.RailComponents[0];
+            var railComponentB = railSaver.RailComponents[1];
+            Debug.Log("railComponentA Position: " + railComponentA.Position);
+            Debug.Log("railComponentB Position: " + railComponentB.Position);
         }
 
         [Test]
         public void StationDirectionMain()
         {
-            var env = TrainTestHelper.CreateEnvironment();
-            var worldBlockDatastore = env.WorldBlockDatastore;
-            _ = env.GetRailGraphDatastore();
-
-            //以下のを4方向でloopで確認する
+            var env = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
 
             for (int i = 0; i < 4; i++)
             {
                 var direction = (BlockDirection)4 + i;
-                // 1) 駅をつくってrailcomponentの座標を確認
-                worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainStation, new Vector3Int(0, 5 * i, 0), direction, out var stationBlockA);
-                // RailComponent を取得
-                var railcompos = stationBlockA.GetComponent<RailSaverComponent>();
-                //2つあるかassert
-                Assert.AreEqual(2, railcompos.RailComponents.Length);
-                var railComponentA = railcompos.RailComponents[0];
-                var railComponentB = railcompos.RailComponents[1];
-                Debug.Log("railComponentAの座標" + railComponentA.Position);
-                Debug.Log("railComponentBの座標" + railComponentB.Position);
+                var (stationBlockA, railSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+                    env,
+                    ForUnitTestModBlockId.TestTrainStation,
+                    new Vector3Int(0, 5 * i, 0),
+                    direction);
+                Assert.IsNotNull(stationBlockA, "Station block placement failed");
+                Assert.IsNotNull(railSaver, "RailSaverComponent is missing");
+
+                Assert.AreEqual(2, railSaver.RailComponents.Length);
+                var railComponentA = railSaver.RailComponents[0];
+                var railComponentB = railSaver.RailComponents[1];
+                Debug.Log("railComponentA Position: " + railComponentA.Position);
+                Debug.Log("railComponentB Position: " + railComponentB.Position);
             }
         }
 
         [Test]
         public void StationConnectionSimple()
         {
-            var env = TrainTestHelper.CreateEnvironment();
-            var worldBlockDatastore = env.WorldBlockDatastore;
-            _ = env.GetRailGraphDatastore();
+            var env = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
 
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainStation, new Vector3Int(0, 0, 0), BlockDirection.North, out var stationBlockA);
-            var railcompos = stationBlockA.GetComponent<RailSaverComponent>();
-            var railNodeA = railcompos.RailComponents[0].FrontNode;
-            var railNodeB = railcompos.RailComponents[1].FrontNode;
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainStation, new Vector3Int(22, 0, 0), BlockDirection.North, out var stationBlockB);
-            railcompos = stationBlockB.GetComponent<RailSaverComponent>();
-            var railNodeC = railcompos.RailComponents[0].FrontNode;
-            var railNodeD = railcompos.RailComponents[1].FrontNode;
+            var (_, firstSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+                env,
+                ForUnitTestModBlockId.TestTrainStation,
+                new Vector3Int(0, 0, 0),
+                BlockDirection.North);
+            var railNodeA = firstSaver.RailComponents[0].FrontNode;
+            var railNodeB = firstSaver.RailComponents[1].FrontNode;
 
-            Debug.Log(
-                RailGraphDatastore.GetDistanceBetweenNodes(railNodeA, railNodeB)
-            );
+            var (_, secondSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+                env,
+                ForUnitTestModBlockId.TestTrainStation,
+                new Vector3Int(22, 0, 0),
+                BlockDirection.North);
+            var railNodeC = secondSaver.RailComponents[0].FrontNode;
+            var railNodeD = secondSaver.RailComponents[1].FrontNode;
+
+            Debug.Log(RailGraphDatastore.GetDistanceBetweenNodes(railNodeA, railNodeB));
             var length0 = RailGraphDatastore.GetDistanceBetweenNodes(railNodeB, railNodeC);
-            Debug.Log(
-                length0
-            );
+            Debug.Log(length0);
             Assert.AreEqual(0, length0);
-            Debug.Log(
-                RailGraphDatastore.GetDistanceBetweenNodes(railNodeC, railNodeD)
-            );
+            Debug.Log(RailGraphDatastore.GetDistanceBetweenNodes(railNodeC, railNodeD));
         }
-
     }
 }
