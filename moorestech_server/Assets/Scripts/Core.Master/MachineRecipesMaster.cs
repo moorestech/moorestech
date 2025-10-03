@@ -26,26 +26,41 @@ namespace Core.Master
             {
                 foreach (var recipe in MachineRecipes.Data)
                 {
-                    var inputItemIds = new List<ItemId>();
+                    var inputItemIds = new List<ItemId>(recipe.InputItems.Length);
                     foreach (var inputItem in recipe.InputItems)
                     {
                         var itemId = MasterHolder.ItemMaster.GetItemId(inputItem.ItemGuid);
                         inputItemIds.Add(itemId);
                     }
+                    var fluidIds = new List<FluidId>(recipe.InputFluids.Length);
+                    foreach (var inputFluid in recipe.InputFluids)
+                    {
+                        var fluidId = MasterHolder.FluidMaster.GetFluidId(inputFluid.FluidGuid);
+                        fluidIds.Add(fluidId);
+                    }
                     
                     var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
                     
-                    var key = GetRecipeElementKey(blockId, inputItemIds);
-                    _machineRecipesByRecipeKey.Add(key, recipe);
+                    var key = GetRecipeElementKey(blockId, inputItemIds, fluidIds);
+                    
+                    if (!_machineRecipesByRecipeKey.TryAdd(key, recipe))
+                    {
+                        var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(recipe.BlockGuid);
+                        var inputItemMaster = inputItemIds
+                            .Select(i => MasterHolder.ItemMaster.GetItemMaster(i))
+                            .ToList();
+                        throw new Exception($"同じレシピが登録されています。ブロックID:{blockMaster.Name} アイテムIDリスト: {string.Join(", ", inputItemMaster.Select(i => i.Name))} \n" +
+                                            $"レシピID1: {_machineRecipesByRecipeKey[key].MachineRecipeGuid} レシピID2: {recipe.MachineRecipeGuid}");
+                    }
                 }
             }
             
             #endregion
         }
         
-        public bool TryGetRecipeElement(BlockId blockId, List<ItemId> inputItemIds, out MachineRecipeMasterElement recipe)
+        public bool TryGetRecipeElement(BlockId blockId, List<ItemId> inputItemIds, List<FluidId> inputFluids, out MachineRecipeMasterElement recipe)
         {
-            var key = GetRecipeElementKey(blockId, inputItemIds);
+            var key = GetRecipeElementKey(blockId, inputItemIds, inputFluids);
             return _machineRecipesByRecipeKey.TryGetValue(key, out recipe);
         }
         
@@ -54,17 +69,24 @@ namespace Core.Master
             return MachineRecipes.Data.ToList().Find(x => x.MachineRecipeGuid == machineRecipeGuid);
         }
         
-        private static string GetRecipeElementKey(BlockId blockId, List<ItemId> itemIds)
+        private static string GetRecipeElementKey(BlockId blockId, List<ItemId> itemIds, List<FluidId> fluidIds)
         {
             StringBuilder items = new StringBuilder();
             items.Append(blockId);
             
             itemIds.Sort((a, b) => a.AsPrimitive() - b.AsPrimitive());
-            itemIds.ForEach(i =>
+            for (var i = 0; i < itemIds.Count; i++)
             {
                 items.Append('_');
-                items.Append(i.AsPrimitive());
-            });
+                items.Append(itemIds[i].AsPrimitive());
+            }
+            
+            items.Append('|');
+            for (var i = 0; i < fluidIds.Count; i++)
+            {
+                if (i > 0) items.Append('_');
+                items.Append(fluidIds[i].AsPrimitive());
+            }
             
             return items.ToString();
         }
