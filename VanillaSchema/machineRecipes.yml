@@ -23,7 +23,7 @@ properties:
         displayElementPath: /data/[*]/name
     - key: time
       type: number
-      default: 1
+      default: 3
     - key: inputItems
       type: array
       items:
