@@ -21,8 +21,14 @@ namespace Core.Master
                 if (inputItem.Id == ItemMaster.EmptyItemId) continue;
                 itemIds.Add(inputItem.Id);
             }
+            var fluidIds = new List<FluidId>(fluidInputSlot.Count);
+            foreach (var fluidContainer in fluidInputSlot)
+            {
+                if (fluidContainer.FluidId == FluidMaster.EmptyFluidId) continue;
+                fluidIds.Add(fluidContainer.FluidId);
+            }
             
-            return MasterHolder.MachineRecipesMaster.TryGetRecipeElement(blockId, itemIds, out recipe);
+            return MasterHolder.MachineRecipesMaster.TryGetRecipeElement(blockId, itemIds, fluidIds,out recipe);
         }
         
         public static bool RecipeConfirmation(
