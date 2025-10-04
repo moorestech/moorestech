@@ -1,5 +1,6 @@
 using Client.Game.InGame.UI.Inventory.Common;
 using Client.Mod.Texture;
+using Core.Master;
 using TMPro;
 using UnityEngine;
 
@@ -7,6 +8,8 @@ namespace Client.Game.InGame.UI.Inventory
 {
     public class HotBarItem : MonoBehaviour
     {
+        public ItemId ItemId => itemSlotView.ItemViewData?.ItemId ?? ItemMaster.EmptyItemId;
+        
         [SerializeField] private ItemSlotView itemSlotView;
         [SerializeField] private TMP_Text keyBoardText;
         
