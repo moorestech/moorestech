@@ -69,8 +69,11 @@ namespace Client.Game.InGame.UI.Inventory
                 
                 if (slot < startHotBarSlot || PlayerInventoryConst.MainInventorySize <= slot) return;
                 
-                var viewData = ClientContext.ItemImageContainer.GetItemView(item.Id);
                 slot -= startHotBarSlot;
+                // 同じアイテムなら更新しない
+                if (hotBarItems[slot].ItemId == item.Id) return;
+                
+                var viewData = ClientContext.ItemImageContainer.GetItemView(item.Id);
                 hotBarItems[slot].SetItem(viewData, item.Count);
             }
             
