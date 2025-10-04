@@ -2,90 +2,182 @@ using System.Collections.Generic;
 using System.Linq;
 using Game.Train.RailGraph;
 
-//1つのtrainunitが1つもつダイアグラム
-//登録されているnodeに順に向かう、一番下までみたら上にループ
 namespace Game.Train.Train
 {
     public class TrainDiagram
     {
-        private TrainUnit _trainUnit;
+        private readonly TrainUnit _trainUnit;
         public List<DiagramEntry> _entries;
-        //_entriesの何番目を指しているか
         public int currentIndex;
-
-        public class DiagramEntry
-        {
-            public RailNode Node { get; set; }
-            //ここにfactorioの出発条件などを追加してもいいかもしれない
-        }
 
         public TrainDiagram(TrainUnit trainUnit)
         {
-            currentIndex = -1;//-1は未選択,手動運転のようなもの
             _trainUnit = trainUnit;
             _entries = new List<DiagramEntry>();
+            currentIndex = -1;
         }
 
-        //出発条件チェック
-        //true出発可能
+        public DiagramEntry AddEntry(RailNode node)
+        {
+            var entry = new DiagramEntry(node);
+            _entries.Add(entry);
+            return entry;
+        }
+
         public bool CheckEntries()
         {
-            bool ret = true;
-            //train car全部でIsInventoryFull()をチェックする
-            //ドッキングしている車両がすべてアイテム満杯なら出発可能
-            foreach (var car in _trainUnit._cars)
+            if (!HasUsableEntry())
             {
-                if (car.IsDocked)
-                {
-                    if (car.IsInventoryFull() == false)
-                        ret = false;
-                }
-            }
-            return ret;
-        }
-
-        //GetNextDestination
-        public RailNode GetNextDestination() 
-        {
-            if (_entries.Count == 0) return null; // エントリがない場合はnullを返す
-            // 現在のインデックスが有効な範囲内であることを確認
-            if (currentIndex < 0 || currentIndex >= _entries.Count)
-            {
-                return null; // インデックスが無効な場合はnullを返す
-            }
-            return _entries[currentIndex].Node; // 現在のエントリのノードを返す
-        }
-
-        //基本ループする
-        public void MoveToNextEntry()
-        {
-            if (_entries.Count == 0) return; // エントリがない場合は何もしない
-            currentIndex = (currentIndex + 1) % _entries.Count; // 次のエントリに移動
-        }
-
-        //RailGraphDatabaseからTrainDiagramManager経由で実行される
-        public void HandleNodeRemoval(RailNode removedNode)
-        {
-            // 削除されたノードを含むエントリにマークを付ける  
-            foreach (var entry in _entries.Where(e => e.Node == removedNode))
-            {
-                entry.Node = null; // または特別な「削除済み」マーカー  
+                return false;
             }
 
-            // 必要に応じて、削除されたノードのエントリを無効化  
-            var RemoveIndex = _entries.FindIndex(e => e.Node == removedNode);
-            if (RemoveIndex >= 0)
+            if (currentIndex < 0)
             {
-                // 削除されたノードを無効化  
-                _entries.RemoveAt(RemoveIndex);
+                return true;
             }
 
             if (currentIndex >= _entries.Count)
             {
-                currentIndex = -1; // インデックスをリセット
+                currentIndex = -1;
+                return false;
+            }
+
+            var currentEntry = _entries[currentIndex];
+            return currentEntry.CanDepart(_trainUnit);
+        }
+
+        public RailNode GetNextDestination()
+        {
+            if (currentIndex < 0 || currentIndex >= _entries.Count)
+            {
+                return null;
+            }
+
+            var entry = _entries[currentIndex];
+            return entry.IsValid ? entry.Node : null;
+        }
+
+        public void MoveToNextEntry()
+        {
+            if (!HasUsableEntry())
+            {
+                currentIndex = -1;
+                return;
+            }
+
+            for (var i = 0; i < _entries.Count; i++)
+            {
+                currentIndex = (currentIndex + 1) % _entries.Count;
+                if (_entries[currentIndex].IsValid)
+                {
+                    return;
+                }
+            }
+
+            currentIndex = -1;
+        }
+
+        public void HandleNodeRemoval(RailNode removedNode)
+        {
+            if (removedNode == null || _entries.Count == 0)
+            {
+                return;
+            }
+
+            var removedBeforeCurrent = 0;
+            var removedAny = false;
+
+            for (var i = _entries.Count - 1; i >= 0; i--)
+            {
+                if (!_entries[i].MatchesNode(removedNode))
+                {
+                    continue;
+                }
+
+                removedAny = true;
+
+                if (currentIndex >= 0 && i <= currentIndex)
+                {
+                    removedBeforeCurrent++;
+                }
+
+                _entries.RemoveAt(i);
+            }
+
+            if (!removedAny)
+            {
+                return;
+            }
+
+            if (_entries.Count == 0)
+            {
+                currentIndex = -1;
+                return;
+            }
+
+            if (removedBeforeCurrent > 0)
+            {
+                currentIndex -= removedBeforeCurrent;
+            }
+
+            if (currentIndex >= _entries.Count)
+            {
+                currentIndex = _entries.Count - 1;
+            }
+
+            if (currentIndex < 0 || !_entries[currentIndex].IsValid)
+            {
+                currentIndex = -1;
             }
         }
 
-    }
+        private bool HasUsableEntry()
+        {
+            if (_entries.Count == 0)
+            {
+                return false;
+            }
 
+            return _entries.Any(entry => entry.IsValid);
+        }
+
+        public sealed class DiagramEntry
+        {
+            public DiagramEntry(RailNode node)
+            {
+                Node = node;
+            }
+
+            public RailNode Node { get; private set; }
+
+            public bool IsValid => Node != null;
+
+            public bool MatchesNode(RailNode node)
+            {
+                return Node == node;
+            }
+
+            public bool CanDepart(TrainUnit trainUnit)
+            {
+                var hasDockedCar = false;
+
+                foreach (var car in trainUnit._cars)
+                {
+                    if (!car.IsDocked)
+                    {
+                        continue;
+                    }
+
+                    hasDockedCar = true;
+
+                    if (!car.IsInventoryFull())
+                    {
+                        return false;
+                    }
+                }
+
+                return hasDockedCar;
+            }
+        }
+    }
 }

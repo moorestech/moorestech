@@ -8,11 +8,16 @@ using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;
 using Game.Block.Interface.Component;
+using Core.Master;
+using Mooresmaster.Model.BlocksModule;
 
 namespace Tests.UnitTest.Game
 {
     public class SimpleTrainTestStation
     {
+        /// <summary>
+        /// RailComponentを2つ設置し、手動で接続。FindShortestPathで接続されていることを確認
+        /// </summary>
         [Test]
         public void TestRailComponentsAreConnected()
         {
@@ -62,6 +67,10 @@ namespace Tests.UnitTest.Game
             Debug.Log("railComponentB Position: " + railComponentB.Position);
         }
 
+        /// <summary>
+        /// 駅ブロックの向きごとのRailComponent位置を検証
+        /// Debug.logで位置を出力し、目視で確認する
+        /// </summary>
         [Test]
         public void StationDirectionMain()
         {
@@ -99,10 +108,14 @@ namespace Tests.UnitTest.Game
             var railNodeA = firstSaver.RailComponents[0].FrontNode;
             var railNodeB = firstSaver.RailComponents[1].FrontNode;
 
+            var stationParam = (TrainStationBlockParam)MasterHolder.BlockMaster
+                .GetBlockMaster(ForUnitTestModBlockId.TestTrainStation).BlockParam;
+            var stationPosition = new Vector3Int(stationParam.StationDistance, 0, 0);
+
             var (_, secondSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
                 env,
                 ForUnitTestModBlockId.TestTrainStation,
-                new Vector3Int(22, 0, 0),
+                stationPosition,
                 BlockDirection.North);
             var railNodeC = secondSaver.RailComponents[0].FrontNode;
             var railNodeD = secondSaver.RailComponents[1].FrontNode;
