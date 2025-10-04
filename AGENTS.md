@@ -10,8 +10,7 @@
   - プロジェクトのコードと、インターネット上の膨大な情報を整理し、的確な助言を与えてくれますが、実行力はありません。
 
 ### 実践ガイド
-- **ユーザーの要求を受けたら即座に`C:\Users\5080\AppData\Roaming\npm\gemini.cmd -p <質問内容>`で壁打ち**を必ず実施
-- 対象ディレクトリの指示はほぼ必須: moorestech_server/Assets/Scripts/Tests/UnitTest/Gameなど
+- **ユーザーの要求を受けたら即座に`gemini -p <質問内容>`で壁打ち**を必ず実施
 - Geminiの意見を鵜呑みにせず、1意見として判断。聞き方を変えて多角的な意見を抽出
 - Codex Code内蔵のWebSearchツールは使用しない
 - Geminiがエラーの場合は、聞き方を工夫してリトライ：
@@ -28,9 +27,7 @@
 7. **技術選定**: ライブラリ・手法の比較検討 （例: `このライブラリは他と比べてどうか？`）
 
 # 気をつけること
-XY問題に気をつけてください、目先の問題にとらわれず、根本的な解決を常に行ってください  
-コードを編集する際、日本語コメントの文字化けに注意してください。これによるコンパイルエラーがよく起こります  
-回答は私にわかるように日本語で回答して  
+XY問題に気をつけてください、目先の問題にとらわれず、根本的な解決を常に行ってください
 
 # 後方互換性についての方針
 計画を立案する際、後方互換性は考慮する必要はありません。新しい実装や改善において、より良い設計を追求することを優先してください。
@@ -83,8 +80,57 @@ nullチェックが不要な場面：
 - Awake/Startで初期化される基本的なコンポーネント
 - 設計上必ず存在することが保証されているオブジェクト
 
+# ソフトウェアデバッグ
+あなたは必要に応じて、テストコードがパスしない時、意図した実装ができないときが発生します。そのようなときは、デバッグログを使用し、原因を究明、修正し、タスクが完了できるように努めてください。
+
+Reflect on 5-7 different possible sources of the problem, distill those down to 1-2 most likely sources, and then add logs to validate your assumptions. Explicitly ask the user to confirm the diagnosis before fixing the problem.
+
+
 # ドキュメントの更新
 *このドキュメントは継続的に更新されます。新しい決定事項や実装パターンが確立された場合は、このファイルに反映してください。*
+
+
+# コンパイルエラー確認時の注意事項
+コンパイルエラーを確認する際は、編集したコードのパスによって適切に判断してください：
+- `moorestech_server/`配下のコードを編集した場合：サーバー側のMCPツールを使用してコンパイルとテストを実行
+- `moorestech_client/`配下のコードを編集した場合：クライアント側のMCPツールでコンパイルエラーの確認のみ（テストは不要）
+
+**重要：ユーザーからコンパイルエラーが出ている旨を聞いたら、必ずMCPツールでコンパイルエラーを確認してください。**
+
+# サーバー側の開発
+moorestech_server配下の開発はTDDで行っています。server側のコードを変更する際は、MCPツールを使用してコンパイルとテストを実行してください：
+- `mcp__moorestech_server__RefreshAssets`: アセットをリフレッシュしてコンパイルを実行
+- `mcp__moorestech_server__GetCompileLogs`: コンパイルエラーを確認
+- `mcp__moorestech_server__RunEditModeTests`: テストを実行（必要に応じてregexでフィルタリング）
+
+## MCPテスト実行時の重要事項
+**テストを実行する際は、必ずgroupNamesパラメータと正規表現を活用して、実行するテストを適切に絞り込んでください。**
+
+例：
+- 特定のnamespaceのテストのみ実行: `groupNames: ["^MyNamespace\\."]`
+- 特定のクラスのテストのみ実行: `groupNames: ["^MyNamespace\\.MyTestClass$"]`
+- 特定の機能に関連するテストのみ実行: `groupNames: ["^.*\\.Inventory\\."]`
+
+これにより、関連するテストのみを効率的に実行でき、開発サイクルを高速化できます。全テストを実行すると時間がかかるため、変更に関連するテストに限定することが重要です。
+
+# クライアント側の開発
+moorestech_client配下はTDDは行っておりません。コンパイルエラーをチェックする際は、MCPツールを使用してください：
+- `mcp__moorestech_client__RefreshAssets`: アセットをリフレッシュしてコンパイルを実行（クライアントもサーバーMCPツールを使用）
+- `mcp__moorestech_client__GetCompileLogs`: コンパイルエラーを確認
+
+## クライアント側のテスト実行（unity-test.sh で限定実行）
+- 実行方法: MCPではなく`tools/unity-test.sh`を使用してください。
+- 重要: 必ず正規表現で「実施したいテストのみ」を指定してください。全件実行は結果が不安定になる恐れがあります。
+- 使い方: `./tools/unity-test.sh <UnityProjectPath> '<Regex>'`
+  - `<UnityProjectPath>`: Unityプロジェクトのルート（このリポジトリのルート）
+  - `'<Regex>'`: 実行対象を絞る正規表現（クラス名・namespaceなど）
+- 実行例:
+  - 単一クラスのみ: `./tools/unity-test.sh . '^MyNamespace\\.MyTestClass$'`
+  - 特定namespace配下のみ: `./tools/unity-test.sh . '^MyNamespace\\.'`
+  - 機能単位（例: Inventory）: `./tools/unity-test.sh . '^.*\\.Inventory\\.'`
+- 挙動: コンパイル失敗時は失敗として終了し、`[CliTest]`の行のみをサマリ表示します。
+
+両方のプロジェクトは同じUnityプロジェクト内に存在するため、MCPツールは共通ですが、サーバー側はTDD開発のためテスト実行が必要な点が異なります。クライアント側のテストは必ず`tools/unity-test.sh`＋正規表現で限定実行してください。
 
 # シングルトンパターンの実装指針
 Unityプロジェクトにおけるシングルトンの実装では、以下の方針に従ってください：
