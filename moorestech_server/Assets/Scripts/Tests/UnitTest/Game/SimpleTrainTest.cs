@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
@@ -117,7 +117,7 @@ namespace Tests.UnitTest.Game
                 return list;
             }
 
-            const int size = 8;
+            const int size = 12;
             var listIsDestroy = new List<(int, int, int)>();
             for (int x = 0; x < size; x++)
             {

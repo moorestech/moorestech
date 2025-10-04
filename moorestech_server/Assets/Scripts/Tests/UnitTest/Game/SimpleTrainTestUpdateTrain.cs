@@ -36,14 +36,12 @@ namespace Tests.UnitTest.Game
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(2162, 2, -1667), BlockDirection.East, out var railBlockB);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(-924, 12, 974), BlockDirection.West, out var railBlockC);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(1149, 0, 347), BlockDirection.South, out var railBlockD);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(33, 4, 334), BlockDirection.South, out var railBlockE);
 
             // RailComponent を取得
             var railComponentA = railBlockA.GetComponent<RailComponent>();
             var railComponentB = railBlockB.GetComponent<RailComponent>();
             var railComponentC = railBlockC.GetComponent<RailComponent>();
             var railComponentD = railBlockD.GetComponent<RailComponent>();
-            var railComponentE = railBlockE.GetComponent<RailComponent>();
 
             // 2) レールどうしを Connect
             // D→C→B→A→D の順でつなげる
@@ -73,7 +71,7 @@ namespace Tests.UnitTest.Game
 
             // 列車の長さを適当にランダムに決めて計算
             // 列車をある距離進めて、反転して同じ距離進める。同じ場所にもどるはず
-            for (int testnum = 0; testnum < 128; testnum++)
+            for (int testnum = 0; testnum < 1024; testnum++)
             {
                 var rand = UnityEngine.Random.Range(0.001f, 0.9999f);
                 int trainLength = (int)(totalDist * rand);
@@ -86,7 +84,6 @@ namespace Tests.UnitTest.Game
                 var railPosition = new RailPosition(nodeList2, trainLength, 5);
 
                 // --- 4. TrainUnit を生成 ---
-                var destination = railComponentE.FrontNode;//ありえない目的地をセットするが、ここではループするだけなので問題ない
                 var cars = new List<TrainCar>
                 {
                     new TrainCar(tractionForce: 600000, inventorySlots: 0, length: trainLength),  // 仮: 動力車
@@ -166,10 +163,13 @@ namespace Tests.UnitTest.Game
             );
 
             // --- 4. TrainUnit を生成 ---
-            var destination = nodeA;   // 適当な目的地を A にしておく
+            var destination = nodeA;   // 目的地を A にしておく
             var trainUnit = new TrainUnit(initialRailPosition, cars, destination);
+            trainUnit.trainDiagram.AddEntry(destination);
             trainUnit.TurnOnAutoRun();
             int totaldist = 0;
+            var reachedDestination = false;
+            int cnt = 0;//ループ助長カウント
             for (int i = 0; i < 65535; i++)//目的地に到達するまで→testフリーズは避けたいので有限で
             {
                 int calceddist = trainUnit.UpdateTrainByTime(1f / 60f);
@@ -181,13 +181,26 @@ namespace Tests.UnitTest.Game
                     Debug.Log("現在向かっているnodeのID");
                     RailGraphDatastore._instance.Test_NodeIdLog(trainUnit._railPosition.GetNodeApproaching());
                 }
+
+                if (trainUnit._railPosition.GetNodeApproaching() == destination &&
+                    trainUnit._railPosition.GetDistanceToNextNode() == 0)
+                {
+                    cnt++;
+                    if (cnt == 3)
+                    {
+                        reachedDestination = true;
+                        break;
+                    }
+                }
             }
 
+
+            Assert.IsTrue(reachedDestination, "列車が目的地に到達できませんでした");
             Assert.AreEqual(nodeA, trainUnit._railPosition.GetNodeApproaching());
             Assert.AreEqual(0, trainUnit._railPosition.GetDistanceToNextNode());
             if (DEBUG_LOG_FLAG)
             {
-                //Debug.Log("列車編成が無事目的地につきました");
+                Debug.Log("列車編成が無事目的地につきました");
             }
 
         }
