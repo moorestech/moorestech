@@ -50,9 +50,9 @@ namespace lilToon
             private set { }
         }
 
-        public MaterialProperty.PropFlags flags
+        public UnityEngine.Rendering.ShaderPropertyFlags flags
         {
-            get { return p.flags; }
+            get { return p.propertyFlags; }
             private set { }
         }
 
@@ -80,9 +80,9 @@ namespace lilToon
             private set { }
         }
 
-        public MaterialProperty.PropType type
+        public UnityEngine.Rendering.ShaderPropertyType type
         {
-            get { return p.type; }
+            get { return p.propertyType; }
             private set { }
         }
 
