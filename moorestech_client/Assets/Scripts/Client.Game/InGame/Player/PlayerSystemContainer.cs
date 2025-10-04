@@ -1,5 +1,4 @@
 using System;
-using Client.Game.Skit.Starter;
 using Client.Network.API;
 using UnityEngine;
 using VContainer;
@@ -12,12 +11,10 @@ namespace Client.Game.InGame.Player
         
         public PlayerGrabItemManager PlayerGrabItemManager => playerGrabItemManager;
         public IPlayerObjectController PlayerObjectController => playerObjectController;
-        public PlayerSkitStarterDetector PlayerSkitStarterDetector => playerSkitStarterDetector;
         
         
         [SerializeField] private PlayerGrabItemManager playerGrabItemManager;
         [SerializeField] private PlayerObjectController playerObjectController;
-        [SerializeField] private PlayerSkitStarterDetector playerSkitStarterDetector;
         
         private void Awake()
         {
