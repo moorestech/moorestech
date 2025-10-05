@@ -4,7 +4,7 @@ using Game.Train.Train;
 
 namespace Game.Train.Common
 {
-    internal sealed class TrainDockHandle : ITrainDockHandle
+    public sealed class TrainDockHandle : ITrainDockHandle
     {
         private readonly TrainUnit _trainUnit;
         private readonly TrainCar _trainCar;
@@ -21,7 +21,7 @@ namespace Game.Train.Common
         public Guid CarId => _trainCar.CarId;
         public int CarIndex => _carIndex;
 
-        internal TrainUnit TrainUnit => _trainUnit;
-        internal TrainCar TrainCar => _trainCar;
+        public TrainUnit TrainUnit => _trainUnit;
+        public TrainCar TrainCar => _trainCar;
     }
 }

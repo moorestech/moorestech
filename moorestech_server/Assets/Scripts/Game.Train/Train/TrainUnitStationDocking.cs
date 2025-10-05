@@ -6,6 +6,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Train.Common;
 using Game.Train.RailGraph;
+using System.Diagnostics;
 //using Game.Block.Blocks.TrainRail;
 
 namespace Game.Train.Train
@@ -158,7 +159,7 @@ namespace Game.Train.Train
             {
                 return false; // 同じ駅でない場合はfalse  
             }
-            return frontNode.StationRef.NodeRole == StationNodeRole.Entry;
+            return frontNode.StationRef.NodeRole == StationNodeRole.Exit;
         }
 
 
