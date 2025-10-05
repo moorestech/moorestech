@@ -1,6 +1,8 @@
 using Core.Item.Interface;
+using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
+using Game.Train.Common;
 using Game.Train.Train;
 using Newtonsoft.Json;
 using System;
@@ -9,26 +11,26 @@ using System.Collections.Generic;
 namespace Game.Block.Blocks.TrainRail
 {
     /// <summary>
-    /// 駅(TrainStation)用のコンポーネント。
-    /// オープン可能なインベントリを持ち、かつ列車が到着・出発した状態も持つ。
+    /// 鬧・TrainStation)逕ｨ縺ｮ繧ｳ繝ｳ繝昴・繝阪Φ繝医・
+    /// 繧ｪ繝ｼ繝励Φ蜿ｯ閭ｽ縺ｪ繧､繝ｳ繝吶Φ繝医Μ繧呈戟縺｡縲√°縺､蛻苓ｻ翫′蛻ｰ逹繝ｻ蜃ｺ逋ｺ縺励◆迥ｶ諷九ｂ謖√▽縲・
     /// </summary>
     public class StationComponent : IBlockSaveState, ITrainDockingReceiver
     {
         public string StationName { get; }
 
         private readonly int _stationLength;
-        private Guid? _dockedTrainId;
+        public Guid? _dockedTrainId;
         private Guid? _dockedCarId;
-        // 列車関連
+        // 蛻苓ｻ企未騾｣
         private TrainUnit _currentTrain;
 
 
-        // インベントリスロット数やUI更新のための設定
+        // 繧､繝ｳ繝吶Φ繝医Μ繧ｹ繝ｭ繝・ヨ謨ｰ繧ФI譖ｴ譁ｰ縺ｮ縺溘ａ縺ｮ險ｭ螳・
         public int InventorySlotCount { get; private set; }
         public bool IsDestroy { get; private set; }
 
         /// <summary>
-        /// コンストラクタ
+        /// 繧ｳ繝ｳ繧ｹ繝医Λ繧ｯ繧ｿ
         /// </summary>
         public StationComponent(
             int stationLength,
@@ -43,11 +45,11 @@ namespace Game.Block.Blocks.TrainRail
 
 
         /// <summary>
-        /// 駅の列車関連機能
+        /// 鬧・・蛻苓ｻ企未騾｣讖溯・
         /// </summary>
         public bool TrainArrived(TrainUnit train)
         {
-            if (_currentTrain != null) return false; // 既に停車中ならNG
+            if (_currentTrain != null) return false; // 譌｢縺ｫ蛛懆ｻ贋ｸｭ縺ｪ繧丑G
             _currentTrain = train;
             return true;
         }
@@ -76,7 +78,69 @@ namespace Game.Block.Blocks.TrainRail
 
         public void OnTrainDockedTick(ITrainDockHandle handle)
         {
-            // TODO: アイテム搬出をここで実装予定
+            if (handle == null)
+            {
+                return;
+            }
+
+            if (handle is not TrainDockHandle dockHandle)
+            {
+                return;
+            }
+
+            var trainCar = dockHandle.TrainCar;
+            if (trainCar == null || trainCar.IsInventoryFull())
+            {
+                return;
+            }
+
+            var dockingBlock = trainCar.dockingblock;
+            if (dockingBlock == null)
+            {
+                return;
+            }
+
+            if (!dockingBlock.ComponentManager.TryGetComponent<IBlockInventory>(out var stationInventory))
+            {
+                return;
+            }
+
+            for (var slot = 0; slot < stationInventory.GetSlotSize(); slot++)
+            {
+                var slotStack = stationInventory.GetItem(slot);
+                if (slotStack == null || slotStack.Id == ItemMaster.EmptyItemId || slotStack.Count == 0)
+                {
+                    continue;
+                }
+
+                var remainder = trainCar.InsertItem(slotStack);
+                if (IsSameStack(slotStack, remainder))
+                {
+                    continue;
+                }
+
+                stationInventory.SetItem(slot, remainder);
+
+                if (trainCar.IsInventoryFull())
+                {
+                    break;
+                }
+            }
+        }
+
+        private static bool IsSameStack(IItemStack left, IItemStack right)
+        {
+            if (ReferenceEquals(left, right))
+            {
+                return true;
+            }
+
+            if (left == null || right == null)
+            {
+                return false;
+            }
+
+            return left.Id == right.Id && left.Count == right.Count;
         }
 
         public void OnTrainUndocked(ITrainDockHandle handle)
@@ -96,7 +160,7 @@ namespace Game.Block.Blocks.TrainRail
         }
 
         /// <summary>
-        /// セーブ機能：ブロックが破壊されたりサーバーを落とすとき用
+        /// 繧ｻ繝ｼ繝匁ｩ溯・・壹ヶ繝ｭ繝・け縺檎ｴ螢翫＆繧後◆繧翫し繝ｼ繝舌・繧定誠縺ｨ縺吶→縺咲畑
         /// </summary>
         public string SaveKey { get; } = typeof(StationComponent).FullName;
 
