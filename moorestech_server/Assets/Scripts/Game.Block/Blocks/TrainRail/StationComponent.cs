@@ -11,8 +11,8 @@ using System.Collections.Generic;
 namespace Game.Block.Blocks.TrainRail
 {
     /// <summary>
-    /// 鬧・TrainStation)逕ｨ縺ｮ繧ｳ繝ｳ繝昴・繝阪Φ繝医・
-    /// 繧ｪ繝ｼ繝励Φ蜿ｯ閭ｽ縺ｪ繧､繝ｳ繝吶Φ繝医Μ繧呈戟縺｡縲√°縺､蛻苓ｻ翫′蛻ｰ逹繝ｻ蜃ｺ逋ｺ縺励◆迥ｶ諷九ｂ謖√▽縲・
+    /// 駅(TrainStation)用のコンポーネント。
+    /// オープン可能なインベントリを持ち、かつ列車が到着・出発した状態も持つ。
     /// </summary>
     public class StationComponent : IBlockSaveState, ITrainDockingReceiver
     {
@@ -21,17 +21,14 @@ namespace Game.Block.Blocks.TrainRail
         private readonly int _stationLength;
         public Guid? _dockedTrainId;
         private Guid? _dockedCarId;
-        // 蛻苓ｻ企未騾｣
+        // 列車関連
         private TrainUnit _currentTrain;
 
 
-        // 繧､繝ｳ繝吶Φ繝医Μ繧ｹ繝ｭ繝・ヨ謨ｰ繧ФI譖ｴ譁ｰ縺ｮ縺溘ａ縺ｮ險ｭ螳・
+        // インベントリスロット数やUI更新のための設定
         public int InventorySlotCount { get; private set; }
         public bool IsDestroy { get; private set; }
 
-        /// <summary>
-        /// 繧ｳ繝ｳ繧ｹ繝医Λ繧ｯ繧ｿ
-        /// </summary>
         public StationComponent(
             int stationLength,
             string stationName,
@@ -45,11 +42,11 @@ namespace Game.Block.Blocks.TrainRail
 
 
         /// <summary>
-        /// 鬧・・蛻苓ｻ企未騾｣讖溯・
+        /// 駅の列車関連機能
         /// </summary>
         public bool TrainArrived(TrainUnit train)
         {
-            if (_currentTrain != null) return false; // 譌｢縺ｫ蛛懆ｻ贋ｸｭ縺ｪ繧丑G
+            if (_currentTrain != null) return false; // 既に停車中ならNG
             _currentTrain = train;
             return true;
         }
@@ -160,7 +157,7 @@ namespace Game.Block.Blocks.TrainRail
         }
 
         /// <summary>
-        /// 繧ｻ繝ｼ繝匁ｩ溯・・壹ヶ繝ｭ繝・け縺檎ｴ螢翫＆繧後◆繧翫し繝ｼ繝舌・繧定誠縺ｨ縺吶→縺咲畑
+        /// セーブ機能：ブロックが破壊されたりサーバーを落とすとき用
         /// </summary>
         public string SaveKey { get; } = typeof(StationComponent).FullName;
 

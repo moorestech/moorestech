@@ -6,8 +6,6 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Train.Common;
 using Game.Train.RailGraph;
-using System.Diagnostics;
-//using Game.Block.Blocks.TrainRail;
 
 namespace Game.Train.Train
 {
