@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Core.Update;
 using Game.Train.Common;
 using Game.Train.RailGraph;
 using Game.Train.Utility;
@@ -55,7 +54,7 @@ namespace Game.Train.Train
         }
 
 
-        public void Update() 
+        public void Update(double deltaTime) 
         {
             if (IsAutoRun)
             {
@@ -79,7 +78,7 @@ namespace Game.Train.Train
                 {
                     // ドッキング中でなければ目的地に向かって進む
                     _destinationNode = trainDiagram.GetNextDestination();//これは手動でRailNodeが消されたときに毎フレーム"必ず存在する"目的地を見るため
-                    UpdateTrainByTime(GameUpdater.UpdateSecondTime);
+                    UpdateTrainByTime(deltaTime);
                 }
             }
             else 
@@ -99,7 +98,7 @@ namespace Game.Train.Train
                 {
                     // ドッキング中でなければキー操作で目的地に向かって進む
                     _destinationNode = trainDiagram.GetNextDestination();
-                    UpdateTrainByTime(GameUpdater.UpdateSecondTime);
+                    UpdateTrainByTime(deltaTime);
                 }
             }
                 
@@ -254,38 +253,60 @@ namespace Game.Train.Train
 
         public void TurnOnAutoRun()
         {
-            _isAutoRun = true;
-            RailNode approaching = _railPosition.GetNodeApproaching();
-            //経路に到達していたら
+            var destinationNode = trainDiagram.GetNextDestination();
+            if (destinationNode == null)
+            {
+                trainDiagram.MoveToNextEntry();
+                destinationNode = trainDiagram.GetNextDestination();
+            }
+
+            if (destinationNode == null)
+            {
+                _isAutoRun = false;
+                return;
+            }
+
+            _destinationNode = destinationNode;
+
+            var approaching = _railPosition.GetNodeApproaching();
+            if (approaching == null)
+            {
+                _isAutoRun = false;
+                return;
+            }
+
             if (approaching == _destinationNode)
             {
-                if (_railPosition.GetDistanceToNextNode() == 0)
+                var distanceToNextNode = _railPosition.GetDistanceToNextNode();
+                if (distanceToNextNode == 0)
                 {
-                    _remainingDistance = 0;
-                    _isAutoRun = false;
+                    _remainingDistance = distanceToNextNode;
+                    _isAutoRun = true;
                     return;
                 }
-                else
-                {
-                    //経路に到達しているが、まだ次のノードに進んでいない場合は残り距離を更新
-                    _remainingDistance = _railPosition.GetDistanceToNextNode();
-                    return;
-                }
+
+                _remainingDistance = distanceToNextNode;
+                _isAutoRun = true;
+                return;
             }
 
             var newPath = RailGraphDatastore.FindShortestPath(approaching, _destinationNode);
-            //経路が見つかった場合，最低でも返りlistにはapproaching, _destinationNodeが入っているはず
-            //経路が見つからない場合とりあえずmaxをいれとく
-            //経路に到達していたらは↑
-            if (newPath.Count < 2)
+            if (newPath == null || newPath.Count < 2)
             {
-                //経路が見つからない場合とりあえずmaxをいれとく
                 _remainingDistance = int.MaxValue;
+                _isAutoRun = false;
                 return;
             }
-            //残りの距離を更新
+
             _remainingDistance = RailNodeCalculate.CalculateTotalDistanceF(newPath) - _railPosition.GetDistanceToNextNode();
+            _isAutoRun = true;
         }
+
+        public void TurnOffAutoRun()
+        {
+            _isAutoRun = false;
+        }
+
 
 
         //列車編成を保存する。ブロックとは違うことに注意
