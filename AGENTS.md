@@ -16,6 +16,10 @@
 - When verifying docking behaviour, rely on docking handle references (e.g., `DockingHandle`, `TrainDockingHandle`) rather than cached `TrainUnit` state.
 - Advance simulations with fixed time steps via helper update methods and guard loops with explicit failure conditions.
 - Reset singleton datastores (e.g., `RailGraphDatastore.ResetInstance()`) when recreating environments across save/load scenarios.
+- Remember that every rail segment is represented by a pair of directional nodes (`front` and `back`). These names indicate forward and reverse traversal helpers, not literal sides of a block.
+- Do not rename existing scripts or methods that use `front`/`back` terminology; instead, document behaviour inline when touching the code.
+- Pathing or validation logic that touches both directions should access each node explicitly (`rail.front`, `rail.back`) so the intended flow remains obvious to future readers.
+
 
 ## Pull Requests
 - Summarise behavioural changes clearly and list any skipped tests.
