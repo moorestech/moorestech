@@ -21,6 +21,8 @@ namespace Game.Block.Blocks.TrainRail
         private readonly int _stationLength;
         public Guid? _dockedTrainId;
         private Guid? _dockedCarId;
+        private TrainCar _dockedTrainCar;
+        private IBlockInventory _dockedStationInventory;
         // 列車関連
         private TrainUnit _currentTrain;
 
@@ -71,58 +73,76 @@ namespace Game.Block.Blocks.TrainRail
             if (_dockedCarId.HasValue && _dockedCarId != handle.CarId) return;
             _dockedTrainId = handle.TrainId;
             _dockedCarId = handle.CarId;
+            UpdateDockedReferences(handle);
         }
 
         public void OnTrainDockedTick(ITrainDockHandle handle)
         {
-            if (handle == null)
+            if (!IsValidDockingHandle(handle))
             {
                 return;
             }
 
-            if (handle is not TrainDockHandle dockHandle)
+            if (_dockedTrainCar.IsInventoryFull())
             {
                 return;
             }
 
-            var trainCar = dockHandle.TrainCar;
-            if (trainCar == null || trainCar.IsInventoryFull())
-            {
-                return;
-            }
+            TransferItemsToTrainCar();
 
-            var dockingBlock = trainCar.dockingblock;
-            if (dockingBlock == null)
-            {
-                return;
-            }
+            #region Internal
 
-            if (!dockingBlock.ComponentManager.TryGetComponent<IBlockInventory>(out var stationInventory))
+            bool IsValidDockingHandle(ITrainDockHandle currentHandle)
             {
-                return;
-            }
-
-            for (var slot = 0; slot < stationInventory.GetSlotSize(); slot++)
-            {
-                var slotStack = stationInventory.GetItem(slot);
-                if (slotStack == null || slotStack.Id == ItemMaster.EmptyItemId || slotStack.Count == 0)
+                if (currentHandle == null)
                 {
-                    continue;
+                    return false;
                 }
 
-                var remainder = trainCar.InsertItem(slotStack);
-                if (IsSameStack(slotStack, remainder))
+                if (_dockedTrainId != currentHandle.TrainId || _dockedCarId != currentHandle.CarId)
                 {
-                    continue;
+                    return false;
                 }
 
-                stationInventory.SetItem(slot, remainder);
-
-                if (trainCar.IsInventoryFull())
+                if (_dockedTrainCar == null || _dockedStationInventory == null)
                 {
-                    break;
+                    UpdateDockedReferences(currentHandle);
+
+                    if (_dockedTrainCar == null || _dockedStationInventory == null)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            void TransferItemsToTrainCar()
+            {
+                for (var slot = 0; slot < _dockedStationInventory.GetSlotSize(); slot++)
+                {
+                    var slotStack = _dockedStationInventory.GetItem(slot);
+                    if (slotStack == null || slotStack.Id == ItemMaster.EmptyItemId || slotStack.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    var remainder = _dockedTrainCar.InsertItem(slotStack);
+                    if (IsSameStack(slotStack, remainder))
+                    {
+                        continue;
+                    }
+
+                    _dockedStationInventory.SetItem(slot, remainder);
+
+                    if (_dockedTrainCar.IsInventoryFull())
+                    {
+                        break;
+                    }
                 }
             }
+
+            #endregion
         }
 
         private static bool IsSameStack(IItemStack left, IItemStack right)
@@ -140,20 +160,51 @@ namespace Game.Block.Blocks.TrainRail
             return left.Id == right.Id && left.Count == right.Count;
         }
 
+        private void UpdateDockedReferences(ITrainDockHandle handle)
+        {
+            if (handle is not TrainDockHandle dockHandle)
+            {
+                _dockedTrainCar = null;
+                _dockedStationInventory = null;
+                return;
+            }
+
+            _dockedTrainCar = dockHandle.TrainCar;
+            _dockedStationInventory = ResolveStationInventory(_dockedTrainCar);
+        }
+
+        private void ClearDockedReferences()
+        {
+            _dockedTrainId = null;
+            _dockedCarId = null;
+            _dockedTrainCar = null;
+            _dockedStationInventory = null;
+        }
+
+        private IBlockInventory ResolveStationInventory(TrainCar trainCar)
+        {
+            if (trainCar?.dockingblock == null)
+            {
+                return null;
+            }
+
+            return trainCar.dockingblock.ComponentManager.TryGetComponent<IBlockInventory>(out var inventory)
+                ? inventory
+                : null;
+        }
+
         public void OnTrainUndocked(ITrainDockHandle handle)
         {
             if (handle == null) return;
             if (_dockedTrainId == handle.TrainId && _dockedCarId == handle.CarId)
             {
-                _dockedTrainId = null;
-                _dockedCarId = null;
+                ClearDockedReferences();
             }
         }
 
         public void ForceUndock()
         {
-            _dockedTrainId = null;
-            _dockedCarId = null;
+            ClearDockedReferences();
         }
 
         /// <summary>
