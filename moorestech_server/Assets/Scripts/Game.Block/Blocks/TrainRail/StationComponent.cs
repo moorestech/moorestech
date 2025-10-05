@@ -23,10 +23,6 @@ namespace Game.Block.Blocks.TrainRail
         private Guid? _dockedCarId;
         private TrainCar _dockedTrainCar;
         private IBlockInventory _dockedStationInventory;
-        // 列車関連
-        private TrainUnit _currentTrain;
-
-
         // インベントリスロット数やUI更新のための設定
         public int InventorySlotCount { get; private set; }
         public bool IsDestroy { get; private set; }
@@ -41,24 +37,6 @@ namespace Game.Block.Blocks.TrainRail
             StationName = stationName;
             InventorySlotCount = inventorySlotCount;
         }
-
-
-        /// <summary>
-        /// 駅の列車関連機能
-        /// </summary>
-        public bool TrainArrived(TrainUnit train)
-        {
-            if (_currentTrain != null) return false; // 既に停車中ならNG
-            _currentTrain = train;
-            return true;
-        }
-        public bool TrainDeparted(TrainUnit train)
-        {
-            if (_currentTrain == null) return false;
-            _currentTrain = null;
-            return true;
-        }
-
         public bool CanDock(ITrainDockHandle handle)
         {
             if (handle == null) return false;
