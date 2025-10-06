@@ -7,6 +7,13 @@
 - Never create `.meta` files, and avoid unnecessary `try-catch` blocks.
 - Reference existing documentation (`docs/ServerGuide.md`, `docs/ClientGuide.md`, `docs/ProtocolImplementationGuide.md`) when modifying related systems.
 
+### Build & Validation Expectations
+- Whenever you modify any C# code (client or server), run the relevant `dotnet build` command before committing to catch missing `using` directives or other compiler errors. For example:
+  - `dotnet build moorestech_server/Assets/Scripts/Moorestech.Server.csproj`
+  - `dotnet build moorestech_client/Assets/Scripts/Moorestech.Client.csproj`
+- Treat build failures as blocking; resolve the error locally before requesting review or opening a PR.
+- Surface the exact command output in the final summary when a build fails due to environment limitations.
+
 ## Testing Expectations
 - Unity edit-mode tests cannot be executed inside this container. Document skipped runs with a warning emoji and the command name.
 
