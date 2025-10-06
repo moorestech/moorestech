@@ -11,6 +11,8 @@ using NUnit.Framework;
 using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;
+using Game.Block.Interface.Extension;
+using Game.Context;
 
 namespace Tests.UnitTest.Game
 {
