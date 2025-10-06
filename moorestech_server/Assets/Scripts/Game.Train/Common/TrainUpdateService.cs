@@ -1,8 +1,9 @@
-using UniRx;
-using Core.Update;
-using Game.Train.Train;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using Core.Update;
+using Game.Train.Train;
+using UniRx;
 
 
 namespace Game.Train.Common
@@ -21,6 +22,9 @@ namespace Game.Train.Common
         }
 
 
+        private const double TickSeconds = 1d / 120d;
+        private double _accumulatedSeconds;
+        private readonly int _maxTicksPerFrame = int.MaxValue;
         private readonly List<TrainUnit> _trainUnits = new();
 
         public TrainUpdateService()
@@ -31,15 +35,34 @@ namespace Game.Train.Common
 
         private void UpdateTrains()
         {
-            var deltaTime = GameUpdater.UpdateSecondTime;
-            foreach (var trainUnit in _trainUnits)
+            _accumulatedSeconds += GameUpdater.UpdateSecondTime;
+
+            var tickCount = Math.Min(_maxTicksPerFrame, (int)(_accumulatedSeconds / TickSeconds));
+            if (tickCount == 0)
             {
-                trainUnit.Update(deltaTime);
+                return;
+            }
+
+            _accumulatedSeconds -= tickCount * TickSeconds;
+
+            for (var i = 0; i < tickCount; i++)
+            {
+                foreach (var trainUnit in _trainUnits)
+                {
+                    trainUnit.Update(TickSeconds);
+                }
             }
         }
 
         public void RegisterTrain(TrainUnit trainUnit) => _trainUnits.Add(trainUnit);
         public void UnregisterTrain(TrainUnit trainUnit) => _trainUnits.Remove(trainUnit);
         public IEnumerable<TrainUnit> GetRegisteredTrains() => _trainUnits.ToArray();
+
+#if UNITY_INCLUDE_TESTS
+        public void ResetTickAccumulator()
+        {
+            _accumulatedSeconds = 0d;
+        }
+#endif
     }
 }
