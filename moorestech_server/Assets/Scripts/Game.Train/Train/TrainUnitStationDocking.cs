@@ -96,7 +96,7 @@ namespace Game.Train.Train
         /// trainunitのrailpositionを参照して、carの前端と後端のノードを取得し、同じ駅にドッキングできるかチェックする  
         /// ドッキングできるなら各carのドッキング状態を更新する
         /// </summary>
-        public void TryDockWhenStopped(RailNode diagramnode)//駅にドッキングするということはdiagramで見ているエントリーのnodeの駅にドッキングするということ
+        public void TryDockWhenStopped()
         {
             if (_trainUnit._cars.Count == 0 || _trainUnit._railPosition == null)
             {
@@ -138,7 +138,7 @@ namespace Game.Train.Train
 
                             car.dockingblock = dockingBlock;
                             flag = true;
-                            _dockedNode = diagramnode;
+                            _dockedNode = _trainUnit._railPosition.GetNodeApproaching();//駅にドッキングするということはdiagramで見ているエントリーのnodeの駅にドッキングするということ
                             break;
                         }
                         if (flag) break;
