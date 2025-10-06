@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
 using Game.Block.Blocks.TrainRail;
+using Game.Block.Interface;
 using Game.Context;
 using Game.Train.Common;
 using Game.Train.RailGraph;
