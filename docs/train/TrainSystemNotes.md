@@ -19,6 +19,11 @@
 - **重要**: RailNode レベルでは常に「有向グラフ」として設計されています。`ConnectNode` を相互に呼び出して無理に双方向へ張り直すと、front/back の対応が崩れて駅構内の距離計算が破綻します。方向が必要な場合は、必ず既存の opposite ノード経路を利用してください。
 - 接続解除や距離計算のヘルパー (`DisconnectRailComponent`, `GetDistanceToNode` など) も front/back を引数で受け取り、誤って表裏を取り違えると逆方向のエッジが残るため注意が必要です。
 
+## 駅コンポーネントとループ経路の注意点
+- 駅コンポーネント（`TrainStationComponent` および `CargoplatformComponent`）は設置時に Entry→Exit の有向エッジを自動生成します。テストコードで Entry と Exit を再接続すると距離が二重計算される恐れがあるため避けてください。
+- ループ線を構成する場合、最後のレール片から最初のレール片へ戻る接続を明示的に張る必要があります。例: `ConnectFront(unloadingExitComponent, loadingEntryComponent, length)` を追加しないと、往路と復路が別グラフになり `FindShortestPath` や `GetDistanceToNode` が `-1` を返します。
+- 自動運転のダイアグラムはドッキング中の Exit ノードを前提に設計されています。`TrainDiagram.AddEntry` には駅の Exit (`FrontNode`) を渡し、Departure 条件も Exit ノードと同期させることで、`TryDockWhenStopped` 後の積み込み／積み下ろし Tick が正しく処理されます。
+
 ## RailPosition 構築時のノード順序
 - `RailPosition` は「インデックスが小さいほど列車の進行方向に近い」リストを前提にしています。内部の `RailNodeCalculate.CalculateTotalDistance` は `railNodes[i + 1].GetDistanceToNode(railNodes[i])` を順に呼び出し、後ろ側のノードから前側のノードへ到達できることを確認します。
 - そのため、`RailComponent.ConnectRailComponent(source, target, ...)` を利用した場合は「source 側で選んだノードが **矢印の始点**」になります。列車が向かう順番でノードを並べてしまうと、隣接ノード間の参照方向が逆転し `GetDistanceToNode` が `-1` を返します。
