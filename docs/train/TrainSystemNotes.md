@@ -23,8 +23,8 @@
 - `RailPosition` は「インデックスが小さいほど列車の進行方向に近い」リストを前提にしています。内部の `RailNodeCalculate.CalculateTotalDistance` は `railNodes[i + 1].GetDistanceToNode(railNodes[i])` を順に呼び出し、後ろ側のノードから前側のノードへ到達できることを確認します。
 - そのため、`RailComponent.ConnectRailComponent(source, target, ...)` を利用した場合は「source 側で選んだノードが **矢印の始点**」になります。列車が向かう順番でノードを並べてしまうと、隣接ノード間の参照方向が逆転し `GetDistanceToNode` が `-1` を返します。
 - `RailNodeCalculate` では距離の合計が負値になった時に「列車の長さまたは計算経路がInt.Maxを超えています。」という例外を投げますが、これは実際には未接続ノードを含む場合にも発生します。ノード列を組む際は、各要素について `next.GetDistanceToNode(current)` が負値にならないか（例: `RailGraphDatastore.GetDistanceBetweenNodes` で確認する）を必ず検証してください。
-- 例: `TrainCompletesRoundTripBetweenTwoCargoPlatforms` テストでは、`FrontNode` を列車の進行順に並べた初期ノード列を `RailPosition` に渡した結果、`transitRail.FrontNode -> loadingExit.FrontNode` の向きが一致せず `GetDistanceToNode` が `-1` を返しました。ノード列を「進行方向の先頭ノードを末尾に置き、後方ノードから前方ノードへ到達できる順序」に並び替えることで、距離計算が意図通り機能します。
-- テストでは `Assert.Greater(next.GetDistanceToNode(current), 0)` のように隣接ノードごとの接続性を明示的に検証し、誤った順序でリストを構築してしまった場合に早期に失敗するようにしてください。
+- 例: `TrainCompletesRoundTripBetweenTwoCargoPlatforms` テストでは、出発駅の `FrontNode` を終点側から並べて `RailPosition` を構築した結果、列車の先頭が誤って貨物受け取り駅側に配置されました。`TryDockWhenStopped` は駅の Exit ノードとの一致を確認するため、初期ノード列の先頭要素は「出発駅の Exit（front）」、2要素目は「同駅の Entry（front）」になるように並べ替え、進行方向の経路検証は別途 `current.GetDistanceToNode(next)` で行う必要があります。
+- テストでは `Assert.Greater(current.GetDistanceToNode(next), 0)` のように、進行方向・折り返し方向それぞれの経路を明示的に検証しておくと、ノードの並べ替えミスや `RailPosition` 初期化時の手戻りを防げます。
 
 ## 用語整理
 - **Front / Back**: レール片のジオメトリ上の「前後」ではなく、グラフ上での進行方向を示す補助的な名前です。レールの向きが変わっても `FrontNode` は常に「このコンポーネントを前進したときに辿るノード」として扱われます。
