@@ -1,10 +1,30 @@
 # Train Integration Test Implementation Priorities
 
-このドキュメントは、提示された統合テスト計画(A-E)のうち、列車システムに関わる実装優先度が特に高いものを整理したものです。優先順位の判断基準は以下の観点に基づいています。
+このドキュメントは、提示された統合テスト計画(A-E)のうち、列車システムに関わる実装優先度が特に高いものを整理したものです。また、現在`train`という名前が付いたテストファイルがどの種類のテストをカバーしているかを俯瞰できるようにしています。優先順位の判断基準は以下の観点に基づいています。
 
 - 実プレイで頻出し、致命的な障害やユーザー体験の大きな劣化に直結するか。
 - 現状のテストカバレッジで不足していそうなシナリオか。
 - 後続のテストや機能検証の土台になるか。
+
+## 既存テストカバレッジの俯瞰
+
+| テストカテゴリ | 主なテストファイル | テストタイプ | カバーしている挙動 | 未カバー/補足メモ |
+| --- | --- | --- | --- | --- |
+| レールグラフ探索・ノード接続 | `Tests/UnitTest/Game/SimpleTrainTest.cs` | ユニットテスト | Dijkstra探索の正当性、ノード接続関係、ランダムケースでの最短経路探索 | 複雑なネットワーク上での多列車運用や予約競合は未検証 |
+| レールコンポーネント配置/駅向き | `Tests/UnitTest/Game/SimpleTrainTestStation.cs` | ユニットテスト | レール同士の接続、駅ブロック向きごとのRailComponent配置確認、駅間距離検証 | 目視確認(Log)依存のテストが残っており自動アサートが不足 |
+| RailPosition遷移 | `Tests/UnitTest/Game/SimpleTrainTestRailPosition.cs` | ユニットテスト | 長編成の前進/後退やReverse時のノードスタック維持 | ベクトル長の極端値や曲線半径の検証は未実施 |
+| 列車走行ロジック | `Tests/UnitTest/Game/SimpleTrainTestUpdateTrain.cs` | シナリオテスト (長時間) | ループ線路での走行、目的地到達、Station経由での往復、複数駅間の自動運転 | ランダム生成依存で再現性が低く、並列列車・フェイルケースは未検証 |
+| ドッキングと積み下ろし | `Tests/UnitTest/Game/TrainStationDockingItemTransferTest.cs` | 統合テスト | 駅・貨物プラットフォームでの積込/荷降ろし、占有時の第二列車拒否 | 待避線を含む複数列車連携、長距離移動を伴うシナリオは未実装 |
+| 列車運行ダイアグラム | `Tests/UnitTest/Game/TrainDiagramUpdateTest.cs` | 機能テスト | ダイアグラムのノード削除時リセット、積載/空荷条件での出発制御、複数条件の併用 | 長距離ダイアグラムや複数列車共有での挙動は未検証 |
+| セーブ/ロード | `Tests/UnitTest/Game/SaveLoad/TrainRailSaveLoadTest.cs` | 統合テスト | レール・駅の保存復元、接続状態とインベントリの保持 | 走行中列車・時刻同期・運行状態の復元は未カバー |
+| シングルトレイン往復 | `Tests/UnitTest/Game/SingleTrainTwoStationIntegrationTest.cs` | シナリオテスト | 2駅間での積込→運搬→荷降ろし→往復完走、手動スイッチ操作を含む | 長時間運転や複数列車・ポイント切替は未検証 |
+
+### カバレッジ詳細メモ
+- **ユニット層**: RailGraph/RailPosition関連のアルゴリズム系テスト(`SimpleTrainTest*.cs`)が存在し、基礎的な計算ロジックは網羅している。
+- **統合層**: ドッキング/積み下ろし(`TrainStationDockingItemTransferTest.cs`)とセーブ/ロード(`TrainRailSaveLoadTest.cs`)は、単列車または静的環境下での正当性を担保する。運行状態の保存や動的な線路変更は未カバー。
+- **シナリオ層**: `SimpleTrainTestUpdateTrain.cs`と`SingleTrainTwoStationIntegrationTest.cs`が単列車シナリオをカバー。ただしランダム性が高いものが多く、長時間耐久やマルチトレイン競合は未実装。
+
+> 📌 **ギャップまとめ**: 「複数列車が同一路線を共有する長時間運行」「路線編集や駅状態変化を伴う再探索」「走行中セーブ/ロード」「フェイルインジェクション」などは既存テストで扱われていないため、本書の優先事項を満たす追加実装が必要。
 
 ## 優先度1: A) 多列車シナリオの統合テスト強化
 - **目的**: デッドロックや衝突の未検出を防ぎ、複数列車運用の基礎品質を保証する。
@@ -17,7 +37,7 @@
   - [ ] 先詰まりシナリオ: 先頭列車が駅で長時間停止し後続が手前ノードで待機するケース (未実装)
   - [ ] 星形/格子ネットワークでの長時間運転と衝突ゼロ検証 (未実装)
   - [ ] 衝突数・予約失敗リトライ・平均待機時間など指標Assertionの導入 (未実装)
-  - [x] 単列車×二駅の往復テスト (駅1積載→駅2荷降ろし) と手動スイッチ連携 (`moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SingleTrainTwoStationIntegrationTest.cs`)
+  - [x] 単列車×二駅の往復テスト (駅1積載→駅2荷降ろし) と手動スイッチ連携 (`moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SingleTrainTwoStationIntegrationTest.cs`) — シナリオテストとして単列車の往復を自動検証
   - [x] 単駅での積み込み/荷降ろし切替確認 (`moorestech_server/Assets/Scripts/Tests/UnitTest/Game/TrainStationDockingItemTransferTest.cs`)
   - [x] 駅占有時の後続列車待機(二列車)の衝突防止 (`moorestech_server/Assets/Scripts/Tests/UnitTest/Game/TrainStationDockingItemTransferTest.cs`)
 - **着手ポイント**:
