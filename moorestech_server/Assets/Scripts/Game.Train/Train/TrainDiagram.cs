@@ -16,7 +16,8 @@ namespace Game.Train.Train
         public enum DepartureConditionType
         {
             TrainInventoryFull,
-            TrainInventoryEmpty
+            TrainInventoryEmpty,
+            WaitForTicks
         }
 
         public interface IDepartureCondition
@@ -72,9 +73,16 @@ namespace Game.Train.Train
 
         public void MoveToNextEntry()
         {
+            DiagramEntry previousEntry = null;
+            if (TryGetActiveEntry(out var activeEntry))
+            {
+                previousEntry = activeEntry;
+            }
+
             if (!HasUsableEntry())
             {
                 _currentIndex = -1;
+                previousEntry?.OnDeparted();
                 return;
             }
 
@@ -83,11 +91,13 @@ namespace Game.Train.Train
                 _currentIndex = (_currentIndex + 1) % _entries.Count;
                 if (_entries[_currentIndex].IsValid)
                 {
+                    previousEntry?.OnDeparted();
                     return;
                 }
             }
 
             _currentIndex = -1;
+            previousEntry?.OnDeparted();
         }
 
         public void HandleNodeRemoval(RailNode removedNode)
@@ -173,15 +183,6 @@ namespace Game.Train.Train
             return true;
         }
 
-        private static IDepartureCondition CreateDepartureCondition(DepartureConditionType type)
-        {
-            return type switch
-            {
-                DepartureConditionType.TrainInventoryEmpty => new TrainInventoryEmptyCondition(),
-                _ => new TrainInventoryFullCondition()
-            };
-        }
-
         private abstract class TrainInventoryConditionBase : IDepartureCondition
         {
             public bool CanDepart(TrainUnit trainUnit)
@@ -230,6 +231,54 @@ namespace Game.Train.Train
             }
         }
 
+        private sealed class WaitForTicksCondition : IDepartureCondition
+        {
+            private int _initialTicks;
+            private int _remainingTicks;
+
+            public void Configure(int ticks)
+            {
+                if (ticks < 0)
+                {
+                    ticks = 0;
+                }
+
+                _initialTicks = ticks;
+                _remainingTicks = ticks;
+            }
+
+            public void Reset()
+            {
+                _remainingTicks = _initialTicks;
+            }
+
+            public bool CanDepart(TrainUnit trainUnit)
+            {
+                if (_remainingTicks <= 0)
+                {
+                    return true;
+                }
+
+                if (trainUnit == null || !trainUnit.IsAutoRun)
+                {
+                    return false;
+                }
+
+                var docking = trainUnit.trainUnitStationDocking;
+                if (docking == null || !docking.IsDocked)
+                {
+                    return false;
+                }
+
+                if (_remainingTicks > 0)
+                {
+                    _remainingTicks--;
+                }
+
+                return _remainingTicks <= 0;
+            }
+        }
+
         public sealed class DiagramEntry
         {
             public DiagramEntry(RailNode node)
@@ -246,6 +295,7 @@ namespace Game.Train.Train
 
             private readonly List<IDepartureCondition> _departureConditions;
             private readonly List<DepartureConditionType> _departureConditionTypes;
+            private WaitForTicksCondition _waitForTicksCondition;
 
             public IReadOnlyList<IDepartureCondition> DepartureConditions => _departureConditions;
             public IReadOnlyList<DepartureConditionType> DepartureConditionTypes => _departureConditionTypes;
@@ -282,6 +332,7 @@ namespace Game.Train.Train
             {
                 _departureConditions.Clear();
                 _departureConditionTypes.Clear();
+                _waitForTicksCondition = null;
 
                 if (conditionTypes == null)
                 {
@@ -317,10 +368,42 @@ namespace Game.Train.Train
 
                     _departureConditionTypes.RemoveAt(i);
                     _departureConditions.RemoveAt(i);
+                    if (conditionType == DepartureConditionType.WaitForTicks)
+                    {
+                        _waitForTicksCondition = null;
+                    }
                     return true;
                 }
 
                 return false;
+            }
+
+            public void SetDepartureWaitTicks(int ticks)
+            {
+                SetDepartureConditions(new[] { DepartureConditionType.WaitForTicks });
+                _waitForTicksCondition?.Configure(ticks);
+            }
+
+            public void OnDeparted()
+            {
+                _waitForTicksCondition?.Reset();
+            }
+
+            private IDepartureCondition CreateDepartureCondition(DepartureConditionType conditionType)
+            {
+                switch (conditionType)
+                {
+                    case DepartureConditionType.TrainInventoryEmpty:
+                        return new TrainInventoryEmptyCondition();
+                    case DepartureConditionType.WaitForTicks:
+                        var waitCondition = new WaitForTicksCondition();
+                        _waitForTicksCondition = waitCondition;
+                        return waitCondition;
+                    case DepartureConditionType.TrainInventoryFull:
+                        return new TrainInventoryFullCondition();
+                    default:
+                        return null;
+                }
             }
         }
     }
