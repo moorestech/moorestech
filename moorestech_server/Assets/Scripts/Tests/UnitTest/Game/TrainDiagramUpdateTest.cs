@@ -63,39 +63,15 @@ namespace Tests.UnitTest.Game
         [Test]
         public void DiagramEntrySupportsInventoryEmptyDepartureCondition()
         {
-            var env = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
+            using var scenario = TrainAutoRunTestScenario.CreateDockedScenario();
 
-            var (cargoPlatformBlock, railSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
-                env,
-                ForUnitTestModBlockId.TestTrainCargoPlatform,
-                Vector3Int.zero,
-                BlockDirection.North);
-
-            Assert.IsNotNull(cargoPlatformBlock, "Cargo platform block placement failed");
-            Assert.IsNotNull(railSaver, "RailSaverComponent is missing");
-
-            var entryNode = railSaver.RailComponents[0].FrontNode;
-            var exitNode = railSaver.RailComponents[1].FrontNode;
-
-            Assert.IsNotNull(entryNode, "Entry node not found");
-            Assert.IsNotNull(exitNode, "Exit node not found");
-
-            var segmentLength = entryNode!.GetDistanceToNode(exitNode!);
-            Assert.Greater(segmentLength, 0, "Cargo platform segment length must be positive");
-
-            var railNodes = new List<RailNode> { exitNode, entryNode };
-            var railPosition = new RailPosition(railNodes, segmentLength, 0);
-
-            var trainCar = new TrainCar(tractionForce: 1000, inventorySlots: 1, length: segmentLength);
+            var trainUnit = scenario.Train;
+            var trainCar = scenario.TrainCar;
             trainCar.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 1));
-
-            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar });
-
-            trainUnit.trainUnitStationDocking.TryDockWhenStopped();
 
             Assert.IsTrue(trainCar.IsDocked, "Train car should be docked to the cargo platform block");
 
-            var entry = trainUnit.trainDiagram.AddEntry(entryNode);
+            var entry = trainUnit.trainDiagram.Entries.First(e => e.Node == scenario.StationEntryFront);
             entry.SetDepartureCondition(TrainDiagram.DepartureConditionType.TrainInventoryEmpty);
 
             Assert.IsFalse(entry.CanDepart(trainUnit), "Train should wait until inventory is empty.");
@@ -103,47 +79,20 @@ namespace Tests.UnitTest.Game
             trainCar.SetItem(0, ServerContext.ItemStackFactory.CreatEmpty());
 
             Assert.IsTrue(entry.CanDepart(trainUnit), "Train should depart once inventory becomes empty.");
-
-            TrainDiagramManager.Instance.UnregisterDiagram(trainUnit);
-            TrainUpdateService.Instance.UnregisterTrain(trainUnit);
         }
 
         [Test]
         public void DiagramEntryAllowsManagingMultipleDepartureConditions()
         {
-            var env = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
+            using var scenario = TrainAutoRunTestScenario.CreateDockedScenario();
 
-            var (cargoPlatformBlock, railSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
-                env,
-                ForUnitTestModBlockId.TestTrainCargoPlatform,
-                Vector3Int.zero,
-                BlockDirection.North);
-
-            Assert.IsNotNull(cargoPlatformBlock, "Cargo platform block placement failed");
-            Assert.IsNotNull(railSaver, "RailSaverComponent is missing");
-
-            var entryNode = railSaver.RailComponents[0].FrontNode;
-            var exitNode = railSaver.RailComponents[1].FrontNode;
-
-            Assert.IsNotNull(entryNode, "Entry node not found");
-            Assert.IsNotNull(exitNode, "Exit node not found");
-
-            var segmentLength = entryNode!.GetDistanceToNode(exitNode!);
-            Assert.Greater(segmentLength, 0, "Cargo platform segment length must be positive");
-
-            var railNodes = new List<RailNode> { exitNode, entryNode };
-            var railPosition = new RailPosition(railNodes, segmentLength, 0);
-
-            var trainCar = new TrainCar(tractionForce: 1000, inventorySlots: 1, length: segmentLength);
+            var trainUnit = scenario.Train;
+            var trainCar = scenario.TrainCar;
             trainCar.SetItem(0, ServerContext.ItemStackFactory.CreatEmpty());
-
-            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar });
-
-            trainUnit.trainUnitStationDocking.TryDockWhenStopped();
 
             Assert.IsTrue(trainCar.IsDocked, "Train car should be docked to the cargo platform block");
 
-            var entry = trainUnit.trainDiagram.AddEntry(entryNode);
+            var entry = trainUnit.trainDiagram.Entries.First(e => e.Node == scenario.StationEntryFront);
             entry.SetDepartureCondition(TrainDiagram.DepartureConditionType.TrainInventoryEmpty);
 
             Assert.AreEqual(1, entry.DepartureConditions.Count, "Initial departure condition should be set");
@@ -193,45 +142,17 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(0, entry.DepartureConditions.Count, "All conditions should be cleared after final removal");
             Assert.IsTrue(entry.CanDepart(trainUnit), "No conditions should allow immediate departure");
 
-            TrainDiagramManager.Instance.UnregisterDiagram(trainUnit);
-            TrainUpdateService.Instance.UnregisterTrain(trainUnit);
         }
 
         [Test]
         public void WaitForTicksDepartureConditionRequiresDockedAutoRunAndResetsAfterDeparture()
         {
-            var env = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
+            using var scenario = TrainAutoRunTestScenario.CreateDockedScenario();
 
-            var (_, railSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
-                env,
-                ForUnitTestModBlockId.TestTrainCargoPlatform,
-                Vector3Int.zero,
-                BlockDirection.North);
-
-            Assert.IsNotNull(railSaver, "RailSaverComponent is missing");
-
-            var entryNode = railSaver!.RailComponents[0].FrontNode;
-            var exitNode = railSaver.RailComponents[1].FrontNode;
-
-            Assert.IsNotNull(entryNode, "Entry node not found");
-            Assert.IsNotNull(exitNode, "Exit node not found");
-
-            var segmentLength = entryNode!.GetDistanceToNode(exitNode!);
-            Assert.Greater(segmentLength, 0, "Cargo platform segment length must be positive");
-
-            var railNodes = new List<RailNode> { exitNode!, entryNode };
-            var railPosition = new RailPosition(railNodes, segmentLength, 0);
-
-            var trainCar = new TrainCar(tractionForce: 1000, inventorySlots: 1, length: segmentLength);
-            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar });
-
-            trainUnit.trainUnitStationDocking.TryDockWhenStopped();
+            var trainUnit = scenario.Train;
             Assert.IsTrue(trainUnit.trainUnitStationDocking.IsDocked, "Train should start docked at the cargo platform");
 
-            var firstEntry = trainUnit.trainDiagram.AddEntry(entryNode);
-            _ = trainUnit.trainDiagram.AddEntry(exitNode);
-
-            trainUnit.trainDiagram.MoveToNextEntry();
+            var firstEntry = trainUnit.trainDiagram.Entries.First(entry => entry.Node == scenario.StationExitFront);
 
             firstEntry.SetDepartureWaitTicks(2);
             CollectionAssert.AreEqual(
@@ -258,9 +179,6 @@ namespace Tests.UnitTest.Game
 
             Assert.IsTrue(trainUnit.trainUnitStationDocking.IsDocked, "Train remains docked after cycling diagram entries");
             Assert.IsFalse(firstEntry.CanDepart(trainUnit), "Wait ticks should reset after the entry is departed");
-
-            TrainDiagramManager.Instance.UnregisterDiagram(trainUnit);
-            TrainUpdateService.Instance.UnregisterTrain(trainUnit);
         }
     }
 }
