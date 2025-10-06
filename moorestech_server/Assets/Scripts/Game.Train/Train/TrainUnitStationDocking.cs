@@ -24,15 +24,16 @@ namespace Game.Train.Train
         //
         //station側ではcarがドッキングした瞬間にstationのドッキング状態を更新する
         //これでロード時最初の1フレームで必ずドッキングされた状態で始まる
-        //なのでセーブ・ロードではcar側のboolのみを対象にしてstation側はセーブしない
+        //なのでセーブ・ロードではcar側のboolのみを対象にしてstation側はセーブしない(?)
 
         //他メモ
         //ドッキング中の列車は削除できる→TODO真ん中削除したらどうなるか？
         //列車が乗っているnodeは削除できない
         //
 
-        // 各車両のドッキング状態を管理  
         private TrainUnit _trainUnit;
+        private RailNode _dockedNode = null; //ドッキングしているnode
+        public RailNode DockedNode => _dockedNode;
 
         private sealed class DockedReceiver
         {
@@ -74,6 +75,7 @@ namespace Game.Train.Train
         //すべてのTrainCarのドッキング状態をfalseにする
         public void UndockFromStation()
         {
+            _dockedNode = null;
             if (_dockedReceivers.Count > 0)
             {
                 foreach (var entry in _dockedReceivers.Values.ToArray())
@@ -94,9 +96,8 @@ namespace Game.Train.Train
         /// trainunitのrailpositionを参照して、carの前端と後端のノードを取得し、同じ駅にドッキングできるかチェックする  
         /// ドッキングできるなら各carのドッキング状態を更新する
         /// </summary>
-        public void TryDockWhenStopped()
+        public void TryDockWhenStopped(RailNode diagramnode)//駅にドッキングするということはdiagramで見ているエントリーのnodeの駅にドッキングするということ
         {
-            
             if (_trainUnit._cars.Count == 0 || _trainUnit._railPosition == null)
             {
                 return; // 列車が存在しない場合は何もしない
@@ -137,13 +138,13 @@ namespace Game.Train.Train
 
                             car.dockingblock = dockingBlock;
                             flag = true;
+                            _dockedNode = diagramnode;
                             break;
                         }
                         if (flag) break;
                     }
                 }
             }
-
         }
 
         /// <summary>  

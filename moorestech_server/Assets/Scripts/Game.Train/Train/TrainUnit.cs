@@ -65,7 +65,13 @@ namespace Game.Train.Train
                 // 自動運転中はドッキング中なら進まない、ドッキング中じゃないなら目的地に向かって加速
                 if (trainUnitStationDocking.IsDocked)
                 {
-                    //TODO:ここにdiagramを手動でいじって、現在ドッキング中の駅をエントリーから削除したときも考慮。その場合は安全にドッキング解除しtrainDiagram.MoveToNextEntry();はしない
+                    _currentSpeed = 0;
+                    //diagramを手動でいじって、現在ドッキング中の駅をエントリーから削除したとき。その場合は安全にドッキング解除しtrainDiagram.MoveToNextEntry();はしない
+                    if ((trainDiagram.GetNextDestination() == null)  || (trainDiagram.GetNextDestination() != trainUnitStationDocking.DockedNode))
+                    {
+                        trainUnitStationDocking.UndockFromStation();
+                        return 0;
+                    }
                     // もしtrainDiagramの出発条件を満たしていたら、trainDiagramは次の目的地をセットして、ドッキングを解除する
                     if (trainDiagram.CheckEntries())
                     {
@@ -76,8 +82,6 @@ namespace Game.Train.Train
                         return 0;
                     }
                     trainUnitStationDocking.TickDockedStations();
-                    // ドッキング中は進まない
-                    _currentSpeed = 0;
                     return 0;
                 }
                 else
