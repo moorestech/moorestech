@@ -133,6 +133,76 @@ namespace Tests.UnitTest.Game
             TrainUpdateService.Instance.UnregisterTrain(trainUnit);
         }
 
+        [Test]
+        public void StationRejectsSecondTrainWhileFirstRemainsDocked()
+        {
+            var env = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
+
+            var (stationBlock, railSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+                env,
+                ForUnitTestModBlockId.TestTrainStation,
+                Vector3Int.zero,
+                BlockDirection.North);
+
+            Assert.IsNotNull(stationBlock, "Station block placement failed");
+            Assert.IsNotNull(railSaver, "RailSaverComponent is missing");
+
+            Assert.IsTrue(stationBlock.ComponentManager.TryGetComponent<IBlockInventory>(out var stationInventory),
+                "Station inventory not found");
+
+            var entryNode = railSaver.RailComponents[0].FrontNode;
+            var exitNode = railSaver.RailComponents[1].FrontNode;
+
+            Assert.IsNotNull(entryNode, "Entry node not found");
+            Assert.IsNotNull(exitNode, "Exit node not found");
+
+            var stationSegmentLength = entryNode!.GetDistanceToNode(exitNode!);
+            Assert.Greater(stationSegmentLength, 0, "Station segment length must be positive");
+
+            var maxStack = MasterHolder.ItemMaster.GetItemMaster(ForUnitTestItemId.ItemId1).MaxStack;
+            stationInventory.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, maxStack));
+
+            TrainUnit CreateTrain(out TrainCar car)
+            {
+                var railNodes = new List<RailNode> { exitNode, entryNode };
+                var railPosition = new RailPosition(railNodes, stationSegmentLength, 0);
+                car = new TrainCar(tractionForce: 1000, inventorySlots: 1, length: stationSegmentLength);
+                return new TrainUnit(railPosition, new List<TrainCar> { car });
+            }
+
+            var firstTrain = CreateTrain(out var firstCar);
+            firstTrain.trainUnitStationDocking.TryDockWhenStopped();
+            Assert.IsTrue(firstCar.IsDocked, "First train should dock successfully");
+
+            var secondTrain = CreateTrain(out var secondCar);
+            secondTrain.trainUnitStationDocking.TryDockWhenStopped();
+            Assert.IsFalse(secondCar.IsDocked, "Second train must remain undocked while station is occupied");
+
+            for (var i = 0; i < maxStack; i++)
+            {
+                firstTrain.trainUnitStationDocking.TickDockedStations();
+                secondTrain.trainUnitStationDocking.TickDockedStations();
+            }
+
+            var remainingStack = stationInventory.GetItem(0);
+            Assert.AreEqual(ItemMaster.EmptyItemId, remainingStack.Id, "Station inventory should transfer items to the docked train");
+
+            var firstCarStack = firstCar.GetItem(0);
+            Assert.AreEqual(ForUnitTestItemId.ItemId1, firstCarStack.Id, "First train should receive station items");
+            Assert.AreEqual(maxStack, firstCarStack.Count, "First train should receive the full stack");
+
+            var secondCarStack = secondCar.GetItem(0);
+            Assert.AreEqual(ItemMaster.EmptyItemId, secondCarStack.Id, "Second train inventory must remain empty");
+
+            firstTrain.trainUnitStationDocking.UndockFromStation();
+            secondTrain.trainUnitStationDocking.UndockFromStation();
+
+            TrainDiagramManager.Instance.UnregisterDiagram(firstTrain);
+            TrainUpdateService.Instance.UnregisterTrain(firstTrain);
+            TrainDiagramManager.Instance.UnregisterDiagram(secondTrain);
+            TrainUpdateService.Instance.UnregisterTrain(secondTrain);
+        }
+
     }
 }
 
