@@ -21,10 +21,10 @@ namespace Game.Train.Common
             }
         }
 
-
+        //マジックナンバー。trainはtick制。1tickで速度、位置、ドッキング状態等が決定的に動く。1tick=1/120秒
         private const double TickSeconds = 1d / 120d;
         private double _accumulatedSeconds;
-        private readonly int _maxTicksPerFrame = int.MaxValue;
+        private readonly int _maxTicksPerFrame = 65535;
         private readonly List<TrainUnit> _trainUnits = new();
 
         public TrainUpdateService()
@@ -49,10 +49,20 @@ namespace Game.Train.Common
             {
                 foreach (var trainUnit in _trainUnits)
                 {
-                    trainUnit.Update(TickSeconds);
+                    trainUnit.Update();
                 }
             }
         }
+
+
+        private void UpdateTrains1Tickmanually()
+        {
+            foreach (var trainUnit in _trainUnits)
+            {
+                trainUnit.Update();
+            }
+        }
+
 
         public void RegisterTrain(TrainUnit trainUnit) => _trainUnits.Add(trainUnit);
         public void UnregisterTrain(TrainUnit trainUnit) => _trainUnits.Remove(trainUnit);

@@ -146,7 +146,7 @@ namespace Tests.UnitTest.Game
         {
             for (var i = 0; i < maxIterations; i++)
             {
-                trainUnit.Update(1d / 60d);
+                trainUnit.Update();
                 if (predicate())
                 {
                     return;

@@ -5,6 +5,7 @@ using Game.Train.Common;
 
 namespace Game.Train.Train
 {
+    //事実上ゲーム起動時に一度だけ呼ばれる
     public static class TrainDockingStateRestorer
     {
         public static void RestoreDockingState()

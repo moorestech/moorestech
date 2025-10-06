@@ -92,12 +92,12 @@ namespace Tests.UnitTest.Game
 
                 // 5) 進めるtotal距離をランダムにきめる
                 int totalrunDist = UnityEngine.Random.Range(1, 30000000);
-                var remain = trainUnit.UpdateTrainByDistance(totalrunDist);
+                var remain = totalrunDist - trainUnit.UpdateTrainByDistance(totalrunDist);
                 //totalrunDist_は0でないといけない
                 Assert.AreEqual(0, remain);
                 //逆向きにして進みてみる
                 trainUnit._railPosition.Reverse();
-                remain = trainUnit.UpdateTrainByDistance(totalrunDist);
+                remain = totalrunDist - trainUnit.UpdateTrainByDistance(totalrunDist);
                 Assert.AreEqual(0, remain);
                 trainUnit._railPosition.Reverse();
 
@@ -164,7 +164,7 @@ namespace Tests.UnitTest.Game
 
             // --- 4. TrainUnit を生成 ---
             var destination = nodeA;   // 目的地を A にしておく
-            var trainUnit = new TrainUnit(initialRailPosition, cars, destination);
+            var trainUnit = new TrainUnit(initialRailPosition, cars);
             trainUnit.trainDiagram.AddEntry(destination);
             trainUnit.TurnOnAutoRun();
             int totaldist = 0;
@@ -172,11 +172,11 @@ namespace Tests.UnitTest.Game
             int cnt = 0;//ループ助長カウント
             for (int i = 0; i < 65535; i++)//目的地に到達するまで→testフリーズは避けたいので有限で
             {
-                int calceddist = trainUnit.UpdateTrainByTime(1f / 60f);
+                var calceddist = trainUnit.Update();
                 totaldist += calceddist;
                 if ((i % 60 == 0) & (debugLogFlag))
                 {
-                    Debug.Log("列車速度" + trainUnit._currentSpeed);
+                    Debug.Log("列車速度" + trainUnit.CurrentSpeed);
                     Debug.Log("1フレームにすすむ距離int" + calceddist);
                     Debug.Log("現在向かっているnodeのID");
                     RailGraphDatastore._instance.Test_NodeIdLog(trainUnit._railPosition.GetNodeApproaching());
@@ -225,17 +225,17 @@ namespace Tests.UnitTest.Game
                 var framesElapsed = -1;
                 for (int i = 0; i < 65535; i++)//目的地に到達するまで→testフリーズは避けたいので有限で
                 {
-                    int calceddist = trainUnit.UpdateTrainByTime(1f / 60f);
+                    int calceddist = trainUnit.Update();
                     totaldist += calceddist;
                     if ((i % 60 == 0) & (debugLogFlag))
                     {
-                        Debug.Log("列車速度" + trainUnit._currentSpeed);
+                        Debug.Log("列車速度" + trainUnit.CurrentSpeed);
                         Debug.Log("1フレームにすすむ距離int" + calceddist);
                         Debug.Log("現在向かっているnodeのID");
                         RailGraphDatastore._instance.Test_NodeIdLog(trainUnit._railPosition.GetNodeApproaching());
                     }
 
-                    if (trainUnit._railPosition.GetNodeApproaching() == trainUnit._destinationNode &&
+                    if (trainUnit._railPosition.GetNodeApproaching() == trainUnit.trainDiagram.GetNextDestination() &&
                         trainUnit._railPosition.GetDistanceToNextNode() == 0)
                     {
                         reachedDestination = true;
@@ -341,7 +341,7 @@ namespace Tests.UnitTest.Game
             {
                 new TrainCar(tractionForce: 600000, inventorySlots: 0, length: trainLength),  // 仮: 動力車
             };
-            var trainUnit = new TrainUnit(railPosition, cars, destination);
+            var trainUnit = new TrainUnit(railPosition, cars);
             trainUnit.trainDiagram.AddEntry(destination);
             //走行スタート 現在地→駅3の終点
             RunTrain(trainUnit);
@@ -496,7 +496,7 @@ namespace Tests.UnitTest.Game
                 {
                     new TrainCar(tractionForce: 600000, inventorySlots: 0, length: trainLength),  // 仮: 動力車
                 };
-                var trainUnit = new TrainUnit(railPosition, cars, destination);
+                var trainUnit = new TrainUnit(railPosition, cars);
                 trainUnit.trainDiagram.AddEntry(destination);
                 trainUnit.TurnOnAutoRun();//factorioでいう自動運転on
 
@@ -506,7 +506,7 @@ namespace Tests.UnitTest.Game
                     var reachedDestination = false;
                     for (int j = 0; j < 65535; j++)//目的地に到達するまで→testフリーズは避けたいので有限で
                     {
-                        trainUnit.UpdateTrainByTime(1f / 60f);
+                        trainUnit.Update();
 
                         if (trainUnit._railPosition.GetNodeApproaching() == destination &&
                             trainUnit._railPosition.GetDistanceToNextNode() == 0)
@@ -591,8 +591,7 @@ namespace Tests.UnitTest.Game
             );
 
             // --- 4. TrainUnit を生成 ---
-            var destination = nodeA;   // 適当な目的地を A にしておく
-            var trainUnit = new TrainUnit(initialRailPosition, cars, destination);
+            var trainUnit = new TrainUnit(initialRailPosition, cars);
 
             // --- 5. SplitTrain(...) で後ろから 2 両切り離す ---
             //   5両 → (前3両) + (後ろ2両) に分割
