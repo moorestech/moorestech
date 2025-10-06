@@ -196,5 +196,71 @@ namespace Tests.UnitTest.Game
             TrainDiagramManager.Instance.UnregisterDiagram(trainUnit);
             TrainUpdateService.Instance.UnregisterTrain(trainUnit);
         }
+
+        [Test]
+        public void WaitForTicksDepartureConditionRequiresDockedAutoRunAndResetsAfterDeparture()
+        {
+            var env = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
+
+            var (_, railSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+                env,
+                ForUnitTestModBlockId.TestTrainCargoPlatform,
+                Vector3Int.zero,
+                BlockDirection.North);
+
+            Assert.IsNotNull(railSaver, "RailSaverComponent is missing");
+
+            var entryNode = railSaver!.RailComponents[0].FrontNode;
+            var exitNode = railSaver.RailComponents[1].FrontNode;
+
+            Assert.IsNotNull(entryNode, "Entry node not found");
+            Assert.IsNotNull(exitNode, "Exit node not found");
+
+            var segmentLength = entryNode!.GetDistanceToNode(exitNode!);
+            Assert.Greater(segmentLength, 0, "Cargo platform segment length must be positive");
+
+            var railNodes = new List<RailNode> { exitNode!, entryNode };
+            var railPosition = new RailPosition(railNodes, segmentLength, 0);
+
+            var trainCar = new TrainCar(tractionForce: 1000, inventorySlots: 1, length: segmentLength);
+            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar });
+
+            trainUnit.trainUnitStationDocking.TryDockWhenStopped();
+            Assert.IsTrue(trainUnit.trainUnitStationDocking.IsDocked, "Train should start docked at the cargo platform");
+
+            var firstEntry = trainUnit.trainDiagram.AddEntry(entryNode);
+            _ = trainUnit.trainDiagram.AddEntry(exitNode);
+
+            trainUnit.trainDiagram.MoveToNextEntry();
+
+            firstEntry.SetDepartureWaitTicks(2);
+            CollectionAssert.AreEqual(
+                new[] { TrainDiagram.DepartureConditionType.WaitForTicks },
+                firstEntry.DepartureConditionTypes,
+                "Wait-for-ticks should be the only configured departure condition");
+
+            trainUnit.TurnOnAutoRun();
+            Assert.IsTrue(trainUnit.IsAutoRun, "Auto run should be enabled to test wait ticks");
+
+            trainUnit.trainUnitStationDocking.UndockFromStation();
+            Assert.IsFalse(trainUnit.trainUnitStationDocking.IsDocked, "Manual undocking should clear docked state");
+
+            Assert.IsFalse(firstEntry.CanDepart(trainUnit), "Undocked trains should not consume wait ticks");
+
+            trainUnit.trainUnitStationDocking.TryDockWhenStopped();
+            Assert.IsTrue(trainUnit.trainUnitStationDocking.IsDocked, "Train should be docked before counting down");
+
+            Assert.IsFalse(firstEntry.CanDepart(trainUnit), "First docked tick should decrease remaining time but stay waiting");
+            Assert.IsTrue(firstEntry.CanDepart(trainUnit), "Second docked tick should complete the wait");
+
+            trainUnit.trainDiagram.MoveToNextEntry();
+            trainUnit.trainDiagram.MoveToNextEntry();
+
+            Assert.IsTrue(trainUnit.trainUnitStationDocking.IsDocked, "Train remains docked after cycling diagram entries");
+            Assert.IsFalse(firstEntry.CanDepart(trainUnit), "Wait ticks should reset after the entry is departed");
+
+            TrainDiagramManager.Instance.UnregisterDiagram(trainUnit);
+            TrainUpdateService.Instance.UnregisterTrain(trainUnit);
+        }
     }
 }
