@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Core.Master;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
@@ -77,12 +78,19 @@ namespace Tests.UnitTest.Game
 
             var initialNodes = new List<RailNode>
             {
-                loadingEntryComponent.FrontNode,
-                loadingExitComponent.FrontNode,
-                transitRailA.FrontNode,
+                unloadingEntryComponent.FrontNode,
                 transitRailB.FrontNode,
-                unloadingEntryComponent.FrontNode
+                transitRailA.FrontNode,
+                loadingExitComponent.FrontNode,
+                loadingEntryComponent.FrontNode
             };
+
+            
+            foreach (var (current, next) in initialNodes.Zip(initialNodes.Skip(1), (current, next) => (current, next)))
+            {
+                var segmentLength = next.GetDistanceToNode(current);
+                Assert.Greater(segmentLength, 0, "Rail nodes must be connected in reverse traversal order: ");
+            }
 
             var railPosition = new RailPosition(new List<RailNode>(initialNodes), stationSegmentLength, 0);
             var trainCar = new TrainCar(tractionForce: 1000, inventorySlots: 1, length: stationSegmentLength);
