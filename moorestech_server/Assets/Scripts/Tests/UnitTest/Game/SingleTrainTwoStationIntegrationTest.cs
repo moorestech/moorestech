@@ -76,23 +76,41 @@ namespace Tests.UnitTest.Game
             var stationSegmentLength = loadingEntryComponent.FrontNode.GetDistanceToNode(loadingExitComponent.FrontNode);
             Assert.Greater(stationSegmentLength, 0, "Station segment length must be positive");
 
-            var initialNodes = new List<RailNode>
+            var initialRailNodes = new List<RailNode>
             {
-                unloadingEntryComponent.FrontNode,
-                transitRailB.FrontNode,
-                transitRailA.FrontNode,
                 loadingExitComponent.FrontNode,
                 loadingEntryComponent.FrontNode
             };
 
-            
-            foreach (var (current, next) in initialNodes.Zip(initialNodes.Skip(1), (current, next) => (current, next)))
+            var outboundPath = new List<RailNode>
             {
-                var segmentLength = next.GetDistanceToNode(current);
-                Assert.Greater(segmentLength, 0, "Rail nodes must be connected in reverse traversal order: ");
+                loadingExitComponent.FrontNode,
+                transitRailA.FrontNode,
+                transitRailB.FrontNode,
+                unloadingEntryComponent.FrontNode
+            };
+
+            foreach (var (current, next) in outboundPath.Zip(outboundPath.Skip(1), (current, next) => (current, next)))
+            {
+                var segmentLength = current.GetDistanceToNode(next);
+                Assert.Greater(segmentLength, 0, "Rail nodes must form a connected outbound path");
             }
 
-            var railPosition = new RailPosition(new List<RailNode>(initialNodes), stationSegmentLength, 0);
+            var inboundPath = new List<RailNode>
+            {
+                unloadingEntryComponent.BackNode,
+                transitRailB.BackNode,
+                transitRailA.BackNode,
+                loadingExitComponent.BackNode
+            };
+
+            foreach (var (current, next) in inboundPath.Zip(inboundPath.Skip(1), (current, next) => (current, next)))
+            {
+                var segmentLength = current.GetDistanceToNode(next);
+                Assert.Greater(segmentLength, 0, "Rail nodes must form a connected inbound path");
+            }
+
+            var railPosition = new RailPosition(new List<RailNode>(initialRailNodes), stationSegmentLength, 0);
             var trainCar = new TrainCar(tractionForce: 1000, inventorySlots: 1, length: stationSegmentLength);
             var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar });
 
