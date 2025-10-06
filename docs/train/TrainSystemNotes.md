@@ -16,6 +16,7 @@
 - 各 `RailComponent` はコンストラクタ内で `FrontNode` と `BackNode` の 2 つの `RailNode` を生成し、互いを `OppositeNode` として登録します。これらはベジェ曲線の制御点とともに `RailGraphDatastore` に登録され、片方向グラフのノードとして扱われます。
 - コンポーネント同士を接続する際は、接続元側で選んだノード (`FrontNode` もしくは `BackNode`) から相手側で選んだノードへ有向エッジが張られます。同時に、逆方向用のエッジは相手コンポーネントの *反対側* ノードから自分の反対側ノードへ接続されます。例えば `front(A) -> front(B)` で接続すると、逆方向は `back(B) -> back(A)` という別経路として登録されます。
 - この振る舞いにより、前進方向と後退方向はグラフ上で別ノードとして扱われ、距離計算や経路探索 (`RailNode.ConnectedNodes` / `FindShortestPath`) では明示的に片方向エッジを辿ります。従って、双方向を取り扱う処理では `FrontNode` / `BackNode` の両方を参照し、適切に逆側ノードを指定してください。
+- **重要**: RailNode レベルでは常に「有向グラフ」として設計されています。`ConnectNode` を相互に呼び出して無理に双方向へ張り直すと、front/back の対応が崩れて駅構内の距離計算が破綻します。方向が必要な場合は、必ず既存の opposite ノード経路を利用してください。
 - 接続解除や距離計算のヘルパー (`DisconnectRailComponent`, `GetDistanceToNode` など) も front/back を引数で受け取り、誤って表裏を取り違えると逆方向のエッジが残るため注意が必要です。
 
 ## 用語整理
