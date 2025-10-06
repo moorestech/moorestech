@@ -180,7 +180,7 @@ namespace Tests.Util
                 .Node;
             Assert.IsNotNull(entryBack, "Station entry (back) node not found");
 
-            var segmentLength = exitFront!.GetDistanceToNode(entryFront!);
+            var segmentLength = entryFront!.GetDistanceToNode(exitFront!);
             Assert.Greater(segmentLength, 0, "Station segment length must be positive");
 
             return new StationNodeSet(exitFront!, entryFront!, exitBack!, entryBack!, segmentLength);
