@@ -19,6 +19,7 @@
 
 ## Train System Notes
 - Use `TrainTestHelper.CreateEnvironment()` to bootstrap deterministic train tests; it wires world blocks, rail graph, and dependency injection.
+- Review `docs/train/TrainTickSimulation.md` before touching train ticks, docking, or scheduling logic so behavioural guarantees stay in sync with documentation.
 - Prefer helper utilities such as `TrainTestHelper.PlaceRail(...)` and block IDs from `Tests.Module.TestMod.ForUnitTestModBlockId` to build rails and stations.
 - When verifying docking behaviour, rely on docking handle references (e.g., `DockingHandle`, `TrainDockingHandle`) rather than cached `TrainUnit` state.
 - Advance simulations with fixed time steps via helper update methods and guard loops with explicit failure conditions.
