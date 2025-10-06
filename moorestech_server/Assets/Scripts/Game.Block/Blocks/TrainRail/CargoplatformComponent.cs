@@ -21,11 +21,21 @@ namespace Game.Block.Blocks.TrainRail
         private TrainCar _dockedTrainCar;
         private IBlockInventory _dockedStationInventory;
 
+        public enum CargoTransferMode
+        {
+            LoadToTrain,
+            UnloadToPlatform
+        }
+
+        private CargoTransferMode _transferMode = CargoTransferMode.LoadToTrain;
+
         // インベントリスロット数やUI更新のための設定
         public int InputSlotCount { get; private set; }
         public int OutputSlotCount { get; private set; }
 
         public bool IsDestroy { get; private set; }
+
+        public CargoTransferMode TransferMode => _transferMode;
 
         /// <summary>
         /// コンストラクタ
@@ -39,6 +49,19 @@ namespace Game.Block.Blocks.TrainRail
             _stationLength = stationLength;
             InputSlotCount = inputSlotCount;
             OutputSlotCount = outputSlotCount;
+        }
+
+        public void SetTransferMode(CargoTransferMode mode)
+        {
+            _transferMode = mode;
+        }
+
+        public CargoTransferMode ToggleTransferMode()
+        {
+            _transferMode = _transferMode == CargoTransferMode.LoadToTrain
+                ? CargoTransferMode.UnloadToPlatform
+                : CargoTransferMode.LoadToTrain;
+            return _transferMode;
         }
 
         public bool CanDock(ITrainDockHandle handle)
@@ -65,12 +88,26 @@ namespace Game.Block.Blocks.TrainRail
                 return;
             }
 
-            if (_dockedTrainCar.IsInventoryFull())
+            switch (_transferMode)
             {
-                return;
-            }
+                case CargoTransferMode.LoadToTrain:
+                    if (_dockedTrainCar.IsInventoryFull())
+                    {
+                        return;
+                    }
 
-            TransferItemsToTrainCar();
+                    TransferItemsToTrainCar();
+                    break;
+
+                case CargoTransferMode.UnloadToPlatform:
+                    if (_dockedTrainCar.IsInventoryEmpty())
+                    {
+                        return;
+                    }
+
+                    TransferItemsToStationInventory();
+                    break;
+            }
 
             #region Internal
 
@@ -124,6 +161,31 @@ namespace Game.Block.Blocks.TrainRail
                 }
             }
 
+            void TransferItemsToStationInventory()
+            {
+                for (var slot = 0; slot < _dockedTrainCar.GetSlotSize(); slot++)
+                {
+                    var slotStack = _dockedTrainCar.GetItem(slot);
+                    if (slotStack == null || slotStack.Id == ItemMaster.EmptyItemId || slotStack.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    var remainder = _dockedStationInventory.InsertItem(slotStack);
+                    if (IsSameStack(slotStack, remainder))
+                    {
+                        continue;
+                    }
+
+                    _dockedTrainCar.SetItem(slot, remainder);
+
+                    if (_dockedTrainCar.IsInventoryEmpty())
+                    {
+                        break;
+                    }
+                }
+            }
+
             #endregion
         }
 
@@ -148,12 +210,12 @@ namespace Game.Block.Blocks.TrainRail
 
         public string GetSaveState()
         {
-            var stationComponentSaverData = new StationComponent.StationComponentSaverData("cargo");
+            var saveData = new CargoplatformComponentSaverData("cargo", _transferMode);
             /*foreach (var item in _itemDataStoreService.InventoryItems)
             {
-                stationComponentSaverData.itemJson.Add(new ItemStackSaveJsonObject(item));
+                saveData.itemJson.Add(new ItemStackSaveJsonObject(item));
             }*/
-            return JsonConvert.SerializeObject(stationComponentSaverData);
+            return JsonConvert.SerializeObject(saveData);
         }
 
         public void Destroy()
@@ -207,6 +269,17 @@ namespace Game.Block.Blocks.TrainRail
             return trainCar.dockingblock.ComponentManager.TryGetComponent<IBlockInventory>(out var inventory)
                 ? inventory
                 : null;
+        }
+
+        [Serializable]
+        private sealed class CargoplatformComponentSaverData : StationComponent.StationComponentSaverData
+        {
+            public CargoTransferMode transferMode;
+
+            public CargoplatformComponentSaverData(string name, CargoTransferMode mode) : base(name)
+            {
+                transferMode = mode;
+            }
         }
     }
 }

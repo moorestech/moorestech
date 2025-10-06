@@ -134,6 +134,68 @@ namespace Tests.UnitTest.Game
         }
 
         [Test]
+        public void CargoPlatformReceivesItemsFromTrainCarWhenInUnloadMode()
+        {
+            var env = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
+
+            var (cargoPlatformBlock, railSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+                env,
+                ForUnitTestModBlockId.TestTrainCargoPlatform,
+                Vector3Int.zero,
+                BlockDirection.North);
+
+            Assert.IsNotNull(cargoPlatformBlock, "Cargo platform block placement failed");
+            Assert.IsNotNull(railSaver, "RailSaverComponent is missing");
+
+            var cargoPlatformComponent = cargoPlatformBlock.GetComponent<CargoplatformComponent>();
+            Assert.IsNotNull(cargoPlatformComponent, "CargoplatformComponent is missing");
+
+            Assert.IsTrue(cargoPlatformBlock.ComponentManager.TryGetComponent<IBlockInventory>(out var cargoInventory),
+                "Cargo platform inventory not found");
+
+            var maxStack = MasterHolder.ItemMaster.GetItemMaster(ForUnitTestItemId.ItemId1).MaxStack;
+
+            cargoInventory.SetItem(0, ServerContext.ItemStackFactory.CreatEmpty());
+
+            var entryNode = railSaver.RailComponents[0].FrontNode;
+            Assert.IsNotNull(entryNode, "Entry node not found");
+            var exitNode = railSaver.RailComponents[1].FrontNode;
+            Assert.IsNotNull(exitNode, "Exit node not found");
+
+            var platformSegmentLength = entryNode!.GetDistanceToNode(exitNode!);
+            Assert.Greater(platformSegmentLength, 0, "Cargo platform segment length must be positive");
+
+            var railNodes = new List<RailNode> { exitNode, entryNode };
+            var railPosition = new RailPosition(railNodes, platformSegmentLength, 0);
+
+            var trainCar = new TrainCar(tractionForce: 1000, inventorySlots: 1, length: platformSegmentLength);
+            trainCar.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, maxStack));
+
+            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar });
+
+            cargoPlatformComponent.SetTransferMode(CargoplatformComponent.CargoTransferMode.UnloadToPlatform);
+
+            trainUnit.trainUnitStationDocking.TryDockWhenStopped();
+
+            Assert.IsTrue(trainCar.IsDocked, "Train car should be docked to the cargo platform block");
+
+            for (var i = 0; i < maxStack; i++)
+            {
+                trainUnit.trainUnitStationDocking.TickDockedStations();
+            }
+
+            var cargoStack = cargoInventory.GetItem(0);
+            Assert.AreEqual(ForUnitTestItemId.ItemId1, cargoStack.Id, "Cargo platform should receive the unloaded item");
+            Assert.AreEqual(maxStack, cargoStack.Count, "Cargo platform should receive the entire train stack");
+
+            var remainingCarStack = trainCar.GetItem(0);
+            Assert.AreEqual(ItemMaster.EmptyItemId, remainingCarStack.Id, "Train car inventory should be empty after unloading");
+
+            TrainDiagramManager.Instance.UnregisterDiagram(trainUnit);
+            TrainUpdateService.Instance.UnregisterTrain(trainUnit);
+        }
+
+        [Test]
         public void StationRejectsSecondTrainWhileFirstRemainsDocked()
         {
             var env = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
