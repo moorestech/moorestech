@@ -141,4 +141,13 @@ namespace Core.Inventory
         
         #endregion
     }
+    
+    public class OpenableInventoryItemDataStoreServiceOption
+    {
+        /// <summary>
+        /// インサート時に、同一アイテムについて既存スタックとは別に、新しいスタックの生成を許可するかどうかを示します。
+        /// If true, inserting an item may create a new stack  even if another stack of the same item already exists.
+        /// </summary>
+        public bool AllowMultipleStacksPerItemOnInsert { get; set; } = true;
+    }
 }
