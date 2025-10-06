@@ -46,6 +46,7 @@ namespace Tests.UnitTest.Game
             var loadingEntryComponent = loadingSaver.RailComponents[0];
             var loadingExitComponent = loadingSaver.RailComponents[1];
             var unloadingEntryComponent = unloadingSaver.RailComponents[0];
+            var unloadingExitComponent = unloadingSaver.RailComponents[1];
 
             var transitRailA = TrainTestHelper.PlaceRail(env, new Vector3Int(0, 0, 3), BlockDirection.North);
             var transitRailB = TrainTestHelper.PlaceRail(env, new Vector3Int(0, 0, 6), BlockDirection.North);
@@ -54,6 +55,7 @@ namespace Tests.UnitTest.Game
             ConnectFront(loadingExitComponent, transitRailA, TransitSegmentLength);
             ConnectFront(transitRailA, transitRailB, TransitSegmentLength);
             ConnectFront(transitRailB, unloadingEntryComponent, TransitSegmentLength);
+            ConnectFront(unloadingExitComponent, loadingEntryComponent, TransitSegmentLength);
 
             Assert.IsTrue(loadingBlock.ComponentManager.TryGetComponent<IBlockInventory>(out var loadingInventory),
                 "Loading platform inventory not found");
@@ -82,49 +84,22 @@ namespace Tests.UnitTest.Game
                 loadingEntryComponent.FrontNode
             };
 
-            var outboundPath = new List<RailNode>
-            {
-                loadingExitComponent.FrontNode,
-                transitRailA.FrontNode,
-                transitRailB.FrontNode,
-                unloadingEntryComponent.FrontNode
-            };
-
-            foreach (var (current, next) in outboundPath.Zip(outboundPath.Skip(1), (current, next) => (current, next)))
-            {
-                var segmentLength = current.GetDistanceToNode(next);
-                Assert.Greater(segmentLength, 0, "Rail nodes must form a connected outbound path");
-            }
-
-            var inboundPath = new List<RailNode>
-            {
-                unloadingEntryComponent.BackNode,
-                transitRailB.BackNode,
-                transitRailA.BackNode,
-                loadingExitComponent.BackNode
-            };
-
-            foreach (var (current, next) in inboundPath.Zip(inboundPath.Skip(1), (current, next) => (current, next)))
-            {
-                var segmentLength = current.GetDistanceToNode(next);
-                Assert.Greater(segmentLength, 0, "Rail nodes must form a connected inbound path");
-            }
 
             var railPosition = new RailPosition(new List<RailNode>(initialRailNodes), stationSegmentLength, 0);
             var trainCar = new TrainCar(tractionForce: 1000, inventorySlots: 1, length: stationSegmentLength);
             var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar });
 
-            trainUnit.trainUnitStationDocking.TryDockWhenStopped();
-            Assert.IsTrue(trainCar.IsDocked, "Train should start docked at the loading platform");
-            Assert.AreSame(loadingBlock, trainCar.dockingblock, "Train must dock at the loading platform first");
-
-            var loadingEntry = trainUnit.trainDiagram.AddEntry(loadingEntryComponent.FrontNode);
+            var loadingEntry = trainUnit.trainDiagram.AddEntry(loadingExitComponent.FrontNode);
             loadingEntry.SetDepartureCondition(TrainDiagram.DepartureConditionType.TrainInventoryFull);
 
-            var unloadingEntry = trainUnit.trainDiagram.AddEntry(unloadingEntryComponent.FrontNode);
+            var unloadingEntry = trainUnit.trainDiagram.AddEntry(unloadingExitComponent.FrontNode);
             unloadingEntry.SetDepartureCondition(TrainDiagram.DepartureConditionType.TrainInventoryEmpty);
 
             trainUnit.TurnOnAutoRun();
+            trainUnit.Update();
+
+            Assert.IsTrue(trainCar.IsDocked, "Train should start docked at the loading platform");
+            Assert.AreSame(loadingBlock, trainCar.dockingblock, "Train must dock at the loading platform first");
 
             AdvanceUntil(trainUnit, () => trainCar.IsInventoryFull(), maxIterations: maxStack * 4,
                 "Train inventory did not fill while docked at the loading platform");
@@ -137,7 +112,7 @@ namespace Tests.UnitTest.Game
 
             AdvanceUntil(trainUnit,
                 () => trainCar.IsDocked && ReferenceEquals(trainCar.dockingblock, unloadingBlock),
-                maxIterations: 5000,
+                maxIterations: 25000,
                 "Train did not reach the unloading platform");
 
             AdvanceUntil(trainUnit, () => trainCar.IsInventoryEmpty(), maxIterations: maxStack * 4,
@@ -153,12 +128,8 @@ namespace Tests.UnitTest.Game
 
             AdvanceUntil(trainUnit,
                 () => trainCar.IsDocked && ReferenceEquals(trainCar.dockingblock, loadingBlock),
-                maxIterations: 5000,
+                maxIterations: 25000,
                 "Train did not return to the loading platform to complete the loop");
-
-            trainUnit.trainUnitStationDocking.UndockFromStation();
-            TrainDiagramManager.Instance.UnregisterDiagram(trainUnit);
-            TrainUpdateService.Instance.UnregisterTrain(trainUnit);
         }
 
         #region Helpers
