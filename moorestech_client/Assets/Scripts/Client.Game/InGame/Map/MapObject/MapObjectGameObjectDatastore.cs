@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Client.Common.Util;
 using Client.Game.InGame.Context;
 using Client.Network.API;
 using MessagePack;
@@ -91,7 +92,7 @@ namespace Client.Game.InGame.Map.MapObject
         public void FindMapObjects()
         {
             mapObjects = FindObjectsOfType<MapObjectGameObject>(true).ToList();
-            mapObjects.Sort((a, b) => string.Compare(a.gameObject.name, b.gameObject.name, StringComparison.Ordinal));
+            mapObjects = HierarchyOrderUtility.SortByHierarchy(mapObjects);
         }
 #endif
     }
