@@ -1624,6 +1624,9 @@ PrefabInstance:
       addedObject: {fileID: 596887936}
     - targetCorrespondingSourceObject: {fileID: 2648146936825787316, guid: 53d25a583ee974aa59260ebc24130895, type: 3}
       insertIndex: -1
+      addedObject: {fileID: 1280463971}
+    - targetCorrespondingSourceObject: {fileID: 2648146936825787316, guid: 53d25a583ee974aa59260ebc24130895, type: 3}
+      insertIndex: -1
       addedObject: {fileID: 420250282}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 3641398372418137739, guid: 53d25a583ee974aa59260ebc24130895, type: 3}
@@ -6033,6 +6036,71 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 69b9702c75d046b98ead3128f4e2341a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1001 &1280463970
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 2016013802}
+    m_Modifications:
+    - target: {fileID: 1124203545103336930, guid: 4e2f0c015318e4e90b544ab00f69ab6f, type: 3}
+      propertyPath: m_Name
+      value: VeinSet_Rawl_Limestone_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7508813645424706650, guid: 4e2f0c015318e4e90b544ab00f69ab6f, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -52.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7508813645424706650, guid: 4e2f0c015318e4e90b544ab00f69ab6f, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7508813645424706650, guid: 4e2f0c015318e4e90b544ab00f69ab6f, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -25.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7508813645424706650, guid: 4e2f0c015318e4e90b544ab00f69ab6f, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7508813645424706650, guid: 4e2f0c015318e4e90b544ab00f69ab6f, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7508813645424706650, guid: 4e2f0c015318e4e90b544ab00f69ab6f, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7508813645424706650, guid: 4e2f0c015318e4e90b544ab00f69ab6f, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7508813645424706650, guid: 4e2f0c015318e4e90b544ab00f69ab6f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7508813645424706650, guid: 4e2f0c015318e4e90b544ab00f69ab6f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7508813645424706650, guid: 4e2f0c015318e4e90b544ab00f69ab6f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6400466712619734766, guid: 4e2f0c015318e4e90b544ab00f69ab6f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+  m_SourcePrefab: {fileID: 100100000, guid: 4e2f0c015318e4e90b544ab00f69ab6f, type: 3}
+--- !u!4 &1280463971 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7508813645424706650, guid: 4e2f0c015318e4e90b544ab00f69ab6f, type: 3}
+  m_PrefabInstance: {fileID: 1280463970}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1372590436
 GameObject:
   m_ObjectHideFlags: 0
