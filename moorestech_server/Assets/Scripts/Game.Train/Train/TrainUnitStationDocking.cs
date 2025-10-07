@@ -56,6 +56,13 @@ namespace Game.Train.Train
         {
             _trainUnit = trainUnit;
         }
+        public void OnDestroy()
+        {
+            UndockFromStation();
+            _trainUnit = null;
+            _dockedNode = null;
+            _dockedReceivers.Clear();
+        }
 
 
         public void TickDockedStations()

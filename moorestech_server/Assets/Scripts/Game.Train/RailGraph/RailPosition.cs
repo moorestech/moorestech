@@ -1,3 +1,4 @@
+using Game.Train.Common;
 using Game.Train.Utility;
 using System;
 using System.Collections.Generic;
@@ -31,9 +32,18 @@ namespace Game.Train.RailGraph
             _railNodes = railNodes;
             _trainLength = trainLength;
             _distanceToNextNode = initialDistanceToNextNode;
-
             ValidatePosition();
+            TrainRailPositionManager.Instance.RegisterRailPosition(this);
         }
+
+        public void OnDestroy()
+        {
+            TrainRailPositionManager.Instance.UnregisterRailPosition(this);
+            _railNodes.Clear();
+            _railNodes = null;
+        }
+
+
 
         private void ValidatePosition()
         {
@@ -206,6 +216,32 @@ namespace Game.Train.RailGraph
                 if (totalDistance < 0) break;
             }
             return nodesAtDistance;
+        }
+
+        //nodeがあったら対象を削除
+        //基本的にレールの撤去時は全てのrailpositionをみて1つでもあったら、削除はできないのが仕様
+        //この関数は強制削除用
+        //railpositionの中に同じnodeが複数ある場合も考慮(該当全削除)
+        public void RemoveNode(RailNode node)
+        {
+            if (node == null) return;
+            bool removed = false;
+            while (_railNodes.Remove(node))
+            {
+                removed = true;
+            }
+            if (removed)
+            {
+                //距離再計算
+                _distanceToNextNode = RailNodeCalculate.CalculateTotalDistance(_railNodes) - _trainLength;
+                if (_distanceToNextNode < 0) _distanceToNextNode = 0;
+            }
+        }
+
+        //nodeがあったらtrue
+        public bool ContainsNode(RailNode node)
+        {
+            return _railNodes.Contains(node);
         }
 
         //テスト用

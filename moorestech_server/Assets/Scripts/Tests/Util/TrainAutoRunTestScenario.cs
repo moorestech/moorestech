@@ -150,7 +150,7 @@ namespace Tests.Util
             }
 
             Train.trainUnitStationDocking.UndockFromStation();
-            TrainDiagramManager.Instance.UnregisterDiagram(Train);
+            TrainDiagramManager.Instance.UnregisterDiagram(Train.trainDiagram);
             TrainUpdateService.Instance.UnregisterTrain(Train);
             _disposed = true;
         }
