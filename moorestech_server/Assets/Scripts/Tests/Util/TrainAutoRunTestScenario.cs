@@ -108,8 +108,7 @@ namespace Tests.Util
             {
                 Assert.IsFalse(trainUnit.trainUnitStationDocking.IsDocked,
                     "Running scenario should represent a train that has departed the station.");
-                //stationNodes.ExitFront == trainUnit.trainDiagram.GetNextDestination()
-                Assert.AreSame(stationNodes.EntryFront, trainUnit.trainDiagram.GetNextDestination(),
+                Assert.AreSame(stationNodes.ExitFront, trainUnit.trainDiagram.GetNextDestination(),
                     "Train should be heading towards the next station.");
             }
 
