@@ -22,7 +22,6 @@ namespace Game.Train.RailGraph
             }
         }
 
-        // ----- 既存の静的コレクションは非静的に変更する -----
         private Dictionary<RailNode, int> railIdDic;
         private List<RailNode> railNodes;
         private MinHeap<int> nextidQueue;//railNodeには1つの固有のintのidを割り当てている。これはダイクストラ高速化のため。そのidをなるべく若い順に使いたい
@@ -161,6 +160,7 @@ namespace Game.Train.RailGraph
         {
             if (!railIdDic.ContainsKey(node))
                 return;
+            TrainDiagramManager.Instance.NotifyNodeRemoval(node);
             var nodeid = railIdDic[node];
             railIdDic.Remove(node);
             railIdToComponentId.Remove(nodeid);
@@ -168,7 +168,7 @@ namespace Game.Train.RailGraph
             nextidQueue.Insert(nodeid);
             connectNodes[nodeid].Clear();
             RemoveNodeTo(nodeid);
-            TrainDiagramManager.Instance.NotifyNodeRemoval(node);
+
         }
 
         private void RemoveNodeTo(int nodeid)

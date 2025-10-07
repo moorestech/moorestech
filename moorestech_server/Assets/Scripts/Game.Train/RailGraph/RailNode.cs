@@ -115,8 +115,9 @@ namespace Game.Train.RailGraph
         //RailGraphから削除する
         public void Destroy()
         {
-            OppositeNode = null;
             RailGraphDatastore.RemoveNode(this);
+            OppositeNode = null;
+            StationRef = null;
         }
 
     }
