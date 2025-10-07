@@ -50,9 +50,7 @@ namespace Game.Train.Train
             _currentSpeed = 0.0; // 仮の初期速度
             _isAutoRun = false;
             trainUnitStationDocking = new TrainUnitStationDocking(this);
-            trainDiagram = new TrainDiagram(this);
-
-            TrainDiagramManager.Instance.RegisterDiagram(this, trainDiagram);
+            trainDiagram = new TrainDiagram();
             TrainUpdateService.Instance.RegisterTrain(this);
         }
 
@@ -73,7 +71,7 @@ namespace Game.Train.Train
                         return 0;
                     }
                     // もしtrainDiagramの出発条件を満たしていたら、trainDiagramは次の目的地をセットして、ドッキングを解除する
-                    if (trainDiagram.CheckEntries())
+                    if (trainDiagram.CheckEntries(this))
                     {
                         // 次の目的地をセット
                         trainDiagram.MoveToNextEntry();
@@ -435,12 +433,17 @@ namespace Game.Train.Train
 
         private void OnDestroy()
         {
-            // 列車が破棄されるときに、ダイアグラムを解除
-            TrainDiagramManager.Instance.UnregisterDiagram(this);
+            trainDiagram.OnDestroy();
+            _railPosition.OnDestroy();
+            trainUnitStationDocking.OnDestroy();
+
+            _cars.Clear();
             TrainUpdateService.Instance.UnregisterTrain(this);
-            trainUnitStationDocking.UndockFromStation();
-            trainUnitStationDocking = null;
+
             trainDiagram = null;
+            _railPosition = null;
+            trainUnitStationDocking = null;
+            _cars = null;
         }
     }
 

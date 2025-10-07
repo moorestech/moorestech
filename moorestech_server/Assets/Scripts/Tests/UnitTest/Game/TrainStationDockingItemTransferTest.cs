@@ -71,7 +71,7 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(ForUnitTestItemId.ItemId1, carStack.Id, "Train car should receive the station item");
             Assert.AreEqual(maxStack, carStack.Count, "Train car should receive all items from the station slot");
 
-            TrainDiagramManager.Instance.UnregisterDiagram(trainUnit);
+            TrainDiagramManager.Instance.UnregisterDiagram(trainUnit.trainDiagram);
             TrainUpdateService.Instance.UnregisterTrain(trainUnit);
         }
 
@@ -129,7 +129,7 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(ForUnitTestItemId.ItemId1, carStack.Id, "Train car should receive the cargo platform item");
             Assert.AreEqual(maxStack, carStack.Count, "Train car should receive all items from the cargo platform slot");
 
-            TrainDiagramManager.Instance.UnregisterDiagram(trainUnit);
+            TrainDiagramManager.Instance.UnregisterDiagram(trainUnit.trainDiagram);
             TrainUpdateService.Instance.UnregisterTrain(trainUnit);
         }
 
@@ -191,7 +191,7 @@ namespace Tests.UnitTest.Game
             var remainingCarStack = trainCar.GetItem(0);
             Assert.AreEqual(ItemMaster.EmptyItemId, remainingCarStack.Id, "Train car inventory should be empty after unloading");
 
-            TrainDiagramManager.Instance.UnregisterDiagram(trainUnit);
+            TrainDiagramManager.Instance.UnregisterDiagram(trainUnit.trainDiagram);
             TrainUpdateService.Instance.UnregisterTrain(trainUnit);
         }
 
@@ -259,9 +259,9 @@ namespace Tests.UnitTest.Game
             firstTrain.trainUnitStationDocking.UndockFromStation();
             secondTrain.trainUnitStationDocking.UndockFromStation();
 
-            TrainDiagramManager.Instance.UnregisterDiagram(firstTrain);
+            TrainDiagramManager.Instance.UnregisterDiagram(firstTrain.trainDiagram);
             TrainUpdateService.Instance.UnregisterTrain(firstTrain);
-            TrainDiagramManager.Instance.UnregisterDiagram(secondTrain);
+            TrainDiagramManager.Instance.UnregisterDiagram(secondTrain.trainDiagram);
             TrainUpdateService.Instance.UnregisterTrain(secondTrain);
         }
 

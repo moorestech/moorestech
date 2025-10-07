@@ -1,13 +1,12 @@
+using Game.Train.Common;
+using Game.Train.RailGraph;
 using System.Collections.Generic;
 using System.Linq;
-using Game.Train.RailGraph;
-using UnityEngine.Rendering;
 
 namespace Game.Train.Train
 {
     public class TrainDiagram
     {
-        private readonly TrainUnit _trainUnit;
         private readonly List<DiagramEntry> _entries;
         private int _currentIndex;
 
@@ -26,11 +25,16 @@ namespace Game.Train.Train
             bool CanDepart(TrainUnit trainUnit);
         }
 
-        public TrainDiagram(TrainUnit trainUnit)
+        public TrainDiagram()
         {
-            _trainUnit = trainUnit;
             _entries = new List<DiagramEntry>();
             _currentIndex = -1;
+            TrainDiagramManager.Instance.RegisterDiagram(this);
+        }
+        public void OnDestroy()
+        {
+            TrainDiagramManager.Instance.UnregisterDiagram(this);
+            _entries.Clear();
         }
 
         //最後に追加
@@ -56,7 +60,7 @@ namespace Game.Train.Train
             return entry;
         }
 
-        public bool CheckEntries()
+        public bool CheckEntries(TrainUnit _trainUnit)
         {
             if (_currentIndex < 0)
             {
