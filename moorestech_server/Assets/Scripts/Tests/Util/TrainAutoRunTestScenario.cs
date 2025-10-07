@@ -18,20 +18,17 @@ namespace Tests.Util
     public sealed class TrainAutoRunTestScenario : IDisposable
     {
         private readonly TrainCar _trainCar;
-        private readonly RailNode[] _diagramNodes;
         private readonly StationNodeSet _stationNodes;
         private bool _disposed;
 
         private TrainAutoRunTestScenario(
             TrainUnit train,
             TrainCar trainCar,
-            StationNodeSet stationNodes,
-            RailNode[] diagramNodes)
+            StationNodeSet stationNodes)
         {
             Train = train;
             _trainCar = trainCar;
             _stationNodes = stationNodes;
-            _diagramNodes = diagramNodes;
         }
 
         public TrainUnit Train { get; }
@@ -40,7 +37,6 @@ namespace Tests.Util
         public RailNode StationEntryFront => _stationNodes.EntryFront;
         public RailNode StationExitBack => _stationNodes.ExitBack;
         public RailNode StationEntryBack => _stationNodes.EntryBack;
-        public IReadOnlyList<RailNode> DiagramNodes => _diagramNodes;
         public int StationSegmentLength => _stationNodes.SegmentLength;
 
         public static TrainAutoRunTestScenario CreateDockedScenario()
@@ -87,12 +83,6 @@ namespace Tests.Util
             Assert.IsNotNull(n2, "node2 is missing");
 
             var stationNodes = ExtractStationNodes(railSaver!);
-            var diagramNodes = new[]
-            {
-                stationNodes.ExitFront,
-                stationNodes.EntryFront,
-                stationNodes.ExitBack
-            };
 
             n0.ConnectNode(stationNodes.EntryFront,9876543);
             stationNodes.ExitFront.ConnectNode(n1, 123456);
@@ -105,18 +95,17 @@ namespace Tests.Util
             var trainCar = new TrainCar(tractionForce: 1000, inventorySlots: 1, length: stationNodes.SegmentLength);
             var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar });
 
-            foreach (var node in diagramNodes)
-            {
-                trainUnit.trainDiagram.AddEntry(node);
-            }
-
-            trainUnit.trainDiagram.MoveToNextEntry();
+            trainUnit.trainDiagram.AddEntry(stationNodes.ExitFront);
+            trainUnit.trainDiagram.AddEntry(n1);
+            trainUnit.trainDiagram.AddEntry(n2);
+            trainUnit.trainDiagram.AddEntry(n0);
 
             if (startRunning)
             {
                 var activeEntry = trainUnit.trainDiagram.Entries.First(entry => entry.Node == stationNodes.ExitFront);
                 activeEntry.SetDepartureConditions(null);
             }
+            //
 
             trainUnit.TurnOnAutoRun();
 
@@ -139,7 +128,7 @@ namespace Tests.Util
                     "Train should be heading towards the next station.");
             }
 
-            return new TrainAutoRunTestScenario(trainUnit, trainCar, stationNodes, diagramNodes);
+            return new TrainAutoRunTestScenario(trainUnit, trainCar, stationNodes);
         }
 
         public void Dispose()
