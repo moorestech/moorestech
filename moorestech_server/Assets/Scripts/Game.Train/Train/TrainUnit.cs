@@ -87,8 +87,7 @@ namespace Game.Train.Train
                     // 自動運転中に手動でダイアグラムをいじって目的地がnullになった場合は自動運転を解除する
                     if (trainDiagram.GetNextDestination() == null)
                     {
-                        UnityEngine.
-                        Debug.Log("自動運転中に手動でダイアグラムをいじって目的地がnullになった場合は自動運転を解除");
+                        UnityEngine.Debug.Log("自動運転中に手動でダイアグラムをいじって目的地がnullになった場合は自動運転を解除");
                         _isAutoRun = false;
                         _currentSpeed = 0;
                         return 0;
@@ -231,12 +230,10 @@ namespace Game.Train.Train
                     {
                         //ダイアグラム上、次に目的地に変更していく。全部の経路がなくなった場合は自動運転を解除する
                         bool found = false;
-                        while (true) 
+                        for (int i = 0; i < trainDiagram.Entries.Count; i++)
                         {
                             trainDiagram.MoveToNextEntry();
                             var nextdestinationNode = trainDiagram.GetNextDestination();
-                            if (nextdestinationNode == _destinationNode)
-                                break;//全部の経路がなくなった
                             if (nextdestinationNode == null)
                                 break;//なにかの例外
                             newPath = RailGraphDatastore.FindShortestPath(approaching, nextdestinationNode);
@@ -342,15 +339,36 @@ namespace Game.Train.Train
             {
                 _remainingDistance = _railPosition.GetDistanceToNextNode();
                 _isAutoRun = true;
+                UnityEngine.Debug.Log("目的地にすでに到達している場合、remainingdistanceを更新して自動運転を開始");
                 return;
             }
 
             var newPath = RailGraphDatastore.FindShortestPath(approaching, destinationNode);
             if (newPath == null || newPath.Count < 2)
             {
-                _remainingDistance = int.MaxValue;
-                _isAutoRun = true;//目的地までの経路が見つからない場合はとりあえず自動化onにしてメインループ内でどうにかする
-                return;
+                //ダイアグラム上、次に目的地に変更していく。全部の経路がなくなった場合は自動運転を解除する
+                bool found = false;
+                for (int i = 0; i < trainDiagram.Entries.Count; i++)
+                {
+                    trainDiagram.MoveToNextEntry();
+                    var nextdestinationNode = trainDiagram.GetNextDestination();
+                    if (nextdestinationNode == null)
+                        break;//なにかの例外
+                    newPath = RailGraphDatastore.FindShortestPath(approaching, nextdestinationNode);
+                    if (newPath.Count >= 2)
+                    {
+                        found = true;
+                        destinationNode = nextdestinationNode;
+                        break;//見つかったのでループを抜ける
+                    }
+                }
+                if (!found)//全部の経路がなくなった
+                {
+                    _remainingDistance = int.MaxValue;
+                    _isAutoRun = false;//目的地までの経路が見つからない、どのダイアグラムをみても
+                    _currentSpeed = 0;
+                    return;
+                }
             }
 
             _remainingDistance = RailNodeCalculate.CalculateTotalDistanceF(newPath) - _railPosition.GetDistanceToNextNode();
