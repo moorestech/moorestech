@@ -40,6 +40,8 @@ namespace Game.Train.Train
         //最後に追加
         public DiagramEntry AddEntry(RailNode node)
         {
+            if (_currentIndex < 0)
+                _currentIndex = 0;
             var entry = new DiagramEntry(node);
             _entries.Add(entry);
             return entry;
@@ -47,6 +49,8 @@ namespace Game.Train.Train
         //index指定して追加
         public DiagramEntry InsertEntry(int index, RailNode node)
         {
+            if (_currentIndex < 0)
+                _currentIndex = 0;
             if (index < 0)
             {
                 index = 0;

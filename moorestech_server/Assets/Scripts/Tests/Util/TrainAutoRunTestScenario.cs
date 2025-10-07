@@ -100,14 +100,25 @@ namespace Tests.Util
             trainUnit.trainDiagram.AddEntry(n2);
             trainUnit.trainDiagram.AddEntry(n0);
 
+            var activeEntry = trainUnit.trainDiagram.Entries[0];
+            Assert.AreSame(stationNodes.ExitFront, activeEntry.Node,
+                "Initial diagram entry should be the station exit node.");
+            Assert.AreSame(stationNodes.ExitFront, trainUnit.trainDiagram.GetNextDestination(),
+                "Initial diagram entry should be the station exit node.");
+            Assert.AreSame(stationNodes.ExitFront, trainUnit._railPosition.GetNodeApproaching(),
+                "Initial diagram entry should be the station exit node.");
+
             if (startRunning)
             {
-                var activeEntry = trainUnit.trainDiagram.Entries.First(entry => entry.Node == stationNodes.ExitFront);
                 activeEntry.SetDepartureConditions(null);
             }
-            //
+            else
+            {
+                activeEntry.SetDepartureWaitTicks(400);
+            }
 
             trainUnit.TurnOnAutoRun();
+            Assert.IsTrue(trainUnit.IsAutoRun, "Train should be in auto-run mode.");
 
             var updateCount = startRunning ? 6 : 1;
             for (var i = 0; i < updateCount; i++)
