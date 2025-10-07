@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Game.Train.RailGraph;
+using UnityEngine.Rendering;
 
 namespace Game.Train.Train
 {
@@ -32,37 +33,40 @@ namespace Game.Train.Train
             _currentIndex = -1;
         }
 
+        //最後に追加
         public DiagramEntry AddEntry(RailNode node)
         {
             var entry = new DiagramEntry(node);
             _entries.Add(entry);
             return entry;
         }
+        //index指定して追加
+        public DiagramEntry InsertEntry(int index, RailNode node)
+        {
+            if (index < 0)
+            {
+                index = 0;
+            }
+            else if (index > _entries.Count)
+            {
+                index = _entries.Count;
+            }
+            var entry = new DiagramEntry(node);
+            _entries.Insert(index, entry);
+            return entry;
+        }
 
         public bool CheckEntries()
         {
-            if (!HasUsableEntry())
-            {
-                return false;
-            }
-
             if (_currentIndex < 0)
             {
                 return true;
             }
-
-            if (_currentIndex >= _entries.Count)
-            {
-                _currentIndex = -1;
-                return false;
-            }
-
             if (!TryGetActiveEntry(out var currentEntry))
             {
                 _currentIndex = -1;
-                return false;
+                return true;
             }
-
             return currentEntry.CanDepart(_trainUnit);
         }
 
@@ -73,43 +77,28 @@ namespace Game.Train.Train
 
         public void MoveToNextEntry()
         {
-            DiagramEntry previousEntry = null;
-            if (TryGetActiveEntry(out var activeEntry))
-            {
-                previousEntry = activeEntry;
-            }
-
-            if (!HasUsableEntry())
+            if (_entries.Count == 0) 
             {
                 _currentIndex = -1;
-                previousEntry?.OnDeparted();
                 return;
             }
 
-            for (var i = 0; i < _entries.Count; i++)
+            if (TryGetActiveEntry(out var activeEntry))
             {
+                activeEntry?.OnDeparted();
                 _currentIndex = (_currentIndex + 1) % _entries.Count;
-                if (_entries[_currentIndex].IsValid)
-                {
-                    previousEntry?.OnDeparted();
-                    return;
-                }
+                return;
             }
-
-            _currentIndex = -1;
-            previousEntry?.OnDeparted();
         }
 
+        //node削除時かならず呼ばれます->entriesの中身は常に実在するnodeのみ
+        //currentIndexも削除対象なら暗黙的に次のnodeに移動します
         public void HandleNodeRemoval(RailNode removedNode)
         {
-            if (removedNode == null || _entries.Count == 0)
-            {
+            if (removedNode == null)
                 return;
-            }
 
             var removedBeforeCurrent = 0;
-            var removedAny = false;
-
             for (var i = _entries.Count - 1; i >= 0; i--)
             {
                 if (!_entries[i].MatchesNode(removedNode))
@@ -117,9 +106,7 @@ namespace Game.Train.Train
                     continue;
                 }
 
-                removedAny = true;
-
-                if (_currentIndex >= 0 && i <= _currentIndex)
+                if (_currentIndex >= 0 && i < _currentIndex)
                 {
                     removedBeforeCurrent++;
                 }
@@ -127,59 +114,23 @@ namespace Game.Train.Train
                 _entries.RemoveAt(i);
             }
 
-            if (!removedAny)
-            {
-                return;
-            }
-
+            _currentIndex -= removedBeforeCurrent;
             if (_entries.Count == 0)
-            {
-                _currentIndex = -1;
-                return;
-            }
-
-            if (removedBeforeCurrent > 0)
-            {
-                _currentIndex -= removedBeforeCurrent;
-            }
-
-            if (_currentIndex >= _entries.Count)
-            {
-                _currentIndex = _entries.Count - 1;
-            }
-
-            if (_currentIndex < 0 || !_entries[_currentIndex].IsValid)
             {
                 _currentIndex = -1;
             }
         }
 
-        private bool HasUsableEntry()
-        {
-            if (_entries.Count == 0)
-            {
-                return false;
-            }
-
-            return _entries.Any(entry => entry.IsValid);
-        }
 
         private bool TryGetActiveEntry(out DiagramEntry entry)
         {
             entry = null;
-
-            if (_currentIndex < 0 || _currentIndex >= _entries.Count)
+            if ((_currentIndex < 0) || (_entries.Count == 0))
             {
                 return false;
             }
-
-            var candidate = _entries[_currentIndex];
-            if (!candidate.IsValid)
-            {
-                return false;
-            }
-
-            entry = candidate;
+            _currentIndex %= _entries.Count;
+            entry = _entries[_currentIndex];
             return true;
         }
 
@@ -187,13 +138,10 @@ namespace Game.Train.Train
         {
             public bool CanDepart(TrainUnit trainUnit)
             {
-                if (trainUnit == null || trainUnit._cars == null || trainUnit._cars.Count == 0)
+                if (trainUnit == null || trainUnit._cars == null)
                 {
                     return false;
                 }
-
-                var hasDockedCar = false;
-
                 foreach (var car in trainUnit._cars)
                 {
                     if (!car.IsDocked)
@@ -201,15 +149,12 @@ namespace Game.Train.Train
                         continue;
                     }
 
-                    hasDockedCar = true;
-
                     if (!MatchesInventoryState(car))
                     {
                         return false;
                     }
                 }
-
-                return hasDockedCar;
+                return true;
             }
 
             protected abstract bool MatchesInventoryState(TrainCar car);
@@ -290,8 +235,6 @@ namespace Game.Train.Train
             }
 
             public RailNode Node { get; private set; }
-
-            public bool IsValid => Node != null;
 
             private readonly List<IDepartureCondition> _departureConditions;
             private readonly List<DepartureConditionType> _departureConditionTypes;

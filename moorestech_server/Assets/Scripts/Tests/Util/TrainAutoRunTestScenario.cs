@@ -1,15 +1,17 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
 using Game.Context;
 using Game.Train.Common;
 using Game.Train.RailGraph;
 using Game.Train.Train;
+using NUnit;
 using NUnit.Framework;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Tests.Module.TestMod;
 using UnityEngine;
+using static UnityEngine.ParticleSystem;
 
 namespace Tests.Util
 {
@@ -60,8 +62,29 @@ namespace Tests.Util
                 ForUnitTestModBlockId.TestTrainCargoPlatform,
                 Vector3Int.zero,
                 BlockDirection.North);
+            var (_, r0Saver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+                environment,
+                ForUnitTestModBlockId.TestTrainRail,
+                new Vector3Int(12, 34, 56),
+                BlockDirection.North);
+            var n0 = r0Saver.RailComponents[0].BackNode;
+            var (_, r1Saver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+                environment,
+                ForUnitTestModBlockId.TestTrainRail,
+                new Vector3Int(-65, 32, -10),
+                BlockDirection.South);
+            var n1 = r1Saver.RailComponents[0].FrontNode;
+            var (_, r2Saver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+                environment,
+                ForUnitTestModBlockId.TestTrainRail,
+                new Vector3Int(-65, 32, -10),
+                BlockDirection.South);
+            var n2 = r2Saver.RailComponents[0].FrontNode;
 
             Assert.IsNotNull(railSaver, "RailSaverComponent is missing");
+            Assert.IsNotNull(n0, "node0 is missing");
+            Assert.IsNotNull(n1, "node1 is missing");
+            Assert.IsNotNull(n2, "node2 is missing");
 
             var stationNodes = ExtractStationNodes(railSaver!);
             var diagramNodes = new[]
@@ -71,8 +94,12 @@ namespace Tests.Util
                 stationNodes.ExitBack
             };
 
-            var initialRailNodes = new List<RailNode> { stationNodes.ExitFront, stationNodes.EntryFront };
-            var initialDistance = startRunning ? stationNodes.SegmentLength : 0;
+            n0.ConnectNode(stationNodes.EntryFront,9876543);
+            stationNodes.ExitFront.ConnectNode(n1, 123456);
+            n1.ConnectNode(n2, 234567);
+
+            var initialRailNodes = new List<RailNode> { stationNodes.ExitFront, stationNodes.EntryFront, n0 };
+            var initialDistance = startRunning ? stationNodes.SegmentLength - 1 : 0;
             var railPosition = new RailPosition(initialRailNodes, stationNodes.SegmentLength, initialDistance);
 
             var trainCar = new TrainCar(tractionForce: 1000, inventorySlots: 1, length: stationNodes.SegmentLength);
