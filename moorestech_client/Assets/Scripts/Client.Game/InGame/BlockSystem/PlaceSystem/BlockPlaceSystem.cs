@@ -224,7 +224,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                     return point;
                 }
                 
-                Debug.Log(boundingBoxSurface.PreviewSurfaceType);
                 switch (boundingBoxSurface.PreviewSurfaceType)
                 {
                     case PreviewSurfaceType.YX_Origin:
