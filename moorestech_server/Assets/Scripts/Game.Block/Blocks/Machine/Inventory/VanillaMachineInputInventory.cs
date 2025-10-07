@@ -33,7 +33,11 @@ namespace Game.Block.Blocks.Machine.Inventory
             _blockInventoryUpdate = blockInventoryUpdate;
             _blockInstanceId = blockInstanceId;
             
-            _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, inputSlot);
+            var option = new OpenableInventoryItemDataStoreServiceOption()
+            {
+                AllowMultipleStacksPerItemOnInsert = false,
+            };
+            _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, inputSlot, option);
             
             _fluidContainers = new FluidContainer[innerTankCount];
             for (var i = 0; i < innerTankCount; i++)
