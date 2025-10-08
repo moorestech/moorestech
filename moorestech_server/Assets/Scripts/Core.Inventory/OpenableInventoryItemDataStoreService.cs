@@ -12,17 +12,19 @@ namespace Core.Inventory
     {
         public IReadOnlyList<IItemStack> InventoryItems => _inventory;
         private readonly List<IItemStack> _inventory;
-        
+
         public delegate void InventoryUpdate(int slot, IItemStack itemStack);
-        
+
         private readonly IItemStackFactory _itemStackFactory;
         private readonly InventoryUpdate _onInventoryUpdate;
-        
-        public OpenableInventoryItemDataStoreService(InventoryUpdate onInventoryUpdate, IItemStackFactory itemStackFactory, int slotNumber)
+        private readonly OpenableInventoryItemDataStoreServiceOption _option;
+
+        public OpenableInventoryItemDataStoreService(InventoryUpdate onInventoryUpdate, IItemStackFactory itemStackFactory, int slotNumber, OpenableInventoryItemDataStoreServiceOption option = null)
         {
             _itemStackFactory = itemStackFactory;
             _onInventoryUpdate = onInventoryUpdate;
-            
+            _option = option ?? new OpenableInventoryItemDataStoreServiceOption();
+
             _inventory = new List<IItemStack>();
             for (var i = 0; i < slotNumber; i++) _inventory.Add(_itemStackFactory.CreatEmpty());
         }
@@ -32,7 +34,7 @@ namespace Core.Inventory
             //インベントリのアイテムをコピー
             var inventoryCopy = new List<IItemStack>(_inventory);
             //挿入を実行する
-            var result = InventoryInsertItem.InsertItem(itemStacks, inventoryCopy, _itemStackFactory);
+            var result = InventoryInsertItem.InsertItem(itemStacks, inventoryCopy, _itemStackFactory, _option);
             //結果のアイテム数が0だったら挿入可能
             return result.Count == 0;
         }
@@ -113,7 +115,7 @@ namespace Core.Inventory
         
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            return InventoryInsertItem.InsertItem(itemStack, _inventory, _itemStackFactory, InvokeEvent);
+            return InventoryInsertItem.InsertItem(itemStack, _inventory, _itemStackFactory, _option, InvokeEvent);
         }
         
         public IItemStack InsertItem(ItemId itemId, int count)
@@ -123,7 +125,7 @@ namespace Core.Inventory
         
         public List<IItemStack> InsertItem(List<IItemStack> itemStacks)
         {
-            return InventoryInsertItem.InsertItem(itemStacks, _inventory, _itemStackFactory, InvokeEvent);
+            return InventoryInsertItem.InsertItem(itemStacks, _inventory, _itemStackFactory, _option, InvokeEvent);
         }
         
         /// <summary>
@@ -131,7 +133,7 @@ namespace Core.Inventory
         /// </summary>
         public IItemStack InsertItemWithPrioritySlot(IItemStack itemStack, int[] prioritySlots)
         {
-            return InventoryInsertItem.InsertItemWithPrioritySlot(itemStack, _inventory, _itemStackFactory, prioritySlots, InvokeEvent);
+            return InventoryInsertItem.InsertItemWithPrioritySlot(itemStack, _inventory, _itemStackFactory, _option, prioritySlots, InvokeEvent);
         }
         
         public IItemStack InsertItemWithPrioritySlot(ItemId itemId, int count, int[] prioritySlots)
@@ -140,5 +142,14 @@ namespace Core.Inventory
         }
         
         #endregion
+    }
+    
+    public class OpenableInventoryItemDataStoreServiceOption
+    {
+        /// <summary>
+        /// インサート時に、同一アイテムについて既存スタックとは別に、新しいスタックの生成を許可するかどうかを示します。
+        /// If true, inserting an item may create a new stack  even if another stack of the same item already exists.
+        /// </summary>
+        public bool AllowMultipleStacksPerItemOnInsert { get; set; } = true;
     }
 }

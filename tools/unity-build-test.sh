@@ -4,7 +4,7 @@
 # 例: ./unity-build-test.sh moorestech_client
 # 例: ./unity-build-test.sh moorestech_client /path/to/output
 
-UNITY="/Applications/Unity/Hub/Editor/6000.1.6f1/Unity.app/Contents/MacOS/Unity"
+UNITY="/Applications/Unity/Hub/Editor/6000.2.6f1/Unity.app/Contents/MacOS/Unity"
 
 ###############################################################################
 # 引数パース

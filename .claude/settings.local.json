@@ -48,7 +48,9 @@
       "mcp__serena__get_symbols_overview",
       "mcp__serena__replace_symbol_body",
       "Bash(dotnet build)",
-      "mcp__serena__insert_after_symbol"
+      "mcp__serena__insert_after_symbol",
+      "mcp__serena__find_referencing_symbols",
+      "mcp__serena__think_about_collected_information"
     ],
     "deny": []
   },
