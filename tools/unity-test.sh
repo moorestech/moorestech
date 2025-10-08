@@ -5,7 +5,7 @@
 #     または ./unity_test.sh <UnityProjectPath> -testRegex 'Regex' [isGui]
 #   ※ デフォルトでバッチモード(-batchmode)で起動。isGui を付けるとGUIモードで起動します
 
-UNITY="/Applications/Unity/Hub/Editor/6000.2.6f1/Unity.app/Contents/MacOS/Unity"
+UNITY="/Applications/Unity/Hub/Editor/6000.2.6f2/Unity.app/Contents/MacOS/Unity"
 
 ###############################################################################
 # 引数パース
