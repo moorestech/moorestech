@@ -32,8 +32,8 @@ namespace Game.Train.Train
         //
 
         private TrainUnit _trainUnit;
-        private RailNode _dockedNode = null; //ドッキングしているnode
-        public RailNode DockedNode => _dockedNode;
+        //private RailNode _dockedNode = null; //ドッキングしているnode。暫定的に使用しない、そのうち消す？
+        //public RailNode DockedNode => _dockedNode;
 
         private sealed class DockedReceiver
         {
@@ -60,7 +60,7 @@ namespace Game.Train.Train
         {
             UndockFromStation();
             _trainUnit = null;
-            _dockedNode = null;
+            //_dockedNode = null;
             _dockedReceivers.Clear();
         }
 
@@ -82,7 +82,7 @@ namespace Game.Train.Train
         //すべてのTrainCarのドッキング状態をfalseにする
         public void UndockFromStation()
         {
-            _dockedNode = null;
+            //_dockedNode = null;
             if (_dockedReceivers.Count > 0)
             {
                 foreach (var entry in _dockedReceivers.Values.ToArray())
@@ -145,7 +145,7 @@ namespace Game.Train.Train
 
                             car.dockingblock = dockingBlock;
                             flag = true;
-                            _dockedNode = _trainUnit._railPosition.GetNodeApproaching();//駅にドッキングするということはdiagramで見ているエントリーのnodeの駅にドッキングするということ
+                            //_dockedNode = _trainUnit._railPosition.GetNodeApproaching();//駅にドッキングするということはdiagramで見ているエントリーのnodeの駅にドッキングするということ
                             break;
                         }
                         if (flag) break;

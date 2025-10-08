@@ -104,7 +104,7 @@ namespace Tests.Util
             var activeEntry = trainUnit.trainDiagram.Entries[0];
             Assert.AreSame(stationNodes.ExitFront, activeEntry.Node,
                 "Initial diagram entry should be the station exit node.");
-            Assert.AreSame(stationNodes.ExitFront, trainUnit.trainDiagram.GetNextDestination(),
+            Assert.AreSame(stationNodes.ExitFront, trainUnit.trainDiagram.GetCurrentNode(),
                 "Initial diagram entry should be the station exit node.");
             Assert.AreSame(stationNodes.ExitFront, trainUnit._railPosition.GetNodeApproaching(),
                 "Initial diagram entry should be the station exit node.");
@@ -136,7 +136,7 @@ namespace Tests.Util
             {
                 Assert.IsFalse(trainUnit.trainUnitStationDocking.IsDocked,
                     "Running scenario should represent a train that has departed the station.");
-                Assert.AreSame(stationNodes.ExitFront, trainUnit.trainDiagram.GetNextDestination(),
+                Assert.AreSame(stationNodes.ExitFront, trainUnit.trainDiagram.GetCurrentNode(),
                     "Train should be heading towards the next station.");
             }
 

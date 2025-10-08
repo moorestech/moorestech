@@ -3,8 +3,8 @@ using Game.Train.RailGraph;
 using Game.Train.Utility;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using static UnityEditor.PlayerSettings;
 
 namespace Game.Train.Train
 {
@@ -13,7 +13,6 @@ namespace Game.Train.Train
         public string SaveKey { get; } = typeof(TrainUnit).FullName;
         
         public RailPosition _railPosition;
-        // _destinationNodeまでの距離
         private readonly Guid _trainId;
         public Guid TrainId => _trainId;
 
@@ -23,14 +22,15 @@ namespace Game.Train.Train
         {
             get { return _isAutoRun; }
         }
-
+        //autorun時の1tick前のentryのguid
+        private Guid _previousEntryGuid;
 
         private double _currentSpeed;   // m/s など適宜
         public double CurrentSpeed => _currentSpeed;
         private double _accumulatedDistance; // 累積距離、距離の小数点以下を保持するために使用
         //摩擦係数、空気抵抗係数などはここに追加する
-        const double FRICTION = 0.0002f;
-        const double AIR_RESISTANCE = 0.00002f;
+        const double FRICTION = 0.0002;
+        const double AIR_RESISTANCE = 0.00002;
 
         public List<TrainCar> _cars;
         public TrainUnitStationDocking trainUnitStationDocking; // 列車の駅ドッキング用のクラス
@@ -49,6 +49,7 @@ namespace Game.Train.Train
             _cars = cars;  // 追加
             _currentSpeed = 0.0; // 仮の初期速度
             _isAutoRun = false;
+            _previousEntryGuid = Guid.Empty;
             trainUnitStationDocking = new TrainUnitStationDocking(this);
             trainDiagram = new TrainDiagram();
             TrainUpdateService.Instance.RegisterTrain(this);
@@ -60,38 +61,45 @@ namespace Game.Train.Train
         {
             if (IsAutoRun)
             {
+                //まずdiagramの変更有無を確認する
+                // 自動運転中に手動でダイアグラムをいじって目的地がnullになった場合は自動運転を解除する
+                if (trainDiagram.GetCurrentNode() == null)
+                {
+                    UnityEngine.Debug.Log("自動運転中に手動でダイアグラムをいじって目的地がnullになった場合は自動運転を解除");
+                    TurnOffAutoRun();
+                    _currentSpeed = 0;
+                    return 0;
+                }
+                //diagramを手動でいじって、現在ドッキング中の駅をエントリーから削除したときなど。その場合は安全にドッキング解除しtrainDiagram.MoveToNextEntry();はしない
+                if (_previousEntryGuid != trainDiagram.GetCurrentGuid())
+                {
+                    if (trainUnitStationDocking.IsDocked)
+                    {
+                        trainUnitStationDocking.UndockFromStation();
+                    }
+                    DiagramValidation();
+                }
+
+                _previousEntryGuid = trainDiagram.GetCurrentGuid();
+
                 // 自動運転中はドッキング中なら進まない、ドッキング中じゃないなら目的地に向かって加速
                 if (trainUnitStationDocking.IsDocked)
                 {
                     _currentSpeed = 0;
-                    //diagramを手動でいじって、現在ドッキング中の駅をエントリーから削除したとき。その場合は安全にドッキング解除しtrainDiagram.MoveToNextEntry();はしない
-                    if ((trainDiagram.GetNextDestination() == null)  || (trainDiagram.GetNextDestination() != trainUnitStationDocking.DockedNode))
-                    {
-                        trainUnitStationDocking.UndockFromStation();
-                        return 0;
-                    }
-                    // もしtrainDiagramの出発条件を満たしていたら、trainDiagramは次の目的地をセットして、ドッキングを解除する
+                    trainUnitStationDocking.TickDockedStations();
+                    // もしtrainDiagramの出発条件を満たしていたら、trainDiagramは次の目的地をセット。次のtickでドッキングを解除、バリデーションが行われる
                     if (trainDiagram.CheckEntries(this))
                     {
+                        // ドッキングを解除
+                        //trainUnitStationDocking.UndockFromStation();
                         // 次の目的地をセット
                         trainDiagram.MoveToNextEntry();
-                        // ドッキングを解除
-                        trainUnitStationDocking.UndockFromStation();
                         return 0;
                     }
-                    trainUnitStationDocking.TickDockedStations();
                     return 0;
                 }
                 else
                 {
-                    // 自動運転中に手動でダイアグラムをいじって目的地がnullになった場合は自動運転を解除する
-                    if (trainDiagram.GetNextDestination() == null)
-                    {
-                        UnityEngine.Debug.Log("自動運転中に手動でダイアグラムをいじって目的地がnullになった場合は自動運転を解除");
-                        _isAutoRun = false;
-                        _currentSpeed = 0;
-                        return 0;
-                    }
                     // ドッキング中でなければ目的地に向かって進む
                     UpdateMasconLevel();
                 }
@@ -101,10 +109,9 @@ namespace Game.Train.Train
                 // TODO 手動運転中はFキーとかでドッキングできる(satisfactoryを参考に)
                 // 未実装
                 // もしドッキング中なら
+                _previousEntryGuid = Guid.Empty;
                 if (trainUnitStationDocking.IsDocked)
                 {
-                    // ドッキング中は進まない
-                    _currentSpeed = 0;
                     // 強制ドッキング解除
                     trainUnitStationDocking.UndockFromStation();
                     return 0;
@@ -113,7 +120,7 @@ namespace Game.Train.Train
                 {
                     // ドッキング中でなければキー操作で目的地 or nullに向かって進む
                     KeyInput();
-                    //_destinationNode = trainDiagram.GetNextDestination();
+                    //_destinationNode = trainDiagram.GetCurrentNode();
                 }
             }
 
@@ -192,7 +199,6 @@ namespace Game.Train.Train
         {
             //進行メインループ
             int totalMoved = 0;
-            var _destinationNode = trainDiagram.GetNextDestination();
             //何かが原因で無限ループになることがあるので、一定回数で強制終了する
             int loopCount = 0;
             while (true)
@@ -214,52 +220,25 @@ namespace Game.Train.Train
                 RailNode approaching = _railPosition.GetNodeApproaching();
                 if (approaching == null) 
                 {
-                    _isAutoRun = false;
+                    TurnOffAutoRun();
                     _currentSpeed = 0;
                     throw new InvalidOperationException("列車が進行中に接近しているノードがnullになりました。");
                 }
 
-
                 if (IsAutoRun)
                 {
-                    //分岐点で必ず最短経路を再度探す。手動でレールが変更されてるかもしれないので
-                    //例えば自動運転中に手動でダイアグラムをいじる、または手動で線路接続を変更して目的地までの経路がなくなった場合はダイアグラム上 次の目的地に変更する
-                    //最低でも返りlistにはapproaching, _destinationNodeが入っているはず
-                    var newPath = RailGraphDatastore.FindShortestPath(approaching, _destinationNode);
-                    if (newPath.Count < 2)
+                    var (found, newPath) = CheckAllDiagramPath(approaching);
+                    if (!found)//全部の経路がなくなった
                     {
-                        //ダイアグラム上、次に目的地に変更していく。全部の経路がなくなった場合は自動運転を解除する
-                        bool found = false;
-                        for (int i = 0; i < trainDiagram.Entries.Count; i++)
-                        {
-                            trainDiagram.MoveToNextEntry();
-                            var nextdestinationNode = trainDiagram.GetNextDestination();
-                            if (nextdestinationNode == null)
-                                break;//なにかの例外
-                            newPath = RailGraphDatastore.FindShortestPath(approaching, nextdestinationNode);
-                            if (newPath.Count >= 2) 
-                            {
-                                found = true;
-                                _destinationNode = nextdestinationNode;
-                                break;//見つかったのでループを抜ける
-                            }
-                        }
-                        if (!found)
-                        {
-                            //全部の経路がなくなった
-                            _isAutoRun = false;
-                            _currentSpeed = 0;
-                            throw new InvalidOperationException("自動運転で目的地までの経路が見つからない");
-                            break;
-                        }
-                        continue;//見つかったので次のループでnewPathを使う
+                        UnityEngine.Debug.Log("diagramの登録nodeに対する経路が全てなくなった。自動運転off");
+                        TurnOffAutoRun();
+                        break;
                     }
-                    else//見つかったので一番いいルートを自動選択
-                    {
-                        _railPosition.AddNodeToHead(newPath[1]);//newPath[0]はapproachingがはいってる
-                                                                //残りの距離を再更新
-                        _remainingDistance = RailNodeCalculate.CalculateTotalDistanceF(newPath);//計算量NlogN(logはnodeからintの辞書アクセス)
-                    }
+                    //見つかったので一番いいルートを自動選択
+                    _railPosition.AddNodeToHead(newPath[1]);//newPath[0]はapproachingがはいってる
+                                                            //残りの距離を再更新
+                    _remainingDistance = RailNodeCalculate.CalculateTotalDistanceF(newPath);//計算量NlogN(logはnodeからintの辞書アクセス)
+                    _previousEntryGuid = trainDiagram.GetCurrentGuid();
                 }
                 else
                 {
@@ -306,79 +285,83 @@ namespace Game.Train.Train
         private bool IsArrivedDestination()
         {
             var node = _railPosition.GetNodeApproaching();
-            if ((node == trainDiagram.GetNextDestination()) & (_railPosition.GetDistanceToNextNode() == 0))
+            if ((node == trainDiagram.GetCurrentNode()) & (_railPosition.GetDistanceToNextNode() == 0))
             {
                 return true;
             }
             return false;
         }
 
+        
         public void TurnOnAutoRun()
         {
-            var destinationNode = trainDiagram.GetNextDestination();
-            if (destinationNode == null)
-            {
-                trainDiagram.MoveToNextEntry();
-                destinationNode = trainDiagram.GetNextDestination();
-            }
+            //バリデーションでoff条件をあらいだし
+            _isAutoRun = true;
+            DiagramValidation();
+        }
 
-            if (destinationNode == null)
-            {
-                _isAutoRun = false;
-                return;
-            }
-
+        public void DiagramValidation() 
+        {
+            var destinationNode = trainDiagram.GetCurrentNode();
             var approaching = _railPosition.GetNodeApproaching();
-            if (approaching == null)
+            if ((destinationNode == null) || (approaching == null))
             {
-                _isAutoRun = false;
+                TurnOffAutoRun();
                 return;
             }
-
-            if (approaching == destinationNode)//目的地にすでに到達している場合、remainingdistanceを更新して自動運転を開始
+            //目的地にすでに到達している場合、remainingdistanceを更新
+            if (approaching == destinationNode)
             {
                 _remainingDistance = _railPosition.GetDistanceToNextNode();
-                _isAutoRun = true;
                 return;
             }
-
-            var newPath = RailGraphDatastore.FindShortestPath(approaching, destinationNode);
-            if (newPath == null || newPath.Count < 2)
+            var (found, newPath) = CheckAllDiagramPath(approaching);
+            if (!found)//全部の経路がなくなった
             {
-                //ダイアグラム上、次に目的地に変更していく。全部の経路がなくなった場合は自動運転を解除する
-                bool found = false;
-                for (int i = 0; i < trainDiagram.Entries.Count; i++)
-                {
-                    trainDiagram.MoveToNextEntry();
-                    var nextdestinationNode = trainDiagram.GetNextDestination();
-                    if (nextdestinationNode == null)
-                        break;//なにかの例外
-                    newPath = RailGraphDatastore.FindShortestPath(approaching, nextdestinationNode);
-                    if (newPath.Count >= 2)
-                    {
-                        found = true;
-                        destinationNode = nextdestinationNode;
-                        break;//見つかったのでループを抜ける
-                    }
-                }
-                if (!found)//全部の経路がなくなった
-                {
-                    _remainingDistance = int.MaxValue;
-                    _isAutoRun = false;//目的地までの経路が見つからない、どのダイアグラムをみても
-                    _currentSpeed = 0;
-                    return;
-                }
+                UnityEngine.Debug.Log("diagramの登録nodeに対する経路が全てなくなった。自動運転off");
+                TurnOffAutoRun();
+                return;
             }
-
             _remainingDistance = RailNodeCalculate.CalculateTotalDistanceF(newPath) - _railPosition.GetDistanceToNextNode();
-            _isAutoRun = true;
         }
 
         public void TurnOffAutoRun()
         {
             _isAutoRun = false;
+            _remainingDistance = int.MaxValue;
+            masconLevel = 0;
+            //ドッキングしていたら解除する
+            if (trainUnitStationDocking.IsDocked)
+            {
+                trainUnitStationDocking.UndockFromStation();
+            }
+            _previousEntryGuid = Guid.Empty;
         }
 
+        //現在のdiagramのcurrentから順にすべてのエントリーを順番にみていって、approachingからエントリーnodeへpathが繋がっていればtrueを返す
+        public (bool, List<RailNode>) CheckAllDiagramPath(RailNode approaching) 
+        {
+            RailNode destinationNode = null;
+            List<RailNode> newPath = null;
+            //ダイアグラム上、次に目的地に変更していく。全部の経路がなくなった場合は自動運転を解除する
+            bool found = false;
+            for (int i = 0; i < trainDiagram.Entries.Count; i++)
+            {
+                destinationNode = trainDiagram.GetCurrentNode();
+                if (destinationNode == null)
+                    break;//なにかの例外
+                newPath = RailGraphDatastore.FindShortestPath(approaching, destinationNode);
+                if (newPath == null || newPath.Count < 2)
+                {
+                    trainDiagram.MoveToNextEntry();
+                    continue;
+                }
+                //見つかったのでループを抜ける
+                found = true;
+                break;
+            }
+            return (found, newPath);
+        }
 
 
         //列車編成を保存する。ブロックとは違うことに注意

@@ -54,11 +54,11 @@ namespace Tests.UnitTest.Game
             Assert.IsFalse(trainUnit.trainDiagram.Entries.Any(entry => entry.Node == removedNode), "削除したノードがダイアグラムに残っています。");
             Assert.IsTrue(trainUnit.trainDiagram.Entries.Any(entry => entry.Node == nextNode), "残存ノードがダイアグラムから消えてしまっています。");
             Assert.AreEqual(0, trainUnit.trainDiagram.CurrentIndex, "削除後の次エントリ選択インデックスが0にリセットされていません。");
-            Assert.AreEqual(nextNode, trainUnit.trainDiagram.GetNextDestination(), "次の目的地が残存ノードに更新されていません。");
+            Assert.AreEqual(nextNode, trainUnit.trainDiagram.GetCurrentNode(), "次の目的地が残存ノードに更新されていません。");
 
             trainUnit.trainDiagram.MoveToNextEntry();
 
-            Assert.AreEqual(nextNode, trainUnit.trainDiagram.GetNextDestination(), "単一エントリのダイアグラムで次の目的地が期待ノードに固定されていません。");
+            Assert.AreEqual(nextNode, trainUnit.trainDiagram.GetCurrentNode(), "単一エントリのダイアグラムで次の目的地が期待ノードに固定されていません。");
         }
 
         [Test]
