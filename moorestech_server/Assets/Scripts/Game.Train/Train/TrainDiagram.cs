@@ -1,5 +1,6 @@
 using Game.Train.Common;
 using Game.Train.RailGraph;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -78,9 +79,14 @@ namespace Game.Train.Train
             return currentEntry.CanDepart(_trainUnit);
         }
 
-        public RailNode GetNextDestination()
+        public RailNode GetCurrentNode()
         {
             return TryGetActiveEntry(out var entry) ? entry.Node : null;
+        }
+        //getNextのguid版
+        public Guid GetCurrentGuid()
+        {
+            return TryGetActiveEntry(out var entry) ? entry.entryId : Guid.Empty;
         }
 
         public void MoveToNextEntry()
@@ -133,11 +139,10 @@ namespace Game.Train.Train
         private bool TryGetActiveEntry(out DiagramEntry entry)
         {
             entry = null;
-            if ((_currentIndex < 0) || (_entries.Count == 0))
+            if ((_currentIndex < 0) || (_entries.Count == 0) || (_currentIndex >= _entries.Count))
             {
                 return false;
             }
-            _currentIndex %= _entries.Count;
             entry = _entries[_currentIndex];
             return true;
         }
@@ -237,12 +242,14 @@ namespace Game.Train.Train
             public DiagramEntry(RailNode node)
             {
                 Node = node;
+                entryId = Guid.NewGuid();
                 _departureConditions = new List<IDepartureCondition>();
                 _departureConditionTypes = new List<DepartureConditionType>();
                 SetDepartureCondition(DepartureConditionType.TrainInventoryFull);
             }
 
             public RailNode Node { get; private set; }
+            public Guid entryId { get; private set; }
 
             private readonly List<IDepartureCondition> _departureConditions;
             private readonly List<DepartureConditionType> _departureConditionTypes;

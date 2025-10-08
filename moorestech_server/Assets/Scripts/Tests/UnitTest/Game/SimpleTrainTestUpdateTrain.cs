@@ -235,7 +235,7 @@ namespace Tests.UnitTest.Game
                         RailGraphDatastore._instance.Test_NodeIdLog(trainUnit._railPosition.GetNodeApproaching());
                     }
 
-                    if (trainUnit._railPosition.GetNodeApproaching() == trainUnit.trainDiagram.GetNextDestination() &&
+                    if (trainUnit._railPosition.GetNodeApproaching() == trainUnit.trainDiagram.GetCurrentNode() &&
                         trainUnit._railPosition.GetDistanceToNextNode() == 0)
                     {
                         reachedDestination = true;
