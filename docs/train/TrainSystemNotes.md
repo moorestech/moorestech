@@ -8,6 +8,11 @@
 - シミュレーションを進める場合は、ヘルパーの更新メソッドで固定時間ステップを刻み、無限ループ防止のガード条件を明示します。
 - セーブ/ロードや複数環境を跨いだ検証を行うときは、`RailGraphDatastore.ResetInstance()` などのシングルトンを必ずリセットしてください。
 
+## レールグラフのデバッグ可視化
+- エディタ／開発ビルドでは `RailGraphDatastore.CreateSnapshot()` と `RailGraphDatastore.WriteJson(...)` を利用して現在のグラフ構造を JSON 形式で出力できます。
+- 例: `RailGraphDatastore.WriteJson(RailGraphDatastore.CreateSnapshot(), outputPath)` を呼び出すと、ノードID・駅参照・セーブ用メタデータと距離が `nodes` / `edges` 配列として書き出されます。
+- 生成した JSON は `python tools/rail_graph/render_snapshot.py snapshot.json output.png` で PNG に変換できます（要: `pip install matplotlib`）。座標情報を持つノードはワールド座標を基に、座標が不明なノードは円周上に自動配置されます。
+
 ## ドッキングとハンドル参照
 - ドッキング挙動の検証では `DockingHandle` や `TrainDockingHandle` といったハンドル参照を信頼ソースにします。`TrainUnit` のローカルキャッシュだけに依存しないことで、状態同期ずれを防ぎます。
 - `docs/train/TrainTickSimulation.md` の挙動保証と突き合わせ、Tick駆動の処理やスケジューリングを変更する際はドキュメントを更新してください。

@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Game.Train.RailGraph
 {
-    public class RailGraphDatastore
+    public partial class RailGraphDatastore
     {
         // ----- シングルトン実装用 -----
         public static RailGraphDatastore _instance;
