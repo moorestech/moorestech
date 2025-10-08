@@ -5,6 +5,7 @@ using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
 using Game.Train.Common;
 using Game.Train.RailGraph;
+using Game.Train.Utility;
 using Game.Train.Train;
 using NUnit.Framework;
 using Tests.Module.TestMod;
@@ -74,6 +75,30 @@ namespace Tests.Util
             return new TrainStationDockingScenario(environment, n0Component, n1Component, station, n2Component, n3Component);
         }
 
+        public static TrainStationDockingScenario CreateWithLoop()
+        {
+            var environment = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
+
+            var n0Component = TrainTestHelper.PlaceRail(environment, new Vector3Int(0, 0, 0), BlockDirection.North);
+            var n1Component = TrainTestHelper.PlaceRail(environment, new Vector3Int(5, 0, 0), BlockDirection.North);
+            var n2Component = TrainTestHelper.PlaceRail(environment, new Vector3Int(15, 0, 0), BlockDirection.North);
+            var n3Component = TrainTestHelper.PlaceRail(environment, new Vector3Int(20, 0, 0), BlockDirection.North);
+            var (_, stationSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+                environment,
+                ForUnitTestModBlockId.TestTrainCargoPlatform,
+                new Vector3Int(10, 0, 0),
+                BlockDirection.North);
+
+            Assert.IsNotNull(stationSaver, "貨物プラットフォーム用のRailSaverComponentを取得できませんでした。");
+
+            var station = ExtractStationNodes(stationSaver!);
+
+            n0Component.ConnectRailComponent(station.EntryComponent, true, true, station.SegmentLength);
+            station.ExitComponent.ConnectRailComponent(n0Component, true, true, station.SegmentLength * 2);
+
+            return new TrainStationDockingScenario(environment, n0Component, n1Component, station, n2Component, n3Component);
+        }
+
         public TrainUnit CreateForwardDockingTrain(out TrainCar car, int initialDistanceToExit = 0)
         {
             var nodes = new List<RailNode>
@@ -100,6 +125,24 @@ namespace Tests.Util
             return CreateTrain(nodes, initialDistanceToExit, out car);
         }
 
+        public TrainUnit CreateLoopDockingTrain(int carCount, out IReadOnlyList<TrainCar> cars)
+        {
+            Assert.GreaterOrEqual(carCount, 16, "超長編成のテストには16両以上の車両数を指定してください。");
+
+            var requiredLength = carCount * _station.SegmentLength;
+            var nodes = BuildLoopRailNodes(requiredLength);
+
+            var trainCars = new List<TrainCar>(carCount);
+            for (var i = 0; i < carCount; i++)
+            {
+                trainCars.Add(new TrainCar(tractionForce: 1000, inventorySlots: 1, length: _station.SegmentLength));
+            }
+
+            var train = CreateTrain(nodes, trainCars, 0);
+            cars = trainCars;
+            return train;
+        }
+
         public void Dispose()
         {
             if (_disposed)
@@ -124,6 +167,17 @@ namespace Tests.Util
 
         private TrainUnit CreateTrain(List<RailNode> nodes, int initialDistanceToNextNode, out TrainCar car)
         {
+            var cars = new List<TrainCar>
+            {
+                new TrainCar(tractionForce: 1000, inventorySlots: 1, length: _station.SegmentLength)
+            };
+
+            car = cars[0];
+            return CreateTrain(nodes, cars, initialDistanceToNextNode);
+        }
+
+        private TrainUnit CreateTrain(List<RailNode> nodes, List<TrainCar> cars, int initialDistanceToNextNode)
+        {
             Assert.IsNotNull(nodes, "RailNodeのリストがnullです。");
             Assert.GreaterOrEqual(nodes.Count, 2, "列車の生成には2つ以上のRailNodeが必要です。");
 
@@ -131,11 +185,29 @@ namespace Tests.Util
 
             Assert.GreaterOrEqual(initialDistanceToNextNode, 0, "初期距離は0以上である必要があります。");
 
-            var railPosition = new RailPosition(nodes, _station.SegmentLength, initialDistanceToNextNode);
-            car = new TrainCar(tractionForce: 1000, inventorySlots: 1, length: _station.SegmentLength);
-            var train = new TrainUnit(railPosition, new List<TrainCar> { car });
+            var trainLength = cars.Sum(trainCar => trainCar.Length);
+            var railPosition = new RailPosition(nodes, trainLength, initialDistanceToNextNode);
+            var train = new TrainUnit(railPosition, cars);
             _spawnedTrains.Add(train);
             return train;
+        }
+
+        private List<RailNode> BuildLoopRailNodes(int requiredLength)
+        {
+            var nodes = new List<RailNode> { };
+            var loopSequence = new[]
+            {
+                _station.ExitFront,
+                _station.EntryFront,
+                _n0Component.FrontNode,
+            };
+
+            while (RailNodeCalculate.CalculateTotalDistance(nodes) < requiredLength)
+            {
+                nodes.AddRange(loopSequence);
+            }
+
+            return nodes;
         }
 
         private static void ValidateNodeOrientations(IReadOnlyList<RailNode> nodes)

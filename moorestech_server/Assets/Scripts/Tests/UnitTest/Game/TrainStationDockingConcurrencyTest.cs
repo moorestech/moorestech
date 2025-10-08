@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.Linq;
+using Game.Train.Train;
 using NUnit.Framework;
 using Tests.Util;
 
@@ -63,6 +66,38 @@ namespace Tests.UnitTest.Game
             opposingTrain.trainUnitStationDocking.TryDockWhenStopped();
             Assert.IsTrue(opposingCar.IsDocked, "正面側の列車が離脱した後も背面側の列車がドッキングできていません。");
             Assert.IsTrue(opposingTrain.trainUnitStationDocking.IsDocked, "背面側の列車のドッキング状態が有効になっていません。");
+        }
+
+        [Test]
+        public void OverlappingLoopTrainDocksOnlyOneCar()
+        {
+            using var scenario = TrainStationDockingScenario.CreateWithLoop();
+
+            const int carCount = 16;
+            var train = scenario.CreateLoopDockingTrain(carCount, out IReadOnlyList<TrainCar> cars);
+
+            train.trainUnitStationDocking.TryDockWhenStopped();
+
+            Assert.IsTrue(train.trainUnitStationDocking.IsDocked,
+                "ループ線上で停止した超長編成が駅にドッキング済みとして扱われていません。");
+
+            var dockedCars = cars.Where(car => car.IsDocked).ToList();
+
+            Assert.AreEqual(1, dockedCars.Count,
+                "ループ線上で重なった複数の車両が同時に貨物プラットフォームへドッキングしています。");
+            Assert.IsNotNull(dockedCars[0].dockingblock,
+                "ドッキング中の車両に対応する貨物プラットフォームが割り当てられていません。");
+
+            foreach (var car in cars)
+            {
+                if (ReferenceEquals(car, dockedCars[0]))
+                {
+                    continue;
+                }
+
+                Assert.IsFalse(car.IsDocked,
+                    "ドッキング対象外の車両が貨物プラットフォームに接続された状態になっています。");
+            }
         }
     }
 }
