@@ -7,7 +7,9 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
 {
     public class MaxElectricPoleMachineConnectionRange
     {
-        private readonly int _maxElectricPoleMachineConnectionRange = int.MinValue;
+        private const int FallbackRange = 1;
+        private readonly int _maxElectricPoleMachineConnectionHorizontalRange = int.MinValue;
+        private readonly int _maxElectricPoleMachineConnectionHeightRange = int.MinValue;
         
         public MaxElectricPoleMachineConnectionRange()
         {
@@ -16,14 +18,32 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
                 if (blockElement.BlockType != BlockTypeConst.ElectricPole) continue;
                 
                 var param = blockElement.BlockParam as ElectricPoleBlockParam;
-                if (_maxElectricPoleMachineConnectionRange < param.MachineConnectionRange)
-                    _maxElectricPoleMachineConnectionRange = param.MachineConnectionRange;
+                if (_maxElectricPoleMachineConnectionHorizontalRange < param.MachineConnectionRange)
+                    _maxElectricPoleMachineConnectionHorizontalRange = param.MachineConnectionRange;
+
+                if (_maxElectricPoleMachineConnectionHeightRange < param.MachineConnectionHeightRange)
+                    _maxElectricPoleMachineConnectionHeightRange = param.MachineConnectionHeightRange;
             }
         }
         
         public int Get()
         {
-            return _maxElectricPoleMachineConnectionRange;
+            return NormalizeRange(_maxElectricPoleMachineConnectionHorizontalRange);
+        }
+
+        public int GetHorizontal()
+        {
+            return NormalizeRange(_maxElectricPoleMachineConnectionHorizontalRange);
+        }
+
+        public int GetHeight()
+        {
+            return NormalizeRange(_maxElectricPoleMachineConnectionHeightRange);
+        }
+
+        private static int NormalizeRange(int value)
+        {
+            return value == int.MinValue ? FallbackRange : value;
         }
     }
 }
