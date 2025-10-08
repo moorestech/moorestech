@@ -52,12 +52,12 @@ namespace Tests.UnitTest.Game
 
             Assert.IsFalse(trainUnit.trainDiagram.Entries.Any(entry => entry.Node == removedNode), "Removed node should not remain in the diagram.");
             Assert.IsTrue(trainUnit.trainDiagram.Entries.Any(entry => entry.Node == nextNode), "Remaining node should still be present in the diagram.");
-            Assert.AreEqual(-1, trainUnit.trainDiagram.CurrentIndex, "Diagram index should reset after removal.");
-            Assert.IsNull(trainUnit.trainDiagram.GetNextDestination(), "Next destination should be cleared.");
+            Assert.AreEqual(0, trainUnit.trainDiagram.CurrentIndex, "Diagram should promote the next available entry.");
+            Assert.AreEqual(nextNode, trainUnit.trainDiagram.GetNextDestination(), "Next destination should advance to the remaining node.");
 
             trainUnit.trainDiagram.MoveToNextEntry();
 
-            Assert.AreEqual(nextNode, trainUnit.trainDiagram.GetNextDestination(), "Diagram should advance to the next available node.");
+            Assert.AreEqual(nextNode, trainUnit.trainDiagram.GetNextDestination(), "Single-entry diagram should remain focused on the remaining node.");
         }
 
         [Test]
@@ -71,7 +71,7 @@ namespace Tests.UnitTest.Game
 
             Assert.IsTrue(trainCar.IsDocked, "Train car should be docked to the cargo platform block");
 
-            var entry = trainUnit.trainDiagram.Entries.First(e => e.Node == scenario.StationEntryFront);
+            var entry = trainUnit.trainDiagram.Entries.First(e => e.Node == scenario.StationExitFront);
             entry.SetDepartureCondition(TrainDiagram.DepartureConditionType.TrainInventoryEmpty);
 
             Assert.IsFalse(entry.CanDepart(trainUnit), "Train should wait until inventory is empty.");
@@ -92,7 +92,7 @@ namespace Tests.UnitTest.Game
 
             Assert.IsTrue(trainCar.IsDocked, "Train car should be docked to the cargo platform block");
 
-            var entry = trainUnit.trainDiagram.Entries.First(e => e.Node == scenario.StationEntryFront);
+            var entry = trainUnit.trainDiagram.Entries.First(e => e.Node == scenario.StationExitFront);
             entry.SetDepartureCondition(TrainDiagram.DepartureConditionType.TrainInventoryEmpty);
 
             Assert.AreEqual(1, entry.DepartureConditions.Count, "Initial departure condition should be set");
