@@ -20,26 +20,40 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
         public static List<IElectricTransformer> Find(Vector3Int pos, ElectricPoleBlockParam electricPoleConfigParam)
         {
             var electricPoles = new List<IElectricTransformer>();
-            //for文のための設定
-            var poleRange = electricPoleConfigParam.PoleConnectionRange;
             var blockDatastore = ServerContext.WorldBlockDatastore;
-            blockDatastore.GetBlock(pos);
-            var startElectricX = pos.x - poleRange / 2;
-            var startElectricY = pos.y - poleRange / 2;
-            
-            //実際の探索
-            for (var i = startElectricX; i < startElectricX + poleRange; i++)
-            for (var j = startElectricY; j < startElectricY + poleRange; j++)
+
+            foreach (var targetPos in EnumerateRange(pos, electricPoleConfigParam.PoleConnectionRange,
+                         electricPoleConfigParam.PoleConnectionHeightRange))
             {
-                //範囲内に電柱がある場合 ただし自身のブロックは除く
-                var electricPolePos = new Vector3Int(i, j);
-                if (!blockDatastore.ExistsComponent<IElectricTransformer>(electricPolePos) || i == pos.x && j == pos.y) continue;
-                
-                //電柱を追加
-                electricPoles.Add(blockDatastore.GetBlock<IElectricTransformer>(electricPolePos));
+                if (!blockDatastore.ExistsComponent<IElectricTransformer>(targetPos) || targetPos == pos) continue;
+
+                electricPoles.Add(blockDatastore.GetBlock<IElectricTransformer>(targetPos));
             }
             
             return electricPoles;
+
+            #region Internal
+
+            static IEnumerable<Vector3Int> EnumerateRange(Vector3Int center, int horizontalRange, int heightRange)
+            {
+                horizontalRange = Mathf.Max(horizontalRange, 1);
+                heightRange = Mathf.Max(heightRange, 1);
+
+                var startX = center.x - horizontalRange / 2;
+                var startZ = center.z - horizontalRange / 2;
+                var startY = center.y - heightRange / 2;
+
+                var endX = startX + horizontalRange;
+                var endZ = startZ + horizontalRange;
+                var endY = startY + heightRange;
+
+                for (var x = startX; x < endX; x++)
+                for (var y = startY; y < endY; y++)
+                for (var z = startZ; z < endZ; z++)
+                    yield return new Vector3Int(x, y, z);
+            }
+
+            #endregion
         }
     }
 }
