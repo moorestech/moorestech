@@ -4,10 +4,11 @@ namespace Client.Game.InGame.Electric
 {
     public class EnergizedRangeObject : MonoBehaviour
     {
-        public void SetRange(int range)
+        public void SetRange(int horizontalRange, int heightRange)
         {
-            var y = transform.localScale.y;
-            transform.localScale = new Vector3(range, y, range);
+            horizontalRange = Mathf.Max(horizontalRange, 1);
+            heightRange = Mathf.Max(heightRange, 1);
+            transform.localScale = new Vector3(horizontalRange, heightRange, horizontalRange);
         }
     }
 }
