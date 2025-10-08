@@ -14,7 +14,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 356493735206346843, guid: e5bdedb37eaf24335a590cfe52db9793, type: 3}
       propertyPath: veinItemGuid
-      value: 296417d6-7499-49aa-ac6c-f2787114b833
+      value: ec21231e-7ea3-4179-8653-84a37f00716d
       objectReference: {fileID: 0}
     - target: {fileID: 4382336488861206257, guid: e5bdedb37eaf24335a590cfe52db9793, type: 3}
       propertyPath: m_Name

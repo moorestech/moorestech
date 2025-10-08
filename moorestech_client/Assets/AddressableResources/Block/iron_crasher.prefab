@@ -57,6 +57,8 @@ MeshRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -78,6 +80,7 @@ MeshRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
@@ -186,8 +189,20 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 4136622925272130558, guid: 4c74988d44f6aa44184b9c89d585c25f, type: 3}
       propertyPath: m_Name
-      value: bronze_crasher
+      value: iron_crasher
       objectReference: {fileID: 0}
+    - target: {fileID: 4585288586816999786, guid: 4c74988d44f6aa44184b9c89d585c25f, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 246d50b032f1d82489f1f423debd4134, type: 2}
+    - target: {fileID: 5998591500924521467, guid: 4c74988d44f6aa44184b9c89d585c25f, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 246d50b032f1d82489f1f423debd4134, type: 2}
+    - target: {fileID: 7790348689395652369, guid: 4c74988d44f6aa44184b9c89d585c25f, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 246d50b032f1d82489f1f423debd4134, type: 2}
     - target: {fileID: 8736375804090706838, guid: 4c74988d44f6aa44184b9c89d585c25f, type: 3}
       propertyPath: m_LocalPosition.x
       value: 1.7210194
