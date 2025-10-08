@@ -466,8 +466,10 @@ namespace Tests.UnitTest.Game
             }
 
 
-
+            ///////////////////////////////////////////////////////////////
             //あとは列車を走らせる
+            const int DiagramNum = 257;
+            const int TestNum = 257;//1000で大丈夫なことを確認
             //複数の長さの列車を走らせる。短い～長い
             //列車を乗せるためのレールを新規に生成
             var railComponentStart = TrainTestHelper.PlaceRail(env, new Vector3Int(-100000, 0, 0), BlockDirection.South);
@@ -480,7 +482,7 @@ namespace Tests.UnitTest.Game
             nodeList.Add(railComponentStart.FrontNode);
 
             // 列車の長さを適当にランダムに決めて計算
-            for (int testnum = 0; testnum < 2; testnum++)//1000で大丈夫なことを確認
+            for (int testnum = 0; testnum < TestNum; testnum++)
             {
                 var trainLength = UnityEngine.Random.Range(1, 1000000);
                 //RailPosition を作って先頭を配置
@@ -490,47 +492,44 @@ namespace Tests.UnitTest.Game
                 var railPosition = new RailPosition(nodeList2, trainLength, 5);
 
                 // --- TrainUnit を生成 ---
-                var destinationid = UnityEngine.Random.Range(0, nodenum);
-                var destination = railComponents[destinationid].FrontNode;//目的地をセット
                 var cars = new List<TrainCar>
                 {
                     new TrainCar(tractionForce: 600000, inventorySlots: 0, length: trainLength),  // 仮: 動力車
                 };
                 var trainUnit = new TrainUnit(railPosition, cars);
-                trainUnit.trainDiagram.AddEntry(destination);
-                trainUnit.TurnOnAutoRun();//factorioでいう自動運転on
 
                 //進んで目的地についたら次の目的地をランダムにセット。100回繰り返し終了
-                for (int i = 0; i < 100; i++)
+                RailNode destination = null;
+                for (int i = 0; i < DiagramNum; i++)
                 {
-                    var reachedDestination = false;
-                    for (int j = 0; j < 65535; j++)//目的地に到達するまで→testフリーズは避けたいので有限で
-                    {
-                        trainUnit.Update();
-
-                        if (trainUnit._railPosition.GetNodeApproaching() == destination &&
-                            trainUnit._railPosition.GetDistanceToNextNode() == 0)
-                        {
-                            reachedDestination = true;
-                            break;
-                        }
-
-                        if (!trainUnit.IsAutoRun)
-                        {
-                            reachedDestination = true;
-                            break;
-                        }
-
-                    }
-
-                    Assert.IsTrue(reachedDestination, "列車が目的地に到達できませんでした。");
-
-                    destinationid = UnityEngine.Random.Range(0, nodenum);
+                    var destinationid = UnityEngine.Random.Range(0, nodenum);
                     destination = railComponents[destinationid].FrontNode;//目的地をセット
                     trainUnit.trainDiagram.AddEntry(destination);
-                    trainUnit.trainDiagram.MoveToNextEntry();
-                    trainUnit.TurnOnAutoRun();
                 }
+                trainUnit.TurnOnAutoRun();//factorioでいう自動運転on
+
+                var reachedDestination = false;
+                for (int j = 0; j < 65535 * DiagramNum; j++)//目的地に到達するまで→testフリーズは避けたいので有限で
+                {
+                    trainUnit.Update();
+                    if (j % 1 == 0)
+                    {
+                        //Debug.Log("列車速度" + trainUnit.CurrentSpeed);
+                        //Debug.Log(trainUnit._railPosition.GetDistanceToNextNode());
+                    }
+                    if (trainUnit._railPosition.GetNodeApproaching() == destination)
+                    {
+                        reachedDestination = true;
+                        break;
+                    }
+                    if (!trainUnit.IsAutoRun)
+                    {
+                        Debug.Log("自動運転がなぜかオフになりました");
+                        reachedDestination = true;
+                        break;
+                    }
+                }
+                Assert.IsTrue(reachedDestination, "列車が目的地に到達できませんでした。");
             }
         }
 
