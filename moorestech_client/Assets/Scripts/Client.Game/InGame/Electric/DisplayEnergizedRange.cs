@@ -43,14 +43,14 @@ namespace Client.Game.InGame.Electric
         
         private void OnStateChanged(UIStateEnum state)
         {
-            if (isBlockPlaceState && state != UIStateEnum.GameScreen)
+            if (isBlockPlaceState && state != UIStateEnum.PlaceBlock)
             {
                 isBlockPlaceState = false;
                 ResetRangeObject();
                 return;
             }
             
-            if (state != UIStateEnum.GameScreen) return;
+            if (state != UIStateEnum.PlaceBlock) return;
             isBlockPlaceState = true;
             
             CreateRangeObject();
@@ -83,10 +83,15 @@ namespace Client.Game.InGame.Electric
             {
                 var blockMasterElement = MasterHolder.BlockMaster.GetBlockMaster(electricalPole.BlockId);
                 var electricPoleParam = (ElectricPoleBlockParam)blockMasterElement.BlockParam;
-                var range = isElectricalBlock ? electricPoleParam.MachineConnectionRange : electricPoleParam.PoleConnectionRange;
+                var horizontalRange = isElectricalBlock
+                    ? electricPoleParam.MachineConnectionRange
+                    : electricPoleParam.PoleConnectionRange;
+                var heightRange = isElectricalBlock
+                    ? electricPoleParam.MachineConnectionHeightRange
+                    : electricPoleParam.PoleConnectionHeightRange;
                 
                 var rangeObject = Instantiate(rangePrefab, electricalPole.transform.position, Quaternion.identity, transform);
-                rangeObject.SetRange(range);
+                rangeObject.SetRange(horizontalRange, heightRange);
                 rangeObjects.Add(rangeObject);
             }
             
@@ -125,7 +130,7 @@ namespace Client.Game.InGame.Electric
             //TODO 電気系のブロックかどうか判定するロジック
             bool IsElectricalBlock(string type)
             {
-                return type is BlockTypeConst.ElectricGenerator or BlockTypeConst.ElectricMachine or BlockTypeConst.ElectricMiner;
+                return type is BlockTypeConst.ElectricGenerator or BlockTypeConst.ElectricMachine or BlockTypeConst.ElectricMiner or BlockTypeConst.GearElectricGenerator or BlockTypeConst.ElectricMiner;
             }
             
             bool IsPole(string type)
