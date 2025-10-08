@@ -335,11 +335,10 @@ namespace Game.Train.Train
                 return;
             }
 
-            if (approaching == destinationNode)
+            if (approaching == destinationNode)//目的地にすでに到達している場合、remainingdistanceを更新して自動運転を開始
             {
                 _remainingDistance = _railPosition.GetDistanceToNextNode();
                 _isAutoRun = true;
-                UnityEngine.Debug.Log("目的地にすでに到達している場合、remainingdistanceを更新して自動運転を開始");
                 return;
             }
 
