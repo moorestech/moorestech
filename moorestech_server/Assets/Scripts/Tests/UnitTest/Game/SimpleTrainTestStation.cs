@@ -26,22 +26,22 @@ namespace Tests.UnitTest.Game
             var railComponent1 = TrainTestHelper.PlaceRail(env, new Vector3Int(0, 0, 0), BlockDirection.North);
             var railComponent2 = TrainTestHelper.PlaceRail(env, new Vector3Int(1, 0, 0), BlockDirection.North);
 
-            Assert.NotNull(railComponent1, "Rail1 does not exist.");
-            Assert.NotNull(railComponent2, "Rail2 does not exist.");
+            Assert.NotNull(railComponent1, "レールコンポーネント1の生成に失敗しています。");
+            Assert.NotNull(railComponent2, "レールコンポーネント2の生成に失敗しています。");
 
             railComponent1.ConnectRailComponent(railComponent2, true, true);
 
             var connectedNodes = railComponent1.FrontNode.ConnectedNodesWithDistance;
             var connectedNode = connectedNodes.FirstOrDefault();
 
-            Assert.NotNull(connectedNode, "RailComponent1 is not connected to RailComponent2.");
-            Assert.AreEqual(railComponent2.FrontNode, connectedNode.Item1, "RailComponent1's FrontNode is not connected to RailComponent2's FrontNode.");
+            Assert.NotNull(connectedNode, "RailComponent1のFrontNodeがRailComponent2と接続されていません。");
+            Assert.AreEqual(railComponent2.FrontNode, connectedNode.Item1, "RailComponent1のFrontNodeがRailComponent2のFrontNodeと一致していません。");
 
             var path = RailGraphDatastore.FindShortestPath(railComponent1.FrontNode, railComponent2.FrontNode);
-            Assert.AreNotEqual(0, path.Count);
+            Assert.AreNotEqual(0, path.Count, "接続後のFrontNode間で最短経路が見つかりませんでした。");
 
             path = RailGraphDatastore.FindShortestPath(railComponent2.BackNode, railComponent2.BackNode);
-            Assert.AreNotEqual(0, path.Count);
+            Assert.AreNotEqual(0, path.Count, "BackNode同士での最短経路探索が失敗しました。");
         }
 
         /// <summary>
@@ -57,10 +57,10 @@ namespace Tests.UnitTest.Game
                 ForUnitTestModBlockId.TestTrainStation,
                 new Vector3Int(0, 0, 0),
                 BlockDirection.North);
-            Assert.IsNotNull(stationBlockA, "Station block placement failed");
-            Assert.IsNotNull(railSaver, "RailSaverComponent is missing");
+            Assert.IsNotNull(stationBlockA, "駅ブロックの設置に失敗しました。");
+            Assert.IsNotNull(railSaver, "RailSaverComponentの取得に失敗しました。");
 
-            Assert.AreEqual(2, railSaver.RailComponents.Length);
+            Assert.AreEqual(2, railSaver.RailComponents.Length, "駅ブロックに紐づくRailComponent数が期待値と一致しません。");
             var railComponentA = railSaver.RailComponents[0];
             var railComponentB = railSaver.RailComponents[1];
             Debug.Log("railComponentA Position: " + railComponentA.Position);
@@ -84,10 +84,10 @@ namespace Tests.UnitTest.Game
                     ForUnitTestModBlockId.TestTrainStation,
                     new Vector3Int(0, 5 * i, 0),
                     direction);
-                Assert.IsNotNull(stationBlockA, "Station block placement failed");
-                Assert.IsNotNull(railSaver, "RailSaverComponent is missing");
+                Assert.IsNotNull(stationBlockA, "駅ブロックの設置に失敗しました。");
+                Assert.IsNotNull(railSaver, "RailSaverComponentの取得に失敗しました。");
 
-                Assert.AreEqual(2, railSaver.RailComponents.Length);
+                Assert.AreEqual(2, railSaver.RailComponents.Length, "駅ブロックに紐づくRailComponent数が期待値と一致しません。");
                 var railComponentA = railSaver.RailComponents[0];
                 var railComponentB = railSaver.RailComponents[1];
                 Debug.Log("railComponentA Position: " + railComponentA.Position);
@@ -123,7 +123,7 @@ namespace Tests.UnitTest.Game
             Debug.Log(RailGraphDatastore.GetDistanceBetweenNodes(railNodeA, railNodeB));
             var length0 = RailGraphDatastore.GetDistanceBetweenNodes(railNodeB, railNodeC);
             Debug.Log(length0);
-            Assert.AreEqual(0, length0);
+            Assert.AreEqual(0, length0, "駅間のFrontNode距離が0になっていません。");
             Debug.Log(RailGraphDatastore.GetDistanceBetweenNodes(railNodeC, railNodeD));
         }
     }

@@ -27,11 +27,11 @@ namespace Tests.UnitTest.Game
 
             var outListPath = RailGraphDatastore.FindShortestPath(node0, node3);
 
-            Assert.AreEqual(4, outListPath.Count);
-            Assert.AreEqual(node0, outListPath[0]);
-            Assert.AreEqual(node1, outListPath[1]);
-            Assert.AreEqual(node2, outListPath[2]);
-            Assert.AreEqual(node3, outListPath[3]);
+            Assert.AreEqual(4, outListPath.Count, "経路に含まれるノード数が期待値と一致していません。");
+            Assert.AreEqual(node0, outListPath[0], "最短経路の1番目のノードが始点ノードになっていません。");
+            Assert.AreEqual(node1, outListPath[1], "最短経路の2番目のノードがnode1ではありません。");
+            Assert.AreEqual(node2, outListPath[2], "最短経路の3番目のノードがnode2ではありません。");
+            Assert.AreEqual(node3, outListPath[3], "最短経路の終点がnode3になっていません。");
         }
 
         [Test]
@@ -51,10 +51,10 @@ namespace Tests.UnitTest.Game
 
             var outListPath = RailGraphDatastore.FindShortestPath(node0, node3);
 
-            Assert.AreEqual(3, outListPath.Count);
-            Assert.AreEqual(node0, outListPath[0]);
-            Assert.AreEqual(node2, outListPath[1]);
-            Assert.AreEqual(node3, outListPath[2]);
+            Assert.AreEqual(3, outListPath.Count, "最短経路のノード数が期待値と一致していません。");
+            Assert.AreEqual(node0, outListPath[0], "最短経路の1番目のノードが始点ノードになっていません。");
+            Assert.AreEqual(node2, outListPath[1], "コストの小さい経路が選択されていません (node2経由ではありません)。");
+            Assert.AreEqual(node3, outListPath[2], "最短経路の終点がnode3になっていません。");
         }
 
         [Test]
@@ -95,7 +95,7 @@ namespace Tests.UnitTest.Game
                     Debug.Log(rand0);
                     Debug.Log(rand1);
                 }
-                Assert.LessOrEqual(outListPath.Count, nodenumPower + 1);
+                Assert.LessOrEqual(outListPath.Count, nodenumPower + 1, "ランダム探索で得られた経路長が許容上限を超えています。");
             }
         }
 
@@ -170,7 +170,7 @@ namespace Tests.UnitTest.Game
             var nodeStart = railBlocks[0, 0, 0].FrontNode;
             var nodeEnd = railBlocks[size - 1, size - 1, size - 1].FrontNode;
             var outListPath = RailGraphDatastore.FindShortestPath(nodeStart, nodeEnd);
-            Assert.AreNotEqual(0, outListPath.Count);
+            Assert.AreNotEqual(0, outListPath.Count, "ランダム生成されたレール構成で始点から終点までの経路が見つかりませんでした。");
 
             for (int x = 1; x < size - 1; x++)
             {
@@ -184,7 +184,7 @@ namespace Tests.UnitTest.Game
             }
 
             outListPath = RailGraphDatastore.FindShortestPath(nodeStart, nodeEnd);
-            Assert.AreEqual(3 * (size - 1) + 1, outListPath.Count);
+            Assert.AreEqual(3 * (size - 1) + 1, outListPath.Count, "経路遮断後の最短経路長が期待値と一致していません。");
         }
 
         [Test]
@@ -207,29 +207,29 @@ namespace Tests.UnitTest.Game
             nodeC2.ConnectNode(nodeB, 718);
 
             var outListPath = RailGraphDatastore.FindShortestPath(nodeA, nodeD1);
-            Assert.AreEqual(3, outListPath.Count);
-            Assert.AreEqual(nodeA, outListPath[0]);
-            Assert.AreEqual(nodeC1, outListPath[1]);
-            Assert.AreEqual(nodeD1, outListPath[2]);
+            Assert.AreEqual(3, outListPath.Count, "nodeAからnodeD1までの経路長が期待値と一致していません。");
+            Assert.AreEqual(nodeA, outListPath[0], "nodeAからnodeD1までの経路の始点がnodeAになっていません。");
+            Assert.AreEqual(nodeC1, outListPath[1], "nodeAからnodeD1までの経路の中継ノードがnodeC1ではありません。");
+            Assert.AreEqual(nodeD1, outListPath[2], "nodeAからnodeD1までの経路の終点がnodeD1になっていません。");
 
             outListPath = RailGraphDatastore.FindShortestPath(nodeD2, nodeA);
-            Assert.AreEqual(3, outListPath.Count);
-            Assert.AreEqual(nodeD2, outListPath[0]);
-            Assert.AreEqual(nodeC2, outListPath[1]);
-            Assert.AreEqual(nodeA, outListPath[2]);
+            Assert.AreEqual(3, outListPath.Count, "nodeD2からnodeAまでの経路長が期待値と一致していません。");
+            Assert.AreEqual(nodeD2, outListPath[0], "nodeD2からnodeAまでの経路の始点がnodeD2になっていません。");
+            Assert.AreEqual(nodeC2, outListPath[1], "nodeD2からnodeAまでの経路の中継ノードがnodeC2ではありません。");
+            Assert.AreEqual(nodeA, outListPath[2], "nodeD2からnodeAまでの経路の終点がnodeAになっていません。");
 
             outListPath = RailGraphDatastore.FindShortestPath(nodeA, nodeB);
-            Assert.AreEqual(0, outListPath.Count);
+            Assert.AreEqual(0, outListPath.Count, "閉路が存在しない状態でのnodeAからnodeBへの経路が空ではありません。");
 
             nodeD1.ConnectNode(nodeD2, 721);
             outListPath = RailGraphDatastore.FindShortestPath(nodeA, nodeB);
-            Assert.AreEqual(6, outListPath.Count);
-            Assert.AreEqual(nodeA, outListPath[0]);
-            Assert.AreEqual(nodeC1, outListPath[1]);
-            Assert.AreEqual(nodeD1, outListPath[2]);
-            Assert.AreEqual(nodeD2, outListPath[3]);
-            Assert.AreEqual(nodeC2, outListPath[4]);
-            Assert.AreEqual(nodeB, outListPath[5]);
+            Assert.AreEqual(6, outListPath.Count, "nodeAからnodeBへの経路長が期待値と一致していません。");
+            Assert.AreEqual(nodeA, outListPath[0], "nodeAからnodeBへの経路の始点がnodeAになっていません。");
+            Assert.AreEqual(nodeC1, outListPath[1], "nodeAからnodeBへの経路の2番目がnodeC1になっていません。");
+            Assert.AreEqual(nodeD1, outListPath[2], "nodeAからnodeBへの経路の3番目がnodeD1になっていません。");
+            Assert.AreEqual(nodeD2, outListPath[3], "nodeAからnodeBへの経路の4番目がnodeD2になっていません。");
+            Assert.AreEqual(nodeC2, outListPath[4], "nodeAからnodeBへの経路の5番目がnodeC2になっていません。");
+            Assert.AreEqual(nodeB, outListPath[5], "nodeAからnodeBへの経路の終点がnodeBになっていません。");
         }
 
         [Test]
@@ -247,9 +247,9 @@ namespace Tests.UnitTest.Game
 
             var connectedNodes = nodeA.ConnectedNodes.ToList();
 
-            Assert.AreEqual(2, connectedNodes.Count);
-            Assert.IsTrue(connectedNodes.Contains(nodeB));
-            Assert.IsTrue(connectedNodes.Contains(nodeC));
+            Assert.AreEqual(2, connectedNodes.Count, "nodeAに接続されたノード数が期待値と一致していません。");
+            Assert.IsTrue(connectedNodes.Contains(nodeB), "接続ノード一覧にnodeBが含まれていません。");
+            Assert.IsTrue(connectedNodes.Contains(nodeC), "接続ノード一覧にnodeCが含まれていません。");
         }
     }
 }

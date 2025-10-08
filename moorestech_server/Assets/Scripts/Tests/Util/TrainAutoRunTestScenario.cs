@@ -87,6 +87,7 @@ namespace Tests.Util
             n0.ConnectNode(stationNodes.EntryFront,9876543);
             stationNodes.ExitFront.ConnectNode(n1, 123456);
             n1.ConnectNode(n2, 234567);
+            //n0->start->n1->n2 : n2が終端でどこにも繋がらない
 
             var initialRailNodes = new List<RailNode> { stationNodes.ExitFront, stationNodes.EntryFront, n0 };
             var initialDistance = startRunning ? stationNodes.SegmentLength - 1 : 0;

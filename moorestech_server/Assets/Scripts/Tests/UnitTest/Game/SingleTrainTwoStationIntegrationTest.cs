@@ -38,10 +38,10 @@ namespace Tests.UnitTest.Game
                 new Vector3Int(0, 0, 10),
                 BlockDirection.North);
 
-            Assert.IsNotNull(loadingBlock, "Loading platform block placement failed");
-            Assert.IsNotNull(loadingSaver, "Loading platform RailSaverComponent is missing");
-            Assert.IsNotNull(unloadingBlock, "Unloading platform block placement failed");
-            Assert.IsNotNull(unloadingSaver, "Unloading platform RailSaverComponent is missing");
+            Assert.IsNotNull(loadingBlock, "積込プラットフォームブロックの設置に失敗しました。");
+            Assert.IsNotNull(loadingSaver, "積込プラットフォームのRailSaverComponentが取得できませんでした。");
+            Assert.IsNotNull(unloadingBlock, "荷降ろしプラットフォームブロックの設置に失敗しました。");
+            Assert.IsNotNull(unloadingSaver, "荷降ろしプラットフォームのRailSaverComponentが取得できませんでした。");
 
             var loadingEntryComponent = loadingSaver.RailComponents[0];
             var loadingExitComponent = loadingSaver.RailComponents[1];
@@ -58,14 +58,14 @@ namespace Tests.UnitTest.Game
             ConnectFront(unloadingExitComponent, loadingEntryComponent, TransitSegmentLength);
 
             Assert.IsTrue(loadingBlock.ComponentManager.TryGetComponent<IBlockInventory>(out var loadingInventory),
-                "Loading platform inventory not found");
+                "積込プラットフォームのインベントリコンポーネントが見つかりません。");
             Assert.IsTrue(unloadingBlock.ComponentManager.TryGetComponent<IBlockInventory>(out var unloadingInventory),
-                "Unloading platform inventory not found");
+                "荷降ろしプラットフォームのインベントリコンポーネントが見つかりません。");
 
             var cargoPlatformLoader = loadingBlock.GetComponent<CargoplatformComponent>();
             var cargoPlatformUnloader = unloadingBlock.GetComponent<CargoplatformComponent>();
-            Assert.IsNotNull(cargoPlatformLoader, "Loading platform component missing");
-            Assert.IsNotNull(cargoPlatformUnloader, "Unloading platform component missing");
+            Assert.IsNotNull(cargoPlatformLoader, "積込プラットフォームのコンポーネント取得に失敗しました。");
+            Assert.IsNotNull(cargoPlatformUnloader, "荷降ろしプラットフォームのコンポーネント取得に失敗しました。");
 
             var itemMaster = MasterHolder.ItemMaster.GetItemMaster(ForUnitTestItemId.ItemId1);
             var maxStack = itemMaster.MaxStack;
@@ -76,7 +76,7 @@ namespace Tests.UnitTest.Game
             cargoPlatformUnloader.SetTransferMode(CargoplatformComponent.CargoTransferMode.UnloadToPlatform);
 
             var stationSegmentLength = loadingEntryComponent.FrontNode.GetDistanceToNode(loadingExitComponent.FrontNode);
-            Assert.Greater(stationSegmentLength, 0, "Station segment length must be positive");
+            Assert.Greater(stationSegmentLength, 0, "プラットフォーム間セグメントの長さが0以下になっています。");
 
             var initialRailNodes = new List<RailNode>
             {
@@ -98,38 +98,38 @@ namespace Tests.UnitTest.Game
             trainUnit.TurnOnAutoRun();
             trainUnit.Update();
 
-            Assert.IsTrue(trainCar.IsDocked, "Train should start docked at the loading platform");
-            Assert.AreSame(loadingBlock, trainCar.dockingblock, "Train must dock at the loading platform first");
+            Assert.IsTrue(trainCar.IsDocked, "列車が積込プラットフォームにドッキングした状態で開始していません。");
+            Assert.AreSame(loadingBlock, trainCar.dockingblock, "列車が最初に積込プラットフォームへドッキングしていません。");
 
             AdvanceUntil(trainUnit, () => trainCar.IsInventoryFull(), maxIterations: maxStack * 4,
-                "Train inventory did not fill while docked at the loading platform");
+                "積込プラットフォームにドッキング中に列車インベントリが満杯になりませんでした");
 
             var depletedStack = loadingInventory.GetItem(0);
-            Assert.AreEqual(ItemMaster.EmptyItemId, depletedStack.Id, "Loading platform should transfer all items to the train");
+            Assert.AreEqual(ItemMaster.EmptyItemId, depletedStack.Id, "積込プラットフォームが列車へ全量を移送できていません。");
 
             AdvanceUntil(trainUnit, () => !trainUnit.trainUnitStationDocking.IsDocked, maxIterations: 120,
-                "Train failed to depart after filling its cargo");
+                "積込完了後に列車が出発しませんでした");
 
             AdvanceUntil(trainUnit,
                 () => trainCar.IsDocked && ReferenceEquals(trainCar.dockingblock, unloadingBlock),
                 maxIterations: 25000,
-                "Train did not reach the unloading platform");
+                "列車が荷降ろしプラットフォームに到達しませんでした");
 
             AdvanceUntil(trainUnit, () => trainCar.IsInventoryEmpty(), maxIterations: maxStack * 4,
-                "Train inventory did not empty while docked at the unloading platform");
+                "荷降ろしプラットフォームにドッキング中に列車インベントリが空になりませんでした");
 
             var receivedStack = unloadingInventory.GetItem(0);
-            Assert.AreEqual(ForUnitTestItemId.ItemId1, receivedStack.Id, "Unloading platform should receive the transported item");
+            Assert.AreEqual(ForUnitTestItemId.ItemId1, receivedStack.Id, "荷降ろしプラットフォームが輸送アイテムを受け取っていません。");
             Assert.AreEqual(maxStack, receivedStack.Count,
-                "Unloading platform should receive the entire stack from the train");
+                "荷降ろしプラットフォームが列車から全量を受け取っていません。");
 
             AdvanceUntil(trainUnit, () => !trainUnit.trainUnitStationDocking.IsDocked, maxIterations: 120,
-                "Train failed to depart after unloading its cargo");
+                "荷降ろし後に列車が出発しませんでした");
 
             AdvanceUntil(trainUnit,
                 () => trainCar.IsDocked && ReferenceEquals(trainCar.dockingblock, loadingBlock),
                 maxIterations: 25000,
-                "Train did not return to the loading platform to complete the loop");
+                "列車がループ完了のために積込プラットフォームへ戻っていません");
         }
 
         #region Helpers
