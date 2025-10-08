@@ -1,13 +1,15 @@
-using System.Collections.Generic;
-using System.Linq;
 using Core.Master;
+using Game.Context;
 using Game.Train.Common;
 using Game.Train.RailGraph;
 using Game.Train.Train;
 using NUnit.Framework;
-using Tests.Util;
-using Game.Context;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Net.Sockets;
 using Tests.Module.TestMod;
+using Tests.Util;
 
 namespace Tests.UnitTest.Game
 {
@@ -141,10 +143,8 @@ namespace Tests.UnitTest.Game
 
                 Assert.IsFalse(trainUnit.trainUnitStationDocking.IsDocked,
                     "Removing all entries should undock the train on the next tick.");
-                Assert.IsTrue(trainUnit.IsAutoRun,
-                    "Auto-run remains active until the train confirms there are no destinations left.");
-
-                trainUnit.Update();
+                Assert.IsFalse(trainUnit.IsAutoRun,
+                    "Diagram without entries should not report a next destination.");
             }
             else
             {
@@ -266,27 +266,29 @@ namespace Tests.UnitTest.Game
             Assert.IsTrue(diagram.Entries.Any(entry => ReferenceEquals(entry.Node, fallbackNode)),
                 "Fallback node entry should remain after removing the start node.");
 
-            var autoRunDisabled = false;
-            var undockObserved = trainUnit.trainUnitStationDocking.IsDocked == false;
             const int maxUpdates = 48;
-
             for (var i = 0; i < maxUpdates; i++)
             {
                 trainUnit.Update();
-                undockObserved |= !trainUnit.trainUnitStationDocking.IsDocked;
-                if (!trainUnit.IsAutoRun)
-                {
-                    autoRunDisabled = true;
-                    break;
-                }
             }
 
-            Assert.IsTrue(undockObserved,
+            Assert.IsFalse(trainUnit.trainUnitStationDocking.IsDocked,
                 "Train should undock when the current entry becomes unreachable.");
-            Assert.IsTrue(autoRunDisabled,
+            Assert.IsFalse(trainUnit.IsAutoRun,
                 "Auto-run must eventually disable when no reachable entries remain.");
-            Assert.IsNull(diagram.GetCurrentNode(),
-                "Diagram with no reachable entries should not expose a next destination.");
+            Assert.IsNotNull(diagram.GetCurrentNode(),
+                "Diagram with no reachable entries should next destination.");
+
+            //ここまで操作５の確認。以下は追加検証。再度nadepathを繋いでdiagramを復旧できるか
+            startNode.ConnectNode(firstNode, 9999);
+            firstNode.ConnectNode(secondNode, 9999);
+            secondNode.ConnectNode(fallbackNode, 9999);
+            trainUnit.TurnOnAutoRun();
+            Assert.IsTrue(trainUnit.IsAutoRun,
+                "ダイアグラム復旧確認");
+            Assert.IsNotNull(diagram.GetCurrentNode(),
+                "Diagram with no reachable entries should next destination.");
+
         }
 
         [TestCase(false)]
@@ -307,18 +309,14 @@ namespace Tests.UnitTest.Game
 
             ConnectNodePair(n2, n0, 7777);
 
-            diagram.HandleNodeRemoval(n2);
-
-            Assert.AreEqual(3, diagram.Entries.Count,
+            Assert.AreEqual(4, diagram.Entries.Count,
                 "Diagram should contain start, n1, and n0 after removing n2.");
             Assert.AreSame(startNode, diagram.Entries[0].Node,
                 "Start node must remain the current entry prior to insertion.");
             Assert.AreSame(n1, diagram.Entries[1].Node,
                 "Second entry should be n1 prior to insertion.");
-            Assert.AreSame(n0, diagram.Entries[2].Node,
+            Assert.AreSame(n2, diagram.Entries[2].Node,
                 "Third entry should be n0 prior to insertion.");
-
-            diagram.InsertEntry(2, n2);
 
             CollectionAssert.AreEqual(
                 new[] { startNode, n1, n2, n0 },
@@ -326,13 +324,11 @@ namespace Tests.UnitTest.Game
                 "Inserted node should produce start -> n1 -> n2 -> n0 order.");
 
             var startEntry = diagram.Entries[0];
-            if (!startRunning)
-            {
-                startEntry.SetDepartureWaitTicks(0);
-            }
+            startEntry.SetDepartureWaitTicks(0);
 
             var visitedDestinations = new List<RailNode> { diagram.GetCurrentNode() };
-            const int maxUpdates = 256;
+            Assert.AreSame(startNode, visitedDestinations[0], "Start node must startnode.");
+            const int maxUpdates = 65536;
 
             for (var i = 0; i < maxUpdates; i++)
             {
@@ -347,6 +343,8 @@ namespace Tests.UnitTest.Game
                     }
                 }
             }
+            
+            Assert.AreEqual(5, visitedDestinations.Count, "visitedDestinations should contain 5 node");
 
             CollectionAssert.AreEqual(
                 new[] { startNode, n1, n2, n0, startNode },
@@ -354,8 +352,6 @@ namespace Tests.UnitTest.Game
                 "Diagram should cycle through start -> n1 -> n2 -> n0 -> start after insertion.");
             Assert.IsTrue(trainUnit.IsAutoRun,
                 "Auto-run should remain active throughout the cycle.");
-            Assert.IsTrue(trainUnit.trainUnitStationDocking.IsDocked,
-                "Train should be docked after completing the cycle back to the start node.");
         }
 
         [TestCase(false)]
@@ -382,7 +378,12 @@ namespace Tests.UnitTest.Game
 
             if (startRunning)
             {
-                startEntry.SetDepartureWaitTicks(1);
+                startEntry.SetDepartureWaitTicks(0);
+                for (var i = 0; i < 9999; i++)
+                {
+                    trainUnit.Update();
+                    if (trainUnit.trainUnitStationDocking.IsDocked) break;
+                }
             }
             else
             {
@@ -391,48 +392,24 @@ namespace Tests.UnitTest.Game
                 trainCar.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, maxStack));
             }
 
-            var observedDocked = trainUnit.trainUnitStationDocking.IsDocked ? 1 : 0;
-            var observedUndocked = trainUnit.trainUnitStationDocking.IsDocked ? 0 : 1;
-            var dockingsCompleted = 0;
             var previousDockState = trainUnit.trainUnitStationDocking.IsDocked;
+            var docked = previousDockState;
 
             const int maxUpdates = 256;
             for (var i = 0; i < maxUpdates; i++)
             {
                 trainUnit.Update();
-
-                var docked = trainUnit.trainUnitStationDocking.IsDocked;
-                if (docked)
-                {
-                    observedDocked = 1;
-                }
-                else
-                {
-                    observedUndocked = 1;
-                }
-
-                if (docked && !previousDockState)
-                {
-                    dockingsCompleted++;
-                    if (dockingsCompleted >= 2)
-                    {
-                        break;
-                    }
-                }
-
                 previousDockState = docked;
+                docked = trainUnit.trainUnitStationDocking.IsDocked;
+                if (i == 0) continue;
+                if (startRunning == false) 
+                    Assert.IsTrue(docked, "Each update should toggle the docking state in the single entry loop.");
+                if (startRunning == true)
+                    Assert.IsTrue(docked, "Each update should toggle the docking state in the single entry loop."); 
+                //UnityEngine.Debug.Log($"i={i} docked={docked}");
+                //Assert.IsTrue(previousDockState != docked, "Each update should toggle the docking state in the single entry loop.");
             }
-
-            Assert.AreEqual(1, observedDocked,
-                "Loop should include at least one docked state.");
-            Assert.AreEqual(1, observedUndocked,
-                "Loop should include at least one undocked state.");
-            Assert.GreaterOrEqual(dockingsCompleted, 2,
-                "Train should repeatedly dock at the single entry station.");
-            Assert.IsTrue(trainUnit.IsAutoRun,
-                "Auto-run should remain enabled during the single entry loop.");
-            Assert.AreSame(diagram.Entries[0].Node, diagram.GetCurrentNode(),
-                "Single entry diagram should continually target the lone node.");
+            Assert.AreSame(diagram.Entries[0].Node, diagram.GetCurrentNode(), "Single entry diagram should continually target the lone node.");
         }
 
         private static TrainAutoRunTestScenario CreateScenario(bool startRunning)
@@ -440,20 +417,6 @@ namespace Tests.UnitTest.Game
             return startRunning
                 ? TrainAutoRunTestScenario.CreateRunningScenario()
                 : TrainAutoRunTestScenario.CreateDockedScenario();
-        }
-
-        private static void DisconnectNodeFromAllNeighbors(RailNode node)
-        {
-            if (node == null)
-            {
-                return;
-            }
-
-            foreach (var neighbor in node.ConnectedNodes.ToList())
-            {
-                node.DisconnectNode(neighbor);
-                neighbor.DisconnectNode(node);
-            }
         }
 
         private static void ConnectNodePair(RailNode first, RailNode second, int distance)

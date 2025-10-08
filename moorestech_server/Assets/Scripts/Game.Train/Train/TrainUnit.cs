@@ -3,7 +3,6 @@ using Game.Train.RailGraph;
 using Game.Train.Utility;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 
 namespace Game.Train.Train
@@ -76,6 +75,7 @@ namespace Game.Train.Train
                     if (trainUnitStationDocking.IsDocked)
                     {
                         trainUnitStationDocking.UndockFromStation();
+                        UnityEngine.Debug.Log("diagram検知によるドッキング解除");
                     }
                     DiagramValidation();
                 }
@@ -90,11 +90,11 @@ namespace Game.Train.Train
                     // もしtrainDiagramの出発条件を満たしていたら、trainDiagramは次の目的地をセット。次のtickでドッキングを解除、バリデーションが行われる
                     if (trainDiagram.CheckEntries(this))
                     {
-                        // ドッキングを解除
+                        // ドッキングを解除はGuid違いの検出により次のtickで行う
                         //trainUnitStationDocking.UndockFromStation();
                         // 次の目的地をセット
+                        _previousEntryGuid = Guid.Empty;//同じentryに戻るときを考慮。別entryにいくものとして扱う
                         trainDiagram.MoveToNextEntry();
-                        return 0;
                     }
                     return 0;
                 }
@@ -106,8 +106,6 @@ namespace Game.Train.Train
             }
             else 
             {
-                // TODO 手動運転中はFキーとかでドッキングできる(satisfactoryを参考に)
-                // 未実装
                 // もしドッキング中なら
                 _previousEntryGuid = Guid.Empty;
                 if (trainUnitStationDocking.IsDocked)
@@ -120,7 +118,6 @@ namespace Game.Train.Train
                 {
                     // ドッキング中でなければキー操作で目的地 or nullに向かって進む
                     KeyInput();
-                    //_destinationNode = trainDiagram.GetCurrentNode();
                 }
             }
 
@@ -171,7 +168,7 @@ namespace Game.Train.Train
             if (masconLevel > 0)
             {
                 force = UpdateTractionForce(masconLevel);
-                _currentSpeed += force * 0.008;
+                _currentSpeed += force * 0.1;
             }
             else 
             {
@@ -211,7 +208,23 @@ namespace Game.Train.Train
                 if (IsArrivedDestination() && _isAutoRun)
                 {
                     _currentSpeed = 0;
-                    trainUnitStationDocking.TryDockWhenStopped();
+                    _accumulatedDistance = 0;
+                    //diagramが駅を見ている場合
+                    if (trainDiagram.GetCurrentNode().StationRef.StationBlock != null)
+                    {
+                        trainUnitStationDocking.TryDockWhenStopped();
+                        //この瞬間ドッキングしたら、diagramの出発条件リセット
+                        if (trainUnitStationDocking.IsDocked) 
+                        {
+                            trainDiagram.ResetCurrentEntryDepartureConditions();
+                        }
+                    }
+                    else//diagramが非駅を見ている場合 
+                    {
+                        // 次の目的地をセット
+                        _previousEntryGuid = Guid.Empty;//同じentryに戻るときを考慮。別entryにいくものとして扱う
+                        trainDiagram.MoveToNextEntry();
+                    }
                     break;
                 }
                 if (distanceToMove == 0) break;
@@ -318,7 +331,7 @@ namespace Game.Train.Train
             var (found, newPath) = CheckAllDiagramPath(approaching);
             if (!found)//全部の経路がなくなった
             {
-                UnityEngine.Debug.Log("diagramの登録nodeに対する経路が全てなくなった。自動運転off");
+                UnityEngine.Debug.Log("diagramの登録nodeに対する経路が全てない。自動運転off");
                 TurnOffAutoRun();
                 return;
             }
@@ -330,6 +343,7 @@ namespace Game.Train.Train
             _isAutoRun = false;
             _remainingDistance = int.MaxValue;
             masconLevel = 0;
+            _accumulatedDistance = 0;
             //ドッキングしていたら解除する
             if (trainUnitStationDocking.IsDocked)
             {

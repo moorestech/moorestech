@@ -147,6 +147,15 @@ namespace Game.Train.Train
             return true;
         }
 
+        //到着時発車条件リセット
+        public void ResetCurrentEntryDepartureConditions()
+        {
+            if (TryGetActiveEntry(out var entry))
+            {
+                entry.OnDeparted();
+            }
+        }
+
         private abstract class TrainInventoryConditionBase : IDepartureCondition
         {
             public bool CanDepart(TrainUnit trainUnit)
@@ -216,24 +225,8 @@ namespace Game.Train.Train
                 {
                     return true;
                 }
-
-                if (trainUnit == null || !trainUnit.IsAutoRun)
-                {
-                    return false;
-                }
-
-                var docking = trainUnit.trainUnitStationDocking;
-                if (docking == null || !docking.IsDocked)
-                {
-                    return false;
-                }
-
-                if (_remainingTicks > 0)
-                {
-                    _remainingTicks--;
-                }
-
-                return _remainingTicks <= 0;
+                _remainingTicks--;
+                return false;
             }
         }
 
@@ -342,6 +335,7 @@ namespace Game.Train.Train
                 _waitForTicksCondition?.Configure(ticks);
             }
 
+            //事実上発車条件リセット、到着時に呼ばれます。ほかにもよだれたり
             public void OnDeparted()
             {
                 _waitForTicksCondition?.Reset();

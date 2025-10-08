@@ -100,8 +100,12 @@ namespace Game.Train.Train
 
 
         /// <summary>    
-        /// trainunitのrailpositionを参照して、carの前端と後端のノードを取得し、同じ駅にドッキングできるかチェックする  
-        /// ドッキングできるなら各carのドッキング状態を更新する
+        /// station nodeと非station nodeの場合で少し異なる
+        /// station nodeの場合
+        /// trainunitのrailpositionを参照して、全てのcarの前端と後端のノードを取得し、駅にドッキングできるかチェックする  
+        /// 1つ以上ドッキングできるcarがあるならドッキング成功
+        /// station nodeでない場合
+        /// 駅じゃないのでドッキングできない
         /// </summary>
         public void TryDockWhenStopped()
         {
