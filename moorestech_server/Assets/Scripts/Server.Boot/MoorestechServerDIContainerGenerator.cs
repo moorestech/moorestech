@@ -91,6 +91,7 @@ namespace Server.Boot
             initializerCollection.AddSingleton<RailGraphDatastore>();
             initializerCollection.AddSingleton<TrainUpdateService>();
             initializerCollection.AddSingleton<TrainDiagramManager>();
+            initializerCollection.AddSingleton<TrainRailPositionManager>();
 
             var mapPath = Path.Combine(options.ServerDataDirectory, "map", "map.json");
             initializerCollection.AddSingleton(JsonConvert.DeserializeObject<MapInfoJson>(File.ReadAllText(mapPath)));
@@ -118,6 +119,7 @@ namespace Server.Boot
             services.AddSingleton<RailGraphDatastore>();
             services.AddSingleton<TrainUpdateService>();
             services.AddSingleton<TrainDiagramManager>();
+            services.AddSingleton<TrainRailPositionManager>();
 
             services.AddSingleton<IGameUnlockStateDataController, GameUnlockStateDataController>();
             services.AddSingleton<CraftTreeManager>();
@@ -176,6 +178,7 @@ namespace Server.Boot
             serviceProvider.GetService<RailGraphDatastore>();
             serviceProvider.GetService<TrainUpdateService>();
             serviceProvider.GetService<TrainDiagramManager>();
+            serviceProvider.GetService<TrainRailPositionManager>();
             serviceProvider.GetService<EnergyConnectUpdaterContainer<EnergySegment, IElectricConsumer, IElectricGenerator, IElectricTransformer>>();
 
             serviceProvider.GetService<ChangeBlockStateEventPacket>();
