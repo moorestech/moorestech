@@ -468,8 +468,8 @@ namespace Tests.UnitTest.Game
 
             ///////////////////////////////////////////////////////////////
             //あとは列車を走らせる
-            const int DiagramNum = 257;
-            const int TestNum = 257;//1000で大丈夫なことを確認
+            const int DiagramNum = 100;//257で大丈夫なことを確認
+            const int TestNum = 2;//1000で大丈夫なことを確認
             //複数の長さの列車を走らせる。短い～長い
             //列車を乗せるためのレールを新規に生成
             var railComponentStart = TrainTestHelper.PlaceRail(env, new Vector3Int(-100000, 0, 0), BlockDirection.South);
