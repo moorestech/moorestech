@@ -267,7 +267,9 @@
       "blockType": "ElectricPole",
       "blockParam": {
         "machineConnectionRange": 5,
-        "poleConnectionRange": 7
+        "poleConnectionRange": 7,
+        "poleConnectionHeightRange": 5,
+        "machineConnectionHeightRange": 5
       },
       "itemGuid": "00000000-0000-0000-1234-000000000004",
       "blockGuid": "00000000-0000-0000-0000-000000000004",
