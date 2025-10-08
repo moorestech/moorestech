@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Block.Blocks.TrainRail;
@@ -179,7 +180,7 @@ namespace Tests.UnitTest.Game
                     Debug.Log("列車速度" + trainUnit.CurrentSpeed);
                     Debug.Log("1フレームにすすむ距離int" + calceddist);
                     Debug.Log("現在向かっているnodeのID");
-                    RailGraphDatastore._instance.Test_NodeIdLog(trainUnit._railPosition.GetNodeApproaching());
+                    LogRailNodeId(trainUnit._railPosition.GetNodeApproaching());
                 }
 
                 if (trainUnit._railPosition.GetNodeApproaching() == destination &&
@@ -232,7 +233,7 @@ namespace Tests.UnitTest.Game
                         Debug.Log("列車速度" + trainUnit.CurrentSpeed);
                         Debug.Log("1フレームにすすむ距離int" + calceddist);
                         Debug.Log("現在向かっているnodeのID");
-                        RailGraphDatastore._instance.Test_NodeIdLog(trainUnit._railPosition.GetNodeApproaching());
+                        LogRailNodeId(trainUnit._railPosition.GetNodeApproaching());
                     }
 
                     if (trainUnit._railPosition.GetNodeApproaching() == trainUnit.trainDiagram.GetCurrentNode() &&
@@ -618,9 +619,9 @@ namespace Tests.UnitTest.Game
             var nodelist1 = mainRailPos.TestGet_railNodes();
             var nodelist2 = splittedRailPos.TestGet_railNodes();
             //nodelist1のid表示
-            //RailGraphDatastore._instance.Test_ListIdLog(nodelist1);
+            //LogRailNodeIds(nodelist1);
             //nodelist2のid表示
-            //RailGraphDatastore._instance.Test_ListIdLog(nodelist2);
+            //LogRailNodeIds(nodelist2);
             // RailPosition の列車長を直接取得するための Getter が無い場合は、
             // 同様に Reflection や専用のテスト用メソッド (TestGetTrainLength() 等) を用意する形になります。
             // ここではテスト用に「TestGetTrainLength」があると仮定している例を示します。
@@ -643,6 +644,46 @@ namespace Tests.UnitTest.Game
             //splittedRailPosはnodeBから25の距離にいるはず
             Assert.AreEqual(nodeB, splittedRailPos.GetNodeApproaching(), "切り離した後続列車の接近先ノードがnodeBではありません。");
             Assert.AreEqual(25, splittedRailPos.GetDistanceToNextNode(), "切り離した後続列車の次ノードまでの距離が25になっていません。");
+        }
+
+
+        private static void LogRailNodeId(RailNode node)
+        {
+            if (node == null)
+                return;
+
+            var datastore = GetRailGraphDatastoreInstance();
+            if (datastore == null)
+                return;
+
+            var dictionaryField = typeof(RailGraphDatastore).GetField("railIdDic", BindingFlags.NonPublic | BindingFlags.Instance);
+            if (dictionaryField == null)
+                return;
+
+            if (dictionaryField.GetValue(datastore) is Dictionary<RailNode, int> idDictionary &&
+                idDictionary.TryGetValue(node, out var id))
+            {
+                Debug.Log(id);
+            }
+        }
+
+
+        private static void LogRailNodeIds(IEnumerable<RailNode> nodes)
+        {
+            if (nodes == null)
+                return;
+
+            foreach (var node in nodes)
+            {
+                LogRailNodeId(node);
+            }
+        }
+
+
+        private static RailGraphDatastore GetRailGraphDatastoreInstance()
+        {
+            var instanceProperty = typeof(RailGraphDatastore).GetProperty("Instance", BindingFlags.NonPublic | BindingFlags.Static);
+            return instanceProperty?.GetValue(null) as RailGraphDatastore;
         }
 
 

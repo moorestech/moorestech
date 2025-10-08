@@ -5,10 +5,10 @@ using UnityEngine;
 
 namespace Game.Train.RailGraph
 {
-    public partial class RailGraphDatastore
+    public class RailGraphDatastore
     {
         // ----- シングルトン実装用 -----
-        public static RailGraphDatastore _instance;
+        private static RailGraphDatastore _instance;
 
         private static RailGraphDatastore Instance
         {
@@ -222,21 +222,6 @@ namespace Game.Train.RailGraph
                 Debug.LogWarning("RailNodeがつながっていません " + startid + " to " + targetid);
             return -1;
         }
-
-        //test用
-        public void Test_ListIdLog(List<RailNode> railNodes)
-        {
-            foreach (var node in railNodes)
-            {
-                Debug.Log(railIdDic[node]);
-            }
-        }
-        public void Test_NodeIdLog(RailNode r)
-        {
-            Debug.Log(railIdDic[r]);
-        }
-
-
 
         // ダイクストラ
         private List<RailNode> FindShortestPathInternal(int startid, int targetid)
