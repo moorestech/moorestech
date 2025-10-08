@@ -24,9 +24,9 @@ namespace Game.Train.RailGraph
                 throw new ArgumentException("RailNodeリストには1つ以上の要素が必要です。");
             }
 
-            if (trainLength <= 0)
+            if (trainLength < 0)
             {
-                throw new ArgumentException("列車の長さは正の値である必要があります。");
+                throw new ArgumentException("列車の長さは0以上である必要があります。");
             }
 
             _railNodes = railNodes;
@@ -48,8 +48,6 @@ namespace Game.Train.RailGraph
         private void ValidatePosition()
         {
             // 現在のRailNodeリストと距離が列車の長さに収まっているかを確認
-
-            //int totalDistance = CalculateTotalDistance()
             int totalDistance = RailNodeCalculate.CalculateTotalDistance(_railNodes);
             if (totalDistance + _distanceToNextNode < _trainLength)
             {

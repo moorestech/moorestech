@@ -16,8 +16,34 @@
 | 列車走行ロジック | `Tests/UnitTest/Game/SimpleTrainTestUpdateTrain.cs` | シナリオテスト (長時間) | ループ線路での走行、目的地到達、Station経由での往復、複数駅間の自動運転 | ランダム生成依存で再現性が低く、並列列車・フェイルケースは未検証 |
 | ドッキングと積み下ろし | `Tests/UnitTest/Game/TrainStationDockingItemTransferTest.cs` | 統合テスト | 駅・貨物プラットフォームでの積込/荷降ろし、占有時の第二列車拒否 | 待避線を含む複数列車連携、長距離移動を伴うシナリオは未実装 |
 | 列車運行ダイアグラム | `Tests/UnitTest/Game/TrainDiagramUpdateTest.cs` | 機能テスト | ダイアグラムのノード削除時リセット、積載/空荷条件での出発制御、複数条件の併用 | 長距離ダイアグラムや複数列車共有での挙動は未検証 |
+| 自動運転操作シナリオ | `Tests/UnitTest/Game/TrainDiagramAutoRunOperationsTest.cs` | 機能テスト (骨子) | 自動運転ダイアグラム操作のケース網羅を目的としたテスト構造 | 具体的なアサート未実装、シナリオ充実が今後の課題 |
 | セーブ/ロード | `Tests/UnitTest/Game/SaveLoad/TrainRailSaveLoadTest.cs` | 統合テスト | レール・駅の保存復元、接続状態とインベントリの保持 | 走行中列車・時刻同期・運行状態の復元は未カバー |
 | シングルトレイン往復 | `Tests/UnitTest/Game/SingleTrainTwoStationIntegrationTest.cs` | シナリオテスト | 2駅間での積込→運搬→荷降ろし→往復完走、手動スイッチ操作を含む | 長時間運転や複数列車・ポイント切替は未検証 |
+
+### 現行`train`関連テストファイル一覧
+- `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SimpleTrainTest.cs`
+- `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SimpleTrainTestStation.cs`
+- `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SimpleTrainTestRailPosition.cs`
+- `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SimpleTrainTestUpdateTrain.cs`
+- `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/TrainDiagramUpdateTest.cs`
+- `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/TrainDiagramAutoRunOperationsTest.cs`
+- `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/TrainStationDockingItemTransferTest.cs`
+- `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainRailSaveLoadTest.cs`
+- `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SingleTrainTwoStationIntegrationTest.cs`
+- (補助ユーティリティ) `moorestech_server/Assets/Scripts/Tests/Util/TrainTestHelper.cs`
+- (補助ユーティリティ) `moorestech_server/Assets/Scripts/Tests/Util/TrainAutoRunTestScenario.cs`
+
+### 各テストファイルの概要
+- **SimpleTrainTest.cs**: RailNodeの経路探索と接続性を検証し、複雑グラフやランダム生成ケースでの最短経路の健全性を確かめる。 
+- **SimpleTrainTestStation.cs**: 駅ブロックの向きに応じたRailComponent配置や駅間距離の整合性、手動接続時の最短経路を検証する。 
+- **SimpleTrainTestRailPosition.cs**: 長編成列車の前進・後退およびReverse処理時にノードスタックが正しく更新されるかをテストする。 
+- **SimpleTrainTestUpdateTrain.cs**: 自動運転やループ走行などのシナリオを通じて、TrainUnitの移動・目的地処理・分割挙動を網羅的に検証する長時間テスト。 
+- **TrainDiagramUpdateTest.cs**: 列車ダイアグラムのノード削除、条件設定、待機ティックなどの管理処理が正しく機能するかを確認する。 
+- **TrainDiagramAutoRunOperationsTest.cs**: 自動運転ダイアグラム操作のテストケース群の雛形を提供し、今後の詳細アサート追加の受け皿となる。 
+- **TrainStationDockingItemTransferTest.cs**: 駅・貨物プラットフォームでの積載／荷降ろしおよび占有制御が正しく働くかを統合的に確認する。 
+- **TrainRailSaveLoadTest.cs**: レールや駅のセーブデータ復元、接続情報・インベントリ状態の永続化が機能するかを検証する。 
+- **SingleTrainTwoStationIntegrationTest.cs**: 二駅間の積込→運搬→荷降ろし→折り返しという往復ループが自動運転で完了することを確認する。 
+- **TrainTestHelper.cs / TrainAutoRunTestScenario.cs**: 上記テストで使用するテスト環境・シナリオ構築ユーティリティを提供するサポートコード。
 
 ### カバレッジ詳細メモ
 - **ユニット層**: RailGraph/RailPosition関連のアルゴリズム系テスト(`SimpleTrainTest*.cs`)が存在し、基礎的な計算ロジックは網羅している。
