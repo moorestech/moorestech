@@ -174,7 +174,13 @@ properties:
         - key: poleConnectionRange
           type: integer
           default: 5
+        - key: poleConnectionHeightRange
+          type: integer
+          default: 5
         - key: machineConnectionRange
+          type: integer
+          default: 5
+        - key: machineConnectionHeightRange
           type: integer
           default: 5
       - when: ElectricGenerator
