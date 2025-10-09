@@ -7,25 +7,20 @@ using UnityEngine;
 
 namespace Server.Boot.Loop
 {
-    public class UserResponse
+    public class UserPacketHandler
     {
         private readonly Socket _client;
-        private readonly PacketResponseCreator _packetResponseCreator;
-        private int _byteCount;
+        private readonly PacketQueueProcessor _packetQueueProcessor;
         
-        private DateTime _startTime;
-        
-        public UserResponse(Socket client, PacketResponseCreator packetResponseCreator)
+        public UserPacketHandler(Socket client, PacketResponseCreator packetResponseCreator)
         {
-            _packetResponseCreator = packetResponseCreator;
             _client = client;
+            _packetQueueProcessor = new PacketQueueProcessor(_client, packetResponseCreator);
         }
         
         
         public void StartListen(CancellationToken token)
         {
-            _startTime = DateTime.Now;
-            
             var buffer = new byte[4096];
             //切断されるまでパケットを受信
             try
@@ -44,11 +39,13 @@ namespace Server.Boot.Loop
             }
             catch (OperationCanceledException)
             {
+                _packetQueueProcessor.Dispose();
                 _client.Close();
                 Debug.Log("切断されました");
             }
             catch (Exception e)
             {
+                _packetQueueProcessor.Dispose();
                 _client.Close();
                 Debug.LogError("moorestech内のロジックによるエラーで切断");
                 Debug.LogException(e);
@@ -64,16 +61,10 @@ namespace Server.Boot.Loop
             //受信データをパケットに分割
             var packets = parser.Parse(buffer, length);
             
+            // パケット処理はメインスレッドに委譲
             foreach (var packet in packets)
             {
-                var results = _packetResponseCreator.GetPacketResponse(packet);
-                foreach (var result in results)
-                {
-                    result.InsertRange(0, ToByteList.Convert(result.Count));
-                    var array = result.ToArray();
-                    _byteCount += array.Length;
-                    _client.Send(array);
-                }
+                _packetQueueProcessor.EnqueuePacket(packet);
             }
             
             //LogDataConsumption(_byteCount, _startTime);

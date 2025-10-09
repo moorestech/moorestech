@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Server.Boot.Loop
 {
-    public class PacketHandler
+    public class ServerListenAcceptor
     {
         private const int Port = 11564;
         
@@ -25,7 +25,7 @@ namespace Server.Boot.Loop
                 var client = listener.Accept();
                 Debug.Log("接続確立");
                 
-                var receiveThread = new Thread(() => new UserResponse(client, packetResponseCreator).StartListen(token));
+                var receiveThread = new Thread(() => new UserPacketHandler(client, packetResponseCreator).StartListen(token));
                 receiveThread.Name = "[moorestech] 受信スレッド";
                 
                 receiveThread.Start();

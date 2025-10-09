@@ -65,7 +65,8 @@ namespace Server.Boot
             var cancellationToken = new CancellationTokenSource();
             var token = cancellationToken.Token;
             
-            var connectionUpdateThread = new Thread(() => new PacketHandler().StartServer(packet, token));
+            // パケットキュープロセッサを作成してメインスレッドで処理を開始
+            var connectionUpdateThread = new Thread(() => new ServerListenAcceptor().StartServer(packet, token));
             connectionUpdateThread.Name = "[moorestech]通信受け入れスレッド";
             connectionUpdateThread.Start();
             
