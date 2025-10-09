@@ -4,7 +4,7 @@ using Game.EnergySystem;
 using Game.World.Interface.DataStore;
 using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
-using static Game.World.EventHandler.EnergyEvent.EnergyService.FindElectricPoleFromPeripheralService;
+using static Game.World.EventHandler.EnergyEvent.EnergyService.ElectricConnectionRangeService;
 
 namespace Game.World.EventHandler.EnergyEvent.EnergyService
 {
@@ -16,7 +16,7 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
             var generators = new List<IElectricGenerator>();
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
 
-            foreach (var machinePos in EnumerateRange(pos, param))
+            foreach (var machinePos in EnumerateMachineRange(pos, param))
             {
                 if (worldBlockDatastore.TryGetBlock<IElectricConsumer>(machinePos, out var consumer))
                     blocks.Add(consumer);
