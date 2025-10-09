@@ -11,7 +11,7 @@ namespace Game.Train.Train
     {
         public string SaveKey { get; } = typeof(TrainUnit).FullName;
         
-        public RailPosition _railPosition;
+        private RailPosition _railPosition;
         private readonly Guid _trainId;
         public Guid TrainId => _trainId;
 
@@ -31,7 +31,9 @@ namespace Game.Train.Train
         const double FRICTION = 0.0002;
         const double AIR_RESISTANCE = 0.00002;
 
-        public List<TrainCar> _cars;
+        private List<TrainCar> _cars;
+        public RailPosition RailPosition => _railPosition;
+        public IReadOnlyList<TrainCar> Cars => _cars;
         public TrainUnitStationDocking trainUnitStationDocking; // 列車の駅ドッキング用のクラス
         public TrainDiagram trainDiagram; // 列車のダイアグラム
         //キー関連
@@ -379,9 +381,79 @@ namespace Game.Train.Train
 
 
         //列車編成を保存する。ブロックとは違うことに注意
-        public string GetSaveState()
+        public TrainUnitSaveData CreateSaveData()
         {
-            return "";
+            var railSnapshot = _railPosition != null
+                ? new List<ConnectionDestination>(_railPosition.CreateSaveSnapshot())
+                : new List<ConnectionDestination>();
+
+            var carStates = _cars != null
+                ? _cars.Select(CreateTrainCarSaveData).ToList()
+                : new List<TrainCarSaveData>();
+
+            var diagramState = trainDiagram != null
+                ? CreateTrainDiagramSaveData(trainDiagram)
+                : null;
+
+            return new TrainUnitSaveData
+            {
+                TrainId = _trainId,
+                TrainLength = _railPosition?.TrainLength ?? 0,
+                DistanceToNextNode = _railPosition?.DistanceToNextNode ?? 0,
+                RailSnapshot = railSnapshot,
+                Cars = carStates,
+                Diagram = diagramState
+            };
+        }
+
+        private static TrainCarSaveData CreateTrainCarSaveData(TrainCar car)
+        {
+            return new TrainCarSaveData
+            {
+                CarId = car.CarId,
+                TractionForce = car.TractionForce,
+                InventorySlots = car.InventorySlots,
+                FuelSlots = car.FuelSlots,
+                Length = car.Length,
+                IsDocked = car.IsDocked
+            };
+        }
+
+        private static TrainDiagramSaveData CreateTrainDiagramSaveData(TrainDiagram diagram)
+        {
+            var entries = new List<TrainDiagramEntrySaveData>();
+            foreach (var entry in diagram.Entries)
+            {
+                entries.Add(new TrainDiagramEntrySaveData
+                {
+                    EntryId = entry.entryId,
+                    Node = CreateConnectionDestinationSnapshot(entry.Node),
+                    DepartureConditions = entry.DepartureConditionTypes?.ToList() ?? new List<TrainDiagram.DepartureConditionType>()
+                });
+            }
+
+            return new TrainDiagramSaveData
+            {
+                CurrentIndex = diagram.CurrentIndex,
+                Entries = entries
+            };
+        }
+
+        private static ConnectionDestination CreateConnectionDestinationSnapshot(RailNode node)
+        {
+            if (node == null)
+            {
+                return null;
+            }
+
+            var connection = RailGraphDatastore.GetRailComponentID(node);
+            if (connection == null)
+            {
+                return null;
+            }
+
+            var destinationId = new RailComponentID(connection.DestinationID.Position, connection.DestinationID.ID);
+            return new ConnectionDestination(destinationId, connection.IsFront);
         }
 
         //============================================================
@@ -459,6 +531,43 @@ namespace Game.Train.Train
             trainUnitStationDocking = null;
             _cars = null;
         }
+    }
+
+    [Serializable]
+    public class TrainUnitSaveData
+    {
+        public Guid TrainId { get; set; }
+        public int TrainLength { get; set; }
+        public int DistanceToNextNode { get; set; }
+        public List<ConnectionDestination> RailSnapshot { get; set; }
+        public List<TrainCarSaveData> Cars { get; set; }
+        public TrainDiagramSaveData Diagram { get; set; }
+    }
+
+    [Serializable]
+    public class TrainCarSaveData
+    {
+        public Guid CarId { get; set; }
+        public int TractionForce { get; set; }
+        public int InventorySlots { get; set; }
+        public int FuelSlots { get; set; }
+        public int Length { get; set; }
+        public bool IsDocked { get; set; }
+    }
+
+    [Serializable]
+    public class TrainDiagramSaveData
+    {
+        public int CurrentIndex { get; set; }
+        public List<TrainDiagramEntrySaveData> Entries { get; set; }
+    }
+
+    [Serializable]
+    public class TrainDiagramEntrySaveData
+    {
+        public Guid EntryId { get; set; }
+        public ConnectionDestination Node { get; set; }
+        public List<TrainDiagram.DepartureConditionType> DepartureConditions { get; set; }
     }
 
 }

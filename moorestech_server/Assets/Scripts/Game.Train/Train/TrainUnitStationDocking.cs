@@ -50,7 +50,14 @@ namespace Game.Train.Train
         private readonly Dictionary<IBlock, DockedReceiver> _dockedReceivers = new();
 
         //これは列車全体TrainCarを調査し一つでもドッキングしていたらドッキングしているとみなす
-        public bool IsDocked => _trainUnit._cars.Any(car => car.IsDocked);
+        public bool IsDocked
+        {
+            get
+            {
+                var cars = _trainUnit?.Cars;
+                return cars != null && cars.Any(car => car.IsDocked);
+            }
+        }
 
         public TrainUnitStationDocking(TrainUnit trainUnit)
         {
@@ -92,9 +99,15 @@ namespace Game.Train.Train
                 _dockedReceivers.Clear();
             }
 
-            foreach (var car in _trainUnit._cars)
+            var cars = _trainUnit?.Cars;
+            if (cars == null)
             {
-                car.dockingblock = null; // ドッキング状態を解除  
+                return;
+            }
+
+            foreach (var car in cars)
+            {
+                car.dockingblock = null; // ドッキング状態を解除
             }
         }
 
@@ -109,7 +122,9 @@ namespace Game.Train.Train
         /// </summary>
         public void TryDockWhenStopped()
         {
-            if (_trainUnit._cars.Count == 0 || _trainUnit._railPosition == null)
+            var cars = _trainUnit?.Cars;
+            var railPosition = _trainUnit?.RailPosition;
+            if (cars == null || cars.Count == 0 || railPosition == null)
             {
                 return; // 列車が存在しない場合は何もしない
             }
@@ -117,14 +132,14 @@ namespace Game.Train.Train
             //GetNodesAtDistanceをつかう
             //列車を先頭から順にみていく
             int carposition = 0;
-            for (int carIndex = 0; carIndex < _trainUnit._cars.Count; carIndex++)
+            for (int carIndex = 0; carIndex < cars.Count; carIndex++)
             {
-                var car = _trainUnit._cars[carIndex];
+                var car = cars[carIndex];
                 // 車両の前端位置 = carposition
-                var frontNodelist = _trainUnit._railPosition.GetNodesAtDistance(carposition);
+                var frontNodelist = railPosition.GetNodesAtDistance(carposition);
                 // 車両の後端位置 = carposition + car.Length
                 carposition += car.Length;
-                var rearNodelist = _trainUnit._railPosition.GetNodesAtDistance(carposition);
+                var rearNodelist = railPosition.GetNodesAtDistance(carposition);
 
                 car.dockingblock = null;
 
@@ -149,7 +164,7 @@ namespace Game.Train.Train
 
                             car.dockingblock = dockingBlock;
                             flag = true;
-                            //_dockedNode = _trainUnit._railPosition.GetNodeApproaching();//駅にドッキングするということはdiagramで見ているエントリーのnodeの駅にドッキングするということ
+                            //_dockedNode = _trainUnit.RailPosition.GetNodeApproaching();//駅にドッキングするということはdiagramで見ているエントリーのnodeの駅にドッキングするということ
                             break;
                         }
                         if (flag) break;

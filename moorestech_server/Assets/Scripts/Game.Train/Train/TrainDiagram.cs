@@ -160,11 +160,11 @@ namespace Game.Train.Train
         {
             public bool CanDepart(TrainUnit trainUnit)
             {
-                if (trainUnit == null || trainUnit._cars == null)
+                if (trainUnit == null || trainUnit.Cars == null)
                 {
                     return false;
                 }
-                foreach (var car in trainUnit._cars)
+                foreach (var car in trainUnit.Cars)
                 {
                     if (!car.IsDocked)
                     {
