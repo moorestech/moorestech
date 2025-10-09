@@ -3,6 +3,8 @@ using Core.Master;
 using Game.Block.Interface;
 using Game.Context;
 using Game.EnergySystem;
+using Game.SaveLoad.Interface;
+using Game.SaveLoad.Json;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -224,6 +226,33 @@ namespace Tests.CombinedTest.Game
             //機械、発電機の数を確認
             Assert.AreEqual(2, segment.Consumers.Count);
             Assert.AreEqual(2, segment.Generators.Count);
+        }
+        
+        
+        // セーブ、ロードしてて別々の電柱同士を電柱でつなぐテスト
+        [Test]
+        public void SaveLoadSegmentElectricPoleConnectionTest()
+        {
+            var (_, saveServiceProvider) =
+                new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            
+            // 電柱を設置
+            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(0, 0), BlockDirection.North, out _);
+            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(6, 0), BlockDirection.North, out _);
+            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(3, 0), BlockDirection.North, out _);
+
+            var saveJson = saveServiceProvider.GetService<AssembleSaveJsonText>().AssembleSaveJson();
+
+            
+            // セーブデータをロード
+            var (_, loadServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            (loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(saveJson);
+
+            var segmentDatastore = loadServiceProvider.GetService<IWorldEnergySegmentDatastore<EnergySegment>>();
+            var segment = segmentDatastore.GetEnergySegment(0);
+            Assert.AreEqual(1, segmentDatastore.GetEnergySegmentListCount());
+            Assert.AreEqual(3, segment.EnergyTransformers.Count);
         }
         
         private static Vector3Int Pos(int x, int z)
