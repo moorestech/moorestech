@@ -2,6 +2,7 @@ using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
+using Game.Train.Common;
 using Game.Train.RailGraph;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,7 +36,13 @@ namespace Tests.Util
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            return new TrainTestEnvironment(serviceProvider, ServerContext.WorldBlockDatastore);
+            var environment = new TrainTestEnvironment(serviceProvider, ServerContext.WorldBlockDatastore);
+
+#if UNITY_INCLUDE_TESTS
+            TrainUpdateService.Instance.ResetTickAccumulator();
+#endif
+
+            return environment;
         }
 
         public static TrainTestEnvironment CreateEnvironmentWithRailGraph(out RailGraphDatastore railGraphDatastore)

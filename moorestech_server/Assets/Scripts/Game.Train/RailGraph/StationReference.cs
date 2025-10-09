@@ -10,15 +10,17 @@ namespace Game.Train.RailGraph
         public IBlock StationBlock { get; private set; }
 
         public StationNodeRole NodeRole { get; private set; }
+        public StationNodeSide NodeSide { get; private set; }
 
         public StationReference()
         {
-            SetStationReference(null, StationNodeRole.Entry);
+            SetStationReference(null, StationNodeRole.Entry, StationNodeSide.Front);
         }
-        public void SetStationReference(IBlock stationBlock, StationNodeRole role)
+        public void SetStationReference(IBlock stationBlock, StationNodeRole role, StationNodeSide side)
         {
             StationBlock = stationBlock;
             NodeRole = role;
+            NodeSide = side;
         }
 
         //同じ駅かつEntry-Exitのつがいならtrueを返す
@@ -26,8 +28,9 @@ namespace Game.Train.RailGraph
         {
             if (other == null) return false;
             if (StationBlock == null || other.StationBlock == null) return false;
-            return StationBlock.BlockInstanceId == other.StationBlock.BlockInstanceId &&
-                   NodeRole != other.NodeRole; // Entry-Exitの組み合わせであることを確認
+            if (StationBlock.BlockInstanceId != other.StationBlock.BlockInstanceId) return false;
+            if (NodeSide != other.NodeSide) return false;
+            return NodeRole != other.NodeRole; // Entry-Exitの組み合わせであることを確認
         }
 
         // 必要に応じて座標を取得  
@@ -39,4 +42,11 @@ namespace Game.Train.RailGraph
         Entry,
         Exit,
     }
+    public enum StationNodeSide 
+    {
+        Front,
+        Back
+    }
+
+
 }

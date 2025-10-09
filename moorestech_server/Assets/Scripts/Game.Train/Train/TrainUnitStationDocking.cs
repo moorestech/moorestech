@@ -6,7 +6,6 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Train.Common;
 using Game.Train.RailGraph;
-//using Game.Block.Blocks.TrainRail;
 
 namespace Game.Train.Train
 {
@@ -25,15 +24,16 @@ namespace Game.Train.Train
         //
         //station側ではcarがドッキングした瞬間にstationのドッキング状態を更新する
         //これでロード時最初の1フレームで必ずドッキングされた状態で始まる
-        //なのでセーブ・ロードではcar側のboolのみを対象にしてstation側はセーブしない
+        //なのでセーブ・ロードではcar側のboolのみを対象にしてstation側はセーブしない(?)
 
         //他メモ
         //ドッキング中の列車は削除できる→TODO真ん中削除したらどうなるか？
         //列車が乗っているnodeは削除できない
         //
 
-        // 各車両のドッキング状態を管理  
         private TrainUnit _trainUnit;
+        //private RailNode _dockedNode = null; //ドッキングしているnode。暫定的に使用しない、そのうち消す？
+        //public RailNode DockedNode => _dockedNode;
 
         private sealed class DockedReceiver
         {
@@ -56,6 +56,13 @@ namespace Game.Train.Train
         {
             _trainUnit = trainUnit;
         }
+        public void OnDestroy()
+        {
+            UndockFromStation();
+            _trainUnit = null;
+            //_dockedNode = null;
+            _dockedReceivers.Clear();
+        }
 
 
         public void TickDockedStations()
@@ -75,6 +82,7 @@ namespace Game.Train.Train
         //すべてのTrainCarのドッキング状態をfalseにする
         public void UndockFromStation()
         {
+            //_dockedNode = null;
             if (_dockedReceivers.Count > 0)
             {
                 foreach (var entry in _dockedReceivers.Values.ToArray())
@@ -92,12 +100,15 @@ namespace Game.Train.Train
 
 
         /// <summary>    
-        /// trainunitのrailpositionを参照して、carの前端と後端のノードを取得し、同じ駅にドッキングできるかチェックする  
-        /// ドッキングできるなら各carのドッキング状態を更新する
+        /// station nodeと非station nodeの場合で少し異なる
+        /// station nodeの場合
+        /// trainunitのrailpositionを参照して、全てのcarの前端と後端のノードを取得し、駅にドッキングできるかチェックする  
+        /// 1つ以上ドッキングできるcarがあるならドッキング成功
+        /// station nodeでない場合
+        /// 駅じゃないのでドッキングできない
         /// </summary>
         public void TryDockWhenStopped()
         {
-            
             if (_trainUnit._cars.Count == 0 || _trainUnit._railPosition == null)
             {
                 return; // 列車が存在しない場合は何もしない
@@ -138,13 +149,13 @@ namespace Game.Train.Train
 
                             car.dockingblock = dockingBlock;
                             flag = true;
+                            //_dockedNode = _trainUnit._railPosition.GetNodeApproaching();//駅にドッキングするということはdiagramで見ているエントリーのnodeの駅にドッキングするということ
                             break;
                         }
                         if (flag) break;
                     }
                 }
             }
-
         }
 
         /// <summary>  
@@ -158,7 +169,7 @@ namespace Game.Train.Train
             {
                 return false; // 同じ駅でない場合はfalse  
             }
-            return frontNode.StationRef.NodeRole == StationNodeRole.Entry;
+            return frontNode.StationRef.NodeRole == StationNodeRole.Exit;
         }
 
 

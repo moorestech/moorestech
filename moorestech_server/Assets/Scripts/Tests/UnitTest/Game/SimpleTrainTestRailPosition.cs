@@ -34,22 +34,22 @@ namespace Tests.UnitTest.Game
             //進む
             var remainingDistance = railPosition.MoveForward(6); // 6進む（ノードAに近づく）
             // Assert
-            Assert.AreEqual(6, remainingDistance); // ノードAに到達するまでに残り3→進んだ距離は6
+            Assert.AreEqual(6, remainingDistance, "ノードAまで進んだ際の残余距離が想定と一致していません。");
 
             //地道に全部チェック。ノードEの情報はまだ消えてない
             var list = railPosition.TestGet_railNodes();
-            Assert.AreEqual(nodeA, list[0]);
-            Assert.AreEqual(nodeB, list[1]);
-            Assert.AreEqual(nodeC, list[2]);
-            Assert.AreEqual(nodeD, list[3]);
-            Assert.AreEqual(nodeE, list[4]);
+            Assert.AreEqual(nodeA, list[0], "先頭ノードがnodeAではありません。");
+            Assert.AreEqual(nodeB, list[1], "2番目のノードがnodeBではありません。");
+            Assert.AreEqual(nodeC, list[2], "3番目のノードがnodeCではありません。");
+            Assert.AreEqual(nodeD, list[3], "4番目のノードがnodeDではありません。");
+            Assert.AreEqual(nodeE, list[4], "5番目のノードがnodeEではありません。");
 
             //進む、残りの進むべき距離
             remainingDistance = railPosition.MoveForward(4); // 3進んでAで停止、残り1
             // Assert
-            Assert.AreEqual(nodeA, railPosition.GetNodeApproaching()); // 
-            Assert.AreEqual(3, remainingDistance); //
-            Assert.AreEqual(nodeB, railPosition.GetNodeJustPassed()); // 
+            Assert.AreEqual(nodeA, railPosition.GetNodeApproaching(), "進行後の接近先ノードがnodeAではありません。");
+            Assert.AreEqual(3, remainingDistance, "ノードAで停止後の残余距離が3ではありません。");
+            Assert.AreEqual(nodeB, railPosition.GetNodeJustPassed(), "通過済みノードがnodeBではありません。");
         }
 
         //RailPositionのmoveForwardのテストその2
@@ -100,22 +100,22 @@ namespace Tests.UnitTest.Game
                 railPosition.Reverse();//ノードEまで15になる
                 //地道に全部チェック。ノードEの情報はまだ消えてない
                 var list = railPosition.TestGet_railNodes();
-                Assert.AreEqual(nodeE2, list[0]);
-                Assert.AreEqual(nodeD2, list[1]);
-                Assert.AreEqual(nodeC2, list[2]);
-                Assert.AreEqual(nodeB2, list[3]);
-                Assert.AreEqual(nodeA2, list[4]);
-                Assert.AreEqual(15, railPosition.GetDistanceToNextNode());
+                Assert.AreEqual(nodeE2, list[0], "反転後の先頭ノードがnodeE2ではありません。");
+                Assert.AreEqual(nodeD2, list[1], "反転後の2番目のノードがnodeD2ではありません。");
+                Assert.AreEqual(nodeC2, list[2], "反転後の3番目のノードがnodeC2ではありません。");
+                Assert.AreEqual(nodeB2, list[3], "反転後の4番目のノードがnodeB2ではありません。");
+                Assert.AreEqual(nodeA2, list[4], "反転後の5番目のノードがnodeA2ではありません。");
+                Assert.AreEqual(15, railPosition.GetDistanceToNextNode(), "反転後の次ノードまでの距離が15ではありません。");
                 var remainingDistance = railPosition.MoveForward(6); // 6すすむ（ノードEに近づく）
-                Assert.AreEqual(9, railPosition.GetDistanceToNextNode());
-                Assert.AreEqual(6, remainingDistance);
+                Assert.AreEqual(9, railPosition.GetDistanceToNextNode(), "反転後に6進んだ際の残り距離が9ではありません。");
+                Assert.AreEqual(6, remainingDistance, "反転後に6進んだ際の戻り値が6ではありません。");
 
                 list = railPosition.TestGet_railNodes();//後輪が完全にB-C間にいるためノードAの情報は削除される
-                Assert.AreEqual(4, list.Count);
-                Assert.AreEqual(nodeE2, list[0]);
-                Assert.AreEqual(nodeD2, list[1]);
-                Assert.AreEqual(nodeC2, list[2]);
-                Assert.AreEqual(nodeB2, list[3]);
+                Assert.AreEqual(4, list.Count, "反転後のノードリスト数が4ではありません。");
+                Assert.AreEqual(nodeE2, list[0], "更新後の先頭ノードがnodeE2ではありません。");
+                Assert.AreEqual(nodeD2, list[1], "更新後の2番目のノードがnodeD2ではありません。");
+                Assert.AreEqual(nodeC2, list[2], "更新後の3番目のノードがnodeC2ではありません。");
+                Assert.AreEqual(nodeB2, list[3], "更新後の4番目のノードがnodeB2ではありません。");
             }
 
             { //MoveForward(マイナス)を使うパターン
@@ -126,15 +126,15 @@ namespace Tests.UnitTest.Game
                 //進む、残りの進むべき距離
                 var remainingDistance = railPosition.MoveForward(-11); // 11後退（ノードEに近づく）
 
-                Assert.AreEqual(6, railPosition.GetDistanceToNextNode()); //
-                Assert.AreEqual(nodeB1, railPosition.GetNodeApproaching()); // nodeAまで5のところから11後退してる
-                Assert.AreEqual(nodeC1, railPosition.GetNodeJustPassed()); // 
+                Assert.AreEqual(6, railPosition.GetDistanceToNextNode(), "後退後の次ノードまでの距離が6ではありません。");
+                Assert.AreEqual(nodeB1, railPosition.GetNodeApproaching(), "後退後の接近先ノードがnodeB1ではありません。");
+                Assert.AreEqual(nodeC1, railPosition.GetNodeJustPassed(), "後退後の通過済みノードがnodeC1ではありません。");
 
-                var list = railPosition.TestGet_railNodes(); Assert.AreEqual(4, list.Count);
-                Assert.AreEqual(nodeB1, list[0]);
-                Assert.AreEqual(nodeC1, list[1]);
-                Assert.AreEqual(nodeD1, list[2]);
-                Assert.AreEqual(nodeE1, list[3]);
+                var list = railPosition.TestGet_railNodes(); Assert.AreEqual(4, list.Count, "後退後のノードリスト数が4ではありません。");
+                Assert.AreEqual(nodeB1, list[0], "後退後の先頭ノードがnodeB1ではありません。");
+                Assert.AreEqual(nodeC1, list[1], "後退後の2番目のノードがnodeC1ではありません。");
+                Assert.AreEqual(nodeD1, list[2], "後退後の3番目のノードがnodeD1ではありません。");
+                Assert.AreEqual(nodeE1, list[3], "後退後の4番目のノードがnodeE1ではありません。");
             }
         }
 
