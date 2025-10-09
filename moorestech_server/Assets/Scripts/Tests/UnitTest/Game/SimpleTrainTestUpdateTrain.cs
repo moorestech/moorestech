@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Block.Blocks.TrainRail;
@@ -92,20 +93,20 @@ namespace Tests.UnitTest.Game
 
                 // 5) 進めるtotal距離をランダムにきめる
                 int totalrunDist = UnityEngine.Random.Range(1, 30000000);
-                var remain = trainUnit.UpdateTrainByDistance(totalrunDist);
+                var remain = totalrunDist - trainUnit.UpdateTrainByDistance(totalrunDist);
                 //totalrunDist_は0でないといけない
-                Assert.AreEqual(0, remain);
+                Assert.AreEqual(0, remain, "往路の走行で残余距離が発生しています。");
                 //逆向きにして進みてみる
                 trainUnit._railPosition.Reverse();
-                remain = trainUnit.UpdateTrainByDistance(totalrunDist);
-                Assert.AreEqual(0, remain);
+                remain = totalrunDist - trainUnit.UpdateTrainByDistance(totalrunDist);
+                Assert.AreEqual(0, remain, "復路の走行で残余距離が発生しています。");
                 trainUnit._railPosition.Reverse();
 
                 //逆向きにして同じ場所か
                 //向かっているのがnodeAのはず
-                Assert.AreEqual(railComponentA.FrontNode, railPosition.GetNodeApproaching());
+                Assert.AreEqual(railComponentA.FrontNode, railPosition.GetNodeApproaching(), "ループ走行後の接近先ノードが始点ノードに戻っていません。");
                 //initialDistanceToNextNode=5のはず
-                Assert.AreEqual(5, railPosition.GetDistanceToNextNode());
+                Assert.AreEqual(5, railPosition.GetDistanceToNextNode(), "ループ走行後の次ノードまでの距離が初期値と一致していません。");
             }
         }
 
@@ -164,7 +165,7 @@ namespace Tests.UnitTest.Game
 
             // --- 4. TrainUnit を生成 ---
             var destination = nodeA;   // 目的地を A にしておく
-            var trainUnit = new TrainUnit(initialRailPosition, cars, destination);
+            var trainUnit = new TrainUnit(initialRailPosition, cars);
             trainUnit.trainDiagram.AddEntry(destination);
             trainUnit.TurnOnAutoRun();
             int totaldist = 0;
@@ -172,14 +173,14 @@ namespace Tests.UnitTest.Game
             int cnt = 0;//ループ助長カウント
             for (int i = 0; i < 65535; i++)//目的地に到達するまで→testフリーズは避けたいので有限で
             {
-                int calceddist = trainUnit.UpdateTrainByTime(1f / 60f);
+                var calceddist = trainUnit.Update();
                 totaldist += calceddist;
                 if ((i % 60 == 0) & (debugLogFlag))
                 {
-                    Debug.Log("列車速度" + trainUnit._currentSpeed);
+                    Debug.Log("列車速度" + trainUnit.CurrentSpeed);
                     Debug.Log("1フレームにすすむ距離int" + calceddist);
                     Debug.Log("現在向かっているnodeのID");
-                    RailGraphDatastore._instance.Test_NodeIdLog(trainUnit._railPosition.GetNodeApproaching());
+                    LogRailNodeId(trainUnit._railPosition.GetNodeApproaching());
                 }
 
                 if (trainUnit._railPosition.GetNodeApproaching() == destination &&
@@ -195,9 +196,9 @@ namespace Tests.UnitTest.Game
             }
 
 
-            Assert.IsTrue(reachedDestination, "列車が目的地に到達できませんでした");
-            Assert.AreEqual(nodeA, trainUnit._railPosition.GetNodeApproaching());
-            Assert.AreEqual(0, trainUnit._railPosition.GetDistanceToNextNode());
+            Assert.IsTrue(reachedDestination, "列車が目的地に到達できませんでした。");
+            Assert.AreEqual(nodeA, trainUnit._railPosition.GetNodeApproaching(), "自動運転後の接近先ノードが目的地nodeAになっていません。");
+            Assert.AreEqual(0, trainUnit._railPosition.GetDistanceToNextNode(), "自動運転後の目的地までの残距離が0ではありません。");
             if (debugLogFlag)
             {
                 Debug.Log("列車編成が無事目的地につきました");
@@ -225,17 +226,17 @@ namespace Tests.UnitTest.Game
                 var framesElapsed = -1;
                 for (int i = 0; i < 65535; i++)//目的地に到達するまで→testフリーズは避けたいので有限で
                 {
-                    int calceddist = trainUnit.UpdateTrainByTime(1f / 60f);
+                    int calceddist = trainUnit.Update();
                     totaldist += calceddist;
                     if ((i % 60 == 0) & (debugLogFlag))
                     {
-                        Debug.Log("列車速度" + trainUnit._currentSpeed);
+                        Debug.Log("列車速度" + trainUnit.CurrentSpeed);
                         Debug.Log("1フレームにすすむ距離int" + calceddist);
                         Debug.Log("現在向かっているnodeのID");
-                        RailGraphDatastore._instance.Test_NodeIdLog(trainUnit._railPosition.GetNodeApproaching());
+                        LogRailNodeId(trainUnit._railPosition.GetNodeApproaching());
                     }
 
-                    if (trainUnit._railPosition.GetNodeApproaching() == trainUnit._destinationNode &&
+                    if (trainUnit._railPosition.GetNodeApproaching() == trainUnit.trainDiagram.GetCurrentNode() &&
                         trainUnit._railPosition.GetDistanceToNextNode() == 0)
                     {
                         reachedDestination = true;
@@ -251,7 +252,7 @@ namespace Tests.UnitTest.Game
                     }
                 }
 
-                Assert.IsTrue(reachedDestination, "列車が目的地に到達できませんでした");
+                Assert.IsTrue(reachedDestination, "列車が目的地に到達できませんでした。");
 
                 if (debugLogFlag && framesElapsed >= 0)
                 {
@@ -298,8 +299,8 @@ namespace Tests.UnitTest.Game
                     if (blockDirections[i] == BlockDirection.South) offset11or22 = 11;
                     worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainCargoPlatform, position + dirarray[i] * (offset11or22 + 11 * j), blockDirections[i], out var cargoblock);
                 }
-                Assert.AreEqual(2, railcomposA.RailComponents.Length);
-                Assert.AreEqual(2, railcomposB.RailComponents.Length);
+                Assert.AreEqual(2, railcomposA.RailComponents.Length, "駅Aに付随するRailComponent数が2本ではありません。");
+                Assert.AreEqual(2, railcomposB.RailComponents.Length, "駅Bに付随するRailComponent数が2本ではありません。");
                 var railComponentA = railcomposA.RailComponents[0];
                 var railComponentB = railcomposB.RailComponents[1];
                 railComponentsData[i * 2 + 0] = railComponentA;
@@ -341,12 +342,12 @@ namespace Tests.UnitTest.Game
             {
                 new TrainCar(tractionForce: 600000, inventorySlots: 0, length: trainLength),  // 仮: 動力車
             };
-            var trainUnit = new TrainUnit(railPosition, cars, destination);
+            var trainUnit = new TrainUnit(railPosition, cars);
             trainUnit.trainDiagram.AddEntry(destination);
             //走行スタート 現在地→駅3の終点
             RunTrain(trainUnit);
-            Assert.AreEqual(railComponentsData[7].FrontNode, trainUnit._railPosition.GetNodeApproaching());
-            Assert.AreEqual(0, trainUnit._railPosition.GetDistanceToNextNode());
+            Assert.AreEqual(railComponentsData[7].FrontNode, trainUnit._railPosition.GetNodeApproaching(), "駅3到着後の接近先ノードが期待と一致していません。");
+            Assert.AreEqual(0, trainUnit._railPosition.GetDistanceToNextNode(), "駅3到着後の残距離が0ではありません。");
             if (debugLogFlag)
             {
                 Debug.Log("列車編成が無事目的地につきました1");
@@ -358,8 +359,8 @@ namespace Tests.UnitTest.Game
             trainUnit.trainDiagram.AddEntry(secondDestination);
             trainUnit.trainDiagram.MoveToNextEntry();
             RunTrain(trainUnit);
-            Assert.AreEqual(railComponentsData[0].BackNode, trainUnit._railPosition.GetNodeApproaching());
-            Assert.AreEqual(0, trainUnit._railPosition.GetDistanceToNextNode());
+            Assert.AreEqual(railComponentsData[0].BackNode, trainUnit._railPosition.GetNodeApproaching(), "駅0復路到着時の接近先ノードが期待と一致していません。");
+            Assert.AreEqual(0, trainUnit._railPosition.GetDistanceToNextNode(), "駅0復路到着時の残距離が0ではありません。");
             if (debugLogFlag)
             {
                 Debug.Log("列車編成が無事目的地につきました2");
@@ -370,8 +371,8 @@ namespace Tests.UnitTest.Game
             trainUnit.trainDiagram.AddEntry(thirdDestination);
             trainUnit.trainDiagram.MoveToNextEntry();
             RunTrain(trainUnit);
-            Assert.AreEqual(railComponentsData[7].FrontNode, trainUnit._railPosition.GetNodeApproaching());
-            Assert.AreEqual(0, trainUnit._railPosition.GetDistanceToNextNode());
+            Assert.AreEqual(railComponentsData[7].FrontNode, trainUnit._railPosition.GetNodeApproaching(), "再度駅3へ到着した際の接近先ノードが期待と一致していません。");
+            Assert.AreEqual(0, trainUnit._railPosition.GetDistanceToNextNode(), "再度駅3へ到着した際の残距離が0ではありません。");
             if (debugLogFlag)
             {
                 Debug.Log("列車編成が無事目的地につきました3");
@@ -466,8 +467,10 @@ namespace Tests.UnitTest.Game
             }
 
 
-
+            ///////////////////////////////////////////////////////////////
             //あとは列車を走らせる
+            const int DiagramNum = 100;//257で大丈夫なことを確認
+            const int TestNum = 2;//1000で大丈夫なことを確認
             //複数の長さの列車を走らせる。短い～長い
             //列車を乗せるためのレールを新規に生成
             var railComponentStart = TrainTestHelper.PlaceRail(env, new Vector3Int(-100000, 0, 0), BlockDirection.South);
@@ -480,7 +483,7 @@ namespace Tests.UnitTest.Game
             nodeList.Add(railComponentStart.FrontNode);
 
             // 列車の長さを適当にランダムに決めて計算
-            for (int testnum = 0; testnum < 2; testnum++)//1000で大丈夫なことを確認
+            for (int testnum = 0; testnum < TestNum; testnum++)
             {
                 var trainLength = UnityEngine.Random.Range(1, 1000000);
                 //RailPosition を作って先頭を配置
@@ -490,47 +493,44 @@ namespace Tests.UnitTest.Game
                 var railPosition = new RailPosition(nodeList2, trainLength, 5);
 
                 // --- TrainUnit を生成 ---
-                var destinationid = UnityEngine.Random.Range(0, nodenum);
-                var destination = railComponents[destinationid].FrontNode;//目的地をセット
                 var cars = new List<TrainCar>
                 {
                     new TrainCar(tractionForce: 600000, inventorySlots: 0, length: trainLength),  // 仮: 動力車
                 };
-                var trainUnit = new TrainUnit(railPosition, cars, destination);
-                trainUnit.trainDiagram.AddEntry(destination);
-                trainUnit.TurnOnAutoRun();//factorioでいう自動運転on
+                var trainUnit = new TrainUnit(railPosition, cars);
 
                 //進んで目的地についたら次の目的地をランダムにセット。100回繰り返し終了
-                for (int i = 0; i < 100; i++)
+                RailNode destination = null;
+                for (int i = 0; i < DiagramNum; i++)
                 {
-                    var reachedDestination = false;
-                    for (int j = 0; j < 65535; j++)//目的地に到達するまで→testフリーズは避けたいので有限で
-                    {
-                        trainUnit.UpdateTrainByTime(1f / 60f);
-
-                        if (trainUnit._railPosition.GetNodeApproaching() == destination &&
-                            trainUnit._railPosition.GetDistanceToNextNode() == 0)
-                        {
-                            reachedDestination = true;
-                            break;
-                        }
-
-                        if (!trainUnit.IsAutoRun)
-                        {
-                            reachedDestination = true;
-                            break;
-                        }
-
-                    }
-
-                    Assert.IsTrue(reachedDestination, "列車が目的地に到達できませんでした");
-
-                    destinationid = UnityEngine.Random.Range(0, nodenum);
+                    var destinationid = UnityEngine.Random.Range(0, nodenum);
                     destination = railComponents[destinationid].FrontNode;//目的地をセット
                     trainUnit.trainDiagram.AddEntry(destination);
-                    trainUnit.trainDiagram.MoveToNextEntry();
-                    trainUnit.TurnOnAutoRun();
                 }
+                trainUnit.TurnOnAutoRun();//factorioでいう自動運転on
+
+                var reachedDestination = false;
+                for (int j = 0; j < 65535 * DiagramNum; j++)//目的地に到達するまで→testフリーズは避けたいので有限で
+                {
+                    trainUnit.Update();
+                    if (j % 1 == 0)
+                    {
+                        //Debug.Log("列車速度" + trainUnit.CurrentSpeed);
+                        //Debug.Log(trainUnit._railPosition.GetDistanceToNextNode());
+                    }
+                    if (trainUnit._railPosition.GetNodeApproaching() == destination)
+                    {
+                        reachedDestination = true;
+                        break;
+                    }
+                    if (!trainUnit.IsAutoRun)
+                    {
+                        Debug.Log("自動運転がなぜかオフになりました");
+                        reachedDestination = true;
+                        break;
+                    }
+                }
+                Assert.IsTrue(reachedDestination, "列車が目的地に到達できませんでした。");
             }
         }
 
@@ -591,8 +591,7 @@ namespace Tests.UnitTest.Game
             );
 
             // --- 4. TrainUnit を生成 ---
-            var destination = nodeA;   // 適当な目的地を A にしておく
-            var trainUnit = new TrainUnit(initialRailPosition, cars, destination);
+            var trainUnit = new TrainUnit(initialRailPosition, cars);
 
             // --- 5. SplitTrain(...) で後ろから 2 両切り離す ---
             //   5両 → (前3両) + (後ろ2両) に分割
@@ -604,9 +603,9 @@ namespace Tests.UnitTest.Game
 
             // 6-2) オリジナル列車の車両数は 3 両になっている
             //      新たに生成された列車の車両数は 2 両
-            Assert.AreEqual(3, trainUnit._cars.Count);
+            Assert.AreEqual(3, trainUnit._cars.Count, "分割後の先頭列車の車両数が3両ではありません。");
 
-            Assert.AreEqual(2, splittedUnit._cars.Count);
+            Assert.AreEqual(2, splittedUnit._cars.Count, "分割後に生成された後続列車の車両数が2両ではありません。");
 
             // 6-3) 列車長さが正しく更新されているか
             // オリジナル列車: 前3両 = 10 + 20 + 5 = 35
@@ -620,9 +619,9 @@ namespace Tests.UnitTest.Game
             var nodelist1 = mainRailPos.TestGet_railNodes();
             var nodelist2 = splittedRailPos.TestGet_railNodes();
             //nodelist1のid表示
-            //RailGraphDatastore._instance.Test_ListIdLog(nodelist1);
+            //LogRailNodeIds(nodelist1);
             //nodelist2のid表示
-            //RailGraphDatastore._instance.Test_ListIdLog(nodelist2);
+            //LogRailNodeIds(nodelist2);
             // RailPosition の列車長を直接取得するための Getter が無い場合は、
             // 同様に Reflection や専用のテスト用メソッド (TestGetTrainLength() 等) を用意する形になります。
             // ここではテスト用に「TestGetTrainLength」があると仮定している例を示します。
@@ -633,18 +632,58 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(15, splittedTrainLength, "分割後の後続列車の長さが想定外です。");
 
             //mainRailPosはnodeAから10の距離にいるはず
-            Assert.AreEqual(nodeA, mainRailPos.GetNodeApproaching());
-            Assert.AreEqual(10, mainRailPos.GetDistanceToNextNode());
+            Assert.AreEqual(nodeA, mainRailPos.GetNodeApproaching(), "先頭列車の接近先ノードがnodeAではありません。");
+            Assert.AreEqual(10, mainRailPos.GetDistanceToNextNode(), "先頭列車の次ノードまでの距離が10になっていません。");
             mainRailPos.Reverse();
             //nodeCまで15の距離にいるはず
-            Assert.AreEqual(nodeC.OppositeNode, mainRailPos.GetNodeApproaching());
-            Assert.AreEqual(15, mainRailPos.GetDistanceToNextNode());
+            Assert.AreEqual(nodeC.OppositeNode, mainRailPos.GetNodeApproaching(), "反転後の先頭列車の接近先ノードがnodeCの反対側ではありません。");
+            Assert.AreEqual(15, mainRailPos.GetDistanceToNextNode(), "反転後の先頭列車の次ノードまでの距離が15になっていません。");
 
             // 6-4) 新しい後続列車の RailPosition が「後ろ側」に連続した状態で生成されているか
             //      → SplitTrain 内部では DeepCopy + Reverse + SetTrainLength + Reverse で位置を調整。
             //splittedRailPosはnodeBから25の距離にいるはず
-            Assert.AreEqual(nodeB, splittedRailPos.GetNodeApproaching());
-            Assert.AreEqual(25, splittedRailPos.GetDistanceToNextNode());
+            Assert.AreEqual(nodeB, splittedRailPos.GetNodeApproaching(), "切り離した後続列車の接近先ノードがnodeBではありません。");
+            Assert.AreEqual(25, splittedRailPos.GetDistanceToNextNode(), "切り離した後続列車の次ノードまでの距離が25になっていません。");
+        }
+
+
+        private static void LogRailNodeId(RailNode node)
+        {
+            if (node == null)
+                return;
+
+            var datastore = GetRailGraphDatastoreInstance();
+            if (datastore == null)
+                return;
+
+            var dictionaryField = typeof(RailGraphDatastore).GetField("railIdDic", BindingFlags.NonPublic | BindingFlags.Instance);
+            if (dictionaryField == null)
+                return;
+
+            if (dictionaryField.GetValue(datastore) is Dictionary<RailNode, int> idDictionary &&
+                idDictionary.TryGetValue(node, out var id))
+            {
+                Debug.Log(id);
+            }
+        }
+
+
+        private static void LogRailNodeIds(IEnumerable<RailNode> nodes)
+        {
+            if (nodes == null)
+                return;
+
+            foreach (var node in nodes)
+            {
+                LogRailNodeId(node);
+            }
+        }
+
+
+        private static RailGraphDatastore GetRailGraphDatastoreInstance()
+        {
+            var instanceProperty = typeof(RailGraphDatastore).GetProperty("Instance", BindingFlags.NonPublic | BindingFlags.Static);
+            return instanceProperty?.GetValue(null) as RailGraphDatastore;
         }
 
 
