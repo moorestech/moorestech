@@ -10,7 +10,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
     {
         public void Initialize(BlockId blockId);
         public void SetActive(bool active);
-        public void SetEnableRenderers(bool enable);
+        public void SetEnableRenderers(bool enable); // これいらないのでは？消すかどうか検討する
     }
     
     public class PreviewOnlyObject : MonoBehaviour, IPreviewOnlyObject
