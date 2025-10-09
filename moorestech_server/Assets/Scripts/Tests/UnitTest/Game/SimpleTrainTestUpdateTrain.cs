@@ -97,10 +97,10 @@ namespace Tests.UnitTest.Game
                 //totalrunDist_は0でないといけない
                 Assert.AreEqual(0, remain, "往路の走行で残余距離が発生しています。");
                 //逆向きにして進みてみる
-                trainUnit._railPosition.Reverse();
+                trainUnit.RailPosition.Reverse();
                 remain = totalrunDist - trainUnit.UpdateTrainByDistance(totalrunDist);
                 Assert.AreEqual(0, remain, "復路の走行で残余距離が発生しています。");
-                trainUnit._railPosition.Reverse();
+                trainUnit.RailPosition.Reverse();
 
                 //逆向きにして同じ場所か
                 //向かっているのがnodeAのはず
@@ -180,11 +180,11 @@ namespace Tests.UnitTest.Game
                     Debug.Log("列車速度" + trainUnit.CurrentSpeed);
                     Debug.Log("1フレームにすすむ距離int" + calceddist);
                     Debug.Log("現在向かっているnodeのID");
-                    LogRailNodeId(trainUnit._railPosition.GetNodeApproaching());
+                    LogRailNodeId(trainUnit.RailPosition.GetNodeApproaching());
                 }
 
-                if (trainUnit._railPosition.GetNodeApproaching() == destination &&
-                    trainUnit._railPosition.GetDistanceToNextNode() == 0)
+                if (trainUnit.RailPosition.GetNodeApproaching() == destination &&
+                    trainUnit.RailPosition.GetDistanceToNextNode() == 0)
                 {
                     cnt++;
                     if (cnt == 3)
@@ -197,8 +197,8 @@ namespace Tests.UnitTest.Game
 
 
             Assert.IsTrue(reachedDestination, "列車が目的地に到達できませんでした。");
-            Assert.AreEqual(nodeA, trainUnit._railPosition.GetNodeApproaching(), "自動運転後の接近先ノードが目的地nodeAになっていません。");
-            Assert.AreEqual(0, trainUnit._railPosition.GetDistanceToNextNode(), "自動運転後の目的地までの残距離が0ではありません。");
+            Assert.AreEqual(nodeA, trainUnit.RailPosition.GetNodeApproaching(), "自動運転後の接近先ノードが目的地nodeAになっていません。");
+            Assert.AreEqual(0, trainUnit.RailPosition.GetDistanceToNextNode(), "自動運転後の目的地までの残距離が0ではありません。");
             if (debugLogFlag)
             {
                 Debug.Log("列車編成が無事目的地につきました");
@@ -233,11 +233,11 @@ namespace Tests.UnitTest.Game
                         Debug.Log("列車速度" + trainUnit.CurrentSpeed);
                         Debug.Log("1フレームにすすむ距離int" + calceddist);
                         Debug.Log("現在向かっているnodeのID");
-                        LogRailNodeId(trainUnit._railPosition.GetNodeApproaching());
+                        LogRailNodeId(trainUnit.RailPosition.GetNodeApproaching());
                     }
 
-                    if (trainUnit._railPosition.GetNodeApproaching() == trainUnit.trainDiagram.GetCurrentNode() &&
-                        trainUnit._railPosition.GetDistanceToNextNode() == 0)
+                    if (trainUnit.RailPosition.GetNodeApproaching() == trainUnit.trainDiagram.GetCurrentNode() &&
+                        trainUnit.RailPosition.GetDistanceToNextNode() == 0)
                     {
                         reachedDestination = true;
                         framesElapsed = i;
@@ -346,33 +346,33 @@ namespace Tests.UnitTest.Game
             trainUnit.trainDiagram.AddEntry(destination);
             //走行スタート 現在地→駅3の終点
             RunTrain(trainUnit);
-            Assert.AreEqual(railComponentsData[7].FrontNode, trainUnit._railPosition.GetNodeApproaching(), "駅3到着後の接近先ノードが期待と一致していません。");
-            Assert.AreEqual(0, trainUnit._railPosition.GetDistanceToNextNode(), "駅3到着後の残距離が0ではありません。");
+            Assert.AreEqual(railComponentsData[7].FrontNode, trainUnit.RailPosition.GetNodeApproaching(), "駅3到着後の接近先ノードが期待と一致していません。");
+            Assert.AreEqual(0, trainUnit.RailPosition.GetDistanceToNextNode(), "駅3到着後の残距離が0ではありません。");
             if (debugLogFlag)
             {
                 Debug.Log("列車編成が無事目的地につきました1");
             }
 
             //走行スタート 駅3→駅0の終点
-            trainUnit._railPosition.Reverse();
+            trainUnit.RailPosition.Reverse();
             var secondDestination = railComponentsData[0].BackNode;
             trainUnit.trainDiagram.AddEntry(secondDestination);
             trainUnit.trainDiagram.MoveToNextEntry();
             RunTrain(trainUnit);
-            Assert.AreEqual(railComponentsData[0].BackNode, trainUnit._railPosition.GetNodeApproaching(), "駅0復路到着時の接近先ノードが期待と一致していません。");
-            Assert.AreEqual(0, trainUnit._railPosition.GetDistanceToNextNode(), "駅0復路到着時の残距離が0ではありません。");
+            Assert.AreEqual(railComponentsData[0].BackNode, trainUnit.RailPosition.GetNodeApproaching(), "駅0復路到着時の接近先ノードが期待と一致していません。");
+            Assert.AreEqual(0, trainUnit.RailPosition.GetDistanceToNextNode(), "駅0復路到着時の残距離が0ではありません。");
             if (debugLogFlag)
             {
                 Debug.Log("列車編成が無事目的地につきました2");
             }
             //走行スタート 駅0→駅3の終点
-            trainUnit._railPosition.Reverse();
+            trainUnit.RailPosition.Reverse();
             var thirdDestination = railComponentsData[7].FrontNode;
             trainUnit.trainDiagram.AddEntry(thirdDestination);
             trainUnit.trainDiagram.MoveToNextEntry();
             RunTrain(trainUnit);
-            Assert.AreEqual(railComponentsData[7].FrontNode, trainUnit._railPosition.GetNodeApproaching(), "再度駅3へ到着した際の接近先ノードが期待と一致していません。");
-            Assert.AreEqual(0, trainUnit._railPosition.GetDistanceToNextNode(), "再度駅3へ到着した際の残距離が0ではありません。");
+            Assert.AreEqual(railComponentsData[7].FrontNode, trainUnit.RailPosition.GetNodeApproaching(), "再度駅3へ到着した際の接近先ノードが期待と一致していません。");
+            Assert.AreEqual(0, trainUnit.RailPosition.GetDistanceToNextNode(), "再度駅3へ到着した際の残距離が0ではありません。");
             if (debugLogFlag)
             {
                 Debug.Log("列車編成が無事目的地につきました3");
@@ -516,9 +516,9 @@ namespace Tests.UnitTest.Game
                     if (j % 1 == 0)
                     {
                         //Debug.Log("列車速度" + trainUnit.CurrentSpeed);
-                        //Debug.Log(trainUnit._railPosition.GetDistanceToNextNode());
+                        //Debug.Log(trainUnit.RailPosition.GetDistanceToNextNode());
                     }
-                    if (trainUnit._railPosition.GetNodeApproaching() == destination)
+                    if (trainUnit.RailPosition.GetNodeApproaching() == destination)
                     {
                         reachedDestination = true;
                         break;
@@ -603,9 +603,9 @@ namespace Tests.UnitTest.Game
 
             // 6-2) オリジナル列車の車両数は 3 両になっている
             //      新たに生成された列車の車両数は 2 両
-            Assert.AreEqual(3, trainUnit._cars.Count, "分割後の先頭列車の車両数が3両ではありません。");
+            Assert.AreEqual(3, trainUnit.Cars.Count, "分割後の先頭列車の車両数が3両ではありません。");
 
-            Assert.AreEqual(2, splittedUnit._cars.Count, "分割後に生成された後続列車の車両数が2両ではありません。");
+            Assert.AreEqual(2, splittedUnit.Cars.Count, "分割後に生成された後続列車の車両数が2両ではありません。");
 
             // 6-3) 列車長さが正しく更新されているか
             // オリジナル列車: 前3両 = 10 + 20 + 5 = 35
@@ -613,8 +613,8 @@ namespace Tests.UnitTest.Game
             // ※上の例では 10,20,5,5,10 の順で「後ろ2両」は後ろから 5,10 のはずなので合計15
             // SplitTrain 内で _railPosition.SetTrainLength(...) を行うことで長さが更新されているはず
 
-            var mainRailPos = trainUnit._railPosition;
-            var splittedRailPos = splittedUnit._railPosition;
+            var mainRailPos = trainUnit.RailPosition;
+            var splittedRailPos = splittedUnit.RailPosition;
 
             var nodelist1 = mainRailPos.TestGet_railNodes();
             var nodelist2 = splittedRailPos.TestGet_railNodes();

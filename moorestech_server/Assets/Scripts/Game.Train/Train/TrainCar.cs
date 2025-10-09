@@ -3,6 +3,7 @@ using Core.Master;
 using Game.Block.Interface;
 using Game.Context;
 using System;
+using System.Collections.Generic;
 
 
 namespace Game.Train.Train
@@ -31,6 +32,7 @@ namespace Game.Train.Train
         public IBlock dockingblock { get; set; }// このTrainCarがcargoやstation駅blockでドッキングしているときにのみ非nullになる。前輪を登録
 
         private readonly IItemStack[] _inventoryItems;
+        private readonly IItemStack[] _fuelItems;
         public TrainCar(int tractionForce, int inventorySlots, int length)
         {
             TractionForce = tractionForce;
@@ -38,12 +40,15 @@ namespace Game.Train.Train
             Length = length;
             dockingblock = null;
 
-            // インベントリー配列を初期化  
+            // インベントリー配列を初期化
             _inventoryItems = new IItemStack[inventorySlots];
             for (int i = 0; i < inventorySlots; i++)
             {
                 _inventoryItems[i] = ServerContext.ItemStackFactory.CreatEmpty();
             }
+
+            // TODO: 実際の燃料スロット数に応じた初期化を実装する
+            _fuelItems = Array.Empty<IItemStack>();
         }
 
 
@@ -123,26 +128,40 @@ namespace Game.Train.Train
         // インベントリーが満杯かチェック  
         public bool IsInventoryFull()
         {
-            for (int i = 0; i < _inventoryItems.Length; i++)
+            foreach (var (_, stack) in EnumerateInventory())
             {
-                if (_inventoryItems[i].Id == ItemMaster.EmptyItemId)
+                if (stack.Id == ItemMaster.EmptyItemId)
                     return false;
 
-                if (_inventoryItems[i].Count < MasterHolder.ItemMaster.GetItemMaster(_inventoryItems[i].Id).MaxStack)
+                if (stack.Count < MasterHolder.ItemMaster.GetItemMaster(stack.Id).MaxStack)
                     return false;
             }
             return true;
         }
 
-        // インベントリーが空かチェック  
+        // インベントリーが空かチェック
         public bool IsInventoryEmpty()
         {
-            for (int i = 0; i < _inventoryItems.Length; i++)
+            foreach (var (_, stack) in EnumerateInventory())
             {
-                if (_inventoryItems[i].Id != ItemMaster.EmptyItemId && _inventoryItems[i].Count > 0)
+                if (stack.Id != ItemMaster.EmptyItemId && stack.Count > 0)
                     return false;
             }
             return true;
+        }
+
+        public IEnumerable<(int slot, IItemStack item)> EnumerateInventory()
+        {
+            for (int i = 0; i < _inventoryItems.Length; i++)
+            {
+                yield return (i, _inventoryItems[i]);
+            }
+        }
+
+        public IEnumerable<(int slot, IItemStack item)> EnumerateFuelSlots()
+        {
+            // TODO: 燃料スロットの列挙処理を実装する
+            throw new NotImplementedException("TODO: Implement fuel slot enumeration");
         }
 
 
