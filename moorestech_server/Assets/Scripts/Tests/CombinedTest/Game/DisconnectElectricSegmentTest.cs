@@ -1,3 +1,4 @@
+using Core.Update;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
@@ -79,6 +80,50 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(1, worldElectricSegment.GetEnergySegmentListCount());
         }
         
+        //最後の電柱を削除した場合に、発電機と機械が正しく削除されるテスト
+        [Test]
+        public void RemoveLastElectricPoleWithGeneratorAndMachine()
+        {
+            var (_, saveServiceProvider) =
+                new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            /*設置する電柱、機械、発電機の場所
+             * M □ P □ G
+             */
+
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+
+            //電柱の設置
+            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(2, 0), BlockDirection.North, out _);
+
+            //発電機と機械の設定
+            worldBlockDatastore.TryAddBlock(MachineId, Pos(0, 0), BlockDirection.North, out var machineBlock);
+            worldBlockDatastore.TryAddBlock(GeneratorId, Pos(4, 0), BlockDirection.North, out var generatorBlock);
+
+            var machineInstanceId = machineBlock.BlockInstanceId;
+            var generatorInstanceId = generatorBlock.BlockInstanceId;
+
+            IWorldEnergySegmentDatastore<EnergySegment> worldElectricSegment = saveServiceProvider.GetService<IWorldEnergySegmentDatastore<EnergySegment>>();
+
+            //セグメントの数を確認
+            Assert.AreEqual(1, worldElectricSegment.GetEnergySegmentListCount());
+
+            //セグメントに発電機と機械が登録されていることを確認
+            var segment = worldElectricSegment.GetEnergySegment(0);
+            Assert.AreEqual(1, segment.Generators.Count);
+            Assert.AreEqual(1, segment.Consumers.Count);
+            Assert.IsTrue(segment.Generators.ContainsKey(generatorInstanceId));
+            Assert.IsTrue(segment.Consumers.ContainsKey(machineInstanceId));
+
+            //電柱を削除
+            worldBlockDatastore.RemoveBlock(Pos(2, 0));
+
+            //セグメントが削除されていることを確認
+            Assert.AreEqual(0, worldElectricSegment.GetEnergySegmentListCount());
+            
+            // アップデートを呼び出してもエラーが起きないことを確認
+            Assert.DoesNotThrow(() => GameUpdater.UpdateWithWait());
+        }
+
         //電柱を消してもループによって1つのセグメントになっている時のテスト
         [Test]
         public void LoopedElectricSegmentRemoveElectricPoleTest()

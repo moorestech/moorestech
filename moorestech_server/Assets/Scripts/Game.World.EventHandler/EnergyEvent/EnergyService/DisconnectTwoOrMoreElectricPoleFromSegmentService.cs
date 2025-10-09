@@ -26,7 +26,8 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
             connectedElectricPoles.Remove(removedElectricPole);
             
             
-            //元のセグメントを消す
+            //元のセグメントを破棄して消す
+            removedSegment.Destroy();
             container.WorldEnergySegmentDatastore.RemoveEnergySegment(removedSegment);
             
             
