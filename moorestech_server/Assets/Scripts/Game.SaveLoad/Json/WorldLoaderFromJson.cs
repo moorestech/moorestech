@@ -13,7 +13,7 @@ using Game.Research;
 using Game.UnlockState;
 using Game.World.Interface.DataStore;
 using Newtonsoft.Json;
-using Game.Train.Train;
+using Game.Train.Common;
 using UnityEngine;
 
 namespace Game.SaveLoad.Json
@@ -113,6 +113,7 @@ namespace Game.SaveLoad.Json
             _challengeDatastore.LoadChallenge(load.Challenge);
             _craftTreeManager.LoadCraftTreeInfo(load.CraftTreeInfo);
 
+            TrainSaveLoadService.RestoreTrainStates(load.TrainUnits);
             TrainDockingStateRestorer.RestoreDockingState();
         }
         

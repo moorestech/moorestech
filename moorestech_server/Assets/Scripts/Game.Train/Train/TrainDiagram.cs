@@ -38,6 +38,58 @@ namespace Game.Train.Train
             _entries.Clear();
         }
 
+        internal void RestoreState(TrainDiagramSaveData saveData, Func<ConnectionDestination, RailNode> nodeResolver)
+        {
+            _entries.Clear();
+            _currentIndex = -1;
+
+            if (saveData == null || saveData.Entries == null || nodeResolver == null)
+            {
+                return;
+            }
+
+            foreach (var entryData in saveData.Entries)
+            {
+                if (entryData == null)
+                {
+                    continue;
+                }
+
+                var node = nodeResolver(entryData.Node);
+                if (node == null)
+                {
+                    continue;
+                }
+
+                var entry = DiagramEntry.CreateFromSaveData(
+                    node,
+                    entryData.EntryId,
+                    entryData.DepartureConditions,
+                    entryData.WaitForTicksInitial,
+                    entryData.WaitForTicksRemaining);
+
+                _entries.Add(entry);
+            }
+
+            if (_entries.Count == 0)
+            {
+                _currentIndex = -1;
+                return;
+            }
+
+            var restoredIndex = saveData.CurrentIndex;
+            if (restoredIndex < -1)
+            {
+                restoredIndex = -1;
+            }
+            else if (restoredIndex >= _entries.Count)
+            {
+                restoredIndex = _entries.Count - 1;
+            }
+
+            _currentIndex = restoredIndex;
+        }
+
         //最後に追加
         public DiagramEntry AddEntry(RailNode node)
         {
@@ -203,6 +255,9 @@ namespace Game.Train.Train
             private int _initialTicks;
             private int _remainingTicks;
 
+            public int InitialTicks => _initialTicks;
+            public int RemainingTicks => _remainingTicks;
+
             public void Configure(int ticks)
             {
                 if (ticks < 0)
@@ -212,6 +267,22 @@ namespace Game.Train.Train
 
                 _initialTicks = ticks;
                 _remainingTicks = ticks;
+            }
+
+            public void Restore(int initialTicks, int remainingTicks)
+            {
+                Configure(initialTicks);
+                if (remainingTicks < 0)
+                {
+                    remainingTicks = 0;
+                }
+
+                if (remainingTicks > _initialTicks)
+                {
+                    remainingTicks = _initialTicks;
+                }
+
+                _remainingTicks = remainingTicks;
             }
 
             public void Reset()
@@ -250,6 +321,16 @@ namespace Game.Train.Train
 
             public IReadOnlyList<IDepartureCondition> DepartureConditions => _departureConditions;
             public IReadOnlyList<DepartureConditionType> DepartureConditionTypes => _departureConditionTypes;
+
+            public int? GetWaitForTicksInitialTicks()
+            {
+                return _waitForTicksCondition?.InitialTicks;
+            }
+
+            public int? GetWaitForTicksRemainingTicks()
+            {
+                return _waitForTicksCondition?.RemainingTicks;
+            }
 
             public bool MatchesNode(RailNode node)
             {
@@ -339,6 +420,28 @@ namespace Game.Train.Train
             public void OnDeparted()
             {
                 _waitForTicksCondition?.Reset();
+            }
+
+            internal static DiagramEntry CreateFromSaveData(
+                RailNode node,
+                Guid entryGuid,
+                IEnumerable<DepartureConditionType> conditionTypes,
+                int? waitForTicksInitial,
+                int? waitForTicksRemaining)
+            {
+                var entry = new DiagramEntry(node)
+                {
+                    entryId = entryGuid
+                };
+
+                entry.SetDepartureConditions(conditionTypes);
+                if (waitForTicksInitial.HasValue && entry._waitForTicksCondition != null)
+                {
+                    var remaining = waitForTicksRemaining ?? waitForTicksInitial.Value;
+                    entry._waitForTicksCondition.Restore(waitForTicksInitial.Value, remaining);
+                }
+
+                return entry;
             }
 
             private IDepartureCondition CreateDepartureCondition(DepartureConditionType conditionType)

@@ -156,8 +156,7 @@ namespace Game.Train.RailGraph
             var snapshot = new List<ConnectionDestination>(_railNodes.Count);
             foreach (var node in _railNodes)
             {
-                var connection = RailGraphDatastore.GetRailComponentID(node);
-                if (connection == null)
+                if (!RailGraphDatastore.TryGetRailComponentID(node, out var connection) || connection == null)
                 {
                     continue;
                 }
@@ -167,6 +166,19 @@ namespace Game.Train.RailGraph
             }
 
             return snapshot;
+        }
+
+        public IEnumerable<RailNode> EnumerateRailNodes()
+        {
+            if (_railNodes == null)
+            {
+                yield break;
+            }
+
+            foreach (var node in _railNodes)
+            {
+                yield return node;
+            }
         }
 
         //_railNodesのindex 0にrailnodeを追加する

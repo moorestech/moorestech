@@ -1,9 +1,8 @@
-using System.Linq;
 using Game.Block.Interface.Component;
 using Game.Context;
-using Game.Train.Common;
+using System.Linq;
 
-namespace Game.Train.Train
+namespace Game.Train.Common
 {
     //事実上ゲーム起動時に一度だけ呼ばれる
     public static class TrainDockingStateRestorer
@@ -11,11 +10,10 @@ namespace Game.Train.Train
         public static void RestoreDockingState()
         {
             var trains = TrainUpdateService.Instance.GetRegisteredTrains().ToArray();
-            var trainsToRedock = trains.Where(train => train.trainUnitStationDocking.IsDocked).ToArray();
 
             foreach (var train in trains)
             {
-                train.trainUnitStationDocking.UndockFromStation();
+                train.trainUnitStationDocking.ClearDockingReceivers();
             }
 
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
@@ -27,9 +25,9 @@ namespace Game.Train.Train
                 }
             }
 
-            foreach (var train in trainsToRedock)
+            foreach (var train in trains)
             {
-                train.trainUnitStationDocking.TryDockWhenStopped();
+                train.trainUnitStationDocking.RestoreDockingFromSavedState();
             }
         }
     }
