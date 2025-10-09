@@ -40,8 +40,21 @@ namespace Server.Boot.Loop
                 {
                     result.InsertRange(0, ToByteList.Convert(result.Count));
                     var array = result.ToArray();
-                    _client.Send(array);
+                    SendAll(array);
                 }
+            }
+        }
+
+        private void SendAll(byte[] data)
+        {
+            var offset = 0;
+            var remaining = data.Length;
+
+            while (remaining > 0)
+            {
+                var sent = _client.Send(data, offset, remaining, SocketFlags.None);
+                offset += sent;
+                remaining -= sent;
             }
         }
         
