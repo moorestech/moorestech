@@ -15,10 +15,6 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
         ///     周辺ブロックから電柱を探索します
         ///     ただし、自身の電柱は含みません
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <param name="param"></param>
-        /// <returns></returns>
         public static List<IElectricTransformer> Find(Vector3Int pos, ElectricPoleBlockParam param)
         {
             var electricPoles = new Dictionary<BlockInstanceId,IElectricTransformer>();
