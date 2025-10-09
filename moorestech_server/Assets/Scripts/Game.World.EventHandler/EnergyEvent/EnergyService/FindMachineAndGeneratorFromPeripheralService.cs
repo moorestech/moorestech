@@ -4,19 +4,19 @@ using Game.EnergySystem;
 using Game.World.Interface.DataStore;
 using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
+using static Game.World.EventHandler.EnergyEvent.EnergyService.ElectricConnectionRangeService;
 
 namespace Game.World.EventHandler.EnergyEvent.EnergyService
 {
     public static class FindMachineAndGeneratorFromPeripheralService
     {
-        public static (List<IElectricConsumer>, List<IElectricGenerator>) Find(Vector3Int pos, ElectricPoleBlockParam poleConfigParam)
+        public static (List<IElectricConsumer>, List<IElectricGenerator>) Find(Vector3Int pos, ElectricPoleBlockParam param)
         {
             var blocks = new List<IElectricConsumer>();
             var generators = new List<IElectricGenerator>();
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
 
-            foreach (var machinePos in EnumerateRange(pos, poleConfigParam.MachineConnectionRange,
-                         poleConfigParam.MachineConnectionHeightRange))
+            foreach (var machinePos in EnumerateMachineRange(pos, param))
             {
                 if (worldBlockDatastore.TryGetBlock<IElectricConsumer>(machinePos, out var consumer))
                     blocks.Add(consumer);
@@ -26,29 +26,6 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
             }
             
             return (blocks, generators);
-
-            #region Internal
-
-            static IEnumerable<Vector3Int> EnumerateRange(Vector3Int center, int horizontalRange, int heightRange)
-            {
-                horizontalRange = Mathf.Max(horizontalRange, 1);
-                heightRange = Mathf.Max(heightRange, 1);
-
-                var startX = center.x - horizontalRange / 2;
-                var startZ = center.z - horizontalRange / 2;
-                var startY = center.y - heightRange / 2;
-
-                var endX = startX + horizontalRange;
-                var endZ = startZ + horizontalRange;
-                var endY = startY + heightRange;
-
-                for (var x = startX; x < endX; x++)
-                for (var y = startY; y < endY; y++)
-                for (var z = startZ; z < endZ; z++)
-                    yield return new Vector3Int(x, y, z);
-            }
-
-            #endregion
         }
     }
 }

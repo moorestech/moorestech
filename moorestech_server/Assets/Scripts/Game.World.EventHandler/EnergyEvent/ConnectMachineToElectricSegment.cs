@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Interface.Extension;
 using Game.Context;
@@ -8,6 +7,7 @@ using Game.World.Interface.DataStore;
 using Mooresmaster.Model.BlocksModule;
 using UniRx;
 using UnityEngine;
+using static Game.World.EventHandler.EnergyEvent.EnergyService.ElectricConnectionRangeService;
 
 namespace Game.World.EventHandler.EnergyEvent
 {
@@ -39,36 +39,12 @@ namespace Game.World.EventHandler.EnergyEvent
 
             if (!IsElectricMachine(machinePos)) return;
 
-            foreach (var polePos in EnumerateNearbyPoles(machinePos)) ConnectToElectricPole(polePos, machinePos);
-
-            #region Internal
-
-            IEnumerable<Vector3Int> EnumerateNearbyPoles(Vector3Int center)
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            foreach (var polePos in EnumerateRange(machinePos, _maxMachineConnectionHorizontalRange, _maxMachineConnectionHeightRange))
             {
-                var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-                var horizontalRange = Mathf.Max(_maxMachineConnectionHorizontalRange, 1);
-                var heightRange = Mathf.Max(_maxMachineConnectionHeightRange, 1);
-
-                var startX = center.x - horizontalRange / 2;
-                var startZ = center.z - horizontalRange / 2;
-                var startY = center.y - heightRange / 2;
-
-                var endX = startX + horizontalRange;
-                var endZ = startZ + horizontalRange;
-                var endY = startY + heightRange;
-
-                for (var x = startX; x < endX; x++)
-                for (var y = startY; y < endY; y++)
-                for (var z = startZ; z < endZ; z++)
-                {
-                    var polePos = new Vector3Int(x, y, z);
-                    if (!worldBlockDatastore.ExistsComponent<IElectricTransformer>(polePos)) continue;
-
-                    yield return polePos;
-                }
+                if (!worldBlockDatastore.ExistsComponent<IElectricTransformer>(polePos)) continue;
+                ConnectToElectricPole(polePos, machinePos);
             }
-
-            #endregion
         }
         
         private bool IsElectricMachine(Vector3Int pos)
@@ -91,43 +67,13 @@ namespace Game.World.EventHandler.EnergyEvent
             var pole = block.GetComponent<TTransformer>();
             var configParam = (ElectricPoleBlockParam)block.BlockMasterElement.BlockParam;
 
-            if (!IsWithinConnectionRange(machinePos, polePos, configParam)) return;
+            if (!IsWithinMachineRange(machinePos, polePos, configParam)) return;
 
             var segment = _worldEnergySegmentDatastore.GetEnergySegment(pole);
             if (worldBlockDatastore.ExistsComponent<TGenerator>(machinePos))
                 segment.AddGenerator(worldBlockDatastore.GetBlock<TGenerator>(machinePos));
             else if (worldBlockDatastore.ExistsComponent<TConsumer>(machinePos))
                 segment.AddEnergyConsumer(worldBlockDatastore.GetBlock<TConsumer>(machinePos));
-
-            #region Internal
-
-            bool IsWithinConnectionRange(Vector3Int machine, Vector3Int polePosition, ElectricPoleBlockParam param)
-            {
-                return IsWithinHorizontalRange(machine, polePosition, param.MachineConnectionRange) &&
-                       IsWithinHeightRange(machine, polePosition, param.MachineConnectionHeightRange);
-            }
-
-            bool IsWithinHorizontalRange(Vector3Int machine, Vector3Int polePosition, int range)
-            {
-                if (range <= 0) return machine.x == polePosition.x && machine.z == polePosition.z;
-                var half = range / 2;
-                var minX = polePosition.x - half;
-                var minZ = polePosition.z - half;
-                var maxX = minX + range - 1;
-                var maxZ = minZ + range - 1;
-                return machine.x >= minX && machine.x <= maxX && machine.z >= minZ && machine.z <= maxZ;
-            }
-
-            bool IsWithinHeightRange(Vector3Int machine, Vector3Int polePosition, int heightRange)
-            {
-                if (heightRange <= 0) return machine.y == polePosition.y;
-                var half = heightRange / 2;
-                var minY = polePosition.y - half;
-                var maxY = minY + heightRange - 1;
-                return machine.y >= minY && machine.y <= maxY;
-            }
-
-            #endregion
         }
     }
 }

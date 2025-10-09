@@ -24,12 +24,12 @@ namespace Tests.CombinedTest.Server.PacketTest
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
-            var random = new Random(13944156);
+            var random = new Random(139441561);
             //ブロックの設置
             for (var i = 0; i < 1000; i++)
             {
                 var blockDirection = (BlockDirection)random.Next(0, 4);
-                var pos = new Vector3Int(random.Next(-40, 40), random.Next(-40, 40));
+                var pos = new Vector3Int(random.Next(-100, 100), random.Next(-100, 100), random.Next(-100, 100));
                 
                 var blockId = random.Next(1, 20);
                 worldBlockDatastore.TryAddBlock((BlockId)blockId, pos, blockDirection, out _);
