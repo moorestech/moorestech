@@ -111,11 +111,46 @@ namespace Game.Train.Train
             }
         }
 
+        internal void ClearDockingReceivers()
+        {
+            _dockedReceivers.Clear();
+        }
 
-        /// <summary>    
+        internal void RestoreDockingFromSavedState()
+        {
+            var cars = _trainUnit?.Cars;
+            if (cars == null)
+            {
+                return;
+            }
+
+            _dockedReceivers.Clear();
+
+            for (int carIndex = 0; carIndex < cars.Count; carIndex++)
+            {
+                var car = cars[carIndex];
+                var block = car.dockingblock;
+                if (block == null)
+                {
+                    continue;
+                }
+
+                if (RegisterDockingBlock(block, car, carIndex))
+                {
+                    car.dockingblock = block;
+                }
+                else
+                {
+                    car.dockingblock = null;
+                }
+            }
+        }
+
+
+        /// <summary>
         /// station nodeと非station nodeの場合で少し異なる
         /// station nodeの場合
-        /// trainunitのrailpositionを参照して、全てのcarの前端と後端のノードを取得し、駅にドッキングできるかチェックする  
+        /// trainunitのrailpositionを参照して、全てのcarの前端と後端のノードを取得し、駅にドッキングできるかチェックする
         /// 1つ以上ドッキングできるcarがあるならドッキング成功
         /// station nodeでない場合
         /// 駅じゃないのでドッキングできない

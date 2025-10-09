@@ -5,6 +5,7 @@ using Game.Entity.Interface;
 using Game.PlayerInventory.Interface;
 using Game.Research;
 using Game.SaveLoad.Json.WorldVersions;
+using Game.Train.Common;
 using Game.UnlockState;
 using Game.World.Interface.DataStore;
 using Newtonsoft.Json;
@@ -20,7 +21,8 @@ namespace Game.SaveLoad.Json
         private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
         private readonly CraftTreeManager _craftTreeManager;
         private readonly IResearchDataStore _researchDataStore;
-        
+        private readonly TrainSaveLoadService _trainSaveLoadService;
+
         public AssembleSaveJsonText(
             IPlayerInventoryDataStore inventoryDataStore,
             IEntitiesDatastore entitiesDatastore,
@@ -28,7 +30,8 @@ namespace Game.SaveLoad.Json
             ChallengeDatastore challengeDatastore,
             IGameUnlockStateDataController gameUnlockStateDataController,
             CraftTreeManager craftTreeManager,
-            IResearchDataStore researchDataStore)
+            IResearchDataStore researchDataStore,
+            TrainSaveLoadService trainSaveLoadService)
         {
             _inventoryDataStore = inventoryDataStore;
             _entitiesDatastore = entitiesDatastore;
@@ -37,13 +40,14 @@ namespace Game.SaveLoad.Json
             _gameUnlockStateDataController = gameUnlockStateDataController;
             _craftTreeManager = craftTreeManager;
             _researchDataStore = researchDataStore;
+            _trainSaveLoadService = trainSaveLoadService;
         }
-        
+
         public string AssembleSaveJson()
         {
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var mapObjectDatastore = ServerContext.MapObjectDatastore;
-            
+
             var saveData = new WorldSaveAllInfoV1(
                 worldBlockDatastore.GetSaveJsonObject(),
                 _inventoryDataStore.GetSaveJsonObject(),
@@ -53,11 +57,11 @@ namespace Game.SaveLoad.Json
                 _challengeDatastore.GetSaveJsonObject(),
                 _gameUnlockStateDataController.GetSaveJsonObject(),
                 _craftTreeManager.GetSaveJsonObject(),
-                _researchDataStore.GetSaveJsonObject()
-           );
+                _researchDataStore.GetSaveJsonObject(),
+                _trainSaveLoadService.GetSaveJsonObject()
+            );
 
-
-           return JsonConvert.SerializeObject(saveData);
+            return JsonConvert.SerializeObject(saveData);
         }
     }
 }

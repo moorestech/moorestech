@@ -33,11 +33,16 @@ namespace Game.Train.Train
 
         private readonly IItemStack[] _inventoryItems;
         private readonly IItemStack[] _fuelItems;
-        public TrainCar(int tractionForce, int inventorySlots, int length)
+        public TrainCar(int tractionForce, int inventorySlots, int length, int fuelSlots = 0)
         {
             TractionForce = tractionForce;
             InventorySlots = inventorySlots;
             Length = length;
+            if (fuelSlots < 0)
+            {
+                fuelSlots = 0;
+            }
+            FuelSlots = fuelSlots;
             dockingblock = null;
 
             // インベントリー配列を初期化
@@ -47,8 +52,18 @@ namespace Game.Train.Train
                 _inventoryItems[i] = ServerContext.ItemStackFactory.CreatEmpty();
             }
 
-            // TODO: 実際の燃料スロット数に応じた初期化を実装する
-            _fuelItems = Array.Empty<IItemStack>();
+            if (fuelSlots > 0)
+            {
+                _fuelItems = new IItemStack[fuelSlots];
+                for (int i = 0; i < fuelSlots; i++)
+                {
+                    _fuelItems[i] = ServerContext.ItemStackFactory.CreatEmpty();
+                }
+            }
+            else
+            {
+                _fuelItems = Array.Empty<IItemStack>();
+            }
         }
 
 
@@ -160,8 +175,30 @@ namespace Game.Train.Train
 
         public IEnumerable<(int slot, IItemStack item)> EnumerateFuelSlots()
         {
-            // TODO: 燃料スロットの列挙処理を実装する
-            throw new NotImplementedException("TODO: Implement fuel slot enumeration");
+            for (int i = 0; i < _fuelItems.Length; i++)
+            {
+                yield return (i, _fuelItems[i]);
+            }
+        }
+
+        public IItemStack GetFuelItem(int slot)
+        {
+            if (slot < 0 || slot >= _fuelItems.Length)
+            {
+                return ServerContext.ItemStackFactory.CreatEmpty();
+            }
+
+            return _fuelItems[slot];
+        }
+
+        public void SetFuelItem(int slot, IItemStack itemStack)
+        {
+            if (slot < 0 || slot >= _fuelItems.Length)
+            {
+                return;
+            }
+
+            _fuelItems[slot] = itemStack ?? ServerContext.ItemStackFactory.CreatEmpty();
         }
 
 
