@@ -1,3 +1,4 @@
+using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.EnergySystem;
@@ -36,21 +37,23 @@ namespace Game.World.EventHandler.EnergyEvent
         {
             var machinePos = updateProperties.Pos;
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            var machineBlock = worldBlockDatastore.GetBlock(machinePos);
 
-            // 発電機または消費機械かどうか判定
-            var isGenerator = worldBlockDatastore.TryGetBlock<TGenerator>(machinePos, out var removedGenerator);
-            var isConsumer = worldBlockDatastore.TryGetBlock<TConsumer>(machinePos, out var removedConsumer);
+            if (machineBlock == null) return;
 
-            if (!isGenerator && !isConsumer) return;
+            var hasGenerator = machineBlock.ComponentManager.TryGetComponent(out TGenerator removedGenerator);
+            var hasConsumer = machineBlock.ComponentManager.TryGetComponent(out TConsumer removedConsumer);
 
-            foreach (var polePos in EnumerateRange(machinePos, _maxMachineConnectionHorizontalRange, _maxMachineConnectionHeightRange))
+            if (!hasGenerator && !hasConsumer) return;
+
+            foreach (var polePos in EnumerateCandidatePolePositions(machineBlock.BlockPositionInfo, _maxMachineConnectionHorizontalRange, _maxMachineConnectionHeightRange))
             {
                 if (!worldBlockDatastore.ExistsComponent<IElectricTransformer>(polePos)) continue;
 
-                if (isGenerator)
-                    DisconnectGeneratorFromElectricPole(polePos, machinePos, removedGenerator);
-                if (isConsumer)
-                    DisconnectConsumerFromElectricPole(polePos, machinePos, removedConsumer);
+                if (hasGenerator)
+                    DisconnectGeneratorFromElectricPole(polePos, machineBlock.BlockPositionInfo, removedGenerator);
+                if (hasConsumer)
+                    DisconnectConsumerFromElectricPole(polePos, machineBlock.BlockPositionInfo, removedConsumer);
             }
         }
 
@@ -58,7 +61,7 @@ namespace Game.World.EventHandler.EnergyEvent
         /// <summary>
         ///     電柱のセグメントから発電機を削除する
         /// </summary>
-        private void DisconnectGeneratorFromElectricPole(Vector3Int polePos, Vector3Int machinePos, TGenerator generator)
+        private void DisconnectGeneratorFromElectricPole(Vector3Int polePos, BlockPositionInfo machineInfo, TGenerator generator)
         {
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
 
@@ -67,7 +70,7 @@ namespace Game.World.EventHandler.EnergyEvent
             var pole = block.GetComponent<TTransformer>();
             var configParam = (ElectricPoleBlockParam)block.BlockMasterElement.BlockParam;
 
-            if (!IsWithinMachineRange(machinePos, polePos, configParam)) return;
+            if (!IsWithinMachineRange(machineInfo, polePos, configParam)) return;
 
             var segment = _worldEnergySegmentDatastore.GetEnergySegment(pole);
             segment.RemoveGenerator(generator);
@@ -76,7 +79,7 @@ namespace Game.World.EventHandler.EnergyEvent
         /// <summary>
         ///     電柱のセグメントから消費機械を削除する
         /// </summary>
-        private void DisconnectConsumerFromElectricPole(Vector3Int polePos, Vector3Int machinePos, TConsumer consumer)
+        private void DisconnectConsumerFromElectricPole(Vector3Int polePos, BlockPositionInfo machineInfo, TConsumer consumer)
         {
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
 
@@ -85,7 +88,7 @@ namespace Game.World.EventHandler.EnergyEvent
             var pole = block.GetComponent<TTransformer>();
             var configParam = (ElectricPoleBlockParam)block.BlockMasterElement.BlockParam;
 
-            if (!IsWithinMachineRange(machinePos, polePos, configParam)) return;
+            if (!IsWithinMachineRange(machineInfo, polePos, configParam)) return;
 
             var segment = _worldEnergySegmentDatastore.GetEnergySegment(pole);
             segment.RemoveEnergyConsumer(consumer);
