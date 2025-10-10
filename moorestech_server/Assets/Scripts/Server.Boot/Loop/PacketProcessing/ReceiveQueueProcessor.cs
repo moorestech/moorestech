@@ -27,7 +27,7 @@ namespace Server.Boot.Loop.PacketProcessing
             _sendQueueProcessor = sendQueueProcessor;
 
             // GameUpdaterのUpdate時にキューを処理
-            _updateSubscription = GameUpdater.UpdateObservable.Subscribe(_ => ProcessReceiveQueue());
+            _updateSubscription = GameUpdater.LateUpdateObservable.Subscribe(_ => ProcessReceiveQueue());
         }
 
         public void EnqueuePacket(List<byte> packet)
