@@ -21,6 +21,26 @@ namespace Game.World.DataStore
             
             throw new Exception("電力セグメントが見つかりませんでした");
         }
+        public TSegment GetEnergySegment(IElectricConsumer consumer)
+        {
+            foreach (var segment in _segmentDictionary)
+            {
+                if (!segment.Consumers.ContainsKey(consumer.BlockInstanceId)) continue;
+                return segment;
+            }
+            
+            throw new Exception("電力セグメントが見つかりませんでした");
+        }
+        public TSegment GetEnergySegment(IElectricGenerator generator)
+        {
+            foreach (var segment in _segmentDictionary)
+            {
+                if (!segment.Generators.ContainsKey(generator.BlockInstanceId)) continue;
+                return segment;
+            }
+            
+            throw new Exception("電力セグメントが見つかりませんでした");
+        }
         
         public TSegment GetEnergySegment(int index)
         {
