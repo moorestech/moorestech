@@ -49,7 +49,8 @@ namespace Game.World.EventHandler.EnergyEvent
             {
                 //周りに電柱がないとき
                 case 0:
-                    //セグメントを削除する
+                    //セグメントを破棄する
+                    removedSegment.Destroy();
                     _worldEnergySegmentDatastore.RemoveEnergySegment(removedSegment);
                     return;
                 //周りの電柱が1つの時

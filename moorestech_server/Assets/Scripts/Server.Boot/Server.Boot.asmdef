@@ -37,7 +37,8 @@
         "Game.CraftTree",
         "Game.Paths",
         "Game.Research",
-        "Game.Action"
+        "Game.Action",
+        "UniRx"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

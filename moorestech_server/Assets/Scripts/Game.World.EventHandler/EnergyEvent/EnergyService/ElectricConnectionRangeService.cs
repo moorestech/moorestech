@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Game.Block.Interface;
 using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 
@@ -46,47 +47,101 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
   #endregion
         }
 
-        public static bool IsWithinMachineRange(Vector3Int machine, Vector3Int polePosition, ElectricPoleBlockParam param)
+        public static IEnumerable<Vector3Int> EnumerateCandidatePolePositions(BlockPositionInfo machineInfo, int horizontalRange, int heightRange)
         {
-            return IsWithinRange(machine, polePosition, param.MachineConnectionRange, param.MachineConnectionHeightRange);
-        }
+            var visited = new HashSet<Vector3Int>();
 
-        public static bool IsWithinPoleRange(Vector3Int target, Vector3Int polePosition, ElectricPoleBlockParam param)
-        {
-            return IsWithinRange(target, polePosition, param.PoleConnectionRange, param.PoleConnectionHeightRange);
-        }
+            foreach (var occupiedPos in EnumerateOccupiedPositions())
+            foreach (var candidate in EnumerateRange(occupiedPos, horizontalRange, heightRange))
+                if (visited.Add(candidate))
+                    yield return candidate;
 
-        private static bool IsWithinRange(Vector3Int target, Vector3Int origin, int horizontalRange, int heightRange)
-        {
-            return IsWithinHorizontalRange(target, origin, horizontalRange) &&
-                   IsWithinHeightRange(target, origin, heightRange);
-            
             #region Internal
-            
-            static bool IsWithinHorizontalRange(Vector3Int target, Vector3Int origin, int range)
+
+            IEnumerable<Vector3Int> EnumerateOccupiedPositions()
             {
-                if (range <= 0) return target.x == origin.x && target.z == origin.z;
-                
-                var half = range / 2;
-                var minX = origin.x - half;
-                var minZ = origin.z - half;
-                var maxX = minX + range - 1;
-                var maxZ = minZ + range - 1;
-                
-                return target.x >= minX && target.x <= maxX && target.z >= minZ && target.z <= maxZ;
+                for (var x = machineInfo.MinPos.x; x <= machineInfo.MaxPos.x; x++)
+                for (var y = machineInfo.MinPos.y; y <= machineInfo.MaxPos.y; y++)
+                for (var z = machineInfo.MinPos.z; z <= machineInfo.MaxPos.z; z++)
+                    yield return new Vector3Int(x, y, z);
             }
-            
-            static bool IsWithinHeightRange(Vector3Int target, Vector3Int origin, int range)
+
+            #endregion
+        }
+
+        public static bool IsWithinMachineRange(BlockPositionInfo machine, Vector3Int polePosition, ElectricPoleBlockParam param)
+        {
+            var (rangeMin, rangeMax) = CreateBounds();
+            return HasOverlap();
+
+            #region Internal
+
+            (Vector3Int min, Vector3Int max) CreateBounds()
             {
-                if (range <= 0) return target.y == origin.y;
-                
-                var half = range / 2;
-                var minY = origin.y - half;
-                var maxY = minY + range - 1;
-                
-                return target.y >= minY && target.y <= maxY;
+                var horizontalRange = Mathf.Max(param.MachineConnectionRange, 1);
+                var heightRange = Mathf.Max(param.MachineConnectionHeightRange, 1);
+
+                var halfHorizontal = horizontalRange / 2;
+                var halfHeight = heightRange / 2;
+
+                var min = new Vector3Int(
+                    polePosition.x - halfHorizontal,
+                    polePosition.y - halfHeight,
+                    polePosition.z - halfHorizontal);
+
+                var max = new Vector3Int(
+                    min.x + horizontalRange - 1,
+                    min.y + heightRange - 1,
+                    min.z + horizontalRange - 1);
+
+                return (min, max);
             }
-            
+
+            bool HasOverlap()
+            {
+                return machine.MinPos.x <= rangeMax.x && rangeMin.x <= machine.MaxPos.x &&
+                       machine.MinPos.y <= rangeMax.y && rangeMin.y <= machine.MaxPos.y &&
+                       machine.MinPos.z <= rangeMax.z && rangeMin.z <= machine.MaxPos.z;
+            }
+
+            #endregion
+        }
+
+        public static bool IsWithinPoleRange(BlockPositionInfo target, Vector3Int polePosition, ElectricPoleBlockParam param)
+        {
+            var (rangeMin, rangeMax) = CreateBounds();
+            return HasOverlap();
+
+            #region Internal
+
+            (Vector3Int min, Vector3Int max) CreateBounds()
+            {
+                var horizontalRange = Mathf.Max(param.PoleConnectionRange, 1);
+                var heightRange = Mathf.Max(param.PoleConnectionHeightRange, 1);
+
+                var halfHorizontal = horizontalRange / 2;
+                var halfHeight = heightRange / 2;
+
+                var min = new Vector3Int(
+                    polePosition.x - halfHorizontal,
+                    polePosition.y - halfHeight,
+                    polePosition.z - halfHorizontal);
+
+                var max = new Vector3Int(
+                    min.x + horizontalRange - 1,
+                    min.y + heightRange - 1,
+                    min.z + horizontalRange - 1);
+
+                return (min, max);
+            }
+
+            bool HasOverlap()
+            {
+                return target.MinPos.x <= rangeMax.x && rangeMin.x <= target.MaxPos.x &&
+                       target.MinPos.y <= rangeMax.y && rangeMin.y <= target.MaxPos.y &&
+                       target.MinPos.z <= rangeMax.z && rangeMin.z <= target.MaxPos.z;
+            }
+
             #endregion
         }
     }
