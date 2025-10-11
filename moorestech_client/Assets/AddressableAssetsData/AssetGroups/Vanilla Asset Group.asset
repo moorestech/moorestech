@@ -165,6 +165,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 39c0bfeb5142544ae82d4dca6c07c1c9
+    m_Address: Vanilla/Block/ElectricPump
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 39ce48b794ee6934cacd89b06ee3537b
     m_Address: Vanilla/Block/PipeCross
     m_ReadOnly: 0
@@ -757,6 +762,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: f486c00f78cea854cbe8bdf0fde2c47a
     m_Address: Vanilla/Block/Sieve
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f59f3edfdb8a54c438747a2bda70ef9f
+    m_Address: Vanilla/Block/electric_crasher
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
