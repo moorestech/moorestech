@@ -19,7 +19,7 @@ namespace Game.World.EventHandler.EnergyEvent
             new ConnectMachineToElectricSegment<TSegment, TConsumer, TGenerator, TTransformer>(worldEnergySegmentDatastore, maxElectricPoleMachineConnectionRange);
 
             new DisconnectElectricPoleToFromElectricSegment<TSegment, TConsumer, TGenerator, TTransformer>(worldEnergySegmentDatastore);
-            new DisconnectMachineFromElectricSegment<TSegment, TConsumer, TGenerator, TTransformer>(worldEnergySegmentDatastore, maxElectricPoleMachineConnectionRange);
+            new DisconnectMachineFromElectricSegment<TSegment, TConsumer, TGenerator>(worldEnergySegmentDatastore);
         }
     }
 }
