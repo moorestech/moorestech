@@ -47,8 +47,10 @@ namespace Game.World.EventHandler.EnergyEvent
         /// </summary>
         private void DisconnectGeneratorFromElectricPole(TGenerator generator)
         {
-            var segment = _worldEnergySegmentDatastore.GetEnergySegment(generator);
-            segment.RemoveGenerator(generator);
+            if (_worldEnergySegmentDatastore.TryGetEnergySegment(generator, out var segment))
+            {
+                segment.RemoveGenerator(generator);
+            }
         }
 
         /// <summary>
@@ -56,8 +58,10 @@ namespace Game.World.EventHandler.EnergyEvent
         /// </summary>
         private void DisconnectConsumerFromElectricPole(TConsumer consumer)
         {
-            var segment = _worldEnergySegmentDatastore.GetEnergySegment(consumer);
-            segment.RemoveEnergyConsumer(consumer);
+            if (_worldEnergySegmentDatastore.TryGetEnergySegment(consumer, out var segment))
+            {
+                segment.RemoveEnergyConsumer(consumer);
+            }
         }
     }
 }
