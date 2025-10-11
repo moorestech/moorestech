@@ -17,6 +17,9 @@ namespace Game.Train.RailGraph
         // 列車の長さ
         private int _trainLength;
 
+        public int TrainLength => _trainLength;
+        public int DistanceToNextNode => _distanceToNextNode;
+
         public RailPosition(List<RailNode> railNodes, int trainLength, int initialDistanceToNextNode)
         {
             if (railNodes == null || railNodes.Count < 1)
@@ -146,6 +149,36 @@ namespace Game.Train.RailGraph
         public int GetDistanceToNextNode()
         {
             return _distanceToNextNode;
+        }
+
+        public IReadOnlyList<ConnectionDestination> CreateSaveSnapshot()
+        {
+            var snapshot = new List<ConnectionDestination>(_railNodes.Count);
+            foreach (var node in _railNodes)
+            {
+                if (!RailGraphDatastore.TryGetRailComponentID(node, out var connection) || connection == null)
+                {
+                    continue;
+                }
+
+                var destinationId = new RailComponentID(connection.DestinationID.Position, connection.DestinationID.ID);
+                snapshot.Add(new ConnectionDestination(destinationId, connection.IsFront));
+            }
+
+            return snapshot;
+        }
+
+        public IEnumerable<RailNode> EnumerateRailNodes()
+        {
+            if (_railNodes == null)
+            {
+                yield break;
+            }
+
+            foreach (var node in _railNodes)
+            {
+                yield return node;
+            }
         }
 
         //_railNodesのindex 0にrailnodeを追加する

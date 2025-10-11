@@ -131,6 +131,7 @@ namespace Server.Boot
             services.AddSingleton(masterJsonFileContainer);
             services.AddSingleton<ChallengeDatastore, ChallengeDatastore>();
             services.AddSingleton<ChallengeEvent, ChallengeEvent>();
+            services.AddSingleton<TrainSaveLoadService, TrainSaveLoadService>();
 
             //JSONファイルのセーブシステムの読み込み
             services.AddSingleton(modResource);

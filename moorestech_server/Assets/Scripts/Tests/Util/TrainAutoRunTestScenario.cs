@@ -106,7 +106,7 @@ namespace Tests.Util
                 "Initial diagram entry should be the station exit node.");
             Assert.AreSame(stationNodes.ExitFront, trainUnit.trainDiagram.GetCurrentNode(),
                 "Initial diagram entry should be the station exit node.");
-            Assert.AreSame(stationNodes.ExitFront, trainUnit._railPosition.GetNodeApproaching(),
+            Assert.AreSame(stationNodes.ExitFront, trainUnit.RailPosition.GetNodeApproaching(),
                 "Initial diagram entry should be the station exit node.");
 
             if (startRunning)

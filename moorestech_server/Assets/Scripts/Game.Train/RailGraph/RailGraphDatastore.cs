@@ -85,6 +85,16 @@ namespace Game.Train.RailGraph
             return Instance.GetRailComponentIDInternal(node);
         }
 
+        public static bool TryGetRailComponentID(RailNode node, out ConnectionDestination destination)
+        {
+            return Instance.TryGetRailComponentIDInternal(node, out destination);
+        }
+
+        public static RailNode ResolveRailNode(ConnectionDestination destination)
+        {
+            return Instance.ResolveRailNodeInternal(destination);
+        }
+
         public static int GetDistanceBetweenNodes(RailNode start, RailNode target, bool logging = true)
         {
             return Instance.GetDistanceBetweenNodesInternal(start, target, logging);
@@ -188,9 +198,71 @@ namespace Game.Train.RailGraph
         }
         private ConnectionDestination GetRailComponentIDInternal(RailNode node)
         {
-            if (!railIdDic.ContainsKey(node))
+            return TryGetRailComponentIDInternal(node, out var destination) ? destination : null;
+        }
+
+        private bool TryGetRailComponentIDInternal(RailNode node, out ConnectionDestination destination)
+        {
+            destination = null;
+            if (node == null)
+            {
+                return false;
+            }
+
+            if (!railIdDic.TryGetValue(node, out var nodeId))
+            {
+                return false;
+            }
+
+            return railIdToComponentId.TryGetValue(nodeId, out destination);
+        }
+
+        private RailNode ResolveRailNodeInternal(ConnectionDestination destination)
+        {
+            if (destination == null)
+            {
                 return null;
-            return railIdToComponentId[railIdDic[node]];
+            }
+
+            foreach (var pair in railIdToComponentId)
+            {
+                if (!IsSameDestination(pair.Value, destination))
+                {
+                    continue;
+                }
+
+                var nodeId = pair.Key;
+                if (nodeId < 0 || nodeId >= railNodes.Count)
+                {
+                    continue;
+                }
+
+                return railNodes[nodeId];
+            }
+
+            return null;
+        }
+
+        private static bool IsSameDestination(ConnectionDestination left, ConnectionDestination right)
+        {
+            if (left == null || right == null)
+            {
+                return false;
+            }
+
+            if (left.DestinationID == null || right.DestinationID == null)
+            {
+                return false;
+            }
+
+            var leftPos = left.DestinationID.Position;
+            var rightPos = right.DestinationID.Position;
+
+            return left.IsFront == right.IsFront
+                   && left.DestinationID.ID == right.DestinationID.ID
+                   && leftPos.x == rightPos.x
+                   && leftPos.y == rightPos.y
+                   && leftPos.z == rightPos.z;
         }
 
 
