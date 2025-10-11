@@ -27,7 +27,6 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
             
             
             //元のセグメントを破棄して消す
-            removedSegment.Destroy();
             container.WorldEnergySegmentDatastore.RemoveEnergySegment(removedSegment);
             
             

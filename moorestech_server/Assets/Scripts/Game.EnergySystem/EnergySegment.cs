@@ -101,7 +101,7 @@ namespace Game.EnergySystem
             IsDestroyed = true;
 
             // Updateの購読を解除
-            _updateSubscription?.Dispose();
+            _updateSubscription.Dispose();
 
             // 各種Dictionaryをクリア
             _consumers.Clear();

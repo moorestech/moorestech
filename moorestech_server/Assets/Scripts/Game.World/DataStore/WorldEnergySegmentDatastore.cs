@@ -63,6 +63,7 @@ namespace Game.World.DataStore
         
         public void RemoveEnergySegment(TSegment energySegment)
         {
+            energySegment.Destroy();
             _segmentDictionary.Remove(energySegment);
         }
         
