@@ -6,10 +6,13 @@ namespace Core.Update
 {
     public static class GameUpdater
     {
+        public static IObservable<Unit> UpdateObservable => _updateSubject;
         private static Subject<Unit> _updateSubject = new();
         
+        public static IObservable<Unit> LateUpdateObservable => _lateUpdateSubject;
+        private static Subject<Unit> _lateUpdateSubject = new();
+        
         private static DateTime _lastUpdateTime = DateTime.Now;
-        public static IObservable<Unit> UpdateObservable => _updateSubject;
         
         [Obsolete("いつかアップデートシステム自体をリファクタしたい")] public static double UpdateSecondTime { get; private set; }
         
@@ -18,6 +21,7 @@ namespace Core.Update
             //アップデートの実行
             UpdateDeltaTime();
             _updateSubject.OnNext(Unit.Default);
+            _lateUpdateSubject.OnNext(Unit.Default);
         }
         
         public static void UpdateDeltaTime()
@@ -29,6 +33,7 @@ namespace Core.Update
         public static void ResetUpdate()
         {
             _updateSubject = new Subject<Unit>();
+            _lateUpdateSubject = new Subject<Unit>();
             UpdateSecondTime = 0;
             _lastUpdateTime = DateTime.Now;
         }
@@ -36,6 +41,7 @@ namespace Core.Update
         public static void Dispose()
         {
             _updateSubject.Dispose();
+            _lateUpdateSubject.Dispose();
         }
         
 #if UNITY_EDITOR
@@ -50,6 +56,7 @@ namespace Core.Update
         {
             UpdateSecondTime = updateSecondTime;
             _updateSubject.OnNext(Unit.Default);
+            _lateUpdateSubject.OnNext(Unit.Default);
         }
         
         public static void Wait()

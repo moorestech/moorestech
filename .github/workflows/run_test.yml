@@ -1,6 +1,5 @@
 name: Run Unity Test
 on:
-  push:
   pull_request:
 
   # 手動実行デバッグ用
