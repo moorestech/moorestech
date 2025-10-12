@@ -1,8 +1,8 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
-using System.Threading.Tasks;
 using Core.Update;
+using Unity.Profiling;
 
 namespace Server.Boot.Loop
 {
@@ -12,12 +12,16 @@ namespace Server.Boot.Loop
         private static readonly TimeSpan FrameInterval = TimeSpan.FromMilliseconds(FrameIntervalMs);
         
         
-        public static async Task StartUpdate(CancellationToken token)
+        public static void StartUpdate(CancellationToken token)
         {
+            var profilerMarker = new ProfilerMarker("GameUpdate");
+            
             var stopwatch = new Stopwatch();
             
             while (true)
             {
+                profilerMarker.Begin();
+                
                 stopwatch.Restart();
                 
                 try
@@ -34,9 +38,11 @@ namespace Server.Boot.Loop
                 
                 // まだフレーム時間が余っていれば、その分だけ待機
                 if (remaining > TimeSpan.Zero)
-                    await Task.Delay(remaining, token);
+                {
+                    Thread.Sleep(remaining);
+                }
                 
-                if (token.IsCancellationRequested) return;
+                profilerMarker.End();
             }
         }
     }

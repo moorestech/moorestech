@@ -9,7 +9,9 @@ using Game.Block.Interface.State;
 using Game.Context;
 using Mooresmaster.Model.BlocksModule;
 using UniRx;
+using Unity.Profiling;
 using UnityEngine;
+using static Game.Block.Blocks.Util.ProfilerMarkerCreator;
 
 namespace Game.Block.Blocks
 {
@@ -54,6 +56,8 @@ namespace Game.Block.Blocks
             _blockStateDetails = _blockComponentManager.GetComponents<IBlockStateDetail>();
             
             _blockUpdateDisposable = GameUpdater.UpdateObservable.Subscribe(_ => Update());
+            
+            OneBlockUpdateMarker = CreateUpdateMarker(BlockMasterElement);
         }
         
         public BlockState GetBlockState()
@@ -88,10 +92,19 @@ namespace Game.Block.Blocks
         
         private void Update()
         {
+            BlockUpdateMarker.Begin();
+            OneBlockUpdateMarker.Begin();
+            
             foreach (var component in _updatableComponents)
             {
+                var componentUpdateMarker = CreateComponentUpdateMarker(BlockMasterElement, component);
+                componentUpdateMarker.Begin();
                 component.Update();
+                componentUpdateMarker.End();
             }
+            
+            OneBlockUpdateMarker.End();
+            BlockUpdateMarker.End();
         }
         
         public void Destroy()
@@ -115,5 +128,7 @@ namespace Game.Block.Blocks
             if (other is null) return false;
             return BlockInstanceId == other.BlockInstanceId;
         }
+        
+        private ProfilerMarker OneBlockUpdateMarker;
     }
 }
