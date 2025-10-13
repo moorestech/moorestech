@@ -12,11 +12,23 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
     /// </summary>
     public class CommonMachineBlockStateChangeProcessor : MonoBehaviour, IBlockStateChangeProcessor
     {
-        public void Initialize(BlockGameObject blockGameObject) { }
+        private BlockGameObject _blockGameObject;
+        
+        public void Initialize(BlockGameObject blockGameObject)
+        {
+            _blockGameObject = blockGameObject;
+        }
         
         public void OnChangeState(BlockStateMessagePack blockState)
         {
             var state = blockState.GetStateDetail<CommonMachineBlockStateDetail>(CommonMachineBlockStateDetail.BlockStateDetailKey);
+            if (state == null)
+            {
+                Debug.LogError($"[CommonMachineBlockStateChangeProcessor] State is null Name:{_blockGameObject.BlockMasterElement.Name} Pos: {_blockGameObject.BlockPosInfo.OriginalPos}");
+                return;
+            }
+            
+            
             var currentState = state.CurrentStateType;
             var previousState = state.PreviousStateType;
             
