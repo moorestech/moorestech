@@ -95,7 +95,14 @@ namespace Client.Game.InGame.Block
                         
                         foreach (var processor in BlockStateChangeProcessors)
                         {
-                            processor.OnChangeState(data);
+                            try
+                            {
+                                processor.OnChangeState(data); 
+                            }
+                            catch (Exception e)
+                            {
+                                Debug.LogError($"Name:{BlockMasterElement.Name} Pos: {BlockPosInfo.OriginalPos} BlockStateChangeProcessorの{processor.GetType().Name}で例外が発生しました。\n{e.Message}\n{e.StackTrace}");
+                            }
                         }
                         
                         _blockStateMessagePack = data;
