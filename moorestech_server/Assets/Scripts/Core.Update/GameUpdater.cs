@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using UniRx;
+using Unity.Profiling;
 
 namespace Core.Update
 {
@@ -20,8 +21,18 @@ namespace Core.Update
         {
             //アップデートの実行
             UpdateDeltaTime();
+            
+            // Updateの実行
+            var updateProfilerMask = new ProfilerMarker("Update");
+            updateProfilerMask.Begin();
             _updateSubject.OnNext(Unit.Default);
+            updateProfilerMask.End();
+            
+            // LateUpdateの実行
+            var lateUpdateProfilerMask = new ProfilerMarker("LateUpdate");
+            lateUpdateProfilerMask.Begin();
             _lateUpdateSubject.OnNext(Unit.Default);
+            lateUpdateProfilerMask.End();
         }
         
         public static void UpdateDeltaTime()

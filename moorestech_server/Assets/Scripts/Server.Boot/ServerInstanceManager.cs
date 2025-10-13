@@ -17,6 +17,7 @@ namespace Server.Boot
     public class ServerInstanceManager : IDisposable
     {
         private Thread _connectionUpdateThread;
+        private Thread _gameUpdateThread;
         private CancellationTokenSource _cancellationTokenSource;
         
         private readonly string[] _args;
@@ -28,10 +29,10 @@ namespace Server.Boot
         
         public void Start()
         {
-            (_connectionUpdateThread, _cancellationTokenSource) = Start(_args);
+            (_connectionUpdateThread, _gameUpdateThread, _cancellationTokenSource) = Start(_args);
         }
         
-        private static (Thread connectionUpdateThread, CancellationTokenSource cancellationTokenSource) Start(string[] args)
+        private static (Thread connectionUpdateThread, Thread gameUpdateThread, CancellationTokenSource cancellationTokenSource) Start(string[] args)
         {
             // これはコンパイルエラーを避ける仮対応
             var settings = CliConvert.Parse<StartServerSettings>(args);
@@ -74,9 +75,12 @@ namespace Server.Boot
             {
                 Task.Run(() => AutoSaveSystem.AutoSave(serviceProvider.GetService<IWorldSaveDataSaver>(), token), cancellationToken.Token);
             }
-            Task.Run(() => ServerGameUpdater.StartUpdate(token), cancellationToken.Token);
+            // アップデートのタスク名を設定
+            var gameUpdateThread = new Thread(() => ServerGameUpdater.StartUpdate(token));
+            gameUpdateThread.Name = "[moorestech]ゲームアップデートスレッド";
+            gameUpdateThread.Start();
             
-            return (connectionUpdateThread, cancellationToken);
+            return (connectionUpdateThread, gameUpdateThread, cancellationToken);
         }
         
         
@@ -93,6 +97,14 @@ namespace Server.Boot
             try
             {
                 _connectionUpdateThread?.Abort();
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+            try
+            {
+                _gameUpdateThread?.Abort();
             }
             catch (Exception e)
             {
