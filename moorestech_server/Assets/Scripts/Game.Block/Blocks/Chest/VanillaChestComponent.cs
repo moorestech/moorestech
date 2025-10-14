@@ -10,6 +10,7 @@ using Game.Block.Interface.Component;
 using Game.Block.Interface.Event;
 using Game.Context;
 using Newtonsoft.Json;
+using UnityEngine;
 using static Game.Block.Interface.BlockException;
 
 namespace Game.Block.Blocks.Chest
@@ -34,10 +35,19 @@ namespace Game.Block.Blocks.Chest
             this(blockInstanceId, slotNum, blockInventoryInserter)
         {
             var itemJsons = JsonConvert.DeserializeObject<List<ItemStackSaveJsonObject>>(componentStates[SaveKey]);
-            for (var i = 0; i < itemJsons.Count; i++)
+            if (itemJsons == null) return;
+            
+            for (var i = 0; i < slotNum; i++)
             {
+                if (i >= itemJsons.Count) break;
+                
                 var itemStack = itemJsons[i].ToItemStack();
                 _itemDataStoreService.SetItem(i, itemStack);
+            }
+            
+            if (slotNum < itemJsons.Count)
+            {
+                Debug.LogError($"保存されているアイテムスロット数が、チェストのスロット数を超えています。BlockInstanceId:{blockInstanceId}");
             }
         }
         

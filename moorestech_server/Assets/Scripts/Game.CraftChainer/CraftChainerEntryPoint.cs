@@ -5,6 +5,12 @@ using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
 
 namespace Game.CraftChainer
 {
+    /// <summary>
+    /// NOTE: CraftChainerシステムはオミットします。README.mdを参照してください。
+    /// Note: The CraftChainer system will be omitted. Please refer to README.md.
+    /// 
+    /// README PATH : moorestech_server/Assets/Scripts/Game.CraftChainer/README.md
+    /// </summary>
     public static class CraftChainerEntryPoint
     {
         public static void Entry()
