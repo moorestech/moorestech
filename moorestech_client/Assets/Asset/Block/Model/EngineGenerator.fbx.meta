@@ -1,9 +1,69 @@
 fileFormatVersion: 2
 guid: 25eab1c18f2674cf8b6ba9918e601dd7
 ModelImporter:
-  serializedVersion: 22200
+  serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Engine_2
+    second: {fileID: 2100000, guid: de187c5f3036b45c0bf33ebe0b64c07c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Engine_2.001
+    second: {fileID: 2100000, guid: 3c6478fa06f2845e28f29c21e2ba8a5f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Engine_2.002
+    second: {fileID: 2100000, guid: 609771a5861714090bfdc510b0ee49c7, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Engine_2.003
+    second: {fileID: 2100000, guid: 78da49e97081e4001819f4ef656698be, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Engine_2.004
+    second: {fileID: 2100000, guid: 545233698eef84d1599fe709d873b6b4, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Engine_2.005
+    second: {fileID: 2100000, guid: 23756336f41784e83935c4433de6b47f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Engine_2.006
+    second: {fileID: 2100000, guid: 21ffc13ede53f415db21d90cfd294d54, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Engine_2.007
+    second: {fileID: 2100000, guid: 2b8f47dd3c1094ff58e0c4721d5dcc85, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Engine_2.008
+    second: {fileID: 2100000, guid: de2f5067bd00f40b587385bf59cbe789, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Engine_2.009
+    second: {fileID: 2100000, guid: afde3ce8827e64edbbe4f0ebc25e4e47, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: steam_bolt
+    second: {fileID: 2100000, guid: 2cf698bedc839418c9d786c6ba7473e4, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: steam_pipe
+    second: {fileID: 2100000, guid: bae8dd6562681474087aefde3611214b, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
@@ -56,6 +116,9 @@ ModelImporter:
     maxBonesPerVertex: 4
     minBoneWeight: 0.001
     optimizeBones: 1
+    generateMeshLods: 0
+    meshLodGenerationFlags: 0
+    maximumMeshLod: -1
     meshOptimizationFlags: -1
     indexFormat: 0
     secondaryUVAngleDistortion: 8
