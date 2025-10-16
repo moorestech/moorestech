@@ -11,7 +11,7 @@ AnimatorStateMachine:
   m_ChildStates:
   - serializedVersion: 1
     m_State: {fileID: 412375968197374138}
-    m_Position: {x: 200, y: 0, z: 0}
+    m_Position: {x: 270, y: 80, z: 0}
   m_ChildStateMachines: []
   m_AnyStateTransitions: []
   m_EntryTransitions: []
@@ -52,7 +52,7 @@ AnimatorState:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: EngineGeneratorAnimation
-  m_Speed: 1
+  m_Speed: 12
   m_CycleOffset: 0
   m_Transitions: []
   m_StateMachineBehaviours: []
