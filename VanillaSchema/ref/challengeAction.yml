@@ -10,6 +10,7 @@ items:
   - key: challengeActionType
     type: enum
     options:
+    - giveItem
     - unlockCraftRecipe
     - unlockItemRecipeView
     - unlockChallengeCategory
@@ -54,6 +55,32 @@ items:
             schemaId: challenges
             foreignKeyIdPath: /data/[*]/categoryGuid
             displayElementPath: /data/[*]/categoryName
+    - when: giveItem
+      type: object
+      isDefaultOpen: true
+      properties:
+      - key: rewardItems
+        type: array
+        isDefaultOpen: true
+        overrideCodeGeneratePropertyName: GiveItemRewardElement
+        items:
+          type: object
+          properties:
+            - key: itemGuid
+              type: uuid
+              foreignKey:
+                schemaId: items
+                foreignKeyIdPath: /data/[*]/itemGuid
+                displayElementPath: /data/[*]/name
+            - key: itemCount
+              type: integer
+              default: 1
+      - key: deliveryTarget
+        type: enum
+        default: allPlayers
+        options:
+        - allPlayers
+        - actionInvoker
     - when: playSkit
       type: object
       isDefaultOpen: true
