@@ -57,6 +57,8 @@ nullチェックが不要な場面：
 
 Reflect on 5-7 different possible sources of the problem, distill those down to 1-2 most likely sources, and then add logs to validate your assumptions. Explicitly ask the user to confirm the diagnosis before fixing the problem.
 
+# サーバーコンテキスト参照先
+- サーバー側のコンテキスト実装は `moorestech_server/Assets/Scripts/Game.Context/ServerContext.cs` を参照してください。
 
 # ドキュメントの更新
 *このドキュメントは継続的に更新されます。新しい決定事項や実装パターンが確立された場合は、このファイルに反映してください。*
