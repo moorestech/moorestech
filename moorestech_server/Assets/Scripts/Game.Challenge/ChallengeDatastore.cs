@@ -7,7 +7,7 @@ using Game.Action;
 using Game.Challenge.Task;
 using Game.Challenge.Task.Factory;
 using Game.UnlockState;
-using Mooresmaster.Model.ChallengeActionModule;
+using Mooresmaster.Model.GameActionModule;
 using Mooresmaster.Model.ChallengesModule;
 using UniRx;
 
@@ -132,7 +132,7 @@ namespace Game.Challenge
             
             // クリア時のアクションを実行。次のチャレンジを登録する際にチャレンジのアンロックが走るため、先にクリアアクションを実行する
             // Perform the action when cleared. When registering the next challenge, the challenge unlock will run, so execute the cleared action first
-            ExecuteChallengeActions(currentChallenge.ChallengeMasterElement.ClearedActions.items);
+            ExecuteGameActions(currentChallenge.ChallengeMasterElement.ClearedActions.items);
             
             // 次のチャレンジを登録
             // Register the next challenge
@@ -165,7 +165,7 @@ namespace Game.Challenge
                     addedNextChallenges.Add(nextChallengeMaster);
                     
                     // チャレンジスタートのアクションを実行する
-                    ExecuteChallengeActions(nextChallengeMaster.StartedActions.items);
+                    ExecuteGameActions(nextChallengeMaster.StartedActions.items);
                 }
                 
                 // イベントを発行
@@ -173,7 +173,7 @@ namespace Game.Challenge
                 _challengeEvent.InvokeCompleteChallenge(currentChallenge, addedNextChallenges, CurrentChallengeInfo.PlayedSkitIds);
             }
             
-            void ExecuteChallengeActions(ChallengeActionElement[] actions)
+            void ExecuteGameActions(GameActionElement[] actions)
             {
                 _gameActionExecutor.ExecuteActions(actions);
             }
