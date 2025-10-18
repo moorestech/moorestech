@@ -106,6 +106,18 @@
               "00000010-0000-0000-0000-000000000000"
             ]
           }
+        },
+        {
+          "challengeActionType": "giveItem",
+          "challengeActionParam": {
+            "rewardItems": [
+              {
+                "itemGuid": "00000000-0000-0000-1234-000000000002",
+                "itemCount": 3
+              }
+            ],
+            "deliveryTarget": "actionInvoker"
+          }
         }
       ],
       "graphViewSettings": {
