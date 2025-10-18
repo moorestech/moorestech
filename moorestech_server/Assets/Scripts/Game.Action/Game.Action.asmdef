@@ -6,7 +6,8 @@
     "Game.UnlockState",
     "Game.PlayerInventory.Interface",
     "Core.Item.Interface",
-    "Core.Inventory"
+    "Core.Inventory",
+    "Game.Context"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

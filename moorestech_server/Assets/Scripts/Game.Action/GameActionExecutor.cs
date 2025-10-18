@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using Core.Item.Interface;
 using Core.Master;
+using Game.Context;
 using Game.PlayerInventory.Interface;
 using Game.UnlockState;
 using Mooresmaster.Model.ChallengeActionModule;
@@ -13,16 +13,13 @@ namespace Game.Action
     {
         private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
-        private readonly IItemStackFactory _itemStackFactory;
-
+        
         public GameActionExecutor(
             IGameUnlockStateDataController gameUnlockStateDataController,
-            IPlayerInventoryDataStore playerInventoryDataStore,
-            IItemStackFactory itemStackFactory)
+            IPlayerInventoryDataStore playerInventoryDataStore)
         {
             _gameUnlockStateDataController = gameUnlockStateDataController;
             _playerInventoryDataStore = playerInventoryDataStore;
-            _itemStackFactory = itemStackFactory;
         }
 
         public void ExecuteUnlockActions(ChallengeActionElement[] actions, ActionExecutionContext context = default)
@@ -119,7 +116,7 @@ namespace Game.Action
                     var inventoryData = _playerInventoryDataStore.GetInventoryData(playerId);
                     foreach (var reward in param.RewardItems)
                     {
-                        var itemStack = _itemStackFactory.Create(reward.ItemGuid, reward.ItemCount);
+                        var itemStack = ServerContext.ItemStackFactory.Create(reward.ItemGuid, reward.ItemCount);
                         inventoryData.MainOpenableInventory.InsertItem(itemStack);
                     }
                 }
