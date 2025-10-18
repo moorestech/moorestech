@@ -48,8 +48,8 @@
           "startedActions": [],
           "clearedActions": [
             {
-              "challengeActionType": "unlockChallengeCategory",
-              "challengeActionParam": {
+              "gameActionType": "unlockChallengeCategory",
+              "gameActionParam": {
                 "unlockChallengeCategoryGuids": [
                   "2f8c52b3-9c6d-46aa-bcae-38c836d42432"
                 ]

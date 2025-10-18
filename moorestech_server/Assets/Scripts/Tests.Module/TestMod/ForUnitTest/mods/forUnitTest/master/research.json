@@ -92,24 +92,24 @@
       "prevResearchNodeGuids": [],
       "clearedActions": [
         {
-          "challengeActionType": "unlockItemRecipeView",
-          "challengeActionParam": {
+          "gameActionType": "unlockItemRecipeView",
+          "gameActionParam": {
             "unlockItemGuids": [
               "00000000-0000-0000-1234-000000000003"
             ]
           }
         },
         {
-          "challengeActionType": "unlockCraftRecipe",
-          "challengeActionParam": {
+          "gameActionType": "unlockCraftRecipe",
+          "gameActionParam": {
             "unlockRecipeGuids": [
               "00000010-0000-0000-0000-000000000000"
             ]
           }
         },
         {
-          "challengeActionType": "giveItem",
-          "challengeActionParam": {
+          "gameActionType": "giveItem",
+          "gameActionParam": {
             "rewardItems": [
               {
                 "itemGuid": "00000000-0000-0000-1234-000000000002",

@@ -4,7 +4,7 @@ using Core.Master;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using Game.UnlockState;
-using Mooresmaster.Model.ChallengeActionModule;
+using Mooresmaster.Model.GameActionModule;
 using UnityEngine;
 
 namespace Game.Action
@@ -22,24 +22,24 @@ namespace Game.Action
             _playerInventoryDataStore = playerInventoryDataStore;
         }
 
-        public void ExecuteUnlockActions(ChallengeActionElement[] actions, ActionExecutionContext context = default)
+        public void ExecuteUnlockActions(GameActionElement[] actions, ActionExecutionContext context = default)
         {
             if (actions == null || actions.Length == 0) return;
 
             foreach (var action in actions)
             {
-                switch (action.ChallengeActionType)
+                switch (action.GameActionType)
                 {
-                    case ChallengeActionElement.ChallengeActionTypeConst.unlockCraftRecipe:
-                    case ChallengeActionElement.ChallengeActionTypeConst.unlockItemRecipeView:
-                    case ChallengeActionElement.ChallengeActionTypeConst.unlockChallengeCategory:
+                    case GameActionElement.GameActionTypeConst.unlockCraftRecipe:
+                    case GameActionElement.GameActionTypeConst.unlockItemRecipeView:
+                    case GameActionElement.GameActionTypeConst.unlockChallengeCategory:
                         ExecuteAction(action, context);
                         break;
                 }
             }
         }
 
-        public void ExecuteActions(ChallengeActionElement[] actions, ActionExecutionContext context = default)
+        public void ExecuteActions(GameActionElement[] actions, ActionExecutionContext context = default)
         {
             if (actions == null || actions.Length == 0) return;
             
@@ -49,24 +49,24 @@ namespace Game.Action
             }
         }
         
-        private void ExecuteAction(ChallengeActionElement action, ActionExecutionContext context)
+        private void ExecuteAction(GameActionElement action, ActionExecutionContext context)
         {
             if (action == null) return;
-            switch (action.ChallengeActionType)
+            switch (action.GameActionType)
             {
-                case ChallengeActionElement.ChallengeActionTypeConst.unlockCraftRecipe:
+                case GameActionElement.GameActionTypeConst.unlockCraftRecipe:
                     UnlockCraftRecipe();
                     break;
 
-                case ChallengeActionElement.ChallengeActionTypeConst.unlockItemRecipeView:
+                case GameActionElement.GameActionTypeConst.unlockItemRecipeView:
                     UnlockItemRecipeView();
                     break;
 
-                case ChallengeActionElement.ChallengeActionTypeConst.unlockChallengeCategory:
+                case GameActionElement.GameActionTypeConst.unlockChallengeCategory:
                     UnlockChallengeCategory();
                     break;
 
-                case ChallengeActionElement.ChallengeActionTypeConst.giveItem:
+                case GameActionElement.GameActionTypeConst.giveItem:
                     GiveItem();
                     break;
             }
@@ -75,7 +75,7 @@ namespace Game.Action
             
             void UnlockCraftRecipe()
             {
-                var unlockRecipeGuids = ((UnlockCraftRecipeChallengeActionParam)action.ChallengeActionParam).UnlockRecipeGuids;
+                var unlockRecipeGuids = ((UnlockCraftRecipeGameActionParam)action.GameActionParam).UnlockRecipeGuids;
                 foreach (var guid in unlockRecipeGuids)
                 {
                     _gameUnlockStateDataController.UnlockCraftRecipe(guid);
@@ -84,7 +84,7 @@ namespace Game.Action
             
             void UnlockItemRecipeView()
             {
-                var itemGuids = ((UnlockItemRecipeViewChallengeActionParam)action.ChallengeActionParam).UnlockItemGuids;
+                var itemGuids = ((UnlockItemRecipeViewGameActionParam)action.GameActionParam).UnlockItemGuids;
                 foreach (var itemGuid in itemGuids)
                 {
                     var itemId = MasterHolder.ItemMaster.GetItemId(itemGuid);
@@ -94,7 +94,7 @@ namespace Game.Action
             
             void UnlockChallengeCategory()
             {
-                var challenges = ((UnlockChallengeCategoryChallengeActionParam)action.ChallengeActionParam).UnlockChallengeCategoryGuids;
+                var challenges = ((UnlockChallengeCategoryGameActionParam)action.GameActionParam).UnlockChallengeCategoryGuids;
                 foreach (var guid in challenges)
                 {
                     _gameUnlockStateDataController.UnlockChallenge(guid);
@@ -105,7 +105,7 @@ namespace Game.Action
             {
                 // アイテムを付与するプレイヤーIDのリスト取得
                 // Get the list of player IDs to whom items will be granted
-                var param = (GiveItemChallengeActionParam)action.ChallengeActionParam;
+                var param = (GiveItemGameActionParam)action.GameActionParam;
                 var targetPlayerIds = ResolveTargetPlayers(param.DeliveryTarget);
                 if (targetPlayerIds.Count == 0) return;
 
@@ -126,9 +126,9 @@ namespace Game.Action
             {
                 switch (deliveryTarget)
                 {
-                    case GiveItemChallengeActionParam.DeliveryTargetConst.allPlayers:
+                    case GiveItemGameActionParam.DeliveryTargetConst.allPlayers:
                         return _playerInventoryDataStore.GetAllPlayerId();
-                    case GiveItemChallengeActionParam.DeliveryTargetConst.actionInvoker:
+                    case GiveItemGameActionParam.DeliveryTargetConst.actionInvoker:
                         if (context.HasActionInvoker)
                         {
                             return new List<int> { context.ActionInvokerPlayerId!.Value };

@@ -8,7 +8,7 @@ using Common.Debug;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using MessagePack;
-using Mooresmaster.Model.ChallengeActionModule;
+using Mooresmaster.Model.GameActionModule;
 using Mooresmaster.Model.ChallengesModule;
 using Server.Event.EventReceive;
 using UnityEngine;
@@ -69,12 +69,12 @@ namespace Client.Game.InGame.Skit
                 return;
             }
             
-            var skitActions = new List<PlaySkitChallengeActionParam>();
+            var skitActions = new List<PlaySkitGameActionParam>();
             foreach (var action in challenge.StartedActions.items)
             {
-                if (action.ChallengeActionType != ChallengeActionElement.ChallengeActionTypeConst.playSkit) continue;
+                if (action.GameActionType != GameActionElement.GameActionTypeConst.playSkit) continue;
                 
-                var param = (PlaySkitChallengeActionParam)action.ChallengeActionParam;
+                var param = (PlaySkitGameActionParam)action.GameActionParam;
                 if (PlayedSkitIds.Contains(param.SkitAddressablePath)) continue;
                 
                 skitActions.Add(param);
@@ -83,7 +83,7 @@ namespace Client.Game.InGame.Skit
             SkitProcess(skitActions).Forget();
         }
         
-        private async UniTask SkitProcess(List<PlaySkitChallengeActionParam> skitActions)
+        private async UniTask SkitProcess(List<PlaySkitGameActionParam> skitActions)
         {
             skitActions.Sort((a, b) => a.PlaySortPriority.CompareTo(b.PlaySortPriority));
             
@@ -94,11 +94,11 @@ namespace Client.Game.InGame.Skit
                 if (isPlayedSkit) continue;
                 
                 var path = action.SkitAddressablePath;
-                if (action.PlaySkitType == PlaySkitChallengeActionParam.PlaySkitTypeConst.normal)
+                if (action.PlaySkitType == PlaySkitGameActionParam.PlaySkitTypeConst.normal)
                 {
                     await _skitManager.StartSkit(path);
                 }
-                else if (action.PlaySkitType == PlaySkitChallengeActionParam.PlaySkitTypeConst.background)
+                else if (action.PlaySkitType == PlaySkitGameActionParam.PlaySkitTypeConst.background)
                 {
                     await _backgroundSkitManager.StartBackgroundSkit(path);
                 }

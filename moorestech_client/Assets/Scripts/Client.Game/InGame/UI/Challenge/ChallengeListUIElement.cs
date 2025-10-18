@@ -4,7 +4,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Common;
 using Client.Game.InGame.UI.Tooltip;
 using Core.Master;
-using Mooresmaster.Model.ChallengeActionModule;
+using Mooresmaster.Model.GameActionModule;
 using Mooresmaster.Model.ChallengesModule;
 using UnityEngine;
 
@@ -66,10 +66,10 @@ namespace Client.Game.InGame.UI.Challenge
                 var clearedActionsTest = string.Empty;
                 foreach (var clearedActionsElement in challengeMasterElement.ClearedActions.items)
                 {
-                    switch (clearedActionsElement.ChallengeActionType)
+                    switch (clearedActionsElement.GameActionType)
                     {
-                        case ChallengeActionElement.ChallengeActionTypeConst.unlockCraftRecipe :
-                            var recipeGuids = ((UnlockCraftRecipeChallengeActionParam)clearedActionsElement.ChallengeActionParam).UnlockRecipeGuids;
+                        case GameActionElement.GameActionTypeConst.unlockCraftRecipe :
+                            var recipeGuids = ((UnlockCraftRecipeGameActionParam)clearedActionsElement.GameActionParam).UnlockRecipeGuids;
                             var unlockRecipeText = "レシピ解放: \n\t";
                             foreach (var guid in recipeGuids)
                             {
@@ -85,8 +85,8 @@ namespace Client.Game.InGame.UI.Challenge
                                 clearedActionsTest += unlockRecipeText;
                             }
                             break;
-                        case ChallengeActionElement.ChallengeActionTypeConst.unlockItemRecipeView :
-                            var itemGuids = ((UnlockItemRecipeViewChallengeActionParam)clearedActionsElement.ChallengeActionParam).UnlockItemGuids;
+                        case GameActionElement.GameActionTypeConst.unlockItemRecipeView :
+                            var itemGuids = ((UnlockItemRecipeViewGameActionParam)clearedActionsElement.GameActionParam).UnlockItemGuids;
                             clearedActionsTest += $"アイテム解放: ";
                             foreach (var guid in itemGuids)
                             {
@@ -94,9 +94,9 @@ namespace Client.Game.InGame.UI.Challenge
                                 clearedActionsTest += $"\n\t{itemMaster.Name}";
                             }
                             break;
-                        case ChallengeActionElement.ChallengeActionTypeConst.giveItem :
-                            var giveItemParam = (GiveItemChallengeActionParam)clearedActionsElement.ChallengeActionParam;
-                            var targetLabel = giveItemParam.DeliveryTarget == GiveItemChallengeActionParam.DeliveryTargetConst.allPlayers
+                        case GameActionElement.GameActionTypeConst.giveItem :
+                            var giveItemParam = (GiveItemGameActionParam)clearedActionsElement.GameActionParam;
+                            var targetLabel = giveItemParam.DeliveryTarget == GiveItemGameActionParam.DeliveryTargetConst.allPlayers
                                 ? "全員"
                                 : "完了者のみ";
                             clearedActionsTest += $"アイテム支給({targetLabel}): ";

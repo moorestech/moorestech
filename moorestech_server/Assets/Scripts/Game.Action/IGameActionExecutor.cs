@@ -1,10 +1,10 @@
-using Mooresmaster.Model.ChallengeActionModule;
+using Mooresmaster.Model.GameActionModule;
 
 namespace Game.Action
 {
     public interface IGameActionExecutor
     {
-        void ExecuteUnlockActions(ChallengeActionElement[] actions, ActionExecutionContext context = default);
-        void ExecuteActions(ChallengeActionElement[] actions, ActionExecutionContext context = default);
+        void ExecuteUnlockActions(GameActionElement[] actions, ActionExecutionContext context = default);
+        void ExecuteActions(GameActionElement[] actions, ActionExecutionContext context = default);
     }
 }
