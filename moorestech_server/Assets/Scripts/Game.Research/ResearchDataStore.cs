@@ -37,7 +37,8 @@ namespace Game.Research
                 return false;
             }
 
-            var researchElement = MasterHolder.ResearchMaster.GetResearch(researchGuid);            var inventory = _inventoryDataStore.GetInventoryData(playerId);
+            var researchElement = MasterHolder.ResearchMaster.GetResearch(researchGuid);
+            var inventory = _inventoryDataStore.GetInventoryData(playerId);
             var nodeState = EvaluateResearchNodeState(researchElement, inventory);
             if (nodeState != ResearchNodeState.Researchable)
             {
@@ -46,7 +47,7 @@ namespace Game.Research
 
             ConsumeItems(researchElement.ConsumeItems, inventory);
             _completedResearchGuids.Add(researchGuid);
-            _gameActionExecutor.ExecuteActions(researchElement.ClearedActions.items);
+            _gameActionExecutor.ExecuteActions(researchElement.ClearedActions.items, ActionExecutionContext.ForPlayer(playerId));
             _researchEvent.InvokeOnResearchCompleted(playerId, researchElement);
 
             return true;

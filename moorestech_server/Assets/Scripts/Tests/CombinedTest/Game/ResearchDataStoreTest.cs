@@ -10,6 +10,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 using Game.UnlockState;
+using Tests.Util;
 
 namespace Tests.CombinedTest.Game
 {
@@ -21,6 +22,7 @@ namespace Tests.CombinedTest.Game
         public static readonly Guid Research2Guid = Guid.Parse("7f1464a7-ba55-4b96-9257-cfdeddf5bbdd");
         public static readonly Guid Research3Guid = Guid.Parse("d18ea842-7d03-42f1-ac80-29370083d040");
         public static readonly Guid Research4Guid = Guid.Parse("bf9bda9e-dace-43c4-9a33-75f248fd17f6");
+        public static readonly Guid Test2ItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000002");
         public static readonly Guid Test3ItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000003");
         public static readonly Guid CraftRecipeGuid = Guid.Parse("00000010-0000-0000-0000-000000000000");
         
@@ -116,6 +118,21 @@ namespace Tests.CombinedTest.Game
             var researchDataStore = serviceProvider.GetService<IResearchDataStore>();
             var result = researchDataStore.CompleteResearch(Research3Guid, PlayerId);
             Assert.IsTrue(result);
+        }
+
+        [Test]
+        public void Research4GiveItemRewardTest()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            
+            // Research 1を完了させる
+            // Complete Research 1
+            CompleteResearchForTest(serviceProvider, Research4Guid);
+
+            // giveItem アクションにより研究完了者のインベントリに報酬が入ることを確認
+            // Confirm that the reward is added to the inventory of the researcher by the giveItem action
+            var rewardCount = PlayerInventoryUtil.GetInInventoryItemCount(serviceProvider, PlayerId, Test2ItemGuid);
+            Assert.AreEqual(3, rewardCount, "giveItem アクションにより研究完了者のインベントリに報酬が入る");
         }
         
         // 前提研究が無いなら研究できる
@@ -227,9 +244,13 @@ namespace Tests.CombinedTest.Game
 
         public static void CompleteResearchForTest(ServiceProvider serviceProvider, Guid researchGuid)
         {
+            // 必要なサービスを取得
+            // Get necessary services
             var researchDataStore = serviceProvider.GetService<IResearchDataStore>();
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
             
+            // 研究完了に必要なアイテムを追加
+            // Add items required to complete the research
             var researchMaster = MasterHolder.ResearchMaster.GetResearch(researchGuid);
             foreach (var consumeItem in researchMaster.ConsumeItems)
             {
@@ -237,6 +258,8 @@ namespace Tests.CombinedTest.Game
                 playerInventoryData.MainOpenableInventory.InsertItem(item);
             }
 
+            // 研究を完了させる
+            // Complete the research
             var result = researchDataStore.CompleteResearch(researchGuid, PlayerId);
             Assert.IsTrue(result);
         }

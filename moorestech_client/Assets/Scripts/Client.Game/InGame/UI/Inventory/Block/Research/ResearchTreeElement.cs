@@ -8,7 +8,7 @@ using Client.Game.InGame.UI.Tooltip;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Research;
-using Mooresmaster.Model.ChallengeActionModule;
+using Mooresmaster.Model.GameActionModule;
 using TMPro;
 using UniRx;
 using UnityEngine;
@@ -102,11 +102,10 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
             
             void CreateUnlockItemIcons()
             {
-                var unlockItems = node.MasterElement.ClearedActions.items.Where(a => a.ChallengeActionType == ChallengeActionElement.ChallengeActionTypeConst.unlockItemRecipeView);
-
+                var unlockItems = node.MasterElement.ClearedActions.items.Where(a => a.GameActionType == GameActionElement.GameActionTypeConst.unlockItemRecipeView);
                 foreach (var unlockItem in unlockItems)
                 {
-                    var param = (UnlockItemRecipeViewChallengeActionParam)unlockItem.ChallengeActionParam;
+                    var param = (UnlockItemRecipeViewGameActionParam)unlockItem.GameActionParam;
                     foreach (var unlockItemGuid in param.UnlockItemGuids)
                     {
                         var itemId = MasterHolder.ItemMaster.GetItemId(unlockItemGuid);
@@ -114,6 +113,22 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
                         
                         var icon = Instantiate(ItemSlotView.Prefab, unlockItemIcons);
                         icon.SetItem(itemView, 0);
+                        icon.SetSizeDelta(iconSize);
+                    }
+                }
+
+                var giveItemActions = node.MasterElement.ClearedActions.items.Where(a => a.GameActionType == GameActionElement.GameActionTypeConst.giveItem);
+                foreach (var giveItem in giveItemActions)
+                {
+                    var param = (GiveItemGameActionParam)giveItem.GameActionParam;
+                    
+                    foreach (var reward in param.RewardItems)
+                    {
+                        var itemId = MasterHolder.ItemMaster.GetItemId(reward.ItemGuid);
+                        var itemView = ClientContext.ItemImageContainer.GetItemView(itemId);
+
+                        var icon = Instantiate(ItemSlotView.Prefab, unlockItemIcons);
+                        icon.SetItem(itemView, reward.ItemCount);
                         icon.SetSizeDelta(iconSize);
                     }
                 }
