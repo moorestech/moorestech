@@ -1,19 +1,31 @@
+using System;
 using System.Collections.Generic;
+using Core.Item.Interface;
 using Core.Master;
+using Game.PlayerInventory.Interface;
 using Game.UnlockState;
 using Mooresmaster.Model.ChallengeActionModule;
+using UnityEngine;
 
 namespace Game.Action
 {
     public class GameActionExecutor : IGameActionExecutor
     {
         private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
+        private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
+        private readonly IItemStackFactory _itemStackFactory;
 
-        public GameActionExecutor(IGameUnlockStateDataController gameUnlockStateDataController)
+        public GameActionExecutor(
+            IGameUnlockStateDataController gameUnlockStateDataController,
+            IPlayerInventoryDataStore playerInventoryDataStore,
+            IItemStackFactory itemStackFactory)
         {
             _gameUnlockStateDataController = gameUnlockStateDataController;
+            _playerInventoryDataStore = playerInventoryDataStore;
+            _itemStackFactory = itemStackFactory;
         }
-        public void ExecuteUnlockActions(ChallengeActionElement[] actions)
+
+        public void ExecuteUnlockActions(ChallengeActionElement[] actions, ActionExecutionContext context = default)
         {
             if (actions == null || actions.Length == 0) return;
 
@@ -24,22 +36,23 @@ namespace Game.Action
                     case ChallengeActionElement.ChallengeActionTypeConst.unlockCraftRecipe:
                     case ChallengeActionElement.ChallengeActionTypeConst.unlockItemRecipeView:
                     case ChallengeActionElement.ChallengeActionTypeConst.unlockChallengeCategory:
-                        ExecuteAction(action);
+                        ExecuteAction(action, context);
                         break;
                 }
             }
         }
-        public void ExecuteActions(ChallengeActionElement[] actions)
+
+        public void ExecuteActions(ChallengeActionElement[] actions, ActionExecutionContext context = default)
         {
             if (actions == null || actions.Length == 0) return;
             
             foreach (var action in actions)
             {
-                ExecuteAction(action);
+                ExecuteAction(action, context);
             }
         }
         
-        private void ExecuteAction(ChallengeActionElement action)
+        private void ExecuteAction(ChallengeActionElement action, ActionExecutionContext context)
         {
             if (action == null) return;
             switch (action.ChallengeActionType)
@@ -54,6 +67,10 @@ namespace Game.Action
 
                 case ChallengeActionElement.ChallengeActionTypeConst.unlockChallengeCategory:
                     UnlockChallengeCategory();
+                    break;
+
+                case ChallengeActionElement.ChallengeActionTypeConst.giveItem:
+                    GiveItem();
                     break;
             }
             
@@ -84,6 +101,47 @@ namespace Game.Action
                 foreach (var guid in challenges)
                 {
                     _gameUnlockStateDataController.UnlockChallenge(guid);
+                }
+            }
+
+            void GiveItem()
+            {
+                // アイテムを付与するプレイヤーIDのリスト取得
+                // Get the list of player IDs to whom items will be granted
+                var param = (GiveItemChallengeActionParam)action.ChallengeActionParam;
+                var targetPlayerIds = ResolveTargetPlayers(param.DeliveryTarget);
+                if (targetPlayerIds.Count == 0) return;
+
+                // アイテム付与処理
+                // Item granting process
+                foreach (var playerId in targetPlayerIds)
+                {
+                    var inventoryData = _playerInventoryDataStore.GetInventoryData(playerId);
+                    foreach (var reward in param.RewardItems)
+                    {
+                        var itemStack = _itemStackFactory.Create(reward.ItemGuid, reward.ItemCount);
+                        inventoryData.MainOpenableInventory.InsertItem(itemStack);
+                    }
+                }
+            }
+
+            List<int> ResolveTargetPlayers(string deliveryTarget)
+            {
+                switch (deliveryTarget)
+                {
+                    case GiveItemChallengeActionParam.DeliveryTargetConst.allPlayers:
+                        return _playerInventoryDataStore.GetAllPlayerId();
+                    case GiveItemChallengeActionParam.DeliveryTargetConst.actionInvoker:
+                        if (context.HasActionInvoker)
+                        {
+                            return new List<int> { context.ActionInvokerPlayerId!.Value };
+                        }
+
+                        Debug.LogError("[GameActionExecutor] giveItem actionInvoker deliveryTarget requires ActionInvokerPlayerId.");
+                        return new List<int>();
+                    default:
+                        Debug.LogError($"[GameActionExecutor] Unknown deliveryTarget: {deliveryTarget}");
+                        return new List<int>();
                 }
             }
             
