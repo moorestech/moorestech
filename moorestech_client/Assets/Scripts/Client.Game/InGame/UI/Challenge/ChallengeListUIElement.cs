@@ -94,6 +94,19 @@ namespace Client.Game.InGame.UI.Challenge
                                 clearedActionsTest += $"\n\t{itemMaster.Name}";
                             }
                             break;
+                        case ChallengeActionElement.ChallengeActionTypeConst.giveItem :
+                            var giveItemParam = (GiveItemChallengeActionParam)clearedActionsElement.ChallengeActionParam;
+                            var targetLabel = giveItemParam.DeliveryTarget == GiveItemChallengeActionParam.DeliveryTargetConst.allPlayers
+                                ? "全員"
+                                : "完了者のみ";
+                            clearedActionsTest += $"アイテム支給({targetLabel}): ";
+                            var rewardItems = giveItemParam.RewardItems;
+                            foreach (var reward in rewardItems)
+                            {
+                                var itemMaster = MasterHolder.ItemMaster.GetItemMaster(reward.ItemGuid);
+                                clearedActionsTest += $"\n\t{itemMaster.Name} x{reward.ItemCount}";
+                            }
+                            break;
                     }
                 }
                 
