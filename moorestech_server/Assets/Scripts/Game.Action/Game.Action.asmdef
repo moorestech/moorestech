@@ -3,7 +3,11 @@
   "rootNamespace": "",
   "references": [
     "Core.Master",
-    "Game.UnlockState"
+    "Game.UnlockState",
+    "Game.PlayerInventory.Interface",
+    "Core.Item.Interface",
+    "Core.Inventory",
+    "Game.Context"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

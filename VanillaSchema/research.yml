@@ -44,7 +44,6 @@ properties:
           foreignKeyIdPath: /data/[*]/researchNodeGuid
           displayElementPath: /data/[*]/researchNodeName
     - key: clearedActions
-      ref: challengeAction
+      ref: gameAction
     - key: graphViewSettings
       ref: graphViewSettings
-

@@ -47,16 +47,16 @@
           "tutorials": [],
           "clearedActions": [
             {
-              "challengeActionType": "unlockCraftRecipe",
-              "challengeActionParam": {
+              "gameActionType": "unlockCraftRecipe",
+              "gameActionParam": {
                 "unlockRecipeGuids": [
                   "00000010-0000-0000-0000-000000000002"
                 ]
               }
             },
             {
-              "challengeActionType": "unlockItemRecipeView",
-              "challengeActionParam": {
+              "gameActionType": "unlockItemRecipeView",
+              "gameActionParam": {
                 "unlockItemGuids": [
                   "00000000-0000-0000-1234-000000000003"
                 ]
@@ -154,8 +154,8 @@
           "tutorials": [],
           "clearedActions": [
             {
-              "challengeActionType": "unlockChallengeCategory",
-              "challengeActionParam": {
+              "gameActionType": "unlockChallengeCategory",
+              "gameActionParam": {
                 "unlockChallengeCategoryGuids": [
                   "35330f9d-f44f-493d-a6bc-07ae6413d7c4"
                 ]

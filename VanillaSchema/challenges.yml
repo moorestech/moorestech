@@ -179,8 +179,8 @@ properties:
                   type: string
                   default: highlight text
         - key: startedActions
-          ref: challengeAction
+          ref: gameAction
         - key: clearedActions
-          ref: challengeAction
+          ref: gameAction
         - key: displayListParam
           ref: graphViewSettings

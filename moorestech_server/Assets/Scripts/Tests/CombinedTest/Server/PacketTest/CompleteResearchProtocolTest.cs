@@ -11,6 +11,7 @@ using Server.Boot;
 using Server.Protocol;
 using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
+using Tests.Util;
 using static Tests.CombinedTest.Game.ResearchDataStoreTest;
 
 
@@ -83,6 +84,11 @@ namespace Tests.CombinedTest.Server.PacketTest
                 (Research1Guid, ResearchNodeState.Completed),
                 (Research2Guid, ResearchNodeState.Completed),
                 (Research4Guid, ResearchNodeState.Completed));
+            
+            // giveItem アクションにより研究完了者のインベントリに報酬が入ることを確認
+            // Confirm that the reward is added to the inventory of the researcher by the giveItem action
+            var rewardCount = PlayerInventoryUtil.GetInInventoryItemCount(serviceProvider, PlayerId, Test2ItemGuid);
+            Assert.AreEqual(3, rewardCount, "giveItem アクションにより研究完了者のインベントリに報酬が入る");
 
             #region Internal
 
