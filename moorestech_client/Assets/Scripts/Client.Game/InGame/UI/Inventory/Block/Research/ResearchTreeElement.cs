@@ -103,7 +103,6 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
             void CreateUnlockItemIcons()
             {
                 var unlockItems = node.MasterElement.ClearedActions.items.Where(a => a.ChallengeActionType == ChallengeActionElement.ChallengeActionTypeConst.unlockItemRecipeView);
-
                 foreach (var unlockItem in unlockItems)
                 {
                     var param = (UnlockItemRecipeViewChallengeActionParam)unlockItem.ChallengeActionParam;
@@ -114,6 +113,22 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
                         
                         var icon = Instantiate(ItemSlotView.Prefab, unlockItemIcons);
                         icon.SetItem(itemView, 0);
+                        icon.SetSizeDelta(iconSize);
+                    }
+                }
+
+                var giveItemActions = node.MasterElement.ClearedActions.items.Where(a => a.ChallengeActionType == ChallengeActionElement.ChallengeActionTypeConst.giveItem);
+                foreach (var giveItem in giveItemActions)
+                {
+                    var param = (GiveItemChallengeActionParam)giveItem.ChallengeActionParam;
+                    
+                    foreach (var reward in param.RewardItems)
+                    {
+                        var itemId = MasterHolder.ItemMaster.GetItemId(reward.ItemGuid);
+                        var itemView = ClientContext.ItemImageContainer.GetItemView(itemId);
+
+                        var icon = Instantiate(ItemSlotView.Prefab, unlockItemIcons);
+                        icon.SetItem(itemView, reward.ItemCount);
                         icon.SetSizeDelta(iconSize);
                     }
                 }
