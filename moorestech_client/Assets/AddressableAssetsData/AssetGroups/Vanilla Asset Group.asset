@@ -115,6 +115,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1ed685f538a30476f8b52eae7e336d70
+    m_Address: Vanilla/Block/Windmill_Miner
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 227487304681b4e6897ee786a7b586fc
     m_Address: Vanilla/Character/Chr003
     m_ReadOnly: 0
