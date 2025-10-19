@@ -46,7 +46,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 09d0a37c70f59d041933dd88c2bfcbef
-    m_Address: Vanilla/Block/Wood Assembly Machine
+    m_Address: Vanilla/Block/Wood_Assembly_Machine
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -407,6 +407,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 7f11cff8c8744412fabe737ce09dc92d
     m_Address: Vanilla/Skit/Animations/anim_wait01_lp
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7ff9d8ff6a11a80469efcac66b15bfe8
+    m_Address: Vanilla/Block/Stone_oven
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
