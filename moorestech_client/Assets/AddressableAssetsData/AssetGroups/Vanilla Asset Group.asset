@@ -45,6 +45,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 09d0a37c70f59d041933dd88c2bfcbef
+    m_Address: Vanilla/Block/Wood Assembly Machine
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 0a577e00dc0e74ecd904ee712f7b2606
     m_Address: Vanilla/Block/BigGear
     m_ReadOnly: 0
@@ -152,6 +157,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 2983e03b6176b4abd95ec81a3bae0c48
     m_Address: Vanilla/UI/Modal/OneButtonModal
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2a8a673b3389afe41be6d69d8d8f7094
+    m_Address: Vanilla/Block/Primitive_grinding_machine
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -565,6 +575,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b0c6385732c7e5b439e621f7eb8b69f5
+    m_Address: Vanilla/Block/Fuel_powered_windmill
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: b112ff9fe273445dea888761fe3e6b15
     m_Address: Vanilla/Block/Old/CraftChainerCrafter
     m_ReadOnly: 0
@@ -642,6 +657,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: cd1c955822767a148878352e9611cbed
     m_Address: Vanilla/Block/HighPerformanceMetalPlatform
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: cdb599fddfcab804b9387b3e962872c1
+    m_Address: Vanilla/Block/Primitive_cutting_machine
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
