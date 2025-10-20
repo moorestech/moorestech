@@ -181,6 +181,63 @@ namespace Tests.CombinedTest.Core
         }
         
         [Test]
+        public void ItemFuelGeneratesWithoutFluid()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SteamGearGeneratorId, Vector3Int.zero, BlockDirection.North, out var steamGeneratorBlock);
+            
+            var generatorComponent = steamGeneratorBlock.GetComponent<SteamGearGeneratorComponent>();
+            var inventory = steamGeneratorBlock.GetComponent<IBlockInventory>();
+            var fluidComponent = steamGeneratorBlock.GetComponent<SteamGearGeneratorFluidComponent>();
+            
+            var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.SteamGearGeneratorId);
+            var param = blockMaster.BlockParam as SteamGearGeneratorBlockParam;
+            var fuelItemId = MasterHolder.ItemMaster.GetItemId(new Guid("00000000-0000-0000-1234-000000000001"));
+            
+            inventory.InsertItem(fuelItemId, 80);
+            var initialTotalFuel = inventory.InventoryItems.Sum(item => item.Count);
+            
+            RunUpdates(240);
+            
+            Assert.AreEqual(param.GenerateMaxRpm, generatorComponent.GenerateRpm.AsPrimitive(), 0.5f, "アイテム燃料のみで最大回転数に到達しませんでした");
+            Assert.AreEqual(param.GenerateMaxTorque, generatorComponent.GenerateTorque.AsPrimitive(), 0.5f, "アイテム燃料のみで最大トルクに到達しませんでした");
+            Assert.AreEqual(FluidMaster.EmptyFluidId, fluidComponent.SteamTank.FluidId, "液体燃料を使用していないはずです");
+            var remainingFuelTotal = inventory.InventoryItems.Sum(item => item.Count);
+            Assert.Less(remainingFuelTotal, initialTotalFuel, "燃料アイテムが消費されていません");
+            
+            ClearInventory();
+            var clearedFuelTotal = inventory.InventoryItems.Sum(item => item.Count);
+            Assert.AreEqual(0, clearedFuelTotal, "インベントリが空になっていません");
+            RunUpdates(200);
+            
+            Assert.AreEqual(0f, generatorComponent.GenerateRpm.AsPrimitive(), 0.5f, "燃料が尽きた後に回転が停止していません");
+            Assert.AreEqual(0f, generatorComponent.GenerateTorque.AsPrimitive(), 0.5f, "燃料が尽きた後にトルクが停止していません");
+            
+            #region Internal
+            
+            void RunUpdates(int count)
+            {
+                for (var i = 0; i < count; i++)
+                {
+                    GameUpdater.UpdateWithWait();
+                }
+            }
+            
+            void ClearInventory()
+            {
+                var emptyStack = ServerContext.ItemStackFactory.CreatEmpty();
+                for (var slot = 0; slot < inventory.GetSlotSize(); slot++)
+                {
+                    inventory.SetItem(slot, emptyStack);
+                }
+            }
+            
+            #endregion
+        }
+        
+        [Test]
         public void BlockStateObservableTest()
         {
             // IBlockStateObservableの実装が正しく動作することを確認する

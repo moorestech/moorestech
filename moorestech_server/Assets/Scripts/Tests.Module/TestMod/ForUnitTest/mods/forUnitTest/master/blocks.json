@@ -304,18 +304,6 @@
         "fuelItemSlotCount": 10,
         "isInfinityPower": false,
         "infinityPower": 0,
-        "fuelItems": [
-          {
-            "power": 100,
-            "time": 1,
-            "itemGuid": "00000000-0000-0000-1234-000000000001"
-          },
-          {
-            "power": 200,
-            "time": 2,
-            "itemGuid": "00000000-0000-0000-1234-000000000002"
-          }
-        ],
         "fuelFluidTankCapacity": 100,
         "fuelFluids": [
           {
@@ -367,6 +355,20 @@
         "inventoryConnectors": {
           "outputConnects": [],
           "inputConnects": []
+        },
+        "itemFuelConfig": {
+          "fuelEntries": [
+            {
+              "power": 100,
+              "time": 1,
+              "itemGuid": "00000000-0000-0000-1234-000000000001"
+            },
+            {
+              "power": 200,
+              "time": 2,
+              "itemGuid": "00000000-0000-0000-1234-000000000002"
+            }
+          ]
         }
       },
       "itemGuid": "00000000-0000-0000-1234-000000000005",
@@ -586,7 +588,6 @@
         "fuelItemSlotCount": 4,
         "isInfinityPower": true,
         "infinityPower": 10,
-        "fuelItems": [],
         "inventoryConnectors": {
           "outputConnects": [
             {
@@ -664,6 +665,9 @@
         "fluidInventoryConnectors": {
           "inflowConnects": [],
           "outflowConnects": []
+        },
+        "itemFuelConfig": {
+          "fuelEntries": []
         }
       },
       "itemGuid": "00000000-0000-0000-1234-000000000008",
@@ -702,7 +706,6 @@
         "fuelItemSlotCount": 0,
         "isInfinityPower": true,
         "infinityPower": 10,
-        "fuelItems": [],
         "inventoryConnectors": {
           "outputConnects": [
             {
@@ -759,6 +762,9 @@
         "fluidInventoryConnectors": {
           "inflowConnects": [],
           "outflowConnects": []
+        },
+        "itemFuelConfig": {
+          "fuelEntries": []
         }
       },
       "overrideVerticalBlock": {}
@@ -835,12 +841,14 @@
           ],
           "inputConnects": []
         },
-        "fuelItems": [],
         "fuelFluidTankCapacity": 0,
         "fuelFluids": [],
         "fluidInventoryConnectors": {
           "inflowConnects": [],
           "outflowConnects": []
+        },
+        "itemFuelConfig": {
+          "fuelEntries": []
         }
       },
       "overrideVerticalBlock": {}
@@ -927,12 +935,14 @@
             }
           ]
         },
-        "fuelItems": [],
         "fuelFluidTankCapacity": 0,
         "fuelFluids": [],
         "fluidInventoryConnectors": {
           "inflowConnects": [],
           "outflowConnects": []
+        },
+        "itemFuelConfig": {
+          "fuelEntries": []
         }
       },
       "overrideVerticalBlock": {}
@@ -3743,6 +3753,7 @@
             "fluidGuid": "00000000-0000-0000-1234-000000000002"
           }
         ],
+        "fuelItemSlotCount": 2,
         "gear": {
           "gearConnects": []
         },
@@ -3837,6 +3848,15 @@
                 "flowCapacity": 10,
                 "connectTankIndex": 0
               }
+            }
+          ]
+        },
+        "itemFuelConfig": {
+          "fuelEntries": [
+            {
+              "consumptionTime": 1,
+              "amount": 1,
+              "itemGuid": "00000000-0000-0000-1234-000000000001"
             }
           ]
         }

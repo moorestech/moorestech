@@ -32,13 +32,13 @@ namespace Tests.CombinedTest.Core
             var generatorConfigParam = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GeneratorId).BlockParam as ElectricGeneratorBlockParam;
             var itemStackFactory = ServerContext.ItemStackFactory;
             
-            var fuelItem1 = itemStackFactory.Create(generatorConfigParam.FuelItems[FuelItem1Id].ItemGuid, 1);
-            var fuelItem2 = itemStackFactory.Create(generatorConfigParam.FuelItems[FuelItem2Id].ItemGuid, 1);
+            var fuelItem1 = itemStackFactory.Create(generatorConfigParam.ItemFuelConfig.FuelEntries[FuelItem1Id].ItemGuid, 1);
+            var fuelItem2 = itemStackFactory.Create(generatorConfigParam.ItemFuelConfig.FuelEntries[FuelItem2Id].ItemGuid, 1);
             var fuelService = GetFuelService(generatorComponent); // テストで内部状態を確認するためサービスを取得 Get the service to check the internal state in the test
 
             // 燃料の燃焼時間ループする
             // Fuel combustion time loop
-            var endTime1 = DateTime.Now.AddSeconds(generatorConfigParam.FuelItems[FuelItem1Id].Time);
+            var endTime1 = DateTime.Now.AddSeconds(generatorConfigParam.ItemFuelConfig.FuelEntries[FuelItem1Id].Time);
             
             // 燃料を挿入
             // Insert fuel
@@ -50,7 +50,7 @@ namespace Tests.CombinedTest.Core
             
             // 供給電力の確認
             // Check the supplied power
-            Assert.AreEqual(generatorConfigParam.FuelItems[FuelItem1Id].Power, generatorComponent.OutputEnergy().AsPrimitive());
+            Assert.AreEqual(generatorConfigParam.ItemFuelConfig.FuelEntries[FuelItem1Id].Power, generatorComponent.OutputEnergy().AsPrimitive());
             
             // 燃料の枯渇までループ
             // Loop until fuel is exhausted
@@ -72,7 +72,7 @@ namespace Tests.CombinedTest.Core
             
             // 燃料の1個目の枯渇までループ
             // Loop until the first fuel is exhausted
-            endTime1 = DateTime.Now.AddSeconds(generatorConfigParam.FuelItems[FuelItem1Id].Time);
+            endTime1 = DateTime.Now.AddSeconds(generatorConfigParam.ItemFuelConfig.FuelEntries[FuelItem1Id].Time);
             while (endTime1.AddSeconds(0.3).CompareTo(DateTime.Now) == 1) GameUpdater.UpdateWithWait();
             
             // サービスの現在燃料IDが2個目を指していることを確認する
@@ -80,13 +80,13 @@ namespace Tests.CombinedTest.Core
             currentFuelType = GetFuelServiceField<object>(fuelService, "_currentFuelType");
             Assert.AreEqual("Item", currentFuelType.ToString());
             var currentFuelItemId = GetFuelServiceField<ItemId>(fuelService, "_currentFuelItemId");
-            var fuelItemId2 = MasterHolder.ItemMaster.GetItemId(generatorConfigParam.FuelItems[FuelItem2Id].ItemGuid);
+            var fuelItemId2 = MasterHolder.ItemMaster.GetItemId(generatorConfigParam.ItemFuelConfig.FuelEntries[FuelItem2Id].ItemGuid);
             Assert.AreEqual(fuelItemId2, currentFuelItemId);
-            Assert.AreEqual(generatorConfigParam.FuelItems[FuelItem2Id].Power, generatorComponent.OutputEnergy().AsPrimitive());
+            Assert.AreEqual(generatorConfigParam.ItemFuelConfig.FuelEntries[FuelItem2Id].Power, generatorComponent.OutputEnergy().AsPrimitive());
             
             // 燃料の2個目の枯渇までループ
             // Loop until the second fuel is exhausted
-            var endTime2 = DateTime.Now.AddSeconds(generatorConfigParam.FuelItems[FuelItem2Id].Time);
+            var endTime2 = DateTime.Now.AddSeconds(generatorConfigParam.ItemFuelConfig.FuelEntries[FuelItem2Id].Time);
             while (endTime2.AddSeconds(0.1).CompareTo(DateTime.Now) == 1) GameUpdater.UpdateWithWait();
             
             // 2個目も消費し終わったことをサービスの状態で確認する
