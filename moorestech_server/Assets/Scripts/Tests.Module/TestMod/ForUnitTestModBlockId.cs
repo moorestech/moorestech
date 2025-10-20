@@ -38,7 +38,8 @@ namespace Tests.Module.TestMod
         public static BlockId StraightItemShooter => GetBlock("00000000-0000-0000-0000-000000000016");
         public static BlockId DownItemShooter => GetBlock("00000000-0000-0000-0000-000000000017");
         public static BlockId UpItemShooter => GetBlock("00000000-0000-0000-0000-000000000018");
-        
+        public static BlockId ItemShooterAccelerator => GetBlock("00000000-0000-0000-0000-000000000029");
+
         public static BlockId MachineRecipeTest1 => GetBlock("00000000-0000-0000-0000-000000000019");
         public static BlockId MachineRecipeTest2 => GetBlock("00000000-0000-0000-0000-00000000001a");
         public static BlockId MachineRecipeTest3 => GetBlock("00000000-0000-0000-0000-00000000001b");

@@ -75,6 +75,7 @@ properties:
       - GearMiner
       - GearMapObjectMiner
       - ItemShooter
+      - ItemShooterAccelerator
       - CraftChainerTransporter
       - CraftChainerCrafter
       - CraftChainerProviderChest
@@ -437,6 +438,46 @@ properties:
           - Down
         - key: inventoryConnectors
           ref: inventoryConnects
+      - when: ItemShooterAccelerator
+        type: object
+        implementationInterface:
+        - IInventoryConnectors
+        - IGearConnectors
+        properties:
+        - key: inventoryItemNum
+          type: integer
+          default: 4
+        - key: initialShootSpeed
+          type: number
+          default: 3
+        - key: itemShootSpeed
+          type: number
+          default: 2
+        - key: acceleration
+          type: number
+          default: 0
+        - key: poweredAcceleration
+          type: number
+          default: 2
+        - key: maxAccelerationMultiplier
+          type: number
+          default: 4
+        - key: requireTorque
+          type: number
+          default: 2
+        - key: requiredRpm
+          type: number
+          default: 5
+        - key: slopeType
+          type: enum
+          options:
+          - Straight
+          - Up
+          - Down
+        - key: inventoryConnectors
+          ref: inventoryConnects
+        - key: gear
+          ref: gear
       - when: GearMiner
         type: object
         implementationInterface:
