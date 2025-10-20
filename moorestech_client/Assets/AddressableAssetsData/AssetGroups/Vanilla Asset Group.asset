@@ -35,6 +35,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 0657a7291d58e284d925aa2be3fdc553
+    m_Address: Vanilla/Block/Tree_chest
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 06ec40813bb3d214c95767bf9c4f9999
     m_Address: Vanilla/Block/press machine
     m_ReadOnly: 0
@@ -120,6 +125,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1e07ecbf44f2bf04ebac9e0e7ad2d0d4
+    m_Address: Vanilla/Block/Metal_processing_machine
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 1ed685f538a30476f8b52eae7e336d70
     m_Address: Vanilla/Block/Windmill_Miner
     m_ReadOnly: 0
@@ -177,6 +187,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 2fda64207decf264c9a9430c59cfe575
     m_Address: Vanilla/Block/Old/miner
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3468e0ac5ab32d247bafe3746940bbc8
+    m_Address: Vanilla/Block/Automatic_loom
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -372,6 +387,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 6f66b5f793cadea49bd28b222c6c710b
     m_Address: Vanilla/Block/Old/iron chest
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 72352428f6acae54387a54854c44d701
+    m_Address: Vanilla/Block/Ore_Crusher
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -610,6 +630,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b9fc9c8c6497a0a44b484f64d01458d4
+    m_Address: Vanilla/Block/Spinning_machine
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: bb72c386ac1ae15458bc2b7afbd83b6b
     m_Address: Vanilla/Block/Fast_BeltConveyor_Up
     m_ReadOnly: 0
@@ -757,6 +782,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: e939d603e0ddc4cde80e504f56368881
     m_Address: Vanilla/Block/Shaft
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e9b31dcee7d1c7b4cb1f02e097df293d
+    m_Address: Vanilla/Block/itemshooter accelerator
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
