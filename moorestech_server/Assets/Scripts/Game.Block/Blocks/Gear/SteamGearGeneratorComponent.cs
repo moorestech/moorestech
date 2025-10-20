@@ -1,9 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using Core.Inventory;
+using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
+using Game.Block.Event;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
+using Game.Block.Interface.Event;
+using Game.Context;
 using Game.Gear.Common;
 using MessagePack;
 using Mooresmaster.Model.BlocksModule;
@@ -13,29 +19,28 @@ using UnityEngine;
 
 namespace Game.Block.Blocks.Gear
 {
-    
-    public class SteamGearGeneratorComponent : GearEnergyTransformer, IGearGenerator, IUpdatableBlockComponent, IBlockSaveState, IBlockStateObservable
+    public class SteamGearGeneratorComponent : GearEnergyTransformer, IGearGenerator, IUpdatableBlockComponent, IBlockSaveState, IBlockStateObservable, IBlockInventory, IOpenableInventory
     {
         public int TeethCount { get; }
         public RPM GenerateRpm { get; private set; }
         public Torque GenerateTorque { get; private set; }
         public bool GenerateIsClockwise => true;
-        
+        public new IObservable<Unit> OnChangeBlockState => _onChangeBlockState;
+        public IReadOnlyList<IItemStack> InventoryItems => _inventoryService.InventoryItems;
+
         private readonly SteamGearGeneratorBlockParam _param;
         private readonly SteamGearGeneratorFluidComponent _fluidComponent;
+        private readonly OpenableInventoryItemDataStoreService _inventoryService;
+        private readonly SteamGearGeneratorFuelService _fuelService;
+        private readonly Subject<Unit> _onChangeBlockState;
         
         // 状態管理
         private GeneratorState _currentState = GeneratorState.Idle;
         private float _stateElapsedTime = 0f;
-        private float _nextConsumptionTime = 0f;
         
         // 出力制御（0〜1の範囲）
         private float _steamConsumptionRate = 0f;
         private float _rateAtDecelerationStart = 0f;  // 減速開始時の消費率を記録
-        
-        // IBlockStateObservable
-        private readonly Subject<Unit> _onChangeBlockState;
-        public new IObservable<Unit> OnChangeBlockState => _onChangeBlockState;
         
         private enum GeneratorState
         {
@@ -54,11 +59,15 @@ namespace Game.Block.Blocks.Gear
         {
             _param = param;
             _fluidComponent = fluidComponent;
+            _inventoryService = new OpenableInventoryItemDataStoreService(
+                InvokeInventoryUpdate,
+                ServerContext.ItemStackFactory,
+                Math.Max(0, param.FuelItemSlotCount));
+            _fuelService = new SteamGearGeneratorFuelService(param, _inventoryService, fluidComponent);
             TeethCount = param.TeethCount;
             GenerateRpm = new RPM(0);
             GenerateTorque = new Torque(0);
             _stateElapsedTime = 0f;
-            _nextConsumptionTime = 0f;
             _onChangeBlockState = new Subject<Unit>();
         }
         
@@ -73,6 +82,7 @@ namespace Game.Block.Blocks.Gear
             if (!componentStates.TryGetValue(SaveKey, out var saveState)) return;
             
             var saveData = JsonConvert.DeserializeObject<SteamGearGeneratorSaveData>(saveState);
+            if (saveData == null) return;
             
             if (Enum.TryParse<GeneratorState>(saveData.CurrentState, out var state))
             {
@@ -80,12 +90,36 @@ namespace Game.Block.Blocks.Gear
             }
             
             _stateElapsedTime = saveData.StateElapsedTime;
-            _nextConsumptionTime = saveData.NextConsumptionTime;
             _steamConsumptionRate = saveData.SteamConsumptionRate;
             _rateAtDecelerationStart = saveData.RateAtDecelerationStart;
+            RestoreInventory(saveData.Items);
+            _fuelService.Restore(new SteamGearGeneratorFuelService.FuelState
+            {
+                ActiveFuelType = saveData.ActiveFuelType,
+                CurrentFuelItemGuid = saveData.CurrentFuelItemGuid,
+                CurrentFuelFluidGuid = saveData.CurrentFuelFluidGuid,
+                RemainingFuelTime = saveData.RemainingFuelTime
+            });
             
             // 現在の出力を復元
             UpdateOutput();
+
+            #region Internal
+            
+            void RestoreInventory(List<ItemStackSaveJsonObject> items)
+            {
+                if (items == null) return;
+                
+                var slotSize = _inventoryService.GetSlotSize();
+                for (var i = 0; i < Math.Min(slotSize, items.Count); i++)
+                {
+                    var stack = items[i]?.ToItemStack();
+                    if (stack == null) continue;
+                    _inventoryService.SetItemWithoutEvent(i, stack);
+                }
+            }
+            
+            #endregion
         }
         
         public void Update()
@@ -98,33 +132,34 @@ namespace Game.Block.Blocks.Gear
         
         private void UpdateState()
         {
-            var hasSteam = CheckSteamAvailability();
-            var isPipeDisconnected = _fluidComponent.IsPipeDisconnected;
-            
-            // 経過時間を更新
+            _fuelService.Update();
+            var allowFluidFuel = !_fluidComponent.IsPipeDisconnected;
+            var hasFuel = _fuelService.HasAvailableFuel(allowFluidFuel);
+            var shouldForceDeceleration = !allowFluidFuel && _fuelService.IsUsingFluidFuel;
             _stateElapsedTime += (float)GameUpdater.UpdateSecondTime;
             
             switch (_currentState)
             {
                 case GeneratorState.Idle:
-                    if (hasSteam)
+                    if (hasFuel && _fuelService.TryEnsureFuel(allowFluidFuel))
                     {
                         TransitionToState(GeneratorState.Accelerating);
+                    }
+                    else
+                    {
+                        _steamConsumptionRate = 0f;
                     }
                     break;
                     
                 case GeneratorState.Accelerating:
-                    // パイプが切断されたら減速開始
-                    if (isPipeDisconnected)
+                    if (shouldForceDeceleration)
                     {
                         TransitionToState(GeneratorState.Decelerating);
                     }
-                    // 蒸気を消費できなければ減速開始
-                    else if (!TryConsumeSteam())
+                    else if (!_fuelService.TryEnsureFuel(allowFluidFuel))
                     {
                         TransitionToState(GeneratorState.Decelerating);
                     }
-                    // 最大出力に達したら稼働状態へ
                     else if (_steamConsumptionRate >= 1.0f)
                     {
                         TransitionToState(GeneratorState.Running);
@@ -132,26 +167,22 @@ namespace Game.Block.Blocks.Gear
                     break;
                     
                 case GeneratorState.Running:
-                    // パイプが切断されたら減速開始
-                    if (isPipeDisconnected)
+                    if (shouldForceDeceleration)
                     {
                         TransitionToState(GeneratorState.Decelerating);
                     }
-                    // 蒸気を消費できなければ減速開始
-                    else if (!TryConsumeSteam())
+                    else if (!_fuelService.TryEnsureFuel(allowFluidFuel))
                     {
                         TransitionToState(GeneratorState.Decelerating);
                     }
                     break;
                     
                 case GeneratorState.Decelerating:
-                    // 完全に停止したらアイドル状態へ
                     if (_steamConsumptionRate <= 0f)
                     {
                         TransitionToState(GeneratorState.Idle);
                     }
-                    // 蒸気が復活し、パイプが再接続されたら加速を再開
-                    else if (hasSteam && !isPipeDisconnected)
+                    else if (_fuelService.TryEnsureFuel(allowFluidFuel))
                     {
                         TransitionToState(GeneratorState.Accelerating);
                     }
@@ -174,60 +205,6 @@ namespace Game.Block.Blocks.Gear
                     _stateElapsedTime = 0f;
                     _onChangeBlockState.OnNext(Unit.Default);
                 }
-            }
-            
-            
-            bool CheckSteamAvailability()
-            {
-                if (_param.RequiredFluids == null || _param.RequiredFluids.Length == 0)
-                {
-                    return false;
-                }
-                
-                var requiredFluid = _param.RequiredFluids[0];
-                var steamFluidId = MasterHolder.FluidMaster.GetFluidId(requiredFluid.FluidGuid);
-                var requiredAmount = requiredFluid.Amount;
-                
-                // 蒸気タンクから必要量があるかチェック
-                var steamTank = _fluidComponent.SteamTank;
-                return steamTank.FluidId == steamFluidId && steamTank.Amount >= requiredAmount;
-            }
-            
-            bool TryConsumeSteam()
-            {
-                if (_param.RequiredFluids == null || _param.RequiredFluids.Length == 0)
-                {
-                    return false;
-                }
-                
-                var requiredFluid = _param.RequiredFluids[0];
-                var steamFluidId = MasterHolder.FluidMaster.GetFluidId(requiredFluid.FluidGuid);
-                var requiredAmount = requiredFluid.Amount;
-                
-                // 蒸気タンクから必要量があるかチェック
-                var steamTank = _fluidComponent.SteamTank;
-                if (steamTank.FluidId != steamFluidId || steamTank.Amount < requiredAmount)
-                {
-                    return false;
-                }
-                
-                // 消費時間チェック
-                if (_nextConsumptionTime > 0)
-                {
-                    _nextConsumptionTime -= (float)GameUpdater.UpdateSecondTime;
-                    if (_nextConsumptionTime > 0)
-                    {
-                        return true; // まだ消費タイミングではないが、蒸気は十分にある
-                    }
-                }
-                
-                // 蒸気を消費
-                steamTank.Amount -= requiredAmount;
-                
-                // 次の消費時間を設定
-                _nextConsumptionTime = requiredFluid.ConsumptionTime;
-                
-                return true;
             }
             
             #endregion
@@ -317,14 +294,27 @@ namespace Game.Block.Blocks.Gear
         
         public string GetSaveState()
         {
+            BlockException.CheckDestroy(this);
             var saveData = new SteamGearGeneratorSaveData
             {
                 CurrentState = _currentState.ToString(),
                 StateElapsedTime = _stateElapsedTime,
-                NextConsumptionTime = _nextConsumptionTime,
                 SteamConsumptionRate = _steamConsumptionRate,
-                RateAtDecelerationStart = _rateAtDecelerationStart
+                RateAtDecelerationStart = _rateAtDecelerationStart,
+                Items = new List<ItemStackSaveJsonObject>(),
             };
+            
+            var fuelState = _fuelService.CreateStateSnapshot();
+            saveData.ActiveFuelType = fuelState.ActiveFuelType;
+            saveData.RemainingFuelTime = fuelState.RemainingFuelTime;
+            saveData.CurrentFuelItemGuidStr = fuelState.CurrentFuelItemGuid?.ToString();
+            saveData.CurrentFuelFluidGuidStr = fuelState.CurrentFuelFluidGuid?.ToString();
+            
+            var slotSize = _inventoryService.GetSlotSize();
+            for (var i = 0; i < slotSize; i++)
+            {
+                saveData.Items.Add(new ItemStackSaveJsonObject(_inventoryService.GetItem(i)));
+            }
             
             return JsonConvert.SerializeObject(saveData);
         }
@@ -334,9 +324,19 @@ namespace Game.Block.Blocks.Gear
         {
             public string CurrentState { get; set; }
             public float StateElapsedTime { get; set; }
-            public float NextConsumptionTime { get; set; }
             public float SteamConsumptionRate { get; set; }
             public float RateAtDecelerationStart { get; set; }
+            public List<ItemStackSaveJsonObject> Items { get; set; }
+            public string ActiveFuelType { get; set; }
+            public double RemainingFuelTime { get; set; }
+            public string CurrentFuelItemGuidStr { get; set; }
+            public string CurrentFuelFluidGuidStr { get; set; }
+            
+            [JsonIgnore]
+            public Guid? CurrentFuelItemGuid => Guid.TryParse(CurrentFuelItemGuidStr, out var guid) ? guid : null;
+            
+            [JsonIgnore]
+            public Guid? CurrentFuelFluidGuid => Guid.TryParse(CurrentFuelFluidGuidStr, out var guid) ? guid : null;
         }
         
         #endregion
@@ -377,6 +377,84 @@ namespace Game.Block.Blocks.Gear
             }
             
   #endregion
+        }
+        
+        #endregion
+        
+        #region IBlockInventory
+        
+        public IItemStack InsertItem(IItemStack itemStack)
+        {
+            BlockException.CheckDestroy(this);
+            return _inventoryService.InsertItem(itemStack);
+        }
+        
+        public List<IItemStack> InsertItem(List<IItemStack> itemStacks)
+        {
+            BlockException.CheckDestroy(this);
+            return _inventoryService.InsertItem(itemStacks);
+        }
+        
+        public IItemStack InsertItem(ItemId itemId, int count)
+        {
+            BlockException.CheckDestroy(this);
+            return _inventoryService.InsertItem(itemId, count);
+        }
+        
+        public bool InsertionCheck(List<IItemStack> itemStacks)
+        {
+            BlockException.CheckDestroy(this);
+            return _inventoryService.InsertionCheck(itemStacks);
+        }
+        
+        public IItemStack GetItem(int slot)
+        {
+            BlockException.CheckDestroy(this);
+            return _inventoryService.GetItem(slot);
+        }
+        
+        public void SetItem(int slot, IItemStack itemStack)
+        {
+            BlockException.CheckDestroy(this);
+            _inventoryService.SetItem(slot, itemStack);
+        }
+        
+        public void SetItem(int slot, ItemId itemId, int count)
+        {
+            BlockException.CheckDestroy(this);
+            _inventoryService.SetItem(slot, itemId, count);
+        }
+        
+        public IItemStack ReplaceItem(int slot, IItemStack itemStack)
+        {
+            BlockException.CheckDestroy(this);
+            return _inventoryService.ReplaceItem(slot, itemStack);
+        }
+        
+        public IItemStack ReplaceItem(int slot, ItemId itemId, int count)
+        {
+            BlockException.CheckDestroy(this);
+            return _inventoryService.ReplaceItem(slot, itemId, count);
+        }
+        
+        public int GetSlotSize()
+        {
+            BlockException.CheckDestroy(this);
+            return _inventoryService.GetSlotSize();
+        }
+        
+        public ReadOnlyCollection<IItemStack> CreateCopiedItems()
+        {
+            BlockException.CheckDestroy(this);
+            return _inventoryService.CreateCopiedItems();
+        }
+        
+        private void InvokeInventoryUpdate(int slot, IItemStack itemStack)
+        {
+            BlockException.CheckDestroy(this);
+            var blockInventoryUpdate = (BlockOpenableInventoryUpdateEvent)ServerContext.BlockOpenableInventoryUpdateEvent;
+            var properties = new BlockOpenableInventoryUpdateEventProperties(BlockInstanceId, slot, itemStack);
+            blockInventoryUpdate.OnInventoryUpdateInvoke(properties);
         }
         
         #endregion
