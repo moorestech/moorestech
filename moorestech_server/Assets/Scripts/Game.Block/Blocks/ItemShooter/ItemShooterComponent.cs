@@ -5,12 +5,10 @@ using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.BeltConveyor;
-using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
 using Newtonsoft.Json;
-using UnityEngine;
 
 namespace Game.Block.Blocks.ItemShooter
 {
@@ -32,199 +30,107 @@ namespace Game.Block.Blocks.ItemShooter
         public BeltConveyorSlopeType SlopeType { get; }
     }
 
-    public class ItemShooterComponent : IItemCollectableBeltConveyor, IBlockInventory, IBlockSaveState, IUpdatableBlockComponent
+    public class ItemShooterComponent : IItemCollectableBeltConveyor, IBlockInventory, IBlockSaveState, IUpdatableBlockComponent, IItemShooterComponent
     {
         public BeltConveyorSlopeType SlopeType { get; }
-        public IReadOnlyList<IOnBeltConveyorItem> BeltConveyorItems => _inventoryItems;
-        private readonly ShooterInventoryItem[] _inventoryItems;
+        public IReadOnlyList<IOnBeltConveyorItem> BeltConveyorItems => _service.BeltConveyorItems;
 
-        private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
-        private readonly ItemShooterComponentSettings _settings;
-        private const float InsertItemInterval = 1f; // TODO to master
-        
-        private float _lastInsertElapsedTime = float.MaxValue;
-        private float? _externalAcceleration;
+        private readonly ItemShooterComponentService _service;
 
-        public ItemShooterComponent(BlockConnectorComponent<IBlockInventory> blockConnectorComponent, ItemShooterComponentSettings settings)
+        public ItemShooterComponent(ItemShooterComponentService service)
         {
-            _blockConnectorComponent = blockConnectorComponent;
-            _settings = settings;
-            SlopeType = settings.SlopeType;
-            
-            _inventoryItems = new ShooterInventoryItem[_settings.InventoryItemNum];
+            _service = service;
+            SlopeType = service.SlopeType;
         }
 
-        public ItemShooterComponent(Dictionary<string, string> componentStates, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, ItemShooterComponentSettings settings) :
-            this(blockConnectorComponent, settings)
+        public ItemShooterComponent(Dictionary<string, string> componentStates, ItemShooterComponentService service) : this(service)
         {
             var items = JsonConvert.DeserializeObject<List<ItemShooterItemJsonObject>>(componentStates[SaveKey]);
-            for (var i = 0; i < items.Count; i++)
+            for (var i = 0; i < items.Count && i < _service.SlotSize; i++)
             {
                 var item = items[i];
                 if (item.ItemStackSave == null) continue;
-                
+
                 var id = MasterHolder.ItemMaster.GetItemId(item.ItemStackSave.ItemGuid);
-                _inventoryItems[i] = new ShooterInventoryItem(id, ItemInstanceId.Create(), (float)item.CurrentSpeed)
+                var shooterItem = new ShooterInventoryItem(id, ItemInstanceId.Create(), (float)item.CurrentSpeed)
                 {
                     RemainingPercent = (float)items[i].RemainingPercent
                 };
+                _service.SetSlot(i, shooterItem);
             }
         }
-        
+
         public void Update()
         {
             BlockException.CheckDestroy(this);
-            
-            _lastInsertElapsedTime += (float)GameUpdater.UpdateSecondTime;
-            var count = _inventoryItems.Length;
-            var deltaTime = (float)GameUpdater.UpdateSecondTime; // floatとdobuleが混在しているの気持ち悪いから改善したい
-            var itemShootSpeed = _settings.ItemShootSpeed;
-            var acceleration = _externalAcceleration ?? _settings.Acceleration;
-            
-            for (var i = 0; i < count; i++)
-            {
-                var item = _inventoryItems[i];
-                if (item == null) continue;
-                
-                if (item.RemainingPercent <= 0)
-                {
-                    var insertItem = ServerContext.ItemStackFactory.Create(item.ItemId, 1, item.ItemInstanceId);
-                    
-                    if (_blockConnectorComponent.ConnectedTargets.Count == 0) continue;
-                    
-                    var connector = _blockConnectorComponent.ConnectedTargets.First();
-                    var target = connector.Key;
-                    if (target is ItemShooterComponent shooter)
-                    {
-                        _inventoryItems[i] = shooter.InsertItemFromShooter(item);
-                    }
-                    else
-                    {
-                        var output = connector.Key.InsertItem(insertItem);
-                        
-                        //渡した結果がnullItemだったらそのアイテムを消す
-                        if (output.Id == ItemMaster.EmptyItemId) _inventoryItems[i] = null;
-                    }
-                    
-                    continue;
-                }
-                
-                //時間を減らす
-                item.RemainingPercent -= deltaTime * itemShootSpeed * item.CurrentSpeed;
-                item.RemainingPercent = Math.Clamp(item.RemainingPercent, 0, 1);
-                
-                // velocityを更新する
-                item.CurrentSpeed += acceleration * deltaTime;
-                item.CurrentSpeed = Mathf.Clamp(item.CurrentSpeed, 0, float.MaxValue);
-            }
-
-            _externalAcceleration = null;
+            _service.Update((float)GameUpdater.UpdateSecondTime);
         }
-        
-        private ShooterInventoryItem InsertItemFromShooter(ShooterInventoryItem inventoryItem)
+
+        public ShooterInventoryItem InsertItemFromShooter(ShooterInventoryItem inventoryItem)
         {
             BlockException.CheckDestroy(this);
-            
-            for (var i = 0; i < _inventoryItems.Length; i++)
-            {
-                if (_inventoryItems[i] != null) continue;
-                
-                _inventoryItems[i] = inventoryItem;
-                _inventoryItems[i].RemainingPercent = 1;
-                return null;
-            }
-            
-            return inventoryItem;
+            return _service.InsertItemFromShooter(inventoryItem);
         }
-        
+
         public IItemStack InsertItem(IItemStack itemStack)
         {
             BlockException.CheckDestroy(this);
-            
-            // インサート間隔をチェック
-            if (_lastInsertElapsedTime < InsertItemInterval) return itemStack;
-            
-            // インサート可能なスロットに挿入
-            for (var i = 0; i < _inventoryItems.Length; i++)
-            {
-                if (_inventoryItems[i] != null) continue;
-                
-                _inventoryItems[i] = new ShooterInventoryItem(itemStack.Id, itemStack.ItemInstanceId, _settings.InitialShootSpeed);
-                //挿入したのでアイテムを減らして返す
-                _lastInsertElapsedTime = 0;
-                return itemStack.SubItem(1);
-            }
-            
-            return itemStack;
+            return _service.InsertItem(itemStack);
         }
-        
+
         public bool InsertionCheck(List<IItemStack> itemStacks)
         {
             BlockException.CheckDestroy(this);
-            
-            // 空きスロットがあるかどうか
-            var nullCount = 0;
-            foreach (var inventoryItem in _inventoryItems)
-            {
-                if (inventoryItem == null) nullCount++;
-            }
-            // 挿入可能スロットがない
-            if (nullCount == 0) return false;
-            
-            // 挿入スロットが1個かどうか
-            if (itemStacks.Count == 1 && itemStacks[0].Count == 1) return true;
-            
-            return false;
+            return _service.InsertionCheck(itemStacks);
         }
-        
+
         public IItemStack GetItem(int slot)
         {
-            var itemStackFactory = ServerContext.ItemStackFactory;
-            var item = _inventoryItems[slot];
-            return item == null ? itemStackFactory.CreatEmpty() : itemStackFactory.Create(item.ItemId, 1, item.ItemInstanceId);
+            BlockException.CheckDestroy(this);
+            return _service.GetItem(slot);
         }
-        
+
         public void SetItem(int slot, IItemStack itemStack)
         {
             BlockException.CheckDestroy(this);
-            _inventoryItems[slot] = new ShooterInventoryItem(itemStack.Id, itemStack.ItemInstanceId, _settings.InitialShootSpeed);
+            _service.SetItem(slot, itemStack);
         }
-        
+
         public int GetSlotSize()
         {
             BlockException.CheckDestroy(this);
-            return _inventoryItems.Length;
+            return _service.SlotSize;
         }
-        
+
         public bool IsDestroy { get; private set; }
-        
+
         public void Destroy()
         {
             IsDestroy = true;
         }
-        
+
         public string SaveKey { get; } = typeof(ItemShooterComponent).FullName;
         public string GetSaveState()
         {
             BlockException.CheckDestroy(this);
-            var items = _inventoryItems.Select(item => new ItemShooterItemJsonObject(item)).ToList();
+            var items = _service.EnumerateInventoryItems().Select(item => new ItemShooterItemJsonObject(item)).ToList();
             return JsonConvert.SerializeObject(items);
         }
 
         public void SetExternalAcceleration(float acceleration)
         {
-            _externalAcceleration = acceleration;
+            _service.SetExternalAcceleration(acceleration);
         }
     }
-    
+
     public class ItemShooterItemJsonObject
     {
         [JsonProperty("itemStack")] public ItemStackSaveJsonObject ItemStackSave;
-        
+
         [JsonProperty("remainingTime")] public double RemainingPercent;
-        
+
         [JsonProperty("currentSpeed")] public double CurrentSpeed;
-        
+
         public ItemShooterItemJsonObject(ShooterInventoryItem shooterInventoryItem)
         {
             if (shooterInventoryItem == null)
@@ -234,7 +140,7 @@ namespace Game.Block.Blocks.ItemShooter
                 CurrentSpeed = 0;
                 return;
             }
-            
+
             var item = ServerContext.ItemStackFactory.Create(shooterInventoryItem.ItemId, 1);
             ItemStackSave = new ItemStackSaveJsonObject(item);
             RemainingPercent = shooterInventoryItem.RemainingPercent;
