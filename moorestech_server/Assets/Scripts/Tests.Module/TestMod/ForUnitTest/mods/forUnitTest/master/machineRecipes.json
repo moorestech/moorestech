@@ -227,6 +227,31 @@
       "blockGuid": "00000000-0000-0000-0000-000000000023"
     },
     {
+      "time": 1,
+      "blockGuid": "00000000-0000-0000-0000-000000000019",
+      "inputItems": [
+        {
+          "count": 2,
+          "itemGuid": "00000000-0000-0000-1234-000000000001"
+        },
+        {
+          "count": 1,
+          "itemGuid": "00000000-0000-0000-1234-000000000002",
+          "isRemain": true
+        }
+      ],
+      "inputFluids": [],
+      "outputItems": [
+        {
+          "percent": 1,
+          "count": 1,
+          "itemGuid": "00000000-0000-0000-1234-000000000003"
+        }
+      ],
+      "outputFluids": [],
+      "machineRecipeGuid": "f79c7ee0-1ebe-4fcc-b1ec-5bcb296d9c1a"
+    },
+    {
       "machineRecipeGuid": "38dfacce-1234-4612-8c7c-29112c12409a",
       "time": 1,
       "inputItems": [
