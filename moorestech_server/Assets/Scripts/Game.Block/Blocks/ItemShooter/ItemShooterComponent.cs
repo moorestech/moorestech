@@ -12,24 +12,7 @@ using Newtonsoft.Json;
 
 namespace Game.Block.Blocks.ItemShooter
 {
-    public readonly struct ItemShooterComponentSettings
-    {
-        public ItemShooterComponentSettings(int inventoryItemNum, float initialShootSpeed, float itemShootSpeed, float acceleration, BeltConveyorSlopeType slopeType)
-        {
-            InventoryItemNum = inventoryItemNum;
-            InitialShootSpeed = initialShootSpeed;
-            ItemShootSpeed = itemShootSpeed;
-            Acceleration = acceleration;
-            SlopeType = slopeType;
-        }
-
-        public int InventoryItemNum { get; }
-        public float InitialShootSpeed { get; }
-        public float ItemShootSpeed { get; }
-        public float Acceleration { get; }
-        public BeltConveyorSlopeType SlopeType { get; }
-    }
-
+    // シューター本体の薄いラッパー // Thin wrapper for shooter behaviour delegating to service
     public class ItemShooterComponent : IItemCollectableBeltConveyor, IBlockInventory, IBlockSaveState, IUpdatableBlockComponent, IItemShooterComponent
     {
         public BeltConveyorSlopeType SlopeType { get; }

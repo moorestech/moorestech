@@ -12,6 +12,26 @@ using UnityEngine;
 
 namespace Game.Block.Blocks.ItemShooter
 {
+    // シューター用設定値を保持するレコード // Setting bundle for item shooter components
+    public readonly struct ItemShooterComponentSettings
+    {
+        public ItemShooterComponentSettings(int inventoryItemNum, float initialShootSpeed, float itemShootSpeed, float acceleration, BeltConveyorSlopeType slopeType)
+        {
+            InventoryItemNum = inventoryItemNum;
+            InitialShootSpeed = initialShootSpeed;
+            ItemShootSpeed = itemShootSpeed;
+            Acceleration = acceleration;
+            SlopeType = slopeType;
+        }
+
+        public int InventoryItemNum { get; }
+        public float InitialShootSpeed { get; }
+        public float ItemShootSpeed { get; }
+        public float Acceleration { get; }
+        public BeltConveyorSlopeType SlopeType { get; }
+    }
+
+    // シューターの在庫管理と転送処理を共通化 // Shared inventory/transfer logic for shooter variants
     public class ItemShooterComponentService
     {
         public BeltConveyorSlopeType SlopeType => _settings.SlopeType;

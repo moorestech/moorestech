@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Core.Item.Interface;
 using Core.Master;
@@ -25,9 +26,10 @@ namespace Tests.UnitTest.Game.SaveLoad
             var itemShooter = blockFactory.Create(ForUnitTestModBlockId.StraightItemShooter, new BlockInstanceId(1), posInfo);
             
             var shooter = itemShooter.GetComponent<ItemShooterComponent>();
-            //リフレクションで_inventoryItemsを取得
-            var inventoryItemsField = typeof(ItemShooterComponent).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
-            var inventoryItems = (ShooterInventoryItem[])inventoryItemsField.GetValue(shooter);
+            // コンポーネントサービスを取得する // Acquire internal service instance via reflection
+            var serviceField = typeof(ItemShooterComponent).GetField("_service", BindingFlags.NonPublic | BindingFlags.Instance);
+            var service = (ItemShooterComponentService)serviceField.GetValue(shooter);
+            var inventoryItems = service.EnumerateInventoryItems().ToArray();
             
             //アイテムを設定
             var item1Speed = 1.5f;
@@ -36,12 +38,13 @@ namespace Tests.UnitTest.Game.SaveLoad
             var item1RemainingPercent = 0.5f;
             var item2RemainingPercent = 0.3f;
             var item3RemainingPercent = 0.0f;
-            inventoryItems[0] = new ShooterInventoryItem(new ItemId(1), new ItemInstanceId(0), item1Speed);
-            inventoryItems[0].RemainingPercent = item1RemainingPercent;
-            inventoryItems[2] = new ShooterInventoryItem(new ItemId(2), new ItemInstanceId(0), item2Speed);
-            inventoryItems[2].RemainingPercent = item2RemainingPercent;
-            inventoryItems[3] = new ShooterInventoryItem(new ItemId(5), new ItemInstanceId(0), item3Speed);
-            inventoryItems[3].RemainingPercent = item3RemainingPercent;
+            var item0 = new ShooterInventoryItem(new ItemId(1), new ItemInstanceId(0), item1Speed) { RemainingPercent = item1RemainingPercent };
+            var item2 = new ShooterInventoryItem(new ItemId(2), new ItemInstanceId(0), item2Speed) { RemainingPercent = item2RemainingPercent };
+            var item3 = new ShooterInventoryItem(new ItemId(5), new ItemInstanceId(0), item3Speed) { RemainingPercent = item3RemainingPercent };
+            // SetSlotを利用して初期化 // Seed inventory via service API
+            service.SetSlot(0, item0);
+            service.SetSlot(2, item2);
+            service.SetSlot(3, item3);
             
             
             //セーブデータ取得
@@ -51,10 +54,11 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             //セーブデータをロード
             var newShooter = blockFactory.Load(itemShooter.BlockMasterElement.BlockGuid, new BlockInstanceId(0), states, posInfo).GetComponent<ItemShooterComponent>();
-            var newInventoryItems = (ShooterInventoryItem[])inventoryItemsField.GetValue(newShooter);
+            var newService = (ItemShooterComponentService)serviceField.GetValue(newShooter);
+            var newInventoryItems = newService.EnumerateInventoryItems().ToArray();
             
             //アイテムが一致するかチェック
-            Assert.AreEqual(inventoryItems.Length, newInventoryItems.Length);
+            Assert.AreEqual(service.SlotSize, newInventoryItems.Length);
             
             Assert.AreEqual(1, newInventoryItems[0].ItemId.AsPrimitive());
             Assert.AreEqual(item1Speed, newInventoryItems[0].CurrentSpeed);
