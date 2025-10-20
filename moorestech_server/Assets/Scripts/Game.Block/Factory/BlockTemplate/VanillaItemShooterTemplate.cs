@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Game.Block.Blocks;
+using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Blocks.ItemShooter;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -13,9 +14,9 @@ namespace Game.Block.Factory.BlockTemplate
         {
             var itemShooter = blockMasterElement.BlockParam as ItemShooterBlockParam;
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(itemShooter.InventoryConnectors, blockPositionInfo);
-            
-            var direction = blockPositionInfo.BlockDirection;
-            var chestComponent = new ItemShooterComponent(inputConnectorComponent, itemShooter);
+
+            var settings = CreateSettings(itemShooter);
+            var chestComponent = new ItemShooterComponent(inputConnectorComponent, settings);
             var components = new List<IBlockComponent>
             {
                 chestComponent,
@@ -29,9 +30,9 @@ namespace Game.Block.Factory.BlockTemplate
         {
             var itemShooter = blockMasterElement.BlockParam as ItemShooterBlockParam;
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(itemShooter.InventoryConnectors, blockPositionInfo);
-            
-            var direction = blockPositionInfo.BlockDirection;
-            var chestComponent = new ItemShooterComponent(componentStates, inputConnectorComponent, itemShooter);
+
+            var settings = CreateSettings(itemShooter);
+            var chestComponent = new ItemShooterComponent(componentStates, inputConnectorComponent, settings);
             var components = new List<IBlockComponent>
             {
                 chestComponent,
@@ -40,5 +41,26 @@ namespace Game.Block.Factory.BlockTemplate
             
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
+
+        #region Internal
+
+        private static ItemShooterComponentSettings CreateSettings(ItemShooterBlockParam param)
+        {
+            var slope = param.SlopeType switch
+            {
+                ItemShooterBlockParam.SlopeTypeConst.Up => BeltConveyorSlopeType.Up,
+                ItemShooterBlockParam.SlopeTypeConst.Down => BeltConveyorSlopeType.Down,
+                _ => BeltConveyorSlopeType.Straight
+            };
+
+            return new ItemShooterComponentSettings(
+                param.InventoryItemNum,
+                (float)param.InitialShootSpeed,
+                (float)param.ItemShootSpeed,
+                (float)param.Acceleration,
+                slope);
+        }
+
+        #endregion
     }
 }

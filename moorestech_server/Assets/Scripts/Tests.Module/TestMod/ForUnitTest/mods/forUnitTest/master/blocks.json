@@ -1870,7 +1870,7 @@
         },
         "slopeType": "Straight"
       },
-      "itemGuid": "11800000-0000-0000-0000-000000000000",
+      "itemGuid": "12200000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-000000000015",
       "overrideVerticalBlock": {}
     },
@@ -2136,6 +2136,135 @@
       },
       "itemGuid": "11700000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-000000000018",
+      "overrideVerticalBlock": {}
+    },
+    {
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "TestItemShooterAccelerator",
+      "blockType": "ItemShooterAccelerator",
+      "blockParam": {
+        "acceleration": 0,
+        "poweredAcceleration": 1.5,
+        "maxAccelerationMultiplier": 4,
+        "requireTorque": 1,
+        "requiredRpm": 5,
+        "itemShootSpeed": 1,
+        "initialShootSpeed": 1,
+        "inventoryItemNum": 4,
+        "inventoryConnectors": {
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ],
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ]
+        },
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ]
+            }
+          ]
+        },
+        "slopeType": "Straight"
+      },
+      "itemGuid": "11800000-0000-0000-0000-000000000000",
+      "blockGuid": "00000000-0000-0000-0000-000000000029",
       "overrideVerticalBlock": {}
     },
     {

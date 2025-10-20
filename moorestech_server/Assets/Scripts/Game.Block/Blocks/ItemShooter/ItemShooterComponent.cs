@@ -9,40 +9,53 @@ using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
-using Mooresmaster.Model.BlocksModule;
 using Newtonsoft.Json;
 using UnityEngine;
 
 namespace Game.Block.Blocks.ItemShooter
 {
+    public readonly struct ItemShooterComponentSettings
+    {
+        public ItemShooterComponentSettings(int inventoryItemNum, float initialShootSpeed, float itemShootSpeed, float acceleration, BeltConveyorSlopeType slopeType)
+        {
+            InventoryItemNum = inventoryItemNum;
+            InitialShootSpeed = initialShootSpeed;
+            ItemShootSpeed = itemShootSpeed;
+            Acceleration = acceleration;
+            SlopeType = slopeType;
+        }
+
+        public int InventoryItemNum { get; }
+        public float InitialShootSpeed { get; }
+        public float ItemShootSpeed { get; }
+        public float Acceleration { get; }
+        public BeltConveyorSlopeType SlopeType { get; }
+    }
+
     public class ItemShooterComponent : IItemCollectableBeltConveyor, IBlockInventory, IBlockSaveState, IUpdatableBlockComponent
     {
         public BeltConveyorSlopeType SlopeType { get; }
         public IReadOnlyList<IOnBeltConveyorItem> BeltConveyorItems => _inventoryItems;
         private readonly ShooterInventoryItem[] _inventoryItems;
-        
+
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
-        private readonly ItemShooterBlockParam _itemShooterBlockParam;
+        private readonly ItemShooterComponentSettings _settings;
         private const float InsertItemInterval = 1f; // TODO to master
         
         private float _lastInsertElapsedTime = float.MaxValue;
-        
-        public ItemShooterComponent(BlockConnectorComponent<IBlockInventory> blockConnectorComponent, ItemShooterBlockParam itemShooterBlockParam)
+        private float? _externalAcceleration;
+
+        public ItemShooterComponent(BlockConnectorComponent<IBlockInventory> blockConnectorComponent, ItemShooterComponentSettings settings)
         {
             _blockConnectorComponent = blockConnectorComponent;
-            _itemShooterBlockParam = itemShooterBlockParam;
-            SlopeType = itemShooterBlockParam.SlopeType switch
-            {
-                ItemShooterBlockParam.SlopeTypeConst.Up => BeltConveyorSlopeType.Up,
-                ItemShooterBlockParam.SlopeTypeConst.Down => BeltConveyorSlopeType.Down,
-                ItemShooterBlockParam.SlopeTypeConst.Straight => BeltConveyorSlopeType.Straight
-            };
+            _settings = settings;
+            SlopeType = settings.SlopeType;
             
-            _inventoryItems = new ShooterInventoryItem[_itemShooterBlockParam.InventoryItemNum];
+            _inventoryItems = new ShooterInventoryItem[_settings.InventoryItemNum];
         }
-        
-        public ItemShooterComponent(Dictionary<string, string> componentStates, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, ItemShooterBlockParam itemShooterBlockParam) :
-            this(blockConnectorComponent, itemShooterBlockParam)
+
+        public ItemShooterComponent(Dictionary<string, string> componentStates, BlockConnectorComponent<IBlockInventory> blockConnectorComponent, ItemShooterComponentSettings settings) :
+            this(blockConnectorComponent, settings)
         {
             var items = JsonConvert.DeserializeObject<List<ItemShooterItemJsonObject>>(componentStates[SaveKey]);
             for (var i = 0; i < items.Count; i++)
@@ -64,6 +77,9 @@ namespace Game.Block.Blocks.ItemShooter
             
             _lastInsertElapsedTime += (float)GameUpdater.UpdateSecondTime;
             var count = _inventoryItems.Length;
+            var deltaTime = (float)GameUpdater.UpdateSecondTime; // floatとdobuleが混在しているの気持ち悪いから改善したい
+            var itemShootSpeed = _settings.ItemShootSpeed;
+            var acceleration = _externalAcceleration ?? _settings.Acceleration;
             
             for (var i = 0; i < count; i++)
             {
@@ -94,14 +110,15 @@ namespace Game.Block.Blocks.ItemShooter
                 }
                 
                 //時間を減らす
-                var deltaTime = (float)GameUpdater.UpdateSecondTime; // floatとdobuleが混在しているの気持ち悪いから改善したい
-                item.RemainingPercent -= deltaTime * _itemShooterBlockParam.ItemShootSpeed * item.CurrentSpeed;
+                item.RemainingPercent -= deltaTime * itemShootSpeed * item.CurrentSpeed;
                 item.RemainingPercent = Math.Clamp(item.RemainingPercent, 0, 1);
                 
                 // velocityを更新する
-                item.CurrentSpeed += _itemShooterBlockParam.Acceleration * deltaTime;
+                item.CurrentSpeed += acceleration * deltaTime;
                 item.CurrentSpeed = Mathf.Clamp(item.CurrentSpeed, 0, float.MaxValue);
             }
+
+            _externalAcceleration = null;
         }
         
         private ShooterInventoryItem InsertItemFromShooter(ShooterInventoryItem inventoryItem)
@@ -132,7 +149,7 @@ namespace Game.Block.Blocks.ItemShooter
             {
                 if (_inventoryItems[i] != null) continue;
                 
-                _inventoryItems[i] = new ShooterInventoryItem(itemStack.Id, itemStack.ItemInstanceId, _itemShooterBlockParam.InitialShootSpeed);
+                _inventoryItems[i] = new ShooterInventoryItem(itemStack.Id, itemStack.ItemInstanceId, _settings.InitialShootSpeed);
                 //挿入したのでアイテムを減らして返す
                 _lastInsertElapsedTime = 0;
                 return itemStack.SubItem(1);
@@ -170,7 +187,7 @@ namespace Game.Block.Blocks.ItemShooter
         public void SetItem(int slot, IItemStack itemStack)
         {
             BlockException.CheckDestroy(this);
-            _inventoryItems[slot] = new ShooterInventoryItem(itemStack.Id, itemStack.ItemInstanceId, _itemShooterBlockParam.InitialShootSpeed);
+            _inventoryItems[slot] = new ShooterInventoryItem(itemStack.Id, itemStack.ItemInstanceId, _settings.InitialShootSpeed);
         }
         
         public int GetSlotSize()
@@ -192,6 +209,11 @@ namespace Game.Block.Blocks.ItemShooter
             BlockException.CheckDestroy(this);
             var items = _inventoryItems.Select(item => new ItemShooterItemJsonObject(item)).ToList();
             return JsonConvert.SerializeObject(items);
+        }
+
+        public void SetExternalAcceleration(float acceleration)
+        {
+            _externalAcceleration = acceleration;
         }
     }
     
