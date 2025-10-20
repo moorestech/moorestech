@@ -16,7 +16,8 @@ namespace Game.Block.Factory.BlockTemplate
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(itemShooter.InventoryConnectors, blockPositionInfo);
 
             var settings = CreateSettings(itemShooter);
-            var chestComponent = new ItemShooterComponent(inputConnectorComponent, settings);
+            var service = new ItemShooterComponentService(inputConnectorComponent, settings);
+            var chestComponent = new ItemShooterComponent(service);
             var components = new List<IBlockComponent>
             {
                 chestComponent,
@@ -32,7 +33,8 @@ namespace Game.Block.Factory.BlockTemplate
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(itemShooter.InventoryConnectors, blockPositionInfo);
 
             var settings = CreateSettings(itemShooter);
-            var chestComponent = new ItemShooterComponent(componentStates, inputConnectorComponent, settings);
+            var service = new ItemShooterComponentService(inputConnectorComponent, settings);
+            var chestComponent = new ItemShooterComponent(componentStates, service);
             var components = new List<IBlockComponent>
             {
                 chestComponent,

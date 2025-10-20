@@ -11,20 +11,20 @@ namespace Game.Block.Blocks.ItemShooter
 {
     public class ItemShooterAcceleratorComponent : GearEnergyTransformer, IUpdatableBlockComponent
     {
-        private readonly ItemShooterComponent _itemShooterComponent;
+        private readonly ItemShooterComponentService _service;
         private readonly ItemShooterAcceleratorBlockParam _param;
         private readonly Torque _requiredTorque;
         private readonly RPM _requiredRpm;
         private readonly float _maxMultiplier;
 
         public ItemShooterAcceleratorComponent(
-            ItemShooterComponent itemShooterComponent,
+            ItemShooterComponentService service,
             ItemShooterAcceleratorBlockParam param,
             BlockInstanceId blockInstanceId,
             BlockConnectorComponent<IGearEnergyTransformer> gearConnector)
             : base(new Torque((float)param.RequireTorque), blockInstanceId, gearConnector)
         {
-            _itemShooterComponent = itemShooterComponent;
+            _service = service;
             _param = param;
             _requiredTorque = new Torque((float)param.RequireTorque);
             _requiredRpm = new RPM((float)param.RequiredRpm);
@@ -34,7 +34,7 @@ namespace Game.Block.Blocks.ItemShooter
         public void Update()
         {
             BlockException.CheckDestroy(this);
-            _itemShooterComponent.SetExternalAcceleration(CalculateAcceleration());
+            _service.SetExternalAcceleration(CalculateAcceleration());
         }
 
         private float CalculateAcceleration()

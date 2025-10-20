@@ -33,11 +33,12 @@ namespace Game.Block.Factory.BlockTemplate
                 blockPositionInfo);
 
             var settings = CreateSettings(acceleratorParam);
+            var service = new ItemShooterComponentService(inventoryConnectorComponent, settings);
             var itemShooterComponent = componentStates == null
-                ? new ItemShooterComponent(inventoryConnectorComponent, settings)
-                : new ItemShooterComponent(componentStates, inventoryConnectorComponent, settings);
+                ? new ItemShooterComponent(service)
+                : new ItemShooterComponent(componentStates, service);
 
-            var acceleratorComponent = new ItemShooterAcceleratorComponent(itemShooterComponent, acceleratorParam, blockInstanceId, gearConnectorComponent);
+            var acceleratorComponent = new ItemShooterAcceleratorComponent(service, acceleratorParam, blockInstanceId, gearConnectorComponent);
 
             var components = new List<IBlockComponent>
             {
