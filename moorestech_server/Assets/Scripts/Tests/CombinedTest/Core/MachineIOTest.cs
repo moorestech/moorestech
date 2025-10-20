@@ -65,6 +65,51 @@ namespace Tests.CombinedTest.Core
             }
         }
         
+        [Test]
+        public void ItemProcessingRemainInputTest()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            
+            var itemStackFactory = ServerContext.ItemStackFactory;
+            var blockFactory = ServerContext.BlockFactory;
+            
+            var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data
+                .First(r => r.InputItems.Any(input => input.IsRemain.HasValue && input.IsRemain.Value));
+            
+            var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
+            var block = blockFactory.Create(blockId, new BlockInstanceId(2), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
+            var blockInventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
+            foreach (var inputItem in recipe.InputItems)
+            {
+                blockInventory.InsertItem(itemStackFactory.Create(inputItem.ItemGuid, inputItem.Count));
+            }
+            
+            var blockMachineComponent = block.GetComponent<VanillaElectricMachineComponent>();
+            
+            var craftTime = DateTime.Now.AddSeconds(recipe.Time);
+            while (craftTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1)
+            {
+                blockMachineComponent.SupplyEnergy(new ElectricPower(10000));
+                GameUpdater.UpdateWithWait();
+            }
+            
+            (List<IItemStack> input, List<IItemStack> output) = GetInputOutputSlot(blockInventory);
+            
+            Assert.AreEqual(1, input.Count);
+            var remainSource = recipe.InputItems.First(i => i.IsRemain.HasValue && i.IsRemain.Value);
+            var expectedRemainId = MasterHolder.ItemMaster.GetItemId(remainSource.ItemGuid);
+            Assert.AreEqual(expectedRemainId, input[0].Id);
+            Assert.AreEqual(remainSource.Count, input[0].Count);
+            
+            Assert.AreNotEqual(0, output.Count);
+            for (var i = 0; i < output.Count; i++)
+            {
+                var expectedOutputId = MasterHolder.ItemMaster.GetItemId(recipe.OutputItems[i].ItemGuid);
+                Assert.AreEqual(expectedOutputId, output[i].Id);
+                Assert.AreEqual(recipe.OutputItems[i].Count, output[i].Count);
+            }
+        }
+        
         public (List<IItemStack>, List<IItemStack>) GetInputOutputSlot(VanillaMachineBlockInventoryComponent vanillaMachineInventory)
         {
             var vanillaMachineInputInventory = (VanillaMachineInputInventory)typeof(VanillaMachineBlockInventoryComponent)
