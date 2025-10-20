@@ -49,8 +49,15 @@ namespace Core.Master
                         var inputItemMaster = inputItemIds
                             .Select(i => MasterHolder.ItemMaster.GetItemMaster(i))
                             .ToList();
-                        throw new Exception($"同じレシピが登録されています。ブロックID:{blockMaster.Name} アイテムIDリスト: {string.Join(", ", inputItemMaster.Select(i => i.Name))} \n" +
-                                            $"レシピID1: {_machineRecipesByRecipeKey[key].MachineRecipeGuid} レシピID2: {recipe.MachineRecipeGuid}");
+                        
+                        var recipe1Guid = _machineRecipesByRecipeKey[key].MachineRecipeGuid;
+                        var recipe2Guid = recipe.MachineRecipeGuid;
+                        var recipe1Index = MachineRecipes.Data.ToList().FindIndex(x => x.MachineRecipeGuid == recipe1Guid);
+                        var recipe2Index = MachineRecipes.Data.ToList().FindIndex(x => x.MachineRecipeGuid == recipe2Guid);
+                        
+                        throw new Exception($"機械レシピマスタに同じレシピが登録されています。ブロックID:{blockMaster.Name} アイテムIDリスト: {string.Join(", ", inputItemMaster.Select(i => i.Name))} \n" +
+                                            $"レシピIndex1: {recipe1Index} レシピIndex2: {recipe2Index} \n" +
+                                            $"レシピID1: {recipe1Guid} レシピID2: {recipe2Guid}");
                     }
                 }
             }
