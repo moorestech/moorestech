@@ -30,6 +30,8 @@ namespace Game.Block.Blocks.Gear
         public bool GenerateIsActive => _steamConsumptionRate > 0f;
         public bool GenerateIsReady => _currentState is GeneratorState.Accelerating or GeneratorState.Running;
 
+        // 生成に必要なパラメータ・サービスと現在の状態管理フィールド群
+        // Core parameters, services, and state trackers required for power generation
         private readonly SteamGearGeneratorBlockParam _param;
         private readonly SteamGearGeneratorFluidComponent _fluidComponent;
         private readonly OpenableInventoryItemDataStoreService _inventoryService;
@@ -49,6 +51,8 @@ namespace Game.Block.Blocks.Gear
             Decelerating
         }
 
+        // コンストラクタで依存関係を受け取り初期状態をセットアップする
+        // Accept dependencies during construction and configure the initial generator state
         public SteamGearGeneratorComponent(
             SteamGearGeneratorBlockParam param,
             BlockInstanceId blockInstanceId,
@@ -91,10 +95,11 @@ namespace Game.Block.Blocks.Gear
             _stateElapsedTime = saveData.StateElapsedTime;
             _steamConsumptionRate = saveData.SteamConsumptionRate;
             _rateAtDecelerationStart = saveData.RateAtDecelerationStart;
+            var restoredFuelType = Enum.TryParse(saveData.ActiveFuelType, out SteamGearGeneratorFuelService.FuelType parsedFuelType) ? parsedFuelType : SteamGearGeneratorFuelService.FuelType.None;
             RestoreInventory(saveData.Items);
             _fuelService.Restore(new SteamGearGeneratorFuelService.FuelState
             {
-                ActiveFuelType = saveData.ActiveFuelType,
+                ActiveFuelType = restoredFuelType,
                 CurrentFuelItemGuid = saveData.CurrentFuelItemGuid,
                 CurrentFuelFluidGuid = saveData.CurrentFuelFluidGuid,
                 RemainingFuelTime = saveData.RemainingFuelTime
@@ -120,6 +125,8 @@ namespace Game.Block.Blocks.Gear
             #endregion
         }
 
+        // 毎フレーム呼ばれ、燃料処理と出力更新をまとめて行う
+        // Called every frame to process fuel consumption and refresh output values
         public void Update()
         {
             BlockException.CheckDestroy(this);
@@ -127,6 +134,8 @@ namespace Game.Block.Blocks.Gear
             UpdateOutput();
         }
 
+        // 燃料・流体状況を元に現在の動作状態を遷移させる
+        // Transition the generator state based on the available item and fluid fuel
         private void UpdateState()
         {
             _fuelService.Update();
@@ -241,6 +250,8 @@ namespace Game.Block.Blocks.Gear
             }
         }
 
+        // 加速・減速の補間を指示されたイージング種別で計算する
+        // Calculate acceleration and deceleration curves using the requested easing type
         private float ApplyEasing(float t, string easingType)
         {
             switch (easingType)
@@ -282,7 +293,7 @@ namespace Game.Block.Blocks.Gear
             };
 
             var fuelState = _fuelService.CreateSnapshot();
-            saveData.ActiveFuelType = fuelState.ActiveFuelType;
+            saveData.ActiveFuelType = fuelState.ActiveFuelType.ToString();
             saveData.RemainingFuelTime = fuelState.RemainingFuelTime;
             saveData.CurrentFuelItemGuidStr = fuelState.CurrentFuelItemGuid?.ToString();
             saveData.CurrentFuelFluidGuidStr = fuelState.CurrentFuelFluidGuid?.ToString();
