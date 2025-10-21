@@ -43,7 +43,7 @@ namespace Game.Block.Blocks.Gear
             : base(isClockwise, stateService.CurrentGeneratedRpm.AsPrimitive(), stateService.CurrentGeneratedTorque.AsPrimitive(), gearNetworkInfo)
         {
             var steamTank = fluidComponent.SteamTank;
-            State = stateService.CurrentStateName;
+            State = stateService.CurrentState.ToString();
             SteamConsumptionRate = stateService.SteamConsumptionRate;
             SteamAmount = steamTank.Amount;
             SteamFluidId = steamTank.FluidId.AsPrimitive();

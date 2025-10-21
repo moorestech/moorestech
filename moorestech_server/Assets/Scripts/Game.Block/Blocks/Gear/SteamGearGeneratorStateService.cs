@@ -8,43 +8,38 @@ using UnityEngine;
 
 namespace Game.Block.Blocks.Gear
 {
+    public enum SteamGearGeneratorState
+    {
+        Idle,
+        Accelerating,
+        Running,
+        Decelerating
+    }
+    
     // SteamGearGeneratorの状態と出力を統括するサービス
     // Service that governs SteamGearGenerator state transitions and output levels
     public class SteamGearGeneratorStateService
     {
+        public float SteamConsumptionRate { get; private set; }
+        public SteamGearGeneratorState CurrentState { get; private set; }
+        
         // 出力変化を検知する際の最小閾値
         // Minimum delta used to detect meaningful output changes
         private const float RateChangeThreshold = 0.0001f;
-
-        private enum GeneratorState
-        {
-            Idle,
-            Accelerating,
-            Running,
-            Decelerating
-        }
 
         // 依存するパラメータとコンポーネント、および内部状態保持用のフィールド群
         // Dependent parameters, collaborating components, and internal state holders
         private readonly SteamGearGeneratorBlockParam _param;
         private readonly SteamGearGeneratorFuelService _fuelService;
         private readonly SteamGearGeneratorFluidComponent _fluidComponent;
-
-        private GeneratorState _currentState;
+        
         private float _stateElapsedTime;
-        private float _steamConsumptionRate;
         private float _rateAtDecelerationStart;
 
         // 外部へ公開する読み取りプロパティ
         // Read-only accessors exposed to the outside world
-        public float SteamConsumptionRate => _steamConsumptionRate;
-        // 加速または稼働状態にあり、出力が立ち上がっているかの指標
-        // Indicates whether the generator is accelerating or running with active output
-        public bool IsReady => _currentState == GeneratorState.Accelerating || _currentState == GeneratorState.Running;
-        public float RateAtDecelerationStart => _rateAtDecelerationStart;
-        public string CurrentStateName => _currentState.ToString();
-        public RPM CurrentGeneratedRpm => new RPM(_param.GenerateMaxRpm * _steamConsumptionRate);
-        public Torque CurrentGeneratedTorque => new Torque(_param.GenerateMaxTorque * _steamConsumptionRate);
+        public RPM CurrentGeneratedRpm => new(_param.GenerateMaxRpm * SteamConsumptionRate);
+        public Torque CurrentGeneratedTorque => new(_param.GenerateMaxTorque * SteamConsumptionRate);
 
         // コンストラクタでサービスの依存を受け取り、初期状態を整える
         // Accept dependencies via constructor and initialise the state machine
@@ -56,9 +51,9 @@ namespace Game.Block.Blocks.Gear
             _param = param;
             _fuelService = fuelService;
             _fluidComponent = fluidComponent;
-            _currentState = GeneratorState.Idle;
+            CurrentState = SteamGearGeneratorState.Idle;
             _stateElapsedTime = 0f;
-            _steamConsumptionRate = 0f;
+            SteamConsumptionRate = 0f;
             _rateAtDecelerationStart = 0f;
         }
 
@@ -66,8 +61,8 @@ namespace Game.Block.Blocks.Gear
         // Advance the state machine and return true when the output changes
         public bool TryUpdate(out RPM generateRpm, out Torque generateTorque)
         {
-            var previousRate = _steamConsumptionRate;
-            var previousState = _currentState;
+            var previousRate = SteamConsumptionRate;
+            var previousState = CurrentState;
 
             ProcessStateMachine();
             UpdateConsumptionRate();
@@ -75,8 +70,8 @@ namespace Game.Block.Blocks.Gear
             generateRpm = CurrentGeneratedRpm;
             generateTorque = CurrentGeneratedTorque;
 
-            var stateChanged = previousState != _currentState;
-            var rateChanged = Mathf.Abs(previousRate - _steamConsumptionRate) > RateChangeThreshold;
+            var stateChanged = previousState != CurrentState;
+            var rateChanged = Mathf.Abs(previousRate - SteamConsumptionRate) > RateChangeThreshold;
             return stateChanged || rateChanged;
         }
 
@@ -86,9 +81,9 @@ namespace Game.Block.Blocks.Gear
         {
             return new StateSnapshot
             {
-                State = _currentState.ToString(),
+                State = CurrentState.ToString(),
                 StateElapsedTime = _stateElapsedTime,
-                SteamConsumptionRate = _steamConsumptionRate,
+                SteamConsumptionRate = SteamConsumptionRate,
                 RateAtDecelerationStart = _rateAtDecelerationStart
             };
         }
@@ -97,14 +92,14 @@ namespace Game.Block.Blocks.Gear
         // Restore internal values of the state machine from a save snapshot
         public void Restore(StateSnapshot snapshot)
         {
-            if (!Enum.TryParse(snapshot.State, out GeneratorState parsedState))
+            if (!Enum.TryParse(snapshot.State, out SteamGearGeneratorState parsedState))
             {
-                parsedState = GeneratorState.Idle;
+                parsedState = SteamGearGeneratorState.Idle;
             }
 
-            _currentState = parsedState;
+            CurrentState = parsedState;
             _stateElapsedTime = snapshot.StateElapsedTime;
-            _steamConsumptionRate = snapshot.SteamConsumptionRate;
+            SteamConsumptionRate = snapshot.SteamConsumptionRate;
             _rateAtDecelerationStart = snapshot.RateAtDecelerationStart;
         }
 
@@ -119,49 +114,49 @@ namespace Game.Block.Blocks.Gear
             var shouldForceDeceleration = _fuelService.IsUsingFluidFuel && !allowFluidFuel;
             _stateElapsedTime += (float)GameUpdater.UpdateSecondTime;
 
-            switch (_currentState)
+            switch (CurrentState)
             {
-                case GeneratorState.Idle:
+                case SteamGearGeneratorState.Idle:
                     if (hasFuel && _fuelService.TryEnsureFuel(allowFluidFuel))
                     {
-                        TransitionToState(GeneratorState.Accelerating);
+                        TransitionToState(SteamGearGeneratorState.Accelerating);
                     }
                     break;
 
-                case GeneratorState.Accelerating:
+                case SteamGearGeneratorState.Accelerating:
                     if (shouldForceDeceleration)
                     {
-                        TransitionToState(GeneratorState.Decelerating);
+                        TransitionToState(SteamGearGeneratorState.Decelerating);
                     }
                     else if (!_fuelService.TryEnsureFuel(allowFluidFuel))
                     {
-                        TransitionToState(GeneratorState.Decelerating);
+                        TransitionToState(SteamGearGeneratorState.Decelerating);
                     }
                     else if (_stateElapsedTime >= _param.TimeToMax)
                     {
-                        TransitionToState(GeneratorState.Running);
+                        TransitionToState(SteamGearGeneratorState.Running);
                     }
                     break;
 
-                case GeneratorState.Running:
+                case SteamGearGeneratorState.Running:
                     if (shouldForceDeceleration)
                     {
-                        TransitionToState(GeneratorState.Decelerating);
+                        TransitionToState(SteamGearGeneratorState.Decelerating);
                     }
                     else if (!_fuelService.TryEnsureFuel(allowFluidFuel))
                     {
-                        TransitionToState(GeneratorState.Decelerating);
+                        TransitionToState(SteamGearGeneratorState.Decelerating);
                     }
                     break;
 
-                case GeneratorState.Decelerating:
+                case SteamGearGeneratorState.Decelerating:
                     if (_stateElapsedTime >= _param.TimeToMax)
                     {
-                        TransitionToState(GeneratorState.Idle);
+                        TransitionToState(SteamGearGeneratorState.Idle);
                     }
                     else if (hasFuel && allowFluidFuel && _fuelService.TryEnsureFuel(allowFluidFuel))
                     {
-                        TransitionToState(GeneratorState.Accelerating);
+                        TransitionToState(SteamGearGeneratorState.Accelerating);
                     }
                     break;
             }
@@ -171,38 +166,38 @@ namespace Game.Block.Blocks.Gear
         // Refresh the output ratio depending on the current machine state
         private void UpdateConsumptionRate()
         {
-            switch (_currentState)
+            switch (CurrentState)
             {
-                case GeneratorState.Idle:
-                    _steamConsumptionRate = 0f;
+                case SteamGearGeneratorState.Idle:
+                    SteamConsumptionRate = 0f;
                     break;
-                case GeneratorState.Accelerating:
+                case SteamGearGeneratorState.Accelerating:
                     var accelerationProgress = Mathf.Clamp01(_stateElapsedTime / _param.TimeToMax);
-                    _steamConsumptionRate = ApplyEasing(accelerationProgress, _param.TimeToMaxEasing);
+                    SteamConsumptionRate = ApplyEasing(accelerationProgress, _param.TimeToMaxEasing);
                     break;
-                case GeneratorState.Running:
-                    _steamConsumptionRate = 1f;
+                case SteamGearGeneratorState.Running:
+                    SteamConsumptionRate = 1f;
                     break;
-                case GeneratorState.Decelerating:
+                case SteamGearGeneratorState.Decelerating:
                     var decelerationProgress = Mathf.Clamp01(_stateElapsedTime / _param.TimeToMax);
                     var eased = ApplyEasing(decelerationProgress, _param.TimeToMaxEasing);
-                    _steamConsumptionRate = _rateAtDecelerationStart * (1f - eased);
+                    SteamConsumptionRate = _rateAtDecelerationStart * (1f - eased);
                     break;
             }
         }
 
         // 状態遷移時の共通処理をまとめたヘルパー
         // Helper that centralises common work required during state transitions
-        private void TransitionToState(GeneratorState newState)
+        private void TransitionToState(SteamGearGeneratorState newState)
         {
-            if (_currentState == newState) return;
+            if (CurrentState == newState) return;
 
-            if (newState == GeneratorState.Decelerating)
+            if (newState == SteamGearGeneratorState.Decelerating)
             {
-                _rateAtDecelerationStart = _steamConsumptionRate;
+                _rateAtDecelerationStart = SteamConsumptionRate;
             }
 
-            _currentState = newState;
+            CurrentState = newState;
             _stateElapsedTime = 0f;
         }
 
