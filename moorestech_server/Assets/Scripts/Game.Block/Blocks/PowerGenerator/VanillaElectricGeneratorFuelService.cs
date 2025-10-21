@@ -133,6 +133,8 @@ namespace Game.Block.Blocks.PowerGenerator
                     var slotItemId = slotItem.Id;
                     if (!_fuelSettings.TryGetValue(slotItemId, out var itemSetting)) continue;
 
+                    if (slotItem.Count < 1) continue;
+
                     _currentFuelItemId = slotItemId;
                     _currentFuelFluidId = FluidMaster.EmptyFluidId;
                     _currentFuelType = FuelType.Item;
@@ -273,5 +275,6 @@ namespace Game.Block.Blocks.PowerGenerator
             }
 
         }
+
     }
 }
