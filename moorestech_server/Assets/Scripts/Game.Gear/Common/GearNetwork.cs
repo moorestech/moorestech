@@ -85,6 +85,7 @@ namespace Game.Gear.Common
             
             if (rocked)
             {
+                CurrentGearNetworkInfo = GearNetworkInfo.CreateEmpty();
                 SetNetworkStop(GearNetworkStopReason.Rocked);
                 return;
             }
@@ -93,6 +94,7 @@ namespace Game.Gear.Common
             var (totalRequiredGearPower, totalGeneratePower) = CalculateEnergyBalance();
             if (totalRequiredGearPower > totalGeneratePower)
             {
+                CurrentGearNetworkInfo = new GearNetworkInfo(totalRequiredGearPower, totalGeneratePower, 0f);
                 SetNetworkStop(GearNetworkStopReason.OverRequirePower);
                 return;
             }

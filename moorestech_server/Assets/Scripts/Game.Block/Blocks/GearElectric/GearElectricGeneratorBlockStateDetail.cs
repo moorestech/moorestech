@@ -11,10 +11,10 @@ namespace Game.Block.Blocks.GearElectric
     {
         public const string GearGeneratorBlockStateDetailKey = "GearElectricGenerator";
         
-        [Key(6)] public float EnergyFulfillmentRate { get; set; }
-        [Key(7)] public float GeneratedElectricPower { get; set; }
-        [Key(8)] public float InputRpm { get; set; }
-        [Key(9)] public float InputTorque { get; set; }
+        [Key(7)] public float EnergyFulfillmentRate { get; set; }
+        [Key(8)] public float GeneratedElectricPower { get; set; }
+        [Key(9)] public float InputRpm { get; set; }
+        [Key(10)] public float InputTorque { get; set; }
         
         public GearElectricGeneratorBlockStateDetail(
             bool isClockwise,
