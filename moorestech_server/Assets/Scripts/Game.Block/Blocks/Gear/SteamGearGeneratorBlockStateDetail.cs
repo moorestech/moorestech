@@ -33,18 +33,18 @@ namespace Game.Block.Blocks.Gear
         /// </summary>
         [Key(9)] public int SteamFluidId;
         
+        // ギア生成サービスと流体コンポーネントから詳細情報を抽出する
+        // Populate detail fields by querying services and the fluid component
         public SteamGearGeneratorBlockStateDetail(
-            string state, 
-            RPM rpm, 
-            Torque torque, 
-            bool isClockwise, 
-            float steamConsumptionRate, 
-            FluidContainer steamTank, 
-            GearNetworkInfo gearNetworkInfo)
-            : base(isClockwise, rpm.AsPrimitive(), torque.AsPrimitive(), gearNetworkInfo)
+            SteamGearGeneratorStateService stateService,
+            SteamGearGeneratorFluidComponent fluidComponent,
+            GearNetworkInfo gearNetworkInfo,
+            bool isClockwise)
+            : base(isClockwise, stateService.CurrentGeneratedRpm.AsPrimitive(), stateService.CurrentGeneratedTorque.AsPrimitive(), gearNetworkInfo)
         {
-            State = state;
-            SteamConsumptionRate = steamConsumptionRate;
+            var steamTank = fluidComponent.SteamTank;
+            State = stateService.CurrentState.ToString();
+            SteamConsumptionRate = stateService.SteamConsumptionRate;
             SteamAmount = steamTank.Amount;
             SteamFluidId = steamTank.FluidId.AsPrimitive();
         }

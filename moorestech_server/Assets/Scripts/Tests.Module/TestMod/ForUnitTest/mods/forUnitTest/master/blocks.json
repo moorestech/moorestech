@@ -304,18 +304,6 @@
         "fuelItemSlotCount": 10,
         "isInfinityPower": false,
         "infinityPower": 0,
-        "fuelItems": [
-          {
-            "power": 100,
-            "time": 1,
-            "itemGuid": "00000000-0000-0000-1234-000000000001"
-          },
-          {
-            "power": 200,
-            "time": 2,
-            "itemGuid": "00000000-0000-0000-1234-000000000002"
-          }
-        ],
         "fuelFluidTankCapacity": 100,
         "fuelFluids": [
           {
@@ -367,7 +355,19 @@
         "inventoryConnectors": {
           "outputConnects": [],
           "inputConnects": []
-        }
+        },
+        "fuelItems": [
+          {
+            "itemGuid": "00000000-0000-0000-1234-000000000001",
+            "time": 1,
+            "power": 100
+          },
+          {
+            "itemGuid": "00000000-0000-0000-1234-000000000002",
+            "time": 2,
+            "power": 200
+          }
+        ]
       },
       "itemGuid": "00000000-0000-0000-1234-000000000005",
       "blockGuid": "00000000-0000-0000-0000-000000000005",
@@ -586,7 +586,6 @@
         "fuelItemSlotCount": 4,
         "isInfinityPower": true,
         "infinityPower": 10,
-        "fuelItems": [],
         "inventoryConnectors": {
           "outputConnects": [
             {
@@ -664,7 +663,19 @@
         "fluidInventoryConnectors": {
           "inflowConnects": [],
           "outflowConnects": []
-        }
+        },
+        "fuelItems": [
+          {
+            "itemGuid": "00000000-0000-0000-1234-000000000001",
+            "time": 1,
+            "power": 100
+          },
+          {
+            "itemGuid": "00000000-0000-0000-1234-000000000002",
+            "time": 2,
+            "power": 200
+          }
+        ]
       },
       "itemGuid": "00000000-0000-0000-1234-000000000008",
       "blockGuid": "00000000-0000-0000-0000-000000000008",
@@ -702,7 +713,6 @@
         "fuelItemSlotCount": 0,
         "isInfinityPower": true,
         "infinityPower": 10,
-        "fuelItems": [],
         "inventoryConnectors": {
           "outputConnects": [
             {
@@ -759,7 +769,19 @@
         "fluidInventoryConnectors": {
           "inflowConnects": [],
           "outflowConnects": []
-        }
+        },
+        "fuelItems": [
+          {
+            "itemGuid": "00000000-0000-0000-1234-000000000001",
+            "time": 1,
+            "power": 100
+          },
+          {
+            "itemGuid": "00000000-0000-0000-1234-000000000002",
+            "time": 2,
+            "power": 200
+          }
+        ]
       },
       "overrideVerticalBlock": {}
     },
@@ -835,13 +857,24 @@
           ],
           "inputConnects": []
         },
-        "fuelItems": [],
         "fuelFluidTankCapacity": 0,
         "fuelFluids": [],
         "fluidInventoryConnectors": {
           "inflowConnects": [],
           "outflowConnects": []
-        }
+        },
+        "fuelItems": [
+          {
+            "itemGuid": "00000000-0000-0000-1234-000000000001",
+            "time": 1,
+            "power": 100
+          },
+          {
+            "itemGuid": "00000000-0000-0000-1234-000000000002",
+            "time": 2,
+            "power": 200
+          }
+        ]
       },
       "overrideVerticalBlock": {}
     },
@@ -927,13 +960,24 @@
             }
           ]
         },
-        "fuelItems": [],
         "fuelFluidTankCapacity": 0,
         "fuelFluids": [],
         "fluidInventoryConnectors": {
           "inflowConnects": [],
           "outflowConnects": []
-        }
+        },
+        "fuelItems": [
+          {
+            "itemGuid": "00000000-0000-0000-1234-000000000001",
+            "time": 1,
+            "power": 100
+          },
+          {
+            "itemGuid": "00000000-0000-0000-1234-000000000002",
+            "time": 2,
+            "power": 200
+          }
+        ]
       },
       "overrideVerticalBlock": {}
     },
@@ -1870,7 +1914,7 @@
         },
         "slopeType": "Straight"
       },
-      "itemGuid": "11800000-0000-0000-0000-000000000000",
+      "itemGuid": "12200000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-000000000015",
       "overrideVerticalBlock": {}
     },
@@ -2136,6 +2180,135 @@
       },
       "itemGuid": "11700000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-000000000018",
+      "overrideVerticalBlock": {}
+    },
+    {
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "TestItemShooterAccelerator",
+      "blockType": "ItemShooterAccelerator",
+      "blockParam": {
+        "acceleration": 0,
+        "poweredAcceleration": 1.5,
+        "maxAccelerationMultiplier": 4,
+        "requireTorque": 1,
+        "requiredRpm": 5,
+        "itemShootSpeed": 1,
+        "initialShootSpeed": 1,
+        "inventoryItemNum": 4,
+        "inventoryConnectors": {
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ],
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Inventory",
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ]
+        },
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ]
+            }
+          ]
+        },
+        "slopeType": "Straight"
+      },
+      "itemGuid": "11800000-0000-0000-0000-000000000000",
+      "blockGuid": "00000000-0000-0000-0000-000000000029",
       "overrideVerticalBlock": {}
     },
     {
@@ -3743,6 +3916,7 @@
             "fluidGuid": "00000000-0000-0000-1234-000000000002"
           }
         ],
+        "fuelItemSlotCount": 2,
         "gear": {
           "gearConnects": []
         },
@@ -3839,6 +4013,17 @@
               }
             }
           ]
+        },
+        "gearFuelItems": [
+          {
+            "itemGuid": "00000000-0000-0000-1234-000000000001",
+            "amount": 1,
+            "consumptionTime": 1
+          }
+        ],
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
         }
       },
       "name": "SteamGearGenerator",
