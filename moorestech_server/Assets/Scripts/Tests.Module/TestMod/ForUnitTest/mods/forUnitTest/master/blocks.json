@@ -355,7 +355,19 @@
         "inventoryConnectors": {
           "outputConnects": [],
           "inputConnects": []
-        }
+        },
+        "fuelItems": [
+          {
+            "itemGuid": "00000000-0000-0000-1234-000000000001",
+            "time": 1,
+            "power": 100
+          },
+          {
+            "itemGuid": "00000000-0000-0000-1234-000000000002",
+            "time": 2,
+            "power": 200
+          }
+        ]
       },
       "itemGuid": "00000000-0000-0000-1234-000000000005",
       "blockGuid": "00000000-0000-0000-0000-000000000005",
@@ -651,7 +663,19 @@
         "fluidInventoryConnectors": {
           "inflowConnects": [],
           "outflowConnects": []
-        }
+        },
+        "fuelItems": [
+          {
+            "itemGuid": "00000000-0000-0000-1234-000000000001",
+            "time": 1,
+            "power": 100
+          },
+          {
+            "itemGuid": "00000000-0000-0000-1234-000000000002",
+            "time": 2,
+            "power": 200
+          }
+        ]
       },
       "itemGuid": "00000000-0000-0000-1234-000000000008",
       "blockGuid": "00000000-0000-0000-0000-000000000008",
@@ -745,7 +769,19 @@
         "fluidInventoryConnectors": {
           "inflowConnects": [],
           "outflowConnects": []
-        }
+        },
+        "fuelItems": [
+          {
+            "itemGuid": "00000000-0000-0000-1234-000000000001",
+            "time": 1,
+            "power": 100
+          },
+          {
+            "itemGuid": "00000000-0000-0000-1234-000000000002",
+            "time": 2,
+            "power": 200
+          }
+        ]
       },
       "overrideVerticalBlock": {}
     },
@@ -826,7 +862,19 @@
         "fluidInventoryConnectors": {
           "inflowConnects": [],
           "outflowConnects": []
-        }
+        },
+        "fuelItems": [
+          {
+            "itemGuid": "00000000-0000-0000-1234-000000000001",
+            "time": 1,
+            "power": 100
+          },
+          {
+            "itemGuid": "00000000-0000-0000-1234-000000000002",
+            "time": 2,
+            "power": 200
+          }
+        ]
       },
       "overrideVerticalBlock": {}
     },
@@ -917,7 +965,19 @@
         "fluidInventoryConnectors": {
           "inflowConnects": [],
           "outflowConnects": []
-        }
+        },
+        "fuelItems": [
+          {
+            "itemGuid": "00000000-0000-0000-1234-000000000001",
+            "time": 1,
+            "power": 100
+          },
+          {
+            "itemGuid": "00000000-0000-0000-1234-000000000002",
+            "time": 2,
+            "power": 200
+          }
+        ]
       },
       "overrideVerticalBlock": {}
     },
@@ -3831,7 +3891,11 @@
             "amount": 1,
             "consumptionTime": 1
           }
-        ]
+        ],
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        }
       },
       "name": "SteamGearGenerator",
       "itemGuid": "9bbfaa53-1614-40dc-a58e-e3a0e2a00c26",
