@@ -24,12 +24,18 @@ namespace Tests.UnitTest.Core.Block
         [Test]
         public void AcceleratesWhenRequirementsAreMet()
         {
+            // --- セットアップ: テストDIとパラメータ取得 ---
+            // --- Setup: initialize DI container and fetch master parameters ---
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
             var param = (ItemShooterAcceleratorBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.ItemShooterAccelerator).BlockParam;
 
+            // --- 実行: 要求トルク/RPMを満たすシナリオを走行 ---
+            // --- Act: run scenario with required torque/RPM ---
             var (shooterItem, elapsedSeconds) = RunScenario(param.RequiredRpm, param.RequireTorque, SimulationSteps);
 
+            // --- 検証: 得られた加速度が設定値と一致すること ---
+            // --- Assert: effective acceleration matches configured value ---
             Assert.NotNull(shooterItem);
 
             var effectiveAcceleration = (shooterItem.CurrentSpeed - 1f) / Math.Max(elapsedSeconds, 0.0001f);
@@ -39,13 +45,19 @@ namespace Tests.UnitTest.Core.Block
         [Test]
         public void AccelerationScalesWithSuppliedRpm()
         {
+            // --- セットアップ: テストDIと加速器パラメータ取得 ---
+            // --- Setup: bootstrap DI container and read accelerator parameters ---
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
             var param = (ItemShooterAcceleratorBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.ItemShooterAccelerator).BlockParam;
 
+            // --- 実行: 基準RPMと倍速RPMで比較シナリオを実施 ---
+            // --- Act: simulate baseline and boosted RPM feeds ---
             var (baseShot, baseElapsed) = RunScenario(param.RequiredRpm, param.RequireTorque, SimulationSteps);
             var (boostedShot, boostedElapsed) = RunScenario(param.RequiredRpm * 2, param.RequireTorque, SimulationSteps);
 
+            // --- 検証: 加速度が供給RPMに比例して増加すること ---
+            // --- Assert: acceleration scales with supplied RPM ---
             var baseAcceleration = (baseShot.CurrentSpeed - 1f) / Math.Max(baseElapsed, 0.0001f);
             var boostedAcceleration = (boostedShot.CurrentSpeed - 1f) / Math.Max(boostedElapsed, 0.0001f);
             var expectedBoostedAcceleration = (float)(param.PoweredAcceleration * Math.Min(param.MaxAccelerationMultiplier, 2d));
@@ -59,6 +71,8 @@ namespace Tests.UnitTest.Core.Block
 
         private (ShooterInventoryItem shooterItem, float elapsedSeconds) RunScenario(double rpm, double torque, int steps)
         {
+            // --- シナリオ用のワールド座標とブロック配置 ---
+            // --- Scenario setup: world position and block placement ---
             var world = ServerContext.WorldBlockDatastore;
             var blockPosition = new Vector3Int(_scenarioOffset * 4, 0, 0);
             _scenarioOffset++;
@@ -66,17 +80,23 @@ namespace Tests.UnitTest.Core.Block
             world.TryAddBlock(ForUnitTestModBlockId.ItemShooterAccelerator, blockPosition, BlockDirection.North, out var acceleratorBlock);
             var shooterComponent = acceleratorBlock.GetComponent<ItemShooterComponent>();
 
+            // --- 歯車ジェネレーターを配置し、RPM/トルクを設定 ---
+            // --- Place gear generator and configure RPM/torque ---
             var generatorPosition = blockPosition + Vector3Int.right;
             world.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.East, out var generatorBlock);
             var generatorComponent = generatorBlock.GetComponent<SimpleGearGeneratorComponent>();
             generatorComponent.SetGenerateRpm((float)rpm);
             generatorComponent.SetGenerateTorque((float)torque);
 
+            // --- 初期アイテムを投入してシミュレーション開始 ---
+            // --- Insert initial item stack to start simulation ---
             var itemFactory = ServerContext.ItemStackFactory;
             var itemStack = itemFactory.Create(new ItemId(1), 1);
             var remain = shooterComponent.InsertItem(itemStack);
             Assert.AreEqual(ItemMaster.EmptyItemId, remain.Id);
 
+            // --- 指定ステップ分シミュレーション時間を進行 ---
+            // --- Advance simulation for requested steps ---
             var elapsedSeconds = 0f;
             for (var i = 0; i < steps; i++)
             {
@@ -84,6 +104,8 @@ namespace Tests.UnitTest.Core.Block
                 elapsedSeconds += (float)GameUpdater.UpdateSecondTime;
             }
 
+            // --- 結果をスナップショット化し、ブロックを片付け ---
+            // --- Snapshot the result and clean up blocks ---
             var shooterItem = shooterComponent.BeltConveyorItems[0] as ShooterInventoryItem;
             var snapshot = shooterItem == null
                 ? null
