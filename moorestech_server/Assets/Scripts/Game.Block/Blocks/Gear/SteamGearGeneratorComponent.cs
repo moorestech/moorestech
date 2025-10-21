@@ -90,6 +90,14 @@ namespace Game.Block.Blocks.Gear
             return JsonUtility.ToJson(saveData);
         }
 
+        // ステートサービスのスナップショットを外部へ公開する
+        // Expose the state service snapshot externally for validation
+        public SteamGearGeneratorStateService.StateSnapshot GetStateSnapshot()
+        {
+            BlockException.CheckDestroy(this);
+            return _stateService.CreateSnapshot();
+        }
+
         public new BlockStateDetail[] GetBlockStateDetails()
         {
             BlockException.CheckDestroy(this);
