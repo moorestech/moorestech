@@ -98,51 +98,78 @@ namespace Game.Block.Blocks.ItemShooter
         /// </summary>
         public void Update(float deltaTime)
         {
-            _lastInsertElapsedTime += deltaTime;
+            // 更新時間を積算
+            // Accumulate elapsed time for insertion interval
+            UpdateElapsedTime(deltaTime);
 
             var acceleration = _externalAcceleration ?? _settings.Acceleration;
-            var itemShootSpeed = _settings.ItemShootSpeed;
 
             // スロットごとのアイテムを処理
             // Iterate slot-wise over conveyor items
             for (var i = 0; i < _inventoryItems.Length; i++)
             {
-                var item = _inventoryItems[i];
-                if (item == null) continue;
-
-                // 完了済みアイテムを隣接接続へ転送
-                // Transfer finished items to connected blocks
-                if (item.RemainingPercent <= 0)
-                {
-                    var insertItem = ServerContext.ItemStackFactory.Create(item.ItemId, 1, item.ItemInstanceId);
-
-                    if (_connectorComponent.ConnectedTargets.Count == 0) continue;
-
-                    var connector = _connectorComponent.ConnectedTargets.First();
-                    var target = connector.Key;
-                    if (target is IItemShooterComponent shooter)
-                    {
-                        _inventoryItems[i] = shooter.InsertItemFromShooter(item);
-                    }
-                    else
-                    {
-                        var output = connector.Key.InsertItem(insertItem);
-                        if (output.Id == ItemMaster.EmptyItemId) _inventoryItems[i] = null;
-                    }
-
-                    continue;
-                }
-
-                // 残り距離と速度を更新
-                // Update remaining distance and velocity
-                item.RemainingPercent -= deltaTime * itemShootSpeed * item.CurrentSpeed;
-                item.RemainingPercent = Math.Clamp(item.RemainingPercent, 0, 1);
-
-                item.CurrentSpeed += acceleration * deltaTime;
-                item.CurrentSpeed = Mathf.Clamp(item.CurrentSpeed, 0, float.MaxValue);
+                ProcessSlot(i, deltaTime, acceleration);
             }
 
-            _externalAcceleration = null;
+            // 外部加速度のフラグをクリア
+            // Clear external acceleration flag
+            ResetExternalAcceleration();
+
+            #region Internal
+
+            void UpdateElapsedTime(float elapsedStep)
+            {
+                _lastInsertElapsedTime += elapsedStep;
+            }
+
+            void ProcessSlot(int slotIndex, float stepDelta, float slotAcceleration)
+            {
+                var item = _inventoryItems[slotIndex];
+                if (item == null) return;
+
+                if (item.RemainingPercent <= 0)
+                {
+                    HandleFinishedItem(slotIndex, item);
+                    return;
+                }
+
+                UpdateActiveItem(item, stepDelta, slotAcceleration);
+            }
+
+            void HandleFinishedItem(int slotIndex, ShooterInventoryItem finishedItem)
+            {
+                var insertItem = ServerContext.ItemStackFactory.Create(finishedItem.ItemId, 1, finishedItem.ItemInstanceId);
+
+                if (_connectorComponent.ConnectedTargets.Count == 0) return;
+
+                var connector = _connectorComponent.ConnectedTargets.First();
+                var target = connector.Key;
+                if (target is IItemShooterComponent shooter)
+                {
+                    _inventoryItems[slotIndex] = shooter.InsertItemFromShooter(finishedItem);
+                }
+                else
+                {
+                    var output = connector.Key.InsertItem(insertItem);
+                    if (output.Id == ItemMaster.EmptyItemId) _inventoryItems[slotIndex] = null;
+                }
+            }
+
+            void UpdateActiveItem(ShooterInventoryItem activeItem, float stepDelta, float slotAcceleration)
+            {
+                activeItem.RemainingPercent -= stepDelta * _settings.ItemShootSpeed * activeItem.CurrentSpeed;
+                activeItem.RemainingPercent = Math.Clamp(activeItem.RemainingPercent, 0, 1);
+
+                activeItem.CurrentSpeed += slotAcceleration * stepDelta;
+                activeItem.CurrentSpeed = Mathf.Clamp(activeItem.CurrentSpeed, 0, float.MaxValue);
+            }
+
+            void ResetExternalAcceleration()
+            {
+                _externalAcceleration = null;
+            }
+
+            #endregion
         }
 
         public ShooterInventoryItem InsertItemFromShooter(ShooterInventoryItem inventoryItem)
