@@ -78,8 +78,13 @@ namespace Game.Block.Blocks.ItemShooter
         private float _lastInsertElapsedTime = float.MaxValue;
         private float? _externalAcceleration;
 
-        // 依存関係と在庫スロットを初期化
-        // Initialize dependencies and slot buffer
+        // 
+        /// <summary>
+        /// 依存関係と在庫スロットを初期化
+        /// Initialize dependencies and slot buffer
+        /// </summary>
+        /// <param name="connectorComponent"></param>
+        /// <param name="settings"></param>
         public ItemShooterComponentService(BlockConnectorComponent<IBlockInventory> connectorComponent, ItemShooterComponentSettings settings)
         {
             _connectorComponent = connectorComponent;
@@ -87,8 +92,10 @@ namespace Game.Block.Blocks.ItemShooter
             _inventoryItems = new ShooterInventoryItem[_settings.InventoryItemNum];
         }
 
-        // 更新処理で射出進行と速度を管理
-        // Update travel progress and velocity each frame
+        /// <summary>
+        /// 更新処理で射出進行と速度を管理
+        /// Update travel progress and velocity each frame
+        /// </summary>
         public void Update(float deltaTime)
         {
             _lastInsertElapsedTime += deltaTime;
@@ -138,8 +145,6 @@ namespace Game.Block.Blocks.ItemShooter
             _externalAcceleration = null;
         }
 
-        // 他のシューターからのアイテム受け入れ処理
-        // Accept inbound items from peer shooter
         public ShooterInventoryItem InsertItemFromShooter(ShooterInventoryItem inventoryItem)
         {
             for (var i = 0; i < _inventoryItems.Length; i++)
@@ -154,8 +159,6 @@ namespace Game.Block.Blocks.ItemShooter
             return inventoryItem;
         }
 
-        // 外部アイテムをシューターに挿入
-        // Insert external stack into shooter inventory
         public IItemStack InsertItem(IItemStack itemStack)
         {
             if (_lastInsertElapsedTime < InsertItemInterval) return itemStack;
@@ -172,8 +175,6 @@ namespace Game.Block.Blocks.ItemShooter
             return itemStack;
         }
 
-        // 挿入可能かを判定
-        // Check whether insertion is possible
         public bool InsertionCheck(List<IItemStack> itemStacks)
         {
             var nullCount = 0;
@@ -188,8 +189,6 @@ namespace Game.Block.Blocks.ItemShooter
             return false;
         }
 
-        // 指定スロットの内容を取得
-        // Get current stack snapshot per slot
         public IItemStack GetItem(int slot)
         {
             var itemStackFactory = ServerContext.ItemStackFactory;
@@ -197,29 +196,21 @@ namespace Game.Block.Blocks.ItemShooter
             return item == null ? itemStackFactory.CreatEmpty() : itemStackFactory.Create(item.ItemId, 1, item.ItemInstanceId);
         }
 
-        // 指定スロットへスタックを設定
-        // Set the given item stack into slot
         public void SetItem(int slot, IItemStack itemStack)
         {
             _inventoryItems[slot] = new ShooterInventoryItem(itemStack.Id, itemStack.ItemInstanceId, _settings.InitialShootSpeed);
         }
 
-        // 在庫アイテムを直接指定して設定
-        // Seed slot with provided shooter inventory item
         public void SetSlot(int slot, ShooterInventoryItem shooterInventoryItem)
         {
             _inventoryItems[slot] = shooterInventoryItem;
         }
 
-        // 現在の在庫一覧を列挙
-        // Enumerate all inventory items
         public IEnumerable<ShooterInventoryItem> EnumerateInventoryItems()
         {
             return _inventoryItems;
         }
 
-        // 次回更新で適用する加速度を設定
-        // Configure acceleration to apply on next update pass
         public void SetExternalAcceleration(float acceleration)
         {
             _externalAcceleration = acceleration;
