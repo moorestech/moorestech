@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Core.Inventory;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.Fluid;
@@ -180,6 +181,71 @@ namespace Tests.CombinedTest.Core
   #endregion
         }
         
+        [Test]
+        public void ItemFuelGeneratesWithoutFluid()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SteamGearGeneratorId, Vector3Int.zero, BlockDirection.North, out var steamGeneratorBlock);
+            
+            var generatorComponent = steamGeneratorBlock.GetComponent<SteamGearGeneratorComponent>();
+            var inventory = steamGeneratorBlock.GetComponent<IBlockInventory>();
+            var openableInventory = (IOpenableInventory)inventory;
+            var fluidComponent = steamGeneratorBlock.GetComponent<SteamGearGeneratorFluidComponent>();
+            
+            var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.SteamGearGeneratorId);
+            var param = blockMaster.BlockParam as SteamGearGeneratorBlockParam;
+            var fuelItemId = MasterHolder.ItemMaster.GetItemId(new Guid("00000000-0000-0000-1234-000000000001"));
+            
+            openableInventory.InsertItem(fuelItemId, 80);
+            var initialTotalFuel = openableInventory.InventoryItems.Sum(item => item.Count);
+
+            // 最大出力に到達するまで燃料を供給し続ける
+            // Continue feeding fuel until the generator reaches peak output
+            var accelerationLimit = DateTime.Now.AddSeconds(param.TimeToMax + 2);
+            var reachedMax = false;
+            while (DateTime.Now < accelerationLimit)
+            {
+                GameUpdater.UpdateWithWait();
+                if (generatorComponent.GenerateRpm.AsPrimitive() >= param.GenerateMaxRpm - 0.5f &&
+                    generatorComponent.GenerateTorque.AsPrimitive() >= param.GenerateMaxTorque - 0.5f)
+                {
+                    reachedMax = true;
+                    break;
+                }
+            }
+
+            Assert.IsTrue(reachedMax, "アイテム燃料のみで最大回転数に到達しませんでした");
+            Assert.AreEqual(FluidMaster.EmptyFluidId, fluidComponent.SteamTank.FluidId, "液体燃料を使用していないはずです");
+            var remainingFuelTotal = openableInventory.InventoryItems.Sum(item => item.Count);
+            Assert.Less(remainingFuelTotal, initialTotalFuel, "燃料アイテムが消費されていません");
+
+            // 燃料切れ後の挙動を検証するためインベントリを強制的に空にする
+            // Force the inventory to empty to validate post-fuel shutdown behavior
+            var emptyStack = ServerContext.ItemStackFactory.CreatEmpty();
+            for (var slot = 0; slot < inventory.GetSlotSize(); slot++)
+            {
+                inventory.SetItem(slot, emptyStack);
+            }
+
+            // 減速フェーズでゼロ出力になるまで監視する
+            // Monitor the deceleration phase until the generator reaches zero output
+            var decelerationLimit = DateTime.Now.AddSeconds(param.TimeToMax + 2);
+            while (DateTime.Now < decelerationLimit)
+            {
+                GameUpdater.UpdateWithWait();
+                if (generatorComponent.GenerateRpm.AsPrimitive() <= 0.5f &&
+                    generatorComponent.GenerateTorque.AsPrimitive() <= 0.5f)
+                {
+                    break;
+                }
+            }
+
+            Assert.AreEqual(0f, generatorComponent.GenerateRpm.AsPrimitive(), 0.5f, "燃料が尽きた後に回転が停止していません");
+            Assert.AreEqual(0f, generatorComponent.GenerateTorque.AsPrimitive(), 0.5f, "燃料が尽きた後にトルクが停止していません");
+        }
+
         [Test]
         public void BlockStateObservableTest()
         {

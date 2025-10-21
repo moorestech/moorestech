@@ -386,6 +386,29 @@ properties:
             - key: consumptionTime
               type: number
               default: 1
+        - key: fuelItemSlotCount
+          type: integer
+          default: 2
+        - key: gearFuelItems
+          type: array
+          optional: true
+          items:
+            type: object
+            properties:
+            - key: itemGuid
+              type: uuid
+              foreignKey:
+                schemaId: items
+                foreignKeyIdPath: /data/[*]/itemGuid
+                displayElementPath: /data/[*]/name
+            - key: amount
+              type: integer
+              default: 1
+            - key: consumptionTime
+              type: number
+              default: 1
+        - key: inventoryConnectors
+          ref: inventoryConnects
         - key: fluidInventoryConnectors
           ref: fluidInventoryConnects
       - when: GearBeltConveyor
