@@ -22,13 +22,13 @@ namespace Game.Block.Blocks.ItemShooter
             ItemShooterAcceleratorBlockParam param,
             BlockInstanceId blockInstanceId,
             BlockConnectorComponent<IGearEnergyTransformer> gearConnector)
-            : base(new Torque((float)param.RequireTorque), blockInstanceId, gearConnector)
+            : base(new Torque(param.RequireTorque), blockInstanceId, gearConnector)
         {
             _service = service;
             _param = param;
-            _requiredTorque = new Torque((float)param.RequireTorque);
-            _requiredRpm = new RPM((float)param.RequiredRpm);
-            _maxMultiplier = (float)Math.Max(param.MaxAccelerationMultiplier, 0);
+            _requiredTorque = new Torque(param.RequireTorque);
+            _requiredRpm = new RPM(param.RequiredRpm);
+            _maxMultiplier = Math.Max(param.MaxAccelerationMultiplier, 0);
         }
 
         public void Update()

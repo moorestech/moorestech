@@ -117,11 +117,15 @@ namespace Game.Block.Blocks.ItemShooter
 
             #region Internal
 
+            // 経過時間を累積する
+            // Accumulate elapsed insertion time
             void UpdateElapsedTime(float elapsedStep)
             {
                 _lastInsertElapsedTime += elapsedStep;
             }
 
+            // 各スロットのアイテムを処理する
+            // Process a single slot item
             void ProcessSlot(int slotIndex, float stepDelta, float slotAcceleration)
             {
                 var item = _inventoryItems[slotIndex];
@@ -136,6 +140,8 @@ namespace Game.Block.Blocks.ItemShooter
                 UpdateActiveItem(item, stepDelta, slotAcceleration);
             }
 
+            // 完了したアイテムを隣接ブロックへ渡す
+            // Hand over finished items to connected blocks
             void HandleFinishedItem(int slotIndex, ShooterInventoryItem finishedItem)
             {
                 var insertItem = ServerContext.ItemStackFactory.Create(finishedItem.ItemId, 1, finishedItem.ItemInstanceId);
@@ -155,6 +161,8 @@ namespace Game.Block.Blocks.ItemShooter
                 }
             }
 
+            // 進行中のアイテムの残距離と速度を更新
+            // Update remaining distance and speed of active item
             void UpdateActiveItem(ShooterInventoryItem activeItem, float stepDelta, float slotAcceleration)
             {
                 activeItem.RemainingPercent -= stepDelta * _settings.ItemShootSpeed * activeItem.CurrentSpeed;
@@ -164,6 +172,8 @@ namespace Game.Block.Blocks.ItemShooter
                 activeItem.CurrentSpeed = Mathf.Clamp(activeItem.CurrentSpeed, 0, float.MaxValue);
             }
 
+            // 外部加速度設定をリセット
+            // Reset external acceleration flag
             void ResetExternalAcceleration()
             {
                 _externalAcceleration = null;
