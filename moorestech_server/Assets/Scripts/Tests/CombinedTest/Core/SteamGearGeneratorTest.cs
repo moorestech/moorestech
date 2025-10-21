@@ -201,6 +201,8 @@ namespace Tests.CombinedTest.Core
             openableInventory.InsertItem(fuelItemId, 80);
             var initialTotalFuel = openableInventory.InventoryItems.Sum(item => item.Count);
 
+            // 最大出力に到達するまで燃料を供給し続ける
+            // Continue feeding fuel until the generator reaches peak output
             var accelerationLimit = DateTime.Now.AddSeconds(param.TimeToMax + 2);
             var reachedMax = false;
             while (DateTime.Now < accelerationLimit)
@@ -219,12 +221,16 @@ namespace Tests.CombinedTest.Core
             var remainingFuelTotal = openableInventory.InventoryItems.Sum(item => item.Count);
             Assert.Less(remainingFuelTotal, initialTotalFuel, "燃料アイテムが消費されていません");
 
+            // 燃料切れ後の挙動を検証するためインベントリを強制的に空にする
+            // Force the inventory to empty to validate post-fuel shutdown behavior
             var emptyStack = ServerContext.ItemStackFactory.CreatEmpty();
             for (var slot = 0; slot < inventory.GetSlotSize(); slot++)
             {
                 inventory.SetItem(slot, emptyStack);
             }
 
+            // 減速フェーズでゼロ出力になるまで監視する
+            // Monitor the deceleration phase until the generator reaches zero output
             var decelerationLimit = DateTime.Now.AddSeconds(param.TimeToMax + 2);
             while (DateTime.Now < decelerationLimit)
             {

@@ -8,23 +8,27 @@ using Mooresmaster.Model.BlocksModule;
 
 namespace Game.Block.Blocks.Gear
 {
+    // SteamGearGenerator専用の燃料管理を集約するサービスクラス
+    // Service dedicated to managing fuel consumption for the SteamGearGenerator
     public class SteamGearGeneratorFuelService
     {
-        public class FuelState
-        {
-            public string ActiveFuelType { get; set; }
-            public Guid? CurrentFuelItemGuid { get; set; }
-            public Guid? CurrentFuelFluidGuid { get; set; }
-            public double RemainingFuelTime { get; set; }
-        }
-
-        private enum FuelType
+        public enum FuelType
         {
             None,
             Item,
             Fluid
         }
 
+        public class FuelState
+        {
+            public FuelType ActiveFuelType { get; set; }
+            public Guid? CurrentFuelItemGuid { get; set; }
+            public Guid? CurrentFuelFluidGuid { get; set; }
+            public double RemainingFuelTime { get; set; }
+        }
+
+        // インベントリ・流体タンクと燃料設定を参照するためのフィールド群
+        // Fields referencing inventories, fluid tanks, and fuel configuration tables
         private readonly OpenableInventoryItemDataStoreService _inventoryService;
         private readonly SteamGearGeneratorFluidComponent _fluidComponent;
         private readonly Dictionary<ItemId, ItemFuelSetting> _itemFuelSettings;
@@ -98,6 +102,8 @@ namespace Game.Block.Blocks.Gear
             return allowFluidFuel && FluidHasFuel();
         }
 
+        // 現在必要な燃料を確保できるかを確認し、無ければ新たに着火を試行する
+        // Verify that usable fuel is available, attempting to start new combustion when needed
         public bool TryEnsureFuel(bool allowFluidFuel)
         {
             if (IsFuelActive)
@@ -127,11 +133,13 @@ namespace Game.Block.Blocks.Gear
             ClearFuelState();
         }
 
+        // 現在の燃焼状況をセーブ用の構造体に変換する
+        // Convert the current combustion status into a snapshot for saving
         public FuelState CreateSnapshot()
         {
             var state = new FuelState
             {
-                ActiveFuelType = _currentFuelType.ToString(),
+                ActiveFuelType = _currentFuelType,
                 RemainingFuelTime = _remainingFuelTime
             };
 
@@ -148,6 +156,8 @@ namespace Game.Block.Blocks.Gear
             return state;
         }
 
+        // セーブ時に保持した燃料状態を復元する
+        // Restore the fuel state saved during serialization
         public void Restore(FuelState state)
         {
             ClearFuelState();
@@ -155,10 +165,7 @@ namespace Game.Block.Blocks.Gear
 
             _remainingFuelTime = state.RemainingFuelTime;
 
-            if (!string.IsNullOrEmpty(state.ActiveFuelType) && Enum.TryParse(state.ActiveFuelType, out FuelType parsedType))
-            {
-                _currentFuelType = parsedType;
-            }
+            _currentFuelType = state.ActiveFuelType;
 
             _currentFuelItemId = state.CurrentFuelItemGuid.HasValue
                 ? MasterHolder.ItemMaster.GetItemId(state.CurrentFuelItemGuid.Value)
@@ -186,6 +193,8 @@ namespace Game.Block.Blocks.Gear
             }
         }
 
+        // スロットから利用可能なアイテム燃料を消費し燃焼を開始する
+        // Consume an available item fuel stack from inventory to ignite combustion
         private bool TryStartItemFuel()
         {
             if (_itemFuelSettings.Count == 0) return false;
@@ -210,6 +219,8 @@ namespace Game.Block.Blocks.Gear
             return false;
         }
 
+        // タンク内の流体燃料を消費して燃焼を開始する
+        // Ignite combustion by consuming fuel from the internal fluid tank
         private bool TryStartFluidFuel()
         {
             if (_fluidFuelSettings.Count == 0) return false;
