@@ -93,7 +93,6 @@ namespace Game.Block.Blocks.Gear
 
             var allowFluidFuel = !_fluidComponent.IsPipeDisconnected;
             var hasFuel = _fuelService.HasAvailableFuel(allowFluidFuel);
-            var shouldForceDeceleration = _fuelService.IsUsingFluidFuel && !allowFluidFuel;
             StateElapsedTime += (float)GameUpdater.UpdateSecondTime;
 
             switch (CurrentState)
@@ -106,11 +105,7 @@ namespace Game.Block.Blocks.Gear
                     break;
 
                 case SteamGearGeneratorState.Accelerating:
-                    if (shouldForceDeceleration)
-                    {
-                        TransitionToState(SteamGearGeneratorState.Decelerating);
-                    }
-                    else if (!_fuelService.TryEnsureFuel(allowFluidFuel))
+                    if (!_fuelService.TryEnsureFuel(allowFluidFuel))
                     {
                         TransitionToState(SteamGearGeneratorState.Decelerating);
                     }
@@ -121,11 +116,7 @@ namespace Game.Block.Blocks.Gear
                     break;
 
                 case SteamGearGeneratorState.Running:
-                    if (shouldForceDeceleration)
-                    {
-                        TransitionToState(SteamGearGeneratorState.Decelerating);
-                    }
-                    else if (!_fuelService.TryEnsureFuel(allowFluidFuel))
+                    if (!_fuelService.TryEnsureFuel(allowFluidFuel))
                     {
                         TransitionToState(SteamGearGeneratorState.Decelerating);
                     }
