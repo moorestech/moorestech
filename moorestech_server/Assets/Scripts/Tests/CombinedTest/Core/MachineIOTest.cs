@@ -68,17 +68,20 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void ItemProcessingRemainInputTest()
         {
+            // テスト用DIコンテナと主要サービスを初期化
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var itemStackFactory = ServerContext.ItemStackFactory;
             var blockFactory = ServerContext.BlockFactory;
             
+            // isRemain指定のレシピを取得して対象ブロックのインスタンスを作成
             var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data
                 .First(r => r.InputItems.Any(input => input.IsRemain.HasValue && input.IsRemain.Value));
             
             var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
             var block = blockFactory.Create(blockId, new BlockInstanceId(2), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
             var blockInventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
+            // レシピ通りにインプットへ投入する（isRemainアイテムも投入）
             foreach (var inputItem in recipe.InputItems)
             {
                 blockInventory.InsertItem(itemStackFactory.Create(inputItem.ItemGuid, inputItem.Count));
@@ -86,6 +89,7 @@ namespace Tests.CombinedTest.Core
             
             var blockMachineComponent = block.GetComponent<VanillaElectricMachineComponent>();
             
+            // 処理完了まで十分な時間エネルギー供給＋アップデートを回す
             var craftTime = DateTime.Now.AddSeconds(recipe.Time);
             while (craftTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1)
             {
@@ -95,12 +99,14 @@ namespace Tests.CombinedTest.Core
             
             (List<IItemStack> input, List<IItemStack> output) = GetInputOutputSlot(blockInventory);
             
+            // isRemain 指定のインプットが加工後も残っていることを検証
             Assert.AreEqual(1, input.Count);
             var remainSource = recipe.InputItems.First(i => i.IsRemain.HasValue && i.IsRemain.Value);
             var expectedRemainId = MasterHolder.ItemMaster.GetItemId(remainSource.ItemGuid);
             Assert.AreEqual(expectedRemainId, input[0].Id);
             Assert.AreEqual(remainSource.Count, input[0].Count);
             
+            // アウトプットが通常通り生成されていることを検証
             Assert.AreNotEqual(0, output.Count);
             for (var i = 0; i < output.Count; i++)
             {
