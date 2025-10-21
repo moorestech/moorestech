@@ -29,6 +29,7 @@ namespace Game.Block.Factory
             BlockTypesDictionary.Add(BlockTypeConst.ElectricMiner, new VanillaMinerTemplate(blockInventoryEvent));
             
             BlockTypesDictionary.Add(BlockTypeConst.ItemShooter, new VanillaItemShooterTemplate());
+            BlockTypesDictionary.Add(BlockTypeConst.ItemShooterAccelerator, new VanillaItemShooterAcceleratorTemplate());
             
             BlockTypesDictionary.Add(BlockTypeConst.Gear, new VanillaGearTemplate());
             BlockTypesDictionary.Add(BlockTypeConst.Shaft, new VanillaShaftTemplate());
