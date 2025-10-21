@@ -258,7 +258,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.AreEqual(deceleratingTorque, loadedSteamGeneratorComponent.GenerateTorque.AsPrimitive(), 0.01f, "ロード後のトルクが一致しません");
             
             // 状態が減速中であることを確認
-            var loadedCurrentState = currentStateField.GetValue(loadedSteamGeneratorComponent).ToString();
+            var loadedCurrentState = GetStateService(loadedSteamGeneratorComponent).CurrentState.ToString();
             Assert.AreEqual("Decelerating", loadedCurrentState, "ロード後も減速状態のはず");
             
             #region Internal
@@ -276,11 +276,20 @@ namespace Tests.UnitTest.Game.SaveLoad
             #endregion
         }
         
+        private static readonly FieldInfo StateServiceField = typeof(SteamGearGeneratorComponent).GetField("_stateService", BindingFlags.NonPublic | BindingFlags.Instance);
+
+        private static SteamGearGeneratorStateService GetStateService(SteamGearGeneratorComponent component)
+        {
+            // 状態サービスを取得するためのヘルパー
+            // Helper to obtain the internal state service instance
+            return (SteamGearGeneratorStateService)StateServiceField.GetValue(component);
+        }
+
         private (IBlockFactory, IWorldBlockDatastore, PlayerInventoryDataStore, AssembleSaveJsonText, WorldLoaderFromJson)
             CreateBlockTestModule()
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            
+
             var blockFactory = ServerContext.BlockFactory;
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
@@ -292,8 +301,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
         private static (string State, float Elapsed, float Rate) CaptureState(SteamGearGeneratorComponent component)
         {
-            var field = typeof(SteamGearGeneratorComponent).GetField("_stateService", BindingFlags.NonPublic | BindingFlags.Instance);
-            var service = (SteamGearGeneratorStateService)field.GetValue(component);
+            var service = GetStateService(component);
             return (service.CurrentState.ToString(), service.StateElapsedTime, service.SteamConsumptionRate);
         }
 
