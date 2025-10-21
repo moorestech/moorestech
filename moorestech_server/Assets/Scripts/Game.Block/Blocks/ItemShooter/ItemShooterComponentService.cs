@@ -8,6 +8,7 @@ using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
+using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 
 namespace Game.Block.Blocks.ItemShooter
@@ -18,20 +19,45 @@ namespace Game.Block.Blocks.ItemShooter
     /// </summary>
     public readonly struct ItemShooterComponentSettings
     {
-        public ItemShooterComponentSettings(int inventoryItemNum, float initialShootSpeed, float itemShootSpeed, float acceleration, BeltConveyorSlopeType slopeType)
-        {
-            InventoryItemNum = inventoryItemNum;
-            InitialShootSpeed = initialShootSpeed;
-            ItemShootSpeed = itemShootSpeed;
-            Acceleration = acceleration;
-            SlopeType = slopeType;
-        }
-
         public int InventoryItemNum { get; }
         public float InitialShootSpeed { get; }
         public float ItemShootSpeed { get; }
         public float Acceleration { get; }
         public BeltConveyorSlopeType SlopeType { get; }
+        
+        public ItemShooterComponentSettings(ItemShooterAcceleratorBlockParam param)
+        {
+            var slope = param.SlopeType switch
+            {
+                ItemShooterAcceleratorBlockParam.SlopeTypeConst.Up => BeltConveyorSlopeType.Up,
+                ItemShooterAcceleratorBlockParam.SlopeTypeConst.Down => BeltConveyorSlopeType.Down,
+                _ => BeltConveyorSlopeType.Straight
+            };
+            
+            InventoryItemNum = param.InventoryItemNum;
+            InitialShootSpeed = param.InitialShootSpeed;
+            ItemShootSpeed = param.ItemShootSpeed;
+            Acceleration = param.Acceleration;
+            SlopeType = slope;
+        }
+        
+        
+        public ItemShooterComponentSettings(ItemShooterBlockParam param)
+        {
+            var slope = param.SlopeType switch
+            {
+                ItemShooterAcceleratorBlockParam.SlopeTypeConst.Up => BeltConveyorSlopeType.Up,
+                ItemShooterAcceleratorBlockParam.SlopeTypeConst.Down => BeltConveyorSlopeType.Down,
+                _ => BeltConveyorSlopeType.Straight
+            };
+            
+            InventoryItemNum = param.InventoryItemNum;
+            InitialShootSpeed = param.InitialShootSpeed;
+            ItemShootSpeed = param.ItemShootSpeed;
+            Acceleration = param.Acceleration;
+            SlopeType = slope;
+        }
+        
     }
 
     /// <summary>

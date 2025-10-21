@@ -32,7 +32,7 @@ namespace Game.Block.Factory.BlockTemplate
                 acceleratorParam.Gear.GearConnects,
                 blockPositionInfo);
 
-            var settings = CreateSettings(acceleratorParam);
+            var settings = new ItemShooterComponentSettings(acceleratorParam);
             var service = new ItemShooterComponentService(inventoryConnectorComponent, settings);
             var itemShooterComponent = componentStates == null
                 ? new ItemShooterComponent(service)
@@ -50,26 +50,5 @@ namespace Game.Block.Factory.BlockTemplate
 
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
-
-        #region Internal
-
-        private static ItemShooterComponentSettings CreateSettings(ItemShooterAcceleratorBlockParam param)
-        {
-            var slope = param.SlopeType switch
-            {
-                ItemShooterAcceleratorBlockParam.SlopeTypeConst.Up => BeltConveyorSlopeType.Up,
-                ItemShooterAcceleratorBlockParam.SlopeTypeConst.Down => BeltConveyorSlopeType.Down,
-                _ => BeltConveyorSlopeType.Straight
-            };
-
-            return new ItemShooterComponentSettings(
-                param.InventoryItemNum,
-                (float)param.InitialShootSpeed,
-                (float)param.ItemShootSpeed,
-                (float)param.Acceleration,
-                slope);
-        }
-
-        #endregion
     }
 }
