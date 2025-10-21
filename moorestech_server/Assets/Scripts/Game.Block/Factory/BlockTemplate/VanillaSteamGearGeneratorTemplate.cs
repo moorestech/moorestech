@@ -36,6 +36,14 @@ namespace Game.Block.Factory.BlockTemplate
             var gearConnectSetting = configParam.Gear.GearConnects;
             var gearConnectorComponent = new BlockConnectorComponent<IGearEnergyTransformer>(gearConnectSetting, gearConnectSetting, blockPositionInfo);
             
+            // アイテム接続の設定
+            var inventoryConnector = BlockTemplateUtil.CreateInventoryConnector(configParam.InventoryConnectors, blockPositionInfo);
+
+            // アイテムインベントリコンポーネント
+            var itemComponent = componentStates == null
+                ? new SteamGearGeneratorItemComponent(configParam, blockInstanceId)
+                : new SteamGearGeneratorItemComponent(componentStates, configParam, blockInstanceId);
+            
             // 流体接続の設定
             var fluidConnector = IFluidInventory.CreateFluidInventoryConnector(configParam.FluidInventoryConnectors, blockPositionInfo);
             
@@ -57,6 +65,7 @@ namespace Game.Block.Factory.BlockTemplate
                     configParam, 
                     blockInstanceId, 
                     gearConnectorComponent,
+                    itemComponent,
                     fluidComponent
                 )
                 : new SteamGearGeneratorComponent(
@@ -64,6 +73,7 @@ namespace Game.Block.Factory.BlockTemplate
                     configParam, 
                     blockInstanceId, 
                     gearConnectorComponent,
+                    itemComponent,
                     fluidComponent
                 );
             
@@ -71,6 +81,8 @@ namespace Game.Block.Factory.BlockTemplate
             {
                 steamGearGeneratorComponent,
                 gearConnectorComponent,
+                inventoryConnector,
+                itemComponent,
                 fluidConnector,
                 fluidComponent,
             };

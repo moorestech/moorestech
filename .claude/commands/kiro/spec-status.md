@@ -11,15 +11,15 @@ Show current status and progress for feature: **$1**
 ## Spec Context
 
 ### Spec Files
-- Spec directory: !`ls -la .kiro/specs/$1/`
+- Spec directory: !`ls -la .kiro/specs/$1/ 2>/dev/null || echo "No spec directory found"`
 - Spec metadata: `.kiro/specs/$1/spec.json`
 - Requirements: `.kiro/specs/$1/requirements.md`
 - Design: `.kiro/specs/$1/design.md`
 - Tasks: `.kiro/specs/$1/tasks.md`
 
 ### All Specs Overview
-- Available specs: !`ls -la .kiro/specs/`
-- Active specs: !`find .kiro/specs/ -name "spec.json" -exec grep -l "implementation_ready.*true" {} \;`
+- Available specs: !`ls -la .kiro/specs/ 2>/dev/null || echo "No specs directory found"`
+- Active specs: !`find .kiro/specs/ -name "spec.json" -exec grep -l "implementation_ready.*true" {} \; 2>/dev/null || echo "No active specs"`
 
 ## Task: Generate Status Report
 

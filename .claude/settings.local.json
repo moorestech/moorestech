@@ -50,7 +50,9 @@
       "Bash(dotnet build)",
       "mcp__serena__insert_after_symbol",
       "mcp__serena__find_referencing_symbols",
-      "mcp__serena__think_about_collected_information"
+      "mcp__serena__think_about_collected_information",
+      "SlashCommand(/kiro:spec-requirements:*)",
+      "SlashCommand(/kiro:spec-impl:*)"
     ],
     "deny": []
   },

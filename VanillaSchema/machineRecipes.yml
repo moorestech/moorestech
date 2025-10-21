@@ -38,6 +38,10 @@ properties:
         - key: count
           type: integer
           default: 1
+        - key: isRemain
+          type: boolean
+          default: false
+          optional: true
     - key: inputFluids
       type: array
       items:

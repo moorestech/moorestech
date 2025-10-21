@@ -227,6 +227,15 @@
     },
     {
       "maxStack": 100,
+      "name": "TestItemShooterAccelerator",
+      "itemGuid": "12200000-0000-0000-0000-000000000000",
+      "imagePath": "Test1",
+      "sortPriority": 100,
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
+    },
+    {
+      "maxStack": 100,
       "name": "GearBeltConveyor",
       "itemGuid": "11800000-0000-0000-0000-000000000000",
       "imagePath": "Test1",
