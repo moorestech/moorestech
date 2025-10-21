@@ -104,7 +104,8 @@ namespace Game.Block.Blocks.Gear
                 CurrentFuelFluidGuid = saveData.CurrentFuelFluidGuid,
                 RemainingFuelTime = saveData.RemainingFuelTime
             });
-
+            
+            // 現在の出力を復元
             UpdateOutput();
 
             #region Internal
