@@ -39,6 +39,7 @@ public static class CliTestRunner
     private class ResultCallbacks : ICallbacks
     {
         private readonly Regex _regex;
+        private int _passCount;
         private int _failCount;
 
         public ResultCallbacks(Regex regex) => _regex = regex;
@@ -54,9 +55,11 @@ public static class CliTestRunner
 
             bool   passed = result.TestStatus == TestStatus.Passed;
             string icon   = passed ? "✅" : "❌";
-
+            
             if (passed)
-                Export($" {icon} {name}");
+            {
+                _passCount++;
+            }
             else
             {
                 _failCount++;
@@ -66,6 +69,7 @@ public static class CliTestRunner
 
         public void RunFinished(ITestResultAdaptor _)
         {
+            Export($" 🟢 Tests passed: {_passCount}, ❌ Tests failed: {_failCount}");
             // 失敗があれば 1、無ければ 0 で Unity を終了
             EditorApplication.Exit(_failCount == 0 ? 0 : 1);
         }
