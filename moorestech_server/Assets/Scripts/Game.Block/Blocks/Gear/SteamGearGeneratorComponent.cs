@@ -27,32 +27,20 @@ namespace Game.Block.Blocks.Gear
         public bool GenerateIsClockwise => true;
         public new IObservable<Unit> OnChangeBlockState => _onChangeBlockState;
         public IReadOnlyList<IItemStack> InventoryItems => _inventoryService.InventoryItems;
-        public bool GenerateIsActive => _steamConsumptionRate > 0f;
-        public bool GenerateIsReady => _currentState is GeneratorState.Accelerating or GeneratorState.Running;
+        public bool GenerateIsActive => _stateService.SteamConsumptionRate > 0f;
+        public bool GenerateIsReady => _stateService.IsReady;
 
-        // 生成に必要なパラメータ・サービスと現在の状態管理フィールド群
-        // Core parameters, services, and state trackers required for power generation
+        // ギア発電機の依存オブジェクトと補助サービス参照を保持する
+        // Hold references to dependent objects and helper services for the gear generator
         private readonly SteamGearGeneratorBlockParam _param;
         private readonly SteamGearGeneratorFluidComponent _fluidComponent;
         private readonly OpenableInventoryItemDataStoreService _inventoryService;
         private readonly SteamGearGeneratorFuelService _fuelService;
+        private readonly SteamGearGeneratorStateService _stateService;
         private readonly Subject<Unit> _onChangeBlockState;
 
-        private GeneratorState _currentState = GeneratorState.Idle;
-        private float _stateElapsedTime;
-        private float _steamConsumptionRate;
-        private float _rateAtDecelerationStart;
-
-        private enum GeneratorState
-        {
-            Idle,
-            Accelerating,
-            Running,
-            Decelerating
-        }
-
-        // コンストラクタで依存関係を受け取り初期状態をセットアップする
-        // Accept dependencies during construction and configure the initial generator state
+        // コンストラクタで依存関係を受け取り初期状態を整える
+        // Accept constructor dependencies and configure the initial generator state
         public SteamGearGeneratorComponent(
             SteamGearGeneratorBlockParam param,
             BlockInstanceId blockInstanceId,
@@ -65,15 +53,16 @@ namespace Game.Block.Blocks.Gear
             var slotCount = Math.Max(0, param.FuelItemSlotCount);
             _inventoryService = new OpenableInventoryItemDataStoreService(InvokeInventoryUpdate, ServerContext.ItemStackFactory, slotCount);
             _fuelService = new SteamGearGeneratorFuelService(param, _inventoryService, fluidComponent);
-            TeethCount = param.TeethCount;
-            GenerateRpm = new RPM(0);
-            GenerateTorque = new Torque(0);
-            _stateElapsedTime = 0f;
-            _steamConsumptionRate = 0f;
-            _rateAtDecelerationStart = 0f;
+            _stateService = new SteamGearGeneratorStateService(param, _fuelService, fluidComponent);
             _onChangeBlockState = new Subject<Unit>();
+
+            TeethCount = param.TeethCount;
+            GenerateRpm = _stateService.CurrentGeneratedRpm;
+            GenerateTorque = _stateService.CurrentGeneratedTorque;
         }
 
+        // セーブデータからインスタンスを復元するためのコンストラクタ
+        // Constructor used to restore an instance from saved component data
         public SteamGearGeneratorComponent(
             Dictionary<string, string> componentStates,
             SteamGearGeneratorBlockParam param,
@@ -87,15 +76,12 @@ namespace Game.Block.Blocks.Gear
             var saveData = JsonConvert.DeserializeObject<SteamGearGeneratorSaveData>(saveState);
             if (saveData == null) return;
 
-            if (Enum.TryParse(saveData.CurrentState, out GeneratorState parsedState))
-            {
-                _currentState = parsedState;
-            }
+            var restoredFuelType = Enum.TryParse(saveData.ActiveFuelType, out SteamGearGeneratorFuelService.FuelType parsedFuelType)
+                ? parsedFuelType
+                : SteamGearGeneratorFuelService.FuelType.None;
 
-            _stateElapsedTime = saveData.StateElapsedTime;
-            _steamConsumptionRate = saveData.SteamConsumptionRate;
-            _rateAtDecelerationStart = saveData.RateAtDecelerationStart;
-            var restoredFuelType = Enum.TryParse(saveData.ActiveFuelType, out SteamGearGeneratorFuelService.FuelType parsedFuelType) ? parsedFuelType : SteamGearGeneratorFuelService.FuelType.None;
+            // 保存されていたインベントリと燃料状態を順に復元する
+            // Restore the previously saved inventory items and fuel state in sequence
             RestoreInventory(saveData.Items);
             _fuelService.Restore(new SteamGearGeneratorFuelService.FuelState
             {
@@ -104,274 +90,71 @@ namespace Game.Block.Blocks.Gear
                 CurrentFuelFluidGuid = saveData.CurrentFuelFluidGuid,
                 RemainingFuelTime = saveData.RemainingFuelTime
             });
-            
-            // 現在の出力を復元
-            UpdateOutput();
 
-            #region Internal
-
-            void RestoreInventory(List<ItemStackSaveJsonObject> items)
+            var stateSnapshot = new SteamGearGeneratorStateService.StateSnapshot
             {
-                if (items == null) return;
+                State = saveData.CurrentState,
+                StateElapsedTime = saveData.StateElapsedTime,
+                SteamConsumptionRate = saveData.SteamConsumptionRate,
+                RateAtDecelerationStart = saveData.RateAtDecelerationStart
+            };
 
-                var slotSize = _inventoryService.GetSlotSize();
-                for (var i = 0; i < Math.Min(slotSize, items.Count); i++)
-                {
-                    var stack = items[i]?.ToItemStack();
-                    if (stack == null) continue;
-                    _inventoryService.SetItemWithoutEvent(i, stack);
-                }
-            }
-
-            #endregion
+            _stateService.Restore(stateSnapshot);
+            GenerateRpm = _stateService.CurrentGeneratedRpm;
+            GenerateTorque = _stateService.CurrentGeneratedTorque;
         }
 
-        // 毎フレーム呼ばれ、燃料処理と出力更新をまとめて行う
-        // Called every frame to process fuel consumption and refresh output values
+        // フレーム更新で燃料と状態を処理し、出力が動いている間は常に通知する
+        // Process fuel and state each frame while signalling observers whenever power is being produced
         public void Update()
         {
             BlockException.CheckDestroy(this);
-            UpdateState();
-            UpdateOutput();
-        }
 
-        // 燃料・流体状況を元に現在の動作状態を遷移させる
-        // Transition the generator state based on the available item and fluid fuel
-        private void UpdateState()
-        {
-            _fuelService.Update();
-            var allowFluidFuel = !_fluidComponent.IsPipeDisconnected;
-            var hasFuel = _fuelService.HasAvailableFuel(allowFluidFuel);
-            var shouldForceDeceleration = _fuelService.IsUsingFluidFuel && !allowFluidFuel;
-            _stateElapsedTime += (float)GameUpdater.UpdateSecondTime;
+            var hasChanges = _stateService.TryUpdate(out var newRpm, out var newTorque);
+            GenerateRpm = newRpm;
+            GenerateTorque = newTorque;
 
-            switch (_currentState)
+            // 出力変化または稼働中は観測者へ通知を届ける
+            // Notify observers when the output changes or remains active
+            var shouldNotify = hasChanges || newRpm.AsPrimitive() > 0f;
+            if (shouldNotify)
             {
-                case GeneratorState.Idle:
-                    if (hasFuel && _fuelService.TryEnsureFuel(allowFluidFuel))
-                    {
-                        TransitionToState(GeneratorState.Accelerating);
-                    }
-                    else
-                    {
-                        _steamConsumptionRate = 0f;
-                    }
-                    break;
-
-                case GeneratorState.Accelerating:
-                    if (shouldForceDeceleration)
-                    {
-                        TransitionToState(GeneratorState.Decelerating);
-                    }
-                    else if (!_fuelService.TryEnsureFuel(allowFluidFuel))
-                    {
-                        TransitionToState(GeneratorState.Decelerating);
-                    }
-                    else if (_steamConsumptionRate >= 1f)
-                    {
-                        TransitionToState(GeneratorState.Running);
-                    }
-                    break;
-
-                case GeneratorState.Running:
-                    if (shouldForceDeceleration)
-                    {
-                        TransitionToState(GeneratorState.Decelerating);
-                    }
-                    else if (!_fuelService.TryEnsureFuel(allowFluidFuel))
-                    {
-                        TransitionToState(GeneratorState.Decelerating);
-                    }
-                    break;
-
-                case GeneratorState.Decelerating:
-                    if (_steamConsumptionRate <= 0f)
-                    {
-                        TransitionToState(GeneratorState.Idle);
-                    }
-                    else if (_fuelService.TryEnsureFuel(allowFluidFuel))
-                    {
-                        TransitionToState(GeneratorState.Accelerating);
-                    }
-                    break;
-            }
-
-            #region Internal
-
-            void TransitionToState(GeneratorState newState)
-            {
-                if (_currentState == newState) return;
-
-                if (newState == GeneratorState.Decelerating)
-                {
-                    _rateAtDecelerationStart = _steamConsumptionRate;
-                }
-
-                _currentState = newState;
-                _stateElapsedTime = 0f;
-                _onChangeBlockState.OnNext(Unit.Default);
-            }
-
-            #endregion
-        }
-
-        private void UpdateOutput()
-        {
-            switch (_currentState)
-            {
-                case GeneratorState.Idle:
-                    _steamConsumptionRate = 0f;
-                    break;
-
-                case GeneratorState.Accelerating:
-                    var accelerationProgress = Mathf.Clamp01(_stateElapsedTime / _param.TimeToMax);
-                    _steamConsumptionRate = ApplyEasing(accelerationProgress, _param.TimeToMaxEasing);
-                    break;
-
-                case GeneratorState.Running:
-                    _steamConsumptionRate = 1f;
-                    break;
-
-                case GeneratorState.Decelerating:
-                    var decelProgress = Mathf.Clamp01(_stateElapsedTime / _param.TimeToMax);
-                    var eased = ApplyEasing(decelProgress, _param.TimeToMaxEasing);
-                    _steamConsumptionRate = _rateAtDecelerationStart * (1f - eased);
-                    break;
-            }
-
-            var newRpm = new RPM(_param.GenerateMaxRpm * _steamConsumptionRate);
-            var newTorque = new Torque(_param.GenerateMaxTorque * _steamConsumptionRate);
-
-            if (Math.Abs(GenerateRpm.AsPrimitive() - newRpm.AsPrimitive()) > 0.001f ||
-                Math.Abs(GenerateTorque.AsPrimitive() - newTorque.AsPrimitive()) > 0.001f)
-            {
-                GenerateRpm = newRpm;
-                GenerateTorque = newTorque;
                 _onChangeBlockState.OnNext(Unit.Default);
             }
         }
 
-        // 加速・減速の補間を指示されたイージング種別で計算する
-        // Calculate acceleration and deceleration curves using the requested easing type
-        private float ApplyEasing(float t, string easingType)
-        {
-            switch (easingType)
-            {
-                case SteamGearGeneratorBlockParam.TimeToMaxEasingConst.Linear:
-                    return t;
-                case SteamGearGeneratorBlockParam.TimeToMaxEasingConst.EaseInSine:
-                    return 1 - Mathf.Cos((t * Mathf.PI) / 2f);
-                case SteamGearGeneratorBlockParam.TimeToMaxEasingConst.EaseOutSine:
-                    return Mathf.Sin((t * Mathf.PI) / 2f);
-                case SteamGearGeneratorBlockParam.TimeToMaxEasingConst.EaseInCubic:
-                    return t * t * t;
-                case SteamGearGeneratorBlockParam.TimeToMaxEasingConst.EaseOutCubic:
-                    return 1 - Mathf.Pow(1 - t, 3);
-                case SteamGearGeneratorBlockParam.TimeToMaxEasingConst.EaseInQuint:
-                    return t * t * t * t * t;
-                case SteamGearGeneratorBlockParam.TimeToMaxEasingConst.EaseOutQuint:
-                    return 1 - Mathf.Pow(1 - t, 5);
-                case SteamGearGeneratorBlockParam.TimeToMaxEasingConst.EaseInCirc:
-                    return 1 - Mathf.Sqrt(1 - t * t);
-                case SteamGearGeneratorBlockParam.TimeToMaxEasingConst.EaseOutCirc:
-                    return Mathf.Sqrt(1 - Mathf.Pow(t - 1, 2));
-                default:
-                    return t;
-            }
-        }
-
+        // セーブ識別子と現在の状態をシリアライズする
+        // Provide the save identifier and serialise the current state
         public string SaveKey => "steamGearGenerator";
 
         public string GetSaveState()
         {
-            var saveData = new SteamGearGeneratorSaveData
-            {
-                CurrentState = _currentState.ToString(),
-                StateElapsedTime = _stateElapsedTime,
-                SteamConsumptionRate = _steamConsumptionRate,
-                RateAtDecelerationStart = _rateAtDecelerationStart,
-                Items = new List<ItemStackSaveJsonObject>()
-            };
-
-            var fuelState = _fuelService.CreateSnapshot();
-            saveData.ActiveFuelType = fuelState.ActiveFuelType.ToString();
-            saveData.RemainingFuelTime = fuelState.RemainingFuelTime;
-            saveData.CurrentFuelItemGuidStr = fuelState.CurrentFuelItemGuid?.ToString();
-            saveData.CurrentFuelFluidGuidStr = fuelState.CurrentFuelFluidGuid?.ToString();
-
-            var slotSize = _inventoryService.GetSlotSize();
-            for (var i = 0; i < slotSize; i++)
-            {
-                saveData.Items.Add(new ItemStackSaveJsonObject(_inventoryService.GetItem(i)));
-            }
-
+            BlockException.CheckDestroy(this);
+            var saveData = new SteamGearGeneratorSaveData(_stateService, _fuelService, _inventoryService);
             return JsonConvert.SerializeObject(saveData);
         }
 
-        private class SteamGearGeneratorSaveData
-        {
-            public string CurrentState { get; set; }
-            public float StateElapsedTime { get; set; }
-            public float SteamConsumptionRate { get; set; }
-            public float RateAtDecelerationStart { get; set; }
-            public List<ItemStackSaveJsonObject> Items { get; set; }
-            public string ActiveFuelType { get; set; }
-            public double RemainingFuelTime { get; set; }
-            public string CurrentFuelItemGuidStr { get; set; }
-            public string CurrentFuelFluidGuidStr { get; set; }
-
-            [JsonIgnore]
-            public Guid? CurrentFuelItemGuid => Guid.TryParse(CurrentFuelItemGuidStr, out var guid) ? guid : null;
-
-            [JsonIgnore]
-            public Guid? CurrentFuelFluidGuid => Guid.TryParse(CurrentFuelFluidGuidStr, out var guid) ? guid : null;
-        }
-
+        // ブロック詳細情報を組み立てて観測用データとして返す
+        // Assemble block detail information for observational inspection
         public new BlockStateDetail[] GetBlockStateDetails()
         {
-            var steamGearDetail = GetSteamGearDetail();
+            BlockException.CheckDestroy(this);
+            var network = GearNetworkDatastore.GetGearNetwork(BlockInstanceId);
+            var detail = new SteamGearGeneratorBlockStateDetail(_stateService, _fluidComponent, network.CurrentGearNetworkInfo, GenerateIsClockwise);
+            var serialized = MessagePackSerializer.Serialize(detail);
             var baseDetails = base.GetBlockStateDetails();
 
             var resultDetails = new BlockStateDetail[baseDetails.Length + 1];
-            resultDetails[0] = steamGearDetail;
+            resultDetails[0] = new BlockStateDetail(SteamGearGeneratorBlockStateDetail.SteamGearGeneratorBlockStateDetailKey, serialized);
             Array.Copy(baseDetails, 0, resultDetails, 1, baseDetails.Length);
-
             return resultDetails;
-
-            #region Internal
-
-            BlockStateDetail GetSteamGearDetail()
-            {
-                var network = GearNetworkDatastore.GetGearNetwork(BlockInstanceId);
-                var gearNetworkInfo = network.CurrentGearNetworkInfo;
-
-                var stateDetail = new SteamGearGeneratorBlockStateDetail(
-                    _currentState.ToString(),
-                    GenerateRpm,
-                    GenerateTorque,
-                    GenerateIsClockwise,
-                    _steamConsumptionRate,
-                    _fluidComponent.SteamTank,
-                    gearNetworkInfo
-                );
-
-                var serializedState = MessagePackSerializer.Serialize(stateDetail);
-                return new BlockStateDetail(SteamGearGeneratorBlockStateDetail.SteamGearGeneratorBlockStateDetailKey, serializedState);
-            }
-
-            #endregion
         }
-
+        // IBlockInventory と IOpenableInventory をサービスへ委譲するラッパーメソッド
+        // Wrapper methods that delegate inventory operations to the shared service
         public IItemStack InsertItem(IItemStack itemStack)
         {
             BlockException.CheckDestroy(this);
             return _inventoryService.InsertItem(itemStack);
-        }
-
-        public bool InsertionCheck(List<IItemStack> itemStacks)
-        {
-            BlockException.CheckDestroy(this);
-            return _inventoryService.InsertionCheck(itemStacks);
         }
 
         public IItemStack GetItem(int slot)
@@ -380,22 +163,22 @@ namespace Game.Block.Blocks.Gear
             return _inventoryService.GetItem(slot);
         }
 
-        public void SetItem(int slot, IItemStack itemStack)
-        {
-            BlockException.CheckDestroy(this);
-            _inventoryService.SetItem(slot, itemStack);
-        }
-
         public int GetSlotSize()
         {
             BlockException.CheckDestroy(this);
             return _inventoryService.GetSlotSize();
         }
 
-        public ReadOnlyCollection<IItemStack> CreateCopiedItems()
+        public bool InsertionCheck(List<IItemStack> itemStacks)
         {
             BlockException.CheckDestroy(this);
-            return _inventoryService.CreateCopiedItems();
+            return _inventoryService.InsertionCheck(itemStacks);
+        }
+
+        public void SetItem(int slot, IItemStack itemStack)
+        {
+            BlockException.CheckDestroy(this);
+            _inventoryService.SetItem(slot, itemStack);
         }
 
         public void SetItem(int slot, ItemId itemId, int count)
@@ -428,12 +211,34 @@ namespace Game.Block.Blocks.Gear
             return _inventoryService.InsertItem(itemStacks);
         }
 
-        private void InvokeInventoryUpdate(int slot, IItemStack itemStack)
+        public ReadOnlyCollection<IItemStack> CreateCopiedItems()
         {
             BlockException.CheckDestroy(this);
-            var updateEvent = (BlockOpenableInventoryUpdateEvent)ServerContext.BlockOpenableInventoryUpdateEvent;
+            return _inventoryService.CreateCopiedItems();
+        }
+
+        // インベントリ更新時にクライアントへ通知イベントを発火させる
+        // Emit an update event to notify clients whenever the inventory changes
+        private void InvokeInventoryUpdate(int slot, IItemStack itemStack)
+        {
+            var blockInventoryUpdate = (BlockOpenableInventoryUpdateEvent)ServerContext.BlockOpenableInventoryUpdateEvent;
             var properties = new BlockOpenableInventoryUpdateEventProperties(BlockInstanceId, slot, itemStack);
-            updateEvent.OnInventoryUpdateInvoke(properties);
+            blockInventoryUpdate.OnInventoryUpdateInvoke(properties);
+        }
+
+        // セーブデータのアイテムリストを復元サービスへ反映させる
+        // Restore saved inventory items back into the service-managed slots
+        private void RestoreInventory(List<ItemStackSaveJsonObject> items)
+        {
+            if (items == null) return;
+
+            var slotSize = _inventoryService.GetSlotSize();
+            for (var i = 0; i < Math.Min(slotSize, items.Count); i++)
+            {
+                var stack = items[i]?.ToItemStack();
+                if (stack == null) continue;
+                _inventoryService.SetItemWithoutEvent(i, stack);
+            }
         }
     }
 }
