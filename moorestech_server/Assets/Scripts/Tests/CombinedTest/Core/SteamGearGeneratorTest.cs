@@ -191,7 +191,7 @@ namespace Tests.CombinedTest.Core
             
             var generatorComponent = steamGeneratorBlock.GetComponent<SteamGearGeneratorComponent>();
             var inventory = steamGeneratorBlock.GetComponent<IBlockInventory>();
-            var openableInventory = (IOpenableInventory)generatorComponent;
+            var openableInventory = (IOpenableInventory)inventory;
             var fluidComponent = steamGeneratorBlock.GetComponent<SteamGearGeneratorFluidComponent>();
             
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.SteamGearGeneratorId);

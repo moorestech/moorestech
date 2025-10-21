@@ -79,13 +79,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.Greater(acceleratingRpm, 0, "加速中のRPMは0より大きいはず");
             Assert.Less(acceleratingRpm, param.GenerateMaxRpm, "加速中のRPMは最大値未満のはず");
             
-            // 現在の状態を取得（リフレクションを使用）
-            var currentStateField = typeof(SteamGearGeneratorComponent).GetField("_currentState", BindingFlags.NonPublic | BindingFlags.Instance);
-            var currentState = currentStateField.GetValue(steamGeneratorComponent).ToString();
-            var stateElapsedTimeField = typeof(SteamGearGeneratorComponent).GetField("_stateElapsedTime", BindingFlags.NonPublic | BindingFlags.Instance);
-            var stateElapsedTime = (float)stateElapsedTimeField.GetValue(steamGeneratorComponent);
-            var steamConsumptionRateField = typeof(SteamGearGeneratorComponent).GetField("_steamConsumptionRate", BindingFlags.NonPublic | BindingFlags.Instance);
-            var steamConsumptionRate = (float)steamConsumptionRateField.GetValue(steamGeneratorComponent);
+            // 現在の状態を取得
+            var runtimeSave = JsonUtility.FromJson<SteamGearGeneratorSaveData>(steamGeneratorComponent.GetSaveState());
             
             // 流体コンポーネントの状態を取得
             var steamTank = fluidComponent.SteamTank;
@@ -116,20 +111,16 @@ namespace Tests.UnitTest.Game.SaveLoad
             // コンポーネントの状態を確認
             var loadedSteamGeneratorComponent = loadedSteamGeneratorBlock.GetComponent<SteamGearGeneratorComponent>();
             var loadedFluidComponent = loadedSteamGeneratorBlock.GetComponent<SteamGearGeneratorFluidComponent>();
+            var loadedSave = JsonUtility.FromJson<SteamGearGeneratorSaveData>(loadedSteamGeneratorComponent.GetSaveState());
             
             // 出力値が同じであることを確認
             Assert.AreEqual(acceleratingRpm, loadedSteamGeneratorComponent.GenerateRpm.AsPrimitive(), 0.01f, "ロード後のRPMが一致しません");
             Assert.AreEqual(acceleratingTorque, loadedSteamGeneratorComponent.GenerateTorque.AsPrimitive(), 0.01f, "ロード後のトルクが一致しません");
             
-            // 内部状態が同じであることを確認（リフレクション使用）
-            var loadedCurrentState = currentStateField.GetValue(loadedSteamGeneratorComponent).ToString();
-            Assert.AreEqual(currentState, loadedCurrentState, "状態が一致しません");
-            
-            var loadedStateElapsedTime = (float)stateElapsedTimeField.GetValue(loadedSteamGeneratorComponent);
-            Assert.AreEqual(stateElapsedTime, loadedStateElapsedTime, 0.01f, "経過時間が一致しません");
-            
-            var loadedSteamConsumptionRate = (float)steamConsumptionRateField.GetValue(loadedSteamGeneratorComponent);
-            Assert.AreEqual(steamConsumptionRate, loadedSteamConsumptionRate, 0.01f, "消費率が一致しません");
+            // 内部状態が同じであることを確認
+            Assert.AreEqual(runtimeSave.CurrentState, loadedSave.CurrentState, "状態が一致しません");
+            Assert.AreEqual(runtimeSave.StateElapsedTime, loadedSave.StateElapsedTime, 0.01f, "経過時間が一致しません");
+            Assert.AreEqual(runtimeSave.SteamConsumptionRate, loadedSave.SteamConsumptionRate, 0.01f, "消費率が一致しません");
             
             // 流体タンクの状態を確認
             var loadedSteamTank = loadedFluidComponent.SteamTank;
