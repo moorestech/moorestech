@@ -13,6 +13,7 @@ namespace Game.Block.Blocks.Gear
         public RPM CurrentRpm { get; private set; }
         public Torque CurrentTorque { get; private set; }
         public bool IsCurrentClockwise { get; private set; }
+        public GearNetworkStopReason StopReason { get; private set; }
         public bool IsRocked { get; private set; }
         
         public IObservable<Unit> BlockStateChange => _onBlockStateChange;
@@ -29,9 +30,10 @@ namespace Game.Block.Blocks.Gear
             _blockInstanceId = blockInstanceId;
         }
         
-        public void Rocked()
+        public void StopNetwork(GearNetworkStopReason reason)
         {
             IsRocked = true;
+            StopReason = reason;
             _currentState = IGearEnergyTransformer.RockedStateName;
             CurrentRpm = new RPM(0);
             CurrentTorque = new Torque(0);
@@ -44,7 +46,7 @@ namespace Game.Block.Blocks.Gear
         {
             var network = GearNetworkDatastore.GetGearNetwork(_blockInstanceId);
             var info = network.CurrentGearNetworkInfo;
-            var stateDetail = new GearStateDetail(IsCurrentClockwise, CurrentRpm.AsPrimitive(), CurrentTorque.AsPrimitive(), info);
+            var stateDetail = new GearStateDetail(IsCurrentClockwise, CurrentRpm.AsPrimitive(), CurrentTorque.AsPrimitive(), StopReason, info);
             
             return new BlockStateDetail(GearStateDetail.BlockStateDetailKey, MessagePackSerializer.Serialize(stateDetail));
         }
@@ -52,6 +54,7 @@ namespace Game.Block.Blocks.Gear
         public void SupplyPower(RPM rpm, Torque torque, bool isClockwise)
         {
             IsRocked = false;
+            StopReason = GearNetworkStopReason.None;
             var isChanged =
                 Math.Abs((CurrentRpm - rpm).AsPrimitive()) > 0.05f ||
                 Math.Abs((CurrentTorque - torque).AsPrimitive()) > 0.05f ||

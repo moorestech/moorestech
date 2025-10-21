@@ -95,7 +95,7 @@ namespace Game.Block.Blocks.Gear
             BlockException.CheckDestroy(this);
 
             var network = GearNetworkDatastore.GetGearNetwork(BlockInstanceId);
-            var detail = new SteamGearGeneratorBlockStateDetail(_stateService, _fluidComponent, network.CurrentGearNetworkInfo, GenerateIsClockwise);
+            var detail = new SteamGearGeneratorBlockStateDetail(_stateService, _fluidComponent, network.CurrentGearNetworkInfo, GenerateIsClockwise, StopReason);
             var serialised = MessagePackSerializer.Serialize(detail);
             var baseDetails = base.GetBlockStateDetails();
 

@@ -307,103 +307,101 @@ namespace Tests.CombinedTest.Game
         [Test]
         public void ServeTorqueOverTest()
         {
-            //トルクが多いとその分供給トルクが減るテスト
+            // エネルギー不足時にネットワークが完全停止することをテスト
             // ジェネレーターは3のトルクを生成するが、6つの歯車がつながっているため、要求するトルクは6になる
-            // 結果、供給されるトルクは3/6=0.5になる
-            // Test that the supply torque decreases as the torque increases
+            // 必要GP > 生成GPのため、ネットワークは完全停止する（新仕様）
+            // Test that the network halts completely when energy is insufficient
             // The generator generates 3 torque, but since it is connected to 6 gears, the required torque becomes 6
-            // As a result, the supplied torque becomes 3/6=0.5
-            
+            // Since required GP > generated GP, the network halts completely (new specification)
+
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            
+
             var generatorPosition = new Vector3Int(0, 0, 0);
-            
+
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North, out var generatorBlock);
             var generator = generatorBlock.GetComponent<SimpleGearGeneratorComponent>();
-            
+
             var gearPosition1 = new Vector3Int(0, 0, 1);
             var gearPosition2 = new Vector3Int(0, 0, 2);
             var gearPosition3 = new Vector3Int(1, 0, 2);
             var gearPosition4 = new Vector3Int(2, 0, 2);
             var gearPosition5 = new Vector3Int(2, 0, 3);
             var gearPosition6 = new Vector3Int(3, 0, 3);
-            
+
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition1, BlockDirection.North, out var gear1Block);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth20RequireTorqueTestGear, gearPosition2, BlockDirection.North, out var gear2Block);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition3, BlockDirection.North, out var gear3Block);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition4, BlockDirection.North, out var gear4Block);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth20RequireTorqueTestGear, gearPosition5, BlockDirection.North, out var gear5Block);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition6, BlockDirection.North, out var gear6Block);
-            
+
             var gear1 = gear1Block.GetComponent<IGearEnergyTransformer>();
             var gear2 = gear2Block.GetComponent<IGearEnergyTransformer>();
             var gear3 = gear3Block.GetComponent<IGearEnergyTransformer>();
             var gear4 = gear4Block.GetComponent<IGearEnergyTransformer>();
             var gear5 = gear5Block.GetComponent<IGearEnergyTransformer>();
             var gear6 = gear6Block.GetComponent<IGearEnergyTransformer>();
-            
+
             var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
             var gearNetwork = gearNetworkDataStore.GearNetworks.First().Value;
             gearNetwork.ManualUpdate();
-            
-            const float baseRpm = 2.5f;
-            const float baseTorque = 0.25f;
-            
-            AreEqual(baseRpm, gear1.CurrentRpm);
-            AreEqual(baseRpm, gear2.CurrentRpm);
-            AreEqual(baseTorque, gear1.CurrentTorque);
-            AreEqual(baseTorque, gear2.CurrentTorque);
-            
-            AreEqual(baseRpm * 2f, gear3.CurrentRpm);
-            AreEqual(baseRpm * 2f, gear4.CurrentRpm);
-            AreEqual(baseRpm * 2f, gear5.CurrentRpm);
-            AreEqual(baseTorque, gear3.CurrentTorque);
-            AreEqual(baseTorque, gear4.CurrentTorque);
-            AreEqual(baseTorque, gear5.CurrentTorque);
-            
-            AreEqual(baseRpm * 4f, gear6.CurrentRpm);
-            AreEqual(baseTorque, gear6.CurrentTorque);
+
+            // エネルギー不足により、すべてのコンポーネントのRPMが0になる
+            AreEqual(0f, gear1.CurrentRpm);
+            AreEqual(0f, gear2.CurrentRpm);
+            AreEqual(0f, gear3.CurrentRpm);
+            AreEqual(0f, gear4.CurrentRpm);
+            AreEqual(0f, gear5.CurrentRpm);
+            AreEqual(0f, gear6.CurrentRpm);
+
+            // OperatingRateが0になる
+            Assert.AreEqual(0f, gearNetwork.CurrentGearNetworkInfo.OperatingRate);
+
+            // 必要GP > 生成GPであることを確認
+            Assert.IsTrue(gearNetwork.CurrentGearNetworkInfo.TotalRequiredGearPower > gearNetwork.CurrentGearNetworkInfo.TotalGenerateGearPower);
         }
         
         
         [Test]
-        // RPMが1/2になると供給されるトルクが倍になるテスト
+        // エネルギー不足時にネットワークが完全停止することをテスト（ギア比ありのケース）
+        // Test that the network halts completely when energy is insufficient (case with gear ratio)
         public void TorqueHalfTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            
+
             var generatorPosition = new Vector3Int(0, 0, 0);
-            
+
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North, out var generatorBlock);
             var generator = generatorBlock.GetComponent<SimpleGearGeneratorComponent>();
             // 生成するトルクを1に設定する
             // Set the generated torque to 1
             SetGenerateTorque(generator);
-            
-            
+
             var gearPosition1 = new Vector3Int(0, 0, 1);
             var gearPosition2 = new Vector3Int(1, 0, 1);
-            
+
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth20RequireTorqueTestGear, gearPosition1, BlockDirection.North, out var gear1Block);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition2, BlockDirection.North, out var gear2Block);
-            
+
             var gear1 = gear1Block.GetComponent<IGearEnergyTransformer>();
-            // テストしたいGear2で不要なトルク消費が行われないように必要トルクを0に設定
-            // Set the required torque to 0 so that unnecessary torque consumption is not performed in Gear2 to be tested
-            typeof(GearEnergyTransformer).GetField("RequiredTorque", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(gear1, new Torque(0));
-            
             var gear2 = gear2Block.GetComponent<IGearEnergyTransformer>();
-            
+
             var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
             var gearNetwork = gearNetworkDataStore.GearNetworks.First().Value;
             gearNetwork.ManualUpdate();
-            
-            AreEqual(5, gear1.CurrentRpm);
-            AreEqual(10, gear2.CurrentRpm);
-            AreEqual(0, gear1.CurrentTorque);
-            AreEqual(0.5f, gear2.CurrentTorque);
+
+            // ジェネレーターのトルクが1、gear1とgear2の要求トルクの合計が1を超えるため、エネルギー不足で停止
+            // Generator torque is 1, total required torque exceeds 1, so the network halts due to energy deficit
+            AreEqual(0f, gear1.CurrentRpm);
+            AreEqual(0f, gear2.CurrentRpm);
+            AreEqual(0f, gear1.CurrentTorque);
+            AreEqual(0f, gear2.CurrentTorque);
+
+            // エネルギー収支を確認（必要GP > 生成GP）
+            Assert.IsTrue(gearNetwork.CurrentGearNetworkInfo.TotalRequiredGearPower > gearNetwork.CurrentGearNetworkInfo.TotalGenerateGearPower);
+            Assert.AreEqual(0f, gearNetwork.CurrentGearNetworkInfo.OperatingRate);
         }
         
         
@@ -481,6 +479,222 @@ namespace Tests.CombinedTest.Game
             // 0.01fの誤差を許容する
             // Allow an error of 0.01f
             Assert.IsTrue(Mathf.Abs(expected - actual) < 0.01f, $"Expected: {expected}, Actual: {actual}");
+        }
+
+        [Test]
+        // エネルギー不足時にネットワーク全体が停止するテスト
+        // Test that the entire network stops when energy is insufficient
+        public void EnergyDeficitHaltTest()
+        {
+            // セットアップ: SimpleGearGenerator（トルク3）と高負荷歯車（要求トルク計4）を配置
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+
+            var generatorPosition = new Vector3Int(0, 0, 0);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North, out _);
+
+            // 必要トルク計4の歯車を配置（ジェネレーターのトルク3を上回る）
+            var gearPosition1 = new Vector3Int(0, 0, 1);
+            var gearPosition2 = new Vector3Int(1, 0, 1);
+            var gearPosition3 = new Vector3Int(2, 0, 1);
+            var gearPosition4 = new Vector3Int(3, 0, 1);
+
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition1, BlockDirection.North, out var gear1Block);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition2, BlockDirection.North, out var gear2Block);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition3, BlockDirection.North, out var gear3Block);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition4, BlockDirection.North, out var gear4Block);
+
+            var gear1 = gear1Block.GetComponent<IGearEnergyTransformer>();
+            var gear2 = gear2Block.GetComponent<IGearEnergyTransformer>();
+            var gear3 = gear3Block.GetComponent<IGearEnergyTransformer>();
+            var gear4 = gear4Block.GetComponent<IGearEnergyTransformer>();
+
+            // 実行: ネットワーク更新
+            var gearNetworkDatastore = serviceProvider.GetService<GearNetworkDatastore>();
+            var gearNetwork = gearNetworkDatastore.GearNetworks.First().Value;
+            gearNetwork.ManualUpdate();
+
+            // 検証: すべてのコンポーネントのRPMが0であること
+            AreEqual(0f, gear1.CurrentRpm);
+            AreEqual(0f, gear2.CurrentRpm);
+            AreEqual(0f, gear3.CurrentRpm);
+            AreEqual(0f, gear4.CurrentRpm);
+
+            // 検証: GearNetworkInfoのOperatingRateが0であること
+            Assert.AreEqual(0f, gearNetwork.CurrentGearNetworkInfo.OperatingRate);
+
+            // 検証: TotalRequiredGearPowerがTotalGenerateGearPowerより大きいこと
+            Assert.IsTrue(gearNetwork.CurrentGearNetworkInfo.TotalRequiredGearPower > gearNetwork.CurrentGearNetworkInfo.TotalGenerateGearPower);
+        }
+
+        [Test]
+        // エネルギー回復時に通常動作が再開されるテスト
+        // Test that normal operation resumes when energy recovers
+        public void EnergyRecoveryTest()
+        {
+            // セットアップ: エネルギー不足状態を作成
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+
+            var generatorPosition = new Vector3Int(0, 0, 0);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North, out _);
+
+            var gearPosition1 = new Vector3Int(0, 0, 1);
+            var gearPosition2 = new Vector3Int(1, 0, 1);
+            var gearPosition3 = new Vector3Int(2, 0, 1);
+            var gearPosition4 = new Vector3Int(3, 0, 1);
+
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition1, BlockDirection.North, out var gear1Block);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition2, BlockDirection.North, out var gear2Block);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition3, BlockDirection.North, out var gear3Block);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition4, BlockDirection.North, out var gear4Block);
+
+            var gear1 = gear1Block.GetComponent<IGearEnergyTransformer>();
+            var gear2 = gear2Block.GetComponent<IGearEnergyTransformer>();
+            var gear3 = gear3Block.GetComponent<IGearEnergyTransformer>();
+            var gear4 = gear4Block.GetComponent<IGearEnergyTransformer>();
+
+            var gearNetworkDatastore = serviceProvider.GetService<GearNetworkDatastore>();
+            var gearNetwork = gearNetworkDatastore.GearNetworks.First().Value;
+
+            // 最初の更新でエネルギー不足状態になることを確認
+            gearNetwork.ManualUpdate();
+            AreEqual(0f, gear1.CurrentRpm);
+
+            // 実行: 高負荷歯車を2つ削除してエネルギー充足状態にする
+            worldBlockDatastore.RemoveBlock(gearPosition3);
+            worldBlockDatastore.RemoveBlock(gearPosition4);
+
+            // ネットワークが再構築されるので、最新のネットワークを取得
+            gearNetwork = gearNetworkDatastore.GearNetworks.First().Value;
+            gearNetwork.ManualUpdate();
+
+            // 検証: GearTransformerのCurrentRpmが0より大きいこと
+            Assert.IsTrue(gear1.CurrentRpm.AsPrimitive() > 0f);
+            Assert.IsTrue(gear2.CurrentRpm.AsPrimitive() > 0f);
+
+            // 検証: GearNetworkInfo.OperatingRateが0より大きいこと
+            Assert.IsTrue(gearNetwork.CurrentGearNetworkInfo.OperatingRate > 0f);
+
+            // 検証: 通常の動力分配処理が正しく実行されていること
+            Assert.IsTrue(gearNetwork.CurrentGearNetworkInfo.TotalRequiredGearPower <= gearNetwork.CurrentGearNetworkInfo.TotalGenerateGearPower);
+        }
+
+        [Test]
+        // ロック検知がエネルギー不足判定より優先されることをテスト
+        // Test that lock detection takes priority over energy deficit judgment
+        public void RockTakesPriorityOverEnergyDeficitTest()
+        {
+            // セットアップ: RPM矛盾を含み、かつエネルギー不足も発生するネットワークを構築
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+
+            var generatorPos = new Vector3Int(1, 1, 0);
+            var bigGearPos = new Vector3Int(0, 0, 1);
+            var smallGear1Pos = new Vector3Int(3, 1, 1);
+            var smallGear2Pos = new Vector3Int(1, 1, 2);
+
+            // RPMが異なる歯車ネットワークを作成（ロックを引き起こす）
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPos, BlockDirection.North, out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.BigGear, bigGearPos, BlockDirection.North, out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, smallGear1Pos, BlockDirection.North, out var smallGear1);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, smallGear2Pos, BlockDirection.North, out var smallGear2);
+
+            // RPMが違う歯車同士を強制的に接続してロック状態を作成
+            ForceConnectGear(smallGear1, smallGear2);
+
+            var gearNetworkDatastore = serviceProvider.GetService<GearNetworkDatastore>();
+            var gearNetwork = gearNetworkDatastore.GearNetworks.First().Value;
+
+            // 実行: ネットワーク更新
+            gearNetwork.ManualUpdate();
+
+            // 検証: すべてのコンポーネントがロック状態であること
+            Assert.IsTrue(gearNetwork.GearTransformers.All(g => g.IsRocked));
+            Assert.IsTrue(gearNetwork.GearGenerators.All(g => g.IsRocked));
+
+            // 検証: OperatingRateが0であること（ロック状態の結果）
+            Assert.AreEqual(0f, gearNetwork.CurrentGearNetworkInfo.OperatingRate);
+        }
+
+        [Test]
+        // ジェネレーター不在時の既存動作が維持されることをテスト
+        // Test that existing behavior is maintained when there is no generator
+        public void NoGeneratorBehaviorUnchangedTest()
+        {
+            // セットアップ: ジェネレーターなしでGearTransformerのみ配置
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+
+            var gearPosition1 = new Vector3Int(0, 0, 0);
+            var gearPosition2 = new Vector3Int(1, 0, 0);
+
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPosition1, BlockDirection.North, out var gear1Block);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPosition2, BlockDirection.North, out var gear2Block);
+
+            var gear1 = gear1Block.GetComponent<IGearEnergyTransformer>();
+            var gear2 = gear2Block.GetComponent<IGearEnergyTransformer>();
+
+            var gearNetworkDatastore = serviceProvider.GetService<GearNetworkDatastore>();
+            var gearNetwork = gearNetworkDatastore.GearNetworks.First().Value;
+
+            // 実行: ネットワーク更新
+            gearNetwork.ManualUpdate();
+
+            // 検証: すべてのGearTransformerのCurrentRpmが0であること（既存動作）
+            AreEqual(0f, gear1.CurrentRpm);
+            AreEqual(0f, gear2.CurrentRpm);
+
+            // 検証: CurrentGearNetworkInfoがCreateEmpty()の結果と一致すること
+            var emptyInfo = GearNetworkInfo.CreateEmpty();
+            Assert.AreEqual(emptyInfo.TotalRequiredGearPower, gearNetwork.CurrentGearNetworkInfo.TotalRequiredGearPower);
+            Assert.AreEqual(emptyInfo.TotalGenerateGearPower, gearNetwork.CurrentGearNetworkInfo.TotalGenerateGearPower);
+            Assert.AreEqual(emptyInfo.OperatingRate, gearNetwork.CurrentGearNetworkInfo.OperatingRate);
+        }
+
+        [Test]
+        // 必要GP = 生成GPの境界値テスト
+        // Test the boundary case where required GP = generated GP
+        public void ExactEnergyBalanceTest()
+        {
+            // セットアップ: 必要GPと生成GPが完全に等しいネットワークを構築
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+
+            var generatorPosition = new Vector3Int(0, 0, 0);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North, out _);
+
+            // SimpleGearGeneratorのトルクは3、RPMは10なので、ギアパワーは30
+            // Teeth10RequireTorqueTestGearのトルクは1、RPMは10なので、1つあたりのギアパワーは10
+            // 3つの歯車を配置すれば、必要GP = 30 = 生成GPになる
+            var gearPosition1 = new Vector3Int(0, 0, 1);
+            var gearPosition2 = new Vector3Int(1, 0, 1);
+            var gearPosition3 = new Vector3Int(2, 0, 1);
+
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition1, BlockDirection.North, out var gear1Block);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition2, BlockDirection.North, out var gear2Block);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition3, BlockDirection.North, out var gear3Block);
+
+            var gear1 = gear1Block.GetComponent<IGearEnergyTransformer>();
+            var gear2 = gear2Block.GetComponent<IGearEnergyTransformer>();
+            var gear3 = gear3Block.GetComponent<IGearEnergyTransformer>();
+
+            var gearNetworkDatastore = serviceProvider.GetService<GearNetworkDatastore>();
+            var gearNetwork = gearNetworkDatastore.GearNetworks.First().Value;
+
+            // 実行: ネットワーク更新
+            gearNetwork.ManualUpdate();
+
+            // 検証: GearTransformerのCurrentRpmが0より大きいこと（エネルギー充足として扱う）
+            Assert.IsTrue(gear1.CurrentRpm.AsPrimitive() > 0f);
+            Assert.IsTrue(gear2.CurrentRpm.AsPrimitive() > 0f);
+            Assert.IsTrue(gear3.CurrentRpm.AsPrimitive() > 0f);
+
+            // 検証: OperatingRateが1.0であること
+            AreEqual(1.0f, gearNetwork.CurrentGearNetworkInfo.OperatingRate);
+
+            // 検証: 必要GPと生成GPが等しいこと
+            AreEqual(gearNetwork.CurrentGearNetworkInfo.TotalRequiredGearPower, gearNetwork.CurrentGearNetworkInfo.TotalGenerateGearPower);
         }
     }
 }

@@ -86,6 +86,7 @@ namespace Game.Block.Blocks.GearElectric
                     IsCurrentClockwise,
                     CurrentRpm,
                     CurrentTorque,
+                    StopReason,
                     network.CurrentGearNetworkInfo,
                     EnergyFulfillmentRate,
                     _currentGeneratedPower);
