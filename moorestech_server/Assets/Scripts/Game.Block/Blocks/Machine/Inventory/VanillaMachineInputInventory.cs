@@ -76,6 +76,9 @@ namespace Game.Block.Blocks.Machine.Inventory
         {
             //inputスロットからアイテムを減らす
             foreach (var item in recipe.InputItems)
+            {
+                if (item.IsRemain.HasValue && item.IsRemain.Value) continue;
+                
                 for (var i = 0; i < InputSlot.Count; i++)
                 {
                     var itemId = MasterHolder.ItemMaster.GetItemId(item.ItemGuid);
@@ -85,6 +88,7 @@ namespace Game.Block.Blocks.Machine.Inventory
                     _itemDataStoreService.SetItem(i, InputSlot[i].SubItem(item.Count));
                     break;
                 }
+            }
             
             //inputスロットから液体を減らす
             foreach (var inputFluid in recipe.InputFluids)
