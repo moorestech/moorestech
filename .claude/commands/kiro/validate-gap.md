@@ -17,7 +17,7 @@ Analyze implementation requirements and existing codebase for feature: **$1**
 - Custom steering: Load all "Always" mode custom steering files from .kiro/steering/
 
 ### Existing Spec Context
-- Current spec directory: !`ls -la .kiro/specs/$1/`
+- Current spec directory: !`ls -la .kiro/specs/$1/ 2>/dev/null || echo "No spec directory found"`
 - Requirements document: @.kiro/specs/$1/requirements.md
 - Spec metadata: @.kiro/specs/$1/spec.json
 
