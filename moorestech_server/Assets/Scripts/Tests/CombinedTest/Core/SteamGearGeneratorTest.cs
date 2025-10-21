@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Core.Inventory;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.Fluid;
@@ -190,6 +191,7 @@ namespace Tests.CombinedTest.Core
             
             var generatorComponent = steamGeneratorBlock.GetComponent<SteamGearGeneratorComponent>();
             var inventory = steamGeneratorBlock.GetComponent<IBlockInventory>();
+            var openableInventory = steamGeneratorBlock.GetComponent<IOpenableInventory>();
             var fluidComponent = steamGeneratorBlock.GetComponent<SteamGearGeneratorFluidComponent>();
             
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.SteamGearGeneratorId);
@@ -236,7 +238,7 @@ namespace Tests.CombinedTest.Core
             
             #endregion
         }
-        
+
         [Test]
         public void BlockStateObservableTest()
         {
@@ -485,6 +487,56 @@ namespace Tests.CombinedTest.Core
                         stateData.SteamAmount, stateData.SteamFluidId);
             }
             
+            #endregion
+        }
+
+        [Test]
+        public void ItemFuelGeneratesWithoutFluid()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SteamGearGeneratorId, Vector3Int.zero, BlockDirection.North, out var steamGeneratorBlock);
+
+            var generatorComponent = steamGeneratorBlock.GetComponent<SteamGearGeneratorComponent>();
+            var inventory = steamGeneratorBlock.GetComponent<IBlockInventory>();
+            var fluidComponent = steamGeneratorBlock.GetComponent<SteamGearGeneratorFluidComponent>();
+            var param = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.SteamGearGeneratorId).BlockParam as SteamGearGeneratorBlockParam;
+
+            var fuelItemId = MasterHolder.ItemMaster.GetItemId(new Guid("00000000-0000-0000-1234-000000000001"));
+            openableInventory.InsertItem(fuelItemId, 10);
+
+            RunUpdates(240);
+
+            Assert.AreEqual(param.GenerateMaxRpm, generatorComponent.GenerateRpm.AsPrimitive(), 0.5f, "アイテム燃料のみで最大RPMに到達していません");
+            Assert.AreEqual(param.GenerateMaxTorque, generatorComponent.GenerateTorque.AsPrimitive(), 0.5f, "アイテム燃料のみで最大トルクに到達していません");
+            Assert.AreEqual(0, fluidComponent.SteamTank.Amount, 0.01d, "液体燃料が消費されてしまっています");
+
+            ClearInventory();
+            RunUpdates(200);
+
+            Assert.AreEqual(0f, generatorComponent.GenerateRpm.AsPrimitive(), 0.5f, "燃料が切れた後にRPMがゼロになっていません");
+            Assert.AreEqual(0f, generatorComponent.GenerateTorque.AsPrimitive(), 0.5f, "燃料が切れた後にトルクがゼロになっていません");
+
+            #region Internal
+
+            void RunUpdates(int count)
+            {
+                for (var i = 0; i < count; i++)
+                {
+                    GameUpdater.UpdateWithWait();
+                }
+            }
+
+            void ClearInventory()
+            {
+                var emptyStack = ServerContext.ItemStackFactory.CreatEmpty();
+                for (var slot = 0; slot < inventory.GetSlotSize(); slot++)
+                {
+                    inventory.SetItem(slot, emptyStack);
+                }
+            }
+
             #endregion
         }
     }

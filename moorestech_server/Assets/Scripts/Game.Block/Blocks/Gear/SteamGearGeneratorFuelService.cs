@@ -49,6 +49,38 @@ namespace Game.Block.Blocks.Gear
             _currentFuelItemId = ItemMaster.EmptyItemId;
             _currentFuelFluidId = FluidMaster.EmptyFluidId;
             _remainingFuelTime = 0;
+
+            #region Internal
+
+            static Dictionary<ItemId, ItemFuelSetting> BuildItemFuelSettings(SteamGearGeneratorBlockParam blockParam)
+            {
+                var settings = new Dictionary<ItemId, ItemFuelSetting>();
+                if (blockParam.GearFuelItems == null) return settings;
+
+                foreach (var element in blockParam.GearFuelItems)
+                {
+                    var itemId = MasterHolder.ItemMaster.GetItemId(element.ItemGuid);
+                    settings[itemId] = new ItemFuelSetting(element.ItemGuid, Math.Max(1, element.Amount), element.ConsumptionTime);
+                }
+
+                return settings;
+            }
+
+            static Dictionary<FluidId, FluidFuelSetting> BuildFluidFuelSettings(SteamGearGeneratorBlockParam blockParam)
+            {
+                var settings = new Dictionary<FluidId, FluidFuelSetting>();
+                if (blockParam.RequiredFluids == null) return settings;
+
+                foreach (var element in blockParam.RequiredFluids)
+                {
+                    var fluidId = MasterHolder.FluidMaster.GetFluidId(element.FluidGuid);
+                    settings[fluidId] = new FluidFuelSetting(element.FluidGuid, Math.Max(0d, element.Amount), element.ConsumptionTime);
+                }
+
+                return settings;
+            }
+
+            #endregion
         }
 
         public bool IsFuelActive => _currentFuelType != FuelType.None && _remainingFuelTime > 0;
@@ -95,7 +127,7 @@ namespace Game.Block.Blocks.Gear
             ClearFuelState();
         }
 
-        public FuelState CreateStateSnapshot()
+        public FuelState CreateSnapshot()
         {
             var state = new FuelState
             {
@@ -162,16 +194,16 @@ namespace Game.Block.Blocks.Gear
             for (var i = 0; i < slotSize; i++)
             {
                 var slotItem = _inventoryService.GetItem(i);
-                if (!_itemFuelSettings.TryGetValue(slotItem.Id, out var itemSetting)) continue;
-                if (slotItem.Count < itemSetting.Amount) continue;
+                if (!_itemFuelSettings.TryGetValue(slotItem.Id, out var setting)) continue;
+                if (slotItem.Count < setting.Amount) continue;
 
-                var remainder = slotItem.SubItem(itemSetting.Amount);
+                var remainder = slotItem.SubItem(setting.Amount);
                 _inventoryService.SetItem(i, remainder);
 
                 _currentFuelType = FuelType.Item;
                 _currentFuelItemId = slotItem.Id;
                 _currentFuelFluidId = FluidMaster.EmptyFluidId;
-                _remainingFuelTime = NormalizeFuelTime(itemSetting.ConsumptionTime);
+                _remainingFuelTime = NormalizeFuelTime(setting.ConsumptionTime);
                 return true;
             }
 
@@ -182,22 +214,22 @@ namespace Game.Block.Blocks.Gear
         {
             if (_fluidFuelSettings.Count == 0) return false;
 
-            var steamTank = _fluidComponent.SteamTank;
-            var currentFluidId = steamTank.FluidId;
-            if (!_fluidFuelSettings.TryGetValue(currentFluidId, out var fluidSetting)) return false;
-            if (steamTank.Amount < fluidSetting.Amount) return false;
+            var tank = _fluidComponent.SteamTank;
+            var fluidId = tank.FluidId;
+            if (!_fluidFuelSettings.TryGetValue(fluidId, out var setting)) return false;
+            if (tank.Amount < setting.Amount) return false;
 
-            steamTank.Amount -= fluidSetting.Amount;
-            if (steamTank.Amount <= 0)
+            tank.Amount -= setting.Amount;
+            if (tank.Amount <= 0)
             {
-                steamTank.Amount = 0;
-                steamTank.FluidId = FluidMaster.EmptyFluidId;
+                tank.Amount = 0;
+                tank.FluidId = FluidMaster.EmptyFluidId;
             }
 
             _currentFuelType = FuelType.Fluid;
-            _currentFuelFluidId = currentFluidId;
+            _currentFuelFluidId = fluidId;
             _currentFuelItemId = ItemMaster.EmptyItemId;
-            _remainingFuelTime = NormalizeFuelTime(fluidSetting.ConsumptionTime);
+            _remainingFuelTime = NormalizeFuelTime(setting.ConsumptionTime);
             return true;
         }
 
@@ -209,7 +241,7 @@ namespace Game.Block.Blocks.Gear
             for (var i = 0; i < slotSize; i++)
             {
                 var slotItem = _inventoryService.GetItem(i);
-                if (_itemFuelSettings.TryGetValue(slotItem.Id, out var itemSetting) && slotItem.Count >= itemSetting.Amount)
+                if (_itemFuelSettings.TryGetValue(slotItem.Id, out var setting) && slotItem.Count >= setting.Amount)
                 {
                     return true;
                 }
@@ -222,9 +254,9 @@ namespace Game.Block.Blocks.Gear
         {
             if (_fluidFuelSettings.Count == 0) return false;
 
-            var steamTank = _fluidComponent.SteamTank;
-            if (!_fluidFuelSettings.TryGetValue(steamTank.FluidId, out var fluidSetting)) return false;
-            return steamTank.Amount >= fluidSetting.Amount;
+            var tank = _fluidComponent.SteamTank;
+            if (!_fluidFuelSettings.TryGetValue(tank.FluidId, out var setting)) return false;
+            return tank.Amount >= setting.Amount;
         }
 
         private void ClearFuelState()
@@ -239,36 +271,6 @@ namespace Game.Block.Blocks.Gear
         {
             if (rawTime > 0) return rawTime;
             return GameUpdater.UpdateSecondTime > 0 ? GameUpdater.UpdateSecondTime : 0.1d;
-        }
-
-        private static Dictionary<ItemId, ItemFuelSetting> BuildItemFuelSettings(SteamGearGeneratorBlockParam param)
-        {
-            var settings = new Dictionary<ItemId, ItemFuelSetting>();
-            if (param.ItemFuelConfig?.FuelEntries == null) return settings;
-
-            foreach (var element in param.ItemFuelConfig.FuelEntries)
-            {
-                var itemId = MasterHolder.ItemMaster.GetItemId(element.ItemGuid);
-                var amount = Math.Max(1, element.Amount);
-                settings[itemId] = new ItemFuelSetting(element.ItemGuid, amount, element.ConsumptionTime);
-            }
-
-            return settings;
-        }
-
-        private static Dictionary<FluidId, FluidFuelSetting> BuildFluidFuelSettings(SteamGearGeneratorBlockParam param)
-        {
-            var settings = new Dictionary<FluidId, FluidFuelSetting>();
-            if (param.RequiredFluids == null) return settings;
-
-            foreach (var element in param.RequiredFluids)
-            {
-                var fluidId = MasterHolder.FluidMaster.GetFluidId(element.FluidGuid);
-                var amount = Math.Max(0d, element.Amount);
-                settings[fluidId] = new FluidFuelSetting(element.FluidGuid, amount, element.ConsumptionTime);
-            }
-
-            return settings;
         }
 
         private readonly struct ItemFuelSetting

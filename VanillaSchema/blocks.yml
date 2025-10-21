@@ -197,33 +197,24 @@ properties:
         - key: infinityPower
           type: integer
           default: 0
-        - key: itemFuelConfig
-          type: object
+        - key: fuelItems
+          type: array
           optional: true
-          properties:
-          - key: fuelEntries
-            type: array
-            items:
-              type: object
-              properties:
-              - key: itemGuid
-                type: uuid
-                foreignKey:
-                  schemaId: items
-                  foreignKeyIdPath: /data/[*]/itemGuid
-                  displayElementPath: /data/[*]/name
-              - key: time
-                type: number
-                default: 1
-              - key: power
-                type: number
-                default: 10
-              - key: amount
-                type: integer
-                default: 1
-              - key: consumptionTime
-                type: number
-                default: 1
+          items:
+            type: object
+            properties:
+            - key: itemGuid
+              type: uuid
+              foreignKey:
+                schemaId: items
+                foreignKeyIdPath: /data/[*]/itemGuid
+                displayElementPath: /data/[*]/name
+            - key: time
+              type: number
+              default: 1
+            - key: power
+              type: number
+              default: 10
         - key: inventoryConnectors
           ref: inventoryConnects
         - key: fuelFluidTankCapacity
@@ -397,33 +388,24 @@ properties:
         - key: fuelItemSlotCount
           type: integer
           default: 2
-        - key: itemFuelConfig
-          type: object
+        - key: gearFuelItems
+          type: array
           optional: true
-          properties:
-          - key: fuelEntries
-            type: array
-            items:
-              type: object
-              properties:
-              - key: itemGuid
-                type: uuid
-                foreignKey:
-                  schemaId: items
-                  foreignKeyIdPath: /data/[*]/itemGuid
-                  displayElementPath: /data/[*]/name
-              - key: time
-                type: number
-                default: 1
-              - key: power
-                type: number
-                default: 0
-              - key: amount
-                type: integer
-                default: 1
-              - key: consumptionTime
-                type: number
-                default: 1
+          items:
+            type: object
+            properties:
+            - key: itemGuid
+              type: uuid
+              foreignKey:
+                schemaId: items
+                foreignKeyIdPath: /data/[*]/itemGuid
+                displayElementPath: /data/[*]/name
+            - key: amount
+              type: integer
+              default: 1
+            - key: consumptionTime
+              type: number
+              default: 1
         - key: inventoryConnectors
           ref: inventoryConnects
         - key: fluidInventoryConnectors

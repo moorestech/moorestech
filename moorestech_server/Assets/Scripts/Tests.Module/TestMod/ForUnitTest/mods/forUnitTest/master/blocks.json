@@ -355,20 +355,6 @@
         "inventoryConnectors": {
           "outputConnects": [],
           "inputConnects": []
-        },
-        "itemFuelConfig": {
-          "fuelEntries": [
-            {
-              "power": 100,
-              "time": 1,
-              "itemGuid": "00000000-0000-0000-1234-000000000001"
-            },
-            {
-              "power": 200,
-              "time": 2,
-              "itemGuid": "00000000-0000-0000-1234-000000000002"
-            }
-          ]
         }
       },
       "itemGuid": "00000000-0000-0000-1234-000000000005",
@@ -665,9 +651,6 @@
         "fluidInventoryConnectors": {
           "inflowConnects": [],
           "outflowConnects": []
-        },
-        "itemFuelConfig": {
-          "fuelEntries": []
         }
       },
       "itemGuid": "00000000-0000-0000-1234-000000000008",
@@ -762,9 +745,6 @@
         "fluidInventoryConnectors": {
           "inflowConnects": [],
           "outflowConnects": []
-        },
-        "itemFuelConfig": {
-          "fuelEntries": []
         }
       },
       "overrideVerticalBlock": {}
@@ -846,9 +826,6 @@
         "fluidInventoryConnectors": {
           "inflowConnects": [],
           "outflowConnects": []
-        },
-        "itemFuelConfig": {
-          "fuelEntries": []
         }
       },
       "overrideVerticalBlock": {}
@@ -940,9 +917,6 @@
         "fluidInventoryConnectors": {
           "inflowConnects": [],
           "outflowConnects": []
-        },
-        "itemFuelConfig": {
-          "fuelEntries": []
         }
       },
       "overrideVerticalBlock": {}
@@ -3851,15 +3825,13 @@
             }
           ]
         },
-        "itemFuelConfig": {
-          "fuelEntries": [
-            {
-              "consumptionTime": 1,
-              "amount": 1,
-              "itemGuid": "00000000-0000-0000-1234-000000000001"
-            }
-          ]
-        }
+        "gearFuelItems": [
+          {
+            "itemGuid": "00000000-0000-0000-1234-000000000001",
+            "amount": 1,
+            "consumptionTime": 1
+          }
+        ]
       },
       "name": "SteamGearGenerator",
       "itemGuid": "9bbfaa53-1614-40dc-a58e-e3a0e2a00c26",
