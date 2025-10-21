@@ -170,7 +170,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             }
             
             // 現在の状態を取得するためのフィールド
-            var currentStateField = typeof(SteamGearGeneratorComponent).GetField("_currentState", BindingFlags.NonPublic | BindingFlags.Instance);
+            var stateService = GetStateService(steamGeneratorComponent);
             
             // 最大出力まで加速
             var startTime = System.DateTime.Now;
@@ -201,7 +201,7 @@ namespace Tests.UnitTest.Game.SaveLoad
                 GameUpdater.UpdateWithWait();
                 
                 // 現在の状態を確認
-                var state = currentStateField.GetValue(steamGeneratorComponent).ToString();
+                var state = stateService.CurrentState.ToString();
                 var rpm = steamGeneratorComponent.GenerateRpm.AsPrimitive();
                 Debug.Log($"Update {i}: State={state}, RPM={rpm}");
                 
@@ -235,7 +235,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.Less(deceleratingRpm, param.GenerateMaxRpm, "減速中のRPMは最大値未満のはず");
             
             // 現在の状態を取得（リフレクションを使用）
-            var currentState = currentStateField.GetValue(steamGeneratorComponent).ToString();
+            stateService = GetStateService(steamGeneratorComponent);
+            var currentState = stateService.CurrentState.ToString();
             Assert.AreEqual("Decelerating", currentState, "減速状態のはず");
             
             // JSONでセーブ
