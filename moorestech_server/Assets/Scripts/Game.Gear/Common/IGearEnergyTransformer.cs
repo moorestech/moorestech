@@ -13,6 +13,7 @@ namespace Game.Gear.Common
         public BlockInstanceId BlockInstanceId { get; }
         
         public bool IsRocked { get; }
+        public GearNetworkStopReason StopReason { get; }
         
         public GearPower CurrentPower => new(CurrentRpm.AsPrimitive() * CurrentTorque.AsPrimitive());
         public RPM CurrentRpm { get; }
@@ -21,7 +22,7 @@ namespace Game.Gear.Common
         
         public Torque GetRequiredTorque(RPM rpm, bool isClockwise);
         
-        public void Rocked();
+        public void StopNetwork(GearNetworkStopReason reason);
         public void SupplyPower(RPM rpm, Torque torque, bool isClockwise);
         
         public List<GearConnect> GetGearConnects();

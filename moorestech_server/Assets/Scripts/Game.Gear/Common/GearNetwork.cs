@@ -85,10 +85,18 @@ namespace Game.Gear.Common
             
             if (rocked)
             {
-                SetRocked();
+                SetNetworkStop(GearNetworkStopReason.Rocked);
                 return;
             }
-            
+
+            // エネルギー収支を計算し、不足している場合はネットワークを停止
+            var (totalRequiredGearPower, totalGeneratePower) = CalculateEnergyBalance();
+            if (totalRequiredGearPower > totalGeneratePower)
+            {
+                SetNetworkStop(GearNetworkStopReason.OverRequirePower);
+                return;
+            }
+
             //すべてのジェネレーターから生成GPを取得し、合算する
             DistributeGearPower();
             
@@ -151,10 +159,30 @@ namespace Game.Gear.Common
                 return connect.Self.IsReverse && connect.Target.IsReverse;
             }
             
-            void SetRocked()
+            void SetNetworkStop(GearNetworkStopReason reason)
             {
-                foreach (var transformer in GearTransformers) transformer.Rocked();
-                foreach (var generator in GearGenerators) generator.Rocked();
+                foreach (var transformer in GearTransformers) transformer.StopNetwork(reason);
+                foreach (var generator in GearGenerators) generator.StopNetwork(reason);
+            }
+
+            (float totalRequiredGearPower, float totalGeneratePower) CalculateEnergyBalance()
+            {
+                // 要求されているギアパワーを算出
+                var totalRequired = 0f;
+                foreach (var transformer in GearTransformers)
+                {
+                    var info = _checkedGearComponents[transformer.BlockInstanceId];
+                    totalRequired += info.RequiredTorque.AsPrimitive() * info.Rpm.AsPrimitive();
+                }
+
+                // 生成されるギアパワーを算出
+                var totalGenerate = 0f;
+                foreach (var generator in GearGenerators)
+                {
+                    totalGenerate += generator.GenerateTorque.AsPrimitive() * generator.GenerateRpm.AsPrimitive();
+                }
+
+                return (totalRequired, totalGenerate);
             }
             
             // ここのロジックはドキュメント参照
