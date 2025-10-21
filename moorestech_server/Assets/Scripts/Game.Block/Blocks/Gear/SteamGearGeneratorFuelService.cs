@@ -21,6 +21,8 @@ namespace Game.Block.Blocks.Gear
 
         public class FuelState
         {
+            // 現在稼働中の燃料種別（アイテムか流体か）
+            // Indicates whether the active fuel is item-based or fluid-based
             public FuelType ActiveFuelType { get; set; }
             public Guid? CurrentFuelItemGuid { get; set; }
             public Guid? CurrentFuelFluidGuid { get; set; }
