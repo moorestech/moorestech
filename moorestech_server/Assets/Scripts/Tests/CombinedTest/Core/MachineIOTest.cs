@@ -24,17 +24,20 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void ItemProcessingOutputTest()
         {
+            // テスト用DIコンテナと主要サービスを初期化
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var itemStackFactory = ServerContext.ItemStackFactory;
             var blockFactory = ServerContext.BlockFactory;
             
+            // テスト用レシピとブロックを準備し、必要なインプットを投入
             var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data[0];
             
             
             var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
             var block = blockFactory.Create(blockId, new BlockInstanceId(1), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
             var blockInventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
+            // すべての入力アイテムをインベントリにセットアップ
             foreach (var inputItem in recipe.InputItems)
             {
                 blockInventory.InsertItem(itemStackFactory.Create(inputItem.ItemGuid, inputItem.Count));
@@ -42,6 +45,7 @@ namespace Tests.CombinedTest.Core
             
             var blockMachineComponent = block.GetComponent<VanillaElectricMachineComponent>();
             
+            // レシピが完了するまで十分な時間エネルギー供給＋アップデートを継続
             var craftTime = DateTime.Now.AddSeconds(recipe.Time);
             //最大クラフト時間を超過するまでクラフトする
             while (craftTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1)
@@ -53,9 +57,11 @@ namespace Tests.CombinedTest.Core
             //検証
             (List<IItemStack> input, List<IItemStack> output) = GetInputOutputSlot(blockInventory);
             
+            // インプットは全て消費されていることを確認
             Assert.AreEqual(0, input.Count);
             foreach (var inputItem in input) Assert.AreEqual(ItemMaster.EmptyItemId, inputItem.Id);
             
+            // アウトプットが期待通り生成されていることを確認
             Assert.AreNotEqual(0, output.Count);
             for (var i = 0; i < output.Count; i++)
             {
@@ -118,6 +124,7 @@ namespace Tests.CombinedTest.Core
         
         public (List<IItemStack>, List<IItemStack>) GetInputOutputSlot(VanillaMachineBlockInventoryComponent vanillaMachineInventory)
         {
+            // 非公開フィールドからインプット／アウトプットスロットを取り出し、テスト用に整形して返す
             var vanillaMachineInputInventory = (VanillaMachineInputInventory)typeof(VanillaMachineBlockInventoryComponent)
                 .GetField("_vanillaMachineInputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(vanillaMachineInventory);
