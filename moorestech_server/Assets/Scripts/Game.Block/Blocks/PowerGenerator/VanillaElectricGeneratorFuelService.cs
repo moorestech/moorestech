@@ -22,7 +22,7 @@ namespace Game.Block.Blocks.PowerGenerator
             Fluid,
         }
 
-        private readonly Dictionary<ItemId, ElectricItemFuelSetting> _fuelSettings;
+        private readonly Dictionary<ItemId, FuelItemsElement> _fuelSettings;
         private readonly Dictionary<FluidId, FuelFluidsElement> _fluidFuelSettings;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
         private readonly FluidContainer _fuelFluidContainer;
@@ -44,19 +44,15 @@ namespace Game.Block.Blocks.PowerGenerator
 
             #region Internal
 
-            Dictionary<ItemId, ElectricItemFuelSetting> BuildFuelSettings(ElectricGeneratorBlockParam generatorParam)
+            Dictionary<ItemId, FuelItemsElement> BuildFuelSettings(ElectricGeneratorBlockParam generatorParam)
             {
-                var settings = new Dictionary<ItemId, ElectricItemFuelSetting>();
-                if (generatorParam.ItemFuelConfig?.FuelEntries == null) return settings;
+                var settings = new Dictionary<ItemId, FuelItemsElement>();
+                if (generatorParam.FuelItems == null) return settings;
 
-                foreach (var fuelItem in generatorParam.ItemFuelConfig.FuelEntries)
+                foreach (var fuelItem in generatorParam.FuelItems)
                 {
                     var itemId = MasterHolder.ItemMaster.GetItemId(fuelItem.ItemGuid);
-                    settings[itemId] = new ElectricItemFuelSetting(
-                        fuelItem.ItemGuid,
-                        fuelItem.Time,
-                        fuelItem.Power,
-                        fuelItem.Amount);
+                    settings[itemId] = fuelItem;
                 }
 
                 return settings;
@@ -137,14 +133,14 @@ namespace Game.Block.Blocks.PowerGenerator
                     var slotItemId = slotItem.Id;
                     if (!_fuelSettings.TryGetValue(slotItemId, out var itemSetting)) continue;
 
-                    if (slotItem.Count < itemSetting.Amount) continue;
+                    if (slotItem.Count < 1) continue;
 
                     _currentFuelItemId = slotItemId;
                     _currentFuelFluidId = FluidMaster.EmptyFluidId;
                     _currentFuelType = FuelType.Item;
                     _remainingFuelTime = itemSetting.Time;
 
-                    _itemDataStoreService.SetItem(i, slotItem.SubItem(itemSetting.Amount));
+                    _itemDataStoreService.SetItem(i, slotItem.SubItem(1));
                     return true;
                 }
 
@@ -280,20 +276,5 @@ namespace Game.Block.Blocks.PowerGenerator
 
         }
 
-        private readonly struct ElectricItemFuelSetting
-        {
-            public ElectricItemFuelSetting(Guid itemGuid, double time, double power, int amount)
-            {
-                ItemGuid = itemGuid;
-                Time = time;
-                Power = power;
-                Amount = Math.Max(1, amount);
-            }
-
-            public Guid ItemGuid { get; }
-            public double Time { get; }
-            public double Power { get; }
-            public int Amount { get; }
-        }
     }
 }
