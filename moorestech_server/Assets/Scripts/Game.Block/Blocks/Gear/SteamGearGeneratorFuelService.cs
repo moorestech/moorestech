@@ -19,27 +19,17 @@ namespace Game.Block.Blocks.Gear
             Fluid
         }
 
-        public class FuelState
-        {
-            // 現在稼働中の燃料種別（アイテムか流体か）
-            // Indicates whether the active fuel is item-based or fluid-based
-            public FuelType ActiveFuelType { get; set; }
-            public Guid? CurrentFuelItemGuid { get; set; }
-            public Guid? CurrentFuelFluidGuid { get; set; }
-            public double RemainingFuelTime { get; set; }
-        }
-
         // インベントリ・流体タンクと燃料設定を参照するためのフィールド群
         // Fields referencing inventories, fluid tanks, and fuel configuration tables
         private readonly OpenableInventoryItemDataStoreService _inventoryService;
         private readonly SteamGearGeneratorFluidComponent _fluidComponent;
         private readonly Dictionary<ItemId, ItemFuelSetting> _itemFuelSettings;
         private readonly Dictionary<FluidId, FluidFuelSetting> _fluidFuelSettings;
-
-        private FuelType _currentFuelType;
-        private ItemId _currentFuelItemId;
-        private FluidId _currentFuelFluidId;
-        private double _remainingFuelTime;
+        
+        public FuelType CurrentFuelType { get; private set; }
+        public ItemId CurrentFuelItemId { get; private set; }
+        public FluidId CurrentFuelFluidId { get; private set; }
+        public double RemainingFuelTime { get; private set; }
 
         public SteamGearGeneratorFuelService(
             SteamGearGeneratorBlockParam param,
@@ -51,10 +41,10 @@ namespace Game.Block.Blocks.Gear
             _itemFuelSettings = BuildItemFuelSettings(param);
             _fluidFuelSettings = BuildFluidFuelSettings(param);
 
-            _currentFuelType = FuelType.None;
-            _currentFuelItemId = ItemMaster.EmptyItemId;
-            _currentFuelFluidId = FluidMaster.EmptyFluidId;
-            _remainingFuelTime = 0;
+            CurrentFuelType = FuelType.None;
+            CurrentFuelItemId = ItemMaster.EmptyItemId;
+            CurrentFuelFluidId = FluidMaster.EmptyFluidId;
+            RemainingFuelTime = 0;
 
             #region Internal
 
@@ -89,14 +79,14 @@ namespace Game.Block.Blocks.Gear
             #endregion
         }
 
-        public bool IsFuelActive => _currentFuelType != FuelType.None && _remainingFuelTime > 0;
-        public bool IsUsingFluidFuel => _currentFuelType == FuelType.Fluid;
+        public bool IsFuelActive => CurrentFuelType != FuelType.None && RemainingFuelTime > 0;
+        public bool IsUsingFluidFuel => CurrentFuelType == FuelType.Fluid;
 
         public bool HasAvailableFuel(bool allowFluidFuel)
         {
             if (IsFuelActive)
             {
-                if (_currentFuelType == FuelType.Fluid && !allowFluidFuel) return false;
+                if (CurrentFuelType == FuelType.Fluid && !allowFluidFuel) return false;
                 return true;
             }
 
@@ -110,7 +100,7 @@ namespace Game.Block.Blocks.Gear
         {
             if (IsFuelActive)
             {
-                if (_currentFuelType == FuelType.Fluid && !allowFluidFuel)
+                if (CurrentFuelType == FuelType.Fluid && !allowFluidFuel)
                 {
                     ClearFuelState();
                 }
@@ -129,67 +119,38 @@ namespace Game.Block.Blocks.Gear
         {
             if (!IsFuelActive) return;
 
-            _remainingFuelTime -= GameUpdater.UpdateSecondTime;
-            if (_remainingFuelTime > 0) return;
+            RemainingFuelTime -= GameUpdater.UpdateSecondTime;
+            if (RemainingFuelTime > 0) return;
 
             ClearFuelState();
-        }
-
-        // 現在の燃焼状況をセーブ用の構造体に変換する
-        // Convert the current combustion status into a snapshot for saving
-        public FuelState CreateSnapshot()
-        {
-            var state = new FuelState
-            {
-                ActiveFuelType = _currentFuelType,
-                RemainingFuelTime = _remainingFuelTime
-            };
-
-            if (_currentFuelType == FuelType.Item && _itemFuelSettings.TryGetValue(_currentFuelItemId, out var itemSetting))
-            {
-                state.CurrentFuelItemGuid = itemSetting.ItemGuid;
-            }
-
-            if (_currentFuelType == FuelType.Fluid && _fluidFuelSettings.TryGetValue(_currentFuelFluidId, out var fluidSetting))
-            {
-                state.CurrentFuelFluidGuid = fluidSetting.FluidGuid;
-            }
-
-            return state;
         }
 
         // セーブ時に保持した燃料状態を復元する
         // Restore the fuel state saved during serialization
-        public void Restore(FuelState state)
+        public void Restore(SteamGearGeneratorSaveData saveData)
         {
-            ClearFuelState();
-            if (state == null) return;
-
-            _remainingFuelTime = state.RemainingFuelTime;
-
-            _currentFuelType = state.ActiveFuelType;
-
-            _currentFuelItemId = state.CurrentFuelItemGuid.HasValue
-                ? MasterHolder.ItemMaster.GetItemId(state.CurrentFuelItemGuid.Value)
+            RemainingFuelTime = saveData.RemainingFuelTime;
+            CurrentFuelType = Enum.TryParse(saveData.ActiveFuelType, out FuelType parsed) ? parsed : FuelType.None;
+            CurrentFuelItemId = saveData.CurrentFuelItemGuid.HasValue
+                ? MasterHolder.ItemMaster.GetItemId(saveData.CurrentFuelItemGuid.Value)
                 : ItemMaster.EmptyItemId;
-
-            _currentFuelFluidId = state.CurrentFuelFluidGuid.HasValue
-                ? MasterHolder.FluidMaster.GetFluidId(state.CurrentFuelFluidGuid.Value)
+            CurrentFuelFluidId = saveData.CurrentFuelFluidGuid.HasValue
+                ? MasterHolder.FluidMaster.GetFluidId(saveData.CurrentFuelFluidGuid.Value)
                 : FluidMaster.EmptyFluidId;
 
-            if (_remainingFuelTime <= 0)
+            if (RemainingFuelTime <= 0)
             {
                 ClearFuelState();
                 return;
             }
 
-            if (_currentFuelType == FuelType.Item && !_itemFuelSettings.ContainsKey(_currentFuelItemId))
+            if (CurrentFuelType == FuelType.Item && !_itemFuelSettings.ContainsKey(CurrentFuelItemId))
             {
                 ClearFuelState();
                 return;
             }
 
-            if (_currentFuelType == FuelType.Fluid && !_fluidFuelSettings.ContainsKey(_currentFuelFluidId))
+            if (CurrentFuelType == FuelType.Fluid && !_fluidFuelSettings.ContainsKey(CurrentFuelFluidId))
             {
                 ClearFuelState();
             }
@@ -211,10 +172,10 @@ namespace Game.Block.Blocks.Gear
                 var remainder = slotItem.SubItem(setting.Amount);
                 _inventoryService.SetItem(i, remainder);
 
-                _currentFuelType = FuelType.Item;
-                _currentFuelItemId = slotItem.Id;
-                _currentFuelFluidId = FluidMaster.EmptyFluidId;
-                _remainingFuelTime = NormalizeFuelTime(setting.ConsumptionTime);
+                CurrentFuelType = FuelType.Item;
+                CurrentFuelItemId = slotItem.Id;
+                CurrentFuelFluidId = FluidMaster.EmptyFluidId;
+                RemainingFuelTime = NormalizeFuelTime(setting.ConsumptionTime);
                 return true;
             }
 
@@ -239,10 +200,10 @@ namespace Game.Block.Blocks.Gear
                 tank.FluidId = FluidMaster.EmptyFluidId;
             }
 
-            _currentFuelType = FuelType.Fluid;
-            _currentFuelFluidId = fluidId;
-            _currentFuelItemId = ItemMaster.EmptyItemId;
-            _remainingFuelTime = NormalizeFuelTime(setting.ConsumptionTime);
+            CurrentFuelType = FuelType.Fluid;
+            CurrentFuelFluidId = fluidId;
+            CurrentFuelItemId = ItemMaster.EmptyItemId;
+            RemainingFuelTime = NormalizeFuelTime(setting.ConsumptionTime);
             return true;
         }
 
@@ -274,10 +235,10 @@ namespace Game.Block.Blocks.Gear
 
         private void ClearFuelState()
         {
-            _currentFuelType = FuelType.None;
-            _currentFuelItemId = ItemMaster.EmptyItemId;
-            _currentFuelFluidId = FluidMaster.EmptyFluidId;
-            _remainingFuelTime = 0;
+            CurrentFuelType = FuelType.None;
+            CurrentFuelItemId = ItemMaster.EmptyItemId;
+            CurrentFuelFluidId = FluidMaster.EmptyFluidId;
+            RemainingFuelTime = 0;
         }
 
         private static double NormalizeFuelTime(double rawTime)
