@@ -5,8 +5,8 @@ using Game.Block.Interface.Component;
 using Game.Gear.Common;
 using MessagePack;
 using Mooresmaster.Model.BlocksModule;
-using Newtonsoft.Json;
 using UniRx;
+using UnityEngine;
 
 namespace Game.Block.Blocks.Gear
 {
@@ -59,30 +59,10 @@ namespace Game.Block.Blocks.Gear
             : this(param, blockInstanceId, connectorComponent, itemComponent, fluidComponent)
         {
             if (!componentStates.TryGetValue(SaveKey, out var raw)) return;
-            var saveData = JsonConvert.DeserializeObject<SteamGearGeneratorSaveData>(raw);
-            if (saveData == null) return;
+            var saveData = JsonUtility.FromJson<SteamGearGeneratorSaveData>(raw);
 
-            var fuelType = Enum.TryParse(saveData.ActiveFuelType, out SteamGearGeneratorFuelService.FuelType parsed)
-                ? parsed
-                : SteamGearGeneratorFuelService.FuelType.None;
-
-            _fuelService.Restore(new SteamGearGeneratorFuelService.FuelState
-            {
-                ActiveFuelType = fuelType,
-                CurrentFuelItemGuid = saveData.CurrentFuelItemGuid,
-                CurrentFuelFluidGuid = saveData.CurrentFuelFluidGuid,
-                RemainingFuelTime = saveData.RemainingFuelTime
-            });
-
-            var snapshot = new SteamGearGeneratorStateService.StateSnapshot
-            {
-                State = saveData.CurrentState,
-                StateElapsedTime = saveData.StateElapsedTime,
-                SteamConsumptionRate = saveData.SteamConsumptionRate,
-                RateAtDecelerationStart = saveData.RateAtDecelerationStart
-            };
-
-            _stateService.Restore(snapshot);
+            _fuelService.Restore(saveData);
+            _stateService.Restore(saveData);
             GenerateRpm = _stateService.CurrentGeneratedRpm;
             GenerateTorque = _stateService.CurrentGeneratedTorque;
         }
@@ -107,7 +87,7 @@ namespace Game.Block.Blocks.Gear
         {
             BlockException.CheckDestroy(this);
             var saveData = new SteamGearGeneratorSaveData(_stateService, _fuelService);
-            return JsonConvert.SerializeObject(saveData);
+            return JsonUtility.ToJson(saveData);
         }
 
         public new BlockStateDetail[] GetBlockStateDetails()

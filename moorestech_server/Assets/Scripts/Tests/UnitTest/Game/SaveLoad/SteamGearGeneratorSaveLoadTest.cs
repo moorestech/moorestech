@@ -80,7 +80,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.Less(acceleratingRpm, param.GenerateMaxRpm, "加速中のRPMは最大値未満のはず");
             
             // 現在の状態を取得
-            var runtimeSave = JsonUtility.FromJson<SteamGearGeneratorSaveData>(steamGeneratorComponent.GetSaveState());
+            var runtimeSnapshot = steamGeneratorComponent.GetStateSnapshot();
             
             // 流体コンポーネントの状態を取得
             var steamTank = fluidComponent.SteamTank;
@@ -111,16 +111,16 @@ namespace Tests.UnitTest.Game.SaveLoad
             // コンポーネントの状態を確認
             var loadedSteamGeneratorComponent = loadedSteamGeneratorBlock.GetComponent<SteamGearGeneratorComponent>();
             var loadedFluidComponent = loadedSteamGeneratorBlock.GetComponent<SteamGearGeneratorFluidComponent>();
-            var loadedSave = JsonUtility.FromJson<SteamGearGeneratorSaveData>(loadedSteamGeneratorComponent.GetSaveState());
+            var loadedSnapshot = loadedSteamGeneratorComponent.GetStateSnapshot();
             
             // 出力値が同じであることを確認
             Assert.AreEqual(acceleratingRpm, loadedSteamGeneratorComponent.GenerateRpm.AsPrimitive(), 0.01f, "ロード後のRPMが一致しません");
             Assert.AreEqual(acceleratingTorque, loadedSteamGeneratorComponent.GenerateTorque.AsPrimitive(), 0.01f, "ロード後のトルクが一致しません");
             
             // 内部状態が同じであることを確認
-            Assert.AreEqual(runtimeSave.CurrentState, loadedSave.CurrentState, "状態が一致しません");
-            Assert.AreEqual(runtimeSave.StateElapsedTime, loadedSave.StateElapsedTime, 0.01f, "経過時間が一致しません");
-            Assert.AreEqual(runtimeSave.SteamConsumptionRate, loadedSave.SteamConsumptionRate, 0.01f, "消費率が一致しません");
+            Assert.AreEqual(runtimeSnapshot.State, loadedSnapshot.State, "状態が一致しません");
+            Assert.AreEqual(runtimeSnapshot.StateElapsedTime, loadedSnapshot.StateElapsedTime, 0.01f, "経過時間が一致しません");
+            Assert.AreEqual(runtimeSnapshot.SteamConsumptionRate, loadedSnapshot.SteamConsumptionRate, 0.01f, "消費率が一致しません");
             
             // 流体タンクの状態を確認
             var loadedSteamTank = loadedFluidComponent.SteamTank;

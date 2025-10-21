@@ -20,21 +20,21 @@ namespace Game.Block.Blocks.Gear
     // Service that governs SteamGearGenerator state transitions and output levels
     public class SteamGearGeneratorStateService
     {
-        public float SteamConsumptionRate { get; private set; }
-        public SteamGearGeneratorState CurrentState { get; private set; }
-        
         // 出力変化を検知する際の最小閾値
         // Minimum delta used to detect meaningful output changes
         private const float RateChangeThreshold = 0.0001f;
+        
 
         // 依存するパラメータとコンポーネント、および内部状態保持用のフィールド群
         // Dependent parameters, collaborating components, and internal state holders
+        public SteamGearGeneratorState CurrentState { get; private set; }
+        public float SteamConsumptionRate { get; private set; }
+        public float StateElapsedTime { get; private set; }
+        public float RateAtDecelerationStart { get; private set; }
+        
         private readonly SteamGearGeneratorBlockParam _param;
         private readonly SteamGearGeneratorFuelService _fuelService;
         private readonly SteamGearGeneratorFluidComponent _fluidComponent;
-        
-        private float _stateElapsedTime;
-        private float _rateAtDecelerationStart;
 
         // 外部へ公開する読み取りプロパティ
         // Read-only accessors exposed to the outside world
@@ -52,9 +52,9 @@ namespace Game.Block.Blocks.Gear
             _fuelService = fuelService;
             _fluidComponent = fluidComponent;
             CurrentState = SteamGearGeneratorState.Idle;
-            _stateElapsedTime = 0f;
+            StateElapsedTime = 0f;
             SteamConsumptionRate = 0f;
-            _rateAtDecelerationStart = 0f;
+            RateAtDecelerationStart = 0f;
         }
 
         // 状態を更新し、出力が変化した場合 true を返す
@@ -75,32 +75,14 @@ namespace Game.Block.Blocks.Gear
             return stateChanged || rateChanged;
         }
 
-        // 現在の内部状態をセーブ用スナップショットに変換する
-        // Convert the internal state into a snapshot for save serialization
-        public StateSnapshot CreateSnapshot()
-        {
-            return new StateSnapshot
-            {
-                State = CurrentState.ToString(),
-                StateElapsedTime = _stateElapsedTime,
-                SteamConsumptionRate = SteamConsumptionRate,
-                RateAtDecelerationStart = _rateAtDecelerationStart
-            };
-        }
-
         // セーブデータから状態機械の内部値を復元する
         // Restore internal values of the state machine from a save snapshot
-        public void Restore(StateSnapshot snapshot)
+        public void Restore(SteamGearGeneratorSaveData saveData)
         {
-            if (!Enum.TryParse(snapshot.State, out SteamGearGeneratorState parsedState))
-            {
-                parsedState = SteamGearGeneratorState.Idle;
-            }
-
-            CurrentState = parsedState;
-            _stateElapsedTime = snapshot.StateElapsedTime;
-            SteamConsumptionRate = snapshot.SteamConsumptionRate;
-            _rateAtDecelerationStart = snapshot.RateAtDecelerationStart;
+            CurrentState = Enum.TryParse(saveData.CurrentState, out SteamGearGeneratorState parsedState) ? parsedState : SteamGearGeneratorState.Idle;
+            StateElapsedTime = saveData.StateElapsedTime;
+            SteamConsumptionRate = saveData.SteamConsumptionRate;
+            RateAtDecelerationStart = saveData.RateAtDecelerationStart;
         }
 
         // 燃料状況とパイプ状態を考慮して状態遷移を進める
@@ -112,7 +94,7 @@ namespace Game.Block.Blocks.Gear
             var allowFluidFuel = !_fluidComponent.IsPipeDisconnected;
             var hasFuel = _fuelService.HasAvailableFuel(allowFluidFuel);
             var shouldForceDeceleration = _fuelService.IsUsingFluidFuel && !allowFluidFuel;
-            _stateElapsedTime += (float)GameUpdater.UpdateSecondTime;
+            StateElapsedTime += (float)GameUpdater.UpdateSecondTime;
 
             switch (CurrentState)
             {
@@ -132,7 +114,7 @@ namespace Game.Block.Blocks.Gear
                     {
                         TransitionToState(SteamGearGeneratorState.Decelerating);
                     }
-                    else if (_stateElapsedTime >= _param.TimeToMax)
+                    else if (StateElapsedTime >= _param.TimeToMax)
                     {
                         TransitionToState(SteamGearGeneratorState.Running);
                     }
@@ -150,7 +132,7 @@ namespace Game.Block.Blocks.Gear
                     break;
 
                 case SteamGearGeneratorState.Decelerating:
-                    if (_stateElapsedTime >= _param.TimeToMax)
+                    if (StateElapsedTime >= _param.TimeToMax)
                     {
                         TransitionToState(SteamGearGeneratorState.Idle);
                     }
@@ -172,16 +154,16 @@ namespace Game.Block.Blocks.Gear
                     SteamConsumptionRate = 0f;
                     break;
                 case SteamGearGeneratorState.Accelerating:
-                    var accelerationProgress = Mathf.Clamp01(_stateElapsedTime / _param.TimeToMax);
+                    var accelerationProgress = Mathf.Clamp01(StateElapsedTime / _param.TimeToMax);
                     SteamConsumptionRate = ApplyEasing(accelerationProgress, _param.TimeToMaxEasing);
                     break;
                 case SteamGearGeneratorState.Running:
                     SteamConsumptionRate = 1f;
                     break;
                 case SteamGearGeneratorState.Decelerating:
-                    var decelerationProgress = Mathf.Clamp01(_stateElapsedTime / _param.TimeToMax);
+                    var decelerationProgress = Mathf.Clamp01(StateElapsedTime / _param.TimeToMax);
                     var eased = ApplyEasing(decelerationProgress, _param.TimeToMaxEasing);
-                    SteamConsumptionRate = _rateAtDecelerationStart * (1f - eased);
+                    SteamConsumptionRate = RateAtDecelerationStart * (1f - eased);
                     break;
             }
         }
@@ -194,11 +176,11 @@ namespace Game.Block.Blocks.Gear
 
             if (newState == SteamGearGeneratorState.Decelerating)
             {
-                _rateAtDecelerationStart = SteamConsumptionRate;
+                RateAtDecelerationStart = SteamConsumptionRate;
             }
 
             CurrentState = newState;
-            _stateElapsedTime = 0f;
+            StateElapsedTime = 0f;
         }
 
         // 指定されたイージング種別に基づき0〜1の補間値を算出する
@@ -228,16 +210,6 @@ namespace Game.Block.Blocks.Gear
                 default:
                     return t;
             }
-        }
-
-        // セーブ・ロードで用いる状態スナップショット
-        // State snapshot structure used during save and load operations
-        public struct StateSnapshot
-        {
-            public string State { get; set; }
-            public float StateElapsedTime { get; set; }
-            public float SteamConsumptionRate { get; set; }
-            public float RateAtDecelerationStart { get; set; }
         }
     }
 }
