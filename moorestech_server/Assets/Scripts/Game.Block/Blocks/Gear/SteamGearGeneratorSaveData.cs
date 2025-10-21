@@ -36,8 +36,18 @@ namespace Game.Block.Blocks.Gear
 
             ActiveFuelType = fuelService.CurrentFuelType.ToString();
             RemainingFuelTime = fuelService.RemainingFuelTime;
-            CurrentFuelItemGuidStr = MasterHolder.ItemMaster.GetItemMaster(fuelService.CurrentFuelItemId).ItemGuid.ToString();
-            CurrentFuelFluidGuidStr = MasterHolder.FluidMaster.GetFluidMaster(fuelService.CurrentFuelFluidId).FluidGuid.ToString();
+
+            if (fuelService.CurrentFuelItemId != ItemMaster.EmptyItemId)
+            {
+                var itemGuid = MasterHolder.ItemMaster.GetItemMaster(fuelService.CurrentFuelItemId).ItemGuid;
+                CurrentFuelItemGuidStr = itemGuid.ToString();
+            }
+
+            if (fuelService.CurrentFuelFluidId != FluidMaster.EmptyFluidId)
+            {
+                var fluidGuid = MasterHolder.FluidMaster.GetFluidMaster(fuelService.CurrentFuelFluidId).FluidGuid;
+                CurrentFuelFluidGuidStr = fluidGuid.ToString();
+            }
         }
 
         public SteamGearGeneratorSaveData()
