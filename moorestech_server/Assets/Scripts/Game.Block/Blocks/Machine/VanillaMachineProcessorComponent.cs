@@ -115,30 +115,18 @@ namespace Game.Block.Blocks.Machine
         
         private void Idle()
         {
-            var hasRecipe = _vanillaMachineInputInventory.TryGetRecipeElement(out var recipe);
-            if (!ShouldStartProcess(hasRecipe, recipe)) return;
+            var isGetRecipe = _vanillaMachineInputInventory.TryGetRecipeElement(out var recipe);
+            var isStartProcess = CurrentState == ProcessState.Idle && isGetRecipe &&
+                   _vanillaMachineInputInventory.IsAllowedToStartProcess() &&
+                   _vanillaMachineOutputInventory.IsAllowedToOutputItem(recipe);
             
-            BeginProcessing(recipe);
-            
-            #region Internal
-            
-            bool ShouldStartProcess(bool foundRecipe, MachineRecipeMasterElement candidate)
-            {
-                if (!foundRecipe) return false;
-                return CurrentState == ProcessState.Idle &&
-                       _vanillaMachineInputInventory.IsAllowedToStartProcess() &&
-                       _vanillaMachineOutputInventory.IsAllowedToOutputItem(candidate);
-            }
-            
-            void BeginProcessing(MachineRecipeMasterElement targetRecipe)
+            if (isStartProcess)
             {
                 CurrentState = ProcessState.Processing;
-                _processingRecipe = targetRecipe;
-                _vanillaMachineInputInventory.ReduceInputSlot(targetRecipe); // isRemain=true のアイテムはインベントリ側で保持される
-                RemainingSecond = targetRecipe.Time;
+                _processingRecipe = recipe;
+                _vanillaMachineInputInventory.ReduceInputSlot(_processingRecipe);
+                RemainingSecond = _processingRecipe.Time;
             }
-            
-            #endregion
         }
         
         private void Processing()
