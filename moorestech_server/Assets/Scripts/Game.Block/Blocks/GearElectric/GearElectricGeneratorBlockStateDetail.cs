@@ -20,11 +20,10 @@ namespace Game.Block.Blocks.GearElectric
             bool isClockwise,
             RPM currentRpm,
             Torque currentTorque,
-            GearNetworkStopReason stopReason,
             GearNetworkInfo gearNetworkInfo,
             float energyFulfillmentRate,
             ElectricPower generatedPower) :
-            base(isClockwise, currentRpm.AsPrimitive(), currentTorque.AsPrimitive(), stopReason, gearNetworkInfo)
+            base(isClockwise, currentRpm.AsPrimitive(), currentTorque.AsPrimitive(), gearNetworkInfo)
         {
             EnergyFulfillmentRate = energyFulfillmentRate;
             GeneratedElectricPower = generatedPower.AsPrimitive();

@@ -160,12 +160,11 @@ namespace Tests.CombinedTest.Game
             //ネットワークをアップデート
             //Update the network
             gearNetwork.ManualUpdate();
-            
+
             // ネットワークがロックされているかどうかを確認する
-            Assert.IsTrue(gearNetwork.GearTransformers.All(g => g.IsRocked));
-            Assert.IsTrue(gearNetwork.GearGenerators.All(g => g.IsRocked));
+            Assert.AreEqual(GearNetworkStopReason.Rocked, gearNetwork.CurrentGearNetworkInfo.StopReason);
         }
-        
+
         [Test]
         public void DifferentDirectionGearNetworkToRockTest()
         {
@@ -190,12 +189,11 @@ namespace Tests.CombinedTest.Game
             var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
             var gearNetwork = gearNetworkDataStore.GearNetworks.First().Value;
             gearNetwork.ManualUpdate();
-            
+
             // ネットワークがロックされているかどうかを確認する
-            Assert.IsTrue(gearNetwork.GearTransformers.All(g => g.IsRocked));
-            Assert.IsTrue(gearNetwork.GearGenerators.All(g => g.IsRocked));
+            Assert.AreEqual(GearNetworkStopReason.Rocked, gearNetwork.CurrentGearNetworkInfo.StopReason);
         }
-        
+
         [Test]
         public void MultiGeneratorOverrideRpmTest()
         {
@@ -263,13 +261,10 @@ namespace Tests.CombinedTest.Game
             
             var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
             var gearNetwork = gearNetworkDataStore.GearNetworks.First().Value;
-            
+
             gearNetwork.ManualUpdate();
-            
-            Assert.IsTrue(generator1.IsRocked);
-            Assert.IsTrue(generator2.IsRocked);
-            Assert.IsTrue(gear1.IsRocked);
-            Assert.IsTrue(gear2.IsRocked);
+
+            Assert.AreEqual(GearNetworkStopReason.Rocked, gearNetwork.CurrentGearNetworkInfo.StopReason);
         }
         
         [Test]
@@ -610,8 +605,7 @@ namespace Tests.CombinedTest.Game
             gearNetwork.ManualUpdate();
 
             // 検証: すべてのコンポーネントがロック状態であること
-            Assert.IsTrue(gearNetwork.GearTransformers.All(g => g.IsRocked));
-            Assert.IsTrue(gearNetwork.GearGenerators.All(g => g.IsRocked));
+            Assert.AreEqual(GearNetworkStopReason.Rocked, gearNetwork.CurrentGearNetworkInfo.StopReason);
 
             // 検証: OperatingRateが0であること（ロック状態の結果）
             Assert.AreEqual(0f, gearNetwork.CurrentGearNetworkInfo.OperatingRate);
