@@ -85,8 +85,8 @@ namespace Game.Gear.Common
             
             if (rocked)
             {
-                CurrentGearNetworkInfo = GearNetworkInfo.CreateEmpty();
-                SetNetworkStop(GearNetworkStopReason.Rocked);
+                CurrentGearNetworkInfo = new GearNetworkInfo(0, 0, 0, GearNetworkStopReason.Rocked);
+                SetNetworkStop();
                 return;
             }
 
@@ -94,8 +94,8 @@ namespace Game.Gear.Common
             var (totalRequiredGearPower, totalGeneratePower) = CalculateEnergyBalance();
             if (totalRequiredGearPower > totalGeneratePower)
             {
-                CurrentGearNetworkInfo = new GearNetworkInfo(totalRequiredGearPower, totalGeneratePower, 0f);
-                SetNetworkStop(GearNetworkStopReason.OverRequirePower);
+                CurrentGearNetworkInfo = new GearNetworkInfo(totalRequiredGearPower, totalGeneratePower, 0f, GearNetworkStopReason.OverRequirePower);
+                SetNetworkStop();
                 return;
             }
 
@@ -161,10 +161,10 @@ namespace Game.Gear.Common
                 return connect.Self.IsReverse && connect.Target.IsReverse;
             }
             
-            void SetNetworkStop(GearNetworkStopReason reason)
+            void SetNetworkStop()
             {
-                foreach (var transformer in GearTransformers) transformer.StopNetwork(reason);
-                foreach (var generator in GearGenerators) generator.StopNetwork(reason);
+                foreach (var transformer in GearTransformers) transformer.StopNetwork();
+                foreach (var generator in GearGenerators) generator.StopNetwork();
             }
 
             (float totalRequiredGearPower, float totalGeneratePower) CalculateEnergyBalance()
@@ -210,7 +210,7 @@ namespace Game.Gear.Common
                 // 要求されたトルクの量が供給量を上回ってるとき、その量に応じてRPMを減速させる
                 var rpmRate = totalRequiredGearPower == 0 ? 1 : Mathf.Min(1, totalGeneratePower / totalRequiredGearPower);
                 
-                CurrentGearNetworkInfo = new GearNetworkInfo(totalRequiredGearPower, totalGeneratePower, rpmRate);
+                CurrentGearNetworkInfo = new GearNetworkInfo(totalRequiredGearPower, totalGeneratePower, rpmRate, GearNetworkStopReason.None);
                 
                 // 生成されるギアパワーを各歯車コンポーネントに供給する
                 foreach (var transformer in GearTransformers)

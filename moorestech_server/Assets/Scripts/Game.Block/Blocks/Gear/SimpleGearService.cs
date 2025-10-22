@@ -13,8 +13,6 @@ namespace Game.Block.Blocks.Gear
         public RPM CurrentRpm { get; private set; }
         public Torque CurrentTorque { get; private set; }
         public bool IsCurrentClockwise { get; private set; }
-        public GearNetworkStopReason StopReason { get; private set; }
-        public bool IsRocked { get; private set; }
         
         public IObservable<Unit> BlockStateChange => _onBlockStateChange;
         private readonly Subject<Unit> _onBlockStateChange = new();
@@ -30,14 +28,12 @@ namespace Game.Block.Blocks.Gear
             _blockInstanceId = blockInstanceId;
         }
         
-        public void StopNetwork(GearNetworkStopReason reason)
+        public void StopNetwork()
         {
-            IsRocked = true;
-            StopReason = reason;
             _currentState = IGearEnergyTransformer.RockedStateName;
             CurrentRpm = new RPM(0);
             CurrentTorque = new Torque(0);
-            
+
             _onBlockStateChange.OnNext(Unit.Default);
             _onGearUpdate.OnNext(GearUpdateType.Rocked);
         }
@@ -46,15 +42,13 @@ namespace Game.Block.Blocks.Gear
         {
             var network = GearNetworkDatastore.GetGearNetwork(_blockInstanceId);
             var info = network.CurrentGearNetworkInfo;
-            var stateDetail = new GearStateDetail(IsCurrentClockwise, CurrentRpm.AsPrimitive(), CurrentTorque.AsPrimitive(), StopReason, info);
-            
+            var stateDetail = new GearStateDetail(IsCurrentClockwise, CurrentRpm.AsPrimitive(), CurrentTorque.AsPrimitive(), info);
+
             return new BlockStateDetail(GearStateDetail.BlockStateDetailKey, MessagePackSerializer.Serialize(stateDetail));
         }
         
         public void SupplyPower(RPM rpm, Torque torque, bool isClockwise)
         {
-            IsRocked = false;
-            StopReason = GearNetworkStopReason.None;
             var isChanged =
                 Math.Abs((CurrentRpm - rpm).AsPrimitive()) > 0.05f ||
                 Math.Abs((CurrentTorque - torque).AsPrimitive()) > 0.05f ||

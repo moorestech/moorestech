@@ -39,9 +39,8 @@ namespace Game.Block.Blocks.Gear
             SteamGearGeneratorStateService stateService,
             SteamGearGeneratorFluidComponent fluidComponent,
             GearNetworkInfo gearNetworkInfo,
-            bool isClockwise,
-            GearNetworkStopReason stopReason)
-            : base(isClockwise, stateService.CurrentGeneratedRpm.AsPrimitive(), stateService.CurrentGeneratedTorque.AsPrimitive(), stopReason, gearNetworkInfo)
+            bool isClockwise)
+            : base(isClockwise, stateService.CurrentGeneratedRpm.AsPrimitive(), stateService.CurrentGeneratedTorque.AsPrimitive(), gearNetworkInfo)
         {
             var steamTank = fluidComponent.SteamTank;
             State = stateService.CurrentState.ToString();

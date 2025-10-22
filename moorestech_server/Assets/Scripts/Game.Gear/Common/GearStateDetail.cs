@@ -17,13 +17,13 @@ namespace Game.Gear.Common
         [Key(5)] public float GearNetworkTotalGeneratePower { get; set; }
         [Key(6)] public float GearNetworkOperatingRate { get; set; }
         
-        public GearStateDetail(bool isClockwise, float currentRpm, float currentTorque, GearNetworkStopReason stopReason, GearNetworkInfo gearNetworkInfo)
+        public GearStateDetail(bool isClockwise, float currentRpm, float currentTorque, GearNetworkInfo gearNetworkInfo)
         {
             CurrentRpm = currentRpm;
             IsClockwise = isClockwise;
             CurrentTorque = currentTorque;
-            StopReason = stopReason;
-            
+            StopReason = gearNetworkInfo.StopReason;
+
             GearNetworkTotalRequiredPower = gearNetworkInfo.TotalRequiredGearPower;
             GearNetworkTotalGeneratePower = gearNetworkInfo.TotalGenerateGearPower;
             GearNetworkOperatingRate = gearNetworkInfo.OperatingRate;
