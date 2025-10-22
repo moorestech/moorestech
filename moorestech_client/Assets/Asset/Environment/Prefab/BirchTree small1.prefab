@@ -776,7 +776,7 @@ MonoBehaviour:
   outlineObject: {fileID: 150961967742908615}
   hpBarView: {fileID: 985050018174251804}
   instanceId: 0
-  mapObjectGuid: 240ed0ad-e493-4df4-b28f-a25908d45b0b
+  mapObjectGuid: 6a53fef8-2cf5-41fe-9922-21fd7dd4ab6c
 --- !u!1 &4531633917272061138
 GameObject:
   m_ObjectHideFlags: 0
