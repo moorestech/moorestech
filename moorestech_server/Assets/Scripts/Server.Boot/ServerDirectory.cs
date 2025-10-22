@@ -11,7 +11,7 @@ namespace Server.Boot
         public static string GetDirectory()
         {
 #if DEBUG
-            var debugServerDirectory = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "../../moorestech_master/server/"));
+            var debugServerDirectory = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "../../moorestech_master/server_v4/"));
             var serverDirectory = DebugParameters.GetValueOrDefaultString(DebugServerDirectorySettingKey ,debugServerDirectory);
 #else
             var serverDirectory = Path.Combine(UnityEngine.Application.dataPath, "../","../", "game");
