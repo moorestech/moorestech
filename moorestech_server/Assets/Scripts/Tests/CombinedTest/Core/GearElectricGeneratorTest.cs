@@ -46,14 +46,16 @@ namespace Tests.CombinedTest.Core
             AdvanceTime(0.5f);
             Assert.AreEqual(param.MaxGeneratedPower * 0.5f, generatorComponent.OutputEnergy().AsPrimitive(), 0.1f);
             Assert.AreEqual(0.5f, generatorComponent.EnergyFulfillmentRate, 0.05f);
-            
-            // 半分のトルク -> 半分の出力
-            // Half torque -> Half output
+
+            // 半分のトルク -> ネットワークが停止し出力は0
+            // Half torque -> Network stops due to power shortage, output becomes 0
             driveComponent.SetGenerateRpm(param.RequiredRpm);
             driveComponent.SetGenerateTorque(param.RequiredTorque * 0.5f);
             AdvanceTime(0.5f);
-            Assert.AreEqual(param.MaxGeneratedPower * 0.5f, generatorComponent.OutputEnergy().AsPrimitive(), 0.1f);
-            Assert.AreEqual(0.5f, generatorComponent.EnergyFulfillmentRate, 0.05f);
+            var gearNetwork = GearNetworkDatastore.GetGearNetwork(generatorComponent.BlockInstanceId);
+            Assert.AreEqual(GearNetworkStopReason.OverRequirePower, gearNetwork.CurrentGearNetworkInfo.StopReason);
+            Assert.AreEqual(0f, generatorComponent.OutputEnergy().AsPrimitive(), 0.01f);
+            Assert.AreEqual(0f, generatorComponent.EnergyFulfillmentRate, 0.05f);
 
             // RPM 0 -> 出力 0
             // RPM 0 -> Output 0
