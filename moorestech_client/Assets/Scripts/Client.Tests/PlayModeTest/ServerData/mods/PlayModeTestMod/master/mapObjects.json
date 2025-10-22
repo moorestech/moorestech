@@ -2,9 +2,7 @@
   "data": [
     {
       "maxStack": 100,
-      "earnItemHps": [
-        0
-      ],
+      "earnItemHpInterval": 1,
       "hp": 1,
       "mapObjectName": "Pebble",
       "earnItems": [
@@ -20,9 +18,7 @@
       "miningParam": {}
     },
     {
-      "earnItemHps": [
-        0
-      ],
+      "earnItemHpInterval": 10,
       "hp": 10,
       "mapObjectName": "Bush",
       "initialUnlocked": true,
@@ -59,11 +55,7 @@
       "mapObjectGuid": "ec05d9a1-0b7d-49e6-ad80-d6c63094bbaf"
     },
     {
-      "earnItemHps": [
-        0,
-        10,
-        20
-      ],
+      "earnItemHpInterval": 10,
       "hp": 30,
       "mapObjectName": "Tree",
       "earnItems": [
@@ -97,10 +89,7 @@
       "soundEffectType": "tree"
     },
     {
-      "earnItemHps": [
-        0,
-        10
-      ],
+      "earnItemHpInterval": 10,
       "hp": 20,
       "mapObjectName": "Stone",
       "miningType": "Mining",
@@ -129,11 +118,7 @@
       "mapObjectGuid": "20eb0c7e-51d3-4f4a-ba28-c974bc96e165"
     },
     {
-      "earnItemHps": [
-        0,
-        10,
-        20
-      ],
+      "earnItemHpInterval": 10,
       "hp": 30,
       "mapObjectName": "clay",
       "earnItems": [
