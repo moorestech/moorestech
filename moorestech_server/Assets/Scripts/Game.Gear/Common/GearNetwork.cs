@@ -85,10 +85,20 @@ namespace Game.Gear.Common
             
             if (rocked)
             {
-                SetRocked();
+                CurrentGearNetworkInfo = new GearNetworkInfo(0, 0, 0, GearNetworkStopReason.Rocked);
+                SetNetworkStop();
                 return;
             }
-            
+
+            // エネルギー収支を計算し、不足している場合はネットワークを停止
+            var (totalRequiredGearPower, totalGeneratePower) = CalculateEnergyBalance();
+            if (totalRequiredGearPower > totalGeneratePower)
+            {
+                CurrentGearNetworkInfo = new GearNetworkInfo(totalRequiredGearPower, totalGeneratePower, 0f, GearNetworkStopReason.OverRequirePower);
+                SetNetworkStop();
+                return;
+            }
+
             //すべてのジェネレーターから生成GPを取得し、合算する
             DistributeGearPower();
             
@@ -151,10 +161,30 @@ namespace Game.Gear.Common
                 return connect.Self.IsReverse && connect.Target.IsReverse;
             }
             
-            void SetRocked()
+            void SetNetworkStop()
             {
-                foreach (var transformer in GearTransformers) transformer.Rocked();
-                foreach (var generator in GearGenerators) generator.Rocked();
+                foreach (var transformer in GearTransformers) transformer.StopNetwork();
+                foreach (var generator in GearGenerators) generator.StopNetwork();
+            }
+
+            (float totalRequiredGearPower, float totalGeneratePower) CalculateEnergyBalance()
+            {
+                // 要求されているギアパワーを算出
+                var totalRequired = 0f;
+                foreach (var transformer in GearTransformers)
+                {
+                    var info = _checkedGearComponents[transformer.BlockInstanceId];
+                    totalRequired += info.RequiredTorque.AsPrimitive() * info.Rpm.AsPrimitive();
+                }
+
+                // 生成されるギアパワーを算出
+                var totalGenerate = 0f;
+                foreach (var generator in GearGenerators)
+                {
+                    totalGenerate += generator.GenerateTorque.AsPrimitive() * generator.GenerateRpm.AsPrimitive();
+                }
+
+                return (totalRequired, totalGenerate);
             }
             
             // ここのロジックはドキュメント参照
@@ -180,7 +210,7 @@ namespace Game.Gear.Common
                 // 要求されたトルクの量が供給量を上回ってるとき、その量に応じてRPMを減速させる
                 var rpmRate = totalRequiredGearPower == 0 ? 1 : Mathf.Min(1, totalGeneratePower / totalRequiredGearPower);
                 
-                CurrentGearNetworkInfo = new GearNetworkInfo(totalRequiredGearPower, totalGeneratePower, rpmRate);
+                CurrentGearNetworkInfo = new GearNetworkInfo(totalRequiredGearPower, totalGeneratePower, rpmRate, GearNetworkStopReason.None);
                 
                 // 生成されるギアパワーを各歯車コンポーネントに供給する
                 foreach (var transformer in GearTransformers)

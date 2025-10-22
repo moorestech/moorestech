@@ -20,8 +20,7 @@ namespace Game.Block.Blocks.Gear
         public RPM CurrentRpm => _simpleGearService.CurrentRpm;
         public Torque CurrentTorque => _simpleGearService.CurrentTorque;
         public bool IsCurrentClockwise => _simpleGearService.IsCurrentClockwise;
-        
-        public bool IsRocked => _simpleGearService.IsRocked;
+
         public bool IsDestroy { get; private set; }
         
         private readonly IBlockConnectorComponent<IGearEnergyTransformer> _connectorComponent;
@@ -49,9 +48,9 @@ namespace Game.Block.Blocks.Gear
             return RequiredTorque;
         }
         
-        public void Rocked()
+        public void StopNetwork()
         {
-            _simpleGearService.Rocked();
+            _simpleGearService.StopNetwork();
         }
         
         public virtual void SupplyPower(RPM rpm, Torque torque, bool isClockwise)
