@@ -273,6 +273,10 @@ public class MySingleton : MonoBehaviour
 
 早計に新しい概念やシステムを追加するのではなく、既存システムの上に実装を積み重ねることを原則としてください。
 
+# Active Specifications
+現在開発中の機能仕様：
+- **gear-network-power-balance-halt**: 歯車ネットワークで必要エネルギーが生成エネルギーを上回った際にネットワーク全体を停止する機能
+
 # 追加指示
 
 NEVER:.metaファイルは生成しないでください。これはUnityが自動的に生成します。このmetaファイルの有無はコンパイル結果に影響を与えません。.metaの作成は思わぬ不具合の原因になります。
@@ -286,6 +290,8 @@ IMPORTANT:サーバーのプロトコル（通常のレスポンスプロトコ�
 IMPORTANT:テスト用のブロックIDは moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTestModBlockId.cs に定義し、それを使うようにしてください。
 IMPORTANT:try-catchは基本的に使用禁止です。エラーハンドリングが必要な場合は、適切な条件分岐やnullチェックで対応してください。
 IMPORTANT:各種ブロックパラメータ（BlockParam）はSourceGeneratorによって自動生成されます。詳細は「マスターデータシステムについて」セクションを参照してください。
+IMPORTANT:デフォルト引数の使用禁止。引数の追加は必ずデフォルト値をつけず、呼び出し側を変更する
+
 
 ## Development Best Practices
 - プログラムの基本的な部分はnullではない前提でコードを書くように意識してください。
