@@ -21,6 +21,20 @@ mooresech_clientをUnityで開きMainGameシーンを再生してください
 codex --yolo
 ```
 
+MCPを使う場合はこの限りではありません。
+~/.codex/config.toml
+```toml
+[mcp_servers.moorestech_server]
+command = "node"
+args    = ["/Users/[user]/mcp-stdio-to-streamable/dist/index.js"]
+env = { MCP_SERVER_IP = "localhost", MCP_SERVER_PORT = "56901" }
+
+[mcp_servers.moorestech_client]
+command = "node"
+args    = ["/Users/[user]/mcp-stdio-to-streamable/dist/index.js"]
+env = { MCP_SERVER_IP = "localhost", MCP_SERVER_PORT = "56902" }
+```
+
 # LICENSE
 コードは[Apache2.0](https://github.com/moorestech/moorestech/blob/master/LICENSE) ライセンスで配布されています。
 コード以外の各種コンテンツは[moorestech Game Content License ](https://github.com/moorestech/moorestech/blob/master/CONTENT_LICENSE.md) ライセンスでは配布されています。
