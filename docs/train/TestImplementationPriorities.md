@@ -6,22 +6,11 @@
 - 現状のテストカバレッジで不足していそうなシナリオか。
 - 後続のテストや機能検証の土台になるか。
 
-## 直近の実装優先度 (2024-XX-XX更新)
+## 直近の実装状況 (2024-05-21更新)
 
-1. **セーブデータ破壊テスト基盤の整備 (①)**
-   - `SaveLoadJsonTestHelper` を追加し、`ServiceProvider` からのセーブ取得→JSON 破壊→ロードまでをワンストップで実行できる関数を整備する。
-   - JSON を破壊するユーティリティ (`CorruptJson`, `RemoveNode`, `ReplaceNode` など) を用意し、ランダム破壊や毎フレーム破壊をテストコードから一行で呼べるようにする。
-   - セーブ破損時の耐性テストを増やす前提として、破壊処理の注入手段を統一し他テストでも再利用可能にする。
-
-2. **ドッキング整合性テスト群 (②〜④)**
-   - `TrainUnit` 解体／削除時に駅占有が確実に解除されることを保証する。必要に応じてデストラクタ処理を拡張し、駅側との双方向リンクが残らないかを検証するテストを追加する。
-   - ロード時の駅-列車ドッキング状態再構築を確認するテストを整備し、破損 JSON (①のヘルパー活用) に対してもフェイルセーフが機能するかを確認する。
-   - 貨物列車のインベントリ／ダイアグラム／`TrainUnit` 全体のセーブデータが完全に復元されることをアサートする統合テストを作成する。
-
-3. **[A] 複列車セーブ/ロード再現性とダイアグラム永続化改善**
-   - 複数列車が走行・減速・待機・ドッキング中の状態でセーブ→ロードした際、位置・速度・編成・ダイアグラム・インベントリが一致することを検証するユニットテストを追加する。
-   - 自動運転中および `WaitForTicks` 条件でセーブした場合に残りティックが復元されることを確認する。
-   - ダイアグラムセーブ実装でノード参照を ID に変換している部分を `RailPosition.CreateSaveSnapshot()` のパターンを参考に整理し、より簡潔なロジックへ見直す。
+- ✅ **セーブデータ破壊テスト基盤を整備** — `SaveLoadJsonTestHelper` にセーブ→破壊→ロードを一括で行う `SaveCorruptAndLoad` や `RemoveTrainUnitDockedAt` などのユーティリティを追加し、列車テストからフェイルインジェクションを直接呼び出せるようになりました。【F:moorestech_server/Assets/Scripts/Tests/Util/SaveLoadJsonTestHelper.cs†L1-L118】【F:moorestech_server/Assets/Scripts/Tests/Util/SaveLoadJsonTestHelper.cs†L144-L192】
+- ✅ **ドッキング整合性テストを拡充** — 駅占有解除・破棄時の安全性・破損JSONロード時の挙動を `TrainStationDockingPersistenceTest` で自動検証し、`TrainStationDockingScenario` でのセットアップを共通化しました。【F:moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainStationDockingPersistenceTest.cs†L1-L207】【F:moorestech_server/Assets/Scripts/Tests/Util/TrainStationDockingScenario.cs†L1-L170】
+- ✅ **複列車セーブ/ロード回帰テストを追加** — 複数列車の状態・ダイアグラム・インベントリ・WaitForTicks残量をスナップショット比較で確認する統合テストを実装し、ロード後の完全一致を担保しています。【F:moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainStationDockingPersistenceTest.cs†L136-L216】
 
 ## 既存テストカバレッジの俯瞰
 
@@ -34,7 +23,9 @@
 | ドッキングと積み下ろし | `Tests/UnitTest/Game/TrainStationDockingItemTransferTest.cs` | 統合テスト | 駅・貨物プラットフォームでの積込/荷降ろし、占有時の第二列車拒否 | 待避線を含む複数列車連携、長距離移動を伴うシナリオは未実装 |
 | 列車運行ダイアグラム | `Tests/UnitTest/Game/TrainDiagramUpdateTest.cs` | 機能テスト | ダイアグラムのノード削除時リセット、積載/空荷条件での出発制御、複数条件の併用 | 長距離ダイアグラムや複数列車共有での挙動は未検証 |
 | 自動運転操作シナリオ | `Tests/UnitTest/Game/TrainDiagramAutoRunOperationsTest.cs` | 機能テスト (骨子) | 自動運転ダイアグラム操作のケース網羅を目的としたテスト構造 | 具体的なアサート未実装、シナリオ充実が今後の課題 |
-| セーブ/ロード | `Tests/UnitTest/Game/SaveLoad/TrainRailSaveLoadTest.cs` | 統合テスト | レール・駅の保存復元、接続状態とインベントリの保持 | 走行中列車・時刻同期・運行状態・ダイアグラム進行・ドッキング占有は未カバー |
+| セーブ/ロード (ブロック) | `Tests/UnitTest/Game/SaveLoad/TrainRailSaveLoadTest.cs` | 統合テスト | レール・駅の保存復元、接続状態とインベントリの保持 | 列車運行中の状態やドッキング継続までは未検証 |
+| セーブ/ロード (列車・ドッキング) | `Tests/UnitTest/Game/SaveLoad/TrainStationDockingPersistenceTest.cs` | 統合テスト | ドッキング状態の復元、破損JSONロード時のフォールバック、複列車状態の整合性 | 長距離路線・ポイント切替を含む多列車運行までは未検証 |
+| ドッキング同時実行 | `Tests/UnitTest/Game/TrainStationDockingConcurrencyTest.cs` | 機能テスト | 前後両方向からの同時ドッキングや占有解除の競合を検証 | 長時間連続運転時の競合や多数列車の同時接近は未検証 |
 | シングルトレイン往復 | `Tests/UnitTest/Game/SingleTrainTwoStationIntegrationTest.cs` | シナリオテスト | 2駅間での積込→運搬→荷降ろし→往復完走、手動スイッチ操作を含む | 長時間運転や複数列車・ポイント切替は未検証 |
 
 ### 現行`train`関連テストファイル一覧
@@ -46,9 +37,12 @@
 - `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/TrainDiagramAutoRunOperationsTest.cs`
 - `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/TrainStationDockingItemTransferTest.cs`
 - `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainRailSaveLoadTest.cs`
+- `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainStationDockingPersistenceTest.cs`
+- `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/TrainStationDockingConcurrencyTest.cs`
 - `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SingleTrainTwoStationIntegrationTest.cs`
 - (補助ユーティリティ) `moorestech_server/Assets/Scripts/Tests/Util/TrainTestHelper.cs`
 - (補助ユーティリティ) `moorestech_server/Assets/Scripts/Tests/Util/TrainAutoRunTestScenario.cs`
+- (補助ユーティリティ) `moorestech_server/Assets/Scripts/Tests/Util/TrainStationDockingScenario.cs`
 
 ### 各テストファイルの概要
 - **SimpleTrainTest.cs**: RailNodeの経路探索と接続性を検証し、複雑グラフやランダム生成ケースでの最短経路の健全性を確かめる。 
@@ -58,16 +52,18 @@
 - **TrainDiagramUpdateTest.cs**: 列車ダイアグラムのノード削除、条件設定、待機ティックなどの管理処理が正しく機能するかを確認する。 
 - **TrainDiagramAutoRunOperationsTest.cs**: 自動運転ダイアグラム操作のテストケース群の雛形を提供し、今後の詳細アサート追加の受け皿となる。 
 - **TrainStationDockingItemTransferTest.cs**: 駅・貨物プラットフォームでの積載／荷降ろしおよび占有制御が正しく働くかを統合的に確認する。 
+- **TrainStationDockingPersistenceTest.cs**: ドッキング状態の保存・復元、破損セーブからのフェイルセーフ、複列車スナップショット比較で列車セーブデータの整合性を検証する。 
+- **TrainStationDockingConcurrencyTest.cs**: 前後方向やループ構造で複数列車が同時に駅へ進入するケースを再現し、占有解除と再ドックの競合を確認する。 
 - **TrainRailSaveLoadTest.cs**: レールや駅のセーブデータ復元、接続情報・インベントリ状態の永続化が機能するかを検証する。 
 - **SingleTrainTwoStationIntegrationTest.cs**: 二駅間の積込→運搬→荷降ろし→折り返しという往復ループが自動運転で完了することを確認する。 
-- **TrainTestHelper.cs / TrainAutoRunTestScenario.cs**: 上記テストで使用するテスト環境・シナリオ構築ユーティリティを提供するサポートコード。
+- **TrainTestHelper.cs / TrainAutoRunTestScenario.cs / TrainStationDockingScenario.cs**: 上記テストで使用するテスト環境・シナリオ構築ユーティリティを提供し、列車・駅セットアップを簡潔化するサポートコード。
 
 ### カバレッジ詳細メモ
 - **ユニット層**: RailGraph/RailPosition関連のアルゴリズム系テスト(`SimpleTrainTest*.cs`)が存在し、基礎的な計算ロジックは網羅している。
-- **統合層**: ドッキング/積み下ろし(`TrainStationDockingItemTransferTest.cs`)とセーブ/ロード(`TrainRailSaveLoadTest.cs`)は、単列車または静的環境下での正当性を担保する。運行状態の保存や動的な線路変更は未カバー。
-- **シナリオ層**: `SimpleTrainTestUpdateTrain.cs`と`SingleTrainTwoStationIntegrationTest.cs`が単列車シナリオをカバー。ただしランダム性が高いものが多く、長時間耐久やマルチトレイン競合は未実装。
+- **統合層**: ドッキング/積み下ろし(`TrainStationDockingItemTransferTest.cs`)に加えて、破損セーブや複列車復元を扱う`TrainStationDockingPersistenceTest.cs`、ブロック保存を扱う`TrainRailSaveLoadTest.cs`が揃い、駅占有の安全性やWaitForTicks復元まで自動検証できるようになった。
+- **シナリオ層**: `SimpleTrainTestUpdateTrain.cs`と`SingleTrainTwoStationIntegrationTest.cs`が単列車シナリオを、`TrainStationDockingConcurrencyTest.cs`が前後列車の競合パターンを担保する。ただしランダム性が高いものが多く、長時間耐久や大規模路線でのマルチトレイン競合は未実装。
 
-> 📌 **ギャップまとめ**: 「複数列車が同一路線を共有する長時間運行」「路線編集や駅状態変化を伴う再探索」「走行中セーブ/ロード」「フェイルインジェクション」などは既存テストで扱われていないため、本書の優先事項を満たす追加実装が必要。
+> 📌 **ギャップまとめ**: 「複数列車が同一路線を共有する長時間運行」「路線編集や駅状態変化を伴う再探索」「走行中セーブ/ロードでの速度・予約再現」「大規模フェイルインジェクション自動化」などは引き続き未カバーのため、今後の優先課題として残る。
 
 ## 優先度1: A) 多列車シナリオの統合テスト強化
 - **目的**: デッドロックや衝突の未検出を防ぎ、複数列車運用の基礎品質を保証する。
@@ -77,16 +73,15 @@
   - 星形/格子など高分岐ネットワークでの長時間シミュレーションと指標Assertionは、後続のシナリオ全般の信頼性を底上げする。
 - **必要テストと実装状況**:
   - [ ] 交換・待避・復帰の一連挙動を網羅する多列車シナリオ (未実装)
-  - [ ] 先詰まりシナリオ: 先頭列車が駅で長時間停止し後続が同ノードでドッキングまち待機するケース (未実装)
   - [ ] 星形/格子ネットワークでの長時間運転検証 (未実装)
+  - [x] 先詰まり・後続待機シナリオ (`moorestech_server/Assets/Scripts/Tests/UnitTest/Game/TrainStationDockingConcurrencyTest.cs`) — 先頭列車が駅を占有した状態で後続が安全に待機するかを検証
+  - [x] ループ構造での超長編成ドッキング検証 (`moorestech_server/Assets/Scripts/Tests/UnitTest/Game/TrainStationDockingConcurrencyTest.cs`)
   - [x] 単列車×二駅の往復テスト (駅1積載→駅2荷降ろし) と手動スイッチ連携 (`moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SingleTrainTwoStationIntegrationTest.cs`) — シナリオテストとして単列車の往復を自動検証
   - [x] 単駅での積み込み/荷降ろし切替確認 (`moorestech_server/Assets/Scripts/Tests/UnitTest/Game/TrainStationDockingItemTransferTest.cs`)
-  - [x] 駅占有時の後続列車待機(二列車)の衝突防止 (`moorestech_server/Assets/Scripts/Tests/UnitTest/Game/TrainStationDockingItemTransferTest.cs`)
 - **着手ポイント**:
-  - 交換・待避・復帰の一連挙動を網羅するシナリオを`TrainTestHelper`ベースで構築。
-  - 単列車×二駅の往復テストを追加し、駅1での積載→駅2での荷降ろしまで自動検証できる状態にする。
-    - 貨物プラットフォームのロード/アンロード切替スイッチを手動操作するテストフックを用意し、図面(diagram)の出発条件と連携させる。
-  - 衝突数・予約失敗リトライ・平均待機時間のメトリクス断言を追加し、フレーク検出を行う。
+  - 交換・待避・復帰の一連挙動を網羅するシナリオを`TrainTestHelper`/`TrainStationDockingScenario`ベースで構築。
+  - 星形/格子ネットワークなど分岐の多い路線を自動生成し、長時間運転のメトリクス(衝突数・待機時間など)を定量評価する。
+  - 競合検知の指標(衝突数・予約失敗リトライ・平均待機時間)を整備し、フレーク検出を行う。
 
 ## 優先度2: D) セーブ/ロードの実ゲーム相当検証
 - **目的**: セーブ/ロード後の状態再現性を保証し、長時間プレイの信頼性を確保する。
@@ -95,30 +90,25 @@
   - 走行・減速・駅ドックなど複数状態の再現は、他システム(時刻管理・予約・ドッキング)の回帰も検知できる。
   - 偏差許容を定義しておけば自動テストとして安定化し、将来のリグレッションを早期に捕捉できる。
 - **必要テストと実装状況**:
-  - [ ] 走行中・減速中・駅ドック状態を含む複数列車のセーブ/ロード再現 (未実装)
-    - 位置(ノードと残距離)、速度、加速度、編成構成、牽引順序、カーブ進入方向が一致することを検証。
-    - 自動運転中・手動運転中双方を含め、ロード後にダイアグラム再開が継続することを確認。
-    - `WaitForTicks` 条件途中でセーブした場合に残りティック数が復元されることを確認。
-  - [ ] TrainUnit dock状態の堅牢性検証 (未実装)
-    - ドック中の編成を解体/削除してセーブ→ロードした際に駅が自然解除され、孤立ハンドルが残らないことを検証。
-    - 逆にセーブ→ロードした際に駅を削除し、ドッキング解除が自動で行われるか検証
-  - [ ] 貨物列車インベントリとダイアグラム設定の永続化 (未実装)
-    - 積載アイテム数・スロット順序、`DiagramSchedule`/`AutoRunCondition`の設定値が完全一致することを比較。
-    - 車両ごとのCargoBayの残容量・予約状態が正しく再現されるかをチェック。
-  - [ ] 破損セーブデータに対するフォールバック動作 (未実装)
-    - Node接続片側欠損、Docking先欠損、ダイアグラム参照欠損などを人工的に挿入し、堅牢性チェックが発動してゲーム継続可能な状態になるかを確認。
-    - `SaveLoadJsonTestHelper` を利用して任意フィールドの削除や無効化を実施し、ロード時の自動回復パスを検証する。
+  - [x] 走行中・減速中・駅ドック状態を含む複数列車のセーブ/ロード再現 (`moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainStationDockingPersistenceTest.cs`)
+    - 位置・速度・残距離・自動運転状態・`WaitForTicks`の残量をスナップショット比較し、ロード後に完全一致することを検証済み。
+  - [x] TrainUnit dock状態の堅牢性検証 (`moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainStationDockingPersistenceTest.cs`)
+    - 列車破棄時の駅占有解除、およびドッキング先ブロック欠損時の安全なUndockを自動テストで確認。
+  - [x] 貨物列車インベントリとダイアグラム設定の永続化 (`moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainStationDockingPersistenceTest.cs`)
+    - 貨物スロットの積載数とダイアグラム進行状態(現在ノード・WaitForTicks残量)がロード後も一致することを検証。
+  - [x] 破損セーブデータに対するフォールバック動作 (`moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainStationDockingPersistenceTest.cs`)
+    - `SaveLoadJsonTestHelper.SaveCorruptAndLoad` を用い、DockingBlockPosition欠損時に自動的にUndockして再接続可能なことを確認。
   - [x] 駅・レールブロックの保存/復元とインベントリ保持 (`moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainRailSaveLoadTest.cs`)
 - **着手ポイント**:
-  - `TrainAutoRunTestScenario`を拡張し、複数列車/複数駅の状態を簡潔にセットアップできるビルダーを用意。
-  - Docking再構築時のログ/イベントを捕捉し、異常検知が走った場合にもテストで意図通りRecoverできているか確認。
-  - `SaveLoadJsonTestHelper.SaveCorruptAndLoad` を組み込み、走行中やドッキング中に破損セーブが発生したケースも継続的に確認する。
+  - 走行中セーブ時の速度許容誤差や列車間同期ズレの閾値を定義し、リグレッション検知の精度を高める。
+  - `TrainAutoRunTestScenario`/`TrainStationDockingScenario`を拡張し、曲線やポイント切替を含む路線でのセーブ/ロードケースを量産できるようにする。
+  - `SaveLoadJsonTestHelper` の破壊ユーティリティを拡張し、ノード接続欠損やダイアグラム参照欠損など多様なフェイルインジェクションをテンプレ化する。
 
 ### Docking／TrainUnit解体周りの個別課題
 
 - **目的**: セーブ/ロードに絡む片方向参照や手動削除を行っても、駅・列車双方の状態が破綻しないことを保証する。
 - **主なテスト候補**:
-  - [ ] StationDockingServiceがロード時にTrainUnitの不整合を検知・解放することを検証するユニットテスト。
-  - [ ] TrainUnitのDispose/Destroyが呼ばれたときに駅占有が確実に解除されることを確認するテスト。必要であれば`TrainUnit`のデストラクタ処理に対するユニットテストを追加。
+  - [ ] StationDockingServiceがロード時にTrainUnitの不整合を検知・解放することを検証するユニットテスト。(未実装)
+  - [x] TrainUnitのDispose/Destroyが呼ばれたときに駅占有が確実に解除されることを確認するテスト (`moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainStationDockingPersistenceTest.cs`)。
 
 
