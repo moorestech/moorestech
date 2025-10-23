@@ -159,8 +159,9 @@ namespace Client.Game.InGame.UI.Inventory.Sub
             foreach (var itemUI in _itemListObjects)
             {
                 var itemId = itemUI.ItemViewData.ItemId;
-                var count = craftableCounts.TryGetValue(itemId, out var craftableCount) ? craftableCount : 0;
+                var count = craftableCounts.GetValueOrDefault(itemId, 0);
                 itemUI.SetCount(count);
+                itemUI.SetGrayOut(count == 0);
             }
             
             #region Internal
@@ -179,6 +180,8 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                     var craftableCount = CalculateCraftableCount(craftMaster, itemPerCount);
                     if (craftableCount <= 0) continue;
                     
+                    // 複数レシピがある場合は多い方を採用
+                    // If there are multiple recipes, adopt the larger one
                     var resultItemId = MasterHolder.ItemMaster.GetItemId(craftMaster.CraftResultItemGuid);
                     if (result.TryGetValue(resultItemId, out var current))
                     {

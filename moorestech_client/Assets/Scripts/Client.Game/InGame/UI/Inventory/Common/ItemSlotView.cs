@@ -37,8 +37,7 @@ namespace Client.Game.InGame.UI.Inventory.Common
                     toolTipText = GetToolTipText(itemView);
                 }
                 
-                var countText = count != 0 ? count.ToString() : string.Empty;
-                commonSlotView.SetView(itemView.ItemImage, countText, toolTipText);
+                commonSlotView.SetView(itemView.ItemImage, GetCountText(count), toolTipText);
             }
         }
 
@@ -47,15 +46,13 @@ namespace Client.Game.InGame.UI.Inventory.Common
         public void SetCount(int count)
         {
             Count = count;
-            
-            if (ItemViewData == null || ItemViewData.ItemId == ItemMaster.EmptyItemId)
-            {
-                commonSlotView.SetViewClear();
-                return;
-            }
-
-            var countText = count > 0 ? count.ToString() : string.Empty;
-            commonSlotView.SetView(ItemViewData.ItemImage, countText);
+            var countText = GetCountText(count);
+            commonSlotView.SetCountText(countText);
+        }
+        
+        private string GetCountText(int count)
+        {
+            return count != 0 ? count.ToString() : string.Empty;
         }
 
         public void SetSlotViewOption(CommonSlotViewOption slotOption)

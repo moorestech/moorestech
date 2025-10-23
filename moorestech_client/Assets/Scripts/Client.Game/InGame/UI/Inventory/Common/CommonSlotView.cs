@@ -70,6 +70,11 @@ namespace Client.Game.InGame.UI.Inventory.Common
             }
         }
         
+        public void SetCountText(string count)
+        {
+            countText.text = count;
+        }
+        
         public void SetViewClear()
         {
             countText.text = string.Empty;
