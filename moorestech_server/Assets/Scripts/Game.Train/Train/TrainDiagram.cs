@@ -38,12 +38,12 @@ namespace Game.Train.Train
             _entries.Clear();
         }
 
-        internal void RestoreState(TrainDiagramSaveData saveData, Func<ConnectionDestination, RailNode> nodeResolver)
+        internal void RestoreState(TrainDiagramSaveData saveData)
         {
             _entries.Clear();
             _currentIndex = -1;
 
-            if (saveData == null || saveData.Entries == null || nodeResolver == null)
+            if (saveData == null || saveData.Entries == null)
             {
                 return;
             }
@@ -54,8 +54,8 @@ namespace Game.Train.Train
                 {
                     continue;
                 }
-
-                var node = nodeResolver(entryData.Node);
+                
+                var node = RailGraphDatastore.ResolveRailNode(entryData.Node);
                 if (node == null)
                 {
                     continue;

@@ -617,8 +617,7 @@ namespace Game.Train.Train
             {
                 return;
             }
-
-            diagram.RestoreState(saveData, RailGraphDatastore.ResolveRailNode);
+            diagram.RestoreState(saveData);
         }
 
         public static TrainUnit RestoreFromSaveData(TrainUnitSaveData saveData)
