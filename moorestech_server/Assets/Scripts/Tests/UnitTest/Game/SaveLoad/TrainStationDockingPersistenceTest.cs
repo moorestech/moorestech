@@ -75,9 +75,21 @@ namespace Tests.UnitTest.Game.SaveLoad
             CleanupTrains(loadedTrains);
         }
 
+
+        private static class TrainCarJson
+        {
+            private const string DockingBlockPositionPropertyName = "DockingBlockPosition";
+
+            public static void RemoveDockingBlockPosition(JsonObject carNode)
+            {
+                carNode.Remove(DockingBlockPositionPropertyName);
+            }
+        }
+
         [Test]
         public void LoadingCorruptedDockingDataUndocksTrainSafely()
         {
+
             using var scenario = TrainStationDockingScenario.Create();
 
             var train = scenario.CreateForwardDockingTrain(out _);
