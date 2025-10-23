@@ -12,24 +12,29 @@
 - レールグラフと駅ブロックを含む最小構成の環境を構築し、1編成だけを配置した状態でセーブ。
 - ゲームを再起動してロードし、列車の位置・向き・速度が保存前と一致していることを確認。
 - AutoRun を有効化した状態でセーブ→ロードし、`TrainUnit.IsAutoRun` が維持されているか、`DiagramValidation()` が自動で再実行されているかをチェック。
+- ✅ 自動テスト: `TrainStationDockingPersistenceTest.ReloadingRestoresDockedTrainState` でドッキング済み列車の復元とAutoRun継続を検証済み。【F:moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainStationDockingPersistenceTest.cs†L32-L89】
 
 ## 2. ダイアグラムと発車条件
 - ダイアグラムに複数エントリを追加し、WaitForTicks を含む複数条件を設定した状態でセーブ。
 - ロード後に `_currentIndex` と `DiagramEntry.entryId` が維持され、WaitForTicks の残り tick 数が継続されることをアサート。
 - エントリに紐づく RailNode がセーブロードで欠損した場合、そのエントリが自動削除され、他のエントリが破壊されないことを確認。
+- ✅ 自動テスト: `TrainStationDockingPersistenceTest.MultipleTrainsPreserveStateAcrossSaveLoad` がダイアグラム進行と WaitForTicks 残量の整合性を保証。【F:moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainStationDockingPersistenceTest.cs†L136-L216】
 
 ## 3. 車両・インベントリ
 - 貨車のインベントリおよび燃料スロットに複数種類のアイテムを格納した状態でセーブ。
 - ロード後、スロット順序を含めて完全に復元されること、および `TrainCar.SetItem` / `SetFuelItem` が期待通り呼ばれることを確認。
 - アイテムが無いスロットが空のまま維持されることも検証。
+- ✅ 自動テスト: `TrainStationDockingPersistenceTest` で貨車スロットの積載数・アイテムIDが一致することを検証済み。【F:moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainStationDockingPersistenceTest.cs†L52-L88】【F:moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainStationDockingPersistenceTest.cs†L199-L231】
 
 ## 4. ドッキング状態
 - 複数列車が同一駅に重なった状態でセーブし、ロード後に正しい編成だけが駅へ再ドッキングされるかをチェック。
 - 駅ブロックをロード前に破壊したケースでは、該当車両の `dockingblock` が null にリセットされ、残りの車両のドッキングが影響を受けないことを確認。
 - 自動運転 OFF の列車がドッキングしていた場合、ロード後も OFF のまま留まっていること。
+- ✅ 自動テスト: `TrainStationDockingPersistenceTest` が複列車のドッキング復元と破損 JSON 時の安全な Undock をカバー。【F:moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainStationDockingPersistenceTest.cs†L90-L135】【F:moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainStationDockingPersistenceTest.cs†L180-L215】
 
 ## 5. パフォーマンス・連続保存 これはかなり後でやる
 - 大規模な編成 (例: 10 両以上) を複数配置した状態で連続セーブ/ロードを実施し、フレーム落ちや保存時間が極端に悪化しないことを計測。
 - セーブ直前と直後に `TrainUpdateService` の登録列車数が一致していることをログで確認。
+- ⚠️ 自動テスト: 現状は `TrainStationDockingPersistenceTest` の複列車ケースで基本的な一致のみ確認。パフォーマンス計測は未着手。
 
 テスト自動化が難しい項目は、Unity エディタ上でのスモークテスト用シナリオを用意して手動確認を行います。
