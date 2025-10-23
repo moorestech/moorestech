@@ -14,7 +14,7 @@ namespace Game.Train.Train
         public string SaveKey { get; } = typeof(TrainUnit).FullName;
         
         private RailPosition _railPosition;
-        private readonly Guid _trainId;
+        private Guid _trainId;
         public Guid TrainId => _trainId;
 
         private int _remainingDistance;// 自動減速用
@@ -730,7 +730,7 @@ namespace Game.Train.Train
             return newNodes;
         }
 
-        private void OnDestroy()
+        public void OnDestroy()
         {
             trainDiagram.OnDestroy();
             _railPosition.OnDestroy();
@@ -743,6 +743,7 @@ namespace Game.Train.Train
             _railPosition = null;
             trainUnitStationDocking = null;
             _cars = null;
+            _trainId = Guid.Empty;
         }
     }
 

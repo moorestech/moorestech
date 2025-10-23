@@ -154,11 +154,11 @@ namespace Tests.Util
 
             foreach (var train in _spawnedTrains)
             {
+                if (train.TrainId == Guid.Empty) continue;
                 if (train.trainUnitStationDocking.IsDocked)
                 {
                     train.trainUnitStationDocking.UndockFromStation();
                 }
-
                 TrainDiagramManager.Instance.UnregisterDiagram(train.trainDiagram);
                 TrainUpdateService.Instance.UnregisterTrain(train);
             }
