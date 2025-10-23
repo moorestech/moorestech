@@ -43,11 +43,13 @@ namespace Tests.Util
             _n3Component = n3Component;
         }
 
+        public TrainTestEnvironment Environment => _environment;
         public int StationSegmentLength => _station.SegmentLength;
         public RailNode StationExitFront => _station.ExitFront;
         public RailNode StationEntryFront => _station.EntryFront;
         public RailNode StationExitBack => _station.ExitBack;
         public RailNode StationEntryBack => _station.EntryBack;
+        public Vector3Int StationBlockPosition => _station.EntryComponent.ComponentID.Position;
 
         public static TrainStationDockingScenario Create()
         {
