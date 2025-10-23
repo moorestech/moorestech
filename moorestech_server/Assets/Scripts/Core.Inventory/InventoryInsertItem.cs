@@ -7,7 +7,7 @@ namespace Core.Inventory
     /// <summary>
     ///     インベントリに挿入するアイテムの処理だけを行います
     /// </summary>
-    internal static class InventoryInsertItem
+    public static class InventoryInsertItem
     {
         /// <summary>
         ///     引数のインベントリ用アイテム配列に対して複数のアイテム挿入処理を行う
