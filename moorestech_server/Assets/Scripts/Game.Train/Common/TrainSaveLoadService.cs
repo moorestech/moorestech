@@ -45,4 +45,3 @@ namespace Game.Train.Common
         }
     }
 }
-

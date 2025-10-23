@@ -26,20 +26,20 @@ namespace Game.Train.RailGraph
         private List<RailNode> railNodes;
         private MinHeap<int> nextidQueue;//railNodeには1つの固有のintのidを割り当てている。これはダイクストラ高速化のため。そのidをなるべく若い順に使いたい
         private List<List<(int, int)>> connectNodes;
-        private Dictionary<int, ConnectionDestination> railIdToComponentId;//RailNodeに対応するRailComponentIDを記憶する。セーブ・ロード用のみ。接続情報をセーブするとき(座標,表裏)→(座標,表裏)という形式にしたいため。
+        private Dictionary<int, ConnectionDestination> railIdToConnectionDestination;//RailNodeに対応するConnectionDestinationを記憶する。セーブ・ロード用のみ。接続情報をセーブするとき(座標,表裏)→(座標,表裏)という形式にしたいため。
+        private Dictionary<ConnectionDestination, int> ConnectionDestinationToRailId;//逆引き
         // 座標はセーブ時と列車座標を求めるときにRailPositionのRailNode情報から3D座標を復元するために使う。
         // なくてもレール接続を組むことは可能だがセーブできないし表示できない
 
 
-        // コンストラクタは private にして外部から new を禁止
-        // →やっぱDIが使用できるよう、コンストラクタをpublicに変更
         public RailGraphDatastore()
         {
             railIdDic = new Dictionary<RailNode, int>();
             railNodes = new List<RailNode>();
             nextidQueue = new MinHeap<int>();
             connectNodes = new List<List<(int, int)>>();
-            railIdToComponentId = new Dictionary<int, ConnectionDestination>();
+            railIdToConnectionDestination = new Dictionary<int, ConnectionDestination>();
+            ConnectionDestinationToRailId = new Dictionary<ConnectionDestination, int>();
         }
         public static void ResetInstance()
         {
@@ -173,7 +173,9 @@ namespace Game.Train.RailGraph
             TrainDiagramManager.Instance.NotifyNodeRemoval(node);
             var nodeid = railIdDic[node];
             railIdDic.Remove(node);
-            railIdToComponentId.Remove(nodeid);
+            var cdid = railIdToConnectionDestination[nodeid];
+            railIdToConnectionDestination.Remove(nodeid);
+            ConnectionDestinationToRailId.Remove(cdid);
             railNodes[nodeid] = null;
             nextidQueue.Insert(nodeid);
             connectNodes[nodeid].Clear();
@@ -194,7 +196,9 @@ namespace Game.Train.RailGraph
         {
             if (!railIdDic.ContainsKey(node))
                 return;
-            railIdToComponentId[railIdDic[node]] = dest;
+            var nodeid = railIdDic[node];
+            railIdToConnectionDestination[nodeid] = dest;
+            ConnectionDestinationToRailId[dest] = nodeid;
         }
         private ConnectionDestination GetRailComponentIDInternal(RailNode node)
         {
@@ -214,7 +218,7 @@ namespace Game.Train.RailGraph
                 return false;
             }
 
-            return railIdToComponentId.TryGetValue(nodeId, out destination);
+            return railIdToConnectionDestination.TryGetValue(nodeId, out destination);
         }
 
         private RailNode ResolveRailNodeInternal(ConnectionDestination destination)
@@ -223,26 +227,9 @@ namespace Game.Train.RailGraph
             {
                 return null;
             }
-
-            foreach (var pair in railIdToComponentId)
-            {
-                if (!IsSameDestination(pair.Value, destination))
-                {
-                    continue;
-                }
-
-                var nodeId = pair.Key;
-                if (nodeId < 0 || nodeId >= railNodes.Count)
-                {
-                    continue;
-                }
-
-                return railNodes[nodeId];
-            }
-
-            return null;
+            return railNodes[ConnectionDestinationToRailId[destination]];
         }
-
+        /*
         private static bool IsSameDestination(ConnectionDestination left, ConnectionDestination right)
         {
             if (left == null || right == null)
@@ -264,7 +251,7 @@ namespace Game.Train.RailGraph
                    && leftPos.y == rightPos.y
                    && leftPos.z == rightPos.z;
         }
-
+        */
 
 
         private List<(RailNode, int)> GetConnectedNodesWithDistanceInternal(RailNode node)

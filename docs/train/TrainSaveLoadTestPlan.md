@@ -19,6 +19,8 @@
 - ロード後に `_currentIndex` と `DiagramEntry.entryId` が維持され、WaitForTicks の残り tick 数が継続されることをアサート。
 - エントリに紐づく RailNode がセーブロードで欠損した場合、そのエントリが自動削除され、他のエントリが破壊されないことを確認。
 - ✅ 自動テスト: `TrainStationDockingPersistenceTest.MultipleTrainsPreserveStateAcrossSaveLoad` がダイアグラム進行と WaitForTicks 残量の整合性を保証。【F:moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainStationDockingPersistenceTest.cs†L136-L216】
+- ✅ 自動テスト: `TrainDiagramSaveLoadTest.DiagramEntriesAreRestoredFromSaveData` がブロック接続から再構築したダイアグラムのエントリ数・現在インデックス・待機情報の完全復元を検証。【F:moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainDiagramSaveLoadTest.cs†L23-L72】【F:moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainDiagramSaveLoadTest.cs†L108-L205】
+- ✅ 自動テスト: `TrainDiagramSaveLoadTest.DiagramEntriesWithMissingRailsAreSkippedDuringLoad` がセーブデータ改変で欠損したノードを安全にスキップし、残りのエントリが維持されることを検証。【F:moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainDiagramSaveLoadTest.cs†L74-L107】【F:moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainDiagramSaveLoadTest.cs†L205-L269】
 
 ## 3. 車両・インベントリ
 - 貨車のインベントリおよび燃料スロットに複数種類のアイテムを格納した状態でセーブ。
