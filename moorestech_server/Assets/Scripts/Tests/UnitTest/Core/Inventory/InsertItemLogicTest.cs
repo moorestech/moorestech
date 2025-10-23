@@ -228,12 +228,12 @@ namespace Tests.UnitTest.Core.Inventory
             // Insert enough items to validate the overflow spreading behavior
             var remain = toInventory.InsertItemWithPrioritySlot(itemStackFactory.Create(new ItemId(1), 20), new[] { 7, 2 });
 
-            // 優先スロットが満杯になり近傍スロットへ展開したことを確認
-            // Verify the priority slot is full and the nearest slot received overflow
+            // 優先スロットが満杯になり別の優先スロットへ展開したことを確認
+            // Ensure the primary priority slot is full and overflow moved to the next priority slot
             Assert.AreEqual(100, toInventory.GetItem(7).Count);
             Assert.AreEqual(new ItemId(1), toInventory.GetItem(7).Id);
-            Assert.AreEqual(10, toInventory.GetItem(6).Count);
-            Assert.AreEqual(new ItemId(1), toInventory.GetItem(6).Id);
+            Assert.AreEqual(10, toInventory.GetItem(2).Count);
+            Assert.AreEqual(new ItemId(1), toInventory.GetItem(2).Id);
             Assert.IsTrue(remain.Equals(itemStackFactory.CreatEmpty()));
         }
     }
