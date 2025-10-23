@@ -100,7 +100,7 @@ namespace Tests.UnitTest.Game.SaveLoad
                         {
                             if (cars[0] is JsonObject firstCar)
                             {
-                                firstCar.Remove("DockingBlockPosition");
+                                TrainCarJson.RemoveDockingBlockPosition(firstCar);
                             }
                         }
                     }

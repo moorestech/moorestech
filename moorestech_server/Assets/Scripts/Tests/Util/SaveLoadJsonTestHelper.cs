@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json.Nodes;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
+using Game.Train.Common;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 
@@ -82,6 +85,8 @@ namespace Tests.Util
         {
             var originalJson = AssembleSaveJson(saveProvider);
             var corruptedJson = CorruptJson(originalJson, corruptor);
+            //ResetTrainRuntimeState();
+
             LoadFromJson(loadProvider, corruptedJson);
             return new SaveLoadCycleResult(originalJson, corruptedJson, null);
         }
