@@ -12,6 +12,7 @@ using Mooresmaster.Model.GameActionModule;
 using TMPro;
 using UniRx;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace Client.Game.InGame.UI.Inventory.Block.Research
@@ -25,14 +26,15 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
         
         public RectTransform RectTransform => rectTransform;
         
+        [SerializeField] private Vector2 baseIconSize = new(30, 30);
+        
         [SerializeField] private RectTransform rectTransform;
         [SerializeField] private RectTransform connectLinePrefab;
         [SerializeField] private GameObject completeOverlay;
 
         [SerializeField] private TMP_Text title;
         [SerializeField] private TMP_Text description;
-       
-        [SerializeField] private Vector2 iconSize = new(30, 30);
+        
         [SerializeField] private RectTransform consumeItemIcons;
         [SerializeField] private RectTransform unlockItemIcons;
         
@@ -113,7 +115,7 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
                         
                         var icon = Instantiate(ItemSlotView.Prefab, unlockItemIcons);
                         icon.SetItem(itemView, 0);
-                        icon.SetSizeDelta(iconSize);
+                        icon.SetSizeDelta(baseIconSize);
                     }
                 }
 
@@ -129,7 +131,7 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
 
                         var icon = Instantiate(ItemSlotView.Prefab, unlockItemIcons);
                         icon.SetItem(itemView, reward.ItemCount);
-                        icon.SetSizeDelta(iconSize);
+                        icon.SetSizeDelta(baseIconSize);
                     }
                 }
             }
@@ -143,7 +145,6 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
                     
                     var icon = Instantiate(ItemSlotView.Prefab, consumeItemIcons);
                     icon.SetItem(itemView, consumeItem.ItemCount);
-                    icon.SetSizeDelta(iconSize);
                 }
             }
             
