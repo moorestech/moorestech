@@ -1,8 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
-using System.Text.Json.Nodes;
 using Core.Master;
 using Game.Context;
 using Game.Train.Common;
@@ -76,16 +73,6 @@ namespace Tests.UnitTest.Game.SaveLoad
         }
 
 
-        private static class TrainCarJson
-        {
-            private const string DockingBlockPositionPropertyName = "DockingBlockPosition";
-
-            public static void RemoveDockingBlockPosition(JsonObject carNode)
-            {
-                carNode.Remove(DockingBlockPositionPropertyName);
-            }
-        }
-
         [Test]
         public void LoadingCorruptedDockingDataUndocksTrainSafely()
         {
@@ -97,28 +84,9 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             var loadEnv = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
 
-            SaveLoadJsonTestHelper.SaveCorruptAndLoad(
-                scenario.Environment.ServiceProvider,
-                loadEnv.ServiceProvider,
-                json =>
-                {
-                    var root = JsonNode.Parse(json) ?? throw new InvalidOperationException("セーブJSONの解析に失敗しました。");
-                    var trainUnits = root["trainUnits"] as JsonArray;
-                    Assert.IsNotNull(trainUnits, "trainUnits 配列が存在しません。");
-
-                    if (trainUnits!.Count > 0 && trainUnits[0] is JsonObject firstTrain)
-                    {
-                        if (firstTrain.TryGetPropertyValue("Cars", out var carsNode) && carsNode is JsonArray cars && cars.Count > 0)
-                        {
-                            if (cars[0] is JsonObject firstCar)
-                            {
-                                TrainCarJson.RemoveDockingBlockPosition(firstCar);
-                            }
-                        }
-                    }
-
-                    return root.ToJsonString(new JsonSerializerOptions { WriteIndented = false });
-                });
+            var mutation = SaveLoadJsonTestHelper.CreateMutation(scenario.Environment.ServiceProvider);
+            mutation.RemoveDockingBlockPosition(0, 0);
+            mutation.Load(loadEnv.ServiceProvider);
 
             var loadedTrains = TrainUpdateService.Instance.GetRegisteredTrains().ToList();
             Assert.AreEqual(1, loadedTrains.Count, "破損JSONロード後の登録列車数が一致しません。");

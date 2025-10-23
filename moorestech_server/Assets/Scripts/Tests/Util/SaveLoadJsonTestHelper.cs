@@ -1,6 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
@@ -12,6 +11,8 @@ namespace Tests.Util
 {
     public static class SaveLoadJsonTestHelper
     {
+        private static readonly JsonSerializerOptions CompactJsonOptions = new() { WriteIndented = false };
+
         public static string AssembleSaveJson(ServiceProvider serviceProvider)
         {
             Assert.IsNotNull(serviceProvider, "ServiceProvider が null です。");
@@ -27,19 +28,6 @@ namespace Tests.Util
             ((WorldLoaderFromJson)loader).Load(json);
         }
 
-        public static string CorruptJson(string json, Func<string, string> corruptor)
-        {
-            Assert.IsNotNull(corruptor, "JSON 破壊関数が null です。");
-            return corruptor(json);
-        }
-
-        public static string CorruptJson(string json, Random random, Func<Random, string, string> corruptor)
-        {
-            Assert.IsNotNull(random, "Random が null です。");
-            Assert.IsNotNull(corruptor, "JSON 破壊関数が null です。");
-            return corruptor(random, json);
-        }
-
         public static void RemoveTrainUnitAt(JsonNode root, int index)
         {
             Assert.IsNotNull(root, "JSON ルートが null です。");
@@ -51,42 +39,37 @@ namespace Tests.Util
             trainUnits.RemoveAt(index);
         }
 
-        public static void RemoveTrainUnit(JsonNode root, Func<JsonObject, bool> predicate)
-        {
-            Assert.IsNotNull(root, "JSON ルートが null です。");
-            Assert.IsNotNull(predicate, "削除条件の述語が null です。");
-
-            var removed = TryRemoveTrainUnit(root, predicate);
-
-            Assert.IsTrue(removed, "指定条件に一致する TrainUnit が見つかりませんでした。");
-        }
-
         public static void RemoveTrainUnitDockedAt(JsonNode root, int x, int y, int z)
         {
             Assert.IsNotNull(root, "JSON ルートが null です。");
 
-            var removed = TryRemoveTrainUnit(root, train => TrainUnitHasDockingAt(train, x, y, z));
+            var trainUnits = GetRequiredArray(root, "trainUnits");
 
-            Assert.IsTrue(removed,
-                $"DockingBlockPosition が (x:{x}, y:{y}, z:{z}) の TrainUnit が見つかりませんでした。");
+            for (var i = 0; i < trainUnits.Count; i++)
+            {
+                if (trainUnits[i] is JsonObject trainObject && TrainUnitHasDockingAt(trainObject, x, y, z))
+                {
+                    trainUnits.RemoveAt(i);
+                    return;
+                }
+            }
+
+            Assert.Fail($"DockingBlockPosition が (x:{x}, y:{y}, z:{z}) の TrainUnit が見つかりませんでした。");
         }
 
-        public static SaveLoadCycleResult SaveCorruptAndLoad(
-            ServiceProvider serviceProvider,
-            Func<string, string> corruptor)
+        public static SaveJsonMutation CreateMutation(ServiceProvider serviceProvider)
         {
-            return SaveCorruptAndLoad(serviceProvider, serviceProvider, corruptor);
-        }
+            Assert.IsNotNull(serviceProvider, "ServiceProvider が null です。");
 
-        public static SaveLoadCycleResult SaveCorruptAndLoad(
-            ServiceProvider saveProvider,
-            ServiceProvider loadProvider,
-            Func<string, string> corruptor)
-        {
-            var originalJson = AssembleSaveJson(saveProvider);
-            var corruptedJson = CorruptJson(originalJson, corruptor);
-            LoadFromJson(loadProvider, corruptedJson);
-            return new SaveLoadCycleResult(originalJson, corruptedJson, null);
+            var originalJson = AssembleSaveJson(serviceProvider);
+            var root = JsonNode.Parse(originalJson);
+
+            if (root is null)
+            {
+                throw new InvalidOperationException("セーブJSONの解析に失敗しました。");
+            }
+
+            return new SaveJsonMutation(originalJson, root);
         }
 
         private static JsonArray GetRequiredArray(JsonNode root, string propertyName)
@@ -116,22 +99,6 @@ namespace Tests.Util
 
             Assert.Fail(failureMessage);
             return default!;
-        }
-
-        private static bool TryRemoveTrainUnit(JsonNode root, Func<JsonObject, bool> predicate)
-        {
-            var trainUnits = GetRequiredArray(root, "trainUnits");
-
-            for (var i = 0; i < trainUnits.Count; i++)
-            {
-                if (trainUnits[i] is JsonObject trainObject && predicate(trainObject))
-                {
-                    trainUnits.RemoveAt(i);
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         private static bool TrainUnitHasDockingAt(JsonObject trainObject, int x, int y, int z)
@@ -194,6 +161,57 @@ namespace Tests.Util
             public string OriginalJson { get; }
             public string CorruptedJson { get; }
             public JsonNode? CorruptedRoot { get; }
+        }
+
+        public sealed class SaveJsonMutation
+        {
+            internal SaveJsonMutation(string originalJson, JsonNode root)
+            {
+                OriginalJson = originalJson;
+                Root = root;
+            }
+
+            public string OriginalJson { get; }
+
+            public JsonNode Root { get; }
+
+            public void RemoveTrainUnitAt(int index)
+            {
+                SaveLoadJsonTestHelper.RemoveTrainUnitAt(Root, index);
+            }
+
+            public void RemoveTrainUnitDockedAt(int x, int y, int z)
+            {
+                SaveLoadJsonTestHelper.RemoveTrainUnitDockedAt(Root, x, y, z);
+            }
+
+            public void RemoveDockingBlockPosition(int trainIndex, int carIndex)
+            {
+                var trainUnits = GetRequiredArray(Root, "trainUnits");
+
+                Assert.IsTrue(trainIndex >= 0 && trainIndex < trainUnits.Count,
+                    $"trainUnits 配列のインデックス {trainIndex} が範囲外です (Count: {trainUnits.Count})。");
+
+                var trainObject = GetRequiredObject(trainUnits[trainIndex],
+                    $"trainUnits[{trainIndex}] が JSON オブジェクトではありません。");
+
+                var cars = GetRequiredArray(trainObject, "Cars");
+
+                Assert.IsTrue(carIndex >= 0 && carIndex < cars.Count,
+                    $"Cars 配列のインデックス {carIndex} が範囲外です (Count: {cars.Count})。");
+
+                var carObject = GetRequiredObject(cars[carIndex],
+                    $"Cars[{carIndex}] が JSON オブジェクトではありません。");
+
+                carObject.Remove("DockingBlockPosition");
+            }
+
+            public SaveLoadCycleResult Load(ServiceProvider serviceProvider)
+            {
+                var corruptedJson = Root.ToJsonString(CompactJsonOptions);
+                LoadFromJson(serviceProvider, corruptedJson);
+                return new SaveLoadCycleResult(OriginalJson, corruptedJson, Root);
+            }
         }
 
     }
