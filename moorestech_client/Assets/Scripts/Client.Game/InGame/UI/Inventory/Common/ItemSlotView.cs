@@ -41,7 +41,23 @@ namespace Client.Game.InGame.UI.Inventory.Common
                 commonSlotView.SetView(itemView.ItemImage, countText, toolTipText);
             }
         }
-        
+
+        // クラフト数の表示のみを更新
+        // Update only craftable count text
+        public void SetCount(int count)
+        {
+            Count = count;
+            
+            if (ItemViewData == null || ItemViewData.ItemId == ItemMaster.EmptyItemId)
+            {
+                commonSlotView.SetViewClear();
+                return;
+            }
+
+            var countText = count > 0 ? count.ToString() : string.Empty;
+            commonSlotView.SetView(ItemViewData.ItemImage, countText);
+        }
+
         public void SetSlotViewOption(CommonSlotViewOption slotOption)
         {
             commonSlotView.SetSlotViewOption(slotOption);
