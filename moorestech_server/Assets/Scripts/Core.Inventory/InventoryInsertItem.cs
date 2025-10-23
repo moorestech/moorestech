@@ -260,50 +260,17 @@ namespace Core.Inventory
 
             IItemStack ProcessPrioritySlot(int slotIndex, IItemStack targetItemStack, List<IItemStack> allSlots, IItemStackFactory factory, Action<int> slotUpdate)
             {
-                // 指定スロットで挿入し、溢れた場合は近傍に展開する
-                // Insert into the specified slot and spread overflow nearby
-                var currentItemStack = targetItemStack;
-                if (slotIndex < 0 || slotIndex >= allSlots.Count) return currentItemStack;
+                // 指定スロットで挿入のみを行う（近傍展開はしない）
+                // Insert into the specified slot only (no proximity spreading)
+                if (slotIndex < 0 || slotIndex >= allSlots.Count) return targetItemStack;
 
-                if (allSlots[slotIndex].IsAllowedToAddWithRemain(currentItemStack))
+                if (allSlots[slotIndex].IsAllowedToAddWithRemain(targetItemStack))
                 {
-                    var remain = InsertionItemBySlot(slotIndex, currentItemStack, allSlots, factory, slotUpdate);
-                    if (remain.Count == 0) return remain;
-                    currentItemStack = remain;
+                    var remain = InsertionItemBySlot(slotIndex, targetItemStack, allSlots, factory, slotUpdate);
+                    return remain;
                 }
 
-                return InsertByProximity(slotIndex, currentItemStack, allSlots, factory, slotUpdate);
-            }
-
-            IItemStack InsertByProximity(int originSlot, IItemStack targetItemStack, List<IItemStack> allSlots, IItemStackFactory factory, Action<int> slotUpdate)
-            {
-                // 溢れたスタックを近い順に処理する
-                // Handle overflow stacks based on proximity order
-                var currentItemStack = targetItemStack;
-                if (currentItemStack.Count == 0) return currentItemStack;
-                foreach (var slot in EnumerateProximity(originSlot, allSlots.Count))
-                {
-                    if (!allSlots[slot].IsAllowedToAddWithRemain(currentItemStack)) continue;
-                    var remain = InsertionItemBySlot(slot, currentItemStack, allSlots, factory, slotUpdate);
-                    if (remain.Count == 0) return remain;
-                    currentItemStack = remain;
-                }
-
-                return currentItemStack;
-            }
-
-            IEnumerable<int> EnumerateProximity(int originSlot, int inventorySize)
-            {
-                // 優先スロットからの距離順でスロットを返す
-                // Return slots ordered by distance from the priority slot
-                for (var offset = 1; offset < inventorySize; offset++)
-                {
-                    var left = originSlot - offset;
-                    if (left >= 0) yield return left;
-
-                    var right = originSlot + offset;
-                    if (right < inventorySize) yield return right;
-                }
+                return targetItemStack;
             }
 
             #endregion
