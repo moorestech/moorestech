@@ -85,8 +85,6 @@ namespace Tests.Util
         {
             var originalJson = AssembleSaveJson(saveProvider);
             var corruptedJson = CorruptJson(originalJson, corruptor);
-            //ResetTrainRuntimeState();
-
             LoadFromJson(loadProvider, corruptedJson);
             return new SaveLoadCycleResult(originalJson, corruptedJson, null);
         }
