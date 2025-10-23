@@ -189,10 +189,19 @@ namespace Core.Inventory
                 var currentItemStack = targetItemStack;
                 for (var i = 0; i < inventory.Count; i++)
                 {
+                    // 挿入できるスロットを探索
+                    // Find slots that can accept the item
                     if (!inventory[i].IsAllowedToAddWithRemain(currentItemStack)) continue;
-
+                    
+                    // 挿入実行
+                    // Execute insertion
                     var remain = InsertionItemBySlot(i, currentItemStack, inventory, factory, slotUpdate);
+                    
+                    // 挿入結果が空のアイテムならそのまま処理を終了
+                    // If the insertion result is an empty item, end the process
                     if (remain.Equals(factory.CreatEmpty())) return remain;
+                    // そうでないならあまりのアイテムを入れるまで探索
+                    // Otherwise, continue searching with the remaining item
                     currentItemStack = remain;
                 }
 
