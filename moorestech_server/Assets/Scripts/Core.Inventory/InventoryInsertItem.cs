@@ -25,7 +25,7 @@ namespace Core.Inventory
             foreach (var item in insertItemStack)
             {
                 var remindItemStack = InsertItem(item, inventoryItems, itemStackFactory, option, onSlotUpdate);
-                if (remindItemStack.Equals(itemStackFactory.CreatEmpty())) continue;
+                if (remindItemStack.Count == 0) continue;
 
                 reminderItemStacks.Add(remindItemStack);
             }
@@ -67,7 +67,7 @@ namespace Core.Inventory
             {
                 foreach (var slot in inventory)
                 {
-                    if (slot.Equals(factory.CreatEmpty())) continue;
+                    if (slot.Count == 0) continue;
                     if (slot.Id == itemStack.Id) return true;
                 }
                 return false;
@@ -79,14 +79,14 @@ namespace Core.Inventory
                 for (var i = 0; i < inventory.Count; i++)
                 {
                     // 空スロットはスキップ（新しいスタックの作成を禁止）
-                    if (inventory[i].Equals(factory.CreatEmpty())) continue;
+                    if (inventory[i].Count == 0) continue;
                     // 同じアイテムIDのスロットにのみ挿入を試みる
                     if (inventory[i].Id != currentItemStack.Id) continue;
                     if (!inventory[i].IsAllowedToAddWithRemain(currentItemStack)) continue;
 
                     var remain = InsertionItemBySlot(i, currentItemStack, inventory, factory, slotUpdate);
 
-                    if (remain.Equals(factory.CreatEmpty())) return remain;
+                    if (remain.Count == 0) return remain;
                     currentItemStack = remain;
                 }
 
@@ -98,14 +98,14 @@ namespace Core.Inventory
                 // 既存スタックを起点に挿入順序を決定する
                 // Determine insertion order by existing stacks first
                 var currentItemStack = itemStack;
-                var sameItemSlots = CollectSameItemSlots(inventory, currentItemStack, factory);
+                var sameItemSlots = CollectSameItemSlots(inventory, currentItemStack);
 
                 // 優先スタックに対して挿入処理を行う
                 // Insert into the prioritized stacks
                 if (sameItemSlots.Count > 0)
                 {
                     currentItemStack = InsertPrioritizedStacks(currentItemStack, inventory, factory, slotUpdate, sameItemSlots);
-                    if (currentItemStack.Equals(factory.CreatEmpty())) return currentItemStack;
+                    if (currentItemStack.Count == 0) return currentItemStack;
                 }
 
                 // 既存スタックで処理しきれなかった分を通常順序で処理する
@@ -113,14 +113,14 @@ namespace Core.Inventory
                 return InsertSequentially(currentItemStack, inventory, factory, slotUpdate);
             }
 
-            List<int> CollectSameItemSlots(List<IItemStack> inventory, IItemStack targetItemStack, IItemStackFactory factory)
+            List<int> CollectSameItemSlots(List<IItemStack> inventory, IItemStack targetItemStack)
             {
                 // 同じアイテムIDを持つスロットを収集する
                 // Collect slots that have the same item ID
                 var slots = new List<int>();
                 for (var i = 0; i < inventory.Count; i++)
                 {
-                    if (inventory[i].Equals(factory.CreatEmpty())) continue;
+                    if (inventory[i].Count == 0) continue;
                     if (inventory[i].Id != targetItemStack.Id) continue;
                     slots.Add(i);
                 }
@@ -130,44 +130,42 @@ namespace Core.Inventory
 
             IItemStack InsertPrioritizedStacks(IItemStack targetItemStack, List<IItemStack> inventory, IItemStackFactory factory, Action<int> slotUpdate, List<int> sameItemSlots)
             {
-                // 既存スタックに順番に挿入し、溢れた場合は近傍スロットに展開する
-                // Insert into existing stacks and expand to nearby slots when overflowed
                 var currentItemStack = targetItemStack;
+                
+                // 既存スタックに順番に挿入する
+                // Insert items sequentially into existing stacks
                 foreach (var slot in sameItemSlots)
                 {
-                    if (currentItemStack.Equals(factory.CreatEmpty())) return currentItemStack;
-
-                    if (inventory[slot].IsAllowedToAddWithRemain(currentItemStack))
-                    {
-                        var remain = InsertionItemBySlot(slot, currentItemStack, inventory, factory, slotUpdate);
-                        if (remain.Equals(factory.CreatEmpty())) return remain;
-                        currentItemStack = remain;
-                    }
-
-                    currentItemStack = InsertByProximity(slot, currentItemStack, inventory, factory, slotUpdate);
-                    if (currentItemStack.Equals(factory.CreatEmpty())) return currentItemStack;
+                    if (currentItemStack.Count == 0) return currentItemStack;
+                    
+                    // スロットにアイテムを挿入し、入りきらなかった余りを取得
+                    // Insert items into the slot and get the remainder that didn't fit
+                    var remain = InsertionItemBySlot(slot, currentItemStack, inventory, factory, slotUpdate);
+                    
+                    // 余りがない（すべて挿入できた）場合は処理を終了
+                    // If there's no remainder (all items were inserted), end the process
+                    if (remain.Count == 0) return remain;
+                    
+                    currentItemStack = remain;
                 }
-
-                return currentItemStack;
-            }
-
-            IItemStack InsertByProximity(int originSlot, IItemStack targetItemStack, List<IItemStack> inventory, IItemStackFactory factory, Action<int> slotUpdate)
-            {
-                // 溢れたスタックを近傍スロットに配置する
-                // Place overflow items into slots closest to the origin
-                var currentItemStack = targetItemStack;
-                if (currentItemStack.Equals(factory.CreatEmpty())) return currentItemStack;
+                
+                
+                // このスロットで入りきらなかった分を、このスロットの近傍スロットに展開して挿入を試みる
+                // Try to insert the remainder into nearby slots around this slot
+                var originSlot = sameItemSlots[^1];
                 foreach (var slot in EnumerateProximity(originSlot, inventory.Count))
                 {
                     if (!inventory[slot].IsAllowedToAddWithRemain(currentItemStack)) continue;
+                    
                     var remain = InsertionItemBySlot(slot, currentItemStack, inventory, factory, slotUpdate);
-                    if (remain.Equals(factory.CreatEmpty())) return remain;
+                    if (remain.Count == 0) return remain;
+                    
                     currentItemStack = remain;
                 }
-
+                
                 return currentItemStack;
             }
-
+            
             IEnumerable<int> EnumerateProximity(int originSlot, int inventorySize)
             {
                 // 起点から距離順にスロットを列挙する
@@ -196,10 +194,11 @@ namespace Core.Inventory
                     // 挿入実行
                     // Execute insertion
                     var remain = InsertionItemBySlot(i, currentItemStack, inventory, factory, slotUpdate);
-                    
+
                     // 挿入結果が空のアイテムならそのまま処理を終了
                     // If the insertion result is an empty item, end the process
-                    if (remain.Equals(factory.CreatEmpty())) return remain;
+                    if (remain.Count == 0) return remain;
+                    
                     // そうでないならあまりのアイテムを入れるまで探索
                     // Otherwise, continue searching with the remaining item
                     currentItemStack = remain;
@@ -225,7 +224,7 @@ namespace Core.Inventory
             foreach (var slot in prioritizedSameSlots)
             {
                 currentItemStack = ProcessPrioritySlot(slot, currentItemStack, inventory, itemStackFactory, invokeEvent);
-                if (currentItemStack.Equals(itemStackFactory.CreatEmpty())) return currentItemStack;
+                if (currentItemStack.Count == 0) return currentItemStack;
             }
 
             // 残った優先スロットで挿入を試す
@@ -234,7 +233,7 @@ namespace Core.Inventory
             {
                 if (prioritizedSameSlots.Contains(slot)) continue;
                 currentItemStack = ProcessPrioritySlot(slot, currentItemStack, inventory, itemStackFactory, invokeEvent);
-                if (currentItemStack.Equals(itemStackFactory.CreatEmpty())) return currentItemStack;
+                if (currentItemStack.Count == 0) return currentItemStack;
             }
 
             // 優先枠で余った分は通常処理に回す
@@ -251,7 +250,7 @@ namespace Core.Inventory
                 foreach (var slot in prioritySlotIndices)
                 {
                     if (slot < 0 || slot >= allSlots.Count) continue;
-                    if (allSlots[slot].Equals(factory.CreatEmpty())) continue;
+                    if (allSlots[slot].Count == 0) continue;
                     if (allSlots[slot].Id != targetItemStack.Id) continue;
                     slots.Add(slot);
                 }
@@ -269,7 +268,7 @@ namespace Core.Inventory
                 if (allSlots[slotIndex].IsAllowedToAddWithRemain(currentItemStack))
                 {
                     var remain = InsertionItemBySlot(slotIndex, currentItemStack, allSlots, factory, slotUpdate);
-                    if (remain.Equals(factory.CreatEmpty())) return remain;
+                    if (remain.Count == 0) return remain;
                     currentItemStack = remain;
                 }
 
@@ -281,12 +280,12 @@ namespace Core.Inventory
                 // 溢れたスタックを近い順に処理する
                 // Handle overflow stacks based on proximity order
                 var currentItemStack = targetItemStack;
-                if (currentItemStack.Equals(factory.CreatEmpty())) return currentItemStack;
+                if (currentItemStack.Count == 0) return currentItemStack;
                 foreach (var slot in EnumerateProximity(originSlot, allSlots.Count))
                 {
                     if (!allSlots[slot].IsAllowedToAddWithRemain(currentItemStack)) continue;
                     var remain = InsertionItemBySlot(slot, currentItemStack, allSlots, factory, slotUpdate);
-                    if (remain.Equals(factory.CreatEmpty())) return remain;
+                    if (remain.Count == 0) return remain;
                     currentItemStack = remain;
                 }
 
@@ -316,7 +315,7 @@ namespace Core.Inventory
         /// <returns>余ったアイテム 余ったアイテムがなければ空のアイテムを返す</returns>
         private static IItemStack InsertionItemBySlot(int slot, IItemStack itemStack, List<IItemStack> inventoryItems, IItemStackFactory itemStackFactory, Action<int> onSlotUpdate = null)
         {
-            if (itemStack.Equals(itemStackFactory.CreatEmpty())) return itemStack;
+            if (itemStack.Count == 0) return itemStack;
             if (!inventoryItems[slot].IsAllowedToAddWithRemain(itemStack)) return itemStack;
             
             var result = inventoryItems[slot].AddItem(itemStack);

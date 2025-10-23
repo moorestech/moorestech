@@ -19,7 +19,7 @@ namespace Core.Item.Interface
         
         /// <summary>
         ///     アイテムを追加できるときtrueを返す
-        ///     あまりがある時はfalceを返す
+        ///     あまりがある時はfalseを返す
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
