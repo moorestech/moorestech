@@ -95,12 +95,13 @@ namespace Tests.Util
                 Assert.Fail($"セーブデータに '{propertyName}' 配列が存在しません。");
             }
 
-            if (node is not JsonArray array)
+            if (node is JsonArray array)
             {
-                Assert.Fail($"'{propertyName}' は配列ではありません。");
+                return array;
             }
 
-            return array;
+            Assert.Fail($"'{propertyName}' は配列ではありません。");
+            return default!;
         }
 
         private static JsonObject GetRequiredObject(JsonNode node, string failureMessage)

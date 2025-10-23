@@ -31,7 +31,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             secondTrain.trainUnitStationDocking.TryDockWhenStopped();
             Assert.IsFalse(secondCar.IsDocked, "駅占有中にもかかわらず後続列車がドッキングしています。");
 
-            firstTrain.trainUnitStationDocking.OnDestroy();
+            firstTrain.OnDestroy();
 
             secondTrain.trainUnitStationDocking.TryDockWhenStopped();
             Assert.IsTrue(secondCar.IsDocked, "破棄後も後続列車が駅にドッキングできていません。");
