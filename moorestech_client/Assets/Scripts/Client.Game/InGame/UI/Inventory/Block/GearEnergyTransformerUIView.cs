@@ -1,11 +1,8 @@
 using System.Collections.Generic;
-using System.Linq;
 using Client.Game.InGame.Block;
-using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.UI.Inventory.Common;
 using Core.Item.Interface;
 using Game.Gear.Common;
-using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using TMPro;
 using UnityEngine;
@@ -45,7 +42,20 @@ namespace Client.Game.InGame.UI.Inventory.Block
             var rate = state.GearNetworkOperatingRate;
             var requiredPower = state.GearNetworkTotalRequiredPower;
             var generatePower = state.GearNetworkTotalGeneratePower;
-            networkInfo.text = $"歯車ネットワーク情報 稼働率: {rate * 100:F2}% 必要力: {requiredPower:F2} 生成力: {generatePower:F2}";
+            networkInfo.text = $"{GetStopReasonText(state.StopReason)} 必要力: {requiredPower:F2} 生成力: {generatePower:F2}";
+        }
+        
+        public static string GetStopReasonText(GearNetworkStopReason reason)
+        {
+            var text = reason switch
+            {
+                GearNetworkStopReason.None => string.Empty,
+                GearNetworkStopReason.OverRequirePower => "パワー不足",
+                GearNetworkStopReason.Rocked => "ロック",
+                _ => string.Empty
+            };
+            
+            return text == string.Empty ? string.Empty : $"<color=red>{text} </color>";
         }
         
         
