@@ -24,30 +24,130 @@ namespace Game.Train.RailGraph
     /// railcomponentを座標とIDで一意に識別するためのクラス
     /// </summary>
     [Serializable]
-    public class RailComponentID
+    public class RailComponentID : IEquatable<RailComponentID>
     {
-        public SerializableVector3Int Position;//これはブロックが登録されている座標
-        public int ID;//そこのブロック座標で何番目のRailComponentか
+        public SerializableVector3Int Position { get; set; }//これはブロックが登録されている座標
+        public int ID { get; set; }//そこのブロック座標で何番目のRailComponentか
 
-        public RailComponentID(Vector3Int pos, int id)
+        public RailComponentID()
         {
-            Position = pos;
+            Position = default;
+            ID = default;
+        }
+
+        public RailComponentID(SerializableVector3Int position, int id)
+        {
+            Position = position;
             ID = id;
+        }
+
+        public RailComponentID(Vector3Int pos, int id) : this((SerializableVector3Int)pos, id)
+        {
+        }
+
+        public bool Equals(RailComponentID other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            return Position.Equals(other.Position) && ID == other.ID;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return ReferenceEquals(this, obj) || obj is RailComponentID other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var position = Position;
+                var hashCode = position.x;
+                hashCode = (hashCode * 397) ^ position.y;
+                hashCode = (hashCode * 397) ^ position.z;
+                hashCode = (hashCode * 397) ^ ID;
+                return hashCode;
+            }
+        }
+
+        public static bool operator ==(RailComponentID left, RailComponentID right)
+        {
+            return Equals(left, right);
+        }
+
+        public static bool operator !=(RailComponentID left, RailComponentID right)
+        {
+            return !Equals(left, right);
         }
     }
     /// <summary>
     /// 接続先一つを表すクラス
     /// </summary>
     [Serializable]
-    public class ConnectionDestination
+    public class ConnectionDestination : IEquatable<ConnectionDestination>
     {
-        public RailComponentID DestinationID;
-        public bool IsFront;
+        public RailComponentID DestinationID { get; set; }
+        public bool IsFront { get; set; }
+
+        public ConnectionDestination()
+        {
+            DestinationID = new RailComponentID();
+            IsFront = default;
+        }
+
         // コンストラクタ
         public ConnectionDestination(RailComponentID dest, bool front)
         {
             DestinationID = dest;
             IsFront = front;
+        }
+
+        public bool Equals(ConnectionDestination other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            return Equals(DestinationID, other.DestinationID) && IsFront == other.IsFront;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return ReferenceEquals(this, obj) || obj is ConnectionDestination other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hashCode = DestinationID != null ? DestinationID.GetHashCode() : 0;
+                hashCode = (hashCode * 397) ^ IsFront.GetHashCode();
+                return hashCode;
+            }
+        }
+
+        public static bool operator ==(ConnectionDestination left, ConnectionDestination right)
+        {
+            return Equals(left, right);
+        }
+
+        public static bool operator !=(ConnectionDestination left, ConnectionDestination right)
+        {
+            return !Equals(left, right);
         }
     }
 

@@ -227,32 +227,16 @@ namespace Game.Train.RailGraph
             {
                 return null;
             }
-            return railNodes[ConnectionDestinationToRailId[destination]];
-        }
-        /*
-        private static bool IsSameDestination(ConnectionDestination left, ConnectionDestination right)
-        {
-            if (left == null || right == null)
+            if (!ConnectionDestinationToRailId.TryGetValue(destination, out var nodeId))
             {
-                return false;
+                return null;
             }
-
-            if (left.DestinationID == null || right.DestinationID == null)
+            if ((nodeId < 0) || (nodeId >= railNodes.Count))
             {
-                return false;
+                return null;
             }
-
-            var leftPos = left.DestinationID.Position;
-            var rightPos = right.DestinationID.Position;
-
-            return left.IsFront == right.IsFront
-                   && left.DestinationID.ID == right.DestinationID.ID
-                   && leftPos.x == rightPos.x
-                   && leftPos.y == rightPos.y
-                   && leftPos.z == rightPos.z;
+            return railNodes[nodeId];
         }
-        */
-
 
         private List<(RailNode, int)> GetConnectedNodesWithDistanceInternal(RailNode node)
         {
