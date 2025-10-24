@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.UI.Inventory.Common;
 using Core.Item.Interface;
+using Game.Block.Blocks.PowerGenerator;
 using Game.Context;
 using Mooresmaster.Model.BlocksModule;
 using TMPro;
@@ -37,6 +38,19 @@ namespace Client.Game.InGame.UI.Inventory.Block
             }
             
             UpdateItemList(itemList);
+        }
+        
+        private void Update()
+        {
+            var state = _blockGameObject.GetStateDetail<PowerGeneratorStateDetail>(PowerGeneratorStateDetail.StateDetailKey);
+            if (state == null)
+            {
+                Debug.LogError("PowerGeneratorStateDetailが取得できません。");
+                return;
+            }
+            
+            fuelProgressSlider.value = (float)(state.RemainingFuelTime / state.CurrentFuelTime);
+
         }
     }
 }
