@@ -11,6 +11,8 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
 {
     public class SteamEngineEffectStateChangeProcessor : MonoBehaviour, IBlockStateChangeProcessor
     {
+        [SerializeField] private EffectSettings[] effectSettings;
+        
         [SerializeField] private VisualEffect visualEffect;
         
         [SerializeField] private float rateMaxValue = 25;
@@ -42,6 +44,23 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
             
             visualEffect.SetFloat("Rate", rate);
             visualEffect.SetFloat("Size", size);
+            
+            foreach (var effectSetting in effectSettings)
+            {
+                var effectValue = Mathf.Lerp(effectSetting.MinValue, effectSetting.MaxValue, effectSetting.RateCurve.Evaluate(rpmRate));
+                effectSetting.VisualEffect.SetFloat(effectSetting.Name, effectValue);
+            }
         }
+    }
+    
+    [Serializable]
+    public class EffectSettings
+    {
+        public string Name;
+        
+        public VisualEffect VisualEffect;
+        public float MinValue;
+        public float MaxValue;
+        public AnimationCurve RateCurve = AnimationCurve.Linear(0, 0, 1, 1);
     }
 }

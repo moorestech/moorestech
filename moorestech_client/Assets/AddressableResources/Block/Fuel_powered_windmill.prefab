@@ -3106,6 +3106,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3367278752017251768}
+  - component: {fileID: 922004848819439949}
   m_Layer: 7
   m_Name: Fuel_powered_windmill
   m_TagString: Untagged
@@ -3130,6 +3131,47 @@ Transform:
   - {fileID: 6828923319359194565}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &922004848819439949
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9037008890172963379}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6672735753cd4c28b00a1822464f8d55, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.StateProcessor.GearStateChangeProcessor
+  rotationInfos:
+  - rotationMode: 0
+    rotationAxis: 0
+    rotationTransform: {fileID: 7581798578376413590}
+    isReverse: 0
+    rotationSpeed: 1
+    animator: {fileID: 0}
+    rpm60Speed: 0
+  - rotationMode: 0
+    rotationAxis: 1
+    rotationTransform: {fileID: 7781852951989586431}
+    isReverse: 0
+    rotationSpeed: 1
+    animator: {fileID: 0}
+    rpm60Speed: 0
+  - rotationMode: 0
+    rotationAxis: 1
+    rotationTransform: {fileID: 5741778233370143903}
+    isReverse: 0
+    rotationSpeed: 1
+    animator: {fileID: 0}
+    rpm60Speed: 0
+  - rotationMode: 0
+    rotationAxis: 1
+    rotationTransform: {fileID: 6792714997188756603}
+    isReverse: 0
+    rotationSpeed: 1
+    animator: {fileID: 0}
+    rpm60Speed: 0
 --- !u!1001 &7933794068456544294
 PrefabInstance:
   m_ObjectHideFlags: 0
