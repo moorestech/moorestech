@@ -30,7 +30,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             CleanupOriginalContext(context);
 
-            var loadEnv = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
+            var loadEnv = TrainTestHelper.CreateEnvironment();
             SaveLoadJsonTestHelper.LoadFromJson(loadEnv.ServiceProvider, saveJson);
 
             var loadedTrains = TrainUpdateService.Instance.GetRegisteredTrains().ToList();
@@ -79,7 +79,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             CleanupOriginalContext(context);
 
-            var loadEnv = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
+            var loadEnv = TrainTestHelper.CreateEnvironment();
             SaveLoadJsonTestHelper.LoadFromJson(loadEnv.ServiceProvider, corruptedJson);
 
             var loadedTrains = TrainUpdateService.Instance.GetRegisteredTrains().ToList();
@@ -119,7 +119,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
         private static TrainDiagramTestContext CreateTrainDiagramContext()
         {
-            var environment = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
+            var environment = TrainTestHelper.CreateEnvironment();
             var railPositions = new[]
             {
                 new Vector3Int(0, 0, 0),

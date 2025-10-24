@@ -41,14 +41,6 @@ namespace Tests.Util
 #if UNITY_INCLUDE_TESTS
             TrainUpdateService.Instance.ResetTickAccumulator();
 #endif
-
-            return environment;
-        }
-
-        public static TrainTestEnvironment CreateEnvironmentWithRailGraph(out RailGraphDatastore railGraphDatastore)
-        {
-            var environment = CreateEnvironment();
-            railGraphDatastore = environment.GetRailGraphDatastore();
             return environment;
         }
 

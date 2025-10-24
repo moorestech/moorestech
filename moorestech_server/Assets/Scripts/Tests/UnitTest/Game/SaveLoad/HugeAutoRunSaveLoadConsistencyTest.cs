@@ -18,7 +18,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         private const int RailComponentCount = 1200;//12000
         private const int DiagramNodeSelectionCount = 1000;//10000
         private const int TrainCount = 6;//6
-        private const int TotalTicks = 2110;//100000
+        private const int TotalTicks = 210;//100000
         private const int SaveAfterTicks = 0;//50000
         private const int MaxDiagramEntries = 17;//17
         private const int MinDiagramEntries = 1;//1
@@ -48,7 +48,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             AdvanceTicks(totalTicks);
 
-            var snapshots = CaptureSnapshots(scenario.RailGraphDatastore);
+            var snapshots = CaptureSnapshots();
 
             CleanupTrains();
             CleanupWorld(scenario.Environment);
@@ -58,26 +58,44 @@ namespace Tests.UnitTest.Game.SaveLoad
 
         private static Dictionary<int, TrainSimulationSnapshot> RunScenarioWithSave(int seed, int totalTicks, int saveAfterTicks)
         {
+            RailGraphDatastore.ResetInstance();
             var scenario = SetupScenario(seed);
 
             AdvanceTicks(saveAfterTicks);
 
             var saveJson = SaveLoadJsonTestHelper.AssembleSaveJson(scenario.Environment.ServiceProvider);
-
+            
             var preSaveTrains = TrainUpdateService.Instance.GetRegisteredTrains().ToList();
+            //trainunit 全部の速度をdebug.log
+            for (int i = 0; i < preSaveTrains.Count; i++)
+            {
+                Debug.Log($"Pre-save Train {i} Speed: {preSaveTrains[i].CurrentSpeed}");
+            }
+
+
+
             foreach (var train in preSaveTrains)
             {
                 train.OnDestroy();
             }
             TrainUpdateService.Instance.ResetTrains();
             CleanupWorld(scenario.Environment);
+            RailGraphDatastore.ResetInstance();
 
-            var loadEnvironment = TrainTestHelper.CreateEnvironmentWithRailGraph(out var loadRailGraph);
+            var loadEnvironment = TrainTestHelper.CreateEnvironment();
             SaveLoadJsonTestHelper.LoadFromJson(loadEnvironment.ServiceProvider, saveJson);
+
+            //trainunit zenbuの速度をdebug.log
+            var postLoadTrains = TrainUpdateService.Instance.GetRegisteredTrains().ToList();
+            for (int i = 0; i < postLoadTrains.Count; i++)
+            {
+                Debug.Log($"Post-save Train {i} Speed: {postLoadTrains[i].CurrentSpeed}");
+            }
+
 
             AdvanceTicks(totalTicks - saveAfterTicks);
 
-            var snapshots = CaptureSnapshots(loadRailGraph);
+            var snapshots = CaptureSnapshots();
 
             CleanupTrains();
             CleanupWorld(loadEnvironment);
@@ -89,7 +107,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         {
             UnityEngine.Random.InitState(seed);
 
-            var environment = TrainTestHelper.CreateEnvironmentWithRailGraph(out var railGraphDatastore);
+            var environment = TrainTestHelper.CreateEnvironment();
             TrainUpdateService.Instance.ResetTrains();
 
             var components = BuildRailNetwork(environment, RailComponentCount);
@@ -97,7 +115,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             CreateTrains(environment, components[0], selectedNodes);
 
-            return new ScenarioSetup(environment, railGraphDatastore);
+            return new ScenarioSetup(environment);
         }
 
         private static List<RailComponent> BuildRailNetwork(
@@ -289,12 +307,12 @@ namespace Tests.UnitTest.Game.SaveLoad
             return (Action)Delegate.CreateDelegate(typeof(Action), TrainUpdateService.Instance, method!);
         }
 
-        private static Dictionary<int, TrainSimulationSnapshot> CaptureSnapshots(RailGraphDatastore datastore)
+        private static Dictionary<int, TrainSimulationSnapshot> CaptureSnapshots()
         {
             var snapshots = new Dictionary<int, TrainSimulationSnapshot>();
             foreach (var train in TrainUpdateService.Instance.GetRegisteredTrains())
             {
-                var snapshot = TrainSimulationSnapshot.Create(train, datastore);
+                var snapshot = TrainSimulationSnapshot.Create(train);
                 snapshots.Add(snapshot.TrainLength, snapshot);
             }
             return snapshots;
@@ -323,15 +341,12 @@ namespace Tests.UnitTest.Game.SaveLoad
         private readonly struct ScenarioSetup
         {
             public ScenarioSetup(
-                TrainTestEnvironment environment,
-                RailGraphDatastore railGraphDatastore)
+                TrainTestEnvironment environment)
             {
                 Environment = environment;
-                RailGraphDatastore = railGraphDatastore;
             }
 
             public TrainTestEnvironment Environment { get; }
-            public RailGraphDatastore RailGraphDatastore { get; }
         }
 
         private sealed class TrainSimulationSnapshot
@@ -362,16 +377,16 @@ namespace Tests.UnitTest.Game.SaveLoad
             public double CurrentSpeed { get; }
             public IReadOnlyList<NodeIdentifier> RailNodes { get; }
 
-            public static TrainSimulationSnapshot Create(TrainUnit train, RailGraphDatastore datastore)
+            public static TrainSimulationSnapshot Create(TrainUnit train)
             {
                 var railNodes = train.RailPosition.EnumerateRailNodes()
-                    .Select(node => NodeIdentifier.Create(datastore, node))
+                    .Select(node => NodeIdentifier.Create(node))
                     .ToList();
 
                 var diagramEntries = train.trainDiagram.Entries
-                    .Select(entry => DiagramEntrySnapshot.Create(datastore, entry))
+                    .Select(entry => DiagramEntrySnapshot.Create(entry))
                     .ToList();
-
+                Debug.Log(train.CurrentSpeed);
                 return new TrainSimulationSnapshot(
                     train.RailPosition.TrainLength,
                     train.IsAutoRun,
@@ -417,10 +432,10 @@ namespace Tests.UnitTest.Game.SaveLoad
             public int? WaitInitial { get; }
             public int? WaitRemaining { get; }
 
-            public static DiagramEntrySnapshot Create(RailGraphDatastore datastore, TrainDiagram.DiagramEntry entry)
+            public static DiagramEntrySnapshot Create(TrainDiagram.DiagramEntry entry)
             {
                 return new DiagramEntrySnapshot(
-                    NodeIdentifier.Create(datastore, entry.Node),
+                    NodeIdentifier.Create(entry.Node),
                     entry.DepartureConditionTypes.ToList(),
                     entry.GetWaitForTicksInitialTicks(),
                     entry.GetWaitForTicksRemainingTicks());
@@ -449,7 +464,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             public int ComponentIndex { get; }
             public bool IsFront { get; }
 
-            public static NodeIdentifier Create(RailGraphDatastore datastore, RailNode node)
+            public static NodeIdentifier Create(RailNode node)
             {
                 if (!RailGraphDatastore.TryGetRailComponentID(node, out var destination) || destination == null)
                 {

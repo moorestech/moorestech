@@ -50,6 +50,12 @@ namespace Game.Train.RailGraph
 
         private void ResetInternalState()
         {
+            //railNodes内のnode全部remove foreachでやる
+            foreach (var node in railNodes.ToList())
+            {
+                if (node != null)
+                    RemoveNode(node);
+            }
             InitializeDataStore();
         }
 
