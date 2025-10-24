@@ -30,13 +30,10 @@ namespace Game.Block.Factory.BlockTemplate
             var railComponents = new RailComponent[1];
 
             // RailComponentを生成
-            for (int i = 0; i < railComponents.Length; i++)
-            {
-                var railComponentId = new RailComponentID(blockPositionInfo.OriginalPos, i);
-                railComponents[i] = new RailComponent(new Vector3(0.5f, 0.5f, 0.5f) + blockPositionInfo.OriginalPos, blockPositionInfo.BlockDirection, railComponentId);
-            }
+            var railComponentId = new RailComponentID(blockPositionInfo.OriginalPos, 0);
+            var railComponentPositions = RailComponentUtility.CalculateRailComponentPositions(blockPositionInfo);
+            railComponents[0] = new RailComponent(railComponentPositions[0], blockPositionInfo.BlockDirection, railComponentId);
             var railSaverComponent = RailComponentFactory.CreateRailSaverComponent(railComponents);
-
             // コンポーネントをまとめてブロックに登録
             var components = new List<IBlockComponent>();
             components.Add(railSaverComponent);
