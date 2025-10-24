@@ -34,7 +34,6 @@ namespace Game.Train.RailGraph
 
         public RailGraphDatastore()
         {
-            Debug.Log("RailGraphDatastore init");
             InitializeDataStore();
             _instance = this;
         }
