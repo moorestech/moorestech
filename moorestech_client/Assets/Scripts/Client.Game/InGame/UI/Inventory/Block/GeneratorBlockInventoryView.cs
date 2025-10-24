@@ -6,6 +6,7 @@ using Game.Context;
 using Mooresmaster.Model.BlocksModule;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Client.Game.InGame.UI.Inventory.Block
 {
@@ -14,8 +15,13 @@ namespace Client.Game.InGame.UI.Inventory.Block
         [SerializeField] private RectTransform powerGeneratorFuelItemParent;
         [SerializeField] private TMP_Text blockName;
         
+        [SerializeField] private Slider fuelProgressSlider;
+        
+        private BlockGameObject _blockGameObject;
+        
         public override void Initialize(BlockGameObject blockGameObject)
         {
+            _blockGameObject = blockGameObject;
             base.Initialize(blockGameObject);
             
             blockName.text = blockGameObject.BlockMasterElement.Name;
