@@ -24,7 +24,23 @@ namespace Game.Block.Blocks.Gear
         public FuelType CurrentFuelType { get; private set; }
         public ItemId CurrentFuelItemId { get; private set; }
         public FluidId CurrentFuelFluidId { get; private set; }
+        
         public double RemainingFuelTime { get; private set; }
+        
+        public double CurrentFuelTime
+        {
+            get
+            {
+                return CurrentFuelType switch
+                {
+                    FuelType.None => 0,
+                    FuelType.Fluid => _fluidFuelSettings.TryGetValue(CurrentFuelFluidId, out var itemSetting) ? itemSetting.ConsumptionTime : 0,
+                    FuelType.Item => _itemFuelSettings.TryGetValue(CurrentFuelItemId, out var fluidSetting) ? fluidSetting.ConsumptionTime : 0,
+                    _ => 0,
+                };
+            }
+        }
+            
 
         // インベントリ・流体タンクと燃料設定を参照するためのフィールド群
         // Fields referencing inventories, fluid tanks, and fuel configuration tables
