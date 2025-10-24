@@ -13,14 +13,6 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
     {
         [SerializeField] private EffectSettings[] effectSettings;
         
-        [SerializeField] private VisualEffect visualEffect;
-        
-        [SerializeField] private float rateMaxValue = 25;
-        [SerializeField] private AnimationCurve rateCurve;
-        
-        [SerializeField] private float rateSizeValue = 1.25f;
-        [SerializeField] private AnimationCurve sizeCurve;
-        
         private SteamGearGeneratorBlockParam _blockParam;
         private GearStateDetail _currentGearState;
         
@@ -38,12 +30,6 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
             if (_currentGearState == null) return;
             
             var rpmRate = _currentGearState.CurrentRpm / _blockParam.GenerateMaxRpm;
-            
-            var rate = rateCurve.Evaluate(rpmRate) * rateMaxValue;
-            var size = sizeCurve.Evaluate(rpmRate) * rateSizeValue;
-            
-            visualEffect.SetFloat("Rate", rate);
-            visualEffect.SetFloat("Size", size);
             
             foreach (var effectSetting in effectSettings)
             {
