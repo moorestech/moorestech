@@ -110,7 +110,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             using var scenario = TrainStationDockingScenario.Create();
 
             var dockedTrain = scenario.CreateForwardDockingTrain(out var dockedCar);
-            var runningTrain = scenario.CreateOpposingDockingTrain(out var runningCar, scenario.StationSegmentLength / 2);
+            var runningTrain = scenario.CreateOpposingDockingTrain(out var runningCar, 4);
 
             var dockedSnapshot = ConfigureDockedTrain(dockedTrain, dockedCar, scenario);
             var runningSnapshot = ConfigureRunningTrain(runningTrain, runningCar, scenario);
