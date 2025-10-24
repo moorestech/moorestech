@@ -219,11 +219,11 @@ namespace Game.Block.Blocks.Gear
             #endregion
         }
 
-        public void Update()
+        public void Update(float operatingRate)
         {
             if (!IsFuelActive) return;
 
-            RemainingFuelTime -= GameUpdater.UpdateSecondTime;
+            RemainingFuelTime -= GameUpdater.UpdateSecondTime * operatingRate;
             if (RemainingFuelTime > 0) return;
 
             ClearFuelState();

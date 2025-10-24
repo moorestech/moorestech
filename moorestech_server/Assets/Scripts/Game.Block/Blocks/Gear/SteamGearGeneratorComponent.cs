@@ -74,7 +74,10 @@ namespace Game.Block.Blocks.Gear
         {
             BlockException.CheckDestroy(this);
 
-            var changed = _stateService.TryUpdate(out var newRpm, out var newTorque);
+            var network = GearNetworkDatastore.GetGearNetwork(BlockInstanceId);
+            var operatingRate = network.CurrentGearNetworkInfo.OperatingRate;
+            
+            var changed = _stateService.TryUpdate(operatingRate, out var newRpm, out var newTorque);
             GenerateRpm = newRpm;
             GenerateTorque = newTorque;
 
@@ -94,7 +97,8 @@ namespace Game.Block.Blocks.Gear
         public new BlockStateDetail[] GetBlockStateDetails()
         {
             BlockException.CheckDestroy(this);
-
+            
+            var network = GearNetworkDatastore.GetGearNetwork(BlockInstanceId);
             var steamGearGeneratorDetail = CreateSteamGearGeneratorStateDetail();
             var powerGeneratorDetail = CreatePowerGeneratorStateDetail();
             
@@ -111,14 +115,14 @@ namespace Game.Block.Blocks.Gear
             
             BlockStateDetail CreateSteamGearGeneratorStateDetail()
             {
-                var network = GearNetworkDatastore.GetGearNetwork(BlockInstanceId);
                 var gearGenerator = new SteamGearGeneratorBlockStateDetail(_stateService, _fluidComponent, network.CurrentGearNetworkInfo, GenerateIsClockwise);
                 return new BlockStateDetail(SteamGearGeneratorBlockStateDetail.SteamGearGeneratorBlockStateDetailKey, MessagePackSerializer.Serialize(gearGenerator));
             }
             
             BlockStateDetail CreatePowerGeneratorStateDetail()
             {
-                var powerGeneratorStateDetail = new PowerGeneratorStateDetail(_fuelService);
+                var operatingRate = network.CurrentGearNetworkInfo.OperatingRate;
+                var powerGeneratorStateDetail = new PowerGeneratorStateDetail(_fuelService, operatingRate);
                 return new BlockStateDetail(PowerGeneratorStateDetail.StateDetailKey, MessagePackSerializer.Serialize(powerGeneratorStateDetail));
             }
             
