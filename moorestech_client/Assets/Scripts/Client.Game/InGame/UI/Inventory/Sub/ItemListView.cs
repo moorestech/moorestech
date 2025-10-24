@@ -229,7 +229,7 @@ namespace Client.Game.InGame.UI.Inventory.Sub
                     if (craftableByItem == 0) return 0;
                     maxCraftable = Math.Min(maxCraftable, craftableByItem);
                 }
-                return maxCraftable == int.MaxValue ? 0 : maxCraftable;
+                return (maxCraftable == int.MaxValue ? 0 : maxCraftable) * craftMaster.CraftResultCount;
             }
             
             #endregion
