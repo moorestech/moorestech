@@ -339,7 +339,8 @@ namespace Game.Train.Train
                 TurnOffAutoRun();
                 return;
             }
-            _remainingDistance = RailNodeCalculate.CalculateTotalDistanceF(newPath) - _railPosition.GetDistanceToNextNode();
+            //_remainingDistance更新
+            _remainingDistance = _railPosition.GetDistanceToNextNode() + RailNodeCalculate.CalculateTotalDistanceF(newPath);
         }
 
         public void TurnOffAutoRun()
