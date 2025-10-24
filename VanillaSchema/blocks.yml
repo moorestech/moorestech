@@ -42,6 +42,10 @@ defineInterface:
   properties:
     - key: gear
       ref: gear
+- interfaceName: IFuelItemSlotParam
+  properties:
+  - key: fuelItemSlotCount
+    type: integer
 
 properties:
 - key: data
@@ -188,6 +192,7 @@ properties:
         type: object
         implementationInterface:
         - IInventoryConnectors
+        - IFuelItemSlotParam
         properties:
         - key: fuelItemSlotCount
           type: integer
@@ -338,6 +343,8 @@ properties:
         type: object
         implementationInterface:
         - IGearConnectors
+        - IInventoryConnectors
+        - IFuelItemSlotParam
         properties:
         - key: teethCount
           type: integer
