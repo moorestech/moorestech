@@ -113,7 +113,6 @@ namespace Game.SaveLoad.Json
             _challengeDatastore.LoadChallenge(load.Challenge);
             _craftTreeManager.LoadCraftTreeInfo(load.CraftTreeInfo);
 
-            TrainUpdateService.Instance.ResetTrains();
             TrainSaveLoadService.RestoreTrainStates(load.TrainUnits);
             TrainDockingStateRestorer.RestoreDockingState();
         }

@@ -28,6 +28,10 @@ namespace Game.Train.Common
 
         public static void RestoreTrainStates(IEnumerable<TrainUnitSaveData> saveData)
         {
+            // Save/Loadサイクルのたびに登録済み列車を初期化して、
+            // 既存状態が残ったまま復元処理が走るのを防ぐ。
+            TrainUpdateService.Instance.ResetTrains();
+
             if (saveData == null)
             {
                 return;
