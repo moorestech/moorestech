@@ -382,49 +382,6 @@ namespace Game.Train.Train
             return (found, newPath);
         }
 
-        /*
-        internal bool CanSerializeState()
-        {
-            if (_railPosition == null)
-            {
-                return false;
-            }
-
-            foreach (var node in _railPosition.EnumerateRailNodes())
-            {
-                if (node == null)
-                {
-                    continue;
-                }
-
-                if (!RailGraphDatastore.TryGetRailComponentID(node, out _))
-                {
-                    return false;
-                }
-            }
-
-            if (trainDiagram?.Entries == null)
-            {
-                return true;
-            }
-
-            foreach (var entry in trainDiagram.Entries)
-            {
-                if (entry?.Node == null)
-                {
-                    continue;
-                }
-
-                if (!RailGraphDatastore.TryGetRailComponentID(entry.Node, out _))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-        */
-
         //列車編成を保存する。ブロックとは違うことに注意
         public TrainUnitSaveData CreateSaveData()
         {
@@ -447,8 +404,6 @@ namespace Game.Train.Train
                 RailSnapshot = railSnapshot,
                 IsAutoRun = _isAutoRun,
                 PreviousEntryGuid = _previousEntryGuid,
-                CurrentSpeed = _currentSpeed,
-                AccumulatedDistance = _accumulatedDistance,
                 CurrentSpeedBits = BitConverter.DoubleToInt64Bits(_currentSpeed),
                 AccumulatedDistanceBits = BitConverter.DoubleToInt64Bits(_accumulatedDistance),
                 Cars = carStates,
@@ -654,10 +609,10 @@ namespace Game.Train.Train
 
             var restoredSpeed = saveData.CurrentSpeedBits.HasValue
                 ? BitConverter.Int64BitsToDouble(saveData.CurrentSpeedBits.Value)
-                : saveData.CurrentSpeed;
+                : 0;
             var restoredAccumulatedDistance = saveData.AccumulatedDistanceBits.HasValue
                 ? BitConverter.Int64BitsToDouble(saveData.AccumulatedDistanceBits.Value)
-                : saveData.AccumulatedDistance;
+                : 0;
 
             var trainUnit = new TrainUnit(railPosition, cars)
             {
@@ -765,8 +720,6 @@ namespace Game.Train.Train
         public List<ConnectionDestination> RailSnapshot { get; set; }
         public bool IsAutoRun { get; set; }
         public Guid PreviousEntryGuid { get; set; }
-        public double CurrentSpeed { get; set; }
-        public double AccumulatedDistance { get; set; }
         public long? CurrentSpeedBits { get; set; }
         public long? AccumulatedDistanceBits { get; set; }
         public List<TrainCarSaveData> Cars { get; set; }
