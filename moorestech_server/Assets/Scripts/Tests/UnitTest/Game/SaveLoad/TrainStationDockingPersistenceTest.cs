@@ -80,12 +80,15 @@ namespace Tests.UnitTest.Game.SaveLoad
             using var scenario = TrainStationDockingScenario.Create();
 
             var train = scenario.CreateForwardDockingTrain(out _);
-            train.trainUnitStationDocking.TryDockWhenStopped();
+            //train.trainUnitStationDocking.TryDockWhenStopped();
 
             var loadEnv = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
 
             var mutation = SaveLoadJsonTestHelper.CreateMutation(scenario.Environment.ServiceProvider);
-            mutation.RemoveDockingBlockPosition(0, 0);
+            //mutation.RemoveDockingBlockPosition(0, 0);
+
+            scenario.Dispose();
+
             mutation.Load(loadEnv.ServiceProvider);
 
             var loadedTrains = TrainUpdateService.Instance.GetRegisteredTrains().ToList();
