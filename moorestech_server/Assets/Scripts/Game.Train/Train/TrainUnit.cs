@@ -49,7 +49,7 @@ namespace Game.Train.Train
         {
             _railPosition = initialPosition;
             _trainId = Guid.NewGuid();
-            _cars = cars;  // 追加
+            _cars = cars;
             _currentSpeed = 0.0; // 仮の初期速度
             _isAutoRun = false;
             _previousEntryGuid = Guid.Empty;
@@ -448,6 +448,8 @@ namespace Game.Train.Train
                 PreviousEntryGuid = _previousEntryGuid,
                 CurrentSpeed = _currentSpeed,
                 AccumulatedDistance = _accumulatedDistance,
+                CurrentSpeedBits = BitConverter.DoubleToInt64Bits(_currentSpeed),
+                AccumulatedDistanceBits = BitConverter.DoubleToInt64Bits(_accumulatedDistance),
                 Cars = carStates,
                 Diagram = diagramState
             };
@@ -649,12 +651,19 @@ namespace Game.Train.Train
             var railPosition = new RailPosition(nodes, trainLength, distanceToNextNode);
             var cars = RestoreTrainCars(saveData.Cars);
 
+            var restoredSpeed = saveData.CurrentSpeedBits.HasValue
+                ? BitConverter.Int64BitsToDouble(saveData.CurrentSpeedBits.Value)
+                : saveData.CurrentSpeed;
+            var restoredAccumulatedDistance = saveData.AccumulatedDistanceBits.HasValue
+                ? BitConverter.Int64BitsToDouble(saveData.AccumulatedDistanceBits.Value)
+                : saveData.AccumulatedDistance;
+
             var trainUnit = new TrainUnit(railPosition, cars)
             {
                 _isAutoRun = saveData.IsAutoRun,
                 _previousEntryGuid = saveData.PreviousEntryGuid,
-                _currentSpeed = saveData.CurrentSpeed,
-                _accumulatedDistance = saveData.AccumulatedDistance
+                _currentSpeed = restoredSpeed,
+                _accumulatedDistance = restoredAccumulatedDistance
             };
 
             trainUnit._remainingDistance = trainUnit._railPosition.GetDistanceToNextNode();
@@ -757,6 +766,8 @@ namespace Game.Train.Train
         public Guid PreviousEntryGuid { get; set; }
         public double CurrentSpeed { get; set; }
         public double AccumulatedDistance { get; set; }
+        public long? CurrentSpeedBits { get; set; }
+        public long? AccumulatedDistanceBits { get; set; }
         public List<TrainCarSaveData> Cars { get; set; }
         public TrainDiagramSaveData Diagram { get; set; }
     }

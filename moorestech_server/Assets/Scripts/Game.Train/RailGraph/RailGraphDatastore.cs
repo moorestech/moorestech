@@ -192,9 +192,14 @@ namespace Game.Train.RailGraph
             TrainRailPositionManager.Instance.NotifyNodeRemoval(node);
             var nodeid = railIdDic[node];
             railIdDic.Remove(node);
-            var cdid = railIdToConnectionDestination[nodeid];
-            railIdToConnectionDestination.Remove(nodeid);
-            ConnectionDestinationToRailId.Remove(cdid);
+
+            if (railIdToConnectionDestination.ContainsKey(nodeid))
+            {
+                var cdid = railIdToConnectionDestination[nodeid];
+                railIdToConnectionDestination.Remove(nodeid);
+                ConnectionDestinationToRailId.Remove(cdid);
+            }
+
             railNodes[nodeid] = null;
             nextidQueue.Insert(nodeid);
             connectNodes[nodeid].Clear();
