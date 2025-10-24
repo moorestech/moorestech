@@ -53,7 +53,7 @@ namespace Tests.Util
 
         public static TrainStationDockingScenario Create()
         {
-            var environment = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
+            var environment = TrainTestHelper.CreateEnvironment();
 
             var n0Component = TrainTestHelper.PlaceRail(environment, new Vector3Int(0, 0, 0), BlockDirection.North);
             var n1Component = TrainTestHelper.PlaceRail(environment, new Vector3Int(5, 0, 0), BlockDirection.North);
@@ -79,7 +79,7 @@ namespace Tests.Util
 
         public static TrainStationDockingScenario CreateWithLoop()
         {
-            var environment = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
+            var environment = TrainTestHelper.CreateEnvironment();
 
             var n0Component = TrainTestHelper.PlaceRail(environment, new Vector3Int(0, 0, 0), BlockDirection.North);
             var n1Component = TrainTestHelper.PlaceRail(environment, new Vector3Int(5, 0, 0), BlockDirection.North);

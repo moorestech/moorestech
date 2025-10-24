@@ -21,7 +21,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void TestRailComponentsAreConnected()
         {
-            var env = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
+            var env = TrainTestHelper.CreateEnvironment();
 
             var railComponent1 = TrainTestHelper.PlaceRail(env, new Vector3Int(0, 0, 0), BlockDirection.North);
             var railComponent2 = TrainTestHelper.PlaceRail(env, new Vector3Int(1, 0, 0), BlockDirection.North);
@@ -50,7 +50,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void StationDirectionSimple()
         {
-            var env = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
+            var env = TrainTestHelper.CreateEnvironment();
 
             var (stationBlockA, railSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
                 env,
@@ -74,7 +74,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void StationDirectionMain()
         {
-            var env = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
+            var env = TrainTestHelper.CreateEnvironment();
 
             for (int i = 0; i < 4; i++)
             {
@@ -98,7 +98,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void StationConnectionSimple()
         {
-            var env = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
+            var env = TrainTestHelper.CreateEnvironment();
 
             var (_, firstSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
                 env,

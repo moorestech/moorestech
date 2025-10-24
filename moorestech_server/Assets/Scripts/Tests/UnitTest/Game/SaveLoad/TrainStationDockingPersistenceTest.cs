@@ -50,7 +50,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             scenario.Dispose();
 
-            var loadEnv = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
+            var loadEnv = TrainTestHelper.CreateEnvironment();
             SaveLoadJsonTestHelper.LoadFromJson(loadEnv.ServiceProvider, saveJson);
 
             var loadedTrains = TrainUpdateService.Instance.GetRegisteredTrains().ToList();
@@ -90,7 +90,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             scenario.Dispose();
 
-            var loadEnv = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
+            var loadEnv = TrainTestHelper.CreateEnvironment();
 
             mutation.Load(loadEnv.ServiceProvider);
 
@@ -128,7 +128,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             scenario.Dispose();
 
-            var loadEnv = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
+            var loadEnv = TrainTestHelper.CreateEnvironment();
             SaveLoadJsonTestHelper.LoadFromJson(loadEnv.ServiceProvider, saveJson);
 
             var loadedTrains = TrainUpdateService.Instance.GetRegisteredTrains().ToList();

@@ -24,7 +24,7 @@ namespace Tests.UnitTest.Game
         {
             _ = new TrainDiagramManager();
 
-            var env = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
+            var env = TrainTestHelper.CreateEnvironment();
 
             var (loadingBlock, loadingSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
                 env,

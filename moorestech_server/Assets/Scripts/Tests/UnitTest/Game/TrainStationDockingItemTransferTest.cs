@@ -20,7 +20,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void StationTransfersItemsToDockedTrainCar()
         {
-            var env = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
+            var env = TrainTestHelper.CreateEnvironment();
 
             var (stationBlock, railSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
                 env,
@@ -78,7 +78,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void CargoPlatformTransfersItemsToDockedTrainCar()
         {
-            var env = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
+            var env = TrainTestHelper.CreateEnvironment();
 
             var (cargoPlatformBlock, railSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
                 env,
@@ -136,7 +136,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void CargoPlatformReceivesItemsFromTrainCarWhenInUnloadMode()
         {
-            var env = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
+            var env = TrainTestHelper.CreateEnvironment();
 
             var (cargoPlatformBlock, railSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
                 env,
@@ -198,7 +198,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void StationRejectsSecondTrainWhileFirstRemainsDocked()
         {
-            var env = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
+            var env = TrainTestHelper.CreateEnvironment();
 
             var (stationBlock, railSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
                 env,
