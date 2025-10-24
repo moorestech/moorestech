@@ -20,7 +20,7 @@ using Newtonsoft.Json;
 
 namespace Game.Block.Blocks.PowerGenerator
 {
-    public class VanillaElectricGeneratorComponent : IElectricGenerator, IBlockInventory, IOpenableInventory, IBlockSaveState, IUpdatableBlockComponent, IFluidInventory
+    public class VanillaElectricGeneratorComponent : IElectricGenerator, IOpenableBlockInventoryComponent, IBlockSaveState, IUpdatableBlockComponent, IFluidInventory
     {
         private readonly ElectricPower _infinityPower;
         private readonly bool _isInfinityPower;
