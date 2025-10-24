@@ -35,6 +35,12 @@ namespace Game.Train.RailGraph
         public RailGraphDatastore()
         {
             Debug.Log("RailGraphDatastore init");
+            InitializeDataStore();
+            _instance = this;
+        }
+
+        private void InitializeDataStore()
+        {
             railIdDic = new Dictionary<RailNode, int>();
             railNodes = new List<RailNode>();
             nextidQueue = new MinHeap<int>();
@@ -42,9 +48,21 @@ namespace Game.Train.RailGraph
             railIdToConnectionDestination = new Dictionary<int, ConnectionDestination>();
             ConnectionDestinationToRailId = new Dictionary<ConnectionDestination, int>();
         }
+
+        private void ResetInternalState()
+        {
+            InitializeDataStore();
+        }
+
         public static void ResetInstance()
         {
-            _instance = new RailGraphDatastore();
+            if (_instance == null)
+            {
+                _instance = new RailGraphDatastore();
+                return;
+            }
+
+            _instance.ResetInternalState();
         }
 
         //======================================================
