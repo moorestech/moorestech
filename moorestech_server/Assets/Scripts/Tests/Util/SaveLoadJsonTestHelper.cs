@@ -203,7 +203,7 @@ namespace Tests.Util
                 var carObject = GetRequiredObject(cars[carIndex],
                     $"Cars[{carIndex}] が JSON オブジェクトではありません。");
 
-                carObject.Remove("DockingBlockPosition");
+                carObject["DockingBlockPosition"] = JsonNode.Parse("null")!;
             }
 
             public SaveLoadCycleResult Load(ServiceProvider serviceProvider)
