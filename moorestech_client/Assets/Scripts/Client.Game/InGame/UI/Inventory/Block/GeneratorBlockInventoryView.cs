@@ -16,6 +16,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
         [SerializeField] private RectTransform powerGeneratorFuelItemParent;
         [SerializeField] private TMP_Text blockName;
         
+        [SerializeField] private TMP_Text operatingRateText;
         [SerializeField] private Slider fuelProgressSlider;
         
         private BlockGameObject _blockGameObject;
@@ -50,7 +51,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
             }
             
             fuelProgressSlider.value = (float)(state.RemainingFuelTime / state.CurrentFuelTime);
-
+            operatingRateText.text = $"燃料消費は稼働率に応じて高くなる\n稼働率: {state.OperatingRate * 100f:F0}%";
         }
     }
 }
