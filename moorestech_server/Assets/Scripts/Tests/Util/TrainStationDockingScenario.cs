@@ -60,7 +60,7 @@ namespace Tests.Util
             var (_, stationSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
                 environment,
                 ForUnitTestModBlockId.TestTrainCargoPlatform,
-                new Vector3Int(10, 0, 0),
+                new Vector3Int(10, 20, 0),
                 BlockDirection.North);
             var n2Component = TrainTestHelper.PlaceRail(environment, new Vector3Int(15, 0, 0), BlockDirection.North);
             var n3Component = TrainTestHelper.PlaceRail(environment, new Vector3Int(20, 0, 0), BlockDirection.North);
