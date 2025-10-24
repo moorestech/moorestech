@@ -17,7 +17,7 @@ namespace Tests.UnitTest.Game.SaveLoad
     {
         private const int RailComponentCount = 1200;//12000
         private const int DiagramNodeSelectionCount = 1000;//10000
-        private const int TrainCount = 6;//6
+        private const int TrainCount = 7;//6
         private const int TotalTicks = 13610;//100000
         private const int SaveAfterTicks = 10000;//50000
         private const int MaxDiagramEntries = 17;//17
@@ -69,7 +69,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             foreach (var train in preSaveTrains)
             {
-                Debug.Log($"Train Length: {train.RailPosition.TrainLength} Remaining Distance: " + train._remainingDistance + "dist: " + train.RailPosition.GetDistanceToNextNode());
+                //Debug.Log($"Train Length: {train.RailPosition.TrainLength} Remaining Distance: " + train._remainingDistance + "dist: " + train.RailPosition.GetDistanceToNextNode());
                 train.OnDestroy();
             }
             TrainUpdateService.Instance.ResetTrains();
@@ -82,7 +82,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var postLoadTrains = TrainUpdateService.Instance.GetRegisteredTrains().ToList();
             foreach (var train in postLoadTrains)
             {
-                Debug.Log($"[After Load] Train Length: {train.RailPosition.TrainLength} Remaining Distance: " + train._remainingDistance + "dist: " + train.RailPosition.GetDistanceToNextNode());
+                //Debug.Log($"[After Load] Train Length: {train.RailPosition.TrainLength} Remaining Distance: " + train._remainingDistance + "dist: " + train.RailPosition.GetDistanceToNextNode());
             }
 
             AdvanceTicks(saveAfterTicks);
