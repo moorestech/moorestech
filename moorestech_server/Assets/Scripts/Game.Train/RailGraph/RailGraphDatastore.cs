@@ -34,6 +34,7 @@ namespace Game.Train.RailGraph
 
         public RailGraphDatastore()
         {
+            Debug.Log("RailGraphDatastore init");
             railIdDic = new Dictionary<RailNode, int>();
             railNodes = new List<RailNode>();
             nextidQueue = new MinHeap<int>();
@@ -171,6 +172,7 @@ namespace Game.Train.RailGraph
             if (!railIdDic.ContainsKey(node))
                 return;
             TrainDiagramManager.Instance.NotifyNodeRemoval(node);
+            TrainRailPositionManager.Instance.NotifyNodeRemoval(node);
             var nodeid = railIdDic[node];
             railIdDic.Remove(node);
             var cdid = railIdToConnectionDestination[nodeid];

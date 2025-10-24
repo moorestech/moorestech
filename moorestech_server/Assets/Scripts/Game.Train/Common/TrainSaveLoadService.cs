@@ -14,12 +14,6 @@ namespace Game.Train.Common
                 {
                     continue;
                 }
-
-                if (!train.CanSerializeState())
-                {
-                    continue;
-                }
-
                 saveData.Add(train.CreateSaveData());
             }
 

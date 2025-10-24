@@ -381,7 +381,7 @@ namespace Game.Train.Train
             return (found, newPath);
         }
 
-
+        /*
         internal bool CanSerializeState()
         {
             if (_railPosition == null)
@@ -422,6 +422,7 @@ namespace Game.Train.Train
 
             return true;
         }
+        */
 
         //列車編成を保存する。ブロックとは違うことに注意
         public TrainUnitSaveData CreateSaveData()
