@@ -296,7 +296,7 @@ namespace Game.Train.RailGraph
             return -1;
         }
 
-        // ダイクストラ
+        // ダイクストラ startからtargetへのnodeリストを返す、0がstart、最後がtarget
         private List<RailNode> FindShortestPathInternal(int startid, int targetid)
         {
             var priorityQueue = new PriorityQueue<int, int>();

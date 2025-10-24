@@ -18,8 +18,8 @@ namespace Tests.UnitTest.Game.SaveLoad
         private const int RailComponentCount = 1200;//12000
         private const int DiagramNodeSelectionCount = 1000;//10000
         private const int TrainCount = 6;//6
-        private const int TotalTicks = 210;//100000
-        private const int SaveAfterTicks = 0;//50000
+        private const int TotalTicks = 13610;//100000
+        private const int SaveAfterTicks = 10000;//50000
         private const int MaxDiagramEntries = 17;//17
         private const int MinDiagramEntries = 1;//1
         private const int MaxWaitTicks = 12;//4096
@@ -61,21 +61,15 @@ namespace Tests.UnitTest.Game.SaveLoad
             RailGraphDatastore.ResetInstance();
             var scenario = SetupScenario(seed);
 
-            AdvanceTicks(saveAfterTicks);
+            AdvanceTicks(totalTicks - saveAfterTicks);
 
             var saveJson = SaveLoadJsonTestHelper.AssembleSaveJson(scenario.Environment.ServiceProvider);
             
             var preSaveTrains = TrainUpdateService.Instance.GetRegisteredTrains().ToList();
-            //trainunit 全部の速度をdebug.log
-            for (int i = 0; i < preSaveTrains.Count; i++)
-            {
-                Debug.Log($"Pre-save Train {i} Speed: {preSaveTrains[i].CurrentSpeed}");
-            }
-
-
-
+            
             foreach (var train in preSaveTrains)
             {
+                Debug.Log($"Train Length: {train.RailPosition.TrainLength} Remaining Distance: " + train._remainingDistance + "dist: " + train.RailPosition.GetDistanceToNextNode());
                 train.OnDestroy();
             }
             TrainUpdateService.Instance.ResetTrains();
@@ -85,18 +79,15 @@ namespace Tests.UnitTest.Game.SaveLoad
             var loadEnvironment = TrainTestHelper.CreateEnvironment();
             SaveLoadJsonTestHelper.LoadFromJson(loadEnvironment.ServiceProvider, saveJson);
 
-            //trainunit zenbuの速度をdebug.log
             var postLoadTrains = TrainUpdateService.Instance.GetRegisteredTrains().ToList();
-            for (int i = 0; i < postLoadTrains.Count; i++)
+            foreach (var train in postLoadTrains)
             {
-                Debug.Log($"Post-save Train {i} Speed: {postLoadTrains[i].CurrentSpeed}");
+                Debug.Log($"[After Load] Train Length: {train.RailPosition.TrainLength} Remaining Distance: " + train._remainingDistance + "dist: " + train.RailPosition.GetDistanceToNextNode());
             }
 
-
-            AdvanceTicks(totalTicks - saveAfterTicks);
+            AdvanceTicks(saveAfterTicks);
 
             var snapshots = CaptureSnapshots();
-
             CleanupTrains();
             CleanupWorld(loadEnvironment);
 
