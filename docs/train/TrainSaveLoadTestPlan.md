@@ -13,6 +13,7 @@
 - ゲームを再起動してロードし、列車の位置・向き・速度が保存前と一致していることを確認。
 - AutoRun を有効化した状態でセーブ→ロードし、`TrainUnit.IsAutoRun` が維持されているか、`DiagramValidation()` が自動で再実行されているかをチェック。
 - ✅ 自動テスト: `TrainStationDockingPersistenceTest.ReloadingRestoresDockedTrainState` でドッキング済み列車の復元とAutoRun継続を検証済み。【F:moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainStationDockingPersistenceTest.cs†L32-L89】
+- ✅ 自動テスト: `RailGraphSaveLoadConsistencyTest.SmallRailGraphRemainsConsistentAfterSaveLoad` がノード接続・距離情報をスナップショット比較し、ロード後のRailGraph構造が完全一致することを保証。【F:moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/RailGraphSaveLoadConsistencyTest.cs†L1-L78】【F:moorestech_server/Assets/Scripts/Tests/Util/RailGraphNetworkTestHelper.cs†L1-L93】
 
 ## 2. ダイアグラムと発車条件
 - ダイアグラムに複数エントリを追加し、WaitForTicks を含む複数条件を設定した状態でセーブ。
@@ -34,9 +35,14 @@
 - 自動運転 OFF の列車がドッキングしていた場合、ロード後も OFF のまま留まっていること。
 - ✅ 自動テスト: `TrainStationDockingPersistenceTest` が複列車のドッキング復元と破損 JSON 時の安全な Undock をカバー。【F:moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainStationDockingPersistenceTest.cs†L90-L135】【F:moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainStationDockingPersistenceTest.cs†L180-L215】
 
-## 5. パフォーマンス・連続保存 これはかなり後でやる
+## 5. 速度と動的状態
+- 高速走行中の列車を任意の速度に設定してセーブし、ロード後も `TrainUnit.CurrentSpeed` が許容誤差内で一致することを確認。
+- セーブ直前・直後の `TrainUpdateService` 登録列車数が一致し、駅占有状態も維持されていることを確認。
+- ✅ 自動テスト: `TrainSpeedSaveLoadTest.SingleHighSpeedTrainPreservesSpeedAcrossSaveLoad` がリフレクションで速度を設定した列車のセーブ/ロード後速度一致と登録列車クリーンアップを検証。【F:moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainSpeedSaveLoadTest.cs†L1-L64】
+
+## 6. パフォーマンス・連続保存 これはかなり後でやる
 - 大規模な編成 (例: 10 両以上) を複数配置した状態で連続セーブ/ロードを実施し、フレーム落ちや保存時間が極端に悪化しないことを計測。
 - セーブ直前と直後に `TrainUpdateService` の登録列車数が一致していることをログで確認。
-- ⚠️ 自動テスト: 現状は `TrainStationDockingPersistenceTest` の複列車ケースで基本的な一致のみ確認。パフォーマンス計測は未着手。
+- ⚠️ 自動テスト: 現状は `HugeAutoRunTrainSaveLoadConsistencyTest.MassiveAutoRunScenarioProducesIdenticalStateWithAndWithoutSaveLoad` が 1200 レール× 7 列車の長時間シナリオでセーブ有無の結果を比較し、状態一致を確認しているが、実際の性能計測までは未着手。【F:moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/HugeAutoRunSaveLoadConsistencyTest.cs†L1-L83】【F:moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/HugeAutoRunSaveLoadConsistencyTest.cs†L84-L191】
 
 テスト自動化が難しい項目は、Unity エディタ上でのスモークテスト用シナリオを用意して手動確認を行います。

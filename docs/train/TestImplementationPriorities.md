@@ -6,11 +6,12 @@
 - 現状のテストカバレッジで不足していそうなシナリオか。
 - 後続のテストや機能検証の土台になるか。
 
-## 直近の実装状況 (2024-05-21更新)
+## 直近の実装状況 (2024-05-28更新)
 
 - ✅ **セーブデータ破壊テスト基盤を整備** — `SaveLoadJsonTestHelper` にセーブ→破壊→ロードを一括で行う `SaveCorruptAndLoad` や `RemoveTrainUnitDockedAt` などのユーティリティを追加し、列車テストからフェイルインジェクションを直接呼び出せるようになりました。【F:moorestech_server/Assets/Scripts/Tests/Util/SaveLoadJsonTestHelper.cs†L1-L118】【F:moorestech_server/Assets/Scripts/Tests/Util/SaveLoadJsonTestHelper.cs†L144-L192】
 - ✅ **ドッキング整合性テストを拡充** — 駅占有解除・破棄時の安全性・破損JSONロード時の挙動を `TrainStationDockingPersistenceTest` で自動検証し、`TrainStationDockingScenario` でのセットアップを共通化しました。【F:moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainStationDockingPersistenceTest.cs†L1-L207】【F:moorestech_server/Assets/Scripts/Tests/Util/TrainStationDockingScenario.cs†L1-L170】
 - ✅ **複列車セーブ/ロード回帰テストを追加** — 複数列車の状態・ダイアグラム・インベントリ・WaitForTicks残量をスナップショット比較で確認する統合テストを実装し、ロード後の完全一致を担保しています。【F:moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainStationDockingPersistenceTest.cs†L136-L216】
+- ✅ **セーブ/ロード後のグラフ構造・速度・巨大シナリオを自動検証** — レール構造の完全一致を `RailGraphSaveLoadConsistencyTest`、速度維持を `TrainSpeedSaveLoadTest`、1200レール×7列車の耐久シナリオを `HugeAutoRunTrainSaveLoadConsistencyTest` が担保するようになり、長時間運用や高負荷ケースの回帰が即座に検出できます。【F:moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/RailGraphSaveLoadConsistencyTest.cs†L1-L78】【F:moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainSpeedSaveLoadTest.cs†L1-L64】【F:moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/HugeAutoRunSaveLoadConsistencyTest.cs†L1-L83】
 
 ## 既存テストカバレッジの俯瞰
 
@@ -24,7 +25,11 @@
 | 列車運行ダイアグラム | `Tests/UnitTest/Game/TrainDiagramUpdateTest.cs` | 機能テスト | ダイアグラムのノード削除時リセット、積載/空荷条件での出発制御、複数条件の併用 | 長距離ダイアグラムや複数列車共有での挙動は未検証 |
 | 自動運転操作シナリオ | `Tests/UnitTest/Game/TrainDiagramAutoRunOperationsTest.cs` | 機能テスト (骨子) | 自動運転ダイアグラム操作のケース網羅を目的としたテスト構造 | 具体的なアサート未実装、シナリオ充実が今後の課題 |
 | セーブ/ロード (ブロック) | `Tests/UnitTest/Game/SaveLoad/TrainRailSaveLoadTest.cs` | 統合テスト | レール・駅の保存復元、接続状態とインベントリの保持 | 列車運行中の状態やドッキング継続までは未検証 |
+| セーブ/ロード (レールグラフ) | `Tests/UnitTest/Game/SaveLoad/RailGraphSaveLoadConsistencyTest.cs` | 統合テスト | セーブ前後でRailGraphのノード・エッジ構造が完全一致することを検証 | 大規模グラフでの性能測定は未実施 |
 | セーブ/ロード (列車・ドッキング) | `Tests/UnitTest/Game/SaveLoad/TrainStationDockingPersistenceTest.cs` | 統合テスト | ドッキング状態の復元、破損JSONロード時のフォールバック、複列車状態の整合性 | 長距離路線・ポイント切替を含む多列車運行までは未検証 |
+| セーブ/ロード (ダイアグラム) | `Tests/UnitTest/Game/SaveLoad/TrainDiagramSaveLoadTest.cs` | 統合テスト | ダイアグラムエントリ・待機Tick・欠損ノード時のスキップ処理を検証 | 巨大ダイアグラムや複数列車共有ケースは未検証 |
+| セーブ/ロード (走行速度) | `Tests/UnitTest/Game/SaveLoad/TrainSpeedSaveLoadTest.cs` | 統合テスト | 高速走行中の列車速度がセーブ後も一致するかを確認 | 連結列車や複数列車同時計測は未検証 |
+| セーブ/ロード (自動運転長時間) | `Tests/UnitTest/Game/SaveLoad/HugeAutoRunSaveLoadConsistencyTest.cs` | 長時間シナリオテスト | 1200本のレールと7列車による自動運転シナリオでセーブ有無のスナップショット一致を比較 | さらなる桁の負荷や乱数シード違いは未検証 |
 | ドッキング同時実行 | `Tests/UnitTest/Game/TrainStationDockingConcurrencyTest.cs` | 機能テスト | 前後両方向からの同時ドッキングや占有解除の競合を検証 | 長時間連続運転時の競合や多数列車の同時接近は未検証 |
 | シングルトレイン往復 | `Tests/UnitTest/Game/SingleTrainTwoStationIntegrationTest.cs` | シナリオテスト | 2駅間での積込→運搬→荷降ろし→往復完走、手動スイッチ操作を含む | 長時間運転や複数列車・ポイント切替は未検証 |
 
@@ -37,12 +42,17 @@
 - `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/TrainDiagramAutoRunOperationsTest.cs`
 - `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/TrainStationDockingItemTransferTest.cs`
 - `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainRailSaveLoadTest.cs`
+- `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/RailGraphSaveLoadConsistencyTest.cs`
+- `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainDiagramSaveLoadTest.cs`
 - `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainStationDockingPersistenceTest.cs`
+- `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainSpeedSaveLoadTest.cs`
+- `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/HugeAutoRunSaveLoadConsistencyTest.cs`
 - `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/TrainStationDockingConcurrencyTest.cs`
 - `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SingleTrainTwoStationIntegrationTest.cs`
 - (補助ユーティリティ) `moorestech_server/Assets/Scripts/Tests/Util/TrainTestHelper.cs`
 - (補助ユーティリティ) `moorestech_server/Assets/Scripts/Tests/Util/TrainAutoRunTestScenario.cs`
 - (補助ユーティリティ) `moorestech_server/Assets/Scripts/Tests/Util/TrainStationDockingScenario.cs`
+- (補助ユーティリティ) `moorestech_server/Assets/Scripts/Tests/Util/RailGraphNetworkTestHelper.cs`
 
 ### 各テストファイルの概要
 - **SimpleTrainTest.cs**: RailNodeの経路探索と接続性を検証し、複雑グラフやランダム生成ケースでの最短経路の健全性を確かめる。 
@@ -52,11 +62,16 @@
 - **TrainDiagramUpdateTest.cs**: 列車ダイアグラムのノード削除、条件設定、待機ティックなどの管理処理が正しく機能するかを確認する。 
 - **TrainDiagramAutoRunOperationsTest.cs**: 自動運転ダイアグラム操作のテストケース群の雛形を提供し、今後の詳細アサート追加の受け皿となる。 
 - **TrainStationDockingItemTransferTest.cs**: 駅・貨物プラットフォームでの積載／荷降ろしおよび占有制御が正しく働くかを統合的に確認する。 
-- **TrainStationDockingPersistenceTest.cs**: ドッキング状態の保存・復元、破損セーブからのフェイルセーフ、複列車スナップショット比較で列車セーブデータの整合性を検証する。 
-- **TrainStationDockingConcurrencyTest.cs**: 前後方向やループ構造で複数列車が同時に駅へ進入するケースを再現し、占有解除と再ドックの競合を確認する。 
-- **TrainRailSaveLoadTest.cs**: レールや駅のセーブデータ復元、接続情報・インベントリ状態の永続化が機能するかを検証する。 
-- **SingleTrainTwoStationIntegrationTest.cs**: 二駅間の積込→運搬→荷降ろし→折り返しという往復ループが自動運転で完了することを確認する。 
+- **TrainStationDockingPersistenceTest.cs**: ドッキング状態の保存・復元、破損セーブからのフェイルセーフ、複列車スナップショット比較で列車セーブデータの整合性を検証する。
+- **TrainStationDockingConcurrencyTest.cs**: 前後方向やループ構造で複数列車が同時に駅へ進入するケースを再現し、占有解除と再ドックの競合を確認する。
+- **TrainRailSaveLoadTest.cs**: レールや駅のセーブデータ復元、接続情報・インベントリ状態の永続化が機能するかを検証する。
+- **RailGraphSaveLoadConsistencyTest.cs**: 複数レールを配置したグラフをセーブ・ロードし、ノード接続や距離情報が完全一致することをスナップショット比較で確認する。
+- **TrainDiagramSaveLoadTest.cs**: ダイアグラムエントリの復元と欠損ノードのスキップ処理を検証し、ロード後の条件・待機Tickが破綻しないことを確認する。
+- **SingleTrainTwoStationIntegrationTest.cs**: 二駅間の積込→運搬→荷降ろし→折り返しという往復ループが自動運転で完了することを確認する。
+- **TrainSpeedSaveLoadTest.cs**: 高速走行中の列車をセーブ・ロードしても `TrainUnit.CurrentSpeed` が一致することをリフレクション設定を用いて検証する。
+- **HugeAutoRunSaveLoadConsistencyTest.cs**: 数千ノード規模のレール網と多数列車の自動運転シナリオで、セーブ有無の結果スナップショットが一致するかを長時間シミュレーションで比較する。
 - **TrainTestHelper.cs / TrainAutoRunTestScenario.cs / TrainStationDockingScenario.cs**: 上記テストで使用するテスト環境・シナリオ構築ユーティリティを提供し、列車・駅セットアップを簡潔化するサポートコード。
+- **RailGraphNetworkTestHelper.cs**: RailComponent集合からノード/エッジ構造をスナップショット化し、ロード後のRailGraphとの完全一致を比較するユーティリティ。
 
 ### カバレッジ詳細メモ
 - **ユニット層**: RailGraph/RailPosition関連のアルゴリズム系テスト(`SimpleTrainTest*.cs`)が存在し、基礎的な計算ロジックは網羅している。
