@@ -1,6 +1,34 @@
-id: optionalTestSchema
+id: testSchema
 type: object
 properties:
   - key: data0
-    type: number
+    type: object
+    properties:
+        - key: child0
+          type: number
+        - key: child1
+          type: string
     optional: true
+  - key: blockType
+    type: enum
+    options:
+      - A
+      - B
+  - key: data1
+    switch: ./blockType
+    cases:
+      - when: A
+        type: object
+        optional: true
+        properties: 
+          - key: child0
+            type: number
+          - key: child1
+            type: string
+      - when: B
+        type: object
+        properties:
+          - key: child0
+            type: number
+          - key: child1
+            type: string
