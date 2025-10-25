@@ -164,7 +164,7 @@ public static class LoaderGenerator
     {
         var switchSemantics = semantics.SwitchSemanticsTable[switchId];
         var name = nameTable.TypeNames[switchId];
-        var isNullable = switchSemantics.Types.Any(t => semantics.TypeSemanticsTable[t.classId].Schema.IsNullable);
+        var hasOptionalCase = switchSemantics.Schema.HasOptionalCase;
         return (
             $"mooresmaster.loader.{name.ModuleName}.{name.Name}.g.cs",
             $$$"""
@@ -172,9 +172,9 @@ public static class LoaderGenerator
                {
                    public static class {{{name.Name}}}Loader
                    {
-                       public static global::Mooresmaster.Model.{{{name.ModuleName}}}.{{{name.Name}}}{{{(isNullable ? "?" : "")}}} Load(global::Newtonsoft.Json.Linq.JToken json)
+                       public static global::Mooresmaster.Model.{{{name.ModuleName}}}.{{{name.Name}}}{{{(hasOptionalCase ? "?" : "")}}} Load(global::Newtonsoft.Json.Linq.JToken json)
                        {
-                           {{{string.Join("\n", switchSemantics.Types.Select(value => GenerateSwitchInheritedTypeLoaderCode(value.switchReferencePath, value.constValue, value.classId, nameTable))).Indent(level: 3)}}}
+                           {{{string.Join("\n", switchSemantics.Types.Select(value => GenerateSwitchInheritedTypeLoaderCode("json", semantics, value.switchReferencePath, value.constValue, value.classId, nameTable))).Indent(level: 3)}}}
                            
                            throw new global::System.NotImplementedException(json.Path);
                        }
@@ -215,9 +215,20 @@ public static class LoaderGenerator
                   """;
     }
     
-    private static string GenerateSwitchInheritedTypeLoaderCode(SwitchPath switchReferencePath, string constValue, ClassId classId, NameTable nameTable)
+    private static string GenerateSwitchInheritedTypeLoaderCode(string jsonName, Semantics semantics, SwitchPath switchReferencePath, string constValue, ClassId classId, NameTable nameTable)
     {
         var name = nameTable.TypeNames[classId];
+        var typeSemantics = semantics.TypeSemanticsTable[classId];
+        
+        if (typeSemantics.Schema.IsNullable)
+            return $$$"""
+                      if ({{{GenerateSwitchCheckCode(jsonName, switchReferencePath, constValue)}}})
+                      {
+                          if ({{{jsonName}}} == null) return null;
+                          else return {{{name.GetLoaderName()}}}.Load(json);
+                      }
+                      """;
+        
         return $$$"""
                   if ({{{GenerateSwitchCheckCode("json", switchReferencePath, constValue)}}})
                   {
