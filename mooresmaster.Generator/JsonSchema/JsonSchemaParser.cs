@@ -181,8 +181,10 @@ public static class JsonSchemaParser
 
             ifThenList.Add(new SwitchCaseSchema(switchPath, whenJson.Literal, Parse(thenJson, schemaId, table)));
         }
+        
+        var isNullable = IsNullable(json) || ifThenList.Any(c => table.Table[c.Schema].IsNullable);
 
-        table.Add(schemaId, new SwitchSchema((json[Tokens.PropertyNameKey] as JsonString)?.Literal, parent, ifThenList.ToArray(), IsNullable(json)));
+        table.Add(schemaId, new SwitchSchema((json[Tokens.PropertyNameKey] as JsonString)?.Literal, parent, ifThenList.ToArray(), isNullable));
         return schemaId;
     }
 
