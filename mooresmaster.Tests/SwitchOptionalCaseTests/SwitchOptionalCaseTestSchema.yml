@@ -1,26 +1,18 @@
-id: testSchema
+id: switchOptionalCaseTestSchema
 type: object
 properties:
-#  - key: data0
-#    type: object
-#    properties:
-#        - key: child0
-#          type: number
-#        - key: child1
-#          type: string
-#    optional: true
-  - key: blockType
+  - key: type
     type: enum
     options:
       - A
       - B
-  - key: data1
-    switch: ./blockType
-    cases:
+  - key: data
+    switch: ./type
+    cases: 
       - when: A
         type: object
         optional: true
-        properties: 
+        properties:
           - key: child0
             type: number
           - key: child1
