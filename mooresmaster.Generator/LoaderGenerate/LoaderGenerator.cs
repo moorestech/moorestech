@@ -47,10 +47,10 @@ public static class LoaderGenerator
                 loaderFiles.RemoveAt(i);
                 break;
             }
-
+        
         return loaderFiles.ToArray();
     }
-
+    
     private static (string fileName, string code) GenerateGlobalLoaderCode(Semantics semantics, NameTable nameTable)
     {
         try
@@ -61,7 +61,7 @@ public static class LoaderGenerator
             Console.WriteLine(e);
             throw;
         }
-
+        
         return (
             Tokens.LoaderFileName,
             $$$"""
@@ -98,7 +98,7 @@ public static class LoaderGenerator
                """
         );
     }
-
+    
     private static (string fileName, string code) GenerateTypeLoaderCode(TypeDefinition typeDefinition, Semantics semantics, NameTable nameTable)
     {
         var targetType = typeDefinition.TypeName;
@@ -128,7 +128,7 @@ public static class LoaderGenerator
                """
         );
     }
-
+    
     private static string GenerateNullCheckCode(TypeDefinition typeDefinition, Semantics semantics)
     {
         StringBuilder builder = new();
@@ -136,28 +136,35 @@ public static class LoaderGenerator
                      .Where(v => v.PropertyId.HasValue)
                      .Where(p => !p.IsNullable)
                      .Where(v => !semantics.PropertySemanticsTable[v.PropertyId!.Value].IsNullable)
+                     .Where(v =>
+                     {
+                         var schema = semantics.PropertySemanticsTable[v.PropertyId!.Value].Schema;
+                         if (schema is not SwitchSchema switchSchema) return true;
+                         return !switchSchema.HasOptionalCase;
+                     })
                 )
         {
             var jsonPropertyName = semantics.PropertySemanticsTable[propertyDefinition.PropertyId!.Value].PropertyName;
             var typeName = typeDefinition.TypeName.GetModelName();
             builder.AppendLine(
                 $$$$"""
-                                       if (json["{{{{jsonPropertyName}}}}"] == null)
-                                       {
-                                           var propertyPath = json.Parent == null ? "{{{{jsonPropertyName}}}}" : $"{json.Path}.{{{{jsonPropertyName}}}}";
-                                           throw new global::Mooresmaster.Loader.MooresmasterLoaderException(propertyPath, typeof({{{{typeName}}}}).Name, "{{{{propertyDefinition.PropertyName}}}}");
-                                       }
+                    if (json["{{{{jsonPropertyName}}}}"] == null)
+                    {
+                        var propertyPath = json.Parent == null ? "{{{{jsonPropertyName}}}}" : $"{json.Path}.{{{{jsonPropertyName}}}}";
+                        throw new global::Mooresmaster.Loader.MooresmasterLoaderException(propertyPath, typeof({{{{typeName}}}}).Name, "{{{{propertyDefinition.PropertyName}}}}");
+                    }
                     """
             );
         }
-
+        
         return builder.ToString();
     }
-
+    
     private static (string fileName, string code) GenerateSwitchLoaderCode(SwitchId switchId, Semantics semantics, NameTable nameTable)
     {
         var switchSemantics = semantics.SwitchSemanticsTable[switchId];
         var name = nameTable.TypeNames[switchId];
+        var isNullable = switchSemantics.Types.Any(t => semantics.TypeSemanticsTable[t.classId].Schema.IsNullable);
         return (
             $"mooresmaster.loader.{name.ModuleName}.{name.Name}.g.cs",
             $$$"""
@@ -165,7 +172,7 @@ public static class LoaderGenerator
                {
                    public static class {{{name.Name}}}Loader
                    {
-                       public static global::Mooresmaster.Model.{{{name.ModuleName}}}.{{{name.Name}}} Load(global::Newtonsoft.Json.Linq.JToken json)
+                       public static global::Mooresmaster.Model.{{{name.ModuleName}}}.{{{name.Name}}}{{{(isNullable ? "?" : "")}}} Load(global::Newtonsoft.Json.Linq.JToken json)
                        {
                            {{{string.Join("\n", switchSemantics.Types.Select(value => GenerateSwitchInheritedTypeLoaderCode(value.switchReferencePath, value.constValue, value.classId, nameTable))).Indent(level: 3)}}}
                            
@@ -176,7 +183,7 @@ public static class LoaderGenerator
                """
         );
     }
-
+    
     private static string GenerateSwitchCheckCode(string currentJson, SwitchPath switchReferencePath, string constValue)
     {
         var path = "";
@@ -191,7 +198,7 @@ public static class LoaderGenerator
             default:
                 throw new ArgumentOutOfRangeException();
         }
-
+        
         foreach (var element in switchReferencePath.Elements)
             switch (element)
             {
@@ -202,30 +209,30 @@ public static class LoaderGenerator
                     path += ".Parent";
                     break;
             }
-
+        
         return $$$"""
                   (string)({{{currentJson}}}{{{path}}}) == "{{{constValue}}}"
                   """;
     }
-
+    
     private static string GenerateSwitchInheritedTypeLoaderCode(SwitchPath switchReferencePath, string constValue, ClassId classId, NameTable nameTable)
     {
         var name = nameTable.TypeNames[classId];
         return $$$"""
-                                   if ({{{GenerateSwitchCheckCode("json", switchReferencePath, constValue)}}})
-                                   {
-                                       return {{{name.GetLoaderName()}}}.Load(json);
-                                   }
+                  if ({{{GenerateSwitchCheckCode("json", switchReferencePath, constValue)}}})
+                  {
+                      return {{{name.GetLoaderName()}}}.Load(json);
+                  }
                   """;
     }
-
+    
     private static string GenerateRootPropertyLoaderCode(TypeDefinition typeDefinition, Semantics semantics)
     {
         if (typeDefinition.PropertyTable.Count == 0) return string.Empty;
         var property = typeDefinition.PropertyTable.First();
         return $"{property.Value.Type.GetName()} {property.Key} = {GeneratePropertyLoaderCode(property.Value.Type, "json")};";
     }
-
+    
     private static string GeneratePropertiesLoaderCode(TypeDefinition typeDefinition, Semantics semantics)
     {
         return string.Join(
@@ -240,7 +247,7 @@ public static class LoaderGenerator
                 )
         );
     }
-
+    
     private static string GeneratePropertyLoaderCode(Type type, string json)
     {
         return type switch
@@ -276,7 +283,7 @@ public static class LoaderGenerator
             _ => throw new ArgumentOutOfRangeException(nameof(type))
         };
     }
-
+    
     private static string GenerateNullableUnwrapCode(Type type)
     {
         return type switch
@@ -286,7 +293,7 @@ public static class LoaderGenerator
             _ => throw new ArgumentOutOfRangeException(nameof(type)) // nullableは来てはいけない
         };
     }
-
+    
     private static string GetLoaderName(Type type)
     {
         return $"{
@@ -308,7 +315,7 @@ public static class LoaderGenerator
             }
         }";
     }
-
+    
     public static string GenerateBuiltinLoaderCode()
     {
         return """
@@ -369,7 +376,7 @@ public static class LoaderGenerator
                }
                """;
     }
-
+    
     public static string GenerateLoaderExceptionTypeCode()
     {
         return """"
@@ -398,7 +405,7 @@ public static class LoaderGenerator
                }
                """";
     }
-
+    
     private static string Indent(this string code, bool firstLine = false, int level = 1)
     {
         var indent = new string(' ', 4 * level);
