@@ -172,11 +172,11 @@ public static class LoaderGenerator
                {
                    public static class {{{name.Name}}}Loader
                    {
-                       public static global::Mooresmaster.Model.{{{name.ModuleName}}}.{{{name.Name}}}{{{(hasOptionalCase ? "?" : "")}}} Load(global::Newtonsoft.Json.Linq.JToken json)
+                       public static global::Mooresmaster.Model.{{{name.ModuleName}}}.{{{name.Name}}}{{{(hasOptionalCase ? "?" : "")}}} Load(global::Newtonsoft.Json.Linq.JToken parentJson)
                        {
-                           {{{string.Join("\n", switchSemantics.Types.Select(value => GenerateSwitchInheritedTypeLoaderCode("json", semantics, value.switchReferencePath, value.constValue, value.classId, nameTable))).Indent(level: 3)}}}
+                           {{{string.Join("\n", switchSemantics.Types.Select(value => GenerateSwitchInheritedTypeLoaderCode("parentJson", switchSemantics, semantics, value.switchReferencePath, value.constValue, value.classId, nameTable))).Indent(level: 3)}}}
                            
-                           throw new global::System.NotImplementedException(json.Path);
+                           throw new global::System.NotImplementedException(parentJson.Path);
                        }
                    }
                }
@@ -193,7 +193,7 @@ public static class LoaderGenerator
                 path += ".Root";
                 break;
             case SwitchPathType.Relative:
-                path += ".Parent.Parent";
+                path += "";
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
@@ -215,24 +215,17 @@ public static class LoaderGenerator
                   """;
     }
     
-    private static string GenerateSwitchInheritedTypeLoaderCode(string jsonName, Semantics semantics, SwitchPath switchReferencePath, string constValue, ClassId classId, NameTable nameTable)
+    private static string GenerateSwitchInheritedTypeLoaderCode(string parentJsonName, SwitchSemantics switchSemantics, Semantics semantics, SwitchPath switchReferencePath, string constValue, ClassId classId, NameTable nameTable)
     {
         var name = nameTable.TypeNames[classId];
         var typeSemantics = semantics.TypeSemanticsTable[classId];
-        
-        if (typeSemantics.Schema.IsNullable)
-            return $$$"""
-                      if ({{{GenerateSwitchCheckCode(jsonName, switchReferencePath, constValue)}}})
-                      {
-                          if ({{{jsonName}}} == null) return null;
-                          else return {{{name.GetLoaderName()}}}.Load(json);
-                      }
-                      """;
+        var propertyName = switchSemantics.Schema.PropertyName;
         
         return $$$"""
-                  if ({{{GenerateSwitchCheckCode("json", switchReferencePath, constValue)}}})
+                  if ({{{GenerateSwitchCheckCode(parentJsonName, switchReferencePath, constValue)}}})
                   {
-                      return {{{name.GetLoaderName()}}}.Load(json);
+                      if ({{{parentJsonName}}}["{{{propertyName}}}"] == null) {{{(typeSemantics.Schema.IsNullable ? "return null;" : $"throw new global::Mooresmaster.Loader.MooresmasterLoaderException({parentJsonName}.Path, typeof({name.GetModelName()}).Name, \"{propertyName}\");")}}}
+                      else return {{{name.GetLoaderName()}}}.Load({{{parentJsonName}}}["{{{propertyName}}}"]);
                   }
                   """;
     }
@@ -250,11 +243,16 @@ public static class LoaderGenerator
             "\n",
             typeDefinition
                 .PropertyTable
-                .Select(property => $"{property.Value.Type.GetName()} {property.Key} = {GeneratePropertyLoaderCode(
-                    property.Value.Type,
-                    $$$"""
-                       json["{{{semantics.PropertySemanticsTable[property.Value.PropertyId.Value].PropertyName}}}"]
-                       """)};"
+                .Select(property =>
+                    {
+                        var propertySemantics = semantics.PropertySemanticsTable[property.Value.PropertyId!.Value];
+                        
+                        return $"{property.Value.Type.GetName()} {property.Key} = {GeneratePropertyLoaderCode(
+                            property.Value.Type,
+                            propertySemantics.Schema is SwitchSchema ?
+                                "json" :
+                                $"json[\"{propertySemantics.PropertyName}\"]")};";
+                    }
                 )
         );
     }

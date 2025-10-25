@@ -34,19 +34,19 @@ public class Test
         
         Token[] answer =
         [
-            new Token(TokenType.LBrace, "{"),
-            new Token(TokenType.String, "hoge"),
-            new Token(TokenType.Colon, ":"),
-            new Token(TokenType.String, "fuga"),
-            new Token(TokenType.Comma, ","),
-            new Token(TokenType.String, "piyo"),
-            new Token(TokenType.Colon, ":"),
-            new Token(TokenType.LSquare, "["),
-            new Token(TokenType.String, "puyo"),
-            new Token(TokenType.Comma, ","),
-            new Token(TokenType.String, "poyo"),
-            new Token(TokenType.RSquare, "]"),
-            new Token(TokenType.RBrace, "}")
+            new(TokenType.LBrace, "{"),
+            new(TokenType.String, "hoge"),
+            new(TokenType.Colon, ":"),
+            new(TokenType.String, "fuga"),
+            new(TokenType.Comma, ","),
+            new(TokenType.String, "piyo"),
+            new(TokenType.Colon, ":"),
+            new(TokenType.LSquare, "["),
+            new(TokenType.String, "puyo"),
+            new(TokenType.Comma, ","),
+            new(TokenType.String, "poyo"),
+            new(TokenType.RSquare, "]"),
+            new(TokenType.RBrace, "}")
         ];
         var tokens = JsonTokenizer.GetTokens(json);
         Assert.Equivalent(tokens, answer, true);
@@ -124,5 +124,10 @@ public class Test
         var blockJsonPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"{name}.json");
         var blockJson = File.ReadAllText(blockJsonPath);
         return (JToken)JsonConvert.DeserializeObject(blockJson)!;
+    }
+    
+    public static JToken ToJson(string json)
+    {
+        return (JToken)JsonConvert.DeserializeObject(json)!;
     }
 }

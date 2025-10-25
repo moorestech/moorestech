@@ -1,9 +1,9 @@
-using System;
 using System.IO;
 using System.Linq;
-using mooresmaster.Generator.CodeGenerate;
 using mooresmaster.Generator.JsonSchema;
-using mooresmaster.Generator.LoaderGenerate;
+using Mooresmaster.Loader;
+using Mooresmaster.Loader.SwitchOptionalCaseTestSchemaModule;
+using Mooresmaster.Model.SwitchOptionalCaseTestSchemaModule;
 using Xunit;
 
 namespace mooresmaster.Tests.SwitchOptionalCaseTests;
@@ -11,7 +11,7 @@ namespace mooresmaster.Tests.SwitchOptionalCaseTests;
 public class SwitchOptionalCaseTest
 {
     [Fact]
-    public void RecursiveOptionalTest()
+    public void OptionalCaseTest()
     {
         var yaml = File.ReadAllText("./SwitchOptionalCaseTests/SwitchOptionalCaseTestSchema.yml");
         
@@ -25,10 +25,89 @@ public class SwitchOptionalCaseTest
         var switchSchemaId = rootInnerTypeObjectSchema.Properties.Values.First(v => schemaTable.Table[v].PropertyName == "data");
         var switchProperty = (SwitchSchema)schemaTable.Table[switchSchemaId];
         
-        Assert.True(switchProperty.IsNullable);
+        Assert.True(switchProperty.HasOptionalCase);
+    }
+    
+    /// <summary>
+    ///     optionalなcaseの場合、dataがなくてもエラーにならない
+    /// </summary>
+    [Fact]
+    public void OptionalCaseLoaderTestOptionalCaseNull()
+    {
+        var json = """
+                   {
+                     "type": "A"
+                   }
+                   """;
         
-        var codeFiles = CodeGenerator.Generate(definition);
-        var loaderFiles = LoaderGenerator.Generate(definition, semantics, nameTable);
-        Console.WriteLine(codeFiles);
+        var data = SwitchOptionalCaseTestSchemaLoader.Load(Test.ToJson(json));
+        Assert.NotNull(data);
+        Assert.Null(data.Data);
+    }
+    
+    /// <summary>
+    ///     optionalなcaseの場合、dataがあったら読み取れる
+    /// </summary>
+    [Fact]
+    public void OptionalCaseLoaderTestOptionalCaseNotNull()
+    {
+        var json = """
+                   {
+                     "type": "A",
+                     "data": {
+                       "child0": 1,
+                       "child1": "test"
+                     }
+                   }
+                   """;
+        
+        var data = SwitchOptionalCaseTestSchemaLoader.Load(Test.ToJson(json));
+        Assert.NotNull(data);
+        Assert.NotNull(data.Data);
+        Assert.True(data.Data is AData);
+        var aData = (AData)data.Data;
+        Assert.Equal(1, aData.Child0);
+        Assert.Equal("test", aData.Child1);
+    }
+    
+    /// <summary>
+    ///     optionalなcaseがあり、かつ今回はoptionalでない場合、dataがないとエラーになる
+    /// </summary>
+    [Fact]
+    public void OptionalCaseLoaderTestNotOptionalCaseNull()
+    {
+        var json = """
+                   {
+                     "type": "B"
+                   }
+                   """;
+        
+        Assert.Throws<MooresmasterLoaderException>(() => { SwitchOptionalCaseTestSchemaLoader.Load(Test.ToJson(json)); }
+        );
+    }
+    
+    /// <summary>
+    ///     optionalなcaseがあり、かつ今回はoptionalでない場合、dataがあったら読み取れる
+    /// </summary>
+    [Fact]
+    public void OptionalCaseLoaderTestNotOptionalCaseNotNull()
+    {
+        var json = """
+                   {
+                     "type": "B",
+                     "data": {
+                       "child0": 2,
+                       "child1": "test2"
+                     }
+                   }
+                   """;
+        
+        var data = SwitchOptionalCaseTestSchemaLoader.Load(Test.ToJson(json));
+        Assert.NotNull(data);
+        Assert.NotNull(data.Data);
+        Assert.True(data.Data is BData);
+        var bData = (BData)data.Data;
+        Assert.Equal(2, bData.Child0);
+        Assert.Equal("test2", bData.Child1);
     }
 }
