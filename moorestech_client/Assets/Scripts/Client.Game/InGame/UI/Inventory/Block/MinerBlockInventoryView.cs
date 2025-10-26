@@ -130,15 +130,8 @@ namespace Client.Game.InGame.UI.Inventory.Block
                 // 現在表示されている分間採掘数を表示
                 // Display per-minute mining count for visible items
                 var targetItemId = MasterHolder.ItemMaster.GetItemId(settings.ItemGuid);
-                if (!currentMiningItemIds.Contains(targetItemId))
-                {
-                    continue;
-                }
-                
-                if (settings.Time <= 0f)
-                {
-                    continue;
-                }
+                if (!currentMiningItemIds.Contains(targetItemId)) continue;
+                if (settings.Time <= 0f) continue;
                 
                 var perMinute = 60f / settings.Time;
                 var itemName = MasterHolder.ItemMaster.GetItemMaster(settings.ItemGuid).Name;
