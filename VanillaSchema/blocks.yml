@@ -139,6 +139,7 @@ properties:
         type: object
         implementationInterface:
         - IChestParam
+        - IInventoryConnectors
         properties:
         - key: itemSlotCount
           type: integer

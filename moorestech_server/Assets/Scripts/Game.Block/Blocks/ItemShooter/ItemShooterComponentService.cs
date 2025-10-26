@@ -91,6 +91,8 @@ namespace Game.Block.Blocks.ItemShooter
             _settings = settings;
             _inventoryItems = new ShooterInventoryItem[_settings.InventoryItemNum];
         }
+        
+        private int _lastInsertSlotIndex = -1;
 
         /// <summary>
         /// 更新処理で射出進行と速度を管理
@@ -147,8 +149,13 @@ namespace Game.Block.Blocks.ItemShooter
                 var insertItem = ServerContext.ItemStackFactory.Create(finishedItem.ItemId, 1, finishedItem.ItemInstanceId);
 
                 if (_connectorComponent.ConnectedTargets.Count == 0) return;
-
-                var connector = _connectorComponent.ConnectedTargets.First();
+                
+                _lastInsertSlotIndex++;
+                if (_lastInsertSlotIndex >= _connectorComponent.ConnectedTargets.Count)
+                {
+                    _lastInsertSlotIndex = 0;
+                }
+                var connector = _connectorComponent.ConnectedTargets.ElementAt(_lastInsertSlotIndex);
                 var target = connector.Key;
                 if (target is IItemShooterComponent shooter)
                 {
