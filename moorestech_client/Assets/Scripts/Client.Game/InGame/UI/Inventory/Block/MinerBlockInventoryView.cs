@@ -6,6 +6,7 @@ using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Common;
 using Core.Item.Interface;
+using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface.State;
 using Game.Context;
@@ -95,6 +96,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
         private async UniTask SetMiningItem()
         {
             // 採掘中のアイテムを取得
+            // Fetch currently mining items
             var pos = BlockGameObject.BlockPosInfo.OriginalPos;
             var blockStates = await ClientContext.VanillaApi.Response.GetBlockState(pos, _gameObjectCancellationToken);
             if (blockStates == null)
@@ -110,8 +112,11 @@ namespace Client.Game.InGame.UI.Inventory.Block
                 return;
             }
             
+            var currentMiningItemIds = state.GetCurrentMiningItemIds();
+            
             // 採掘中のアイテムを表示
-            foreach (var itemId in state.GetCurrentMiningItemIds())
+            // Render the currently mining items
+            foreach (var itemId in currentMiningItemIds)
             {
                 var itemView = ClientContext.ItemImageContainer.GetItemView(itemId);
                 var slot = Instantiate(ItemSlotView.Prefab, miningItemSlotParent);
@@ -123,7 +128,23 @@ namespace Client.Game.InGame.UI.Inventory.Block
             foreach (var settings in mineSettings.items)
             {
                 // 現在表示されている分間採掘数を表示
+                // Display per-minute mining count for visible items
+                var targetItemId = MasterHolder.ItemMaster.GetItemId(settings.ItemGuid);
+                if (!currentMiningItemIds.Contains(targetItemId))
+                {
+                    continue;
+                }
+                
+                if (settings.Time <= 0f)
+                {
+                    continue;
+                }
+                
+                var perMinute = 60f / settings.Time;
+                var itemName = MasterHolder.ItemMaster.GetItemMaster(settings.ItemGuid).Name;
+                mineItemCount += $"{itemName} : {perMinute:F1}/分 ";
             }
+            miningItemCount.text = mineItemCount;
         } 
     }
 }
