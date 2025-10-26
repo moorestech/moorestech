@@ -69,11 +69,12 @@ public static class ArraySchemaExtension
     }
 }
 
-public record SwitchSchema(string? PropertyName, SchemaId? Parent, SwitchCaseSchema[] IfThenArray, bool IsNullable) : ISchema
+public record SwitchSchema(string? PropertyName, SchemaId? Parent, SwitchCaseSchema[] IfThenArray, bool IsNullable, bool HasOptionalCase) : ISchema
 {
     public SwitchCaseSchema[] IfThenArray = IfThenArray;
     public string? PropertyName { get; } = PropertyName;
     public bool IsNullable { get; } = IsNullable;
+    public bool HasOptionalCase = HasOptionalCase;
     public SchemaId? Parent { get; } = Parent;
 }
 
