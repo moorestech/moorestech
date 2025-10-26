@@ -34,6 +34,12 @@ defineInterface:
   - key: requiredRpm
     type: number
     default: 5
+- interfaceName: IMinerParam
+  properties:
+  - key: outputItemSlotCount
+    type: integer
+  - key: mineSettings
+    ref: mineSettings
 - interfaceName: IInventoryConnectors
   properties:
   - key: inventoryConnectors
@@ -253,6 +259,7 @@ properties:
       - when: ElectricMiner
         type: object
         implementationInterface:
+        - IMinerParam
         - IInventoryConnectors
         properties:
         - key: requiredPower
@@ -513,6 +520,7 @@ properties:
         type: object
         implementationInterface:
         - IGearMachineParam
+        - IMinerParam
         - IInventoryConnectors
         - IGearConnectors
         properties:
