@@ -8,6 +8,7 @@ using Core.Master;
 using Game.Block.Interface.State;
 using Game.Context;
 using Mooresmaster.Model.BlocksModule;
+using Mooresmaster.Model.MachineRecipesModule;
 using TMPro;
 using UnityEngine;
 
@@ -24,7 +25,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
         
         [SerializeField] private TMP_Text powerRateText;
         [SerializeField] private ProgressArrowView machineProgressArrow;
-        [SerializeField] private TMP_Text machineRecipeSecondText;
+        [SerializeField] private TMP_Text machineRecipeCount;
         
         protected BlockGameObject BlockGameObject;
         
@@ -100,13 +101,19 @@ namespace Client.Game.InGame.UI.Inventory.Block
                     return;
                 }
                 
-                var machineRecipeSecond = string.Empty;
+                var machineRecipeCountText = string.Empty;
                 if (state.MachineRecipeGuid != Guid.Empty.ToString())
                 {
                     var recipeMaster = MasterHolder.MachineRecipesMaster.GetRecipeElement(Guid.Parse(state.MachineRecipeGuid));
-                    machineRecipeSecond = $"{recipeMaster.Time:F1} 秒";
+                    var minutesCount =  60.0f / recipeMaster.Time;
+                    foreach (var item in recipeMaster.OutputItems)
+                    {
+                        var resultCount = item.Count * minutesCount;
+                        var itemName = MasterHolder.ItemMaster.GetItemMaster(item.ItemGuid).Name;
+                        machineRecipeCountText += $"{itemName} : {resultCount:F1}/分 ";
+                    }
                 }
-                machineRecipeSecondText.text = machineRecipeSecond;
+                machineRecipeCount.text = machineRecipeCountText;
             }
             
             void UpdateMachineProgressArrow()
