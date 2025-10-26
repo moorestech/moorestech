@@ -1,4 +1,5 @@
 using System;
+using Game.Block.Interface.Component;
 using MessagePack;
 
 namespace Game.Block.Interface.State
@@ -47,6 +48,12 @@ namespace Game.Block.Interface.State
             RequestPower = requestPower;
             ProcessingRate = processingRate;
         }
+        
+        public static BlockStateDetail CreateState(float currentPower, float requestPower, float processingRate, string currentStateType, string previousStateType)
+        {
+            var stateDetail = new CommonMachineBlockStateDetail(currentPower, requestPower, processingRate, currentStateType, previousStateType);
+            return new BlockStateDetail(BlockStateDetailKey, MessagePackSerializer.Serialize(stateDetail));
+        } 
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public CommonMachineBlockStateDetail()

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
@@ -23,6 +24,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
         
         [SerializeField] private TMP_Text powerRateText;
         [SerializeField] private ProgressArrowView machineProgressArrow;
+        [SerializeField] private TMP_Text machineRecipeSecondText;
         
         protected BlockGameObject BlockGameObject;
         
@@ -84,10 +86,28 @@ namespace Client.Game.InGame.UI.Inventory.Block
         
         protected void Update()
         {
+            UpdateMachineRecipeView();
             UpdateMachineProgressArrow();
             UpdateFluidInventory();
             
             #region Internal
+            
+            void UpdateMachineRecipeView()
+            {
+                var state = BlockGameObject.GetStateDetail<MachineBlockStateDetail>(MachineBlockStateDetail.BlockStateDetailKey);
+                if (state == null)
+                {
+                    return;
+                }
+                
+                var machineRecipeSecond = string.Empty;
+                if (state.MachineRecipeGuid != Guid.Empty.ToString())
+                {
+                    var recipeMaster = MasterHolder.MachineRecipesMaster.GetRecipeElement(Guid.Parse(state.MachineRecipeGuid));
+                    machineRecipeSecond = $"{recipeMaster.Time:F1} 秒";
+                }
+                machineRecipeSecondText.text = machineRecipeSecond;
+            }
             
             void UpdateMachineProgressArrow()
             {
