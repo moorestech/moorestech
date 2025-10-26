@@ -9,10 +9,7 @@
     </PropertyGroup>
      
     <ItemGroup>
-        <PackageReference Include="mooresmaster.Generator" Version="1.0.13">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
+        <ProjectReference Include="..\mooresmaster.Generator\mooresmaster.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
         <PackageReference Include="Unity3D.UnityEngine" Version="2018.3.5.1"/>
     </ItemGroup>
@@ -20,6 +17,8 @@
     <ItemGroup>
         <None Remove="Schema.yml"/>
         <AdditionalFiles Include="Schema.yml"/>
+        <None Remove="OtherSchema.yml" />
+        <AdditionalFiles Include="OtherSchema.yml" />
     </ItemGroup>
 
 </Project>
