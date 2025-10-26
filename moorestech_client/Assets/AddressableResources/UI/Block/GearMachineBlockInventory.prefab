@@ -575,7 +575,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: -43}
-  m_SizeDelta: {x: 81.27, y: 50}
+  m_SizeDelta: {x: 413.7, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6247795629427064339
 CanvasRenderer:
@@ -599,7 +599,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -1350,7 +1350,7 @@ MonoBehaviour:
   machineOutputFluidParent: {fileID: 6931871132086811337}
   powerRateText: {fileID: 3716168548930280726}
   machineProgressArrow: {fileID: 140989436986467170}
-  machineRecipeSecondText: {fileID: 795502184343006560}
+  machineRecipeCount: {fileID: 795502184343006560}
   torque: {fileID: 4419313020298963147}
   rpm: {fileID: 1226030551909944381}
   networkInfo: {fileID: 1201861896587338481}
