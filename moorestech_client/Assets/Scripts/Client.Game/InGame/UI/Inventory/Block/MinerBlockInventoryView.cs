@@ -23,6 +23,8 @@ namespace Client.Game.InGame.UI.Inventory.Block
         [SerializeField] private TMP_Text powerRateText;
         [SerializeField] private ProgressArrowView minerProgressArrow;
         
+        [SerializeField] private TMP_Text miningItemCount;
+        
         protected BlockGameObject BlockGameObject;
         private CancellationToken _gameObjectCancellationToken;
         
@@ -33,13 +35,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
             BlockGameObject = blockGameObject;
             
             var itemList = new List<IItemStack>();
-            var param = blockGameObject.BlockMasterElement.BlockParam;
-            var outputCount = param switch
-            {
-                ElectricMinerBlockParam blockParam => blockParam.OutputItemSlotCount, // TODO master interfaceブロックインベントリの整理箇所
-                GearMinerBlockParam blockParam => blockParam.OutputItemSlotCount,
-                _ => 0
-            };
+            var outputCount = ((IMinerParam) blockGameObject.BlockMasterElement.BlockParam).OutputItemSlotCount; 
             
             // リザルトアイテムスロットを作成
             CreateResultItemSlot();
@@ -62,7 +58,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
                 }
             }
             
-  #endregion
+            #endregion
         }
         
         protected void Update()
@@ -93,7 +89,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
                 powerRateText.text = $"エネルギー {colorTag}{powerRate * 100:F2}{resetTag}% {colorTag}{currentPower:F2}{resetTag}/{requiredPower:F2}";
             }
             
-  #endregion
+            #endregion
         }
         
         private async UniTask SetMiningItem()
@@ -120,6 +116,13 @@ namespace Client.Game.InGame.UI.Inventory.Block
                 var itemView = ClientContext.ItemImageContainer.GetItemView(itemId);
                 var slot = Instantiate(ItemSlotView.Prefab, miningItemSlotParent);
                 slot.SetItem(itemView, 0);
+            }
+            
+            var mineSettings = ((IMinerParam) BlockGameObject.BlockMasterElement.BlockParam).MineSettings;
+            var mineItemCount = string.Empty;
+            foreach (var settings in mineSettings.items)
+            {
+                // 現在表示されている分間採掘数を表示
             }
         } 
     }
