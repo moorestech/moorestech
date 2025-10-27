@@ -112,7 +112,6 @@
     - `SaveLoadJsonTestHelper.SaveCorruptAndLoad` を用い、DockingBlockPosition欠損時に自動的にUndockして再接続可能なことを確認。
   - [x] 駅・レールブロックの保存/復元とインベントリ保持 (`moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainRailSaveLoadTest.cs`)
 - **着手ポイント**:
-  - 走行中セーブ時の速度許容誤差や列車間同期ズレの閾値を定義し、リグレッション検知の精度を高める。
   - `TrainAutoRunTestScenario`/`TrainStationDockingScenario`を拡張し、曲線やポイント切替を含む路線でのセーブ/ロードケースを量産できるようにする。
   - `SaveLoadJsonTestHelper` の破壊ユーティリティを拡張し、ノード接続欠損やダイアグラム参照欠損など多様なフェイルインジェクションをテンプレ化する。
 
