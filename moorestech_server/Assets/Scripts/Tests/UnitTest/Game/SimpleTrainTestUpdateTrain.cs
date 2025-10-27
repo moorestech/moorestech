@@ -97,10 +97,10 @@ namespace Tests.UnitTest.Game
                 //totalrunDist_は0でないといけない
                 Assert.AreEqual(0, remain, "往路の走行で残余距離が発生しています。");
                 //逆向きにして進みてみる
-                trainUnit.RailPosition.Reverse();
+                trainUnit.Reverse();
                 remain = totalrunDist - trainUnit.UpdateTrainByDistance(totalrunDist);
                 Assert.AreEqual(0, remain, "復路の走行で残余距離が発生しています。");
-                trainUnit.RailPosition.Reverse();
+                trainUnit.Reverse();
 
                 //逆向きにして同じ場所か
                 //向かっているのがnodeAのはず
@@ -354,7 +354,7 @@ namespace Tests.UnitTest.Game
             }
 
             //走行スタート 駅3→駅0の終点
-            trainUnit.RailPosition.Reverse();
+            trainUnit.Reverse();
             var secondDestination = railComponentsData[0].BackNode;
             trainUnit.trainDiagram.AddEntry(secondDestination);
             trainUnit.trainDiagram.MoveToNextEntry();
@@ -366,7 +366,7 @@ namespace Tests.UnitTest.Game
                 Debug.Log("列車編成が無事目的地につきました2");
             }
             //走行スタート 駅0→駅3の終点
-            trainUnit.RailPosition.Reverse();
+            trainUnit.Reverse();
             var thirdDestination = railComponentsData[7].FrontNode;
             trainUnit.trainDiagram.AddEntry(thirdDestination);
             trainUnit.trainDiagram.MoveToNextEntry();

@@ -16,6 +16,11 @@
 - ドッキング挙動の検証では `DockingHandle` や `TrainDockingHandle` といったハンドル参照を信頼ソースにします。`TrainUnit` のローカルキャッシュだけに依存しないことで、状態同期ずれを防ぎます。
 - `docs/train/TrainTickSimulation.md` の挙動保証と突き合わせ、Tick 駆動の処理やスケジューリングを変更する際はドキュメントを更新してください。
 
+## TrainCar の向きと牽引力
+- `TrainCar` のコンストラクタは `isFacingForward` 引数を受け取り、未指定の場合は前向き (`true`) になります。後ろ向き (`false`) の車両は重量こそ保持しますが牽引力を発生しません。
+- 列車編成を反転させる場合は `TrainUnit.Reverse()` を呼び出してください。`RailPosition.Reverse()` を直接叩くと車両の向き情報が更新されず、牽引力計算やセーブデータに整合性がなくなります。
+- セーブデータの `TrainCarSaveData.IsFacingForward` で向きが永続化されます。既存セーブデータには値が存在しないため、ロード時は `true` を既定値として扱います。
+
 ## RailNode 構造の基本と front/back モデル
 - 各 `RailComponent` はコンストラクタ内で `FrontNode` と `BackNode` の 2 つの `RailNode` を生成し、互いを `OppositeNode` として登録します。これらのノードは `RailGraphDatastore` に登録され、片方向グラフのノードとして扱われます。
 - 単純なレールブロックは 1 ブロックあたり 2 つの `RailComponent` を持つため、最小構成でも 4 ノードで前後方向が構成されます。曲線や分岐を組む場合も、front/back の 2 ノードを単位として接続を構築します。
