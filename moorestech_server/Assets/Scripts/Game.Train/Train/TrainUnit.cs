@@ -30,8 +30,17 @@ namespace Game.Train.Train
         public double CurrentSpeed => _currentSpeed;
         private double _accumulatedDistance; // 累積距離、距離の小数点以下を保持するために使用
         //摩擦係数、空気抵抗係数などはここに追加する
-        const double FRICTION = 0.0002;
-        const double AIR_RESISTANCE = 0.00002;
+        private const double FRICTION = 0.0002;
+        private const double AIR_RESISTANCE = 0.00002;
+        private const double SpeedWeight = 0.008;//1tickで_currentSpeedが進む距離に変換されるための重み付け係数
+        private const double AutoRunMaxSpeedDistanceCoefficient = 10000.0;//自動運転の最大速度計算用距離係数
+        private const double AutoRunMaxSpeedOffset = 10.0;//自動運転で、AutoRunMaxSpeedOffsetは目的距離が近すぎても進めるようにするためのバッファ
+        private const double AutoRunSpeedBufferMargin = 0.02;
+        private const double AutoRunSpeedBufferRate = 1.0 - AutoRunSpeedBufferMargin;
+        private const double TractionForceAccelerationRate = 0.1;
+        private const double ManualControlDecelerationFactor = 1.0;//マスコンレベル手動調整用
+        private const int MasconLevelMaximum = 16777216;//電車でGOでP5-B8まであるやつ
+        private const int InfiniteLoopGuardThreshold = 1_000_000;
 
         private List<TrainCar> _cars;
         public RailPosition RailPosition => _railPosition;
@@ -144,7 +153,7 @@ namespace Game.Train.Train
             //マスコンレベルから燃料を消費しつつ速度を計算する
             UpdateTrainSpeed();
             //距離計算 進むor後進する
-            double floatDistance = _currentSpeed * 0.008;
+            double floatDistance = _currentSpeed * SpeedWeight;
             _accumulatedDistance += floatDistance;
             int distance = (int)Math.Truncate(_accumulatedDistance);
             _accumulatedDistance -= distance;
@@ -164,17 +173,18 @@ namespace Game.Train.Train
         {
             masconLevel = 0;
             //目的地に近ければ減速したい。自動運行での最大速度を決めておく
-            double maxspeed = Math.Sqrt(((double)_remainingDistance) * 10000.0) + 10.0;//10.0は距離が近すぎても進めるよう
+            double maxspeed = Math.Sqrt(((double)_remainingDistance) * AutoRunMaxSpeedDistanceCoefficient) + AutoRunMaxSpeedOffset;//AutoRunMaxSpeedOffsetは距離が近すぎても進めるようにするためのバッファ
             //全力加速する必要がある。マスコンレベルmax
             if (maxspeed > _currentSpeed)
             {
-                masconLevel = 16777216;
+                masconLevel = MasconLevelMaximum;
             }
             //
-            if (maxspeed < _currentSpeed * 0.98)//0.02ぶんはバッファ
+            if (maxspeed < _currentSpeed * AutoRunSpeedBufferRate)//AutoRunSpeedBufferMarginぶんはバッファ
             {
-                var subspeed = maxspeed - _currentSpeed * 0.98;
-                masconLevel = Math.Max((int)subspeed, -16777216);
+                var bufferAdjustedSpeed = _currentSpeed * AutoRunSpeedBufferRate;
+                var subspeed = maxspeed - bufferAdjustedSpeed;
+                masconLevel = Math.Max((int)subspeed, -MasconLevelMaximum);
             }
         }
 
@@ -188,19 +198,19 @@ namespace Game.Train.Train
             if (masconLevel > 0)
             {
                 force = UpdateTractionForce(masconLevel);
-                _currentSpeed += force * 0.1;
+                _currentSpeed += force * TractionForceAccelerationRate;
             }
-            else 
+            else
             {
                 //currentspeedがマイナスも考慮
                 sign = Math.Sign(_currentSpeed);
-                _currentSpeed += sign * masconLevel * 1.0; // 0.0005は調整用定数
+                _currentSpeed += sign * masconLevel * ManualControlDecelerationFactor; // ManualControlDecelerationFactorは調整用定数
                 sign2 = Math.Sign(_currentSpeed);
                 if (sign != sign2) _currentSpeed = 0; // 逆方向に行かないようにする
             }
 
             //どちらにしても速度は摩擦で減少する。摩擦は速度の1乗、空気抵抗は速度の2乗に比例するとする
-            force = Math.Abs(_currentSpeed) * 0.008 * FRICTION + _currentSpeed * _currentSpeed * 0.008 * AIR_RESISTANCE;
+            force = Math.Abs(_currentSpeed) * SpeedWeight * FRICTION + _currentSpeed * _currentSpeed * SpeedWeight * AIR_RESISTANCE;
             sign = Math.Sign(_currentSpeed);
             _currentSpeed -= sign * force;
             sign2 = Math.Sign(_currentSpeed);
@@ -289,7 +299,7 @@ namespace Game.Train.Train
                 //----------------------------------------------------------------------------------------
 
                 loopCount++;
-                if (loopCount > 1000000)
+                if (loopCount > InfiniteLoopGuardThreshold)
                 {
                     throw new InvalidOperationException("列車速度が無限に近いか、レール経路の無限ループを検知しました。");
                     break;
@@ -311,7 +321,7 @@ namespace Game.Train.Train
                 totalWeight += weight;
                 totalTraction += traction;
             }
-            return (double)totalTraction / totalWeight * masconLevel / 16777216.0;
+            return (double)totalTraction / totalWeight * masconLevel / MasconLevelMaximum;
         }
 
         //diagramのindexが見ている目的地にちょうど0距離で到達したか
