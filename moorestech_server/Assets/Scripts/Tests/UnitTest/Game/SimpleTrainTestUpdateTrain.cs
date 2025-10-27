@@ -340,7 +340,8 @@ namespace Tests.UnitTest.Game
             var destination = railComponentsData[7].FrontNode;//目的地をセット
             var cars = new List<TrainCar>
             {
-                new TrainCar(tractionForce: 600000, inventorySlots: 0, length: trainLength),  // 仮: 動力車
+                new TrainCar(tractionForce: 600000, inventorySlots: 0, length: trainLength),  // 仮: 動力車まえ
+                new TrainCar(tractionForce: 600000, inventorySlots: 0, length: 0,isFacingForward : false),  // 仮: 動力車うしろ
             };
             var trainUnit = new TrainUnit(railPosition, cars);
             trainUnit.trainDiagram.AddEntry(destination);
