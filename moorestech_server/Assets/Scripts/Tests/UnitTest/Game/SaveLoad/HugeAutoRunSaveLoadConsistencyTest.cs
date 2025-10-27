@@ -1,34 +1,40 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
+using Game.SaveLoad.Interface;
+using Game.SaveLoad.Json;
 using Game.Train.Common;
 using Game.Train.RailGraph;
 using Game.Train.Train;
 using Game.World.Interface.DataStore;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;
+using UnityEngine.UIElements;
+using Game.Block.Interface.Extension;
 
 namespace Tests.UnitTest.Game.SaveLoad
 {
     public class HugeAutoRunTrainSaveLoadConsistencyTest
     {
-        private const int RailComponentCount = 1200;//12000
-        private const int DiagramNodeSelectionCount = 1000;//10000
-        private const int TrainCount = 7;//6
-        private const int TotalTicks = 13610;//100000
-        private const int SaveAfterTicks = 10000;//50000
+        private const int RailComponentCount = 2200;//12000
+        private const int DiagramNodeSelectionCount = 8999;//10000
+        private const int TrainCount = 65;//6
+        private const int TotalTicks = 73611;//100000
+        private const int SaveAfterTicks = 50003;//50000
         private const int MaxDiagramEntries = 17;//17
         private const int MinDiagramEntries = 1;//1
-        private const int MaxWaitTicks = 12;//4096
-        private const int RandomSeed = 13572468;
+        private const int MaxWaitTicks = 4097;//4096
+        private const int RandomSeed = 3572468;
 
         [Test]
         public void MassiveAutoRunScenarioProducesIdenticalStateWithAndWithoutSaveLoad()
         {
-            var baselineSnapshots = RunScenarioWithoutSave(RandomSeed, TotalTicks);
+            var baselineSnapshots = RunScenarioWithoutSave(RandomSeed, TotalTicks, SaveAfterTicks);
             var saveLoadSnapshots = RunScenarioWithSave(RandomSeed, TotalTicks, SaveAfterTicks);
 
             Assert.AreEqual(baselineSnapshots.Count, saveLoadSnapshots.Count,
@@ -42,11 +48,11 @@ namespace Tests.UnitTest.Game.SaveLoad
             }
         }
 
-        private static Dictionary<int, TrainSimulationSnapshot> RunScenarioWithoutSave(int seed, int totalTicks)
+        private static Dictionary<int, TrainSimulationSnapshot> RunScenarioWithoutSave(int seed, int totalTicks, int saveAfterTicks)
         {
-            var scenario = SetupScenario(seed);
-
-            AdvanceTicks(totalTicks);
+            var (scenario, _) = SetupScenario(seed);
+            AdvanceTicks(totalTicks - saveAfterTicks);
+            AdvanceTicks(saveAfterTicks);
 
             var snapshots = CaptureSnapshots();
 
@@ -59,7 +65,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         private static Dictionary<int, TrainSimulationSnapshot> RunScenarioWithSave(int seed, int totalTicks, int saveAfterTicks)
         {
             RailGraphDatastore.ResetInstance();
-            var scenario = SetupScenario(seed);
+            var (scenario, expectedSnapshot) = SetupScenario(seed);
 
             AdvanceTicks(totalTicks - saveAfterTicks);
 
@@ -69,7 +75,6 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             foreach (var train in preSaveTrains)
             {
-                //Debug.Log($"Train Length: {train.RailPosition.TrainLength} Remaining Distance: " + train._remainingDistance + "dist: " + train.RailPosition.GetDistanceToNextNode());
                 train.OnDestroy();
             }
             TrainUpdateService.Instance.ResetTrains();
@@ -79,52 +84,80 @@ namespace Tests.UnitTest.Game.SaveLoad
             var loadEnvironment = TrainTestHelper.CreateEnvironment();
             SaveLoadJsonTestHelper.LoadFromJson(loadEnvironment.ServiceProvider, saveJson);
 
-            var postLoadTrains = TrainUpdateService.Instance.GetRegisteredTrains().ToList();
-            foreach (var train in postLoadTrains)
+            // RailGraph再構築のチェック
+            var loadedComponents = new List<RailComponent>();
+            UnityEngine.Random.InitState(seed);
+
+            var xList = ReturnShuffleList(RailComponentCount);
+            var yList = ReturnShuffleList(RailComponentCount);
+            var zList = ReturnShuffleList(RailComponentCount);
+            var directions = new[] { BlockDirection.North, BlockDirection.East, BlockDirection.South, BlockDirection.West };
+            var positions = new List<Vector3Int>();
+            for (var i = 0; i < RailComponentCount; i++)
             {
-                //Debug.Log($"[After Load] Train Length: {train.RailPosition.TrainLength} Remaining Distance: " + train._remainingDistance + "dist: " + train.RailPosition.GetDistanceToNextNode());
+                var position = new Vector3Int(xList[i], yList[i], zList[i]);
+                positions.Add(position);
+            }
+            foreach (var position in positions)
+            {
+                var block = loadEnvironment.WorldBlockDatastore.GetBlock(position);
+                Assert.IsNotNull(block, $"座標 {position} にレールブロックがロードされていません。");
+
+                var saverComponent = block.GetComponent<RailSaverComponent>();
+                Assert.IsNotNull(saverComponent, $"座標 {position} のRailSaverComponentを取得できませんでした。");
+                Assert.IsNotEmpty(saverComponent.RailComponents,
+                    $"座標 {position} のRailSaverComponentにRailComponentが含まれていません。");
+                loadedComponents.Add(saverComponent.RailComponents[0]);
             }
 
-            AdvanceTicks(saveAfterTicks);
+            var actualSnapshot = RailGraphNetworkTestHelper.CaptureFromComponents(loadedComponents);
+            RailGraphNetworkTestHelper.AssertEquivalent(expectedSnapshot, actualSnapshot);
 
+            AdvanceTicks(saveAfterTicks);
             var snapshots = CaptureSnapshots();
             CleanupTrains();
             CleanupWorld(loadEnvironment);
-
             return snapshots;
         }
 
-        private static ScenarioSetup SetupScenario(int seed)
+        private static (ScenarioSetup, RailGraphNetworkSnapshot) SetupScenario(int seed)
         {
             UnityEngine.Random.InitState(seed);
-
             var environment = TrainTestHelper.CreateEnvironment();
             TrainUpdateService.Instance.ResetTrains();
 
-            var components = BuildRailNetwork(environment, RailComponentCount);
+            var components = BuildRailNetwork(environment, RailComponentCount, seed);
+
+            UnityEngine.Random.InitState(seed);
             var selectedNodes = SelectFrontNodes(components, DiagramNodeSelectionCount);
 
+            UnityEngine.Random.InitState(seed);
             CreateTrains(environment, components[0], selectedNodes);
-
-            return new ScenarioSetup(environment);
+            var snapshot = RailGraphNetworkTestHelper.CaptureFromComponents(components);
+            return (new ScenarioSetup(environment), snapshot);
         }
 
         private static List<RailComponent> BuildRailNetwork(
             TrainTestEnvironment environment,
-            int railCount)
+            int railCount, int seed)
         {
             var components = new List<RailComponent>(railCount);
 
+            UnityEngine.Random.InitState(seed);
             var xList = ReturnShuffleList(railCount);
             var yList = ReturnShuffleList(railCount);
             var zList = ReturnShuffleList(railCount);
             var directions = new[] { BlockDirection.North, BlockDirection.East, BlockDirection.South, BlockDirection.West };
-
+            var positions = new List<Vector3Int>();
             for (var i = 0; i < railCount; i++)
             {
                 var position = new Vector3Int(xList[i], yList[i], zList[i]);
+                positions.Add(position);
+            }
+            for (var i = 0; i < railCount; i++)
+            {
                 var direction = directions[UnityEngine.Random.Range(0, directions.Length)];
-                var component = TrainTestHelper.PlaceRail(environment, position, direction);
+                var component = TrainTestHelper.PlaceRail(environment, positions[i], direction);
                 components.Add(component);
             }
 
@@ -142,7 +175,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             {
                 for (var j = 0; j < 10; j++)
                 {
-                    var next = ((i * 13) % railCount + j) % railCount;
+                    var next = ((i * 10) % railCount + j) % railCount;
                     ConnectComponents(components, connected, i, next, true, true);
                 }
             }
@@ -194,7 +227,7 @@ namespace Tests.UnitTest.Game.SaveLoad
                     new Vector3Int(-100000 - (i * 17), 0, -50000 + (i * 23)),
                     BlockDirection.South);
 
-                startComponent.ConnectRailComponent(entryComponent, true, true, length);
+                startComponent.ConnectRailComponent(entryComponent, true, true);
 
                 var nodeList = new List<RailNode>
                 {
@@ -231,7 +264,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             int length;
             do
             {
-                length = UnityEngine.Random.Range(1, 100000001);
+                length = UnityEngine.Random.Range(1, 10000001);
             } while (!usedLengths.Add(length));
 
             return length;
@@ -259,6 +292,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             components[from].ConnectRailComponent(components[to], useFrontFrom, useFrontTo);
             connected.Add(key);
+            connected.Add(reverse);
         }
 
         private static List<int> ReturnShuffleList(int n)
@@ -377,7 +411,7 @@ namespace Tests.UnitTest.Game.SaveLoad
                 var diagramEntries = train.trainDiagram.Entries
                     .Select(entry => DiagramEntrySnapshot.Create(entry))
                     .ToList();
-                Debug.Log(train.CurrentSpeed);
+
                 return new TrainSimulationSnapshot(
                     train.RailPosition.TrainLength,
                     train.IsAutoRun,
@@ -486,5 +520,7 @@ namespace Tests.UnitTest.Game.SaveLoad
                 return $"{Position}#{ComponentIndex}:{(IsFront ? "F" : "B")}";
             }
         }
+
+
     }
 }
