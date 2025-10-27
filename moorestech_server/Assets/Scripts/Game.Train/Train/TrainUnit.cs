@@ -560,9 +560,7 @@ namespace Game.Train.Train
             var fuelSlots = data.FuelSlots < 0 ? 0 : data.FuelSlots;
             var inventorySlots = data.InventorySlots < 0 ? 0 : data.InventorySlots;
             var length = data.Length < 0 ? 0 : data.Length;
-
-            var isFacingForward = data.IsFacingForward ?? true;
-
+            var isFacingForward = data.IsFacingForward;
             var car = new TrainCar(data.TractionForce, inventorySlots, length, fuelSlots, isFacingForward);
 
             var empty = ServerContext.ItemStackFactory.CreatEmpty();
@@ -768,7 +766,7 @@ namespace Game.Train.Train
         public int InventorySlots { get; set; }
         public int FuelSlots { get; set; }
         public int Length { get; set; }
-        public bool? IsFacingForward { get; set; }
+        public bool IsFacingForward { get; set; }
         public SerializableVector3Int? DockingBlockPosition { get; set; }
         public List<ItemStackSaveJsonObject> InventoryItems { get; set; }
         public List<ItemStackSaveJsonObject> FuelItems { get; set; }
