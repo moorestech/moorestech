@@ -518,10 +518,11 @@ namespace Tests.CombinedTest.Core
             void ValidateMachineBlockStateDetails(BlockStateDetail[] details, string expectedState,
                 float expectedCurrentPower, float expectedRequestedPower, float expectedProcessingRate)
             {
-                Assert.AreEqual(1, details.Length, "BlockStateDetailsは単一の要素を含むべきです");
-                Assert.AreEqual(CommonMachineBlockStateDetail.BlockStateDetailKey, details[0].Key, "BlockStateDetailのキーが正しくありません");
+                Assert.AreEqual(2, details.Length);
+                var detail = details.FirstOrDefault(d => d.Key == CommonMachineBlockStateDetail.BlockStateDetailKey);
+                Assert.IsNotNull(detail, "CommonMachineBlockStateDetailが含まれていません");
                 
-                var stateData = MessagePackSerializer.Deserialize<CommonMachineBlockStateDetail>(details[0].Value);
+                var stateData = MessagePackSerializer.Deserialize<CommonMachineBlockStateDetail>(detail.Value);
                 
                 Assert.AreEqual(expectedState, stateData.CurrentStateType, "状態が期待値と一致しません");
                 Assert.AreEqual(expectedCurrentPower, stateData.CurrentPower, 0.01f, "現在の電力が期待値と一致しません");
@@ -531,9 +532,10 @@ namespace Tests.CombinedTest.Core
             
             (string state, float currentPower, float requestedPower, float processingRate) ExtractMachineDetails(BlockStateDetail[] details)
             {
-                Assert.AreEqual(1, details.Length, "BlockStateDetailsは単一の要素を含むべきです");
+                Assert.AreEqual(2, details.Length);
                 
-                var stateData = MessagePackSerializer.Deserialize<CommonMachineBlockStateDetail>(details[0].Value);
+                var detail = details.FirstOrDefault(d => d.Key == CommonMachineBlockStateDetail.BlockStateDetailKey);
+                var stateData = MessagePackSerializer.Deserialize<CommonMachineBlockStateDetail>(detail.Value);
                 
                 return (stateData.CurrentStateType, stateData.CurrentPower, stateData.RequestPower, stateData.ProcessingRate);
             }

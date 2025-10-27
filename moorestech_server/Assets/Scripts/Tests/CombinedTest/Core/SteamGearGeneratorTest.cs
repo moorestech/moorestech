@@ -469,11 +469,13 @@ namespace Tests.CombinedTest.Core
             void ValidateBlockStateDetails(BlockStateDetail[] details, string expectedState, float expectedRpm, 
                 float expectedTorque, float expectedRate, double expectedSteamAmount, int expectedFluidId)
             {
-                Assert.AreEqual(2, details.Length, "BlockStateDetailsは単一の要素を含むべきです");
-                Assert.AreEqual(SteamGearGeneratorBlockStateDetail.SteamGearGeneratorBlockStateDetailKey, details[0].Key, "BlockStateDetailのキーが正しくありません");
+                Assert.AreEqual(3, details.Length);
+                
+                var detail = details.FirstOrDefault(d => d.Key == SteamGearGeneratorBlockStateDetail.SteamGearGeneratorBlockStateDetailKey);
+                Assert.IsNotNull(detail, "CommonMachineBlockStateDetailが含まれていません");
                 
                 // 単一のBlockStateDetailから状態データを取得
-                var stateData = MessagePackSerializer.Deserialize<SteamGearGeneratorBlockStateDetail>(details[0].Value);
+                var stateData = MessagePackSerializer.Deserialize<SteamGearGeneratorBlockStateDetail>(detail.Value);
                 
                 Assert.AreEqual(expectedState, stateData.State, "状態が期待値と一致しません");
                 Assert.AreEqual(expectedRpm, stateData.CurrentRpm, 0.01f, "RPMが期待値と一致しません");
@@ -485,10 +487,10 @@ namespace Tests.CombinedTest.Core
             
             (string state, float rpm, float torque, float rate, double steamAmount, int fluidId) ExtractDetails(BlockStateDetail[] details)
             {
-                Assert.AreEqual(2, details.Length, "BlockStateDetailsは単一の要素を含むべきです");
+                var detail = details.FirstOrDefault(d => d.Key == SteamGearGeneratorBlockStateDetail.SteamGearGeneratorBlockStateDetailKey);
+                Assert.IsNotNull(detail, "SteamGearGeneratorBlockStateDetailが含まれていません");
                 
-                // 単一のBlockStateDetailから状態データを取得
-                var stateData = MessagePackSerializer.Deserialize<SteamGearGeneratorBlockStateDetail>(details[0].Value);
+                var stateData = MessagePackSerializer.Deserialize<SteamGearGeneratorBlockStateDetail>(detail.Value);
                 
                 return (stateData.State, stateData.CurrentRpm, stateData.CurrentTorque, stateData.SteamConsumptionRate, 
                         stateData.SteamAmount, stateData.SteamFluidId);
