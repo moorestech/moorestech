@@ -657,6 +657,7 @@ namespace Game.Train.Train
                 OnDestroy();
                 return null;
             }
+            TurnOffAutoRun();
             // 1) 切り離す車両リストを作成
             //    後ろ側から numberOfCarsToDetach 両を取得
             var detachedCars = _cars
