@@ -5,6 +5,7 @@ using Core.Master;
 using Core.Update;
 using Game.Fluid;
 using Mooresmaster.Model.BlocksModule;
+using UnityEngine;
 
 namespace Game.Block.Blocks.Gear
 {
@@ -224,6 +225,7 @@ namespace Game.Block.Blocks.Gear
             if (!IsFuelActive) return;
 
             RemainingFuelTime -= GameUpdater.UpdateSecondTime * operatingRate;
+            Debug.Log($"[SteamGearGeneratorFuelService] operatingRate={operatingRate}, remainingFuelTime={RemainingFuelTime}, type={CurrentFuelType}");
             if (RemainingFuelTime > 0) return;
 
             ClearFuelState();
