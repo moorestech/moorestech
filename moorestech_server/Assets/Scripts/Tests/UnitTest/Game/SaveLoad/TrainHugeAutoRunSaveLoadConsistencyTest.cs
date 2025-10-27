@@ -19,7 +19,7 @@ using Game.Block.Interface.Extension;
 
 namespace Tests.UnitTest.Game.SaveLoad
 {
-    public class HugeAutoRunTrainSaveLoadConsistencyTest
+    public class TrainHugeAutoRunTrainSaveLoadConsistencyTest
     {
         private const int RailComponentCount = 2200;//12000
         private const int DiagramNodeSelectionCount = 8999;//10000
