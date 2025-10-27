@@ -222,11 +222,8 @@ namespace Game.Block.Blocks.Gear
         public void Update(float operatingRate)
         {
             if (!IsFuelActive) return;
-            
-            // 負荷ゼロでも燃料が減少するように稼働率を補正する
-            // Adjust operating rate so fuel depletes even when load is zero
-            var effectiveOperatingRate = operatingRate > 0f ? operatingRate : 1f;
-            RemainingFuelTime -= GameUpdater.UpdateSecondTime * effectiveOperatingRate;
+
+            RemainingFuelTime -= GameUpdater.UpdateSecondTime * operatingRate;
             if (RemainingFuelTime > 0) return;
 
             ClearFuelState();
