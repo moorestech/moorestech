@@ -638,7 +638,7 @@ namespace Game.Train.Train
         // ▼ ここからが「編成を分割する」ための処理例
         //============================================================
         /// <summary>
-        ///  列車を「後ろから numberOfCars 両」切り離して、後ろの部分を新しいTrainUnitとして返す
+        ///  列車を「後ろから numberOfCarsToDetach 両」切り離して、後ろの部分を新しいTrainUnitとして返す
         ///  新しいTrainUnitのrailpositionは、切り離した車両の長さに応じて調整される
         ///  新しいTrainUnitのtrainDiagramは空になる
         ///  新しいTrainUnitのドッキング状態はcarに情報があるためそのまま保存される
@@ -647,9 +647,14 @@ namespace Game.Train.Train
         {
             // 例：10両 → 5両 + 5両など
             // 後ろから 5両を抜き取るケースを想定
-            if (numberOfCarsToDetach <= 0 || numberOfCarsToDetach >= _cars.Count)
+            if (numberOfCarsToDetach <= 0 || numberOfCarsToDetach > _cars.Count)
             {
                 UnityEngine.Debug.LogError("SplitTrain: 指定両数が不正です。");
+                return null;
+            }
+            if (numberOfCarsToDetach == _cars.Count) 
+            {
+                OnDestroy();
                 return null;
             }
             // 1) 切り離す車両リストを作成
