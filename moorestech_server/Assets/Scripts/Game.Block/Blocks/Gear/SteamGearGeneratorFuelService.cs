@@ -5,7 +5,6 @@ using Core.Master;
 using Core.Update;
 using Game.Fluid;
 using Mooresmaster.Model.BlocksModule;
-using UnityEngine;
 
 namespace Game.Block.Blocks.Gear
 {
@@ -223,9 +222,11 @@ namespace Game.Block.Blocks.Gear
         public void Update(float operatingRate)
         {
             if (!IsFuelActive) return;
-
-            RemainingFuelTime -= GameUpdater.UpdateSecondTime * operatingRate;
-            Debug.Log($"[SteamGearGeneratorFuelService] operatingRate={operatingRate}, remainingFuelTime={RemainingFuelTime}, type={CurrentFuelType}");
+            
+            // 負荷ゼロでも燃料が減少するように稼働率を補正する
+            // Adjust operating rate so fuel depletes even when load is zero
+            var effectiveOperatingRate = operatingRate > 0f ? operatingRate : 1f;
+            RemainingFuelTime -= GameUpdater.UpdateSecondTime * effectiveOperatingRate;
             if (RemainingFuelTime > 0) return;
 
             ClearFuelState();
