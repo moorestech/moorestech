@@ -59,8 +59,24 @@ namespace Game.Train.Train
         }
 
 
+        public void Reverse()
+        {
+            _railPosition?.Reverse();
+            if (_cars == null)
+            {
+                return;
+            }
+
+            _cars.Reverse();
+            foreach (var car in _cars)
+            {
+                car.SetFacingForward(!car.IsFacingForward);
+            }
+        }
+
+
         //1tickごとに呼ばれる.進んだ距離を返す?
-        public int Update() 
+        public int Update()
         {
             if (IsAutoRun)
             {
@@ -438,6 +454,7 @@ namespace Game.Train.Train
                 InventorySlots = car.InventorySlots,
                 FuelSlots = car.FuelSlots,
                 Length = car.Length,
+                IsFacingForward = car.IsFacingForward,
                 DockingBlockPosition = dockingPosition,
                 InventoryItems = inventoryItems,
                 FuelItems = fuelItems
@@ -534,7 +551,9 @@ namespace Game.Train.Train
             var inventorySlots = data.InventorySlots < 0 ? 0 : data.InventorySlots;
             var length = data.Length < 0 ? 0 : data.Length;
 
-            var car = new TrainCar(data.TractionForce, inventorySlots, length, fuelSlots);
+            var isFacingForward = data.IsFacingForward ?? true;
+
+            var car = new TrainCar(data.TractionForce, inventorySlots, length, fuelSlots, isFacingForward);
 
             var empty = ServerContext.ItemStackFactory.CreatEmpty();
 
@@ -739,6 +758,7 @@ namespace Game.Train.Train
         public int InventorySlots { get; set; }
         public int FuelSlots { get; set; }
         public int Length { get; set; }
+        public bool? IsFacingForward { get; set; }
         public SerializableVector3Int? DockingBlockPosition { get; set; }
         public List<ItemStackSaveJsonObject> InventoryItems { get; set; }
         public List<ItemStackSaveJsonObject> FuelItems { get; set; }
