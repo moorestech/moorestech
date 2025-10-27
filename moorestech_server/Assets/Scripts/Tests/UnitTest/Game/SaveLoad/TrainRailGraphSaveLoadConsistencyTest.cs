@@ -10,7 +10,7 @@ using Game.Block.Interface.Extension;
 
 namespace Tests.UnitTest.Game.SaveLoad
 {
-    public class RailGraphSaveLoadConsistencyTrainTest
+    public class TrainRailGraphSaveLoadConsistencyTest
     {
         [Test]
         public void SmallRailGraphRemainsConsistentAfterSaveLoad()

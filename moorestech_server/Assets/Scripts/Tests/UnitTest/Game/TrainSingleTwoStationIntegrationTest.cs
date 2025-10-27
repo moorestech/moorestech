@@ -17,7 +17,7 @@ using Game.Context;
 
 namespace Tests.UnitTest.Game
 {
-    public class SingleTrainTwoStationIntegrationTest
+    public class TrainSingleTwoStationIntegrationTest
     {
         [Test]
         public void TrainCompletesRoundTripBetweenTwoCargoPlatforms()
