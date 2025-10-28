@@ -43,22 +43,24 @@ namespace Tests.Util
             _n3Component = n3Component;
         }
 
+        public TrainTestEnvironment Environment => _environment;
         public int StationSegmentLength => _station.SegmentLength;
         public RailNode StationExitFront => _station.ExitFront;
         public RailNode StationEntryFront => _station.EntryFront;
         public RailNode StationExitBack => _station.ExitBack;
         public RailNode StationEntryBack => _station.EntryBack;
+        public Vector3Int StationBlockPosition => _station.EntryComponent.ComponentID.Position;
 
         public static TrainStationDockingScenario Create()
         {
-            var environment = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
+            var environment = TrainTestHelper.CreateEnvironment();
 
             var n0Component = TrainTestHelper.PlaceRail(environment, new Vector3Int(0, 0, 0), BlockDirection.North);
             var n1Component = TrainTestHelper.PlaceRail(environment, new Vector3Int(5, 0, 0), BlockDirection.North);
             var (_, stationSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
                 environment,
                 ForUnitTestModBlockId.TestTrainCargoPlatform,
-                new Vector3Int(10, 0, 0),
+                new Vector3Int(10, 20, 0),
                 BlockDirection.North);
             var n2Component = TrainTestHelper.PlaceRail(environment, new Vector3Int(15, 0, 0), BlockDirection.North);
             var n3Component = TrainTestHelper.PlaceRail(environment, new Vector3Int(20, 0, 0), BlockDirection.North);
@@ -77,7 +79,7 @@ namespace Tests.Util
 
         public static TrainStationDockingScenario CreateWithLoop()
         {
-            var environment = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
+            var environment = TrainTestHelper.CreateEnvironment();
 
             var n0Component = TrainTestHelper.PlaceRail(environment, new Vector3Int(0, 0, 0), BlockDirection.North);
             var n1Component = TrainTestHelper.PlaceRail(environment, new Vector3Int(5, 0, 0), BlockDirection.North);
@@ -152,11 +154,11 @@ namespace Tests.Util
 
             foreach (var train in _spawnedTrains)
             {
+                if (train.TrainId == Guid.Empty) continue;
                 if (train.trainUnitStationDocking.IsDocked)
                 {
                     train.trainUnitStationDocking.UndockFromStation();
                 }
-
                 TrainDiagramManager.Instance.UnregisterDiagram(train.trainDiagram);
                 TrainUpdateService.Instance.UnregisterTrain(train);
             }

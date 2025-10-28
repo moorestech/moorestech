@@ -14,7 +14,7 @@ namespace Game.Train.Train
         public string SaveKey { get; } = typeof(TrainUnit).FullName;
         
         private RailPosition _railPosition;
-        private readonly Guid _trainId;
+        private Guid _trainId;
         public Guid TrainId => _trainId;
 
         private int _remainingDistance;// 自動減速用
@@ -30,8 +30,17 @@ namespace Game.Train.Train
         public double CurrentSpeed => _currentSpeed;
         private double _accumulatedDistance; // 累積距離、距離の小数点以下を保持するために使用
         //摩擦係数、空気抵抗係数などはここに追加する
-        const double FRICTION = 0.0002;
-        const double AIR_RESISTANCE = 0.00002;
+        private const double FRICTION = 0.0002;
+        private const double AIR_RESISTANCE = 0.00002;
+        private const double SpeedWeight = 0.008;//1tickで_currentSpeedが進む距離に変換されるための重み付け係数
+        private const double AutoRunMaxSpeedDistanceCoefficient = 10000.0;//自動運転の最大速度計算用距離係数
+        private const double AutoRunMaxSpeedOffset = 10.0;//自動運転で、AutoRunMaxSpeedOffsetは目的距離が近すぎても進めるようにするためのバッファ
+        private const double AutoRunSpeedBufferMargin = 0.02;
+        private const double AutoRunSpeedBufferRate = 1.0 - AutoRunSpeedBufferMargin;
+        private const double TractionForceAccelerationRate = 0.1;
+        private const double ManualControlDecelerationFactor = 1.0;//マスコンレベル手動調整用
+        private const int MasconLevelMaximum = 16777216;//電車でGOでP5-B8まであるやつ
+        private const int InfiniteLoopGuardThreshold = 1_000_000;
 
         private List<TrainCar> _cars;
         public RailPosition RailPosition => _railPosition;
@@ -49,7 +58,7 @@ namespace Game.Train.Train
         {
             _railPosition = initialPosition;
             _trainId = Guid.NewGuid();
-            _cars = cars;  // 追加
+            _cars = cars;
             _currentSpeed = 0.0; // 仮の初期速度
             _isAutoRun = false;
             _previousEntryGuid = Guid.Empty;
@@ -59,8 +68,24 @@ namespace Game.Train.Train
         }
 
 
+        public void Reverse()
+        {
+            _railPosition?.Reverse();
+            if (_cars == null)
+            {
+                return;
+            }
+
+            _cars.Reverse();
+            foreach (var car in _cars)
+            {
+                car.SetFacingForward(!car.IsFacingForward);
+            }
+        }
+
+
         //1tickごとに呼ばれる.進んだ距離を返す?
-        public int Update() 
+        public int Update()
         {
             if (IsAutoRun)
             {
@@ -128,7 +153,7 @@ namespace Game.Train.Train
             //マスコンレベルから燃料を消費しつつ速度を計算する
             UpdateTrainSpeed();
             //距離計算 進むor後進する
-            double floatDistance = _currentSpeed * 0.008;
+            double floatDistance = _currentSpeed * SpeedWeight;
             _accumulatedDistance += floatDistance;
             int distance = (int)Math.Truncate(_accumulatedDistance);
             _accumulatedDistance -= distance;
@@ -148,17 +173,18 @@ namespace Game.Train.Train
         {
             masconLevel = 0;
             //目的地に近ければ減速したい。自動運行での最大速度を決めておく
-            double maxspeed = Math.Sqrt(((double)_remainingDistance) * 10000.0) + 10.0;//10.0は距離が近すぎても進めるよう
+            double maxspeed = Math.Sqrt(((double)_remainingDistance) * AutoRunMaxSpeedDistanceCoefficient) + AutoRunMaxSpeedOffset;//AutoRunMaxSpeedOffsetは距離が近すぎても進めるようにするためのバッファ
             //全力加速する必要がある。マスコンレベルmax
             if (maxspeed > _currentSpeed)
             {
-                masconLevel = 16777216;
+                masconLevel = MasconLevelMaximum;
             }
             //
-            if (maxspeed < _currentSpeed * 0.98)//0.02ぶんはバッファ
+            if (maxspeed < _currentSpeed * AutoRunSpeedBufferRate)//AutoRunSpeedBufferMarginぶんはバッファ
             {
-                var subspeed = maxspeed - _currentSpeed * 0.98;
-                masconLevel = Math.Max((int)subspeed, -16777216);
+                var bufferAdjustedSpeed = _currentSpeed * AutoRunSpeedBufferRate;
+                var subspeed = maxspeed - bufferAdjustedSpeed;
+                masconLevel = Math.Max((int)subspeed, -MasconLevelMaximum);
             }
         }
 
@@ -172,19 +198,19 @@ namespace Game.Train.Train
             if (masconLevel > 0)
             {
                 force = UpdateTractionForce(masconLevel);
-                _currentSpeed += force * 0.1;
+                _currentSpeed += force * TractionForceAccelerationRate;
             }
-            else 
+            else
             {
                 //currentspeedがマイナスも考慮
                 sign = Math.Sign(_currentSpeed);
-                _currentSpeed += sign * masconLevel * 1.0; // 0.0005は調整用定数
+                _currentSpeed += sign * masconLevel * ManualControlDecelerationFactor; // ManualControlDecelerationFactorは調整用定数
                 sign2 = Math.Sign(_currentSpeed);
                 if (sign != sign2) _currentSpeed = 0; // 逆方向に行かないようにする
             }
 
             //どちらにしても速度は摩擦で減少する。摩擦は速度の1乗、空気抵抗は速度の2乗に比例するとする
-            force = Math.Abs(_currentSpeed) * 0.008 * FRICTION + _currentSpeed * _currentSpeed * 0.008 * AIR_RESISTANCE;
+            force = Math.Abs(_currentSpeed) * SpeedWeight * FRICTION + _currentSpeed * _currentSpeed * SpeedWeight * AIR_RESISTANCE;
             sign = Math.Sign(_currentSpeed);
             _currentSpeed -= sign * force;
             sign2 = Math.Sign(_currentSpeed);
@@ -273,7 +299,7 @@ namespace Game.Train.Train
                 //----------------------------------------------------------------------------------------
 
                 loopCount++;
-                if (loopCount > 1000000)
+                if (loopCount > InfiniteLoopGuardThreshold)
                 {
                     throw new InvalidOperationException("列車速度が無限に近いか、レール経路の無限ループを検知しました。");
                     break;
@@ -295,7 +321,7 @@ namespace Game.Train.Train
                 totalWeight += weight;
                 totalTraction += traction;
             }
-            return (double)totalTraction / totalWeight * masconLevel / 16777216.0;
+            return (double)totalTraction / totalWeight * masconLevel / MasconLevelMaximum;
         }
 
         //diagramのindexが見ている目的地にちょうど0距離で到達したか
@@ -339,7 +365,8 @@ namespace Game.Train.Train
                 TurnOffAutoRun();
                 return;
             }
-            _remainingDistance = RailNodeCalculate.CalculateTotalDistanceF(newPath) - _railPosition.GetDistanceToNextNode();
+            //_remainingDistance更新
+            _remainingDistance = _railPosition.GetDistanceToNextNode() + RailNodeCalculate.CalculateTotalDistanceF(newPath);
         }
 
         public void TurnOffAutoRun()
@@ -381,48 +408,6 @@ namespace Game.Train.Train
             return (found, newPath);
         }
 
-
-        internal bool CanSerializeState()
-        {
-            if (_railPosition == null)
-            {
-                return false;
-            }
-
-            foreach (var node in _railPosition.EnumerateRailNodes())
-            {
-                if (node == null)
-                {
-                    continue;
-                }
-
-                if (!RailGraphDatastore.TryGetRailComponentID(node, out _))
-                {
-                    return false;
-                }
-            }
-
-            if (trainDiagram?.Entries == null)
-            {
-                return true;
-            }
-
-            foreach (var entry in trainDiagram.Entries)
-            {
-                if (entry?.Node == null)
-                {
-                    continue;
-                }
-
-                if (!RailGraphDatastore.TryGetRailComponentID(entry.Node, out _))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
         //列車編成を保存する。ブロックとは違うことに注意
         public TrainUnitSaveData CreateSaveData()
         {
@@ -445,8 +430,8 @@ namespace Game.Train.Train
                 RailSnapshot = railSnapshot,
                 IsAutoRun = _isAutoRun,
                 PreviousEntryGuid = _previousEntryGuid,
-                CurrentSpeed = _currentSpeed,
-                AccumulatedDistance = _accumulatedDistance,
+                CurrentSpeedBits = BitConverter.DoubleToInt64Bits(_currentSpeed),
+                AccumulatedDistanceBits = BitConverter.DoubleToInt64Bits(_accumulatedDistance),
                 Cars = carStates,
                 Diagram = diagramState
             };
@@ -479,6 +464,7 @@ namespace Game.Train.Train
                 InventorySlots = car.InventorySlots,
                 FuelSlots = car.FuelSlots,
                 Length = car.Length,
+                IsFacingForward = car.IsFacingForward,
                 DockingBlockPosition = dockingPosition,
                 InventoryItems = inventoryItems,
                 FuelItems = fuelItems
@@ -574,8 +560,8 @@ namespace Game.Train.Train
             var fuelSlots = data.FuelSlots < 0 ? 0 : data.FuelSlots;
             var inventorySlots = data.InventorySlots < 0 ? 0 : data.InventorySlots;
             var length = data.Length < 0 ? 0 : data.Length;
-
-            var car = new TrainCar(data.TractionForce, inventorySlots, length, fuelSlots);
+            var isFacingForward = data.IsFacingForward;
+            var car = new TrainCar(data.TractionForce, inventorySlots, length, fuelSlots, isFacingForward);
 
             var empty = ServerContext.ItemStackFactory.CreatEmpty();
 
@@ -617,8 +603,7 @@ namespace Game.Train.Train
             {
                 return;
             }
-
-            diagram.RestoreState(saveData, RailGraphDatastore.ResolveRailNode);
+            diagram.RestoreState(saveData);
         }
 
         public static TrainUnit RestoreFromSaveData(TrainUnitSaveData saveData)
@@ -649,12 +634,19 @@ namespace Game.Train.Train
             var railPosition = new RailPosition(nodes, trainLength, distanceToNextNode);
             var cars = RestoreTrainCars(saveData.Cars);
 
+            var restoredSpeed = saveData.CurrentSpeedBits.HasValue
+                ? BitConverter.Int64BitsToDouble(saveData.CurrentSpeedBits.Value)
+                : 0;
+            var restoredAccumulatedDistance = saveData.AccumulatedDistanceBits.HasValue
+                ? BitConverter.Int64BitsToDouble(saveData.AccumulatedDistanceBits.Value)
+                : 0;
+
             var trainUnit = new TrainUnit(railPosition, cars)
             {
                 _isAutoRun = saveData.IsAutoRun,
                 _previousEntryGuid = saveData.PreviousEntryGuid,
-                _currentSpeed = saveData.CurrentSpeed,
-                _accumulatedDistance = saveData.AccumulatedDistance
+                _currentSpeed = restoredSpeed,
+                _accumulatedDistance = restoredAccumulatedDistance
             };
 
             trainUnit._remainingDistance = trainUnit._railPosition.GetDistanceToNextNode();
@@ -673,7 +665,7 @@ namespace Game.Train.Train
         // ▼ ここからが「編成を分割する」ための処理例
         //============================================================
         /// <summary>
-        ///  列車を「後ろから numberOfCars 両」切り離して、後ろの部分を新しいTrainUnitとして返す
+        ///  列車を「後ろから numberOfCarsToDetach 両」切り離して、後ろの部分を新しいTrainUnitとして返す
         ///  新しいTrainUnitのrailpositionは、切り離した車両の長さに応じて調整される
         ///  新しいTrainUnitのtrainDiagramは空になる
         ///  新しいTrainUnitのドッキング状態はcarに情報があるためそのまま保存される
@@ -682,11 +674,17 @@ namespace Game.Train.Train
         {
             // 例：10両 → 5両 + 5両など
             // 後ろから 5両を抜き取るケースを想定
-            if (numberOfCarsToDetach <= 0 || numberOfCarsToDetach >= _cars.Count)
+            if (numberOfCarsToDetach <= 0 || numberOfCarsToDetach > _cars.Count)
             {
                 UnityEngine.Debug.LogError("SplitTrain: 指定両数が不正です。");
                 return null;
             }
+            if (numberOfCarsToDetach == _cars.Count) 
+            {
+                OnDestroy();
+                return null;
+            }
+            TurnOffAutoRun();
             // 1) 切り離す車両リストを作成
             //    後ろ側から numberOfCarsToDetach 両を取得
             var detachedCars = _cars
@@ -730,7 +728,7 @@ namespace Game.Train.Train
             return newNodes;
         }
 
-        private void OnDestroy()
+        public void OnDestroy()
         {
             trainDiagram.OnDestroy();
             _railPosition.OnDestroy();
@@ -743,6 +741,7 @@ namespace Game.Train.Train
             _railPosition = null;
             trainUnitStationDocking = null;
             _cars = null;
+            _trainId = Guid.Empty;
         }
     }
 
@@ -754,8 +753,8 @@ namespace Game.Train.Train
         public List<ConnectionDestination> RailSnapshot { get; set; }
         public bool IsAutoRun { get; set; }
         public Guid PreviousEntryGuid { get; set; }
-        public double CurrentSpeed { get; set; }
-        public double AccumulatedDistance { get; set; }
+        public long? CurrentSpeedBits { get; set; }
+        public long? AccumulatedDistanceBits { get; set; }
         public List<TrainCarSaveData> Cars { get; set; }
         public TrainDiagramSaveData Diagram { get; set; }
     }
@@ -767,6 +766,7 @@ namespace Game.Train.Train
         public int InventorySlots { get; set; }
         public int FuelSlots { get; set; }
         public int Length { get; set; }
+        public bool IsFacingForward { get; set; }
         public SerializableVector3Int? DockingBlockPosition { get; set; }
         public List<ItemStackSaveJsonObject> InventoryItems { get; set; }
         public List<ItemStackSaveJsonObject> FuelItems { get; set; }

@@ -32,8 +32,6 @@ namespace Game.Train.Train
         //
 
         private TrainUnit _trainUnit;
-        //private RailNode _dockedNode = null; //ドッキングしているnode。暫定的に使用しない、そのうち消す？
-        //public RailNode DockedNode => _dockedNode;
 
         private sealed class DockedReceiver
         {
@@ -67,7 +65,6 @@ namespace Game.Train.Train
         {
             UndockFromStation();
             _trainUnit = null;
-            //_dockedNode = null;
             _dockedReceivers.Clear();
         }
 

@@ -48,6 +48,10 @@ namespace Game.Block.Factory.BlockTemplate.Utility
                     EstablishConnection(currentComponent, destinationConnection, isFrontSideOfComponent: false);
                 }
             }
+
+            // 自分の駅内の接続情報も復元、距離は自動計算（もともとセーブに距離情報はない）
+            if (count >= 2)
+                railComponents[0].ConnectRailComponent(railComponents[1], true, true);
             return railComponents;
         }
 
@@ -71,6 +75,8 @@ namespace Game.Block.Factory.BlockTemplate.Utility
             return componentPositions;
         }
 
+        // 自分の駅or貨物駅ブロック内のRailComponentから、別ブロックのRailComponentへの接続を確立する
+        // 自分から自分への接続はWorldBlockDatastore.GetBlockが失敗するため、ここでは扱わない
         static public void EstablishConnection(RailComponent sourceComponent, ConnectionDestination destinationConnection, bool isFrontSideOfComponent)
         {
             var destinationComponentId = destinationConnection.DestinationID;

@@ -25,7 +25,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         [Test]
         public void TrainRailOneBlockSaveLoadTest()
         {
-            var env = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
+            var env = TrainTestHelper.CreateEnvironment();
             var worldBlockDatastore = env.WorldBlockDatastore;
             var assembleSaveJsonText = env.ServiceProvider.GetService<AssembleSaveJsonText>();
 
@@ -43,7 +43,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             worldBlockDatastore.RemoveBlock(pos);
             RailGraphDatastore.ResetInstance();
 
-            var loadEnv = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
+            var loadEnv = TrainTestHelper.CreateEnvironment();
             var loadJson = loadEnv.ServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson;
             Assert.IsNotNull(loadJson, "WorldLoaderFromJsonが解決できませんでした");
             loadJson.Load(json);
@@ -61,7 +61,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         [Test]
         public void TrainRailMultiBlockSaveLoadTest()
         {
-            var env = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
+            var env = TrainTestHelper.CreateEnvironment();
             var worldBlockDatastore = env.WorldBlockDatastore;
             var assembleSaveJsonText = env.ServiceProvider.GetService<AssembleSaveJsonText>();
 
@@ -108,7 +108,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             RailGraphDatastore.ResetInstance();
 
-            var loadEnv = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
+            var loadEnv = TrainTestHelper.CreateEnvironment();
             var loadJson = loadEnv.ServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson;
             Assert.IsNotNull(loadJson, "WorldLoaderFromJsonが解決できませんでした");
             loadJson.Load(json);
@@ -155,7 +155,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         [Test]
         public void TrainStationSaveLoadTest()
         {
-            var env = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
+            var env = TrainTestHelper.CreateEnvironment();
             var blockStore = env.WorldBlockDatastore;
             var saveJsonAssembler = env.ServiceProvider.GetService<AssembleSaveJsonText>();
 
@@ -200,7 +200,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             blockStore.RemoveBlock(inputChestPos);
             RailGraphDatastore.ResetInstance();
 
-            var loadEnv = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
+            var loadEnv = TrainTestHelper.CreateEnvironment();
             var worldLoader = loadEnv.ServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson;
             Assert.IsNotNull(worldLoader, "WorldLoaderFromJsonが解決できませんでした");
             worldLoader.Load(saveJson);

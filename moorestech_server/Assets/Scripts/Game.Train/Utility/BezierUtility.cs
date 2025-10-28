@@ -63,17 +63,38 @@ namespace Game.Train.Utility
 
         // RailControlPointの座標の入力
         // floatが非常に大きい場合でおこる誤差をちゃんと考慮したver
+        // cp0 と cp1 の OriginalPosition を比較して小さい方を始点にする
         public static float GetBezierCurveLength(RailControlPoint cp0, RailControlPoint cp1, int samples = 512)
         {
+            // x, y, z の順で小さいかどうかを比較
+            static bool IsSmaller(Vector3 a, Vector3 b)
+            {
+                if (a.x < b.x) return true;
+                if (a.x > b.x) return false;
+                if (a.y < b.y) return true;
+                if (a.y > b.y) return false;
+                return a.z < b.z;
+            }
+            // OriginalPosition を比較して cp1 の方が小さければスワップ
+            if (IsSmaller(cp1.OriginalPosition, cp0.OriginalPosition))
+            {
+                var tmp = cp0;
+                cp0 = cp1;
+                cp1 = tmp;
+            }
+
             var p0 = cp0.OriginalPosition;
             var p1 = cp0.ControlPointPosition;
             var p2 = cp1.ControlPointPosition;
             var p3 = cp1.OriginalPosition;
+
             p3 -= p0;
             p0 -= p0;
             p1 += p0;
             p2 += p3;
+
             return GetBezierCurveLength(p0, p1, p2, p3, samples);
         }
+
     }
 }

@@ -11,14 +11,20 @@
 ## レールグラフのデバッグ可視化
 - エディタ／開発ビルドでは `RailGraphDatastore.CreateSnapshot()` と `RailGraphDatastore.WriteJson(...)` を利用して現在のグラフ構造を JSON 形式で出力できます。
 - 例: `RailGraphDatastore.WriteJson(RailGraphDatastore.CreateSnapshot(), outputPath)` を呼び出すと、ノードID・駅参照・セーブ用メタデータと距離が `nodes` / `edges` 配列として書き出されます。
-- 生成した JSON は `python tools/rail_graph/render_snapshot.py snapshot.json output.png` で PNG に変換できます（要: `pip install matplotlib`）。座標情報を持つノードはワールド座標を基に、座標が不明なノードは円周上に自動配置されます。
 
 ## ドッキングとハンドル参照
 - ドッキング挙動の検証では `DockingHandle` や `TrainDockingHandle` といったハンドル参照を信頼ソースにします。`TrainUnit` のローカルキャッシュだけに依存しないことで、状態同期ずれを防ぎます。
-- `docs/train/TrainTickSimulation.md` の挙動保証と突き合わせ、Tick駆動の処理やスケジューリングを変更する際はドキュメントを更新してください。
+- `docs/train/TrainTickSimulation.md` の挙動保証と突き合わせ、Tick 駆動の処理やスケジューリングを変更する際はドキュメントを更新してください。
 
-## RailComponent の front/back モデル
-- 各 `RailComponent` はコンストラクタ内で `FrontNode` と `BackNode` の 2 つの `RailNode` を生成し、互いを `OppositeNode` として登録します。これらはベジェ曲線の制御点とともに `RailGraphDatastore` に登録され、片方向グラフのノードとして扱われます。
+## TrainCar の向きと牽引力
+- `TrainCar` のコンストラクタは `isFacingForward` 引数を受け取り、未指定の場合は前向き (`true`) になります。後ろ向き (`false`) の車両は重量こそ保持しますが牽引力を発生しません。
+- 列車編成を反転させる場合は `TrainUnit.Reverse()` を呼び出してください。`RailPosition.Reverse()` を直接叩くと車両の向き情報が更新されず、牽引力計算やセーブデータに整合性がなくなります。
+- セーブデータの `TrainCarSaveData.IsFacingForward` で向きが永続化されます。既存セーブデータには値が存在しないため、ロード時は `true` を既定値として扱います。
+
+## RailNode 構造の基本と front/back モデル
+- 各 `RailComponent` はコンストラクタ内で `FrontNode` と `BackNode` の 2 つの `RailNode` を生成し、互いを `OppositeNode` として登録します。これらのノードは `RailGraphDatastore` に登録され、片方向グラフのノードとして扱われます。
+- 単純なレールブロックは 1 ブロックあたり 2 つの `RailComponent` を持つため、最小構成でも 4 ノードで前後方向が構成されます。曲線や分岐を組む場合も、front/back の 2 ノードを単位として接続を構築します。
+- 駅系ブロック（`TrainStationComponent` / `CargoplatformComponent`）は 2 本の `RailComponent` を束ね、front/back × entry/exit の 4 ノードを持ちます。テンプレート実装では Front 側に Entry→Exit、Back 側に Exit→Entry の対が必ず張られ、駅の手前（Entry）と駅構内の出口（Exit）が front/back でペアになるよう初期化されます。貨物プラットフォームでも同じ割り当てとなるため、列車は front 側の Exit へ進入し、back 側の Entry から逆方向へ離脱できます。
 - コンポーネント同士を接続する際は、接続元側で選んだノード (`FrontNode` もしくは `BackNode`) から相手側で選んだノードへ有向エッジが張られます。同時に、逆方向用のエッジは相手コンポーネントの *反対側* ノードから自分の反対側ノードへ接続されます。例えば `front(A) -> front(B)` で接続すると、逆方向は `back(B) -> back(A)` という別経路として登録されます。
 - この振る舞いにより、前進方向と後退方向はグラフ上で別ノードとして扱われ、距離計算や経路探索 (`RailNode.ConnectedNodes` / `FindShortestPath`) では明示的に片方向エッジを辿ります。従って、双方向を取り扱う処理では `FrontNode` / `BackNode` の両方を参照し、適切に逆側ノードを指定してください。
 - **重要**: RailNode レベルでは常に「有向グラフ」として設計されています。`ConnectNode` を相互に呼び出して無理に双方向へ張り直すと、front/back の対応が崩れて駅構内の距離計算が破綻します。方向が必要な場合は、必ず既存の opposite ノード経路を利用してください。
@@ -28,6 +34,11 @@
 - 駅コンポーネント（`TrainStationComponent` および `CargoplatformComponent`）は設置時に Entry→Exit の有向エッジを自動生成します。テストコードで Entry と Exit を再接続すると距離が二重計算される恐れがあるため避けてください。
 - ループ線を構成する場合、最後のレール片から最初のレール片へ戻る接続を明示的に張る必要があります。例: `ConnectFront(unloadingExitComponent, loadingEntryComponent, length)` を追加しないと、往路と復路が別グラフになり `FindShortestPath` や `GetDistanceToNode` が `-1` を返します。
 - 自動運転のダイアグラムはドッキング中の Exit ノードを前提に設計されています。`TrainDiagram.AddEntry` には駅の Exit (`FrontNode`) を渡し、Departure 条件も Exit ノードと同期させることで、`TryDockWhenStopped` 後の積み込み／積み下ろし Tick が正しく処理されます。
+
+## 固定小数としての距離管理
+- レール間距離は `RailNode` に保存される際に int（固定小数）として保持されます。`RailComponent.ConnectRailComponent` はベジェ長を算出したのち、四捨五入して整数距離に変換してからノードへ登録します。
+- 浮動小数をそのまま保持すると桁落ちや丸め誤差で「同じセーブデータをロードしたのに列車位置が微妙に異なる」といった再現性の問題が発生します。特に `RailPosition.Reverse()` で編成前後を入れ替えた際、先頭ノードと距離の対応がズレると `TrainUnit` が station の Exit に正しく揃わず、状態の 1:1 復元ができなくなります。
+- 距離を int で固定することで、セーブ・ロード・リプレイ・テストすべてで「ノード間距離 = ティック積算距離」が厳密に一致し、`UpdateTrainByDistance` が扱う残距離にもブレが入りません。Tick シミュレーション中に発生した小数部分は `UpdateTrainByTime` 内部の `_accumulatedDistance` に蓄積され、`Math.Truncate` で切り捨てた整数ぶんだけが距離として消費されます。乱数は利用していないため、同じ tick 数を消化すれば常に同じ整数距離が得られます。
 
 ## RailPosition 構築時のノード順序
 - `RailPosition` は「インデックスが小さいほど列車の進行方向に近い」リストを前提にしています。内部の `RailNodeCalculate.CalculateTotalDistance` は `railNodes[i + 1].GetDistanceToNode(railNodes[i])` を順に呼び出し、後ろ側のノードから前側のノードへ到達できることを確認します。

@@ -17,14 +17,14 @@ using Game.Context;
 
 namespace Tests.UnitTest.Game
 {
-    public class SingleTrainTwoStationIntegrationTest
+    public class TrainSingleTwoStationIntegrationTest
     {
         [Test]
         public void TrainCompletesRoundTripBetweenTwoCargoPlatforms()
         {
             _ = new TrainDiagramManager();
 
-            var env = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
+            var env = TrainTestHelper.CreateEnvironment();
 
             var (loadingBlock, loadingSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
                 env,

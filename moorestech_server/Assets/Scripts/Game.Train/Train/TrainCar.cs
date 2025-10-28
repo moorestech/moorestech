@@ -33,11 +33,14 @@ namespace Game.Train.Train
 
         private readonly IItemStack[] _inventoryItems;
         private readonly IItemStack[] _fuelItems;
-        public TrainCar(int tractionForce, int inventorySlots, int length, int fuelSlots = 0)
+        public bool IsFacingForward { get; private set; }
+
+        public TrainCar(int tractionForce, int inventorySlots, int length, int fuelSlots = 0, bool isFacingForward = true)
         {
             TractionForce = tractionForce;
             InventorySlots = inventorySlots;
             Length = length;
+            IsFacingForward = isFacingForward;
             if (fuelSlots < 0)
             {
                 fuelSlots = 0;
@@ -73,7 +76,12 @@ namespace Game.Train.Train
             return (DEFAULT_WEIGHT +
                 InventorySlots * WHEIGHT_PER_SLOT +
                 FuelSlots * FUEL_WEIGHT_PER_SLOT
-                , TractionForce * DEFAULT_TRACTION);
+                , IsFacingForward ? TractionForce * DEFAULT_TRACTION : 0);
+        }
+
+        public void SetFacingForward(bool isFacingForward)
+        {
+            IsFacingForward = isFacingForward;
         }
 
 
