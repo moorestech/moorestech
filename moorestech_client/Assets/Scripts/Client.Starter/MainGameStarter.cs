@@ -129,7 +129,7 @@ namespace Client.Starter
             builder.RegisterEntryPoint<CommonMachineBlockStateChangeProcessor>();
             builder.RegisterEntryPoint<WorldDataHandler>();
             builder.RegisterEntryPoint<PlayerPositionSender>();
-            builder.RegisterEntryPoint<BlockPlaceSystem>().AsSelf();
+            builder.RegisterEntryPoint<CommonBlockPlaceSystem>().AsSelf();
             builder.RegisterEntryPoint<SkitFireManager>();
             
             

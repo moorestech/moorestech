@@ -35,7 +35,7 @@ namespace Client.Game.InGame.UI.UIState
         
         public void OnEnter(UIStateEnum lastStateEnum)
         {
-            BlockPlaceSystem.SetEnableBlockPlace(true);
+            CommonBlockPlaceSystem.SetEnableBlockPlace(true);
             
             //TODO InputSystemのリファクタ対象
             // シフト+Bのときはカメラの位置を変えない
@@ -86,7 +86,7 @@ namespace Client.Game.InGame.UI.UIState
         
         public void OnExit()
         {
-            BlockPlaceSystem.SetEnableBlockPlace(false);
+            CommonBlockPlaceSystem.SetEnableBlockPlace(false);
             foreach (var blockGameObject in _blockGameObjectDataStore.BlockGameObjectDictionary.Values)
             {
                 blockGameObject.EnablePreviewOnlyObjects(false, false);
