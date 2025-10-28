@@ -1,7 +1,6 @@
 using Client.Common;
 using Client.Game.Common;
 using Client.Game.InGame.Block;
-using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Input;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -42,9 +41,8 @@ namespace Client.Game.InGame.Control
             return false;
         }
         
-        public static bool IsClickOpenableBlock(IBlockPlacePreview blockPlacePreview)
+        public static bool IsClickOpenableBlock()
         {
-            if (blockPlacePreview.IsActive) return false; //ブロック設置中の場合は無効
             if (TryGetClickBlock(out var block))
             {
                 return block.BlockMasterElement.IsBlockOpenable();

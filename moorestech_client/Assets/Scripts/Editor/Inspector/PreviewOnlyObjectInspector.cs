@@ -1,4 +1,5 @@
 using Client.Game.InGame.BlockSystem.PlaceSystem;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
 using UnityEditor;
 
 [CustomEditor(typeof(PreviewOnlyObject))]

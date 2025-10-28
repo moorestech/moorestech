@@ -8,13 +8,13 @@ using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 {
-    public class BlockPlacePointCalculator
+    public class CommonBlockPlacePointCalculator
     {
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
         
-        public BlockPlacePointCalculator(BlockGameObjectDataStore blockGameObjectDataStore)
+        public CommonBlockPlacePointCalculator(BlockGameObjectDataStore blockGameObjectDataStore)
         {
             _blockGameObjectDataStore = blockGameObjectDataStore;
         }
