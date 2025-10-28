@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Core.Master;
 using UnityEngine;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.PreviewObject
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject
 {
     public interface IPreviewOnlyObject
     {

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.PreviewObject
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject
 {
     public class InventoryConnectorLineView : MonoBehaviour
     {
