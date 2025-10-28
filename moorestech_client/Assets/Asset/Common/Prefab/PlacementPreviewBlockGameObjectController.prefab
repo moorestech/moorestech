@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 9039188719334912408}
   - component: {fileID: 6189128353836319467}
   m_Layer: 0
-  m_Name: BlockPlacePreview
+  m_Name: PlacementPreviewBlockGameObjectController
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

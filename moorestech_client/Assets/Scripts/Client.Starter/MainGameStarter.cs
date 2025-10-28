@@ -78,7 +78,7 @@ namespace Client.Starter
         [SerializeField] private KeyControlTutorialManager keyControlTutorialManager;
         [SerializeField] private ItemViewHighLightTutorialManager itemViewHighLightTutorialManager;
         
-        [SerializeField] private BlockPlacePreview blockPlacePreview;
+        [SerializeField] private PlacementPreviewBlockGameObjectController previewBlockController;
         [SerializeField] private SaveButton saveButton;
         [SerializeField] private BackToMainMenu backToMainMenu;
         [SerializeField] private NetworkDisconnectPresenter networkDisconnectPresenter;
@@ -199,7 +199,7 @@ namespace Client.Starter
             
             builder.RegisterComponent(inGameCameraController).As<IInitializable>();
             
-            builder.RegisterComponent<IBlockPlacePreview>(blockPlacePreview);
+            builder.RegisterComponent<IPlacementPreviewBlockGameObjectController>(previewBlockController);
             
             builder.RegisterBuildCallback(objectResolver => { });
             

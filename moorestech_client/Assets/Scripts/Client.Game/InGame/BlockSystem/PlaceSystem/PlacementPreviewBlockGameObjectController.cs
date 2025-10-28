@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem
 {
-    public class BlockPlacePreview : MonoBehaviour, IBlockPlacePreview
+    public class PlacementPreviewBlockGameObjectController : MonoBehaviour, IPlacementPreviewBlockGameObjectController
     {
         private BlockMasterElement _previewBlockMasterElement;
         private BlockPlacePreviewObjectPool _blockPlacePreviewObjectPool;
