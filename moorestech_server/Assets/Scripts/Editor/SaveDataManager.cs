@@ -7,6 +7,96 @@ using UnityEngine.UIElements;
 
 public class SaveDataManager : EditorWindow
 {
+    private class BackupNameDialog : EditorWindow
+    {
+        private TextField descriptionField;
+        private Label previewLabel;
+        private int fileCount;
+        private string dateString;
+
+        public string Result { get; private set; }
+        public bool Confirmed { get; private set; }
+
+        public static BackupNameDialog ShowDialog(int fileCount)
+        {
+            var window = CreateInstance<BackupNameDialog>();
+            window.fileCount = fileCount;
+            window.dateString = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            window.titleContent = new GUIContent("Backup & Delete");
+            window.minSize = new Vector2(450, 220);
+            window.maxSize = new Vector2(450, 220);
+            window.ShowModalUtility();
+            return window;
+        }
+
+        private void CreateGUI()
+        {
+            rootVisualElement.style.paddingTop = 15;
+            rootVisualElement.style.paddingBottom = 15;
+            rootVisualElement.style.paddingLeft = 15;
+            rootVisualElement.style.paddingRight = 15;
+
+            var message = new Label($"Backup and delete {fileCount} save file(s)?");
+            message.style.marginBottom = 15;
+            message.style.whiteSpace = WhiteSpace.Normal;
+            rootVisualElement.Add(message);
+
+            var dateLabel = new Label($"Date: {dateString}");
+            dateLabel.style.marginBottom = 10;
+            dateLabel.style.color = new Color(0.7f, 0.7f, 0.7f);
+            rootVisualElement.Add(dateLabel);
+
+            descriptionField = new TextField("Description (Optional):");
+            descriptionField.style.marginBottom = 10;
+            descriptionField.RegisterValueChangedCallback(evt => UpdatePreview());
+            rootVisualElement.Add(descriptionField);
+
+            previewLabel = new Label();
+            previewLabel.style.marginBottom = 15;
+            previewLabel.style.fontSize = 10;
+            previewLabel.style.color = new Color(0.6f, 0.6f, 0.6f);
+            rootVisualElement.Add(previewLabel);
+            UpdatePreview();
+
+            var buttonContainer = new VisualElement();
+            buttonContainer.style.flexDirection = FlexDirection.Row;
+            buttonContainer.style.justifyContent = Justify.FlexEnd;
+            buttonContainer.style.marginTop = 10;
+
+            var cancelButton = new Button(() => {
+                Confirmed = false;
+                Close();
+            }) { text = "Cancel" };
+            cancelButton.style.width = 100;
+            cancelButton.style.height = 30;
+            cancelButton.style.marginRight = 5;
+
+            var okButton = new Button(() => {
+                Confirmed = true;
+                var description = descriptionField.value;
+                Result = string.IsNullOrEmpty(description) ? dateString : $"{dateString}_{description}";
+                Close();
+            }) { text = "Backup & Delete" };
+            okButton.style.width = 130;
+            okButton.style.height = 30;
+            okButton.style.backgroundColor = new Color(1.0f, 0.6f, 0.0f);
+
+            buttonContainer.Add(cancelButton);
+            buttonContainer.Add(okButton);
+            rootVisualElement.Add(buttonContainer);
+        }
+
+        private void UpdatePreview()
+        {
+            var description = descriptionField.value;
+            var folderName = string.IsNullOrEmpty(description)
+                ? $"Backup_{dateString}"
+                : $"Backup_{dateString}_{description}";
+            previewLabel.text = $"Folder name: {folderName}";
+        }
+    }
+
+
     [MenuItem("moorestech/SaveDataManager")]
     private static void ShowWindow()
     {
@@ -44,13 +134,15 @@ public class SaveDataManager : EditorWindow
         var buttonContainer = new VisualElement();
         buttonContainer.style.marginBottom = 10;
 
-        var deleteButton = CreateButton("Delete Save Data", DeleteSaveData);
-        var backupAndDeleteButton = CreateButton("Backup & Delete Save Data", BackupAndDeleteSaveData);
         var openFolderButton = CreateButton("Open Save Folder", OpenSaveFolder);
+        var backupAndDeleteButton = CreateButton("Backup & Delete Save Data", BackupAndDeleteSaveData);
+        backupAndDeleteButton.style.backgroundColor = new Color(1.0f, 0.6f, 0.0f);
+        var deleteButton = CreateButton("Delete Save Data", DeleteSaveData);
+        deleteButton.style.backgroundColor = new Color(0.8f, 0.2f, 0.2f);
 
-        buttonContainer.Add(deleteButton);
-        buttonContainer.Add(backupAndDeleteButton);
         buttonContainer.Add(openFolderButton);
+        buttonContainer.Add(backupAndDeleteButton);
+        buttonContainer.Add(deleteButton);
 
         root.Add(buttonContainer);
     }
@@ -120,7 +212,10 @@ public class SaveDataManager : EditorWindow
             return;
         }
 
-        var backupFolderName = $"Backup_{DateTime.Now:yyyyMMdd_HHmmss}";
+        var dialog = BackupNameDialog.ShowDialog(files.Length);
+        if (!dialog.Confirmed) return;
+
+        var backupFolderName = $"Backup_{dialog.Result}";
         var backupPath = Path.Combine(saveDirectory, backupFolderName);
 
         Directory.CreateDirectory(backupPath);
