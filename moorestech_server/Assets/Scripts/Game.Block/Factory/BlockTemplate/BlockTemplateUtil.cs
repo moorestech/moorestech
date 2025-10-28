@@ -13,6 +13,7 @@ using Game.EnergySystem;
 using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.InventoryConnectsModule;
 using Newtonsoft.Json;
+using UnityEngine;
 
 namespace Game.Block.Factory.BlockTemplate
 {
@@ -61,11 +62,10 @@ namespace Game.Block.Factory.BlockTemplate
             return (input, output);
         }
         
-        public static VanillaMachineProcessorComponent MachineLoadState(
-            Dictionary<string, string> componentStates,
+        public static VanillaMachineProcessorComponent MachineLoadState(Dictionary<string, string> componentStates,
             VanillaMachineInputInventory vanillaMachineInputInventory,
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
-            ElectricPower requestPower)
+            ElectricPower requestPower, BlockMasterElement blockMasterElement)
         {
             var state = componentStates[VanillaMachineSaveComponent.SaveKeyStatic];
             var jsonObject = JsonConvert.DeserializeObject<VanillaMachineJsonObject>(state);
@@ -73,12 +73,22 @@ namespace Game.Block.Factory.BlockTemplate
             var inputItems = jsonObject.InputSlot.Select(item => item.ToItemStack()).ToList();
             for (var i = 0; i < inputItems.Count; i++)
             {
+                if (vanillaMachineInputInventory.InputSlot.Count <= i)
+                {
+                    Debug.LogError($"ロードするデータのインベントリサイズが超過しています。一部のアイテムは消失します。ブロック名:{blockMasterElement.Name} Guid:{blockMasterElement.BlockGuid}");
+                    break;
+                }
                 vanillaMachineInputInventory.SetItem(i, inputItems[i]);
             }
             
             var outputItems = jsonObject.OutputSlot.Select(item => item.ToItemStack()).ToList();
             for (var i = 0; i < outputItems.Count; i++)
             {
+                if (vanillaMachineOutputInventory.OutputSlot.Count <= i)
+                {
+                    Debug.LogError($"ロードするデータのインベントリサイズが超過しています。一部のアイテムは消失します。ブロック名:{blockMasterElement.Name} Guid:{blockMasterElement.BlockGuid}");
+                    break;
+                }
                 vanillaMachineOutputInventory.SetItem(i, outputItems[i]);
             }
             

@@ -292,6 +292,7 @@ IMPORTANT:try-catchは基本的に使用禁止です。エラーハンドリン�
 IMPORTANT:各種ブロックパラメータ（BlockParam）はSourceGeneratorによって自動生成されます。詳細は「マスターデータシステムについて」セクションを参照してください。
 IMPORTANT:デフォルト引数の使用禁止。引数の追加は必ずデフォルト値をつけず、呼び出し側を変更する
 
+YOU MUST: Prefab、シーン、ScriptableObject等、Unity独自のYamlを使用するUnity固有ファイルは直接編集すると重大な不整合が生じる恐れが高いため、直接編集しないでください。代わりに、ユーザーに編集するように指示してください。
 
 ## Development Best Practices
 - プログラムの基本的な部分はnullではない前提でコードを書くように意識してください。

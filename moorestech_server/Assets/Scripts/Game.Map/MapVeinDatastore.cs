@@ -15,6 +15,12 @@ namespace Game.Map
             //configからmap obejctを生成
             foreach (var veinJson in mapInfoJson.MapVeins)
             {
+                if (!MasterHolder.ItemMaster.ExistItemId(veinJson.VeinItemGuid))
+                {
+                    Debug.LogError($"GUID:{veinJson.VeinItemGuid}に対応するItemIdが存在しません。鉱脈の生成をスキップします。");
+                    continue;
+                }
+                
                 var itemId = MasterHolder.ItemMaster.GetItemId(veinJson.VeinItemGuid);
                 var vein = new MapVein(itemId, veinJson.MinPosition, veinJson.MaxPosition);
                 _mapVeins.Add(vein);

@@ -57,12 +57,12 @@ namespace Game.Block.Blocks.Gear
 
         // 状態を更新し、出力が変化した場合 true を返す
         // Advance the state machine and return true when the output changes
-        public bool TryUpdate(out RPM generateRpm, out Torque generateTorque)
+        public bool TryUpdate(float operatingRate, out RPM generateRpm, out Torque generateTorque)
         {
             var previousRate = SteamConsumptionRate;
             var previousState = CurrentState;
 
-            ProcessStateMachine();
+            ProcessStateMachine(operatingRate);
             UpdateConsumptionRate();
 
             generateRpm = CurrentGeneratedRpm;
@@ -75,9 +75,9 @@ namespace Game.Block.Blocks.Gear
 
         // 燃料状況とパイプ状態を考慮して状態遷移を進める
         // Advance state transitions based on available fuel and pipe connectivity
-        private void ProcessStateMachine()
+        private void ProcessStateMachine(float operatingRate)
         {
-            _fuelService.Update();
+            _fuelService.Update(operatingRate);
 
             var allowFluidFuel = !_fluidComponent.IsPipeDisconnected;
             var hasFuel = _fuelService.HasAvailableFuel(allowFluidFuel);

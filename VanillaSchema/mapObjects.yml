@@ -21,12 +21,9 @@ properties:
     - key: hp
       type: integer
       default: 100
-    - key: earnItemHps
-      type: array
-      default:
-      - 0
-      items:
-        type: integer
+    - key: earnItemHpInterval
+      type: integer
+      default: 10
     - key: soundEffectType
       type: enum
       options:

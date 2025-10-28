@@ -34,6 +34,12 @@ defineInterface:
   - key: requiredRpm
     type: number
     default: 5
+- interfaceName: IMinerParam
+  properties:
+  - key: outputItemSlotCount
+    type: integer
+  - key: mineSettings
+    ref: mineSettings
 - interfaceName: IInventoryConnectors
   properties:
   - key: inventoryConnectors
@@ -42,6 +48,10 @@ defineInterface:
   properties:
     - key: gear
       ref: gear
+- interfaceName: IFuelItemSlotParam
+  properties:
+  - key: fuelItemSlotCount
+    type: integer
 
 properties:
 - key: data
@@ -135,6 +145,7 @@ properties:
         type: object
         implementationInterface:
         - IChestParam
+        - IInventoryConnectors
         properties:
         - key: itemSlotCount
           type: integer
@@ -188,6 +199,7 @@ properties:
         type: object
         implementationInterface:
         - IInventoryConnectors
+        - IFuelItemSlotParam
         properties:
         - key: fuelItemSlotCount
           type: integer
@@ -247,6 +259,7 @@ properties:
       - when: ElectricMiner
         type: object
         implementationInterface:
+        - IMinerParam
         - IInventoryConnectors
         properties:
         - key: requiredPower
@@ -338,6 +351,8 @@ properties:
         type: object
         implementationInterface:
         - IGearConnectors
+        - IInventoryConnectors
+        - IFuelItemSlotParam
         properties:
         - key: teethCount
           type: integer
@@ -505,6 +520,7 @@ properties:
         type: object
         implementationInterface:
         - IGearMachineParam
+        - IMinerParam
         - IInventoryConnectors
         - IGearConnectors
         properties:

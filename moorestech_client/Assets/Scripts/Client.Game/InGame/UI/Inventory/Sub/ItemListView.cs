@@ -9,6 +9,7 @@ using Client.Game.InGame.UnlockState;
 using Common.Debug;
 using Core.Master;
 using Game.UnlockState;
+using Mooresmaster.Model.CraftRecipesModule;
 using Mooresmaster.Model.ItemsModule;
 using UniRx;
 using UnityEngine;
@@ -149,48 +150,86 @@ namespace Client.Game.InGame.UI.Inventory.Sub
         
         private void OnInventoryItemChange(int slot)
         {
-            var enableItem = CheckAllItemCraftable();
+            // クラフト可能数を集計
+            // Collect craftable counts for each recipe result
+            var craftableCounts = CalculateCraftableCounts();
+            
+            // 集計結果をスロットに適用
+            // Apply aggregated counts to each slot view
             foreach (var itemUI in _itemListObjects)
             {
-                var isGrayOut = !enableItem.Contains(itemUI.ItemViewData.ItemId);
-                itemUI.SetGrayOut(isGrayOut);
+                var itemId = itemUI.ItemViewData.ItemId;
+                var count = craftableCounts.GetValueOrDefault(itemId, 0);
+                itemUI.SetCount(count);
+                itemUI.SetGrayOut(count == 0);
             }
             
             #region Internal
             
-            HashSet<ItemId> CheckAllItemCraftable()
+            Dictionary<ItemId, int> CalculateCraftableCounts()
             {
+                // インベントリ内の素材数を集計
+                // Aggregate material counts from inventory
+                var itemPerCount = BuildInventoryItemCounts();
+                
+                // 制作可能回数を算出
+                // Calculate craftable counts per recipe result
+                var result = new Dictionary<ItemId, int>();
+                foreach (var craftMaster in MasterHolder.CraftRecipeMaster.GetAllCraftRecipes())
+                {
+                    var craftableCount = CalculateCraftableCount(craftMaster, itemPerCount);
+                    if (craftableCount <= 0) continue;
+                    
+                    // 複数レシピがある場合は多い方を採用
+                    // If there are multiple recipes, adopt the larger one
+                    var resultItemId = MasterHolder.ItemMaster.GetItemId(craftMaster.CraftResultItemGuid);
+                    if (result.TryGetValue(resultItemId, out var current))
+                    {
+                        result[resultItemId] = Math.Max(current, craftableCount);
+                    }
+                    else
+                    {
+                        result.Add(resultItemId, craftableCount);
+                    }
+                }
+                
+                return result;
+            }
+            
+            Dictionary<ItemId, int> BuildInventoryItemCounts()
+            {
+                // 手持ち素材数を辞書化
+                // Convert player inventory into count dictionary
                 var itemPerCount = new Dictionary<ItemId, int>();
                 foreach (var item in _localPlayerInventory)
                 {
                     if (item.Id == ItemMaster.EmptyItemId) continue;
-                    if (itemPerCount.ContainsKey(item.Id))
-                        itemPerCount[item.Id] += item.Count;
-                    else
-                        itemPerCount.Add(item.Id, item.Count);
-                }
-                
-                var result = new HashSet<ItemId>();
-                
-                foreach (var craftMaster in MasterHolder.CraftRecipeMaster.GetAllCraftRecipes())
-                {
-                    var resultItemId = MasterHolder.ItemMaster.GetItemId(craftMaster.CraftResultItemGuid);
-                    if (result.Contains(resultItemId)) continue; //すでにクラフト可能なアイテムならスキップ
-                    var isCraftable = true;
-                    foreach (var requiredItem in craftMaster.RequiredItems)
+                    if (itemPerCount.TryGetValue(item.Id, out var current))
                     {
-                        var requiredItemId = MasterHolder.ItemMaster.GetItemId(requiredItem.ItemGuid);
-                        if (!itemPerCount.ContainsKey(requiredItemId) || itemPerCount[requiredItemId] < requiredItem.Count)
-                        {
-                            isCraftable = false;
-                            break;
-                        }
+                        itemPerCount[item.Id] = current + item.Count;
                     }
-                    
-                    if (isCraftable) result.Add(resultItemId);
+                    else
+                    {
+                        itemPerCount.Add(item.Id, item.Count);
+                    }
                 }
-                
-                return result;
+                return itemPerCount;
+            }
+            
+            int CalculateCraftableCount(CraftRecipeMasterElement craftMaster, IReadOnlyDictionary<ItemId, int> inventoryCounts)
+            {
+                // 必要素材から制作可能回数を算出
+                // Derive craftable amount from required materials
+                var maxCraftable = int.MaxValue;
+                foreach (var requiredItem in craftMaster.RequiredItems)
+                {
+                    var requiredItemId = MasterHolder.ItemMaster.GetItemId(requiredItem.ItemGuid);
+                    if (!inventoryCounts.TryGetValue(requiredItemId, out var haveCount)) return 0;
+                    var craftableByItem = haveCount / requiredItem.Count;
+                    if (craftableByItem == 0) return 0;
+                    maxCraftable = Math.Min(maxCraftable, craftableByItem);
+                }
+                return (maxCraftable == int.MaxValue ? 0 : maxCraftable) * craftMaster.CraftResultCount;
             }
             
             #endregion

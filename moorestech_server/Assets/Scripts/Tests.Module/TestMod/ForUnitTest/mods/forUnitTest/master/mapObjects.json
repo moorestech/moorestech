@@ -1,11 +1,7 @@
 {
   "data": [
     {
-      "earnItemHps": [
-        0,
-        10,
-        20
-      ],
+      "earnItemHpInterval": 10,
       "hp": 30,
       "mapObjectName": "vanilla:Tree",
       "miningTools": [
@@ -28,11 +24,7 @@
       "miningParam": {}
     },
     {
-      "earnItemHps": [
-        0,
-        10,
-        20
-      ],
+      "earnItemHpInterval": 10,
       "hp": 30,
       "mapObjectName": "vanilla:TreeTest",
       "soundEffectType": "tree",
