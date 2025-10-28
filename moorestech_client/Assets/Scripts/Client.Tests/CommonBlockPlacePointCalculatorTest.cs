@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Client.Tests
 {
-    public class BlockPlacePointCalculatorTest
+    public class CommonBlockPlacePointCalculatorTest
     {
         private readonly TestCase[] _testCases =
         {
@@ -111,7 +111,7 @@ namespace Client.Tests
                 true
             );
             
-            List<PlaceInfo> actual = BlockPlacePointCalculator.CalculatePoint(
+            List<PlaceInfo> actual = CommonBlockPlacePointCalculator.CalculatePoint(
                 testCase.PlaceStartPoint,
                 testCase.PlaceEndPoint,
                 isStartDirectionZ,

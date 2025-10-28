@@ -24,16 +24,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
     /// <summary>
     ///     マウスで地面をクリックしたときに発生するイベント
     /// </summary>
-    public class BlockPlaceSystem : IPostTickable
+    public class CommonBlockPlaceSystem : IPostTickable
     {
-        public static BlockPlaceSystem Instance;
+        public static CommonBlockPlaceSystem Instance;
         
         private const float PlaceableMaxDistance = 100f;
         private readonly IPlacementPreviewBlockGameObjectController _previewBlockController;
         private readonly HotBarView _hotBarView;
         private readonly ILocalPlayerInventory _localPlayerInventory;
         private readonly Camera _mainCamera;
-        private readonly BlockPlacePointCalculator _blockPlacePointCalculator;
+        private readonly CommonBlockPlacePointCalculator _blockPlacePointCalculator;
         
         private BlockDirection _currentBlockDirection = BlockDirection.North;
         private Vector3Int? _clickStartPosition;
@@ -46,7 +46,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         
         private int _heightOffset;
         
-        public BlockPlaceSystem(
+        public CommonBlockPlaceSystem(
             Camera mainCamera,
             HotBarView hotBarView,
             IPlacementPreviewBlockGameObjectController previewBlockController,
@@ -59,7 +59,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             _mainCamera = mainCamera;
             _previewBlockController = previewBlockController;
             _localPlayerInventory = localPlayerInventory;
-            _blockPlacePointCalculator = new BlockPlacePointCalculator(blockGameObjectDataStore);
+            _blockPlacePointCalculator = new CommonBlockPlacePointCalculator(blockGameObjectDataStore);
         }
         
         public static void SetEnableBlockPlace(bool enable)
