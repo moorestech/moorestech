@@ -27,6 +27,11 @@ namespace Client.Game.InGame.UI.Inventory
         private LoadedAsset<GameObject> _currentLoadedAsset;
         
         public IItemStack CurrentItem => _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(SelectIndex)];
+        
+        /// <summary>
+        /// 0〜8のインデックス　インベントリ上のどのアイテムかは <see cref="PlayerInventoryConst.HotBarSlotToInventorySlot"/> を参照
+        /// Index from 0 to 8. To find out which item in the inventory, refer to <see cref="PlayerInventoryConst.HotBarSlotToInventorySlot"/>.
+        /// </summary>
         public int SelectIndex { get; private set; }
         private float _switchHotBarDeltaTotal;
         
