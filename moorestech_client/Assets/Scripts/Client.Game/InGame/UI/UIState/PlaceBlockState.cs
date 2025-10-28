@@ -64,7 +64,7 @@ namespace Client.Game.InGame.UI.UIState
         public UIStateEnum GetNextUpdate()
         {
             if (InputManager.UI.OpenInventory.GetKeyDown) return UIStateEnum.PlayerInventory;
-            if (BlockClickDetect.IsClickOpenableBlock()) return UIStateEnum.BlockInventory;
+            if (BlockClickDetect.IsClickOpenableBlock(_previewBlockController)) return UIStateEnum.BlockInventory;
             if (InputManager.UI.BlockDelete.GetKeyDown) return UIStateEnum.DeleteBar;
             if (_skitManager.IsPlayingSkit) return UIStateEnum.Story;
             //TODO InputSystemのリファクタ対象
