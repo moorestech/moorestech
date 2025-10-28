@@ -27,7 +27,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         public static BlockPlaceSystem Instance;
         
         private const float PlaceableMaxDistance = 100f;
-        private readonly IBlockPlacePreview _blockPlacePreview;
+        private readonly IPlacementPreviewBlockGameObjectController _previewBlockController;
         private readonly HotBarView _hotBarView;
         private readonly ILocalPlayerInventory _localPlayerInventory;
         private readonly Camera _mainCamera;
@@ -47,7 +47,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         public BlockPlaceSystem(
             Camera mainCamera,
             HotBarView hotBarView,
-            IBlockPlacePreview blockPlacePreview,
+            IPlacementPreviewBlockGameObjectController previewBlockController,
             ILocalPlayerInventory localPlayerInventory,
             BlockGameObjectDataStore blockGameObjectDataStore
         )
@@ -55,7 +55,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             Instance = this;
             _hotBarView = hotBarView;
             _mainCamera = mainCamera;
-            _blockPlacePreview = blockPlacePreview;
+            _previewBlockController = previewBlockController;
             _localPlayerInventory = localPlayerInventory;
             _blockPlacePointCalculator = new BlockPlacePointCalculator(blockGameObjectDataStore);
         }
@@ -74,7 +74,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             }
             else
             {
-                Instance._blockPlacePreview.SetActive(false);
+                Instance._previewBlockController.SetActive(false);
                 // 連続設置状態をリセット
                 Instance._clickStartPosition = null;
                 Instance._isStartZDirection = null;
@@ -129,7 +129,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             var hitPoint = Vector3.zero;
             
             //基本はプレビュー非表示
-            _blockPlacePreview.SetActive(false);
+            _previewBlockController.SetActive(false);
             
             if (!MasterHolder.BlockMaster.IsBlock(itemId)) return; // 置けるブロックかどうか
             if (!TryGetRayHitPosition(out hitPoint, out var boundingBoxSurface)) return; // ブロック設置用のrayが当たっているか
@@ -141,7 +141,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             
             if (!IsBlockPlaceableDistance(PlaceableMaxDistance)) return; // 設置可能な距離かどうか
             
-            _blockPlacePreview.SetActive(true);
+            _previewBlockController.SetActive(true);
             
             //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
             if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !EventSystem.current.IsPointerOverGameObject())
@@ -165,13 +165,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 }
                 
                 _currentPlaceInfos = _blockPlacePointCalculator.CalculatePoint(_clickStartPosition.Value, placePoint, _isStartZDirection ?? true, _currentBlockDirection, holdingBlockMaster);
-                groundDetects = _blockPlacePreview.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockMaster);
+                groundDetects = _previewBlockController.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockMaster);
             }
             else
             {
                 _isStartZDirection = null;
                 _currentPlaceInfos = _blockPlacePointCalculator.CalculatePoint(placePoint, placePoint, true, _currentBlockDirection, holdingBlockMaster);
-                groundDetects = _blockPlacePreview.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockMaster);
+                groundDetects = _previewBlockController.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockMaster);
             }
             
             // Placeableの更新

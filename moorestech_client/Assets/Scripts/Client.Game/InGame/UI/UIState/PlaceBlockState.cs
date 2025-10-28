@@ -14,7 +14,7 @@ namespace Client.Game.InGame.UI.UIState
 {
     public class PlaceBlockState : IUIState
     {
-        private readonly IBlockPlacePreview _blockPlacePreview;
+        private readonly IPlacementPreviewBlockGameObjectController _previewBlockController;
         private readonly ScreenClickableCameraController _screenClickableCameraController;
         private readonly SkitManager _skitManager;
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
@@ -23,12 +23,12 @@ namespace Client.Game.InGame.UI.UIState
         
         private bool _isChangeCameraAngle;
         
-        public PlaceBlockState(IBlockPlacePreview blockPlacePreview, SkitManager skitManager, InGameCameraController inGameCameraController, BlockGameObjectDataStore blockGameObjectDataStore)
+        public PlaceBlockState(IPlacementPreviewBlockGameObjectController previewBlockController, SkitManager skitManager, InGameCameraController inGameCameraController, BlockGameObjectDataStore blockGameObjectDataStore)
         {
             _skitManager = skitManager;
             _inGameCameraController = inGameCameraController;
             _blockGameObjectDataStore = blockGameObjectDataStore;
-            _blockPlacePreview = blockPlacePreview;
+            _previewBlockController = previewBlockController;
             _screenClickableCameraController = new ScreenClickableCameraController(inGameCameraController);
         }
         
@@ -62,7 +62,7 @@ namespace Client.Game.InGame.UI.UIState
         public UIStateEnum GetNextUpdate()
         {
             if (InputManager.UI.OpenInventory.GetKeyDown) return UIStateEnum.PlayerInventory;
-            if (BlockClickDetect.IsClickOpenableBlock(_blockPlacePreview)) return UIStateEnum.BlockInventory;
+            if (BlockClickDetect.IsClickOpenableBlock()) return UIStateEnum.BlockInventory;
             if (InputManager.UI.BlockDelete.GetKeyDown) return UIStateEnum.DeleteBar;
             if (_skitManager.IsPlayingSkit) return UIStateEnum.Story;
             //TODO InputSystemのリファクタ対象

@@ -9,13 +9,13 @@ namespace Client.Game.InGame.UI.UIState
 {
     public class GameScreenState : IUIState
     {
-        private readonly IBlockPlacePreview _blockPlacePreview;
+        private readonly IPlacementPreviewBlockGameObjectController _previewBlockController;
         private readonly InGameCameraController _inGameCameraController;
         private readonly SkitManager _skitManager;
         
-        public GameScreenState(IBlockPlacePreview blockPlacePreview, SkitManager skitManager, InGameCameraController inGameCameraController)
+        public GameScreenState(IPlacementPreviewBlockGameObjectController previewBlockController, SkitManager skitManager, InGameCameraController inGameCameraController)
         {
-            _blockPlacePreview = blockPlacePreview;
+            _previewBlockController = previewBlockController;
             _skitManager = skitManager;
             _inGameCameraController = inGameCameraController;
         }
@@ -24,7 +24,7 @@ namespace Client.Game.InGame.UI.UIState
         {
             if (InputManager.UI.OpenInventory.GetKeyDown) return UIStateEnum.PlayerInventory;
             if (InputManager.UI.OpenMenu.GetKeyDown) return UIStateEnum.PauseMenu;
-            if (BlockClickDetect.IsClickOpenableBlock(_blockPlacePreview)) return UIStateEnum.BlockInventory;
+            if (!_previewBlockController.IsActive && BlockClickDetect.IsClickOpenableBlock()) return UIStateEnum.BlockInventory;
             if (InputManager.UI.BlockDelete.GetKeyDown) return UIStateEnum.DeleteBar;
             if (_skitManager.IsPlayingSkit) return UIStateEnum.Story;
             //TODO InputSystemのリファクタ対象
