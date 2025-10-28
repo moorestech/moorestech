@@ -1,10 +1,8 @@
 using System.Collections.Generic;
-using Client.Game.InGame.Block;
 using Core.Master;
-using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.PreviewObject
 {
     public interface IPreviewOnlyObject
     {

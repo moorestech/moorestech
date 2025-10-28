@@ -3,7 +3,7 @@ using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.InventoryConnectsModule;
 using UnityEngine;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.PreviewObject
 {
     public class InventoryConnectorView : MonoBehaviour, IPreviewOnlyObject
     {

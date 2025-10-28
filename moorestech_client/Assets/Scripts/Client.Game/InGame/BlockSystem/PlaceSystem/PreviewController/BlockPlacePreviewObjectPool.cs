@@ -3,7 +3,7 @@ using Client.Game.InGame.Context;
 using Core.Master;
 using UnityEngine;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.PreviewController
 {
     public class BlockPlacePreviewObjectPool
     {
@@ -50,7 +50,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             
             BlockPreviewObject CreatePreviewObject(BlockId id)
             {
-                var previewBlock = ClientContext.BlockGameObjectContainer.CreatePreviewBlock(id);
+                var previewBlock = PreviewBlockCreator.Create(id);
                 previewBlock.transform.SetParent(_parentTransform);
                 previewBlock.transform.localPosition = Vector3.zero;
                 
