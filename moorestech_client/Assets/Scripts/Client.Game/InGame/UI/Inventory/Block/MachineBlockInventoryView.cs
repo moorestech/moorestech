@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
@@ -7,6 +8,7 @@ using Core.Master;
 using Game.Block.Interface.State;
 using Game.Context;
 using Mooresmaster.Model.BlocksModule;
+using Mooresmaster.Model.MachineRecipesModule;
 using TMPro;
 using UnityEngine;
 
@@ -23,6 +25,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
         
         [SerializeField] private TMP_Text powerRateText;
         [SerializeField] private ProgressArrowView machineProgressArrow;
+        [SerializeField] private TMP_Text machineRecipeCount;
         
         protected BlockGameObject BlockGameObject;
         
@@ -84,10 +87,34 @@ namespace Client.Game.InGame.UI.Inventory.Block
         
         protected void Update()
         {
+            UpdateMachineRecipeView();
             UpdateMachineProgressArrow();
             UpdateFluidInventory();
             
             #region Internal
+            
+            void UpdateMachineRecipeView()
+            {
+                var state = BlockGameObject.GetStateDetail<MachineBlockStateDetail>(MachineBlockStateDetail.BlockStateDetailKey);
+                if (state == null)
+                {
+                    return;
+                }
+                
+                var machineRecipeCountText = string.Empty;
+                if (state.MachineRecipeGuid != Guid.Empty.ToString())
+                {
+                    var recipeMaster = MasterHolder.MachineRecipesMaster.GetRecipeElement(Guid.Parse(state.MachineRecipeGuid));
+                    var minutesCount =  60.0f / recipeMaster.Time;
+                    foreach (var item in recipeMaster.OutputItems)
+                    {
+                        var resultCount = item.Count * minutesCount;
+                        var itemName = MasterHolder.ItemMaster.GetItemMaster(item.ItemGuid).Name;
+                        machineRecipeCountText += $"{itemName} : {resultCount:F1}/分 ";
+                    }
+                }
+                machineRecipeCount.text = machineRecipeCountText;
+            }
             
             void UpdateMachineProgressArrow()
             {

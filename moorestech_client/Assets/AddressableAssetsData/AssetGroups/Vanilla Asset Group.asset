@@ -235,6 +235,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 47dc6dc81a3124bbb9ead82c3ef79f1c
+    m_Address: Vanilla/Block/Research Table
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 4936fc7b570875c42905898d5f044465
     m_Address: Vanilla/Block/Fast_BeltConveyor_Straight
     m_ReadOnly: 0
@@ -247,6 +252,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 4b7ddb70ca42f4b029bbb102809b22de
     m_Address: Vanilla/Block/Deuterium_extraction_equipment
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4b8328fa9a44041ba801e3285770eca7
+    m_Address: Vanilla/Block/itemshooter splitter
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -350,6 +360,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 613544b674bb64ee79908ce25da2039d
+    m_Address: Vanilla/Block/itemshooter merger
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 6257c3a1b698947b98372ecb51c9207d
     m_Address: Vanilla/Block/Util/BlockPreviewBoundingBox
     m_ReadOnly: 0
@@ -402,6 +417,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 764764c4c5bb8b043a34afd794f9c161
     m_Address: Vanilla/Block/Old/generator mk3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7967b90ef533f446ea2101bb570b5304
+    m_Address: Vanilla/Block/itemshooter right to straight
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -742,6 +762,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: d83514a389dfe4f7e9da9d2375529bcd
     m_Address: Vanilla/Block/Hydrogen_reduction_furnace
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d95a102242c21429d8b2d81606de3f46
+    m_Address: Vanilla/Block/itemshooter left to straight
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

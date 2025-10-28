@@ -229,21 +229,25 @@ namespace Tests.CombinedTest.Core
                 inventory.SetItem(slot, emptyStack);
             }
 
-            // 減速フェーズでゼロ出力になるまで監視する
-            // Monitor the deceleration phase until the generator reaches zero output
+            var rpmBeforeDrain = generatorComponent.GenerateRpm.AsPrimitive();
+            var torqueBeforeDrain = generatorComponent.GenerateTorque.AsPrimitive();
+
+            // 負荷ゼロの状態では出力が維持されることを確認する
+            // Confirm that output is maintained while operating with zero load
             var decelerationLimit = DateTime.Now.AddSeconds(param.TimeToMax + 2);
+            var minObservedRpm = rpmBeforeDrain;
+            var minObservedTorque = torqueBeforeDrain;
             while (DateTime.Now < decelerationLimit)
             {
                 GameUpdater.UpdateWithWait();
-                if (generatorComponent.GenerateRpm.AsPrimitive() <= 0.5f &&
-                    generatorComponent.GenerateTorque.AsPrimitive() <= 0.5f)
-                {
-                    break;
-                }
+                var currentRpm = generatorComponent.GenerateRpm.AsPrimitive();
+                var currentTorque = generatorComponent.GenerateTorque.AsPrimitive();
+                if (currentRpm < minObservedRpm) minObservedRpm = currentRpm;
+                if (currentTorque < minObservedTorque) minObservedTorque = currentTorque;
             }
 
-            Assert.AreEqual(0f, generatorComponent.GenerateRpm.AsPrimitive(), 0.5f, "燃料が尽きた後に回転が停止していません");
-            Assert.AreEqual(0f, generatorComponent.GenerateTorque.AsPrimitive(), 0.5f, "燃料が尽きた後にトルクが停止していません");
+            Assert.GreaterOrEqual(minObservedRpm, rpmBeforeDrain - 0.5f, "負荷ゼロでは回転数が維持されるべきです");
+            Assert.GreaterOrEqual(minObservedTorque, torqueBeforeDrain - 0.5f, "負荷ゼロではトルクが維持されるべきです");
         }
 
         [Test]
@@ -469,11 +473,13 @@ namespace Tests.CombinedTest.Core
             void ValidateBlockStateDetails(BlockStateDetail[] details, string expectedState, float expectedRpm, 
                 float expectedTorque, float expectedRate, double expectedSteamAmount, int expectedFluidId)
             {
-                Assert.AreEqual(2, details.Length, "BlockStateDetailsは単一の要素を含むべきです");
-                Assert.AreEqual(SteamGearGeneratorBlockStateDetail.SteamGearGeneratorBlockStateDetailKey, details[0].Key, "BlockStateDetailのキーが正しくありません");
+                Assert.AreEqual(3, details.Length);
+                
+                var detail = details.FirstOrDefault(d => d.Key == SteamGearGeneratorBlockStateDetail.SteamGearGeneratorBlockStateDetailKey);
+                Assert.IsNotNull(detail, "CommonMachineBlockStateDetailが含まれていません");
                 
                 // 単一のBlockStateDetailから状態データを取得
-                var stateData = MessagePackSerializer.Deserialize<SteamGearGeneratorBlockStateDetail>(details[0].Value);
+                var stateData = MessagePackSerializer.Deserialize<SteamGearGeneratorBlockStateDetail>(detail.Value);
                 
                 Assert.AreEqual(expectedState, stateData.State, "状態が期待値と一致しません");
                 Assert.AreEqual(expectedRpm, stateData.CurrentRpm, 0.01f, "RPMが期待値と一致しません");
@@ -485,10 +491,10 @@ namespace Tests.CombinedTest.Core
             
             (string state, float rpm, float torque, float rate, double steamAmount, int fluidId) ExtractDetails(BlockStateDetail[] details)
             {
-                Assert.AreEqual(2, details.Length, "BlockStateDetailsは単一の要素を含むべきです");
+                var detail = details.FirstOrDefault(d => d.Key == SteamGearGeneratorBlockStateDetail.SteamGearGeneratorBlockStateDetailKey);
+                Assert.IsNotNull(detail, "SteamGearGeneratorBlockStateDetailが含まれていません");
                 
-                // 単一のBlockStateDetailから状態データを取得
-                var stateData = MessagePackSerializer.Deserialize<SteamGearGeneratorBlockStateDetail>(details[0].Value);
+                var stateData = MessagePackSerializer.Deserialize<SteamGearGeneratorBlockStateDetail>(detail.Value);
                 
                 return (stateData.State, stateData.CurrentRpm, stateData.CurrentTorque, stateData.SteamConsumptionRate, 
                         stateData.SteamAmount, stateData.SteamFluidId);

@@ -37,11 +37,24 @@ namespace Client.Game.InGame.UI.Inventory.Common
                     toolTipText = GetToolTipText(itemView);
                 }
                 
-                var countText = count != 0 ? count.ToString() : string.Empty;
-                commonSlotView.SetView(itemView.ItemImage, countText, toolTipText);
+                commonSlotView.SetView(itemView.ItemImage, GetCountText(count), toolTipText);
             }
         }
+
+        // クラフト数の表示のみを更新
+        // Update only craftable count text
+        public void SetCount(int count)
+        {
+            Count = count;
+            var countText = GetCountText(count);
+            commonSlotView.SetCountText(countText);
+        }
         
+        private string GetCountText(int count)
+        {
+            return count != 0 ? count.ToString() : string.Empty;
+        }
+
         public void SetSlotViewOption(CommonSlotViewOption slotOption)
         {
             commonSlotView.SetSlotViewOption(slotOption);

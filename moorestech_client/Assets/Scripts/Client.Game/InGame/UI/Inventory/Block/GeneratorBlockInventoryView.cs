@@ -2,24 +2,35 @@ using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.UI.Inventory.Common;
 using Core.Item.Interface;
+using Game.Block.Blocks.PowerGenerator;
 using Game.Context;
 using Mooresmaster.Model.BlocksModule;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Client.Game.InGame.UI.Inventory.Block
 {
     public class GeneratorBlockInventoryView : CommonBlockInventoryViewBase
     {
         [SerializeField] private RectTransform powerGeneratorFuelItemParent;
+        [SerializeField] private TMP_Text blockName;
+        
+        [SerializeField] private TMP_Text operatingRateText;
+        [SerializeField] private Slider fuelProgressSlider;
+        
+        private BlockGameObject _blockGameObject;
         
         public override void Initialize(BlockGameObject blockGameObject)
         {
+            _blockGameObject = blockGameObject;
             base.Initialize(blockGameObject);
             
+            blockName.text = blockGameObject.BlockMasterElement.Name;
             
             var itemList = new List<IItemStack>();
             var param = blockGameObject.BlockMasterElement.BlockParam;
-            var generatorParam = (ElectricGeneratorBlockParam)param;
+            var generatorParam = (IFuelItemSlotParam)param;
             for (var i = 0; i < generatorParam.FuelItemSlotCount; i++)
             {
                 var slotObject = Instantiate(ItemSlotView.Prefab, powerGeneratorFuelItemParent);
@@ -28,6 +39,19 @@ namespace Client.Game.InGame.UI.Inventory.Block
             }
             
             UpdateItemList(itemList);
+        }
+        
+        private void Update()
+        {
+            var state = _blockGameObject.GetStateDetail<PowerGeneratorStateDetail>(PowerGeneratorStateDetail.StateDetailKey);
+            if (state == null)
+            {
+                Debug.LogError("PowerGeneratorStateDetailが取得できません。");
+                return;
+            }
+            
+            fuelProgressSlider.value = (float)(state.RemainingFuelTime / state.CurrentFuelTime);
+            operatingRateText.text = $"燃料消費は稼働率に応じて高くなる\n稼働率: {state.OperatingRate * 100f:F0}%";
         }
     }
 }

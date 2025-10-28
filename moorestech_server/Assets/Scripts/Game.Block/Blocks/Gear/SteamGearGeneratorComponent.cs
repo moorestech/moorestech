@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Game.Block.Blocks.PowerGenerator;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Gear.Common;
@@ -73,7 +74,10 @@ namespace Game.Block.Blocks.Gear
         {
             BlockException.CheckDestroy(this);
 
-            var changed = _stateService.TryUpdate(out var newRpm, out var newTorque);
+            var network = GearNetworkDatastore.GetGearNetwork(BlockInstanceId);
+            var operatingRate = network.CurrentGearNetworkInfo.OperatingRate;
+            
+            var changed = _stateService.TryUpdate(operatingRate, out var newRpm, out var newTorque);
             GenerateRpm = newRpm;
             GenerateTorque = newTorque;
 
@@ -93,16 +97,36 @@ namespace Game.Block.Blocks.Gear
         public new BlockStateDetail[] GetBlockStateDetails()
         {
             BlockException.CheckDestroy(this);
-
+            
             var network = GearNetworkDatastore.GetGearNetwork(BlockInstanceId);
-            var detail = new SteamGearGeneratorBlockStateDetail(_stateService, _fluidComponent, network.CurrentGearNetworkInfo, GenerateIsClockwise);
-            var serialised = MessagePackSerializer.Serialize(detail);
+            var steamGearGeneratorDetail = CreateSteamGearGeneratorStateDetail();
+            var powerGeneratorDetail = CreatePowerGeneratorStateDetail();
+            
+            const int addCount = 2;
             var baseDetails = base.GetBlockStateDetails();
-
-            var result = new BlockStateDetail[baseDetails.Length + 1];
-            result[0] = new BlockStateDetail(SteamGearGeneratorBlockStateDetail.SteamGearGeneratorBlockStateDetailKey, serialised);
-            Array.Copy(baseDetails, 0, result, 1, baseDetails.Length);
+            var result = new BlockStateDetail[baseDetails.Length + addCount];
+            result[0] = steamGearGeneratorDetail;
+            result[1] = powerGeneratorDetail;
+            
+            Array.Copy(baseDetails, 0, result, addCount, baseDetails.Length);
             return result;
+            
+            #region Internal
+            
+            BlockStateDetail CreateSteamGearGeneratorStateDetail()
+            {
+                var gearGenerator = new SteamGearGeneratorBlockStateDetail(_stateService, _fluidComponent, network.CurrentGearNetworkInfo, GenerateIsClockwise);
+                return new BlockStateDetail(SteamGearGeneratorBlockStateDetail.SteamGearGeneratorBlockStateDetailKey, MessagePackSerializer.Serialize(gearGenerator));
+            }
+            
+            BlockStateDetail CreatePowerGeneratorStateDetail()
+            {
+                var operatingRate = network.CurrentGearNetworkInfo.OperatingRate;
+                var powerGeneratorStateDetail = new PowerGeneratorStateDetail(_fuelService, operatingRate);
+                return new BlockStateDetail(PowerGeneratorStateDetail.StateDetailKey, MessagePackSerializer.Serialize(powerGeneratorStateDetail));
+            }
+            
+            #endregion
         }
     }
 }

@@ -90,12 +90,12 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         [SerializeField] private RotationAxis rotationAxis;
         [SerializeField] private Transform rotationTransform;
         
+        [SerializeField] private bool isReverse;
+        [SerializeField] private float rotationSpeed = 1;
+        
         [Header("Animator Only")]
         [SerializeField] private Animator animator;
         [SerializeField] private float rpm60Speed = 1;
-        
-        [SerializeField] private bool isReverse;
-        [SerializeField] private float rotationSpeed = 1;
         
         public RotationMode RotationMode => rotationMode;
         

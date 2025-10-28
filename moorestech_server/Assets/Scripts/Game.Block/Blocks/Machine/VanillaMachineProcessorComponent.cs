@@ -67,9 +67,11 @@ namespace Game.Block.Blocks.Machine
             BlockException.CheckDestroy(this);
             
             var processingRate = _processingRecipe != null ? 1 - (float)RemainingSecond / _processingRecipe.Time : 0;
-            var stateDetail = new CommonMachineBlockStateDetail(_currentPower.AsPrimitive(), RequestPower.AsPrimitive(), processingRate, CurrentState.ToStr(), _lastState.ToStr());
-            var currentState = MessagePackSerializer.Serialize(stateDetail);
-            return new []{ new BlockStateDetail(CommonMachineBlockStateDetail.BlockStateDetailKey, currentState) };
+            
+            var commonMachineBlock = CommonMachineBlockStateDetail.CreateState(_currentPower.AsPrimitive(), RequestPower.AsPrimitive(), processingRate, CurrentState.ToStr(), _lastState.ToStr());
+            var machineBlock = MachineBlockStateDetail.CreateState(processingRate, _processingRecipe?.MachineRecipeGuid ?? Guid.Empty);
+            
+            return new []{ commonMachineBlock, machineBlock };
         }
         
         public void SupplyPower(ElectricPower power)

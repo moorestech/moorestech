@@ -69,8 +69,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   outlineObject: {fileID: 5631076428431296696}
+  hpBarView: {fileID: 0}
   instanceId: 0
-  mapObjectGuid: 12081941-baa5-42b1-a3ee-5f97f5ee5871
+  mapObjectGuid: c74efe49-52f3-403b-9c9a-b39eb1c85fce
 --- !u!65 &4025926000838640696
 BoxCollider:
   m_ObjectHideFlags: 0

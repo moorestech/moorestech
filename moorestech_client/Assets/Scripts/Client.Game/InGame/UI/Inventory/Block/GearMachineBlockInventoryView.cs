@@ -4,6 +4,7 @@ using Game.Gear.Common;
 using Mooresmaster.Model.BlocksModule;
 using TMPro;
 using UnityEngine;
+using static Client.Game.InGame.UI.Inventory.Block.GearEnergyTransformerUIView;
 
 namespace Client.Game.InGame.UI.Inventory.Block
 {
@@ -51,7 +52,8 @@ namespace Client.Game.InGame.UI.Inventory.Block
             var rate = state.GearNetworkOperatingRate;
             var requiredPower = state.GearNetworkTotalRequiredPower;
             var generatePower = state.GearNetworkTotalGeneratePower;
-            networkInfoText.text = $"歯車ネットワーク情報 稼働率: {rate * 100:F2}% 必要力: {requiredPower:F2} 生成力: {generatePower:F2}";
+            
+            networkInfoText.text = $"{GetStopReasonText(state.StopReason)} 必要力: {requiredPower:F2} 生成力: {generatePower:F2}";
         }
     }
 }

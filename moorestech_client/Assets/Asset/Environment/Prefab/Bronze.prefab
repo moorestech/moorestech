@@ -129,6 +129,8 @@ MeshRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -150,6 +152,7 @@ MeshRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
@@ -226,7 +229,7 @@ MonoBehaviour:
   outlineObject: {fileID: 0}
   hpBarView: {fileID: 220702310046901491}
   instanceId: 0
-  mapObjectGuid: 20eb0c7e-51d3-4f4a-ba28-c974bc96e165
+  mapObjectGuid: 684eb2c1-d1c4-448b-bdaf-d24df5b7ff44
 --- !u!1001 &7699419025567653180
 PrefabInstance:
   m_ObjectHideFlags: 0

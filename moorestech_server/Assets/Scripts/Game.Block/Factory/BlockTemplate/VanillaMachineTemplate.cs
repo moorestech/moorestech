@@ -72,7 +72,7 @@ namespace Game.Block.Factory.BlockTemplate
             var blockId = MasterHolder.BlockMaster.GetBlockId(blockMasterElement.BlockGuid);
             var (input, output) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inputConnectorComponent, _blockInventoryUpdateEvent);
             
-            var processor = BlockTemplateUtil.MachineLoadState(componentStates, input, output, new ElectricPower(machineParam.RequiredPower));
+            var processor = BlockTemplateUtil.MachineLoadState(componentStates, input, output, new ElectricPower(machineParam.RequiredPower), blockMasterElement);
             
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output);
             var machineSave = new VanillaMachineSaveComponent(input, output, processor);
