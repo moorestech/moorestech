@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
-using Client.Game.InGame.BlockSystem.PlaceSystem.PreviewController;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState.Input;

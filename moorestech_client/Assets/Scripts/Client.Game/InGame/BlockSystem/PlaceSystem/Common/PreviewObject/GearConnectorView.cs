@@ -3,7 +3,7 @@ using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.GearModule;
 using UnityEngine;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.PreviewObject
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject
 {
     public class GearConnectorView : MonoBehaviour, IPreviewOnlyObject
     {

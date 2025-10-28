@@ -5,7 +5,7 @@ using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.PreviewController
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
 {
     public class PlacementPreviewBlockGameObjectController : MonoBehaviour, IPlacementPreviewBlockGameObjectController
     {

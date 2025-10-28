@@ -8,7 +8,7 @@ using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 {
     public class CommonBlockPlacePointCalculator
     {

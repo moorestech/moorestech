@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using ClassLibrary;
 using Client.Common;
 using Client.Game.InGame.Block;
-using Client.Game.InGame.BlockSystem.PlaceSystem.PreviewController;
-using Client.Game.InGame.BlockSystem.PlaceSystem.PreviewObject;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.SoundEffect;
@@ -19,7 +19,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using VContainer.Unity;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 {
     /// <summary>
     ///     マウスで地面をクリックしたときに発生するイベント

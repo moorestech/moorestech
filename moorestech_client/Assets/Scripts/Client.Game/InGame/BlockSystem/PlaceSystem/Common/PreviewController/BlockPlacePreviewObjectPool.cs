@@ -1,9 +1,8 @@
 using System.Collections.Generic;
-using Client.Game.InGame.Context;
 using Core.Master;
 using UnityEngine;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.PreviewController
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
 {
     public class BlockPlacePreviewObjectPool
     {
