@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.PreviewObject
 {
     public class BlockPreviewBoundingBoxSurface : MonoBehaviour
     {

@@ -2,7 +2,7 @@
 using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.PreviewController
 {
     /// <summary>
     /// ブロックを設置する時に、設置中に表示するプレビューブロックの、実態となるGameObjectを管理するコントローラーのインターフェース

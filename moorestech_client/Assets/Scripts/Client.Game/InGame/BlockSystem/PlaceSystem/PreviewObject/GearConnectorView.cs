@@ -1,10 +1,9 @@
 using Core.Master;
 using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.GearModule;
-using Mooresmaster.Model.InventoryConnectsModule;
 using UnityEngine;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.PreviewObject
 {
     public class GearConnectorView : MonoBehaviour, IPreviewOnlyObject
     {

@@ -4,6 +4,7 @@ using System.Linq;
 using Client.Common;
 using Client.Common.Asset;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
+using Client.Game.InGame.BlockSystem.PlaceSystem.PreviewObject;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.Context;
 using Core.Master;

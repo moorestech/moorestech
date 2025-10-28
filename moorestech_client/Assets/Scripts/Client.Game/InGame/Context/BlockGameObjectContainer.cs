@@ -5,6 +5,7 @@ using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
+using Client.Game.InGame.BlockSystem.PlaceSystem.PreviewController;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Core.Master;
 using Cysharp.Threading.Tasks;
@@ -73,6 +74,10 @@ namespace Client.Game.InGame.Context
             return new BlockObjectInfo(blockId, blockAsset.Asset, masterElement);
         }
         
+        /// <summary>
+        /// 必要なセットアップを行なってブロックオブジェクトを生成する
+        /// Create a block object with the necessary setup
+        /// </summary>
         public BlockGameObject CreateBlock(BlockId blockId, Vector3 position, Quaternion rotation, Transform parent, Vector3Int blockPosition, BlockDirection direction)
         {
             if (!_blockObjects.TryGetValue(blockId, out var blockObjectInfo))
@@ -145,7 +150,12 @@ namespace Client.Game.InGame.Context
             #endregion
         }
         
-        public BlockPreviewObject CreatePreviewBlock(BlockId blockId)
+        
+        /// <summary>
+        /// GameObjectの生成だけを行う
+        /// Create only the GameObject
+        /// </summary>
+        public GameObject CreateBlockGameObject(BlockId blockId, Vector3 position, Quaternion rotation)
         {
             if (!_blockObjects.TryGetValue(blockId, out var blockObjectInfo))
             {
@@ -154,14 +164,7 @@ namespace Client.Game.InGame.Context
             }
             
             //ブロックの作成とセットアップをして返す
-            var block = Object.Instantiate(blockObjectInfo.BlockObjectPrefab, Vector3.zero, Quaternion.identity);
-            block.SetActive(true);
-            
-            var previewGameObject = block.AddComponent<BlockPreviewObject>();
-            previewGameObject.SetTriggerCollider(true);
-            previewGameObject.Initialize(blockId);
-            
-            return previewGameObject;
+            return Object.Instantiate(blockObjectInfo.BlockObjectPrefab, position, rotation);
         }
     }
     
