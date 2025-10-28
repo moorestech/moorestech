@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Game.Block.Interface;
 using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
@@ -9,7 +10,7 @@ using UnityEngine;
 
 namespace Client.Tests
 {
-    public class BlockPlacePointCalculatorTest
+    public class CommonBlockPlacePointCalculatorTest
     {
         private readonly TestCase[] _testCases =
         {
@@ -111,7 +112,7 @@ namespace Client.Tests
                 true
             );
             
-            List<PlaceInfo> actual = BlockPlacePointCalculator.CalculatePoint(
+            List<PlaceInfo> actual = CommonBlockPlacePointCalculator.CalculatePoint(
                 testCase.PlaceStartPoint,
                 testCase.PlaceEndPoint,
                 isStartDirectionZ,

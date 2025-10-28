@@ -4,6 +4,8 @@ using Client.Game.Common;
 using Client.Game.InGame.BackgroundSkit;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.CraftTree.TreeView;
@@ -78,7 +80,7 @@ namespace Client.Starter
         [SerializeField] private KeyControlTutorialManager keyControlTutorialManager;
         [SerializeField] private ItemViewHighLightTutorialManager itemViewHighLightTutorialManager;
         
-        [SerializeField] private BlockPlacePreview blockPlacePreview;
+        [SerializeField] private PlacementPreviewBlockGameObjectController previewBlockController;
         [SerializeField] private SaveButton saveButton;
         [SerializeField] private BackToMainMenu backToMainMenu;
         [SerializeField] private NetworkDisconnectPresenter networkDisconnectPresenter;
@@ -128,7 +130,7 @@ namespace Client.Starter
             builder.RegisterEntryPoint<CommonMachineBlockStateChangeProcessor>();
             builder.RegisterEntryPoint<WorldDataHandler>();
             builder.RegisterEntryPoint<PlayerPositionSender>();
-            builder.RegisterEntryPoint<BlockPlaceSystem>().AsSelf();
+            builder.RegisterEntryPoint<CommonBlockPlaceSystem>().AsSelf();
             builder.RegisterEntryPoint<SkitFireManager>();
             
             
@@ -199,7 +201,7 @@ namespace Client.Starter
             
             builder.RegisterComponent(inGameCameraController).As<IInitializable>();
             
-            builder.RegisterComponent<IBlockPlacePreview>(blockPlacePreview);
+            builder.RegisterComponent<IPlacementPreviewBlockGameObjectController>(previewBlockController);
             
             builder.RegisterBuildCallback(objectResolver => { });
             

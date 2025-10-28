@@ -1,13 +1,13 @@
 using System.Linq;
 using Client.Common;
 using Client.Game.InGame.Block;
-using Client.Game.InGame.Context;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
 using Core.Master;
 using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 using UnityEngine.VFX;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
 {
     public class BlockPreviewObject : MonoBehaviour
     {
