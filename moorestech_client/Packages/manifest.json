@@ -26,6 +26,7 @@
     "com.unity.render-pipelines.universal": "17.2.0",
     "com.unity.render-pipelines.universal-config": "17.0.3",
     "com.unity.shadergraph": "17.2.0",
+    "com.unity.splines": "2.8.2",
     "com.unity.test-framework": "1.6.0",
     "com.unity.timeline": "1.8.9",
     "com.unity.toolchain.macos-arm64-linux-x86_64": "2.0.4",
