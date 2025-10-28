@@ -51,7 +51,7 @@ namespace Tests.Util
 
         private static TrainAutoRunTestScenario CreateScenario(bool startRunning)
         {
-            var environment = TrainTestHelper.CreateEnvironmentWithRailGraph(out _);
+            var environment = TrainTestHelper.CreateEnvironment();
 
             var (_, railSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
                 environment,

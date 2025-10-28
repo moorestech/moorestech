@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Core.Update;
 using Game.Train.Train;
@@ -64,9 +65,18 @@ namespace Game.Train.Common
         }
 
 
-        public void RegisterTrain(TrainUnit trainUnit) => _trainUnits.Add(trainUnit);
+        public void RegisterTrain(TrainUnit trainUnit) 
+        {
+            _trainUnits.Add(trainUnit);
+            //UnityEngine.Debug.Log("!");
+        } 
         public void UnregisterTrain(TrainUnit trainUnit) => _trainUnits.Remove(trainUnit);
         public IEnumerable<TrainUnit> GetRegisteredTrains() => _trainUnits.ToArray();
+        public void ResetTrains()
+        {
+            _trainUnits.Clear();
+            _accumulatedSeconds = 0d;
+        }
 
 #if UNITY_INCLUDE_TESTS
         public void ResetTickAccumulator()
