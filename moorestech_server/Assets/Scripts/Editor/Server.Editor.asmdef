@@ -3,7 +3,8 @@
     "rootNamespace": "",
     "references": [
         "Server.Boot",
-        "Common.Debug"
+        "Common.Debug",
+        "Game.Paths"
     ],
     "includePlatforms": [
         "Editor"
