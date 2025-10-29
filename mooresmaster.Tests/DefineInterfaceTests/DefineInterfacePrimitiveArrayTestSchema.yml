@@ -1,0 +1,14 @@
+id: defineInterfacePrimitiveArrayTestSchema
+type: object
+
+defineInterface:
+  - interfaceName: IDefineInterfacePrimitiveArrayTest
+    properties:
+      - key: offset
+        type: vector3Int
+      - key: test
+        type: integer
+        #      - key: directions
+        #        type: object
+        #        properties: [ ]
+        
