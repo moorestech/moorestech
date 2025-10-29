@@ -1,3 +1,4 @@
+using System;
 using Game.Map.Interface.Json;
 using Game.World.Interface.DataStore;
 using UnityEngine;
@@ -12,19 +13,43 @@ namespace Game.World.DataStore.WorldSettings
     {
         public Vector3 WorldSpawnPoint { get; private set; }
         
+        private DateTime _worldCreationDateTime;
+        private double _totalPlayTimeSeconds;
+        private DateTime _currentSessionStartDateTime;
+
         public void Initialize(MapInfoJson mapInfoJson)
         {
             WorldSpawnPoint = mapInfoJson.DefaultSpawnPointJson.Position;
+            
+            _worldCreationDateTime = DateTime.UtcNow;
+            _totalPlayTimeSeconds = 0;
+            _currentSessionStartDateTime = DateTime.UtcNow;
         }
         
+        public void LoadSettingData(WorldSettingJsonObject json)
+        {
+            WorldSpawnPoint = new Vector3(json.SpawnX, json.SpawnY, json.SpawnZ);
+            _totalPlayTimeSeconds = json.TotalPlayTimeSeconds;
+            _currentSessionStartDateTime = DateTime.UtcNow;
+            
+            if (!string.IsNullOrEmpty(json.WorldCreationDateTime))
+            {
+                _worldCreationDateTime = DateTime.Parse(json.WorldCreationDateTime);
+            }
+        }
+
         public WorldSettingJsonObject GetSaveJsonObject()
         {
-            return new WorldSettingJsonObject(WorldSpawnPoint);
+            var currentPlayTime = GetCurrentPlayTime();
+            
+            return new WorldSettingJsonObject(WorldSpawnPoint, _worldCreationDateTime, currentPlayTime, DateTime.UtcNow);
         }
-        
-        public void LoadSettingData(WorldSettingJsonObject worldSettingJsonObject)
+
+        public TimeSpan GetCurrentPlayTime()
         {
-            WorldSpawnPoint = new Vector3(worldSettingJsonObject.SpawnX, worldSettingJsonObject.SpawnY, worldSettingJsonObject.SpawnZ);
+            var currentSessionTime = DateTime.UtcNow - _currentSessionStartDateTime;
+            var totalTime = TimeSpan.FromSeconds(_totalPlayTimeSeconds) + currentSessionTime;
+            return totalTime;
         }
     }
 }
