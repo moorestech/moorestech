@@ -5,16 +5,16 @@ using Client.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.SoundEffect;
 using Client.Input;
-using Core.Master;
 using Game.Block.Interface;
-using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using static Client.Game.InGame.BlockSystem.PlaceSystem.Util.PlaceSystemUtil;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 {
@@ -103,10 +103,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             //基本はプレビュー非表示
             _previewBlockController.SetActive(false);
             
-            if (!TryGetRayHitPosition(out var hitPoint, out var boundingBoxSurface)) return; // ブロック設置用のrayが当たっているか
+            if (!TryGetRayHitPosition(_mainCamera, out var hitPoint, out var boundingBoxSurface)) return; // ブロック設置用のrayが当たっているか
             
             //設置座標計算 calculate place point
-            var holdingBlockMaster = GetBlockMaster();
             var placePoint = CalcPlacePoint();
             
             if (!IsBlockPlaceableDistance(PlaceableMaxDistance)) return; // 設置可能な距離かどうか
@@ -122,35 +121,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             
             //プレビュー表示と地面との接触を取得する
             //display preview and get collision with ground
-            var groundDetects = new List<bool>();
-            if (_clickStartPosition.HasValue)
-            {
-                if (_clickStartPosition.Value == placePoint)
-                {
-                    _isStartZDirection = null;
-                }
-                else if (!_isStartZDirection.HasValue)
-                {
-                    _isStartZDirection = Mathf.Abs(placePoint.z - _clickStartPosition.Value.z) > Mathf.Abs(placePoint.x - _clickStartPosition.Value.x);
-                }
-                
-                _currentPlaceInfos = _blockPlacePointCalculator.CalculatePoint(_clickStartPosition.Value, placePoint, _isStartZDirection ?? true, _currentBlockDirection, holdingBlockMaster);
-                groundDetects = _previewBlockController.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockMaster);
-            }
-            else
-            {
-                _isStartZDirection = null;
-                _currentPlaceInfos = _blockPlacePointCalculator.CalculatePoint(placePoint, placePoint, true, _currentBlockDirection, holdingBlockMaster);
-                groundDetects = _previewBlockController.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockMaster);
-            }
+            var blockGroundOverlapList = GetGroundOverlapList();
             
             // Placeableの更新
             // update placeable
-            for (var i = 0; i < groundDetects.Count; i++)
+            for (var i = 0; i < blockGroundOverlapList.Count; i++)
             {
                 // 地面と接触していたら設置不可
                 // if collision with ground, cannot place
-                if (groundDetects[i])
+                if (blockGroundOverlapList[i])
                 {
                     _currentPlaceInfos[i].Placeable = false;
                 }
@@ -160,19 +139,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             // send block place info to server
             if (InputManager.Playable.ScreenLeftClick.GetKeyUp)
             {
-                _heightOffset = _clickStartHeightOffset;
-                _clickStartPosition = null;
-                ClientContext.VanillaApi.SendOnly.PlaceHotBarBlock(_currentPlaceInfos, context.CurrentSelectHotbarSlotIndex);
-                SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
+                Place();
             }
             
             #region Internal
-            
-            BlockMasterElement GetBlockMaster()
-            {
-                var blockId = MasterHolder.BlockMaster.GetBlockId(context.HoldingItemId);
-                return MasterHolder.BlockMaster.GetBlockMaster(blockId);
-            }
             
             bool IsBlockPlaceableDistance(float maxDistance)
             {
@@ -184,6 +154,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             
             Vector3Int CalcPlacePoint()
             {
+                var holdingBlockMaster = boundingBoxSurface.BlockGameObject.BlockMasterElement;
                 var rotateAction = _currentBlockDirection.GetCoordinateConvertAction();
                 var rotatedSize = rotateAction(holdingBlockMaster.BlockSize).Abs();
                 
@@ -245,31 +216,41 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 }
             }
             
-            #endregion
-        }
-        
-        
-        private bool TryGetRayHitPosition(out Vector3 pos,out BlockPreviewBoundingBoxSurface surface)
-        {
-            surface = null;
-            pos = Vector3Int.zero;
-            var ray = _mainCamera.ScreenPointToRay(UnityEngine.Input.mousePosition);
-            
-            //画面からのrayが何かにヒットしているか
-            if (!Physics.Raycast(ray, out var hit, float.PositiveInfinity, LayerConst.Without_Player_MapObject_Block_LayerMask)) return false;
-            //そのrayが地面のオブジェクトかブロックのバウンディングボックスにヒットしてるか
-            if (
-                !hit.transform.TryGetComponent<GroundGameObject>(out _) &&
-                !hit.transform.TryGetComponent(out surface)
-            )
+            List<bool> GetGroundOverlapList()
             {
-                return false;
+                var holdingBlockMaster = boundingBoxSurface.BlockGameObject.BlockMasterElement;
+                if (_clickStartPosition.HasValue)
+                {
+                    if (_clickStartPosition.Value == placePoint)
+                    {
+                        _isStartZDirection = null;
+                    }
+                    else if (!_isStartZDirection.HasValue)
+                    {
+                        _isStartZDirection = Mathf.Abs(placePoint.z - _clickStartPosition.Value.z) > Mathf.Abs(placePoint.x - _clickStartPosition.Value.x);
+                    }
+                    
+                    _currentPlaceInfos = _blockPlacePointCalculator.CalculatePoint(_clickStartPosition.Value, placePoint, _isStartZDirection ?? true, _currentBlockDirection, holdingBlockMaster);
+                }
+                else
+                {
+                    _isStartZDirection = null;
+                    _currentPlaceInfos = _blockPlacePointCalculator.CalculatePoint(placePoint, placePoint, true, _currentBlockDirection, holdingBlockMaster);
+                }
+                var result = _previewBlockController.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockMaster);
+                
+                return result;
             }
             
-            //基本的にブロックの原点は0,0なので、rayがヒットした座標を基準にブロックの原点を計算する
-            pos = hit.point;
+            void Place()
+            {
+                _heightOffset = _clickStartHeightOffset;
+                _clickStartPosition = null;
+                ClientContext.VanillaApi.SendOnly.PlaceHotBarBlock(_currentPlaceInfos, context.CurrentSelectHotbarSlotIndex);
+                SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
+            }
             
-            return true;
+            #endregion
         }
     }
 }
