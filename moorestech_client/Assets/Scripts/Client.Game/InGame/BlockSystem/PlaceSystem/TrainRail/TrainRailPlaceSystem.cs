@@ -1,4 +1,4 @@
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainBridgePier
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
 {
     public class TrainRailPlaceSystem : IPlaceSystem
     {
