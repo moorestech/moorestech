@@ -54,7 +54,7 @@ namespace Server.Protocol.PacketResponse
             blockId = blockId.GetVerticalOverrideBlockId(placeInfo.VerticalDirection);
             
             // paramsの作成
-            var createParams = placeInfo.Properties.Select(v => new BlockCreateParam(v.Key, v.Value)).ToArray();
+            var createParams = placeInfo.BlockCreateParams.Select(v => new BlockCreateParam(v.Key, v.Value)).ToArray();
             
             //ブロックの設置
             ServerContext.WorldBlockDatastore.TryAddBlock(blockId, placeInfo.Position, placeInfo.Direction, out var block, createParams);
@@ -97,14 +97,14 @@ namespace Server.Protocol.PacketResponse
             [Key(1)] public BlockDirection Direction { get; set; }
             
             [Key(2)] public BlockVerticalDirection VerticalDirection { get; set; }
-            [Key(3)] public BlockCreateParamMessagePack[] Properties { get; set; }
+            [Key(3)] public BlockCreateParamMessagePack[] BlockCreateParams { get; set; }
             
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public PlaceInfoMessagePack() { }
             
             public PlaceInfoMessagePack(PlaceInfo placeInfo)
             {
-                Properties = placeInfo.CreateParams.Select(v => new BlockCreateParamMessagePack(v)).ToArray();
+                BlockCreateParams = placeInfo.CreateParams.Select(v => new BlockCreateParamMessagePack(v)).ToArray();
                 Position = new Vector3IntMessagePack(placeInfo.Position);
                 Direction = placeInfo.Direction;
                 VerticalDirection = placeInfo.VerticalDirection;
