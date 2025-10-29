@@ -25,5 +25,8 @@ namespace Game.World.Interface.DataStore
             TotalPlayTimeSeconds = totalPlayTimeSeconds.TotalSeconds;
             LastSessionStartDateTime = lastSessionStartDateTime.ToString("o");
         }
+        
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        public WorldSettingJsonObject() { }
     }
 }
