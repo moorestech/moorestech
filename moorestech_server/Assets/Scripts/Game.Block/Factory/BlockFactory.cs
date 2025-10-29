@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Factory.BlockTemplate;
 using Game.Block.Interface;
+using Game.Block.Interface.Component;
+using Game.Block.Interface.Extension;
 
 namespace Game.Block.Factory
 {
@@ -15,15 +17,21 @@ namespace Game.Block.Factory
             _vanillaIBlockTemplates = vanillaIBlockTemplates;
         }
         
-        public IBlock Create(BlockId blockId, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock Create(BlockId blockId, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] initializeParams = null)
         {
             var dictionary = _vanillaIBlockTemplates.BlockTypesDictionary;
             
             var blockElement = MasterHolder.BlockMaster.GetBlockMaster(blockId);
-            if (dictionary.TryGetValue(blockElement.BlockType, out var value))
-                return value.New(blockElement, blockInstanceId, blockPositionInfo);
+            if (!dictionary.TryGetValue(blockElement.BlockType, out var value)) throw new Exception("Block type not found :" + blockElement.BlockType);
             
-            throw new Exception("Block type not found :" + blockElement.BlockType);
+            var block = value.New(blockElement, blockInstanceId, blockPositionInfo);
+            initializeParams ??= Array.Empty<BlockCreateParam>();
+            foreach (var component in block.GetComponents<IReceiveCreateParam>())
+            {
+                component.OnCreate(initializeParams);
+            }
+            
+            return block;
         }
         
         public IBlock Load(Guid blockGuid, BlockInstanceId blockInstanceId, Dictionary<string, string> state, BlockPositionInfo blockPositionInfo)
