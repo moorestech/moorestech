@@ -1,3 +1,4 @@
+using Client.Game.InGame.Block;
 using Game.Block.Interface;
 using UnityEngine;
 
@@ -35,7 +36,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject
         [SerializeField] private GameObject zx_Y_Surface;
         [SerializeField] private BlockPreviewBoundingBoxSurface zx_Y_SurfaceScript;
         
-        public void SetBoundingBox(Vector3Int blockSize, BlockDirection blockDirection)
+        public void SetBoundingBox(Vector3Int blockSize, BlockDirection blockDirection, BlockGameObject blockGameObject)
         {
             // ========== X軸方向のエッジ ==========
             x_Origin_Edge.transform.localScale = new Vector3(blockSize.x, 1, 1);
@@ -88,7 +89,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject
                 BlockDirection.East => PreviewSurfaceType.YZ_Origin,
                 BlockDirection.South => PreviewSurfaceType.YX_Z,
                 BlockDirection.West => PreviewSurfaceType.YZ_X,
-            });
+            }, blockGameObject);
             
             xy_Z_Surface.transform.localScale = new Vector3(blockSize.x, blockSize.y, 1);
             xy_Z_Surface.transform.localPosition = new Vector3(0, 0, blockSize.z);
@@ -98,7 +99,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject
                 BlockDirection.East => PreviewSurfaceType.YZ_X,
                 BlockDirection.South => PreviewSurfaceType.YX_Origin,
                 BlockDirection.West => PreviewSurfaceType.YZ_Origin,
-            });
+            }, blockGameObject);
             
             
             // ========== y-z 平面 ==========
@@ -110,7 +111,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject
                 BlockDirection.East => PreviewSurfaceType.YX_Z,
                 BlockDirection.South => PreviewSurfaceType.YZ_X,
                 BlockDirection.West => PreviewSurfaceType.YX_Origin,
-            });
+            }, blockGameObject);
             
             yz_X_Surface.transform.localScale = new Vector3(1, blockSize.y, blockSize.z);
             yz_X_Surface.transform.localPosition = new Vector3(blockSize.x, 0, 0);
@@ -120,17 +121,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject
                 BlockDirection.East => PreviewSurfaceType.YX_Origin,
                 BlockDirection.South => PreviewSurfaceType.YZ_Origin,
                 BlockDirection.West => PreviewSurfaceType.YX_Z,
-            });
+            }, blockGameObject);
             
             
             // ========== z-x 平面 ==========
             zx_Origin_Surface.transform.localScale = new Vector3(blockSize.x, 1, blockSize.z);
             zx_Origin_Surface.transform.localPosition = new Vector3(0, 0, 0);
-            zx_Origin_SurfaceScript.SetPreviewSurfaceType(PreviewSurfaceType.XZ_Origin);
+            zx_Origin_SurfaceScript.SetPreviewSurfaceType(PreviewSurfaceType.XZ_Origin, blockGameObject);
             
             zx_Y_Surface.transform.localScale = new Vector3(blockSize.x, 1, blockSize.z);
             zx_Y_Surface.transform.localPosition = new Vector3(0, blockSize.y, 0);
-            zx_Y_SurfaceScript.SetPreviewSurfaceType(PreviewSurfaceType.XZ_Y);
+            zx_Y_SurfaceScript.SetPreviewSurfaceType(PreviewSurfaceType.XZ_Y, blockGameObject);
         }
     }
 }
