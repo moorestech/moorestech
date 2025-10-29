@@ -30,24 +30,30 @@ public static class NameResolver
             var id = kvp.Key;
             var typeSemantics = kvp.Value!;
             Console.WriteLine(id);
-
-            if (typeSemantics.Schema.Parent is null)
+            
+            if (typeSemantics.Schema.IsInterfaceProperty)
             {
-                Console.WriteLine($"isRoot: {id}");
-                continue;
+                var name = semantics.interfaceproperty
             }
-
-            Console.WriteLine(id);
-            var name = schemaTable.Table[typeSemantics.Schema.Parent!.Value] switch
+            else
             {
-                ObjectSchema => typeSemantics.Schema.PropertyName!,
-                ArraySchema arraySchema => arraySchema.GetPropertyName(),
-                SwitchSchema oneOfSchema => GetIfThenName(oneOfSchema, schemaTable, typeSemantics),
-                _ => null
-            };
-
-            if (name is not null) typeNames[id] = name.ToCamelCase();
-            else Console.WriteLine($"is null: {id}");
+                if (typeSemantics.Schema.Parent is null)
+                {
+                    Console.WriteLine($"isRoot: {id}");
+                    continue;
+                }
+                
+                var name = schemaTable.Table[typeSemantics.Schema.Parent!.Value] switch
+                {
+                    ObjectSchema => typeSemantics.Schema.PropertyName!,
+                    ArraySchema arraySchema => arraySchema.GetPropertyName(),
+                    SwitchSchema oneOfSchema => GetIfThenName(oneOfSchema, schemaTable, typeSemantics),
+                    _ => null
+                };
+                
+                if (name is not null) typeNames[id] = name.ToCamelCase();
+                else Console.WriteLine($"is null: {id}");     
+            }
         }
 
         // rootのtypeの名前を登録

@@ -1,26 +1,14 @@
-id: switchOptionalCaseTestSchema
+id: defineInterfacePrimitiveArrayTestSchema
 type: object
-properties:
-  - key: type
-    type: enum
-    options:
-      - A
-      - B
-  - key: data
-    switch: ./type
-    cases:
-      - when: A
+
+defineInterface:
+  - interfaceName: IDefineInterfacePrimitiveArrayTest
+    properties:
+      - key: offset
+        type: vector3Int
+      - key: test
+        type: integer
+      - key: directions
         type: object
-        optional: true
-        properties:
-          - key: child0
-            type: number
-          - key: child1
-            type: string
-      - when: B
-        type: object
-        properties:
-          - key: child0
-            type: number
-          - key: child1
-            type: string
+        properties: [ ]
+        

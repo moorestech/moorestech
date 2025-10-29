@@ -14,18 +14,18 @@ public static class SemanticsGenerator
         
         foreach (var schema in schemaArray)
         {
+            var rootId = RootId.New();
+            
             // ファイルに分けられているルートの要素はclassになる
             // ただし、objectSchemaだった場合のちのGenerateで生成されるため、ここでは生成しない
             if (table.Table[schema.InnerSchema] is ObjectSchema objectSchema)
             {
-                var rootId = RootId.New();
                 var (innerSemantics, id) = Generate(objectSchema, table, rootId);
                 semantics.RootSemanticsTable.Add(rootId, new RootSemantics(schema, id));
                 innerSemantics.AddTo(semantics);
             }
             else
             {
-                var rootId = RootId.New();
                 var typeSemantics = new TypeSemantics([], table.Table[schema.InnerSchema], rootId);
                 var typeId = semantics.AddTypeSemantics(typeSemantics);
                 semantics.RootSemanticsTable.Add(rootId, new RootSemantics(schema, typeId));
@@ -34,7 +34,7 @@ public static class SemanticsGenerator
             }
             
             foreach (var defineInterface in schema.Interfaces)
-                GenerateInterfaceSemantics(defineInterface, schema, table).AddTo(semantics);
+                GenerateInterfaceSemantics(defineInterface, schema, table, rootId).AddTo(semantics);
         }
         
         ResolveInterfaceInterfaceImplementations(semantics);
@@ -99,7 +99,7 @@ public static class SemanticsGenerator
         }
     }
     
-    private static Semantics GenerateInterfaceSemantics(DefineInterface defineInterface, Schema schema, SchemaTable table)
+    private static Semantics GenerateInterfaceSemantics(DefineInterface defineInterface, Schema schema, SchemaTable table, RootId rootId)
     {
         var semantics = new Semantics();
         
@@ -109,6 +109,8 @@ public static class SemanticsGenerator
         foreach (var property in defineInterface.Properties)
         {
             var propertySchema = property.Value;
+            
+            Generate(propertySchema, table, rootId).AddTo(semantics);
             
             var propertyId = semantics.AddInterfacePropertySemantics(new InterfacePropertySemantics(propertySchema, interfaceId));
             propertyIds.Add(propertyId);
