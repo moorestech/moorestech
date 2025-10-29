@@ -17,21 +17,21 @@ public class Semantics
     public readonly List<(SwitchId switchId, ClassId typeId)> SwitchInheritList = new();
     public readonly Dictionary<SwitchId, SwitchSemantics> SwitchSemanticsTable = new();
     public readonly Dictionary<ClassId, TypeSemantics> TypeSemanticsTable = new();
-
+    
     public SwitchId AddSwitchSemantics(SwitchSemantics switchSemantics)
     {
         var id = SwitchId.New();
         SwitchSemanticsTable.Add(id, switchSemantics);
         return id;
     }
-
+    
     public InterfaceId AddInterfaceSemantics(InterfaceSemantics interfaceSemantics)
     {
         var id = InterfaceId.New();
         InterfaceSemanticsTable.Add(id, interfaceSemantics);
         return id;
     }
-
+    
     public ClassId AddTypeSemantics(TypeSemantics typeSemantics)
     {
         var id = ClassId.New();
@@ -39,21 +39,21 @@ public class Semantics
         SchemaTypeSemanticsTable.Add(typeSemantics.Schema, id);
         return id;
     }
-
+    
     public RootId AddRootSemantics(RootSemantics rootSemantics)
     {
         var id = RootId.New();
         RootSemanticsTable.Add(id, rootSemantics);
         return id;
     }
-
+    
     public PropertyId AddPropertySemantics(PropertySemantics propertySemantics)
     {
         var id = PropertyId.New();
         PropertySemanticsTable.Add(id, propertySemantics);
         return id;
     }
-
+    
     public InterfacePropertyId AddInterfacePropertySemantics(InterfacePropertySemantics interfacePropertySemantics)
     {
         var id = InterfacePropertyId.New();
@@ -61,7 +61,7 @@ public class Semantics
         InterfacePropertyIdTable.Add(interfacePropertySemantics, id);
         return id;
     }
-
+    
     public void AddInterfaceInterfaceImplementation(InterfaceId target, InterfaceId other)
     {
         if (!InterfaceInterfaceImplementationTable.TryGetValue(target, out var list))
@@ -69,10 +69,10 @@ public class Semantics
             list = new List<InterfaceId>();
             InterfaceInterfaceImplementationTable[target] = list;
         }
-
+        
         list.Add(other);
     }
-
+    
     public void AddClassInterfaceImplementation(ClassId target, InterfaceId other)
     {
         if (!ClassInterfaceImplementationTable.TryGetValue(target, out var list))
@@ -80,10 +80,10 @@ public class Semantics
             list = new List<InterfaceId>();
             ClassInterfaceImplementationTable[target] = list;
         }
-
+        
         list.Add(other);
     }
-
+    
     public Semantics Merge(Semantics other)
     {
         foreach (var inherit in other.SwitchInheritList) SwitchInheritList.Add(inherit);
@@ -97,10 +97,10 @@ public class Semantics
         foreach (var kvp in other.InterfacePropertyIdTable) InterfacePropertyIdTable.Add(kvp.Key, kvp.Value);
         foreach (var kvp in other.InterfaceInterfaceImplementationTable) InterfaceInterfaceImplementationTable.Add(kvp.Key, kvp.Value);
         foreach (var kvp in other.ClassInterfaceImplementationTable) ClassInterfaceImplementationTable.Add(kvp.Key, kvp.Value);
-
+        
         return this;
     }
-
+    
     public Semantics AddTo(Semantics other)
     {
         return other.Merge(this);
@@ -159,67 +159,67 @@ public record InterfacePropertySemantics(IDefineInterfacePropertySchema Property
 public readonly struct RootId : IEquatable<RootId>, IComparable<RootId>
 {
     private readonly MasterId _value;
-
+    
     public RootId(MasterId value)
     {
         _value = value;
     }
-
+    
     public static RootId New()
     {
         return new RootId(new MasterId());
     }
-
+    
     public bool Equals(RootId other)
     {
         return _value.Equals(other._value);
     }
-
+    
     public override bool Equals(object? obj)
     {
         return obj is RootId other && Equals(other);
     }
-
+    
     public override int GetHashCode()
     {
         return _value.GetHashCode();
     }
-
+    
     public int CompareTo(RootId other)
     {
         return _value.CompareTo(other._value);
     }
-
+    
     public override string ToString()
     {
         return _value.ToString();
     }
-
+    
     public static bool operator ==(RootId left, RootId right)
     {
         return left.Equals(right);
     }
-
+    
     public static bool operator !=(RootId left, RootId right)
     {
         return !left.Equals(right);
     }
-
+    
     public static bool operator <(RootId left, RootId right)
     {
         return left.CompareTo(right) < 0;
     }
-
+    
     public static bool operator <=(RootId left, RootId right)
     {
         return left.CompareTo(right) <= 0;
     }
-
+    
     public static bool operator >(RootId left, RootId right)
     {
         return left.CompareTo(right) > 0;
     }
-
+    
     public static bool operator >=(RootId left, RootId right)
     {
         return left.CompareTo(right) >= 0;
@@ -229,67 +229,67 @@ public readonly struct RootId : IEquatable<RootId>, IComparable<RootId>
 public readonly struct PropertyId : IEquatable<PropertyId>, IComparable<PropertyId>
 {
     private readonly MasterId _value;
-
+    
     public PropertyId(MasterId value)
     {
         _value = value;
     }
-
+    
     public static PropertyId New()
     {
         return new PropertyId(new MasterId());
     }
-
+    
     public bool Equals(PropertyId other)
     {
         return _value.Equals(other._value);
     }
-
+    
     public override bool Equals(object? obj)
     {
         return obj is PropertyId other && Equals(other);
     }
-
+    
     public override int GetHashCode()
     {
         return _value.GetHashCode();
     }
-
+    
     public int CompareTo(PropertyId other)
     {
         return _value.CompareTo(other._value);
     }
-
+    
     public override string ToString()
     {
         return _value.ToString();
     }
-
+    
     public static bool operator ==(PropertyId left, PropertyId right)
     {
         return left.Equals(right);
     }
-
+    
     public static bool operator !=(PropertyId left, PropertyId right)
     {
         return !left.Equals(right);
     }
-
+    
     public static bool operator <(PropertyId left, PropertyId right)
     {
         return left.CompareTo(right) < 0;
     }
-
+    
     public static bool operator <=(PropertyId left, PropertyId right)
     {
         return left.CompareTo(right) <= 0;
     }
-
+    
     public static bool operator >(PropertyId left, PropertyId right)
     {
         return left.CompareTo(right) > 0;
     }
-
+    
     public static bool operator >=(PropertyId left, PropertyId right)
     {
         return left.CompareTo(right) >= 0;
@@ -301,67 +301,67 @@ public interface ITypeId;
 public readonly struct ClassId : ITypeId, IEquatable<ClassId>, IComparable<ClassId>
 {
     private readonly MasterId _value;
-
+    
     public ClassId(MasterId value)
     {
         _value = value;
     }
-
+    
     public static ClassId New()
     {
         return new ClassId(new MasterId());
     }
-
+    
     public bool Equals(ClassId other)
     {
         return _value.Equals(other._value);
     }
-
+    
     public override bool Equals(object? obj)
     {
         return obj is ClassId other && Equals(other);
     }
-
+    
     public override int GetHashCode()
     {
         return _value.GetHashCode();
     }
-
+    
     public int CompareTo(ClassId other)
     {
         return _value.CompareTo(other._value);
     }
-
+    
     public override string ToString()
     {
         return _value.ToString();
     }
-
+    
     public static bool operator ==(ClassId left, ClassId right)
     {
         return left.Equals(right);
     }
-
+    
     public static bool operator !=(ClassId left, ClassId right)
     {
         return !left.Equals(right);
     }
-
+    
     public static bool operator <(ClassId left, ClassId right)
     {
         return left.CompareTo(right) < 0;
     }
-
+    
     public static bool operator <=(ClassId left, ClassId right)
     {
         return left.CompareTo(right) <= 0;
     }
-
+    
     public static bool operator >(ClassId left, ClassId right)
     {
         return left.CompareTo(right) > 0;
     }
-
+    
     public static bool operator >=(ClassId left, ClassId right)
     {
         return left.CompareTo(right) >= 0;
@@ -371,67 +371,67 @@ public readonly struct ClassId : ITypeId, IEquatable<ClassId>, IComparable<Class
 public readonly struct SwitchId : ITypeId, IEquatable<SwitchId>, IComparable<SwitchId>
 {
     private readonly MasterId _value;
-
+    
     public SwitchId(MasterId value)
     {
         _value = value;
     }
-
+    
     public static SwitchId New()
     {
         return new SwitchId(new MasterId());
     }
-
+    
     public bool Equals(SwitchId other)
     {
         return _value.Equals(other._value);
     }
-
+    
     public override bool Equals(object? obj)
     {
         return obj is SwitchId other && Equals(other);
     }
-
+    
     public override int GetHashCode()
     {
         return _value.GetHashCode();
     }
-
+    
     public int CompareTo(SwitchId other)
     {
         return _value.CompareTo(other._value);
     }
-
+    
     public override string ToString()
     {
         return _value.ToString();
     }
-
+    
     public static bool operator ==(SwitchId left, SwitchId right)
     {
         return left.Equals(right);
     }
-
+    
     public static bool operator !=(SwitchId left, SwitchId right)
     {
         return !left.Equals(right);
     }
-
+    
     public static bool operator <(SwitchId left, SwitchId right)
     {
         return left.CompareTo(right) < 0;
     }
-
+    
     public static bool operator <=(SwitchId left, SwitchId right)
     {
         return left.CompareTo(right) <= 0;
     }
-
+    
     public static bool operator >(SwitchId left, SwitchId right)
     {
         return left.CompareTo(right) > 0;
     }
-
+    
     public static bool operator >=(SwitchId left, SwitchId right)
     {
         return left.CompareTo(right) >= 0;
@@ -441,67 +441,67 @@ public readonly struct SwitchId : ITypeId, IEquatable<SwitchId>, IComparable<Swi
 public readonly struct InterfaceId : ITypeId, IEquatable<InterfaceId>, IComparable<InterfaceId>
 {
     private readonly MasterId _value;
-
+    
     public InterfaceId(MasterId value)
     {
         _value = value;
     }
-
+    
     public static InterfaceId New()
     {
         return new InterfaceId(new MasterId());
     }
-
+    
     public bool Equals(InterfaceId other)
     {
         return _value.Equals(other._value);
     }
-
+    
     public override bool Equals(object? obj)
     {
         return obj is InterfaceId other && Equals(other);
     }
-
+    
     public override int GetHashCode()
     {
         return _value.GetHashCode();
     }
-
+    
     public int CompareTo(InterfaceId other)
     {
         return _value.CompareTo(other._value);
     }
-
+    
     public override string ToString()
     {
         return _value.ToString();
     }
-
+    
     public static bool operator ==(InterfaceId left, InterfaceId right)
     {
         return left.Equals(right);
     }
-
+    
     public static bool operator !=(InterfaceId left, InterfaceId right)
     {
         return !left.Equals(right);
     }
-
+    
     public static bool operator <(InterfaceId left, InterfaceId right)
     {
         return left.CompareTo(right) < 0;
     }
-
+    
     public static bool operator <=(InterfaceId left, InterfaceId right)
     {
         return left.CompareTo(right) <= 0;
     }
-
+    
     public static bool operator >(InterfaceId left, InterfaceId right)
     {
         return left.CompareTo(right) > 0;
     }
-
+    
     public static bool operator >=(InterfaceId left, InterfaceId right)
     {
         return left.CompareTo(right) >= 0;
@@ -511,67 +511,67 @@ public readonly struct InterfaceId : ITypeId, IEquatable<InterfaceId>, IComparab
 public readonly struct InterfacePropertyId : ITypeId, IEquatable<InterfacePropertyId>, IComparable<InterfacePropertyId>
 {
     private readonly MasterId _value;
-
+    
     public InterfacePropertyId(MasterId value)
     {
         _value = value;
     }
-
+    
     public static InterfacePropertyId New()
     {
         return new InterfacePropertyId(new MasterId());
     }
-
+    
     public bool Equals(InterfacePropertyId other)
     {
         return _value.Equals(other._value);
     }
-
+    
     public override bool Equals(object? obj)
     {
         return obj is InterfacePropertyId other && Equals(other);
     }
-
+    
     public override int GetHashCode()
     {
         return _value.GetHashCode();
     }
-
+    
     public int CompareTo(InterfacePropertyId other)
     {
         return _value.CompareTo(other._value);
     }
-
+    
     public override string ToString()
     {
         return _value.ToString();
     }
-
+    
     public static bool operator ==(InterfacePropertyId left, InterfacePropertyId right)
     {
         return left.Equals(right);
     }
-
+    
     public static bool operator !=(InterfacePropertyId left, InterfacePropertyId right)
     {
         return !left.Equals(right);
     }
-
+    
     public static bool operator <(InterfacePropertyId left, InterfacePropertyId right)
     {
         return left.CompareTo(right) < 0;
     }
-
+    
     public static bool operator <=(InterfacePropertyId left, InterfacePropertyId right)
     {
         return left.CompareTo(right) <= 0;
     }
-
+    
     public static bool operator >(InterfacePropertyId left, InterfacePropertyId right)
     {
         return left.CompareTo(right) > 0;
     }
-
+    
     public static bool operator >=(InterfacePropertyId left, InterfacePropertyId right)
     {
         return left.CompareTo(right) >= 0;
