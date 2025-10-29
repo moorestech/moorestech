@@ -42,12 +42,13 @@ namespace Server.Protocol.PacketResponse
                 switch (data.Mode)
                 {
                     case RailEditMode.Connect:
-                        // to toropipppiさん ここの値の指定どうしたらいいですか？
-                        fromComponent.ConnectRailComponent(toComponent);
+                        fromComponent.ConnectRailComponent(toComponent, true, true);
                         break;
                     case RailEditMode.Disconnect:
-                        // to toropipppiさん ここの値の指定どうしたらいいですか？
-                        fromComponent.DisconnectRailComponent(toComponent);
+                        fromComponent.DisconnectRailComponent(toComponent, true, true);
+                        fromComponent.DisconnectRailComponent(toComponent, true, false);
+                        fromComponent.DisconnectRailComponent(toComponent, false, true);
+                        fromComponent.DisconnectRailComponent(toComponent, false, false);
                         break;
                 }
             }
