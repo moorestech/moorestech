@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Game.Block.Blocks.TrainRail;
-using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using MessagePack;
@@ -43,20 +42,21 @@ namespace Server.Protocol.PacketResponse
                 switch (data.Mode)
                 {
                     case RailEditMode.Connect:
-                        fromComponent.ConnectRailComponent(toComponent,data.From.UseFrontSide,data.To.UseFrontSide);
+                        // to toropipppiさん ここの値の指定どうしたらいいですか？
+                        fromComponent.ConnectRailComponent(toComponent);
                         break;
                     case RailEditMode.Disconnect:
-                        fromComponent.DisconnectRailComponent(toComponent,data.From.UseFrontSide,data.To.UseFrontSide);
+                        // to toropipppiさん ここの値の指定どうしたらいいですか？
+                        fromComponent.DisconnectRailComponent(toComponent);
                         break;
                 }
             }
 
-            RailComponent ResolveComponent(RailCoordinateMessagePack coordinate)
+            RailComponent ResolveComponent(Vector3Int position)
             {
                 // ブロック位置から対象ブロックを取得する
                 // Obtain the target block from the provided position
-                var blockPosition = (Vector3Int)coordinate.Position;
-                var block = ServerContext.WorldBlockDatastore.GetBlock(blockPosition);
+                var block = ServerContext.WorldBlockDatastore.GetBlock(position);
                 if (block == null)
                 {
                     return null;
@@ -90,58 +90,25 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class RailConnectionEditData
         {
-            [Key(0)] public RailCoordinateMessagePack From { get; set; }
-            [Key(1)] public RailCoordinateMessagePack To { get; set; }
+            [Key(0)] public Vector3IntMessagePack From { get; set; }
+            [Key(1)] public Vector3IntMessagePack To { get; set; }
             [Key(2)] public RailEditMode Mode { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-            public RailConnectionEditData()
-            {
-            }
+            public RailConnectionEditData() { }
 
-            public RailConnectionEditData(
-                RailCoordinateMessagePack from,
-                RailCoordinateMessagePack to,
-                RailEditMode mode)
+            public RailConnectionEditData(Vector3Int from, Vector3Int to, RailEditMode mode)
             {
-                From = from;
-                To = to;
+                From = new Vector3IntMessagePack(from);
+                To = new Vector3IntMessagePack(to);
                 Mode = mode;
-            }
-        }
-
-        [MessagePackObject]
-        public class RailCoordinateMessagePack
-        {
-            [Key(0)] public Vector3IntMessagePack Position { get; set; }
-            [Key(1)] public int ComponentIndex { get; set; }
-            [Key(2)] public bool UseFrontSide { get; set; }
-
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-            public RailCoordinateMessagePack()
-            {
-            }
-
-            public RailCoordinateMessagePack(Vector3Int position, int componentIndex, bool useFrontSide)
-            {
-                Position = new Vector3IntMessagePack(position);
-                ComponentIndex = componentIndex;
-                UseFrontSide = useFrontSide;
             }
         }
 
         public enum RailEditMode
         {
-            Connect = 0,
-            Disconnect = 1
-        }
-
-        public enum RailConnectionEditError
-        {
-            None = 0,
-            MissingFromComponent = 1,
-            MissingToComponent = 2,
-            UnsupportedMode = 3
+            Connect,
+            Disconnect,
         }
     }
 }
