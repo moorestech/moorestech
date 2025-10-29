@@ -25,7 +25,7 @@ namespace Client.Game.InGame.UI.UIState
         {
             if (InputManager.UI.OpenInventory.GetKeyDown) return UIStateEnum.PlayerInventory;
             if (InputManager.UI.OpenMenu.GetKeyDown) return UIStateEnum.PauseMenu;
-            if (!_previewBlockController.IsActive && BlockClickDetect.IsClickOpenableBlock()) return UIStateEnum.BlockInventory;
+            if (BlockClickDetect.IsClickOpenableBlock(_previewBlockController)) return UIStateEnum.BlockInventory;
             if (InputManager.UI.BlockDelete.GetKeyDown) return UIStateEnum.DeleteBar;
             if (_skitManager.IsPlayingSkit) return UIStateEnum.Story;
             //TODO InputSystemのリファクタ対象

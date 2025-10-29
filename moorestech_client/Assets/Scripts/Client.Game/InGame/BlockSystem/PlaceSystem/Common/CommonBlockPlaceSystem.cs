@@ -8,89 +8,65 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.SoundEffect;
-using Client.Game.InGame.UI.Inventory;
-using Client.Game.InGame.UI.Inventory.Main;
 using Client.Input;
 using Core.Master;
 using Game.Block.Interface;
-using Game.PlayerInventory.Interface;
+using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using VContainer.Unity;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 {
     /// <summary>
     ///     マウスで地面をクリックしたときに発生するイベント
     /// </summary>
-    public class CommonBlockPlaceSystem : IPostTickable
+    public class CommonBlockPlaceSystem : IPlaceSystem
     {
-        public static CommonBlockPlaceSystem Instance;
-        
         private const float PlaceableMaxDistance = 100f;
         private readonly IPlacementPreviewBlockGameObjectController _previewBlockController;
-        private readonly HotBarView _hotBarView;
-        private readonly ILocalPlayerInventory _localPlayerInventory;
         private readonly Camera _mainCamera;
         private readonly CommonBlockPlacePointCalculator _blockPlacePointCalculator;
         
         private BlockDirection _currentBlockDirection = BlockDirection.North;
         private Vector3Int? _clickStartPosition;
         private int _clickStartHeightOffset;
-        private int _baseHeight;
         private bool? _isStartZDirection;
         private List<PlaceInfo> _currentPlaceInfos = new();
-        
-        private bool _enableBlockPlace;
         
         private int _heightOffset;
         
         public CommonBlockPlaceSystem(
             Camera mainCamera,
-            HotBarView hotBarView,
             IPlacementPreviewBlockGameObjectController previewBlockController,
-            ILocalPlayerInventory localPlayerInventory,
             BlockGameObjectDataStore blockGameObjectDataStore
         )
         {
-            Instance = this;
-            _hotBarView = hotBarView;
             _mainCamera = mainCamera;
             _previewBlockController = previewBlockController;
-            _localPlayerInventory = localPlayerInventory;
             _blockPlacePointCalculator = new CommonBlockPlacePointCalculator(blockGameObjectDataStore);
         }
         
-        public static void SetEnableBlockPlace(bool enable)
+        public void Enable()
         {
-            if (Instance == null) return;
-            
-            Instance._enableBlockPlace = enable;
-            
-            if (enable)
-            {
-                Instance._clickStartHeightOffset = -1;
-                var playerObjectController = PlayerSystemContainer.Instance.PlayerObjectController;
-                Instance._baseHeight = Mathf.RoundToInt(playerObjectController.Position.y);
-            }
-            else
-            {
-                Instance._previewBlockController.SetActive(false);
-                // 連続設置状態をリセット
-                Instance._clickStartPosition = null;
-                Instance._isStartZDirection = null;
-                Instance._currentPlaceInfos.Clear();
-            }
+            _clickStartHeightOffset = -1;
+            var playerObjectController = PlayerSystemContainer.Instance.PlayerObjectController;
+            Mathf.RoundToInt(playerObjectController.Position.y);
+        }
+        public void Disable()
+        {
+            _previewBlockController.SetActive(false);
+            // 連続設置状態をリセット
+            _clickStartPosition = null;
+            _isStartZDirection = null;
+            _currentPlaceInfos.Clear();
         }
         
-        public void PostTick()
+        public void ManualUpdate(PlaceSystemUpdateContext context)
         {
-            if (!_enableBlockPlace) return;
-            
             UpdateHeightOffset();
             BlockDirectionControl();
-            GroundClickControl();
+            GroundClickControl(context);
             
             #region Internal
             
@@ -115,30 +91,22 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             #endregion
         }
         
-        private int _lastSelectedIndex = -1;
         
-        private void GroundClickControl()
+        private void GroundClickControl(PlaceSystemUpdateContext context)
         {
-            var selectIndex = _hotBarView.SelectIndex;
-            if (selectIndex != _lastSelectedIndex)
+            if (context.IsSelectSlotChanged)
             {
                 _clickStartPosition = null;
-                _lastSelectedIndex = selectIndex;
                 _clickStartHeightOffset = _heightOffset;
             }
-            
-            var itemId = _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(selectIndex)].Id;
-            var hitPoint = Vector3.zero;
             
             //基本はプレビュー非表示
             _previewBlockController.SetActive(false);
             
-            if (!MasterHolder.BlockMaster.IsBlock(itemId)) return; // 置けるブロックかどうか
-            if (!TryGetRayHitPosition(out hitPoint, out var boundingBoxSurface)) return; // ブロック設置用のrayが当たっているか
+            if (!TryGetRayHitPosition(out var hitPoint, out var boundingBoxSurface)) return; // ブロック設置用のrayが当たっているか
             
             //設置座標計算 calculate place point
-            var blockId = MasterHolder.BlockMaster.GetBlockId(itemId);
-            var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
+            var holdingBlockMaster = GetBlockMaster();
             var placePoint = CalcPlacePoint();
             
             if (!IsBlockPlaceableDistance(PlaceableMaxDistance)) return; // 設置可能な距離かどうか
@@ -194,11 +162,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             {
                 _heightOffset = _clickStartHeightOffset;
                 _clickStartPosition = null;
-                ClientContext.VanillaApi.SendOnly.PlaceHotBarBlock(_currentPlaceInfos, selectIndex);
+                ClientContext.VanillaApi.SendOnly.PlaceHotBarBlock(_currentPlaceInfos, context.CurrentSelectHotbarSlotIndex);
                 SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
             }
             
             #region Internal
+            
+            BlockMasterElement GetBlockMaster()
+            {
+                var blockId = MasterHolder.BlockMaster.GetBlockId(context.HoldingItemId);
+                return MasterHolder.BlockMaster.GetBlockMaster(blockId);
+            }
             
             bool IsBlockPlaceableDistance(float maxDistance)
             {

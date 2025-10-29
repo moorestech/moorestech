@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.KeyControl;
@@ -22,22 +21,22 @@ namespace Client.Game.InGame.UI.UIState
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
         private readonly InGameCameraController _inGameCameraController;
         private readonly List<IDisposable> _blockPlacedDisposable = new();
+        private readonly PlaceSystemStateController _placeSystemStateController;
         
         private bool _isChangeCameraAngle;
         
-        public PlaceBlockState(IPlacementPreviewBlockGameObjectController previewBlockController, SkitManager skitManager, InGameCameraController inGameCameraController, BlockGameObjectDataStore blockGameObjectDataStore)
+        public PlaceBlockState(IPlacementPreviewBlockGameObjectController previewBlockController, SkitManager skitManager, InGameCameraController inGameCameraController, BlockGameObjectDataStore blockGameObjectDataStore, PlaceSystemStateController placeSystemStateController)
         {
             _skitManager = skitManager;
             _inGameCameraController = inGameCameraController;
             _blockGameObjectDataStore = blockGameObjectDataStore;
+            _placeSystemStateController = placeSystemStateController;
             _previewBlockController = previewBlockController;
             _screenClickableCameraController = new ScreenClickableCameraController(inGameCameraController);
         }
         
         public void OnEnter(UIStateEnum lastStateEnum)
         {
-            CommonBlockPlaceSystem.SetEnableBlockPlace(true);
-            
             //TODO InputSystemのリファクタ対象
             // シフト+Bのときはカメラの位置を変えない
             // Shift+B does not change camera position
@@ -64,13 +63,14 @@ namespace Client.Game.InGame.UI.UIState
         public UIStateEnum GetNextUpdate()
         {
             if (InputManager.UI.OpenInventory.GetKeyDown) return UIStateEnum.PlayerInventory;
-            if (BlockClickDetect.IsClickOpenableBlock()) return UIStateEnum.BlockInventory;
+            if (BlockClickDetect.IsClickOpenableBlock(_previewBlockController)) return UIStateEnum.BlockInventory;
             if (InputManager.UI.BlockDelete.GetKeyDown) return UIStateEnum.DeleteBar;
             if (_skitManager.IsPlayingSkit) return UIStateEnum.Story;
             //TODO InputSystemのリファクタ対象
             if (InputManager.UI.CloseUI.GetKeyDown || UnityEngine.Input.GetKeyDown(KeyCode.B)) return UIStateEnum.GameScreen;
             
             _screenClickableCameraController.GetNextUpdate();
+            _placeSystemStateController.ManualUpdate();
             
             return UIStateEnum.Current;
         }
@@ -87,7 +87,8 @@ namespace Client.Game.InGame.UI.UIState
         
         public void OnExit()
         {
-            CommonBlockPlaceSystem.SetEnableBlockPlace(false);
+            _placeSystemStateController.Disable();
+            
             foreach (var blockGameObject in _blockGameObjectDataStore.BlockGameObjectDictionary.Values)
             {
                 blockGameObject.EnablePreviewOnlyObjects(false, false);

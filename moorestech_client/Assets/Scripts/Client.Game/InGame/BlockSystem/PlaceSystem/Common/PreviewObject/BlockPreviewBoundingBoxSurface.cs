@@ -1,14 +1,18 @@
+using Client.Game.InGame.Block;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject
 {
     public class BlockPreviewBoundingBoxSurface : MonoBehaviour
     {
+        public BlockGameObject BlockGameObject { get; private set; }
+        
         public PreviewSurfaceType PreviewSurfaceType => _previewSurfaceType;
         [SerializeField] private PreviewSurfaceType _previewSurfaceType;
         
-        public void SetPreviewSurfaceType(PreviewSurfaceType previewSurfaceType)
+        public void SetPreviewSurfaceType(PreviewSurfaceType previewSurfaceType, BlockGameObject blockGameObject)
         {
+            BlockGameObject = blockGameObject;
             _previewSurfaceType = previewSurfaceType;
         }
     }
