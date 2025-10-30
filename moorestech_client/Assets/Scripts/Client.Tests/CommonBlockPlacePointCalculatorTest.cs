@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Game.Block.Interface;
 using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
@@ -112,7 +113,7 @@ namespace Client.Tests
                 true
             );
             
-            List<PlaceInfo> actual = CommonBlockPlacePointCalculator.CalculatePoint(
+            List<PreviewPlaceInfo> actual = CommonBlockPlacePointCalculator.CalculatePoint(
                 testCase.PlaceStartPoint,
                 testCase.PlaceEndPoint,
                 isStartDirectionZ,
@@ -126,8 +127,8 @@ namespace Client.Tests
             {
                 (Vector3Int position, BlockVerticalDirection? verticalDirection) expected = testCase.ExpectedPoints[i];
                 
-                Assert.AreEqual(expected.position, actual[i].Position);
-                Assert.AreEqual(testCase.ExpectedPoints[i].verticalDirection, actual[i].VerticalDirection);
+                Assert.AreEqual(expected.position, actual[i].PlaceInfo.Position);
+                Assert.AreEqual(testCase.ExpectedPoints[i].verticalDirection, actual[i].PlaceInfo.VerticalDirection);
             }
         }
         

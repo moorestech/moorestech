@@ -21,7 +21,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
             SetActive(false);
         }
         
-        public List<bool> SetPreviewAndGroundDetect(List<PlaceInfo> placePointInfos, BlockMasterElement holdingBlockMaster)
+        public List<bool> SetPreviewAndGroundDetect(List<PreviewPlaceInfo> placePointInfos, BlockMasterElement holdingBlockMaster)
         {
             // さっきと違うブロックだったら削除する
             if (_previewBlockMasterElement == null || _previewBlockMasterElement.BlockGuid != holdingBlockMaster.BlockGuid)
@@ -34,8 +34,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
             
             // プレビューブロックの位置を設定
             var isGroundDetectedList = new List<bool>();
-            foreach (var placeInfo in placePointInfos)
+            foreach (var previewPlaceInfo in placePointInfos)
             {
+                var placeInfo = previewPlaceInfo.PlaceInfo;
                 var blockId = holdingBlockMaster.BlockGuid.GetVerticalOverrideBlockId(placeInfo.VerticalDirection);
                 
                 var pos = SlopeBlockPlaceSystem.GetBlockPositionToPlacePosition(placeInfo.Position, placeInfo.Direction, blockId);
