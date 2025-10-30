@@ -211,29 +211,6 @@ Unityエディタが使用できない場合やMCPツールリストに上記MCP
 
 **重要：ユーザーからコンパイルエラーが出ている旨を聞いたら、必ずMCPツールでコンパイルエラーを確認してください。**
 
-## ビルドの実行
-CLIからUnityプロジェクトをビルドする場合は `tools/unity-build-test.sh` を使用してください。
-
-### 使用方法
-```bash
-# 基本的な使い方（デフォルト出力先: moorestech_client/Library/ShellScriptBuild）
-./tools/unity-build-test.sh moorestech_client
-
-# 出力先を指定する場合
-./tools/unity-build-test.sh moorestech_client /path/to/output
-```
-
-### 機能
-- プラットフォームの自動判定（macOS/Windows/Linux）
-- Unityのビルド結果（Succeeded/Failed）を正確に判定
-- ビルド失敗時のコンパイルエラー詳細表示
-- ビルド成功時のファイルサイズ表示
-- エラー時のログファイル保存（デバッグ用）
-
-### 注意事項
-- ビルドが失敗した場合、ログファイルが保存されるので詳細を確認してください
-- macOSの場合、.appファイルが生成されても実際に開けない場合があるため、Unityが報告するビルド結果を信頼してください
-
 # シングルトンパターンの実装指針
 Unityプロジェクトにおけるシングルトンの実装では、以下の方針に従ってください：
 
@@ -297,6 +274,7 @@ IMPORTANT:デフォルト引数の使用禁止。引数の追加は必ずデフ�
 YOU MUST: Prefab、シーン、ScriptableObject等、Unity独自のYamlを使用するUnity固有ファイルは直接編集すると重大な不整合が生じる恐れが高いため、直接編集しないでください。代わりに、ユーザーに編集するように指示してください。
 
 IMPORTANT: このプロジェクトは頻繁にgit worktreeを使用します。ファイルを編集する際は相対パスでの指定をするか、pwdで現在のディレクトリを確認してください。git worktreeを使っている場合、MCPを使わずunity-test.shでテストやコンパイルエラーのチェックをしてください。
+
 
 ## Development Best Practices
 - プログラムの基本的な部分はnullではない前提でコードを書くように意識してください。
