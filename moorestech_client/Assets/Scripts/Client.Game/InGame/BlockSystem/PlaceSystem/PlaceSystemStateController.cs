@@ -48,10 +48,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             {
                 var selectIndex = _hotBarView.SelectIndex;
                 var isSelectSlotChanged = _lastSelectHotBarSlot != selectIndex;
-                var itemId = _hotBarView.CurrentItem.Id;
                 
                 var context = new PlaceSystemUpdateContext(
-                    itemId,
+                    _hotBarView.CurrentItem.Id,
                     isSelectSlotChanged,
                     _lastSelectHotBarSlot,
                     selectIndex
