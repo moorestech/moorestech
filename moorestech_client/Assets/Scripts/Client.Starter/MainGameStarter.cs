@@ -136,6 +136,7 @@ namespace Client.Starter
             // register placement system
             builder.Register<CommonBlockPlaceSystem>(Lifetime.Singleton);
             builder.Register<PlaceSystemStateController>(Lifetime.Singleton);
+            builder.Register<PlaceSystemSelector>(Lifetime.Singleton);
             
             
             //UIコントロール
