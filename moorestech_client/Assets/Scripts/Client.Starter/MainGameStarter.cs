@@ -6,6 +6,8 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
+using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
+using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.CraftTree.TreeView;
@@ -81,6 +83,7 @@ namespace Client.Starter
         [SerializeField] private ItemViewHighLightTutorialManager itemViewHighLightTutorialManager;
         
         [SerializeField] private PlacementPreviewBlockGameObjectController previewBlockController;
+        [SerializeField] private RailConnectPreviewObject railConnectPreviewObject;
         [SerializeField] private SaveButton saveButton;
         [SerializeField] private BackToMainMenu backToMainMenu;
         [SerializeField] private NetworkDisconnectPresenter networkDisconnectPresenter;
@@ -135,6 +138,8 @@ namespace Client.Starter
             // 設置システム
             // register placement system
             builder.Register<CommonBlockPlaceSystem>(Lifetime.Singleton);
+            builder.Register<TrainRailPlaceSystem>(Lifetime.Singleton);
+            builder.Register<TrainRailConnectSystem>(Lifetime.Singleton);
             builder.Register<PlaceSystemStateController>(Lifetime.Singleton);
             builder.Register<PlaceSystemSelector>(Lifetime.Singleton);
             
@@ -207,6 +212,7 @@ namespace Client.Starter
             builder.RegisterComponent(inGameCameraController).As<IInitializable>();
             
             builder.RegisterComponent<IPlacementPreviewBlockGameObjectController>(previewBlockController);
+            builder.RegisterComponent(railConnectPreviewObject);
             
             builder.RegisterBuildCallback(objectResolver => { });
             
