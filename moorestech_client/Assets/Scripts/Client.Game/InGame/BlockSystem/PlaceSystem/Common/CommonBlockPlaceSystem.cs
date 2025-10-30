@@ -36,11 +36,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         
         private int _heightOffset;
         
-        public CommonBlockPlaceSystem(
-            Camera mainCamera,
-            IPlacementPreviewBlockGameObjectController previewBlockController,
-            BlockGameObjectDataStore blockGameObjectDataStore
-        )
+        public CommonBlockPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore)
         {
             _mainCamera = mainCamera;
             _previewBlockController = previewBlockController;
@@ -50,8 +46,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         public void Enable()
         {
             _clickStartHeightOffset = -1;
-            var playerObjectController = PlayerSystemContainer.Instance.PlayerObjectController;
-            Mathf.RoundToInt(playerObjectController.Position.y);
         }
         public void Disable()
         {
@@ -103,12 +97,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             //基本はプレビュー非表示
             _previewBlockController.SetActive(false);
             
-            if (!TryGetRayHitPosition(_mainCamera, out var hitPoint, out var boundingBoxSurface)) return; // ブロック設置用のrayが当たっているか
+            // ブロック設置用のrayが当たっているか、当たっていたら設置位置を取得する
+            if (!TryGetRayHitBlockPosition(_mainCamera,_heightOffset, _currentBlockDirection, out var placePoint, out var boundingBoxSurface)) return;
             
-            //設置座標計算 calculate place point
-            var placePoint = CalcPlacePoint();
-            
-            if (!IsBlockPlaceableDistance(PlaceableMaxDistance)) return; // 設置可能な距離かどうか
+            // 設置可能な距離かどうか
+            if (!IsBlockPlaceableDistance(PlaceableMaxDistance)) return;
             
             _previewBlockController.SetActive(true);
             
@@ -121,7 +114,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             
             //プレビュー表示と地面との接触を取得する
             //display preview and get collision with ground
-            var blockGroundOverlapList = GetGroundOverlapList();
+            SetCurrentPlaceInfo();
+            var blockGroundOverlapList = _previewBlockController.SetPreviewAndGroundDetect(_currentPlaceInfos, boundingBoxSurface.BlockGameObject.BlockMasterElement);
             
             // Placeableの更新
             // update placeable
@@ -152,71 +146,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 return Vector3.Distance(playerPosition, placePosition) <= maxDistance;
             }
             
-            Vector3Int CalcPlacePoint()
-            {
-                var holdingBlockMaster = boundingBoxSurface.BlockGameObject.BlockMasterElement;
-                var rotateAction = _currentBlockDirection.GetCoordinateConvertAction();
-                var rotatedSize = rotateAction(holdingBlockMaster.BlockSize).Abs();
-                
-                if (boundingBoxSurface == null)
-                {
-                    var point = Vector3Int.zero;
-                    point.x = Mathf.FloorToInt(hitPoint.x + (rotatedSize.x % 2 == 0 ? 0.5f : 0));
-                    point.z = Mathf.FloorToInt(hitPoint.z + (rotatedSize.z % 2 == 0 ? 0.5f : 0));
-                    point.y = Mathf.FloorToInt(hitPoint.y);
-                    
-                    point += new Vector3Int(0, _heightOffset, 0);
-                    point -= new Vector3Int(rotatedSize.x, 0, rotatedSize.z) / 2;
-                    
-                    return point;
-                }
-                
-                switch (boundingBoxSurface.PreviewSurfaceType)
-                {
-                    case PreviewSurfaceType.YX_Origin:
-                        return new Vector3Int(
-                            Mathf.FloorToInt(hitPoint.x) - Mathf.FloorToInt(rotatedSize.x / 2f),
-                            Mathf.FloorToInt(hitPoint.y),
-                            Mathf.FloorToInt(hitPoint.z) - Mathf.RoundToInt(rotatedSize.z / 2f)
-                        );
-                    case PreviewSurfaceType.YX_Z:
-                        return new Vector3Int(
-                            Mathf.FloorToInt(hitPoint.x) - Mathf.FloorToInt(rotatedSize.x / 2f),
-                            Mathf.FloorToInt(hitPoint.y),
-                            Mathf.FloorToInt(hitPoint.z)
-                        );
-                    case PreviewSurfaceType.YZ_Origin:
-                        return new Vector3Int(
-                            Mathf.FloorToInt(hitPoint.x) - Mathf.RoundToInt(rotatedSize.x / 2f),
-                            Mathf.FloorToInt(hitPoint.y),
-                            Mathf.FloorToInt(hitPoint.z) - Mathf.FloorToInt(rotatedSize.z / 2f)
-                        );
-                    case PreviewSurfaceType.YZ_X:
-                        return new Vector3Int(
-                            Mathf.FloorToInt(hitPoint.x),
-                            Mathf.FloorToInt(hitPoint.y),
-                            Mathf.FloorToInt(hitPoint.z) - Mathf.FloorToInt(rotatedSize.z / 2f)
-                        );
-                    
-                    case PreviewSurfaceType.XZ_Origin:
-                        return new Vector3Int(
-                            Mathf.FloorToInt(hitPoint.x) - Mathf.FloorToInt(rotatedSize.x / 2f),
-                            Mathf.FloorToInt(hitPoint.y) - rotatedSize.y,
-                            Mathf.FloorToInt(hitPoint.z) - Mathf.FloorToInt(rotatedSize.z / 2f)
-                        );
-                    case PreviewSurfaceType.XZ_Y:
-                        return new Vector3Int(
-                            Mathf.FloorToInt(hitPoint.x) - Mathf.FloorToInt(rotatedSize.x / 2f),
-                            Mathf.FloorToInt(hitPoint.y),
-                            Mathf.FloorToInt(hitPoint.z) - Mathf.FloorToInt(rotatedSize.z / 2f)
-                        );
-                    
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-            }
-            
-            List<bool> GetGroundOverlapList()
+            void SetCurrentPlaceInfo()
             {
                 var holdingBlockMaster = boundingBoxSurface.BlockGameObject.BlockMasterElement;
                 if (_clickStartPosition.HasValue)
@@ -237,9 +167,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                     _isStartZDirection = null;
                     _currentPlaceInfos = _blockPlacePointCalculator.CalculatePoint(placePoint, placePoint, true, _currentBlockDirection, holdingBlockMaster);
                 }
-                var result = _previewBlockController.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockMaster);
-                
-                return result;
             }
             
             void Place()
