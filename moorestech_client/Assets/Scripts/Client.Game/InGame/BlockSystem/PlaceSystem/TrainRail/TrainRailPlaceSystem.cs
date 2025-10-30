@@ -29,7 +29,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
         {
             _previewBlockController.SetActive(false);
             
-            if (!TryGetRayHitBlockPosition(_mainCamera,HeightOffset, BlockDirection.North, out var placePoint, out var boundingBoxSurface)) return;
+            if (!TryGetRayHitBlockPosition(_mainCamera, HeightOffset, DefaultBlockDirection, out var placePoint, out var boundingBoxSurface)) return;
             
             _previewBlockController.SetActive(true);
             
@@ -44,7 +44,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
                 },
             };
             _previewBlockController.SetPreviewAndGroundDetect(placeInfo, boundingBoxSurface.BlockGameObject.BlockMasterElement);
-            
         }
         
         public void Disable()
