@@ -294,7 +294,7 @@ IMPORTANT:デフォルト引数の使用禁止。引数の追加は必ずデフ�
 
 YOU MUST: Prefab、シーン、ScriptableObject等、Unity独自のYamlを使用するUnity固有ファイルは直接編集すると重大な不整合が生じる恐れが高いため、直接編集しないでください。代わりに、ユーザーに編集するように指示してください。
 
-IMPORTANT: このプロジェクトは頻繁にgit worktreeを使用します。ファイルを編集する際は相対パスでの指定をするか、pwdで現在のディレクトリを確認してください。
+IMPORTANT: このプロジェクトは頻繁にgit worktreeを使用します。ファイルを編集する際は相対パスでの指定をするか、pwdで現在のディレクトリを確認してください。git worktreeを使っている場合、MCPを使わずunity-test.shでテストやコンパイルエラーのチェックをしてください。
 
 ## Development Best Practices
 - プログラムの基本的な部分はnullではない前提でコードを書くように意識してください。
