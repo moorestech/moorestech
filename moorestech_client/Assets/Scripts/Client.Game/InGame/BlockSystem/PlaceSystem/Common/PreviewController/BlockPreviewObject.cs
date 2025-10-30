@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Client.Common;
 using Client.Game.InGame.Block;
@@ -26,6 +27,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
         }
         private GroundCollisionDetector[] _collisionDetectors;
         private RendererMaterialReplacerController _rendererMaterialReplacerController;
+        private IBlockPreviewStateProcessor[] _blockPreviewStateProcessors;
         
         public void Initialize(BlockId blockId)
         {
@@ -35,6 +37,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
             _rendererMaterialReplacerController = new RendererMaterialReplacerController(gameObject);
             _rendererMaterialReplacerController.CopyAndSetMaterial(placeMaterial);
             
+            _blockPreviewStateProcessors = GetComponentsInChildren<IBlockPreviewStateProcessor>(true);
             _collisionDetectors = GetComponentsInChildren<GroundCollisionDetector>(true);
             
             SetPlaceableColor(true);
@@ -50,6 +53,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
                 obj.Initialize(blockId);
                 obj.SetActive(true);
             });
+        }
+        
+        public void SetPreviewStateDetail(PreviewPlaceInfo placeInfo)
+        {
+            foreach (var processor in _blockPreviewStateProcessors)
+            {
+                processor.SetPreviewStateDetail(placeInfo);
+            }
         }
         
         public void SetPlaceableColor(bool isPlaceable)
