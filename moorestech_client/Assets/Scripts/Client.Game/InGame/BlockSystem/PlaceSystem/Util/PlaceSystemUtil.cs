@@ -39,8 +39,23 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
                 return false;
             }
             
-            //基本的にブロックの原点は0,0なので、rayがヒットした座標を基準にブロックの原点を計算する
             pos = hit.point;
+            
+            return true;
+        }
+        
+        public static bool TryGetRaySpecifiedComponentHit<T>(Camera mainCamera, out T component) where T : class
+        {
+            component = null;
+            var ray = mainCamera.ScreenPointToRay(UnityEngine.Input.mousePosition);
+            
+            //画面からのrayが何かにヒットしているか
+            if (!Physics.Raycast(ray, out var hit, float.PositiveInfinity, LayerConst.Without_Player_MapObject_Block_LayerMask)) return false;
+            //そのrayが指定されたコンポーネントを持っているか
+            if (!hit.transform.TryGetComponent(out component))
+            {
+                return false;
+            }
             
             return true;
         }
