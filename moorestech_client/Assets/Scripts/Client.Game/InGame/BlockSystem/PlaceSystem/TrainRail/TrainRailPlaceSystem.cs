@@ -33,15 +33,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
             
             _previewBlockController.SetActive(true);
             
-            var placeInfo = new List<PlaceInfo>
+            var placeInfo = new List<PreviewPlaceInfo>
             {
-                new()
+                new PreviewPlaceInfo(new PlaceInfo
                 {
                     Position = placePoint,
                     Direction = DefaultBlockDirection,
                     VerticalDirection = BlockVerticalDirection.Horizontal,
                     Placeable = true
-                },
+                }),
             };
             _previewBlockController.SetPreviewAndGroundDetect(placeInfo, boundingBoxSurface.BlockGameObject.BlockMasterElement);
         }

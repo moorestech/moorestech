@@ -32,7 +32,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         private Vector3Int? _clickStartPosition;
         private int _clickStartHeightOffset;
         private bool? _isStartZDirection;
-        private List<PlaceInfo> _currentPlaceInfos = new();
+        private List<PreviewPlaceInfo> _currentPlaceInfos = new();
         
         private int _heightOffset;
         
@@ -125,7 +125,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 // if collision with ground, cannot place
                 if (blockGroundOverlapList[i])
                 {
-                    _currentPlaceInfos[i].Placeable = false;
+                    _currentPlaceInfos[i].PlaceInfo.Placeable = false;
                 }
             }
             
@@ -173,7 +173,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             {
                 _heightOffset = _clickStartHeightOffset;
                 _clickStartPosition = null;
-                ClientContext.VanillaApi.SendOnly.PlaceHotBarBlock(_currentPlaceInfos, context.CurrentSelectHotbarSlotIndex);
+                // PreviewPlaceInfoからPlaceInfoに変換してサーバーに送信
+                var placeInfos = new List<PlaceInfo>(_currentPlaceInfos.Count);
+                foreach (var previewPlaceInfo in _currentPlaceInfos)
+                {
+                    placeInfos.Add(previewPlaceInfo.PlaceInfo);
+                }
+                ClientContext.VanillaApi.SendOnly.PlaceHotBarBlock(placeInfos, context.CurrentSelectHotbarSlotIndex);
                 SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
             }
             

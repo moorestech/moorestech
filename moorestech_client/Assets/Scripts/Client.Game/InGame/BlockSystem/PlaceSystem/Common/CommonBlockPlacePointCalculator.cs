@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
@@ -19,12 +20,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             _blockGameObjectDataStore = blockGameObjectDataStore;
         }
         
-        public List<PlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement holdingBlockMasterElement)
+        public List<PreviewPlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement holdingBlockMasterElement)
         {
             return CalculatePoint(startPoint, endPoint, isStartDirectionZ, blockDirection, holdingBlockMasterElement, IsNotExistBlock);
         }
         
-        public static List<PlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement holdingBlockMasterElement, Func<PlaceInfo, BlockMasterElement, bool> isNotExistBlock)
+        public static List<PreviewPlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement holdingBlockMasterElement, Func<PlaceInfo, BlockMasterElement, bool> isNotExistBlock)
         {
             // ひとまず、XとZ方向に目的地に向かって1ずつ進む
             var startToCornerDistance = 0;
@@ -34,10 +35,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             
             List<Vector3Int> positions = enableConveyorPlacement ? CalcPositionsForConveyor() : CalcPositions(blockSize);
             
-            List<PlaceInfo> result = CalcPlaceDirection(positions);
-            result = CalcPlaceable(result);
-            
-            return result;
+            List<PreviewPlaceInfo> placeInfos = CalcPlaceDirection(positions);
+            placeInfos = CalcPlaceable(placeInfos);
+
+            return placeInfos;
             
             #region Internal
             
@@ -198,21 +199,21 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 return pointList;
             }
             
-            List<PlaceInfo> CalcPlaceDirection(List<Vector3Int> placePositions)
+            List<PreviewPlaceInfo> CalcPlaceDirection(List<Vector3Int> placePositions)
             {
                 // enableConveyorPlacementがfalseの場合は初期状態の方向のままにする
                 if (!enableConveyorPlacement)
                 {
-                    var placeInfos = new List<PlaceInfo>(placePositions.Count);
+                    var placeInfos = new List<PreviewPlaceInfo>(placePositions.Count);
                     
                     foreach (var placePosition in placePositions)
                     {
-                        placeInfos.Add(new PlaceInfo
+                        placeInfos.Add(new PreviewPlaceInfo(new PlaceInfo
                         {
                             Position = placePosition,
                             Direction = blockDirection,
                             VerticalDirection = BlockVerticalDirection.Horizontal,
-                        });
+                        }));
                     }
                     
                     return placeInfos;
@@ -220,18 +221,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 
                 if (placePositions.Count == 1)
                 {
-                    return new List<PlaceInfo>
+                    return new List<PreviewPlaceInfo>
                     {
-                        new()
+                        new(new PlaceInfo
                         {
                             Position = placePositions[0],
                             Direction = blockDirection,
                             VerticalDirection = BlockVerticalDirection.Horizontal,
-                        },
+                        }),
                     };
                 }
                 
-                var results = new List<PlaceInfo>(placePositions.Count);
+                var results = new List<PreviewPlaceInfo>(placePositions.Count);
                 for (var i = 0; i < placePositions.Count; i++)
                 {
                     BlockDirection direction;
@@ -310,12 +311,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                         }
                     }
                     
-                    results.Add(new PlaceInfo
+                    results.Add(new PreviewPlaceInfo(new PlaceInfo
                     {
                         Position = currentPoint,
                         Direction = direction,
                         VerticalDirection = verticalDirection,
-                    });
+                    }));
                 }
                 
                 return results;
@@ -346,14 +347,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 return (horizonDirection, verticalDirection);
             }
             
-            List<PlaceInfo> CalcPlaceable(List<PlaceInfo> infos)
+            List<PreviewPlaceInfo> CalcPlaceable(List<PreviewPlaceInfo> infos)
             {
                 foreach (var info in infos)
                 {
                     //TODO ブロックの数が足りているかどうか
-                    info.Placeable = isNotExistBlock(info, holdingBlockMasterElement);
+                    info.PlaceInfo.Placeable = isNotExistBlock(info.PlaceInfo, holdingBlockMasterElement);
                 }
-                
+
                 return infos;
             }
             
