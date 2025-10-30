@@ -58,8 +58,9 @@ namespace Client.Game.InGame.Block
                 groundCollisionDetector.enabled = false;
             }
             
-            // BlockStateChangeProcessorsの初期化
-            foreach (var state in BlockStateChangeProcessors) state.Initialize(this);
+            // IBlockGameObjectInnerComponentおよび、継承しているBlockStateChangeProcessorsの初期化
+            // Initialize IBlockGameObjectInnerComponent and inherited BlockStateChangeProcessors
+            foreach (var state in gameObject.GetComponentsInChildren<IBlockGameObjectInnerComponent>()) state.Initialize(this);
             
             // プレビュー限定オブジェクトをオフに
             // Turn off preview-only object
