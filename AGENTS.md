@@ -159,29 +159,8 @@ MasterHolder.Load()
 # テストとコンパイルの実行方針
 
 ## 基本方針
-このプロジェクトでは、**MCPツールを優先的に使用**し、Unityエディタが使用できない場合**シェルスクリプトをフォールバック**として使用します。
 
 ## テストの実行
-
-### 1. MCPツールでのテスト実行（推奨）
-Unityエディタが起動している場合は、MCPツールを使用してテストを実行します。
-
-#### サーバー側テスト
-```
-mcp__moorestech_server__RunEditModeTests
-```
-- 必ず`groupNames`パラメータで実行対象を限定
-- 例: `groupNames: ["^Tests\\.CombinedTest\\.Core\\.ElectricPumpTest$"]`
-
-#### クライアント側テスト
-```
-mcp__moorestech_client__RunEditModeTests
-```
-- 必ず`groupNames`パラメータで実行対象を限定
-- 例: `groupNames: ["^ClientTests\\.Feature\\.InventoryTest$"]`
-
-### 2. シェルスクリプトでのテスト実行（フォールバック）
-Unityエディタが使用できない場合やMCPツールリストに上記MCPが無い場合では `tools/unity-test.sh` を使用します。
 
 ```bash
 # サーバー側のテスト
@@ -196,20 +175,7 @@ Unityエディタが使用できない場合やMCPツールリストに上記MCP
 - 全テストの一括実行は時間がかかり、不安定になる可能性があります
 - 関連するテストのみを実行して開発サイクルを高速化しましょう
 
-## コンパイルエラーの確認
 
-### MCPツールでのコンパイル（推奨）
-編集したコードのパスに応じて適切なMCPツールを使用：
-
-- **サーバー側**（`moorestech_server/`配下）
-  - `mcp__moorestech_server__RefreshAssets`: コンパイル実行
-  - `mcp__moorestech_server__GetCompileLogs`: エラー確認
-
-- **クライアント側**（`moorestech_client/`配下）
-  - `mcp__moorestech_client__RefreshAssets`: コンパイル実行
-  - `mcp__moorestech_client__GetCompileLogs`: エラー確認
-
-**重要：ユーザーからコンパイルエラーが出ている旨を聞いたら、必ずMCPツールでコンパイルエラーを確認してください。**
 
 # シングルトンパターンの実装指針
 Unityプロジェクトにおけるシングルトンの実装では、以下の方針に従ってください：
