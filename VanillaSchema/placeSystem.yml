@@ -15,7 +15,6 @@ properties:
     - key: placeMode
       type: enum
       options:
-      - Common
       - TrainRail
       - TrainRailConnect
     - key: priority
