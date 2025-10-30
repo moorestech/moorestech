@@ -19,7 +19,8 @@
         "MessagePack",
         "MessagePack.Annotations",
         "Core.Master",
-        "Game.Fluid"
+        "Game.Fluid",
+        "Server.Util"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
