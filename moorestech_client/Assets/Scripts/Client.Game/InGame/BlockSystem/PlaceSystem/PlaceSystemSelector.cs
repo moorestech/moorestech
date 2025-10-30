@@ -28,29 +28,29 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         
         public IPlaceSystem GetCurrentPlaceSystem(PlaceSystemUpdateContext context)
         {
-            // ブロックの場合はCommonBlockPlaceSystemを優先
-            // Priority: CommonBlockPlaceSystem for blocks
+            // マスターデータからPlaceSystemを検索
+            // Search PlaceSystem from master data
+            var placeSystemElement = GetPlaceSystemElement(context.HoldingItemId);
+            if (placeSystemElement != null)
+            {
+                // PlaceModeに基づいて適切なシステムを返す
+                // Return appropriate system based on PlaceMode
+                return placeSystemElement.PlaceMode switch
+                {
+                    PlaceSystemMasterElement.PlaceModeConst.TrainRail => _trainRailPlaceSystem,
+                    PlaceSystemMasterElement.PlaceModeConst.TrainRailConnect => _trainRailConnectSystem,
+                    _ => throw new System.Exception($"Unsupported PlaceMode: {placeSystemElement.PlaceMode}"),
+                };
+            }
+            
+            // ブロックアイテムの場合は共通ブロック設置システムを返す
+            // For block items, return common block place system
             if (MasterHolder.BlockMaster.IsBlock(context.HoldingItemId))
             {
                 return _commonBlockPlaceSystem;
             }
             
-            // マスターデータからPlaceSystemを検索
-            // Search PlaceSystem from master data
-            var placeSystemElement = GetPlaceSystemElement(context.HoldingItemId);
-            if (placeSystemElement == null)
-            {
-                return EmptyPlaceSystem;
-            }
-            
-            // PlaceModeに基づいて適切なシステムを返す
-            // Return appropriate system based on PlaceMode
-            return placeSystemElement.PlaceMode switch
-            {
-                PlaceSystemMasterElement.PlaceModeConst.TrainRail => _trainRailPlaceSystem,
-                PlaceSystemMasterElement.PlaceModeConst.TrainRailConnect => _trainRailConnectSystem,
-                _ => EmptyPlaceSystem
-            };
+            return EmptyPlaceSystem;
             
             #region Internal
             
