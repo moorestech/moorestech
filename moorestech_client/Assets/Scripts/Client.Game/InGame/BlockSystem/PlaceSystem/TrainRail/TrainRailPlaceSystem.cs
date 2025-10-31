@@ -69,7 +69,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
                     Placeable = true,
                     CreateParams = new BlockCreateParam[]
                     {
-                        new(RailComponentStateDetail.StateDetailKey, MessagePack.MessagePackSerializer.Serialize(new RailComponentStateDetail(_railDirection.ToVector3()))),
+                        new(RailBridgePierComponentStateDetail.StateDetailKey, MessagePack.MessagePackSerializer.Serialize(new RailBridgePierComponentStateDetail(_railDirection.ToVector3()))),
                     }
                 };
                 return new List<PlaceInfo> {info};

@@ -31,7 +31,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         
         private void Process(Dictionary<string, byte[]> stateDetails)
         {
-            var railState = stateDetails.GetStateDetail<RailComponentStateDetail>(RailComponentStateDetail.StateDetailKey);
+            var railState = stateDetails.GetStateDetail<RailBridgePierComponentStateDetail>(RailBridgePierComponentStateDetail.StateDetailKey);
             
             var railVector = railState.RailBlockDirection.Vector3;
             railModel.localRotation = Quaternion.LookRotation(railVector);
