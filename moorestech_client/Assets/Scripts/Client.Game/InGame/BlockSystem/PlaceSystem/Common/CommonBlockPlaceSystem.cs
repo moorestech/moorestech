@@ -10,6 +10,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.SoundEffect;
 using Client.Input;
+using Core.Master;
 using Game.Block.Interface;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
@@ -98,7 +99,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             _previewBlockController.SetActive(false);
             
             // ブロック設置用のrayが当たっているか、当たっていたら設置位置を取得する
-            if (!TryGetRayHitBlockPosition(_mainCamera,_heightOffset, _currentBlockDirection, out var placePoint, out var boundingBoxSurface)) return;
+            var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(context.HoldingItemId);
+            if (!TryGetRayHitBlockPosition(_mainCamera, _heightOffset, _currentBlockDirection, holdingBlockMaster, out var placePoint, out var boundingBoxSurface)) return;
             
             // 設置可能な距離かどうか
             if (!IsBlockPlaceableDistance(PlaceableMaxDistance)) return;
@@ -115,7 +117,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             //プレビュー表示と地面との接触を取得する
             //display preview and get collision with ground
             SetCurrentPlaceInfo();
-            var blockGroundOverlapList = _previewBlockController.SetPreviewAndGroundDetect(_currentPlaceInfos, boundingBoxSurface.BlockGameObject.BlockMasterElement);
+            var blockGroundOverlapList = _previewBlockController.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockMaster);
             
             // Placeableの更新
             // update placeable

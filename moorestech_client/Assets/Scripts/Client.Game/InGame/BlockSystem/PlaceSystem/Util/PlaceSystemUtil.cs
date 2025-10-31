@@ -3,20 +3,21 @@ using ClassLibrary;
 using Client.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
 using Game.Block.Interface;
+using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
 {
     public class PlaceSystemUtil
     {
-        public static bool TryGetRayHitBlockPosition(Camera mainCamera, int heightOffset, BlockDirection currentBlockDirection, out Vector3Int pos, out BlockPreviewBoundingBoxSurface surface)
+        public static bool TryGetRayHitBlockPosition(Camera mainCamera, int heightOffset, BlockDirection currentBlockDirection, BlockMasterElement holdingBlock, out Vector3Int pos, out BlockPreviewBoundingBoxSurface surface)
         {
             pos = Vector3Int.zero;
             surface = null;
             
             if (!TryGetRayHitPosition(mainCamera, out var hitPos, out surface)) return false;
             
-            pos = CalcPlacePoint(hitPos, heightOffset, currentBlockDirection, surface);
+            pos = CalcPlacePoint(holdingBlock, hitPos, heightOffset, currentBlockDirection, surface);
             
             return true;
         }
@@ -60,11 +61,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             return true;
         }
         
-        public static Vector3Int CalcPlacePoint(Vector3 hitPoint, int heightOffset, BlockDirection currentBlockDirection, BlockPreviewBoundingBoxSurface boundingBoxSurface)
+        public static Vector3Int CalcPlacePoint(BlockMasterElement holdingBlock ,Vector3 hitPoint, int heightOffset, BlockDirection currentBlockDirection, BlockPreviewBoundingBoxSurface boundingBoxSurface)
         {
-            var holdingBlockMaster = boundingBoxSurface.BlockGameObject.BlockMasterElement;
             var rotateAction = currentBlockDirection.GetCoordinateConvertAction();
-            var rotatedSize = rotateAction(holdingBlockMaster.BlockSize).Abs();
+            var rotatedSize = rotateAction(holdingBlock.BlockSize).Abs();
             
             if (boundingBoxSurface == null)
             {
@@ -122,6 +122,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-        }
+        }}
     }
 }

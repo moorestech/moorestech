@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Input;
+using Core.Master;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
 using Server.Protocol.PacketResponse;
@@ -33,14 +34,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
         {
             _previewBlockController.SetActive(false);
             
-            if (!TryGetRayHitBlockPosition(_mainCamera, HeightOffset, DefaultBlockDirection, out var placePoint, out var boundingBoxSurface)) return;
+            var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(context.HoldingItemId);
+            if (!TryGetRayHitBlockPosition(_mainCamera, HeightOffset, DefaultBlockDirection, holdingBlockMaster, out var placePoint, out var boundingBoxSurface)) return;
             
             _previewBlockController.SetActive(true);
             
             RotationRailComponent();
             var placeInfo = CreatePlaceInfo();
             
-            _previewBlockController.SetPreviewAndGroundDetect(placeInfo, boundingBoxSurface.BlockGameObject.BlockMasterElement);
+            _previewBlockController.SetPreviewAndGroundDetect(placeInfo, holdingBlockMaster);
             
             #region Internal
             
@@ -80,6 +82,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
         
         public void Disable()
         {
+            _previewBlockController.SetActive(false);
         }
     }
 }
