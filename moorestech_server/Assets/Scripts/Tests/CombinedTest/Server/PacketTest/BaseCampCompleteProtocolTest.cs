@@ -31,7 +31,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var baseCampBlockId = ForUnitTestModBlockId.BaseCamp1;
             
             // ワールドに配置
-            worldBlockDatastore.TryAddBlock(baseCampBlockId, position, BlockDirection.North, out var baseCampBlock, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(baseCampBlockId, position, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var baseCampBlock);
             
             var baseCampComponent = baseCampBlock.GetComponent<BaseCampComponent>();
             var baseCampInventory = baseCampBlock.GetComponent<IBlockInventory>();

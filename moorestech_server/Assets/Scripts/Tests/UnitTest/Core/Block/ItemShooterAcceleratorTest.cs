@@ -71,13 +71,13 @@ namespace Tests.UnitTest.Core.Block
             var blockPosition = new Vector3Int(_scenarioOffset * 4, 0, 0);
             _scenarioOffset++;
 
-            world.TryAddBlock(ForUnitTestModBlockId.ItemShooterAccelerator, blockPosition, BlockDirection.North, out var acceleratorBlock, Array.Empty<BlockCreateParam>());
+            world.TryAddBlock(ForUnitTestModBlockId.ItemShooterAccelerator, blockPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var acceleratorBlock);
             var shooterComponent = acceleratorBlock.GetComponent<ItemShooterComponent>();
 
             // 歯車ジェネレーターを配置し、RPM/トルクを設定
             // Place gear generator and configure RPM/torque
             var generatorPosition = blockPosition + Vector3Int.right;
-            world.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.East, out var generatorBlock, Array.Empty<BlockCreateParam>());
+            world.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.East, Array.Empty<BlockCreateParam>(), out var generatorBlock);
             var generatorComponent = generatorBlock.GetComponent<SimpleGearGeneratorComponent>();
             generatorComponent.SetGenerateRpm((float)rpm);
             generatorComponent.SetGenerateTorque((float)torque);

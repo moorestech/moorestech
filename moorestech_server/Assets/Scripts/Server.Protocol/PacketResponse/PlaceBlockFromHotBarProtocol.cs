@@ -58,7 +58,7 @@ namespace Server.Protocol.PacketResponse
             var createParams = placeInfo.BlockCreateParams.Select(v => new BlockCreateParam(v.Key, v.Value)).ToArray();
             
             //ブロックの設置
-            ServerContext.WorldBlockDatastore.TryAddBlock(blockId, placeInfo.Position, placeInfo.Direction, out var block, createParams);
+            ServerContext.WorldBlockDatastore.TryAddBlock(blockId, placeInfo.Position, placeInfo.Direction, createParams, out var block);
             
             //アイテムを減らし、セットする
             item = item.SubItem(1);

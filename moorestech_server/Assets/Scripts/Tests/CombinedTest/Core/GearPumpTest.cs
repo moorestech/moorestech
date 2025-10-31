@@ -32,12 +32,12 @@ namespace Tests.CombinedTest.Core
             var world = ServerContext.WorldBlockDatastore;
 
             // 出力を受けるための周囲パイプを設置（+Xはジェネレーター用に空ける）
-            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(-1, 0, 0), BlockDirection.North, out var pipeNegX, Array.Empty<BlockCreateParam>());
-            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, 1), BlockDirection.North, out var pipePosZ, Array.Empty<BlockCreateParam>());
-            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, -1), BlockDirection.North, out var pipeNegZ, Array.Empty<BlockCreateParam>());
+            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(-1, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pipeNegX);
+            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, 1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pipePosZ);
+            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, -1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pipeNegZ);
 
             // GearPumpを中心に設置
-            world.TryAddBlock(ForUnitTestModBlockId.GearPump, Vector3Int.zero, BlockDirection.North, out var pumpBlock, Array.Empty<BlockCreateParam>());
+            world.TryAddBlock(ForUnitTestModBlockId.GearPump, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pumpBlock);
 
             // 期待生成レート（full power時の1秒あたり）
             var pumpParam = (GearPumpBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearPump).BlockParam;
@@ -48,7 +48,7 @@ namespace Tests.CombinedTest.Core
 
             // 1) フルパワー（RequiredRpm / RequireTorque を満たす）
             // +XにSimpleGearGeneratorを設置し、ExtensionでRPM/Torqueを設定
-            world.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, new Vector3Int(1, 0, 0), BlockDirection.East, out var generatorBlock, Array.Empty<BlockCreateParam>());
+            world.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, new Vector3Int(1, 0, 0), BlockDirection.East, Array.Empty<BlockCreateParam>(), out var generatorBlock);
             var simpleGenerator = generatorBlock.GetComponent<global::Game.Block.Blocks.Gear.SimpleGearGeneratorComponent>();
             simpleGenerator.SetGenerateRpm(pumpParam.RequiredRpm);
             simpleGenerator.SetGenerateTorque(pumpParam.RequireTorque);
@@ -69,9 +69,9 @@ namespace Tests.CombinedTest.Core
             world.RemoveBlock(new Vector3Int(0, 0, 1));
             world.RemoveBlock(new Vector3Int(0, 0, -1));
 
-            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(-1, 0, 0), BlockDirection.North, out pipeNegX, Array.Empty<BlockCreateParam>());
-            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, 1), BlockDirection.North, out pipePosZ, Array.Empty<BlockCreateParam>());
-            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, -1), BlockDirection.North, out pipeNegZ, Array.Empty<BlockCreateParam>());
+            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(-1, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out pipeNegX);
+            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, 1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out pipePosZ);
+            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, -1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out pipeNegZ);
 
             // ジェネレーターのRPMだけ半減（トルクは維持）
             var halfRpm = new RPM(Math.Max(0.0f, pumpParam.RequiredRpm / 2f));
@@ -95,7 +95,7 @@ namespace Tests.CombinedTest.Core
 
             // ブロックの作成
             // Create block
-            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearPump, Vector3Int.zero, BlockDirection.North, out var originalPump, Array.Empty<BlockCreateParam>());
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearPump, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var originalPump);
             var outputComponent = originalPump.GetComponent<PumpFluidOutputComponent>();
             
             // ブロックに液体を追加
@@ -132,14 +132,14 @@ namespace Tests.CombinedTest.Core
             var world = ServerContext.WorldBlockDatastore;
 
             // GearPumpを原点に設置。ポンプの周囲3方向にパイプを設置（+Xはジェネレーター用に空ける）
-            world.TryAddBlock(ForUnitTestModBlockId.GearPump, Vector3Int.zero, BlockDirection.North, out var pumpBlock, Array.Empty<BlockCreateParam>());
+            world.TryAddBlock(ForUnitTestModBlockId.GearPump, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pumpBlock);
 
-            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(-1, 0, 0), BlockDirection.North, out var pipeNegX, Array.Empty<BlockCreateParam>());
-            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, 1), BlockDirection.North, out var pipePosZ, Array.Empty<BlockCreateParam>());
-            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, -1), BlockDirection.North, out var pipeNegZ, Array.Empty<BlockCreateParam>());
+            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(-1, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pipeNegX);
+            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, 1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pipePosZ);
+            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, -1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pipeNegZ);
 
             // InfinityTorqueSimpleGearGeneratorを+Xに隣接設置（常時トルク供給）
-            world.TryAddBlock(ForUnitTestModBlockId.InfinityTorqueSimpleGearGenerator, new Vector3Int(1, 0, 0), BlockDirection.East, out var generatorBlock, Array.Empty<BlockCreateParam>());
+            world.TryAddBlock(ForUnitTestModBlockId.InfinityTorqueSimpleGearGenerator, new Vector3Int(1, 0, 0), BlockDirection.East, Array.Empty<BlockCreateParam>(), out var generatorBlock);
 
             // 起動・接続安定化のため少しアップデート
             var testDurationSec = 2.5f;
