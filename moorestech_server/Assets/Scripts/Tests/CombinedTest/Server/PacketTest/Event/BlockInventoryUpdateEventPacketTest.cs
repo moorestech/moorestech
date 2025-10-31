@@ -37,7 +37,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             Vector3Int pos = new(5, 7);
             
             //ブロックをセットアップ
-            worldBlockDataStore.TryAddBlock(ForUnitTestModBlockId.MachineId, pos, BlockDirection.North, out var block);
+            worldBlockDataStore.TryAddBlock(ForUnitTestModBlockId.MachineId, pos, BlockDirection.North, out var block, System.Array.Empty<BlockCreateParam>());
             var blockInventory = block.GetComponent<IBlockInventory>();
             
             
@@ -90,10 +90,10 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var itemStackFactory = ServerContext.ItemStackFactory;
             
             //ブロック1をセットアップ
-            worldBlockDataStore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(5, 7), BlockDirection.North, out var block1);
+            worldBlockDataStore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(5, 7), BlockDirection.North, out var block1, System.Array.Empty<BlockCreateParam>());
             
             //ブロック2をセットアップ
-            worldBlockDataStore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(10, 20), BlockDirection.North, out var block2);
+            worldBlockDataStore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(10, 20), BlockDirection.North, out var block2, System.Array.Empty<BlockCreateParam>());
             
             
             //一つ目のブロックインベントリを開く

@@ -29,7 +29,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             Vector3Int pos = new(0, 0);
             
             //機械のブロックを作る
-            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, pos, BlockDirection.North, out var machine);
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, pos, BlockDirection.North, out var machine, System.Array.Empty<BlockCreateParam>());
             //機械ブロックにアイテムを挿入するのでそのアイテムを挿入する
             var itemStackFactory = ServerContext.ItemStackFactory;
             

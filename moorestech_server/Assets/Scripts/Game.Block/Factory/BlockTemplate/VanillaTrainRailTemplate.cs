@@ -23,7 +23,7 @@ namespace Game.Block.Factory.BlockTemplate
         /// </summary>
         public IBlock New(BlockMasterElement blockMasterElement,
             BlockInstanceId blockInstanceId,
-            BlockPositionInfo blockPositionInfo, BlockCreateParam[] createParams = null)
+            BlockPositionInfo blockPositionInfo, BlockCreateParam[] createParams)
         {
             // railブロックは常にRailComponentが1つだけ
             var railComponents = new RailComponent[1];

@@ -30,7 +30,7 @@ namespace Tests.CombinedTest.Core
         {
             var world = ServerContext.WorldBlockDatastore;
             
-            world.TryAddBlock(blockId, position, BlockDirection.North, out var block);
+            world.TryAddBlock(blockId, position, BlockDirection.North, out var block, System.Array.Empty<BlockCreateParam>());
             return block;
         }
     }

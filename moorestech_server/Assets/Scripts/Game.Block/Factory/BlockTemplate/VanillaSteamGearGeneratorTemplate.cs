@@ -23,7 +23,7 @@ namespace Game.Block.Factory.BlockTemplate
             return CreateSteamGearGenerator(componentStates, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
         
-        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] createParams = null)
+        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] createParams)
         {
             return CreateSteamGearGenerator(null, blockMasterElement, blockInstanceId, blockPositionInfo);
         }

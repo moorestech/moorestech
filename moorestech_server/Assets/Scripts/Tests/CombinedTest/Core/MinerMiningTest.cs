@@ -33,7 +33,7 @@ namespace Tests.CombinedTest.Core
             
             // 手動で鉱石の設定を行う
             var (_, pos) = GetMapVein();
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricMinerId, pos, BlockDirection.North, out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricMinerId, pos, BlockDirection.North, out _, System.Array.Empty<BlockCreateParam>());
             var miner = worldBlockDatastore.GetBlock(pos);
             var minerComponent = miner.GetComponent<VanillaMinerProcessorComponent>();
             
@@ -44,7 +44,7 @@ namespace Tests.CombinedTest.Core
             
             // チェストを隣に設置し、アイテムがアウトプットされていることを確認する
             var chestBlockPos = new Vector3Int(pos.x + 1, pos.y, pos.z);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, chestBlockPos, BlockDirection.North, out var chestBlock);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, chestBlockPos, BlockDirection.North, out var chestBlock, System.Array.Empty<BlockCreateParam>());
             var chestComponent = chestBlock.GetComponent<VanillaChestComponent>();
             
             //電力の設定
@@ -77,7 +77,7 @@ namespace Tests.CombinedTest.Core
             
             
             // チェストを再度設置して、アイテムがアウトプットされていることを確認する
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, chestBlockPos, BlockDirection.North, out chestBlock);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, chestBlockPos, BlockDirection.North, out chestBlock, System.Array.Empty<BlockCreateParam>());
             chestComponent = chestBlock.GetComponent<VanillaChestComponent>();
             
             //コネクターにアイテムを入れるためのアップデート

@@ -44,7 +44,7 @@ namespace Tests.CombinedTest.Core
 
             // 鉱脈の位置に歯車採掘機を追加する
             // Add the gear miner block at the vein position.
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearMiner, position, BlockDirection.North, out var gearMinerBlock);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearMiner, position, BlockDirection.North, out var gearMinerBlock, System.Array.Empty<BlockCreateParam>());
             var gearMiner = worldBlockDatastore.GetBlock(position);
 
             // リフレクションを使用してプライベート フィールドにアクセスする: _miningItems と _defaultMiningTime
@@ -60,7 +60,7 @@ namespace Tests.CombinedTest.Core
             // 採掘機に RPM とトルクを供給するために、歯車ジェネレータを採掘機の隣に配置する
             // Place a gear generator adjacent to the gear miner to supply RPM and torque.
             var generatorPosition = position + new Vector3Int(0, 0, -1);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.InfinityTorqueSimpleGearGenerator, generatorPosition, BlockDirection.North, out var generatorBlock);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.InfinityTorqueSimpleGearGenerator, generatorPosition, BlockDirection.North, out var generatorBlock, System.Array.Empty<BlockCreateParam>());
             
             // 歯車エネルギーを受け取るために歯車ネットワークを更新
             // Ensure the gear network is updated so that the miner receives power.
@@ -70,7 +70,7 @@ namespace Tests.CombinedTest.Core
             // アイテムがアウトプットされていることを確認するためのチェストを採掘機の隣に設置する
             // Place a chest adjacent to the gear miner to verify that items are output.
             var chestBlockPos = position + new Vector3Int(1, 0, 0);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, chestBlockPos, BlockDirection.North, out var chestBlock);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, chestBlockPos, BlockDirection.North, out var chestBlock, System.Array.Empty<BlockCreateParam>());
             var chestComponent = chestBlock.GetComponent<VanillaChestComponent>();
             
             // 採掘中待機する
@@ -106,7 +106,7 @@ namespace Tests.CombinedTest.Core
 
             // 再びチェストを設置する
             // Place the chest again.
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, chestBlockPos, BlockDirection.North, out chestBlock);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, chestBlockPos, BlockDirection.North, out chestBlock, System.Array.Empty<BlockCreateParam>());
             chestComponent = chestBlock.GetComponent<VanillaChestComponent>();
 
             // チェストにアイテムが入っていることを確認するためにアップデート

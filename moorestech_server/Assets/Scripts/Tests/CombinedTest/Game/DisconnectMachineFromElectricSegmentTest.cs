@@ -29,11 +29,11 @@ namespace Tests.CombinedTest.Game
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
 
             //電柱の設置
-            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(2, 0), BlockDirection.North, out _);
+            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(2, 0), BlockDirection.North, out _, System.Array.Empty<BlockCreateParam>());
 
             //発電機の設定
-            worldBlockDatastore.TryAddBlock(GeneratorId, Pos(0, 0), BlockDirection.North, out var generator1Block);
-            worldBlockDatastore.TryAddBlock(GeneratorId, Pos(4, 0), BlockDirection.North, out var generator2Block);
+            worldBlockDatastore.TryAddBlock(GeneratorId, Pos(0, 0), BlockDirection.North, out var generator1Block, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(GeneratorId, Pos(4, 0), BlockDirection.North, out var generator2Block, System.Array.Empty<BlockCreateParam>());
 
             var generator1InstanceId = generator1Block.BlockInstanceId;
             var generator2InstanceId = generator2Block.BlockInstanceId;
@@ -86,11 +86,11 @@ namespace Tests.CombinedTest.Game
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
 
             //電柱の設置
-            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(2, 0), BlockDirection.North, out _);
+            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(2, 0), BlockDirection.North, out _, System.Array.Empty<BlockCreateParam>());
 
             //機械の設定
-            worldBlockDatastore.TryAddBlock(MachineId, Pos(0, 0), BlockDirection.North, out var machine1Block);
-            worldBlockDatastore.TryAddBlock(MachineId, Pos(4, 0), BlockDirection.North, out var machine2Block);
+            worldBlockDatastore.TryAddBlock(MachineId, Pos(0, 0), BlockDirection.North, out var machine1Block, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(MachineId, Pos(4, 0), BlockDirection.North, out var machine2Block, System.Array.Empty<BlockCreateParam>());
 
             var machine1InstanceId = machine1Block.BlockInstanceId;
             var machine2InstanceId = machine2Block.BlockInstanceId;
