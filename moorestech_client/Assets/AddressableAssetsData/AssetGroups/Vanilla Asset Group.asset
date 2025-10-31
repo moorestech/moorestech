@@ -15,6 +15,11 @@ MonoBehaviour:
   m_GroupName: Vanilla Asset Group
   m_GUID: 8eba990dbb1084395a12b2a54be4f5af
   m_SerializeEntries:
+  - m_GUID: 0037024f719e84c75bd5fe2ee93f7c21
+    m_Address: Vanilla/Block/Train_Rail_Pier
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 02c740acc0bb54162ad10456d3af5b36
     m_Address: Vanilla/Skit/Environment/100_start_2_SpaceShip_Interior
     m_ReadOnly: 0
