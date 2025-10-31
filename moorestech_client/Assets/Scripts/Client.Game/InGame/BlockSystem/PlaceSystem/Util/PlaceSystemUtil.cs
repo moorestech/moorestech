@@ -1,9 +1,13 @@
 using System;
+using System.Collections.Generic;
 using ClassLibrary;
 using Client.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
+using Client.Game.InGame.Context;
+using Client.Game.InGame.SoundEffect;
 using Game.Block.Interface;
 using Mooresmaster.Model.BlocksModule;
+using Server.Protocol.PacketResponse;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
@@ -122,6 +126,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+        }
+        
+        public static void SendPlaceProtocol(List<PlaceInfo> currentPlaceInfos, PlaceSystemUpdateContext context)
+        {
+            // PlaceInfoをサーバーに送信
+            // Send PlaceInfo to server
+            ClientContext.VanillaApi.SendOnly.PlaceHotBarBlock(currentPlaceInfos, context.CurrentSelectHotbarSlotIndex);
+            SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
         }
     }
 }
