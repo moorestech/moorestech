@@ -24,7 +24,7 @@ namespace Game.Block.Factory
             var blockElement = MasterHolder.BlockMaster.GetBlockMaster(blockId);
             if (!dictionary.TryGetValue(blockElement.BlockType, out var value)) throw new Exception("Block type not found :" + blockElement.BlockType);
             
-            var block = value.New(blockElement, blockInstanceId, blockPositionInfo);
+            var block = value.New(blockElement, blockInstanceId, blockPositionInfo, initializeParams);
             
             return block;
         }

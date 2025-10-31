@@ -100,7 +100,7 @@ namespace Game.World.DataStore
         {
             var blockSize = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockSize;
             var blockPositionInfo = new BlockPositionInfo(position, direction, blockSize);
-            block = _blockFactory.Create(blockId, BlockInstanceId.Create(), blockPositionInfo);
+            block = _blockFactory.Create(blockId, BlockInstanceId.Create(), blockPositionInfo, initializeParams);
             return TryAddBlock(block);
         }
         
