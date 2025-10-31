@@ -14,7 +14,7 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaGearPumpTemplate : IBlockTemplate
     {
-        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] initializeParams = null)
         {
             return GetBlock(null, blockMasterElement, blockInstanceId, blockPositionInfo);
         }

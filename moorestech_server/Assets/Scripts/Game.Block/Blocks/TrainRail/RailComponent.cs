@@ -4,6 +4,7 @@ using Game.Train.Utility;
 using UnityEngine;
 using System.Collections.Generic;
 using Game.Block.Interface;
+using MessagePack;
 
 namespace Game.Block.Blocks.TrainRail
 {
@@ -11,7 +12,7 @@ namespace Game.Block.Blocks.TrainRail
     /// 1つのレールブロック内のレール要素を表すコンポーネント。
     /// 基本的に1つのRailComponentが FrontNode と BackNode の2つのRailNodeを持つ。
     /// </summary>
-    public class RailComponent : IBlockComponent
+    public class RailComponent : IBlockStateDetail
     {
         public bool IsDestroy { get; private set; }
 
@@ -26,16 +27,22 @@ namespace Game.Block.Blocks.TrainRail
 
         // ブロック座標とIDが格納されている
         public RailComponentID ComponentID { get; }
-        private BlockDirection railBlockDirection;
         public Vector3 Position { get; }//ブロックではなくレールのつなぎ目としてのこのcomponentの位置
+        
+        public readonly Vector3 RailDirection;
+        
+        /// <summary>
+        /// レール方向にBlockDirectionを用いるコンストラクタ
+        /// </summary>
+        public RailComponent(Vector3 position, BlockDirection blockDirection, RailComponentID railComponentID) : this(position, ToVector3(blockDirection), railComponentID) { }
 
         /// <summary>
         /// コンストラクタ
         /// </summary>
-        public RailComponent(Vector3 position, BlockDirection blockDirection, RailComponentID railComponentID)
+        public RailComponent(Vector3 position, Vector3 railDirection ,RailComponentID railComponentID)
         {
             Position = position;
-            railBlockDirection = blockDirection;
+            RailDirection = railDirection;
             ComponentID = railComponentID;
 
             // ベジェ曲線の制御点を初期化
@@ -116,7 +123,8 @@ namespace Game.Block.Blocks.TrainRail
                 MyID = ComponentID,
                 BezierStrength = controlPointStrength,
                 ConnectMyFrontTo = new List<ConnectionDestination>(),
-                ConnectMyBackTo = new List<ConnectionDestination>()
+                ConnectMyBackTo = new List<ConnectionDestination>(),
+                RailDirection = RailDirection,
             };
 
             // FrontNode の接続リスト
@@ -164,28 +172,7 @@ namespace Game.Block.Blocks.TrainRail
         /// </summary>
         private Vector3 CalculateControlPointOffset(bool useFrontSide)
         {
-            // 想定：dirは North, East, South, West のみ
-            Vector3 direction = Vector3.zero;
-
-            switch (railBlockDirection)
-            {
-                case BlockDirection.North:
-                    direction = Vector3.forward;  // (0,0,1)
-                    break;
-                case BlockDirection.East:
-                    direction = Vector3.right;    // (1,0,0)
-                    break;
-                case BlockDirection.South:
-                    direction = Vector3.back;     // (0,0,-1)
-                    break;
-                case BlockDirection.West:
-                    direction = Vector3.left;     // (-1,0,0)
-                    break;
-            }
-
-            return useFrontSide
-                ? direction * controlPointStrength
-                : -direction * controlPointStrength;
+            return useFrontSide ? RailDirection * controlPointStrength : -RailDirection * controlPointStrength;
         }
 
         /// <summary>
@@ -198,6 +185,24 @@ namespace Game.Block.Blocks.TrainRail
             BackNode.Destroy();
             FrontNode = null;
             BackNode = null;
+        }
+        
+        public BlockStateDetail[] GetBlockStateDetails()
+        {
+            var bytes = MessagePackSerializer.Serialize(new RailBridgePierComponentStateDetail(RailDirection));
+            return new BlockStateDetail[] {new (RailBridgePierComponentStateDetail.StateDetailKey, bytes)};
+        }
+        
+        public static Vector3 ToVector3(BlockDirection blockDirection)
+        {
+            return blockDirection switch
+            {
+                BlockDirection.North => Vector3.forward, // (0,0,1)
+                BlockDirection.East => Vector3.right, // (1,0,0)
+                BlockDirection.South => Vector3.back, // (0,0,-1)
+                BlockDirection.West => Vector3.left, // (-1,0,0)
+                _ => Vector3.zero
+            };
         }
     }
 }

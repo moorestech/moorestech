@@ -11,7 +11,7 @@ namespace Game.CraftChainer.BlockComponent.Template
 {
     public class CraftChainerMainComputerTemplate : IBlockTemplate
     {
-        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] initializeParams = null)
         {
             return GetBlock(null, blockMasterElement, blockInstanceId, blockPositionInfo);
         }

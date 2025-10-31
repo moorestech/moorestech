@@ -21,18 +21,21 @@ namespace Game.Block.Factory.BlockTemplate
         /// <summary>
         /// 新規にブロック（と対応するRailComponent等）を生成
         /// </summary>
-        public IBlock New(
-            BlockMasterElement blockMasterElement,
+        public IBlock New(BlockMasterElement blockMasterElement,
             BlockInstanceId blockInstanceId,
-            BlockPositionInfo blockPositionInfo)
+            BlockPositionInfo blockPositionInfo, BlockCreateParam[] initializeParams = null)
         {
             // railブロックは常にRailComponentが1つだけ
             var railComponents = new RailComponent[1];
+            
+            // ブロック生成パラメータからRailBridgePierComponentStateDetailを取得して方向ベクトルを取得
+            var state = initializeParams.GetStateDetail<RailBridgePierComponentStateDetail>(RailBridgePierComponentStateDetail.StateDetailKey);
+            var railBlockDirection = state.RailBlockDirection;
 
             // RailComponentを生成
             var railComponentId = new RailComponentID(blockPositionInfo.OriginalPos, 0);
             var railComponentPositions = RailComponentUtility.CalculateRailComponentPositions(blockPositionInfo);
-            railComponents[0] = new RailComponent(railComponentPositions[0], blockPositionInfo.BlockDirection, railComponentId);
+            railComponents[0] = new RailComponent(railComponentPositions[0], railBlockDirection, railComponentId);
             var railSaverComponent = RailComponentFactory.CreateRailSaverComponent(railComponents);
             // コンポーネントをまとめてブロックに登録
             var components = new List<IBlockComponent>();
