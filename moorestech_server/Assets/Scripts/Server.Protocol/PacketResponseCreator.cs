@@ -49,6 +49,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(GetResearchInfoProtocol.ProtocolTag, new GetResearchInfoProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetPlayedSkitIdsProtocol.ProtocolTag, new GetPlayedSkitIdsProtocol(serviceProvider));
             _packetResponseDictionary.Add(RailConnectionEditProtocol.Tag, new RailConnectionEditProtocol());
+            _packetResponseDictionary.Add(GetRailConnectionsProtocol.ProtocolTag, new GetRailConnectionsProtocol(serviceProvider));
         }
         
         public List<List<byte>> GetPacketResponse(List<byte> payload)
