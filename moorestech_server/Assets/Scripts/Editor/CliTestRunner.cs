@@ -131,7 +131,53 @@ public static class CliTestRunner
             list.Add(node.FullName);
     }
 
-    // 全行に [CliTest] をつけて出力 
+    // ────────────────────────────────────────────────────────────────────────
+    //  全テスト名のリストアップ用エントリポイント
+    //  Entry point for listing all test names
+    // ────────────────────────────────────────────────────────────────────────
+    public static void ListAllTests()
+    {
+        // TestRunnerApi 初期化
+        // Initialize TestRunnerApi
+        var api = ScriptableObject.CreateInstance<TestRunnerApi>();
+
+        // EditMode テスト一覧を取得
+        // Retrieve EditMode test list
+        api.RetrieveTestList(
+            TestMode.EditMode,
+            root =>
+            {
+                var allTests = new List<string>();
+                CollectAllTests(root, allTests);
+
+                if (allTests.Count == 0)
+                {
+                    Export("🟡 No tests found");
+                }
+                else
+                {
+                    Export($"📝 Found {allTests.Count} tests:");
+                    foreach (var testName in allTests)
+                    {
+                        Export($"  {testName}");
+                    }
+                }
+
+                EditorApplication.Exit(0);
+            });
+    }
+
+    // 再帰的に全テストケースを収集（正規表現フィルタなし）
+    // Recursively collect all test cases (without regex filter)
+    private static void CollectAllTests(ITestAdaptor node, List<string> list)
+    {
+        if (node.IsSuite)
+            foreach (var c in node.Children) CollectAllTests(c, list);
+        else
+            list.Add(node.FullName);
+    }
+
+    // 全行に [CliTest] をつけて出力
     private static void Export(string msg)
     {
         var lines = msg.Split('\n');
