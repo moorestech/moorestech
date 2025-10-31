@@ -40,9 +40,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
             _previewBlockController.SetActive(true);
             
             RotationRailComponent();
-            var placeInfo = CreatePlaceInfo();
             
+            var placeInfo = CreatePlaceInfo();
             _previewBlockController.SetPreviewAndGroundDetect(placeInfo, holdingBlockMaster);
+            PlaceBlock(placeInfo);
             
             #region Internal
             
@@ -66,15 +67,20 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
                     Direction = DefaultBlockDirection,
                     VerticalDirection = BlockVerticalDirection.Horizontal,
                     Placeable = true,
-                    CreateParams = new[]
+                    CreateParams = new BlockCreateParam[]
                     {
-                        new BlockCreateParam(
-                            RailComponentStateDetail.StateDetailKey,
-                            MessagePack.MessagePackSerializer.Serialize(new RailComponentStateDetail(_railDirection.ToVector3()))
-                        )
+                        new(RailComponentStateDetail.StateDetailKey, MessagePack.MessagePackSerializer.Serialize(new RailComponentStateDetail(_railDirection.ToVector3()))),
                     }
                 };
                 return new List<PlaceInfo> {info};
+            }
+            
+            
+            void PlaceBlock(List<PlaceInfo>  info)
+            {
+                if (!InputManager.Playable.ScreenLeftClick.GetKeyUp) return;
+                
+                SendPlaceProtocol(info, context);
             }
             
             #endregion

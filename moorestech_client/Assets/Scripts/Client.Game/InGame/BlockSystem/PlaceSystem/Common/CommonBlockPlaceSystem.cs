@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.SoundEffect;
@@ -128,10 +129,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             
             // 設置するブロックをサーバーに送信
             // send block place info to server
-            if (InputManager.Playable.ScreenLeftClick.GetKeyUp)
-            {
-                Place();
-            }
+            PlaceBlock();
             
             #region Internal
             
@@ -166,14 +164,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 }
             }
             
-            void Place()
+            void PlaceBlock()
             {
+                if (!InputManager.Playable.ScreenLeftClick.GetKeyUp) return;
+                
                 _heightOffset = _clickStartHeightOffset;
                 _clickStartPosition = null;
-                // PlaceInfoをサーバーに送信
-                // Send PlaceInfo to server
-                ClientContext.VanillaApi.SendOnly.PlaceHotBarBlock(_currentPlaceInfos, context.CurrentSelectHotbarSlotIndex);
-                SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
+                SendPlaceProtocol(_currentPlaceInfos, context);
             }
             
             #endregion
