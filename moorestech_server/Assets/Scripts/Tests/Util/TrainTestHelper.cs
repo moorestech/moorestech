@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Server.Boot;
 using Tests.Module.TestMod;
 using Core.Master;
+using MessagePack;
 using UnityEngine;
 using System;
 
@@ -48,8 +49,41 @@ namespace Tests.Util
         public static IBlock PlaceBlock(TrainTestEnvironment environment, BlockId blockId, Vector3Int position,
             BlockDirection direction)
         {
-            environment.WorldBlockDatastore.TryAddBlock(blockId, position, direction, Array.Empty<BlockCreateParam>(), out var block);
+            // テスト設置での生成パラメータを整える
+            // Prepare creation parameters for test placement
+            var createParams = BuildCreateParams(blockId, direction);
+            environment.WorldBlockDatastore.TryAddBlock(blockId, position, direction, createParams, out var block);
             return block;
+
+            #region Internal
+
+            BlockCreateParam[] BuildCreateParams(BlockId targetBlockId, BlockDirection blockDirection)
+            {
+                // レール系ブロックなら方向情報を付与
+                // Attach direction metadata when placing rail blocks
+                var blockMasterElement = MasterHolder.BlockMaster.GetBlockMaster(targetBlockId);
+                if (!string.Equals(blockMasterElement.BlockType, "TrainRail", StringComparison.Ordinal))
+                {
+                    return Array.Empty<BlockCreateParam>();
+                }
+
+                // BlockDirectionからレール向きを取得
+                // Convert block direction into rail heading
+                var railVector = RailComponent.ToVector3(blockDirection);
+                if (railVector == Vector3.zero)
+                {
+                    railVector = Vector3.forward;
+                }
+
+                var stateDetail = new RailBridgePierComponentStateDetail(railVector);
+                var serialized = MessagePackSerializer.Serialize(stateDetail);
+                return new[]
+                {
+                    new BlockCreateParam(RailBridgePierComponentStateDetail.StateDetailKey, serialized)
+                };
+            }
+
+            #endregion
         }
 
         public static (IBlock Block, TComponent Component) PlaceBlockWithComponent<TComponent>(
