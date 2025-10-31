@@ -3,6 +3,7 @@ using Game.Train.RailGraph;
 using Game.Train.Utility;
 using UnityEngine;
 using System.Collections.Generic;
+using ClassLibrary;
 using Game.Block.Interface;
 using MessagePack;
 
@@ -124,7 +125,7 @@ namespace Game.Block.Blocks.TrainRail
                 BezierStrength = controlPointStrength,
                 ConnectMyFrontTo = new List<ConnectionDestination>(),
                 ConnectMyBackTo = new List<ConnectionDestination>(),
-                RailDirection = RailDirection,
+                RailDirection = new Vector3JsoObjects(RailDirection),
             };
 
             // FrontNode の接続リスト
