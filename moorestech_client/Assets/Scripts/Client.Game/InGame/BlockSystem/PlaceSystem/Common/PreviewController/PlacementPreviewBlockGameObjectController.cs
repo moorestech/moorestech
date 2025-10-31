@@ -47,6 +47,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
                 isGroundDetectedList.Add(isGroundDetected);
                 
                 previewBlock.SetPlaceableColor(!isGroundDetected && placeInfo.Placeable);
+                previewBlock.SetPreviewStateDetail(placeInfo);
             }
             
             return isGroundDetectedList;

@@ -14,7 +14,7 @@ namespace Game.World.Interface.DataStore
         
         public IObservable<(BlockState state, WorldBlockData blockData)> OnBlockStateChange { get; }
         
-        public bool TryAddBlock(BlockId blockId, Vector3Int position, BlockDirection direction, out IBlock block, BlockCreateParam[] initializeParams = null);
+        public bool TryAddBlock(BlockId blockId, Vector3Int position, BlockDirection direction, BlockCreateParam[] createParams, out IBlock block);
         public bool TryAddLoadedBlock(Guid blockGuid, BlockInstanceId blockInstanceId, Dictionary<string,string> componentStates, Vector3Int position, BlockDirection direction, out IBlock block);
         public bool RemoveBlock(Vector3Int pos);
         
@@ -32,6 +32,11 @@ namespace Game.World.Interface.DataStore
     
     public static class WorldBlockDatastoreExtension
     {
+        public static bool TryAddBlock(this IWorldBlockDatastore datastore, BlockId blockId, Vector3Int position, BlockDirection direction, out IBlock block)
+        {
+            return datastore.TryAddBlock(blockId, position, direction, Array.Empty<BlockCreateParam>(), out block);
+        }
+        
         public static bool Exists(this IWorldBlockDatastore datastore, Vector3Int pos)
         {
             var block = datastore.GetBlock(pos);

@@ -9,6 +9,8 @@ XY問題に気をつけてください、目先の問題にとらわれず、根
 # コードの可読性向上のための指針
 複雑なメソッド内でロジックが長くなる場合は、#regionとinternalメソッド（ローカル関数）を活用して、人間がすぐにコードを理解できるようにしてください。
 
+また、`using` を積極的に活用し、コード部分での文字数を適切に抑えるようにしてください。
+
 例：
 ```csharp
 public void ComplexMethod()
@@ -159,29 +161,8 @@ MasterHolder.Load()
 # テストとコンパイルの実行方針
 
 ## 基本方針
-このプロジェクトでは、**MCPツールを優先的に使用**し、Unityエディタが使用できない場合**シェルスクリプトをフォールバック**として使用します。
 
 ## テストの実行
-
-### 1. MCPツールでのテスト実行（推奨）
-Unityエディタが起動している場合は、MCPツールを使用してテストを実行します。
-
-#### サーバー側テスト
-```
-mcp__moorestech_server__RunEditModeTests
-```
-- 必ず`groupNames`パラメータで実行対象を限定
-- 例: `groupNames: ["^Tests\\.CombinedTest\\.Core\\.ElectricPumpTest$"]`
-
-#### クライアント側テスト
-```
-mcp__moorestech_client__RunEditModeTests
-```
-- 必ず`groupNames`パラメータで実行対象を限定
-- 例: `groupNames: ["^ClientTests\\.Feature\\.InventoryTest$"]`
-
-### 2. シェルスクリプトでのテスト実行（フォールバック）
-Unityエディタが使用できない場合やMCPツールリストに上記MCPが無い場合では `tools/unity-test.sh` を使用します。
 
 ```bash
 # サーバー側のテスト
@@ -196,43 +177,7 @@ Unityエディタが使用できない場合やMCPツールリストに上記MCP
 - 全テストの一括実行は時間がかかり、不安定になる可能性があります
 - 関連するテストのみを実行して開発サイクルを高速化しましょう
 
-## コンパイルエラーの確認
 
-### MCPツールでのコンパイル（推奨）
-編集したコードのパスに応じて適切なMCPツールを使用：
-
-- **サーバー側**（`moorestech_server/`配下）
-  - `mcp__moorestech_server__RefreshAssets`: コンパイル実行
-  - `mcp__moorestech_server__GetCompileLogs`: エラー確認
-
-- **クライアント側**（`moorestech_client/`配下）
-  - `mcp__moorestech_client__RefreshAssets`: コンパイル実行
-  - `mcp__moorestech_client__GetCompileLogs`: エラー確認
-
-**重要：ユーザーからコンパイルエラーが出ている旨を聞いたら、必ずMCPツールでコンパイルエラーを確認してください。**
-
-## ビルドの実行
-CLIからUnityプロジェクトをビルドする場合は `tools/unity-build-test.sh` を使用してください。
-
-### 使用方法
-```bash
-# 基本的な使い方（デフォルト出力先: moorestech_client/Library/ShellScriptBuild）
-./tools/unity-build-test.sh moorestech_client
-
-# 出力先を指定する場合
-./tools/unity-build-test.sh moorestech_client /path/to/output
-```
-
-### 機能
-- プラットフォームの自動判定（macOS/Windows/Linux）
-- Unityのビルド結果（Succeeded/Failed）を正確に判定
-- ビルド失敗時のコンパイルエラー詳細表示
-- ビルド成功時のファイルサイズ表示
-- エラー時のログファイル保存（デバッグ用）
-
-### 注意事項
-- ビルドが失敗した場合、ログファイルが保存されるので詳細を確認してください
-- macOSの場合、.appファイルが生成されても実際に開けない場合があるため、Unityが報告するビルド結果を信頼してください
 
 # シングルトンパターンの実装指針
 Unityプロジェクトにおけるシングルトンの実装では、以下の方針に従ってください：
@@ -296,7 +241,8 @@ IMPORTANT:デフォルト引数の使用禁止。引数の追加は必ずデフ�
 
 YOU MUST: Prefab、シーン、ScriptableObject等、Unity独自のYamlを使用するUnity固有ファイルは直接編集すると重大な不整合が生じる恐れが高いため、直接編集しないでください。代わりに、ユーザーに編集するように指示してください。
 
-IMPORTANT: このプロジェクトは頻繁にgit worktreeを使用します。ファイルを編集する際は相対パスでの指定をするか、pwdで現在のディレクトリを確認してください。
+IMPORTANT: このプロジェクトは頻繁にgit worktreeを使用します。ファイルを編集する際は相対パスでの指定をするか、pwdで現在のディレクトリを確認してください。git worktreeを使っている場合、MCPを使わずunity-test.shでテストやコンパイルエラーのチェックをしてください。
+
 
 ## Development Best Practices
 - プログラムの基本的な部分はnullではない前提でコードを書くように意識してください。
@@ -307,56 +253,3 @@ Codexが意図したコードより、ユーザーが意図して変更したコ
 
 # 日本語の使用
 ユーザーは日本人であるため、ユーザーに見せる最終出力文章は常に日本語で提示してください。
-
-
-# AI-DLC and Spec-Driven Development
-
-Kiro-style Spec Driven Development implementation on AI-DLC (AI Development Life Cycle)
-
-## Project Memory
-Project memory keeps persistent guidance (steering, specs notes, component docs) so Codex honors your standards each run. Treat it as the long-lived source of truth for patterns, conventions, and decisions.
-
-- Use `.kiro/steering/` for project-wide policies: architecture principles, naming schemes, security constraints, tech stack decisions, api standards, etc.
-- Use local `AGENTS.md` files for feature or library context (e.g. `src/lib/payments/AGENTS.md`): describe domain assumptions, API contracts, or testing conventions specific to that folder. Codex auto-loads these when working in the matching path.
-- Specs notes stay with each spec (under `.kiro/specs/`) to guide specification-level workflows.
-
-## Project Context
-
-### Paths
-- Steering: `.kiro/steering/`
-- Specs: `.kiro/specs/`
-
-### Steering vs Specification
-
-**Steering** (`.kiro/steering/`) - Guide AI with project-wide rules and context
-**Specs** (`.kiro/specs/`) - Formalize development process for individual features
-
-### Active Specifications
-- Check `.kiro/specs/` for active specifications
-- Use `/prompts:kiro-spec-status [feature-name]` to check progress
-
-## Development Guidelines
-- Think in English, but generate responses in Japanese (思考は英語、回答の生成は日本語で行うように)
-
-## Minimal Workflow
-- Phase 0 (optional): `/prompts:kiro-steering`, `/prompts:kiro-steering-custom`
-- Phase 1 (Specification):
-  - `/prompts:kiro-spec-init "description"`
-  - `/prompts:kiro-spec-requirements {feature}`
-  - `/prompts:kiro-validate-gap {feature}` (optional: for existing codebase)
-  - `/prompts:kiro-spec-design {feature} [-y]`
-  - `/prompts:kiro-validate-design {feature}` (optional: design review)
-  - `/prompts:kiro-spec-tasks {feature} [-y]`
-- Phase 2 (Implementation): `/prompts:kiro-spec-impl {feature} [tasks]`
-  - `/prompts:kiro-validate-impl {feature}` (optional: after implementation)
-- Progress check: `/prompts:kiro-spec-status {feature}` (use anytime)
-
-## Development Rules
-- 3-phase approval workflow: Requirements → Design → Tasks → Implementation
-- Human review required each phase; use `-y` only for intentional fast-track
-- Keep steering current and verify alignment with `/prompts:kiro-spec-status`
-
-## Steering Configuration
-- Load entire `.kiro/steering/` as project memory
-- Default files: `product.md`, `tech.md`, `structure.md`
-- Custom files are supported (managed via `/prompts:kiro-steering-custom`)

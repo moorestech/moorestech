@@ -37,7 +37,7 @@ namespace Client.Network.API
         
         public void PlaceHotBarBlock(List<PlaceInfo> placePositions, int hotBarSlot)
         {
-            var request = new SendPlaceHotBarBlockProtocol.SendPlaceHotBarBlockProtocolMessagePack(_playerId, hotBarSlot, placePositions);
+            var request = new PlaceBlockFromHotBarProtocol.SendPlaceHotBarBlockProtocolMessagePack(_playerId, hotBarSlot, placePositions);
             _packetSender.Send(request);
         }
         

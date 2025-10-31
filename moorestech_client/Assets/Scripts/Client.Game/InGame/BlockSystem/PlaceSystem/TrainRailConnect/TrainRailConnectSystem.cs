@@ -2,13 +2,21 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Input;
 using UnityEngine;
+using static Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect.TrainRailConnectPreviewCalculator;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
 {
     public class TrainRailConnectSystem : IPlaceSystem
     {
-        private Camera _mainCamera;
+        private readonly RailConnectPreviewObject _previewObject;
+        private readonly Camera _mainCamera;
+        
         private BlockGameObject _connectFromBlock;
+        public TrainRailConnectSystem(Camera mainCamera, RailConnectPreviewObject previewObject)
+        {
+            _mainCamera = mainCamera;
+            _previewObject = previewObject;
+        }
         
         public void Enable()
         {
@@ -18,46 +26,59 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         {
             if (_connectFromBlock == null)
             {
-                GetFromBlock();
+                _connectFromBlock = GetFromBlock();
+                return;
             }
             
+            var connectToArea = GetToTrainRailConnectAreaCollider();
+            var previewData = CalculatePreviewData(_connectFromBlock, connectToArea);
+            
             ShowPreview();
+            SendProtocol();
             
             #region Internal
             
-            void GetFromBlock()
+            BlockGameObject GetFromBlock()
             {
-                var clickedBlock = GetClickedBlock();
-                if (clickedBlock == null) return;
-                _connectFromBlock = clickedBlock;
+                if (!InputManager.Playable.ScreenRightClick.GetKeyDown) return null;
+                if (!PlaceSystemUtil.TryGetRayHitPosition(_mainCamera, out _, out var surface)) return null;
+                
+                return surface.BlockGameObject;
             }
             
             void ShowPreview()
             {
+                if (connectToArea == null)
+                {
+                    _previewObject.SetActive(false);
+                    return;
+                }
                 
+                _previewObject.SetActive(true);
+                _previewObject.ShowPreview(previewData);
             }
             
-            void GetToBlock()
+            void SendProtocol()
             {
-                var clickedBlock = GetClickedBlock();
-                if (clickedBlock == null) return;
-
-                // TODO 接続処理
+                if(InputManager.Playable.ScreenLeftClick.GetKeyDown)
+                {
+                    _previewObject.SetActive(false);
+                    _connectFromBlock = null;
+                    
+                    // TODO プロトコル送信処理
+                }
             }
             
-            BlockGameObject GetClickedBlock()
+            TrainRailConnectAreaCollider GetToTrainRailConnectAreaCollider()
             {
-                if (!InputManager.Playable.ScreenRightClick.GetKeyDown) return null;
-                if (!PlaceSystemUtil.TryGetRayHitPosition(_mainCamera, out var pos, out var surface)) return null;
-                
-                return surface.BlockGameObject;
+                PlaceSystemUtil.TryGetRaySpecifiedComponentHit<TrainRailConnectAreaCollider>(_mainCamera, out var connectArea);
+                return connectArea;
             }
             
             #endregion
         }
         public void Disable()
         {
-            throw new System.NotImplementedException();
         }
     }
 }

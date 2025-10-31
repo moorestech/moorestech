@@ -1,6 +1,7 @@
 using UnityEngine;
 using System;
 using System.Collections.Generic;
+using ClassLibrary;
 
 namespace Game.Train.RailGraph
 {
@@ -161,6 +162,8 @@ namespace Game.Train.RailGraph
         public float BezierStrength;
         public List<ConnectionDestination> ConnectMyFrontTo = new List<ConnectionDestination>();
         public List<ConnectionDestination> ConnectMyBackTo = new List<ConnectionDestination>();
+        
+        public Vector3JsoObjects RailDirection;
     }
 
     /// <summary>

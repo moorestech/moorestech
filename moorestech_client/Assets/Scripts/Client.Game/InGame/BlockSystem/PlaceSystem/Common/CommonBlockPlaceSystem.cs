@@ -1,20 +1,17 @@
-using System;
 using System.Collections.Generic;
-using ClassLibrary;
-using Client.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.SoundEffect;
 using Client.Input;
 using Core.Master;
 using Game.Block.Interface;
-using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using static Client.Game.InGame.BlockSystem.PlaceSystem.Util.PlaceSystemUtil;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 {
@@ -36,11 +33,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         
         private int _heightOffset;
         
-        public CommonBlockPlaceSystem(
-            Camera mainCamera,
-            IPlacementPreviewBlockGameObjectController previewBlockController,
-            BlockGameObjectDataStore blockGameObjectDataStore
-        )
+        public CommonBlockPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore)
         {
             _mainCamera = mainCamera;
             _previewBlockController = previewBlockController;
@@ -50,8 +43,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         public void Enable()
         {
             _clickStartHeightOffset = -1;
-            var playerObjectController = PlayerSystemContainer.Instance.PlayerObjectController;
-            Mathf.RoundToInt(playerObjectController.Position.y);
         }
         public void Disable()
         {
@@ -103,13 +94,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             //基本はプレビュー非表示
             _previewBlockController.SetActive(false);
             
-            if (!TryGetRayHitPosition(out var hitPoint, out var boundingBoxSurface)) return; // ブロック設置用のrayが当たっているか
+            // ブロック設置用のrayが当たっているか、当たっていたら設置位置を取得する
+            var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(context.HoldingItemId);
+            if (!TryGetRayHitBlockPosition(_mainCamera, _heightOffset, _currentBlockDirection, holdingBlockMaster, out var placePoint, out var boundingBoxSurface)) return;
             
-            //設置座標計算 calculate place point
-            var holdingBlockMaster = GetBlockMaster();
-            var placePoint = CalcPlacePoint();
-            
-            if (!IsBlockPlaceableDistance(PlaceableMaxDistance)) return; // 設置可能な距離かどうか
+            // 設置可能な距離かどうか
+            if (!IsBlockPlaceableDistance(PlaceableMaxDistance)) return;
             
             _previewBlockController.SetActive(true);
             
@@ -122,35 +112,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             
             //プレビュー表示と地面との接触を取得する
             //display preview and get collision with ground
-            var groundDetects = new List<bool>();
-            if (_clickStartPosition.HasValue)
-            {
-                if (_clickStartPosition.Value == placePoint)
-                {
-                    _isStartZDirection = null;
-                }
-                else if (!_isStartZDirection.HasValue)
-                {
-                    _isStartZDirection = Mathf.Abs(placePoint.z - _clickStartPosition.Value.z) > Mathf.Abs(placePoint.x - _clickStartPosition.Value.x);
-                }
-                
-                _currentPlaceInfos = _blockPlacePointCalculator.CalculatePoint(_clickStartPosition.Value, placePoint, _isStartZDirection ?? true, _currentBlockDirection, holdingBlockMaster);
-                groundDetects = _previewBlockController.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockMaster);
-            }
-            else
-            {
-                _isStartZDirection = null;
-                _currentPlaceInfos = _blockPlacePointCalculator.CalculatePoint(placePoint, placePoint, true, _currentBlockDirection, holdingBlockMaster);
-                groundDetects = _previewBlockController.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockMaster);
-            }
+            SetCurrentPlaceInfo();
+            var blockGroundOverlapList = _previewBlockController.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockMaster);
             
             // Placeableの更新
             // update placeable
-            for (var i = 0; i < groundDetects.Count; i++)
+            for (var i = 0; i < blockGroundOverlapList.Count; i++)
             {
                 // 地面と接触していたら設置不可
                 // if collision with ground, cannot place
-                if (groundDetects[i])
+                if (blockGroundOverlapList[i])
                 {
                     _currentPlaceInfos[i].Placeable = false;
                 }
@@ -158,21 +129,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             
             // 設置するブロックをサーバーに送信
             // send block place info to server
-            if (InputManager.Playable.ScreenLeftClick.GetKeyUp)
-            {
-                _heightOffset = _clickStartHeightOffset;
-                _clickStartPosition = null;
-                ClientContext.VanillaApi.SendOnly.PlaceHotBarBlock(_currentPlaceInfos, context.CurrentSelectHotbarSlotIndex);
-                SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
-            }
+            PlaceBlock();
             
             #region Internal
-            
-            BlockMasterElement GetBlockMaster()
-            {
-                var blockId = MasterHolder.BlockMaster.GetBlockId(context.HoldingItemId);
-                return MasterHolder.BlockMaster.GetBlockMaster(blockId);
-            }
             
             bool IsBlockPlaceableDistance(float maxDistance)
             {
@@ -182,94 +141,39 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 return Vector3.Distance(playerPosition, placePosition) <= maxDistance;
             }
             
-            Vector3Int CalcPlacePoint()
+            void SetCurrentPlaceInfo()
             {
-                var rotateAction = _currentBlockDirection.GetCoordinateConvertAction();
-                var rotatedSize = rotateAction(holdingBlockMaster.BlockSize).Abs();
-                
-                if (boundingBoxSurface == null)
+                var holdingBlockMaster = boundingBoxSurface.BlockGameObject.BlockMasterElement;
+                if (_clickStartPosition.HasValue)
                 {
-                    var point = Vector3Int.zero;
-                    point.x = Mathf.FloorToInt(hitPoint.x + (rotatedSize.x % 2 == 0 ? 0.5f : 0));
-                    point.z = Mathf.FloorToInt(hitPoint.z + (rotatedSize.z % 2 == 0 ? 0.5f : 0));
-                    point.y = Mathf.FloorToInt(hitPoint.y);
+                    if (_clickStartPosition.Value == placePoint)
+                    {
+                        _isStartZDirection = null;
+                    }
+                    else if (!_isStartZDirection.HasValue)
+                    {
+                        _isStartZDirection = Mathf.Abs(placePoint.z - _clickStartPosition.Value.z) > Mathf.Abs(placePoint.x - _clickStartPosition.Value.x);
+                    }
                     
-                    point += new Vector3Int(0, _heightOffset, 0);
-                    point -= new Vector3Int(rotatedSize.x, 0, rotatedSize.z) / 2;
-                    
-                    return point;
+                    _currentPlaceInfos = _blockPlacePointCalculator.CalculatePoint(_clickStartPosition.Value, placePoint, _isStartZDirection ?? true, _currentBlockDirection, holdingBlockMaster);
                 }
-                
-                switch (boundingBoxSurface.PreviewSurfaceType)
+                else
                 {
-                    case PreviewSurfaceType.YX_Origin:
-                        return new Vector3Int(
-                            Mathf.FloorToInt(hitPoint.x) - Mathf.FloorToInt(rotatedSize.x / 2f),
-                            Mathf.FloorToInt(hitPoint.y),
-                            Mathf.FloorToInt(hitPoint.z) - Mathf.RoundToInt(rotatedSize.z / 2f)
-                        );
-                    case PreviewSurfaceType.YX_Z:
-                        return new Vector3Int(
-                            Mathf.FloorToInt(hitPoint.x) - Mathf.FloorToInt(rotatedSize.x / 2f),
-                            Mathf.FloorToInt(hitPoint.y),
-                            Mathf.FloorToInt(hitPoint.z)
-                        );
-                    case PreviewSurfaceType.YZ_Origin:
-                        return new Vector3Int(
-                            Mathf.FloorToInt(hitPoint.x) - Mathf.RoundToInt(rotatedSize.x / 2f),
-                            Mathf.FloorToInt(hitPoint.y),
-                            Mathf.FloorToInt(hitPoint.z) - Mathf.FloorToInt(rotatedSize.z / 2f)
-                        );
-                    case PreviewSurfaceType.YZ_X:
-                        return new Vector3Int(
-                            Mathf.FloorToInt(hitPoint.x),
-                            Mathf.FloorToInt(hitPoint.y),
-                            Mathf.FloorToInt(hitPoint.z) - Mathf.FloorToInt(rotatedSize.z / 2f)
-                        );
-                    
-                    case PreviewSurfaceType.XZ_Origin:
-                        return new Vector3Int(
-                            Mathf.FloorToInt(hitPoint.x) - Mathf.FloorToInt(rotatedSize.x / 2f),
-                            Mathf.FloorToInt(hitPoint.y) - rotatedSize.y,
-                            Mathf.FloorToInt(hitPoint.z) - Mathf.FloorToInt(rotatedSize.z / 2f)
-                        );
-                    case PreviewSurfaceType.XZ_Y:
-                        return new Vector3Int(
-                            Mathf.FloorToInt(hitPoint.x) - Mathf.FloorToInt(rotatedSize.x / 2f),
-                            Mathf.FloorToInt(hitPoint.y),
-                            Mathf.FloorToInt(hitPoint.z) - Mathf.FloorToInt(rotatedSize.z / 2f)
-                        );
-                    
-                    default:
-                        throw new ArgumentOutOfRangeException();
+                    _isStartZDirection = null;
+                    _currentPlaceInfos = _blockPlacePointCalculator.CalculatePoint(placePoint, placePoint, true, _currentBlockDirection, holdingBlockMaster);
                 }
+            }
+            
+            void PlaceBlock()
+            {
+                if (!InputManager.Playable.ScreenLeftClick.GetKeyUp) return;
+                
+                _heightOffset = _clickStartHeightOffset;
+                _clickStartPosition = null;
+                SendPlaceProtocol(_currentPlaceInfos, context);
             }
             
             #endregion
-        }
-        
-        
-        private bool TryGetRayHitPosition(out Vector3 pos,out BlockPreviewBoundingBoxSurface surface)
-        {
-            surface = null;
-            pos = Vector3Int.zero;
-            var ray = _mainCamera.ScreenPointToRay(UnityEngine.Input.mousePosition);
-            
-            //画面からのrayが何かにヒットしているか
-            if (!Physics.Raycast(ray, out var hit, float.PositiveInfinity, LayerConst.Without_Player_MapObject_Block_LayerMask)) return false;
-            //そのrayが地面のオブジェクトかブロックのバウンディングボックスにヒットしてるか
-            if (
-                !hit.transform.TryGetComponent<GroundGameObject>(out _) &&
-                !hit.transform.TryGetComponent(out surface)
-            )
-            {
-                return false;
-            }
-            
-            //基本的にブロックの原点は0,0なので、rayがヒットした座標を基準にブロックの原点を計算する
-            pos = hit.point;
-            
-            return true;
         }
     }
 }

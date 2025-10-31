@@ -9,18 +9,19 @@ using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using Server.Util.MessagePack;
 using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
 {
-    public class SendPlaceHotBarBlockProtocol : IPacketResponse
+    public class PlaceBlockFromHotBarProtocol : IPacketResponse
     {
         public const string ProtocolTag = "va:palceHotbarBlock";
         
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         
-        public SendPlaceHotBarBlockProtocol(ServiceProvider serviceProvider)
+        public PlaceBlockFromHotBarProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
         }
@@ -57,7 +58,7 @@ namespace Server.Protocol.PacketResponse
             var createParams = placeInfo.BlockCreateParams.Select(v => new BlockCreateParam(v.Key, v.Value)).ToArray();
             
             //ブロックの設置
-            ServerContext.WorldBlockDatastore.TryAddBlock(blockId, placeInfo.Position, placeInfo.Direction, out var block, createParams);
+            ServerContext.WorldBlockDatastore.TryAddBlock(blockId, placeInfo.Position, placeInfo.Direction, createParams, out var block);
             
             //アイテムを減らし、セットする
             item = item.SubItem(1);
@@ -138,5 +139,7 @@ namespace Server.Protocol.PacketResponse
         public bool Placeable { get; set; }
         
         public BlockCreateParam[] CreateParams { get; set; } = Array.Empty<BlockCreateParam>();
+        
+        [JsonIgnore] public Dictionary<string, byte[]> CreateParamDictionary => CreateParams.ToDictionary(v => v.Key, v => v.Value);
     }
 }

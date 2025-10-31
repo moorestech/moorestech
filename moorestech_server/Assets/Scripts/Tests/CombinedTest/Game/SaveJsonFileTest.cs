@@ -34,9 +34,9 @@ namespace Tests.CombinedTest.Game
             
             
             //ブロックの追加
-            worldBlockDatastore.TryAddBlock((BlockId)1, new Vector3Int(0, 0), BlockDirection.North, out var block0);
-            worldBlockDatastore.TryAddBlock((BlockId)2, new Vector3Int(0, 1), BlockDirection.East, out var block1);
-            worldBlockDatastore.TryAddBlock((BlockId)3, new Vector3Int(30, -10), BlockDirection.West, out var block2);
+            worldBlockDatastore.TryAddBlock((BlockId)1, new Vector3Int(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block0);
+            worldBlockDatastore.TryAddBlock((BlockId)2, new Vector3Int(0, 1), BlockDirection.East, Array.Empty<BlockCreateParam>(), out var block1);
+            worldBlockDatastore.TryAddBlock((BlockId)3, new Vector3Int(30, -10), BlockDirection.West, Array.Empty<BlockCreateParam>(), out var block2);
             
             saveServiceProvider.GetService<IWorldSaveDataSaver>().Save();
             

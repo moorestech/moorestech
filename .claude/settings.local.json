@@ -52,7 +52,8 @@
       "mcp__serena__find_referencing_symbols",
       "mcp__serena__think_about_collected_information",
       "SlashCommand(/kiro:spec-requirements:*)",
-      "SlashCommand(/kiro:spec-impl:*)"
+      "SlashCommand(/kiro:spec-impl:*)",
+      "Bash(git worktree:*)"
     ],
     "deny": []
   },

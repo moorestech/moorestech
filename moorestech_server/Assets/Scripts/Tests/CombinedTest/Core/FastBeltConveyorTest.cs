@@ -6,6 +6,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
+using System;
 
 namespace Tests.CombinedTest.Core
 {
@@ -30,7 +31,7 @@ namespace Tests.CombinedTest.Core
         {
             var world = ServerContext.WorldBlockDatastore;
             
-            world.TryAddBlock(blockId, position, BlockDirection.North, out var block);
+            world.TryAddBlock(blockId, position, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
             return block;
         }
     }
