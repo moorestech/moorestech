@@ -58,23 +58,23 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
                 _railDirection = (RailComponentDirection) nextDirection;
             }
             
-            List<PreviewPlaceInfo> CreatePlaceInfo()
+            List<PlaceInfo> CreatePlaceInfo()
             {
                 var info = new PlaceInfo
                 {
                     Position = placePoint,
                     Direction = DefaultBlockDirection,
                     VerticalDirection = BlockVerticalDirection.Horizontal,
-                    Placeable = true
-                };
-                var stateDetails = new Dictionary<string, byte[]>
-                {
+                    Placeable = true,
+                    CreateParams = new[]
                     {
-                        RailComponentStateDetail.StateDetailKey,
-                        MessagePack.MessagePackSerializer.Serialize(new RailComponentStateDetail(_railDirection.ToVector3()))
+                        new BlockCreateParam(
+                            RailComponentStateDetail.StateDetailKey,
+                            MessagePack.MessagePackSerializer.Serialize(new RailComponentStateDetail(_railDirection.ToVector3()))
+                        )
                     }
                 };
-                return new List<PreviewPlaceInfo> {new(info, stateDetails)};
+                return new List<PlaceInfo> {info};
             }
             
             #endregion

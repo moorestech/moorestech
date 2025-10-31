@@ -9,6 +9,7 @@ using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using Server.Util.MessagePack;
 using UnityEngine;
 
@@ -138,5 +139,7 @@ namespace Server.Protocol.PacketResponse
         public bool Placeable { get; set; }
         
         public BlockCreateParam[] CreateParams { get; set; } = Array.Empty<BlockCreateParam>();
+        
+        [JsonIgnore] public Dictionary<string, byte[]> CreateParamDictionary => CreateParams.ToDictionary(v => v.Key, v => v.Value);
     }
 }

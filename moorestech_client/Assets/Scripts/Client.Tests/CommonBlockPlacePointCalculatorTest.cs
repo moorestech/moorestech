@@ -113,7 +113,7 @@ namespace Client.Tests
                 true
             );
             
-            List<PreviewPlaceInfo> actual = CommonBlockPlacePointCalculator.CalculatePoint(
+            List<PlaceInfo> actual = CommonBlockPlacePointCalculator.CalculatePoint(
                 testCase.PlaceStartPoint,
                 testCase.PlaceEndPoint,
                 isStartDirectionZ,
@@ -127,8 +127,8 @@ namespace Client.Tests
             {
                 (Vector3Int position, BlockVerticalDirection? verticalDirection) expected = testCase.ExpectedPoints[i];
                 
-                Assert.AreEqual(expected.position, actual[i].PlaceInfo.Position);
-                Assert.AreEqual(testCase.ExpectedPoints[i].verticalDirection, actual[i].PlaceInfo.VerticalDirection);
+                Assert.AreEqual(expected.position, actual[i].Position);
+                Assert.AreEqual(testCase.ExpectedPoints[i].verticalDirection, actual[i].VerticalDirection);
             }
         }
         
