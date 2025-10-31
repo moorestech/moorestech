@@ -28,7 +28,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var itemStackFactory = ServerContext.ItemStackFactory;
             
             
-            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(5, 10), BlockDirection.North, out var machineBlock, Array.Empty<BlockCreateParam>());
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(5, 10), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machineBlock);
             var machineComponent = machineBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
             machineComponent.SetItem(0, itemStackFactory.Create(new ItemId(1), 2));
             machineComponent.SetItem(2, itemStackFactory.Create(new ItemId(4), 5));

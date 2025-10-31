@@ -112,7 +112,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             packet.GetPacketResponse(EventTestUtil.EventRequestData(0));
             
             // ブロックを設置
-            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(0,0,0), BlockDirection.East, out _, Array.Empty<BlockCreateParam>());
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(0,0,0), BlockDirection.East, Array.Empty<BlockCreateParam>(), out _);
             
             // アップデートを呼び出してイベントを処理
             GameUpdater.UpdateWithWait();

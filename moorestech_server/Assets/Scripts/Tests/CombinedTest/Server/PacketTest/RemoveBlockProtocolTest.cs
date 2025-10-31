@@ -33,7 +33,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
             
             //削除するためのブロックの生成
-            worldBlock.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(0, 0), BlockDirection.North, out var block, Array.Empty<BlockCreateParam>());
+            worldBlock.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
             var blockInventory = block.GetComponent<IBlockInventory>();
             blockInventory.InsertItem(itemStackFactory.Create(new ItemId(10), 7));
             var blockElement = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId);
@@ -82,7 +82,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             
             //削除するためのブロックを設置
-            worldBlock.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(0, 0), BlockDirection.North, out var block, Array.Empty<BlockCreateParam>());
+            worldBlock.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
             var blockInventory = block.GetComponent<IBlockInventory>();
             //ブロックにはID3のアイテムを2個と、ID4のアイテムを5個入れる
             //このブロックを削除したときに、ID3のアイテムが1個だけ残る
@@ -124,7 +124,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                 mainInventory.SetItem(i, itemStackFactory.Create(new ItemId(10), 1));
             
             //ブロックを設置
-            worldBlock.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(0, 0), BlockDirection.North, out _, Array.Empty<BlockCreateParam>());
+            worldBlock.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             
             
             //プロトコルを使ってブロックを削除

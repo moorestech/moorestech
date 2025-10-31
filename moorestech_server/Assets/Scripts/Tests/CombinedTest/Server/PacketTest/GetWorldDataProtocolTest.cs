@@ -33,7 +33,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                 var pos = new Vector3Int(random.Next(-100, 100), random.Next(-100, 100), random.Next(-100, 100));
                 
                 var blockId = random.Next(1, 20);
-                worldBlockDatastore.TryAddBlock((BlockId)blockId, pos, blockDirection, out _, Array.Empty<BlockCreateParam>());
+                worldBlockDatastore.TryAddBlock((BlockId)blockId, pos, blockDirection, Array.Empty<BlockCreateParam>(), out _);
             }
             
             var requestBytes = MessagePackSerializer.Serialize(new RequestWorldDataMessagePack());
@@ -62,7 +62,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var worldBlock = ServerContext.WorldBlockDatastore;
             
             //ブロックの設置
-            worldBlock.TryAddBlock(Block_1x4_Id, Vector3Int.zero, BlockDirection.North, out _, Array.Empty<BlockCreateParam>());
+            worldBlock.TryAddBlock(Block_1x4_Id, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             
             var requestBytes = MessagePackSerializer.Serialize(new RequestWorldDataMessagePack());
             List<byte> responseBytes = packetResponse.GetPacketResponse(requestBytes.ToList())[0];

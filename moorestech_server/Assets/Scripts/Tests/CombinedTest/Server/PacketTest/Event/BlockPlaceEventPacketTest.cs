@@ -55,7 +55,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
                 //設置したブロックを保持する
                 blocks.Add(new TestBlockData(pos, (BlockId)blockId, direction));
                 //ブロックの設置
-                worldBlockDataStore.TryAddBlock((BlockId)blockId, pos, (BlockDirection)direction, out _, Array.Empty<BlockCreateParam>());
+                worldBlockDataStore.TryAddBlock((BlockId)blockId, pos, (BlockDirection)direction, Array.Empty<BlockCreateParam>(), out _);
             }
             
             
