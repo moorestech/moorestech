@@ -1,6 +1,7 @@
 using UnityEngine;
 using System;
 using System.Collections.Generic;
+using ClassLibrary;
 
 namespace Game.Train.RailGraph
 {
@@ -162,7 +163,7 @@ namespace Game.Train.RailGraph
         public List<ConnectionDestination> ConnectMyFrontTo = new List<ConnectionDestination>();
         public List<ConnectionDestination> ConnectMyBackTo = new List<ConnectionDestination>();
         
-        public Vector3 RailDirection;
+        public Vector3JsoObjects RailDirection;
     }
 
     /// <summary>
