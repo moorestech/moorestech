@@ -69,10 +69,10 @@ namespace Tests.CombinedTest.Core
             // Place the ElectricPump itself and pipes in 3 surrounding directions
             void PlacePumpWithPipes(out ElectricPumpComponent pumpComponentRef, out IBlock pipeNegXRef, out IBlock pipePosZRef, out IBlock pipeNegZRef)
             {
-                world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(-1, 0, 0), BlockDirection.North, out pipeNegXRef, System.Array.Empty<BlockCreateParam>());
-                world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, 1), BlockDirection.North, out pipePosZRef, System.Array.Empty<BlockCreateParam>());
-                world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, -1), BlockDirection.North, out pipeNegZRef, System.Array.Empty<BlockCreateParam>());
-                world.TryAddBlock(ForUnitTestModBlockId.ElectricPump, Vector3Int.zero, BlockDirection.North, out var pump, System.Array.Empty<BlockCreateParam>());
+                world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(-1, 0, 0), BlockDirection.North, out pipeNegXRef, Array.Empty<BlockCreateParam>());
+                world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, 1), BlockDirection.North, out pipePosZRef, Array.Empty<BlockCreateParam>());
+                world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, -1), BlockDirection.North, out pipeNegZRef, Array.Empty<BlockCreateParam>());
+                world.TryAddBlock(ForUnitTestModBlockId.ElectricPump, Vector3Int.zero, BlockDirection.North, out var pump, Array.Empty<BlockCreateParam>());
                 
                 pumpComponentRef = pump.GetComponent<ElectricPumpComponent>();
             }

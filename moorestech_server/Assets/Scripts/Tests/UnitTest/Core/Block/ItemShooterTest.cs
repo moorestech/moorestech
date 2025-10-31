@@ -116,7 +116,7 @@ namespace Tests.UnitTest.Core.Block
         {
             var world = ServerContext.WorldBlockDatastore;
             
-            world.TryAddBlock(blockId, position, BlockDirection.North, out var block, System.Array.Empty<BlockCreateParam>());
+            world.TryAddBlock(blockId, position, BlockDirection.North, out var block, Array.Empty<BlockCreateParam>());
             
             return block;
         }

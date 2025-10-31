@@ -13,6 +13,7 @@ using Server.Boot;
 using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
 using UnityEngine;
+using System;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -30,7 +31,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var baseCampBlockId = ForUnitTestModBlockId.BaseCamp1;
             
             // ワールドに配置
-            worldBlockDatastore.TryAddBlock(baseCampBlockId, position, BlockDirection.North, out var baseCampBlock, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(baseCampBlockId, position, BlockDirection.North, out var baseCampBlock, Array.Empty<BlockCreateParam>());
             
             var baseCampComponent = baseCampBlock.GetComponent<BaseCampComponent>();
             var baseCampInventory = baseCampBlock.GetComponent<IBlockInventory>();

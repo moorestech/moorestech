@@ -14,6 +14,7 @@ using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using Tests.Module.TestMod;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.InventoryItemMoveProtocol;
+using System;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -66,7 +67,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             var chestPosition = new Vector3Int(5, 10);
             
-            worldDataStore.TryAddBlock(ForUnitTestModBlockId.ChestId, chestPosition, BlockDirection.North, out var chest, System.Array.Empty<BlockCreateParam>());
+            worldDataStore.TryAddBlock(ForUnitTestModBlockId.ChestId, chestPosition, BlockDirection.North, out var chest, Array.Empty<BlockCreateParam>());
             var chestComponent = chest.GetComponent<VanillaChestComponent>();
             
             //ブロックインベントリの設定

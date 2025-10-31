@@ -10,6 +10,7 @@ using Server.Boot;
 using Tests.Module.TestMod;
 using Core.Master;
 using UnityEngine;
+using System;
 
 namespace Tests.Util
 {
@@ -47,7 +48,7 @@ namespace Tests.Util
         public static IBlock PlaceBlock(TrainTestEnvironment environment, BlockId blockId, Vector3Int position,
             BlockDirection direction)
         {
-            environment.WorldBlockDatastore.TryAddBlock(blockId, position, direction, out var block, System.Array.Empty<BlockCreateParam>());
+            environment.WorldBlockDatastore.TryAddBlock(blockId, position, direction, out var block, Array.Empty<BlockCreateParam>());
             return block;
         }
 

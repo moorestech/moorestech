@@ -19,9 +19,9 @@ namespace Tests.CombinedTest.Game
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var gearMapObjectMinerPosition = Vector3Int.zero;
-            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearMapObjectMiner, gearMapObjectMinerPosition, BlockDirection.North, out var block, System.Array.Empty<BlockCreateParam>());
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearMapObjectMiner, gearMapObjectMinerPosition, BlockDirection.North, out var block, Array.Empty<BlockCreateParam>());
             var infinityTorqueSimpleGearGeneratorPosition = new Vector3Int(1, 0, 0);
-            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.InfinityTorqueSimpleGearGenerator, infinityTorqueSimpleGearGeneratorPosition, BlockDirection.North, out _, System.Array.Empty<BlockCreateParam>());
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.InfinityTorqueSimpleGearGenerator, infinityTorqueSimpleGearGeneratorPosition, BlockDirection.North, out _, Array.Empty<BlockCreateParam>());
             
             // 1秒間採掘 採掘時間は2秒に設定している
             // Mining for 1 second. The mining time is set to 2 seconds.

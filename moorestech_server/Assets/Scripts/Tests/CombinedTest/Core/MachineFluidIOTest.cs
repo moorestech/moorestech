@@ -1,3 +1,4 @@
+using System;
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,12 +44,12 @@ namespace Tests.CombinedTest.Core
             
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             // 機械を設置
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidMachineId, Vector3Int.forward * 0, BlockDirection.North, out var fluidMachineBlock, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidMachineId, Vector3Int.forward * 0, BlockDirection.North, out var fluidMachineBlock, Array.Empty<BlockCreateParam>());
             
             // 液体を入れるパイプを設定
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, 1), BlockDirection.North, out var fluidPipeBlock1, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, 3), BlockDirection.North, out var fluidPipeBlock2, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, 5), BlockDirection.North, out var fluidPipeBlock3, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, 1), BlockDirection.North, out var fluidPipeBlock1, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, 3), BlockDirection.North, out var fluidPipeBlock2, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, 5), BlockDirection.North, out var fluidPipeBlock3, Array.Empty<BlockCreateParam>());
             
             // パイプに液体を設定
             const double fluidAmount1 = 50d;
@@ -113,12 +114,12 @@ namespace Tests.CombinedTest.Core
             
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             // 機械を設置
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidMachineId, Vector3Int.forward * 0, BlockDirection.North, out var fluidMachineBlock, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidMachineId, Vector3Int.forward * 0, BlockDirection.North, out var fluidMachineBlock, Array.Empty<BlockCreateParam>());
             
             // 液体が入るパイプを設置
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(-1, 0, 0), BlockDirection.North, out var fluidPipeBlock1, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(-1, 0, 2), BlockDirection.North, out var fluidPipeBlock2, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, -1), BlockDirection.North, out var fluidPipeBlock3, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(-1, 0, 0), BlockDirection.North, out var fluidPipeBlock1, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(-1, 0, 2), BlockDirection.North, out var fluidPipeBlock2, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, -1), BlockDirection.North, out var fluidPipeBlock3, Array.Empty<BlockCreateParam>());
             
             // 機械に液体を設定
             var fluidContainers = GetOutputFluidContainers(fluidMachineBlock.GetComponent<VanillaMachineBlockInventoryComponent>());
@@ -289,7 +290,7 @@ namespace Tests.CombinedTest.Core
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.MachineId);
             
             // 機械を設置
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, Vector3Int.zero, BlockDirection.North, out var machineBlock, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, Vector3Int.zero, BlockDirection.North, out var machineBlock, Array.Empty<BlockCreateParam>());
             
             // コンポーネントを取得
             var machineComponent = machineBlock.GetComponent<VanillaElectricMachineComponent>();
@@ -334,7 +335,7 @@ namespace Tests.CombinedTest.Core
                 // テスト用マシンレシピを使用
                 disposable.Dispose(); // 古いサブスクリプションを解除
                 worldBlockDatastore.RemoveBlock(Vector3Int.zero);
-                worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineRecipeTest1, Vector3Int.zero, BlockDirection.North, out machineBlock, System.Array.Empty<BlockCreateParam>());
+                worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineRecipeTest1, Vector3Int.zero, BlockDirection.North, out machineBlock, Array.Empty<BlockCreateParam>());
                 blockMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.MachineRecipeTest1);
                 machineComponent = machineBlock.GetComponent<VanillaElectricMachineComponent>();
                 inventoryComponent = machineBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
@@ -553,10 +554,10 @@ namespace Tests.CombinedTest.Core
             
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             // 機械を設置
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidMachineId, Vector3Int.forward * 0, BlockDirection.North, out var fluidMachineBlock, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidMachineId, Vector3Int.forward * 0, BlockDirection.North, out var fluidMachineBlock, Array.Empty<BlockCreateParam>());
             
             // 液体を入れるパイプを設定
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, 1), BlockDirection.North, out var fluidPipeBlock1, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, 1), BlockDirection.North, out var fluidPipeBlock1, Array.Empty<BlockCreateParam>());
             
             // パイプに液体を設定
             const double fluidAmount1 = 50d;
@@ -630,7 +631,7 @@ namespace Tests.CombinedTest.Core
             Debug.Log("Testing fluid output from machine to pipe...");
             
             // 出力用パイプを設置
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(-1, 0, 0), BlockDirection.North, out var outputPipeBlock, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(-1, 0, 0), BlockDirection.North, out var outputPipeBlock, Array.Empty<BlockCreateParam>());
             
             // 機械の出力タンクに液体を設定
             var outputContainers = GetOutputFluidContainers(fluidMachineBlock.GetComponent<VanillaMachineBlockInventoryComponent>());

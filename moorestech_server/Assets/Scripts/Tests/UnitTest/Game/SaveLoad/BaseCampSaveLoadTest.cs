@@ -16,6 +16,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
+using System;
 
 namespace Tests.UnitTest.Game.SaveLoad
 {
@@ -30,7 +31,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             // ベースキャンプブロックの配置
             var baseCampBlockId = ForUnitTestModBlockId.BaseCamp1;
             var position = new Vector3Int(10, 0, 10);
-            worldBlockDatastore.TryAddBlock(baseCampBlockId, position, BlockDirection.North, out var baseCampBlock, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(baseCampBlockId, position, BlockDirection.North, out var baseCampBlock, Array.Empty<BlockCreateParam>());
             
             var baseCampComponent = baseCampBlock.GetComponent<BaseCampComponent>();
             var baseCampInventory = baseCampBlock.GetComponent<IBlockInventory>();
@@ -92,7 +93,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             // 複数アイテム要求のベースキャンプブロック配置
             var baseCampBlockId = ForUnitTestModBlockId.BaseCamp2;
             var position = new Vector3Int(5, 0, 5);
-            worldBlockDatastore.TryAddBlock(baseCampBlockId, position, BlockDirection.South, out var baseCampBlock, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(baseCampBlockId, position, BlockDirection.South, out var baseCampBlock, Array.Empty<BlockCreateParam>());
             
             var baseCampComponent = baseCampBlock.GetComponent<BaseCampComponent>();
             var baseCampInventory = baseCampBlock.GetComponent<IBlockInventory>();
@@ -134,7 +135,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             // ベースキャンプブロックの配置
             var baseCampBlockId = ForUnitTestModBlockId.BaseCamp1;
             var position = new Vector3Int(0, 0, 0);
-            worldBlockDatastore.TryAddBlock(baseCampBlockId, position, BlockDirection.East, out var baseCampBlock, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(baseCampBlockId, position, BlockDirection.East, out var baseCampBlock, Array.Empty<BlockCreateParam>());
             
             var baseCampComponent = baseCampBlock.GetComponent<BaseCampComponent>();
             var baseCampInventory = baseCampBlock.GetComponent<IBlockInventory>();
