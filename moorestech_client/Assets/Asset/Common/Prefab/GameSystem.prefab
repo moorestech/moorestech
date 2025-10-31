@@ -283,6 +283,50 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentChallengeHudView: {fileID: 3949354657717493223}
+--- !u!1 &4252131652486297506
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3928518110855870374}
+  - component: {fileID: 8373410826899010315}
+  m_Layer: 0
+  m_Name: RailConnectPreviewObject
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3928518110855870374
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4252131652486297506}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 1.12806, y: 0.001, z: 2.49124}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8466354111555762101}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8373410826899010315
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4252131652486297506}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e7ea93e17cb74c6fa64397408e05ac4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect.RailConnectPreviewObject
 --- !u!1 &4389934993263601908
 GameObject:
   m_ObjectHideFlags: 0
@@ -476,6 +520,7 @@ Transform:
   - {fileID: 6507186845973413263}
   - {fileID: 8619491189927761611}
   - {fileID: 166617857851957343}
+  - {fileID: 3928518110855870374}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &6110538852407209855
@@ -519,6 +564,7 @@ MonoBehaviour:
   keyControlTutorialManager: {fileID: 6070939093797517548}
   itemViewHighLightTutorialManager: {fileID: 5778655673289165689}
   previewBlockController: {fileID: 5250938589678043889}
+  railConnectPreviewObject: {fileID: 8373410826899010315}
   saveButton: {fileID: 773343225977944571}
   backToMainMenu: {fileID: 7635949962361503415}
   networkDisconnectPresenter: {fileID: 3760452863612925393}
