@@ -31,7 +31,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var (blockFactory, worldBlockDatastore, _, assembleSaveJsonText, _) = CreateBlockTestModule();
             var itemStackFactory = ServerContext.ItemStackFactory;
             
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearMachine, new Vector3Int(0, 0), BlockDirection.North, out var gearMachineBlock);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearMachine, new Vector3Int(0, 0), BlockDirection.North, out var gearMachineBlock, System.Array.Empty<BlockCreateParam>());
             var machineInventory = gearMachineBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
             
             

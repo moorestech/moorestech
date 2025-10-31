@@ -23,7 +23,7 @@ namespace Tests.UnitTest.Game
                 var z = random.Next(-1000, 1000);
                 var pos = new Vector3Int(x, 0, z);
                 
-                worldData.TryAddBlock(ForUnitTestModBlockId.MachineId, pos, BlockDirection.North, out var block);
+                worldData.TryAddBlock(ForUnitTestModBlockId.MachineId, pos, BlockDirection.North, out var block, System.Array.Empty<BlockCreateParam>());
                 
                 var output = worldData.GetBlock(pos);
                 Assert.AreEqual(block.BlockInstanceId, output.BlockInstanceId);
@@ -40,7 +40,7 @@ namespace Tests.UnitTest.Game
             var entityId = BlockInstanceId.Create();
             
             //TODO 同じIDになることない
-            worldData.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(1, 1), BlockDirection.North, out var originalBlock);
+            worldData.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(1, 1), BlockDirection.North, out var originalBlock, System.Array.Empty<BlockCreateParam>());
             var blockGuid = originalBlock.BlockGuid;
             var state = originalBlock.GetSaveState();
             
@@ -56,10 +56,10 @@ namespace Tests.UnitTest.Game
             
             var worldData = ServerContext.WorldBlockDatastore;
             
-            worldData.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(1, 1), BlockDirection.North, out _);
+            worldData.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(1, 1), BlockDirection.North, out _, System.Array.Empty<BlockCreateParam>());
             
             //idだけ変えて座標は同じ
-            var result = worldData.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(1, 1), BlockDirection.North, out _);
+            var result = worldData.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(1, 1), BlockDirection.North, out _, System.Array.Empty<BlockCreateParam>());
             Assert.False(result);
         }
     }

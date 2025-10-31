@@ -32,6 +32,11 @@ namespace Game.World.Interface.DataStore
     
     public static class WorldBlockDatastoreExtension
     {
+        public static bool TryAddBlock(this IWorldBlockDatastore datastore, BlockId blockId, Vector3Int position, BlockDirection direction, out IBlock block)
+        {
+            return datastore.TryAddBlock(blockId, position, direction, out block, Array.Empty<BlockCreateParam>());
+        }
+        
         public static bool Exists(this IWorldBlockDatastore datastore, Vector3Int pos)
         {
             var block = datastore.GetBlock(pos);

@@ -138,7 +138,7 @@ namespace Tests.CombinedTest.Server
             
             var worldDataStore = ServerContext.WorldBlockDatastore;
             
-            worldDataStore.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(0, 0, 1), BlockDirection.North, out var belt2);
+            worldDataStore.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(0, 0, 1), BlockDirection.North, out var belt2, System.Array.Empty<BlockCreateParam>());
             //二つのベルトコンベアを繋がるように設置
             
             var belt1 = CreateOneItemInsertedItem(new Vector3Int(0, 0, 0), BlockDirection.North, worldDataStore);
@@ -158,7 +158,7 @@ namespace Tests.CombinedTest.Server
         
         private IBlock CreateOneItemInsertedItem(Vector3Int pos, BlockDirection blockDirection, IWorldBlockDatastore datastore)
         {
-            datastore.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, pos, blockDirection, out var beltConveyor);
+            datastore.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, pos, blockDirection, out var beltConveyor, System.Array.Empty<BlockCreateParam>());
             var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
             
             //リフレクションで_inventoryItemsを取得

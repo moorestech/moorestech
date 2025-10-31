@@ -121,7 +121,7 @@ namespace Client.Tests.PlayModeTest.Util
                 blockId,
                 position,
                 direction,
-                out var block
+                out var block, System.Array.Empty<BlockCreateParam>()
             );
             
             return block;

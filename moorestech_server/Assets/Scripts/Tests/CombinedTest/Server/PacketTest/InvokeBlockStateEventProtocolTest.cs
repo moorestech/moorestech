@@ -27,7 +27,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             // ブロックを設置
             var blockPosition = new Vector3Int(10, 20, 30);
-            worldBlock.TryAddBlock(ForUnitTestModBlockId.MachineId, blockPosition, BlockDirection.North, out var block);
+            worldBlock.TryAddBlock(ForUnitTestModBlockId.MachineId, blockPosition, BlockDirection.North, out var block, System.Array.Empty<BlockCreateParam>());
             
             // イベントキューをクリア
             var playerId = 0;

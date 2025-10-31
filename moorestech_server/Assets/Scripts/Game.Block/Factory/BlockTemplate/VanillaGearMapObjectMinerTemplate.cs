@@ -14,7 +14,7 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaGearMapObjectMinerTemplate : IBlockTemplate
     {
-        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] createParams = null)
+        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] createParams)
         {
             return GetBlock(null, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
