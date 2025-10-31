@@ -24,14 +24,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
         {
             return direction switch
             {
-                RailComponentDirection.Direction0 => new Vector3(1, 0, 0),
+                RailComponentDirection.Direction0 => new Vector3(0, 0, 1),
                 RailComponentDirection.Direction45 => new Vector3(1, 0, 1).normalized,
-                RailComponentDirection.Direction90 => new Vector3(0, 0, 1),
-                RailComponentDirection.Direction135 => new Vector3(-1, 0, 1).normalized,
-                RailComponentDirection.Direction180 => new Vector3(-1, 0, 0),
+                RailComponentDirection.Direction90 => new Vector3(1, 0, 0),
+                RailComponentDirection.Direction135 => new Vector3(1, 0, -1).normalized,
+                RailComponentDirection.Direction180 => new Vector3(0, 0, -1),
                 RailComponentDirection.Direction225 => new Vector3(-1, 0, -1).normalized,
-                RailComponentDirection.Direction270 => new Vector3(0, 0, -1),
-                RailComponentDirection.Direction315 => new Vector3(1, 0, -1).normalized,
+                RailComponentDirection.Direction270 => new Vector3(-1, 0, 0),
+                RailComponentDirection.Direction315 => new Vector3(-1, 0, 1).normalized,
                 _ => Vector3.zero
             };
         }

@@ -74,6 +74,12 @@ namespace Core.Master
             return GetBlockMaster(blockId);
         }
         
+        public BlockMasterElement GetBlockMaster(ItemId itemId)
+        {
+            var blockId = GetBlockId(itemId);
+            return GetBlockMaster(blockId);
+        }
+        
         public BlockId GetBlockId(Guid blockGuid)
         {
             if (!_blockGuidToBlockId.TryGetValue(blockGuid, out var blockId))
