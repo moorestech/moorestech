@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
+using Client.Input;
+using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
@@ -14,6 +16,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
         
         private readonly Camera _mainCamera;
         private readonly IPlacementPreviewBlockGameObjectController _previewBlockController;
+        
+        private RailComponentDirection _railDirection;
         
         public TrainRailPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController)
         {
@@ -33,17 +37,45 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
             
             _previewBlockController.SetActive(true);
             
-            var placeInfo = new List<PreviewPlaceInfo>
+            RotationRailComponent();
+            var placeInfo = CreatePlaceInfo();
+            
+            _previewBlockController.SetPreviewAndGroundDetect(placeInfo, boundingBoxSurface.BlockGameObject.BlockMasterElement);
+            
+            #region Internal
+            
+            void RotationRailComponent()
             {
-                new PreviewPlaceInfo(new PlaceInfo
+                if (!InputManager.Playable.BlockPlaceRotation.GetKeyDown) return;
+                
+                var nextDirection = (int) _railDirection + 1;
+                if (nextDirection > (int) RailComponentDirection.Direction315)
+                {
+                    nextDirection = (int) RailComponentDirection.Direction0;
+                }
+                _railDirection = (RailComponentDirection) nextDirection;
+            }
+            
+            List<PreviewPlaceInfo> CreatePlaceInfo()
+            {
+                var info = new PlaceInfo
                 {
                     Position = placePoint,
                     Direction = DefaultBlockDirection,
                     VerticalDirection = BlockVerticalDirection.Horizontal,
                     Placeable = true
-                }),
-            };
-            _previewBlockController.SetPreviewAndGroundDetect(placeInfo, boundingBoxSurface.BlockGameObject.BlockMasterElement);
+                };
+                var stateDetails = new Dictionary<string, byte[]>
+                {
+                    {
+                        RailComponentStateDetail.StateDetailKey,
+                        MessagePack.MessagePackSerializer.Serialize(new RailComponentStateDetail(_railDirection.ToVector3()))
+                    }
+                };
+                return new List<PreviewPlaceInfo> {new(info, stateDetails)};
+            }
+            
+            #endregion
         }
         
         public void Disable()
