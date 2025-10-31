@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Game.Block.Interface;
 using MessagePack;
 
 namespace Server.Event.EventReceive
