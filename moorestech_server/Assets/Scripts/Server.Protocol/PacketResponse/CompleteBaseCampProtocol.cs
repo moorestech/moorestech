@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Blocks.BaseCamp;
+using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using MessagePack;
