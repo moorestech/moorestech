@@ -11,7 +11,7 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaGearElectricGeneratorTemplate : IBlockTemplate
     {
-        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] initializeParams = null)
+        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] createParams = null)
         {
             return Create(blockMasterElement, blockInstanceId, blockPositionInfo);
         }

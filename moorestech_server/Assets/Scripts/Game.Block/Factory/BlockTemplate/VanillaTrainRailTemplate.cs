@@ -23,13 +23,13 @@ namespace Game.Block.Factory.BlockTemplate
         /// </summary>
         public IBlock New(BlockMasterElement blockMasterElement,
             BlockInstanceId blockInstanceId,
-            BlockPositionInfo blockPositionInfo, BlockCreateParam[] initializeParams = null)
+            BlockPositionInfo blockPositionInfo, BlockCreateParam[] createParams = null)
         {
             // railブロックは常にRailComponentが1つだけ
             var railComponents = new RailComponent[1];
             
             // ブロック生成パラメータからRailBridgePierComponentStateDetailを取得して方向ベクトルを取得
-            var state = initializeParams.GetStateDetail<RailBridgePierComponentStateDetail>(RailBridgePierComponentStateDetail.StateDetailKey);
+            var state = createParams.GetStateDetail<RailBridgePierComponentStateDetail>(RailBridgePierComponentStateDetail.StateDetailKey);
             var railBlockDirection = state.RailBlockDirection;
 
             // RailComponentを生成

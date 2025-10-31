@@ -17,14 +17,14 @@ namespace Game.Block.Factory
             _vanillaIBlockTemplates = vanillaIBlockTemplates;
         }
         
-        public IBlock Create(BlockId blockId, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] initializeParams = null)
+        public IBlock Create(BlockId blockId, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] createParams = null)
         {
             var dictionary = _vanillaIBlockTemplates.BlockTypesDictionary;
             
             var blockElement = MasterHolder.BlockMaster.GetBlockMaster(blockId);
             if (!dictionary.TryGetValue(blockElement.BlockType, out var value)) throw new Exception("Block type not found :" + blockElement.BlockType);
             
-            var block = value.New(blockElement, blockInstanceId, blockPositionInfo, initializeParams);
+            var block = value.New(blockElement, blockInstanceId, blockPositionInfo, createParams);
             
             return block;
         }

@@ -19,7 +19,7 @@ namespace Game.Block.Factory.BlockTemplate
             _blockOpenableInventoryUpdateEvent = blockOpenableInventoryUpdateEvent;
         }
         
-        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] initializeParams = null)
+        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] createParams = null)
         {
             var (requestPower, outputSlot) = GetData(blockMasterElement);
             
