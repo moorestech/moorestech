@@ -9,7 +9,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
 {
     public class PlaceSystemUtil
     {
-        public static bool TryGetRayHitBlockPosition(Camera mainCamera,int heightOffset, BlockDirection currentBlockDirection, out Vector3Int pos, out BlockPreviewBoundingBoxSurface surface)
+        public static bool TryGetRayHitBlockPosition(Camera mainCamera, int heightOffset, BlockDirection currentBlockDirection, out Vector3Int pos, out BlockPreviewBoundingBoxSurface surface)
         {
             pos = Vector3Int.zero;
             surface = null;
@@ -20,9 +20,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             
             return true;
         }
-    
-    
-        public static bool TryGetRayHitPosition(Camera mainCamera , out Vector3 pos, out BlockPreviewBoundingBoxSurface surface)
+        
+        
+        public static bool TryGetRayHitPosition(Camera mainCamera, out Vector3 pos, out BlockPreviewBoundingBoxSurface surface)
         {
             surface = null;
             pos = Vector3Int.zero;
@@ -62,66 +62,66 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
         
         public static Vector3Int CalcPlacePoint(Vector3 hitPoint, int heightOffset, BlockDirection currentBlockDirection, BlockPreviewBoundingBoxSurface boundingBoxSurface)
         {
-                var holdingBlockMaster = boundingBoxSurface.BlockGameObject.BlockMasterElement;
-                var rotateAction = currentBlockDirection.GetCoordinateConvertAction();
-                var rotatedSize = rotateAction(holdingBlockMaster.BlockSize).Abs();
+            var holdingBlockMaster = boundingBoxSurface.BlockGameObject.BlockMasterElement;
+            var rotateAction = currentBlockDirection.GetCoordinateConvertAction();
+            var rotatedSize = rotateAction(holdingBlockMaster.BlockSize).Abs();
+            
+            if (boundingBoxSurface == null)
+            {
+                var point = Vector3Int.zero;
+                point.x = Mathf.FloorToInt(hitPoint.x + (rotatedSize.x % 2 == 0 ? 0.5f : 0));
+                point.z = Mathf.FloorToInt(hitPoint.z + (rotatedSize.z % 2 == 0 ? 0.5f : 0));
+                point.y = Mathf.FloorToInt(hitPoint.y);
                 
-                if (boundingBoxSurface == null)
-                {
-                    var point = Vector3Int.zero;
-                    point.x = Mathf.FloorToInt(hitPoint.x + (rotatedSize.x % 2 == 0 ? 0.5f : 0));
-                    point.z = Mathf.FloorToInt(hitPoint.z + (rotatedSize.z % 2 == 0 ? 0.5f : 0));
-                    point.y = Mathf.FloorToInt(hitPoint.y);
-                    
-                    point += new Vector3Int(0, heightOffset, 0);
-                    point -= new Vector3Int(rotatedSize.x, 0, rotatedSize.z) / 2;
-                    
-                    return point;
-                }
+                point += new Vector3Int(0, heightOffset, 0);
+                point -= new Vector3Int(rotatedSize.x, 0, rotatedSize.z) / 2;
                 
-                switch (boundingBoxSurface.PreviewSurfaceType)
-                {
-                    case PreviewSurfaceType.YX_Origin:
-                        return new Vector3Int(
-                            Mathf.FloorToInt(hitPoint.x) - Mathf.FloorToInt(rotatedSize.x / 2f),
-                            Mathf.FloorToInt(hitPoint.y),
-                            Mathf.FloorToInt(hitPoint.z) - Mathf.RoundToInt(rotatedSize.z / 2f)
-                        );
-                    case PreviewSurfaceType.YX_Z:
-                        return new Vector3Int(
-                            Mathf.FloorToInt(hitPoint.x) - Mathf.FloorToInt(rotatedSize.x / 2f),
-                            Mathf.FloorToInt(hitPoint.y),
-                            Mathf.FloorToInt(hitPoint.z)
-                        );
-                    case PreviewSurfaceType.YZ_Origin:
-                        return new Vector3Int(
-                            Mathf.FloorToInt(hitPoint.x) - Mathf.RoundToInt(rotatedSize.x / 2f),
-                            Mathf.FloorToInt(hitPoint.y),
-                            Mathf.FloorToInt(hitPoint.z) - Mathf.FloorToInt(rotatedSize.z / 2f)
-                        );
-                    case PreviewSurfaceType.YZ_X:
-                        return new Vector3Int(
-                            Mathf.FloorToInt(hitPoint.x),
-                            Mathf.FloorToInt(hitPoint.y),
-                            Mathf.FloorToInt(hitPoint.z) - Mathf.FloorToInt(rotatedSize.z / 2f)
-                        );
-                    
-                    case PreviewSurfaceType.XZ_Origin:
-                        return new Vector3Int(
-                            Mathf.FloorToInt(hitPoint.x) - Mathf.FloorToInt(rotatedSize.x / 2f),
-                            Mathf.FloorToInt(hitPoint.y) - rotatedSize.y,
-                            Mathf.FloorToInt(hitPoint.z) - Mathf.FloorToInt(rotatedSize.z / 2f)
-                        );
-                    case PreviewSurfaceType.XZ_Y:
-                        return new Vector3Int(
-                            Mathf.FloorToInt(hitPoint.x) - Mathf.FloorToInt(rotatedSize.x / 2f),
-                            Mathf.FloorToInt(hitPoint.y),
-                            Mathf.FloorToInt(hitPoint.z) - Mathf.FloorToInt(rotatedSize.z / 2f)
-                        );
-                    
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
+                return point;
+            }
+            
+            switch (boundingBoxSurface.PreviewSurfaceType)
+            {
+                case PreviewSurfaceType.YX_Origin:
+                    return new Vector3Int(
+                        Mathf.FloorToInt(hitPoint.x) - Mathf.FloorToInt(rotatedSize.x / 2f),
+                        Mathf.FloorToInt(hitPoint.y),
+                        Mathf.FloorToInt(hitPoint.z) - Mathf.RoundToInt(rotatedSize.z / 2f)
+                    );
+                case PreviewSurfaceType.YX_Z:
+                    return new Vector3Int(
+                        Mathf.FloorToInt(hitPoint.x) - Mathf.FloorToInt(rotatedSize.x / 2f),
+                        Mathf.FloorToInt(hitPoint.y),
+                        Mathf.FloorToInt(hitPoint.z)
+                    );
+                case PreviewSurfaceType.YZ_Origin:
+                    return new Vector3Int(
+                        Mathf.FloorToInt(hitPoint.x) - Mathf.RoundToInt(rotatedSize.x / 2f),
+                        Mathf.FloorToInt(hitPoint.y),
+                        Mathf.FloorToInt(hitPoint.z) - Mathf.FloorToInt(rotatedSize.z / 2f)
+                    );
+                case PreviewSurfaceType.YZ_X:
+                    return new Vector3Int(
+                        Mathf.FloorToInt(hitPoint.x),
+                        Mathf.FloorToInt(hitPoint.y),
+                        Mathf.FloorToInt(hitPoint.z) - Mathf.FloorToInt(rotatedSize.z / 2f)
+                    );
+                
+                case PreviewSurfaceType.XZ_Origin:
+                    return new Vector3Int(
+                        Mathf.FloorToInt(hitPoint.x) - Mathf.FloorToInt(rotatedSize.x / 2f),
+                        Mathf.FloorToInt(hitPoint.y) - rotatedSize.y,
+                        Mathf.FloorToInt(hitPoint.z) - Mathf.FloorToInt(rotatedSize.z / 2f)
+                    );
+                case PreviewSurfaceType.XZ_Y:
+                    return new Vector3Int(
+                        Mathf.FloorToInt(hitPoint.x) - Mathf.FloorToInt(rotatedSize.x / 2f),
+                        Mathf.FloorToInt(hitPoint.y),
+                        Mathf.FloorToInt(hitPoint.z) - Mathf.FloorToInt(rotatedSize.z / 2f)
+                    );
+                
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
     }
 }
