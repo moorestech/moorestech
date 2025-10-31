@@ -25,11 +25,6 @@ namespace Game.Block.Factory
             if (!dictionary.TryGetValue(blockElement.BlockType, out var value)) throw new Exception("Block type not found :" + blockElement.BlockType);
             
             var block = value.New(blockElement, blockInstanceId, blockPositionInfo);
-            initializeParams ??= Array.Empty<BlockCreateParam>();
-            foreach (var component in block.GetComponents<IReceiveCreateParam>())
-            {
-                component.OnCreate(initializeParams);
-            }
             
             return block;
         }

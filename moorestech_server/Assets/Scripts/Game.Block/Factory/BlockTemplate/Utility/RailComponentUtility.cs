@@ -26,7 +26,7 @@ namespace Game.Block.Factory.BlockTemplate.Utility
             for (int i = 0; i < count; i++)
             {
                 var componentInfo = saverData.Values[i];
-                railComponents[i] = new RailComponent(railComponentPositions[i], positionInfo.BlockDirection, componentInfo.MyID);
+                railComponents[i] = new RailComponent(railComponentPositions[i], componentInfo.RailDirection, componentInfo.MyID);
                 // ベジェ曲線の強度を設定
                 railComponents[i].UpdateControlPointStrength(componentInfo.BezierStrength);
             }

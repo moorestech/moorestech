@@ -9,7 +9,7 @@ namespace Game.Block.Blocks.TrainRail
     /// セーブ・ロード用コンポーネント
     /// レールに関わる複数の RailComponent のセーブ／ロードを一括管理する
     /// </summary>
-    public class RailSaverComponent : IBlockComponent, IBlockSaveState
+    public class RailSaverComponent : IBlockSaveState
     {
         /// <summary>
         /// RailComponentをまとめてセーブするためのコンポーネント
@@ -29,7 +29,7 @@ namespace Game.Block.Blocks.TrainRail
         {
             var railSaverData = new RailSaverData
             {
-                Values = new List<RailComponentInfo>()
+                Values = new List<RailComponentInfo>(),
             };
 
             foreach (var railComponent in RailComponents)

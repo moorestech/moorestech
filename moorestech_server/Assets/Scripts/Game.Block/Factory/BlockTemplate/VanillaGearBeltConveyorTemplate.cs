@@ -11,7 +11,7 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaGearBeltConveyorTemplate : IBlockTemplate
     {
-        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] initializeParams = null)
         {
             return GetBlock(null, blockMasterElement, blockInstanceId, blockPositionInfo);
         }

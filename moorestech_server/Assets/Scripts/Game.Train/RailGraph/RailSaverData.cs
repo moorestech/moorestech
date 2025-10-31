@@ -161,6 +161,8 @@ namespace Game.Train.RailGraph
         public float BezierStrength;
         public List<ConnectionDestination> ConnectMyFrontTo = new List<ConnectionDestination>();
         public List<ConnectionDestination> ConnectMyBackTo = new List<ConnectionDestination>();
+        
+        public Vector3 RailDirection;
     }
 
     /// <summary>
