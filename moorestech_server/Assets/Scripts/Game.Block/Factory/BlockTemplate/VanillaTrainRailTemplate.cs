@@ -21,18 +21,28 @@ namespace Game.Block.Factory.BlockTemplate
         /// <summary>
         /// 新規にブロック（と対応するRailComponent等）を生成
         /// </summary>
-        public IBlock New(
-            BlockMasterElement blockMasterElement,
+        public IBlock New(BlockMasterElement blockMasterElement,
             BlockInstanceId blockInstanceId,
-            BlockPositionInfo blockPositionInfo)
+            BlockPositionInfo blockPositionInfo, BlockCreateParam[] createParams)
         {
             // railブロックは常にRailComponentが1つだけ
             var railComponents = new RailComponent[1];
+            
+            // ブロック生成パラメータからRailBridgePierComponentStateDetailを取得して方向ベクトルを取得
+            // Pull bridge pier state to determine direction
+            var state = createParams.GetStateDetail<RailBridgePierComponentStateDetail>(RailBridgePierComponentStateDetail.StateDetailKey);
+            if (state == null)
+            {
+                // 状態情報が存在しないため詳細ログを出力
+                // Emit diagnostics when state detail is missing
+                Debug.LogError($"[VanillaTrainRailTemplate] Missing create param: {RailBridgePierComponentStateDetail.StateDetailKey} for block {blockMasterElement.Name}");
+            }
+            var railBlockDirection = state?.RailBlockDirection;
 
             // RailComponentを生成
             var railComponentId = new RailComponentID(blockPositionInfo.OriginalPos, 0);
             var railComponentPositions = RailComponentUtility.CalculateRailComponentPositions(blockPositionInfo);
-            railComponents[0] = new RailComponent(railComponentPositions[0], blockPositionInfo.BlockDirection, railComponentId);
+            railComponents[0] = new RailComponent(railComponentPositions[0], railBlockDirection, railComponentId);
             var railSaverComponent = RailComponentFactory.CreateRailSaverComponent(railComponents);
             // コンポーネントをまとめてブロックに登録
             var components = new List<IBlockComponent>();

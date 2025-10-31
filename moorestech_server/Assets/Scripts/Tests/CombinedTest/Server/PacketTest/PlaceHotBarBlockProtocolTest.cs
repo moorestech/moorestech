@@ -11,7 +11,7 @@ using Server.Boot;
 using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
 using UnityEngine;
-using static Server.Protocol.PacketResponse.SendPlaceHotBarBlockProtocol;
+using static Server.Protocol.PacketResponse.PlaceBlockFromHotBarProtocol;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {

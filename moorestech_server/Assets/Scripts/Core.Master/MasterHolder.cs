@@ -14,6 +14,7 @@ namespace Core.Master
         public static FluidMaster FluidMaster { get; private set; }
         public static CharacterMaster CharacterMaster { get; private set; }
         public static ResearchMaster ResearchMaster { get; private set; }
+        public static PlaceSystemMaster PlaceSystemMaster { get; private set; }
 
         public static void Load(MasterJsonFileContainer masterJsonFileContainer)
         {
@@ -28,6 +29,7 @@ namespace Core.Master
             MapObjectMaster = new MapObjectMaster(GetJson(masterJsonFileContainer, new JsonFileName("mapObjects")));
             CharacterMaster = new CharacterMaster(GetJson(masterJsonFileContainer, new JsonFileName("characters")));
             ResearchMaster = new ResearchMaster(GetJson(masterJsonFileContainer, new JsonFileName("research")));
+            PlaceSystemMaster = new PlaceSystemMaster(GetJson(masterJsonFileContainer, new JsonFileName("placeSystem")));
         }
         
         private static JToken GetJson(MasterJsonFileContainer masterJsonFileContainer, JsonFileName jsonFileName)

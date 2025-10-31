@@ -24,8 +24,8 @@ namespace Tests.CombinedTest.Core
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
             var world = ServerContext.WorldBlockDatastore;
-            world.TryAddBlock(ForUnitTestModBlockId.TestGearElectricGenerator, Vector3Int.zero, BlockDirection.North, out var generatorBlock);
-            world.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, new Vector3Int(1, 0, 0), BlockDirection.East, out var driveBlock);
+            world.TryAddBlock(ForUnitTestModBlockId.TestGearElectricGenerator, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var generatorBlock);
+            world.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, new Vector3Int(1, 0, 0), BlockDirection.East, Array.Empty<BlockCreateParam>(), out var driveBlock);
 
             var generatorComponent = generatorBlock.GetComponent<GearElectricGeneratorComponent>();
             var driveComponent = driveBlock.GetComponent<SimpleGearGeneratorComponent>();

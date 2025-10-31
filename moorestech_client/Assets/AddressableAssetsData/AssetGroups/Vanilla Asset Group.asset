@@ -15,6 +15,11 @@ MonoBehaviour:
   m_GroupName: Vanilla Asset Group
   m_GUID: 8eba990dbb1084395a12b2a54be4f5af
   m_SerializeEntries:
+  - m_GUID: 0037024f719e84c75bd5fe2ee93f7c21
+    m_Address: Vanilla/Block/Train_Rail_Pier
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 02c740acc0bb54162ad10456d3af5b36
     m_Address: Vanilla/Skit/Environment/100_start_2_SpaceShip_Interior
     m_ReadOnly: 0
@@ -397,6 +402,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 6cf497b4abc9242a9abec5053e4e76a9
     m_Address: Vanilla/Block/Old/3x3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6e60cbf51e06e1c4caf0f23ee9974fd8
+    m_Address: Vanilla/Skit/commandForgeEditor
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

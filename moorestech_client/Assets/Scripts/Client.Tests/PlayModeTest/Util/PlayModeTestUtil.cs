@@ -120,9 +120,7 @@ namespace Client.Tests.PlayModeTest.Util
             ServerContext.WorldBlockDatastore.TryAddBlock(
                 blockId,
                 position,
-                direction,
-                out var block
-            );
+                direction, Array.Empty<BlockCreateParam>(), out var block);
             
             return block;
         }

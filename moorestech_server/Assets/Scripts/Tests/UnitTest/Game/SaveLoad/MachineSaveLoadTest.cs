@@ -16,6 +16,7 @@ using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
 using Assert = UnityEngine.Assertions.Assert;
+using System;
 
 namespace Tests.UnitTest.Game.SaveLoad
 {
@@ -30,7 +31,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var (blockFactory, worldBlockDatastore, _, assembleSaveJsonText, _) = CreateBlockTestModule();
             var itemStackFactory = ServerContext.ItemStackFactory;
             
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId , new Vector3Int(0, 0), BlockDirection.North, out var machineBlock);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId , new Vector3Int(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machineBlock);
             var machineInventory = machineBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
             
             

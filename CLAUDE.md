@@ -9,6 +9,8 @@ XY問題に気をつけてください、目先の問題にとらわれず、根
 # コードの可読性向上のための指針
 複雑なメソッド内でロジックが長くなる場合は、#regionとinternalメソッド（ローカル関数）を活用して、人間がすぐにコードを理解できるようにしてください。
 
+また、`using` を積極的に活用し、コード部分での文字数を適切に抑えるようにしてください。
+
 例：
 ```csharp
 public void ComplexMethod()
@@ -40,6 +42,11 @@ public void ComplexMethod()
 
 `#endregion`の下にはコードを書かないでください。すべてのコードは`#region`ブロックの上部もしくは内部に記述するようにしてください。
 
+# コメント運用
+- 主要な処理セクションには、意味のあるコメントを日本語と英語の2行セットで記述してください。
+- 形式は必ず `// [日本語のコメント内容]` の次に `// [English comment content]` を置き、冗長な説明は避けて意図を端的に示してください。
+- コメントはおおよそ3〜10行ごとに挿入し、長いロジックでは節目ごとに意図を明示してください。
+
 # Nullチェックに関する指針
 プログラムの基本的な部分はnullではない前提でコードを書くように意識してください。過度なnullチェックはコードの可読性を下げ、本質的なロジックを見えにくくします。
 
@@ -59,6 +66,7 @@ Reflect on 5-7 different possible sources of the problem, distill those down to 
 
 # サーバーコンテキスト参照先
 - サーバー側のコンテキスト実装は `moorestech_server/Assets/Scripts/Game.Context/ServerContext.cs` を参照してください。
+
 
 # ドキュメントの更新
 *このドキュメントは継続的に更新されます。新しい決定事項や実装パターンが確立された場合は、このファイルに反映してください。*
@@ -205,29 +213,6 @@ Unityエディタが使用できない場合やMCPツールリストに上記MCP
 
 **重要：ユーザーからコンパイルエラーが出ている旨を聞いたら、必ずMCPツールでコンパイルエラーを確認してください。**
 
-## ビルドの実行
-CLIからUnityプロジェクトをビルドする場合は `tools/unity-build-test.sh` を使用してください。
-
-### 使用方法
-```bash
-# 基本的な使い方（デフォルト出力先: moorestech_client/Library/ShellScriptBuild）
-./tools/unity-build-test.sh moorestech_client
-
-# 出力先を指定する場合
-./tools/unity-build-test.sh moorestech_client /path/to/output
-```
-
-### 機能
-- プラットフォームの自動判定（macOS/Windows/Linux）
-- Unityのビルド結果（Succeeded/Failed）を正確に判定
-- ビルド失敗時のコンパイルエラー詳細表示
-- ビルド成功時のファイルサイズ表示
-- エラー時のログファイル保存（デバッグ用）
-
-### 注意事項
-- ビルドが失敗した場合、ログファイルが保存されるので詳細を確認してください
-- macOSの場合、.appファイルが生成されても実際に開けない場合があるため、Unityが報告するビルド結果を信頼してください
-
 # シングルトンパターンの実装指針
 Unityプロジェクトにおけるシングルトンの実装では、以下の方針に従ってください：
 
@@ -273,10 +258,6 @@ public class MySingleton : MonoBehaviour
 
 早計に新しい概念やシステムを追加するのではなく、既存システムの上に実装を積み重ねることを原則としてください。
 
-# Active Specifications
-現在開発中の機能仕様：
-- **gear-network-power-balance-halt**: 歯車ネットワークで必要エネルギーが生成エネルギーを上回った際にネットワーク全体を停止する機能
-
 # 追加指示
 
 NEVER:.metaファイルは生成しないでください。これはUnityが自動的に生成します。このmetaファイルの有無はコンパイル結果に影響を与えません。.metaの作成は思わぬ不具合の原因になります。
@@ -294,7 +275,7 @@ IMPORTANT:デフォルト引数の使用禁止。引数の追加は必ずデフ�
 
 YOU MUST: Prefab、シーン、ScriptableObject等、Unity独自のYamlを使用するUnity固有ファイルは直接編集すると重大な不整合が生じる恐れが高いため、直接編集しないでください。代わりに、ユーザーに編集するように指示してください。
 
-IMPORTANT: このプロジェクトは頻繁にgit worktreeを使用します。ファイルを編集する際は相対パスでの指定をするか、pwdで現在のディレクトリを確認してください。
+IMPORTANT: このプロジェクトは頻繁にgit worktreeを使用します。ファイルを編集する際は相対パスでの指定をするか、pwdで現在のディレクトリを確認してください。git worktreeを使っている場合、MCPを使わずunity-test.shでテストやコンパイルエラーのチェックをしてください。
 
 ## Development Best Practices
 - プログラムの基本的な部分はnullではない前提でコードを書くように意識してください。

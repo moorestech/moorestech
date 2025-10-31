@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
 

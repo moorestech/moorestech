@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
@@ -34,10 +35,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             
             List<Vector3Int> positions = enableConveyorPlacement ? CalcPositionsForConveyor() : CalcPositions(blockSize);
             
-            List<PlaceInfo> result = CalcPlaceDirection(positions);
-            result = CalcPlaceable(result);
-            
-            return result;
+            List<PlaceInfo> placeInfos = CalcPlaceDirection(positions);
+            placeInfos = CalcPlaceable(placeInfos);
+
+            return placeInfos;
             
             #region Internal
             
@@ -222,7 +223,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 {
                     return new List<PlaceInfo>
                     {
-                        new()
+                        new PlaceInfo
                         {
                             Position = placePositions[0],
                             Direction = blockDirection,
@@ -353,7 +354,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                     //TODO ブロックの数が足りているかどうか
                     info.Placeable = isNotExistBlock(info, holdingBlockMasterElement);
                 }
-                
+
                 return infos;
             }
             

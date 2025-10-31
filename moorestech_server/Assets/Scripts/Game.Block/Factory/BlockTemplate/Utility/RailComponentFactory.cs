@@ -20,7 +20,7 @@ namespace Game.Block.Factory.BlockTemplate.Utility
             for (int i = 0; i < count; i++)
             {
                 var componentId = new RailComponentID(positionInfo.OriginalPos, i);
-                components[i] = new RailComponent(positions[i], positionInfo.BlockDirection, componentId);
+                components[i] = new RailComponent(positions[i], positionInfo.BlockDirection , componentId);
             }
 
             // stationの前と後ろにそれぞれrailComponentがある、自動で接続する

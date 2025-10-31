@@ -12,6 +12,7 @@ using Server.Event.EventReceive;
 using Tests.Module.TestMod;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.InvokeBlockStateEventProtocol;
+using System;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -27,7 +28,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             // ブロックを設置
             var blockPosition = new Vector3Int(10, 20, 30);
-            worldBlock.TryAddBlock(ForUnitTestModBlockId.MachineId, blockPosition, BlockDirection.North, out var block);
+            worldBlock.TryAddBlock(ForUnitTestModBlockId.MachineId, blockPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
             
             // イベントキューをクリア
             var playerId = 0;

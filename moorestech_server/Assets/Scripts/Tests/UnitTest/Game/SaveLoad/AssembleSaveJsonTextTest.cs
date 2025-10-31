@@ -8,6 +8,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
+using System;
 
 namespace Tests.UnitTest.Game.SaveLoad
 {
@@ -23,8 +24,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var blockFactory = ServerContext.BlockFactory;
             
-            worldBlockDatastore.TryAddBlock((BlockId)1, Vector3Int.zero, BlockDirection.North, out var block0);
-            worldBlockDatastore.TryAddBlock((BlockId)2, new Vector3Int(10, -15), BlockDirection.North, out var block1);
+            worldBlockDatastore.TryAddBlock((BlockId)1, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block0);
+            worldBlockDatastore.TryAddBlock((BlockId)2, new Vector3Int(10, -15), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block1);
             
             var json = assembleSaveJsonText.AssembleSaveJson();
             

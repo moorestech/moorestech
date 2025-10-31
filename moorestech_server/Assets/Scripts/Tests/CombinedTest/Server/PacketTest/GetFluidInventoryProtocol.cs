@@ -15,6 +15,7 @@ using static Server.Protocol.PacketResponse.GetFluidInventoryProtocol;
 using MachineFluidIOTest = Tests.CombinedTest.Core.MachineFluidIOTest;
 using SteamGearGeneratorTest = Tests.CombinedTest.Core.SteamGearGeneratorTest;
 using FluidTest = Tests.CombinedTest.Core.FluidTest;
+using System;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -27,7 +28,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
             // 機械を設置
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidMachineId, Vector3Int.zero, BlockDirection.North, out var fluidMachineBlock);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidMachineId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fluidMachineBlock);
             
             // 機械のFluidInventoryコンポーネントを取得
             var fluidInventory = fluidMachineBlock.GetComponent<VanillaMachineFluidInventoryComponent>();
@@ -78,7 +79,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
             // Steam Gear Generatorを設置
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SteamGearGeneratorId, Vector3Int.zero, BlockDirection.North, out var steamGeneratorBlock);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SteamGearGeneratorId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var steamGeneratorBlock);
             
             // Steam Gear GeneratorのFluidComponentを取得
             var steamFluidComponent = steamGeneratorBlock.GetComponent<SteamGearGeneratorFluidComponent>();
@@ -108,7 +109,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
             // パイプを設置
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.zero, BlockDirection.North, out var fluidPipeBlock);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fluidPipeBlock);
             
             // パイプに液体を追加
             var fluidPipe = fluidPipeBlock.GetComponent<FluidPipeComponent>();

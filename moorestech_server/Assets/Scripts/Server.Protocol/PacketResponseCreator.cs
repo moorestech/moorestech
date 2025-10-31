@@ -23,7 +23,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(SetPlayerCoordinateProtocol.ProtocolTag, new SetPlayerCoordinateProtocol(serviceProvider));
             _packetResponseDictionary.Add(EventProtocol.ProtocolTag, new EventProtocol(serviceProvider.GetService<EventProtocolProvider>()));
             _packetResponseDictionary.Add(InventoryItemMoveProtocol.ProtocolTag, new InventoryItemMoveProtocol(serviceProvider));
-            _packetResponseDictionary.Add(SendPlaceHotBarBlockProtocol.ProtocolTag, new SendPlaceHotBarBlockProtocol(serviceProvider));
+            _packetResponseDictionary.Add(PlaceBlockFromHotBarProtocol.ProtocolTag, new PlaceBlockFromHotBarProtocol(serviceProvider));
             _packetResponseDictionary.Add(BlockInventoryRequestProtocol.ProtocolTag, new BlockInventoryRequestProtocol(serviceProvider));
             _packetResponseDictionary.Add(RemoveBlockProtocol.ProtocolTag, new RemoveBlockProtocol(serviceProvider));
             _packetResponseDictionary.Add(CompleteBaseCampProtocol.ProtocolTag, new CompleteBaseCampProtocol(serviceProvider));
@@ -48,6 +48,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(CompleteResearchProtocol.ProtocolTag, new CompleteResearchProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetResearchInfoProtocol.ProtocolTag, new GetResearchInfoProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetPlayedSkitIdsProtocol.ProtocolTag, new GetPlayedSkitIdsProtocol(serviceProvider));
+            _packetResponseDictionary.Add(RailConnectionEditProtocol.Tag, new RailConnectionEditProtocol());
         }
         
         public List<List<byte>> GetPacketResponse(List<byte> payload)
