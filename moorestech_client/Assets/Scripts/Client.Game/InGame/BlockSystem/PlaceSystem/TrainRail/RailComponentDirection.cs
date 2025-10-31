@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
 {
     /// <summary>
@@ -14,7 +16,24 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
         Direction225,
         Direction270,
         Direction315,
-        Direction330,
-        Direction345,
+    }
+    
+    public static class RailComponentDirectionExtension
+    {
+        public static Vector3 ToVector3(this RailComponentDirection direction)
+        {
+            return direction switch
+            {
+                RailComponentDirection.Direction0 => new Vector3(1, 0, 0),
+                RailComponentDirection.Direction45 => new Vector3(1, 0, 1).normalized,
+                RailComponentDirection.Direction90 => new Vector3(0, 0, 1),
+                RailComponentDirection.Direction135 => new Vector3(-1, 0, 1).normalized,
+                RailComponentDirection.Direction180 => new Vector3(-1, 0, 0),
+                RailComponentDirection.Direction225 => new Vector3(-1, 0, -1).normalized,
+                RailComponentDirection.Direction270 => new Vector3(0, 0, -1),
+                RailComponentDirection.Direction315 => new Vector3(1, 0, -1).normalized,
+                _ => Vector3.zero
+            };
+        }
     }
 }
