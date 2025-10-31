@@ -23,7 +23,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(SetPlayerCoordinateProtocol.ProtocolTag, new SetPlayerCoordinateProtocol(serviceProvider));
             _packetResponseDictionary.Add(EventProtocol.ProtocolTag, new EventProtocol(serviceProvider.GetService<EventProtocolProvider>()));
             _packetResponseDictionary.Add(InventoryItemMoveProtocol.ProtocolTag, new InventoryItemMoveProtocol(serviceProvider));
-            _packetResponseDictionary.Add(SendPlaceHotBarBlockProtocol.ProtocolTag, new SendPlaceHotBarBlockProtocol(serviceProvider));
+            _packetResponseDictionary.Add(PlaceBlockFromHotBarProtocol.ProtocolTag, new PlaceBlockFromHotBarProtocol(serviceProvider));
             _packetResponseDictionary.Add(BlockInventoryRequestProtocol.ProtocolTag, new BlockInventoryRequestProtocol(serviceProvider));
             _packetResponseDictionary.Add(RemoveBlockProtocol.ProtocolTag, new RemoveBlockProtocol(serviceProvider));
             _packetResponseDictionary.Add(CompleteBaseCampProtocol.ProtocolTag, new CompleteBaseCampProtocol(serviceProvider));
