@@ -122,6 +122,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-        }}
+        }
     }
 }

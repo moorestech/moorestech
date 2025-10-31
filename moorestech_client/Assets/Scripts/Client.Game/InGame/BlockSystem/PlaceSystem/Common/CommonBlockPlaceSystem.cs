@@ -1,11 +1,6 @@
-using System;
 using System.Collections.Generic;
-using ClassLibrary;
-using Client.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.SoundEffect;
@@ -33,7 +28,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         private Vector3Int? _clickStartPosition;
         private int _clickStartHeightOffset;
         private bool? _isStartZDirection;
-        private List<PreviewPlaceInfo> _currentPlaceInfos = new();
+        private List<PlaceInfo> _currentPlaceInfos = new();
         
         private int _heightOffset;
         
@@ -127,7 +122,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 // if collision with ground, cannot place
                 if (blockGroundOverlapList[i])
                 {
-                    _currentPlaceInfos[i].PlaceInfo.Placeable = false;
+                    _currentPlaceInfos[i].Placeable = false;
                 }
             }
             
@@ -175,13 +170,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             {
                 _heightOffset = _clickStartHeightOffset;
                 _clickStartPosition = null;
-                // PreviewPlaceInfoからPlaceInfoに変換してサーバーに送信
-                var placeInfos = new List<PlaceInfo>(_currentPlaceInfos.Count);
-                foreach (var previewPlaceInfo in _currentPlaceInfos)
-                {
-                    placeInfos.Add(previewPlaceInfo.PlaceInfo);
-                }
-                ClientContext.VanillaApi.SendOnly.PlaceHotBarBlock(placeInfos, context.CurrentSelectHotbarSlotIndex);
+                // PlaceInfoをサーバーに送信
+                // Send PlaceInfo to server
+                ClientContext.VanillaApi.SendOnly.PlaceHotBarBlock(_currentPlaceInfos, context.CurrentSelectHotbarSlotIndex);
                 SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
             }
             

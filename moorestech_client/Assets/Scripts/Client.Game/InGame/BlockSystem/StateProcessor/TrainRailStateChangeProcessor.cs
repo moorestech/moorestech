@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Game.Block.Blocks.TrainRail;
+using Game.Block.Interface;
 using Server.Event.EventReceive;
+using Server.Protocol.PacketResponse;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.StateProcessor
@@ -19,9 +22,11 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
             Process(blockState.CurrentStateDetail);
         }
         
-        public void SetPreviewStateDetail(PreviewPlaceInfo previewPlaceInfo)
+        public void SetPreviewStateDetail(PlaceInfo placeInfo)
         {
-            Process(previewPlaceInfo.CurrentStateDetail);
+            // CreateParamsからDictionaryに変換
+            // Convert CreateParams to Dictionary
+            Process(placeInfo.CreateParamDictionary);
         }
         
         private void Process(Dictionary<string, byte[]> stateDetails)

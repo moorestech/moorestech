@@ -5,6 +5,7 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
 using Core.Master;
 using Mooresmaster.Model.BlocksModule;
+using Server.Protocol.PacketResponse;
 using UnityEngine;
 using UnityEngine.VFX;
 
@@ -55,7 +56,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
             });
         }
         
-        public void SetPreviewStateDetail(PreviewPlaceInfo placeInfo)
+        public void SetPreviewStateDetail(PlaceInfo placeInfo)
         {
             foreach (var processor in _blockPreviewStateProcessors)
             {
