@@ -14,13 +14,13 @@ using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
 {
-    public class SendPlaceHotBarBlockProtocol : IPacketResponse
+    public class PlaceBlockFromHotBarProtocol : IPacketResponse
     {
         public const string ProtocolTag = "va:palceHotbarBlock";
         
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         
-        public SendPlaceHotBarBlockProtocol(ServiceProvider serviceProvider)
+        public PlaceBlockFromHotBarProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
         }
