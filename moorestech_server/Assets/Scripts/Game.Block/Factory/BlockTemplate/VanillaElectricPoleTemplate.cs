@@ -9,7 +9,7 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaElectricPoleTemplate : IBlockTemplate
     {
-        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] initializeParams = null)
+        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] createParams = null)
         {
             var transformer = new VanillaElectricPoleComponent(blockInstanceId);
             var components = new List<IBlockComponent>

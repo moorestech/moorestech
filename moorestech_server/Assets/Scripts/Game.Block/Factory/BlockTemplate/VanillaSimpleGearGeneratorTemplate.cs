@@ -15,7 +15,7 @@ namespace Game.Block.Factory.BlockTemplate
         {
             return CreateGear(blockMasterElement, blockInstanceId, blockPositionInfo);
         }
-        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] initializeParams = null)
+        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] createParams = null)
         {
             return CreateGear(blockMasterElement, blockInstanceId, blockPositionInfo);
         }

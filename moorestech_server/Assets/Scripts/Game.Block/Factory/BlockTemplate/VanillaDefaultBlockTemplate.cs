@@ -8,7 +8,7 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaDefaultBlock : IBlockTemplate
     {
-        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] initializeParams = null)
+        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] createParams = null)
         {
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, new List<IBlockComponent>(), blockPositionInfo);
         }

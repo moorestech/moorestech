@@ -19,7 +19,7 @@ namespace Game.Block.Factory.BlockTemplate
         /// </summary>
         public IBlock New(BlockMasterElement masterElement,
             BlockInstanceId instanceId,
-            BlockPositionInfo positionInfo, BlockCreateParam[] initializeParams = null)
+            BlockPositionInfo positionInfo, BlockCreateParam[] createParams = null)
         {
             // 駅ブロックは常に2つのRailComponentを持つ
             var railComponents = RailComponentFactory.CreateRailComponents(2, positionInfo);// ①ここでは1つのstation内にある2つのRailComponentを直線で接続している

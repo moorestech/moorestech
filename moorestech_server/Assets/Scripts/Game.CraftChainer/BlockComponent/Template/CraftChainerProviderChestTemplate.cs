@@ -12,7 +12,7 @@ namespace Game.CraftChainer.BlockComponent.Template
 {
     public class CraftChainerProviderChestTemplate : IBlockTemplate
     {
-        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] initializeParams = null)
+        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] createParams = null)
         {
             return GetBlock(null, blockMasterElement, blockInstanceId, blockPositionInfo);
         }

@@ -12,7 +12,7 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaItemShooterAcceleratorTemplate : IBlockTemplate
     {
-        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] initializeParams = null)
+        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] createParams = null)
         {
             return CreateBlock(null, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
