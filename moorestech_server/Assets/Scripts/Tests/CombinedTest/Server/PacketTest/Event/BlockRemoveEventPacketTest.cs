@@ -12,6 +12,7 @@ using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.EventProtocol;
+using System;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
 {
@@ -72,7 +73,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         
         private void BlockPlace(int x, int y, int id, IWorldBlockDatastore worldBlockDatastore, IBlockFactory blockFactory)
         {
-            worldBlockDatastore.TryAddBlock((BlockId)id, new Vector3Int(x, y), BlockDirection.North, out _, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock((BlockId)id, new Vector3Int(x, y), BlockDirection.North, out _, Array.Empty<BlockCreateParam>());
         }
         
         private List<byte> EventRequestData(int playerID)

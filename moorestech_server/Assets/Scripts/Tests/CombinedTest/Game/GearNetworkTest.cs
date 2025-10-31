@@ -14,6 +14,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
+using System;
 
 namespace Tests.CombinedTest.Game
 {
@@ -27,10 +28,10 @@ namespace Tests.CombinedTest.Game
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, new Vector3Int(0, 0, 0), BlockDirection.North, out var generator, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Shaft, new Vector3Int(0, 0, 1), BlockDirection.North, out var shaft, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.BigGear, new Vector3Int(-1, -1, 2), BlockDirection.North, out var bigGear, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, new Vector3Int(2, 0, 2), BlockDirection.North, out var smallGear, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, new Vector3Int(0, 0, 0), BlockDirection.North, out var generator, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Shaft, new Vector3Int(0, 0, 1), BlockDirection.North, out var shaft, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.BigGear, new Vector3Int(-1, -1, 2), BlockDirection.North, out var bigGear, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, new Vector3Int(2, 0, 2), BlockDirection.North, out var smallGear, Array.Empty<BlockCreateParam>());
             
             //ネットワークをアップデート
             //Update the network
@@ -86,11 +87,11 @@ namespace Tests.CombinedTest.Game
             var gearPositionD = new Vector3Int(1, 0, 1);
             var generatorPosition = new Vector3Int(0, 0, -1);
             
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.InfinityTorqueSimpleGearGenerator, generatorPosition, BlockDirection.North, out var generatorBlock, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPositionA, BlockDirection.North, out var smallGearABlock, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPositionB, BlockDirection.North, out var smallGearBBlock, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPositionC, BlockDirection.North, out var smallGearCBlock, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPositionD, BlockDirection.North, out var smallGearDBlock, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.InfinityTorqueSimpleGearGenerator, generatorPosition, BlockDirection.North, out var generatorBlock, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPositionA, BlockDirection.North, out var smallGearABlock, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPositionB, BlockDirection.North, out var smallGearBBlock, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPositionC, BlockDirection.North, out var smallGearCBlock, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPositionD, BlockDirection.North, out var smallGearDBlock, Array.Empty<BlockCreateParam>());
             
             var generator = generatorBlock.GetComponent<IGearGenerator>();
             var smallGearA = smallGearABlock.GetComponent<GearComponent>();
@@ -139,13 +140,13 @@ namespace Tests.CombinedTest.Game
             var smallGear2Pos = new Vector3Int(1, 1, 2); // RPMを変化させていない側の歯車（回転方向を変えないために2つの小歯車をつかう）
             
             
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPos, BlockDirection.North, out _, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.BigGear, bigGearPos, BlockDirection.North, out _, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPos, BlockDirection.North, out _, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.BigGear, bigGearPos, BlockDirection.North, out _, Array.Empty<BlockCreateParam>());
             
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, smallGear2Pos, BlockDirection.North, out _, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, smallGear2Pos, BlockDirection.North, out _, Array.Empty<BlockCreateParam>());
             
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, smallGear1Pos, BlockDirection.North, out var smallGear1, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, smallGear2Pos, BlockDirection.North, out var smallGear2, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, smallGear1Pos, BlockDirection.North, out var smallGear1, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, smallGear2Pos, BlockDirection.North, out var smallGear2, Array.Empty<BlockCreateParam>());
             
             //RPMが違う歯車同士を強制的に接続
             //Force connection between gears with different RPM
@@ -177,10 +178,10 @@ namespace Tests.CombinedTest.Game
             
             var gearPosition3 = new Vector3Int(0, 0, -1);
             
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North, out _, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPosition1, BlockDirection.North, out _, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPosition2, BlockDirection.North, out var gear2, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPosition3, BlockDirection.North, out var gear3, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North, out _, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPosition1, BlockDirection.North, out _, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPosition2, BlockDirection.North, out var gear2, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPosition3, BlockDirection.North, out var gear3, Array.Empty<BlockCreateParam>());
             
             //回転方向が違う歯車同士を強制的に接続
             //Forced connection of gears with different directions of rotation
@@ -208,19 +209,19 @@ namespace Tests.CombinedTest.Game
             var generatorGearPosition = new Vector3Int(2, 0, 1);
             var smallGearBPosition = new Vector3Int(3, 0, 1);
             
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleFastGearGenerator, fastGeneratorPosition, BlockDirection.North, out var fastGeneratorBlock, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleFastGearGenerator, fastGeneratorPosition, BlockDirection.North, out var fastGeneratorBlock, Array.Empty<BlockCreateParam>());
             var fastGenerator = fastGeneratorBlock.GetComponent<IGearGenerator>();
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, fastGeneratorGearPosition, BlockDirection.North, out _, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, fastGeneratorGearPosition, BlockDirection.North, out _, Array.Empty<BlockCreateParam>());
             
             // SmallGearA
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, smallGearAPosition, BlockDirection.North, out var smallGearABlock, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, smallGearAPosition, BlockDirection.North, out var smallGearABlock, Array.Empty<BlockCreateParam>());
             var smallGearA = smallGearABlock.GetComponent<GearComponent>();
             
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North, out var generatorBlock, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North, out var generatorBlock, Array.Empty<BlockCreateParam>());
             var generator = generatorBlock.GetComponent<IGearGenerator>();
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, generatorGearPosition, BlockDirection.North, out _, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, generatorGearPosition, BlockDirection.North, out _, Array.Empty<BlockCreateParam>());
             
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, smallGearBPosition, BlockDirection.North, out var smallGearBBlock, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, smallGearBPosition, BlockDirection.North, out var smallGearBBlock, Array.Empty<BlockCreateParam>());
             var smallGearB = smallGearBBlock.GetComponent<GearComponent>();
             
             var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
@@ -250,13 +251,13 @@ namespace Tests.CombinedTest.Game
             var gearPosition1 = new Vector3Int(0, 0, 1);
             var gearPosition2 = new Vector3Int(1, 0, 1);
             
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generator1Position, BlockDirection.North, out var generator1Block, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generator1Position, BlockDirection.North, out var generator1Block, Array.Empty<BlockCreateParam>());
             var generator1 = generator1Block.GetComponent<IGearEnergyTransformer>();
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generator2Position, BlockDirection.North, out var generator2Block, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generator2Position, BlockDirection.North, out var generator2Block, Array.Empty<BlockCreateParam>());
             var generator2 = generator2Block.GetComponent<IGearEnergyTransformer>();
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPosition1, BlockDirection.North, out var gear1Block, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPosition1, BlockDirection.North, out var gear1Block, Array.Empty<BlockCreateParam>());
             var gear1 = gear1Block.GetComponent<IGearEnergyTransformer>();
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPosition2, BlockDirection.North, out var gear2Block, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPosition2, BlockDirection.North, out var gear2Block, Array.Empty<BlockCreateParam>());
             var gear2 = gear2Block.GetComponent<IGearEnergyTransformer>();
             
             var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
@@ -275,15 +276,15 @@ namespace Tests.CombinedTest.Game
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
             var generatorPosition = new Vector3Int(0, 0, 0);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North, out _, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North, out _, Array.Empty<BlockCreateParam>());
             
             var gearPosition1 = new Vector3Int(0, 0, 1);
             var gearPosition2 = new Vector3Int(1, 0, 1);
             var gearPosition3 = new Vector3Int(2, 0, 1);
             
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition1, BlockDirection.North, out var gear1Block, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition2, BlockDirection.North, out var gear2Block, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition3, BlockDirection.North, out var gear3Block, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition1, BlockDirection.North, out var gear1Block, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition2, BlockDirection.North, out var gear2Block, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition3, BlockDirection.North, out var gear3Block, Array.Empty<BlockCreateParam>());
             
             var gear1 = gear1Block.GetComponent<IGearEnergyTransformer>();
             var gear2 = gear2Block.GetComponent<IGearEnergyTransformer>();
@@ -314,7 +315,7 @@ namespace Tests.CombinedTest.Game
 
             var generatorPosition = new Vector3Int(0, 0, 0);
 
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North, out var generatorBlock, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North, out var generatorBlock, Array.Empty<BlockCreateParam>());
             var generator = generatorBlock.GetComponent<SimpleGearGeneratorComponent>();
 
             var gearPosition1 = new Vector3Int(0, 0, 1);
@@ -324,12 +325,12 @@ namespace Tests.CombinedTest.Game
             var gearPosition5 = new Vector3Int(2, 0, 3);
             var gearPosition6 = new Vector3Int(3, 0, 3);
 
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition1, BlockDirection.North, out var gear1Block, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth20RequireTorqueTestGear, gearPosition2, BlockDirection.North, out var gear2Block, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition3, BlockDirection.North, out var gear3Block, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition4, BlockDirection.North, out var gear4Block, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth20RequireTorqueTestGear, gearPosition5, BlockDirection.North, out var gear5Block, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition6, BlockDirection.North, out var gear6Block, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition1, BlockDirection.North, out var gear1Block, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth20RequireTorqueTestGear, gearPosition2, BlockDirection.North, out var gear2Block, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition3, BlockDirection.North, out var gear3Block, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition4, BlockDirection.North, out var gear4Block, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth20RequireTorqueTestGear, gearPosition5, BlockDirection.North, out var gear5Block, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition6, BlockDirection.North, out var gear6Block, Array.Empty<BlockCreateParam>());
 
             var gear1 = gear1Block.GetComponent<IGearEnergyTransformer>();
             var gear2 = gear2Block.GetComponent<IGearEnergyTransformer>();
@@ -368,7 +369,7 @@ namespace Tests.CombinedTest.Game
 
             var generatorPosition = new Vector3Int(0, 0, 0);
 
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North, out var generatorBlock, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North, out var generatorBlock, Array.Empty<BlockCreateParam>());
             var generator = generatorBlock.GetComponent<SimpleGearGeneratorComponent>();
             // 生成するトルクを1に設定する
             // Set the generated torque to 1
@@ -377,8 +378,8 @@ namespace Tests.CombinedTest.Game
             var gearPosition1 = new Vector3Int(0, 0, 1);
             var gearPosition2 = new Vector3Int(1, 0, 1);
 
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth20RequireTorqueTestGear, gearPosition1, BlockDirection.North, out var gear1Block, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition2, BlockDirection.North, out var gear2Block, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth20RequireTorqueTestGear, gearPosition1, BlockDirection.North, out var gear1Block, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition2, BlockDirection.North, out var gear2Block, Array.Empty<BlockCreateParam>());
 
             var gear1 = gear1Block.GetComponent<IGearEnergyTransformer>();
             var gear2 = gear2Block.GetComponent<IGearEnergyTransformer>();
@@ -424,13 +425,13 @@ namespace Tests.CombinedTest.Game
             var gearPosition3 = new Vector3Int(3, 0, 0);
             
             // 2つのネットワークを作成
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North, out _, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPosition2, BlockDirection.North, out _, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPosition3, BlockDirection.North, out _, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North, out _, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPosition2, BlockDirection.North, out _, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPosition3, BlockDirection.North, out _, Array.Empty<BlockCreateParam>());
             AreEqual(2, gearNetworkDataStore.GearNetworks.Count);
             
             // ネットワークをマージ
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPosition1, BlockDirection.North, out _, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPosition1, BlockDirection.North, out _, Array.Empty<BlockCreateParam>());
             AreEqual(1, gearNetworkDataStore.GearNetworks.Count);
             
             // ネットワークの分離のテスト
@@ -486,7 +487,7 @@ namespace Tests.CombinedTest.Game
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
 
             var generatorPosition = new Vector3Int(0, 0, 0);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North, out _, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North, out _, Array.Empty<BlockCreateParam>());
 
             // 必要トルク計4の歯車を配置（ジェネレーターのトルク3を上回る）
             var gearPosition1 = new Vector3Int(0, 0, 1);
@@ -494,10 +495,10 @@ namespace Tests.CombinedTest.Game
             var gearPosition3 = new Vector3Int(2, 0, 1);
             var gearPosition4 = new Vector3Int(3, 0, 1);
 
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition1, BlockDirection.North, out var gear1Block, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition2, BlockDirection.North, out var gear2Block, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition3, BlockDirection.North, out var gear3Block, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition4, BlockDirection.North, out var gear4Block, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition1, BlockDirection.North, out var gear1Block, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition2, BlockDirection.North, out var gear2Block, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition3, BlockDirection.North, out var gear3Block, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition4, BlockDirection.North, out var gear4Block, Array.Empty<BlockCreateParam>());
 
             var gear1 = gear1Block.GetComponent<IGearEnergyTransformer>();
             var gear2 = gear2Block.GetComponent<IGearEnergyTransformer>();
@@ -532,17 +533,17 @@ namespace Tests.CombinedTest.Game
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
 
             var generatorPosition = new Vector3Int(0, 0, 0);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North, out _, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North, out _, Array.Empty<BlockCreateParam>());
 
             var gearPosition1 = new Vector3Int(0, 0, 1);
             var gearPosition2 = new Vector3Int(1, 0, 1);
             var gearPosition3 = new Vector3Int(2, 0, 1);
             var gearPosition4 = new Vector3Int(3, 0, 1);
 
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition1, BlockDirection.North, out var gear1Block, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition2, BlockDirection.North, out var gear2Block, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition3, BlockDirection.North, out var gear3Block, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition4, BlockDirection.North, out var gear4Block, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition1, BlockDirection.North, out var gear1Block, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition2, BlockDirection.North, out var gear2Block, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition3, BlockDirection.North, out var gear3Block, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition4, BlockDirection.North, out var gear4Block, Array.Empty<BlockCreateParam>());
 
             var gear1 = gear1Block.GetComponent<IGearEnergyTransformer>();
             var gear2 = gear2Block.GetComponent<IGearEnergyTransformer>();
@@ -590,10 +591,10 @@ namespace Tests.CombinedTest.Game
             var smallGear2Pos = new Vector3Int(1, 1, 2);
 
             // RPMが異なる歯車ネットワークを作成（ロックを引き起こす）
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPos, BlockDirection.North, out _, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.BigGear, bigGearPos, BlockDirection.North, out _, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, smallGear1Pos, BlockDirection.North, out var smallGear1, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, smallGear2Pos, BlockDirection.North, out var smallGear2, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPos, BlockDirection.North, out _, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.BigGear, bigGearPos, BlockDirection.North, out _, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, smallGear1Pos, BlockDirection.North, out var smallGear1, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, smallGear2Pos, BlockDirection.North, out var smallGear2, Array.Empty<BlockCreateParam>());
 
             // RPMが違う歯車同士を強制的に接続してロック状態を作成
             ForceConnectGear(smallGear1, smallGear2);
@@ -623,8 +624,8 @@ namespace Tests.CombinedTest.Game
             var gearPosition1 = new Vector3Int(0, 0, 0);
             var gearPosition2 = new Vector3Int(1, 0, 0);
 
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPosition1, BlockDirection.North, out var gear1Block, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPosition2, BlockDirection.North, out var gear2Block, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPosition1, BlockDirection.North, out var gear1Block, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPosition2, BlockDirection.North, out var gear2Block, Array.Empty<BlockCreateParam>());
 
             var gear1 = gear1Block.GetComponent<IGearEnergyTransformer>();
             var gear2 = gear2Block.GetComponent<IGearEnergyTransformer>();
@@ -656,7 +657,7 @@ namespace Tests.CombinedTest.Game
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
 
             var generatorPosition = new Vector3Int(0, 0, 0);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North, out _, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North, out _, Array.Empty<BlockCreateParam>());
 
             // SimpleGearGeneratorのトルクは3、RPMは10なので、ギアパワーは30
             // Teeth10RequireTorqueTestGearのトルクは1、RPMは10なので、1つあたりのギアパワーは10
@@ -665,9 +666,9 @@ namespace Tests.CombinedTest.Game
             var gearPosition2 = new Vector3Int(1, 0, 1);
             var gearPosition3 = new Vector3Int(2, 0, 1);
 
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition1, BlockDirection.North, out var gear1Block, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition2, BlockDirection.North, out var gear2Block, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition3, BlockDirection.North, out var gear3Block, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition1, BlockDirection.North, out var gear1Block, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition2, BlockDirection.North, out var gear2Block, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, gearPosition3, BlockDirection.North, out var gear3Block, Array.Empty<BlockCreateParam>());
 
             var gear1 = gear1Block.GetComponent<IGearEnergyTransformer>();
             var gear2 = gear2Block.GetComponent<IGearEnergyTransformer>();

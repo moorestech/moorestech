@@ -266,7 +266,7 @@ namespace Tests.CombinedTest.Game
         private IBlock AddBlock(BlockId blockId, int x, int z, BlockDirection direction)
         {
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            worldBlockDatastore.TryAddBlock(blockId, new Vector3Int(x, 0, z), direction, out var block, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(blockId, new Vector3Int(x, 0, z), direction, out var block, Array.Empty<BlockCreateParam>());
             
             return block;
         }

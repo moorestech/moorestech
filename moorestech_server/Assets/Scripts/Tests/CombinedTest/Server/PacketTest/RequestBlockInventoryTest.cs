@@ -11,6 +11,7 @@ using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.BlockInventoryRequestProtocol;
+using System;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -27,7 +28,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var itemStackFactory = ServerContext.ItemStackFactory;
             
             
-            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(5, 10), BlockDirection.North, out var machineBlock, System.Array.Empty<BlockCreateParam>());
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(5, 10), BlockDirection.North, out var machineBlock, Array.Empty<BlockCreateParam>());
             var machineComponent = machineBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
             machineComponent.SetItem(0, itemStackFactory.Create(new ItemId(1), 2));
             machineComponent.SetItem(2, itemStackFactory.Create(new ItemId(4), 5));

@@ -23,9 +23,9 @@ namespace Tests.CombinedTest.Game
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
             //それぞれを設置
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, Vector3Int.zero, BlockDirection.North, out var inputChest, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(0, 0, 1), BlockDirection.North, out var beltConveyor, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, 2), BlockDirection.North, out var outputChest, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, Vector3Int.zero, BlockDirection.North, out var inputChest, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(0, 0, 1), BlockDirection.North, out var beltConveyor, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, 2), BlockDirection.North, out var outputChest, Array.Empty<BlockCreateParam>());
             
             //インプットチェストにアイテムを2つ入れる
             var inputChestComponent = inputChest.GetComponent<VanillaChestComponent>();

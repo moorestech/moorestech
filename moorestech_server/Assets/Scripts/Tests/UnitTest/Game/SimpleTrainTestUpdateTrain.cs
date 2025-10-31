@@ -11,6 +11,7 @@ using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;
 using Game.Train.Utility;
+using System;
 
 
 namespace Tests.UnitTest.Game
@@ -33,10 +34,10 @@ namespace Tests.UnitTest.Game
 
             // 1) ワールド上にいくつかレールを「TryAddBlock」して、RailComponentを取得
             //    例として4本だけ設置
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(0, 0, 0), BlockDirection.North, out var railBlockA, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(2162, 2, -1667), BlockDirection.East, out var railBlockB, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(-924, 12, 974), BlockDirection.West, out var railBlockC, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(1149, 0, 347), BlockDirection.South, out var railBlockD, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(0, 0, 0), BlockDirection.North, out var railBlockA, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(2162, 2, -1667), BlockDirection.East, out var railBlockB, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(-924, 12, 974), BlockDirection.West, out var railBlockC, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(1149, 0, 347), BlockDirection.South, out var railBlockD, Array.Empty<BlockCreateParam>());
 
             // RailComponent を取得
             var railComponentA = railBlockA.GetComponent<RailComponent>();
@@ -126,10 +127,10 @@ namespace Tests.UnitTest.Game
             _ = env.GetRailGraphDatastore();
             var worldBlockDatastore = env.WorldBlockDatastore;
 
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(0, 0, 0), BlockDirection.North, out var railA, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(2162, 2, -1667), BlockDirection.North, out var railB, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(-924, 12, 974), BlockDirection.North, out var railC, System.Array.Empty<BlockCreateParam>());
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(1149, 0, 347), BlockDirection.North, out var railD, System.Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(0, 0, 0), BlockDirection.North, out var railA, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(2162, 2, -1667), BlockDirection.North, out var railB, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(-924, 12, 974), BlockDirection.North, out var railC, Array.Empty<BlockCreateParam>());
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, new Vector3Int(1149, 0, 347), BlockDirection.North, out var railD, Array.Empty<BlockCreateParam>());
             var railComponentA = railA.GetComponent<RailComponent>();
             var railComponentB = railB.GetComponent<RailComponent>();
             var railComponentC = railC.GetComponent<RailComponent>();
@@ -286,9 +287,9 @@ namespace Tests.UnitTest.Game
                 //yで重ならないよう調整、x,zは-1000～1000のランダム
                 var position = new Vector3Int(UnityEngine.Random.Range(-1000, 1000), i * 6 + 3, UnityEngine.Random.Range(-1000, 1000));
                 //気動車に対応する駅1
-                worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainStation, position, blockDirections[i], out var stationBlockA, System.Array.Empty<BlockCreateParam>());
+                worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainStation, position, blockDirections[i], out var stationBlockA, Array.Empty<BlockCreateParam>());
                 //気動車に対応する駅2
-                worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainStation, position + dirarray[i] * 66, blockDirections[i], out var stationBlockB, System.Array.Empty<BlockCreateParam>());
+                worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainStation, position + dirarray[i] * 66, blockDirections[i], out var stationBlockB, Array.Empty<BlockCreateParam>());
                 var railcomposA = stationBlockA.GetComponent<RailSaverComponent>();
                 var railcomposB = stationBlockB.GetComponent<RailSaverComponent>();
                 //中間の貨物駅
@@ -297,7 +298,7 @@ namespace Tests.UnitTest.Game
                     var offset11or22 = 22;
                     if (blockDirections[i] == BlockDirection.East) offset11or22 = 11;
                     if (blockDirections[i] == BlockDirection.South) offset11or22 = 11;
-                    worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainCargoPlatform, position + dirarray[i] * (offset11or22 + 11 * j), blockDirections[i], out var cargoblock, System.Array.Empty<BlockCreateParam>());
+                    worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainCargoPlatform, position + dirarray[i] * (offset11or22 + 11 * j), blockDirections[i], out var cargoblock, Array.Empty<BlockCreateParam>());
                 }
                 Assert.AreEqual(2, railcomposA.RailComponents.Length, "駅Aに付随するRailComponent数が2本ではありません。");
                 Assert.AreEqual(2, railcomposB.RailComponents.Length, "駅Bに付随するRailComponent数が2本ではありません。");
@@ -312,7 +313,7 @@ namespace Tests.UnitTest.Game
             {
                 //y=0,1,2で重ならないよう調整は-1000～1000のランダム
                 var position = new Vector3Int(UnityEngine.Random.Range(-1000, 1000), i, UnityEngine.Random.Range(-1000, 1000));
-                worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, position, BlockDirection.West, out var railBlockA, System.Array.Empty<BlockCreateParam>());
+                worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainRail, position, BlockDirection.West, out var railBlockA, Array.Empty<BlockCreateParam>());
                 var railComponentA = railBlockA.GetComponent<RailSaverComponent>().RailComponents[0];
                 railComponentsData[8 + i] = railComponentA;
             }
