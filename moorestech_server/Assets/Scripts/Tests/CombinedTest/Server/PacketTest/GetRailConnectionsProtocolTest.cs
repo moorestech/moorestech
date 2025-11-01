@@ -42,15 +42,15 @@ namespace Tests.CombinedTest.Server.PacketTest
             var responseAfterConnect = SendGetRailConnectionsRequest(packet);
             Assert.IsNotNull(responseAfterConnect);
             Assert.IsNotNull(responseAfterConnect.Connections);
-            Assert.AreEqual(1, responseBeforeConnect.Connections.Length);
-            
+            Assert.AreEqual(1, responseAfterConnect.Connections.Length);
+
             // Act & Assert 3: RailConnectionEditProtocolで切断を実行
             // Act & Assert 3: Execute disconnect using RailConnectionEditProtocol
             SendRailConnectionEditRequest(packet, fromPos, toPos, RailEditMode.Disconnect, true, true);
             var responseAfterDisconnect = SendGetRailConnectionsRequest(packet);
             Assert.IsNotNull(responseAfterDisconnect);
             Assert.IsNotNull(responseAfterDisconnect.Connections);
-            Assert.AreEqual(0, responseBeforeConnect.Connections.Length);
+            Assert.AreEqual(0, responseAfterDisconnect.Connections.Length);
         }
         
         // GetRailConnectionsプロトコルを送信するヘルパーメソッド
@@ -67,10 +67,13 @@ namespace Tests.CombinedTest.Server.PacketTest
         // Helper method to send RailConnectionEdit protocol
         private void SendRailConnectionEditRequest(PacketResponseCreator packet, Vector3Int from, Vector3Int to, RailEditMode mode, bool connectFromIsFront, bool connectToIsFront)
         {
+            var fromSpecifier = RailComponentSpecifier.CreateRailSpecifier(from);
+            var toSpecifier = RailComponentSpecifier.CreateRailSpecifier(to);
+
             var request = mode switch
             {
-                RailEditMode.Connect => RailConnectionEditRequest.CreateConnectRequest(from, to, connectFromIsFront, connectToIsFront),
-                RailEditMode.Disconnect => RailConnectionEditRequest.CreateDisconnectRequest(from, to),
+                RailEditMode.Connect => RailConnectionEditRequest.CreateConnectRequest(fromSpecifier, toSpecifier, connectFromIsFront, connectToIsFront),
+                RailEditMode.Disconnect => RailConnectionEditRequest.CreateDisconnectRequest(fromSpecifier, toSpecifier),
                 _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, null)
             };
             var requestData = MessagePackSerializer.Serialize(request).ToList();

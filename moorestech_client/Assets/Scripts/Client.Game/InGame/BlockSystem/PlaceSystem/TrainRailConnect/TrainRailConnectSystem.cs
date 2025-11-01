@@ -1,6 +1,7 @@
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Context;
 using Client.Input;
+using Server.Protocol.PacketResponse;
 using UnityEngine;
 using static Client.Common.LayerConst;
 using static Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect.TrainRailConnectPreviewCalculator;
@@ -69,10 +70,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 
                 var connectFromPosition = previewData.FromBlock.BlockPosInfo.OriginalPos;
                 var connectToPosition = previewData.ToBlock.BlockPosInfo.OriginalPos;
-                
+
                 Debug.Log($"接続 From:{_connectFromArea.IsFront} {connectFromPosition} To:{connectToArea.IsFront} {connectToPosition}");
-                
-                ClientContext.VanillaApi.SendOnly.ConnectRail(connectFromPosition, connectToPosition, previewData.IsFromFront, previewData.IsToFront);
+
+                var fromSpecifier = RailConnectionEditProtocol.RailComponentSpecifier.CreateRailSpecifier(connectFromPosition);
+                var toSpecifier = RailConnectionEditProtocol.RailComponentSpecifier.CreateRailSpecifier(connectToPosition);
+                ClientContext.VanillaApi.SendOnly.ConnectRail(fromSpecifier, toSpecifier, previewData.IsFromFront, previewData.IsToFront);
                 _connectFromArea = null;
                 
             }
