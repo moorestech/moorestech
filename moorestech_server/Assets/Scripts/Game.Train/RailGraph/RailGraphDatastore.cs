@@ -206,10 +206,8 @@ namespace Game.Train.RailGraph
             var nodeid = railIdDic[node];
             var targetid = railIdDic[targetNode];
             connectNodes[nodeid].RemoveAll(x => x.Item1 == targetid);
-            
             // レールグラフ更新イベントを発火
-            // Fire rail graph update event
-            NotifyRailGraphUpdate(node, targetNode);
+            // TODO 削除関連はまだ未対応
         }
 
         private void RemoveNodeInternal(RailNode node)
@@ -269,7 +267,7 @@ namespace Game.Train.RailGraph
             {
                 return false;
             }
-
+            railIdToConnectionDestination.TryGetValue(nodeId, out destination);
             return railIdToConnectionDestination.TryGetValue(nodeId, out destination);
         }
 
