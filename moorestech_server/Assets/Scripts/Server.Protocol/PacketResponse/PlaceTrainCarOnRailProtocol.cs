@@ -47,17 +47,9 @@ namespace Server.Protocol.PacketResponse
             var item = mainInventory.GetItem(request.InventorySlot);
             if (item.Id == ItemMaster.EmptyItemId || item.Count == 0) return null;
             
-            // 列車編成データの取得
-            // Load train composition definition
-            var trainCars = BuildTrainCars(item.Id);
-            if (trainCars == null || trainCars.Count == 0)
-            {
-                return CreateErrorResponse("無効な列車アイテムです");
-            }
-            
             // 列車ユニット生成
             // Build train unit from composition data
-            CreateTrainUnit(railComponent, trainCars);
+            CreateTrainUnit(railComponent, item.Id);
             
             // アイテムを消費
             // Consume the train item from inventory
@@ -67,9 +59,9 @@ namespace Server.Protocol.PacketResponse
             
             #region Internal
             
-            TrainUnit CreateTrainUnit(RailComponent railComponent, List<TrainCar> trainCars)
+            TrainUnit CreateTrainUnit(RailComponent railComponent, ItemId trainItemId)
             {
-                var trainLength = trainCars.Sum(car => car.Length);
+                // TODO MasterHolderのTrainUnitMasterから列車データを取得してTrainCarを生成する処理を実装する
                 
                 var railNodes = new List<RailNode>
                 {
@@ -77,8 +69,8 @@ namespace Server.Protocol.PacketResponse
                     railComponent.BackNode
                 };
                 
-                var railPosition = new RailPosition(railNodes, trainLength, 0);
-                return new TrainUnit(railPosition, trainCars);
+                var railPosition = new RailPosition(railNodes,
+                return new TrainUnit(railPosition
             }
             
             #endregion
@@ -114,70 +106,6 @@ namespace Server.Protocol.PacketResponse
                 HotBarSlot = hotBarSlot;
                 PlayerId = playerId;
             }
-        }
-
-        [MessagePackObject]
-        public class PlaceTrainOnRailResponseMessagePack : ProtocolMessagePackBase
-        {
-            [Key(2)] public bool IsSuccess { get; set; }
-            [Key(3)] public string ErrorMessage { get; set; }
-            [Key(4)] public string TrainIdStr { get; set; }
-            [IgnoreMember] public Guid? TrainId => string.IsNullOrEmpty(TrainIdStr) ? null : Guid.Parse(TrainIdStr);
-
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-            public PlaceTrainOnRailResponseMessagePack()
-            {
-            }
-
-            public PlaceTrainOnRailResponseMessagePack(
-                bool isSuccess,
-                Guid? trainId,
-                string errorMessage)
-            {
-                // レスポンス情報を格納
-                // Populate response information
-                Tag = ProtocolTag;
-                IsSuccess = isSuccess;
-                TrainIdStr = trainId?.ToString();
-                ErrorMessage = isSuccess ? null : errorMessage;
-            }
-        }
-
-        #endregion
-
-        #region Internal
-
-        private List<TrainCar> BuildTrainCars(ItemId trainItemId)
-        {
-            var itemElement = MasterHolder.ItemMaster.GetItemMaster(trainItemId);
-            var compositionProperty = itemElement.GetType().GetProperty("TrainComposition");
-            var composition = compositionProperty?.GetValue(itemElement);
-            var carsProperty = composition?.GetType().GetProperty("Cars");
-            var carDefinitions = carsProperty?.GetValue(composition) as IEnumerable<object>;
-
-            if (carDefinitions == null)
-            {
-                return null;
-            }
-
-            var cars = new List<TrainCar>();
-            foreach (var carDefinition in carDefinitions)
-            {
-                var type = carDefinition.GetType();
-                var traction = Convert.ToInt32(type.GetProperty("TractionForce")?.GetValue(carDefinition) ?? 0);
-                var slots = Convert.ToInt32(type.GetProperty("InventorySlots")?.GetValue(carDefinition) ?? 0);
-                var length = Convert.ToInt32(type.GetProperty("Length")?.GetValue(carDefinition) ?? 0);
-                var facing = Convert.ToBoolean(type.GetProperty("IsFacingForward")?.GetValue(carDefinition) ?? true);
-
-                cars.Add(new TrainCar(traction, slots, length, 0, facing));
-            }
-
-            return cars;
-        }
-
-        private static PlaceTrainOnRailResponseMessagePack CreateErrorResponse(string message)
-        {
-            return new PlaceTrainOnRailResponseMessagePack(false, null, message);
         }
 
         #endregion
