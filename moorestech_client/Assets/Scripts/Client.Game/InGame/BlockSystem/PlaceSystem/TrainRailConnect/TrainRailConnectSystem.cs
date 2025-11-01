@@ -1,5 +1,5 @@
-using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
+using Client.Game.InGame.Context;
 using Client.Input;
 using UnityEngine;
 using static Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect.TrainRailConnectPreviewCalculator;
@@ -11,7 +11,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         private readonly RailConnectPreviewObject _previewObject;
         private readonly Camera _mainCamera;
         
-        private BlockGameObject _connectFromBlock;
+        private TrainRailConnectAreaCollider _connectFromArea;
         public TrainRailConnectSystem(Camera mainCamera, RailConnectPreviewObject previewObject)
         {
             _mainCamera = mainCamera;
@@ -20,56 +20,55 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         
         public void Enable()
         {
-            _connectFromBlock = null;
+            _connectFromArea = null;
         }
         public void ManualUpdate(PlaceSystemUpdateContext context)
         {
-            if (_connectFromBlock == null)
+            if (_connectFromArea == null)
             {
-                _connectFromBlock = GetFromBlock();
+                _connectFromArea = GetTrainRailConnectAreaCollider();
+                Debug.Log($"接続スタート {_connectFromArea.IsFront} {_connectFromArea.BlockGameObject.BlockPosInfo}");
                 return;
             }
             
-            var connectToArea = GetToTrainRailConnectAreaCollider();
-            var previewData = CalculatePreviewData(_connectFromBlock, connectToArea);
+            var connectToArea = GetTrainRailConnectAreaCollider();
+            // 接続先がカーソル上になければreturn
+            // If the connection point is not under the cursor, return.
+            if (connectToArea == null)
+            {
+                _previewObject.SetActive(false);
+                return;
+            }
             
+            var previewData = CalculatePreviewData(_connectFromArea, connectToArea);
             ShowPreview();
             SendProtocol();
             
             #region Internal
             
-            BlockGameObject GetFromBlock()
-            {
-                if (!InputManager.Playable.ScreenRightClick.GetKeyDown) return null;
-                if (!PlaceSystemUtil.TryGetRayHitPosition(_mainCamera, out _, out var surface)) return null;
-                
-                return surface.BlockGameObject;
-            }
-            
             void ShowPreview()
             {
-                if (connectToArea == null)
-                {
-                    _previewObject.SetActive(false);
-                    return;
-                }
-                
                 _previewObject.SetActive(true);
                 _previewObject.ShowPreview(previewData);
             }
             
             void SendProtocol()
             {
-                if(InputManager.Playable.ScreenLeftClick.GetKeyDown)
-                {
-                    _previewObject.SetActive(false);
-                    _connectFromBlock = null;
-                    
-                    // TODO プロトコル送信処理
-                }
+                if (!InputManager.Playable.ScreenLeftClick.GetKeyDown) return;
+                
+                _previewObject.SetActive(false);
+                
+                var connectFromPosition = previewData.FromBlock.BlockPosInfo.OriginalPos;
+                var connectToPosition = previewData.ToBlock.BlockPosInfo.OriginalPos;
+                
+                Debug.Log($"接続 From:{_connectFromArea.IsFront} {connectFromPosition} To:{connectToArea.IsFront} {connectToPosition}");
+                
+                ClientContext.VanillaApi.SendOnly.ConnectRail(connectFromPosition, connectToPosition, previewData.IsFromFront, previewData.IsToFront);
+                _connectFromArea = null;
+                
             }
             
-            TrainRailConnectAreaCollider GetToTrainRailConnectAreaCollider()
+            TrainRailConnectAreaCollider GetTrainRailConnectAreaCollider()
             {
                 PlaceSystemUtil.TryGetRaySpecifiedComponentHit<TrainRailConnectAreaCollider>(_mainCamera, out var connectArea);
                 return connectArea;
