@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 5086858135858571031}
   - component: {fileID: 348835835513500383}
   - component: {fileID: 1954232122097799401}
+  - component: {fileID: 7790886324946892824}
   m_Layer: 7
   m_Name: train rail front
   m_TagString: Untagged
@@ -67,6 +68,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect.TrainRailConnectAreaCollider
   isFront: 1
+--- !u!114 &7790886324946892824
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 792509516632059973}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac6c17f1c61d41a099c386ef8cc3b340, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.Block.BlockGameObjectChild
 --- !u!1 &2075963824151606802
 GameObject:
   m_ObjectHideFlags: 0
@@ -270,6 +283,7 @@ GameObject:
   - component: {fileID: 3629394762024593076}
   - component: {fileID: 5957665648384915080}
   - component: {fileID: 6160963141645580631}
+  - component: {fileID: 4369535767028217187}
   m_Layer: 7
   m_Name: train rail back
   m_TagString: Untagged
@@ -326,6 +340,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect.TrainRailConnectAreaCollider
   isFront: 0
+--- !u!114 &4369535767028217187
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7541224700139236265}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac6c17f1c61d41a099c386ef8cc3b340, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.Block.BlockGameObjectChild
 --- !u!1 &8909408793303618519
 GameObject:
   m_ObjectHideFlags: 0
