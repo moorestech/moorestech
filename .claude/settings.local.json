@@ -53,7 +53,10 @@
       "mcp__serena__think_about_collected_information",
       "SlashCommand(/kiro:spec-requirements:*)",
       "SlashCommand(/kiro:spec-impl:*)",
-      "Bash(git worktree:*)"
+      "Bash(git worktree:*)",
+      "Bash(./tools/unity-list-tests.sh:*)",
+      "Bash(./check_timeout_tests.sh:*)",
+      "Bash(tee:*)"
     ],
     "deny": []
   },
