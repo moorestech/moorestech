@@ -1,6 +1,6 @@
 using Game.Train.Utility;
+using Server.Util.MessagePack;
 using UnityEngine;
-using RailNodeInfo = Server.Util.MessagePack.RailConnectionMessagePack.RailNodeInfo;
 
 namespace Client.Game.InGame.Train
 {
@@ -9,7 +9,7 @@ namespace Client.Game.InGame.Train
         private const float MinimumTangentLength = 0.05f;
         private const float ShortDistanceThreshold = 0.5f;
         
-        public static bool ValidateRailConnection(RailNodeInfo fromNode, RailNodeInfo toNode)
+        public static bool ValidateRailConnection(RailNodeInfoMessagePack fromNode, RailNodeInfoMessagePack toNode)
         {
             // 制御点が存在するか簡易チェック
             // Ensure both control points exist before calculation
@@ -18,7 +18,7 @@ namespace Client.Game.InGame.Train
             return true;
         }
         
-        public static (Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3) CalculateBezierControlPoints(RailNodeInfo fromNode, RailNodeInfo toNode, int distance)
+        public static (Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3) CalculateBezierControlPoints(RailNodeInfoMessagePack fromNode, RailNodeInfoMessagePack toNode, int distance)
         {
             // メッセージパックからベジエ制御点を算出
             // Convert message pack data into bezier control points

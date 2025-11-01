@@ -47,8 +47,8 @@ namespace Server.Event.EventReceive
         [MessagePackObject]
         public class RailConnectionsEventMessagePack
         {
-            [Key(0)] public RailConnectionMessagePack.RailConnectionData[] AllConnections { get; set; }
-            [Key(1)] public RailConnectionMessagePack.RailComponentIDMessagePack[] ChangedComponentIds { get; set; }
+            [Key(0)] public RailConnectionDataMessagePack[] AllConnections { get; set; }
+            [Key(1)] public RailComponentIDMessagePack[] ChangedComponentIds { get; set; }
             
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public RailConnectionsEventMessagePack() { }
@@ -58,10 +58,10 @@ namespace Server.Event.EventReceive
             {
                 // RailConnectionInfoからRailConnectionDataへ変換（変換処理は静的メソッド内で実行）
                 // Convert RailConnectionInfo to RailConnectionData (conversion is done in static method)
-                var connectionDataList = new List<RailConnectionMessagePack.RailConnectionData>();
+                var connectionDataList = new List<RailConnectionDataMessagePack>();
                 foreach (var connectionInfo in connectionInfos)
                 {
-                    var connectionData = RailConnectionMessagePack.RailConnectionData.TryCreate(connectionInfo);
+                    var connectionData = RailConnectionDataMessagePack.TryCreate(connectionInfo);
                     if (connectionData == null) continue;
                     
                     connectionDataList.Add(connectionData);
@@ -71,7 +71,7 @@ namespace Server.Event.EventReceive
                 
                 // 変更されたRailComponentIDをMessagePack形式に変換
                 // Convert changed RailComponentIDs to MessagePack format
-                ChangedComponentIds = changedComponentIds.Select(id => new RailConnectionMessagePack.RailComponentIDMessagePack(id)).ToArray();
+                ChangedComponentIds = changedComponentIds.Select(id => new RailComponentIDMessagePack(id)).ToArray();
             }
         }
         
