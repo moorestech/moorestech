@@ -15,6 +15,7 @@ namespace Client.Game.InGame.Train
         
         private SplineContainer _splineContainer;
         private SplineExtrude _splineExtrude;
+        private MeshCollider _meshCollider;
         private RailConnectionDataMessagePack _connectionData;
         
         public RailConnectionDataMessagePack ConnectionData => _connectionData;
@@ -36,6 +37,15 @@ namespace Client.Game.InGame.Train
                 _splineExtrude.Radius = 0.25f;
                 _splineExtrude.Capped = false;
             }
+            
+            // MeshColliderを追加してConvexを有効化
+            // Add MeshCollider and enable Convex
+            _meshCollider = GetComponent<MeshCollider>();
+            if (_meshCollider == null)
+            {
+                _meshCollider = gameObject.AddComponent<MeshCollider>();
+            }
+            _meshCollider.convex = true;
         }
         
         /// <summary>
