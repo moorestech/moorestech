@@ -23,10 +23,12 @@ namespace Client.Network.API
         public UnlockStateResponse UnlockState { get; }
         public CraftTreeResponse CraftTree { get; }
         public List<string> PlayedSkitIds { get; }
+        public RailConnectionDataMessagePack[] RailConnections { get; }
         
         public InitialHandshakeResponse(
             ResponseInitialHandshakeMessagePack initialHandshake,
             (
+                RailConnectionDataMessagePack[] railConnections,
                 List<MapObjectsInfoMessagePack> mapObjects, 
                 WorldDataResponse worldData, 
                 PlayerInventoryResponse inventory,
@@ -43,6 +45,7 @@ namespace Client.Network.API
             UnlockState = responses.unlockState;
             CraftTree = responses.craftTree;
             PlayedSkitIds = responses.playedSkitIds;
+            RailConnections = responses.railConnections;
         }
     }
     

@@ -75,6 +75,11 @@ namespace Game.Block.Blocks.TrainRail
         /// <param name="explicitDistance">明示的に距離を指定したい場合（-1なら自動計算）</param>
         public void ConnectRailComponent(RailComponent targetComponent, bool useFrontSideOfThis, bool useFrontSideOfTarget, int explicitDistance = -1)
         {
+            if (this == targetComponent)
+            {
+                Debug.LogWarning("Attempted to connect a RailComponent to itself. Operation aborted.");
+                return;
+            }
             // まず、接続する2つのRailNodeを取得
             var (thisNode, thisOppositeNode) = GetRailNodesBySide(useFrontSideOfThis);
             var (targetNode, targetOppositeNode) = targetComponent.GetRailNodesBySide(useFrontSideOfTarget);

@@ -7,6 +7,7 @@ using Game.CraftTree.Models;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using UnityEngine;
+using static Server.Protocol.PacketResponse.RailConnectionEditProtocol;
 
 namespace Client.Network.API
 {
@@ -116,6 +117,17 @@ namespace Client.Network.API
         public void CompleteResearch(Guid researchGuid)
         {
             var request = new CompleteResearchProtocol.RequestCompleteResearchMessagePack(_playerId, researchGuid);
+            _packetSender.Send(request);
+        }
+
+        public void ConnectRail(RailComponentSpecifier from, RailComponentSpecifier to, bool connectFromIsFront, bool connectToIsFront)
+        {
+            var request = RailConnectionEditRequest.CreateConnectRequest(from, to, connectFromIsFront, connectToIsFront);
+            _packetSender.Send(request);
+        }
+        public void DisconnectRail(RailComponentSpecifier from, RailComponentSpecifier to)
+        {
+            var request = RailConnectionEditRequest.CreateDisconnectRequest(from, to);
             _packetSender.Send(request);
         }
     }
