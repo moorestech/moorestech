@@ -7,6 +7,7 @@ using Game.CraftTree.Models;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using UnityEngine;
+using static Server.Protocol.PacketResponse.RailConnectionEditProtocol;
 
 namespace Client.Network.API
 {
@@ -119,14 +120,14 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
 
-        public void ConnectRail(RailConnectionEditProtocol.RailComponentSpecifier from, RailConnectionEditProtocol.RailComponentSpecifier to, bool connectFromIsFront, bool connectToIsFront)
+        public void ConnectRail(RailComponentSpecifier from, RailComponentSpecifier to, bool connectFromIsFront, bool connectToIsFront)
         {
-            var request = RailConnectionEditProtocol.RailConnectionEditRequest.CreateConnectRequest(from, to, connectFromIsFront, connectToIsFront);
+            var request = RailConnectionEditRequest.CreateConnectRequest(from, to, connectFromIsFront, connectToIsFront);
             _packetSender.Send(request);
         }
-        public void DisconnectRail(RailConnectionEditProtocol.RailComponentSpecifier from, RailConnectionEditProtocol.RailComponentSpecifier to)
+        public void DisconnectRail(RailComponentSpecifier from, RailComponentSpecifier to)
         {
-            var request = RailConnectionEditProtocol.RailConnectionEditRequest.CreateDisconnectRequest(from, to);
+            var request = RailConnectionEditRequest.CreateDisconnectRequest(from, to);
             _packetSender.Send(request);
         }
     }

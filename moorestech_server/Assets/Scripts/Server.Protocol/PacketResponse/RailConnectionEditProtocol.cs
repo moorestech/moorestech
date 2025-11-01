@@ -75,16 +75,10 @@ namespace Server.Protocol.PacketResponse
                     case RailComponentSpecifierMode.Station:
                         // 駅モード：RailSaverComponentから配列インデックスで取得
                         // Station mode: Get from RailSaverComponent by array index
-                        if (!block.TryGetComponent<RailSaverComponent>(out var railSaverComponent))
-                        {
-                            return null;
-                        }
+                        if (!block.TryGetComponent<RailSaverComponent>(out var railSaverComponent)) return null;
 
                         var railComponents = railSaverComponent.RailComponents;
-                        if (railComponents == null || specifier.RailIndex < 0 || specifier.RailIndex >= railComponents.Length)
-                        {
-                            return null;
-                        }
+                        if (railComponents == null || specifier.RailIndex < 0 || specifier.RailIndex >= railComponents.Length) return null;
 
                         return railComponents[specifier.RailIndex];
 
