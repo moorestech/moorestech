@@ -28,7 +28,7 @@ namespace Client.Game.InGame.Train
         [Inject]
         public void Construct(InitialHandshakeResponse handshakeResponse)
         {
-            OnRailDataReceived(handshakeResponse.RailConnections);
+            OnRailUpdateEvent(handshakeResponse.RailConnections, Array.Empty<RailComponentIDMessagePack>());
             ClientContext.VanillaApi.Event.SubscribeEventResponse(RailConnectionsEventPacket.EventTag, OnRailEvent);
         }
         
@@ -51,7 +51,6 @@ namespace Client.Game.InGame.Train
             // サーバーイベントで届いた全量データを適用
             // Apply full snapshot received from the server event
             OnRailDataReceived(allConnections);
-            if (changedIds == null || changedIds.Length == 0) return;
             foreach (var componentId in changedIds) UpdateRailComponentSpline(componentId);
         }
         
@@ -245,7 +244,7 @@ namespace Client.Game.InGame.Train
             extrude.Container = container;
             extrude.SegmentsPerUnit = 4f;
             extrude.Sides = 6;
-            extrude.Radius = 0.08f;
+            extrude.Radius = 0.25f;
             extrude.Capped = false;
             
             var renderer = go.GetComponent<MeshRenderer>();
