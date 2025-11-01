@@ -4,7 +4,6 @@ using Client.Input;
 using UnityEngine;
 using static Client.Common.LayerConst;
 using static Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect.TrainRailConnectPreviewCalculator;
-using static Server.Protocol.PacketResponse.RailConnectionEditProtocol;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
 {
@@ -13,7 +12,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         private readonly RailConnectPreviewObject _previewObject;
         private readonly Camera _mainCamera;
         
-        private TrainRailConnectAreaCollider _connectFromArea;
+        private IRailComponentConnectAreaCollider _connectFromArea;
         public TrainRailConnectSystem(Camera mainCamera, RailConnectPreviewObject previewObject)
         {
             _mainCamera = mainCamera;
@@ -36,7 +35,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 }
                 if (_connectFromArea != null)
                 {
-                    Debug.Log($"接続スタート {_connectFromArea.IsFront} {_connectFromArea.BlockGameObject.BlockPosInfo}");
+                    Debug.Log($"接続スタート {_connectFromArea.IsFront} {_connectFromArea.CreateRailComponentSpecifier().Position.Vector3Int}");
                 }
                 return;
             }
@@ -68,21 +67,19 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 
                 _previewObject.SetActive(false);
                 
-                var connectFromPosition = previewData.FromBlock.BlockPosInfo.OriginalPos;
-                var connectToPosition = previewData.ToBlock.BlockPosInfo.OriginalPos;
-
-                Debug.Log($"接続 From:{_connectFromArea.IsFront} {connectFromPosition} To:{connectToArea.IsFront} {connectToPosition}");
-
-                var fromSpecifier = RailComponentSpecifier.CreateRailSpecifier(connectFromPosition);
-                var toSpecifier = RailComponentSpecifier.CreateRailSpecifier(connectToPosition);
-                ClientContext.VanillaApi.SendOnly.ConnectRail(fromSpecifier, toSpecifier, previewData.IsFromFront, previewData.IsToFront);
+                var from = _connectFromArea.CreateRailComponentSpecifier();
+                var to = connectToArea.CreateRailComponentSpecifier();
+                
+                Debug.Log($"接続 From:{_connectFromArea.IsFront} {from.Position.Vector3Int} To:{connectToArea.IsFront} {to.Position.Vector3Int}");
+                
+                ClientContext.VanillaApi.SendOnly.ConnectRail(from, to, previewData.IsFromFront, previewData.IsToFront);
                 _connectFromArea = null;
                 
             }
             
-            TrainRailConnectAreaCollider GetTrainRailConnectAreaCollider()
+            IRailComponentConnectAreaCollider GetTrainRailConnectAreaCollider()
             {
-                PlaceSystemUtil.TryGetRaySpecifiedComponentHit<TrainRailConnectAreaCollider>(_mainCamera, out var connectArea, Without_Player_MapObject_BlockBoundingBox_LayerMask);
+                PlaceSystemUtil.TryGetRaySpecifiedComponentHit<IRailComponentConnectAreaCollider>(_mainCamera, out var connectArea, Without_Player_MapObject_BlockBoundingBox_LayerMask);
                 return connectArea;
             }
             
