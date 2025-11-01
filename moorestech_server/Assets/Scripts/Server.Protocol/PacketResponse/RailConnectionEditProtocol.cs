@@ -21,13 +21,13 @@ namespace Server.Protocol.PacketResponse
 
             // 編集処理を実行し、結果データを構築する
             // Execute edit operation and build response data
-            ExecuteEdit(request.Data);
+            ExecuteEdit(request);
             
             return null;
 
             #region Internal
 
-            void ExecuteEdit(RailConnectionEditData data)
+            void ExecuteEdit(RailConnectionEditRequest data)
             {
                 // 指定された座標からRailComponentを解決する
                 // Resolve RailComponents from the specified coordinates
@@ -74,35 +74,34 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class RailConnectionEditRequest : ProtocolMessagePackBase
         {
-            [Key(2)] public RailConnectionEditData Data { get; set; }
+            [Key(2)] public Vector3IntMessagePack From { get; set; }
+            [Key(3)] public Vector3IntMessagePack To { get; set; }
+            [Key(4)] public RailEditMode Mode { get; set; }
+            [Key(5)] public bool ConnectFromIsFront { get; set; }
+            [Key(6)] public bool ConnectToIsFront { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-            public RailConnectionEditRequest()
+            public RailConnectionEditRequest() { }
+            
+            public static RailConnectionEditRequest CreateConnectRequest(Vector3Int from, Vector3Int to, bool connectFromIsFront, bool connectToIsFront)
             {
+                return new RailConnectionEditRequest
+                {
+                    From = new Vector3IntMessagePack(from),
+                    To = new Vector3IntMessagePack(to),
+                    Mode = RailEditMode.Connect,
+                    ConnectFromIsFront = connectFromIsFront,
+                    ConnectToIsFront = connectToIsFront,
+                };
             }
 
-            public RailConnectionEditRequest(RailConnectionEditData data)
-            {
-                Tag = RailConnectionEditProtocol.Tag;
-                Data = data;
-            }
-        }
-
-        [MessagePackObject]
-        public class RailConnectionEditData
-        {
-            [Key(0)] public Vector3IntMessagePack From { get; set; }
-            [Key(1)] public Vector3IntMessagePack To { get; set; }
-            [Key(2)] public RailEditMode Mode { get; set; }
-
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-            public RailConnectionEditData() { }
-
-            public RailConnectionEditData(Vector3Int from, Vector3Int to, RailEditMode mode)
-            {
-                From = new Vector3IntMessagePack(from);
-                To = new Vector3IntMessagePack(to);
-                Mode = mode;
+            public static RailConnectionEditRequest CreateDisconnectRequest(Vector3Int from, Vector3Int to){
+                return new RailConnectionEditRequest
+                {
+                    From = new Vector3IntMessagePack(from),
+                    To = new Vector3IntMessagePack(to),
+                    Mode = RailEditMode.Disconnect,
+                };
             }
         }
 
