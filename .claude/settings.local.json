@@ -56,7 +56,10 @@
       "Bash(git worktree:*)",
       "Bash(./tools/unity-list-tests.sh:*)",
       "Bash(./check_timeout_tests.sh:*)",
-      "Bash(tee:*)"
+      "Bash(tee:*)",
+      "mcp__serena__initial_instructions",
+      "mcp__serena__read_memory",
+      "SlashCommand(/kiro:spec-tasks:*)"
     ],
     "deny": []
   },
