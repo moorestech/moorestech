@@ -119,12 +119,12 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
 
-        public void ConnectRail(Vector3Int from, Vector3Int to, bool connectFromIsFront, bool connectToIsFront)
+        public void ConnectRail(RailConnectionEditProtocol.RailComponentSpecifier from, RailConnectionEditProtocol.RailComponentSpecifier to, bool connectFromIsFront, bool connectToIsFront)
         {
             var request = RailConnectionEditProtocol.RailConnectionEditRequest.CreateConnectRequest(from, to, connectFromIsFront, connectToIsFront);
             _packetSender.Send(request);
         }
-        public void DisconnectRail(Vector3Int from, Vector3Int to)
+        public void DisconnectRail(RailConnectionEditProtocol.RailComponentSpecifier from, RailConnectionEditProtocol.RailComponentSpecifier to)
         {
             var request = RailConnectionEditProtocol.RailConnectionEditRequest.CreateDisconnectRequest(from, to);
             _packetSender.Send(request);
