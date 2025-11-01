@@ -31,6 +31,7 @@ using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Game.InGame.UnlockState;
 using Client.Game.InGame.World;
+using Client.Game.InGame.Train;
 using Client.Game.Skit;
 using Client.Network.API;
 using Client.Skit.Skit;
@@ -88,6 +89,7 @@ namespace Client.Starter
         [SerializeField] private BackToMainMenu backToMainMenu;
         [SerializeField] private NetworkDisconnectPresenter networkDisconnectPresenter;
         [SerializeField] private ChallengeManager challengeManager;
+        [SerializeField] private TrainRailObjectManager trainRailObjectManager;
         
         [SerializeField] private SkitManager skitManager;
         [SerializeField] private SkitUI skitUI;
@@ -213,6 +215,9 @@ namespace Client.Starter
             
             builder.RegisterComponent<IPlacementPreviewBlockGameObjectController>(previewBlockController);
             builder.RegisterComponent(railConnectPreviewObject);
+            
+            var resolvedRailManager = trainRailObjectManager != null ? trainRailObjectManager : GetComponentInChildren<TrainRailObjectManager>(true);
+            if (resolvedRailManager != null) builder.RegisterComponent(resolvedRailManager).As<ITrainRailObjectManager>();
             
             builder.RegisterBuildCallback(objectResolver => { });
             

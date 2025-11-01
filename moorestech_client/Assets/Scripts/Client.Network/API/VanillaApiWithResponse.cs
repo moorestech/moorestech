@@ -11,6 +11,7 @@ using Game.CraftTree.Models;
 using Game.Research;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
+using Server.Util.MessagePack;
 using UnityEngine;
 
 namespace Client.Network.API
@@ -36,6 +37,7 @@ namespace Client.Network.API
             
             //必要なデータを取得する
             var responses = await UniTask.WhenAll(
+                GetRailConnections(ct),
                 GetMapObjectInfo(ct), 
                 GetWorldData(ct), 
                 GetPlayerInventory(playerId, ct), 
@@ -45,6 +47,15 @@ namespace Client.Network.API
                 GetPlayedSkitIds(ct));
             
             return new InitialHandshakeResponse(initialHandShake, responses);
+        }
+        
+        public async UniTask<RailConnectionMessagePack.RailConnectionData[]> GetRailConnections(CancellationToken ct)
+        {
+            // レール接続情報をまとめて取得
+            // Fetch all rail connection data from server
+            var request = new GetRailConnectionsProtocol.GetRailConnectionsRequest();
+            var response = await _packetExchangeManager.GetPacketResponse<GetRailConnectionsProtocol.GetRailConnectionsResponse>(request, ct);
+            return response?.Connections ?? Array.Empty<RailConnectionMessagePack.RailConnectionData>();
         }
         
         public async UniTask<List<GetMapObjectInfoProtocol.MapObjectsInfoMessagePack>> GetMapObjectInfo(CancellationToken ct)
