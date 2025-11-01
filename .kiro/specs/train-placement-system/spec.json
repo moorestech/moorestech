@@ -1,0 +1,22 @@
+{
+  "feature_name": "train-placement-system",
+  "created_at": "2025-11-01T08:19:38Z",
+  "updated_at": "2025-11-01T09:44:42Z",
+  "language": "ja",
+  "phase": "tasks-generated",
+  "approvals": {
+    "requirements": {
+      "generated": true,
+      "approved": true
+    },
+    "design": {
+      "generated": true,
+      "approved": true
+    },
+    "tasks": {
+      "generated": true,
+      "approved": false
+    }
+  },
+  "ready_for_implementation": false
+}
