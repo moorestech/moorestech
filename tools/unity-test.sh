@@ -95,7 +95,7 @@ RET=$?
 if [ $RET -eq 124 ]; then
   echo "❌ Test execution timed out after ${TIMEOUT_SECONDS} seconds"
   rm -f "$LOGFILE"
-  exit 1
+  exit 124
 fi
 
 # EndWrite before BeginWrite エラーのチェック
