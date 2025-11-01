@@ -31,10 +31,10 @@ namespace Server.Protocol.PacketResponse
             {
                 // 指定された情報からRailComponentを解決する
                 // Resolve RailComponents from the specified information
-                var fromComponent = ResolveComponent(data.From);
+                var fromComponent = ResolveRailComponent(data.From);
                 if (fromComponent == null) return;
 
-                var toComponent = ResolveComponent(data.To);
+                var toComponent = ResolveRailComponent(data.To);
                 if (toComponent == null) return;
 
                 // モードに応じて接続または切断を実行する
@@ -50,40 +50,6 @@ namespace Server.Protocol.PacketResponse
                         fromComponent.DisconnectRailComponent(toComponent, false, true);
                         fromComponent.DisconnectRailComponent(toComponent, false, false);
                         break;
-                }
-            }
-
-            RailComponent ResolveComponent(RailComponentSpecifier specifier)
-            {
-                // ブロック位置から対象ブロックを取得する
-                // Obtain the target block from the provided position
-                var block = ServerContext.WorldBlockDatastore.GetBlock(specifier.Position.Vector3Int);
-                if (block == null)
-                {
-                    return null;
-                }
-
-                // モードに応じてRailComponentを解決する
-                // Resolve RailComponent based on the mode
-                switch (specifier.Mode)
-                {
-                    case RailComponentSpecifierMode.Rail:
-                        // レールモード：ブロックから直接RailComponentを取得
-                        // Rail mode: Get RailComponent directly from the block
-                        return block.TryGetComponent<RailComponent>(out var railComponent) ? railComponent : null;
-
-                    case RailComponentSpecifierMode.Station:
-                        // 駅モード：RailSaverComponentから配列インデックスで取得
-                        // Station mode: Get from RailSaverComponent by array index
-                        if (!block.TryGetComponent<RailSaverComponent>(out var railSaverComponent)) return null;
-
-                        var railComponents = railSaverComponent.RailComponents;
-                        if (railComponents == null || specifier.RailIndex < 0 || specifier.RailIndex >= railComponents.Length) return null;
-
-                        return railComponents[specifier.RailIndex];
-
-                    default:
-                        return null;
                 }
             }
 
@@ -187,25 +153,42 @@ namespace Server.Protocol.PacketResponse
                 };
             }
         }
-        
-        
-        
+
         /// <summary>
-        /// RailComponentの指定モード
-        /// Mode for specifying RailComponent
+        /// RailComponentSpecifierからRailComponentを解決する共通メソッド
+        /// Common method to resolve RailComponent from RailComponentSpecifier
         /// </summary>
+        public static RailComponent ResolveRailComponent(RailComponentSpecifier specifier)
+        {
+            if (specifier == null) return null;
+            var block = ServerContext.WorldBlockDatastore.GetBlock(specifier.Position.Vector3Int);
+            if (block == null) return null;
+
+            switch (specifier.Mode)
+            {
+                // レールモード：ブロックから直接RailComponentを取得
+                // Rail mode: Get RailComponent directly from the block
+                case RailComponentSpecifierMode.Rail:
+                    return block.TryGetComponent<RailComponent>(out var railComponent) ? railComponent : null;
+                
+                // 駅モード：RailSaverComponentから配列インデックスで取得
+                // Station mode: Get from RailSaverComponent by array index
+                case RailComponentSpecifierMode.Station:
+                    if (!block.TryGetComponent<RailSaverComponent>(out var railSaverComponent)) return null;
+
+                    var railComponents = railSaverComponent.RailComponents;
+                    if (railComponents == null || specifier.RailIndex < 0 || specifier.RailIndex >= railComponents.Length) return null;
+
+                    return railComponents[specifier.RailIndex];
+
+                default:
+                    return null;
+            }
+        }
+        
         public enum RailComponentSpecifierMode
         {
-            /// <summary>
-            /// レールブロックを指定（座標のみ）
-            /// Specify rail block (position only)
-            /// </summary>
             Rail,
-            
-            /// <summary>
-            /// 駅ブロックを指定（座標とレールインデックス）
-            /// Specify station block (position and rail index)
-            /// </summary>
             Station,
         }
     }

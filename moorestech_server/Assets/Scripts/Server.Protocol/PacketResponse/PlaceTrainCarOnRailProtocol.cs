@@ -36,7 +36,7 @@ namespace Server.Protocol.PacketResponse
             // リクエスト内容を検証し、列車配置を実行
             // Validate request contents and execute train placement
             
-            var railComponent = ResolveRailComponent(request.RailSpecifier);
+            var railComponent = RailConnectionEditProtocol.ResolveRailComponent(request.RailSpecifier);
             var inventoryData = _playerInventoryDataStore.GetInventoryData(request.PlayerId);
             if (railComponent == null || inventoryData == null) return null;
             
@@ -146,46 +146,6 @@ namespace Server.Protocol.PacketResponse
         #endregion
 
         #region Internal
-
-        private RailComponent ResolveRailComponent(RailComponentSpecifier specifier)
-        {
-            if (specifier == null)
-            {
-                return null;
-            }
-
-            var blockDatastore = ServerContext.WorldBlockDatastore;
-            var targetBlock = blockDatastore.GetBlock(specifier.Position.Vector3Int);
-            if (targetBlock == null)
-            {
-                return null;
-            }
-
-            return specifier.Mode switch
-            {
-                RailConnectionEditProtocol.RailComponentSpecifierMode.Rail =>
-                    targetBlock.TryGetComponent(out RailComponent railComponent) ? railComponent : null,
-                RailConnectionEditProtocol.RailComponentSpecifierMode.Station =>
-                    ResolveStationRailComponent(targetBlock, specifier.RailIndex),
-                _ => null
-            };
-        }
-
-        private RailComponent ResolveStationRailComponent(IBlock block, int railIndex)
-        {
-            if (!block.TryGetComponent(out RailSaverComponent saverComponent))
-            {
-                return null;
-            }
-
-            var rails = saverComponent.RailComponents;
-            if (rails == null || railIndex < 0 || railIndex >= rails.Length)
-            {
-                return null;
-            }
-
-            return rails[railIndex];
-        }
 
         private List<TrainCar> BuildTrainCars(ItemId trainItemId)
         {
