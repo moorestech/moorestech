@@ -6,9 +6,7 @@ using Game.Train.Utility;
 using MessagePack;
 using Server.Event.EventReceive;
 using Server.Util.MessagePack;
-using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.Splines;
 using VContainer;
 
 namespace Client.Game.InGame.Train
@@ -21,7 +19,7 @@ namespace Client.Game.InGame.Train
         private const string ProtocolLogPrefix = "[RailVisualization][Protocol]";
         private static Material _sharedMaterial;
         
-        private readonly Dictionary<RailConnectionKey, RailSplineRecord> _connectionToSpline = new();
+        private readonly Dictionary<RailConnectionKey, RailSplineComponent> _connectionToSpline = new();
         private readonly Dictionary<RailComponentKey, HashSet<RailConnectionKey>> _componentToConnections = new();
         
         
@@ -65,8 +63,8 @@ namespace Client.Game.InGame.Train
             keysSnapshot.AddRange(connectionKeys);
             foreach (var key in keysSnapshot)
             {
-                if (!_connectionToSpline.TryGetValue(key, out var record)) continue;
-                ApplySplineGeometry(record, record.Data);
+                if (!_connectionToSpline.TryGetValue(key, out var component)) continue;
+                component.UpdateConnection(component.ConnectionData);
             }
             ListPool<RailConnectionKey>.Return(keysSnapshot);
         }
@@ -117,8 +115,6 @@ namespace Client.Game.InGame.Train
             key = default;
             if (connection == null || connection.FromNode == null || connection.ToNode == null) return false;
             if (connection.FromNode.ComponentId == null || connection.ToNode.ComponentId == null) return false;
-            SanitizeControlPoint(connection.FromNode.ControlPoint, "FromNode");
-            SanitizeControlPoint(connection.ToNode.ControlPoint, "ToNode");
             if (!BezierRailCurveCalculator.ValidateRailConnection(connection.FromNode, connection.ToNode))
             {
                 Debug.LogWarning($"{ValidationLogPrefix} Invalid control point data detected, skipping connection.");
@@ -140,21 +136,20 @@ namespace Client.Game.InGame.Train
             // 正規化済みデータとの差分を適用
             // Apply normalized snapshot by reconciling differences
             RemoveMissingConnections(normalized);
+            var material = ResolveMaterial();
             foreach (var pair in normalized)
             {
-                if (_connectionToSpline.TryGetValue(pair.Key, out var record))
+                if (_connectionToSpline.TryGetValue(pair.Key, out var component))
                 {
-                    record.Data = pair.Value;
-                    ApplySplineGeometry(record, record.Data);
+                    component.UpdateConnection(pair.Value);
                     continue;
                 }
                 
-                var container = CreateSplineContainer(pair.Value);
-                if (container == null) continue;
-                container.gameObject.SetActive(true);
+                var splineComponent = CreateSplineComponent(pair.Value, material);
+                if (splineComponent == null) continue;
+                splineComponent.gameObject.SetActive(true);
                 
-                var newRecord = new RailSplineRecord(pair.Value, container);
-                _connectionToSpline[pair.Key] = newRecord;
+                _connectionToSpline[pair.Key] = splineComponent;
                 RegisterComponentIndex(pair.Key);
             }
         }
@@ -173,8 +168,8 @@ namespace Client.Game.InGame.Train
             
             foreach (var key in removalList)
             {
-                if (!_connectionToSpline.TryGetValue(key, out var record)) continue;
-                if (record.Container != null) Destroy(record.Container.gameObject);
+                if (!_connectionToSpline.TryGetValue(key, out var component)) continue;
+                if (component != null) Destroy(component.gameObject);
                 _connectionToSpline.Remove(key);
                 UnregisterComponentIndex(key);
             }
@@ -186,9 +181,9 @@ namespace Client.Game.InGame.Train
             // レール情報が空の場合に全破棄
             // Destroy all splines when snapshot is empty
             if (_connectionToSpline.Count == 0) return;
-            foreach (var record in _connectionToSpline.Values)
+            foreach (var component in _connectionToSpline.Values)
             {
-                if (record.Container != null) Destroy(record.Container.gameObject);
+                if (component != null) Destroy(component.gameObject);
             }
             _connectionToSpline.Clear();
             _componentToConnections.Clear();
@@ -231,65 +226,15 @@ namespace Client.Game.InGame.Train
             if (set.Count == 0) _componentToConnections.Remove(componentKey);
         }
         
-        private SplineContainer CreateSplineContainer(RailConnectionDataMessagePack connection)
+        private RailSplineComponent CreateSplineComponent(RailConnectionDataMessagePack connection, Material material)
         {
-            // 新たなSplineContainerを生成し制御点を設定
-            // Create a new spline container and configure control points
-            var go = new GameObject($"RailSpline_{FormatComponent(connection.FromNode.ComponentId)}_{FormatComponent(connection.ToNode.ComponentId)}");
+            // 新たなRailSplineComponentを生成
+            // Create a new rail spline component
+            var go = new GameObject();
             go.transform.SetParent(transform, false);
-            var container = go.AddComponent<SplineContainer>();
-            ApplySplineGeometry(new RailSplineRecord(connection, container), connection);
-            
-            var extrude = go.AddComponent<SplineExtrude>();
-            extrude.Container = container;
-            extrude.SegmentsPerUnit = 4f;
-            extrude.Sides = 6;
-            extrude.Radius = 0.25f;
-            extrude.Capped = false;
-            
-            var renderer = go.GetComponent<MeshRenderer>();
-            var material = ResolveMaterial();
-            if (renderer != null && material != null) renderer.sharedMaterial = material;
-            
-            return container;
-        }
-        
-        private void ApplySplineGeometry(RailSplineRecord record, RailConnectionDataMessagePack connection)
-        {
-            // 制御点計算とSplineへの反映
-            // Calculate control points and update the spline geometry
-            var spline = record.Container?.Spline;
-            if (spline == null) return;
-            var controlPoints = BezierRailCurveCalculator.CalculateBezierControlPoints(connection.FromNode, connection.ToNode, connection.Distance);
-            spline.Clear();
-            var startKnot = new BezierKnot((float3)controlPoints.p0, float3.zero, (float3)(controlPoints.p1 - controlPoints.p0));
-            var endKnot = new BezierKnot((float3)controlPoints.p3, (float3)(controlPoints.p2 - controlPoints.p3), float3.zero);
-            spline.Add(startKnot);
-            spline.Add(endKnot);
-        }
-        
-        private static void SanitizeControlPoint(RailControlPointMessagePack controlPoint, string label)
-        {
-            // 制御点の不正値を補正
-            // Sanitize control point data to avoid invalid vectors
-            if (controlPoint == null) return;
-            var original = SanitizeVector((Vector3)controlPoint.OriginalPosition, label, "OriginalPosition");
-            var tangent = SanitizeVector((Vector3)controlPoint.ControlPointPosition, label, "ControlPointPosition");
-            controlPoint.OriginalPosition = new Vector3MessagePack(original);
-            controlPoint.ControlPointPosition = new Vector3MessagePack(tangent);
-        }
-        
-        private static Vector3 SanitizeVector(Vector3 vector, string context, string field)
-        {
-            // NaNやInfinityを検出してゼロへ補正
-            // Clamp NaN or Infinity vectors to zero
-            if (float.IsNaN(vector.x) || float.IsNaN(vector.y) || float.IsNaN(vector.z) ||
-                float.IsInfinity(vector.x) || float.IsInfinity(vector.y) || float.IsInfinity(vector.z))
-            {
-                Debug.LogWarning($"{ValidationLogPrefix} Invalid vector detected in {context}.{field}, defaulting to zero.");
-                return Vector3.zero;
-            }
-            return vector;
+            var component = go.AddComponent<RailSplineComponent>();
+            component.Initialize(connection, material);
+            return component;
         }
         
         private static RailComponentKey CreateComponentKey(RailComponentIDMessagePack componentId)
@@ -307,14 +252,6 @@ namespace Client.Game.InGame.Train
             var fromKey = CreateComponentKey(connection.FromNode.ComponentId);
             var toKey = CreateComponentKey(connection.ToNode.ComponentId);
             return new RailConnectionKey(fromKey, connection.FromNode.IsFrontSide, toKey, connection.ToNode.IsFrontSide);
-        }
-        
-        private static string FormatComponent(RailComponentIDMessagePack componentId)
-        {
-            // ログ出力用にコンポーネント情報を整形
-            // Format component identifier for logging
-            var pos = (Vector3Int)componentId.Position;
-            return $"{pos.x}_{pos.y}_{pos.z}_{componentId.ID}";
         }
         
         private Material ResolveMaterial()
@@ -391,18 +328,6 @@ namespace Client.Game.InGame.Train
             {
                 return HashCode.Combine(From, FromFront, To, ToFront);
             }
-        }
-        
-        private sealed class RailSplineRecord
-        {
-            public RailSplineRecord(RailConnectionDataMessagePack data, SplineContainer container)
-            {
-                Data = data;
-                Container = container;
-            }
-            
-            public RailConnectionDataMessagePack Data { get; set; }
-            public SplineContainer Container { get; }
         }
         
         private static class ListPool<T>
