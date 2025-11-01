@@ -118,5 +118,16 @@ namespace Client.Network.API
             var request = new CompleteResearchProtocol.RequestCompleteResearchMessagePack(_playerId, researchGuid);
             _packetSender.Send(request);
         }
+
+        public void ConnectRail(Vector3Int from, Vector3Int to, bool connectFromIsFront, bool connectToIsFront)
+        {
+            var request = RailConnectionEditProtocol.RailConnectionEditRequest.CreateConnectRequest(from, to, connectFromIsFront, connectToIsFront);
+            _packetSender.Send(request);
+        }
+        public void DisconnectRail(Vector3Int from, Vector3Int to)
+        {
+            var request = RailConnectionEditProtocol.RailConnectionEditRequest.CreateDisconnectRequest(from, to);
+            _packetSender.Send(request);
+        }
     }
 }
