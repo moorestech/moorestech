@@ -79,9 +79,9 @@ namespace Server.Protocol.PacketResponse
             [Key(4)] public RailEditMode Mode { get; set; }
             [Key(5)] public bool ConnectFromIsFront { get; set; }
             [Key(6)] public bool ConnectToIsFront { get; set; }
-
+            
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-            public RailConnectionEditRequest() { }
+            public RailConnectionEditRequest() { Tag = RailConnectionEditProtocol.Tag; }
             
             public static RailConnectionEditRequest CreateConnectRequest(Vector3Int from, Vector3Int to, bool connectFromIsFront, bool connectToIsFront)
             {

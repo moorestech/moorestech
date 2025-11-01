@@ -2,6 +2,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Context;
 using Client.Input;
 using UnityEngine;
+using static Client.Common.LayerConst;
 using static Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect.TrainRailConnectPreviewCalculator;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
@@ -24,16 +25,24 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         }
         public void ManualUpdate(PlaceSystemUpdateContext context)
         {
+            // 接続元が未選択なら接続元を選択する
+            // If the connection source is not selected, select the connection source.
             if (_connectFromArea == null)
             {
-                _connectFromArea = GetTrainRailConnectAreaCollider();
-                Debug.Log($"接続スタート {_connectFromArea.IsFront} {_connectFromArea.BlockGameObject.BlockPosInfo}");
+                if (InputManager.Playable.ScreenLeftClick.GetKeyDown)
+                {
+                    _connectFromArea = GetTrainRailConnectAreaCollider();
+                }
+                if (_connectFromArea != null)
+                {
+                    Debug.Log($"接続スタート {_connectFromArea.IsFront} {_connectFromArea.BlockGameObject.BlockPosInfo}");
+                }
                 return;
             }
             
-            var connectToArea = GetTrainRailConnectAreaCollider();
             // 接続先がカーソル上になければreturn
             // If the connection point is not under the cursor, return.
+            var connectToArea = GetTrainRailConnectAreaCollider();
             if (connectToArea == null)
             {
                 _previewObject.SetActive(false);
@@ -70,7 +79,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             
             TrainRailConnectAreaCollider GetTrainRailConnectAreaCollider()
             {
-                PlaceSystemUtil.TryGetRaySpecifiedComponentHit<TrainRailConnectAreaCollider>(_mainCamera, out var connectArea);
+                PlaceSystemUtil.TryGetRaySpecifiedComponentHit<TrainRailConnectAreaCollider>(_mainCamera, out var connectArea, Without_Player_MapObject_BlockBoundingBox_LayerMask);
                 return connectArea;
             }
             
