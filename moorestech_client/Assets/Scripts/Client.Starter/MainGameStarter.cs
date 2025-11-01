@@ -215,9 +215,7 @@ namespace Client.Starter
             
             builder.RegisterComponent<IPlacementPreviewBlockGameObjectController>(previewBlockController);
             builder.RegisterComponent(railConnectPreviewObject);
-            
-            var resolvedRailManager = trainRailObjectManager != null ? trainRailObjectManager : GetComponentInChildren<TrainRailObjectManager>(true);
-            if (resolvedRailManager != null) builder.RegisterComponent(resolvedRailManager).As<ITrainRailObjectManager>();
+            builder.RegisterComponent(trainRailObjectManager);
             
             builder.RegisterBuildCallback(objectResolver => { });
             

@@ -10,23 +10,13 @@ using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Splines;
 using VContainer;
-using RailConnectionData = Server.Util.MessagePack.RailConnectionMessagePack.RailConnectionData;
-using RailComponentIdPack = Server.Util.MessagePack.RailConnectionMessagePack.RailComponentIDMessagePack;
 
 namespace Client.Game.InGame.Train
 {
-    public interface ITrainRailObjectManager
+    public class TrainRailObjectManager : MonoBehaviour
     {
-        void Initialize();
-        void Dispose();
-        void OnRailDataReceived(RailConnectionData[] connections);
-        void OnRailUpdateEvent(RailConnectionData[] allConnections, RailComponentIdPack[] changedIds);
-        void SetVisualizationEnabled(bool enabled);
-        void UpdateRailComponentSpline(RailComponentIdPack componentId);
-    }
-    
-    public class TrainRailObjectManager : MonoBehaviour, ITrainRailObjectManager
-    {
+        [SerializeField] private Material splineMaterial;
+        
         private const string ValidationLogPrefix = "[RailVisualization][Validation]";
         private const string ProtocolLogPrefix = "[RailVisualization][Protocol]";
         private static Material _sharedMaterial;
@@ -34,41 +24,15 @@ namespace Client.Game.InGame.Train
         private readonly Dictionary<RailConnectionKey, RailSplineRecord> _connectionToSpline = new();
         private readonly Dictionary<RailComponentKey, HashSet<RailConnectionKey>> _componentToConnections = new();
         
-        [SerializeField] private Material splineMaterial;
         
-        private IDisposable _eventSubscription;
-        private bool _hasInitialized;
-        private bool _visualizationEnabled = true;
-        private RailConnectionData[] _pendingConnections = Array.Empty<RailConnectionData>();
-        
-        public void Initialize()
+        [Inject]
+        public void Construct(InitialHandshakeResponse handshakeResponse)
         {
-            // イベント購読と初期データ適用の起点
-            // Subscribe to events and apply any pending data
-            if (_hasInitialized) return;
-            if (!TrySubscribeEvent()) return;
-            _hasInitialized = true;
-            if (_pendingConnections.Length == 0) return;
-            OnRailDataReceived(_pendingConnections);
-            _pendingConnections = Array.Empty<RailConnectionData>();
+            OnRailDataReceived(handshakeResponse.RailConnections);
+            ClientContext.VanillaApi.Event.SubscribeEventResponse(RailConnectionsEventPacket.EventTag, OnRailEvent);
         }
         
-        public void Dispose()
-        {
-            // 作成済みSplineと購読を解放
-            // Clean up generated spline objects and subscriptions
-            foreach (var record in _connectionToSpline.Values)
-            {
-                if (record.Container != null) Destroy(record.Container.gameObject);
-            }
-            _connectionToSpline.Clear();
-            _componentToConnections.Clear();
-            _eventSubscription?.Dispose();
-            _eventSubscription = null;
-            _hasInitialized = false;
-        }
-        
-        public void OnRailDataReceived(RailConnectionData[] connections)
+        public void OnRailDataReceived(RailConnectionDataMessagePack[] connections)
         {
             // 受信したレールデータで内部キャッシュを更新
             // Update cached rail data with the received connections
@@ -82,7 +46,7 @@ namespace Client.Game.InGame.Train
             ApplyNormalizedConnections(normalized);
         }
         
-        public void OnRailUpdateEvent(RailConnectionData[] allConnections, RailComponentIdPack[] changedIds)
+        public void OnRailUpdateEvent(RailConnectionDataMessagePack[] allConnections, RailComponentIDMessagePack[] changedIds)
         {
             // サーバーイベントで届いた全量データを適用
             // Apply full snapshot received from the server event
@@ -91,19 +55,7 @@ namespace Client.Game.InGame.Train
             foreach (var componentId in changedIds) UpdateRailComponentSpline(componentId);
         }
         
-        public void SetVisualizationEnabled(bool enabled)
-        {
-            // 描画有効状態を切り替え
-            // Toggle spline visualization on or off
-            _visualizationEnabled = enabled;
-            foreach (var record in _connectionToSpline.Values)
-            {
-                if (record.Container == null) continue;
-                record.Container.gameObject.SetActive(enabled);
-            }
-        }
-        
-        public void UpdateRailComponentSpline(RailComponentIdPack componentId)
+        public void UpdateRailComponentSpline(RailComponentIDMessagePack componentId)
         {
             // 指定コンポーネントに紐づくSplineを更新
             // Refresh splines linked to the specified rail component
@@ -118,28 +70,6 @@ namespace Client.Game.InGame.Train
                 ApplySplineGeometry(record, record.Data);
             }
             ListPool<RailConnectionKey>.Return(keysSnapshot);
-        }
-        
-        private void OnEnable()
-        {
-            // 有効化時に初期化を試行
-            // Attempt initialization when enabled
-            Initialize();
-        }
-        
-        private void Update()
-        {
-            // 初期化が未完ならリトライ
-            // Retry initialization until dependencies are ready
-            if (_hasInitialized) return;
-            Initialize();
-        }
-        
-        private void OnDestroy()
-        {
-            // 破棄時に後処理を実行
-            // Execute cleanup when destroyed
-            Dispose();
         }
         
         private void OnRailEvent(byte[] payload)
@@ -159,42 +89,19 @@ namespace Client.Game.InGame.Train
                 return;
             }
             
-            var connections = message.AllConnections ?? Array.Empty<RailConnectionData>();
-            var changed = message.ChangedComponentIds ?? Array.Empty<RailComponentIdPack>();
+            var connections = message.AllConnections ?? Array.Empty<RailConnectionDataMessagePack>();
+            var changed = message.ChangedComponentIds ?? Array.Empty<RailComponentIDMessagePack>();
             OnRailUpdateEvent(connections, changed);
         }
         
         #region Internal
         
-        [Inject]
-        public void Construct(InitialHandshakeResponse handshakeResponse)
-        {
-            // ハンドシェイク時に受け取った初期データを保持
-            // Preserve initial rail snapshot from handshake
-            _pendingConnections = handshakeResponse.RailConnections ?? Array.Empty<RailConnectionData>();
-            Initialize();
-        }
         
-        private bool TrySubscribeEvent()
-        {
-            // VanillaApiが利用可能か確認して購読を設定
-            // Subscribe to event stream once VanillaApi is available
-            if (ClientContext.VanillaApi == null)
-            {
-                Debug.LogWarning($"{ProtocolLogPrefix} VanillaApi is not ready, retrying initialization.");
-                return false;
-            }
-            
-            _eventSubscription?.Dispose();
-            _eventSubscription = ClientContext.VanillaApi.Event.SubscribeEventResponse(RailConnectionsEventPacket.EventTag, OnRailEvent);
-            return true;
-        }
-        
-        private Dictionary<RailConnectionKey, RailConnectionData> NormalizeConnections(RailConnectionData[] connections)
+        private Dictionary<RailConnectionKey, RailConnectionDataMessagePack> NormalizeConnections(RailConnectionDataMessagePack[] connections)
         {
             // レール情報を正規化し重複や不正値を除去
             // Normalize incoming connections to remove duplicates and invalid entries
-            var normalized = new Dictionary<RailConnectionKey, RailConnectionData>(connections.Length);
+            var normalized = new Dictionary<RailConnectionKey, RailConnectionDataMessagePack>(connections.Length);
             foreach (var connection in connections)
             {
                 if (!TryPrepareConnection(connection, out var key)) continue;
@@ -204,7 +111,7 @@ namespace Client.Game.InGame.Train
             return normalized;
         }
         
-        private bool TryPrepareConnection(RailConnectionData connection, out RailConnectionKey key)
+        private bool TryPrepareConnection(RailConnectionDataMessagePack connection, out RailConnectionKey key)
         {
             // 単一レール接続のバリデーションと整形
             // Validate and sanitize a single rail connection
@@ -229,7 +136,7 @@ namespace Client.Game.InGame.Train
             return true;
         }
         
-        private void ApplyNormalizedConnections(Dictionary<RailConnectionKey, RailConnectionData> normalized)
+        private void ApplyNormalizedConnections(Dictionary<RailConnectionKey, RailConnectionDataMessagePack> normalized)
         {
             // 正規化済みデータとの差分を適用
             // Apply normalized snapshot by reconciling differences
@@ -245,7 +152,7 @@ namespace Client.Game.InGame.Train
                 
                 var container = CreateSplineContainer(pair.Value);
                 if (container == null) continue;
-                container.gameObject.SetActive(_visualizationEnabled);
+                container.gameObject.SetActive(true);
                 
                 var newRecord = new RailSplineRecord(pair.Value, container);
                 _connectionToSpline[pair.Key] = newRecord;
@@ -253,7 +160,7 @@ namespace Client.Game.InGame.Train
             }
         }
         
-        private void RemoveMissingConnections(Dictionary<RailConnectionKey, RailConnectionData> normalized)
+        private void RemoveMissingConnections(Dictionary<RailConnectionKey, RailConnectionDataMessagePack> normalized)
         {
             // 受信データに無い接続を破棄
             // Destroy splines that are no longer present in the snapshot
@@ -325,7 +232,7 @@ namespace Client.Game.InGame.Train
             if (set.Count == 0) _componentToConnections.Remove(componentKey);
         }
         
-        private SplineContainer CreateSplineContainer(RailConnectionData connection)
+        private SplineContainer CreateSplineContainer(RailConnectionDataMessagePack connection)
         {
             // 新たなSplineContainerを生成し制御点を設定
             // Create a new spline container and configure control points
@@ -348,7 +255,7 @@ namespace Client.Game.InGame.Train
             return container;
         }
         
-        private void ApplySplineGeometry(RailSplineRecord record, RailConnectionData connection)
+        private void ApplySplineGeometry(RailSplineRecord record, RailConnectionDataMessagePack connection)
         {
             // 制御点計算とSplineへの反映
             // Calculate control points and update the spline geometry
@@ -362,7 +269,7 @@ namespace Client.Game.InGame.Train
             spline.Add(endKnot);
         }
         
-        private static void SanitizeControlPoint(RailConnectionMessagePack.RailControlPointMessagePack controlPoint, string label)
+        private static void SanitizeControlPoint(RailControlPointMessagePack controlPoint, string label)
         {
             // 制御点の不正値を補正
             // Sanitize control point data to avoid invalid vectors
@@ -386,7 +293,7 @@ namespace Client.Game.InGame.Train
             return vector;
         }
         
-        private static RailComponentKey CreateComponentKey(RailComponentIdPack componentId)
+        private static RailComponentKey CreateComponentKey(RailComponentIDMessagePack componentId)
         {
             // レールコンポーネントIDからキーを生成
             // Generate dictionary key from component identifier
@@ -394,7 +301,7 @@ namespace Client.Game.InGame.Train
             return new RailComponentKey(position, componentId.ID);
         }
         
-        private static RailConnectionKey CreateConnectionKey(RailConnectionData connection)
+        private static RailConnectionKey CreateConnectionKey(RailConnectionDataMessagePack connection)
         {
             // 接続固有のキーを生成
             // Create a unique key for the rail connection
@@ -403,7 +310,7 @@ namespace Client.Game.InGame.Train
             return new RailConnectionKey(fromKey, connection.FromNode.IsFrontSide, toKey, connection.ToNode.IsFrontSide);
         }
         
-        private static string FormatComponent(RailComponentIdPack componentId)
+        private static string FormatComponent(RailComponentIDMessagePack componentId)
         {
             // ログ出力用にコンポーネント情報を整形
             // Format component identifier for logging
@@ -489,13 +396,13 @@ namespace Client.Game.InGame.Train
         
         private sealed class RailSplineRecord
         {
-            public RailSplineRecord(RailConnectionData data, SplineContainer container)
+            public RailSplineRecord(RailConnectionDataMessagePack data, SplineContainer container)
             {
                 Data = data;
                 Container = container;
             }
             
-            public RailConnectionData Data { get; set; }
+            public RailConnectionDataMessagePack Data { get; set; }
             public SplineContainer Container { get; }
         }
         

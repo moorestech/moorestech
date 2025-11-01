@@ -49,13 +49,13 @@ namespace Client.Network.API
             return new InitialHandshakeResponse(initialHandShake, responses);
         }
         
-        public async UniTask<RailConnectionMessagePack.RailConnectionData[]> GetRailConnections(CancellationToken ct)
+        public async UniTask<RailConnectionDataMessagePack[]> GetRailConnections(CancellationToken ct)
         {
             // レール接続情報をまとめて取得
             // Fetch all rail connection data from server
             var request = new GetRailConnectionsProtocol.GetRailConnectionsRequest();
             var response = await _packetExchangeManager.GetPacketResponse<GetRailConnectionsProtocol.GetRailConnectionsResponse>(request, ct);
-            return response?.Connections ?? Array.Empty<RailConnectionMessagePack.RailConnectionData>();
+            return response?.Connections;
         }
         
         public async UniTask<List<GetMapObjectInfoProtocol.MapObjectsInfoMessagePack>> GetMapObjectInfo(CancellationToken ct)

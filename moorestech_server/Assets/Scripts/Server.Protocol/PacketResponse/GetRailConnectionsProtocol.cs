@@ -33,17 +33,13 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class GetRailConnectionsRequest : ProtocolMessagePackBase
         {
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-            public GetRailConnectionsRequest()
-            {
-                Tag = ProtocolTag;
-            }
+            public GetRailConnectionsRequest() { Tag = ProtocolTag; }
         }
         
         [MessagePackObject]
         public class GetRailConnectionsResponse : ProtocolMessagePackBase
         {
-            [Key(2)] public RailConnectionMessagePack.RailConnectionData[] Connections { get; set; }
+            [Key(2)] public RailConnectionDataMessagePack[] Connections { get; set; }
             
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public GetRailConnectionsResponse() { }
@@ -54,10 +50,10 @@ namespace Server.Protocol.PacketResponse
                 
                 // RailConnectionInfoからRailConnectionDataへ変換（変換処理は静的メソッド内で実行）
                 // Convert RailConnectionInfo to RailConnectionData (conversion is done in static method)
-                var connectionDataList = new List<RailConnectionMessagePack.RailConnectionData>();
+                var connectionDataList = new List<RailConnectionDataMessagePack>();
                 foreach (var connectionInfo in connectionInfos)
                 {
-                    var connectionData = RailConnectionMessagePack.RailConnectionData.TryCreate(connectionInfo);
+                    var connectionData = RailConnectionDataMessagePack.TryCreate(connectionInfo);
                     if (connectionData == null) continue;
                     
                     connectionDataList.Add(connectionData);
