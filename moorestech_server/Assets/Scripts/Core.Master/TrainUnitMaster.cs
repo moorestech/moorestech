@@ -15,17 +15,6 @@ namespace Core.Master
         {
             Train = TrainLoader.Load(jToken);
             _unitsByItemId = new Dictionary<ItemId, TrainUnitMasterElement>();
-
-            foreach (var unit in Train.TrainUnits ?? Array.Empty<TrainUnitMasterElement>())
-            {
-                if (unit.ItemGuid == default)
-                {
-                    continue;
-                }
-
-                var itemId = itemMaster.GetItemId(unit.ItemGuid);
-                _unitsByItemId[itemId] = unit;
-            }
         }
 
         public bool TryGetTrainUnit(ItemId itemId, out TrainUnitMasterElement element)
