@@ -42,38 +42,46 @@ namespace Server.Protocol.PacketResponse
             
             var mainInventory = inventoryData.MainOpenableInventory;
             
-            // 列車アイテムの在庫チェック
-            // Ensure the player holds the requested train item
-            var slotIndex = FindTrainItemSlot(mainInventory, request.TrainItemId);
-            if (slotIndex < 0)
-            {
-                return CreateErrorResponse("列車アイテムがインベントリにありません");
-            }
+            // ホットバースロットからアイテムを取得
+            // Get item from hotbar slot
+            var item = mainInventory.GetItem(request.InventorySlot);
+            if (item.Id == ItemMaster.EmptyItemId || item.Count == 0) return null;
             
             // 列車編成データの取得
             // Load train composition definition
-            var trainCars = BuildTrainCars(request.TrainItemId);
+            var trainCars = BuildTrainCars(item.Id);
             if (trainCars == null || trainCars.Count == 0)
             {
                 return CreateErrorResponse("無効な列車アイテムです");
             }
             
-            // 既存の列車重複チェック
-            // Prevent placing train on occupied rail nodes
-            if (IsRailOccupied(railComponent, trainCars))
-            {
-                return CreateErrorResponse("指定位置に既に列車が存在します");
-            }
-            
             // 列車ユニット生成
             // Build train unit from composition data
-            var trainUnit = CreateTrainUnit(railComponent, trainCars);
+            CreateTrainUnit(railComponent, trainCars);
             
             // アイテムを消費
             // Consume the train item from inventory
-            ConsumeTrainItem(mainInventory, slotIndex);
+            mainInventory.SetItem(request.InventorySlot, item.Id, item.Count - 1);
             
-            return new PlaceTrainOnRailResponseMessagePack(true, trainUnit.TrainId, null);
+            return null;
+            
+            #region Internal
+            
+            TrainUnit CreateTrainUnit(RailComponent railComponent, List<TrainCar> trainCars)
+            {
+                var trainLength = trainCars.Sum(car => car.Length);
+                
+                var railNodes = new List<RailNode>
+                {
+                    railComponent.FrontNode,
+                    railComponent.BackNode
+                };
+                
+                var railPosition = new RailPosition(railNodes, trainLength, 0);
+                return new TrainUnit(railPosition, trainCars);
+            }
+            
+            #endregion
         }
 
         #region MessagePack Classes
@@ -82,7 +90,8 @@ namespace Server.Protocol.PacketResponse
         public class PlaceTrainOnRailRequestMessagePack : ProtocolMessagePackBase
         {
             [Key(2)] public RailComponentSpecifier RailSpecifier { get; set; }
-            [Key(3)] public ItemId TrainItemId { get; set; }
+            [Key(3)] public int HotBarSlot { get; set; }
+            [IgnoreMember] public int InventorySlot => PlayerInventoryConst.HotBarSlotToInventorySlot(HotBarSlot);
             [Key(4)] public int PlayerId { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
@@ -95,14 +104,14 @@ namespace Server.Protocol.PacketResponse
 
             public PlaceTrainOnRailRequestMessagePack(
                 RailComponentSpecifier railSpecifier,
-                ItemId trainItemId,
+                int hotBarSlot,
                 int playerId)
             {
                 // 必須情報を格納
                 // Store required request information
                 Tag = ProtocolTag;
                 RailSpecifier = railSpecifier;
-                TrainItemId = trainItemId;
+                HotBarSlot = hotBarSlot;
                 PlayerId = playerId;
             }
         }
@@ -176,68 +185,6 @@ namespace Server.Protocol.PacketResponse
             }
 
             return rails[railIndex];
-        }
-
-        private static int FindTrainItemSlot(IOpenableInventory inventory, ItemId targetItemId)
-        {
-            for (var slot = 0; slot < inventory.GetSlotSize(); slot++)
-            {
-                var item = inventory.GetItem(slot);
-                if (item.Id == targetItemId && item.Count > 0)
-                {
-                    return slot;
-                }
-            }
-
-            return -1;
-        }
-
-        private void ConsumeTrainItem(IOpenableInventory inventory, int slotIndex)
-        {
-            var item = inventory.GetItem(slotIndex);
-            if (item.Count <= 1)
-            {
-                inventory.SetItem(slotIndex, ServerContext.ItemStackFactory.CreatEmpty());
-                return;
-            }
-
-            inventory.SetItem(slotIndex, item.Id, item.Count - 1);
-        }
-
-        private TrainUnit CreateTrainUnit(RailComponent railComponent, List<TrainCar> trainCars)
-        {
-            var trainLength = trainCars.Sum(car => car.Length);
-
-            var railNodes = new List<RailNode>
-            {
-                railComponent.FrontNode,
-                railComponent.BackNode
-            };
-
-            var railPosition = new RailPosition(railNodes, trainLength, 0);
-            return new TrainUnit(railPosition, trainCars);
-        }
-
-        private static bool IsRailOccupied(RailComponent railComponent, IReadOnlyCollection<TrainCar> trainCars)
-        {
-            // 既存列車が対象ノードを含むか確認
-            // Check whether any registered train uses the target nodes
-            var targetNodes = new HashSet<RailNode> { railComponent.FrontNode, railComponent.BackNode };
-            var requiredLength = trainCars.Sum(car => car.Length);
-
-            return TrainUpdateService.Instance
-                .GetRegisteredTrains()
-                .Any(train =>
-                {
-                    var position = train.RailPosition;
-                    if (position == null)
-                    {
-                        return false;
-                    }
-
-                    var nodes = position.EnumerateRailNodes().ToList();
-                    return nodes.Any(targetNodes.Contains) && position.TrainLength > 0 && requiredLength > 0;
-                });
         }
 
         private List<TrainCar> BuildTrainCars(ItemId trainItemId)
