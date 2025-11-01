@@ -15,6 +15,7 @@ namespace Core.Master
         public static CharacterMaster CharacterMaster { get; private set; }
         public static ResearchMaster ResearchMaster { get; private set; }
         public static PlaceSystemMaster PlaceSystemMaster { get; private set; }
+        public static TrainUnitMaster TrainUnitMaster { get; private set; }
 
         public static void Load(MasterJsonFileContainer masterJsonFileContainer)
         {
@@ -30,6 +31,7 @@ namespace Core.Master
             CharacterMaster = new CharacterMaster(GetJson(masterJsonFileContainer, new JsonFileName("characters")));
             ResearchMaster = new ResearchMaster(GetJson(masterJsonFileContainer, new JsonFileName("research")));
             PlaceSystemMaster = new PlaceSystemMaster(GetJson(masterJsonFileContainer, new JsonFileName("placeSystem")));
+            TrainUnitMaster = new TrainUnitMaster(GetJson(masterJsonFileContainer, new JsonFileName("train")), ItemMaster);
         }
         
         private static JToken GetJson(MasterJsonFileContainer masterJsonFileContainer, JsonFileName jsonFileName)

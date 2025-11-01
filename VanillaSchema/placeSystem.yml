@@ -17,6 +17,7 @@ properties:
       options:
       - TrainRail
       - TrainRailConnect
+      - TrainCar
     - key: priority
       type: integer
       autoIncrement:

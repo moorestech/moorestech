@@ -1,0 +1,37 @@
+id: train
+type: object
+isDefaultOpen: true
+properties:
+- key: trainUnits
+  type: array
+  openedByDefault: true
+  overrideCodeGeneratePropertyName: TrainUnitMasterElement
+  items:
+    type: object
+    properties:
+    - key: trainCars
+      type: array
+      overrideCodeGeneratePropertyName: TrainCarElement
+      items:
+        type: object
+        properties:
+        - key: itemGuid
+          type: uuid
+          optional: true
+          foreignKey:
+            schemaId: items
+            foreignKeyIdPath: /data/[*]/itemGuid
+            displayElementPath: /data/[*]/name
+        - key: tractionForce
+          type: integer
+        - key: inventorySlots
+          type: integer
+        - key: fuelSlots
+          type: integer
+          default: 0
+        - key: length
+          type: integer
+        - key: isFacingForward
+          type: boolean
+          default: true
+
