@@ -23,10 +23,12 @@ namespace Client.Network.API
         public UnlockStateResponse UnlockState { get; }
         public CraftTreeResponse CraftTree { get; }
         public List<string> PlayedSkitIds { get; }
+        public RailConnectionMessagePack.RailConnectionData[] RailConnections { get; }
         
         public InitialHandshakeResponse(
             ResponseInitialHandshakeMessagePack initialHandshake,
             (
+                RailConnectionMessagePack.RailConnectionData[] railConnections,
                 List<MapObjectsInfoMessagePack> mapObjects, 
                 WorldDataResponse worldData, 
                 PlayerInventoryResponse inventory,
@@ -43,6 +45,10 @@ namespace Client.Network.API
             UnlockState = responses.unlockState;
             CraftTree = responses.craftTree;
             PlayedSkitIds = responses.playedSkitIds;
+            
+            // レール情報を初期データとして保持
+            // Store rail connections for later visualization
+            RailConnections = responses.railConnections ?? Array.Empty<RailConnectionMessagePack.RailConnectionData>();
         }
     }
     
