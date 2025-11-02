@@ -1,3 +1,4 @@
+using Client.Game.InGame.Block;
 using Server.Util.MessagePack;
 using Unity.Mathematics;
 using UnityEngine;
@@ -17,8 +18,12 @@ namespace Client.Game.InGame.Train
         private SplineExtrude _splineExtrude;
         private MeshCollider _meshCollider;
         private RailConnectionDataMessagePack _connectionData;
+        private BlockGameObject _startBlock;
+        private BlockGameObject _endBlock;
         
         public RailConnectionDataMessagePack ConnectionData => _connectionData;
+        public BlockGameObject StartBlock => _startBlock;
+        public BlockGameObject EndBlock => _endBlock;
         
         private void Awake()
         {
@@ -52,7 +57,7 @@ namespace Client.Game.InGame.Train
         /// レール接続データを設定してジオメトリを更新
         /// Set connection data and update spline geometry
         /// </summary>
-        public void Initialize(RailConnectionDataMessagePack connectionData, Material material)
+        public void Initialize(RailConnectionDataMessagePack connectionData, Material material, BlockGameObject startBlock, BlockGameObject endBlock)
         {
             if (connectionData == null)
             {
@@ -69,6 +74,10 @@ namespace Client.Game.InGame.Train
             }
             
             _connectionData = connectionData;
+            // レール端点のBlockGameObjectを記録
+            // Cache start and end BlockGameObjects for this rail
+            _startBlock = startBlock;
+            _endBlock = endBlock;
             ApplySplineGeometry();
             ApplyMaterial(material);
             
@@ -190,4 +199,3 @@ namespace Client.Game.InGame.Train
         #endregion
     }
 }
-
