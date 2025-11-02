@@ -21,7 +21,7 @@ public static class DefinitionGenerator
             {
                 var interfaceProperty = semantics.InterfacePropertySemanticsTable[propertyId];
                 // var typeId = semantics.SchemaTypeSemanticsTable[interfaceProperty.PropertySchema];
-                var typeId = propertyId;
+                ClassId? typeId = interfaceProperty.PropertySchema is ObjectSchema objectSchema ? semantics.SchemaTypeSemanticsTable[interfaceProperty.PropertySchema] : null;
                 var name = nameTable.InterfacePropertyNames[propertyId];
                 
                 var type = Type.GetType(nameTable, typeId, interfaceProperty.PropertySchema, semantics, schemaTable);
@@ -84,11 +84,9 @@ public static class DefinitionGenerator
             var fileName = "mooresmaster.g.cs";
             if (inheritList.Length == 0)
             {
-                var rootSchema = typeSemantics.Schema;
-                while (rootSchema.Parent != null) rootSchema = schemaTable.Table[rootSchema.Parent.Value];
-                
-                var root = schemaToRootTable[rootSchema];
-                var schemaId = root.SchemaId;
+                var rootSemantics = semantics.RootSemanticsTable[typeSemantics.RootId];
+                var rootSchema = rootSemantics.Root;
+                var schemaId = rootSchema.SchemaId;
                 fileName = $"mooresmaster.{schemaId}.g.cs";
             }
             else
