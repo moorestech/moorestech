@@ -34,11 +34,7 @@ namespace Client.Game.InGame.Train
         {
             // 受信したレールデータで内部キャッシュを更新
             // Update cached rail data with the received connections
-            if (connections == null || connections.Length == 0)
-            {
-                RemoveAllConnections();
-                return;
-            }
+            if (connections == null || connections.Length == 0) return;
             
             var normalized = NormalizeConnections(connections);
             ApplyNormalizedConnections(normalized);
@@ -86,9 +82,8 @@ namespace Client.Game.InGame.Train
                 return;
             }
             
-            var connections = message.AllConnections ?? Array.Empty<RailConnectionDataMessagePack>();
             var changed = message.ChangedComponentIds ?? Array.Empty<RailComponentIDMessagePack>();
-            OnRailUpdateEvent(connections, changed);
+            OnRailUpdateEvent(null, changed);
         }
         
         #region Internal
