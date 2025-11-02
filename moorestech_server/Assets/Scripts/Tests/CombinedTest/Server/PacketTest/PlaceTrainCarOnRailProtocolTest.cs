@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
@@ -28,117 +29,169 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void PlaceTrainOnRail_ValidRailAndItem_CreatesTrainUnit()
         {
-            // テスト環境をセットアップ
-            // Setup test environment
-            var environment = TrainTestHelper.CreateEnvironment();
-            var itemStackFactory = ServerContext.ItemStackFactory;
+            // テスト環境を構築
+            // Build test environment
+            var (environment, inventory, inventorySlot, railSpecifier) = SetupEnvironment();
 
-            // レールブロックを2つ配置
-            // Place two rail blocks
-            var railPos1 = new Vector3Int(0, 0, 0);
-            var railPos2 = new Vector3Int(1, 0, 0);
+            // プロトコルを実行
+            // Execute protocol
+            var (trainCountBefore, trainCountAfter, itemAfter) = ExecuteProtocol(environment, inventory, inventorySlot, railSpecifier);
 
-            var rail1Component = TrainTestHelper.PlaceRail(environment, railPos1, BlockDirection.North, out var railBlock1);
-            var rail2Component = TrainTestHelper.PlaceRail(environment, railPos2, BlockDirection.North, out var railBlock2);
+            // 結果を検証
+            // Verify result
+            ValidateResult(trainCountBefore, trainCountAfter, itemAfter);
 
-            // レールを接続
-            // Connect rails
-            rail1Component.ConnectRailComponent(rail2Component, useFrontSideOfThis: true, useFrontSideOfTarget: true);
+            #region Internal
 
-            // プレイヤーインベントリに列車アイテムを追加
-            // Add train item to player inventory
-            var trainItemId = ForUnitTestItemId.TrainCarItem;
-            var slot = PlayerInventoryConst.HotBarSlotToInventorySlot(HotBarSlot);
-            var inventory = environment.ServiceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
-            inventory.MainOpenableInventory.SetItem(slot, itemStackFactory.Create(trainItemId, 1));
+            (TrainTestEnvironment Environment, PlayerInventoryData Inventory, int InventorySlot, RailComponentSpecifier RailSpecifier) SetupEnvironment()
+            {
+                // レールとインベントリを準備
+                // Prepare rails and inventory
+                var environment = TrainTestHelper.CreateEnvironment();
+                var itemStackFactory = ServerContext.ItemStackFactory;
+                var railPos1 = new Vector3Int(0, 0, 0);
+                var railPos2 = new Vector3Int(1, 0, 0);
+                var rail1Component = TrainTestHelper.PlaceRail(environment, railPos1, BlockDirection.North, out _);
+                var rail2Component = TrainTestHelper.PlaceRail(environment, railPos2, BlockDirection.North, out _);
+                rail1Component.ConnectRailComponent(rail2Component, useFrontSideOfThis: true, useFrontSideOfTarget: true);
+                // デバッグログで接続状況を確認
+                // Debug log to capture rail connections
+                Debug.Log($"[PlaceTrainValid][Setup] frontConnections={rail1Component.FrontNode.ConnectedNodes.Count()} backConnections={rail1Component.BackNode.ConnectedNodes.Count()}");
+                var slot = PlayerInventoryConst.HotBarSlotToInventorySlot(HotBarSlot);
+                var inventory = environment.ServiceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
+                inventory.MainOpenableInventory.SetItem(slot, itemStackFactory.Create(ForUnitTestItemId.TrainCarItem, 1));
+                var railSpecifier = RailComponentSpecifier.CreateRailSpecifier(railPos1);
+                return (environment, inventory, slot, railSpecifier);
+            }
 
-            // 列車配置前の列車数を確認
-            // Check train count before placement
-            var trainCountBefore = TrainUpdateService.Instance.GetRegisteredTrains().Count();
+            (int TrainCountBefore, int TrainCountAfter, IItemStack ItemAfter) ExecuteProtocol(TrainTestEnvironment environment, PlayerInventoryData inventory, int inventorySlot, RailComponentSpecifier railSpecifier)
+            {
+                // プロトコルで列車を配置
+                // Place train through protocol
+                var trainCountBefore = TrainUpdateService.Instance.GetRegisteredTrains().Count();
+                var packet = CreatePlaceTrainPacket(railSpecifier, HotBarSlot, PlayerId);
+                environment.PacketResponseCreator.GetPacketResponse(packet);
+                var trainCountAfter = TrainUpdateService.Instance.GetRegisteredTrains().Count();
+                var itemAfter = inventory.MainOpenableInventory.GetItem(inventorySlot);
+                // デバッグログで結果を確認
+                // Debug log to capture execution result
+                Debug.Log($"[PlaceTrainValid][Execute] before={trainCountBefore} after={trainCountAfter} itemAfter={itemAfter.Count}");
+                return (trainCountBefore, trainCountAfter, itemAfter);
+            }
 
-            // 列車を配置
-            // Place train on rail
-            var railSpecifier = RailComponentSpecifier.CreateRailSpecifier(railPos1);
-            var placeTrainPacket = CreatePlaceTrainPacket(railSpecifier, HotBarSlot, PlayerId);
-            environment.PacketResponseCreator.GetPacketResponse(placeTrainPacket);
+            void ValidateResult(int beforeCount, int afterCount, IItemStack itemAfter)
+            {
+                // 列車生成とアイテム消費を検証
+                // Validate train creation and item consumption
+                Assert.AreEqual(beforeCount + 1, afterCount, "列車が1つ生成されるべき / One train should be created");
+                Assert.AreEqual(0, itemAfter.Count, "列車アイテムが消費されるべき / Train item should be consumed");
+                var createdTrain = TrainUpdateService.Instance.GetRegisteredTrains().Last();
+                Assert.IsNotNull(createdTrain, "列車が生成されているべき / Train should be created");
+                Assert.Greater(createdTrain.Cars.Count, 0, "列車は1両以上の車両を持つべき / Train should have at least one car");
+            }
 
-            // 列車が生成されたことを確認
-            // Verify train was created
-            var trainCountAfter = TrainUpdateService.Instance.GetRegisteredTrains().Count();
-            Assert.AreEqual(trainCountBefore + 1, trainCountAfter, "列車が1つ生成されるべき / One train should be created");
-
-            // アイテムが消費されたことを確認
-            // Verify item was consumed
-            var itemAfter = inventory.MainOpenableInventory.GetItem(slot);
-            Assert.AreEqual(0, itemAfter.Count, "列車アイテムが消費されるべき / Train item should be consumed");
-
-            // 生成された列車の検証
-            // Verify created train
-            var createdTrain = TrainUpdateService.Instance.GetRegisteredTrains().Last();
-            Assert.IsNotNull(createdTrain, "列車が生成されているべき / Train should be created");
-            Assert.Greater(createdTrain.Cars.Count, 0, "列車は1両以上の車両を持つべき / Train should have at least one car");
+            #endregion
         }
 
         [Test]
         public void PlaceTrainOnRail_EmptyInventorySlot_DoesNotCreateTrain()
         {
-            // テスト環境をセットアップ
-            // Setup test environment
-            var environment = TrainTestHelper.CreateEnvironment();
+            // テスト環境を構築
+            // Build test environment
+            var (environment, railSpecifier) = SetupEnvironment();
 
-            // レールブロックを配置
-            // Place rail blocks
-            var railPos = new Vector3Int(0, 0, 0);
-            TrainTestHelper.PlaceRail(environment, railPos, BlockDirection.North);
+            // プロトコルを実行
+            // Execute protocol
+            var (trainCountBefore, trainCountAfter) = ExecuteProtocol(environment, railSpecifier);
 
-            // プレイヤーインベントリは空のまま
-            // Keep player inventory empty
-            var trainCountBefore = TrainUpdateService.Instance.GetRegisteredTrains().Count();
+            // 結果を検証
+            // Verify result
+            ValidateResult(trainCountBefore, trainCountAfter);
 
-            // 列車を配置しようとする
-            // Attempt to place train
-            var railSpecifier = RailComponentSpecifier.CreateRailSpecifier(railPos);
-            var placeTrainPacket = CreatePlaceTrainPacket(railSpecifier, HotBarSlot, PlayerId);
-            environment.PacketResponseCreator.GetPacketResponse(placeTrainPacket);
+            #region Internal
 
-            // 列車が生成されていないことを確認
-            // Verify no train was created
-            var trainCountAfter = TrainUpdateService.Instance.GetRegisteredTrains().Count();
-            Assert.AreEqual(trainCountBefore, trainCountAfter, "列車が生成されないべき / No train should be created");
+            (TrainTestEnvironment Environment, RailComponentSpecifier RailSpecifier) SetupEnvironment()
+            {
+                // レールのみを配置
+                // Place only rails
+                var environment = TrainTestHelper.CreateEnvironment();
+                var railPos = new Vector3Int(0, 0, 0);
+                TrainTestHelper.PlaceRail(environment, railPos, BlockDirection.North);
+                var railSpecifier = RailComponentSpecifier.CreateRailSpecifier(railPos);
+                return (environment, railSpecifier);
+            }
+
+            (int TrainCountBefore, int TrainCountAfter) ExecuteProtocol(TrainTestEnvironment environment, RailComponentSpecifier railSpecifier)
+            {
+                // 空スロットで配置を試行
+                // Attempt placement with empty slot
+                var trainCountBefore = TrainUpdateService.Instance.GetRegisteredTrains().Count();
+                var packet = CreatePlaceTrainPacket(railSpecifier, HotBarSlot, PlayerId);
+                environment.PacketResponseCreator.GetPacketResponse(packet);
+                var trainCountAfter = TrainUpdateService.Instance.GetRegisteredTrains().Count();
+                return (trainCountBefore, trainCountAfter);
+            }
+
+            void ValidateResult(int beforeCount, int afterCount)
+            {
+                // 列車未生成を確認
+                // Confirm no train was created
+                Assert.AreEqual(beforeCount, afterCount, "列車が生成されないべき / No train should be created");
+            }
+
+            #endregion
         }
 
         [Test]
         public void PlaceTrainOnRail_InvalidRail_DoesNotCreateTrain()
         {
-            // テスト環境をセットアップ
-            // Setup test environment
-            var environment = TrainTestHelper.CreateEnvironment();
-            var itemStackFactory = ServerContext.ItemStackFactory;
+            // テスト環境を構築
+            // Build test environment
+            var (environment, inventory, inventorySlot, railSpecifier) = SetupEnvironment();
 
-            // プレイヤーインベントリに列車アイテムを追加
-            // Add train item to player inventory
-            var trainItemId = ForUnitTestItemId.TrainCarItem;
-            var slot = PlayerInventoryConst.HotBarSlotToInventorySlot(HotBarSlot);
-            var inventory = environment.ServiceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
-            inventory.MainOpenableInventory.SetItem(slot, itemStackFactory.Create(trainItemId, 1));
+            // プロトコルを実行
+            // Execute protocol
+            var (trainCountBefore, trainCountAfter, itemAfter) = ExecuteProtocol(environment, inventory, inventorySlot, railSpecifier);
 
-            var trainCountBefore = TrainUpdateService.Instance.GetRegisteredTrains().Count();
+            // 結果を検証
+            // Verify result
+            ValidateResult(trainCountBefore, trainCountAfter, itemAfter);
 
-            // 存在しないレールに列車を配置しようとする
-            // Attempt to place train on non-existent rail
-            var railSpecifier = RailComponentSpecifier.CreateRailSpecifier(new Vector3Int(99, 99, 99));
-            var placeTrainPacket = CreatePlaceTrainPacket(railSpecifier, HotBarSlot, PlayerId);
-            environment.PacketResponseCreator.GetPacketResponse(placeTrainPacket);
+            #region Internal
 
-            // 列車が生成されていないことを確認
-            // Verify no train was created
-            var trainCountAfter = TrainUpdateService.Instance.GetRegisteredTrains().Count();
-            Assert.AreEqual(trainCountBefore, trainCountAfter, "列車が生成されないべき / No train should be created");
+            (TrainTestEnvironment Environment, PlayerInventoryData Inventory, int InventorySlot, RailComponentSpecifier RailSpecifier) SetupEnvironment()
+            {
+                // アイテムのみ追加
+                // Provide only item
+                var environment = TrainTestHelper.CreateEnvironment();
+                var slot = PlayerInventoryConst.HotBarSlotToInventorySlot(HotBarSlot);
+                var inventory = environment.ServiceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
+                inventory.MainOpenableInventory.SetItem(slot, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TrainCarItem, 1));
+                var railSpecifier = RailComponentSpecifier.CreateRailSpecifier(new Vector3Int(99, 99, 99));
+                return (environment, inventory, slot, railSpecifier);
+            }
 
-            // アイテムが消費されていないことを確認
-            // Verify item was not consumed
-            var itemAfter = inventory.MainOpenableInventory.GetItem(slot);
-            Assert.AreEqual(1, itemAfter.Count, "列車アイテムが消費されないべき / Train item should not be consumed");
+            (int TrainCountBefore, int TrainCountAfter, IItemStack ItemAfter) ExecuteProtocol(TrainTestEnvironment environment, PlayerInventoryData inventory, int inventorySlot, RailComponentSpecifier railSpecifier)
+            {
+                // 存在しないレールに送信
+                // Send request for missing rail
+                var trainCountBefore = TrainUpdateService.Instance.GetRegisteredTrains().Count();
+                var packet = CreatePlaceTrainPacket(railSpecifier, HotBarSlot, PlayerId);
+                environment.PacketResponseCreator.GetPacketResponse(packet);
+                var trainCountAfter = TrainUpdateService.Instance.GetRegisteredTrains().Count();
+                var itemAfter = inventory.MainOpenableInventory.GetItem(inventorySlot);
+                return (trainCountBefore, trainCountAfter, itemAfter);
+            }
+
+            void ValidateResult(int beforeCount, int afterCount, IItemStack itemAfter)
+            {
+                // 列車未生成とアイテム維持を検証
+                // Verify absence of train and item retention
+                Assert.AreEqual(beforeCount, afterCount, "列車が生成されないべき / No train should be created");
+                Assert.AreEqual(1, itemAfter.Count, "列車アイテムが消費されないべき / Train item should not be consumed");
+            }
+
+            #endregion
         }
 
         private List<byte> CreatePlaceTrainPacket(RailComponentSpecifier railSpecifier, int hotBarSlot, int playerId)
