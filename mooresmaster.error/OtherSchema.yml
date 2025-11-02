@@ -2,6 +2,8 @@ id: defineInterfacePrimitiveArrayTestSchema
 type: object
 
 defineInterface:
+  - interfaceName: IOption
+    properties: [ ]
   - interfaceName: IDefineInterfacePrimitiveArrayTest
     properties:
       - key: offset
@@ -10,9 +12,18 @@ defineInterface:
         type: integer
       - key: testObject
         type: object
-        properties: [ ]
+        properties:
+          - key: innerTestObject
+            type: object
+            properties:
+              - key: innerInnerTestObject
+                type: object
       - key: directions
         type: array
         items:
           type: vector3Int
+      - key: option
+        type: object
+        implementationInterface:
+          - IOption
         

@@ -113,6 +113,12 @@ public static class NameResolver
             {
                 if (schemaTable.Table[currentSchema.Value].Parent is null)
                 {
+                    if (schemaTable.Table[currentSchema.Value].IsInterfaceProperty)
+                    {
+                        parentNames.Add(schemaTable.Table[currentSchema.Value].PropertyName!.ToCamelCase());
+                        break;
+                    }
+                    
                     parentNames.Add(schemaToRoot[schemaTable.Table[currentSchema.Value]].Root.SchemaId);
                     break;
                 }
