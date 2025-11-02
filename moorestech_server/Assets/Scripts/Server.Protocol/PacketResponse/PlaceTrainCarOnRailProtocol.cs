@@ -36,18 +36,18 @@ namespace Server.Protocol.PacketResponse
 
             // リクエスト内容を検証し、列車配置を実行
             // Validate request contents and execute train placement
-            
+
             var railComponent = RailConnectionEditProtocol.ResolveRailComponent(request.RailSpecifier);
             var inventoryData = _playerInventoryDataStore.GetInventoryData(request.PlayerId);
             if (railComponent == null || inventoryData == null) return null;
-            
+
             var mainInventory = inventoryData.MainOpenableInventory;
-            
+
             // ホットバースロットからアイテムを取得
             // Get item from hotbar slot
             var item = mainInventory.GetItem(request.InventorySlot);
             if (item.Id == ItemMaster.EmptyItemId || item.Count == 0) return null;
-            
+
             // 列車ユニット生成
             // Build train unit from composition data
             var trainUnit = CreateTrainUnit(railComponent, item.Id);
@@ -56,11 +56,11 @@ namespace Server.Protocol.PacketResponse
             // アイテムを消費
             // Consume the train item from inventory
             mainInventory.SetItem(request.InventorySlot, item.Id, item.Count - 1);
-            
+
             return null;
-            
+
             #region Internal
-            
+
             TrainUnit CreateTrainUnit(RailComponent railComponent, ItemId trainItemId)
             {
                 // MasterHolderのTrainから列車データを取得
@@ -107,13 +107,13 @@ namespace Server.Protocol.PacketResponse
                 // Calculate total train length
                 var trainLength = trainCars.Sum(car => car.Length);
 
-                // レール位置を初期化
-                // Initialize rail position
-                var railNodes = new List<RailNode>
+                // レール位置を初期化 - 接続されたノードの経路を構築
+                // Initialize rail position - build path from connected nodes
+                var railNodes = BuildConnectedNodePath(railComponent, trainLength);
+                if (railNodes == null || railNodes.Count == 0)
                 {
-                    railComponent.FrontNode,
-                    railComponent.BackNode
-                };
+                    return null;
+                }
 
                 var railPosition = new RailPosition(railNodes, trainLength, 0);
 
@@ -121,7 +121,37 @@ namespace Server.Protocol.PacketResponse
                 // Create and return TrainUnit
                 return new TrainUnit(railPosition, trainCars);
             }
-            
+
+            List<RailNode> BuildConnectedNodePath(RailComponent startRail, int trainLength)
+            {
+                // 開始ノードを決定（FrontNodeから接続を探す）
+                // Determine starting node (search for connections from FrontNode)
+                var startNode = startRail.FrontNode;
+                var connectedNodes = startNode.ConnectedNodes.ToList();
+
+                // FrontNodeに接続がない場合はBackNodeを試す
+                // If FrontNode has no connections, try BackNode
+                if (connectedNodes.Count == 0)
+                {
+                    startNode = startRail.BackNode;
+                    connectedNodes = startNode.ConnectedNodes.ToList();
+                }
+
+                // 接続ノードがある場合は接続先ノードと開始ノードのパスを作成
+                // RailPositionのリストは進行方向の逆順（目的地が先頭）なので、接続先を先に配置
+                // If there are connected nodes, create path with connected node first then start node
+                // RailPosition list is in reverse order of travel (destination first), so connected node comes first
+                if (connectedNodes.Count > 0)
+                {
+                    var path = new List<RailNode> { connectedNodes[0], startNode };
+                    return path;
+                }
+
+                // 接続がない場合は開始ノードのみでパスを作成
+                // If no connections, create path with just the start node
+                return new List<RailNode> { startNode };
+            }
+
             #endregion
         }
 
@@ -160,4 +190,3 @@ namespace Server.Protocol.PacketResponse
         #endregion
     }
 }
-
