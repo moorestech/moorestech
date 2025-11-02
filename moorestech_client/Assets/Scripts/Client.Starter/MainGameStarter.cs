@@ -6,6 +6,7 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
+using Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect;
 using Client.Game.InGame.BlockSystem.StateProcessor;
@@ -140,6 +141,11 @@ namespace Client.Starter
             // 設置システム
             // register placement system
             builder.Register<CommonBlockPlaceSystem>(Lifetime.Singleton);
+            builder.Register<ITrainCarPlacementDetector, TrainCarPlacementDetector>(Lifetime.Singleton);
+            builder.Register<ITrainCarPreviewController, TrainCarPreviewController>(Lifetime.Singleton);
+            builder.Register<ITrainCarPlacementInput, TrainCarPlacementInput>(Lifetime.Singleton);
+            builder.Register<ITrainCarPlacementSender, TrainCarPlacementSender>(Lifetime.Singleton);
+            builder.Register<TrainCarPlaceSystem>(Lifetime.Singleton);
             builder.Register<TrainRailPlaceSystem>(Lifetime.Singleton);
             builder.Register<TrainRailConnectSystem>(Lifetime.Singleton);
             builder.Register<PlaceSystemStateController>(Lifetime.Singleton);
