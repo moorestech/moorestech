@@ -136,7 +136,7 @@ public static class JsonSchemaParser
         
         var objectName = json.Nodes.ContainsKey(Tokens.PropertyNameKey) ? (json[Tokens.PropertyNameKey] as JsonString)!.Literal : null;
         
-        if (!json.Nodes.ContainsKey(Tokens.PropertiesKey)) return table.Add(new ObjectSchema(objectName, parent, new Dictionary<string, SchemaId>(), [], IsNullable(json), interfaceImplementations.ToArray(), false));
+        if (!json.Nodes.ContainsKey(Tokens.PropertiesKey)) return table.Add(new ObjectSchema(objectName, parent, new Dictionary<string, SchemaId>(), [], IsNullable(json), interfaceImplementations.ToArray(), isInterfaceProperty));
         
         var propertiesJson = (json[Tokens.PropertiesKey] as JsonArray)!;
         var requiredJson = json["required"] as JsonArray;
