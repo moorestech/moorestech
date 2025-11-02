@@ -1,5 +1,6 @@
 using Client.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
+using Client.Game.InGame.Train;
 using Core.Master;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.RailConnectionEditProtocol;
@@ -40,12 +41,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
         {
             hit = default;
 
-            if (!PlaceSystemUtil.TryGetRaySpecifiedComponentHit<TrainRailObject>(_mainCamera, out var trainRailObject, LayerConst.BlockOnlyLayerMask))
+            if (!PlaceSystemUtil.TryGetRaySpecifiedComponentHit<RailSplineComponent>(_mainCamera, out var rail, LayerConst.BlockOnlyLayerMask))
             {
                 return false;
             }
             
-            var block = trainRailObject.BlockGameObject;
+            var block = rail.StartBlock;
             var railSpecifier = RailComponentSpecifier.CreateRailSpecifier(block.BlockPosInfo.OriginalPos);
             var previewPosition = block.BlockPosInfo.OriginalPos + new Vector3(0.5f, 0.5f, 0.5f);
             var previewRotation = Quaternion.identity;
