@@ -12,6 +12,7 @@ using Game.Train.RailGraph;
 using Game.Train.Train;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Mooresmaster.Model.TrainModule;
 using Server.Util.MessagePack;
 using RailComponentSpecifier = Server.Protocol.PacketResponse.RailConnectionEditProtocol.RailComponentSpecifier;
 using Game.Block.Interface.Extension;
