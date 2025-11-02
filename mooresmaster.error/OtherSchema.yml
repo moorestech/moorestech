@@ -8,7 +8,11 @@ defineInterface:
         type: vector3Int
       - key: test
         type: integer
-      - key: directions
+      - key: testObject
         type: object
         properties: [ ]
+      - key: directions
+        type: array
+        items:
+          type: vector3Int
         
