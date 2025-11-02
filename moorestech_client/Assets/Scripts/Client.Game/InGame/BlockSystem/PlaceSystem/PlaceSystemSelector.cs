@@ -1,6 +1,7 @@
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Empty;
+using Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect;
 using Core.Master;
@@ -13,15 +14,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         public readonly EmptyPlaceSystem EmptyPlaceSystem;
         private readonly CommonBlockPlaceSystem _commonBlockPlaceSystem;
         private readonly TrainRailPlaceSystem _trainRailPlaceSystem;
+        private readonly TrainCarPlaceSystem _trainCarPlaceSystem;
         private readonly TrainRailConnectSystem _trainRailConnectSystem;
         
         public PlaceSystemSelector(
             CommonBlockPlaceSystem commonBlockPlaceSystem,
+            TrainCarPlaceSystem trainCarPlaceSystem,
             TrainRailPlaceSystem trainRailPlaceSystem,
             TrainRailConnectSystem trainRailConnectSystem)
         {
             EmptyPlaceSystem = new EmptyPlaceSystem();
             _commonBlockPlaceSystem = commonBlockPlaceSystem;
+            _trainCarPlaceSystem = trainCarPlaceSystem;
             _trainRailPlaceSystem = trainRailPlaceSystem;
             _trainRailConnectSystem = trainRailConnectSystem;
         }
@@ -38,6 +42,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 return placeSystemElement.PlaceMode switch
                 {
                     PlaceSystemMasterElement.PlaceModeConst.TrainRail => _trainRailPlaceSystem,
+                    PlaceSystemMasterElement.PlaceModeConst.TrainCar => _trainCarPlaceSystem,
                     PlaceSystemMasterElement.PlaceModeConst.TrainRailConnect => _trainRailConnectSystem,
                     _ => throw new System.Exception($"Unsupported PlaceMode: {placeSystemElement.PlaceMode}"),
                 };

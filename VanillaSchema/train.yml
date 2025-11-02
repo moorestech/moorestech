@@ -9,6 +9,13 @@ properties:
   items:
     type: object
     properties:
+    - key: itemGuid
+      type: uuid
+      optional: true
+      foreignKey:
+        schemaId: items
+        foreignKeyIdPath: /data/[*]/itemGuid
+        displayElementPath: /data/[*]/name
     - key: trainCars
       type: array
       overrideCodeGeneratePropertyName: TrainCarElement

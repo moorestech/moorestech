@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using Client.Network.Settings;
-using Core.Master;
 using Game.CraftChainer.CraftChain;
 using Game.CraftTree.Models;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.RailConnectionEditProtocol;
+using static Server.Protocol.PacketResponse.PlaceTrainCarOnRailProtocol;
 
 namespace Client.Network.API
 {
@@ -128,6 +128,12 @@ namespace Client.Network.API
         public void DisconnectRail(RailComponentSpecifier from, RailComponentSpecifier to)
         {
             var request = RailConnectionEditRequest.CreateDisconnectRequest(from, to);
+            _packetSender.Send(request);
+        }
+
+        public void PlaceTrainOnRail(RailComponentSpecifier specifier, int hotBarSlot)
+        {
+            var request = new PlaceTrainOnRailRequestMessagePack(specifier, hotBarSlot, _playerId);
             _packetSender.Send(request);
         }
     }
