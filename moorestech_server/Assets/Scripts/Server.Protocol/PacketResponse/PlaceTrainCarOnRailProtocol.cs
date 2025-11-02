@@ -12,6 +12,7 @@ using Game.Train.RailGraph;
 using Game.Train.Train;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Mooresmaster.Model.TrainModule;
 using Server.Util.MessagePack;
 using RailComponentSpecifier = Server.Protocol.PacketResponse.RailConnectionEditProtocol.RailComponentSpecifier;
 using Game.Block.Interface.Extension;
@@ -49,8 +50,9 @@ namespace Server.Protocol.PacketResponse
             
             // 列車ユニット生成
             // Build train unit from composition data
-            CreateTrainUnit(railComponent, item.Id);
-            
+            var trainUnit = CreateTrainUnit(railComponent, item.Id);
+            if (trainUnit == null) return null;
+
             // アイテムを消費
             // Consume the train item from inventory
             mainInventory.SetItem(request.InventorySlot, item.Id, item.Count - 1);
@@ -61,16 +63,70 @@ namespace Server.Protocol.PacketResponse
             
             TrainUnit CreateTrainUnit(RailComponent railComponent, ItemId trainItemId)
             {
-                // TODO MasterHolderのTrainUnitMasterから列車データを取得してTrainCarを生成する処理を実装する
-                
+                // MasterHolderのTrainから列車データを取得
+                // Get train data from MasterHolder.TrainUnitMaster
+                var trainMaster = MasterHolder.TrainUnitMaster;
+                if (trainMaster?.Train?.TrainUnits == null)
+                {
+                    return null;
+                }
+
+                // アイテムIDに対応する列車ユニット編成を検索
+                // Search for train unit composition matching the item ID
+                TrainUnitMasterElement trainUnitElement = null;
+                foreach (var unit in trainMaster.Train.TrainUnits)
+                {
+                    // ItemGuidプロパティをリフレクションで取得（スキーマ更新待ち）
+                    // Get ItemGuid property via reflection (pending schema update)
+                    var itemGuidProp = unit.GetType().GetProperty("ItemGuid");
+                    if (itemGuidProp != null)
+                    {
+                        var itemGuid = itemGuidProp.GetValue(unit) as Guid?;
+                        if (itemGuid.HasValue && MasterHolder.ItemMaster.GetItemId(itemGuid.Value) == trainItemId)
+                        {
+                            trainUnitElement = unit;
+                            break;
+                        }
+                    }
+                }
+
+                if (trainUnitElement == null || trainUnitElement.TrainCars == null)
+                {
+                    return null;
+                }
+
+                // TrainCarElementからTrainCarオブジェクトを生成
+                // Create TrainCar objects from TrainCarElement data
+                var trainCars = new List<TrainCar>();
+                foreach (var carElement in trainUnitElement.TrainCars)
+                {
+                    var car = new TrainCar(
+                        tractionForce: carElement.TractionForce,
+                        inventorySlots: carElement.InventorySlots,
+                        length: carElement.Length,
+                        fuelSlots: carElement.FuelSlots,
+                        isFacingForward: carElement.IsFacingForward
+                    );
+                    trainCars.Add(car);
+                }
+
+                // 列車全体の長さを計算
+                // Calculate total train length
+                var trainLength = trainCars.Sum(car => car.Length);
+
+                // レール位置を初期化
+                // Initialize rail position
                 var railNodes = new List<RailNode>
                 {
                     railComponent.FrontNode,
                     railComponent.BackNode
                 };
-                
-                var railPosition = new RailPosition(railNodes,
-                return new TrainUnit(railPosition
+
+                var railPosition = new RailPosition(railNodes, trainLength, 0);
+
+                // TrainUnitを生成して返す
+                // Create and return TrainUnit
+                return new TrainUnit(railPosition, trainCars);
             }
             
             #endregion
