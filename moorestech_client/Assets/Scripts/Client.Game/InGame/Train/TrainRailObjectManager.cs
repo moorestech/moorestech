@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Network.API;
 using Game.Train.Utility;
@@ -21,6 +22,8 @@ namespace Client.Game.InGame.Train
         
         private readonly Dictionary<RailConnectionKey, RailSplineComponent> _connectionToSpline = new();
         private readonly Dictionary<RailComponentKey, HashSet<RailConnectionKey>> _componentToConnections = new();
+        
+        [Inject] private BlockGameObjectDataStore _blockGameObjectDataStore;
         
         
         [Inject]
@@ -228,8 +231,21 @@ namespace Client.Game.InGame.Train
             var go = new GameObject();
             go.transform.SetParent(transform, false);
             var component = go.AddComponent<RailSplineComponent>();
-            component.Initialize(connection, material);
+            // レールの端点BlockGameObjectを解決
+            // Resolve BlockGameObjects located at both ends of the rail
+            var startBlock = ResolveBlockGameObject(connection.FromNode);
+            var endBlock = ResolveBlockGameObject(connection.ToNode);
+            component.Initialize(connection, material, startBlock, endBlock);
             return component;
+        }
+        
+        private BlockGameObject ResolveBlockGameObject(RailNodeInfoMessagePack node)
+        {
+            // RailNodeに対応するBlockGameObjectを取得
+            // Fetch the BlockGameObject that corresponds to the provided rail node
+            if (node == null || node.ComponentId == null) return null;
+            var position = (Vector3Int)node.ComponentId.Position;
+            return _blockGameObjectDataStore != null && _blockGameObjectDataStore.TryGetBlockGameObject(position, out var blockGameObject) ? blockGameObject : null;
         }
         
         private static RailComponentKey CreateComponentKey(RailComponentIDMessagePack componentId)
