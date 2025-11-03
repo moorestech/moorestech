@@ -2,15 +2,20 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Entity.Factory;
 using Client.Network.API;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace Client.Game.InGame.Entity
 {
     public class EntityObjectDatastore : MonoBehaviour
     {
-        [SerializeField] private EntityObjectFactory entityObjectFactory;
-        
+        private EntityObjectFactory _entityObjectFactory;
         private readonly Dictionary<long, (DateTime lastUpdate, IEntityObject objectEntity)> _entities = new();
+        
+        private void Awake()
+        {
+            _entityObjectFactory = new EntityObjectFactory();
+        }
         
         /// <summary>
         ///     エンティティ最終更新時間をチェックし、一定時間経過していたら削除する
@@ -35,17 +40,28 @@ namespace Client.Game.InGame.Entity
         public void OnEntitiesUpdate(List<EntityResponse> entities)
         {
             foreach (var entity in entities)
+            {
+                // 既存エンティティの更新
+                // Update existing entity
                 if (_entities.ContainsKey(entity.InstanceId))
                 {
-                    _entities[entity.InstanceId].objectEntity.SetInterpolationPosition(entity.Position);
+                    _entities[entity.InstanceId].objectEntity.SetPositionWithLerp(entity.Position);
                     _entities[entity.InstanceId] = (DateTime.Now, _entities[entity.InstanceId].objectEntity);
+                    
+                    continue;
                 }
-                else
+                
+                
+                // 新規エンティティの生成
+                // Create new entity
+                _entityObjectFactory.CreateEntity(transform, entity).ContinueWith(entityObject =>
                 {
-                    var entityObject = entityObjectFactory.CreateEntity(entity);
                     entityObject.Initialize(entity.InstanceId);
                     _entities.Add(entity.InstanceId, (DateTime.Now, entityObject));
-                }
+                    
+                    return entityObject;
+                });
+            }
         }
     }
 }

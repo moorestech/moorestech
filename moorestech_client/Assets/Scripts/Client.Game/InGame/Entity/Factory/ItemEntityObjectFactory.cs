@@ -2,6 +2,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.Entity.Object;
 using Client.Network.API;
 using Core.Master;
+using Cysharp.Threading.Tasks;
 using Game.Entity.Interface;
 using UnityEngine;
 
@@ -11,19 +12,24 @@ namespace Client.Game.InGame.Entity.Factory
     /// アイテムエンティティを生成するファクトリー
     /// Factory to create item entity
     /// </summary>
-    public class ItemEntityObjectFactory : MonoBehaviour, IEntityObjectFactory
+    public class ItemEntityObjectFactory : IEntityObjectFactory
     {
-        [SerializeField] private ItemEntityObject itemPrefab;
+        private const string AddressablePath = "Vanilla/Game/ItemEntity";
         
-        public string SupportedEntityType => VanillaEntityType.VanillaItem;
+        private readonly GameObject _itemPrefab;
+        
+        public ItemEntityObjectFactory()
+        {
+            _itemPrefab = Resources.Load<GameObject>(AddressablePath);
+        }
         
         /// <summary>
         /// アイテムエンティティを生成
         /// Create item entity
         /// </summary>
-        public IEntityObject CreateEntity(EntityResponse entity)
+        public async UniTask<IEntityObject> CreateEntity(Transform parent, EntityResponse entity)
         {
-            var item = Instantiate(itemPrefab, entity.Position, Quaternion.identity, transform);
+            var itemObject = GameObject.Instantiate(_itemPrefab, entity.Position, Quaternion.identity, parent);
             
             // State文字列からItemIdを取得してテクスチャを設定
             // Get ItemId from State string and set texture
@@ -35,6 +41,7 @@ namespace Client.Game.InGame.Entity.Factory
                 texture = viewData.ItemTexture;
             }
             
+            var item = itemObject.GetComponent<ItemEntityObject>();
             item.SetTexture(texture);
             return item;
         }

@@ -65,7 +65,7 @@ namespace Client.Game.InGame.Entity.Object
         /// 補間を開始して新しい位置に移動する
         /// Start interpolation to move to new position
         /// </summary>
-        public void SetInterpolationPosition(Vector3 position)
+        public void SetPositionWithLerp(Vector3 position)
         {
             _previousPosition = transform.position;
             _targetPosition = position;

@@ -42,7 +42,7 @@ namespace Client.Game.InGame.Entity.Object
             transform.position = position;
         }
         
-        public void SetInterpolationPosition(Vector3 position)
+        public void SetPositionWithLerp(Vector3 position)
         {
             _previousPosition = transform.position;
             _targetPosition = position;

@@ -1,4 +1,6 @@
 using Client.Network.API;
+using Cysharp.Threading.Tasks;
+using UnityEngine;
 
 namespace Client.Game.InGame.Entity.Factory
 {
@@ -8,17 +10,7 @@ namespace Client.Game.InGame.Entity.Factory
     /// </summary>
     public interface IEntityObjectFactory
     {
-        /// <summary>
-        /// このファクトリーが対応するエンティティタイプ
-        /// Entity type that this factory supports
-        /// </summary>
-        string SupportedEntityType { get; }
-        
-        /// <summary>
-        /// EntityResponseからIEntityObjectを生成
-        /// Create IEntityObject from EntityResponse
-        /// </summary>
-        IEntityObject CreateEntity(EntityResponse entity);
+        UniTask<IEntityObject> CreateEntity(Transform parent, EntityResponse entity);
     }
 }
 
