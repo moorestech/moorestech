@@ -42,7 +42,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             var responseAfterConnect = SendGetRailConnectionsRequest(packet);
             Assert.IsNotNull(responseAfterConnect);
             Assert.IsNotNull(responseAfterConnect.Connections);
-            Assert.AreEqual(1, responseAfterConnect.Connections.Length);
+            // レール接続は双方向なので、1回の接続操作で2つの有向エッジが作成される
+            // Rail connections are bidirectional, so one connection operation creates two directed edges
+            Assert.AreEqual(2, responseAfterConnect.Connections.Length);
 
             // Act & Assert 3: RailConnectionEditProtocolで切断を実行
             // Act & Assert 3: Execute disconnect using RailConnectionEditProtocol
