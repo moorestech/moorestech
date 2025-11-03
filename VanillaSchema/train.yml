@@ -16,6 +16,10 @@ properties:
         schemaId: items
         foreignKeyIdPath: /data/[*]/itemGuid
         displayElementPath: /data/[*]/name
+    - key: addressablePath
+      type: string
+      optional: true
+      default: ""
     - key: trainCars
       type: array
       overrideCodeGeneratePropertyName: TrainCarElement

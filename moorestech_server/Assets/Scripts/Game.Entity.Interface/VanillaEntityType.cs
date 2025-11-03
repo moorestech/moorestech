@@ -4,5 +4,6 @@ namespace Game.Entity.Interface
     {
         public const string VanillaPlayer = "va:Player";
         public const string VanillaItem = "va:Item";
+        public const string VanillaTrain = "va:Train";
     }
 }
