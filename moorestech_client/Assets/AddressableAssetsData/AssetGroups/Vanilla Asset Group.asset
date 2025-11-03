@@ -470,6 +470,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 85fb7a241b50442c68029a0d9748bf56
+    m_Address: Vanilla/Game/DefaultTrain
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 86e61f81bcc934fea864ebdccb57122f
     m_Address: Vanilla/UI/Block/CraftChainerMainComputerInventory
     m_ReadOnly: 0
@@ -841,7 +846,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: ec249701ac417437a8f945510002724b
-    m_Address: Vanilla/Game/DefaultTrain
+    m_Address: Vanilla/Game/FreightCar
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
