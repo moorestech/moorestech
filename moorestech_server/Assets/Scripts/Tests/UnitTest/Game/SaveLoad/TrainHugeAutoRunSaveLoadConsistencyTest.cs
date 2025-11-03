@@ -30,7 +30,9 @@ namespace Tests.UnitTest.Game.SaveLoad
         private const int MinDiagramEntries = 1;//1
         private const int MaxWaitTicks = 4097;//4096
         private const int RandomSeed = 3572468;
-
+        
+        
+        [Timeout(500000)]
         [Test]
         public void MassiveAutoRunScenarioProducesIdenticalStateWithAndWithoutSaveLoad()
         {
