@@ -90,7 +90,9 @@ namespace Client.Starter
         [SerializeField] private BackToMainMenu backToMainMenu;
         [SerializeField] private NetworkDisconnectPresenter networkDisconnectPresenter;
         [SerializeField] private ChallengeManager challengeManager;
+        
         [SerializeField] private TrainRailObjectManager trainRailObjectManager;
+        [SerializeField] private TrainCarPreviewController trainCarObjectPreviewController;
         
         [SerializeField] private SkitManager skitManager;
         [SerializeField] private SkitUI skitUI;
@@ -142,9 +144,6 @@ namespace Client.Starter
             // register placement system
             builder.Register<CommonBlockPlaceSystem>(Lifetime.Singleton);
             builder.Register<ITrainCarPlacementDetector, TrainCarPlacementDetector>(Lifetime.Singleton);
-            builder.Register<ITrainCarPreviewController, TrainCarPreviewController>(Lifetime.Singleton);
-            builder.Register<ITrainCarPlacementInput, TrainCarPlacementInput>(Lifetime.Singleton);
-            builder.Register<ITrainCarPlacementSender, TrainCarPlacementSender>(Lifetime.Singleton);
             builder.Register<TrainCarPlaceSystem>(Lifetime.Singleton);
             builder.Register<TrainRailPlaceSystem>(Lifetime.Singleton);
             builder.Register<TrainRailConnectSystem>(Lifetime.Singleton);
@@ -222,6 +221,7 @@ namespace Client.Starter
             builder.RegisterComponent<IPlacementPreviewBlockGameObjectController>(previewBlockController);
             builder.RegisterComponent(railConnectPreviewObject);
             builder.RegisterComponent(trainRailObjectManager);
+            builder.RegisterComponent(trainCarObjectPreviewController);
             
             builder.RegisterBuildCallback(objectResolver => { });
             

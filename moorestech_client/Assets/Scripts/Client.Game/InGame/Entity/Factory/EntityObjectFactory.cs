@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Client.Network.API;
 using UnityEngine;
 
-namespace Client.Game.InGame.Entity
+namespace Client.Game.InGame.Entity.Factory
 {
     /// <summary>
     /// エンティティタイプに応じたIEntityObjectインスタンスを生成するファクトリー
