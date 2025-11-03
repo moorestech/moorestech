@@ -1,3 +1,4 @@
+using Client.Common;
 using Client.Game.InGame.Block;
 using Server.Util.MessagePack;
 using Unity.Mathematics;
@@ -27,6 +28,10 @@ namespace Client.Game.InGame.Train
         
         private void Awake()
         {
+            // LayerをBlockに設定
+            // Set layer to Block
+            gameObject.layer = LayerConst.BlockLayer;
+            
             // Spline関連コンポーネントを取得または追加
             // Get or add spline-related components
             _splineContainer = GetComponent<SplineContainer>();

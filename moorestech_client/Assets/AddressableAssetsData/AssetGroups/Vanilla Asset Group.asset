@@ -575,6 +575,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a51229a275812984e917c7dd78a1447a
+    m_Address: Vanilla/Game/ItemEntity
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a580b107f1a0e493dbfb43a76d09e90a
     m_Address: Vanilla/Block/FusionReactor
     m_ReadOnly: 0
@@ -832,6 +837,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: ea12cf12024a0f24a927a47473535079
     m_Address: Vanilla/Block/SF_L_BeltConveyor
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ec249701ac417437a8f945510002724b
+    m_Address: Vanilla/Game/DefaultTrain
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

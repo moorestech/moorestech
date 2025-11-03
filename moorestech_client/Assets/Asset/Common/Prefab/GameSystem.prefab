@@ -45,6 +45,50 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rangePrefab: {fileID: 6040402275095747812, guid: 1f36fdfc97e2c4a0e9f616ec5e640377, type: 3}
+--- !u!1 &790701701981601020
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3463260241662771382}
+  - component: {fileID: 8514569832414632195}
+  m_Layer: 0
+  m_Name: TrainCarPreviewController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3463260241662771382
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 790701701981601020}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8289102133947741992}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8514569832414632195
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 790701701981601020}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 80e1a2e5093a449889b3ec5b3857e9e2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar.TrainCarPreviewController
 --- !u!1 &2450945537476807615
 GameObject:
   m_ObjectHideFlags: 0
@@ -89,7 +133,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62ef6a44dc084477acae87eea8303e7e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  itemPrefab: {fileID: 4655085296694333448, guid: a51229a275812984e917c7dd78a1447a, type: 3}
 --- !u!1 &3231203339800022249
 GameObject:
   m_ObjectHideFlags: 0
@@ -493,6 +536,7 @@ Transform:
   m_Children:
   - {fileID: 3928518110855870374}
   - {fileID: 6480903064254151838}
+  - {fileID: 3463260241662771382}
   m_Father: {fileID: 8466354111555762101}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7604784965301785748
@@ -648,6 +692,7 @@ MonoBehaviour:
   networkDisconnectPresenter: {fileID: 3760452863612925393}
   challengeManager: {fileID: 5423992904397564507}
   trainRailObjectManager: {fileID: 8673118626874321022}
+  trainCarObjectPreviewController: {fileID: 8514569832414632195}
   skitManager: {fileID: 1951205481002623162}
   skitUI: {fileID: 8995564702550197256}
   backgroundSkitManager: {fileID: 4371159159903290796}
