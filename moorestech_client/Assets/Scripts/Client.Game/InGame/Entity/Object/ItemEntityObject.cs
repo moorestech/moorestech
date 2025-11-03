@@ -1,7 +1,7 @@
 using Client.Common.Server;
 using UnityEngine;
 
-namespace Client.Game.InGame.Entity
+namespace Client.Game.InGame.Entity.Object
 {
     public class ItemEntityObject : MonoBehaviour, IEntityObject
     {

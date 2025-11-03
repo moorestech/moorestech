@@ -2,7 +2,7 @@ using System;
 using Client.Common.Server;
 using UnityEngine;
 
-namespace Client.Game.InGame.Entity
+namespace Client.Game.InGame.Entity.Object
 {
     /// <summary>
     /// 列車エンティティのビジュアル表示を担当

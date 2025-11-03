@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Client.Game.InGame.Entity;
+using Client.Game.InGame.Entity.Object;
 using Client.Game.InGame.UI.Challenge;
 using Core.Master;
 using Cysharp.Threading.Tasks;

@@ -1,10 +1,11 @@
 using System;
+using Client.Game.InGame.Entity.Object;
 using Client.Network.API;
 using Core.Master;
 using Game.Entity.Interface;
 using UnityEngine;
 
-namespace Client.Game.InGame.Entity
+namespace Client.Game.InGame.Entity.Factory
 {
     /// <summary>
     /// 列車エンティティを生成するファクトリー

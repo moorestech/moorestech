@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Client.Game.InGame.Entity.Factory;
 using Client.Network.API;
 using UnityEngine;
 

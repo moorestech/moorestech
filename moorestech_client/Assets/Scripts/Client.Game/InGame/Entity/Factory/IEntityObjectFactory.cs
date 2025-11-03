@@ -1,6 +1,6 @@
 using Client.Network.API;
 
-namespace Client.Game.InGame.Entity
+namespace Client.Game.InGame.Entity.Factory
 {
     /// <summary>
     /// 特定のエンティティタイプに対応するIEntityObjectを生成するファクトリーのインターフェース
