@@ -1,22 +1,13 @@
 {
   "trainUnits": [
     {
-      "itemGuid": "20000000-0000-0000-0000-000000000000",
       "trainCars": [
         {
-          "itemGuid": "00000000-0000-0000-1234-000000000001",
+          "itemGuid": "20000000-0000-0000-0000-000000000000",
           "tractionForce": 500000,
-          "inventorySlots": 0,
+          "inventorySlots": 10,
           "fuelSlots": 0,
           "length": 80,
-          "isFacingForward": true
-        },
-        {
-          "itemGuid": "00000000-0000-0000-1234-000000000002",
-          "tractionForce": 0,
-          "inventorySlots": 8,
-          "fuelSlots": 0,
-          "length": 60,
           "isFacingForward": true
         }
       ]
