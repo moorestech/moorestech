@@ -11,7 +11,8 @@
         "Game.World.Interface",
         "Core.Update",
         "MessagePack.Annotations",
-        "ClassLibrary"
+        "ClassLibrary",
+        "Game.Entity.Interface"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
