@@ -83,46 +83,37 @@ namespace Server.Protocol.PacketResponse
                     }
                 }
 
-                if (trainUnitElement == null || trainUnitElement.TrainCars == null)
+                if (trainUnitElement == null)
                 {
                     return null;
                 }
 
                 // TrainCarElementからTrainCarオブジェクトを生成
                 // Create TrainCar objects from TrainCarElement data
-                var trainCars = new List<TrainCar>();
-                foreach (var carElement in trainUnitElement.TrainCars)
-                {
-                    var car = new TrainCar(
-                        tractionForce: carElement.TractionForce,
-                        inventorySlots: carElement.InventorySlots,
-                        length: carElement.Length,
-                        fuelSlots: carElement.FuelSlots,
-                        isFacingForward: carElement.IsFacingForward
-                    );
-                    trainCars.Add(car);
-                }
-
-                // 列車全体の長さを計算
-                // Calculate total train length
-                var trainLength = trainCars.Sum(car => car.Length);
-
+                var trainCars = new TrainCar(
+                    tractionForce: trainUnitElement.TractionForce,
+                    inventorySlots: trainUnitElement.InventorySlots,
+                    length: trainUnitElement.Length,
+                    fuelSlots: trainUnitElement.FuelSlots,
+                    isFacingForward: trainUnitElement.IsFacingForward
+                );
+                
                 // レール位置を初期化 - 接続されたノードの経路を構築
                 // Initialize rail position - build path from connected nodes
-                var railNodes = BuildConnectedNodePath(railComponent, trainLength);
+                var railNodes = BuildConnectedNodePath(railComponent);
                 if (railNodes == null || railNodes.Count == 0)
                 {
                     return null;
                 }
 
-                var railPosition = new RailPosition(railNodes, trainLength, 0);
+                var railPosition = new RailPosition(railNodes, trainUnitElement.Length, 0);
 
                 // TrainUnitを生成して返す
                 // Create and return TrainUnit
-                return new TrainUnit(railPosition, trainCars);
+                return new TrainUnit(railPosition, new List<TrainCar> { trainCars });
             }
 
-            List<RailNode> BuildConnectedNodePath(RailComponent startRail, int trainLength)
+            List<RailNode> BuildConnectedNodePath(RailComponent startRail)
             {
                 // 開始ノードを決定（FrontNodeから接続を探す）
                 // Determine starting node (search for connections from FrontNode)
