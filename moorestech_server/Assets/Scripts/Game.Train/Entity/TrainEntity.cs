@@ -1,6 +1,8 @@
+using System;
 using Game.Entity.Interface;
 using Game.Train.Train;
 using Game.Train.RailGraph;
+using MessagePack;
 using UnityEngine;
 
 namespace Game.Train.Entity
@@ -15,9 +17,11 @@ namespace Game.Train.Entity
     {
         private readonly TrainUnit _trainUnit;
         private readonly EntityInstanceId _instanceId;
+        private readonly byte[] _state;
 
         public EntityInstanceId InstanceId => _instanceId;
         public string EntityType => VanillaEntityType.VanillaTrain;
+        public byte[] State => _state;
 
         /// <summary>
         /// TrainUnitからVector3座標を計算して返す
@@ -73,18 +77,23 @@ namespace Game.Train.Entity
             }
         }
 
-        /// <summary>
-        /// TrainIdを文字列化してStateとして返す
-        /// クライアント側でマスターデータ検索に使用される
-        /// Return TrainId as string for State
-        /// Used for master data lookup on client side
-        /// </summary>
-        public string State => _trainUnit.TrainId.ToString();
-
         public TrainEntity(EntityInstanceId instanceId, TrainUnit trainUnit)
         {
             _instanceId = instanceId;
             _trainUnit = trainUnit;
+            _state = SerializeState();
+            
+            #region Internal
+            
+            byte[] SerializeState()
+            {
+                // 列車IDをMessagePackでシリアライズする
+                // Serialize train ID using MessagePack
+                var state = new TrainEntityStateMessagePack(trainUnit.TrainId);
+                return MessagePackSerializer.Serialize(state);
+            }
+            
+            #endregion
         }
 
         /// <summary>
@@ -116,4 +125,3 @@ namespace Game.Train.Entity
         #endregion
     }
 }
-
