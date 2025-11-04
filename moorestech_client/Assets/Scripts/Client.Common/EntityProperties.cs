@@ -7,7 +7,7 @@ namespace Client.Common
     {
         public readonly long InstanceId;
         public readonly Vector3 Position;
-        public readonly string State;
+        public readonly byte[] State;
         public readonly string Type;
         
         public EntityProperties(EntityMessagePack entityMessagePack)
