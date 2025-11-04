@@ -44,10 +44,13 @@ namespace Game.Block.Factory.BlockTemplate
             var railComponentPositions = RailComponentUtility.CalculateRailComponentPositions(blockPositionInfo);
             railComponents[0] = new RailComponent(railComponentPositions[0], railBlockDirection, railComponentId);
             var railSaverComponent = RailComponentFactory.CreateRailSaverComponent(railComponents);
+            // StateDetailコンポーネントを生成
+            var stateDetailComponent = new RailComponentStateDetailComponent(railComponents[0]);
             // コンポーネントをまとめてブロックに登録
             var components = new List<IBlockComponent>();
             components.Add(railSaverComponent);
             components.AddRange(railComponents);
+            components.Add(stateDetailComponent);
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
 
@@ -62,9 +65,12 @@ namespace Game.Block.Factory.BlockTemplate
         {
             var railComponents = RailComponentUtility.RestoreRailComponents(componentStates, positionInfo);
             var railSaverComponent = RailComponentFactory.CreateRailSaverComponent(railComponents);
+            // StateDetailコンポーネントを生成
+            var stateDetailComponent = new RailComponentStateDetailComponent(railComponents[0]);
 
             var components = new List<IBlockComponent> { railSaverComponent };
             components.AddRange(railComponents);
+            components.Add(stateDetailComponent);
 
             return new BlockSystem(instanceId, masterElement.BlockGuid, components, positionInfo);
         }

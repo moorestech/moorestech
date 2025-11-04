@@ -5,7 +5,6 @@ using UnityEngine;
 using System.Collections.Generic;
 using ClassLibrary;
 using Game.Block.Interface;
-using MessagePack;
 
 namespace Game.Block.Blocks.TrainRail
 {
@@ -13,7 +12,7 @@ namespace Game.Block.Blocks.TrainRail
     /// 1つのレールブロック内のレール要素を表すコンポーネント。
     /// 基本的に1つのRailComponentが FrontNode と BackNode の2つのRailNodeを持つ。
     /// </summary>
-    public class RailComponent : IBlockStateDetail
+    public class RailComponent : IBlockComponent
     {
         public bool IsDestroy { get; private set; }
 
@@ -191,12 +190,6 @@ namespace Game.Block.Blocks.TrainRail
             BackNode.Destroy();
             FrontNode = null;
             BackNode = null;
-        }
-        
-        public BlockStateDetail[] GetBlockStateDetails()
-        {
-            var bytes = MessagePackSerializer.Serialize(new RailBridgePierComponentStateDetail(RailDirection));
-            return new BlockStateDetail[] {new (RailBridgePierComponentStateDetail.StateDetailKey, bytes)};
         }
         
         public static Vector3 ToVector3(BlockDirection blockDirection)
