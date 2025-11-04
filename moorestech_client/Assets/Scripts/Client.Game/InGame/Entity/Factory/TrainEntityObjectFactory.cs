@@ -27,11 +27,11 @@ namespace Client.Game.InGame.Entity.Factory
         
         public async UniTask<IEntityObject> CreateEntity(Transform parent, EntityResponse entity)
         {
-            var trainUnitElement = FindTrainUnitByItemGuid();
-            if (trainUnitElement == null) return CreateTrainEntity(entity.Position, _defaultTrainPrefab);
+            var state = MessagePackSerializer.Deserialize<TrainEntityStateMessagePack>(entity.EntityData);
             
+            if (MasterHolder.TrainUnitMaster.TryGetTrainUnit(state.TrainId, out var trainCarMaster)) return CreateTrainEntity(entity.Position, _defaultTrainPrefab);
             
-            var loadedPrefab = await AddressableLoader.LoadAsyncDefault<GameObject>(trainUnitElement.AddressablePath);
+            var loadedPrefab = await AddressableLoader.LoadAsyncDefault<GameObject>(trainCarMaster.AddressablePath);
             if (loadedPrefab == null) return CreateTrainEntity(entity.Position, _defaultTrainPrefab);
             
             
@@ -39,21 +39,12 @@ namespace Client.Game.InGame.Entity.Factory
             
             #region Internal
             
-            Mooresmaster.Model.TrainModule.TrainCarMasterElement FindTrainUnitByItemGuid()
-            {
-                // Stateから列車IDを復元する
-                // Restore train ID from state payload
-                var state = MessagePackSerializer.Deserialize<TrainEntityStateMessagePack>(entity.EntityData);
-                
-                MasterHolder.TrainUnitMaster.TryGetTrainUnit(state.TrainId, out var trainCarMaster);
-                return trainCarMaster;
-            }
-            
             IEntityObject CreateTrainEntity(Vector3 position, GameObject prefab)
             {
                 var trainObject = GameObject.Instantiate(prefab, position, Quaternion.identity, parent);
                 
                 var trainEntityObject = trainObject.AddComponent<TrainEntityObject>();
+                trainEntityObject.SetTrain(state.TrainId, trainCarMaster);
                 return trainEntityObject;
             }
             

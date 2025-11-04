@@ -39,6 +39,15 @@ namespace Client.Game.InGame.UI.UIState
             ClientContext.VanillaApi.Event.SubscribeEventResponse(OpenableBlockInventoryUpdateEventPacket.EventTag, OnOpenableBlockInventoryUpdateEvent);
         }
         
+        private void OnOpenableBlockInventoryUpdateEvent(byte[] payload)
+        {
+            if (_blockInventoryView == null) return;
+            
+            var packet = MessagePackSerializer.Deserialize<OpenableBlockInventoryUpdateEventMessagePack>(payload);
+            var item = ServerContext.ItemStackFactory.Create(packet.Item.Id, packet.Item.Count);
+            _blockInventoryView.UpdateInventorySlot(packet.Slot, item);
+        }
+        
         public UIStateEnum GetNextUpdate()
         {
             if (_isBlockRemove || InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.OpenInventory.GetKeyDown) return UIStateEnum.GameScreen;
@@ -55,7 +64,6 @@ namespace Client.Game.InGame.UI.UIState
                 return;
             }
             
-            _loadBlockInventoryCts = new CancellationTokenSource();
             LoadBlockInventory().Forget();
             
             KeyControlDescription.Instance.SetText("Esc: インベントリを閉じる");
@@ -90,6 +98,9 @@ namespace Client.Game.InGame.UI.UIState
             
             async UniTask LoadBlockInventory()
             {
+                // ブロックインベントリの読み込みをキャンセルするためのトークンソースを生成
+                _loadBlockInventoryCts = new CancellationTokenSource();
+                
                 //ブロックインベントリのビューを設定する
                 var blockMaster = blockGameObject.BlockMasterElement;
                 var path = blockMaster.BlockUIAddressablesPath;
@@ -162,15 +173,6 @@ namespace Client.Game.InGame.UI.UIState
             _playerInventoryViewController.SetActive(false);
             _blockInventoryView?.DestroyUI();
             _blockInventoryView = null;
-        }
-        
-        private void OnOpenableBlockInventoryUpdateEvent(byte[] payload)
-        {
-            if (_blockInventoryView == null) return;
-            
-            var packet = MessagePackSerializer.Deserialize<OpenableBlockInventoryUpdateEventMessagePack>(payload);
-            var item = ServerContext.ItemStackFactory.Create(packet.Item.Id, packet.Item.Count);
-            _blockInventoryView.UpdateInventorySlot(packet.Slot, item);
         }
     }
 }

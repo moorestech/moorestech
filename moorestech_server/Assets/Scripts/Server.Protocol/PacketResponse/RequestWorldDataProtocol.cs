@@ -67,31 +67,13 @@ namespace Server.Protocol.PacketResponse
             {
                 if (trainUnit == null) continue;
                 
-                // TrainIdからEntityInstanceIdを生成
-                // Generate EntityInstanceId from TrainId
-                var instanceId = GenerateEntityInstanceIdFromGuid(trainUnit.TrainId);
-                
                 // TrainEntityを生成してEntityMessagePackに変換
                 // Create TrainEntity and convert to EntityMessagePack
-                var trainEntity = new TrainEntity(instanceId, trainUnit);
+                var trainEntity = new TrainEntity(new EntityInstanceId(trainUnit.TrainId.GetHashCode()), trainUnit);
                 trainEntities.Add(new EntityMessagePack(trainEntity));
             }
             
             return trainEntities;
-        }
-        
-        /// <summary>
-        /// GuidからEntityInstanceIdを生成する
-        /// GuidのGetHashCode()を使用してlong値に変換
-        /// Generate EntityInstanceId from Guid
-        /// Convert to long value using Guid.GetHashCode()
-        /// </summary>
-        private EntityInstanceId GenerateEntityInstanceIdFromGuid(Guid guid)
-        {
-            // GuidのHashCodeからlong値を生成
-            // Generate long value from Guid's HashCode
-            var hashCode = guid.GetHashCode();
-            return new EntityInstanceId(hashCode);
         }
         
         #endregion

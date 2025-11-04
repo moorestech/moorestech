@@ -137,5 +137,10 @@ namespace Client.Network.API
             var request = new PlaceTrainOnRailRequestMessagePack(specifier, hotBarSlot, _playerId);
             _packetSender.Send(request);
         }
+        
+        public void SetOpenCloseTrain(Guid trainId, bool isOpen)
+        {
+            // TODO 実装
+        }
     }
 }
