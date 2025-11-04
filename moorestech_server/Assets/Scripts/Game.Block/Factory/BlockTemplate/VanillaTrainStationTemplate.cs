@@ -22,7 +22,7 @@ namespace Game.Block.Factory.BlockTemplate
             BlockPositionInfo positionInfo, BlockCreateParam[] createParams)
         {
             // 駅ブロックは常に2つのRailComponentを持つ
-            var railComponents = RailComponentFactory.CreateRailComponents(2, positionInfo);// ①ここでは1つのstation内にある2つのRailComponentを直線で接続している
+            var railComponents = RailComponentFactory.CreateRailComponents(masterElement, 2, positionInfo);// ①ここでは1つのstation内にある2つのRailComponentを直線で接続している
             var railSaverComponent = RailComponentFactory.CreateRailSaverComponent(railComponents);
             var station = StationComponentFactory.CreateAndConnectStationComponent<StationComponent>(
                 masterElement, positionInfo, railComponents
@@ -56,7 +56,7 @@ namespace Game.Block.Factory.BlockTemplate
         {
             // 保存されたRailComponent群を復元。railSaverComponentからセーブ情報の中にrailcomponent同士の接続情報が含まれているのでそれを復元(これで①1つのstation内にある2つのRailComponentを直線で接続と、②stationをつなげて設置した場合に自動でrailComponentを接続、の両方が満たされる)
             var stationParam = masterElement.BlockParam as TrainStationBlockParam;
-            var railComponents = RailComponentUtility.RestoreRailComponents(componentStates, positionInfo);
+            var railComponents = RailComponentUtility.RestoreRailComponents(componentStates, masterElement, positionInfo);
             var railSaverComponent = new RailSaverComponent(railComponents);
             var station = new StationComponent(stationParam.StationDistance, "test", 1);
             

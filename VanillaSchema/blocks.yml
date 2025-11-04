@@ -625,7 +625,16 @@ properties:
           ref: inventoryConnects
       - when: TrainRail
         type: object
-        properties: []
+        properties:
+        - key: railPosition
+          type: vector3
+          default:
+          - 0
+          - 0.5
+          - 0.5
+        - key: controlPointLength
+          type: number
+          default: 0.5
       - when: TrainStation
         type: object
         implementationInterface:
@@ -634,6 +643,24 @@ properties:
         - key: stationDistance
           type: integer
           default: 5
+        - key: frontRailPosition
+          type: vector3
+          default:
+          - 0
+          - 0.5
+          - 2.5
+        - key: backRailPosition
+          type: vector3
+          default:
+          - 22
+          - 0.5
+          - 2.5
+        - key: frontControlPointLength
+          type: number
+          default: 0.5
+        - key: backControlPointLength
+          type: number
+          default: 0.5
         - key: itemSlotCount
           type: integer
         - key: inventoryConnectors
@@ -646,6 +673,24 @@ properties:
         - key: platformDistance
           type: integer
           default: 5
+        - key: frontRailPosition
+          type: vector3
+          default:
+          - 0
+          - 0.5
+          - 2.5
+        - key: backRailPosition
+          type: vector3
+          default:
+          - 11
+          - 0.5
+          - 2.5
+        - key: frontControlPointLength
+          type: number
+          default: 0.5
+        - key: backControlPointLength
+          type: number
+          default: 0.5
         - key: inputSlotCount
           type: integer
           default: 10
