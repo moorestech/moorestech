@@ -129,6 +129,7 @@ namespace Client.Game.InGame.UI.UIState
                 ClientContext.VanillaApi.SendOnly.SetOpenCloseBlock(_openBlockPos, true);
                 var response = await ClientContext.VanillaApi.Response.GetBlockInventory(_openBlockPos, _loadBlockInventoryCts.Token);
                 _blockInventoryView?.UpdateItemList(response);
+                
                 // ブロック削除イベントを購読
                 _blockRemovedSubscription = _blockGameObjectDataStore.OnBlockRemoved
                     .Subscribe(removedPos =>
