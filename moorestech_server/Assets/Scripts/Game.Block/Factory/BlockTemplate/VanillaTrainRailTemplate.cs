@@ -37,11 +37,14 @@ namespace Game.Block.Factory.BlockTemplate
                 // Emit diagnostics when state detail is missing
                 Debug.LogError($"[VanillaTrainRailTemplate] Missing create param: {RailBridgePierComponentStateDetail.StateDetailKey} for block {blockMasterElement.Name}");
             }
-            var railBlockDirection = state?.RailBlockDirection.Vector3 ?? Vector3.forward;
+            var railBlockDirection = state?.RailBlockDirection;
 
             // RailComponentを生成
             var railComponentId = new RailComponentID(blockPositionInfo.OriginalPos, 0);
-            var placements = RailComponentUtility.CalculateRailComponentPlacements(blockMasterElement.BlockParam, blockPositionInfo, 1, railBlockDirection);
+            Vector3? railHeading = railBlockDirection?.Vector3;
+            var placements = railHeading.HasValue
+                ? RailComponentUtility.CalculateRailComponentPlacements(blockMasterElement.BlockParam, blockPositionInfo, 1, railHeading.Value)
+                : RailComponentUtility.CalculateRailComponentPlacements(blockMasterElement.BlockParam, blockPositionInfo, 1);
             var placement = placements[0];
             railComponents[0] = new RailComponent(placement.Position, railBlockDirection, railComponentId);
             railComponents[0].UpdateControlPointStrength(placement.ControlPointLength);
