@@ -57,6 +57,22 @@ namespace Client.Game.InGame.Control
         {
             blockObject = null;
             
+            if (!TryGetCursorOnComponent<BlockGameObjectChild>(out var child)) return false;
+            
+            blockObject = child.BlockGameObject;
+            
+            return true;
+        }
+        
+        
+        /// <summary>
+        /// 25/11/4 列車エンティティとブロックのインタラクト判定の共通化のために一旦こうしたが、本当にこれで良いのだろうか、、、要検討
+        /// </summary>
+        public static bool TryGetCursorOnComponent<T>(out T component) where T : Component
+        {
+            component = null;
+            
+            // 25/11/4 そもそもCamera.mainを使ってていいのか？これも検討したい
             var camera = Camera.main;
             if (camera == null) return false;
             
@@ -64,13 +80,9 @@ namespace Client.Game.InGame.Control
             var ray = camera.ScreenPointToRay(UnityEngine.Input.mousePosition);
             
             if (!Physics.Raycast(ray, out var hit, 100, LayerConst.BlockOnlyLayerMask)) return false;
-            var child = hit.collider.gameObject.GetComponent<BlockGameObjectChild>();
-            if (child is null) return false;
+            component = hit.collider.gameObject.GetComponent<T>();
             
-            
-            blockObject = child.BlockGameObject;
-            
-            return true;
+            return component is not null;
         }
     }
 }
