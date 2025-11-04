@@ -50,6 +50,7 @@ namespace Client.Game.InGame.UI.UIState
         {
             if (!BlockClickDetect.TryGetCursorOnComponent(out _openTrainEntity)) return;
             
+            ClientContext.VanillaApi.SendOnly.SetOpenCloseTrain(_openTrainEntity.TrainId, true);
             LoadTrainInventory().Forget();
             
             // TODO トレインが消えた時に適切に閉じる処理を書く
