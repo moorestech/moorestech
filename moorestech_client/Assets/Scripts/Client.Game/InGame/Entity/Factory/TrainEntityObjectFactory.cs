@@ -39,23 +39,14 @@ namespace Client.Game.InGame.Entity.Factory
             
             #region Internal
             
-            Mooresmaster.Model.TrainModule.TrainUnitMasterElement FindTrainUnitByItemGuid()
+            Mooresmaster.Model.TrainModule.TrainCarMasterElement FindTrainUnitByItemGuid()
             {
                 // Stateから列車IDを復元する
                 // Restore train ID from state payload
-                if (entity.State == null || entity.State.Length == 0) return null;
                 var state = MessagePackSerializer.Deserialize<TrainEntityStateMessagePack>(entity.State);
-                var trainId = state.TrainId;
-                foreach (var unit in MasterHolder.TrainUnitMaster.Train.TrainUnits)
-                {
-                    // itemGuidとtrainIdの比較（簡易実装）
-                    // Compare itemGuid with trainId (simplified implementation)
-                    if (unit.ItemGuid.HasValue && unit.ItemGuid.Value == trainId)
-                    {
-                        return unit;
-                    }
-                }
-                return null;
+                
+                MasterHolder.TrainUnitMaster.TryGetTrainUnit(state.TrainId, out var trainCarMaster);
+                return trainCarMaster;
             }
             
             IEntityObject CreateTrainEntity(Vector3 position, GameObject prefab)
