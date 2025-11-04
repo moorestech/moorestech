@@ -1,7 +1,7 @@
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
 using Game.Train.RailGraph;
-using Mooresmaster.Model.BlocksModule;
+using System.Diagnostics;
 
 namespace Game.Block.Factory.BlockTemplate.Utility
 {
@@ -12,21 +12,18 @@ namespace Game.Block.Factory.BlockTemplate.Utility
         /// 今のところstation,cargoなど1つのブロックに2つのRailComponentを持つものだけを想定しています。
         /// 一応countが3以上でも動くが要調整
         /// </summary>
-        public static RailComponent[] CreateRailComponents(BlockMasterElement masterElement, int count, BlockPositionInfo positionInfo)
+        public static RailComponent[] CreateRailComponents(int count, BlockPositionInfo positionInfo)
         {
-            var placements = RailComponentUtility.CalculateRailComponentPlacements(masterElement.BlockParam, positionInfo, count);
+            var positions = RailComponentUtility.CalculateRailComponentPositions(positionInfo);
             var components = new RailComponent[count];
 
             for (int i = 0; i < count; i++)
             {
                 var componentId = new RailComponentID(positionInfo.OriginalPos, i);
-                var placement = placements[i];
-                components[i] = new RailComponent(placement.Position, positionInfo.BlockDirection , componentId);
-                components[i].UpdateControlPointStrength(placement.ControlPointLength);
+                components[i] = new RailComponent(positions[i], positionInfo.BlockDirection , componentId);
             }
 
             // stationの前と後ろにそれぞれrailComponentがある、自動で接続する
-            // Automatically connect the two components inside a station-style block
             if (count == 2)
             {
                 components[0].ConnectRailComponent(components[1], true, true);
