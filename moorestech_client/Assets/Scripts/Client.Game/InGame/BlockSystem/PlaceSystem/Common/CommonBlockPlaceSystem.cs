@@ -143,7 +143,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             
             void SetCurrentPlaceInfo()
             {
-                var holdingBlockMaster = boundingBoxSurface.BlockGameObject.BlockMasterElement;
                 if (_clickStartPosition.HasValue)
                 {
                     if (_clickStartPosition.Value == placePoint)
