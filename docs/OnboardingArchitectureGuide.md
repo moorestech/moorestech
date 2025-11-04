@@ -30,7 +30,6 @@ moorestech/
 │       ├── Server.Protocol/       # 通信層
 │       ├── Game.World/            # ワールド・ブロック配置
 │       ├── Game.Block/            # ブロック実装
-│       ├── Game.Entity/           # エンティティ管理
 │       ├── Game.PlayerInventory/  # プレイヤーインベントリ
 │       ├── Game.Context/          # ゲームコンテキスト
 │       └── Core.*/                # 基盤システム
@@ -39,8 +38,7 @@ moorestech/
 │   └── Assets/Scripts/
 │       ├── Client.Starter/        # 起動・DI設定
 │       ├── Client.Network/        # サーバー通信
-│       ├── Client.Game/           # ゲーム状態
-│       └── Client.Game.InGame.*/  # UI・表示
+│       └── Client.Game/           # 3D表示、操作、UI
 │
 └── VanillaSchema/        # マスターデータスキーマ（YAML）
     ├── items.yml         # SourceGenerator入力
