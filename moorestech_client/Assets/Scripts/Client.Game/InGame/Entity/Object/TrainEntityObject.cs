@@ -31,25 +31,6 @@ namespace Client.Game.InGame.Entity.Object
         }
         
         /// <summary>
-        /// State文字列からTrainIdをパースする
-        /// TrainIdはクライアント側でマスターデータ検索に使用される
-        /// Parse TrainId from State string
-        /// TrainId is used for master data lookup on client side
-        /// </summary>
-        public void SetTrainId(string stateString)
-        {
-            if (Guid.TryParse(stateString, out var trainId))
-            {
-                _trainId = trainId;
-            }
-            else
-            {
-                Debug.LogError($"[TrainEntityObject] Failed to parse TrainId from State: {stateString}");
-                _trainId = Guid.Empty;
-            }
-        }
-        
-        /// <summary>
         /// 即座に位置を設定する（補間なし）
         /// Set position immediately (without interpolation)
         /// </summary>
