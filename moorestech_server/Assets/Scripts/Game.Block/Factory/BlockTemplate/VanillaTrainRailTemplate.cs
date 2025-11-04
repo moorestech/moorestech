@@ -27,7 +27,7 @@ namespace Game.Block.Factory.BlockTemplate
         {
             // railブロックは常にRailComponentが1つだけ
             var railComponents = new RailComponent[1];
-            
+
             // ブロック生成パラメータからRailBridgePierComponentStateDetailを取得して方向ベクトルを取得
             // Pull bridge pier state to determine direction
             var state = createParams.GetStateDetail<RailBridgePierComponentStateDetail>(RailBridgePierComponentStateDetail.StateDetailKey);
@@ -41,8 +41,13 @@ namespace Game.Block.Factory.BlockTemplate
 
             // RailComponentを生成
             var railComponentId = new RailComponentID(blockPositionInfo.OriginalPos, 0);
-            var railComponentPositions = RailComponentUtility.CalculateRailComponentPositions(blockPositionInfo);
-            railComponents[0] = new RailComponent(railComponentPositions[0], railBlockDirection, railComponentId);
+            Vector3? railHeading = railBlockDirection?.Vector3;
+            var placements = railHeading.HasValue
+                ? RailComponentUtility.CalculateRailComponentPlacements(blockMasterElement.BlockParam, blockPositionInfo, 1, railHeading.Value)
+                : RailComponentUtility.CalculateRailComponentPlacements(blockMasterElement.BlockParam, blockPositionInfo, 1);
+            var placement = placements[0];
+            railComponents[0] = new RailComponent(placement.Position, railBlockDirection, railComponentId);
+            railComponents[0].UpdateControlPointStrength(placement.ControlPointLength);
             var railSaverComponent = RailComponentFactory.CreateRailSaverComponent(railComponents);
             // StateDetailコンポーネントを生成
             var stateDetailComponent = new RailComponentStateDetailComponent(railComponents[0]);
@@ -63,7 +68,7 @@ namespace Game.Block.Factory.BlockTemplate
                 BlockInstanceId instanceId,
                 BlockPositionInfo positionInfo)
         {
-            var railComponents = RailComponentUtility.RestoreRailComponents(componentStates, positionInfo);
+            var railComponents = RailComponentUtility.RestoreRailComponents(componentStates, masterElement, positionInfo);
             var railSaverComponent = RailComponentFactory.CreateRailSaverComponent(railComponents);
             // StateDetailコンポーネントを生成
             var stateDetailComponent = new RailComponentStateDetailComponent(railComponents[0]);
