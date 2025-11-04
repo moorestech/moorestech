@@ -18,7 +18,7 @@ namespace Client.Common
             var y = entityMessagePack.Position.Y;
             var z = entityMessagePack.Position.Z;
             Position = new Vector3(x, y, z);
-            State = entityMessagePack.State;
+            State = entityMessagePack.EntityData;
         }
     }
 }

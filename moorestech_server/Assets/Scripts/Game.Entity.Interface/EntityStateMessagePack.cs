@@ -1,4 +1,5 @@
 using System;
+using Core.Master;
 using MessagePack;
 
 namespace Game.Entity.Interface
@@ -8,18 +9,16 @@ namespace Game.Entity.Interface
     [MessagePackObject]
     public class ItemEntityStateMessagePack
     {
-        public ItemEntityStateMessagePack()
-        {
-        }
-        
-        public ItemEntityStateMessagePack(int itemId, int count)
-        {
-            ItemId = itemId;
-            Count = count;
-        }
-        
         [Key(0)] public int ItemId { get; set; }
         [Key(1)] public int Count { get; set; }
+        
+        public ItemEntityStateMessagePack() { }
+        
+        public ItemEntityStateMessagePack(ItemId itemId, int count)
+        {
+            ItemId = itemId.AsPrimitive();
+            Count = count;
+        }
     }
     
     [MessagePackObject]
