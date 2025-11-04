@@ -34,19 +34,15 @@ namespace Server.Protocol.PacketResponse
         {
             var request = MessagePackSerializer.Deserialize<PlaceTrainOnRailRequestMessagePack>(payload.ToArray());
 
-            // リクエスト内容を検証し、列車配置を実行
-            // Validate request contents and execute train placement
-
+            // レールがあるかチェック
+            // Check if rail component exists
             var railComponent = RailConnectionEditProtocol.ResolveRailComponent(request.RailSpecifier);
-            var inventoryData = _playerInventoryDataStore.GetInventoryData(request.PlayerId);
-            if (railComponent == null || inventoryData == null) return null;
-
-            var mainInventory = inventoryData.MainOpenableInventory;
-
-            // ホットバースロットからアイテムを取得
-            // Get item from hotbar slot
+            if (railComponent == null) return null;
+            
+            // 手持ちのアイテム取得
+            // Get the item from player's inventory
+            var mainInventory = _playerInventoryDataStore.GetInventoryData(request.PlayerId).MainOpenableInventory;
             var item = mainInventory.GetItem(request.InventorySlot);
-            if (item.Id == ItemMaster.EmptyItemId || item.Count == 0) return null;
 
             // 列車ユニット生成
             // Build train unit from composition data
@@ -61,29 +57,11 @@ namespace Server.Protocol.PacketResponse
 
             #region Internal
 
-            TrainUnit CreateTrainUnit(RailComponent railComponent, ItemId trainItemId)
+            TrainUnit CreateTrainUnit(RailComponent rail, ItemId trainItemId)
             {
-                // MasterHolderのTrainから列車データを取得
-                // Get train data from MasterHolder.TrainUnitMaster
-                var trainMaster = MasterHolder.TrainUnitMaster;
-                if (trainMaster?.Train?.TrainUnits == null)
-                {
-                    return null;
-                }
-
                 // アイテムIDに対応する列車ユニット編成を検索
                 // Search for train unit composition matching the item ID
-                TrainUnitMasterElement trainUnitElement = null;
-                foreach (var unit in trainMaster.Train.TrainUnits)
-                {
-                    if (unit.ItemGuid.HasValue && MasterHolder.ItemMaster.GetItemId(unit.ItemGuid.Value) == trainItemId)
-                    {
-                        trainUnitElement = unit;
-                        break;
-                    }
-                }
-
-                if (trainUnitElement == null)
+                if (!MasterHolder.TrainUnitMaster.TryGetTrainUnit(trainItemId, out var trainUnitElement))
                 {
                     return null;
                 }
@@ -100,7 +78,7 @@ namespace Server.Protocol.PacketResponse
                 
                 // レール位置を初期化 - 接続されたノードの経路を構築
                 // Initialize rail position - build path from connected nodes
-                var railNodes = BuildConnectedNodePath(railComponent);
+                var railNodes = BuildConnectedNodePath(rail);
                 if (railNodes == null || railNodes.Count == 0)
                 {
                     return null;
