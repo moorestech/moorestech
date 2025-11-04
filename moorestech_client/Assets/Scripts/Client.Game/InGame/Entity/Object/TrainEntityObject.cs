@@ -1,5 +1,6 @@
 using System;
 using Client.Common.Server;
+using Mooresmaster.Model.TrainModule;
 using UnityEngine;
 
 namespace Client.Game.InGame.Entity.Object
@@ -13,6 +14,7 @@ namespace Client.Game.InGame.Entity.Object
     public class TrainEntityObject : MonoBehaviour, IEntityObject
     {
         public long EntityId { get; private set; }
+        public TrainCarMasterElement TrainCarMasterElement { get; set; }
         
         private float _linerTime;
         private Vector3 _previousPosition;
