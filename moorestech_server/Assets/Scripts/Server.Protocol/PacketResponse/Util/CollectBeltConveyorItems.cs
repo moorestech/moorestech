@@ -105,7 +105,7 @@ namespace Server.Protocol.PacketResponse.Util
                 
                 var position = new Vector3(entityX, y, entityZ);
                 var itemEntity = (ItemEntity)entityFactory.CreateEntity(VanillaEntityType.VanillaItem, new EntityInstanceId(beltConveyorItem.ItemInstanceId.AsPrimitive()), position);
-                itemEntity.SetState(beltConveyorItem.ItemId, 1);
+                itemEntity.SetItemData(beltConveyorItem.ItemId, 1);
                 
                 result.Add(itemEntity);
             }

@@ -91,15 +91,16 @@ namespace Client.Network.API
     {
         public readonly long InstanceId;
         public readonly Vector3 Position;
-        public readonly byte[] State;
         public readonly string Type;
+        
+        public readonly byte[] EntityData;
         
         public EntityResponse(EntityMessagePack entityMessagePack)
         {
             InstanceId = entityMessagePack.InstanceId;
             Type = entityMessagePack.Type;
             Position = entityMessagePack.Position;
-            State = entityMessagePack.State;
+            EntityData = entityMessagePack.EntityData;
         }
     }
     

@@ -43,7 +43,7 @@ namespace Client.Game.InGame.Entity.Factory
             {
                 // Stateから列車IDを復元する
                 // Restore train ID from state payload
-                var state = MessagePackSerializer.Deserialize<TrainEntityStateMessagePack>(entity.State);
+                var state = MessagePackSerializer.Deserialize<TrainEntityStateMessagePack>(entity.EntityData);
                 
                 MasterHolder.TrainUnitMaster.TryGetTrainUnit(state.TrainId, out var trainCarMaster);
                 return trainCarMaster;

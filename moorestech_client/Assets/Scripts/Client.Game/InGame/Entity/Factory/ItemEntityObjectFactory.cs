@@ -53,8 +53,8 @@ namespace Client.Game.InGame.Entity.Factory
             {
                 // データが空の場合は既定値を返す
                 // Return default state when data is empty
-                if (entity.State == null || entity.State.Length == 0) return new ItemEntityStateMessagePack();
-                return MessagePackSerializer.Deserialize<ItemEntityStateMessagePack>(entity.State);
+                if (entity.EntityData == null || entity.EntityData.Length == 0) return new ItemEntityStateMessagePack();
+                return MessagePackSerializer.Deserialize<ItemEntityStateMessagePack>(entity.EntityData);
             }
             
             #endregion
