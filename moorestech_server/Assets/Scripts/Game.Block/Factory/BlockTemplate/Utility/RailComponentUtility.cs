@@ -33,7 +33,18 @@ namespace Game.Block.Factory.BlockTemplate.Utility
 
             int count = saverData.Values.Count;
             var railComponents = new RailComponent[count];
-            var placements = CalculateRailComponentPlacements(masterElement.BlockParam, positionInfo, count);
+
+            Vector3? headingOverride = null;
+            if (masterElement.BlockParam is TrainRailBlockParam && saverData.Values.Count > 0)
+            {
+                var railDirection = saverData.Values[0].RailDirection;
+                if (railDirection != null)
+                {
+                    headingOverride = railDirection.Vector3;
+                }
+            }
+
+            var placements = CalculateRailComponentPlacements(masterElement.BlockParam, positionInfo, count, headingOverride);
 
             // 各RailComponentを生成
             // Instantiate each rail component with saved metadata
@@ -74,7 +85,7 @@ namespace Game.Block.Factory.BlockTemplate.Utility
             return railComponents;
         }
 
-        static public RailComponentPlacement[] CalculateRailComponentPlacements(IBlockParam blockParam, BlockPositionInfo positionInfo, int expectedCount)
+        static public RailComponentPlacement[] CalculateRailComponentPlacements(IBlockParam blockParam, BlockPositionInfo positionInfo, int expectedCount, Vector3? railHeadingOverride = null)
         {
             // 鉄道コンポーネントの基準位置を算出
             // Compute baseline positions for rail components
@@ -83,7 +94,7 @@ namespace Game.Block.Factory.BlockTemplate.Utility
 
             // マスターデータの指定を反映
             // Apply master-configured placement overrides
-            ApplyPlacementOverrides(blockParam, positionInfo, expectedCount, defaultPositions, controlPointLengths);
+            ApplyPlacementOverrides(blockParam, positionInfo, expectedCount, defaultPositions, controlPointLengths, railHeadingOverride);
 
             var placements = new RailComponentPlacement[expectedCount];
             for (int i = 0; i < expectedCount; i++)
@@ -131,7 +142,7 @@ namespace Game.Block.Factory.BlockTemplate.Utility
             return lengths;
         }
 
-        private static void ApplyPlacementOverrides(IBlockParam blockParam, BlockPositionInfo positionInfo, int expectedCount, Vector3[] defaultPositions, float[] controlPointLengths)
+        private static void ApplyPlacementOverrides(IBlockParam blockParam, BlockPositionInfo positionInfo, int expectedCount, Vector3[] defaultPositions, float[] controlPointLengths, Vector3? railHeadingOverride)
         {
             if (blockParam == null)
             {
@@ -142,7 +153,7 @@ namespace Game.Block.Factory.BlockTemplate.Utility
             // Calculate deltas against the north-facing baseline
             var northReferenceInfo = new BlockPositionInfo(positionInfo.OriginalPos, BlockDirection.North, positionInfo.BlockSize);
             var defaultNorthPositions = CalculateDefaultRailComponentPositions(northReferenceInfo, expectedCount);
-            var rotation = positionInfo.BlockDirection.GetRotation();
+            var rotation = ResolvePlacementRotation(positionInfo.BlockDirection, railHeadingOverride);
 
             void ApplyOverride(int index, Vector3 customPositionNorth, float customControlLength)
             {
@@ -171,6 +182,24 @@ namespace Game.Block.Factory.BlockTemplate.Utility
                     ApplyOverride(1, cargoParam.BackRailPosition, cargoParam.BackControlPointLength);
                     break;
             }
+        }
+
+        // 姿勢を決定する回転を求める
+        // Resolve the placement rotation from heading override or block direction
+        private static Quaternion ResolvePlacementRotation(BlockDirection blockDirection, Vector3? railHeadingOverride)
+        {
+            if (railHeadingOverride.HasValue)
+            {
+                var heading = railHeadingOverride.Value;
+                if (heading.sqrMagnitude > 1e-6f)
+                {
+                    heading.Normalize();
+                    var up = Mathf.Abs(Vector3.Dot(heading, Vector3.up)) > 0.99f ? Vector3.forward : Vector3.up;
+                    return Quaternion.LookRotation(heading, up);
+                }
+            }
+
+            return blockDirection.GetRotation();
         }
 
         // 自分の駅or貨物駅ブロック内のRailComponentから、別ブロックのRailComponentへの接続を確立する
