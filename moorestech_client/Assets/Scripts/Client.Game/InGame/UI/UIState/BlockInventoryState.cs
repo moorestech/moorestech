@@ -49,9 +49,8 @@ namespace Client.Game.InGame.UI.UIState
         // ReSharper disable Unity.PerformanceAnalysis
         public void OnEnter(UIStateEnum lastStateEnum)
         {
-            BlockGameObject blockGameObject = null;
             _isBlockRemove = false;
-            if (!IsExistBlock())
+            if (!IsExistBlock(out var blockGameObject))
             {
                 return;
             }
@@ -63,28 +62,25 @@ namespace Client.Game.InGame.UI.UIState
             
             #region Internal
             
-            bool IsExistBlock()
+            bool IsExistBlock(out BlockGameObject block)
             {
+                block = null;
                 if (!BlockClickDetect.TryGetCursorOnBlockPosition(out _openBlockPos))
                 {
-                    // TODO ログ基盤に入れる
-                    Debug.LogError("開いたブロックの座標が取得できませんでした。UIステートに不具合があります。");
+                    Debug.LogError("開いたブロックの座標が取得できませんでした。UIステートに不具合があります。"); // TODO ログ基盤に入れる
                     return false;
                 }
                 
-                if (!_blockGameObjectDataStore.TryGetBlockGameObject(_openBlockPos, out blockGameObject))
+                if (!_blockGameObjectDataStore.TryGetBlockGameObject(_openBlockPos, out block))
                 {
-                    // TODO ログ基盤に入れる
                     Debug.LogError("開いたブロックの情報が取得できませんでした。");
                     return false;
                 }
                 
-                var blockMaster = blockGameObject.BlockMasterElement;
-                var inventoryPath = blockMaster.BlockUIAddressablesPath;
+                var inventoryPath = block.BlockMasterElement.BlockUIAddressablesPath;
                 if (string.IsNullOrEmpty(inventoryPath))
                 {
-                    // TODO ログ基盤に入れる
-                    Debug.LogError($"開こうとしたブロックインベントリのAddressableパスが指定されていません。 Guid:{blockMaster.BlockGuid} Name:{blockMaster.Name}");
+                    Debug.LogError($"開こうとしたブロックインベントリのAddressableパスが指定されていません。 Guid:{block.BlockMasterElement.BlockGuid} Name:{block.BlockMasterElement.Name}");
 
                     return false;
                 }
