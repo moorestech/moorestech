@@ -9,7 +9,7 @@ namespace Game.Entity.Interface
         
         Vector3 Position { get; }
         
-        string State { get; }
+        byte[] State { get; }
         
         void SetPosition(Vector3 serverVector3);
     }

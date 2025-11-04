@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace Game.Entity.Interface.EntityInstance
@@ -14,7 +15,7 @@ namespace Game.Entity.Interface.EntityInstance
         
         public EntityInstanceId InstanceId { get; }
         public string EntityType => VanillaEntityType.VanillaPlayer;
-        public string State => string.Empty;
+        public byte[] State => Array.Empty<byte>();
         
         public void SetPosition(Vector3 serverVector3)
         {

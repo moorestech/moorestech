@@ -5,6 +5,7 @@ using Client.Network.API;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Entity.Interface;
+using MessagePack;
 using UnityEngine;
 
 namespace Client.Game.InGame.Entity.Factory
@@ -40,7 +41,11 @@ namespace Client.Game.InGame.Entity.Factory
             
             Mooresmaster.Model.TrainModule.TrainUnitMasterElement FindTrainUnitByItemGuid()
             {
-                var trainId = Guid.Parse(entity.State);
+                // Stateから列車IDを復元する
+                // Restore train ID from state payload
+                if (entity.State == null || entity.State.Length == 0) return null;
+                var state = MessagePackSerializer.Deserialize<TrainEntityStateMessagePack>(entity.State);
+                var trainId = state.TrainId;
                 foreach (var unit in MasterHolder.TrainUnitMaster.Train.TrainUnits)
                 {
                     // itemGuidとtrainIdの比較（簡易実装）
@@ -65,4 +70,3 @@ namespace Client.Game.InGame.Entity.Factory
         }
     }
 }
-

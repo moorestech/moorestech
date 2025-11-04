@@ -91,7 +91,7 @@ namespace Client.Network.API
     {
         public readonly long InstanceId;
         public readonly Vector3 Position;
-        public readonly string State;
+        public readonly byte[] State;
         public readonly string Type;
         
         public EntityResponse(EntityMessagePack entityMessagePack)
