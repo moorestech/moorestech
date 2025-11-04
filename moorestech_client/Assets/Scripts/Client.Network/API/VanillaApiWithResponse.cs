@@ -203,5 +203,12 @@ namespace Client.Network.API
             
             return response;
         }
+        
+        
+        public async UniTask<List<IItemStack>> GetTrainInventory(Guid trainId, CancellationToken ct)
+        {
+            // TODO 実装
+            return new List<IItemStack>();
+        }
     }
 }

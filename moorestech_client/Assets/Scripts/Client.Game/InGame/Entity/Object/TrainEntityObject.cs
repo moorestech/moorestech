@@ -14,13 +14,13 @@ namespace Client.Game.InGame.Entity.Object
     public class TrainEntityObject : MonoBehaviour, IEntityObject
     {
         public long EntityId { get; private set; }
+        public Guid TrainId { get; private set; }
         public TrainCarMasterElement TrainCarMasterElement { get; set; }
         
         private float _linerTime;
         private Vector3 _previousPosition;
         private Vector3 _targetPosition;
         
-        private Guid _trainId;
         private bool _isFacingForward = true;
         
         /// <summary>
@@ -30,6 +30,12 @@ namespace Client.Game.InGame.Entity.Object
         public void Initialize(long entityId)
         {
             EntityId = entityId;
+        }
+        
+        public void SetTrain(Guid trainId, TrainCarMasterElement trainCarMasterElement)
+        {
+            TrainId = trainId;
+            TrainCarMasterElement = trainCarMasterElement;
         }
         
         /// <summary>
