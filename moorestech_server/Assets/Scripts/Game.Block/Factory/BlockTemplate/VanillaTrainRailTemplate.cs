@@ -42,7 +42,9 @@ namespace Game.Block.Factory.BlockTemplate
             // RailComponentを生成
             var railComponentId = new RailComponentID(blockPositionInfo.OriginalPos, 0);
             Vector3? railHeading = railBlockDirection?.Vector3;
-            var placements = RailComponentUtility.CalculateRailComponentPlacements(blockMasterElement.BlockParam, blockPositionInfo, 1, railHeading);
+            var placements = railHeading.HasValue
+                ? RailComponentUtility.CalculateRailComponentPlacements(blockMasterElement.BlockParam, blockPositionInfo, 1, railHeading.Value)
+                : RailComponentUtility.CalculateRailComponentPlacements(blockMasterElement.BlockParam, blockPositionInfo, 1);
             var placement = placements[0];
             railComponents[0] = new RailComponent(placement.Position, railBlockDirection, railComponentId);
             railComponents[0].UpdateControlPointStrength(placement.ControlPointLength);
