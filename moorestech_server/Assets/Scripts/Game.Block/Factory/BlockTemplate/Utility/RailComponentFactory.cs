@@ -22,7 +22,6 @@ namespace Game.Block.Factory.BlockTemplate.Utility
                 var componentId = new RailComponentID(positionInfo.OriginalPos, i);
                 var placement = placements[i];
                 components[i] = new RailComponent(placement.Position, positionInfo.BlockDirection , componentId);
-                components[i].UpdateControlPointStrength(placement.ControlPointLength);
             }
 
             // stationの前と後ろにそれぞれrailComponentがある、自動で接続する

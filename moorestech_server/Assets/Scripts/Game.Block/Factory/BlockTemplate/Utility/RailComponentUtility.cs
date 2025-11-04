@@ -14,14 +14,14 @@ namespace Game.Block.Factory.BlockTemplate.Utility
     {
         public readonly struct RailComponentPlacement
         {
+            public Vector3 Position { get; }
+            public float ControlPointLength { get; }
+            
             public RailComponentPlacement(Vector3 position, float controlPointLength)
             {
                 Position = position;
                 ControlPointLength = controlPointLength;
             }
-
-            public Vector3 Position { get; }
-            public float ControlPointLength { get; }
         }
 
         static public RailComponent[] RestoreRailComponents(Dictionary<string, string> componentStates, BlockMasterElement masterElement, BlockPositionInfo positionInfo)
@@ -34,27 +34,14 @@ namespace Game.Block.Factory.BlockTemplate.Utility
             int count = saverData.Values.Count;
             var railComponents = new RailComponent[count];
 
-            Vector3? headingOverride = null;
-            if (masterElement.BlockParam is TrainRailBlockParam && saverData.Values.Count > 0)
-            {
-                var railDirection = saverData.Values[0].RailDirection;
-                if (railDirection != null)
-                {
-                    headingOverride = railDirection.Vector3;
-                }
-            }
-
-            var placements = headingOverride.HasValue
-                ? CalculateRailComponentPlacements(masterElement.BlockParam, positionInfo, count, headingOverride.Value)
-                : CalculateRailComponentPlacements(masterElement.BlockParam, positionInfo, count);
-
             // 各RailComponentを生成
             // Instantiate each rail component with saved metadata
             for (int i = 0; i < count; i++)
             {
                 var componentInfo = saverData.Values[i];
-                var placement = placements[Mathf.Min(i, placements.Length - 1)];
-                railComponents[i] = new RailComponent(placement.Position, componentInfo.RailDirection.Vector3, componentInfo.MyID);
+                
+                var placements = CalculateRailComponentPlacements(masterElement.BlockParam, positionInfo, count, componentInfo.RailDirection.Vector3)[0];
+                railComponents[i] = new RailComponent(placements.Position, componentInfo.RailDirection.Vector3, componentInfo.MyID);
                 // ベジェ曲線の強度を設定
                 // Apply saved bezier strength
                 railComponents[i].UpdateControlPointStrength(componentInfo.BezierStrength);
@@ -87,12 +74,20 @@ namespace Game.Block.Factory.BlockTemplate.Utility
             return railComponents;
         }
 
+        /// <summary>
+        /// BlockDirectionからレールの方向を指定する
+        /// Specify the direction of the rail using BlockDirection.
+        /// </summary>
         static public RailComponentPlacement[] CalculateRailComponentPlacements(IBlockParam blockParam, BlockPositionInfo positionInfo, int expectedCount)
         {
             var rotation = positionInfo.BlockDirection.GetRotation();
             return CalculateRailComponentPlacementsInternal(blockParam, positionInfo, expectedCount, rotation);
         }
 
+        /// <summary>
+        /// 方向ベクトルからレールの方向を指定する
+        /// Specify the direction of the rail using a heading vector.
+        /// </summary>
         static public RailComponentPlacement[] CalculateRailComponentPlacements(IBlockParam blockParam, BlockPositionInfo positionInfo, int expectedCount, Vector3 railHeading)
         {
             Quaternion rotation;
