@@ -26,6 +26,6 @@ namespace Server.Util.MessagePack
         
         [Key(2)] public Vector3MessagePack Position { get; set; }
         
-        [Key(3)] public string State { get; set; }
+        [Key(3)] public byte[] State { get; set; }
     }
 }

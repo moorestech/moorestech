@@ -4,6 +4,7 @@ using Client.Network.API;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Entity.Interface;
+using MessagePack;
 using UnityEngine;
 
 namespace Client.Game.InGame.Entity.Factory
@@ -31,9 +32,10 @@ namespace Client.Game.InGame.Entity.Factory
         {
             var itemObject = GameObject.Instantiate(_itemPrefab, entity.Position, Quaternion.identity, parent);
             
-            // State文字列からItemIdを取得してテクスチャを設定
-            // Get ItemId from State string and set texture
-            var id = new ItemId(int.Parse(entity.State.Split(',')[0]));
+            // StateデータからItemIdを復元してテクスチャを設定
+            // Restore ItemId from state data and set texture
+            var itemState = DeserializeState();
+            var id = new ItemId(itemState.ItemId);
             var viewData = ClientContext.ItemImageContainer.GetItemView(id);
             Texture texture = null;
             if (viewData != null)
@@ -44,7 +46,18 @@ namespace Client.Game.InGame.Entity.Factory
             var item = itemObject.GetComponent<ItemEntityObject>();
             item.SetTexture(texture);
             return item;
+            
+            #region Internal
+            
+            ItemEntityStateMessagePack DeserializeState()
+            {
+                // データが空の場合は既定値を返す
+                // Return default state when data is empty
+                if (entity.State == null || entity.State.Length == 0) return new ItemEntityStateMessagePack();
+                return MessagePackSerializer.Deserialize<ItemEntityStateMessagePack>(entity.State);
+            }
+            
+            #endregion
         }
     }
 }
-
