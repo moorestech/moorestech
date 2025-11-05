@@ -26,10 +26,10 @@ namespace Server.Util.MessagePack
         [Key(1)] public Vector3IntMessagePack BlockPosition { get; set; }
         
         /// <summary>
-        /// 列車インベントリの場合のTrainId
+        /// 列車インベントリの場合のTrainCarId
         /// TrainId for train inventory
         /// </summary>
-        [Key(2)] public string TrainId { get; set; }
+        [Key(2)] public string TrainCarId { get; set; }
         
         
         public InventoryIdentifierMessagePack() { }
@@ -48,7 +48,7 @@ namespace Server.Util.MessagePack
             return new InventoryIdentifierMessagePack
             {
                 InventoryType = InventoryType.Train,
-                TrainId = trainId.ToString(),
+                TrainCarId = trainId.ToString(),
             };
         }
         

@@ -129,9 +129,10 @@ namespace Client.Game.InGame.UI.UIState.State
                 // Subscribe to inventory updates
                 ClientContext.VanillaApi.SendOnly.SubscribeInventory(_subInventorySource.InventoryIdentifier, true);
                 
-                // TODO インベントリデータを取得
+                // インベントリデータを取得
                 // Fetch inventory data
-                _currentView.UpdateItemList(new List<IItemStack>());
+                var inventoryData = await ClientContext.VanillaApi.Response.GetInventory(_subInventorySource.InventoryIdentifier, ct);
+                _currentView.UpdateItemList(inventoryData);
             }
             
             #endregion
