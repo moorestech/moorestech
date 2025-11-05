@@ -1,4 +1,4 @@
-using Client.Game.InGame.UI.Inventory.Sub;
+using Client.Game.InGame.UI.Inventory.Craft;
 using Mooresmaster.Model.ChallengesModule;
 using UnityEngine;
 
