@@ -1,5 +1,6 @@
 using Core.Item.Interface;
 using Game.Context;
+using Game.Context.Event;
 using Game.Train.Common;
 using Game.Train.RailGraph;
 using Game.Train.Utility;
@@ -59,6 +60,7 @@ namespace Game.Train.Train
             _railPosition = initialPosition;
             _trainId = Guid.NewGuid();
             _cars = cars;
+            AttachCarsToTrain();
             _currentSpeed = 0.0; // 仮の初期速度
             _isAutoRun = false;
             _previousEntryGuid = Guid.Empty;
@@ -733,8 +735,16 @@ namespace Game.Train.Train
             trainDiagram.OnDestroy();
             _railPosition.OnDestroy();
             trainUnitStationDocking.OnDestroy();
+            NotifyTrainRemoval();
 
-            _cars.Clear();
+            if (_cars != null)
+            {
+                foreach (var car in _cars)
+                {
+                    car.AssignOwner(null);
+                }
+                _cars.Clear();
+            }
             TrainUpdateService.Instance.UnregisterTrain(this);
 
             trainDiagram = null;
@@ -743,6 +753,75 @@ namespace Game.Train.Train
             _cars = null;
             _trainId = Guid.Empty;
         }
+
+        internal void NotifyCarInventoryUpdated(TrainCar car, int slot)
+        {
+            // 列車インベントリ更新イベントを通知
+            // Notify train inventory update event
+            var trainEvent = ServerContext.TrainInventoryUpdateEvent as TrainInventoryUpdateEvent;
+            if (trainEvent == null)
+            {
+                return;
+            }
+
+            var globalSlot = CalculateGlobalSlotIndex(car, slot);
+            if (globalSlot < 0)
+            {
+                return;
+            }
+
+            trainEvent.OnInventoryUpdateInvoke(new TrainInventoryUpdateEventProperties(_trainId, globalSlot, car.GetItem(slot)));
+        }
+
+        #region Internal
+
+        private void AttachCarsToTrain()
+        {
+            // 車両に所属列車を設定
+            // Attach train ownership to cars
+            if (_cars == null)
+            {
+                return;
+            }
+
+            foreach (var car in _cars)
+            {
+                car.AssignOwner(this);
+            }
+        }
+
+        private void NotifyTrainRemoval()
+        {
+            // 列車削除イベントを通知
+            // Notify train removal event
+            var removedEvent = ServerContext.TrainRemovedEvent as TrainRemovedEvent;
+            removedEvent?.OnTrainRemovedInvoke(_trainId);
+        }
+
+        private int CalculateGlobalSlotIndex(TrainCar targetCar, int slot)
+        {
+            // 車両インベントリのグローバルスロットを算出
+            // Calculate global slot index within the train inventory
+            if (targetCar == null || slot < 0)
+            {
+                return -1;
+            }
+
+            var offset = 0;
+            foreach (var car in _cars)
+            {
+                if (car == targetCar)
+                {
+                    return offset + slot;
+                }
+
+                offset += car.InventorySlots;
+            }
+
+            return -1;
+        }
+
+        #endregion
     }
 
     [Serializable]
