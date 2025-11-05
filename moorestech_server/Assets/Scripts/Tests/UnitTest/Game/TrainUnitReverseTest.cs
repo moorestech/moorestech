@@ -28,8 +28,8 @@ namespace Tests.UnitTest.Game
             Assert.Greater(distance, 0, "接続されたレール間の距離が正しく計算されていません。");
 
             var carLength = Mathf.Max(1, distance / 20);
-            var frontCar = TrainTestHelper.CreateTrainCar(environment, 600000, 0, carLength, 0, true);
-            var rearCar = TrainTestHelper.CreateTrainCar(environment, 300000, 0, carLength, 0, false);
+            var frontCar = new TrainCar(tractionForce: 600000, inventorySlots: 0, length: carLength, fuelSlots: 0, isFacingForward: true);
+            var rearCar = new TrainCar(tractionForce: 300000, inventorySlots: 0, length: carLength, fuelSlots: 0, isFacingForward: false);
 
             var totalLength = frontCar.Length + rearCar.Length;
             var railPosition = new RailPosition(new List<RailNode> { nodeApproaching, nodeBehind }, totalLength, distance / 10);

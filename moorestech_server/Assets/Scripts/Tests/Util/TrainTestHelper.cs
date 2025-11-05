@@ -4,7 +4,6 @@ using Game.Block.Interface.Component;
 using Game.Context;
 using Game.Train.Common;
 using Game.Train.RailGraph;
-using Game.Train.Train;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Boot;
@@ -112,11 +111,6 @@ namespace Tests.Util
             var (block, component) = PlaceBlockWithComponent<RailComponent>(environment, ForUnitTestModBlockId.TestTrainRail, position, direction);
             railBlock = block;
             return component;
-        }
-
-        public static TrainCar CreateTrainCar(TrainTestEnvironment environment, int tractionForce, int inventorySlots, int length, int fuelSlots, bool isFacingForward)
-        {
-            return new TrainCar(tractionForce, inventorySlots, length, fuelSlots, isFacingForward);
         }
     }
 }
