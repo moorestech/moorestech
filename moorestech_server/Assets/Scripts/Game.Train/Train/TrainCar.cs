@@ -36,21 +36,18 @@ namespace Game.Train.Train
         public Guid CarId => _carId;
         public IBlock dockingblock { get; set; }// このTrainCarがcargoやstation駅blockでドッキングしているときにのみ非nullになる。前輪を登録
 
-        private readonly ITrainInventoryUpdateEvent _trainInventoryUpdateEvent;
-        private readonly ITrainRemovedEvent _trainRemovedEvent;
         private readonly IItemStack[] _inventoryItems;
         private readonly IItemStack[] _fuelItems;
         public bool IsFacingForward { get; private set; }
         private TrainUnit _owner;
+        private ITrainUpdateEvent _trainUpdateEvent;
 
-        public TrainCar(int tractionForce, int inventorySlots, int length, int fuelSlots, bool isFacingForward, ITrainInventoryUpdateEvent trainInventoryUpdateEvent, ITrainRemovedEvent trainRemovedEvent)
+        public TrainCar(int tractionForce, int inventorySlots, int length, int fuelSlots = 0, bool isFacingForward = true)
         {
             TractionForce = tractionForce;
             InventorySlots = inventorySlots;
             Length = length;
             IsFacingForward = isFacingForward;
-            _trainInventoryUpdateEvent = trainInventoryUpdateEvent;
-            _trainRemovedEvent = trainRemovedEvent;
             if (fuelSlots < 0)
             {
                 fuelSlots = 0;
@@ -171,7 +168,7 @@ namespace Game.Train.Train
         {
             // 対象スロットの更新をイベントへ転送
             // Forward the slot update to event subscribers
-            if (_owner == null || _trainInventoryUpdateEvent == null)
+            if (_owner == null)
             {
                 return;
             }
@@ -183,14 +180,14 @@ namespace Game.Train.Train
             }
 
             var item = _inventoryItems[slot] ?? ServerContext.ItemStackFactory.CreatEmpty();
-            _trainInventoryUpdateEvent.Publish(new TrainInventoryUpdateEventProperties(_owner.TrainId, globalSlot, item));
+            TrainUpdateEvent?.PublishInventoryUpdate(new TrainInventoryUpdateEventProperties(_owner.TrainId, globalSlot, item));
         }
 
         private void PublishRemovalIfNeeded()
         {
             // 列車削除イベントは一度だけ発火
             // Ensure removal event is raised only once per train
-            if (_owner == null || _trainRemovedEvent == null)
+            if (_owner == null)
             {
                 return;
             }
@@ -200,7 +197,15 @@ namespace Game.Train.Train
                 return;
             }
 
-            _trainRemovedEvent.Publish(_owner.TrainId);
+            TrainUpdateEvent?.PublishTrainRemoved(_owner.TrainId);
+        }
+
+        private ITrainUpdateEvent TrainUpdateEvent
+        {
+            get
+            {
+                return _trainUpdateEvent ??= ServerContext.GetService<ITrainUpdateEvent>();
+            }
         }
 
         // インベントリーサイズ取得  

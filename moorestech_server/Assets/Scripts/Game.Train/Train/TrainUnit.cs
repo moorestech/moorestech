@@ -537,7 +537,7 @@ namespace Game.Train.Train
             return nodes;
         }
         //別コードに分割したい TODO
-        private static List<TrainCar> RestoreTrainCars(List<TrainCarSaveData> carData, ITrainInventoryUpdateEvent trainInventoryUpdateEvent, ITrainRemovedEvent trainRemovedEvent)
+        private static List<TrainCar> RestoreTrainCars(List<TrainCarSaveData> carData)
         {
             var cars = new List<TrainCar>();
             if (carData == null)
@@ -547,7 +547,7 @@ namespace Game.Train.Train
 
             foreach (var data in carData)
             {
-                var car = RestoreTrainCar(data, trainInventoryUpdateEvent, trainRemovedEvent);
+                var car = RestoreTrainCar(data);
                 if (car != null)
                 {
                     cars.Add(car);
@@ -557,7 +557,7 @@ namespace Game.Train.Train
             return cars;
         }
 
-        private static TrainCar RestoreTrainCar(TrainCarSaveData data, ITrainInventoryUpdateEvent trainInventoryUpdateEvent, ITrainRemovedEvent trainRemovedEvent)
+        private static TrainCar RestoreTrainCar(TrainCarSaveData data)
         {
             if (data == null)
             {
@@ -568,7 +568,7 @@ namespace Game.Train.Train
             var inventorySlots = data.InventorySlots < 0 ? 0 : data.InventorySlots;
             var length = data.Length < 0 ? 0 : data.Length;
             var isFacingForward = data.IsFacingForward;
-            var car = new TrainCar(data.TractionForce, inventorySlots, length, fuelSlots, isFacingForward, trainInventoryUpdateEvent, trainRemovedEvent);
+            var car = new TrainCar(data.TractionForce, inventorySlots, length, fuelSlots, isFacingForward);
 
             var empty = ServerContext.ItemStackFactory.CreatEmpty();
 
@@ -613,7 +613,7 @@ namespace Game.Train.Train
             diagram.RestoreState(saveData);
         }
 
-        public static TrainUnit RestoreFromSaveData(TrainUnitSaveData saveData, ITrainInventoryUpdateEvent trainInventoryUpdateEvent, ITrainRemovedEvent trainRemovedEvent)
+        public static TrainUnit RestoreFromSaveData(TrainUnitSaveData saveData)
         {
             if (saveData == null)
             {
@@ -639,7 +639,7 @@ namespace Game.Train.Train
             }
 
             var railPosition = new RailPosition(nodes, trainLength, distanceToNextNode);
-            var cars = RestoreTrainCars(saveData.Cars, trainInventoryUpdateEvent, trainRemovedEvent);
+            var cars = RestoreTrainCars(saveData.Cars);
 
             var restoredSpeed = saveData.CurrentSpeedBits.HasValue
                 ? BitConverter.Int64BitsToDouble(saveData.CurrentSpeedBits.Value)

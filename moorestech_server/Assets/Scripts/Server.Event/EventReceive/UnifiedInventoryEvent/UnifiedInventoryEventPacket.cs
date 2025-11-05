@@ -24,15 +24,14 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
             IBlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent,
             IWorldBlockDatastore worldBlockDatastore,
             IWorldBlockUpdateEvent worldBlockUpdateEvent,
-            ITrainInventoryUpdateEvent trainInventoryUpdateEvent,
-            ITrainRemovedEvent trainRemovedEvent)
+            ITrainUpdateEvent trainUpdateEvent)
         {
             // ブロックインベントリの更新を監視
             // Monitor block inventory updates
             new BlockInventoryUpdateService(eventProtocolProvider, inventorySubscriptionStore, blockInventoryUpdateEvent, worldBlockDatastore, worldBlockUpdateEvent);
             // 列車インベントリの更新・削除を監視
             // Monitor train inventory updates and removals
-            new TrainInventoryUpdateService(eventProtocolProvider, inventorySubscriptionStore, trainInventoryUpdateEvent, trainRemovedEvent);
+            new TrainInventoryUpdateService(eventProtocolProvider, inventorySubscriptionStore, trainUpdateEvent);
         }
     }
     
