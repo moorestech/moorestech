@@ -62,7 +62,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var data = MessagePackSerializer.Deserialize<UnifiedInventoryEventMessagePack>(payLoad);
             
             Assert.AreEqual(InventoryEventType.Update, data.EventType); // event type
-            Assert.AreEqual(InventoryType.Block, data.InventoryType); // inventory type
+            Assert.AreEqual(InventoryType.Block, data.Identifier.InventoryType); // inventory type
             Assert.AreEqual(1, data.Slot); // slot id
             Assert.AreEqual(4, data.Item.Id.AsPrimitive()); // item id
             Assert.AreEqual(8, data.Item.Count); // item count
@@ -121,7 +121,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         
         private List<byte> OpenCloseBlockInventoryPacket(Vector3Int pos, bool isOpen)
         {
-            var identifier = new InventoryIdentifierMessagePack(pos);
+            var identifier = InventoryIdentifierMessagePack.CreateBlockMessage(pos);
             return MessagePackSerializer
                 .Serialize(new SubscribeInventoryProtocol.SubscribeInventoryRequestMessagePack(PlayerId, InventoryType.Block, identifier, isOpen)).ToList();
         }

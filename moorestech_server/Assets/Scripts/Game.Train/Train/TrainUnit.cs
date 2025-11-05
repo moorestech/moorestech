@@ -10,6 +10,10 @@ using System.Linq;
 
 namespace Game.Train.Train
 {
+    /// <summary>
+    /// 複数車両からなる列車編成全体を表すクラス
+    /// Represents an entire train formation composed of multiple cars.
+    /// </summary>
     public class TrainUnit
     {
         public string SaveKey { get; } = typeof(TrainUnit).FullName;
@@ -44,6 +48,7 @@ namespace Game.Train.Train
         private const int InfiniteLoopGuardThreshold = 1_000_000;
 
         private List<TrainCar> _cars;
+        private bool _removalEventPublished;
         public RailPosition RailPosition => _railPosition;
         public IReadOnlyList<TrainCar> Cars => _cars;
         public TrainUnitStationDocking trainUnitStationDocking; // 列車の駅ドッキング用のクラス
@@ -532,7 +537,7 @@ namespace Game.Train.Train
             return nodes;
         }
         //別コードに分割したい TODO
-        private static List<TrainCar> RestoreTrainCars(List<TrainCarSaveData> carData)
+        private static List<TrainCar> RestoreTrainCars(List<TrainCarSaveData> carData, ITrainInventoryUpdateEvent trainInventoryUpdateEvent, ITrainRemovedEvent trainRemovedEvent)
         {
             var cars = new List<TrainCar>();
             if (carData == null)
@@ -542,7 +547,7 @@ namespace Game.Train.Train
 
             foreach (var data in carData)
             {
-                var car = RestoreTrainCar(data);
+                var car = RestoreTrainCar(data, trainInventoryUpdateEvent, trainRemovedEvent);
                 if (car != null)
                 {
                     cars.Add(car);
@@ -552,7 +557,7 @@ namespace Game.Train.Train
             return cars;
         }
 
-        private static TrainCar RestoreTrainCar(TrainCarSaveData data)
+        private static TrainCar RestoreTrainCar(TrainCarSaveData data, ITrainInventoryUpdateEvent trainInventoryUpdateEvent, ITrainRemovedEvent trainRemovedEvent)
         {
             if (data == null)
             {
@@ -563,7 +568,7 @@ namespace Game.Train.Train
             var inventorySlots = data.InventorySlots < 0 ? 0 : data.InventorySlots;
             var length = data.Length < 0 ? 0 : data.Length;
             var isFacingForward = data.IsFacingForward;
-            var car = new TrainCar(data.TractionForce, inventorySlots, length, fuelSlots, isFacingForward);
+            var car = new TrainCar(data.TractionForce, inventorySlots, length, fuelSlots, isFacingForward, trainInventoryUpdateEvent, trainRemovedEvent);
 
             var empty = ServerContext.ItemStackFactory.CreatEmpty();
 
@@ -608,7 +613,7 @@ namespace Game.Train.Train
             diagram.RestoreState(saveData);
         }
 
-        public static TrainUnit RestoreFromSaveData(TrainUnitSaveData saveData)
+        public static TrainUnit RestoreFromSaveData(TrainUnitSaveData saveData, ITrainInventoryUpdateEvent trainInventoryUpdateEvent, ITrainRemovedEvent trainRemovedEvent)
         {
             if (saveData == null)
             {
@@ -634,7 +639,7 @@ namespace Game.Train.Train
             }
 
             var railPosition = new RailPosition(nodes, trainLength, distanceToNextNode);
-            var cars = RestoreTrainCars(saveData.Cars);
+            var cars = RestoreTrainCars(saveData.Cars, trainInventoryUpdateEvent, trainRemovedEvent);
 
             var restoredSpeed = saveData.CurrentSpeedBits.HasValue
                 ? BitConverter.Int64BitsToDouble(saveData.CurrentSpeedBits.Value)
@@ -735,13 +740,12 @@ namespace Game.Train.Train
             trainDiagram.OnDestroy();
             _railPosition.OnDestroy();
             trainUnitStationDocking.OnDestroy();
-            NotifyTrainRemoval();
 
             if (_cars != null)
             {
                 foreach (var car in _cars)
                 {
-                    car.AssignOwner(null);
+                    car.Destroy();
                 }
                 _cars.Clear();
             }
@@ -752,25 +756,6 @@ namespace Game.Train.Train
             trainUnitStationDocking = null;
             _cars = null;
             _trainId = Guid.Empty;
-        }
-
-        internal void NotifyCarInventoryUpdated(TrainCar car, int slot)
-        {
-            // 列車インベントリ更新イベントを通知
-            // Notify train inventory update event
-            var trainEvent = ServerContext.TrainInventoryUpdateEvent as TrainInventoryUpdateEvent;
-            if (trainEvent == null)
-            {
-                return;
-            }
-
-            var globalSlot = CalculateGlobalSlotIndex(car, slot);
-            if (globalSlot < 0)
-            {
-                return;
-            }
-
-            trainEvent.OnInventoryUpdateInvoke(new TrainInventoryUpdateEventProperties(_trainId, globalSlot, car.GetItem(slot)));
         }
 
         #region Internal
@@ -790,18 +775,10 @@ namespace Game.Train.Train
             }
         }
 
-        private void NotifyTrainRemoval()
-        {
-            // 列車削除イベントを通知
-            // Notify train removal event
-            var removedEvent = ServerContext.TrainRemovedEvent as TrainRemovedEvent;
-            removedEvent?.OnTrainRemovedInvoke(_trainId);
-        }
-
-        private int CalculateGlobalSlotIndex(TrainCar targetCar, int slot)
+        internal int ResolveGlobalSlotIndex(TrainCar targetCar, int slot)
         {
             // 車両インベントリのグローバルスロットを算出
-            // Calculate global slot index within the train inventory
+            // Calculate the global slot index within this train
             if (targetCar == null || slot < 0)
             {
                 return -1;
@@ -819,6 +796,19 @@ namespace Game.Train.Train
             }
 
             return -1;
+        }
+
+        internal bool TryMarkRemovalNotified()
+        {
+            // 列車削除イベントの多重発火を防止
+            // Prevent duplicate train removal notifications
+            if (_removalEventPublished)
+            {
+                return false;
+            }
+
+            _removalEventPublished = true;
+            return true;
         }
 
         #endregion

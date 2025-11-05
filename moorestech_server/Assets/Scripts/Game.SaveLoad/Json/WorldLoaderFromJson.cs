@@ -33,15 +33,16 @@ namespace Game.SaveLoad.Json
         private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
         private readonly CraftTreeManager _craftTreeManager;
         private readonly IResearchDataStore _researchDataStore;
-        
+        private readonly TrainSaveLoadService _trainSaveLoadService;
+
         public WorldLoaderFromJson(SaveJsonFilePath saveJsonFilePath,
             IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore, 
             ChallengeDatastore challengeDatastore, IGameUnlockStateDataController gameUnlockStateDataController, CraftTreeManager craftTreeManager, MapInfoJson mapInfoJson,
-            IResearchDataStore researchDataStore)
+            IResearchDataStore researchDataStore, TrainSaveLoadService trainSaveLoadService)
         {
             _worldBlockDatastore = ServerContext.WorldBlockDatastore;
             _mapObjectDatastore = ServerContext.MapObjectDatastore;
-            
+
             _saveJsonFilePath = saveJsonFilePath;
             _inventoryDataStore = inventoryDataStore;
             _entitiesDatastore = entitiesDatastore;
@@ -51,6 +52,7 @@ namespace Game.SaveLoad.Json
             _craftTreeManager = craftTreeManager;
             _mapInfoJson = mapInfoJson;
             _researchDataStore = researchDataStore;
+            _trainSaveLoadService = trainSaveLoadService;
         }
         
         public void LoadOrInitialize()
@@ -113,7 +115,7 @@ namespace Game.SaveLoad.Json
             _challengeDatastore.LoadChallenge(load.Challenge);
             _craftTreeManager.LoadCraftTreeInfo(load.CraftTreeInfo);
 
-            TrainSaveLoadService.RestoreTrainStates(load.TrainUnits);
+            _trainSaveLoadService.RestoreTrainStates(load.TrainUnits);
             TrainDockingStateRestorer.RestoreDockingState();
         }
         

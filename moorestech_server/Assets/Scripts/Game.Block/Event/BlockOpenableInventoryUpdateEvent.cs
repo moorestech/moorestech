@@ -1,20 +1,22 @@
 ﻿using System;
 using Game.Block.Interface.Event;
+using UniRx;
 
 namespace Game.Block.Event
 {
     public class BlockOpenableInventoryUpdateEvent : IBlockOpenableInventoryUpdateEvent
     {
-        public void Subscribe(Action<BlockOpenableInventoryUpdateEventProperties> blockInventoryEvent)
-        {
-            OnBlockInventoryUpdate += blockInventoryEvent;
-        }
+        private readonly Subject<BlockOpenableInventoryUpdateEventProperties> _subject = new();
+        public IObservable<BlockOpenableInventoryUpdateEventProperties> OnInventoryUpdated => _subject;
         
-        public event Action<BlockOpenableInventoryUpdateEventProperties> OnBlockInventoryUpdate;
+        public IDisposable Subscribe(Action<BlockOpenableInventoryUpdateEventProperties> blockInventoryEvent)
+        {
+            return _subject.Subscribe(blockInventoryEvent);
+        }
         
         public void OnInventoryUpdateInvoke(BlockOpenableInventoryUpdateEventProperties properties)
         {
-            OnBlockInventoryUpdate?.Invoke(properties);
+            _subject.OnNext(properties);
         }
     }
 }

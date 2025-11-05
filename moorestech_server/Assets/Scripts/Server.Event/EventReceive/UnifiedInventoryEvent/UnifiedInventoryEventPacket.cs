@@ -1,6 +1,9 @@
 using System;
 using Core.Item.Interface;
+using Game.Block.Interface.Event;
+using Game.Context.Event;
 using Game.PlayerInventory.Interface;
+using Game.World.Interface.DataStore;
 using MessagePack;
 using Server.Util.MessagePack;
 using static Server.Util.MessagePack.InventoryIdentifierMessagePack;
@@ -15,14 +18,21 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
     {
         public const string EventTag = "va:event:invUpdate";
         
-        public UnifiedInventoryEventPacket(EventProtocolProvider eventProtocolProvider, IInventorySubscriptionStore inventorySubscriptionStore)
+        public UnifiedInventoryEventPacket(
+            EventProtocolProvider eventProtocolProvider,
+            IInventorySubscriptionStore inventorySubscriptionStore,
+            IBlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent,
+            IWorldBlockDatastore worldBlockDatastore,
+            IWorldBlockUpdateEvent worldBlockUpdateEvent,
+            ITrainInventoryUpdateEvent trainInventoryUpdateEvent,
+            ITrainRemovedEvent trainRemovedEvent)
         {
             // ブロックインベントリの更新を監視
             // Monitor block inventory updates
-            new BlockInventoryUpdateService(eventProtocolProvider, inventorySubscriptionStore);
+            new BlockInventoryUpdateService(eventProtocolProvider, inventorySubscriptionStore, blockInventoryUpdateEvent, worldBlockDatastore, worldBlockUpdateEvent);
             // 列車インベントリの更新・削除を監視
             // Monitor train inventory updates and removals
-            new TrainInventoryUpdateService(eventProtocolProvider, inventorySubscriptionStore);
+            new TrainInventoryUpdateService(eventProtocolProvider, inventorySubscriptionStore, trainInventoryUpdateEvent, trainRemovedEvent);
         }
     }
     
@@ -35,7 +45,6 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
         [Key(3)] public InventoryIdentifierMessagePack Identifier { get; set; }
         [Key(4)] public int Slot { get; set; }
         [Key(5)] public ItemMessagePack Item { get; set; }
-        [IgnoreMember] public InventoryType InventoryType => Identifier?.InventoryType ?? InventoryType.Block;
         
         
         public UnifiedInventoryEventMessagePack() { Tag = UnifiedInventoryEventPacket.EventTag; }

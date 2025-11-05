@@ -30,24 +30,7 @@ namespace Server.Util.MessagePack
         /// TrainId for train inventory
         /// </summary>
         [Key(2)] public string TrainId { get; set; }
-        
         public InventoryIdentifierMessagePack() { }
-        
-        public InventoryIdentifierMessagePack(Vector3Int position)
-        {
-            // ブロックインベントリ識別子を初期化
-            // Initialize block inventory identifier
-            InventoryType = InventoryType.Block;
-            BlockPosition = new Vector3IntMessagePack(position);
-        }
-        
-        public InventoryIdentifierMessagePack(Guid trainId)
-        {
-            // 列車インベントリ識別子を初期化
-            // Initialize train inventory identifier
-            InventoryType = InventoryType.Train;
-            TrainId = trainId.ToString();
-        }
         
         public static InventoryIdentifierMessagePack CreateBlockMessage(Vector3Int position)
         {

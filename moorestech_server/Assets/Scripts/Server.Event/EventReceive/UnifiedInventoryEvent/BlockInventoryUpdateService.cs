@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using Game.Block.Interface.Event;
-using Game.Context;
 using Game.PlayerInventory.Interface;
-using MessagePack;
+using Game.World.Interface.DataStore;
 using UniRx;
+using MessagePack;
 using static Server.Event.EventReceive.UnifiedInventoryEvent.UnifiedInventoryEventPacket;
 
 namespace Server.Event.EventReceive.UnifiedInventoryEvent
@@ -17,14 +17,21 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
     {
         private readonly EventProtocolProvider _eventProtocolProvider;
         private readonly IInventorySubscriptionStore _inventorySubscriptionStore;
+        private readonly IWorldBlockDatastore _worldBlockDatastore;
         
-        public BlockInventoryUpdateService(EventProtocolProvider eventProtocolProvider, IInventorySubscriptionStore inventorySubscriptionStore)
+        public BlockInventoryUpdateService(
+            EventProtocolProvider eventProtocolProvider,
+            IInventorySubscriptionStore inventorySubscriptionStore,
+            IBlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent,
+            IWorldBlockDatastore worldBlockDatastore,
+            IWorldBlockUpdateEvent worldBlockUpdateEvent)
         {
             _eventProtocolProvider = eventProtocolProvider;
             _inventorySubscriptionStore = inventorySubscriptionStore;
+            _worldBlockDatastore = worldBlockDatastore;
             
-            ServerContext.BlockOpenableInventoryUpdateEvent.Subscribe(OnBlockInventoryUpdate);
-            ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(OnBlockRemove);
+            blockInventoryUpdateEvent.Subscribe(OnBlockInventoryUpdate);
+            worldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(OnBlockRemove);
         }
         
         
@@ -47,7 +54,7 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
             
             (BlockInventorySubscriptionIdentifier identifier, List<int> playerIds) GetSubscribers()
             {
-                var pos = ServerContext.WorldBlockDatastore.GetBlockPosition(properties.BlockInstanceId);
+                var pos = _worldBlockDatastore.GetBlockPosition(properties.BlockInstanceId);
                 var id = new BlockInventorySubscriptionIdentifier(pos);
                 var players = _inventorySubscriptionStore.GetSubscribers(id);
                 

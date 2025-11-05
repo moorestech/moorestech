@@ -89,7 +89,7 @@ namespace Tests.UnitTest.Game.SaveLoad
                 stationA.ExitFront,
                 stationA.EntryFront
             };
-            var train1Car = new TrainCar(tractionForce: 20000, inventorySlots: 2, length: stationSegmentLength);
+            var train1Car = TrainTestHelper.CreateTrainCar(environment, 20000, 2, stationSegmentLength, 0, true);
             var train1 = new TrainUnit(new RailPosition(train1Nodes, train1Car.Length, 0), new List<TrainCar> { train1Car });
 
             var train2Nodes = new List<RailNode>
@@ -97,7 +97,7 @@ namespace Tests.UnitTest.Game.SaveLoad
                 stationB.ExitFront,
                 stationB.EntryFront
             };
-            var train2Car = new TrainCar(tractionForce: 1000, inventorySlots: 2, length: stationSegmentLength, isFacingForward: false);
+            var train2Car = TrainTestHelper.CreateTrainCar(environment, 1000, 2, stationSegmentLength, 0, false);
             var train2 = new TrainUnit(new RailPosition(train2Nodes, train2Car.Length, 0), new List<TrainCar> { train2Car });
             train2.Reverse();
             //train1.trainUnitStationDocking.TryDockWhenStopped();
