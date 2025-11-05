@@ -1,5 +1,4 @@
 ﻿using Client.Game.InGame.Block;
-using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Entity.Object;
@@ -9,7 +8,7 @@ using Client.Game.Skit;
 using Client.Input;
 using UnityEngine;
 
-namespace Client.Game.InGame.UI.UIState
+namespace Client.Game.InGame.UI.UIState.State
 {
     public class GameScreenState : IUIState
     {

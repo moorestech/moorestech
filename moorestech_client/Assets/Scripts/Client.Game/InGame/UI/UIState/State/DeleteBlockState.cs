@@ -7,7 +7,7 @@ using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Input;
 using UnityEngine;
 
-namespace Client.Game.InGame.UI.UIState
+namespace Client.Game.InGame.UI.UIState.State
 {
     public class DeleteBlockState : IUIState
     {

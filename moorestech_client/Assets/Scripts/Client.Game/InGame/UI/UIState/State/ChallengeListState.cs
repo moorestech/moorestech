@@ -3,7 +3,7 @@ using Client.Game.InGame.UI.KeyControl;
 using Client.Input;
 using UnityEngine;
 
-namespace Client.Game.InGame.UI.UIState
+namespace Client.Game.InGame.UI.UIState.State
 {
     public class ChallengeListState : IUIState
     {
