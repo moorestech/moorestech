@@ -59,7 +59,8 @@ namespace Server.Event.EventReceive
             
             // サブスクライバーを取得
             // Get subscribers
-            var playerIds = _inventorySubscriptionStore.GetSubscribers(InventoryType.Block, pos);
+            var identifier = new BlockInventorySubscriptionIdentifier(pos);
+            var playerIds = _inventorySubscriptionStore.GetSubscribers(identifier);
             if (playerIds.Count == 0) return;
             
             // イベントペイロードを構築
@@ -67,7 +68,7 @@ namespace Server.Event.EventReceive
             var messagePack = new UnifiedInventoryEventMessagePack(
                 InventoryEventType.Update,
                 InventoryType.Block,
-                new InventoryIdentifierMessagePack(pos),
+                new InventoryIdentifierMessagePack(identifier.Position),
                 properties.Slot,
                 properties.ItemStack);
             
@@ -90,40 +91,33 @@ namespace Server.Event.EventReceive
             // ブロック座標を取得
             // Get block position
             var pos = properties.Pos;
-            
-            // サブスクライバーをチェック
-            // Check subscribers
-            var playerIds = _inventorySubscriptionStore.GetSubscribers(InventoryType.Block, pos);
-            if (playerIds.Count == 0) return;
-            
-            // 削除通知を送信
-            // Send removal notification
-            SendRemovalNotification(InventoryType.Block, pos);
+            var identifier = new BlockInventorySubscriptionIdentifier(pos);
+            SendRemovalNotification(identifier);
         }
         
         /// <summary>
         /// インベントリ削除通知を送信（ブロック破壊、列車削除時）
         /// Send inventory removal notification (on block destroy, train deletion)
         /// </summary>
-        private void SendRemovalNotification(InventoryType type, object identifier)
+        private void SendRemovalNotification(ISubscriptionIdentifier identifier)
         {
             // サブスクライバーを取得
             // Get subscribers
-            var playerIds = _inventorySubscriptionStore.GetSubscribers(type, identifier);
+            var playerIds = _inventorySubscriptionStore.GetSubscribers(identifier);
             if (playerIds.Count == 0) return;
             
             // イベントペイロードを構築
             // Build event payload
-            var identifierMessagePack = type switch
+            var identifierMessagePack = identifier.Type switch
             {
-                InventoryType.Block => new InventoryIdentifierMessagePack((Vector3Int)identifier),
-                InventoryType.Train => new InventoryIdentifierMessagePack((Guid)identifier),
-                _ => throw new ArgumentException($"Unknown InventoryType: {type}")
+                InventoryType.Block => BuildBlockIdentifier((BlockInventorySubscriptionIdentifier)identifier),
+                InventoryType.Train => BuildTrainIdentifier((TrainInventorySubscriptionIdentifier)identifier),
+                _ => throw new ArgumentException($"Unknown InventoryType: {identifier.Type}")
             };
             
             var messagePack = new UnifiedInventoryEventMessagePack(
                 InventoryEventType.Remove,
-                type,
+                identifier.Type,
                 identifierMessagePack,
                 0,  // Slot is not used for removal
                 null);  // Item is not used for removal
@@ -139,6 +133,24 @@ namespace Server.Event.EventReceive
                 // Unsubscribe
                 _inventorySubscriptionStore.Unsubscribe(playerId);
             }
+        }
+        
+        #endregion
+        
+        #region Internal
+        
+        // ブロックインベントリ用の識別子を生成
+        // Build identifier for block inventory
+        private static InventoryIdentifierMessagePack BuildBlockIdentifier(BlockInventorySubscriptionIdentifier identifier)
+        {
+            return new InventoryIdentifierMessagePack(identifier.Position);
+        }
+        
+        // 列車インベントリ用の識別子を生成
+        // Build identifier for train inventory
+        private static InventoryIdentifierMessagePack BuildTrainIdentifier(TrainInventorySubscriptionIdentifier identifier)
+        {
+            return new InventoryIdentifierMessagePack(identifier.TrainId);
         }
         
         #endregion
@@ -177,4 +189,3 @@ namespace Server.Event.EventReceive
         }
     }
 }
-

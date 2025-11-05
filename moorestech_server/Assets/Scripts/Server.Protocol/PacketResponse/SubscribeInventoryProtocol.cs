@@ -43,7 +43,7 @@ namespace Server.Protocol.PacketResponse
                 // サブスクライブ
                 // Subscribe
                 var identifier = ConvertIdentifier(data.Type, data.Identifier);
-                _inventorySubscriptionStore.Subscribe(data.PlayerId, data.Type, identifier);
+                _inventorySubscriptionStore.Subscribe(data.PlayerId, identifier);
             }
             else
             {
@@ -94,12 +94,12 @@ namespace Server.Protocol.PacketResponse
         /// MessagePackの識別子を内部形式に変換
         /// Convert MessagePack identifier to internal format
         /// </summary>
-        private object ConvertIdentifier(InventoryType type, InventoryIdentifierMessagePack identifier)
+        private ISubscriptionIdentifier ConvertIdentifier(InventoryType type, InventoryIdentifierMessagePack identifier)
         {
             return type switch
             {
-                InventoryType.Block => (object)identifier.BlockPosition.Vector3Int,
-                InventoryType.Train => Guid.Parse(identifier.TrainId),
+                InventoryType.Block => new BlockInventorySubscriptionIdentifier(identifier.BlockPosition.Vector3Int),
+                InventoryType.Train => new TrainInventorySubscriptionIdentifier(Guid.Parse(identifier.TrainId)),
                 _ => throw new ArgumentException($"Unknown InventoryType: {type}")
             };
         }
@@ -132,4 +132,3 @@ namespace Server.Protocol.PacketResponse
         }
     }
 }
-
