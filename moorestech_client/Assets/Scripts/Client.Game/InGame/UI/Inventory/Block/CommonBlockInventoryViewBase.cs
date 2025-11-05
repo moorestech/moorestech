@@ -3,6 +3,7 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.UI.Inventory.Common;
 using Core.Item.Interface;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
+using Server.Util.MessagePack;
 using UnityEngine;
 
 namespace Client.Game.InGame.UI.Inventory.Block
@@ -28,7 +29,9 @@ namespace Client.Game.InGame.UI.Inventory.Block
         
         public virtual void Initialize(BlockGameObject blockGameObject)
         {
-            ItemMoveInventoryInfo = new ItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory, blockGameObject.BlockPosInfo.OriginalPos);
+            ItemMoveInventoryInfo = new ItemMoveInventoryInfo(
+                ItemMoveInventoryType.BlockInventory,
+                InventoryIdentifierMessagePack.CreateBlockMessage(blockGameObject.BlockPosInfo.OriginalPos));
         }
         
         public void UpdateItemList(List<IItemStack> response)

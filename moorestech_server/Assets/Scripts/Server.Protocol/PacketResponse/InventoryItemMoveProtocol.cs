@@ -31,23 +31,23 @@ namespace Server.Protocol.PacketResponse
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<InventoryItemMoveProtocolMessagePack>(payload.ToArray());
-            
-            var fromInventory = GetInventory(data.FromInventory.InventoryType, data.PlayerId, data.FromInventory.Pos);
+
+            var fromInventory = GetInventory(data.FromInventory.InventoryType, data.PlayerId, data.FromInventory.InventoryIdentifier);
             if (fromInventory == null) return null;
-            
+
             var fromSlot = data.FromInventory.Slot;
             if (data.FromInventory.InventoryType == ItemMoveInventoryType.BlockInventory)
                 fromSlot -= PlayerInventoryConst.MainInventorySize;
-            
-            
-            var toInventory = GetInventory(data.ToInventory.InventoryType, data.PlayerId, data.ToInventory.Pos);
+
+
+            var toInventory = GetInventory(data.ToInventory.InventoryType, data.PlayerId, data.ToInventory.InventoryIdentifier);
             if (toInventory == null) return null;
-            
+
             var toSlot = data.ToInventory.Slot;
             if (data.ToInventory.InventoryType == ItemMoveInventoryType.BlockInventory)
                 toSlot -= PlayerInventoryConst.MainInventorySize;
-            
-            
+
+
             switch (data.ItemMoveType)
             {
                 case ItemMoveType.SwapSlot:
@@ -57,11 +57,11 @@ namespace Server.Protocol.PacketResponse
                     InventoryItemInsertService.Insert(fromInventory, fromSlot, toInventory, data.Count);
                     break;
             }
-            
+
             return null;
         }
-        
-        private IOpenableInventory GetInventory(ItemMoveInventoryType inventoryType, int playerId, Vector3Int pos)
+
+        private IOpenableInventory GetInventory(ItemMoveInventoryType inventoryType, int playerId, InventoryIdentifierMessagePack inventoryIdentifier)
         {
             IOpenableInventory inventory = null;
             switch (inventoryType)
@@ -73,12 +73,16 @@ namespace Server.Protocol.PacketResponse
                     inventory = _playerInventoryDataStore.GetInventoryData(playerId).GrabInventory;
                     break;
                 case ItemMoveInventoryType.BlockInventory:
+                    // ブロックインベントリの場合はInventoryIdentifierから座標を取得
+                    // Get position from InventoryIdentifier for block inventory
+                    if (inventoryIdentifier == null) return null;
+                    var pos = inventoryIdentifier.BlockPosition.Vector3Int;
                     inventory = ServerContext.WorldBlockDatastore.ExistsComponent<IOpenableBlockInventoryComponent>(pos)
                         ? ServerContext.WorldBlockDatastore.GetBlock<IOpenableBlockInventoryComponent>(pos)
                         : null;
                     break;
             }
-            
+
             return inventory;
         }
         
@@ -114,21 +118,26 @@ namespace Server.Protocol.PacketResponse
         {
             [Obsolete("シリアライズ用の値です。InventoryTypeを使用してください。")]
             [Key(2)] public int InventoryId { get; set; }
-            
+
             [IgnoreMember] public ItemMoveInventoryType InventoryType => (ItemMoveInventoryType)Enum.ToObject(typeof(ItemMoveInventoryType), InventoryId);
-            
+
             [Key(3)] public int Slot { get; set; }
-            
-            [Key(4)] public Vector3IntMessagePack Pos { get; set; }
-            
+
+            /// <summary>
+            /// ブロックまたは列車インベントリの識別子
+            /// Identifier for block or train inventory
+            /// </summary>
+            [Key(4)] public InventoryIdentifierMessagePack InventoryIdentifier { get; set; }
+
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ItemMoveInventoryInfoMessagePack() { }
             public ItemMoveInventoryInfoMessagePack(ItemMoveInventoryInfo info, int slot)
             {
-                //メッセージパックでenumは重いらしいのでintを使う
+                // メッセージパックでenumは重いらしいのでintを使う
+                // MessagePack enum is heavy, so use int
                 InventoryId = (int)info.ItemMoveInventoryType;
                 Slot = slot;
-                Pos = new Vector3IntMessagePack(info.Pos);
+                InventoryIdentifier = info.InventoryIdentifier;
             }
         }
     }

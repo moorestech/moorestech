@@ -140,6 +140,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 21808017c1ff24c35a21821bcbde4e57
+    m_Address: Vanilla/UI/Train/CommonTrainInventoryView
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 227487304681b4e6897ee786a7b586fc
     m_Address: Vanilla/Character/Chr003
     m_ReadOnly: 0

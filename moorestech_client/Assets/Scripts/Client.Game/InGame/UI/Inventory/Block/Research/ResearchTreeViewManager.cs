@@ -9,6 +9,7 @@ using Core.Item.Interface;
 using Cysharp.Threading.Tasks;
 using Game.Research;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
+using Server.Util.MessagePack;
 using UniRx;
 using UnityEngine;
 
@@ -27,7 +28,9 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
 
         public void Initialize(BlockGameObject blockGameObject)
         {
-            ItemMoveInventoryInfo = new ItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory, blockGameObject.BlockPosInfo.OriginalPos);
+            ItemMoveInventoryInfo = new ItemMoveInventoryInfo(
+                ItemMoveInventoryType.BlockInventory,
+                InventoryIdentifierMessagePack.CreateBlockMessage(blockGameObject.BlockPosInfo.OriginalPos));
             _destroyCancellationToken = this.GetCancellationTokenOnDestroy();
             
             // 研究実行イベントの登録
