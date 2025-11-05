@@ -39,7 +39,7 @@ namespace Client.Game.InGame.UI.UIState.State
             if (InputManager.UI.OpenInventory.GetKeyDown) return new UITransitContext(UIStateEnum.PlayerInventory);
             if (InputManager.UI.OpenMenu.GetKeyDown) return new UITransitContext(UIStateEnum.PauseMenu);
 
-            if (BlockClickDetect.TryGetCursorOnBlock(out var blockGameObject))
+            if (BlockClickDetectUtil.TryGetCursorOnBlock(out var blockGameObject))
             {
                 if (_removeTargetBlock == null || _removeTargetBlock != blockGameObject)
                 {
