@@ -17,6 +17,7 @@ namespace Game.Train.Entity
     /// </summary>
     public class TrainEntity : IEntity
     {
+        private readonly TrainCar _trainCar;
         private readonly TrainUnit _trainUnit;
         public EntityInstanceId InstanceId { get; }
         
@@ -29,9 +30,10 @@ namespace Game.Train.Entity
         /// </summary>
         public Vector3 Position => GetTrainPositon();
         
-        public TrainEntity(EntityInstanceId instanceId, TrainUnit trainUnit)
+        public TrainEntity(EntityInstanceId instanceId, TrainUnit trainUnit, TrainCar trainCar)
         {
             InstanceId = instanceId;
+            _trainCar = trainCar;
             _trainUnit = trainUnit;
         }
 
@@ -43,12 +45,12 @@ namespace Game.Train.Entity
         
         public byte[] GetEntityData()
         {
-            var state = new TrainEntityStateMessagePack(_trainUnit.TrainId);
+            var state = new TrainEntityStateMessagePack(_trainCar.CarId);
             return MessagePackSerializer.Serialize(state);
         }
         
         
-        [Obsolete("列車の正確な位置を取得するための仮実装です。上部コメントの通り、将来的にはRailPositionを直接同期する方式に変更する予定です。")]
+        [Obsolete("AIに書かせた列車の正確な位置を取得するための仮実装です。上部コメントの通り、将来的にはRailPositionを直接同期する方式に変更する予定です。")]
         private Vector3 GetTrainPositon()
         {
             var railPosition = _trainUnit.RailPosition;

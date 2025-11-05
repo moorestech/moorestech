@@ -11,10 +11,10 @@ namespace Client.Game.InGame.Entity.Object
     /// Responsible for visual display of train entities
     /// Achieves smooth movement by linear interpolation of position information received from server
     /// </summary>
-    public class TrainEntityObject : MonoBehaviour, IEntityObject
+    public class TrainCarEntityObject : MonoBehaviour, IEntityObject
     {
         public long EntityId { get; private set; }
-        public Guid TrainId { get; private set; }
+        public Guid TrainCarId { get; private set; }
         public TrainCarMasterElement TrainCarMasterElement { get; set; }
         
         private float _linerTime;
@@ -32,9 +32,9 @@ namespace Client.Game.InGame.Entity.Object
             EntityId = entityId;
         }
         
-        public void SetTrain(Guid trainId, TrainCarMasterElement trainCarMasterElement)
+        public void SetTrain(Guid trainCarId, TrainCarMasterElement trainCarMasterElement)
         {
-            TrainId = trainId;
+            TrainCarId = trainCarId;
             TrainCarMasterElement = trainCarMasterElement;
         }
         

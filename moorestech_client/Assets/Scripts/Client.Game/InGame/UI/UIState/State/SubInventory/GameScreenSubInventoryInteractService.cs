@@ -36,7 +36,7 @@ namespace Client.Game.InGame.UI.UIState.Util
             }
             
             
-            if (BlockClickDetectUtil.TryGetCursorOnComponent(out TrainEntityObject trainEntity))
+            if (BlockClickDetectUtil.TryGetCursorOnComponent(out TrainCarEntityObject trainEntity))
             {
                 var container = new UITransitContextContainer();
                 container.Set(trainEntity);
