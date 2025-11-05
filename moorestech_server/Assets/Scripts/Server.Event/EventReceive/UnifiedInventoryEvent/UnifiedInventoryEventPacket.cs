@@ -1,11 +1,8 @@
 using System;
 using Core.Item.Interface;
-using Game.Block.Interface.Event;
-using Game.Context;
 using Game.PlayerInventory.Interface;
 using MessagePack;
 using Server.Util.MessagePack;
-using UniRx;
 using static Server.Util.MessagePack.InventoryIdentifierMessagePack;
 
 namespace Server.Event.EventReceive.UnifiedInventoryEvent
@@ -28,11 +25,9 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
             _eventProtocolProvider = eventProtocolProvider;
             _inventorySubscriptionStore = inventorySubscriptionStore;
             
-            // ブロックインベントリ更新イベントを購読
-            // Subscribe to block inventory update event
-            
-            // ブロック削除イベントを購読（削除通知用）
-            // Subscribe to block deletion event (for removal notification)
+            // ブロックインベントリの更新を監視
+            // Monitor block inventory updates
+            new BlockInventoryUpdateService(eventProtocolProvider, inventorySubscriptionStore);
             
             // TODO: 列車インベントリ更新イベントを購読
             // TODO: Subscribe to train inventory update event
