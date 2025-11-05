@@ -154,7 +154,7 @@ namespace Client.Starter
             //UIコントロール
             // register UI control
             builder.Register<UIStateDictionary>(Lifetime.Singleton);
-            builder.Register<BlockInventoryState>(Lifetime.Singleton);
+            builder.Register<SubInventoryState>(Lifetime.Singleton);
             builder.Register<GameScreenState>(Lifetime.Singleton);
             builder.Register<PauseMenuState>(Lifetime.Singleton);
             builder.Register<PlayerInventoryState>(Lifetime.Singleton);

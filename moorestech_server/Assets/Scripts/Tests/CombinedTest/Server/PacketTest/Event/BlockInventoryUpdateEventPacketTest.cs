@@ -11,6 +11,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
+using Server.Util.MessagePack;
 using Tests.Module.TestMod;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.EventProtocol;
@@ -57,13 +58,15 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             //イベントパケットをチェック
             Assert.AreEqual(1, eventMessagePack.Events.Count);
             var payLoad = eventMessagePack.Events[0].Payload;
-            var data = MessagePackSerializer.Deserialize<OpenableBlockInventoryUpdateEventMessagePack>(payLoad);
+            var data = MessagePackSerializer.Deserialize<UnifiedInventoryEventMessagePack>(payLoad);
             
+            Assert.AreEqual(InventoryEventType.Update, data.EventType); // event type
+            Assert.AreEqual(InventoryType.Block, data.InventoryType); // inventory type
             Assert.AreEqual(1, data.Slot); // slot id
             Assert.AreEqual(4, data.Item.Id.AsPrimitive()); // item id
             Assert.AreEqual(8, data.Item.Count); // item count
-            Assert.AreEqual(5, data.Position.X); // x
-            Assert.AreEqual(7, data.Position.Y); // y
+            Assert.AreEqual(5, data.Identifier.BlockPosition.X); // x
+            Assert.AreEqual(7, data.Identifier.BlockPosition.Y); // y
             
             
             //ブロックのインベントリを閉じる
@@ -117,8 +120,9 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         
         private List<byte> OpenCloseBlockInventoryPacket(Vector3Int pos, bool isOpen)
         {
+            var identifier = new InventoryIdentifierMessagePack(pos);
             return MessagePackSerializer
-                .Serialize(new BlockInventoryOpenCloseProtocol.BlockInventoryOpenCloseProtocolMessagePack(PlayerId, pos, isOpen)).ToList();
+                .Serialize(new SubscribeInventoryProtocol.SubscribeInventoryRequestMessagePack(PlayerId, InventoryType.Block, identifier, isOpen)).ToList();
         }
         
         private List<byte> GetEventPacket()

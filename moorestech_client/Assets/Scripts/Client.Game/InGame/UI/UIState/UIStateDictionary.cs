@@ -9,7 +9,7 @@ namespace Client.Game.InGame.UI.UIState
         public UIStateDictionary(
             GameScreenState gameScreenState,
             PlayerInventoryState playerInventoryState,
-            BlockInventoryState blockInventoryState,
+            SubInventoryState subInventoryState,
             PauseMenuState pauseMenuState,
             DeleteBlockState deleteBlockState,
             SkitState skitState,
@@ -18,7 +18,7 @@ namespace Client.Game.InGame.UI.UIState
         {
             _stateDictionary.Add(UIStateEnum.GameScreen, gameScreenState);
             _stateDictionary.Add(UIStateEnum.PlayerInventory, playerInventoryState);
-            _stateDictionary.Add(UIStateEnum.BlockInventory, blockInventoryState);
+            _stateDictionary.Add(UIStateEnum.SubInventory, subInventoryState);
             _stateDictionary.Add(UIStateEnum.PauseMenu, pauseMenuState);
             _stateDictionary.Add(UIStateEnum.DeleteBar, deleteBlockState);
             _stateDictionary.Add(UIStateEnum.Story, skitState);
