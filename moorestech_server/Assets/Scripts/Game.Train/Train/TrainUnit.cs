@@ -47,7 +47,6 @@ namespace Game.Train.Train
         private const int InfiniteLoopGuardThreshold = 1_000_000;
 
         private List<TrainCar> _cars;
-        private bool _removalEventPublished;
         public RailPosition RailPosition => _railPosition;
         public IReadOnlyList<TrainCar> Cars => _cars;
         public TrainUnitStationDocking trainUnitStationDocking; // 列車の駅ドッキング用のクラス
@@ -64,7 +63,6 @@ namespace Game.Train.Train
             _railPosition = initialPosition;
             _trainId = Guid.NewGuid();
             _cars = cars;
-            AttachCarsToTrain();
             _currentSpeed = 0.0; // 仮の初期速度
             _isAutoRun = false;
             _previousEntryGuid = Guid.Empty;
@@ -740,14 +738,12 @@ namespace Game.Train.Train
             _railPosition.OnDestroy();
             trainUnitStationDocking.OnDestroy();
 
-            if (_cars != null)
+            foreach (var car in _cars)
             {
-                foreach (var car in _cars)
-                {
-                    car.Destroy();
-                }
-                _cars.Clear();
+                car.Destroy();
             }
+            _cars.Clear();
+            
             TrainUpdateService.Instance.UnregisterTrain(this);
 
             trainDiagram = null;
@@ -756,61 +752,6 @@ namespace Game.Train.Train
             _cars = null;
             _trainId = Guid.Empty;
         }
-
-        #region Internal
-
-        private void AttachCarsToTrain()
-        {
-            // 車両に所属列車を設定
-            // Attach train ownership to cars
-            if (_cars == null)
-            {
-                return;
-            }
-
-            foreach (var car in _cars)
-            {
-                car.AssignOwner(this);
-            }
-        }
-
-        internal int ResolveGlobalSlotIndex(TrainCar targetCar, int slot)
-        {
-            // 車両インベントリのグローバルスロットを算出
-            // Calculate the global slot index within this train
-            if (targetCar == null || slot < 0)
-            {
-                return -1;
-            }
-
-            var offset = 0;
-            foreach (var car in _cars)
-            {
-                if (car == targetCar)
-                {
-                    return offset + slot;
-                }
-
-                offset += car.InventorySlots;
-            }
-
-            return -1;
-        }
-
-        internal bool TryMarkRemovalNotified()
-        {
-            // 列車削除イベントの多重発火を防止
-            // Prevent duplicate train removal notifications
-            if (_removalEventPublished)
-            {
-                return false;
-            }
-
-            _removalEventPublished = true;
-            return true;
-        }
-
-        #endregion
     }
 
     [Serializable]

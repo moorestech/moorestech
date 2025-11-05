@@ -39,8 +39,8 @@ namespace Game.Train.Train
         private readonly IItemStack[] _inventoryItems;
         private readonly IItemStack[] _fuelItems;
         public bool IsFacingForward { get; private set; }
-        private TrainUnit _owner;
-        private TrainUpdateEvent _trainUpdateEvent;
+        
+        private readonly TrainUpdateEvent _trainUpdateEvent;
 
         public TrainCar(int tractionForce, int inventorySlots, int length, int fuelSlots = 0, bool isFacingForward = true)
         {
@@ -78,11 +78,6 @@ namespace Game.Train.Train
             }
         }
 
-        internal void AssignOwner(TrainUnit owner)
-        {
-            _owner = owner;
-        }
-
         //重さ、推進力を得る
         public (int,int) GetWeightAndTraction()
         {
@@ -96,9 +91,6 @@ namespace Game.Train.Train
         {
             IsFacingForward = isFacingForward;
         }
-
-
-
 
 
 
@@ -119,7 +111,7 @@ namespace Game.Train.Train
                     // 空きスロットに挿入  
                     _inventoryItems[i] = ServerContext.ItemStackFactory.Create(
                         itemStack.Id, 1, itemStack.ItemInstanceId);
-                    NotifyInventoryUpdated(i);
+                    InvokeInventoryUpdate(i);
                     return itemStack.SubItem(1);
                 }
                 else if (_inventoryItems[i].Id == itemStack.Id &&
@@ -130,7 +122,7 @@ namespace Game.Train.Train
                         MasterHolder.ItemMaster.GetItemMaster(itemStack.Id).MaxStack - _inventoryItems[i].Count);
                     _inventoryItems[i] = ServerContext.ItemStackFactory.Create(
                         itemStack.Id, _inventoryItems[i].Count + addCount, itemStack.ItemInstanceId);
-                    NotifyInventoryUpdated(i);
+                    InvokeInventoryUpdate(i);
                     return itemStack.SubItem(addCount);
                 }
             }
@@ -155,51 +147,18 @@ namespace Game.Train.Train
                 return;
 
             _inventoryItems[slot] = itemStack ?? ServerContext.ItemStackFactory.CreatEmpty();
-            NotifyInventoryUpdated(slot);
+            InvokeInventoryUpdate(slot);
         }
 
         public void Destroy()
         {
-            // 列車削除イベントを必要に応じて通知
-            // Publish train removal event when needed
-            PublishRemovalIfNeeded();
-            _owner = null;
+            _trainUpdateEvent.InvokeTrainRemoved(_carId);
         }
 
-        private void NotifyInventoryUpdated(int slot)
+        private void InvokeInventoryUpdate(int slot)
         {
-            // 対象スロットの更新をイベントへ転送
-            // Forward the slot update to event subscribers
-            if (_owner == null)
-            {
-                return;
-            }
-
-            var globalSlot = _owner.ResolveGlobalSlotIndex(this, slot);
-            if (globalSlot < 0)
-            {
-                return;
-            }
-
             var item = _inventoryItems[slot] ?? ServerContext.ItemStackFactory.CreatEmpty();
-            _trainUpdateEvent.InvokeInventoryUpdate(new TrainInventoryUpdateEventProperties(_owner.TrainId, globalSlot, item));
-        }
-
-        private void PublishRemovalIfNeeded()
-        {
-            // 列車削除イベントは一度だけ発火
-            // Ensure removal event is raised only once per train
-            if (_owner == null)
-            {
-                return;
-            }
-
-            if (!_owner.TryMarkRemovalNotified())
-            {
-                return;
-            }
-            
-            _trainUpdateEvent.InvokeTrainRemoved(_owner.TrainId);
+            _trainUpdateEvent.InvokeInventoryUpdate(new TrainInventoryUpdateEventProperties(_carId, slot, item));
         }
 
         // インベントリーサイズ取得  
