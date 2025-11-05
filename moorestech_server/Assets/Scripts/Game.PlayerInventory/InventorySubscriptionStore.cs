@@ -15,16 +15,18 @@ namespace Game.PlayerInventory
     {
         // プレイヤーIDごとのサブスクリプション情報を保持
         // Hold subscription information per player ID
-        private readonly Dictionary<int, (InventoryType type, object identifier)> _playerSubscriptions = new();
+        private readonly Dictionary<int, ISubscriptionIdentifier> _playerSubscriptions = new();
         
         // インベントリごとのサブスクライバーリストを保持
         // Hold subscriber list per inventory
         private readonly Dictionary<(InventoryType, string), HashSet<int>> _inventorySubscribers = new();
         
         
-        public List<int> GetSubscribers(InventoryType type, object identifier)
+        public List<int> GetSubscribers(ISubscriptionIdentifier identifier)
         {
-            var key = CreateKey(type, identifier);
+            // サブスクリプションキーを生成
+            // Generate subscription key
+            var key = CreateKey(identifier);
             if (_inventorySubscribers.TryGetValue(key, out var subscribers))
             {
                 return subscribers.ToList();
@@ -32,7 +34,7 @@ namespace Game.PlayerInventory
             return new List<int>();
         }
         
-        public void Subscribe(int playerId, InventoryType type, object identifier)
+        public void Subscribe(int playerId, ISubscriptionIdentifier identifier)
         {
             // 既存のサブスクリプションがある場合は解除
             // Unsubscribe existing subscription if any
@@ -43,9 +45,11 @@ namespace Game.PlayerInventory
             
             // 新しいサブスクリプションを登録
             // Register new subscription
-            _playerSubscriptions[playerId] = (type, identifier);
+            _playerSubscriptions[playerId] = identifier;
             
-            var key = CreateKey(type, identifier);
+            // 登録対象インベントリのキーを生成
+            // Generate key for target inventory
+            var key = CreateKey(identifier);
             if (!_inventorySubscribers.ContainsKey(key))
             {
                 _inventorySubscribers[key] = new HashSet<int>();
@@ -60,9 +64,9 @@ namespace Game.PlayerInventory
                 return;
             }
             
-            // サブスクライバーリストから削除
-            // Remove from subscriber list
-            var key = CreateKey(subscription.type, subscription.identifier);
+            // サブスクライバーリストから削除するためのキーを再計算
+            // Recalculate key to remove from subscriber list
+            var key = CreateKey(subscription);
             if (_inventorySubscribers.TryGetValue(key, out var subscribers))
             {
                 subscribers.Remove(playerId);
@@ -77,7 +81,7 @@ namespace Game.PlayerInventory
             _playerSubscriptions.Remove(playerId);
         }
         
-        public (InventoryType type, object identifier)? GetCurrentSubscription(int playerId)
+        public ISubscriptionIdentifier GetCurrentSubscription(int playerId)
         {
             if (_playerSubscriptions.TryGetValue(playerId, out var subscription))
             {
@@ -93,19 +97,24 @@ namespace Game.PlayerInventory
         /// インベントリを識別するキーを生成
         /// Generate key to identify inventory
         /// </summary>
-        private (InventoryType, string) CreateKey(InventoryType type, object identifier)
+        private (InventoryType, string) CreateKey(ISubscriptionIdentifier identifier)
         {
-            string identifierStr = type switch
+            // 識別子を具体型に変換
+            // Cast identifier to concrete type
+            if (identifier is BlockInventorySubscriptionIdentifier blockIdentifier)
             {
-                InventoryType.Block when identifier is Vector3Int blockPos => $"{blockPos.x},{blockPos.y},{blockPos.z}",
-                InventoryType.Train when identifier is Guid trainId => trainId.ToString(),
-                _ => throw new ArgumentException($"Invalid identifier type for InventoryType {type}")
-            };
+                var position = blockIdentifier.Position;
+                return (identifier.Type, $"{position.x},{position.y},{position.z}");
+            }
+
+            if (identifier is TrainInventorySubscriptionIdentifier trainIdentifier)
+            {
+                return (identifier.Type, trainIdentifier.TrainId.ToString());
+            }
             
-            return (type, identifierStr);
+            throw new ArgumentException($"Invalid identifier type for InventoryType {identifier.Type}");
         }
         
         #endregion
     }
 }
-

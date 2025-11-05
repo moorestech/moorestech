@@ -13,13 +13,13 @@ namespace Game.PlayerInventory.Interface
         /// 指定したインベントリをサブスクライブしているプレイヤーIDのリストを取得
         /// Get list of player IDs subscribing to the specified inventory
         /// </summary>
-        List<int> GetSubscribers(InventoryType type, object identifier);
+        List<int> GetSubscribers(ISubscriptionIdentifier identifier);
         
         /// <summary>
         /// プレイヤーがインベントリをサブスクライブ
         /// Player subscribes to inventory
         /// </summary>
-        void Subscribe(int playerId, InventoryType type, object identifier);
+        void Subscribe(int playerId, ISubscriptionIdentifier identifier);
         
         /// <summary>
         /// プレイヤーのサブスクリプションを解除
@@ -31,7 +31,6 @@ namespace Game.PlayerInventory.Interface
         /// プレイヤーが現在サブスクライブしているインベントリ情報を取得
         /// Get currently subscribed inventory information for player
         /// </summary>
-        (InventoryType type, object identifier)? GetCurrentSubscription(int playerId);
+        ISubscriptionIdentifier GetCurrentSubscription(int playerId);
     }
 }
-
