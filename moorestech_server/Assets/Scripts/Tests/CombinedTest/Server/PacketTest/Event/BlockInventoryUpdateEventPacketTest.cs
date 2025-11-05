@@ -163,7 +163,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         {
             var identifier = InventoryIdentifierMessagePack.CreateBlockMessage(pos);
             return MessagePackSerializer
-                .Serialize(new SubscribeInventoryProtocol.SubscribeInventoryRequestMessagePack(PlayerId, InventoryType.Block, identifier, isOpen)).ToList();
+                .Serialize(new SubscribeInventoryProtocol.SubscribeInventoryRequestMessagePack(PlayerId, identifier, isOpen)).ToList();
         }
         
         private List<byte> GetEventPacket()

@@ -26,18 +26,6 @@ namespace Client.Game.InGame.UI.Inventory.Block
         /// </summary>
         protected readonly List<ItemSlotView> SubInventorySlotObjectsInternal = new();
         
-        /// <summary>
-        /// ジェネリック版の初期化（ISubInventoryViewインターフェース実装）
-        /// Generic initialization (ISubInventoryView interface implementation)
-        /// </summary>
-        public void Initialize(object context)
-        {
-            if (context is BlockGameObject blockGameObject)
-            {
-                Initialize(blockGameObject);
-            }
-        }
-        
         public virtual void Initialize(BlockGameObject blockGameObject)
         {
             ItemMoveInventoryInfo = new ItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory, blockGameObject.BlockPosInfo.OriginalPos);

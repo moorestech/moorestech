@@ -1,14 +1,16 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using Client.Common.Asset;
-using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Block;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.KeyControl;
+using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Input;
+using Core.Item.Interface;
 using Cysharp.Threading.Tasks;
 using Game.Context;
 using MessagePack;
@@ -25,20 +27,17 @@ namespace Client.Game.InGame.UI.UIState.State
     /// </summary>
     public class SubInventoryState : IUIState
     {
-        private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
         private readonly PlayerInventoryViewController _playerInventoryViewController;
         
-        private IInventorySource _currentSource;
+        private ISubInventorySource _subInventorySource;
+        
         private ISubInventoryView _currentView;
         private CancellationTokenSource _loadInventoryCts;
-        private IDisposable _inventoryRemovedSubscription;
-        private IDisposable _blockRemovedSubscription;
         private bool _shouldClose = false;
         
         
-        public SubInventoryState(BlockGameObjectDataStore blockGameObjectDataStore, PlayerInventoryViewController playerInventoryViewController)
+        public SubInventoryState(PlayerInventoryViewController playerInventoryViewController)
         {
-            _blockGameObjectDataStore = blockGameObjectDataStore;
             _playerInventoryViewController = playerInventoryViewController;
             
             // 統一インベントリ更新イベントを購読
@@ -46,28 +45,22 @@ namespace Client.Game.InGame.UI.UIState.State
             ClientContext.VanillaApi.Event.SubscribeEventResponse(UnifiedInventoryEventPacket.EventTag, OnUnifiedInventoryEvent);
         }
         
-        /// <summary>
-        /// インベントリソースを設定してステートを開く
-        /// Set inventory source and open state
-        /// </summary>
-        public void SetInventorySource(IInventorySource source)
-        {
-            _currentSource = source;
-        }
-        
         private void OnUnifiedInventoryEvent(byte[] payload)
         {
-            if (_currentView == null || _currentSource == null) return;
+            if (_currentView == null) return;
             
             var packet = MessagePackSerializer.Deserialize<UnifiedInventoryEventMessagePack>(payload);
             
             if (packet.EventType == InventoryEventType.Update)
             {
+                // アイテムを更新
                 var item = ServerContext.ItemStackFactory.Create(packet.Item.Id, packet.Item.Count);
                 _currentView.UpdateInventorySlot(packet.Slot, item);
             }
             else if (packet.EventType == InventoryEventType.Remove)
             {
+                // 開いているインベントリが削除された場合は閉じる
+                // Close if the opened inventory is removed
                 _shouldClose = true;
             }
         }
@@ -86,12 +79,17 @@ namespace Client.Game.InGame.UI.UIState.State
         {
             _shouldClose = false;
             
-            if (_currentSource == null)
+            // サブインベントリソースを取得
+            // Get sub inventory source
+            _subInventorySource = context.GetContext<ISubInventorySource>();
+            if (_subInventorySource == null)
             {
-                Debug.LogError("SubInventoryState: インベントリソースが設定されていません");
+                Debug.LogError("SubInventoryState: サブインベントリソースが指定されていません");
                 return;
             }
             
+            // サブインベントリを生成し、データを取得、表示する
+            // Create sub inventory, fetch data, and display
             LoadInventory().Forget();
             KeyControlDescription.Instance.SetText("Esc: インベントリを閉じる");
             
@@ -99,36 +97,15 @@ namespace Client.Game.InGame.UI.UIState.State
             
             async UniTask LoadInventory()
             {
-                // インベントリの読み込みをキャンセルするためのトークンソースを生成
-                // Generate cancellation token source for inventory loading
                 _loadInventoryCts = new CancellationTokenSource();
+                var ct = _loadInventoryCts.Token;
                 
-                // Addressableパスを取得してUIをロード
-                // Get Addressable path and load UI
-                var path = _currentSource.GetAddressablePath();
-                if (string.IsNullOrEmpty(path))
-                {
-                    Debug.LogError("SubInventoryState: Addressableパスが空です");
-                    return;
-                }
-                
-                using var loadedInventory = await AddressableLoader.LoadAsync<GameObject>(path);
+                // UI Prefabをロード
+                // Load UI Prefab
+                using var loadedInventory = await AddressableLoader.LoadAsync<GameObject>(_subInventorySource.UIPrefabAddressablePath, ct);
                 if (loadedInventory == null)
                 {
-                    Debug.LogError($"SubInventoryState: インベントリビューのロードに失敗しました Path:{path}");
-                    return;
-                }
-                
-                // キャンセルチェック
-                // Check cancellation
-                if (_loadInventoryCts.IsCancellationRequested) return;
-                
-                // ビューコンポーネントを取得
-                // Get view component
-                var viewType = _currentSource.GetViewType();
-                if (!loadedInventory.Asset.TryGetComponent(viewType, out var viewComponent))
-                {
-                    Debug.LogError($"SubInventoryState: ビューコンポーネントが見つかりません Type:{viewType.Name} Path:{path}");
+                    Debug.LogError($"SubInventoryState: インベントリビューのロードに失敗しました Path:{_subInventorySource.UIPrefabAddressablePath}");
                     return;
                 }
                 
@@ -141,66 +118,20 @@ namespace Client.Game.InGame.UI.UIState.State
                 var instantiatedView = ClientContext.DIContainer.Instantiate(loadedInventory.Asset, _playerInventoryViewController.SubInventoryParent);
                 _currentView = instantiatedView.GetComponent<ISubInventoryView>();
                 
-                // ビューを初期化（型安全な初期化メソッドを呼び出す）
-                // Initialize view (call type-safe initialization method)
-                InitializeView();
+                // ビューを初期化
+                // Initialize view
+                _subInventorySource.ExecuteInitialize(_currentView);
                 
                 _playerInventoryViewController.SetActive(true);
                 _playerInventoryViewController.SetSubInventory(_currentView);
                 
-                // キャンセルチェック
-                // Check cancellation
-                if (_loadInventoryCts.IsCancellationRequested) return;
+                // インベントリの更新を購読
+                // Subscribe to inventory updates
+                ClientContext.VanillaApi.SendOnly.SubscribeInventory(_subInventorySource.InventoryIdentifier, true);
                 
-                // サーバーにサブスクライブ
-                // Subscribe to server
-                var inventoryType = _currentSource.GetInventoryType();
-                var identifier = _currentSource.GetIdentifier();
-                ClientContext.VanillaApi.SendOnly.SubscribeInventory(inventoryType, identifier, true);
-                
-                // インベントリデータを取得
+                // TODO インベントリデータを取得
                 // Fetch inventory data
-                var response = await _currentSource.FetchInventoryData(_loadInventoryCts.Token);
-                if (_loadInventoryCts.IsCancellationRequested) return;
-                
-                _currentView?.UpdateItemList(response);
-                
-                // ブロックインベントリの場合、ブロック削除イベントを購読
-                // For block inventory, subscribe to block removal event
-                if (inventoryType == InventoryType.Block && identifier.BlockPosition != null)
-                {
-                    var blockPos = identifier.BlockPosition.Vector3Int;
-                    _blockRemovedSubscription = _blockGameObjectDataStore.OnBlockRemoved
-                        .Subscribe(removedPos =>
-                        {
-                            if (removedPos == blockPos) _shouldClose = true;
-                        });
-                }
-            }
-            
-            void InitializeView()
-            {
-                // ブロックインベントリの場合
-                // For block inventory
-                if (_currentView is IBlockInventoryView blockView && _currentSource is BlockInventorySource blockSource)
-                {
-                    if (BlockClickDetectUtil.TryGetCursorOnBlockPosition(out var blockPos))
-                    {
-                        if (_blockGameObjectDataStore.TryGetBlockGameObject(blockPos, out var blockGameObject))
-                        {
-                            blockView.Initialize(blockGameObject);
-                        }
-                    }
-                }
-                // 列車インベントリの場合
-                // For train inventory
-                else if (_currentView is Client.Game.InGame.UI.Inventory.Train.ITrainInventoryView trainView && _currentSource is TrainInventorySource)
-                {
-                    if (BlockClickDetectUtil.TryGetCursorOnComponent(out Client.Game.InGame.Entity.Object.TrainEntityObject trainEntity))
-                    {
-                        trainView.Initialize(trainEntity);
-                    }
-                }
+                _currentView.UpdateItemList(new List<IItemStack>());
             }
             
             #endregion
@@ -213,22 +144,12 @@ namespace Client.Game.InGame.UI.UIState.State
             _loadInventoryCts?.Cancel();
             _loadInventoryCts?.Dispose();
             
-            // イベント購読解除
-            // Unsubscribe events
-            _inventoryRemovedSubscription?.Dispose();
-            _blockRemovedSubscription?.Dispose();
+            // インベントリ更新の購読を解除
+            // Unsubscribe from inventory updates
+            ClientContext.VanillaApi.SendOnly.SubscribeInventory(_subInventorySource.InventoryIdentifier, false);
             
-            // サーバーにアンサブスクライブ
-            // Unsubscribe from server
-            if (_currentSource != null)
-            {
-                var inventoryType = _currentSource.GetInventoryType();
-                var identifier = _currentSource.GetIdentifier();
-                ClientContext.VanillaApi.SendOnly.SubscribeInventory(inventoryType, identifier, false);
-            }
-            
-            // サブインベントリを空にする
-            // Set sub inventory to empty
+            // サブインベントリ登録を解除
+            // Unregister sub inventory
             _playerInventoryViewController.SetSubInventory(new EmptySubInventory());
             
             // インベントリを閉じる
@@ -236,7 +157,7 @@ namespace Client.Game.InGame.UI.UIState.State
             _playerInventoryViewController.SetActive(false);
             _currentView?.DestroyUI();
             _currentView = null;
-            _currentSource = null;
+            _subInventorySource = null;
         }
     }
 }

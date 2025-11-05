@@ -19,11 +19,6 @@ namespace Client.Game.InGame.UI.Inventory
         /// </summary>
         InventoryType GetInventoryType();
         
-        /// <summary>
-        /// インベントリ識別子を取得（Block: Vector3Int, Train: Guid）
-        /// Get inventory identifier (Block: Vector3Int, Train: Guid)
-        /// </summary>
-        InventoryIdentifierMessagePack GetIdentifier();
         
         /// <summary>
         /// 使用するビューのタイプを取得

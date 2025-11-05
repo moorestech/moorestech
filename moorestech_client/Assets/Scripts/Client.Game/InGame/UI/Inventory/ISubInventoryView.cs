@@ -10,12 +10,6 @@ namespace Client.Game.InGame.UI.Inventory
     public interface ISubInventoryView : ISubInventory
     {
         /// <summary>
-        /// ビューを初期化（ジェネリック版）
-        /// Initialize view (generic version)
-        /// </summary>
-        void Initialize(object context);
-        
-        /// <summary>
         /// アイテムリストを一括更新
         /// Batch update item list
         /// </summary>

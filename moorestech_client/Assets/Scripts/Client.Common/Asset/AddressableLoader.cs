@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -35,14 +36,14 @@ namespace Client.Common.Asset
         }
         
         
-        public static async UniTask<LoadedAsset<T>> LoadAsync<T>(string address) where T : UnityEngine.Object
+        public static async UniTask<LoadedAsset<T>> LoadAsync<T>(string address, CancellationToken ct = default) where T : UnityEngine.Object
         {
             if (string.IsNullOrEmpty(address)) return null;
             
             var handle = Addressables.LoadAssetAsync<T>(address);
             try
             {
-                await handle.ToUniTask();
+                await handle.ToUniTask(cancellationToken: ct);
             }
             catch (Exception e)
             {
@@ -53,9 +54,9 @@ namespace Client.Common.Asset
             return handle.Status == AsyncOperationStatus.Succeeded ? new LoadedAsset<T>(handle.Result) : null;
         }
         
-        public static async UniTask<T> LoadAsyncDefault<T>(string address) where T : UnityEngine.Object
+        public static async UniTask<T> LoadAsyncDefault<T>(string address, CancellationToken ct = default) where T : UnityEngine.Object
         {
-            var loadedAsset = await LoadAsync<T>(address);
+            var loadedAsset = await LoadAsync<T>(address, ct);
             return loadedAsset?.Asset;
         }
     }
