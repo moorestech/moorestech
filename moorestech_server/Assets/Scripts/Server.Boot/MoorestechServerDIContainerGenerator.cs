@@ -111,7 +111,7 @@ namespace Server.Boot
             services.AddSingleton<EventProtocolProvider, EventProtocolProvider>();
             services.AddSingleton<IWorldSettingsDatastore, WorldSettingsDatastore>();
             services.AddSingleton<IPlayerInventoryDataStore, PlayerInventoryDataStore>();
-            services.AddSingleton<IBlockInventoryOpenStateDataStore, BlockInventoryOpenStateDataStore>();
+            services.AddSingleton<IInventorySubscriptionStore, InventorySubscriptionStore>();
             services.AddSingleton<IWorldEnergySegmentDatastore<EnergySegment>, WorldEnergySegmentDatastore<EnergySegment>>();
             services.AddSingleton<MaxElectricPoleMachineConnectionRange, MaxElectricPoleMachineConnectionRange>();
             services.AddSingleton<IEntitiesDatastore, EntitiesDatastore>();
@@ -148,7 +148,7 @@ namespace Server.Boot
             //イベントレシーバーを登録
             services.AddSingleton<ChangeBlockStateEventPacket>();
             services.AddSingleton<MainInventoryUpdateEventPacket>();
-            services.AddSingleton<OpenableBlockInventoryUpdateEventPacket>();
+            services.AddSingleton<UnifiedInventoryEventPacket>();
             services.AddSingleton<GrabInventoryUpdateEventPacket>();
             services.AddSingleton<PlaceBlockEventPacket>();
             services.AddSingleton<RemoveBlockToSetEventPacket>();
@@ -171,7 +171,7 @@ namespace Server.Boot
             //イベントレシーバーをインスタンス化する
             //TODO この辺を解決するDIコンテナを探す VContinerのRegisterEntryPoint的な
             serviceProvider.GetService<MainInventoryUpdateEventPacket>();
-            serviceProvider.GetService<OpenableBlockInventoryUpdateEventPacket>();
+            serviceProvider.GetService<UnifiedInventoryEventPacket>();
             serviceProvider.GetService<GrabInventoryUpdateEventPacket>();
             serviceProvider.GetService<PlaceBlockEventPacket>();
             serviceProvider.GetService<RemoveBlockToSetEventPacket>();

@@ -6,7 +6,8 @@
     "Core.Inventory",
     "Game.Context",
     "Game.Block.Interface",
-    "Core.Master"
+    "Core.Master",
+    "Server.Util"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

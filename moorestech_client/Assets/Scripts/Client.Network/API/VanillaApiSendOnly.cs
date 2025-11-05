@@ -25,11 +25,6 @@ namespace Client.Network.API
             _playerId = playerConnectionSetting.PlayerId;
         }
         
-        public void SetOpenCloseBlock(Vector3Int pos, bool isOpen)
-        {
-            var request = new BlockInventoryOpenCloseProtocol.BlockInventoryOpenCloseProtocolMessagePack(_playerId, pos, isOpen);
-            _packetSender.Send(request);
-        }
         
         public void ItemMove(int count, ItemMoveType itemMoveType, ItemMoveInventoryInfo fromInv, int fromSlot, ItemMoveInventoryInfo toInv, int toSlot)
         {
@@ -138,9 +133,14 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
         
-        public void SetOpenCloseTrain(Guid trainId, bool isOpen)
+        /// <summary>
+        /// インベントリをサブスクライブ/アンサブスクライブ
+        /// Subscribe/Unsubscribe inventory
+        /// </summary>
+        public void SubscribeInventory(Server.Util.MessagePack.InventoryType type, Server.Util.MessagePack.InventoryIdentifierMessagePack identifier, bool isSubscribe)
         {
-            // TODO 実装
+            var request = new Server.Protocol.PacketResponse.SubscribeInventoryProtocol.SubscribeInventoryRequestMessagePack(_playerId, type, identifier, isSubscribe);
+            _packetSender.Send(request);
         }
     }
 }

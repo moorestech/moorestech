@@ -10,7 +10,8 @@
     "Game.Block.Interface",
     "Game.Context",
     "Game.Block",
-    "Core.Master"
+    "Core.Master",
+    "Server.Util"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
