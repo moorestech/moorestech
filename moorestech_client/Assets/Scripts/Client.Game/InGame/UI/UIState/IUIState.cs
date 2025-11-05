@@ -6,4 +6,14 @@
         public UIStateEnum GetNextUpdate();
         public void OnExit();
     }
+    
+    public struct UITransitContext
+    {
+        public UIStateEnum LastStateEnum;
+        
+        public T GetContext<T>()
+        {
+            // TODO コンテキストコンテナを作る必要がある
+        }
+    }
 }
