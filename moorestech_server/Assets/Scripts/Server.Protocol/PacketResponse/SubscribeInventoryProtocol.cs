@@ -31,7 +31,7 @@ namespace Server.Protocol.PacketResponse
             
             // サブスクライブまたはアンサブスクライブを実行
             // Execute subscribe or unsubscribe
-            var identifier = ConvertIdentifier(data.Type, data.Identifier);
+            var identifier = ConvertIdentifier(data.Identifier);
             if (data.IsSubscribe)
             {
                 _inventorySubscriptionStore.Subscribe(data.PlayerId, identifier);
@@ -45,13 +45,13 @@ namespace Server.Protocol.PacketResponse
             
             #region Internal
             
-            ISubscriptionIdentifier ConvertIdentifier(InventoryType type, InventoryIdentifierMessagePack identifier)
+            ISubscriptionIdentifier ConvertIdentifier(InventoryIdentifierMessagePack id)
             {
-                return type switch
+                return id.InventoryType switch
                 {
-                    InventoryType.Block => new BlockInventorySubscriptionIdentifier(identifier.BlockPosition.Vector3Int),
-                    InventoryType.Train => new TrainInventorySubscriptionIdentifier(Guid.Parse(identifier.TrainId)),
-                    _ => throw new ArgumentException($"Unknown InventoryType: {type}")
+                    InventoryType.Block => new BlockInventorySubscriptionIdentifier(id.BlockPosition.Vector3Int),
+                    InventoryType.Train => new TrainInventorySubscriptionIdentifier(Guid.Parse(id.TrainId)),
+                    _ => throw new ArgumentException($"Unknown InventoryType: {id.InventoryType}")
                 };
             }
             
