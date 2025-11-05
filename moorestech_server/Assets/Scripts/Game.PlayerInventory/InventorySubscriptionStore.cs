@@ -59,51 +59,24 @@ namespace Game.PlayerInventory
         
         public void Unsubscribe(int playerId, ISubscriptionIdentifier identifier)
         {
-            // プレイヤーのサブスクリプションリストを取得
-            // Get player's subscription list
-            if (!_playerSubscriptions.TryGetValue(playerId, out var subscriptions))
-            {
-                return;
-            }
+            if (!_playerSubscriptions.TryGetValue(playerId, out var subscriptions)) return;
 
             // 指定されたサブスクリプションを削除
             // Remove the specified subscription
-            if (!subscriptions.Remove(identifier))
-            {
-                return;
-            }
+            if (!subscriptions.Remove(identifier)) return;
 
             // サブスクライバーリストから削除するためのキーを計算
             // Calculate key to remove from subscriber list
             var key = CreateKey(identifier);
-            if (_inventorySubscribers.TryGetValue(key, out var subscribers))
+            if (!_inventorySubscribers.TryGetValue(key, out var subscribers)) return;
+            
+            subscribers.Remove(playerId);
+            if (subscribers.Count == 0)
             {
-                subscribers.Remove(playerId);
-                if (subscribers.Count == 0)
-                {
-                    _inventorySubscribers.Remove(key);
-                }
-            }
-
-            // プレイヤーのサブスクリプションリストが空になったら削除
-            // Remove player's subscription list if empty
-            if (subscriptions.Count == 0)
-            {
-                _playerSubscriptions.Remove(playerId);
+                _inventorySubscribers.Remove(key);
             }
         }
         
-        public IReadOnlyCollection<ISubscriptionIdentifier> GetCurrentSubscriptions(int playerId)
-        {
-            if (_playerSubscriptions.TryGetValue(playerId, out var subscriptions))
-            {
-                return subscriptions;
-            }
-            return Array.Empty<ISubscriptionIdentifier>();
-        }
-        
-        
-        #region Internal
         
         /// <summary>
         /// インベントリを識別するキーを生成
@@ -126,7 +99,5 @@ namespace Game.PlayerInventory
             
             throw new ArgumentException($"Invalid identifier type for InventoryType {identifier.Type}");
         }
-        
-        #endregion
     }
 }
