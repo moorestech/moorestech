@@ -2,8 +2,10 @@ using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
+using Game.Context.Event;
 using Game.Train.Common;
 using Game.Train.RailGraph;
+using Game.Train.Train;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Boot;
@@ -111,6 +113,13 @@ namespace Tests.Util
             var (block, component) = PlaceBlockWithComponent<RailComponent>(environment, ForUnitTestModBlockId.TestTrainRail, position, direction);
             railBlock = block;
             return component;
+        }
+
+        public static TrainCar CreateTrainCar(TrainTestEnvironment environment, int tractionForce, int inventorySlots, int length, int fuelSlots, bool isFacingForward)
+        {
+            var updateEvent = environment.ServiceProvider.GetService<ITrainInventoryUpdateEvent>();
+            var removedEvent = environment.ServiceProvider.GetService<ITrainRemovedEvent>();
+            return new TrainCar(tractionForce, inventorySlots, length, fuelSlots, isFacingForward, updateEvent, removedEvent);
         }
     }
 }

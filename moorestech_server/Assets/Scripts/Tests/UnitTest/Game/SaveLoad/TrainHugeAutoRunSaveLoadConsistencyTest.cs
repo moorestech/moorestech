@@ -241,7 +241,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
                 var cars = new List<TrainCar>
                 {
-                    new TrainCar(tractionForce: 600000, inventorySlots: 0, length: length)
+                    TrainTestHelper.CreateTrainCar(environment, 600000, 0, length, 0, true)
                 };
 
                 var train = new TrainUnit(railPosition, cars);

@@ -33,7 +33,7 @@ namespace Client.Game.InGame.UI.Inventory
         
         public InventoryIdentifierMessagePack GetIdentifier()
         {
-            return new InventoryIdentifierMessagePack(_blockPosition);
+            return InventoryIdentifierMessagePack.CreateBlockMessage(_blockPosition);
         }
         
         public Type GetViewType()
@@ -52,4 +52,3 @@ namespace Client.Game.InGame.UI.Inventory
         }
     }
 }
-

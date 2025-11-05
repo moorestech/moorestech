@@ -1,5 +1,6 @@
 using System;
 using Core.Item.Interface;
+using UniRx;
 
 namespace Game.Context.Event
 {
@@ -9,7 +10,9 @@ namespace Game.Context.Event
     /// </summary>
     public interface ITrainInventoryUpdateEvent
     {
-        void Subscribe(Action<TrainInventoryUpdateEventProperties> trainInventoryEvent);
+        IObservable<TrainInventoryUpdateEventProperties> OnUpdate { get; }
+        IDisposable Subscribe(Action<TrainInventoryUpdateEventProperties> handler);
+        void Publish(TrainInventoryUpdateEventProperties properties);
     }
     
     /// <summary>
@@ -18,7 +21,9 @@ namespace Game.Context.Event
     /// </summary>
     public interface ITrainRemovedEvent
     {
-        void Subscribe(Action<Guid> onRemoved);
+        IObservable<Guid> OnRemoved { get; }
+        IDisposable Subscribe(Action<Guid> handler);
+        void Publish(Guid trainId);
     }
     
     /// <summary>
@@ -45,16 +50,17 @@ namespace Game.Context.Event
     /// </summary>
     public class TrainInventoryUpdateEvent : ITrainInventoryUpdateEvent
     {
-        public event Action<TrainInventoryUpdateEventProperties> OnTrainInventoryUpdate;
+        private readonly Subject<TrainInventoryUpdateEventProperties> _subject = new();
+        public IObservable<TrainInventoryUpdateEventProperties> OnUpdate => _subject;
         
-        public void Subscribe(Action<TrainInventoryUpdateEventProperties> trainInventoryEvent)
+        public IDisposable Subscribe(Action<TrainInventoryUpdateEventProperties> handler)
         {
-            OnTrainInventoryUpdate += trainInventoryEvent;
+            return _subject.Subscribe(handler);
         }
         
-        public void OnInventoryUpdateInvoke(TrainInventoryUpdateEventProperties properties)
+        public void Publish(TrainInventoryUpdateEventProperties properties)
         {
-            OnTrainInventoryUpdate?.Invoke(properties);
+            _subject.OnNext(properties);
         }
     }
     
@@ -64,16 +70,17 @@ namespace Game.Context.Event
     /// </summary>
     public class TrainRemovedEvent : ITrainRemovedEvent
     {
-        public event Action<Guid> OnTrainRemoved;
+        private readonly Subject<Guid> _subject = new();
+        public IObservable<Guid> OnRemoved => _subject;
         
-        public void Subscribe(Action<Guid> onRemoved)
+        public IDisposable Subscribe(Action<Guid> handler)
         {
-            OnTrainRemoved += onRemoved;
+            return _subject.Subscribe(handler);
         }
         
-        public void OnTrainRemovedInvoke(Guid trainId)
+        public void Publish(Guid trainId)
         {
-            OnTrainRemoved?.Invoke(trainId);
+            _subject.OnNext(trainId);
         }
     }
 }

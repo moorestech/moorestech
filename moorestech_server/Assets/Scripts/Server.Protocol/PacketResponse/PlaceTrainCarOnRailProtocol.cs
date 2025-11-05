@@ -10,6 +10,7 @@ using Game.PlayerInventory.Interface;
 using Game.Train.Common;
 using Game.Train.RailGraph;
 using Game.Train.Train;
+using Game.Context.Event;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Mooresmaster.Model.TrainModule;
@@ -24,10 +25,14 @@ namespace Server.Protocol.PacketResponse
         public const string ProtocolTag = "va:placeTrainCar";
 
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
+        private readonly ITrainInventoryUpdateEvent _trainInventoryUpdateEvent;
+        private readonly ITrainRemovedEvent _trainRemovedEvent;
 
         public PlaceTrainCarOnRailProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
+            _trainInventoryUpdateEvent = serviceProvider.GetService<ITrainInventoryUpdateEvent>();
+            _trainRemovedEvent = serviceProvider.GetService<ITrainRemovedEvent>();
         }
 
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
@@ -69,11 +74,13 @@ namespace Server.Protocol.PacketResponse
                 // TrainCarElementからTrainCarオブジェクトを生成
                 // Create TrainCar objects from TrainCarElement data
                 var trainCars = new TrainCar(
-                    tractionForce: trainUnitElement.TractionForce,
-                    inventorySlots: trainUnitElement.InventorySlots,
-                    length: trainUnitElement.Length,
-                    fuelSlots: trainUnitElement.FuelSlots,
-                    isFacingForward: trainUnitElement.IsFacingForward
+                    trainUnitElement.TractionForce,
+                    trainUnitElement.InventorySlots,
+                    trainUnitElement.Length,
+                    trainUnitElement.FuelSlots,
+                    trainUnitElement.IsFacingForward,
+                    _trainInventoryUpdateEvent,
+                    _trainRemovedEvent
                 );
                 
                 // レール位置を初期化 - 接続されたノードの経路を構築

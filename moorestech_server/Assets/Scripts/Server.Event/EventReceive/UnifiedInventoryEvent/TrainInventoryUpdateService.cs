@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
-using Game.Context;
-using Game.PlayerInventory.Interface;
 using Game.Context.Event;
+using Game.PlayerInventory.Interface;
 using MessagePack;
 
 namespace Server.Event.EventReceive.UnifiedInventoryEvent
@@ -16,13 +15,17 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
         private readonly EventProtocolProvider _eventProtocolProvider;
         private readonly IInventorySubscriptionStore _inventorySubscriptionStore;
         
-        public TrainInventoryUpdateService(EventProtocolProvider eventProtocolProvider, IInventorySubscriptionStore inventorySubscriptionStore)
+        public TrainInventoryUpdateService(
+            EventProtocolProvider eventProtocolProvider,
+            IInventorySubscriptionStore inventorySubscriptionStore,
+            ITrainInventoryUpdateEvent trainInventoryUpdateEvent,
+            ITrainRemovedEvent trainRemovedEvent)
         {
             _eventProtocolProvider = eventProtocolProvider;
             _inventorySubscriptionStore = inventorySubscriptionStore;
             
-            ServerContext.TrainInventoryUpdateEvent.Subscribe(OnTrainInventoryUpdate);
-            ServerContext.TrainRemovedEvent.Subscribe(OnTrainRemoved);
+            trainInventoryUpdateEvent.Subscribe(OnTrainInventoryUpdate);
+            trainRemovedEvent.Subscribe(OnTrainRemoved);
         }
         
         private void OnTrainInventoryUpdate(TrainInventoryUpdateEventProperties properties)
