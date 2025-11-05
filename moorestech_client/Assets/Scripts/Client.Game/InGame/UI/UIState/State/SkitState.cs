@@ -4,7 +4,7 @@ using Client.Game.InGame.UI.KeyControl;
 using Client.Game.Skit;
 using Client.Input;
 
-namespace Client.Game.InGame.UI.UIState
+namespace Client.Game.InGame.UI.UIState.State
 {
     public class SkitState : IUIState
     {

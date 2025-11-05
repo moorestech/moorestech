@@ -11,7 +11,7 @@ using Client.Input;
 using UniRx;
 using UnityEngine;
 
-namespace Client.Game.InGame.UI.UIState
+namespace Client.Game.InGame.UI.UIState.State
 {
     public class PlaceBlockState : IUIState
     {

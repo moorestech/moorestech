@@ -12,13 +12,12 @@ using Client.Input;
 using Cysharp.Threading.Tasks;
 using Game.Context;
 using MessagePack;
-using Server.Event.EventReceive;
 using Server.Event.EventReceive.UnifiedInventoryEvent;
 using Server.Util.MessagePack;
 using UniRx;
 using UnityEngine;
 
-namespace Client.Game.InGame.UI.UIState
+namespace Client.Game.InGame.UI.UIState.State
 {
     /// <summary>
     /// 統一サブインベントリUIステート（ブロックと列車のインベントリを統一管理）

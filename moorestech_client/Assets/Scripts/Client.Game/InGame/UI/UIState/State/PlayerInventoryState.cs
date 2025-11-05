@@ -8,9 +8,8 @@ using Client.Game.InGame.UI.KeyControl;
 using Client.Input;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
-using Game.PlayerInventory.Interface;
 
-namespace Client.Game.InGame.UI.UIState
+namespace Client.Game.InGame.UI.UIState.State
 {
     public class PlayerInventoryState : IUIState
     {
