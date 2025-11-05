@@ -33,11 +33,13 @@ namespace Client.Game.InGame.UI.UIState
             _subInventoryState = subInventoryState;
         }
         
-        public UIStateEnum GetNextUpdate()
+        public UITransitContext GetNextUpdate()
         {
-            if (InputManager.UI.OpenInventory.GetKeyDown) return UIStateEnum.PlayerInventory;
-            if (InputManager.UI.OpenMenu.GetKeyDown) return UIStateEnum.PauseMenu;
-            
+            if (InputManager.UI.OpenInventory.GetKeyDown)
+                return new UITransitContext(UIStateEnum.PlayerInventory);
+            if (InputManager.UI.OpenMenu.GetKeyDown)
+                return new UITransitContext(UIStateEnum.PauseMenu);
+
             // ブロックインベントリのクリック判定
             // Block inventory click detection
             if (BlockClickDetect.IsClickOpenableBlock())
@@ -47,10 +49,10 @@ namespace Client.Game.InGame.UI.UIState
                 {
                     var blockSource = new BlockInventorySource(blockPos, blockGameObject);
                     _subInventoryState.SetInventorySource(blockSource);
-                    return UIStateEnum.SubInventory;
+                    return new UITransitContext(UIStateEnum.SubInventory);
                 }
             }
-            
+
             // 列車インベントリのクリック判定（将来の実装用）
             // Train inventory click detection (for future implementation)
             if (BlockClickDetect.TryGetCursorOnComponent(out TrainEntityObject trainEntity))
@@ -59,23 +61,27 @@ namespace Client.Game.InGame.UI.UIState
                 // TODO: Handle train click
                 // var trainSource = new TrainInventorySource(trainEntity.TrainId, trainEntity);
                 // _subInventoryState.SetInventorySource(trainSource);
-                // return UIStateEnum.SubInventory;
+                // return new UITransitContext(UIStateEnum.SubInventory);
             }
-            
-            if (InputManager.UI.BlockDelete.GetKeyDown) return UIStateEnum.DeleteBar;
-            if (_skitManager.IsPlayingSkit) return UIStateEnum.Story;
+
+            if (InputManager.UI.BlockDelete.GetKeyDown)
+                return new UITransitContext(UIStateEnum.DeleteBar);
+            if (_skitManager.IsPlayingSkit)
+                return new UITransitContext(UIStateEnum.Story);
             //TODO InputSystemのリファクタ対象
-            if (UnityEngine.Input.GetKeyDown(KeyCode.B)) return UIStateEnum.PlaceBlock;
-            if (UnityEngine.Input.GetKeyDown(KeyCode.T)) return UIStateEnum.ChallengeList;
-            
-            return UIStateEnum.Current;
+            if (UnityEngine.Input.GetKeyDown(KeyCode.B))
+                return new UITransitContext(UIStateEnum.PlaceBlock);
+            if (UnityEngine.Input.GetKeyDown(KeyCode.T))
+                return new UITransitContext(UIStateEnum.ChallengeList);
+
+            return new UITransitContext(UIStateEnum.Current);
         }
-        
-        public void OnEnter(UIStateEnum lastStateEnum)
+
+        public void OnEnter(UITransitContext context)
         {
             InputManager.MouseCursorVisible(false);
             _inGameCameraController.SetControllable(true);
-            
+
             KeyControlDescription.Instance.SetText("Tab: インベントリ\n1~9: アイテム持ち替え\nB: ブロック配置\nG:ブロック削除\nT: チャレンジ一覧\n");
         }
         

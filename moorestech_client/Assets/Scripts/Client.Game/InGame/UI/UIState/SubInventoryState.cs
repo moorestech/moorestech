@@ -73,17 +73,17 @@ namespace Client.Game.InGame.UI.UIState
             }
         }
         
-        public UIStateEnum GetNextUpdate()
+        public UITransitContext GetNextUpdate()
         {
             if (_shouldClose || InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.OpenInventory.GetKeyDown)
             {
-                return UIStateEnum.GameScreen;
+                return new UITransitContext(UIStateEnum.GameScreen);
             }
-            
-            return UIStateEnum.Current;
+
+            return new UITransitContext(UIStateEnum.Current);
         }
-        
-        public void OnEnter(UIStateEnum lastStateEnum)
+
+        public void OnEnter(UITransitContext context)
         {
             _shouldClose = false;
             

@@ -24,27 +24,31 @@ namespace Client.Game.InGame.UI.UIState
             deleteBarObject.gameObject.SetActive(false);
         }
         
-        public void OnEnter(UIStateEnum lastStateEnum)
+        public void OnEnter(UITransitContext context)
         {
             _screenClickableCameraController.OnEnter(false);
             _deleteBarObject.gameObject.SetActive(true);
             KeyControlDescription.Instance.SetText("左クリック: ブロックを削除\nECS: 破壊モード終了\nB: 設置モード\nTab: インベントリ");
         }
-        
-        public UIStateEnum GetNextUpdate()
+
+        public UITransitContext GetNextUpdate()
         {
-            if (InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.BlockDelete.GetKeyDown) return UIStateEnum.GameScreen;
-            if (UnityEngine.Input.GetKeyDown(KeyCode.B)) return UIStateEnum.PlaceBlock;
-            
-            if (InputManager.UI.OpenInventory.GetKeyDown) return UIStateEnum.PlayerInventory;
-            if (InputManager.UI.OpenMenu.GetKeyDown) return UIStateEnum.PauseMenu;
-            
+            if (InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.BlockDelete.GetKeyDown)
+                return new UITransitContext(UIStateEnum.GameScreen);
+            if (UnityEngine.Input.GetKeyDown(KeyCode.B))
+                return new UITransitContext(UIStateEnum.PlaceBlock);
+
+            if (InputManager.UI.OpenInventory.GetKeyDown)
+                return new UITransitContext(UIStateEnum.PlayerInventory);
+            if (InputManager.UI.OpenMenu.GetKeyDown)
+                return new UITransitContext(UIStateEnum.PauseMenu);
+
             if (BlockClickDetect.TryGetCursorOnBlock(out var blockGameObject))
             {
                 if (_removeTargetBlock == null || _removeTargetBlock != blockGameObject)
                 {
                     if (_removeTargetBlock != null) _removeTargetBlock.ResetMaterial();
-                    
+
                     _removeTargetBlock = blockGameObject;
                     _removeTargetBlock.SetRemovePreviewing();
                 }
@@ -54,16 +58,16 @@ namespace Client.Game.InGame.UI.UIState
                 _removeTargetBlock.ResetMaterial();
                 _removeTargetBlock = null;
             }
-            
+
             if (InputManager.Playable.ScreenLeftClick.GetKeyDown && _removeTargetBlock != null)
             {
                 var blockPosition = _removeTargetBlock.BlockPosInfo.OriginalPos;
                 ClientContext.VanillaApi.SendOnly.BlockRemove(blockPosition);
             }
-            
+
             _screenClickableCameraController.GetNextUpdate();
-            
-            return UIStateEnum.Current;
+
+            return new UITransitContext(UIStateEnum.Current);
         }
         
         

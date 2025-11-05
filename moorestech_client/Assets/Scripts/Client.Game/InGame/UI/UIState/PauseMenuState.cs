@@ -14,14 +14,15 @@ namespace Client.Game.InGame.UI.UIState
             pauseMenu.gameObject.SetActive(false);
         }
         
-        public UIStateEnum GetNextUpdate()
+        public UITransitContext GetNextUpdate()
         {
-            if (InputManager.UI.CloseUI.GetKeyDown) return UIStateEnum.GameScreen;
-            
-            return UIStateEnum.Current;
+            if (InputManager.UI.CloseUI.GetKeyDown)
+                return new UITransitContext(UIStateEnum.GameScreen);
+
+            return new UITransitContext(UIStateEnum.Current);
         }
-        
-        public void OnEnter(UIStateEnum lastStateEnum)
+
+        public void OnEnter(UITransitContext context)
         {
             _pauseMenu.gameObject.SetActive(true);
             InputManager.MouseCursorVisible(true);
