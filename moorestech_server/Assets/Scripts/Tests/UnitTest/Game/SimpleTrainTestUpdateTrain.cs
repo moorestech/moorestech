@@ -86,7 +86,7 @@ namespace Tests.UnitTest.Game
                 // --- 4. TrainUnit を生成 ---
                 var cars = new List<TrainCar>
                 {
-                    TrainTestHelper.CreateTrainCar(env, 600000, 0, trainLength, 0, true),  // 仮: 動力車
+                    new TrainCar(tractionForce: 600000, inventorySlots: 0, length: trainLength),  // 仮: 動力車
                 };
                 var trainUnit = new TrainUnit(railPosition, cars);
 
@@ -148,11 +148,11 @@ namespace Tests.UnitTest.Game
             // 例：5両編成で各車両の長さは 10, 20, 5, 5, 10 (トータル 50)
             var cars = new List<TrainCar>
             {
-                TrainTestHelper.CreateTrainCar(env, 600000, 0, 80, 0, true),  // 仮: 動力車
-                TrainTestHelper.CreateTrainCar(env, 0, 10, 60, 0, true),   // 貨車
-                TrainTestHelper.CreateTrainCar(env, 0, 10, 65, 0, true),
-                TrainTestHelper.CreateTrainCar(env, 0, 10, 65, 0, true),
-                TrainTestHelper.CreateTrainCar(env, 0, 10, 60, 0, true),
+                new TrainCar(tractionForce: 600000, inventorySlots: 0, length: 80),  // 仮: 動力車
+                new TrainCar(tractionForce: 0, inventorySlots: 10, length: 60),   // 貨車
+                new TrainCar(tractionForce: 0, inventorySlots: 10, length: 65),
+                new TrainCar(tractionForce: 0, inventorySlots: 10, length: 65),
+                new TrainCar(tractionForce: 0, inventorySlots: 10, length: 60),
             };
             var railNodes = new List<RailNode> { nodeC, nodeD };
             int totalTrainLength = cars.Sum(car => car.Length);  // 10+20+5+5+10 = 50
@@ -339,8 +339,8 @@ namespace Tests.UnitTest.Game
             var destination = railComponentsData[7].FrontNode;//目的地をセット
             var cars = new List<TrainCar>
             {
-                TrainTestHelper.CreateTrainCar(env, 600000, 0, trainLength, 0, true),  // 仮: 動力車まえ
-                TrainTestHelper.CreateTrainCar(env, 600000, 0, 0, 0, false),  // 仮: 動力車うしろ
+                new TrainCar(tractionForce: 600000, inventorySlots: 0, length: trainLength),  // 仮: 動力車まえ
+                new TrainCar(tractionForce: 600000, inventorySlots: 0, length: 0,isFacingForward : false),  // 仮: 動力車うしろ
             };
             var trainUnit = new TrainUnit(railPosition, cars);
             trainUnit.trainDiagram.AddEntry(destination);
@@ -493,10 +493,10 @@ namespace Tests.UnitTest.Game
                 var railPosition = new RailPosition(nodeList2, trainLength, 5);
 
                 // --- TrainUnit を生成 ---
-            var cars = new List<TrainCar>
-            {
-                TrainTestHelper.CreateTrainCar(env, 600000, 0, trainLength, 0, true),  // 仮: 動力車
-            };
+                var cars = new List<TrainCar>
+                {
+                    new TrainCar(tractionForce: 600000, inventorySlots: 0, length: trainLength),  // 仮: 動力車
+                };
                 var trainUnit = new TrainUnit(railPosition, cars);
 
                 //進んで目的地についたら次の目的地をランダムにセット。100回繰り返し終了
@@ -572,11 +572,11 @@ namespace Tests.UnitTest.Game
             // 例：5両編成で各車両の長さは 10, 20, 5, 5, 10 (トータル 50)
             var cars = new List<TrainCar>
             {
-                TrainTestHelper.CreateTrainCar(env, 1000, 0, 10, 0, true),  // 仮: 動力車
-                TrainTestHelper.CreateTrainCar(env, 0, 10, 20, 0, true),   // 貨車
-                TrainTestHelper.CreateTrainCar(env, 0, 10, 5, 0, true),
-                TrainTestHelper.CreateTrainCar(env, 0, 10, 5, 0, true),
-                TrainTestHelper.CreateTrainCar(env, 0, 10, 10, 0, true),
+                new TrainCar(tractionForce: 1000, inventorySlots: 0, length: 10),  // 仮: 動力車
+                new TrainCar(tractionForce: 0, inventorySlots: 10, length: 20),   // 貨車
+                new TrainCar(tractionForce: 0, inventorySlots: 10, length: 5),
+                new TrainCar(tractionForce: 0, inventorySlots: 10, length: 5),
+                new TrainCar(tractionForce: 0, inventorySlots: 10, length: 10),
             };
             int totalTrainLength = cars.Sum(car => car.Length);  // 10+20+5+5+10 = 50
             // --- 3. 初期の RailPosition を用意 ---
