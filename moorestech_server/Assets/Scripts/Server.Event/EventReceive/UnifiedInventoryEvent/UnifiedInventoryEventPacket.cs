@@ -15,16 +15,8 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
     {
         public const string EventTag = "va:event:invUpdate";
         
-        private readonly EventProtocolProvider _eventProtocolProvider;
-        private readonly IInventorySubscriptionStore _inventorySubscriptionStore;
-        
-        public UnifiedInventoryEventPacket(
-            EventProtocolProvider eventProtocolProvider,
-            IInventorySubscriptionStore inventorySubscriptionStore)
+        public UnifiedInventoryEventPacket(EventProtocolProvider eventProtocolProvider, IInventorySubscriptionStore inventorySubscriptionStore)
         {
-            _eventProtocolProvider = eventProtocolProvider;
-            _inventorySubscriptionStore = inventorySubscriptionStore;
-            
             // ブロックインベントリの更新を監視
             // Monitor block inventory updates
             new BlockInventoryUpdateService(eventProtocolProvider, inventorySubscriptionStore);
