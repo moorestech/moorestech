@@ -4,7 +4,6 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.Control;
-using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState.Input;
 using Client.Game.Skit;
@@ -23,17 +22,10 @@ namespace Client.Game.InGame.UI.UIState
         private readonly InGameCameraController _inGameCameraController;
         private readonly List<IDisposable> _blockPlacedDisposable = new();
         private readonly PlaceSystemStateController _placeSystemStateController;
-        private readonly SubInventoryState _subInventoryState;
         
         private bool _isChangeCameraAngle;
         
-        public PlaceBlockState(
-            IPlacementPreviewBlockGameObjectController previewBlockController,
-            SkitManager skitManager,
-            InGameCameraController inGameCameraController,
-            BlockGameObjectDataStore blockGameObjectDataStore,
-            PlaceSystemStateController placeSystemStateController,
-            SubInventoryState subInventoryState)
+        public PlaceBlockState(IPlacementPreviewBlockGameObjectController previewBlockController, SkitManager skitManager, InGameCameraController inGameCameraController, BlockGameObjectDataStore blockGameObjectDataStore, PlaceSystemStateController placeSystemStateController)
         {
             _skitManager = skitManager;
             _inGameCameraController = inGameCameraController;
@@ -41,7 +33,6 @@ namespace Client.Game.InGame.UI.UIState
             _placeSystemStateController = placeSystemStateController;
             _previewBlockController = previewBlockController;
             _screenClickableCameraController = new ScreenClickableCameraController(inGameCameraController);
-            _subInventoryState = subInventoryState;
         }
         
         public void OnEnter(UIStateEnum lastStateEnum)
@@ -72,20 +63,6 @@ namespace Client.Game.InGame.UI.UIState
         public UIStateEnum GetNextUpdate()
         {
             if (InputManager.UI.OpenInventory.GetKeyDown) return UIStateEnum.PlayerInventory;
-            
-            // ブロックインベントリのクリック判定
-            // Block inventory click detection
-            if (BlockClickDetect.IsClickOpenableBlock(_previewBlockController))
-            {
-                if (BlockClickDetect.TryGetCursorOnBlockPosition(out var blockPos) &&
-                    _blockGameObjectDataStore.TryGetBlockGameObject(blockPos, out var blockGameObject))
-                {
-                    var blockSource = new BlockInventorySource(blockPos, blockGameObject);
-                    _subInventoryState.SetInventorySource(blockSource);
-                    return UIStateEnum.SubInventory;
-                }
-            }
-            
             if (InputManager.UI.BlockDelete.GetKeyDown) return UIStateEnum.DeleteBar;
             if (_skitManager.IsPlayingSkit) return UIStateEnum.Story;
             //TODO InputSystemのリファクタ対象

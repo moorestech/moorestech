@@ -13,6 +13,7 @@ using Cysharp.Threading.Tasks;
 using Game.Context;
 using MessagePack;
 using Server.Event.EventReceive;
+using Server.Event.EventReceive.UnifiedInventoryEvent;
 using Server.Util.MessagePack;
 using UniRx;
 using UnityEngine;
@@ -61,19 +62,13 @@ namespace Client.Game.InGame.UI.UIState
             
             var packet = MessagePackSerializer.Deserialize<UnifiedInventoryEventMessagePack>(payload);
             
-            // イベントタイプによって処理を分岐
-            // Branch processing by event type
             if (packet.EventType == InventoryEventType.Update)
             {
-                // アイテム更新イベント
-                // Item update event
                 var item = ServerContext.ItemStackFactory.Create(packet.Item.Id, packet.Item.Count);
                 _currentView.UpdateInventorySlot(packet.Slot, item);
             }
             else if (packet.EventType == InventoryEventType.Remove)
             {
-                // インベントリ削除通知
-                // Inventory removal notification
                 _shouldClose = true;
             }
         }
