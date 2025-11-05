@@ -5,7 +5,6 @@ using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Game.InGame.UI.Inventory.Common;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Inventory.RecipeViewer;
-using Client.Game.InGame.UnlockState;
 using Common.Debug;
 using Core.Master;
 using Game.UnlockState;
@@ -15,7 +14,7 @@ using UniRx;
 using UnityEngine;
 using VContainer;
 
-namespace Client.Game.InGame.UI.Inventory.Sub
+namespace Client.Game.InGame.UI.Inventory.Craft
 {
     public class ItemListView : MonoBehaviour
     {

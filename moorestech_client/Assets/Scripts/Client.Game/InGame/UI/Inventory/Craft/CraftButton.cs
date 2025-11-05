@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-namespace Client.Game.InGame.UI.Inventory.Sub
+namespace Client.Game.InGame.UI.Inventory.Craft
 {
     public class CraftButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler
     {

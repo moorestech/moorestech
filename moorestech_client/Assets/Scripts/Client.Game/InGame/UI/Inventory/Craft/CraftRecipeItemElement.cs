@@ -11,7 +11,7 @@ using UniRx;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Client.Game.InGame.UI.Inventory.Sub
+namespace Client.Game.InGame.UI.Inventory.Craft
 {
     /// <summary>
     /// クラフトレシピ一覧で表示する各レシピアイテム要素
