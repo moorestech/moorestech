@@ -13,6 +13,6 @@ namespace Game.PlayerInventory.Interface
         
         void Subscribe(int playerId, ISubscriptionIdentifier identifier);
         
-        void Unsubscribe(int playerId);
+        void Unsubscribe(int playerId, ISubscriptionIdentifier identifier);
     }
 }

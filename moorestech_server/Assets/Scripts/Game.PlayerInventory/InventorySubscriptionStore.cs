@@ -13,9 +13,9 @@ namespace Game.PlayerInventory
     /// </summary>
     public class InventorySubscriptionStore : IInventorySubscriptionStore
     {
-        // プレイヤーIDごとのサブスクリプション情報を保持
-        // Hold subscription information per player ID
-        private readonly Dictionary<int, ISubscriptionIdentifier> _playerSubscriptions = new();
+        // プレイヤーIDごとのサブスクリプション情報を保持（複数サブスクリプション対応）
+        // Hold subscription information per player ID (supports multiple subscriptions)
+        private readonly Dictionary<int, HashSet<ISubscriptionIdentifier>> _playerSubscriptions = new();
         
         // インベントリごとのサブスクライバーリストを保持
         // Hold subscriber list per inventory
@@ -36,17 +36,17 @@ namespace Game.PlayerInventory
         
         public void Subscribe(int playerId, ISubscriptionIdentifier identifier)
         {
-            // 既存のサブスクリプションがある場合は解除
-            // Unsubscribe existing subscription if any
-            if (_playerSubscriptions.ContainsKey(playerId))
+            // プレイヤーのサブスクリプションリストを取得または作成
+            // Get or create player's subscription list
+            if (!_playerSubscriptions.ContainsKey(playerId))
             {
-                Unsubscribe(playerId);
+                _playerSubscriptions[playerId] = new HashSet<ISubscriptionIdentifier>();
             }
-            
-            // 新しいサブスクリプションを登録
-            // Register new subscription
-            _playerSubscriptions[playerId] = identifier;
-            
+
+            // 新しいサブスクリプションを追加
+            // Add new subscription
+            _playerSubscriptions[playerId].Add(identifier);
+
             // 登録対象インベントリのキーを生成
             // Generate key for target inventory
             var key = CreateKey(identifier);
@@ -57,16 +57,25 @@ namespace Game.PlayerInventory
             _inventorySubscribers[key].Add(playerId);
         }
         
-        public void Unsubscribe(int playerId)
+        public void Unsubscribe(int playerId, ISubscriptionIdentifier identifier)
         {
-            if (!_playerSubscriptions.TryGetValue(playerId, out var subscription))
+            // プレイヤーのサブスクリプションリストを取得
+            // Get player's subscription list
+            if (!_playerSubscriptions.TryGetValue(playerId, out var subscriptions))
             {
                 return;
             }
-            
-            // サブスクライバーリストから削除するためのキーを再計算
-            // Recalculate key to remove from subscriber list
-            var key = CreateKey(subscription);
+
+            // 指定されたサブスクリプションを削除
+            // Remove the specified subscription
+            if (!subscriptions.Remove(identifier))
+            {
+                return;
+            }
+
+            // サブスクライバーリストから削除するためのキーを計算
+            // Calculate key to remove from subscriber list
+            var key = CreateKey(identifier);
             if (_inventorySubscribers.TryGetValue(key, out var subscribers))
             {
                 subscribers.Remove(playerId);
@@ -75,19 +84,22 @@ namespace Game.PlayerInventory
                     _inventorySubscribers.Remove(key);
                 }
             }
-            
-            // プレイヤーのサブスクリプション情報を削除
-            // Remove player's subscription information
-            _playerSubscriptions.Remove(playerId);
+
+            // プレイヤーのサブスクリプションリストが空になったら削除
+            // Remove player's subscription list if empty
+            if (subscriptions.Count == 0)
+            {
+                _playerSubscriptions.Remove(playerId);
+            }
         }
         
-        public ISubscriptionIdentifier GetCurrentSubscription(int playerId)
+        public IReadOnlyCollection<ISubscriptionIdentifier> GetCurrentSubscriptions(int playerId)
         {
-            if (_playerSubscriptions.TryGetValue(playerId, out var subscription))
+            if (_playerSubscriptions.TryGetValue(playerId, out var subscriptions))
             {
-                return subscription;
+                return subscriptions;
             }
-            return null;
+            return Array.Empty<ISubscriptionIdentifier>();
         }
         
         
