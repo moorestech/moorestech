@@ -31,6 +31,7 @@ using Game.PlayerInventory.Interface.Event;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using Game.Train.Common;
+using Game.Train.Event;
 using Game.Train.RailGraph;
 using Game.UnlockState;
 using Game.World;
@@ -47,7 +48,6 @@ using Server.Event;
 using Server.Event.EventReceive;
 using Server.Event.EventReceive.UnifiedInventoryEvent;
 using Server.Protocol;
-using Game.Context.Event;
 
 namespace Server.Boot
 {
