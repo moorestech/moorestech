@@ -36,8 +36,8 @@ namespace Client.Game.InGame.UI.UIState
 
         public UITransitContext GetNextUpdate()
         {
-            if (_skitManager.IsPlayingSkit)
-                return new UITransitContext(UIStateEnum.Current);
+            if (_skitManager.IsPlayingSkit) return null;
+            
             return new UITransitContext(UIStateEnum.GameScreen);
         }
         

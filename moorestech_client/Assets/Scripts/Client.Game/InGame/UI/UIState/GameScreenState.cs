@@ -35,10 +35,8 @@ namespace Client.Game.InGame.UI.UIState
         
         public UITransitContext GetNextUpdate()
         {
-            if (InputManager.UI.OpenInventory.GetKeyDown)
-                return new UITransitContext(UIStateEnum.PlayerInventory);
-            if (InputManager.UI.OpenMenu.GetKeyDown)
-                return new UITransitContext(UIStateEnum.PauseMenu);
+            if (InputManager.UI.OpenInventory.GetKeyDown) return new UITransitContext(UIStateEnum.PlayerInventory);
+            if (InputManager.UI.OpenMenu.GetKeyDown) return new UITransitContext(UIStateEnum.PauseMenu);
 
             // ブロックインベントリのクリック判定
             // Block inventory click detection
@@ -64,17 +62,13 @@ namespace Client.Game.InGame.UI.UIState
                 // return new UITransitContext(UIStateEnum.SubInventory);
             }
 
-            if (InputManager.UI.BlockDelete.GetKeyDown)
-                return new UITransitContext(UIStateEnum.DeleteBar);
-            if (_skitManager.IsPlayingSkit)
-                return new UITransitContext(UIStateEnum.Story);
+            if (InputManager.UI.BlockDelete.GetKeyDown) return new UITransitContext(UIStateEnum.DeleteBar);
+            if (_skitManager.IsPlayingSkit) return new UITransitContext(UIStateEnum.Story);
             //TODO InputSystemのリファクタ対象
-            if (UnityEngine.Input.GetKeyDown(KeyCode.B))
-                return new UITransitContext(UIStateEnum.PlaceBlock);
-            if (UnityEngine.Input.GetKeyDown(KeyCode.T))
-                return new UITransitContext(UIStateEnum.ChallengeList);
-
-            return new UITransitContext(UIStateEnum.Current);
+            if (UnityEngine.Input.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.PlaceBlock);
+            if (UnityEngine.Input.GetKeyDown(KeyCode.T)) return new UITransitContext(UIStateEnum.ChallengeList);
+            
+            return null;
         }
 
         public void OnEnter(UITransitContext context)

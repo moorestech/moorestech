@@ -33,15 +33,11 @@ namespace Client.Game.InGame.UI.UIState
 
         public UITransitContext GetNextUpdate()
         {
-            if (InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.BlockDelete.GetKeyDown)
-                return new UITransitContext(UIStateEnum.GameScreen);
-            if (UnityEngine.Input.GetKeyDown(KeyCode.B))
-                return new UITransitContext(UIStateEnum.PlaceBlock);
+            if (InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.BlockDelete.GetKeyDown) return new UITransitContext(UIStateEnum.GameScreen);
+            if (UnityEngine.Input.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.PlaceBlock);
 
-            if (InputManager.UI.OpenInventory.GetKeyDown)
-                return new UITransitContext(UIStateEnum.PlayerInventory);
-            if (InputManager.UI.OpenMenu.GetKeyDown)
-                return new UITransitContext(UIStateEnum.PauseMenu);
+            if (InputManager.UI.OpenInventory.GetKeyDown) return new UITransitContext(UIStateEnum.PlayerInventory);
+            if (InputManager.UI.OpenMenu.GetKeyDown) return new UITransitContext(UIStateEnum.PauseMenu);
 
             if (BlockClickDetect.TryGetCursorOnBlock(out var blockGameObject))
             {
@@ -67,7 +63,7 @@ namespace Client.Game.InGame.UI.UIState
 
             _screenClickableCameraController.GetNextUpdate();
 
-            return new UITransitContext(UIStateEnum.Current);
+            return null;
         }
         
         

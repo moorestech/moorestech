@@ -16,10 +16,9 @@ namespace Client.Game.InGame.UI.UIState
         
         public UITransitContext GetNextUpdate()
         {
-            if (InputManager.UI.CloseUI.GetKeyDown)
-                return new UITransitContext(UIStateEnum.GameScreen);
+            if (InputManager.UI.CloseUI.GetKeyDown) return new UITransitContext(UIStateEnum.GameScreen);
 
-            return new UITransitContext(UIStateEnum.Current);
+            return null;
         }
 
         public void OnEnter(UITransitContext context)
