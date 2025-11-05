@@ -2,9 +2,9 @@ using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Context;
-using Game.Context.Event;
 using System;
 using System.Collections.Generic;
+using Game.Train.Event;
 
 
 namespace Game.Train.Train
@@ -40,7 +40,7 @@ namespace Game.Train.Train
         private readonly IItemStack[] _fuelItems;
         public bool IsFacingForward { get; private set; }
         private TrainUnit _owner;
-        private ITrainUpdateEvent _trainUpdateEvent;
+        private TrainUpdateEvent _trainUpdateEvent;
 
         public TrainCar(int tractionForce, int inventorySlots, int length, int fuelSlots = 0, bool isFacingForward = true)
         {
@@ -54,6 +54,8 @@ namespace Game.Train.Train
             }
             FuelSlots = fuelSlots;
             dockingblock = null;
+            
+            _trainUpdateEvent = (TrainUpdateEvent)ServerContext.GetService<ITrainUpdateEvent>();
 
             // インベントリー配列を初期化
             _inventoryItems = new IItemStack[inventorySlots];
@@ -180,7 +182,7 @@ namespace Game.Train.Train
             }
 
             var item = _inventoryItems[slot] ?? ServerContext.ItemStackFactory.CreatEmpty();
-            TrainUpdateEvent?.PublishInventoryUpdate(new TrainInventoryUpdateEventProperties(_owner.TrainId, globalSlot, item));
+            _trainUpdateEvent.InvokeInventoryUpdate(new TrainInventoryUpdateEventProperties(_owner.TrainId, globalSlot, item));
         }
 
         private void PublishRemovalIfNeeded()
@@ -196,16 +198,8 @@ namespace Game.Train.Train
             {
                 return;
             }
-
-            TrainUpdateEvent?.PublishTrainRemoved(_owner.TrainId);
-        }
-
-        private ITrainUpdateEvent TrainUpdateEvent
-        {
-            get
-            {
-                return _trainUpdateEvent ??= ServerContext.GetService<ITrainUpdateEvent>();
-            }
+            
+            _trainUpdateEvent.InvokeTrainRemoved(_owner.TrainId);
         }
 
         // インベントリーサイズ取得  

@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
-using Game.Context.Event;
 using Game.PlayerInventory.Interface;
+using Game.Train.Event;
 using MessagePack;
+using UniRx;
 
 namespace Server.Event.EventReceive.UnifiedInventoryEvent
 {
@@ -23,8 +24,8 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
             _eventProtocolProvider = eventProtocolProvider;
             _inventorySubscriptionStore = inventorySubscriptionStore;
             
-            trainUpdateEvent.SubscribeInventory(OnTrainInventoryUpdate);
-            trainUpdateEvent.SubscribeRemoval(OnTrainRemoved);
+            trainUpdateEvent.OnInventoryUpdated.Subscribe(OnTrainInventoryUpdate);
+            trainUpdateEvent.OnTrainRemoved.Subscribe(OnTrainRemoved);
         }
         
         private void OnTrainInventoryUpdate(TrainInventoryUpdateEventProperties properties)
@@ -42,7 +43,7 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
             
             (TrainInventorySubscriptionIdentifier identifier, List<int> playerIds) GetSubscribers()
             {
-                var id = new TrainInventorySubscriptionIdentifier(properties.TrainId);
+                var id = new TrainInventorySubscriptionIdentifier(properties.TrainCarId);
                 var players = _inventorySubscriptionStore.GetSubscribers(id);
                 return (id, players);
             }
