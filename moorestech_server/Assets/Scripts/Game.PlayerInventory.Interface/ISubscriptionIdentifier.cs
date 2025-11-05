@@ -43,25 +43,25 @@ namespace Game.PlayerInventory.Interface
     public class TrainInventorySubscriptionIdentifier : ISubscriptionIdentifier
     {
         public InventoryType Type => InventoryType.Train;
-        public Guid TrainId { get; }
+        public Guid TrainCarId { get; }
 
-        public TrainInventorySubscriptionIdentifier(Guid trainId)
+        public TrainInventorySubscriptionIdentifier(Guid trainCarId)
         {
-            TrainId = trainId;
+            TrainCarId = trainCarId;
         }
 
         public override bool Equals(object obj)
         {
             if (obj is TrainInventorySubscriptionIdentifier other)
             {
-                return TrainId.Equals(other.TrainId);
+                return TrainCarId.Equals(other.TrainCarId);
             }
             return false;
         }
 
         public override int GetHashCode()
         {
-            return TrainId.GetHashCode();
+            return TrainCarId.GetHashCode();
         }
     }
 }

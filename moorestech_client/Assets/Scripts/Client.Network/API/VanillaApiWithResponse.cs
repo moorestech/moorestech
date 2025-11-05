@@ -65,16 +65,6 @@ namespace Client.Network.API
             return response?.MapObjects;
         }
         
-        public async UniTask<List<IItemStack>> GetBlockInventory(Vector3Int blockPos, CancellationToken ct)
-        {
-            // ブロック識別子を生成しリクエストを構築
-            // Build request with block identifier
-            var identifier = InventoryIdentifierMessagePack.CreateBlockMessage(blockPos);
-            var request = new InventoryRequestProtocol.RequestInventoryRequestProtocolMessagePack(identifier);
-            var response = await _packetExchangeManager.GetPacketResponse<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(request, ct);
-            return CreateStacks(response.Items);
-        }
-        
         public async UniTask<PlayerInventoryResponse> GetMyPlayerInventory(CancellationToken ct)
         {
             return await GetPlayerInventory(_playerConnectionSetting.PlayerId, ct);
@@ -197,12 +187,8 @@ namespace Client.Network.API
             return response;
         }
         
-        
-        public async UniTask<List<IItemStack>> GetTrainInventory(Guid trainId, CancellationToken ct)
+        public async UniTask<List<IItemStack>> GetInventory(InventoryIdentifierMessagePack identifier, CancellationToken ct)
         {
-            // 列車識別子を構築しデータを要求
-            // Build train identifier and request data
-            var identifier = InventoryIdentifierMessagePack.CreateTrainMessage(trainId);
             var request = new InventoryRequestProtocol.RequestInventoryRequestProtocolMessagePack(identifier);
             var response = await _packetExchangeManager.GetPacketResponse<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(request, ct);
             return CreateStacks(response.Items);

@@ -46,7 +46,7 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
                 return true;
             }
             
-            return true;
+            return false;
         }
     }
 }

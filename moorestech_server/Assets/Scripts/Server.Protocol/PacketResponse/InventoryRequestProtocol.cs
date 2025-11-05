@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Item.Interface;
 using Game.Block.Interface.Component;
-using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.Train.Common;
 using Game.Train.Train;
@@ -49,10 +48,7 @@ namespace Server.Protocol.PacketResponse
                 var datastore = ServerContext.WorldBlockDatastore;
                 var block = datastore.GetBlock(position);
                 
-                if (block == null)
-                {
-                    return new ResponseInventoryRequestProtocolMessagePack(InventoryType.Block, identifier, Array.Empty<IItemStack>(), -1);
-                }
+                if (block == null)  return new ResponseInventoryRequestProtocolMessagePack(InventoryType.Block, identifier, Array.Empty<IItemStack>());
                 
                 // インベントリ要素を抽出
                 // Collect inventory items
@@ -60,46 +56,27 @@ namespace Server.Protocol.PacketResponse
                     ? datastore.GetBlock<IOpenableBlockInventoryComponent>(position).InventoryItems
                     : Array.Empty<IItemStack>();
                 
-                return new ResponseInventoryRequestProtocolMessagePack(InventoryType.Block, identifier, items, (int)block.BlockId);
+                return new ResponseInventoryRequestProtocolMessagePack(InventoryType.Block, identifier, items);
             }
             
             ResponseInventoryRequestProtocolMessagePack CreateTrainResponse(InventoryIdentifierMessagePack identifier)
             {
-                // 列車IDを解析
-                // Parse train identifier
-                if (!Guid.TryParse(identifier.TrainId, out var trainId))
+                var trainCarId = Guid.Parse(identifier.TrainCarId);
+                TrainCar trainCar = null;
+                foreach (var registeredTrain in TrainUpdateService.Instance.GetRegisteredTrains())
                 {
-                    return new ResponseInventoryRequestProtocolMessagePack(InventoryType.Train, identifier, Array.Empty<IItemStack>(), -1);
+                    foreach (var car in registeredTrain.Cars)
+                    {
+                        if (car.CarId != trainCarId) continue;
+                        trainCar = car;
+                        break;
+                    }
                 }
                 
-                // 登録列車から対象を検索
-                // Find target train from registered units
-                var trainUnit = FindTrain(trainId);
-                if (trainUnit == null)
-                {
-                    return new ResponseInventoryRequestProtocolMessagePack(InventoryType.Train, identifier, Array.Empty<IItemStack>(), -1);
-                }
+                if (trainCar == null) return new ResponseInventoryRequestProtocolMessagePack(InventoryType.Train, identifier, Array.Empty<IItemStack>());
                 
-                // 列車の各車両インベントリを収集
-                // Gather inventory items from all cars
-                var items = new List<IItemStack>();
-                foreach (var car in trainUnit.Cars)
-                {
-                    items.AddRange(car.EnumerateInventory().Select(slot => slot.item));
-                }
-                
-                return new ResponseInventoryRequestProtocolMessagePack(InventoryType.Train, identifier, items, -1);
-            }
-            
-            TrainUnit FindTrain(Guid trainId)
-            {
-                // 登録中の列車から一致するものを返却
-                // Return matching train from registered units
-                foreach (var train in TrainUpdateService.Instance.GetRegisteredTrains())
-                {
-                    if (train.TrainId == trainId) return train;
-                }
-                return null;
+                var items = trainCar.EnumerateInventory().Select(slot => new ItemMessagePack(slot.item)).ToArray();
+                return new ResponseInventoryRequestProtocolMessagePack(InventoryType.Train, identifier, items);
             }
             
             #endregion
@@ -128,28 +105,26 @@ namespace Server.Protocol.PacketResponse
             [Key(2)] public InventoryType InventoryType { get; set; }
             [Key(3)] public InventoryIdentifierMessagePack Identifier { get; set; }
             [Key(4)] public ItemMessagePack[] Items { get; set; }
-            [Key(5)] public int BlockId { get; set; }
             
             
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ResponseInventoryRequestProtocolMessagePack() { }
             
-            public ResponseInventoryRequestProtocolMessagePack(InventoryType inventoryType, InventoryIdentifierMessagePack identifier, IReadOnlyList<IItemStack> items, int blockId)
+            public ResponseInventoryRequestProtocolMessagePack(InventoryType inventoryType, InventoryIdentifierMessagePack identifier, IReadOnlyList<IItemStack> items)
             {
                 Tag = ProtocolTag;
                 InventoryType = inventoryType;
                 Identifier = identifier;
                 Items = items.Select(item => new ItemMessagePack(item)).ToArray();
-                BlockId = blockId;
             }
             
-            public ResponseInventoryRequestProtocolMessagePack(InventoryType inventoryType, InventoryIdentifierMessagePack identifier, IEnumerable<IItemStack> items, int blockId)
+            
+            public ResponseInventoryRequestProtocolMessagePack(InventoryType inventoryType, InventoryIdentifierMessagePack identifier, ItemMessagePack[] items)
             {
                 Tag = ProtocolTag;
                 InventoryType = inventoryType;
                 Identifier = identifier;
-                Items = items.Select(item => new ItemMessagePack(item)).ToArray();
-                BlockId = blockId;
+                Items = items;
             }
         }
     }

@@ -94,7 +94,7 @@ namespace Game.PlayerInventory
 
             if (identifier is TrainInventorySubscriptionIdentifier trainIdentifier)
             {
-                return (identifier.Type, trainIdentifier.TrainId.ToString());
+                return (identifier.Type, trainIdentifier.TrainCarId.ToString());
             }
             
             throw new ArgumentException($"Invalid identifier type for InventoryType {identifier.Type}");

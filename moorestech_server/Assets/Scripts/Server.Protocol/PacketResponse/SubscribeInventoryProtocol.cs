@@ -50,7 +50,7 @@ namespace Server.Protocol.PacketResponse
                 return id.InventoryType switch
                 {
                     InventoryType.Block => new BlockInventorySubscriptionIdentifier(id.BlockPosition.Vector3Int),
-                    InventoryType.Train => new TrainInventorySubscriptionIdentifier(Guid.Parse(id.TrainId)),
+                    InventoryType.Train => new TrainInventorySubscriptionIdentifier(Guid.Parse(id.TrainCarId)),
                     _ => throw new ArgumentException($"Unknown InventoryType: {id.InventoryType}")
                 };
             }
