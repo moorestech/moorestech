@@ -73,13 +73,29 @@ namespace Server.Protocol.PacketResponse
                     inventory = _playerInventoryDataStore.GetInventoryData(playerId).GrabInventory;
                     break;
                 case ItemMoveInventoryType.BlockInventory:
-                    // ブロックインベントリの場合はInventoryIdentifierから座標を取得
-                    // Get position from InventoryIdentifier for block inventory
+                case ItemMoveInventoryType.TrainInventory:
+                    // ブロック/列車インベントリの場合はInventoryIdentifierから情報を取得
+                    // Get information from InventoryIdentifier for block/train inventory
                     if (inventoryIdentifier == null) return null;
-                    var pos = inventoryIdentifier.BlockPosition.Vector3Int;
-                    inventory = ServerContext.WorldBlockDatastore.ExistsComponent<IOpenableBlockInventoryComponent>(pos)
-                        ? ServerContext.WorldBlockDatastore.GetBlock<IOpenableBlockInventoryComponent>(pos)
-                        : null;
+
+                    // InventoryIdentifierのタイプに応じて処理を分岐
+                    // Branch processing according to InventoryIdentifier type
+                    switch (inventoryIdentifier.InventoryType)
+                    {
+                        case Server.Util.MessagePack.InventoryType.Block:
+                            var pos = inventoryIdentifier.BlockPosition.Vector3Int;
+                            inventory = ServerContext.WorldBlockDatastore.ExistsComponent<IOpenableBlockInventoryComponent>(pos)
+                                ? ServerContext.WorldBlockDatastore.GetBlock<IOpenableBlockInventoryComponent>(pos)
+                                : null;
+                            break;
+                        case Server.Util.MessagePack.InventoryType.Train:
+                            // TODO: 列車インベントリの取得処理を実装
+                            // TODO: Implement train inventory retrieval
+                            // 現時点では列車インベントリシステムが完全には実装されていないため、nullを返す
+                            // Currently returns null as train inventory system is not fully implemented
+                            inventory = null;
+                            break;
+                    }
                     break;
             }
 
