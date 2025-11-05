@@ -30,7 +30,7 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
             _inventorySubscriptionStore = inventorySubscriptionStore;
             _worldBlockDatastore = worldBlockDatastore;
             
-            blockInventoryUpdateEvent.Subscribe(OnBlockInventoryUpdate);
+            blockInventoryUpdateEvent.OnInventoryUpdated.Subscribe(OnBlockInventoryUpdate);
             worldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(OnBlockRemove);
         }
         

@@ -6,13 +6,9 @@ namespace Game.Block.Event
 {
     public class BlockOpenableInventoryUpdateEvent : IBlockOpenableInventoryUpdateEvent
     {
-        private readonly Subject<BlockOpenableInventoryUpdateEventProperties> _subject = new();
         public IObservable<BlockOpenableInventoryUpdateEventProperties> OnInventoryUpdated => _subject;
         
-        public IDisposable Subscribe(Action<BlockOpenableInventoryUpdateEventProperties> blockInventoryEvent)
-        {
-            return _subject.Subscribe(blockInventoryEvent);
-        }
+        private readonly Subject<BlockOpenableInventoryUpdateEventProperties> _subject = new();
         
         public void OnInventoryUpdateInvoke(BlockOpenableInventoryUpdateEventProperties properties)
         {
