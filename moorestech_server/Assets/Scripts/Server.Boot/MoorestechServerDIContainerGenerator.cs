@@ -45,6 +45,7 @@ using Mod.Loader;
 using Newtonsoft.Json;
 using Server.Event;
 using Server.Event.EventReceive;
+using Server.Event.EventReceive.UnifiedInventoryEvent;
 using Server.Protocol;
 
 namespace Server.Boot

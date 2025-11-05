@@ -16,6 +16,7 @@ using Tests.Module.TestMod;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.EventProtocol;
 using System;
+using Server.Event.EventReceive.UnifiedInventoryEvent;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
 {
