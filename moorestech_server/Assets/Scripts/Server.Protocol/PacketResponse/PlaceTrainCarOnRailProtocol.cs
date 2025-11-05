@@ -10,7 +10,6 @@ using Game.PlayerInventory.Interface;
 using Game.Train.Common;
 using Game.Train.RailGraph;
 using Game.Train.Train;
-using Game.Context.Event;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Mooresmaster.Model.TrainModule;

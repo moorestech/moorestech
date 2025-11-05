@@ -1,7 +1,6 @@
 using System.Linq;
 using Core.Master;
 using Game.Context;
-using Game.Context.Event;
 using Game.Train.Train;
 using NUnit.Framework;
 using Tests.Module.TestMod;
@@ -14,11 +13,8 @@ namespace Tests.UnitTest.Game
         [Test]
         public void EnumerateInventory_ReturnsSlotIndicesAndStacks()
         {
-            TrainTestHelper.CreateEnvironment();
-
-            var trainInventoryUpdateEvent = new TrainInventoryUpdateEvent();
-            var trainRemovedEvent = new TrainRemovedEvent();
-            var trainCar = new TrainCar(0, 3, 10, 0, true, trainInventoryUpdateEvent, trainRemovedEvent);
+            var environment = TrainTestHelper.CreateEnvironment();
+            var trainCar = TrainTestHelper.CreateTrainCar(environment, 0, 3, 10, 0, true);
 
             var filledStack = ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 2);
             trainCar.SetItem(1, filledStack);
@@ -35,11 +31,8 @@ namespace Tests.UnitTest.Game
         [Test]
         public void InventoryChecksReflectEnumeratedStacks()
         {
-            TrainTestHelper.CreateEnvironment();
-
-            var trainInventoryUpdateEvent = new TrainInventoryUpdateEvent();
-            var trainRemovedEvent = new TrainRemovedEvent();
-            var trainCar = new TrainCar(0, 1, 10, 0, true, trainInventoryUpdateEvent, trainRemovedEvent);
+            var environment = TrainTestHelper.CreateEnvironment();
+            var trainCar = TrainTestHelper.CreateTrainCar(environment, 0, 1, 10, 0, true);
 
             Assert.IsTrue(trainCar.IsInventoryEmpty(), "New train car inventory should start empty.");
             Assert.IsFalse(trainCar.IsInventoryFull(), "New train car inventory should not be full.");

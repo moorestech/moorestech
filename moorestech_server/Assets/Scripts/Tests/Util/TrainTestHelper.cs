@@ -2,7 +2,6 @@ using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
-using Game.Context.Event;
 using Game.Train.Common;
 using Game.Train.RailGraph;
 using Game.Train.Train;
@@ -117,9 +116,7 @@ namespace Tests.Util
 
         public static TrainCar CreateTrainCar(TrainTestEnvironment environment, int tractionForce, int inventorySlots, int length, int fuelSlots, bool isFacingForward)
         {
-            var updateEvent = environment.ServiceProvider.GetService<ITrainInventoryUpdateEvent>();
-            var removedEvent = environment.ServiceProvider.GetService<ITrainRemovedEvent>();
-            return new TrainCar(tractionForce, inventorySlots, length, fuelSlots, isFacingForward, updateEvent, removedEvent);
+            return new TrainCar(tractionForce, inventorySlots, length, fuelSlots, isFacingForward);
         }
     }
 }
