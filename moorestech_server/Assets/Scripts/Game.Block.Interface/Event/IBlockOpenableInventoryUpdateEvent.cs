@@ -11,8 +11,6 @@ namespace Game.Block.Interface.Event
     public interface IBlockOpenableInventoryUpdateEvent
     {
         public IObservable<BlockOpenableInventoryUpdateEventProperties> OnInventoryUpdated { get; }
-        public IDisposable Subscribe(Action<BlockOpenableInventoryUpdateEventProperties> blockInventoryEvent);
-        public void OnInventoryUpdateInvoke(BlockOpenableInventoryUpdateEventProperties properties);
     }
     
     public class BlockOpenableInventoryUpdateEventProperties
