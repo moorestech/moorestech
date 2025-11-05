@@ -17,27 +17,28 @@ namespace Client.Game.InGame.UI.UIState
             _playerInventoryViewController = playerInventoryViewController;
         }
         
-        public void OnEnter(UIStateEnum lastStateEnum)
+        public void OnEnter(UITransitContext context)
         {
             // スキット中はカーソルを表示してUIを操作できるようにする
             InputManager.MouseCursorVisible(true);
-            
+
             // インベントリが開いている場合は閉じる
-            if (lastStateEnum == UIStateEnum.PlayerInventory || lastStateEnum == UIStateEnum.SubInventory)
+            if (context.LastStateEnum == UIStateEnum.PlayerInventory || context.LastStateEnum == UIStateEnum.SubInventory)
             {
                 _playerInventoryViewController.SetActive(false);
             }
-            
+
             // GameStateControllerでスキット状態に遷移（ホットバーの非表示を含む）
             GameStateController.ChangeState(GameStateType.Skit);
-            
+
             KeyControlDescription.Instance.SetText("");
         }
-        
-        public UIStateEnum GetNextUpdate()
+
+        public UITransitContext GetNextUpdate()
         {
-            if (_skitManager.IsPlayingSkit) return UIStateEnum.Current;
-            return UIStateEnum.GameScreen;
+            if (_skitManager.IsPlayingSkit)
+                return new UITransitContext(UIStateEnum.Current);
+            return new UITransitContext(UIStateEnum.GameScreen);
         }
         
         public void OnExit()

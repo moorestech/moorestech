@@ -14,18 +14,21 @@ namespace Client.Game.InGame.UI.UIState
             _challengeListView = challengeListView;
         }
         
-        public void OnEnter(UIStateEnum lastStateEnum)
+        public void OnEnter(UITransitContext context)
         {
             _challengeListView.SetActive(true);
             InputManager.MouseCursorVisible(true);
             KeyControlDescription.Instance.SetText("T: リストを閉じる");
         }
-        public UIStateEnum GetNextUpdate()
+
+        public UITransitContext GetNextUpdate()
         {
-            if (InputManager.UI.CloseUI.GetKeyDown || UnityEngine.Input.GetKeyDown(KeyCode.T)) return UIStateEnum.GameScreen; //TODO InputManagerに移す
-            if (InputManager.UI.OpenInventory.GetKeyDown) return UIStateEnum.PlayerInventory;
-            
-            return UIStateEnum.Current;
+            if (InputManager.UI.CloseUI.GetKeyDown || UnityEngine.Input.GetKeyDown(KeyCode.T))
+                return new UITransitContext(UIStateEnum.GameScreen); //TODO InputManagerに移す
+            if (InputManager.UI.OpenInventory.GetKeyDown)
+                return new UITransitContext(UIStateEnum.PlayerInventory);
+
+            return new UITransitContext(UIStateEnum.Current);
         }
         public void OnExit()
         {

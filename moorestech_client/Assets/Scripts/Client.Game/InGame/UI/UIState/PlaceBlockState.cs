@@ -35,43 +35,47 @@ namespace Client.Game.InGame.UI.UIState
             _screenClickableCameraController = new ScreenClickableCameraController(inGameCameraController);
         }
         
-        public void OnEnter(UIStateEnum lastStateEnum)
+        public void OnEnter(UITransitContext context)
         {
             //TODO InputSystemのリファクタ対象
             // シフト+Bのときはカメラの位置を変えない
             // Shift+B does not change camera position
             _isChangeCameraAngle = !UnityEngine.Input.GetKey(KeyCode.LeftShift);
             _screenClickableCameraController.OnEnter(_isChangeCameraAngle);
-            
+
             if (_isChangeCameraAngle)
             {
                 // カメラの位置を保存しておく
                 var topDown = _inGameCameraController.CreateTopDownTweenCameraInfo();
                 _inGameCameraController.StartTweenCamera(topDown);
             }
-            
+
             // ここが重くなったら近いブロックだけプレビューをオンにするなどする
             foreach (var blockGameObject in _blockGameObjectDataStore.BlockGameObjectDictionary.Values)
             {
                 blockGameObject.EnablePreviewOnlyObjects(true, true);
             }
             _blockPlacedDisposable.Add(_blockGameObjectDataStore.OnBlockPlaced.Subscribe(OnPlaceBlock));
-            
+
             KeyControlDescription.Instance.SetText("1~9: 設置ブロック選択\nQ: 設置高さ上げる\nE: ブロック高さ下げる\nB: 配置モード終了\n左クリック: ブロック配置\nG:ブロック削除");
         }
-        
-        public UIStateEnum GetNextUpdate()
+
+        public UITransitContext GetNextUpdate()
         {
-            if (InputManager.UI.OpenInventory.GetKeyDown) return UIStateEnum.PlayerInventory;
-            if (InputManager.UI.BlockDelete.GetKeyDown) return UIStateEnum.DeleteBar;
-            if (_skitManager.IsPlayingSkit) return UIStateEnum.Story;
+            if (InputManager.UI.OpenInventory.GetKeyDown)
+                return new UITransitContext(UIStateEnum.PlayerInventory);
+            if (InputManager.UI.BlockDelete.GetKeyDown)
+                return new UITransitContext(UIStateEnum.DeleteBar);
+            if (_skitManager.IsPlayingSkit)
+                return new UITransitContext(UIStateEnum.Story);
             //TODO InputSystemのリファクタ対象
-            if (InputManager.UI.CloseUI.GetKeyDown || UnityEngine.Input.GetKeyDown(KeyCode.B)) return UIStateEnum.GameScreen;
-            
+            if (InputManager.UI.CloseUI.GetKeyDown || UnityEngine.Input.GetKeyDown(KeyCode.B))
+                return new UITransitContext(UIStateEnum.GameScreen);
+
             _screenClickableCameraController.GetNextUpdate();
             _placeSystemStateController.ManualUpdate();
-            
-            return UIStateEnum.Current;
+
+            return new UITransitContext(UIStateEnum.Current);
         }
         
         private void OnPlaceBlock(BlockGameObject blockGameObject)

@@ -37,22 +37,23 @@ namespace Client.Game.InGame.UI.UIState
             _localPlayerInventoryController.SetGrabItem(handshakeResponse.Inventory.GrabItem);
         }
         
-        public UIStateEnum GetNextUpdate()
+        public UITransitContext GetNextUpdate()
         {
-            if (InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.OpenInventory.GetKeyDown) return UIStateEnum.GameScreen;
-            
-            return UIStateEnum.Current;
+            if (InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.OpenInventory.GetKeyDown)
+                return new UITransitContext(UIStateEnum.GameScreen);
+
+            return new UITransitContext(UIStateEnum.Current);
         }
-        
-        public void OnEnter(UIStateEnum lastStateEnum)
+
+        public void OnEnter(UITransitContext context)
         {
             _recipeViewerView.SetActive(true);
             _playerInventoryViewController.SetActive(true);
             _playerInventoryViewController.SetSubInventory(new EmptySubInventory());
-            
+
             _cancellationTokenSource = new CancellationTokenSource();
             UpdatePlayerInventory(_cancellationTokenSource.Token).Forget();
-            
+
             InputManager.MouseCursorVisible(true);
             KeyControlDescription.Instance.SetText("Tab/ECS: インベントリを閉じる");
         }
