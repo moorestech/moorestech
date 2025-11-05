@@ -34,7 +34,7 @@ using Client.Game.InGame.UnlockState;
 using Client.Game.InGame.World;
 using Client.Game.InGame.Train;
 using Client.Game.InGame.UI.UIState.State;
-using Client.Game.InGame.UI.UIState.Util;
+using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Game.Skit;
 using Client.Network.API;
 using Client.Skit.Skit;

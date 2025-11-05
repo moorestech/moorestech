@@ -1,10 +1,6 @@
-﻿using Client.Game.InGame.Block;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
-using Client.Game.InGame.Control;
-using Client.Game.InGame.Entity.Object;
-using Client.Game.InGame.UI.Inventory;
+﻿using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.KeyControl;
-using Client.Game.InGame.UI.UIState.Util;
+using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Game.Skit;
 using Client.Input;
 using UnityEngine;

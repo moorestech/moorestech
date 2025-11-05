@@ -11,10 +11,6 @@ namespace Client.Game.InGame.UI.Inventory.Train
     /// </summary>
     public interface ITrainInventoryView : ISubInventoryView
     {
-        /// <summary>
-        /// 列車固有の初期化（型安全版）
-        /// Train-specific initialization (type-safe version)
-        /// </summary>
-        public void Initialize(TrainEntityObject trainEntity);
+        public void Initialize(TrainCarEntityObject trainCarEntity);
     }
 }
