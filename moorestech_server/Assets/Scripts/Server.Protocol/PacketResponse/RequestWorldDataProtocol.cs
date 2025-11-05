@@ -67,10 +67,13 @@ namespace Server.Protocol.PacketResponse
             {
                 if (trainUnit == null) continue;
                 
-                // TrainEntityを生成してEntityMessagePackに変換
-                // Create TrainEntity and convert to EntityMessagePack
-                var trainEntity = new TrainEntity(new EntityInstanceId(trainUnit.TrainId.GetHashCode()), trainUnit);
-                trainEntities.Add(new EntityMessagePack(trainEntity));
+                foreach (var trainCar in trainUnit.Cars)
+                {
+                    // TrainEntityを生成してEntityMessagePackに変換
+                    // Create TrainEntity and convert to EntityMessagePack
+                    var trainEntity = new TrainEntity(new EntityInstanceId(trainCar.GetHashCode()), trainUnit, trainCar);
+                    trainEntities.Add(new EntityMessagePack(trainEntity));
+                }
             }
             
             return trainEntities;

@@ -29,7 +29,7 @@ namespace Client.Game.InGame.Entity.Factory
         {
             var state = MessagePackSerializer.Deserialize<TrainEntityStateMessagePack>(entity.EntityData);
             
-            if (MasterHolder.TrainUnitMaster.TryGetTrainUnit(state.TrainId, out var trainCarMaster)) return CreateTrainEntity(entity.Position, _defaultTrainPrefab);
+            if (MasterHolder.TrainUnitMaster.TryGetTrainUnit(state.TrainCarId, out var trainCarMaster)) return CreateTrainEntity(entity.Position, _defaultTrainPrefab);
             
             var loadedPrefab = await AddressableLoader.LoadAsyncDefault<GameObject>(trainCarMaster.AddressablePath);
             if (loadedPrefab == null) return CreateTrainEntity(entity.Position, _defaultTrainPrefab);
@@ -43,8 +43,8 @@ namespace Client.Game.InGame.Entity.Factory
             {
                 var trainObject = GameObject.Instantiate(prefab, position, Quaternion.identity, parent);
                 
-                var trainEntityObject = trainObject.AddComponent<TrainEntityObject>();
-                trainEntityObject.SetTrain(state.TrainId, trainCarMaster);
+                var trainEntityObject = trainObject.AddComponent<TrainCarEntityObject>();
+                trainEntityObject.SetTrain(state.TrainCarId, trainCarMaster);
                 return trainEntityObject;
             }
             

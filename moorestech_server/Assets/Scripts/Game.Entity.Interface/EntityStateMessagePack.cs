@@ -24,13 +24,14 @@ namespace Game.Entity.Interface
     [MessagePackObject]
     public class TrainEntityStateMessagePack
     {
-        [Key(0)] public Guid TrainId { get; set; }
+        [Key(0)] public Guid TrainCarId { get; set; }
+        [Key(1)] public Guid TrainMasterId { get; set; }
         
         public TrainEntityStateMessagePack() { }
         
-        public TrainEntityStateMessagePack(Guid trainId)
+        public TrainEntityStateMessagePack(Guid trainCarId)
         {
-            TrainId = trainId;
+            TrainCarId = trainCarId;
         }
     }
 }
