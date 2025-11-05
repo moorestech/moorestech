@@ -18,17 +18,11 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
     {
         public const string EventTag = "va:event:invUpdate";
         
-        public UnifiedInventoryEventPacket(
-            EventProtocolProvider eventProtocolProvider,
-            IInventorySubscriptionStore inventorySubscriptionStore,
-            IBlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent,
-            IWorldBlockDatastore worldBlockDatastore,
-            IWorldBlockUpdateEvent worldBlockUpdateEvent,
-            ITrainUpdateEvent trainUpdateEvent)
+        public UnifiedInventoryEventPacket(EventProtocolProvider eventProtocolProvider, IInventorySubscriptionStore inventorySubscriptionStore, ITrainUpdateEvent trainUpdateEvent)
         {
             // ブロックインベントリの更新を監視
             // Monitor block inventory updates
-            new BlockInventoryUpdateService(eventProtocolProvider, inventorySubscriptionStore, blockInventoryUpdateEvent, worldBlockDatastore, worldBlockUpdateEvent);
+            new BlockInventoryUpdateService(eventProtocolProvider, inventorySubscriptionStore);
             // 列車インベントリの更新・削除を監視
             // Monitor train inventory updates and removals
             new TrainInventoryUpdateService(eventProtocolProvider, inventorySubscriptionStore, trainUpdateEvent);

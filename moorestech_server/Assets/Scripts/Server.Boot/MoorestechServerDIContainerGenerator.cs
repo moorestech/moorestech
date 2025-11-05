@@ -90,7 +90,6 @@ namespace Server.Boot
             initializerCollection.AddSingleton<IWorldBlockDatastore, WorldBlockDatastore>();
             initializerCollection.AddSingleton<IWorldBlockUpdateEvent, WorldBlockUpdateEvent>();
             initializerCollection.AddSingleton<IBlockOpenableInventoryUpdateEvent, BlockOpenableInventoryUpdateEvent>();
-            initializerCollection.AddSingleton<ITrainUpdateEvent, TrainUpdateEvent>();
             initializerCollection.AddSingleton<GearNetworkDatastore>();
             initializerCollection.AddSingleton<RailGraphDatastore>();
             initializerCollection.AddSingleton<TrainUpdateService>();
@@ -132,14 +131,11 @@ namespace Server.Boot
             services.AddSingleton<ResearchEvent>();
             
             services.AddSingleton(initializerProvider.GetService<MapInfoJson>());
-            services.AddSingleton(initializerProvider.GetService<IWorldBlockDatastore>());
-            services.AddSingleton(initializerProvider.GetService<IWorldBlockUpdateEvent>());
-            services.AddSingleton(initializerProvider.GetService<IBlockOpenableInventoryUpdateEvent>());
-            services.AddSingleton(initializerProvider.GetService<ITrainUpdateEvent>());
             services.AddSingleton(masterJsonFileContainer);
             services.AddSingleton<ChallengeDatastore, ChallengeDatastore>();
             services.AddSingleton<ChallengeEvent, ChallengeEvent>();
             services.AddSingleton<TrainSaveLoadService, TrainSaveLoadService>();
+            services.AddSingleton<ITrainUpdateEvent, TrainUpdateEvent>();
 
             //JSONファイルのセーブシステムの読み込み
             services.AddSingleton(modResource);
