@@ -38,7 +38,8 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
             var (identifier, playerIds) = GetSubscribers(properties.BlockInstanceId);
             if (playerIds.Count == 0) return;
             
-            AddEvent(identifier, playerIds);
+            var messagePack = UnifiedInventoryEventMessagePack.CreateUpdate(identifier, properties.Slot, properties.ItemStack);
+            AddEvent(messagePack, playerIds);
         }
         
         /// <summary>
@@ -50,7 +51,8 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
             var (identifier, playerIds) = GetSubscribers(properties.Pos);
             if (playerIds.Count == 0) return;
             
-            AddEvent(identifier, playerIds);
+            var messagePack = UnifiedInventoryEventMessagePack.CreateRemove(identifier);
+            AddEvent(messagePack, playerIds);
         }
         
         
@@ -68,9 +70,8 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
         }
         
         
-        void AddEvent(BlockInventorySubscriptionIdentifier id, List<int> players)
+        void AddEvent(UnifiedInventoryEventMessagePack messagePack, List<int> players)
         {
-            var messagePack = UnifiedInventoryEventMessagePack.CreateRemove(id);
             var payload = MessagePackSerializer.Serialize(messagePack);
             
             foreach (var playerId in players)
