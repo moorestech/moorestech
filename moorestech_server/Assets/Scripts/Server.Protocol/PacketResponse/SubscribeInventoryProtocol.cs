@@ -31,14 +31,14 @@ namespace Server.Protocol.PacketResponse
             
             // サブスクライブまたはアンサブスクライブを実行
             // Execute subscribe or unsubscribe
+            var identifier = ConvertIdentifier(data.Type, data.Identifier);
             if (data.IsSubscribe)
             {
-                var identifier = ConvertIdentifier(data.Type, data.Identifier);
                 _inventorySubscriptionStore.Subscribe(data.PlayerId, identifier);
             }
             else
             {
-                _inventorySubscriptionStore.Unsubscribe(data.PlayerId);
+                _inventorySubscriptionStore.Unsubscribe(data.PlayerId, identifier);
             }
             
             return null;
