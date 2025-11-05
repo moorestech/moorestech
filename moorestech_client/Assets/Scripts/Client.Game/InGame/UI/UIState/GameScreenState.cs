@@ -40,7 +40,7 @@ namespace Client.Game.InGame.UI.UIState
             
             // ブロックインベントリのクリック判定
             // Block inventory click detection
-            if (BlockClickDetect.IsClickOpenableBlock(_previewBlockController))
+            if (BlockClickDetect.IsClickOpenableBlock())
             {
                 if (BlockClickDetect.TryGetCursorOnBlockPosition(out var blockPos) &&
                     _blockGameObjectDataStore.TryGetBlockGameObject(blockPos, out var blockGameObject))
