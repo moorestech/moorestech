@@ -4,11 +4,16 @@ using Core.Item.Interface;
 
 namespace Client.Game.InGame.UI.Inventory.Block
 {
-    public interface IBlockInventoryView : ISubInventory
+    /// <summary>
+    /// ブロックインベントリビューのインターフェース
+    /// Block inventory view interface
+    /// </summary>
+    public interface IBlockInventoryView : ISubInventoryView
     {
+        /// <summary>
+        /// ブロック固有の初期化（型安全版）
+        /// Block-specific initialization (type-safe version)
+        /// </summary>
         public void Initialize(BlockGameObject blockGameObject);
-        public void UpdateItemList(List<IItemStack> response);
-        public void UpdateInventorySlot(int slot, IItemStack item);
-        public void DestroyUI();
     }
 }
