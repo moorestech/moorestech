@@ -13,9 +13,8 @@ namespace Tests.UnitTest.Game
         [Test]
         public void EnumerateInventory_ReturnsSlotIndicesAndStacks()
         {
-            TrainTestHelper.CreateEnvironment();
-
-            var trainCar = new TrainCar(tractionForce: 0, inventorySlots: 3, length: 10);
+            var environment = TrainTestHelper.CreateEnvironment();
+            var trainCar = TrainTestHelper.CreateTrainCar(environment, 0, 3, 10, 0, true);
 
             var filledStack = ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 2);
             trainCar.SetItem(1, filledStack);
@@ -32,9 +31,8 @@ namespace Tests.UnitTest.Game
         [Test]
         public void InventoryChecksReflectEnumeratedStacks()
         {
-            TrainTestHelper.CreateEnvironment();
-
-            var trainCar = new TrainCar(tractionForce: 0, inventorySlots: 1, length: 10);
+            var environment = TrainTestHelper.CreateEnvironment();
+            var trainCar = TrainTestHelper.CreateTrainCar(environment, 0, 1, 10, 0, true);
 
             Assert.IsTrue(trainCar.IsInventoryEmpty(), "New train car inventory should start empty.");
             Assert.IsFalse(trainCar.IsInventoryFull(), "New train car inventory should not be full.");

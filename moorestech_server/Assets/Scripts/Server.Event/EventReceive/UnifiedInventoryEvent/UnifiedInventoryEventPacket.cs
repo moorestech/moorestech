@@ -1,6 +1,9 @@
 using System;
 using Core.Item.Interface;
+using Game.Block.Interface.Event;
+using Game.Context.Event;
 using Game.PlayerInventory.Interface;
+using Game.World.Interface.DataStore;
 using MessagePack;
 using Server.Util.MessagePack;
 using static Server.Util.MessagePack.InventoryIdentifierMessagePack;
@@ -15,17 +18,20 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
     {
         public const string EventTag = "va:event:invUpdate";
         
-        public UnifiedInventoryEventPacket(EventProtocolProvider eventProtocolProvider, IInventorySubscriptionStore inventorySubscriptionStore)
+        public UnifiedInventoryEventPacket(
+            EventProtocolProvider eventProtocolProvider,
+            IInventorySubscriptionStore inventorySubscriptionStore,
+            IBlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent,
+            IWorldBlockDatastore worldBlockDatastore,
+            IWorldBlockUpdateEvent worldBlockUpdateEvent,
+            ITrainUpdateEvent trainUpdateEvent)
         {
             // ブロックインベントリの更新を監視
             // Monitor block inventory updates
-            new BlockInventoryUpdateService(eventProtocolProvider, inventorySubscriptionStore);
-            
-            // TODO: 列車インベントリ更新イベントを購読
-            // TODO: Subscribe to train inventory update event
-            
-            // TODO: 列車削除イベントを購読（削除通知用）
-            // TODO: Subscribe to train deletion event (for removal notification)
+            new BlockInventoryUpdateService(eventProtocolProvider, inventorySubscriptionStore, blockInventoryUpdateEvent, worldBlockDatastore, worldBlockUpdateEvent);
+            // 列車インベントリの更新・削除を監視
+            // Monitor train inventory updates and removals
+            new TrainInventoryUpdateService(eventProtocolProvider, inventorySubscriptionStore, trainUpdateEvent);
         }
     }
     

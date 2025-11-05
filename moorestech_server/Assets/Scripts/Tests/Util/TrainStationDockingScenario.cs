@@ -137,7 +137,7 @@ namespace Tests.Util
             var trainCars = new List<TrainCar>(carCount);
             for (var i = 0; i < carCount; i++)
             {
-                trainCars.Add(new TrainCar(tractionForce: 1000, inventorySlots: 1, length: _station.SegmentLength));
+                trainCars.Add(TrainTestHelper.CreateTrainCar(_environment, 1000, 1, _station.SegmentLength, 0, true));
             }
 
             var train = CreateTrain(nodes, trainCars, 0);
@@ -171,7 +171,7 @@ namespace Tests.Util
         {
             var cars = new List<TrainCar>
             {
-                new TrainCar(tractionForce: 1000, inventorySlots: 1, length: _station.SegmentLength)
+                TrainTestHelper.CreateTrainCar(_environment, 1000, 1, _station.SegmentLength, 0, true)
             };
 
             car = cars[0];

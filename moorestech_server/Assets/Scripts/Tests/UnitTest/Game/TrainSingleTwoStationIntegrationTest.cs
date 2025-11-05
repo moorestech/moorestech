@@ -86,7 +86,7 @@ namespace Tests.UnitTest.Game
 
 
             var railPosition = new RailPosition(new List<RailNode>(initialRailNodes), stationSegmentLength, 0);
-            var trainCar = new TrainCar(tractionForce: 1000, inventorySlots: 1, length: stationSegmentLength);
+            var trainCar = TrainTestHelper.CreateTrainCar(env, 1000, 1, stationSegmentLength, 0, true);
             var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar });
 
             var loadingEntry = trainUnit.trainDiagram.AddEntry(loadingExitComponent.FrontNode);

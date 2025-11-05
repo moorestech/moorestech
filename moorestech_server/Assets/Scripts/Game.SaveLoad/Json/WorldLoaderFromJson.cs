@@ -33,7 +33,7 @@ namespace Game.SaveLoad.Json
         private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
         private readonly CraftTreeManager _craftTreeManager;
         private readonly IResearchDataStore _researchDataStore;
-        
+
         public WorldLoaderFromJson(SaveJsonFilePath saveJsonFilePath,
             IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore, 
             ChallengeDatastore challengeDatastore, IGameUnlockStateDataController gameUnlockStateDataController, CraftTreeManager craftTreeManager, MapInfoJson mapInfoJson,
@@ -41,7 +41,7 @@ namespace Game.SaveLoad.Json
         {
             _worldBlockDatastore = ServerContext.WorldBlockDatastore;
             _mapObjectDatastore = ServerContext.MapObjectDatastore;
-            
+
             _saveJsonFilePath = saveJsonFilePath;
             _inventoryDataStore = inventoryDataStore;
             _entitiesDatastore = entitiesDatastore;
