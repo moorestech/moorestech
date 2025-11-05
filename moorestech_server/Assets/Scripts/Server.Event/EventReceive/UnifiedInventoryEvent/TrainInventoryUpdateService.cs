@@ -32,66 +32,38 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
         {
             // サブスクライバーを取得
             // Get subscribers
-            var (identifier, playerIds) = GetSubscribers();
+            var (identifier, playerIds) = GetSubscribers(properties.TrainCarId);
             if (playerIds.Count == 0) return;
             
-            // サブスクライバーへインベントリ更新を送信
-            // Send inventory update to subscribers
-            AddEvent(identifier, playerIds);
-            
-            #region Internal
-            
-            (TrainInventorySubscriptionIdentifier identifier, List<int> playerIds) GetSubscribers()
-            {
-                var id = new TrainInventorySubscriptionIdentifier(properties.TrainCarId);
-                var players = _inventorySubscriptionStore.GetSubscribers(id);
-                return (id, players);
-            }
-            
-            void AddEvent(TrainInventorySubscriptionIdentifier id, List<int> players)
-            {
-                var messagePack = UnifiedInventoryEventMessagePack.CreateUpdate(id, properties.Slot, properties.ItemStack);
-                var payload = MessagePackSerializer.Serialize(messagePack);
-                foreach (var playerId in players)
-                {
-                    _eventProtocolProvider.AddEvent(playerId, UnifiedInventoryEventPacket.EventTag, payload);
-                }
-            }
-            
-            #endregion
+            var message = UnifiedInventoryEventMessagePack.CreateUpdate(identifier, properties.Slot, properties.ItemStack);
+            AddEvent(message, playerIds);
         }
         
         private void OnTrainRemoved(Guid trainId)
         {
             // サブスクライバーを取得
             // Get subscribers
-            var (identifier, playerIds) = GetSubscribers();
+            var (identifier, playerIds) = GetSubscribers(trainId);
             if (playerIds.Count == 0) return;
             
-            // サブスクライバーへ削除通知を送信
-            // Send removal notification to subscribers
-            AddEvent(identifier, playerIds);
-            
-            #region Internal
-            
-            (TrainInventorySubscriptionIdentifier identifier, List<int> playerIds) GetSubscribers()
-            {
-                var id = new TrainInventorySubscriptionIdentifier(trainId);
-                var players = _inventorySubscriptionStore.GetSubscribers(id);
-                return (id, players);
-            }
-            
-            void AddEvent(TrainInventorySubscriptionIdentifier id, List<int> players)
-            {
-                var messagePack = UnifiedInventoryEventMessagePack.CreateRemove(id);
-                var payload = MessagePackSerializer.Serialize(messagePack);
-                foreach (var playerId in players)
-                {
-                    _eventProtocolProvider.AddEvent(playerId, UnifiedInventoryEventPacket.EventTag, payload);
-                }
-            }
-            
-            #endregion
+            AddEvent(UnifiedInventoryEventMessagePack.CreateRemove(identifier), playerIds);
         }
+        
+        private (TrainInventorySubscriptionIdentifier identifier, List<int> playerIds) GetSubscribers(Guid trainId)
+        {
+            var id = new TrainInventorySubscriptionIdentifier(trainId);
+            var players = _inventorySubscriptionStore.GetSubscribers(id);
+            return (id, players);
+        }
+        
+        private void AddEvent(UnifiedInventoryEventMessagePack messagePack, List<int> players)
+        {
+            var payload = MessagePackSerializer.Serialize(messagePack);
+            foreach (var playerId in players)
+            {
+                _eventProtocolProvider.AddEvent(playerId, UnifiedInventoryEventPacket.EventTag, payload);
+            }
+        }
+        
     }
 }
