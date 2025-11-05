@@ -20,12 +20,9 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
             // ブロックインベントリの更新を監視
             // Monitor block inventory updates
             new BlockInventoryUpdateService(eventProtocolProvider, inventorySubscriptionStore);
-            
-            // TODO: 列車インベントリ更新イベントを購読
-            // TODO: Subscribe to train inventory update event
-            
-            // TODO: 列車削除イベントを購読（削除通知用）
-            // TODO: Subscribe to train deletion event (for removal notification)
+            // 列車インベントリの更新・削除を監視
+            // Monitor train inventory updates and removals
+            new TrainInventoryUpdateService(eventProtocolProvider, inventorySubscriptionStore);
         }
     }
     
@@ -38,6 +35,7 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
         [Key(3)] public InventoryIdentifierMessagePack Identifier { get; set; }
         [Key(4)] public int Slot { get; set; }
         [Key(5)] public ItemMessagePack Item { get; set; }
+        [IgnoreMember] public InventoryType InventoryType => Identifier?.InventoryType ?? InventoryType.Block;
         
         
         public UnifiedInventoryEventMessagePack() { Tag = UnifiedInventoryEventPacket.EventTag; }

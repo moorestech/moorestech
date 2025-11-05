@@ -47,6 +47,7 @@ using Server.Event;
 using Server.Event.EventReceive;
 using Server.Event.EventReceive.UnifiedInventoryEvent;
 using Server.Protocol;
+using Game.Context.Event;
 
 namespace Server.Boot
 {
@@ -89,6 +90,8 @@ namespace Server.Boot
             initializerCollection.AddSingleton<IWorldBlockDatastore, WorldBlockDatastore>();
             initializerCollection.AddSingleton<IWorldBlockUpdateEvent, WorldBlockUpdateEvent>();
             initializerCollection.AddSingleton<IBlockOpenableInventoryUpdateEvent, BlockOpenableInventoryUpdateEvent>();
+            initializerCollection.AddSingleton<ITrainInventoryUpdateEvent, TrainInventoryUpdateEvent>();
+            initializerCollection.AddSingleton<ITrainRemovedEvent, TrainRemovedEvent>();
             initializerCollection.AddSingleton<GearNetworkDatastore>();
             initializerCollection.AddSingleton<RailGraphDatastore>();
             initializerCollection.AddSingleton<TrainUpdateService>();

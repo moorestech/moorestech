@@ -4,6 +4,7 @@ using Game.Block.Interface.Event;
 using Game.Map.Interface.MapObject;
 using Game.Map.Interface.Vein;
 using Game.World.Interface.DataStore;
+using Game.Context.Event;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Game.Context
@@ -22,6 +23,8 @@ namespace Game.Context
         
         public static IWorldBlockUpdateEvent WorldBlockUpdateEvent { get; private set; }
         public static IBlockOpenableInventoryUpdateEvent BlockOpenableInventoryUpdateEvent { get; private set; }
+        public static ITrainInventoryUpdateEvent TrainInventoryUpdateEvent { get; private set; }
+        public static ITrainRemovedEvent TrainRemovedEvent { get; private set; }
         
         public static TType GetService<TType>()
         {
@@ -41,6 +44,8 @@ namespace Game.Context
             MapVeinDatastore = initializeServiceProvider.GetService<IMapVeinDatastore>();
             WorldBlockUpdateEvent = initializeServiceProvider.GetService<IWorldBlockUpdateEvent>();
             BlockOpenableInventoryUpdateEvent = initializeServiceProvider.GetService<IBlockOpenableInventoryUpdateEvent>();
+            TrainInventoryUpdateEvent = initializeServiceProvider.GetService<ITrainInventoryUpdateEvent>();
+            TrainRemovedEvent = initializeServiceProvider.GetService<ITrainRemovedEvent>();
             MapObjectDatastore = initializeServiceProvider.GetService<IMapObjectDatastore>();
         }
     }

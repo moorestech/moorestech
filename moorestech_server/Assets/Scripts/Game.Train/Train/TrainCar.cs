@@ -34,6 +34,7 @@ namespace Game.Train.Train
         private readonly IItemStack[] _inventoryItems;
         private readonly IItemStack[] _fuelItems;
         public bool IsFacingForward { get; private set; }
+        private TrainUnit _owner;
 
         public TrainCar(int tractionForce, int inventorySlots, int length, int fuelSlots = 0, bool isFacingForward = true)
         {
@@ -69,6 +70,10 @@ namespace Game.Train.Train
             }
         }
 
+        internal void AssignOwner(TrainUnit owner)
+        {
+            _owner = owner;
+        }
 
         //重さ、推進力を得る
         public (int,int) GetWeightAndTraction()
@@ -106,6 +111,9 @@ namespace Game.Train.Train
                     // 空きスロットに挿入  
                     _inventoryItems[i] = ServerContext.ItemStackFactory.Create(
                         itemStack.Id, 1, itemStack.ItemInstanceId);
+                    // 列車インベントリ更新イベントを通知
+                    // Notify train inventory update event
+                    _owner?.NotifyCarInventoryUpdated(this, i);
                     return itemStack.SubItem(1);
                 }
                 else if (_inventoryItems[i].Id == itemStack.Id &&
@@ -116,6 +124,9 @@ namespace Game.Train.Train
                         MasterHolder.ItemMaster.GetItemMaster(itemStack.Id).MaxStack - _inventoryItems[i].Count);
                     _inventoryItems[i] = ServerContext.ItemStackFactory.Create(
                         itemStack.Id, _inventoryItems[i].Count + addCount, itemStack.ItemInstanceId);
+                    // 列車インベントリ更新イベントを通知
+                    // Notify train inventory update event
+                    _owner?.NotifyCarInventoryUpdated(this, i);
                     return itemStack.SubItem(addCount);
                 }
             }
@@ -140,6 +151,9 @@ namespace Game.Train.Train
                 return;
 
             _inventoryItems[slot] = itemStack ?? ServerContext.ItemStackFactory.CreatEmpty();
+            // 列車インベントリ更新イベントを通知
+            // Notify train inventory update event
+            _owner?.NotifyCarInventoryUpdated(this, slot);
         }
 
         // インベントリーサイズ取得  
