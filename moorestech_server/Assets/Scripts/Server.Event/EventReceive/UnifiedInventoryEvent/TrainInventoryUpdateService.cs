@@ -18,14 +18,13 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
         public TrainInventoryUpdateService(
             EventProtocolProvider eventProtocolProvider,
             IInventorySubscriptionStore inventorySubscriptionStore,
-            ITrainInventoryUpdateEvent trainInventoryUpdateEvent,
-            ITrainRemovedEvent trainRemovedEvent)
+            ITrainUpdateEvent trainUpdateEvent)
         {
             _eventProtocolProvider = eventProtocolProvider;
             _inventorySubscriptionStore = inventorySubscriptionStore;
             
-            trainInventoryUpdateEvent.Subscribe(OnTrainInventoryUpdate);
-            trainRemovedEvent.Subscribe(OnTrainRemoved);
+            trainUpdateEvent.SubscribeInventory(OnTrainInventoryUpdate);
+            trainUpdateEvent.SubscribeRemoval(OnTrainRemoved);
         }
         
         private void OnTrainInventoryUpdate(TrainInventoryUpdateEventProperties properties)

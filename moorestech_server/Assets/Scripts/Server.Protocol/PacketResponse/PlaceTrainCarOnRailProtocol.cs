@@ -25,14 +25,10 @@ namespace Server.Protocol.PacketResponse
         public const string ProtocolTag = "va:placeTrainCar";
 
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
-        private readonly ITrainInventoryUpdateEvent _trainInventoryUpdateEvent;
-        private readonly ITrainRemovedEvent _trainRemovedEvent;
 
         public PlaceTrainCarOnRailProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
-            _trainInventoryUpdateEvent = serviceProvider.GetService<ITrainInventoryUpdateEvent>();
-            _trainRemovedEvent = serviceProvider.GetService<ITrainRemovedEvent>();
         }
 
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
@@ -78,9 +74,7 @@ namespace Server.Protocol.PacketResponse
                     trainUnitElement.InventorySlots,
                     trainUnitElement.Length,
                     trainUnitElement.FuelSlots,
-                    trainUnitElement.IsFacingForward,
-                    _trainInventoryUpdateEvent,
-                    _trainRemovedEvent
+                    trainUnitElement.IsFacingForward
                 );
                 
                 // レール位置を初期化 - 接続されたノードの経路を構築
