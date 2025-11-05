@@ -5,7 +5,7 @@ using Client.Game.InGame.Entity.Object;
 using Client.Input;
 using UnityEngine.EventSystems;
 
-namespace Client.Game.InGame.UI.UIState.Util
+namespace Client.Game.InGame.UI.UIState.State.SubInventory
 {
     public class GameScreenSubInventoryInteractService
     {
@@ -30,16 +30,18 @@ namespace Client.Game.InGame.UI.UIState.Util
                 blockGameObject.BlockMasterElement.IsBlockOpenable()) // ブロックが開けるタイプか確認 Check if block is openable
             {
                 var container = new UITransitContextContainer();
-                container.Set(blockGameObject);
+                var blockSubInventorySource = new BlockSubInventorySource(blockGameObject);
+                container.Set<ISubInventorySource>(blockSubInventorySource);
+                
                 uiTransitContext = new UITransitContext(UIStateEnum.SubInventory, container);
                 return true;
             }
             
-            
             if (BlockClickDetectUtil.TryGetCursorOnComponent(out TrainCarEntityObject trainEntity))
             {
                 var container = new UITransitContextContainer();
-                container.Set(trainEntity);
+                var trainSubInventorySource = new TrainSubInventorySource(trainEntity);
+                container.Set<ISubInventorySource>(trainSubInventorySource);
                 uiTransitContext = new UITransitContext(UIStateEnum.SubInventory, container);
                 return true;
             }
