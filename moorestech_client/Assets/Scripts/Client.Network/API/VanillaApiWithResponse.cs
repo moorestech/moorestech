@@ -67,19 +67,12 @@ namespace Client.Network.API
         
         public async UniTask<List<IItemStack>> GetBlockInventory(Vector3Int blockPos, CancellationToken ct)
         {
-            var request = new BlockInventoryRequestProtocol.RequestBlockInventoryRequestProtocolMessagePack(blockPos);
-            
-            var response = await _packetExchangeManager.GetPacketResponse<BlockInventoryRequestProtocol.BlockInventoryResponseProtocolMessagePack>(request, ct);
-            
-            var items = new List<IItemStack>(response.Items.Length);
-            for (var i = 0; i < response.Items.Length; i++)
-            {
-                var id = response.Items[i].Id;
-                var count = response.Items[i].Count;
-                items.Add(_itemStackFactory.Create(id, count));
-            }
-            
-            return items;
+            // ブロック識別子を生成しリクエストを構築
+            // Build request with block identifier
+            var identifier = InventoryIdentifierMessagePack.CreateBlockMessage(blockPos);
+            var request = new InventoryRequestProtocol.RequestInventoryRequestProtocolMessagePack(identifier);
+            var response = await _packetExchangeManager.GetPacketResponse<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(request, ct);
+            return CreateStacks(response.Items);
         }
         
         public async UniTask<PlayerInventoryResponse> GetMyPlayerInventory(CancellationToken ct)
@@ -207,8 +200,30 @@ namespace Client.Network.API
         
         public async UniTask<List<IItemStack>> GetTrainInventory(Guid trainId, CancellationToken ct)
         {
-            // TODO 実装
-            return new List<IItemStack>();
+            // 列車識別子を構築しデータを要求
+            // Build train identifier and request data
+            var identifier = InventoryIdentifierMessagePack.CreateTrainMessage(trainId);
+            var request = new InventoryRequestProtocol.RequestInventoryRequestProtocolMessagePack(identifier);
+            var response = await _packetExchangeManager.GetPacketResponse<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(request, ct);
+            return CreateStacks(response.Items);
         }
+        
+        #region Internal
+        
+        private List<IItemStack> CreateStacks(ItemMessagePack[] items)
+        {
+            // メッセージパックからアイテムスタックを生成
+            // Create item stacks from message pack items
+            var count = items?.Length ?? 0;
+            var stacks = new List<IItemStack>(count);
+            if (items == null) return stacks;
+            foreach (var item in items)
+            {
+                stacks.Add(_itemStackFactory.Create(item.Id, item.Count));
+            }
+            return stacks;
+        }
+        
+        #endregion
     }
 }

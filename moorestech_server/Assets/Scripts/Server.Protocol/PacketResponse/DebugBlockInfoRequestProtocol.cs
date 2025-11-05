@@ -52,7 +52,7 @@ namespace Server.Protocol.PacketResponse
             
             public RequestDebugBlockInfoRequestProtocolMessagePack(Vector3Int pos)
             {
-                Tag = BlockInventoryRequestProtocol.ProtocolTag;
+                Tag = InventoryRequestProtocol.ProtocolTag;
                 BlockPos = new Vector3IntMessagePack(pos);
             }
         }
@@ -66,7 +66,7 @@ namespace Server.Protocol.PacketResponse
             public ResponseDebugBlockInfoRequestProtocolMessagePack() { }
             public ResponseDebugBlockInfoRequestProtocolMessagePack(List<BlockDebugInfo> blockDebugInfo)
             {
-                Tag = BlockInventoryRequestProtocol.ProtocolTag;
+                Tag = InventoryRequestProtocol.ProtocolTag;
                 BlockDebugInfos = blockDebugInfo;
             }
         }
