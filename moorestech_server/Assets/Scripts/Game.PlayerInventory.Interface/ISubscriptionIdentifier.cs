@@ -17,10 +17,24 @@ namespace Game.PlayerInventory.Interface
     {
         public InventoryType Type => InventoryType.Block;
         public Vector3Int Position { get; }
-        
+
         public BlockInventorySubscriptionIdentifier(Vector3Int position)
         {
             Position = position;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is BlockInventorySubscriptionIdentifier other)
+            {
+                return Position.Equals(other.Position);
+            }
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return Position.GetHashCode();
         }
     }
 
@@ -30,10 +44,24 @@ namespace Game.PlayerInventory.Interface
     {
         public InventoryType Type => InventoryType.Train;
         public Guid TrainId { get; }
-        
+
         public TrainInventorySubscriptionIdentifier(Guid trainId)
         {
             TrainId = trainId;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is TrainInventorySubscriptionIdentifier other)
+            {
+                return TrainId.Equals(other.TrainId);
+            }
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return TrainId.GetHashCode();
         }
     }
 }
