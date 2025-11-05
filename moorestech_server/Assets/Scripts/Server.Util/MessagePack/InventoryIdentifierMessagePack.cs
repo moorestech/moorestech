@@ -4,6 +4,12 @@ using UnityEngine;
 
 namespace Server.Util.MessagePack
 {
+    public enum InventoryType : byte
+    {
+        Block,
+        Train,
+    }
+    
     /// <summary>
     /// インベントリ識別子を保持するMessagePackクラス
     /// MessagePack class that holds inventory identifier
@@ -11,43 +17,41 @@ namespace Server.Util.MessagePack
     [MessagePackObject]
     public class InventoryIdentifierMessagePack
     {
-        /// <summary>
-        /// ブロックインベントリの場合の座標（InventoryType.Blockの場合に使用）
-        /// Block position for block inventory (used when InventoryType.Block)
-        /// </summary>
-        [Key(0)] public Vector3IntMessagePack BlockPosition { get; set; }
+        [Key(0)] public InventoryType InventoryType { get; set; }
         
         /// <summary>
-        /// 列車インベントリの場合のTrainId（InventoryType.Trainの場合に使用）
-        /// TrainId for train inventory (used when InventoryType.Train)
+        /// ブロックインベントリの場合の座標
+        /// Block position for block inventor
         /// </summary>
-        [Key(1)] public string TrainId { get; set; }
+        [Key(1)] public Vector3IntMessagePack BlockPosition { get; set; }
+        
+        /// <summary>
+        /// 列車インベントリの場合のTrainId
+        /// TrainId for train inventory
+        /// </summary>
+        [Key(2)] public string TrainId { get; set; }
         
         
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public InventoryIdentifierMessagePack()
+        public InventoryIdentifierMessagePack() { }
+        
+        public static InventoryIdentifierMessagePack CreateBlockMessage(Vector3Int position)
         {
+            return new InventoryIdentifierMessagePack
+            {
+                InventoryType = InventoryType.Block,
+                BlockPosition = new Vector3IntMessagePack(position),
+            };
         }
         
-        /// <summary>
-        /// ブロックインベントリ用のコンストラクタ
-        /// Constructor for block inventory
-        /// </summary>
-        public InventoryIdentifierMessagePack(Vector3Int blockPosition)
+        public static InventoryIdentifierMessagePack CreateTrainMessage(Guid trainId)
         {
-            BlockPosition = new Vector3IntMessagePack(blockPosition);
-            TrainId = null;
+            return new InventoryIdentifierMessagePack
+            {
+                InventoryType = InventoryType.Train,
+                TrainId = trainId.ToString(),
+            };
         }
         
-        /// <summary>
-        /// 列車インベントリ用のコンストラクタ
-        /// Constructor for train inventory
-        /// </summary>
-        public InventoryIdentifierMessagePack(Guid trainId)
-        {
-            BlockPosition = null;
-            TrainId = trainId.ToString();
-        }
     }
 }
 

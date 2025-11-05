@@ -33,78 +33,30 @@ namespace Server.Protocol.PacketResponse
             // Execute subscribe or unsubscribe
             if (data.IsSubscribe)
             {
-                // インベントリが存在するかチェック
-                // Check if inventory exists
-                if (!ValidateInventoryExists(data.Type, data.Identifier))
-                {
-                    return null;
-                }
-                
-                // サブスクライブ
-                // Subscribe
                 var identifier = ConvertIdentifier(data.Type, data.Identifier);
                 _inventorySubscriptionStore.Subscribe(data.PlayerId, identifier);
             }
             else
             {
-                // アンサブスクライブ
-                // Unsubscribe
                 _inventorySubscriptionStore.Unsubscribe(data.PlayerId);
             }
             
             return null;
-        }
-        
-        
-        #region Internal
-        
-        /// <summary>
-        /// インベントリが存在するかチェック
-        /// Check if inventory exists
-        /// </summary>
-        private bool ValidateInventoryExists(InventoryType type, InventoryIdentifierMessagePack identifier)
-        {
-            return type switch
-            {
-                InventoryType.Block => ValidateBlockInventoryExists(identifier.BlockPosition),
-                InventoryType.Train => ValidateTrainInventoryExists(identifier.TrainId),
-                _ => false
-            };
-        }
-        
-        private bool ValidateBlockInventoryExists(Vector3IntMessagePack blockPos)
-        {
-            if (blockPos == null) return false;
-            return ServerContext.WorldBlockDatastore.TryGetBlock<IOpenableBlockInventoryComponent>(blockPos, out _);
-        }
-        
-        private bool ValidateTrainInventoryExists(string trainIdStr)
-        {
-            // TODO: 列車インベントリの存在チェックを実装
-            // TODO: Implement train inventory existence check
-            if (string.IsNullOrEmpty(trainIdStr)) return false;
-            if (!Guid.TryParse(trainIdStr, out var trainId)) return false;
             
-            // 現時点では常にtrueを返す（列車システムの実装に依存）
-            // For now, always return true (depends on train system implementation)
-            return true;
-        }
-        
-        /// <summary>
-        /// MessagePackの識別子を内部形式に変換
-        /// Convert MessagePack identifier to internal format
-        /// </summary>
-        private ISubscriptionIdentifier ConvertIdentifier(InventoryType type, InventoryIdentifierMessagePack identifier)
-        {
-            return type switch
+            #region Internal
+            
+            ISubscriptionIdentifier ConvertIdentifier(InventoryType type, InventoryIdentifierMessagePack identifier)
             {
-                InventoryType.Block => new BlockInventorySubscriptionIdentifier(identifier.BlockPosition.Vector3Int),
-                InventoryType.Train => new TrainInventorySubscriptionIdentifier(Guid.Parse(identifier.TrainId)),
-                _ => throw new ArgumentException($"Unknown InventoryType: {type}")
-            };
+                return type switch
+                {
+                    InventoryType.Block => new BlockInventorySubscriptionIdentifier(identifier.BlockPosition.Vector3Int),
+                    InventoryType.Train => new TrainInventorySubscriptionIdentifier(Guid.Parse(identifier.TrainId)),
+                    _ => throw new ArgumentException($"Unknown InventoryType: {type}")
+                };
+            }
+            
+            #endregion
         }
-        
-        #endregion
         
         
         [MessagePackObject]
@@ -117,9 +69,7 @@ namespace Server.Protocol.PacketResponse
             
             
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-            public SubscribeInventoryRequestMessagePack()
-            {
-            }
+            public SubscribeInventoryRequestMessagePack() { }
             
             public SubscribeInventoryRequestMessagePack(int playerId, InventoryType type, InventoryIdentifierMessagePack identifier, bool isSubscribe)
             {
