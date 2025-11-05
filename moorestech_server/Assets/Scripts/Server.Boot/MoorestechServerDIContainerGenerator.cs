@@ -132,6 +132,10 @@ namespace Server.Boot
             services.AddSingleton<ResearchEvent>();
             
             services.AddSingleton(initializerProvider.GetService<MapInfoJson>());
+            services.AddSingleton(initializerProvider.GetService<IWorldBlockDatastore>());
+            services.AddSingleton(initializerProvider.GetService<IWorldBlockUpdateEvent>());
+            services.AddSingleton(initializerProvider.GetService<IBlockOpenableInventoryUpdateEvent>());
+            services.AddSingleton(initializerProvider.GetService<ITrainUpdateEvent>());
             services.AddSingleton(masterJsonFileContainer);
             services.AddSingleton<ChallengeDatastore, ChallengeDatastore>();
             services.AddSingleton<ChallengeEvent, ChallengeEvent>();
