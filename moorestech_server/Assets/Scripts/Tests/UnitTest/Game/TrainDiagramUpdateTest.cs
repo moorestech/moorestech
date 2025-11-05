@@ -36,7 +36,7 @@ namespace Tests.UnitTest.Game
 
             var cars = new List<TrainCar>
             {
-                new TrainCar(tractionForce: 1000, inventorySlots: 0, length: 0)
+                TrainTestHelper.CreateTrainCar(env, 1000, 0, 0, 0, true)
             };
 
             var railNodes = new List<RailNode> { startNode };

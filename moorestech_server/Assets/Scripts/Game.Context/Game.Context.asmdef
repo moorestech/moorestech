@@ -9,7 +9,8 @@
     "Game.Map.Interface",
     "Game.Gear",
     "Core.Master",
-    "Game.Challenge.Interface"
+    "Game.Challenge.Interface",
+    "UniRx"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

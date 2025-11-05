@@ -69,11 +69,11 @@ namespace Server.Protocol.PacketResponse
                 // TrainCarElementからTrainCarオブジェクトを生成
                 // Create TrainCar objects from TrainCarElement data
                 var trainCars = new TrainCar(
-                    tractionForce: trainUnitElement.TractionForce,
-                    inventorySlots: trainUnitElement.InventorySlots,
-                    length: trainUnitElement.Length,
-                    fuelSlots: trainUnitElement.FuelSlots,
-                    isFacingForward: trainUnitElement.IsFacingForward
+                    trainUnitElement.TractionForce,
+                    trainUnitElement.InventorySlots,
+                    trainUnitElement.Length,
+                    trainUnitElement.FuelSlots,
+                    trainUnitElement.IsFacingForward
                 );
                 
                 // レール位置を初期化 - 接続されたノードの経路を構築
