@@ -184,7 +184,7 @@ namespace Client.Game.InGame.UI.UIState.State
                 // For block inventory
                 if (_currentView is IBlockInventoryView blockView && _currentSource is BlockInventorySource blockSource)
                 {
-                    if (BlockClickDetect.TryGetCursorOnBlockPosition(out var blockPos))
+                    if (BlockClickDetectUtil.TryGetCursorOnBlockPosition(out var blockPos))
                     {
                         if (_blockGameObjectDataStore.TryGetBlockGameObject(blockPos, out var blockGameObject))
                         {
@@ -196,7 +196,7 @@ namespace Client.Game.InGame.UI.UIState.State
                 // For train inventory
                 else if (_currentView is Client.Game.InGame.UI.Inventory.Train.ITrainInventoryView trainView && _currentSource is TrainInventorySource)
                 {
-                    if (BlockClickDetect.TryGetCursorOnComponent(out Client.Game.InGame.Entity.Object.TrainEntityObject trainEntity))
+                    if (BlockClickDetectUtil.TryGetCursorOnComponent(out Client.Game.InGame.Entity.Object.TrainEntityObject trainEntity))
                     {
                         trainView.Initialize(trainEntity);
                     }

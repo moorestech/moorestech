@@ -8,7 +8,7 @@ using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
 
 namespace Client.Game.InGame.Control
 {
-    public static class BlockClickDetect
+    public static class BlockClickDetectUtil
     {
         public static bool TryGetCursorOnBlockPosition(out Vector3Int position)
         {
@@ -20,35 +20,6 @@ namespace Client.Game.InGame.Control
             position = blockObject.BlockPosInfo.OriginalPos;
             
             return true;
-        }
-        
-        public static bool TryGetClickBlockPosition(out Vector3Int position)
-        {
-            if (InputManager.Playable.ScreenLeftClick.GetKeyDown && TryGetCursorOnBlockPosition(out position)) return true;
-            
-            position = Vector3Int.zero;
-            return false;
-        }
-        
-        public static bool TryGetClickBlock(out BlockGameObject blockObject)
-        {
-            blockObject = null;
-            // UIのクリックかどうかを判定
-            if (EventSystem.current.IsPointerOverGameObject()) return false;
-            if (InputManager.Playable.ScreenLeftClick.GetKeyDown && TryGetCursorOnBlock(out blockObject)) return true;
-            
-            blockObject = null;
-            return false;
-        }
-        
-        public static bool IsClickOpenableBlock()
-        {
-            if (TryGetClickBlock(out var block))
-            {
-                return block.BlockMasterElement.IsBlockOpenable();
-            }
-            
-            return false;
         }
         
         public static bool TryGetCursorOnBlock(out BlockGameObject blockObject)
