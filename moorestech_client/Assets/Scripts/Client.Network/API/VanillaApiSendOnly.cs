@@ -6,9 +6,11 @@ using Game.CraftChainer.CraftChain;
 using Game.CraftTree.Models;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
+using Server.Util.MessagePack;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.RailConnectionEditProtocol;
 using static Server.Protocol.PacketResponse.PlaceTrainCarOnRailProtocol;
+using static Server.Protocol.PacketResponse.SubscribeInventoryProtocol;
 
 namespace Client.Network.API
 {
@@ -137,9 +139,9 @@ namespace Client.Network.API
         /// インベントリをサブスクライブ/アンサブスクライブ
         /// Subscribe/Unsubscribe inventory
         /// </summary>
-        public void SubscribeInventory(Server.Util.MessagePack.InventoryType type, Server.Util.MessagePack.InventoryIdentifierMessagePack identifier, bool isSubscribe)
+        public void SubscribeInventory(InventoryIdentifierMessagePack identifier, bool isSubscribe)
         {
-            var request = new Server.Protocol.PacketResponse.SubscribeInventoryProtocol.SubscribeInventoryRequestMessagePack(_playerId, type, identifier, isSubscribe);
+            var request = new SubscribeInventoryRequestMessagePack(_playerId, identifier, isSubscribe);
             _packetSender.Send(request);
         }
     }

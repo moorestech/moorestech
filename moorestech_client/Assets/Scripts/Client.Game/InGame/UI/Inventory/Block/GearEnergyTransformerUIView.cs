@@ -18,18 +18,6 @@ namespace Client.Game.InGame.UI.Inventory.Block
         
         private BlockGameObject _blockGameObject;
         
-        /// <summary>
-        /// ジェネリック版の初期化（ISubInventoryViewインターフェース実装）
-        /// Generic initialization (ISubInventoryView interface implementation)
-        /// </summary>
-        public void Initialize(object context)
-        {
-            if (context is BlockGameObject blockGameObject)
-            {
-                Initialize(blockGameObject);
-            }
-        }
-        
         public void Initialize(BlockGameObject blockGameObject)
         {
             blockNameText.text = blockGameObject.BlockMasterElement.Name;

@@ -63,7 +63,6 @@ namespace Server.Protocol.PacketResponse
         public class SubscribeInventoryRequestMessagePack : ProtocolMessagePackBase
         {
             [Key(2)] public int PlayerId { get; set; }
-            [Key(3)] public InventoryType Type { get; set; }
             [Key(4)] public InventoryIdentifierMessagePack Identifier { get; set; }
             [Key(5)] public bool IsSubscribe { get; set; }
             
@@ -71,11 +70,10 @@ namespace Server.Protocol.PacketResponse
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public SubscribeInventoryRequestMessagePack() { }
             
-            public SubscribeInventoryRequestMessagePack(int playerId, InventoryType type, InventoryIdentifierMessagePack identifier, bool isSubscribe)
+            public SubscribeInventoryRequestMessagePack(int playerId, InventoryIdentifierMessagePack identifier, bool isSubscribe)
             {
                 Tag = ProtocolTag;
                 PlayerId = playerId;
-                Type = type;
                 Identifier = identifier;
                 IsSubscribe = isSubscribe;
             }
