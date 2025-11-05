@@ -2,8 +2,6 @@
 {
     public enum UIStateEnum
     {
-        Current,
-        
         GameScreen,
         PlayerInventory,
         SubInventory,  // 統一インベントリステート（ブロック・列車共通）

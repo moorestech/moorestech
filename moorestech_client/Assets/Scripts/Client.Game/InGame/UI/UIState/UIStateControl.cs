@@ -13,21 +13,21 @@ namespace Client.Game.InGame.UI.UIState
         
         private void Start()
         {
-            var initialContext = new UITransitContext(UIStateEnum.Current);
-            _uiStateDictionary.GetState(CurrentState).OnEnter(initialContext);
+            _uiStateDictionary.GetState(CurrentState).OnEnter(new UITransitContext(CurrentState));
         }
 
         //UIステート
         // UI state
         private void Update()
         {
-            //UIステートが変更されたら
-            // When UI state changes
+            // 更新チェック
+            // Check for updates
             var nextContext = _uiStateDictionary.GetState(CurrentState).GetNextUpdate();
-            if (nextContext.LastStateEnum == UIStateEnum.Current) return;
+            if (nextContext == null) return;
 
             var lastState = CurrentState;
-            CurrentState = nextContext.LastStateEnum;
+            nextContext.SetLastState(lastState);
+            CurrentState = nextContext.NextStateEnum;
 
             //現在のUIステートを終了し、次のステートを呼び出す
             // Exit current UI state and call next state

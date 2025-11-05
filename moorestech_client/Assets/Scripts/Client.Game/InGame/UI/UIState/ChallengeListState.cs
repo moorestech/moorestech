@@ -23,12 +23,11 @@ namespace Client.Game.InGame.UI.UIState
 
         public UITransitContext GetNextUpdate()
         {
-            if (InputManager.UI.CloseUI.GetKeyDown || UnityEngine.Input.GetKeyDown(KeyCode.T))
-                return new UITransitContext(UIStateEnum.GameScreen); //TODO InputManagerに移す
-            if (InputManager.UI.OpenInventory.GetKeyDown)
-                return new UITransitContext(UIStateEnum.PlayerInventory);
-
-            return new UITransitContext(UIStateEnum.Current);
+            //TODO InputManagerに移す
+            if (InputManager.UI.CloseUI.GetKeyDown || UnityEngine.Input.GetKeyDown(KeyCode.T)) return new UITransitContext(UIStateEnum.GameScreen);
+            if (InputManager.UI.OpenInventory.GetKeyDown) return new UITransitContext(UIStateEnum.PlayerInventory);
+            
+            return null;
         }
         public void OnExit()
         {

@@ -62,20 +62,16 @@ namespace Client.Game.InGame.UI.UIState
 
         public UITransitContext GetNextUpdate()
         {
-            if (InputManager.UI.OpenInventory.GetKeyDown)
-                return new UITransitContext(UIStateEnum.PlayerInventory);
-            if (InputManager.UI.BlockDelete.GetKeyDown)
-                return new UITransitContext(UIStateEnum.DeleteBar);
-            if (_skitManager.IsPlayingSkit)
-                return new UITransitContext(UIStateEnum.Story);
+            if (InputManager.UI.OpenInventory.GetKeyDown) return new UITransitContext(UIStateEnum.PlayerInventory);
+            if (InputManager.UI.BlockDelete.GetKeyDown) return new UITransitContext(UIStateEnum.DeleteBar);
+            if (_skitManager.IsPlayingSkit) return new UITransitContext(UIStateEnum.Story);
             //TODO InputSystemのリファクタ対象
-            if (InputManager.UI.CloseUI.GetKeyDown || UnityEngine.Input.GetKeyDown(KeyCode.B))
-                return new UITransitContext(UIStateEnum.GameScreen);
+            if (InputManager.UI.CloseUI.GetKeyDown || UnityEngine.Input.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.GameScreen);
 
             _screenClickableCameraController.GetNextUpdate();
             _placeSystemStateController.ManualUpdate();
-
-            return new UITransitContext(UIStateEnum.Current);
+            
+            return null;
         }
         
         private void OnPlaceBlock(BlockGameObject blockGameObject)

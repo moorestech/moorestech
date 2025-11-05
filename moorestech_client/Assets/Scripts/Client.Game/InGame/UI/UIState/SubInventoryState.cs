@@ -80,7 +80,7 @@ namespace Client.Game.InGame.UI.UIState
                 return new UITransitContext(UIStateEnum.GameScreen);
             }
 
-            return new UITransitContext(UIStateEnum.Current);
+            return null;
         }
 
         public void OnEnter(UITransitContext context)
