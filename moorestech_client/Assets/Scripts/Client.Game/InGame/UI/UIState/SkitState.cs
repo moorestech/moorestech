@@ -23,7 +23,7 @@ namespace Client.Game.InGame.UI.UIState
             InputManager.MouseCursorVisible(true);
             
             // インベントリが開いている場合は閉じる
-            if (lastStateEnum == UIStateEnum.PlayerInventory || lastStateEnum == UIStateEnum.BlockInventory)
+            if (lastStateEnum == UIStateEnum.PlayerInventory || lastStateEnum == UIStateEnum.SubInventory)
             {
                 _playerInventoryViewController.SetActive(false);
             }

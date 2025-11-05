@@ -1,6 +1,9 @@
-﻿using Client.Game.InGame.BlockSystem.PlaceSystem;
+﻿using Client.Game.InGame.Block;
+using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.Control;
+using Client.Game.InGame.Entity.Object;
+using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Game.Skit;
 using Client.Input;
@@ -13,19 +16,52 @@ namespace Client.Game.InGame.UI.UIState
         private readonly IPlacementPreviewBlockGameObjectController _previewBlockController;
         private readonly InGameCameraController _inGameCameraController;
         private readonly SkitManager _skitManager;
+        private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
+        private readonly SubInventoryState _subInventoryState;
         
-        public GameScreenState(IPlacementPreviewBlockGameObjectController previewBlockController, SkitManager skitManager, InGameCameraController inGameCameraController)
+        public GameScreenState(
+            IPlacementPreviewBlockGameObjectController previewBlockController,
+            SkitManager skitManager,
+            InGameCameraController inGameCameraController,
+            BlockGameObjectDataStore blockGameObjectDataStore,
+            SubInventoryState subInventoryState)
         {
             _previewBlockController = previewBlockController;
             _skitManager = skitManager;
             _inGameCameraController = inGameCameraController;
+            _blockGameObjectDataStore = blockGameObjectDataStore;
+            _subInventoryState = subInventoryState;
         }
         
         public UIStateEnum GetNextUpdate()
         {
             if (InputManager.UI.OpenInventory.GetKeyDown) return UIStateEnum.PlayerInventory;
             if (InputManager.UI.OpenMenu.GetKeyDown) return UIStateEnum.PauseMenu;
-            if (BlockClickDetect.IsClickOpenableBlock(_previewBlockController)) return UIStateEnum.BlockInventory;
+            
+            // ブロックインベントリのクリック判定
+            // Block inventory click detection
+            if (BlockClickDetect.IsClickOpenableBlock(_previewBlockController))
+            {
+                if (BlockClickDetect.TryGetCursorOnBlockPosition(out var blockPos) &&
+                    _blockGameObjectDataStore.TryGetBlockGameObject(blockPos, out var blockGameObject))
+                {
+                    var blockSource = new BlockInventorySource(blockPos, blockGameObject);
+                    _subInventoryState.SetInventorySource(blockSource);
+                    return UIStateEnum.SubInventory;
+                }
+            }
+            
+            // 列車インベントリのクリック判定（将来の実装用）
+            // Train inventory click detection (for future implementation)
+            if (BlockClickDetect.TryGetCursorOnComponent(out TrainEntityObject trainEntity))
+            {
+                // TODO: 列車がクリックされた時の処理
+                // TODO: Handle train click
+                // var trainSource = new TrainInventorySource(trainEntity.TrainId, trainEntity);
+                // _subInventoryState.SetInventorySource(trainSource);
+                // return UIStateEnum.SubInventory;
+            }
+            
             if (InputManager.UI.BlockDelete.GetKeyDown) return UIStateEnum.DeleteBar;
             if (_skitManager.IsPlayingSkit) return UIStateEnum.Story;
             //TODO InputSystemのリファクタ対象
