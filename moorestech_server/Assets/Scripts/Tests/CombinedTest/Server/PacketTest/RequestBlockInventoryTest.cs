@@ -5,12 +5,16 @@ using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
+using Game.Train.RailGraph;
+using Game.Train.Train;
 using MessagePack;
 using NUnit.Framework;
 using Server.Boot;
+using Server.Protocol.PacketResponse;
+using Server.Util.MessagePack;
 using Tests.Module.TestMod;
+using Tests.Util;
 using UnityEngine;
-using static Server.Protocol.PacketResponse.BlockInventoryRequestProtocol;
 using System;
 
 namespace Tests.CombinedTest.Server.PacketTest
@@ -34,7 +38,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             machineComponent.SetItem(2, itemStackFactory.Create(new ItemId(4), 5));
             
             //レスポンスの取得
-            var data = MessagePackSerializer.Deserialize<BlockInventoryResponseProtocolMessagePack>(packet.GetPacketResponse(RequestBlock(new Vector3Int(5, 10)))[0].ToArray());
+            var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(packet.GetPacketResponse(RequestBlock(new Vector3Int(5, 10)))[0].ToArray());
             
             Assert.AreEqual(InputSlotNum + OutPutSlotNum, data.Items.Length); // slot num
             
@@ -53,7 +57,49 @@ namespace Tests.CombinedTest.Server.PacketTest
         
         private List<byte> RequestBlock(Vector3Int pos)
         {
-            return MessagePackSerializer.Serialize(new RequestBlockInventoryRequestProtocolMessagePack(pos)).ToList();
+            var identifier = InventoryIdentifierMessagePack.CreateBlockMessage(pos);
+            return MessagePackSerializer.Serialize(new InventoryRequestProtocol.RequestInventoryRequestProtocolMessagePack(identifier)).ToList();
+        }
+
+        [Test]
+        public void TrainInventoryRequest()
+        {
+            // テスト環境を構築
+            // Build test environment
+            var environment = TrainTestHelper.CreateEnvironment();
+            var railA = TrainTestHelper.PlaceRail(environment, new Vector3Int(0, 0, 0), BlockDirection.North);
+            var railB = TrainTestHelper.PlaceRail(environment, new Vector3Int(100, 0, 0), BlockDirection.North);
+            railA.ConnectRailComponent(railB, true, true, 10);
+            railB.ConnectRailComponent(railA, true, true, 10);
+
+            // 列車とインベントリを準備
+            // Prepare train and its inventory
+            var frontNode = railB.FrontNode;
+            var backNode = railA.FrontNode;
+            var distance = Mathf.Max(1, frontNode.GetDistanceToNode(backNode));
+            var railPosition = new RailPosition(new List<RailNode> { frontNode, backNode }, distance, 0);
+            var trainCar = new TrainCar(tractionForce: 1000, inventorySlots: 3, length: distance);
+            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar });
+
+            var itemFactory = ServerContext.ItemStackFactory;
+            trainCar.SetItem(0, itemFactory.Create(new ItemId(1), 7));
+            trainCar.SetItem(1, itemFactory.Create(new ItemId(2), 3));
+
+            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestTrain(trainUnit.TrainId))[0];
+            var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(responseBytes.ToArray());
+
+            Assert.AreEqual(InventoryType.Train, data.InventoryType); // inventory type
+            Assert.AreEqual(3, data.Items.Length); // slot count
+            Assert.AreEqual(1, data.Items[0].Id.AsPrimitive());
+            Assert.AreEqual(7, data.Items[0].Count);
+            Assert.AreEqual(2, data.Items[1].Id.AsPrimitive());
+            Assert.AreEqual(3, data.Items[1].Count);
+        }
+
+        private List<byte> RequestTrain(Guid trainId)
+        {
+            var identifier = InventoryIdentifierMessagePack.CreateTrainMessage(trainId);
+            return MessagePackSerializer.Serialize(new InventoryRequestProtocol.RequestInventoryRequestProtocolMessagePack(identifier)).ToList();
         }
     }
 }
