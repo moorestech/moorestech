@@ -5,6 +5,7 @@ using Game.Context;
 using System;
 using System.Collections.Generic;
 using Game.Train.Event;
+using Mooresmaster.Model.TrainModule;
 
 
 namespace Game.Train.Train
@@ -20,6 +21,10 @@ namespace Game.Train.Train
         const int DEFAULT_WEIGHT = 120;
         const int DEFAULT_TRACTION = 100;
         private readonly Guid _carId = Guid.NewGuid();
+        
+        // 列車のマスターデータ
+        public TrainCarMasterElement TrainCarMasterElement { get; }
+        
         // 駆動力 (動力車での推進力、貨車では0)
         public int TractionForce { get; private set; }
 

@@ -29,9 +29,10 @@ namespace Game.Entity.Interface
         
         public TrainEntityStateMessagePack() { }
         
-        public TrainEntityStateMessagePack(Guid trainCarId)
+        public TrainEntityStateMessagePack(Guid trainCarId, Guid trainMasterId)
         {
             TrainCarId = trainCarId;
+            TrainMasterId = trainMasterId;
         }
     }
 }
