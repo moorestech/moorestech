@@ -149,14 +149,6 @@ namespace Game.Block.Blocks.Gear
         private void InvokeEvent(int slot, IItemStack itemStack)
         {
             if (IsDestroy) return;
-
-            // ブロックがWorldBlockDatastoreに登録されていない場合はイベントを発火しない
-            // Do not fire events if the block is not registered in WorldBlockDatastore
-            if (ServerContext.WorldBlockDatastore.GetBlock(_blockInstanceId) == null)
-            {
-                return;
-            }
-
             var blockInventoryUpdate = (BlockOpenableInventoryUpdateEvent)ServerContext.BlockOpenableInventoryUpdateEvent;
             var properties = new BlockOpenableInventoryUpdateEventProperties(_blockInstanceId, slot, itemStack);
             blockInventoryUpdate.OnInventoryUpdateInvoke(properties);
