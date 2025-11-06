@@ -58,7 +58,8 @@
       "mcp__serena__initial_instructions",
       "mcp__serena__read_memory",
       "SlashCommand(/kiro:spec-tasks:*)",
-      "mcp__serena__list_memories"
+      "mcp__serena__list_memories",
+      "Bash(git branch:*)"
     ],
     "deny": []
   },
