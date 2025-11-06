@@ -1,4 +1,5 @@
 using System;
+using Core.Master;
 using Game.Entity.Interface;
 using Game.Train.Train;
 using Game.Train.RailGraph;
@@ -45,7 +46,9 @@ namespace Game.Train.Entity
         
         public byte[] GetEntityData()
         {
-            var state = new TrainEntityStateMessagePack(_trainCar.CarId);
+            // TODO 仮実装でとりあえず0番の車両としてマスターを設定しているけど、TrainCarを全てマスターベースに置き換える
+            var tempTrainCarMasterGuid = MasterHolder.TrainUnitMaster.Train.TrainCars[0].TrainCarGuid;
+            var state = new TrainEntityStateMessagePack(_trainCar.CarId, tempTrainCarMasterGuid);
             return MessagePackSerializer.Serialize(state);
         }
         
