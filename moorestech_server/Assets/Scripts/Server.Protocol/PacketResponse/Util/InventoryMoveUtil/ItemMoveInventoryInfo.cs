@@ -13,17 +13,17 @@ namespace Server.Protocol.PacketResponse.Util.InventoryMoveUtil
         /// </summary>
         public readonly InventoryIdentifierMessagePack SubInventoryIdentifier;
         
-        public ItemMoveInventoryInfo CreateMain()
+        public static ItemMoveInventoryInfo CreateMain()
         {
             return new ItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory, null);
         }
-        
-        public ItemMoveInventoryInfo CreateGrab()
+
+        public static ItemMoveInventoryInfo CreateGrab()
         {
             return new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory, null);
         }
-        
-        public ItemMoveInventoryInfo CreateSubInventory(InventoryIdentifierMessagePack subInventoryIdentifier)
+
+        public static ItemMoveInventoryInfo CreateSubInventory(InventoryIdentifierMessagePack subInventoryIdentifier)
         {
             return new ItemMoveInventoryInfo(ItemMoveInventoryType.SubInventory, subInventoryIdentifier);
         }

@@ -89,8 +89,8 @@ namespace Client.Game.InGame.UI.Inventory.Main
             {
                 return localType switch
                 {
-                    LocalMoveInventoryType.MainOrSub => localSlot < PlayerInventoryConst.MainInventorySize ? new ItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory) : _subInventory.ItemMoveInventoryInfo,
-                    LocalMoveInventoryType.Grab => new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory),
+                    LocalMoveInventoryType.MainOrSub => localSlot < PlayerInventoryConst.MainInventorySize ? ItemMoveInventoryInfo.CreateMain() : _subInventory.ItemMoveInventoryInfo,
+                    LocalMoveInventoryType.Grab => ItemMoveInventoryInfo.CreateGrab(),
                     _ => throw new ArgumentOutOfRangeException(nameof(localType), localType, null),
                 };
             }

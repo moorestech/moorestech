@@ -28,8 +28,7 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
 
         public void Initialize(BlockGameObject blockGameObject)
         {
-            ItemMoveInventoryInfo = new ItemMoveInventoryInfo(
-                ItemMoveInventoryType.SubInventory,
+            ItemMoveInventoryInfo = ItemMoveInventoryInfo.CreateSubInventory(
                 InventoryIdentifierMessagePack.CreateBlockMessage(blockGameObject.BlockPosInfo.OriginalPos));
             _destroyCancellationToken = this.GetCancellationTokenOnDestroy();
             
