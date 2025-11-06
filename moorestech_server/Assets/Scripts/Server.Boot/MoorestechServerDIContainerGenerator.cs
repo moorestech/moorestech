@@ -28,6 +28,7 @@ using Game.PlayerInventory;
 using Game.PlayerInventory.Event;
 using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Event;
+using Game.PlayerInventory.Interface.Subscription;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using Game.Train.Common;

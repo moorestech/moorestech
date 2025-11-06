@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.PlayerInventory.Interface;
+using Game.PlayerInventory.Interface.Subscription;
 using Server.Util.MessagePack;
 using UnityEngine;
 
@@ -15,14 +16,14 @@ namespace Game.PlayerInventory
     {
         // プレイヤーIDごとのサブスクリプション情報を保持（複数サブスクリプション対応）
         // Hold subscription information per player ID (supports multiple subscriptions)
-        private readonly Dictionary<int, HashSet<ISubscriptionIdentifier>> _playerSubscriptions = new();
+        private readonly Dictionary<int, HashSet<ISubInventoryIdentifier>> _playerSubscriptions = new();
         
         // インベントリごとのサブスクライバーリストを保持
         // Hold subscriber list per inventory
         private readonly Dictionary<(InventoryType, string), HashSet<int>> _inventorySubscribers = new();
         
         
-        public List<int> GetSubscribers(ISubscriptionIdentifier identifier)
+        public List<int> GetSubscribers(ISubInventoryIdentifier identifier)
         {
             // サブスクリプションキーを生成
             // Generate subscription key
@@ -34,13 +35,13 @@ namespace Game.PlayerInventory
             return new List<int>();
         }
         
-        public void Subscribe(int playerId, ISubscriptionIdentifier identifier)
+        public void Subscribe(int playerId, ISubInventoryIdentifier identifier)
         {
             // プレイヤーのサブスクリプションリストを取得または作成
             // Get or create player's subscription list
             if (!_playerSubscriptions.ContainsKey(playerId))
             {
-                _playerSubscriptions[playerId] = new HashSet<ISubscriptionIdentifier>();
+                _playerSubscriptions[playerId] = new HashSet<ISubInventoryIdentifier>();
             }
 
             // 新しいサブスクリプションを追加
@@ -57,7 +58,7 @@ namespace Game.PlayerInventory
             _inventorySubscribers[key].Add(playerId);
         }
         
-        public void Unsubscribe(int playerId, ISubscriptionIdentifier identifier)
+        public void Unsubscribe(int playerId, ISubInventoryIdentifier identifier)
         {
             if (!_playerSubscriptions.TryGetValue(playerId, out var subscriptions)) return;
 
@@ -82,17 +83,17 @@ namespace Game.PlayerInventory
         /// インベントリを識別するキーを生成
         /// Generate key to identify inventory
         /// </summary>
-        private (InventoryType, string) CreateKey(ISubscriptionIdentifier identifier)
+        private (InventoryType, string) CreateKey(ISubInventoryIdentifier identifier)
         {
             // 識別子を具体型に変換
             // Cast identifier to concrete type
-            if (identifier is BlockInventorySubscriptionIdentifier blockIdentifier)
+            if (identifier is BlockInventorySubInventoryIdentifier blockIdentifier)
             {
                 var position = blockIdentifier.Position;
                 return (identifier.Type, $"{position.x},{position.y},{position.z}");
             }
 
-            if (identifier is TrainInventorySubscriptionIdentifier trainIdentifier)
+            if (identifier is TrainInventorySubInventoryIdentifier trainIdentifier)
             {
                 return (identifier.Type, trainIdentifier.TrainCarId.ToString());
             }

@@ -2,6 +2,7 @@ using System;
 using Core.Item.Interface;
 using Game.Block.Interface.Event;
 using Game.PlayerInventory.Interface;
+using Game.PlayerInventory.Interface.Subscription;
 using Game.Train.Event;
 using Game.World.Interface.DataStore;
 using MessagePack;
@@ -42,7 +43,7 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
         
         public UnifiedInventoryEventMessagePack() { Tag = UnifiedInventoryEventPacket.EventTag; }
         
-        public static UnifiedInventoryEventMessagePack CreateUpdate(ISubscriptionIdentifier identifier, int slot, IItemStack item)
+        public static UnifiedInventoryEventMessagePack CreateUpdate(ISubInventoryIdentifier identifier, int slot, IItemStack item)
         {
             return new UnifiedInventoryEventMessagePack
             {
@@ -55,7 +56,7 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
             
         }
         
-        public static UnifiedInventoryEventMessagePack CreateRemove(ISubscriptionIdentifier identifier)
+        public static UnifiedInventoryEventMessagePack CreateRemove(ISubInventoryIdentifier identifier)
         {
             return new UnifiedInventoryEventMessagePack
             {
@@ -67,12 +68,12 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
             };
         }
         
-        private static InventoryIdentifierMessagePack CreateMessagePack(ISubscriptionIdentifier identifier)
+        private static InventoryIdentifierMessagePack CreateMessagePack(ISubInventoryIdentifier identifier)
         {
             return identifier switch
             {
-                BlockInventorySubscriptionIdentifier blockId => CreateBlockMessage(blockId.Position),
-                TrainInventorySubscriptionIdentifier trainId => CreateTrainMessage(trainId.TrainCarId),
+                BlockInventorySubInventoryIdentifier blockId => CreateBlockMessage(blockId.Position),
+                TrainInventorySubInventoryIdentifier trainId => CreateTrainMessage(trainId.TrainCarId),
                 _ => throw new ArgumentException($"Unknown ISubscriptionIdentifier type: {identifier.GetType()}")
             };
         }

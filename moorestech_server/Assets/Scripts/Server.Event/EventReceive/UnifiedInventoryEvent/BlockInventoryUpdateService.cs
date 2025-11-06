@@ -4,6 +4,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Event;
 using Game.Context;
 using Game.PlayerInventory.Interface;
+using Game.PlayerInventory.Interface.Subscription;
 using MessagePack;
 using UniRx;
 using UnityEngine;
@@ -56,14 +57,14 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
         }
         
         
-        (BlockInventorySubscriptionIdentifier identifier, List<int> playerIds) GetSubscribers(BlockInstanceId instanceId)
+        (BlockInventorySubInventoryIdentifier identifier, List<int> playerIds) GetSubscribers(BlockInstanceId instanceId)
         {
             var pos = ServerContext.WorldBlockDatastore.GetBlockPosition(instanceId);
             return GetSubscribers(pos);
         }
-        (BlockInventorySubscriptionIdentifier identifier, List<int> playerIds) GetSubscribers(Vector3Int position)
+        (BlockInventorySubInventoryIdentifier identifier, List<int> playerIds) GetSubscribers(Vector3Int position)
         {
-            var id = new BlockInventorySubscriptionIdentifier(position);
+            var id = new BlockInventorySubInventoryIdentifier(position);
             var players = _inventorySubscriptionStore.GetSubscribers(id);
             
             return (id, players);
