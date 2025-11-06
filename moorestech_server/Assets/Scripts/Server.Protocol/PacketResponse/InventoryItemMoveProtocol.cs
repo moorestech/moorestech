@@ -73,7 +73,6 @@ namespace Server.Protocol.PacketResponse
                     inventory = _playerInventoryDataStore.GetInventoryData(playerId).GrabInventory;
                     break;
                 case ItemMoveInventoryType.SubInventory:
-                case ItemMoveInventoryType.TrainInventory:
                     // ブロック/列車インベントリの場合はInventoryIdentifierから情報を取得
                     // Get information from InventoryIdentifier for block/train inventory
                     if (inventoryIdentifier == null) return null;

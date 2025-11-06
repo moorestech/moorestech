@@ -1,7 +1,6 @@
 using System.Collections.Generic;
-using Server.Util.MessagePack;
 
-namespace Game.PlayerInventory.Interface
+namespace Game.PlayerInventory.Interface.Subscription
 {
     /// <summary>
     /// プレイヤーIDとサブスクライブ中のインベントリの紐付けを管理するインターフェース
@@ -9,10 +8,10 @@ namespace Game.PlayerInventory.Interface
     /// </summary>
     public interface IInventorySubscriptionStore
     {
-        List<int> GetSubscribers(ISubscriptionIdentifier identifier);
+        List<int> GetSubscribers(ISubInventoryIdentifier identifier);
         
-        void Subscribe(int playerId, ISubscriptionIdentifier identifier);
+        void Subscribe(int playerId, ISubInventoryIdentifier identifier);
         
-        void Unsubscribe(int playerId, ISubscriptionIdentifier identifier);
+        void Unsubscribe(int playerId, ISubInventoryIdentifier identifier);
     }
 }

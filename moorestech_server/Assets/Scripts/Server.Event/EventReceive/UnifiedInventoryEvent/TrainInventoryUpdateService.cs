@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Game.PlayerInventory.Interface;
+using Game.PlayerInventory.Interface.Subscription;
 using Game.Train.Event;
 using MessagePack;
 using UniRx;
@@ -49,9 +50,9 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
             AddEvent(UnifiedInventoryEventMessagePack.CreateRemove(identifier), playerIds);
         }
         
-        private (TrainInventorySubscriptionIdentifier identifier, List<int> playerIds) GetSubscribers(Guid trainId)
+        private (TrainInventorySubInventoryIdentifier identifier, List<int> playerIds) GetSubscribers(Guid trainId)
         {
-            var id = new TrainInventorySubscriptionIdentifier(trainId);
+            var id = new TrainInventorySubInventoryIdentifier(trainId);
             var players = _inventorySubscriptionStore.GetSubscribers(id);
             return (id, players);
         }

@@ -2,30 +2,35 @@ using System;
 using Server.Util.MessagePack;
 using UnityEngine;
 
-namespace Game.PlayerInventory.Interface
+namespace Game.PlayerInventory.Interface.Subscription
 {
     // サブスクリプション識別子の共通インターフェース
     // Common interface for subscription identifiers
-    public interface ISubscriptionIdentifier
+    public interface ISubInventoryIdentifier
     {
         InventoryType Type { get; }
+        
+        // HashSetで使用するので、EqualsとGetHashCodeをオーバーライドする必要がある
+        // Since it is used in HashSet, Equals and GetHashCode need to be overridden
+        bool Equals(object obj);
+        int GetHashCode();
     }
 
     // ブロックインベントリを識別する実装
     // Identifier implementation for block inventories
-    public class BlockInventorySubscriptionIdentifier : ISubscriptionIdentifier
+    public class BlockInventorySubInventoryIdentifier : ISubInventoryIdentifier
     {
         public InventoryType Type => InventoryType.Block;
         public Vector3Int Position { get; }
 
-        public BlockInventorySubscriptionIdentifier(Vector3Int position)
+        public BlockInventorySubInventoryIdentifier(Vector3Int position)
         {
             Position = position;
         }
 
         public override bool Equals(object obj)
         {
-            if (obj is BlockInventorySubscriptionIdentifier other)
+            if (obj is BlockInventorySubInventoryIdentifier other)
             {
                 return Position.Equals(other.Position);
             }
@@ -40,19 +45,19 @@ namespace Game.PlayerInventory.Interface
 
     // 列車インベントリを識別する実装
     // Identifier implementation for train inventories
-    public class TrainInventorySubscriptionIdentifier : ISubscriptionIdentifier
+    public class TrainInventorySubInventoryIdentifier : ISubInventoryIdentifier
     {
         public InventoryType Type => InventoryType.Train;
         public Guid TrainCarId { get; }
 
-        public TrainInventorySubscriptionIdentifier(Guid trainCarId)
+        public TrainInventorySubInventoryIdentifier(Guid trainCarId)
         {
             TrainCarId = trainCarId;
         }
 
         public override bool Equals(object obj)
         {
-            if (obj is TrainInventorySubscriptionIdentifier other)
+            if (obj is TrainInventorySubInventoryIdentifier other)
             {
                 return TrainCarId.Equals(other.TrainCarId);
             }

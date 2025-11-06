@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Game.Block.Interface.Component;
 using Game.Context;
 using Game.PlayerInventory.Interface;
+using Game.PlayerInventory.Interface.Subscription;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -45,12 +46,12 @@ namespace Server.Protocol.PacketResponse
             
             #region Internal
             
-            ISubscriptionIdentifier ConvertIdentifier(InventoryIdentifierMessagePack id)
+            ISubInventoryIdentifier ConvertIdentifier(InventoryIdentifierMessagePack id)
             {
                 return id.InventoryType switch
                 {
-                    InventoryType.Block => new BlockInventorySubscriptionIdentifier(id.BlockPosition.Vector3Int),
-                    InventoryType.Train => new TrainInventorySubscriptionIdentifier(Guid.Parse(id.TrainCarId)),
+                    InventoryType.Block => new BlockInventorySubInventoryIdentifier(id.BlockPosition.Vector3Int),
+                    InventoryType.Train => new TrainInventorySubInventoryIdentifier(Guid.Parse(id.TrainCarId)),
                     _ => throw new ArgumentException($"Unknown InventoryType: {id.InventoryType}")
                 };
             }
