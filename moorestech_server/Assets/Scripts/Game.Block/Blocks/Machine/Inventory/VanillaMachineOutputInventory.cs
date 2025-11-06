@@ -141,6 +141,13 @@ namespace Game.Block.Blocks.Machine.Inventory
 
         private void InvokeEvent(int slot, IItemStack itemStack)
         {
+            // ブロックがWorldBlockDatastoreに登録されていない場合はイベントを発火しない
+            // Do not fire events if the block is not registered in WorldBlockDatastore
+            if (ServerContext.WorldBlockDatastore.GetBlock(_blockInstanceId) == null)
+            {
+                return;
+            }
+
             _blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(
                 _blockInstanceId, slot + _inputSlotSize, itemStack));
         }
