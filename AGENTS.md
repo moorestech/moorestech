@@ -64,8 +64,7 @@ nullチェックが不要な場面：
 
 # ソフトウェアデバッグ
 あなたは必要に応じて、テストコードがパスしない時、意図した実装ができないときが発生します。そのようなときは、デバッグログを使用し、原因を究明、修正し、タスクが完了できるように努めてください。
-
-Reflect on 5-7 different possible sources of the problem, distill those down to 1-2 most likely sources, and then add logs to validate your assumptions. Explicitly ask the user to confirm the diagnosis before fixing the problem.
+問題の原因として考えられる5～7つの可能性を検討し、それらを最も可能性の高い1～2つの原因に絞り込み、その後、ログを追加して仮説を検証してください。
 
 # サーバーコンテキスト参照先
 - サーバー側のコンテキスト実装は `moorestech_server/Assets/Scripts/Game.Context/ServerContext.cs` を参照してください。
