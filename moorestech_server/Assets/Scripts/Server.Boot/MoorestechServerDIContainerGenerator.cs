@@ -93,7 +93,8 @@ namespace Server.Boot
             initializerCollection.AddSingleton<IBlockOpenableInventoryUpdateEvent, BlockOpenableInventoryUpdateEvent>();
             initializerCollection.AddSingleton<GearNetworkDatastore>();
             initializerCollection.AddSingleton<RailGraphDatastore>();
-            initializerCollection.AddSingleton<TrainUpdateService>();
+            var trainUpdateServiceInstance = TrainUpdateService.Instance;
+            initializerCollection.AddSingleton(trainUpdateServiceInstance);
             initializerCollection.AddSingleton<TrainDiagramManager>();
             initializerCollection.AddSingleton<TrainRailPositionManager>();
 
@@ -121,7 +122,7 @@ namespace Server.Boot
             services.AddSingleton<IEntityFactory, EntityFactory>(); // TODO これを削除してContext側に加える？
             services.AddSingleton<GearNetworkDatastore>();
             services.AddSingleton<RailGraphDatastore>();
-            services.AddSingleton<TrainUpdateService>();
+            services.AddSingleton(trainUpdateServiceInstance);
             services.AddSingleton<TrainDiagramManager>();
             services.AddSingleton<TrainRailPositionManager>();
 
