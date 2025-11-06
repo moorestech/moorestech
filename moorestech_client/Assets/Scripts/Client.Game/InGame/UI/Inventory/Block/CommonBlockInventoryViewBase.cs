@@ -21,8 +21,10 @@ namespace Client.Game.InGame.UI.Inventory.Block
         public ISubInventoryIdentifier ISubInventoryIdentifier { get; protected set; }
         
         /// <summary>
-        /// そのブロックの全てのアイテムスロットを管理するリスト。ここに登録されているリストはインベントリのスロットとしてみなされます。
-        /// A list that manages all item slots of the block. The list stored here is considered as an inventory slot.
+        /// インベントリとして機能させるために、作成したItemSlotViewは必ずここに入れてください。
+        /// ここに登録されているリストはインベントリのスロットとしてみなされます。
+        /// Make sure to put the created ItemSlotView here to make it function as an inventory.
+        /// The list registered here is considered as the slots of the inventory.
         /// </summary>
         protected readonly List<ItemSlotView> SubInventorySlotObjectsInternal = new();
         
