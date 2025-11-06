@@ -118,7 +118,12 @@ namespace Game.Block.Blocks.Machine.Inventory
         {
             _itemDataStoreService.SetItem(slot, itemStack);
         }
-        
+
+        public void SetItemWithoutEvent(int slot, IItemStack itemStack)
+        {
+            _itemDataStoreService.SetItemWithoutEvent(slot, itemStack);
+        }
+
         public bool InsertionCheck(List<IItemStack> itemStacks)
         {
             return _itemDataStoreService.InsertionCheck(itemStacks);
