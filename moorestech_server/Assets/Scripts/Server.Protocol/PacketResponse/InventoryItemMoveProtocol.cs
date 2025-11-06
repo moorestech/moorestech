@@ -36,7 +36,7 @@ namespace Server.Protocol.PacketResponse
             if (fromInventory == null) return null;
 
             var fromSlot = data.FromInventory.Slot;
-            if (data.FromInventory.InventoryType == ItemMoveInventoryType.BlockInventory)
+            if (data.FromInventory.InventoryType == ItemMoveInventoryType.SubInventory)
                 fromSlot -= PlayerInventoryConst.MainInventorySize;
 
 
@@ -44,7 +44,7 @@ namespace Server.Protocol.PacketResponse
             if (toInventory == null) return null;
 
             var toSlot = data.ToInventory.Slot;
-            if (data.ToInventory.InventoryType == ItemMoveInventoryType.BlockInventory)
+            if (data.ToInventory.InventoryType == ItemMoveInventoryType.SubInventory)
                 toSlot -= PlayerInventoryConst.MainInventorySize;
 
 
@@ -72,7 +72,7 @@ namespace Server.Protocol.PacketResponse
                 case ItemMoveInventoryType.GrabInventory:
                     inventory = _playerInventoryDataStore.GetInventoryData(playerId).GrabInventory;
                     break;
-                case ItemMoveInventoryType.BlockInventory:
+                case ItemMoveInventoryType.SubInventory:
                 case ItemMoveInventoryType.TrainInventory:
                     // ブロック/列車インベントリの場合はInventoryIdentifierから情報を取得
                     // Get information from InventoryIdentifier for block/train inventory
@@ -153,7 +153,7 @@ namespace Server.Protocol.PacketResponse
                 // MessagePack enum is heavy, so use int
                 InventoryId = (int)info.ItemMoveInventoryType;
                 Slot = slot;
-                InventoryIdentifier = info.InventoryIdentifier;
+                InventoryIdentifier = info.SubInventoryIdentifier;
             }
         }
     }

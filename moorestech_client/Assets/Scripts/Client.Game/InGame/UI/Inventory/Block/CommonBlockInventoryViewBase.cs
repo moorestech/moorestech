@@ -30,7 +30,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
         public virtual void Initialize(BlockGameObject blockGameObject)
         {
             ItemMoveInventoryInfo = new ItemMoveInventoryInfo(
-                ItemMoveInventoryType.BlockInventory,
+                ItemMoveInventoryType.SubInventory,
                 InventoryIdentifierMessagePack.CreateBlockMessage(blockGameObject.BlockPosInfo.OriginalPos));
         }
         
