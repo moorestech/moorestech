@@ -2,8 +2,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.UI.Inventory.Common;
 using Core.Item.Interface;
-using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
-using Server.Util.MessagePack;
+using Game.PlayerInventory.Interface.Subscription;
 using UnityEngine;
 
 namespace Client.Game.InGame.UI.Inventory.Block
@@ -19,7 +18,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
         public IReadOnlyList<ItemSlotView> SubInventorySlotObjects => SubInventorySlotObjectsInternal;
         public int Count => SubInventorySlotObjectsInternal.Count;
         public List<IItemStack> SubInventory { get; } = new();
-        public ItemMoveInventoryInfo ItemMoveInventoryInfo { get; protected set; }
+        public ISubInventoryIdentifier ISubInventoryIdentifier { get; protected set; }
         
         /// <summary>
         /// そのブロックの全てのアイテムスロットを管理するリスト。ここに登録されているリストはインベントリのスロットとしてみなされます。
@@ -29,8 +28,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
         
         public virtual void Initialize(BlockGameObject blockGameObject)
         {
-            var id = InventoryIdentifierMessagePack.CreateBlockMessage(blockGameObject.BlockPosInfo.OriginalPos);
-            ItemMoveInventoryInfo = ItemMoveInventoryInfo.CreateSubInventory(id);
+            ISubInventoryIdentifier = new BlockInventorySubInventoryIdentifier(blockGameObject.BlockPosInfo.OriginalPos);
         }
         
         public void UpdateItemList(List<IItemStack> response)

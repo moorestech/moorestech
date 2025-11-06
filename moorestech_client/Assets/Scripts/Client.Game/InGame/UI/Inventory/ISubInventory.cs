@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Client.Game.InGame.UI.Inventory.Common;
 using Core.Item.Interface;
-using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
+using Game.PlayerInventory.Interface.Subscription;
 
 namespace Client.Game.InGame.UI.Inventory
 {
@@ -9,7 +9,7 @@ namespace Client.Game.InGame.UI.Inventory
     {
         public List<IItemStack> SubInventory { get; }
         public int Count { get; }
-        public ItemMoveInventoryInfo ItemMoveInventoryInfo { get; }
+        public ISubInventoryIdentifier ISubInventoryIdentifier { get; }
         public IReadOnlyList<ItemSlotView> SubInventorySlotObjects { get; }
     }
     
@@ -25,12 +25,12 @@ namespace Client.Game.InGame.UI.Inventory
             Count = 0;
             SubInventorySlotObjects = new List<ItemSlotView>();
             SubInventory = new List<IItemStack>();
-            ItemMoveInventoryInfo = null;
+            ISubInventoryIdentifier = null;
         }
-        
+
         public IReadOnlyList<ItemSlotView> SubInventorySlotObjects { get; }
         public List<IItemStack> SubInventory { get; }
         public int Count { get; }
-        public ItemMoveInventoryInfo ItemMoveInventoryInfo { get; }
+        public ISubInventoryIdentifier ISubInventoryIdentifier { get; }
     }
 }
