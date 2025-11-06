@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Reflection;
+using Core.Inventory;
 using Core.Master;
 using Game.Block.Blocks.Chest;
 using Game.Block.Interface;
@@ -27,8 +29,8 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             // テスト用にアイテムを設定する際はイベントを発火させない（ブロックがまだWorldBlockDatastoreに登録されていないため）
             // Set items for testing without firing events (block not yet registered in WorldBlockDatastore)
-            var chestInventory = (global::Core.Inventory.OpenableInventoryItemDataStoreService)typeof(global::Game.Block.Blocks.Chest.VanillaChestComponent)
-                .GetField("_itemDataStoreService", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+            var chestInventory = (OpenableInventoryItemDataStoreService)typeof(VanillaChestComponent)
+                .GetField("_itemDataStoreService", BindingFlags.Instance | BindingFlags.NonPublic)
                 .GetValue(chest);
             chestInventory.SetItemWithoutEvent(0, ServerContext.ItemStackFactory.Create(new ItemId(1), 7));
             chestInventory.SetItemWithoutEvent(2, ServerContext.ItemStackFactory.Create(new ItemId(2), 45));
