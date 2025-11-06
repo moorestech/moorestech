@@ -10,6 +10,10 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
     public class GameScreenSubInventoryInteractService
     {
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
+        public GameScreenSubInventoryInteractService(BlockGameObjectDataStore blockGameObjectDataStore)
+        {
+            _blockGameObjectDataStore = blockGameObjectDataStore;
+        }
         
         /// <summary>
         /// ブロックや列車など、SubInventoryを開けるオブジェクトをクリックしたかどうかを判定します。
@@ -21,7 +25,7 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
             
             // クリックしてなければ無視
             // Ignore if not clicked
-            if (InputManager.Playable.ScreenLeftClick.GetKeyDown) return false;
+            if (!InputManager.Playable.ScreenLeftClick.GetKeyDown) return false;
             if (EventSystem.current.IsPointerOverGameObject()) return false;
             
             
