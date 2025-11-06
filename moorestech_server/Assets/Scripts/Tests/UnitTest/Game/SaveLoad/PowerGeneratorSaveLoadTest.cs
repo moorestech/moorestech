@@ -45,8 +45,14 @@ namespace Tests.UnitTest.Game.SaveLoad
             // プライベートフィールドを利用して燃料状態とインベントリを直接構築する
             // Directly configure fuel state and inventory through private fields.
             SetFuelState(powerGenerator, fuelItemId, remainingFuelTime);
-            powerGenerator.SetItem(0, itemStackFactory.Create(fuelItemId, 5));
-            powerGenerator.SetItem(2, itemStackFactory.Create(secondaryItemId, 5));
+
+            // テスト用にアイテムを設定する際はイベントを発火させない（ブロックがまだWorldBlockDatastoreに登録されていないため）
+            // Set items for testing without firing events (block not yet registered in WorldBlockDatastore)
+            var generatorInventory = (global::Core.Inventory.OpenableInventoryItemDataStoreService)typeof(global::Game.Block.Blocks.PowerGenerator.VanillaElectricGeneratorComponent)
+                .GetField("_itemDataStoreService", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+                .GetValue(powerGenerator);
+            generatorInventory.SetItemWithoutEvent(0, itemStackFactory.Create(fuelItemId, 5));
+            generatorInventory.SetItemWithoutEvent(2, itemStackFactory.Create(secondaryItemId, 5));
 
             // セーブ前の比較用スナップショットを取得する
             // Capture snapshots of the state before serialization for later comparison.
