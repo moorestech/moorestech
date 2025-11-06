@@ -29,8 +29,8 @@ namespace Client.Game.InGame.UI.Inventory.Block
         
         public virtual void Initialize(BlockGameObject blockGameObject)
         {
-            ItemMoveInventoryInfo = ItemMoveInventoryInfo.CreateSubInventory(
-                InventoryIdentifierMessagePack.CreateBlockMessage(blockGameObject.BlockPosInfo.OriginalPos));
+            var id = InventoryIdentifierMessagePack.CreateBlockMessage(blockGameObject.BlockPosInfo.OriginalPos);
+            ItemMoveInventoryInfo = ItemMoveInventoryInfo.CreateSubInventory(id);
         }
         
         public void UpdateItemList(List<IItemStack> response)

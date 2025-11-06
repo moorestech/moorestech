@@ -28,8 +28,8 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
 
         public void Initialize(BlockGameObject blockGameObject)
         {
-            ItemMoveInventoryInfo = ItemMoveInventoryInfo.CreateSubInventory(
-                InventoryIdentifierMessagePack.CreateBlockMessage(blockGameObject.BlockPosInfo.OriginalPos));
+            var id = InventoryIdentifierMessagePack.CreateBlockMessage(blockGameObject.BlockPosInfo.OriginalPos);
+            ItemMoveInventoryInfo = ItemMoveInventoryInfo.CreateSubInventory(id);
             _destroyCancellationToken = this.GetCancellationTokenOnDestroy();
             
             // 研究実行イベントの登録
