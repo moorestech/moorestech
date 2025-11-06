@@ -83,22 +83,19 @@ namespace Game.PlayerInventory
         /// インベントリを識別するキーを生成
         /// Generate key to identify inventory
         /// </summary>
-        private (InventoryType, string) CreateKey(ISubInventoryIdentifier identifier)
+        private static (InventoryType, string) CreateKey(ISubInventoryIdentifier identifier)
         {
-            // 識別子を具体型に変換
-            // Cast identifier to concrete type
-            if (identifier is BlockInventorySubInventoryIdentifier blockIdentifier)
+            switch (identifier.Type)
             {
-                var position = blockIdentifier.Position;
-                return (identifier.Type, $"{position.x},{position.y},{position.z}");
+                case InventoryType.Block:
+                    var position = ((BlockInventorySubInventoryIdentifier) identifier).Position;
+                    return (identifier.Type, $"{position.x},{position.y},{position.z}");
+                case InventoryType.Train:
+                    var carId = ((TrainInventorySubInventoryIdentifier) identifier).TrainCarId;
+                    return (identifier.Type, carId.ToString());
+                default:
+                    throw new ArgumentException($"Invalid identifier type for InventoryType {identifier.Type}");
             }
-
-            if (identifier is TrainInventorySubInventoryIdentifier trainIdentifier)
-            {
-                return (identifier.Type, trainIdentifier.TrainCarId.ToString());
-            }
-            
-            throw new ArgumentException($"Invalid identifier type for InventoryType {identifier.Type}");
         }
     }
 }
