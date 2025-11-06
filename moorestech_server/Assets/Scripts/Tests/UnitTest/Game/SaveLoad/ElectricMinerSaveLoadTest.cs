@@ -44,9 +44,10 @@ namespace Tests.UnitTest.Core.Block
                     .GetField("_openableInventoryItemDataStoreService", BindingFlags.Instance | BindingFlags.NonPublic)
                     .GetValue(originalMinerComponent);
 
-            // Set some items in the miner's inventory.
-            inventory.SetItem(0, new ItemId(1), 1);
-            inventory.SetItem(2, new ItemId(4), 1);
+            // Set some items in the miner's inventory without firing events (block not yet registered in WorldBlockDatastore).
+            // テスト用にアイテムを設定する際はイベントを発火させない（ブロックがまだWorldBlockDatastoreに登録されていないため）
+            inventory.SetItemWithoutEvent(0, ServerContext.ItemStackFactory.Create(new ItemId(1), 1));
+            inventory.SetItemWithoutEvent(2, ServerContext.ItemStackFactory.Create(new ItemId(4), 1));
 
             // Set the remaining mining time using reflection.
             typeof(VanillaMinerProcessorComponent)
