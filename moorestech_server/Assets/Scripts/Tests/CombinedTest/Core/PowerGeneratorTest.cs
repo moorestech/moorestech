@@ -26,8 +26,11 @@ namespace Tests.CombinedTest.Core
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var blockFactory = ServerContext.BlockFactory;
+
+            // 発電機ブロックの配置
+            // Place the generator block
             var posInfo = new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one);
-            var powerGenerator = blockFactory.Create(ForUnitTestModBlockId.GeneratorId, new BlockInstanceId(10), posInfo);
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GeneratorId, Vector3Int.one, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var powerGenerator);
             var generatorComponent = powerGenerator.GetComponent<VanillaElectricGeneratorComponent>();
             var generatorConfigParam = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GeneratorId).BlockParam as ElectricGeneratorBlockParam;
             var itemStackFactory = ServerContext.ItemStackFactory;

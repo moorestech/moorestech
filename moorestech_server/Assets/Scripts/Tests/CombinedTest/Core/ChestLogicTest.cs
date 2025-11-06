@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core.Master;
 using Core.Update;
@@ -33,11 +34,15 @@ namespace Tests.CombinedTest.Core
             var id = new ItemId(random.Next(1, 11));
             var count = 1;
             var item = itemStackFactory.Create(id, count);
-            
-            var chest = blockFactory.Create(ForUnitTestModBlockId.ChestId, new BlockInstanceId(0), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
+
+            // チェストブロックの配置
+            // Place the chest block
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, Vector3Int.one, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var chest);
             var chestComponent = chest.GetComponent<VanillaChestComponent>();
-            
-            var beltConveyor = blockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, new BlockInstanceId(int.MaxValue), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
+
+            // ベルトコンベアブロックの配置
+            // Place the belt conveyor block
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var beltConveyor);
             var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
             beltConveyorComponent.InsertItem(item);
             
@@ -56,11 +61,15 @@ namespace Tests.CombinedTest.Core
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var blockFactory = ServerContext.BlockFactory;
-            
-            var chest = blockFactory.Create(ForUnitTestModBlockId.ChestId, new BlockInstanceId(0), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
+
+            // チェストブロックの配置
+            // Place the chest block
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, Vector3Int.one, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var chest);
             var chestComponent = chest.GetComponent<VanillaChestComponent>();
-            
-            var beltconveyor = blockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, new BlockInstanceId(0), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
+
+            // ベルトコンベアブロックの配置
+            // Place the belt conveyor block
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var beltconveyor);
             var beltConveyorComponent = beltconveyor.GetComponent<VanillaBeltConveyorComponent>();
             
             chestComponent.SetItem(0, new ItemId(1), 1);

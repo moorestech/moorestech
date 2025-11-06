@@ -24,11 +24,15 @@ namespace Tests.UnitTest.Game.SaveLoad
             var chestPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
             var chestBlock = blockFactory.Create(ForUnitTestModBlockId.ChestId, new BlockInstanceId(1), chestPosInfo);
             var chest = chestBlock.GetComponent<VanillaChestComponent>();
-            
-            
-            chest.SetItem(0, new ItemId(1), 7);
-            chest.SetItem(2, new ItemId(2), 45);
-            chest.SetItem(4, new ItemId(3), 3);
+
+            // テスト用にアイテムを設定する際はイベントを発火させない（ブロックがまだWorldBlockDatastoreに登録されていないため）
+            // Set items for testing without firing events (block not yet registered in WorldBlockDatastore)
+            var chestInventory = (global::Core.Inventory.OpenableInventoryItemDataStoreService)typeof(global::Game.Block.Blocks.Chest.VanillaChestComponent)
+                .GetField("_itemDataStoreService", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+                .GetValue(chest);
+            chestInventory.SetItemWithoutEvent(0, ServerContext.ItemStackFactory.Create(new ItemId(1), 7));
+            chestInventory.SetItemWithoutEvent(2, ServerContext.ItemStackFactory.Create(new ItemId(2), 45));
+            chestInventory.SetItemWithoutEvent(4, ServerContext.ItemStackFactory.Create(new ItemId(3), 3));
             
             var save = chest.GetSaveState();
             var states = new Dictionary<string, string>() { { chest.SaveKey, save } };
