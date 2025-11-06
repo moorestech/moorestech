@@ -69,7 +69,9 @@ namespace Game.Block.Factory.BlockTemplate
         {
             var state = componentStates[VanillaMachineSaveComponent.SaveKeyStatic];
             var jsonObject = JsonConvert.DeserializeObject<VanillaMachineJsonObject>(state);
-            
+
+            // セーブデータからのロード時はイベントを発火しない（ブロックがまだWorldBlockDatastoreに登録されていないため）
+            // Do not invoke events when loading from save data (block is not yet registered in WorldBlockDatastore)
             var inputItems = jsonObject.InputSlot.Select(item => item.ToItemStack()).ToList();
             for (var i = 0; i < inputItems.Count; i++)
             {
@@ -78,9 +80,9 @@ namespace Game.Block.Factory.BlockTemplate
                     Debug.LogError($"ロードするデータのインベントリサイズが超過しています。一部のアイテムは消失します。ブロック名:{blockMasterElement.Name} Guid:{blockMasterElement.BlockGuid}");
                     break;
                 }
-                vanillaMachineInputInventory.SetItem(i, inputItems[i]);
+                vanillaMachineInputInventory.SetItemWithoutEvent(i, inputItems[i]);
             }
-            
+
             var outputItems = jsonObject.OutputSlot.Select(item => item.ToItemStack()).ToList();
             for (var i = 0; i < outputItems.Count; i++)
             {
@@ -89,7 +91,7 @@ namespace Game.Block.Factory.BlockTemplate
                     Debug.LogError($"ロードするデータのインベントリサイズが超過しています。一部のアイテムは消失します。ブロック名:{blockMasterElement.Name} Guid:{blockMasterElement.BlockGuid}");
                     break;
                 }
-                vanillaMachineOutputInventory.SetItem(i, outputItems[i]);
+                vanillaMachineOutputInventory.SetItemWithoutEvent(i, outputItems[i]);
             }
             
             // Load fluid data if present

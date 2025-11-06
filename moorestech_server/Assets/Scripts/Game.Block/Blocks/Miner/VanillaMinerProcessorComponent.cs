@@ -86,12 +86,15 @@ namespace Game.Block.Blocks.Miner
             : this(blockInstanceId, requestPower, outputSlotCount, openableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo, mineSettings)
         {
             var saveJsonObject = JsonConvert.DeserializeObject<VanillaElectricMinerSaveJsonObject>(componentStates[SaveKey]);
+
+            // セーブデータからのロード時はイベントを発火しない（ブロックがまだWorldBlockDatastoreに登録されていないため）
+            // Do not invoke events when loading from save data (block is not yet registered in WorldBlockDatastore)
             for (var i = 0; i < saveJsonObject.Items.Count; i++)
             {
                 var itemStack = saveJsonObject.Items[i].ToItemStack();
-                _openableInventoryItemDataStoreService.SetItem(i, itemStack);
+                _openableInventoryItemDataStoreService.SetItemWithoutEvent(i, itemStack);
             }
-            
+
             _remainingSecond = saveJsonObject.RemainingSecond;
         }
         

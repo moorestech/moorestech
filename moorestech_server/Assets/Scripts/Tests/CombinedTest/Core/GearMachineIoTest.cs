@@ -36,9 +36,11 @@ namespace Tests.CombinedTest.Core
             var blockFactory = ServerContext.BlockFactory;
             
             var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data[GearMachineRecipeIndex];
-            
+
+            // ギアマシンブロックの配置
+            // Place the gear machine block
             var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
-            var block = blockFactory.Create(blockId, new BlockInstanceId(1), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
+            ServerContext.WorldBlockDatastore.TryAddBlock(blockId, Vector3Int.one, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
             var blockInventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
             foreach (var inputItem in recipe.InputItems)
             {
@@ -76,10 +78,12 @@ namespace Tests.CombinedTest.Core
             var blockFactory = ServerContext.BlockFactory;
             
             var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data[GearMachineRecipeIndex];
-            
+
+            // ギアマシンブロックの配置
+            // Place the gear machine blocks
             var recipeBlockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
-            var lackRpmBlock = blockFactory.Create(recipeBlockId, new BlockInstanceId(1), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
-            var lackTorqueBlock = blockFactory.Create(recipeBlockId, new BlockInstanceId(2), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.zero));
+            ServerContext.WorldBlockDatastore.TryAddBlock(recipeBlockId, Vector3Int.one, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var lackRpmBlock);
+            ServerContext.WorldBlockDatastore.TryAddBlock(recipeBlockId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var lackTorqueBlock);
             
             var lackRpmInventory = lackRpmBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
             var lackTorqueInventory = lackTorqueBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
