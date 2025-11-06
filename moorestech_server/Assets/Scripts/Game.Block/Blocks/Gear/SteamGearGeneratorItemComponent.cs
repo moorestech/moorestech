@@ -127,17 +127,20 @@ namespace Game.Block.Blocks.Gear
         }
 
         // 現在のスロット内容をまとめて復元するためのユーティリティ
-        // Utility helper used to restore stored slot contents in batch
+        // セーブデータからアイテムを復元する
+        // Restore items from save data
         internal void RestoreItems(List<ItemStackSaveJsonObject> items)
         {
             if (items == null) return;
             var slotSize = _inventoryService.GetSlotSize();
+
+            // セーブデータからのロード時はイベントを発火しない（ブロックがまだWorldBlockDatastoreに登録されていないため）
+            // Do not invoke events when loading from save data (block is not yet registered in WorldBlockDatastore)
             for (var i = 0; i < Math.Min(slotSize, items.Count); i++)
             {
                 var stack = items[i]?.ToItemStack();
                 if (stack == null) continue;
                 _inventoryService.SetItemWithoutEvent(i, stack);
-                InvokeEvent(i, stack);
             }
         }
 

@@ -132,8 +132,13 @@ namespace Game.Block.Blocks.Machine.Inventory
         {
             _itemDataStoreService.SetItem(slot, itemStack);
         }
-        
-        
+
+        public void SetItemWithoutEvent(int slot, IItemStack itemStack)
+        {
+            _itemDataStoreService.SetItemWithoutEvent(slot, itemStack);
+        }
+
+
         private void InvokeEvent(int slot, IItemStack itemStack)
         {
             _blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(

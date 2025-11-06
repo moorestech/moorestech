@@ -43,14 +43,17 @@ namespace Game.Block.Blocks.BaseCamp
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, blockParam.InventorySlot);
         }
         
-        public BaseCampComponent(Dictionary<string, string> componentStates, BlockInstanceId blockInstanceId, 
+        public BaseCampComponent(Dictionary<string, string> componentStates, BlockInstanceId blockInstanceId,
             BaseCampBlockParam blockParam) : this(blockInstanceId, blockParam)
         {
             var itemJsons = JsonConvert.DeserializeObject<List<ItemStackSaveJsonObject>>(componentStates[SaveKey]);
+
+            // セーブデータからのロード時はイベントを発火しない（ブロックがまだWorldBlockDatastoreに登録されていないため）
+            // Do not invoke events when loading from save data (block is not yet registered in WorldBlockDatastore)
             for (var i = 0; i < itemJsons.Count; i++)
             {
                 var itemStack = itemJsons[i].ToItemStack();
-                _itemDataStoreService.SetItem(i, itemStack);
+                _itemDataStoreService.SetItemWithoutEvent(i, itemStack);
             }
         }
         
