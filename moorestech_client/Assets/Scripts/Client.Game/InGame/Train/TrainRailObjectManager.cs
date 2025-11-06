@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Network.API;
+using Cysharp.Threading.Tasks;
 using Game.Train.Utility;
 using MessagePack;
 using Server.Event.EventReceive;
@@ -25,68 +27,32 @@ namespace Client.Game.InGame.Train
         
         [Inject] private BlockGameObjectDataStore _blockGameObjectDataStore;
         
+        private CancellationToken _ct;
         
         [Inject]
         public void Construct(InitialHandshakeResponse handshakeResponse)
         {
-            OnRailUpdateEvent(handshakeResponse.RailConnections, Array.Empty<RailComponentIDMessagePack>());
+            _ct = this.GetCancellationTokenOnDestroy();
+            OnRailDataReceived(handshakeResponse.RailConnections);
             ClientContext.VanillaApi.Event.SubscribeEventResponse(RailConnectionsEventPacket.EventTag, OnRailEvent);
-        }
-        
-        public void OnRailDataReceived(RailConnectionDataMessagePack[] connections)
-        {
-            // 受信したレールデータで内部キャッシュを更新
-            // Update cached rail data with the received connections
-            if (connections == null || connections.Length == 0) return;
-            
-            var normalized = NormalizeConnections(connections);
-            ApplyNormalizedConnections(normalized);
-        }
-        
-        public void OnRailUpdateEvent(RailConnectionDataMessagePack[] allConnections, RailComponentIDMessagePack[] changedIds)
-        {
-            // サーバーイベントで届いた全量データを適用
-            // Apply full snapshot received from the server event
-            OnRailDataReceived(allConnections);
-            foreach (var componentId in changedIds) UpdateRailComponentSpline(componentId);
-        }
-        
-        public void UpdateRailComponentSpline(RailComponentIDMessagePack componentId)
-        {
-            // 指定コンポーネントに紐づくSplineを更新
-            // Refresh splines linked to the specified rail component
-            if (componentId == null) return;
-            var componentKey = CreateComponentKey(componentId);
-            if (!_componentToConnections.TryGetValue(componentKey, out var connectionKeys) || connectionKeys.Count == 0) return;
-            var keysSnapshot = ListPool<RailConnectionKey>.Rent(connectionKeys.Count);
-            keysSnapshot.AddRange(connectionKeys);
-            foreach (var key in keysSnapshot)
-            {
-                if (!_connectionToSpline.TryGetValue(key, out var component)) continue;
-                component.UpdateConnection(component.ConnectionData);
-            }
-            ListPool<RailConnectionKey>.Return(keysSnapshot);
         }
         
         private void OnRailEvent(byte[] payload)
         {
-            // サーバーイベントをデシリアライズして処理
-            // Deserialize event payload and process updates
-            if (payload == null || payload.Length == 0)
-            {
-                Debug.LogWarning($"{ProtocolLogPrefix} Empty event payload received.");
-                return;
-            }
+            UpdateRailNode().Forget();
+        }
+        
+        private async UniTask UpdateRailNode()
+        {
+            var railConnectionData = await ClientContext.VanillaApi.Response.GetRailConnections(_ct);
             
-            var message = MessagePackSerializer.Deserialize<RailConnectionsEventPacket.RailConnectionsEventMessagePack>(payload);
-            if (message == null)
-            {
-                Debug.LogError($"{ProtocolLogPrefix} Failed to deserialize rail connection event.");
-                return;
-            }
-            
-            var changed = message.ChangedComponentIds ?? Array.Empty<RailComponentIDMessagePack>();
-            OnRailUpdateEvent(null, changed);
+            OnRailDataReceived(railConnectionData);
+        }
+        
+        public void OnRailDataReceived(RailConnectionDataMessagePack[] connections)
+        {
+            var normalized = NormalizeConnections(connections);
+            ApplyNormalizedConnections(normalized);
         }
         
         #region Internal
