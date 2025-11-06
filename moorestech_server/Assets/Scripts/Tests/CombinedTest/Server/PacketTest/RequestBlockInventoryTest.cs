@@ -5,6 +5,7 @@ using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
+using Game.Train.Common;
 using Game.Train.RailGraph;
 using Game.Train.Train;
 using MessagePack;
@@ -79,11 +80,15 @@ namespace Tests.CombinedTest.Server.PacketTest
             var trainCar = new TrainCar(tractionForce: 1000, inventorySlots: 3, length: distance);
             var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar });
 
+            // 列車をTrainUpdateServiceに登録
+            // Register the train to TrainUpdateService
+            TrainUpdateService.Instance.RegisterTrain(trainUnit);
+
             var itemFactory = ServerContext.ItemStackFactory;
             trainCar.SetItem(0, itemFactory.Create(new ItemId(1), 7));
             trainCar.SetItem(1, itemFactory.Create(new ItemId(2), 3));
 
-            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestTrain(trainUnit.TrainId))[0];
+            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestTrain(trainCar.CarId))[0];
             var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(responseBytes.ToArray());
 
             Assert.AreEqual(InventoryType.Train, data.InventoryType); // inventory type
