@@ -206,13 +206,6 @@ namespace Game.Block.Blocks.PowerGenerator
         {
             BlockException.CheckDestroy(this);
 
-            // ブロックがWorldBlockDatastoreに登録されていない場合はイベントを発火しない
-            // Do not fire events if the block is not registered in WorldBlockDatastore
-            if (ServerContext.WorldBlockDatastore.GetBlock(BlockInstanceId) == null)
-            {
-                return;
-            }
-
             var blockInventoryUpdate = (BlockOpenableInventoryUpdateEvent)ServerContext.BlockOpenableInventoryUpdateEvent;
             var properties = new BlockOpenableInventoryUpdateEventProperties(BlockInstanceId, slot, itemStack);
             blockInventoryUpdate.OnInventoryUpdateInvoke(properties);
