@@ -76,7 +76,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             //インベントリを持っているアイテムに移す
             packet.GetPacketResponse(GetPacket(7,
-                new ItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory, InventoryIdentifierMessagePack.CreateBlockMessage(new Vector3Int(5, 10))), 1 + PlayerInventoryConst.MainInventorySize,
+                new ItemMoveInventoryInfo(ItemMoveInventoryType.SubInventory, InventoryIdentifierMessagePack.CreateBlockMessage(new Vector3Int(5, 10))), 1 + PlayerInventoryConst.MainInventorySize,
                 new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory), 0));
 
             //移っているかチェック
@@ -87,7 +87,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             //持っているアイテムをインベントリに移す
             packet.GetPacketResponse(GetPacket(5,
                 new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory), 0,
-                new ItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory, InventoryIdentifierMessagePack.CreateBlockMessage(new Vector3Int(5, 10))), 1 + PlayerInventoryConst.MainInventorySize));
+                new ItemMoveInventoryInfo(ItemMoveInventoryType.SubInventory, InventoryIdentifierMessagePack.CreateBlockMessage(new Vector3Int(5, 10))), 1 + PlayerInventoryConst.MainInventorySize));
             
             //移っているかチェック
             Assert.AreEqual(itemStackFactory.Create(new ItemId(1), 8), chestComponent.GetItem(1));

@@ -4,7 +4,6 @@
     {
         MainInventory,
         GrabInventory,
-        BlockInventory,
-        TrainInventory,
+        SubInventory,
     }
 }

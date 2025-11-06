@@ -62,7 +62,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
         public IReadOnlyList<ItemSlotView> SubInventorySlotObjects { get; } = new List<ItemSlotView>();
         public List<IItemStack> SubInventory { get; } = new();
         public int Count => 0;
-        public ItemMoveInventoryInfo ItemMoveInventoryInfo { get; } = new(ItemMoveInventoryType.BlockInventory, null); // インベントリはないのでnullを入れておく
+        public ItemMoveInventoryInfo ItemMoveInventoryInfo { get; } = new(ItemMoveInventoryType.SubInventory, null); // インベントリはないのでnullを入れておく
         
         public void UpdateItemList(List<IItemStack> response) { }
         public void UpdateInventorySlot(int slot, IItemStack item) { }
