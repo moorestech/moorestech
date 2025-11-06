@@ -48,8 +48,8 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             // テスト用にアイテムを設定する際はイベントを発火させない（ブロックがまだWorldBlockDatastoreに登録されていないため）
             // Set items for testing without firing events (block not yet registered in WorldBlockDatastore)
-            var generatorInventory = (global::Core.Inventory.OpenableInventoryItemDataStoreService)typeof(global::Game.Block.Blocks.PowerGenerator.VanillaElectricGeneratorComponent)
-                .GetField("_itemDataStoreService", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+            var generatorInventory = (OpenableInventoryItemDataStoreService)typeof(VanillaElectricGeneratorComponent)
+                .GetField("_itemDataStoreService", BindingFlags.Instance | BindingFlags.NonPublic)
                 .GetValue(powerGenerator);
             generatorInventory.SetItemWithoutEvent(0, itemStackFactory.Create(fuelItemId, 5));
             generatorInventory.SetItemWithoutEvent(2, itemStackFactory.Create(secondaryItemId, 5));
