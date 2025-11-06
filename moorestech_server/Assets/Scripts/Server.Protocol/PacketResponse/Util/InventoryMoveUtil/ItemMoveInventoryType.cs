@@ -5,5 +5,6 @@
         MainInventory,
         GrabInventory,
         SubInventory,
+        TrainInventory,
     }
 }
