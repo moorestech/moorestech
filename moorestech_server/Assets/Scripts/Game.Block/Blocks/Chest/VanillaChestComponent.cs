@@ -36,15 +36,17 @@ namespace Game.Block.Blocks.Chest
         {
             var itemJsons = JsonConvert.DeserializeObject<List<ItemStackSaveJsonObject>>(componentStates[SaveKey]);
             if (itemJsons == null) return;
-            
+
+            // セーブデータからのロード時はイベントを発火しない（ブロックがまだWorldBlockDatastoreに登録されていないため）
+            // Do not invoke events when loading from save data (block is not yet registered in WorldBlockDatastore)
             for (var i = 0; i < slotNum; i++)
             {
                 if (i >= itemJsons.Count) break;
-                
+
                 var itemStack = itemJsons[i].ToItemStack();
-                _itemDataStoreService.SetItem(i, itemStack);
+                _itemDataStoreService.SetItemWithoutEvent(i, itemStack);
             }
-            
+
             if (slotNum < itemJsons.Count)
             {
                 Debug.LogError($"保存されているアイテムスロット数が、チェストのスロット数を超えています。BlockInstanceId:{blockInstanceId}");

@@ -1,22 +1,37 @@
-﻿using UnityEngine;
+﻿using Server.Util.MessagePack;
+using UnityEngine;
 
 namespace Server.Protocol.PacketResponse.Util.InventoryMoveUtil
 {
     public class ItemMoveInventoryInfo
     {
         public readonly ItemMoveInventoryType ItemMoveInventoryType;
-        public readonly Vector3Int Pos; // TODO こういうところをポジションベースからinstance idベースにする
-        
+
         /// <summary>
-        ///     アイテム移動用のパラメータクラスです
+        /// サブインベントリの識別子
+        /// Sub-inventory identifier
         /// </summary>
-        /// <param name="itemMoveInventoryType">移動元のインベントリタイプ</param>
-        /// <param name="x">ブロックインベントリの時は座標を指定する</param>
-        /// <param name="y">ブロックインベントリの時は座標を指定する</param>
-        public ItemMoveInventoryInfo(ItemMoveInventoryType itemMoveInventoryType, Vector3Int blockPos = default)
+        public readonly InventoryIdentifierMessagePack SubInventoryIdentifier;
+        
+        public static ItemMoveInventoryInfo CreateMain()
+        {
+            return new ItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory, null);
+        }
+
+        public static ItemMoveInventoryInfo CreateGrab()
+        {
+            return new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory, null);
+        }
+
+        public static ItemMoveInventoryInfo CreateSubInventory(InventoryIdentifierMessagePack subInventoryIdentifier)
+        {
+            return new ItemMoveInventoryInfo(ItemMoveInventoryType.SubInventory, subInventoryIdentifier);
+        }
+
+        private ItemMoveInventoryInfo(ItemMoveInventoryType itemMoveInventoryType, InventoryIdentifierMessagePack subInventoryIdentifier)
         {
             ItemMoveInventoryType = itemMoveInventoryType;
-            Pos = blockPos;
+            SubInventoryIdentifier = subInventoryIdentifier;
         }
     }
 }

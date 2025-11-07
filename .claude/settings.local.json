@@ -10,10 +10,8 @@
       "Bash(grep:*)",
       "Bash(ls:*)",
       "Bash(touch:*)",
-      "Bash(./unity-compile.sh:*)",
       "Bash(rm:*)",
       "Bash(sed:*)",
-      "Bash(./unity-test.sh:*)",
       "Bash(find:*)",
       "Bash(mkdir:*)",
       "Bash(mv:*)",
@@ -53,7 +51,15 @@
       "mcp__serena__think_about_collected_information",
       "SlashCommand(/kiro:spec-requirements:*)",
       "SlashCommand(/kiro:spec-impl:*)",
-      "Bash(git worktree:*)"
+      "Bash(git worktree:*)",
+      "Bash(./tools/unity-list-tests.sh:*)",
+      "Bash(./check_timeout_tests.sh:*)",
+      "Bash(tee:*)",
+      "mcp__serena__initial_instructions",
+      "mcp__serena__read_memory",
+      "SlashCommand(/kiro:spec-tasks:*)",
+      "mcp__serena__list_memories",
+      "Bash(git branch:*)"
     ],
     "deny": []
   },

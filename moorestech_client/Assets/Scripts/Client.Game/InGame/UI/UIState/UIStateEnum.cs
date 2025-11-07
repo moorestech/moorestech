@@ -2,11 +2,9 @@
 {
     public enum UIStateEnum
     {
-        Current,
-        
         GameScreen,
         PlayerInventory,
-        BlockInventory,
+        SubInventory,  // 統一インベントリステート（ブロック・列車共通）
         PauseMenu,
         DeleteBar,
         Story,

@@ -21,20 +21,20 @@ namespace Server.Protocol.PacketResponse
 
             // 編集処理を実行し、結果データを構築する
             // Execute edit operation and build response data
-            ExecuteEdit(request.Data);
+            ExecuteEdit(request);
             
             return null;
 
             #region Internal
 
-            void ExecuteEdit(RailConnectionEditData data)
+            void ExecuteEdit(RailConnectionEditRequest data)
             {
-                // 指定された座標からRailComponentを解決する
-                // Resolve RailComponents from the specified coordinates
-                var fromComponent = ResolveComponent(data.From);
+                // 指定された情報からRailComponentを解決する
+                // Resolve RailComponents from the specified information
+                var fromComponent = ResolveRailComponent(data.From);
                 if (fromComponent == null) return;
-                
-                var toComponent = ResolveComponent(data.To);
+
+                var toComponent = ResolveRailComponent(data.To);
                 if (toComponent == null) return;
 
                 // モードに応じて接続または切断を実行する
@@ -42,7 +42,7 @@ namespace Server.Protocol.PacketResponse
                 switch (data.Mode)
                 {
                     case RailEditMode.Connect:
-                        fromComponent.ConnectRailComponent(toComponent, true, true);
+                        fromComponent.ConnectRailComponent(toComponent, data.ConnectFromIsFront, data.ConnectToIsFront);
                         break;
                     case RailEditMode.Disconnect:
                         fromComponent.DisconnectRailComponent(toComponent, true, true);
@@ -53,56 +53,41 @@ namespace Server.Protocol.PacketResponse
                 }
             }
 
-            RailComponent ResolveComponent(Vector3Int position)
-            {
-                // ブロック位置から対象ブロックを取得する
-                // Obtain the target block from the provided position
-                var block = ServerContext.WorldBlockDatastore.GetBlock(position);
-                if (block == null)
-                {
-                    return null;
-                }
-                
-                // RailSaverComponentを取得してRailComponentにアクセスする
-                // Retrieve the RailSaverComponent to access inner rail components
-                return block.TryGetComponent<RailComponent>(out var railComponent) ? railComponent : null;
-            }
-
             #endregion
         }
 
         [MessagePackObject]
         public class RailConnectionEditRequest : ProtocolMessagePackBase
         {
-            [Key(2)] public RailConnectionEditData Data { get; set; }
+            [Key(2)] public RailComponentSpecifier From { get; set; }
+            [Key(3)] public RailComponentSpecifier To { get; set; }
+            [Key(4)] public RailEditMode Mode { get; set; }
+            [Key(5)] public bool ConnectFromIsFront { get; set; }
+            [Key(6)] public bool ConnectToIsFront { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-            public RailConnectionEditRequest()
+            public RailConnectionEditRequest() { Tag = RailConnectionEditProtocol.Tag; }
+
+            public static RailConnectionEditRequest CreateConnectRequest(RailComponentSpecifier from, RailComponentSpecifier to, bool connectFromIsFront, bool connectToIsFront)
             {
+                return new RailConnectionEditRequest
+                {
+                    From = from,
+                    To = to,
+                    Mode = RailEditMode.Connect,
+                    ConnectFromIsFront = connectFromIsFront,
+                    ConnectToIsFront = connectToIsFront,
+                };
             }
 
-            public RailConnectionEditRequest(RailConnectionEditData data)
+            public static RailConnectionEditRequest CreateDisconnectRequest(RailComponentSpecifier from, RailComponentSpecifier to)
             {
-                Tag = RailConnectionEditProtocol.Tag;
-                Data = data;
-            }
-        }
-
-        [MessagePackObject]
-        public class RailConnectionEditData
-        {
-            [Key(0)] public Vector3IntMessagePack From { get; set; }
-            [Key(1)] public Vector3IntMessagePack To { get; set; }
-            [Key(2)] public RailEditMode Mode { get; set; }
-
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-            public RailConnectionEditData() { }
-
-            public RailConnectionEditData(Vector3Int from, Vector3Int to, RailEditMode mode)
-            {
-                From = new Vector3IntMessagePack(from);
-                To = new Vector3IntMessagePack(to);
-                Mode = mode;
+                return new RailConnectionEditRequest
+                {
+                    From = from,
+                    To = to,
+                    Mode = RailEditMode.Disconnect,
+                };
             }
         }
 
@@ -110,6 +95,101 @@ namespace Server.Protocol.PacketResponse
         {
             Connect,
             Disconnect,
+        }
+
+        /// <summary>
+        /// RailComponentを特定するための指定情報
+        /// Specification information to identify RailComponent
+        /// </summary>
+        [MessagePackObject]
+        public class RailComponentSpecifier : ProtocolMessagePackBase
+        {
+            /// <summary>
+            /// 指定モード（レールまたは駅）
+            /// Specification mode (Rail or Station)
+            /// </summary>
+            [Key(2)] public RailComponentSpecifierMode Mode { get; set; }
+
+            /// <summary>
+            /// ブロックの座標
+            /// Block position
+            /// </summary>
+            [Key(3)] public Vector3IntMessagePack Position { get; set; }
+
+            /// <summary>
+            /// 駅モード時のレールインデックス（レールモードでは未使用）
+            /// Rail index for Station mode (unused in Rail mode)
+            /// </summary>
+            [Key(4)] public int RailIndex { get; set; }
+
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public RailComponentSpecifier() { }
+
+            /// <summary>
+            /// レールブロックを指定するインスタンスを作成
+            /// Create an instance specifying a rail block
+            /// </summary>
+            public static RailComponentSpecifier CreateRailSpecifier(Vector3Int position)
+            {
+                return new RailComponentSpecifier
+                {
+                    Mode = RailComponentSpecifierMode.Rail,
+                    Position = new Vector3IntMessagePack(position),
+                    RailIndex = 0,
+                };
+            }
+
+            /// <summary>
+            /// 駅ブロックを指定するインスタンスを作成
+            /// Create an instance specifying a station block
+            /// </summary>
+            public static RailComponentSpecifier CreateStationSpecifier(Vector3Int position, int railIndex)
+            {
+                return new RailComponentSpecifier
+                {
+                    Mode = RailComponentSpecifierMode.Station,
+                    Position = new Vector3IntMessagePack(position),
+                    RailIndex = railIndex,
+                };
+            }
+        }
+
+        /// <summary>
+        /// RailComponentSpecifierからRailComponentを解決する共通メソッド
+        /// Common method to resolve RailComponent from RailComponentSpecifier
+        /// </summary>
+        public static RailComponent ResolveRailComponent(RailComponentSpecifier specifier)
+        {
+            if (specifier == null) return null;
+            var block = ServerContext.WorldBlockDatastore.GetBlock(specifier.Position.Vector3Int);
+            if (block == null) return null;
+
+            switch (specifier.Mode)
+            {
+                // レールモード：ブロックから直接RailComponentを取得
+                // Rail mode: Get RailComponent directly from the block
+                case RailComponentSpecifierMode.Rail:
+                    return block.TryGetComponent<RailComponent>(out var railComponent) ? railComponent : null;
+                
+                // 駅モード：RailSaverComponentから配列インデックスで取得
+                // Station mode: Get from RailSaverComponent by array index
+                case RailComponentSpecifierMode.Station:
+                    if (!block.TryGetComponent<RailSaverComponent>(out var railSaverComponent)) return null;
+
+                    var railComponents = railSaverComponent.RailComponents;
+                    if (railComponents == null || specifier.RailIndex < 0 || specifier.RailIndex >= railComponents.Length) return null;
+
+                    return railComponents[specifier.RailIndex];
+
+                default:
+                    return null;
+            }
+        }
+        
+        public enum RailComponentSpecifierMode
+        {
+            Rail,
+            Station,
         }
     }
 }

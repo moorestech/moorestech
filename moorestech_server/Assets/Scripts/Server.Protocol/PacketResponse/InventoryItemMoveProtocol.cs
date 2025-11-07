@@ -31,23 +31,23 @@ namespace Server.Protocol.PacketResponse
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<InventoryItemMoveProtocolMessagePack>(payload.ToArray());
-            
-            var fromInventory = GetInventory(data.FromInventory.InventoryType, data.PlayerId, data.FromInventory.Pos);
+
+            var fromInventory = GetInventory(data.FromInventory.InventoryType, data.PlayerId, data.FromInventory.InventoryIdentifier);
             if (fromInventory == null) return null;
-            
+
             var fromSlot = data.FromInventory.Slot;
-            if (data.FromInventory.InventoryType == ItemMoveInventoryType.BlockInventory)
+            if (data.FromInventory.InventoryType == ItemMoveInventoryType.SubInventory)
                 fromSlot -= PlayerInventoryConst.MainInventorySize;
-            
-            
-            var toInventory = GetInventory(data.ToInventory.InventoryType, data.PlayerId, data.ToInventory.Pos);
+
+
+            var toInventory = GetInventory(data.ToInventory.InventoryType, data.PlayerId, data.ToInventory.InventoryIdentifier);
             if (toInventory == null) return null;
-            
+
             var toSlot = data.ToInventory.Slot;
-            if (data.ToInventory.InventoryType == ItemMoveInventoryType.BlockInventory)
+            if (data.ToInventory.InventoryType == ItemMoveInventoryType.SubInventory)
                 toSlot -= PlayerInventoryConst.MainInventorySize;
-            
-            
+
+
             switch (data.ItemMoveType)
             {
                 case ItemMoveType.SwapSlot:
@@ -57,11 +57,11 @@ namespace Server.Protocol.PacketResponse
                     InventoryItemInsertService.Insert(fromInventory, fromSlot, toInventory, data.Count);
                     break;
             }
-            
+
             return null;
         }
-        
-        private IOpenableInventory GetInventory(ItemMoveInventoryType inventoryType, int playerId, Vector3Int pos)
+
+        private IOpenableInventory GetInventory(ItemMoveInventoryType inventoryType, int playerId, InventoryIdentifierMessagePack inventoryIdentifier)
         {
             IOpenableInventory inventory = null;
             switch (inventoryType)
@@ -72,13 +72,32 @@ namespace Server.Protocol.PacketResponse
                 case ItemMoveInventoryType.GrabInventory:
                     inventory = _playerInventoryDataStore.GetInventoryData(playerId).GrabInventory;
                     break;
-                case ItemMoveInventoryType.BlockInventory:
-                    inventory = ServerContext.WorldBlockDatastore.ExistsComponent<IOpenableBlockInventoryComponent>(pos)
-                        ? ServerContext.WorldBlockDatastore.GetBlock<IOpenableBlockInventoryComponent>(pos)
-                        : null;
+                case ItemMoveInventoryType.SubInventory:
+                    // ブロック/列車インベントリの場合はInventoryIdentifierから情報を取得
+                    // Get information from InventoryIdentifier for block/train inventory
+                    if (inventoryIdentifier == null) return null;
+
+                    // InventoryIdentifierのタイプに応じて処理を分岐
+                    // Branch processing according to InventoryIdentifier type
+                    switch (inventoryIdentifier.InventoryType)
+                    {
+                        case Server.Util.MessagePack.InventoryType.Block:
+                            var pos = inventoryIdentifier.BlockPosition.Vector3Int;
+                            inventory = ServerContext.WorldBlockDatastore.ExistsComponent<IOpenableBlockInventoryComponent>(pos)
+                                ? ServerContext.WorldBlockDatastore.GetBlock<IOpenableBlockInventoryComponent>(pos)
+                                : null;
+                            break;
+                        case Server.Util.MessagePack.InventoryType.Train:
+                            // TODO: 列車インベントリの取得処理を実装
+                            // TODO: Implement train inventory retrieval
+                            // 現時点では列車インベントリシステムが完全には実装されていないため、nullを返す
+                            // Currently returns null as train inventory system is not fully implemented
+                            inventory = null;
+                            break;
+                    }
                     break;
             }
-            
+
             return inventory;
         }
         
@@ -114,21 +133,26 @@ namespace Server.Protocol.PacketResponse
         {
             [Obsolete("シリアライズ用の値です。InventoryTypeを使用してください。")]
             [Key(2)] public int InventoryId { get; set; }
-            
+
             [IgnoreMember] public ItemMoveInventoryType InventoryType => (ItemMoveInventoryType)Enum.ToObject(typeof(ItemMoveInventoryType), InventoryId);
-            
+
             [Key(3)] public int Slot { get; set; }
-            
-            [Key(4)] public Vector3IntMessagePack Pos { get; set; }
-            
+
+            /// <summary>
+            /// ブロックまたは列車インベントリの識別子
+            /// Identifier for block or train inventory
+            /// </summary>
+            [Key(4)] public InventoryIdentifierMessagePack InventoryIdentifier { get; set; }
+
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ItemMoveInventoryInfoMessagePack() { }
             public ItemMoveInventoryInfoMessagePack(ItemMoveInventoryInfo info, int slot)
             {
-                //メッセージパックでenumは重いらしいのでintを使う
+                // メッセージパックでenumは重いらしいのでintを使う
+                // MessagePack enum is heavy, so use int
                 InventoryId = (int)info.ItemMoveInventoryType;
                 Slot = slot;
-                Pos = new Vector3IntMessagePack(info.Pos);
+                InventoryIdentifier = info.SubInventoryIdentifier;
             }
         }
     }

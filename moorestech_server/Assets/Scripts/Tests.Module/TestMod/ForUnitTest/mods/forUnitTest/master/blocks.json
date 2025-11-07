@@ -3394,7 +3394,14 @@
       ],
       "blockType": "TrainRail",
       "itemGuid": "1b72541e-0896-43bb-91fa-0b3fef137dcf",
-      "blockParam": {},
+      "blockParam": {
+        "railPosition": [
+          0,
+          0.5,
+          0.5
+        ],
+        "controlPointLength": 0.5
+      },
       "name": "TestTrainRail",
       "blockGuid": "00000000-0000-0000-0000-000000000024",
       "overrideVerticalBlock": {}
@@ -3451,7 +3458,19 @@
             }
           ]
         },
-        "itemSlotCount": 5
+        "itemSlotCount": 5,
+        "entryRailPosition": [
+          0,
+          0.5,
+          2.5
+        ],
+        "exitRailPosition": [
+          22,
+          0.5,
+          2.5
+        ],
+        "entryControlPointLength": 0.5,
+        "exitControlPointLength": 0.5
       },
       "name": "TestTrainStation",
       "blockGuid": "00000000-0000-0000-0000-000000000025",
@@ -3511,7 +3530,19 @@
               }
             }
           ]
-        }
+        },
+        "frontRailPosition": [
+          0,
+          0.5,
+          2.5
+        ],
+        "backRailPosition": [
+          11,
+          0.5,
+          2.5
+        ],
+        "frontControlPointLength": 0.5,
+        "backControlPointLength": 0.5
       },
       "name": "TestTrainCargoPlatform",
       "blockGuid": "00000000-0000-0000-0000-000000000026",

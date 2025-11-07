@@ -1,0 +1,14 @@
+{
+  "trainCars": [
+    {
+      "tractionForce": 500000,
+      "inventorySlots": 10,
+      "fuelSlots": 0,
+      "length": 80,
+      "isFacingForward": true,
+      "itemGuid": "20000000-0000-0000-0000-000000000000",
+      "addressablePath": "",
+      "trainCarGuid": "dc82cf3f-709d-49eb-bdb2-67ffcaff561b"
+    }
+  ]
+}

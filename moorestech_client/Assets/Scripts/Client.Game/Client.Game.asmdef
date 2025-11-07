@@ -59,7 +59,10 @@
         "Game.UnlockState",
         "Common.Debug",
         "Game.Fluid",
-        "Game.Research"
+        "Game.Research",
+        "Game.Train",
+        "Unity.Mathematics",
+        "Unity.Splines"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

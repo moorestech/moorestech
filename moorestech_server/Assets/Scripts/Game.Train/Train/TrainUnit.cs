@@ -9,6 +9,10 @@ using System.Linq;
 
 namespace Game.Train.Train
 {
+    /// <summary>
+    /// 複数車両からなる列車編成全体を表すクラス
+    /// Represents an entire train formation composed of multiple cars.
+    /// </summary>
     public class TrainUnit
     {
         public string SaveKey { get; } = typeof(TrainUnit).FullName;
@@ -734,7 +738,12 @@ namespace Game.Train.Train
             _railPosition.OnDestroy();
             trainUnitStationDocking.OnDestroy();
 
+            foreach (var car in _cars)
+            {
+                car.Destroy();
+            }
             _cars.Clear();
+            
             TrainUpdateService.Instance.UnregisterTrain(this);
 
             trainDiagram = null;

@@ -62,9 +62,11 @@ namespace Game.Block.Blocks.PowerGenerator
             {
                 if (dataObject.Items == null) return;
 
+                // セーブデータからのロード時はイベントを発火しない（ブロックがまだWorldBlockDatastoreに登録されていないため）
+                // Do not invoke events when loading from save data (block is not yet registered in WorldBlockDatastore)
                 for (var i = 0; i < dataObject.Items.Count; i++)
                 {
-                    _itemDataStoreService.SetItem(i, dataObject.Items[i].ToItemStack());
+                    _itemDataStoreService.SetItemWithoutEvent(i, dataObject.Items[i].ToItemStack());
                 }
             }
 

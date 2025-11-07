@@ -67,7 +67,10 @@ namespace Game.Block.Blocks
             {
                 foreach (var detail in component.GetBlockStateDetails())
                 {
-                    detailStates.Add(detail.Key, detail.Value);
+                    if (!detailStates.TryAdd(detail.Key, detail.Value))
+                    {
+                        Debug.LogError($"同一キーのステート詳細が既に存在します。重複キー:{detail.Key}, \nブロック:{BlockMasterElement.Name} Position:{BlockPositionInfo.OriginalPos} InstanceId:{BlockInstanceId}");
+                    }
                 }
             }
             

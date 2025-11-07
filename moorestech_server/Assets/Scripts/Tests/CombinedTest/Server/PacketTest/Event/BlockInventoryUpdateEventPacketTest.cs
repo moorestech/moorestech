@@ -11,10 +11,12 @@ using NUnit.Framework;
 using Server.Boot;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
+using Server.Util.MessagePack;
 using Tests.Module.TestMod;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.EventProtocol;
 using System;
+using Server.Event.EventReceive.UnifiedInventoryEvent;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
 {
@@ -57,13 +59,15 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             //イベントパケットをチェック
             Assert.AreEqual(1, eventMessagePack.Events.Count);
             var payLoad = eventMessagePack.Events[0].Payload;
-            var data = MessagePackSerializer.Deserialize<OpenableBlockInventoryUpdateEventMessagePack>(payLoad);
+            var data = MessagePackSerializer.Deserialize<UnifiedInventoryEventMessagePack>(payLoad);
             
+            Assert.AreEqual(InventoryEventType.Update, data.EventType); // event type
+            Assert.AreEqual(InventoryType.Block, data.Identifier.InventoryType); // inventory type
             Assert.AreEqual(1, data.Slot); // slot id
             Assert.AreEqual(4, data.Item.Id.AsPrimitive()); // item id
             Assert.AreEqual(8, data.Item.Count); // item count
-            Assert.AreEqual(5, data.Position.X); // x
-            Assert.AreEqual(7, data.Position.Y); // y
+            Assert.AreEqual(5, data.Identifier.BlockPosition.X); // x
+            Assert.AreEqual(7, data.Identifier.BlockPosition.Y); // y
             
             
             //ブロックのインベントリを閉じる
@@ -81,44 +85,85 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         }
         
         
-        //インベントリが開けるのは１つまでであることをテストする
+        // 複数のインベントリを同時にサブスクライブできることをテストする
+        // Test that multiple inventories can be subscribed simultaneously
         [Test]
-        public void OnlyOneInventoryCanBeOpenedTest()
+        public void MultipleInventoriesCanBeOpenedTest()
         {
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            
+
             var worldBlockDataStore = ServerContext.WorldBlockDatastore;
             var itemStackFactory = ServerContext.ItemStackFactory;
-            
-            //ブロック1をセットアップ
+
+            // ブロック1をセットアップ
+            // Setup block 1
             worldBlockDataStore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(5, 7), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block1);
-            
-            //ブロック2をセットアップ
+
+            // ブロック2をセットアップ
+            // Setup block 2
             worldBlockDataStore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(10, 20), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block2);
-            
-            
-            //一つ目のブロックインベントリを開く
+
+
+            // 一つ目のブロックインベントリを開く
+            // Open first block inventory
             packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new Vector3Int(5, 7), true));
-            //二つ目のブロックインベントリを開く
+            // 二つ目のブロックインベントリを開く
+            // Open second block inventory
             packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new Vector3Int(10, 20), true));
-            
-            
-            //一つ目のブロックインベントリにアイテムを入れる
+
+
+            // 一つ目のブロックインベントリにアイテムを入れる
+            // Add item to first block inventory
             var block1Inventory = block1.GetComponent<VanillaMachineBlockInventoryComponent>();
             block1Inventory.SetItem(2, itemStackFactory.Create(new ItemId(4), 8));
-            
-            
-            //パケットが送られていないことをチェック
+
+
+            // パケットが送られていることをチェック（複数サブスクリプション対応のため）
+            // Check that packet is sent (multiple subscriptions are now supported)
             List<List<byte>> response = packetResponse.GetPacketResponse(GetEventPacket());
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
-            Assert.AreEqual(0, eventMessagePack.Events.Count);
+            Assert.AreEqual(1, eventMessagePack.Events.Count);
+
+            // イベントの内容を検証
+            // Verify event content
+            var payLoad = eventMessagePack.Events[0].Payload;
+            var data = MessagePackSerializer.Deserialize<UnifiedInventoryEventMessagePack>(payLoad);
+            Assert.AreEqual(InventoryEventType.Update, data.EventType);
+            Assert.AreEqual(InventoryType.Block, data.Identifier.InventoryType);
+            Assert.AreEqual(2, data.Slot);
+            Assert.AreEqual(5, data.Identifier.BlockPosition.X);
+            Assert.AreEqual(7, data.Identifier.BlockPosition.Y);
+
+
+            // 二つ目のブロックインベントリにアイテムを入れる
+            // Add item to second block inventory
+            var block2Inventory = block2.GetComponent<VanillaMachineBlockInventoryComponent>();
+            block2Inventory.SetItem(3, itemStackFactory.Create(new ItemId(5), 10));
+
+
+            // パケットが送られていることをチェック
+            // Check that packet is sent
+            response = packetResponse.GetPacketResponse(GetEventPacket());
+            eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
+            Assert.AreEqual(1, eventMessagePack.Events.Count);
+
+            // イベントの内容を検証
+            // Verify event content
+            payLoad = eventMessagePack.Events[0].Payload;
+            data = MessagePackSerializer.Deserialize<UnifiedInventoryEventMessagePack>(payLoad);
+            Assert.AreEqual(InventoryEventType.Update, data.EventType);
+            Assert.AreEqual(InventoryType.Block, data.Identifier.InventoryType);
+            Assert.AreEqual(3, data.Slot);
+            Assert.AreEqual(10, data.Identifier.BlockPosition.X);
+            Assert.AreEqual(20, data.Identifier.BlockPosition.Y);
         }
         
         
         private List<byte> OpenCloseBlockInventoryPacket(Vector3Int pos, bool isOpen)
         {
+            var identifier = InventoryIdentifierMessagePack.CreateBlockMessage(pos);
             return MessagePackSerializer
-                .Serialize(new BlockInventoryOpenCloseProtocol.BlockInventoryOpenCloseProtocolMessagePack(PlayerId, pos, isOpen)).ToList();
+                .Serialize(new SubscribeInventoryProtocol.SubscribeInventoryRequestMessagePack(PlayerId, identifier, isOpen)).ToList();
         }
         
         private List<byte> GetEventPacket()

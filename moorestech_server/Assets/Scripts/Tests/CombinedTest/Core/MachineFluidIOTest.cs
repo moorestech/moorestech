@@ -169,9 +169,11 @@ namespace Tests.CombinedTest.Core
             var itemStackFactory = ServerContext.ItemStackFactory;
             
             var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data[9]; // L:229
-            
+
+            // マシンブロックの配置
+            // Place the machine block
             var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
-            var block = blockFactory.Create(blockId, new BlockInstanceId(1), new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one));
+            ServerContext.WorldBlockDatastore.TryAddBlock(blockId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
             var blockInventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
             
             

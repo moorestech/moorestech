@@ -6,6 +6,7 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
+using Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect;
 using Client.Game.InGame.BlockSystem.StateProcessor;
@@ -26,11 +27,14 @@ using Client.Game.InGame.UI.Challenge;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Inventory.RecipeViewer;
-using Client.Game.InGame.UI.Inventory.Sub;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Game.InGame.UnlockState;
 using Client.Game.InGame.World;
+using Client.Game.InGame.Train;
+using Client.Game.InGame.UI.Inventory.Craft;
+using Client.Game.InGame.UI.UIState.State;
+using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Game.Skit;
 using Client.Network.API;
 using Client.Skit.Skit;
@@ -89,6 +93,9 @@ namespace Client.Starter
         [SerializeField] private NetworkDisconnectPresenter networkDisconnectPresenter;
         [SerializeField] private ChallengeManager challengeManager;
         
+        [SerializeField] private TrainRailObjectManager trainRailObjectManager;
+        [SerializeField] private TrainCarPreviewController trainCarObjectPreviewController;
+        
         [SerializeField] private SkitManager skitManager;
         [SerializeField] private SkitUI skitUI;
         [SerializeField] private BackgroundSkitManager backgroundSkitManager;
@@ -138,6 +145,8 @@ namespace Client.Starter
             // 設置システム
             // register placement system
             builder.Register<CommonBlockPlaceSystem>(Lifetime.Singleton);
+            builder.Register<ITrainCarPlacementDetector, TrainCarPlacementDetector>(Lifetime.Singleton);
+            builder.Register<TrainCarPlaceSystem>(Lifetime.Singleton);
             builder.Register<TrainRailPlaceSystem>(Lifetime.Singleton);
             builder.Register<TrainRailConnectSystem>(Lifetime.Singleton);
             builder.Register<PlaceSystemStateController>(Lifetime.Singleton);
@@ -147,7 +156,7 @@ namespace Client.Starter
             //UIコントロール
             // register UI control
             builder.Register<UIStateDictionary>(Lifetime.Singleton);
-            builder.Register<BlockInventoryState>(Lifetime.Singleton);
+            builder.Register<SubInventoryState>(Lifetime.Singleton);
             builder.Register<GameScreenState>(Lifetime.Singleton);
             builder.Register<PauseMenuState>(Lifetime.Singleton);
             builder.Register<PlayerInventoryState>(Lifetime.Singleton);
@@ -156,6 +165,7 @@ namespace Client.Starter
             builder.Register<PlaceBlockState>(Lifetime.Singleton);
             builder.Register<ChallengeListState>(Lifetime.Singleton);
             builder.Register<ItemRecipeViewerDataContainer>(Lifetime.Singleton);
+            builder.Register<GameScreenSubInventoryInteractService>(Lifetime.Singleton);
             
             // スキット関連
             // register skit related
@@ -213,6 +223,8 @@ namespace Client.Starter
             
             builder.RegisterComponent<IPlacementPreviewBlockGameObjectController>(previewBlockController);
             builder.RegisterComponent(railConnectPreviewObject);
+            builder.RegisterComponent(trainRailObjectManager);
+            builder.RegisterComponent(trainCarObjectPreviewController);
             
             builder.RegisterBuildCallback(objectResolver => { });
             

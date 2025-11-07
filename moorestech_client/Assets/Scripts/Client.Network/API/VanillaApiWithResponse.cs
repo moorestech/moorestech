@@ -11,6 +11,7 @@ using Game.CraftTree.Models;
 using Game.Research;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
+using Server.Util.MessagePack;
 using UnityEngine;
 
 namespace Client.Network.API
@@ -36,6 +37,7 @@ namespace Client.Network.API
             
             //必要なデータを取得する
             var responses = await UniTask.WhenAll(
+                GetRailConnections(ct),
                 GetMapObjectInfo(ct), 
                 GetWorldData(ct), 
                 GetPlayerInventory(playerId, ct), 
@@ -47,28 +49,20 @@ namespace Client.Network.API
             return new InitialHandshakeResponse(initialHandShake, responses);
         }
         
+        public async UniTask<RailConnectionDataMessagePack[]> GetRailConnections(CancellationToken ct)
+        {
+            // レール接続情報をまとめて取得
+            // Fetch all rail connection data from server
+            var request = new GetRailConnectionsProtocol.GetRailConnectionsRequest();
+            var response = await _packetExchangeManager.GetPacketResponse<GetRailConnectionsProtocol.GetRailConnectionsResponse>(request, ct);
+            return response?.Connections;
+        }
+        
         public async UniTask<List<GetMapObjectInfoProtocol.MapObjectsInfoMessagePack>> GetMapObjectInfo(CancellationToken ct)
         {
             var request = new GetMapObjectInfoProtocol.RequestMapObjectInfosMessagePack();
             var response = await _packetExchangeManager.GetPacketResponse<GetMapObjectInfoProtocol.ResponseMapObjectInfosMessagePack>(request, ct);
             return response?.MapObjects;
-        }
-        
-        public async UniTask<List<IItemStack>> GetBlockInventory(Vector3Int blockPos, CancellationToken ct)
-        {
-            var request = new BlockInventoryRequestProtocol.RequestBlockInventoryRequestProtocolMessagePack(blockPos);
-            
-            var response = await _packetExchangeManager.GetPacketResponse<BlockInventoryRequestProtocol.BlockInventoryResponseProtocolMessagePack>(request, ct);
-            
-            var items = new List<IItemStack>(response.Items.Length);
-            for (var i = 0; i < response.Items.Length; i++)
-            {
-                var id = response.Items[i].Id;
-                var count = response.Items[i].Count;
-                items.Add(_itemStackFactory.Create(id, count));
-            }
-            
-            return items;
         }
         
         public async UniTask<PlayerInventoryResponse> GetMyPlayerInventory(CancellationToken ct)
@@ -192,5 +186,30 @@ namespace Client.Network.API
             
             return response;
         }
+        
+        public async UniTask<List<IItemStack>> GetInventory(InventoryIdentifierMessagePack identifier, CancellationToken ct)
+        {
+            var request = new InventoryRequestProtocol.RequestInventoryRequestProtocolMessagePack(identifier);
+            var response = await _packetExchangeManager.GetPacketResponse<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(request, ct);
+            return CreateStacks(response.Items);
+        }
+        
+        #region Internal
+        
+        private List<IItemStack> CreateStacks(ItemMessagePack[] items)
+        {
+            // メッセージパックからアイテムスタックを生成
+            // Create item stacks from message pack items
+            var count = items?.Length ?? 0;
+            var stacks = new List<IItemStack>(count);
+            if (items == null) return stacks;
+            foreach (var item in items)
+            {
+                stacks.Add(_itemStackFactory.Create(item.Id, item.Count));
+            }
+            return stacks;
+        }
+        
+        #endregion
     }
 }

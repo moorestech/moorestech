@@ -12,19 +12,22 @@ using Core.Master;
 using MessagePack;
 using UnityEngine;
 using System;
+using Server.Protocol;
 
 namespace Tests.Util
 {
     public readonly struct TrainTestEnvironment
     {
-        public TrainTestEnvironment(ServiceProvider serviceProvider, IWorldBlockDatastore worldBlockDatastore)
+        public TrainTestEnvironment(ServiceProvider serviceProvider, IWorldBlockDatastore worldBlockDatastore, PacketResponseCreator packetResponseCreator)
         {
             ServiceProvider = serviceProvider;
             WorldBlockDatastore = worldBlockDatastore;
+            PacketResponseCreator = packetResponseCreator;
         }
 
         public ServiceProvider ServiceProvider { get; }
         public IWorldBlockDatastore WorldBlockDatastore { get; }
+        public PacketResponseCreator PacketResponseCreator { get; }
 
         public RailGraphDatastore GetRailGraphDatastore()
         {
@@ -36,9 +39,8 @@ namespace Tests.Util
     {
         public static TrainTestEnvironment CreateEnvironment()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
-                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var environment = new TrainTestEnvironment(serviceProvider, ServerContext.WorldBlockDatastore);
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var environment = new TrainTestEnvironment(serviceProvider, ServerContext.WorldBlockDatastore, packet);
 
 #if UNITY_INCLUDE_TESTS
             TrainUpdateService.Instance.ResetTickAccumulator();
