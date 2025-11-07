@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.UI.Inventory.Common;
 using Core.Item.Interface;
-using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
+using Game.PlayerInventory.Interface.Subscription;
 using UnityEngine;
 
 namespace Client.Game.InGame.UI.Inventory.Block
@@ -18,17 +18,19 @@ namespace Client.Game.InGame.UI.Inventory.Block
         public IReadOnlyList<ItemSlotView> SubInventorySlotObjects => SubInventorySlotObjectsInternal;
         public int Count => SubInventorySlotObjectsInternal.Count;
         public List<IItemStack> SubInventory { get; } = new();
-        public ItemMoveInventoryInfo ItemMoveInventoryInfo { get; protected set; }
+        public ISubInventoryIdentifier ISubInventoryIdentifier { get; protected set; }
         
         /// <summary>
-        /// そのブロックの全てのアイテムスロットを管理するリスト。ここに登録されているリストはインベントリのスロットとしてみなされます。
-        /// A list that manages all item slots of the block. The list stored here is considered as an inventory slot.
+        /// インベントリとして機能させるために、作成したItemSlotViewは必ずここに入れてください。
+        /// ここに登録されているリストはインベントリのスロットとしてみなされます。
+        /// Make sure to put the created ItemSlotView here to make it function as an inventory.
+        /// The list registered here is considered as the slots of the inventory.
         /// </summary>
         protected readonly List<ItemSlotView> SubInventorySlotObjectsInternal = new();
         
         public virtual void Initialize(BlockGameObject blockGameObject)
         {
-            ItemMoveInventoryInfo = new ItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory, blockGameObject.BlockPosInfo.OriginalPos);
+            ISubInventoryIdentifier = new BlockInventorySubInventoryIdentifier(blockGameObject.BlockPosInfo.OriginalPos);
         }
         
         public void UpdateItemList(List<IItemStack> response)

@@ -110,15 +110,15 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             InventoryItemMoveProtocolMessagePack messagePack;
             if (toGrab)
             {
-                var from = new ItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory);
-                var to = new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory);
+                var from = ItemMoveInventoryInfo.CreateMain();
+                var to = ItemMoveInventoryInfo.CreateGrab();
                 messagePack = new InventoryItemMoveProtocolMessagePack(PlayerId, itemCount, ItemMoveType.SwapSlot,
                     from, inventorySlot, to, 0);
             }
             else
             {
-                var from = new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory);
-                var to = new ItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory);
+                var from = ItemMoveInventoryInfo.CreateGrab();
+                var to = ItemMoveInventoryInfo.CreateMain();
                 messagePack = new InventoryItemMoveProtocolMessagePack(PlayerId, itemCount, ItemMoveType.SwapSlot,
                     from, 0, to, inventorySlot);
             }

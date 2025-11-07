@@ -1,5 +1,6 @@
 ﻿using System;
 using Core.Item.Interface;
+using UniRx;
 
 namespace Game.Block.Interface.Event
 {
@@ -9,7 +10,7 @@ namespace Game.Block.Interface.Event
     /// </summary>
     public interface IBlockOpenableInventoryUpdateEvent
     {
-        public void Subscribe(Action<BlockOpenableInventoryUpdateEventProperties> blockInventoryEvent);
+        public IObservable<BlockOpenableInventoryUpdateEventProperties> OnInventoryUpdated { get; }
     }
     
     public class BlockOpenableInventoryUpdateEventProperties

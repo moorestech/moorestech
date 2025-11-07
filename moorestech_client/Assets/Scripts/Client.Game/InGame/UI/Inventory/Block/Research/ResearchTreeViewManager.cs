@@ -8,7 +8,7 @@ using Core.Master;
 using Core.Item.Interface;
 using Cysharp.Threading.Tasks;
 using Game.Research;
-using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
+using Game.PlayerInventory.Interface.Subscription;
 using UniRx;
 using UnityEngine;
 
@@ -17,9 +17,9 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
     public class ResearchTreeViewManager : MonoBehaviour, IBlockInventoryView
     {
         [SerializeField] private ResearchTreeView researchTreeView;
-        
+
         public List<IItemStack> SubInventory { get; } = new();
-        public ItemMoveInventoryInfo ItemMoveInventoryInfo { get; private set; }
+        public ISubInventoryIdentifier ISubInventoryIdentifier { get; private set; }
         public IReadOnlyList<ItemSlotView> SubInventorySlotObjects { get; } = new List<ItemSlotView>();
         public int Count => 0;
         
@@ -27,7 +27,7 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
 
         public void Initialize(BlockGameObject blockGameObject)
         {
-            ItemMoveInventoryInfo = new ItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory, blockGameObject.BlockPosInfo.OriginalPos);
+            ISubInventoryIdentifier = new BlockInventorySubInventoryIdentifier(blockGameObject.BlockPosInfo.OriginalPos);
             _destroyCancellationToken = this.GetCancellationTokenOnDestroy();
             
             // 研究実行イベントの登録

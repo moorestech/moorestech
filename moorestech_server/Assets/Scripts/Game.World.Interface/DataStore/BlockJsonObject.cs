@@ -11,7 +11,7 @@ namespace Game.World.Interface.DataStore
         [JsonIgnore] public Guid BlockGuid => Guid.Parse(BlockGuidStr);
         
         [JsonProperty("direction")] public int Direction;
-        [JsonProperty("entityId")] public int EntityId;
+        [JsonProperty("instanceId")] public int InstanceId;
         [JsonProperty("state")] public Dictionary<string,string> ComponentStates;
         
         [JsonIgnore] public Vector3Int Pos => new(X, Y, Z);
@@ -19,13 +19,13 @@ namespace Game.World.Interface.DataStore
         [JsonProperty("Y")] public int Y;
         [JsonProperty("Z")] public int Z;
         
-        public BlockJsonObject(Vector3Int pos, string blockGuid, int entityId, Dictionary<string,string> componentStates, int direction)
+        public BlockJsonObject(Vector3Int pos, string blockGuid, int instanceId, Dictionary<string,string> componentStates, int direction)
         {
             X = pos.x;
             Y = pos.y;
             Z = pos.z;
             BlockGuidStr = blockGuid;
-            EntityId = entityId;
+            InstanceId = instanceId;
             ComponentStates = componentStates;
             Direction = direction;
         }

@@ -3,7 +3,7 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.UI.Inventory.Common;
 using Core.Item.Interface;
 using Game.Gear.Common;
-using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
+using Game.PlayerInventory.Interface.Subscription;
 using TMPro;
 using UnityEngine;
 
@@ -62,7 +62,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
         public IReadOnlyList<ItemSlotView> SubInventorySlotObjects { get; } = new List<ItemSlotView>();
         public List<IItemStack> SubInventory { get; } = new();
         public int Count => 0;
-        public ItemMoveInventoryInfo ItemMoveInventoryInfo { get; } = new(ItemMoveInventoryType.BlockInventory); // インベントリはないので固定値を入れておく
+        public ISubInventoryIdentifier ISubInventoryIdentifier { get; } = null; // インベントリはないのでnullを入れておく
         
         public void UpdateItemList(List<IItemStack> response) { }
         public void UpdateInventorySlot(int slot, IItemStack item) { }

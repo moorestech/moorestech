@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -9,17 +10,15 @@ namespace Client.Common.Asset
 {
     public class AddressableLoader
     {
-        public static async UniTask<LoadedAsset<T>> LoadAsync<T>(string address) where T : UnityEngine.Object
+        
+        public static LoadedAsset<T> Load<T>(string address) where T : UnityEngine.Object
         {
-            if (string.IsNullOrEmpty(address))
-            {
-                return null;
-            }
+            if (string.IsNullOrEmpty(address)) return null;
             
             var handle = Addressables.LoadAssetAsync<T>(address);
             try
             {
-                await handle.ToUniTask();
+                handle.WaitForCompletion();   // 完了するまでブロック
             }
             catch (Exception e)
             {
@@ -30,9 +29,34 @@ namespace Client.Common.Asset
             return handle.Status == AsyncOperationStatus.Succeeded ? new LoadedAsset<T>(handle.Result) : null;
         }
         
-        public static async UniTask<T> LoadAsyncDefault<T>(string address) where T : UnityEngine.Object
+        public static T LoadDefault<T>(string address) where T : UnityEngine.Object
         {
-            var loadedAsset = await LoadAsync<T>(address);
+            var loadedAsset = Load<T>(address);
+            return loadedAsset?.Asset;
+        }
+        
+        
+        public static async UniTask<LoadedAsset<T>> LoadAsync<T>(string address, CancellationToken ct = default) where T : UnityEngine.Object
+        {
+            if (string.IsNullOrEmpty(address)) return null;
+            
+            var handle = Addressables.LoadAssetAsync<T>(address);
+            try
+            {
+                await handle.ToUniTask(cancellationToken: ct);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Addressables Load Error: {address}\n{e.Message}\n{e.StackTrace}");
+                return null;
+            }
+            
+            return handle.Status == AsyncOperationStatus.Succeeded ? new LoadedAsset<T>(handle.Result) : null;
+        }
+        
+        public static async UniTask<T> LoadAsyncDefault<T>(string address, CancellationToken ct = default) where T : UnityEngine.Object
+        {
+            var loadedAsset = await LoadAsync<T>(address, ct);
             return loadedAsset?.Asset;
         }
     }

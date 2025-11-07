@@ -7,7 +7,8 @@
     "Core.Item.Interface",
     "Core.Util",
     "Game.Base",
-    "Core.Master"
+    "Core.Master",
+    "Game.Train"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

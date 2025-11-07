@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Common;
@@ -60,7 +61,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
         {
             foreach (var processor in _blockPreviewStateProcessors)
             {
-                processor.SetPreviewStateDetail(placeInfo);
+                try
+                {
+                    processor.SetPreviewStateDetail(placeInfo);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"BlockPreviewObject SetPreviewStateDetail Error: {e.Message} \n {e.StackTrace}");
+                }
             }
         }
         

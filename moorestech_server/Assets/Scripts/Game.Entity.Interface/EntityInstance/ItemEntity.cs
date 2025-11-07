@@ -1,36 +1,41 @@
-﻿using Core.Item.Interface;
+﻿using System;
+using Core.Item.Interface;
 using Core.Master;
+using MessagePack;
 using UnityEngine;
 
 namespace Game.Entity.Interface.EntityInstance
 {
     public class ItemEntity : IEntity
     {
+        public EntityInstanceId InstanceId { get; }
+        public string EntityType => VanillaEntityType.VanillaItem;
+        public Vector3 Position { get; private set; }
+        
+        private ItemId _id;
+        private int _count;
+        
+        
         public ItemEntity(EntityInstanceId instanceId, Vector3 position)
         {
             InstanceId = instanceId;
             Position = position;
         }
         
-        public EntityInstanceId InstanceId { get; }
-        public string EntityType => VanillaEntityType.VanillaItem;
-        public Vector3 Position { get; private set; }
-        public string State { get; private set; }
-        
+        public void SetItemData(ItemId id, int count)
+        {
+            _id = id;
+            _count = count;
+        }
         
         public void SetPosition(Vector3 position)
         {
             Position = position;
         }
-        
-        public void SetState(IItemStack itemStack)
+        public byte[] GetEntityData()
         {
-            State = itemStack.Id + "," + itemStack.Count;
-        }
-        
-        public void SetState(ItemId id, int count)
-        {
-            State = id + "," + count;
+            var itemState = new ItemEntityStateMessagePack(_id, _count);
+            return MessagePackSerializer.Serialize(itemState);
         }
     }
 }

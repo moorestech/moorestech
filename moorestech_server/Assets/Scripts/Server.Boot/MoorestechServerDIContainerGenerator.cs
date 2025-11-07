@@ -28,9 +28,11 @@ using Game.PlayerInventory;
 using Game.PlayerInventory.Event;
 using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Event;
+using Game.PlayerInventory.Interface.Subscription;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using Game.Train.Common;
+using Game.Train.Event;
 using Game.Train.RailGraph;
 using Game.UnlockState;
 using Game.World;
@@ -45,6 +47,7 @@ using Mod.Loader;
 using Newtonsoft.Json;
 using Server.Event;
 using Server.Event.EventReceive;
+using Server.Event.EventReceive.UnifiedInventoryEvent;
 using Server.Protocol;
 
 namespace Server.Boot
@@ -78,6 +81,7 @@ namespace Server.Boot
             var masterJsonFileContainer = new MasterJsonFileContainer(ModJsonStringLoader.GetMasterString(modResource));
             MasterHolder.Load(masterJsonFileContainer);
 
+            // ServerContext用のインスタンスを登録
             var initializerCollection = new ServiceCollection();
             initializerCollection.AddSingleton(masterJsonFileContainer);
             initializerCollection.AddSingleton<IItemStackFactory, ItemStackFactory>();
@@ -89,7 +93,6 @@ namespace Server.Boot
             initializerCollection.AddSingleton<IBlockOpenableInventoryUpdateEvent, BlockOpenableInventoryUpdateEvent>();
             initializerCollection.AddSingleton<GearNetworkDatastore>();
             initializerCollection.AddSingleton<RailGraphDatastore>();
-            initializerCollection.AddSingleton<TrainUpdateService>();
             initializerCollection.AddSingleton<TrainDiagramManager>();
             initializerCollection.AddSingleton<TrainRailPositionManager>();
 
@@ -110,14 +113,13 @@ namespace Server.Boot
             services.AddSingleton<EventProtocolProvider, EventProtocolProvider>();
             services.AddSingleton<IWorldSettingsDatastore, WorldSettingsDatastore>();
             services.AddSingleton<IPlayerInventoryDataStore, PlayerInventoryDataStore>();
-            services.AddSingleton<IBlockInventoryOpenStateDataStore, BlockInventoryOpenStateDataStore>();
+            services.AddSingleton<IInventorySubscriptionStore, InventorySubscriptionStore>();
             services.AddSingleton<IWorldEnergySegmentDatastore<EnergySegment>, WorldEnergySegmentDatastore<EnergySegment>>();
             services.AddSingleton<MaxElectricPoleMachineConnectionRange, MaxElectricPoleMachineConnectionRange>();
             services.AddSingleton<IEntitiesDatastore, EntitiesDatastore>();
             services.AddSingleton<IEntityFactory, EntityFactory>(); // TODO これを削除してContext側に加える？
             services.AddSingleton<GearNetworkDatastore>();
             services.AddSingleton<RailGraphDatastore>();
-            services.AddSingleton<TrainUpdateService>();
             services.AddSingleton<TrainDiagramManager>();
             services.AddSingleton<TrainRailPositionManager>();
 
@@ -132,6 +134,7 @@ namespace Server.Boot
             services.AddSingleton<ChallengeDatastore, ChallengeDatastore>();
             services.AddSingleton<ChallengeEvent, ChallengeEvent>();
             services.AddSingleton<TrainSaveLoadService, TrainSaveLoadService>();
+            services.AddSingleton<ITrainUpdateEvent, TrainUpdateEvent>();
 
             //JSONファイルのセーブシステムの読み込み
             services.AddSingleton(modResource);
@@ -147,7 +150,7 @@ namespace Server.Boot
             //イベントレシーバーを登録
             services.AddSingleton<ChangeBlockStateEventPacket>();
             services.AddSingleton<MainInventoryUpdateEventPacket>();
-            services.AddSingleton<OpenableBlockInventoryUpdateEventPacket>();
+            services.AddSingleton<UnifiedInventoryEventPacket>();
             services.AddSingleton<GrabInventoryUpdateEventPacket>();
             services.AddSingleton<PlaceBlockEventPacket>();
             services.AddSingleton<RemoveBlockToSetEventPacket>();
@@ -158,6 +161,7 @@ namespace Server.Boot
 
             services.AddSingleton<MapObjectUpdateEventPacket>();
             services.AddSingleton<UnlockedEventPacket>();
+            services.AddSingleton<RailConnectionsEventPacket>();
             
             //データのセーブシステム
             services.AddSingleton<AssembleSaveJsonText, AssembleSaveJsonText>();
@@ -169,7 +173,7 @@ namespace Server.Boot
             //イベントレシーバーをインスタンス化する
             //TODO この辺を解決するDIコンテナを探す VContinerのRegisterEntryPoint的な
             serviceProvider.GetService<MainInventoryUpdateEventPacket>();
-            serviceProvider.GetService<OpenableBlockInventoryUpdateEventPacket>();
+            serviceProvider.GetService<UnifiedInventoryEventPacket>();
             serviceProvider.GetService<GrabInventoryUpdateEventPacket>();
             serviceProvider.GetService<PlaceBlockEventPacket>();
             serviceProvider.GetService<RemoveBlockToSetEventPacket>();
@@ -177,7 +181,6 @@ namespace Server.Boot
 
             serviceProvider.GetService<GearNetworkDatastore>();
             serviceProvider.GetService<RailGraphDatastore>();
-            serviceProvider.GetService<TrainUpdateService>();
             serviceProvider.GetService<TrainDiagramManager>();
             serviceProvider.GetService<TrainRailPositionManager>();
             serviceProvider.GetService<EnergyConnectUpdaterContainer<EnergySegment, IElectricConsumer, IElectricGenerator, IElectricTransformer>>();
@@ -186,6 +189,7 @@ namespace Server.Boot
             serviceProvider.GetService<MapObjectUpdateEventPacket>();
             serviceProvider.GetService<UnlockedEventPacket>();
             serviceProvider.GetService<ResearchCompleteEventPacket>();
+            serviceProvider.GetService<RailConnectionsEventPacket>();
             
             serverContext.SetMainServiceProvider(serviceProvider);
 

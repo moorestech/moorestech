@@ -5,6 +5,7 @@ using Core.Item.Interface;
 using Core.Master;
 using Game.Context;
 using Game.PlayerInventory.Interface;
+using Game.PlayerInventory.Interface.Subscription;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 
 namespace Client.Game.InGame.UI.Inventory.Main
@@ -89,8 +90,10 @@ namespace Client.Game.InGame.UI.Inventory.Main
             {
                 return localType switch
                 {
-                    LocalMoveInventoryType.MainOrSub => localSlot < PlayerInventoryConst.MainInventorySize ? new ItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory) : _subInventory.ItemMoveInventoryInfo,
-                    LocalMoveInventoryType.Grab => new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory),
+                    LocalMoveInventoryType.MainOrSub => localSlot < PlayerInventoryConst.MainInventorySize
+                        ? ItemMoveInventoryInfo.CreateMain()
+                        : ItemMoveInventoryInfo.CreateSubInventory(_subInventory.ISubInventoryIdentifier.ToMessagePack()),
+                    LocalMoveInventoryType.Grab => ItemMoveInventoryInfo.CreateGrab(),
                     _ => throw new ArgumentOutOfRangeException(nameof(localType), localType, null),
                 };
             }

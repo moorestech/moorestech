@@ -7,27 +7,22 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
     /// </summary>
     public class TrainRailConnectPreviewCalculator
     {
-        public static TrainRailConnectPreviewData CalculatePreviewData(BlockGameObject fromBlock, TrainRailConnectAreaCollider toArea)
+        public static TrainRailConnectPreviewData CalculatePreviewData(IRailComponentConnectAreaCollider fromArea, IRailComponentConnectAreaCollider toArea)
         {
             // TODO
             
             // 仮実装: 常に前面同士を接続する
             return new TrainRailConnectPreviewData
             {
-                FromBlock = fromBlock,
-                IsFromFront = true,
-                ToBlock = toArea.BlockGameObject,
-                IsToFront = true
+                IsFromFront = fromArea.IsFront,
+                IsToFront = toArea.IsFront,
             };
         }
     }
     
     public struct TrainRailConnectPreviewData
     {
-        public BlockGameObject FromBlock;
         public bool IsFromFront;
-        
-        public BlockGameObject ToBlock;
         public bool IsToFront;
     }
 }

@@ -2,6 +2,7 @@ using Game.Train.Common;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UniRx;
 
 namespace Game.Train.RailGraph
 {
@@ -30,6 +31,10 @@ namespace Game.Train.RailGraph
         private Dictionary<ConnectionDestination, int> ConnectionDestinationToRailId;//逆引き
         // 座標はセーブ時と列車座標を求めるときにRailPositionのRailNode情報から3D座標を復元するために使う。
         // なくてもレール接続を組むことは可能だがセーブできないし表示できない
+        
+        // レールグラフ更新イベント
+        // Rail graph update event
+        public static Subject<List<RailComponentID>> RailGraphUpdateEvent = new Subject<List<RailComponentID>>();
 
 
         public RailGraphDatastore()
@@ -137,6 +142,15 @@ namespace Game.Train.RailGraph
             return Instance.FindShortestPathInternal(startid, targetid);
         }
 
+        /// <summary>
+        /// 全レール接続情報を取得する
+        /// Get all rail connection information
+        /// </summary>
+        public static List<RailConnectionInfo> GetAllRailConnections()
+        {
+            return Instance.GetAllRailConnectionsInternal();
+        }
+
         //======================================================
         //  内部実装部 (インスタンスメソッド)
         //======================================================
@@ -181,6 +195,10 @@ namespace Game.Train.RailGraph
                 connectNodes[nodeid].RemoveAll(x => x.Item1 == targetid);
                 connectNodes[nodeid].Add((targetid, distance));
             }
+            
+            // レールグラフ更新イベントを発火
+            // Fire rail graph update event
+            NotifyRailGraphUpdate(node, targetNode);
         }
 
         private void DisconnectNodeInternal(RailNode node, RailNode targetNode)
@@ -188,6 +206,8 @@ namespace Game.Train.RailGraph
             var nodeid = railIdDic[node];
             var targetid = railIdDic[targetNode];
             connectNodes[nodeid].RemoveAll(x => x.Item1 == targetid);
+            // レールグラフ更新イベントを発火
+            // TODO 削除関連はまだ未対応
         }
 
         private void RemoveNodeInternal(RailNode node)
@@ -247,7 +267,7 @@ namespace Game.Train.RailGraph
             {
                 return false;
             }
-
+            railIdToConnectionDestination.TryGetValue(nodeId, out destination);
             return railIdToConnectionDestination.TryGetValue(nodeId, out destination);
         }
 
@@ -294,6 +314,55 @@ namespace Game.Train.RailGraph
             if (logging)
                 Debug.LogWarning("RailNodeがつながっていません " + startid + " to " + targetid);
             return -1;
+        }
+
+        // レールグラフ更新イベントを発火するヘルパーメソッド
+        // Helper method to fire rail graph update event
+        private void NotifyRailGraphUpdate(RailNode node1, RailNode node2)
+        {
+            var changedComponentIds = new List<RailComponentID>();
+            
+            // 両ノードのConnectionDestinationからRailComponentIDを取得
+            // Get RailComponentID from ConnectionDestination of both nodes
+            if (TryGetRailComponentIDInternal(node1, out var dest1))
+            {
+                changedComponentIds.Add(dest1.DestinationID);
+            }
+            if (TryGetRailComponentIDInternal(node2, out var dest2))
+            {
+                changedComponentIds.Add(dest2.DestinationID);
+            }
+            
+            // イベントを発火
+            // Fire event
+            if (changedComponentIds.Count > 0)
+            {
+                RailGraphUpdateEvent.OnNext(changedComponentIds);
+            }
+        }
+
+        // 全レール接続情報を取得する内部実装
+        // Internal implementation to get all rail connections
+        private List<RailConnectionInfo> GetAllRailConnectionsInternal()
+        {
+            var connections = new List<RailConnectionInfo>();
+            
+            for (int i = 0; i < railNodes.Count; i++)
+            {
+                var fromNode = railNodes[i];
+                if (fromNode == null) continue;
+                
+                foreach (var (targetId, distance) in connectNodes[i])
+                {
+                    if (targetId < 0 || targetId >= railNodes.Count) continue;
+                    var toNode = railNodes[targetId];
+                    if (toNode == null) continue;
+                    
+                    connections.Add(new RailConnectionInfo(fromNode, toNode, distance));
+                }
+            }
+            
+            return connections;
         }
 
         // ダイクストラ startからtargetへのnodeリストを返す、0がstart、最後がtarget

@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
+using Server.Util.MessagePack;
 using Tests.Module.TestMod;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.InventoryItemMoveProtocol;
@@ -36,8 +37,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             //インベントリを持っているアイテムに移す
             packet.GetPacketResponse(GetPacket(7,
-                new ItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory), 0,
-                new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory), 0));
+                ItemMoveInventoryInfo.CreateMain(), 0,
+                ItemMoveInventoryInfo.CreateGrab(), 0));
             
             //移っているかチェック
             Assert.AreEqual(itemStackFactory.Create(new ItemId(1), 3), mainInventory.GetItem(0));
@@ -46,8 +47,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             //持っているアイテムをインベントリに移す
             packet.GetPacketResponse(GetPacket(5,
-                new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory), 0,
-                new ItemMoveInventoryInfo(ItemMoveInventoryType.MainInventory), 0));
+                ItemMoveInventoryInfo.CreateGrab(), 0,
+                ItemMoveInventoryInfo.CreateMain(), 0));
             
             
             //移っているかチェック
@@ -75,18 +76,18 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             //インベントリを持っているアイテムに移す
             packet.GetPacketResponse(GetPacket(7,
-                new ItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory, new Vector3Int(5, 10)), 1 + PlayerInventoryConst.MainInventorySize,
-                new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory), 0));
-            
+                ItemMoveInventoryInfo.CreateSubInventory(InventoryIdentifierMessagePack.CreateBlockMessage(new Vector3Int(5, 10))), 1 + PlayerInventoryConst.MainInventorySize,
+                ItemMoveInventoryInfo.CreateGrab(), 0));
+
             //移っているかチェック
             Assert.AreEqual(itemStackFactory.Create(new ItemId(1), 3), chestComponent.GetItem(1));
             Assert.AreEqual(itemStackFactory.Create(new ItemId(1), 7), grabInventory.GetItem(0));
-            
-            
+
+
             //持っているアイテムをインベントリに移す
             packet.GetPacketResponse(GetPacket(5,
-                new ItemMoveInventoryInfo(ItemMoveInventoryType.GrabInventory), 0,
-                new ItemMoveInventoryInfo(ItemMoveInventoryType.BlockInventory, new Vector3Int(5, 10)), 1 + PlayerInventoryConst.MainInventorySize));
+                ItemMoveInventoryInfo.CreateGrab(), 0,
+                ItemMoveInventoryInfo.CreateSubInventory(InventoryIdentifierMessagePack.CreateBlockMessage(new Vector3Int(5, 10))), 1 + PlayerInventoryConst.MainInventorySize));
             
             //移っているかチェック
             Assert.AreEqual(itemStackFactory.Create(new ItemId(1), 8), chestComponent.GetItem(1));

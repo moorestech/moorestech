@@ -4,10 +4,16 @@ using Game.Block.Interface;
 using Game.Context;
 using System;
 using System.Collections.Generic;
+using Game.Train.Event;
+using Mooresmaster.Model.TrainModule;
 
 
 namespace Game.Train.Train
 {
+    /// <summary>
+    /// 列車編成を構成する1両を表すクラス
+    /// Represents a single car within a train formation.
+    /// </summary>
     public class TrainCar
     {
         const int WHEIGHT_PER_SLOT = 40;
@@ -15,6 +21,10 @@ namespace Game.Train.Train
         const int DEFAULT_WEIGHT = 120;
         const int DEFAULT_TRACTION = 100;
         private readonly Guid _carId = Guid.NewGuid();
+        
+        // 列車のマスターデータ
+        public TrainCarMasterElement TrainCarMasterElement { get; }
+        
         // 駆動力 (動力車での推進力、貨車では0)
         public int TractionForce { get; private set; }
 
@@ -34,6 +44,8 @@ namespace Game.Train.Train
         private readonly IItemStack[] _inventoryItems;
         private readonly IItemStack[] _fuelItems;
         public bool IsFacingForward { get; private set; }
+        
+        private readonly TrainUpdateEvent _trainUpdateEvent;
 
         public TrainCar(int tractionForce, int inventorySlots, int length, int fuelSlots = 0, bool isFacingForward = true)
         {
@@ -47,6 +59,8 @@ namespace Game.Train.Train
             }
             FuelSlots = fuelSlots;
             dockingblock = null;
+            
+            _trainUpdateEvent = (TrainUpdateEvent)ServerContext.GetService<ITrainUpdateEvent>();
 
             // インベントリー配列を初期化
             _inventoryItems = new IItemStack[inventorySlots];
@@ -69,7 +83,6 @@ namespace Game.Train.Train
             }
         }
 
-
         //重さ、推進力を得る
         public (int,int) GetWeightAndTraction()
         {
@@ -83,9 +96,6 @@ namespace Game.Train.Train
         {
             IsFacingForward = isFacingForward;
         }
-
-
-
 
 
 
@@ -106,6 +116,7 @@ namespace Game.Train.Train
                     // 空きスロットに挿入  
                     _inventoryItems[i] = ServerContext.ItemStackFactory.Create(
                         itemStack.Id, 1, itemStack.ItemInstanceId);
+                    InvokeInventoryUpdate(i);
                     return itemStack.SubItem(1);
                 }
                 else if (_inventoryItems[i].Id == itemStack.Id &&
@@ -116,6 +127,7 @@ namespace Game.Train.Train
                         MasterHolder.ItemMaster.GetItemMaster(itemStack.Id).MaxStack - _inventoryItems[i].Count);
                     _inventoryItems[i] = ServerContext.ItemStackFactory.Create(
                         itemStack.Id, _inventoryItems[i].Count + addCount, itemStack.ItemInstanceId);
+                    InvokeInventoryUpdate(i);
                     return itemStack.SubItem(addCount);
                 }
             }
@@ -140,6 +152,18 @@ namespace Game.Train.Train
                 return;
 
             _inventoryItems[slot] = itemStack ?? ServerContext.ItemStackFactory.CreatEmpty();
+            InvokeInventoryUpdate(slot);
+        }
+
+        public void Destroy()
+        {
+            _trainUpdateEvent.InvokeTrainRemoved(_carId);
+        }
+
+        private void InvokeInventoryUpdate(int slot)
+        {
+            var item = _inventoryItems[slot] ?? ServerContext.ItemStackFactory.CreatEmpty();
+            _trainUpdateEvent.InvokeInventoryUpdate(new TrainInventoryUpdateEventProperties(_carId, slot, item));
         }
 
         // インベントリーサイズ取得  

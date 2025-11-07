@@ -23,10 +23,12 @@ namespace Client.Network.API
         public UnlockStateResponse UnlockState { get; }
         public CraftTreeResponse CraftTree { get; }
         public List<string> PlayedSkitIds { get; }
+        public RailConnectionDataMessagePack[] RailConnections { get; }
         
         public InitialHandshakeResponse(
             ResponseInitialHandshakeMessagePack initialHandshake,
             (
+                RailConnectionDataMessagePack[] railConnections,
                 List<MapObjectsInfoMessagePack> mapObjects, 
                 WorldDataResponse worldData, 
                 PlayerInventoryResponse inventory,
@@ -43,6 +45,7 @@ namespace Client.Network.API
             UnlockState = responses.unlockState;
             CraftTree = responses.craftTree;
             PlayedSkitIds = responses.playedSkitIds;
+            RailConnections = responses.railConnections;
         }
     }
     
@@ -88,15 +91,16 @@ namespace Client.Network.API
     {
         public readonly long InstanceId;
         public readonly Vector3 Position;
-        public readonly string State;
         public readonly string Type;
+        
+        public readonly byte[] EntityData;
         
         public EntityResponse(EntityMessagePack entityMessagePack)
         {
             InstanceId = entityMessagePack.InstanceId;
             Type = entityMessagePack.Type;
             Position = entityMessagePack.Position;
-            State = entityMessagePack.State;
+            EntityData = entityMessagePack.EntityData;
         }
     }
     

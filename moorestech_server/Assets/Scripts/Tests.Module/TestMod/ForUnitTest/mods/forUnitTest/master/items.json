@@ -493,6 +493,16 @@
       "initialUnlocked": true,
       "recipeViewType": "IsUnlocked",
       "handGrabModelAddressablePath": ""
+    },
+    {
+      "maxStack": 1,
+      "name": "TestTrainCar",
+      "itemGuid": "20000000-0000-0000-0000-000000000000",
+      "imagePath": "TestTrainCar",
+      "sortPriority": 800,
+      "recipeViewType": "ForceView",
+      "initialUnlocked": true,
+      "handGrabModelAddressablePath": ""
     }
   ]
 }

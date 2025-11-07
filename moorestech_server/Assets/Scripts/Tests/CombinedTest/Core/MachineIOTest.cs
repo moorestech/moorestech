@@ -31,11 +31,13 @@ namespace Tests.CombinedTest.Core
             var blockFactory = ServerContext.BlockFactory;
             
             // テスト用レシピとブロックを準備し、必要なインプットを投入
+            // Prepare test recipe and block, and insert required inputs
             var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data[0];
-            
-            
+
+            // マシンブロックの配置
+            // Place the machine block
             var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
-            var block = blockFactory.Create(blockId, new BlockInstanceId(1), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
+            ServerContext.WorldBlockDatastore.TryAddBlock(blockId, Vector3Int.one, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
             var blockInventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
             // すべての入力アイテムをインベントリにセットアップ
             foreach (var inputItem in recipe.InputItems)
@@ -81,11 +83,14 @@ namespace Tests.CombinedTest.Core
             var blockFactory = ServerContext.BlockFactory;
             
             // isRemain指定のレシピを取得して対象ブロックのインスタンスを作成
+            // Fetch recipe with isRemain specified and create target block instance
             var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data
                 .First(r => r.InputItems.Any(input => input.IsRemain.HasValue && input.IsRemain.Value));
-            
+
+            // マシンブロックの配置
+            // Place the machine block
             var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
-            var block = blockFactory.Create(blockId, new BlockInstanceId(2), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
+            ServerContext.WorldBlockDatastore.TryAddBlock(blockId, Vector3Int.one, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
             var blockInventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
             // レシピ通りにインプットへ投入する（isRemainアイテムも投入）
             foreach (var inputItem in recipe.InputItems)

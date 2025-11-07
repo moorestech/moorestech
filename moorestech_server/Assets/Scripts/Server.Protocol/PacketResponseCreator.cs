@@ -24,11 +24,11 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(EventProtocol.ProtocolTag, new EventProtocol(serviceProvider.GetService<EventProtocolProvider>()));
             _packetResponseDictionary.Add(InventoryItemMoveProtocol.ProtocolTag, new InventoryItemMoveProtocol(serviceProvider));
             _packetResponseDictionary.Add(PlaceBlockFromHotBarProtocol.ProtocolTag, new PlaceBlockFromHotBarProtocol(serviceProvider));
-            _packetResponseDictionary.Add(BlockInventoryRequestProtocol.ProtocolTag, new BlockInventoryRequestProtocol(serviceProvider));
+            _packetResponseDictionary.Add(InventoryRequestProtocol.ProtocolTag, new InventoryRequestProtocol(serviceProvider));
             _packetResponseDictionary.Add(RemoveBlockProtocol.ProtocolTag, new RemoveBlockProtocol(serviceProvider));
             _packetResponseDictionary.Add(CompleteBaseCampProtocol.ProtocolTag, new CompleteBaseCampProtocol(serviceProvider));
             _packetResponseDictionary.Add(SendCommandProtocol.ProtocolTag, new SendCommandProtocol(serviceProvider));
-            _packetResponseDictionary.Add(BlockInventoryOpenCloseProtocol.ProtocolTag, new BlockInventoryOpenCloseProtocol(serviceProvider));
+            _packetResponseDictionary.Add(SubscribeInventoryProtocol.ProtocolTag, new SubscribeInventoryProtocol(serviceProvider));
             _packetResponseDictionary.Add(SaveProtocol.ProtocolTag, new SaveProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetMapObjectInfoProtocol.ProtocolTag, new GetMapObjectInfoProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetGameUnlockStateProtocol.ProtocolTag, new GetGameUnlockStateProtocol(serviceProvider));
@@ -49,6 +49,8 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(GetResearchInfoProtocol.ProtocolTag, new GetResearchInfoProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetPlayedSkitIdsProtocol.ProtocolTag, new GetPlayedSkitIdsProtocol(serviceProvider));
             _packetResponseDictionary.Add(RailConnectionEditProtocol.Tag, new RailConnectionEditProtocol());
+            _packetResponseDictionary.Add(GetRailConnectionsProtocol.ProtocolTag, new GetRailConnectionsProtocol(serviceProvider));
+            _packetResponseDictionary.Add(PlaceTrainCarOnRailProtocol.ProtocolTag, new PlaceTrainCarOnRailProtocol(serviceProvider));
         }
         
         public List<List<byte>> GetPacketResponse(List<byte> payload)

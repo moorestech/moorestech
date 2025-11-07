@@ -26,8 +26,9 @@ namespace Tests.CombinedTest.Core
             var blockFactory = ServerContext.BlockFactory;
             
             // ベースキャンプブロックの配置
+            // Place the base camp block
             var baseCampBlockId = ForUnitTestModBlockId.BaseCamp1;
-            var baseCampBlock = blockFactory.Create(baseCampBlockId, new BlockInstanceId(1), new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one));
+            ServerContext.WorldBlockDatastore.TryAddBlock(baseCampBlockId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var baseCampBlock);
             
             // ベースキャンプコンポーネントの取得
             var baseCampComponent = baseCampBlock.GetComponent<BaseCampComponent>();
@@ -55,8 +56,9 @@ namespace Tests.CombinedTest.Core
             var blockFactory = ServerContext.BlockFactory;
             
             // ベースキャンプブロックの配置
+            // Place the base camp block
             var baseCampBlockId = ForUnitTestModBlockId.BaseCamp2;
-            var baseCampBlock = blockFactory.Create(baseCampBlockId, new BlockInstanceId(2), new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one));
+            ServerContext.WorldBlockDatastore.TryAddBlock(baseCampBlockId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var baseCampBlock);
             
             var baseCampComponent = baseCampBlock.GetComponent<BaseCampComponent>();
             var baseCampInventory = baseCampBlock.GetComponent<IBlockInventory>();
@@ -102,8 +104,9 @@ namespace Tests.CombinedTest.Core
             var blockFactory = ServerContext.BlockFactory;
             
             // ベースキャンプブロックの配置
+            // Place the base camp block
             var baseCampBlockId = ForUnitTestModBlockId.BaseCamp1;
-            var baseCampBlock = blockFactory.Create(baseCampBlockId, new BlockInstanceId(3), new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one));
+            ServerContext.WorldBlockDatastore.TryAddBlock(baseCampBlockId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var baseCampBlock);
             
             var baseCampComponent = baseCampBlock.GetComponent<BaseCampComponent>();
             var baseCampInventory = baseCampBlock.GetComponent<IBlockInventory>();
@@ -129,8 +132,9 @@ namespace Tests.CombinedTest.Core
             var blockFactory = ServerContext.BlockFactory;
             
             // ベースキャンプブロックの配置
+            // Place the base camp block
             var baseCampBlockId = ForUnitTestModBlockId.BaseCamp1;
-            var baseCampBlock = blockFactory.Create(baseCampBlockId, new BlockInstanceId(4), new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one));
+            ServerContext.WorldBlockDatastore.TryAddBlock(baseCampBlockId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var baseCampBlock);
             
             var baseCampComponent = baseCampBlock.GetComponent<BaseCampComponent>();
             var baseCampInventory = baseCampBlock.GetComponent<IBlockInventory>();

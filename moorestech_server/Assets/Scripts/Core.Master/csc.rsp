@@ -7,6 +7,7 @@
 /additionalfile:Assets/../../VanillaSchema/fluids.yml
 /additionalfile:Assets/../../VanillaSchema/characters.yml
 /additionalfile:Assets/../../VanillaSchema/research.yml
+/additionalfile:Assets/../../VanillaSchema/train.yml
 /additionalfile:Assets/../../VanillaSchema/placeSystem.yml
 /additionalfile:Assets/../../VanillaSchema/ref/blockConnectInfo.yml
 /additionalfile:Assets/../../VanillaSchema/ref/inventoryConnects.yml

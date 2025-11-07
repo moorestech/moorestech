@@ -6,7 +6,11 @@ using Game.CraftChainer.CraftChain;
 using Game.CraftTree.Models;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
+using Server.Util.MessagePack;
 using UnityEngine;
+using static Server.Protocol.PacketResponse.RailConnectionEditProtocol;
+using static Server.Protocol.PacketResponse.PlaceTrainCarOnRailProtocol;
+using static Server.Protocol.PacketResponse.SubscribeInventoryProtocol;
 
 namespace Client.Network.API
 {
@@ -23,11 +27,6 @@ namespace Client.Network.API
             _playerId = playerConnectionSetting.PlayerId;
         }
         
-        public void SetOpenCloseBlock(Vector3Int pos, bool isOpen)
-        {
-            var request = new BlockInventoryOpenCloseProtocol.BlockInventoryOpenCloseProtocolMessagePack(_playerId, pos, isOpen);
-            _packetSender.Send(request);
-        }
         
         public void ItemMove(int count, ItemMoveType itemMoveType, ItemMoveInventoryInfo fromInv, int fromSlot, ItemMoveInventoryInfo toInv, int toSlot)
         {
@@ -116,6 +115,33 @@ namespace Client.Network.API
         public void CompleteResearch(Guid researchGuid)
         {
             var request = new CompleteResearchProtocol.RequestCompleteResearchMessagePack(_playerId, researchGuid);
+            _packetSender.Send(request);
+        }
+
+        public void ConnectRail(RailComponentSpecifier from, RailComponentSpecifier to, bool connectFromIsFront, bool connectToIsFront)
+        {
+            var request = RailConnectionEditRequest.CreateConnectRequest(from, to, connectFromIsFront, connectToIsFront);
+            _packetSender.Send(request);
+        }
+        public void DisconnectRail(RailComponentSpecifier from, RailComponentSpecifier to)
+        {
+            var request = RailConnectionEditRequest.CreateDisconnectRequest(from, to);
+            _packetSender.Send(request);
+        }
+
+        public void PlaceTrainOnRail(RailComponentSpecifier specifier, int hotBarSlot)
+        {
+            var request = new PlaceTrainOnRailRequestMessagePack(specifier, hotBarSlot, _playerId);
+            _packetSender.Send(request);
+        }
+        
+        /// <summary>
+        /// インベントリをサブスクライブ/アンサブスクライブ
+        /// Subscribe/Unsubscribe inventory
+        /// </summary>
+        public void SubscribeInventory(InventoryIdentifierMessagePack identifier, bool isSubscribe)
+        {
+            var request = new SubscribeInventoryRequestMessagePack(_playerId, identifier, isSubscribe);
             _packetSender.Send(request);
         }
     }
