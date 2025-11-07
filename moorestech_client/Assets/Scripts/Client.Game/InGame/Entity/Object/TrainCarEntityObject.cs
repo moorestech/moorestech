@@ -5,12 +5,6 @@ using UnityEngine;
 
 namespace Client.Game.InGame.Entity.Object
 {
-    /// <summary>
-    /// 列車エンティティのビジュアル表示を担当
-    /// サーバーから受信した位置情報をLinear補間してスムーズな移動を実現
-    /// Responsible for visual display of train entities
-    /// Achieves smooth movement by linear interpolation of position information received from server
-    /// </summary>
     public class TrainCarEntityObject : MonoBehaviour, IEntityObject
     {
         public long EntityId { get; private set; }

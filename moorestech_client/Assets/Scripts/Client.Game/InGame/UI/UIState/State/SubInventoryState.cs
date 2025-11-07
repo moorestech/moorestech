@@ -118,21 +118,20 @@ namespace Client.Game.InGame.UI.UIState.State
                 var instantiatedView = ClientContext.DIContainer.Instantiate(loadedInventory.Asset, _playerInventoryViewController.SubInventoryParent);
                 _currentView = instantiatedView.GetComponent<ISubInventoryView>();
                 
-                // ビューを初期化
-                // Initialize view
+                // インベントリデータを取得し初期化
+                // Fetch inventory data and initialize
+                var inventoryData = await ClientContext.VanillaApi.Response.GetInventory(_subInventorySource.InventoryIdentifier, ct);
                 _subInventorySource.ExecuteInitialize(_currentView);
+                _currentView.UpdateItemList(inventoryData);
                 
+                // インベントリビューを表示
+                // Show inventory view
                 _playerInventoryViewController.SetActive(true);
                 _playerInventoryViewController.SetSubInventory(_currentView);
                 
                 // インベントリの更新を購読
                 // Subscribe to inventory updates
                 ClientContext.VanillaApi.SendOnly.SubscribeInventory(_subInventorySource.InventoryIdentifier, true);
-                
-                // インベントリデータを取得
-                // Fetch inventory data
-                var inventoryData = await ClientContext.VanillaApi.Response.GetInventory(_subInventorySource.InventoryIdentifier, ct);
-                _currentView.UpdateItemList(inventoryData);
             }
             
             #endregion

@@ -41,10 +41,10 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
                 return true;
             }
             
-            if (BlockClickDetectUtil.TryGetCursorOnComponent(out TrainCarEntityObject trainEntity))
+            if (BlockClickDetectUtil.TryGetCursorOnComponent(out TrainCarEntityChildrenObject trainEntity))
             {
                 var container = new UITransitContextContainer();
-                var trainSubInventorySource = new TrainSubInventorySource(trainEntity);
+                var trainSubInventorySource = new TrainSubInventorySource(trainEntity.TrainCarEntityObject);
                 container.Set<ISubInventorySource>(trainSubInventorySource);
                 uiTransitContext = new UITransitContext(UIStateEnum.SubInventory, container);
                 return true;
