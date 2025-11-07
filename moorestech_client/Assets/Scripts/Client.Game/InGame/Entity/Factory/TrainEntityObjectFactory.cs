@@ -1,5 +1,6 @@
 using System;
 using Client.Common.Asset;
+using Client.Game.InGame.Block;
 using Client.Game.InGame.Entity.Object;
 using Client.Network.API;
 using Core.Master;
@@ -45,6 +46,18 @@ namespace Client.Game.InGame.Entity.Factory
                 
                 var trainEntityObject = trainObject.AddComponent<TrainCarEntityObject>();
                 trainEntityObject.SetTrain(state.TrainCarId, trainCarMaster);
+                
+                // TrainCarEntityChildrenObjectを付与
+                foreach (var mesh in trainEntityObject.GetComponentsInChildren<MeshRenderer>())
+                {
+                    mesh.gameObject.AddComponent<TrainCarEntityChildrenObject>();
+                    mesh.gameObject.AddComponent<MeshCollider>();
+                }
+                // 元からTrainCarEntityChildrenObjectがついているかもしれないので、再度取得して初期化する
+                foreach (var trainCarEntityChildren in trainEntityObject.GetComponentsInChildren<TrainCarEntityChildrenObject>())
+                {
+                    trainCarEntityChildren.Initialize(trainEntityObject);
+                }
                 return trainEntityObject;
             }
             
