@@ -1,0 +1,921 @@
+## 概要
+- サーバー側では自動運転ダイアグラム、車両分割、貨物プラットフォームの転送モードなど列車運用の核となるロジックが揃っていますが、プレイヤーがそれらを操作・把握するためのクライアントUIやプロトコルがほぼ未整備です。`TrainUnit` と `TrainDiagram` は走行制御の状態を保持しているものの、クライアントはエンティティの位置補間と配置操作に留まっています。`339:384:Server/Game.Train/Train/TrainUnit.cs`
+- レール可視化も初期握手時の情報取得に依存しており、接続・切断後の差分適用がイベントで完結していないため、編集結果が表示に反映されません。`34:77:Server/Server.Event/EventReceive/RailConnectionsEventPacket.cs`
+
+## クライアント側で不足している制御・表示
+- 列車選択・状態表示：サーバーは列車の自動運転フローとドッキング状態を保持している一方、クライアントは `TrainEntityObject` による単純な座標補間のみで、選択や情報表示の仕組みがありません。`339:384:Server/Game.Train/Train/TrainUnit.cs` `60:205:Server/Game.Train/Train/TrainUnitStationDocking.cs` `7:96:Client.Game/InGame/Entity/Object/TrainEntityObject.cs`
+- 手動運転UIと入力プロトコル：`masconLevel` による加減速と速度計算は実装済みですが、`KeyInput()` は実質ダミーであり、クライアントから設定する手段がありません。`163:208:Server/Game.Train/Train/TrainUnit.cs`
+- 自動運転ON/OFF操作：`TurnOnAutoRun()`/`TurnOffAutoRun()` が公開されているものの、クライアントからのトグルUI・通信が未整備です。`339:384:Server/Game.Train/Train/TrainUnit.cs`
+- ダイアグラム編集UI：エントリー追加や発車条件（満杯/空/待機tick）の設定が可能な `TrainDiagram` がクライアントで露出していません。ダイアグラム編集画面と各種更新プロトコルが必要です。`93:155:Server/Game.Train/Train/TrainDiagram.cs` `211:349:Server/Game.Train/Train/TrainDiagram.cs`
+- 列車インベントリ／燃料UI：車両ごとの積載・燃料スロットがサーバーに存在するため、スロット表示やドラッグ&ドロップ、燃料残量表示の実装と同期プロトコルが必要です。`12:126:Server/Game.Train/Train/TrainCar.cs`
+- 駅／貨物プラットフォームの転送モード操作：貨物プラットフォームの積み込み／荷降ろし切り替えはサーバーに実装済みですがUIが存在せず、転送設定を変更する操作系と通知が必要です。`24:190:Server/Game.Block/Blocks/TrainRail/CargoplatformComponent.cs`
+- レール編集結果の再描画：イベントで接続IDだけが通知され、新規スプラインの材料データが届かないため、イベント受信時に `GetRailConnections` を再取得するか、サーバー側で詳細を含める仕組みが要ります。また切断時のイベント発火も未対応です。`34:77:Server/Server.Event/EventReceive/RailConnectionsEventPacket.cs` `30:90:Client.Game/InGame/Train/TrainRailObjectManager.cs` `181:211:Server/Game.Train/RailGraph/RailGraphDatastore.cs`
+- 列車分割UI：後部車両の切り離しロジックが完成しているため、分割数指定や確認ダイアログなどの操作UIと連動プロトコルを用意する必要があります。`667:709:Server/Game.Train/Train/TrainUnit.cs`
+- 基本操作のUI未整備：現状クライアントの列車関連コードは配置 (`TrainCarPlaceSystem`)・接続操作 (`TrainRailConnectSystem`) に留まっており、上記の操作系を置く余地がありません。`9:50:Client.Game/InGame/BlockSystem/PlaceSystem/TrainCar/TrainCarPlaceSystem.cs` `10:90:Client.Game/InGame/BlockSystem/PlaceSystem/TrainRailConnect/TrainRailConnectSystem.cs`
+
+## サーバー側で追加が必要な対応
+- 列車操作系プロトコルの整備：`masconLevel` 更新、自動運転切替、ダイアグラム編集、インベントリ／燃料操作、分割・反転などを外部から呼び出すエンドポイントが未提供です。`163:208:Server/Game.Train/Train/TrainUnit.cs` `339:384:Server/Game.Train/Train/TrainUnit.cs` `93:155:Server/Game.Train/Train/TrainDiagram.cs` `12:126:Server/Game.Train/Train/TrainCar.cs` `667:709:Server/Game.Train/Train/TrainUnit.cs`
+- 手動操作入力の反映：`KeyInput()` が現状masconを0に戻すだけなので、外部入力値を適用するロジックを実装する必要があります。`163:169:Server/Game.Train/Train/TrainUnit.cs`
+- レール切断イベントの実装：`DisconnectNodeInternal` で更新イベントが未発火となっており、クライアント再描画に必要な差分通知が欠けています。`181:211:Server/Game.Train/RailGraph/RailGraphDatastore.cs`
+- レール更新イベントのデータ拡充：イベントがコンポーネントIDのみを送るため、新規接続情報がクライアントに届きません。接続データの同梱またはイベント後に差分取得を指示する仕組みが必要です。`34:77:Server/Server.Event/EventReceive/RailConnectionsEventPacket.cs`
+
+## 補足
+- まずは列車選択UIと操作プロトコルの設計をまとめ、UI・サーバー双方で小さく動く部分（例：自動運転ON/OFF）から順に実装すると影響範囲を限定できます。
+- レール更新のイベント設計は可視化の前提になるため、プロトコル設計時にクライアント側の再取得フローも併せて見直すとよさそうです。
+
+
+
+
+
+
+
+
+
+## サーバー側で実装済みの主要機能（参考）
+
+### 列車の基本機能
+- ✅ TrainUnit: 列車ユニットの管理、移動、速度制御
+- ✅ TrainCar: 車両の管理（インベントリスロット、燃料スロット、牽引力、重量、向き）
+- ✅ RailPosition: レール上の位置管理
+- ✅ TrainEntity: エンティティとしての列車（ワールド座標での表現）
+
+### 速度・運転制御
+- ✅ masconLevel: マスコンレベルによる加速度制御（-16777216 〜 +16777216）
+- ✅ 物理シミュレーション: 摩擦、空気抵抗、牽引力の計算
+- ✅ 自動減速: 目的地までの距離に応じた速度制御
+- ✅ Tickベースの決定論的シミュレーション: 120Hz（1/120秒）での更新
+
+### 自動運転システム
+- ✅ TrainDiagram: 列車の運行ダイアグラム
+- ✅ DiagramEntry: 停車駅と発車条件の管理
+- ✅ 発車条件の種類: TrainInventoryFull, TrainInventoryEmpty, WaitForTicks
+
+### 駅・ドッキング機能
+- ✅ TrainUnitStationDocking: 駅へのドッキング処理
+- ✅ TrainStationComponent: 旅客駅ブロック
+- ✅ CargoplatformComponent: 貨物プラットフォーム
+- ✅ 自動積み込み・積み下ろし: ドッキング中のアイテム転送
+
+### レールシステム
+- ✅ RailGraphDatastore: レールグラフの管理
+- ✅ RailNode / RailComponent: レール接続の管理
+- ✅ Front/Back ノードモデル: 有向グラフとしてのレール接続
+- ✅ ベジェ曲線: レール間の距離計算
+- ✅ 固定小数点距離: セーブ/ロードの再現性保証
+
+### セーブ/ロード
+- ✅ 列車位置、速度、ダイアグラム状態の保存と復元
+- ✅ ドッキング状態の復元
+
+---
+
+## クライアント側で実装済みの機能（参考）
+
+### ビジュアル化
+- ✅ TrainEntityObject: 列車エンティティの表示と位置補間
+- ✅ TrainRailObjectManager: レール接続のビジュアル化
+- ✅ RailSplineComponent: Splineを使用したレール曲線の描画
+
+### 配置システム
+- ✅ TrainCarPlaceSystem: 列車をレールに配置する機能
+- ✅ TrainCarPlacementDetector: 配置可能位置の検出
+- ✅ TrainCarPreviewController: 配置プレビュー表示
+
+### レール接続システム
+- ✅ TrainRailConnectSystem: レール接続UI
+- ✅ RailConnectPreviewObject: 接続プレビュー表示
+
+---
+
+## 残タスク: クライアント側の実装
+
+### 【優先度：高】必須機能
+
+#### 1. 列車インベントリUI
+**概要**: 列車の貨物インベントリを開いてアイテムを操作する機能
+
+**実装内容**:
+- [ ] 列車のインベントリを開くUIステート（`TrainInventoryState`）
+- [ ] 列車インベントリビュー（`TrainInventoryView`）の作成
+  - 既存の`BlockInventoryState`パターンを参考に実装
+  - `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/BlockInventoryState.cs` 参照
+- [ ] 各車両のインベントリスロット表示
+- [ ] 燃料スロットの表示と管理UI
+- [ ] プレイヤーインベントリとのアイテム移動
+
+**参考ファイル**:
+- `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/BlockInventoryState.cs`
+- `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/Inventory/Block/ChestBlockInventoryView.cs`
+
+---
+
+#### 2. 列車状態表示UI
+**概要**: 列車の現在の状態をプレイヤーに表示する
+
+**実装内容**:
+- [ ] 現在速度の表示（数値またはメーター）
+- [ ] masconレベルの表示（現在の加速度レベル）
+- [ ] 自動運転/手動運転の状態表示
+- [ ] ドッキング状態の表示（駅に停車中かどうか）
+- [ ] HUD上での常時表示またはモーダル表示
+
+**表示場所の候補**:
+- 列車に乗車中（または選択中）のHUD
+- 列車インベントリUI内の情報パネル
+
+---
+
+#### 3. 列車操作UI
+**概要**: プレイヤーが列車を手動で操作するためのUI
+
+**実装内容**:
+- [ ] 手動運転時のmasconレベル操作UI
+  - スライダーまたは+/-ボタンでレベル調整
+  - 範囲: -16777216 〜 +16777216
+  - キーボード操作（W/S）との連携
+- [ ] 自動運転のON/OFF切り替えボタン
+- [ ] 列車の向きを反転させるボタン
+- [ ] 操作パネルの表示/非表示切り替え
+
+**UI配置**:
+- HUD上の操作パネル
+- または専用のモーダルウィンドウ
+
+---
+
+### 【優先度：中】自動運転機能
+
+#### 4. TrainDiagram（ダイアグラム）設定UI
+**概要**: 列車の自動運転ルートと停車条件を設定する
+
+**実装内容**:
+- [ ] ダイアグラム設定ウィンドウ（`TrainDiagramView`）
+- [ ] エントリリストの表示
+  - 各エントリの停車駅（RailNode）の表示
+  - エントリの順序番号表示
+  - 現在のエントリのハイライト
+- [ ] エントリの追加・削除ボタン
+- [ ] 停車駅の選択UI
+  - レールノード（駅）の選択方法の検討
+  - マップ上での駅クリック選択
+  - または駅リストからの選択
+- [ ] 発車条件の設定UI
+  - ラジオボタンまたはドロップダウンで条件タイプ選択
+  - `TrainInventoryFull`: インベントリが満杯になったら出発
+  - `TrainInventoryEmpty`: インベントリが空になったら出発
+  - `WaitForTicks`: 指定Tick数待機
+    - Tick数入力フィールド（数値入力）
+- [ ] エントリの順序変更UI
+  - ドラッグ&ドロップまたは上下移動ボタン
+- [ ] 現在のダイアグラム状態の可視化
+  - 次の目的地の表示
+  - 発車条件の達成状況表示
+
+**参考**:
+- サーバー側: `moorestech_server/Assets/Scripts/Game.Train/Train/TrainDiagram.cs`
+- 類似UI: チャレンジシステムのツリービュー
+
+---
+
+#### 5. 駅ブロックUI
+**概要**: 駅ブロックの設定とインベントリ管理
+
+**実装内容**:
+- [ ] 駅ブロックのインベントリUI
+  - 既存のブロックインベントリパターンを使用
+  - `TrainStationBlockInventoryView`の作成
+  - `CargoplatformBlockInventoryView`の作成
+- [ ] 駅の状態表示
+  - 現在ドッキング中の列車情報
+  - 列車が到着予定かどうか（ダイアグラムに登録されているか）
+- [ ] アイテム自動転送の設定UI（オプション）
+
+**参考ファイル**:
+- サーバー側: `moorestech_server/Assets/Scripts/Game.Block/Blocks/TrainRail/StationComponent.cs`
+- サーバー側: `moorestech_server/Assets/Scripts/Game.Block/Blocks/TrainRail/CargoplatformComponent.cs`
+
+---
+
+### 【優先度：低】拡張機能
+
+#### 6. 列車情報の詳細表示
+**概要**: 列車の詳細情報を確認するUI
+
+**実装内容**:
+- [ ] 列車の編成情報
+  - 車両数
+  - 総重量
+  - 総牽引力
+  - 各車両の個別情報
+- [ ] 列車IDの表示
+- [ ] マスターデータの確認UI
+  - addressablePath
+  - 各種パラメータ
+
+---
+
+#### 7. デバッグ・開発支援UI
+**概要**: 開発者向けのデバッグ情報表示
+
+**実装内容**:
+- [ ] レールグラフの可視化
+  - JSON出力の表示
+  - `RailGraphDatastore.CreateSnapshot()`の結果表示
+- [ ] 列車の内部状態デバッグ表示
+  - _remainingDistance
+  - _accumulatedDistance
+  - 現在のRailPosition詳細
+- [ ] 速度・加速度のグラフ表示
+  - リアルタイムグラフ
+  - 履歴表示
+
+**参考**:
+- サーバー側: `moorestech_server/Assets/Scripts/Game.Train/RailGraph/RailGraphDatastore.cs`
+
+---
+
+## 残タスク: サーバー側のプロトコル実装
+
+クライアント側のUIを機能させるために、以下のサーバー側プロトコルが必要です。
+
+### 【必須】列車制御プロトコル
+
+#### 1. TrainDiagram制御プロトコル
+- [ ] **AddDiagramEntryProtocol**: ダイアグラムエントリの追加
+  - リクエスト: TrainId, RailNodeId
+  - レスポンス: 成功/失敗
+- [ ] **RemoveDiagramEntryProtocol**: エントリの削除
+  - リクエスト: TrainId, EntryIndex
+  - レスポンス: 成功/失敗
+- [ ] **InsertDiagramEntryProtocol**: 指定位置にエントリを挿入
+  - リクエスト: TrainId, Index, RailNodeId
+  - レスポンス: 成功/失敗
+- [ ] **SetDepartureConditionProtocol**: 発車条件の設定
+  - リクエスト: TrainId, EntryIndex, ConditionType[], WaitTicks?
+  - レスポンス: 成功/失敗
+- [ ] **MoveDiagramIndexProtocol**: 現在のダイアグラムインデックスを変更
+  - リクエスト: TrainId, NewIndex
+  - レスポンス: 成功/失敗
+
+**参考**:
+- `moorestech_server/Assets/Scripts/Game.Train/Train/TrainDiagram.cs`
+- 実装パターン: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/`
+
+---
+
+#### 2. 列車操作プロトコル
+- [ ] **SetTrainMasconLevelProtocol**: masconレベルの設定
+  - リクエスト: TrainId, MasconLevel (int, -16777216 〜 +16777216)
+  - レスポンス: 成功/失敗
+- [ ] **ToggleAutoRunProtocol**: 自動運転のON/OFF
+  - リクエスト: TrainId, IsAutoRun (bool)
+  - レスポンス: 成功/失敗
+- [ ] **ReverseTrainProtocol**: 列車の向きを反転
+  - リクエスト: TrainId
+  - レスポンス: 成功/失敗
+
+**参考**:
+- `moorestech_server/Assets/Scripts/Game.Train/Train/TrainUnit.cs`
+  - `masconLevel`プロパティ
+  - `TurnOnAutoRun()` / `TurnOffAutoRun()`メソッド
+  - `Reverse()`メソッド
+
+---
+
+#### 3. 列車状態取得プロトコル
+- [ ] **GetTrainStatusProtocol**: 列車の状態を取得
+  - リクエスト: TrainId
+  - レスポンス:
+    - CurrentSpeed (double)
+    - MasconLevel (int)
+    - IsAutoRun (bool)
+    - IsDocked (bool)
+    - RailPosition情報
+    - TrainDiagram情報（現在のインデックス、エントリリスト）
+- [ ] **GetTrainInventoryProtocol**: 列車のインベントリ情報を取得
+  - リクエスト: TrainId
+  - レスポンス: 各車両のインベントリ情報
+
+**参考**:
+- `moorestech_server/Assets/Scripts/Game.Train/Train/TrainUnit.cs`
+- 既存のGetプロトコル: `GetBlockInventoryProtocol.cs`など
+
+---
+
+#### 4. 列車インベントリ操作プロトコル
+- [ ] **InsertTrainInventoryProtocol**: 列車インベントリにアイテムを入れる
+  - リクエスト: TrainId, CarIndex, SlotIndex, ItemId, Count
+  - レスポンス: 成功/失敗
+- [ ] **GrabTrainInventoryProtocol**: 列車インベントリからアイテムを取り出す
+  - リクエスト: TrainId, CarIndex, SlotIndex
+  - レスポンス: 成功/失敗
+- [ ] **GetTrainCarInventoryProtocol**: 特定車両のインベントリを取得
+  - リクエスト: TrainId, CarIndex
+  - レスポンス: インベントリ情報
+
+**実装方針**:
+- 既存のインベントリプロトコルを参考に実装
+- `IOpenableInventory`インターフェースを活用できるか検討
+- 車両インデックスでの指定方法
+
+**参考**:
+- `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/InsertItemProtocol.cs`
+- `moorestech_server/Assets/Scripts/Game.Train/Train/TrainCar.cs`
+
+---
+
+### 【推奨】イベントプロトコル
+
+#### 5. 列車状態変更イベント
+- [ ] **TrainStatusChangedEvent**: 列車の状態変更を通知
+  - 速度変更
+  - masconLevel変更
+  - 自動運転状態変更
+  - ドッキング状態変更
+- [ ] **TrainDiagramChangedEvent**: ダイアグラム変更を通知
+  - エントリの追加/削除
+  - 現在のインデックス変更
+  - 発車条件変更
+- [ ] **TrainInventoryChangedEvent**: 列車インベントリ変更を通知
+  - アイテム追加/削除時
+
+**実装方針**:
+- 既存のイベントシステムを活用
+- `Server.Event.EventReceive`パッケージを参考
+
+**参考**:
+- `moorestech_server/Assets/Scripts/Server.Event/EventReceive/`
+- 既存のEntityイベントで部分的に対応済み（位置情報）
+
+---
+
+## 実装の推奨順序
+
+### フェーズ1: 基本的な列車操作
+**目標**: プレイヤーが列車を手動で操作できるようにする
+
+1. サーバー側プロトコル実装
+   - [ ] SetTrainMasconLevelProtocol
+   - [ ] ToggleAutoRunProtocol
+   - [ ] ReverseTrainProtocol
+   - [ ] GetTrainStatusProtocol
+
+2. クライアント側UI実装
+   - [ ] 列車操作UI（masconレベル操作、自動運転切り替え、反転ボタン）
+   - [ ] 列車状態表示UI（速度、masconレベル、状態表示）
+
+3. テスト
+   - [ ] 手動操作のテスト
+   - [ ] UIの動作確認
+
+---
+
+### フェーズ2: インベントリ管理
+**目標**: 列車のインベントリを操作できるようにする
+
+1. サーバー側プロトコル実装
+   - [ ] GetTrainCarInventoryProtocol
+   - [ ] InsertTrainInventoryProtocol
+   - [ ] GrabTrainInventoryProtocol
+   - [ ] TrainInventoryChangedEvent（推奨）
+
+2. クライアント側UI実装
+   - [ ] TrainInventoryState
+   - [ ] TrainInventoryView
+   - [ ] 車両インベントリスロット表示
+   - [ ] 燃料スロット表示
+
+3. テスト
+   - [ ] インベントリ操作のテスト
+   - [ ] アイテム転送のテスト
+
+---
+
+### フェーズ3: 自動運転
+**目標**: ダイアグラムを設定して列車を自動運転できるようにする
+
+1. サーバー側プロトコル実装
+   - [ ] AddDiagramEntryProtocol
+   - [ ] RemoveDiagramEntryProtocol
+   - [ ] InsertDiagramEntryProtocol
+   - [ ] SetDepartureConditionProtocol
+   - [ ] MoveDiagramIndexProtocol
+   - [ ] TrainDiagramChangedEvent（推奨）
+
+2. クライアント側UI実装
+   - [ ] TrainDiagramView
+   - [ ] エントリリスト表示
+   - [ ] 停車駅選択UI
+   - [ ] 発車条件設定UI
+   - [ ] エントリ順序変更UI
+
+3. テスト
+   - [ ] ダイアグラム設定のテスト
+   - [ ] 自動運転動作のテスト
+   - [ ] 発車条件の動作確認
+
+---
+
+### フェーズ4: 駅機能の拡充
+**目標**: 駅ブロックのUIを整備する
+
+1. クライアント側UI実装
+   - [ ] TrainStationBlockInventoryView
+   - [ ] CargoplatformBlockInventoryView
+   - [ ] 駅の状態表示
+
+2. テスト
+   - [ ] 駅インベントリの動作確認
+   - [ ] 自動積み込み・積み下ろしのテスト
+
+---
+
+### フェーズ5: 詳細情報とデバッグ
+**目標**: 詳細情報表示とデバッグ機能を追加
+
+1. クライアント側UI実装
+   - [ ] 列車編成情報表示
+   - [ ] デバッグ情報表示UI
+   - [ ] レールグラフ可視化
+
+2. テスト
+   - [ ] 開発者向け機能の動作確認
+
+---
+
+## 参考資料
+
+### ドキュメント
+- `docs/train/README.md`: 鉄道システムドキュメントインデックス
+- `docs/train/TrainSystemNotes.md`: 実装時の運用ノート
+- `docs/train/TrainTickSimulation.md`: Tickシミュレーション仕様
+- `docs/ServerGuide.md`: サーバー実装ガイド
+- `docs/ClientGuide.md`: クライアント実装ガイド
+- `docs/ProtocolImplementationGuide.md`: プロトコル実装ガイド
+
+### マスターデータ
+- `VanillaSchema/train.yml`: 列車ユニットのスキーマ定義
+
+### テスト
+- `moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTestModBlockId.cs`: テスト用ブロックID定義
+- `moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/`: テスト用マスターデータ
+
+### 既存UIパターン参考
+- `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/BlockInventoryState.cs`
+- `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/PlayerInventoryState.cs`
+- `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/Inventory/Block/ChestBlockInventoryView.cs`
+
+### プロトコル実装参考
+- `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/PlaceTrainCarOnRailProtocol.cs`
+- `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/InsertItemProtocol.cs`
+- `moorestech_server/Assets/Scripts/Server.Event/EventReceive/`
+
+---
+
+## 注意事項
+
+### 既存システムとの整合性
+- インベントリ操作は既存の`IOpenableInventory`パターンに準拠
+- UIステート管理は`UIStateEnum`と`IUIState`を使用
+- プロトコルは`IPacketResponse`を実装し、`ProtocolMessagePackBase`を継承
+
+### 命名規則
+- プロトコルタグ: `va:trainXxxx`形式（例: `va:trainSetMascon`）
+- UIクラス: `TrainXxxxxView`または`TrainXxxxxState`
+- プロトコルクラス: `XxxxxTrainXxxxxProtocol`
+
+### テスト
+- 各フェーズで必ずユニットテストを実装
+- 既存のテストパターンに従う
+- テスト用マスターデータは`Tests.Module.TestMod.ForUnitTest`を使用
+
+### パフォーマンス
+- 列車状態の更新頻度に注意（120Hz tickに同期）
+- UIの更新は適度な頻度に抑える（毎フレームは避ける）
+- イベントベースの更新を活用
+
+---
+
+## 進捗管理
+
+このドキュメントは実装の進捗に応じて更新してください。
+
+- タスク完了時はチェックボックスにチェックを入れる
+- 新たに判明したタスクは適切なセクションに追加
+- 実装方針が変更された場合は該当箇所を更新
+
+
+
+# 鉄道システム 残り実装タスク
+
+## 概要
+このドキュメントは、サーバー側で実装されている鉄道システムの機能のうち、クライアント側でのUI実装やビジュアル化が不足している項目をリストアップします。
+
+## サーバー側実装済み機能の確認
+
+### TrainUnit（列車本体）
+- ✅ 自動運転（`IsAutoRun`, `TurnOnAutoRun()`, `TurnOffAutoRun()`）
+- ✅ 手動運転（`masconLevel`による制御）
+- ✅ 速度管理（`CurrentSpeed`）
+- ✅ 列車分割（`SplitTrain()`）
+- ✅ 列車反転（`Reverse()`）
+
+### TrainDiagram（運行ダイアグラム）
+- ✅ エントリー追加・削除（`AddEntry()`, `InsertEntry()`）
+- ✅ 発車条件設定（`SetDepartureCondition()`）
+  - `TrainInventoryFull` - インベントリ満杯
+  - `TrainInventoryEmpty` - インベントリ空
+  - `WaitForTicks` - 指定tick数待機
+- ✅ エントリー移動（`MoveToNextEntry()`）
+
+### TrainCar（車両）
+- ✅ インベントリ管理（`GetItem()`, `SetItem()`, `InsertItem()`）
+- ✅ 燃料管理（`GetFuelItem()`, `SetFuelItem()`）
+- ✅ ドッキング状態管理
+
+### プロトコル
+- ✅ 列車配置（`PlaceTrainCarOnRailProtocol`）
+
+---
+
+## クライアント側で不足している実装タスク
+
+### 1. 列車選択・操作UI
+**サーバー側実装**: `TrainUnit`の各種メソッド  
+**必要な実装**:
+- [ ] 列車をクリック/選択するUI
+- [ ] 選択中の列車を視覚的に表示（ハイライト、UI表示など）
+- [ ] 列車選択解除UI
+
+**備考**: 現在、列車を配置することはできますが、配置後の列車を操作するUIがありません。
+
+---
+
+### 2. 列車手動運転UI（マスコン制御）
+**サーバー側実装**: `TrainUnit.masconLevel`（±16777216の範囲）  
+**必要な実装**:
+- [ ] マスコンレベル調整UI（スライダー、ボタン、キーボード入力など）
+- [ ] 前進/後進切り替えUI
+- [ ] ニュートラル（停止）操作UI
+- [ ] マスコンレベルの視覚的表示（現在値、最大値など）
+
+**サーバー側の現状**: `KeyInput()`メソッドはコメントのみで未実装
+
+**必要なプロトコル**:
+- [ ] マスコンレベル変更プロトコル（サーバー側で`masconLevel`を更新するプロトコル）
+
+---
+
+### 3. 列車自動運転ON/OFF UI
+**サーバー側実装**: `TrainUnit.TurnOnAutoRun()`, `TurnOffAutoRun()`, `IsAutoRun`  
+**必要な実装**:
+- [ ] 自動運転ON/OFFボタン
+- [ ] 自動運転状態の表示（ON/OFFの視覚的フィードバック）
+
+**必要なプロトコル**:
+- [ ] 自動運転ON/OFFプロトコル
+
+---
+
+### 4. ダイアグラム編集UI
+**サーバー側実装**: `TrainDiagram.AddEntry()`, `InsertEntry()`, `SetDepartureCondition()`など  
+**必要な実装**:
+- [ ] ダイアグラムエントリー一覧表示UI
+- [ ] エントリー追加UI（駅ノード選択）
+- [ ] エントリー削除UI
+- [ ] エントリー順序変更UI（ドラッグ&ドロップなど）
+- [ ] 発車条件設定UI
+  - インベントリ満杯/空のチェックボックス
+  - 待機tick数の入力
+- [ ] 現在のエントリー（現在位置）の表示
+
+**必要なプロトコル**:
+- [ ] ダイアグラムエントリー追加プロトコル
+- [ ] ダイアグラムエントリー削除プロトコル
+- [ ] ダイアグラムエントリー順序変更プロトコル
+- [ ] 発車条件設定プロトコル
+
+---
+
+### 5. 列車インベントリ表示UI
+**サーバー側実装**: `TrainCar.GetItem()`, `SetItem()`, `InsertItem()`, `EnumerateInventory()`  
+**必要な実装**:
+- [ ] 列車のインベントリスロット表示UI
+- [ ] 列車インベントリを開くUI（列車選択時に表示）
+- [ ] インベントリアイテムのドラッグ&ドロップ
+- [ ] 各車両のインベントリ表示（複数車両の場合）
+
+**必要なプロトコル**:
+- [ ] 列車インベントリ取得プロトコル（現在のインベントリ状態を取得）
+- [ ] 列車インベントリ変更プロトコル（アイテムの追加・削除）
+
+**備考**: ブロックインベントリの実装（`BlockInventoryState`など）を参考に実装可能
+
+---
+
+### 6. 列車燃料表示UI
+**サーバー側実装**: `TrainCar.GetFuelItem()`, `SetFuelItem()`, `EnumerateFuelSlots()`  
+**必要な実装**:
+- [ ] 燃料スロット表示UI
+- [ ] 燃料残量の視覚的表示（バー、パーセンテージなど）
+- [ ] 燃料の追加UI
+
+**必要なプロトコル**:
+- [ ] 列車燃料情報取得プロトコル（既存のインベントリプロトコルで対応可能な可能性あり）
+
+---
+
+### 7. 列車情報表示UI
+**サーバー側実装**: `TrainUnit.CurrentSpeed`, `TrainUnit.RailPosition`, `TrainUnit.Cars`など  
+**必要な実装**:
+- [ ] 列車速度表示（m/s、km/hなど）
+- [ ] 列車位置表示（現在のレールノード情報）
+- [ ] 列車編成情報表示（車両数、長さなど）
+- [ ] ドッキング状態表示（駅に停車中かどうか）
+
+**必要なプロトコル**:
+- [ ] 列車状態取得プロトコル（速度、位置、状態など）
+  - または、既存のエンティティ同期システムで対応可能か確認
+
+---
+
+### 8. 列車分割UI
+**サーバー側実装**: `TrainUnit.SplitTrain(int numberOfCarsToDetach)`  
+**必要な実装**:
+- [ ] 列車分割UI（分割する車両数を指定）
+- [ ] 分割プレビュー表示
+- [ ] 分割実行ボタン
+
+**必要なプロトコル**:
+- [ ] 列車分割プロトコル
+
+---
+
+### 9. 列車結合UI
+**サーバー側実装**: なし（結合機能は未実装）  
+**必要な実装**:
+- [ ] 列車結合UI（2つの列車を結合）
+- [ ] 結合プレビュー表示
+
+**サーバー側で必要な実装**:
+- [ ] 列車結合メソッド（`TrainUnit.CombineTrain()`など）
+
+**必要なプロトコル**:
+- [ ] 列車結合プロトコル
+
+---
+
+### 10. 列車速度表示（HUD/常時表示）
+**サーバー側実装**: `TrainUnit.CurrentSpeed`  
+**必要な実装**:
+- [ ] 画面に常時表示される速度メーターUI
+- [ ] 速度のリアルタイム更新
+
+**必要なプロトコル**:
+- [ ] 列車状態取得プロトコル（または既存のエンティティ同期システムで対応）
+
+---
+
+### 11. 列車の方向表示
+**サーバー側実装**: `TrainCar.IsFacingForward`, `TrainUnit.Reverse()`  
+**必要な実装**:
+- [ ] 列車の進行方向を視覚的に表示（矢印など）
+- [ ] 列車反転UI（方向を反転させるボタン）
+
+**必要なプロトコル**:
+- [ ] 列車反転プロトコル
+
+---
+
+## サーバー側で不足している実装（補足）
+
+### 1. 列車結合機能
+- [ ] `TrainUnit.CombineTrain(TrainUnit other)` メソッドの実装
+
+### 2. 列車操作プロトコル
+- [ ] マスコンレベル変更プロトコル
+- [ ] 自動運転ON/OFFプロトコル
+- [ ] ダイアグラム編集プロトコル群
+- [ ] 列車インベントリ操作プロトコル
+- [ ] 列車分割プロトコル
+- [ ] 列車結合プロトコル
+- [ ] 列車反転プロトコル
+- [ ] 列車状態取得プロトコル（速度、位置、状態など）
+
+---
+
+## 優先度の提案
+
+### 高優先度（基本的な操作）
+1. **列車選択・操作UI** - 列車操作の前提
+2. **列車手動運転UI** - 基本操作
+3. **列車自動運転ON/OFF UI** - 自動運転の基本操作
+4. **列車情報表示UI** - 状態確認の基本
+
+### 中優先度（高度な操作）
+5. **ダイアグラム編集UI** - 自動運転の設定
+6. **列車インベントリ表示UI** - ゲームプレイに重要
+7. **列車速度表示（HUD）** - プレイ体験向上
+
+### 低優先度（拡張機能）
+8. **列車燃料表示UI** - 燃料システムが重要になった場合
+9. **列車分割UI** - 編成管理が重要になった場合
+10. **列車結合UI** - 結合機能実装後
+11. **列車の方向表示** - UI改善
+
+---
+
+## 参考実装
+
+### 既存のUI実装パターン
+- **ブロックインベントリUI**: `BlockInventoryState`, `IBlockInventoryView`
+- **プレイヤーインベントリUI**: `PlayerInventoryState`, `PlayerInventoryViewController`
+- **ブロック操作UI**: 各種ブロックの`InventoryView`実装
+
+### 既存のプロトコルパターン
+- **列車配置プロトコル**: `PlaceTrainCarOnRailProtocol`
+- **ブロック操作プロトコル**: 各種`IPacketResponse`実装
+
+---
+
+## 注意事項
+
+1. **エンティティ同期システム**: 列車の位置情報は既に`TrainEntity`としてエンティティ同期システムで送信されています。状態情報（速度、自動運転状態など）も同様に送信されているか確認が必要です。
+
+2. **既存システムとの統合**: ブロックインベントリUIの実装パターンを参考に、列車インベントリUIも同様のパターンで実装できます。
+
+3. **プロトコル設計**: `docs/ProtocolImplementationGuide.md`を参照してプロトコルを実装してください。
+
+4. **テスト**: 各機能の実装後、対応するテストを追加してください。
+
+
+これらのメモを統合してまとめ、やることリストを一つのテキストにまとめてください
+
+
+
+
+
+
+
+
+
+# 鉄道システム やることリスト（統合版）
+
+> 本リストは、サーバーに実装済みの走行・ダイアグラム・駅/貨物ロジックを前提に、**クライアントUI/プロトコル不足**と**レール可視化の差分反映不足**を埋めるための実装項目を、**優先度順・フェーズ順**で一本化したものです。
+> ファイル参照例（抜粋）：
+>
+> * 走行/自動運転/分割：`Server/Game.Train/Train/TrainUnit.cs`（例: 339–384, 667–709）
+> * ドッキング：`Server/Game.Train/Train/TrainUnitStationDocking.cs`（60–205）
+> * ダイアグラム：`Server/Game.Train/Train/TrainDiagram.cs`（93–155, 211–349）
+> * 車両（インベントリ/燃料）：`Server/Game.Train/Train/TrainCar.cs`（12–126）
+> * レールイベント：`Server/Server.Event/EventReceive/RailConnectionsEventPacket.cs`（34–77）
+> * レール可視化：`Client.Game/InGame/Train/TrainRailObjectManager.cs`（30–90）
+> * レールデータ：`Server/Game.Train/RailGraph/RailGraphDatastore.cs`（181–211）
+> * クライアント列車描画：`Client.Game/InGame/Entity/Object/TrainEntityObject.cs`（7–96）
+
+---
+
+## フェーズ1（最優先・最小可動）：**列車選択/表示/基本操作**
+
+### 1-1. 列車選択・状態表示（HUD）
+
+* [ ] 選択中列車ハイライト（アウトライン/ネームプレート）
+* [ ] `TrainHUD`（新規）：**速度**・**mascon**・**AutoRun状態**・**ドッキング状態**の常時/コンテキスト表示
+* [ ] 取得手段：`GetTrainStatusProtocol`（下記 1-3） or 既存同期に状態を追加
+
+### 1-2. 手動運転UI（mascon/反転/AutoRun切替）
+
+* [ ] `TrainOperationPanel`（新規）：
+
+  * mascon スライダー/±ボタン（範囲 `-16777216..+16777216`）
+  * 反転ボタン（Reverse）
+  * AutoRun ON/OFF トグル
+  * キーバインド（W/S で mascon、R で反転、T で AutoRun など）
+* [ ] クライアント→サーバ送信処理とクールダウン/レート制御（例：20Hz 以下）
+
+### 1-3. **サーバープロトコル（必須）**
+
+* [ ] **SetTrainMasconLevelProtocol**（`va:trainSetMascon`）
+
+  * req: `TrainId, MasconLevel(int)`／res: 成否
+* [ ] **ToggleAutoRunProtocol**（`va:trainToggleAutoRun`）
+
+  * req: `TrainId, IsAutoRun(bool)`／res: 成否
+* [ ] **ReverseTrainProtocol**（`va:trainReverse`）
+
+  * req: `TrainId`／res: 成否
+* [ ] **GetTrainStatusProtocol**（`va:trainGetStatus`）
+
+  * res: `CurrentSpeed, MasconLevel, IsAutoRun, IsDocked, RailPosition, Diagram(現インデックス/エントリ要約)`
+
+### 1-4. サーバー走行入力の適用
+
+* [ ] `TrainUnit.KeyInput()` を**外部入力適用**に改修（現状 0 クリア→入力反映）
+* [ ] `TurnOnAutoRun()/TurnOffAutoRun()` の公開呼出し経路（上記プロトコル）接続
+
+---
+
+---
+
+## フェーズ3：**自動運転ダイアグラム**
+
+### 3-1. クライアントUI（`TrainDiagramView`）
+
+* [ ] エントリ一覧（停車駅/条件/順序、現行エントリのハイライト）
+* [ ] 追加/削除/挿入/順序入替（D&D または上下矢印）
+* [ ] 発車条件 UI：`InventoryFull / InventoryEmpty / WaitForTicks(数値)`
+* [ ] 駅選択：マップクリック or 駅リスト
+
+### 3-2. サーバープロトコル
+
+* [ ] **AddDiagramEntryProtocol**（`va:trainDiaAdd`：`TrainId, RailNodeId`）
+* [ ] **RemoveDiagramEntryProtocol**（`va:trainDiaRemove`：`TrainId, EntryIndex`）
+* [ ] **InsertDiagramEntryProtocol**（`va:trainDiaInsert`：`TrainId, Index, RailNodeId`）
+* [ ] **SetDepartureConditionProtocol**（`va:trainDiaSetCond`：`TrainId, EntryIndex, ConditionType[], WaitTicks?`）
+* [ ] **MoveDiagramIndexProtocol**（`va:trainDiaMoveIndex`：`TrainId, NewIndex`）
+* [ ] （推奨）**TrainDiagramChangedEvent**：リスト/現インデックス変更の通知
+
+---
+
+## フェーズ4：**レール可視化の差分反映（必須基盤）**
+
+### 4-1. レール更新イベントの拡充/再取得フロー
+
+* [ ] `RailConnectionsEventPacket` の**ペイロード拡充**（接続IDのみ→**接続詳細**を同梱）
+
+  * 代替：イベント受信時にクライアントが **`GetRailConnections` 差分再取得**を指示できるフラグを送る
+* [ ] **レール切断イベント**を実装（`DisconnectNodeInternal` 後に発火）
+* [ ] `TrainRailObjectManager`：受信イベントで**増減/更新差分を再描画**（新規スプライン材料取得→`RailSplineComponent` 再構築）
+
+---
+
+## フェーズ5：**駅/貨物プラットフォームUI**
+
+* [ ] `TrainStationBlockInventoryView`／`CargoplatformBlockInventoryView`（新規）
+* [ ] ドッキング中の列車情報（編成ID/到着予測など任意）
+* [ ] **転送モード切替**UI（積み込み/荷降ろし、双方向）→ サーバ通知
+* [ ] 必要に応じて**自動転送設定**（優先度/フィルタ）UI
+
+---
+
+## フェーズ6：**分割UIと周辺**
+
+* [ ] `TrainSplitDialog`（新規）：後部切り離し**台数指定＋確認**
+* [ ] **SplitTrainProtocol**（`va:trainSplit`：`TrainId, DetachCount`）
+* [ ] 反映イベント or `GetTrainStatus` 再取得で編成/Entity再構築
+* [ ] （将来）結合機能：`CombineTrain()` 実装 → `CombineTrainProtocol`／UI
+
+---
+
+## フェーズ7（任意拡張）：**詳細情報/デバッグ**
+
+* [ ] 編成詳細パネル：車両数・総重量・総牽引・各車両の向き/パラメータ/アドレス
+* [ ] デバッグHUD：`_remainingDistance, _accumulatedDistance, RailPosition詳細`
+* [ ] レールグラフ可視化（`RailGraphDatastore.CreateSnapshot()` の表示）
+* [ ] 速度/加速度の簡易リアルタイムグラフ
+
+---
+
+## 横断タスク（設計/命名/更新頻度）
+
+### 命名・タグ
+
+* [ ] プロトコルタグは `va:trainXxxx`（例：`va:trainSetMascon`, `va:trainDiaAdd`）
+* [ ] UI クラスは `TrainXxxxxState` / `TrainXxxxxView`
+
+### 更新頻度/帯域
+
+* [ ] 状態ポーリングは**イベント駆動優先**＋バックオフ（例：2–5Hz）
+* [ ] mascon送信は**入力変化時のみ**、スロットリング（例：20Hz上限）
+* [ ] HUDは補間/平滑化でチラつき防止
+
+### 整合/再利用
+
+* [ ] インベントリは**既存 `BlockInventoryState` パターン**を継承/流用
+* [ ] UIステートは `UIStateEnum`/`IUIState` に準拠
+* [ ] プロトコルは `IPacketResponse` / `ProtocolMessagePackBase` に準拠
+
+---
+
+## テスト計画
+
+* [ ] **ユニット**：各プロトコルの正常系/エラー系、境界値（mascon 範囲、空/満杯、待機tick）
+* [ ] **統合**：UI 操作→サーバ反映→イベント通知→クライアント更新の往復
+* [ ] **回帰**：レール接続/切断→可視化差分の正確性
+* [ ] **負荷**：編成長大時・イベント連発時のフレーム落ち/GCチェック
+* [ ] テストデータ：`Tests.Module.TestMod.ForUnitTest` を利用
+
+---
+
+## 進捗管理（チェックリスト）
+
+* [ ] フェーズ1：選択/HUD/操作 & 4種プロトコル
+* [ ] フェーズ2：インベントリ/燃料 UI & 3種プロトコル＋イベント
+* [ ] フェーズ3：ダイアグラム UI & 5種プロトコル＋イベント
+* [ ] フェーズ4：レール差分イベント拡充/再取得フロー
+* [ ] フェーズ5：駅/貨物 UI（転送モード）
+* [ ] フェーズ6：分割 UI & プロトコル
+* [ ] フェーズ7：詳細/デバッグ
+* [ ] 横断：命名/更新頻度/整合、テスト一式
+
+---
