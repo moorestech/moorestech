@@ -5,9 +5,7 @@ using Game.Train.RailGraph;
 using Game.Train.Train;
 using NUnit.Framework;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Net.Sockets;
 using Tests.Module.TestMod;
 using Tests.Util;
 
@@ -406,8 +404,6 @@ namespace Tests.UnitTest.Game
                     Assert.IsTrue(docked, "Each update should toggle the docking state in the single entry loop.");
                 if (startRunning == true)
                     Assert.IsTrue(docked, "Each update should toggle the docking state in the single entry loop."); 
-                //UnityEngine.Debug.Log($"i={i} docked={docked}");
-                //Assert.IsTrue(previousDockState != docked, "Each update should toggle the docking state in the single entry loop.");
             }
             Assert.AreSame(diagram.Entries[0].Node, diagram.GetCurrentNode(), "Single entry diagram should continually target the lone node.");
         }
