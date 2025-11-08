@@ -1,13 +1,14 @@
-using System.Collections.Generic;
 using Game.Block.Blocks;
 using Game.Block.Blocks.Chest;
 using Game.Block.Blocks.Service;
-using Game.Block.Interface;
-using Game.Block.Interface.Component;
-using Mooresmaster.Model.BlocksModule;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Factory.BlockTemplate.Utility;
+using Game.Block.Interface;
+using Game.Block.Interface.Component;
+using Game.Train.Common;
 using Game.Train.RailGraph;
+using Mooresmaster.Model.BlocksModule;
+using System.Collections.Generic;
 
 
 namespace Game.Block.Factory.BlockTemplate
@@ -45,6 +46,11 @@ namespace Game.Block.Factory.BlockTemplate
             railComponents[1].FrontNode.StationRef.SetStationReference(createdBlock, StationNodeRole.Exit, StationNodeSide.Front);
             railComponents[1].BackNode.StationRef.SetStationReference(createdBlock, StationNodeRole.Entry, StationNodeSide.Back);
             railComponents[0].BackNode.StationRef.SetStationReference(createdBlock, StationNodeRole.Exit, StationNodeSide.Back);
+
+            /// 一時実装
+            //仮実装中 TODO 今後、ダイアグラムをクライアント側で手動で設定できるようにした場合はこの実装をけす、呼び出し駅側コードも消すよう
+            //駅新規追加時のみ駅のfront exitノードを全ダイアグラムに追加 wait は1200tick
+            TrainDiagramManager.Instance.NotifyNodeAddition(railComponents[1].FrontNode);
             return createdBlock;
         }
 
