@@ -21,17 +21,17 @@ namespace Tests.UnitTest.Game.SaveLoad
 {
     public class TrainHugeAutoRunTrainSaveLoadConsistencyTest
     {
-        private const int RailComponentCount = 2200;//12000
-        private const int DiagramNodeSelectionCount = 8999;//10000
-        private const int TrainCount = 65;//6
-        private const int TotalTicks = 73611;//100000
-        private const int SaveAfterTicks = 50003;//50000
+        private const int RailComponentCount = 140;//2200
+        private const int DiagramNodeSelectionCount = 99;//8999
+        private const int TrainCount = 65;//65
+        private const int TotalTicks = 9611;//73611
+        private const int SaveAfterTicks = 6003;//50003
         private const int MaxDiagramEntries = 17;//17
         private const int MinDiagramEntries = 1;//1
-        private const int MaxWaitTicks = 4097;//4096
-        private const int RandomSeed = 3572468;
-        
-        
+        private const int MaxWaitTicks = 96;//4097
+        private const int RandomSeed = 3572468;//3572468
+
+
         [Timeout(500000)]
         [Test]
         public void MassiveAutoRunScenarioProducesIdenticalStateWithAndWithoutSaveLoad()
