@@ -27,9 +27,9 @@ namespace Tests.UnitTest.Game
             var trainUnit = scenario.Train;
             var currentDestination = trainUnit.trainDiagram.GetCurrentNode();
 
-            Assert.IsNotNull(currentDestination, "Scenario must start with an active destination.");
+            Assert.IsNotNull(currentDestination, "シナリオは有効な現在の目的地から開始している必要があります。");
             Assert.Greater(trainUnit.trainDiagram.Entries.Count, 1,
-                "Scenario should provide a non-current entry to remove.");
+                "シナリオには削除対象となる“現在以外の”エントリが含まれている必要があります。");
 
             var dockingStateBefore = trainUnit.trainUnitStationDocking.IsDocked;
             var autoRunBefore = trainUnit.IsAutoRun;
@@ -41,20 +41,20 @@ namespace Tests.UnitTest.Game
             trainUnit.trainDiagram.HandleNodeRemoval(nonCurrentNode);
 
             Assert.AreEqual(autoRunBefore, trainUnit.IsAutoRun,
-                "Removing a non-current entry should not toggle auto-run.");
+                "現在以外のエントリを削除しても自動運転は切り替わらないはずです。");
             Assert.AreEqual(dockingStateBefore, trainUnit.trainUnitStationDocking.IsDocked,
-                "Docking state must remain unchanged when a non-current entry is removed.");
+                "現在以外のエントリを削除してもドッキング状態は変化しないはずです。");
             Assert.AreSame(currentDestination, trainUnit.trainDiagram.GetCurrentNode(),
-                "Current destination should be preserved after removing a non-current entry.");
+                "現在以外のエントリを削除しても現在の目的地は維持されるはずです。");
 
             trainUnit.Update();
 
             Assert.AreEqual(autoRunBefore, trainUnit.IsAutoRun,
-                "Auto-run should remain stable after subsequent updates.");
+                "以降のUpdate後も自動運転は安定して維持されるはずです。");
             Assert.AreEqual(dockingStateBefore, trainUnit.trainUnitStationDocking.IsDocked,
-                "Docking state should remain stable after subsequent updates.");
+                "以降のUpdate後もドッキング状態は維持されるはずです。");
             Assert.AreSame(currentDestination, trainUnit.trainDiagram.GetCurrentNode(),
-                "Train should continue heading towards the same destination after removing a non-current entry.");
+                "現在以外のエントリを削除後も、列車は同じ目的地に向かい続けるはずです。");
         }
 
         [TestCase(false)]
@@ -67,44 +67,44 @@ namespace Tests.UnitTest.Game
             var diagram = trainUnit.trainDiagram;
             var currentDestination = diagram.GetCurrentNode();
 
-            Assert.IsNotNull(currentDestination, "Scenario must start with an active destination.");
+            Assert.IsNotNull(currentDestination, "シナリオは有効な現在の目的地から開始している必要があります。");
             Assert.Greater(diagram.Entries.Count, 1,
-                "Scenario should provide a subsequent entry to advance towards.");
+                "シナリオには先に進むための次のエントリが含まれている必要があります。");
 
             var nextIndex = (diagram.CurrentIndex + 1) % diagram.Entries.Count;
             var nextNode = diagram.Entries[nextIndex].Node;
 
             diagram.HandleNodeRemoval(currentDestination);
 
-            Assert.IsTrue(trainUnit.IsAutoRun, "Auto-run should remain enabled after removing the active entry.");
+            Assert.IsTrue(trainUnit.IsAutoRun, "現在のエントリを削除しても自動運転は有効のままのはずです。");
             Assert.AreSame(nextNode, diagram.GetCurrentNode(),
-                "Current diagram entry should advance to the next node after removal.");
+                "ダイヤグラムの現在エントリは、削除後に次のノードへ進むはずです。");
 
             if (!startRunning)
             {
                 Assert.IsTrue(trainUnit.trainUnitStationDocking.IsDocked,
-                    "Train should remain docked until the next tick in the docked scenario.");
+                    "停泊シナリオでは、次のティックまで列車はドッキング状態を維持するはずです。");
 
                 trainUnit.Update();
 
                 Assert.IsFalse(trainUnit.trainUnitStationDocking.IsDocked,
-                    "Train should undock on the next tick after removing the active entry.");
-                Assert.IsTrue(trainUnit.IsAutoRun, "Auto-run should remain enabled after the update.");
+                    "現在エントリの削除後、次のティックで列車はドッキング解除されるはずです。");
+                Assert.IsTrue(trainUnit.IsAutoRun, "Update後も自動運転は有効のままのはずです。");
                 Assert.AreSame(nextNode, diagram.GetCurrentNode(),
-                    "Train should now be heading towards the next node after undocking.");
+                    "ドッキング解除後は次のノードに向かっているはずです。");
             }
             else
             {
                 Assert.IsFalse(trainUnit.trainUnitStationDocking.IsDocked,
-                    "Running scenario should remain undocked after removing the active entry.");
+                    "走行中シナリオでは、現在エントリ削除後も非ドッキング状態のはずです。");
 
                 trainUnit.Update();
 
                 Assert.IsFalse(trainUnit.trainUnitStationDocking.IsDocked,
-                    "Running scenario should stay undocked on subsequent ticks.");
-                Assert.IsTrue(trainUnit.IsAutoRun, "Auto-run should remain enabled while running.");
+                    "走行中シナリオでは、その後のティックでも非ドッキング状態を維持するはずです。");
+                Assert.IsTrue(trainUnit.IsAutoRun, "走行中は自動運転が有効のままのはずです。");
                 Assert.AreSame(nextNode, diagram.GetCurrentNode(),
-                    "Running scenario should continue towards the advanced node after updates.");
+                    "走行中シナリオでは、Update後も進んだ先のノードへ向かい続けるはずです。");
             }
         }
 
@@ -122,7 +122,7 @@ namespace Tests.UnitTest.Game
                 .ToList();
 
             Assert.IsNotEmpty(nodesToRemove,
-                "Scenario must provide entries to remove from the diagram.");
+                "シナリオにはダイヤグラムから削除できるエントリが用意されている必要があります。");
 
             foreach (var node in nodesToRemove)
             {
@@ -130,34 +130,34 @@ namespace Tests.UnitTest.Game
             }
 
             Assert.IsEmpty(diagram.Entries,
-                "Diagram should have no entries after removing every node.");
+                "すべてのノードを削除した後、ダイヤグラムにエントリは残っていないはずです。");
 
             if (!startRunning)
             {
                 Assert.IsTrue(trainUnit.trainUnitStationDocking.IsDocked,
-                    "Docked scenario should still report the train as docked immediately after removal.");
+                    "停泊シナリオでは、削除直後は列車がドッキング中であると報告されるはずです。");
 
                 trainUnit.Update();
 
                 Assert.IsFalse(trainUnit.trainUnitStationDocking.IsDocked,
-                    "Removing all entries should undock the train on the next tick.");
+                    "すべてのエントリを削除すると、次のティックで列車はドッキング解除されるはずです。");
                 Assert.IsFalse(trainUnit.IsAutoRun,
-                    "Diagram without entries should not report a next destination.");
+                    "エントリのないダイヤグラムは次の目的地を報告しないはずです。");
             }
             else
             {
                 Assert.IsFalse(trainUnit.trainUnitStationDocking.IsDocked,
-                    "Running scenario should begin in an undocked state.");
+                    "走行中シナリオは非ドッキング状態で開始されるはずです。");
 
                 trainUnit.Update();
             }
 
             Assert.IsFalse(trainUnit.IsAutoRun,
-                "Removing all diagram entries must disable auto-run once processed.");
+                "ダイヤグラムの全エントリ削除処理が完了すると自動運転は無効化されるべきです。");
             Assert.IsFalse(trainUnit.trainUnitStationDocking.IsDocked,
-                "Train should remain undocked after auto-run is disabled.");
+                "自動運転が無効化された後も列車は非ドッキング状態を維持するはずです。");
             Assert.IsNull(diagram.GetCurrentNode(),
-                "Diagram without entries should not report a next destination.");
+                "エントリのないダイヤグラムは次の目的地を報告しないはずです。");
         }
 
         [TestCase(false)]
@@ -169,20 +169,20 @@ namespace Tests.UnitTest.Game
             var diagram = trainUnit.trainDiagram;
 
             Assert.GreaterOrEqual(diagram.Entries.Count, 3,
-                "Scenario must provide at least three entries (start, n1, n2).");
+                "シナリオには少なくとも3つ（start, n1, n2）のエントリが必要です。");
 
             var startNode = diagram.Entries[0].Node;
             var firstDestination = diagram.Entries[1].Node;
             var secondDestination = diagram.Entries[2].Node;
 
             Assert.AreSame(startNode, diagram.GetCurrentNode(),
-                "Initial destination should be the station exit node.");
+                "初期の目的地は駅の出口ノードであるべきです。");
 
             startNode.DisconnectNode(firstDestination);
             firstDestination.DisconnectNode(startNode);
 
             Assert.IsFalse(startNode.ConnectedNodes.Contains(firstDestination),
-                "Start node should no longer connect directly to the first destination.");
+                "startノードはもはやfirstDestinationに直接接続していないはずです。");
 
             const int rerouteDistance = 4321;
             startNode.ConnectNode(secondDestination, rerouteDistance);
@@ -191,26 +191,26 @@ namespace Tests.UnitTest.Game
             diagram.HandleNodeRemoval(startNode);
 
             Assert.IsTrue(trainUnit.IsAutoRun,
-                "Removing the current entry should leave auto-run enabled while a route remains.");
+                "到達経路が残っている場合、現在エントリを削除しても自動運転は有効のままのはずです。");
 
             if (!startRunning)
             {
                 Assert.IsTrue(trainUnit.trainUnitStationDocking.IsDocked,
-                    "Docked scenario should still be docked immediately after removal.");
+                    "停泊シナリオでは、削除直後は依然としてドッキング中のはずです。");
 
                 trainUnit.Update();
 
                 Assert.IsFalse(trainUnit.trainUnitStationDocking.IsDocked,
-                    "Train should undock after the current entry is removed.");
+                    "現在エントリの削除後、列車はドッキング解除されるはずです。");
                 Assert.AreSame(secondDestination, diagram.GetCurrentNode(),
-                    "Docked scenario should advance to the reachable second destination after undocking.");
+                    "停泊シナリオでは、ドッキング解除後に到達可能な2番目の目的地へ進むはずです。");
                 Assert.IsTrue(trainUnit.IsAutoRun,
-                    "Auto-run should remain enabled after undocking.");
+                    "ドッキング解除後も自動運転は有効のままのはずです。");
             }
             else
             {
                 Assert.IsFalse(trainUnit.trainUnitStationDocking.IsDocked,
-                    "Running scenario should begin undocked.");
+                    "走行中シナリオは非ドッキング状態で開始されるはずです。");
 
                 const int maxUpdates = 8;
                 for (var i = 0; i < maxUpdates; i++)
@@ -223,19 +223,19 @@ namespace Tests.UnitTest.Game
                 }
 
                 Assert.AreSame(secondDestination, diagram.GetCurrentNode(),
-                    "Running scenario should reroute to the reachable second destination.");
+                    "走行中シナリオでは、到達可能な2番目の目的地へ経路再探索されるはずです。");
                 Assert.IsTrue(trainUnit.IsAutoRun,
-                    "Auto-run should remain enabled while rerouting to a reachable node.");
+                    "到達可能なノードへルート再探索中も自動運転は有効のはずです。");
             }
 
             trainUnit.Update();
 
             Assert.AreSame(secondDestination, diagram.GetCurrentNode(),
-                "Train should continue targeting the reachable destination on subsequent updates.");
+                "以降のUpdateでも、列車は到達可能な目的地をターゲットし続けるはずです。");
             Assert.IsTrue(trainUnit.IsAutoRun,
-                "Auto-run should remain enabled after the reroute stabilises.");
+                "経路再探索が安定した後も自動運転は有効のはずです。");
             Assert.IsFalse(trainUnit.trainUnitStationDocking.IsDocked,
-                "Train should be travelling rather than docked after rerouting.");
+                "再経路設定後はドッキングではなく走行中であるべきです。");
         }
 
         [TestCase(false)]
@@ -247,7 +247,7 @@ namespace Tests.UnitTest.Game
             var diagram = trainUnit.trainDiagram;
 
             Assert.GreaterOrEqual(diagram.Entries.Count, 4,
-                "Scenario must provide start, n1, n2, and n0 entries for operation 5.");
+                "操作5には start, n1, n2, n0 のエントリが必要です。");
 
             var startNode = diagram.Entries[0].Node;
             var firstNode = diagram.Entries[1].Node;
@@ -262,7 +262,7 @@ namespace Tests.UnitTest.Game
             diagram.HandleNodeRemoval(startNode);
 
             Assert.IsTrue(diagram.Entries.Any(entry => ReferenceEquals(entry.Node, fallbackNode)),
-                "Fallback node entry should remain after removing the start node.");
+                "startノード削除後もフォールバックノードのエントリは残っているはずです。");
 
             const int maxUpdates = 48;
             for (var i = 0; i < maxUpdates; i++)
@@ -271,11 +271,11 @@ namespace Tests.UnitTest.Game
             }
 
             Assert.IsFalse(trainUnit.trainUnitStationDocking.IsDocked,
-                "Train should undock when the current entry becomes unreachable.");
+                "現在エントリが到達不能になった場合、列車はドッキング解除されるはずです。");
             Assert.IsFalse(trainUnit.IsAutoRun,
-                "Auto-run must eventually disable when no reachable entries remain.");
+                "到達可能なエントリが残っていない場合、最終的に自動運転は無効化されるべきです。");
             Assert.IsNotNull(diagram.GetCurrentNode(),
-                "Diagram with no reachable entries should next destination.");
+                "現在のダイヤグラムから次の目的地を取得できるはずです。");
 
             //ここまで操作５の確認。以下は追加検証。再度nadepathを繋いでdiagramを復旧できるか
             startNode.ConnectNode(firstNode, 9999);
@@ -283,9 +283,9 @@ namespace Tests.UnitTest.Game
             secondNode.ConnectNode(fallbackNode, 9999);
             trainUnit.TurnOnAutoRun();
             Assert.IsTrue(trainUnit.IsAutoRun,
-                "ダイアグラム復旧確認");
+                "ダイヤグラム復旧確認");
             Assert.IsNotNull(diagram.GetCurrentNode(),
-                "Diagram with no reachable entries should next destination.");
+                "現在のダイヤグラムから次の目的地を取得できるはずです。");
 
         }
 
@@ -298,7 +298,7 @@ namespace Tests.UnitTest.Game
             var diagram = trainUnit.trainDiagram;
 
             Assert.GreaterOrEqual(diagram.Entries.Count, 4,
-                "Scenario must provide start, n1, n2, and n0 entries for operation 6.");
+                "操作6には start, n1, n2, n0 のエントリが必要です。");
 
             var startNode = diagram.Entries[0].Node;
             var n1 = diagram.Entries[1].Node;
@@ -308,24 +308,24 @@ namespace Tests.UnitTest.Game
             ConnectNodePair(n2, n0, 7777);
 
             Assert.AreEqual(4, diagram.Entries.Count,
-                "Diagram should contain start, n1, and n0 after removing n2.");
+                "n2 を削除した後、ダイヤグラムには start, n1, n0 が含まれているはずです。");
             Assert.AreSame(startNode, diagram.Entries[0].Node,
-                "Start node must remain the current entry prior to insertion.");
+                "挿入前の現在エントリは start ノードのままであるべきです。");
             Assert.AreSame(n1, diagram.Entries[1].Node,
-                "Second entry should be n1 prior to insertion.");
+                "挿入前の2番目のエントリは n1 のはずです。");
             Assert.AreSame(n2, diagram.Entries[2].Node,
-                "Third entry should be n0 prior to insertion.");
+                "挿入前の3番目のエントリは n0 のはずです。");
 
             CollectionAssert.AreEqual(
                 new[] { startNode, n1, n2, n0 },
                 diagram.Entries.Select(entry => entry.Node).ToArray(),
-                "Inserted node should produce start -> n1 -> n2 -> n0 order.");
+                "挿入後は start → n1 → n2 → n0 の順になるはずです。");
 
             var startEntry = diagram.Entries[0];
             startEntry.SetDepartureWaitTicks(0);
 
             var visitedDestinations = new List<RailNode> { diagram.GetCurrentNode() };
-            Assert.AreSame(startNode, visitedDestinations[0], "Start node must startnode.");
+            Assert.AreSame(startNode, visitedDestinations[0], "開始ノードは startNode でなければなりません。");
             const int maxUpdates = 65536;
 
             for (var i = 0; i < maxUpdates; i++)
@@ -341,15 +341,15 @@ namespace Tests.UnitTest.Game
                     }
                 }
             }
-            
-            Assert.AreEqual(5, visitedDestinations.Count, "visitedDestinations should contain 5 node");
+
+            Assert.AreEqual(5, visitedDestinations.Count, "visitedDestinations は 5 つのノードを含むべきです。");
 
             CollectionAssert.AreEqual(
                 new[] { startNode, n1, n2, n0, startNode },
                 visitedDestinations,
-                "Diagram should cycle through start -> n1 -> n2 -> n0 -> start after insertion.");
+                "挿入後、ダイヤグラムは start → n1 → n2 → n0 → start と巡回するはずです。");
             Assert.IsTrue(trainUnit.IsAutoRun,
-                "Auto-run should remain active throughout the cycle.");
+                "この巡回の間、自動運転は常に有効であるべきです。");
         }
 
         [TestCase(false)]
@@ -369,7 +369,7 @@ namespace Tests.UnitTest.Game
             }
 
             Assert.AreEqual(1, diagram.Entries.Count,
-                "Diagram should contain exactly one entry for the single entry loop test.");
+                "単一エントリ・ループのテストでは、ダイヤグラムはちょうど1つのエントリのみを含むべきです。");
 
             var startEntry = diagram.Entries[0];
             var trainCar = scenario.TrainCar;
@@ -400,12 +400,12 @@ namespace Tests.UnitTest.Game
                 previousDockState = docked;
                 docked = trainUnit.trainUnitStationDocking.IsDocked;
                 if (i == 0) continue;
-                if (startRunning == false) 
-                    Assert.IsTrue(docked, "Each update should toggle the docking state in the single entry loop.");
+                if (startRunning == false)
+                    Assert.IsTrue(docked, "単一エントリ・ループでは、各Updateでドッキング状態が切り替わるべきです。");
                 if (startRunning == true)
-                    Assert.IsTrue(docked, "Each update should toggle the docking state in the single entry loop."); 
+                    Assert.IsTrue(docked, "単一エントリ・ループでは、各Updateでドッキング状態が切り替わるべきです。");
             }
-            Assert.AreSame(diagram.Entries[0].Node, diagram.GetCurrentNode(), "Single entry diagram should continually target the lone node.");
+            Assert.AreSame(diagram.Entries[0].Node, diagram.GetCurrentNode(), "単一エントリのダイヤグラムでは、常にその単一ノードを目標にし続けるはずです。");
         }
 
         private static TrainAutoRunTestScenario CreateScenario(bool startRunning)
