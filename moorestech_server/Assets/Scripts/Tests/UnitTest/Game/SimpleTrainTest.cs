@@ -145,6 +145,7 @@ namespace Tests.UnitTest.Game
                 var (x1, y1, z1) = listIsCreated[UnityEngine.Random.Range(0, listIsCreated.Count)];
                 var (x2, y2, z2) = listIsCreated[UnityEngine.Random.Range(0, listIsCreated.Count)];
                 if (x1 == 0 || x1 == size - 1 || y1 == 0 || y1 == size - 1 || z1 == 0 || z1 == size - 1) continue;
+                if ((x1, y1, z1) == (x2, y2, z2)) continue;
                 railBlocks[x1, y1, z1].ConnectRailComponent(railBlocks[x2, y2, z2], true, true);
 
                 if (UnityEngine.Random.Range(0, 2) == 0) continue;
