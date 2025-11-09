@@ -49,5 +49,15 @@ namespace Game.Train.Common
                 diagram.HandleNodeRemoval(removedNode);
             }
         }
+
+        //仮実装中 TODO 今後、ダイアグラムをクライアント側で手動で設定できるようにした場合はこの実装をけす、呼び出し駅側コードも消すよう
+        //駅新規追加時のみ駅のfront exitノードを全ダイアグラムに追加 wait は1200tick
+        public void NotifyNodeAddition(RailNode newNode)
+        {
+            foreach (var diagram in _diagrams)
+            {
+                diagram.AddEntry(newNode, TrainDiagram.DepartureConditionType.WaitForTicks, 1200);
+            }
+        }
     }
 }

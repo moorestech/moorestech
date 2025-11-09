@@ -11,19 +11,19 @@ namespace Core.Master
     {
         public readonly Train Train;
         
-        private readonly Dictionary<ItemId, TrainCarMasterElement> _trainCraMastersByItemId;
+        private readonly Dictionary<ItemId, TrainCarMasterElement> _trainCarMastersByItemId;
         private readonly Dictionary<Guid, TrainCarMasterElement> _trainCarMastersByGuid;
 
         public TrainUnitMaster(JToken jToken, ItemMaster itemMaster)
         {
             Train = TrainLoader.Load(jToken);
-            _trainCraMastersByItemId = Train.TrainCars.ToDictionary(car => MasterHolder.ItemMaster.GetItemId(car.ItemGuid), car => car);
+            _trainCarMastersByItemId = Train.TrainCars.ToDictionary(car => MasterHolder.ItemMaster.GetItemId(car.ItemGuid), car => car);
             _trainCarMastersByGuid = Train.TrainCars.ToDictionary(car => car.TrainCarGuid, car => car);
         }
 
         public bool TryGetTrainUnit(ItemId itemId, out TrainCarMasterElement element)
         {
-            return _trainCraMastersByItemId.TryGetValue(itemId, out element);
+            return _trainCarMastersByItemId.TryGetValue(itemId, out element);
         }
         
         public bool TryGetTrainUnit(Guid guid, out TrainCarMasterElement element)
