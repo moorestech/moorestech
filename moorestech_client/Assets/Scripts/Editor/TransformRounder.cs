@@ -67,12 +67,12 @@ public class TransformRounder : EditorWindow
             pos.z = Mathf.Round(pos.z);
             go.transform.localPosition = pos;
 
-            // ローカル角度を四捨五入
-            // Round local rotation
+            // ローカル角度を90度単位で四捨五入
+            // Round local rotation to nearest 90 degrees
             var rot = go.transform.localEulerAngles;
-            rot.x = Mathf.Round(rot.x);
-            rot.y = Mathf.Round(rot.y);
-            rot.z = Mathf.Round(rot.z);
+            rot.x = Mathf.Round(rot.x / 90f) * 90f;
+            rot.y = Mathf.Round(rot.y / 90f) * 90f;
+            rot.z = Mathf.Round(rot.z / 90f) * 90f;
             go.transform.localEulerAngles = rot;
         }
     }
