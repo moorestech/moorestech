@@ -464,7 +464,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6022028541938891373}
   m_Layer: 7
-  m_Name: SF_T_BeltConveyor
+  m_Name: BeltConveyor_T
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
