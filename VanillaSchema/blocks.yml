@@ -640,9 +640,6 @@ properties:
         implementationInterface:
         - IInventoryConnectors
         properties:
-        - key: stationDistance
-          type: integer
-          default: 5
         - key: entryRailPosition
           type: vector3
           default:
@@ -661,7 +658,7 @@ properties:
         - key: exitControlPointLength
           type: number
           default: 0.5
-        - key: itemSlotCount
+        - key: SlotCount
           type: integer
         - key: inventoryConnectors
           ref: inventoryConnects
@@ -670,9 +667,6 @@ properties:
         implementationInterface:
         - IInventoryConnectors
         properties:
-        - key: platformDistance
-          type: integer
-          default: 5
         - key: frontRailPosition
           type: vector3
           default:
@@ -691,10 +685,7 @@ properties:
         - key: backControlPointLength
           type: number
           default: 0.5
-        - key: inputSlotCount
-          type: integer
-          default: 10
-        - key: outputSlotCount
+        - key: SlotCount
           type: integer
           default: 10
         - key: loadingSpeed
