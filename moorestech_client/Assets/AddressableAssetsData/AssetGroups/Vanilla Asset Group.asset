@@ -560,6 +560,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 948c3f51e452d4eb4a8def7c80a18f61
+    m_Address: Vanilla/Item/Precision_motor
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 949b6c1afc6444d5bbb480710ca7a8f3
     m_Address: Vanilla/Block/Primitive_Windmill
     m_ReadOnly: 0
