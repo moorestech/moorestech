@@ -210,6 +210,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 378bab6c515bb4252a5166202effa6fe
+    m_Address: Vanilla/Item/Iron_Ingot_item
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 39c0bfeb5142544ae82d4dca6c07c1c9
     m_Address: Vanilla/Block/ElectricPump
     m_ReadOnly: 0
