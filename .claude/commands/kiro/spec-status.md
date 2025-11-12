@@ -6,92 +6,82 @@ argument-hint: <feature-name>
 
 # Specification Status
 
-Show current status and progress for feature: **$1**
+<background_information>
+- **Mission**: Display comprehensive status and progress for a specification
+- **Success Criteria**:
+  - Show current phase and completion status
+  - Identify next actions and blockers
+  - Provide clear visibility into progress
+</background_information>
 
-## Spec Context
+<instructions>
+## Core Task
+Generate status report for feature **$1** showing progress across all phases.
 
-### Spec Files
-- Spec directory: !`ls -la .kiro/specs/$1/ 2>/dev/null || echo "No spec directory found"`
-- Spec metadata: `.kiro/specs/$1/spec.json`
-- Requirements: `.kiro/specs/$1/requirements.md`
-- Design: `.kiro/specs/$1/design.md`
-- Tasks: `.kiro/specs/$1/tasks.md`
+## Execution Steps
 
-### All Specs Overview
-- Available specs: !`ls -la .kiro/specs/ 2>/dev/null || echo "No specs directory found"`
-- Active specs: !`find .kiro/specs/ -name "spec.json" -exec grep -l "implementation_ready.*true" {} \; 2>/dev/null || echo "No active specs"`
+### Step 1: Load Spec Context
+- Read `.kiro/specs/$1/spec.json` for metadata and phase status
+- Read existing files: `requirements.md`, `design.md`, `tasks.md` (if they exist)
+- Check `.kiro/specs/$1/` directory for available files
 
-## Task: Generate Status Report
+### Step 2: Analyze Status
 
-Create comprehensive status report for the specification in the language specified in spec.json (check `.kiro/specs/$1/spec.json` for "language" field):
+**Parse each phase**:
+- **Requirements**: Count requirements and acceptance criteria
+- **Design**: Check for architecture, components, diagrams
+- **Tasks**: Count completed vs total tasks (parse `- [x]` vs `- [ ]`)
+- **Approvals**: Check approval status in spec.json
 
-### 1. Specification Overview
-Display:
-- Feature name and description
-- Creation date and last update
-- Current phase (requirements/design/tasks/implementation)
-- Overall completion percentage
+### Step 3: Generate Report
 
-### 2. Phase Status
-For each phase, show:
-- ✅ **Requirements Phase**: [completion %]
-  - Requirements count: [number]
-  - Acceptance criteria defined: [yes/no]
-  - Requirements coverage: [complete/partial/missing]
+Create report in the language specified in spec.json covering:
+1. **Current Phase & Progress**: Where the spec is in the workflow
+2. **Completion Status**: Percentage complete for each phase
+3. **Task Breakdown**: If tasks exist, show completed/remaining counts
+4. **Next Actions**: What needs to be done next
+5. **Blockers**: Any issues preventing progress
 
-- ✅ **Design Phase**: [completion %]
-  - Architecture documented: [yes/no]
-  - Components defined: [yes/no]
-  - Diagrams created: [yes/no]
-  - Integration planned: [yes/no]
+## Critical Constraints
+- Use language from spec.json
+- Calculate accurate completion percentages
+- Identify specific next action commands
+</instructions>
 
-- ✅ **Tasks Phase**: [completion %]
-  - Total tasks: [number]
-  - Completed tasks: [number]
-  - Remaining tasks: [number]
-  - Blocked tasks: [number]
+## Tool Guidance
+- **Read**: Load spec.json first, then other spec files as needed
+- **Parse carefully**: Extract completion data from tasks.md checkboxes
+- Use **Glob** to check which spec files exist
 
-### 3. Implementation Progress
-If in implementation phase:
-- Task completion breakdown
-- Current blockers or issues
-- Estimated time to completion
-- Next actions needed
+## Output Description
 
-#### Task Completion Tracking
-- Parse tasks.md checkbox status: `- [x]` (completed) vs `- [ ]` (pending)
-- Count completed vs total tasks
-- Show completion percentage
-- Identify next uncompleted task
+Provide status report in the language specified in spec.json:
 
-### 4. Quality Metrics
-Show:
-- Requirements coverage: [percentage]
-- Design completeness: [percentage]
-- Task granularity: [appropriate/too large/too small]
-- Dependencies resolved: [yes/no]
+**Report Structure**:
+1. **Feature Overview**: Name, phase, last updated
+2. **Phase Status**: Requirements, Design, Tasks with completion %
+3. **Task Progress**: If tasks exist, show X/Y completed
+4. **Next Action**: Specific command to run next
+5. **Issues**: Any blockers or missing elements
 
-### 5. Recommendations
-Based on status, provide:
-- Next steps to take
-- Potential issues to address
-- Suggested improvements
-- Missing elements to complete
+**Format**: Clear, scannable format with emojis (✅/⏳/❌) for status
 
-### 6. Steering Alignment
-Check alignment with steering documents:
-- Architecture consistency: [aligned/misaligned]
-- Technology stack compliance: [compliant/non-compliant]
-- Product requirements alignment: [aligned/misaligned]
+## Safety & Fallback
 
-## Instructions
+### Error Scenarios
 
-1. **Check spec.json for language** - Use the language specified in the metadata
-2. **Parse all spec files** to understand current state
-3. **Calculate completion percentages** for each phase
-4. **Identify next actions** based on current progress
-5. **Highlight any blockers** or issues
-6. **Provide clear recommendations** for moving forward
-7. **Check steering alignment** to ensure consistency
+**Spec Not Found**:
+- **Message**: "No spec found for `$1`. Check available specs in `.kiro/specs/`"
+- **Action**: List available spec directories
 
-Generate status report that provides clear visibility into spec progress and next steps.
+**Incomplete Spec**:
+- **Warning**: Identify which files are missing
+- **Suggested Action**: Point to next phase command
+
+### List All Specs
+
+To see all available specs:
+- Run with no argument or use wildcard
+- Shows all specs in `.kiro/specs/` with their status
+
+think
