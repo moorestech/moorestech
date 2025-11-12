@@ -1,153 +1,127 @@
 ---
-description: Create custom Kiro steering documents for specialized project contexts
+description: Create custom steering documents for specialized project contexts
 allowed-tools: Bash, Read, Write, Edit, MultiEdit, Glob, Grep, LS
 ---
 
 # Kiro Custom Steering Creation
 
-Create custom steering documents in `.kiro/steering/` for specialized contexts beyond the three foundational files (product.md, tech.md, structure.md).
+<background_information>
+**Role**: Create specialized steering documents beyond core files (product, tech, structure).
 
-## Current Steering Status
+**Mission**: Help users create domain-specific project memory for specialized areas.
 
-### Existing Steering Documents
-- Core steering files: !`ls -la .kiro/steering/*.md 2>/dev/null || echo "No steering directory found"`
-- Custom steering count: !`if [ -d ".kiro/steering" ]; then count=0; for f in .kiro/steering/*.md; do if [ -f "$f" ] && [ "$f" != ".kiro/steering/product.md" ] && [ "$f" != ".kiro/steering/tech.md" ] && [ "$f" != ".kiro/steering/structure.md" ]; then count=$((count + 1)); fi; done; echo "$count"; else echo "0"; fi`
+**Success Criteria**:
+- Custom steering captures specialized patterns
+- Follows same granularity principles as core steering
+- Provides clear value for specific domain
+</background_information>
 
-### Project Analysis
-- Specialized areas: !`find . -path ./node_modules -prune -o -path ./.git -prune -o -type d \( -name "test*" -o -name "spec*" -o -name "api" -o -name "auth" -o -name "security" \) -print 2>/dev/null || echo "No specialized directories found"`
-- Config patterns: !`find . -path ./node_modules -prune -o \( -name "*.config.*" -o -name "*rc.*" -o -name ".*rc" \) -print 2>/dev/null || echo "No config files found"`
+<instructions>
+## Workflow
 
-## Task: Create Custom Steering Document
+1. **Ask user** for custom steering needs:
+   - Domain/topic (e.g., "API standards", "testing approach")
+   - Specific requirements or patterns to document
 
-You will create a new custom steering document based on user requirements. Common use cases include:
+2. **Check if template exists**:
+   - Load from `.kiro/settings/templates/steering-custom/{name}.md` if available
+   - Use as starting point, customize based on project
 
-### Common Custom Steering Types
+3. **Analyze codebase** (JIT) for relevant patterns:
+   - **Glob** for related files
+   - **Read** for existing implementations
+   - **Grep** for specific patterns
 
-1. **API Standards** (`api-standards.md`)
-   - REST/GraphQL conventions
-   - Error handling patterns
-   - Authentication/authorization approaches
-   - API versioning strategy
+4. **Generate custom steering**:
+   - Follow template structure if available
+   - Apply principles from `.kiro/settings/rules/steering-principles.md`
+   - Focus on patterns, not exhaustive lists
+   - Keep to 100-200 lines (2-3 minute read)
 
-2. **Testing Approach** (`testing.md`)
-   - Test file organization
-   - Naming conventions for tests
-   - Mocking strategies
-   - Coverage requirements
-   - E2E vs unit vs integration testing
+5. **Create file** in `.kiro/steering/{name}.md`
 
-3. **Code Style Guidelines** (`code-style.md`)
-   - Language-specific conventions
-   - Formatting rules beyond linters
-   - Comment standards
-   - Function/variable naming patterns
-   - Code organization principles
+## Available Templates
 
-4. **Security Policies** (`security.md`)
-   - Input validation requirements
-   - Authentication patterns
-   - Secrets management
-   - OWASP compliance guidelines
-   - Security review checklist
+Templates available in `.kiro/settings/templates/steering-custom/`:
 
-5. **Database Conventions** (`database.md`)
-   - Schema design patterns
-   - Migration strategies
-   - Query optimization guidelines
-   - Connection pooling settings
-   - Backup and recovery procedures
+1. **api-standards.md** - REST/GraphQL conventions, error handling
+2. **testing.md** - Test organization, mocking, coverage
+3. **security.md** - Auth patterns, input validation, secrets
+4. **database.md** - Schema design, migrations, query patterns
+5. **error-handling.md** - Error types, logging, retry strategies
+6. **authentication.md** - Auth flows, permissions, session management
+7. **deployment.md** - CI/CD, environments, rollback procedures
 
-6. **Performance Standards** (`performance.md`)
-   - Load time requirements
-   - Memory usage limits
-   - Optimization techniques
-   - Caching strategies
-   - Monitoring and profiling
+Load template when needed, customize for project.
 
-7. **Deployment Workflow** (`deployment.md`)
-   - CI/CD pipeline stages
-   - Environment configurations
-   - Release procedures
-   - Rollback strategies
-   - Health check requirements
+## Steering Principles
 
-## Inclusion Mode Selection
+From `.kiro/settings/rules/steering-principles.md`:
 
-Choose the inclusion mode based on how frequently and in what context this steering document should be referenced:
+- **Patterns over lists**: Document patterns, not every file/component
+- **Single domain**: One topic per file
+- **Concrete examples**: Show patterns with code
+- **Maintainable size**: 100-200 lines typical
+- **Security first**: Never include secrets or sensitive data
 
-### 1. Always Included (Use sparingly for custom files)
-- **When to use**: Universal standards that apply to ALL code (security policies, core conventions)
-- **Impact**: Increases context size for every interaction
-- **Example**: `security-standards.md` for critical security requirements
-- **Recommendation**: Only use for truly universal guidelines
+</instructions>
 
-### 2. Conditional Inclusion (Recommended for most custom files)  
-- **When to use**: Domain-specific guidelines for particular file types or directories
-- **File patterns**: `"*.test.js"`, `"src/api/**/*"`, `"**/auth/*"`, `"*.config.*"`
-- **Example**: `testing-approach.md` only loads when editing test files
-- **Benefits**: Relevant context without overwhelming general interactions
+## Tool guidance
 
-### 3. Manual Inclusion (Best for specialized contexts)
-- **When to use**: Specialized knowledge needed occasionally 
-- **Usage**: Reference with `@filename.md` during specific conversations
-- **Example**: `deployment-runbook.md` for deployment-specific tasks
-- **Benefits**: Available when needed, doesn't clutter routine interactions
+- **Read**: Load template, analyze existing code
+- **Glob**: Find related files for pattern analysis
+- **Grep**: Search for specific patterns
+- **LS**: Understand relevant structure
 
-## Document Structure Guidelines
+**JIT Strategy**: Load template only when creating that type of steering.
 
-Create the custom steering document with:
+## Output description
 
-1. **Clear Title and Purpose**
-   - What aspect of the project this document covers
-   - When this guidance should be applied
+Chat summary with file location (file created directly).
 
-2. **Specific Guidelines**
-   - Concrete rules and patterns to follow
-   - Rationale for important decisions
+```
+✅ Custom Steering Created
 
-3. **Code Examples**
-   - Show correct implementation patterns
-   - Include counter-examples if helpful
+## Created:
+- .kiro/steering/api-standards.md
 
-4. **Integration Points**
-   - How this relates to other steering documents
-   - Dependencies or prerequisites
+## Based On:
+- Template: api-standards.md
+- Analyzed: src/api/ directory patterns
+- Extracted: REST conventions, error format
 
-## Security and Quality Guidelines
+## Content:
+- Endpoint naming patterns
+- Request/response format
+- Error handling conventions
+- Authentication approach
 
-### Security Requirements
-- **Never include sensitive data**: No API keys, passwords, database URLs, secrets
-- **Review sensitive context**: Avoid internal server names, private API endpoints
-- **Team access awareness**: All steering content is shared with team members
+Review and customize as needed.
+```
 
-### Content Quality Standards
-- **Single responsibility**: One steering file = one domain (don't mix API + database guidelines)
-- **Concrete examples**: Include code snippets and real project examples  
-- **Clear rationale**: Explain WHY certain approaches are preferred
-- **Maintainable size**: Target 2-3 minute read time per file
+## Examples
 
-## Instructions
+### Success: API Standards
+**Input**: "Create API standards steering"  
+**Action**: Load template, analyze src/api/, extract patterns  
+**Output**: api-standards.md with project-specific REST conventions
 
-1. **Ask the user** for:
-   - Document name (descriptive filename ending in .md)
-   - Topic/purpose of the custom steering
-   - Inclusion mode preference
-   - Specific patterns for conditional inclusion (if applicable)
+### Success: Testing Strategy
+**Input**: "Document our testing approach"  
+**Action**: Load template, analyze test files, extract patterns  
+**Output**: testing.md with test organization and mocking strategies
 
-2. **Create the document** in `.kiro/steering/` with:
-   - Clear, focused content (2-3 minute read)
-   - Practical examples
-   - Consistent formatting with other steering files
+## Safety & Fallback
 
-3. **Document the inclusion mode** by adding a comment at the top:
-   ```markdown
-   <!-- Inclusion Mode: Always | Conditional: "pattern" | Manual -->
-   ```
+- **No template**: Generate from scratch based on domain knowledge
+- **Security**: Never include secrets (load principles)
+- **Validation**: Ensure doesn't duplicate core steering content
 
-4. **Validate** that the document:
-   - Doesn't duplicate existing steering content
-   - Provides unique value for the specified context
-   - Follows markdown best practices
+## Notes
 
-Remember: Custom steering documents should supplement, not replace, the foundational three files. They provide specialized context for specific aspects of your project.
-ultrathink
+- Templates are starting points, customize for project
+- Follow same granularity principles as core steering
+- All steering files loaded as project memory
+- Custom files equally important as core files
+- Avoid documenting agent-specific tooling directories (e.g. `.cursor/`, `.gemini/`, `.claude/`)
+- Light references to `.kiro/specs/` and `.kiro/steering/` are acceptable; avoid other `.kiro/` directories
