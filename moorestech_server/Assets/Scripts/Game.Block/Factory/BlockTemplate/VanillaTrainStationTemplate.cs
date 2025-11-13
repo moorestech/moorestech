@@ -27,7 +27,7 @@ namespace Game.Block.Factory.BlockTemplate
             var railComponents = RailComponentUtility.Create2RailComponents(positionInfo, stationParam.EntryRailPosition, stationParam.ExitRailPosition);//①が行われる
             RailComponentUtility.RegisterAndConnetStationBlocks(railComponents);//②接続処理
             var railSaverComponent = new RailSaverComponent(railComponents);
-            var station = new StationComponent("test", stationParam.SlotCount);
+            var station = new StationComponent("test", stationParam.SlotCount, stationParam.LoadingSpeed);
 
             var inventoryComponents = CreateInventoryComponents(null, instanceId, stationParam, positionInfo);
 
@@ -59,8 +59,8 @@ namespace Game.Block.Factory.BlockTemplate
             var railComponents = RailComponentUtility.Restore2RailComponents(componentStates, positionInfo, stationParam.EntryRailPosition, stationParam.ExitRailPosition);//①復元
             RailComponentUtility.RegisterAndConnetStationBlocks(railComponents);//②接続処理。実はRestoreで接続復元できているが、Registerはここで改めて行う必要がある
             var railSaverComponent = new RailSaverComponent(railComponents);
-            var station = new StationComponent("test", stationParam.SlotCount);
-            
+            var station = new StationComponent("test", stationParam.SlotCount, stationParam.LoadingSpeed);
+
             var inventoryComponents = CreateInventoryComponents(componentStates, instanceId, stationParam, positionInfo);
 
             // 復元したコンポーネントをブロックに登録する

@@ -3471,7 +3471,8 @@
         ],
         "entryControlPointLength": 0.5,
         "exitControlPointLength": 0.5,
-        "SlotCount": 10
+        "SlotCount": 10,
+        "loadingSpeed": 20
       },
       "name": "TestTrainStation",
       "blockGuid": "00000000-0000-0000-0000-000000000025",

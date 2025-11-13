@@ -17,6 +17,7 @@ namespace Game.Block.Blocks.TrainRail
     public class StationComponent : IBlockSaveState, ITrainDockingReceiver
     {
         public string StationName { get; }
+        private float _loadingSpeed = 20f;
         public Guid? _dockedTrainId;
         private Guid? _dockedCarId;
         private TrainCar _dockedTrainCar;
@@ -25,13 +26,11 @@ namespace Game.Block.Blocks.TrainRail
         public int InventorySlotCount { get; private set; }
         public bool IsDestroy { get; private set; }
 
-        public StationComponent(
-            string stationName,
-            int inventorySlotCount
-        )
+        public StationComponent(string stationName, int inventorySlotCount,float loadingSpeed)
         {
             StationName = stationName;
             InventorySlotCount = inventorySlotCount;
+            _loadingSpeed = loadingSpeed;
         }
         public bool CanDock(ITrainDockHandle handle)
         {

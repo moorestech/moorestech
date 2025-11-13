@@ -19,6 +19,7 @@ namespace Game.Block.Blocks.TrainRail
         private Guid? _dockedCarId;
         private TrainCar _dockedTrainCar;
         private IBlockInventory _dockedStationInventory;
+        private float _loadingSpeed = 20f;
 
         public enum CargoTransferMode
         {
@@ -30,7 +31,6 @@ namespace Game.Block.Blocks.TrainRail
 
         // インベントリスロット数やUI更新のための設定
         public int slotCount { get; private set; }
-        public int OutputSlotCount { get; private set; }
 
         public bool IsDestroy { get; private set; }
 
@@ -39,11 +39,10 @@ namespace Game.Block.Blocks.TrainRail
         /// <summary>
         /// コンストラクタ
         /// </summary>
-        public CargoplatformComponent(
-            int inputslotCount
-        )
+        public CargoplatformComponent(int inputslotCount, float loadingSpeed)
         {
             slotCount = inputslotCount;
+            _loadingSpeed = loadingSpeed;
         }
 
         public void SetTransferMode(CargoTransferMode mode)

@@ -564,7 +564,7 @@ namespace Game.Train.Train
             var inventorySlots = data.InventorySlots < 0 ? 0 : data.InventorySlots;
             var length = data.Length < 0 ? 0 : data.Length;
             var isFacingForward = data.IsFacingForward;
-            var car = new TrainCar(data.TractionForce, inventorySlots, length, fuelSlots, isFacingForward);
+            var car = new TrainCar(data.TractionForce, inventorySlots, length, isFacingForward, fuelSlots);
 
             var empty = ServerContext.ItemStackFactory.CreatEmpty();
 

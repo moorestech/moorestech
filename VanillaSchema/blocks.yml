@@ -660,6 +660,9 @@ properties:
           default: 0.5
         - key: SlotCount
           type: integer
+        - key: loadingSpeed
+          type: number
+          default: 20
         - key: inventoryConnectors
           ref: inventoryConnects
       - when: TrainCargoPlatform
