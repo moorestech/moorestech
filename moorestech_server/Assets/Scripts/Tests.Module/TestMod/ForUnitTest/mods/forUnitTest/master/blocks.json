@@ -3553,7 +3553,7 @@
         "exitRailPosition": [
           1.5,
           0.5,
-          0
+          8
         ]
       },
       "name": "TestTrainCargoPlatform",
