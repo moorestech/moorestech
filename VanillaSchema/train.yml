@@ -29,8 +29,4 @@ properties:
       default: 1
     - key: length
       type: integer
-    - key: isFacingForward
-      type: boolean
-      default: true
-      
 
