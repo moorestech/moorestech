@@ -16,7 +16,7 @@ namespace Game.Block.Factory.BlockTemplate
     /// <summary>
     /// バニラ版のTrainRailブロックを生成・復元するテンプレート
     /// </summary>
-    public class VanillaTrailRainTemplate : IBlockTemplate
+    public class VanillaTrainRailTemplate : IBlockTemplate
     {
         /// <summary>
         /// 新規にブロック（と対応するRailComponent等）を生成
@@ -42,7 +42,7 @@ namespace Game.Block.Factory.BlockTemplate
             var railComponentId = new RailComponentID(blockPositionInfo.OriginalPos, 0);
             var railComponentPosition = RailComponentUtility.CalculateRailComponentPosition(blockPositionInfo,trainRailParam.RailPosition);
             railComponents[0] = new RailComponent(railComponentPosition, railBlockDirection, railComponentId);
-            var railSaverComponent = RailComponentFactory.CreateRailSaverComponent(railComponents);
+            var railSaverComponent = new RailSaverComponent(railComponents);
             // StateDetailコンポーネントを生成
             var stateDetailComponent = new RailComponentStateDetailComponent(railComponents[0]);
             // コンポーネントをまとめてブロックに登録
@@ -62,8 +62,9 @@ namespace Game.Block.Factory.BlockTemplate
                 BlockInstanceId instanceId,
                 BlockPositionInfo positionInfo)
         {
-            var railComponents = RailComponentUtility.RestoreRailComponents(componentStates, positionInfo);
-            var railSaverComponent = RailComponentFactory.CreateRailSaverComponent(railComponents);
+            var trainRailParam = masterElement.BlockParam as TrainRailBlockParam;
+            var railComponents = RailComponentUtility.Restore1RailComponents(componentStates, positionInfo, trainRailParam.RailPosition);
+            var railSaverComponent = new RailSaverComponent(railComponents);
             // StateDetailコンポーネントを生成
             var stateDetailComponent = new RailComponentStateDetailComponent(railComponents[0]);
 

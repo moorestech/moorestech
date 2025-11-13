@@ -25,8 +25,8 @@ namespace Game.Block.Factory.BlockTemplate
             // 駅ブロックは常に2つのRailComponentを持つ
             //①ここでは1つのstation内にある2つのRailComponentを直線で接続している
             //②stationをつなげて設置した場合に自動でrailComponentを接続するための処理もここでやってる
-            var railComponents = RailComponentFactory.Create2RailComponents(positionInfo, stationParam.EntryRailPosition, stationParam.ExitRailPosition);
-            var railSaverComponent = RailComponentFactory.CreateRailSaverComponent(railComponents);
+            var railComponents = RailComponentUtility.Create2RailComponents(positionInfo, stationParam.EntryRailPosition, stationParam.ExitRailPosition);
+            var railSaverComponent = new RailSaverComponent(railComponents);
             var station = new CargoplatformComponent(stationParam.SlotCount);
 
             var inventoryComponents = CreateInventoryComponents(null, instanceId, stationParam, positionInfo);
@@ -56,7 +56,7 @@ namespace Game.Block.Factory.BlockTemplate
         {
             // 保存されたRailComponent群を復元。railSaverComponentからセーブ情報の中にrailcomponent同士の接続情報が含まれているのでそれを復元(これで①1つのstation内にある2つのRailComponentを直線で接続と、②stationをつなげて設置した場合に自動でrailComponentを接続、の両方が満たされる)
             var stationParam = masterElement.BlockParam as TrainCargoPlatformBlockParam;
-            var railComponents = RailComponentUtility.RestoreRailComponents(componentStates, positionInfo, stationParam.EntryRailPosition, stationParam.ExitRailPosition);
+            var railComponents = RailComponentUtility.Restore2RailComponents(componentStates, positionInfo, stationParam.EntryRailPosition, stationParam.ExitRailPosition);
             var railSaverComponent = new RailSaverComponent(railComponents);
             var station = new CargoplatformComponent(stationParam.SlotCount);
 

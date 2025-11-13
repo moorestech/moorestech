@@ -76,7 +76,7 @@ namespace Game.Block.Blocks.TrainRail
         {
             if (this == targetComponent)
             {
-                Debug.LogWarning("Attempted to connect a RailComponent to itself. Operation aborted.");
+                Debug.LogWarning("注意、RailComponent.ConnectRailComponentの接続先と元が一緒です");
                 return;
             }
             // まず、接続する2つのRailNodeを取得
