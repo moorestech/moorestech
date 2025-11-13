@@ -136,7 +136,7 @@ namespace Game.Block.Blocks.TrainRail
             foreach (var node in FrontNode.ConnectedNodes)
             {
                 var connectionInfo = RailGraphDatastore.GetConnectionDestination(node);
-                if (connectionInfo != ConnectionDestination.Default)
+                if (!connectionInfo.IsDefault())
                     state.ConnectMyFrontTo.Add(connectionInfo);
             }
 
@@ -144,7 +144,7 @@ namespace Game.Block.Blocks.TrainRail
             foreach (var node in BackNode.ConnectedNodes)
             {
                 var connectionInfo = RailGraphDatastore.GetConnectionDestination(node);
-                if (connectionInfo != ConnectionDestination.Default)
+                if (!connectionInfo.IsDefault())
                     state.ConnectMyBackTo.Add(connectionInfo);
             }
 

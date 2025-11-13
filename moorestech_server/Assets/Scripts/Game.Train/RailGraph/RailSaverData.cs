@@ -59,12 +59,13 @@ namespace Game.Train.RailGraph
                 return hashCode;
             }
         }
-
+        /*
         public static bool operator ==(RailComponentID left, RailComponentID right)
             => left.Equals(right);
 
         public static bool operator !=(RailComponentID left, RailComponentID right)
             => !left.Equals(right);
+        */
     }
 
 
@@ -83,7 +84,7 @@ namespace Game.Train.RailGraph
             railComponentID = dest;
             IsFront = front;
         }
-
+        
         public bool Equals(ConnectionDestination other)
             => railComponentID.Equals(other.railComponentID) && IsFront == other.IsFront;
 
@@ -99,12 +100,13 @@ namespace Game.Train.RailGraph
                 return hashCode;
             }
         }
-
-        public static bool operator ==(ConnectionDestination left, ConnectionDestination right)
-            => left.Equals(right);
-
-        public static bool operator !=(ConnectionDestination left, ConnectionDestination right)
-            => !left.Equals(right);
+    }
+    public static class ConnectionDestinationExtensions
+    {
+        public static bool IsDefault(this ConnectionDestination dest)
+        {
+            return dest.Equals(ConnectionDestination.Default);
+        }
     }
 
     /// <summary>
