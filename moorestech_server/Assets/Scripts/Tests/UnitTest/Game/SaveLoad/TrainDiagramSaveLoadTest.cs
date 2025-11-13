@@ -268,8 +268,8 @@ namespace Tests.UnitTest.Game.SaveLoad
                 var nodeObject = entryObject["Node"] as JsonObject;
                 Assert.IsNotNull(nodeObject, "ダイアグラムエントリにNode情報が存在しません。");
 
-                var destinationObject = nodeObject["DestinationID"] as JsonObject;
-                Assert.IsNotNull(destinationObject, "ダイアグラムエントリにDestinationIDが存在しません。");
+                var destinationObject = nodeObject["railComponentID"] as JsonObject;
+                Assert.IsNotNull(destinationObject, "ダイアグラムエントリにrailComponentIDが存在しません。");
 
                 var positionObject = destinationObject["Position"] as JsonObject ?? new JsonObject();
                 positionObject["x"] = 99;
