@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# メインブランチの Unity の moorestech_server/Library/ フォルダを
+# メインブランチの Unity の moorestech_server/Library フォルダを
 # 現在の git worktree（このスクリプトを実行したリポジトリ環境）の
-# moorestech_server/Library/ にコピーするスクリプト
+# moorestech_server/Library にコピーするスクリプト
 
 # Git 管理下か確認
 if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
@@ -13,28 +13,9 @@ fi
 
 echo "現在のディレクトリ: $(pwd)"
 
-# 共通 .git ディレクトリ（メインワークツリーが持っている .git）の絶対パス取得
-common_git_dir=$(git rev-parse --git-common-dir)
-common_git_dir_abs=$(cd "$common_git_dir" && pwd)
-
-# git worktree list --porcelain からメインワークツリーのパスを特定
-main_repo_path=""
-while read -r line; do
-  # "worktree /path/to/worktree" 形式の行だけ処理
-  case "$line" in
-    worktree\ *)
-      wt_path=${line#worktree }
-      # それぞれの worktree の git-dir を調べる
-      wt_git_dir=$(git -C "$wt_path" rev-parse --git-dir)
-      wt_git_dir_abs=$(cd "$wt_git_dir" && pwd)
-      # git-dir が共通 .git と一致するものがメインワークツリー
-      if [ "$wt_git_dir_abs" = "$common_git_dir_abs" ]; then
-        main_repo_path="$wt_path"
-        break
-      fi
-      ;;
-  esac
-done < <(git worktree list --porcelain | awk '/^worktree /{print}')
+# git worktree list からメインワークツリーのパスを取得
+# 一番最初の worktree エントリがメインワークツリー
+main_repo_path=$(git worktree list --porcelain | awk '/^worktree /{print $2; exit}')
 
 if [ -z "${main_repo_path:-}" ]; then
   echo "Error: メインワークツリーのパスを特定できませんでした。" >&2
