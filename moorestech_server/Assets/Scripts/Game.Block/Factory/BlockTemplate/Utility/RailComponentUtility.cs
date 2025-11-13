@@ -111,7 +111,7 @@ namespace Game.Block.Factory.BlockTemplate.Utility
                 return transformed;
             }
             var blockDirection = positionInfo.BlockDirection;
-            Vector3 baseOriginPosition = blockDirection.GetBlockBaseOriginPos(positionInfo);
+            var baseOriginPosition = (Vector3)blockDirection.GetBlockModelOriginPos(positionInfo.OriginalPos, positionInfo.BlockSize);
             return CoordinateConvert(blockDirection, componentPosition) + baseOriginPosition;
         }
 
