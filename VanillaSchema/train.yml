@@ -26,9 +26,7 @@ properties:
       type: integer
     - key: inventorySlots
       type: integer
-    - key: fuelSlots
-      type: integer
-      default: 0
+      default: 1
     - key: length
       type: integer
     - key: isFacingForward
