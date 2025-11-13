@@ -27,8 +27,8 @@ namespace Game.Train.RailGraph
     [Serializable]
     public struct RailComponentID : IEquatable<RailComponentID>
     {
-        public SerializableVector3Int Position { get; }//これはブロックが登録されている座標
-        public int ID { get; }//そこのブロック座標で何番目のRailComponentか
+        public SerializableVector3Int Position { get; set; }//これはブロックが登録されている座標//ロード時のJsonシリアライズの問題がおこるのでsetも必須
+        public int ID { get; set; }//そこのブロック座標で何番目のRailComponentか//ロード時のJsonシリアライズの問題がおこるのでsetも必須
 
         public RailComponentID(SerializableVector3Int position, int id)
         {
@@ -75,8 +75,8 @@ namespace Game.Train.RailGraph
     [Serializable]
     public struct ConnectionDestination : IEquatable<ConnectionDestination>
     {
-        public RailComponentID railComponentID { get; }
-        public bool IsFront { get; }
+        public RailComponentID railComponentID { get; set; }//ロード時のJsonシリアライズの問題がおこるのでsetも必須
+        public bool IsFront { get; set; }//component側からみてこのnodeがfrontか//ロード時のJsonシリアライズの問題がおこるのでsetも必須
         public static readonly ConnectionDestination Default = new ConnectionDestination(RailComponentID.Default, true);
         
         public ConnectionDestination(RailComponentID dest, bool front)
