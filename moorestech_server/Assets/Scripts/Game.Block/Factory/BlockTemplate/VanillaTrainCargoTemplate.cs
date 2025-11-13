@@ -21,14 +21,14 @@ namespace Game.Block.Factory.BlockTemplate
             BlockInstanceId instanceId,
             BlockPositionInfo positionInfo, BlockCreateParam[] createParams)
         {
+            var stationParam = masterElement.BlockParam as TrainCargoPlatformBlockParam;
             // 駅ブロックは常に2つのRailComponentを持つ
-            var railComponents = RailComponentFactory.CreateRailComponents(2, positionInfo);// ①ここでは1つのstation内にある2つのRailComponentを直線で接続している
+            var railComponents = RailComponentFactory.Create2RailComponents(positionInfo, stationParam.EntryRailPosition, stationParam.ExitRailPosition);// ①ここでは1つのstation内にある2つのRailComponentを直線で接続している
             var railSaverComponent = RailComponentFactory.CreateRailSaverComponent(railComponents);
             var station = StationComponentFactory.CreateAndConnectStationComponent<CargoplatformComponent>(
                 masterElement, positionInfo, railComponents
             );//②stationをつなげて設置した場合に自動でrailComponentを接続するための処理もここでやってる
-
-            var stationParam = masterElement.BlockParam as TrainCargoPlatformBlockParam;
+            
             var inventoryComponents = CreateInventoryComponents(null, instanceId, stationParam, positionInfo);
 
             // 生成したコンポーネントをブロックに登録する
@@ -58,7 +58,7 @@ namespace Game.Block.Factory.BlockTemplate
             var stationParam = masterElement.BlockParam as TrainCargoPlatformBlockParam;
             var railComponents = RailComponentUtility.RestoreRailComponents(componentStates, positionInfo);
             var railSaverComponent = new RailSaverComponent(railComponents);
-            var station = new CargoplatformComponent(stationParam.PlatformDistance, stationParam.InputSlotCount, stationParam.OutputSlotCount);
+            var station = new CargoplatformComponent(stationParam.SlotCount);
 
             var inventoryComponents = CreateInventoryComponents(componentStates, instanceId, stationParam, positionInfo);
 
@@ -88,8 +88,8 @@ namespace Game.Block.Factory.BlockTemplate
             var inserter = new ConnectingInventoryListPriorityInsertItemService(inputConnectorComponent);
 
             var chestComponent = componentStates == null ?
-                new VanillaChestComponent(instanceId, param.InputSlotCount, inserter) :
-                new VanillaChestComponent(componentStates, instanceId, param.InputSlotCount, inserter);
+                new VanillaChestComponent(instanceId, param.SlotCount, inserter) :
+                new VanillaChestComponent(componentStates, instanceId, param.SlotCount, inserter);
 
             return new List<IBlockComponent>
             {

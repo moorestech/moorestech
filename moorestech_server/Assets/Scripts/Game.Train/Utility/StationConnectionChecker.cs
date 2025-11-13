@@ -121,73 +121,114 @@ namespace Game.Train.Utility
             railComponentAの座標(2.50, 15.50, 0.00)
             railComponentBの座標(2.50, 15.50, 22.00)
              */
-            switch (positionInfo.BlockDirection)
-            {
-                case BlockDirection.South:
-                    // 固定オフセット：自分の原点XにブロックのサイズX分を足す
-                    checkingPos = new Vector3Int(
-                        positionInfo.OriginalPos.x + positionInfo.BlockSize.x,
-                        positionInfo.OriginalPos.y,
-                        positionInfo.OriginalPos.z);
-                    block = worldBlockDatastore.GetOriginPosBlock(checkingPos);
-                    if (!IsValidStationBlock(block, BlockDirection.South))
-                        return badData;
-                    return (checkingPos, true);
 
-                case BlockDirection.West:
-                    // 進行方向＝負Z方向にループ
-                    for (int i = 0; i < loopmax; i++)
-                    {
-                        checkingPos = new Vector3Int(
-                            positionInfo.OriginalPos.x,
-                            positionInfo.OriginalPos.y,
-                            positionInfo.OriginalPos.z - i - 1);
-                        block = worldBlockDatastore.GetOriginPosBlock(checkingPos);
-                        if (block == null) continue;
-                        if (!IsValidStationBlock(block, BlockDirection.West))
-                            continue;
-                        // 相手の長さがわからないので
-                        if (block.BlockPositionInfo.BlockSize.x != i + 1)
-                            continue;
-                        return (checkingPos, true);
-                    }
-                    break;
+            var directionVector = ToVector3(positionInfo.BlockDirection);
+            for (int i = 0; i < loopmax; i++)
+            { 
+                checkingPos = new Vector3Int(
+                    positionInfo.OriginalPos.x - (int)directionVector.x * (i + 1),
+                    positionInfo.OriginalPos.y,
+                    positionInfo.OriginalPos.z - (int)directionVector.z * (i + 1));
+                block = worldBlockDatastore.GetOriginPosBlock(checkingPos);
+                if (block == null) continue;
+                BlockDirection expectedDirection = positionInfo.BlockDirection switch
+                {
+                    BlockDirection.North => BlockDirection.South,
+                    BlockDirection.East => BlockDirection.West,
+                    BlockDirection.South => BlockDirection.North,
+                    BlockDirection.West => BlockDirection.East,
+                    _ => throw new System.ArgumentOutOfRangeException(),
+                };
+                if (!IsValidStationBlock(block, expectedDirection))
+                    continue;
+                // 相手の長さがわからないので
+                if (block.BlockPositionInfo.BlockSize.x != i + 1)
+                    continue;
+                return (checkingPos, true);
+            }
 
-                case BlockDirection.North:
-                    // 進行方向＝負X方向にループ
-                    for (int i = 0; i < loopmax; i++)
-                    {
+                /*
+                switch (positionInfo.BlockDirection)
+                {
+                    case BlockDirection.South:
+                        // 固定オフセット：自分の原点XにブロックのサイズX分を足す
                         checkingPos = new Vector3Int(
-                            positionInfo.OriginalPos.x - i - 1,
+                            positionInfo.OriginalPos.x + positionInfo.BlockSize.x,
                             positionInfo.OriginalPos.y,
                             positionInfo.OriginalPos.z);
                         block = worldBlockDatastore.GetOriginPosBlock(checkingPos);
-                        if (block == null) continue;
-                        if (!IsValidStationBlock(block, BlockDirection.North))
-                            continue;
-                        if (block.BlockPositionInfo.BlockSize.x != i + 1)
-                            continue;
+                        if (!IsValidStationBlock(block, BlockDirection.South))
+                            return badData;
                         return (checkingPos, true);
-                    }
-                    break;
 
-                case BlockDirection.East:
-                    // 固定オフセット：自分の原点ZにブロックのサイズX分を足す（ここではサイズXを採用している）
-                    checkingPos = new Vector3Int(
-                        positionInfo.OriginalPos.x,
-                        positionInfo.OriginalPos.y,
-                        positionInfo.OriginalPos.z + positionInfo.BlockSize.x);
-                    block = worldBlockDatastore.GetOriginPosBlock(checkingPos);
-                    if (!IsValidStationBlock(block, BlockDirection.East))
+                    case BlockDirection.West:
+                        // 進行方向＝負Z方向にループ
+                        for (int i = 0; i < loopmax; i++)
+                        {
+                            checkingPos = new Vector3Int(
+                                positionInfo.OriginalPos.x,
+                                positionInfo.OriginalPos.y,
+                                positionInfo.OriginalPos.z - i - 1);
+                            block = worldBlockDatastore.GetOriginPosBlock(checkingPos);
+                            if (block == null) continue;
+                            if (!IsValidStationBlock(block, BlockDirection.West))
+                                continue;
+                            // 相手の長さがわからないので
+                            if (block.BlockPositionInfo.BlockSize.x != i + 1)
+                                continue;
+                            return (checkingPos, true);
+                        }
+                        break;
+
+                    case BlockDirection.North:
+                        // 進行方向＝負X方向にループ
+                        for (int i = 0; i < loopmax; i++)
+                        {
+                            checkingPos = new Vector3Int(
+                                positionInfo.OriginalPos.x - i - 1,
+                                positionInfo.OriginalPos.y,
+                                positionInfo.OriginalPos.z);
+                            block = worldBlockDatastore.GetOriginPosBlock(checkingPos);
+                            if (block == null) continue;
+                            if (!IsValidStationBlock(block, BlockDirection.North))
+                                continue;
+                            if (block.BlockPositionInfo.BlockSize.x != i + 1)
+                                continue;
+                            return (checkingPos, true);
+                        }
+                        break;
+
+                    case BlockDirection.East:
+                        // 固定オフセット：自分の原点ZにブロックのサイズX分を足す（ここではサイズXを採用している）
+                        checkingPos = new Vector3Int(
+                            positionInfo.OriginalPos.x,
+                            positionInfo.OriginalPos.y,
+                            positionInfo.OriginalPos.z + positionInfo.BlockSize.x);
+                        block = worldBlockDatastore.GetOriginPosBlock(checkingPos);
+                        if (!IsValidStationBlock(block, BlockDirection.East))
+                            return badData;
+                        return (checkingPos, true);
+
+                    default:
                         return badData;
-                    return (checkingPos, true);
-
-                default:
-                    return badData;
-            }
-            return badData;
+                }
+                */
+                return badData;
         }
 
+
+        /// GetRotationから進行方向を取得しvector3intをかえす
+        private static Vector3 ToVector3(BlockDirection direction)
+        {
+            return direction switch
+            {
+                BlockDirection.North => new Vector3(0, 0, 1),
+                BlockDirection.East => new Vector3(1, 0, 0),
+                BlockDirection.South => new Vector3(0, 0, -1),
+                BlockDirection.West => new Vector3(-1, 0, 0),
+                _ => Vector3.zero,
+            };
+        }
 
         /// <summary>
         /// 指定したブロックが駅または貨物駅であり、かつ期待する方向(expectedDirection)と一致するかを判定する。

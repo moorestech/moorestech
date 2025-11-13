@@ -493,12 +493,12 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             public static NodeIdentifier Create(RailNode node)
             {
-                if (!RailGraphDatastore.TryGetRailComponentID(node, out var destination) || destination == null)
+                if (!RailGraphDatastore.TryGetConnectionDestination(node, out var destination) || destination == null)
                 {
                     throw new InvalidOperationException("RailNodeからRailComponentIDを取得できませんでした。");
                 }
 
-                var componentId = destination.DestinationID;
+                var componentId = destination.railComponentID;
                 return new NodeIdentifier(componentId.Position, componentId.ID, destination.IsFront);
             }
 

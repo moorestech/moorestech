@@ -34,10 +34,10 @@ namespace Game.Block.Factory.BlockTemplate.Utility
             switch (blockParam)
             {
                 case TrainCargoPlatformBlockParam cargoParam when typeof(T) == typeof(CargoplatformComponent):
-                    return (T)(IBlockComponent)new CargoplatformComponent(cargoParam.PlatformDistance, cargoParam.InputSlotCount, cargoParam.OutputSlotCount);
+                    return (T)(IBlockComponent)new CargoplatformComponent(cargoParam.SlotCount);
 
                 case TrainStationBlockParam stationParam when typeof(T) == typeof(StationComponent):
-                    return (T)(IBlockComponent)new StationComponent(stationParam.StationDistance, "test", 1);
+                    return (T)(IBlockComponent)new StationComponent("test", stationParam.SlotCount);
 
                 default:
                     throw new ArgumentException($"Unsupported blockParam type: {blockParam.GetType()} for component type {typeof(T)}");

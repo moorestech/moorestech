@@ -1,15 +1,16 @@
-using System.Linq;
-using Game.Block.Interface;
-using Game.Block.Interface.Extension;
+using Core.Master;
 using Game.Block.Blocks.TrainRail;
+using Game.Block.Interface;
+using Game.Block.Interface.Component;
+using Game.Block.Interface.Extension;
 using Game.Train.RailGraph;
+using Game.Train.Utility;
+using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
+using System.Linq;
 using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;
-using Game.Block.Interface.Component;
-using Core.Master;
-using Mooresmaster.Model.BlocksModule;
 
 namespace Tests.UnitTest.Game
 {
@@ -110,7 +111,7 @@ namespace Tests.UnitTest.Game
 
             var stationParam = (TrainStationBlockParam)MasterHolder.BlockMaster
                 .GetBlockMaster(ForUnitTestModBlockId.TestTrainStation).BlockParam;
-            var stationPosition = new Vector3Int(stationParam.StationDistance, 0, 0);
+            var stationPosition = new Vector3Int(0, 0, 8);
 
             var (_, secondSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
                 env,

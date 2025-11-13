@@ -501,16 +501,15 @@ namespace Game.Train.Train
         {
             if (node == null)
             {
-                return null;
+                return ConnectionDestination.Default;
             }
-
-            var connection = RailGraphDatastore.GetRailComponentID(node);
-            if (connection == null)
+            var connection = RailGraphDatastore.GetConnectionDestination(node);
+            if (connection == ConnectionDestination.Default)
             {
-                return null;
+                return ConnectionDestination.Default;
             }
 
-            var destinationId = new RailComponentID(connection.DestinationID.Position, connection.DestinationID.ID);
+            var destinationId = new RailComponentID(connection.railComponentID.Position, connection.railComponentID.ID);
             return new ConnectionDestination(destinationId, connection.IsFront);
         }
 
