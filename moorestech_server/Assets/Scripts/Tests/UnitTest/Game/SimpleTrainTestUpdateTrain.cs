@@ -1,17 +1,18 @@
+using Core.Master;
+using Game.Block.Blocks.TrainRail;
+using Game.Block.Interface;
+using Game.Block.Interface.Extension;
+using Game.Train.RailGraph;
+using Game.Train.Train;
+using Game.Train.Utility;
+using NUnit.Framework;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Game.Block.Interface;
-using Game.Block.Interface.Extension;
-using Game.Block.Blocks.TrainRail;
-using Game.Train.Train;
-using Game.Train.RailGraph;
-using NUnit.Framework;
 using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;
-using Game.Train.Utility;
-using System;
 
 
 namespace Tests.UnitTest.Game
@@ -260,22 +261,19 @@ namespace Tests.UnitTest.Game
                     Debug.Log("実装距離(world座標換算)" + ((float)totaldist / BezierUtility.RAIL_LENGTH_SCALE) + "");
                 }
             }
-            /*
-            railComponentAの座標(0.00, 0.50, 2.50)N
-            railComponentBの座標(22.00, 0.50, 2.50)N
-            railComponentAの座標(2.50, 5.50, 22.00)E
-            railComponentBの座標(2.50, 5.50, 0.00)E
-            railComponentAの座標(22.00, 10.50, 2.50)S
-            railComponentBの座標(0.00, 10.50, 2.50)S
-            railComponentAの座標(2.50, 15.50, 0.00)W
-            railComponentBの座標(2.50, 15.50, 22.00)W
-             */
+
+            
+
             var env = TrainTestHelper.CreateEnvironment();
             _ = env.GetRailGraphDatastore();
             var worldBlockDatastore = env.WorldBlockDatastore;
+
+            Vector3Int stationBlockSize = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainStation).BlockSize;
+            Vector3Int cargoBBlockSize = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainCargoPlatform).BlockSize;
+
             RailComponent[] railComponentsData = new RailComponent[2 * 4 + 3];//1本の駅の入口と出口のrailcomponentを記憶、あと追加点
-            BlockDirection[] blockDirections = new BlockDirection[] { BlockDirection.East, BlockDirection.North, BlockDirection.South, BlockDirection.West };
-            Vector3Int[] dirarray = new Vector3Int[] { new Vector3Int(0, 0, -1), new Vector3Int(1, 0, 0), new Vector3Int(-1, 0, 0), new Vector3Int(0, 0, 1) };
+            BlockDirection[] blockDirections = new BlockDirection[] { BlockDirection.North, BlockDirection.East, BlockDirection.South, BlockDirection.West };
+            Vector3Int[] dirarray = new Vector3Int[] { new Vector3Int(0, 0, 1), new Vector3Int(1, 0, 0), new Vector3Int(0, 0, -1), new Vector3Int(-1, 0, 0) };
 
             // 1) 駅を4つつくってrailcomponentの座標を確認
             // 駅1本:TestTrainStation+TestTrainCargoPlatform+TestTrainCargoPlatform+TestTrainCargoPlatform+TestTrainCargoPlatform+TestTrainStation
@@ -287,16 +285,16 @@ namespace Tests.UnitTest.Game
                 //気動車に対応する駅1
                 worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainStation, position, blockDirections[i], Array.Empty<BlockCreateParam>(), out var stationBlockA);
                 //気動車に対応する駅2
-                worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainStation, position + dirarray[i] * 66, blockDirections[i], Array.Empty<BlockCreateParam>(), out var stationBlockB);
+                worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainStation, position + dirarray[i] * (stationBlockSize.z + 4 * cargoBBlockSize.z), blockDirections[i], Array.Empty<BlockCreateParam>(), out var stationBlockB);
                 var railcomposA = stationBlockA.GetComponent<RailSaverComponent>();
                 var railcomposB = stationBlockB.GetComponent<RailSaverComponent>();
                 //中間の貨物駅
                 for (int j = 0; j < 4; j++)
                 {
-                    var offset11or22 = 22;
-                    if (blockDirections[i] == BlockDirection.East) offset11or22 = 11;
-                    if (blockDirections[i] == BlockDirection.South) offset11or22 = 11;
-                    worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainCargoPlatform, position + dirarray[i] * (offset11or22 + 11 * j), blockDirections[i], Array.Empty<BlockCreateParam>(), out var cargoblock);
+                    var offset11or22 = stationBlockSize.z;
+                    if (blockDirections[i] == BlockDirection.West) offset11or22 = cargoBBlockSize.z;
+                    if (blockDirections[i] == BlockDirection.South) offset11or22 = cargoBBlockSize.z;
+                    worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainCargoPlatform, position + dirarray[i] * (offset11or22 + cargoBBlockSize.z * j), blockDirections[i], Array.Empty<BlockCreateParam>(), out var cargoblock);
                 }
                 Assert.AreEqual(2, railcomposA.RailComponents.Length, "駅Aに付随するRailComponent数が2本ではありません。");
                 Assert.AreEqual(2, railcomposB.RailComponents.Length, "駅Bに付随するRailComponent数が2本ではありません。");
