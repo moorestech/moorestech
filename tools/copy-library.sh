@@ -1,9 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# メインブランチの Unity の moorestech_server/Library フォルダを
+# ここにコピーしたいディレクトリ（リポジトリルートからの相対パス）を列挙
+COPY_DIRS=(
+  "moorestech_server/Library"
+  # 例:
+  # "moorestech_client/Library"
+  # "some/other/path"
+)
+
+# メインブランチの Unity の moorestech_server/Library などを
 # 現在の git worktree（このスクリプトを実行したリポジトリ環境）の
-# moorestech_server/Library にコピーするスクリプト
+# 対応するディレクトリにコピーするスクリプト
 
 # Git 管理下か確認
 if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
@@ -34,27 +42,27 @@ fi
 echo "メインワークツリー:      $main_repo_path"
 echo "現在の git worktree ルート: $current_worktree_root"
 
-src="$main_repo_path/moorestech_server/Library"
-dst="$current_worktree_root/moorestech_server/Library"
+for rel_path in "${COPY_DIRS[@]}"; do
+  src="$main_repo_path/$rel_path"
+  dst="$current_worktree_root/$rel_path"
 
-if [ ! -d "$src" ]; then
-  echo "Error: コピー元のディレクトリが存在しません: $src" >&2
-  exit 1
-fi
+  if [ ! -d "$src" ]; then
+    echo "Error: コピー元のディレクトリが存在しません: $src" >&2
+    exit 1
+  fi
 
-echo "コピー元: $src"
-echo "コピー先: $dst"
+  echo "コピー元: $src"
+  echo "コピー先: $dst"
 
-# コピー先のディレクトリ作成
-mkdir -p "$dst"
+  mkdir -p "$dst"
 
-# rsync があればミラーリング、なければ cp -a でコピー
-if command -v rsync >/dev/null 2>&1; then
-  # メインワークツリーの Library の内容を現在の worktree に同期
-  rsync -a --delete "$src/" "$dst/"
-else
-  # rsync が無い環境向けのフォールバック
-  cp -a "$src/." "$dst/"
-fi
+  if command -v rsync >/dev/null 2>&1; then
+    rsync -a --delete "$src/" "$dst/"
+  else
+    cp -a "$src/." "$dst/"
+  fi
 
-echo "コピー完了しました。"
+  echo "コピー完了: $rel_path"
+done
+
+echo "すべてのコピーが完了しました。"
