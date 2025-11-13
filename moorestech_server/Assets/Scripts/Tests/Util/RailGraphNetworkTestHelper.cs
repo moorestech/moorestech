@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Diagnostics;
 using Game.Block.Blocks.TrainRail;
 using Game.Train.RailGraph;
 using NUnit.Framework;
@@ -36,25 +35,6 @@ namespace Tests.Util
             Assert.AreEqual(expected.Adjacency.Count, actual.Adjacency.Count,
                 "RailGraphに含まれるノード数が一致しません。");
 
-            /*
-            foreach (var (expectedNode, expectedEdges) in expected.Adjacency)
-            {
-                foreach (var expectedEdge in expectedEdges)
-                {
-                    UnityEngine.Debug.Log($"ノード {Describe(expectedNode)} が接続する {Describe(expectedEdge.Destination)} (距離: {expectedEdge.Distance}) ");
-                }
-            }
-
-            //actualEdges
-            foreach (var (actualNode, actualEdges) in actual.Adjacency)
-            {
-                foreach (var actualEdge in actualEdges)
-                {
-                    UnityEngine.Debug.Log($"ノード {Describe(actualNode)} が接続する {Describe(actualEdge.Destination)} (距離: {actualEdge.Distance}) ");
-                }
-            }
-            */
-
             foreach (var (expectedNode, expectedEdges) in expected.Adjacency)
             {
                 Assert.IsTrue(actual.Adjacency.TryGetValue(expectedNode, out var actualEdges),
@@ -68,15 +48,12 @@ namespace Tests.Util
                     Assert.IsTrue(actualEdges.Contains(expectedEdge), $"ノード {Describe(expectedNode)} が接続する {Describe(expectedEdge.Destination)} (距離: {expectedEdge.Distance}) がロード後に見つかりません。");
                 }
             }
-
-            
-            
         }
 
         private static void CaptureNode(RailNode node, Dictionary<ConnectionDestination, HashSet<RailGraphEdge>> adjacency)
         {
             Assert.IsNotNull(node, "RailNodeがnullです。");
-            Assert.IsTrue(RailGraphDatastore.TryGetConnectionDestination(node, out var destination) && destination != null,
+            Assert.IsTrue(RailGraphDatastore.TryGetConnectionDestination(node, out var destination) && !destination.IsDefault(),
                 "RailNodeにConnectionDestinationが割り当てられていません。");
 
             var nodeKey = Clone(destination);
@@ -88,7 +65,7 @@ namespace Tests.Util
 
             foreach (var (neighbor, distance) in node.ConnectedNodesWithDistance)
             {
-                Assert.IsTrue(RailGraphDatastore.TryGetConnectionDestination(neighbor, out var neighborDestination) && neighborDestination != null,
+                Assert.IsTrue(RailGraphDatastore.TryGetConnectionDestination(neighbor, out var neighborDestination) && !neighborDestination.IsDefault(),
                     "接続先のRailNodeにConnectionDestinationが割り当てられていません。");
 
                 edges.Add(new RailGraphEdge(Clone(neighborDestination), distance));
@@ -145,7 +122,7 @@ namespace Tests.Util
         {
             unchecked
             {
-                return ((Destination != null ? Destination.GetHashCode() : 0) * 397) ^ Distance;
+                return (Destination.GetHashCode() * 397) ^ Distance;
             }
         }
     }

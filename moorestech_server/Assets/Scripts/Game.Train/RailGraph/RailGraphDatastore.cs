@@ -282,7 +282,7 @@ namespace Game.Train.RailGraph
 
         private RailNode ResolveRailNodeInternal(ConnectionDestination destination)
         {
-            if (destination == null)
+            if (destination.IsDefault())
             {
                 return null;
             }

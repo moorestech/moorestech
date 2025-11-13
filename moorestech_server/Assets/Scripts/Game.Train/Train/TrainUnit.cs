@@ -504,7 +504,7 @@ namespace Game.Train.Train
                 return ConnectionDestination.Default;
             }
             var connection = RailGraphDatastore.GetConnectionDestination(node);
-            if (connection == ConnectionDestination.Default)
+            if (connection.IsDefault())
             {
                 return ConnectionDestination.Default;
             }
