@@ -39,7 +39,6 @@ namespace Tests.UnitTest.Game.SaveLoad
             components[2].ConnectRailComponent(components[0], false, false);
 
             var expectedSnapshot = RailGraphNetworkTestHelper.CaptureFromComponents(components);
-
             var saveJson = SaveLoadJsonTestHelper.AssembleSaveJson(environment.ServiceProvider);
 
             foreach (var position in positions)
