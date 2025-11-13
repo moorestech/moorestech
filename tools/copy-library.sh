@@ -4,8 +4,8 @@ set -euo pipefail
 # ここにコピーしたいディレクトリ（リポジトリルートからの相対パス）を列挙
 COPY_DIRS=(
   "moorestech_server/Library"
+  "moorestech_client/Library"
   # 例:
-  # "moorestech_client/Library"
   # "some/other/path"
 )
 
