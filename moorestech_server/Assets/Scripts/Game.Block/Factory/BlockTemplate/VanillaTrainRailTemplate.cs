@@ -16,7 +16,7 @@ namespace Game.Block.Factory.BlockTemplate
     /// <summary>
     /// バニラ版のTrainRailブロックを生成・復元するテンプレート
     /// </summary>
-    public class VanillaTrainRailTemplate : IBlockTemplate
+    public class VanillaTrailRainTemplate : IBlockTemplate
     {
         /// <summary>
         /// 新規にブロック（と対応するRailComponent等）を生成
@@ -25,24 +25,23 @@ namespace Game.Block.Factory.BlockTemplate
             BlockInstanceId blockInstanceId,
             BlockPositionInfo blockPositionInfo, BlockCreateParam[] createParams)
         {
+            var trainRailParam = blockMasterElement.BlockParam as TrainRailBlockParam;
             // railブロックは常にRailComponentが1つだけ
             var railComponents = new RailComponent[1];
             
             // ブロック生成パラメータからRailBridgePierComponentStateDetailを取得して方向ベクトルを取得
-            // Pull bridge pier state to determine direction
             var state = createParams.GetStateDetail<RailBridgePierComponentStateDetail>(RailBridgePierComponentStateDetail.StateDetailKey);
             if (state == null)
             {
                 // 状態情報が存在しないため詳細ログを出力
-                // Emit diagnostics when state detail is missing
                 Debug.LogError($"[VanillaTrainRailTemplate] Missing create param: {RailBridgePierComponentStateDetail.StateDetailKey} for block {blockMasterElement.Name}");
             }
             var railBlockDirection = state?.RailBlockDirection;
 
             // RailComponentを生成
             var railComponentId = new RailComponentID(blockPositionInfo.OriginalPos, 0);
-            var railComponentPositions = RailComponentUtility.CalculateRailComponentPositions(blockPositionInfo);
-            railComponents[0] = new RailComponent(railComponentPositions[0], railBlockDirection, railComponentId);
+            var railComponentPosition = RailComponentUtility.CalculateRailComponentPosition(blockPositionInfo,trainRailParam.RailPosition);
+            railComponents[0] = new RailComponent(railComponentPosition, railBlockDirection, railComponentId);
             var railSaverComponent = RailComponentFactory.CreateRailSaverComponent(railComponents);
             // StateDetailコンポーネントを生成
             var stateDetailComponent = new RailComponentStateDetailComponent(railComponents[0]);

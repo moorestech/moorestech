@@ -12,7 +12,6 @@ namespace Game.Train.RailGraph
         public int x, y, z;
         public SerializableVector3Int(int x_, int y_, int z_) { x = x_; y = y_; z = z_; }
 
-        // Vector3Int -> SerializableVector3Int
         public static implicit operator SerializableVector3Int(Vector3Int v)
             => new SerializableVector3Int(v.x, v.y, v.z);
 
@@ -23,13 +22,13 @@ namespace Game.Train.RailGraph
 
     /// <summary>
     /// RailComponentID
-    /// railcomponentを座標とIDで一意に識別するためのクラス
+    /// railcomponentを座標とIDで一意に識別するための構造体
     /// </summary>
     [Serializable]
     public struct RailComponentID : IEquatable<RailComponentID>
     {
-        public SerializableVector3Int Position { get; set; }//これはブロックが登録されている座標
-        public int ID { get; set; }//そこのブロック座標で何番目のRailComponentか
+        public SerializableVector3Int Position { get; }//これはブロックが登録されている座標
+        public int ID { get; }//そこのブロック座標で何番目のRailComponentか
 
         public RailComponentID(SerializableVector3Int position, int id)
         {
@@ -43,24 +42,10 @@ namespace Game.Train.RailGraph
         }
 
         public bool Equals(RailComponentID other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            return Position.Equals(other.Position) && ID == other.ID;
-        }
+            => Position.Equals(other.Position) && ID == other.ID;
 
         public override bool Equals(object obj)
-        {
-            return ReferenceEquals(this, obj) || obj is RailComponentID other && Equals(other);
-        }
+            => obj is RailComponentID other && Equals(other);
 
         public override int GetHashCode()
         {
@@ -76,70 +61,50 @@ namespace Game.Train.RailGraph
         }
 
         public static bool operator ==(RailComponentID left, RailComponentID right)
-        {
-            return Equals(left, right);
-        }
+            => left.Equals(right);
 
         public static bool operator !=(RailComponentID left, RailComponentID right)
-        {
-            return !Equals(left, right);
-        }
+            => !left.Equals(right);
     }
+
+
     /// <summary>
-    /// 接続先一つを表すクラス
+    /// RailNodeを一つを(座標とID)とfront or backで表す構造体
     /// </summary>
-    //[Serializable]
+    [Serializable]
     public struct ConnectionDestination : IEquatable<ConnectionDestination>
     {
-        public RailComponentID railComponentID { get; set; }
-        public bool IsFront { get; set; }
+        public RailComponentID railComponentID { get; }
+        public bool IsFront { get; }
         public static readonly ConnectionDestination Default = new ConnectionDestination(RailComponentID.Default, true);
-        // コンストラクタ
+        
         public ConnectionDestination(RailComponentID dest, bool front)
         {
             railComponentID = dest;
             IsFront = front;
         }
-        
+
         public bool Equals(ConnectionDestination other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            return Equals(railComponentID, other.railComponentID) && IsFront == other.IsFront;
-        }
+            => railComponentID.Equals(other.railComponentID) && IsFront == other.IsFront;
 
         public override bool Equals(object obj)
-        {
-            return ReferenceEquals(this, obj) || obj is ConnectionDestination other && Equals(other);
-        }
+            => obj is ConnectionDestination other && Equals(other);
 
         public override int GetHashCode()
         {
             unchecked
             {
-                var hashCode = railComponentID != null ? railComponentID.GetHashCode() : 0;
+                var hashCode = railComponentID.GetHashCode();
                 hashCode = (hashCode * 397) ^ IsFront.GetHashCode();
                 return hashCode;
             }
         }
 
         public static bool operator ==(ConnectionDestination left, ConnectionDestination right)
-        {
-            return Equals(left, right);
-        }
+            => left.Equals(right);
 
         public static bool operator !=(ConnectionDestination left, ConnectionDestination right)
-        {
-            return !Equals(left, right);
-        }
+            => !left.Equals(right);
     }
 
     /// <summary>

@@ -81,7 +81,7 @@ namespace Server.Util.MessagePack
                 throw new ArgumentException("RailControlPointが取得できませんでした");
             }
             
-            ComponentId = new RailComponentIDMessagePack(connectionDestination.DestinationID.Position, connectionDestination.DestinationID.ID);
+            ComponentId = new RailComponentIDMessagePack(connectionDestination.railComponentID.Position, connectionDestination.railComponentID.ID);
             IsFrontSide = connectionDestination.IsFront;
             ControlPoint = new RailControlPointMessagePack(controlPoint.OriginalPosition, controlPoint.ControlPointPosition);
         }

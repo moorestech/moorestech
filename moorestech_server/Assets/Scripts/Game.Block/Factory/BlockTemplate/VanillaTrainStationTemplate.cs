@@ -1,13 +1,13 @@
-using System.Collections.Generic;
 using Game.Block.Blocks;
 using Game.Block.Blocks.Chest;
 using Game.Block.Blocks.Service;
-using Game.Block.Interface;
-using Game.Block.Interface.Component;
-using Mooresmaster.Model.BlocksModule;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Factory.BlockTemplate.Utility;
+using Game.Block.Interface;
+using Game.Block.Interface.Component;
 using Game.Train.RailGraph;
+using Mooresmaster.Model.BlocksModule;
+using System.Collections.Generic;
 
 
 namespace Game.Block.Factory.BlockTemplate
@@ -21,14 +21,13 @@ namespace Game.Block.Factory.BlockTemplate
             BlockInstanceId instanceId,
             BlockPositionInfo positionInfo, BlockCreateParam[] createParams)
         {
-
             var stationParam = masterElement.BlockParam as TrainStationBlockParam;
             // 駅ブロックは常に2つのRailComponentを持つ
-            var railComponents = RailComponentFactory.Create2RailComponents(positionInfo, stationParam.EntryRailPosition, stationParam.ExitRailPosition);// ①ここでは1つのstation内にある2つのRailComponentを直線で接続している
+            //①ここでは1つのstation内にある2つのRailComponentを直線で接続している
+            //②stationをつなげて設置した場合に自動でrailComponentを接続するための処理もここでやってる
+            var railComponents = RailComponentFactory.Create2RailComponents(positionInfo, stationParam.EntryRailPosition, stationParam.ExitRailPosition);
             var railSaverComponent = RailComponentFactory.CreateRailSaverComponent(railComponents);
-            var station = StationComponentFactory.CreateAndConnectStationComponent<StationComponent>(
-                masterElement, positionInfo, railComponents
-            );//②stationをつなげて設置した場合に自動でrailComponentを接続するための処理もここでやってる
+            var station = new StationComponent("test", stationParam.SlotCount);
 
             var inventoryComponents = CreateInventoryComponents(null, instanceId, stationParam, positionInfo);
 

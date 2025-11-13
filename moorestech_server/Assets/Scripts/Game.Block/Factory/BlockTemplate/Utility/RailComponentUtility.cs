@@ -21,7 +21,9 @@ namespace Game.Block.Factory.BlockTemplate.Utility
 
             int count = saverData.Values.Count;
             var railComponents = new RailComponent[count];
-            var railComponentPositions = CalculateRailComponentPositions(positionInfo, entryPosition, exitPosition);
+            var railComponentPositions = new Vector3[2];
+            railComponentPositions[0] = CalculateRailComponentPosition(positionInfo, entryPosition);
+            railComponentPositions[1] = CalculateRailComponentPosition(positionInfo, exitPosition);
 
             // 各RailComponentを生成
             for (int i = 0; i < count; i++)
@@ -56,7 +58,7 @@ namespace Game.Block.Factory.BlockTemplate.Utility
             return railComponents;
         }
 
-        static public Vector3[] CalculateRailComponentPositions(BlockPositionInfo positionInfo, Vector3 entryPosition, Vector3 exitPosition)
+        static public Vector3 CalculateRailComponentPosition(BlockPositionInfo positionInfo, Vector3 componentPosition)
         {
             Vector3 CoordinateConvert(BlockDirection blockDirection,Vector3 pos)
             {
@@ -68,11 +70,35 @@ namespace Game.Block.Factory.BlockTemplate.Utility
             }
             var blockDirection = positionInfo.BlockDirection;
             Vector3 baseOriginPosition = blockDirection.GetBlockBaseOriginPos(positionInfo);
-            Vector3[] componentPositions = new Vector3[2];
-            componentPositions[0] = CoordinateConvert(blockDirection, entryPosition) + baseOriginPosition;
-            componentPositions[1] = CoordinateConvert(blockDirection, exitPosition) + baseOriginPosition;
-            return componentPositions;
+            return CoordinateConvert(blockDirection, componentPosition) + baseOriginPosition;
         }
 
+        // 自分の駅or貨物駅ブロック内のRailComponentから、別ブロックのRailComponentへの接続を確立する
+        // 自分から自分への接続はWorldBlockDatastore.GetBlockが失敗するため、ここでは扱わない
+        static public void EstablishConnection(RailComponent sourceComponent, ConnectionDestination destinationConnection, bool isFrontSideOfComponent)
+        {
+            var destinationComponentId = destinationConnection.railComponentID;
+            var useFrontSideOfTarget = destinationConnection.IsFront;
+
+            var destinationPosition = destinationComponentId.Position;
+            var componentIndex = destinationComponentId.ID;
+
+            // 対象ブロックをワールドから取得
+            var targetBlock = ServerContext.WorldBlockDatastore.GetBlock(destinationPosition);
+            if (targetBlock == null) return;
+
+            // 対象ブロックがRailSaverComponentを持っているか確認
+            if (!targetBlock.TryGetComponent<RailSaverComponent>(out var targetRailSaver))
+                return;
+
+            // RailComponents配列から対象のRailComponentを取得
+            if (componentIndex < 0 || componentIndex >= targetRailSaver.RailComponents.Length)
+                return;
+
+            var targetComponent = targetRailSaver.RailComponents[componentIndex];
+
+            // 接続を実施 (既に接続済みの場合、距離が上書きされるだけ)
+            sourceComponent.ConnectRailComponent(targetComponent, isFrontSideOfComponent, useFrontSideOfTarget);
+        }
     }
 }
