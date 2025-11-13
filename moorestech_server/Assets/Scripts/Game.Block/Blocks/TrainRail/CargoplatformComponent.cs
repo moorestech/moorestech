@@ -15,7 +15,6 @@ namespace Game.Block.Blocks.TrainRail
     /// </summary>
     public class CargoplatformComponent : IBlockSaveState, ITrainDockingReceiver
     {
-        private readonly int _stationLength;
         private Guid? _dockedTrainId;
         private Guid? _dockedCarId;
         private TrainCar _dockedTrainCar;
@@ -30,7 +29,7 @@ namespace Game.Block.Blocks.TrainRail
         private CargoTransferMode _transferMode = CargoTransferMode.LoadToTrain;
 
         // インベントリスロット数やUI更新のための設定
-        public int InputSlotCount { get; private set; }
+        public int slotCount { get; private set; }
         public int OutputSlotCount { get; private set; }
 
         public bool IsDestroy { get; private set; }
@@ -41,14 +40,10 @@ namespace Game.Block.Blocks.TrainRail
         /// コンストラクタ
         /// </summary>
         public CargoplatformComponent(
-            int stationLength,
-            int inputSlotCount,
-            int outputSlotCount
+            int inputslotCount
         )
         {
-            _stationLength = stationLength;
-            InputSlotCount = inputSlotCount;
-            OutputSlotCount = outputSlotCount;
+            slotCount = inputslotCount;
         }
 
         public void SetTransferMode(CargoTransferMode mode)

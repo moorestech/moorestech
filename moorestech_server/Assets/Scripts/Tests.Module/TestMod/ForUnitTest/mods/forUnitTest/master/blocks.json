@@ -3396,7 +3396,7 @@
       "itemGuid": "1b72541e-0896-43bb-91fa-0b3fef137dcf",
       "blockParam": {
         "railPosition": [
-          0,
+          0.5,
           0.5,
           0.5
         ],
@@ -3544,7 +3544,17 @@
         ],
         "frontControlPointLength": 0.5,
         "backControlPointLength": 0.5,
-        "SlotCount": 10
+        "SlotCount": 10,
+        "entryRailPosition": [
+          1.5,
+          0.5,
+          0
+        ],
+        "exitRailPosition": [
+          1.5,
+          0.5,
+          0
+        ]
       },
       "name": "TestTrainCargoPlatform",
       "blockGuid": "00000000-0000-0000-0000-000000000026",

@@ -76,7 +76,7 @@ namespace Tests.Util
         private static void CaptureNode(RailNode node, Dictionary<ConnectionDestination, HashSet<RailGraphEdge>> adjacency)
         {
             Assert.IsNotNull(node, "RailNodeがnullです。");
-            Assert.IsTrue(RailGraphDatastore.TryGetRailComponentID(node, out var destination) && destination != null,
+            Assert.IsTrue(RailGraphDatastore.TryGetConnectionDestination(node, out var destination) && destination != null,
                 "RailNodeにConnectionDestinationが割り当てられていません。");
 
             var nodeKey = Clone(destination);
@@ -88,7 +88,7 @@ namespace Tests.Util
 
             foreach (var (neighbor, distance) in node.ConnectedNodesWithDistance)
             {
-                Assert.IsTrue(RailGraphDatastore.TryGetRailComponentID(neighbor, out var neighborDestination) && neighborDestination != null,
+                Assert.IsTrue(RailGraphDatastore.TryGetConnectionDestination(neighbor, out var neighborDestination) && neighborDestination != null,
                     "接続先のRailNodeにConnectionDestinationが割り当てられていません。");
 
                 edges.Add(new RailGraphEdge(Clone(neighborDestination), distance));
@@ -98,14 +98,14 @@ namespace Tests.Util
         private static ConnectionDestination Clone(ConnectionDestination destination)
         {
             Assert.IsNotNull(destination, "ConnectionDestinationがnullです。");
-            var originalId = destination.DestinationID;
+            var originalId = destination.railComponentID;
             var copiedId = new RailComponentID(originalId.Position, originalId.ID);
             return new ConnectionDestination(copiedId, destination.IsFront);
         }
 
         private static string Describe(ConnectionDestination destination)
         {
-            var id = destination.DestinationID;
+            var id = destination.railComponentID;
             return $"({id.Position.x}, {id.Position.y}, {id.Position.z}) {(destination.IsFront ? "Front" : "Back")}";
         }
     }

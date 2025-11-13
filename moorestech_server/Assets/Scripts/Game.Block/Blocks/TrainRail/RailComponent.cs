@@ -20,7 +20,7 @@ namespace Game.Block.Blocks.TrainRail
         public RailNode FrontNode { get; private set; }
         public RailNode BackNode { get; private set; }
 
-        private float controlPointStrength = 0.5f;
+        private float controlPointStrength = 0.5f;//default値
 
         public RailControlPoint FrontControlPoint { get; }
         public RailControlPoint BackControlPoint { get; }
@@ -135,15 +135,17 @@ namespace Game.Block.Blocks.TrainRail
             // FrontNode の接続リスト
             foreach (var node in FrontNode.ConnectedNodes)
             {
-                var connectionInfo = RailGraphDatastore.GetRailComponentID(node);
-                state.ConnectMyFrontTo.Add(connectionInfo);
+                var connectionInfo = RailGraphDatastore.GetConnectionDestination(node);
+                if (connectionInfo != ConnectionDestination.Default)
+                    state.ConnectMyFrontTo.Add(connectionInfo);
             }
 
             // BackNode の接続リスト
             foreach (var node in BackNode.ConnectedNodes)
             {
-                var connectionInfo = RailGraphDatastore.GetRailComponentID(node);
-                state.ConnectMyBackTo.Add(connectionInfo);
+                var connectionInfo = RailGraphDatastore.GetConnectionDestination(node);
+                if (connectionInfo != ConnectionDestination.Default)
+                    state.ConnectMyBackTo.Add(connectionInfo);
             }
 
             return state;

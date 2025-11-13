@@ -20,6 +20,8 @@ namespace Game.Train.Utility
         public const float RAIL_LENGTH_SCALE = 1024.0f;
         public static Vector3 GetBezierPoint(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t)
         {
+            if (p0 == p3)
+                return p0;
             float u = 1f - t;
             float tt = t * t;
             float uu = u * u;
@@ -43,10 +45,8 @@ namespace Game.Train.Utility
         /// <param name="p3">アンカーポイント2</param>
         /// <param name="samples">サンプリング数（多いほど精度が高くなる）</param>
         /// <returns>ベジェ曲線の概算距離</returns>
-        public static float GetBezierCurveLength(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, int samples = 512)
+        public static float GetBezierCurveLength(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, int samples)
         {
-            if (p0 == p3) 
-                return 0;
             float length = 0f;
             Vector3 previousPoint = GetBezierPoint(p0, p1, p2, p3, 0f);
 

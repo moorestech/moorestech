@@ -2,6 +2,7 @@ using UnityEngine;
 using System;
 using System.Collections.Generic;
 using ClassLibrary;
+using System.ComponentModel;
 
 namespace Game.Train.RailGraph
 {
@@ -25,22 +26,17 @@ namespace Game.Train.RailGraph
     /// railcomponentを座標とIDで一意に識別するためのクラス
     /// </summary>
     [Serializable]
-    public class RailComponentID : IEquatable<RailComponentID>
+    public struct RailComponentID : IEquatable<RailComponentID>
     {
         public SerializableVector3Int Position { get; set; }//これはブロックが登録されている座標
         public int ID { get; set; }//そこのブロック座標で何番目のRailComponentか
-
-        public RailComponentID()
-        {
-            Position = default;
-            ID = default;
-        }
 
         public RailComponentID(SerializableVector3Int position, int id)
         {
             Position = position;
             ID = id;
         }
+        public static readonly RailComponentID Default = new RailComponentID(new SerializableVector3Int(-1, -1, -1), -1);
 
         public RailComponentID(Vector3Int pos, int id) : this((SerializableVector3Int)pos, id)
         {
@@ -92,25 +88,19 @@ namespace Game.Train.RailGraph
     /// <summary>
     /// 接続先一つを表すクラス
     /// </summary>
-    [Serializable]
-    public class ConnectionDestination : IEquatable<ConnectionDestination>
+    //[Serializable]
+    public struct ConnectionDestination : IEquatable<ConnectionDestination>
     {
-        public RailComponentID DestinationID { get; set; }
+        public RailComponentID railComponentID { get; set; }
         public bool IsFront { get; set; }
-
-        public ConnectionDestination()
-        {
-            DestinationID = new RailComponentID();
-            IsFront = default;
-        }
-
+        public static readonly ConnectionDestination Default = new ConnectionDestination(RailComponentID.Default, true);
         // コンストラクタ
         public ConnectionDestination(RailComponentID dest, bool front)
         {
-            DestinationID = dest;
+            railComponentID = dest;
             IsFront = front;
         }
-
+        
         public bool Equals(ConnectionDestination other)
         {
             if (ReferenceEquals(null, other))
@@ -123,7 +113,7 @@ namespace Game.Train.RailGraph
                 return true;
             }
 
-            return Equals(DestinationID, other.DestinationID) && IsFront == other.IsFront;
+            return Equals(railComponentID, other.railComponentID) && IsFront == other.IsFront;
         }
 
         public override bool Equals(object obj)
@@ -135,7 +125,7 @@ namespace Game.Train.RailGraph
         {
             unchecked
             {
-                var hashCode = DestinationID != null ? DestinationID.GetHashCode() : 0;
+                var hashCode = railComponentID != null ? railComponentID.GetHashCode() : 0;
                 hashCode = (hashCode * 397) ^ IsFront.GetHashCode();
                 return hashCode;
             }

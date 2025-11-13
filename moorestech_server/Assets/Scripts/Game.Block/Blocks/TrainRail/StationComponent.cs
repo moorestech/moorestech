@@ -17,8 +17,6 @@ namespace Game.Block.Blocks.TrainRail
     public class StationComponent : IBlockSaveState, ITrainDockingReceiver
     {
         public string StationName { get; }
-
-        private readonly int _stationLength;
         public Guid? _dockedTrainId;
         private Guid? _dockedCarId;
         private TrainCar _dockedTrainCar;
@@ -28,12 +26,10 @@ namespace Game.Block.Blocks.TrainRail
         public bool IsDestroy { get; private set; }
 
         public StationComponent(
-            int stationLength,
             string stationName,
             int inventorySlotCount
         )
         {
-            _stationLength = stationLength;
             StationName = stationName;
             InventorySlotCount = inventorySlotCount;
         }
