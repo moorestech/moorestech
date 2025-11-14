@@ -4,6 +4,7 @@ using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Interface;
 using Game.CraftTree.Models;
+using Game.Research;
 using Mooresmaster.Model.ChallengesModule;
 using Server.Event.EventReceive;
 using Server.Util.MessagePack;
@@ -24,6 +25,7 @@ namespace Client.Network.API
         public CraftTreeResponse CraftTree { get; }
         public List<string> PlayedSkitIds { get; }
         public RailConnectionDataMessagePack[] RailConnections { get; }
+        public Dictionary<Guid, ResearchNodeState> ResearchNodeStates { get; }
         
         public InitialHandshakeResponse(
             ResponseInitialHandshakeMessagePack initialHandshake,
@@ -35,7 +37,8 @@ namespace Client.Network.API
                 List<ChallengeCategoryResponse> challenges, 
                 UnlockStateResponse unlockState,
                 CraftTreeResponse craftTree,
-                List<string> playedSkitIds) responses)
+                List<string> playedSkitIds,
+                Dictionary<Guid, ResearchNodeState> researchNodeStates) responses)
         {
             PlayerPos = initialHandshake.PlayerPos;
             WorldData = responses.worldData;
@@ -46,6 +49,7 @@ namespace Client.Network.API
             CraftTree = responses.craftTree;
             PlayedSkitIds = responses.playedSkitIds;
             RailConnections = responses.railConnections;
+            ResearchNodeStates = responses.researchNodeStates ?? new Dictionary<Guid, ResearchNodeState>();
         }
     }
     
