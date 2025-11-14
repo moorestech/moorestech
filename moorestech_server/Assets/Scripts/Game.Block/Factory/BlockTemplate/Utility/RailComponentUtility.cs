@@ -209,13 +209,13 @@ namespace Game.Block.Factory.BlockTemplate.Utility
             {
                 if (RailGraphDatastore.RailPositionToConnectionDestination.TryGetValue(positions[1], out var pair))
                 {
-                    if ((!pair.Item1.IsDefault()) & (!pair.Item2.IsDefault()))
+                    if ((!pair.Item1.IsDefault()) && (!pair.Item2.IsDefault()))
                     {
                         Debug.Assert(false, "RailComponentFactory.Create2RailComponents: Found multiple connection destinations for a single rail position.");
                         break;
                     }
 
-                    if ((pair.Item1.IsDefault()) & (pair.Item2.IsDefault()))
+                    if ((pair.Item1.IsDefault()) && (pair.Item2.IsDefault()))
                     {
                         //RailGraphDatastore.RailPositionToConnectionDestinationのpositions[1]キーを削除
                         RailGraphDatastore.RailPositionToConnectionDestination.Remove(positions[1]);
