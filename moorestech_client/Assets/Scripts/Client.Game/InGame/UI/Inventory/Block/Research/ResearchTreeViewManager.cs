@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Client.Game.InGame.Context;
+using Client.Network.API;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Research;
 using UniRx;
 using UnityEngine;
+using VContainer;
 
 namespace Client.Game.InGame.UI.Inventory.Block.Research
 {
@@ -14,63 +16,59 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
     {
         [SerializeField] private ResearchTreeView researchTreeView;
         
-        private CancellationToken _destroyCancellationToken;
-        private bool _isPrepared;
+        private CancellationToken _ct;
 
-        private void Awake()
+        [Inject]
+        public void Construct(InitialHandshakeResponse initial)
         {
-            // 破棄まで利用できるトークンを取得
-            // Acquire the cancellation token valid until destruction
-            _destroyCancellationToken = this.GetCancellationTokenOnDestroy();
-        }
-
-        /// <summary>
-        /// UI表示の切り替え
-        /// Toggle UI visibility
-        /// </summary>
-        public void SetActive(bool isActive)
-        {
-            gameObject.SetActive(isActive);
-
-            if (!isActive) return;
-
-            // 表示時に最新状態へ更新
-            // Refresh data when the UI is shown
-            if (!_isPrepared)
+            _ct = this.GetCancellationTokenOnDestroy();
+            
+            // 研究完了ボタン押下時の処理登録
+            // Register the process when the research complete button is clicked
+            researchTreeView.OnClickResearchButton.Subscribe(node => CompleteResearchAsync(node).Forget()).AddTo(this);
+            
+            #region Internal
+            
+            async UniTask CompleteResearchAsync(ResearchNodeData node)
             {
-                researchTreeView.OnClickResearchButton.Subscribe(node => CompleteResearchAsync(node).Forget()).AddTo(this);
-                _isPrepared = true;
+                var guid = node.MasterElement.ResearchNodeGuid;
+                var response = await ClientContext.VanillaApi.Response.CompleteResearch(guid, _ct);
+                var nodes = CreateNodeData(response.NodeState.ToDictionary());
+                
+                researchTreeView.SetResearchNodes(nodes);
             }
-
-            LoadResearchTreeAsync().Forget();
+            
+            #endregion
         }
-
-        #region Internal
 
         // 研究ツリー状態の最新化
         // Refresh the research tree states
         private async UniTask LoadResearchTreeAsync()
         {
-            var nodeStates = await ClientContext.VanillaApi.Response.GetResearchNodeStates(_destroyCancellationToken);
+            var nodeStates = await ClientContext.VanillaApi.Response.GetResearchNodeStates(_ct);
             var nodes = CreateNodeData(nodeStates);
 
             researchTreeView.SetResearchNodes(nodes);
         }
 
-        // 研究完了後の更新
-        // Update tree after completing a research
-        private async UniTask CompleteResearchAsync(ResearchNodeData node)
+        
+        public void SetActive(bool isActive)
         {
-            var guid = node.MasterElement.ResearchNodeGuid;
-            var response = await ClientContext.VanillaApi.Response.CompleteResearch(guid, _destroyCancellationToken);
-            var nodes = CreateNodeData(response.NodeState.ToDictionary());
-
-            researchTreeView.SetResearchNodes(nodes);
+            gameObject.SetActive(isActive);
+            
+            if (!isActive) return;
+            
+            // 念の為の最新化処理
+            // Refresh just in case
+            LoadResearchTreeAsync().Forget();
         }
-
-        // ノードデータ生成処理
-        // Build node data list
-        private List<ResearchNodeData> CreateNodeData(Dictionary<Guid, ResearchNodeState> nodeStates)
+        
+        
+        /// <summary>
+        /// サーバーから送られてきたデータを、使いやすい形に変換
+        /// Convert the data received from the server into a more usable form
+        /// </summary>
+        private static List<ResearchNodeData> CreateNodeData(Dictionary<Guid, ResearchNodeState> nodeStates)
         {
             var researchMasters = MasterHolder.ResearchMaster.GetAllResearches();
             var nodes = new List<ResearchNodeData>(researchMasters.Count);
@@ -80,10 +78,8 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
                 var node = new ResearchNodeData(master, state);
                 nodes.Add(node);
             }
-
+            
             return nodes;
         }
-
-        #endregion
     }
 }
