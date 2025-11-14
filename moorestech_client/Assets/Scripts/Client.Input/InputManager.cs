@@ -82,7 +82,7 @@ namespace Client.Input
         public readonly InputKey OneStackCraft;
         public readonly InputKey OpenInventory;
         public readonly InputKey OpenMenu;
-        public readonly InputKey ResearchTree;
+        public readonly InputKey QuestUI;
         public readonly InputKey SwitchHotBar;
         
         public UIInputManager(MoorestechInputSettings settings)
@@ -97,7 +97,7 @@ namespace Client.Input
             BlockDelete = new InputKey(settings.UI.BlockDelete);
             AllCraft = new InputKey(settings.UI.AllCraft);
             OneStackCraft = new InputKey(settings.UI.OneStackCraft);
-            ResearchTree = new InputKey(settings.UI.ResearchTree);
+            QuestUI = new InputKey(settings.UI.QuestUI);
             ItemDirectMove = new InputKey(settings.UI.ItemDirectMove);
         }
     }
