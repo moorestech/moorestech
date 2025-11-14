@@ -13,7 +13,7 @@ using Tests.Module.TestMod;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.GetFluidInventoryProtocol;
 using MachineFluidIOTest = Tests.CombinedTest.Core.MachineFluidIOTest;
-using SteamGearGeneratorTest = Tests.CombinedTest.Core.SteamGearGeneratorTest;
+using FuelGearGeneratorTest = Tests.CombinedTest.Core.FuelGearGeneratorTest;
 using FluidTest = Tests.CombinedTest.Core.FluidTest;
 using System;
 
@@ -79,13 +79,13 @@ namespace Tests.CombinedTest.Server.PacketTest
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
             // Steam Gear Generatorを設置
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SteamGearGeneratorId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var steamGeneratorBlock);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FuelGearGeneratorId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var steamGeneratorBlock);
             
             // Steam Gear GeneratorのFluidComponentを取得
-            var steamFluidComponent = steamGeneratorBlock.GetComponent<SteamGearGeneratorFluidComponent>();
+            var steamFluidComponent = steamGeneratorBlock.GetComponent<FuelGearGeneratorFluidComponent>();
             
             // 蒸気を直接追加
-            var steamStack = new FluidStack(100, SteamGearGeneratorTest.SteamFluidId);
+            var steamStack = new FluidStack(100, FuelGearGeneratorTest.SteamFluidId);
             var remaining = steamFluidComponent.AddLiquid(steamStack, FluidContainer.Empty);
             
             // 蒸気が追加されたことを確認
@@ -98,7 +98,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             // 蒸気タンクの内容を確認
             Assert.AreEqual(1, data.Fluids.Length); // 蒸気タンクに液体が1つ
-            Assert.AreEqual(SteamGearGeneratorTest.SteamFluidId.AsPrimitive(), data.Fluids[0].FluidId);
+            Assert.AreEqual(FuelGearGeneratorTest.SteamFluidId.AsPrimitive(), data.Fluids[0].FluidId);
             Assert.AreEqual(100, data.Fluids[0].Amount); // 追加した量と同じ
         }
         

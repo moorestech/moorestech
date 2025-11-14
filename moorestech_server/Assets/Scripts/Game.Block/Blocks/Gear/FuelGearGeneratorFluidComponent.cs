@@ -10,10 +10,10 @@ using UnityEngine;
 namespace Game.Block.Blocks.Gear
 {
     /// <summary>
-    /// SteamGearGenerator専用の流体入力コンポーネント
+    /// FuelGearGenerator専用の流体入力コンポーネント
     /// パイプからの蒸気入力のみを扱う
     /// </summary>
-    public class SteamGearGeneratorFluidComponent : IFluidInventory, IUpdatableBlockComponent, IBlockSaveState
+    public class FuelGearGeneratorFluidComponent : IFluidInventory, IUpdatableBlockComponent, IBlockSaveState
     {
         private readonly FluidContainer _steamTank;
         private readonly BlockConnectorComponent<IFluidInventory> _fluidConnector;
@@ -21,7 +21,7 @@ namespace Game.Block.Blocks.Gear
         private int _consecutiveUpdatesWithoutRefill;
         private bool _wasEverDisconnected;
         
-        public SteamGearGeneratorFluidComponent(float tankCapacity, BlockConnectorComponent<IFluidInventory> fluidConnector)
+        public FuelGearGeneratorFluidComponent(float tankCapacity, BlockConnectorComponent<IFluidInventory> fluidConnector)
         {
             _steamTank = new FluidContainer(tankCapacity);
             _fluidConnector = fluidConnector;
@@ -30,12 +30,12 @@ namespace Game.Block.Blocks.Gear
             _wasEverDisconnected = false;
         }
         
-        public SteamGearGeneratorFluidComponent(Dictionary<string, string> componentStates, float tankCapacity, BlockConnectorComponent<IFluidInventory> fluidConnector) 
+        public FuelGearGeneratorFluidComponent(Dictionary<string, string> componentStates, float tankCapacity, BlockConnectorComponent<IFluidInventory> fluidConnector) 
             : this(tankCapacity, fluidConnector)
         {
             if (!componentStates.TryGetValue(SaveKey, out var saveState)) return;
             
-            var saveData = JsonConvert.DeserializeObject<SteamGearGeneratorFluidSaveData>(saveState);
+            var saveData = JsonConvert.DeserializeObject<FuelGearGeneratorFluidSaveData>(saveState);
             
             _steamTank.FluidId = new FluidId(saveData.FluidId);
             _steamTank.Amount = saveData.Amount;
@@ -107,7 +107,7 @@ namespace Game.Block.Blocks.Gear
         
         public string GetSaveState()
         {
-            var saveData = new SteamGearGeneratorFluidSaveData
+            var saveData = new FuelGearGeneratorFluidSaveData
             {
                 FluidId = _steamTank.FluidId.AsPrimitive(),
                 Amount = _steamTank.Amount,
@@ -120,7 +120,7 @@ namespace Game.Block.Blocks.Gear
         }
         
         // Save data structure
-        private class SteamGearGeneratorFluidSaveData
+        private class FuelGearGeneratorFluidSaveData
         {
             public int FluidId { get; set; }
             public double Amount { get; set; }

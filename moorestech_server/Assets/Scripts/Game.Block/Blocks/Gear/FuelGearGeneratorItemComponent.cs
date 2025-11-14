@@ -16,7 +16,7 @@ namespace Game.Block.Blocks.Gear
 {
     // アイテムスロットを管理し、他コンポーネントへインベントリ機能を提供する
     // Manage item slots and expose inventory functionality to other components
-    public class SteamGearGeneratorItemComponent : IOpenableBlockInventoryComponent, IBlockSaveState
+    public class FuelGearGeneratorItemComponent : IOpenableBlockInventoryComponent, IBlockSaveState
     {
         public IReadOnlyList<IItemStack> InventoryItems => _inventoryService.InventoryItems;
         public string SaveKey => "steamGearGeneratorItem";
@@ -27,8 +27,8 @@ namespace Game.Block.Blocks.Gear
         
         internal OpenableInventoryItemDataStoreService InventoryService => _inventoryService;
 
-        public SteamGearGeneratorItemComponent(
-            SteamGearGeneratorBlockParam param,
+        public FuelGearGeneratorItemComponent(
+            FuelGearGeneratorBlockParam param,
             BlockInstanceId blockInstanceId)
         {
             _blockInstanceId = blockInstanceId;
@@ -36,9 +36,9 @@ namespace Game.Block.Blocks.Gear
             _inventoryService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, slotCount);
         }
 
-        public SteamGearGeneratorItemComponent(
+        public FuelGearGeneratorItemComponent(
             Dictionary<string, string> componentStates,
-            SteamGearGeneratorBlockParam param,
+            FuelGearGeneratorBlockParam param,
             BlockInstanceId blockInstanceId)
             : this(param, blockInstanceId)
         {
