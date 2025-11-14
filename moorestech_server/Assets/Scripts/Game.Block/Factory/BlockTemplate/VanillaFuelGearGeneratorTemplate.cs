@@ -59,8 +59,9 @@ namespace Game.Block.Factory.BlockTemplate
                     fluidConnector
                 );
             
-            // スチームギアジェネレータコンポーネント
-            var steamGearGeneratorComponent = componentStates == null 
+            // 燃料ギアジェネレータコンポーネント
+            // Configure the fuel gear generator aggregate component
+            var fuelGearGeneratorComponent = componentStates == null 
                 ? new FuelGearGeneratorComponent(
                     configParam, 
                     blockInstanceId, 
@@ -79,7 +80,7 @@ namespace Game.Block.Factory.BlockTemplate
             
             var components = new List<IBlockComponent>
             {
-                steamGearGeneratorComponent,
+                fuelGearGeneratorComponent,
                 gearConnectorComponent,
                 inventoryConnector,
                 itemComponent,
