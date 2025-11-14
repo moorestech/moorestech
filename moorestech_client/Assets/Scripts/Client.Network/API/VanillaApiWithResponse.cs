@@ -36,6 +36,7 @@ namespace Client.Network.API
             var initialHandShake = await _packetExchangeManager.GetPacketResponse<InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack>(request, ct);
             
             //必要なデータを取得する
+            // Fetch all required resources including research node states
             var responses = await UniTask.WhenAll(
                 GetRailConnections(ct),
                 GetMapObjectInfo(ct), 
@@ -44,7 +45,8 @@ namespace Client.Network.API
                 GetChallengeResponse(ct), 
                 GetUnlockState(ct), 
                 GetCraftTree(playerId, ct),
-                GetPlayedSkitIds(ct));
+                GetPlayedSkitIds(ct),
+                GetResearchNodeStates(ct));
             
             return new InitialHandshakeResponse(initialHandShake, responses);
         }

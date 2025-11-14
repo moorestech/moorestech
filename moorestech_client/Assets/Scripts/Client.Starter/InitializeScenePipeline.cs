@@ -143,6 +143,7 @@ namespace Client.Starter
                 vanillaApi = new VanillaApi(exchangeManager, packetSender, serverCommunicator, playerConnectionSetting, _proprieties.LocalServerProcess);
                 
                 //最初に必要なデータを取得
+                // Fetch the initial data bundle
                 handshakeResponse = await vanillaApi.Response.InitialHandShake(playerConnectionSetting.PlayerId, default);
                 
                 loadingLog.text += $"\n初期データ取得完了  {loadingStopwatch.Elapsed}";
