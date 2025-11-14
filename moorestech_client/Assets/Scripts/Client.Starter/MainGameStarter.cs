@@ -159,8 +159,6 @@ namespace Client.Starter
             
             //UIコントロール
             // register UI control
-            // PureC#のインスタンスを登録
-            // Register pure C# instances
             builder.Register<UIStateDictionary>(Lifetime.Singleton);
             builder.Register<SubInventoryState>(Lifetime.Singleton);
             builder.Register<GameScreenState>(Lifetime.Singleton);
@@ -170,6 +168,7 @@ namespace Client.Starter
             builder.Register<SkitState>(Lifetime.Singleton);
             builder.Register<PlaceBlockState>(Lifetime.Singleton);
             builder.Register<ChallengeListState>(Lifetime.Singleton);
+            builder.Register<ResearchTreeState>(Lifetime.Singleton);
             builder.Register<ItemRecipeViewerDataContainer>(Lifetime.Singleton);
             builder.Register<GameScreenSubInventoryInteractService>(Lifetime.Singleton);
             
