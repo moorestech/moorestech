@@ -99,6 +99,20 @@ namespace Game.Train.Train
             _entries.Add(entry);
             return entry;
         }
+        //最後に追加のcondition付き
+        public DiagramEntry AddEntry(RailNode node, DepartureConditionType departureConditionType, int waitTicks = 0)
+        {
+            var entry = AddEntry(node);
+            if (departureConditionType == DepartureConditionType.WaitForTicks)
+            {
+                entry.SetDepartureWaitTicks(waitTicks);
+            }
+            else 
+            {
+                entry.SetDepartureCondition(departureConditionType);
+            }
+            return entry;
+        }
         //index指定して追加
         public DiagramEntry InsertEntry(int index, RailNode node)
         {
@@ -309,7 +323,6 @@ namespace Game.Train.Train
                 entryId = Guid.NewGuid();
                 _departureConditions = new List<IDepartureCondition>();
                 _departureConditionTypes = new List<DepartureConditionType>();
-                SetDepartureCondition(DepartureConditionType.TrainInventoryFull);
             }
 
             public RailNode Node { get; private set; }

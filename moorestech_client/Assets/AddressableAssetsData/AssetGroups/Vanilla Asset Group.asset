@@ -135,6 +135,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1ea215d97cbcd4cf0893122dbf3714e0
+    m_Address: Vanilla/Block/BeltConveyor_L
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 1ed685f538a30476f8b52eae7e336d70
     m_Address: Vanilla/Block/Windmill_Miner
     m_ReadOnly: 0
@@ -156,7 +161,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 23c9427641be06a49b66517f3f5bfd6c
-    m_Address: Vanilla/Block/SF_Cross_BeltConveyor
+    m_Address: Vanilla/Block/BeltConveyor_Cross
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -202,6 +207,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 3468e0ac5ab32d247bafe3746940bbc8
     m_Address: Vanilla/Block/Automatic_loom
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 378bab6c515bb4252a5166202effa6fe
+    m_Address: Vanilla/Item/Iron_Ingot_item
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -396,7 +406,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 679918cdb2be9a74b90e1396abee2ff3
-    m_Address: Vanilla/Block/SF_T_BeltConveyor
+    m_Address: Vanilla/Block/BeltConveyor_T
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -547,6 +557,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 93488f5c5617e46d6bc796276b24f16b
     m_Address: Vanilla/UI/Block/BaseCampInventory
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 948c3f51e452d4eb4a8def7c80a18f61
+    m_Address: Vanilla/Item/Precision_motor
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -851,7 +866,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: ea12cf12024a0f24a927a47473535079
-    m_Address: Vanilla/Block/SF_L_BeltConveyor
+    m_Address: Vanilla/Block/BeltConveyor_R
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
