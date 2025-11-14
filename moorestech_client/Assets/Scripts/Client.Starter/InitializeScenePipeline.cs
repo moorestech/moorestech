@@ -147,11 +147,6 @@ namespace Client.Starter
                 handshakeResponse = await vanillaApi.Response.InitialHandShake(playerConnectionSetting.PlayerId, default);
                 
                 loadingLog.text += $"\n初期データ取得完了  {loadingStopwatch.Elapsed}";
-
-                var researchNodeCount = handshakeResponse.ResearchNodeStates.Count;
-                // 研究ノード情報のロード完了をログに記録
-                // Log the completion of research node state loading
-                loadingLog.text += $"\n研究ノード状態ロード完了 ({researchNodeCount})  {loadingStopwatch.Elapsed}";
             }
             
             async UniTask<ServerCommunicator> ConnectionToServer()

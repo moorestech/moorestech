@@ -49,7 +49,7 @@ namespace Client.Network.API
             CraftTree = responses.craftTree;
             PlayedSkitIds = responses.playedSkitIds;
             RailConnections = responses.railConnections;
-            ResearchNodeStates = responses.researchNodeStates ?? new Dictionary<Guid, ResearchNodeState>();
+            ResearchNodeStates = responses.researchNodeStates;
         }
     }
     
