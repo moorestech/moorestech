@@ -42,6 +42,7 @@ namespace Tests.Util
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var environment = new TrainTestEnvironment(serviceProvider, ServerContext.WorldBlockDatastore, packet);
+            TrainRailPositionManager.ResetInstance();
             TrainUpdateService.Instance.ResetTrains();
             RailGraphDatastore.ResetInstance();
 
