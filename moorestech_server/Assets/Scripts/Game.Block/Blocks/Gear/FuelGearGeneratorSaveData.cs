@@ -7,7 +7,7 @@ namespace Game.Block.Blocks.Gear
     // 発電機のステート内容をシリアライズするための単純なDTO
     // Simple DTO that serialises the generator state for persistence
     [Serializable]
-    public class SteamGearGeneratorSaveData
+    public class FuelGearGeneratorSaveData
     {
         public string CurrentState;
         public float StateElapsedTime;
@@ -25,9 +25,9 @@ namespace Game.Block.Blocks.Gear
         [JsonIgnore]
         public Guid? CurrentFuelFluidGuid => Guid.TryParse(CurrentFuelFluidGuidStr, out var guid) ? guid : null;
 
-        public SteamGearGeneratorSaveData(
-            SteamGearGeneratorStateService stateService,
-            SteamGearGeneratorFuelService fuelService)
+        public FuelGearGeneratorSaveData(
+            FuelGearGeneratorStateService stateService,
+            FuelGearGeneratorFuelService fuelService)
         {
             CurrentState = stateService.CurrentState.ToString();
             StateElapsedTime = stateService.StateElapsedTime;
@@ -50,7 +50,7 @@ namespace Game.Block.Blocks.Gear
             }
         }
 
-        public SteamGearGeneratorSaveData()
+        public FuelGearGeneratorSaveData()
         {
         }
     }

@@ -3930,7 +3930,7 @@
         1,
         1
       ],
-      "blockType": "SteamGearGenerator",
+      "blockType": "FuelGearGenerator",
       "blockParam": {
         "fluidCapacity": 100,
         "timeToMaxEasing": "EaseInSine",
@@ -4055,7 +4055,7 @@
           "outputConnects": []
         }
       },
-      "name": "SteamGearGenerator",
+      "name": "FuelGearGenerator",
       "itemGuid": "9bbfaa53-1614-40dc-a58e-e3a0e2a00c26",
       "blockGuid": "cc3b5cbe-c5bc-4d3d-b3df-4b69e7372471",
       "overrideVerticalBlock": {}

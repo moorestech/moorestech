@@ -12,25 +12,25 @@ using Mooresmaster.Model.BlocksModule;
 
 namespace Game.Block.Factory.BlockTemplate
 {
-    public class VanillaSteamGearGeneratorTemplate : IBlockTemplate
+    public class VanillaFuelGearGeneratorTemplate : IBlockTemplate
     {
-        public VanillaSteamGearGeneratorTemplate()
+        public VanillaFuelGearGeneratorTemplate()
         {
         }
         
         public IBlock Load(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            return CreateSteamGearGenerator(componentStates, blockMasterElement, blockInstanceId, blockPositionInfo);
+            return CreateFuelGearGenerator(componentStates, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
         
         public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] createParams)
         {
-            return CreateSteamGearGenerator(null, blockMasterElement, blockInstanceId, blockPositionInfo);
+            return CreateFuelGearGenerator(null, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
         
-        private IBlock CreateSteamGearGenerator(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        private IBlock CreateFuelGearGenerator(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            var configParam = blockMasterElement.BlockParam as SteamGearGeneratorBlockParam;
+            var configParam = blockMasterElement.BlockParam as FuelGearGeneratorBlockParam;
             
             // ギア接続の設定
             var gearConnectSetting = configParam.Gear.GearConnects;
@@ -41,19 +41,19 @@ namespace Game.Block.Factory.BlockTemplate
 
             // アイテムインベントリコンポーネント
             var itemComponent = componentStates == null
-                ? new SteamGearGeneratorItemComponent(configParam, blockInstanceId)
-                : new SteamGearGeneratorItemComponent(componentStates, configParam, blockInstanceId);
+                ? new FuelGearGeneratorItemComponent(configParam, blockInstanceId)
+                : new FuelGearGeneratorItemComponent(componentStates, configParam, blockInstanceId);
             
             // 流体接続の設定
             var fluidConnector = IFluidInventory.CreateFluidInventoryConnector(configParam.FluidInventoryConnectors, blockPositionInfo);
             
-            // SteamGearGeneratorFluidComponentの作成（fluidConnectorを渡す）
+            // FuelGearGeneratorFluidComponentの作成（fluidConnectorを渡す）
             var fluidComponent = componentStates == null
-                ? new SteamGearGeneratorFluidComponent(
+                ? new FuelGearGeneratorFluidComponent(
                     configParam.FluidCapacity,
                     fluidConnector
                 )
-                : new SteamGearGeneratorFluidComponent(
+                : new FuelGearGeneratorFluidComponent(
                     componentStates,
                     configParam.FluidCapacity,
                     fluidConnector
@@ -61,14 +61,14 @@ namespace Game.Block.Factory.BlockTemplate
             
             // スチームギアジェネレータコンポーネント
             var steamGearGeneratorComponent = componentStates == null 
-                ? new SteamGearGeneratorComponent(
+                ? new FuelGearGeneratorComponent(
                     configParam, 
                     blockInstanceId, 
                     gearConnectorComponent,
                     itemComponent,
                     fluidComponent
                 )
-                : new SteamGearGeneratorComponent(
+                : new FuelGearGeneratorComponent(
                     componentStates,
                     configParam, 
                     blockInstanceId, 
