@@ -1,0 +1,94 @@
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEditor.Toolbars;
+using UnityEngine;
+using UnityEngine.UIElements;
+using YujiAp.UnityToolbarExtension.Editor;
+
+namespace Client.Editor.Toolbar
+{
+    /// <summary>
+    /// ホームボタンをツールバーに追加するエディタ拡張
+    /// Editor extension to add a home button to the toolbar
+    /// </summary>
+    [InitializeOnLoad]
+    public class HomeButtonToolbarElement : IToolbarElement
+    {
+        // ホームシーンのパス
+        // Path to the home scene
+        private const string HomeScenePath = "Assets/Scenes/Game/MainGame.unity";
+
+        // アイコンのパス
+        // Icon path
+        private const string IconPath = "Assets/Scripts/Editor/Toolbar/HomeIcon.png";
+
+        public ToolbarElementLayoutType DefaultLayoutType => ToolbarElementLayoutType.LeftSideRightAlign;
+
+        public VisualElement CreateElement()
+        {
+            // ホームアイコンを読み込み
+            // Load home icon
+            var iconTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(IconPath);
+
+            // ボタンを作成
+            // Create button
+            var button = new EditorToolbarButton(OnButtonClicked);
+
+            // アイコン画像を設定
+            // Set icon image
+            var image = new Image { image = iconTexture };
+            image.style.width = 16;
+            image.style.height = 16;
+            button.Add(image);
+
+            button.tooltip = "ホームシーンに遷移 (Transition to Home Scene)";
+
+            return button;
+        }
+
+        /// <summary>
+        /// ボタンがクリックされた時の処理
+        /// Process when button is clicked
+        /// </summary>
+        private void OnButtonClicked()
+        {
+            // シーンが存在するか確認
+            // Check if scene exists
+            var sceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(HomeScenePath);
+            if (sceneAsset == null)
+            {
+                Debug.LogError($"ホームシーンが見つかりません: {HomeScenePath}\nHome scene not found: {HomeScenePath}");
+                return;
+            }
+
+            // 現在のシーンに変更がある場合は保存を促す
+            // Prompt to save if there are changes in the current scene
+            if (EditorSceneManager.GetActiveScene().isDirty)
+            {
+                var result = EditorUtility.DisplayDialogComplex(
+                    "シーンの変更を保存 / Save Scene Changes",
+                    "現在のシーンに保存されていない変更があります。保存しますか？\nThere are unsaved changes in the current scene. Do you want to save?",
+                    "保存 / Save",
+                    "保存しない / Don't Save",
+                    "キャンセル / Cancel"
+                );
+
+                switch (result)
+                {
+                    case 0: // 保存 / Save
+                        EditorSceneManager.SaveOpenScenes();
+                        break;
+                    case 1: // 保存しない / Don't Save
+                        break;
+                    case 2: // キャンセル / Cancel
+                        return;
+                }
+            }
+
+            // ホームシーンを開く
+            // Open home scene
+            EditorSceneManager.OpenScene(HomeScenePath);
+            Debug.Log($"ホームシーンに遷移しました: {HomeScenePath}\nTransitioned to home scene: {HomeScenePath}");
+        }
+    }
+}
