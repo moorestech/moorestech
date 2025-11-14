@@ -2,7 +2,7 @@ using System;
 using Core.Item.Interface;
 using Game.PlayerInventory.Interface.Event;
 using MessagePack;
-using Server.Util.MessagePack;
+using Game.Common.MessagePack;
 
 namespace Server.Event.EventReceive
 {

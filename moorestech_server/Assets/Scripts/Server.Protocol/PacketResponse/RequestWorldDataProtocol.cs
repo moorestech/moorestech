@@ -9,7 +9,7 @@ using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse.Util;
-using Server.Util.MessagePack;
+using Game.Common.MessagePack;
 
 namespace Server.Protocol.PacketResponse
 {

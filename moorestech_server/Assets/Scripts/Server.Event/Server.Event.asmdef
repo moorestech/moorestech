@@ -10,7 +10,7 @@
     "Game.Block.Interface",
     "Game.PlayerInventory.Interface",
     "Game.Map.Interface",
-    "Server.Util",
+    "Game.Common",
     "UniRx",
     "Game.Context",
     "Game.Challenge",

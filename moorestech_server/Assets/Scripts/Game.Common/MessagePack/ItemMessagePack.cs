@@ -3,7 +3,7 @@ using Core.Item.Interface;
 using Core.Master;
 using MessagePack;
 
-namespace Server.Util.MessagePack
+namespace Game.Common.MessagePack
 {
     [MessagePackObject]
     public class ItemMessagePack
