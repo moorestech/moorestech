@@ -15,7 +15,7 @@ namespace Game.Block.Blocks.Gear
     /// </summary>
     public class FuelGearGeneratorFluidComponent : IFluidInventory, IUpdatableBlockComponent, IBlockSaveState
     {
-        private readonly FluidContainer _steamTank;
+        private readonly FluidContainer _fuelTank;
         private readonly BlockConnectorComponent<IFluidInventory> _fluidConnector;
         private bool _wasRefilledThisUpdate;
         private int _consecutiveUpdatesWithoutRefill;
@@ -23,7 +23,7 @@ namespace Game.Block.Blocks.Gear
         
         public FuelGearGeneratorFluidComponent(float tankCapacity, BlockConnectorComponent<IFluidInventory> fluidConnector)
         {
-            _steamTank = new FluidContainer(tankCapacity);
+            _fuelTank = new FluidContainer(tankCapacity);
             _fluidConnector = fluidConnector;
             _wasRefilledThisUpdate = false;
             _consecutiveUpdatesWithoutRefill = 0;
@@ -37,20 +37,20 @@ namespace Game.Block.Blocks.Gear
             
             var saveData = JsonConvert.DeserializeObject<FuelGearGeneratorFluidSaveData>(saveState);
             
-            _steamTank.FluidId = new FluidId(saveData.FluidId);
-            _steamTank.Amount = saveData.Amount;
+            _fuelTank.FluidId = new FluidId(saveData.FluidId);
+            _fuelTank.Amount = saveData.Amount;
             _wasRefilledThisUpdate = saveData.WasRefilledThisUpdate;
             _consecutiveUpdatesWithoutRefill = saveData.ConsecutiveUpdatesWithoutRefill;
             _wasEverDisconnected = saveData.WasEverDisconnected;
         }
         
-        public FluidContainer SteamTank => _steamTank;
+        public FluidContainer SteamTank => _fuelTank;
         public bool IsPipeDisconnected => _consecutiveUpdatesWithoutRefill >= 5;  // 5回連続で補給がない場合に切断とみなす
         
         public void Update()
         {
             // この更新サイクルで補給があったかどうかをチェック
-            _wasRefilledThisUpdate = _steamTank.PreviousSourceFluidContainers.Count > 0;
+            _wasRefilledThisUpdate = _fuelTank.PreviousSourceFluidContainers.Count > 0;
             
             // 補給状態を追跡
             if (_wasRefilledThisUpdate)
@@ -69,19 +69,19 @@ namespace Game.Block.Blocks.Gear
             }
             
             // タンクのPreviousSourceFluidContainersをクリア
-            _steamTank.PreviousSourceFluidContainers.Clear();
+            _fuelTank.PreviousSourceFluidContainers.Clear();
             
             // タンクが空の場合はFluidIdをリセット
-            if (_steamTank.Amount <= 0)
+            if (_fuelTank.Amount <= 0)
             {
-                _steamTank.FluidId = FluidMaster.EmptyFluidId;
+                _fuelTank.FluidId = FluidMaster.EmptyFluidId;
             }
         }
         
         public FluidStack AddLiquid(FluidStack fluidStack, FluidContainer source)
         {
             // タンクに液体を追加
-            return _steamTank.AddLiquid(fluidStack, source);
+            return _fuelTank.AddLiquid(fluidStack, source);
         }
         
         public bool IsDestroy { get; private set; }
@@ -94,23 +94,23 @@ namespace Game.Block.Blocks.Gear
         public List<FluidStack> GetFluidInventory()
         {
             var fluidStacks = new List<FluidStack>();
-            if (_steamTank.Amount > 0)
+            if (_fuelTank.Amount > 0)
             {
-                fluidStacks.Add(new FluidStack(_steamTank.Amount, _steamTank.FluidId));
+                fluidStacks.Add(new FluidStack(_fuelTank.Amount, _fuelTank.FluidId));
             }
             return fluidStacks;
         }
         
         #region IBlockSaveState
         
-        public string SaveKey => "steamGearGeneratorFluid";
+        public string SaveKey => "fuelGearGeneratorFluid";
         
         public string GetSaveState()
         {
             var saveData = new FuelGearGeneratorFluidSaveData
             {
-                FluidId = _steamTank.FluidId.AsPrimitive(),
-                Amount = _steamTank.Amount,
+                FluidId = _fuelTank.FluidId.AsPrimitive(),
+                Amount = _fuelTank.Amount,
                 WasRefilledThisUpdate = _wasRefilledThisUpdate,
                 ConsecutiveUpdatesWithoutRefill = _consecutiveUpdatesWithoutRefill,
                 WasEverDisconnected = _wasEverDisconnected

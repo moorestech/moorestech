@@ -19,7 +19,7 @@ namespace Game.Block.Blocks.Gear
     public class FuelGearGeneratorItemComponent : IOpenableBlockInventoryComponent, IBlockSaveState
     {
         public IReadOnlyList<IItemStack> InventoryItems => _inventoryService.InventoryItems;
-        public string SaveKey => "steamGearGeneratorItem";
+        public string SaveKey => "fuelGearGeneratorItem";
         
         
         private readonly OpenableInventoryItemDataStoreService _inventoryService;

@@ -13,7 +13,7 @@ namespace Game.Block.Blocks.Gear
 {
     public class FuelGearGeneratorComponent : GearEnergyTransformer, IGearGenerator, IUpdatableBlockComponent, IBlockSaveState, IBlockStateObservable
     {
-        public string SaveKey => "steamGearGenerator";
+        public string SaveKey => "fuelGearGenerator";
         
         public int TeethCount { get; }
         public RPM GenerateRpm { get; private set; }
@@ -99,13 +99,13 @@ namespace Game.Block.Blocks.Gear
             BlockException.CheckDestroy(this);
             
             var network = GearNetworkDatastore.GetGearNetwork(BlockInstanceId);
-            var steamGearGeneratorDetail = CreateFuelGearGeneratorStateDetail();
+            var fuelGearGeneratorDetail = CreateFuelGearGeneratorStateDetail();
             var powerGeneratorDetail = CreatePowerGeneratorStateDetail();
             
             const int addCount = 2;
             var baseDetails = base.GetBlockStateDetails();
             var result = new BlockStateDetail[baseDetails.Length + addCount];
-            result[0] = steamGearGeneratorDetail;
+            result[0] = fuelGearGeneratorDetail;
             result[1] = powerGeneratorDetail;
             
             Array.Copy(baseDetails, 0, result, addCount, baseDetails.Length);
