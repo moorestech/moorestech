@@ -3,11 +3,8 @@ using Game.Block.Blocks;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
-using Game.Block.Interface.Extension;
 using Mooresmaster.Model.BlocksModule;
 using Game.Train.RailGraph;
-using Newtonsoft.Json;
-using Game.Context;
 using UnityEngine;
 using Game.Block.Factory.BlockTemplate.Utility;
 
@@ -25,25 +22,24 @@ namespace Game.Block.Factory.BlockTemplate
             BlockInstanceId blockInstanceId,
             BlockPositionInfo blockPositionInfo, BlockCreateParam[] createParams)
         {
+            var trainRailParam = blockMasterElement.BlockParam as TrainRailBlockParam;
             // railブロックは常にRailComponentが1つだけ
             var railComponents = new RailComponent[1];
             
             // ブロック生成パラメータからRailBridgePierComponentStateDetailを取得して方向ベクトルを取得
-            // Pull bridge pier state to determine direction
             var state = createParams.GetStateDetail<RailBridgePierComponentStateDetail>(RailBridgePierComponentStateDetail.StateDetailKey);
             if (state == null)
             {
                 // 状態情報が存在しないため詳細ログを出力
-                // Emit diagnostics when state detail is missing
                 Debug.LogError($"[VanillaTrainRailTemplate] Missing create param: {RailBridgePierComponentStateDetail.StateDetailKey} for block {blockMasterElement.Name}");
             }
             var railBlockDirection = state?.RailBlockDirection;
 
             // RailComponentを生成
             var railComponentId = new RailComponentID(blockPositionInfo.OriginalPos, 0);
-            var railComponentPositions = RailComponentUtility.CalculateRailComponentPositions(blockPositionInfo);
-            railComponents[0] = new RailComponent(railComponentPositions[0], railBlockDirection, railComponentId);
-            var railSaverComponent = RailComponentFactory.CreateRailSaverComponent(railComponents);
+            var railComponentPosition = RailComponentUtility.CalculateRailComponentPosition(blockPositionInfo,trainRailParam.RailPosition);
+            railComponents[0] = new RailComponent(railComponentPosition, railBlockDirection, railComponentId);
+            var railSaverComponent = new RailSaverComponent(railComponents);
             // StateDetailコンポーネントを生成
             var stateDetailComponent = new RailComponentStateDetailComponent(railComponents[0]);
             // コンポーネントをまとめてブロックに登録
@@ -63,8 +59,9 @@ namespace Game.Block.Factory.BlockTemplate
                 BlockInstanceId instanceId,
                 BlockPositionInfo positionInfo)
         {
-            var railComponents = RailComponentUtility.RestoreRailComponents(componentStates, positionInfo);
-            var railSaverComponent = RailComponentFactory.CreateRailSaverComponent(railComponents);
+            var trainRailParam = masterElement.BlockParam as TrainRailBlockParam;
+            var railComponents = RailComponentUtility.Restore1RailComponents(componentStates, positionInfo, trainRailParam.RailPosition);
+            var railSaverComponent = new RailSaverComponent(railComponents);
             // StateDetailコンポーネントを生成
             var stateDetailComponent = new RailComponentStateDetailComponent(railComponents[0]);
 

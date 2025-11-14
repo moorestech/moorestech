@@ -48,10 +48,10 @@ namespace Tests.UnitTest.Game.SaveLoad
                 var actual = loadedTrain.trainDiagram.Entries[i];
 
                 Assert.AreEqual(expected.EntryId, actual.entryId, $"エントリ{i}のIDが一致しません。");
-                Assert.IsTrue(RailGraphDatastore.TryGetRailComponentID(actual.Node, out var connection),
+                Assert.IsTrue(RailGraphDatastore.TryGetConnectionDestination(actual.Node, out var connection),
                     $"エントリ{i}のRailComponentIDを解決できません。");
 
-                var destination = connection.DestinationID;
+                var destination = connection.railComponentID;
                 var actualPosition = new Vector3Int(destination.Position.x, destination.Position.y, destination.Position.z);
 
                 Assert.AreEqual(expected.Position, actualPosition, $"エントリ{i}の座標が一致しません。");
@@ -99,10 +99,10 @@ namespace Tests.UnitTest.Game.SaveLoad
                 var actual = loadedTrain.trainDiagram.Entries[i];
 
                 Assert.AreEqual(expected.EntryId, actual.entryId, $"エントリ{i}のIDが一致しません。");
-                Assert.IsTrue(RailGraphDatastore.TryGetRailComponentID(actual.Node, out var connection),
+                Assert.IsTrue(RailGraphDatastore.TryGetConnectionDestination(actual.Node, out var connection),
                     $"エントリ{i}のRailComponentIDを解決できません。");
 
-                var destination = connection.DestinationID;
+                var destination = connection.railComponentID;
                 var actualPosition = new Vector3Int(destination.Position.x, destination.Position.y, destination.Position.z);
 
                 Assert.AreEqual(expected.Position, actualPosition, $"エントリ{i}の座標が一致しません。");
@@ -179,10 +179,10 @@ namespace Tests.UnitTest.Game.SaveLoad
             for (var i = 0; i < train.trainDiagram.Entries.Count; i++)
             {
                 var entry = train.trainDiagram.Entries[i];
-                Assert.IsTrue(RailGraphDatastore.TryGetRailComponentID(entry.Node, out var connection),
+                Assert.IsTrue(RailGraphDatastore.TryGetConnectionDestination(entry.Node, out var connection),
                     $"エントリ{i}のRailComponentIDを取得できません。");
 
-                var destination = connection.DestinationID;
+                var destination = connection.railComponentID;
                 var position = new Vector3Int(destination.Position.x, destination.Position.y, destination.Position.z);
 
                 expectedEntries.Add(new ExpectedEntry(
@@ -268,8 +268,8 @@ namespace Tests.UnitTest.Game.SaveLoad
                 var nodeObject = entryObject["Node"] as JsonObject;
                 Assert.IsNotNull(nodeObject, "ダイアグラムエントリにNode情報が存在しません。");
 
-                var destinationObject = nodeObject["DestinationID"] as JsonObject;
-                Assert.IsNotNull(destinationObject, "ダイアグラムエントリにDestinationIDが存在しません。");
+                var destinationObject = nodeObject["railComponentID"] as JsonObject;
+                Assert.IsNotNull(destinationObject, "ダイアグラムエントリにrailComponentIDが存在しません。");
 
                 var positionObject = destinationObject["Position"] as JsonObject ?? new JsonObject();
                 positionObject["x"] = 99;

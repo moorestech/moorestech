@@ -4,6 +4,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Train.Common;
 using Game.Train.Train;
+using Mooresmaster.Model.BlocksModule;
 using Newtonsoft.Json;
 using System;
 
@@ -15,7 +16,9 @@ namespace Game.Block.Blocks.TrainRail
     /// </summary>
     public class CargoplatformComponent : IBlockSaveState, ITrainDockingReceiver
     {
-        private readonly int _stationLength;
+        // ブロックパラメータ参照を保持
+        // Keep reference to generated block parameter
+        private readonly TrainCargoPlatformBlockParam _param;
         private Guid? _dockedTrainId;
         private Guid? _dockedCarId;
         private TrainCar _dockedTrainCar;
@@ -30,8 +33,9 @@ namespace Game.Block.Blocks.TrainRail
         private CargoTransferMode _transferMode = CargoTransferMode.LoadToTrain;
 
         // インベントリスロット数やUI更新のための設定
-        public int InputSlotCount { get; private set; }
-        public int OutputSlotCount { get; private set; }
+        // プラットフォームのスロット数
+        // Number of cargo platform slots
+        public int SlotCount => _param.ItemSlotCount;
 
         public bool IsDestroy { get; private set; }
 
@@ -40,15 +44,9 @@ namespace Game.Block.Blocks.TrainRail
         /// <summary>
         /// コンストラクタ
         /// </summary>
-        public CargoplatformComponent(
-            int stationLength,
-            int inputSlotCount,
-            int outputSlotCount
-        )
+        public CargoplatformComponent(TrainCargoPlatformBlockParam param)
         {
-            _stationLength = stationLength;
-            InputSlotCount = inputSlotCount;
-            OutputSlotCount = outputSlotCount;
+            _param = param;
         }
 
         public void SetTransferMode(CargoTransferMode mode)

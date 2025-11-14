@@ -1,17 +1,18 @@
+using Core.Master;
+using Game.Block.Blocks.TrainRail;
+using Game.Block.Interface;
+using Game.Block.Interface.Extension;
+using Game.Train.RailGraph;
+using Game.Train.Train;
+using Game.Train.Utility;
+using NUnit.Framework;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Game.Block.Interface;
-using Game.Block.Interface.Extension;
-using Game.Block.Blocks.TrainRail;
-using Game.Train.Train;
-using Game.Train.RailGraph;
-using NUnit.Framework;
 using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;
-using Game.Train.Utility;
-using System;
 
 
 namespace Tests.UnitTest.Game
@@ -202,11 +203,7 @@ namespace Tests.UnitTest.Game
             {
                 Debug.Log("列車編成が無事目的地につきました");
             }
-
         }
-
-
-
 
         /// <summary>
         /// 駅から駅の列車運行テスト
@@ -215,7 +212,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void StationTrainRun()
         {
-            var debugLogFlag = true;
+            var debugLogFlag = false;
             void RunTrain(TrainUnit trainUnit)
             {
                 trainUnit.TurnOnAutoRun();//factorioでいう自動運転on
@@ -260,122 +257,138 @@ namespace Tests.UnitTest.Game
                     Debug.Log("実装距離(world座標換算)" + ((float)totaldist / BezierUtility.RAIL_LENGTH_SCALE) + "");
                 }
             }
-            /*
-            railComponentAの座標(0.00, 0.50, 2.50)N
-            railComponentBの座標(22.00, 0.50, 2.50)N
-            railComponentAの座標(2.50, 5.50, 22.00)E
-            railComponentBの座標(2.50, 5.50, 0.00)E
-            railComponentAの座標(22.00, 10.50, 2.50)S
-            railComponentBの座標(0.00, 10.50, 2.50)S
-            railComponentAの座標(2.50, 15.50, 0.00)W
-            railComponentBの座標(2.50, 15.50, 22.00)W
-             */
-            var env = TrainTestHelper.CreateEnvironment();
-            _ = env.GetRailGraphDatastore();
-            var worldBlockDatastore = env.WorldBlockDatastore;
-            RailComponent[] railComponentsData = new RailComponent[2 * 4 + 3];//1本の駅の入口と出口のrailcomponentを記憶、あと追加点
-            BlockDirection[] blockDirections = new BlockDirection[] { BlockDirection.East, BlockDirection.North, BlockDirection.South, BlockDirection.West };
-            Vector3Int[] dirarray = new Vector3Int[] { new Vector3Int(0, 0, -1), new Vector3Int(1, 0, 0), new Vector3Int(-1, 0, 0), new Vector3Int(0, 0, 1) };
 
-            // 1) 駅を4つつくってrailcomponentの座標を確認
-            // 駅1本:TestTrainStation+TestTrainCargoPlatform+TestTrainCargoPlatform+TestTrainCargoPlatform+TestTrainCargoPlatform+TestTrainStation
-            // 22+11+11+11+11+22の構成
-            for (int i = 0; i < 4; i++)
+            const int LOOPCNT = 100;//2400で大丈夫だった
+            for (int loopcnt = 0; loopcnt < LOOPCNT; loopcnt++)
             {
-                //yで重ならないよう調整、x,zは-1000～1000のランダム
-                var position = new Vector3Int(UnityEngine.Random.Range(-1000, 1000), i * 6 + 3, UnityEngine.Random.Range(-1000, 1000));
-                //気動車に対応する駅1
-                worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainStation, position, blockDirections[i], Array.Empty<BlockCreateParam>(), out var stationBlockA);
-                //気動車に対応する駅2
-                worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainStation, position + dirarray[i] * 66, blockDirections[i], Array.Empty<BlockCreateParam>(), out var stationBlockB);
-                var railcomposA = stationBlockA.GetComponent<RailSaverComponent>();
-                var railcomposB = stationBlockB.GetComponent<RailSaverComponent>();
-                //中間の貨物駅
-                for (int j = 0; j < 4; j++)
+                var env = TrainTestHelper.CreateEnvironment();
+                var worldBlockDatastore = env.WorldBlockDatastore;
+
+                Vector3Int stationBlockSize = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainStation).BlockSize;
+                Vector3Int cargoBBlockSize = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainCargoPlatform).BlockSize;
+                Assert.AreNotEqual(0, stationBlockSize.x, "ブロックサイズが0");
+                Assert.AreNotEqual(0, stationBlockSize.y, "ブロックサイズが0");
+                Assert.AreNotEqual(0, stationBlockSize.z, "ブロックサイズが0");
+                Assert.AreNotEqual(0, cargoBBlockSize.x, "ブロックサイズが0");
+                Assert.AreNotEqual(0, cargoBBlockSize.y, "ブロックサイズが0");
+                Assert.AreNotEqual(0, cargoBBlockSize.z, "ブロックサイズが0");
+
+                RailComponent[] railComponentsData = new RailComponent[2 * 4 + 3];//1本の駅の入口と出口のrailcomponentを記憶、あと追加点
+                BlockDirection[] blockDirections = new BlockDirection[] { BlockDirection.North, BlockDirection.East, BlockDirection.South, BlockDirection.West };
+                Vector3Int[] dirarray = new Vector3Int[] { new Vector3Int(0, 0, 1), new Vector3Int(1, 0, 0), new Vector3Int(0, 0, -1), new Vector3Int(-1, 0, 0) };
+
+                // 1) 駅を4つつくってrailcomponentの座標を確認
+                // 駅の列:TestTrainStation+TestTrainCargoPlatform+TestTrainCargoPlatform+TestTrainCargoPlatform+TestTrainCargoPlatform+TestTrainStation
+                // 22+11+11+11+11+22の構成(旧)
+                // 8+8+8+8+8+8の構成(新)
+                int rand = UnityEngine.Random.Range(1000, 12000);
+                if (UnityEngine.Random.Range(0, 3) == 0)
+                    rand = UnityEngine.Random.Range(900, rand);
+                if (UnityEngine.Random.Range(0, 3) == 0)
+                    rand = UnityEngine.Random.Range(100, rand);
+                for (int i = 0; i < 4; i++)
                 {
-                    var offset11or22 = 22;
-                    if (blockDirections[i] == BlockDirection.East) offset11or22 = 11;
-                    if (blockDirections[i] == BlockDirection.South) offset11or22 = 11;
-                    worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainCargoPlatform, position + dirarray[i] * (offset11or22 + 11 * j), blockDirections[i], Array.Empty<BlockCreateParam>(), out var cargoblock);
+                    //yで重ならないよう調整、x,zは-rand～randのランダム
+                    var position = new Vector3Int(UnityEngine.Random.Range(-rand, rand), i * 6 + 3, UnityEngine.Random.Range(-rand, rand));
+                    //気動車に対応する駅1
+                    worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainStation, position, blockDirections[i], Array.Empty<BlockCreateParam>(), out var stationBlockA);
+                    //気動車に対応する駅2
+                    worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainStation, position + dirarray[i] * (stationBlockSize.z + 4 * cargoBBlockSize.z), blockDirections[i], Array.Empty<BlockCreateParam>(), out var stationBlockB);
+                    var railcomposA = stationBlockA.GetComponent<RailSaverComponent>();
+                    var railcomposB = stationBlockB.GetComponent<RailSaverComponent>();
+                    //中間の貨物駅
+                    for (int j = 0; j < 4; j++)
+                    {
+                        var offset11or22 = stationBlockSize.z;
+                        if (blockDirections[i] == BlockDirection.West) offset11or22 = cargoBBlockSize.z;
+                        if (blockDirections[i] == BlockDirection.South) offset11or22 = cargoBBlockSize.z;
+                        worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainCargoPlatform, position + dirarray[i] * (offset11or22 + cargoBBlockSize.z * j), blockDirections[i], Array.Empty<BlockCreateParam>(), out var cargoblock);
+                    }
+                    Assert.AreEqual(2, railcomposA.RailComponents.Length, "駅Aに付随するRailComponent数が2本ではありません。");
+                    Assert.AreEqual(2, railcomposB.RailComponents.Length, "駅Bに付随するRailComponent数が2本ではありません。");
+                    var railComponentA = railcomposA.RailComponents[0];
+                    var railComponentB = railcomposB.RailComponents[1];
+                    railComponentsData[i * 2 + 0] = railComponentA;
+                    railComponentsData[i * 2 + 1] = railComponentB;
                 }
-                Assert.AreEqual(2, railcomposA.RailComponents.Length, "駅Aに付随するRailComponent数が2本ではありません。");
-                Assert.AreEqual(2, railcomposB.RailComponents.Length, "駅Bに付随するRailComponent数が2本ではありません。");
-                var railComponentA = railcomposA.RailComponents[0];
-                var railComponentB = railcomposB.RailComponents[1];
-                railComponentsData[i * 2 + 0] = railComponentA;
-                railComponentsData[i * 2 + 1] = railComponentB;
-            }
 
-            //駅をつなぐポイント 0-1に2点、1-2に1点、2-3に0点とする
-            for (int i = 0; i < 3; i++)
-            {
-                //y=0,1,2で重ならないよう調整は-1000～1000のランダム
-                var position = new Vector3Int(UnityEngine.Random.Range(-1000, 1000), i, UnityEngine.Random.Range(-1000, 1000));
-                var railBlockA = TrainTestHelper.PlaceBlock(env, ForUnitTestModBlockId.TestTrainRail, position, BlockDirection.West);
-                var railComponentA = railBlockA.GetComponent<RailSaverComponent>().RailComponents[0];
-                railComponentsData[8 + i] = railComponentA;
-            }
+                //駅をつなぐポイント 0-1に2点、1-2に1点、2-3に0点とする
+                for (int i = 0; i < 3; i++)
+                {
+                    //y=0,1,2で重ならないよう調整は-1000～1000のランダム
+                    var position = new Vector3Int(UnityEngine.Random.Range(-1000, 1000), i, UnityEngine.Random.Range(-1000, 1000));
+                    var railBlockA = TrainTestHelper.PlaceBlock(env, ForUnitTestModBlockId.TestTrainRail, position, BlockDirection.West);
+                    var railComponentA = railBlockA.GetComponent<RailSaverComponent>().RailComponents[0];
+                    railComponentsData[8 + i] = railComponentA;
+                }
 
-            railComponentsData[1].ConnectRailComponent(railComponentsData[8], true, true, -1);
-            railComponentsData[8].ConnectRailComponent(railComponentsData[9], true, true, -1);
-            railComponentsData[9].ConnectRailComponent(railComponentsData[2], true, true, -1);
-            railComponentsData[3].ConnectRailComponent(railComponentsData[10], true, true, -1);
-            railComponentsData[10].ConnectRailComponent(railComponentsData[4], true, true, -1);
-            railComponentsData[5].ConnectRailComponent(railComponentsData[6], true, true, -1);
-            //これで駅0→点8→点9→駅1→点10→駅2→駅3の順でつながった
+                railComponentsData[1].ConnectRailComponent(railComponentsData[8], true, true, -1);
+                railComponentsData[8].ConnectRailComponent(railComponentsData[9], true, true, -1);
+                railComponentsData[9].ConnectRailComponent(railComponentsData[2], true, true, -1);
+                railComponentsData[3].ConnectRailComponent(railComponentsData[10], true, true, -1);
+                railComponentsData[10].ConnectRailComponent(railComponentsData[4], true, true, -1);
+                railComponentsData[5].ConnectRailComponent(railComponentsData[6], true, true, -1);
+                //これで駅0→点8→点9→駅1→点10→駅2→駅3の順でつながった
 
-            //ここから列車を走らせる
-            var nodeList = new List<RailNode>();
-            nodeList.Add(railComponentsData[9].FrontNode);
-            nodeList.Add(railComponentsData[8].FrontNode);
-            // 列車の長さは8～9の値しだい。とりあえず1
-            var trainLength = 1;
-            //RailPosition を作って先頭を配置
-            //initialDistanceToNextNode=5あたりから開始する例
-            //nodeListのdeepcopy。これをしないといけないことに注意
-            var nodeList2 = new List<RailNode>(nodeList);
-            var railPosition = new RailPosition(nodeList2, trainLength, 5);
-            // --- TrainUnit を生成 ---
-            var destination = railComponentsData[7].FrontNode;//目的地をセット
-            var cars = new List<TrainCar>
-            {
-                new TrainCar(tractionForce: 600000, inventorySlots: 0, length: trainLength),  // 仮: 動力車まえ
-                new TrainCar(tractionForce: 600000, inventorySlots: 0, length: 0,isFacingForward : false),  // 仮: 動力車うしろ
-            };
-            var trainUnit = new TrainUnit(railPosition, cars);
-            trainUnit.trainDiagram.AddEntry(destination);
-            //走行スタート 現在地→駅3の終点
-            RunTrain(trainUnit);
-            Assert.AreEqual(railComponentsData[7].FrontNode, trainUnit.RailPosition.GetNodeApproaching(), "駅3到着後の接近先ノードが期待と一致していません。");
-            Assert.AreEqual(0, trainUnit.RailPosition.GetDistanceToNextNode(), "駅3到着後の残距離が0ではありません。");
-            if (debugLogFlag)
-            {
-                Debug.Log("列車編成が無事目的地につきました1");
-            }
+                TrainTestHelper.Node2NodeCheckAndAssert(railComponentsData[0].FrontNode, railComponentsData[1].FrontNode, "駅0", "駅1");
+                TrainTestHelper.Node2NodeCheckAndAssert(railComponentsData[2].FrontNode, railComponentsData[3].FrontNode, "駅2", "駅3");
+                TrainTestHelper.Node2NodeCheckAndAssert(railComponentsData[6].FrontNode, railComponentsData[7].FrontNode, "駅6", "駅7");
+                TrainTestHelper.Node2NodeCheckAndAssert(railComponentsData[4].FrontNode, railComponentsData[5].FrontNode, "駅4", "駅5");
+                TrainTestHelper.Node2NodeCheckAndAssert(railComponentsData[0].FrontNode, railComponentsData[7].FrontNode, "駅0", "駅3");
 
-            //走行スタート 駅3→駅0の終点
-            trainUnit.Reverse();
-            var secondDestination = railComponentsData[0].BackNode;
-            trainUnit.trainDiagram.AddEntry(secondDestination);
-            trainUnit.trainDiagram.MoveToNextEntry();
-            RunTrain(trainUnit);
-            Assert.AreEqual(railComponentsData[0].BackNode, trainUnit.RailPosition.GetNodeApproaching(), "駅0復路到着時の接近先ノードが期待と一致していません。");
-            Assert.AreEqual(0, trainUnit.RailPosition.GetDistanceToNextNode(), "駅0復路到着時の残距離が0ではありません。");
-            if (debugLogFlag)
-            {
-                Debug.Log("列車編成が無事目的地につきました2");
-            }
-            //走行スタート 駅0→駅3の終点
-            trainUnit.Reverse();
-            var thirdDestination = railComponentsData[7].FrontNode;
-            trainUnit.trainDiagram.AddEntry(thirdDestination);
-            trainUnit.trainDiagram.MoveToNextEntry();
-            RunTrain(trainUnit);
-            Assert.AreEqual(railComponentsData[7].FrontNode, trainUnit.RailPosition.GetNodeApproaching(), "再度駅3へ到着した際の接近先ノードが期待と一致していません。");
-            Assert.AreEqual(0, trainUnit.RailPosition.GetDistanceToNextNode(), "再度駅3へ到着した際の残距離が0ではありません。");
-            if (debugLogFlag)
-            {
-                Debug.Log("列車編成が無事目的地につきました3");
+                //ここから列車を走らせる
+                var nodeList = new List<RailNode>();
+                nodeList.Add(railComponentsData[9].FrontNode);
+                nodeList.Add(railComponentsData[8].FrontNode);
+                // 列車の長さは8～9の値しだい。とりあえず1
+                var trainLength = 1;
+                //RailPosition を作って先頭を配置
+                //initialDistanceToNextNode=5あたりから開始する例
+                //nodeListのdeepcopy。これをしないといけないことに注意
+                var nodeList2 = new List<RailNode>(nodeList);
+                var railPosition = new RailPosition(nodeList2, trainLength, 5);
+                // --- TrainUnit を生成 ---
+                var destination = railComponentsData[7].FrontNode;//目的地をセット
+                var cars = new List<TrainCar>
+                {
+                    new TrainCar(tractionForce: 9600000, inventorySlots: 0, length: trainLength),  // 仮: 動力車まえ
+                    new TrainCar(tractionForce: 9600000, inventorySlots: 0, length: 0,isFacingForward : false),  // 仮: 動力車うしろ
+                };
+                var trainUnit = new TrainUnit(railPosition, cars);
+                trainUnit.trainDiagram.AddEntry(destination);
+                //走行スタート 現在地→駅3の終点
+                RunTrain(trainUnit);
+                Assert.AreEqual(railComponentsData[7].FrontNode, trainUnit.RailPosition.GetNodeApproaching(), "駅3到着後の接近先ノードが期待と一致していません。");
+                Assert.AreEqual(0, trainUnit.RailPosition.GetDistanceToNextNode(), "駅3到着後の残距離が0ではありません。");
+                if (debugLogFlag)
+                {
+                    Debug.Log("列車編成が無事目的地につきました1");
+                }
+
+                //走行スタート 駅3→駅0の終点
+                trainUnit.Reverse();
+                var secondDestination = railComponentsData[0].BackNode;
+                trainUnit.trainDiagram.AddEntry(secondDestination);
+                trainUnit.trainDiagram.MoveToNextEntry();
+                RunTrain(trainUnit);
+                Assert.AreEqual(railComponentsData[0].BackNode, trainUnit.RailPosition.GetNodeApproaching(), "駅0復路到着時の接近先ノードが期待と一致していません。");
+                Assert.AreEqual(0, trainUnit.RailPosition.GetDistanceToNextNode(), "駅0復路到着時の残距離が0ではありません。");
+                if (debugLogFlag)
+                {
+                    Debug.Log("列車編成が無事目的地につきました2");
+                }
+                //走行スタート 駅0→駅3の終点
+                trainUnit.Reverse();
+                var thirdDestination = railComponentsData[7].FrontNode;
+                trainUnit.trainDiagram.AddEntry(thirdDestination);
+                trainUnit.trainDiagram.MoveToNextEntry();
+                RunTrain(trainUnit);
+                Assert.AreEqual(railComponentsData[7].FrontNode, trainUnit.RailPosition.GetNodeApproaching(), "再度駅3へ到着した際の接近先ノードが期待と一致していません。");
+                Assert.AreEqual(0, trainUnit.RailPosition.GetDistanceToNextNode(), "再度駅3へ到着した際の残距離が0ではありません。");
+                if (debugLogFlag)
+                {
+                    Debug.Log("列車編成が無事目的地につきました3");
+                }
             }
         }
 

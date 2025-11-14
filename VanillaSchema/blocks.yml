@@ -629,9 +629,9 @@ properties:
         - key: railPosition
           type: vector3
           default:
-          - 0
-          - 0.5
-          - 0.5
+          - 1.0
+          - 1.0
+          - 1.0
         - key: controlPointLength
           type: number
           default: 0.5
@@ -640,21 +640,18 @@ properties:
         implementationInterface:
         - IInventoryConnectors
         properties:
-        - key: stationDistance
-          type: integer
-          default: 5
         - key: entryRailPosition
           type: vector3
           default:
-          - 0
-          - 0.5
-          - 2.5
+          - 1.0
+          - 1.0
+          - 1.0
         - key: exitRailPosition
           type: vector3
           default:
-          - 22
-          - 0.5
-          - 2.5
+          - 1.0
+          - 1.0
+          - 1.0
         - key: entryControlPointLength
           type: number
           default: 0.5
@@ -663,6 +660,9 @@ properties:
           default: 0.5
         - key: itemSlotCount
           type: integer
+        - key: loadingSpeed
+          type: number
+          default: 20
         - key: inventoryConnectors
           ref: inventoryConnects
       - when: TrainCargoPlatform
@@ -670,31 +670,25 @@ properties:
         implementationInterface:
         - IInventoryConnectors
         properties:
-        - key: platformDistance
-          type: integer
-          default: 5
-        - key: frontRailPosition
+        - key: entryRailPosition
           type: vector3
           default:
-          - 0
-          - 0.5
-          - 2.5
-        - key: backRailPosition
+          - 1.0
+          - 1.0
+          - 1.0
+        - key: exitRailPosition
           type: vector3
           default:
-          - 11
-          - 0.5
-          - 2.5
+          - 1.0
+          - 1.0
+          - 1.0
         - key: frontControlPointLength
           type: number
           default: 0.5
         - key: backControlPointLength
           type: number
           default: 0.5
-        - key: inputSlotCount
-          type: integer
-          default: 10
-        - key: outputSlotCount
+        - key: itemSlotCount
           type: integer
           default: 10
         - key: loadingSpeed
