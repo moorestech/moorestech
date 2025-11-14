@@ -25,6 +25,11 @@ namespace Game.Train.Common
             _diagrams = new List<TrainDiagram>();
         }
 
+        public void ResetInstance()
+        {
+            _diagrams.Clear();
+        }
+
         public void RegisterDiagram(TrainDiagram diagram)
         {
              if (!_diagrams.Contains(diagram))
