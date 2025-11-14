@@ -1,13 +1,22 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# ここにコピーしたいディレクトリ（リポジトリルートからの相対パス）を列挙
+# 基本のコピー対象ディレクトリ（リポジトリルートからの相対パス）
+# Default directories to copy (relative path from repository root)
 COPY_DIRS=(
   "moorestech_server/Library"
   # 例:
   # "moorestech_client/Library"
   # "some/other/path"
 )
+
+# コマンドライン引数で追加のディレクトリを受け取る
+# Accept additional directories from command line arguments
+if [ $# -gt 0 ]; then
+  for arg in "$@"; do
+    COPY_DIRS+=("$arg")
+  done
+fi
 
 # メインブランチの Unity の moorestech_server/Library などを
 # 現在の git worktree（このスクリプトを実行したリポジトリ環境）の

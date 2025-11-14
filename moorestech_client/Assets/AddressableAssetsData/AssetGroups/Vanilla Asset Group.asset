@@ -105,11 +105,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 1a088e8122e2a44a49f89266225121ab
-    m_Address: Vanilla/UI/Block/ResearchTable/ResearchTreeUI
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 1a88e4a88a3e44292894c14234324d60
     m_Address: Vanilla/Skit/skits/sample_short
     m_ReadOnly: 0
@@ -232,11 +227,6 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 3e322023f82804c83a252459830ec557
     m_Address: Vanilla/Skit/Animations/anim_idle01_lp
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 3e42fbd0cb5944d839e7f0de78886d9b
-    m_Address: Vanilla/UI/Block/ResearchTable/ResearchTreeElement
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

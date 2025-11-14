@@ -10,6 +10,7 @@
         "Client.Network",
         "Client.Skit",
         "Game.UnlockState",
+        "Game.Research",
         "Server.Protocol",
         "Core.Master",
         "Client.Mod",
