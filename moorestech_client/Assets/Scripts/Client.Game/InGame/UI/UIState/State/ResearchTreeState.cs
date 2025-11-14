@@ -29,6 +29,7 @@ namespace Client.Game.InGame.UI.UIState.State
         {
             // ESCまたはR入力でゲーム画面へ戻る
             // Return to game screen when ESC or R is pressed
+            // TODO InputManagerに移す
             if (InputManager.UI.CloseUI.GetKeyDown || UnityEngine.Input.GetKeyDown(KeyCode.R)) return new UITransitContext(UIStateEnum.GameScreen);
 
             return null;
