@@ -1,5 +1,5 @@
 using Game.Train.Utility;
-using Server.Util.MessagePack;
+using Game.Common.MessagePack;
 using UnityEngine;
 
 namespace Client.Game.InGame.Train

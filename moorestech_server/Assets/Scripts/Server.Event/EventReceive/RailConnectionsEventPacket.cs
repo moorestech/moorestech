@@ -4,7 +4,7 @@ using System.Linq;
 using Game.Train.RailGraph;
 using MessagePack;
 using Server.Event;
-using Server.Util.MessagePack;
+using Game.Common.MessagePack;
 using UniRx;
 using UnityEngine;
 
@@ -58,4 +58,3 @@ namespace Server.Event.EventReceive
         #endregion
     }
 }
-

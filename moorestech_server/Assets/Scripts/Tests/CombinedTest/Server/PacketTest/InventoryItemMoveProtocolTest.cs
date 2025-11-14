@@ -11,7 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
-using Server.Util.MessagePack;
+using Game.Common.MessagePack;
 using Tests.Module.TestMod;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.InventoryItemMoveProtocol;
