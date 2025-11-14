@@ -37,7 +37,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
             // Rキーでリサーチツリーを開く
             // Open research tree with the R key
-            if (InputManager.UI.ResearchTree.GetKeyDown) return new UITransitContext(UIStateEnum.ResearchTree);
+            if (UnityEngine.Input.GetKeyDown(KeyCode.R)) return new UITransitContext(UIStateEnum.ResearchTree);
             
             return null;
         }

@@ -22,15 +22,14 @@ namespace Client.Game.InGame.UI.UIState.State
             // リサーチUIの表示とカーソル制御
             // Show research UI and update cursor
             _researchTreeViewManager.SetActive(true);
-            Cursor.visible = true;
-            Cursor.lockState = CursorLockMode.None;
+            InputManager.MouseCursorVisible(true);
         }
 
         public UITransitContext GetNextUpdate()
         {
-            // ESC入力でゲーム画面へ戻る
-            // Return to the game screen when ESC is pressed
-            if (InputManager.UI.CloseUI.GetKeyDown) return new UITransitContext(UIStateEnum.GameScreen);
+            // ESCまたはR入力でゲーム画面へ戻る
+            // Return to game screen when ESC or R is pressed
+            if (InputManager.UI.CloseUI.GetKeyDown || UnityEngine.Input.GetKeyDown(KeyCode.R)) return new UITransitContext(UIStateEnum.GameScreen);
 
             return null;
         }
@@ -40,8 +39,7 @@ namespace Client.Game.InGame.UI.UIState.State
             // リサーチUIを閉じてカーソルを隠す
             // Hide research UI and the cursor
             _researchTreeViewManager.SetActive(false);
-            Cursor.visible = false;
-            Cursor.lockState = CursorLockMode.Locked;
+            InputManager.MouseCursorVisible(false);
         }
     }
 }
