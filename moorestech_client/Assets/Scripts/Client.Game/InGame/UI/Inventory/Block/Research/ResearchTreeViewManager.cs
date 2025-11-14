@@ -36,21 +36,16 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
 
             // 表示時に最新状態へ更新
             // Refresh data when the UI is shown
-            PrepareResearchTree();
+            if (!_isPrepared)
+            {
+                researchTreeView.OnClickResearchButton.Subscribe(node => CompleteResearchAsync(node).Forget()).AddTo(this);
+                _isPrepared = true;
+            }
+
             LoadResearchTreeAsync().Forget();
         }
-        
+
         #region Internal
-
-        // 研究ビューの初期化処理
-        // Prepare the research view internals
-        private void PrepareResearchTree()
-        {
-            if (_isPrepared) return;
-
-            researchTreeView.OnClickResearchButton.Subscribe(node => CompleteResearchAsync(node).Forget()).AddTo(this);
-            _isPrepared = true;
-        }
 
         // 研究ツリー状態の最新化
         // Refresh the research tree states
