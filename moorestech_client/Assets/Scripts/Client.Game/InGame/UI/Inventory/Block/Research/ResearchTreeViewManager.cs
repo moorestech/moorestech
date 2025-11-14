@@ -1,27 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
-using Client.Game.InGame.UI.Inventory.Common;
 using Core.Master;
-using Core.Item.Interface;
 using Cysharp.Threading.Tasks;
 using Game.Research;
-using Game.PlayerInventory.Interface.Subscription;
 using UniRx;
 using UnityEngine;
 
 namespace Client.Game.InGame.UI.Inventory.Block.Research
 {
-    public class ResearchTreeViewManager : MonoBehaviour, IBlockInventoryView
+    public class ResearchTreeViewManager : MonoBehaviour
     {
         [SerializeField] private ResearchTreeView researchTreeView;
-
-        public List<IItemStack> SubInventory { get; } = new();
-        public ISubInventoryIdentifier ISubInventoryIdentifier { get; private set; }
-        public IReadOnlyList<ItemSlotView> SubInventorySlotObjects { get; } = new List<ItemSlotView>();
-        public int Count => 0;
         
         private CancellationToken _destroyCancellationToken;
         private bool _isPrepared;
@@ -31,16 +22,6 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
             // 破棄まで利用できるトークンを取得
             // Acquire the cancellation token valid until destruction
             _destroyCancellationToken = this.GetCancellationTokenOnDestroy();
-        }
-
-        public void Initialize(BlockGameObject blockGameObject)
-        {
-            ISubInventoryIdentifier = new BlockInventorySubInventoryIdentifier(blockGameObject.BlockPosInfo.OriginalPos);
-
-            // ブロックUI経由の初期準備
-            // Prepare through block UI initialization
-            PrepareResearchTree();
-            LoadResearchTreeAsync().Forget();
         }
 
         /// <summary>
@@ -59,13 +40,6 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
             LoadResearchTreeAsync().Forget();
         }
         
-        public void UpdateItemList(List<IItemStack> response) { }
-        public void UpdateInventorySlot(int slot, IItemStack item) { }
-        public void DestroyUI() 
-        {
-            Destroy(gameObject);
-        }
-
         #region Internal
 
         // 研究ビューの初期化処理
