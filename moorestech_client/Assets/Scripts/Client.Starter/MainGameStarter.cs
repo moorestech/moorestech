@@ -25,6 +25,7 @@ using Client.Game.InGame.Tutorial;
 using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Game.InGame.UI.Challenge;
 using Client.Game.InGame.UI.Inventory;
+using Client.Game.InGame.UI.Inventory.Block.Research;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Inventory.RecipeViewer;
 using Client.Game.InGame.UI.UIState;
@@ -80,7 +81,8 @@ namespace Client.Starter
         [SerializeField] private RecipeTabView recipeTabView;
         [SerializeField] private CraftTreeViewManager craftTreeViewManager;
         [SerializeField] private ChallengeListView challengeListView;
-        
+        [SerializeField] private ResearchTreeViewManager researchTreeViewManager;
+
         [SerializeField] private MapObjectPin mapObjectPin;
         [SerializeField] private UIHighlightTutorialManager uiHighlightTutorialManager;
         [SerializeField] private KeyControlTutorialManager keyControlTutorialManager;
@@ -164,6 +166,7 @@ namespace Client.Starter
             builder.Register<SkitState>(Lifetime.Singleton);
             builder.Register<PlaceBlockState>(Lifetime.Singleton);
             builder.Register<ChallengeListState>(Lifetime.Singleton);
+            builder.Register<ResearchTreeState>(Lifetime.Singleton);
             builder.Register<ItemRecipeViewerDataContainer>(Lifetime.Singleton);
             builder.Register<GameScreenSubInventoryInteractService>(Lifetime.Singleton);
             
@@ -208,7 +211,8 @@ namespace Client.Starter
             builder.RegisterComponent(recipeTabView);
             builder.RegisterComponent(craftTreeViewManager);
             builder.RegisterComponent(challengeListView);
-            
+            builder.RegisterComponent(researchTreeViewManager);
+
             builder.RegisterComponent<IMapObjectPin>(mapObjectPin);
             builder.RegisterComponent(uiHighlightTutorialManager);
             builder.RegisterComponent(keyControlTutorialManager);

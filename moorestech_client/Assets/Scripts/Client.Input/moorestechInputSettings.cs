@@ -499,7 +499,7 @@ public partial class @MoorestechInputSettings: IInputActionCollection2, IDisposa
                     ""initialStateCheck"": true
                 },
                 {
-                    ""name"": ""QuestUI"",
+                    ""name"": ""ResearchTree"",
                     ""type"": ""Button"",
                     ""id"": ""b6e2a7bb-43b9-40de-b975-aace67c3d62e"",
                     ""expectedControlType"": ""Button"",
@@ -734,7 +734,7 @@ public partial class @MoorestechInputSettings: IInputActionCollection2, IDisposa
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""QuestUI"",
+                    ""action"": ""ResearchTree"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -838,7 +838,7 @@ public partial class @MoorestechInputSettings: IInputActionCollection2, IDisposa
         m_UI_BlockPlace = m_UI.FindAction("BlockPlace", throwIfNotFound: true);
         m_UI_AllCraft = m_UI.FindAction("AllCraft", throwIfNotFound: true);
         m_UI_OneStackCraft = m_UI.FindAction("OneStackCraft", throwIfNotFound: true);
-        m_UI_QuestUI = m_UI.FindAction("QuestUI", throwIfNotFound: true);
+        m_UI_ResearchTree = m_UI.FindAction("ResearchTree", throwIfNotFound: true);
         m_UI_ItemDirectMove = m_UI.FindAction("ItemDirectMove", throwIfNotFound: true);
     }
 
@@ -1191,7 +1191,7 @@ public partial class @MoorestechInputSettings: IInputActionCollection2, IDisposa
     private readonly InputAction m_UI_BlockPlace;
     private readonly InputAction m_UI_AllCraft;
     private readonly InputAction m_UI_OneStackCraft;
-    private readonly InputAction m_UI_QuestUI;
+    private readonly InputAction m_UI_ResearchTree;
     private readonly InputAction m_UI_ItemDirectMove;
     /// <summary>
     /// Provides access to input actions defined in input action map "UI".
@@ -1249,9 +1249,9 @@ public partial class @MoorestechInputSettings: IInputActionCollection2, IDisposa
         /// </summary>
         public InputAction @OneStackCraft => m_Wrapper.m_UI_OneStackCraft;
         /// <summary>
-        /// Provides access to the underlying input action "UI/QuestUI".
+        /// Provides access to the underlying input action "UI/ResearchTree".
         /// </summary>
-        public InputAction @QuestUI => m_Wrapper.m_UI_QuestUI;
+        public InputAction @ResearchTree => m_Wrapper.m_UI_ResearchTree;
         /// <summary>
         /// Provides access to the underlying input action "UI/ItemDirectMove".
         /// </summary>
@@ -1315,9 +1315,9 @@ public partial class @MoorestechInputSettings: IInputActionCollection2, IDisposa
             @OneStackCraft.started += instance.OnOneStackCraft;
             @OneStackCraft.performed += instance.OnOneStackCraft;
             @OneStackCraft.canceled += instance.OnOneStackCraft;
-            @QuestUI.started += instance.OnQuestUI;
-            @QuestUI.performed += instance.OnQuestUI;
-            @QuestUI.canceled += instance.OnQuestUI;
+            @ResearchTree.started += instance.OnResearchTree;
+            @ResearchTree.performed += instance.OnResearchTree;
+            @ResearchTree.canceled += instance.OnResearchTree;
             @ItemDirectMove.started += instance.OnItemDirectMove;
             @ItemDirectMove.performed += instance.OnItemDirectMove;
             @ItemDirectMove.canceled += instance.OnItemDirectMove;
@@ -1365,9 +1365,9 @@ public partial class @MoorestechInputSettings: IInputActionCollection2, IDisposa
             @OneStackCraft.started -= instance.OnOneStackCraft;
             @OneStackCraft.performed -= instance.OnOneStackCraft;
             @OneStackCraft.canceled -= instance.OnOneStackCraft;
-            @QuestUI.started -= instance.OnQuestUI;
-            @QuestUI.performed -= instance.OnQuestUI;
-            @QuestUI.canceled -= instance.OnQuestUI;
+            @ResearchTree.started -= instance.OnResearchTree;
+            @ResearchTree.performed -= instance.OnResearchTree;
+            @ResearchTree.canceled -= instance.OnResearchTree;
             @ItemDirectMove.started -= instance.OnItemDirectMove;
             @ItemDirectMove.performed -= instance.OnItemDirectMove;
             @ItemDirectMove.canceled -= instance.OnItemDirectMove;
@@ -1613,12 +1613,12 @@ public partial class @MoorestechInputSettings: IInputActionCollection2, IDisposa
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnOneStackCraft(InputAction.CallbackContext context);
         /// <summary>
-        /// Method invoked when associated input action "QuestUI" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// Method invoked when associated input action "ResearchTree" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnQuestUI(InputAction.CallbackContext context);
+        void OnResearchTree(InputAction.CallbackContext context);
         /// <summary>
         /// Method invoked when associated input action "ItemDirectMove" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
