@@ -1,6 +1,5 @@
 using Core.Item.Interface;
 using Core.Master;
-using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Train.Common;
 using Game.Train.Train;
@@ -52,19 +51,10 @@ namespace Game.Block.Blocks.TrainRail
 
         public CargoplatformComponent(Dictionary<string, string> componentStates, TrainCargoPlatformBlockParam param) : this(param)
         {
-            // セーブデータが存在する場合は転送モードを復元する
-            // Restore transfer mode when save data is available
-            if (componentStates == null || !componentStates.TryGetValue(SaveKey, out var serialized) || string.IsNullOrEmpty(serialized))
-            {
-                return;
-            }
-
+            // TransferModeを復元する
+            var serialized = componentStates[SaveKey];
             var saveData = JsonConvert.DeserializeObject<CargoplatformComponentSaverData>(serialized);
-            if (saveData == null)
-            {
-                return;
-            }
-
+            if (saveData == null) return;
             _transferMode = saveData.transferMode;
         }
 
