@@ -43,6 +43,7 @@ namespace Tests.Util
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var environment = new TrainTestEnvironment(serviceProvider, ServerContext.WorldBlockDatastore, packet);
             TrainUpdateService.Instance.ResetTrains();
+            RailGraphDatastore.ResetInstance();
 
             //なんであるんだっけ、忘れた。消していいかも(toropippi) TODO
 #if UNITY_INCLUDE_TESTS

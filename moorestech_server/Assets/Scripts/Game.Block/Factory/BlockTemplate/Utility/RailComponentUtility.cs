@@ -192,6 +192,7 @@ namespace Game.Block.Factory.BlockTemplate.Utility
                         pair.Item2 = newdata;
                     }
                     RailGraphDatastore.RailPositionToConnectionDestination[positions[0]] = pair;
+                    Debug.Log(positions[0]);
                     break;
                 }
                 else
@@ -200,6 +201,7 @@ namespace Game.Block.Factory.BlockTemplate.Utility
                     var newdata = new ConnectionDestination(components[0].ComponentID, false);
                     var newpair = (newdata, ConnectionDestination.Default);
                     RailGraphDatastore.RailPositionToConnectionDestination[positions[0]] = newpair;
+                    Debug.Log(positions[0]);
                     break;
                 }
             }
@@ -239,6 +241,7 @@ namespace Game.Block.Factory.BlockTemplate.Utility
                         pair.Item2 = newdata;
                     }
                     RailGraphDatastore.RailPositionToConnectionDestination[positions[1]] = pair;
+                    Debug.Log(positions[1]);
                     break;
                 }
                 else
@@ -247,6 +250,7 @@ namespace Game.Block.Factory.BlockTemplate.Utility
                     var newdata = new ConnectionDestination(components[1].ComponentID, true);
                     var newpair = (newdata, ConnectionDestination.Default);
                     RailGraphDatastore.RailPositionToConnectionDestination[positions[1]] = newpair;
+                    Debug.Log(positions[1]);
                     break;
                 }
             }

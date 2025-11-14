@@ -262,14 +262,21 @@ namespace Tests.UnitTest.Game
                 }
             }
 
-            
+
 
             var env = TrainTestHelper.CreateEnvironment();
-            _ = env.GetRailGraphDatastore();
             var worldBlockDatastore = env.WorldBlockDatastore;
+            _ = env.GetRailGraphDatastore();
 
             Vector3Int stationBlockSize = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainStation).BlockSize;
             Vector3Int cargoBBlockSize = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainCargoPlatform).BlockSize;
+            
+            Assert.AreNotEqual(0, stationBlockSize.x, "ブロックサイズが0");
+            Assert.AreNotEqual(0, stationBlockSize.y, "ブロックサイズが0");
+            Assert.AreNotEqual(0, stationBlockSize.z, "ブロックサイズが0");
+            Assert.AreNotEqual(0, cargoBBlockSize.x, "ブロックサイズが0");
+            Assert.AreNotEqual(0, cargoBBlockSize.y, "ブロックサイズが0");
+            Assert.AreNotEqual(0, cargoBBlockSize.z, "ブロックサイズが0");
 
             RailComponent[] railComponentsData = new RailComponent[2 * 4 + 3];//1本の駅の入口と出口のrailcomponentを記憶、あと追加点
             BlockDirection[] blockDirections = new BlockDirection[] { BlockDirection.North, BlockDirection.East, BlockDirection.South, BlockDirection.West };
@@ -321,6 +328,12 @@ namespace Tests.UnitTest.Game
             railComponentsData[10].ConnectRailComponent(railComponentsData[4], true, true, -1);
             railComponentsData[5].ConnectRailComponent(railComponentsData[6], true, true, -1);
             //これで駅0→点8→点9→駅1→点10→駅2→駅3の順でつながった
+
+            TrainTestHelper.Node2NodeCheckAndAssert(railComponentsData[0].FrontNode, railComponentsData[1].FrontNode, "駅0", "駅1");
+            TrainTestHelper.Node2NodeCheckAndAssert(railComponentsData[2].FrontNode, railComponentsData[3].FrontNode, "駅2", "駅3");
+            TrainTestHelper.Node2NodeCheckAndAssert(railComponentsData[6].FrontNode, railComponentsData[7].FrontNode, "駅6", "駅7");
+            TrainTestHelper.Node2NodeCheckAndAssert(railComponentsData[4].FrontNode, railComponentsData[5].FrontNode, "駅4", "駅5");
+            TrainTestHelper.Node2NodeCheckAndAssert(railComponentsData[0].FrontNode, railComponentsData[7].FrontNode, "駅0", "駅3");
 
             //ここから列車を走らせる
             var nodeList = new List<RailNode>();
