@@ -1,20 +1,14 @@
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
-using Game.SaveLoad.Interface;
-using Game.SaveLoad.Json;
 using Game.Train.Common;
 using Game.Train.RailGraph;
 using Game.Train.Train;
-using Game.World.Interface.DataStore;
-using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;
-using UnityEngine.UIElements;
 using Game.Block.Interface.Extension;
 
 namespace Tests.UnitTest.Game.SaveLoad
@@ -493,12 +487,12 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             public static NodeIdentifier Create(RailNode node)
             {
-                if (!RailGraphDatastore.TryGetRailComponentID(node, out var destination) || destination == null)
+                if (!RailGraphDatastore.TryGetConnectionDestination(node, out var destination) || destination.IsDefault())
                 {
                     throw new InvalidOperationException("RailNodeからRailComponentIDを取得できませんでした。");
                 }
 
-                var componentId = destination.DestinationID;
+                var componentId = destination.railComponentID;
                 return new NodeIdentifier(componentId.Position, componentId.ID, destination.IsFront);
             }
 

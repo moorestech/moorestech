@@ -165,10 +165,10 @@ namespace Tests.UnitTest.Game.SaveLoad
                 ForUnitTestModBlockId.TestTrainStation,
                 stationPos,
                 BlockDirection.North);
-            Assert.IsNotNull(stationBlock, "駐車場ブロックの設置に失敗しました");
+            Assert.IsNotNull(stationBlock, "駅ブロックの設置に失敗しました");
             Assert.IsNotNull(stationComponent, "StationComponentが見つかりません");
 
-            var inputChestPos = new Vector3Int(4, 0, -1);
+            var inputChestPos = new Vector3Int(-1, 0, 2);
             var (_, inputInventory) = TrainTestHelper.PlaceBlockWithComponent<IBlockInventory>(
                 env,
                 ForUnitTestModBlockId.ChestId,
@@ -217,7 +217,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.AreEqual(new ItemId(1), stationStack.Id, "ロード後のStationインベントリにアイテムが存在しません");
             Assert.IsTrue(stationStack.Count > 0, "ロード後のStationインベントリ数が0です");
 
-            var outputChestPos = new Vector3Int(6, 0, -1);
+            var outputChestPos = new Vector3Int(-1, 0, 5);
             var (_, outputInventory) = TrainTestHelper.PlaceBlockWithComponent<IBlockInventory>(
                 loadEnv,
                 ForUnitTestModBlockId.ChestId,

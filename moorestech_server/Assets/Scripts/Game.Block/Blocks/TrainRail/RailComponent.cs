@@ -20,14 +20,17 @@ namespace Game.Block.Blocks.TrainRail
         public RailNode FrontNode { get; private set; }
         public RailNode BackNode { get; private set; }
 
-        private float controlPointStrength = 0.5f;
+        private float controlPointStrength = 0.5f;//default値
 
         public RailControlPoint FrontControlPoint { get; }
         public RailControlPoint BackControlPoint { get; }
 
         // ブロック座標とIDが格納されている
         public RailComponentID ComponentID { get; }
-        public Vector3 Position { get; }//ブロックではなくレールのつなぎ目としてのこのcomponentの位置
+
+        //ブロックではなくレールのつなぎ目としてのこのcomponentの位置
+        //Vector3形式であるが、現時点でこの値自体の誤差は許容している。もしrailcomponent.positionを新規に使う場合すでに誤差が含まれていることを考慮すること
+        public Vector3 Position { get; }
         
         public readonly Vector3 RailDirection;
         
@@ -76,7 +79,7 @@ namespace Game.Block.Blocks.TrainRail
         {
             if (this == targetComponent)
             {
-                Debug.LogWarning("Attempted to connect a RailComponent to itself. Operation aborted.");
+                Debug.LogWarning("注意、RailComponent.ConnectRailComponentの接続先と元が一緒です");
                 return;
             }
             // まず、接続する2つのRailNodeを取得
@@ -135,15 +138,17 @@ namespace Game.Block.Blocks.TrainRail
             // FrontNode の接続リスト
             foreach (var node in FrontNode.ConnectedNodes)
             {
-                var connectionInfo = RailGraphDatastore.GetRailComponentID(node);
-                state.ConnectMyFrontTo.Add(connectionInfo);
+                var connectionInfo = RailGraphDatastore.GetConnectionDestination(node);
+                if (!connectionInfo.IsDefault())
+                    state.ConnectMyFrontTo.Add(connectionInfo);
             }
 
             // BackNode の接続リスト
             foreach (var node in BackNode.ConnectedNodes)
             {
-                var connectionInfo = RailGraphDatastore.GetRailComponentID(node);
-                state.ConnectMyBackTo.Add(connectionInfo);
+                var connectionInfo = RailGraphDatastore.GetConnectionDestination(node);
+                if (!connectionInfo.IsDefault())
+                    state.ConnectMyBackTo.Add(connectionInfo);
             }
 
             return state;

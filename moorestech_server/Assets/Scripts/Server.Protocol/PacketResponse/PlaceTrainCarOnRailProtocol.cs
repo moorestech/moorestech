@@ -72,8 +72,7 @@ namespace Server.Protocol.PacketResponse
                     trainUnitElement.TractionForce,
                     trainUnitElement.InventorySlots,
                     trainUnitElement.Length,
-                    trainUnitElement.FuelSlots,
-                    trainUnitElement.IsFacingForward
+                    true
                 );
                 
                 // レール位置を初期化 - 接続されたノードの経路を構築

@@ -47,7 +47,8 @@ namespace Game.Train.Train
         
         private readonly TrainUpdateEvent _trainUpdateEvent;
 
-        public TrainCar(int tractionForce, int inventorySlots, int length, int fuelSlots = 0, bool isFacingForward = true)
+        //TODO燃料スロット数削除について修正は今後
+        public TrainCar(int tractionForce, int inventorySlots, int length, bool isFacingForward = true, int fuelSlots = 0)
         {
             TractionForce = tractionForce;
             InventorySlots = inventorySlots;

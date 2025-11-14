@@ -13,6 +13,7 @@ using MessagePack;
 using UnityEngine;
 using System;
 using Server.Protocol;
+using UnityEngine.Assertions;
 
 namespace Tests.Util
 {
@@ -41,7 +42,12 @@ namespace Tests.Util
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var environment = new TrainTestEnvironment(serviceProvider, ServerContext.WorldBlockDatastore, packet);
+            TrainRailPositionManager.ResetInstance();
+            TrainDiagramManager.Instance.ResetInstance();
+            TrainUpdateService.Instance.ResetTrains();
+            RailGraphDatastore.ResetInstance();
 
+            //なんであるんだっけ、忘れた。消していいかも(toropippi) TODO
 #if UNITY_INCLUDE_TESTS
             TrainUpdateService.Instance.ResetTickAccumulator();
 #endif
@@ -111,6 +117,14 @@ namespace Tests.Util
             var (block, component) = PlaceBlockWithComponent<RailComponent>(environment, ForUnitTestModBlockId.TestTrainRail, position, direction);
             railBlock = block;
             return component;
+        }
+
+        //ノード同士がつながっているかチェックしてつながってなければアサート
+        public static void Node2NodeCheckAndAssert(RailNode start, RailNode end, string nodename_start = "start", string nodename_end = "end")
+        {
+            //つながったかチェック
+            var dist_check = start.GetDistanceToNode(end, UseFindPath: true);
+            Assert.AreNotEqual(-1, dist_check, "" + nodename_start + "から" + nodename_end + "までがつながっていません。");
         }
     }
 }

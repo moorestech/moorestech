@@ -2,6 +2,7 @@ using UnityEngine;
 using System;
 using System.Collections.Generic;
 using ClassLibrary;
+using System.ComponentModel;
 
 namespace Game.Train.RailGraph
 {
@@ -11,7 +12,6 @@ namespace Game.Train.RailGraph
         public int x, y, z;
         public SerializableVector3Int(int x_, int y_, int z_) { x = x_; y = y_; z = z_; }
 
-        // Vector3Int -> SerializableVector3Int
         public static implicit operator SerializableVector3Int(Vector3Int v)
             => new SerializableVector3Int(v.x, v.y, v.z);
 
@@ -22,49 +22,30 @@ namespace Game.Train.RailGraph
 
     /// <summary>
     /// RailComponentID
-    /// railcomponentを座標とIDで一意に識別するためのクラス
+    /// railcomponentを座標とIDで一意に識別するための構造体
     /// </summary>
     [Serializable]
-    public class RailComponentID : IEquatable<RailComponentID>
+    public struct RailComponentID : IEquatable<RailComponentID>
     {
-        public SerializableVector3Int Position { get; set; }//これはブロックが登録されている座標
-        public int ID { get; set; }//そこのブロック座標で何番目のRailComponentか
-
-        public RailComponentID()
-        {
-            Position = default;
-            ID = default;
-        }
+        public SerializableVector3Int Position { get; set; }//これはブロックが登録されている座標//ロード時のJsonシリアライズの問題がおこるのでsetも必須
+        public int ID { get; set; }//そこのブロック座標で何番目のRailComponentか//ロード時のJsonシリアライズの問題がおこるのでsetも必須
 
         public RailComponentID(SerializableVector3Int position, int id)
         {
             Position = position;
             ID = id;
         }
+        public static readonly RailComponentID Default = new RailComponentID(new SerializableVector3Int(-1, -1, -1), -1);
 
         public RailComponentID(Vector3Int pos, int id) : this((SerializableVector3Int)pos, id)
         {
         }
 
         public bool Equals(RailComponentID other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            return Position.Equals(other.Position) && ID == other.ID;
-        }
+            => Position.Equals(other.Position) && ID == other.ID;
 
         public override bool Equals(object obj)
-        {
-            return ReferenceEquals(this, obj) || obj is RailComponentID other && Equals(other);
-        }
+            => obj is RailComponentID other && Equals(other);
 
         public override int GetHashCode()
         {
@@ -78,77 +59,53 @@ namespace Game.Train.RailGraph
                 return hashCode;
             }
         }
-
+        /*
         public static bool operator ==(RailComponentID left, RailComponentID right)
-        {
-            return Equals(left, right);
-        }
+            => left.Equals(right);
 
         public static bool operator !=(RailComponentID left, RailComponentID right)
-        {
-            return !Equals(left, right);
-        }
+            => !left.Equals(right);
+        */
     }
+
+
     /// <summary>
-    /// 接続先一つを表すクラス
+    /// RailNodeを一つを(座標とID)とfront or backで表す構造体
     /// </summary>
     [Serializable]
-    public class ConnectionDestination : IEquatable<ConnectionDestination>
+    public struct ConnectionDestination : IEquatable<ConnectionDestination>
     {
-        public RailComponentID DestinationID { get; set; }
-        public bool IsFront { get; set; }
-
-        public ConnectionDestination()
-        {
-            DestinationID = new RailComponentID();
-            IsFront = default;
-        }
-
-        // コンストラクタ
+        public RailComponentID railComponentID { get; set; }//ロード時のJsonシリアライズの問題がおこるのでsetも必須
+        public bool IsFront { get; set; }//component側からみてこのnodeがfrontか//ロード時のJsonシリアライズの問題がおこるのでsetも必須
+        public static readonly ConnectionDestination Default = new ConnectionDestination(RailComponentID.Default, true);
+        
         public ConnectionDestination(RailComponentID dest, bool front)
         {
-            DestinationID = dest;
+            railComponentID = dest;
             IsFront = front;
         }
-
+        
         public bool Equals(ConnectionDestination other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            return Equals(DestinationID, other.DestinationID) && IsFront == other.IsFront;
-        }
+            => railComponentID.Equals(other.railComponentID) && IsFront == other.IsFront;
 
         public override bool Equals(object obj)
-        {
-            return ReferenceEquals(this, obj) || obj is ConnectionDestination other && Equals(other);
-        }
+            => obj is ConnectionDestination other && Equals(other);
 
         public override int GetHashCode()
         {
             unchecked
             {
-                var hashCode = DestinationID != null ? DestinationID.GetHashCode() : 0;
+                var hashCode = railComponentID.GetHashCode();
                 hashCode = (hashCode * 397) ^ IsFront.GetHashCode();
                 return hashCode;
             }
         }
-
-        public static bool operator ==(ConnectionDestination left, ConnectionDestination right)
+    }
+    public static class ConnectionDestinationExtensions
+    {
+        public static bool IsDefault(this ConnectionDestination dest)
         {
-            return Equals(left, right);
-        }
-
-        public static bool operator !=(ConnectionDestination left, ConnectionDestination right)
-        {
-            return !Equals(left, right);
+            return dest.Equals(ConnectionDestination.Default);
         }
     }
 
