@@ -34,9 +34,6 @@ namespace Client.Game.InGame.UI.UIState.State
             //TODO InputSystemのリファクタ対象
             if (UnityEngine.Input.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.PlaceBlock);
             if (UnityEngine.Input.GetKeyDown(KeyCode.T)) return new UITransitContext(UIStateEnum.ChallengeList);
-
-            // Rキーでリサーチツリーを開く
-            // Open research tree with the R key
             if (UnityEngine.Input.GetKeyDown(KeyCode.R)) return new UITransitContext(UIStateEnum.ResearchTree);
             
             return null;
