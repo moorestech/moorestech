@@ -70,6 +70,9 @@ namespace Game.Train.RailGraph
                 if (node != null)
                     RemoveNode(node);
             }
+            // 既存のRailGraphUpdateEventを破棄して新規作成
+            RailGraphUpdateEvent?.Dispose();
+            RailGraphUpdateEvent = new Subject<List<RailComponentID>>();
             InitializeDataStore();
         }
 
