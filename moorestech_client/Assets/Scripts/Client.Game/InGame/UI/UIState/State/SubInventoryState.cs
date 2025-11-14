@@ -15,7 +15,7 @@ using Cysharp.Threading.Tasks;
 using Game.Context;
 using MessagePack;
 using Server.Event.EventReceive.UnifiedInventoryEvent;
-using Server.Util.MessagePack;
+using Game.Common.MessagePack;
 using UniRx;
 using UnityEngine;
 
@@ -161,4 +161,3 @@ namespace Client.Game.InGame.UI.UIState.State
         }
     }
 }
-

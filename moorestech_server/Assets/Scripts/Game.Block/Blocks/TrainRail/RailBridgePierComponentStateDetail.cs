@@ -1,6 +1,6 @@
 using System;
 using MessagePack;
-using Server.Util.MessagePack;
+using Game.Common.MessagePack;
 using UnityEngine;
 
 namespace Game.Block.Blocks.TrainRail

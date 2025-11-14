@@ -1,4 +1,4 @@
-using Server.Util.MessagePack;
+using Game.Common.MessagePack;
 
 namespace Game.PlayerInventory.Interface.Subscription
 {
@@ -14,4 +14,3 @@ namespace Game.PlayerInventory.Interface.Subscription
         int GetHashCode();
     }
 }
-
