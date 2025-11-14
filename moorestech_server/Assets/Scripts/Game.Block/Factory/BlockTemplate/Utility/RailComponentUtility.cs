@@ -14,7 +14,7 @@ namespace Game.Block.Factory.BlockTemplate.Utility
     {
         /// <summary>
         /// 復元メイン
-        /// </returns>
+        /// </summary>
         //駅のように2つのRailComponentを持つブロックの接続情報復元処理
         static public RailComponent[] Restore2RailComponents(Dictionary<string, string> componentStates, BlockPositionInfo blockPositionInfo, Vector3 entryPosition, Vector3 exitPosition)
         {
@@ -130,7 +130,7 @@ namespace Game.Block.Factory.BlockTemplate.Utility
 
         /// <summary>
         /// 復元とnewでのRailGraphDatastore.RailPositionToConnectionDestination関連処理
-        /// </returns>
+        /// </summary>
 
         // 指定数のRailComponentを作成し、必要に応じて自動的に接続します。
         // 今のところstation,cargoなど1つのブロックに2つのRailComponentを持つものだけを想定しています。
@@ -163,12 +163,12 @@ namespace Game.Block.Factory.BlockTemplate.Utility
             {
                 if (RailGraphDatastore.RailPositionToConnectionDestination.TryGetValue(positions[0], out var pair))
                 {
-                    if ((!pair.Item1.IsDefault()) & (!pair.Item2.IsDefault()))
+                    if ((!pair.Item1.IsDefault()) && (!pair.Item2.IsDefault()))
                     {
                         Debug.Assert(false, "RailComponentFactory.Create2RailComponents: Found multiple connection destinations for a single rail position.");
                         break;
                     }
-                    if ((pair.Item1.IsDefault()) & (pair.Item2.IsDefault()))
+                    if ((pair.Item1.IsDefault()) && (pair.Item2.IsDefault()))
                     {
                         //RailGraphDatastore.RailPositionToConnectionDestinationのpositions[0]キーを削除
                         RailGraphDatastore.RailPositionToConnectionDestination.Remove(positions[0]);
