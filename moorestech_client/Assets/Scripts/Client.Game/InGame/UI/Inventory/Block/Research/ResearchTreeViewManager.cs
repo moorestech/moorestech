@@ -26,6 +26,11 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
             // 研究完了ボタン押下時の処理登録
             // Register the process when the research complete button is clicked
             researchTreeView.OnClickResearchButton.Subscribe(node => CompleteResearchAsync(node).Forget()).AddTo(this);
+
+            var initialNodes = CreateNodeData(initial.ResearchNodeStates);
+            // 初期の研究ノード状態をUIへ反映
+            // Apply the initial research node states to the UI
+            researchTreeView.SetResearchNodes(initialNodes);
             
             #region Internal
             
