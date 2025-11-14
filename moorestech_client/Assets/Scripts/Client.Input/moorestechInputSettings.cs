@@ -730,7 +730,7 @@ public partial class @MoorestechInputSettings: IInputActionCollection2, IDisposa
                 {
                     ""name"": """",
                     ""id"": ""86ff9c27-2e02-4f71-94ab-8b2e5127f970"",
-                    ""path"": ""<Keyboard>/q"",
+                    ""path"": ""<Keyboard>/r"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",

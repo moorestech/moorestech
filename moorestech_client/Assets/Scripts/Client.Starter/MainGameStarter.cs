@@ -127,6 +127,8 @@ namespace Client.Starter
             
             CameraManager.Initialize();
             
+            //PureC#のインスタンスを登録
+            // Register pure C# instances
             //最初に取得したデータを登録
             // register initial data
             builder.RegisterInstance(initialHandshakeResponse);
