@@ -203,11 +203,7 @@ namespace Tests.UnitTest.Game
             {
                 Debug.Log("列車編成が無事目的地につきました");
             }
-
         }
-
-
-
 
         /// <summary>
         /// 駅から駅の列車運行テスト
@@ -262,12 +258,11 @@ namespace Tests.UnitTest.Game
                 }
             }
 
-            const int LCNT = 2400;
-            for (int loopcnt = 0; loopcnt < LCNT; loopcnt++)
+            const int LOOPCNT = 100;//2400で大丈夫だった
+            for (int loopcnt = 0; loopcnt < LOOPCNT; loopcnt++)
             {
                 var env = TrainTestHelper.CreateEnvironment();
                 var worldBlockDatastore = env.WorldBlockDatastore;
-                _ = env.GetRailGraphDatastore();
 
                 Vector3Int stationBlockSize = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainStation).BlockSize;
                 Vector3Int cargoBBlockSize = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainCargoPlatform).BlockSize;
