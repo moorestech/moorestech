@@ -41,6 +41,25 @@ namespace Client.Editor.Toolbar
             image.style.height = 16;
             button.Add(image);
 
+            // ボタンの背景色を設定
+            // Set button background color
+            var normalColor = new Color(80f / 255f, 80f / 255f, 80f / 255f);
+            var hoverColor = new Color(120f / 255f, 120f / 255f, 120f / 255f);
+
+            button.style.backgroundColor = normalColor;
+
+            // ホバー時の色変更を設定
+            // Set hover color change
+            button.RegisterCallback<MouseEnterEvent>(evt =>
+            {
+                button.style.backgroundColor = hoverColor;
+            });
+
+            button.RegisterCallback<MouseLeaveEvent>(evt =>
+            {
+                button.style.backgroundColor = normalColor;
+            });
+
             button.tooltip = "ホームシーンに遷移 (Transition to Home Scene)";
 
             return button;
