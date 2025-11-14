@@ -34,6 +34,10 @@ namespace Client.Game.InGame.UI.UIState.State
             //TODO InputSystemのリファクタ対象
             if (UnityEngine.Input.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.PlaceBlock);
             if (UnityEngine.Input.GetKeyDown(KeyCode.T)) return new UITransitContext(UIStateEnum.ChallengeList);
+
+            // Rキーでリサーチツリーを開く
+            // Open research tree with the R key
+            if (InputManager.UI.ResearchTree.GetKeyDown) return new UITransitContext(UIStateEnum.ResearchTree);
             
             return null;
         }
@@ -43,7 +47,7 @@ namespace Client.Game.InGame.UI.UIState.State
             InputManager.MouseCursorVisible(false);
             _inGameCameraController.SetControllable(true);
 
-            KeyControlDescription.Instance.SetText("Tab: インベントリ\n1~9: アイテム持ち替え\nB: ブロック配置\nG:ブロック削除\nT: チャレンジ一覧\n");
+            KeyControlDescription.Instance.SetText("Tab: インベントリ\n1~9: アイテム持ち替え\nB: ブロック配置\nG:ブロック削除\nT: チャレンジ一覧\nR: リサーチツリー\n");
         }
         
         public void OnExit()

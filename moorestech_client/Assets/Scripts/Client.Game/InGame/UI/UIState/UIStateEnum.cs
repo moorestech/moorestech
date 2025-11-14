@@ -10,5 +10,6 @@
         Story,
         PlaceBlock,
         ChallengeList,
+        ResearchTree,
     }
 }
