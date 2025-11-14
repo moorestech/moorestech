@@ -27,7 +27,10 @@ namespace Game.Block.Blocks.TrainRail
 
         // ブロック座標とIDが格納されている
         public RailComponentID ComponentID { get; }
-        public Vector3 Position { get; }//ブロックではなくレールのつなぎ目としてのこのcomponentの位置
+
+        //ブロックではなくレールのつなぎ目としてのこのcomponentの位置
+        //Vector3形式であるが、現時点でこの値自体の誤差は許容している。もしrailcomponent.positionを新規に使う場合すでに誤差が含まれていることを考慮すること
+        public Vector3 Position { get; }
         
         public readonly Vector3 RailDirection;
         

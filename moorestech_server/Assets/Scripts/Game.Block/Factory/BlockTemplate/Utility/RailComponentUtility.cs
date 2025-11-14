@@ -100,6 +100,7 @@ namespace Game.Block.Factory.BlockTemplate.Utility
             return railComponents;
         }
 
+        //回転計算による浮動小数点数誤差に注意。railcomponent.positionはVector3形式であるが、現時点でこの値自体の誤差は許容している。もしrailcomponent.positionを新規に使う場合すでに誤差が含まれていることを考慮すること
         static public Vector3 CalculateRailComponentPosition(BlockPositionInfo positionInfo, Vector3 componentPosition)
         {
             Vector3 CoordinateConvert(BlockDirection blockDirection,Vector3 pos)
@@ -126,8 +127,6 @@ namespace Game.Block.Factory.BlockTemplate.Utility
             sourceComponent.ConnectRailComponent(targetComponent, isFrontSideOfComponent, useFrontSideOfTarget);
         }
 
-
-
         /// <summary>
         /// 復元とnewでのRailGraphDatastore.RailPositionToConnectionDestination関連処理
         /// </summary>
@@ -150,18 +149,31 @@ namespace Game.Block.Factory.BlockTemplate.Utility
             return components;
         }
 
-        // 駅ブロック設置時、他の駅ブロックと隣接時に自動接続。あとRailGraphDatastore.RailPositionToConnectionDestinationへ登録する
-        // componentsが2つ限定
-        static public void RegisterAndConnetStationBlocks(RailComponent[] components) 
+        // 駅ブロック設置時、他の駅ブロックと隣接時にrailcomponentを自動接続する処理。あとRailGraphDatastore.RailPositionToConnectionDestinationへ登録する
+        // 接続判定について詳細
+        // 旧：ブロック座標を1マスずつスライドして同じ駅種のブロックにヒットするまでみていた(north,eastはブロックサイズ分シフトすればよかったがsouth,westは他人ブロックサイズが不明なので1マスずつスライドする必要があった)
+        // 新：マスタ定義のentryPositionとexitPositionを有効活用する方針とした
+        // たとえば駅1のentryPositionを駅2のexitPosition座標が一致していれば隣接接続してほしい
+        // これをRailGraphDataStoreのRailGraphDatastore.RailPositionToConnectionDestinationに辞書登録
+        // 座標とConnectionDestinationを対応登録。ConnectionDestinationは事実上、駅のRailComponentのentry exitのみならずfront backの情報ももつ
+        // このConnectionDestinationから接続させたい2つのRailComponentと向きが求まる
+        // なお座標はVector3だと浮動小数点数誤差(回転計算)で一致しなくなることがあったので2倍&四捨五入でVector3Int化した
+        // 座標→ConnectionDestinationの対応関係については、2つのConnectionDestinationをもつようにDictionary<Vector3, (ConnectionDestination first, ConnectionDestination second)> としている。3つ以上の重なりは考慮しない
+        static public void RegisterAndConnetStationBlocks(RailComponent[] components) // componentsが2つ限定ver
         {
-            Vector3[] positions = new Vector3[2];
-            positions[0] = components[0].Position;
-            positions[1] = components[1].Position;
+            Vector3Int[] roundedPositions = new Vector3Int[2];
+            // *2 → 四捨五入 → int 化
+            roundedPositions[0].x = Mathf.RoundToInt(components[0].Position.x * 2f);
+            roundedPositions[0].y = Mathf.RoundToInt(components[0].Position.y * 2f);
+            roundedPositions[0].z = Mathf.RoundToInt(components[0].Position.z * 2f);
+            roundedPositions[1].x = Mathf.RoundToInt(components[1].Position.x * 2f);
+            roundedPositions[1].y = Mathf.RoundToInt(components[1].Position.y * 2f);
+            roundedPositions[1].z = Mathf.RoundToInt(components[1].Position.z * 2f);
 
             // もしpositions[0]がRailPositionToConnectionDestinationにみつかってかつpairのうちどちらか1個が存在するならそこに接続し残りを埋める、0個なら新規登録、2個の場合は考えない
             while (true)
             {
-                if (RailGraphDatastore.RailPositionToConnectionDestination.TryGetValue(positions[0], out var pair))
+                if (RailGraphDatastore.RailPositionToConnectionDestination.TryGetValue(roundedPositions[0], out var pair))
                 {
                     if ((!pair.Item1.IsDefault()) && (!pair.Item2.IsDefault()))
                     {
@@ -171,7 +183,7 @@ namespace Game.Block.Factory.BlockTemplate.Utility
                     if ((pair.Item1.IsDefault()) && (pair.Item2.IsDefault()))
                     {
                         //RailGraphDatastore.RailPositionToConnectionDestinationのpositions[0]キーを削除
-                        RailGraphDatastore.RailPositionToConnectionDestination.Remove(positions[0]);
+                        RailGraphDatastore.RailPositionToConnectionDestination.Remove(roundedPositions[0]);
                         continue;
                     }
 
@@ -191,8 +203,7 @@ namespace Game.Block.Factory.BlockTemplate.Utility
                     {
                         pair.Item2 = newdata;
                     }
-                    RailGraphDatastore.RailPositionToConnectionDestination[positions[0]] = pair;
-                    Debug.Log(positions[0]);
+                    RailGraphDatastore.RailPositionToConnectionDestination[roundedPositions[0]] = pair;
                     break;
                 }
                 else
@@ -200,8 +211,7 @@ namespace Game.Block.Factory.BlockTemplate.Utility
                     // 新規登録
                     var newdata = new ConnectionDestination(components[0].ComponentID, false);
                     var newpair = (newdata, ConnectionDestination.Default);
-                    RailGraphDatastore.RailPositionToConnectionDestination[positions[0]] = newpair;
-                    Debug.Log(positions[0]);
+                    RailGraphDatastore.RailPositionToConnectionDestination[roundedPositions[0]] = newpair;
                     break;
                 }
             }
@@ -209,7 +219,7 @@ namespace Game.Block.Factory.BlockTemplate.Utility
             // もしpositions[1]がRailPositionToConnectionDestinationにみつかってかつpairのうちどちらか1個が存在するならそこに接続し残りを埋める、0個なら新規登録、2個の場合は考えない
             while (true)
             {
-                if (RailGraphDatastore.RailPositionToConnectionDestination.TryGetValue(positions[1], out var pair))
+                if (RailGraphDatastore.RailPositionToConnectionDestination.TryGetValue(roundedPositions[1], out var pair))
                 {
                     if ((!pair.Item1.IsDefault()) && (!pair.Item2.IsDefault()))
                     {
@@ -220,7 +230,7 @@ namespace Game.Block.Factory.BlockTemplate.Utility
                     if ((pair.Item1.IsDefault()) && (pair.Item2.IsDefault()))
                     {
                         //RailGraphDatastore.RailPositionToConnectionDestinationのpositions[1]キーを削除
-                        RailGraphDatastore.RailPositionToConnectionDestination.Remove(positions[1]);
+                        RailGraphDatastore.RailPositionToConnectionDestination.Remove(roundedPositions[1]);
                         continue;
                     }
 
@@ -240,8 +250,7 @@ namespace Game.Block.Factory.BlockTemplate.Utility
                     {
                         pair.Item2 = newdata;
                     }
-                    RailGraphDatastore.RailPositionToConnectionDestination[positions[1]] = pair;
-                    Debug.Log(positions[1]);
+                    RailGraphDatastore.RailPositionToConnectionDestination[roundedPositions[1]] = pair;
                     break;
                 }
                 else
@@ -249,8 +258,7 @@ namespace Game.Block.Factory.BlockTemplate.Utility
                     // 新規登録
                     var newdata = new ConnectionDestination(components[1].ComponentID, true);
                     var newpair = (newdata, ConnectionDestination.Default);
-                    RailGraphDatastore.RailPositionToConnectionDestination[positions[1]] = newpair;
-                    Debug.Log(positions[1]);
+                    RailGraphDatastore.RailPositionToConnectionDestination[roundedPositions[1]] = newpair;
                     break;
                 }
             }
