@@ -107,7 +107,6 @@ namespace Client.Editor.Toolbar
             // ホームシーンを開く
             // Open home scene
             EditorSceneManager.OpenScene(HomeScenePath);
-            Debug.Log($"ホームシーンに遷移しました: {HomeScenePath}\nTransitioned to home scene: {HomeScenePath}");
         }
     }
 }
