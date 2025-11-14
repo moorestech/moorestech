@@ -160,7 +160,7 @@ Transform:
   m_GameObject: {fileID: 3231203339800022249}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -54.92026, y: 0.8173324, z: -11.526953}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -486,8 +486,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4643187565465294795}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 574.0731, y: 375.0034, z: 17.00718}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -681,6 +681,7 @@ MonoBehaviour:
   recipeTabView: {fileID: 6932463085528317352}
   craftTreeViewManager: {fileID: 8435890574218881057}
   challengeListView: {fileID: 3927056720062408772}
+  researchTreeViewManager: {fileID: 6041840377622776724}
   mapObjectPin: {fileID: 467412427984320023}
   uiHighlightTutorialManager: {fileID: 3842753579192151890}
   keyControlTutorialManager: {fileID: 6070939093797517548}
@@ -1304,6 +1305,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0e0b0108ce75459ebad33a4b09c25ad2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &6041840377622776724 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8606129111110150130, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
+  m_PrefabInstance: {fileID: 2645848407441091686}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b55bc0d5ac13451e9eaf52f03c62272e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &6070939093797517548 stripped
