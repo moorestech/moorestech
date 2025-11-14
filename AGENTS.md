@@ -170,6 +170,9 @@ MasterHolder.Load()
 # サーバー側のテスト
 ./tools/unity-test.sh moorestech_server "^Tests\\.CombinedTest\\.Core\\.ElectricPumpTest$"
 
+# クライアント側のコンパイルチェック クライアント側のテストを実行する際はテストをする前に必ず最初にコンパイルチェックを行う。コンパイルチェックをする時はisGui オプションは追加しない。
+./tools/unity-test.sh moorestech_client "^0"
+
 # クライアント側のテスト クライアント側の場合、バッチモードでは結果が安定しないことがあるため、 isGui オプションを追加してください。
 ./tools/unity-test.sh moorestech_client "^ClientTests\\.Feature\\.InventoryTest$" isGui
 ```
