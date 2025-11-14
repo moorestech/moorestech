@@ -37,8 +37,8 @@ namespace Game.Train.RailGraph
         // RailComponent座標から(RailComponent+FrontBack)を引く辞書。この座標は (ブロック座標+オフセット)*回転 のVector3。ブロック座標が巨大なときの浮動小数点数誤差は目を瞑る
         // 例：駅と貨物駅を向かい合わせに設置したときRailComponent1のFrontとRailComponent3のFrontが重なる→RailComponent1.connectRailComponent(RailComponent3, true, false)を呼ぶことになる
         // ここではRailComponent1のFrontやRailComponent3のFrontをConnectionDestinationであらわす(事実上、駅から離れる方向に向かうnodeだけをConnectionDestinationであらわしている)
-        private Dictionary<Vector3, (ConnectionDestination first, ConnectionDestination second)> railPositionToConnectionDestination;
-        public static Dictionary<Vector3, (ConnectionDestination first, ConnectionDestination second)> RailPositionToConnectionDestination => _instance.railPositionToConnectionDestination;
+        private Dictionary<Vector3Int, (ConnectionDestination first, ConnectionDestination second)> railPositionToConnectionDestination;
+        public static Dictionary<Vector3Int, (ConnectionDestination first, ConnectionDestination second)> RailPositionToConnectionDestination => _instance.railPositionToConnectionDestination;
 
         // レールグラフ更新イベント
         // Rail graph update event
@@ -59,7 +59,7 @@ namespace Game.Train.RailGraph
             connectNodes = new List<List<(int, int)>>();
             railIdToConnectionDestination = new Dictionary<int, ConnectionDestination>();
             connectionDestinationToRailId = new Dictionary<ConnectionDestination, int>();
-            railPositionToConnectionDestination = new Dictionary<Vector3, (ConnectionDestination first, ConnectionDestination second)>();
+            railPositionToConnectionDestination = new Dictionary<Vector3Int, (ConnectionDestination first, ConnectionDestination second)>();
         }
 
         private void ResetInternalState()
