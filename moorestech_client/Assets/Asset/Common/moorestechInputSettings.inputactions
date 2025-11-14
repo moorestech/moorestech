@@ -413,7 +413,7 @@
                     "initialStateCheck": true
                 },
                 {
-                    "name": "ResearchTree",
+                    "name": "QuestUI",
                     "type": "Button",
                     "id": "b6e2a7bb-43b9-40de-b975-aace67c3d62e",
                     "expectedControlType": "Button",
@@ -644,11 +644,11 @@
                 {
                     "name": "",
                     "id": "86ff9c27-2e02-4f71-94ab-8b2e5127f970",
-                    "path": "<Keyboard>/r",
+                    "path": "<Keyboard>/q",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "ResearchTree",
+                    "action": "QuestUI",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
