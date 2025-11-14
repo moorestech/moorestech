@@ -59,7 +59,7 @@ namespace Game.Block.Factory.BlockTemplate
             var railComponents = RailComponentUtility.Restore2RailComponents(componentStates, positionInfo, stationParam.EntryRailPosition, stationParam.ExitRailPosition);//①復元
             RailComponentUtility.RegisterAndConnetStationBlocks(railComponents);//②接続処理。実はRestoreで接続復元できているが、Registerはここで改めて行う必要がある
             var railSaverComponent = new RailSaverComponent(railComponents);
-            var station = new CargoplatformComponent(stationParam);
+            var station = new CargoplatformComponent(componentStates, stationParam);
 
             var inventoryComponents = CreateInventoryComponents(componentStates, instanceId, stationParam, positionInfo);
 
