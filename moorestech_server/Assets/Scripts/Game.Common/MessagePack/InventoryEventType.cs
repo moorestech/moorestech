@@ -1,4 +1,4 @@
-namespace Server.Util.MessagePack
+namespace Game.Common.MessagePack
 {
     /// <summary>
     /// インベントリイベントのタイプを識別するenum
@@ -19,4 +19,3 @@ namespace Server.Util.MessagePack
         Remove = 1
     }
 }
-

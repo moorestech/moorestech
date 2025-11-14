@@ -20,7 +20,7 @@
         "MessagePack.Annotations",
         "Core.Master",
         "Game.Fluid",
-        "Server.Util",
+        "Game.Common",
         "ClassLibrary"
     ],
     "includePlatforms": [],

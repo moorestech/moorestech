@@ -11,7 +11,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
-using Server.Util.MessagePack;
+using Game.Common.MessagePack;
 using Tests.Module.TestMod;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.EventProtocol;

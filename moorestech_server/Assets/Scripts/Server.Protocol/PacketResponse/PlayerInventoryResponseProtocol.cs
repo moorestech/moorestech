@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Game.PlayerInventory.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
-using Server.Util.MessagePack;
+using Game.Common.MessagePack;
 
 namespace Server.Protocol.PacketResponse
 {

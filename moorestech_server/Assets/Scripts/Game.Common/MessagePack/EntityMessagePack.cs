@@ -2,7 +2,7 @@
 using Game.Entity.Interface;
 using MessagePack;
 
-namespace Server.Util.MessagePack
+namespace Game.Common.MessagePack
 {
     [MessagePackObject]
     public class EntityMessagePack

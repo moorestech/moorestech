@@ -12,7 +12,7 @@ using MessagePack;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol.PacketResponse;
-using Server.Util.MessagePack;
+using Game.Common.MessagePack;
 using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;

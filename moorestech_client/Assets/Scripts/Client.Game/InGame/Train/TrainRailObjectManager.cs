@@ -8,7 +8,7 @@ using Cysharp.Threading.Tasks;
 using Game.Train.Utility;
 using MessagePack;
 using Server.Event.EventReceive;
-using Server.Util.MessagePack;
+using Game.Common.MessagePack;
 using UnityEngine;
 using VContainer;
 
