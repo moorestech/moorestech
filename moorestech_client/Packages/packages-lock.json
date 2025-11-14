@@ -480,6 +480,13 @@
       "dependencies": {},
       "hash": "52a7fbbfe439c66b3ad98b7c15b7e59f6f96563c"
     },
+    "com.yujiap.unity-toolbar-extension": {
+      "version": "https://github.com/Yusuke57/UnityToolbarExtension.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "4a8cec6d056e7673ce19d892d2bee1129ad33044"
+    },
     "jp.co.cyberagent.smartaddresser": {
       "version": "https://github.com/CyberAgentGameEntertainment/SmartAddresser.git?path=/Assets/SmartAddresser",
       "depth": 0,
