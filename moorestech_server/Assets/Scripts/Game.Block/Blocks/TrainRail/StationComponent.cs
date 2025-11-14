@@ -4,6 +4,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Train.Common;
 using Game.Train.Train;
+using Mooresmaster.Model.BlocksModule;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -17,20 +18,23 @@ namespace Game.Block.Blocks.TrainRail
     public class StationComponent : IBlockSaveState, ITrainDockingReceiver
     {
         public string StationName { get; }
-        private float _loadingSpeed = 20f;
+        // ブロックパラメータ参照を保持
+        // Keep reference to the generated train station parameter
+        private readonly TrainStationBlockParam _param;
         public Guid? _dockedTrainId;
         private Guid? _dockedCarId;
         private TrainCar _dockedTrainCar;
         private IBlockInventory _dockedStationInventory;
         // インベントリスロット数やUI更新のための設定
-        public int InventorySlotCount { get; private set; }
+        // マスター定義のスロット容量を公開
+        // Expose inventory slot capacity defined in the block parameter
+        public int InventorySlotCount => _param.ItemSlotCount;
         public bool IsDestroy { get; private set; }
 
-        public StationComponent(string stationName, int inventorySlotCount,float loadingSpeed)
+        public StationComponent(string stationName, TrainStationBlockParam param)
         {
             StationName = stationName;
-            InventorySlotCount = inventorySlotCount;
-            _loadingSpeed = loadingSpeed;
+            _param = param;
         }
         public bool CanDock(ITrainDockHandle handle)
         {
