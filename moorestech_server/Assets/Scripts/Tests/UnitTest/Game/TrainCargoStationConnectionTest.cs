@@ -180,13 +180,11 @@ namespace Tests.UnitTest.Game
                     foreach (var secondNode in secondNodes)
                     {
                         var distance = RailGraphDatastore.GetDistanceBetweenNodes(firstNode, secondNode, logging: false);
-                        if (distance != 0)
+                        if (distance == 0)
                         {
-                            continue;
+                            isConnected = true;
+                            break;
                         }
-
-                        isConnected = true;
-                        break;
                     }
 
                     if (isConnected)
