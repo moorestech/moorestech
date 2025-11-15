@@ -5,7 +5,7 @@
     "MessagePack.Annotations",
     "Core.Util",
     "Game.Entity.Interface",
-    "Game.Common",
+    "Server.Util",
     "Game.World.Interface",
     "MessagePack",
     "Game.Block.Interface",

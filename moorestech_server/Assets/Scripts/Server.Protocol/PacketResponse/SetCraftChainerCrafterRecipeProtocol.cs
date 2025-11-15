@@ -6,7 +6,7 @@ using Game.CraftChainer.BlockComponent.Crafter;
 using Game.CraftChainer.CraftChain;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
-using Game.Common.MessagePack;
+using Server.Util.MessagePack;
 using UnityEngine;
 
 namespace Server.Protocol.PacketResponse

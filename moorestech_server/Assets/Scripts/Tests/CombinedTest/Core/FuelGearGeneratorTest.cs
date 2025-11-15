@@ -22,7 +22,7 @@ using UnityEngine;
 
 namespace Tests.CombinedTest.Core
 {
-    public class SteamGearGeneratorTest
+    public class FuelGearGeneratorTest
     {
         // 蒸気のFluidIdを取得するためのヘルパー
         public static FluidId SteamFluidId => MasterHolder.FluidMaster.GetFluidId(new("00000000-0000-0000-1234-000000000002"));
@@ -38,8 +38,8 @@ namespace Tests.CombinedTest.Core
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
-            var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.SteamGearGeneratorId);
-            var steamGeneratorParam = blockMaster.BlockParam as SteamGearGeneratorBlockParam;
+            var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.FuelGearGeneratorId);
+            var steamGeneratorParam = blockMaster.BlockParam as FuelGearGeneratorBlockParam;
             
             // パラメータの取得
             var maxRpm = steamGeneratorParam.GenerateMaxRpm;
@@ -47,7 +47,7 @@ namespace Tests.CombinedTest.Core
             var timeToMax = steamGeneratorParam.TimeToMax;
             
             // Steam Gear Generatorを設置
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SteamGearGeneratorId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var steamGeneratorBlock);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FuelGearGeneratorId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var steamGeneratorBlock);
             
             // 蒸気供給用の複数のパイプを設置（十分な供給量を確保）
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, -1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fluidPipeBlock1);
@@ -187,15 +187,15 @@ namespace Tests.CombinedTest.Core
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SteamGearGeneratorId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var steamGeneratorBlock);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FuelGearGeneratorId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var steamGeneratorBlock);
             
-            var generatorComponent = steamGeneratorBlock.GetComponent<SteamGearGeneratorComponent>();
+            var generatorComponent = steamGeneratorBlock.GetComponent<FuelGearGeneratorComponent>();
             var inventory = steamGeneratorBlock.GetComponent<IBlockInventory>();
             var openableInventory = (IOpenableInventory)inventory;
-            var fluidComponent = steamGeneratorBlock.GetComponent<SteamGearGeneratorFluidComponent>();
+            var fluidComponent = steamGeneratorBlock.GetComponent<FuelGearGeneratorFluidComponent>();
             
-            var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.SteamGearGeneratorId);
-            var param = blockMaster.BlockParam as SteamGearGeneratorBlockParam;
+            var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.FuelGearGeneratorId);
+            var param = blockMaster.BlockParam as FuelGearGeneratorBlockParam;
             var fuelItemId = MasterHolder.ItemMaster.GetItemId(new Guid("00000000-0000-0000-1234-000000000001"));
             
             openableInventory.InsertItem(fuelItemId, 80);
@@ -261,7 +261,7 @@ namespace Tests.CombinedTest.Core
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
             // Steam Gear Generatorを設置
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SteamGearGeneratorId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var steamGeneratorBlock);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FuelGearGeneratorId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var steamGeneratorBlock);
             
             // 複数のパイプを設置（十分な蒸気供給を確保）
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, -1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fluidPipeBlock1);
@@ -271,9 +271,9 @@ namespace Tests.CombinedTest.Core
             var pipes = new[] { fluidPipeBlock1, fluidPipeBlock2, fluidPipeBlock3, fluidPipeBlock4 };
             
             // コンポーネントを取得
-            var steamGeneratorComponent = steamGeneratorBlock.GetComponent<SteamGearGeneratorComponent>();
+            var steamGeneratorComponent = steamGeneratorBlock.GetComponent<FuelGearGeneratorComponent>();
             var stateObservable = steamGeneratorBlock.GetComponent<IBlockStateObservable>();
-            var fluidComponent = steamGeneratorBlock.GetComponent<SteamGearGeneratorFluidComponent>();
+            var fluidComponent = steamGeneratorBlock.GetComponent<FuelGearGeneratorFluidComponent>();
             
             // OnChangeBlockStateの発火を記録
             var stateChangeCount = 0;
@@ -299,7 +299,7 @@ namespace Tests.CombinedTest.Core
                     GameUpdater.UpdateWithWait();
                     var steamTank = fluidComponent.SteamTank;
                     var stateDetails = steamGeneratorComponent.GetBlockStateDetails();
-                    var stateData = MessagePackSerializer.Deserialize<SteamGearGeneratorBlockStateDetail>(stateDetails[0].Value);
+                    var stateData = MessagePackSerializer.Deserialize<FuelGearGeneratorBlockStateDetail>(stateDetails[0].Value);
                     var currentState = stateData.State;
                     
                     Debug.Log($"Fill Update {i}: Amount={steamTank.Amount}, State={currentState}, StateChanges={stateChangeCount}");
@@ -321,7 +321,7 @@ namespace Tests.CombinedTest.Core
                     
                     var steamTank = fluidComponent.SteamTank;
                     var stateDetails = steamGeneratorComponent.GetBlockStateDetails();
-                    var stateData = MessagePackSerializer.Deserialize<SteamGearGeneratorBlockStateDetail>(stateDetails[0].Value);
+                    var stateData = MessagePackSerializer.Deserialize<FuelGearGeneratorBlockStateDetail>(stateDetails[0].Value);
                     var currentState = stateData.State;
                     Debug.Log($"Generator start Update {i}: RPM={steamGeneratorComponent.GenerateRpm.AsPrimitive()}, " +
                              $"Steam Amount={steamTank.Amount}, State={currentState}, State changes={stateChangeCount}");
@@ -475,11 +475,11 @@ namespace Tests.CombinedTest.Core
             {
                 Assert.AreEqual(3, details.Length);
                 
-                var detail = details.FirstOrDefault(d => d.Key == SteamGearGeneratorBlockStateDetail.SteamGearGeneratorBlockStateDetailKey);
+                var detail = details.FirstOrDefault(d => d.Key == FuelGearGeneratorBlockStateDetail.FuelGearGeneratorBlockStateDetailKey);
                 Assert.IsNotNull(detail, "CommonMachineBlockStateDetailが含まれていません");
                 
                 // 単一のBlockStateDetailから状態データを取得
-                var stateData = MessagePackSerializer.Deserialize<SteamGearGeneratorBlockStateDetail>(detail.Value);
+                var stateData = MessagePackSerializer.Deserialize<FuelGearGeneratorBlockStateDetail>(detail.Value);
                 
                 Assert.AreEqual(expectedState, stateData.State, "状態が期待値と一致しません");
                 Assert.AreEqual(expectedRpm, stateData.CurrentRpm, 0.01f, "RPMが期待値と一致しません");
@@ -491,10 +491,10 @@ namespace Tests.CombinedTest.Core
             
             (string state, float rpm, float torque, float rate, double steamAmount, int fluidId) ExtractDetails(BlockStateDetail[] details)
             {
-                var detail = details.FirstOrDefault(d => d.Key == SteamGearGeneratorBlockStateDetail.SteamGearGeneratorBlockStateDetailKey);
-                Assert.IsNotNull(detail, "SteamGearGeneratorBlockStateDetailが含まれていません");
+                var detail = details.FirstOrDefault(d => d.Key == FuelGearGeneratorBlockStateDetail.FuelGearGeneratorBlockStateDetailKey);
+                Assert.IsNotNull(detail, "FuelGearGeneratorBlockStateDetailが含まれていません");
                 
-                var stateData = MessagePackSerializer.Deserialize<SteamGearGeneratorBlockStateDetail>(detail.Value);
+                var stateData = MessagePackSerializer.Deserialize<FuelGearGeneratorBlockStateDetail>(detail.Value);
                 
                 return (stateData.State, stateData.CurrentRpm, stateData.CurrentTorque, stateData.SteamConsumptionRate, 
                         stateData.SteamAmount, stateData.SteamFluidId);

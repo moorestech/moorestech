@@ -2,7 +2,7 @@ using System;
 using MessagePack;
 using UnityEngine;
 
-namespace Game.Common.MessagePack
+namespace Server.Util.MessagePack
 {
     [MessagePackObject]
     public class Vector3IntMessagePack

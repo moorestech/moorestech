@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Subscription;
-using Game.Common.MessagePack;
+using Server.Util.MessagePack;
 using UnityEngine;
 
 namespace Game.PlayerInventory

@@ -14,7 +14,7 @@ namespace Game.Block.Blocks.PowerGenerator
         
         [Key(2)] public float OperatingRate;
         
-        public PowerGeneratorStateDetail(SteamGearGeneratorFuelService fuelService, float operatingRate)
+        public PowerGeneratorStateDetail(FuelGearGeneratorFuelService fuelService, float operatingRate)
         {
             OperatingRate = operatingRate;
             RemainingFuelTime = fuelService.RemainingFuelTime;
