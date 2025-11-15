@@ -80,7 +80,7 @@ properties:
       - Shaft
       - GearMachine
       - SimpleGearGenerator
-      - SteamGearGenerator
+      - FuelGearGenerator
       - GearBeltConveyor
       - GearMiner
       - GearMapObjectMiner
@@ -347,7 +347,7 @@ properties:
           default: 1
         - key: gear
           ref: gear
-      - when: SteamGearGenerator
+      - when: FuelGearGenerator
         type: object
         implementationInterface:
         - IGearConnectors

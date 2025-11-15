@@ -15,7 +15,6 @@
         "Core.Update",
         "Game.Block",
         "Game.Block.Interface",
-        "Game.Common",
         "Game.Crafting",
         "Game.Crafting.Interface",
         "Game.Entity",

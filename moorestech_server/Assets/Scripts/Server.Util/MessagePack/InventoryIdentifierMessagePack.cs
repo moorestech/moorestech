@@ -2,7 +2,7 @@ using System;
 using MessagePack;
 using UnityEngine;
 
-namespace Game.Common.MessagePack
+namespace Server.Util.MessagePack
 {
     public enum InventoryType : byte
     {
@@ -54,3 +54,4 @@ namespace Game.Common.MessagePack
         
     }
 }
+

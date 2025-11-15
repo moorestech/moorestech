@@ -1,6 +1,6 @@
 using System;
-using Game.Common.MessagePack;
-using static Game.Common.MessagePack.InventoryIdentifierMessagePack;
+using Server.Util.MessagePack;
+using static Server.Util.MessagePack.InventoryIdentifierMessagePack;
 
 namespace Game.PlayerInventory.Interface.Subscription
 {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Core.Item.Interface;
 using Cysharp.Threading.Tasks;
-using Game.Common.MessagePack;
+using Server.Util.MessagePack;
 
 namespace Client.Game.InGame.UI.Inventory
 {
@@ -39,3 +39,4 @@ namespace Client.Game.InGame.UI.Inventory
         UniTask<List<IItemStack>> FetchInventoryData(CancellationToken ct);
     }
 }
+

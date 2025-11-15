@@ -39,7 +39,7 @@
         "Server.Boot",
         "Server.Event",
         "Server.Protocol",
-        "Game.Common",
+        "Server.Util",
         "ServerServiceProvider",
         "Unity.Addressables",
         "UniTask.Addressables",

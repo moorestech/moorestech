@@ -1,6 +1,6 @@
 using Client.Common;
 using Client.Game.InGame.Block;
-using Game.Common.MessagePack;
+using Server.Util.MessagePack;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Splines;

@@ -6,8 +6,8 @@ using Game.PlayerInventory.Interface.Subscription;
 using Game.Train.Event;
 using Game.World.Interface.DataStore;
 using MessagePack;
-using Game.Common.MessagePack;
-using static Game.Common.MessagePack.InventoryIdentifierMessagePack;
+using Server.Util.MessagePack;
+using static Server.Util.MessagePack.InventoryIdentifierMessagePack;
 
 namespace Server.Event.EventReceive.UnifiedInventoryEvent
 {

@@ -4,7 +4,7 @@ using Game.Block.Interface;
 using Game.Context;
 using Game.World.Interface.DataStore;
 using MessagePack;
-using Game.Common.MessagePack;
+using Server.Util.MessagePack;
 using UniRx;
 using UnityEngine;
 

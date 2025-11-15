@@ -1,5 +1,5 @@
 using System;
-using Game.Common.MessagePack;
+using Server.Util.MessagePack;
 
 namespace Game.PlayerInventory.Interface.Subscription
 {
