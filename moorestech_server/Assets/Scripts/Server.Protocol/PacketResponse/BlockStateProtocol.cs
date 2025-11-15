@@ -4,7 +4,7 @@ using Game.Context;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Event.EventReceive;
-using Server.Util.MessagePack;
+using Game.Common.MessagePack;
 using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
