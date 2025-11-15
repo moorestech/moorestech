@@ -9,9 +9,9 @@ namespace Game.Block.Blocks.Gear
     /// 蒸気ギアジェネレーターのステートの詳細なデータ
     /// </summary>
     [Serializable,MessagePackObject]
-    public class SteamGearGeneratorBlockStateDetail : GearStateDetail
+    public class FuelGearGeneratorBlockStateDetail : GearStateDetail
     {
-        public const string SteamGearGeneratorBlockStateDetailKey = "SteamGearGenerator";
+        public const string FuelGearGeneratorBlockStateDetailKey = "FuelGearGenerator";
         
         /// <summary>
         /// 現在の状態（Idle, Accelerating, Running, Decelerating）
@@ -35,9 +35,9 @@ namespace Game.Block.Blocks.Gear
         
         // ギア生成サービスと流体コンポーネントから詳細情報を抽出する
         // Populate detail fields by querying services and the fluid component
-        public SteamGearGeneratorBlockStateDetail(
-            SteamGearGeneratorStateService stateService,
-            SteamGearGeneratorFluidComponent fluidComponent,
+        public FuelGearGeneratorBlockStateDetail(
+            FuelGearGeneratorStateService stateService,
+            FuelGearGeneratorFluidComponent fluidComponent,
             GearNetworkInfo gearNetworkInfo,
             bool isClockwise)
             : base(isClockwise, stateService.CurrentGeneratedRpm.AsPrimitive(), stateService.CurrentGeneratedTorque.AsPrimitive(), gearNetworkInfo)
@@ -50,7 +50,7 @@ namespace Game.Block.Blocks.Gear
         }
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public SteamGearGeneratorBlockStateDetail()
+        public FuelGearGeneratorBlockStateDetail()
         {
         }
     }

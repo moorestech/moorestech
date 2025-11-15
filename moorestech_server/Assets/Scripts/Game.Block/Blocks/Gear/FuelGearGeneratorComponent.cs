@@ -11,9 +11,9 @@ using UnityEngine;
 
 namespace Game.Block.Blocks.Gear
 {
-    public class SteamGearGeneratorComponent : GearEnergyTransformer, IGearGenerator, IUpdatableBlockComponent, IBlockSaveState, IBlockStateObservable
+    public class FuelGearGeneratorComponent : GearEnergyTransformer, IGearGenerator, IUpdatableBlockComponent, IBlockSaveState, IBlockStateObservable
     {
-        public string SaveKey => "steamGearGenerator";
+        public string SaveKey => "fuelGearGenerator";
         
         public int TeethCount { get; }
         public RPM GenerateRpm { get; private set; }
@@ -23,24 +23,24 @@ namespace Game.Block.Blocks.Gear
 
         // ギア生成に必要な子コンポーネントとサービスを集約して保持する
         // Hold child components and services required to drive gear generation
-        private readonly SteamGearGeneratorFluidComponent _fluidComponent;
-        private readonly SteamGearGeneratorFuelService _fuelService;
-        private readonly SteamGearGeneratorStateService _stateService;
+        private readonly FuelGearGeneratorFluidComponent _fluidComponent;
+        private readonly FuelGearGeneratorFuelService _fuelService;
+        private readonly FuelGearGeneratorStateService _stateService;
         private readonly Subject<Unit> _onChangeBlockState;
 
         // コンストラクタで依存コンポーネントを受け取り、初期状態を整える
         // Accept dependent components via constructor and set up the initial generator state
-        public SteamGearGeneratorComponent(
-            SteamGearGeneratorBlockParam param,
+        public FuelGearGeneratorComponent(
+            FuelGearGeneratorBlockParam param,
             BlockInstanceId blockInstanceId,
             IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent,
-            SteamGearGeneratorItemComponent itemComponent,
-            SteamGearGeneratorFluidComponent fluidComponent)
+            FuelGearGeneratorItemComponent itemComponent,
+            FuelGearGeneratorFluidComponent fluidComponent)
             : base(new Torque(0), blockInstanceId, connectorComponent)
         {
             _fluidComponent = fluidComponent;
-            _fuelService = new SteamGearGeneratorFuelService(param, itemComponent.InventoryService, fluidComponent);
-            _stateService = new SteamGearGeneratorStateService(param, _fuelService, fluidComponent);
+            _fuelService = new FuelGearGeneratorFuelService(param, itemComponent.InventoryService, fluidComponent);
+            _stateService = new FuelGearGeneratorStateService(param, _fuelService, fluidComponent);
             _onChangeBlockState = new Subject<Unit>();
 
             TeethCount = param.TeethCount;
@@ -50,17 +50,17 @@ namespace Game.Block.Blocks.Gear
 
         // セーブデータから復元する際に呼ばれる補助コンストラクタ
         // Auxiliary constructor used for restoring the component from saved state
-        public SteamGearGeneratorComponent(
+        public FuelGearGeneratorComponent(
             Dictionary<string, string> componentStates,
-            SteamGearGeneratorBlockParam param,
+            FuelGearGeneratorBlockParam param,
             BlockInstanceId blockInstanceId,
             IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent,
-            SteamGearGeneratorItemComponent itemComponent,
-            SteamGearGeneratorFluidComponent fluidComponent)
+            FuelGearGeneratorItemComponent itemComponent,
+            FuelGearGeneratorFluidComponent fluidComponent)
             : this(param, blockInstanceId, connectorComponent, itemComponent, fluidComponent)
         {
             if (!componentStates.TryGetValue(SaveKey, out var raw)) return;
-            var saveData = JsonUtility.FromJson<SteamGearGeneratorSaveData>(raw);
+            var saveData = JsonUtility.FromJson<FuelGearGeneratorSaveData>(raw);
 
             _fuelService.Restore(saveData);
             _stateService.Restore(saveData);
@@ -90,7 +90,7 @@ namespace Game.Block.Blocks.Gear
         public string GetSaveState()
         {
             BlockException.CheckDestroy(this);
-            var saveData = new SteamGearGeneratorSaveData(_stateService, _fuelService);
+            var saveData = new FuelGearGeneratorSaveData(_stateService, _fuelService);
             return JsonUtility.ToJson(saveData);
         }
 
@@ -99,13 +99,13 @@ namespace Game.Block.Blocks.Gear
             BlockException.CheckDestroy(this);
             
             var network = GearNetworkDatastore.GetGearNetwork(BlockInstanceId);
-            var steamGearGeneratorDetail = CreateSteamGearGeneratorStateDetail();
+            var fuelGearGeneratorDetail = CreateFuelGearGeneratorStateDetail();
             var powerGeneratorDetail = CreatePowerGeneratorStateDetail();
             
             const int addCount = 2;
             var baseDetails = base.GetBlockStateDetails();
             var result = new BlockStateDetail[baseDetails.Length + addCount];
-            result[0] = steamGearGeneratorDetail;
+            result[0] = fuelGearGeneratorDetail;
             result[1] = powerGeneratorDetail;
             
             Array.Copy(baseDetails, 0, result, addCount, baseDetails.Length);
@@ -113,10 +113,10 @@ namespace Game.Block.Blocks.Gear
             
             #region Internal
             
-            BlockStateDetail CreateSteamGearGeneratorStateDetail()
+            BlockStateDetail CreateFuelGearGeneratorStateDetail()
             {
-                var gearGenerator = new SteamGearGeneratorBlockStateDetail(_stateService, _fluidComponent, network.CurrentGearNetworkInfo, GenerateIsClockwise);
-                return new BlockStateDetail(SteamGearGeneratorBlockStateDetail.SteamGearGeneratorBlockStateDetailKey, MessagePackSerializer.Serialize(gearGenerator));
+                var gearGenerator = new FuelGearGeneratorBlockStateDetail(_stateService, _fluidComponent, network.CurrentGearNetworkInfo, GenerateIsClockwise);
+                return new BlockStateDetail(FuelGearGeneratorBlockStateDetail.FuelGearGeneratorBlockStateDetailKey, MessagePackSerializer.Serialize(gearGenerator));
             }
             
             BlockStateDetail CreatePowerGeneratorStateDetail()

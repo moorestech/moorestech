@@ -9,10 +9,10 @@ using Mooresmaster.Model.BlocksModule;
 namespace Game.Block.Blocks.Gear
 {
     /// <summary>
-    /// SteamGearGenerator専用の燃料管理を集約するサービスクラス
-    /// Service dedicated to managing fuel consumption for the SteamGearGenerator
+    /// FuelGearGenerator専用の燃料管理を集約するサービスクラス
+    /// Service dedicated to managing fuel consumption for the FuelGearGenerator
     /// </summary>
-    public class SteamGearGeneratorFuelService
+    public class FuelGearGeneratorFuelService
     {
         public enum FuelType
         {
@@ -45,14 +45,14 @@ namespace Game.Block.Blocks.Gear
         // インベントリ・流体タンクと燃料設定を参照するためのフィールド群
         // Fields referencing inventories, fluid tanks, and fuel configuration tables
         private readonly OpenableInventoryItemDataStoreService _inventoryService;
-        private readonly SteamGearGeneratorFluidComponent _fluidComponent;
+        private readonly FuelGearGeneratorFluidComponent _fluidComponent;
         private readonly Dictionary<ItemId, ItemFuelSetting> _itemFuelSettings;
         private readonly Dictionary<FluidId, FluidFuelSetting> _fluidFuelSettings;
 
-        public SteamGearGeneratorFuelService(
-            SteamGearGeneratorBlockParam param,
+        public FuelGearGeneratorFuelService(
+            FuelGearGeneratorBlockParam param,
             OpenableInventoryItemDataStoreService inventoryService,
-            SteamGearGeneratorFluidComponent fluidComponent)
+            FuelGearGeneratorFluidComponent fluidComponent)
         {
             _inventoryService = inventoryService;
             _fluidComponent = fluidComponent;
@@ -66,7 +66,7 @@ namespace Game.Block.Blocks.Gear
 
             #region Internal
 
-            static Dictionary<ItemId, ItemFuelSetting> BuildItemFuelSettings(SteamGearGeneratorBlockParam blockParam)
+            static Dictionary<ItemId, ItemFuelSetting> BuildItemFuelSettings(FuelGearGeneratorBlockParam blockParam)
             {
                 var settings = new Dictionary<ItemId, ItemFuelSetting>();
                 if (blockParam.GearFuelItems == null) return settings;
@@ -80,7 +80,7 @@ namespace Game.Block.Blocks.Gear
                 return settings;
             }
 
-            static Dictionary<FluidId, FluidFuelSetting> BuildFluidFuelSettings(SteamGearGeneratorBlockParam blockParam)
+            static Dictionary<FluidId, FluidFuelSetting> BuildFluidFuelSettings(FuelGearGeneratorBlockParam blockParam)
             {
                 var settings = new Dictionary<FluidId, FluidFuelSetting>();
                 if (blockParam.RequiredFluids == null) return settings;
@@ -231,7 +231,7 @@ namespace Game.Block.Blocks.Gear
 
         // セーブ時に保持した燃料状態を復元する
         // Restore the fuel state saved during serialization
-        public void Restore(SteamGearGeneratorSaveData saveData)
+        public void Restore(FuelGearGeneratorSaveData saveData)
         {
             RemainingFuelTime = saveData.RemainingFuelTime;
             CurrentFuelType = Enum.TryParse(saveData.ActiveFuelType, out FuelType parsed) ? parsed : FuelType.None;

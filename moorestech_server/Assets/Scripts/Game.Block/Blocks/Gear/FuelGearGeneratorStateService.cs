@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Game.Block.Blocks.Gear
 {
-    public enum SteamGearGeneratorState
+    public enum FuelGearGeneratorState
     {
         Idle,
         Accelerating,
@@ -14,9 +14,9 @@ namespace Game.Block.Blocks.Gear
         Decelerating
     }
     
-    // SteamGearGeneratorの状態と出力を統括するサービス
-    // Service that governs SteamGearGenerator state transitions and output levels
-    public class SteamGearGeneratorStateService
+    // FuelGearGeneratorの状態と出力を統括するサービス
+    // Service that governs FuelGearGenerator state transitions and output levels
+    public class FuelGearGeneratorStateService
     {
         // 出力変化を検知する際の最小閾値
         // Minimum delta used to detect meaningful output changes
@@ -25,14 +25,14 @@ namespace Game.Block.Blocks.Gear
 
         // 依存するパラメータとコンポーネント、および内部状態保持用のフィールド群
         // Dependent parameters, collaborating components, and internal state holders
-        public SteamGearGeneratorState CurrentState { get; private set; }
+        public FuelGearGeneratorState CurrentState { get; private set; }
         public float SteamConsumptionRate { get; private set; }
         public float StateElapsedTime { get; private set; }
         public float RateAtDecelerationStart { get; private set; }
         
-        private readonly SteamGearGeneratorBlockParam _param;
-        private readonly SteamGearGeneratorFuelService _fuelService;
-        private readonly SteamGearGeneratorFluidComponent _fluidComponent;
+        private readonly FuelGearGeneratorBlockParam _param;
+        private readonly FuelGearGeneratorFuelService _fuelService;
+        private readonly FuelGearGeneratorFluidComponent _fluidComponent;
 
         // 外部へ公開する読み取りプロパティ
         // Read-only accessors exposed to the outside world
@@ -41,15 +41,15 @@ namespace Game.Block.Blocks.Gear
 
         // コンストラクタでサービスの依存を受け取り、初期状態を整える
         // Accept dependencies via constructor and initialise the state machine
-        public SteamGearGeneratorStateService(
-            SteamGearGeneratorBlockParam param,
-            SteamGearGeneratorFuelService fuelService,
-            SteamGearGeneratorFluidComponent fluidComponent)
+        public FuelGearGeneratorStateService(
+            FuelGearGeneratorBlockParam param,
+            FuelGearGeneratorFuelService fuelService,
+            FuelGearGeneratorFluidComponent fluidComponent)
         {
             _param = param;
             _fuelService = fuelService;
             _fluidComponent = fluidComponent;
-            CurrentState = SteamGearGeneratorState.Idle;
+            CurrentState = FuelGearGeneratorState.Idle;
             StateElapsedTime = 0f;
             SteamConsumptionRate = 0f;
             RateAtDecelerationStart = 0f;
@@ -85,39 +85,39 @@ namespace Game.Block.Blocks.Gear
 
             switch (CurrentState)
             {
-                case SteamGearGeneratorState.Idle:
+                case FuelGearGeneratorState.Idle:
                     if (hasFuel && _fuelService.TryEnsureFuel(allowFluidFuel))
                     {
-                        TransitionToState(SteamGearGeneratorState.Accelerating);
+                        TransitionToState(FuelGearGeneratorState.Accelerating);
                     }
                     break;
 
-                case SteamGearGeneratorState.Accelerating:
+                case FuelGearGeneratorState.Accelerating:
                     if (!_fuelService.TryEnsureFuel(allowFluidFuel))
                     {
-                        TransitionToState(SteamGearGeneratorState.Decelerating);
+                        TransitionToState(FuelGearGeneratorState.Decelerating);
                     }
                     else if (StateElapsedTime >= _param.TimeToMax)
                     {
-                        TransitionToState(SteamGearGeneratorState.Running);
+                        TransitionToState(FuelGearGeneratorState.Running);
                     }
                     break;
 
-                case SteamGearGeneratorState.Running:
+                case FuelGearGeneratorState.Running:
                     if (!_fuelService.TryEnsureFuel(allowFluidFuel))
                     {
-                        TransitionToState(SteamGearGeneratorState.Decelerating);
+                        TransitionToState(FuelGearGeneratorState.Decelerating);
                     }
                     break;
 
-                case SteamGearGeneratorState.Decelerating:
+                case FuelGearGeneratorState.Decelerating:
                     if (StateElapsedTime >= _param.TimeToMax)
                     {
-                        TransitionToState(SteamGearGeneratorState.Idle);
+                        TransitionToState(FuelGearGeneratorState.Idle);
                     }
                     else if (hasFuel && allowFluidFuel && _fuelService.TryEnsureFuel(allowFluidFuel))
                     {
-                        TransitionToState(SteamGearGeneratorState.Accelerating);
+                        TransitionToState(FuelGearGeneratorState.Accelerating);
                     }
                     break;
             }
@@ -126,11 +126,11 @@ namespace Game.Block.Blocks.Gear
             
             // 状態遷移時の共通処理をまとめたヘルパー
             // Helper that centralises common work required during state transitions
-            void TransitionToState(SteamGearGeneratorState newState)
+            void TransitionToState(FuelGearGeneratorState newState)
             {
                 if (CurrentState == newState) return;
                 
-                if (newState == SteamGearGeneratorState.Decelerating)
+                if (newState == FuelGearGeneratorState.Decelerating)
                 {
                     RateAtDecelerationStart = SteamConsumptionRate;
                 }
@@ -148,17 +148,17 @@ namespace Game.Block.Blocks.Gear
         {
             switch (CurrentState)
             {
-                case SteamGearGeneratorState.Idle:
+                case FuelGearGeneratorState.Idle:
                     SteamConsumptionRate = 0f;
                     break;
-                case SteamGearGeneratorState.Accelerating:
+                case FuelGearGeneratorState.Accelerating:
                     var accelerationProgress = Mathf.Clamp01(StateElapsedTime / _param.TimeToMax);
                     SteamConsumptionRate = ApplyEasing(accelerationProgress, _param.TimeToMaxEasing);
                     break;
-                case SteamGearGeneratorState.Running:
+                case FuelGearGeneratorState.Running:
                     SteamConsumptionRate = 1f;
                     break;
-                case SteamGearGeneratorState.Decelerating:
+                case FuelGearGeneratorState.Decelerating:
                     var decelerationProgress = Mathf.Clamp01(StateElapsedTime / _param.TimeToMax);
                     var eased = ApplyEasing(decelerationProgress, _param.TimeToMaxEasing);
                     SteamConsumptionRate = RateAtDecelerationStart * (1f - eased);
@@ -171,23 +171,23 @@ namespace Game.Block.Blocks.Gear
             {
                 switch (easingType)
                 {
-                    case SteamGearGeneratorBlockParam.TimeToMaxEasingConst.Linear:
+                    case FuelGearGeneratorBlockParam.TimeToMaxEasingConst.Linear:
                         return t;
-                    case SteamGearGeneratorBlockParam.TimeToMaxEasingConst.EaseInSine:
+                    case FuelGearGeneratorBlockParam.TimeToMaxEasingConst.EaseInSine:
                         return 1 - Mathf.Cos((t * Mathf.PI) / 2f);
-                    case SteamGearGeneratorBlockParam.TimeToMaxEasingConst.EaseOutSine:
+                    case FuelGearGeneratorBlockParam.TimeToMaxEasingConst.EaseOutSine:
                         return Mathf.Sin((t * Mathf.PI) / 2f);
-                    case SteamGearGeneratorBlockParam.TimeToMaxEasingConst.EaseInCubic:
+                    case FuelGearGeneratorBlockParam.TimeToMaxEasingConst.EaseInCubic:
                         return t * t * t;
-                    case SteamGearGeneratorBlockParam.TimeToMaxEasingConst.EaseOutCubic:
+                    case FuelGearGeneratorBlockParam.TimeToMaxEasingConst.EaseOutCubic:
                         return 1 - Mathf.Pow(1 - t, 3);
-                    case SteamGearGeneratorBlockParam.TimeToMaxEasingConst.EaseInQuint:
+                    case FuelGearGeneratorBlockParam.TimeToMaxEasingConst.EaseInQuint:
                         return t * t * t * t * t;
-                    case SteamGearGeneratorBlockParam.TimeToMaxEasingConst.EaseOutQuint:
+                    case FuelGearGeneratorBlockParam.TimeToMaxEasingConst.EaseOutQuint:
                         return 1 - Mathf.Pow(1 - t, 5);
-                    case SteamGearGeneratorBlockParam.TimeToMaxEasingConst.EaseInCirc:
+                    case FuelGearGeneratorBlockParam.TimeToMaxEasingConst.EaseInCirc:
                         return 1 - Mathf.Sqrt(1 - t * t);
-                    case SteamGearGeneratorBlockParam.TimeToMaxEasingConst.EaseOutCirc:
+                    case FuelGearGeneratorBlockParam.TimeToMaxEasingConst.EaseOutCirc:
                         return Mathf.Sqrt(1 - Mathf.Pow(t - 1, 2));
                     default:
                         return t;
@@ -201,9 +201,9 @@ namespace Game.Block.Blocks.Gear
         
         // セーブデータから状態機械の内部値を復元する
         // Restore internal values of the state machine from a save snapshot
-        public void Restore(SteamGearGeneratorSaveData saveData)
+        public void Restore(FuelGearGeneratorSaveData saveData)
         {
-            CurrentState = Enum.TryParse(saveData.CurrentState, out SteamGearGeneratorState parsedState) ? parsedState : SteamGearGeneratorState.Idle;
+            CurrentState = Enum.TryParse(saveData.CurrentState, out FuelGearGeneratorState parsedState) ? parsedState : FuelGearGeneratorState.Idle;
             StateElapsedTime = saveData.StateElapsedTime;
             SteamConsumptionRate = saveData.SteamConsumptionRate;
             RateAtDecelerationStart = saveData.RateAtDecelerationStart;
