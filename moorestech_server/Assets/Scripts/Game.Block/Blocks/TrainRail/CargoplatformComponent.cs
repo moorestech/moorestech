@@ -1,12 +1,12 @@
 using Core.Item.Interface;
 using Core.Master;
-using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Train.Common;
 using Game.Train.Train;
 using Mooresmaster.Model.BlocksModule;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 
 namespace Game.Block.Blocks.TrainRail
 {
@@ -47,6 +47,15 @@ namespace Game.Block.Blocks.TrainRail
         public CargoplatformComponent(TrainCargoPlatformBlockParam param)
         {
             _param = param;
+        }
+
+        public CargoplatformComponent(Dictionary<string, string> componentStates, TrainCargoPlatformBlockParam param) : this(param)
+        {
+            // TransferModeを復元する
+            var serialized = componentStates[SaveKey];
+            var saveData = JsonConvert.DeserializeObject<CargoplatformComponentSaverData>(serialized);
+            if (saveData == null) return;
+            _transferMode = saveData.transferMode;
         }
 
         public void SetTransferMode(CargoTransferMode mode)
