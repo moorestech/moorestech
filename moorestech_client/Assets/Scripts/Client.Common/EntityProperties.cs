@@ -1,4 +1,4 @@
-using Game.Common.MessagePack;
+using Server.Util.MessagePack;
 using UnityEngine;
 
 namespace Client.Common

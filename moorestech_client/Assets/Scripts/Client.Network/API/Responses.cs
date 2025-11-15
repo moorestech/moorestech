@@ -7,7 +7,7 @@ using Game.CraftTree.Models;
 using Game.Research;
 using Mooresmaster.Model.ChallengesModule;
 using Server.Event.EventReceive;
-using Game.Common.MessagePack;
+using Server.Util.MessagePack;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.GetMapObjectInfoProtocol;
 using static Server.Protocol.PacketResponse.InitialHandshakeProtocol;

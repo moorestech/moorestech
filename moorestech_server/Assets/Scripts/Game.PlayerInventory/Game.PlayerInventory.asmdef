@@ -11,7 +11,7 @@
     "Game.Context",
     "Game.Block",
     "Core.Master",
-    "Game.Common"
+    "Server.Util"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

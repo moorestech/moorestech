@@ -8,7 +8,7 @@ using Game.Train.Common;
 using Game.Train.Train;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
-using Game.Common.MessagePack;
+using Server.Util.MessagePack;
 using Game.World.Interface.DataStore;
 
 namespace Server.Protocol.PacketResponse
