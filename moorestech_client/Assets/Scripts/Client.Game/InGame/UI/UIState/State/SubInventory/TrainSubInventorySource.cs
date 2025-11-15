@@ -1,7 +1,7 @@
 using Client.Game.InGame.Entity.Object;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Train;
-using Game.Common.MessagePack;
+using Server.Util.MessagePack;
 
 namespace Client.Game.InGame.UI.UIState.State.SubInventory
 {

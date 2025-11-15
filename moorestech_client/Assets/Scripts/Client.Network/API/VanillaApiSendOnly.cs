@@ -6,7 +6,7 @@ using Game.CraftChainer.CraftChain;
 using Game.CraftTree.Models;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
-using Game.Common.MessagePack;
+using Server.Util.MessagePack;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.RailConnectionEditProtocol;
 using static Server.Protocol.PacketResponse.PlaceTrainCarOnRailProtocol;

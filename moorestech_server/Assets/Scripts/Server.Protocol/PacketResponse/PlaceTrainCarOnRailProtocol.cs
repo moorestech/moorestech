@@ -13,7 +13,7 @@ using Game.Train.Train;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Mooresmaster.Model.TrainModule;
-using Game.Common.MessagePack;
+using Server.Util.MessagePack;
 using RailComponentSpecifier = Server.Protocol.PacketResponse.RailConnectionEditProtocol.RailComponentSpecifier;
 using Game.Block.Interface.Extension;
 

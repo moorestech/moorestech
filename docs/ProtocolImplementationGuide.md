@@ -26,7 +26,7 @@ moorestechサーバーには以下の2種類のプロトコルがあります：
 using System.Collections.Generic;
 using System.Linq;
 using MessagePack;
-using Game.Common.MessagePack;
+using Server.Util.MessagePack;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -157,7 +157,7 @@ using System;
 using Game.Context;
 using MessagePack;
 using Server.Event.EventReceive;
-using Game.Common.MessagePack;
+using Server.Util.MessagePack;
 
 namespace Server.Event.PacketEvent
 {

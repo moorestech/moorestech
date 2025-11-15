@@ -3,7 +3,7 @@ using Game.Train.RailGraph;
 using MessagePack;
 using UnityEngine;
 
-namespace Game.Common.MessagePack
+namespace Server.Util.MessagePack
 {
     /// <summary>
     /// レール接続情報の共通MessagePackクラス

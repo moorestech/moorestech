@@ -4,7 +4,7 @@ using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using MessagePack;
-using Game.Common.MessagePack;
+using Server.Util.MessagePack;
 using UnityEngine;
 
 namespace Server.Protocol.PacketResponse

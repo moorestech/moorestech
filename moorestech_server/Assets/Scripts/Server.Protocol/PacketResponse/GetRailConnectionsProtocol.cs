@@ -4,7 +4,7 @@ using System.Linq;
 using Game.Train.RailGraph;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
-using Game.Common.MessagePack;
+using Server.Util.MessagePack;
 using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
@@ -66,3 +66,4 @@ namespace Server.Protocol.PacketResponse
         #endregion
     }
 }
+
