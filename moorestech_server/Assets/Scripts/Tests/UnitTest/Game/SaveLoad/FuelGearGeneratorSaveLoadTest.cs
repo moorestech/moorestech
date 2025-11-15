@@ -25,16 +25,16 @@ using System;
 
 namespace Tests.UnitTest.Game.SaveLoad
 {
-    public class SteamGearGeneratorSaveLoadTest
+    public class FuelGearGeneratorSaveLoadTest
     {
         [Test]
-        public void SteamGearGeneratorSaveLoadTest_AllStates()
+        public void FuelGearGeneratorSaveLoadTest_AllStates()
         {
             // DIコンテナの初期化
             var (blockFactory, worldBlockDatastore, _, assembleSaveJsonText, _) = CreateBlockTestModule();
             
-            // SteamGearGeneratorを設置
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SteamGearGeneratorId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var steamGeneratorBlock);
+            // FuelGearGeneratorを設置
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FuelGearGeneratorId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var steamGeneratorBlock);
             
             // 複数のパイプを設置して十分な蒸気を供給
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, -1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fluidPipeBlock1);
@@ -44,8 +44,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             var pipes = new[] { fluidPipeBlock1, fluidPipeBlock2, fluidPipeBlock3, fluidPipeBlock4 };
             
             // コンポーネントを取得
-            var steamGeneratorComponent = steamGeneratorBlock.GetComponent<SteamGearGeneratorComponent>();
-            var fluidComponent = steamGeneratorBlock.GetComponent<SteamGearGeneratorFluidComponent>();
+            var steamGeneratorComponent = steamGeneratorBlock.GetComponent<FuelGearGeneratorComponent>();
+            var fluidComponent = steamGeneratorBlock.GetComponent<FuelGearGeneratorFluidComponent>();
             
             // タンクに十分な蒸気を溜める
             for (int i = 0; i < 20; i++)
@@ -77,7 +77,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var acceleratingTorque = steamGeneratorComponent.GenerateTorque.AsPrimitive();
             
             // 0より大きく、最大値未満であることを確認
-            var param = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.SteamGearGeneratorId).BlockParam as SteamGearGeneratorBlockParam;
+            var param = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.FuelGearGeneratorId).BlockParam as FuelGearGeneratorBlockParam;
             Assert.Greater(acceleratingRpm, 0, "加速中のRPMは0より大きいはず");
             Assert.Less(acceleratingRpm, param.GenerateMaxRpm, "加速中のRPMは最大値未満のはず");
             
@@ -111,8 +111,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.AreEqual(steamGeneratorBlock.BlockInstanceId, loadedSteamGeneratorBlock.BlockInstanceId);
             
             // コンポーネントの状態を確認
-            var loadedSteamGeneratorComponent = loadedSteamGeneratorBlock.GetComponent<SteamGearGeneratorComponent>();
-            var loadedFluidComponent = loadedSteamGeneratorBlock.GetComponent<SteamGearGeneratorFluidComponent>();
+            var loadedSteamGeneratorComponent = loadedSteamGeneratorBlock.GetComponent<FuelGearGeneratorComponent>();
+            var loadedFluidComponent = loadedSteamGeneratorBlock.GetComponent<FuelGearGeneratorFluidComponent>();
             var loadedState = CaptureState(loadedSteamGeneratorComponent);
             
             // 出力値が同じであることを確認
@@ -136,7 +136,7 @@ namespace Tests.UnitTest.Game.SaveLoad
                 foreach (var pipeBlock in pipes)
                 {
                     var pipe = pipeBlock.GetComponent<FluidPipeComponent>();
-                    var steamStack = new FluidStack(10000d, SteamGearGeneratorTest.SteamFluidId);
+                    var steamStack = new FluidStack(10000d, FuelGearGeneratorTest.SteamFluidId);
                     pipe.AddLiquid(steamStack, FluidContainer.Empty);
                 }
             }
@@ -145,13 +145,13 @@ namespace Tests.UnitTest.Game.SaveLoad
         }
         
         [Test]
-        public void SteamGearGeneratorSaveLoadTest_DeceleratingState()
+        public void FuelGearGeneratorSaveLoadTest_DeceleratingState()
         {
             // DIコンテナの初期化
             var (blockFactory, worldBlockDatastore, _, assembleSaveJsonText, _) = CreateBlockTestModule();
             
-            // SteamGearGeneratorを設置
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SteamGearGeneratorId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var steamGeneratorBlock);
+            // FuelGearGeneratorを設置
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FuelGearGeneratorId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var steamGeneratorBlock);
             
             // 複数のパイプを設置して十分な蒸気を供給
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, -1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fluidPipeBlock1);
@@ -161,8 +161,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             var pipes = new[] { fluidPipeBlock1, fluidPipeBlock2, fluidPipeBlock3, fluidPipeBlock4 };
             
             // コンポーネントを取得
-            var steamGeneratorComponent = steamGeneratorBlock.GetComponent<SteamGearGeneratorComponent>();
-            var param = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.SteamGearGeneratorId).BlockParam as SteamGearGeneratorBlockParam;
+            var steamGeneratorComponent = steamGeneratorBlock.GetComponent<FuelGearGeneratorComponent>();
+            var param = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.FuelGearGeneratorId).BlockParam as FuelGearGeneratorBlockParam;
             
             // 初期化フェーズ
             for (int i = 0; i < 4; i++)
@@ -253,7 +253,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             loadJsonFile.Load(json);
             
             var loadedSteamGeneratorBlock = loadWorldBlockDatastore.GetBlock(Vector3Int.zero);
-            var loadedSteamGeneratorComponent = loadedSteamGeneratorBlock.GetComponent<SteamGearGeneratorComponent>();
+            var loadedSteamGeneratorComponent = loadedSteamGeneratorBlock.GetComponent<FuelGearGeneratorComponent>();
             
             // 出力値が同じであることを確認
             Assert.AreEqual(deceleratingRpm, loadedSteamGeneratorComponent.GenerateRpm.AsPrimitive(), 0.01f, "ロード後のRPMが一致しません");
@@ -270,7 +270,7 @@ namespace Tests.UnitTest.Game.SaveLoad
                 foreach (var pipeBlock in pipes)
                 {
                     var pipe = pipeBlock.GetComponent<FluidPipeComponent>();
-                    var steamStack = new FluidStack(10000d, SteamGearGeneratorTest.SteamFluidId);
+                    var steamStack = new FluidStack(10000d, FuelGearGeneratorTest.SteamFluidId);
                     pipe.AddLiquid(steamStack, FluidContainer.Empty);
                 }
             }
@@ -278,13 +278,13 @@ namespace Tests.UnitTest.Game.SaveLoad
             #endregion
         }
         
-        private static readonly FieldInfo StateServiceField = typeof(SteamGearGeneratorComponent).GetField("_stateService", BindingFlags.NonPublic | BindingFlags.Instance);
+        private static readonly FieldInfo StateServiceField = typeof(FuelGearGeneratorComponent).GetField("_stateService", BindingFlags.NonPublic | BindingFlags.Instance);
 
-        private static SteamGearGeneratorStateService GetStateService(SteamGearGeneratorComponent component)
+        private static FuelGearGeneratorStateService GetStateService(FuelGearGeneratorComponent component)
         {
             // 状態サービスを取得するためのヘルパー
             // Helper to obtain the internal state service instance
-            return (SteamGearGeneratorStateService)StateServiceField.GetValue(component);
+            return (FuelGearGeneratorStateService)StateServiceField.GetValue(component);
         }
 
         private (IBlockFactory, IWorldBlockDatastore, PlayerInventoryDataStore, AssembleSaveJsonText, WorldLoaderFromJson)
@@ -301,7 +301,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             return (blockFactory, worldBlockDatastore, playerInventoryDataStore, assembleSaveJsonText, loadJsonFile);
         }
 
-        private static (string State, float Elapsed, float Rate) CaptureState(SteamGearGeneratorComponent component)
+        private static (string State, float Elapsed, float Rate) CaptureState(FuelGearGeneratorComponent component)
         {
             var service = GetStateService(component);
             return (service.CurrentState.ToString(), service.StateElapsedTime, service.SteamConsumptionRate);

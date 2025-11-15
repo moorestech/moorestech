@@ -13,12 +13,12 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
     {
         [SerializeField] private EffectSettings[] effectSettings;
         
-        private SteamGearGeneratorBlockParam _blockParam;
+        private FuelGearGeneratorBlockParam _blockParam;
         private GearStateDetail _currentGearState;
         
         public void Initialize(BlockGameObject blockGameObject)
         {
-            _blockParam = (SteamGearGeneratorBlockParam)blockGameObject.BlockMasterElement.BlockParam;
+            _blockParam = (FuelGearGeneratorBlockParam)blockGameObject.BlockMasterElement.BlockParam;
         }
         public void OnChangeState(BlockStateMessagePack blockState)
         {
