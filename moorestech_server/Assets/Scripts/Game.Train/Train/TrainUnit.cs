@@ -5,6 +5,7 @@ using Game.Train.RailGraph;
 using Game.Train.Utility;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Game.Train.Train
@@ -54,7 +55,7 @@ namespace Game.Train.Train
         //キー関連
         //マスコンレベル 0がニュートラル、1が前進1段階、-1が後退1段階.キー入力やテスト、外部から直接制御できる。min maxは±16777216とする(暫定)
         public int masconLevel = 0;
-
+        private int tickCounter = 0;// TODO デバッグトグル関係　そのうち消す
         public TrainUnit(
             RailPosition initialPosition,
             List<TrainCar> cars
@@ -91,6 +92,11 @@ namespace Game.Train.Train
         //1tickごとに呼ばれる.進んだ距離を返す?
         public int Update()
         {
+            //数十回に1回くらいの頻度でデバッグログを出す
+            tickCounter++;
+            if (tickCounter % 20 == 0)
+                UnityEngine.Debug.Log("spd="+_currentSpeed + "_Auto=" + IsAutoRun + "_DiagramCount" + trainDiagram.Entries.Count);// TODO デバッグトグル関係　そのうち消す
+
             if (IsAutoRun)
             {
                 //まずdiagramの変更有無を確認する
@@ -119,6 +125,8 @@ namespace Game.Train.Train
                 if (trainUnitStationDocking.IsDocked)
                 {
                     _currentSpeed = 0;
+                    if (tickCounter % 20 == 0)
+                        UnityEngine.Debug.Log("docking now");// TODO デバッグトグル関係　そのうち消す
                     trainUnitStationDocking.TickDockedStations();
                     // もしtrainDiagramの出発条件を満たしていたら、trainDiagramは次の目的地をセット。次のtickでドッキングを解除、バリデーションが行われる
                     if (trainDiagram.CheckEntries(this))
