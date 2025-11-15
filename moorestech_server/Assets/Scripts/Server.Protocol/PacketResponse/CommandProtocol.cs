@@ -16,8 +16,8 @@ namespace Server.Protocol.PacketResponse
         public const string GiveCommand = "give";
         public const string ClearInventoryCommand = "clearInventory";
         public const string TrainAutoRunCommand = "trainAutoRun";
-        //public const string TrainAutoRunOnArgument = "on";
-        //public const string TrainAutoRunOffArgument = "off";
+        public const string TrainAutoRunOnArgument = "on";
+        public const string TrainAutoRunOffArgument = "off";
         
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         
