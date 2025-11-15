@@ -1,7 +1,14 @@
 {
-  "name": "Server.Util",
+  "name": "Game.Common",
   "rootNamespace": "",
-  "references": [],
+  "references": [
+    "MessagePack",
+    "MessagePack.Annotations",
+    "Core.Item.Interface",
+    "Core.Master",
+    "Game.Entity.Interface",
+    "Game.Train"
+  ],
   "includePlatforms": [],
   "excludePlatforms": [],
   "allowUnsafeCode": false,

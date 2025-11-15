@@ -1,4 +1,4 @@
-using Server.Util.MessagePack;
+using Game.Common.MessagePack;
 using UnityEngine;
 
 namespace Game.PlayerInventory.Interface.Subscription

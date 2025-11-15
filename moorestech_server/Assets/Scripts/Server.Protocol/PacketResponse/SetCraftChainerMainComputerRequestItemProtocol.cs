@@ -7,7 +7,7 @@ using Game.CraftChainer.BlockComponent.Computer;
 using Game.CraftChainer.BlockComponent.Crafter;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
-using Server.Util.MessagePack;
+using Game.Common.MessagePack;
 using UnityEngine;
 
 namespace Server.Protocol.PacketResponse

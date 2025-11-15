@@ -9,7 +9,7 @@ using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using Server.Protocol.PacketResponse.Util.InventoryService;
-using Server.Util.MessagePack;
+using Game.Common.MessagePack;
 using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
@@ -81,13 +81,13 @@ namespace Server.Protocol.PacketResponse
                     // Branch processing according to InventoryIdentifier type
                     switch (inventoryIdentifier.InventoryType)
                     {
-                        case Server.Util.MessagePack.InventoryType.Block:
+                        case InventoryType.Block:
                             var pos = inventoryIdentifier.BlockPosition.Vector3Int;
                             inventory = ServerContext.WorldBlockDatastore.ExistsComponent<IOpenableBlockInventoryComponent>(pos)
                                 ? ServerContext.WorldBlockDatastore.GetBlock<IOpenableBlockInventoryComponent>(pos)
                                 : null;
                             break;
-                        case Server.Util.MessagePack.InventoryType.Train:
+                        case InventoryType.Train:
                             // TODO: 列車インベントリの取得処理を実装
                             // TODO: Implement train inventory retrieval
                             // 現時点では列車インベントリシステムが完全には実装されていないため、nullを返す

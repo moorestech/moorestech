@@ -1,5 +1,5 @@
 using Client.Game.InGame.UI.Inventory;
-using Server.Util.MessagePack;
+using Game.Common.MessagePack;
 
 namespace Client.Game.InGame.UI.UIState.State.SubInventory
 {

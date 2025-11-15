@@ -31,7 +31,7 @@
         "Server.Boot",
         "Server.Event",
         "Server.Protocol",
-        "Server.Util",
+        "Game.Common",
         "VContainer",
         "Client.Mod",
         "Client.Common",
