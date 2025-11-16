@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Core.Master;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
 using Game.Train.Common;
@@ -171,9 +172,10 @@ namespace Tests.Util
 
         private TrainUnit CreateTrain(List<RailNode> nodes, int initialDistanceToNextNode, out TrainCar car)
         {
+            var firstTrain = MasterHolder.TrainUnitMaster.Train.TrainCars.First();
             var cars = new List<TrainCar>
             {
-                new TrainCar(new TrainCarMasterElement(Guid.Empty, Guid.Empty, null, 1000, 1, _station.SegmentLength))
+                new TrainCar(new TrainCarMasterElement(firstTrain.TrainCarGuid, firstTrain.ItemGuid, null, 1000, 1, _station.SegmentLength))
             };
 
             car = cars[0];
