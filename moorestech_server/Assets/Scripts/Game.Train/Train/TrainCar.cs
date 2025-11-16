@@ -48,11 +48,12 @@ namespace Game.Train.Train
         private readonly TrainUpdateEvent _trainUpdateEvent;
 
         //TODO燃料スロット数削除について修正は今後
-        public TrainCar(int tractionForce, int inventorySlots, int length, bool isFacingForward = true, int fuelSlots = 0)
+        public TrainCar(TrainCarMasterElement trainCarMaster, bool isFacingForward = true, int fuelSlots = 0)
         {
-            TractionForce = tractionForce;
-            InventorySlots = inventorySlots;
-            Length = length;
+            TrainCarMasterElement = trainCarMaster;
+            TractionForce = trainCarMaster.TractionForce;
+            InventorySlots = trainCarMaster.InventorySlots;
+            Length = trainCarMaster.Length;
             IsFacingForward = isFacingForward;
             if (fuelSlots < 0)
             {
@@ -64,8 +65,8 @@ namespace Game.Train.Train
             _trainUpdateEvent = (TrainUpdateEvent)ServerContext.GetService<ITrainUpdateEvent>();
 
             // インベントリー配列を初期化
-            _inventoryItems = new IItemStack[inventorySlots];
-            for (int i = 0; i < inventorySlots; i++)
+            _inventoryItems = new IItemStack[trainCarMaster.InventorySlots];
+            for (int i = 0; i < trainCarMaster.InventorySlots; i++)
             {
                 _inventoryItems[i] = ServerContext.ItemStackFactory.CreatEmpty();
             }
