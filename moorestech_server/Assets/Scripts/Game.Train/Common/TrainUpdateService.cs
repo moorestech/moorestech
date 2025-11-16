@@ -80,11 +80,16 @@ namespace Game.Train.Common
         // TODO デバッグトグルスイッチ関連なので最終的に消すのを忘れずに
         private const string TrainAutoRunOnArgument = "on";
         private const string TrainAutoRunOffArgument = "off";
+        // デバッグトグルの使用有無フラグ
+        // Flag indicating whether the debug toggle has been used
+        private static bool _trainAutoRunDebugEnabled;
+        public static bool TrainAutoRunDebugEnabled => _trainAutoRunDebugEnabled;
         public static void TurnOnorOffTrainAutoRun(IReadOnlyList<string> commandParts)
         {
             var mode = commandParts[1];
             if (string.Equals(mode, TrainAutoRunOnArgument, StringComparison.OrdinalIgnoreCase))
             {
+                _trainAutoRunDebugEnabled = true;
                 UnityEngine.Debug.Log("トグルスイッチ：Turning on auto-run for all trains.");
                 AutoDiagramNodeAdditionExample();
                 foreach (var train in Instance.GetRegisteredTrains())
@@ -95,6 +100,7 @@ namespace Game.Train.Common
 
             if (string.Equals(mode, TrainAutoRunOffArgument, StringComparison.OrdinalIgnoreCase))
             {
+                _trainAutoRunDebugEnabled = false;
                 UnityEngine.Debug.Log("トグルスイッチ：Turning off auto-run for all trains.");
                 foreach (var train in Instance.GetRegisteredTrains())
                 {
@@ -113,7 +119,6 @@ namespace Game.Train.Common
             var railNodes = datastoreType.GetField("railNodes", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(datastore) as List<RailNode>;
 
             var stationNodes = new List<RailNode>();
-
             for (int i = 0; i < railNodes.Count; i++)
             {
                 if (railNodes[i] != null)
@@ -127,12 +132,5 @@ namespace Game.Train.Common
             }
             TrainDiagramManager.Instance.ResetAndNotifyNodeAddition(stationNodes);
         }
-
-#if UNITY_INCLUDE_TESTS
-        public void ResetTickAccumulator()
-        {
-            _accumulatedSeconds = 0d;
-        }
-#endif
     }
 }

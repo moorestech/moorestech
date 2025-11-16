@@ -5,7 +5,6 @@ using Game.Train.RailGraph;
 using Game.Train.Utility;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 
 namespace Game.Train.Train
@@ -94,7 +93,7 @@ namespace Game.Train.Train
         {
             //数十回に1回くらいの頻度でデバッグログを出す
             tickCounter++;
-            if (tickCounter % 20 == 0)
+            if (TrainUpdateService.TrainAutoRunDebugEnabled && tickCounter % 20 == 0)
                 UnityEngine.Debug.Log("spd="+_currentSpeed + "_Auto=" + IsAutoRun + "_DiagramCount" + trainDiagram.Entries.Count);// TODO デバッグトグル関係　そのうち消す
 
             if (IsAutoRun)
@@ -103,7 +102,7 @@ namespace Game.Train.Train
                 // 自動運転中に手動でダイアグラムをいじって目的地がnullになった場合は自動運転を解除する
                 if (trainDiagram.GetCurrentNode() == null)
                 {
-                    UnityEngine.Debug.Log("自動運転中に手動でダイアグラムをいじって目的地がnullになった場合は自動運転を解除");
+                    UnityEngine.Debug.Log("自動運転中に手動でダイアグラムをいじって目的地がnullになったので自動運転を解除");
                     TurnOffAutoRun();
                     _currentSpeed = 0;
                     return 0;
@@ -114,7 +113,7 @@ namespace Game.Train.Train
                     if (trainUnitStationDocking.IsDocked)
                     {
                         trainUnitStationDocking.UndockFromStation();
-                        //UnityEngine.Debug.Log("diagram検知によるドッキング解除");
+                        UnityEngine.Debug.Log("diagram変更検知によるドッキング解除");
                     }
                     DiagramValidation();
                 }
@@ -125,8 +124,8 @@ namespace Game.Train.Train
                 if (trainUnitStationDocking.IsDocked)
                 {
                     _currentSpeed = 0;
-                    if (tickCounter % 20 == 0)
-                        UnityEngine.Debug.Log("docking now");// TODO デバッグトグル関係　そのうち消す
+                    if (TrainUpdateService.TrainAutoRunDebugEnabled && tickCounter % 20 == 0)
+                        UnityEngine.Debug.Log("ドッキング中");// TODO デバッグトグル関係　そのうち消す
                     trainUnitStationDocking.TickDockedStations();
                     // もしtrainDiagramの出発条件を満たしていたら、trainDiagramは次の目的地をセット。次のtickでドッキングを解除、バリデーションが行われる
                     if (trainDiagram.CheckEntries(this))
