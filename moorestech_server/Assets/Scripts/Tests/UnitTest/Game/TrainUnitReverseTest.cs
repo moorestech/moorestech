@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
 using Game.Train.RailGraph;
 using Game.Train.Train;
+using Mooresmaster.Model.TrainModule;
 using NUnit.Framework;
 using Tests.Util;
 using UnityEngine;
@@ -28,8 +30,8 @@ namespace Tests.UnitTest.Game
             Assert.Greater(distance, 0, "接続されたレール間の距離が正しく計算されていません。");
 
             var carLength = Mathf.Max(1, distance / 20);
-            var frontCar = new TrainCar(tractionForce: 600000, inventorySlots: 0, length: carLength, fuelSlots: 0, isFacingForward: true);
-            var rearCar = new TrainCar(tractionForce: 300000, inventorySlots: 0, length: carLength, fuelSlots: 0, isFacingForward: false);
+            var frontCar = new TrainCar(new TrainCarMasterElement(Guid.Empty, Guid.Empty, null, 600000, 0, carLength), fuelSlots: 0, isFacingForward: true);
+            var rearCar = new TrainCar(new TrainCarMasterElement(Guid.Empty, Guid.Empty, null, 300000, 0, carLength), fuelSlots: 0, isFacingForward: false);
 
             var totalLength = frontCar.Length + rearCar.Length;
             var railPosition = new RailPosition(new List<RailNode> { nodeApproaching, nodeBehind }, totalLength, distance / 10);
