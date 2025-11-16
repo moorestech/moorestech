@@ -2,7 +2,6 @@ using Game.Train.Common;
 using Game.Train.RailGraph;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Game.Train.Train
 {
@@ -177,8 +176,6 @@ namespace Game.Train.Train
         {
             if (removedNode == null)
                 return;
-
-            var removedBeforeCurrent = 0;
             for (var i = _entries.Count - 1; i >= 0; i--)
             {
                 if (!_entries[i].MatchesNode(removedNode))
@@ -188,16 +185,18 @@ namespace Game.Train.Train
 
                 if (_currentIndex >= 0 && i < _currentIndex)
                 {
-                    removedBeforeCurrent++;
+                    _currentIndex--;
                 }
-
                 _entries.RemoveAt(i);
             }
 
-            _currentIndex -= removedBeforeCurrent;
             if (_entries.Count == 0)
             {
                 _currentIndex = -1;
+            }
+            else 
+            {
+                _currentIndex %= _entries.Count;
             }
         }
 

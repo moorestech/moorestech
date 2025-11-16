@@ -1,6 +1,9 @@
 using System;
 using Client.Common.Server;
+using Client.Game.InGame.Context;
+using Common.Debug;
 using Mooresmaster.Model.TrainModule;
+using Server.Protocol.PacketResponse;
 using UnityEngine;
 
 namespace Client.Game.InGame.Entity.Object
@@ -16,7 +19,8 @@ namespace Client.Game.InGame.Entity.Object
         private Vector3 _targetPosition;
         
         private bool _isFacingForward = true;
-        
+        private bool _debugAutoRun = false;//////////////////
+
         /// <summary>
         /// エンティティIDを設定し、初期化を行う
         /// Set entity ID and perform initialization
@@ -24,6 +28,7 @@ namespace Client.Game.InGame.Entity.Object
         public void Initialize(long entityId)
         {
             EntityId = entityId;
+            _debugAutoRun = DebugParameters.GetValueOrDefaultBool(DebugConst.TrainAutoRunKey);//////////////////
         }
         
         public void SetTrain(Guid trainCarId, TrainCarMasterElement trainCarMasterElement)
@@ -75,8 +80,31 @@ namespace Client.Game.InGame.Entity.Object
             var rate = _linerTime / NetworkConst.UpdateIntervalSeconds;
             rate = Mathf.Clamp01(rate);
             transform.position = Vector3.Lerp(_previousPosition, _targetPosition, rate);
+
+
+            // デバッグ用で自動運転on off切り替え、この処理はtraincar単位で行われてしまっていることに注意。本来はtrainunit単位またはシーン単位だがどうせ消すのでこのままで！！
+            if (_debugAutoRun != DebugParameters.GetValueOrDefaultBool(DebugConst.TrainAutoRunKey))
+            {
+                _debugAutoRun = DebugParameters.GetValueOrDefaultBool(DebugConst.TrainAutoRunKey);
+                OnTrainAutoRunChanged(_debugAutoRun);
+                Debug.Log($"[Debug] Train auto run changed: {_debugAutoRun}");
+            }
+
             _linerTime += Time.deltaTime;
         }
+
+        // 全列車の自動運転状態を送信するローカル関数
+        // Local function to send the auto-run state for all trains
+        void OnTrainAutoRunChanged(bool isEnabled)
+        {
+            // サーバーへ全列車の自動運転切り替えコマンドを送信
+            // Send the auto-run toggle command for all trains to the server
+            var command = isEnabled
+                ? $"{SendCommandProtocol.TrainAutoRunCommand} {SendCommandProtocol.TrainAutoRunOnArgument}"
+                : $"{SendCommandProtocol.TrainAutoRunCommand} {SendCommandProtocol.TrainAutoRunOffArgument}";
+            ClientContext.VanillaApi.SendOnly.SendCommand(command);
+        }
+
     }
 }
 
