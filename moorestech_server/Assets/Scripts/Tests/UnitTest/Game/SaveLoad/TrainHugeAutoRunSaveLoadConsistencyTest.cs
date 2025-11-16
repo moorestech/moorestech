@@ -3,6 +3,7 @@ using Game.Block.Interface;
 using Game.Train.Common;
 using Game.Train.RailGraph;
 using Game.Train.Train;
+using Mooresmaster.Model.TrainModule;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -235,7 +236,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
                 var cars = new List<TrainCar>
                 {
-                    new TrainCar(tractionForce: 600000, inventorySlots: 0, length: length)
+                    new TrainCar(new TrainCarMasterElement(Guid.Empty, Guid.Empty, null, 600000, 0, length))
                 };
 
                 var train = new TrainUnit(railPosition, cars);
