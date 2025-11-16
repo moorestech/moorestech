@@ -6,6 +6,8 @@ using Game.Train.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Core.Master;
+using Mooresmaster.Model.TrainModule;
 
 namespace Game.Train.Train
 {
@@ -464,10 +466,7 @@ namespace Game.Train.Train
 
             return new TrainCarSaveData
             {
-                TractionForce = car.TractionForce,
-                InventorySlots = car.InventorySlots,
-                FuelSlots = car.FuelSlots,
-                Length = car.Length,
+                TrainCarGuid = car.TrainCarMasterElement.TrainCarGuid,
                 IsFacingForward = car.IsFacingForward,
                 DockingBlockPosition = dockingPosition,
                 InventoryItems = inventoryItems,
@@ -560,11 +559,9 @@ namespace Game.Train.Train
                 return null;
             }
 
-            var fuelSlots = data.FuelSlots < 0 ? 0 : data.FuelSlots;
-            var inventorySlots = data.InventorySlots < 0 ? 0 : data.InventorySlots;
-            var length = data.Length < 0 ? 0 : data.Length;
+            MasterHolder.TrainUnitMaster.TryGetTrainUnit(data.TrainCarGuid, out var trainCarMaster);
             var isFacingForward = data.IsFacingForward;
-            var car = new TrainCar(data.TractionForce, inventorySlots, length, isFacingForward, fuelSlots);
+            var car = new TrainCar(trainCarMaster, isFacingForward);
 
             var empty = ServerContext.ItemStackFactory.CreatEmpty();
 
@@ -770,10 +767,7 @@ namespace Game.Train.Train
     [Serializable]
     public class TrainCarSaveData
     {
-        public int TractionForce { get; set; }
-        public int InventorySlots { get; set; }
-        public int FuelSlots { get; set; }
-        public int Length { get; set; }
+        public Guid TrainCarGuid { get; set; }
         public bool IsFacingForward { get; set; }
         public SerializableVector3Int? DockingBlockPosition { get; set; }
         public List<ItemStackSaveJsonObject> InventoryItems { get; set; }
