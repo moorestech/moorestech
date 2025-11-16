@@ -7,6 +7,7 @@ using Game.Train.Common;
 using Game.Train.RailGraph;
 using Game.Train.Utility;
 using Game.Train.Train;
+using Mooresmaster.Model.TrainModule;
 using NUnit.Framework;
 using Tests.Module.TestMod;
 using UnityEngine;
@@ -137,7 +138,8 @@ namespace Tests.Util
             var trainCars = new List<TrainCar>(carCount);
             for (var i = 0; i < carCount; i++)
             {
-                trainCars.Add(new TrainCar(tractionForce: 1000, inventorySlots: 1, length: _station.SegmentLength));
+                var master = new TrainCarMasterElement(Guid.Empty, Guid.Empty, null, 1000, 1, _station.SegmentLength);
+                trainCars.Add(new TrainCar(master));
             }
 
             var train = CreateTrain(nodes, trainCars, 0);
@@ -171,7 +173,7 @@ namespace Tests.Util
         {
             var cars = new List<TrainCar>
             {
-                new TrainCar(tractionForce: 1000, inventorySlots: 1, length: _station.SegmentLength)
+                new TrainCar(new TrainCarMasterElement(Guid.Empty, Guid.Empty, null, 1000, 1, _station.SegmentLength))
             };
 
             car = cars[0];
