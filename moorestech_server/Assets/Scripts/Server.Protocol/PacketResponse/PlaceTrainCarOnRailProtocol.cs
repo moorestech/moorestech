@@ -69,9 +69,7 @@ namespace Server.Protocol.PacketResponse
                 // TrainCarElementからTrainCarオブジェクトを生成
                 // Create TrainCar objects from TrainCarElement data
                 var trainCars = new TrainCar(
-                    trainUnitElement.TractionForce,
-                    trainUnitElement.InventorySlots,
-                    trainUnitElement.Length,
+                    trainUnitElement,
                     true
                 );
                 
