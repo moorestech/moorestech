@@ -4,6 +4,7 @@ using Game.Context;
 using Game.Train.Common;
 using Game.Train.RailGraph;
 using Game.Train.Train;
+using Mooresmaster.Model.TrainModule;
 using NUnit;
 using NUnit.Framework;
 using System;
@@ -93,7 +94,7 @@ namespace Tests.Util
             var initialDistance = startRunning ? stationNodes.SegmentLength - 1 : 0;
             var railPosition = new RailPosition(initialRailNodes, stationNodes.SegmentLength, initialDistance);
 
-            var trainCar = new TrainCar(tractionForce: 1000, inventorySlots: 1, length: stationNodes.SegmentLength);
+            var trainCar = new TrainCar(new TrainCarMasterElement(Guid.Empty, Guid.Empty, null, 1000, 1, stationNodes.SegmentLength));
             var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar });
 
             trainUnit.trainDiagram.AddEntry(stationNodes.ExitFront);

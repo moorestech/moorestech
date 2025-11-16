@@ -8,6 +8,7 @@ using Game.Block.Interface.Component;
 using Game.Train.Common;
 using Game.Train.RailGraph;
 using Game.Train.Train;
+using Mooresmaster.Model.TrainModule;
 using NUnit.Framework;
 using Tests.Module.TestMod;
 using Tests.Util;
@@ -86,7 +87,7 @@ namespace Tests.UnitTest.Game
 
 
             var railPosition = new RailPosition(new List<RailNode>(initialRailNodes), stationSegmentLength, 0);
-            var trainCar = new TrainCar(tractionForce: 1000, inventorySlots: 1, length: stationSegmentLength);
+            var trainCar = new TrainCar(new TrainCarMasterElement(Guid.Empty, Guid.Empty, null, 1000, 1, stationSegmentLength));
             var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar });
 
             var loadingEntry = trainUnit.trainDiagram.AddEntry(loadingExitComponent.FrontNode);
