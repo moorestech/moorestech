@@ -558,8 +558,8 @@ namespace Game.Train.Train
             {
                 return null;
             }
-
-            MasterHolder.TrainUnitMaster.TryGetTrainUnit(data.TrainCarGuid, out var trainCarMaster);
+            
+            if (!MasterHolder.TrainUnitMaster.TryGetTrainUnit(data.TrainCarGuid, out var trainCarMaster)) throw new Exception("trainCarMaster is not found");
             var isFacingForward = data.IsFacingForward;
             var car = new TrainCar(trainCarMaster, isFacingForward);
 
