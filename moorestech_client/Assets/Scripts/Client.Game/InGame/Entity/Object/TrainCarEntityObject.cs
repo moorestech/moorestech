@@ -28,6 +28,7 @@ namespace Client.Game.InGame.Entity.Object
         public void Initialize(long entityId)
         {
             EntityId = entityId;
+            _debugAutoRun = DebugParameters.GetValueOrDefaultBool(DebugConst.TrainAutoRunKey);//////////////////
         }
         
         public void SetTrain(Guid trainCarId, TrainCarMasterElement trainCarMasterElement)
