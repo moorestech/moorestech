@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using Client.DebugSystem.Environment;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Player;
@@ -64,7 +64,7 @@ namespace Client.DebugSystem
             rootPage.AddBoolWithSave(false, SkitPlaySettingsLabel, SkitPlaySettingsKey);
             rootPage.AddBoolWithSave(false, MapObjectSuperMineLabel, MapObjectSuperMineKey);
             rootPage.AddBoolWithSave(false, FixCraftTimeLabel, FixCraftTimeKey);
-            
+            rootPage.AddBoolWithSave(false, TrainAutoRunLabel, TrainAutoRunKey);
         }
         
         

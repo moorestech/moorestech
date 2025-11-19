@@ -46,11 +46,6 @@ namespace Tests.Util
             TrainDiagramManager.Instance.ResetInstance();
             TrainUpdateService.Instance.ResetTrains();
             RailGraphDatastore.ResetInstance();
-
-            //なんであるんだっけ、忘れた。消していいかも(toropippi) TODO
-#if UNITY_INCLUDE_TESTS
-            TrainUpdateService.Instance.ResetTickAccumulator();
-#endif
             return environment;
         }
 
