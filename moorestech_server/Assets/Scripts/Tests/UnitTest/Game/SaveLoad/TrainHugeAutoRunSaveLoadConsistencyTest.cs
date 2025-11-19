@@ -81,7 +81,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             RailGraphDatastore.ResetInstance();
 
             var loadEnvironment = TrainTestHelper.CreateEnvironment();
-            SetupRandomLengthTrainCarMasters(seed, TrainCount);
+            SetupRandomLengthTrainCarMasters(seed, TrainCount, 600000);
             SaveLoadJsonTestHelper.LoadFromJson(loadEnvironment.ServiceProvider, saveJson);
 
             // RailGraph再構築のチェック
@@ -124,7 +124,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         {
             UnityEngine.Random.InitState(seed);
             var environment = TrainTestHelper.CreateEnvironment();
-            SetupRandomLengthTrainCarMasters(seed, TrainCount);
+            SetupRandomLengthTrainCarMasters(seed, TrainCount, 600000);
             TrainUpdateService.Instance.ResetTrains();
 
             var components = BuildRailNetwork(environment, RailComponentCount, seed);
@@ -332,7 +332,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             return (Action)Delegate.CreateDelegate(typeof(Action), TrainUpdateService.Instance, method!);
         }
         
-        private static void SetupRandomLengthTrainCarMasters(int seed, int count)
+        private static void SetupRandomLengthTrainCarMasters(int seed, int count, int tractionForce)
         {
             UnityEngine.Random.InitState(seed);
             var usedLength = new HashSet<int>();
@@ -350,7 +350,7 @@ namespace Tests.UnitTest.Game.SaveLoad
                     itemGuidBytes[i] = (byte)UnityEngine.Random.Range(0, 256);
                 }
                 
-                return new TrainCarMasterElement(new Guid(trainCarGuidBytes), new Guid(itemGuidBytes), null, 600000, 0, length);
+                return new TrainCarMasterElement(new Guid(trainCarGuidBytes), new Guid(itemGuidBytes), null, tractionForce, 0, length);
             }).ToArray());
         }
         
