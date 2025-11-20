@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Blocks.TrainRail;
 using Game.Train.Common;
 using Game.Train.RailGraph;
 using Game.Train.Train;
+using Mooresmaster.Model.TrainModule;
 using NUnit.Framework;
 using Tests.Util;
 using UnityEngine;
@@ -160,9 +162,10 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             var trainLength = Math.Max(1, totalDistance / 3);
             var railPosition = new RailPosition(new List<RailNode>(railNodes), trainLength, 0);
+            var firstTrain = MasterHolder.TrainUnitMaster.Train.TrainCars.First();
             var cars = new List<TrainCar>
             {
-                new TrainCar(tractionForce: 1000, inventorySlots: 1, length: trainLength)
+                new TrainCar(new TrainCarMasterElement(firstTrain.TrainCarGuid, firstTrain.ItemGuid, null, 1000, 1, trainLength))
             };
             var train = new TrainUnit(railPosition, cars);
 

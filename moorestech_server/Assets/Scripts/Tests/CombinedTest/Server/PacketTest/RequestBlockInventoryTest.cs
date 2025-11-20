@@ -17,6 +17,7 @@ using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;
 using System;
+using Mooresmaster.Model.TrainModule;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -77,7 +78,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var backNode = railA.FrontNode;
             var distance = Mathf.Max(1, frontNode.GetDistanceToNode(backNode));
             var railPosition = new RailPosition(new List<RailNode> { frontNode, backNode }, distance, 0);
-            var trainCar = new TrainCar(tractionForce: 1000, inventorySlots: 3, length: distance);
+            var trainCar = new TrainCar(new TrainCarMasterElement(Guid.Empty, Guid.Empty, null, 1000, 3, distance));
             var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar });
 
             // 列車をTrainUpdateServiceに登録

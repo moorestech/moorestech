@@ -3,10 +3,13 @@ using Game.Block.Interface;
 using Game.Train.Common;
 using Game.Train.RailGraph;
 using Game.Train.Train;
+using Mooresmaster.Model.TrainModule;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using Core.Master;
 using Tests.Util;
 using UnityEngine;
 using Game.Block.Interface.Extension;
@@ -78,6 +81,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             RailGraphDatastore.ResetInstance();
 
             var loadEnvironment = TrainTestHelper.CreateEnvironment();
+            SetupRandomLengthTrainCarMasters(seed, TrainCount, 600000);
             SaveLoadJsonTestHelper.LoadFromJson(loadEnvironment.ServiceProvider, saveJson);
 
             // RailGraph再構築のチェック
@@ -120,6 +124,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         {
             UnityEngine.Random.InitState(seed);
             var environment = TrainTestHelper.CreateEnvironment();
+            SetupRandomLengthTrainCarMasters(seed, TrainCount, 600000);
             TrainUpdateService.Instance.ResetTrains();
 
             var components = BuildRailNetwork(environment, RailComponentCount, seed);
@@ -213,11 +218,10 @@ namespace Tests.UnitTest.Game.SaveLoad
             IReadOnlyList<RailNode> diagramNodes)
         {
             var trains = new List<TrainUnit>(TrainCount);
-            var usedLengths = new HashSet<int>();
-
-            for (var i = 0; i < TrainCount; i++)
+            
+            for (var i = 0; i < MasterHolder.TrainUnitMaster.Train.TrainCars.Length; i++)
             {
-                var length = GenerateUniqueTrainLength(usedLengths);
+                var trainCarMaster = MasterHolder.TrainUnitMaster.Train.TrainCars[i];
                 var startComponent = TrainTestHelper.PlaceRail(
                     environment,
                     new Vector3Int(-100000 - (i * 17), 0, -50000 + (i * 23)),
@@ -230,12 +234,12 @@ namespace Tests.UnitTest.Game.SaveLoad
                     entryComponent.FrontNode,
                     startComponent.FrontNode
                 };
-
-                var railPosition = new RailPosition(nodeList, length, 0);
-
+                
+                var railPosition = new RailPosition(nodeList, trainCarMaster.Length, 0);
+                
                 var cars = new List<TrainCar>
                 {
-                    new TrainCar(tractionForce: 600000, inventorySlots: 0, length: length)
+                    new TrainCar(trainCarMaster)
                 };
 
                 var train = new TrainUnit(railPosition, cars);
@@ -326,6 +330,42 @@ namespace Tests.UnitTest.Game.SaveLoad
                 .GetMethod("UpdateTrains1Tickmanually", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
             Assert.IsNotNull(method, "TrainUpdateServiceの手動Tickメソッドが見つかりません。");
             return (Action)Delegate.CreateDelegate(typeof(Action), TrainUpdateService.Instance, method!);
+        }
+        
+        private static void SetupRandomLengthTrainCarMasters(int seed, int count, int tractionForce)
+        {
+            UnityEngine.Random.InitState(seed);
+            var usedLength = new HashSet<int>();
+            SetupCustomTrainCarMasters(Enumerable.Range(0, count).Select(_ =>
+            {
+                var length = GenerateUniqueTrainLength(usedLength);
+                byte[] trainCarGuidBytes = new byte[16];
+                for (int i = 0; i < trainCarGuidBytes.Length; i++)
+                {
+                    trainCarGuidBytes[i] = (byte)UnityEngine.Random.Range(0, 256);
+                }
+                byte[] itemGuidBytes = new byte[16];
+                for (int i = 0; i < itemGuidBytes.Length; i++)
+                {
+                    itemGuidBytes[i] = (byte)UnityEngine.Random.Range(0, 256);
+                }
+                
+                return new TrainCarMasterElement(new Guid(trainCarGuidBytes), new Guid(itemGuidBytes), null, tractionForce, 0, length);
+            }).ToArray());
+        }
+        
+        private static void SetupCustomTrainCarMasters(TrainCarMasterElement[] elements)
+        {
+            var trainType = typeof(Train);
+            var trainCarsField = trainType.GetField("<TrainCars>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance);
+            trainCarsField!.SetValue(MasterHolder.TrainUnitMaster.Train, elements);
+
+            var trainCarMastersByGuid = MasterHolder.TrainUnitMaster.Train.TrainCars.ToDictionary(car => car.TrainCarGuid, car => car);
+            
+            var trainUnitMasterType = typeof(TrainUnitMaster);
+            var trainCarMastersByGuidField = trainUnitMasterType.GetField("_trainCarMastersByGuid", BindingFlags.NonPublic | BindingFlags.Instance);
+            
+            trainCarMastersByGuidField!.SetValue(MasterHolder.TrainUnitMaster, trainCarMastersByGuid);
         }
 
         private static Dictionary<int, TrainSimulationSnapshot> CaptureSnapshots()

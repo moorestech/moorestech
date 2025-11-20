@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
@@ -9,6 +10,7 @@ using Game.Context;
 using Game.Train.Common;
 using Game.Train.RailGraph;
 using Game.Train.Train;
+using Mooresmaster.Model.TrainModule;
 using NUnit.Framework;
 using Tests.Module.TestMod;
 using Tests.Util;
@@ -89,7 +91,7 @@ namespace Tests.UnitTest.Game.SaveLoad
                 stationA.ExitFront,
                 stationA.EntryFront
             };
-            var train1Car = new TrainCar(tractionForce: 20000, inventorySlots: 2, length: stationSegmentLength);
+            var train1Car = new TrainCar(new TrainCarMasterElement(Guid.Empty, Guid.Empty, null, 20000, 2, stationSegmentLength));
             var train1 = new TrainUnit(new RailPosition(train1Nodes, train1Car.Length, 0), new List<TrainCar> { train1Car });
 
             var train2Nodes = new List<RailNode>
@@ -97,7 +99,7 @@ namespace Tests.UnitTest.Game.SaveLoad
                 stationB.ExitFront,
                 stationB.EntryFront
             };
-            var train2Car = new TrainCar(tractionForce: 1000, inventorySlots: 2, length: stationSegmentLength, isFacingForward: false);
+            var train2Car = new TrainCar(new TrainCarMasterElement(Guid.Empty, Guid.Empty, null, 1000, 2, stationSegmentLength), isFacingForward: false);
             var train2 = new TrainUnit(new RailPosition(train2Nodes, train2Car.Length, 0), new List<TrainCar> { train2Car });
             train2.Reverse();
             //train1.trainUnitStationDocking.TryDockWhenStopped();
