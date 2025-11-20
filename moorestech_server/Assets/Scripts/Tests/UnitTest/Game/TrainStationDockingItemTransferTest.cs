@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Blocks.TrainRail;
@@ -8,6 +9,7 @@ using Game.Context;
 using Game.Train.Common;
 using Game.Train.RailGraph;
 using Game.Train.Train;
+using Mooresmaster.Model.TrainModule;
 using NUnit.Framework;
 using Tests.Module.TestMod;
 using Tests.Util;
@@ -51,7 +53,7 @@ namespace Tests.UnitTest.Game
             var railNodes = new List<RailNode> { exitNode, entryNode };
             var railPosition = new RailPosition(railNodes, stationSegmentLength, 0);
 
-            var trainCar = new TrainCar(tractionForce: 1000, inventorySlots: 1, length: stationSegmentLength);
+            var trainCar = new TrainCar(new TrainCarMasterElement(Guid.Empty, Guid.Empty, null, 1000, 1, stationSegmentLength));
             var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar });
 
             trainUnit.trainUnitStationDocking.TryDockWhenStopped();
@@ -109,7 +111,7 @@ namespace Tests.UnitTest.Game
             var railNodes = new List<RailNode> { exitNode, entryNode };
             var railPosition = new RailPosition(railNodes, platformSegmentLength, 0);
 
-            var trainCar = new TrainCar(tractionForce: 1000, inventorySlots: 1, length: platformSegmentLength);
+            var trainCar = new TrainCar(new TrainCarMasterElement(Guid.Empty, Guid.Empty, null, 1000, 1, platformSegmentLength));
             var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar });
 
             trainUnit.trainUnitStationDocking.TryDockWhenStopped();
@@ -168,7 +170,7 @@ namespace Tests.UnitTest.Game
             var railNodes = new List<RailNode> { exitNode, entryNode };
             var railPosition = new RailPosition(railNodes, platformSegmentLength, 0);
 
-            var trainCar = new TrainCar(tractionForce: 1000, inventorySlots: 1, length: platformSegmentLength);
+            var trainCar = new TrainCar(new TrainCarMasterElement(Guid.Empty, Guid.Empty, null, 1000, 1, platformSegmentLength));
             trainCar.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, maxStack));
 
             var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar });
@@ -228,7 +230,7 @@ namespace Tests.UnitTest.Game
             {
                 var railNodes = new List<RailNode> { exitNode, entryNode };
                 var railPosition = new RailPosition(railNodes, stationSegmentLength, 0);
-                car = new TrainCar(tractionForce: 1000, inventorySlots: 1, length: stationSegmentLength);
+                car = new TrainCar(new TrainCarMasterElement(Guid.Empty, Guid.Empty, null, 1000, 1, stationSegmentLength));
                 return new TrainUnit(railPosition, new List<TrainCar> { car });
             }
 
