@@ -41,7 +41,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 0657a7291d58e284d925aa2be3fdc553
-    m_Address: Vanilla/Block/Tree_chest
+    m_Address: Vanilla/Block/Tree_conveyor_chest
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -112,6 +112,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 1ade7ec81dc8c4207a0723e2bf2919db
     m_Address: Vanilla/Block/ConveyorSplitter
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1b7c45dd4914c49f89afd1440e3fb692
+    m_Address: Vanilla/Block/Shaft Iron
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -395,6 +400,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 670f7135a6eb2413ab7be2251f65dc41
+    m_Address: Vanilla/Block/Old/wooden chest
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 679918cdb2be9a74b90e1396abee2ff3
     m_Address: Vanilla/Block/BeltConveyor_T
     m_ReadOnly: 0
@@ -560,6 +570,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 967c750133df84cf89d64c017dfc73f4
+    m_Address: Vanilla/Block/BigGear_Iron
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 993e71dd9c6b24893b2ae97dfb5842d9
     m_Address: Vanilla/Block/OilWell
     m_ReadOnly: 0
@@ -705,6 +720,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c046183dce621409983886cf2752bfca
+    m_Address: Vanilla/Block/gear belt conveyor splitter
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: c12941c940d97294c9c356852b9f0463
     m_Address: Vanilla/Block/Old/compressor
     m_ReadOnly: 0
@@ -747,6 +767,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: cdb599fddfcab804b9387b3e962872c1
     m_Address: Vanilla/Block/Primitive_cutting_machine
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ce51f836d08c549e88b58d9bd1256a60
+    m_Address: Vanilla/Block/SmallGear_Iron
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -807,6 +832,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: d95e40af44108424b84b2d5e13947edc
     m_Address: Vanilla/Block/Old/generator mk2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: db1853b99a28e4b78b9ab01cc29d4859
+    m_Address: Vanilla/Block/Iron_conveyor_chest
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

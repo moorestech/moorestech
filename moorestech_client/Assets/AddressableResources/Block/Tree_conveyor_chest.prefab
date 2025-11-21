@@ -232,7 +232,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3366439877335841833}
   m_Layer: 7
-  m_Name: Tree_chest
+  m_Name: Tree_conveyor_chest
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
