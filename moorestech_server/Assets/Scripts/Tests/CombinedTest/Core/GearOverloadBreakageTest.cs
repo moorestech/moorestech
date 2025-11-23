@@ -15,6 +15,7 @@ using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using UniRx;
 using UnityEngine;
 
 namespace Tests.CombinedTest.Core
@@ -30,7 +31,7 @@ namespace Tests.CombinedTest.Core
             world.TryAddBlock(ForUnitTestModBlockId.BlockId, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
 
             var reasons = new List<BlockRemoveReason?>();
-            using var subscription = world.OnBlockRemoveEvent.Subscribe(update => reasons.Add(update.RemoveReason));
+            using var subscription = ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(update => reasons.Add(update.RemoveReason));
 
             var remover = provider.GetService<IBlockRemover>();
             var removed = remover.Remove(block.BlockInstanceId, BlockRemoveReason.ManualRemove);
@@ -54,7 +55,7 @@ namespace Tests.CombinedTest.Core
             world.TryAddBlock(ForUnitTestModBlockId.SmallGear, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
 
             var removalReasons = new List<BlockRemoveReason?>();
-            using var subscription = world.OnBlockRemoveEvent.Subscribe(update => removalReasons.Add(update.RemoveReason));
+            using var subscription = ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(update => removalReasons.Add(update.RemoveReason));
 
             var transformer = block.GetComponent<GearEnergyTransformer>();
             for (var i = 0; i < 120 && world.Exists(pos); i++)
