@@ -13,8 +13,8 @@ namespace Game.Block.Blocks.BeltConveyor
         private readonly double _beltConveyorSpeed;
         private readonly Torque _requiredTorque;
         
-        public GearBeltConveyorComponent(VanillaBeltConveyorComponent beltConveyorComponent, BlockInstanceId entityId, double beltConveyorSpeed, Torque requiredTorque, BlockConnectorComponent<IGearEnergyTransformer> blockConnectorComponent, GearOverloadConfig overloadConfig, IBlockRemover blockRemover)
-            : base(requiredTorque, entityId, blockConnectorComponent, overloadConfig, blockRemover)
+        public GearBeltConveyorComponent(VanillaBeltConveyorComponent beltConveyorComponent, BlockInstanceId entityId, double beltConveyorSpeed, Torque requiredTorque, BlockConnectorComponent<IGearEnergyTransformer> blockConnectorComponent)
+            : base(requiredTorque, entityId, blockConnectorComponent)
         {
             _beltConveyorComponent = beltConveyorComponent;
             _requiredTorque = requiredTorque;
@@ -24,7 +24,6 @@ namespace Game.Block.Blocks.BeltConveyor
         public override void Update()
         {
             BlockException.CheckDestroy(this);
-            base.Update();
             if (IsDestroy) return;
         }
         

@@ -77,5 +77,21 @@ namespace Game.World.Interface.DataStore
             component = default;
             return false;
         }
+        
+        // BlockInstanceIdからブロックを削除する拡張メソッド
+        // Extension method to remove block by BlockInstanceId
+        public static bool RemoveBlock(this IWorldBlockDatastore datastore, BlockInstanceId blockInstanceId, BlockRemoveReason reason)
+        {
+            var block = datastore.GetBlock(blockInstanceId);
+            if (block == null) return false;
+            
+            var position = datastore.GetBlockPosition(blockInstanceId);
+            return datastore.RemoveBlock(position, reason);
+        }
+        
+        public static bool RemoveBlock(this IWorldBlockDatastore datastore, BlockInstanceId blockInstanceId)
+        {
+            return datastore.RemoveBlock(blockInstanceId, BlockRemoveReason.ManualRemove);
+        }
     }
 }

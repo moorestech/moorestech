@@ -11,13 +11,6 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaSimpleGearGeneratorTemplate : IBlockTemplate
     {
-        private readonly IBlockRemover _blockRemover;
-
-        public VanillaSimpleGearGeneratorTemplate(IBlockRemover blockRemover)
-        {
-            _blockRemover = blockRemover;
-        }
-        
         public IBlock Load(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             return CreateGear(blockMasterElement, blockInstanceId, blockPositionInfo);
@@ -34,13 +27,20 @@ namespace Game.Block.Factory.BlockTemplate
             var overloadConfig = GearOverloadConfig.From(configParam);
             
             var blockComponent = new BlockConnectorComponent<IGearEnergyTransformer>(connectSetting, connectSetting, blockPositionInfo);
-            var gearComponent = new SimpleGearGeneratorComponent(configParam, blockInstanceId, blockComponent, overloadConfig, _blockRemover);
+            var gearComponent = new SimpleGearGeneratorComponent(configParam, blockInstanceId, blockComponent);
             
             var components = new List<IBlockComponent>
             {
                 gearComponent,
                 blockComponent,
             };
+            
+            // 過負荷破壊コンポーネントを追加
+            // Add overload breakage component
+            if (overloadConfig.IsActive)
+            {
+                components.Add(new GearOverloadBreakageComponent(blockInstanceId, gearComponent, overloadConfig));
+            }
             
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }

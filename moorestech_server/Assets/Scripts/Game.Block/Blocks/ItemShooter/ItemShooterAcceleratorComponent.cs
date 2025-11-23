@@ -21,10 +21,8 @@ namespace Game.Block.Blocks.ItemShooter
             ItemShooterComponentService service,
             ItemShooterAcceleratorBlockParam param,
             BlockInstanceId blockInstanceId,
-            BlockConnectorComponent<IGearEnergyTransformer> gearConnector,
-            GearOverloadConfig overloadConfig,
-            IBlockRemover blockRemover)
-            : base(new Torque(param.RequireTorque), blockInstanceId, gearConnector, overloadConfig, blockRemover)
+            BlockConnectorComponent<IGearEnergyTransformer> gearConnector)
+            : base(new Torque(param.RequireTorque), blockInstanceId, gearConnector)
         {
             _service = service;
             _param = param;
@@ -36,7 +34,6 @@ namespace Game.Block.Blocks.ItemShooter
         public override void Update()
         {
             BlockException.CheckDestroy(this);
-            base.Update();
             if (IsDestroy) return;
             _service.SetExternalAcceleration(CalculateAcceleration());
         }
