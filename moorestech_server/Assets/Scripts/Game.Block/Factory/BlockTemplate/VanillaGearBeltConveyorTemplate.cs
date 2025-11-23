@@ -25,7 +25,6 @@ namespace Game.Block.Factory.BlockTemplate
         private BlockSystem GetBlock(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var gearBeltParam = blockMasterElement.BlockParam as GearBeltConveyorBlockParam;
-            var overloadConfig = GearOverloadConfig.From(gearBeltParam);
             
             var gearEnergyTransformerConnector = new BlockConnectorComponent<IGearEnergyTransformer>(
                 gearBeltParam.Gear.GearConnects,

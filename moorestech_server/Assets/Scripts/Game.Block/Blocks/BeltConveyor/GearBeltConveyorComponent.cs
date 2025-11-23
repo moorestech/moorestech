@@ -21,7 +21,7 @@ namespace Game.Block.Blocks.BeltConveyor
             _beltConveyorSpeed = beltConveyorSpeed;
         }
         
-        public override void Update()
+        public void Update()
         {
             BlockException.CheckDestroy(this);
             if (IsDestroy) return;

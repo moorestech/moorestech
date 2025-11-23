@@ -44,7 +44,6 @@ namespace Game.Block.Factory.BlockTemplate
             var connectSetting = machineParam.Gear.GearConnects;
             var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(connectSetting, connectSetting, blockPositionInfo);
             var requiredTorque = new Torque(machineParam.RequireTorque);
-            var overloadConfig = GearOverloadConfig.From(machineParam);
             var gearEnergyTransformer = new GearEnergyTransformer(requiredTorque, blockInstanceId, gearConnector);
             
             var requirePower = new ElectricPower(machineParam.RequireTorque * machineParam.RequiredRpm);

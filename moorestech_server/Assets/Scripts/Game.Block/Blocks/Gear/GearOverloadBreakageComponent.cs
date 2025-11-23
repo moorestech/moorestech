@@ -1,8 +1,12 @@
+using System;
+using Core.Master;
 using Core.Update;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
 using Game.Gear.Common;
+using Game.World.Interface.DataStore;
+using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 
 namespace Game.Block.Blocks.Gear
@@ -13,19 +17,19 @@ namespace Game.Block.Blocks.Gear
     {
         private readonly BlockInstanceId _blockInstanceId;
         private readonly IGearEnergyTransformer _gearEnergyTransformer;
-        private readonly GearOverloadConfig _overloadConfig;
+        private readonly IGearOverloadParam _overloadParam;
         private readonly double _checkInterval;
         private readonly bool _overloadEnabled;
         private double _elapsedSeconds;
         private bool _isDestroyed;
 
-        public GearOverloadBreakageComponent(BlockInstanceId blockInstanceId, IGearEnergyTransformer gearEnergyTransformer, GearOverloadConfig overloadConfig)
+        public GearOverloadBreakageComponent(BlockInstanceId blockInstanceId, IGearEnergyTransformer gearEnergyTransformer, IGearOverloadParam overloadParam)
         {
             _blockInstanceId = blockInstanceId;
             _gearEnergyTransformer = gearEnergyTransformer;
-            _overloadConfig = overloadConfig;
-            _checkInterval = Math.Max(overloadConfig.DestructionCheckInterval, 0.001f);
-            _overloadEnabled = overloadConfig.IsActive;
+            _overloadParam = overloadParam;
+            _checkInterval = Math.Max(overloadParam.DestructionCheckInterval, 0.001f);
+            _overloadEnabled = overloadParam.BaseDestructionProbability > 0 && (overloadParam.OverloadMaxRpm > 0 || overloadParam.OverloadMaxTorque > 0);
         }
 
         public void Update()
@@ -48,14 +52,14 @@ namespace Game.Block.Blocks.Gear
 
             float CalculateDestructionProbability()
             {
-                var rpmRatio = _overloadConfig.OverloadMaxRpm > 0 ? _gearEnergyTransformer.CurrentRpm.AsPrimitive() / (float)_overloadConfig.OverloadMaxRpm : 0f;
-                var torqueRatio = _overloadConfig.OverloadMaxTorque > 0 ? _gearEnergyTransformer.CurrentTorque.AsPrimitive() / (float)_overloadConfig.OverloadMaxTorque : 0f;
+                var rpmRatio = _overloadParam.OverloadMaxRpm > 0 ? _gearEnergyTransformer.CurrentRpm.AsPrimitive() / (float)_overloadParam.OverloadMaxRpm : 0f;
+                var torqueRatio = _overloadParam.OverloadMaxTorque > 0 ? _gearEnergyTransformer.CurrentTorque.AsPrimitive() / (float)_overloadParam.OverloadMaxTorque : 0f;
                 var rpmExcess = rpmRatio > 1f ? rpmRatio : 0f;
                 var torqueExcess = torqueRatio > 1f ? torqueRatio : 0f;
                 if (rpmExcess <= 0f && torqueExcess <= 0f) return 0f;
 
                 var multiplier = rpmExcess > 0f && torqueExcess > 0f ? rpmExcess * torqueExcess : Math.Max(rpmExcess, torqueExcess);
-                var probability = (float)(_overloadConfig.BaseDestructionProbability * multiplier);
+                var probability = (float)(_overloadParam.BaseDestructionProbability * multiplier);
                 return Mathf.Clamp01(probability);
             }
 
@@ -66,6 +70,13 @@ namespace Game.Block.Blocks.Gear
             }
 
             #endregion
+        }
+
+        public bool IsDestroy => _isDestroyed;
+
+        public void Destroy()
+        {
+            _isDestroyed = true;
         }
     }
 }

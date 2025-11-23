@@ -24,7 +24,6 @@ namespace Game.Block.Factory.BlockTemplate
         {
             var configParam = blockMasterElement.BlockParam as SimpleGearGeneratorBlockParam;
             var connectSetting = configParam.Gear.GearConnects;
-            var overloadConfig = GearOverloadConfig.From(configParam);
             
             var blockComponent = new BlockConnectorComponent<IGearEnergyTransformer>(connectSetting, connectSetting, blockPositionInfo);
             var gearComponent = new SimpleGearGeneratorComponent(configParam, blockInstanceId, blockComponent);

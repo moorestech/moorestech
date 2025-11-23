@@ -27,7 +27,6 @@ namespace Game.Block.Factory.BlockTemplate
         private IBlock GetBlock(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var param = (GearPumpBlockParam)blockMasterElement.BlockParam;
-            var overloadConfig = GearOverloadConfig.From(param);
 
             // Gear connector and transformer
             var gearConnectSetting = param.Gear.GearConnects;

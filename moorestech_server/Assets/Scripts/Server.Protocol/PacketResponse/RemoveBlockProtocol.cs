@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Core.Master;
+using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
 using Game.PlayerInventory.Interface;
@@ -68,7 +69,7 @@ namespace Server.Protocol.PacketResponse
             
             //ブロック内のアイテムを全てインベントリに入れ、ブロックもインベントリに入れれた時だけブロックを削除する
             if (isNotRemainItem && remainBlockItem.Equals(ServerContext.ItemStackFactory.CreatEmpty()))
-                worldBlockDatastore.RemoveBlock(data.Pos);
+                worldBlockDatastore.RemoveBlock(data.Pos, BlockRemoveReason.ManualRemove);
             
             return null;
         }

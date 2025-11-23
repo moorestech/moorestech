@@ -45,7 +45,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             var worldDataStore = ServerContext.WorldBlockDatastore;
             //一個ブロックを削除
-            worldDataStore.RemoveBlock(new Vector3Int(4, 0));
+            worldDataStore.RemoveBlock(new Vector3Int(4, 0), BlockRemoveReason.ManualRemove);
             
             //イベントを取得
             response = packetResponse.GetPacketResponse(EventRequestData(0));
@@ -57,8 +57,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(0, pos.y);
             
             //二個ブロックを削除
-            worldDataStore.RemoveBlock(new Vector3Int(3, 1));
-            worldDataStore.RemoveBlock(new Vector3Int(1, 4));
+            worldDataStore.RemoveBlock(new Vector3Int(3, 1), BlockRemoveReason.ManualRemove);
+            worldDataStore.RemoveBlock(new Vector3Int(1, 4), BlockRemoveReason.ManualRemove);
             //イベントを取得
             response = packetResponse.GetPacketResponse(EventRequestData(0));
             eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());

@@ -26,7 +26,6 @@ namespace Game.Block.Factory.BlockTemplate
         private IBlock CreateBlock(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var acceleratorParam = blockMasterElement.BlockParam as ItemShooterAcceleratorBlockParam;
-            var overloadConfig = GearOverloadConfig.From(acceleratorParam);
 
             var inventoryConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(acceleratorParam.InventoryConnectors, blockPositionInfo);
             var gearConnectorComponent = new BlockConnectorComponent<IGearEnergyTransformer>(

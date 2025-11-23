@@ -43,7 +43,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             foreach (var position in positions)
             {
-                environment.WorldBlockDatastore.RemoveBlock(position);
+                environment.WorldBlockDatastore.RemoveBlock(position, BlockRemoveReason.ManualRemove);
             }
 
             RailGraphDatastore.ResetInstance();
@@ -183,7 +183,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             foreach (var position in positions)
             {
-                environment.WorldBlockDatastore.RemoveBlock(position);
+                environment.WorldBlockDatastore.RemoveBlock(position, BlockRemoveReason.ManualRemove);
             }
 
             RailGraphDatastore.ResetInstance();

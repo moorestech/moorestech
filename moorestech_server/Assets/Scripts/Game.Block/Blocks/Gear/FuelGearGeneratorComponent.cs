@@ -70,7 +70,7 @@ namespace Game.Block.Blocks.Gear
 
         // フレーム更新で燃料と状態を処理し、出力がある限り観測者へ通知する
         // Process fuel and state each frame, notifying observers while power is produced
-        public override void Update()
+        public void Update()
         {
             BlockException.CheckDestroy(this);
             if (IsDestroy) return;

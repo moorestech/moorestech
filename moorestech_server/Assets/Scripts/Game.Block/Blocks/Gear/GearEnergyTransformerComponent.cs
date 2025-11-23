@@ -12,28 +12,6 @@ using UnityEngine;
 
 namespace Game.Block.Blocks.Gear
 {
-    public readonly struct GearOverloadConfig
-    {
-        public GearOverloadConfig(double overloadMaxRpm, double overloadMaxTorque, double destructionCheckInterval, double baseDestructionProbability)
-        {
-            OverloadMaxRpm = overloadMaxRpm;
-            OverloadMaxTorque = overloadMaxTorque;
-            DestructionCheckInterval = destructionCheckInterval;
-            BaseDestructionProbability = baseDestructionProbability;
-        }
-
-        public double OverloadMaxRpm { get; }
-        public double OverloadMaxTorque { get; }
-        public double DestructionCheckInterval { get; }
-        public double BaseDestructionProbability { get; }
-        public bool IsActive => BaseDestructionProbability > 0 && (OverloadMaxRpm > 0 || OverloadMaxTorque > 0);
-
-        public static GearOverloadConfig From(IGearOverloadParam param)
-        {
-            return new GearOverloadConfig(param.OverloadMaxRpm, param.OverloadMaxTorque, param.DestructionCheckInterval, param.BaseDestructionProbability);
-        }
-    }
-    
     public class GearEnergyTransformer : IGearEnergyTransformer, IBlockStateObservable
     {
         public IObservable<Unit> OnChangeBlockState => _simpleGearService.BlockStateChange;

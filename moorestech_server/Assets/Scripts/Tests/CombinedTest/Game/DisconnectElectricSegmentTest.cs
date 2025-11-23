@@ -47,7 +47,7 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(1, worldElectricSegment.GetEnergySegmentListCount());
             
             //右端の電柱を削除
-            worldBlockDatastore.RemoveBlock(Pos(6, 0));
+            worldBlockDatastore.RemoveBlock(Pos(6, 0), BlockRemoveReason.ManualRemove);
             //セグメントの数を確認
             Assert.AreEqual(1, worldElectricSegment.GetEnergySegmentListCount());
             //電柱を再設置
@@ -57,7 +57,7 @@ namespace Tests.CombinedTest.Game
             
             
             //真ん中の電柱を削除
-            worldBlockDatastore.RemoveBlock(Pos(3, 0));
+            worldBlockDatastore.RemoveBlock(Pos(3, 0), BlockRemoveReason.ManualRemove);
             //セグメントが増えていることを確認する
             Assert.AreEqual(2, worldElectricSegment.GetEnergySegmentListCount());
             
@@ -76,7 +76,7 @@ namespace Tests.CombinedTest.Game
             Assert.AreNotEqual(segment1.GetHashCode(), segment2.GetHashCode());
             
             //右端の電柱を削除する
-            worldBlockDatastore.RemoveBlock(Pos(6, 0));
+            worldBlockDatastore.RemoveBlock(Pos(6, 0), BlockRemoveReason.ManualRemove);
             //セグメントが減っていることを確認する
             Assert.AreEqual(1, worldElectricSegment.GetEnergySegmentListCount());
         }
@@ -116,7 +116,7 @@ namespace Tests.CombinedTest.Game
             Assert.IsTrue(segment.Consumers.ContainsKey(machineInstanceId));
 
             //電柱を削除
-            worldBlockDatastore.RemoveBlock(Pos(2, 0));
+            worldBlockDatastore.RemoveBlock(Pos(2, 0), BlockRemoveReason.ManualRemove);
 
             //セグメントが削除されていることを確認
             Assert.AreEqual(0, worldElectricSegment.GetEnergySegmentListCount());
@@ -162,7 +162,7 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(1, worldElectricSegment.GetEnergySegmentListCount());
             
             //真ん中の電柱を削除
-            worldBlockDatastore.RemoveBlock(Pos(3, 0));
+            worldBlockDatastore.RemoveBlock(Pos(3, 0), BlockRemoveReason.ManualRemove);
             //セグメント数が変わってないかチェック
             Assert.AreEqual(1, worldElectricSegment.GetEnergySegmentListCount());
             

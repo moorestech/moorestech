@@ -27,7 +27,6 @@ namespace Game.Block.Factory.BlockTemplate
         private IBlock CreateFuelGearGenerator(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var configParam = blockMasterElement.BlockParam as FuelGearGeneratorBlockParam;
-            var overloadConfig = GearOverloadConfig.From(configParam);
             
             // ギア接続の設定
             var gearConnectSetting = configParam.Gear.GearConnects;
