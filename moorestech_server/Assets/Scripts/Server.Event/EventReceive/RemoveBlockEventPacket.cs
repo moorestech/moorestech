@@ -19,7 +19,7 @@ namespace Server.Event.EventReceive
             ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(OnBlockRemove);
         }
         
-        private void OnBlockRemove(BlockUpdateProperties updateProperties)
+        private void OnBlockRemove(BlockRemoveProperties updateProperties)
         {
             var pos = updateProperties.Pos;
             var payload = MessagePackSerializer.Serialize(new RemoveBlockEventMessagePack(pos));

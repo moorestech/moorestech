@@ -47,7 +47,7 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
         /// ブロック削除
         /// Block removal event handler
         /// </summary>
-        private void OnBlockRemove(Game.World.Interface.DataStore.BlockUpdateProperties properties)
+        private void OnBlockRemove(Game.World.Interface.DataStore.BlockRemoveProperties properties)
         {
             var (identifier, playerIds) = GetSubscribers(properties.Pos);
             if (playerIds.Count == 0) return;

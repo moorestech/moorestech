@@ -27,7 +27,7 @@ namespace Game.World.EventHandler.EnergyEvent
             ServerContext.WorldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(OnBlockPlace);
         }
         
-        private void OnBlockPlace(BlockUpdateProperties updateProperties)
+        private void OnBlockPlace(BlockPlaceProperties updateProperties)
         {
             var pos = updateProperties.Pos;
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
