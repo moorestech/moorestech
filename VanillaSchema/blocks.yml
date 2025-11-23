@@ -52,6 +52,28 @@ defineInterface:
   properties:
   - key: fuelItemSlotCount
     type: integer
+- interfaceName: IGearOverloadParam
+  properties:
+  - key: maxRpm
+    type: integer
+    default: 0
+    # 許容最大RPM（0以下の場合は過負荷チェック無効）
+    # Maximum allowable RPM (disabled if 0 or less)
+  - key: maxTorque
+    type: number
+    default: 0
+    # 許容最大トルク（0以下の場合は過負荷チェック無効）
+    # Maximum allowable torque (disabled if 0 or less)
+  - key: overloadCheckIntervalSeconds
+    type: number
+    default: 1.0
+    # 過負荷チェック間隔（秒）
+    # Overload check interval in seconds
+  - key: baseBreakageProbability
+    type: number
+    default: 0.0
+    # 基本破壊確率（0.0～1.0）
+    # Base breakage probability (0.0-1.0)
 
 properties:
 - key: data
@@ -274,6 +296,8 @@ properties:
           ref: inventoryConnects
       - when: Gear
         type: object
+        implementationInterface:
+        - IGearOverloadParam
         properties:
         - key: teethCount
           type: integer
@@ -287,6 +311,7 @@ properties:
         type: object
         implementationInterface:
         - IGearConnectors
+        - IGearOverloadParam
         properties:
         - key: requireTorque
           type: number
@@ -300,6 +325,7 @@ properties:
         - IGearMachineParam
         - IInventoryConnectors
         - IGearConnectors
+        - IGearOverloadParam
         properties:
         - key: inputSlotCount
           type: integer
@@ -335,6 +361,7 @@ properties:
         type: object
         implementationInterface:
         - IGearConnectors
+        - IGearOverloadParam
         properties:
         - key: teethCount
           type: integer
@@ -353,6 +380,7 @@ properties:
         - IGearConnectors
         - IInventoryConnectors
         - IFuelItemSlotParam
+        - IGearOverloadParam
         properties:
         - key: teethCount
           type: integer
@@ -431,6 +459,7 @@ properties:
         implementationInterface:
         - IInventoryConnectors
         - IGearConnectors
+        - IGearOverloadParam
         properties:
         - key: beltConveyorItemCount
           type: integer
@@ -481,6 +510,7 @@ properties:
         implementationInterface:
         - IInventoryConnectors
         - IGearConnectors
+        - IGearOverloadParam
         properties:
         - key: inventoryItemNum
           type: integer
@@ -523,6 +553,7 @@ properties:
         - IMinerParam
         - IInventoryConnectors
         - IGearConnectors
+        - IGearOverloadParam
         properties:
         - key: teethCount
           type: integer
@@ -549,6 +580,7 @@ properties:
         - IGearMachineParam
         - IInventoryConnectors
         - IGearConnectors
+        - IGearOverloadParam
         properties:
         - key: teethCount
           type: integer
@@ -736,6 +768,7 @@ properties:
         type: object
         implementationInterface:
         - IGearConnectors
+        - IGearOverloadParam
         properties:
         - key: generateFluid
           ref: generateFluids
@@ -769,6 +802,7 @@ properties:
         type: object
         implementationInterface:
         - IGearConnectors
+        - IGearOverloadParam
         properties:
         - key: teethCount
           type: integer
