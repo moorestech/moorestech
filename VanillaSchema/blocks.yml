@@ -48,6 +48,20 @@ defineInterface:
   properties:
     - key: gear
       ref: gear
+- interfaceName: IGearOverloadParam
+  properties:
+  - key: overloadMaxRpm
+    type: number
+    default: 0
+  - key: overloadMaxTorque
+    type: number
+    default: 0
+  - key: destructionCheckInterval
+    type: number
+    default: 1
+  - key: baseDestructionProbability
+    type: number
+    default: 0
 - interfaceName: IFuelItemSlotParam
   properties:
   - key: fuelItemSlotCount
@@ -274,6 +288,8 @@ properties:
           ref: inventoryConnects
       - when: Gear
         type: object
+        implementationInterface:
+        - IGearOverloadParam
         properties:
         - key: teethCount
           type: integer
@@ -287,6 +303,7 @@ properties:
         type: object
         implementationInterface:
         - IGearConnectors
+        - IGearOverloadParam
         properties:
         - key: requireTorque
           type: number
@@ -300,6 +317,7 @@ properties:
         - IGearMachineParam
         - IInventoryConnectors
         - IGearConnectors
+        - IGearOverloadParam
         properties:
         - key: inputSlotCount
           type: integer
@@ -335,6 +353,7 @@ properties:
         type: object
         implementationInterface:
         - IGearConnectors
+        - IGearOverloadParam
         properties:
         - key: teethCount
           type: integer
@@ -353,6 +372,7 @@ properties:
         - IGearConnectors
         - IInventoryConnectors
         - IFuelItemSlotParam
+        - IGearOverloadParam
         properties:
         - key: teethCount
           type: integer
@@ -431,6 +451,7 @@ properties:
         implementationInterface:
         - IInventoryConnectors
         - IGearConnectors
+        - IGearOverloadParam
         properties:
         - key: beltConveyorItemCount
           type: integer
@@ -481,6 +502,7 @@ properties:
         implementationInterface:
         - IInventoryConnectors
         - IGearConnectors
+        - IGearOverloadParam
         properties:
         - key: inventoryItemNum
           type: integer
@@ -523,6 +545,7 @@ properties:
         - IMinerParam
         - IInventoryConnectors
         - IGearConnectors
+        - IGearOverloadParam
         properties:
         - key: teethCount
           type: integer
@@ -549,6 +572,7 @@ properties:
         - IGearMachineParam
         - IInventoryConnectors
         - IGearConnectors
+        - IGearOverloadParam
         properties:
         - key: teethCount
           type: integer
@@ -736,6 +760,7 @@ properties:
         type: object
         implementationInterface:
         - IGearConnectors
+        - IGearOverloadParam
         properties:
         - key: generateFluid
           ref: generateFluids
@@ -769,6 +794,7 @@ properties:
         type: object
         implementationInterface:
         - IGearConnectors
+        - IGearOverloadParam
         properties:
         - key: teethCount
           type: integer

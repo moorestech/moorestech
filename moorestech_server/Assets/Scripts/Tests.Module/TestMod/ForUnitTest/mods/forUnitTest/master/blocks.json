@@ -1008,6 +1008,10 @@
       "blockType": "Gear",
       "blockParam": {
         "requireTorque": 0,
+        "overloadMaxRpm": 10,
+        "overloadMaxTorque": 10,
+        "destructionCheckInterval": 0.01,
+        "baseDestructionProbability": 1,
         "teethCount": 10,
         "gear": {
           "gearConnects": [
