@@ -299,6 +299,18 @@ properties:
         implementationInterface:
         - IGearOverloadParam
         properties:
+        - key: maxRpm
+          type: integer
+          default: 0
+        - key: maxTorque
+          type: number
+          default: 0
+        - key: overloadCheckIntervalSeconds
+          type: number
+          default: 1.0
+        - key: baseBreakageProbability
+          type: number
+          default: 0.0
         - key: teethCount
           type: integer
           default: 10
@@ -313,6 +325,18 @@ properties:
         - IGearConnectors
         - IGearOverloadParam
         properties:
+        - key: maxRpm
+          type: integer
+          default: 0
+        - key: maxTorque
+          type: number
+          default: 0
+        - key: overloadCheckIntervalSeconds
+          type: number
+          default: 1.0
+        - key: baseBreakageProbability
+          type: number
+          default: 0.0
         - key: requireTorque
           type: number
           default: 1
@@ -327,6 +351,18 @@ properties:
         - IGearConnectors
         - IGearOverloadParam
         properties:
+        - key: maxRpm
+          type: integer
+          default: 0
+        - key: maxTorque
+          type: number
+          default: 0
+        - key: overloadCheckIntervalSeconds
+          type: number
+          default: 1.0
+        - key: baseBreakageProbability
+          type: number
+          default: 0.0
         - key: inputSlotCount
           type: integer
           default: 1
@@ -363,6 +399,18 @@ properties:
         - IGearConnectors
         - IGearOverloadParam
         properties:
+        - key: maxRpm
+          type: integer
+          default: 0
+        - key: maxTorque
+          type: number
+          default: 0
+        - key: overloadCheckIntervalSeconds
+          type: number
+          default: 1.0
+        - key: baseBreakageProbability
+          type: number
+          default: 0.0
         - key: teethCount
           type: integer
           default: 10
@@ -382,6 +430,18 @@ properties:
         - IFuelItemSlotParam
         - IGearOverloadParam
         properties:
+        - key: maxRpm
+          type: integer
+          default: 0
+        - key: maxTorque
+          type: number
+          default: 0
+        - key: overloadCheckIntervalSeconds
+          type: number
+          default: 1.0
+        - key: baseBreakageProbability
+          type: number
+          default: 0.0
         - key: teethCount
           type: integer
           default: 10
@@ -461,6 +521,18 @@ properties:
         - IGearConnectors
         - IGearOverloadParam
         properties:
+        - key: maxRpm
+          type: integer
+          default: 0
+        - key: maxTorque
+          type: number
+          default: 0
+        - key: overloadCheckIntervalSeconds
+          type: number
+          default: 1.0
+        - key: baseBreakageProbability
+          type: number
+          default: 0.0
         - key: beltConveyorItemCount
           type: integer
           default: 4
@@ -512,6 +584,18 @@ properties:
         - IGearConnectors
         - IGearOverloadParam
         properties:
+        - key: maxRpm
+          type: integer
+          default: 0
+        - key: maxTorque
+          type: number
+          default: 0
+        - key: overloadCheckIntervalSeconds
+          type: number
+          default: 1.0
+        - key: baseBreakageProbability
+          type: number
+          default: 0.0
         - key: inventoryItemNum
           type: integer
           default: 4
@@ -555,6 +639,18 @@ properties:
         - IGearConnectors
         - IGearOverloadParam
         properties:
+        - key: maxRpm
+          type: integer
+          default: 0
+        - key: maxTorque
+          type: number
+          default: 0
+        - key: overloadCheckIntervalSeconds
+          type: number
+          default: 1.0
+        - key: baseBreakageProbability
+          type: number
+          default: 0.0
         - key: teethCount
           type: integer
           default: 10
@@ -582,6 +678,18 @@ properties:
         - IGearConnectors
         - IGearOverloadParam
         properties:
+        - key: maxRpm
+          type: integer
+          default: 0
+        - key: maxTorque
+          type: number
+          default: 0
+        - key: overloadCheckIntervalSeconds
+          type: number
+          default: 1.0
+        - key: baseBreakageProbability
+          type: number
+          default: 0.0
         - key: teethCount
           type: integer
           default: 10
@@ -770,6 +878,18 @@ properties:
         - IGearConnectors
         - IGearOverloadParam
         properties:
+        - key: maxRpm
+          type: integer
+          default: 0
+        - key: maxTorque
+          type: number
+          default: 0
+        - key: overloadCheckIntervalSeconds
+          type: number
+          default: 1.0
+        - key: baseBreakageProbability
+          type: number
+          default: 0.0
         - key: generateFluid
           ref: generateFluids
         - key: innerTankCapacity
@@ -804,6 +924,18 @@ properties:
         - IGearConnectors
         - IGearOverloadParam
         properties:
+        - key: maxRpm
+          type: integer
+          default: 0
+        - key: maxTorque
+          type: number
+          default: 0
+        - key: overloadCheckIntervalSeconds
+          type: number
+          default: 1.0
+        - key: baseBreakageProbability
+          type: number
+          default: 0.0
         - key: teethCount
           type: integer
           default: 10

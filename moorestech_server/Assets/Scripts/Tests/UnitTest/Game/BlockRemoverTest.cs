@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Core.Master;
 using Game.Block;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -39,7 +40,11 @@ namespace Tests.UnitTest.Game
             public bool RemoveCalled { get; private set; }
             public Vector3Int LastRemovedPosition { get; private set; }
 
-            public bool TryAddBlock(BlockId blockId, Vector3Int position, BlockDirection direction, BlockCreateParam[] createParams, out IBlock block) => throw new NotImplementedException();
+            public bool TryAddBlock(BlockId blockId, Vector3Int position, BlockDirection direction, BlockCreateParam[] createParams, out IBlock block)
+            {
+                block = null;
+                return false;
+            }
             public bool TryAddLoadedBlock(Guid blockGuid, BlockInstanceId blockInstanceId, Dictionary<string, string> componentStates, Vector3Int position, BlockDirection direction, out IBlock block) => throw new NotImplementedException();
             public bool RemoveBlock(Vector3Int pos)
             {
