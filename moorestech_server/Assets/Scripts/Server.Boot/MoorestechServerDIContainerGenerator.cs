@@ -4,7 +4,6 @@ using Core.Item;
 using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
-using Game.Block;
 using Game.Block.Event;
 using Game.Block.Factory;
 using Game.Block.Interface;
@@ -86,11 +85,10 @@ namespace Server.Boot
             var initializerCollection = new ServiceCollection();
             initializerCollection.AddSingleton(masterJsonFileContainer);
             initializerCollection.AddSingleton<IItemStackFactory, ItemStackFactory>();
-            initializerCollection.AddSingleton<IWorldBlockDatastore, WorldBlockDatastore>();
-            initializerCollection.AddSingleton<IBlockRemover>(sp => new BlockRemover(() => sp.GetService<IWorldBlockDatastore>()));
             initializerCollection.AddSingleton<VanillaIBlockTemplates, VanillaIBlockTemplates>();
             initializerCollection.AddSingleton<IBlockFactory, BlockFactory>();
 
+            initializerCollection.AddSingleton<IWorldBlockDatastore, WorldBlockDatastore>();
             initializerCollection.AddSingleton<IWorldBlockUpdateEvent, WorldBlockUpdateEvent>();
             initializerCollection.AddSingleton<IBlockOpenableInventoryUpdateEvent, BlockOpenableInventoryUpdateEvent>();
             initializerCollection.AddSingleton<GearNetworkDatastore>();

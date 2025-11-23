@@ -1,4 +1,3 @@
-using System;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Gear.Common;
@@ -13,8 +12,8 @@ namespace Game.Block.Blocks.Gear
         public Torque GenerateTorque { get; }
         public bool GenerateIsClockwise { get; }
         
-        public SimpleGearGeneratorComponent(SimpleGearGeneratorBlockParam simpleGearGeneratorBlockParam, BlockInstanceId blockInstanceId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent, IBlockRemover blockRemover, Guid blockGuid) :
-            base(new Torque(0), blockInstanceId, connectorComponent, blockRemover, blockGuid)
+        public SimpleGearGeneratorComponent(SimpleGearGeneratorBlockParam simpleGearGeneratorBlockParam, BlockInstanceId blockInstanceId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent) :
+            base(new Torque(0), blockInstanceId, connectorComponent)
         {
             TeethCount = simpleGearGeneratorBlockParam.TeethCount;
             GenerateRpm = new RPM(simpleGearGeneratorBlockParam.GenerateRpm);
