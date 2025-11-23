@@ -14,13 +14,6 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaGearMapObjectMinerTemplate : IBlockTemplate
     {
-        private readonly IBlockRemover _blockRemover;
-        
-        public VanillaGearMapObjectMinerTemplate(IBlockRemover blockRemover)
-        {
-            _blockRemover = blockRemover;
-        }
-
         public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] createParams)
         {
             return GetBlock(null, blockMasterElement, blockInstanceId, blockPositionInfo);
@@ -47,7 +40,7 @@ namespace Game.Block.Factory.BlockTemplate
             // Components required for gear connection
             var gearConnectSetting = minerParam.Gear.GearConnects;
             var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(gearConnectSetting, gearConnectSetting, blockPositionInfo);
-            var gearEnergyTransformer = new GearEnergyTransformer(new Torque(minerParam.RequireTorque), GearOverloadConfig.Create(minerParam.Gear), _blockRemover, blockInstanceId, gearConnector);
+            var gearEnergyTransformer = new GearEnergyTransformer(new Torque(minerParam.RequireTorque), blockInstanceId, gearConnector);
             
             // MapObject採掘機
             // MapObject Miner

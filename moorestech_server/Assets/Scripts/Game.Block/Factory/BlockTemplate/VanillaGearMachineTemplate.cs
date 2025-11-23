@@ -17,12 +17,10 @@ namespace Game.Block.Factory.BlockTemplate
     public class VanillaGearMachineTemplate : IBlockTemplate
     {
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdateEvent;
-        private readonly IBlockRemover _blockRemover;
         
-        public VanillaGearMachineTemplate(BlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent, IBlockRemover blockRemover)
+        public VanillaGearMachineTemplate(BlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent)
         {
             _blockInventoryUpdateEvent = blockInventoryUpdateEvent;
-            _blockRemover = blockRemover;
         }
         
         public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] createParams)
@@ -46,7 +44,7 @@ namespace Game.Block.Factory.BlockTemplate
             var connectSetting = machineParam.Gear.GearConnects;
             var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(connectSetting, connectSetting, blockPositionInfo);
             var requiredTorque = new Torque(machineParam.RequireTorque);
-            var gearEnergyTransformer = new GearEnergyTransformer(requiredTorque, GearOverloadConfig.Create(machineParam.Gear), _blockRemover, blockInstanceId, gearConnector);
+            var gearEnergyTransformer = new GearEnergyTransformer(requiredTorque, blockInstanceId, gearConnector);
             
             var requirePower = new ElectricPower(machineParam.RequireTorque * machineParam.RequiredRpm);
             

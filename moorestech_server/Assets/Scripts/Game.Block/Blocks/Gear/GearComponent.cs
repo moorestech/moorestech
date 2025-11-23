@@ -9,22 +9,22 @@ namespace Game.Block.Blocks.Gear
     {
         public int TeethCount { get; }
         
-        public GearComponent(int teethCount, Torque requiredPower, GearOverloadConfig config, IBlockRemover remover, BlockInstanceId blockInstanceId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent)
-            : base(requiredPower, config, remover, blockInstanceId, connectorComponent)
+        public GearComponent(int teethCount, Torque requiredPower, BlockInstanceId blockInstanceId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent)
+            : base(requiredPower, blockInstanceId, connectorComponent)
         {
             TeethCount = teethCount;
         }
         
-        public GearComponent(GearMachineBlockParam param, IBlockRemover remover, BlockInstanceId blockInstanceId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent)
-            : base(new Torque(param.RequireTorque), GearOverloadConfig.Create(param.Gear), remover, blockInstanceId, connectorComponent)
+        public GearComponent(GearMachineBlockParam gearMachineBlockParam, BlockInstanceId blockInstanceId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent)
+            : base(new Torque(gearMachineBlockParam.RequireTorque), blockInstanceId, connectorComponent)
         {
-            TeethCount = param.TeethCount;
+            TeethCount = gearMachineBlockParam.TeethCount;
         }
         
-        public GearComponent(GearBlockParam param, IBlockRemover remover, BlockInstanceId blockInstanceId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent)
-            : base(new Torque(param.RequireTorque), GearOverloadConfig.Create(param.Gear), remover, blockInstanceId, connectorComponent)
+        public GearComponent(GearBlockParam gearBlockParam, BlockInstanceId blockInstanceId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent)
+            : base(new Torque(gearBlockParam.RequireTorque), blockInstanceId, connectorComponent)
         {
-            TeethCount = param.TeethCount;
+            TeethCount = gearBlockParam.TeethCount;
         }
     }
 }
