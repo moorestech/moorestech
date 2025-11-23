@@ -11,13 +11,6 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaGearElectricGeneratorTemplate : IBlockTemplate
     {
-        private readonly IBlockRemover _blockRemover;
-
-        public VanillaGearElectricGeneratorTemplate(IBlockRemover blockRemover)
-        {
-            _blockRemover = blockRemover;
-        }
-
         public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] createParams)
         {
             return Create(blockMasterElement, blockInstanceId, blockPositionInfo);
@@ -36,7 +29,7 @@ namespace Game.Block.Factory.BlockTemplate
             
             var components = new List<IBlockComponent>
             {
-                new GearElectricGeneratorComponent(param, _blockRemover, blockInstanceId, gearConnector),
+                new GearElectricGeneratorComponent(param, blockInstanceId, gearConnector),
                 gearConnector,
             };
             

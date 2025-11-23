@@ -12,12 +12,12 @@ namespace Game.Block.Blocks.Gear
         public Torque GenerateTorque { get; }
         public bool GenerateIsClockwise { get; }
         
-        public SimpleGearGeneratorComponent(SimpleGearGeneratorBlockParam param, IBlockRemover remover, BlockInstanceId blockInstanceId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent) :
-            base(new Torque(0), GearOverloadConfig.Create(param.Gear), remover, blockInstanceId, connectorComponent)
+        public SimpleGearGeneratorComponent(SimpleGearGeneratorBlockParam simpleGearGeneratorBlockParam, BlockInstanceId blockInstanceId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent) :
+            base(new Torque(0), blockInstanceId, connectorComponent)
         {
-            TeethCount = param.TeethCount;
-            GenerateRpm = new RPM(param.GenerateRpm);
-            GenerateTorque = new Torque(param.GenerateTorque);
+            TeethCount = simpleGearGeneratorBlockParam.TeethCount;
+            GenerateRpm = new RPM(simpleGearGeneratorBlockParam.GenerateRpm);
+            GenerateTorque = new Torque(simpleGearGeneratorBlockParam.GenerateTorque);
             GenerateIsClockwise = true;
         }
     }

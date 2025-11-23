@@ -20,10 +20,9 @@ namespace Game.Block.Blocks.ItemShooter
         public ItemShooterAcceleratorComponent(
             ItemShooterComponentService service,
             ItemShooterAcceleratorBlockParam param,
-            IBlockRemover remover,
             BlockInstanceId blockInstanceId,
             BlockConnectorComponent<IGearEnergyTransformer> gearConnector)
-            : base(new Torque(param.RequireTorque), GearOverloadConfig.Create(param.Gear), remover, blockInstanceId, gearConnector)
+            : base(new Torque(param.RequireTorque), blockInstanceId, gearConnector)
         {
             _service = service;
             _param = param;
@@ -32,9 +31,8 @@ namespace Game.Block.Blocks.ItemShooter
             _maxMultiplier = Math.Max(param.MaxAccelerationMultiplier, 0);
         }
 
-        public override void Update()
+        public void Update()
         {
-            base.Update();
             BlockException.CheckDestroy(this);
             _service.SetExternalAcceleration(CalculateAcceleration());
         }

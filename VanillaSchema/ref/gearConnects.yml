@@ -9,15 +9,3 @@ properties:
   fixedParameter:
     path: ./connectType
     value: Gear
-- key: overloadMaxRpm
-  type: number
-  default: 0
-- key: overloadMaxTorque
-  type: number
-  default: 0
-- key: destructionCheckInterval
-  type: number
-  default: 0
-- key: baseDestructionProbability
-  type: number
-  default: 0
