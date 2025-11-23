@@ -22,8 +22,10 @@ namespace Game.Block.Blocks.GearElectric
         public GearElectricGeneratorComponent(
             GearElectricGeneratorBlockParam param,
             BlockInstanceId blockInstanceId,
-            IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent) :
-            base(new Torque(param.RequiredTorque), blockInstanceId, connectorComponent)
+            IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent,
+            IBlockRemover blockRemover,
+            Guid blockGuid) :
+            base(new Torque(param.RequiredTorque), blockInstanceId, connectorComponent, blockRemover, blockGuid)
         {
             _param = param;
             _currentGeneratedPower = new ElectricPower(0);
