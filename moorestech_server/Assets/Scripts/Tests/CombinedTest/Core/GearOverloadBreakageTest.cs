@@ -31,7 +31,7 @@ namespace Tests.CombinedTest.Core
             var pos = new Vector3Int(8, 0, 0);
             world.TryAddBlock(ForUnitTestModBlockId.BlockId, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
 
-            var reasons = new List<BlockRemoveReason?>();
+            var reasons = new List<BlockRemoveReason>();
             using var subscription = ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(update => reasons.Add(update.RemoveReason));
 
             var removed = world.RemoveBlock(block.BlockInstanceId, BlockRemoveReason.ManualRemove);
@@ -54,7 +54,7 @@ namespace Tests.CombinedTest.Core
             var pos = new Vector3Int(0, 0, 0);
             world.TryAddBlock(ForUnitTestModBlockId.SmallGear, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
 
-            var removalReasons = new List<BlockRemoveReason?>();
+            var removalReasons = new List<BlockRemoveReason>();
             using var subscription = ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(update => removalReasons.Add(update.RemoveReason));
 
             var transformer = block.GetComponent<GearEnergyTransformer>();
