@@ -6,7 +6,6 @@ using Game.Block.Interface.Component;
 using Game.EnergySystem;
 using Game.Gear.Common;
 using Mooresmaster.Model.BlockConnectInfoModule;
-using Mooresmaster.Model.BlocksModule;
 using UniRx;
 using UnityEngine;
 
