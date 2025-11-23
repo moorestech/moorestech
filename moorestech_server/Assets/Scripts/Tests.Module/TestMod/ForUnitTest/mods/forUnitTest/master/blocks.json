@@ -1011,7 +1011,7 @@
         "overloadMaxRpm": 10,
         "overloadMaxTorque": 10,
         "destructionCheckInterval": 0.01,
-        "baseDestructionProbability": 1,
+        "baseDestructionProbability": 0.5,
         "teethCount": 10,
         "gear": {
           "gearConnects": [
