@@ -26,7 +26,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void RemoveByInstancePublishesManualReason()
         {
-            var (_, provider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var (_, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var world = ServerContext.WorldBlockDatastore;
             var pos = new Vector3Int(8, 0, 0);
             world.TryAddBlock(ForUnitTestModBlockId.BlockId, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
@@ -34,8 +34,7 @@ namespace Tests.CombinedTest.Core
             var reasons = new List<BlockRemoveReason?>();
             using var subscription = ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(update => reasons.Add(update.RemoveReason));
 
-            var remover = provider.GetService<IBlockRemover>();
-            var removed = remover.Remove(block.BlockInstanceId, BlockRemoveReason.ManualRemove);
+            var removed = world.RemoveBlock(block.BlockInstanceId, BlockRemoveReason.ManualRemove);
 
             Assert.IsTrue(removed);
             Assert.IsFalse(world.Exists(pos));
@@ -59,12 +58,13 @@ namespace Tests.CombinedTest.Core
             using var subscription = ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(update => removalReasons.Add(update.RemoveReason));
 
             var transformer = block.GetComponent<GearEnergyTransformer>();
-            var elapsedField = typeof(GearEnergyTransformer).GetField("_elapsedSeconds", BindingFlags.NonPublic | BindingFlags.Instance);
+            var overloadComponent = block.GetComponent<GearOverloadBreakageComponent>();
+            var elapsedField = typeof(GearOverloadBreakageComponent).GetField("_elapsedSeconds", BindingFlags.NonPublic | BindingFlags.Instance);
             for (var i = 0; i < 120 && world.Exists(pos); i++)
             {
                 transformer.SupplyPower(new RPM(120), new Torque(120), true);
-                elapsedField?.SetValue(transformer, 1d);
-                transformer.Update();
+                elapsedField?.SetValue(overloadComponent, 1d);
+                overloadComponent.Update();
                 Thread.Sleep(2);
             }
 

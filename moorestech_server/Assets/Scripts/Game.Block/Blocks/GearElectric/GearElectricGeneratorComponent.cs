@@ -22,10 +22,8 @@ namespace Game.Block.Blocks.GearElectric
         public GearElectricGeneratorComponent(
             GearElectricGeneratorBlockParam param,
             BlockInstanceId blockInstanceId,
-            IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent,
-            GearOverloadConfig overloadConfig,
-            IBlockRemover blockRemover) :
-            base(new Torque(param.RequiredTorque), blockInstanceId, connectorComponent, overloadConfig, blockRemover)
+            IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent) :
+            base(new Torque(param.RequiredTorque), blockInstanceId, connectorComponent)
         {
             _param = param;
             _currentGeneratedPower = new ElectricPower(0);
@@ -35,7 +33,6 @@ namespace Game.Block.Blocks.GearElectric
         public override void Update()
         {
             BlockException.CheckDestroy(this);
-            base.Update();
             if (IsDestroy) return;
             
             UpdateGeneratedPower();

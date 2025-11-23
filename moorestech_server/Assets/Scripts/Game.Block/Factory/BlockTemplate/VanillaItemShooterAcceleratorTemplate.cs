@@ -13,13 +13,6 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaItemShooterAcceleratorTemplate : IBlockTemplate
     {
-        private readonly IBlockRemover _blockRemover;
-
-        public VanillaItemShooterAcceleratorTemplate(IBlockRemover blockRemover)
-        {
-            _blockRemover = blockRemover;
-        }
-        
         public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] createParams)
         {
             return CreateBlock(null, blockMasterElement, blockInstanceId, blockPositionInfo);
@@ -47,7 +40,7 @@ namespace Game.Block.Factory.BlockTemplate
                 ? new ItemShooterComponent(service)
                 : new ItemShooterComponent(componentStates, service);
 
-            var acceleratorComponent = new ItemShooterAcceleratorComponent(service, acceleratorParam, blockInstanceId, gearConnectorComponent, overloadConfig, _blockRemover);
+            var acceleratorComponent = new ItemShooterAcceleratorComponent(service, acceleratorParam, blockInstanceId, gearConnectorComponent);
 
             var components = new List<IBlockComponent>
             {
@@ -56,6 +49,13 @@ namespace Game.Block.Factory.BlockTemplate
                 gearConnectorComponent,
                 inventoryConnectorComponent
             };
+            
+            // 過負荷破壊コンポーネントを追加
+            // Add overload breakage component
+            if (overloadConfig.IsActive)
+            {
+                components.Add(new GearOverloadBreakageComponent(blockInstanceId, acceleratorComponent, overloadConfig));
+            }
 
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }

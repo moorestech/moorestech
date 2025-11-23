@@ -17,12 +17,10 @@ namespace Game.Block.Factory.BlockTemplate
     public class VanillaGearMachineTemplate : IBlockTemplate
     {
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdateEvent;
-        private readonly IBlockRemover _blockRemover;
         
-        public VanillaGearMachineTemplate(BlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent, IBlockRemover blockRemover)
+        public VanillaGearMachineTemplate(BlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent)
         {
             _blockInventoryUpdateEvent = blockInventoryUpdateEvent;
-            _blockRemover = blockRemover;
         }
         
         public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] createParams)
@@ -47,7 +45,7 @@ namespace Game.Block.Factory.BlockTemplate
             var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(connectSetting, connectSetting, blockPositionInfo);
             var requiredTorque = new Torque(machineParam.RequireTorque);
             var overloadConfig = GearOverloadConfig.From(machineParam);
-            var gearEnergyTransformer = new GearEnergyTransformer(requiredTorque, blockInstanceId, gearConnector, overloadConfig, _blockRemover);
+            var gearEnergyTransformer = new GearEnergyTransformer(requiredTorque, blockInstanceId, gearConnector);
             
             var requirePower = new ElectricPower(machineParam.RequireTorque * machineParam.RequiredRpm);
             
@@ -70,6 +68,13 @@ namespace Game.Block.Factory.BlockTemplate
                 gearConnector,
                 gearEnergyTransformer,
             };
+            
+            // 過負荷破壊コンポーネントを追加
+            // Add overload breakage component
+            if (overloadConfig.IsActive)
+            {
+                components.Add(new GearOverloadBreakageComponent(blockInstanceId, gearEnergyTransformer, overloadConfig));
+            }
             
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }

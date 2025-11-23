@@ -14,13 +14,6 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaFuelGearGeneratorTemplate : IBlockTemplate
     {
-        private readonly IBlockRemover _blockRemover;
-
-        public VanillaFuelGearGeneratorTemplate(IBlockRemover blockRemover)
-        {
-            _blockRemover = blockRemover;
-        }
-        
         public IBlock Load(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             return CreateFuelGearGenerator(componentStates, blockMasterElement, blockInstanceId, blockPositionInfo);
@@ -71,9 +64,7 @@ namespace Game.Block.Factory.BlockTemplate
                     blockInstanceId, 
                     gearConnectorComponent,
                     itemComponent,
-                    fluidComponent,
-                    overloadConfig,
-                    _blockRemover
+                    fluidComponent
                 )
                 : new FuelGearGeneratorComponent(
                     componentStates,
@@ -81,9 +72,7 @@ namespace Game.Block.Factory.BlockTemplate
                     blockInstanceId, 
                     gearConnectorComponent,
                     itemComponent,
-                    fluidComponent,
-                    overloadConfig,
-                    _blockRemover
+                    fluidComponent
                 );
             
             var components = new List<IBlockComponent>
@@ -95,6 +84,13 @@ namespace Game.Block.Factory.BlockTemplate
                 fluidConnector,
                 fluidComponent,
             };
+            
+            // 過負荷破壊コンポーネントを追加
+            // Add overload breakage component
+            if (overloadConfig.IsActive)
+            {
+                components.Add(new GearOverloadBreakageComponent(blockInstanceId, fuelGearGeneratorComponent, overloadConfig));
+            }
             
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }

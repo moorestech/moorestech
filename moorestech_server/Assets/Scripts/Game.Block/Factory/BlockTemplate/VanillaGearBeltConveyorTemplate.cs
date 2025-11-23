@@ -12,13 +12,6 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaGearBeltConveyorTemplate : IBlockTemplate
     {
-        private readonly IBlockRemover _blockRemover;
-
-        public VanillaGearBeltConveyorTemplate(IBlockRemover blockRemover)
-        {
-            _blockRemover = blockRemover;
-        }
-        
         public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] createParams)
         {
             return GetBlock(null, blockMasterElement, blockInstanceId, blockPositionInfo);
@@ -58,7 +51,7 @@ namespace Game.Block.Factory.BlockTemplate
                     new VanillaBeltConveyorComponent(itemCount, time, beltConveyorConnector, slopeType) :
                     new VanillaBeltConveyorComponent(componentStates, itemCount, time, beltConveyorConnector,slopeType);
             
-            var gearBeltConveyorComponent = new GearBeltConveyorComponent(vanillaBeltConveyorComponent, blockInstanceId, gearBeltParam.BeltConveyorSpeed, (Torque)gearBeltParam.RequireTorque, gearEnergyTransformerConnector, overloadConfig, _blockRemover);
+            var gearBeltConveyorComponent = new GearBeltConveyorComponent(vanillaBeltConveyorComponent, blockInstanceId, gearBeltParam.BeltConveyorSpeed, (Torque)gearBeltParam.RequireTorque, gearEnergyTransformerConnector);
             
             var blockComponents = new List<IBlockComponent>
             {
@@ -67,6 +60,14 @@ namespace Game.Block.Factory.BlockTemplate
                 gearEnergyTransformerConnector,
                 inventoryConnector
             };
+            
+            // 過負荷破壊コンポーネントを追加
+            // Add overload breakage component
+            if (overloadConfig.IsActive)
+            {
+                blockComponents.Add(new GearOverloadBreakageComponent(blockInstanceId, gearBeltConveyorComponent, overloadConfig));
+            }
+            
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, blockComponents, blockPositionInfo);
         }
     }
