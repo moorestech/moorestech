@@ -14,6 +14,13 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaGearPumpTemplate : IBlockTemplate
     {
+        private readonly IBlockRemover _blockRemover;
+
+        public VanillaGearPumpTemplate(IBlockRemover blockRemover)
+        {
+            _blockRemover = blockRemover;
+        }
+
         public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] createParams)
         {
             return GetBlock(null, blockMasterElement, blockInstanceId, blockPositionInfo);
@@ -31,7 +38,7 @@ namespace Game.Block.Factory.BlockTemplate
             // Gear connector and transformer
             var gearConnectSetting = param.Gear.GearConnects;
             var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(gearConnectSetting, gearConnectSetting, blockPositionInfo);
-            var gearEnergyTransformer = new GearEnergyTransformer(new Torque(param.RequireTorque), blockInstanceId, gearConnector);
+            var gearEnergyTransformer = new GearEnergyTransformer(new Torque(param.RequireTorque), blockInstanceId, gearConnector, _blockRemover, blockMasterElement.BlockGuid);
 
             var fluidConnector = IFluidInventory.CreateFluidInventoryConnector(param.FluidInventoryConnectors, blockPositionInfo);
             var outputComponent = componentStates == null

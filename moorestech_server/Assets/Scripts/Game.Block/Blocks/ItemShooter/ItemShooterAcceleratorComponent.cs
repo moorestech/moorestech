@@ -21,8 +21,10 @@ namespace Game.Block.Blocks.ItemShooter
             ItemShooterComponentService service,
             ItemShooterAcceleratorBlockParam param,
             BlockInstanceId blockInstanceId,
-            BlockConnectorComponent<IGearEnergyTransformer> gearConnector)
-            : base(new Torque(param.RequireTorque), blockInstanceId, gearConnector)
+            BlockConnectorComponent<IGearEnergyTransformer> gearConnector,
+            IBlockRemover blockRemover,
+            Guid blockGuid)
+            : base(new Torque(param.RequireTorque), blockInstanceId, gearConnector, blockRemover, blockGuid)
         {
             _service = service;
             _param = param;
