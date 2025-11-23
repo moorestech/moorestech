@@ -38,10 +38,7 @@ namespace Game.Block.Factory.BlockTemplate
             // 過負荷破壊コンポーネントを追加
             // Add overload breakage component
             var overloadParam = configParam as IGearOverloadParam;
-            if (overloadParam != null && overloadParam.BaseDestructionProbability > 0 && (overloadParam.OverloadMaxRpm > 0 || overloadParam.OverloadMaxTorque > 0))
-            {
-                components.Add(new GearOverloadBreakageComponent(blockInstanceId, gearComponent, overloadParam));
-            }
+            components.Add(new GearOverloadBreakageComponent(blockInstanceId, gearComponent, overloadParam));
             
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
