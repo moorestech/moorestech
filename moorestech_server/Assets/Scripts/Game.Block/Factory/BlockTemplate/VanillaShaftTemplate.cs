@@ -11,13 +11,6 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaShaftTemplate : IBlockTemplate
     {
-        private readonly IBlockRemover _blockRemover;
-
-        public VanillaShaftTemplate(IBlockRemover blockRemover)
-        {
-            _blockRemover = blockRemover;
-        }
-        
         public IBlock Load(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             return CreateGear(blockMasterElement, blockInstanceId, blockPositionInfo);
@@ -31,9 +24,8 @@ namespace Game.Block.Factory.BlockTemplate
         {
             var configParam = blockMasterElement.BlockParam as ShaftBlockParam;
             var connectSetting = configParam.Gear.GearConnects;
-            var overloadConfig = GearOverloadConfig.From(configParam);
             var blockComponent = new BlockConnectorComponent<IGearEnergyTransformer>(connectSetting, connectSetting, blockPositionInfo);
-            var gearEnergyTransformer = new GearEnergyTransformer(new Torque(configParam.RequireTorque), blockInstanceId, blockComponent, overloadConfig, _blockRemover);
+            var gearEnergyTransformer = new GearEnergyTransformer(new Torque(configParam.RequireTorque), blockInstanceId, blockComponent);
             
             var components = new List<IBlockComponent>
             {
