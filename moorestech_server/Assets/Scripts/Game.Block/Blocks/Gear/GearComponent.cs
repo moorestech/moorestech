@@ -1,3 +1,4 @@
+using System;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Gear.Common;
@@ -9,20 +10,20 @@ namespace Game.Block.Blocks.Gear
     {
         public int TeethCount { get; }
         
-        public GearComponent(int teethCount, Torque requiredPower, BlockInstanceId blockInstanceId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent)
-            : base(requiredPower, blockInstanceId, connectorComponent)
+        public GearComponent(int teethCount, Torque requiredPower, BlockInstanceId blockInstanceId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent, IBlockRemover blockRemover, Guid blockGuid)
+            : base(requiredPower, blockInstanceId, connectorComponent, blockRemover, blockGuid)
         {
             TeethCount = teethCount;
         }
         
-        public GearComponent(GearMachineBlockParam gearMachineBlockParam, BlockInstanceId blockInstanceId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent)
-            : base(new Torque(gearMachineBlockParam.RequireTorque), blockInstanceId, connectorComponent)
+        public GearComponent(GearMachineBlockParam gearMachineBlockParam, BlockInstanceId blockInstanceId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent, IBlockRemover blockRemover, Guid blockGuid)
+            : base(new Torque(gearMachineBlockParam.RequireTorque), blockInstanceId, connectorComponent, blockRemover, blockGuid)
         {
             TeethCount = gearMachineBlockParam.TeethCount;
         }
         
-        public GearComponent(GearBlockParam gearBlockParam, BlockInstanceId blockInstanceId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent)
-            : base(new Torque(gearBlockParam.RequireTorque), blockInstanceId, connectorComponent)
+        public GearComponent(GearBlockParam gearBlockParam, BlockInstanceId blockInstanceId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent, IBlockRemover blockRemover, Guid blockGuid)
+            : base(new Torque(gearBlockParam.RequireTorque), blockInstanceId, connectorComponent, blockRemover, blockGuid)
         {
             TeethCount = gearBlockParam.TeethCount;
         }
