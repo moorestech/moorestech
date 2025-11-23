@@ -297,6 +297,18 @@ properties:
         - key: requireTorque
           type: number
           default: 1
+        - key: overloadMaxRpm
+          type: number
+          default: 0
+        - key: overloadMaxTorque
+          type: number
+          default: 0
+        - key: destructionCheckInterval
+          type: number
+          default: 1
+        - key: baseDestructionProbability
+          type: number
+          default: 0
         - key: gear
           ref: gear
       - when: Shaft
@@ -308,6 +320,18 @@ properties:
         - key: requireTorque
           type: number
           default: 1
+        - key: overloadMaxRpm
+          type: number
+          default: 0
+        - key: overloadMaxTorque
+          type: number
+          default: 0
+        - key: destructionCheckInterval
+          type: number
+          default: 1
+        - key: baseDestructionProbability
+          type: number
+          default: 0
         - key: gear
           ref: gear
       - when: GearMachine
@@ -336,6 +360,18 @@ properties:
         - key: requiredRpm
           type: number
           default: 5
+        - key: overloadMaxRpm
+          type: number
+          default: 0
+        - key: overloadMaxTorque
+          type: number
+          default: 0
+        - key: destructionCheckInterval
+          type: number
+          default: 1
+        - key: baseDestructionProbability
+          type: number
+          default: 0
         - key: gear
           ref: gear
         - key: inputTankCount
@@ -364,6 +400,18 @@ properties:
         - key: generateTorque
           type: number
           default: 1
+        - key: overloadMaxRpm
+          type: number
+          default: 0
+        - key: overloadMaxTorque
+          type: number
+          default: 0
+        - key: destructionCheckInterval
+          type: number
+          default: 1
+        - key: baseDestructionProbability
+          type: number
+          default: 0
         - key: gear
           ref: gear
       - when: FuelGearGenerator
@@ -386,6 +434,18 @@ properties:
         - key: timeToMax
           type: number
           default: 30
+        - key: overloadMaxRpm
+          type: number
+          default: 0
+        - key: overloadMaxTorque
+          type: number
+          default: 0
+        - key: destructionCheckInterval
+          type: number
+          default: 1
+        - key: baseDestructionProbability
+          type: number
+          default: 0
         - key: timeToMaxEasing
           type: enum
           options:
@@ -462,6 +522,18 @@ properties:
         - key: requireTorque
           type: number
           default: 2
+        - key: overloadMaxRpm
+          type: number
+          default: 0
+        - key: overloadMaxTorque
+          type: number
+          default: 0
+        - key: destructionCheckInterval
+          type: number
+          default: 1
+        - key: baseDestructionProbability
+          type: number
+          default: 0
         - key: slopeType
           type: enum
           options:
@@ -528,6 +600,18 @@ properties:
         - key: requiredRpm
           type: number
           default: 5
+        - key: overloadMaxRpm
+          type: number
+          default: 0
+        - key: overloadMaxTorque
+          type: number
+          default: 0
+        - key: destructionCheckInterval
+          type: number
+          default: 1
+        - key: baseDestructionProbability
+          type: number
+          default: 0
         - key: slopeType
           type: enum
           options:
@@ -556,6 +640,18 @@ properties:
         - key: requiredRpm
           type: number
           default: 5
+        - key: overloadMaxRpm
+          type: number
+          default: 0
+        - key: overloadMaxTorque
+          type: number
+          default: 0
+        - key: destructionCheckInterval
+          type: number
+          default: 1
+        - key: baseDestructionProbability
+          type: number
+          default: 0
         - key: outputItemSlotCount
           type: integer
           default: 3
@@ -583,6 +679,18 @@ properties:
         - key: requiredRpm
           type: number
           default: 5
+        - key: overloadMaxRpm
+          type: number
+          default: 0
+        - key: overloadMaxTorque
+          type: number
+          default: 0
+        - key: destructionCheckInterval
+          type: number
+          default: 1
+        - key: baseDestructionProbability
+          type: number
+          default: 0
         - key: itemSlotCount
           type: integer
           default: 3
@@ -773,6 +881,18 @@ properties:
         - key: requiredRpm
           type: number
           default: 5
+        - key: overloadMaxRpm
+          type: number
+          default: 0
+        - key: overloadMaxTorque
+          type: number
+          default: 0
+        - key: destructionCheckInterval
+          type: number
+          default: 1
+        - key: baseDestructionProbability
+          type: number
+          default: 0
         - key: fluidInventoryConnectors
           ref: fluidInventoryConnects
         - key: gear
@@ -805,6 +925,18 @@ properties:
         - key: requiredTorque
           type: number
           default: 100
+        - key: overloadMaxRpm
+          type: number
+          default: 0
+        - key: overloadMaxTorque
+          type: number
+          default: 0
+        - key: destructionCheckInterval
+          type: number
+          default: 1
+        - key: baseDestructionProbability
+          type: number
+          default: 0
         - key: maxGeneratedPower
           type: number
           default: 100
