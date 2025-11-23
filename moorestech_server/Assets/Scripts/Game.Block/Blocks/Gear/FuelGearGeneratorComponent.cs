@@ -73,7 +73,6 @@ namespace Game.Block.Blocks.Gear
         public void Update()
         {
             BlockException.CheckDestroy(this);
-            if (IsDestroy) return;
 
             var network = GearNetworkDatastore.GetGearNetwork(BlockInstanceId);
             var operatingRate = network.CurrentGearNetworkInfo.OperatingRate;
