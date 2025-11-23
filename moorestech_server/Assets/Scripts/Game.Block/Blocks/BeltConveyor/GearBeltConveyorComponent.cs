@@ -24,7 +24,6 @@ namespace Game.Block.Blocks.BeltConveyor
         public void Update()
         {
             BlockException.CheckDestroy(this);
-            if (IsDestroy) return;
         }
         
         public override void SupplyPower(RPM rpm, Torque torque, bool isClockwise)

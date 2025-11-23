@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Game.Block.Blocks;
 using Game.Block.Blocks.BeltConveyor;
-using Game.Block.Blocks.Gear;
 using Game.Block.Blocks.ItemShooter;
 using Game.Block.Component;
 using Game.Block.Interface;
@@ -23,7 +22,7 @@ namespace Game.Block.Factory.BlockTemplate
             return CreateBlock(componentStates, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
 
-        private IBlock CreateBlock(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        private static IBlock CreateBlock(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var acceleratorParam = blockMasterElement.BlockParam as ItemShooterAcceleratorBlockParam;
 
