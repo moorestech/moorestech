@@ -58,9 +58,11 @@ namespace Tests.CombinedTest.Core
             using var subscription = ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(update => removalReasons.Add(update.RemoveReason));
 
             var transformer = block.GetComponent<GearEnergyTransformer>();
+            var elapsedField = typeof(GearEnergyTransformer).GetField(\"_elapsedSeconds\", BindingFlags.NonPublic | BindingFlags.Instance);
             for (var i = 0; i < 120 && world.Exists(pos); i++)
             {
                 transformer.SupplyPower(new RPM(120), new Torque(120), true);
+                elapsedField?.SetValue(transformer, 1d);
                 GameUpdater.Update();
                 Thread.Sleep(2);
             }
