@@ -13,8 +13,8 @@ namespace Game.Block.Blocks.BeltConveyor
         private readonly double _beltConveyorSpeed;
         private readonly Torque _requiredTorque;
         
-        public GearBeltConveyorComponent(VanillaBeltConveyorComponent beltConveyorComponent, BlockInstanceId entityId, double beltConveyorSpeed, Torque requiredTorque, BlockConnectorComponent<IGearEnergyTransformer> blockConnectorComponent)
-            : base(requiredTorque, entityId, blockConnectorComponent)
+        public GearBeltConveyorComponent(VanillaBeltConveyorComponent beltConveyorComponent, BlockInstanceId entityId, double beltConveyorSpeed, Torque requiredTorque, BlockConnectorComponent<IGearEnergyTransformer> blockConnectorComponent, IBlockRemover blockRemover, Guid blockGuid)
+            : base(requiredTorque, entityId, blockConnectorComponent, blockRemover, blockGuid)
         {
             _beltConveyorComponent = beltConveyorComponent;
             _requiredTorque = requiredTorque;

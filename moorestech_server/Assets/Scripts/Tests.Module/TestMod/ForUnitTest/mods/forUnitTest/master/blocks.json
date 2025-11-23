@@ -1068,7 +1068,11 @@
               }
             }
           ]
-        }
+        },
+        "maxRpm": 1,
+        "maxTorque": 1,
+        "overloadCheckIntervalSeconds": 0.2,
+        "baseBreakageProbability": 1.0
       },
       "itemGuid": "00000000-0000-0000-1234-000000000014",
       "blockGuid": "00000000-0000-0000-0000-00000000000c",
@@ -1200,7 +1204,11 @@
               }
             }
           ]
-        }
+        },
+        "maxRpm": 0,
+        "maxTorque": 0,
+        "overloadCheckIntervalSeconds": 1.0,
+        "baseBreakageProbability": 0.0
       },
       "itemGuid": "16000000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-00000000000d",
@@ -1259,7 +1267,11 @@
               ]
             }
           ]
-        }
+        },
+        "maxRpm": 0,
+        "maxTorque": 0,
+        "overloadCheckIntervalSeconds": 1.0,
+        "baseBreakageProbability": 0.0
       },
       "itemGuid": "17000000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-00000000000e",
@@ -1406,7 +1418,11 @@
         "innerTankCapacity": 0,
         "innerTankCount": 0,
         "outputTankCount": 0,
-        "inputTankCount": 0
+        "inputTankCount": 0,
+        "maxRpm": 0,
+        "maxTorque": 0,
+        "overloadCheckIntervalSeconds": 1.0,
+        "baseBreakageProbability": 0.0
       },
       "itemGuid": "18000000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-00000000000f",
@@ -1478,7 +1494,11 @@
               ]
             }
           ]
-        }
+        },
+        "maxRpm": 0,
+        "maxTorque": 0,
+        "overloadCheckIntervalSeconds": 1.0,
+        "baseBreakageProbability": 0.0
       },
       "itemGuid": "19000000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-000000000010",
@@ -1552,7 +1572,11 @@
               ]
             }
           ]
-        }
+        },
+        "maxRpm": 0,
+        "maxTorque": 0,
+        "overloadCheckIntervalSeconds": 1.0,
+        "baseBreakageProbability": 0.0
       },
       "itemGuid": "11100000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-000000000011",
@@ -1645,7 +1669,11 @@
               }
             }
           ]
-        }
+        },
+        "maxRpm": 0,
+        "maxTorque": 0,
+        "overloadCheckIntervalSeconds": 1.0,
+        "baseBreakageProbability": 0.0
       },
       "name": "Teeth10RequireTorqueTestGear",
       "blockGuid": "00000000-0000-0000-0000-000000000012",
@@ -1739,7 +1767,11 @@
               }
             }
           ]
-        }
+        },
+        "maxRpm": 0,
+        "maxTorque": 0,
+        "overloadCheckIntervalSeconds": 1.0,
+        "baseBreakageProbability": 0.0
       },
       "blockGuid": "00000000-0000-0000-0000-000000000013",
       "overrideVerticalBlock": {}
@@ -1810,7 +1842,11 @@
               ]
             }
           ]
-        }
+        },
+        "maxRpm": 0,
+        "maxTorque": 0,
+        "overloadCheckIntervalSeconds": 1.0,
+        "baseBreakageProbability": 0.0
       },
       "itemGuid": "11400000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-000000000014",
@@ -1912,7 +1948,11 @@
             }
           ]
         },
-        "slopeType": "Straight"
+        "slopeType": "Straight",
+        "maxRpm": 0,
+        "maxTorque": 0,
+        "overloadCheckIntervalSeconds": 1.0,
+        "baseBreakageProbability": 0.0
       },
       "itemGuid": "12200000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-000000000015",
@@ -2305,7 +2345,11 @@
             }
           ]
         },
-        "slopeType": "Straight"
+        "slopeType": "Straight",
+        "maxRpm": 0,
+        "maxTorque": 0,
+        "overloadCheckIntervalSeconds": 1.0,
+        "baseBreakageProbability": 0.0
       },
       "itemGuid": "11800000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-000000000029",
@@ -2747,7 +2791,11 @@
             "time": 1,
             "itemGuid": "00000000-0000-0000-1234-000000000001"
           }
-        ]
+        ],
+        "maxRpm": 0,
+        "maxTorque": 0,
+        "overloadCheckIntervalSeconds": 1.0,
+        "baseBreakageProbability": 0.0
       },
       "blockSize": [
         1,
@@ -3618,7 +3666,11 @@
               ]
             }
           ]
-        }
+        },
+        "maxRpm": 0,
+        "maxTorque": 0,
+        "overloadCheckIntervalSeconds": 1.0,
+        "baseBreakageProbability": 0.0
       },
       "name": "TestGearMapObjectMiner",
       "blockGuid": "00000000-0000-0000-0000-000000000027",
@@ -4053,7 +4105,11 @@
         "inventoryConnectors": {
           "inputConnects": [],
           "outputConnects": []
-        }
+        },
+        "maxRpm": 0,
+        "maxTorque": 0,
+        "overloadCheckIntervalSeconds": 1.0,
+        "baseBreakageProbability": 0.0
       },
       "name": "FuelGearGenerator",
       "itemGuid": "9bbfaa53-1614-40dc-a58e-e3a0e2a00c26",
@@ -4263,7 +4319,11 @@
               ]
             }
           ]
-        }
+        },
+        "maxRpm": 0,
+        "maxTorque": 0,
+        "overloadCheckIntervalSeconds": 1.0,
+        "baseBreakageProbability": 0.0
       }
     },
     {
@@ -4388,7 +4448,11 @@
               ]
             }
           ]
-        }
+        },
+        "maxRpm": 0,
+        "maxTorque": 0,
+        "overloadCheckIntervalSeconds": 1.0,
+        "baseBreakageProbability": 0.0
       },
       "overrideVerticalBlock": {}
     }
