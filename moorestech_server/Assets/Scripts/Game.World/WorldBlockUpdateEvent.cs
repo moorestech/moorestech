@@ -1,4 +1,5 @@
 using System;
+using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.World.Interface.DataStore;
 using UniRx;
@@ -37,7 +38,12 @@ namespace Game.World
         
         public void OnBlockRemoveEventInvoke(Vector3Int pos, WorldBlockData worldBlockData)
         {
-            _onBlockRemoveEvent.OnNext(new BlockUpdateProperties(pos, worldBlockData));
+            OnBlockRemoveEventInvoke(pos, worldBlockData, BlockRemoveReason.ManualRemove);
+        }
+        
+        public void OnBlockRemoveEventInvoke(Vector3Int pos, WorldBlockData worldBlockData, BlockRemoveReason removeReason)
+        {
+            _onBlockRemoveEvent.OnNext(new BlockUpdateProperties(pos, worldBlockData, removeReason));
         }
     }
 }
