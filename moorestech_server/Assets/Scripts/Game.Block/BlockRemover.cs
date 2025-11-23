@@ -1,5 +1,4 @@
 using Game.Block.Interface;
-using Game.World.Interface.DataStore;
 using UnityEngine;
 
 namespace Game.Block
@@ -10,11 +9,11 @@ namespace Game.Block
     /// </summary>
     public class BlockRemover : IBlockRemover
     {
-        private readonly IWorldBlockDatastore _worldBlockDatastore;
+        private readonly System.Func<Game.World.Interface.DataStore.IWorldBlockDatastore> _worldBlockDatastoreGetter;
 
-        public BlockRemover(IWorldBlockDatastore worldBlockDatastore)
+        public BlockRemover(System.Func<Game.World.Interface.DataStore.IWorldBlockDatastore> worldBlockDatastoreGetter)
         {
-            _worldBlockDatastore = worldBlockDatastore;
+            _worldBlockDatastoreGetter = worldBlockDatastoreGetter;
         }
 
         public void RemoveBlock(BlockPositionInfo position, BlockRemovalType removalType)
@@ -25,7 +24,7 @@ namespace Game.Block
 
             // ワールドデータストアに削除を委譲する
             // Delegate removal to world datastore
-            _worldBlockDatastore.RemoveBlock(position.OriginalPos);
+            _worldBlockDatastoreGetter().RemoveBlock(position.OriginalPos);
         }
     }
 }

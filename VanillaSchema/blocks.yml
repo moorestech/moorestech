@@ -299,18 +299,22 @@ properties:
         implementationInterface:
         - IGearOverloadParam
         properties:
-        - key: maxRpm
-          type: integer
-          default: 0
-        - key: maxTorque
-          type: number
-          default: 0
-        - key: overloadCheckIntervalSeconds
-          type: number
-          default: 1.0
-        - key: baseBreakageProbability
-          type: number
-          default: 0.0
+  - key: maxRpm
+    type: integer
+    default: 0
+    optional: true
+  - key: maxTorque
+    type: number
+    default: 0
+    optional: true
+  - key: overloadCheckIntervalSeconds
+    type: number
+    default: 1.0
+    optional: true
+  - key: baseBreakageProbability
+    type: number
+    default: 0.0
+    optional: true
         - key: teethCount
           type: integer
           default: 10

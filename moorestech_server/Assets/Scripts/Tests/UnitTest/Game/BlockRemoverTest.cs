@@ -21,7 +21,7 @@ namespace Tests.UnitTest.Game
             // ブロック除去の呼び出しとログを検証する
             // Verify world removal delegation and removal reason logging
             var datastore = new RecordingWorldBlockDatastore();
-            var remover = new BlockRemover(datastore);
+            var remover = new BlockRemover(() => datastore);
             var position = new BlockPositionInfo(new Vector3Int(2, 0, -1), BlockDirection.North, Vector3Int.one);
 
             LogAssert.Expect(LogType.Log, "Block removal: Position=(2, 0, -1), Type=Broken");
