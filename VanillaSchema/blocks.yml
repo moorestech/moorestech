@@ -345,7 +345,6 @@ properties:
         - IGearMachineParam
         - IInventoryConnectors
         - IGearConnectors
-        - IGearOverloadParam
         properties:
         - key: inputSlotCount
           type: integer
@@ -364,18 +363,6 @@ properties:
         - key: requiredRpm
           type: number
           default: 5
-        - key: overloadMaxRpm
-          type: number
-          default: 0
-        - key: overloadMaxTorque
-          type: number
-          default: 0
-        - key: destructionCheckInterval
-          type: number
-          default: 1
-        - key: baseDestructionProbability
-          type: number
-          default: 0
         - key: gear
           ref: gear
         - key: inputTankCount
@@ -393,7 +380,6 @@ properties:
         type: object
         implementationInterface:
         - IGearConnectors
-        - IGearOverloadParam
         properties:
         - key: teethCount
           type: integer
@@ -404,18 +390,6 @@ properties:
         - key: generateTorque
           type: number
           default: 1
-        - key: overloadMaxRpm
-          type: number
-          default: 0
-        - key: overloadMaxTorque
-          type: number
-          default: 0
-        - key: destructionCheckInterval
-          type: number
-          default: 1
-        - key: baseDestructionProbability
-          type: number
-          default: 0
         - key: gear
           ref: gear
       - when: FuelGearGenerator
@@ -424,7 +398,6 @@ properties:
         - IGearConnectors
         - IInventoryConnectors
         - IFuelItemSlotParam
-        - IGearOverloadParam
         properties:
         - key: teethCount
           type: integer
@@ -438,18 +411,6 @@ properties:
         - key: timeToMax
           type: number
           default: 30
-        - key: overloadMaxRpm
-          type: number
-          default: 0
-        - key: overloadMaxTorque
-          type: number
-          default: 0
-        - key: destructionCheckInterval
-          type: number
-          default: 1
-        - key: baseDestructionProbability
-          type: number
-          default: 0
         - key: timeToMaxEasing
           type: enum
           options:
@@ -515,7 +476,6 @@ properties:
         implementationInterface:
         - IInventoryConnectors
         - IGearConnectors
-        - IGearOverloadParam
         properties:
         - key: beltConveyorItemCount
           type: integer
@@ -526,18 +486,6 @@ properties:
         - key: requireTorque
           type: number
           default: 2
-        - key: overloadMaxRpm
-          type: number
-          default: 0
-        - key: overloadMaxTorque
-          type: number
-          default: 0
-        - key: destructionCheckInterval
-          type: number
-          default: 1
-        - key: baseDestructionProbability
-          type: number
-          default: 0
         - key: slopeType
           type: enum
           options:
@@ -578,7 +526,6 @@ properties:
         implementationInterface:
         - IInventoryConnectors
         - IGearConnectors
-        - IGearOverloadParam
         properties:
         - key: inventoryItemNum
           type: integer
@@ -604,18 +551,6 @@ properties:
         - key: requiredRpm
           type: number
           default: 5
-        - key: overloadMaxRpm
-          type: number
-          default: 0
-        - key: overloadMaxTorque
-          type: number
-          default: 0
-        - key: destructionCheckInterval
-          type: number
-          default: 1
-        - key: baseDestructionProbability
-          type: number
-          default: 0
         - key: slopeType
           type: enum
           options:
@@ -633,7 +568,6 @@ properties:
         - IMinerParam
         - IInventoryConnectors
         - IGearConnectors
-        - IGearOverloadParam
         properties:
         - key: teethCount
           type: integer
@@ -644,18 +578,6 @@ properties:
         - key: requiredRpm
           type: number
           default: 5
-        - key: overloadMaxRpm
-          type: number
-          default: 0
-        - key: overloadMaxTorque
-          type: number
-          default: 0
-        - key: destructionCheckInterval
-          type: number
-          default: 1
-        - key: baseDestructionProbability
-          type: number
-          default: 0
         - key: outputItemSlotCount
           type: integer
           default: 3
@@ -672,7 +594,6 @@ properties:
         - IGearMachineParam
         - IInventoryConnectors
         - IGearConnectors
-        - IGearOverloadParam
         properties:
         - key: teethCount
           type: integer
@@ -683,18 +604,6 @@ properties:
         - key: requiredRpm
           type: number
           default: 5
-        - key: overloadMaxRpm
-          type: number
-          default: 0
-        - key: overloadMaxTorque
-          type: number
-          default: 0
-        - key: destructionCheckInterval
-          type: number
-          default: 1
-        - key: baseDestructionProbability
-          type: number
-          default: 0
         - key: itemSlotCount
           type: integer
           default: 3
@@ -872,7 +781,6 @@ properties:
         type: object
         implementationInterface:
         - IGearConnectors
-        - IGearOverloadParam
         properties:
         - key: generateFluid
           ref: generateFluids
@@ -885,18 +793,6 @@ properties:
         - key: requiredRpm
           type: number
           default: 5
-        - key: overloadMaxRpm
-          type: number
-          default: 0
-        - key: overloadMaxTorque
-          type: number
-          default: 0
-        - key: destructionCheckInterval
-          type: number
-          default: 1
-        - key: baseDestructionProbability
-          type: number
-          default: 0
         - key: fluidInventoryConnectors
           ref: fluidInventoryConnects
         - key: gear
@@ -918,7 +814,6 @@ properties:
         type: object
         implementationInterface:
         - IGearConnectors
-        - IGearOverloadParam
         properties:
         - key: teethCount
           type: integer
@@ -929,18 +824,6 @@ properties:
         - key: requiredTorque
           type: number
           default: 100
-        - key: overloadMaxRpm
-          type: number
-          default: 0
-        - key: overloadMaxTorque
-          type: number
-          default: 0
-        - key: destructionCheckInterval
-          type: number
-          default: 1
-        - key: baseDestructionProbability
-          type: number
-          default: 0
         - key: maxGeneratedPower
           type: number
           default: 100

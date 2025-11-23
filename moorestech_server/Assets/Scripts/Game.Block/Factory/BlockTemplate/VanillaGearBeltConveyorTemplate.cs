@@ -61,13 +61,6 @@ namespace Game.Block.Factory.BlockTemplate
                 inventoryConnector
             };
             
-            // 過負荷破壊コンポーネントを追加
-            // Add overload breakage component
-            if (overloadConfig.IsActive)
-            {
-                blockComponents.Add(new GearOverloadBreakageComponent(blockInstanceId, gearBeltConveyorComponent, overloadConfig));
-            }
-            
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, blockComponents, blockPositionInfo);
         }
     }
