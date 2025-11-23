@@ -435,7 +435,7 @@ namespace Tests.CombinedTest.Game
             AreEqual(1, gearNetworkDataStore.GearNetworks.Count);
             
             // ネットワークの分離のテスト
-            ServerContext.WorldBlockDatastore.RemoveBlock(gearPosition2);
+            ServerContext.WorldBlockDatastore.RemoveBlock(gearPosition2, BlockRemoveReason.ManualRemove);
             AreEqual(2, gearNetworkDataStore.GearNetworks.Count);
         }
         
@@ -558,8 +558,8 @@ namespace Tests.CombinedTest.Game
             AreEqual(0f, gear1.CurrentRpm);
 
             // 実行: 高負荷歯車を2つ削除してエネルギー充足状態にする
-            worldBlockDatastore.RemoveBlock(gearPosition3);
-            worldBlockDatastore.RemoveBlock(gearPosition4);
+            worldBlockDatastore.RemoveBlock(gearPosition3, BlockRemoveReason.ManualRemove);
+            worldBlockDatastore.RemoveBlock(gearPosition4, BlockRemoveReason.ManualRemove);
 
             // ネットワークが再構築されるので、最新のネットワークを取得
             gearNetwork = gearNetworkDatastore.GearNetworks.First().Value;

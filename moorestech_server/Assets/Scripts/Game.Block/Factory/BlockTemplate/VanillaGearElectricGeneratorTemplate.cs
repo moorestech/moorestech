@@ -27,7 +27,6 @@ namespace Game.Block.Factory.BlockTemplate
             var param = blockMasterElement.BlockParam as GearElectricGeneratorBlockParam;
             var gearConnects = param.Gear.GearConnects;
             var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(gearConnects, gearConnects, blockPositionInfo);
-            var overloadConfig = GearOverloadConfig.From(param);
             
             var gearComponent = new GearElectricGeneratorComponent(param, blockInstanceId, gearConnector);
             

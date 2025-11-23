@@ -94,11 +94,11 @@ namespace Tests.UnitTest.Game.SaveLoad
             Debug.Log(json);
             
             // ブロックを削除
-            worldBlockDatastore.RemoveBlock(Vector3Int.zero);
-            worldBlockDatastore.RemoveBlock(new Vector3Int(0, 0, -1));
-            worldBlockDatastore.RemoveBlock(new Vector3Int(1, 0, 0));
-            worldBlockDatastore.RemoveBlock(new Vector3Int(0, 0, 1));
-            worldBlockDatastore.RemoveBlock(new Vector3Int(-1, 0, 0));
+            worldBlockDatastore.RemoveBlock(Vector3Int.zero, BlockRemoveReason.ManualRemove);
+            worldBlockDatastore.RemoveBlock(new Vector3Int(0, 0, -1), BlockRemoveReason.ManualRemove);
+            worldBlockDatastore.RemoveBlock(new Vector3Int(1, 0, 0), BlockRemoveReason.ManualRemove);
+            worldBlockDatastore.RemoveBlock(new Vector3Int(0, 0, 1), BlockRemoveReason.ManualRemove);
+            worldBlockDatastore.RemoveBlock(new Vector3Int(-1, 0, 0), BlockRemoveReason.ManualRemove);
             
             // ロード
             var (_, loadWorldBlockDatastore, _, _, loadJsonFile) = CreateBlockTestModule();
@@ -188,10 +188,10 @@ namespace Tests.UnitTest.Game.SaveLoad
             }
             
             // パイプを削除して減速を開始
-            worldBlockDatastore.RemoveBlock(new Vector3Int(0, 0, -1));
-            worldBlockDatastore.RemoveBlock(new Vector3Int(1, 0, 0));
-            worldBlockDatastore.RemoveBlock(new Vector3Int(0, 0, 1));
-            worldBlockDatastore.RemoveBlock(new Vector3Int(-1, 0, 0));
+            worldBlockDatastore.RemoveBlock(new Vector3Int(0, 0, -1), BlockRemoveReason.ManualRemove);
+            worldBlockDatastore.RemoveBlock(new Vector3Int(1, 0, 0), BlockRemoveReason.ManualRemove);
+            worldBlockDatastore.RemoveBlock(new Vector3Int(0, 0, 1), BlockRemoveReason.ManualRemove);
+            worldBlockDatastore.RemoveBlock(new Vector3Int(-1, 0, 0), BlockRemoveReason.ManualRemove);
             
             // パイプ切断を検知するまで少し待つ（1更新で検知されるはず）
             GameUpdater.UpdateWithWait();
@@ -246,7 +246,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             Debug.Log(json);
             
             // ブロックを削除
-            worldBlockDatastore.RemoveBlock(Vector3Int.zero);
+            worldBlockDatastore.RemoveBlock(Vector3Int.zero, BlockRemoveReason.ManualRemove);
             
             // ロード
             var (_, loadWorldBlockDatastore, _, _, loadJsonFile) = CreateBlockTestModule();

@@ -30,7 +30,7 @@ namespace Game.Block.Blocks.GearElectric
             EnergyFulfillmentRate = 0f;
         }
         
-        public override void Update()
+        public void Update()
         {
             BlockException.CheckDestroy(this);
             if (IsDestroy) return;

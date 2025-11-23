@@ -105,12 +105,12 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(4, connectInventory.Count);
             
             //ベルトコンベアを削除する
-            world.RemoveBlock(new Vector3Int(1, 0, 0));
-            world.RemoveBlock(new Vector3Int(-1, 0, 0));
+            world.RemoveBlock(new Vector3Int(1, 0, 0), BlockRemoveReason.ManualRemove);
+            world.RemoveBlock(new Vector3Int(-1, 0, 0), BlockRemoveReason.ManualRemove);
             //接続しているコネクターが消えているか確認
             Assert.AreEqual(2, connectInventory.Count);
-            world.RemoveBlock(new Vector3Int(0, 0, 1));
-            world.RemoveBlock(new Vector3Int(0, 0, -1));
+            world.RemoveBlock(new Vector3Int(0, 0, 1), BlockRemoveReason.ManualRemove);
+            world.RemoveBlock(new Vector3Int(0, 0, -1), BlockRemoveReason.ManualRemove);
             
             //接続しているコネクターが消えているか確認
             Assert.AreEqual(0, connectInventory.Count);

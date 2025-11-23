@@ -36,11 +36,6 @@ namespace Game.World
             _onBlockPlaceEvent.OnNext(new BlockUpdateProperties(pos, worldBlockData));
         }
         
-        public void OnBlockRemoveEventInvoke(Vector3Int pos, WorldBlockData worldBlockData)
-        {
-            OnBlockRemoveEventInvoke(pos, worldBlockData, BlockRemoveReason.ManualRemove);
-        }
-        
         public void OnBlockRemoveEventInvoke(Vector3Int pos, WorldBlockData worldBlockData, BlockRemoveReason removeReason)
         {
             _onBlockRemoveEvent.OnNext(new BlockUpdateProperties(pos, worldBlockData, removeReason));

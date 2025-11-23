@@ -43,10 +43,6 @@ namespace Game.World.DataStore
             block = _blockFactory.Load(blockGuid, blockInstanceId, componentStates, blockPositionInfo);
             return TryAddBlock(block);
         }
-        public bool RemoveBlock(Vector3Int pos)
-        {
-            return RemoveBlock(pos, BlockRemoveReason.ManualRemove);
-        }
 
         public bool RemoveBlock(Vector3Int pos, BlockRemoveReason reason)
         {
