@@ -72,6 +72,5 @@ namespace Tests.Module.TestMod
         public static BlockId GearPump => GetBlock("13806455-551c-4399-a7e7-b45a95709a6b");
         public static BlockId TestGearElectricGenerator => GetBlock("00000000-0000-0000-0000-000000000028");
         public static BlockId ElectricPump => GetBlock("3829088a-5a78-43d7-8c3c-d3e4bb91b90a");
-        public static BlockId OverloadTestGear => GetBlock("00000000-0000-0000-0000-000000000030");
     }
 }

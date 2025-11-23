@@ -7,19 +7,19 @@
 
 ### 1. マスターデータスキーマとブロック破壊基盤の構築
 
-- [x] 1.1 (P) blocks.yamlに過負荷パラメータスキーマを追加
+- [ ] 1.1 (P) blocks.yamlに過負荷パラメータスキーマを追加
   - VanillaSchema/blocks.yamlを開き、defineInterfaceセクションにIGearOverloadParamを追加する
   - maxRpm（整数型、デフォルト: 0）、maxTorque（浮動小数点型、デフォルト: 0）、overloadCheckIntervalSeconds（浮動小数点型、デフォルト: 1.0）、baseBreakageProbability（浮動小数点型、デフォルト: 0.0）の4つのプロパティを定義する
   - 各プロパティに日本語と英語のコメントを記述する
   - _Requirements: 1.1, 1.2, 1.3, 1.4_
 
-- [x] 1.2 (P) SourceGeneratorによる自動生成を確認
+- [ ] 1.2 (P) SourceGeneratorによる自動生成を確認
   - Unityプロジェクトをリビルドし、SourceGeneratorが正常に動作することを確認する
   - Mooresmaster.Model.BlocksModule名前空間にIGearOverloadParamインターフェースが生成されていることを確認する
   - 型安全なプロパティアクセスが提供されていることをコード補完で確認する
   - _Requirements: 1.2, 1.3_
 
-- [x] 1.3 (P) BlockRemovalType enumを定義
+- [ ] 1.3 (P) BlockRemovalType enumを定義
   - Game.Block.Interface名前空間に新しいファイルBlockRemovalType.csを作成する
   - ManualRemove（手動削除）とBroken（システムによる破壊）の2つの値を持つenumを定義する
   - 各メンバーに日本語と英語のXMLドキュメントコメントを付与する
@@ -28,14 +28,14 @@
 
 ### 2. ブロック破壊インターフェースと実装の作成
 
-- [x] 2.1 (P) IBlockRemoverインターフェースを定義
+- [ ] 2.1 (P) IBlockRemoverインターフェースを定義
   - Game.Block.Interface名前空間に新しいファイルIBlockRemover.csを作成する
   - RemoveBlock(BlockPositionInfo position, BlockRemovalType removalType)メソッドシグネチャを定義する
   - 各パラメータの意味を日本語と英語のXMLドキュメントコメントで明記する
   - インターフェース全体の責務を説明するコメントを追加する
   - _Requirements: 3.1, 3.2, 3.3, 3.4_
 
-- [x] 2.2 BlockRemoverクラスを実装
+- [ ] 2.2 BlockRemoverクラスを実装
   - Game.Block名前空間に新しいファイルBlockRemover.csを作成する
   - IBlockRemoverインターフェースを実装し、IWorldBlockDatastoreへの依存をコンストラクタインジェクションで受け取る
   - RemoveBlock()メソッド内でworldDatastore.RemoveBlock(position.OriginPos)を呼び出す
@@ -45,21 +45,21 @@
 
 ### 3. DIコンテナ統合とBlockTemplate拡張
 
-- [x] 3.1 MoorestechServerDIContainerGeneratorにIBlockRemoverを登録
+- [ ] 3.1 MoorestechServerDIContainerGeneratorにIBlockRemoverを登録
   - MoorestechServerDIContainerGenerator.csのCreate()メソッドを編集する
   - initializerCollectionセクションで、IWorldBlockDatastoreの登録後、VanillaIBlockTemplatesの登録前にIBlockRemoverをシングルトンとして登録する
   - initializerCollection.AddSingleton<IBlockRemover, BlockRemover>()を追加する
   - 登録順序が依存関係を満たすことを確認する
   - _Requirements: 5.1, 5.2, 5.3, 5.4_
 
-- [x] 3.2 VanillaIBlockTemplatesコンストラクタを拡張
+- [ ] 3.2 VanillaIBlockTemplatesコンストラクタを拡張
   - VanillaIBlockTemplates.csのコンストラクタにIBlockRemoverパラメータを追加する
   - 受け取ったIBlockRemoverをプライベートフィールド_blockRemoverに保存する
   - 歯車関連のBlockTemplate生成時にIBlockRemoverを渡すよう修正する（Gear、Shaft、SimpleGearGenerator、FuelGearGenerator、GearElectricGenerator、GearMiner、GearMapObjectMiner、GearMachine、GearBeltConveyor）
   - 既存のIBlockOpenableInventoryUpdateEventパラメータとの互換性を保つ
   - _Requirements: 6.1, 6.2, 6.3, 6.4_
 
-- [x] 3.3 歯車関連BlockTemplateコンストラクタを拡張
+- [ ] 3.3 歯車関連BlockTemplateコンストラクタを拡張
   - VanillaGearTemplate、VanillaShaftTemplate、VanillaSimpleGearGeneratorTemplate、VanillaFuelGearGeneratorTemplate、VanillaGearElectricGeneratorTemplate、VanillaGearMinerTemplate、VanillaGearMapObjectMinerTemplate、VanillaGearMachineTemplate、VanillaGearBeltConveyorTemplateの各コンストラクタにIBlockRemoverパラメータを追加する
   - 各テンプレートのCreateBlock()メソッドでGearEnergyTransformerのコンストラクタにIBlockRemoverを渡すよう修正する
   - 他のブロックタイプ（ElectricMachine、Chest等）には影響しないことを確認する
@@ -67,14 +67,14 @@
 
 ### 4. GearEnergyTransformer過負荷監視ロジックの実装
 
-- [x] 4.1 GearEnergyTransformerコンストラクタを拡張
+- [ ] 4.1 GearEnergyTransformerコンストラクタを拡張
   - GearEnergyTransformerComponent.csのコンストラクタにIBlockRemoverとGuid blockGuidパラメータを追加する
   - 受け取ったIBlockRemoverとblockGuidをプライベートフィールドに保存する
   - InitializeOverloadMonitoring()メソッドを呼び出し、過負荷監視処理を初期化する
   - 既存のコンストラクタ処理（GearNetworkDatastore.AddGear等）との整合性を保つ
   - _Requirements: 7.2, 8.1_
 
-- [x] 4.2 過負荷パラメータ読み込みロジックを実装
+- [ ] 4.2 過負荷パラメータ読み込みロジックを実装
   - GearEnergyTransformer内にLoadOverloadParameters()ローカル関数を実装する
   - MasterHolder.BlockMaster.GetBlockMaster(blockGuid)でマスターデータを取得する
   - BlockParamをIGearOverloadParamにキャストし、過負荷パラメータを読み込む
@@ -83,7 +83,7 @@
   - #region Internalでローカル関数を整理する
   - _Requirements: 8.1, 11.1, 11.2_
 
-- [x] 4.3 GameUpdater購読と定期チェック処理を実装
+- [ ] 4.3 GameUpdater購読と定期チェック処理を実装
   - GearEnergyTransformer内にInitializeOverloadMonitoring()メソッドを実装する
   - 過負荷チェックが有効な場合（maxRpm > 0 && maxTorque > 0 && baseBreakageProbability > 0）のみGameUpdater.UpdateObservable.Subscribe()を実行する
   - OnUpdate()ローカル関数で経過時間を累積し、overloadCheckIntervalSecondsごとに過負荷チェックを実行する
@@ -91,7 +91,7 @@
   - _updateSubscriptionフィールドにIDisposableを保存し、Destroy()時にDispose()する
   - _Requirements: 8.2, 8.4, 8.5_
 
-- [x] 4.4 過負荷検出と確率計算ロジックを実装
+- [ ] 4.4 過負荷検出と確率計算ロジックを実装
   - OnUpdate()ローカル関数内でGearNetworkDatastore.GetGearNetwork(BlockInstanceId)を呼び出し、現在のネットワークを取得する
   - ネットワーク取得失敗時はreturnで処理をスキップする（条件分岐で対応）
   - CurrentRpmとCurrentTorqueをmaxRpmおよびmaxTorqueと比較し、過負荷を検出する
@@ -100,7 +100,7 @@
   - #region Internalでローカル関数を整理する
   - _Requirements: 8.2, 8.3, 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 11.3, 11.4, 11.5_
 
-- [x] 4.5 確率的破壊実行ロジックを実装
+- [ ] 4.5 確率的破壊実行ロジックを実装
   - OnUpdate()ローカル関数内でUnityEngine.Random.Range(0f, 1f)で乱数を生成する
   - 乱数が破壊確率以下の場合、IBlockRemover.RemoveBlock()を呼び出す
   - RemoveBlock()の引数としてBlockPositionInfo（ServerContext.WorldBlockDatastore経由で取得）とBlockRemovalType.Brokenを渡す
@@ -108,7 +108,7 @@
   - 乱数が破壊確率を上回った場合は何もせず、次のチェック間隔まで待機する
   - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6_
 
-- [x] 4.6 Destroy()メソッドを拡張
+- [ ] 4.6 Destroy()メソッドを拡張
   - GearEnergyTransformerのDestroy()メソッド内で_updateSubscription?.Dispose()を呼び出し、購読を解除する
   - 既存のDestroy()処理（GearNetworkDatastore.RemoveGear、_simpleGearService.Destroy等）との順序を確認する
   - 監視処理が確実に停止されることを確認する
@@ -116,14 +116,14 @@
 
 ### 5. コンパイルエラーの解消とマスターデータ追加
 
-- [x] 5.1 コンパイルエラーを確認・修正
+- [ ] 5.1 コンパイルエラーを確認・修正
   - MCPツール（mcp__moorestech_server__RefreshAssets）を使用してサーバー側をコンパイルする
   - GetCompileLogsでエラーを確認し、コンストラクタシグネチャ変更に伴うコンパイルエラーを修正する
   - 歯車関連BlockTemplateのCreateBlock()呼び出し箇所でblockGuidを渡すように修正する
   - すべてのコンパイルエラーが解消されるまで修正を繰り返す
   - _Requirements: 全要件（統合タスク）_
 
-- [x] 5.2 テスト用マスターデータに過負荷パラメータを追加
+- [ ] 5.2 テスト用マスターデータに過負荷パラメータを追加
   - Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/blocks.jsonを編集する
   - テスト用歯車ブロックにIGearOverloadParamのパラメータを追加する（例：maxRpm: 100, maxTorque: 50.0, overloadCheckIntervalSeconds: 0.5, baseBreakageProbability: 0.1）
   - ForUnitTestModBlockId.csで使用されているブロックIDに対応するブロックに追加する
@@ -132,7 +132,7 @@
 
 ### 6. ユニットテストの作成と実行
 
-- [x] 6.1 BlockRemoverのユニットテストを作成
+- [ ] 6.1 BlockRemoverのユニットテストを作成
   - Tests/UnitTest/Game/BlockRemoverTest.csを新規作成する
   - IWorldBlockDatastoreをモック化し、BlockRemoverのコンストラクタに注入する
   - RemoveBlock()呼び出し時にworldDatastore.RemoveBlock()が呼ばれることを検証する
@@ -140,7 +140,7 @@
   - MCPツール（mcp__moorestech_server__RunEditModeTests）でテストを実行する
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
 
-- [x] 6.2 GearEnergyTransformer過負荷ロジックのユニットテストを作成
+- [ ] 6.2 GearEnergyTransformer過負荷ロジックのユニットテストを作成
   - Tests/CombinedTest/Core/GearOverloadTest.csを新規作成する
   - IBlockRemoverをモック化し、GearEnergyTransformerのコンストラクタに注入する
   - テスト用マスターデータを使用してGearEnergyTransformerを初期化する
@@ -152,7 +152,7 @@
 
 ### 7. 統合テストと最終検証
 
-- [x] 7.1 歯車ネットワーク統合テストを作成
+- [ ] 7.1 歯車ネットワーク統合テストを作成
   - Tests/CombinedTest/Core/GearNetworkOverloadIntegrationTest.csを新規作成する
   - 複数のGearEnergyTransformerを含む歯車ネットワークを構築する
   - 過負荷状態を意図的に作り出し、ブロック破壊が実行されることを確認する
@@ -161,7 +161,7 @@
   - MCPツール（mcp__moorestech_server__RunEditModeTests）でテストを実行する
   - _Requirements: 全要件（統合検証）_
 
-- [x] 7.2 境界条件とエラーハンドリングのテストを作成
+- [ ] 7.2 境界条件とエラーハンドリングのテストを作成
   - GearOverloadTest.cs内に境界条件テストケースを追加する
   - maxRpmまたはmaxTorqueが0以下の場合、過負荷チェックが無効化されることを確認する
   - overloadCheckIntervalSecondsが0以下の場合、デフォルト値1.0が使用されることを確認する
