@@ -64,7 +64,7 @@ namespace Tests.CombinedTest.Core
             {
                 transformer.SupplyPower(new RPM(120), new Torque(120), true);
                 elapsedField?.SetValue(transformer, 1d);
-                GameUpdater.Update();
+                transformer.Update();
                 Thread.Sleep(2);
             }
 
