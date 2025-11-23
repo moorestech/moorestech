@@ -12,6 +12,13 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaItemShooterAcceleratorTemplate : IBlockTemplate
     {
+        private readonly IBlockRemover _blockRemover;
+
+        public VanillaItemShooterAcceleratorTemplate(IBlockRemover blockRemover)
+        {
+            _blockRemover = blockRemover;
+        }
+
         public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] createParams)
         {
             return CreateBlock(null, blockMasterElement, blockInstanceId, blockPositionInfo);
@@ -22,7 +29,7 @@ namespace Game.Block.Factory.BlockTemplate
             return CreateBlock(componentStates, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
 
-        private static IBlock CreateBlock(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        private IBlock CreateBlock(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var acceleratorParam = blockMasterElement.BlockParam as ItemShooterAcceleratorBlockParam;
 
@@ -38,7 +45,7 @@ namespace Game.Block.Factory.BlockTemplate
                 ? new ItemShooterComponent(service)
                 : new ItemShooterComponent(componentStates, service);
 
-            var acceleratorComponent = new ItemShooterAcceleratorComponent(service, acceleratorParam, blockInstanceId, gearConnectorComponent);
+            var acceleratorComponent = new ItemShooterAcceleratorComponent(service, acceleratorParam, _blockRemover, blockInstanceId, gearConnectorComponent);
 
             var components = new List<IBlockComponent>
             {
