@@ -45,13 +45,18 @@ namespace Game.World.DataStore
         }
         public bool RemoveBlock(Vector3Int pos)
         {
+            return RemoveBlock(pos, BlockRemoveReason.ManualRemove);
+        }
+
+        public bool RemoveBlock(Vector3Int pos, BlockRemoveReason reason)
+        {
             if (!this.Exists(pos)) return false;
             
             var entityId = GetEntityId(pos);
             if (!_blockMasterDictionary.ContainsKey(entityId)) return false;
             
             var data = _blockMasterDictionary[entityId];
-            ((WorldBlockUpdateEvent)ServerContext.WorldBlockUpdateEvent).OnBlockRemoveEventInvoke(pos, data);
+            ((WorldBlockUpdateEvent)ServerContext.WorldBlockUpdateEvent).OnBlockRemoveEventInvoke(pos, data, reason);
             
             data.Block.Destroy();
             _blockMasterDictionary.Remove(entityId);
