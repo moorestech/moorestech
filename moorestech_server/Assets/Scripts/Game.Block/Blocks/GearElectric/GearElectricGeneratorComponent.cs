@@ -33,7 +33,6 @@ namespace Game.Block.Blocks.GearElectric
         public void Update()
         {
             BlockException.CheckDestroy(this);
-            if (IsDestroy) return;
             
             UpdateGeneratedPower();
         }

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Game.Block.Blocks;
 using Game.Block.Blocks.BeltConveyor;
-using Game.Block.Blocks.Gear;
 using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -22,7 +21,7 @@ namespace Game.Block.Factory.BlockTemplate
             return GetBlock(componentStates, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
         
-        private BlockSystem GetBlock(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        private static BlockSystem GetBlock(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var gearBeltParam = blockMasterElement.BlockParam as GearBeltConveyorBlockParam;
             
@@ -59,7 +58,6 @@ namespace Game.Block.Factory.BlockTemplate
                 gearEnergyTransformerConnector,
                 inventoryConnector
             };
-            
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, blockComponents, blockPositionInfo);
         }
     }

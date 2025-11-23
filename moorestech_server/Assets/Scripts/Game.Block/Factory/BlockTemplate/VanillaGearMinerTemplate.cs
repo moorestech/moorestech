@@ -55,6 +55,7 @@ namespace Game.Block.Factory.BlockTemplate
                 gearConnector,
                 gearEnergyTransformer,
                 gearMinerComponent,
+                
             };
             
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);

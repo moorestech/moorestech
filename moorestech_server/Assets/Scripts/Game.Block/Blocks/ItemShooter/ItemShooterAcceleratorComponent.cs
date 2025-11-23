@@ -34,7 +34,6 @@ namespace Game.Block.Blocks.ItemShooter
         public void Update()
         {
             BlockException.CheckDestroy(this);
-            if (IsDestroy) return;
             _service.SetExternalAcceleration(CalculateAcceleration());
         }
 

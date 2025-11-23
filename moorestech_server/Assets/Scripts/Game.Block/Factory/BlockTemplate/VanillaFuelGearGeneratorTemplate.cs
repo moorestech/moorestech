@@ -14,6 +14,10 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaFuelGearGeneratorTemplate : IBlockTemplate
     {
+        public VanillaFuelGearGeneratorTemplate()
+        {
+        }
+        
         public IBlock Load(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             return CreateFuelGearGenerator(componentStates, blockMasterElement, blockInstanceId, blockPositionInfo);
