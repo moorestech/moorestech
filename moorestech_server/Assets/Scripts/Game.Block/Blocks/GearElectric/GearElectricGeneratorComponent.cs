@@ -21,17 +21,19 @@ namespace Game.Block.Blocks.GearElectric
         
         public GearElectricGeneratorComponent(
             GearElectricGeneratorBlockParam param,
+            IBlockRemover remover,
             BlockInstanceId blockInstanceId,
             IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent) :
-            base(new Torque(param.RequiredTorque), blockInstanceId, connectorComponent)
+            base(new Torque(param.RequiredTorque), GearOverloadConfig.Create(param.Gear), remover, blockInstanceId, connectorComponent)
         {
             _param = param;
             _currentGeneratedPower = new ElectricPower(0);
             EnergyFulfillmentRate = 0f;
         }
         
-        public void Update()
+        public override void Update()
         {
+            base.Update();
             BlockException.CheckDestroy(this);
             
             UpdateGeneratedPower();

@@ -21,22 +21,19 @@ namespace Game.Block.Blocks.Gear
         public bool GenerateIsClockwise => true;
         public new IObservable<Unit> OnChangeBlockState => _onChangeBlockState;
 
-        // ギア生成に必要な子コンポーネントとサービスを集約して保持する
-        // Hold child components and services required to drive gear generation
         private readonly FuelGearGeneratorFluidComponent _fluidComponent;
         private readonly FuelGearGeneratorFuelService _fuelService;
         private readonly FuelGearGeneratorStateService _stateService;
         private readonly Subject<Unit> _onChangeBlockState;
 
-        // コンストラクタで依存コンポーネントを受け取り、初期状態を整える
-        // Accept dependent components via constructor and set up the initial generator state
         public FuelGearGeneratorComponent(
             FuelGearGeneratorBlockParam param,
+            IBlockRemover remover,
             BlockInstanceId blockInstanceId,
             IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent,
             FuelGearGeneratorItemComponent itemComponent,
             FuelGearGeneratorFluidComponent fluidComponent)
-            : base(new Torque(0), blockInstanceId, connectorComponent)
+            : base(new Torque(0), GearOverloadConfig.Create(param.Gear), remover, blockInstanceId, connectorComponent)
         {
             _fluidComponent = fluidComponent;
             _fuelService = new FuelGearGeneratorFuelService(param, itemComponent.InventoryService, fluidComponent);
@@ -48,16 +45,15 @@ namespace Game.Block.Blocks.Gear
             GenerateTorque = _stateService.CurrentGeneratedTorque;
         }
 
-        // セーブデータから復元する際に呼ばれる補助コンストラクタ
-        // Auxiliary constructor used for restoring the component from saved state
         public FuelGearGeneratorComponent(
             Dictionary<string, string> componentStates,
             FuelGearGeneratorBlockParam param,
+            IBlockRemover remover,
             BlockInstanceId blockInstanceId,
             IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent,
             FuelGearGeneratorItemComponent itemComponent,
             FuelGearGeneratorFluidComponent fluidComponent)
-            : this(param, blockInstanceId, connectorComponent, itemComponent, fluidComponent)
+            : this(param, remover, blockInstanceId, connectorComponent, itemComponent, fluidComponent)
         {
             if (!componentStates.TryGetValue(SaveKey, out var raw)) return;
             var saveData = JsonUtility.FromJson<FuelGearGeneratorSaveData>(raw);
@@ -68,10 +64,9 @@ namespace Game.Block.Blocks.Gear
             GenerateTorque = _stateService.CurrentGeneratedTorque;
         }
 
-        // フレーム更新で燃料と状態を処理し、出力がある限り観測者へ通知する
-        // Process fuel and state each frame, notifying observers while power is produced
-        public void Update()
+        public override void Update()
         {
+            base.Update();
             BlockException.CheckDestroy(this);
 
             var network = GearNetworkDatastore.GetGearNetwork(BlockInstanceId);
