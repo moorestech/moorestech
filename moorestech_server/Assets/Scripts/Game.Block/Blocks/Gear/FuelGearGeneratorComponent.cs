@@ -35,10 +35,8 @@ namespace Game.Block.Blocks.Gear
             BlockInstanceId blockInstanceId,
             IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent,
             FuelGearGeneratorItemComponent itemComponent,
-            FuelGearGeneratorFluidComponent fluidComponent,
-            GearOverloadConfig overloadConfig,
-            IBlockRemover blockRemover)
-            : base(new Torque(0), blockInstanceId, connectorComponent, overloadConfig, blockRemover)
+            FuelGearGeneratorFluidComponent fluidComponent)
+            : base(new Torque(0), blockInstanceId, connectorComponent)
         {
             _fluidComponent = fluidComponent;
             _fuelService = new FuelGearGeneratorFuelService(param, itemComponent.InventoryService, fluidComponent);
@@ -58,10 +56,8 @@ namespace Game.Block.Blocks.Gear
             BlockInstanceId blockInstanceId,
             IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent,
             FuelGearGeneratorItemComponent itemComponent,
-            FuelGearGeneratorFluidComponent fluidComponent,
-            GearOverloadConfig overloadConfig,
-            IBlockRemover blockRemover)
-            : this(param, blockInstanceId, connectorComponent, itemComponent, fluidComponent, overloadConfig, blockRemover)
+            FuelGearGeneratorFluidComponent fluidComponent)
+            : this(param, blockInstanceId, connectorComponent, itemComponent, fluidComponent)
         {
             if (!componentStates.TryGetValue(SaveKey, out var raw)) return;
             var saveData = JsonUtility.FromJson<FuelGearGeneratorSaveData>(raw);
@@ -74,11 +70,9 @@ namespace Game.Block.Blocks.Gear
 
         // フレーム更新で燃料と状態を処理し、出力がある限り観測者へ通知する
         // Process fuel and state each frame, notifying observers while power is produced
-        public override void Update()
+        public void Update()
         {
             BlockException.CheckDestroy(this);
-            base.Update();
-            if (IsDestroy) return;
 
             var network = GearNetworkDatastore.GetGearNetwork(BlockInstanceId);
             var operatingRate = network.CurrentGearNetworkInfo.OperatingRate;
