@@ -85,13 +85,6 @@ namespace Game.Block.Factory.BlockTemplate
                 fluidComponent,
             };
             
-            // 過負荷破壊コンポーネントを追加
-            // Add overload breakage component
-            if (overloadConfig.IsActive)
-            {
-                components.Add(new GearOverloadBreakageComponent(blockInstanceId, fuelGearGeneratorComponent, overloadConfig));
-            }
-            
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
     }
