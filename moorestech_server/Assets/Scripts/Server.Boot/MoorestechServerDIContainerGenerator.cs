@@ -87,7 +87,7 @@ namespace Server.Boot
             initializerCollection.AddSingleton(masterJsonFileContainer);
             initializerCollection.AddSingleton<IItemStackFactory, ItemStackFactory>();
             initializerCollection.AddSingleton<IWorldBlockDatastore, WorldBlockDatastore>();
-            initializerCollection.AddSingleton<IBlockRemover, BlockRemover>();
+            initializerCollection.AddSingleton<IBlockRemover>(sp => new BlockRemover(() => sp.GetService<IWorldBlockDatastore>()));
             initializerCollection.AddSingleton<VanillaIBlockTemplates, VanillaIBlockTemplates>();
             initializerCollection.AddSingleton<IBlockFactory, BlockFactory>();
 
