@@ -1009,7 +1009,7 @@
       "blockParam": {
         "requireTorque": 0,
         "teethCount": 10,
-        "maxRpm": 0, "maxTorque": 0, "overloadCheckIntervalSeconds": 1.0, "baseBreakageProbability": 0.0, "gear": {
+        "gear": {
           "gearConnects": [
             {
               "offset": [
@@ -1102,7 +1102,7 @@
       "blockParam": {
         "requireTorque": 0,
         "teethCount": 20,
-        "maxRpm": 0, "maxTorque": 0, "overloadCheckIntervalSeconds": 1.0, "baseBreakageProbability": 0.0, "gear": {
+        "gear": {
           "gearConnects": [
             {
               "offset": [
@@ -1233,7 +1233,7 @@
       "blockType": "Shaft",
       "blockParam": {
         "requireTorque": 0.1,
-        "maxRpm": 0, "maxTorque": 0, "overloadCheckIntervalSeconds": 1.0, "baseBreakageProbability": 0.0, "gear": {
+        "gear": {
           "gearConnects": [
             {
               "offset": [
@@ -1298,7 +1298,7 @@
         "inputSlotCount": 2,
         "inputFluidSlotCount": 0,
         "outputFluidSlotCount": 0,
-        "maxRpm": 0, "maxTorque": 0, "overloadCheckIntervalSeconds": 1.0, "baseBreakageProbability": 0.0, "gear": {
+        "gear": {
           "gearConnects": [
             {
               "offset": [
@@ -1442,7 +1442,7 @@
         "generateTorque": 3,
         "generateRpm": 10,
         "teethCount": 10,
-        "maxRpm": 0, "maxTorque": 0, "overloadCheckIntervalSeconds": 1.0, "baseBreakageProbability": 0.0, "gear": {
+        "gear": {
           "gearConnects": [
             {
               "offset": [
@@ -1516,7 +1516,7 @@
         "generateTorque": 1,
         "generateRpm": 20,
         "teethCount": 10,
-        "maxRpm": 0, "maxTorque": 0, "overloadCheckIntervalSeconds": 1.0, "baseBreakageProbability": 0.0, "gear": {
+        "gear": {
           "gearConnects": [
             {
               "offset": [
@@ -1586,7 +1586,7 @@
       "blockParam": {
         "requireTorque": 1,
         "teethCount": 10,
-        "maxRpm": 0, "maxTorque": 0, "overloadCheckIntervalSeconds": 1.0, "baseBreakageProbability": 0.0, "gear": {
+        "gear": {
           "gearConnects": [
             {
               "offset": [
@@ -1680,7 +1680,7 @@
       "blockParam": {
         "requireTorque": 1,
         "teethCount": 20,
-        "maxRpm": 0, "maxTorque": 0, "overloadCheckIntervalSeconds": 1.0, "baseBreakageProbability": 0.0, "gear": {
+        "gear": {
           "gearConnects": [
             {
               "offset": [
@@ -1774,7 +1774,7 @@
         "generateTorque": 1000000,
         "generateRpm": 10,
         "teethCount": 10,
-        "maxRpm": 0, "maxTorque": 0, "overloadCheckIntervalSeconds": 1.0, "baseBreakageProbability": 0.0, "gear": {
+        "gear": {
           "gearConnects": [
             {
               "offset": [
@@ -1828,7 +1828,7 @@
         "requireTorque": 1,
         "beltConveyorSpeed": 0.01,
         "beltConveyorItemCount": 4,
-        "maxRpm": 0, "maxTorque": 0, "overloadCheckIntervalSeconds": 1.0, "baseBreakageProbability": 0.0, "gear": {
+        "gear": {
           "gearConnects": [
             {
               "offset": [
@@ -2278,7 +2278,7 @@
             }
           ]
         },
-        "maxRpm": 0, "maxTorque": 0, "overloadCheckIntervalSeconds": 1.0, "baseBreakageProbability": 0.0, "gear": {
+        "gear": {
           "gearConnects": [
             {
               "offset": [
@@ -2674,7 +2674,7 @@
       "blockGuid": "00000000-0000-0000-0000-00000000001c",
       "blockParam": {
         "outputItemSlotCount": 3,
-        "maxRpm": 0, "maxTorque": 0, "overloadCheckIntervalSeconds": 1.0, "baseBreakageProbability": 0.0, "gear": {
+        "gear": {
           "gearConnects": [
             {
               "offset": [
@@ -3582,7 +3582,7 @@
           "inputConnects": [],
           "outputConnects": []
         },
-        "maxRpm": 0, "maxTorque": 0, "overloadCheckIntervalSeconds": 1.0, "baseBreakageProbability": 0.0, "gear": {
+        "gear": {
           "gearConnects": [
             {
               "offset": [
@@ -3946,7 +3946,7 @@
           }
         ],
         "fuelItemSlotCount": 2,
-        "maxRpm": 0, "maxTorque": 0, "overloadCheckIntervalSeconds": 1.0, "baseBreakageProbability": 0.0, "gear": {
+        "gear": {
           "gearConnects": []
         },
         "fluidInventoryConnectors": {
@@ -4227,7 +4227,7 @@
           ],
           "inflowConnects": []
         },
-        "maxRpm": 0, "maxTorque": 0, "overloadCheckIntervalSeconds": 1.0, "baseBreakageProbability": 0.0, "gear": {
+        "gear": {
           "gearConnects": [
             {
               "offset": [
@@ -4352,78 +4352,6 @@
         "requiredRpm": 120,
         "requiredTorque": 100,
         "maxGeneratedPower": 100,
-        "maxRpm": 0, "maxTorque": 0, "overloadCheckIntervalSeconds": 1.0, "baseBreakageProbability": 0.0, "gear": {
-          "gearConnects": [
-            {
-              "offset": [
-                0,
-                0,
-                0
-              ],
-              "connectType": "Gear",
-              "connectOption": {
-                "isReverse": false
-              },
-              "directions": [
-                [
-                  0,
-                  0,
-                  -1
-                ],
-                [
-                  0,
-                  0,
-                  1
-                ],
-                [
-                  1,
-                  0,
-                  0
-                ],
-                [
-                  -1,
-                  0,
-                  0
-                ]
-              ]
-            }
-          ]
-        }
-      },
-      "overrideVerticalBlock": {}
-    },
-    {
-      "modelTransform": {
-        "scale": [
-          1,
-          1,
-          1
-        ],
-        "rotation": [
-          0,
-          0,
-          0
-        ],
-        "position": [
-          0,
-          0,
-          0
-        ]
-      },
-      "blockSize": [
-        1,
-        1,
-        1
-      ],
-      "name": "OverloadTestGear",
-      "blockType": "Gear",
-      "blockParam": {
-        "requireTorque": 0,
-        "teethCount": 10,
-        "maxRpm": 100,
-        "maxTorque": 50.0,
-        "overloadCheckIntervalSeconds": 0.1,
-        "baseBreakageProbability": 1.0,
         "gear": {
           "gearConnects": [
             {
@@ -4434,37 +4362,8 @@
               ],
               "connectType": "Gear",
               "connectOption": {
-                "isReverse": true
+                "isReverse": false
               },
-              "directions": [
-                [
-                  1,
-                  0,
-                  0
-                ],
-                [
-                  -1,
-                  0,
-                  0
-                ],
-                [
-                  0,
-                  1,
-                  0
-                ],
-                [
-                  0,
-                  -1,
-                  0
-                ]
-              ]
-            },
-            {
-              "offset": [
-                0,
-                0,
-                0
-              ],
               "directions": [
                 [
                   0,
@@ -4475,18 +4374,22 @@
                   0,
                   0,
                   1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
                 ]
-              ],
-              "connectType": "Gear",
-              "connectOption": {
-                "isReverse": false
-              }
+              ]
             }
           ]
         }
       },
-      "itemGuid": "00000000-0000-0000-0000-000000000030",
-      "blockGuid": "00000000-0000-0000-0000-000000000030",
       "overrideVerticalBlock": {}
     }
   ]

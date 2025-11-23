@@ -14,11 +14,8 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaFuelGearGeneratorTemplate : IBlockTemplate
     {
-        private readonly IBlockRemover _blockRemover;
-
-        public VanillaFuelGearGeneratorTemplate(IBlockRemover blockRemover)
+        public VanillaFuelGearGeneratorTemplate()
         {
-            _blockRemover = blockRemover;
         }
         
         public IBlock Load(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
@@ -70,9 +67,7 @@ namespace Game.Block.Factory.BlockTemplate
                     blockInstanceId, 
                     gearConnectorComponent,
                     itemComponent,
-                    fluidComponent,
-                    _blockRemover,
-                    blockMasterElement.BlockGuid
+                    fluidComponent
                 )
                 : new FuelGearGeneratorComponent(
                     componentStates,
@@ -80,9 +75,7 @@ namespace Game.Block.Factory.BlockTemplate
                     blockInstanceId, 
                     gearConnectorComponent,
                     itemComponent,
-                    fluidComponent,
-                    _blockRemover,
-                    blockMasterElement.BlockGuid
+                    fluidComponent
                 );
             
             var components = new List<IBlockComponent>
