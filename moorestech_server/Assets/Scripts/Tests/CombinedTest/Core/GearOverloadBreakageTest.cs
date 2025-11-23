@@ -15,6 +15,7 @@ using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using System.Reflection;
 using UniRx;
 using UnityEngine;
 
