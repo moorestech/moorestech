@@ -35,8 +35,10 @@ namespace Game.Block.Blocks.Gear
             BlockInstanceId blockInstanceId,
             IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent,
             FuelGearGeneratorItemComponent itemComponent,
-            FuelGearGeneratorFluidComponent fluidComponent)
-            : base(new Torque(0), blockInstanceId, connectorComponent)
+            FuelGearGeneratorFluidComponent fluidComponent,
+            IBlockRemover blockRemover,
+            Guid blockGuid)
+            : base(new Torque(0), blockInstanceId, connectorComponent, blockRemover, blockGuid)
         {
             _fluidComponent = fluidComponent;
             _fuelService = new FuelGearGeneratorFuelService(param, itemComponent.InventoryService, fluidComponent);
@@ -56,8 +58,10 @@ namespace Game.Block.Blocks.Gear
             BlockInstanceId blockInstanceId,
             IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent,
             FuelGearGeneratorItemComponent itemComponent,
-            FuelGearGeneratorFluidComponent fluidComponent)
-            : this(param, blockInstanceId, connectorComponent, itemComponent, fluidComponent)
+            FuelGearGeneratorFluidComponent fluidComponent,
+            IBlockRemover blockRemover,
+            Guid blockGuid)
+            : this(param, blockInstanceId, connectorComponent, itemComponent, fluidComponent, blockRemover, blockGuid)
         {
             if (!componentStates.TryGetValue(SaveKey, out var raw)) return;
             var saveData = JsonUtility.FromJson<FuelGearGeneratorSaveData>(raw);

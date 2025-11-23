@@ -1068,7 +1068,11 @@
               }
             }
           ]
-        }
+        },
+        "maxRpm": 1,
+        "maxTorque": 1,
+        "overloadCheckIntervalSeconds": 0.2,
+        "baseBreakageProbability": 1.0
       },
       "itemGuid": "00000000-0000-0000-1234-000000000014",
       "blockGuid": "00000000-0000-0000-0000-00000000000c",
