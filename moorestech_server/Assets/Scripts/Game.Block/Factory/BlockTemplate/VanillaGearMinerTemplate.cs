@@ -15,10 +15,12 @@ namespace Game.Block.Factory.BlockTemplate
     public class VanillaGearMinerTemplate : IBlockTemplate
     {
         private readonly BlockOpenableInventoryUpdateEvent _blockOpenableInventoryUpdateEvent;
+        private readonly IBlockRemover _blockRemover;
         
-        public VanillaGearMinerTemplate(BlockOpenableInventoryUpdateEvent blockOpenableInventoryUpdateEvent)
+        public VanillaGearMinerTemplate(BlockOpenableInventoryUpdateEvent blockOpenableInventoryUpdateEvent, IBlockRemover blockRemover)
         {
             _blockOpenableInventoryUpdateEvent = blockOpenableInventoryUpdateEvent;
+            _blockRemover = blockRemover;
         }
         
         public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] createParams)
@@ -37,7 +39,8 @@ namespace Game.Block.Factory.BlockTemplate
             
             var connectSetting = minerParam.Gear.GearConnects;
             var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(connectSetting, connectSetting, blockPositionInfo);
-            var gearEnergyTransformer = new GearEnergyTransformer(new Torque(minerParam.RequireTorque), blockInstanceId, gearConnector);
+            var overloadConfig = GearOverloadConfig.From(minerParam);
+            var gearEnergyTransformer = new GearEnergyTransformer(new Torque(minerParam.RequireTorque), blockInstanceId, gearConnector, overloadConfig, _blockRemover);
             
             var requestPower = new ElectricPower(minerParam.RequireTorque * minerParam.RequiredRpm);
             var outputSlot = minerParam.OutputItemSlotCount;

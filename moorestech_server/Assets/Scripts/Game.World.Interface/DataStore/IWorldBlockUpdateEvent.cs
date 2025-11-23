@@ -1,4 +1,5 @@
 using System;
+using Game.Block.Interface;
 using UnityEngine;
 
 namespace Game.World.Interface.DataStore
@@ -23,11 +24,20 @@ namespace Game.World.Interface.DataStore
     {
         public Vector3Int Pos { get; }
         public WorldBlockData BlockData { get; }
+        public BlockRemoveReason? RemoveReason { get; }
         
         public BlockUpdateProperties(Vector3Int pos, WorldBlockData blockData)
         {
             Pos = pos;
             BlockData = blockData;
+            RemoveReason = null;
+        }
+
+        public BlockUpdateProperties(Vector3Int pos, WorldBlockData blockData, BlockRemoveReason removeReason)
+        {
+            Pos = pos;
+            BlockData = blockData;
+            RemoveReason = removeReason;
         }
     }
 }

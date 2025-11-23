@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Game.Block.Blocks;
 using Game.Block.Blocks.BeltConveyor;
+using Game.Block.Blocks.Gear;
 using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -11,6 +12,13 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaGearBeltConveyorTemplate : IBlockTemplate
     {
+        private readonly IBlockRemover _blockRemover;
+
+        public VanillaGearBeltConveyorTemplate(IBlockRemover blockRemover)
+        {
+            _blockRemover = blockRemover;
+        }
+        
         public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] createParams)
         {
             return GetBlock(null, blockMasterElement, blockInstanceId, blockPositionInfo);
@@ -21,9 +29,10 @@ namespace Game.Block.Factory.BlockTemplate
             return GetBlock(componentStates, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
         
-        private static BlockSystem GetBlock(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        private BlockSystem GetBlock(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var gearBeltParam = blockMasterElement.BlockParam as GearBeltConveyorBlockParam;
+            var overloadConfig = GearOverloadConfig.From(gearBeltParam);
             
             var gearEnergyTransformerConnector = new BlockConnectorComponent<IGearEnergyTransformer>(
                 gearBeltParam.Gear.GearConnects,
@@ -49,7 +58,7 @@ namespace Game.Block.Factory.BlockTemplate
                     new VanillaBeltConveyorComponent(itemCount, time, beltConveyorConnector, slopeType) :
                     new VanillaBeltConveyorComponent(componentStates, itemCount, time, beltConveyorConnector,slopeType);
             
-            var gearBeltConveyorComponent = new GearBeltConveyorComponent(vanillaBeltConveyorComponent, blockInstanceId, gearBeltParam.BeltConveyorSpeed, (Torque)gearBeltParam.RequireTorque, gearEnergyTransformerConnector);
+            var gearBeltConveyorComponent = new GearBeltConveyorComponent(vanillaBeltConveyorComponent, blockInstanceId, gearBeltParam.BeltConveyorSpeed, (Torque)gearBeltParam.RequireTorque, gearEnergyTransformerConnector, overloadConfig, _blockRemover);
             
             var blockComponents = new List<IBlockComponent>
             {
