@@ -503,6 +503,15 @@
       "recipeViewType": "ForceView",
       "initialUnlocked": true,
       "handGrabModelAddressablePath": ""
+    },
+    {
+      "maxStack": 100,
+      "name": "OverloadTestGear",
+      "itemGuid": "00000000-0000-0000-0000-000000000030",
+      "imagePath": "Test1",
+      "sortPriority": 100,
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     }
   ]
 }
