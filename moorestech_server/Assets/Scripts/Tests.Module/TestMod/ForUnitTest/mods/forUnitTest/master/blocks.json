@@ -4526,5 +4526,11 @@
       },
       "overrideVerticalBlock": {}
     }
+  ],
+  "gearChainItems": [
+    {
+      "itemGuid": "b15c8f72-df53-4f3a-810f-55a76f65d2ce",
+      "consumptionPerLength": 1
+    }
   ]
 }
