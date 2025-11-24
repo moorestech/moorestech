@@ -1,10 +1,8 @@
 using Game.Train.Common;
 using Game.Train.Utility;
-using MessagePack;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 
 namespace Game.Train.RailGraph
@@ -38,7 +36,8 @@ namespace Game.Train.RailGraph
             _railNodes = railNodes;
             _trainLength = trainLength;
             _distanceToNextNode = initialDistanceToNextNode;
-            ValidatePosition();
+            RemoveUnnecessaryNodes();
+            //ValidatePosition();
         }
 
         public void OnDestroy()
@@ -150,7 +149,7 @@ namespace Game.Train.RailGraph
                     var overlength = totalListDistance - distanceFromFront;
                     if (isCoverLength) // 今回を含めなくても長さが足りているなら
                     {//それ以降の情報はいらない
-                        _railNodes.RemoveRange(i + 1, _railNodes.Count - i - 2);
+                        _railNodes.RemoveRange(i + 1, _railNodes.Count - i - 1);
                         break;
                     }
                     else // 今回を含めないと長さが足りないなら
