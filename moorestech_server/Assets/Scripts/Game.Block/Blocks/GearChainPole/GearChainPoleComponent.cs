@@ -8,14 +8,19 @@ using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.Gear.Common;
 using Mooresmaster.Model.BlockConnectInfoModule;
+using Mooresmaster.Model.BlocksModule;
 using Newtonsoft.Json;
 
 namespace Game.Block.Blocks.GearChainPole
 {
     public class GearChainPoleComponent : IGearEnergyTransformer, IBlockSaveState, IGearChainPole, IPostBlockLoad
     {
-        public float MaxConnectionDistance { get; }
-        public bool IsConnectionFull => _chainTargets.Count >= _maxConnectionCount;
+        // マスターデータパラメータを保持する
+        // Hold master data parameters
+        private readonly GearChainPoleBlockParam _param;
+        
+        public float MaxConnectionDistance => _param.MaxConnectionDistance;
+        public bool IsConnectionFull => _chainTargets.Count >= _param.MaxConnectionCount;
         public IReadOnlyCollection<BlockInstanceId> PartnerIds => _chainTargets.Keys;
 
         // チェーン接続と周辺ギアのコネクターを保持する
@@ -23,16 +28,14 @@ namespace Game.Block.Blocks.GearChainPole
         private readonly BlockConnectorComponent<IGearEnergyTransformer> _connectorComponent;
         private readonly SimpleGearService _gearService;
         private readonly GearConnectOption _chainOption = new(false);
-        private readonly int _maxConnectionCount;
 
         private readonly Dictionary<BlockInstanceId, IGearEnergyTransformer> _chainTargets = new();
 
-        public GearChainPoleComponent(float maxConnectionDistance, int maxConnectionCount, BlockInstanceId blockInstanceId, BlockConnectorComponent<IGearEnergyTransformer> connectorComponent, Dictionary<string, string> componentStates)
+        public GearChainPoleComponent(GearChainPoleBlockParam param, BlockInstanceId blockInstanceId, BlockConnectorComponent<IGearEnergyTransformer> connectorComponent, Dictionary<string, string> componentStates)
         {
             // 基本状態を初期化する
             // Initialize base state
-            MaxConnectionDistance = maxConnectionDistance;
-            _maxConnectionCount = maxConnectionCount;
+            _param = param;
             BlockInstanceId = blockInstanceId;
             _connectorComponent = connectorComponent;
             _gearService = new SimpleGearService(blockInstanceId);
@@ -70,7 +73,7 @@ namespace Game.Block.Blocks.GearChainPole
             // 新しい接続先を記録する
             // Store new partner connection
             if (_chainTargets.ContainsKey(partnerId)) return false;
-            if (_chainTargets.Count >= _maxConnectionCount) return false;
+            if (_chainTargets.Count >= _param.MaxConnectionCount) return false;
             var transformer = ResolveChainTarget(partnerId);
             if (transformer == null) return false;
             _chainTargets.Add(partnerId, transformer);
@@ -115,7 +118,7 @@ namespace Game.Block.Blocks.GearChainPole
                 var targetId = new BlockInstanceId(targetIdInt);
                 if (targetId == BlockInstanceId) continue;
                 if (_chainTargets.ContainsKey(targetId)) continue;
-                if (_chainTargets.Count >= _maxConnectionCount) break;
+                if (_chainTargets.Count >= _param.MaxConnectionCount) break;
                 var transformer = ResolveChainTarget(targetId);
                 if (transformer == null) continue;
                 _chainTargets.Add(targetId, transformer);
