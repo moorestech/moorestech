@@ -128,8 +128,9 @@ MasterHolder.Load()
 
 ### スキーマを変更する場合
 1. `VanillaSchema/*.yml` の該当ファイルを編集
-2. プロジェクトをリビルドして自動生成を実行
-3. 生成されたクラスを確認
+2. スキーマを変更したら、`moorestech_server/Assets/Scripts/Core.Master/Dummy.cs` の`dummyText`の内容を別の値に変更すること。これによってSourceGeneratorが働き、コード生成が行われる。
+3. プロジェクトをリビルドして自動生成を実行
+4. 生成されたクラスを確認
 
 ### 新しいマスターデータを追加する場合
 1. `VanillaSchema/` に新しいYAMLファイルを作成
