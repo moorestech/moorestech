@@ -77,7 +77,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             // 切断要求のメッセージパックを生成する
             // Build disconnect request message pack
-            return MessagePackSerializer.Serialize(GearChainConnectionEditProtocol.GearChainConnectionEditRequest.CreateDisconnectRequest(posA, posB)).ToList();
+            return MessagePackSerializer.Serialize(GearChainConnectionEditProtocol.GearChainConnectionEditRequest.CreateDisconnectRequest(posA, posB, PlayerId)).ToList();
         }
     }
 }

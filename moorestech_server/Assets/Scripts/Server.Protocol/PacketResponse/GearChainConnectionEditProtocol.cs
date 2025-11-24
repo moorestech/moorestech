@@ -42,7 +42,7 @@ namespace Server.Protocol.PacketResponse
                         break;
 
                     case ChainEditMode.Disconnect:
-                        success = GearChainSystemUtil.TryDisconnect(data.PosAVector, data.PosBVector, out error);
+                        success = GearChainSystemUtil.TryDisconnect(data.PosAVector, data.PosBVector, data.PlayerId, out error);
                         break;
 
                     default:
@@ -81,7 +81,7 @@ namespace Server.Protocol.PacketResponse
                 };
             }
 
-            public static GearChainConnectionEditRequest CreateDisconnectRequest(Vector3Int posA, Vector3Int posB)
+            public static GearChainConnectionEditRequest CreateDisconnectRequest(Vector3Int posA, Vector3Int posB, int playerId)
             {
                 return new GearChainConnectionEditRequest
                 {
@@ -89,6 +89,7 @@ namespace Server.Protocol.PacketResponse
                     PosA = new Vector3IntMessagePack(posA),
                     PosB = new Vector3IntMessagePack(posB),
                     Mode = ChainEditMode.Disconnect,
+                    PlayerId = playerId,
                 };
             }
         }

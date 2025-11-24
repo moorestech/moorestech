@@ -4,6 +4,7 @@ using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
+using Game.Block.Blocks.GearChainPole;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using MessagePack;
@@ -60,6 +61,13 @@ namespace Server.Protocol.PacketResponse
             //ブロックIdの取得
             var block = worldBlockDatastore.GetBlock(data.Pos);
             if (block == null) return null;
+
+            // ギアチェーン消費アイテムを返却
+            // Refund gear chain items to the player inventory
+            if (block.ComponentManager.TryGetComponent(out IGearChainPole chainPole) && chainPole is Game.Block.Blocks.GearChainPole.GearChainPoleComponent poleComponent)
+            {
+                poleComponent.RefundConnections(playerMainInventory);
+            }
             
             //ブロックのIDを取得
             var blockItemId = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId).ItemGuid;
