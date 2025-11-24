@@ -1300,6 +1300,75 @@
         1,
         1
       ],
+      "name": "ChainPole",
+      "blockType": "ChainPole",
+      "blockParam": {
+        "maxConnectionDistance": 10,
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ]
+            }
+          ]
+        }
+      },
+      "itemGuid": "7f2b0f6c-1d8a-4e37-9c3a-b9da1abbe7b7",
+      "blockGuid": "00000000-0000-0000-0000-00000000002c",
+      "overrideVerticalBlock": {}
+    },
+    {
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
       "name": "TestGearMachine",
       "blockType": "GearMachine",
       "blockParam": {
