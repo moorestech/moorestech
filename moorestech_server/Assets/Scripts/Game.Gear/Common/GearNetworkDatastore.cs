@@ -30,11 +30,6 @@ namespace Game.Gear.Common
             _instance.AddGearInternal(gear);
         }
 
-        public static bool Contains(IGearEnergyTransformer gear)
-        {
-            return _instance._blockEntityToGearNetwork.ContainsKey(gear.BlockInstanceId);
-        }
-        
         private void AddGearInternal(IGearEnergyTransformer gear)
         {
             var connectedNetworkIds = new HashSet<GearNetworkId>();
