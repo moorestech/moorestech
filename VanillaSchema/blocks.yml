@@ -92,7 +92,7 @@ properties:
       - ElectricMiner
       - Gear
       - Shaft
-      - ChainPole
+      - GearChainPole
       - GearMachine
       - SimpleGearGenerator
       - FuelGearGenerator
@@ -335,7 +335,7 @@ properties:
           default: 0
         - key: gear
           ref: gear
-      - when: ChainPole
+      - when: GearChainPole
         type: object
         implementationInterface:
         - IGearConnectors

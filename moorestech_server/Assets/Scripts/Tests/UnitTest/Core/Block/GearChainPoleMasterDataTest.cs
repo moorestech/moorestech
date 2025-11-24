@@ -12,7 +12,7 @@ using Mooresmaster.Model.BlocksModule;
 
 namespace Tests.UnitTest.Core.Block
 {
-    public class ChainPoleMasterDataTest
+    public class GearChainPoleMasterDataTest
     {
         [SetUp]
         public void SetUp()
@@ -23,16 +23,16 @@ namespace Tests.UnitTest.Core.Block
         }
 
         [Test]
-        public void ChainPoleMasterDataIsRegistered()
+        public void GearChainPoleMasterDataIsRegistered()
         {
             // マスターデータからチェーンポールを取得する
             // Fetch chain pole block from master data
-            var chainPole = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.ChainPole);
-            Assert.AreEqual("ChainPole", chainPole.BlockType);
+            var chainPole = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearChainPole);
+            Assert.AreEqual("GearChainPole", chainPole.BlockType);
 
             // 最大接続距離のパラメーターが設定されていることを確認する
             // Verify max connection distance parameter exists
-            var param = chainPole.BlockParam as ChainPoleBlockParam;
+            var param = chainPole.BlockParam as GearChainPoleBlockParam;
             Assert.NotNull(param);
             Assert.Greater(param.MaxConnectionDistance, 0f);
 
@@ -42,11 +42,11 @@ namespace Tests.UnitTest.Core.Block
         }
 
         [Test]
-        public void ChainPoleProvidesGearTransformerComponent()
+        public void GearChainPoleProvidesGearTransformerComponent()
         {
             // チェーンポールブロックを生成する
             // Create chain pole block instance
-            var block = ServerContext.BlockFactory.Create(ForUnitTestModBlockId.ChainPole, new BlockInstanceId(12), new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one));
+            var block = ServerContext.BlockFactory.Create(ForUnitTestModBlockId.GearChainPole, new BlockInstanceId(12), new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one));
 
             // ギアエネルギートランスフォーマーを取得する
             // Retrieve gear energy transformer component

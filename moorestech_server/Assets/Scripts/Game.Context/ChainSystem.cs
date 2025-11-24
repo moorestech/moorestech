@@ -31,7 +31,7 @@ namespace Game.Context
             // 接続対象を取得する
             // Acquire target chain poles
             error = string.Empty;
-            if (!TryGetChainPole(posA, out var poleA, out var transformerA) || !TryGetChainPole(posB, out var poleB, out var transformerB))
+            if (!TryGetGearChainPole(posA, out var poleA, out var transformerA) || !TryGetGearChainPole(posB, out var poleB, out var transformerB))
             {
                 error = "InvalidTarget";
                 return false;
@@ -81,7 +81,7 @@ namespace Game.Context
             // 接続対象を取得する
             // Acquire target chain poles
             error = string.Empty;
-            if (!TryGetChainPole(posA, out var poleA, out var transformerA) || !TryGetChainPole(posB, out var poleB, out var transformerB))
+            if (!TryGetGearChainPole(posA, out var poleA, out var transformerA) || !TryGetGearChainPole(posB, out var poleB, out var transformerB))
             {
                 error = "InvalidTarget";
                 return false;
@@ -101,14 +101,14 @@ namespace Game.Context
             return true;
         }
 
-        private bool TryGetChainPole(Vector3Int position, out IChainPole chainPole, out IGearEnergyTransformer transformer)
+        private bool TryGetGearChainPole(Vector3Int position, out IGearChainPole chainPole, out IGearEnergyTransformer transformer)
         {
             // 指定座標からコンポーネントを解決する
             // Resolve component from position
             chainPole = null;
             transformer = null;
             if (!_worldBlockDatastore.TryGetBlock(position, out IBlock block)) return false;
-            chainPole = block.GetComponent<IChainPole>();
+            chainPole = block.GetComponent<IGearChainPole>();
             transformer = block.GetComponent<IGearEnergyTransformer>();
             return chainPole != null && transformer != null;
         }

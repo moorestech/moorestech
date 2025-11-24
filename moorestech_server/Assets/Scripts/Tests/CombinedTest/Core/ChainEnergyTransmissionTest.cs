@@ -28,8 +28,8 @@ namespace Tests.CombinedTest.Core
             // Place blocks to build gear network
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, new Vector3Int(0, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var generatorBlock);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChainPole, new Vector3Int(1, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var poleA);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChainPole, new Vector3Int(6, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var poleB);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearChainPole, new Vector3Int(1, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var poleA);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearChainPole, new Vector3Int(6, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var poleB);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, new Vector3Int(7, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var targetGear);
 
             // プレイヤーのインベントリにチェーンを追加する

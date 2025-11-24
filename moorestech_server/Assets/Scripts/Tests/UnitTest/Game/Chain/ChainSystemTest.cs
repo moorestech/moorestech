@@ -38,8 +38,8 @@ namespace Tests.UnitTest.Game.Chain
             // Place blocks at distant positions
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var far = new Vector3Int(30, 0, 0);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChainPole, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChainPole, far, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearChainPole, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearChainPole, far, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
 
             // チェーン接続を試行し、失敗コードを確認する
             // Attempt to connect chain and verify failure code
@@ -57,8 +57,8 @@ namespace Tests.UnitTest.Game.Chain
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var posA = Vector3Int.zero;
             var posB = new Vector3Int(2, 0, 0);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChainPole, posA, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChainPole, posB, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearChainPole, posA, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearChainPole, posB, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
 
             // チェーンアイテムを持っていない状態で接続を試行する
             // Attempt to connect without chain item
@@ -76,8 +76,8 @@ namespace Tests.UnitTest.Game.Chain
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var posA = Vector3Int.zero;
             var posB = new Vector3Int(3, 0, 0);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChainPole, posA, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var blockA);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChainPole, posB, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var blockB);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearChainPole, posA, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var blockA);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearChainPole, posB, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var blockB);
 
             // プレイヤーにチェーンアイテムを配布する
             // Give chain item to player inventory

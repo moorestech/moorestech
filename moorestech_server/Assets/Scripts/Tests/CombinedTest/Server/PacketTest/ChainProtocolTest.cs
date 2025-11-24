@@ -36,8 +36,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var posA = new Vector3Int(1, 0, 0);
             var posB = new Vector3Int(3, 0, 0);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChainPole, posA, BlockDirection.North, System.Array.Empty<BlockCreateParam>(), out _);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChainPole, posB, BlockDirection.North, System.Array.Empty<BlockCreateParam>(), out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearChainPole, posA, BlockDirection.North, System.Array.Empty<BlockCreateParam>(), out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearChainPole, posB, BlockDirection.North, System.Array.Empty<BlockCreateParam>(), out _);
 
             // チェーンアイテムをプレイヤーに付与する
             // Grant chain item to player
