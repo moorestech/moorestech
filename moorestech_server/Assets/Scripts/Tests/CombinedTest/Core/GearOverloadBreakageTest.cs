@@ -29,20 +29,23 @@ namespace Tests.CombinedTest.Core
             // Verify overloaded gear gets removed with Broken reason
             var (_, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var world = ServerContext.WorldBlockDatastore;
-            var pos = new Vector3Int(0, 0, 0);
-            world.TryAddBlock(ForUnitTestModBlockId.SmallGear, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
+            var generatorPos = new Vector3Int(0, 0, 1);
+            var gearPos = new Vector3Int(0, 0, 0);
+
+            // 過負荷になるギアネットワークを構築する
+            // Build an overloaded gear network
+            world.TryAddBlock(ForUnitTestModBlockId.SimpleFastGearGenerator, generatorPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            world.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
 
             var removalReasons = new List<BlockRemoveReason>();
             using var subscription = ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(update => removalReasons.Add(update.RemoveReason));
 
-            var transformer = block.GetComponent<GearEnergyTransformer>();
-            for (var i = 0; i < 120 && world.Exists(pos); i++)
+            for (var i = 0; i < 120 && world.Exists(gearPos); i++)
             {
-                transformer.SupplyPower(new RPM(120), new Torque(120), true);
                 GameUpdater.UpdateWithWait();
             }
 
-            Assert.IsFalse(world.Exists(pos));
+            Assert.IsFalse(world.Exists(gearPos));
             Assert.IsTrue(removalReasons.Contains(BlockRemoveReason.Broken));
         }
 
