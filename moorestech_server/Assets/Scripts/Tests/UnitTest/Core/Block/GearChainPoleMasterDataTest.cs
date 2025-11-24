@@ -35,6 +35,7 @@ namespace Tests.UnitTest.Core.Block
             var param = chainPole.BlockParam as GearChainPoleBlockParam;
             Assert.NotNull(param);
             Assert.Greater(param.MaxConnectionDistance, 0f);
+            Assert.Greater(param.MaxConnectionCount, 1);
 
             // ギア接続情報が存在することを確認する
             // Confirm gear connection configuration exists

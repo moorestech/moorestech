@@ -54,9 +54,17 @@ namespace Game.Context
 
             // 既存接続がある場合は失敗させる
             // Fail when already connected
-            if (poleA.HasChainConnection || poleB.HasChainConnection)
+            if (poleA.ContainsChainConnection(poleB.BlockInstanceId) || poleB.ContainsChainConnection(poleA.BlockInstanceId))
             {
                 error = "AlreadyConnected";
+                return false;
+            }
+
+            // 接続数の上限を確認する
+            // Ensure neither pole is at capacity
+            if (poleA.IsConnectionFull || poleB.IsConnectionFull)
+            {
+                error = "ConnectionLimit";
                 return false;
             }
 
@@ -70,8 +78,16 @@ namespace Game.Context
 
             // 接続を確定させる
             // Finalize connection
-            poleA.SetChainConnection(poleB.BlockInstanceId);
-            poleB.SetChainConnection(poleA.BlockInstanceId);
+            var addedA = poleA.TryAddChainConnection(poleB.BlockInstanceId);
+            var addedB = addedA && poleB.TryAddChainConnection(poleA.BlockInstanceId);
+            if (!addedA || !addedB)
+            {
+                poleA.RemoveChainConnection(poleB.BlockInstanceId);
+                poleB.RemoveChainConnection(poleA.BlockInstanceId);
+                error = "ConnectionLimit";
+                return false;
+            }
+
             RebuildNetworks(transformerA, transformerB);
             return true;
         }
@@ -89,14 +105,14 @@ namespace Game.Context
 
             // 相互接続でない場合は失敗
             // Fail when not connected to each other
-            if (!poleA.HasChainConnection || !poleB.HasChainConnection || poleA.PartnerId != poleB.BlockInstanceId || poleB.PartnerId != poleA.BlockInstanceId)
+            if (!poleA.ContainsChainConnection(poleB.BlockInstanceId) || !poleB.ContainsChainConnection(poleA.BlockInstanceId))
             {
                 error = "NotConnected";
                 return false;
             }
 
-            poleA.ClearChainConnection();
-            poleB.ClearChainConnection();
+            poleA.RemoveChainConnection(poleB.BlockInstanceId);
+            poleB.RemoveChainConnection(poleA.BlockInstanceId);
             RebuildNetworks(transformerA, transformerB);
             return true;
         }
