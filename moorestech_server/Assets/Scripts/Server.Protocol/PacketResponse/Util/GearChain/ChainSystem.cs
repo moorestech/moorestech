@@ -1,17 +1,17 @@
 using System;
-using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
+using Game.Context;
 using Game.Gear.Common;
 using Game.World.Interface.DataStore;
 using UnityEngine;
 
-namespace Game.Context
+namespace Server.Protocol.PacketResponse.Util.GearChain
 {
-    public class ChainSystem : IChainSystem
+    public static class ChainSystem
     {
-        public bool TryConnect(Vector3Int posA, Vector3Int posB, int playerId, out string error)
+        public static bool TryConnect(Vector3Int posA, Vector3Int posB, out string error)
         {
             // 接続対象を取得する
             // Acquire target chain poles
@@ -69,7 +69,7 @@ namespace Game.Context
             return true;
         }
 
-        public bool TryDisconnect(Vector3Int posA, Vector3Int posB, out string error)
+        public static bool TryDisconnect(Vector3Int posA, Vector3Int posB, out string error)
         {
             // 接続対象を取得する
             // Acquire target chain poles
@@ -94,7 +94,7 @@ namespace Game.Context
             return true;
         }
 
-        private bool TryGetGearChainPole(Vector3Int position, out IGearChainPole chainPole, out IGearEnergyTransformer transformer)
+        private static bool TryGetGearChainPole(Vector3Int position, out IGearChainPole chainPole, out IGearEnergyTransformer transformer)
         {
             // 指定座標からコンポーネントを解決する
             // Resolve component from position
@@ -106,7 +106,7 @@ namespace Game.Context
             return chainPole != null && transformer != null;
         }
 
-        private void RebuildNetworks(params IGearEnergyTransformer[] transformers)
+        private static void RebuildNetworks(params IGearEnergyTransformer[] transformers)
         {
             // ネットワークを再構築して回転を再計算する
             // Rebuild gear networks to recalc rotation
@@ -116,3 +116,4 @@ namespace Game.Context
         }
     }
 }
+

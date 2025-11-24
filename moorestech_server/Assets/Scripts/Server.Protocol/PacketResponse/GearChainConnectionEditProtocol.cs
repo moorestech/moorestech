@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using Game.Context;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Event.EventReceive;
+using Server.Protocol.PacketResponse.Util.GearChain;
 using Server.Util.MessagePack;
 using UnityEngine;
 
@@ -13,12 +13,10 @@ namespace Server.Protocol.PacketResponse
     {
         public const string Tag = "va:gearChainConnectionEdit";
 
-        private readonly IChainSystem _chainSystem;
         private readonly ChainConnectionEventPacket _chainEventPacket;
 
         public GearChainConnectionEditProtocol(ServiceProvider serviceProvider)
         {
-            _chainSystem = serviceProvider.GetService<IChainSystem>();
             _chainEventPacket = serviceProvider.GetService<ChainConnectionEventPacket>();
         }
 
@@ -44,12 +42,12 @@ namespace Server.Protocol.PacketResponse
                 switch (data.Mode)
                 {
                     case ChainEditMode.Connect:
-                        success = _chainSystem.TryConnect(data.PosAVector, data.PosBVector, data.PlayerId, out error);
+                        success = ChainSystem.TryConnect(data.PosAVector, data.PosBVector, out error);
                         if (success) _chainEventPacket.PublishConnection(data.PosAVector, data.PosBVector);
                         break;
 
                     case ChainEditMode.Disconnect:
-                        success = _chainSystem.TryDisconnect(data.PosAVector, data.PosBVector, out error);
+                        success = ChainSystem.TryDisconnect(data.PosAVector, data.PosBVector, out error);
                         if (success) _chainEventPacket.PublishDisconnection(data.PosAVector, data.PosBVector);
                         break;
 

@@ -9,6 +9,8 @@ using Game.PlayerInventory.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
+using Server.Protocol.PacketResponse.Util.GearChain;
+using Tests.Module;
 using Tests.Module.TestMod;
 using UnityEngine;
 
@@ -39,8 +41,7 @@ namespace Tests.CombinedTest.Core
 
             // チェーン接続を確立する
             // Establish chain connection
-            var chainSystem = ServerContext.GetService<IChainSystem>();
-            var connected = chainSystem.TryConnect(new Vector3Int(1, 0, 0), new Vector3Int(6, 0, 0), 0, out var error);
+            var connected = ChainSystem.TryConnect(new Vector3Int(1, 0, 0), new Vector3Int(6, 0, 0), out var error);
             Assert.True(connected);
             Assert.IsEmpty(error ?? string.Empty);
 

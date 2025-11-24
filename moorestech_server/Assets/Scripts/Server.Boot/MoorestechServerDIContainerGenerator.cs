@@ -123,8 +123,6 @@ namespace Server.Boot
             services.AddSingleton<TrainDiagramManager>();
             services.AddSingleton<TrainRailPositionManager>();
             services.AddSingleton<ChainConnectionEventPacket>();
-            services.AddSingleton<IChainInventoryService, ChainInventoryService>();
-            services.AddSingleton<IChainSystem, ChainSystem>();
 
             // Initializer で生成したシングルトンをメインサービスへ共有する
             // Share initializer-scoped singletons with main services
