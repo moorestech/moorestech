@@ -38,7 +38,7 @@ namespace Server.Protocol.PacketResponse
                 switch (data.Mode)
                 {
                     case ChainEditMode.Connect:
-                        success = GearChainSystemUtil.TryConnect(data.PosAVector, data.PosBVector, out error);
+                        success = GearChainSystemUtil.TryConnect(data.PosAVector, data.PosBVector, data.PlayerId, out error);
                         break;
 
                     case ChainEditMode.Disconnect:

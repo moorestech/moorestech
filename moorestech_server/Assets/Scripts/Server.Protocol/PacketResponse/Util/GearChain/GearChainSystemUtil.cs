@@ -1,26 +1,34 @@
 using System;
+using Core.Inventory;
+using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.Gear.Common;
 using Game.World.Interface.DataStore;
+using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
+using Game.PlayerInventory.Interface;
 
 namespace Server.Protocol.PacketResponse.Util.GearChain
 {
     public static class GearChainSystemUtil
     {
-        public static bool TryConnect(Vector3Int posA, Vector3Int posB, out string error)
+        public static bool TryConnect(Vector3Int posA, Vector3Int posB, int playerId, out string error)
         {
             // 接続対象を取得する
             // Acquire target chain poles
             error = string.Empty;
-            if (!TryGetGearChainPole(posA, out var poleA, out var transformerA) || !TryGetGearChainPole(posB, out var poleB, out var transformerB))
+            if (!TryGetGearChainPole(posA, out var poleA, out var transformerA, out var blockA) || !TryGetGearChainPole(posB, out var poleB, out var transformerB, out var blockB))
             {
                 error = "InvalidTarget";
                 return false;
             }
+            
+            // 接続距離を算出する
+            // Calculate connection distance
+            var connectionDistance = Vector3Int.Distance(posA, posB);
 
             // 同一ターゲットや距離超過を弾く
             // Reject same target or over distance
@@ -31,7 +39,7 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             }
 
             var maxDistance = Math.Min(poleA.MaxConnectionDistance, poleB.MaxConnectionDistance);
-            if (Vector3Int.Distance(posA, posB) > maxDistance)
+            if (connectionDistance > maxDistance)
             {
                 error = "TooFar";
                 return false;
@@ -50,6 +58,15 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             if (poleA.IsConnectionFull || poleB.IsConnectionFull)
             {
                 error = "ConnectionLimit";
+                return false;
+            }
+
+            // チェーンアイテムを消費する
+            // Consume chain item
+            var gearChainItems = ResolveGearChainItems(blockA.BlockMasterElement, blockB.BlockMasterElement);
+            if (!TryConsumeChainItem(playerId, connectionDistance, gearChainItems))
+            {
+                error = "NoItem";
                 return false;
             }
 
@@ -74,7 +91,7 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             // 接続対象を取得する
             // Acquire target chain poles
             error = string.Empty;
-            if (!TryGetGearChainPole(posA, out var poleA, out var transformerA) || !TryGetGearChainPole(posB, out var poleB, out var transformerB))
+            if (!TryGetGearChainPole(posA, out var poleA, out var transformerA, out _) || !TryGetGearChainPole(posB, out var poleB, out var transformerB, out _))
             {
                 error = "InvalidTarget";
                 return false;
@@ -94,13 +111,89 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             return true;
         }
 
-        private static bool TryGetGearChainPole(Vector3Int position, out IGearChainPole chainPole, out IGearEnergyTransformer transformer)
+        private static GearChainItemsElement[] ResolveGearChainItems(BlockMasterElement blockA, BlockMasterElement blockB)
+        {
+            // ブロックのギアチェーン設定を優先的に取得する
+            // Prefer gear chain settings defined on the blocks
+            if (blockA?.GearChainItems is { Length: > 0 }) return blockA.GearChainItems;
+            if (blockB?.GearChainItems is { Length: > 0 }) return blockB.GearChainItems;
+            return Array.Empty<GearChainItemsElement>();
+        }
+
+        private static bool TryConsumeChainItem(int playerId, float distance, GearChainItemsElement[] gearChainItems)
+        {
+            // 設定が無ければ消費不要
+            // Skip consumption when no configuration is provided
+            if (gearChainItems == null || gearChainItems.Length == 0) return true;
+
+            var inventory = ServerContext.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
+
+            // 設定順に使用可能なアイテムを探す
+            // Find the first usable item by configuration order
+            foreach (var gearChainItem in gearChainItems)
+            {
+                var required = Mathf.CeilToInt(distance * gearChainItem.ConsumptionPerLength);
+                if (required <= 0) return true;
+
+                var itemId = MasterHolder.ItemMaster.GetItemId(gearChainItem.ItemGuid);
+
+                // 手持ちが足りなければ次の候補へ
+                // Skip when inventory is insufficient
+                var totalCount = CountItem(inventory, itemId);
+                if (totalCount < required) continue;
+
+                // 指定数を減算する
+                // Consume the required amount
+                Consume(inventory, itemId, required);
+                return true;
+            }
+
+            return false;
+
+            #region Internal
+
+            int CountItem(IOpenableInventory openableInventory, ItemId itemId)
+            {
+                // 対象アイテムの合計数を数える
+                // Sum item counts for the target item
+                var total = 0;
+                foreach (var itemStack in openableInventory.InventoryItems)
+                {
+                    if (itemStack.Id != itemId) continue;
+                    total += itemStack.Count;
+                }
+
+                return total;
+            }
+
+            void Consume(IOpenableInventory openableInventory, ItemId itemId, int required)
+            {
+                // スロットを順に減算する
+                // Decrease stacks across slots
+                var remaining = required;
+                for (var i = 0; i < openableInventory.InventoryItems.Count && 0 < remaining; i++)
+                {
+                    var itemStack = openableInventory.InventoryItems[i];
+                    if (itemStack.Id != itemId) continue;
+
+                    var consumeAmount = Math.Min(itemStack.Count, remaining);
+                    var updated = itemStack.SubItem(consumeAmount);
+                    openableInventory.SetItem(i, updated);
+                    remaining -= consumeAmount;
+                }
+            }
+
+            #endregion
+        }
+
+        private static bool TryGetGearChainPole(Vector3Int position, out IGearChainPole chainPole, out IGearEnergyTransformer transformer, out IBlock block)
         {
             // 指定座標からコンポーネントを解決する
             // Resolve component from position
+            block = null;
             chainPole = null;
             transformer = null;
-            if (!ServerContext.WorldBlockDatastore.TryGetBlock(position, out IBlock block)) return false;
+            if (!ServerContext.WorldBlockDatastore.TryGetBlock(position, out block)) return false;
             chainPole = block.GetComponent<IGearChainPole>();
             transformer = block.GetComponent<IGearEnergyTransformer>();
             return chainPole != null && transformer != null;
@@ -116,4 +209,3 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
         }
     }
 }
-

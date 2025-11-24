@@ -44,7 +44,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // チェーンアイテムをプレイヤーに付与する
             // Grant chain item to player
             var inventory = serviceProvider.GetService<global::Game.PlayerInventory.Interface.IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
-            inventory.SetItem(0, ServerContext.ItemStackFactory.Create(chainItemId, 1));
+            inventory.SetItem(0, ServerContext.ItemStackFactory.Create(chainItemId, 2));
 
             // 接続プロトコルを送信する
             // Send connect protocol
