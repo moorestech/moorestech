@@ -38,11 +38,11 @@ namespace Server.Protocol.PacketResponse
                 switch (data.Mode)
                 {
                     case ChainEditMode.Connect:
-                        success = ChainSystem.TryConnect(data.PosAVector, data.PosBVector, out error);
+                        success = GearChainSystemUtil.TryConnect(data.PosAVector, data.PosBVector, out error);
                         break;
 
                     case ChainEditMode.Disconnect:
-                        success = ChainSystem.TryDisconnect(data.PosAVector, data.PosBVector, out error);
+                        success = GearChainSystemUtil.TryDisconnect(data.PosAVector, data.PosBVector, out error);
                         break;
 
                     default:

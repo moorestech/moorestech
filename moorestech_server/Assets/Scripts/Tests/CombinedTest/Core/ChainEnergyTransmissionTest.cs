@@ -41,7 +41,7 @@ namespace Tests.CombinedTest.Core
 
             // チェーン接続を確立する
             // Establish chain connection
-            var connected = ChainSystem.TryConnect(new Vector3Int(1, 0, 0), new Vector3Int(6, 0, 0), out var error);
+            var connected = GearChainSystemUtil.TryConnect(new Vector3Int(1, 0, 0), new Vector3Int(6, 0, 0), out var error);
             Assert.True(connected);
             Assert.IsEmpty(error ?? string.Empty);
 

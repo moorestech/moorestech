@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Server.Protocol.PacketResponse.Util.GearChain
 {
-    public static class ChainSystem
+    public static class GearChainSystemUtil
     {
         public static bool TryConnect(Vector3Int posA, Vector3Int posB, out string error)
         {
