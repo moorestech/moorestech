@@ -1304,6 +1304,7 @@
       "blockType": "GearChainPole",
       "blockParam": {
         "maxConnectionDistance": 10,
+        "maxConnectionCount": 2,
         "gear": {
           "gearConnects": [
             {

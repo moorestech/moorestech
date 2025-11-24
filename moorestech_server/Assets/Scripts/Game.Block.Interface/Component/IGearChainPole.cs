@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Core.Master;
 
 namespace Game.Block.Interface.Component
@@ -6,9 +7,13 @@ namespace Game.Block.Interface.Component
     {
         BlockInstanceId BlockInstanceId { get; }
         float MaxConnectionDistance { get; }
+        int MaxConnectionCount { get; }
         bool HasChainConnection { get; }
-        BlockInstanceId? PartnerId { get; }
-        void SetChainConnection(BlockInstanceId partnerId);
-        void ClearChainConnection();
+        bool IsConnectionFull { get; }
+        IReadOnlyCollection<BlockInstanceId> PartnerIds { get; }
+        bool ContainsChainConnection(BlockInstanceId partnerId);
+        bool TryAddChainConnection(BlockInstanceId partnerId);
+        bool RemoveChainConnection(BlockInstanceId partnerId);
+        void ClearChainConnections();
     }
 }

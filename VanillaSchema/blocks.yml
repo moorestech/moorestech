@@ -343,6 +343,9 @@ properties:
         - key: maxConnectionDistance
           type: number
           default: 10
+        - key: maxConnectionCount
+          type: integer
+          default: 2
         - key: gear
           ref: gear
       - when: GearMachine
