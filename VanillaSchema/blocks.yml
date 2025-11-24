@@ -869,17 +869,19 @@ properties:
       type: boolean
       default: false
       optional: true
-    - key: gearChainItems
-      type: array
-      items:
-        type: object
-        properties:
-        - key: itemGuid
-          type: uuid
-          foreignKey:
-            schemaId: items
-            foreignKeyIdPath: /data/[*]/itemGuid
-            displayElementPath: /data/[*]/name
-        - key: consumptionPerLength
-          type: number
-          default: 1
+
+- key: gearChainItems
+  type: array
+  optional: true
+  items:
+    type: object
+    properties:
+    - key: itemGuid
+      type: uuid
+      foreignKey:
+        schemaId: items
+        foreignKeyIdPath: /data/[*]/itemGuid
+        displayElementPath: /data/[*]/name
+    - key: consumptionPerLength
+      type: number
+      default: 1
