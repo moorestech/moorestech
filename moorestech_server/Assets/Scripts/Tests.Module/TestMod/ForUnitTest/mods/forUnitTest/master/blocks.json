@@ -1300,8 +1300,8 @@
         1,
         1
       ],
-      "name": "ChainPole",
-      "blockType": "ChainPole",
+      "name": "GearChainPole",
+      "blockType": "GearChainPole",
       "blockParam": {
         "maxConnectionDistance": 10,
         "gear": {

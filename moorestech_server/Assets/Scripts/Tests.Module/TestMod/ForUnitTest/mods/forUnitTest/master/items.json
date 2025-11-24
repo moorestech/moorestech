@@ -497,7 +497,7 @@
     {
       "itemGuid": "7f2b0f6c-1d8a-4e37-9c3a-b9da1abbe7b7",
       "imagePath": "",
-      "name": "ChainPole",
+      "name": "GearChainPole",
       "maxStack": 100,
       "sortPriority": 745,
       "initialUnlocked": true,

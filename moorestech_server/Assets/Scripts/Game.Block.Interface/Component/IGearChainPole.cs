@@ -2,7 +2,7 @@ using Core.Master;
 
 namespace Game.Block.Interface.Component
 {
-    public interface IChainPole : IBlockComponent
+    public interface IGearChainPole : IBlockComponent
     {
         BlockInstanceId BlockInstanceId { get; }
         float MaxConnectionDistance { get; }

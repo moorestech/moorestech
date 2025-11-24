@@ -9,9 +9,9 @@ using Game.Gear.Common;
 using Mooresmaster.Model.BlockConnectInfoModule;
 using Newtonsoft.Json;
 
-namespace Game.Block.Blocks.ChainPole
+namespace Game.Block.Blocks.GearChainPole
 {
-    public class ChainPoleComponent : IGearEnergyTransformer, IBlockSaveState, IChainPole
+    public class GearChainPoleComponent : IGearEnergyTransformer, IBlockSaveState, IGearChainPole
     {
         public BlockInstanceId BlockInstanceId { get; }
         public RPM CurrentRpm => _gearService.CurrentRpm;
@@ -33,7 +33,7 @@ namespace Game.Block.Blocks.ChainPole
         private IGearEnergyTransformer _chainTarget;
         private int? _savedTargetId;
 
-        public ChainPoleComponent(float maxConnectionDistance, BlockInstanceId blockInstanceId, BlockConnectorComponent<IGearEnergyTransformer> connectorComponent, Dictionary<string, string> componentStates)
+        public GearChainPoleComponent(float maxConnectionDistance, BlockInstanceId blockInstanceId, BlockConnectorComponent<IGearEnergyTransformer> connectorComponent, Dictionary<string, string> componentStates)
         {
             // 基本状態を初期化する
             // Initialize base state
@@ -112,7 +112,7 @@ namespace Game.Block.Blocks.ChainPole
         {
             // 接続先のIDだけを保存する
             // Persist only partner id
-            var data = new ChainPoleSaveData(_savedTargetId);
+            var data = new GearChainPoleSaveData(_savedTargetId);
             return JsonConvert.SerializeObject(data);
         }
 
@@ -132,7 +132,7 @@ namespace Game.Block.Blocks.ChainPole
             // Restore when saved state exists
             if (componentStates == null) return;
             if (!componentStates.TryGetValue(SaveKey, out var saved)) return;
-            var data = JsonConvert.DeserializeObject<ChainPoleSaveData>(saved);
+            var data = JsonConvert.DeserializeObject<GearChainPoleSaveData>(saved);
             _savedTargetId = data?.TargetBlockInstanceId;
         }
 
@@ -164,12 +164,12 @@ namespace Game.Block.Blocks.ChainPole
             _chainTarget = transformer;
         }
 
-        private class ChainPoleSaveData
+        private class GearChainPoleSaveData
         {
             [JsonProperty("targetBlockInstanceId")]
             public int? TargetBlockInstanceId { get; }
 
-            public ChainPoleSaveData(int? targetBlockInstanceId)
+            public GearChainPoleSaveData(int? targetBlockInstanceId)
             {
                 TargetBlockInstanceId = targetBlockInstanceId;
             }
