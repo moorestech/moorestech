@@ -47,7 +47,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 接続プロトコルを送信する
             // Send connect protocol
             var connectBytes = packet.GetPacketResponse(Connect(posA, posB, PlayerId)).First();
-            var typedConnect = MessagePackSerializer.Deserialize<ConnectChainProtocol.ConnectChainResponseMessagePack>(connectBytes.ToArray());
+            var typedConnect = MessagePackSerializer.Deserialize<GearChainConnectionEditProtocol.GearChainConnectionEditResponse>(connectBytes.ToArray());
             Assert.True(typedConnect.IsSuccess);
 
             // ブロードキャストイベントが登録されていることを確認する
@@ -58,7 +58,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 切断プロトコルを送信する
             // Send disconnect protocol
             var disconnectBytes = packet.GetPacketResponse(Disconnect(posA, posB)).First();
-            var typedDisconnect = MessagePackSerializer.Deserialize<DisconnectChainProtocol.DisconnectChainResponseMessagePack>(disconnectBytes.ToArray());
+            var typedDisconnect = MessagePackSerializer.Deserialize<GearChainConnectionEditProtocol.GearChainConnectionEditResponse>(disconnectBytes.ToArray());
             Assert.True(typedDisconnect.IsSuccess);
         }
 
@@ -66,14 +66,14 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             // 接続要求のメッセージパックを生成する
             // Build connect request message pack
-            return MessagePackSerializer.Serialize(new ConnectChainProtocol.ConnectChainRequestMessagePack(posA, posB, playerId)).ToList();
+            return MessagePackSerializer.Serialize(GearChainConnectionEditProtocol.GearChainConnectionEditRequest.CreateConnectRequest(posA, posB, playerId)).ToList();
         }
 
         private List<byte> Disconnect(Vector3Int posA, Vector3Int posB)
         {
             // 切断要求のメッセージパックを生成する
             // Build disconnect request message pack
-            return MessagePackSerializer.Serialize(new DisconnectChainProtocol.DisconnectChainRequestMessagePack(posA, posB)).ToList();
+            return MessagePackSerializer.Serialize(GearChainConnectionEditProtocol.GearChainConnectionEditRequest.CreateDisconnectRequest(posA, posB)).ToList();
         }
     }
 }
