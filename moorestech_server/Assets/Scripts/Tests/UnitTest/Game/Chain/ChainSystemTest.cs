@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Core.Master;
 using Game.Block.Interface;
+using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.Gear.Common;
@@ -108,6 +109,54 @@ namespace Tests.UnitTest.Game.Chain
             // Ensure connections are cleared after disconnect
             Assert.IsEmpty(transformerA.GetGearConnects());
             Assert.IsEmpty(transformerB.GetGearConnects());
+        }
+
+        [Test]
+        public void ChainPoleAcceptsMultipleConnectionsUntilLimit()
+        {
+            // 複数のポールを距離内に配置する
+            // Place multiple poles within valid distance
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            var posA = Vector3Int.zero;
+            var posB = new Vector3Int(2, 0, 0);
+            var posC = new Vector3Int(-2, 0, 0);
+            var posD = new Vector3Int(0, 0, 2);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearChainPole, posA, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var blockA);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearChainPole, posB, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var blockB);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearChainPole, posC, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var blockC);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearChainPole, posD, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+
+            // チェーンアイテムを上限分プレイヤーに配布する
+            // Provide chain items for connection attempts
+            var inventory = _serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
+            inventory.SetItem(0, ServerContext.ItemStackFactory.Create(_chainItemId, 3));
+
+            // 上限まで接続を成功させる
+            // Connect until reaching the limit
+            var chainSystem = ServerContext.GetService<IChainSystem>();
+            var firstConnect = chainSystem.TryConnect(posA, posB, PlayerId, out var firstError);
+            var secondConnect = chainSystem.TryConnect(posA, posC, PlayerId, out var secondError);
+            Assert.True(firstConnect);
+            Assert.True(secondConnect);
+            Assert.IsEmpty(firstError ?? string.Empty);
+            Assert.IsEmpty(secondError ?? string.Empty);
+
+            // 上限超過の接続を拒否する
+            // Reject connection beyond the limit
+            var limitConnect = chainSystem.TryConnect(posA, posD, PlayerId, out var limitError);
+            Assert.False(limitConnect);
+            Assert.AreEqual("ConnectionLimit", limitError);
+
+            // 接続中のポールが正しく記録されていることを確認する
+            // Ensure current connections are tracked correctly
+            var poleA = blockA.GetComponent<IGearChainPole>();
+            var poleB = blockB.GetComponent<IGearChainPole>();
+            var poleC = blockC.GetComponent<IGearChainPole>();
+            Assert.AreEqual(2, poleA.PartnerIds.Count);
+            Assert.True(poleA.ContainsChainConnection(blockB.BlockInstanceId));
+            Assert.True(poleA.ContainsChainConnection(blockC.BlockInstanceId));
+            Assert.True(poleB.ContainsChainConnection(blockA.BlockInstanceId));
+            Assert.True(poleC.ContainsChainConnection(blockA.BlockInstanceId));
         }
     }
 }
