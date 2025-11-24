@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Component;
@@ -7,13 +8,15 @@ using Game.Block.Blocks.Gear;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.Gear.Common;
+using MessagePack;
 using Mooresmaster.Model.BlockConnectInfoModule;
 using Mooresmaster.Model.BlocksModule;
 using Newtonsoft.Json;
+using UniRx;
 
 namespace Game.Block.Blocks.GearChainPole
 {
-    public class GearChainPoleComponent : IGearEnergyTransformer, IBlockSaveState, IGearChainPole, IPostBlockLoad
+    public class GearChainPoleComponent : IGearEnergyTransformer, IBlockSaveState, IGearChainPole, IPostBlockLoad, IBlockStateObservable
     {
         // マスターデータパラメータを保持する
         // Hold master data parameters
@@ -30,6 +33,11 @@ namespace Game.Block.Blocks.GearChainPole
         private readonly GearConnectOption _chainOption = new(false);
 
         private readonly Dictionary<BlockInstanceId, IGearEnergyTransformer> _chainTargets = new();
+        
+        // ブロック状態変更通知用のSubject
+        // Subject for block state change notifications
+        private readonly Subject<Unit> _onChangeBlockState = new();
+        public IObservable<Unit> OnChangeBlockState => _onChangeBlockState;
 
         public GearChainPoleComponent(GearChainPoleBlockParam param, BlockInstanceId blockInstanceId, BlockConnectorComponent<IGearEnergyTransformer> connectorComponent, Dictionary<string, string> componentStates)
         {
@@ -77,6 +85,9 @@ namespace Game.Block.Blocks.GearChainPole
             var transformer = ResolveChainTarget(partnerId);
             if (transformer == null) return false;
             _chainTargets.Add(partnerId, transformer);
+            // 状態変更を通知する
+            // Notify state change
+            _onChangeBlockState.OnNext(Unit.Default);
             return true;
         }
 
@@ -85,6 +96,12 @@ namespace Game.Block.Blocks.GearChainPole
             // 指定した接続を解除する
             // Remove a specific partner connection
             var removed = _chainTargets.Remove(partnerId);
+            if (removed)
+            {
+                // 状態変更を通知する
+                // Notify state change
+                _onChangeBlockState.OnNext(Unit.Default);
+            }
             return removed;
         }
 
@@ -135,6 +152,7 @@ namespace Game.Block.Blocks.GearChainPole
             _connectorComponent.Destroy();
             GearNetworkDatastore.RemoveGear(this);
             _chainTargets.Clear();
+            _onChangeBlockState.Dispose();
             IsDestroy = true;
         }
         
@@ -166,6 +184,19 @@ namespace Game.Block.Blocks.GearChainPole
             // 入力された回転をサービスへ転送する
             // Forward supplied rotation to service
             _gearService.SupplyPower(rpm, torque, isClockwise);
+        }
+        
+        #endregion
+        
+        #region IBlockStateObservable
+        
+        public BlockStateDetail[] GetBlockStateDetails()
+        {
+            // チェーン接続情報をシリアライズして返す
+            // Serialize and return chain connection information
+            var stateDetail = new GearChainPoleStateDetail(_chainTargets.Keys);
+            var bytes = MessagePackSerializer.Serialize(stateDetail);
+            return new BlockStateDetail[] { new BlockStateDetail(GearChainPoleStateDetail.BlockStateDetailKey, bytes) };
         }
         
         #endregion
