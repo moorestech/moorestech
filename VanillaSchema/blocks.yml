@@ -871,7 +871,6 @@ properties:
       optional: true
     - key: gearChainItems
       type: array
-      optional: true
       items:
         type: object
         properties:
