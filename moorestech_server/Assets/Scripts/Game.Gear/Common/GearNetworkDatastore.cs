@@ -29,7 +29,7 @@ namespace Game.Gear.Common
         {
             _instance.AddGearInternal(gear);
         }
-
+        
         private void AddGearInternal(IGearEnergyTransformer gear)
         {
             var connectedNetworkIds = new HashSet<GearNetworkId>();

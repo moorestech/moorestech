@@ -4,10 +4,10 @@
   "references": [
     "Core.Item.Interface",
     "Core.Inventory",
+    "Game.Context",
     "Game.Block.Interface",
     "Core.Master",
-    "Server.Util",
-    "Game.Context"
+    "Server.Util"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
