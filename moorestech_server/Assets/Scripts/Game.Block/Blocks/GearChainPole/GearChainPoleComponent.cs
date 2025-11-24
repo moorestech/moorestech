@@ -25,7 +25,7 @@ namespace Game.Block.Blocks.GearChainPole
         private readonly GearChainPoleBlockParam _param;
         
         public float MaxConnectionDistance => _param.MaxConnectionDistance;
-        public bool IsConnectionFull => _chainConnections.Count >= _param.MaxConnectionCount;
+        public bool IsConnectionFull => _chainTargets.Count >= _param.MaxConnectionCount;
 
         // チェーン接続と周辺ギアのコネクターを保持する
         // Hold chain connection and adjacent gear connectors
@@ -33,7 +33,7 @@ namespace Game.Block.Blocks.GearChainPole
         private readonly SimpleGearService _gearService;
         private readonly GearConnectOption _chainOption = new(false);
 
-        private readonly Dictionary<BlockInstanceId, ChainConnection> _chainConnections = new();
+        private readonly Dictionary<BlockInstanceId, (IGearEnergyTransformer Transformer, GearChainConnectionCost Cost)> _chainTargets = new();
         
         // ブロック状態変更通知用のSubject
         // Subject for block state change notifications
@@ -65,7 +65,7 @@ namespace Game.Block.Blocks.GearChainPole
 
             // チェーン接続があれば追加する
             // Append chain connection when present
-            foreach (var chainTarget in _chainConnections.Values) result.Add(new GearConnect(chainTarget.Transformer, _chainOption, _chainOption));
+            foreach (var chainTarget in _chainTargets.Values) result.Add(new GearConnect(chainTarget.Transformer, _chainOption, _chainOption));
 
             return result;
         }
@@ -74,18 +74,18 @@ namespace Game.Block.Blocks.GearChainPole
         {
             // 指定IDとの接続有無を確認する
             // Check whether the target id is connected
-            return _chainConnections.ContainsKey(partnerId);
+            return _chainTargets.ContainsKey(partnerId);
         }
 
         public bool TryAddChainConnection(BlockInstanceId partnerId, GearChainConnectionCost connectionCost)
         {
             // 新しい接続先を記録する
             // Store new partner connection
-            if (_chainConnections.ContainsKey(partnerId)) return false;
-            if (_chainConnections.Count >= _param.MaxConnectionCount) return false;
+            if (_chainTargets.ContainsKey(partnerId)) return false;
+            if (_chainTargets.Count >= _param.MaxConnectionCount) return false;
             var transformer = ResolveChainTarget(partnerId);
             if (transformer == null) return false;
-            _chainConnections.Add(partnerId, new ChainConnection(transformer, connectionCost));
+            _chainTargets.Add(partnerId, (transformer, connectionCost));
             // 状態変更を通知する
             // Notify state change
             _onChangeBlockState.OnNext(Unit.Default);
@@ -96,7 +96,7 @@ namespace Game.Block.Blocks.GearChainPole
         {
             // 指定した接続を解除する
             // Remove a specific partner connection
-            var removed = _chainConnections.Remove(partnerId);
+            var removed = _chainTargets.Remove(partnerId);
             if (removed)
             {
                 // 状態変更を通知する
@@ -108,13 +108,13 @@ namespace Game.Block.Blocks.GearChainPole
 
         public bool TryRemoveChainConnection(BlockInstanceId partnerId, out GearChainConnectionCost cost)
         {
-            if (!_chainConnections.TryGetValue(partnerId, out var connection))
+            if (!_chainTargets.TryGetValue(partnerId, out var connection))
             {
                 cost = default;
                 return false;
             }
 
-            _chainConnections.Remove(partnerId);
+            _chainTargets.Remove(partnerId);
             cost = connection.Cost;
             _onChangeBlockState.OnNext(Unit.Default);
             return true;
@@ -122,7 +122,7 @@ namespace Game.Block.Blocks.GearChainPole
 
         public GearChainConnectionCost GetConnectionCost(BlockInstanceId partnerId)
         {
-            return _chainConnections.TryGetValue(partnerId, out var connection) ? connection.Cost : new GearChainConnectionCost(ItemMaster.EmptyItemId, 0);
+            return _chainTargets.TryGetValue(partnerId, out var connection) ? connection.Cost : new GearChainConnectionCost(ItemMaster.EmptyItemId, 0);
         }
 
         private IGearEnergyTransformer ResolveChainTarget(BlockInstanceId targetId)
@@ -149,7 +149,7 @@ namespace Game.Block.Blocks.GearChainPole
             var data = JsonConvert.DeserializeObject<GearChainPoleSaveData>(saved);
             if (data == null) return;
             
-            _chainConnections.Clear();
+            _chainTargets.Clear();
 
             // 接続コスト情報を利用して復元する
             // Restore using connection cost information when available
@@ -158,29 +158,14 @@ namespace Game.Block.Blocks.GearChainPole
                 foreach (var connection in data.Connections)
                 {
                     if (connection.TargetBlockInstanceId == BlockInstanceId.AsPrimitive()) continue;
-                    if (_chainConnections.Count >= _param.MaxConnectionCount) break;
+                    if (_chainTargets.Count >= _param.MaxConnectionCount) break;
                     var targetId = new BlockInstanceId(connection.TargetBlockInstanceId);
-                    if (_chainConnections.ContainsKey(targetId)) continue;
+                    if (_chainTargets.ContainsKey(targetId)) continue;
                     var transformer = ResolveChainTarget(targetId);
                     if (transformer == null) continue;
                     var cost = new GearChainConnectionCost(new ItemId(connection.ItemId), connection.Count);
-                    _chainConnections.Add(targetId, new ChainConnection(transformer, cost));
+                    _chainTargets.Add(targetId, (transformer, cost));
                 }
-                return;
-            }
-
-            // 旧形式のセーブデータに対応する
-            // Handle legacy save data without cost info
-            if (data.TargetBlockInstanceIds == null) return;
-            foreach (var targetIdInt in data.TargetBlockInstanceIds)
-            {
-                var targetId = new BlockInstanceId(targetIdInt);
-                if (targetId == BlockInstanceId) continue;
-                if (_chainConnections.ContainsKey(targetId)) continue;
-                if (_chainConnections.Count >= _param.MaxConnectionCount) break;
-                var transformer = ResolveChainTarget(targetId);
-                if (transformer == null) continue;
-                _chainConnections.Add(targetId, new ChainConnection(transformer, new GearChainConnectionCost(ItemMaster.EmptyItemId, 0)));
             }
         }
         
@@ -191,7 +176,7 @@ namespace Game.Block.Blocks.GearChainPole
         {
             // 接続先のブロックからも接続を削除する
             // Remove connections from connected blocks as well
-            foreach (var targetId in _chainConnections.Keys.ToList())
+            foreach (var targetId in _chainTargets.Keys.ToList())
             {
                 var targetBlock = ServerContext.WorldBlockDatastore.GetBlock(targetId);
                 var targetPole = targetBlock?.GetComponent<IGearChainPole>();
@@ -202,7 +187,7 @@ namespace Game.Block.Blocks.GearChainPole
             // Release component resources
             _connectorComponent.Destroy();
             GearNetworkDatastore.RemoveGear(this);
-            _chainConnections.Clear();
+            _chainTargets.Clear();
             _onChangeBlockState.Dispose();
             IsDestroy = true;
         }
@@ -211,7 +196,7 @@ namespace Game.Block.Blocks.GearChainPole
         {
             // 接続で消費したアイテムを指定インベントリへ返却する
             // Refund consumed chain items to provided inventory
-            foreach (var connection in _chainConnections.Values)
+            foreach (var connection in _chainTargets.Values)
             {
                 if (connection.Cost.Count <= 0 || connection.Cost.ItemId == ItemMaster.EmptyItemId) continue;
                 var remainder = inventory.InsertItem(connection.Cost.ItemId, connection.Cost.Count);
@@ -257,7 +242,7 @@ namespace Game.Block.Blocks.GearChainPole
         {
             // チェーン接続情報をシリアライズして返す
             // Serialize and return chain connection information
-            var stateDetail = new GearChainPoleStateDetail(_chainConnections.Keys);
+            var stateDetail = new GearChainPoleStateDetail(_chainTargets.Keys);
             var bytes = MessagePackSerializer.Serialize(stateDetail);
             return new BlockStateDetail[] { new(GearChainPoleStateDetail.BlockStateDetailKey, bytes) };
         }
@@ -272,7 +257,7 @@ namespace Game.Block.Blocks.GearChainPole
             // 接続先と消費情報を保存する
             // Persist partner ids and consumption info
             var connections = new List<GearChainPoleSaveData.ConnectionData>();
-            foreach (var target in _chainConnections)
+            foreach (var target in _chainTargets)
             {
                 var cost = target.Value.Cost;
                 connections.Add(new GearChainPoleSaveData.ConnectionData(target.Key.AsPrimitive(), cost.ItemId.AsPrimitive(), cost.Count));
