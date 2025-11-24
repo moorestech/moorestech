@@ -92,6 +92,7 @@ properties:
       - ElectricMiner
       - Gear
       - Shaft
+      - ChainPole
       - GearMachine
       - SimpleGearGenerator
       - FuelGearGenerator
@@ -332,6 +333,16 @@ properties:
         - key: baseDestructionProbability
           type: number
           default: 0
+        - key: gear
+          ref: gear
+      - when: ChainPole
+        type: object
+        implementationInterface:
+        - IGearConnectors
+        properties:
+        - key: maxConnectionDistance
+          type: number
+          default: 10
         - key: gear
           ref: gear
       - when: GearMachine

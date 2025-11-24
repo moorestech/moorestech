@@ -122,6 +122,15 @@ namespace Server.Boot
             services.AddSingleton<RailGraphDatastore>();
             services.AddSingleton<TrainDiagramManager>();
             services.AddSingleton<TrainRailPositionManager>();
+            services.AddSingleton<ChainConnectionEventPacket>();
+            services.AddSingleton<IChainInventoryService, ChainInventoryService>();
+            services.AddSingleton<IChainSystem, ChainSystem>();
+
+            // Initializer で生成したシングルトンをメインサービスへ共有する
+            // Share initializer-scoped singletons with main services
+            services.AddSingleton(initializerProvider.GetService<IWorldBlockDatastore>());
+            services.AddSingleton(initializerProvider.GetService<IWorldBlockUpdateEvent>());
+            services.AddSingleton(initializerProvider.GetService<IBlockOpenableInventoryUpdateEvent>());
 
             services.AddSingleton<IGameUnlockStateDataController, GameUnlockStateDataController>();
             services.AddSingleton<CraftTreeManager>();
@@ -190,7 +199,8 @@ namespace Server.Boot
             serviceProvider.GetService<UnlockedEventPacket>();
             serviceProvider.GetService<ResearchCompleteEventPacket>();
             serviceProvider.GetService<RailConnectionsEventPacket>();
-            
+            serviceProvider.GetService<ChainConnectionEventPacket>();
+
             serverContext.SetMainServiceProvider(serviceProvider);
 
             // CraftChainerの初期化

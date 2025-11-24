@@ -27,12 +27,13 @@ namespace Game.Block.Factory
             BlockTypesDictionary.Add(BlockTypeConst.ElectricMachine, new VanillaMachineTemplate(blockInventoryEvent));
             BlockTypesDictionary.Add(BlockTypeConst.ElectricGenerator, new VanillaPowerGeneratorTemplate());
             BlockTypesDictionary.Add(BlockTypeConst.ElectricMiner, new VanillaMinerTemplate(blockInventoryEvent));
-            
+
             BlockTypesDictionary.Add(BlockTypeConst.ItemShooter, new VanillaItemShooterTemplate());
             BlockTypesDictionary.Add(BlockTypeConst.ItemShooterAccelerator, new VanillaItemShooterAcceleratorTemplate());
-            
+
             BlockTypesDictionary.Add(BlockTypeConst.Gear, new VanillaGearTemplate());
             BlockTypesDictionary.Add(BlockTypeConst.Shaft, new VanillaShaftTemplate());
+            BlockTypesDictionary.Add(BlockTypeConst.ChainPole, new VanillaChainPoleTemplate());
             BlockTypesDictionary.Add(BlockTypeConst.SimpleGearGenerator, new VanillaSimpleGearGeneratorTemplate());
             BlockTypesDictionary.Add(BlockTypeConst.FuelGearGenerator, new VanillaFuelGearGeneratorTemplate());
             BlockTypesDictionary.Add(BlockTypeConst.GearElectricGenerator, new VanillaGearElectricGeneratorTemplate());
