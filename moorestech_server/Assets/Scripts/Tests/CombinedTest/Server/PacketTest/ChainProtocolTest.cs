@@ -3,6 +3,7 @@ using System.Linq;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
+using Game.Block.Interface.State;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using MessagePack;
@@ -37,8 +38,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var posA = new Vector3Int(1, 0, 0);
             var posB = new Vector3Int(3, 0, 0);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearChainPole, posA, BlockDirection.North, System.Array.Empty<BlockCreateParam>(), out _);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearChainPole, posB, BlockDirection.North, System.Array.Empty<BlockCreateParam>(), out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearChainPole, posA, BlockDirection.North, System.Array.Empty<BlockCreateParam>(), out var blockA);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearChainPole, posB, BlockDirection.North, System.Array.Empty<BlockCreateParam>(), out var blockB);
 
             // チェーンアイテムをプレイヤーに付与する
             // Grant chain item to player
@@ -51,10 +52,12 @@ namespace Tests.CombinedTest.Server.PacketTest
             var typedConnect = MessagePackSerializer.Deserialize<GearChainConnectionEditProtocol.GearChainConnectionEditResponse>(connectBytes.ToArray());
             Assert.True(typedConnect.IsSuccess);
 
-            // ブロードキャストイベントが登録されていることを確認する
-            // Ensure broadcast event is enqueued
+            // ブロック状態変更イベントが登録されていることを確認する
+            // Ensure block state change event is enqueued
             var events = eventProvider.GetEventBytesList(PlayerId);
-            Assert.IsTrue(events.Any(e => e.Tag == ChainConnectionEventPacket.Tag));
+            var blockAEventTag = ChangeBlockStateEventPacket.CreateSpecifiedBlockEventTag(blockA.BlockPositionInfo);
+            var blockBEventTag = ChangeBlockStateEventPacket.CreateSpecifiedBlockEventTag(blockB.BlockPositionInfo);
+            Assert.IsTrue(events.Any(e => e.Tag == blockAEventTag || e.Tag == blockBEventTag), "Block state change event should be published");
 
             // 切断プロトコルを送信する
             // Send disconnect protocol
