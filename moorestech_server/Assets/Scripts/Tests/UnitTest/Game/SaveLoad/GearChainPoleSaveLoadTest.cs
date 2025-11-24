@@ -10,6 +10,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
+using Core.Master;
 
 namespace Tests.UnitTest.Game.SaveLoad
 {
@@ -44,8 +45,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             // チェーン接続を追加する
             // Add chain connections
-            var connection1to2 = chainPole1.TryAddChainConnection(chainPole2.BlockInstanceId);
-            var connection1to3 = chainPole1.TryAddChainConnection(chainPole3.BlockInstanceId);
+            var connection1to2 = chainPole1.TryAddChainConnection(chainPole2.BlockInstanceId, new GearChainConnectionCost(ItemMaster.EmptyItemId, 0, 0, true));
+            var connection1to3 = chainPole1.TryAddChainConnection(chainPole3.BlockInstanceId, new GearChainConnectionCost(ItemMaster.EmptyItemId, 0, 0, true));
             
             Assert.IsTrue(connection1to2);
             Assert.IsTrue(connection1to3);
@@ -90,4 +91,3 @@ namespace Tests.UnitTest.Game.SaveLoad
         }
     }
 }
-

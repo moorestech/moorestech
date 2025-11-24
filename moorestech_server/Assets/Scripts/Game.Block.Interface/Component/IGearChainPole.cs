@@ -9,7 +9,7 @@ namespace Game.Block.Interface.Component
         float MaxConnectionDistance { get; }
         bool IsConnectionFull { get; }
         bool ContainsChainConnection(BlockInstanceId partnerId);
-        bool TryAddChainConnection(BlockInstanceId partnerId);
+        bool TryAddChainConnection(BlockInstanceId partnerId, GearChainConnectionCost connectionCost);
         bool RemoveChainConnection(BlockInstanceId partnerId);
     }
 }
