@@ -128,7 +128,7 @@ namespace Tests.UnitTest.Game.Chain
 
             // チェーン切断を実行する
             // Execute chain disconnection
-            var disconnected = GearChainSystemUtil.TryDisconnect(posA, posB, out var disconnectError);
+            var disconnected = GearChainSystemUtil.TryDisconnect(posA, posB, PlayerId, out var disconnectError);
             Assert.True(disconnected);
             Assert.IsEmpty(disconnectError ?? string.Empty);
 
@@ -223,6 +223,8 @@ namespace Tests.UnitTest.Game.Chain
 
             // ブロックBを破壊する
             // Destroy block B
+            var poleBComponent = blockB.GetComponent<GearChainPoleComponent>();
+            poleBComponent.RefundConnections(inventory);
             var removed = worldBlockDatastore.RemoveBlock(posB, BlockRemoveReason.ManualRemove);
             Assert.True(removed);
             Assert.False(worldBlockDatastore.Exists(posB));
@@ -273,6 +275,8 @@ namespace Tests.UnitTest.Game.Chain
 
             // ブロックAを破壊する
             // Destroy block A
+            var poleAComponent = blockA.GetComponent<GearChainPoleComponent>();
+            poleAComponent.RefundConnections(inventory);
             var removed = worldBlockDatastore.RemoveBlock(posA, BlockRemoveReason.ManualRemove);
             Assert.True(removed);
             Assert.False(worldBlockDatastore.Exists(posA));
@@ -288,8 +292,8 @@ namespace Tests.UnitTest.Game.Chain
         // Utility method to get _chainTargets count from GearChainPoleComponent via reflection
         private static int GetChainTargetsCount(GearChainPoleComponent component)
         {
-            var field = typeof(GearChainPoleComponent).GetField("_chainTargets", BindingFlags.NonPublic | BindingFlags.Instance);
-            Assert.IsNotNull(field, "_chainTargetsフィールドを取得できませんでした。");
+            var field = typeof(GearChainPoleComponent).GetField("_chainConnections", BindingFlags.NonPublic | BindingFlags.Instance);
+            Assert.IsNotNull(field, "_chainConnectionsフィールドを取得できませんでした。");
             var chainTargets = field.GetValue(component);
             return ((System.Collections.ICollection)chainTargets).Count;
         }

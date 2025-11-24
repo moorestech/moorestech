@@ -27,20 +27,16 @@ namespace Game.Block.Blocks.GearChainPole
 
         public class ConnectionData
         {
-            public ConnectionData(int targetBlockInstanceId, int itemId, int count, int playerId, bool isOwner)
+            public ConnectionData(int targetBlockInstanceId, int itemId, int count)
             {
                 TargetBlockInstanceId = targetBlockInstanceId;
                 ItemId = itemId;
                 Count = count;
-                PlayerId = playerId;
-                IsOwner = isOwner;
             }
 
             [JsonProperty("targetBlockInstanceId")] public int TargetBlockInstanceId { get; }
             [JsonProperty("itemId")] public int ItemId { get; }
             [JsonProperty("count")] public int Count { get; }
-            [JsonProperty("playerId")] public int PlayerId { get; }
-            [JsonProperty("isOwner")] public bool IsOwner { get; }
         }
     }
 }

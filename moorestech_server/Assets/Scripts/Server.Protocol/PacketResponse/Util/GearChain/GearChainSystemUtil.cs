@@ -70,8 +70,8 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
                 return false;
             }
 
-            var costForA = new GearChainConnectionCost(consumedCost.ItemId, consumedCost.Count, consumedCost.PlayerId, true);
-            var costForB = new GearChainConnectionCost(consumedCost.ItemId, consumedCost.Count, consumedCost.PlayerId, true);
+            var costForA = new GearChainConnectionCost(consumedCost.ItemId, consumedCost.Count);
+            var costForB = new GearChainConnectionCost(consumedCost.ItemId, consumedCost.Count);
 
             // 接続を確定させる
             // Finalize connection
@@ -81,7 +81,7 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             {
                 poleA.RemoveChainConnection(poleB.BlockInstanceId);
                 poleB.RemoveChainConnection(poleA.BlockInstanceId);
-                RefundConsumption(consumedCost);
+                RefundConsumption(consumedCost, playerId);
                 error = "ConnectionLimit";
                 return false;
             }
@@ -90,7 +90,7 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             return true;
         }
 
-        public static bool TryDisconnect(Vector3Int posA, Vector3Int posB, out string error)
+        public static bool TryDisconnect(Vector3Int posA, Vector3Int posB, int playerId, out string error)
         {
             // 接続対象を取得する
             // Acquire target chain poles
@@ -108,6 +108,10 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
                 error = "NotConnected";
                 return false;
             }
+
+            // 消費アイテムを返却する
+            // Refund consumed item to the player performing disconnect
+            RefundConsumption(poleA.GetConnectionCost(poleB.BlockInstanceId), playerId);
 
             poleA.RemoveChainConnection(poleB.BlockInstanceId);
             poleB.RemoveChainConnection(poleA.BlockInstanceId);
@@ -130,7 +134,7 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             // Skip consumption when no configuration is provided
             if (gearChainItems == null || gearChainItems.Length == 0)
             {
-                consumedCost = new GearChainConnectionCost(ItemMaster.EmptyItemId, 0, playerId, false);
+                consumedCost = new GearChainConnectionCost(ItemMaster.EmptyItemId, 0);
                 return true;
             }
 
@@ -143,7 +147,7 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
                 var required = Mathf.CeilToInt(distance * gearChainItem.ConsumptionPerLength);
                 if (required <= 0)
                 {
-                    consumedCost = new GearChainConnectionCost(ItemMaster.EmptyItemId, 0, playerId, false);
+                    consumedCost = new GearChainConnectionCost(ItemMaster.EmptyItemId, 0);
                     return true;
                 }
 
@@ -157,11 +161,11 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
                 // 指定数を減算する
                 // Consume the required amount
                 Consume(inventory, itemId, required);
-                consumedCost = new GearChainConnectionCost(itemId, required, playerId, false);
+                consumedCost = new GearChainConnectionCost(itemId, required);
                 return true;
             }
 
-            consumedCost = new GearChainConnectionCost(ItemMaster.EmptyItemId, 0, playerId, false);
+            consumedCost = new GearChainConnectionCost(ItemMaster.EmptyItemId, 0);
             return false;
 
             #region Internal
@@ -200,12 +204,12 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             #endregion
         }
 
-        private static void RefundConsumption(GearChainConnectionCost cost)
+        private static void RefundConsumption(GearChainConnectionCost cost, int playerId)
         {
             // 消費したアイテムをインベントリへ戻す
             // Return consumed items to inventory
             if (cost.Count <= 0 || cost.ItemId == ItemMaster.EmptyItemId) return;
-            var inventory = ServerContext.GetService<IPlayerInventoryDataStore>().GetInventoryData(cost.PlayerId).MainOpenableInventory;
+            var inventory = ServerContext.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
             var remainder = inventory.InsertItem(cost.ItemId, cost.Count);
             if (remainder.Count <= 0) return;
             inventory.InsertItem(remainder);
