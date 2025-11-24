@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using Core.Master;
+using Core.Inventory;
 using Game.Block.Blocks.GearChainPole;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -116,7 +117,7 @@ namespace Tests.UnitTest.Game.Chain
             var connected = GearChainSystemUtil.TryConnect(posA, posB, PlayerId, out var connectError);
             Assert.True(connected);
             Assert.IsEmpty(connectError ?? string.Empty);
-            Assert.AreEqual(1, inventory.GetItem(0).Count);
+            Assert.AreEqual(1, CountItem(inventory, _chainItemId));
 
             // ギア接続が双方向に登録されることを確認する
             // Verify gear connections are registered both ways
@@ -127,7 +128,7 @@ namespace Tests.UnitTest.Game.Chain
 
             // チェーン切断を実行する
             // Execute chain disconnection
-            var disconnected = GearChainSystemUtil.TryDisconnect(posA, posB, out var disconnectError);
+            var disconnected = GearChainSystemUtil.TryDisconnect(posA, posB, PlayerId, out var disconnectError);
             Assert.True(disconnected);
             Assert.IsEmpty(disconnectError ?? string.Empty);
 
@@ -211,6 +212,7 @@ namespace Tests.UnitTest.Game.Chain
             var connected = GearChainSystemUtil.TryConnect(posA, posB, PlayerId, out var connectError);
             Assert.True(connected);
             Assert.IsEmpty(connectError ?? string.Empty);
+            Assert.AreEqual(0, CountItem(inventory, _chainItemId));
 
             // 接続が双方向に登録されていることを確認する
             // Verify connections are registered both ways
@@ -221,9 +223,12 @@ namespace Tests.UnitTest.Game.Chain
 
             // ブロックBを破壊する
             // Destroy block B
+            var poleBComponent = blockB.GetComponent<GearChainPoleComponent>();
+            poleBComponent.RefundConnections(inventory);
             var removed = worldBlockDatastore.RemoveBlock(posB, BlockRemoveReason.ManualRemove);
             Assert.True(removed);
             Assert.False(worldBlockDatastore.Exists(posB));
+            Assert.AreEqual(3, CountItem(inventory, _chainItemId));
 
             // ブロックAの接続が削除されていることを確認する
             // Verify block A's connection is removed
@@ -256,6 +261,7 @@ namespace Tests.UnitTest.Game.Chain
             Assert.True(connectAC);
             Assert.IsEmpty(errorAB ?? string.Empty);
             Assert.IsEmpty(errorAC ?? string.Empty);
+            Assert.AreEqual(0, CountItem(inventory, _chainItemId));
 
             // 接続が正しく登録されていることを確認する
             // Verify connections are registered correctly
@@ -269,9 +275,12 @@ namespace Tests.UnitTest.Game.Chain
 
             // ブロックAを破壊する
             // Destroy block A
+            var poleAComponent = blockA.GetComponent<GearChainPoleComponent>();
+            poleAComponent.RefundConnections(inventory);
             var removed = worldBlockDatastore.RemoveBlock(posA, BlockRemoveReason.ManualRemove);
             Assert.True(removed);
             Assert.False(worldBlockDatastore.Exists(posA));
+            Assert.AreEqual(4, CountItem(inventory, _chainItemId));
 
             // ブロックBとCの接続が削除されていることを確認する
             // Verify connections are removed from blocks B and C
@@ -287,6 +296,20 @@ namespace Tests.UnitTest.Game.Chain
             Assert.IsNotNull(field, "_chainTargetsフィールドを取得できませんでした。");
             var chainTargets = field.GetValue(component);
             return ((System.Collections.ICollection)chainTargets).Count;
+        }
+
+        private static int CountItem(IOpenableInventory inventory, ItemId itemId)
+        {
+            // 対象アイテムの合計数を数える
+            // Count total amount of specified item
+            var total = 0;
+            foreach (var itemStack in inventory.InventoryItems)
+            {
+                if (itemStack.Id != itemId) continue;
+                total += itemStack.Count;
+            }
+
+            return total;
         }
     }
 }
