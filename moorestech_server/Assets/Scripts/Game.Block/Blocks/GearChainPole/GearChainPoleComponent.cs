@@ -146,6 +146,15 @@ namespace Game.Block.Blocks.GearChainPole
         public bool IsDestroy { get; private set; }
         public void Destroy()
         {
+            // 接続先のブロックからも接続を削除する
+            // Remove connections from connected blocks as well
+            foreach (var targetId in _chainTargets.Keys.ToList())
+            {
+                var targetBlock = ServerContext.WorldBlockDatastore.GetBlock(targetId);
+                var targetPole = targetBlock?.GetComponent<IGearChainPole>();
+                targetPole?.RemoveChainConnection(BlockInstanceId);
+            }
+            
             // コンポーネントのリソースを解放する
             // Release component resources
             _connectorComponent.Destroy();
