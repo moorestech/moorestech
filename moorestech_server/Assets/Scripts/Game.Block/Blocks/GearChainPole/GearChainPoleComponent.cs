@@ -24,7 +24,6 @@ namespace Game.Block.Blocks.GearChainPole
         
         public float MaxConnectionDistance => _param.MaxConnectionDistance;
         public bool IsConnectionFull => _chainTargets.Count >= _param.MaxConnectionCount;
-        public IReadOnlyCollection<BlockInstanceId> PartnerIds => _chainTargets.Keys;
 
         // チェーン接続と周辺ギアのコネクターを保持する
         // Hold chain connection and adjacent gear connectors
@@ -196,7 +195,7 @@ namespace Game.Block.Blocks.GearChainPole
             // Serialize and return chain connection information
             var stateDetail = new GearChainPoleStateDetail(_chainTargets.Keys);
             var bytes = MessagePackSerializer.Serialize(stateDetail);
-            return new BlockStateDetail[] { new BlockStateDetail(GearChainPoleStateDetail.BlockStateDetailKey, bytes) };
+            return new BlockStateDetail[] { new(GearChainPoleStateDetail.BlockStateDetailKey, bytes) };
         }
         
         #endregion
