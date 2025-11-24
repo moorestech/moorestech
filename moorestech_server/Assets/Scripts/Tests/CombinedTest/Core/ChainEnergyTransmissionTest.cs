@@ -24,6 +24,7 @@ namespace Tests.CombinedTest.Core
             // テスト用DIコンテナを立ち上げる
             // Initialize test DI container
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            const int playerId = 0;
             var chainItemId = global::Core.Master.MasterHolder.ItemMaster.GetItemId(ChainConstants.ChainItemGuid);
 
             // ブロックを配置してギアネットワークを構築する
@@ -36,12 +37,12 @@ namespace Tests.CombinedTest.Core
 
             // プレイヤーのインベントリにチェーンを追加する
             // Grant chain item to player inventory
-            var inventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).MainOpenableInventory;
-            inventory.SetItem(0, ServerContext.ItemStackFactory.Create(chainItemId, 1));
+            var inventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
+            inventory.SetItem(0, ServerContext.ItemStackFactory.Create(chainItemId, 5));
 
             // チェーン接続を確立する
             // Establish chain connection
-            var connected = GearChainSystemUtil.TryConnect(new Vector3Int(1, 0, 0), new Vector3Int(6, 0, 0), out var error);
+            var connected = GearChainSystemUtil.TryConnect(new Vector3Int(1, 0, 0), new Vector3Int(6, 0, 0), playerId, out var error);
             Assert.True(connected);
             Assert.IsEmpty(error ?? string.Empty);
 

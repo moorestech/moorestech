@@ -48,7 +48,7 @@ namespace Tests.UnitTest.Game.Chain
 
             // チェーン接続を試行し、失敗コードを確認する
             // Attempt to connect chain and verify failure code
-            var succeeded = GearChainSystemUtil.TryConnect(Vector3Int.zero, far, out var error);
+            var succeeded = GearChainSystemUtil.TryConnect(Vector3Int.zero, far, PlayerId, out var error);
             Assert.False(succeeded);
             Assert.AreEqual("TooFar", error);
         }
@@ -66,9 +66,33 @@ namespace Tests.UnitTest.Game.Chain
 
             // チェーンアイテムを持っていない状態で接続を試行する
             // Attempt to connect without chain item
-            var connected = GearChainSystemUtil.TryConnect(posA, posB, out var error);
+            var connected = GearChainSystemUtil.TryConnect(posA, posB, PlayerId, out var error);
             Assert.False(connected);
             Assert.AreEqual("NoItem", error);
+        }
+
+        [Test]
+        public void ConnectFailsWhenChainItemIsNotEnough()
+        {
+            // 接続距離に対して必要数が不足するケースを用意する
+            // Prepare a case where the required chain items exceed inventory
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            var posA = Vector3Int.zero;
+            var posB = new Vector3Int(3, 0, 0);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearChainPole, posA, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearChainPole, posB, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+
+            // 必要数より少ないチェーンを渡す
+            // Give fewer chain items than required
+            var inventory = _serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
+            inventory.SetItem(0, ServerContext.ItemStackFactory.Create(_chainItemId, 2));
+
+            // 接続を試行し不足エラーを確認する
+            // Attempt to connect and confirm shortage error
+            var connected = GearChainSystemUtil.TryConnect(posA, posB, PlayerId, out var error);
+            Assert.False(connected);
+            Assert.AreEqual("NoItem", error);
+            Assert.AreEqual(2, inventory.GetItem(0).Count);
         }
 
         [Test]
@@ -85,13 +109,14 @@ namespace Tests.UnitTest.Game.Chain
             // プレイヤーにチェーンアイテムを配布する
             // Give chain item to player inventory
             var inventory = _serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
-            inventory.SetItem(0, ServerContext.ItemStackFactory.Create(_chainItemId, 2));
+            inventory.SetItem(0, ServerContext.ItemStackFactory.Create(_chainItemId, 4));
 
             // チェーン接続を実行する
             // Execute chain connection
-            var connected = GearChainSystemUtil.TryConnect(posA, posB, out var connectError);
+            var connected = GearChainSystemUtil.TryConnect(posA, posB, PlayerId, out var connectError);
             Assert.True(connected);
             Assert.IsEmpty(connectError ?? string.Empty);
+            Assert.AreEqual(1, inventory.GetItem(0).Count);
 
             // ギア接続が双方向に登録されることを確認する
             // Verify gear connections are registered both ways
@@ -130,12 +155,12 @@ namespace Tests.UnitTest.Game.Chain
             // チェーンアイテムを上限分プレイヤーに配布する
             // Provide chain items for connection attempts
             var inventory = _serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
-            inventory.SetItem(0, ServerContext.ItemStackFactory.Create(_chainItemId, 3));
+            inventory.SetItem(0, ServerContext.ItemStackFactory.Create(_chainItemId, 5));
 
             // 上限まで接続を成功させる
             // Connect until reaching the limit
-            var firstConnect = GearChainSystemUtil.TryConnect(posA, posB, out var firstError);
-            var secondConnect = GearChainSystemUtil.TryConnect(posA, posC, out var secondError);
+            var firstConnect = GearChainSystemUtil.TryConnect(posA, posB, PlayerId, out var firstError);
+            var secondConnect = GearChainSystemUtil.TryConnect(posA, posC, PlayerId, out var secondError);
             Assert.True(firstConnect);
             Assert.True(secondConnect);
             Assert.IsEmpty(firstError ?? string.Empty);
@@ -143,9 +168,10 @@ namespace Tests.UnitTest.Game.Chain
 
             // 上限超過の接続を拒否する
             // Reject connection beyond the limit
-            var limitConnect = GearChainSystemUtil.TryConnect(posA, posD, out var limitError);
+            var limitConnect = GearChainSystemUtil.TryConnect(posA, posD, PlayerId, out var limitError);
             Assert.False(limitConnect);
             Assert.AreEqual("ConnectionLimit", limitError);
+            Assert.AreEqual(1, inventory.GetItem(0).Count);
 
             // 接続中のポールが正しく記録されていることを確認する
             // Ensure current connections are tracked correctly
@@ -178,11 +204,11 @@ namespace Tests.UnitTest.Game.Chain
             // プレイヤーにチェーンアイテムを配布する
             // Give chain item to player inventory
             var inventory = _serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
-            inventory.SetItem(0, ServerContext.ItemStackFactory.Create(_chainItemId, 2));
+            inventory.SetItem(0, ServerContext.ItemStackFactory.Create(_chainItemId, 3));
 
             // チェーン接続を実行する
             // Execute chain connection
-            var connected = GearChainSystemUtil.TryConnect(posA, posB, out var connectError);
+            var connected = GearChainSystemUtil.TryConnect(posA, posB, PlayerId, out var connectError);
             Assert.True(connected);
             Assert.IsEmpty(connectError ?? string.Empty);
 
@@ -220,12 +246,12 @@ namespace Tests.UnitTest.Game.Chain
             // チェーンアイテムをプレイヤーに配布する
             // Provide chain items to player
             var inventory = _serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
-            inventory.SetItem(0, ServerContext.ItemStackFactory.Create(_chainItemId, 3));
+            inventory.SetItem(0, ServerContext.ItemStackFactory.Create(_chainItemId, 4));
 
             // 複数の接続を確立する
             // Establish multiple connections
-            var connectAB = GearChainSystemUtil.TryConnect(posA, posB, out var errorAB);
-            var connectAC = GearChainSystemUtil.TryConnect(posA, posC, out var errorAC);
+            var connectAB = GearChainSystemUtil.TryConnect(posA, posB, PlayerId, out var errorAB);
+            var connectAC = GearChainSystemUtil.TryConnect(posA, posC, PlayerId, out var errorAC);
             Assert.True(connectAB);
             Assert.True(connectAC);
             Assert.IsEmpty(errorAB ?? string.Empty);
