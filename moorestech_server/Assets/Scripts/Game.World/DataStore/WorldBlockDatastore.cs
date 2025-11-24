@@ -182,6 +182,16 @@ namespace Game.World.DataStore
                 
                 TryAddBlock(block);
             }
+            
+            // 全てのブロックがロードされた後にIPostBlockLoadを実行する
+            // Execute IPostBlockLoad after all blocks are loaded
+            foreach (var blockData in _blockMasterDictionary.Values)
+            {
+                foreach (var component in blockData.Block.ComponentManager.GetComponents<IPostBlockLoad>())
+                {
+                    component.OnPostBlockLoad();
+                }
+            }
         }
         
         #endregion
