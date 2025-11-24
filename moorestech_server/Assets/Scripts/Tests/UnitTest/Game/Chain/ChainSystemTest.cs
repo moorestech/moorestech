@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
+using System.Reflection;
 using Core.Master;
+using Game.Block.Blocks.GearChainPole;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
@@ -149,11 +151,26 @@ namespace Tests.UnitTest.Game.Chain
             var poleA = blockA.GetComponent<IGearChainPole>();
             var poleB = blockB.GetComponent<IGearChainPole>();
             var poleC = blockC.GetComponent<IGearChainPole>();
-            Assert.AreEqual(2, poleA.PartnerIds.Count);
+            
+            // リフレクションで_chainTargetsの数を取得して検証する
+            // Get _chainTargets count via reflection and verify
+            var chainTargetsCount = GetChainTargetsCount(poleA as GearChainPoleComponent);
+            Assert.AreEqual(2, chainTargetsCount);
+            
             Assert.True(poleA.ContainsChainConnection(blockB.BlockInstanceId));
             Assert.True(poleA.ContainsChainConnection(blockC.BlockInstanceId));
             Assert.True(poleB.ContainsChainConnection(blockA.BlockInstanceId));
             Assert.True(poleC.ContainsChainConnection(blockA.BlockInstanceId));
+        }
+
+        // GearChainPoleComponentから_chainTargetsの数を取得するユーティリティメソッド
+        // Utility method to get _chainTargets count from GearChainPoleComponent via reflection
+        private static int GetChainTargetsCount(GearChainPoleComponent component)
+        {
+            var field = typeof(GearChainPoleComponent).GetField("_chainTargets", BindingFlags.NonPublic | BindingFlags.Instance);
+            Assert.IsNotNull(field, "_chainTargetsフィールドを取得できませんでした。");
+            var chainTargets = field.GetValue(component);
+            return ((System.Collections.ICollection)chainTargets).Count;
         }
     }
 }
