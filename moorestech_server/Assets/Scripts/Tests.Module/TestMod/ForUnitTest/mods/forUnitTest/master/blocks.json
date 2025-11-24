@@ -1343,12 +1343,6 @@
           ]
         }
       },
-      "gearChainItems": [
-        {
-          "itemGuid": "b15c8f72-df53-4f3a-810f-55a76f65d2ce",
-          "consumptionPerLength": 1
-        }
-      ],
       "itemGuid": "7f2b0f6c-1d8a-4e37-9c3a-b9da1abbe7b7",
       "blockGuid": "00000000-0000-0000-0000-00000000002c",
       "overrideVerticalBlock": {}
@@ -4531,6 +4525,12 @@
         "baseDestructionProbability": 0
       },
       "overrideVerticalBlock": {}
+    }
+  ],
+  "gearChainItems": [
+    {
+      "itemGuid": "b15c8f72-df53-4f3a-810f-55a76f65d2ce",
+      "consumptionPerLength": 1
     }
   ]
 }
