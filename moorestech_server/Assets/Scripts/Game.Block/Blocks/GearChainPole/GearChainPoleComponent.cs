@@ -19,15 +19,6 @@ namespace Game.Block.Blocks.GearChainPole
         public Torque CurrentTorque => _gearService.CurrentTorque;
         public bool IsCurrentClockwise => _gearService.IsCurrentClockwise;
         public float MaxConnectionDistance { get; }
-        public int MaxConnectionCount => _maxConnectionCount;
-        public bool HasChainConnection
-        {
-            get
-            {
-                RefreshChainTargets();
-                return _chainTargets.Count > 0;
-            }
-        }
         public bool IsConnectionFull
         {
             get

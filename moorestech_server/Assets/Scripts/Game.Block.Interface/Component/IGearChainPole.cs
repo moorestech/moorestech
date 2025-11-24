@@ -7,13 +7,10 @@ namespace Game.Block.Interface.Component
     {
         BlockInstanceId BlockInstanceId { get; }
         float MaxConnectionDistance { get; }
-        int MaxConnectionCount { get; }
-        bool HasChainConnection { get; }
         bool IsConnectionFull { get; }
         IReadOnlyCollection<BlockInstanceId> PartnerIds { get; }
         bool ContainsChainConnection(BlockInstanceId partnerId);
         bool TryAddChainConnection(BlockInstanceId partnerId);
         bool RemoveChainConnection(BlockInstanceId partnerId);
-        void ClearChainConnections();
     }
 }
