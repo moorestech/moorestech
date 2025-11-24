@@ -169,7 +169,7 @@ namespace Game.Block.Blocks.GearChainPole
         
         #region IBlockSaveState
         
-        public string SaveKey => ChainConstants.SaveKey;
+        public string SaveKey => nameof(GearChainPoleComponent);
         public string GetSaveState()
         {
             // 接続先のIDリストを保存する

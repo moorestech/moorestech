@@ -11,21 +11,6 @@ namespace Game.Context
 {
     public class ChainSystem : IChainSystem
     {
-        private readonly IWorldBlockDatastore _worldBlockDatastore;
-        private readonly IChainInventoryService _inventoryService;
-        private readonly ItemId _chainItemId;
-
-        public ChainSystem(IWorldBlockDatastore worldBlockDatastore, IChainInventoryService inventoryService)
-        {
-            // 依存関係を初期化する
-            // Initialize dependencies
-            _worldBlockDatastore = worldBlockDatastore;
-            _inventoryService = inventoryService;
-            _chainItemId = MasterHolder.ItemMaster.ExistItemId(ChainConstants.ChainItemGuid)
-                ? MasterHolder.ItemMaster.GetItemId(ChainConstants.ChainItemGuid)
-                : ItemMaster.EmptyItemId;
-        }
-
         public bool TryConnect(Vector3Int posA, Vector3Int posB, int playerId, out string error)
         {
             // 接続対象を取得する
@@ -65,14 +50,6 @@ namespace Game.Context
             if (poleA.IsConnectionFull || poleB.IsConnectionFull)
             {
                 error = "ConnectionLimit";
-                return false;
-            }
-
-            // チェーンアイテムを消費する
-            // Consume chain item
-            if (!ConsumeChainItem(playerId))
-            {
-                error = "NoItem";
                 return false;
             }
 
@@ -123,29 +100,18 @@ namespace Game.Context
             // Resolve component from position
             chainPole = null;
             transformer = null;
-            if (!_worldBlockDatastore.TryGetBlock(position, out IBlock block)) return false;
+            if (!ServerContext.WorldBlockDatastore.TryGetBlock(position, out IBlock block)) return false;
             chainPole = block.GetComponent<IGearChainPole>();
             transformer = block.GetComponent<IGearEnergyTransformer>();
             return chainPole != null && transformer != null;
-        }
-
-        private bool ConsumeChainItem(int playerId)
-        {
-            // プレイヤーのメインインベントリから1つ消費する
-            // Spend one chain item from player inventory
-            if (_chainItemId == ItemMaster.EmptyItemId) return true;
-            return _inventoryService.TryConsumeChainItem(playerId, _chainItemId);
         }
 
         private void RebuildNetworks(params IGearEnergyTransformer[] transformers)
         {
             // ネットワークを再構築して回転を再計算する
             // Rebuild gear networks to recalc rotation
-            foreach (var transformer in transformers)
-            {
-                if (GearNetworkDatastore.Contains(transformer)) GearNetworkDatastore.RemoveGear(transformer);
-            }
-
+            
+            foreach (var transformer in transformers) GearNetworkDatastore.RemoveGear(transformer);
             foreach (var transformer in transformers) GearNetworkDatastore.AddGear(transformer);
         }
     }
