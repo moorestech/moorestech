@@ -12,6 +12,7 @@ using Server.Boot;
 using Server.Event;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
+using Tests.Module;
 using Tests.Module.TestMod;
 using UnityEngine;
 

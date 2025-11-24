@@ -10,6 +10,7 @@ using Game.PlayerInventory.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
+using Server.Protocol.PacketResponse.Util.GearChain;
 using Tests.Module;
 using Tests.Module.TestMod;
 using UnityEngine;
@@ -44,8 +45,7 @@ namespace Tests.UnitTest.Game.Chain
 
             // チェーン接続を試行し、失敗コードを確認する
             // Attempt to connect chain and verify failure code
-            var chainSystem = ServerContext.GetService<IChainSystem>();
-            var succeeded = chainSystem.TryConnect(Vector3Int.zero, far, PlayerId, out var error);
+            var succeeded = ChainSystem.TryConnect(Vector3Int.zero, far, out var error);
             Assert.False(succeeded);
             Assert.AreEqual("TooFar", error);
         }
@@ -63,8 +63,7 @@ namespace Tests.UnitTest.Game.Chain
 
             // チェーンアイテムを持っていない状態で接続を試行する
             // Attempt to connect without chain item
-            var chainSystem = ServerContext.GetService<IChainSystem>();
-            var connected = chainSystem.TryConnect(posA, posB, PlayerId, out var error);
+            var connected = ChainSystem.TryConnect(posA, posB, out var error);
             Assert.False(connected);
             Assert.AreEqual("NoItem", error);
         }
@@ -87,8 +86,7 @@ namespace Tests.UnitTest.Game.Chain
 
             // チェーン接続を実行する
             // Execute chain connection
-            var chainSystem = ServerContext.GetService<IChainSystem>();
-            var connected = chainSystem.TryConnect(posA, posB, PlayerId, out var connectError);
+            var connected = ChainSystem.TryConnect(posA, posB, out var connectError);
             Assert.True(connected);
             Assert.IsEmpty(connectError ?? string.Empty);
 
@@ -101,7 +99,7 @@ namespace Tests.UnitTest.Game.Chain
 
             // チェーン切断を実行する
             // Execute chain disconnection
-            var disconnected = chainSystem.TryDisconnect(posA, posB, out var disconnectError);
+            var disconnected = ChainSystem.TryDisconnect(posA, posB, out var disconnectError);
             Assert.True(disconnected);
             Assert.IsEmpty(disconnectError ?? string.Empty);
 
@@ -133,9 +131,8 @@ namespace Tests.UnitTest.Game.Chain
 
             // 上限まで接続を成功させる
             // Connect until reaching the limit
-            var chainSystem = ServerContext.GetService<IChainSystem>();
-            var firstConnect = chainSystem.TryConnect(posA, posB, PlayerId, out var firstError);
-            var secondConnect = chainSystem.TryConnect(posA, posC, PlayerId, out var secondError);
+            var firstConnect = ChainSystem.TryConnect(posA, posB, out var firstError);
+            var secondConnect = ChainSystem.TryConnect(posA, posC, out var secondError);
             Assert.True(firstConnect);
             Assert.True(secondConnect);
             Assert.IsEmpty(firstError ?? string.Empty);
@@ -143,7 +140,7 @@ namespace Tests.UnitTest.Game.Chain
 
             // 上限超過の接続を拒否する
             // Reject connection beyond the limit
-            var limitConnect = chainSystem.TryConnect(posA, posD, PlayerId, out var limitError);
+            var limitConnect = ChainSystem.TryConnect(posA, posD, out var limitError);
             Assert.False(limitConnect);
             Assert.AreEqual("ConnectionLimit", limitError);
 
