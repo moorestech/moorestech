@@ -21,8 +21,7 @@
         "Core.Master",
         "Game.Fluid",
         "Server.Util",
-        "ClassLibrary",
-        "Game.PlayerInventory.Interface"
+        "ClassLibrary"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

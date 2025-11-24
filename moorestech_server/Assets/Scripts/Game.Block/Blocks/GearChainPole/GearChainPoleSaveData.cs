@@ -5,25 +5,18 @@ namespace Game.Block.Blocks.GearChainPole
 {
     public class GearChainPoleSaveData
     {
-        [JsonProperty("targetBlockInstanceIds")]
-        public IReadOnlyCollection<int> TargetBlockInstanceIds { get; }
-        
         [JsonProperty("connections")]
         public List<ConnectionData> Connections { get; }
         
-        public GearChainPoleSaveData(IReadOnlyCollection<int> targetBlockInstanceIds)
-        {
-            TargetBlockInstanceIds = targetBlockInstanceIds ?? new List<int>();
-            Connections = new List<ConnectionData>();
-        }
-
         public GearChainPoleSaveData(List<ConnectionData> connections)
         {
             Connections = connections ?? new List<ConnectionData>();
-            TargetBlockInstanceIds = new List<int>();
         }
         
-        public GearChainPoleSaveData(){ }
+        public GearChainPoleSaveData()
+        {
+            Connections = new List<ConnectionData>();
+        }
 
         public class ConnectionData
         {
