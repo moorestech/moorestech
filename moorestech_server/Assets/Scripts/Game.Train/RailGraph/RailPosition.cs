@@ -56,7 +56,8 @@ namespace Game.Train.RailGraph
             int totalDistance = RailNodeCalculate.CalculateTotalDistance(_railNodes);
             if (totalDistance + _distanceToNextNode < _trainLength)
             {
-                throw new InvalidOperationException("RailNodeリストと距離が列車の長さに収まっていない");
+                throw new InvalidOperationException("RailNodeリストと距離が列車の長さに収まっていない" +
+                    $" totalDistance: {totalDistance}, distanceToNextNode: {_distanceToNextNode}, trainLength: {_trainLength}");
             }
         }
 
