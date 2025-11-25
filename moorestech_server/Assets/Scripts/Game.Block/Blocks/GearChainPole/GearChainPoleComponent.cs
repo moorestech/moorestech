@@ -18,7 +18,7 @@ using UniRx;
 
 namespace Game.Block.Blocks.GearChainPole
 {
-    public class GearChainPoleComponent : IGearEnergyTransformer, IBlockSaveState, IGearChainPole, IPostBlockLoad, IBlockStateObservable, IGetRefoundItemsInfo
+    public class GearChainPoleComponent : IGearEnergyTransformer, IBlockSaveState, IGearChainPole, IPostBlockLoad, IBlockStateObservable, IGetRefundItemsInfo
     {
         // マスターデータパラメータを保持する
         // Hold master data parameters
