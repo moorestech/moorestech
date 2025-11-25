@@ -81,10 +81,10 @@ namespace Tests.CombinedTest.Core
             // Re-place pipes
             void ResetBlocks(out ElectricPumpComponent pumpComponentRef, out IBlock pipeNegXRef, out IBlock pipePosZRef, out IBlock pipeNegZRef)
             {
-                world.RemoveBlock(Vector3Int.zero);
-                world.RemoveBlock(new Vector3Int(-1, 0, 0));
-                world.RemoveBlock(new Vector3Int(0, 0, 1));
-                world.RemoveBlock(new Vector3Int(0, 0, -1));
+                world.RemoveBlock(Vector3Int.zero, BlockRemoveReason.ManualRemove);
+                world.RemoveBlock(new Vector3Int(-1, 0, 0), BlockRemoveReason.ManualRemove);
+                world.RemoveBlock(new Vector3Int(0, 0, 1), BlockRemoveReason.ManualRemove);
+                world.RemoveBlock(new Vector3Int(0, 0, -1), BlockRemoveReason.ManualRemove);
                 
                 PlacePumpWithPipes(out pumpComponentRef, out pipeNegXRef, out pipePosZRef, out pipeNegZRef);
             }

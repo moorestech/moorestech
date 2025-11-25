@@ -37,8 +37,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             // セーブデータを生成して環境を解体する
             // Build the save data and tear down the environment
             var saveJson = SaveLoadJsonTestHelper.AssembleSaveJson(environment.ServiceProvider);
-            environment.WorldBlockDatastore.RemoveBlock(loadPosition);
-            environment.WorldBlockDatastore.RemoveBlock(unloadPosition);
+            environment.WorldBlockDatastore.RemoveBlock(loadPosition, BlockRemoveReason.ManualRemove);
+            environment.WorldBlockDatastore.RemoveBlock(unloadPosition, BlockRemoveReason.ManualRemove);
 
             var loadEnvironment = TrainTestHelper.CreateEnvironment();
             SaveLoadJsonTestHelper.LoadFromJson(loadEnvironment.ServiceProvider, saveJson);

@@ -336,7 +336,7 @@ namespace Tests.CombinedTest.Core
                 Debug.Log($"No recipes found for block {blockMaster.BlockGuid}. Looking for any machine recipe...");
                 // テスト用マシンレシピを使用
                 disposable.Dispose(); // 古いサブスクリプションを解除
-                worldBlockDatastore.RemoveBlock(Vector3Int.zero);
+                worldBlockDatastore.RemoveBlock(Vector3Int.zero, BlockRemoveReason.ManualRemove);
                 worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineRecipeTest1, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out machineBlock);
                 blockMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.MachineRecipeTest1);
                 machineComponent = machineBlock.GetComponent<VanillaElectricMachineComponent>();

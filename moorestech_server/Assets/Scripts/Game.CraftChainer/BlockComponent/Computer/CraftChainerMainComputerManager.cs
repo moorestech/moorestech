@@ -21,7 +21,7 @@ namespace Game.CraftChainer.CraftNetwork
             ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(OnBlockRemoveEvent);
         }
         
-        private void OnBlockPlaceEvent(BlockUpdateProperties updateProperties)
+        private void OnBlockPlaceEvent(BlockPlaceProperties updateProperties)
         {
             var block = updateProperties.BlockData.Block;
             if (block.TryGetComponent<CraftChainerMainComputerComponent>(out var mainComputer))
@@ -37,7 +37,7 @@ namespace Game.CraftChainer.CraftNetwork
             }
         }
         
-        private void OnBlockRemoveEvent(BlockUpdateProperties updateProperties)
+        private void OnBlockRemoveEvent(BlockRemoveProperties updateProperties)
         {
             var block = updateProperties.BlockData.Block;
             if (block.TryGetComponent<CraftChainerMainComputerComponent>(out var mainComputer))

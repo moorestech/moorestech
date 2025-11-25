@@ -88,7 +88,7 @@ namespace Tests.CombinedTest.Core
 
             // チェストを破壊して、採掘機の中にアイテムが残ることをチェックする
             // Destroy the chest and check that the item remains inside the miner.
-            worldBlockDatastore.RemoveBlock(chestBlockPos);
+            worldBlockDatastore.RemoveBlock(chestBlockPos, BlockRemoveReason.ManualRemove);
 
             // 2回分の採掘時間待機
             // Wait for two more mining cycles.

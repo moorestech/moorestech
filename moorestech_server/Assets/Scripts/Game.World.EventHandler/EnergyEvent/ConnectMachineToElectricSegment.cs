@@ -34,7 +34,7 @@ namespace Game.World.EventHandler.EnergyEvent
             ServerContext.WorldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(OnBlockPlace);
         }
         
-        private void OnBlockPlace(BlockUpdateProperties updateProperties)
+        private void OnBlockPlace(BlockPlaceProperties updateProperties)
         {
             var machinePos = updateProperties.Pos;
 
