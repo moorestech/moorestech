@@ -420,11 +420,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 6e60cbf51e06e1c4caf0f23ee9974fd8
-    m_Address: Vanilla/Skit/commandForgeEditor
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 6f66b5f793cadea49bd28b222c6c710b
     m_Address: Vanilla/Block/Old/iron chest
     m_ReadOnly: 0
