@@ -79,14 +79,8 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             var addedB = addedA && poleB.TryAddChainConnection(poleA.BlockInstanceId, costForB);
             if (!addedA || !addedB)
             {
-                if (addedA && poleA is Game.Block.Blocks.GearChainPole.GearChainPoleComponent poleAComponent)
-                {
-                    poleAComponent.TryRemoveChainConnection(poleB.BlockInstanceId, out _);
-                }
-                if (addedB && poleB is Game.Block.Blocks.GearChainPole.GearChainPoleComponent poleBComponent)
-                {
-                    poleBComponent.TryRemoveChainConnection(poleA.BlockInstanceId, out _);
-                }
+                poleA.TryRemoveChainConnection(poleB.BlockInstanceId, out _);
+                poleB.TryRemoveChainConnection(poleA.BlockInstanceId, out _);
                 RefundConsumption(consumedCost, playerId);
                 error = "ConnectionLimit";
                 return false;
@@ -117,16 +111,12 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
 
             // 消費アイテムを返却する
             // Refund consumed item to the player performing disconnect
-            RefundConsumption(poleA.GetConnectionCost(poleB.BlockInstanceId), playerId);
-
-            if (poleA is Game.Block.Blocks.GearChainPole.GearChainPoleComponent poleAComponent)
-            {
-                poleAComponent.TryRemoveChainConnection(poleB.BlockInstanceId, out _);
-            }
-            if (poleB is Game.Block.Blocks.GearChainPole.GearChainPoleComponent poleBComponent)
-            {
-                poleBComponent.TryRemoveChainConnection(poleA.BlockInstanceId, out _);
-            }
+            
+            poleA.TryRemoveChainConnection(poleB.BlockInstanceId, out var cost);
+            RefundConsumption(cost, playerId);
+            
+            poleB.TryRemoveChainConnection(poleA.BlockInstanceId, out _);
+            
             RebuildNetworks(transformerA, transformerB);
             return true;
         }
