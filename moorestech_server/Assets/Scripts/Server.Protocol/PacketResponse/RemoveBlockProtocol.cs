@@ -36,7 +36,7 @@ namespace Server.Protocol.PacketResponse
                 
             // 破壊した後のアイテムをインベントリに挿入できるかチェック
             // Check if items after destruction can be inserted into inventory
-            if (TryInsertRefundItems(out var refundItems)) return null;
+            if (!TryInsertRefundItems(out var refundItems)) return null;
             
             // 削除処理
             // Deletion process
