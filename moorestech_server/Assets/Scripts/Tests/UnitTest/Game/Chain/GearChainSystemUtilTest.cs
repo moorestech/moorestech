@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Core.Master;
@@ -12,23 +11,19 @@ using Game.Context;
 using Game.Gear.Common;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
-using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
-using Server.Protocol;
 using Server.Protocol.PacketResponse.Util.GearChain;
 using Tests.Module;
 using Tests.Module.TestMod;
 using UnityEngine;
-using static Server.Protocol.PacketResponse.RemoveBlockProtocol;
 
 namespace Tests.UnitTest.Game.Chain
 {
     public class GearChainSystemUtilTest
     {
         private ServiceProvider _serviceProvider;
-        private PacketResponseCreator _packet;
         private ItemId _chainItemId;
         private const int PlayerId = 1;
 
@@ -37,9 +32,8 @@ namespace Tests.UnitTest.Game.Chain
         {
             // テスト用の依存関係を初期化する
             // Initialize dependencies for tests
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             _serviceProvider = serviceProvider;
-            _packet = packet;
             _chainItemId = MasterHolder.ItemMaster.GetItemId(ChainConstants.ChainItemGuid);
         }
 
@@ -228,9 +222,10 @@ namespace Tests.UnitTest.Game.Chain
             Assert.True(poleA.ContainsChainConnection(blockB.BlockInstanceId));
             Assert.True(poleB.ContainsChainConnection(blockA.BlockInstanceId));
 
-            // ブロックBをプロトコル経由で破壊する
-            // Destroy block B via protocol
-            _packet.GetPacketResponse(RemoveBlock(posB, PlayerId));
+            // ブロックBを破壊する
+            // Destroy block B
+            var removed = worldBlockDatastore.RemoveBlock(posB, BlockRemoveReason.ManualRemove);
+            Assert.True(removed);
             Assert.False(worldBlockDatastore.Exists(posB));
             Assert.AreEqual(3, CountItem(inventory, _chainItemId));
 
@@ -277,9 +272,10 @@ namespace Tests.UnitTest.Game.Chain
             Assert.True(poleB.ContainsChainConnection(blockA.BlockInstanceId));
             Assert.True(poleC.ContainsChainConnection(blockA.BlockInstanceId));
 
-            // ブロックAをプロトコル経由で破壊する
-            // Destroy block A via protocol
-            _packet.GetPacketResponse(RemoveBlock(posA, PlayerId));
+            // ブロックAを破壊する
+            // Destroy block A
+            var removed = worldBlockDatastore.RemoveBlock(posA, BlockRemoveReason.ManualRemove);
+            Assert.True(removed);
             Assert.False(worldBlockDatastore.Exists(posA));
             Assert.AreEqual(4, CountItem(inventory, _chainItemId));
 
@@ -311,11 +307,6 @@ namespace Tests.UnitTest.Game.Chain
             }
 
             return total;
-        }
-
-        private static List<byte> RemoveBlock(Vector3Int pos, int playerId)
-        {
-            return MessagePackSerializer.Serialize(new RemoveBlockProtocolMessagePack(playerId, pos)).ToList();
         }
     }
 }
