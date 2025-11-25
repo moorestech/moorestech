@@ -11,7 +11,9 @@ namespace Game.Train.Utility
             int totalDistance = 0;
             for (int i = 0; i < _railNodes.Count - 1; i++)
             {
-                totalDistance += _railNodes[i + 1].GetDistanceToNode(_railNodes[i]);
+                var leng = _railNodes[i + 1].GetDistanceToNode(_railNodes[i]);
+                if (leng == -1) throw new InvalidOperationException("経路が繋がっていません");
+                totalDistance += leng;
             }
             //万が一int maxを超える場合エラー
             if (totalDistance < 0)
@@ -27,7 +29,9 @@ namespace Game.Train.Utility
             int totalDistance = 0;
             for (int i = 0; i < _railNodes.Count - 1; i++)
             {
-                totalDistance += _railNodes[i].GetDistanceToNode(_railNodes[i + 1]);
+                var leng = _railNodes[i].GetDistanceToNode(_railNodes[i + 1]);
+                if (leng == -1) throw new InvalidOperationException("経路が繋がっていません");
+                totalDistance += leng;
             }
             //万が一int maxを超える場合エラー
             if (totalDistance < 0)
