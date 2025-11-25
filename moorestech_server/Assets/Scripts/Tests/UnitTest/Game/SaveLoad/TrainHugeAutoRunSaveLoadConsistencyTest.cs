@@ -440,7 +440,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             public static TrainSimulationSnapshot Create(TrainUnit train)
             {
-                var railNodes = train.RailPosition.EnumerateRailNodes()
+                var railNodes = train.RailPosition.GetRailNodes()
                     .Select(node => NodeIdentifier.Create(node))
                     .ToList();
 
