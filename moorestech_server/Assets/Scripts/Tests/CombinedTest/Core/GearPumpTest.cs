@@ -65,9 +65,9 @@ namespace Tests.CombinedTest.Core
 
             // 2) 供給不足（RPMを50%に低下）→ 生成量も50%になる
             // パイプ内を初期化（検証をわかりやすくするために新しい配置に切り替え）
-            world.RemoveBlock(new Vector3Int(-1, 0, 0));
-            world.RemoveBlock(new Vector3Int(0, 0, 1));
-            world.RemoveBlock(new Vector3Int(0, 0, -1));
+            world.RemoveBlock(new Vector3Int(-1, 0, 0), BlockRemoveReason.ManualRemove);
+            world.RemoveBlock(new Vector3Int(0, 0, 1), BlockRemoveReason.ManualRemove);
+            world.RemoveBlock(new Vector3Int(0, 0, -1), BlockRemoveReason.ManualRemove);
 
             world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(-1, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out pipeNegX);
             world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, 1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out pipePosZ);

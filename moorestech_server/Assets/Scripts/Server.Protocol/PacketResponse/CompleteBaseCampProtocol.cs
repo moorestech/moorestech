@@ -52,7 +52,7 @@ namespace Server.Protocol.PacketResponse
             // ブロックを削除して新しいブロックを配置
             // Remove block and place new block
             var blockPositionInfo = block.BlockPositionInfo;
-            worldBlockDatastore.RemoveBlock(data.Position);
+            worldBlockDatastore.RemoveBlock(data.Position, BlockRemoveReason.ManualRemove);
             worldBlockDatastore.TryAddBlock(transformedBlockId, data.Position, blockPositionInfo.BlockDirection, Array.Empty<BlockCreateParam>(), out _);
             
             return null;

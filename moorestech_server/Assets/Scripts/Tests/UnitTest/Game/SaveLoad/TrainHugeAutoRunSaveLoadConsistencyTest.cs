@@ -395,7 +395,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var blocks = world.GetSaveJsonObject();
             foreach (var block in blocks)
             {
-                world.RemoveBlock(block.Pos);
+                world.RemoveBlock(block.Pos, BlockRemoveReason.ManualRemove);
             }
         }
 

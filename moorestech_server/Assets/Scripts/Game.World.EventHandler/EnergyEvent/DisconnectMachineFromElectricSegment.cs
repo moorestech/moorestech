@@ -22,7 +22,7 @@ namespace Game.World.EventHandler.EnergyEvent
             ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(OnBlockRemove);
         }
 
-        private void OnBlockRemove(BlockUpdateProperties updateProperties)
+        private void OnBlockRemove(BlockRemoveProperties updateProperties)
         {
             var machinePos = updateProperties.Pos;
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
