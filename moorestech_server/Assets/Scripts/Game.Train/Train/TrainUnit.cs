@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
-using Mooresmaster.Model.TrainModule;
 
 namespace Game.Train.Train
 {
@@ -63,6 +62,7 @@ namespace Game.Train.Train
         )
         {
             _railPosition = initialPosition;
+            TrainRailPositionManager.Instance.RegisterRailPosition(_railPosition);
             _trainId = Guid.NewGuid();
             _cars = cars;
             _currentSpeed = 0.0; // 仮の初期速度
@@ -85,7 +85,7 @@ namespace Game.Train.Train
             _cars.Reverse();
             foreach (var car in _cars)
             {
-                car.SetFacingForward(!car.IsFacingForward);
+                car.Reverse();
             }
         }
 
@@ -315,7 +315,6 @@ namespace Game.Train.Train
                 if (loopCount > InfiniteLoopGuardThreshold)
                 {
                     throw new InvalidOperationException("列車速度が無限に近いか、レール経路の無限ループを検知しました。");
-                    break;
                 }
             }
             return totalMoved;
@@ -669,14 +668,16 @@ namespace Game.Train.Train
         }
 
         //============================================================
-        // ▼ ここからが「編成を分割する」ための処理例
+        // ▼ ここからが「編成を分割連結する」ための処理例
         //============================================================
         /// <summary>
+        ///  分割
         ///  列車を「後ろから numberOfCarsToDetach 両」切り離して、後ろの部分を新しいTrainUnitとして返す
         ///  新しいTrainUnitのrailpositionは、切り離した車両の長さに応じて調整される
         ///  新しいTrainUnitのtrainDiagramは空になる
         ///  新しいTrainUnitのドッキング状態はcarに情報があるためそのまま保存される
         /// </summary>
+
         public TrainUnit SplitTrain(int numberOfCarsToDetach)
         {
             // 例：10両 → 5両 + 5両など
@@ -733,6 +734,32 @@ namespace Game.Train.Train
             //また反転すればちゃんと後ろの列車になる
             newNodes.Reverse();
             return newNodes;
+        }
+
+        /// <summary>
+        /// 列車編成の先頭or最後尾に1両連結する
+        /// 現時点での実装は、RailPosition railPositionはこの追加Carの前輪～後輪までの範囲をもったrailPositionが必要かつ
+        /// そのどちらかは現時点のTrainUnitの先頭or最後尾に接続されている必要がある
+        /// </summary>
+        public void AttachCarToHead(TrainCar car, RailPosition railPosition)
+        {
+            //trainUnitの先頭にcarが連結するのでcarのrailPositionはcarの前輪～trainUnitの先頭前輪までを指してないといけない
+            if (!_railPosition.GetHeadRailPosition().IsSamePositionAllowNodeOverlap(railPosition.GetRearRailPosition()))
+                throw new InvalidOperationException("trainUnitの先頭にcarが連結するのでcarのrailPositionはcarの前輪～trainUnitの先頭前輪までを指してないといけない");
+            Reverse();
+            railPosition.Reverse();
+            car.Reverse();
+            AttachCarToRear(car, railPosition);
+            Reverse();
+        }
+
+        public void AttachCarToRear(TrainCar car, RailPosition railPosition)//trainUnitの最後尾にcarが連結するのでcarのrailPositionはtrainunitの最後尾～carの後輪までを指してないといけない
+        {
+            if (!railPosition.GetHeadRailPosition().IsSamePositionAllowNodeOverlap(_railPosition.GetRearRailPosition()))
+                throw new InvalidOperationException("trainUnitの最後尾にcarが連結するのでcarのrailPositionはtrainunitの最後尾～carの後輪までを指してないといけない");
+            _cars.Add(car);
+            // RailPositionを更新(内部で自動で追加する車両分の距離を伸ばす)
+            _railPosition.AppendRailPositionAtRear(railPosition);
         }
 
         public void OnDestroy()
