@@ -224,7 +224,6 @@ namespace Tests.UnitTest.Game.Chain
 
             // ブロックBを破壊する
             // Destroy block B
-            poleB.RefundConnections(inventory);
             var removed = worldBlockDatastore.RemoveBlock(posB, BlockRemoveReason.ManualRemove);
             Assert.True(removed);
             Assert.False(worldBlockDatastore.Exists(posB));
@@ -275,7 +274,6 @@ namespace Tests.UnitTest.Game.Chain
 
             // ブロックAを破壊する
             // Destroy block A
-            poleA.RefundConnections(inventory);
             var removed = worldBlockDatastore.RemoveBlock(posA, BlockRemoveReason.ManualRemove);
             Assert.True(removed);
             Assert.False(worldBlockDatastore.Exists(posA));
