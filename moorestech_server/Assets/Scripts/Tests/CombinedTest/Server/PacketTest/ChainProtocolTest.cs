@@ -48,7 +48,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // 接続プロトコルを送信する
             // Send connect protocol
-            var connectBytes = packet.GetPacketResponse(Connect(posA, posB, PlayerId)).First();
+            var connectBytes = packet.GetPacketResponse(Connect(posA, posB, PlayerId, chainItemId)).First();
             var typedConnect = MessagePackSerializer.Deserialize<GearChainConnectionEditProtocol.GearChainConnectionEditResponse>(connectBytes.ToArray());
             Assert.True(typedConnect.IsSuccess);
 
@@ -66,11 +66,11 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.True(typedDisconnect.IsSuccess);
         }
 
-        private List<byte> Connect(Vector3Int posA, Vector3Int posB, int playerId)
+        private List<byte> Connect(Vector3Int posA, Vector3Int posB, int playerId, ItemId itemId)
         {
             // 接続要求のメッセージパックを生成する
             // Build connect request message pack
-            return MessagePackSerializer.Serialize(GearChainConnectionEditProtocol.GearChainConnectionEditRequest.CreateConnectRequest(posA, posB, playerId)).ToList();
+            return MessagePackSerializer.Serialize(GearChainConnectionEditProtocol.GearChainConnectionEditRequest.CreateConnectRequest(posA, posB, playerId, itemId)).ToList();
         }
 
         private List<byte> Disconnect(Vector3Int posA, Vector3Int posB)

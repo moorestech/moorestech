@@ -10,7 +10,6 @@ namespace Game.Block.Interface.Component
         bool IsConnectionFull { get; }
         bool ContainsChainConnection(BlockInstanceId partnerId);
         bool TryAddChainConnection(BlockInstanceId partnerId, GearChainConnectionCost connectionCost);
-        bool RemoveChainConnection(BlockInstanceId partnerId);
         GearChainConnectionCost GetConnectionCost(BlockInstanceId partnerId);
     }
 }

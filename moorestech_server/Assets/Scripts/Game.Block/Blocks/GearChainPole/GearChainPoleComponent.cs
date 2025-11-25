@@ -9,6 +9,7 @@ using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.Gear.Common;
 using Core.Inventory;
+using Core.Item.Interface;
 using Core.Master;
 using MessagePack;
 using Mooresmaster.Model.BlockConnectInfoModule;
@@ -18,7 +19,7 @@ using UniRx;
 
 namespace Game.Block.Blocks.GearChainPole
 {
-    public class GearChainPoleComponent : IGearEnergyTransformer, IBlockSaveState, IGearChainPole, IPostBlockLoad, IBlockStateObservable
+    public class GearChainPoleComponent : IGearEnergyTransformer, IBlockSaveState, IGearChainPole, IPostBlockLoad, IBlockStateObservable, IGetRefoundItemsInfo
     {
         // マスターデータパラメータを保持する
         // Hold master data parameters
@@ -90,20 +91,6 @@ namespace Game.Block.Blocks.GearChainPole
             // Notify state change
             _onChangeBlockState.OnNext(Unit.Default);
             return true;
-        }
-
-        public bool RemoveChainConnection(BlockInstanceId partnerId)
-        {
-            // 指定した接続を解除する
-            // Remove a specific partner connection
-            var removed = _chainTargets.Remove(partnerId);
-            if (removed)
-            {
-                // 状態変更を通知する
-                // Notify state change
-                _onChangeBlockState.OnNext(Unit.Default);
-            }
-            return removed;
         }
 
         public bool TryRemoveChainConnection(BlockInstanceId partnerId, out GearChainConnectionCost cost)
@@ -180,7 +167,10 @@ namespace Game.Block.Blocks.GearChainPole
             {
                 var targetBlock = ServerContext.WorldBlockDatastore.GetBlock(targetId);
                 var targetPole = targetBlock?.GetComponent<IGearChainPole>();
-                targetPole?.RemoveChainConnection(BlockInstanceId);
+                if (targetPole is GearChainPoleComponent poleComponent)
+                {
+                    poleComponent.TryRemoveChainConnection(BlockInstanceId, out _);
+                }
             }
             
             // コンポーネントのリソースを解放する
@@ -202,6 +192,20 @@ namespace Game.Block.Blocks.GearChainPole
                 var remainder = inventory.InsertItem(connection.Cost.ItemId, connection.Cost.Count);
                 if (remainder.Count > 0) inventory.InsertItem(remainder);
             }
+        }
+
+        public IReadOnlyList<IItemStack> GetRefundItems()
+        {
+            // 返却すべきアイテムのリストを取得する
+            // Get list of items that should be refunded
+            var refundItems = new List<IItemStack>();
+            foreach (var connection in _chainTargets.Values)
+            {
+                if (connection.Cost.Count <= 0 || connection.Cost.ItemId == ItemMaster.EmptyItemId) continue;
+                var itemStack = ServerContext.ItemStackFactory.Create(connection.Cost.ItemId, connection.Cost.Count);
+                refundItems.Add(itemStack);
+            }
+            return refundItems;
         }
         
         
@@ -256,14 +260,7 @@ namespace Game.Block.Blocks.GearChainPole
         {
             // 接続先と消費情報を保存する
             // Persist partner ids and consumption info
-            var connections = new List<GearChainPoleSaveData.ConnectionData>();
-            foreach (var target in _chainTargets)
-            {
-                var cost = target.Value.Cost;
-                connections.Add(new GearChainPoleSaveData.ConnectionData(target.Key.AsPrimitive(), cost.ItemId.AsPrimitive(), cost.Count));
-            }
-
-            var data = new GearChainPoleSaveData(connections);
+            var data = new GearChainPoleSaveData(_chainTargets);
             return JsonConvert.SerializeObject(data);
         }
         
