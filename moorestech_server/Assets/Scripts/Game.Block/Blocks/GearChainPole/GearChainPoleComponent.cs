@@ -126,8 +126,9 @@ namespace Game.Block.Blocks.GearChainPole
                 var itemStack = ServerContext.ItemStackFactory.Create(connection.Cost.ItemId, connection.Cost.Count);
                 refundItems.Add(itemStack);
             }
+         
             return refundItems;
-
+        }
         
         
         #region LoadComponent
