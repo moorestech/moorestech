@@ -197,8 +197,7 @@ namespace Game.Train.RailGraph
             var node2 = GetNodeApproaching();
             if (node1 == node2)
             {
-                if (GetNodeJustPassed() == null) return false;
-                return GetNodeJustPassed() == other.GetNodeJustPassed();//nodeと距離が一致 or nodeが異なっている
+                return GetNodeJustPassed() == other.GetNodeJustPassed();//nodeと距離が一致 or nodeが異なっている。null==nullの場合trueを許可している
             }
             // 距離は一致している。nodeが異なっているが0距離で重なっているだけなら一致とみなす
             var length1 = node1.GetDistanceToNode(node2, true);//FindPathを使って距離を調べる
@@ -211,17 +210,19 @@ namespace Game.Train.RailGraph
         {
             RemoveUnnecessaryNodes();
             other.RemoveUnnecessaryNodes();
-            var othersRailNodes = (List<RailNode>)other.EnumerateRailNodes();
+            var othersRailNodes = other.GetRailNodes();
             var assetcount = (_distanceToNextNode != 0) ? 1 : 0;
             Assert.Less(assetcount, _railNodes.Count, "railpositionの内容が不正です");
             Assert.Less(assetcount, othersRailNodes.Count, "railpositionの内容が不正です");
             // railpositionの最後尾とotherの先頭が同じ位置か確認
+            var rearPosition = GetRearRailPosition();
             UnityEngine.Debug.Assert(
-                GetRearRailPosition().IsSamePositionAllowNodeOverlap(other.GetHeadRailPosition())
+                rearPosition.IsSamePositionAllowNodeOverlap(other.GetHeadRailPosition())
                 , "railpositionの最後尾と追加するrailpositionの先頭があいません"
                 );
 
-            if (_distanceToNextNode != 0)
+            //接続ポイントがnode位置と重なっていない状態
+            if (rearPosition.GetDistanceToNextNode() != 0)
             {
                 // railnodeの片方 上記assetで十分
                 // var node_0a = _railNodes[_railNodes.Count - 2];
@@ -264,8 +265,8 @@ namespace Game.Train.RailGraph
                 }
 
                 nodelist.Reverse();//先頭がcurrentLastNode
-                nodelist.RemoveAt(0);//currentLastNodeを削除
-                nodelist.RemoveAt(_railNodes.Count - 1);//otherFirstNode.First()を削除
+                nodelist.RemoveAt(nodelist.Count - 1);//
+                nodelist.RemoveAt(0);//
                 //nodelistを追加
                 _railNodes.AddRange(nodelist);
                 _railNodes.AddRange(othersRailNodes);
@@ -311,17 +312,9 @@ namespace Game.Train.RailGraph
             return snapshot;
         }
 
-        public IEnumerable<RailNode> EnumerateRailNodes()
+        public IReadOnlyList<RailNode> GetRailNodes()
         {
-            if (_railNodes == null)
-            {
-                yield break;
-            }
-
-            foreach (var node in _railNodes)
-            {
-                yield return node;
-            }
+            return _railNodes.AsReadOnly();
         }
 
         //_railNodesのindex 0にrailnodeを追加する
