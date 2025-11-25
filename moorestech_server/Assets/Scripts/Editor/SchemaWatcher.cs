@@ -150,18 +150,20 @@ public static class SchemaWatcher
                 return;
             }
             
-            // Dummy.csのパスを指定
-            string dummyFilePath = Path.Combine(coreMasterFolderPath, "Dummy.cs");
+            // Compile Requesterのパスを指定
+            string dummyFilePath = Path.Combine(coreMasterFolderPath, "_CompileRequester.cs");
             
             // 現在の日付を取得
             string currentDateTime = System.DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
             
             // Dummy.csの内容を作成
             string dummyScriptContent = $@"
-// このコードはCore.Masterアセンブリを再コンパイルするためのスクリプトです。gitignoreに設定しています。
-// This code is a script to recompile the Core.Master assembly. It is set in gitignore.
-public class Dummy
+// このコードはCore.Masterアセンブリを再コンパイルするためのスクリプトです。SchemaWatcherによって更新されます。
+// This code is a script to recompile the Core.Master assembly. It is updated by SchemaWatcher.
+public class CompileRequester
 {{
+// スキーマを更新したら、こちらの更新もコミットしてください。
+// If you update the schema, please also commit this update.
     private const string dummyText = ""{currentDateTime}"";
 }}";
             
