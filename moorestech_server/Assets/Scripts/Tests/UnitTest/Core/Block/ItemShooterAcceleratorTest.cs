@@ -108,8 +108,8 @@ namespace Tests.UnitTest.Core.Block
                     RemainingPercent = shooterItem.RemainingPercent
                 };
 
-            world.RemoveBlock(generatorPosition);
-            world.RemoveBlock(blockPosition);
+            world.RemoveBlock(generatorPosition, BlockRemoveReason.ManualRemove);
+            world.RemoveBlock(blockPosition, BlockRemoveReason.ManualRemove);
 
             return (snapshot, elapsedSeconds);
         }

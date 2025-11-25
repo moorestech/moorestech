@@ -21,7 +21,7 @@ namespace Server.Event.EventReceive
             ServerContext.WorldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(OnPlaceBlock);
         }
         
-        private void OnPlaceBlock(BlockUpdateProperties updateProperties)
+        private void OnPlaceBlock(BlockPlaceProperties updateProperties)
         {
             var pos = updateProperties.Pos;
             var direction = updateProperties.BlockData.BlockPositionInfo.BlockDirection;

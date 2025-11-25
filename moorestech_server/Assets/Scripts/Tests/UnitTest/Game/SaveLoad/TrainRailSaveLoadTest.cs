@@ -40,7 +40,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var json = assembleSaveJsonText.AssembleSaveJson();
             Debug.Log("[RailComponentSaveLoadTest] SaveJson:\n" + json);
 
-            worldBlockDatastore.RemoveBlock(pos);
+            worldBlockDatastore.RemoveBlock(pos, BlockRemoveReason.ManualRemove);
             RailGraphDatastore.ResetInstance();
 
             var loadEnv = TrainTestHelper.CreateEnvironment();
@@ -103,7 +103,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             for (int i = 0; i < num; i++)
             {
-                worldBlockDatastore.RemoveBlock(positions[i]);
+                worldBlockDatastore.RemoveBlock(positions[i], BlockRemoveReason.ManualRemove);
             }
 
             RailGraphDatastore.ResetInstance();
@@ -196,8 +196,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             var saveJson = saveJsonAssembler.AssembleSaveJson();
             Debug.Log("[TrainStationSaveLoadTest] SaveJson:\n" + saveJson);
 
-            blockStore.RemoveBlock(stationPos);
-            blockStore.RemoveBlock(inputChestPos);
+            blockStore.RemoveBlock(stationPos, BlockRemoveReason.ManualRemove);
+            blockStore.RemoveBlock(inputChestPos, BlockRemoveReason.ManualRemove);
             RailGraphDatastore.ResetInstance();
 
             var loadEnv = TrainTestHelper.CreateEnvironment();

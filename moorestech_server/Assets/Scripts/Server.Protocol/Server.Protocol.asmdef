@@ -27,7 +27,8 @@
     "Game.CraftTree",
     "Game.Fluid",
     "Game.Research",
-    "Game.Train"
+    "Game.Train",
+    "Game.Gear"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

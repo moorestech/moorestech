@@ -102,7 +102,7 @@ namespace Game.Block.Component
             }
         }
         
-        private void OnRemoveBlock(BlockUpdateProperties updateProperties)
+        private void OnRemoveBlock(BlockRemoveProperties updateProperties)
         {
             //削除されたブロックがInputConnectorComponentでない場合、処理を終了する
             if (!ServerContext.WorldBlockDatastore.TryGetBlock<TTarget>(updateProperties.Pos, out var component)) return;
