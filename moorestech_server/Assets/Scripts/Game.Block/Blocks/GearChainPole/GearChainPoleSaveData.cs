@@ -10,7 +10,7 @@ namespace Game.Block.Blocks.GearChainPole
     public class GearChainPoleSaveData
     {
         [JsonProperty("connections")]
-        public List<ConnectionData> Connections { get; }
+        public List<ConnectionData> Connections { get; set; }
         
         public GearChainPoleSaveData(Dictionary<BlockInstanceId, (IGearEnergyTransformer Transformer, GearChainConnectionCost Cost)> chainTargets)
         {
