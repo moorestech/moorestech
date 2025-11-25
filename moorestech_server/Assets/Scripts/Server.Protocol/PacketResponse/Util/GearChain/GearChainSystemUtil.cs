@@ -1,15 +1,13 @@
 using System;
-using Core.Inventory;
 using Core.Master;
-using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.Gear.Common;
 using Game.World.Interface.DataStore;
-using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 using Game.PlayerInventory.Interface;
+using Mooresmaster.Model.BlocksModule;
 
 namespace Server.Protocol.PacketResponse.Util.GearChain
 {
@@ -20,7 +18,13 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             // 接続対象を取得する
             // Acquire target chain poles
             error = string.Empty;
-            if (!TryGetGearChainPole(posA, out var poleA, out var transformerA, out var blockA) || !TryGetGearChainPole(posB, out var poleB, out var transformerB, out var blockB))
+            if (!TryGetGearChainPole(posA, out var poleA, out var transformerA) || !TryGetGearChainPole(posB, out var poleB, out var transformerB))
+            {
+                error = "InvalidTarget";
+                return false;
+            }
+            
+            if (poleA.BlockInstanceId == poleB.BlockInstanceId)
             {
                 error = "InvalidTarget";
                 return false;
@@ -29,15 +33,6 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             // 接続距離を算出する
             // Calculate connection distance
             var connectionDistance = Vector3Int.Distance(posA, posB);
-
-            // 同一ターゲットや距離超過を弾く
-            // Reject same target or over distance
-            if (poleA.BlockInstanceId == poleB.BlockInstanceId)
-            {
-                error = "InvalidTarget";
-                return false;
-            }
-
             var maxDistance = Math.Min(poleA.MaxConnectionDistance, poleB.MaxConnectionDistance);
             if (connectionDistance > maxDistance)
             {
@@ -61,33 +56,98 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
                 return false;
             }
 
+            
             // チェーンアイテムを消費する
             // Consume chain item
-            var gearChainItems = ResolveGearChainItems();
-            if (!TryConsumeChainItem(playerId, connectionDistance, gearChainItems, itemId, out var consumedCost))
+            if (!CheckEnoughItemInInventory(connectionDistance,itemId, out var cost))
             {
                 error = "NoItem";
                 return false;
             }
 
-            var costForA = new GearChainConnectionCost(consumedCost.ItemId, consumedCost.Count);
-            var costForB = new GearChainConnectionCost(consumedCost.ItemId, consumedCost.Count);
 
             // 接続を確定させる
             // Finalize connection
-            var addedA = poleA.TryAddChainConnection(poleB.BlockInstanceId, costForA);
-            var addedB = addedA && poleB.TryAddChainConnection(poleA.BlockInstanceId, costForB);
+            var addedA = poleA.TryAddChainConnection(poleB.BlockInstanceId, cost);
+            var addedB = addedA && poleB.TryAddChainConnection(poleA.BlockInstanceId, cost);
             if (!addedA || !addedB)
             {
                 poleA.TryRemoveChainConnection(poleB.BlockInstanceId, out _);
                 poleB.TryRemoveChainConnection(poleA.BlockInstanceId, out _);
-                RefundConsumption(consumedCost, playerId);
                 error = "ConnectionLimit";
                 return false;
             }
-
+            
+            Consume(cost);
             RebuildNetworks(transformerA, transformerB);
+            
             return true;
+            
+            #region Internal
+            
+            bool CheckEnoughItemInInventory(float distance ,ItemId specifiedItemId, out GearChainConnectionCost consumedCost)
+            {
+                consumedCost = default;
+                
+                // 設定が無ければ接続できない
+                // Cannot connect when no configuration
+                var gearChainItems = MasterHolder.BlockMaster.Blocks.GearChainItems;
+                if (gearChainItems.Length == 0) return false;
+                
+                // 指定されたアイテムが設定に含まれているか確認する
+                // Check if specified item is in the configuration
+                GearChainItemsElement currentGearChainItem = null;
+                foreach (var gearChainItem in gearChainItems)
+                {
+                    var configItemId = MasterHolder.ItemMaster.GetItemId(gearChainItem.ItemGuid);
+                    
+                    if (configItemId == specifiedItemId)
+                    {
+                        currentGearChainItem = gearChainItem;
+                        break;
+                    }
+                }
+                
+                if (currentGearChainItem == null) return false;
+                
+                var required = Mathf.CeilToInt(distance / currentGearChainItem.ConsumptionPerLength);
+                consumedCost = new GearChainConnectionCost(specifiedItemId, required);
+                
+                // インベントリ内に十分なアイテムがあるか確認する
+                // Check if there are enough items in inventory
+                var inventory = ServerContext.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
+                var totalCount = 0;
+                foreach (var itemStack in inventory.InventoryItems)
+                {
+                    if (itemStack.Id != itemId) continue;
+                    totalCount += itemStack.Count;
+                    if (totalCount >= required) return true;
+                }
+
+                return false;
+            }
+            
+            void Consume(GearChainConnectionCost consumedCost)
+            {
+                var inventory = ServerContext.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
+                var remaining = consumedCost.Count;
+                
+                // スロットを順に減算する
+                // Decrease stacks across slots
+                for (var i = 0; i < inventory.InventoryItems.Count && 0 < remaining; i++)
+                {
+                    var itemStack = inventory.InventoryItems[i];
+                    if (itemStack.Id != itemId) continue;
+                    
+                    var consumeAmount = Math.Min(itemStack.Count, remaining);
+                    var updated = itemStack.SubItem(consumeAmount);
+                    inventory.SetItem(i, updated);
+                    
+                    remaining -= consumeAmount;
+                }
+            }
+            
+            #endregion
         }
 
         public static bool TryDisconnect(Vector3Int posA, Vector3Int posB, int playerId, out string error)
@@ -95,7 +155,7 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             // 接続対象を取得する
             // Acquire target chain poles
             error = string.Empty;
-            if (!TryGetGearChainPole(posA, out var poleA, out var transformerA, out _) || !TryGetGearChainPole(posB, out var poleB, out var transformerB, out _))
+            if (!TryGetGearChainPole(posA, out var poleA, out var transformerA) || !TryGetGearChainPole(posB, out var poleB, out var transformerB))
             {
                 error = "InvalidTarget";
                 return false;
@@ -109,131 +169,47 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
                 return false;
             }
 
-            // 消費アイテムを返却する
-            // Refund consumed item to the player performing disconnect
-            
+            // 切断し、アイテムを返却
+            // Disconnect and refund items
             poleA.TryRemoveChainConnection(poleB.BlockInstanceId, out var cost);
-            RefundConsumption(cost, playerId);
-            
             poleB.TryRemoveChainConnection(poleA.BlockInstanceId, out _);
             
+            RefundConsumption(cost, playerId);
+            
             RebuildNetworks(transformerA, transformerB);
+            
             return true;
-        }
-
-        private static GearChainItemsElement[] ResolveGearChainItems()
-        {
-            // グローバルのギアチェーン設定を取得する
-            // Get global gear chain settings
-            var gearChainItems = MasterHolder.BlockMaster.Blocks.GearChainItems;
-            if (gearChainItems is { Length: > 0 }) return gearChainItems;
-            return Array.Empty<GearChainItemsElement>();
-        }
-
-        private static bool TryConsumeChainItem(int playerId, float distance, GearChainItemsElement[] gearChainItems, ItemId specifiedItemId, out GearChainConnectionCost consumedCost)
-        {
-            // 設定が無ければ消費不要
-            // Skip consumption when no configuration is provided
-            if (gearChainItems == null || gearChainItems.Length == 0)
-            {
-                consumedCost = new GearChainConnectionCost(ItemMaster.EmptyItemId, 0);
-                return true;
-            }
-
-            var inventory = ServerContext.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
-
-            // 指定されたアイテムが設定に含まれているか確認する
-            // Check if specified item is in the configuration
-            foreach (var gearChainItem in gearChainItems)
-            {
-                var configItemId = MasterHolder.ItemMaster.GetItemId(gearChainItem.ItemGuid);
-                if (configItemId != specifiedItemId) continue;
-
-                var required = Mathf.CeilToInt(distance * gearChainItem.ConsumptionPerLength);
-                if (required <= 0)
-                {
-                    consumedCost = new GearChainConnectionCost(ItemMaster.EmptyItemId, 0);
-                    return true;
-                }
-
-                // 手持ちが足りなければ失敗
-                // Fail when inventory is insufficient
-                var totalCount = CountItem(inventory, specifiedItemId);
-                if (totalCount < required)
-                {
-                    consumedCost = new GearChainConnectionCost(ItemMaster.EmptyItemId, 0);
-                    return false;
-                }
-
-                // 指定数を減算する
-                // Consume the required amount
-                Consume(inventory, specifiedItemId, required);
-                consumedCost = new GearChainConnectionCost(specifiedItemId, required);
-                return true;
-            }
-
-            // 指定されたアイテムが設定に含まれていない場合は失敗
-            // Fail when specified item is not in the configuration
-            consumedCost = new GearChainConnectionCost(ItemMaster.EmptyItemId, 0);
-            return false;
-
+            
             #region Internal
-
-            int CountItem(IOpenableInventory openableInventory, ItemId itemId)
+            
+            void RefundConsumption(GearChainConnectionCost connectionCost, int player)
             {
-                // 対象アイテムの合計数を数える
-                // Sum item counts for the target item
-                var total = 0;
-                foreach (var itemStack in openableInventory.InventoryItems)
-                {
-                    if (itemStack.Id != itemId) continue;
-                    total += itemStack.Count;
-                }
-
-                return total;
+                // 消費したアイテムをインベントリへ戻す
+                // Return consumed items to inventory
+                var inventory = ServerContext.GetService<IPlayerInventoryDataStore>().GetInventoryData(player).MainOpenableInventory;
+                
+                var remainder = inventory.InsertItem(connectionCost.ItemId, connectionCost.Count);
+                
+                if (remainder.Count <= 0) return;
+                inventory.InsertItem(remainder);
             }
-
-            void Consume(IOpenableInventory openableInventory, ItemId itemId, int required)
-            {
-                // スロットを順に減算する
-                // Decrease stacks across slots
-                var remaining = required;
-                for (var i = 0; i < openableInventory.InventoryItems.Count && 0 < remaining; i++)
-                {
-                    var itemStack = openableInventory.InventoryItems[i];
-                    if (itemStack.Id != itemId) continue;
-
-                    var consumeAmount = Math.Min(itemStack.Count, remaining);
-                    var updated = itemStack.SubItem(consumeAmount);
-                    openableInventory.SetItem(i, updated);
-                    remaining -= consumeAmount;
-                }
-            }
-
+            
             #endregion
         }
 
-        private static void RefundConsumption(GearChainConnectionCost cost, int playerId)
-        {
-            // 消費したアイテムをインベントリへ戻す
-            // Return consumed items to inventory
-            if (cost.Count <= 0 || cost.ItemId == ItemMaster.EmptyItemId) return;
-            var inventory = ServerContext.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
-            var remainder = inventory.InsertItem(cost.ItemId, cost.Count);
-            if (remainder.Count <= 0) return;
-            inventory.InsertItem(remainder);
-        }
 
-        private static bool TryGetGearChainPole(Vector3Int position, out IGearChainPole chainPole, out IGearEnergyTransformer transformer, out IBlock block)
+        private static bool TryGetGearChainPole(Vector3Int position, out IGearChainPole chainPole, out IGearEnergyTransformer transformer)
         {
             // 指定座標からコンポーネントを解決する
             // Resolve component from position
-            block = null;
             chainPole = null;
             transformer = null;
-            if (!ServerContext.WorldBlockDatastore.TryGetBlock(position, out block)) return false;
+            
+            if (!ServerContext.WorldBlockDatastore.TryGetBlock(position, out var block)) return false;
+            
             chainPole = block.GetComponent<IGearChainPole>();
             transformer = block.GetComponent<IGearEnergyTransformer>();
+            
             return chainPole != null && transformer != null;
         }
 
