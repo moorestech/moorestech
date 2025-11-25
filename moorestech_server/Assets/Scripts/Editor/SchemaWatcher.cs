@@ -159,11 +159,11 @@ public static class SchemaWatcher
             // Dummy.csの内容を作成
             string dummyScriptContent = $@"
 // このコードはCore.Masterアセンブリを再コンパイルするためのスクリプトです。SchemaWatcherによって更新されます。
-// スキーマを更新したら、こちらの更新もコミットしてください。
 // This code is a script to recompile the Core.Master assembly. It is updated by SchemaWatcher.
-// If you update the schema, please also commit this update.
 public class CompileRequester
 {{
+// スキーマを更新したら、こちらの更新もコミットしてください。
+// If you update the schema, please also commit this update.
     private const string dummyText = ""{currentDateTime}"";
 }}";
             
