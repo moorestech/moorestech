@@ -141,7 +141,7 @@ namespace Game.Block.Blocks.GearChainPole
             if (_componentStates == null) return;
             if (!_componentStates.TryGetValue(SaveKey, out var saved)) return;
             
-            var data = JsonConvert.DeserializeObject<GearChainPoleSaveData>(saved);
+            var data = JsonConvert.DeserializeObject<GearChainPoleSaveDataJsonObject>(saved);
             if (data == null) return;
             
             _chainTargets.Clear();
@@ -239,7 +239,7 @@ namespace Game.Block.Blocks.GearChainPole
         {
             // 接続先と消費情報を保存する
             // Persist partner ids and consumption info
-            var data = new GearChainPoleSaveData(_chainTargets);
+            var data = new GearChainPoleSaveDataJsonObject(_chainTargets);
             return JsonConvert.SerializeObject(data);
         }
         
