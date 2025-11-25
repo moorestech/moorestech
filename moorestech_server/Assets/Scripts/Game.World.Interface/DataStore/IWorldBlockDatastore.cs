@@ -16,7 +16,7 @@ namespace Game.World.Interface.DataStore
         
         public bool TryAddBlock(BlockId blockId, Vector3Int position, BlockDirection direction, BlockCreateParam[] createParams, out IBlock block);
         public bool TryAddLoadedBlock(Guid blockGuid, BlockInstanceId blockInstanceId, Dictionary<string,string> componentStates, Vector3Int position, BlockDirection direction, out IBlock block);
-        public bool RemoveBlock(Vector3Int pos);
+        public bool RemoveBlock(Vector3Int pos, BlockRemoveReason reason);
         
         public IBlock GetBlock(Vector3Int pos);
         public IBlock GetBlock(BlockInstanceId blockInstanceId);
@@ -75,6 +75,17 @@ namespace Game.World.Interface.DataStore
             
             component = default;
             return false;
+        }
+        
+        // BlockInstanceIdからブロックを削除する拡張メソッド
+        // Extension method to remove block by BlockInstanceId
+        public static bool RemoveBlock(this IWorldBlockDatastore datastore, BlockInstanceId blockInstanceId, BlockRemoveReason reason)
+        {
+            var block = datastore.GetBlock(blockInstanceId);
+            if (block == null) return false;
+            
+            var position = datastore.GetBlockPosition(blockInstanceId);
+            return datastore.RemoveBlock(position, reason);
         }
     }
 }

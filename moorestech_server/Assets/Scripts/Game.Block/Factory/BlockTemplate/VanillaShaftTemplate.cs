@@ -33,6 +33,11 @@ namespace Game.Block.Factory.BlockTemplate
                 blockComponent,
             };
             
+            // 過負荷破壊コンポーネントを追加
+            // Add overload breakage component
+            var overloadParam = configParam as IGearOverloadParam;
+            components.Add(new GearOverloadBreakageComponent(blockInstanceId, gearEnergyTransformer, overloadParam));
+            
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
     }

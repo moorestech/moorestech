@@ -51,7 +51,7 @@ namespace Tests.CombinedTest.Game
             Assert.IsTrue(segment.Generators.ContainsKey(generator2InstanceId));
 
             //左の発電機を削除
-            worldBlockDatastore.RemoveBlock(Pos(0, 0));
+            worldBlockDatastore.RemoveBlock(Pos(0, 0), BlockRemoveReason.ManualRemove);
 
             //セグメントの数は変わらないことを確認
             Assert.AreEqual(1, worldElectricSegment.GetEnergySegmentListCount());
@@ -63,7 +63,7 @@ namespace Tests.CombinedTest.Game
             Assert.IsTrue(segment.Generators.ContainsKey(generator2InstanceId));
 
             //右の発電機も削除
-            worldBlockDatastore.RemoveBlock(Pos(4, 0));
+            worldBlockDatastore.RemoveBlock(Pos(4, 0), BlockRemoveReason.ManualRemove);
 
             //セグメントの数は変わらないことを確認
             Assert.AreEqual(1, worldElectricSegment.GetEnergySegmentListCount());
@@ -108,7 +108,7 @@ namespace Tests.CombinedTest.Game
             Assert.IsTrue(segment.Consumers.ContainsKey(machine2InstanceId));
 
             //左の機械を削除
-            worldBlockDatastore.RemoveBlock(Pos(0, 0));
+            worldBlockDatastore.RemoveBlock(Pos(0, 0), BlockRemoveReason.ManualRemove);
 
             //セグメントの数は変わらないことを確認
             Assert.AreEqual(1, worldElectricSegment.GetEnergySegmentListCount());
@@ -120,7 +120,7 @@ namespace Tests.CombinedTest.Game
             Assert.IsTrue(segment.Consumers.ContainsKey(machine2InstanceId));
 
             //右の機械も削除
-            worldBlockDatastore.RemoveBlock(Pos(4, 0));
+            worldBlockDatastore.RemoveBlock(Pos(4, 0), BlockRemoveReason.ManualRemove);
 
             //セグメントの数は変わらないことを確認
             Assert.AreEqual(1, worldElectricSegment.GetEnergySegmentListCount());

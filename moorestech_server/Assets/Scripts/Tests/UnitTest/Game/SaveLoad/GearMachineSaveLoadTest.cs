@@ -72,7 +72,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var json = assembleSaveJsonText.AssembleSaveJson();
             Debug.Log(json);
             //配置したブロックを削除
-            worldBlockDatastore.RemoveBlock(new Vector3Int(0, 0));
+            worldBlockDatastore.RemoveBlock(new Vector3Int(0, 0), BlockRemoveReason.ManualRemove);
             
             
             //ロードした時に機械の状態が正しいことを確認
