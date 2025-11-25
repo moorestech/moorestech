@@ -33,95 +33,65 @@ namespace Server.Protocol.PacketResponse
             var block = ServerContext.WorldBlockDatastore.GetBlock(data.Pos);
             if (block == null) return null;
             var itemId = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId).ItemGuid;
-
-            // ブロック自体のアイテムを取得
-            // Get the block item itself
-            var blockItemStack = ServerContext.ItemStackFactory.Create(itemId, 1);
-
-            // ブロックインベントリのアイテムを取得
-            // Get items from block inventory
-            var blockInventoryItems = new List<IItemStack>();
-            if (ServerContext.WorldBlockDatastore.TryGetBlock<IBlockInventory>(data.Pos, out var blockInventory))
+                
+            // 破壊した後のアイテムをインベントリに挿入できるかチェック
+            // Check if items after destruction can be inserted into inventory
+            if (TryInsertRefundItems(out var refundItems)) return null;
+            
+            // 削除処理
+            // Deletion process
+            ServerContext.WorldBlockDatastore.RemoveBlock(data.Pos, BlockRemoveReason.ManualRemove);
+            InsertItemsToPlayerInventory(refundItems);
+            
+            
+            return null;
+            
+            #region Internal
+            
+            bool TryInsertRefundItems(out List<IItemStack> items)
             {
-                for (var i = 0; i < blockInventory.GetSlotSize(); i++)
-                {
-                    var item = blockInventory.GetItem(i);
-                    if (item.Count > 0)
-                    {
-                        blockInventoryItems.Add(item);
-                    }
-                }
+                var playerMainInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory;
+                items = GetRefundItems();
+                
+                return playerMainInventory.InsertionCheck(items);
             }
-
-            // その他の返却アイテムを取得
-            // Get other refund items
-            var otherRefundItems = new List<IItemStack>();
-            if (block.ComponentManager.TryGetComponent(out IGetRefoundItemsInfo refundInfo))
+            
+            
+            List<IItemStack> GetRefundItems()
             {
-                foreach (var item in refundInfo.GetRefundItems())
-                {
-                    if (item.Count > 0)
-                    {
-                        otherRefundItems.Add(item);
-                    }
-                }
-            }
-
-            // すべてのアイテムをマージ
-            // Merge all items
-            var allRefundItems = new List<IItemStack>();
-            allRefundItems.Add(blockItemStack);
-            allRefundItems.AddRange(blockInventoryItems);
-            allRefundItems.AddRange(otherRefundItems);
-
-            var playerMainInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory;
-
-            // すべてのアイテムが挿入可能かチェック
-            // Check if all items can be inserted
-            if (playerMainInventory.InsertionCheck(allRefundItems))
-            {
-                // すべて挿入可能な場合、ブロックを削除してアイテムを挿入
-                // If all items can be inserted, remove block and insert items
-                ServerContext.WorldBlockDatastore.RemoveBlock(data.Pos, BlockRemoveReason.ManualRemove);
-                playerMainInventory.InsertItem(allRefundItems);
-            }
-            else
-            {
-                // 一部しか挿入できない場合、ブロックインベントリアイテムのみ部分挿入を試みる
-                // If only some items can be inserted, try partial insertion of block inventory items only
-
-                // まず、ブロック自体のアイテムとその他のアイテムを挿入
-                // First, insert block item and other refund items
-                var mustInsertItems = new List<IItemStack>();
-                mustInsertItems.Add(blockItemStack);
-                mustInsertItems.AddRange(otherRefundItems);
-
-                playerMainInventory.InsertItem(mustInsertItems);
-
-                // ブロックインベントリのアイテムを可能な限り挿入
-                // Insert block inventory items as much as possible
-                var remainingBlockInventoryItems = playerMainInventory.InsertItem(blockInventoryItems);
-
-                // ブロックインベントリをクリアして残りを設定
-                // Clear block inventory and set remaining items
-                if (blockInventory != null)
+                var result = new List<IItemStack>();
+                
+                // 破壊したブロック自体のアイテムを追加
+                // Add the item of the destroyed block itself
+                result.Add(ServerContext.ItemStackFactory.Create(itemId, 1));
+                
+                // インベントリのアイテムを取得
+                // Get items from block inventory
+                if (ServerContext.WorldBlockDatastore.TryGetBlock<IBlockInventory>(data.Pos, out var blockInventory))
                 {
                     for (var i = 0; i < blockInventory.GetSlotSize(); i++)
                     {
-                        blockInventory.SetItem(i, ServerContext.ItemStackFactory.CreatEmpty());
-                    }
-
-                    var slotIndex = 0;
-                    foreach (var item in remainingBlockInventoryItems)
-                    {
-                        if (slotIndex >= blockInventory.GetSlotSize()) break;
-                        blockInventory.SetItem(slotIndex++, item);
+                        result.Add(blockInventory.GetItem(i));
                     }
                 }
+                
+                // その他の返却すべきアイテム情報を取得する
+                // Get refundable item information before block removal
+                if (block.ComponentManager.TryGetComponent(out IGetRefoundItemsInfo refundInfo))
+                {
+                    result.AddRange(refundInfo.GetRefundItems());
+                }
+                
+                return result;
             }
-
-
-            return null;
+            
+            void InsertItemsToPlayerInventory(List<IItemStack> items)
+            {
+                var playerMainInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory;
+                playerMainInventory.InsertItem(items);
+            }
+            
+            #endregion
         }
         
         
