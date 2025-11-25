@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Core.Master;
-using Game.Block.Blocks.GearChainPole;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
@@ -10,7 +9,6 @@ using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
-using Core.Master;
 
 namespace Tests.UnitTest.Game.SaveLoad
 {
@@ -58,9 +56,9 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             // セーブデータを取得する
             // Get save data
-            var chainPole1Component = block1.GetComponent<GearChainPoleComponent>();
-            var save = chainPole1Component.GetSaveState();
-            var states = new Dictionary<string, string>() { { chainPole1Component.SaveKey, save } };
+            var saveState = block1.GetComponent<IBlockSaveState>();
+            var save = saveState.GetSaveState();
+            var states = new Dictionary<string, string>() { { saveState.SaveKey, save } };
             var blockInstanceId1 = block1.BlockInstanceId;
             Debug.Log(save);
             

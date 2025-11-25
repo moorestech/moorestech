@@ -8,7 +8,6 @@ using Game.Block.Blocks.Gear;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.Gear.Common;
-using Core.Inventory;
 using Core.Item.Interface;
 using Core.Master;
 using MessagePack;
@@ -95,21 +94,15 @@ namespace Game.Block.Blocks.GearChainPole
 
         public bool TryRemoveChainConnection(BlockInstanceId partnerId, out GearChainConnectionCost cost)
         {
-            if (!_chainTargets.TryGetValue(partnerId, out var connection))
+            if (!_chainTargets.Remove(partnerId, out var connection))
             {
                 cost = default;
                 return false;
             }
-
-            _chainTargets.Remove(partnerId);
+            
             cost = connection.Cost;
             _onChangeBlockState.OnNext(Unit.Default);
             return true;
-        }
-
-        public GearChainConnectionCost GetConnectionCost(BlockInstanceId partnerId)
-        {
-            return _chainTargets.TryGetValue(partnerId, out var connection) ? connection.Cost : new GearChainConnectionCost(ItemMaster.EmptyItemId, 0);
         }
 
         private IGearEnergyTransformer ResolveChainTarget(BlockInstanceId targetId)
@@ -121,6 +114,20 @@ namespace Game.Block.Blocks.GearChainPole
             if (transformer == null || transformer.BlockInstanceId == BlockInstanceId) return null;
             return transformer;
         }
+        
+        public IReadOnlyList<IItemStack> GetRefundItems()
+        {
+            // 返却すべきアイテムのリストを取得する
+            // Get list of items that should be refunded
+            var refundItems = new List<IItemStack>();
+            foreach (var connection in _chainTargets.Values)
+            {
+                if (connection.Cost.Count <= 0 || connection.Cost.ItemId == ItemMaster.EmptyItemId) continue;
+                var itemStack = ServerContext.ItemStackFactory.Create(connection.Cost.ItemId, connection.Cost.Count);
+                refundItems.Add(itemStack);
+            }
+            return refundItems;
+
         
         
         #region LoadComponent
@@ -167,10 +174,7 @@ namespace Game.Block.Blocks.GearChainPole
             {
                 var targetBlock = ServerContext.WorldBlockDatastore.GetBlock(targetId);
                 var targetPole = targetBlock?.GetComponent<IGearChainPole>();
-                if (targetPole is GearChainPoleComponent poleComponent)
-                {
-                    poleComponent.TryRemoveChainConnection(BlockInstanceId, out _);
-                }
+                if (targetPole != null) targetPole.TryRemoveChainConnection(BlockInstanceId, out _);
             }
             
             // コンポーネントのリソースを解放する
@@ -180,32 +184,6 @@ namespace Game.Block.Blocks.GearChainPole
             _chainTargets.Clear();
             _onChangeBlockState.Dispose();
             IsDestroy = true;
-        }
-
-        public void RefundConnections(IOpenableInventory inventory)
-        {
-            // 接続で消費したアイテムを指定インベントリへ返却する
-            // Refund consumed chain items to provided inventory
-            foreach (var connection in _chainTargets.Values)
-            {
-                if (connection.Cost.Count <= 0 || connection.Cost.ItemId == ItemMaster.EmptyItemId) continue;
-                var remainder = inventory.InsertItem(connection.Cost.ItemId, connection.Cost.Count);
-                if (remainder.Count > 0) inventory.InsertItem(remainder);
-            }
-        }
-
-        public IReadOnlyList<IItemStack> GetRefundItems()
-        {
-            // 返却すべきアイテムのリストを取得する
-            // Get list of items that should be refunded
-            var refundItems = new List<IItemStack>();
-            foreach (var connection in _chainTargets.Values)
-            {
-                if (connection.Cost.Count <= 0 || connection.Cost.ItemId == ItemMaster.EmptyItemId) continue;
-                var itemStack = ServerContext.ItemStackFactory.Create(connection.Cost.ItemId, connection.Cost.Count);
-                refundItems.Add(itemStack);
-            }
-            return refundItems;
         }
         
         
@@ -265,17 +243,5 @@ namespace Game.Block.Blocks.GearChainPole
         }
         
         #endregion
-    }
-
-    internal readonly struct ChainConnection
-    {
-        public ChainConnection(IGearEnergyTransformer transformer, GearChainConnectionCost cost)
-        {
-            Transformer = transformer;
-            Cost = cost;
-        }
-
-        public IGearEnergyTransformer Transformer { get; }
-        public GearChainConnectionCost Cost { get; }
     }
 }

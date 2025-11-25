@@ -224,8 +224,7 @@ namespace Tests.UnitTest.Game.Chain
 
             // ブロックBを破壊する
             // Destroy block B
-            var poleBComponent = blockB.GetComponent<GearChainPoleComponent>();
-            poleBComponent.RefundConnections(inventory);
+            poleB.RefundConnections(inventory);
             var removed = worldBlockDatastore.RemoveBlock(posB, BlockRemoveReason.ManualRemove);
             Assert.True(removed);
             Assert.False(worldBlockDatastore.Exists(posB));
@@ -276,8 +275,7 @@ namespace Tests.UnitTest.Game.Chain
 
             // ブロックAを破壊する
             // Destroy block A
-            var poleAComponent = blockA.GetComponent<GearChainPoleComponent>();
-            poleAComponent.RefundConnections(inventory);
+            poleA.RefundConnections(inventory);
             var removed = worldBlockDatastore.RemoveBlock(posA, BlockRemoveReason.ManualRemove);
             Assert.True(removed);
             Assert.False(worldBlockDatastore.Exists(posA));
