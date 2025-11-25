@@ -1,6 +1,5 @@
 using Game.Train.Common;
 using Game.Train.Utility;
-using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -212,8 +211,10 @@ namespace Game.Train.RailGraph
             other.RemoveUnnecessaryNodes();
             var othersRailNodes = other.GetRailNodes();
             var assetcount = (_distanceToNextNode != 0) ? 1 : 0;
-            Assert.Less(assetcount, _railNodes.Count, "railpositionの内容が不正です");
-            Assert.Less(assetcount, othersRailNodes.Count, "railpositionの内容が不正です");
+            if (assetcount >= _railNodes.Count)
+                throw new InvalidOperationException("railpositionの内容が不正です");
+            if (assetcount >= othersRailNodes.Count)
+                throw new InvalidOperationException("railpositionの内容が不正です");
             // railpositionの最後尾とotherの先頭が同じ位置か確認
             var rearPosition = GetRearRailPosition();
             UnityEngine.Debug.Assert(
