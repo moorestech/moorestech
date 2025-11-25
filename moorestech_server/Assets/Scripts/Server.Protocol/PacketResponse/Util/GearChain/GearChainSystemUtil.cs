@@ -15,7 +15,7 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
 {
     public static class GearChainSystemUtil
     {
-        public static bool TryConnect(Vector3Int posA, Vector3Int posB, int playerId, out string error)
+        public static bool TryConnect(Vector3Int posA, Vector3Int posB, int playerId, ItemId itemId, out string error)
         {
             // 接続対象を取得する
             // Acquire target chain poles
@@ -63,8 +63,8 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
 
             // チェーンアイテムを消費する
             // Consume chain item
-            var gearChainItems = ResolveGearChainItems(blockA.BlockMasterElement, blockB.BlockMasterElement);
-            if (!TryConsumeChainItem(playerId, connectionDistance, gearChainItems, out var consumedCost))
+            var gearChainItems = ResolveGearChainItems();
+            if (!TryConsumeChainItem(playerId, connectionDistance, gearChainItems, itemId, out var consumedCost))
             {
                 error = "NoItem";
                 return false;
@@ -79,8 +79,14 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             var addedB = addedA && poleB.TryAddChainConnection(poleA.BlockInstanceId, costForB);
             if (!addedA || !addedB)
             {
-                poleA.RemoveChainConnection(poleB.BlockInstanceId);
-                poleB.RemoveChainConnection(poleA.BlockInstanceId);
+                if (addedA && poleA is Game.Block.Blocks.GearChainPole.GearChainPoleComponent poleAComponent)
+                {
+                    poleAComponent.TryRemoveChainConnection(poleB.BlockInstanceId, out _);
+                }
+                if (addedB && poleB is Game.Block.Blocks.GearChainPole.GearChainPoleComponent poleBComponent)
+                {
+                    poleBComponent.TryRemoveChainConnection(poleA.BlockInstanceId, out _);
+                }
                 RefundConsumption(consumedCost, playerId);
                 error = "ConnectionLimit";
                 return false;
@@ -113,22 +119,28 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             // Refund consumed item to the player performing disconnect
             RefundConsumption(poleA.GetConnectionCost(poleB.BlockInstanceId), playerId);
 
-            poleA.RemoveChainConnection(poleB.BlockInstanceId);
-            poleB.RemoveChainConnection(poleA.BlockInstanceId);
+            if (poleA is Game.Block.Blocks.GearChainPole.GearChainPoleComponent poleAComponent)
+            {
+                poleAComponent.TryRemoveChainConnection(poleB.BlockInstanceId, out _);
+            }
+            if (poleB is Game.Block.Blocks.GearChainPole.GearChainPoleComponent poleBComponent)
+            {
+                poleBComponent.TryRemoveChainConnection(poleA.BlockInstanceId, out _);
+            }
             RebuildNetworks(transformerA, transformerB);
             return true;
         }
 
-        private static GearChainItemsElement[] ResolveGearChainItems(BlockMasterElement blockA, BlockMasterElement blockB)
+        private static GearChainItemsElement[] ResolveGearChainItems()
         {
-            // ブロックのギアチェーン設定を優先的に取得する
-            // Prefer gear chain settings defined on the blocks
-            if (blockA?.GearChainItems is { Length: > 0 }) return blockA.GearChainItems;
-            if (blockB?.GearChainItems is { Length: > 0 }) return blockB.GearChainItems;
+            // グローバルのギアチェーン設定を取得する
+            // Get global gear chain settings
+            var gearChainItems = MasterHolder.BlockMaster.Blocks.GearChainItems;
+            if (gearChainItems is { Length: > 0 }) return gearChainItems;
             return Array.Empty<GearChainItemsElement>();
         }
 
-        private static bool TryConsumeChainItem(int playerId, float distance, GearChainItemsElement[] gearChainItems, out GearChainConnectionCost consumedCost)
+        private static bool TryConsumeChainItem(int playerId, float distance, GearChainItemsElement[] gearChainItems, ItemId specifiedItemId, out GearChainConnectionCost consumedCost)
         {
             // 設定が無ければ消費不要
             // Skip consumption when no configuration is provided
@@ -140,10 +152,13 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
 
             var inventory = ServerContext.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
 
-            // 設定順に使用可能なアイテムを探す
-            // Find the first usable item by configuration order
+            // 指定されたアイテムが設定に含まれているか確認する
+            // Check if specified item is in the configuration
             foreach (var gearChainItem in gearChainItems)
             {
+                var configItemId = MasterHolder.ItemMaster.GetItemId(gearChainItem.ItemGuid);
+                if (configItemId != specifiedItemId) continue;
+
                 var required = Mathf.CeilToInt(distance * gearChainItem.ConsumptionPerLength);
                 if (required <= 0)
                 {
@@ -151,20 +166,24 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
                     return true;
                 }
 
-                var itemId = MasterHolder.ItemMaster.GetItemId(gearChainItem.ItemGuid);
-
-                // 手持ちが足りなければ次の候補へ
-                // Skip when inventory is insufficient
-                var totalCount = CountItem(inventory, itemId);
-                if (totalCount < required) continue;
+                // 手持ちが足りなければ失敗
+                // Fail when inventory is insufficient
+                var totalCount = CountItem(inventory, specifiedItemId);
+                if (totalCount < required)
+                {
+                    consumedCost = new GearChainConnectionCost(ItemMaster.EmptyItemId, 0);
+                    return false;
+                }
 
                 // 指定数を減算する
                 // Consume the required amount
-                Consume(inventory, itemId, required);
-                consumedCost = new GearChainConnectionCost(itemId, required);
+                Consume(inventory, specifiedItemId, required);
+                consumedCost = new GearChainConnectionCost(specifiedItemId, required);
                 return true;
             }
 
+            // 指定されたアイテムが設定に含まれていない場合は失敗
+            // Fail when specified item is not in the configuration
             consumedCost = new GearChainConnectionCost(ItemMaster.EmptyItemId, 0);
             return false;
 

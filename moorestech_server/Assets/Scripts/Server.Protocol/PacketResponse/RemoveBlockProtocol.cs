@@ -4,7 +4,6 @@ using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
-using Game.Block.Blocks.GearChainPole;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using MessagePack;
@@ -62,11 +61,12 @@ namespace Server.Protocol.PacketResponse
             var block = worldBlockDatastore.GetBlock(data.Pos);
             if (block == null) return null;
 
-            // ギアチェーン消費アイテムを返却
-            // Refund gear chain items to the player inventory
-            if (block.ComponentManager.TryGetComponent(out IGearChainPole chainPole) && chainPole is Game.Block.Blocks.GearChainPole.GearChainPoleComponent poleComponent)
+            // 返却すべきアイテム情報を取得する
+            // Get refundable item information before block removal
+            IReadOnlyList<Core.Item.Interface.IItemStack> refundItems = null;
+            if (block.ComponentManager.TryGetComponent(out IGetRefoundItemsInfo refundInfo))
             {
-                poleComponent.RefundConnections(playerMainInventory);
+                refundItems = refundInfo.GetRefundItems();
             }
             
             //ブロックのIDを取得
@@ -77,7 +77,21 @@ namespace Server.Protocol.PacketResponse
             
             //ブロック内のアイテムを全てインベントリに入れ、ブロックもインベントリに入れれた時だけブロックを削除する
             if (isNotRemainItem && remainBlockItem.Equals(ServerContext.ItemStackFactory.CreatEmpty()))
+            {
                 worldBlockDatastore.RemoveBlock(data.Pos, BlockRemoveReason.ManualRemove);
+                
+                // ブロック削除後に返却アイテムを追加する
+                // Add refund items after block removal
+                if (refundItems != null)
+                {
+                    foreach (var itemStack in refundItems)
+                    {
+                        if (itemStack.Count <= 0 || itemStack.Id == ItemMaster.EmptyItemId) continue;
+                        var remainder = playerMainInventory.InsertItem(itemStack);
+                        if (remainder.Count > 0) playerMainInventory.InsertItem(remainder);
+                    }
+                }
+            }
             
             return null;
         }

@@ -49,7 +49,8 @@ namespace Tests.UnitTest.Game.Chain
 
             // チェーン接続を試行し、失敗コードを確認する
             // Attempt to connect chain and verify failure code
-            var succeeded = GearChainSystemUtil.TryConnect(Vector3Int.zero, far, PlayerId, out var error);
+            var chainItemId = MasterHolder.ItemMaster.GetItemId(ChainConstants.ChainItemGuid);
+            var succeeded = GearChainSystemUtil.TryConnect(Vector3Int.zero, far, PlayerId, chainItemId, out var error);
             Assert.False(succeeded);
             Assert.AreEqual("TooFar", error);
         }
@@ -67,7 +68,7 @@ namespace Tests.UnitTest.Game.Chain
 
             // チェーンアイテムを持っていない状態で接続を試行する
             // Attempt to connect without chain item
-            var connected = GearChainSystemUtil.TryConnect(posA, posB, PlayerId, out var error);
+            var connected = GearChainSystemUtil.TryConnect(posA, posB, PlayerId, _chainItemId, out var error);
             Assert.False(connected);
             Assert.AreEqual("NoItem", error);
         }
@@ -90,7 +91,7 @@ namespace Tests.UnitTest.Game.Chain
 
             // 接続を試行し不足エラーを確認する
             // Attempt to connect and confirm shortage error
-            var connected = GearChainSystemUtil.TryConnect(posA, posB, PlayerId, out var error);
+            var connected = GearChainSystemUtil.TryConnect(posA, posB, PlayerId, _chainItemId, out var error);
             Assert.False(connected);
             Assert.AreEqual("NoItem", error);
             Assert.AreEqual(2, inventory.GetItem(0).Count);
@@ -114,7 +115,7 @@ namespace Tests.UnitTest.Game.Chain
 
             // チェーン接続を実行する
             // Execute chain connection
-            var connected = GearChainSystemUtil.TryConnect(posA, posB, PlayerId, out var connectError);
+            var connected = GearChainSystemUtil.TryConnect(posA, posB, PlayerId, _chainItemId, out var connectError);
             Assert.True(connected);
             Assert.IsEmpty(connectError ?? string.Empty);
             Assert.AreEqual(1, CountItem(inventory, _chainItemId));
@@ -160,8 +161,8 @@ namespace Tests.UnitTest.Game.Chain
 
             // 上限まで接続を成功させる
             // Connect until reaching the limit
-            var firstConnect = GearChainSystemUtil.TryConnect(posA, posB, PlayerId, out var firstError);
-            var secondConnect = GearChainSystemUtil.TryConnect(posA, posC, PlayerId, out var secondError);
+            var firstConnect = GearChainSystemUtil.TryConnect(posA, posB, PlayerId, _chainItemId, out var firstError);
+            var secondConnect = GearChainSystemUtil.TryConnect(posA, posC, PlayerId, _chainItemId, out var secondError);
             Assert.True(firstConnect);
             Assert.True(secondConnect);
             Assert.IsEmpty(firstError ?? string.Empty);
@@ -169,7 +170,7 @@ namespace Tests.UnitTest.Game.Chain
 
             // 上限超過の接続を拒否する
             // Reject connection beyond the limit
-            var limitConnect = GearChainSystemUtil.TryConnect(posA, posD, PlayerId, out var limitError);
+            var limitConnect = GearChainSystemUtil.TryConnect(posA, posD, PlayerId, _chainItemId, out var limitError);
             Assert.False(limitConnect);
             Assert.AreEqual("ConnectionLimit", limitError);
             Assert.AreEqual(1, inventory.GetItem(0).Count);
@@ -209,7 +210,7 @@ namespace Tests.UnitTest.Game.Chain
 
             // チェーン接続を実行する
             // Execute chain connection
-            var connected = GearChainSystemUtil.TryConnect(posA, posB, PlayerId, out var connectError);
+            var connected = GearChainSystemUtil.TryConnect(posA, posB, PlayerId, _chainItemId, out var connectError);
             Assert.True(connected);
             Assert.IsEmpty(connectError ?? string.Empty);
             Assert.AreEqual(0, CountItem(inventory, _chainItemId));
@@ -255,8 +256,8 @@ namespace Tests.UnitTest.Game.Chain
 
             // 複数の接続を確立する
             // Establish multiple connections
-            var connectAB = GearChainSystemUtil.TryConnect(posA, posB, PlayerId, out var errorAB);
-            var connectAC = GearChainSystemUtil.TryConnect(posA, posC, PlayerId, out var errorAC);
+            var connectAB = GearChainSystemUtil.TryConnect(posA, posB, PlayerId, _chainItemId, out var errorAB);
+            var connectAC = GearChainSystemUtil.TryConnect(posA, posC, PlayerId, _chainItemId, out var errorAC);
             Assert.True(connectAB);
             Assert.True(connectAC);
             Assert.IsEmpty(errorAB ?? string.Empty);

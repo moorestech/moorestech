@@ -1,4 +1,8 @@
 using System.Collections.Generic;
+using Game.Block.Interface;
+using Game.Block.Interface.Component;
+using Game.Gear.Common;
+using Core.Master;
 using Newtonsoft.Json;
 
 namespace Game.Block.Blocks.GearChainPole
@@ -8,15 +12,19 @@ namespace Game.Block.Blocks.GearChainPole
         [JsonProperty("connections")]
         public List<ConnectionData> Connections { get; }
         
-        public GearChainPoleSaveData(List<ConnectionData> connections)
+        public GearChainPoleSaveData(Dictionary<BlockInstanceId, (IGearEnergyTransformer Transformer, GearChainConnectionCost Cost)> chainTargets)
         {
-            Connections = connections ?? new List<ConnectionData>();
+            // DictionaryからConnectionDataのリストに変換する
+            // Convert Dictionary to List of ConnectionData
+            Connections = new List<ConnectionData>();
+            foreach (var target in chainTargets)
+            {
+                var cost = target.Value.Cost;
+                Connections.Add(new ConnectionData(target.Key.AsPrimitive(), cost.ItemId.AsPrimitive(), cost.Count));
+            }
         }
         
-        public GearChainPoleSaveData()
-        {
-            Connections = new List<ConnectionData>();
-        }
+        public GearChainPoleSaveData() { Connections = new List<ConnectionData>(); }
 
         public class ConnectionData
         {
