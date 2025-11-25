@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Core.Item.Interface;
 using Core.Master;
@@ -17,90 +17,91 @@ namespace Server.Protocol.PacketResponse
     public class RemoveBlockProtocol : IPacketResponse
     {
         public const string ProtocolTag = "va:removeBlock";
-        
+
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
-        
-        
+
+
         public RemoveBlockProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
         }
-        
+
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
             var data = MessagePackSerializer.Deserialize<RemoveBlockProtocolMessagePack>(payload.ToArray());
-            
-            var block = ServerContext.WorldBlockDatastore.GetBlock(data.Pos);
-            if (block == null) return null;
-            var itemId = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId).ItemGuid;
-                
-            // 破壊した後のアイテムをインベントリに挿入できるかチェック
-            // Check if items after destruction can be inserted into inventory
-            if (TryInsertRefundItems(out var refundItems)) return null;
-            
-            // 削除処理
-            // Deletion process
-            ServerContext.WorldBlockDatastore.RemoveBlock(data.Pos, BlockRemoveReason.ManualRemove);
-            InsertItemsToPlayerInventory(refundItems);
-            
-            
-            return null;
-            
-            #region Internal
-            
-            bool TryInsertRefundItems(out List<IItemStack> items)
+
+            // プレイヤーインベントリーの取得
+            // Get player inventory
+            var playerMainInventory =
+                _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory;
+
+            var isNotRemainItem = true;
+
+            // インベントリがある時、ブロック内のアイテムをプレイヤーインベントリに挿入
+            // When block has inventory, insert items from block to player inventory
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            if (worldBlockDatastore.TryGetBlock<IBlockInventory>(data.Pos, out var blockInventory))
             {
-                var playerMainInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory;
-                items = GetRefundItems();
-                
-                return playerMainInventory.InsertionCheck(items);
-            }
-            
-            
-            List<IItemStack> GetRefundItems()
-            {
-                var result = new List<IItemStack>();
-                
-                // 破壊したブロック自体のアイテムを追加
-                // Add the item of the destroyed block itself
-                result.Add(ServerContext.ItemStackFactory.Create(itemId, 1));
-                
-                // インベントリのアイテムを取得
-                // Get items from block inventory
-                if (ServerContext.WorldBlockDatastore.TryGetBlock<IBlockInventory>(data.Pos, out var blockInventory))
+                for (var i = 0; i < blockInventory.GetSlotSize(); i++)
                 {
-                    for (var i = 0; i < blockInventory.GetSlotSize(); i++)
+                    // プレイヤーインベントリにアイテムを挿入
+                    // Insert item to player inventory
+                    var remainItem = playerMainInventory.InsertItem(blockInventory.GetItem(i));
+
+                    // 余ったアイテムをブロックに戻す
+                    // Return remaining items to block
+                    blockInventory.SetItem(i, remainItem);
+
+                    // アイテムが入りきらなかったらブロックを削除しないフラグを立てる
+                    // Set flag to not delete block if items don't fit
+                    var emptyItem = ServerContext.ItemStackFactory.CreatEmpty();
+                    if (!remainItem.Equals(emptyItem)) isNotRemainItem = false;
+                }
+            }
+
+            // 壊したブロックをインベントリーに挿入
+            // Insert destroyed block to inventory
+            var block = worldBlockDatastore.GetBlock(data.Pos);
+            if (block == null) return null;
+
+            // ギアチェーンなどの返却すべきアイテム情報を取得して挿入
+            // Get and insert refundable items such as gear chain items
+            if (block.ComponentManager.TryGetComponent(out IGetRefoundItemsInfo refundInfo))
+            {
+                foreach (var item in refundInfo.GetRefundItems())
+                {
+                    if (item.Count > 0)
                     {
-                        result.Add(blockInventory.GetItem(i));
+                        var remainItem = playerMainInventory.InsertItem(item);
+                        // 入りきらなかったらブロック削除しない
+                        // Don't delete block if items don't fit
+                        if (remainItem.Count > 0) isNotRemainItem = false;
                     }
                 }
-                
-                // その他の返却すべきアイテム情報を取得する
-                // Get refundable item information before block removal
-                if (block.ComponentManager.TryGetComponent(out IGetRefoundItemsInfo refundInfo))
-                {
-                    result.AddRange(refundInfo.GetRefundItems());
-                }
-                
-                return result;
             }
-            
-            void InsertItemsToPlayerInventory(List<IItemStack> items)
+
+            // ブロックのIDを取得してアイテムを挿入
+            // Get block ID and insert item
+            var blockItemId = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId).ItemGuid;
+            var remainBlockItem = playerMainInventory.InsertItem(ServerContext.ItemStackFactory.Create(blockItemId, 1));
+
+            // ブロック内のアイテムを全てインベントリに入れ、ブロックもインベントリに入れれた時だけブロックを削除する
+            // Delete block only when all items from block and the block itself fit in inventory
+            if (isNotRemainItem && remainBlockItem.Equals(ServerContext.ItemStackFactory.CreatEmpty()))
             {
-                var playerMainInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory;
-                playerMainInventory.InsertItem(items);
+                worldBlockDatastore.RemoveBlock(data.Pos, BlockRemoveReason.ManualRemove);
             }
-            
-            #endregion
+
+            return null;
         }
-        
-        
+
+
         [MessagePackObject]
         public class RemoveBlockProtocolMessagePack : ProtocolMessagePackBase
         {
             [Key(2)] public int PlayerId { get; set; }
             [Key(3)] public Vector3IntMessagePack Pos { get; set; }
-            
+
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public RemoveBlockProtocolMessagePack() { }
             public RemoveBlockProtocolMessagePack(int playerId, Vector3Int pos)
