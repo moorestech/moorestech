@@ -29,81 +29,90 @@ namespace Tests.CombinedTest.Server.PacketTest
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlock = ServerContext.WorldBlockDatastore;
             var itemStackFactory = ServerContext.ItemStackFactory;
-            
+
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
-            
-            //削除するためのブロックの生成
+
+            // 削除するためのブロックの生成
+            // Create block to be removed
             worldBlock.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
             var blockInventory = block.GetComponent<IBlockInventory>();
             blockInventory.InsertItem(itemStackFactory.Create(new ItemId(10), 7));
             var blockElement = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId);
-            
-            //プロトコルを使ってブロックを削除
+
+            // プロトコルを使ってブロックを削除
+            // Remove block using protocol
             packet.GetPacketResponse(RemoveBlock(new Vector3Int(0, 0), PlayerId));
-            
-            
-            //削除したブロックがワールドに存在しないことを確認
+
+            // 削除したブロックがワールドに存在しないことを確認
+            // Verify removed block no longer exists in world
             Assert.False(worldBlock.Exists(new Vector3Int(0, 0)));
-            
-            
-            var playerSlotIndex = PlayerInventoryConst.HotBarSlotToInventorySlot(0);
-            //ブロック内のアイテムがインベントリに入っているか
-            Assert.AreEqual(10, playerInventoryData.MainOpenableInventory.GetItem(playerSlotIndex).Id.AsPrimitive());
-            Assert.AreEqual(7, playerInventoryData.MainOpenableInventory.GetItem(playerSlotIndex).Count);
-            
-            //削除したブロックは次のスロットに入っているのでそれをチェック
+
+            // アイテムの挿入順序はブロック自体→ブロックインベントリの順
+            // Insertion order is block item first, then block inventory items
+            // スロット0にブロック自体のアイテムが入る
+            // Block item goes to slot 0
             var blockItemId = MasterHolder.ItemMaster.GetItemId(blockElement.ItemGuid);
-            Assert.AreEqual(blockItemId, playerInventoryData.MainOpenableInventory.GetItem(playerSlotIndex + 1).Id);
-            Assert.AreEqual(1, playerInventoryData.MainOpenableInventory.GetItem(playerSlotIndex + 1).Count);
+            Assert.AreEqual(blockItemId, playerInventoryData.MainOpenableInventory.GetItem(0).Id);
+            Assert.AreEqual(1, playerInventoryData.MainOpenableInventory.GetItem(0).Count);
+
+            // スロット1にブロックインベントリ内のアイテムが入る
+            // Block inventory items go to slot 1
+            Assert.AreEqual(10, playerInventoryData.MainOpenableInventory.GetItem(1).Id.AsPrimitive());
+            Assert.AreEqual(7, playerInventoryData.MainOpenableInventory.GetItem(1).Count);
         }
         
         
-        //インベントリがいっぱいで一部のアイテムが残っている場合のテスト
+        // インベントリに全て入りきらない場合はブロックが削除されないことのテスト
+        // Test that block is not removed when inventory cannot fit all items
         [Test]
         public void InventoryFullToRemoveBlockSomeItemRemainTest()
         {
             var (packet, serviceProvider) =
                 new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlock = ServerContext.WorldBlockDatastore;
-            var blockFactory = ServerContext.BlockFactory;
             var itemStackFactory = ServerContext.ItemStackFactory;
-            
+
             var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
-            
-            //インベントリの2つのスロットを残してインベントリを満杯にする
+
+            // インベントリの2つのスロットを残してインベントリを満杯にする
+            // Fill inventory except for 2 slots
             for (var i = 2; i < mainInventory.GetSlotSize(); i++)
                 mainInventory.SetItem(i, itemStackFactory.Create(new ItemId(10), 1));
-            
-            //一つの目のスロットにはID3の最大スタック数から1個少ないアイテムを入れる
+
+            // 一つ目のスロットにはID3の最大スタック数から1個少ないアイテムを入れる
+            // First slot has ID3 items at max stack - 1
             var id3MaxStack = MasterHolder.ItemMaster.GetItemMaster(new ItemId(3)).MaxStack;
             mainInventory.SetItem(0, itemStackFactory.Create(new ItemId(3), id3MaxStack - 1));
-            //二つめのスロットにはID4のアイテムを1つ入れておく
+            // 二つめのスロットにはID4のアイテムを1つ入れておく
+            // Second slot has 1 ID4 item
             mainInventory.SetItem(1, itemStackFactory.Create(new ItemId(4), 1));
-            
-            
-            //削除するためのブロックを設置
+
+            // 削除するためのブロックを設置
+            // Place block to be removed
             worldBlock.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
             var blockInventory = block.GetComponent<IBlockInventory>();
-            //ブロックにはID3のアイテムを2個と、ID4のアイテムを5個入れる
-            //このブロックを削除したときに、ID3のアイテムが1個だけ残る
+            // ブロックにはID3のアイテムを2個と、ID4のアイテムを5個入れる
+            // Block contains 2 ID3 items and 5 ID4 items
             blockInventory.SetItem(0, itemStackFactory.Create(new ItemId(3), 2));
             blockInventory.SetItem(1, itemStackFactory.Create(new ItemId(4), 5));
-            
-            
-            //プロトコルを使ってブロックを削除
+
+            // プロトコルを使ってブロックを削除
+            // Try to remove block using protocol
             packet.GetPacketResponse(RemoveBlock(new Vector3Int(0, 0), PlayerId));
-            
-            
-            //削除したブロックがワールドに存在してることを確認
+
+            // 新しい仕様：全てのアイテムが入らない場合はブロックは削除されない
+            // New spec: Block is not removed if not all items can fit
             Assert.True(worldBlock.Exists(new Vector3Int(0, 0)));
-            
-            //プレイヤーのインベントリにブロック内のアイテムが入っているか確認
-            Assert.AreEqual(itemStackFactory.Create(new ItemId(3), id3MaxStack), mainInventory.GetItem(0));
-            Assert.AreEqual(itemStackFactory.Create(new ItemId(4), 6), mainInventory.GetItem(1));
-            
-            //ブロックのインベントリが減っているかを確認
-            Assert.AreEqual(itemStackFactory.Create(new ItemId(3), 1), blockInventory.GetItem(0));
-            Assert.AreEqual(itemStackFactory.CreatEmpty(), blockInventory.GetItem(1));
+
+            // プレイヤーのインベントリは変更されていないことを確認
+            // Verify player inventory is unchanged
+            Assert.AreEqual(itemStackFactory.Create(new ItemId(3), id3MaxStack - 1), mainInventory.GetItem(0));
+            Assert.AreEqual(itemStackFactory.Create(new ItemId(4), 1), mainInventory.GetItem(1));
+
+            // ブロックのインベントリも変更されていないことを確認
+            // Verify block inventory is unchanged
+            Assert.AreEqual(itemStackFactory.Create(new ItemId(3), 2), blockInventory.GetItem(0));
+            Assert.AreEqual(itemStackFactory.Create(new ItemId(4), 5), blockInventory.GetItem(1));
         }
         
         //ブロックの中にアイテムはないけど、プレイヤーのインベントリが満杯でブロックを破壊できない時のテスト

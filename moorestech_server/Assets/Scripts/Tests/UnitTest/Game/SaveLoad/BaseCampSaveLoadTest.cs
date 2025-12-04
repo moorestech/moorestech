@@ -53,7 +53,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             Debug.Log($"Saved JSON: {json}");
             
             // ブロックを削除
-            worldBlockDatastore.RemoveBlock(position);
+            worldBlockDatastore.RemoveBlock(position, BlockRemoveReason.ManualRemove);
             
             // ロード
             Debug.Log("Creating new test module for loading...");
@@ -110,7 +110,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var json = assembleSaveJsonText.AssembleSaveJson();
             
             // ブロックを削除
-            worldBlockDatastore.RemoveBlock(position);
+            worldBlockDatastore.RemoveBlock(position, BlockRemoveReason.ManualRemove);
             
             // ロード
             var (_, loadWorldBlockDatastore, _, _, loadJsonFileForLoad) = CreateBlockTestModule();
@@ -152,7 +152,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var json = assembleSaveJsonText.AssembleSaveJson();
             
             // ブロックを削除
-            worldBlockDatastore.RemoveBlock(position);
+            worldBlockDatastore.RemoveBlock(position, BlockRemoveReason.ManualRemove);
             
             // ロード
             var (_, loadWorldBlockDatastore, _, _, loadJsonFileForLoad) = CreateBlockTestModule();

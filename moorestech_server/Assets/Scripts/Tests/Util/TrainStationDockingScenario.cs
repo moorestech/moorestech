@@ -17,9 +17,6 @@ namespace Tests.Util
 {
     public sealed class TrainStationDockingScenario : IDisposable
     {
-        private const int OuterSegmentLength = 4000;
-        private const int ApproachSegmentLength = 2500;
-
         private readonly TrainTestEnvironment _environment;
         private readonly RailComponent _n0Component;
         private readonly RailComponent _n1Component;
@@ -71,10 +68,10 @@ namespace Tests.Util
 
             var station = ExtractStationNodes(stationSaver!);
 
-            n0Component.ConnectRailComponent(n1Component, true, true, OuterSegmentLength);
-            n1Component.ConnectRailComponent(station.EntryComponent, true, true, ApproachSegmentLength);
-            station.ExitComponent.ConnectRailComponent(n2Component, true, true, ApproachSegmentLength);
-            n2Component.ConnectRailComponent(n3Component, true, true, OuterSegmentLength);
+            n0Component.ConnectRailComponent(n1Component, true, true);
+            n1Component.ConnectRailComponent(station.EntryComponent, true, true);
+            station.ExitComponent.ConnectRailComponent(n2Component, true, true);
+            n2Component.ConnectRailComponent(n3Component, true, true);
 
             return new TrainStationDockingScenario(environment, n0Component, n1Component, station, n2Component, n3Component);
         }
@@ -90,7 +87,7 @@ namespace Tests.Util
             var (_, stationSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
                 environment,
                 ForUnitTestModBlockId.TestTrainCargoPlatform,
-                new Vector3Int(10, 0, 0),
+                new Vector3Int(10, 100, 0),
                 BlockDirection.North);
 
             Assert.IsNotNull(stationSaver, "貨物プラットフォーム用のRailSaverComponentを取得できませんでした。");
@@ -126,7 +123,7 @@ namespace Tests.Util
                 _n3Component.BackNode
             };
 
-            return CreateTrain(nodes, initialDistanceToExit, out car);
+            return CreateTrain(nodes, initialDistanceToExit, out car, false);
         }
 
         public TrainUnit CreateLoopDockingTrain(int carCount, out IReadOnlyList<TrainCar> cars)
@@ -170,12 +167,13 @@ namespace Tests.Util
             _disposed = true;
         }
 
-        private TrainUnit CreateTrain(List<RailNode> nodes, int initialDistanceToNextNode, out TrainCar car)
+        private TrainUnit CreateTrain(List<RailNode> nodes, int initialDistanceToNextNode, out TrainCar car, bool isFacingFront = true)
         {
             var firstTrain = MasterHolder.TrainUnitMaster.Train.TrainCars.First();
+
             var cars = new List<TrainCar>
             {
-                new TrainCar(new TrainCarMasterElement(firstTrain.TrainCarGuid, firstTrain.ItemGuid, null, 1000, 1, _station.SegmentLength))
+                new TrainCar(firstTrain,isFacingFront)
             };
 
             car = cars[0];

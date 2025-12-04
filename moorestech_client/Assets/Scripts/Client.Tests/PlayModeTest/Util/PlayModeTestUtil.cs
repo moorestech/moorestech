@@ -127,7 +127,7 @@ namespace Client.Tests.PlayModeTest.Util
         
         public static bool RemoveBlock(Vector3Int position)
         {
-            return ServerContext.WorldBlockDatastore.RemoveBlock(position);
+            return ServerContext.WorldBlockDatastore.RemoveBlock(position, BlockRemoveReason.ManualRemove);
         }
         
         public static IItemStack InsertItemToBlock(IBlock block, ItemId itemId, int count)

@@ -55,7 +55,7 @@ namespace Tests.CombinedTest.Server
             
             
             //東向きに設置
-            worldDataStore.RemoveBlock(new Vector3Int(0, 0, 0));
+            worldDataStore.RemoveBlock(new Vector3Int(0, 0, 0), BlockRemoveReason.ManualRemove);
             CreateOneItemInsertedItem(new Vector3Int(0, 0, 0), BlockDirection.East, worldDataStore);
             itemEntity = CollectBeltConveyorItems.CollectItem(entityFactory)[0];
             //座標を検証
@@ -65,7 +65,7 @@ namespace Tests.CombinedTest.Server
             
             
             //ブロックを削除し南向きに設置
-            worldDataStore.RemoveBlock(new Vector3Int(0, 0, 0));
+            worldDataStore.RemoveBlock(new Vector3Int(0, 0, 0), BlockRemoveReason.ManualRemove);
             CreateOneItemInsertedItem(new Vector3Int(0, 0, 0), BlockDirection.South, worldDataStore);
             itemEntity = CollectBeltConveyorItems.CollectItem(entityFactory)[0];
             //座標を検証
@@ -75,7 +75,7 @@ namespace Tests.CombinedTest.Server
             
             
             //ブロックを削除し西向きに設置
-            worldDataStore.RemoveBlock(new Vector3Int(0, 0, 0));
+            worldDataStore.RemoveBlock(new Vector3Int(0, 0, 0), BlockRemoveReason.ManualRemove);
             CreateOneItemInsertedItem(new Vector3Int(0, 0, 0), BlockDirection.West, worldDataStore);
             itemEntity = CollectBeltConveyorItems.CollectItem(entityFactory)[0];
             //ブロックを削除し座標を検証
@@ -86,7 +86,7 @@ namespace Tests.CombinedTest.Server
             
             //x、yがマイナスであるときのテスト
             //北向きに設
-            worldDataStore.RemoveBlock(new Vector3Int(0, 0, 0));
+            worldDataStore.RemoveBlock(new Vector3Int(0, 0, 0), BlockRemoveReason.ManualRemove);
             CreateOneItemInsertedItem(new Vector3Int(-1, 0, -1), BlockDirection.North, worldDataStore);
             
             //エンティティを取得
@@ -98,7 +98,7 @@ namespace Tests.CombinedTest.Server
             
             
             //東向きに設置
-            worldDataStore.RemoveBlock(new Vector3Int(-1, 0, -1));
+            worldDataStore.RemoveBlock(new Vector3Int(-1, 0, -1), BlockRemoveReason.ManualRemove);
             CreateOneItemInsertedItem(new Vector3Int(-1, 0, -1), BlockDirection.East, worldDataStore);
             itemEntity = CollectBeltConveyorItems.CollectItem(entityFactory)[0];
             //座標を検証
@@ -108,7 +108,7 @@ namespace Tests.CombinedTest.Server
             
             
             //ブロックを削除し南向きに設置
-            worldDataStore.RemoveBlock(new Vector3Int(-1, 0, -1));
+            worldDataStore.RemoveBlock(new Vector3Int(-1, 0, -1), BlockRemoveReason.ManualRemove);
             CreateOneItemInsertedItem(new Vector3Int(-1, 0, -1), BlockDirection.South, worldDataStore);
             itemEntity = CollectBeltConveyorItems.CollectItem(entityFactory)[0];
             //座標を検証
@@ -118,7 +118,7 @@ namespace Tests.CombinedTest.Server
             
             
             //ブロックを削除し西向きに設置
-            worldDataStore.RemoveBlock(new Vector3Int(-1, 0, -1));
+            worldDataStore.RemoveBlock(new Vector3Int(-1, 0, -1), BlockRemoveReason.ManualRemove);
             CreateOneItemInsertedItem(new Vector3Int(-1, 0, -1), BlockDirection.West, worldDataStore);
             itemEntity = CollectBeltConveyorItems.CollectItem(entityFactory)[0];
             //ブロックを削除し座標を検証
