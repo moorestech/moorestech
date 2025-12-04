@@ -70,7 +70,7 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
         
-        public void SetCraftChainerCrafterRecipe(Vector3Int block ,List<CraftingSolverItem> inputs, List<CraftingSolverItem> outputs)
+        public void SetCraftChainerCrafterRecipe(Vector3Int block, List<CraftingSolverItem> inputs, List<CraftingSolverItem> outputs)
         {
             var request = new SetCraftChainerCrafterRecipeProtocol.SetCraftChainerCrafterRecipeProtocolMessagePack(block, inputs, outputs);
             _packetSender.Send(request);
@@ -88,7 +88,7 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
         
-        public void SendCraftTreeNode(Guid target ,List<CraftTreeNode> craftTree)
+        public void SendCraftTreeNode(Guid target, List<CraftTreeNode> craftTree)
         {
             var request = new ApplyCraftTreeProtocol.ApplyCraftProtocolMessagePack(_playerId, target, craftTree);
             _packetSender.Send(request);
@@ -111,13 +111,13 @@ namespace Client.Network.API
             var request = new CompleteBaseCampProtocol.CompleteBaseCampProtocolMessagePack(_playerId, position);
             _packetSender.Send(request);
         }
-
+        
         public void CompleteResearch(Guid researchGuid)
         {
             var request = new CompleteResearchProtocol.RequestCompleteResearchMessagePack(_playerId, researchGuid);
             _packetSender.Send(request);
         }
-
+        
         public void ConnectRail(RailComponentSpecifier from, RailComponentSpecifier to, bool connectFromIsFront, bool connectToIsFront)
         {
             var request = RailConnectionEditRequest.CreateConnectRequest(from, to, connectFromIsFront, connectToIsFront);
@@ -128,16 +128,22 @@ namespace Client.Network.API
             var request = RailConnectionEditRequest.CreateDisconnectRequest(from, to);
             _packetSender.Send(request);
         }
-
+        
         public void PlaceTrainOnRail(RailComponentSpecifier specifier, int hotBarSlot)
         {
             var request = new PlaceTrainOnRailRequestMessagePack(specifier, hotBarSlot, _playerId);
             _packetSender.Send(request);
         }
         
+        public void PlaceTrainOnExistingTrain(Guid targetTrainCar,RailComponentSpecifier specifier, int hotBarSlot)
+        {
+            var request = new PlaceTrainCarOnExistingTrainProtocol.PlaceTrainOnExistingTrainRequestMessagePack(hotBarSlot, _playerId, targetTrainCar, specifier);
+            _packetSender.Send(request);
+        }
+        
         /// <summary>
-        /// インベントリをサブスクライブ/アンサブスクライブ
-        /// Subscribe/Unsubscribe inventory
+        ///     インベントリをサブスクライブ/アンサブスクライブ
+        ///     Subscribe/Unsubscribe inventory
         /// </summary>
         public void SubscribeInventory(InventoryIdentifierMessagePack identifier, bool isSubscribe)
         {

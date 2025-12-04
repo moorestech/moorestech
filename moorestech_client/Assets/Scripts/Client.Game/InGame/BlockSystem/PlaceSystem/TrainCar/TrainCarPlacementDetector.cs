@@ -1,5 +1,6 @@
 using Client.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
+using Client.Game.InGame.Entity.Object;
 using Client.Game.InGame.Train;
 using Core.Master;
 using UnityEngine;
@@ -7,9 +8,9 @@ using static Server.Protocol.PacketResponse.RailConnectionEditProtocol;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 {
-    public readonly struct TrainCarPlacementHit
+    public readonly struct TrainCarRailPlacementHit
     {
-        public TrainCarPlacementHit(RailComponentSpecifier specifier, Vector3 previewPosition, Quaternion previewRotation, bool isPlaceable)
+        public TrainCarRailPlacementHit(RailComponentSpecifier specifier, Vector3 previewPosition, Quaternion previewRotation, bool isPlaceable)
         {
             Specifier = specifier;
             PreviewPosition = previewPosition;
@@ -23,9 +24,28 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
         public bool IsPlaceable { get; }
     }
     
+    public readonly struct TrainCarExistingTrainPlacementHit
+    {
+        public TrainCarExistingTrainPlacementHit(TrainCarEntityObject train, bool isFront, Vector3 previewPosition, Quaternion previewRotation, bool isPlaceable)
+        {
+            Train = train;
+            IsFront = isFront;
+            PreviewPosition = previewPosition;
+            PreviewRotation = previewRotation;
+            IsPlaceable = isPlaceable;
+        }
+        
+        public TrainCarEntityObject Train { get; }
+        public bool IsFront { get; }
+        public Vector3 PreviewPosition { get; }
+        public Quaternion PreviewRotation { get; }
+        public bool IsPlaceable { get; }
+    }
+    
     public interface ITrainCarPlacementDetector
     {
-        bool TryDetect(ItemId holdingItemId, out TrainCarPlacementHit hit);
+        bool TryDetectOnRail(ItemId holdingItemId, out TrainCarRailPlacementHit hit);
+        bool TryDetectOnExistingTrain(out TrainCarExistingTrainPlacementHit hit);
     }
     
     public class TrainCarPlacementDetector : ITrainCarPlacementDetector
@@ -36,11 +56,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
         {
             _mainCamera = mainCamera;
         }
-
-        public bool TryDetect(ItemId holdingItemId, out TrainCarPlacementHit hit)
+        
+        public bool TryDetectOnRail(ItemId holdingItemId, out TrainCarRailPlacementHit hit)
         {
             hit = default;
-
+            
             if (!PlaceSystemUtil.TryGetRaySpecifiedComponentHit<RailSplineComponent>(_mainCamera, out var rail, LayerConst.BlockOnlyLayerMask))
             {
                 return false;
@@ -50,10 +70,27 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             var railSpecifier = RailComponentSpecifier.CreateRailSpecifier(block.BlockPosInfo.OriginalPos);
             var previewPosition = block.BlockPosInfo.OriginalPos + new Vector3(0.5f, 0.5f, 0.5f);
             var previewRotation = Quaternion.identity;
-
-            hit = new TrainCarPlacementHit(railSpecifier, previewPosition, previewRotation, true);
+            
+            hit = new TrainCarRailPlacementHit(railSpecifier, previewPosition, previewRotation, true);
+            return true;
+        }
+        
+        public bool TryDetectOnExistingTrain(out TrainCarExistingTrainPlacementHit hit)
+        {
+            hit = default;
+            
+            if (!PlaceSystemUtil.TryGetRaySpecifiedComponentHit<TrainCarEntityChildrenObject>(_mainCamera, out var otherTrain, LayerConst.BlockOnlyLayerMask))
+            {
+                return false;
+            }
+            
+            var isFront = true;
+            var previewPosition = otherTrain.transform.position + Vector3.one * 2;
+            var previewRotation = otherTrain.transform.rotation;
+            var isPlaceable = true;
+            
+            hit = new TrainCarExistingTrainPlacementHit(otherTrain.TrainCarEntityObject, isFront, previewPosition, previewRotation, isPlaceable);
             return true;
         }
     }
 }
-

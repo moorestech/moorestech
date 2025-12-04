@@ -1,5 +1,3 @@
-using Client.Common;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Context;
 using Client.Input;
 using UnityEngine;
@@ -16,36 +14,73 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             _detector = detector;
             _previewController = previewController;
         }
-
+        
         public void Enable()
         {
             _previewController.SetActive(true);
         }
-
+        
         public void ManualUpdate(PlaceSystemUpdateContext context)
         {
-            if (!_detector.TryDetect(context.HoldingItemId, out var hit))
+            var onRailPreview = PlaceTrainOnRail(context);
+            var onExistingTrainPreview = PlaceTrainOnExistingTrain(context);
+            
+            if (!onRailPreview && !onExistingTrainPreview)
             {
                 _previewController.SetActive(false);
-                return;
+            }
+        }
+        
+        public void Disable()
+        {
+            _previewController.SetActive(false);
+        }
+        
+        private bool PlaceTrainOnRail(PlaceSystemUpdateContext context)
+        {
+            if (!_detector.TryDetectOnRail(context.HoldingItemId, out var hit))
+            {
+                return false;
             }
             _previewController.SetActive(true);
-            _previewController.ShowPreview(context.HoldingItemId ,hit.PreviewPosition, hit.PreviewRotation, hit.IsPlaceable);
-
+            _previewController.ShowPreview(context.HoldingItemId, hit.PreviewPosition, hit.PreviewRotation, hit.IsPlaceable);
+            
             if (!hit.IsPlaceable)
             {
-                return;
+                return true;
             }
-
+            
             if (InputManager.Playable.ScreenLeftClick.GetKeyUp)
             {
                 ClientContext.VanillaApi.SendOnly.PlaceTrainOnRail(hit.Specifier, context.CurrentSelectHotbarSlotIndex);
             }
+            
+            return true;
         }
-
-        public void Disable()
+        
+        private bool PlaceTrainOnExistingTrain(PlaceSystemUpdateContext context)
         {
-            _previewController.SetActive(false);
+            if (!_detector.TryDetectOnExistingTrain(out var hit))
+            {
+                return false;
+            }
+            
+            _previewController.SetActive(true);
+            _previewController.ShowPreview(context.HoldingItemId, hit.PreviewPosition, hit.PreviewRotation, hit.IsPlaceable);
+            
+            if (!hit.IsPlaceable)
+            {
+                return true;
+            }
+            
+            if (InputManager.Playable.ScreenLeftClick.GetKeyUp)
+            {
+                Debug.Log("Place train on existing train");
+                ClientContext.VanillaApi.SendOnly.PlaceTrainOnExistingTrain(hit.Train.TrainCarId, , context.CurrentSelectHotbarSlotIndex);
+            }
+            
+            
+            return true;
         }
     }
 }
