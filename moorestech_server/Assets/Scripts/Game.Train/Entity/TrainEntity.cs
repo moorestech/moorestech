@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Core.Master;
 using Game.Entity.Interface;
 using Game.Train.Train;
@@ -48,8 +49,49 @@ namespace Game.Train.Entity
         {
             // TODO 仮実装でとりあえず0番の車両としてマスターを設定しているけど、TrainCarを全てマスターベースに置き換える
             var tempTrainCarMasterGuid = MasterHolder.TrainUnitMaster.Train.TrainCars[0].TrainCarGuid;
-            var state = new TrainEntityStateMessagePack(_trainCar.CarId, tempTrainCarMasterGuid);
+            var railPositionMessagePack = CreateRailPositionMessagePack();
+            var state = new TrainEntityStateMessagePack(_trainCar.CarId, tempTrainCarMasterGuid, railPositionMessagePack);
             return MessagePackSerializer.Serialize(state);
+
+            #region Internal
+
+            RailPositionMessagePack CreateRailPositionMessagePack()
+            {
+                var railPosition = _trainUnit.RailPosition;
+                var railNodes = railPosition.GetRailNodes();
+                var railNodeDataList = new List<RailNodeDataMessagePack>();
+
+                foreach (var node in railNodes)
+                {
+                    // RailNodeからConnectionDestinationを取得
+                    // Get ConnectionDestination from RailNode
+                    if (!RailGraphDatastore.TryGetConnectionDestination(node, out var connectionDest))
+                    {
+                        continue;
+                    }
+
+                    // 制御点を取得
+                    // Get control point
+                    var controlPoint = connectionDest.IsFront ? node.FrontControlPoint : node.BackControlPoint;
+                    if (controlPoint == null) continue;
+
+                    railNodeDataList.Add(new RailNodeDataMessagePack(
+                        connectionDest.railComponentID.Position,
+                        connectionDest.railComponentID.ID,
+                        connectionDest.IsFront,
+                        controlPoint.OriginalPosition,
+                        controlPoint.ControlPointPosition
+                    ));
+                }
+
+                return new RailPositionMessagePack(
+                    railNodeDataList,
+                    railPosition.DistanceToNextNode,
+                    railPosition.TrainLength
+                );
+            }
+
+            #endregion
         }
         
         

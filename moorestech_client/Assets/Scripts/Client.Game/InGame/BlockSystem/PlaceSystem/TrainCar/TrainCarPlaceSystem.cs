@@ -76,7 +76,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             if (InputManager.Playable.ScreenLeftClick.GetKeyUp)
             {
                 Debug.Log("Place train on existing train");
-                ClientContext.VanillaApi.SendOnly.PlaceTrainOnExistingTrain(hit.Train.TrainCarId, , context.CurrentSelectHotbarSlotIndex);
+                // ClientContext.VanillaApi.SendOnly.PlaceTrainOnExistingTrain(hit.Train.TrainCarId, hit.Train., context.CurrentSelectHotbarSlotIndex);
             }
             
             

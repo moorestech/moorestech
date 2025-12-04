@@ -45,9 +45,11 @@ namespace Client.Game.InGame.Entity
                 // Update existing entity
                 if (_entities.ContainsKey(entity.InstanceId))
                 {
-                    _entities[entity.InstanceId].objectEntity.SetPositionWithLerp(entity.Position);
-                    _entities[entity.InstanceId] = (DateTime.Now, _entities[entity.InstanceId].objectEntity);
-                    
+                    var entityObject = _entities[entity.InstanceId].objectEntity;
+                    entityObject.SetPositionWithLerp(entity.Position);
+                    entityObject.UpdateEntityData(entity.EntityData);
+                    _entities[entity.InstanceId] = (DateTime.Now, entityObject);
+
                     continue;
                 }
                 

@@ -2,6 +2,8 @@ using System;
 using Client.Common.Server;
 using Client.Game.InGame.Context;
 using Common.Debug;
+using Game.Entity.Interface;
+using MessagePack;
 using Mooresmaster.Model.TrainModule;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
@@ -13,11 +15,17 @@ namespace Client.Game.InGame.Entity.Object
         public long EntityId { get; private set; }
         public Guid TrainCarId { get; private set; }
         public TrainCarMasterElement TrainCarMasterElement { get; set; }
-        
+
+        /// <summary>
+        /// サーバーから同期されたRailPosition情報
+        /// RailPosition information synchronized from server
+        /// </summary>
+        public RailPositionMessagePack RailPosition { get; private set; }
+
         private float _linerTime;
         private Vector3 _previousPosition;
         private Vector3 _targetPosition;
-        
+
         private bool _isFacingForward = true;
         private bool _debugAutoRun = false;//////////////////
 
@@ -67,6 +75,16 @@ namespace Client.Game.InGame.Entity.Object
         public void Destroy()
         {
             Destroy(gameObject);
+        }
+
+        /// <summary>
+        /// エンティティデータを更新する
+        /// Update entity data
+        /// </summary>
+        public void UpdateEntityData(byte[] entityData)
+        {
+            var state = MessagePackSerializer.Deserialize<TrainEntityStateMessagePack>(entityData);
+            RailPosition = state.RailPosition;
         }
         
         /// <summary>

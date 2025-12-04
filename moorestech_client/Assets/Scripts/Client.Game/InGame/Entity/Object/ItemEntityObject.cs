@@ -53,7 +53,13 @@ namespace Client.Game.InGame.Entity.Object
         {
             Destroy(gameObject);
         }
-        
+
+        public void UpdateEntityData(byte[] entityData)
+        {
+            // ItemEntityはEntityDataの更新不要
+            // ItemEntity does not need EntityData update
+        }
+
         public void SetTexture(Texture texture)
         {
             var material = new Material(itemMaterial) { mainTexture = texture };
