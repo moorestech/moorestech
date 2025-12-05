@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Game.PlayerInventory.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Event;
@@ -52,6 +51,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(RailConnectionEditProtocol.Tag, new RailConnectionEditProtocol());
             _packetResponseDictionary.Add(GetRailConnectionsProtocol.ProtocolTag, new GetRailConnectionsProtocol(serviceProvider));
             _packetResponseDictionary.Add(PlaceTrainCarOnRailProtocol.ProtocolTag, new PlaceTrainCarOnRailProtocol(serviceProvider));
+            _packetResponseDictionary.Add(PlaceTrainCarOnExistingTrainProtocol.ProtocolTag, new PlaceTrainCarOnExistingTrainProtocol(serviceProvider));
         }
         
         public List<List<byte>> GetPacketResponse(List<byte> payload)
