@@ -84,7 +84,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 return false;
             }
             
-            var isFront = true;
+            var isFront = false;            // todo 一旦後方方向に追加するようにする
             var previewPosition = otherTrain.transform.position + Vector3.one * 2;
             var previewRotation = otherTrain.transform.rotation;
             var isPlaceable = true;
