@@ -1,8 +1,9 @@
 using Game.Train.Common;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 using UniRx;
+using UnityEngine;
 
 namespace Game.Train.RailGraph
 {
@@ -43,12 +44,28 @@ namespace Game.Train.RailGraph
 
         // レールグラフ更新イベント
         // Rail graph update event
-        public static Subject<List<RailComponentID>> RailGraphUpdateEvent = new Subject<List<RailComponentID>>();
-
+        private readonly RailGraphNotifier _notifier = null!;
+        // レールグラフ更新イベント（RailGraphNotifier 経由）
+        // Rail graph update event (proxied from RailGraphNotifier)
+        public static IObservable<List<RailComponentID>> RailGraphUpdateEvent => Instance._notifier.RailGraphUpdateEvent;
 
         public RailGraphDatastore()
         {
+            #region internal
+
+            (bool success, RailComponentID id) TryResolveRailComponentId(RailNode node)
+            {
+                if (TryGetConnectionDestinationInternal(node, out var destination))
+                {
+                    return (true, destination.railComponentID);
+                }
+                return (false, default);
+            }
+            #endregion
+
             InitializeDataStore();
+            // RailNode -> RailComponentID の解決ロジックを Notifier に渡す
+            _notifier = new RailGraphNotifier(TryResolveRailComponentId);
             _instance = this;
         }
 
@@ -72,9 +89,8 @@ namespace Game.Train.RailGraph
                 if (node != null)
                     RemoveNode(node);
             }
-            // 既存のRailGraphUpdateEventを破棄して新規作成
-            RailGraphUpdateEvent?.Dispose();
-            RailGraphUpdateEvent = new Subject<List<RailComponentID>>();
+            // RailGraphUpdateEvent の再生成を Notifier に委譲
+            _notifier.Reset();
             InitializeDataStore();
         }
 
@@ -88,6 +104,7 @@ namespace Game.Train.RailGraph
 
             _instance.ResetInternalState();
         }
+
 
         //======================================================
         //  Public static API (外部から呼ばれるメソッド)  
@@ -165,6 +182,13 @@ namespace Game.Train.RailGraph
             return Instance.GetAllRailConnectionsInternal();
         }
 
+        // ハッシュ取得メソッド
+        // Get hash method
+        public static uint GetGraphHash()
+        {
+            return RailGraphHashCalculator.ComputeHash(Instance.connectNodes);
+        }
+
         //======================================================
         //  内部実装部 (インスタンスメソッド)
         //======================================================
@@ -212,7 +236,7 @@ namespace Game.Train.RailGraph
             
             // レールグラフ更新イベントを発火
             // Fire rail graph update event
-            NotifyRailGraphUpdate(node, targetNode);
+            _notifier.NotifyRailGraphUpdate(node, targetNode);
         }
 
         private void DisconnectNodeInternal(RailNode node, RailNode targetNode)
@@ -328,30 +352,6 @@ namespace Game.Train.RailGraph
             if (logging)
                 Debug.LogWarning("RailNodeがつながっていません " + startid + " to " + targetid);
             return -1;
-        }
-
-        // レールグラフ更新イベントを発火するヘルパーメソッド
-        // Helper method to fire rail graph update event
-        private void NotifyRailGraphUpdate(RailNode node1, RailNode node2)
-        {
-            var changedComponentIds = new List<RailComponentID>();
-            
-            // 両ノードのConnectionDestinationからRailComponentIDを取得
-            if (TryGetConnectionDestinationInternal(node1, out var dest1))
-            {
-                changedComponentIds.Add(dest1.railComponentID);
-            }
-            if (TryGetConnectionDestinationInternal(node2, out var dest2))
-            {
-                changedComponentIds.Add(dest2.railComponentID);
-            }
-            
-            // イベントを発火
-            // Fire event
-            if (changedComponentIds.Count > 0)
-            {
-                RailGraphUpdateEvent.OnNext(changedComponentIds);
-            }
         }
 
         // 全レール接続情報を取得する内部実装
