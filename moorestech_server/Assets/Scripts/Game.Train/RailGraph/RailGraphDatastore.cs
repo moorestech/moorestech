@@ -29,6 +29,7 @@ namespace Game.Train.RailGraph
         private MinHeap<int> nextidQueue;//① railNodeには1つの固有のintのidを割り当てている。これはダイクストラ高速化のため。そのidをなるべく若い順に使いたい
         //②railnode同士の接続情報を記憶するリスト。connectNodes[railnodeid]がそのrailnodeからつながっているrailnodeidと距離のリストになる
         private List<List<(int, int)>> connectNodes;
+        private RailGraphPathFinder _pathFinder;//ダイクストラ法は専用クラスに委譲する
         //③railnodeとConnectionDestinationを1:1対応で記憶する辞書。ConnectionDestinationは座標や表裏情報をもつのでセーブ・ロード用やクライアント通信に使う
         // 座標はセーブ時と列車座標を求めるときや、RailPositionのRailNode情報から3D座標を復元するために使う
         private Dictionary<int, ConnectionDestination> railIdToConnectionDestination;//③
@@ -60,6 +61,7 @@ namespace Game.Train.RailGraph
             railIdToConnectionDestination = new Dictionary<int, ConnectionDestination>();
             connectionDestinationToRailId = new Dictionary<ConnectionDestination, int>();
             railPositionToConnectionDestination = new Dictionary<Vector3Int, (ConnectionDestination first, ConnectionDestination second)>();
+            _pathFinder = new RailGraphPathFinder();
         }
 
         private void ResetInternalState()
@@ -379,6 +381,12 @@ namespace Game.Train.RailGraph
         // ダイクストラ startからtargetへのnodeリストを返す、0がstart、最後がtarget
         private List<RailNode> FindShortestPathInternal(int startid, int targetid)
         {
+            // RailGraphPathFinder に処理を委譲
+            return _pathFinder.FindShortestPath(railNodes, connectNodes, startid, targetid);
+        }
+        /*
+        private List<RailNode> FindShortestPathInternal(int startid, int targetid)
+        {
             var priorityQueue = new PriorityQueue<int, int>();
             var distances = new List<int>();
             var previousNodes = new List<int>();
@@ -427,5 +435,6 @@ namespace Game.Train.RailGraph
             var pathNodes = path.Select(id => railNodes[id]).ToList();
             return pathNodes;
         }
+        */
     }
 }
