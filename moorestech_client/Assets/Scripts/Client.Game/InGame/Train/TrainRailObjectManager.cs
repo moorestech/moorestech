@@ -63,7 +63,7 @@ namespace Client.Game.InGame.Train
         /// <param name="componentId">レールコンポーネントID / Rail component ID</param>
         /// <param name="isFrontSide">Front側から取得するか / Whether to get from Front side</param>
         /// <returns>接続されているRailSplineComponent、存在しない場合はnull / Connected RailSplineComponent, or null if not found</returns>
-        /// TODO: 駅に関して全く考慮していないため問題が発生する可能性。仮に考慮する必要がないとしてもRailSplineComponentに一つIRailのような中層化層を挟みたさがある。
+        /// TODO: 駅に関して全く考慮していないため問題が発生する可能性。仮に考慮する必要がないとしてもRailSplineComponentに一つIRailのような中層化層を挟みたさがある。問題発生しないかも。わからない。
         public RailSplineComponent GetConnectedRail(Vector3Int position, int componentId, bool isFrontSide)
         {
             var key = new RailComponentKey(position, componentId);
