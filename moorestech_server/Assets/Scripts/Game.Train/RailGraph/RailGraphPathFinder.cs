@@ -1,13 +1,16 @@
+using MessagePack;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Game.Train.RailGraph
 {
     /// <summary>
-    /// RailGraphDatastore から委譲される、ダイクストラ法による経路探索クラス。
+    /// 肥大化するRailGraphDatastore から切り出したダイクストラ法による経路探索クラス
     /// ・ノード ID（int）ベースで探索
     /// ・距離配列／前ノード配列は内部で再利用（stamp 方式で初期化コスト削減）
     /// ・同じ距離の場合は nodeId の小さい方を優先（決定的な経路）
+    /// MassiveAutoRunScenarioProducesIdenticalStateWithAndWithoutSaveLoad (6.017s)→(5.884s)に改善
     /// </summary>
     internal sealed class RailGraphPathFinder
     {
@@ -32,13 +35,67 @@ namespace Game.Train.RailGraph
             int startId,
             int targetId)
         {
+
+            #region Internal
+            // ==========================
+            // 内部ヘルパ
+            // ==========================
+
+            void EnsureWorkspace(int nodeCount)
+            {
+                // 既存配列で足りていれば再利用
+                if (_distances != null && _distances.Length >= nodeCount)
+                    return;
+
+                // 必要数まで拡張（倍々 or ちょうど）
+                int size = _distances == null
+                    ? nodeCount
+                    : Math.Max(_distances.Length * 2, nodeCount);
+
+                _distances = new int[size];
+                _previous = new int[size];
+                _stamp = new int[size];
+                _currentStamp = 1;
+            }
+
+            void BeginSearch()
+            {
+                _currentStamp++;
+                if (_currentStamp == int.MaxValue)
+                {
+                    // stamp が溢れそうな場合のみ全クリア
+                    Array.Clear(_stamp, 0, _stamp.Length);
+                    _currentStamp = 1;
+                }
+            }
+
+            /// <summary>
+            /// 現在の探索における nodeId の距離を取得。未設定なら int.MaxValue を返す。
+            /// </summary>
+            int GetDistance(int nodeId)
+            {
+                return _stamp[nodeId] == _currentStamp
+                    ? _distances[nodeId]
+                    : int.MaxValue;
+            }
+
+            /// <summary>
+            /// 現在の探索における nodeId の距離と前ノードを設定。
+            /// </summary>
+            void SetDistance(int nodeId, int distance, int previousId)
+            {
+                _stamp[nodeId] = _currentStamp;
+                _distances[nodeId] = distance;
+                _previous[nodeId] = previousId;
+            }
+            #endregion
+
             int nodeCount = railNodes.Count;
             if (startId < 0 || startId >= nodeCount ||
                 targetId < 0 || targetId >= nodeCount)
             {
                 return new List<RailNode>();
             }
-
             EnsureWorkspace(nodeCount);
             BeginSearch();
 
@@ -113,57 +170,6 @@ namespace Game.Train.RailGraph
             return result;
         }
 
-        // ==========================
-        // 内部ヘルパ
-        // ==========================
-
-        private void EnsureWorkspace(int nodeCount)
-        {
-            // 既存配列で足りていれば再利用
-            if (_distances != null && _distances.Length >= nodeCount)
-                return;
-
-            // 必要数まで拡張（倍々 or ちょうど）
-            int size = _distances == null
-                ? nodeCount
-                : Math.Max(_distances.Length * 2, nodeCount);
-
-            _distances = new int[size];
-            _previous = new int[size];
-            _stamp = new int[size];
-            _currentStamp = 1;
-        }
-
-        private void BeginSearch()
-        {
-            _currentStamp++;
-            if (_currentStamp == int.MaxValue)
-            {
-                // stamp が溢れそうな場合のみ全クリア
-                Array.Clear(_stamp, 0, _stamp.Length);
-                _currentStamp = 1;
-            }
-        }
-
-        /// <summary>
-        /// 現在の探索における nodeId の距離を取得。未設定なら int.MaxValue を返す。
-        /// </summary>
-        private int GetDistance(int nodeId)
-        {
-            return _stamp[nodeId] == _currentStamp
-                ? _distances[nodeId]
-                : int.MaxValue;
-        }
-
-        /// <summary>
-        /// 現在の探索における nodeId の距離と前ノードを設定。
-        /// </summary>
-        private void SetDistance(int nodeId, int distance, int previousId)
-        {
-            _stamp[nodeId] = _currentStamp;
-            _distances[nodeId] = distance;
-            _previous[nodeId] = previousId;
-        }
 
         // ==================================================
         // 内部専用 ヒープ実装（nodeId のみ持つ最小ヒープ）
