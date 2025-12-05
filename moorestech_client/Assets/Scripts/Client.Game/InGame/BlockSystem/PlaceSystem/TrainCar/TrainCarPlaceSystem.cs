@@ -1,3 +1,4 @@
+using System.Linq;
 using Client.Game.InGame.Context;
 using Client.Input;
 using UnityEngine;
@@ -76,6 +77,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             if (InputManager.Playable.ScreenLeftClick.GetKeyUp)
             {
                 Debug.Log("Place train on existing train");
+                Debug.Log($"{hit.Train.RailPosition.DistanceToNextNode} {hit.Train.RailPosition.TrainLength} {string.Join(", ", hit.Train.RailPosition.RailNodes.Select(r => r.OriginalPosition))}");
                 // ClientContext.VanillaApi.SendOnly.PlaceTrainOnExistingTrain(hit.Train.TrainCarId, hit.Train., context.CurrentSelectHotbarSlotIndex);
             }
             

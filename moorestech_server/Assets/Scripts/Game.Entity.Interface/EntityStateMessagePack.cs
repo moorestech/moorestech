@@ -30,13 +30,27 @@ namespace Game.Entity.Interface
         [Key(1)] public Guid TrainMasterId { get; set; }
         [Key(2)] public RailPositionMessagePack RailPosition { get; set; }
 
+        /// <summary>
+        /// 前方（進行方向側）に連結している車両のID。先頭車両の場合はGuid.Empty
+        /// ID of the car connected in front (direction of travel). Guid.Empty if this is the front car
+        /// </summary>
+        [Key(3)] public Guid PreviousCarId { get; set; }
+
+        /// <summary>
+        /// 後方に連結している車両のID。最後尾車両の場合はGuid.Empty
+        /// ID of the car connected behind. Guid.Empty if this is the rear car
+        /// </summary>
+        [Key(4)] public Guid NextCarId { get; set; }
+
         public TrainEntityStateMessagePack() { }
 
-        public TrainEntityStateMessagePack(Guid trainCarId, Guid trainMasterId, RailPositionMessagePack railPosition)
+        public TrainEntityStateMessagePack(Guid trainCarId, Guid trainMasterId, RailPositionMessagePack railPosition, Guid previousCarId, Guid nextCarId)
         {
             TrainCarId = trainCarId;
             TrainMasterId = trainMasterId;
             RailPosition = railPosition;
+            PreviousCarId = previousCarId;
+            NextCarId = nextCarId;
         }
     }
 

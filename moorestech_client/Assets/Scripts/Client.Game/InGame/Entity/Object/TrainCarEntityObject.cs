@@ -22,6 +22,30 @@ namespace Client.Game.InGame.Entity.Object
         /// </summary>
         public RailPositionMessagePack RailPosition { get; private set; }
 
+        /// <summary>
+        /// 前方（進行方向側）に連結している車両のID。先頭車両の場合はGuid.Empty
+        /// ID of the car connected in front (direction of travel). Guid.Empty if this is the front car
+        /// </summary>
+        public Guid PreviousCarId { get; private set; }
+
+        /// <summary>
+        /// 後方に連結している車両のID。最後尾車両の場合はGuid.Empty
+        /// ID of the car connected behind. Guid.Empty if this is the rear car
+        /// </summary>
+        public Guid NextCarId { get; private set; }
+
+        /// <summary>
+        /// 先頭車両かどうか
+        /// Whether this is the front car
+        /// </summary>
+        public bool IsFrontCar => PreviousCarId == Guid.Empty;
+
+        /// <summary>
+        /// 最後尾車両かどうか
+        /// Whether this is the rear car
+        /// </summary>
+        public bool IsRearCar => NextCarId == Guid.Empty;
+
         private float _linerTime;
         private Vector3 _previousPosition;
         private Vector3 _targetPosition;
@@ -85,6 +109,8 @@ namespace Client.Game.InGame.Entity.Object
         {
             var state = MessagePackSerializer.Deserialize<TrainEntityStateMessagePack>(entityData);
             RailPosition = state.RailPosition;
+            PreviousCarId = state.PreviousCarId;
+            NextCarId = state.NextCarId;
         }
         
         /// <summary>

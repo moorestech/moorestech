@@ -50,7 +50,8 @@ namespace Game.Train.Entity
             // TODO 仮実装でとりあえず0番の車両としてマスターを設定しているけど、TrainCarを全てマスターベースに置き換える
             var tempTrainCarMasterGuid = MasterHolder.TrainUnitMaster.Train.TrainCars[0].TrainCarGuid;
             var railPositionMessagePack = CreateRailPositionMessagePack();
-            var state = new TrainEntityStateMessagePack(_trainCar.CarId, tempTrainCarMasterGuid, railPositionMessagePack);
+            var (previousCarId, nextCarId) = GetAdjacentCarIds();
+            var state = new TrainEntityStateMessagePack(_trainCar.CarId, tempTrainCarMasterGuid, railPositionMessagePack, previousCarId, nextCarId);
             return MessagePackSerializer.Serialize(state);
 
             #region Internal
@@ -89,6 +90,35 @@ namespace Game.Train.Entity
                     railPosition.DistanceToNextNode,
                     railPosition.TrainLength
                 );
+            }
+
+            (Guid previousCarId, Guid nextCarId) GetAdjacentCarIds()
+            {
+                var cars = _trainUnit.Cars;
+                var currentIndex = -1;
+
+                // 現在の車両のインデックスを検索
+                // Find current car index
+                for (int i = 0; i < cars.Count; i++)
+                {
+                    if (cars[i].CarId == _trainCar.CarId)
+                    {
+                        currentIndex = i;
+                        break;
+                    }
+                }
+
+                if (currentIndex == -1) return (Guid.Empty, Guid.Empty);
+
+                // 前方の車両（インデックスが小さい方 = 進行方向）
+                // Previous car (smaller index = direction of travel)
+                var prevId = currentIndex > 0 ? cars[currentIndex - 1].CarId : Guid.Empty;
+
+                // 後方の車両（インデックスが大きい方）
+                // Next car (larger index)
+                var nextId = currentIndex < cars.Count - 1 ? cars[currentIndex + 1].CarId : Guid.Empty;
+
+                return (prevId, nextId);
             }
 
             #endregion
