@@ -43,7 +43,7 @@ namespace Server.Protocol.PacketResponse
             var trainCar = new TrainCar(
                 trainCarMasterElement
             );
-            var targetRailNode = RailConnectionEditProtocol.ResolveRailComponent(request.RailSpecifier);
+            var targetRailNodes = request.RailSpecifierses.Select(RailConnectionEditProtocol.ResolveRailComponent);
             
             //TODO: trainUnitに生成したtrainCarを追加
             // trainUnit.AddTrain(trainCar, )
@@ -84,18 +84,18 @@ namespace Server.Protocol.PacketResponse
                 int hotBarSlot,
                 int playerId,
                 Guid targetTrainCarId,
-                RailConnectionEditProtocol.RailComponentSpecifier railSpecifier)
+                RailConnectionEditProtocol.RailComponentSpecifier[] railSpecifiers)
             {
                 Tag = ProtocolTag;
                 HotBarSlot = hotBarSlot;
                 PlayerId = playerId;
                 TargetTrainCarId = targetTrainCarId;
-                RailSpecifier = railSpecifier;
+                RailSpecifierses = railSpecifiers;
             }
             [Key(2)] public int HotBarSlot { get; set; }
             [Key(3)] public int PlayerId { get; set; }
             [Key(4)] public Guid TargetTrainCarId { get; set; }
-            [Key(5)] public RailConnectionEditProtocol.RailComponentSpecifier RailSpecifier { get; set; }
+            [Key(5)] public RailConnectionEditProtocol.RailComponentSpecifier[] RailSpecifierses { get; set; }
             [IgnoreMember] public int InventorySlot => PlayerInventoryConst.HotBarSlotToInventorySlot(HotBarSlot);
         }
         

@@ -135,9 +135,9 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
         
-        public void PlaceTrainOnExistingTrain(Guid targetTrainCar, RailComponentSpecifier specifier, int hotBarSlot)
+        public void PlaceTrainOnExistingTrain(Guid targetTrainCar, RailComponentSpecifier[] specifiers, int hotBarSlot)
         {
-            var request = new PlaceTrainCarOnExistingTrainProtocol.PlaceTrainOnExistingTrainRequestMessagePack(hotBarSlot, _playerId, targetTrainCar, specifier);
+            var request = new PlaceTrainCarOnExistingTrainProtocol.PlaceTrainOnExistingTrainRequestMessagePack(hotBarSlot, _playerId, targetTrainCar, specifiers);
             _packetSender.Send(request);
         }
         
