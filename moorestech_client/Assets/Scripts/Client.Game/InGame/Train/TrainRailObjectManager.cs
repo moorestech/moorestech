@@ -56,18 +56,18 @@ namespace Client.Game.InGame.Train
         }
 
         /// <summary>
-        /// 指定したレールコンポーネントのFront/Backから接続されているRailSplineComponentを取得
-        /// Get the RailSplineComponent connected from the specified rail component's Front/Back side
+        /// 指定したレールコンポーネントのFront/Backから接続されているRailSplineComponentを全て取得
+        /// Get all RailSplineComponents connected from the specified rail component's Front/Back side
         /// </summary>
         /// <param name="position">レールコンポーネントのブロック座標 / Block position of rail component</param>
         /// <param name="componentId">レールコンポーネントID / Rail component ID</param>
         /// <param name="isFrontSide">Front側から取得するか / Whether to get from Front side</param>
-        /// <returns>接続されているRailSplineComponent、存在しない場合はnull / Connected RailSplineComponent, or null if not found</returns>
-        /// TODO: 駅に関して全く考慮していないため問題が発生する可能性。仮に考慮する必要がないとしてもRailSplineComponentに一つIRailのような中層化層を挟みたさがある。問題発生しないかも。わからない。
-        public RailSplineComponent GetConnectedRail(Vector3Int position, int componentId, bool isFrontSide)
+        /// <returns>接続されているRailSplineComponentのリスト / List of connected RailSplineComponents</returns>
+        public List<RailSplineComponent> GetConnectedRails(Vector3Int position, int componentId, bool isFrontSide)
         {
+            var result = new List<RailSplineComponent>();
             var key = new RailComponentKey(position, componentId);
-            if (!_componentToConnections.TryGetValue(key, out var connections)) return null;
+            if (!_componentToConnections.TryGetValue(key, out var connections)) return result;
 
             foreach (var connKey in connections)
             {
@@ -75,18 +75,25 @@ namespace Client.Game.InGame.Train
                 // If From side matches
                 if (connKey.From.Position == position && connKey.From.Id == componentId && connKey.FromFront == isFrontSide)
                 {
-                    return _connectionToSpline.TryGetValue(connKey, out var spline) ? spline : null;
+                    if (_connectionToSpline.TryGetValue(connKey, out var spline))
+                    {
+                        result.Add(spline);
+                    }
+                    continue;
                 }
 
                 // To側が一致する場合
                 // If To side matches
                 if (connKey.To.Position == position && connKey.To.Id == componentId && connKey.ToFront == isFrontSide)
                 {
-                    return _connectionToSpline.TryGetValue(connKey, out var spline) ? spline : null;
+                    if (_connectionToSpline.TryGetValue(connKey, out var spline))
+                    {
+                        result.Add(spline);
+                    }
                 }
             }
 
-            return null;
+            return result;
         }
 
         /// <summary>
