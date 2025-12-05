@@ -70,16 +70,6 @@ namespace Game.Train.RailGraph
             }
 
             /// <summary>
-            /// 現在の探索における nodeId の距離を取得。未設定なら int.MaxValue を返す。
-            /// </summary>
-            int GetDistance(int nodeId)
-            {
-                return _stamp[nodeId] == _currentStamp
-                    ? _distances[nodeId]
-                    : int.MaxValue;
-            }
-
-            /// <summary>
             /// 現在の探索における nodeId の距離と前ノードを設定。
             /// </summary>
             void SetDistance(int nodeId, int distance, int previousId)
@@ -171,6 +161,15 @@ namespace Game.Train.RailGraph
         }
 
 
+        /// <summary>
+        /// 現在の探索における nodeId の距離を取得。未設定なら int.MaxValue を返す。
+        /// </summary>
+        int GetDistance(int nodeId)
+        {
+            return _stamp[nodeId] == _currentStamp
+                ? _distances[nodeId]
+                : int.MaxValue;
+        }
         // ==================================================
         // 内部専用 ヒープ実装（nodeId のみ持つ最小ヒープ）
         //   比較は owner.GetDistance(node) → nodeId

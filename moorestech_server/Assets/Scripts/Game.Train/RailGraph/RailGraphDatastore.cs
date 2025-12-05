@@ -384,57 +384,5 @@ namespace Game.Train.RailGraph
             // RailGraphPathFinder に処理を委譲
             return _pathFinder.FindShortestPath(railNodes, connectNodes, startid, targetid);
         }
-        /*
-        private List<RailNode> FindShortestPathInternal(int startid, int targetid)
-        {
-            var priorityQueue = new PriorityQueue<int, int>();
-            var distances = new List<int>();
-            var previousNodes = new List<int>();
-
-            for (int i = 0; i < railNodes.Count; i++)
-                distances.Add(int.MaxValue);
-            for (int i = 0; i < railNodes.Count; i++)
-                previousNodes.Add(-1);
-
-            distances[startid] = 0;
-            priorityQueue.Enqueue(startid, 0);
-
-            while (priorityQueue.Count > 0)
-            {
-                var currentNodecnt = priorityQueue.Dequeue();
-                if (currentNodecnt == targetid)
-                    break;
-
-                foreach (var (neighbor, distance) in connectNodes[currentNodecnt])
-                {
-                    int newDistance = distances[currentNodecnt] + distance;
-                    if (newDistance < 0)
-                        continue;
-                    if (newDistance < distances[neighbor])
-                    {
-                        distances[neighbor] = newDistance;
-                        previousNodes[neighbor] = currentNodecnt;
-                        priorityQueue.Enqueue(neighbor, newDistance);
-                    }
-                }
-            }
-
-            var path = new List<int>();
-            var current = targetid;
-            while (current != -1)
-            {
-                path.Add(current);
-                current = previousNodes[current];
-            }
-
-            if (path.Last() != startid)
-            {
-                return new List<RailNode>();
-            }
-            path.Reverse();
-            var pathNodes = path.Select(id => railNodes[id]).ToList();
-            return pathNodes;
-        }
-        */
     }
 }
