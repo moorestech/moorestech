@@ -43,7 +43,8 @@ namespace Game.World.DataStore
             block = _blockFactory.Load(blockGuid, blockInstanceId, componentStates, blockPositionInfo);
             return TryAddBlock(block);
         }
-        public bool RemoveBlock(Vector3Int pos)
+
+        public bool RemoveBlock(Vector3Int pos, BlockRemoveReason reason)
         {
             if (!this.Exists(pos)) return false;
             
@@ -51,7 +52,7 @@ namespace Game.World.DataStore
             if (!_blockMasterDictionary.ContainsKey(entityId)) return false;
             
             var data = _blockMasterDictionary[entityId];
-            ((WorldBlockUpdateEvent)ServerContext.WorldBlockUpdateEvent).OnBlockRemoveEventInvoke(pos, data);
+            ((WorldBlockUpdateEvent)ServerContext.WorldBlockUpdateEvent).OnBlockRemoveEventInvoke(pos, data, reason);
             
             data.Block.Destroy();
             _blockMasterDictionary.Remove(entityId);
@@ -180,6 +181,16 @@ namespace Game.World.DataStore
                 var block = blockFactory.Load(blockSave.BlockGuid, new BlockInstanceId(blockSave.InstanceId), blockSave.ComponentStates, blockData);
                 
                 TryAddBlock(block);
+            }
+            
+            // 全てのブロックがロードされた後にIPostBlockLoadを実行する
+            // Execute IPostBlockLoad after all blocks are loaded
+            foreach (var blockData in _blockMasterDictionary.Values)
+            {
+                foreach (var component in blockData.Block.ComponentManager.GetComponents<IPostBlockLoad>())
+                {
+                    component.OnPostBlockLoad();
+                }
             }
         }
         

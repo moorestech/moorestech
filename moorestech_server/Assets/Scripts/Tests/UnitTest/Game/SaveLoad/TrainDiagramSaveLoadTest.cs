@@ -205,7 +205,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             context.Train.OnDestroy();
             foreach (var position in context.RailPositions)
             {
-                context.Environment.WorldBlockDatastore.RemoveBlock(position);
+                context.Environment.WorldBlockDatastore.RemoveBlock(position, BlockRemoveReason.ManualRemove);
             }
 
             TrainUpdateService.Instance.ResetTrains();
@@ -217,7 +217,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             CleanupTrains(trains);
             foreach (var position in railPositions)
             {
-                environment.WorldBlockDatastore.RemoveBlock(position);
+                environment.WorldBlockDatastore.RemoveBlock(position, BlockRemoveReason.ManualRemove);
             }
 
             TrainUpdateService.Instance.ResetTrains();

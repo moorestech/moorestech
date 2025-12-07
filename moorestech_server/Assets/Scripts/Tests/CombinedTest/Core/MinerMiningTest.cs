@@ -64,7 +64,7 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(1, chestComponent.InventoryItems[0].Count);
             
             // チェストを破壊して、採掘機の中にアイテムが残ることをチェックする
-            worldBlockDatastore.RemoveBlock(chestBlockPos);
+            worldBlockDatastore.RemoveBlock(chestBlockPos, BlockRemoveReason.ManualRemove);
             
             //鉱石2個分の採掘時間待機
             mineEndTime = DateTime.Now.AddSeconds(miningTime * 2);
