@@ -45,16 +45,18 @@ namespace Core.Master
             _itemIdToBlockId = new Dictionary<ItemId, BlockId>();
             foreach (var blockElement in Blocks.Data)
             {
-                var itemId = itemMaster.GetItemId(blockElement.ItemGuid);
-                if (_itemIdToBlockId.TryGetValue(itemId, out var blockId))
+                var itemId = itemMaster.GetItemIdOrNull(blockElement.ItemGuid);
+                if (itemId == null)
+                {
+                    throw new InvalidOperationException($"ItemElement not found. BlockName:{blockElement.Name} ItemGuid:{blockElement.ItemGuid}");
+                }
+                if (_itemIdToBlockId.TryGetValue(itemId.Value, out var blockId))
                 {
                     var existingBlockElement = GetBlockMaster(blockId);
                     throw new InvalidOperationException($"Duplicate itemId. Name1: {blockElement.Name}  Name2: {existingBlockElement.Name} ItemId:{blockElement.ItemGuid} BlockId:{blockElement.BlockGuid}");
                 }
-                else
-                {
-                    _itemIdToBlockId.Add(itemId, _blockGuidToBlockId[blockElement.BlockGuid]);
-                }
+                
+                _itemIdToBlockId.Add(itemId.Value, _blockGuidToBlockId[blockElement.BlockGuid]);
             }
         }
         

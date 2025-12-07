@@ -65,9 +65,20 @@ namespace Core.Master
                 return EmptyItemId;
             }
             
-            if (!_itemGuidToItemId.TryGetValue(itemGuid, out var itemId))
+            var result = GetItemIdOrNull(itemGuid);
+            if (result == null)
             {
                 throw new InvalidOperationException($"ItemElement not found. ItemGuid:{itemGuid}");
+            }
+            return result.Value;
+        }
+        
+        
+        public ItemId? GetItemIdOrNull(Guid itemGuid)
+        {
+            if (!_itemGuidToItemId.TryGetValue(itemGuid, out var itemId))
+            {
+                return null;
             }
             return itemId;
         }
