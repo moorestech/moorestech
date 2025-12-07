@@ -1,9 +1,49 @@
 fileFormatVersion: 2
 guid: c9505692fc9bb41088390e06abfb6b3d
 ModelImporter:
-  serializedVersion: 22200
+  serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: locomotive_Black
+    second: {fileID: 2100000, guid: b2c062559085e490ba7e275ba4bbb191, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: locomotive_Clear
+    second: {fileID: 2100000, guid: cd2f3a1b9462e483084850c4f0491394, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: locomotive_EMI
+    second: {fileID: 2100000, guid: bdd7549f404634141a9164d881a08668, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: locomotive_Gold
+    second: {fileID: 2100000, guid: e3da5e19c295040bd9184bcd3e290e5e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: locomotive_Mirror
+    second: {fileID: 2100000, guid: df81d16897879410e9f67be45655de8b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: locomotive_Red
+    second: {fileID: 2100000, guid: a106e2edf3d7f44a9ba819518025527b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: locomotive_Silver
+    second: {fileID: 2100000, guid: 3608ade7407404b33b738441fe98b6ec, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: locomotive_sekitan
+    second: {fileID: 2100000, guid: e85a735fa74464d95adeeddf0d2a4d8c, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
@@ -16,8 +56,6 @@ ModelImporter:
     optimizeGameObjects: 0
     removeConstantScaleCurves: 0
     motionNodeName: 
-    rigImportErrors: 
-    rigImportWarnings: 
     animationImportErrors: 
     animationImportWarnings: 
     animationRetargetingWarnings: 
@@ -58,6 +96,9 @@ ModelImporter:
     maxBonesPerVertex: 4
     minBoneWeight: 0.001
     optimizeBones: 1
+    generateMeshLods: 0
+    meshLodGenerationFlags: 0
+    maximumMeshLod: -1
     meshOptimizationFlags: -1
     indexFormat: 0
     secondaryUVAngleDistortion: 8

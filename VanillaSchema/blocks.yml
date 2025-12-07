@@ -48,6 +48,20 @@ defineInterface:
   properties:
     - key: gear
       ref: gear
+- interfaceName: IGearOverloadParam
+  properties:
+  - key: overloadMaxRpm
+    type: number
+    default: 0
+  - key: overloadMaxTorque
+    type: number
+    default: 0
+  - key: destructionCheckInterval
+    type: number
+    default: 1
+  - key: baseDestructionProbability
+    type: number
+    default: 0
 - interfaceName: IFuelItemSlotParam
   properties:
   - key: fuelItemSlotCount
@@ -78,6 +92,7 @@ properties:
       - ElectricMiner
       - Gear
       - Shaft
+      - GearChainPole
       - GearMachine
       - SimpleGearGenerator
       - FuelGearGenerator
@@ -274,6 +289,8 @@ properties:
           ref: inventoryConnects
       - when: Gear
         type: object
+        implementationInterface:
+        - IGearOverloadParam
         properties:
         - key: teethCount
           type: integer
@@ -281,16 +298,54 @@ properties:
         - key: requireTorque
           type: number
           default: 1
+        - key: overloadMaxRpm
+          type: number
+          default: 0
+        - key: overloadMaxTorque
+          type: number
+          default: 0
+        - key: destructionCheckInterval
+          type: number
+          default: 1
+        - key: baseDestructionProbability
+          type: number
+          default: 0
         - key: gear
           ref: gear
       - when: Shaft
         type: object
         implementationInterface:
         - IGearConnectors
+        - IGearOverloadParam
         properties:
         - key: requireTorque
           type: number
           default: 1
+        - key: overloadMaxRpm
+          type: number
+          default: 0
+        - key: overloadMaxTorque
+          type: number
+          default: 0
+        - key: destructionCheckInterval
+          type: number
+          default: 1
+        - key: baseDestructionProbability
+          type: number
+          default: 0
+        - key: gear
+          ref: gear
+      - when: GearChainPole
+        type: object
+        implementationInterface:
+        - IGearConnectors
+        properties:
+        - key: maxConnectionDistance
+          type: number
+          default: 10
+        - key: maxConnectionCount
+          type: integer
+          default: 2
         - key: gear
           ref: gear
       - when: GearMachine
@@ -814,3 +869,18 @@ properties:
       type: boolean
       default: false
       optional: true
+
+- key: gearChainItems
+  type: array
+  items:
+    type: object
+    properties:
+    - key: itemGuid
+      type: uuid
+      foreignKey:
+        schemaId: items
+        foreignKeyIdPath: /data/[*]/itemGuid
+        displayElementPath: /data/[*]/name
+    - key: consumptionPerLength
+      type: number
+      default: 1

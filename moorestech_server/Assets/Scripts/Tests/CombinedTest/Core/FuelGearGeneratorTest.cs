@@ -111,10 +111,10 @@ namespace Tests.CombinedTest.Core
             // ------ パイプがなくなった時、徐々に速度が落ちていくことを検証する ------
             
             // 全てのパイプを削除する
-            worldBlockDatastore.RemoveBlock(fluidPipeBlock1.BlockPositionInfo.OriginalPos);
-            worldBlockDatastore.RemoveBlock(fluidPipeBlock2.BlockPositionInfo.OriginalPos);
-            worldBlockDatastore.RemoveBlock(fluidPipeBlock3.BlockPositionInfo.OriginalPos);
-            worldBlockDatastore.RemoveBlock(fluidPipeBlock4.BlockPositionInfo.OriginalPos);
+            worldBlockDatastore.RemoveBlock(fluidPipeBlock1.BlockPositionInfo.OriginalPos, BlockRemoveReason.ManualRemove);
+            worldBlockDatastore.RemoveBlock(fluidPipeBlock2.BlockPositionInfo.OriginalPos, BlockRemoveReason.ManualRemove);
+            worldBlockDatastore.RemoveBlock(fluidPipeBlock3.BlockPositionInfo.OriginalPos, BlockRemoveReason.ManualRemove);
+            worldBlockDatastore.RemoveBlock(fluidPipeBlock4.BlockPositionInfo.OriginalPos, BlockRemoveReason.ManualRemove);
             
             // まだ前回と同じ値なので1回だけアップデートしておく
             GameUpdater.UpdateWithWait();
@@ -386,10 +386,10 @@ namespace Tests.CombinedTest.Core
                 previousCount = stateChangeCount;
                 
                 // パイプを削除
-                worldBlockDatastore.RemoveBlock(new Vector3Int(0, 0, -1));
-                worldBlockDatastore.RemoveBlock(new Vector3Int(1, 0, 0));
-                worldBlockDatastore.RemoveBlock(new Vector3Int(0, 0, 1));
-                worldBlockDatastore.RemoveBlock(new Vector3Int(-1, 0, 0));
+                worldBlockDatastore.RemoveBlock(new Vector3Int(0, 0, -1), BlockRemoveReason.ManualRemove);
+                worldBlockDatastore.RemoveBlock(new Vector3Int(1, 0, 0), BlockRemoveReason.ManualRemove);
+                worldBlockDatastore.RemoveBlock(new Vector3Int(0, 0, 1), BlockRemoveReason.ManualRemove);
+                worldBlockDatastore.RemoveBlock(new Vector3Int(-1, 0, 0), BlockRemoveReason.ManualRemove);
                 
                 // 減速が始まるまで待つ（パイプ削除後は蒸気を追加しない）
                 for (int i = 0; i < 10; i++)

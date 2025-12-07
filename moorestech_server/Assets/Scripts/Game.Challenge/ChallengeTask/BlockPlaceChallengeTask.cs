@@ -26,7 +26,7 @@ namespace Game.Challenge.Task
             worldEvent.OnBlockPlaceEvent.Subscribe(OnBlockPlace);
         }
         
-        private void OnBlockPlace(BlockUpdateProperties properties)
+        private void OnBlockPlace(BlockPlaceProperties properties)
         {
             if (_completed) return;
             

@@ -98,6 +98,10 @@ namespace Game.Train.Train
         {
             IsFacingForward = isFacingForward;
         }
+        public void Reverse()
+        {
+            IsFacingForward = !IsFacingForward;
+        }
 
 
 

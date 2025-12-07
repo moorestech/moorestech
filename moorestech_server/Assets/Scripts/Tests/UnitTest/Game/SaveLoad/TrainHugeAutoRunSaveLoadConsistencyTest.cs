@@ -395,7 +395,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var blocks = world.GetSaveJsonObject();
             foreach (var block in blocks)
             {
-                world.RemoveBlock(block.Pos);
+                world.RemoveBlock(block.Pos, BlockRemoveReason.ManualRemove);
             }
         }
 
@@ -440,7 +440,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             public static TrainSimulationSnapshot Create(TrainUnit train)
             {
-                var railNodes = train.RailPosition.EnumerateRailNodes()
+                var railNodes = train.RailPosition.GetRailNodes()
                     .Select(node => NodeIdentifier.Create(node))
                     .ToList();
 
