@@ -84,8 +84,10 @@ namespace Core.Master.Validator
 
         public static void Initialize(
             MachineRecipes machineRecipes,
-            Dictionary<string, MachineRecipeMasterElement> machineRecipesByRecipeKey)
+            out Dictionary<string, MachineRecipeMasterElement> machineRecipesByRecipeKey)
         {
+            machineRecipesByRecipeKey = new Dictionary<string, MachineRecipeMasterElement>();
+            
             // レシピのDictionary構築（Validate成功後に実行）
             // Build recipe dictionary (executed after Validate succeeds)
             foreach (var recipe in machineRecipes.Data)

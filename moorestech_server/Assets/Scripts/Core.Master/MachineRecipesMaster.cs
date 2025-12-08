@@ -16,7 +16,6 @@ namespace Core.Master
         public MachineRecipesMaster(JToken jToken)
         {
             MachineRecipes = MachineRecipesLoader.Load(jToken);
-            _machineRecipesByRecipeKey = new Dictionary<string, MachineRecipeMasterElement>();
         }
 
         public bool Validate(out string errorLogs)
@@ -26,7 +25,7 @@ namespace Core.Master
 
         public void Initialize()
         {
-            MachineRecipesMasterUtil.Initialize(MachineRecipes, _machineRecipesByRecipeKey);
+            MachineRecipesMasterUtil.Initialize(MachineRecipes, out _machineRecipesByRecipeKey);
         }
 
         public bool TryGetRecipeElement(BlockId blockId, List<ItemId> inputItemIds, List<FluidId> inputFluids, out MachineRecipeMasterElement recipe)
