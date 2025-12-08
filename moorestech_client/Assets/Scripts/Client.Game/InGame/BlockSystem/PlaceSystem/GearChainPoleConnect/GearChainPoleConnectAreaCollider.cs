@@ -1,4 +1,5 @@
 using Client.Game.InGame.Block;
+using Client.Game.InGame.BlockSystem.StateProcessor;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
@@ -8,7 +9,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
     /// Collider for GearChainPole connection selection
     /// </summary>
     [RequireComponent(typeof(Collider))]
-    public class GearChainPoleConnectAreaCollider : MonoBehaviour, IGearChainPoleConnectAreaCollider
+    public class GearChainPoleConnectAreaCollider : MonoBehaviour, IGearChainPoleConnectAreaCollider, IBlockGameObjectInnerComponent
     {
         private BlockGameObject _blockGameObject;
 
