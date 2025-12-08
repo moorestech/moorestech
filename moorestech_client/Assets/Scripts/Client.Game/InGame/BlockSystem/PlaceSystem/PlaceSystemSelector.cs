@@ -1,6 +1,7 @@
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Empty;
+using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect;
@@ -16,18 +17,21 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         private readonly TrainRailPlaceSystem _trainRailPlaceSystem;
         private readonly TrainCarPlaceSystem _trainCarPlaceSystem;
         private readonly TrainRailConnectSystem _trainRailConnectSystem;
+        private readonly GearChainPoleConnectSystem _gearChainPoleConnectSystem;
         
         public PlaceSystemSelector(
             CommonBlockPlaceSystem commonBlockPlaceSystem,
             TrainCarPlaceSystem trainCarPlaceSystem,
             TrainRailPlaceSystem trainRailPlaceSystem,
-            TrainRailConnectSystem trainRailConnectSystem)
+            TrainRailConnectSystem trainRailConnectSystem,
+            GearChainPoleConnectSystem gearChainPoleConnectSystem)
         {
             EmptyPlaceSystem = new EmptyPlaceSystem();
             _commonBlockPlaceSystem = commonBlockPlaceSystem;
             _trainCarPlaceSystem = trainCarPlaceSystem;
             _trainRailPlaceSystem = trainRailPlaceSystem;
             _trainRailConnectSystem = trainRailConnectSystem;
+            _gearChainPoleConnectSystem = gearChainPoleConnectSystem;
         }
         
         public IPlaceSystem GetCurrentPlaceSystem(PlaceSystemUpdateContext context)
@@ -44,6 +48,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                     PlaceSystemMasterElement.PlaceModeConst.TrainRail => _trainRailPlaceSystem,
                     PlaceSystemMasterElement.PlaceModeConst.TrainCar => _trainCarPlaceSystem,
                     PlaceSystemMasterElement.PlaceModeConst.TrainRailConnect => _trainRailConnectSystem,
+                    PlaceSystemMasterElement.PlaceModeConst.GearChainPoleConnect => _gearChainPoleConnectSystem,
                     _ => throw new System.Exception($"Unsupported PlaceMode: {placeSystemElement.PlaceMode}"),
                 };
             }
