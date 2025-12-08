@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -22,6 +24,8 @@ namespace Core.Master
             // ロード順序は依存関係に基づいて決定
             // Load order is determined based on dependencies
             ItemMaster = new ItemMaster(GetJson(masterJsonFileContainer, new JsonFileName("items")));
+            ValidateMaster(ItemMaster);
+            
             FluidMaster = new FluidMaster(GetJson(masterJsonFileContainer, new JsonFileName("fluids")));
             BlockMaster = new BlockMaster(GetJson(masterJsonFileContainer, new JsonFileName("blocks")), ItemMaster);
 
@@ -31,13 +35,23 @@ namespace Core.Master
             MapObjectMaster = new MapObjectMaster(GetJson(masterJsonFileContainer, new JsonFileName("mapObjects")));
             CharacterMaster = new CharacterMaster(GetJson(masterJsonFileContainer, new JsonFileName("characters")));
 
-            // ChallengeMasterとResearchMasterはGameActionでCraftRecipeMasterに依存
-            // ChallengeMaster and ResearchMaster depend on CraftRecipeMaster for GameAction validation
             ChallengeMaster = new ChallengeMaster(GetJson(masterJsonFileContainer, new JsonFileName("challenges")));
             ResearchMaster = new ResearchMaster(GetJson(masterJsonFileContainer, new JsonFileName("research")));
 
             PlaceSystemMaster = new PlaceSystemMaster(GetJson(masterJsonFileContainer, new JsonFileName("placeSystem")));
             TrainUnitMaster = new TrainUnitMaster(GetJson(masterJsonFileContainer, new JsonFileName("train")), ItemMaster);
+            
+            #region Internal
+            
+            void ValidateMaster(IMasterValidator validator)
+            {
+                if (!validator.Validate(out var errorLogs))
+                {
+                    throw new InvalidOperationException($"Master data validation failed:\n{errorLogs}");
+                }
+            }
+            
+            #endregion
         }
         
         private static JToken GetJson(MasterJsonFileContainer masterJsonFileContainer, JsonFileName jsonFileName)
