@@ -34,7 +34,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
 
             // ライン表示を更新
             // Update line display
-            chainLineView.UpdateChainLinesAsync(partnerPositions).Forget();
+            chainLineView.UpdateChainLines(partnerPositions);
         }
     }
 }
