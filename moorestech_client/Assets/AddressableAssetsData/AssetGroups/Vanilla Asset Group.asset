@@ -440,6 +440,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 78cf01db9e75845cf86c2b3666bafa73
+    m_Address: Vanilla/Block/Util/GearChainLine
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 7912b97a25dfd4ddaa05247884aed7d3
     m_Address: Vanilla/Block/GearChainPole
     m_ReadOnly: 0
