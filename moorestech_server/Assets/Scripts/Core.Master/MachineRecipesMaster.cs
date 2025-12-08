@@ -11,7 +11,7 @@ namespace Core.Master
     public class MachineRecipesMaster : IMasterValidator
     {
         public readonly MachineRecipes MachineRecipes;
-        private readonly Dictionary<string, MachineRecipeMasterElement> _machineRecipesByRecipeKey;
+        private Dictionary<string, MachineRecipeMasterElement> _machineRecipesByRecipeKey;
 
         public MachineRecipesMaster(JToken jToken)
         {
