@@ -12,6 +12,10 @@ PrefabInstance:
       propertyPath: m_text
       value: "\u77F3\u6CB9"
       objectReference: {fileID: 0}
+    - target: {fileID: 356493735206346843, guid: 102545e4aec104a1ea56a3bb9b52b985, type: 3}
+      propertyPath: veinItemGuid
+      value: 582040ec-093b-4c8e-8fe3-f4ec030cf1ca
+      objectReference: {fileID: 0}
     - target: {fileID: 4382336488861206257, guid: 102545e4aec104a1ea56a3bb9b52b985, type: 3}
       propertyPath: m_Name
       value: VeinSet_Oil
