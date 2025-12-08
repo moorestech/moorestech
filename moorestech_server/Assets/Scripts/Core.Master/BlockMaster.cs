@@ -5,7 +5,6 @@ using Mooresmaster.Loader.BlocksModule;
 using Mooresmaster.Model.BlocksModule;
 using Newtonsoft.Json.Linq;
 using UnitGenerator;
-using UnityEngine;
 
 namespace Core.Master
 {
@@ -58,6 +57,166 @@ namespace Core.Master
                 
                 _itemIdToBlockId.Add(itemId.Value, _blockGuidToBlockId[blockElement.BlockGuid]);
             }
+
+            // 外部キーバリデーション
+            // Foreign key validation
+            BlockParamValidation();
+            OverrideVerticalBlockValidation();
+            GearChainItemsValidation();
+
+            #region Internal
+
+            void BlockParamValidation()
+            {
+                var errorLogs = "";
+                foreach (var block in Blocks.Data)
+                {
+                    // ElectricGenerator: fuelItems, fuelFluids
+                    // ElectricGenerator: fuelItems, fuelFluids
+                    if (block.BlockParam is ElectricGeneratorBlockParam electricGenerator)
+                    {
+                        if (electricGenerator.FuelItems != null)
+                        {
+                            foreach (var fuelItem in electricGenerator.FuelItems)
+                            {
+                                var id = MasterHolder.ItemMaster.GetItemIdOrNull(fuelItem.ItemGuid);
+                                if (id == null)
+                                {
+                                    errorLogs += $"[BlockMaster] Name:{block.Name} has invalid FuelItem.ItemGuid:{fuelItem.ItemGuid}\n";
+                                }
+                            }
+                        }
+                        if (electricGenerator.FuelFluids != null)
+                        {
+                            foreach (var fuelFluid in electricGenerator.FuelFluids)
+                            {
+                                var id = MasterHolder.FluidMaster.GetFluidIdOrNull(fuelFluid.FluidGuid);
+                                if (id == null)
+                                {
+                                    errorLogs += $"[BlockMaster] Name:{block.Name} has invalid FuelFluid.FluidGuid:{fuelFluid.FluidGuid}\n";
+                                }
+                            }
+                        }
+                    }
+
+                    // FuelGearGenerator: gearFuelItems, requiredFluids
+                    // FuelGearGenerator: gearFuelItems, requiredFluids
+                    if (block.BlockParam is FuelGearGeneratorBlockParam fuelGearGenerator)
+                    {
+                        if (fuelGearGenerator.GearFuelItems != null)
+                        {
+                            foreach (var gearFuelItem in fuelGearGenerator.GearFuelItems)
+                            {
+                                var id = MasterHolder.ItemMaster.GetItemIdOrNull(gearFuelItem.ItemGuid);
+                                if (id == null)
+                                {
+                                    errorLogs += $"[BlockMaster] Name:{block.Name} has invalid GearFuelItem.ItemGuid:{gearFuelItem.ItemGuid}\n";
+                                }
+                            }
+                        }
+                        foreach (var requiredFluid in fuelGearGenerator.RequiredFluids)
+                        {
+                            var id = MasterHolder.FluidMaster.GetFluidIdOrNull(requiredFluid.FluidGuid);
+                            if (id == null)
+                            {
+                                errorLogs += $"[BlockMaster] Name:{block.Name} has invalid RequiredFluid.FluidGuid:{requiredFluid.FluidGuid}\n";
+                            }
+                        }
+                    }
+
+                    // BaseCamp: requiredItems, upgradBlockGuid
+                    // BaseCamp: requiredItems, upgradBlockGuid
+                    if (block.BlockParam is BaseCampBlockParam baseCamp)
+                    {
+                        foreach (var requiredItem in baseCamp.RequiredItems)
+                        {
+                            var id = MasterHolder.ItemMaster.GetItemIdOrNull(requiredItem.ItemGuid);
+                            if (id == null)
+                            {
+                                errorLogs += $"[BlockMaster] Name:{block.Name} has invalid RequiredItem.ItemGuid:{requiredItem.ItemGuid}\n";
+                            }
+                        }
+                        // 空のGUIDはアップグレードなしを意味するためスキップ
+                        // Empty GUID means no upgrade, so skip
+                        if (baseCamp.UpgradBlockGuid != Guid.Empty)
+                        {
+                            var upgradeBlockId = GetBlockIdOrNull(baseCamp.UpgradBlockGuid);
+                            if (upgradeBlockId == null)
+                            {
+                                errorLogs += $"[BlockMaster] Name:{block.Name} has invalid UpgradBlockGuid:{baseCamp.UpgradBlockGuid}\n";
+                            }
+                        }
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(errorLogs))
+                {
+                    throw new Exception(errorLogs);
+                }
+            }
+
+            void OverrideVerticalBlockValidation()
+            {
+                var errorLogs = "";
+                foreach (var block in Blocks.Data)
+                {
+                    if (block.OverrideVerticalBlock == null) continue;
+
+                    var overrideVertical = block.OverrideVerticalBlock;
+
+                    // 空のGUIDは「オーバーライドなし」を意味するためスキップ
+                    // Empty GUID means no override, so skip
+                    if (overrideVertical.UpBlockGuid.HasValue && overrideVertical.UpBlockGuid.Value != Guid.Empty)
+                    {
+                        var id = GetBlockIdOrNull(overrideVertical.UpBlockGuid.Value);
+                        if (id == null)
+                        {
+                            errorLogs += $"[BlockMaster] Name:{block.Name} has invalid OverrideVerticalBlock.UpBlockGuid:{overrideVertical.UpBlockGuid}\n";
+                        }
+                    }
+                    if (overrideVertical.HorizontalBlockGuid.HasValue && overrideVertical.HorizontalBlockGuid.Value != Guid.Empty)
+                    {
+                        var id = GetBlockIdOrNull(overrideVertical.HorizontalBlockGuid.Value);
+                        if (id == null)
+                        {
+                            errorLogs += $"[BlockMaster] Name:{block.Name} has invalid OverrideVerticalBlock.HorizontalBlockGuid:{overrideVertical.HorizontalBlockGuid}\n";
+                        }
+                    }
+                    if (overrideVertical.DownBlockGuid.HasValue && overrideVertical.DownBlockGuid.Value != Guid.Empty)
+                    {
+                        var id = GetBlockIdOrNull(overrideVertical.DownBlockGuid.Value);
+                        if (id == null)
+                        {
+                            errorLogs += $"[BlockMaster] Name:{block.Name} has invalid OverrideVerticalBlock.DownBlockGuid:{overrideVertical.DownBlockGuid}\n";
+                        }
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(errorLogs))
+                {
+                    throw new Exception(errorLogs);
+                }
+            }
+
+            void GearChainItemsValidation()
+            {
+                var errorLogs = "";
+                foreach (var gearChainItem in Blocks.GearChainItems)
+                {
+                    var id = MasterHolder.ItemMaster.GetItemIdOrNull(gearChainItem.ItemGuid);
+                    if (id == null)
+                    {
+                        errorLogs += $"[BlockMaster] GearChainItem has invalid ItemGuid:{gearChainItem.ItemGuid}\n";
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(errorLogs))
+                {
+                    throw new Exception(errorLogs);
+                }
+            }
+
+            #endregion
         }
         
         public BlockMasterElement GetBlockMaster(BlockId blockId)
@@ -88,7 +247,17 @@ namespace Core.Master
             {
                 throw new InvalidOperationException($"BlockElement not found. BlockGuid:{blockGuid}");
             }
-            
+
+            return blockId;
+        }
+
+        public BlockId? GetBlockIdOrNull(Guid blockGuid)
+        {
+            if (!_blockGuidToBlockId.TryGetValue(blockGuid, out var blockId))
+            {
+                return null;
+            }
+
             return blockId;
         }
         

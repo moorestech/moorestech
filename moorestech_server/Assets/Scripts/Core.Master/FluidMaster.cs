@@ -74,12 +74,27 @@ namespace Core.Master
             {
                 return EmptyFluidId;
             }
-            
+
             if (!_fluidGuidToFluidId.TryGetValue(fluidGuid, out var id))
             {
                 throw new InvalidOperationException($"FluidElement not found. FluidGuid:{fluidGuid}");
             }
-            
+
+            return id;
+        }
+
+        public FluidId? GetFluidIdOrNull(Guid fluidGuid)
+        {
+            if (fluidGuid == Guid.Empty)
+            {
+                return EmptyFluidId;
+            }
+
+            if (!_fluidGuidToFluidId.TryGetValue(fluidGuid, out var id))
+            {
+                return null;
+            }
+
             return id;
         }
         
