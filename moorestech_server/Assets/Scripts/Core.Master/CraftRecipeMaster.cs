@@ -6,20 +6,27 @@ using Newtonsoft.Json.Linq;
 
 namespace Core.Master
 {
-    public class CraftRecipeMaster
+    public class CraftRecipeMaster : IMasterValidator
     {
         public readonly CraftRecipes CraftRecipes;
-        
+
         public CraftRecipeMaster(JToken craftRecipeJToken)
         {
             CraftRecipes = CraftRecipesLoader.Load(craftRecipeJToken);
-            ValidateCraftRecipe();
-            
+        }
+
+        public bool Validate(out string errorLogs)
+        {
+            errorLogs = "";
+            errorLogs += ValidateCraftRecipe();
+            return string.IsNullOrEmpty(errorLogs);
+
             #region Internal
-            
-            void ValidateCraftRecipe()
+
+            string ValidateCraftRecipe()
             {
                 // チェックするアイテムのGUIDを取得
+                // Get item GUIDs to check
                 var checkTargets = new List<Guid>();
                 foreach (var craftRecipeMasterElement in CraftRecipes.Data)
                 {
@@ -29,34 +36,29 @@ namespace Core.Master
                     }
                     checkTargets.Add(craftRecipeMasterElement.CraftResultItemGuid);
                 }
-                
+
                 // アイテムのGUIDが存在するかチェック
-                var notExistItemGuids = new List<Guid>();
+                // Check if item GUIDs exist
+                var logs = "";
                 foreach (var checkItem in checkTargets)
                 {
-                    try
+                    var itemId = MasterHolder.ItemMaster.GetItemIdOrNull(checkItem);
+                    if (itemId == null)
                     {
-                        MasterHolder.ItemMaster.GetItemId(checkItem);
-                    }
-                    catch (InvalidOperationException e)
-                    {
-                        notExistItemGuids.Add(checkItem);
+                        logs += $"[CraftRecipeMaster] has invalid ItemGuid:{checkItem}\n";
                     }
                 }
-                
-                // アイテムのGUIDが存在しない場合はエラーを出力
-                if (notExistItemGuids.Count > 0)
-                {
-                    var errorMessage = "クラフトレシピに存在しないアイテムのGUIDが含まれています。\n";
-                    foreach (var notExistItemGuid in notExistItemGuids)
-                    {
-                        errorMessage += $"{notExistItemGuid}\n";
-                    }
-                    throw new InvalidOperationException(errorMessage);
-                }
+
+                return logs;
             }
-            
-  #endregion
+
+            #endregion
+        }
+
+        public void Initialize()
+        {
+            // CraftRecipeMasterは追加の初期化処理がないため、空実装
+            // CraftRecipeMaster has no additional initialization, so empty implementation
         }
         
         /// <summary>

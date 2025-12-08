@@ -5,21 +5,26 @@ using Newtonsoft.Json.Linq;
 
 namespace Core.Master
 {
-    public class MapObjectMaster
+    public class MapObjectMaster : IMasterValidator
     {
         public readonly MapObjects MapObjects;
-        
+
         public MapObjectMaster(JToken jToken)
         {
             MapObjects = MapObjectsLoader.Load(jToken);
-            
-            ItemGuidValidation();
-            
+        }
+
+        public bool Validate(out string errorLogs)
+        {
+            errorLogs = "";
+            errorLogs += ItemGuidValidation();
+            return string.IsNullOrEmpty(errorLogs);
+
             #region Internal
-            
-            void ItemGuidValidation()
+
+            string ItemGuidValidation()
             {
-                var errorLogs = "";
+                var logs = "";
                 foreach (var mapObjectElement in MapObjects.Data)
                 {
                     foreach (var earnItemsElement in mapObjectElement.EarnItems)
@@ -27,33 +32,36 @@ namespace Core.Master
                         var itemId = MasterHolder.ItemMaster.GetItemIdOrNull(earnItemsElement.ItemGuid);
                         if (itemId == null)
                         {
-                            errorLogs += $"[MapObjectMaster] Name:{mapObjectElement.MapObjectName} has invalid ItemGuid:{earnItemsElement.ItemGuid}\n";
+                            logs += $"[MapObjectMaster] Name:{mapObjectElement.MapObjectName} has invalid ItemGuid:{earnItemsElement.ItemGuid}\n";
                         }
                     }
-                    
+
                     var miningParam = mapObjectElement.MiningParam;
-                    if (miningParam is MiningMiningParam)
+                    if (miningParam is MiningMiningParam miningMiningParam)
                     {
-                        foreach (var miningTool in ((MiningMiningParam)miningParam).MiningTools)
+                        foreach (var miningTool in miningMiningParam.MiningTools)
                         {
                             var itemId = MasterHolder.ItemMaster.GetItemIdOrNull(miningTool.ToolItemGuid);
                             if (itemId == null)
                             {
-                                errorLogs += $"[MapObjectMaster] Name:{mapObjectElement.MapObjectName} has invalid ToolItemGuid:{miningTool.ToolItemGuid}\n";
+                                logs += $"[MapObjectMaster] Name:{mapObjectElement.MapObjectName} has invalid ToolItemGuid:{miningTool.ToolItemGuid}\n";
                             }
                         }
                     }
                 }
-                
-                if (!string.IsNullOrEmpty(errorLogs))
-                {
-                    throw new Exception(errorLogs);
-                }
+
+                return logs;
             }
-            
+
             #endregion
         }
-        
+
+        public void Initialize()
+        {
+            // MapObjectMasterは追加の初期化処理がないため、空実装
+            // MapObjectMaster has no additional initialization, so empty implementation
+        }
+
         public MapObjectMasterElement GetMapObjectElement(Guid guid)
         {
             return Array.Find(MapObjects.Data, x => x.MapObjectGuid == guid);

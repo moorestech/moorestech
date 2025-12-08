@@ -15,60 +15,48 @@ namespace Core.Master
     {
     }
     
-    public class BlockMaster
+    public class BlockMaster : IMasterValidator
     {
         public readonly Blocks Blocks;
-        
-        private readonly Dictionary<BlockId, BlockMasterElement> _blockElementTableById;
-        private readonly Dictionary<Guid, BlockId> _blockGuidToBlockId;
-        
-        private readonly Dictionary<ItemId, BlockId> _itemIdToBlockId;
-        
-        public BlockMaster(JToken blockJToken, ItemMaster itemMaster)
-        {
-            // GUIDの順番にint型のItemIdを割り当てる
-            Blocks = BlocksLoader.Load(blockJToken);
-            var sortedBlockElements = Blocks.Data.ToList().OrderBy(x => x.BlockGuid).ToList();
-            
-            // アイテムID 0は空のアイテムとして予約しているので、1から始める
-            _blockElementTableById = new Dictionary<BlockId, BlockMasterElement>();
-            _blockGuidToBlockId = new Dictionary<Guid, BlockId>();
-            for (var i = 0; i < sortedBlockElements.Count; i++)
-            {
-                var blockId = new BlockId(i + 1); // アイテムID 0は空のアイテムとして予約しているので、1から始める
-                _blockElementTableById.Add(blockId, sortedBlockElements[i]);
-                _blockGuidToBlockId.Add(sortedBlockElements[i].BlockGuid, blockId);
-            }
-            
-            // itemId to blockId
-            _itemIdToBlockId = new Dictionary<ItemId, BlockId>();
-            foreach (var blockElement in Blocks.Data)
-            {
-                var itemId = itemMaster.GetItemIdOrNull(blockElement.ItemGuid);
-                if (itemId == null)
-                {
-                    throw new InvalidOperationException($"ItemElement not found. BlockName:{blockElement.Name} ItemGuid:{blockElement.ItemGuid}");
-                }
-                if (_itemIdToBlockId.TryGetValue(itemId.Value, out var blockId))
-                {
-                    var existingBlockElement = GetBlockMaster(blockId);
-                    throw new InvalidOperationException($"Duplicate itemId. Name1: {blockElement.Name}  Name2: {existingBlockElement.Name} ItemId:{blockElement.ItemGuid} BlockId:{blockElement.BlockGuid}");
-                }
-                
-                _itemIdToBlockId.Add(itemId.Value, _blockGuidToBlockId[blockElement.BlockGuid]);
-            }
 
-            // 外部キーバリデーション
-            // Foreign key validation
-            BlockParamValidation();
-            OverrideVerticalBlockValidation();
-            GearChainItemsValidation();
+        private Dictionary<BlockId, BlockMasterElement> _blockElementTableById;
+        private Dictionary<Guid, BlockId> _blockGuidToBlockId;
+        private Dictionary<ItemId, BlockId> _itemIdToBlockId;
+
+        public BlockMaster(JToken blockJToken)
+        {
+            Blocks = BlocksLoader.Load(blockJToken);
+        }
+
+        public bool Validate(out string errorLogs)
+        {
+            errorLogs = "";
+            errorLogs += BlockItemGuidValidation();
+            errorLogs += BlockParamValidation();
+            errorLogs += OverrideVerticalBlockValidation();
+            errorLogs += GearChainItemsValidation();
+            return string.IsNullOrEmpty(errorLogs);
 
             #region Internal
 
-            void BlockParamValidation()
+            string BlockItemGuidValidation()
             {
-                var errorLogs = "";
+                var logs = "";
+                foreach (var blockElement in Blocks.Data)
+                {
+                    var itemId = MasterHolder.ItemMaster.GetItemIdOrNull(blockElement.ItemGuid);
+                    if (itemId == null)
+                    {
+                        logs += $"[BlockMaster] Name:{blockElement.Name} has invalid ItemGuid:{blockElement.ItemGuid}\n";
+                    }
+                }
+
+                return logs;
+            }
+
+            string BlockParamValidation()
+            {
+                var logs = "";
                 foreach (var block in Blocks.Data)
                 {
                     // ElectricGenerator: fuelItems, fuelFluids
@@ -82,7 +70,7 @@ namespace Core.Master
                                 var id = MasterHolder.ItemMaster.GetItemIdOrNull(fuelItem.ItemGuid);
                                 if (id == null)
                                 {
-                                    errorLogs += $"[BlockMaster] Name:{block.Name} has invalid FuelItem.ItemGuid:{fuelItem.ItemGuid}\n";
+                                    logs += $"[BlockMaster] Name:{block.Name} has invalid FuelItem.ItemGuid:{fuelItem.ItemGuid}\n";
                                 }
                             }
                         }
@@ -93,7 +81,7 @@ namespace Core.Master
                                 var id = MasterHolder.FluidMaster.GetFluidIdOrNull(fuelFluid.FluidGuid);
                                 if (id == null)
                                 {
-                                    errorLogs += $"[BlockMaster] Name:{block.Name} has invalid FuelFluid.FluidGuid:{fuelFluid.FluidGuid}\n";
+                                    logs += $"[BlockMaster] Name:{block.Name} has invalid FuelFluid.FluidGuid:{fuelFluid.FluidGuid}\n";
                                 }
                             }
                         }
@@ -110,7 +98,7 @@ namespace Core.Master
                                 var id = MasterHolder.ItemMaster.GetItemIdOrNull(gearFuelItem.ItemGuid);
                                 if (id == null)
                                 {
-                                    errorLogs += $"[BlockMaster] Name:{block.Name} has invalid GearFuelItem.ItemGuid:{gearFuelItem.ItemGuid}\n";
+                                    logs += $"[BlockMaster] Name:{block.Name} has invalid GearFuelItem.ItemGuid:{gearFuelItem.ItemGuid}\n";
                                 }
                             }
                         }
@@ -119,7 +107,7 @@ namespace Core.Master
                             var id = MasterHolder.FluidMaster.GetFluidIdOrNull(requiredFluid.FluidGuid);
                             if (id == null)
                             {
-                                errorLogs += $"[BlockMaster] Name:{block.Name} has invalid RequiredFluid.FluidGuid:{requiredFluid.FluidGuid}\n";
+                                logs += $"[BlockMaster] Name:{block.Name} has invalid RequiredFluid.FluidGuid:{requiredFluid.FluidGuid}\n";
                             }
                         }
                     }
@@ -133,31 +121,27 @@ namespace Core.Master
                             var id = MasterHolder.ItemMaster.GetItemIdOrNull(requiredItem.ItemGuid);
                             if (id == null)
                             {
-                                errorLogs += $"[BlockMaster] Name:{block.Name} has invalid RequiredItem.ItemGuid:{requiredItem.ItemGuid}\n";
+                                logs += $"[BlockMaster] Name:{block.Name} has invalid RequiredItem.ItemGuid:{requiredItem.ItemGuid}\n";
                             }
                         }
                         // 空のGUIDはアップグレードなしを意味するためスキップ
                         // Empty GUID means no upgrade, so skip
                         if (baseCamp.UpgradBlockGuid != Guid.Empty)
                         {
-                            var upgradeBlockId = GetBlockIdOrNull(baseCamp.UpgradBlockGuid);
-                            if (upgradeBlockId == null)
+                            if (!ExistsBlockGuid(baseCamp.UpgradBlockGuid))
                             {
-                                errorLogs += $"[BlockMaster] Name:{block.Name} has invalid UpgradBlockGuid:{baseCamp.UpgradBlockGuid}\n";
+                                logs += $"[BlockMaster] Name:{block.Name} has invalid UpgradBlockGuid:{baseCamp.UpgradBlockGuid}\n";
                             }
                         }
                     }
                 }
 
-                if (!string.IsNullOrEmpty(errorLogs))
-                {
-                    throw new Exception(errorLogs);
-                }
+                return logs;
             }
 
-            void OverrideVerticalBlockValidation()
+            string OverrideVerticalBlockValidation()
             {
-                var errorLogs = "";
+                var logs = "";
                 foreach (var block in Blocks.Data)
                 {
                     if (block.OverrideVerticalBlock == null) continue;
@@ -168,51 +152,93 @@ namespace Core.Master
                     // Empty GUID means no override, so skip
                     if (overrideVertical.UpBlockGuid.HasValue && overrideVertical.UpBlockGuid.Value != Guid.Empty)
                     {
-                        var id = GetBlockIdOrNull(overrideVertical.UpBlockGuid.Value);
-                        if (id == null)
+                        if (!ExistsBlockGuid(overrideVertical.UpBlockGuid.Value))
                         {
-                            errorLogs += $"[BlockMaster] Name:{block.Name} has invalid OverrideVerticalBlock.UpBlockGuid:{overrideVertical.UpBlockGuid}\n";
+                            logs += $"[BlockMaster] Name:{block.Name} has invalid OverrideVerticalBlock.UpBlockGuid:{overrideVertical.UpBlockGuid}\n";
                         }
                     }
                     if (overrideVertical.HorizontalBlockGuid.HasValue && overrideVertical.HorizontalBlockGuid.Value != Guid.Empty)
                     {
-                        var id = GetBlockIdOrNull(overrideVertical.HorizontalBlockGuid.Value);
-                        if (id == null)
+                        if (!ExistsBlockGuid(overrideVertical.HorizontalBlockGuid.Value))
                         {
-                            errorLogs += $"[BlockMaster] Name:{block.Name} has invalid OverrideVerticalBlock.HorizontalBlockGuid:{overrideVertical.HorizontalBlockGuid}\n";
+                            logs += $"[BlockMaster] Name:{block.Name} has invalid OverrideVerticalBlock.HorizontalBlockGuid:{overrideVertical.HorizontalBlockGuid}\n";
                         }
                     }
                     if (overrideVertical.DownBlockGuid.HasValue && overrideVertical.DownBlockGuid.Value != Guid.Empty)
                     {
-                        var id = GetBlockIdOrNull(overrideVertical.DownBlockGuid.Value);
-                        if (id == null)
+                        if (!ExistsBlockGuid(overrideVertical.DownBlockGuid.Value))
                         {
-                            errorLogs += $"[BlockMaster] Name:{block.Name} has invalid OverrideVerticalBlock.DownBlockGuid:{overrideVertical.DownBlockGuid}\n";
+                            logs += $"[BlockMaster] Name:{block.Name} has invalid OverrideVerticalBlock.DownBlockGuid:{overrideVertical.DownBlockGuid}\n";
                         }
                     }
                 }
 
-                if (!string.IsNullOrEmpty(errorLogs))
-                {
-                    throw new Exception(errorLogs);
-                }
+                return logs;
             }
 
-            void GearChainItemsValidation()
+            string GearChainItemsValidation()
             {
-                var errorLogs = "";
+                var logs = "";
                 foreach (var gearChainItem in Blocks.GearChainItems)
                 {
                     var id = MasterHolder.ItemMaster.GetItemIdOrNull(gearChainItem.ItemGuid);
                     if (id == null)
                     {
-                        errorLogs += $"[BlockMaster] GearChainItem has invalid ItemGuid:{gearChainItem.ItemGuid}\n";
+                        logs += $"[BlockMaster] GearChainItem has invalid ItemGuid:{gearChainItem.ItemGuid}\n";
                     }
                 }
 
-                if (!string.IsNullOrEmpty(errorLogs))
+                return logs;
+            }
+
+            bool ExistsBlockGuid(Guid blockGuid)
+            {
+                return Array.Exists(Blocks.Data, b => b.BlockGuid == blockGuid);
+            }
+
+            #endregion
+        }
+
+        public void Initialize()
+        {
+            BuildBlockIdDictionaries();
+            BuildItemIdToBlockIdDictionary();
+
+            #region Internal
+
+            void BuildBlockIdDictionaries()
+            {
+                // GUIDの順番にint型のBlockIdを割り当てる
+                // Assign int BlockId in order of GUID
+                var sortedBlockElements = Blocks.Data.ToList().OrderBy(x => x.BlockGuid).ToList();
+
+                // ブロックID 0は空のブロックとして予約しているので、1から始める
+                // Block ID 0 is reserved for empty block, so start from 1
+                _blockElementTableById = new Dictionary<BlockId, BlockMasterElement>();
+                _blockGuidToBlockId = new Dictionary<Guid, BlockId>();
+                for (var i = 0; i < sortedBlockElements.Count; i++)
                 {
-                    throw new Exception(errorLogs);
+                    var blockId = new BlockId(i + 1);
+                    _blockElementTableById.Add(blockId, sortedBlockElements[i]);
+                    _blockGuidToBlockId.Add(sortedBlockElements[i].BlockGuid, blockId);
+                }
+            }
+
+            void BuildItemIdToBlockIdDictionary()
+            {
+                // ItemIdからBlockIdへのマッピングを構築
+                // Build mapping from ItemId to BlockId
+                _itemIdToBlockId = new Dictionary<ItemId, BlockId>();
+                foreach (var blockElement in Blocks.Data)
+                {
+                    var itemId = MasterHolder.ItemMaster.GetItemId(blockElement.ItemGuid);
+                    if (_itemIdToBlockId.TryGetValue(itemId, out var existingBlockId))
+                    {
+                        var existingBlockElement = GetBlockMaster(existingBlockId);
+                        throw new InvalidOperationException($"Duplicate itemId. Name1: {blockElement.Name}  Name2: {existingBlockElement.Name} ItemId:{blockElement.ItemGuid} BlockId:{blockElement.BlockGuid}");
+                    }
+
+                    _itemIdToBlockId.Add(itemId, _blockGuidToBlockId[blockElement.BlockGuid]);
                 }
             }
 

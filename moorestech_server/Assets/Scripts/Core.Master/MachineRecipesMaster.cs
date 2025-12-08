@@ -8,27 +8,28 @@ using Newtonsoft.Json.Linq;
 
 namespace Core.Master
 {
-    public class MachineRecipesMaster
+    public class MachineRecipesMaster : IMasterValidator
     {
         public readonly MachineRecipes MachineRecipes; // TODO 個々の使用箇所をメソッドか
         private readonly Dictionary<string, MachineRecipeMasterElement> _machineRecipesByRecipeKey;
-        
+
         public MachineRecipesMaster(JToken jToken)
         {
             MachineRecipes = MachineRecipesLoader.Load(jToken);
-
             _machineRecipesByRecipeKey = new Dictionary<string, MachineRecipeMasterElement>();
+        }
 
-            // 外部キーバリデーション（BuildMachineRecipesの前に実行）
-            // Foreign key validation (executed before BuildMachineRecipes)
-            RecipeValidation();
-            BuildMachineRecipes();
+        public bool Validate(out string errorLogs)
+        {
+            errorLogs = "";
+            errorLogs += RecipeValidation();
+            return string.IsNullOrEmpty(errorLogs);
 
             #region Internal
 
-            void RecipeValidation()
+            string RecipeValidation()
             {
-                var errorLogs = "";
+                var logs = "";
                 for (var i = 0; i < MachineRecipes.Data.Length; i++)
                 {
                     var recipe = MachineRecipes.Data[i];
@@ -39,7 +40,7 @@ namespace Core.Master
                     var blockId = MasterHolder.BlockMaster.GetBlockIdOrNull(recipe.BlockGuid);
                     if (blockId == null)
                     {
-                        errorLogs += $"[MachineRecipesMaster] Recipe[{recipeIndex}] has invalid BlockGuid:{recipe.BlockGuid}\n";
+                        logs += $"[MachineRecipesMaster] Recipe[{recipeIndex}] has invalid BlockGuid:{recipe.BlockGuid}\n";
                     }
 
                     // inputItemsのチェック
@@ -49,7 +50,7 @@ namespace Core.Master
                         var itemId = MasterHolder.ItemMaster.GetItemIdOrNull(inputItem.ItemGuid);
                         if (itemId == null)
                         {
-                            errorLogs += $"[MachineRecipesMaster] Recipe[{recipeIndex}] has invalid InputItem.ItemGuid:{inputItem.ItemGuid}\n";
+                            logs += $"[MachineRecipesMaster] Recipe[{recipeIndex}] has invalid InputItem.ItemGuid:{inputItem.ItemGuid}\n";
                         }
                     }
 
@@ -60,7 +61,7 @@ namespace Core.Master
                         var itemId = MasterHolder.ItemMaster.GetItemIdOrNull(outputItem.ItemGuid);
                         if (itemId == null)
                         {
-                            errorLogs += $"[MachineRecipesMaster] Recipe[{recipeIndex}] has invalid OutputItem.ItemGuid:{outputItem.ItemGuid}\n";
+                            logs += $"[MachineRecipesMaster] Recipe[{recipeIndex}] has invalid OutputItem.ItemGuid:{outputItem.ItemGuid}\n";
                         }
                     }
 
@@ -71,7 +72,7 @@ namespace Core.Master
                         var fluidId = MasterHolder.FluidMaster.GetFluidIdOrNull(inputFluid.FluidGuid);
                         if (fluidId == null)
                         {
-                            errorLogs += $"[MachineRecipesMaster] Recipe[{recipeIndex}] has invalid InputFluid.FluidGuid:{inputFluid.FluidGuid}\n";
+                            logs += $"[MachineRecipesMaster] Recipe[{recipeIndex}] has invalid InputFluid.FluidGuid:{inputFluid.FluidGuid}\n";
                         }
                     }
 
@@ -82,16 +83,24 @@ namespace Core.Master
                         var fluidId = MasterHolder.FluidMaster.GetFluidIdOrNull(outputFluid.FluidGuid);
                         if (fluidId == null)
                         {
-                            errorLogs += $"[MachineRecipesMaster] Recipe[{recipeIndex}] has invalid OutputFluid.FluidGuid:{outputFluid.FluidGuid}\n";
+                            logs += $"[MachineRecipesMaster] Recipe[{recipeIndex}] has invalid OutputFluid.FluidGuid:{outputFluid.FluidGuid}\n";
                         }
                     }
                 }
 
-                if (!string.IsNullOrEmpty(errorLogs))
-                {
-                    throw new Exception(errorLogs);
-                }
+                return logs;
             }
+
+            #endregion
+        }
+
+        public void Initialize()
+        {
+            // レシピのDictionary構築（Validate成功後に実行）
+            // Build recipe dictionary (executed after Validate succeeds)
+            BuildMachineRecipes();
+
+            #region Internal
 
             void BuildMachineRecipes()
             {
@@ -109,30 +118,30 @@ namespace Core.Master
                         var fluidId = MasterHolder.FluidMaster.GetFluidId(inputFluid.FluidGuid);
                         fluidIds.Add(fluidId);
                     }
-                    
+
                     var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
-                    
+
                     var key = GetRecipeElementKey(blockId, inputItemIds, fluidIds);
-                    
+
                     if (!_machineRecipesByRecipeKey.TryAdd(key, recipe))
                     {
                         var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(recipe.BlockGuid);
                         var inputItemMaster = inputItemIds
                             .Select(i => MasterHolder.ItemMaster.GetItemMaster(i))
                             .ToList();
-                        
+
                         var recipe1Guid = _machineRecipesByRecipeKey[key].MachineRecipeGuid;
                         var recipe2Guid = recipe.MachineRecipeGuid;
                         var recipe1Index = MachineRecipes.Data.ToList().FindIndex(x => x.MachineRecipeGuid == recipe1Guid);
                         var recipe2Index = MachineRecipes.Data.ToList().FindIndex(x => x.MachineRecipeGuid == recipe2Guid);
-                        
+
                         throw new Exception($"機械レシピマスタに同じレシピが登録されています。ブロックID:{blockMaster.Name} アイテムIDリスト: {string.Join(", ", inputItemMaster.Select(i => i.Name))} \n" +
                                             $"レシピIndex1: {recipe1Index} レシピIndex2: {recipe2Index} \n" +
                                             $"レシピID1: {recipe1Guid} レシピID2: {recipe2Guid}");
                     }
                 }
             }
-            
+
             #endregion
         }
         

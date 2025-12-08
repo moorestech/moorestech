@@ -8,31 +8,29 @@ using Newtonsoft.Json.Linq;
 
 namespace Core.Master
 {
-    public class ResearchMaster
+    public class ResearchMaster : IMasterValidator
     {
         public readonly Research Research;
-        public readonly Dictionary<Guid, ResearchNodeMasterElement> ResearchElements;
+        public Dictionary<Guid, ResearchNodeMasterElement> ResearchElements { get; private set; }
 
         public ResearchMaster(JToken jToken)
         {
             Research = ResearchLoader.Load(jToken);
-            ResearchElements = new Dictionary<Guid, ResearchNodeMasterElement>();
-            foreach (var element in Research.Data)
-            {
-                ResearchElements[element.ResearchNodeGuid] = element;
-            }
+        }
 
-            // 外部キーバリデーション
-            // Foreign key validation
-            ItemValidation();
-            PrevResearchValidation();
-            GameActionValidation();
+        public bool Validate(out string errorLogs)
+        {
+            errorLogs = "";
+            errorLogs += ItemValidation();
+            errorLogs += PrevResearchValidation();
+            errorLogs += GameActionValidation();
+            return string.IsNullOrEmpty(errorLogs);
 
             #region Internal
 
-            void ItemValidation()
+            string ItemValidation()
             {
-                var errorLogs = "";
+                var logs = "";
                 foreach (var research in Research.Data)
                 {
                     foreach (var consumeItem in research.ConsumeItems)
@@ -40,49 +38,45 @@ namespace Core.Master
                         var itemId = MasterHolder.ItemMaster.GetItemIdOrNull(consumeItem.ItemGuid);
                         if (itemId == null)
                         {
-                            errorLogs += $"[ResearchMaster] Research:{research.ResearchNodeName} has invalid ConsumeItem.ItemGuid:{consumeItem.ItemGuid}\n";
+                            logs += $"[ResearchMaster] Research:{research.ResearchNodeName} has invalid ConsumeItem.ItemGuid:{consumeItem.ItemGuid}\n";
                         }
                     }
                 }
 
-                if (!string.IsNullOrEmpty(errorLogs))
-                {
-                    throw new Exception(errorLogs);
-                }
+                return logs;
             }
 
-            void PrevResearchValidation()
+            string PrevResearchValidation()
             {
-                var errorLogs = "";
+                var logs = "";
                 foreach (var research in Research.Data)
                 {
                     foreach (var prevGuid in research.PrevResearchNodeGuids)
                     {
-                        if (!ResearchElements.ContainsKey(prevGuid))
+                        if (!ExistsResearchGuid(prevGuid))
                         {
-                            errorLogs += $"[ResearchMaster] Research:{research.ResearchNodeName} has invalid PrevResearchNodeGuid:{prevGuid}\n";
+                            logs += $"[ResearchMaster] Research:{research.ResearchNodeName} has invalid PrevResearchNodeGuid:{prevGuid}\n";
                         }
                     }
                 }
 
-                if (!string.IsNullOrEmpty(errorLogs))
-                {
-                    throw new Exception(errorLogs);
-                }
+                return logs;
             }
 
-            void GameActionValidation()
+            bool ExistsResearchGuid(Guid researchGuid)
             {
-                var errorLogs = "";
+                return Array.Exists(Research.Data, r => r.ResearchNodeGuid == researchGuid);
+            }
+
+            string GameActionValidation()
+            {
+                var logs = "";
                 foreach (var research in Research.Data)
                 {
-                    errorLogs += ValidateGameActions(research.ClearedActions.items, research.ResearchNodeName);
+                    logs += ValidateGameActions(research.ClearedActions.items, research.ResearchNodeName);
                 }
 
-                if (!string.IsNullOrEmpty(errorLogs))
-                {
-                    throw new Exception(errorLogs);
-                }
+                return logs;
             }
 
             string ValidateGameActions(GameActionElement[] actions, string researchName)
@@ -141,6 +135,17 @@ namespace Core.Master
             }
 
             #endregion
+        }
+
+        public void Initialize()
+        {
+            // リサーチGUIDからリサーチ要素への辞書を構築
+            // Build dictionary from research GUID to research element
+            ResearchElements = new Dictionary<Guid, ResearchNodeMasterElement>();
+            foreach (var element in Research.Data)
+            {
+                ResearchElements[element.ResearchNodeGuid] = element;
+            }
         }
 
         public ResearchNodeMasterElement GetResearch(Guid researchGuid)
