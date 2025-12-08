@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using Core.Master.Validator;
 using Mooresmaster.Loader.FluidsModule;
 using Mooresmaster.Model.FluidsModule;
 using Newtonsoft.Json.Linq;
@@ -36,36 +36,12 @@ namespace Core.Master
 
         public bool Validate(out string errorLogs)
         {
-            // FluidMasterは外部キー依存がないため、バリデーション成功を返す
-            // FluidMaster has no external key dependencies, so return success
-            errorLogs = "";
-            return true;
+            return FluidMasterUtil.Validate(Fluids, out errorLogs);
         }
 
         public void Initialize()
         {
-            // guidでソート
-            // Sort by GUID
-            var sortedFluidElements = Fluids.Data
-                .OrderBy(e => e.FluidGuid)
-                .ToList();
-
-            // 予約されている混ざった液体を追加
-            // Add reserved mixed fluid
-            sortedFluidElements.Add(new FluidMasterElement("MixedFluid", MixedFluidGuid));
-
-            // FluidID 0は空の液体として予約しているので、1から始める
-            // Fluid ID 0 is reserved for empty fluid, so start from 1
-            _fluidElementTableById = new Dictionary<FluidId, FluidMasterElement>();
-            _fluidGuidToFluidId = new Dictionary<Guid, FluidId>();
-            for (var i = 0; i < sortedFluidElements.Count; i++)
-            {
-                var fluidId = new FluidId(i + 1);
-                var element = sortedFluidElements[i];
-
-                _fluidElementTableById.Add(fluidId, element);
-                _fluidGuidToFluidId.Add(element.FluidGuid, fluidId);
-            }
+            FluidMasterUtil.Initialize(Fluids, MixedFluidGuid, out _fluidElementTableById, out _fluidGuidToFluidId);
         }
 
         public FluidMasterElement GetFluidMaster(FluidId fluidId)

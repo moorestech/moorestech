@@ -1,4 +1,5 @@
 using System.Linq;
+using Core.Master.Validator;
 using Mooresmaster.Loader.CharactersModule;
 using Mooresmaster.Model.CharactersModule;
 using Newtonsoft.Json.Linq;
@@ -17,16 +18,12 @@ namespace Core.Master
 
         public bool Validate(out string errorLogs)
         {
-            // CharacterMasterは外部キー依存がないため、バリデーション成功を返す
-            // CharacterMaster has no external key dependencies, so return success
-            errorLogs = "";
-            return true;
+            return CharacterMasterUtil.Validate(Characters, out errorLogs);
         }
 
         public void Initialize()
         {
-            // CharacterMasterは追加の初期化処理がないため、空実装
-            // CharacterMaster has no additional initialization, so empty implementation
+            CharacterMasterUtil.Initialize(Characters);
         }
 
         public CharacterMasterElement GetCharacterMaster(string id)
