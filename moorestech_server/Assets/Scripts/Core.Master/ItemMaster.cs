@@ -16,35 +16,44 @@ namespace Core.Master
     public class ItemMaster : IMasterValidator
     {
         public static readonly ItemId EmptyItemId = new(0);
-        
+
         public readonly Items Items;
-        
-        private readonly Dictionary<ItemId,ItemMasterElement> _itemElementTableById; 
-        private readonly Dictionary<Guid,ItemId> _itemGuidToItemId;
-        
+
+        private Dictionary<ItemId, ItemMasterElement> _itemElementTableById;
+        private Dictionary<Guid, ItemId> _itemGuidToItemId;
+
         public ItemMaster(JToken itemJToken)
         {
-            // GUIDの順番にint型のItemIdを割り当てる
             Items = ItemsLoader.Load(itemJToken);
-            
+        }
+
+        public bool Validate(out string errorLogs)
+        {
+            // ItemMasterは外部キー依存がないため、バリデーション成功を返す
+            // ItemMaster has no external key dependencies, so return success
+            errorLogs = "";
+            return true;
+        }
+
+        public void Initialize()
+        {
             // ソート優先度、GUIDの順番でソート
+            // Sort by SortPriority, then by GUID
             var sortedItemElements = Items.Data.ToList().
                 OrderBy(x => x.SortPriority ?? float.MaxValue).
                 ThenBy(x => x.ItemGuid).
                 ToList();
-            
-            _itemElementTableById = new Dictionary<ItemId,ItemMasterElement>();
-            _itemGuidToItemId = new Dictionary<Guid,ItemId>();
+
+            // アイテムID 0は空のアイテムとして予約しているので、1から始める
+            // Item ID 0 is reserved for empty item, so start from 1
+            _itemElementTableById = new Dictionary<ItemId, ItemMasterElement>();
+            _itemGuidToItemId = new Dictionary<Guid, ItemId>();
             for (var i = 0; i < sortedItemElements.Count; i++)
             {
-                var itemId = new ItemId(i+1); // アイテムID 0は空のアイテムとして予約しているので、1から始める
+                var itemId = new ItemId(i + 1);
                 _itemElementTableById.Add(itemId, sortedItemElements[i]);
                 _itemGuidToItemId.Add(sortedItemElements[i].ItemGuid, itemId);
             }
-        }
-        public bool Validate(out string errorLogs)
-        {
-            throw new NotImplementedException();
         }
         
         public ItemMasterElement GetItemMaster(ItemId itemId)
