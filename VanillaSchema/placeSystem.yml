@@ -18,7 +18,6 @@ properties:
       - TrainRail
       - TrainRailConnect
       - TrainCar
-      - GearChainConnect
     - key: priority
       type: integer
       autoIncrement:
