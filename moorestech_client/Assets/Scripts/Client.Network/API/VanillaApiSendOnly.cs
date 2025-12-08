@@ -11,7 +11,6 @@ using UnityEngine;
 using static Server.Protocol.PacketResponse.RailConnectionEditProtocol;
 using static Server.Protocol.PacketResponse.PlaceTrainCarOnRailProtocol;
 using static Server.Protocol.PacketResponse.SubscribeInventoryProtocol;
-using static Server.Protocol.PacketResponse.GearChainConnectionEditProtocol;
 
 namespace Client.Network.API
 {
@@ -143,26 +142,6 @@ namespace Client.Network.API
         public void SubscribeInventory(InventoryIdentifierMessagePack identifier, bool isSubscribe)
         {
             var request = new SubscribeInventoryRequestMessagePack(_playerId, identifier, isSubscribe);
-            _packetSender.Send(request);
-        }
-
-        /// <summary>
-        /// GearChainPole間の接続リクエストを送信
-        /// Send connect request between GearChainPoles
-        /// </summary>
-        public void ConnectGearChain(Vector3Int posA, Vector3Int posB, ItemId itemId)
-        {
-            var request = GearChainConnectionEditRequest.CreateConnectRequest(posA, posB, _playerId, itemId);
-            _packetSender.Send(request);
-        }
-
-        /// <summary>
-        /// GearChainPole間の切断リクエストを送信
-        /// Send disconnect request between GearChainPoles
-        /// </summary>
-        public void DisconnectGearChain(Vector3Int posA, Vector3Int posB)
-        {
-            var request = GearChainConnectionEditRequest.CreateDisconnectRequest(posA, posB, _playerId);
             _packetSender.Send(request);
         }
     }
