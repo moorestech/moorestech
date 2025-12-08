@@ -23,7 +23,7 @@ namespace Game.Block.Blocks.GearChainPole
         // マスターデータパラメータを保持する
         // Hold master data parameters
         private readonly GearChainPoleBlockParam _param;
-        
+
         public float MaxConnectionDistance => _param.MaxConnectionDistance;
         public bool IsConnectionFull => _chainTargets.Count >= _param.MaxConnectionCount;
 
@@ -34,7 +34,7 @@ namespace Game.Block.Blocks.GearChainPole
         private readonly GearConnectOption _chainOption = new(false);
 
         private readonly Dictionary<BlockInstanceId, (IGearEnergyTransformer Transformer, GearChainConnectionCost Cost)> _chainTargets = new();
-        
+
         // ブロック状態変更通知用のSubject
         // Subject for block state change notifications
         private readonly Subject<Unit> _onChangeBlockState = new();
@@ -51,7 +51,7 @@ namespace Game.Block.Blocks.GearChainPole
             _componentStates = componentStates;
             GearNetworkDatastore.AddGear(this);
         }
-        
+
 
         public List<GearConnect> GetGearConnects()
         {
@@ -99,7 +99,7 @@ namespace Game.Block.Blocks.GearChainPole
                 cost = default;
                 return false;
             }
-            
+
             cost = connection.Cost;
             _onChangeBlockState.OnNext(Unit.Default);
             return true;
@@ -114,7 +114,7 @@ namespace Game.Block.Blocks.GearChainPole
             if (transformer == null || transformer.BlockInstanceId == BlockInstanceId) return null;
             return transformer;
         }
-        
+
         public IReadOnlyList<IItemStack> GetRefundItems()
         {
             // 返却すべきアイテムのリストを取得する
@@ -126,13 +126,13 @@ namespace Game.Block.Blocks.GearChainPole
                 var itemStack = ServerContext.ItemStackFactory.Create(connection.Cost.ItemId, connection.Cost.Count);
                 refundItems.Add(itemStack);
             }
-         
+
             return refundItems;
         }
-        
-        
+
+
         #region LoadComponent
-        
+
         private readonly Dictionary<string, string> _componentStates;
         public void OnPostBlockLoad()
         {
@@ -140,10 +140,10 @@ namespace Game.Block.Blocks.GearChainPole
             // Restore chain connections from saved data after all blocks are loaded
             if (_componentStates == null) return;
             if (!_componentStates.TryGetValue(SaveKey, out var saved)) return;
-            
+
             var data = JsonConvert.DeserializeObject<GearChainPoleSaveDataJsonObject>(saved);
             if (data == null) return;
-            
+
             _chainTargets.Clear();
 
             // 接続コスト情報を利用して復元する
@@ -163,9 +163,9 @@ namespace Game.Block.Blocks.GearChainPole
                 }
             }
         }
-        
+
         #endregion
-        
+
         public bool IsDestroy { get; private set; }
         public void Destroy()
         {
@@ -177,7 +177,7 @@ namespace Game.Block.Blocks.GearChainPole
                 var targetPole = targetBlock?.GetComponent<IGearChainPole>();
                 if (targetPole != null) targetPole.TryRemoveChainConnection(BlockInstanceId, out _);
             }
-            
+
             // コンポーネントのリソースを解放する
             // Release component resources
             _connectorComponent.Destroy();
@@ -186,54 +186,60 @@ namespace Game.Block.Blocks.GearChainPole
             _onChangeBlockState.Dispose();
             IsDestroy = true;
         }
-        
-        
+
+
         #region IGearEnergyTransformer
-        
+
         public Torque GetRequiredTorque(RPM rpm, bool isClockwise)
         {
             // チェーンポール自体は負荷を持たない
             // Chain pole itself does not consume torque
             return new Torque(0);
         }
-        
+
         public BlockInstanceId BlockInstanceId { get; }
         public RPM CurrentRpm => _gearService.CurrentRpm;
         public Torque CurrentTorque => _gearService.CurrentTorque;
         public bool IsCurrentClockwise => _gearService.IsCurrentClockwise;
-        
-        
+
+
         public void StopNetwork()
         {
             // ネットワーク停止をサービスに委譲する
             // Delegate network stop to service
             _gearService.StopNetwork();
         }
-        
+
         public void SupplyPower(RPM rpm, Torque torque, bool isClockwise)
         {
             // 入力された回転をサービスへ転送する
             // Forward supplied rotation to service
             _gearService.SupplyPower(rpm, torque, isClockwise);
         }
-        
+
         #endregion
-        
+
         #region IBlockStateObservable
-        
+
+
         public BlockStateDetail[] GetBlockStateDetails()
         {
             // チェーン接続情報をシリアライズして返す
             // Serialize and return chain connection information
-            var stateDetail = new GearChainPoleStateDetail(_chainTargets.Keys);
+            var partnerIds = _chainTargets.Keys;
+            var partnerPositions = _chainTargets.Keys
+                .Select(id => ServerContext.WorldBlockDatastore.GetBlockPosition(id))
+                .ToList();
+
+            var stateDetail = new GearChainPoleStateDetail(partnerIds, partnerPositions);
             var bytes = MessagePackSerializer.Serialize(stateDetail);
             return new BlockStateDetail[] { new(GearChainPoleStateDetail.BlockStateDetailKey, bytes) };
         }
-        
+
         #endregion
-        
+
         #region IBlockSaveState
-        
+
         public string SaveKey => nameof(GearChainPoleComponent);
         public string GetSaveState()
         {
@@ -242,7 +248,7 @@ namespace Game.Block.Blocks.GearChainPole
             var data = new GearChainPoleSaveDataJsonObject(_chainTargets);
             return JsonConvert.SerializeObject(data);
         }
-        
+
         #endregion
     }
 }
