@@ -20132,6 +20132,9 @@ PrefabInstance:
     - {fileID: 1007932214676014091, guid: 53d25a583ee974aa59260ebc24130895, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7038075723844586454, guid: 53d25a583ee974aa59260ebc24130895, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1735449914}
     - targetCorrespondingSourceObject: {fileID: 2345800080793341622, guid: 53d25a583ee974aa59260ebc24130895, type: 3}
       insertIndex: -1
       addedObject: {fileID: 0}
@@ -25883,6 +25886,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d563077406e34b01b306b563e46b92b9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &1735449912 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7038075723844586454, guid: 53d25a583ee974aa59260ebc24130895, type: 3}
+  m_PrefabInstance: {fileID: 1271903677}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1735449914
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1735449912}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7544f79e2c184cebbdd2c5fa0e970a9d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Client.DebugSystem.Environment.EnvironmentDefaultPosition
 --- !u!114 &1736577239 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 4081682602621766468, guid: 53d25a583ee974aa59260ebc24130895, type: 3}
