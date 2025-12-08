@@ -110,7 +110,11 @@
               }
             }
           ]
-        }
+        },
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0
       },
       "itemGuid": "19fb4202-de45-49f1-a480-3d154309dd99",
       "blockGuid": "ce060607-996d-4270-87ec-204073f6e3f7",
@@ -543,7 +547,11 @@
         "requiredRpm": 5,
         "inputSlotCount": 1,
         "teethCount": 10,
-        "outputSlotCount": 1
+        "outputSlotCount": 1,
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0
       },
       "itemGuid": "96b45ab2-3345-4fcd-99af-f3dc06605e73",
       "blockGuid": "3dda0801-b12a-4624-b759-2ac3c62969a6",
@@ -1548,7 +1556,11 @@
               }
             }
           ]
-        }
+        },
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0
       },
       "initialUnlocked": true,
       "itemGuid": "ba3cf978-dc21-47f9-810e-50f1c26015ed",
@@ -1950,7 +1962,11 @@
               ]
             }
           ]
-        }
+        },
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0
       },
       "itemGuid": "855ec61a-a6c1-4a37-a885-1c5994ce573b",
       "name": "縦シャフト",
@@ -2017,7 +2033,11 @@
               ]
             }
           ]
-        }
+        },
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0
       },
       "blockGuid": "b1bddbd5-85c7-4c09-a539-646c34ce9afd",
       "blockPrefabAddressablesPath": "Vanilla/Block/Shaft Box",
@@ -2502,5 +2522,6 @@
         }
       }
     }
-  ]
+  ],
+  "gearChainItems": []
 }
