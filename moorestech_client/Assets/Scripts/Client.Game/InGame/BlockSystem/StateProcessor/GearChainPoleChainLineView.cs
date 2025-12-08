@@ -14,15 +14,14 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
     public class GearChainPoleChainLineView : MonoBehaviour, IBlockGameObjectInnerComponent
     {
         private const string ChainLinePrefabAddress = "ChainLine";
-        private const float LineSpacing = 0.1f;
 
         private BlockGameObject _blockGameObject;
-        private GameObject _chainLinePrefab;
+        private GearChainPoleChainLineViewElement _chainLinePrefab;
         private bool _isPrefabLoaded;
 
-        // 接続先座標 -> 生成したラインオブジェクト
-        // Target position -> Generated line object
-        private readonly Dictionary<Vector3Int, GameObject> _activeLines = new();
+        // 接続先座標 -> 生成したラインElement
+        // Target position -> Generated line element
+        private readonly Dictionary<Vector3Int, GearChainPoleChainLineViewElement> _activeLines = new();
 
         public void Initialize(BlockGameObject blockGameObject)
         {
@@ -47,39 +46,50 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
 
             // 削除対象を特定して削除
             // Identify and remove lines that are no longer needed
-            var positionsToRemove = _activeLines.Keys
-                .Where(pos => !newPositions.Contains(pos))
-                .ToList();
-
-            foreach (var pos in positionsToRemove)
-            {
-                if (_activeLines.TryGetValue(pos, out var lineObj))
-                {
-                    Destroy(lineObj);
-                }
-                _activeLines.Remove(pos);
-            }
+            RemoveOldLines(newPositions);
 
             // 新規接続のラインを作成
             // Create lines for new connections
-            foreach (var targetPos in partnerPositions)
-            {
-                if (_activeLines.ContainsKey(targetPos)) continue;
-                if (!ShouldDrawLine(myPosition, targetPos)) continue;
-
-                var lineObj = CreateChainLine(myPosition, targetPos);
-                if (lineObj != null)
-                {
-                    _activeLines[targetPos] = lineObj;
-                }
-            }
+            AddNewLines(myPosition, partnerPositions);
 
             #region Internal
 
             async UniTask LoadChainLinePrefabAsync()
             {
-                _chainLinePrefab = await AddressableLoader.LoadAsyncDefault<GameObject>(ChainLinePrefabAddress);
+                var prefab = await AddressableLoader.LoadAsyncDefault<GameObject>(ChainLinePrefabAddress);
+                _chainLinePrefab = prefab.GetComponent<GearChainPoleChainLineViewElement>();
                 _isPrefabLoaded = true;
+            }
+
+            void RemoveOldLines(HashSet<Vector3Int> currentPositions)
+            {
+                var positionsToRemove = _activeLines.Keys
+                    .Where(pos => !currentPositions.Contains(pos))
+                    .ToList();
+
+                foreach (var pos in positionsToRemove)
+                {
+                    if (_activeLines.TryGetValue(pos, out var element))
+                    {
+                        Destroy(element.gameObject);
+                    }
+                    _activeLines.Remove(pos);
+                }
+            }
+
+            void AddNewLines(Vector3Int myPos, Vector3Int[] positions)
+            {
+                foreach (var targetPos in positions)
+                {
+                    if (_activeLines.ContainsKey(targetPos)) continue;
+                    if (!ShouldDrawLine(myPos, targetPos)) continue;
+
+                    var element = CreateChainLineElement(myPos, targetPos);
+                    if (element != null)
+                    {
+                        _activeLines[targetPos] = element;
+                    }
+                }
             }
 
             #endregion
@@ -89,9 +99,9 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         {
             // すべてのラインを削除
             // Destroy all lines
-            foreach (var lineObj in _activeLines.Values)
+            foreach (var element in _activeLines.Values)
             {
-                if (lineObj != null) Destroy(lineObj);
+                if (element != null) Destroy(element.gameObject);
             }
             _activeLines.Clear();
         }
@@ -108,40 +118,23 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         }
 
         /// <summary>
-        /// チェーンラインを生成する
-        /// Create chain line
+        /// チェーンラインElementを生成する
+        /// Create chain line element
         /// </summary>
-        private GameObject CreateChainLine(Vector3Int myPos, Vector3Int targetPos)
+        private GearChainPoleChainLineViewElement CreateChainLineElement(Vector3Int myPos, Vector3Int targetPos)
         {
             if (_chainLinePrefab == null) return null;
 
-            var lineObj = Instantiate(_chainLinePrefab, transform);
-            var lineRenderers = lineObj.GetComponentsInChildren<LineRenderer>();
+            var element = Instantiate(_chainLinePrefab, transform);
 
             // 始点と終点（ブロックの中心）
             // Start and end points (block centers)
             var startWorld = new Vector3(myPos.x + 0.5f, myPos.y + 0.5f, myPos.z + 0.5f);
             var endWorld = new Vector3(targetPos.x + 0.5f, targetPos.y + 0.5f, targetPos.z + 0.5f);
 
-            // 2本のラインを水平方向にオフセット
-            // Offset two lines horizontally
-            var direction = (endWorld - startWorld).normalized;
-            var right = Vector3.Cross(Vector3.up, direction).normalized;
-            if (right == Vector3.zero) right = Vector3.right;
+            element.SetPositions(startWorld, endWorld);
 
-            var offset = right * (LineSpacing / 2f);
-
-            for (var i = 0; i < lineRenderers.Length && i < 2; i++)
-            {
-                var lr = lineRenderers[i];
-                var lineOffset = i == 0 ? offset : -offset;
-
-                lr.positionCount = 2;
-                lr.SetPosition(0, startWorld + lineOffset);
-                lr.SetPosition(1, endWorld + lineOffset);
-            }
-
-            return lineObj;
+            return element;
         }
     }
 }
