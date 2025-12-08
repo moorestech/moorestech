@@ -12,9 +12,13 @@ PrefabInstance:
       propertyPath: m_text
       value: "\u6728\u9271\u8108"
       objectReference: {fileID: 0}
+    - target: {fileID: 356493735206346843, guid: 102545e4aec104a1ea56a3bb9b52b985, type: 3}
+      propertyPath: veinItemGuid
+      value: aafce615-6c30-48c4-a29e-3c5b3266748f
+      objectReference: {fileID: 0}
     - target: {fileID: 4382336488861206257, guid: 102545e4aec104a1ea56a3bb9b52b985, type: 3}
       propertyPath: m_Name
-      value: VeinSet_Stone Variant
+      value: VeinSet_Tree
       objectReference: {fileID: 0}
     - target: {fileID: 4578605710860549581, guid: 102545e4aec104a1ea56a3bb9b52b985, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
