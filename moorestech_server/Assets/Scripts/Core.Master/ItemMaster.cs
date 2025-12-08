@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using Core.Master.Validator;
 using Mooresmaster.Loader.ItemsModule;
 using Mooresmaster.Model.ItemsModule;
 using Newtonsoft.Json.Linq;
@@ -29,31 +29,12 @@ namespace Core.Master
 
         public bool Validate(out string errorLogs)
         {
-            // ItemMasterは外部キー依存がないため、バリデーション成功を返す
-            // ItemMaster has no external key dependencies, so return success
-            errorLogs = "";
-            return true;
+            return ItemMasterUtil.Validate(Items, out errorLogs);
         }
 
         public void Initialize()
         {
-            // ソート優先度、GUIDの順番でソート
-            // Sort by SortPriority, then by GUID
-            var sortedItemElements = Items.Data.ToList().
-                OrderBy(x => x.SortPriority ?? float.MaxValue).
-                ThenBy(x => x.ItemGuid).
-                ToList();
-
-            // アイテムID 0は空のアイテムとして予約しているので、1から始める
-            // Item ID 0 is reserved for empty item, so start from 1
-            _itemElementTableById = new Dictionary<ItemId, ItemMasterElement>();
-            _itemGuidToItemId = new Dictionary<Guid, ItemId>();
-            for (var i = 0; i < sortedItemElements.Count; i++)
-            {
-                var itemId = new ItemId(i + 1);
-                _itemElementTableById.Add(itemId, sortedItemElements[i]);
-                _itemGuidToItemId.Add(sortedItemElements[i].ItemGuid, itemId);
-            }
+            ItemMasterUtil.Initialize(Items, out _itemElementTableById, out _itemGuidToItemId);
         }
         
         public ItemMasterElement GetItemMaster(ItemId itemId)
