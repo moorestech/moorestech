@@ -4,19 +4,18 @@ using Client.Common.Asset;
 using Client.Game.InGame.Block;
 using UnityEngine;
 
-namespace Client.Game.InGame.BlockSystem.StateProcessor
+namespace Client.Game.InGame.BlockSystem.StateProcessor.GearPole
 {
     /// <summary>
     /// GearChainPoleのチェーン接続を視覚的に表示するコンポーネント
     /// Component for visually displaying chain connections of GearChainPole
     /// </summary>
-    public class GearChainPoleChainLineView : MonoBehaviour, IBlockGameObjectInnerComponent
+    public class GearChainPoleChainLineView : MonoBehaviour
     {
         private const string ChainLinePrefabAddress = "ChainLine";
 
         private BlockGameObject _blockGameObject;
         private GearChainPoleChainLineViewElement _chainLinePrefab;
-        private bool _isPrefabLoaded;
 
         // 接続先座標 -> 生成したラインElement
         // Target position -> Generated line element
@@ -24,6 +23,9 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
 
         public void Initialize(BlockGameObject blockGameObject)
         {
+            var prefab = AddressableLoader.LoadDefault<GameObject>(ChainLinePrefabAddress);
+            _chainLinePrefab = prefab.GetComponent<GearChainPoleChainLineViewElement>();
+            
             _blockGameObject = blockGameObject;
         }
 
@@ -33,13 +35,6 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         /// </summary>
         public void UpdateChainLines(Vector3Int[] partnerPositions)
         {
-            // Prefabがまだロードされていなければロード
-            // Load prefab if not loaded yet
-            if (!_isPrefabLoaded)
-            {
-                LoadChainLinePrefab();
-            }
-
             var myPosition = _blockGameObject.BlockPosInfo.OriginalPos;
             var newPositions = new HashSet<Vector3Int>(partnerPositions);
 
@@ -52,13 +47,6 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
             AddNewLines(myPosition, partnerPositions);
 
             #region Internal
-
-            void LoadChainLinePrefab()
-            {
-                var prefab = AddressableLoader.LoadDefault<GameObject>(ChainLinePrefabAddress);
-                _chainLinePrefab = prefab.GetComponent<GearChainPoleChainLineViewElement>();
-                _isPrefabLoaded = true;
-            }
 
             void RemoveOldLines(HashSet<Vector3Int> currentPositions)
             {
@@ -84,11 +72,24 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
                     if (!ShouldDrawLine(myPos, targetPos)) continue;
 
                     var element = CreateChainLineElement(myPos, targetPos);
-                    if (element != null)
-                    {
-                        _activeLines[targetPos] = element;
-                    }
+                    _activeLines[targetPos] = element;
                 }
+            }
+            
+            // チェーンラインElementを生成する
+            // Create chain line element
+            GearChainPoleChainLineViewElement CreateChainLineElement(Vector3Int myPos, Vector3Int targetPos)
+            {
+                var element = Instantiate(_chainLinePrefab, transform);
+                
+                // 始点と終点（ブロックの中心）
+                // Start and end points (block centers)
+                var startWorld = new Vector3(myPos.x + 0.5f, myPos.y + 0.5f, myPos.z + 0.5f);
+                var endWorld = new Vector3(targetPos.x + 0.5f, targetPos.y + 0.5f, targetPos.z + 0.5f);
+                
+                element.SetPositions(startWorld, endWorld);
+                
+                return element;
             }
 
             #endregion
@@ -114,26 +115,6 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
             if (myPos.x != targetPos.x) return myPos.x < targetPos.x;
             if (myPos.z != targetPos.z) return myPos.z < targetPos.z;
             return myPos.y < targetPos.y;
-        }
-
-        /// <summary>
-        /// チェーンラインElementを生成する
-        /// Create chain line element
-        /// </summary>
-        private GearChainPoleChainLineViewElement CreateChainLineElement(Vector3Int myPos, Vector3Int targetPos)
-        {
-            if (_chainLinePrefab == null) return null;
-
-            var element = Instantiate(_chainLinePrefab, transform);
-
-            // 始点と終点（ブロックの中心）
-            // Start and end points (block centers)
-            var startWorld = new Vector3(myPos.x + 0.5f, myPos.y + 0.5f, myPos.z + 0.5f);
-            var endWorld = new Vector3(targetPos.x + 0.5f, targetPos.y + 0.5f, targetPos.z + 0.5f);
-
-            element.SetPositions(startWorld, endWorld);
-
-            return element;
         }
     }
 }
