@@ -9,6 +9,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect;
+using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.CraftTree.TreeView;
@@ -97,6 +98,9 @@ namespace Client.Starter
         
         [SerializeField] private TrainRailObjectManager trainRailObjectManager;
         [SerializeField] private TrainCarPreviewController trainCarObjectPreviewController;
+
+        [SerializeField] private GearChainConnectPreviewObject gearChainConnectPreviewObject;
+        [SerializeField] private GearChainConnectRangeObject gearChainConnectRangeObject;
         
         [SerializeField] private SkitManager skitManager;
         [SerializeField] private SkitUI skitUI;
@@ -153,6 +157,7 @@ namespace Client.Starter
             builder.Register<TrainCarPlaceSystem>(Lifetime.Singleton);
             builder.Register<TrainRailPlaceSystem>(Lifetime.Singleton);
             builder.Register<TrainRailConnectSystem>(Lifetime.Singleton);
+            builder.Register<GearChainConnectPlaceSystem>(Lifetime.Singleton);
             builder.Register<PlaceSystemStateController>(Lifetime.Singleton);
             builder.Register<PlaceSystemSelector>(Lifetime.Singleton);
             
@@ -231,6 +236,8 @@ namespace Client.Starter
             builder.RegisterComponent(railConnectPreviewObject);
             builder.RegisterComponent(trainRailObjectManager);
             builder.RegisterComponent(trainCarObjectPreviewController);
+            builder.RegisterComponent(gearChainConnectPreviewObject);
+            builder.RegisterComponent(gearChainConnectRangeObject);
             
             builder.RegisterBuildCallback(objectResolver => { });
             
