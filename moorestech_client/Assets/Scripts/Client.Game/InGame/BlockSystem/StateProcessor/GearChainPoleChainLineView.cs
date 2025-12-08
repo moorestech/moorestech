@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Client.Common.Asset;
 using Client.Game.InGame.Block;
-using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.StateProcessor
@@ -32,13 +31,13 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         /// チェーン接続の表示を更新する
         /// Update the chain connection display
         /// </summary>
-        public async UniTask UpdateChainLinesAsync(Vector3Int[] partnerPositions)
+        public void UpdateChainLines(Vector3Int[] partnerPositions)
         {
             // Prefabがまだロードされていなければロード
             // Load prefab if not loaded yet
             if (!_isPrefabLoaded)
             {
-                await LoadChainLinePrefabAsync();
+                LoadChainLinePrefab();
             }
 
             var myPosition = _blockGameObject.BlockPosInfo.OriginalPos;
@@ -54,9 +53,9 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
 
             #region Internal
 
-            async UniTask LoadChainLinePrefabAsync()
+            void LoadChainLinePrefab()
             {
-                var prefab = await AddressableLoader.LoadAsyncDefault<GameObject>(ChainLinePrefabAddress);
+                var prefab = AddressableLoader.LoadDefault<GameObject>(ChainLinePrefabAddress);
                 _chainLinePrefab = prefab.GetComponent<GearChainPoleChainLineViewElement>();
                 _isPrefabLoaded = true;
             }
