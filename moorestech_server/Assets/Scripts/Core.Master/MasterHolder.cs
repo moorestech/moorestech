@@ -19,17 +19,23 @@ namespace Core.Master
 
         public static void Load(MasterJsonFileContainer masterJsonFileContainer)
         {
+            // ロード順序は依存関係に基づいて決定
+            // Load order is determined based on dependencies
             ItemMaster = new ItemMaster(GetJson(masterJsonFileContainer, new JsonFileName("items")));
             FluidMaster = new FluidMaster(GetJson(masterJsonFileContainer, new JsonFileName("fluids")));
             BlockMaster = new BlockMaster(GetJson(masterJsonFileContainer, new JsonFileName("blocks")), ItemMaster);
-            ChallengeMaster = new ChallengeMaster(GetJson(masterJsonFileContainer, new JsonFileName("challenges")));
-            
+
             CraftRecipeMaster = new CraftRecipeMaster(GetJson(masterJsonFileContainer, new JsonFileName("craftRecipes")));
-            
+
             MachineRecipesMaster = new MachineRecipesMaster(GetJson(masterJsonFileContainer, new JsonFileName("machineRecipes")));
             MapObjectMaster = new MapObjectMaster(GetJson(masterJsonFileContainer, new JsonFileName("mapObjects")));
             CharacterMaster = new CharacterMaster(GetJson(masterJsonFileContainer, new JsonFileName("characters")));
+
+            // ChallengeMasterとResearchMasterはGameActionでCraftRecipeMasterに依存
+            // ChallengeMaster and ResearchMaster depend on CraftRecipeMaster for GameAction validation
+            ChallengeMaster = new ChallengeMaster(GetJson(masterJsonFileContainer, new JsonFileName("challenges")));
             ResearchMaster = new ResearchMaster(GetJson(masterJsonFileContainer, new JsonFileName("research")));
+
             PlaceSystemMaster = new PlaceSystemMaster(GetJson(masterJsonFileContainer, new JsonFileName("placeSystem")));
             TrainUnitMaster = new TrainUnitMaster(GetJson(masterJsonFileContainer, new JsonFileName("train")), ItemMaster);
         }

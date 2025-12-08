@@ -16,12 +16,83 @@ namespace Core.Master
         public MachineRecipesMaster(JToken jToken)
         {
             MachineRecipes = MachineRecipesLoader.Load(jToken);
-            
+
             _machineRecipesByRecipeKey = new Dictionary<string, MachineRecipeMasterElement>();
+
+            // 外部キーバリデーション（BuildMachineRecipesの前に実行）
+            // Foreign key validation (executed before BuildMachineRecipes)
+            RecipeValidation();
             BuildMachineRecipes();
-            
+
             #region Internal
-            
+
+            void RecipeValidation()
+            {
+                var errorLogs = "";
+                for (var i = 0; i < MachineRecipes.Data.Length; i++)
+                {
+                    var recipe = MachineRecipes.Data[i];
+                    var recipeIndex = i;
+
+                    // blockGuidのチェック
+                    // Check blockGuid
+                    var blockId = MasterHolder.BlockMaster.GetBlockIdOrNull(recipe.BlockGuid);
+                    if (blockId == null)
+                    {
+                        errorLogs += $"[MachineRecipesMaster] Recipe[{recipeIndex}] has invalid BlockGuid:{recipe.BlockGuid}\n";
+                    }
+
+                    // inputItemsのチェック
+                    // Check inputItems
+                    foreach (var inputItem in recipe.InputItems)
+                    {
+                        var itemId = MasterHolder.ItemMaster.GetItemIdOrNull(inputItem.ItemGuid);
+                        if (itemId == null)
+                        {
+                            errorLogs += $"[MachineRecipesMaster] Recipe[{recipeIndex}] has invalid InputItem.ItemGuid:{inputItem.ItemGuid}\n";
+                        }
+                    }
+
+                    // outputItemsのチェック
+                    // Check outputItems
+                    foreach (var outputItem in recipe.OutputItems)
+                    {
+                        var itemId = MasterHolder.ItemMaster.GetItemIdOrNull(outputItem.ItemGuid);
+                        if (itemId == null)
+                        {
+                            errorLogs += $"[MachineRecipesMaster] Recipe[{recipeIndex}] has invalid OutputItem.ItemGuid:{outputItem.ItemGuid}\n";
+                        }
+                    }
+
+                    // inputFluidsのチェック
+                    // Check inputFluids
+                    foreach (var inputFluid in recipe.InputFluids)
+                    {
+                        var fluidId = MasterHolder.FluidMaster.GetFluidIdOrNull(inputFluid.FluidGuid);
+                        if (fluidId == null)
+                        {
+                            errorLogs += $"[MachineRecipesMaster] Recipe[{recipeIndex}] has invalid InputFluid.FluidGuid:{inputFluid.FluidGuid}\n";
+                        }
+                    }
+
+                    // outputFluidsのチェック
+                    // Check outputFluids
+                    foreach (var outputFluid in recipe.OutputFluids)
+                    {
+                        var fluidId = MasterHolder.FluidMaster.GetFluidIdOrNull(outputFluid.FluidGuid);
+                        if (fluidId == null)
+                        {
+                            errorLogs += $"[MachineRecipesMaster] Recipe[{recipeIndex}] has invalid OutputFluid.FluidGuid:{outputFluid.FluidGuid}\n";
+                        }
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(errorLogs))
+                {
+                    throw new Exception(errorLogs);
+                }
+            }
+
             void BuildMachineRecipes()
             {
                 foreach (var recipe in MachineRecipes.Data)
