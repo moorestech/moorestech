@@ -90,6 +90,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 144a3298a538744adaa54c5dccec414c
+    m_Address: Vanilla/Skit/Animations/anim_bittersmile01_lp
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 16777f725be954243984f7ed20cc7ff4
     m_Address: Vanilla/UI/FluidSlotView
     m_ReadOnly: 0
@@ -892,6 +897,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: ea12cf12024a0f24a927a47473535079
     m_Address: Vanilla/Block/BeltConveyor_R
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ebb943b3c336c4a7082a944600ede158
+    m_Address: Vanilla/Skit/Animations/TestAnimator
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
