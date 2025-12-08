@@ -13,7 +13,7 @@ namespace Core.Master
     [UnitOf(typeof(int), UnitGenerateOptions.MessagePackFormatter | UnitGenerateOptions.Comparable)]
     public partial struct ItemId { }
     
-    public class ItemMaster
+    public class ItemMaster : IMasterValidator
     {
         public static readonly ItemId EmptyItemId = new(0);
         
@@ -41,6 +41,10 @@ namespace Core.Master
                 _itemElementTableById.Add(itemId, sortedItemElements[i]);
                 _itemGuidToItemId.Add(sortedItemElements[i].ItemGuid, itemId);
             }
+        }
+        public bool Validate(out string errorLogs)
+        {
+            throw new NotImplementedException();
         }
         
         public ItemMasterElement GetItemMaster(ItemId itemId)
