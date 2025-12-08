@@ -1,5 +1,6 @@
 using System.Linq;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.BlockSystem.StateProcessor.GearPole;
 using Game.Block.Blocks.GearChainPole;
 using Server.Event.EventReceive;
 using UnityEngine;

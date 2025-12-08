@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Client.Game.InGame.BlockSystem.StateProcessor
+namespace Client.Game.InGame.BlockSystem.StateProcessor.GearPole
 {
     /// <summary>
     /// 単一のチェーン接続を表示するコンポーネント
