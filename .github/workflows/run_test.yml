@@ -7,7 +7,7 @@ on:
   
 jobs:
   test:
-    name: Run Unity Test
+    name: Run Unity Client Test
     # mooresmasterを入れてからちゃんと動かなくなった。
     # なんかdll参照とLinuxの相性が悪いのか、linuxだとうまく動かなかった。windowsだとうまくいったので、とりあえずこれでなんとかする。
     # https://qiita.com/CdecPGL/items/a8c1c1be0fc30de9b2dd
@@ -31,14 +31,14 @@ jobs:
 
       # GameCI の Test runner を利用して
       # EditMode 及び PlayMode のテストを実行する
-      - name: Run Unity Test
+      - name: Run Unity Client Test
         uses: game-ci/unity-test-runner@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          projectPath: moorestech_server/
+          projectPath: moorestech_client/
           githubToken: ${{ steps.generate_token.outputs.token }}
           unityVersion: 6000.2.6f1
           testMode: editmode
