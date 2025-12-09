@@ -1,3 +1,5 @@
+using Client.Game.InGame.Context;
+using Game.Block.Interface;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.StateProcessor.GearPole
@@ -17,8 +19,18 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.GearPole
         /// 接続ラインの位置を設定する
         /// Set the positions of the connection lines
         /// </summary>
-        public void SetPositions(Vector3 startPos, Vector3 endPos)
+        public void SetLine(BlockInstanceId startInstanceId, BlockInstanceId endInstanceId)
         {
+            // BlockGameObjectDataStoreから座標を取得
+            // Get positions from BlockGameObjectDataStore
+            if (!ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(startInstanceId, out var startBlock)) return;
+            if (!ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(endInstanceId, out var endBlock)) return;
+
+            // ブロックの中心座標を計算
+            // Calculate block center positions
+            var startPos = startBlock.transform.position + new Vector3(0.5f, 0.5f, 0.5f);
+            var endPos = endBlock.transform.position + new Vector3(0.5f, 0.5f, 0.5f);
+
             // 2本のラインを水平方向にオフセット
             // Offset two lines horizontally
             var direction = (endPos - startPos).normalized;

@@ -229,11 +229,8 @@ namespace Game.Block.Blocks.GearChainPole
             // チェーン接続情報をシリアライズして返す
             // Serialize and return chain connection information
             var partnerIds = _chainTargets.Keys;
-            var partnerPositions = _chainTargets.Keys
-                .Select(id => ServerContext.WorldBlockDatastore.GetBlockPosition(id))
-                .ToList();
 
-            var stateDetail = new GearChainPoleStateDetail(partnerIds, partnerPositions);
+            var stateDetail = new GearChainPoleStateDetail(partnerIds);
             var bytes = MessagePackSerializer.Serialize(stateDetail);
             return new[]
             {
