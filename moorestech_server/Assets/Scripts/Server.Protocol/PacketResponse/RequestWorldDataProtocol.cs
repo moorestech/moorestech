@@ -32,7 +32,7 @@ namespace Server.Protocol.PacketResponse
                 var block = blockMaster.Value.Block;
                 var pos = blockMaster.Value.BlockPositionInfo.OriginalPos;
                 var blockDirection = blockMaster.Value.BlockPositionInfo.BlockDirection;
-                blockResult.Add(new BlockDataMessagePack(block.BlockId, pos, blockDirection));
+                blockResult.Add(new BlockDataMessagePack(block.BlockId, pos, blockDirection, block.BlockInstanceId));
             }
             
             // エンティティ収集：ベルトコンベアアイテムと列車
