@@ -6,6 +6,7 @@ namespace Client.DebugSystem.Environment
     {
         [SerializeField] private GameObject debugEnvironment;
         [SerializeField] private GameObject pureNatureEnvironment;
+        [SerializeField] private GameObject otherEnvironment;
         
         public static void SetEnvironment(DebugEnvironmentType environmentType)
         {
@@ -20,6 +21,7 @@ namespace Client.DebugSystem.Environment
             
             var debugEnvironment = false;
             var pureNatureEnvironment = false;
+            var otherEnvironment = false;
             switch (environmentType)
             {
                 case DebugEnvironmentType.Debug:
@@ -29,11 +31,13 @@ namespace Client.DebugSystem.Environment
                     pureNatureEnvironment = true;
                     break;
                 case DebugEnvironmentType.Other:
+                    otherEnvironment = true;
                     break;
             }
             
             debugEnvironmentController.debugEnvironment.SetActive(debugEnvironment);
             debugEnvironmentController.pureNatureEnvironment.SetActive(pureNatureEnvironment);
+            debugEnvironmentController.otherEnvironment.SetActive(otherEnvironment);
         }
     }
     
