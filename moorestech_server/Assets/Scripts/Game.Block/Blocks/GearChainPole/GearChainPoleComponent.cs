@@ -48,6 +48,8 @@ namespace Game.Block.Blocks.GearChainPole
             BlockInstanceId = blockInstanceId;
             _connectorComponent = connectorComponent;
             _gearService = new SimpleGearService(blockInstanceId);
+            _gearService.OnGearUpdate.Subscribe(_ => _onChangeBlockState.OnNext(Unit.Default));
+            
             _componentStates = componentStates;
             GearNetworkDatastore.AddGear(this);
         }
@@ -233,7 +235,11 @@ namespace Game.Block.Blocks.GearChainPole
 
             var stateDetail = new GearChainPoleStateDetail(partnerIds, partnerPositions);
             var bytes = MessagePackSerializer.Serialize(stateDetail);
-            return new BlockStateDetail[] { new(GearChainPoleStateDetail.BlockStateDetailKey, bytes) };
+            return new[]
+            {
+                new(GearChainPoleStateDetail.BlockStateDetailKey, bytes), 
+                _gearService.GetBlockStateDetail(),
+            };
         }
 
         #endregion
