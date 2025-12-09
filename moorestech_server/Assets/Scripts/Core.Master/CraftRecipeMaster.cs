@@ -1,69 +1,49 @@
 using System;
-using System.Collections.Generic;
+using Core.Master.Validator;
 using Mooresmaster.Loader.CraftRecipesModule;
 using Mooresmaster.Model.CraftRecipesModule;
 using Newtonsoft.Json.Linq;
 
 namespace Core.Master
 {
-    public class CraftRecipeMaster
+    public class CraftRecipeMaster : IMasterValidator
     {
         public readonly CraftRecipes CraftRecipes;
-        
+
         public CraftRecipeMaster(JToken craftRecipeJToken)
         {
             CraftRecipes = CraftRecipesLoader.Load(craftRecipeJToken);
-            ValidateCraftRecipe();
-            
-            #region Internal
-            
-            void ValidateCraftRecipe()
-            {
-                // チェックするアイテムのGUIDを取得
-                var checkTargets = new List<Guid>();
-                foreach (var craftRecipeMasterElement in CraftRecipes.Data)
-                {
-                    foreach (var requiredItem in craftRecipeMasterElement.RequiredItems)
-                    {
-                        checkTargets.Add(requiredItem.ItemGuid);
-                    }
-                    checkTargets.Add(craftRecipeMasterElement.CraftResultItemGuid);
-                }
-                
-                // アイテムのGUIDが存在するかチェック
-                var notExistItemGuids = new List<Guid>();
-                foreach (var checkItem in checkTargets)
-                {
-                    try
-                    {
-                        MasterHolder.ItemMaster.GetItemId(checkItem);
-                    }
-                    catch (InvalidOperationException e)
-                    {
-                        notExistItemGuids.Add(checkItem);
-                    }
-                }
-                
-                // アイテムのGUIDが存在しない場合はエラーを出力
-                if (notExistItemGuids.Count > 0)
-                {
-                    var errorMessage = "クラフトレシピに存在しないアイテムのGUIDが含まれています。\n";
-                    foreach (var notExistItemGuid in notExistItemGuids)
-                    {
-                        errorMessage += $"{notExistItemGuid}\n";
-                    }
-                    throw new InvalidOperationException(errorMessage);
-                }
-            }
-            
-  #endregion
+        }
+
+        public bool Validate(out string errorLogs)
+        {
+            return CraftRecipeMasterUtil.Validate(CraftRecipes, out errorLogs);
+        }
+
+        public void Initialize()
+        {
+            CraftRecipeMasterUtil.Initialize(CraftRecipes);
         }
         
         /// <summary>
-        /// クラフトレシピIDからマスターデータを取得
-        /// Gets the master data from the crafting recipe ID.
+        /// クラフトレシピIDからマスターデータを取得（見つからない場合は例外）
+        /// Gets the master data from the crafting recipe ID (throws if not found).
         /// </summary>
         public CraftRecipeMasterElement GetCraftRecipe(Guid guid)
+        {
+            var result = GetCraftRecipeOrNull(guid);
+            if (result == null)
+            {
+                throw new InvalidOperationException($"CraftRecipeElement not found. CraftRecipeGuid:{guid}");
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// クラフトレシピIDからマスターデータを取得（見つからない場合はnull）
+        /// Gets the master data from the crafting recipe ID (returns null if not found).
+        /// </summary>
+        public CraftRecipeMasterElement GetCraftRecipeOrNull(Guid guid)
         {
             return Array.Find(CraftRecipes.Data, x => x.CraftRecipeGuid == guid);
         }

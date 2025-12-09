@@ -27,7 +27,7 @@ namespace Game.Map
             
             foreach (var mapObjectInfo in mapInfoJson.MapObjects)
             {
-                var mapObjectConfig = MasterHolder.MapObjectMaster.GetMapObjectElement(mapObjectInfo.MapObjectGuid);
+                var mapObjectConfig = MasterHolder.MapObjectMaster.GetMapObjectElementOrNull(mapObjectInfo.MapObjectGuid);
                 if (mapObjectConfig == null)
                 {
                     Debug.Log($"マップに guid:{mapObjectInfo.MapObjectGuid} instanceId:{mapObjectInfo.InstanceId} の設定がありましたが、マスターにそのMapObjectが存在しませんでした。");

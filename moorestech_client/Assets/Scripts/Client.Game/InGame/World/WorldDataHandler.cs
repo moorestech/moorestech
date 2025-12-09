@@ -43,17 +43,16 @@ namespace Client.Game.InGame.World
         
         /// <summary>
         ///     単一のブロックの更新イベント
+        ///     Single block update event
         /// </summary>
         private void OnBlockUpdate(byte[] payload)
         {
             var data = MessagePackSerializer.Deserialize<PlaceBlockEventMessagePack>(payload);
             
-            var blockPos = (Vector3Int)data.BlockData.BlockPos;
-            var blockId = data.BlockData.BlockId;
-            var blockDirection = data.BlockData.BlockDirection;
-            
-            //viewにブロックがおかれたことを通知する
-            PlaceBlock(blockPos, blockId, blockDirection);
+            // viewにブロックがおかれたことを通知する
+            // Notify view that a block has been placed
+            var block = data.BlockData;
+            PlaceBlock(block.BlockPos, block.BlockId, block.BlockDirection, block.BlockInstanceId);
         }
         
         private void OnBlockRemove(byte[] packet)
@@ -94,25 +93,28 @@ namespace Client.Game.InGame.World
         
         private void ApplyWorldData(WorldDataResponse worldData)
         {
-            foreach (var block in worldData.Blocks) PlaceBlock(block.BlockPos, block.BlockId, block.BlockDirection);
-            
+            foreach (var block in worldData.Blocks)
+            {
+                PlaceBlock(block.BlockPos, block.BlockId, block.BlockDirection, block.BlockInstanceId);
+            }
+
             if (worldData.Entities == null)
             {
                 return;
             }
-            
+
             _entitiesDatastore.OnEntitiesUpdate(worldData.Entities);
         }
-        
-        private void PlaceBlock(Vector3Int position, BlockId id, BlockDirection blockDirection)
+
+        private void PlaceBlock(Vector3Int position, BlockId id, BlockDirection blockDirection, BlockInstanceId blockInstanceId)
         {
             if (id == BlockConstant.NullBlockId)
             {
                 _blockGameObjectDataStore.RemoveBlock(position);
                 return;
             }
-            
-            _blockGameObjectDataStore.PlaceBlock(position, id, blockDirection);
+
+            _blockGameObjectDataStore.PlaceBlock(position, id, blockDirection, blockInstanceId);
         }
     }
 }

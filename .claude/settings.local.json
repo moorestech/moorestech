@@ -59,7 +59,14 @@
       "mcp__serena__read_memory",
       "SlashCommand(/kiro:spec-tasks:*)",
       "mcp__serena__list_memories",
-      "Bash(git branch:*)"
+      "Bash(git branch:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nGearChainPoleのチェーン接続表示機能を追加\n\n- GearChainPoleStateDetailにPartnerBlockPositionsを追加\n- クライアント側でLineRendererを使った接続表示用のProcessorを新規作成\n- 重複回避ロジック（座標比較）を実装\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git commit -m \"$(cat <<''EOF''\nGearChainPoleのチェーン表示をリファクタリング\n\n- GearChainPoleChainLineViewを新規作成（ライン描画専用）\n- StateChangeProcessorをシンプル化（1メソッド呼び出しのみ）\n- LoadChainLinePrefabAsyncをインナーメソッドに移動\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")",
+      "mcp__kiri__context_bundle",
+      "mcp__kiri__files_search",
+      "mcp__kiri__snippets_get",
+      "Bash(dotnet build:*)"
     ],
     "deny": []
   },

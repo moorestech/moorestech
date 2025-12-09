@@ -49,15 +49,19 @@ namespace Client.DebugSystem
             rootPage.AddEnumPickerWithSave(DebugEnvironmentType.Debug, "Select Environment", "DebugEnvironmentTypeKey", DebugEnvironmentController.SetEnvironment);
             rootPage.AddButton("Warp Environment Default Position", clicked: () =>
             {
-                var defaultPosition = Object.FindFirstObjectByType<EnvironmentDefaultPosition>(FindObjectsInactive.Include);
-                if (defaultPosition == null)
+                var allPositions = Object.FindObjectsByType<EnvironmentDefaultPosition>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+                if (allPositions.Length == 0)
                 {
                     Debug.LogError("EnvironmentDefaultPosition not found in the scene.");
                     return;
                 }
-                
+
+                // アクティブなものを優先、なければ最初のものを使用
+                // Prioritize active ones, use first one if none are active
+                var targetPosition = System.Array.Find(allPositions, p => p.gameObject.activeInHierarchy) ?? allPositions[0];
+
                 var playerObjectController = PlayerSystemContainer.Instance.PlayerObjectController;
-                playerObjectController.SetPlayerPosition(defaultPosition.transform.position);
+                playerObjectController.SetPlayerPosition(targetPosition.transform.position);
             });
             
             rootPage.AddBoolWithSave(false, IsItemListViewForceShowLabel, IsItemListViewForceShowKey);

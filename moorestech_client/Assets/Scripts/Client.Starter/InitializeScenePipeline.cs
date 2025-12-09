@@ -24,7 +24,6 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using BlockObjectInfo = Client.Game.InGame.Context.BlockObjectInfo;
 using Debug = UnityEngine.Debug;
 
 namespace Client.Starter
@@ -87,7 +86,7 @@ namespace Client.Starter
             VanillaApi vanillaApi = null;
             
             //セットされる変数
-            BlockGameObjectContainer blockGameObjectContainer = null;
+            BlockGameObjectPrefabContainer blockGameObjectPrefabContainer = null;
             ItemImageContainer itemImageContainer = null;
             FluidImageContainer fluidImageContainer = null;
             AsyncOperation sceneLoadTask = null;
@@ -108,7 +107,7 @@ namespace Client.Starter
             }
             
             //staticアクセスできるコンテキストの作成
-            var clientContext = new ClientContext(blockGameObjectContainer, itemImageContainer, fluidImageContainer , playerConnectionSetting, vanillaApi, modalManager);
+            new ClientContext(blockGameObjectPrefabContainer, itemImageContainer, fluidImageContainer , playerConnectionSetting, vanillaApi, modalManager);
             
             //シーンに遷移し、初期データを渡す
             SceneManager.sceneLoaded += MainGameSceneLoaded;
@@ -123,8 +122,7 @@ namespace Client.Starter
                 SceneManager.sceneLoaded -= MainGameSceneLoaded;
                 var starter = FindObjectOfType<MainGameStarter>();
                 var resolver = starter.StartGame(handshakeResponse);
-                var diContainer = new DIContainer(resolver);
-                clientContext.SetDIContainer(diContainer);
+                new ClientDIContext(new DIContainer(resolver));
             }
             
             async UniTask CreateAndStartVanillaApi()
@@ -204,7 +202,7 @@ namespace Client.Starter
             async UniTask LoadBlockAssets()
             {
                 // TODo この辺も必要な時に必要なだけロードする用にしたいなぁ
-                blockGameObjectContainer = await BlockGameObjectContainer.CreateAndLoadBlockGameObjectContainer(missingBlockIdObject);
+                blockGameObjectPrefabContainer = await BlockGameObjectPrefabContainer.CreateAndLoadBlockGameObjectContainer(missingBlockIdObject);
                 loadingLog.text += $"\nブロックアセットロード完了  {loadingStopwatch.Elapsed}";
             }
             
@@ -230,14 +228,14 @@ namespace Client.Starter
             {
                 // スクリーンショットを取る必要があるブロックを集める
                 // Collect the blocks that need to be screenshot.
-                var takeBlockInfos = new List<BlockObjectInfo>();
+                var takeBlockInfos = new List<BlockPrefabInfo>();
                 var itemIds = new List<ItemId>();
                 foreach (var blockId in MasterHolder.BlockMaster.GetBlockAllIds())
                 {
                     var itemId = MasterHolder.BlockMaster.GetItemId(blockId);
                     var itemViewData = itemImageContainer.GetItemView(itemId);
                     
-                    if (itemViewData.ItemImage != null || !blockGameObjectContainer.BlockObjects.TryGetValue(blockId, out var blockObjectInfo)) continue;
+                    if (itemViewData.ItemImage != null || !blockGameObjectPrefabContainer.BlockPrefabInfos.TryGetValue(blockId, out var blockObjectInfo)) continue;
                     
                     itemIds.Add(itemId);
                     takeBlockInfos.Add(blockObjectInfo);

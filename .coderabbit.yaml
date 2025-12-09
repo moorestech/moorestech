@@ -1,0 +1,5 @@
+reviews:
+  path_filters:
+    # ここに"含めたい"パターンを書く
+    - "**/*.cs"
+    - "**/*.csproj"
