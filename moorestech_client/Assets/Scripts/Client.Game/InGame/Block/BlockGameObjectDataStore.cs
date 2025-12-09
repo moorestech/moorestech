@@ -80,7 +80,7 @@ namespace Client.Game.InGame.Block
             var pos = SlopeBlockPlaceSystem.GetBlockPositionToPlacePosition(blockPosition, blockDirection, blockId);
             var rot = blockDirection.GetRotation();
 
-            var block = ClientContext.BlockGameObjectContainer.CreateBlock(blockId, pos, rot, transform, blockPosition, blockDirection, blockInstanceId);
+            var block = ClientContext.BlockGameObjectPrefabContainer.CreateBlock(blockId, pos, rot, transform, blockPosition, blockDirection, blockInstanceId);
             // 設置アニメーションを再生
             // Play place animation
             block.PlayPlaceAnimation().Forget();

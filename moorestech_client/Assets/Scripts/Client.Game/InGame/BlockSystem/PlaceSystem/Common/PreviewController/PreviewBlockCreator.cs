@@ -9,7 +9,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
         public static BlockPreviewObject Create(BlockId blockId)
         {
             //ブロックの作成とセットアップをして返す
-            var block = ClientContext.BlockGameObjectContainer.CreateBlockGameObject(blockId, Vector3.zero, Quaternion.identity);
+            var block = ClientContext.BlockGameObjectPrefabContainer.CreateBlockGameObject(blockId, Vector3.zero, Quaternion.identity);
             block.SetActive(true);
             
             var previewGameObject = block.AddComponent<BlockPreviewObject>();

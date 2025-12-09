@@ -1,10 +1,8 @@
-using System;
 using System.Collections.Generic;
 using Client.Common.Asset;
 using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem;
-using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Core.Master;
 using Cysharp.Threading.Tasks;
@@ -19,24 +17,23 @@ namespace Client.Game.InGame.Context
 {
     /// <summary>
     ///     Unityに表示されるブロックの実際のGameObjectを管理するクラス
-    ///     最初にブロックを生成しておき、必要なブロックを複製するためのクラス
     /// </summary>
-    public class BlockGameObjectContainer
+    public class BlockGameObjectPrefabContainer
     {
-        public IReadOnlyDictionary<BlockId, BlockObjectInfo> BlockObjects => _blockObjects;
-        private readonly Dictionary<BlockId, BlockObjectInfo> _blockObjects;
+        public IReadOnlyDictionary<BlockId, BlockPrefabInfo> BlockPrefabInfos => _blockPrefabInfos;
+        private readonly Dictionary<BlockId, BlockPrefabInfo> _blockPrefabInfos;
         private readonly BlockGameObject _missingBlockIdObject;
         
-        public BlockGameObjectContainer(BlockGameObject missingBlockIdObject, Dictionary<BlockId, BlockObjectInfo> blockObjects)
+        public BlockGameObjectPrefabContainer(BlockGameObject missingBlockIdObject, Dictionary<BlockId, BlockPrefabInfo> blockPrefabInfos)
         {
             _missingBlockIdObject = missingBlockIdObject;
-            _blockObjects = blockObjects;
+            _blockPrefabInfos = blockPrefabInfos;
         }
         
-        public static async UniTask<BlockGameObjectContainer> CreateAndLoadBlockGameObjectContainer(BlockGameObject missingBlockIdObject)
+        public static async UniTask<BlockGameObjectPrefabContainer> CreateAndLoadBlockGameObjectContainer(BlockGameObject missingBlockIdObject)
         {
-            var blocks = new Dictionary<BlockId, BlockObjectInfo>();
-            var tasks = new List<UniTask<BlockObjectInfo>>();
+            var blocks = new Dictionary<BlockId, BlockPrefabInfo>();
+            var tasks = new List<UniTask<BlockPrefabInfo>>();
             foreach (var blockId in MasterHolder.BlockMaster.GetBlockAllIds())
             {
                 tasks.Add(LoadBlockGameObject(blockId));
@@ -49,10 +46,10 @@ namespace Client.Game.InGame.Context
                 blocks.Add(result.BlockId, result);
             }
             
-            return new BlockGameObjectContainer(missingBlockIdObject, blocks);
+            return new BlockGameObjectPrefabContainer(missingBlockIdObject, blocks);
         }
         
-        private static async UniTask<BlockObjectInfo> LoadBlockGameObject(BlockId blockId)
+        private static async UniTask<BlockPrefabInfo> LoadBlockGameObject(BlockId blockId)
         {
             var masterElement = MasterHolder.BlockMaster.GetBlockMaster(blockId);
             var path = masterElement.BlockPrefabAddressablesPath;
@@ -70,7 +67,7 @@ namespace Client.Game.InGame.Context
                 return null;
             }
             
-            return new BlockObjectInfo(blockId, blockAsset.Asset, masterElement);
+            return new BlockPrefabInfo(blockId, blockAsset.Asset, masterElement);
         }
         
         /// <summary>
@@ -79,7 +76,7 @@ namespace Client.Game.InGame.Context
         /// </summary>
         public BlockGameObject CreateBlock(BlockId blockId, Vector3 position, Quaternion rotation, Transform parent, Vector3Int blockPosition, BlockDirection direction, BlockInstanceId blockInstanceId)
         {
-            if (!_blockObjects.TryGetValue(blockId, out var blockObjectInfo))
+            if (!_blockPrefabInfos.TryGetValue(blockId, out var blockObjectInfo))
             {
                 // ブロックIDがない時用のブロックを作る
                 // Create a block for when the block ID does not exist
@@ -166,7 +163,7 @@ namespace Client.Game.InGame.Context
         /// </summary>
         public GameObject CreateBlockGameObject(BlockId blockId, Vector3 position, Quaternion rotation)
         {
-            if (!_blockObjects.TryGetValue(blockId, out var blockObjectInfo))
+            if (!_blockPrefabInfos.TryGetValue(blockId, out var blockObjectInfo))
             {
                 var blockMasterElement = MasterHolder.BlockMaster.GetBlockMaster(blockId);
                 throw new System.Exception($"ブロックの登録がありません。Name:{blockMasterElement.Name} GUID:{blockMasterElement.BlockGuid}");
@@ -177,13 +174,13 @@ namespace Client.Game.InGame.Context
         }
     }
     
-    public class BlockObjectInfo
+    public class BlockPrefabInfo
     {
         public readonly BlockId BlockId;
         public readonly BlockMasterElement BlockMasterElement;
         public readonly GameObject BlockObjectPrefab;
         
-        public BlockObjectInfo(BlockId blockId, GameObject blockObjectPrefab, BlockMasterElement blockMasterElement)
+        public BlockPrefabInfo(BlockId blockId, GameObject blockObjectPrefab, BlockMasterElement blockMasterElement)
         {
             BlockObjectPrefab = blockObjectPrefab;
             BlockMasterElement = blockMasterElement;
