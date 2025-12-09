@@ -1,6 +1,8 @@
 using System.Collections;
 using Client.Tests.PlayModeTest.Util;
 using Cysharp.Threading.Tasks;
+using NUnit.Framework;
+using UnityEngine;
 using UnityEngine.TestTools;
 
 namespace Client.Tests.PlayModeTest
@@ -12,7 +14,7 @@ namespace Client.Tests.PlayModeTest
     public class EnterPlayModeTest
     {
         [UnityTest]
-        public IEnumerator CategoryElementTest()
+        public IEnumerator EnterTest()
         {
             yield return new EnterPlayMode(expectDomainReload: true);
             
