@@ -12,7 +12,6 @@ namespace Client.Game.InGame.Context
         public static PlayerConnectionSetting PlayerConnectionSetting { get; private set; }
         public static VanillaApi VanillaApi { get; private set; }
         public static ModalManager ModalManager { get; private set; }
-        public static DIContainer DIContainer { get; private set; }
         
         public ClientContext(BlockGameObjectPrefabContainer blockGameObjectPrefabContainer, ItemImageContainer itemImageContainer, FluidImageContainer fluidImageContainer, PlayerConnectionSetting playerConnectionSetting, VanillaApi vanillaApi, ModalManager modalManager)
         {
@@ -22,11 +21,6 @@ namespace Client.Game.InGame.Context
             FluidImageContainer = fluidImageContainer;
             PlayerConnectionSetting = playerConnectionSetting;
             VanillaApi = vanillaApi;
-        }
-        
-        public void SetDIContainer(DIContainer diContainer)
-        {
-            DIContainer = diContainer;
         }
     }
 }

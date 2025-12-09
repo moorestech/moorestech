@@ -107,7 +107,7 @@ namespace Client.Starter
             }
             
             //staticアクセスできるコンテキストの作成
-            var clientContext = new ClientContext(blockGameObjectPrefabContainer, itemImageContainer, fluidImageContainer , playerConnectionSetting, vanillaApi, modalManager);
+            new ClientContext(blockGameObjectPrefabContainer, itemImageContainer, fluidImageContainer , playerConnectionSetting, vanillaApi, modalManager);
             
             //シーンに遷移し、初期データを渡す
             SceneManager.sceneLoaded += MainGameSceneLoaded;
@@ -122,8 +122,7 @@ namespace Client.Starter
                 SceneManager.sceneLoaded -= MainGameSceneLoaded;
                 var starter = FindObjectOfType<MainGameStarter>();
                 var resolver = starter.StartGame(handshakeResponse);
-                var diContainer = new DIContainer(resolver);
-                clientContext.SetDIContainer(diContainer);
+                new ClientDIContext(new DIContainer(resolver));
             }
             
             async UniTask CreateAndStartVanillaApi()

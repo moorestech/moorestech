@@ -115,7 +115,7 @@ namespace Client.Game.InGame.UI.UIState.State
                 
                 // UIオブジェクトを生成
                 // Instantiate UI object
-                var instantiatedView = ClientContext.DIContainer.Instantiate(loadedInventory.Asset, _playerInventoryViewController.SubInventoryParent);
+                var instantiatedView = ClientDIContext.DIContainer.Instantiate(loadedInventory.Asset, _playerInventoryViewController.SubInventoryParent);
                 _currentView = instantiatedView.GetComponent<ISubInventoryView>();
                 
                 // インベントリデータを取得し初期化
