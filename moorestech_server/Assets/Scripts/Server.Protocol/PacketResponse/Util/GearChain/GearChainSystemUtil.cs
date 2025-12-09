@@ -18,9 +18,13 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             // 接続対象を取得する
             // Acquire target chain poles
             error = string.Empty;
-            if (!TryGetGearChainPole(posA, out var poleA, out var transformerA) || !TryGetGearChainPole(posB, out var poleB, out var transformerB))
+            var foundA = TryGetGearChainPole(posA, out var poleA, out var transformerA);
+            var foundB = TryGetGearChainPole(posB, out var poleB, out var transformerB);
+
+
+            if (!foundA || !foundB)
             {
-                error = "InvalidTarget";
+                error = $"InvalidTarget (foundA={foundA}, foundB={foundB})";
                 return false;
             }
             
@@ -204,9 +208,14 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             // Resolve component from position
             chainPole = null;
             transformer = null;
-            
-            if (!ServerContext.WorldBlockDatastore.TryGetBlock(position, out var block)) return false;
-            
+
+            var blockFound = ServerContext.WorldBlockDatastore.TryGetBlock(position, out var block);
+
+            if (!blockFound)
+            {
+                return false;
+            }
+
             chainPole = block.GetComponent<IGearChainPole>();
             transformer = block.GetComponent<IGearEnergyTransformer>();
             

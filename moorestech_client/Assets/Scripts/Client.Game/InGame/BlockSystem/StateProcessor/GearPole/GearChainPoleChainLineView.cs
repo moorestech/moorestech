@@ -12,7 +12,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.GearPole
     /// </summary>
     public class GearChainPoleChainLineView : MonoBehaviour
     {
-        private const string ChainLinePrefabAddress = "ChainLine";
+        private const string ChainLinePrefabAddress = "Vanilla/Block/Util/GearChainLine";
 
         private BlockGameObject _blockGameObject;
         private GearChainPoleChainLineViewElement _chainLinePrefab;
