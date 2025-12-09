@@ -6,7 +6,7 @@ namespace Client.Game.InGame.Context
 {
     public class ClientContext
     {
-        public static BlockGameObjectContainer BlockGameObjectContainer { get; private set; }
+        public static BlockGameObjectPrefabContainer BlockGameObjectPrefabContainer { get; private set; }
         public static ItemImageContainer ItemImageContainer { get; private set; }
         public static FluidImageContainer FluidImageContainer { get; private set; }
         public static PlayerConnectionSetting PlayerConnectionSetting { get; private set; }
@@ -14,9 +14,10 @@ namespace Client.Game.InGame.Context
         public static ModalManager ModalManager { get; private set; }
         public static DIContainer DIContainer { get; private set; }
         
-        public ClientContext(BlockGameObjectContainer blockGameObjectContainer, ItemImageContainer itemImageContainer, FluidImageContainer fluidImageContainer, PlayerConnectionSetting playerConnectionSetting, VanillaApi vanillaApi, ModalManager modalManager)
+        public ClientContext(BlockGameObjectPrefabContainer blockGameObjectPrefabContainer, ItemImageContainer itemImageContainer, FluidImageContainer fluidImageContainer, PlayerConnectionSetting playerConnectionSetting, VanillaApi vanillaApi, ModalManager modalManager)
         {
-            BlockGameObjectContainer = blockGameObjectContainer;
+            BlockGameObjectPrefabContainer = blockGameObjectPrefabContainer;
+            ModalManager = modalManager;
             ItemImageContainer = itemImageContainer;
             FluidImageContainer = fluidImageContainer;
             PlayerConnectionSetting = playerConnectionSetting;
