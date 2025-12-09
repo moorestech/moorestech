@@ -488,6 +488,13 @@
       },
       "hash": "7746d058e39c5de6b3bde667d5a852f9b8c89fdc"
     },
+    "jp.lilxyzw.liltoon": {
+      "version": "https://github.com/lilxyzw/lilToon.git?path=Assets/lilToon#master",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "56d5095b02e795bc60b5f80f72558d7835c5c14e"
+    },
     "jp.notargs.unity-natural-mcp": {
       "version": "https://github.com/notargs/UnityNaturalMCP.git?path=/UnityNaturalMCPServer",
       "depth": 0,
