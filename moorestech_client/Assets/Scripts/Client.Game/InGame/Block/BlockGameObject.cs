@@ -22,6 +22,7 @@ namespace Client.Game.InGame.Block
     public class BlockGameObject : MonoBehaviour
     {
         public BlockId BlockId { get; private set; }
+        public BlockInstanceId BlockInstanceId { get; private set; }
         public BlockMasterElement BlockMasterElement { get; private set; }
         public BlockPositionInfo BlockPosInfo { get; private set; }
         public List<IBlockStateChangeProcessor> BlockStateChangeProcessors { get; private set; }
@@ -38,10 +39,11 @@ namespace Client.Game.InGame.Block
         private BlockStateMessagePack _blockStateMessagePack;
         private bool _isShaderAnimating;
         
-        public void Initialize(BlockMasterElement blockMasterElement, BlockPositionInfo posInfo)
+        public void Initialize(BlockMasterElement blockMasterElement, BlockPositionInfo posInfo, BlockInstanceId blockInstanceId)
         {
             BlockPosInfo = posInfo;
             BlockId = MasterHolder.BlockMaster.GetBlockId(blockMasterElement.BlockGuid);
+            BlockInstanceId = blockInstanceId;
             BlockMasterElement = blockMasterElement;
             BlockStateChangeProcessors = gameObject.GetComponentsInChildren<IBlockStateChangeProcessor>().ToList();
             _visualEffects = gameObject.GetComponentsInChildren<VisualEffect>(true).ToList();

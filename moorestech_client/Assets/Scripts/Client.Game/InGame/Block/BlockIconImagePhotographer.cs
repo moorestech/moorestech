@@ -13,9 +13,9 @@ namespace Client.Game.InGame.Block
         [SerializeField] private int iconSize = 512;
         [SerializeField] Camera cameraPrefab;
         
-        public async UniTask<List<Texture2D>> TakeBlockIconImages(List<BlockObjectInfo> blockObjectInfos)
+        public async UniTask<List<Texture2D>> TakeBlockIconImages(List<BlockPrefabInfo> blockObjectInfos)
         {
-            var createdBlocks = new List<(GameObject block,BlockObjectInfo blockObjectInfo)>();
+            var createdBlocks = new List<(GameObject block,BlockPrefabInfo blockObjectInfo)>();
             
             foreach (var blockObjectInfo in blockObjectInfos)
             {
@@ -46,13 +46,13 @@ namespace Client.Game.InGame.Block
             return result.ToList();
         }
         
-        private async UniTask<Texture2D> GetIcon(GameObject block, BlockObjectInfo blockObjectInfo)
+        private async UniTask<Texture2D> GetIcon(GameObject block, BlockPrefabInfo blockPrefabInfo)
         {
             // ブロックの重心とバウンディングを取得
             var bounds = block.GetComponentsInChildren<Renderer>().Select(b => b.bounds).ToList();
             if (bounds.Count == 0)
             {
-                throw new System.Exception("ブロックにメッシュレンダラーがありませんでした:" + block.name + " " + blockObjectInfo.BlockMasterElement.Name);
+                throw new System.Exception("ブロックにメッシュレンダラーがありませんでした:" + block.name + " " + blockPrefabInfo.BlockMasterElement.Name);
             }
             var center = bounds.Select(b => b.center).Aggregate((b1, b2) => b1 + b2) / bounds.Count;
             
@@ -103,7 +103,7 @@ namespace Client.Game.InGame.Block
             return texture;
         }
         
-        private float GetMaxBlockSize(List<(GameObject block,BlockObjectInfo blockObjectInfo)> createdBlocks)
+        private float GetMaxBlockSize(List<(GameObject block,BlockPrefabInfo blockObjectInfo)> createdBlocks)
         {
             float maxSize = 0f;
             foreach (var createdBlock in createdBlocks)

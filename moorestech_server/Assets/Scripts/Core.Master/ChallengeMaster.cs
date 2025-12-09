@@ -1,46 +1,36 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Core.Master.Validator;
 using Mooresmaster.Loader.ChallengesModule;
 using Mooresmaster.Model.ChallengesModule;
 using Newtonsoft.Json.Linq;
 
 namespace Core.Master
 {
-    public class ChallengeMaster
+    public class ChallengeMaster : IMasterValidator
     {
         public readonly Challenges Challenges;
         public ChallengeCategoryMasterElement[] ChallengeCategoryMasterElements => Challenges.Data;
-        
-        private readonly Dictionary<Guid, ChallengeCategoryMasterElement> _challengeCategoryGuidMap = new();
-        private readonly Dictionary<Guid, ChallengeMasterElement> _challengeGuidMap = new();
-        private readonly Dictionary<Guid, ChallengeCategoryMasterElement> _challengeToCategoryMap = new();
-        private readonly Dictionary<Guid, List<Guid>> _nextChallenges;
-        
+
+        private Dictionary<Guid, ChallengeCategoryMasterElement> _challengeCategoryGuidMap;
+        private Dictionary<Guid, ChallengeMasterElement> _challengeGuidMap;
+        private Dictionary<Guid, ChallengeCategoryMasterElement> _challengeToCategoryMap;
+        private Dictionary<Guid, List<Guid>> _nextChallenges;
+
         public ChallengeMaster(JToken challengeJToken)
         {
             Challenges = ChallengesLoader.Load(challengeJToken);
-            _nextChallenges = new Dictionary<Guid, List<Guid>>();
-            foreach (var challengeCategory in Challenges.Data)
-            {
-                _challengeCategoryGuidMap.Add(challengeCategory.CategoryGuid, challengeCategory);
-                foreach (var challengeElement in challengeCategory.Challenges)
-                {
-                    var next = new List<Guid>();
-                    foreach (var checkTarget in challengeCategory.Challenges)
-                    {
-                        var prev = checkTarget.PrevChallengeGuids;
-                        if (prev != null && prev.Contains(challengeElement.ChallengeGuid))
-                        {
-                            next.Add(checkTarget.ChallengeGuid);
-                        }
-                    }
-                    
-                    _nextChallenges.Add(challengeElement.ChallengeGuid, next);
-                    _challengeGuidMap.Add(challengeElement.ChallengeGuid, challengeElement);
-                    _challengeToCategoryMap.Add(challengeElement.ChallengeGuid, challengeCategory);
-                }
-            }
+        }
+
+        public bool Validate(out string errorLogs)
+        {
+            return ChallengeMasterUtil.Validate(Challenges, out errorLogs);
+        }
+
+        public void Initialize()
+        {
+            ChallengeMasterUtil.Initialize(Challenges, out _challengeCategoryGuidMap, out _challengeGuidMap, out _challengeToCategoryMap, out _nextChallenges);
         }
         
         public List<ChallengeMasterElement> GetNextChallenges(Guid challengeGuid)

@@ -6,6 +6,13 @@
       "usePlaceItems": [
         "20000000-0000-0000-0000-000000000000"
       ]
+    },
+    {
+      "placeMode": "GearChainPoleConnect",
+      "priority": 300,
+      "usePlaceItems": [
+        "b15c8f72-df53-4f3a-810f-55a76f65d2ce"
+      ]
     }
   ]
 }

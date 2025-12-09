@@ -1,25 +1,32 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Core.Master.Validator;
 using Mooresmaster.Loader.ResearchModule;
 using Mooresmaster.Model.ResearchModule;
 using Newtonsoft.Json.Linq;
 
 namespace Core.Master
 {
-    public class ResearchMaster
+    public class ResearchMaster : IMasterValidator
     {
         public readonly Research Research;
-        public readonly Dictionary<Guid, ResearchNodeMasterElement> ResearchElements;
+        public Dictionary<Guid, ResearchNodeMasterElement> ResearchElements { get; private set; }
 
         public ResearchMaster(JToken jToken)
         {
             Research = ResearchLoader.Load(jToken);
-            ResearchElements = new Dictionary<Guid, ResearchNodeMasterElement>();
-            foreach (var element in Research.Data)
-            {
-                ResearchElements[element.ResearchNodeGuid] = element;
-            }
+        }
+
+        public bool Validate(out string errorLogs)
+        {
+            return ResearchMasterUtil.Validate(Research, out errorLogs);
+        }
+
+        public void Initialize()
+        {
+            ResearchMasterUtil.Initialize(Research, out var researchElements);
+            ResearchElements = researchElements;
         }
 
         public ResearchNodeMasterElement GetResearch(Guid researchGuid)
