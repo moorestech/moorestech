@@ -84,7 +84,7 @@ namespace Core.Master.Validator
                             if (unlockCraftRecipe.UnlockRecipeGuids == null) break;
                             foreach (var recipeGuid in unlockCraftRecipe.UnlockRecipeGuids)
                             {
-                                var recipe = MasterHolder.CraftRecipeMaster.GetCraftRecipeOrNull(recipeGuid);
+                                var recipe = MasterHolder.CraftRecipeMaster.GetCraftRecipe(recipeGuid);
                                 if (recipe == null)
                                 {
                                     localErrors += $"[ResearchMaster] Research:{researchName} has invalid ClearedAction.UnlockRecipeGuid:{recipeGuid}\n";

@@ -90,7 +90,7 @@ namespace Core.Master.Validator
                             {
                                 case MapObjectPinTutorialParam mapObjectPin:
                                 {
-                                    var mapObject = MasterHolder.MapObjectMaster.GetMapObjectElementOrNull(mapObjectPin.MapObjectGuid);
+                                    var mapObject = MasterHolder.MapObjectMaster.GetMapObjectElement(mapObjectPin.MapObjectGuid);
                                     if (mapObject == null)
                                     {
                                         logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.MapObjectGuid:{mapObjectPin.MapObjectGuid}\n";
@@ -172,7 +172,7 @@ namespace Core.Master.Validator
                             if (unlockCraftRecipe.UnlockRecipeGuids == null) break;
                             foreach (var recipeGuid in unlockCraftRecipe.UnlockRecipeGuids)
                             {
-                                var recipe = MasterHolder.CraftRecipeMaster.GetCraftRecipeOrNull(recipeGuid);
+                                var recipe = MasterHolder.CraftRecipeMaster.GetCraftRecipe(recipeGuid);
                                 if (recipe == null)
                                 {
                                     logs += $"[ChallengeMaster] Challenge:{challengeTitle} {actionType} has invalid UnlockRecipeGuid:{recipeGuid}\n";

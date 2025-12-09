@@ -26,24 +26,10 @@ namespace Core.Master
         }
         
         /// <summary>
-        /// クラフトレシピIDからマスターデータを取得（見つからない場合は例外）
-        /// Gets the master data from the crafting recipe ID (throws if not found).
+        /// クラフトレシピIDからマスターデータを取得
+        /// Gets the master data from the crafting recipe ID.
         /// </summary>
         public CraftRecipeMasterElement GetCraftRecipe(Guid guid)
-        {
-            var result = GetCraftRecipeOrNull(guid);
-            if (result == null)
-            {
-                throw new InvalidOperationException($"CraftRecipeElement not found. CraftRecipeGuid:{guid}");
-            }
-            return result;
-        }
-
-        /// <summary>
-        /// クラフトレシピIDからマスターデータを取得（見つからない場合はnull）
-        /// Gets the master data from the crafting recipe ID (returns null if not found).
-        /// </summary>
-        public CraftRecipeMasterElement GetCraftRecipeOrNull(Guid guid)
         {
             return Array.Find(CraftRecipes.Data, x => x.CraftRecipeGuid == guid);
         }
