@@ -425,6 +425,8 @@ GameObject:
   - component: {fileID: 7900596930779596992}
   - component: {fileID: 4164033313331626984}
   - component: {fileID: 4833313802552299297}
+  - component: {fileID: 1999898761967226027}
+  - component: {fileID: 5127568343835549631}
   m_Layer: 7
   m_Name: GearChainPole
   m_TagString: Untagged
@@ -450,6 +452,7 @@ Transform:
   - {fileID: 8373016677841765054}
   - {fileID: 1525459309663098135}
   - {fileID: 3132322806867691930}
+  - {fileID: 3555004935779299091}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &4164033313331626984
@@ -495,6 +498,31 @@ MonoBehaviour:
   isSimulating: 0
   simulateRpm: 60
   simulateIsClockwise: 1
+--- !u!114 &1999898761967226027
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7588150132072967899}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1257f0af10a0c4ae2a6b555797d61fa0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.StateProcessor.GearChainPoleStateChangeProcessor
+  chainLineView: {fileID: 5127568343835549631}
+--- !u!114 &5127568343835549631
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7588150132072967899}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8eef82e635254be6b9d58e9fa7bf97e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.StateProcessor.GearPole.GearChainPoleChainLineView
 --- !u!1 &8148378266203924516
 GameObject:
   m_ObjectHideFlags: 0
@@ -606,3 +634,65 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1001 &8986456352377039664
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 7900596930779596992}
+    m_Modifications:
+    - target: {fileID: 5612510257744888867, guid: 0d176e3dd7401408b91fd6abfa557f21, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5612510257744888867, guid: 0d176e3dd7401408b91fd6abfa557f21, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5612510257744888867, guid: 0d176e3dd7401408b91fd6abfa557f21, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5612510257744888867, guid: 0d176e3dd7401408b91fd6abfa557f21, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5612510257744888867, guid: 0d176e3dd7401408b91fd6abfa557f21, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5612510257744888867, guid: 0d176e3dd7401408b91fd6abfa557f21, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5612510257744888867, guid: 0d176e3dd7401408b91fd6abfa557f21, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5612510257744888867, guid: 0d176e3dd7401408b91fd6abfa557f21, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5612510257744888867, guid: 0d176e3dd7401408b91fd6abfa557f21, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5612510257744888867, guid: 0d176e3dd7401408b91fd6abfa557f21, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7279796313503862987, guid: 0d176e3dd7401408b91fd6abfa557f21, type: 3}
+      propertyPath: m_Name
+      value: GearConnectorView
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 0d176e3dd7401408b91fd6abfa557f21, type: 3}
+--- !u!4 &3555004935779299091 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5612510257744888867, guid: 0d176e3dd7401408b91fd6abfa557f21, type: 3}
+  m_PrefabInstance: {fileID: 8986456352377039664}
+  m_PrefabAsset: {fileID: 0}
