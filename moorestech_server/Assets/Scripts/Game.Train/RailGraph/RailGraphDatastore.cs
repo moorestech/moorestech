@@ -199,9 +199,9 @@ namespace Game.Train.RailGraph
 
         // ハッシュ取得メソッド
         // Get hash method
-        public static uint GetGraphHash()
+        public static uint GetConnectNodesHash()
         {
-            return Instance.GetGraphHashInternal();
+            return Instance.GetConnectNodesHashInternal();
         }
 
         //======================================================
@@ -429,11 +429,11 @@ namespace Game.Train.RailGraph
             return _pathFinder.FindShortestPath(railNodes, connectNodes, startid, targetid);
         }
 
-        private uint GetGraphHashInternal()
+        private uint GetConnectNodesHashInternal()
         {
             if (!_isHashDirty)
                 return _cachedGraphHash;
-            _cachedGraphHash = RailGraphHashCalculator.ComputeHash(connectNodes);
+            _cachedGraphHash = RailGraphHashCalculator.ComputeConnectNodesHash(connectNodes);
             _isHashDirty = false;
             return _cachedGraphHash;
         }
