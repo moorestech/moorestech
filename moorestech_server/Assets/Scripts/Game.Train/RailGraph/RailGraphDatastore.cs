@@ -49,6 +49,11 @@ namespace Game.Train.RailGraph
         // Rail graph update event (proxied from RailGraphNotifier)
         public static IObservable<List<RailComponentID>> RailGraphUpdateEvent => Instance._notifier.RailGraphUpdateEvent;
 
+        // ハッシュキャッシュ制御
+        // Hash cache control
+        private uint _cachedGraphHash;
+        private bool _isHashDirty;
+
         public RailGraphDatastore()
         {
             #region internal
@@ -79,6 +84,8 @@ namespace Game.Train.RailGraph
             connectionDestinationToRailId = new Dictionary<ConnectionDestination, int>();
             railPositionToConnectionDestination = new Dictionary<Vector3Int, (ConnectionDestination first, ConnectionDestination second)>();
             _pathFinder = new RailGraphPathFinder();
+            _cachedGraphHash = 0;
+            _isHashDirty = true;
         }
 
         private void ResetInternalState()
@@ -186,7 +193,7 @@ namespace Game.Train.RailGraph
         // Get hash method
         public static uint GetGraphHash()
         {
-            return RailGraphHashCalculator.ComputeHash(Instance.connectNodes);
+            return Instance.GetGraphHashInternal();
         }
 
         //======================================================
@@ -213,6 +220,7 @@ namespace Game.Train.RailGraph
                 railNodes[nextid] = node;
             }
             railNodeToId[node] = nextid;
+            MarkHashDirty();
         }
 
 
@@ -237,6 +245,7 @@ namespace Game.Train.RailGraph
             // レールグラフ更新イベントを発火
             // Fire rail graph update event
             _notifier.NotifyRailGraphUpdate(node, targetNode);
+            MarkHashDirty();
         }
 
         private void DisconnectNodeInternal(RailNode node, RailNode targetNode)
@@ -246,6 +255,7 @@ namespace Game.Train.RailGraph
             connectNodes[nodeid].RemoveAll(x => x.Item1 == targetid);
             // レールグラフ更新イベントを発火
             // TODO 削除関連はまだ未対応
+            MarkHashDirty();
         }
 
         private void RemoveNodeInternal(RailNode node)
@@ -268,7 +278,7 @@ namespace Game.Train.RailGraph
             nextidQueue.Insert(nodeid);
             connectNodes[nodeid].Clear();
             RemoveNodeTo(nodeid);
-
+            MarkHashDirty();
         }
 
         private void RemoveNodeTo(int nodeid)
@@ -277,6 +287,7 @@ namespace Game.Train.RailGraph
             {
                 connectNodes[i].RemoveAll(x => x.Item1 == nodeid);
             }
+            MarkHashDirty();
         }
 
 
@@ -383,6 +394,20 @@ namespace Game.Train.RailGraph
         {
             // RailGraphPathFinder に処理を委譲
             return _pathFinder.FindShortestPath(railNodes, connectNodes, startid, targetid);
+        }
+
+        private uint GetGraphHashInternal()
+        {
+            if (!_isHashDirty)
+                return _cachedGraphHash;
+            _cachedGraphHash = RailGraphHashCalculator.ComputeHash(connectNodes);
+            _isHashDirty = false;
+            return _cachedGraphHash;
+        }
+
+        private void MarkHashDirty()
+        {
+            _isHashDirty = true;
         }
     }
 }
