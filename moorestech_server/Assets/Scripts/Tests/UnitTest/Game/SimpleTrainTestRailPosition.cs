@@ -15,11 +15,11 @@ namespace Tests.UnitTest.Game
             _ = env.GetRailGraphDatastore();
 
             // ノードを準備
-            var nodeA = new RailNode();
-            var nodeB = new RailNode();
-            var nodeC = new RailNode();
-            var nodeD = new RailNode();
-            var nodeE = new RailNode();
+            var nodeA = RailNode.CreateSingleAndRegister();
+            var nodeB = RailNode.CreateSingleAndRegister();
+            var nodeC = RailNode.CreateSingleAndRegister();
+            var nodeD = RailNode.CreateSingleAndRegister();
+            var nodeE = RailNode.CreateSingleAndRegister();
 
             // ノードを接続
             nodeB.ConnectNode(nodeA, 10);//9から列車
@@ -60,19 +60,11 @@ namespace Tests.UnitTest.Game
             _ = env.GetRailGraphDatastore();
 
             // ノードを準備
-            // 表
-            var nodeA1 = new RailNode();
-            var nodeB1 = new RailNode();
-            var nodeC1 = new RailNode();
-            var nodeD1 = new RailNode();
-            var nodeE1 = new RailNode();
-            // 裏
-            var nodeA2 = new RailNode();
-            var nodeB2 = new RailNode();
-            var nodeC2 = new RailNode();
-            var nodeD2 = new RailNode();
-            var nodeE2 = new RailNode();
-
+            var (nodeA1, nodeA2) = RailNode.CreatePair();
+            var (nodeB1, nodeB2) = RailNode.CreatePair();
+            var (nodeC1, nodeC2) = RailNode.CreatePair();
+            var (nodeD1, nodeD2) = RailNode.CreatePair();
+            var (nodeE1, nodeE2) = RailNode.CreatePair();
             // ノードを接続
             nodeB1.ConnectNode(nodeA1, 10);//5から列車
             nodeC1.ConnectNode(nodeB1, 15);//列車
@@ -84,16 +76,6 @@ namespace Tests.UnitTest.Game
             nodeB2.ConnectNode(nodeC2, 15);
             nodeA2.ConnectNode(nodeB2, 10);
 
-            nodeA1.SetOppositeNode(nodeA2);//ここは本来RailConmponentのコンストラクタでやる
-            nodeB1.SetOppositeNode(nodeB2);
-            nodeC1.SetOppositeNode(nodeC2);
-            nodeD1.SetOppositeNode(nodeD2);
-            nodeE1.SetOppositeNode(nodeE2);
-            nodeA2.SetOppositeNode(nodeA1);
-            nodeB2.SetOppositeNode(nodeB1);
-            nodeC2.SetOppositeNode(nodeC1);
-            nodeD2.SetOppositeNode(nodeD1);
-            nodeE2.SetOppositeNode(nodeE1);
             {  //Reverseを使ってMoveForward(マイナス)を使わないパターン
                 var nodes = new List<RailNode> { nodeA1, nodeB1, nodeC1, nodeD1, nodeE1 };
                 var railPosition = new RailPosition(nodes, 50, 5); // 先頭はノードAとBの間の5地点

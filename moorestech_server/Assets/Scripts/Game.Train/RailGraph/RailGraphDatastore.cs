@@ -27,7 +27,7 @@ namespace Game.Train.RailGraph
         //①railnodeとrailnodeidの対応関係を記憶する辞書。id化はダイクストラ法高速化のため(約2倍以上)
         private Dictionary<RailNode, int> railNodeToId;//①
         private List<RailNode> railNodes;//①
-        private MinHeap<int> nextidQueue;//① railNodeには1つの固有のintのidを割り当てている。これはダイクストラ高速化のため。そのidをなるべく若い順に使いたい
+        private RailNodeIdAllocator nodeIdAllocator;//① railNodeには1つの固有のintのidを割り当てている。これはダイクストラ高速化のため。そのidをなるべく若い順に使いたい。具体的な処理はRailNodeIdAllocatorコードのコメントをみて
         //②railnode同士の接続情報を記憶するリスト。connectNodes[railnodeid]がそのrailnodeからつながっているrailnodeidと距離のリストになる
         private List<List<(int, int)>> connectNodes;
         private RailGraphPathFinder _pathFinder;//ダイクストラ法は専用クラスに委譲する
@@ -78,7 +78,7 @@ namespace Game.Train.RailGraph
         {
             railNodeToId = new Dictionary<RailNode, int>();
             railNodes = new List<RailNode>();
-            nextidQueue = new MinHeap<int>();
+            nodeIdAllocator = new RailNodeIdAllocator(EnsureRailNodeSlot);
             connectNodes = new List<List<(int, int)>>();
             railIdToConnectionDestination = new Dictionary<int, ConnectionDestination>();
             connectionDestinationToRailId = new Dictionary<ConnectionDestination, int>();
@@ -120,6 +120,14 @@ namespace Game.Train.RailGraph
         public static void AddNode(RailNode node)
         {
             Instance.AddNodeInternal(node);
+        }
+        public static void AddNodePair(RailNode node1, RailNode node2)
+        {
+            Instance.AddNodePairInternal(node1, node2);
+        }
+        public static RailNode GetOppositeNode(RailNode node) 
+        {
+            return Instance.GetOppositeNodeInternal(node);
         }
 
         public static void ConnectNode(RailNode node, RailNode targetNode, int distance)
@@ -200,29 +208,54 @@ namespace Game.Train.RailGraph
         //  内部実装部 (インスタンスメソッド)
         //======================================================
 
+        // RailNode/接続リストの容量を不足させない
+        // Ensure node and connection lists have enough slots
+        private void EnsureRailNodeSlot(int nodeId)
+        {
+            while (railNodes.Count <= nodeId)
+            {
+                railNodes.Add(null);
+                connectNodes.Add(new List<(int, int)>());
+            }
+        }
+
         private void AddNodeInternal(RailNode node)
         {
             if (railNodeToId.ContainsKey(node))
                 return;
-
-            int nextid;
-            if (nextidQueue.IsEmpty || (railNodes.Count < nextidQueue.Peek()))
-                nextidQueue.Insert(railNodes.Count);
-
-            nextid = nextidQueue.RemoveMin();
-            if (nextid == railNodes.Count)
-            {
-                railNodes.Add(node);
-                connectNodes.Add(new List<(int, int)>());
-            }
-            else
-            {
-                railNodes[nextid] = node;
-            }
-            railNodeToId[node] = nextid;
+            var nodeId = nodeIdAllocator.Rent();
+            connectNodes[nodeId].Clear();
+            railNodes[nodeId] = node;
+            railNodeToId[node] = nodeId;
             MarkHashDirty();
         }
 
+        private void AddNodePairInternal(RailNode node1, RailNode node2) 
+        {
+            if (railNodeToId.ContainsKey(node1))
+                return;
+            if (railNodeToId.ContainsKey(node2))
+                return;
+            var (nodeId1, nodeId2) = nodeIdAllocator.Rent2();
+            connectNodes[nodeId1].Clear();
+            connectNodes[nodeId2].Clear();
+            railNodes[nodeId1] = node1;
+            railNodes[nodeId2] = node2;
+            railNodeToId[node1] = nodeId1;
+            railNodeToId[node2] = nodeId2;
+            MarkHashDirty();
+        }
+
+        private RailNode GetOppositeNodeInternal(RailNode node) 
+        {
+            if (!railNodeToId.ContainsKey(node))
+                return null;
+            var nodeid = railNodeToId[node];
+            var oppositeid = nodeid ^ 1;//表裏ノードはidが1違いなのでxorで求められる
+            if (oppositeid < 0 || oppositeid >= railNodes.Count)
+                return null;
+            return railNodes[oppositeid];
+        }
 
         private void ConnectNodeInternal(RailNode node, RailNode targetNode, int distance)
         {
@@ -275,7 +308,7 @@ namespace Game.Train.RailGraph
             }
 
             railNodes[nodeid] = null;
-            nextidQueue.Insert(nodeid);
+            nodeIdAllocator.Return(nodeid);
             connectNodes[nodeid].Clear();
             RemoveNodeTo(nodeid);
             MarkHashDirty();
