@@ -1,4 +1,5 @@
 using Game.Block.Interface;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -18,6 +19,7 @@ namespace Game.Train.RailGraph
         public RailControlPoint BackControlPoint { get; private set; }
         //このノードが駅に対応するときの駅ブロックのworld座標などを格納
         public StationReference StationRef { get; set; }
+        public Guid Guid { get; }
 
 
         /// なぜ IEnumerable を使うのか？
@@ -50,6 +52,7 @@ namespace Game.Train.RailGraph
 
         public RailNode()
         {
+            Guid = Guid.NewGuid();
             RailGraphDatastore.AddNode(this);
             FrontControlPoint = null;
             BackControlPoint = null;
