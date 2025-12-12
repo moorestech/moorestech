@@ -146,6 +146,7 @@ namespace Client.Starter
             builder.RegisterEntryPoint<PlayerPositionSender>();
             builder.RegisterEntryPoint<SkitFireManager>();
             builder.RegisterEntryPoint<RailGraphCacheNetworkHandler>();
+            builder.RegisterEntryPoint<RailGraphConnectionNetworkHandler>();
             
             // 設置システム
             // register placement system

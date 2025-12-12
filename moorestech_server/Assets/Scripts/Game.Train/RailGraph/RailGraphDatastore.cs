@@ -44,15 +44,11 @@ namespace Game.Train.RailGraph
         // レールグラフ更新イベント
         // Rail graph update event
         private readonly RailGraphNotifier _notifier = null!;
-        // RailNode初期化イベント
-        // Rail node initialization event stream
         private readonly RailNodeInitializationNotifier _nodeInitializationNotifier = null!;
-        // レールグラフ更新イベント（RailGraphNotifier 経由）
-        // Rail graph update event (proxied from RailGraphNotifier)
+        private readonly RailConnectionInitializationNotifier _connectionInitializationNotifier = null!;
         public static IObservable<List<RailComponentID>> RailGraphUpdateEvent => Instance._notifier.RailGraphUpdateEvent;
-        // RailNode初期化イベント公開
-        // Expose rail node initialization stream
         public static IObservable<RailNodeInitializationData> RailNodeInitializedEvent => Instance._nodeInitializationNotifier.RailNodeInitializedEvent;
+        public static IObservable<RailConnectionInitializationData> RailConnectionInitializedEvent => Instance._connectionInitializationNotifier.RailConnectionInitializedEvent;
 
         // ハッシュキャッシュ制御
         // Hash cache control
@@ -76,6 +72,7 @@ namespace Game.Train.RailGraph
             // RailNode -> RailComponentID の解決ロジックを Notifier に渡す
             _notifier = new RailGraphNotifier(TryResolveRailComponentId);
             _nodeInitializationNotifier = new RailNodeInitializationNotifier();
+            _connectionInitializationNotifier = new RailConnectionInitializationNotifier();
             _instance = this;
         }
 
@@ -103,6 +100,7 @@ namespace Game.Train.RailGraph
             // RailGraphUpdateEvent の再生成を Notifier に委譲
             _notifier.Reset();
             _nodeInitializationNotifier.Reset();
+            _connectionInitializationNotifier.Reset();
             InitializeDataStore();
         }
 
@@ -193,11 +191,6 @@ namespace Game.Train.RailGraph
         /// 全レール接続情報を取得する
         /// Get all rail connection information
         /// </summary>
-        public static List<RailConnectionInfo> GetAllRailConnections()
-        {
-            return Instance.GetAllRailConnectionsInternal();
-        }
-
         // ハッシュ取得メソッド
         // Get hash method
         public static uint GetConnectNodesHash()
@@ -290,6 +283,7 @@ namespace Game.Train.RailGraph
             // レールグラフ更新イベントを発火
             // Fire rail graph update event
             _notifier.NotifyRailGraphUpdate(node, targetNode);
+            NotifyConnectionInitialized(nodeid, targetid, distance);
             MarkHashDirty();
         }
 
@@ -350,6 +344,23 @@ namespace Game.Train.RailGraph
             }
             node = railNodes[nodeId];
             return node != null;
+        }
+
+        private void NotifyConnectionInitialized(int fromNodeId, int toNodeId, int distance)
+        {
+            var fromNode = railNodes[fromNodeId];
+            var toNode = railNodes[toNodeId];
+            if (fromNode == null || toNode == null)
+            {
+                return;
+            }
+
+            _connectionInitializationNotifier.Notify(new RailConnectionInitializationData(
+                fromNodeId,
+                fromNode.Guid,
+                toNodeId,
+                toNode.Guid,
+                distance));
         }
 
         private void NotifyNodeInitialized(int nodeid)
@@ -417,30 +428,6 @@ namespace Game.Train.RailGraph
             return -1;
         }
 
-        // 全レール接続情報を取得する内部実装
-        // Internal implementation to get all rail connections
-        private List<RailConnectionInfo> GetAllRailConnectionsInternal()
-        {
-            var connections = new List<RailConnectionInfo>();
-            
-            for (int i = 0; i < railNodes.Count; i++)
-            {
-                var fromNode = railNodes[i];
-                if (fromNode == null) continue;
-                
-                foreach (var (targetId, distance) in connectNodes[i])
-                {
-                    if (targetId < 0 || targetId >= railNodes.Count) continue;
-                    var toNode = railNodes[targetId];
-                    if (toNode == null) continue;
-                    
-                    connections.Add(new RailConnectionInfo(fromNode, toNode, distance));
-                }
-            }
-            
-            return connections;
-        }
-
         // ダイクストラ startからtargetへのnodeリストを返す、0がstart、最後がtarget
         private List<RailNode> FindShortestPathInternal(int startid, int targetid)
         {
@@ -495,5 +482,23 @@ namespace Game.Train.RailGraph
         public ConnectionDestination ConnectionDestination { get; }
         public RailControlPoint PrimaryControlPoint { get; }
         public RailControlPoint OppositeControlPoint { get; }
+    }
+
+    public readonly struct RailConnectionInitializationData
+    {
+        public RailConnectionInitializationData(int fromNodeId, Guid fromGuid, int toNodeId, Guid toGuid, int distance)
+        {
+            FromNodeId = fromNodeId;
+            FromGuid = fromGuid;
+            ToNodeId = toNodeId;
+            ToGuid = toGuid;
+            Distance = distance;
+        }
+
+        public int FromNodeId { get; }
+        public Guid FromGuid { get; }
+        public int ToNodeId { get; }
+        public Guid ToGuid { get; }
+        public int Distance { get; }
     }
 }

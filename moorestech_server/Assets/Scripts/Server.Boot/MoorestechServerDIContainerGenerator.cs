@@ -161,8 +161,8 @@ namespace Server.Boot
 
             services.AddSingleton<MapObjectUpdateEventPacket>();
             services.AddSingleton<UnlockedEventPacket>();
-            services.AddSingleton<RailConnectionsEventPacket>();
             services.AddSingleton<RailNodeCreatedEventPacket>();
+            services.AddSingleton<RailConnectionCreatedEventPacket>();
             
             //データのセーブシステム
             services.AddSingleton<AssembleSaveJsonText, AssembleSaveJsonText>();
@@ -190,8 +190,8 @@ namespace Server.Boot
             serviceProvider.GetService<MapObjectUpdateEventPacket>();
             serviceProvider.GetService<UnlockedEventPacket>();
             serviceProvider.GetService<ResearchCompleteEventPacket>();
-            serviceProvider.GetService<RailConnectionsEventPacket>();
             serviceProvider.GetService<RailNodeCreatedEventPacket>();
+            serviceProvider.GetService<RailConnectionCreatedEventPacket>();
             
             serverContext.SetMainServiceProvider(serviceProvider);
 
