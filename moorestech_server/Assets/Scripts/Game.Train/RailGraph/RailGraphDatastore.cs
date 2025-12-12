@@ -272,10 +272,10 @@ namespace Game.Train.RailGraph
         private void ConnectNodeInternal(RailNode node, RailNode targetNode, int distance)
         {
             if (!railNodeToId.ContainsKey(node))
-                return;
+                throw new InvalidOperationException("Attempted to connect a RailNode that is not registered in RailGraphDatastore.");
             var nodeid = railNodeToId[node];
             if (!railNodeToId.ContainsKey(targetNode))
-                return;
+                throw new InvalidOperationException("Attempted to connect to a RailNode that is not registered in RailGraphDatastore.");
             var targetid = railNodeToId[targetNode];
             if (!connectNodes[nodeid].Any(x => x.Item1 == targetid))
             {
@@ -355,13 +355,21 @@ namespace Game.Train.RailGraph
         private void NotifyNodeInitialized(int nodeid)
         {
             var node = railNodes[nodeid];
+            var destination = node.ConnectionDestination.IsDefault() ? ConnectionDestination.Default : node.ConnectionDestination;
+
+            var frontControlPoint = node.FrontControlPoint?.ControlPointPosition ?? Vector3.zero;
+            var backControlPoint = node.BackControlPoint?.ControlPointPosition ?? Vector3.zero;
+            var originPoint = node.FrontControlPoint?.OriginalPosition
+                              ?? node.BackControlPoint?.OriginalPosition
+                              ?? Vector3.zero;
+
             _nodeInitializationNotifier.Notify(new RailNodeInitializationData(
                 nodeid,
                 node.Guid,
-                node.ConnectionDestination,
-                node.FrontControlPoint.OriginalPosition,
-                node.FrontControlPoint.ControlPointPosition,
-                node.BackControlPoint.ControlPointPosition));
+                destination,
+                originPoint,
+                frontControlPoint,
+                backControlPoint));
         }
 
         private RailNode ResolveRailNodeInternal(ConnectionDestination destination)
