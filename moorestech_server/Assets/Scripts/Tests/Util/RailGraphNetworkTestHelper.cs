@@ -53,10 +53,10 @@ namespace Tests.Util
         private static void CaptureNode(RailNode node, Dictionary<ConnectionDestination, HashSet<RailGraphEdge>> adjacency)
         {
             Assert.IsNotNull(node, "RailNodeがnullです。");
-            Assert.IsTrue(RailGraphDatastore.TryGetConnectionDestination(node, out var destination) && !destination.IsDefault(),
+            Assert.IsTrue(!node.ConnectionDestination.IsDefault(),
                 "RailNodeにConnectionDestinationが割り当てられていません。");
 
-            var nodeKey = Clone(destination);
+            var nodeKey = Clone(node.ConnectionDestination);
             if (!adjacency.TryGetValue(nodeKey, out var edges))
             {
                 edges = new HashSet<RailGraphEdge>();
@@ -65,10 +65,10 @@ namespace Tests.Util
 
             foreach (var (neighbor, distance) in node.ConnectedNodesWithDistance)
             {
-                Assert.IsTrue(RailGraphDatastore.TryGetConnectionDestination(neighbor, out var neighborDestination) && !neighborDestination.IsDefault(),
+                Assert.IsTrue(!neighbor.ConnectionDestination.IsDefault(),
                     "接続先のRailNodeにConnectionDestinationが割り当てられていません。");
 
-                edges.Add(new RailGraphEdge(Clone(neighborDestination), distance));
+                edges.Add(new RailGraphEdge(Clone(neighbor.ConnectionDestination), distance));
             }
         }
 

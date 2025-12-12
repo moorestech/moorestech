@@ -19,6 +19,8 @@ namespace Game.Train.RailGraph
         public RailControlPoint BackControlPoint { get; private set; }
         //このノードが駅に対応するときの駅ブロックのworld座標などを格納
         public StationReference StationRef { get; set; }
+        public ConnectionDestination ConnectionDestination { get; private set; } = ConnectionDestination.Default;
+        public bool HasConnectionDestination => !ConnectionDestination.IsDefault();
         public Guid Guid { get; }
 
         public RailNode OppositeNode
@@ -61,12 +63,13 @@ namespace Game.Train.RailGraph
         public RailNode()
         {
             Guid = Guid.NewGuid();
-            FrontControlPoint = null;
-            BackControlPoint = null;
+            FrontControlPoint = new RailControlPoint(Vector3.zero, Vector3.zero);
+            BackControlPoint = new RailControlPoint(Vector3.zero, Vector3.zero);
             StationRef = new StationReference();
+            ConnectionDestination = ConnectionDestination.Default;
         }
-        // 表裏セットでRailGraphに登録する、基本的にrailComponent側からのみよびだす
-        public static (RailNode front, RailNode back) CreatePair()
+        // 表裏セットでRailGraphに登録する、テスト用
+        public static (RailNode front, RailNode back) CreatePairAndRegister()
         {
             var a = new RailNode();
             var b = new RailNode();
@@ -77,15 +80,19 @@ namespace Game.Train.RailGraph
         public static RailNode CreateSingleAndRegister()
         {
             var n = new RailNode();
-            RailGraphDatastore.AddNode(n);
+            RailGraphDatastore.AddNodeSingle(n);
             return n;
         }
-
 
         public void SetRailControlPoints(RailControlPoint frontControlPoint, RailControlPoint backControlPoint)
         {
             FrontControlPoint = frontControlPoint;
             BackControlPoint = backControlPoint;
+        }
+
+        public void SetConnectionDestination(ConnectionDestination destination)
+        {
+            ConnectionDestination = destination;
         }
 
         //RailGraphに登録する

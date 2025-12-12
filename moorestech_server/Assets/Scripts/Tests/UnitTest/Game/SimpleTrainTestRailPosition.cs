@@ -60,11 +60,11 @@ namespace Tests.UnitTest.Game
             _ = env.GetRailGraphDatastore();
 
             // ノードを準備
-            var (nodeA1, nodeA2) = RailNode.CreatePair();
-            var (nodeB1, nodeB2) = RailNode.CreatePair();
-            var (nodeC1, nodeC2) = RailNode.CreatePair();
-            var (nodeD1, nodeD2) = RailNode.CreatePair();
-            var (nodeE1, nodeE2) = RailNode.CreatePair();
+            var (nodeA1, nodeA2) = RailNode.CreatePairAndRegister();
+            var (nodeB1, nodeB2) = RailNode.CreatePairAndRegister();
+            var (nodeC1, nodeC2) = RailNode.CreatePairAndRegister();
+            var (nodeD1, nodeD2) = RailNode.CreatePairAndRegister();
+            var (nodeE1, nodeE2) = RailNode.CreatePairAndRegister();
             // ノードを接続
             nodeB1.ConnectNode(nodeA1, 10);//5から列車
             nodeC1.ConnectNode(nodeB1, 15);//列車

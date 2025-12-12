@@ -302,14 +302,8 @@ namespace Game.Train.RailGraph
             var snapshot = new List<ConnectionDestination>(_railNodes.Count);
             foreach (var node in _railNodes)
             {
-                if (!RailGraphDatastore.TryGetConnectionDestination(node, out var connection))
-                {
-                    continue;
-                }
-                var destinationId = new RailComponentID(connection.railComponentID.Position, connection.railComponentID.ID);
-                snapshot.Add(new ConnectionDestination(destinationId, connection.IsFront));
+                snapshot.Add(node.ConnectionDestination);
             }
-
             return snapshot;
         }
 
