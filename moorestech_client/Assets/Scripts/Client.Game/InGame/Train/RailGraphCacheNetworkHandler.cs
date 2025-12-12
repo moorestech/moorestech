@@ -48,10 +48,10 @@ namespace Client.Game.InGame.Train
             _cache.UpsertNode(
                 message.NodeId,
                 message.NodeGuid,
-                message.ControlPointOrigin.ToUnityVector(),
+                message.OriginPoint.ToUnityVector(),
                 destination,
-                message.PrimaryControlPointPosition.ToUnityVector(),
-                message.OppositeControlPointPosition.ToUnityVector(),
+                message.FrontControlPoint.ToUnityVector(),
+                message.BackControlPoint.ToUnityVector(),
                 0);
         }
 
