@@ -113,6 +113,7 @@ namespace Game.Block.Blocks.TrainRail
 
         /// <summary>
         /// ベジェ曲線の強度を変更し、制御点を更新する
+        /// 距離再計算と距離適応は未実装 TODO 必要なら実装、クライアント通信も実装するよう
         /// </summary>
         public void UpdateControlPointStrength(float strength)
         {
