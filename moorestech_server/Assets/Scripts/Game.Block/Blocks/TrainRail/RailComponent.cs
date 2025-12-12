@@ -52,14 +52,14 @@ namespace Game.Block.Blocks.TrainRail
             FrontControlPoint = new RailControlPoint(position, CalculateControlPointOffset(true));
             BackControlPoint = new RailControlPoint(position, CalculateControlPointOffset(false));
 
-            (FrontNode, BackNode) = RailNode.CreatePair();
+            FrontNode = new RailNode();
+            BackNode = new RailNode();
 
-            RailGraphDatastore.AddRailComponentID(FrontNode, new ConnectionDestination(railComponentID, true));
-            RailGraphDatastore.AddRailComponentID(BackNode, new ConnectionDestination(railComponentID, false));
-
-            // RailNodeに制御点を登録（表裏で使う制御点が異なる）
             FrontNode.SetRailControlPoints(FrontControlPoint, BackControlPoint);
             BackNode.SetRailControlPoints(BackControlPoint, FrontControlPoint);
+            FrontNode.SetConnectionDestination(new ConnectionDestination(railComponentID, true));
+            BackNode.SetConnectionDestination(new ConnectionDestination(railComponentID, false));
+            RailGraphDatastore.AddNodePair(FrontNode, BackNode);
         }
 
 
@@ -134,7 +134,7 @@ namespace Game.Block.Blocks.TrainRail
             // FrontNode の接続リスト
             foreach (var node in FrontNode.ConnectedNodes)
             {
-                var connectionInfo = RailGraphDatastore.GetConnectionDestination(node);
+                var connectionInfo = node.ConnectionDestination;
                 if (!connectionInfo.IsDefault())
                     state.ConnectMyFrontTo.Add(connectionInfo);
             }
@@ -142,7 +142,7 @@ namespace Game.Block.Blocks.TrainRail
             // BackNode の接続リスト
             foreach (var node in BackNode.ConnectedNodes)
             {
-                var connectionInfo = RailGraphDatastore.GetConnectionDestination(node);
+                var connectionInfo = node.ConnectionDestination;
                 if (!connectionInfo.IsDefault())
                     state.ConnectMyBackTo.Add(connectionInfo);
             }
