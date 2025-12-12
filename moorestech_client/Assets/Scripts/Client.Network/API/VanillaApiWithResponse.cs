@@ -38,7 +38,6 @@ namespace Client.Network.API
             //必要なデータを取得する
             // Fetch all required resources including research node states
             var responses = await UniTask.WhenAll(
-                GetRailConnections(ct),
                 GetMapObjectInfo(ct), 
                 GetWorldData(ct), 
                 GetPlayerInventory(playerId, ct), 
@@ -49,15 +48,6 @@ namespace Client.Network.API
                 GetResearchNodeStates(ct));
             
             return new InitialHandshakeResponse(initialHandShake, responses);
-        }
-        
-        public async UniTask<RailConnectionDataMessagePack[]> GetRailConnections(CancellationToken ct)
-        {
-            // レール接続情報をまとめて取得
-            // Fetch all rail connection data from server
-            var request = new GetRailConnectionsProtocol.GetRailConnectionsRequest();
-            var response = await _packetExchangeManager.GetPacketResponse<GetRailConnectionsProtocol.GetRailConnectionsResponse>(request, ct);
-            return response?.Connections;
         }
         
         public async UniTask<List<GetMapObjectInfoProtocol.MapObjectsInfoMessagePack>> GetMapObjectInfo(CancellationToken ct)
