@@ -145,6 +145,7 @@ namespace Client.Starter
             builder.RegisterEntryPoint<WorldDataHandler>();
             builder.RegisterEntryPoint<PlayerPositionSender>();
             builder.RegisterEntryPoint<SkitFireManager>();
+            builder.RegisterEntryPoint<RailGraphCacheNetworkHandler>();
             
             // 設置システム
             // register placement system
@@ -182,6 +183,7 @@ namespace Client.Starter
             // register other instance
             builder.Register<TutorialManager>(Lifetime.Singleton);
             builder.Register<IGameUnlockStateData, ClientGameUnlockStateData>(Lifetime.Singleton);
+            builder.Register<RailGraphClientCache>(Lifetime.Singleton);
             
             
             //Hierarchy上にあるcomponent
