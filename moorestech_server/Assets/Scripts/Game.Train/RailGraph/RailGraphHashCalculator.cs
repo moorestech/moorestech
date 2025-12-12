@@ -20,7 +20,7 @@ namespace Game.Train.RailGraph
         /// <summary>
         /// connectNodes の状態から順序独立ハッシュを計算する。
         /// </summary>
-        public static uint ComputeHash(List<List<(int targetId, int distance)>> connectNodes)
+        public static uint ComputeConnectNodesHash(List<List<(int targetId, int distance)>> connectNodes)
         {
             if (connectNodes == null || connectNodes.Count == 0)
                 return 0;
@@ -33,8 +33,7 @@ namespace Game.Train.RailGraph
 
                 if (edges == null || edges.Count == 0)
                 {
-                    // ノードが存在し接続がない場合も状態に含める
-                    hash = Mix(hash, nodeId);
+                    // ノードが存在し接続がない場合は状態に含めない。guidのほうで識別されるため
                     continue;
                 }
 
