@@ -1,10 +1,10 @@
+using ClassLibrary;
+using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Train.RailGraph;
 using Game.Train.Utility;
-using UnityEngine;
 using System.Collections.Generic;
-using ClassLibrary;
-using Game.Block.Interface;
+using UnityEngine;
 
 namespace Game.Block.Blocks.TrainRail
 {
@@ -52,15 +52,10 @@ namespace Game.Block.Blocks.TrainRail
             FrontControlPoint = new RailControlPoint(position, CalculateControlPointOffset(true));
             BackControlPoint = new RailControlPoint(position, CalculateControlPointOffset(false));
 
-            FrontNode = new RailNode();
-            BackNode = new RailNode();
+            (FrontNode, BackNode) = RailNode.CreatePair();
 
             RailGraphDatastore.AddRailComponentID(FrontNode, new ConnectionDestination(railComponentID, true));
             RailGraphDatastore.AddRailComponentID(BackNode, new ConnectionDestination(railComponentID, false));
-
-            // お互いを逆方向ノードとしてセット
-            FrontNode.SetOppositeNode(BackNode);
-            BackNode.SetOppositeNode(FrontNode);
 
             // RailNodeに制御点を登録（表裏で使う制御点が異なる）
             FrontNode.SetRailControlPoints(FrontControlPoint, BackControlPoint);
