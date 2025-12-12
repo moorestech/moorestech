@@ -188,6 +188,16 @@ namespace Game.Train.RailGraph
             return Instance.FindShortestPathInternal(startid, targetid);
         }
 
+        public static bool TryGetRailNodeId(RailNode node, out int nodeId)
+        {
+            return Instance.TryGetRailNodeIdInternal(node, out nodeId);
+        }
+
+        public static bool TryGetRailNode(int nodeId, out RailNode railNode)
+        {
+            return Instance.TryGetRailNodeInternal(nodeId, out railNode);
+        }
+
         /// <summary>
         /// 全レール接続情報を取得する
         /// Get all rail connection information
@@ -321,6 +331,27 @@ namespace Game.Train.RailGraph
                 connectNodes[i].RemoveAll(x => x.Item1 == nodeid);
             }
             MarkHashDirty();
+        }
+
+        private bool TryGetRailNodeIdInternal(RailNode node, out int nodeId)
+        {
+            nodeId = -1;
+            if (node == null)
+            {
+                return false;
+            }
+            return railNodeToId.TryGetValue(node, out nodeId);
+        }
+
+        private bool TryGetRailNodeInternal(int nodeId, out RailNode node)
+        {
+            node = null;
+            if (nodeId < 0 || nodeId >= railNodes.Count)
+            {
+                return false;
+            }
+            node = railNodes[nodeId];
+            return node != null;
         }
 
 
