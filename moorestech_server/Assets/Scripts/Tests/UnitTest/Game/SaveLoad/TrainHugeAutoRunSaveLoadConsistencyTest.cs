@@ -537,7 +537,8 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             public static NodeIdentifier Create(RailNode node)
             {
-                if (!RailGraphDatastore.TryGetConnectionDestination(node, out var destination) || destination.IsDefault())
+                var destination = node.ConnectionDestination;
+                if (!node.HasConnectionDestination)
                 {
                     throw new InvalidOperationException("RailNodeからRailComponentIDを取得できませんでした。");
                 }

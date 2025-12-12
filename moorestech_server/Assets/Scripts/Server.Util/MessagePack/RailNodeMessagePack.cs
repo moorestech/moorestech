@@ -42,24 +42,24 @@ namespace Server.Util.MessagePack
     {
         [Key(0)] public int NodeId { get; set; }
         [Key(1)] public Guid NodeGuid { get; set; }
-        [Key(2)] public Vector3MessagePack ControlPointOrigin { get; set; }
-        [Key(3)] public ConnectionDestinationMessagePack ConnectionDestination { get; set; }
-        [Key(4)] public float ControlPointLength { get; set; }
-        [Key(5)] public Vector3MessagePack RailDirection { get; set; }
+        [Key(2)] public ConnectionDestinationMessagePack ConnectionDestination { get; set; }
+        [Key(3)] public Vector3MessagePack OriginPoint { get; set; }
+        [Key(4)] public Vector3MessagePack FrontControlPoint { get; set; }
+        [Key(5)] public Vector3MessagePack BackControlPoint { get; set; }
 
         [Obsolete("デシリアライズ用コンストラクタです。")]
         public RailNodeCreatedMessagePack()
         {
         }
 
-        public RailNodeCreatedMessagePack(int nodeId, Guid nodeGuid, Vector3 controlOrigin, ConnectionDestination destination, float controlPointLength, Vector3 railDirection)
+        public RailNodeCreatedMessagePack(int nodeId, Guid nodeGuid, ConnectionDestination connectionDestination, Vector3 originPoint, Vector3 frontControlPoint, Vector3 backControlPoint)
         {
             NodeId = nodeId;
             NodeGuid = nodeGuid;
-            ControlPointOrigin = new Vector3MessagePack(controlOrigin);
-            ConnectionDestination = new ConnectionDestinationMessagePack(destination);
-            ControlPointLength = controlPointLength;
-            RailDirection = new Vector3MessagePack(railDirection);
+            ConnectionDestination = new ConnectionDestinationMessagePack(connectionDestination);
+            OriginPoint = new Vector3MessagePack(originPoint);
+            FrontControlPoint = new Vector3MessagePack(frontControlPoint);
+            BackControlPoint = new Vector3MessagePack(backControlPoint);
         }
     }
 }

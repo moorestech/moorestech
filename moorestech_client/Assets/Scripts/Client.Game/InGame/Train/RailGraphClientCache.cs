@@ -22,13 +22,10 @@ namespace Client.Game.InGame.Train
         // Connection list equivalent to RailGraphDatastore (index equals RailNodeId)
         private readonly List<List<(int targetId, int distance)>> _connectNodes = new();
 
-        // Rail方向ベクトルを保持（controlOriginと同期）
-        // Store rail direction vector per node (aligned with control origin index)
-        private readonly List<Vector3> _railDirections = new();
-
-        // 制御点の長さ（ベジエの強さ）を保持
-        // Store control point magnitude per node
-        private readonly List<float> _controlPointLengths = new();
+        // メイン側・反対側のベジェ制御点座標
+        // Store primary/opposite control point positions
+        private readonly List<Vector3> _primaryControlPoints = new();
+        private readonly List<Vector3> _oppositeControlPoints = new();
 
         // RailNodeIdごとのConnectionDestination
         // ConnectionDestination table per RailNodeId
@@ -62,13 +59,10 @@ namespace Client.Game.InGame.Train
         // Expose reverse lookup dictionary as read-only
         public IReadOnlyDictionary<ConnectionDestination, int> ConnectionDestinationIndex => _connectionDestinationToNodeId;
 
-        // Rail方向ベクトルの参照（読み取りのみ）
-        // Expose rail direction vectors as read-only
-        public IReadOnlyList<Vector3> RailDirections => _railDirections;
-
-        // 制御点長さの参照（読み取りのみ）
-        // Expose control point magnitudes as read-only
-        public IReadOnlyList<float> ControlPointLengths => _controlPointLengths;
+        // 制御点座標の参照（読み取りのみ）
+        // Expose control point coordinates as read-only
+        public IReadOnlyList<Vector3> PrimaryControlPoints => _primaryControlPoints;
+        public IReadOnlyList<Vector3> OppositeControlPoints => _oppositeControlPoints;
 
         // 最新Tickを確認するためのプロパティ
         // Property to observe the newest applied tick
@@ -81,8 +75,8 @@ namespace Client.Game.InGame.Train
             IReadOnlyList<Vector3> snapshotControlOrigins,
             IReadOnlyList<IReadOnlyList<(int targetId, int distance)>> snapshotConnectNodes,
             IReadOnlyList<ConnectionDestination> snapshotConnectionDestinations,
-            IReadOnlyList<Vector3> snapshotRailDirections,
-            IReadOnlyList<float> snapshotControlPointLengths,
+            IReadOnlyList<Vector3> snapshotPrimaryControlPoints,
+            IReadOnlyList<Vector3> snapshotOppositeControlPoints,
             long snapshotTick)
         {
             // 入力整合性を確認してからクリア＆コピー
@@ -111,13 +105,13 @@ namespace Client.Game.InGame.Train
                 {
                     throw new ArgumentException("RailNode guid count mismatch with connection destinations.");
                 }
-                if (snapshotNodeGuids.Count != snapshotRailDirections.Count)
+                if (snapshotNodeGuids.Count != snapshotPrimaryControlPoints.Count)
                 {
-                    throw new ArgumentException("RailNode guid count mismatch with rail directions.");
+                    throw new ArgumentException("RailNode guid count mismatch with primary control points.");
                 }
-                if (snapshotNodeGuids.Count != snapshotControlPointLengths.Count)
+                if (snapshotNodeGuids.Count != snapshotOppositeControlPoints.Count)
                 {
-                    throw new ArgumentException("RailNode guid count mismatch with control point magnitudes.");
+                    throw new ArgumentException("RailNode guid count mismatch with opposite control points.");
                 }
             }
 
@@ -128,16 +122,16 @@ namespace Client.Game.InGame.Train
                 _connectNodes.Clear();
                 _connectionDestinations.Clear();
                 _connectionDestinationToNodeId.Clear();
-                _railDirections.Clear();
-                _controlPointLengths.Clear();
+                _primaryControlPoints.Clear();
+                _oppositeControlPoints.Clear();
                 for (var i = 0; i < requiredCount; i++)
                 {
                     _nodeGuids.Add(Guid.Empty);
                     _controlPositionOrigins.Add(Vector3.zero);
                     _connectNodes.Add(new List<(int targetId, int distance)>());
                     _connectionDestinations.Add(ConnectionDestination.Default);
-                    _railDirections.Add(Vector3.zero);
-                    _controlPointLengths.Add(0f);
+                    _primaryControlPoints.Add(Vector3.zero);
+                    _oppositeControlPoints.Add(Vector3.zero);
                 }
             }
 
@@ -147,8 +141,8 @@ namespace Client.Game.InGame.Train
                 {
                     _nodeGuids[i] = snapshotNodeGuids[i];
                     _controlPositionOrigins[i] = snapshotControlOrigins[i];
-                    _railDirections[i] = snapshotRailDirections[i];
-                    _controlPointLengths[i] = snapshotControlPointLengths[i];
+                    _primaryControlPoints[i] = snapshotPrimaryControlPoints[i];
+                    _oppositeControlPoints[i] = snapshotOppositeControlPoints[i];
                     AssignConnectionDestination(i, snapshotConnectionDestinations[i]);
                     var destination = _connectNodes[i];
                     destination.Clear();
@@ -170,15 +164,15 @@ namespace Client.Game.InGame.Train
             Guid nodeGuid,
             Vector3 controlOrigin,
             ConnectionDestination connectionDestination,
-            Vector3 railDirection,
-            float controlPointLength,
+            Vector3 primaryControlPoint,
+            Vector3 oppositeControlPoint,
             long eventTick)
         {
             EnsureNodeSlot(nodeId);
             _nodeGuids[nodeId] = nodeGuid;
             _controlPositionOrigins[nodeId] = controlOrigin;
-            _railDirections[nodeId] = railDirection;
-            _controlPointLengths[nodeId] = controlPointLength;
+            _primaryControlPoints[nodeId] = primaryControlPoint;
+            _oppositeControlPoints[nodeId] = oppositeControlPoint;
             AssignConnectionDestination(nodeId, connectionDestination);
             UpdateTick(eventTick);
         }
@@ -195,8 +189,8 @@ namespace Client.Game.InGame.Train
             _nodeGuids[nodeId] = Guid.Empty;
             _controlPositionOrigins[nodeId] = Vector3.zero;
             _connectNodes[nodeId].Clear();
-            _railDirections[nodeId] = Vector3.zero;
-            _controlPointLengths[nodeId] = 0f;
+            _primaryControlPoints[nodeId] = Vector3.zero;
+            _oppositeControlPoints[nodeId] = Vector3.zero;
             AssignConnectionDestination(nodeId, ConnectionDestination.Default);
             RemoveIncomingConnections(nodeId);
             UpdateTick(eventTick);
@@ -296,8 +290,8 @@ namespace Client.Game.InGame.Train
                 _controlPositionOrigins.Add(Vector3.zero);
                 _connectNodes.Add(new List<(int targetId, int distance)>());
                 _connectionDestinations.Add(ConnectionDestination.Default);
-                _railDirections.Add(Vector3.zero);
-                _controlPointLengths.Add(0f);
+                _primaryControlPoints.Add(Vector3.zero);
+                _oppositeControlPoints.Add(Vector3.zero);
             }
         }
 

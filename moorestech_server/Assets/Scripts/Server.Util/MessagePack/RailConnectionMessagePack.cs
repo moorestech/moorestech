@@ -34,12 +34,12 @@ namespace Server.Util.MessagePack
         {
             // FromNodeの情報を取得
             // Get FromNode information
-            var fromConnectionDest = RailGraphDatastore.GetConnectionDestination(connectionInfo.FromNode);
+            var fromConnectionDest = connectionInfo.FromNode.ConnectionDestination;
             if (fromConnectionDest.IsDefault()) return null;
             
             // ToNodeの情報を取得
             // Get ToNode information
-            var toConnectionDest = RailGraphDatastore.GetConnectionDestination(connectionInfo.ToNode);
+            var toConnectionDest = connectionInfo.ToNode.ConnectionDestination;
             if (toConnectionDest.IsDefault()) return null;
             
             // RailControlPointを取得

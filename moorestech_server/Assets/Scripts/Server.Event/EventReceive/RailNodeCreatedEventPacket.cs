@@ -1,7 +1,7 @@
 using Game.Train.RailGraph;
 using MessagePack;
-using Server.Event;
 using Server.Util.MessagePack;
+using UniRx;
 
 namespace Server.Event.EventReceive
 {
@@ -26,10 +26,11 @@ namespace Server.Event.EventReceive
             var message = new RailNodeCreatedMessagePack(
                 data.NodeId,
                 data.NodeGuid,
-                data.ControlPointOrigin,
                 data.ConnectionDestination,
-                data.ControlPointLength,
-                data.RailDirection);
+                data.OriginPoint,
+                data.FrontControlPoint,
+                data.BackControlPoint
+                );
             var payload = MessagePackSerializer.Serialize(message);
             _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
         }

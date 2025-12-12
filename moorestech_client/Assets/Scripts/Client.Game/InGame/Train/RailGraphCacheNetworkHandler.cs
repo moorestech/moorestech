@@ -50,8 +50,8 @@ namespace Client.Game.InGame.Train
                 message.NodeGuid,
                 message.ControlPointOrigin.ToUnityVector(),
                 destination,
-                message.RailDirection.ToUnityVector(),
-                message.ControlPointLength,
+                message.PrimaryControlPointPosition.ToUnityVector(),
+                message.OppositeControlPointPosition.ToUnityVector(),
                 0);
         }
 
