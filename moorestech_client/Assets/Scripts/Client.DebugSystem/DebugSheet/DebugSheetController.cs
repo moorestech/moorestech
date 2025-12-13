@@ -69,6 +69,7 @@ namespace Client.DebugSystem
             rootPage.AddBoolWithSave(false, MapObjectSuperMineLabel, MapObjectSuperMineKey);
             rootPage.AddBoolWithSave(false, FixCraftTimeLabel, FixCraftTimeKey);
             rootPage.AddBoolWithSave(false, TrainAutoRunLabel, TrainAutoRunKey);
+            rootPage.AddBoolWithSave(false, PlacePreviewKeepLabel, PlacePreviewKeepKey);
         }
         
         
