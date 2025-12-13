@@ -945,6 +945,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f3871b76c69144b14afa50c75d6b7250
+    m_Address: Vanilla/Block/3D Printer
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: f479ff7c99835452c9af9473d5fd2043
     m_Address: Vanilla/Character/SkitChr001
     m_ReadOnly: 0
