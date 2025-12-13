@@ -3,21 +3,14 @@
     "title": "100_start_game",
     "version": 1,
     "created": "2025-07-04T10:49:34.465Z",
-    "modified": "2025-07-24T03:37:16.094Z"
+    "modified": "2025-12-13T13:46:32.264Z"
   },
   "commands": [
-    {
-      "type": "transition",
-      "backgroundColor": "#ffffff",
-      "enabled": true,
-      "duration": 0,
-      "id": 65
-    },
     {
       "id": 63,
       "type": "group_start",
       "groupName": "環境設定",
-      "isCollapsed": false
+      "isCollapsed": true
     },
     {
       "type": "controlSkitBackground",
@@ -145,151 +138,6 @@
       "type": "group_end"
     },
     {
-      "type": "wait",
-      "backgroundColor": "#ffffff",
-      "seconds": 0.5,
-      "id": 91
-    },
-    {
-      "type": "transition",
-      "backgroundColor": "#ffffff",
-      "enabled": false,
-      "duration": 0.4,
-      "id": 66
-    },
-    {
-      "type": "text",
-      "backgroundColor": "#ffffff",
-      "characterId": "chr_002",
-      "body": "...レポート記録開始",
-      "id": 1,
-      "overideCharacterName": "？？？"
-    },
-    {
-      "type": "text",
-      "backgroundColor": "#ffffff",
-      "characterId": "chr_002",
-      "body": "現在位置、惑星セレスタル上空750km\n電力残り78%、ワームホールエネルギー残り98%\nスラスター燃料残り35%",
-      "id": 2,
-      "overideCharacterName": "？？？"
-    },
-    {
-      "type": "cameraWarp",
-      "backgroundColor": "#ffffff",
-      "fieldOfView": 60,
-      "Position": [
-        182.3469,
-        16.4379,
-        -54.77198
-      ],
-      "Rotation": [
-        27.08996,
-        342.3409,
-        0.01999091
-      ],
-      "id": 114
-    },
-    {
-      "type": "text",
-      "backgroundColor": "#ffffff",
-      "characterId": "chr_002",
-      "body": "搭乗員一名、ヨリ、睡眠薬による昏睡を確認",
-      "id": 3,
-      "overideCharacterName": "？？？"
-    },
-    {
-      "type": "cameraWarp",
-      "backgroundColor": "#ffffff",
-      "fieldOfView": 60,
-      "Position": [
-        182.784,
-        16.83559,
-        -55.47733
-      ],
-      "Rotation": [
-        358.0412,
-        48.78478,
-        0.01428189
-      ],
-      "id": 97
-    },
-    {
-      "type": "text",
-      "backgroundColor": "#ffffff",
-      "characterId": "chr_002",
-      "body": "ワープシーケンスを開始。\n現在地、惑星セレスタル、目標、惑星アルカディア\n5..4..3..2..1....",
-      "id": 4,
-      "overideCharacterName": "？？？"
-    },
-    {
-      "type": "transition",
-      "backgroundColor": "#ffffff",
-      "enabled": true,
-      "duration": 0.5,
-      "id": 76
-    },
-    {
-      "type": "skitObjectControl",
-      "backgroundColor": "#ffffff",
-      "skitObjectId": "Planet_1",
-      "action": "SetActive",
-      "activeEnable": false,
-      "id": 56
-    },
-    {
-      "type": "skitObjectControl",
-      "backgroundColor": "#ffffff",
-      "skitObjectId": "Planet_2",
-      "action": "SetActive",
-      "activeEnable": true,
-      "id": 57
-    },
-    {
-      "type": "wait",
-      "backgroundColor": "#ffffff",
-      "seconds": 0.5,
-      "id": 78
-    },
-    {
-      "type": "cameraWarp",
-      "backgroundColor": "#ffffff",
-      "fieldOfView": 60,
-      "Position": [
-        188.4598,
-        4.201832,
-        -55.37869
-      ],
-      "Rotation": [
-        353.2283,
-        316.4809,
-        0.01263327
-      ],
-      "id": 98
-    },
-    {
-      "type": "transition",
-      "backgroundColor": "#ffffff",
-      "enabled": false,
-      "duration": 0.5,
-      "id": 77
-    },
-    {
-      "type": "text",
-      "backgroundColor": "#ffffff",
-      "characterId": "chr_002",
-      "body": "ワープの正常終了を確認",
-      "id": 6,
-      "overideCharacterName": "？？？"
-    },
-    {
-      "type": "text",
-      "backgroundColor": "#ffffff",
-      "characterId": "chr_002",
-      "body": "惑星アルカディアへの大気圏突入を開始",
-      "id": 94,
-      "overideCharacterName": "？？？"
-    },
-    {
       "id": 88,
       "type": "group_start",
       "groupName": "地上の表示",
@@ -393,162 +241,9 @@
       "type": "group_end"
     },
     {
-      "type": "camerawork",
-      "backgroundColor": "#ffffff",
-      "duration": 3,
-      "easing": "InOutSine",
-      "StartPosition": [
-        182.7367,
-        16.4516,
-        -53.71825
-      ],
-      "StartRotation": [
-        359.0725,
-        2.891769,
-        0.01336524
-      ],
-      "EndPosition": [
-        182.689,
-        16.86179,
-        -55.76982
-      ],
-      "EndRotation": [
-        12.48,
-        2.895,
-        0.014
-      ],
-      "id": 100
-    },
-    {
-      "type": "text",
-      "backgroundColor": "#ffffff",
-      "characterId": "chr_002",
-      "body": "地表への到達を確認",
-      "id": 10,
-      "overideCharacterName": "？？？"
-    },
-    {
-      "type": "text",
-      "backgroundColor": "#ffffff",
-      "characterId": "chr_002",
-      "body": "睡眠薬の供給停止と覚醒薬を注入",
-      "id": 11,
-      "overideCharacterName": "？？？"
-    },
-    {
-      "type": "cameraWarp",
-      "backgroundColor": "#ffffff",
-      "fieldOfView": 60,
-      "Position": [
-        182.0695,
-        16.55181,
-        -54.51553
-      ],
-      "Rotation": [
-        46.51343,
-        331.4532,
-        0.02307051
-      ],
-      "id": 101
-    },
-    {
-      "type": "text",
-      "backgroundColor": "#ffffff",
-      "characterId": "chr_001",
-      "body": "んん……",
-      "id": 12
-    },
-    {
-      "type": "emote",
-      "backgroundColor": "#ffffff",
-      "character": "chr_001",
-      "emotion": "Emote_Blink",
-      "duration": 0.2,
-      "weight": 0,
-      "id": 87
-    },
-    {
-      "type": "text",
-      "backgroundColor": "#ffffff",
-      "characterId": "chr_001",
-      "body": "……頭が重い……なんだか変な夢を見ていたような……\n……あれ？　ここは...宇宙船？",
-      "id": 13
-    },
-    {
-      "type": "cameraWarp",
-      "backgroundColor": "#ffffff",
-      "fieldOfView": 60,
-      "Position": [
-        183.5419,
-        17.27454,
-        -55.31778
-      ],
-      "Rotation": [
-        42.04444,
-        307.8068,
-        0.03439349
-      ],
-      "id": 102
-    },
-    {
-      "type": "text",
-      "backgroundColor": "#ffffff",
-      "characterId": "chr_002",
-      "body": "おはようございます。姫さま。\nここは惑星アルカディアです。\nこれはその着陸ポッドです。",
-      "id": 14,
-      "overideCharacterName": "？？？"
-    },
-    {
-      "type": "cameraWarp",
-      "backgroundColor": "#ffffff",
-      "fieldOfView": 60,
-      "Position": [
-        182.2061,
-        16.76579,
-        -54.32726
-      ],
-      "Rotation": [
-        62.84259,
-        271.0457,
-        0.05302175
-      ],
-      "id": 117
-    },
-    {
-      "type": "text",
-      "backgroundColor": "#ffffff",
-      "characterId": "chr_001",
-      "body": "惑星アルカディア...?\n惑星アルカディアってどこ？\nそれに着陸ポッドって...",
-      "id": 15
-    },
-    {
-      "type": "cameraWarp",
-      "backgroundColor": "#ffffff",
-      "fieldOfView": 60,
-      "Position": [
-        183.5419,
-        17.27454,
-        -55.31778
-      ],
-      "Rotation": [
-        42.04444,
-        307.8068,
-        0.03439349
-      ],
-      "id": 118
-    },
-    {
-      "type": "text",
-      "backgroundColor": "#ffffff",
-      "characterId": "chr_002",
-      "body": "困惑されるのも当然でしょう。\nひとまず、外に出ましょう。",
-      "id": 45,
-      "overideCharacterName": "？？？"
-    },
-    {
       "type": "transition",
       "backgroundColor": "#ffffff",
-      "enabled": true,
+      "enabled": false,
       "duration": 0.5,
       "id": 92
     },
@@ -621,182 +316,6 @@
     {
       "type": "cameraWarp",
       "backgroundColor": "#ffffff",
-      "fieldOfView": 60,
-      "Position": [
-        184.5986,
-        15.416099999999998,
-        -59.21669
-      ],
-      "Rotation": [
-        344.9777,
-        202.751,
-        0.03206696
-      ],
-      "id": 122
-    },
-    {
-      "type": "transition",
-      "backgroundColor": "#ffffff",
-      "enabled": false,
-      "duration": 0.5,
-      "id": 93
-    },
-    {
-      "type": "text",
-      "backgroundColor": "#ffffff",
-      "characterId": "chr_001",
-      "body": "ここは…どこ…？\n私は惑星セレスタルに住んでいるはず..冗談だよね！",
-      "id": 16
-    },
-    {
-      "type": "cameraWarp",
-      "backgroundColor": "#ffffff",
-      "fieldOfView": 60,
-      "Position": [
-        184.886,
-        15.62682,
-        -59.04727
-      ],
-      "Rotation": [
-        4.057205,
-        345.0848,
-        0.02503862
-      ],
-      "id": 106
-    },
-    {
-      "type": "text",
-      "backgroundColor": "#ffffff",
-      "characterId": "chr_002",
-      "body": "姫さまに冗談なんて言いません\nぼくは約束と冗談が大っ嫌いなんです",
-      "id": 17,
-      "overideCharacterName": "？？？"
-    },
-    {
-      "type": "text",
-      "backgroundColor": "#ffffff",
-      "characterId": "chr_002",
-      "body": "惑星アルカディアは貴方が住んでいる、\n惑星セレスタルの隣の隣の隣の……\nとにかく遠くです",
-      "id": 18,
-      "overideCharacterName": "？？？"
-    },
-    {
-      "type": "emote",
-      "backgroundColor": "#ffffff",
-      "character": "chr_001",
-      "emotion": "Emote_Shock",
-      "duration": 0,
-      "weight": 0,
-      "id": 119
-    },
-    {
-      "type": "emote",
-      "backgroundColor": "#ffffff",
-      "character": "chr_001",
-      "emotion": "Emote_Blink",
-      "duration": 0.2,
-      "weight": 100,
-      "id": 107
-    },
-    {
-      "type": "cameraWarp",
-      "backgroundColor": "#ffffff",
-      "fieldOfView": 43,
-      "Position": [
-        184.8304,
-        15.59154,
-        -58.84608
-      ],
-      "Rotation": [
-        0.4475534,
-        211.3543,
-        0.02616501
-      ],
-      "id": 108
-    },
-    {
-      "type": "text",
-      "backgroundColor": "#ffffff",
-      "characterId": "chr_001",
-      "body": "ありがとう。とにかくすっごく遠くまで旅行に\n来ちゃってるってことは分かったよ\nよーし、早く帰ろう！　みんなが心配しちゃう！",
-      "id": 19
-    },
-    {
-      "type": "cameraWarp",
-      "backgroundColor": "#ffffff",
-      "fieldOfView": 18,
-      "Position": [
-        184.9841,
-        15.66448,
-        -57.23351
-      ],
-      "Rotation": [
-        2.510181,
-        191.2412,
-        0.02663064
-      ],
-      "id": 109
-    },
-    {
-      "type": "text",
-      "backgroundColor": "#ffffff",
-      "characterId": "chr_002",
-      "body": "何を言っているのですか？\nあなたは追放されたのです。",
-      "id": 20,
-      "overideCharacterName": "？？？"
-    },
-    {
-      "type": "text",
-      "backgroundColor": "#ffffff",
-      "characterId": "chr_002",
-      "body": "国王陛下……つまり、あなたのお父様の命令により、\n姫さまは惑星セレスタルから永久追放処分となりました。",
-      "id": 21,
-      "overideCharacterName": "？？？"
-    },
-    {
-      "type": "emote",
-      "backgroundColor": "#ffffff",
-      "character": "chr_001",
-      "emotion": "Emote_Blink",
-      "duration": 0.2,
-      "weight": 0,
-      "id": 116
-    },
-    {
-      "type": "emote",
-      "backgroundColor": "#ffffff",
-      "character": "chr_001",
-      "emotion": "Emote_Shock",
-      "duration": 0,
-      "weight": 73,
-      "id": 120
-    },
-    {
-      "type": "cameraWarp",
-      "backgroundColor": "#ffffff",
-      "fieldOfView": 47,
-      "Position": [
-        184.487,
-        15.588699999999998,
-        -59.08266
-      ],
-      "Rotation": [
-        4.91653,
-        187.4641,
-        0.02788683
-      ],
-      "id": 111
-    },
-    {
-      "type": "text",
-      "backgroundColor": "#ffffff",
-      "characterId": "chr_001",
-      "body": "追放...追放って何！？\nどういうこと！？私が何をしたっていうの！？\nそれにお父さまが...",
-      "id": 22
-    },
-    {
-      "type": "cameraWarp",
-      "backgroundColor": "#ffffff",
       "fieldOfView": 47,
       "Position": [
         184.6846,
@@ -811,10 +330,106 @@
       "id": 112
     },
     {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "fieldOfView": 47,
+      "Position": [
+        -128.713,
+        44.078,
+        -263.3585
+      ],
+      "Rotation": [
+        2.148899,
+        323.6695,
+        358.2891
+      ],
+      "id": 139
+    },
+    {
+      "type": "characterTransform",
+      "backgroundColor": "#ffffff",
+      "character": "chr_001",
+      "Position": [
+        -129.2614,
+        42.463,
+        -263.0892
+      ],
+      "Rotation": [
+        0,
+        345.8702,
+        0
+      ],
+      "id": 140
+    },
+    {
+      "type": "characterTransform",
+      "backgroundColor": "#ffffff",
+      "character": "chr_002",
+      "Position": [
+        -129.5161,
+        42.46298,
+        -261.557
+      ],
+      "Rotation": [
+        0,
+        171.6684,
+        0
+      ],
+      "id": 141
+    },
+    {
+      "type": "cameraWarp",
+      "backgroundColor": "#ffffff",
+      "fieldOfView": 47,
+      "Position": [
+        -59.4366,
+        89.835,
+        23.82292
+      ],
+      "Rotation": [
+        2.148899,
+        240.1751,
+        358.2891
+      ],
+      "id": 142
+    },
+    {
+      "type": "characterTransform",
+      "backgroundColor": "#ffffff",
+      "character": "chr_001",
+      "Position": [
+        -59.76628,
+        88.22,
+        23.30862
+      ],
+      "Rotation": [
+        0,
+        262.3759,
+        0
+      ],
+      "id": 143
+    },
+    {
+      "type": "characterTransform",
+      "backgroundColor": "#ffffff",
+      "character": "chr_002",
+      "Position": [
+        -61.31744,
+        88.21998,
+        23.22913
+      ],
+      "Rotation": [
+        0,
+        88.17405,
+        0
+      ],
+      "id": 144
+    },
+    {
       "type": "text",
       "backgroundColor": "#ffffff",
       "characterId": "chr_002",
-      "body": "私はあなたをここまで連れてくるのが任務です。\nあなたが連れて来られた事由は把握していません",
+      "body": "我的任务是带你到这里。\n我不知道你被带来的原因。",
       "id": 23,
       "overideCharacterName": "？？？"
     },
