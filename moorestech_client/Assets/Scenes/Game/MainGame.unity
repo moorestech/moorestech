@@ -15,12 +15,12 @@ RenderSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 10
   m_Fog: 0
-  m_FogColor: {r: 0.2321307, g: 0.5956882, b: 0.7610062, a: 1}
+  m_FogColor: {r: 0.45911944, g: 0.51209474, b: 0.6886792, a: 1}
   m_FogMode: 3
   m_FogDensity: 0.01
   m_LinearFogStart: 0
   m_LinearFogEnd: 300
-  m_AmbientSkyColor: {r: 0.8050314, g: 0.78465885, b: 0.756932, a: 1}
+  m_AmbientSkyColor: {r: 0.72327036, g: 0.72327036, b: 0.72327036, a: 1}
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
   m_AmbientIntensity: 1
@@ -19917,6 +19917,10 @@ PrefabInstance:
     - target: {fileID: 7924998001918025844, guid: 53d25a583ee974aa59260ebc24130895, type: 3}
       propertyPath: instanceId
       value: 219
+      objectReference: {fileID: 0}
+    - target: {fileID: 7925518271557038168, guid: 53d25a583ee974aa59260ebc24130895, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7926493882841305368, guid: 53d25a583ee974aa59260ebc24130895, type: 3}
       propertyPath: instanceId
