@@ -25,6 +25,7 @@ namespace Client.Network.API
         public CraftTreeResponse CraftTree { get; }
         public List<string> PlayedSkitIds { get; }
         public Dictionary<Guid, ResearchNodeState> ResearchNodeStates { get; }
+        public RailGraphSnapshotMessagePack RailGraphSnapshot { get; }
         
         public InitialHandshakeResponse(
             ResponseInitialHandshakeMessagePack initialHandshake,
@@ -36,7 +37,8 @@ namespace Client.Network.API
                 UnlockStateResponse unlockState,
                 CraftTreeResponse craftTree,
                 List<string> playedSkitIds,
-                Dictionary<Guid, ResearchNodeState> researchNodeStates) responses)
+                Dictionary<Guid, ResearchNodeState> researchNodeStates,
+                RailGraphSnapshotMessagePack railGraphSnapshot) responses)
         {
             PlayerPos = initialHandshake.PlayerPos;
             WorldData = responses.worldData;
@@ -47,6 +49,7 @@ namespace Client.Network.API
             CraftTree = responses.craftTree;
             PlayedSkitIds = responses.playedSkitIds;
             ResearchNodeStates = responses.researchNodeStates;
+            RailGraphSnapshot = responses.railGraphSnapshot;
         }
     }
     

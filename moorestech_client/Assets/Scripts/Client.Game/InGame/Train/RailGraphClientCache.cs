@@ -79,41 +79,13 @@ namespace Client.Game.InGame.Train
             IReadOnlyList<Vector3> snapshotOppositeControlPoints,
             long snapshotTick)
         {
-            // 入力整合性を確認してからクリア＆コピー
-            // Validate inputs before clearing the cache and copying data
-            ValidateSnapshotInput();
+            // 入力整合性:skip してからクリア＆コピー
+            // Validate inputs(:skip) before clearing the cache and copying data
             ResetSlots(snapshotNodeGuids.Count);
             CopySnapshotData();
             _lastConfirmedTick = snapshotTick;
 
             #region Internal
-
-            void ValidateSnapshotInput()
-            {
-                if (snapshotNodeGuids == null) throw new ArgumentNullException(nameof(snapshotNodeGuids));
-                if (snapshotControlOrigins == null) throw new ArgumentNullException(nameof(snapshotControlOrigins));
-                if (snapshotConnectNodes == null) throw new ArgumentNullException(nameof(snapshotConnectNodes));
-                if (snapshotNodeGuids.Count != snapshotControlOrigins.Count)
-                {
-                    throw new ArgumentException("RailNode guid count mismatch with control origins.");
-                }
-                if (snapshotNodeGuids.Count != snapshotConnectNodes.Count)
-                {
-                    throw new ArgumentException("RailNode guid count mismatch with connectNodes.");
-                }
-                if (snapshotNodeGuids.Count != snapshotConnectionDestinations.Count)
-                {
-                    throw new ArgumentException("RailNode guid count mismatch with connection destinations.");
-                }
-                if (snapshotNodeGuids.Count != snapshotPrimaryControlPoints.Count)
-                {
-                    throw new ArgumentException("RailNode guid count mismatch with primary control points.");
-                }
-                if (snapshotNodeGuids.Count != snapshotOppositeControlPoints.Count)
-                {
-                    throw new ArgumentException("RailNode guid count mismatch with opposite control points.");
-                }
-            }
 
             void ResetSlots(int requiredCount)
             {

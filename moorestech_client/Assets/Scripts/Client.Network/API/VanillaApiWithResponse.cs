@@ -45,7 +45,8 @@ namespace Client.Network.API
                 GetUnlockState(ct), 
                 GetCraftTree(playerId, ct),
                 GetPlayedSkitIds(ct),
-                GetResearchNodeStates(ct));
+                GetResearchNodeStates(ct),
+                GetRailGraphSnapshot(ct));
             
             return new InitialHandshakeResponse(initialHandShake, responses);
         }
@@ -55,6 +56,13 @@ namespace Client.Network.API
             var request = new GetMapObjectInfoProtocol.RequestMapObjectInfosMessagePack();
             var response = await _packetExchangeManager.GetPacketResponse<GetMapObjectInfoProtocol.ResponseMapObjectInfosMessagePack>(request, ct);
             return response?.MapObjects;
+        }
+
+        public async UniTask<RailGraphSnapshotMessagePack> GetRailGraphSnapshot(CancellationToken ct)
+        {
+            var request = new GetRailGraphSnapshotProtocol.RequestMessagePack();
+            var response = await _packetExchangeManager.GetPacketResponse<GetRailGraphSnapshotProtocol.ResponseMessagePack>(request, ct);
+            return response?.Snapshot;
         }
         
         public async UniTask<PlayerInventoryResponse> GetMyPlayerInventory(CancellationToken ct)
