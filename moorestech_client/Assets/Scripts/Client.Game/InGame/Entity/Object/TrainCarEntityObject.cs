@@ -1,6 +1,9 @@
 using System;
+using Client.Common;
 using Client.Common.Server;
+using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.UI.UIState.State;
 using Common.Debug;
 using Mooresmaster.Model.TrainModule;
 using Server.Protocol.PacketResponse;
@@ -8,7 +11,7 @@ using UnityEngine;
 
 namespace Client.Game.InGame.Entity.Object
 {
-    public class TrainCarEntityObject : MonoBehaviour, IEntityObject
+    public class TrainCarEntityObject : MonoBehaviour, IEntityObject, IDeleteTarget
     {
         public long EntityId { get; private set; }
         public Guid TrainCarId { get; private set; }
@@ -20,6 +23,8 @@ namespace Client.Game.InGame.Entity.Object
         
         private bool _isFacingForward = true;
         private bool _debugAutoRun = false;//////////////////
+        
+        private RendererMaterialReplacerController _rendererMaterialReplacerController;
 
         /// <summary>
         /// エンティティIDを設定し、初期化を行う
@@ -104,7 +109,20 @@ namespace Client.Game.InGame.Entity.Object
                 : $"{SendCommandProtocol.TrainAutoRunCommand} {SendCommandProtocol.TrainAutoRunOffArgument}";
             ClientContext.VanillaApi.SendOnly.SendCommand(command);
         }
-
+        
+        public void SetRemovePreviewing()
+        {
+            var placePreviewMaterial = Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial);
+            
+            _rendererMaterialReplacerController.CopyAndSetMaterial(placePreviewMaterial);
+            _rendererMaterialReplacerController.SetColor(MaterialConst.PreviewColorPropertyName, MaterialConst.NotPlaceableColor);
+            Resources.UnloadAsset(placePreviewMaterial);
+        }
+        
+        public void ResetMaterial()
+        {
+            _rendererMaterialReplacerController.ResetMaterial();
+        }
     }
 }
 
