@@ -11,10 +11,6 @@ namespace Game.Train.RailGraph
 {
     public class RailNode
     {
-        //Node（このクラスのインスタンス）とIdの違いに注意。また、このクラスではIdは一切使わない
-        //public RailNodeId NodeId { get; }  // ノードを識別するためのユニークなID→一旦廃止。RailGraphだけが使うためのNodeIdは存在する
-        // 自分に対応する裏表のノード
-        //public RailNode OppositeNode { get; private set; }
         public RailControlPoint FrontControlPoint { get; private set; }
         public RailControlPoint BackControlPoint { get; private set; }
         //このノードが駅に対応するときの駅ブロックのworld座標などを格納
@@ -23,6 +19,7 @@ namespace Game.Train.RailGraph
         public bool HasConnectionDestination => !ConnectionDestination.IsDefault();
         public Guid Guid { get; }
 
+        // 自分に対応する裏表のノード
         public RailNode OppositeNode
         {
             get
@@ -63,8 +60,8 @@ namespace Game.Train.RailGraph
         public RailNode()
         {
             Guid = Guid.NewGuid();
-            FrontControlPoint = new RailControlPoint(Vector3.zero, Vector3.zero);
-            BackControlPoint = new RailControlPoint(Vector3.zero, Vector3.zero);
+            FrontControlPoint = new RailControlPoint(new Vector3(-1, -1, -1), new Vector3(-1, -1, -1));
+            BackControlPoint = new RailControlPoint(new Vector3(-1, -1, -1), new Vector3(-1, -1, -1));
             StationRef = new StationReference();
             ConnectionDestination = ConnectionDestination.Default;
         }

@@ -46,9 +46,9 @@ namespace Game.Train.RailGraph
         private readonly RailGraphNotifier _notifier = null!;
         private readonly RailNodeInitializationNotifier _nodeInitializationNotifier = null!;
         private readonly RailConnectionInitializationNotifier _connectionInitializationNotifier = null!;
-        public static IObservable<List<RailComponentID>> RailGraphUpdateEvent => Instance._notifier.RailGraphUpdateEvent;
+
         public static IObservable<RailNodeInitializationData> RailNodeInitializedEvent => Instance._nodeInitializationNotifier.RailNodeInitializedEvent;
-        public static IObservable<RailConnectionInitializationData> RailConnectionInitializedEvent => Instance._connectionInitializationNotifier.RailConnectionInitializedEvent;
+        public static IObservable<RailConnectionInitializationNotifier.RailConnectionInitializationData> RailConnectionInitializedEvent => Instance._connectionInitializationNotifier.RailConnectionInitializedEvent;
 
         // ハッシュキャッシュ制御
         // Hash cache control
@@ -187,10 +187,6 @@ namespace Game.Train.RailGraph
             return Instance.TryGetRailNodeInternal(nodeId, out railNode);
         }
 
-        /// <summary>
-        /// 全レール接続情報を取得する
-        /// Get all rail connection information
-        /// </summary>
         // ハッシュ取得メソッド
         // Get hash method
         public static uint GetConnectNodesHash()
@@ -202,7 +198,7 @@ namespace Game.Train.RailGraph
         //  内部実装部 (インスタンスメソッド)
         //======================================================
 
-        // RailNode/接続リストの容量を不足させない
+        // RailNode/接続リストの容量を不足させない。新規nodeid割当コード用
         // Ensure node and connection lists have enough slots
         private void EnsureRailNodeSlot(int nodeId)
         {
@@ -273,17 +269,18 @@ namespace Game.Train.RailGraph
             if (!connectNodes[nodeid].Any(x => x.Item1 == targetid))
             {
                 connectNodes[nodeid].Add((targetid, distance));
+                // レールグラフ更新イベントを発火
+                // Fire rail graph update event
+                _notifier.NotifyRailGraphUpdate(node, targetNode);
+                _connectionInitializationNotifier.Notify(nodeid, targetid, distance);
             }
             else//もし登録済みなら距離を上書き
             {
                 connectNodes[nodeid].RemoveAll(x => x.Item1 == targetid);
                 connectNodes[nodeid].Add((targetid, distance));
+                // TODO 距離変更の通知は未実装
             }
-            
-            // レールグラフ更新イベントを発火
-            // Fire rail graph update event
-            _notifier.NotifyRailGraphUpdate(node, targetNode);
-            NotifyConnectionInitialized(nodeid, targetid, distance);
+
             MarkHashDirty();
         }
 
@@ -346,34 +343,13 @@ namespace Game.Train.RailGraph
             return node != null;
         }
 
-        private void NotifyConnectionInitialized(int fromNodeId, int toNodeId, int distance)
-        {
-            var fromNode = railNodes[fromNodeId];
-            var toNode = railNodes[toNodeId];
-            if (fromNode == null || toNode == null)
-            {
-                return;
-            }
-
-            _connectionInitializationNotifier.Notify(new RailConnectionInitializationData(
-                fromNodeId,
-                fromNode.Guid,
-                toNodeId,
-                toNode.Guid,
-                distance));
-        }
-
         private void NotifyNodeInitialized(int nodeid)
         {
             var node = railNodes[nodeid];
             var destination = node.ConnectionDestination.IsDefault() ? ConnectionDestination.Default : node.ConnectionDestination;
-
-            var frontControlPoint = node.FrontControlPoint?.ControlPointPosition ?? Vector3.zero;
-            var backControlPoint = node.BackControlPoint?.ControlPointPosition ?? Vector3.zero;
-            var originPoint = node.FrontControlPoint?.OriginalPosition
-                              ?? node.BackControlPoint?.OriginalPosition
-                              ?? Vector3.zero;
-
+            var frontControlPoint = node.FrontControlPoint.ControlPointPosition;
+            var backControlPoint = node.BackControlPoint.ControlPointPosition;
+            var originPoint = node.FrontControlPoint.OriginalPosition;
             _nodeInitializationNotifier.Notify(new RailNodeInitializationData(
                 nodeid,
                 node.Guid,
@@ -484,21 +460,4 @@ namespace Game.Train.RailGraph
         public RailControlPoint OppositeControlPoint { get; }
     }
 
-    public readonly struct RailConnectionInitializationData
-    {
-        public RailConnectionInitializationData(int fromNodeId, Guid fromGuid, int toNodeId, Guid toGuid, int distance)
-        {
-            FromNodeId = fromNodeId;
-            FromGuid = fromGuid;
-            ToNodeId = toNodeId;
-            ToGuid = toGuid;
-            Distance = distance;
-        }
-
-        public int FromNodeId { get; }
-        public Guid FromGuid { get; }
-        public int ToNodeId { get; }
-        public Guid ToGuid { get; }
-        public int Distance { get; }
-    }
 }

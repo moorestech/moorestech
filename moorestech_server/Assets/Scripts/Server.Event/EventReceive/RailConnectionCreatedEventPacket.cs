@@ -19,7 +19,7 @@ namespace Server.Event.EventReceive
             RailGraphDatastore.RailConnectionInitializedEvent.Subscribe(OnConnectionInitialized).AddTo(_disposable);
         }
 
-        private void OnConnectionInitialized(RailConnectionInitializationData data)
+        private void OnConnectionInitialized(RailConnectionInitializationNotifier.RailConnectionInitializationData data)
         {
             var payload = MessagePackSerializer.Serialize(new RailConnectionCreatedMessagePack(
                 data.FromNodeId,
