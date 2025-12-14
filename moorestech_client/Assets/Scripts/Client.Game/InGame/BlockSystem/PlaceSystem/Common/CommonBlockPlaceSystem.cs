@@ -6,12 +6,14 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.SoundEffect;
 using Client.Input;
+using Common.Debug;
 using Core.Master;
 using Game.Block.Interface;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using static Client.Game.InGame.BlockSystem.PlaceSystem.Util.PlaceSystemUtil;
+using static Client.Game.DebugConst;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 {
@@ -46,7 +48,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         }
         public void Disable()
         {
-            _previewBlockController.SetActive(false);
+            // デバッグモード時はプレビューを維持
+            // Keep preview in debug mode
+            if (!DebugParameters.GetValueOrDefaultBool(PlacePreviewKeepKey))
+            {
+                _previewBlockController.SetActive(false);
+            }
+
             // 連続設置状態をリセット
             _clickStartPosition = null;
             _isStartZDirection = null;
@@ -166,7 +174,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             void PlaceBlock()
             {
                 if (!InputManager.Playable.ScreenLeftClick.GetKeyUp) return;
-                
+
+                // デバッグモード時は送信しない
+                // Skip sending in debug mode
+                if (DebugParameters.GetValueOrDefaultBool(PlacePreviewKeepKey)) return;
+
                 _heightOffset = _clickStartHeightOffset;
                 _clickStartPosition = null;
                 SendPlaceProtocol(_currentPlaceInfos, context);
