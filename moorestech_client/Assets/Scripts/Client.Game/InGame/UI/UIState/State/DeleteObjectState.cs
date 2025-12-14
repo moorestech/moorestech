@@ -66,7 +66,7 @@ namespace Client.Game.InGame.UI.UIState.State
                         ClientContext.VanillaApi.SendOnly.BlockRemove(blockPosition);
                         break;
                     case TrainCarEntityChildrenObject deleteTargetTrainCar:
-                        ClientContext.VanillaApi.SendOnly.RemoveTrain(deleteTargetTrainCar.TrainCarEntityObject.EntityId);
+                        ClientContext.VanillaApi.SendOnly.RemoveTrain(deleteTargetTrainCar.TrainCarEntityObject.TrainCarId);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException(nameof(_deleteTargetObject));
