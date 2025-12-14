@@ -14,18 +14,20 @@ namespace Server.Util.MessagePack
         [Key(1)] public Guid FromGuid { get; set; }
         [Key(2)] public int ToNodeId { get; set; }
         [Key(3)] public Guid ToGuid { get; set; }
+        [Key(4)] public long Tick { get; set; }
 
         [Obsolete("Reserved for MessagePack serialization.")]
         public RailConnectionRemovedMessagePack()
         {
         }
 
-        public RailConnectionRemovedMessagePack(int fromNodeId, Guid fromGuid, int toNodeId, Guid toGuid)
+        public RailConnectionRemovedMessagePack(int fromNodeId, Guid fromGuid, int toNodeId, Guid toGuid, long tick)
         {
             FromNodeId = fromNodeId;
             FromGuid = fromGuid;
             ToNodeId = toNodeId;
             ToGuid = toGuid;
+            Tick = tick;
         }
     }
 }

@@ -1,3 +1,4 @@
+using Game.Train.Common;
 using Game.Train.RailGraph;
 using MessagePack;
 using UniRx;
@@ -11,22 +12,25 @@ namespace Server.Event.EventReceive
         public const string EventTag = "va:event:railConnectionCreated";
 
         private readonly EventProtocolProvider _eventProtocolProvider;
-        private readonly CompositeDisposable _disposable = new();
 
         public RailConnectionCreatedEventPacket(EventProtocolProvider eventProtocolProvider)
         {
             _eventProtocolProvider = eventProtocolProvider;
-            RailGraphDatastore.RailConnectionInitializedEvent.Subscribe(OnConnectionInitialized).AddTo(_disposable);
+            RailGraphDatastore.RailConnectionInitializedEvent.Subscribe(OnConnectionInitialized);
         }
 
         private void OnConnectionInitialized(RailConnectionInitializationNotifier.RailConnectionInitializationData data)
         {
+            var tick = TrainUpdateService.CurrentTick;
+            // 辺追加差分とtickを1パケットに封入
+            // Attach tick metadata to edge creation diff
             var payload = MessagePackSerializer.Serialize(new RailConnectionCreatedMessagePack(
                 data.FromNodeId,
                 data.FromGuid,
                 data.ToNodeId,
                 data.ToGuid,
-                data.Distance));
+                data.Distance,
+                tick));
             _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
         }
     }

@@ -57,7 +57,7 @@ namespace Client.Game.InGame.Train
                 destination,
                 message.FrontControlPoint.ToUnityVector(),
                 message.BackControlPoint.ToUnityVector(),
-                0);
+                message.Tick);
         }
 
         private void OnRailNodeRemoved(byte[] payload)
@@ -77,7 +77,7 @@ namespace Client.Game.InGame.Train
 
             // Guidが一致した場合のみノード削除
             // Remove the node only when guid matches
-            _cache.RemoveNode(message.NodeId, 0);
+            _cache.RemoveNode(message.NodeId, message.Tick);
         }
 
         #endregion
