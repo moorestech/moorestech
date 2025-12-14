@@ -44,6 +44,9 @@ properties:
       - IsCraftRecipeExist
       - ForceShow
       - ForceHide
+    - key: itemEntityModelAddressablePath
+      type: string
+      optional: true
     - key: handGrabModelAddressablePath
       type: string
       optional: true
