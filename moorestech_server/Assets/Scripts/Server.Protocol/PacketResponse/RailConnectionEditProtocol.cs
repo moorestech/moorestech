@@ -68,7 +68,7 @@ namespace Server.Protocol.PacketResponse
                     return ResponseRailConnectionEditMessagePack.CreateFailure(RailConnectionEditFailureReason.InvalidNode, data.Mode);
                 }
 
-                if (!TrainRailPositionManager.Instance.CanRemoveNode(fromNode) || !TrainRailPositionManager.Instance.CanRemoveNode(toNode))
+                if (!TrainRailPositionManager.Instance.CanRemoveEdge(fromNode, toNode))
                 {
                     return ResponseRailConnectionEditMessagePack.CreateFailure(RailConnectionEditFailureReason.NodeInUseByTrain, data.Mode);
                 }
