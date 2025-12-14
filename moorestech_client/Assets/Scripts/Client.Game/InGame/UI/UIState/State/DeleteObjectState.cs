@@ -1,4 +1,5 @@
-﻿using Client.Game.InGame.Block;
+﻿using System;
+using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.KeyControl;
@@ -15,7 +16,7 @@ namespace Client.Game.InGame.UI.UIState.State
         
         private readonly ScreenClickableCameraController _screenClickableCameraController;
         
-        private BlockGameObject _removeTargetBlock;
+        private IDeleteTarget _deleteTargetObject;
         
         public DeleteObjectState(DeleteBarObject deleteBarObject, InGameCameraController inGameCameraController)
         {
@@ -41,24 +42,31 @@ namespace Client.Game.InGame.UI.UIState.State
 
             if (BlockClickDetectUtil.TryGetCursorOnBlock(out var blockGameObject))
             {
-                if (_removeTargetBlock == null || _removeTargetBlock != blockGameObject)
+                if (_deleteTargetObject == null || _deleteTargetObject != blockGameObject)
                 {
-                    if (_removeTargetBlock != null) _removeTargetBlock.ResetMaterial();
-
-                    _removeTargetBlock = blockGameObject;
-                    _removeTargetBlock.SetRemovePreviewing();
+                    if (_deleteTargetObject != null) _deleteTargetObject.ResetMaterial();
+                    
+                    _deleteTargetObject = blockGameObject;
+                    _deleteTargetObject.SetRemovePreviewing();
                 }
             }
-            else if (_removeTargetBlock != null)
+            else if (_deleteTargetObject != null)
             {
-                _removeTargetBlock.ResetMaterial();
-                _removeTargetBlock = null;
+                _deleteTargetObject.ResetMaterial();
+                _deleteTargetObject = null;
             }
-
-            if (InputManager.Playable.ScreenLeftClick.GetKeyDown && _removeTargetBlock != null)
+            
+            if (InputManager.Playable.ScreenLeftClick.GetKeyDown && _deleteTargetObject != null)
             {
-                var blockPosition = _removeTargetBlock.BlockPosInfo.OriginalPos;
-                ClientContext.VanillaApi.SendOnly.BlockRemove(blockPosition);
+                switch (_deleteTargetObject)
+                {
+                    case BlockGameObject deleteTargetBlock:
+                        var blockPosition = deleteTargetBlock.BlockPosInfo.OriginalPos;
+                        ClientContext.VanillaApi.SendOnly.BlockRemove(blockPosition);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(_deleteTargetObject));
+                }
             }
 
             _screenClickableCameraController.GetNextUpdate();
@@ -69,7 +77,7 @@ namespace Client.Game.InGame.UI.UIState.State
         
         public void OnExit()
         {
-            if (_removeTargetBlock != null) _removeTargetBlock.ResetMaterial();
+            if (_deleteTargetObject != null) _deleteTargetObject.ResetMaterial();
             _deleteBarObject.gameObject.SetActive(false);
             
             _screenClickableCameraController.OnExit();
