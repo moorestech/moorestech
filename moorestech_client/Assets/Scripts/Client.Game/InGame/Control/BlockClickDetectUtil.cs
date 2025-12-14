@@ -46,7 +46,6 @@ namespace Client.Game.InGame.Control
             
             if (!Physics.Raycast(ray, out var hit, 100, LayerConst.BlockOnlyLayerMask)) return false;
             component = hit.collider.gameObject.GetComponentInChildren<T>();
-            Debug.Log(component);
             
             return component is not null;
         }
