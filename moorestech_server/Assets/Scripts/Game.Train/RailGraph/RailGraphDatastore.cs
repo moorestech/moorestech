@@ -43,11 +43,10 @@ namespace Game.Train.RailGraph
 
         // レールグラフ更新イベント
         // Rail graph update event
-        private readonly RailGraphNotifier _notifier = null!;
         private readonly RailNodeInitializationNotifier _nodeInitializationNotifier = null!;
         private readonly RailConnectionInitializationNotifier _connectionInitializationNotifier = null!;
 
-        public static IObservable<RailNodeInitializationData> RailNodeInitializedEvent => Instance._nodeInitializationNotifier.RailNodeInitializedEvent;
+        public static IObservable<RailNodeInitializationNotifier.RailNodeInitializationData> RailNodeInitializedEvent => Instance._nodeInitializationNotifier.RailNodeInitializedEvent;
         public static IObservable<RailConnectionInitializationNotifier.RailConnectionInitializationData> RailConnectionInitializedEvent => Instance._connectionInitializationNotifier.RailConnectionInitializedEvent;
 
         // ハッシュキャッシュ制御
@@ -70,7 +69,6 @@ namespace Game.Train.RailGraph
 
             InitializeDataStore();
             // RailNode -> RailComponentID の解決ロジックを Notifier に渡す
-            _notifier = new RailGraphNotifier(TryResolveRailComponentId);
             _nodeInitializationNotifier = new RailNodeInitializationNotifier();
             _connectionInitializationNotifier = new RailConnectionInitializationNotifier();
             _instance = this;
@@ -98,7 +96,6 @@ namespace Game.Train.RailGraph
                     RemoveNode(node);
             }
             // RailGraphUpdateEvent の再生成を Notifier に委譲
-            _notifier.Reset();
             _nodeInitializationNotifier.Reset();
             _connectionInitializationNotifier.Reset();
             InitializeDataStore();
@@ -219,7 +216,7 @@ namespace Game.Train.RailGraph
             railNodeToId[node] = nodeId;
             if (!node.ConnectionDestination.IsDefault())
                 connectionDestinationToRailId[node.ConnectionDestination] = nodeId;
-            NotifyNodeInitialized(nodeId);
+            _nodeInitializationNotifier.Notify(nodeId);
             MarkHashDirty();
         }
 
@@ -242,8 +239,8 @@ namespace Game.Train.RailGraph
             if (!node2.ConnectionDestination.IsDefault())
                 connectionDestinationToRailId[node2.ConnectionDestination] = nodeId2;
 
-            NotifyNodeInitialized(nodeId1);
-            NotifyNodeInitialized(nodeId2);
+            _nodeInitializationNotifier.Notify(nodeId1);
+            _nodeInitializationNotifier.Notify(nodeId2);
             MarkHashDirty();
         }
 
@@ -271,7 +268,6 @@ namespace Game.Train.RailGraph
                 connectNodes[nodeid].Add((targetid, distance));
                 // レールグラフ更新イベントを発火
                 // Fire rail graph update event
-                _notifier.NotifyRailGraphUpdate(node, targetNode);
                 _connectionInitializationNotifier.Notify(nodeid, targetid, distance);
             }
             else//もし登録済みなら距離を上書き
@@ -343,22 +339,6 @@ namespace Game.Train.RailGraph
             return node != null;
         }
 
-        private void NotifyNodeInitialized(int nodeid)
-        {
-            var node = railNodes[nodeid];
-            var destination = node.ConnectionDestination.IsDefault() ? ConnectionDestination.Default : node.ConnectionDestination;
-            var frontControlPoint = node.FrontControlPoint.ControlPointPosition;
-            var backControlPoint = node.BackControlPoint.ControlPointPosition;
-            var originPoint = node.FrontControlPoint.OriginalPosition;
-            _nodeInitializationNotifier.Notify(new RailNodeInitializationData(
-                nodeid,
-                node.Guid,
-                destination,
-                originPoint,
-                frontControlPoint,
-                backControlPoint));
-        }
-
         private RailNode ResolveRailNodeInternal(ConnectionDestination destination)
         {
             if (destination.IsDefault())
@@ -424,26 +404,6 @@ namespace Game.Train.RailGraph
         {
             _isHashDirty = true;
         }
-    }
-
-    public readonly struct RailNodeInitializationData
-    {
-        public RailNodeInitializationData(int nodeId, Guid nodeGuid, ConnectionDestination connectionDestination, Vector3 originPoint, Vector3 frontControlPoint, Vector3 backControlPoint)
-        {
-            NodeId = nodeId;
-            NodeGuid = nodeGuid;
-            ConnectionDestination = connectionDestination;
-            OriginPoint = originPoint;
-            FrontControlPoint = frontControlPoint;
-            BackControlPoint = backControlPoint;
-        }
-
-        public int NodeId { get; }
-        public Guid NodeGuid { get; }
-        public ConnectionDestination ConnectionDestination { get; }
-        public Vector3 OriginPoint { get; }
-        public Vector3 FrontControlPoint { get; }
-        public Vector3 BackControlPoint { get; }
     }
 
     public readonly struct RailNodeRegistrationInfo
