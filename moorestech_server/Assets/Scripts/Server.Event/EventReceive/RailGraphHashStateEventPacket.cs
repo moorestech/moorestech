@@ -40,8 +40,8 @@ namespace Server.Event.EventReceive
         {
             // RailGraphのハッシュとtickを取得し全プレイヤーに送信
             // Fetch the latest graph hash/tick and broadcast to every player
-            var (hash, tick) = RailGraphDatastore.GetGraphHashWithTick();
-            var payload = MessagePackSerializer.Serialize(new RailGraphHashStateMessagePack(hash, tick));
+            var hash = RailGraphDatastore.GetConnectNodesHash();
+            var payload = MessagePackSerializer.Serialize(new RailGraphHashStateMessagePack(hash, TrainUpdateService.CurrentTick));
             _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
         }
 
