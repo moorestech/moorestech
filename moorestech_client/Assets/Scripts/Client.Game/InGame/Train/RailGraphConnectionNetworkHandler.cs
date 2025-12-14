@@ -16,8 +16,8 @@ namespace Client.Game.InGame.Train
         private readonly RailGraphClientCache _cache;
         private readonly CompositeDisposable _subscriptions = new();
 
-        public event Action<RailConnectionCreatedMessagePack> ConnectionCreated;
         public static RailGraphConnectionNetworkHandler Instance { get; private set; }
+        public RailGraphClientCache Cache => _cache;
 
         public RailGraphConnectionNetworkHandler(RailGraphClientCache cache)
         {
@@ -30,8 +30,6 @@ namespace Client.Game.InGame.Train
             ClientContext.VanillaApi.Event.SubscribeEventResponse(
                 RailConnectionCreatedEventPacket.EventTag,
                 OnConnectionCreated).AddTo(_subscriptions);
-            // 接続削除イベントも購読してクリーンアップ
-            // Also subscribe to connection removal events for cleanup
             ClientContext.VanillaApi.Event.SubscribeEventResponse(
                 RailConnectionRemovedEventPacket.EventTag,
                 OnConnectionRemoved).AddTo(_subscriptions);
@@ -66,7 +64,6 @@ namespace Client.Game.InGame.Train
             // 問題なければキャッシュに接続を反映
             // Apply the connection diff to the cache
             _cache.UpsertConnection(message.FromNodeId, message.ToNodeId, message.Distance, 0);
-            ConnectionCreated?.Invoke(message);
         }
 
         private void OnConnectionRemoved(byte[] payload)

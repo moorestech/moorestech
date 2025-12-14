@@ -84,6 +84,7 @@ namespace Client.Game.InGame.Train
             ResetSlots(snapshotNodeGuids.Count);
             CopySnapshotData();
             _lastConfirmedTick = snapshotTick;
+            TrainRailObjectManager.Instance?.OnCacheRebuilt(this);
 
             #region Internal
 
@@ -168,7 +169,7 @@ namespace Client.Game.InGame.Train
             UpdateTick(eventTick);
         }
 
-        // 接続情報の差分を適用する（存在すれば上書き）
+        // 接続情報の差分を適用する（存在すれば距離上書き）
         // Apply or overwrite an edge diff connecting two nodes
         public void UpsertConnection(int fromNodeId, int toNodeId, int distance, long eventTick)
         {
@@ -193,6 +194,7 @@ namespace Client.Game.InGame.Train
             }
 
             UpdateTick(eventTick);
+            TrainRailObjectManager.Instance?.OnConnectionUpserted(fromNodeId, toNodeId, this);
         }
 
         // 接続削除の差分を適用する
@@ -206,6 +208,7 @@ namespace Client.Game.InGame.Train
 
             _connectNodes[fromNodeId].RemoveAll(x => x.targetId == toNodeId);
             UpdateTick(eventTick);
+            TrainRailObjectManager.Instance?.OnConnectionRemoved(fromNodeId, toNodeId, this);
         }
 
         // RailNodeIdからGuid/ControlOriginを取り出す
