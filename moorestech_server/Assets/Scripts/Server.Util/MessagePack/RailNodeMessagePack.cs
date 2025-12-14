@@ -146,4 +146,26 @@ namespace Server.Util.MessagePack
             Distance = distance;
         }
     }
+
+    /// <summary>
+    ///     RailGraphのハッシュ状態通知に使用するメッセージ
+    ///     Message payload for broadcasting RailGraph hash/tick state
+    /// </summary>
+    [MessagePackObject]
+    public class RailGraphHashStateMessagePack
+    {
+        [Key(0)] public uint GraphHash { get; set; }
+        [Key(1)] public long GraphTick { get; set; }
+
+        [Obsolete("Reserved for MessagePack serialization.")]
+        public RailGraphHashStateMessagePack()
+        {
+        }
+
+        public RailGraphHashStateMessagePack(uint graphHash, long graphTick)
+        {
+            GraphHash = graphHash;
+            GraphTick = graphTick;
+        }
+    }
 }
