@@ -21,7 +21,7 @@ namespace Server.Event.EventReceive
             RailGraphDatastore.RailNodeInitializedEvent.Subscribe(OnNodeInitialized);
         }
 
-        private void OnNodeInitialized(RailNodeInitializationData data)
+        private void OnNodeInitialized(RailNodeInitializationNotifier.RailNodeInitializationData data)
         {
             var message = new RailNodeCreatedMessagePack(
                 data.NodeId,
