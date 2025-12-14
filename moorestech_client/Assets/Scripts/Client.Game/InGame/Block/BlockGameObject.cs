@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Client.Common;
 using Client.Common.Asset;
-using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.UI.UIState.State;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
@@ -19,7 +19,7 @@ using UnityEngine.VFX;
 
 namespace Client.Game.InGame.Block
 {
-    public class BlockGameObject : MonoBehaviour
+    public class BlockGameObject : MonoBehaviour, IDeleteTarget
     {
         public BlockId BlockId { get; private set; }
         public BlockInstanceId BlockInstanceId { get; private set; }
