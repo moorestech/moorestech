@@ -4,7 +4,7 @@ using UniRx;
 namespace Game.Train.RailGraph
 {
     /// <summary>
-    ///     RailConnection蜿門ｾ励ゅｏ繧後◆繧翫∪縺吶・
+    ///     RailConnectionが削除されたときに通知するラッパー
     ///     Emits events when a rail connection is removed from the graph
     /// </summary>
     public sealed class RailConnectionRemovalNotifier : IDisposable

@@ -7,7 +7,7 @@ using UniRx;
 namespace Server.Event.EventReceive
 {
     /// <summary>
-    ///     RailConnection蜿門ｾ励ゅ′繝｡繝・そ繝ｼ繧ｸ蜑･螟悶＠縺�・
+    ///     RailConnection削除をクライアントへ通知するイベントパケット
     ///     Event packet broadcasting removed rail connections
     /// </summary>
     public sealed class RailConnectionRemovedEventPacket

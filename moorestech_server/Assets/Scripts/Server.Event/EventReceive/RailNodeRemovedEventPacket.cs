@@ -7,7 +7,7 @@ using UniRx;
 namespace Server.Event.EventReceive
 {
     /// <summary>
-    ///     RailNode蜿門ｾ励ゅ′繝｡繝・そ繝ｼ繧ｸ蜑･螟悶＠縺�・
+    ///     RailNode削除をクライアントへ通知するイベントパケット
     ///     Event packet that broadcasts removed rail nodes
     /// </summary>
     public sealed class RailNodeRemovedEventPacket

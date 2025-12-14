@@ -65,7 +65,7 @@ namespace Server.Util.MessagePack
     }
 
     /// <summary>
-    ///     RailNode蜿門ｾ励ゅ′繝｡繝・そ繝ｼ繧ｸ蜑･螟悶＠縺ｦ縺�・
+    ///     RailNode削除メッセージ差分を表す
     ///     Message payload for rail node removal diffs
     /// </summary>
     [MessagePackObject]
@@ -74,7 +74,7 @@ namespace Server.Util.MessagePack
         [Key(0)] public int NodeId { get; set; }
         [Key(1)] public Guid NodeGuid { get; set; }
 
-        [Obsolete("繝・す繝ｪ繧｢繝ｩ繧､繧ｺ逕ｨ縺ｮ繧ｳ繝ｳ繧ｹ繝医Λ繧ｯ繧ｿ縺ｧ縺吶・")]
+        [Obsolete("Reserved for MessagePack serialization.")]
         public RailNodeRemovedMessagePack()
         {
         }
