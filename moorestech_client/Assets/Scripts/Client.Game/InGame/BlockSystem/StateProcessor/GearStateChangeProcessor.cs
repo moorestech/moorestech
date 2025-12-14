@@ -7,6 +7,7 @@ using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.StateProcessor
 {
+    [RequireComponent(typeof(GearStateChangeProcessorSimulator))]
     public class GearStateChangeProcessor : MonoBehaviour, IBlockStateChangeProcessor
     {
         public IReadOnlyList<RotationInfo> RotationInfos => rotationInfos;
