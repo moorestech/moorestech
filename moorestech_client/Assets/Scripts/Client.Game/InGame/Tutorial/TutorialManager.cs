@@ -13,16 +13,18 @@ namespace Client.Game.InGame.Tutorial
         private readonly Dictionary<string, ITutorialViewManager> _tutorialViewManagers = new();
         
         public TutorialManager(
-            IMapObjectPin mapObjectPin, 
-            UIHighlightTutorialManager uiHighlightTutorialManager, 
+            IMapObjectPin mapObjectPin,
+            UIHighlightTutorialManager uiHighlightTutorialManager,
             KeyControlTutorialManager keyControlTutorialManager,
-            ItemViewHighLightTutorialManager itemViewHighLightTutorialManager
+            ItemViewHighLightTutorialManager itemViewHighLightTutorialManager,
+            BlockPlacePreviewTutorialManager blockPlacePreviewTutorialManager
             )
         {
             _tutorialViewManagers.Add(TutorialsElement.TutorialTypeConst.mapObjectPin, mapObjectPin);
             _tutorialViewManagers.Add(TutorialsElement.TutorialTypeConst.uiHighLight, uiHighlightTutorialManager);
             _tutorialViewManagers.Add(TutorialsElement.TutorialTypeConst.keyControl, keyControlTutorialManager);
             _tutorialViewManagers.Add(TutorialsElement.TutorialTypeConst.itemViewHighLight, itemViewHighLightTutorialManager);
+            _tutorialViewManagers.Add(TutorialsElement.TutorialTypeConst.blockPlacePreview, blockPlacePreviewTutorialManager);
         }
         
         public void ApplyTutorial(Guid challengeGuid)
