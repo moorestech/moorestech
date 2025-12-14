@@ -3,6 +3,7 @@ using Client.Game.InGame.Context;
 using MessagePack;
 using Server.Event.EventReceive;
 using Server.Util.MessagePack;
+using UniRx;
 using VContainer.Unity;
 
 namespace Client.Game.InGame.Train
@@ -14,7 +15,7 @@ namespace Client.Game.InGame.Train
     public sealed class RailGraphCacheNetworkHandler : IInitializable, IDisposable
     {
         private readonly RailGraphClientCache _cache;
-        private IDisposable _subscription;
+        private readonly CompositeDisposable _subscriptions = new();
 
         public RailGraphCacheNetworkHandler(RailGraphClientCache cache)
         {
@@ -25,15 +26,19 @@ namespace Client.Game.InGame.Train
         {
             // RailNode生成イベントを購読して差分適用を待機
             // Subscribe to node creation events for diff application
-            _subscription = ClientContext.VanillaApi.Event.SubscribeEventResponse(
+            ClientContext.VanillaApi.Event.SubscribeEventResponse(
                 RailNodeCreatedEventPacket.EventTag,
-                OnRailNodeCreated);
+                OnRailNodeCreated).AddTo(_subscriptions);
+            // RailNode削除イベントも購読し整合性保持
+            // Also subscribe to removal events for consistency
+            ClientContext.VanillaApi.Event.SubscribeEventResponse(
+                RailNodeRemovedEventPacket.EventTag,
+                OnRailNodeRemoved).AddTo(_subscriptions);
         }
 
         public void Dispose()
         {
-            _subscription?.Dispose();
-            _subscription = null;
+            _subscriptions.Dispose();
         }
 
         #region Internal
@@ -53,6 +58,26 @@ namespace Client.Game.InGame.Train
                 message.FrontControlPoint.ToUnityVector(),
                 message.BackControlPoint.ToUnityVector(),
                 0);
+        }
+
+        private void OnRailNodeRemoved(byte[] payload)
+        {
+            // 削除メッセージを解析してGuid一致を確認
+            // Decode removal payload and verify guid consistency
+            var message = MessagePackSerializer.Deserialize<RailNodeRemovedMessagePack>(payload);
+            if (!_cache.TryGetNode(message.NodeId, out var cachedGuid, out _))
+            {
+                return;
+            }
+
+            if (cachedGuid != message.NodeGuid)
+            {
+                return;
+            }
+
+            // Guidが一致した場合のみノード削除
+            // Remove the node only when guid matches
+            _cache.RemoveNode(message.NodeId, 0);
         }
 
         #endregion

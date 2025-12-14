@@ -65,6 +65,28 @@ namespace Server.Util.MessagePack
     }
 
     /// <summary>
+    ///     RailNode蜿門ｾ励ゅ′繝｡繝・そ繝ｼ繧ｸ蜑･螟悶＠縺ｦ縺�・
+    ///     Message payload for rail node removal diffs
+    /// </summary>
+    [MessagePackObject]
+    public class RailNodeRemovedMessagePack
+    {
+        [Key(0)] public int NodeId { get; set; }
+        [Key(1)] public Guid NodeGuid { get; set; }
+
+        [Obsolete("繝・す繝ｪ繧｢繝ｩ繧､繧ｺ逕ｨ縺ｮ繧ｳ繝ｳ繧ｹ繝医Λ繧ｯ繧ｿ縺ｧ縺吶・")]
+        public RailNodeRemovedMessagePack()
+        {
+        }
+
+        public RailNodeRemovedMessagePack(int nodeId, Guid nodeGuid)
+        {
+            NodeId = nodeId;
+            NodeGuid = nodeGuid;
+        }
+    }
+
+    /// <summary>
     ///     RailGraph全体のスナップショット
     ///     Snapshot payload that contains all rail nodes and connections
     /// </summary>

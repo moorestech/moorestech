@@ -164,6 +164,8 @@ namespace Server.Boot
             services.AddSingleton<UnlockedEventPacket>();
             services.AddSingleton<RailNodeCreatedEventPacket>();
             services.AddSingleton<RailConnectionCreatedEventPacket>();
+            services.AddSingleton<RailNodeRemovedEventPacket>();
+            services.AddSingleton<RailConnectionRemovedEventPacket>();
             
             //データのセーブシステム
             services.AddSingleton<AssembleSaveJsonText, AssembleSaveJsonText>();
@@ -193,6 +195,8 @@ namespace Server.Boot
             serviceProvider.GetService<ResearchCompleteEventPacket>();
             serviceProvider.GetService<RailNodeCreatedEventPacket>();
             serviceProvider.GetService<RailConnectionCreatedEventPacket>();
+            serviceProvider.GetService<RailNodeRemovedEventPacket>();
+            serviceProvider.GetService<RailConnectionRemovedEventPacket>();
             
             serverContext.SetMainServiceProvider(serviceProvider);
 
