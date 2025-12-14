@@ -33,8 +33,9 @@ Rail関連のサーバー／クライアント通信は現在次の6経路で構
      Even single-direction removal notifications carry the tick so later hash verification runs on the correct timeline.
 
 6. **RailConnectionEditProtocol (`va:railConnectionEdit`)**  
-   - **クライアント**: `TrainRailConnectSystem` がレイキャストで取得した `ConnectionDestination` を `RailGraphClientCache` から nodeId/guid に引き当て、`VanillaApiSendOnly.ConnectRail/DisconnectRail` を送信します。  
-   - **サーバー**: `RailConnectionEditProtocol` が `RailConnectionCommandHandler` に処理を委譲し、nodeId/guid を照合して接続／切断を実行。結果の差分はイベント(項目2〜5)で配信されます。
+   - **クライアント**: `TrainRailConnectSystem` がレイキャストで取得した `ConnectionDestination` を `RailGraphClientCache` から nodeId/guid に引き当て、接続は `VanillaApiSendOnly.ConnectRail`、切断は `VanillaApiWithResponse.DisconnectRailAsync` を送信します。  
+   - **サーバー**: `RailConnectionEditProtocol` が `RailConnectionCommandHandler` に処理を委譲し、nodeId/guid を照合して接続／切断を実行。結果の差分はイベント(項目2〜5)で配信されます。  
+   - **削除レスポンス**: 切断要求は `VanillaApiWithResponse.DisconnectRailAsync` で送信し、サーバー側で `TrainRailPositionManager.CanRemoveNode` が `false` の場合は `RailConnectionEditFailureReason.NodeInUseByTrain` を返して拒否します。  
 7. **RailGraphHashStateEvent (`va:event:railGraphHashState`)**  
    - **サーバー**: RailGraphHashStateEventPacket が TrainUpdateService.HashBroadcastIntervalSeconds（1秒）間隔で RailGraph のハッシュ/Tick を計算し、全クライアントへブロードキャストします。  
    - **クライアント**: RailGraphHashVerifier がイベントを購読し、RailGraphClientCache のハッシュと照合して不一致なら GetRailGraphSnapshotProtocol で再同期を要求します。  
