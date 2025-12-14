@@ -123,12 +123,6 @@ namespace Client.Network.API
             var request = RailConnectionEditRequest.CreateConnectRequest(fromNodeId, fromGuid, toNodeId, toGuid);
             _packetSender.Send(request);
         }
-        public void DisconnectRail(int fromNodeId, Guid fromGuid, int toNodeId, Guid toGuid)
-        {
-            var request = RailConnectionEditRequest.CreateDisconnectRequest(fromNodeId, fromGuid, toNodeId, toGuid);
-            _packetSender.Send(request);
-        }
-
         public void PlaceTrainOnRail(RailComponentSpecifier specifier, int hotBarSlot)
         {
             var request = new PlaceTrainOnRailRequestMessagePack(specifier, hotBarSlot, _playerId);

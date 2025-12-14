@@ -193,6 +193,17 @@ namespace Client.Network.API
             var response = await _packetExchangeManager.GetPacketResponse<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(request, ct);
             return CreateStacks(response.Items);
         }
+
+        public async UniTask<RailConnectionEditProtocol.ResponseRailConnectionEditMessagePack> DisconnectRailAsync(
+            int fromNodeId,
+            Guid fromGuid,
+            int toNodeId,
+            Guid toGuid,
+            CancellationToken ct)
+        {
+            var request = RailConnectionEditProtocol.RailConnectionEditRequest.CreateDisconnectRequest(fromNodeId, fromGuid, toNodeId, toGuid);
+            return await _packetExchangeManager.GetPacketResponse<RailConnectionEditProtocol.ResponseRailConnectionEditMessagePack>(request, ct);
+        }
         
         #region Internal
         
