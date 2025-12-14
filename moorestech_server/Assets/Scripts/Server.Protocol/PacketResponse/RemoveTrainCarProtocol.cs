@@ -23,6 +23,8 @@ namespace Server.Protocol.PacketResponse
                 .First(c => c.c.CarId == request.TrainCarId);
             if (removeTargetTrainCar == null) throw new Exception("Remove train car failed. Train not found.");
             
+            //TODO trainUnit側に特定trainCarの削除APIをはやしてそれを呼ぶようにする
+            
             // 削除対象車両のインデックスを取得
             // Get index of the target car to remove
             var carIndex = targetTrain.Cars.ToList().IndexOf(removeTargetTrainCar);
