@@ -60,8 +60,8 @@ namespace Client.Game.InGame.UI.UIState.State
             {
                 switch (_deleteTargetObject)
                 {
-                    case BlockGameObject deleteTargetBlock:
-                        var blockPosition = deleteTargetBlock.BlockPosInfo.OriginalPos;
+                    case BlockGameObjectChild deleteTargetBlock:
+                        var blockPosition = deleteTargetBlock.BlockGameObject.BlockPosInfo.OriginalPos;
                         ClientContext.VanillaApi.SendOnly.BlockRemove(blockPosition);
                         break;
                     default:

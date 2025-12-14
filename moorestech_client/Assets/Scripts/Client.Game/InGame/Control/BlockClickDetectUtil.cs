@@ -45,7 +45,7 @@ namespace Client.Game.InGame.Control
             var ray = camera.ScreenPointToRay(UnityEngine.Input.mousePosition);
             
             if (!Physics.Raycast(ray, out var hit, 100, LayerConst.BlockOnlyLayerMask)) return false;
-            component = hit.collider.gameObject.GetComponent<T>();
+            component = hit.collider.gameObject.GetComponentInChildren<T>();
             Debug.Log(component);
             
             return component is not null;
