@@ -2,6 +2,7 @@
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
+using Client.Game.InGame.Entity.Object;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState.Input;
 using Client.Game.InGame.UI.UIState.UIObject;
@@ -63,6 +64,9 @@ namespace Client.Game.InGame.UI.UIState.State
                     case BlockGameObjectChild deleteTargetBlock:
                         var blockPosition = deleteTargetBlock.BlockGameObject.BlockPosInfo.OriginalPos;
                         ClientContext.VanillaApi.SendOnly.BlockRemove(blockPosition);
+                        break;
+                    case TrainCarEntityChildrenObject deleteTargetTrainCar:
+                        ClientContext.VanillaApi.SendOnly.RemoveTrain(deleteTargetTrainCar.TrainCarEntityObject.EntityId);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException(nameof(_deleteTargetObject));
