@@ -3,7 +3,6 @@ using Client.Common;
 using Client.Common.Server;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
-using Client.Game.InGame.UI.UIState.State;
 using Common.Debug;
 using Mooresmaster.Model.TrainModule;
 using Server.Protocol.PacketResponse;
@@ -34,6 +33,8 @@ namespace Client.Game.InGame.Entity.Object
         {
             EntityId = entityId;
             _debugAutoRun = DebugParameters.GetValueOrDefaultBool(DebugConst.TrainAutoRunKey);//////////////////
+            
+            _rendererMaterialReplacerController = new RendererMaterialReplacerController(gameObject);
         }
         
         public void SetTrain(Guid trainCarId, TrainCarMasterElement trainCarMasterElement)
