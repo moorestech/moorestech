@@ -1,54 +1,238 @@
-using System;
 using System.Collections.Generic;
-using Server.Util.MessagePack;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Client.Game.InGame.Train
 {
     /// <summary>
-    ///     差分同期された接続情報を保持し、将来的な可視化へ備えるプレースホルダー
-    ///     Placeholder component that listens to connection diffs and tracks active edges for future visualization
+    ///     キャッシュ更新に追随してレールラインを生成/削除する管理クラス
+    ///     Manages runtime line renderers driven directly by rail cache updates
     /// </summary>
     public sealed class TrainRailObjectManager : MonoBehaviour
     {
-        private readonly HashSet<(int fromId, int toId)> _activeConnections = new();
-        private RailGraphConnectionNetworkHandler _connectionHandler;
-        private bool _isSubscribed;
+        public static TrainRailObjectManager Instance { get; private set; }
 
-        private void Update()
+        [SerializeField] private float lineWidth = 0.05f;
+        [SerializeField] private Color lineColor = Color.cyan;
+
+        private readonly Dictionary<(int, int), LineRenderer> _railLines = new();
+        private RailGraphClientCache _cache;
+        private Material _lineMaterial;
+
+        private void Awake()
         {
-            if (_isSubscribed) return;
-            TrySubscribe();
-        }
-
-        private void TrySubscribe()
-        {
-            var handler = RailGraphConnectionNetworkHandler.Instance;
-            if (handler == null) return;
-
-            _connectionHandler = handler;
-            _connectionHandler.ConnectionCreated += OnConnectionCreated;
-            _isSubscribed = true;
+            Instance = this;
         }
 
         private void OnDestroy()
         {
-            if (_connectionHandler != null && _isSubscribed)
+            if (Instance == this)
             {
-                _connectionHandler.ConnectionCreated -= OnConnectionCreated;
+                Instance = null;
             }
+
+            foreach (var renderer in _railLines.Values)
+            {
+                if (renderer != null)
+                {
+                    Destroy(renderer.gameObject);
+                }
+            }
+            _railLines.Clear();
         }
 
-        private void OnConnectionCreated(RailConnectionCreatedMessagePack message)
+        internal void OnCacheRebuilt(RailGraphClientCache cache)
         {
-            var key = (message.FromNodeId, message.ToNodeId);
-            if (_activeConnections.Contains(key))
+            _cache = cache;
+            RebuildExistingConnections();
+        }
+
+        internal void OnConnectionUpserted(int fromNodeId, int toNodeId, RailGraphClientCache cache)
+        {
+            _cache = cache;
+            TryActivateLine(fromNodeId, toNodeId);
+        }
+
+        internal void OnConnectionRemoved(int fromNodeId, int toNodeId, RailGraphClientCache cache)
+        {
+            _cache = cache;
+            RemoveLine(fromNodeId, toNodeId);
+        }
+
+        #region Internal
+
+        private void RebuildExistingConnections()
+        {
+            foreach (var renderer in _railLines.Values)
+            {
+                if (renderer != null)
+                {
+                    Destroy(renderer.gameObject);
+                }
+            }
+            _railLines.Clear();
+
+            if (_cache == null)
             {
                 return;
             }
 
-            _activeConnections.Add(key);
-            // TODO: instantiate or update visual rail objects once coordinates are fully resolved on the client.
+            var adjacency = _cache.ConnectNodes;
+            for (var fromId = 0; fromId < adjacency.Count; fromId++)
+            {
+                var edges = adjacency[fromId];
+                if (edges == null || edges.Count == 0)
+                {
+                    continue;
+                }
+
+                foreach (var (targetId, _) in edges)
+                {
+                    TryActivateLine(fromId, targetId);
+                }
+            }
         }
+
+        private void TryActivateLine(int fromNodeId, int toNodeId)
+        {
+            if (_cache == null)
+            {
+                return;
+            }
+
+            if (!HasPairedConnection(fromNodeId, toNodeId))
+            {
+                return;
+            }
+
+            var key = NormalizeKey(fromNodeId, toNodeId);
+            if (_railLines.ContainsKey(key))
+            {
+                return;
+            }
+
+            if (!TryGetNodeOrigin(key.Item1, out var fromOrigin))
+            {
+                return;
+            }
+
+            if (!TryGetNodeOrigin(key.Item2, out var toOrigin))
+            {
+                return;
+            }
+
+            var lineObject = new GameObject($"RailLine_{key.Item1}_{key.Item2}");
+            lineObject.transform.SetParent(transform, false);
+            var renderer = lineObject.AddComponent<LineRenderer>();
+            ConfigureRenderer(renderer);
+            renderer.positionCount = 2;
+            renderer.SetPosition(0, fromOrigin);
+            renderer.SetPosition(1, toOrigin);
+            _railLines[key] = renderer;
+        }
+
+        private void RemoveLine(int fromNodeId, int toNodeId)
+        {
+            var key = NormalizeKey(fromNodeId, toNodeId);
+            if (!_railLines.TryGetValue(key, out var renderer))
+            {
+                return;
+            }
+
+            _railLines.Remove(key);
+            if (renderer != null)
+            {
+                Destroy(renderer.gameObject);
+            }
+        }
+
+        private bool HasPairedConnection(int fromNodeId, int toNodeId)
+        {
+            if (_cache == null)
+            {
+                return false;
+            }
+
+            var adjacency = _cache.ConnectNodes;
+            if (!IsValidIndex(adjacency, fromNodeId) || !IsValidIndex(adjacency, toNodeId))
+            {
+                return false;
+            }
+
+            var oppositeSource = toNodeId ^ 1;
+            var oppositeTarget = fromNodeId ^ 1;
+            if (!IsValidIndex(adjacency, oppositeSource))
+            {
+                return false;
+            }
+
+            var edges = adjacency[oppositeSource];
+            if (edges == null)
+            {
+                return false;
+            }
+
+            foreach (var (targetId, _) in edges)
+            {
+                if (targetId == oppositeTarget)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool TryGetNodeOrigin(int nodeId, out Vector3 origin)
+        {
+            origin = Vector3.zero;
+            if (_cache == null)
+            {
+                return false;
+            }
+
+            return _cache.TryGetNode(nodeId, out _, out origin);
+        }
+
+        private void ConfigureRenderer(LineRenderer renderer)
+        {
+            renderer.material = GetLineMaterial();
+            renderer.widthMultiplier = Mathf.Max(0.001f, lineWidth);
+            renderer.useWorldSpace = true;
+            renderer.startColor = lineColor;
+            renderer.endColor = lineColor;
+            renderer.alignment = LineAlignment.View;
+            renderer.shadowCastingMode = ShadowCastingMode.Off;
+            renderer.receiveShadows = false;
+            renderer.textureMode = LineTextureMode.Stretch;
+            renderer.numCapVertices = 2;
+        }
+
+        private Material GetLineMaterial()
+        {
+            if (_lineMaterial != null)
+            {
+                return _lineMaterial;
+            }
+
+            var shader = Shader.Find("Sprites/Default") ?? Shader.Find("Universal Render Pipeline/Unlit");
+            _lineMaterial = new Material(shader)
+            {
+                color = lineColor
+            };
+            return _lineMaterial;
+        }
+
+        private static (int, int) NormalizeKey(int fromId, int toId)
+        {
+            return fromId <= toId ? (fromId, toId) : (toId, fromId);
+        }
+
+        private static bool IsValidIndex(IReadOnlyList<IReadOnlyList<(int targetId, int distance)>> adjacency, int index)
+        {
+            return index >= 0 && index < adjacency.Count;
+        }
+
+        #endregion
     }
 }
