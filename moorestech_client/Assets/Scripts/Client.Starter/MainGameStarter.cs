@@ -145,6 +145,7 @@ namespace Client.Starter
             builder.RegisterEntryPoint<WorldDataHandler>();
             builder.RegisterEntryPoint<PlayerPositionSender>();
             builder.RegisterEntryPoint<SkitFireManager>();
+            builder.RegisterEntryPoint<RailGraphSnapshotInitializer>();
             builder.RegisterEntryPoint<RailGraphCacheNetworkHandler>();
             builder.RegisterEntryPoint<RailGraphConnectionNetworkHandler>();
             

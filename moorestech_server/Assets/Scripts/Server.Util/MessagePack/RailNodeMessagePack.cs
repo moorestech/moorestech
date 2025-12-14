@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Game.Train.RailGraph;
 using MessagePack;
 using UnityEngine;
@@ -60,6 +61,65 @@ namespace Server.Util.MessagePack
             OriginPoint = new Vector3MessagePack(originPoint);
             FrontControlPoint = new Vector3MessagePack(frontControlPoint);
             BackControlPoint = new Vector3MessagePack(backControlPoint);
+        }
+    }
+
+    /// <summary>
+    ///     RailGraph全体のスナップショット
+    ///     Snapshot payload that contains all rail nodes and connections
+    /// </summary>
+    [MessagePackObject]
+    public class RailGraphSnapshotMessagePack
+    {
+        [Key(0)] public List<RailNodeCreatedMessagePack> Nodes { get; set; }
+        [Key(1)] public List<RailGraphConnectionSnapshotMessagePack> Connections { get; set; }
+        [Key(2)] public uint GraphHash { get; set; }
+
+        [Obsolete("デシリアライズ用のコンストラクタです。")]
+        public RailGraphSnapshotMessagePack() { }
+
+        public RailGraphSnapshotMessagePack(RailGraphSnapshot snapshot)
+        {
+            Nodes = new List<RailNodeCreatedMessagePack>(snapshot.Nodes.Count);
+            foreach (var node in snapshot.Nodes)
+            {
+                Nodes.Add(new RailNodeCreatedMessagePack(
+                    node.NodeId,
+                    node.NodeGuid,
+                    node.ConnectionDestination,
+                    node.OriginPoint,
+                    node.FrontControlPoint,
+                    node.BackControlPoint));
+            }
+
+            Connections = new List<RailGraphConnectionSnapshotMessagePack>(snapshot.Connections.Count);
+            foreach (var connection in snapshot.Connections)
+            {
+                Connections.Add(new RailGraphConnectionSnapshotMessagePack(
+                    connection.FromNodeId,
+                    connection.ToNodeId,
+                    connection.Distance));
+            }
+
+            GraphHash = snapshot.ConnectNodesHash;
+        }
+    }
+
+    [MessagePackObject]
+    public class RailGraphConnectionSnapshotMessagePack
+    {
+        [Key(0)] public int FromNodeId { get; set; }
+        [Key(1)] public int ToNodeId { get; set; }
+        [Key(2)] public int Distance { get; set; }
+
+        [Obsolete("デシリアライズ用コンストラクタです。")]
+        public RailGraphConnectionSnapshotMessagePack() { }
+
+        public RailGraphConnectionSnapshotMessagePack(int fromNodeId, int toNodeId, int distance)
+        {
+            FromNodeId = fromNodeId;
+            ToNodeId = toNodeId;
+            Distance = distance;
         }
     }
 }

@@ -180,6 +180,11 @@ namespace Game.Train.RailGraph
             return Instance.GetConnectNodesHashInternal();
         }
 
+        public static RailGraphSnapshot CaptureSnapshot()
+        {
+            return Instance.CaptureSnapshotInternal();
+        }
+
         //======================================================
         //  内部実装部 (インスタンスメソッド)
         //======================================================
@@ -393,6 +398,37 @@ namespace Game.Train.RailGraph
         private void MarkHashDirty()
         {
             _isHashDirty = true;
+        }
+
+        private RailGraphSnapshot CaptureSnapshotInternal()
+        {
+            var nodes = new List<RailNodeInitializationNotifier.RailNodeInitializationData>(railNodes.Count);
+            for (var i = 0; i < railNodes.Count; i++)
+            {
+                if (railNodes[i] == null)
+                    continue;
+                nodes.Add(
+                    new RailNodeInitializationNotifier.RailNodeInitializationData(
+                        i,
+                        railNodes[i].Guid,
+                        railNodes[i].ConnectionDestination,
+                        railNodes[i].FrontControlPoint.OriginalPosition,
+                        railNodes[i].FrontControlPoint.ControlPointPosition,
+                        railNodes[i].BackControlPoint.ControlPointPosition)
+                    );
+            }
+
+            var connections = new List<RailGraphConnectionSnapshot>();
+            for (var fromId = 0; fromId < connectNodes.Count; fromId++)
+            {
+                foreach (var (targetId, distance) in connectNodes[fromId])
+                {
+                    connections.Add(new RailGraphConnectionSnapshot(fromId, targetId, distance));
+                }
+            }
+
+            var hash = GetConnectNodesHashInternal();
+            return new RailGraphSnapshot(nodes, connections, hash);
         }
     }
 }
