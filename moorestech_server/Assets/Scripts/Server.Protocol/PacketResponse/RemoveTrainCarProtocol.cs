@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Game.Train.Common;
 using MessagePack;
-using Microsoft.Extensions.DependencyInjection;
 using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
@@ -11,28 +10,63 @@ namespace Server.Protocol.PacketResponse
     public class RemoveTrainCarProtocol : IPacketResponse
     {
         public const string ProtocolTag = "va:removeTrainCar";
-        private readonly TrainUpdateService _trainUpdateService;
-        
-        public RemoveTrainCarProtocol(ServiceProvider serviceProvider)
-        {
-            _trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
-        }
         
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
             var request = MessagePackSerializer.Deserialize<RemoveTrainCarRequestMessagePack>(payload.ToArray());
-            
+
             Debug.Log("Request remove train car.");
             // TODO: オーダーがこのままだとO(n)になっているため、逆引き用の辞書等を用意してO(1)にする
-            var (targetTrain, removeTargetTrainCar) = _trainUpdateService
+            var (targetTrain, removeTargetTrainCar) = TrainUpdateService.Instance
                 .GetRegisteredTrains()
                 .SelectMany(t => t.Cars.Select(c => (t, c)))
                 .First(c => c.c.CarId == request.TrainCarId);
             if (removeTargetTrainCar == null) throw new Exception("Remove train car failed. Train not found.");
             
+            // 削除対象車両のインデックスを取得
+            // Get index of the target car to remove
+            var carIndex = targetTrain.Cars.ToList().IndexOf(removeTargetTrainCar);
+            var totalCars = targetTrain.Cars.Count;
             
+            // 1両のみの場合はTrainUnit全体を削除
+            // If only one car, destroy the entire TrainUnit
+            if (totalCars == 1)
+            {
+                targetTrain.OnDestroy();
+                return null;
+            }
             
+            // 後尾からの位置を計算
+            // Calculate position from rear
+            var carsFromRear = totalCars - 1 - carIndex;
             
+            if (carsFromRear == 0)
+            {
+                // 後尾車両の場合：SplitTrainで1両切り離して破棄
+                // Rear car: Split 1 car and destroy it
+                var detachedTrain = targetTrain.SplitTrain(1);
+                detachedTrain?.OnDestroy();
+            }
+            else if (carIndex == 0)
+            {
+                // 先頭車両の場合：反転して後尾として処理、再度反転
+                // Front car: Reverse, process as rear, reverse again
+                targetTrain.Reverse();
+                var detachedTrain = targetTrain.SplitTrain(1);
+                detachedTrain?.OnDestroy();
+                targetTrain.Reverse();
+            }
+            else
+            {
+                // 中間車両の場合：後ろ側を切り離し、その先頭を削除
+                // Middle car: Split rear portion, then remove its front
+                var rearTrain = targetTrain.SplitTrain(carsFromRear + 1);
+                rearTrain.Reverse();
+                var removedTrain = rearTrain.SplitTrain(1);
+                removedTrain?.OnDestroy();
+                rearTrain.Reverse();
+            }
+
             return null;
         }
         
