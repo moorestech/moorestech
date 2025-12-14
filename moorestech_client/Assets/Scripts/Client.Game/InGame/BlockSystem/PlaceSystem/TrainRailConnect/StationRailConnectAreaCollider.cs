@@ -1,13 +1,11 @@
 using Client.Game.InGame.Block;
+using Client.Game.InGame.Train;
 using UnityEngine;
-using static Server.Protocol.PacketResponse.RailConnectionEditProtocol;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
 {
     public class StationRailConnectAreaCollider : MonoBehaviour, IRailComponentConnectAreaCollider
     {
-        public RailComponentSpecifierMode RailComponentSpecifierMode => RailComponentSpecifierMode.Station;
-        
         // 1番のBackと0番のFrontは駅の内部で繋がっているためこうなる
         // 1 is Back and 0 is Front, as they are connected inside the station.
         public bool IsFront => railNodeIndex == StationRailNodeIndex.Index1;
@@ -27,9 +25,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         }
         
         
-        public RailComponentSpecifier CreateRailComponentSpecifier()
+        public ConnectionDestination CreateConnectionDestination()
         {
-            return RailComponentSpecifier.CreateStationSpecifier(BlockGameObject.BlockPosInfo.OriginalPos, (int)railNodeIndex);
+            var origin = BlockGameObject.BlockPosInfo.OriginalPos;
+            return new ConnectionDestination(origin, (int)railNodeIndex, IsFront);
         }
     }
     

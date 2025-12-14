@@ -120,6 +120,7 @@ namespace Server.Boot
             services.AddSingleton<IEntityFactory, EntityFactory>(); // TODO これを削除してContext側に加える？
             services.AddSingleton<GearNetworkDatastore>();
             services.AddSingleton<RailGraphDatastore>();
+            services.AddSingleton<RailConnectionCommandHandler>();
             services.AddSingleton<TrainDiagramManager>();
             services.AddSingleton<TrainRailPositionManager>();
 

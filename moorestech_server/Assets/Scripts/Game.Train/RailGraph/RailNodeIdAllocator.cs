@@ -12,7 +12,7 @@ namespace Game.Train.RailGraph
     /// 例：0,1,2,3,4,5...と払い出された後に3だけが解放された場合、次にRent()を呼ぶと6が返される。その後に2が解放された場合、次にRent()を呼ぶと2が返される。その次のRent()を呼ぶと3でも7でもなく8が返される
     /// </summary>
     /// 
-    class RailNodeIdAllocator
+    public class RailNodeIdAllocator
     {
         private readonly MinHeap<int> _releasedIds;//本当のidではなく、2で割った値を格納していることに注意
         private readonly Action<int> _onSequentialIdAllocated;

@@ -49,7 +49,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(CompleteResearchProtocol.ProtocolTag, new CompleteResearchProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetResearchInfoProtocol.ProtocolTag, new GetResearchInfoProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetPlayedSkitIdsProtocol.ProtocolTag, new GetPlayedSkitIdsProtocol(serviceProvider));
-            _packetResponseDictionary.Add(RailConnectionEditProtocol.Tag, new RailConnectionEditProtocol());
+            _packetResponseDictionary.Add(RailConnectionEditProtocol.Tag, new RailConnectionEditProtocol(serviceProvider));
             _packetResponseDictionary.Add(PlaceTrainCarOnRailProtocol.ProtocolTag, new PlaceTrainCarOnRailProtocol(serviceProvider));
         }
         
