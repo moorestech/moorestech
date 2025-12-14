@@ -45,9 +45,13 @@ namespace Game.Train.RailGraph
         // Rail graph update event
         private readonly RailNodeInitializationNotifier _nodeInitializationNotifier = null!;
         private readonly RailConnectionInitializationNotifier _connectionInitializationNotifier = null!;
+        private readonly RailNodeRemovalNotifier _nodeRemovalNotifier = null!;
+        private readonly RailConnectionRemovalNotifier _connectionRemovalNotifier = null!;
 
         public static IObservable<RailNodeInitializationNotifier.RailNodeInitializationData> RailNodeInitializedEvent => Instance._nodeInitializationNotifier.RailNodeInitializedEvent;
         public static IObservable<RailConnectionInitializationNotifier.RailConnectionInitializationData> RailConnectionInitializedEvent => Instance._connectionInitializationNotifier.RailConnectionInitializedEvent;
+        public static IObservable<RailNodeRemovalNotifier.RailNodeRemovedData> RailNodeRemovedEvent => Instance._nodeRemovalNotifier.RailNodeRemovedEvent;
+        public static IObservable<RailConnectionRemovalNotifier.RailConnectionRemovalData> RailConnectionRemovedEvent => Instance._connectionRemovalNotifier.RailConnectionRemovedEvent;
 
         // ハッシュキャッシュ制御
         // Hash cache control
@@ -60,6 +64,8 @@ namespace Game.Train.RailGraph
             // RailNode -> RailComponentID の解決ロジックを Notifier に渡す
             _nodeInitializationNotifier = new RailNodeInitializationNotifier();
             _connectionInitializationNotifier = new RailConnectionInitializationNotifier();
+            _nodeRemovalNotifier = new RailNodeRemovalNotifier();
+            _connectionRemovalNotifier = new RailConnectionRemovalNotifier();
             _instance = this;
         }
 
@@ -87,6 +93,8 @@ namespace Game.Train.RailGraph
             // RailGraphUpdateEvent の再生成を Notifier に委譲
             _nodeInitializationNotifier.Reset();
             _connectionInitializationNotifier.Reset();
+            _nodeRemovalNotifier.Reset();
+            _connectionRemovalNotifier.Reset();
             InitializeDataStore();
         }
 
@@ -280,6 +288,9 @@ namespace Game.Train.RailGraph
             var nodeid = railNodeToId[node];
             var targetid = railNodeToId[targetNode];
             connectNodes[nodeid].RemoveAll(x => x.Item1 == targetid);
+            // 接続削除を外部へ通知
+            // Broadcast the connection removal
+            _connectionRemovalNotifier.Notify(nodeid, node.Guid, targetid, targetNode.Guid);
             // レールグラフ更新イベントを発火
             // TODO 削除関連はまだ未対応
             MarkHashDirty();
@@ -292,6 +303,9 @@ namespace Game.Train.RailGraph
             TrainDiagramManager.Instance.NotifyNodeRemoval(node);
             TrainRailPositionManager.Instance.NotifyNodeRemoval(node);
             var nodeid = railNodeToId[node];
+            // ノード削除イベントで差分同期
+            // Emit node removal diff for clients
+            _nodeRemovalNotifier.Notify(nodeid, node.Guid);
             railNodeToId.Remove(node);
             if (node.HasConnectionDestination) 
             {
