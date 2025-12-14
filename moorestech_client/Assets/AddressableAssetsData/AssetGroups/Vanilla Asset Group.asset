@@ -90,6 +90,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 144a3298a538744adaa54c5dccec414c
+    m_Address: Vanilla/Skit/Animations/anim_bittersmile01_lp
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 16777f725be954243984f7ed20cc7ff4
     m_Address: Vanilla/UI/FluidSlotView
     m_ReadOnly: 0
@@ -415,6 +420,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6be1376e6a07744f9a86e6d3fc097d62
+    m_Address: Vanilla/Item/Iron Gear
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 6cf497b4abc9242a9abec5053e4e76a9
     m_Address: Vanilla/Block/Old/3x3
     m_ReadOnly: 0
@@ -437,6 +447,16 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 764764c4c5bb8b043a34afd794f9c161
     m_Address: Vanilla/Block/Old/generator mk3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 78cf01db9e75845cf86c2b3666bafa73
+    m_Address: Vanilla/Block/Util/GearChainLine
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7912b97a25dfd4ddaa05247884aed7d3
+    m_Address: Vanilla/Block/GearChainPole
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -602,6 +622,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a22f794443335e74c82387a9f622ffcd
     m_Address: Vanilla/Block/gear belt conveyor
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a36a7d119c24444639e92faca3445f0c
+    m_Address: Vanilla/Item/Pipes
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -895,6 +920,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ebb943b3c336c4a7082a944600ede158
+    m_Address: Vanilla/Skit/Animations/TestAnimator
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: ec249701ac417437a8f945510002724b
     m_Address: Vanilla/Game/FreightCar
     m_ReadOnly: 0
@@ -912,6 +942,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: f148ee4b0ebd54839ad8213503691341
     m_Address: Vanilla/Block/GearBeltConveyor Shaft
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f3871b76c69144b14afa50c75d6b7250
+    m_Address: Vanilla/Block/3D Printer
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

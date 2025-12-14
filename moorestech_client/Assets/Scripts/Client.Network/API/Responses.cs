@@ -82,12 +82,14 @@ namespace Client.Network.API
         public readonly BlockDirection BlockDirection;
         public readonly BlockId BlockId;
         public readonly Vector3Int BlockPos;
+        public readonly BlockInstanceId BlockInstanceId;
         
         public BlockInfo(BlockDataMessagePack blockDataMessagePack)
         {
             BlockPos = blockDataMessagePack.BlockPos;
             BlockId = blockDataMessagePack.BlockId;
             BlockDirection = blockDataMessagePack.BlockDirection;
+            BlockInstanceId = blockDataMessagePack.BlockInstanceId;
         }
     }
     

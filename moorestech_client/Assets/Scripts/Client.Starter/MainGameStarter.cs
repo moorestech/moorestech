@@ -10,6 +10,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect;
+using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.CraftTree.TreeView;
@@ -128,9 +129,9 @@ namespace Client.Starter
             
             CameraManager.Initialize();
             
-            //PureC#のインスタンスを登録
+            // PureC#のインスタンスを登録
             // Register pure C# instances
-            //最初に取得したデータを登録
+            // 最初に取得したデータを登録
             // register initial data
             builder.RegisterInstance(initialHandshakeResponse);
             
@@ -156,6 +157,7 @@ namespace Client.Starter
             builder.Register<TrainCarPlaceSystem>(Lifetime.Singleton);
             builder.Register<TrainRailPlaceSystem>(Lifetime.Singleton);
             builder.Register<TrainRailConnectSystem>(Lifetime.Singleton);
+            builder.Register<GearChainPoleConnectSystem>(Lifetime.Singleton);
             builder.Register<PlaceSystemStateController>(Lifetime.Singleton);
             builder.Register<PlaceSystemSelector>(Lifetime.Singleton);
             
