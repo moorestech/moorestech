@@ -53,17 +53,7 @@ namespace Client.Game.InGame.Train
 
         private async UniTaskVoid HandleHashStateAsync(byte[] payload)
         {
-            RailGraphHashStateMessagePack message;
-            try
-            {
-                message = MessagePackSerializer.Deserialize<RailGraphHashStateMessagePack>(payload);
-            }
-            catch (Exception ex)
-            {
-                Debug.LogWarning($"[RailGraphHashVerifier] Failed to parse hash state: {ex}");
-                return;
-            }
-
+            var message = MessagePackSerializer.Deserialize<RailGraphHashStateMessagePack>(payload);
             var clientHash = _cache.ComputeCurrentHash();
             if (clientHash == message.GraphHash)
             {
@@ -82,14 +72,7 @@ namespace Client.Game.InGame.Train
 
         private async UniTask RequestSnapshotAsync(long serverTick)
         {
-            var api = ClientContext.VanillaApi?.Response;
-            if (api == null)
-            {
-                Debug.LogWarning("[RailGraphHashVerifier] VanillaApi is not ready; cannot request snapshot.");
-                Interlocked.Exchange(ref _resyncInProgress, 0);
-                return;
-            }
-
+            var api = ClientContext.VanillaApi.Response;
             var cts = new CancellationTokenSource();
             _resyncCancellation = cts;
 
@@ -134,7 +117,6 @@ namespace Client.Game.InGame.Train
             {
                 return;
             }
-
             _resyncCancellation.Cancel();
             _resyncCancellation.Dispose();
             _resyncCancellation = null;

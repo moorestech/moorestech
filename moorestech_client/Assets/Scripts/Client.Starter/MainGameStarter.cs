@@ -186,7 +186,7 @@ namespace Client.Starter
             builder.Register<TutorialManager>(Lifetime.Singleton);
             builder.Register<IGameUnlockStateData, ClientGameUnlockStateData>(Lifetime.Singleton);
             builder.Register<RailGraphClientCache>(Lifetime.Singleton);
-            builder.Register<RailGraphSnapshotApplier>(Lifetime.Singleton).As<IInitializable>();
+            builder.Register<RailGraphSnapshotApplier>(Lifetime.Singleton).AsSelf().As<IInitializable>();
             builder.Register<RailGraphHashVerifier>(Lifetime.Singleton).As<IInitializable>().As<IDisposable>();
             
             
