@@ -405,6 +405,23 @@ namespace Game.Train.RailGraph
         {
             return _railNodes.Contains(node);
         }
+        public bool ContainsEdge(RailNode from, RailNode to)
+        {
+            if (ContainsNode(from))
+            {
+                //_railNodesのindexを取得、index-1がtoならtrue
+                int index = _railNodes.IndexOf(from);
+                if (index > 0 && _railNodes[index - 1] == to)
+                {
+                    return true;
+                }
+                return false;
+            }
+            else 
+            {
+                return false;
+            }
+        }
 
         //テスト用
         //TestGet_railNodes()

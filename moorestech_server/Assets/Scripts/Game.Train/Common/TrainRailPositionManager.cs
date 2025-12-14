@@ -83,6 +83,19 @@ namespace Game.Train.Common
             }
             return found;
         }
-
+        // 全てのrailpositionに対して削除したい辺が1つもなかったらtrue
+        public bool CanRemoveEdge(RailNode from, RailNode to)
+        {
+            bool found = false;
+            foreach (var position in _list)
+            {
+                if (position.ContainsEdge(from, to))
+                {
+                    found = true;
+                    break;
+                }
+            }
+            return found;
+        }
     }
 }
