@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Game.Train.RailGraph
 {
@@ -18,42 +19,55 @@ namespace Game.Train.RailGraph
         private const uint FnvPrime = 16777619;
 
         /// <summary>
-        /// connectNodes の状態から順序独立ハッシュを計算する。
+        /// railNodes / connectNodes の状態から順序独立ハッシュを計算する。
         /// </summary>
-        public static uint ComputeConnectNodesHash(List<List<(int targetId, int distance)>> connectNodes)
+        public static uint ComputeGraphStateHash(List<RailNode> railNodes, List<List<(int targetId, int distance)>> connectNodes)
         {
-            if (connectNodes == null || connectNodes.Count == 0)
-                return 0;
-
             uint hash = FnvOffset;
 
-            for (int nodeId = 0; nodeId < connectNodes.Count; nodeId++)
+            if (railNodes != null)
             {
-                var edges = connectNodes[nodeId];
-
-                if (edges == null || edges.Count == 0)
+                for (int nodeId = 0; nodeId < railNodes.Count; nodeId++)
                 {
-                    // ノードが存在し接続がない場合は状態に含めない。guidのほうで識別されるため
-                    continue;
+                    var node = railNodes[nodeId];
+                    if (node == null)
+                        continue;
+
+                    hash = Mix(hash, unchecked((int)0x17F1_5C3D) ^ nodeId);
+                    hash = MixGuid(hash, node.Guid);
+                    hash = MixConnectionDestination(hash, node.ConnectionDestination);
+                    hash = MixVector3(hash, node.FrontControlPoint.OriginalPosition);
+                    hash = MixVector3(hash, node.FrontControlPoint.ControlPointPosition);
+                    hash = MixVector3(hash, node.BackControlPoint.ControlPointPosition);
                 }
+            }
 
-                // 内部順序が保証されていない場合のために、一時コピーして並べ替え
-                // （targetId -> distance の順序比較）
-                var normalized = new List<(int target, int dist)>(edges);
-                normalized.Sort((a, b) =>
+            hash = Mix(hash, unchecked((int)0x3F6A_2B1D));
+
+            if (connectNodes != null && connectNodes.Count > 0)
+            {
+                for (int nodeId = 0; nodeId < connectNodes.Count; nodeId++)
                 {
-                    int cmp = a.target.CompareTo(b.target);
-                    return cmp != 0 ? cmp : a.dist.CompareTo(b.dist);
-                });
+                    var edges = connectNodes[nodeId];
+                    if (edges == null || edges.Count == 0)
+                    {
+                        // 接続がない場合はスキップ
+                        continue;
+                    }
 
-                // ノード境界を示すseparator（衝突低減）
-                hash = Mix(hash, unchecked((int)0x7F00) ^ nodeId);
+                    var normalized = new List<(int target, int dist)>(edges);
+                    normalized.Sort((a, b) =>
+                    {
+                        int cmp = a.target.CompareTo(b.target);
+                        return cmp != 0 ? cmp : a.dist.CompareTo(b.dist);
+                    });
 
-                // エッジ情報を順に混合
-                for (int i = 0; i < normalized.Count; i++)
-                {
-                    hash = Mix(hash, normalized[i].target);
-                    hash = Mix(hash, normalized[i].dist);
+                    hash = Mix(hash, unchecked((int)0x7F00) ^ nodeId);
+                    for (int i = 0; i < normalized.Count; i++)
+                    {
+                        hash = Mix(hash, normalized[i].target);
+                        hash = Mix(hash, normalized[i].dist);
+                    }
                 }
             }
 
@@ -72,6 +86,46 @@ namespace Game.Train.RailGraph
                 current *= FnvPrime;
                 return current;
             }
+        }
+
+        private static uint MixGuid(uint current, Guid guid)
+        {
+            var bytes = guid.ToByteArray();
+            for (int i = 0; i < bytes.Length; i += 4)
+            {
+                int chunk = BitConverter.ToInt32(bytes, i);
+                current = Mix(current, chunk);
+            }
+            return current;
+        }
+
+        private static uint MixVector3(uint current, Vector3 vector)
+        {
+            current = Mix(current, FloatToInt(vector.x));
+            current = Mix(current, FloatToInt(vector.y));
+            current = Mix(current, FloatToInt(vector.z));
+            return current;
+        }
+
+        private static uint MixConnectionDestination(uint current, ConnectionDestination destination)
+        {
+            if (destination.IsDefault())
+            {
+                return Mix(current, -1);
+            }
+
+            var position = destination.railComponentID.Position;
+            current = Mix(current, position.x);
+            current = Mix(current, position.y);
+            current = Mix(current, position.z);
+            current = Mix(current, destination.railComponentID.ID);
+            current = Mix(current, destination.IsFront ? 1 : 0);
+            return current;
+        }
+
+        private static int FloatToInt(float value)
+        {
+            return BitConverter.ToInt32(BitConverter.GetBytes(value), 0);
         }
     }
 }

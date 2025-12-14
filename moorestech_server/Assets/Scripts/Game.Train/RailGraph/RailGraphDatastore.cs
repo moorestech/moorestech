@@ -404,7 +404,7 @@ namespace Game.Train.RailGraph
         {
             if (!_isHashDirty)
                 return _cachedGraphHash;
-            _cachedGraphHash = RailGraphHashCalculator.ComputeConnectNodesHash(connectNodes);
+            _cachedGraphHash = RailGraphHashCalculator.ComputeGraphStateHash(railNodes, connectNodes);
             _isHashDirty = false;
             return _cachedGraphHash;
         }
