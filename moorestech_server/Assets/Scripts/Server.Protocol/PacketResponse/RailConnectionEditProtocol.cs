@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface.Extension;
 using Game.Context;
+using Game.Train.RailGraph;
 using MessagePack;
+using Microsoft.Extensions.DependencyInjection;
 using Server.Util.MessagePack;
 using UnityEngine;
 
@@ -13,14 +15,21 @@ namespace Server.Protocol.PacketResponse
     {
         public const string Tag = "va:railConnectionEdit";
 
+        private readonly RailConnectionCommandHandler _commandHandler;
+
+        public RailConnectionEditProtocol(ServiceProvider serviceProvider)
+        {
+            _commandHandler = serviceProvider.GetService<RailConnectionCommandHandler>();
+        }
+
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
             // 要求データをデシリアライズする
             // Deserialize request payload
             var request = MessagePackSerializer.Deserialize<RailConnectionEditRequest>(payload.ToArray());
 
-            // 編集処理を実行し、結果データを構築する
-            // Execute edit operation and build response data
+            // 編集処理を実行
+            // Execute edit operation
             ExecuteEdit(request);
             
             return null;
@@ -29,26 +38,20 @@ namespace Server.Protocol.PacketResponse
 
             void ExecuteEdit(RailConnectionEditRequest data)
             {
-                // 指定された情報からRailComponentを解決する
-                // Resolve RailComponents from the specified information
-                var fromComponent = ResolveRailComponent(data.From);
-                if (fromComponent == null) return;
-
-                var toComponent = ResolveRailComponent(data.To);
-                if (toComponent == null) return;
+                if (_commandHandler == null)
+                {
+                    return;
+                }
 
                 // モードに応じて接続または切断を実行する
                 // Execute connect or disconnect depending on mode
                 switch (data.Mode)
                 {
                     case RailEditMode.Connect:
-                        fromComponent.ConnectRailComponent(toComponent, data.ConnectFromIsFront, data.ConnectToIsFront);
+                        _commandHandler.TryConnect(data.FromNodeId, data.FromGuid, data.ToNodeId, data.ToGuid);
                         break;
                     case RailEditMode.Disconnect:
-                        fromComponent.DisconnectRailComponent(toComponent, true, true);
-                        fromComponent.DisconnectRailComponent(toComponent, true, false);
-                        fromComponent.DisconnectRailComponent(toComponent, false, true);
-                        fromComponent.DisconnectRailComponent(toComponent, false, false);
+                        _commandHandler.TryDisconnect(data.FromNodeId, data.FromGuid, data.ToNodeId, data.ToGuid);
                         break;
                 }
             }
@@ -59,33 +62,35 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class RailConnectionEditRequest : ProtocolMessagePackBase
         {
-            [Key(2)] public RailComponentSpecifier From { get; set; }
-            [Key(3)] public RailComponentSpecifier To { get; set; }
-            [Key(4)] public RailEditMode Mode { get; set; }
-            [Key(5)] public bool ConnectFromIsFront { get; set; }
-            [Key(6)] public bool ConnectToIsFront { get; set; }
+            [Key(2)] public int FromNodeId { get; set; }
+            [Key(3)] public Guid FromGuid { get; set; }
+            [Key(4)] public int ToNodeId { get; set; }
+            [Key(5)] public Guid ToGuid { get; set; }
+            [Key(6)] public RailEditMode Mode { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public RailConnectionEditRequest() { Tag = RailConnectionEditProtocol.Tag; }
 
-            public static RailConnectionEditRequest CreateConnectRequest(RailComponentSpecifier from, RailComponentSpecifier to, bool connectFromIsFront, bool connectToIsFront)
+            public static RailConnectionEditRequest CreateConnectRequest(int fromNodeId, Guid fromGuid, int toNodeId, Guid toGuid)
             {
                 return new RailConnectionEditRequest
                 {
-                    From = from,
-                    To = to,
+                    FromNodeId = fromNodeId,
+                    FromGuid = fromGuid,
+                    ToNodeId = toNodeId,
+                    ToGuid = toGuid,
                     Mode = RailEditMode.Connect,
-                    ConnectFromIsFront = connectFromIsFront,
-                    ConnectToIsFront = connectToIsFront,
                 };
             }
 
-            public static RailConnectionEditRequest CreateDisconnectRequest(RailComponentSpecifier from, RailComponentSpecifier to)
+            public static RailConnectionEditRequest CreateDisconnectRequest(int fromNodeId, Guid fromGuid, int toNodeId, Guid toGuid)
             {
                 return new RailConnectionEditRequest
                 {
-                    From = from,
-                    To = to,
+                    FromNodeId = fromNodeId,
+                    FromGuid = fromGuid,
+                    ToNodeId = toNodeId,
+                    ToGuid = toGuid,
                     Mode = RailEditMode.Disconnect,
                 };
             }

@@ -1,5 +1,7 @@
+using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Train;
 using Client.Input;
 using UnityEngine;
 using static Client.Common.LayerConst;
@@ -11,12 +13,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
     {
         private readonly RailConnectPreviewObject _previewObject;
         private readonly Camera _mainCamera;
+        private readonly RailGraphClientCache _cache;
         
         private IRailComponentConnectAreaCollider _connectFromArea;
-        public TrainRailConnectSystem(Camera mainCamera, RailConnectPreviewObject previewObject)
+        public TrainRailConnectSystem(Camera mainCamera, RailConnectPreviewObject previewObject, RailGraphClientCache cache)
         {
             _mainCamera = mainCamera;
             _previewObject = previewObject;
+            _cache = cache;
         }
         
         public void Enable()
@@ -35,7 +39,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 }
                 if (_connectFromArea != null)
                 {
-                    Debug.Log($"接続スタート {_connectFromArea.IsFront} {_connectFromArea.CreateRailComponentSpecifier().Position.Vector3Int}");
+                    var destination = _connectFromArea.CreateConnectionDestination();
+                    Debug.Log($"接続スタート {_connectFromArea.IsFront} {destination.ComponentPosition}");
                 }
                 return;
             }
@@ -49,9 +54,20 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 return;
             }
             
+            // 接続対象のConnectionDestinationを算出
+            // Compute ConnectionDestination for both endpoints
+            var fromDestination = _connectFromArea.CreateConnectionDestination();
+            var toDestination = connectToArea.CreateConnectionDestination();
+            if (fromDestination.IsDefault || toDestination.IsDefault)
+            {
+                Debug.LogWarning("[TrainRailConnect] Invalid destination detected. Re-select connection target.");
+                _previewObject.SetActive(false);
+                return;
+            }
+            
             var previewData = CalculatePreviewData(_connectFromArea, connectToArea);
             ShowPreview();
-            SendProtocol();
+            SendProtocol(fromDestination, toDestination);
             
             #region Internal
             
@@ -61,26 +77,39 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 _previewObject.ShowPreview(previewData);
             }
             
-            void SendProtocol()
+            void SendProtocol(ConnectionDestination from, ConnectionDestination to)
             {
                 if (!InputManager.Playable.ScreenLeftClick.GetKeyDown) return;
                 
                 _previewObject.SetActive(false);
-                
-                var from = _connectFromArea.CreateRailComponentSpecifier();
-                var to = connectToArea.CreateRailComponentSpecifier();
-                
-                Debug.Log($"接続 From:{_connectFromArea.IsFront} {from.Position.Vector3Int} To:{connectToArea.IsFront} {to.Position.Vector3Int}");
-                
-                ClientContext.VanillaApi.SendOnly.ConnectRail(from, to, previewData.IsFromFront, previewData.IsToFront);
+
+                if (!TryResolveNode(from, out var fromNodeId, out var fromGuid) ||
+                    !TryResolveNode(to, out var toNodeId, out var toGuid))
+                {
+                    Debug.LogWarning("[TrainRailConnect] Failed to resolve node info from cache.");
+                    _connectFromArea = null;
+                    return;
+                }
+
+                ClientContext.VanillaApi.SendOnly.ConnectRail(fromNodeId, fromGuid, toNodeId, toGuid);
                 _connectFromArea = null;
-                
             }
             
             IRailComponentConnectAreaCollider GetTrainRailConnectAreaCollider()
             {
                 PlaceSystemUtil.TryGetRaySpecifiedComponentHit<IRailComponentConnectAreaCollider>(_mainCamera, out var connectArea, Without_Player_MapObject_BlockBoundingBox_LayerMask);
                 return connectArea;
+            }
+
+            bool TryResolveNode(ConnectionDestination destination, out int nodeId, out Guid nodeGuid)
+            {
+                nodeGuid = Guid.Empty;
+                if (!_cache.TryGetNodeId(destination, out nodeId))
+                {
+                    return false;
+                }
+
+                return _cache.TryGetNode(nodeId, out nodeGuid, out _);
             }
             
             #endregion
