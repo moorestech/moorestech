@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState.State
 {
-    public class DeleteBlockState : IUIState
+    public class DeleteObjectState : IUIState
     {
         private readonly DeleteBarObject _deleteBarObject;
         
@@ -17,7 +17,7 @@ namespace Client.Game.InGame.UI.UIState.State
         
         private BlockGameObject _removeTargetBlock;
         
-        public DeleteBlockState(DeleteBarObject deleteBarObject, InGameCameraController inGameCameraController)
+        public DeleteObjectState(DeleteBarObject deleteBarObject, InGameCameraController inGameCameraController)
         {
             _screenClickableCameraController = new ScreenClickableCameraController(inGameCameraController);
             _deleteBarObject = deleteBarObject;
