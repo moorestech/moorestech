@@ -90,7 +90,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                     _connectFromArea = null;
                     return;
                 }
-
+                Debug.Log($"Connecting rails: From NodeId={fromNodeId}, Guid={fromGuid} To NodeId={toNodeId}, Guid={toGuid}");
                 ClientContext.VanillaApi.SendOnly.ConnectRail(fromNodeId, fromGuid, toNodeId, toGuid);
                 _connectFromArea = null;
             }
