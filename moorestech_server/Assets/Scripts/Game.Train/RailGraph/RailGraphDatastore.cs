@@ -400,17 +400,6 @@ namespace Game.Train.RailGraph
             return _pathFinder.FindShortestPath(railNodes, connectNodes, startid, targetid);
         }
 
-        public static (uint hash, long tick) GetGraphHashWithTick()
-        {
-            return Instance.GetGraphHashWithTickInternal();
-        }
-
-        private (uint hash, long tick) GetGraphHashWithTickInternal()
-        {
-            var hash = GetGraphHashInternal();
-            return (hash, TrainUpdateService.CurrentTick);
-        }
-
         private uint GetGraphHashInternal()
         {
             if (!_isHashDirty)
