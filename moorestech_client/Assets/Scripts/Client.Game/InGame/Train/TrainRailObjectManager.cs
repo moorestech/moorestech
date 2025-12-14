@@ -130,14 +130,22 @@ namespace Client.Game.InGame.Train
 
         private bool HasPairedConnection(int fromNodeId, int toNodeId)
         {
+            if (_cache == null)
+                return false;
+
             var adjacency = _cache.ConnectNodes;
+            if (!IsValidIndex(adjacency, fromNodeId) || !IsValidIndex(adjacency, toNodeId))
+                return false;
+
             var oppositeSource = toNodeId ^ 1;
             var oppositeTarget = fromNodeId ^ 1;
             if (!IsValidIndex(adjacency, oppositeSource))
                 return false;
+
             var edges = adjacency[oppositeSource];
             if (edges == null)
                 return false;
+
             foreach (var (targetId, _) in edges)
             {
                 if (targetId == oppositeTarget)
