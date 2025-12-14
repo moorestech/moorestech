@@ -39,14 +39,14 @@ namespace Client.Game.InGame.UI.UIState.State
 
             if (InputManager.UI.OpenInventory.GetKeyDown) return new UITransitContext(UIStateEnum.PlayerInventory);
             if (InputManager.UI.OpenMenu.GetKeyDown) return new UITransitContext(UIStateEnum.PauseMenu);
-
-            if (BlockClickDetectUtil.TryGetCursorOnBlock(out var blockGameObject))
+            
+            if (BlockClickDetectUtil.TryGetCursorOnComponent(out IDeleteTarget deleteTarget))
             {
-                if (_deleteTargetObject == null || _deleteTargetObject != blockGameObject)
+                if (_deleteTargetObject == null || _deleteTargetObject != deleteTarget)
                 {
                     if (_deleteTargetObject != null) _deleteTargetObject.ResetMaterial();
                     
-                    _deleteTargetObject = blockGameObject;
+                    _deleteTargetObject = deleteTarget;
                     _deleteTargetObject.SetRemovePreviewing();
                 }
             }
