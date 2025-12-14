@@ -1,3 +1,4 @@
+using Game.Train.Common;
 using Game.Train.RailGraph;
 using MessagePack;
 using Server.Util.MessagePack;
@@ -23,14 +24,17 @@ namespace Server.Event.EventReceive
 
         private void OnNodeInitialized(RailNodeInitializationNotifier.RailNodeInitializationData data)
         {
+            var tick = TrainUpdateService.CurrentTick;
+            // ノード生成差分と現在Tickを同時に送信
+            // Include current tick alongside node creation diff
             var message = new RailNodeCreatedMessagePack(
                 data.NodeId,
                 data.NodeGuid,
                 data.ConnectionDestination,
                 data.OriginPoint,
                 data.FrontControlPoint,
-                data.BackControlPoint
-                );
+                data.BackControlPoint,
+                tick);
             var payload = MessagePackSerializer.Serialize(message);
             _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
         }
