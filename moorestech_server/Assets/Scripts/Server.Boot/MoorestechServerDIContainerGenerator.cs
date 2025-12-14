@@ -49,6 +49,7 @@ using Server.Event;
 using Server.Event.EventReceive;
 using Server.Event.EventReceive.UnifiedInventoryEvent;
 using Server.Protocol;
+using Server.Protocol.PacketResponse;
 
 namespace Server.Boot
 {
@@ -164,6 +165,7 @@ namespace Server.Boot
             services.AddSingleton<UnlockedEventPacket>();
             services.AddSingleton<RailNodeCreatedEventPacket>();
             services.AddSingleton<RailConnectionCreatedEventPacket>();
+            services.AddSingleton<RailGraphHashProtocol>();
             services.AddSingleton<RailNodeRemovedEventPacket>();
             services.AddSingleton<RailConnectionRemovedEventPacket>();
             
@@ -195,6 +197,7 @@ namespace Server.Boot
             serviceProvider.GetService<ResearchCompleteEventPacket>();
             serviceProvider.GetService<RailNodeCreatedEventPacket>();
             serviceProvider.GetService<RailConnectionCreatedEventPacket>();
+            serviceProvider.GetService<RailGraphHashProtocol>();
             serviceProvider.GetService<RailNodeRemovedEventPacket>();
             serviceProvider.GetService<RailConnectionRemovedEventPacket>();
             

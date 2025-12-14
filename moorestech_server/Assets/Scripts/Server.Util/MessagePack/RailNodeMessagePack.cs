@@ -96,6 +96,7 @@ namespace Server.Util.MessagePack
         [Key(0)] public List<RailNodeCreatedMessagePack> Nodes { get; set; }
         [Key(1)] public List<RailGraphConnectionSnapshotMessagePack> Connections { get; set; }
         [Key(2)] public uint GraphHash { get; set; }
+        [Key(3)] public long GraphTick { get; set; }
 
         [Obsolete("デシリアライズ用のコンストラクタです。")]
         public RailGraphSnapshotMessagePack() { }
@@ -124,6 +125,7 @@ namespace Server.Util.MessagePack
             }
 
             GraphHash = snapshot.ConnectNodesHash;
+            GraphTick = snapshot.GraphTick;
         }
     }
 

@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using Client.Common;
 using Client.Game.Common;
@@ -145,7 +146,6 @@ namespace Client.Starter
             builder.RegisterEntryPoint<WorldDataHandler>();
             builder.RegisterEntryPoint<PlayerPositionSender>();
             builder.RegisterEntryPoint<SkitFireManager>();
-            builder.RegisterEntryPoint<RailGraphSnapshotInitializer>();
             builder.RegisterEntryPoint<RailGraphCacheNetworkHandler>();
             builder.RegisterEntryPoint<RailGraphConnectionNetworkHandler>();
             
@@ -186,6 +186,8 @@ namespace Client.Starter
             builder.Register<TutorialManager>(Lifetime.Singleton);
             builder.Register<IGameUnlockStateData, ClientGameUnlockStateData>(Lifetime.Singleton);
             builder.Register<RailGraphClientCache>(Lifetime.Singleton);
+            builder.Register<RailGraphSnapshotApplier>(Lifetime.Singleton).As<IInitializable>();
+            builder.Register<RailGraphHashVerifier>(Lifetime.Singleton).As<IInitializable>().As<IDisposable>();
             
             
             //Hierarchy上にあるcomponent

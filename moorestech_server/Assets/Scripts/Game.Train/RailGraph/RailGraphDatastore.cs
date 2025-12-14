@@ -185,7 +185,7 @@ namespace Game.Train.RailGraph
         // Get hash method
         public static uint GetConnectNodesHash()
         {
-            return Instance.GetConnectNodesHashInternal();
+            return Instance.GetGraphHashInternal();
         }
 
         public static RailGraphSnapshot CaptureSnapshot()
@@ -400,7 +400,18 @@ namespace Game.Train.RailGraph
             return _pathFinder.FindShortestPath(railNodes, connectNodes, startid, targetid);
         }
 
-        private uint GetConnectNodesHashInternal()
+        public static (uint hash, long tick) GetGraphHashWithTick()
+        {
+            return Instance.GetGraphHashWithTickInternal();
+        }
+
+        private (uint hash, long tick) GetGraphHashWithTickInternal()
+        {
+            var hash = GetGraphHashInternal();
+            return (hash, TrainUpdateService.CurrentTick);
+        }
+
+        private uint GetGraphHashInternal()
         {
             if (!_isHashDirty)
                 return _cachedGraphHash;
@@ -441,8 +452,8 @@ namespace Game.Train.RailGraph
                 }
             }
 
-            var hash = GetConnectNodesHashInternal();
-            return new RailGraphSnapshot(nodes, connections, hash);
+            var hash = GetGraphHashInternal();
+            return new RailGraphSnapshot(nodes, connections, hash, TrainUpdateService.CurrentTick);
         }
     }
 }

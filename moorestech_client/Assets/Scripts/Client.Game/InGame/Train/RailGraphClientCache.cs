@@ -70,6 +70,22 @@ namespace Client.Game.InGame.Train
         // Property to observe the newest applied tick
         public long LastConfirmedTick => _lastConfirmedTick;
 
+        public uint ComputeCurrentHash()
+        {
+            return RailGraphClientHashCalculator.Compute(
+                _nodeGuids,
+                _controlPositionOrigins,
+                _primaryControlPoints,
+                _oppositeControlPoints,
+                _connectionDestinations,
+                _connectNodes);
+        }
+
+        internal void OverrideTick(long serverTick)
+        {
+            _lastConfirmedTick = Math.Max(_lastConfirmedTick, serverTick);
+        }
+
         // スナップショットを受け取ってキャッシュ全体を再構築する
         // Rebuild the cache from a full snapshot
         public void ApplySnapshot(
@@ -216,7 +232,12 @@ namespace Client.Game.InGame.Train
                 return;
             }
 
-            _connectNodes[fromNodeId].RemoveAll(x => x.targetId == toNodeId);
+            var removed = _connectNodes[fromNodeId].RemoveAll(x => x.targetId == toNodeId) > 0;
+            if (!removed)
+            {
+                return;
+            }
+
             UpdateTick(eventTick);
             TrainRailObjectManager.Instance?.OnConnectionRemoved(fromNodeId, toNodeId, this);
         }

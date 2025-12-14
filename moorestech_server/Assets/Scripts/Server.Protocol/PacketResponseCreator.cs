@@ -51,6 +51,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(GetPlayedSkitIdsProtocol.ProtocolTag, new GetPlayedSkitIdsProtocol(serviceProvider));
             _packetResponseDictionary.Add(RailConnectionEditProtocol.Tag, new RailConnectionEditProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetRailGraphSnapshotProtocol.ProtocolTag, new GetRailGraphSnapshotProtocol());
+            _packetResponseDictionary.Add(RailGraphHashProtocol.ProtocolTag, new RailGraphHashProtocol());
             _packetResponseDictionary.Add(PlaceTrainCarOnRailProtocol.ProtocolTag, new PlaceTrainCarOnRailProtocol(serviceProvider));
         }
         

@@ -64,6 +64,12 @@ namespace Client.Network.API
             var response = await _packetExchangeManager.GetPacketResponse<GetRailGraphSnapshotProtocol.ResponseMessagePack>(request, ct);
             return response?.Snapshot;
         }
+
+        public async UniTask<RailGraphHashProtocol.ResponseMessagePack> GetRailGraphHash(uint clientHash, CancellationToken ct)
+        {
+            var request = new RailGraphHashProtocol.RequestMessagePack(clientHash);
+            return await _packetExchangeManager.GetPacketResponse<RailGraphHashProtocol.ResponseMessagePack>(request, ct);
+        }
         
         public async UniTask<PlayerInventoryResponse> GetMyPlayerInventory(CancellationToken ct)
         {
