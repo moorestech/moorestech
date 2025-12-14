@@ -4,7 +4,7 @@ using MessagePack;
 namespace Server.Util.MessagePack
 {
     /// <summary>
-    ///     RailConnection蜿門ｾ励ゅ′繝｡繝・そ繝ｼ繧ｸ蜑･螟悶＠縺�・
+    ///     RailConnection削除を表現するMessagePackモデル
     ///     Message payload representing a removed rail connection
     /// </summary>
     [MessagePackObject]
@@ -15,7 +15,7 @@ namespace Server.Util.MessagePack
         [Key(2)] public int ToNodeId { get; set; }
         [Key(3)] public Guid ToGuid { get; set; }
 
-        [Obsolete("繝・す繝ｪ繧｢繝ｩ繧､繧ｺ逕ｨ繧ｳ繝ｳ繧ｹ繝医Λ繧ｯ繧ｿ縺ｧ縺吶・")]
+        [Obsolete("Reserved for MessagePack serialization.")]
         public RailConnectionRemovedMessagePack()
         {
         }
