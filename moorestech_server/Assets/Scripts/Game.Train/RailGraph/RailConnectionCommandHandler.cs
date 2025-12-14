@@ -1,5 +1,6 @@
 using System;
 using Game.Train.Utility;
+using UnityEngine; // 追加（ログ出力用）
 
 namespace Game.Train.RailGraph
 {
@@ -9,11 +10,15 @@ namespace Game.Train.RailGraph
     /// </summary>
     public sealed class RailConnectionCommandHandler
     {
-        public RailConnectionCommandHandler(RailGraphDatastore datastore)
+        private readonly bool _enableLog; // 追加（ログ抑制用。不要なら消してOK）
+
+        public RailConnectionCommandHandler(RailGraphDatastore datastore, bool enableLog = true) // enableLog 引数を追加
         {
             // 依存解決順序のためインスタンス化を保証する
             // Ensure RailGraphDatastore is constructed via DI
             _ = datastore;
+
+            _enableLog = enableLog; // 追加
         }
 
         // RailNode同士の接続を試行
@@ -51,19 +56,43 @@ namespace Game.Train.RailGraph
         {
             fromNode = null;
             toNode = null;
-            if (!RailGraphDatastore.TryGetRailNode(fromNodeId, out var resolvedFrom) || resolvedFrom.Guid != fromGuid)
+
+            if (!RailGraphDatastore.TryGetRailNode(fromNodeId, out var resolvedFrom))
             {
+                LogWarn($"fromNodeId not found. fromNodeId={fromNodeId}, fromGuid={fromGuid}, toNodeId={toNodeId}, toGuid={toGuid}");
                 return false;
             }
 
-            if (!RailGraphDatastore.TryGetRailNode(toNodeId, out var resolvedTo) || resolvedTo.Guid != toGuid)
+            if (resolvedFrom.Guid != fromGuid)
             {
+                LogWarn($"fromGuid mismatch. fromNodeId={fromNodeId}, expected(fromGuid)={fromGuid}, actual={resolvedFrom.Guid}, toNodeId={toNodeId}, toGuid={toGuid}");
+                return false;
+            }
+
+            if (!RailGraphDatastore.TryGetRailNode(toNodeId, out var resolvedTo))
+            {
+                LogWarn($"toNodeId not found. fromNodeId={fromNodeId}, fromGuid={fromGuid}, toNodeId={toNodeId}, toGuid={toGuid}");
+                return false;
+            }
+
+            if (resolvedTo.Guid != toGuid)
+            {
+                LogWarn($"toGuid mismatch. toNodeId={toNodeId}, expected(toGuid)={toGuid}, actual={resolvedTo.Guid}, fromNodeId={fromNodeId}, fromGuid={fromGuid}");
                 return false;
             }
 
             fromNode = resolvedFrom;
             toNode = resolvedTo;
             return true;
+        }
+
+        private void LogWarn(string message) // 追加
+        {
+            if (!_enableLog) return;
+
+            // エラーは出さず、logだけ
+            Debug.LogWarning($"[RailConnectionCommandHandler] {message}");
+            // Debug.Log($"[RailConnectionCommandHandler] {message}"); // Warningではなく通常ログにしたい場合はこちら
         }
 
         private static void ConnectOppositeNodes(RailNode fromNode, RailNode toNode, int distance)
