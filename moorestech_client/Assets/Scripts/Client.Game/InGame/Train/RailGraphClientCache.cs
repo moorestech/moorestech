@@ -127,11 +127,11 @@ namespace Client.Game.InGame.Train
                 for (var i = 0; i < requiredCount; i++)
                 {
                     _nodeGuids.Add(Guid.Empty);
-                    _controlPositionOrigins.Add(Vector3.zero);
+                    _controlPositionOrigins.Add(new Vector3(-1, -1, -1));
                     _connectNodes.Add(new List<(int targetId, int distance)>());
                     _connectionDestinations.Add(ConnectionDestination.Default);
-                    _primaryControlPoints.Add(Vector3.zero);
-                    _oppositeControlPoints.Add(Vector3.zero);
+                    _primaryControlPoints.Add(new Vector3(-1, -1, -1));
+                    _oppositeControlPoints.Add(new Vector3(-1, -1, -1));
                 }
             }
 
