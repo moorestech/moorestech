@@ -15,7 +15,7 @@ namespace Client.Game.InGame.Train
         [SerializeField] private float lineWidth = 0.05f;
         [SerializeField] private Color lineColor = Color.cyan;
 
-        private readonly Dictionary<(int, int), LineRenderer> _railLines = new();
+        private readonly Dictionary<ulong, LineRenderer> _railLines = new();
         private RailGraphClientCache _cache;
         private Material _lineMaterial;
 
@@ -72,11 +72,6 @@ namespace Client.Game.InGame.Train
             }
             _railLines.Clear();
 
-            if (_cache == null)
-            {
-                return;
-            }
-
             var adjacency = _cache.ConnectNodes;
             for (var fromId = 0; fromId < adjacency.Count; fromId++)
             {
@@ -95,51 +90,38 @@ namespace Client.Game.InGame.Train
 
         private void TryActivateLine(int fromNodeId, int toNodeId)
         {
-            if (_cache == null)
-            {
-                return;
-            }
-
             if (!HasPairedConnection(fromNodeId, toNodeId))
-            {
                 return;
-            }
 
-            var key = NormalizeKey(fromNodeId, toNodeId);
-            if (_railLines.ContainsKey(key))
-            {
+            var (canonicalFrom, canonicalTo) = SelectCanonicalPair(fromNodeId, toNodeId);
+            var railObjectId = ComputeRailObjectId(canonicalFrom, canonicalTo);
+            if (_railLines.ContainsKey(railObjectId))
                 return;
-            }
-
-            if (!TryGetNodeOrigin(key.Item1, out var fromOrigin))
-            {
+            if (!TryGetNodeOrigin(canonicalFrom, out var fromOrigin))
                 return;
-            }
-
-            if (!TryGetNodeOrigin(key.Item2, out var toOrigin))
-            {
+            if (!TryGetNodeOrigin(canonicalTo, out var toOrigin))
                 return;
-            }
 
-            var lineObject = new GameObject($"RailLine_{key.Item1}_{key.Item2}");
+            var lineObject = new GameObject($"RailLine_{canonicalFrom}_{canonicalTo}");
             lineObject.transform.SetParent(transform, false);
             var renderer = lineObject.AddComponent<LineRenderer>();
             ConfigureRenderer(renderer);
             renderer.positionCount = 2;
             renderer.SetPosition(0, fromOrigin);
             renderer.SetPosition(1, toOrigin);
-            _railLines[key] = renderer;
+            _railLines[railObjectId] = renderer;
         }
 
         private void RemoveLine(int fromNodeId, int toNodeId)
         {
-            var key = NormalizeKey(fromNodeId, toNodeId);
-            if (!_railLines.TryGetValue(key, out var renderer))
+            var (canonicalFrom, canonicalTo) = SelectCanonicalPair(fromNodeId, toNodeId);
+            var railObjectId = ComputeRailObjectId(canonicalFrom, canonicalTo);
+            if (!_railLines.TryGetValue(railObjectId, out var renderer))
             {
                 return;
             }
 
-            _railLines.Remove(key);
+            _railLines.Remove(railObjectId);
             if (renderer != null)
             {
                 Destroy(renderer.gameObject);
@@ -148,30 +130,14 @@ namespace Client.Game.InGame.Train
 
         private bool HasPairedConnection(int fromNodeId, int toNodeId)
         {
-            if (_cache == null)
-            {
-                return false;
-            }
-
             var adjacency = _cache.ConnectNodes;
-            if (!IsValidIndex(adjacency, fromNodeId) || !IsValidIndex(adjacency, toNodeId))
-            {
-                return false;
-            }
-
             var oppositeSource = toNodeId ^ 1;
             var oppositeTarget = fromNodeId ^ 1;
             if (!IsValidIndex(adjacency, oppositeSource))
-            {
                 return false;
-            }
-
             var edges = adjacency[oppositeSource];
             if (edges == null)
-            {
                 return false;
-            }
-
             foreach (var (targetId, _) in edges)
             {
                 if (targetId == oppositeTarget)
@@ -179,7 +145,6 @@ namespace Client.Game.InGame.Train
                     return true;
                 }
             }
-
             return false;
         }
 
@@ -187,10 +152,7 @@ namespace Client.Game.InGame.Train
         {
             origin = Vector3.zero;
             if (_cache == null)
-            {
                 return false;
-            }
-
             return _cache.TryGetNode(nodeId, out _, out origin);
         }
 
@@ -211,9 +173,7 @@ namespace Client.Game.InGame.Train
         private Material GetLineMaterial()
         {
             if (_lineMaterial != null)
-            {
                 return _lineMaterial;
-            }
 
             var shader = Shader.Find("Sprites/Default") ?? Shader.Find("Universal Render Pipeline/Unlit");
             _lineMaterial = new Material(shader)
@@ -223,9 +183,16 @@ namespace Client.Game.InGame.Train
             return _lineMaterial;
         }
 
-        private static (int, int) NormalizeKey(int fromId, int toId)
+        private static (int canonicalFrom, int canonicalTo) SelectCanonicalPair(int fromNodeId, int toNodeId)
         {
-            return fromId <= toId ? (fromId, toId) : (toId, fromId);
+            var alternateFrom = toNodeId ^ 1;
+            var alternateTo = fromNodeId ^ 1;
+            return fromNodeId <= alternateFrom ? (fromNodeId, toNodeId) : (alternateFrom, alternateTo);
+        }
+
+        private static ulong ComputeRailObjectId(int canonicalFrom, int canonicalTo)
+        {
+            return (ulong)canonicalFrom + ((ulong)canonicalTo << 32);
         }
 
         private static bool IsValidIndex(IReadOnlyList<IReadOnlyList<(int targetId, int distance)>> adjacency, int index)
