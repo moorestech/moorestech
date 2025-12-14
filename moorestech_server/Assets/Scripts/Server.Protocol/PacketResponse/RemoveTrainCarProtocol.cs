@@ -26,7 +26,7 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class RemoveTrainCarRequestMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public long EntityId { get; set; }
+            [Key(2)] public Guid TrainCarId { get; set; }
             
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public RemoveTrainCarRequestMessagePack()
@@ -34,10 +34,10 @@ namespace Server.Protocol.PacketResponse
                 Tag = ProtocolTag;
             }
             
-            public RemoveTrainCarRequestMessagePack(long trainCarEntityId)
+            public RemoveTrainCarRequestMessagePack(Guid trainCarId)
             {
                 Tag = ProtocolTag;
-                EntityId = trainCarEntityId;
+                TrainCarId = trainCarId;
             }
         }
     }
