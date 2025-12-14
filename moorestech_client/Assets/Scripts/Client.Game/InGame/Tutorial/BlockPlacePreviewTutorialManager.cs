@@ -1,3 +1,4 @@
+using System;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
@@ -44,6 +45,59 @@ namespace Client.Game.InGame.Tutorial
             SubscribePlacementEvent();
 
             return this;
+            
+            #region Internal
+            
+            bool IsTargetBlockPlaced()
+            {
+                return _blockGameObjectDataStore.TryGetBlockGameObject(_currentParam.Position, out var block)
+                       && block.BlockId == _currentBlockId;
+            }
+            
+            void CreateOrUpdatePreview()
+            {
+                var previewParent = previewRoot ? previewRoot : transform;
+                
+                // プレビューオブジェクトを生成または再利用
+                // Create or reuse preview object
+                if (_previewObject == null || _previewObject.BlockMasterElement.BlockGuid != _currentParam.BlockGuid)
+                {
+                    if (_previewObject != null)
+                    {
+                        HudArrowManager.UnregisterHudArrowTarget(_previewObject.gameObject);
+                        _previewObject.Destroy();
+                    }
+                    
+                    _previewObject = PreviewBlockCreator.Create(_currentBlockId);
+                    _previewObject.transform.SetParent(previewParent);
+                }
+                
+                var blockDirection = Enum.Parse<BlockDirection>(_currentParam.BlockDirection);
+                var position = SlopeBlockPlaceSystem.GetBlockPositionToPlacePosition(_currentParam.Position, blockDirection, _currentBlockId);
+                var rotation = blockDirection.GetRotation();
+                
+                _previewObject.SetTransform(position, rotation);
+                _previewObject.SetPlaceableColor(true);
+                _previewObject.SetActive(true);
+                HudArrowManager.RegisterHudArrowTarget(_previewObject.gameObject, new HudArrowOptions(hideWhenTargetInactive: false));
+            }
+            
+            void SubscribePlacementEvent()
+            {
+                _blockPlacedDisposable?.Dispose();
+                
+                // 指定座標へのブロック設置を監視
+                // Watch for block placement at the specified position
+                _blockPlacedDisposable = _blockGameObjectDataStore.OnBlockPlaced.Subscribe(block =>
+                {
+                    if (block.BlockId != _currentBlockId) return;
+                    if (block.BlockPosInfo.OriginalPos != _currentParam.Position) return;
+                    
+                    CompleteTutorial();
+                });
+            }
+            
+            #endregion
         }
 
         public void CompleteTutorial()
@@ -60,54 +114,6 @@ namespace Client.Game.InGame.Tutorial
             }
 
             _currentParam = null;
-        }
-
-        private void CreateOrUpdatePreview()
-        {
-            var previewParent = previewRoot ? previewRoot : transform;
-
-            // プレビューオブジェクトを生成または再利用
-            // Create or reuse preview object
-            if (_previewObject == null || _previewObject.BlockMasterElement.BlockGuid != _currentParam.BlockGuid)
-            {
-                if (_previewObject != null)
-                {
-                    HudArrowManager.UnregisterHudArrowTarget(_previewObject.gameObject);
-                    _previewObject.Destroy();
-                }
-
-                _previewObject = PreviewBlockCreator.Create(_currentBlockId);
-                _previewObject.transform.SetParent(previewParent);
-            }
-
-            var position = SlopeBlockPlaceSystem.GetBlockPositionToPlacePosition(_currentParam.Position, _currentParam.BlockDirection, _currentBlockId);
-            var rotation = _currentParam.BlockDirection.GetRotation();
-
-            _previewObject.SetTransform(position, rotation);
-            _previewObject.SetPlaceableColor(true);
-            _previewObject.SetActive(true);
-            HudArrowManager.RegisterHudArrowTarget(_previewObject.gameObject, new HudArrowOptions(hideWhenTargetInactive: false));
-        }
-
-        private void SubscribePlacementEvent()
-        {
-            _blockPlacedDisposable?.Dispose();
-
-            // 指定座標へのブロック設置を監視
-            // Watch for block placement at the specified position
-            _blockPlacedDisposable = _blockGameObjectDataStore.OnBlockPlaced.Subscribe(block =>
-            {
-                if (block.BlockId != _currentBlockId) return;
-                if (block.BlockPosInfo.OriginalPos != _currentParam.Position) return;
-
-                CompleteTutorial();
-            });
-        }
-
-        private bool IsTargetBlockPlaced()
-        {
-            return _blockGameObjectDataStore.TryGetBlockGameObject(_currentParam.Position, out var block)
-                   && block.BlockId == _currentBlockId;
         }
     }
 }
