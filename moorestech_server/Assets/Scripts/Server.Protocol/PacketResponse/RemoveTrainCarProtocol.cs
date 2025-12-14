@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Game.Train.Common;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using UnityEngine;
@@ -9,9 +11,11 @@ namespace Server.Protocol.PacketResponse
     public class RemoveTrainCarProtocol : IPacketResponse
     {
         public const string ProtocolTag = "va:removeTrainCar";
+        private readonly TrainUpdateService _trainUpdateService;
         
         public RemoveTrainCarProtocol(ServiceProvider serviceProvider)
         {
+            _trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
         }
         
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
@@ -19,6 +23,15 @@ namespace Server.Protocol.PacketResponse
             var request = MessagePackSerializer.Deserialize<RemoveTrainCarRequestMessagePack>(payload.ToArray());
             
             Debug.Log("Request remove train car.");
+            // TODO: オーダーがこのままだとO(n)になっているため、逆引き用の辞書等を用意してO(1)にする
+            var (targetTrain, removeTargetTrainCar) = _trainUpdateService
+                .GetRegisteredTrains()
+                .SelectMany(t => t.Cars.Select(c => (t, c)))
+                .First(c => c.c.CarId == request.TrainCarId);
+            if (removeTargetTrainCar == null) throw new Exception("Remove train car failed. Train not found.");
+            
+            
+            
             
             return null;
         }
