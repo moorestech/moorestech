@@ -102,11 +102,11 @@ namespace Client.Game.InGame.Train
                 for (var i = 0; i < requiredCount; i++)
                 {
                     _nodeGuids.Add(Guid.Empty);
-                    _controlPositionOrigins.Add(new Vector3(-1, -1, -1));
+                    _controlPositionOrigins.Add(DefaultPosition);
                     _connectNodes.Add(new List<(int targetId, int distance)>());
                     _connectionDestinations.Add(ConnectionDestination.Default);
-                    _primaryControlPoints.Add(new Vector3(-1, -1, -1));
-                    _oppositeControlPoints.Add(new Vector3(-1, -1, -1));
+                    _primaryControlPoints.Add(DefaultPosition);
+                    _oppositeControlPoints.Add(DefaultPosition);
                 }
             }
 
@@ -163,7 +163,15 @@ namespace Client.Game.InGame.Train
 
             _nodeGuids[nodeId] = Guid.Empty;
             _controlPositionOrigins[nodeId] = DefaultPosition;
-            _connectNodes[nodeId].Clear();
+            var outgoing = _connectNodes[nodeId];
+            if (outgoing.Count > 0)
+            {
+                foreach (var (targetId, _) in outgoing)
+                {
+                    TrainRailObjectManager.Instance?.OnConnectionRemoved(nodeId, targetId, this);
+                }
+                outgoing.Clear();
+            }
             _primaryControlPoints[nodeId] = DefaultPosition;
             _oppositeControlPoints[nodeId] = DefaultPosition;
             AssignConnectionDestination(nodeId, ConnectionDestination.Default);
@@ -292,7 +300,22 @@ namespace Client.Game.InGame.Train
         {
             for (var i = 0; i < _connectNodes.Count; i++)
             {
-                _connectNodes[i].RemoveAll(x => x.targetId == targetNodeId);
+                var edges = _connectNodes[i];
+                if (edges == null || edges.Count == 0)
+                {
+                    continue;
+                }
+
+                for (var index = edges.Count - 1; index >= 0; index--)
+                {
+                    if (edges[index].targetId != targetNodeId)
+                    {
+                        continue;
+                    }
+
+                    edges.RemoveAt(index);
+                    TrainRailObjectManager.Instance?.OnConnectionRemoved(i, targetNodeId, this);
+                }
             }
         }
 
