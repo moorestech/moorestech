@@ -56,17 +56,6 @@ namespace Game.Train.RailGraph
 
         public RailGraphDatastore()
         {
-            #region internal
-
-            (bool success, RailComponentID id) TryResolveRailComponentId(RailNode node)
-            {
-                var destination = node.ConnectionDestination;
-                if (destination.IsDefault())
-                    return (false, default);
-                return (true, node.ConnectionDestination.railComponentID);
-            }
-            #endregion
-
             InitializeDataStore();
             // RailNode -> RailComponentID の解決ロジックを Notifier に渡す
             _nodeInitializationNotifier = new RailNodeInitializationNotifier();
@@ -405,19 +394,4 @@ namespace Game.Train.RailGraph
             _isHashDirty = true;
         }
     }
-
-    public readonly struct RailNodeRegistrationInfo
-    {
-        public RailNodeRegistrationInfo(ConnectionDestination connectionDestination, RailControlPoint primaryControlPoint, RailControlPoint oppositeControlPoint)
-        {
-            ConnectionDestination = connectionDestination;
-            PrimaryControlPoint = primaryControlPoint;
-            OppositeControlPoint = oppositeControlPoint;
-        }
-
-        public ConnectionDestination ConnectionDestination { get; }
-        public RailControlPoint PrimaryControlPoint { get; }
-        public RailControlPoint OppositeControlPoint { get; }
-    }
-
 }
