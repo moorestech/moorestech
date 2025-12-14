@@ -255,17 +255,18 @@ namespace Game.Train.RailGraph
             if (!connectNodes[nodeid].Any(x => x.Item1 == targetid))
             {
                 connectNodes[nodeid].Add((targetid, distance));
-                // レールグラフ更新イベントを発火
-                // Fire rail graph update event
-                _connectionInitializationNotifier.Notify(nodeid, targetid, distance);
             }
             else//もし登録済みなら距離を上書き
             {
                 connectNodes[nodeid].RemoveAll(x => x.Item1 == targetid);
                 connectNodes[nodeid].Add((targetid, distance));
-                // TODO 距離変更の通知は未実装
             }
-
+            // レールグラフ更新イベントを発火
+            // Fire rail graph update event
+            // 距離更新の場合は上書き
+            // In case of distance update, overwrite
+            _connectionInitializationNotifier.Notify(nodeid, targetid, distance);
+            
             MarkHashDirty();
         }
 
