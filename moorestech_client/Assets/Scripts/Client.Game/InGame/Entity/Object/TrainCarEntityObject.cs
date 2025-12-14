@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace Client.Game.InGame.Entity.Object
 {
-    public class TrainCarEntityObject : MonoBehaviour, IEntityObject, IDeleteTarget
+    public class TrainCarEntityObject : MonoBehaviour, IEntityObject
     {
         public long EntityId { get; private set; }
         public Guid TrainCarId { get; private set; }
