@@ -1,5 +1,4 @@
 using System;
-using Game.Train.Common;
 using Game.Train.Utility;
 
 namespace Game.Train.RailGraph
@@ -93,20 +92,8 @@ namespace Game.Train.RailGraph
 
         private static int CalculateSegmentDistance(RailNode fromNode, RailNode toNode)
         {
-            var primaryControlPoint = SelectPrimaryControlPoint(fromNode);
-            var opposingControlPoint = SelectOpposingControlPoint(toNode);
-            var length = BezierUtility.GetBezierCurveLength(primaryControlPoint, opposingControlPoint);
+            var length = BezierUtility.GetBezierCurveLength(fromNode.FrontControlPoint, toNode.BackControlPoint);
             return (int)(length * BezierUtility.RAIL_LENGTH_SCALE + 0.5f);
-        }
-
-        private static RailControlPoint SelectPrimaryControlPoint(RailNode node)
-        {
-            return node.ConnectionDestination.IsFront ? node.FrontControlPoint : node.BackControlPoint;
-        }
-
-        private static RailControlPoint SelectOpposingControlPoint(RailNode node)
-        {
-            return node.ConnectionDestination.IsFront ? node.BackControlPoint : node.FrontControlPoint;
         }
 
         #endregion
