@@ -125,6 +125,7 @@ properties:
               - keyControl
               - uiHighLight
               - itemViewHighLight
+              - blockPlacePreview
             - key: tutorialParam
               switch: ./tutorialType
               cases:
@@ -178,6 +179,37 @@ properties:
                 - key: highLightText
                   type: string
                   default: highlight text
+              - when: blockPlacePreview
+                type: object
+                openedByDefault: true
+                properties:
+                - key: blockGuid
+                  type: uuid
+                  foreignKey:
+                    schemaId: blocks
+                    foreignKeyIdPath: /data/[*]/blockGuid
+                    displayElementPath: /data/[*]/name
+                - key: position
+                  type: vector3Int
+                - key: blockDirection
+                  type: enum
+                  default: North
+                  options:
+                  - UpNorth
+                  - UpEast
+                  - UpSouth
+                  - UpWest
+                  - North
+                  - East
+                  - South
+                  - West
+                  - DownNorth
+                  - DownEast
+                  - DownSouth
+                  - DownWest
+                - key: message
+                  type: string
+                  default: Place the block at the highlighted position
         - key: startedActions
           ref: gameAction
         - key: clearedActions
