@@ -27,6 +27,8 @@ namespace Client.Game.InGame.Train
         private readonly List<Vector3> _primaryControlPoints = new();
         private readonly List<Vector3> _oppositeControlPoints = new();
 
+        private static readonly Vector3 DefaultPosition = new Vector3(-1f, -1f, -1f);
+
         // RailNodeIdごとのConnectionDestination
         // ConnectionDestination table per RailNodeId
         private readonly List<ConnectionDestination> _connectionDestinations = new();
@@ -160,10 +162,10 @@ namespace Client.Game.InGame.Train
             }
 
             _nodeGuids[nodeId] = Guid.Empty;
-            _controlPositionOrigins[nodeId] = Vector3.zero;
+            _controlPositionOrigins[nodeId] = DefaultPosition;
             _connectNodes[nodeId].Clear();
-            _primaryControlPoints[nodeId] = Vector3.zero;
-            _oppositeControlPoints[nodeId] = Vector3.zero;
+            _primaryControlPoints[nodeId] = DefaultPosition;
+            _oppositeControlPoints[nodeId] = DefaultPosition;
             AssignConnectionDestination(nodeId, ConnectionDestination.Default);
             RemoveIncomingConnections(nodeId);
             UpdateTick(eventTick);
@@ -216,7 +218,7 @@ namespace Client.Game.InGame.Train
         public bool TryGetNode(int nodeId, out Guid nodeGuid, out Vector3 controlOrigin)
         {
             nodeGuid = Guid.Empty;
-            controlOrigin = Vector3.zero;
+            controlOrigin = DefaultPosition;
             if (!IsWithinCurrentRange(nodeId))
             {
                 return false;
@@ -262,11 +264,11 @@ namespace Client.Game.InGame.Train
             while (_nodeGuids.Count <= nodeId)
             {
                 _nodeGuids.Add(Guid.Empty);
-                _controlPositionOrigins.Add(Vector3.zero);
+                _controlPositionOrigins.Add(DefaultPosition);
                 _connectNodes.Add(new List<(int targetId, int distance)>());
                 _connectionDestinations.Add(ConnectionDestination.Default);
-                _primaryControlPoints.Add(Vector3.zero);
-                _oppositeControlPoints.Add(Vector3.zero);
+                _primaryControlPoints.Add(DefaultPosition);
+                _oppositeControlPoints.Add(DefaultPosition);
             }
         }
 
