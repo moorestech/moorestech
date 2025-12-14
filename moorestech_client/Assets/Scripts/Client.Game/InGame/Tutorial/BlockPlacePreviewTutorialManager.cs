@@ -1,8 +1,8 @@
 using System;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Core.Master;
+using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Mooresmaster.Model.ChallengesModule;
@@ -17,7 +17,7 @@ namespace Client.Game.InGame.Tutorial
         [SerializeField] private Transform previewRoot;
 
         private BlockGameObjectDataStore _blockGameObjectDataStore;
-        private BlockPreviewObject _previewObject;
+        private TutorialBlockPreviewObject _previewObject;
         private BlockPlacePreviewTutorialParam _currentParam;
         private BlockId _currentBlockId;
         private IDisposable _blockPlacedDisposable;
@@ -41,23 +41,23 @@ namespace Client.Game.InGame.Tutorial
                 return null;
             }
 
-            CreateOrUpdatePreview();
+            CreateOrUpdatePreviewAsync().Forget();
             SubscribePlacementEvent();
 
             return this;
-            
+
             #region Internal
-            
+
             bool IsTargetBlockPlaced()
             {
                 return _blockGameObjectDataStore.TryGetBlockGameObject(_currentParam.Position, out var block)
                        && block.BlockId == _currentBlockId;
             }
-            
-            void CreateOrUpdatePreview()
+
+            async UniTaskVoid CreateOrUpdatePreviewAsync()
             {
                 var previewParent = previewRoot ? previewRoot : transform;
-                
+
                 // プレビューオブジェクトを生成または再利用
                 // Create or reuse preview object
                 if (_previewObject == null || _previewObject.BlockMasterElement.BlockGuid != _currentParam.BlockGuid)
@@ -65,23 +65,23 @@ namespace Client.Game.InGame.Tutorial
                     if (_previewObject != null)
                     {
                         HudArrowManager.UnregisterHudArrowTarget(_previewObject.gameObject);
-                        _previewObject.Destroy();
+                        _previewObject.DestroyPreview();
                     }
-                    
-                    _previewObject = PreviewBlockCreator.Create(_currentBlockId);
+
+                    _previewObject = await TutorialPreviewBlockCreator.CreateAsync(_currentBlockId);
                     _previewObject.transform.SetParent(previewParent);
                 }
-                
+
                 var blockDirection = Enum.Parse<BlockDirection>(_currentParam.BlockDirection);
                 var position = SlopeBlockPlaceSystem.GetBlockPositionToPlacePosition(_currentParam.Position, blockDirection, _currentBlockId);
                 var rotation = blockDirection.GetRotation();
-                
+
                 _previewObject.SetTransform(position, rotation);
                 _previewObject.SetPlaceableColor(true);
                 _previewObject.SetActive(true);
                 HudArrowManager.RegisterHudArrowTarget(_previewObject.gameObject, new HudArrowOptions(hideWhenTargetInactive: false));
             }
-            
+
             void SubscribePlacementEvent()
             {
                 _blockPlacedDisposable?.Dispose();

@@ -20,7 +20,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: PreviewPlaceBlock
+  m_Name: TutorialPreviewBlock
   m_Shader: {fileID: -6465566751694194690, guid: f192994e5689ac1458eb289358136fbb, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -99,7 +99,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Alpha: 1
+    - _Alpha: 0.575
     - _AlphaClip: 0
     - _AlphaToMask: 0
     - _Blend: 0
@@ -139,7 +139,7 @@ Material:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _PreviewColor: {r: 0.41349238, g: 0.59799343, b: 0.8679245, a: 1}
+    - _PreviewColor: {r: 0.495283, g: 0.91595566, b: 1, a: 1}
     - _PrviewColor: {r: 0.41349238, g: 0.59799343, b: 0.8679245, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
   m_BuildTextureStacks: []
