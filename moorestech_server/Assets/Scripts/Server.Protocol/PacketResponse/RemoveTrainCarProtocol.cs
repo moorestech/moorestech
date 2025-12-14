@@ -15,7 +15,6 @@ namespace Server.Protocol.PacketResponse
         {
             var request = MessagePackSerializer.Deserialize<RemoveTrainCarRequestMessagePack>(payload.ToArray());
 
-            Debug.Log("Request remove train car.");
             // TODO: オーダーがこのままだとO(n)になっているため、逆引き用の辞書等を用意してO(1)にする
             var (targetTrain, removeTargetTrainCar) = TrainUpdateService.Instance
                 .GetRegisteredTrains()
