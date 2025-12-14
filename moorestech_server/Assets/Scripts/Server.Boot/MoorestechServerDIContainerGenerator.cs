@@ -165,7 +165,7 @@ namespace Server.Boot
             services.AddSingleton<UnlockedEventPacket>();
             services.AddSingleton<RailNodeCreatedEventPacket>();
             services.AddSingleton<RailConnectionCreatedEventPacket>();
-            services.AddSingleton<RailGraphHashProtocol>();
+            services.AddSingleton<RailGraphHashStateEventPacket>();
             services.AddSingleton<RailNodeRemovedEventPacket>();
             services.AddSingleton<RailConnectionRemovedEventPacket>();
             
@@ -197,7 +197,7 @@ namespace Server.Boot
             serviceProvider.GetService<ResearchCompleteEventPacket>();
             serviceProvider.GetService<RailNodeCreatedEventPacket>();
             serviceProvider.GetService<RailConnectionCreatedEventPacket>();
-            serviceProvider.GetService<RailGraphHashProtocol>();
+            serviceProvider.GetService<RailGraphHashStateEventPacket>();
             serviceProvider.GetService<RailNodeRemovedEventPacket>();
             serviceProvider.GetService<RailConnectionRemovedEventPacket>();
             

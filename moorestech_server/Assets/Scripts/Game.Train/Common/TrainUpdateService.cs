@@ -23,6 +23,7 @@ namespace Game.Train.Common
 
         //マジックナンバー。trainはtick制。1tickで速度、位置、ドッキング状態等が決定的に動く。1tick=1/120秒
         private const double TickSeconds = 1d / 120d;
+        public const double HashBroadcastIntervalSeconds = 1d;
         private double _accumulatedSeconds;
         private readonly int _maxTicksPerFrame = 65535;
         private readonly List<TrainUnit> _trainUnits = new();
