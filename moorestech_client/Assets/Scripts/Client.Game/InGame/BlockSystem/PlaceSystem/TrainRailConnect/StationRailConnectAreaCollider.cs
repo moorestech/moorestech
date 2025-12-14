@@ -11,7 +11,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         public bool IsFront => railComponentIndex == StationrailComponentIndex.Index1;
         
         /// <summary>
-        /// 駅には4つのrailcomponentがあるため、そのインデックスを指定する。詳しくはドキュメント参照
+        /// 駅には2つのrailcomponentがあるため、そのインデックスを指定する。詳しくはドキュメント参照
         /// The station has two rail nodes, so specify the index. See the documentation for details.
         /// </summary>
         [SerializeField] private StationrailComponentIndex railComponentIndex;
