@@ -1,6 +1,7 @@
 using System;
 using UniRx;
 using UnityEngine;
+using static Game.Train.RailGraph.RailConnectionInitializationNotifier;
 
 namespace Game.Train.RailGraph
 {
@@ -10,11 +11,13 @@ namespace Game.Train.RailGraph
     /// </summary>
     public class RailNodeInitializationNotifier : IDisposable
     {
-        public Subject<RailNodeInitializationData> RailNodeInitializedEvent { get; private set; }
+        private Subject<RailNodeInitializationData> _railNodeInitialize;
+        public IObservable<RailNodeInitializationData> RailNodeInitializedEvent => _railNodeInitialize;
+
 
         public RailNodeInitializationNotifier()
         {
-            RailNodeInitializedEvent = new Subject<RailNodeInitializationData>();
+            _railNodeInitialize = new Subject<RailNodeInitializationData>();
         }
 
         public void Notify(int NodeId)
@@ -22,7 +25,7 @@ namespace Game.Train.RailGraph
             RailGraphDatastore.TryGetRailNode(NodeId, out var node);
             if (node == null)
                 return;
-            RailNodeInitializedEvent?.OnNext(
+            _railNodeInitialize?.OnNext(
                 new RailNodeInitializationData(
                     NodeId,
                     node.Guid,
@@ -35,13 +38,13 @@ namespace Game.Train.RailGraph
 
         public void Reset()
         {
-            RailNodeInitializedEvent?.Dispose();
-            RailNodeInitializedEvent = new Subject<RailNodeInitializationData>();
+            _railNodeInitialize?.Dispose();
+            _railNodeInitialize = new Subject<RailNodeInitializationData>();
         }
 
         public void Dispose()
         {
-            RailNodeInitializedEvent?.Dispose();
+            _railNodeInitialize?.Dispose();
         }
 
         public readonly struct RailNodeInitializationData
