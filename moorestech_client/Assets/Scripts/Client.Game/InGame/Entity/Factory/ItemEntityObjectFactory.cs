@@ -72,19 +72,20 @@ namespace Client.Game.InGame.Entity.Factory
                 }
 
                 var item = itemObject.GetComponent<ItemEntityObject>();
+                item.Initialize(entityResponse.InstanceId);
                 item.SetTexture(texture);
                 return item;
             }
 
             async UniTask<IEntityObject> CreateCustomModelEntity(Transform parentTransform, EntityResponse entityResponse, string addressablePath, ItemId id)
             {
-                // カスタムモデルをロード
-                // Load custom model
-                var loadedPrefab = await AddressableLoader.LoadAsyncDefault<GameObject>(addressablePath);
+                // カスタムモデルをロード（LoadAsyncでLoadedAssetを取得）
+                // Load custom model (get LoadedAsset with LoadAsync)
+                using var loadedAsset = await AddressableLoader.LoadAsync<GameObject>(addressablePath);
 
                 // ロード失敗時はテクスチャベースにフォールバック
                 // Fallback to texture-based if load fails
-                if (loadedPrefab == null)
+                if (loadedAsset?.Asset == null)
                 {
                     Debug.LogError($"Failed to load custom entity model: {addressablePath}. Falling back to texture-based display.");
                     return await CreateTextureBasedEntity(parentTransform, entityResponse, id);
@@ -92,11 +93,12 @@ namespace Client.Game.InGame.Entity.Factory
 
                 // カスタムモデルをインスタンス化
                 // Instantiate custom model
-                var customModelObject = GameObject.Instantiate(loadedPrefab, entityResponse.Position, Quaternion.identity, parentTransform);
+                var customModelObject = GameObject.Instantiate(loadedAsset.Asset, entityResponse.Position, Quaternion.identity, parentTransform);
 
                 // CustomModelItemEntityObjectコンポーネントを追加
                 // Add CustomModelItemEntityObject component
                 var customModelEntity = customModelObject.AddComponent<CustomModelItemEntityObject>();
+                customModelEntity.Initialize(entityResponse.InstanceId);
                 return customModelEntity;
             }
 
