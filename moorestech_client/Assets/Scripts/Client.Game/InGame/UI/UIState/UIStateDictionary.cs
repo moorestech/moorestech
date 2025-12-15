@@ -12,7 +12,7 @@ namespace Client.Game.InGame.UI.UIState
             PlayerInventoryState playerInventoryState,
             SubInventoryState subInventoryState,
             PauseMenuState pauseMenuState,
-            DeleteBlockState deleteBlockState,
+            DeleteObjectState deleteObjectState,
             SkitState skitState,
             PlaceBlockState placeBlockState,
             ChallengeListState challengeListState,
@@ -22,7 +22,7 @@ namespace Client.Game.InGame.UI.UIState
             _stateDictionary.Add(UIStateEnum.PlayerInventory, playerInventoryState);
             _stateDictionary.Add(UIStateEnum.SubInventory, subInventoryState);
             _stateDictionary.Add(UIStateEnum.PauseMenu, pauseMenuState);
-            _stateDictionary.Add(UIStateEnum.DeleteBar, deleteBlockState);
+            _stateDictionary.Add(UIStateEnum.DeleteBar, deleteObjectState);
             _stateDictionary.Add(UIStateEnum.Story, skitState);
             _stateDictionary.Add(UIStateEnum.PlaceBlock, placeBlockState);
             _stateDictionary.Add(UIStateEnum.ChallengeList, challengeListState);
