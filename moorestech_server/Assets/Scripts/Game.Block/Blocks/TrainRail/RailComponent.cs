@@ -1,10 +1,10 @@
+using ClassLibrary;
+using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Train.RailGraph;
 using Game.Train.Utility;
-using UnityEngine;
 using System.Collections.Generic;
-using ClassLibrary;
-using Game.Block.Interface;
+using UnityEngine;
 
 namespace Game.Block.Blocks.TrainRail
 {
@@ -55,16 +55,11 @@ namespace Game.Block.Blocks.TrainRail
             FrontNode = new RailNode();
             BackNode = new RailNode();
 
-            RailGraphDatastore.AddRailComponentID(FrontNode, new ConnectionDestination(railComponentID, true));
-            RailGraphDatastore.AddRailComponentID(BackNode, new ConnectionDestination(railComponentID, false));
-
-            // お互いを逆方向ノードとしてセット
-            FrontNode.SetOppositeNode(BackNode);
-            BackNode.SetOppositeNode(FrontNode);
-
-            // RailNodeに制御点を登録（表裏で使う制御点が異なる）
             FrontNode.SetRailControlPoints(FrontControlPoint, BackControlPoint);
             BackNode.SetRailControlPoints(BackControlPoint, FrontControlPoint);
+            FrontNode.SetConnectionDestination(new ConnectionDestination(railComponentID, true));
+            BackNode.SetConnectionDestination(new ConnectionDestination(railComponentID, false));
+            RailGraphDatastore.AddNodePair(FrontNode, BackNode);
         }
 
 
@@ -113,6 +108,7 @@ namespace Game.Block.Blocks.TrainRail
 
         /// <summary>
         /// ベジェ曲線の強度を変更し、制御点を更新する
+        /// 距離再計算と距離適応は未実装 TODO 必要なら実装、クライアント通信も実装するよう
         /// </summary>
         public void UpdateControlPointStrength(float strength)
         {
@@ -138,7 +134,7 @@ namespace Game.Block.Blocks.TrainRail
             // FrontNode の接続リスト
             foreach (var node in FrontNode.ConnectedNodes)
             {
-                var connectionInfo = RailGraphDatastore.GetConnectionDestination(node);
+                var connectionInfo = node.ConnectionDestination;
                 if (!connectionInfo.IsDefault())
                     state.ConnectMyFrontTo.Add(connectionInfo);
             }
@@ -146,7 +142,7 @@ namespace Game.Block.Blocks.TrainRail
             // BackNode の接続リスト
             foreach (var node in BackNode.ConnectedNodes)
             {
-                var connectionInfo = RailGraphDatastore.GetConnectionDestination(node);
+                var connectionInfo = node.ConnectionDestination;
                 if (!connectionInfo.IsDefault())
                     state.ConnectMyBackTo.Add(connectionInfo);
             }

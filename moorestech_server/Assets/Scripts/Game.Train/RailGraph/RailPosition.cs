@@ -302,14 +302,8 @@ namespace Game.Train.RailGraph
             var snapshot = new List<ConnectionDestination>(_railNodes.Count);
             foreach (var node in _railNodes)
             {
-                if (!RailGraphDatastore.TryGetConnectionDestination(node, out var connection))
-                {
-                    continue;
-                }
-                var destinationId = new RailComponentID(connection.railComponentID.Position, connection.railComponentID.ID);
-                snapshot.Add(new ConnectionDestination(destinationId, connection.IsFront));
+                snapshot.Add(node.ConnectionDestination);
             }
-
             return snapshot;
         }
 
@@ -410,6 +404,23 @@ namespace Game.Train.RailGraph
         public bool ContainsNode(RailNode node)
         {
             return _railNodes.Contains(node);
+        }
+        public bool ContainsEdge(RailNode from, RailNode to)
+        {
+            if (ContainsNode(from))
+            {
+                //_railNodesのindexを取得、index-1がtoならtrue
+                int index = _railNodes.IndexOf(from);
+                if (index > 0 && _railNodes[index - 1] == to)
+                {
+                    return true;
+                }
+                return false;
+            }
+            else 
+            {
+                return false;
+            }
         }
 
         //テスト用

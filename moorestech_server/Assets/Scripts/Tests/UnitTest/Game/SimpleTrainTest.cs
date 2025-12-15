@@ -17,10 +17,10 @@ namespace Tests.UnitTest.Game
             var env = TrainTestHelper.CreateEnvironment();
             _ = env.GetRailGraphDatastore();
 
-            var node0 = new RailNode();
-            var node1 = new RailNode();
-            var node2 = new RailNode();
-            var node3 = new RailNode();
+            var node0 = RailNode.CreateSingleAndRegister();
+            var node1 = RailNode.CreateSingleAndRegister();
+            var node2 = RailNode.CreateSingleAndRegister();
+            var node3 = RailNode.CreateSingleAndRegister();
             node0.ConnectNode(node1, 1);
             node1.ConnectNode(node2, 1);
             node2.ConnectNode(node3, 1);
@@ -40,10 +40,10 @@ namespace Tests.UnitTest.Game
             var env = TrainTestHelper.CreateEnvironment();
             _ = env.GetRailGraphDatastore();
 
-            var node0 = new RailNode();
-            var node1 = new RailNode();
-            var node2 = new RailNode();
-            var node3 = new RailNode();
+            var node0 = RailNode.CreateSingleAndRegister();
+            var node1 = RailNode.CreateSingleAndRegister();
+            var node2 = RailNode.CreateSingleAndRegister();
+            var node3 = RailNode.CreateSingleAndRegister();
             node0.ConnectNode(node1, 123);
             node0.ConnectNode(node2, 345);
             node1.ConnectNode(node3, 400);
@@ -69,7 +69,7 @@ namespace Tests.UnitTest.Game
             RailNode[] nodeList = new RailNode[nodenum];
             for (int i = 0; i < nodenum; i++)
             {
-                nodeList[i] = new RailNode();
+                nodeList[i] = RailNode.CreateSingleAndRegister();
             }
 
             for (int i = 0; i < nodenum; i++)
@@ -195,12 +195,12 @@ namespace Tests.UnitTest.Game
             var env = TrainTestHelper.CreateEnvironment();
             _ = env.GetRailGraphDatastore();
 
-            var nodeA = new RailNode();
-            var nodeB = new RailNode();
-            var nodeC1 = new RailNode();
-            var nodeC2 = new RailNode();
-            var nodeD1 = new RailNode();
-            var nodeD2 = new RailNode();
+            var nodeA = RailNode.CreateSingleAndRegister();
+            var nodeB = RailNode.CreateSingleAndRegister();
+            var nodeC1 = RailNode.CreateSingleAndRegister();
+            var nodeC2 = RailNode.CreateSingleAndRegister();
+            var nodeD1 = RailNode.CreateSingleAndRegister();
+            var nodeD2 = RailNode.CreateSingleAndRegister();
             nodeA.ConnectNode(nodeC1, 3782);
             nodeB.ConnectNode(nodeC1, 67329);
             nodeC1.ConnectNode(nodeD1, 71894);
@@ -240,9 +240,9 @@ namespace Tests.UnitTest.Game
             var env = TrainTestHelper.CreateEnvironment();
             _ = env.GetRailGraphDatastore();
 
-            var nodeA = new RailNode();
-            var nodeB = new RailNode();
-            var nodeC = new RailNode();
+            var nodeA = RailNode.CreateSingleAndRegister();
+            var nodeB = RailNode.CreateSingleAndRegister();
+            var nodeC = RailNode.CreateSingleAndRegister();
 
             nodeA.ConnectNode(nodeB, 10);
             nodeA.ConnectNode(nodeC, 20);

@@ -1,14 +1,13 @@
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.StateProcessor;
+using Client.Game.InGame.Train;
 using UnityEngine;
-using static Server.Protocol.PacketResponse.RailConnectionEditProtocol;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
 {
     [RequireComponent(typeof(Collider))]
     public class TrainRailConnectAreaCollider : MonoBehaviour, IRailComponentConnectAreaCollider
     {
-        public RailComponentSpecifierMode RailComponentSpecifierMode => RailComponentSpecifierMode.Rail;
         public bool IsFront => isFront;
         [SerializeField] public bool isFront;
         
@@ -20,9 +19,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         }
         
         
-        public RailComponentSpecifier CreateRailComponentSpecifier()
+        public ConnectionDestination CreateConnectionDestination()
         {
-            return RailComponentSpecifier.CreateRailSpecifier(BlockGameObject.BlockPosInfo.OriginalPos);
+            var origin = BlockGameObject.BlockPosInfo.OriginalPos;
+            return new ConnectionDestination(origin, 0, isFront);
         }
     }
 }
