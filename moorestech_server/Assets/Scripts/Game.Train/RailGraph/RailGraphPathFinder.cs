@@ -35,51 +35,6 @@ namespace Game.Train.RailGraph
             int startId,
             int targetId)
         {
-
-            #region Internal
-            // ==========================
-            // 内部ヘルパ
-            // ==========================
-
-            void EnsureWorkspace(int nodeCount)
-            {
-                // 既存配列で足りていれば再利用
-                if (_distances != null && _distances.Length >= nodeCount)
-                    return;
-
-                // 必要数まで拡張（倍々 or ちょうど）
-                int size = _distances == null
-                    ? nodeCount
-                    : Math.Max(_distances.Length * 2, nodeCount);
-
-                _distances = new int[size];
-                _previous = new int[size];
-                _stamp = new int[size];
-                _currentStamp = 1;
-            }
-
-            void BeginSearch()
-            {
-                _currentStamp++;
-                if (_currentStamp == int.MaxValue)
-                {
-                    // stamp が溢れそうな場合のみ全クリア
-                    Array.Clear(_stamp, 0, _stamp.Length);
-                    _currentStamp = 1;
-                }
-            }
-
-            /// <summary>
-            /// 現在の探索における nodeId の距離と前ノードを設定。
-            /// </summary>
-            void SetDistance(int nodeId, int distance, int previousId)
-            {
-                _stamp[nodeId] = _currentStamp;
-                _distances[nodeId] = distance;
-                _previous[nodeId] = previousId;
-            }
-            #endregion
-
             int nodeCount = railNodes.Count;
             if (startId < 0 || startId >= nodeCount ||
                 targetId < 0 || targetId >= nodeCount)
@@ -157,6 +112,49 @@ namespace Game.Train.RailGraph
                 }
             }
 
+            #region Internal
+            // ==========================
+            // 内部ヘルパ
+            // ==========================
+
+            void EnsureWorkspace(int nodeCount)
+            {
+                // 既存配列で足りていれば再利用
+                if (_distances != null && _distances.Length >= nodeCount)
+                    return;
+
+                // 必要数まで拡張（倍々 or ちょうど）
+                int size = _distances == null
+                    ? nodeCount
+                    : Math.Max(_distances.Length * 2, nodeCount);
+
+                _distances = new int[size];
+                _previous = new int[size];
+                _stamp = new int[size];
+                _currentStamp = 1;
+            }
+
+            void BeginSearch()
+            {
+                _currentStamp++;
+                if (_currentStamp == int.MaxValue)
+                {
+                    // stamp が溢れそうな場合のみ全クリア
+                    Array.Clear(_stamp, 0, _stamp.Length);
+                    _currentStamp = 1;
+                }
+            }
+
+            /// <summary>
+            /// 現在の探索における nodeId の距離と前ノードを設定。
+            /// </summary>
+            void SetDistance(int nodeId, int distance, int previousId)
+            {
+                _stamp[nodeId] = _currentStamp;
+                _distances[nodeId] = distance;
+                _previous[nodeId] = previousId;
+            }
+            #endregion
             return result;
         }
 
