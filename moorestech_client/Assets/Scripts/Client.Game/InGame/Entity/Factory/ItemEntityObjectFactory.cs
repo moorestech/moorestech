@@ -34,9 +34,9 @@ namespace Client.Game.InGame.Entity.Factory
 
             // カスタムモデルパスが設定されている場合
             // If custom model path is set
-            if (!string.IsNullOrEmpty(itemMaster.EntityModelAddressablePath))
+            if (!string.IsNullOrEmpty(itemMaster.AddressablePaths?.EntityModel))
             {
-                return await CreateCustomModelEntity(parent, entity, itemMaster.EntityModelAddressablePath, itemId);
+                return await CreateCustomModelEntity(parent, entity, itemMaster.AddressablePaths.EntityModel, itemId);
             }
 
             return await CreateTextureBasedEntity(parent, entity, itemId);
