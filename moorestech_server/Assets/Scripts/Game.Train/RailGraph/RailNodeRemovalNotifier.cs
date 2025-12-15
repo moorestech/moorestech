@@ -9,37 +9,39 @@ namespace Game.Train.RailGraph
     /// </summary>
     public sealed class RailNodeRemovalNotifier : IDisposable
     {
-        // RailNode削除イベントのSubjectを保持
-        // Holds the subject that broadcasts node removal events
-        public Subject<RailNodeRemovedData> RailNodeRemovedEvent { get; private set; }
+        private Subject<RailNodeRemovedData> _railNodeRemoved;
+        // RailNode削除イベントの公開窓口
+        // Exposes the observable stream for rail node removals
+        public IObservable<RailNodeRemovedData> RailNodeRemovedEvent => _railNodeRemoved.AsObservable();
 
+        // Subjectを初期化して購読受付を開始
+        // Initialize the subject so observers can subscribe
         public RailNodeRemovalNotifier()
         {
-            // Subjectを初期化して監視者を受け付ける
-            // Initialize the subject so observers can subscribe
-            RailNodeRemovedEvent = new Subject<RailNodeRemovedData>();
+            _railNodeRemoved = new Subject<RailNodeRemovedData>();
         }
 
+        // ノード削除情報を発行
+        // Publish the removed node payload
         public void Notify(int nodeId, Guid nodeGuid)
         {
-            // 現在のノード情報を購読者へ通知
-            // Publish the removal information to subscribers
-            RailNodeRemovedEvent?.OnNext(new RailNodeRemovedData(nodeId, nodeGuid));
+            var data = new RailNodeRemovedData(nodeId, nodeGuid);
+            _railNodeRemoved?.OnNext(data);
         }
 
+        // Subjectをリセット
+        // Reset the subject for a fresh subscription cycle
         public void Reset()
         {
-            // 古いSubjectを破棄して新規に差し替え
-            // Dispose the existing subject and create a new one
-            RailNodeRemovedEvent?.Dispose();
-            RailNodeRemovedEvent = new Subject<RailNodeRemovedData>();
+            _railNodeRemoved?.Dispose();
+            _railNodeRemoved = new Subject<RailNodeRemovedData>();
         }
 
+        // Subjectを破棄
+        // Dispose the subject to stop notifications
         public void Dispose()
         {
-            // 監視を終了するためSubjectを破棄
-            // Dispose the subject to stop further notifications
-            RailNodeRemovedEvent?.Dispose();
+            _railNodeRemoved?.Dispose();
         }
 
         public readonly struct RailNodeRemovedData
