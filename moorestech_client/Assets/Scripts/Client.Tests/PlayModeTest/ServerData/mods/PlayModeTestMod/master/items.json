@@ -20,7 +20,9 @@
       "name": "石器",
       "itemGuid": "6afafbc9-5a2c-4444-b8c8-9ea047da9ffa",
       "recipeViewType": "IsUnlocked",
-      "handGrabModelAddressablePath": "Vanilla/Item/StoneTool"
+      "addressablePaths": {
+        "handGrabModel": "Vanilla/Item/StoneTool"
+      }
     },
     {
       "initialUnlocked": false,
@@ -63,7 +65,9 @@
       "name": "石器ハンマー",
       "itemGuid": "f5f66872-a7a2-4da6-90c0-fc26e904757c",
       "recipeViewType": "IsUnlocked",
-      "handGrabModelAddressablePath": "Vanilla/Item/StoneHammer"
+      "addressablePaths": {
+        "handGrabModel": "Vanilla/Item/StoneHammer"
+      }
     },
     {
       "initialUnlocked": false,
@@ -104,7 +108,9 @@
       "name": "石のツルハシ",
       "itemGuid": "945912f1-d1ca-42ec-aff8-5e6a00e4a544",
       "recipeViewType": "IsUnlocked",
-      "handGrabModelAddressablePath": "Vanilla/Item/StonePickaxe"
+      "addressablePaths": {
+        "handGrabModel": "Vanilla/Item/StonePickaxe"
+      }
     },
     {
       "initialUnlocked": false,
@@ -472,8 +478,7 @@
       "maxStack": 100,
       "sortPriority": 640,
       "initialUnlocked": false,
-      "recipeViewType": "IsUnlocked",
-      "handGrabModelAddressablePath": ""
+      "recipeViewType": "IsUnlocked"
     },
     {
       "itemGuid": "0c5396c1-b7b2-4cc6-a406-18433f58de56",
@@ -482,8 +487,7 @@
       "maxStack": 100,
       "sortPriority": 650,
       "initialUnlocked": false,
-      "recipeViewType": "IsUnlocked",
-      "handGrabModelAddressablePath": ""
+      "recipeViewType": "IsUnlocked"
     },
     {
       "itemGuid": "8bbac63f-a589-4c92-a8d1-b6268cf8ade5",
@@ -492,8 +496,7 @@
       "maxStack": 100,
       "sortPriority": 660,
       "initialUnlocked": false,
-      "recipeViewType": "IsUnlocked",
-      "handGrabModelAddressablePath": ""
+      "recipeViewType": "IsUnlocked"
     },
     {
       "itemGuid": "ec0fddf7-e8de-48aa-8cbd-f20dd1b57506",
@@ -502,8 +505,7 @@
       "maxStack": 100,
       "sortPriority": 670,
       "initialUnlocked": false,
-      "recipeViewType": "IsUnlocked",
-      "handGrabModelAddressablePath": ""
+      "recipeViewType": "IsUnlocked"
     },
     {
       "itemGuid": "47ba2417-5968-472c-8cdf-6125f855909b",
@@ -512,8 +514,7 @@
       "maxStack": 100,
       "sortPriority": 680,
       "initialUnlocked": false,
-      "recipeViewType": "IsUnlocked",
-      "handGrabModelAddressablePath": ""
+      "recipeViewType": "IsUnlocked"
     },
     {
       "itemGuid": "0d033e0e-537a-4cc1-b7c6-a183ed33f73d",
@@ -522,8 +523,7 @@
       "maxStack": 100,
       "sortPriority": 690,
       "initialUnlocked": false,
-      "recipeViewType": "IsUnlocked",
-      "handGrabModelAddressablePath": ""
+      "recipeViewType": "IsUnlocked"
     },
     {
       "itemGuid": "b1101477-9a08-4c9e-8751-43577d1a45a2",
@@ -532,8 +532,7 @@
       "maxStack": 100,
       "sortPriority": 700,
       "initialUnlocked": false,
-      "recipeViewType": "IsUnlocked",
-      "handGrabModelAddressablePath": ""
+      "recipeViewType": "IsUnlocked"
     },
     {
       "itemGuid": "7d0b5ea8-fb7d-4209-a3c7-2089a70e323e",
@@ -542,8 +541,7 @@
       "maxStack": 100,
       "sortPriority": 710,
       "initialUnlocked": false,
-      "recipeViewType": "IsUnlocked",
-      "handGrabModelAddressablePath": ""
+      "recipeViewType": "IsUnlocked"
     }
   ]
 }
