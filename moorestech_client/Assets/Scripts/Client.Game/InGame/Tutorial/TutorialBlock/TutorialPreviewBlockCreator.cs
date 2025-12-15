@@ -3,7 +3,7 @@ using Core.Master;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
-namespace Client.Game.InGame.Tutorial
+namespace Client.Game.InGame.Tutorial.TutorialBlock
 {
     /// <summary>
     /// チュートリアル用プレビューブロックを生成する

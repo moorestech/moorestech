@@ -1,6 +1,7 @@
 using System;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem;
+using Client.Game.InGame.Tutorial.TutorialBlock;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;

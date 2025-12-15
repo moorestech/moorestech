@@ -6,7 +6,7 @@ using Cysharp.Threading.Tasks;
 using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 
-namespace Client.Game.InGame.Tutorial
+namespace Client.Game.InGame.Tutorial.TutorialBlock
 {
     /// <summary>
     /// チュートリアル専用のブロックプレビューオブジェクト
