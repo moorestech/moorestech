@@ -136,6 +136,12 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
         
+        public void RemoveTrain(Guid trainCarId)
+        {
+            var request = new RemoveTrainCarProtocol.RemoveTrainCarRequestMessagePack(trainCarId);
+            _packetSender.Send(request);
+        }
+        
         /// <summary>
         /// インベントリをサブスクライブ/アンサブスクライブ
         /// Subscribe/Unsubscribe inventory
