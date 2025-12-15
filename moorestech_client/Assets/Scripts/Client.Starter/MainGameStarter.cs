@@ -88,6 +88,7 @@ namespace Client.Starter
         [SerializeField] private UIHighlightTutorialManager uiHighlightTutorialManager;
         [SerializeField] private KeyControlTutorialManager keyControlTutorialManager;
         [SerializeField] private ItemViewHighLightTutorialManager itemViewHighLightTutorialManager;
+        [SerializeField] private BlockPlacePreviewTutorialManager blockPlacePreviewTutorialManager;
         
         [SerializeField] private PlacementPreviewBlockGameObjectController previewBlockController;
         [SerializeField] private RailConnectPreviewObject railConnectPreviewObject;
@@ -127,9 +128,6 @@ namespace Client.Starter
             var builder = new ContainerBuilder();
 
             CameraManager.Initialize();
-
-            var blockPlacePreviewTutorialManager = new GameObject(nameof(BlockPlacePreviewTutorialManager)).AddComponent<BlockPlacePreviewTutorialManager>();
-            blockPlacePreviewTutorialManager.transform.SetParent(transform);
             
             // PureC#のインスタンスを登録
             // Register pure C# instances
