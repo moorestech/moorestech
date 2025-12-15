@@ -106,6 +106,17 @@ namespace Core.Master.Validator
                                     }
                                     break;
                                 }
+                                case BlockPlacePreviewTutorialParam blockPlacePreview:
+                                {
+                                    // ブロックプレビュー用の配置対象を検証
+                                    // Validate target block for placement preview
+                                    var blockId = MasterHolder.BlockMaster.GetBlockIdOrNull(blockPlacePreview.BlockGuid);
+                                    if (blockId == null)
+                                    {
+                                        logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.BlockGuid:{blockPlacePreview.BlockGuid}\n";
+                                    }
+                                    break;
+                                }
                             }
                         }
                     }

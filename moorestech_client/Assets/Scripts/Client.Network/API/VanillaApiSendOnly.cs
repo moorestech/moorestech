@@ -119,17 +119,11 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
 
-        public void ConnectRail(RailComponentSpecifier from, RailComponentSpecifier to, bool connectFromIsFront, bool connectToIsFront)
+        public void ConnectRail(int fromNodeId, Guid fromGuid, int toNodeId, Guid toGuid)
         {
-            var request = RailConnectionEditRequest.CreateConnectRequest(from, to, connectFromIsFront, connectToIsFront);
+            var request = RailConnectionEditRequest.CreateConnectRequest(fromNodeId, fromGuid, toNodeId, toGuid);
             _packetSender.Send(request);
         }
-        public void DisconnectRail(RailComponentSpecifier from, RailComponentSpecifier to)
-        {
-            var request = RailConnectionEditRequest.CreateDisconnectRequest(from, to);
-            _packetSender.Send(request);
-        }
-
         public void PlaceTrainOnRail(RailComponentSpecifier specifier, int hotBarSlot)
         {
             var request = new PlaceTrainOnRailRequestMessagePack(specifier, hotBarSlot, _playerId);
