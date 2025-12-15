@@ -47,3 +47,6 @@ properties:
     - key: handGrabModelAddressablePath
       type: string
       optional: true
+    - key: entityModelAddressablePath
+      type: string
+      optional: true
