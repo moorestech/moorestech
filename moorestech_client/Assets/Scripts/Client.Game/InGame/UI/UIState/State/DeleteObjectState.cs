@@ -1,6 +1,8 @@
-﻿using Client.Game.InGame.Block;
+﻿using System;
+using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
+using Client.Game.InGame.Entity.Object;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState.Input;
 using Client.Game.InGame.UI.UIState.UIObject;
@@ -9,15 +11,15 @@ using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState.State
 {
-    public class DeleteBlockState : IUIState
+    public class DeleteObjectState : IUIState
     {
         private readonly DeleteBarObject _deleteBarObject;
         
         private readonly ScreenClickableCameraController _screenClickableCameraController;
         
-        private BlockGameObject _removeTargetBlock;
+        private IDeleteTarget _deleteTargetObject;
         
-        public DeleteBlockState(DeleteBarObject deleteBarObject, InGameCameraController inGameCameraController)
+        public DeleteObjectState(DeleteBarObject deleteBarObject, InGameCameraController inGameCameraController)
         {
             _screenClickableCameraController = new ScreenClickableCameraController(inGameCameraController);
             _deleteBarObject = deleteBarObject;
@@ -38,27 +40,37 @@ namespace Client.Game.InGame.UI.UIState.State
 
             if (InputManager.UI.OpenInventory.GetKeyDown) return new UITransitContext(UIStateEnum.PlayerInventory);
             if (InputManager.UI.OpenMenu.GetKeyDown) return new UITransitContext(UIStateEnum.PauseMenu);
-
-            if (BlockClickDetectUtil.TryGetCursorOnBlock(out var blockGameObject))
+            
+            if (BlockClickDetectUtil.TryGetCursorOnComponent(out IDeleteTarget deleteTarget))
             {
-                if (_removeTargetBlock == null || _removeTargetBlock != blockGameObject)
+                if (_deleteTargetObject == null || _deleteTargetObject != deleteTarget)
                 {
-                    if (_removeTargetBlock != null) _removeTargetBlock.ResetMaterial();
-
-                    _removeTargetBlock = blockGameObject;
-                    _removeTargetBlock.SetRemovePreviewing();
+                    if (_deleteTargetObject != null) _deleteTargetObject.ResetMaterial();
+                    
+                    _deleteTargetObject = deleteTarget;
+                    _deleteTargetObject.SetRemovePreviewing();
                 }
             }
-            else if (_removeTargetBlock != null)
+            else if (_deleteTargetObject != null)
             {
-                _removeTargetBlock.ResetMaterial();
-                _removeTargetBlock = null;
+                _deleteTargetObject.ResetMaterial();
+                _deleteTargetObject = null;
             }
-
-            if (InputManager.Playable.ScreenLeftClick.GetKeyDown && _removeTargetBlock != null)
+            
+            if (InputManager.Playable.ScreenLeftClick.GetKeyDown && _deleteTargetObject != null)
             {
-                var blockPosition = _removeTargetBlock.BlockPosInfo.OriginalPos;
-                ClientContext.VanillaApi.SendOnly.BlockRemove(blockPosition);
+                switch (_deleteTargetObject)
+                {
+                    case BlockGameObjectChild deleteTargetBlock:
+                        var blockPosition = deleteTargetBlock.BlockGameObject.BlockPosInfo.OriginalPos;
+                        ClientContext.VanillaApi.SendOnly.BlockRemove(blockPosition);
+                        break;
+                    case TrainCarEntityChildrenObject deleteTargetTrainCar:
+                        ClientContext.VanillaApi.SendOnly.RemoveTrain(deleteTargetTrainCar.TrainCarEntityObject.TrainCarId);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(_deleteTargetObject));
+                }
             }
 
             _screenClickableCameraController.GetNextUpdate();
@@ -69,7 +81,7 @@ namespace Client.Game.InGame.UI.UIState.State
         
         public void OnExit()
         {
-            if (_removeTargetBlock != null) _removeTargetBlock.ResetMaterial();
+            if (_deleteTargetObject != null) _deleteTargetObject.ResetMaterial();
             _deleteBarObject.gameObject.SetActive(false);
             
             _screenClickableCameraController.OnExit();
