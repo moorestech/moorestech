@@ -119,11 +119,11 @@ namespace Server.Boot
             services.AddSingleton<MaxElectricPoleMachineConnectionRange, MaxElectricPoleMachineConnectionRange>();
             services.AddSingleton<IEntitiesDatastore, EntitiesDatastore>();
             services.AddSingleton<IEntityFactory, EntityFactory>(); // TODO これを削除してContext側に加える？
-            services.AddSingleton<GearNetworkDatastore>();
-            services.AddSingleton<RailGraphDatastore>();
+            services.AddSingleton(initializerProvider.GetService<GearNetworkDatastore>());
+            services.AddSingleton(initializerProvider.GetService<RailGraphDatastore>());
             services.AddSingleton<RailConnectionCommandHandler>();
-            services.AddSingleton<TrainDiagramManager>();
-            services.AddSingleton<TrainRailPositionManager>();
+            services.AddSingleton(initializerProvider.GetService<TrainDiagramManager>());
+            services.AddSingleton(initializerProvider.GetService<TrainRailPositionManager>());
 
             services.AddSingleton<IGameUnlockStateDataController, GameUnlockStateDataController>();
             services.AddSingleton<CraftTreeManager>();
