@@ -147,11 +147,13 @@ namespace Client.Game.InGame.UI.Inventory
                     var itemMaster = MasterHolder.ItemMaster.GetItemMaster(itemId);
                     var token = _loadCancellationTokenSource.Token;
                     
-                    // handGrabModelAddressablePathが設定されているかチェック
-                    if (!string.IsNullOrEmpty(itemMaster.HandGrabModelAddressablePath))
+                    // handGrabModelが設定されているかチェック
+                    // Check if handGrabModel is set
+                    if (!string.IsNullOrEmpty(itemMaster.AddressablePaths?.HandGrabModel))
                     {
                         // Addressableからロード
-                        _currentLoadedAsset = await AddressableLoader.LoadAsync<GameObject>(itemMaster.HandGrabModelAddressablePath);
+                        // Load from Addressable
+                        _currentLoadedAsset = await AddressableLoader.LoadAsync<GameObject>(itemMaster.AddressablePaths.HandGrabModel);
                         
                         if (token.IsCancellationRequested) return;
                         
