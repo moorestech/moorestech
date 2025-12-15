@@ -9,37 +9,39 @@ namespace Game.Train.RailGraph
     /// </summary>
     public sealed class RailConnectionRemovalNotifier : IDisposable
     {
-        // RailConnection削除イベントのSubject
-        // Subject that broadcasts connection removal events
-        public Subject<RailConnectionRemovalData> RailConnectionRemovedEvent { get; private set; }
+        private Subject<RailConnectionRemovalData> _railConnectionRemoved;
+        // RailConnection削除イベントの公開窓口
+        // Exposes the observable stream for rail connection removals
+        public IObservable<RailConnectionRemovalData> RailConnectionRemovedEvent => _railConnectionRemoved.AsObservable();
 
+        // Subjectを初期化して購読受付を開始
+        // Initialize the subject to accept subscribers
         public RailConnectionRemovalNotifier()
         {
-            // Subject初期化で購読を受け付け
-            // Initialize the subject for subscriptions
-            RailConnectionRemovedEvent = new Subject<RailConnectionRemovalData>();
+            _railConnectionRemoved = new Subject<RailConnectionRemovalData>();
         }
 
+        // 接続削除情報を発行
+        // Publish the removed connection payload
         public void Notify(int fromNodeId, Guid fromGuid, int toNodeId, Guid toGuid)
         {
-            // 削除対象の接続情報を通知
-            // Publish the removed connection information
-            RailConnectionRemovedEvent?.OnNext(new RailConnectionRemovalData(fromNodeId, fromGuid, toNodeId, toGuid));
+            var data = new RailConnectionRemovalData(fromNodeId, fromGuid, toNodeId, toGuid);
+            _railConnectionRemoved?.OnNext(data);
         }
 
+        // Subjectをリセット
+        // Reset the subject for a clean subscription stream
         public void Reset()
         {
-            // Subjectを破棄して新しい購読ストリームへ切替
-            // Dispose the subject and replace it with a fresh one
-            RailConnectionRemovedEvent?.Dispose();
-            RailConnectionRemovedEvent = new Subject<RailConnectionRemovalData>();
+            _railConnectionRemoved?.Dispose();
+            _railConnectionRemoved = new Subject<RailConnectionRemovalData>();
         }
 
+        // Subjectを破棄
+        // Dispose the subject to end notifications
         public void Dispose()
         {
-            // イベント停止のためSubject破棄
-            // Dispose the subject to stop broadcasting
-            RailConnectionRemovedEvent?.Dispose();
+            _railConnectionRemoved?.Dispose();
         }
 
         public readonly struct RailConnectionRemovalData
