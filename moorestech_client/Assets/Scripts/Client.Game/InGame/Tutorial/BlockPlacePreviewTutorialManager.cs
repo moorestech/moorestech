@@ -15,8 +15,6 @@ namespace Client.Game.InGame.Tutorial
 {
     public class BlockPlacePreviewTutorialManager : MonoBehaviour, ITutorialView, ITutorialViewManager
     {
-        [SerializeField] private Transform previewRoot;
-
         private BlockGameObjectDataStore _blockGameObjectDataStore;
         private TutorialBlockPreviewObject _previewObject;
         private BlockPlacePreviewTutorialParam _currentParam;
@@ -57,8 +55,6 @@ namespace Client.Game.InGame.Tutorial
 
             async UniTaskVoid CreateOrUpdatePreviewAsync()
             {
-                var previewParent = previewRoot ? previewRoot : transform;
-
                 // プレビューオブジェクトを生成または再利用
                 // Create or reuse preview object
                 if (_previewObject == null || _previewObject.BlockMasterElement.BlockGuid != _currentParam.BlockGuid)
@@ -70,7 +66,7 @@ namespace Client.Game.InGame.Tutorial
                     }
 
                     _previewObject = await TutorialPreviewBlockCreator.CreateAsync(_currentBlockId);
-                    _previewObject.transform.SetParent(previewParent);
+                    _previewObject.transform.SetParent(transform);
                 }
 
                 var blockDirection = Enum.Parse<BlockDirection>(_currentParam.BlockDirection);
