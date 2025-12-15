@@ -167,7 +167,7 @@ namespace Client.Starter
             builder.Register<GameScreenState>(Lifetime.Singleton);
             builder.Register<PauseMenuState>(Lifetime.Singleton);
             builder.Register<PlayerInventoryState>(Lifetime.Singleton);
-            builder.Register<DeleteBlockState>(Lifetime.Singleton);
+            builder.Register<DeleteObjectState>(Lifetime.Singleton);
             builder.Register<SkitState>(Lifetime.Singleton);
             builder.Register<PlaceBlockState>(Lifetime.Singleton);
             builder.Register<ChallengeListState>(Lifetime.Singleton);
