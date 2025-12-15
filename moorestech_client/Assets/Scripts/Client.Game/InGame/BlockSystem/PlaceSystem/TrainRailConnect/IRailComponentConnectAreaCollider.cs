@@ -1,5 +1,5 @@
 using Client.Game.InGame.BlockSystem.StateProcessor;
-using static Server.Protocol.PacketResponse.RailConnectionEditProtocol;
+using Client.Game.InGame.Train;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
 {
@@ -12,6 +12,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
     {
         public bool IsFront { get; }
         
-        public RailComponentSpecifier CreateRailComponentSpecifier();
+        public ConnectionDestination CreateConnectionDestination();
     }
 }

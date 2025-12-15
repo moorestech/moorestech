@@ -505,17 +505,8 @@ namespace Game.Train.Train
         private static ConnectionDestination CreateConnectionDestinationSnapshot(RailNode node)
         {
             if (node == null)
-            {
                 return ConnectionDestination.Default;
-            }
-            var connection = RailGraphDatastore.GetConnectionDestination(node);
-            if (connection.IsDefault())
-            {
-                return ConnectionDestination.Default;
-            }
-
-            var destinationId = new RailComponentID(connection.railComponentID.Position, connection.railComponentID.ID);
-            return new ConnectionDestination(destinationId, connection.IsFront);
+            return node.ConnectionDestination;
         }
 
         private static List<RailNode> RestoreRailNodes(IEnumerable<ConnectionDestination> snapshot)

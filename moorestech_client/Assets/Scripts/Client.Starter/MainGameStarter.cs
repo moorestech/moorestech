@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using Client.Common;
 using Client.Game.Common;
@@ -88,6 +89,7 @@ namespace Client.Starter
         [SerializeField] private UIHighlightTutorialManager uiHighlightTutorialManager;
         [SerializeField] private KeyControlTutorialManager keyControlTutorialManager;
         [SerializeField] private ItemViewHighLightTutorialManager itemViewHighLightTutorialManager;
+        [SerializeField] private BlockPlacePreviewTutorialManager blockPlacePreviewTutorialManager;
         
         [SerializeField] private PlacementPreviewBlockGameObjectController previewBlockController;
         [SerializeField] private RailConnectPreviewObject railConnectPreviewObject;
@@ -125,7 +127,7 @@ namespace Client.Starter
         public IObjectResolver StartGame(InitialHandshakeResponse initialHandshakeResponse)
         {
             var builder = new ContainerBuilder();
-            
+
             CameraManager.Initialize();
             
             // PureC#のインスタンスを登録
@@ -146,6 +148,8 @@ namespace Client.Starter
             builder.RegisterEntryPoint<WorldDataHandler>();
             builder.RegisterEntryPoint<PlayerPositionSender>();
             builder.RegisterEntryPoint<SkitFireManager>();
+            builder.RegisterEntryPoint<RailGraphCacheNetworkHandler>();
+            builder.RegisterEntryPoint<RailGraphConnectionNetworkHandler>();
             
             // 設置システム
             // register placement system
@@ -184,6 +188,9 @@ namespace Client.Starter
             // register other instance
             builder.Register<TutorialManager>(Lifetime.Singleton);
             builder.Register<IGameUnlockStateData, ClientGameUnlockStateData>(Lifetime.Singleton);
+            builder.Register<RailGraphClientCache>(Lifetime.Singleton);
+            builder.Register<RailGraphSnapshotApplier>(Lifetime.Singleton).AsSelf().As<IInitializable>();
+            builder.Register<RailGraphHashVerifier>(Lifetime.Singleton).As<IInitializable>().As<IDisposable>();
             
             
             //Hierarchy上にあるcomponent
@@ -221,6 +228,7 @@ namespace Client.Starter
             builder.RegisterComponent(uiHighlightTutorialManager);
             builder.RegisterComponent(keyControlTutorialManager);
             builder.RegisterComponent(itemViewHighLightTutorialManager);
+            builder.RegisterComponent(blockPlacePreviewTutorialManager);
             
             builder.RegisterComponent(playerSystemContainer);
             builder.RegisterComponent(skitManager).As<IInitializable>();

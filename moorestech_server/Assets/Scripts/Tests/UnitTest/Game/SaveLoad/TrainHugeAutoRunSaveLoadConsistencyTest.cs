@@ -27,7 +27,17 @@ namespace Tests.UnitTest.Game.SaveLoad
         private const int MinDiagramEntries = 1;//1
         private const int MaxWaitTicks = 96;//4097
         private const int RandomSeed = 3572468;//3572468
-
+        /*
+        private const int RailComponentCount = 6201;
+        private const int DiagramNodeSelectionCount = 8999;
+        private const int TrainCount = 165;
+        private const int TotalTicks = 273611;
+        private const int SaveAfterTicks = 90003;
+        private const int MaxDiagramEntries = 17;
+        private const int MinDiagramEntries = 1;
+        private const int MaxWaitTicks = 4097;
+        private const int RandomSeed = 3572466;
+        */
 
         [Timeout(500000)]
         [Test]
@@ -527,7 +537,8 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             public static NodeIdentifier Create(RailNode node)
             {
-                if (!RailGraphDatastore.TryGetConnectionDestination(node, out var destination) || destination.IsDefault())
+                var destination = node.ConnectionDestination;
+                if (!node.HasConnectionDestination)
                 {
                     throw new InvalidOperationException("RailNodeからRailComponentIDを取得できませんでした。");
                 }
