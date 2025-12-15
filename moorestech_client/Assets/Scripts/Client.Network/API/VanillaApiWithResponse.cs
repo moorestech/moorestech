@@ -38,7 +38,6 @@ namespace Client.Network.API
             //必要なデータを取得する
             // Fetch all required resources including research node states
             var responses = await UniTask.WhenAll(
-                GetRailConnections(ct),
                 GetMapObjectInfo(ct), 
                 GetWorldData(ct), 
                 GetPlayerInventory(playerId, ct), 
@@ -46,18 +45,10 @@ namespace Client.Network.API
                 GetUnlockState(ct), 
                 GetCraftTree(playerId, ct),
                 GetPlayedSkitIds(ct),
-                GetResearchNodeStates(ct));
+                GetResearchNodeStates(ct),
+                GetRailGraphSnapshot(ct));
             
             return new InitialHandshakeResponse(initialHandShake, responses);
-        }
-        
-        public async UniTask<RailConnectionDataMessagePack[]> GetRailConnections(CancellationToken ct)
-        {
-            // レール接続情報をまとめて取得
-            // Fetch all rail connection data from server
-            var request = new GetRailConnectionsProtocol.GetRailConnectionsRequest();
-            var response = await _packetExchangeManager.GetPacketResponse<GetRailConnectionsProtocol.GetRailConnectionsResponse>(request, ct);
-            return response?.Connections;
         }
         
         public async UniTask<List<GetMapObjectInfoProtocol.MapObjectsInfoMessagePack>> GetMapObjectInfo(CancellationToken ct)
@@ -66,7 +57,14 @@ namespace Client.Network.API
             var response = await _packetExchangeManager.GetPacketResponse<GetMapObjectInfoProtocol.ResponseMapObjectInfosMessagePack>(request, ct);
             return response?.MapObjects;
         }
-        
+
+        public async UniTask<RailGraphSnapshotMessagePack> GetRailGraphSnapshot(CancellationToken ct)
+        {
+            var request = new GetRailGraphSnapshotProtocol.RequestMessagePack();
+            var response = await _packetExchangeManager.GetPacketResponse<GetRailGraphSnapshotProtocol.ResponseMessagePack>(request, ct);
+            return response?.Snapshot;
+        }
+
         public async UniTask<PlayerInventoryResponse> GetMyPlayerInventory(CancellationToken ct)
         {
             return await GetPlayerInventory(_playerConnectionSetting.PlayerId, ct);
@@ -194,6 +192,17 @@ namespace Client.Network.API
             var request = new InventoryRequestProtocol.RequestInventoryRequestProtocolMessagePack(identifier);
             var response = await _packetExchangeManager.GetPacketResponse<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(request, ct);
             return CreateStacks(response.Items);
+        }
+
+        public async UniTask<RailConnectionEditProtocol.ResponseRailConnectionEditMessagePack> DisconnectRailAsync(
+            int fromNodeId,
+            Guid fromGuid,
+            int toNodeId,
+            Guid toGuid,
+            CancellationToken ct)
+        {
+            var request = RailConnectionEditProtocol.RailConnectionEditRequest.CreateDisconnectRequest(fromNodeId, fromGuid, toNodeId, toGuid);
+            return await _packetExchangeManager.GetPacketResponse<RailConnectionEditProtocol.ResponseRailConnectionEditMessagePack>(request, ct);
         }
         
         #region Internal

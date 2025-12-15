@@ -40,19 +40,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
         public bool TryDetect(ItemId holdingItemId, out TrainCarPlacementHit hit)
         {
             hit = default;
-
-            if (!PlaceSystemUtil.TryGetRaySpecifiedComponentHit<RailSplineComponent>(_mainCamera, out var rail, LayerConst.BlockOnlyLayerMask))
-            {
-                return false;
-            }
-            
-            var block = rail.StartBlock;
-            var railSpecifier = RailComponentSpecifier.CreateRailSpecifier(block.BlockPosInfo.OriginalPos);
-            var previewPosition = block.BlockPosInfo.OriginalPos + new Vector3(0.5f, 0.5f, 0.5f);
-            var previewRotation = Quaternion.identity;
-
-            hit = new TrainCarPlacementHit(railSpecifier, previewPosition, previewRotation, true);
-            return true;
+            Debug.LogWarning("[TrainCarPlacement] Rail placement preview is temporarily disabled until rail visualization is reimplemented.");
+            return false;
         }
     }
 }

@@ -1,8 +1,9 @@
 using Game.Train.Common;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 using UniRx;
+using UnityEngine;
 
 namespace Game.Train.RailGraph
 {
@@ -26,12 +27,12 @@ namespace Game.Train.RailGraph
         //①railnodeとrailnodeidの対応関係を記憶する辞書。id化はダイクストラ法高速化のため(約2倍以上)
         private Dictionary<RailNode, int> railNodeToId;//①
         private List<RailNode> railNodes;//①
-        private MinHeap<int> nextidQueue;//① railNodeには1つの固有のintのidを割り当てている。これはダイクストラ高速化のため。そのidをなるべく若い順に使いたい
+        private RailNodeIdAllocator nodeIdAllocator;//① railNodeには1つの固有のintのidを割り当てている。これはダイクストラ高速化のため。そのidをなるべく若い順に使いたい。具体的な処理はRailNodeIdAllocatorコードのコメントをみて
         //②railnode同士の接続情報を記憶するリスト。connectNodes[railnodeid]がそのrailnodeからつながっているrailnodeidと距離のリストになる
         private List<List<(int, int)>> connectNodes;
+        private RailGraphPathFinder _pathFinder;//ダイクストラ法は専用クラスに委譲する
         //③railnodeとConnectionDestinationを1:1対応で記憶する辞書。ConnectionDestinationは座標や表裏情報をもつのでセーブ・ロード用やクライアント通信に使う
         // 座標はセーブ時と列車座標を求めるときや、RailPositionのRailNode情報から3D座標を復元するために使う
-        private Dictionary<int, ConnectionDestination> railIdToConnectionDestination;//③
         private Dictionary<ConnectionDestination, int> connectionDestinationToRailId;//③
         //④駅のレール端座標を記録。これは駅ブロック同士を隣接させて設置したとき自動でRailComponentが接続するので、その隣接探索コストをO(N)からO(1)にするためのもの。登録するのは駅関連のだけ
         // RailComponent座標から(RailComponent+FrontBack)を引く辞書。この座標は (ブロック座標+オフセット)*回転 のVector3。ブロック座標が巨大なときの浮動小数点数誤差は目を瞑る
@@ -42,12 +43,29 @@ namespace Game.Train.RailGraph
 
         // レールグラフ更新イベント
         // Rail graph update event
-        public static Subject<List<RailComponentID>> RailGraphUpdateEvent = new Subject<List<RailComponentID>>();
+        private readonly RailNodeInitializationNotifier _nodeInitializationNotifier = null!;
+        private readonly RailConnectionInitializationNotifier _connectionInitializationNotifier = null!;
+        private readonly RailNodeRemovalNotifier _nodeRemovalNotifier = null!;
+        private readonly RailConnectionRemovalNotifier _connectionRemovalNotifier = null!;
 
+        public static IObservable<RailNodeInitializationNotifier.RailNodeInitializationData> RailNodeInitializedEvent => Instance._nodeInitializationNotifier.RailNodeInitializedEvent;
+        public static IObservable<RailConnectionInitializationNotifier.RailConnectionInitializationData> RailConnectionInitializedEvent => Instance._connectionInitializationNotifier.RailConnectionInitializedEvent;
+        public static IObservable<RailNodeRemovalNotifier.RailNodeRemovedData> RailNodeRemovedEvent => Instance._nodeRemovalNotifier.RailNodeRemovedEvent;
+        public static IObservable<RailConnectionRemovalNotifier.RailConnectionRemovalData> RailConnectionRemovedEvent => Instance._connectionRemovalNotifier.RailConnectionRemovedEvent;
+
+        // ハッシュキャッシュ制御
+        // Hash cache control
+        private uint _cachedGraphHash;
+        private bool _isHashDirty;
 
         public RailGraphDatastore()
         {
             InitializeDataStore();
+            // RailNode -> RailComponentID の解決ロジックを Notifier に渡す
+            _nodeInitializationNotifier = new RailNodeInitializationNotifier();
+            _connectionInitializationNotifier = new RailConnectionInitializationNotifier();
+            _nodeRemovalNotifier = new RailNodeRemovalNotifier();
+            _connectionRemovalNotifier = new RailConnectionRemovalNotifier();
             _instance = this;
         }
 
@@ -55,11 +73,13 @@ namespace Game.Train.RailGraph
         {
             railNodeToId = new Dictionary<RailNode, int>();
             railNodes = new List<RailNode>();
-            nextidQueue = new MinHeap<int>();
+            nodeIdAllocator = new RailNodeIdAllocator(EnsureRailNodeSlot);
             connectNodes = new List<List<(int, int)>>();
-            railIdToConnectionDestination = new Dictionary<int, ConnectionDestination>();
             connectionDestinationToRailId = new Dictionary<ConnectionDestination, int>();
             railPositionToConnectionDestination = new Dictionary<Vector3Int, (ConnectionDestination first, ConnectionDestination second)>();
+            _pathFinder = new RailGraphPathFinder();
+            _cachedGraphHash = 0;
+            _isHashDirty = true;
         }
 
         private void ResetInternalState()
@@ -70,9 +90,11 @@ namespace Game.Train.RailGraph
                 if (node != null)
                     RemoveNode(node);
             }
-            // 既存のRailGraphUpdateEventを破棄して新規作成
-            RailGraphUpdateEvent?.Dispose();
-            RailGraphUpdateEvent = new Subject<List<RailComponentID>>();
+            // RailGraphUpdateEvent の再生成を Notifier に委譲
+            _nodeInitializationNotifier.Reset();
+            _connectionInitializationNotifier.Reset();
+            _nodeRemovalNotifier.Reset();
+            _connectionRemovalNotifier.Reset();
             InitializeDataStore();
         }
 
@@ -87,13 +109,23 @@ namespace Game.Train.RailGraph
             _instance.ResetInternalState();
         }
 
+
         //======================================================
         //  Public static API (外部から呼ばれるメソッド)  
         //======================================================
 
-        public static void AddNode(RailNode node)
+        public static void AddNodeSingle(RailNode node)
         {
-            Instance.AddNodeInternal(node);
+            Instance.AddNodeSingleInternal(node);
+        }
+        public static void AddNodePair(RailNode node1, RailNode node2) 
+        {
+            Instance.AddNodePairInternal(node1, node2);
+        }
+
+        public static RailNode GetOppositeNode(RailNode node) 
+        {
+            return Instance.GetOppositeNodeInternal(node);
         }
 
         public static void ConnectNode(RailNode node, RailNode targetNode, int distance)
@@ -114,21 +146,6 @@ namespace Game.Train.RailGraph
         public static void RemoveNode(RailNode node)
         {
             Instance.RemoveNodeInternal(node);
-        }
-
-        public static void AddRailComponentID(RailNode node, ConnectionDestination dest)
-        {
-            Instance.AddRailComponentIDInternal(node, dest);
-        }
-
-        public static ConnectionDestination GetConnectionDestination(RailNode node)
-        {
-            return Instance.GetConnectionDestinationInternal(node);
-        }
-
-        public static bool TryGetConnectionDestination(RailNode node, out ConnectionDestination destination)
-        {
-            return Instance.TryGetConnectionDestinationInternal(node, out destination);
         }
 
         public static RailNode ResolveRailNode(ConnectionDestination destination)
@@ -154,49 +171,99 @@ namespace Game.Train.RailGraph
             return Instance.FindShortestPathInternal(startid, targetid);
         }
 
-        /// <summary>
-        /// 全レール接続情報を取得する
-        /// Get all rail connection information
-        /// </summary>
-        public static List<RailConnectionInfo> GetAllRailConnections()
+        public static bool TryGetRailNodeId(RailNode node, out int nodeId)
         {
-            return Instance.GetAllRailConnectionsInternal();
+            return Instance.TryGetRailNodeIdInternal(node, out nodeId);
+        }
+
+        public static bool TryGetRailNode(int nodeId, out RailNode railNode)
+        {
+            return Instance.TryGetRailNodeInternal(nodeId, out railNode);
+        }
+
+        // ハッシュ取得メソッド
+        // Get hash method
+        public static uint GetConnectNodesHash()
+        {
+            return Instance.GetGraphHashInternal();
+        }
+
+        public static RailGraphSnapshot CaptureSnapshot()
+        {
+            return Instance.CaptureSnapshotInternal();
         }
 
         //======================================================
         //  内部実装部 (インスタンスメソッド)
         //======================================================
 
-        private void AddNodeInternal(RailNode node)
+        // RailNode/接続リストの容量を不足させない。新規nodeid割当コード用
+        // Ensure node and connection lists have enough slots
+        private void EnsureRailNodeSlot(int nodeId)
+        {
+            while (railNodes.Count <= nodeId)
+            {
+                railNodes.Add(null);
+                connectNodes.Add(new List<(int, int)>());
+            }
+        }
+
+        private void AddNodeSingleInternal(RailNode node)
         {
             if (railNodeToId.ContainsKey(node))
                 return;
-
-            int nextid;
-            if (nextidQueue.IsEmpty || (railNodes.Count < nextidQueue.Peek()))
-                nextidQueue.Insert(railNodes.Count);
-
-            nextid = nextidQueue.RemoveMin();
-            if (nextid == railNodes.Count)
-            {
-                railNodes.Add(node);
-                connectNodes.Add(new List<(int, int)>());
-            }
-            else
-            {
-                railNodes[nextid] = node;
-            }
-            railNodeToId[node] = nextid;
+            var nodeId = nodeIdAllocator.Rent();
+            connectNodes[nodeId].Clear();
+            railNodes[nodeId] = node;
+            railNodeToId[node] = nodeId;
+            if (!node.ConnectionDestination.IsDefault())
+                connectionDestinationToRailId[node.ConnectionDestination] = nodeId;
+            _nodeInitializationNotifier.Notify(nodeId);
+            MarkHashDirty();
         }
 
+        private void AddNodePairInternal(RailNode node1, RailNode node2) 
+        {
+            if (railNodeToId.ContainsKey(node1))
+                return;
+            if (railNodeToId.ContainsKey(node2))
+                return;
+            var (nodeId1, nodeId2) = nodeIdAllocator.Rent2();
+            connectNodes[nodeId1].Clear();
+            connectNodes[nodeId2].Clear();
+            railNodes[nodeId1] = node1;
+            railNodes[nodeId2] = node2;
+            railNodeToId[node1] = nodeId1;
+            railNodeToId[node2] = nodeId2;
+
+            if (!node1.ConnectionDestination.IsDefault())
+                connectionDestinationToRailId[node1.ConnectionDestination] = nodeId1;
+            if (!node2.ConnectionDestination.IsDefault())
+                connectionDestinationToRailId[node2.ConnectionDestination] = nodeId2;
+
+            _nodeInitializationNotifier.Notify(nodeId1);
+            _nodeInitializationNotifier.Notify(nodeId2);
+            MarkHashDirty();
+        }
+
+        private RailNode GetOppositeNodeInternal(RailNode node) 
+        {
+            if (!railNodeToId.ContainsKey(node))
+                return null;
+            var nodeid = railNodeToId[node];
+            var oppositeid = nodeid ^ 1;//表裏ノードはidが1違いなのでxorで求められる
+            if (oppositeid < 0 || oppositeid >= railNodes.Count)
+                return null;
+            return railNodes[oppositeid];
+        }
 
         private void ConnectNodeInternal(RailNode node, RailNode targetNode, int distance)
         {
             if (!railNodeToId.ContainsKey(node))
-                AddNodeInternal(node);
+                throw new InvalidOperationException("Attempted to connect a RailNode that is not registered in RailGraphDatastore.");
             var nodeid = railNodeToId[node];
             if (!railNodeToId.ContainsKey(targetNode))
-                AddNodeInternal(targetNode);
+                throw new InvalidOperationException("Attempted to connect to a RailNode that is not registered in RailGraphDatastore.");
             var targetid = railNodeToId[targetNode];
             if (!connectNodes[nodeid].Any(x => x.Item1 == targetid))
             {
@@ -207,10 +274,13 @@ namespace Game.Train.RailGraph
                 connectNodes[nodeid].RemoveAll(x => x.Item1 == targetid);
                 connectNodes[nodeid].Add((targetid, distance));
             }
-            
             // レールグラフ更新イベントを発火
             // Fire rail graph update event
-            NotifyRailGraphUpdate(node, targetNode);
+            // 距離更新の場合は上書き
+            // In case of distance update, overwrite
+            _connectionInitializationNotifier.Notify(nodeid, targetid, distance);
+            
+            MarkHashDirty();
         }
 
         private void DisconnectNodeInternal(RailNode node, RailNode targetNode)
@@ -218,8 +288,12 @@ namespace Game.Train.RailGraph
             var nodeid = railNodeToId[node];
             var targetid = railNodeToId[targetNode];
             connectNodes[nodeid].RemoveAll(x => x.Item1 == targetid);
+            // 接続削除を外部へ通知
+            // Broadcast the connection removal
+            _connectionRemovalNotifier.Notify(nodeid, node.Guid, targetid, targetNode.Guid);
             // レールグラフ更新イベントを発火
             // TODO 削除関連はまだ未対応
+            MarkHashDirty();
         }
 
         private void RemoveNodeInternal(RailNode node)
@@ -229,20 +303,19 @@ namespace Game.Train.RailGraph
             TrainDiagramManager.Instance.NotifyNodeRemoval(node);
             TrainRailPositionManager.Instance.NotifyNodeRemoval(node);
             var nodeid = railNodeToId[node];
+            // ノード削除イベントで差分同期
+            // Emit node removal diff for clients
+            _nodeRemovalNotifier.Notify(nodeid, node.Guid);
             railNodeToId.Remove(node);
-
-            if (railIdToConnectionDestination.ContainsKey(nodeid))
+            if (node.HasConnectionDestination) 
             {
-                var cdid = railIdToConnectionDestination[nodeid];
-                railIdToConnectionDestination.Remove(nodeid);
-                connectionDestinationToRailId.Remove(cdid);
+                connectionDestinationToRailId.Remove(node.ConnectionDestination);
             }
-
             railNodes[nodeid] = null;
-            nextidQueue.Insert(nodeid);
+            nodeIdAllocator.Return(nodeid);
             connectNodes[nodeid].Clear();
             RemoveNodeTo(nodeid);
-
+            MarkHashDirty();
         }
 
         private void RemoveNodeTo(int nodeid)
@@ -251,36 +324,28 @@ namespace Game.Train.RailGraph
             {
                 connectNodes[i].RemoveAll(x => x.Item1 == nodeid);
             }
+            MarkHashDirty();
         }
 
-
-        private void AddRailComponentIDInternal(RailNode node, ConnectionDestination dest)
+        private bool TryGetRailNodeIdInternal(RailNode node, out int nodeId)
         {
-            if (!railNodeToId.ContainsKey(node))
-                return;
-            var nodeid = railNodeToId[node];
-            railIdToConnectionDestination[nodeid] = dest;
-            connectionDestinationToRailId[dest] = nodeid;
-        }
-        private ConnectionDestination GetConnectionDestinationInternal(RailNode node)
-        {
-            TryGetConnectionDestinationInternal(node, out var destination);
-            return destination;
-        }
-
-        private bool TryGetConnectionDestinationInternal(RailNode node, out ConnectionDestination destination)
-        {
-            destination = ConnectionDestination.Default;
+            nodeId = -1;
             if (node == null)
             {
                 return false;
             }
+            return railNodeToId.TryGetValue(node, out nodeId);
+        }
 
-            if (!railNodeToId.TryGetValue(node, out var nodeId))
+        private bool TryGetRailNodeInternal(int nodeId, out RailNode node)
+        {
+            node = null;
+            if (nodeId < 0 || nodeId >= railNodes.Count)
             {
                 return false;
             }
-            return railIdToConnectionDestination.TryGetValue(nodeId, out destination);
+            node = railNodes[nodeId];
+            return node != null;
         }
 
         private RailNode ResolveRailNodeInternal(ConnectionDestination destination)
@@ -328,104 +393,56 @@ namespace Game.Train.RailGraph
             return -1;
         }
 
-        // レールグラフ更新イベントを発火するヘルパーメソッド
-        // Helper method to fire rail graph update event
-        private void NotifyRailGraphUpdate(RailNode node1, RailNode node2)
-        {
-            var changedComponentIds = new List<RailComponentID>();
-            
-            // 両ノードのConnectionDestinationからRailComponentIDを取得
-            if (TryGetConnectionDestinationInternal(node1, out var dest1))
-            {
-                changedComponentIds.Add(dest1.railComponentID);
-            }
-            if (TryGetConnectionDestinationInternal(node2, out var dest2))
-            {
-                changedComponentIds.Add(dest2.railComponentID);
-            }
-            
-            // イベントを発火
-            // Fire event
-            if (changedComponentIds.Count > 0)
-            {
-                RailGraphUpdateEvent.OnNext(changedComponentIds);
-            }
-        }
-
-        // 全レール接続情報を取得する内部実装
-        // Internal implementation to get all rail connections
-        private List<RailConnectionInfo> GetAllRailConnectionsInternal()
-        {
-            var connections = new List<RailConnectionInfo>();
-            
-            for (int i = 0; i < railNodes.Count; i++)
-            {
-                var fromNode = railNodes[i];
-                if (fromNode == null) continue;
-                
-                foreach (var (targetId, distance) in connectNodes[i])
-                {
-                    if (targetId < 0 || targetId >= railNodes.Count) continue;
-                    var toNode = railNodes[targetId];
-                    if (toNode == null) continue;
-                    
-                    connections.Add(new RailConnectionInfo(fromNode, toNode, distance));
-                }
-            }
-            
-            return connections;
-        }
-
         // ダイクストラ startからtargetへのnodeリストを返す、0がstart、最後がtarget
         private List<RailNode> FindShortestPathInternal(int startid, int targetid)
         {
-            var priorityQueue = new PriorityQueue<int, int>();
-            var distances = new List<int>();
-            var previousNodes = new List<int>();
+            // RailGraphPathFinder に処理を委譲
+            return _pathFinder.FindShortestPath(railNodes, connectNodes, startid, targetid);
+        }
 
-            for (int i = 0; i < railNodes.Count; i++)
-                distances.Add(int.MaxValue);
-            for (int i = 0; i < railNodes.Count; i++)
-                previousNodes.Add(-1);
+        private uint GetGraphHashInternal()
+        {
+            if (!_isHashDirty)
+                return _cachedGraphHash;
+            _cachedGraphHash = RailGraphHashCalculator.ComputeGraphStateHash(railNodes, connectNodes);
+            _isHashDirty = false;
+            return _cachedGraphHash;
+        }
 
-            distances[startid] = 0;
-            priorityQueue.Enqueue(startid, 0);
+        private void MarkHashDirty()
+        {
+            _isHashDirty = true;
+        }
 
-            while (priorityQueue.Count > 0)
+        private RailGraphSnapshot CaptureSnapshotInternal()
+        {
+            var nodes = new List<RailNodeInitializationNotifier.RailNodeInitializationData>(railNodes.Count);
+            for (var i = 0; i < railNodes.Count; i++)
             {
-                var currentNodecnt = priorityQueue.Dequeue();
-                if (currentNodecnt == targetid)
-                    break;
+                if (railNodes[i] == null)
+                    continue;
+                nodes.Add(
+                    new RailNodeInitializationNotifier.RailNodeInitializationData(
+                        i,
+                        railNodes[i].Guid,
+                        railNodes[i].ConnectionDestination,
+                        railNodes[i].FrontControlPoint.OriginalPosition,
+                        railNodes[i].FrontControlPoint.ControlPointPosition,
+                        railNodes[i].BackControlPoint.ControlPointPosition)
+                    );
+            }
 
-                foreach (var (neighbor, distance) in connectNodes[currentNodecnt])
+            var connections = new List<RailGraphConnectionSnapshot>();
+            for (var fromId = 0; fromId < connectNodes.Count; fromId++)
+            {
+                foreach (var (targetId, distance) in connectNodes[fromId])
                 {
-                    int newDistance = distances[currentNodecnt] + distance;
-                    if (newDistance < 0)
-                        continue;
-                    if (newDistance < distances[neighbor])
-                    {
-                        distances[neighbor] = newDistance;
-                        previousNodes[neighbor] = currentNodecnt;
-                        priorityQueue.Enqueue(neighbor, newDistance);
-                    }
+                    connections.Add(new RailGraphConnectionSnapshot(fromId, targetId, distance));
                 }
             }
 
-            var path = new List<int>();
-            var current = targetid;
-            while (current != -1)
-            {
-                path.Add(current);
-                current = previousNodes[current];
-            }
-
-            if (path.Last() != startid)
-            {
-                return new List<RailNode>();
-            }
-            path.Reverse();
-            var pathNodes = path.Select(id => railNodes[id]).ToList();
-            return pathNodes;
+            var hash = GetGraphHashInternal();
+            return new RailGraphSnapshot(nodes, connections, hash, TrainUpdateService.CurrentTick);
         }
     }
 }

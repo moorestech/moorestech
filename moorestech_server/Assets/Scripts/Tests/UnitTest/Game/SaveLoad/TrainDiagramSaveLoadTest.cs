@@ -50,8 +50,8 @@ namespace Tests.UnitTest.Game.SaveLoad
                 var actual = loadedTrain.trainDiagram.Entries[i];
 
                 Assert.AreEqual(expected.EntryId, actual.entryId, $"エントリ{i}のIDが一致しません。");
-                Assert.IsTrue(RailGraphDatastore.TryGetConnectionDestination(actual.Node, out var connection),
-                    $"エントリ{i}のRailComponentIDを解決できません。");
+                var connection = actual.Node.ConnectionDestination;
+                Assert.IsTrue(actual.Node.HasConnectionDestination, $"エントリ{i}のRailComponentIDを解決できません。");
 
                 var destination = connection.railComponentID;
                 var actualPosition = new Vector3Int(destination.Position.x, destination.Position.y, destination.Position.z);
@@ -101,8 +101,8 @@ namespace Tests.UnitTest.Game.SaveLoad
                 var actual = loadedTrain.trainDiagram.Entries[i];
 
                 Assert.AreEqual(expected.EntryId, actual.entryId, $"エントリ{i}のIDが一致しません。");
-                Assert.IsTrue(RailGraphDatastore.TryGetConnectionDestination(actual.Node, out var connection),
-                    $"エントリ{i}のRailComponentIDを解決できません。");
+                var connection = actual.Node.ConnectionDestination;
+                Assert.IsTrue(actual.Node.HasConnectionDestination, $"エントリ{i}のRailComponentIDを解決できません。");
 
                 var destination = connection.railComponentID;
                 var actualPosition = new Vector3Int(destination.Position.x, destination.Position.y, destination.Position.z);
@@ -182,8 +182,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             for (var i = 0; i < train.trainDiagram.Entries.Count; i++)
             {
                 var entry = train.trainDiagram.Entries[i];
-                Assert.IsTrue(RailGraphDatastore.TryGetConnectionDestination(entry.Node, out var connection),
-                    $"エントリ{i}のRailComponentIDを取得できません。");
+                var connection = entry.Node.ConnectionDestination;
+                Assert.IsTrue(entry.Node.HasConnectionDestination, $"エントリ{i}のRailComponentIDを取得できません。");
 
                 var destination = connection.railComponentID;
                 var position = new Vector3Int(destination.Position.x, destination.Position.y, destination.Position.z);

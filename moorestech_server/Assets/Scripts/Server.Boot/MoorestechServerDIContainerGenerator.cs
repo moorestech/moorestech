@@ -49,6 +49,7 @@ using Server.Event;
 using Server.Event.EventReceive;
 using Server.Event.EventReceive.UnifiedInventoryEvent;
 using Server.Protocol;
+using Server.Protocol.PacketResponse;
 
 namespace Server.Boot
 {
@@ -118,10 +119,11 @@ namespace Server.Boot
             services.AddSingleton<MaxElectricPoleMachineConnectionRange, MaxElectricPoleMachineConnectionRange>();
             services.AddSingleton<IEntitiesDatastore, EntitiesDatastore>();
             services.AddSingleton<IEntityFactory, EntityFactory>(); // TODO これを削除してContext側に加える？
-            services.AddSingleton<GearNetworkDatastore>();
-            services.AddSingleton<RailGraphDatastore>();
-            services.AddSingleton<TrainDiagramManager>();
-            services.AddSingleton<TrainRailPositionManager>();
+            services.AddSingleton(initializerProvider.GetService<GearNetworkDatastore>());
+            services.AddSingleton(initializerProvider.GetService<RailGraphDatastore>());
+            services.AddSingleton<RailConnectionCommandHandler>();
+            services.AddSingleton(initializerProvider.GetService<TrainDiagramManager>());
+            services.AddSingleton(initializerProvider.GetService<TrainRailPositionManager>());
 
             services.AddSingleton<IGameUnlockStateDataController, GameUnlockStateDataController>();
             services.AddSingleton<CraftTreeManager>();
@@ -161,7 +163,11 @@ namespace Server.Boot
 
             services.AddSingleton<MapObjectUpdateEventPacket>();
             services.AddSingleton<UnlockedEventPacket>();
-            services.AddSingleton<RailConnectionsEventPacket>();
+            services.AddSingleton<RailNodeCreatedEventPacket>();
+            services.AddSingleton<RailConnectionCreatedEventPacket>();
+            services.AddSingleton<RailGraphHashStateEventPacket>();
+            services.AddSingleton<RailNodeRemovedEventPacket>();
+            services.AddSingleton<RailConnectionRemovedEventPacket>();
             
             //データのセーブシステム
             services.AddSingleton<AssembleSaveJsonText, AssembleSaveJsonText>();
@@ -189,7 +195,11 @@ namespace Server.Boot
             serviceProvider.GetService<MapObjectUpdateEventPacket>();
             serviceProvider.GetService<UnlockedEventPacket>();
             serviceProvider.GetService<ResearchCompleteEventPacket>();
-            serviceProvider.GetService<RailConnectionsEventPacket>();
+            serviceProvider.GetService<RailNodeCreatedEventPacket>();
+            serviceProvider.GetService<RailConnectionCreatedEventPacket>();
+            serviceProvider.GetService<RailGraphHashStateEventPacket>();
+            serviceProvider.GetService<RailNodeRemovedEventPacket>();
+            serviceProvider.GetService<RailConnectionRemovedEventPacket>();
             
             serverContext.SetMainServiceProvider(serviceProvider);
 

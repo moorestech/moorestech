@@ -1,4 +1,5 @@
 using Game.Block.Interface;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -10,15 +11,22 @@ namespace Game.Train.RailGraph
 {
     public class RailNode
     {
-        //Node（このクラスのインスタンス）とIdの違いに注意。また、このクラスではIdは一切使わない
-        //public RailNodeId NodeId { get; }  // ノードを識別するためのユニークなID→一旦廃止。RailGraphだけが使うためのNodeIdは存在する
-        // 自分に対応する裏表のノード
-        public RailNode OppositeNode { get; private set; }
         public RailControlPoint FrontControlPoint { get; private set; }
         public RailControlPoint BackControlPoint { get; private set; }
         //このノードが駅に対応するときの駅ブロックのworld座標などを格納
         public StationReference StationRef { get; set; }
+        public ConnectionDestination ConnectionDestination { get; private set; } = ConnectionDestination.Default;
+        public bool HasConnectionDestination => !ConnectionDestination.IsDefault();
+        public Guid Guid { get; }
 
+        // 自分に対応する裏表のノード
+        public RailNode OppositeNode
+        {
+            get
+            {
+                return RailGraphDatastore.GetOppositeNode(this);
+            }
+        }
 
         /// なぜ IEnumerable を使うのか？
         //IEnumerable<RailNode> を使う理由には以下があります：
@@ -48,24 +56,40 @@ namespace Game.Train.RailGraph
             }
         }
 
+        // 基本的にrailComponent以外からの呼び出しに対応。テストなど。表裏に対応しないrailnodeを作成するため
         public RailNode()
         {
-            RailGraphDatastore.AddNode(this);
-            FrontControlPoint = null;
-            BackControlPoint = null;
-            StationRef = new StationReference(); // デフォルトのStationReferenceを設定
+            Guid = Guid.NewGuid();
+            FrontControlPoint = new RailControlPoint(new Vector3(-1, -1, -1), new Vector3(-1, -1, -1));
+            BackControlPoint = new RailControlPoint(new Vector3(-1, -1, -1), new Vector3(-1, -1, -1));
+            StationRef = new StationReference();
+            ConnectionDestination = ConnectionDestination.Default;
         }
-
-        //RailNode oppositeNode のset。基本的にrailComponentのコンストラクタでのみ使う
-        public void SetOppositeNode(RailNode oppositeNode)
+        // 表裏セットでRailGraphに登録する、テスト用
+        public static (RailNode front, RailNode back) CreatePairAndRegister()
         {
-            OppositeNode = oppositeNode;
+            var a = new RailNode();
+            var b = new RailNode();
+            RailGraphDatastore.AddNodePair(a, b);
+            return (a, b);
+        }
+        //テスト用など　、片方だけRailGraphに登録したいときに使う
+        public static RailNode CreateSingleAndRegister()
+        {
+            var n = new RailNode();
+            RailGraphDatastore.AddNodeSingle(n);
+            return n;
         }
 
         public void SetRailControlPoints(RailControlPoint frontControlPoint, RailControlPoint backControlPoint)
         {
             FrontControlPoint = frontControlPoint;
             BackControlPoint = backControlPoint;
+        }
+
+        public void SetConnectionDestination(ConnectionDestination destination)
+        {
+            ConnectionDestination = destination;
         }
 
         //RailGraphに登録する
@@ -116,7 +140,6 @@ namespace Game.Train.RailGraph
         public void Destroy()
         {
             RailGraphDatastore.RemoveNode(this);
-            OppositeNode = null;
             StationRef = null;
         }
 

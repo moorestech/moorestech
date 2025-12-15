@@ -43,14 +43,19 @@ namespace Client.DebugSystem
                 
                 // テストプレイ用の空レスポンスを構築
                 // Build an empty response set for test play
-                var railConnections = Array.Empty<RailConnectionDataMessagePack>();
                 var mapObjects = new List<MapObjectsInfoMessagePack>();
                 var challenges = new List<ChallengeCategoryResponse>();
                 var playedSkitIds = new List<string>();
                 var researchNodeStates = new Dictionary<Guid, ResearchNodeState>();
+                var railGraphSnapshot = new RailGraphSnapshotMessagePack
+                {
+                    Nodes = new List<RailNodeCreatedMessagePack>(),
+                    Connections = new List<RailGraphConnectionSnapshotMessagePack>(),
+                    GraphHash = 0u,
+                    GraphTick = 0,
+                };
                 
                 var responses = (
-                    railConnections,
                     mapObjects,
                     worldData,
                     inventory,
@@ -58,7 +63,8 @@ namespace Client.DebugSystem
                     unlockState,
                     craftTree,
                     playedSkitIds,
-                    researchNodeStates);
+                    researchNodeStates,
+                    railGraphSnapshot);
                 
                 return new InitialHandshakeResponse(handshake, responses);
             }

@@ -26,9 +26,9 @@ namespace Tests.UnitTest.Game
             var env = TrainTestHelper.CreateEnvironment();
             _ = env.GetRailGraphDatastore();
 
-            var startNode = new RailNode();
-            var removedNode = new RailNode();
-            var nextNode = new RailNode();
+            var startNode = RailNode.CreateSingleAndRegister();
+            var removedNode = RailNode.CreateSingleAndRegister();
+            var nextNode = RailNode.CreateSingleAndRegister();
 
             startNode.ConnectNode(removedNode, 10);
             removedNode.ConnectNode(startNode, 10);
