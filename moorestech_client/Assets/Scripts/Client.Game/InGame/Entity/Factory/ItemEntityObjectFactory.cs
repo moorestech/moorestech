@@ -1,3 +1,4 @@
+using Client.Common.Asset;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Entity.Object;
 using Client.Network.API;
@@ -15,40 +16,33 @@ namespace Client.Game.InGame.Entity.Factory
     /// </summary>
     public class ItemEntityObjectFactory : IEntityObjectFactory
     {
-        private const string AddressablePath = "Vanilla/Game/ItemEntity";
-        
-        private readonly GameObject _itemPrefab;
-        
-        public ItemEntityObjectFactory()
-        {
-            _itemPrefab = Resources.Load<GameObject>(AddressablePath);
-        }
-        
+        private const string DefaultItemPrefabPath = "Vanilla/Game/ItemEntity";
+
+        private GameObject _defaultItemPrefab;
+
         /// <summary>
         /// アイテムエンティティを生成
         /// Create item entity
         /// </summary>
         public async UniTask<IEntityObject> CreateEntity(Transform parent, EntityResponse entity)
         {
-            var itemObject = GameObject.Instantiate(_itemPrefab, entity.Position, Quaternion.identity, parent);
-            
-            // StateデータからItemIdを復元してテクスチャを設定
-            // Restore ItemId from state data and set texture
+            // StateデータからItemIdを復元
+            // Restore ItemId from state data
             var itemState = DeserializeState();
-            var id = new ItemId(itemState.ItemId);
-            var viewData = ClientContext.ItemImageContainer.GetItemView(id);
-            Texture texture = null;
-            if (viewData != null)
+            var itemId = new ItemId(itemState.ItemId);
+            var itemMaster = MasterHolder.ItemMaster.GetItemMaster(itemId);
+
+            // カスタムモデルパスが設定されている場合
+            // If custom model path is set
+            if (!string.IsNullOrEmpty(itemMaster.EntityModelAddressablePath))
             {
-                texture = viewData.ItemTexture;
+                return await CreateCustomModelEntity(parent, entity, itemMaster.EntityModelAddressablePath, itemId);
             }
-            
-            var item = itemObject.GetComponent<ItemEntityObject>();
-            item.SetTexture(texture);
-            return item;
-            
+
+            return await CreateTextureBasedEntity(parent, entity, itemId);
+
             #region Internal
-            
+
             ItemEntityStateMessagePack DeserializeState()
             {
                 // データが空の場合は既定値を返す
@@ -56,7 +50,56 @@ namespace Client.Game.InGame.Entity.Factory
                 if (entity.EntityData == null || entity.EntityData.Length == 0) return new ItemEntityStateMessagePack();
                 return MessagePackSerializer.Deserialize<ItemEntityStateMessagePack>(entity.EntityData);
             }
-            
+
+            async UniTask<IEntityObject> CreateTextureBasedEntity(Transform parentTransform, EntityResponse entityResponse, ItemId id)
+            {
+                // デフォルトPrefabをロード（初回のみ）
+                // Load default prefab (only first time)
+                if (_defaultItemPrefab == null)
+                {
+                    _defaultItemPrefab = await AddressableLoader.LoadAsyncDefault<GameObject>(DefaultItemPrefabPath);
+                }
+
+                // テクスチャベースのエンティティを生成
+                // Create texture-based entity
+                var itemObject = GameObject.Instantiate(_defaultItemPrefab, entityResponse.Position, Quaternion.identity, parentTransform);
+
+                var viewData = ClientContext.ItemImageContainer.GetItemView(id);
+                Texture texture = null;
+                if (viewData != null)
+                {
+                    texture = viewData.ItemTexture;
+                }
+
+                var item = itemObject.GetComponent<ItemEntityObject>();
+                item.SetTexture(texture);
+                return item;
+            }
+
+            async UniTask<IEntityObject> CreateCustomModelEntity(Transform parentTransform, EntityResponse entityResponse, string addressablePath, ItemId id)
+            {
+                // カスタムモデルをロード
+                // Load custom model
+                var loadedPrefab = await AddressableLoader.LoadAsyncDefault<GameObject>(addressablePath);
+
+                // ロード失敗時はテクスチャベースにフォールバック
+                // Fallback to texture-based if load fails
+                if (loadedPrefab == null)
+                {
+                    Debug.LogError($"Failed to load custom entity model: {addressablePath}. Falling back to texture-based display.");
+                    return await CreateTextureBasedEntity(parentTransform, entityResponse, id);
+                }
+
+                // カスタムモデルをインスタンス化
+                // Instantiate custom model
+                var customModelObject = GameObject.Instantiate(loadedPrefab, entityResponse.Position, Quaternion.identity, parentTransform);
+
+                // CustomModelItemEntityObjectコンポーネントを追加
+                // Add CustomModelItemEntityObject component
+                var customModelEntity = customModelObject.AddComponent<CustomModelItemEntityObject>();
+                return customModelEntity;
+            }
+
             #endregion
         }
     }
