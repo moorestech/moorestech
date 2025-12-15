@@ -605,6 +605,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9ae146a9e49d94150bfc50e4a80ab109
+    m_Address: Vanilla/Material/TutorialPreviewBlock
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 9b3e727208e72475d9570e3d360d29f4
     m_Address: Vanilla/Block/Chemical Plants
     m_ReadOnly: 0
