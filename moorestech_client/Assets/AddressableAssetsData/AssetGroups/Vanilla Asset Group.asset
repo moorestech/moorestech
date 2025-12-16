@@ -290,6 +290,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4de48accd99c74e2eb6d961c7a5de6d4
+    m_Address: Vanilla/Block/Primitive Miner 1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 50e0b09afaa3747d490bdd5d395c0c56
     m_Address: Vanilla/Block/Util/InventoryConnectorView
     m_ReadOnly: 0
