@@ -1,5 +1,6 @@
 using System;
 using Client.Game.InGame.Context;
+using Game.Train.RailGraph;
 using MessagePack;
 using Server.Event.EventReceive;
 using Server.Util.MessagePack;
@@ -48,7 +49,7 @@ namespace Client.Game.InGame.Train
             // メッセージを復号しキャッシュへUpsert
             // Decode message and upsert into cache
             var message = MessagePackSerializer.Deserialize<RailNodeCreatedMessagePack>(payload);
-            var destination = message.ConnectionDestination?.ToClientDestination() ?? ConnectionDestination.Default;
+            var destination = message.ConnectionDestination?.ToConnectionDestination() ?? ConnectionDestination.Default;
 
             _cache.UpsertNode(
                 message.NodeId,
