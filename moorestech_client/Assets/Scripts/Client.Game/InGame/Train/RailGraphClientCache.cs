@@ -19,6 +19,10 @@ namespace Client.Game.InGame.Train
         // RailGraphDatastoreと同型の接続リスト（indexがRailNodeId）
         // Connection list equivalent to RailGraphDatastore (index equals RailNodeId)
         private readonly List<List<(int targetId, int distance)>> _connectNodes = new();
+        // キャッシュをIRailNode化したリスト（indexがRailNodeId）
+        // IRailNode-compatible view of cached nodes aligned by RailNodeId
+        private readonly List<ClientRailNode> _clientNodes = new();
+        private readonly RailGraphIdPathFinder _idPathFinder = new();
 
         private static readonly Vector3 DefaultPosition = new Vector3(-1f, -1f, -1f);
 
@@ -41,6 +45,11 @@ namespace Client.Game.InGame.Train
         // ConnectionDestination→RailNodeIdの逆引き（読み取りのみ）
         // Expose reverse lookup dictionary as read-only
         public IReadOnlyDictionary<ConnectionDestination, int> ConnectionDestinationIndex => _connectionDestinationToNodeId;
+
+        // IRailNode向けのキャッシュビュー（読み取りのみ）
+        // Expose IRailNode-backed cache view
+        public IReadOnlyList<ClientRailNode> ClientNodes => _clientNodes;
+        public event Action<IReadOnlyList<ClientRailNode>> ClientNodesRebuilt;
 
         // 最新Tickを確認するためのプロパティ
         // Property to observe the newest applied tick
@@ -68,6 +77,7 @@ namespace Client.Game.InGame.Train
             ResetSlots(snapshotNodes.Count);
             CopySnapshotData();
             _lastConfirmedTick = snapshotTick;
+            RebuildClientNodes();
             TrainRailObjectManager.Instance?.OnCacheRebuilt(this);
 
             #region Internal
@@ -117,6 +127,7 @@ namespace Client.Game.InGame.Train
             var state = new RailNodeInitData(nodeId, nodeGuid, connectionDestination, controlOrigin, primaryControlPoint, oppositeControlPoint);
             StoreNodeState(nodeId, state);
             UpdateTick(eventTick);
+            RebuildClientNodes();
         }
 
         // ノード削除差分を適用し関連接続も破棄する
@@ -140,6 +151,7 @@ namespace Client.Game.InGame.Train
             }
             RemoveIncomingConnections(nodeId);
             UpdateTick(eventTick);
+            RebuildClientNodes();
         }
 
         // 接続情報の差分を適用する（存在すれば距離上書き）
@@ -167,6 +179,7 @@ namespace Client.Game.InGame.Train
             }
 
             UpdateTick(eventTick);
+            RebuildClientNodes();
             TrainRailObjectManager.Instance?.OnConnectionUpserted(fromNodeId, toNodeId, this);
         }
 
@@ -186,6 +199,7 @@ namespace Client.Game.InGame.Train
             }
 
             UpdateTick(eventTick);
+            RebuildClientNodes();
             TrainRailObjectManager.Instance?.OnConnectionRemoved(fromNodeId, toNodeId, this);
         }
 
@@ -243,6 +257,18 @@ namespace Client.Game.InGame.Train
                 _nodeStates.Add(CreateDefaultNode(_nodeStates.Count));
                 _connectNodes.Add(new List<(int targetId, int distance)>());
             }
+        }
+
+        // ノードのIRailNodeビューを再構成する
+        // Rebuild IRailNode-friendly views of cached nodes
+        private void RebuildClientNodes()
+        {
+            _clientNodes.Clear();
+            for (var i = 0; i < _nodeStates.Count; i++)
+            {
+                _clientNodes.Add(new ClientRailNode(_nodeStates[i], _connectNodes, _idPathFinder));
+            }
+            ClientNodesRebuilt?.Invoke(_clientNodes);
         }
 
         // 有効範囲かどうか簡易チェック

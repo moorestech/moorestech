@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Game.Train.RailGraph
 {
-    public class RailNode
+    public class RailNode : IRailNode
     {
         public RailControlPoint FrontControlPoint { get; private set; }
         public RailControlPoint BackControlPoint { get; private set; }
@@ -18,6 +18,8 @@ namespace Game.Train.RailGraph
         public ConnectionDestination ConnectionDestination { get; private set; } = ConnectionDestination.Default;
         public bool HasConnectionDestination => !ConnectionDestination.IsDefault();
         public Guid Guid { get; }
+        public int NodeId => RailGraphDatastore.TryGetRailNodeId(this, out var nodeId) ? nodeId : -1;
+        public int OppositeNodeId => NodeId >= 0 ? NodeId ^ 1 : -1;
 
         // 自分に対応する裏表のノード
         public RailNode OppositeNode
@@ -55,6 +57,8 @@ namespace Game.Train.RailGraph
                 return RailGraphDatastore.GetConnectedNodesWithDistance(this); 
             }
         }
+
+        IEnumerable<(int nodeId, int distance)> IRailNode.ConnectedNodesWithDistance => RailGraphDatastore.GetConnectedNodeIdsWithDistance(NodeId);
 
         // 基本的にrailComponent以外からの呼び出しに対応。テストなど。表裏に対応しないrailnodeを作成するため
         public RailNode()
@@ -109,31 +113,30 @@ namespace Game.Train.RailGraph
         //経路探索して接続していれば距離を返す、見つからなければ-1
         public int GetDistanceToNode(RailNode node,bool UseFindPath = false)
         {
-            //見つからなければ-1
-            if (UseFindPath == false)
-            {
-                return RailGraphDatastore.GetDistanceBetweenNodes(this, node);
-            }
-            else 
-            {
-                //経路探索ありver
-                var nodelist = RailGraphDatastore.FindShortestPath(this, node);
-                if (nodelist == null || nodelist.Count < 2)
-                {
-                    return -1;
-                }
-                else
-                {
-                    //最初のノードは自分なので、次のノードまでの距離を返す、ループ
-                    int totalDistance = 0;
-                    for (int i = 0; i < nodelist.Count - 1; i++)
-                    {
-                        totalDistance += RailGraphDatastore.GetDistanceBetweenNodes(nodelist[i], nodelist[i + 1]);
-                    }
-                    return totalDistance;
-                }
-            }
+            // ノードIDを解決できなければ距離計算を諦める
+            // Abort when node ids cannot be resolved for the query
+            if (node == null)
+                return -1;
+            var targetResolved = RailGraphDatastore.TryGetRailNodeId(node, out var targetId);
+            if (!targetResolved || NodeId < 0)
+                return -1;
+            if (!UseFindPath)
+                return RailGraphDatastore.GetDistanceBetweenNodes(NodeId, targetId, true);
+            var pathResult = RailGraphDatastore.FindShortestPathIds(NodeId, targetId);
+            return pathResult.Distance;
         }
+
+        int IRailNode.GetDistanceToNode(int nodeId, bool useFindPath)
+        {
+            if (NodeId < 0 || nodeId < 0)
+                return -1;
+            if (!useFindPath)
+                return RailGraphDatastore.GetDistanceBetweenNodes(NodeId, nodeId, true);
+            var pathResult = RailGraphDatastore.FindShortestPathIds(NodeId, nodeId);
+            return pathResult.Distance;
+        }
+
+        Guid IRailNode.NodeGuid => Guid;
 
 
         //RailGraphから削除する

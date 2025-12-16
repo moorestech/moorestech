@@ -143,6 +143,11 @@ namespace Game.Train.RailGraph
             return Instance.GetConnectedNodesWithDistanceInternal(node);
         }
 
+        public static IReadOnlyList<(int targetId, int distance)> GetConnectedNodeIdsWithDistance(int nodeId)
+        {
+            return Instance.GetConnectedNodeIdsWithDistanceInternal(nodeId);
+        }
+
         public static void RemoveNode(RailNode node)
         {
             Instance.RemoveNodeInternal(node);
@@ -158,6 +163,11 @@ namespace Game.Train.RailGraph
             return Instance.GetDistanceBetweenNodesInternal(start, target, logging);
         }
 
+        public static int GetDistanceBetweenNodes(int startId, int targetId, bool logging)
+        {
+            return Instance.GetDistanceBetweenNodesInternal(startId, targetId, logging);
+        }
+
         /// <summary>
         /// ダイクストラ法による最短経路を返す
         /// </summary>
@@ -169,6 +179,11 @@ namespace Game.Train.RailGraph
         public static List<RailNode> FindShortestPath(int startid, int targetid)
         {
             return Instance.FindShortestPathInternal(startid, targetid);
+        }
+
+        public static RailPathResult FindShortestPathIds(int startid, int targetid)
+        {
+            return Instance.FindShortestPathIdsInternal(startid, targetid);
         }
 
         public static bool TryGetRailNodeId(RailNode node, out int nodeId)
@@ -373,6 +388,13 @@ namespace Game.Train.RailGraph
             return connectNodes[nodeId].Select(x => (railNodes[x.Item1], x.Item2)).ToList();
         }
 
+        private IReadOnlyList<(int targetId, int distance)> GetConnectedNodeIdsWithDistanceInternal(int nodeId)
+        {
+            if (nodeId < 0 || nodeId >= connectNodes.Count)
+                return Array.Empty<(int, int)>();
+            return connectNodes[nodeId];
+        }
+
         private int GetDistanceBetweenNodesInternal(RailNode start, RailNode target, bool logging = true)
         {
             if (!railNodeToId.ContainsKey(start) || !railNodeToId.ContainsKey(target))
@@ -383,21 +405,38 @@ namespace Game.Train.RailGraph
             }
             int startid = railNodeToId[start];
             int targetid = railNodeToId[target];
-            foreach (var (neighbor, distance) in connectNodes[startid])
+            return GetDistanceBetweenNodesInternal(startid, targetid, logging);
+        }
+
+        private int GetDistanceBetweenNodesInternal(int startId, int targetId, bool logging)
+        {
+            if (startId < 0 || startId >= connectNodes.Count || targetId < 0 || targetId >= connectNodes.Count)
             {
-                if (neighbor == targetid)
+                if (logging)
+                    Debug.LogWarning("RailNodeIdが範囲外です");
+                return -1;
+            }
+
+            foreach (var (neighbor, distance) in connectNodes[startId])
+            {
+                if (neighbor == targetId)
                     return distance;
             }
+
             if (logging)
-                Debug.LogWarning("RailNodeがつながっていません " + startid + " to " + targetid);
+                Debug.LogWarning("RailNodeがつながっていません " + startId + " to " + targetId);
             return -1;
         }
 
         // ダイクストラ startからtargetへのnodeリストを返す、0がstart、最後がtarget
         private List<RailNode> FindShortestPathInternal(int startid, int targetid)
         {
-            // RailGraphPathFinder に処理を委譲
             return _pathFinder.FindShortestPath(railNodes, connectNodes, startid, targetid);
+        }
+
+        private RailPathResult FindShortestPathIdsInternal(int startid, int targetid)
+        {
+            return _pathFinder.FindShortestPathIds(connectNodes, startid, targetid);
         }
 
         private uint GetGraphHashInternal()
