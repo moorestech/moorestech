@@ -39,7 +39,7 @@ namespace Game.Block.Blocks.BeltConveyor
             this(inventoryItemNum, timeOfItemEnterToExit, blockInventoryInserter, slopeType)
         {
             var itemJsons = JsonConvert.DeserializeObject<List<string>>(componentStates[SaveKey]);
-            for (var i = 0; i < itemJsons.Count; i++)
+            for (var i = 0; i < itemJsons.Count && i < inventoryItemNum; i++)
             {
                 if (itemJsons[i] != null)
                 {
