@@ -3,6 +3,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Train;
 using Client.Input;
+using Game.Train.RailGraph;
 using UnityEngine;
 using static Client.Common.LayerConst;
 using static Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect.TrainRailConnectPreviewCalculator;
@@ -40,7 +41,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 if (_connectFromArea != null)
                 {
                     var destination = _connectFromArea.CreateConnectionDestination();
-                    Debug.Log($"接続スタート {_connectFromArea.IsFront} {destination.ComponentPosition}");
+                    var componentPosition = (Vector3Int)destination.railComponentID.Position;
+                    Debug.Log($"接続スタート {_connectFromArea.IsFront} {componentPosition}");
                 }
                 return;
             }
@@ -58,7 +60,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             // Compute ConnectionDestination for both endpoints
             var fromDestination = _connectFromArea.CreateConnectionDestination();
             var toDestination = connectToArea.CreateConnectionDestination();
-            if (fromDestination.IsDefault || toDestination.IsDefault)
+            if (fromDestination.IsDefault() || toDestination.IsDefault())
             {
                 Debug.LogWarning("[TrainRailConnect] Invalid destination detected. Re-select connection target.");
                 _previewObject.SetActive(false);

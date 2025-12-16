@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using Client.Network.API;
+using Game.Train.RailGraph;
 using Server.Util.MessagePack;
 using UnityEngine;
 using VContainer.Unity;
+using RailNodeInitData = Game.Train.RailGraph.RailNodeInitializationNotifier.RailNodeInitializationData;
 
 namespace Client.Game.InGame.Train
 {
@@ -49,13 +51,9 @@ namespace Client.Game.InGame.Train
             // 事前確保したコンテナにノード情報を流し込み
             // Populate prepared containers with node information
             var size = maxNodeId + 1;
-            var nodeGuids = CreateList(size, Guid.Empty);
-            var controlOrigins = CreateList(size, Vector3.zero);
-            var primaryControls = CreateList(size, Vector3.zero);
-            var oppositeControls = CreateList(size, Vector3.zero);
-            var destinations = CreateList(size, ConnectionDestination.Default);
+            var nodeStates = CreateNodeList(size);
             var adjacency = CreateAdjacency(size);
-            PopulateNodes(snapshot, size, nodeGuids, controlOrigins, primaryControls, oppositeControls, destinations);
+            PopulateNodes(snapshot, size, nodeStates);
 
             // 辺データを隣接リストへ登録
             // Apply edge information onto adjacency list
@@ -63,14 +61,7 @@ namespace Client.Game.InGame.Train
 
             // まとめてキャッシュへ反映
             // Commit prepared data to cache
-            _cache.ApplySnapshot(
-                nodeGuids,
-                controlOrigins,
-                adjacency,
-                destinations,
-                primaryControls,
-                oppositeControls,
-                snapshot.GraphTick);
+            _cache.ApplySnapshot(nodeStates, adjacency, snapshot.GraphTick);
 
             #region Internal
 
@@ -88,11 +79,7 @@ namespace Client.Game.InGame.Train
             void PopulateNodes(
                 RailGraphSnapshotMessagePack targetSnapshot,
                 int limit,
-                List<Guid> guidList,
-                List<Vector3> originList,
-                List<Vector3> primaryList,
-                List<Vector3> oppositeList,
-                List<ConnectionDestination> destinationList)
+                List<RailNodeInitData> nodeList)
             {
                 // ノードごとの必須データを単純代入
                 // Copy core node data with simple assignments
@@ -103,11 +90,11 @@ namespace Client.Game.InGame.Train
                         continue;
                     }
 
-                    guidList[node.NodeId] = node.NodeGuid;
-                    originList[node.NodeId] = node.OriginPoint?.ToUnityVector() ?? Vector3.zero;
-                    primaryList[node.NodeId] = node.FrontControlPoint?.ToUnityVector() ?? Vector3.zero;
-                    oppositeList[node.NodeId] = node.BackControlPoint?.ToUnityVector() ?? Vector3.zero;
-                    destinationList[node.NodeId] = node.ConnectionDestination?.ToClientDestination() ?? ConnectionDestination.Default;
+                    var destination = node.ConnectionDestination?.ToConnectionDestination() ?? ConnectionDestination.Default;
+                    var origin = node.OriginPoint?.ToUnityVector() ?? Vector3.zero;
+                    var primary = node.FrontControlPoint?.ToUnityVector() ?? Vector3.zero;
+                    var opposite = node.BackControlPoint?.ToUnityVector() ?? Vector3.zero;
+                    nodeList[node.NodeId] = new RailNodeInitData(node.NodeId, node.NodeGuid, destination, origin, primary, opposite);
                 }
             }
 
@@ -166,14 +153,14 @@ namespace Client.Game.InGame.Train
                 return max;
             }
 
-            List<T> CreateList<T>(int capacity, T defaultValue)
+            List<RailNodeInitData> CreateNodeList(int capacity)
             {
                 // 既知サイズのリストを初期値で埋める
-                // Pre-fill list with the provided default value
-                var list = new List<T>(capacity);
+                // Pre-fill node list with default data
+                var list = new List<RailNodeInitData>(capacity);
                 for (var i = 0; i < capacity; i++)
                 {
-                    list.Add(defaultValue);
+                    list.Add(new RailNodeInitData(i, Guid.Empty, ConnectionDestination.Default, Vector3.zero, Vector3.zero, Vector3.zero));
                 }
 
                 return list;

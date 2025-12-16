@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using Game.Train.RailGraph;
 using UnityEngine;
+using RailNodeInitData = Game.Train.RailGraph.RailNodeInitializationNotifier.RailNodeInitializationData;
 
 namespace Client.Game.InGame.Train
 {
@@ -10,28 +12,15 @@ namespace Client.Game.InGame.Train
     /// </summary>
     public sealed class RailGraphClientCache
     {
-        // ノードを一意に識別するGuidの連番テーブル
-        // Sequential table that stores node Guid per RailNodeId
-        private readonly List<Guid> _nodeGuids = new();
-
-        // ControlPositionの起点座標テーブル（indexはRailNodeIdと一致）
-        // Table that stores each control position origin aligned to the RailNodeId
-        private readonly List<Vector3> _controlPositionOrigins = new();
+        // RailNodeInitializationDataのスナップショットを保持
+        // Stores RailNodeInitializationData snapshots per nodeId
+        private readonly List<RailNodeInitData> _nodeStates = new();
 
         // RailGraphDatastoreと同型の接続リスト（indexがRailNodeId）
         // Connection list equivalent to RailGraphDatastore (index equals RailNodeId)
         private readonly List<List<(int targetId, int distance)>> _connectNodes = new();
 
-        // メイン側・反対側のベジェ制御点座標
-        // Store primary/opposite control point positions
-        private readonly List<Vector3> _primaryControlPoints = new();
-        private readonly List<Vector3> _oppositeControlPoints = new();
-
         private static readonly Vector3 DefaultPosition = new Vector3(-1f, -1f, -1f);
-
-        // RailNodeIdごとのConnectionDestination
-        // ConnectionDestination table per RailNodeId
-        private readonly List<ConnectionDestination> _connectionDestinations = new();
 
         // ConnectionDestination→RailNodeIdの逆引き辞書
         // Reverse lookup dictionary from ConnectionDestination to RailNodeId
@@ -41,30 +30,17 @@ namespace Client.Game.InGame.Train
         // Latest tick that has been fully applied to the cache
         private long _lastConfirmedTick;
 
-        // Guid配列の参照を外部へ公開（読み取りのみ）
-        // Expose node Guid snapshot as read-only
-        public IReadOnlyList<Guid> NodeGuids => _nodeGuids;
-
-        // ControlPosition起点の参照を外部へ公開（読み取りのみ）
-        // Expose control position origins as read-only
-        public IReadOnlyList<Vector3> ControlPositionOrigins => _controlPositionOrigins;
+        // RailNodeスナップショットを公開（読み取りのみ）
+        // Expose rail node snapshots as read-only
+        public IReadOnlyList<RailNodeInitData> NodeStates => _nodeStates;
 
         // 接続情報の参照を外部へ公開（読み取りのみ）
         // Expose connection adjacency list as read-only
         public IReadOnlyList<IReadOnlyList<(int targetId, int distance)>> ConnectNodes => _connectNodes;
 
-        // ConnectionDestinationの参照を外部へ公開（読み取りのみ）
-        // Expose connection destinations per node as read-only
-        public IReadOnlyList<ConnectionDestination> ConnectionDestinations => _connectionDestinations;
-
         // ConnectionDestination→RailNodeIdの逆引き（読み取りのみ）
         // Expose reverse lookup dictionary as read-only
         public IReadOnlyDictionary<ConnectionDestination, int> ConnectionDestinationIndex => _connectionDestinationToNodeId;
-
-        // 制御点座標の参照（読み取りのみ）
-        // Expose control point coordinates as read-only
-        public IReadOnlyList<Vector3> PrimaryControlPoints => _primaryControlPoints;
-        public IReadOnlyList<Vector3> OppositeControlPoints => _oppositeControlPoints;
 
         // 最新Tickを確認するためのプロパティ
         // Property to observe the newest applied tick
@@ -72,13 +48,7 @@ namespace Client.Game.InGame.Train
 
         public uint ComputeCurrentHash()
         {
-            return RailGraphClientHashCalculator.Compute(
-                _nodeGuids,
-                _controlPositionOrigins,
-                _primaryControlPoints,
-                _oppositeControlPoints,
-                _connectionDestinations,
-                _connectNodes);
+            return RailGraphHashCalculator.ComputeGraphStateHash(_nodeStates, _connectNodes);
         }
 
         internal void OverrideTick(long serverTick)
@@ -89,17 +59,13 @@ namespace Client.Game.InGame.Train
         // スナップショットを受け取ってキャッシュ全体を再構築する
         // Rebuild the cache from a full snapshot
         public void ApplySnapshot(
-            IReadOnlyList<Guid> snapshotNodeGuids,
-            IReadOnlyList<Vector3> snapshotControlOrigins,
+            IReadOnlyList<RailNodeInitData> snapshotNodes,
             IReadOnlyList<IReadOnlyList<(int targetId, int distance)>> snapshotConnectNodes,
-            IReadOnlyList<ConnectionDestination> snapshotConnectionDestinations,
-            IReadOnlyList<Vector3> snapshotPrimaryControlPoints,
-            IReadOnlyList<Vector3> snapshotOppositeControlPoints,
             long snapshotTick)
         {
             // 入力整合性:skip してからクリア＆コピー
             // Validate inputs(:skip) before clearing the cache and copying data
-            ResetSlots(snapshotNodeGuids.Count);
+            ResetSlots(snapshotNodes.Count);
             CopySnapshotData();
             _lastConfirmedTick = snapshotTick;
             TrainRailObjectManager.Instance?.OnCacheRebuilt(this);
@@ -108,33 +74,21 @@ namespace Client.Game.InGame.Train
 
             void ResetSlots(int requiredCount)
             {
-                _nodeGuids.Clear();
-                _controlPositionOrigins.Clear();
+                _nodeStates.Clear();
                 _connectNodes.Clear();
-                _connectionDestinations.Clear();
                 _connectionDestinationToNodeId.Clear();
-                _primaryControlPoints.Clear();
-                _oppositeControlPoints.Clear();
                 for (var i = 0; i < requiredCount; i++)
                 {
-                    _nodeGuids.Add(Guid.Empty);
-                    _controlPositionOrigins.Add(DefaultPosition);
+                    _nodeStates.Add(CreateDefaultNode(i));
                     _connectNodes.Add(new List<(int targetId, int distance)>());
-                    _connectionDestinations.Add(ConnectionDestination.Default);
-                    _primaryControlPoints.Add(DefaultPosition);
-                    _oppositeControlPoints.Add(DefaultPosition);
                 }
             }
 
             void CopySnapshotData()
             {
-                for (var i = 0; i < snapshotNodeGuids.Count; i++)
+                for (var i = 0; i < snapshotNodes.Count; i++)
                 {
-                    _nodeGuids[i] = snapshotNodeGuids[i];
-                    _controlPositionOrigins[i] = snapshotControlOrigins[i];
-                    _primaryControlPoints[i] = snapshotPrimaryControlPoints[i];
-                    _oppositeControlPoints[i] = snapshotOppositeControlPoints[i];
-                    AssignConnectionDestination(i, snapshotConnectionDestinations[i]);
+                    StoreNodeState(i, snapshotNodes[i]);
                     var destination = _connectNodes[i];
                     destination.Clear();
                     var sources = snapshotConnectNodes[i];
@@ -160,11 +114,8 @@ namespace Client.Game.InGame.Train
             long eventTick)
         {
             EnsureNodeSlot(nodeId);
-            _nodeGuids[nodeId] = nodeGuid;
-            _controlPositionOrigins[nodeId] = controlOrigin;
-            _primaryControlPoints[nodeId] = primaryControlPoint;
-            _oppositeControlPoints[nodeId] = oppositeControlPoint;
-            AssignConnectionDestination(nodeId, connectionDestination);
+            var state = new RailNodeInitData(nodeId, nodeGuid, connectionDestination, controlOrigin, primaryControlPoint, oppositeControlPoint);
+            StoreNodeState(nodeId, state);
             UpdateTick(eventTick);
         }
 
@@ -177,8 +128,7 @@ namespace Client.Game.InGame.Train
                 return;
             }
 
-            _nodeGuids[nodeId] = Guid.Empty;
-            _controlPositionOrigins[nodeId] = DefaultPosition;
+            StoreNodeState(nodeId, CreateDefaultNode(nodeId));
             var outgoing = _connectNodes[nodeId];
             if (outgoing.Count > 0)
             {
@@ -188,9 +138,6 @@ namespace Client.Game.InGame.Train
                 }
                 outgoing.Clear();
             }
-            _primaryControlPoints[nodeId] = DefaultPosition;
-            _oppositeControlPoints[nodeId] = DefaultPosition;
-            AssignConnectionDestination(nodeId, ConnectionDestination.Default);
             RemoveIncomingConnections(nodeId);
             UpdateTick(eventTick);
         }
@@ -253,13 +200,14 @@ namespace Client.Game.InGame.Train
                 return false;
             }
 
-            nodeGuid = _nodeGuids[nodeId];
+            var state = _nodeStates[nodeId];
+            nodeGuid = state.NodeGuid;
             if (nodeGuid == Guid.Empty)
             {
                 return false;
             }
 
-            controlOrigin = _controlPositionOrigins[nodeId];
+            controlOrigin = state.OriginPoint;
             return true;
         }
 
@@ -273,8 +221,8 @@ namespace Client.Game.InGame.Train
                 return false;
             }
 
-            destination = _connectionDestinations[nodeId];
-            return !destination.IsDefault;
+            destination = _nodeStates[nodeId].ConnectionDestination;
+            return !destination.IsDefault();
         }
 
         // ConnectionDestinationからRailNodeIdを逆引き
@@ -290,14 +238,10 @@ namespace Client.Game.InGame.Train
         // Expand backing lists so the id can be stored safely
         private void EnsureNodeSlot(int nodeId)
         {
-            while (_nodeGuids.Count <= nodeId)
+            while (_nodeStates.Count <= nodeId)
             {
-                _nodeGuids.Add(Guid.Empty);
-                _controlPositionOrigins.Add(DefaultPosition);
+                _nodeStates.Add(CreateDefaultNode(_nodeStates.Count));
                 _connectNodes.Add(new List<(int targetId, int distance)>());
-                _connectionDestinations.Add(ConnectionDestination.Default);
-                _primaryControlPoints.Add(DefaultPosition);
-                _oppositeControlPoints.Add(DefaultPosition);
             }
         }
 
@@ -305,14 +249,14 @@ namespace Client.Game.InGame.Train
         // Quick check to see if the index is within range
         private bool IsWithinCurrentRange(int nodeId)
         {
-            return nodeId >= 0 && nodeId < _nodeGuids.Count;
+            return nodeId >= 0 && nodeId < _nodeStates.Count;
         }
 
         // 指定ノードがアクティブ（Guid割当済み）か判定
         // Determine if the node slot already has a Guid assigned
         private bool IsActiveNode(int nodeId)
         {
-            return IsWithinCurrentRange(nodeId) && _nodeGuids[nodeId] != Guid.Empty;
+            return IsWithinCurrentRange(nodeId) && _nodeStates[nodeId].NodeGuid != Guid.Empty;
         }
 
         // すべてのノードから対象id宛の接続を削除
@@ -349,25 +293,35 @@ namespace Client.Game.InGame.Train
 
         // ConnectionDestinationテーブルと逆引きを同期する
         // Keep destination table and reverse lookup dictionary in sync
-        private void AssignConnectionDestination(int nodeId, ConnectionDestination destination)
+        private void StoreNodeState(int nodeId, RailNodeInitData next)
         {
-            if (!IsWithinCurrentRange(nodeId))
+            var previous = _nodeStates[nodeId];
+            _nodeStates[nodeId] = next;
+            UpdateDestinationMap(nodeId, previous.ConnectionDestination, next.ConnectionDestination);
+        }
+
+        private void UpdateDestinationMap(int nodeId, ConnectionDestination previous, ConnectionDestination next)
+        {
+            if (!previous.IsDefault())
             {
-                EnsureNodeSlot(nodeId);
+                _connectionDestinationToNodeId.Remove(previous);
             }
 
-            var current = _connectionDestinations[nodeId];
-            if (!current.IsDefault)
+            if (!next.IsDefault())
             {
-                _connectionDestinationToNodeId.Remove(current);
+                _connectionDestinationToNodeId[next] = nodeId;
             }
+        }
 
-            _connectionDestinations[nodeId] = destination;
-
-            if (!destination.IsDefault)
-            {
-                _connectionDestinationToNodeId[destination] = nodeId;
-            }
+        private static RailNodeInitData CreateDefaultNode(int nodeId)
+        {
+            return new RailNodeInitData(
+                nodeId,
+                Guid.Empty,
+                ConnectionDestination.Default,
+                DefaultPosition,
+                DefaultPosition,
+                DefaultPosition);
         }
 
         #endregion

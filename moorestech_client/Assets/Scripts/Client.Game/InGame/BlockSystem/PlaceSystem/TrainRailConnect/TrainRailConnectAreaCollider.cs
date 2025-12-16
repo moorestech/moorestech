@@ -1,6 +1,6 @@
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.StateProcessor;
-using Client.Game.InGame.Train;
+using Game.Train.RailGraph;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
@@ -22,7 +22,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         public ConnectionDestination CreateConnectionDestination()
         {
             var origin = BlockGameObject.BlockPosInfo.OriginalPos;
-            return new ConnectionDestination(origin, 0, isFront);
+            var componentId = new RailComponentID(origin, 0);
+            return new ConnectionDestination(componentId, isFront);
         }
     }
 }
