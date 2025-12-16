@@ -675,12 +675,8 @@ namespace Game.Train.Train
             // 後ろから 5両を抜き取るケースを想定
             if (numberOfCarsToDetach <= 0 || numberOfCarsToDetach > _cars.Count)
             {
-                UnityEngine.Debug.LogError("SplitTrain: 指定両数が不正です。");
-                return null;
-            }
-            if (numberOfCarsToDetach == _cars.Count) 
-            {
-                OnDestroy();
+                if (numberOfCarsToDetach != 0)
+                    UnityEngine.Debug.LogError("SplitTrain: 指定両数が不正です。");
                 return null;
             }
             TurnOffAutoRun();
@@ -703,29 +699,36 @@ namespace Game.Train.Train
                 splittedRailPosition,
                 detachedCars
             );
+            // 5) 自分が0になっていたら
+            if (_cars.Count == 0)
+                this.OnDestroy();
             // 6) 新しいTrainUnitを返す
+
+            #region
+            /// <summary>
+            /// 後続列車のために、新しいRailPositionを生成し返す。
+            /// ここでは単純に列車の先頭からRailNodeの距離を調整するだけ
+            /// </summary>
+            RailPosition CreateSplittedRailPosition(List<TrainCar> splittedCars)
+            {
+                // _railPositionのdeepコピー
+                var newNodes = _railPosition.DeepCopy();
+                // splittedCarsの両数に応じて、列車長を算出する
+                int splittedTrainLength = 0;
+                foreach (var car in splittedCars)
+                    splittedTrainLength += car.Length;
+                //newNodesを反転して、新しい列車長を設定
+                newNodes.Reverse();
+                newNodes.SetTrainLength(splittedTrainLength);
+                //また反転すればちゃんと後ろの列車になる
+                newNodes.Reverse();
+                return newNodes;
+            }
+            #endregion
             return splittedUnit;
         }
 
-        /// <summary>
-        /// 後続列車のために、新しいRailPositionを生成し返す。
-        /// ここでは単純に列車の先頭からRailNodeの距離を調整するだけ
-        /// </summary>
-        private RailPosition CreateSplittedRailPosition(List<TrainCar> splittedCars)
-        {
-            // _railPositionのdeepコピー
-            var newNodes = _railPosition.DeepCopy();
-            // splittedCarsの両数に応じて、列車長を算出する
-            int splittedTrainLength = 0;
-            foreach (var car in splittedCars)
-                splittedTrainLength += car.Length;
-            //newNodesを反転して、新しい列車長を設定
-            newNodes.Reverse();
-            newNodes.SetTrainLength(splittedTrainLength);
-            //また反転すればちゃんと後ろの列車になる
-            newNodes.Reverse();
-            return newNodes;
-        }
+
 
         /// <summary>
         /// 列車編成の先頭or最後尾に1両連結する
