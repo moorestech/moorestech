@@ -50,6 +50,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 077f516b067a242fead900bf0680250a
+    m_Address: Vanilla/Item/IronOre
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 07df01a6c472c5e48915ca6a1969df88
     m_Address: Vanilla/Block/BeltConveyor_Up
     m_ReadOnly: 0
