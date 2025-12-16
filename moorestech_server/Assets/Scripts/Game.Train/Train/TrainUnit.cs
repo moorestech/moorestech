@@ -1,4 +1,5 @@
 using Core.Item.Interface;
+using Core.Master;
 using Game.Context;
 using Game.Train.Common;
 using Game.Train.RailGraph;
@@ -6,7 +7,7 @@ using Game.Train.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Core.Master;
+using static UnityEngine.GraphicsBuffer;
 
 namespace Game.Train.Train
 {
@@ -676,7 +677,7 @@ namespace Game.Train.Train
             if (numberOfCarsToDetach <= 0 || numberOfCarsToDetach > _cars.Count)
             {
                 if (numberOfCarsToDetach != 0)
-                    UnityEngine.Debug.LogError("SplitTrain: 指定両数が不正です。");
+                    UnityEngine.Debug.LogWarning("SplitTrain: 指定両数が不正です。");
                 return null;
             }
             TurnOffAutoRun();
@@ -703,8 +704,9 @@ namespace Game.Train.Train
             if (_cars.Count == 0)
                 this.OnDestroy();
             // 6) 新しいTrainUnitを返す
+            return splittedUnit;
 
-            #region
+            #region Internal
             /// <summary>
             /// 後続列車のために、新しいRailPositionを生成し返す。
             /// ここでは単純に列車の先頭からRailNodeの距離を調整するだけ
@@ -725,10 +727,31 @@ namespace Game.Train.Train
                 return newNodes;
             }
             #endregion
-            return splittedUnit;
         }
 
-
+        /// <summary>
+        /// 指定 GUID or indexの列車両を安全に削除する
+        /// 削除後分割された新編成は返さない(必要があれば返すこともできる)
+        /// Removes the train car that matches the given GUID.
+        /// The newly split configuration after deletion will not be returned (it can be returned if necessary).
+        /// </summary>
+        /// 
+        public void RemoveCar(int targetIndex)
+        {
+            if ((targetIndex < 0) || (targetIndex >= _cars.Count))
+            {
+                UnityEngine.Debug.LogWarning($"RemoveCar: carIndex {targetIndex} is not found.");
+            }
+            var carsBehind = _cars.Count - targetIndex - 1;
+            SplitTrain(carsBehind);
+            var removeCar = SplitTrain(1);
+            removeCar?.OnDestroy();
+        }
+        public void RemoveCar(Guid trainCarId)
+        {
+            var targetIndex = _cars.FindIndex(car => car.CarId == trainCarId);
+            RemoveCar(targetIndex);
+        }
 
         /// <summary>
         /// 列車編成の先頭or最後尾に1両連結する
