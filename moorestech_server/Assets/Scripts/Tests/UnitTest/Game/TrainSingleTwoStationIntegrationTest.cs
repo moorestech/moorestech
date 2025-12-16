@@ -86,7 +86,7 @@ namespace Tests.UnitTest.Game
             };
 
 
-            var railPosition = new RailPosition(new List<RailNode>(initialRailNodes), stationSegmentLength, 0);
+            var railPosition = new RailPosition(new List<IRailNode>(initialRailNodes), stationSegmentLength, 0);
             var trainCar = new TrainCar(new TrainCarMasterElement(Guid.Empty, Guid.Empty, null, 1000, 1, stationSegmentLength));
             var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar });
 

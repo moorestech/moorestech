@@ -50,7 +50,7 @@ namespace Tests.UnitTest.Game
             var stationSegmentLength = entryNode!.GetDistanceToNode(exitNode!);
             Assert.Greater(stationSegmentLength, 0, "駅セグメントの長さが0以下になっています。");
 
-            var railNodes = new List<RailNode> { exitNode, entryNode };
+            var railNodes = new List<IRailNode> { exitNode, entryNode };
             var railPosition = new RailPosition(railNodes, stationSegmentLength, 0);
 
             var trainCar = new TrainCar(new TrainCarMasterElement(Guid.Empty, Guid.Empty, null, 1000, 1, stationSegmentLength));
@@ -108,7 +108,7 @@ namespace Tests.UnitTest.Game
             var platformSegmentLength = entryNode!.GetDistanceToNode(exitNode!);
             Assert.Greater(platformSegmentLength, 0, "貨物プラットフォームセグメントの長さが0以下になっています。");
 
-            var railNodes = new List<RailNode> { exitNode, entryNode };
+            var railNodes = new List<IRailNode> { exitNode, entryNode };
             var railPosition = new RailPosition(railNodes, platformSegmentLength, 0);
 
             var trainCar = new TrainCar(new TrainCarMasterElement(Guid.Empty, Guid.Empty, null, 1000, 1, platformSegmentLength));
@@ -167,7 +167,7 @@ namespace Tests.UnitTest.Game
             var platformSegmentLength = entryNode!.GetDistanceToNode(exitNode!);
             Assert.Greater(platformSegmentLength, 0, "貨物プラットフォームセグメントの長さが0以下になっています。");
 
-            var railNodes = new List<RailNode> { exitNode, entryNode };
+            var railNodes = new List<IRailNode> { exitNode, entryNode };
             var railPosition = new RailPosition(railNodes, platformSegmentLength, 0);
 
             var trainCar = new TrainCar(new TrainCarMasterElement(Guid.Empty, Guid.Empty, null, 1000, 1, platformSegmentLength));
@@ -228,7 +228,7 @@ namespace Tests.UnitTest.Game
 
             TrainUnit CreateTrain(out TrainCar car)
             {
-                var railNodes = new List<RailNode> { exitNode, entryNode };
+                var railNodes = new List<IRailNode> { exitNode, entryNode };
                 var railPosition = new RailPosition(railNodes, stationSegmentLength, 0);
                 car = new TrainCar(new TrainCarMasterElement(Guid.Empty, Guid.Empty, null, 1000, 1, stationSegmentLength));
                 return new TrainUnit(railPosition, new List<TrainCar> { car });

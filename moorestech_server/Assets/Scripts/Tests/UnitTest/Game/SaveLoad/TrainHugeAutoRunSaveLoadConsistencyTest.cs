@@ -239,7 +239,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
                 startComponent.ConnectRailComponent(entryComponent, true, true);
 
-                var nodeList = new List<RailNode>
+                var nodeList = new List<IRailNode>
                 {
                     entryComponent.FrontNode,
                     startComponent.FrontNode
@@ -535,10 +535,10 @@ namespace Tests.UnitTest.Game.SaveLoad
             public int ComponentIndex { get; }
             public bool IsFront { get; }
 
-            public static NodeIdentifier Create(RailNode node)
+            public static NodeIdentifier Create(IRailNode node)
             {
                 var destination = node.ConnectionDestination;
-                if (!node.HasConnectionDestination)
+                if (destination.IsDefault())
                 {
                     throw new InvalidOperationException("RailNodeからRailComponentIDを取得できませんでした。");
                 }

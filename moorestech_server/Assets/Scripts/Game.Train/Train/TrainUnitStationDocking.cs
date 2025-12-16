@@ -209,7 +209,7 @@ namespace Game.Train.Train
         /// 2つのノードが同じ駅に属するかチェック  
         /// フロントがちゃんと前かもチェック
         /// </summary>  
-        private bool IsSameStation(RailNode frontNode, RailNode rearNode)
+        private bool IsSameStation(IRailNode frontNode, IRailNode rearNode)
         {
             bool isPair = frontNode.StationRef.IsPairWith(rearNode.StationRef); // StationReferenceのペアチェック
             if (!isPair)

@@ -1,4 +1,5 @@
 using Game.Block.Interface;
+using Game.Train.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ using UnityEngine;
 
 namespace Game.Train.RailGraph
 {
-    public class RailNode
+    public class RailNode : IRailNode
     {
         public RailControlPoint FrontControlPoint { get; private set; }
         public RailControlPoint BackControlPoint { get; private set; }
@@ -18,36 +19,35 @@ namespace Game.Train.RailGraph
         public ConnectionDestination ConnectionDestination { get; private set; } = ConnectionDestination.Default;
         public bool HasConnectionDestination => !ConnectionDestination.IsDefault();
         public Guid Guid { get; }
+        public int NodeId => RailGraphDatastore.TryGetRailNodeId(this, out var nodeId) ? nodeId : -1;
+        public int OppositeNodeId => NodeId ^ 1;
 
         // 自分に対応する裏表のノード
-        public RailNode OppositeNode
+        public IRailNode OppositeNode
         {
             get
             {
-                return RailGraphDatastore.GetOppositeNode(this);
+                return RailGraphDatastore.TryGetRailNode(this.OppositeNodeId, out var nodeId) ? nodeId : null;
+            }
+        }
+        public RailNode OppositeRailNode
+        {
+            get
+            {
+                return RailGraphDatastore.TryGetRailNode(this.OppositeNodeId, out var nodeId) ? nodeId : null;
             }
         }
 
-        /// なぜ IEnumerable を使うのか？
-        //IEnumerable<RailNode> を使う理由には以下があります：
-        //柔軟性:
-        //  使用する側で foreach を使って簡単に列挙できる。
-        //  必要に応じてリストや配列に変換可能。
-        //遅延評価:
-        //  コレクションが大きい場合でも、全体を一度にメモリに読み込む必要がない。
-        //抽象化:
-        //  呼び出し元に具体的なコレクションの型（List<T> や Array など）を意識させない。
         /// </summary>
-        public IEnumerable<RailNode> ConnectedNodes
+        public IEnumerable<IRailNode> ConnectedNodes
         {
             get
             {
                 //RailNodeの入力に対しつながっているRailNodeをリスト<Node>で返す
-                return RailGraphDatastore.GetConnectedNodesWithDistance(this)
-                    .Select(x => x.Item1);
+                return RailGraphDatastore.GetConnectedNodesWithDistance(this).Select(x => x.Item1);
             }
         }
-        public IEnumerable<(RailNode, int)> ConnectedNodesWithDistance
+        public IEnumerable<(IRailNode, int)> ConnectedNodesWithDistance
         {
             get
             {
@@ -56,7 +56,7 @@ namespace Game.Train.RailGraph
             }
         }
 
-        // 基本的にrailComponent以外からの呼び出しに対応。テストなど。表裏に対応しないrailnodeを作成するため
+        // 基本的にrailComponentからの呼び出しに対応
         public RailNode()
         {
             Guid = Guid.NewGuid();
@@ -107,33 +107,21 @@ namespace Game.Train.RailGraph
         //隣接しているNodeのみを考慮。距離を返すか見つからなければ-1
         //UseFindPath=trueのとき
         //経路探索して接続していれば距離を返す、見つからなければ-1
-        public int GetDistanceToNode(RailNode node,bool UseFindPath = false)
+        public int GetDistanceToNode(IRailNode node, bool UseFindPath = false)
         {
-            //見つからなければ-1
-            if (UseFindPath == false)
-            {
-                return RailGraphDatastore.GetDistanceBetweenNodes(this, node);
-            }
-            else 
-            {
-                //経路探索ありver
-                var nodelist = RailGraphDatastore.FindShortestPath(this, node);
-                if (nodelist == null || nodelist.Count < 2)
-                {
-                    return -1;
-                }
-                else
-                {
-                    //最初のノードは自分なので、次のノードまでの距離を返す、ループ
-                    int totalDistance = 0;
-                    for (int i = 0; i < nodelist.Count - 1; i++)
-                    {
-                        totalDistance += RailGraphDatastore.GetDistanceBetweenNodes(nodelist[i], nodelist[i + 1]);
-                    }
-                    return totalDistance;
-                }
-            }
+            // ノードIDを解決できなければ距離計算を諦める
+            // Abort when node ids cannot be resolved for the query
+            if (node == null)
+                return -1;
+            if (node.NodeId < 0)
+                return -1;
+            if (!UseFindPath)
+                return RailGraphDatastore.GetDistanceBetweenNodes(NodeId, node.NodeId);
+            var pathResult = RailGraphDatastore.FindShortestPath(NodeId, node.NodeId);
+            return RailNodeCalculate.CalculateTotalDistanceF(pathResult);
         }
+
+        Guid IRailNode.NodeGuid => Guid;
 
 
         //RailGraphから削除する

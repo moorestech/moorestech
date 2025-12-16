@@ -106,7 +106,7 @@ namespace Tests.UnitTest.Game
                 new TrainCar(firstTrain,true)
             };
 
-            var railPosition = new RailPosition(new List<RailNode> { railA.FrontNode, railB.FrontNode }, firstTrain.Length * 4, firstTrain.Length * 3 / 2);
+            var railPosition = new RailPosition(new List<IRailNode> { railA.FrontNode, railB.FrontNode }, firstTrain.Length * 4, firstTrain.Length * 3 / 2);
             var trainUnit = new TrainUnit(railPosition, cars);
 
             //aproachingがrailA.FrontNode方向
@@ -122,7 +122,7 @@ namespace Tests.UnitTest.Game
             }
 
             var newCar = new TrainCar(firstTrain, true);
-            var railPosition2 = new RailPosition(new List<RailNode> { railA.FrontNode, railB.FrontNode }, firstTrain.Length, firstTrain.Length * 3 / 2 + firstTrain.Length * 4);
+            var railPosition2 = new RailPosition(new List<IRailNode> { railA.FrontNode, railB.FrontNode }, firstTrain.Length, firstTrain.Length * 3 / 2 + firstTrain.Length * 4);
             trainUnit.AttachCarToRear(newCar, railPosition2);
             Assert.AreEqual(trainUnit.RailPosition.GetNodeApproaching(), railA.FrontNode, "追加approachingが不正");
             Assert.AreEqual(trainUnit.RailPosition.GetDistanceToNextNode(), firstTrain.Length * 3 / 2, "追加distanceToNextNodeが不正");
@@ -156,7 +156,7 @@ namespace Tests.UnitTest.Game
                 new TrainCar(firstTrain,true)
             };
 
-            var railPosition = new RailPosition(new List<RailNode> { railA.FrontNode, railB.FrontNode }, firstTrain.Length * 4, firstTrain.Length * 3 / 2);
+            var railPosition = new RailPosition(new List<IRailNode> { railA.FrontNode, railB.FrontNode }, firstTrain.Length * 4, firstTrain.Length * 3 / 2);
             var trainUnit = new TrainUnit(railPosition, cars);
 
             Assert.AreEqual(trainUnit.RailPosition.GetNodeApproaching(), railA.FrontNode, "approachingが不正");
@@ -169,7 +169,7 @@ namespace Tests.UnitTest.Game
             }
 
             var newCar = new TrainCar(firstTrain, true);
-            var railPosition2 = new RailPosition(new List<RailNode> { railA.FrontNode, railB.FrontNode }, firstTrain.Length, firstTrain.Length * 3 / 2 - firstTrain.Length);
+            var railPosition2 = new RailPosition(new List<IRailNode> { railA.FrontNode, railB.FrontNode }, firstTrain.Length, firstTrain.Length * 3 / 2 - firstTrain.Length);
             trainUnit.AttachCarToHead(newCar, railPosition2);
             Assert.AreEqual(trainUnit.RailPosition.GetNodeApproaching(), railA.FrontNode, "追加approachingが不正");
             Assert.AreEqual(trainUnit.RailPosition.GetDistanceToNextNode(), firstTrain.Length * 3 / 2 - firstTrain.Length, "追加distanceToNextNodeが不正");
@@ -206,7 +206,7 @@ namespace Tests.UnitTest.Game
                 new TrainCar(firstTrain,true)
             };
 
-            var railPosition = new RailPosition(new List<RailNode> { railA.FrontNode, railB.FrontNode }, firstTrain.Length * 4, ablength - firstTrain.Length * 4);
+            var railPosition = new RailPosition(new List<IRailNode> { railA.FrontNode, railB.FrontNode }, firstTrain.Length * 4, ablength - firstTrain.Length * 4);
             var trainUnit = new TrainUnit(railPosition, cars);
 
             //aproachingがrailA.FrontNode方向
@@ -228,7 +228,7 @@ namespace Tests.UnitTest.Game
             }
 
             var newCar = new TrainCar(firstTrain, true);
-            var railPosition2 = new RailPosition(new List<RailNode> { railB.FrontNode, railC.FrontNode }, firstTrain.Length, 0);
+            var railPosition2 = new RailPosition(new List<IRailNode> { railB.FrontNode, railC.FrontNode }, firstTrain.Length, 0);
             
                 
             trainUnit.AttachCarToRear(newCar, railPosition2);
@@ -266,7 +266,7 @@ namespace Tests.UnitTest.Game
                 new TrainCar(firstTrain,true)
             };
 
-            var railPosition = new RailPosition(new List<RailNode> { railB.FrontNode, railC.FrontNode }, firstTrain.Length * 4, 0);
+            var railPosition = new RailPosition(new List<IRailNode> { railB.FrontNode, railC.FrontNode }, firstTrain.Length * 4, 0);
             var trainUnit = new TrainUnit(railPosition, cars);
 
             Assert.AreEqual(trainUnit.RailPosition.GetNodeApproaching(), railB.FrontNode, "approachingが不正");
@@ -287,7 +287,7 @@ namespace Tests.UnitTest.Game
             }
             var balength = railB.FrontNode.GetDistanceToNode(railA.FrontNode);
             var newCar = new TrainCar(firstTrain, true);
-            var railPosition2 = new RailPosition(new List<RailNode> { railA.FrontNode, railB.FrontNode }, firstTrain.Length, balength - firstTrain.Length);
+            var railPosition2 = new RailPosition(new List<IRailNode> { railA.FrontNode, railB.FrontNode }, firstTrain.Length, balength - firstTrain.Length);
 
 
             trainUnit.AttachCarToHead(newCar, railPosition2);
@@ -331,11 +331,11 @@ namespace Tests.UnitTest.Game
                 new TrainCar(firstTrain,true),
             };
 
-            var railPosition = new RailPosition(new List<RailNode> { stationnodes1.ExitFront, stationnodes1.EntryFront }, firstTrain.Length, 0);
+            var railPosition = new RailPosition(new List<IRailNode> { stationnodes1.ExitFront, stationnodes1.EntryFront }, firstTrain.Length, 0);
             var trainUnit = new TrainUnit(railPosition, cars);
 
             var newCar = new TrainCar(firstTrain, true);
-            var railPosition2 = new RailPosition(new List<RailNode> { stationnodes2.ExitFront, stationnodes2.EntryFront }, firstTrain.Length, 0);
+            var railPosition2 = new RailPosition(new List<IRailNode> { stationnodes2.ExitFront, stationnodes2.EntryFront }, firstTrain.Length, 0);
 
             trainUnit.AttachCarToRear(newCar, railPosition2);
             Assert.AreEqual(trainUnit.RailPosition.GetNodeApproaching(), stationnodes1.ExitFront, "追加approachingが不正");
@@ -378,11 +378,11 @@ namespace Tests.UnitTest.Game
                 new TrainCar(firstTrain,true),
             };
 
-            var railPosition = new RailPosition(new List<RailNode> { stationnodes1.ExitFront, stationnodes1.EntryFront }, firstTrain.Length, 0);
+            var railPosition = new RailPosition(new List<IRailNode> { stationnodes1.ExitFront, stationnodes1.EntryFront }, firstTrain.Length, 0);
             var trainUnit = new TrainUnit(railPosition, cars);
 
             var newCar = new TrainCar(firstTrain, true);
-            var railPosition2 = new RailPosition(new List<RailNode> { stationnodes2.ExitFront, stationnodes2.EntryFront }, firstTrain.Length, 0);
+            var railPosition2 = new RailPosition(new List<IRailNode> { stationnodes2.ExitFront, stationnodes2.EntryFront }, firstTrain.Length, 0);
 
             trainUnit.AttachCarToHead(newCar, railPosition2);
             Assert.AreEqual(trainUnit.RailPosition.GetNodeApproaching(), stationnodes2.ExitFront, "追加approachingが不正");
