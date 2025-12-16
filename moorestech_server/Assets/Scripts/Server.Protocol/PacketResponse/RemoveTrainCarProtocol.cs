@@ -20,8 +20,11 @@ namespace Server.Protocol.PacketResponse
                 .GetRegisteredTrains()
                 .SelectMany(t => t.Cars.Select(c => (t, c)))
                 .First(c => c.c.CarId == request.TrainCarId);
-            if (removeTargetTrainCar == null) throw new Exception("Remove train car failed. Train not found.");
-            
+            if (removeTargetTrainCar == null)
+            {
+                Debug.LogError($"Remove train car failed. Train not found. \ncarId: {request.TrainCarId}");
+                return null;
+            } 
             //TODO trainUnit側に特定trainCarの削除APIをはやしてそれを呼ぶようにする
             
             // 削除対象車両のインデックスを取得
