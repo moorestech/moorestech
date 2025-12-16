@@ -740,6 +740,7 @@ namespace Game.Train.Train
             if ((targetIndex < 0) || (targetIndex >= _cars.Count))
             {
                 UnityEngine.Debug.LogWarning($"RemoveCar: carIndex {targetIndex} is not found.");
+                return;
             }
             var carsBehind = _cars.Count - targetIndex - 1;
             SplitTrain(carsBehind);
