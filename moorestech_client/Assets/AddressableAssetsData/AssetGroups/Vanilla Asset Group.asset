@@ -460,6 +460,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 78c3be2964c7e4b2a8c64324bf6d03e8
+    m_Address: Vanilla/Skit/Animations/CharacterCheck 002
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 78cf01db9e75845cf86c2b3666bafa73
     m_Address: Vanilla/Block/Util/GearChainLine
     m_ReadOnly: 0
@@ -825,8 +830,18 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: cf867aaf50e2048a8a2f09c2d9e04fcc
+    m_Address: Vanilla/Skit/Animations/CharacterCheck 001
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: cf999fe520b9e4ed9afb5f382737fd23
     m_Address: Vanilla/UI/Block/GearEnergyTransformerUI
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d0acfc2d45f2c4c94a05431bde64c3c4
+    m_Address: Vanilla/Skit/Animations/CharacterCheck 003
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
