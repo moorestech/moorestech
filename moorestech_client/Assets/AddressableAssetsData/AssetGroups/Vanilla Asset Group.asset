@@ -291,7 +291,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 4de48accd99c74e2eb6d961c7a5de6d4
-    m_Address: Vanilla/Block/primitive miner a
+    m_Address: Vanilla/Block/Primitive_Miner
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
