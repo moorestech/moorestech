@@ -41,7 +41,7 @@ namespace Tests.UnitTest.Game
                 new TrainCar(new TrainCarMasterElement(Guid.Empty, Guid.Empty, null, 1000, 0, 0))
             };
 
-            var railNodes = new List<RailNode> { startNode };
+            var railNodes = new List<IRailNode> { startNode };
             var railPosition = new RailPosition(railNodes, 0, 0);
 
             var trainUnit = new TrainUnit(railPosition, cars);

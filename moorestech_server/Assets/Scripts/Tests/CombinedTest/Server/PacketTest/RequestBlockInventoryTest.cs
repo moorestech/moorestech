@@ -77,7 +77,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var frontNode = railB.FrontNode;
             var backNode = railA.FrontNode;
             var distance = Mathf.Max(1, frontNode.GetDistanceToNode(backNode));
-            var railPosition = new RailPosition(new List<RailNode> { frontNode, backNode }, distance, 0);
+            var railPosition = new RailPosition(new List<IRailNode> { frontNode, backNode }, distance, 0);
             var trainCar = new TrainCar(new TrainCarMasterElement(Guid.Empty, Guid.Empty, null, 1000, 3, distance));
             var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar });
 

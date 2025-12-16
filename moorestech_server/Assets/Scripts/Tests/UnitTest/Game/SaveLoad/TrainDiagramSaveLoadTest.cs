@@ -161,7 +161,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             }
 
             var trainLength = Math.Max(1, totalDistance / 3);
-            var railPosition = new RailPosition(new List<RailNode>(railNodes), trainLength, 0);
+            var railPosition = new RailPosition(new List<IRailNode>(railNodes), trainLength, 0);
             var firstTrain = MasterHolder.TrainUnitMaster.Train.TrainCars.First();
             var cars = new List<TrainCar>
             {

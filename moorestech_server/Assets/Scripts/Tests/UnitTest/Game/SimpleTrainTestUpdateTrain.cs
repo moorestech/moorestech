@@ -82,7 +82,7 @@ namespace Tests.UnitTest.Game
                 // 4) RailPosition を作って先頭を配置
                 //    initialDistanceToNextNode=5あたりから開始する例
                 //nodeListのdeepcopy。これをしないといけないことに注意
-                var nodeList2 = new List<RailNode>(nodeList);
+                var nodeList2 = new List<IRailNode>(nodeList);
                 var railPosition = new RailPosition(nodeList2, trainLength, 5);
 
                 // --- 4. TrainUnit を生成 ---
@@ -156,7 +156,7 @@ namespace Tests.UnitTest.Game
                 new TrainCar(new TrainCarMasterElement(Guid.Empty, Guid.Empty, null, 0, 10, 65)),
                 new TrainCar(new TrainCarMasterElement(Guid.Empty, Guid.Empty, null, 0, 10, 60)),
             };
-            var railNodes = new List<RailNode> { nodeC, nodeD };
+            var railNodes = new List<IRailNode> { nodeC, nodeD };
             int totalTrainLength = cars.Sum(car => car.Length);  // 10+20+5+5+10 = 50
             var initialRailPosition = new RailPosition(
                 railNodes,
@@ -346,7 +346,7 @@ namespace Tests.UnitTest.Game
                 //RailPosition を作って先頭を配置
                 //initialDistanceToNextNode=5あたりから開始する例
                 //nodeListのdeepcopy。これをしないといけないことに注意
-                var nodeList2 = new List<RailNode>(nodeList);
+                var nodeList2 = new List<IRailNode>(nodeList);
                 var railPosition = new RailPosition(nodeList2, trainLength, 5);
                 // --- TrainUnit を生成 ---
                 var destination = railComponentsData[7].FrontNode;//目的地をセット
@@ -503,7 +503,7 @@ namespace Tests.UnitTest.Game
                 //RailPosition を作って先頭を配置
                 //initialDistanceToNextNode=5あたりから開始する例
                 //nodeListのdeepcopy。これをしないといけないことに注意
-                var nodeList2 = new List<RailNode>(nodeList);
+                var nodeList2 = new List<IRailNode>(nodeList);
                 var railPosition = new RailPosition(nodeList2, trainLength, 5);
 
                 // --- TrainUnit を生成 ---
@@ -597,7 +597,7 @@ namespace Tests.UnitTest.Game
             //   ノードリスト = [A, B, C], 列車長さ = 50
             //   先頭が “A にあと10 で到達する位置” とする → initialDistanceToNextNode=10
             //   （イメージ：A--(10進んだ場所で先頭)-->B----->C ...合計60）
-            var railNodes = new List<RailNode> { nodeA, nodeB, nodeC };
+            var railNodes = new List<IRailNode> { nodeA, nodeB, nodeC };
             var initialRailPosition = new RailPosition(
                 railNodes,
                 totalTrainLength,
@@ -661,24 +661,17 @@ namespace Tests.UnitTest.Game
         }
 
 
-        private static void LogRailNodeId(RailNode node)
+        private static void LogRailNodeId(IRailNode node)
         {
             if (node == null)
                 return;
-
             var datastore = GetRailGraphDatastoreInstance();
             if (datastore == null)
                 return;
-
             var dictionaryField = typeof(RailGraphDatastore).GetField("railIdDic", BindingFlags.NonPublic | BindingFlags.Instance);
             if (dictionaryField == null)
                 return;
-
-            if (dictionaryField.GetValue(datastore) is Dictionary<RailNode, int> idDictionary &&
-                idDictionary.TryGetValue(node, out var id))
-            {
-                Debug.Log(id);
-            }
+            Debug.Log(node.NodeId);
         }
 
 

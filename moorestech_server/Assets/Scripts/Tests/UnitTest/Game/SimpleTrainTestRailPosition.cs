@@ -28,7 +28,7 @@ namespace Tests.UnitTest.Game
             nodeE.ConnectNode(nodeD, 25);//14まで列車
 
             // 長い列車（列車長50）をノードAからEにまたがる状態に配置
-            var nodes = new List<RailNode> { nodeA, nodeB, nodeC, nodeD, nodeE };
+            var nodes = new List<IRailNode> { nodeA, nodeB, nodeC, nodeD, nodeE };
             var railPosition = new RailPosition(nodes, 50, 9); // 先頭はノードAとBの間の9地点
 
             //進む
@@ -77,7 +77,7 @@ namespace Tests.UnitTest.Game
             nodeA2.ConnectNode(nodeB2, 10);
 
             {  //Reverseを使ってMoveForward(マイナス)を使わないパターン
-                var nodes = new List<RailNode> { nodeA1, nodeB1, nodeC1, nodeD1, nodeE1 };
+                var nodes = new List<IRailNode> { nodeA1, nodeB1, nodeC1, nodeD1, nodeE1 };
                 var railPosition = new RailPosition(nodes, 50, 5); // 先頭はノードAとBの間の5地点
                 railPosition.Reverse();//ノードEまで15になる
                 //地道に全部チェック。ノードEの情報はまだ消えてない
@@ -102,7 +102,7 @@ namespace Tests.UnitTest.Game
 
             { //MoveForward(マイナス)を使うパターン
                 // 長い列車（列車長50）をノードAからEにまたがる状態に配置
-                var nodes = new List<RailNode> { nodeA1, nodeB1, nodeC1, nodeD1, nodeE1 };
+                var nodes = new List<IRailNode> { nodeA1, nodeB1, nodeC1, nodeD1, nodeE1 };
                 var railPosition = new RailPosition(nodes, 50, 5); // 先頭はノードAとBの間の5地点
 
                 //進む、残りの進むべき距離

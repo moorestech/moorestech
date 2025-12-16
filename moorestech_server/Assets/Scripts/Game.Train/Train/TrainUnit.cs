@@ -273,7 +273,7 @@ namespace Game.Train.Train
                 if (distanceToMove == 0) break;
                 //----------------------------------------------------------------------------------------
                 //この時点でdistanceToMoveが0以外かつ分岐地点または行き止まりについてる状況
-                RailNode approaching = _railPosition.GetNodeApproaching();
+                var approaching = _railPosition.GetNodeApproaching();
                 if (approaching == null) 
                 {
                     TurnOffAutoRun();
@@ -396,10 +396,10 @@ namespace Game.Train.Train
         }
 
         //現在のdiagramのcurrentから順にすべてのエントリーを順番にみていって、approachingからエントリーnodeへpathが繋がっていればtrueを返す
-        public (bool, List<RailNode>) CheckAllDiagramPath(RailNode approaching) 
+        public (bool, List<IRailNode>) CheckAllDiagramPath(IRailNode approaching) 
         {
-            RailNode destinationNode = null;
-            List<RailNode> newPath = null;
+            IRailNode destinationNode = null;
+            List<IRailNode> newPath = null;
             //ダイアグラム上、次に目的地に変更していく。全部の経路がなくなった場合は自動運転を解除する
             bool found = false;
             for (int i = 0; i < trainDiagram.Entries.Count; i++)
@@ -502,16 +502,16 @@ namespace Game.Train.Train
             };
         }
 
-        private static ConnectionDestination CreateConnectionDestinationSnapshot(RailNode node)
+        private static ConnectionDestination CreateConnectionDestinationSnapshot(IRailNode node)
         {
             if (node == null)
                 return ConnectionDestination.Default;
             return node.ConnectionDestination;
         }
 
-        private static List<RailNode> RestoreRailNodes(IEnumerable<ConnectionDestination> snapshot)
+        private static List<IRailNode> RestoreRailNodes(IEnumerable<ConnectionDestination> snapshot)
         {
-            var nodes = new List<RailNode>();
+            var nodes = new List<IRailNode>();
             if (snapshot == null)
             {
                 return nodes;
@@ -525,7 +525,6 @@ namespace Game.Train.Train
                     nodes.Add(node);
                 }
             }
-
             return nodes;
         }
         //別コードに分割したい TODO
@@ -755,6 +754,7 @@ namespace Game.Train.Train
 
         public void OnDestroy()
         {
+            TrainRailPositionManager.Instance.UnregisterRailPosition(_railPosition);
             trainDiagram.OnDestroy();
             _railPosition.OnDestroy();
             trainUnitStationDocking.OnDestroy();

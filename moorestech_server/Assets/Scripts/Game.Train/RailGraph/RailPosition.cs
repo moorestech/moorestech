@@ -9,7 +9,7 @@ namespace Game.Train.RailGraph
     public class RailPosition
     {
         // RailNodeのリスト。インデックスが小さいほうに向かって進む。
-        private List<RailNode> _railNodes;
+        private List<IRailNode> _railNodes;
 
         // 先頭の前輪が次のノードまでどれだけ離れているか
         private int _distanceToNextNode;
@@ -20,7 +20,7 @@ namespace Game.Train.RailGraph
         public int TrainLength => _trainLength;
         public int DistanceToNextNode => _distanceToNextNode;
 
-        public RailPosition(List<RailNode> railNodes, int trainLength, int initialDistanceToNextNode)
+        public RailPosition(List<IRailNode> railNodes, int trainLength, int initialDistanceToNextNode)
         {
             if (railNodes == null || railNodes.Count < 1)
             {
@@ -36,27 +36,12 @@ namespace Game.Train.RailGraph
             _trainLength = trainLength;
             _distanceToNextNode = initialDistanceToNextNode;
             RemoveUnnecessaryNodes();
-            //ValidatePosition();
         }
 
         public void OnDestroy()
         {
-            TrainRailPositionManager.Instance.UnregisterRailPosition(this);
             _railNodes.Clear();
             _railNodes = null;
-        }
-
-
-
-        private void ValidatePosition()
-        {
-            // 現在のRailNodeリストと距離が列車の長さに収まっているかを確認
-            int totalDistance = RailNodeCalculate.CalculateTotalDistance(_railNodes);
-            if (totalDistance + _distanceToNextNode < _trainLength)
-            {
-                throw new InvalidOperationException("RailNodeリストと距離が列車の長さに収まっていない" +
-                    $" totalDistance: {totalDistance}, distanceToNextNode: {_distanceToNextNode}, trainLength: {_trainLength}");
-            }
         }
 
 
@@ -280,13 +265,13 @@ namespace Game.Train.RailGraph
 
         // 現在の先頭のRailNodeを取得
         // これは現在向かっているまたは前輪がちょうど乗っているRailNode
-        public RailNode GetNodeApproaching()
+        public IRailNode GetNodeApproaching()
         {
             return _railNodes.FirstOrDefault();
         }
 
         // 次のRailNodeを取得
-        public RailNode GetNodeJustPassed()
+        public IRailNode GetNodeJustPassed()
         {
             return _railNodes.Count > 1 ? _railNodes[1] : null;
         }
@@ -307,14 +292,14 @@ namespace Game.Train.RailGraph
             return snapshot;
         }
 
-        public IReadOnlyList<RailNode> GetRailNodes()
+        public IReadOnlyList<IRailNode> GetRailNodes()
         {
             return _railNodes.AsReadOnly();
         }
 
         //_railNodesのindex 0にrailnodeを追加する
         //それに合わせて_distanceToNextNodeを更新する
-        public void AddNodeToHead(RailNode node)
+        public void AddNodeToHead(IRailNode node)
         {
             if (node == null)
             {
@@ -336,7 +321,7 @@ namespace Game.Train.RailGraph
         }
         public RailPosition DeepCopy()
         {
-            var newrailNodes = new List<RailNode>();
+            var newrailNodes = new List<IRailNode>();
             foreach (var node in _railNodes)
             {
                 newrailNodes.Add(node);
@@ -362,9 +347,9 @@ namespace Game.Train.RailGraph
 
         // intの距離を入力として、railpositionの先頭からその距離さかのぼったところにちょうどあるRailNodeをlistですべて取得する
         // 事実上ドッキング判定のみに使う
-        public List<RailNode> GetNodesAtDistance(int distance)
+        public List<IRailNode> GetNodesAtDistance(int distance)
         {
-            List<RailNode> nodesAtDistance = new List<RailNode>();
+            List<IRailNode> nodesAtDistance = new List<IRailNode>();
             int totalDistance = _distanceToNextNode + distance;//この地点をみたい
             for (int i = 0; i < _railNodes.Count; i++)
             {
@@ -384,7 +369,7 @@ namespace Game.Train.RailGraph
         //基本的にレールの撤去時は全てのrailpositionをみて1つでもあったら、削除はできないのが仕様
         //この関数は強制削除用
         //railpositionの中に同じnodeが複数ある場合も考慮(該当全削除)
-        public void RemoveNode(RailNode node)
+        public void RemoveNode(IRailNode node)
         {
             if (node == null) return;
             bool removed = false;
@@ -401,11 +386,11 @@ namespace Game.Train.RailGraph
         }
 
         //nodeがあったらtrue
-        public bool ContainsNode(RailNode node)
+        public bool ContainsNode(IRailNode node)
         {
             return _railNodes.Contains(node);
         }
-        public bool ContainsEdge(RailNode from, RailNode to)
+        public bool ContainsEdge(IRailNode from, IRailNode to)
         {
             if (ContainsNode(from))
             {
@@ -425,7 +410,7 @@ namespace Game.Train.RailGraph
 
         //テスト用
         //TestGet_railNodes()
-        public List<RailNode> TestGet_railNodes()
+        public List<IRailNode> TestGet_railNodes()
         {
             return _railNodes;
         }
