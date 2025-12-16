@@ -1,4 +1,5 @@
 using Core.Item.Interface;
+using Core.Master;
 using Game.Context;
 using Game.Train.Common;
 using Game.Train.RailGraph;
@@ -6,7 +7,6 @@ using Game.Train.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Core.Master;
 
 namespace Game.Train.Train
 {
@@ -675,12 +675,8 @@ namespace Game.Train.Train
             // 後ろから 5両を抜き取るケースを想定
             if (numberOfCarsToDetach <= 0 || numberOfCarsToDetach > _cars.Count)
             {
-                UnityEngine.Debug.LogError("SplitTrain: 指定両数が不正です。");
-                return null;
-            }
-            if (numberOfCarsToDetach == _cars.Count) 
-            {
-                OnDestroy();
+                if (numberOfCarsToDetach != 0)
+                    UnityEngine.Debug.LogWarning("SplitTrain: 指定両数が不正です。");
                 return null;
             }
             TurnOffAutoRun();
@@ -703,28 +699,58 @@ namespace Game.Train.Train
                 splittedRailPosition,
                 detachedCars
             );
+            // 5) 自分が0になっていたら
+            if (_cars.Count == 0)
+                this.OnDestroy();
             // 6) 新しいTrainUnitを返す
             return splittedUnit;
+
+            #region Internal
+            /// <summary>
+            /// 後続列車のために、新しいRailPositionを生成し返す。
+            /// ここでは単純に列車の先頭からRailNodeの距離を調整するだけ
+            /// </summary>
+            RailPosition CreateSplittedRailPosition(List<TrainCar> splittedCars)
+            {
+                // _railPositionのdeepコピー
+                var newNodes = _railPosition.DeepCopy();
+                // splittedCarsの両数に応じて、列車長を算出する
+                int splittedTrainLength = 0;
+                foreach (var car in splittedCars)
+                    splittedTrainLength += car.Length;
+                //newNodesを反転して、新しい列車長を設定
+                newNodes.Reverse();
+                newNodes.SetTrainLength(splittedTrainLength);
+                //また反転すればちゃんと後ろの列車になる
+                newNodes.Reverse();
+                return newNodes;
+            }
+            #endregion
         }
 
         /// <summary>
-        /// 後続列車のために、新しいRailPositionを生成し返す。
-        /// ここでは単純に列車の先頭からRailNodeの距離を調整するだけ
+        /// 指定 GUID or indexの列車両を安全に削除する
+        /// 削除後分割された新編成は返さない(必要があれば返すこともできる)
+        /// Removes the train car that matches the given GUID.
+        /// The newly split configuration after deletion will not be returned (it can be returned if necessary).
         /// </summary>
-        private RailPosition CreateSplittedRailPosition(List<TrainCar> splittedCars)
+        /// 
+        public void RemoveCar(int targetIndex)
         {
-            // _railPositionのdeepコピー
-            var newNodes = _railPosition.DeepCopy();
-            // splittedCarsの両数に応じて、列車長を算出する
-            int splittedTrainLength = 0;
-            foreach (var car in splittedCars)
-                splittedTrainLength += car.Length;
-            //newNodesを反転して、新しい列車長を設定
-            newNodes.Reverse();
-            newNodes.SetTrainLength(splittedTrainLength);
-            //また反転すればちゃんと後ろの列車になる
-            newNodes.Reverse();
-            return newNodes;
+            if ((targetIndex < 0) || (targetIndex >= _cars.Count))
+            {
+                UnityEngine.Debug.LogWarning($"RemoveCar: carIndex {targetIndex} is not found.");
+                return;
+            }
+            var carsBehind = _cars.Count - targetIndex - 1;
+            SplitTrain(carsBehind);
+            var removeCar = SplitTrain(1);
+            removeCar?.OnDestroy();
+        }
+        public void RemoveCar(Guid trainCarId)
+        {
+            var targetIndex = _cars.FindIndex(car => car.CarId == trainCarId);
+            RemoveCar(targetIndex);
         }
 
         /// <summary>
