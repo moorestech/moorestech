@@ -137,7 +137,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &500948447
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -249,13 +249,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 500948446}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.0062001194, y: 0.98820955, z: -0.14723182, w: -0.04154799}
+  m_LocalRotation: {x: 0.007245784, y: -0.98788923, z: 0.14718232, w: 0.04857658}
   m_LocalPosition: {x: 0.2632374, y: 2.1752622, z: 3.6306882}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 16.948, y: -174.37, z: -0.001}
 --- !u!1 &528975839
 GameObject:
   m_ObjectHideFlags: 0
@@ -1023,7 +1023,7 @@ GameObject:
   - component: {fileID: 2104643507}
   - component: {fileID: 2104643506}
   m_Layer: 0
-  m_Name: Character2 Camera3
+  m_Name: Character3 Camera3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1140,13 +1140,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2104643505}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.013437394, y: 0.9827334, z: -0.07917761, w: -0.1666897}
+  m_LocalRotation: {x: 0.012399155, y: -0.9848356, z: 0.07934909, w: 0.15378173}
   m_LocalPosition: {x: 3.1948504, y: 1.540552, z: 3.6955204}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 9.213, y: -162.25, z: -0.001}
 --- !u!1001 &3281221057761589641
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1209,7 +1209,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8231187837240315114, guid: f479ff7c99835452c9af9473d5fd2043, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8809976768853550911, guid: f479ff7c99835452c9af9473d5fd2043, type: 3}
       propertyPath: skinnedMeshRenderer
@@ -1311,7 +1311,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5296786972757853421, guid: 2ef73f52aa57040ab95f42a213f7b28b, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7184213481761445998, guid: 2ef73f52aa57040ab95f42a213f7b28b, type: 3}
       propertyPath: m_Enabled
