@@ -7,16 +7,16 @@ namespace Game.Train.RailGraph
     // Interface to share node id and connection metadata between assemblies
     public interface IRailNode
     {
-        int NodeId { get; }////
+        int NodeId { get; }
         int OppositeNodeId { get; }
-        IRailNode OppositeNode { get; }////
-        RailControlPoint FrontControlPoint { get; }////
-        RailControlPoint BackControlPoint { get; }////
-        IEnumerable<IRailNode> ConnectedNodes { get; }////
-        IEnumerable<(IRailNode node, int distance)> ConnectedNodesWithDistance { get; }////
-        int GetDistanceToNode(IRailNode node, bool useFindPath = false);////
-        ConnectionDestination ConnectionDestination { get; }////
-        Guid NodeGuid { get; }////
-        StationReference StationRef { get; }////
+        IRailNode OppositeNode { get; }
+        ConnectionDestination ConnectionDestination { get; }
+        Guid NodeGuid { get; }
+        StationReference StationRef { get; }
+        RailControlPoint FrontControlPoint { get; }
+        RailControlPoint BackControlPoint { get; }
+        IEnumerable<IRailNode> ConnectedNodes { get; }
+        IEnumerable<(IRailNode node, int distance)> ConnectedNodesWithDistance { get; }
+        int GetDistanceToNode(IRailNode node, bool useFindPath = false);
     }
 }

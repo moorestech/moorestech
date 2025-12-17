@@ -106,12 +106,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             bool TryResolveNode(ConnectionDestination destination, out int nodeId, out Guid nodeGuid)
             {
                 nodeGuid = Guid.Empty;
-                if (!_cache.TryGetNodeId(destination, out nodeId))
-                {
+                if (!_cache.TryGetNodeId(destination, out nodeId)) 
                     return false;
-                }
-
-                return _cache.TryGetNode(nodeId, out nodeGuid, out _);
+                if (!_cache.TryGetNode(nodeId, out var irailnode)) 
+                    return false;
+                nodeGuid = irailnode.NodeGuid;
+                return true;
             }
             
             #endregion

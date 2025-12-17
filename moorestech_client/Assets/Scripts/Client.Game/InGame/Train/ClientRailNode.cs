@@ -1,64 +1,94 @@
+using Game.Train.RailGraph;
+using Game.Train.Utility;
 using System;
 using System.Collections.Generic;
-using Game.Train.RailGraph;
+using System.Linq;
 using UnityEngine;
 
 namespace Client.Game.InGame.Train
 {
-    // クライアントキャッシュから読み出したノードを共通IFで扱う
-    // Client-side node wrapper that conforms to the shared IRailNode contract
-    public sealed class ClientRailNode : IRailNode
+    public class ClientRailNode : IRailNode
     {
-        private static readonly IReadOnlyList<(int targetId, int distance)> EmptyEdges = Array.Empty<(int, int)>();
-        private readonly IReadOnlyList<IReadOnlyList<(int targetId, int distance)>> _connectNodes;
-        private readonly RailGraphIdPathFinder _pathFinder;
-        private readonly RailNodeInitializationNotifier.RailNodeInitializationData _state;
+        private int _nodeId;
+        public int NodeId => _nodeId;
+        private Guid _nodeGuid;
+        public Guid NodeGuid => _nodeGuid;
 
-        public ClientRailNode(
-            RailNodeInitializationNotifier.RailNodeInitializationData state,
-            IReadOnlyList<IReadOnlyList<(int targetId, int distance)>> connectNodes,
-            RailGraphIdPathFinder pathFinder)
-        {
-            _state = state;
-            _connectNodes = connectNodes;
-            _pathFinder = pathFinder;
-        }
+        private ConnectionDestination _connectionDestination;
+        public ConnectionDestination ConnectionDestination => _connectionDestination;
 
-        public int NodeId => _state.NodeId;
-        public int OppositeNodeId => NodeId >= 0 ? NodeId ^ 1 : -1;
-        public Guid NodeGuid => _state.NodeGuid;
-        public ConnectionDestination ConnectionDestination => _state.ConnectionDestination;
-        public Vector3 OriginPoint => _state.OriginPoint;
-        public bool IsActive => NodeGuid != Guid.Empty;
-
-        public IEnumerable<(int nodeId, int distance)> ConnectedNodesWithDistance
+        private readonly RailGraphClientCache _cache;
+        public int OppositeNodeId => NodeId ^ 1;
+        public IRailNode OppositeNode
         {
             get
             {
-                var edges = NodeId >= 0 && NodeId < _connectNodes.Count ? _connectNodes[NodeId] : null;
-                return edges ?? EmptyEdges;
+                return _cache.TryGetNode(OppositeNodeId, out var irailnode) ? irailnode : null;
+            }
+        }
+        public RailControlPoint FrontControlPoint { get; }
+        public RailControlPoint BackControlPoint { get; }
+        public StationReference StationRef => null;// TODO 今後適切に実装を
+        public bool IsActive 
+        { 
+            get
+            {
+                return _cache != null && _cache.TryGetNode(NodeId, out var irailnode);
+            }
+        }
+        
+        public ClientRailNode(int nodeid, Guid guid, ConnectionDestination connectionDestination, Vector3 origin, Vector3 primary, Vector3 opposite,RailGraphClientCache cache)
+        {
+            _nodeId = nodeid;
+            _nodeGuid = guid;
+            _connectionDestination = connectionDestination;
+            FrontControlPoint = new RailControlPoint(origin, primary);
+            BackControlPoint = new RailControlPoint(origin, opposite);
+            _cache = cache;
+        }
+
+        public IEnumerable<IRailNode> ConnectedNodes
+        {
+            get
+            {
+                var ret = new List<IRailNode>();
+                var connectedNodeIds = _cache.ConnectNodes[NodeId];
+                foreach (var (targetnodeId, _) in connectedNodeIds)
+                {
+                    ret.Add(_cache.Nodes[targetnodeId]);
+                }
+                return ret;
             }
         }
 
-        public int GetDistanceToNode(int nodeId, bool useFindPath)
+        public IEnumerable<(IRailNode node, int distance)> ConnectedNodesWithDistance
         {
-            // アクティブでないノードは距離未定義とする
-            // Inactive nodes report an undefined distance
-            if (!IsActive || nodeId < 0 || nodeId >= _connectNodes.Count)
-                return -1;
+            get
+            {
+                return _cache.ConnectNodes[NodeId].Select(x => (_cache.Nodes[x.Item1] as IRailNode, x.Item2)).ToList();
+            }
+        }
+
+        public int GetDistanceToNode(IRailNode targetnode, bool useFindPath = false)
+        {
+            if (!IsActive || targetnode == null || targetnode.NodeId < 0) return -1;
 
             if (!useFindPath)
             {
-                foreach (var (targetId, distance) in ConnectedNodesWithDistance)
+                foreach (var (tempnode, distance) in ConnectedNodesWithDistance)
                 {
-                    if (targetId == nodeId)
+                    if (tempnode.NodeId == targetnode.NodeId)
                         return distance;
                 }
                 return -1;
             }
 
-            var result = _pathFinder.FindShortestPath(_connectNodes, NodeId, nodeId);
-            return result.Distance;
+            // Pathfinding logic
+            var pathResult = _cache.FindShortestPath(NodeId, targetnode.NodeId);
+            return RailNodeCalculate.CalculateTotalDistanceF(pathResult);
         }
     }
+
 }
+
+

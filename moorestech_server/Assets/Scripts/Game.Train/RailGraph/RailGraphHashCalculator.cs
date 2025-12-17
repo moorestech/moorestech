@@ -21,7 +21,7 @@ namespace Game.Train.RailGraph
         /// <summary>
         /// railNodes / connectNodes の状態から順序独立ハッシュを計算する。
         /// </summary>
-        public static uint ComputeGraphStateHash(List<RailNode> railNodes, List<List<(int targetId, int distance)>> connectNodes)
+        public static uint ComputeGraphStateHash(IReadOnlyList<IRailNode> railNodes, List<List<(int targetId, int distance)>> connectNodes)
         {
             uint hash = FnvOffset;
 
@@ -29,14 +29,14 @@ namespace Game.Train.RailGraph
             {
                 for (int nodeId = 0; nodeId < railNodes.Count; nodeId++)
                 {
-                    var node = railNodes[nodeId];
+                    IRailNode node = railNodes[nodeId];
                     if (node == null)
                         continue;
 
                     hash = MixNode(
                         hash,
                         nodeId,
-                        node.Guid,
+                        node.NodeGuid,
                         node.ConnectionDestination,
                         node.FrontControlPoint.OriginalPosition,
                         node.FrontControlPoint.ControlPointPosition,
