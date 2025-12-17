@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 3663224164626228304}
   - component: {fileID: 3433782948117614139}
   - component: {fileID: 8905993790019110893}
+  - component: {fileID: 4431916944404747389}
   m_Layer: 0
   m_Name: Debug Cinematic Camera
   m_TagString: Untagged
@@ -137,6 +138,32 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
+--- !u!114 &4431916944404747389
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 541454626954467763}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad0c27f30f62cff45846e6ffbecd6a7b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cameraRootTransform: {fileID: 4188179610437779592}
+  cameraXTransform: {fileID: 7183596338145431229}
+  cameraYTransform: {fileID: 4805288041146523338}
+  mouseSpeed: 1
+  cameraSpeed: 0.05
+  positionMoveSpeed: 0.05
+  positionLerpSpeed: 0.05
+  sprintMagnitude: 3
+  camera: {fileID: 3663224164626228304}
+  targetFOV: 60
+  fovSpeed: 0.1
+  fovScrollSpeed: 5
+  minFOV: 20
+  maxFOV: 90
 --- !u!1 &3045477927339646168
 GameObject:
   m_ObjectHideFlags: 0
@@ -359,7 +386,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4188179610437779592}
-  - component: {fileID: 3968661762768424144}
   m_Layer: 0
   m_Name: Debug Cinematic Camera Root
   m_TagString: Untagged
@@ -383,32 +409,6 @@ Transform:
   - {fileID: 4805288041146523338}
   m_Father: {fileID: 1422861368398882594}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &3968661762768424144
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4403604861633496407}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ad0c27f30f62cff45846e6ffbecd6a7b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  cameraRootTransform: {fileID: 4188179610437779592}
-  cameraXTransform: {fileID: 7183596338145431229}
-  cameraYTransform: {fileID: 4805288041146523338}
-  mouseSpeed: 1
-  cameraSpeed: 0.05
-  positionMoveSpeed: 0.05
-  positionLerpSpeed: 0.05
-  sprintMagnitude: 3
-  camera: {fileID: 3663224164626228304}
-  targetFOV: 60
-  fovSpeed: 0.1
-  fovScrollSpeed: 5
-  minFOV: 20
-  maxFOV: 90
 --- !u!1 &5071935572733396715
 GameObject:
   m_ObjectHideFlags: 0

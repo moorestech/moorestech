@@ -94,7 +94,7 @@ GameObject:
   - component: {fileID: 7779342916117498845}
   - component: {fileID: 7119229288272271055}
   m_Layer: 7
-  m_Name: primitive miner
+  m_Name: primitive miner tmp
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
