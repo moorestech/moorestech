@@ -102,7 +102,7 @@ namespace Tests.Util
 
         public TrainUnit CreateForwardDockingTrain(out TrainCar car, int initialDistanceToExit = 0)
         {
-            var nodes = new List<RailNode>
+            var nodes = new List<IRailNode>
             {
                 _station.ExitFront,
                 _station.EntryFront,
@@ -115,7 +115,7 @@ namespace Tests.Util
 
         public TrainUnit CreateOpposingDockingTrain(out TrainCar car, int initialDistanceToExit = 0)
         {
-            var nodes = new List<RailNode>
+            var nodes = new List<IRailNode>
             {
                 _station.ExitBack,
                 _station.EntryBack,
@@ -167,7 +167,7 @@ namespace Tests.Util
             _disposed = true;
         }
 
-        private TrainUnit CreateTrain(List<RailNode> nodes, int initialDistanceToNextNode, out TrainCar car, bool isFacingFront = true)
+        private TrainUnit CreateTrain(List<IRailNode> nodes, int initialDistanceToNextNode, out TrainCar car, bool isFacingFront = true)
         {
             var firstTrain = MasterHolder.TrainUnitMaster.Train.TrainCars.First();
 
@@ -180,7 +180,7 @@ namespace Tests.Util
             return CreateTrain(nodes, cars, initialDistanceToNextNode);
         }
 
-        private TrainUnit CreateTrain(List<RailNode> nodes, List<TrainCar> cars, int initialDistanceToNextNode)
+        private TrainUnit CreateTrain(List<IRailNode> nodes, List<TrainCar> cars, int initialDistanceToNextNode)
         {
             Assert.IsNotNull(nodes, "RailNodeのリストがnullです。");
             Assert.GreaterOrEqual(nodes.Count, 2, "列車の生成には2つ以上のRailNodeが必要です。");
@@ -196,9 +196,9 @@ namespace Tests.Util
             return train;
         }
 
-        private List<RailNode> BuildLoopRailNodes(int requiredLength)
+        private List<IRailNode> BuildLoopRailNodes(int requiredLength)
         {
-            var nodes = new List<RailNode> { };
+            var nodes = new List<IRailNode> { };
             var loopSequence = new[]
             {
                 _station.ExitFront,
@@ -214,7 +214,7 @@ namespace Tests.Util
             return nodes;
         }
 
-        private static void ValidateNodeOrientations(IReadOnlyList<RailNode> nodes)
+        private static void ValidateNodeOrientations(IReadOnlyList<IRailNode> nodes)
         {
             for (var i = 0; i < nodes.Count - 1; i++)
             {

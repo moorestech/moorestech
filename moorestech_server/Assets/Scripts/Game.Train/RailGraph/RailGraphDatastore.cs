@@ -123,11 +123,6 @@ namespace Game.Train.RailGraph
             Instance.AddNodePairInternal(node1, node2);
         }
 
-        public static RailNode GetOppositeNode(RailNode node) 
-        {
-            return Instance.GetOppositeNodeInternal(node);
-        }
-
         public static void ConnectNode(RailNode node, RailNode targetNode, int distance)
         {
             Instance.ConnectNodeInternal(node, targetNode, distance);
@@ -138,7 +133,7 @@ namespace Game.Train.RailGraph
             Instance.DisconnectNodeInternal(node, targetNode);
         }
 
-        public static List<(RailNode, int)> GetConnectedNodesWithDistance(RailNode node)
+        public static List<(IRailNode, int)> GetConnectedNodesWithDistance(IRailNode node)
         {
             return Instance.GetConnectedNodesWithDistanceInternal(node);
         }
@@ -153,20 +148,24 @@ namespace Game.Train.RailGraph
             return Instance.ResolveRailNodeInternal(destination);
         }
 
-        public static int GetDistanceBetweenNodes(RailNode start, RailNode target, bool logging = true)
+        public static int GetDistanceBetweenNodes(int startid, int targetid)
         {
-            return Instance.GetDistanceBetweenNodesInternal(start, target, logging);
+            return Instance.GetDistanceBetweenNodesInternal(startid, targetid);
+        }
+        public static int GetDistanceBetweenNodes(IRailNode start, IRailNode target)
+        {
+            return Instance.GetDistanceBetweenNodesInternal(start.NodeId, target.NodeId);
         }
 
         /// <summary>
         /// ダイクストラ法による最短経路を返す
         /// </summary>
-        public static List<RailNode> FindShortestPath(RailNode startNode, RailNode targetNode)
+        public static List<IRailNode> FindShortestPath(IRailNode startNode, IRailNode targetNode)
         {
-            return FindShortestPath(Instance.railNodeToId[startNode], Instance.railNodeToId[targetNode]);
+            return FindShortestPath(startNode.NodeId, targetNode.NodeId);
         }
 
-        public static List<RailNode> FindShortestPath(int startid, int targetid)
+        public static List<IRailNode> FindShortestPath(int startid, int targetid)
         {
             return Instance.FindShortestPathInternal(startid, targetid);
         }
@@ -244,17 +243,6 @@ namespace Game.Train.RailGraph
             _nodeInitializationNotifier.Notify(nodeId1);
             _nodeInitializationNotifier.Notify(nodeId2);
             MarkHashDirty();
-        }
-
-        private RailNode GetOppositeNodeInternal(RailNode node) 
-        {
-            if (!railNodeToId.ContainsKey(node))
-                return null;
-            var nodeid = railNodeToId[node];
-            var oppositeid = nodeid ^ 1;//表裏ノードはidが1違いなのでxorで求められる
-            if (oppositeid < 0 || oppositeid >= railNodes.Count)
-                return null;
-            return railNodes[oppositeid];
         }
 
         private void ConnectNodeInternal(RailNode node, RailNode targetNode, int distance)
@@ -365,39 +353,53 @@ namespace Game.Train.RailGraph
             return railNodes[nodeId];
         }
 
-        private List<(RailNode, int)> GetConnectedNodesWithDistanceInternal(RailNode node)
+        private List<(IRailNode, int)> GetConnectedNodesWithDistanceInternal(IRailNode node)
         {
-            if (!railNodeToId.ContainsKey(node))
-                return new List<(RailNode, int)>();
-            int nodeId = railNodeToId[node];
-            return connectNodes[nodeId].Select(x => (railNodes[x.Item1], x.Item2)).ToList();
+            if (node == null)
+                return new List<(IRailNode, int)>();
+            int nodeId = node.NodeId;// railNodeToId[node];
+            if (nodeId < 0 || nodeId >= railNodes.Count) 
+                return new List<(IRailNode, int)>();
+            return connectNodes[nodeId].Select(x => (railNodes[x.Item1] as IRailNode, x.Item2)).ToList();
         }
 
-        private int GetDistanceBetweenNodesInternal(RailNode start, RailNode target, bool logging = true)
+        private int GetDistanceBetweenNodesInternal(int startid, int targetid)
         {
-            if (!railNodeToId.ContainsKey(start) || !railNodeToId.ContainsKey(target))
-            {
-                if (logging)
-                    Debug.LogWarning("RailNodeが登録されていません");
+            if (!TryGetRailNodeInternal(startid, out var start))
                 return -1;
-            }
-            int startid = railNodeToId[start];
-            int targetid = railNodeToId[target];
+            if (!TryGetRailNodeInternal(targetid, out var target))
+                return -1;
+
             foreach (var (neighbor, distance) in connectNodes[startid])
             {
                 if (neighbor == targetid)
                     return distance;
             }
-            if (logging)
-                Debug.LogWarning("RailNodeがつながっていません " + startid + " to " + targetid);
+            Debug.LogWarning("RailNodeがつながっていません " + startid + " to " + targetid);
             return -1;
         }
 
         // ダイクストラ startからtargetへのnodeリストを返す、0がstart、最後がtarget
-        private List<RailNode> FindShortestPathInternal(int startid, int targetid)
+        private List<IRailNode> FindShortestPathInternal(int startid, int targetid)
         {
             // RailGraphPathFinder に処理を委譲
-            return _pathFinder.FindShortestPath(railNodes, connectNodes, startid, targetid);
+            // ID 列を RailNode 列へ変換
+            var pathIds = _pathFinder.FindShortestPath(connectNodes, startid, targetid);
+            var result = new List<IRailNode>(pathIds.Count);
+            for (int i = 0; i < pathIds.Count; i++)
+            {
+                int id = pathIds[i];
+                if (id >= 0 && id < railNodes.Count)
+                {
+                    result.Add(railNodes[id]);
+                }
+                else
+                {
+                    // 異常系：範囲外なら null を詰めておく（実際には起こらない想定）
+                    result.Add(null);
+                }
+            }
+            return result;
         }
 
         private uint GetGraphHashInternal()

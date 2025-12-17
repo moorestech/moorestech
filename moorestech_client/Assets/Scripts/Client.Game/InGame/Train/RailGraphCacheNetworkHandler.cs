@@ -1,9 +1,11 @@
-using System;
 using Client.Game.InGame.Context;
+using Game.Train.RailGraph;
 using MessagePack;
 using Server.Event.EventReceive;
 using Server.Util.MessagePack;
+using System;
 using UniRx;
+using UnityEngine;
 using VContainer.Unity;
 
 namespace Client.Game.InGame.Train
@@ -48,7 +50,7 @@ namespace Client.Game.InGame.Train
             // メッセージを復号しキャッシュへUpsert
             // Decode message and upsert into cache
             var message = MessagePackSerializer.Deserialize<RailNodeCreatedMessagePack>(payload);
-            var destination = message.ConnectionDestination?.ToClientDestination() ?? ConnectionDestination.Default;
+            var destination = message.ConnectionDestination?.ToConnectionDestination() ?? ConnectionDestination.Default;
 
             _cache.UpsertNode(
                 message.NodeId,
@@ -65,16 +67,7 @@ namespace Client.Game.InGame.Train
             // 削除メッセージを解析してGuid一致を確認
             // Decode removal payload and verify guid consistency
             var message = MessagePackSerializer.Deserialize<RailNodeRemovedMessagePack>(payload);
-            if (!_cache.TryGetNode(message.NodeId, out var cachedGuid, out _))
-            {
-                return;
-            }
-
-            if (cachedGuid != message.NodeGuid)
-            {
-                return;
-            }
-
+            if (_cache.TryValidateEndpoint(message.NodeId, message.NodeGuid))
             // Guidが一致した場合のみノード削除
             // Remove the node only when guid matches
             _cache.RemoveNode(message.NodeId, message.Tick);

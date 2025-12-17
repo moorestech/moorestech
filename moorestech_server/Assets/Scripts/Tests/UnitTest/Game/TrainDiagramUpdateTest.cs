@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
-using Game.Block.Blocks.TrainRail;
-using Game.Block.Interface;
 using Game.Context;
 using Game.Train.Common;
 using Game.Train.RailGraph;
@@ -12,7 +10,6 @@ using Mooresmaster.Model.TrainModule;
 using NUnit.Framework;
 using Tests.Module.TestMod;
 using Tests.Util;
-using UnityEngine;
 
 namespace Tests.UnitTest.Game
 {
@@ -41,7 +38,7 @@ namespace Tests.UnitTest.Game
                 new TrainCar(new TrainCarMasterElement(Guid.Empty, Guid.Empty, null, 1000, 0, 0))
             };
 
-            var railNodes = new List<RailNode> { startNode };
+            var railNodes = new List<IRailNode> { startNode };
             var railPosition = new RailPosition(railNodes, 0, 0);
 
             var trainUnit = new TrainUnit(railPosition, cars);

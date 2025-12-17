@@ -1,7 +1,5 @@
-using MessagePack;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Game.Train.RailGraph
 {
@@ -12,7 +10,7 @@ namespace Game.Train.RailGraph
     /// ・同じ距離の場合は nodeId の小さい方を優先（決定的な経路）
     /// MassiveAutoRunScenarioProducesIdenticalStateWithAndWithoutSaveLoad (6.017s)→(5.884s)に改善
     /// </summary>
-    internal sealed class RailGraphPathFinder
+    public class RailGraphPathFinder
     {
         private int[] _distances;
         private int[] _previous;
@@ -27,19 +25,18 @@ namespace Game.Train.RailGraph
         }
 
         /// <summary>
-        /// 内部 ID（startId, targetId）を用いて最短経路を探索し、RailNode の列として返す。
+        /// 内部 ID（startId, targetId）を用いて最短経路を探索し、RailNodeId の列として返す。
         /// </summary>
-        public List<RailNode> FindShortestPath(
-            List<RailNode> railNodes,
+        public List<int> FindShortestPath(
             List<List<(int targetId, int distance)>> connectNodes,
             int startId,
             int targetId)
         {
-            int nodeCount = railNodes.Count;
+            int nodeCount = connectNodes.Count;
             if (startId < 0 || startId >= nodeCount ||
                 targetId < 0 || targetId >= nodeCount)
             {
-                return new List<RailNode>();
+                return new List<int>();
             }
             EnsureWorkspace(nodeCount);
             BeginSearch();
@@ -83,7 +80,7 @@ namespace Game.Train.RailGraph
             // target に到達できていない
             if (GetDistance(targetId) == int.MaxValue)
             {
-                return new List<RailNode>();
+                return new List<int>();
             }
 
             // 経路復元（targetId から backward にたどり、最後に reverse）
@@ -95,22 +92,6 @@ namespace Game.Train.RailGraph
                 currentId = _previous[currentId];
             }
             pathIds.Reverse();
-
-            // ID 列を RailNode 列へ変換
-            var result = new List<RailNode>(pathIds.Count);
-            for (int i = 0; i < pathIds.Count; i++)
-            {
-                int id = pathIds[i];
-                if (id >= 0 && id < railNodes.Count)
-                {
-                    result.Add(railNodes[id]);
-                }
-                else
-                {
-                    // 異常系：範囲外なら null を詰めておく（実際には起こらない想定）
-                    result.Add(null);
-                }
-            }
 
             #region Internal
             // ==========================
@@ -155,7 +136,7 @@ namespace Game.Train.RailGraph
                 _previous[nodeId] = previousId;
             }
             #endregion
-            return result;
+            return pathIds;
         }
 
 

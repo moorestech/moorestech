@@ -3,7 +3,6 @@ using Game.Train.RailGraph;
 using MessagePack;
 using UniRx;
 using Server.Util.MessagePack;
-using Server.Event;
 
 namespace Server.Event.EventReceive
 {

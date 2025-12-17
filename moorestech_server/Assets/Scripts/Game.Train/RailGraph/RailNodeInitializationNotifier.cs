@@ -1,7 +1,6 @@
 using System;
 using UniRx;
 using UnityEngine;
-using static Game.Train.RailGraph.RailConnectionInitializationNotifier;
 
 namespace Game.Train.RailGraph
 {
