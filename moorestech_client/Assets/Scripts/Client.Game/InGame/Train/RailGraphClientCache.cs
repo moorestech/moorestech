@@ -99,7 +99,6 @@ namespace Client.Game.InGame.Train
             {
                 // ノードごとの必須データを単純代入
                 // Copy core node data with simple assignments
-                int i = 0;
                 foreach (var node in targetSnapshot.Nodes)
                 {
                     if (node == null || node.NodeId < 0 || node.NodeId >= _nodes.Count)
@@ -110,9 +109,8 @@ namespace Client.Game.InGame.Train
                     var origin = node.OriginPoint?.ToUnityVector() ?? DefaultPosition;
                     var primary = node.FrontControlPoint?.ToUnityVector() ?? DefaultPosition;
                     var opposite = node.BackControlPoint?.ToUnityVector() ?? DefaultPosition;
-                    _nodes[i] = new ClientRailNode(i, node.NodeGuid, destination, origin, primary, opposite, this);
-                    _connectionDestinationToNodeId[destination] = i;
-                    i++;
+                    _nodes[node.NodeId] = new ClientRailNode(node.NodeId, node.NodeGuid, destination, origin, primary, opposite, this);
+                    _connectionDestinationToNodeId[destination] = node.NodeId;
                 }
             }
 
@@ -150,11 +148,8 @@ namespace Client.Game.InGame.Train
             Debug.Log($"UpsertNode: nodeId={nodeId}, connectionDestination={connectionDestination}");
             EnsureNodeSlot(nodeId);
             var previous = _nodes[nodeId];
-            if (previous != null)
-            {
-                previous.NodeGuid.Equals(nodeGuid);
+            if (previous != null && previous.NodeGuid.Equals(nodeGuid))
                 return;
-            }
             var nextnode = new ClientRailNode(nodeId, nodeGuid, connectionDestination, controlOrigin, primaryControlPoint, oppositeControlPoint, this);
             if (previous != null)
             {
