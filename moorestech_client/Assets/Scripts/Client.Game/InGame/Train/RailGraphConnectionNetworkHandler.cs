@@ -67,7 +67,7 @@ namespace Client.Game.InGame.Train
             // 削除イベントを復号して現在のGuidと照合
             // Decode removal payload and check current guid
             var message = MessagePackSerializer.Deserialize<RailConnectionRemovedMessagePack>(payload);
-            if ((message != null) || (_cache == null))
+            if ((message == null) || (_cache == null))
                 return;
             if (!_cache.TryValidateEndpoint(message.FromNodeId, message.FromGuid))
                 return;
