@@ -50,6 +50,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 077f516b067a242fead900bf0680250a
+    m_Address: Vanilla/Item/IronOre
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 07df01a6c472c5e48915ca6a1969df88
     m_Address: Vanilla/Block/BeltConveyor_Up
     m_ReadOnly: 0
@@ -287,6 +292,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 4d6b7f79778db43549cd9b3291d2bd2f
     m_Address: Vanilla/Block/Electronic_component_manufacturing_equipment
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4de48accd99c74e2eb6d961c7a5de6d4
+    m_Address: Vanilla/Block/Primitive_Miner
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -925,11 +935,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: ebb943b3c336c4a7082a944600ede158
-    m_Address: Vanilla/Skit/Animations/TestAnimator
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: ec249701ac417437a8f945510002724b
     m_Address: Vanilla/Game/FreightCar
     m_ReadOnly: 0
@@ -1006,7 +1011,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: fd2ecb5ff8511444d98665186b558b07
-    m_Address: Vanilla/Block/primitive miner
+    m_Address: Vanilla/Block/primitive miner tmp
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
