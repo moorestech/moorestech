@@ -51,13 +51,12 @@ namespace Client.Game.InGame.Train
         {
             get
             {
-                var ret = new List<IRailNode>();
-                var connectedNodeIds = _cache.ConnectNodes[NodeId];
-                foreach (var (targetnodeId, _) in connectedNodeIds)
+                foreach (var (targetnodeId, _) in _cache.ConnectNodes[NodeId])
                 {
-                    ret.Add(_cache.Nodes[targetnodeId]);
+                    var target = _cache.Nodes[targetnodeId];
+                    if (target != null)
+                        yield return target;
                 }
-                return ret;
             }
         }
 
@@ -65,7 +64,12 @@ namespace Client.Game.InGame.Train
         {
             get
             {
-                return _cache.ConnectNodes[NodeId].Select(x => (_cache.Nodes[x.Item1] as IRailNode, x.Item2)).ToList();
+                foreach (var (targetnodeId, distance) in _cache.ConnectNodes[NodeId])
+                {
+                    var target = _cache.Nodes[targetnodeId];
+                    if (target != null)
+                        yield return (target, distance);
+                }
             }
         }
 
@@ -90,5 +94,4 @@ namespace Client.Game.InGame.Train
     }
 
 }
-
 

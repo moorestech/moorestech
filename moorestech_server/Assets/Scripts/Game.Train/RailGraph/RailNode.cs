@@ -42,16 +42,18 @@ namespace Game.Train.RailGraph
         {
             get
             {
-                //RailNodeの入力に対しつながっているRailNodeをリスト<Node>で返す
-                return RailGraphDatastore.GetConnectedNodesWithDistance(this).Select(x => x.Item1);
+                //RailNodeの入力に対しつながっているRailNodeを列挙で返す
+                foreach (var (node, _) in RailGraphDatastore.GetConnectedNodesWithDistance(this))
+                    yield return node;
             }
         }
         public IEnumerable<(IRailNode, int)> ConnectedNodesWithDistance
         {
             get
             {
-                //RailNodeの入力に対しつながっているRailNodeをリスト<Node,距離int>で返す
-                return RailGraphDatastore.GetConnectedNodesWithDistance(this); 
+                //RailNodeの入力に対しつながっているRailNodeと距離を列挙で返す
+                foreach (var entry in RailGraphDatastore.GetConnectedNodesWithDistance(this))
+                    yield return entry;
             }
         }
 
