@@ -31,13 +31,20 @@ namespace Client.Game.InGame.Map.MapObject
         
         public void Initialize(GetMapObjectInfoProtocol.MapObjectsInfoMessagePack mapObjectInfo)
         {
+            CurrentHp = mapObjectInfo.CurrentHp;
+            MapObjectMasterElement = MasterHolder.MapObjectMaster.GetMapObjectElementOrNull(MapObjectGuid);
+            
+            if (MapObjectMasterElement == null)
+            {
+                Debug.LogError($"MapObject GUID {MapObjectGuid} is not found");
+                return;
+            }
+            
             if (mapObjectInfo.IsDestroyed)
             {
                 DestroyMapObject();
             }
             
-            CurrentHp = mapObjectInfo.CurrentHp;
-            MapObjectMasterElement = MasterHolder.MapObjectMaster.GetMapObjectElement(MapObjectGuid);
             UpdateHpBar();
             
             var rayTargets = GetComponentsInChildren<MapObjectRayTarget>();
