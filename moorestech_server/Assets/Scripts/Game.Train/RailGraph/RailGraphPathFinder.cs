@@ -1,7 +1,5 @@
-using MessagePack;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Game.Train.RailGraph
 {
@@ -12,7 +10,7 @@ namespace Game.Train.RailGraph
     /// ・同じ距離の場合は nodeId の小さい方を優先（決定的な経路）
     /// MassiveAutoRunScenarioProducesIdenticalStateWithAndWithoutSaveLoad (6.017s)→(5.884s)に改善
     /// </summary>
-    internal sealed class RailGraphPathFinder
+    public class RailGraphPathFinder
     {
         private int[] _distances;
         private int[] _previous;

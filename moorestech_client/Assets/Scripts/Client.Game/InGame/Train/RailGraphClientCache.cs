@@ -1,7 +1,9 @@
+using Game.Train.RailGraph;
+using Server.Util.MessagePack;
 using System;
 using System.Collections.Generic;
-using Game.Train.RailGraph;
 using UnityEngine;
+using static UnityEngine.UI.Image;
 using RailNodeInitData = Game.Train.RailGraph.RailNodeInitializationNotifier.RailNodeInitializationData;
 
 namespace Client.Game.InGame.Train
@@ -14,7 +16,7 @@ namespace Client.Game.InGame.Train
     {
         // RailNodeInitializationDataのスナップショットを保持
         // Stores RailNodeInitializationData snapshots per nodeId
-        private readonly List<RailNodeInitData> _nodeStates = new();
+        private readonly List<ClientRailNode> _nodes = new();
 
         // RailGraphDatastoreと同型の接続リスト（indexがRailNodeId）
         // Connection list equivalent to RailGraphDatastore (index equals RailNodeId)
@@ -32,7 +34,7 @@ namespace Client.Game.InGame.Train
 
         // RailNodeスナップショットを公開（読み取りのみ）
         // Expose rail node snapshots as read-only
-        public IReadOnlyList<RailNodeInitData> NodeStates => _nodeStates;
+        public IReadOnlyList<ClientRailNode> Nodes => _nodes;
 
         // 接続情報の参照を外部へ公開（読み取りのみ）
         // Expose connection adjacency list as read-only
@@ -46,9 +48,16 @@ namespace Client.Game.InGame.Train
         // Property to observe the newest applied tick
         public long LastConfirmedTick => _lastConfirmedTick;
 
+        private RailGraphPathFinder _pathFinder;//ダイクストラ法は専用クラスに委譲する
+
+        private RailGraphClientCache()
+        {
+            _pathFinder = new RailGraphPathFinder();
+        }
+
         public uint ComputeCurrentHash()
         {
-            return RailGraphHashCalculator.ComputeGraphStateHash(_nodeStates, _connectNodes);
+            return RailGraphHashCalculator.ComputeGraphStateHash(_nodes, _connectNodes);
         }
 
         internal void OverrideTick(long serverTick)
@@ -59,46 +68,71 @@ namespace Client.Game.InGame.Train
         // スナップショットを受け取ってキャッシュ全体を再構築する
         // Rebuild the cache from a full snapshot
         public void ApplySnapshot(
-            IReadOnlyList<RailNodeInitData> snapshotNodes,
-            IReadOnlyList<IReadOnlyList<(int targetId, int distance)>> snapshotConnectNodes,
-            long snapshotTick)
+            RailGraphSnapshotMessagePack snapshot,int size)
         {
             // 入力整合性:skip してからクリア＆コピー
             // Validate inputs(:skip) before clearing the cache and copying data
-            ResetSlots(snapshotNodes.Count);
-            CopySnapshotData();
-            _lastConfirmedTick = snapshotTick;
+            ResetSlots(size);
+            PopulateNodes(snapshot, _nodes);
+            // 辺データを隣接リストへ登録
+            // Apply edge information onto adjacency list
+            PopulateConnections(snapshot, _connectNodes);
+            
+            _lastConfirmedTick = snapshot.GraphTick;
             TrainRailObjectManager.Instance?.OnCacheRebuilt(this);
 
             #region Internal
 
             void ResetSlots(int requiredCount)
             {
-                _nodeStates.Clear();
+                _nodes.Clear();
                 _connectNodes.Clear();
                 _connectionDestinationToNodeId.Clear();
                 for (var i = 0; i < requiredCount; i++)
                 {
-                    _nodeStates.Add(CreateDefaultNode(i));
+                    _nodes.Add(null);
                     _connectNodes.Add(new List<(int targetId, int distance)>());
                 }
             }
 
-            void CopySnapshotData()
+            void PopulateNodes(RailGraphSnapshotMessagePack targetSnapshot, List<ClientRailNode> nodeList)
             {
-                for (var i = 0; i < snapshotNodes.Count; i++)
+                // ノードごとの必須データを単純代入
+                // Copy core node data with simple assignments
+                int i = 0;
+                foreach (var node in targetSnapshot.Nodes)
                 {
-                    StoreNodeState(i, snapshotNodes[i]);
-                    var destination = _connectNodes[i];
-                    destination.Clear();
-                    var sources = snapshotConnectNodes[i];
-                    for (var j = 0; j < sources.Count; j++)
+                    if (node == null || node.NodeId < 0 || node.NodeId >= _nodes.Count)
                     {
-                        destination.Add(sources[j]);
+                        continue;
                     }
+                    var destination = node.ConnectionDestination?.ToConnectionDestination() ?? ConnectionDestination.Default;
+                    var origin = node.OriginPoint?.ToUnityVector() ?? DefaultPosition;
+                    var primary = node.FrontControlPoint?.ToUnityVector() ?? DefaultPosition;
+                    var opposite = node.BackControlPoint?.ToUnityVector() ?? DefaultPosition;
+                    _nodes[i] = new ClientRailNode(i, node.NodeGuid, destination, origin, primary, opposite, this);
+                    _connectionDestinationToNodeId[destination] = i;
+                    i++;
                 }
             }
 
+            void PopulateConnections(RailGraphSnapshotMessagePack targetSnapshot, List<List<(int targetId, int distance)>> adjacencyList)
+            {
+                // 辺が無ければ終了
+                // Exit early when there are no edges
+                if (targetSnapshot.Connections == null)
+                {
+                    return;
+                }
+                // 隣接リストへ追加
+                // Append adjacency info to each origin node
+                foreach (var connection in targetSnapshot.Connections)
+                {
+                    if (connection == null || connection.FromNodeId < 0 || connection.FromNodeId >= adjacencyList.Count)
+                        continue;
+                    adjacencyList[connection.FromNodeId].Add((connection.ToNodeId, connection.Distance));
+                }
+            }
             #endregion
         }
 
@@ -113,9 +147,21 @@ namespace Client.Game.InGame.Train
             Vector3 oppositeControlPoint,
             long eventTick)
         {
+            Debug.Log($"UpsertNode: nodeId={nodeId}, connectionDestination={connectionDestination}");
             EnsureNodeSlot(nodeId);
-            var state = new RailNodeInitData(nodeId, nodeGuid, connectionDestination, controlOrigin, primaryControlPoint, oppositeControlPoint);
-            StoreNodeState(nodeId, state);
+            var previous = _nodes[nodeId];
+            if (previous != null)
+            {
+                previous.NodeGuid.Equals(nodeGuid);
+                return;
+            }
+            var nextnode = new ClientRailNode(nodeId, nodeGuid, connectionDestination, controlOrigin, primaryControlPoint, oppositeControlPoint, this);
+            if (previous != null)
+            {
+                RemoveNode(nodeId, eventTick);//先にremoveされるので同じnodeidで上書きされることは基本無いが、一応
+            }
+            _nodes[nodeId] = nextnode;
+            _connectionDestinationToNodeId[nextnode.ConnectionDestination] = nodeId;
             UpdateTick(eventTick);
         }
 
@@ -124,11 +170,17 @@ namespace Client.Game.InGame.Train
         public void RemoveNode(int nodeId, long eventTick)
         {
             if (!IsWithinCurrentRange(nodeId))
-            {
                 return;
-            }
+            Debug.Log($"RemoveNode: nodeId={nodeId}");
+            var previous = _nodes[nodeId];
+            if (previous == null)
+                return;
+            _nodes[nodeId] = null;
+            //UpdateDestinationMap(nodeId, previous.ConnectionDestination, next.ConnectionDestination);
+            if (!previous.ConnectionDestination.IsDefault())
+                _connectionDestinationToNodeId.Remove(previous.ConnectionDestination);
 
-            StoreNodeState(nodeId, CreateDefaultNode(nodeId));
+
             var outgoing = _connectNodes[nodeId];
             if (outgoing.Count > 0)
             {
@@ -146,11 +198,9 @@ namespace Client.Game.InGame.Train
         // Apply or overwrite an edge diff connecting two nodes
         public void UpsertConnection(int fromNodeId, int toNodeId, int distance, long eventTick)
         {
-            if (!IsActiveNode(fromNodeId) || !IsActiveNode(toNodeId))
-            {
+            if (!IsWithinCurrentRange(fromNodeId) || !IsWithinCurrentRange(toNodeId))
                 return;
-            }
-
+            Debug.Log($"UpsertConnection: fromNodeId={fromNodeId}, toNodeId={toNodeId}, distance={distance}");
             var connections = _connectNodes[fromNodeId];
             var replaced = false;
             for (var i = 0; i < connections.Count; i++)
@@ -160,12 +210,10 @@ namespace Client.Game.InGame.Train
                 replaced = true;
                 break;
             }
-
             if (!replaced)
             {
                 connections.Add((toNodeId, distance));
             }
-
             UpdateTick(eventTick);
             TrainRailObjectManager.Instance?.OnConnectionUpserted(fromNodeId, toNodeId, this);
         }
@@ -175,54 +223,28 @@ namespace Client.Game.InGame.Train
         public void RemoveConnection(int fromNodeId, int toNodeId, long eventTick)
         {
             if (!IsWithinCurrentRange(fromNodeId))
-            {
                 return;
-            }
-
             var removed = _connectNodes[fromNodeId].RemoveAll(x => x.targetId == toNodeId) > 0;
             if (!removed)
-            {
                 return;
-            }
-
             UpdateTick(eventTick);
             TrainRailObjectManager.Instance?.OnConnectionRemoved(fromNodeId, toNodeId, this);
         }
 
-        // RailNodeIdからGuid/ControlOriginを取り出す
-        // Retrieve Guid and control origin by RailNodeId
-        public bool TryGetNode(int nodeId, out Guid nodeGuid, out Vector3 controlOrigin)
+        // RailNodeIdからIrailNodeを取り出す
+        // Retrieve IrailNode by RailNodeId
+        public bool TryGetNode(int nodeId, out IRailNode irailnode)
         {
-            nodeGuid = Guid.Empty;
-            controlOrigin = DefaultPosition;
-            if (!IsWithinCurrentRange(nodeId))
+            if (IsWithinCurrentRange(nodeId)) 
             {
+                irailnode = _nodes[nodeId];
+                return irailnode != null;
+            }
+            else
+            {
+                irailnode = null;
                 return false;
             }
-
-            var state = _nodeStates[nodeId];
-            nodeGuid = state.NodeGuid;
-            if (nodeGuid == Guid.Empty)
-            {
-                return false;
-            }
-
-            controlOrigin = state.OriginPoint;
-            return true;
-        }
-
-        // RailNodeIdからConnectionDestinationを取得
-        // Retrieve ConnectionDestination from RailNodeId
-        public bool TryGetConnectionDestination(int nodeId, out ConnectionDestination destination)
-        {
-            destination = ConnectionDestination.Default;
-            if (!IsWithinCurrentRange(nodeId))
-            {
-                return false;
-            }
-
-            destination = _nodeStates[nodeId].ConnectionDestination;
-            return !destination.IsDefault();
         }
 
         // ConnectionDestinationからRailNodeIdを逆引き
@@ -231,16 +253,24 @@ namespace Client.Game.InGame.Train
         {
             return _connectionDestinationToNodeId.TryGetValue(destination, out nodeId);
         }
-
-        #region Internal
+        public bool TryGetNodeId(IRailNode node, out int nodeId)
+        {
+            if (node == null)
+            {
+                nodeId = -1;
+                return false;
+            }
+            var destination = node.ConnectionDestination;
+            return _connectionDestinationToNodeId.TryGetValue(destination, out nodeId);
+        }
 
         // 指定idを格納できるようにリストを拡張する
         // Expand backing lists so the id can be stored safely
         private void EnsureNodeSlot(int nodeId)
         {
-            while (_nodeStates.Count <= nodeId)
+            while (_nodes.Count <= nodeId)
             {
-                _nodeStates.Add(CreateDefaultNode(_nodeStates.Count));
+                _nodes.Add(null);
                 _connectNodes.Add(new List<(int targetId, int distance)>());
             }
         }
@@ -249,14 +279,20 @@ namespace Client.Game.InGame.Train
         // Quick check to see if the index is within range
         private bool IsWithinCurrentRange(int nodeId)
         {
-            return nodeId >= 0 && nodeId < _nodeStates.Count;
+            return nodeId >= 0 && nodeId < _nodes.Count;
         }
-
-        // 指定ノードがアクティブ（Guid割当済み）か判定
-        // Determine if the node slot already has a Guid assigned
-        private bool IsActiveNode(int nodeId)
+        public bool TryValidateEndpoint(int nodeid, Guid guid)
         {
-            return IsWithinCurrentRange(nodeId) && _nodeStates[nodeId].NodeGuid != Guid.Empty;
+            if (IsWithinCurrentRange(nodeid))
+            {
+                if (_nodes[nodeid] == null)
+                    return false;
+                return _nodes[nodeid].NodeGuid.Equals(guid);
+            }
+            else 
+            {
+                return false;
+            }   
         }
 
         // すべてのノードから対象id宛の接続を削除
@@ -291,39 +327,26 @@ namespace Client.Game.InGame.Train
             _lastConfirmedTick = Math.Max(_lastConfirmedTick, eventTick);
         }
 
-        // ConnectionDestinationテーブルと逆引きを同期する
-        // Keep destination table and reverse lookup dictionary in sync
-        private void StoreNodeState(int nodeId, RailNodeInitData next)
+        public List<IRailNode> FindShortestPath(int startid, int targetid)
         {
-            var previous = _nodeStates[nodeId];
-            _nodeStates[nodeId] = next;
-            UpdateDestinationMap(nodeId, previous.ConnectionDestination, next.ConnectionDestination);
-        }
-
-        private void UpdateDestinationMap(int nodeId, ConnectionDestination previous, ConnectionDestination next)
-        {
-            if (!previous.IsDefault())
+            // RailGraphPathFinder に処理を委譲
+            // ID 列を RailNode 列へ変換
+            var pathIds = _pathFinder.FindShortestPath(_connectNodes, startid, targetid);
+            var result = new List<IRailNode>(pathIds.Count);
+            for (int i = 0; i < pathIds.Count; i++)
             {
-                _connectionDestinationToNodeId.Remove(previous);
+                int id = pathIds[i];
+                if (id >= 0 && id < _nodes.Count)
+                {
+                    result.Add(_nodes[id]);
+                }
+                else
+                {
+                    // 異常系：範囲外なら null を詰めておく（実際には起こらない想定）
+                    result.Add(null);
+                }
             }
-
-            if (!next.IsDefault())
-            {
-                _connectionDestinationToNodeId[next] = nodeId;
-            }
+            return result;
         }
-
-        private static RailNodeInitData CreateDefaultNode(int nodeId)
-        {
-            return new RailNodeInitData(
-                nodeId,
-                Guid.Empty,
-                ConnectionDestination.Default,
-                DefaultPosition,
-                DefaultPosition,
-                DefaultPosition);
-        }
-
-        #endregion
     }
 }
