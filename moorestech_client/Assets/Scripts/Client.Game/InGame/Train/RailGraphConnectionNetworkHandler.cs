@@ -51,16 +51,12 @@ namespace Client.Game.InGame.Train
             // 生成イベントを復号してGuid整合性を確認
             // Decode creation payload and validate guid consistency
             var message = MessagePackSerializer.Deserialize<RailConnectionCreatedMessagePack>(payload);
-            if (!TryValidateEndpoint(message.FromNodeId, message.FromGuid))
-            {
+            if ((message == null) || (_cache == null))
                 return;
-            }
-
-            if (!TryValidateEndpoint(message.ToNodeId, message.ToGuid))
-            {
+            if (!_cache.TryValidateEndpoint(message.FromNodeId, message.FromGuid))
                 return;
-            }
-
+            if (!_cache.TryValidateEndpoint(message.ToNodeId, message.ToGuid))
+                return;
             // 問題なければキャッシュに接続を反映
             // Apply the connection diff to the cache
             _cache.UpsertConnection(message.FromNodeId, message.ToNodeId, message.Distance, message.Tick);
@@ -71,31 +67,15 @@ namespace Client.Game.InGame.Train
             // 削除イベントを復号して現在のGuidと照合
             // Decode removal payload and check current guid
             var message = MessagePackSerializer.Deserialize<RailConnectionRemovedMessagePack>(payload);
-            if (!TryValidateEndpoint(message.FromNodeId, message.FromGuid))
-            {
+            if ((message == null) || (_cache == null))
                 return;
-            }
-
-            if (!TryValidateEndpoint(message.ToNodeId, message.ToGuid))
-            {
+            if (!_cache.TryValidateEndpoint(message.FromNodeId, message.FromGuid))
                 return;
-            }
-
+            if (!_cache.TryValidateEndpoint(message.ToNodeId, message.ToGuid))
+                return;
             // 両端一致時のみ接続情報を削除
             // Remove the cached connection only when both ends match
             _cache.RemoveConnection(message.FromNodeId, message.ToNodeId, message.Tick);
-        }
-
-        private bool TryValidateEndpoint(int nodeId, Guid guid)
-        {
-            // キャッシュ済みノードかつGuid一致でtrue
-            // Return true only when the node exists and guid matches
-            if (!_cache.TryGetNode(nodeId, out var cachedGuid, out _))
-            {
-                return false;
-            }
-
-            return cachedGuid == guid;
         }
 
         #endregion

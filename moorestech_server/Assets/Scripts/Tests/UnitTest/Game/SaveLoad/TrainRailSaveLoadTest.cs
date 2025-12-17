@@ -234,7 +234,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.IsTrue(outputStack.Count > 0, "出力チェストのアイテム数が0です");
         }
 
-        private static void AssertConnection(IEnumerable<RailNode> nodes, RailNode expected)
+        private static void AssertConnection(IEnumerable<IRailNode> nodes, IRailNode expected)
         {
             var isConnect = false;
             foreach (var node in nodes)

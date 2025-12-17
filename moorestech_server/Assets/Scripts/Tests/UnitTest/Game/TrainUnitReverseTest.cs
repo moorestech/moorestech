@@ -34,7 +34,7 @@ namespace Tests.UnitTest.Game
             var rearCar = new TrainCar(new TrainCarMasterElement(Guid.Empty, Guid.Empty, null, 300000, 0, carLength), isFacingForward: false);
 
             var totalLength = frontCar.Length + rearCar.Length;
-            var railPosition = new RailPosition(new List<RailNode> { nodeApproaching, nodeBehind }, totalLength, distance / 10);
+            var railPosition = new RailPosition(new List<IRailNode> { nodeApproaching, nodeBehind }, totalLength, distance / 10);
 
             var cars = new List<TrainCar> { frontCar, rearCar };
             var trainUnit = new TrainUnit(railPosition, cars);

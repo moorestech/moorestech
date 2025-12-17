@@ -1,5 +1,5 @@
 using Client.Game.InGame.Block;
-using Client.Game.InGame.Train;
+using Game.Train.RailGraph;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
@@ -28,7 +28,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         public ConnectionDestination CreateConnectionDestination()
         {
             var origin = BlockGameObject.BlockPosInfo.OriginalPos;
-            return new ConnectionDestination(origin, (int)railComponentIndex, IsFront);
+            var componentId = new RailComponentID(origin, (int)railComponentIndex);
+            return new ConnectionDestination(componentId, IsFront);
         }
     }
     

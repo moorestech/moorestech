@@ -1,3 +1,4 @@
+using Game.Train.RailGraph;
 using Server.Util.MessagePack;
 using UnityEngine;
 
@@ -9,9 +10,9 @@ namespace Client.Game.InGame.Train
     /// </summary>
     internal static class RailGraphMessagePackExtensions
     {
-        // ConnectionDestinationMPをクライアント構造体へ変換
-        // Convert ConnectionDestinationMessagePack into client-side ConnectionDestination
-        public static ConnectionDestination ToClientDestination(this ConnectionDestinationMessagePack message)
+        // ConnectionDestinationMPをサーバー構造体へ変換
+        // Convert ConnectionDestinationMessagePack into server-side ConnectionDestination
+        public static ConnectionDestination ToConnectionDestination(this ConnectionDestinationMessagePack message)
         {
             if (message == null || message.ComponentId == null)
             {
@@ -19,7 +20,8 @@ namespace Client.Game.InGame.Train
             }
 
             var position = message.ComponentId.Position?.Vector3Int ?? Vector3Int.zero;
-            return new ConnectionDestination(position, message.ComponentId.ID, message.IsFrontSide);
+            var componentId = new RailComponentID(position, message.ComponentId.ID);
+            return new ConnectionDestination(componentId, message.IsFrontSide);
         }
 
         // Vector3MessagePackを安全にVector3化

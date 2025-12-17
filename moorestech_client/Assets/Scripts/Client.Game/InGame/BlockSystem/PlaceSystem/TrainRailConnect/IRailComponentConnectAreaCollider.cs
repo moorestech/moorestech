@@ -1,5 +1,5 @@
 using Client.Game.InGame.BlockSystem.StateProcessor;
-using Client.Game.InGame.Train;
+using Game.Train.RailGraph;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
 {

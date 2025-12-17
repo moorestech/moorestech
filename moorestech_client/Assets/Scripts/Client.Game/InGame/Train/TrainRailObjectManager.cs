@@ -161,7 +161,10 @@ namespace Client.Game.InGame.Train
             origin = Vector3.zero;
             if (_cache == null)
                 return false;
-            return _cache.TryGetNode(nodeId, out _, out origin);
+            if (!_cache.TryGetNode(nodeId, out var irailnode))
+                return false;
+            origin = irailnode.FrontControlPoint.OriginalPosition;
+            return true;
         }
 
         private void ConfigureRenderer(LineRenderer renderer)

@@ -342,7 +342,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f68455e06f394b27aef05e8d9859d7b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect.StationRailConnectAreaCollider
-  railNodeIndex: 0
+  railComponentIndex: 0
 --- !u!1001 &9155478689284186310
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -428,4 +428,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f68455e06f394b27aef05e8d9859d7b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect.StationRailConnectAreaCollider
-  railNodeIndex: 1
+  railComponentIndex: 1

@@ -12,7 +12,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Tests.Module.TestMod;
 using UnityEngine;
-using static UnityEngine.ParticleSystem;
 
 namespace Tests.Util
 {
@@ -90,7 +89,7 @@ namespace Tests.Util
             n1.ConnectNode(n2, 234567);
             //n0->start->n1->n2 : n2が終端でどこにも繋がらない
 
-            var initialRailNodes = new List<RailNode> { stationNodes.ExitFront, stationNodes.EntryFront, n0 };
+            var initialRailNodes = new List<IRailNode> { stationNodes.ExitFront, stationNodes.EntryFront, n0 };
             var initialDistance = startRunning ? stationNodes.SegmentLength - 1 : 0;
             var railPosition = new RailPosition(initialRailNodes, stationNodes.SegmentLength, initialDistance);
 

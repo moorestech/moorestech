@@ -97,8 +97,8 @@ namespace Game.Train.RailGraph
 
         private static void ConnectOppositeNodes(RailNode fromNode, RailNode toNode, int distance)
         {
-            var fromOpposite = fromNode.OppositeNode;
-            var toOpposite = toNode.OppositeNode;
+            var fromOpposite = fromNode.OppositeRailNode;
+            var toOpposite = toNode.OppositeRailNode;
             if (fromOpposite == null || toOpposite == null)
             {
                 return;
@@ -109,8 +109,8 @@ namespace Game.Train.RailGraph
 
         private static void DisconnectOppositeNodes(RailNode fromNode, RailNode toNode)
         {
-            var fromOpposite = fromNode.OppositeNode;
-            var toOpposite = toNode.OppositeNode;
+            var fromOpposite = fromNode.OppositeRailNode;
+            var toOpposite = toNode.OppositeRailNode;
             if (fromOpposite == null || toOpposite == null)
             {
                 return;

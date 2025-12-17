@@ -88,7 +88,7 @@ namespace Server.Protocol.PacketResponse
                 return new TrainUnit(railPosition, new List<TrainCar> { trainCars });
             }
 
-            List<RailNode> BuildConnectedNodePath(RailComponent startRail)
+            List<IRailNode> BuildConnectedNodePath(RailComponent startRail)
             {
                 // 開始ノードを決定（FrontNodeから接続を探す）
                 // Determine starting node (search for connections from FrontNode)
@@ -109,13 +109,13 @@ namespace Server.Protocol.PacketResponse
                 // RailPosition list is in reverse order of travel (destination first), so connected node comes first
                 if (connectedNodes.Count > 0)
                 {
-                    var path = new List<RailNode> { connectedNodes[0], startNode };
+                    var path = new List<IRailNode> { connectedNodes[0], startNode };
                     return path;
                 }
 
                 // 接続がない場合は開始ノードのみでパスを作成
                 // If no connections, create path with just the start node
-                return new List<RailNode> { startNode };
+                return new List<IRailNode> { startNode };
             }
 
             #endregion

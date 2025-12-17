@@ -86,7 +86,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             inventoryB!.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId2, maxStack2));
             inventoryB.SetItem(1, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId2, maxStack2));
 
-            var train1Nodes = new List<RailNode>
+            var train1Nodes = new List<IRailNode>
             {
                 stationA.ExitFront,
                 stationA.EntryFront
@@ -94,7 +94,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var train1Car = new TrainCar(new TrainCarMasterElement(Guid.Empty, Guid.Empty, null, 20000, 2, stationSegmentLength));
             var train1 = new TrainUnit(new RailPosition(train1Nodes, train1Car.Length, 0), new List<TrainCar> { train1Car });
 
-            var train2Nodes = new List<RailNode>
+            var train2Nodes = new List<IRailNode>
             {
                 stationB.ExitFront,
                 stationB.EntryFront
