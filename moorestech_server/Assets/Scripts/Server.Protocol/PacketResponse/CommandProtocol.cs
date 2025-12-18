@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using Core.Master;
 using Game.Context;
 using Game.PlayerInventory.Interface;
+using Game.World.Interface.DataStore;
 using Game.Train.Unit;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -18,13 +20,16 @@ namespace Server.Protocol.PacketResponse
         public const string TrainAutoRunCommand = "trainAutoRun";
         public const string TrainAutoRunOnArgument = "on";
         public const string TrainAutoRunOffArgument = "off";
-        
+        public const string GetPlayTimeCommand = "getPlayTime";
+
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
+        private readonly IWorldSettingsDatastore _worldSettingsDatastore;
         private readonly TrainUpdateService _trainUpdateService;
         
         public SendCommandProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
+            _worldSettingsDatastore = serviceProvider.GetService<IWorldSettingsDatastore>();
             _trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
         }
         
@@ -58,6 +63,13 @@ namespace Server.Protocol.PacketResponse
                 // トグル引数に応じて全列車の自動運転状態を決定
                 // Decide auto-run state for every train based on the toggle argument
                 _trainUpdateService.TurnOnorOffTrainAutoRun(command);
+            }
+            else if (command[0] == GetPlayTimeCommand)
+            {
+                // 累積プレイ時間を取得してログ出力
+                // Get total play time and output to log
+                var playTime = _worldSettingsDatastore.GetCurrentPlayTime();
+                Debug.Log($"[PlayTime] Total: {playTime.TotalHours:F2} hours ({playTime})");
             }
 
             return null;
