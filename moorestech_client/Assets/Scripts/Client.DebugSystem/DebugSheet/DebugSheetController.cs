@@ -45,6 +45,10 @@ namespace Client.DebugSystem
                 var command = $"{SendCommandProtocol.ClearInventoryCommand} {ClientContext.PlayerConnectionSetting.PlayerId}";
                 ClientContext.VanillaApi.SendOnly.SendCommand(command);
             });
+            rootPage.AddButton("Get Play Time", clicked: () =>
+            {
+                ClientContext.VanillaApi.SendOnly.SendCommand(SendCommandProtocol.GetPlayTimeCommand);
+            });
             
             rootPage.AddEnumPickerWithSave(DebugEnvironmentType.Debug, "Select Environment", "DebugEnvironmentTypeKey", DebugEnvironmentController.SetEnvironment);
             rootPage.AddButton("Warp Environment Default Position", clicked: () =>
