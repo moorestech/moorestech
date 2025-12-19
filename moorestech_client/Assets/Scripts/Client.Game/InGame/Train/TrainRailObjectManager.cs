@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Game.Train.RailGraph;
+using Game.Train.Utility;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -14,6 +16,7 @@ namespace Client.Game.InGame.Train
 
         [SerializeField] private float lineWidth = 0.05f;
         [SerializeField] private Color lineColor = Color.cyan;
+        [SerializeField] private int curveSegments = 16;
 
         private readonly Dictionary<ulong, LineRenderer> _railLines = new();
         private RailGraphClientCache _cache;
@@ -97,18 +100,18 @@ namespace Client.Game.InGame.Train
             var railObjectId = ComputeRailObjectId(canonicalFrom, canonicalTo);
             if (_railLines.ContainsKey(railObjectId))
                 return;
-            if (!TryGetNodeOrigin(canonicalFrom, out var fromOrigin))
+            if (_cache == null)
                 return;
-            if (!TryGetNodeOrigin(canonicalTo, out var toOrigin))
+            if (!_cache.TryGetNode(canonicalFrom, out var startNode))
+                return;
+            if (!_cache.TryGetNode(canonicalTo, out var endNode))
                 return;
 
             var lineObject = new GameObject($"RailLine_{canonicalFrom}_{canonicalTo}");
             lineObject.transform.SetParent(transform, false);
             var renderer = lineObject.AddComponent<LineRenderer>();
             ConfigureRenderer(renderer);
-            renderer.positionCount = 2;
-            renderer.SetPosition(0, fromOrigin);
-            renderer.SetPosition(1, toOrigin);
+            UpdateLineRenderer(renderer, startNode, endNode);
             _railLines[railObjectId] = renderer;
         }
 
@@ -156,15 +159,24 @@ namespace Client.Game.InGame.Train
             return false;
         }
 
-        private bool TryGetNodeOrigin(int nodeId, out Vector3 origin)
+        private void UpdateLineRenderer(LineRenderer renderer, IRailNode startNode, IRailNode endNode)
         {
-            origin = Vector3.zero;
-            if (_cache == null)
-                return false;
-            if (!_cache.TryGetNode(nodeId, out var irailnode))
-                return false;
-            origin = irailnode.FrontControlPoint.OriginalPosition;
-            return true;
+            // ベジエ曲線のサンプル数を算出
+            // Determine how many segments the curve will use
+            int segmentCount = Mathf.Max(1, curveSegments);
+            renderer.positionCount = segmentCount + 1;
+
+            var startControl = startNode.FrontControlPoint;
+            var endControl = endNode.BackControlPoint;
+
+            // 共有ユーティリティで各頂点を求める
+            // Use the shared Bezier utility to compute each vertex
+            for (int i = 0; i <= segmentCount; i++)
+            {
+                float t = (float)i / segmentCount;
+                Vector3 point = BezierUtility.GetBezierPoint(startControl, endControl, t);
+                renderer.SetPosition(i, point);
+            }
         }
 
         private void ConfigureRenderer(LineRenderer renderer)
