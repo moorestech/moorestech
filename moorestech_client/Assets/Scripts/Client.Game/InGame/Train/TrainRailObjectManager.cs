@@ -1,8 +1,8 @@
 using System.Collections.Generic;
+using UnityEngine;
 using Game.Train.RailGraph;
 using Game.Train.Utility;
-using UnityEngine;
-using UnityEngine.Rendering;
+using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
 
 namespace Client.Game.InGame.Train
 {
@@ -13,14 +13,9 @@ namespace Client.Game.InGame.Train
     public sealed class TrainRailObjectManager : MonoBehaviour
     {
         public static TrainRailObjectManager Instance { get; private set; }
-
-        [SerializeField] private float lineWidth = 0.05f;
-        [SerializeField] private Color lineColor = Color.cyan;
-        [SerializeField] private int curveSegments = 16;
-
-        private readonly Dictionary<ulong, LineRenderer> _railLines = new();
+        [SerializeField] private BezierRailChain _railPrefab;
+        private readonly Dictionary<ulong, GameObject> _railObjs = new();
         private RailGraphClientCache _cache;
-        private Material _lineMaterial;
 
         private void Awake()
         {
@@ -34,14 +29,14 @@ namespace Client.Game.InGame.Train
                 Instance = null;
             }
 
-            foreach (var renderer in _railLines.Values)
+            foreach (var gobj in _railObjs.Values)
             {
-                if (renderer != null)
+                if (gobj != null)
                 {
-                    Destroy(renderer.gameObject);
+                    Destroy(gobj);
                 }
             }
-            _railLines.Clear();
+            _railObjs.Clear();
         }
 
         internal void OnCacheRebuilt(RailGraphClientCache cache)
@@ -66,14 +61,14 @@ namespace Client.Game.InGame.Train
 
         private void RebuildExistingConnections()
         {
-            foreach (var renderer in _railLines.Values)
+            foreach (var gobj in _railObjs.Values)
             {
-                if (renderer != null)
+                if (gobj != null)
                 {
-                    Destroy(renderer.gameObject);
+                    Destroy(gobj);
                 }
             }
-            _railLines.Clear();
+            _railObjs.Clear();
 
             var adjacency = _cache.ConnectNodes;
             for (var fromId = 0; fromId < adjacency.Count; fromId++)
@@ -98,7 +93,7 @@ namespace Client.Game.InGame.Train
 
             var (canonicalFrom, canonicalTo) = SelectCanonicalPair(fromNodeId, toNodeId);
             var railObjectId = ComputeRailObjectId(canonicalFrom, canonicalTo);
-            if (_railLines.ContainsKey(railObjectId))
+            if (_railObjs.ContainsKey(railObjectId))
                 return;
             if (_cache == null)
                 return;
@@ -107,27 +102,24 @@ namespace Client.Game.InGame.Train
             if (!_cache.TryGetNode(canonicalTo, out var endNode))
                 return;
 
-            var lineObject = new GameObject($"RailLine_{canonicalFrom}_{canonicalTo}");
+            var lineObject = SpawnRail(0, $"RailLine_{canonicalFrom}_{canonicalTo}", startNode, endNode);
             lineObject.transform.SetParent(transform, false);
-            var renderer = lineObject.AddComponent<LineRenderer>();
-            ConfigureRenderer(renderer);
-            UpdateLineRenderer(renderer, startNode, endNode);
-            _railLines[railObjectId] = renderer;
+            _railObjs[railObjectId] = lineObject;
         }
 
         private void RemoveLine(int fromNodeId, int toNodeId)
         {
             var (canonicalFrom, canonicalTo) = SelectCanonicalPair(fromNodeId, toNodeId);
             var railObjectId = ComputeRailObjectId(canonicalFrom, canonicalTo);
-            if (!_railLines.TryGetValue(railObjectId, out var renderer))
+            if (!_railObjs.TryGetValue(railObjectId, out var gobj))
             {
                 return;
             }
 
-            _railLines.Remove(railObjectId);
-            if (renderer != null)
+            _railObjs.Remove(railObjectId);
+            if (gobj != null)
             {
-                Destroy(renderer.gameObject);
+                Destroy(gobj);
             }
         }
 
@@ -159,51 +151,18 @@ namespace Client.Game.InGame.Train
             return false;
         }
 
-        private void UpdateLineRenderer(LineRenderer renderer, IRailNode startNode, IRailNode endNode)
+        private GameObject SpawnRail(int index, string name, IRailNode startNode, IRailNode endNode)
         {
-            // ベジエ曲線のサンプル数を算出
-            // Determine how many segments the curve will use
-            int segmentCount = Mathf.Max(1, curveSegments);
-            renderer.positionCount = segmentCount + 1;
+            var instance = Instantiate(_railPrefab, transform);
+            var startControl = startNode.FrontControlPoint.OriginalPosition;
+            var control1 = startNode.FrontControlPoint.ControlPointPosition + startControl;
+            var endControl = endNode.BackControlPoint.OriginalPosition;
+            var control2 = endNode.BackControlPoint.ControlPointPosition + endControl;
 
-            var startControl = startNode.FrontControlPoint;
-            var endControl = endNode.BackControlPoint;
-
-            // 共有ユーティリティで各頂点を求める
-            // Use the shared Bezier utility to compute each vertex
-            for (int i = 0; i <= segmentCount; i++)
-            {
-                float t = (float)i / segmentCount;
-                Vector3 point = BezierUtility.GetBezierPoint(startControl, endControl, t);
-                renderer.SetPosition(i, point);
-            }
-        }
-
-        private void ConfigureRenderer(LineRenderer renderer)
-        {
-            renderer.material = GetLineMaterial();
-            renderer.widthMultiplier = Mathf.Max(0.001f, lineWidth);
-            renderer.useWorldSpace = true;
-            renderer.startColor = lineColor;
-            renderer.endColor = lineColor;
-            renderer.alignment = LineAlignment.View;
-            renderer.shadowCastingMode = ShadowCastingMode.Off;
-            renderer.receiveShadows = false;
-            renderer.textureMode = LineTextureMode.Stretch;
-            renderer.numCapVertices = 2;
-        }
-
-        private Material GetLineMaterial()
-        {
-            if (_lineMaterial != null)
-                return _lineMaterial;
-
-            var shader = Shader.Find("Sprites/Default") ?? Shader.Find("Universal Render Pipeline/Unlit");
-            _lineMaterial = new Material(shader)
-            {
-                color = lineColor
-            };
-            return _lineMaterial;
+            instance.SetControlPoints(startControl, control1, control2, endControl);
+            instance.Rebuild();
+            instance.name = name;
+            return instance.gameObject;
         }
 
         private static (int canonicalFrom, int canonicalTo) SelectCanonicalPair(int fromNodeId, int toNodeId)

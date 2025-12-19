@@ -2,8 +2,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 1つのベジエ曲線上に一定長さのレールモジュールを敷き詰める。
-/// ベジエ制御点とモジュールメッシュを渡すだけで子オブジェクトとして展開する。
+/// 1つのベジエ曲線上に3Dレールfbxを複製し敷き詰める。これは親
+/// BezierRailMesh を複数子オブジェクトとして持つ。
 /// </summary>
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
 {
