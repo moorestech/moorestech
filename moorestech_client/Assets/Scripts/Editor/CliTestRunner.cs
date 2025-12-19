@@ -103,6 +103,7 @@ public static class CliTestRunner
 
                 if (matched.Count == 0)
                 {
+                    Export($" ✅ Compilation succeeded");
                     Export($" 🟡 No tests matched /{pattern}/");
                     EditorApplication.Exit(0);
                     return;
