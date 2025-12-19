@@ -35,12 +35,7 @@ namespace Game.Map.Interface.MapObject
         ///     MapObjectが破壊されるまでのHP
         /// </summary>
         public int CurrentHp { get; }
-        
-        /// <summary>
-        ///     獲得したとき入手できるアイテム
-        /// </summary>
-        public List<IItemStack> EarnItems { get; }
-        
+
         public event Action OnDestroy;
         
         /// <summary>
