@@ -8,6 +8,7 @@ using Client.Game.InGame.UI.KeyControl;
 using Client.Input;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
+using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState.State
 {
@@ -38,6 +39,9 @@ namespace Client.Game.InGame.UI.UIState.State
         
         public UITransitContext GetNextUpdate()
         {
+            // Rでリサーチツリーへ、Tab/ESCでゲーム画面へ戻る
+            // Go to research tree with R, or back to game screen with Tab/ESC
+            if (Input.GetKeyDown(KeyCode.R)) return new UITransitContext(UIStateEnum.ResearchTree);
             if (InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.OpenInventory.GetKeyDown) return new UITransitContext(UIStateEnum.GameScreen);
 
             return null;
@@ -53,7 +57,7 @@ namespace Client.Game.InGame.UI.UIState.State
             UpdatePlayerInventory(_cancellationTokenSource.Token).Forget();
 
             InputManager.MouseCursorVisible(true);
-            KeyControlDescription.Instance.SetText("Tab/ECS: インベントリを閉じる");
+            KeyControlDescription.Instance.SetText("Tab/ECS: インベントリを閉じる\nR: リサーチツリー");
         }
         
         public void OnExit()
