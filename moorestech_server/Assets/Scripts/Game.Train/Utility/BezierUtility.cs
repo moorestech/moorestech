@@ -12,8 +12,8 @@ namespace Game.Train.Utility
         public static Vector3 GetBezierPoint(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t)
         {
             t = Mathf.Clamp01(t);
-            if (p0 == p3)
-                return p0;
+            if (IsZeroLength(p0, p3) || IsStraightLine(p0, p1, p2, p3))
+                return Vector3.Lerp(p0, p3, t);
 
             float u = 1f - t;
             float tt = t * t;
@@ -33,12 +33,19 @@ namespace Game.Train.Utility
         public static Vector3 GetBezierTangent(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t)
         {
             t = Mathf.Clamp01(t);
+            if (IsZeroLength(p0, p3))
+                return Vector3.forward;
+
+            Vector3 straightDir = p3 - p0;
+            if (IsStraightLine(p0, p1, p2, p3) && straightDir.sqrMagnitude > 1e-6f)
+                return straightDir.normalized;
+
             float u = 1f - t;
             Vector3 term0 = (p1 - p0) * (3f * u * u);
             Vector3 term1 = (p2 - p1) * (6f * u * t);
             Vector3 term2 = (p3 - p2) * (3f * t * t);
             Vector3 derivative = term0 + term1 + term2;
-            return derivative.sqrMagnitude > 1e-6f ? derivative.normalized : Vector3.forward;
+            return derivative.sqrMagnitude > 1e-6f ? derivative.normalized : (straightDir.sqrMagnitude > 1e-6f ? straightDir.normalized : Vector3.forward);
         }
 
         // RailControlPointを利用した座標取得
@@ -62,6 +69,11 @@ namespace Game.Train.Utility
         // Approximate curve length by sampling
         public static float GetBezierCurveLength(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, int samples)
         {
+            if (IsZeroLength(p0, p3))
+                return 0f;
+            if (IsStraightLine(p0, p1, p2, p3))
+                return Vector3.Distance(p0, p3);
+
             int steps = Mathf.Max(8, samples);
             float length = 0f;
             Vector3 previousPoint = GetBezierPoint(p0, p1, p2, p3, 0f);
@@ -129,6 +141,22 @@ namespace Game.Train.Utility
                 arcLengths = new float[steps + 1];
 
             arcLengths[0] = 0f;
+
+            if (IsZeroLength(p0, p3))
+            {
+                for (int i = 1; i <= steps; i++)
+                    arcLengths[i] = 0f;
+                return 0f;
+            }
+
+            if (IsStraightLine(p0, p1, p2, p3))
+            {
+                float totalLine = Vector3.Distance(p0, p3);
+                for (int i = 1; i <= steps; i++)
+                    arcLengths[i] = totalLine * i / steps;
+                return totalLine;
+            }
+
             Vector3 previous = GetBezierPoint(p0, p1, p2, p3, 0f);
             float total = 0f;
 
@@ -167,6 +195,26 @@ namespace Game.Train.Utility
             }
 
             return 1f;
+        }
+
+        private static bool IsZeroLength(Vector3 p0, Vector3 p3) => Vector3.Distance(p0, p3) <= 1e-6f;
+
+        private static bool IsStraightLine(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3)
+        {
+            Vector3 direction = p3 - p0;
+            if (direction.sqrMagnitude <= 1e-6f)
+                return true;
+
+            Vector3 n = direction.normalized;
+            return IsAligned(p1 - p0, n) && IsAligned(p2 - p0, n);
+        }
+
+        private static bool IsAligned(Vector3 vector, Vector3 normal)
+        {
+            if (vector.sqrMagnitude <= 1e-6f)
+                return true;
+            Vector3 cross = Vector3.Cross(vector, normal);
+            return cross.sqrMagnitude <= 1e-6f;
         }
     }
 }
