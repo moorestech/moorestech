@@ -57,6 +57,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
             {
                 var segment = CreateSegmentGO(i, _moduleMesh, sharedMaterials);
                 segment.ConfigureSegment(offset, moduleLength);
+                segment.Deform();
                 offset += moduleLength;
             }
 
@@ -148,6 +149,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
                 return;
             var segment = CreateSegmentGO(_segments.Count, mesh, sharedMaterials);
             segment.ConfigureSegment(offset, segmentLength);
+            segment.Deform();
             offset += segmentLength;
             remainderSteps -= stepValue;
         }

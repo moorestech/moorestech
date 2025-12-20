@@ -143,7 +143,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
 
         private void Start()
         {
-            Deform();
         }
 
         private void OnDestroy()
@@ -203,7 +202,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
         private Quaternion BuildCurveRotation(Vector3 tangent)
         {
             var f = tangent.sqrMagnitude > 1e-6f ? tangent.normalized : Vector3.forward;
-            var up = _upAxis.sqrMagnitude > 1e-4f ? _upAxis.normalized : Vector3.up;
+            var up = Vector3.up;
 
             if (Mathf.Abs(Vector3.Dot(f, up)) > 0.999f)
             {
