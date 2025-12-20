@@ -1,12 +1,22 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using mooresmaster.Generator.Json;
+using Microsoft.CodeAnalysis;
+using Location = mooresmaster.Generator.Json.Location;
 
 namespace mooresmaster.Generator.Analyze;
 
 public class Analysis
 {
+    private static readonly DiagnosticDescriptor DiagnosticDescriptor = new(
+        "MOORES001",
+        "Mooresmaster Schema Validation Error",
+        "Schema YAML validation error: {0}",
+        "Mooresmaster",
+        DiagnosticSeverity.Error,
+        true
+    );
+    
     public List<IDiagnostics> DiagnosticsList = new();
     
     public void ReportDiagnostics(IDiagnostics analysis)
@@ -21,6 +31,16 @@ public class Analysis
     {
         if (!DiagnosticsList.Any()) return;
         throw new AnalyzeException(DiagnosticsList.ToArray());
+    }
+    
+    public void ReportCsDiagnostics(SourceProductionContext context)
+    {
+        foreach (var diagnostics in DiagnosticsList)
+        {
+            var message = $"{diagnostics.Location}: {diagnostics.Message}";
+            var csDiagnostic = Diagnostic.Create(DiagnosticDescriptor, Microsoft.CodeAnalysis.Location.None, message);
+            context.ReportDiagnostic(csDiagnostic);
+        }
     }
 }
 
