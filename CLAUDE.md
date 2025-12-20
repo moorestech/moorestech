@@ -124,20 +124,6 @@ MasterHolder.Load()
 1. **手動でのクラス作成禁止**: `Mooresmaster.Model.*` 名前空間のクラスは絶対に手動で作成しない
 2. **BlockParamなどは自動生成**: ブロックパラメータ等もSourceGeneratorが生成するため手動実装禁止
 
-### スキーマを変更する場合
-1. `VanillaSchema/*.yml` の該当ファイルを編集
-2. スキーマを変更したら、`moorestech_server/Assets/Scripts/Core.Master/Dummy.cs` の`dummyText`の内容を別の値に変更すること。これによってSourceGeneratorが働き、コード生成が行われる。
-3. プロジェクトをリビルドして自動生成を実行
-4. 生成されたクラスを確認
-
-**重要：スキーマにプロパティを追加する際は、基本的に `optional: false` を設定してください。** nullableな値が必要な特別な理由がある場合のみ `optional: true` を使用します。これにより、不要なnullチェックを減らし、コードの可読性と安全性を向上させます。
-
-### 新しいマスターデータを追加する場合
-1. `VanillaSchema/` に新しいYAMLファイルを作成
-2. `Core.Master.MasterHolder` にプロパティを追加
-3. 対応するMasterクラス（例：`NewDataMaster`）を実装
-4. `MasterHolder.Load()` メソッドに読み込み処理を追加
-
 ## テスト時の注意事項
 ユニットテストでマスターデータが必要な場合は、以下のテスト用マスターデータを使用してください：
 
@@ -273,7 +259,7 @@ IMPORTANT:サーバーの実装をする際はdocs/ServerGuide.mdを、クライ
 IMPORTANT:サーバーのプロトコル（通常のレスポンスプロトコル、イベントプロトコル）を実装する際は、docs/ProtocolImplementationGuide.mdを必ず参照してください。
 IMPORTANT:テスト用のブロックIDは moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTestModBlockId.cs に定義し、それを使うようにしてください。
 IMPORTANT:try-catchは基本的に使用禁止です。エラーハンドリングが必要な場合は、適切な条件分岐やnullチェックで対応してください。
-IMPORTANT:各種ブロックパラメータ（BlockParam）はSourceGeneratorによって自動生成されます。詳細は「マスターデータシステムについて」セクションを参照してください。
+IMPORTANT:各種ブロックパラメータ（BlockParam）はSourceGeneratorによって自動生成されます。スキーマ編集は `/edit-schema` スキルを使用してください。
 IMPORTANT:デフォルト引数の使用禁止。引数の追加は必ずデフォルト値をつけず、呼び出し側を変更する
 
 YOU MUST: Prefab、シーン、ScriptableObject等、Unity独自のYamlを使用するUnity固有ファイルは直接編集すると重大な不整合が生じる恐れが高いため、直接編集しないでください。代わりに、ユーザーに編集するように指示してください。
