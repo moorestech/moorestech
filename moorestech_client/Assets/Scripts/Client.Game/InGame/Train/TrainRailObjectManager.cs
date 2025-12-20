@@ -102,7 +102,7 @@ namespace Client.Game.InGame.Train
             if (!_cache.TryGetNode(canonicalTo, out var endNode))
                 return;
 
-            var lineObject = SpawnRail(0, $"RailLine_{canonicalFrom}_{canonicalTo}", startNode, endNode);
+            var lineObject = SpawnRail($"RailLine_{canonicalFrom}_{canonicalTo}", startNode, endNode);
             lineObject.transform.SetParent(transform, false);
             _railObjs[railObjectId] = lineObject;
         }
@@ -151,7 +151,7 @@ namespace Client.Game.InGame.Train
             return false;
         }
 
-        private GameObject SpawnRail(int index, string name, IRailNode startNode, IRailNode endNode)
+        private GameObject SpawnRail(string name, IRailNode startNode, IRailNode endNode)
         {
             var instance = Instantiate(_railPrefab, transform);
             var startControl = startNode.FrontControlPoint.OriginalPosition;
