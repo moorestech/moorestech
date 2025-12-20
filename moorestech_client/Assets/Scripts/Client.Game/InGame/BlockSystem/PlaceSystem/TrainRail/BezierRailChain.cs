@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Game.Train.Utility;
 using UnityEngine;
 
 /// <summary>
@@ -44,7 +45,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
             if (moduleLength <= 0f)
                 return;
 
-            var curveLength = BezierRailMesh.EstimateCurveLength(_point0, _point1, _point2, _point3, _curveSamples);
+            var curveLength = BezierUtility.GetBezierCurveLength(_point0, _point1, _point2, _point3, _curveSamples);
             if (curveLength <= 1e-4f)
                 return;
 

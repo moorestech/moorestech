@@ -1,3 +1,4 @@
+using Game.Train.Utility;
 using UnityEngine;
 
 /// <summary>
@@ -217,54 +218,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
 
         private bool BuildArcLengthTable()
         {
-            var steps = Mathf.Max(8, _curveSamples);
-            _arcLengths ??= new float[steps + 1];
-            if (_arcLengths.Length != steps + 1)
-                _arcLengths = new float[steps + 1];
-
-            _arcLengths[0] = 0f;
-            var previous = EvaluatePosition(0f);
-            var total = 0f;
-
-            for (var i = 1; i <= steps; i++)
-            {
-                var t = (float)i / steps;
-                var current = EvaluatePosition(t);
-                total += Vector3.Distance(previous, current);
-                _arcLengths[i] = total;
-                previous = current;
-            }
-
-            _curveLength = total;
+            _curveLength = BezierUtility.BuildArcLengthTable(_point0, _point1, _point2, _point3, _curveSamples, ref _arcLengths);
             return _curveLength > 1e-4f;
         }
 
-        private float DistanceToTime(float distance)
-        {
-            if (_curveLength <= 1e-5f)
-                return 0f;
+        private float DistanceToTime(float distance) => BezierUtility.DistanceToTime(distance, _curveLength, _arcLengths);
 
-            distance = Mathf.Clamp(distance, 0f, _curveLength);
-            var steps = _arcLengths.Length - 1;
+        private Vector3 EvaluatePosition(float t) => BezierUtility.GetBezierPoint(_point0, _point1, _point2, _point3, t);
 
-            for (var i = 1; i <= steps; i++)
-            {
-                var prev = _arcLengths[i - 1];
-                var current = _arcLengths[i];
-                if (distance > current)
-                    continue;
-
-                var lerp = Mathf.Approximately(current, prev) ? 0f : (distance - prev) / (current - prev);
-                var stepSize = 1f / steps;
-                return Mathf.Lerp((i - 1) * stepSize, i * stepSize, lerp);
-            }
-
-            return 1f;
-        }
-
-        private Vector3 EvaluatePosition(float t) => EvaluatePosition(_point0, _point1, _point2, _point3, t);
-
-        private Vector3 EvaluateTangent(float t) => EvaluateTangent(_point0, _point1, _point2, _point3, t);
+        private Vector3 EvaluateTangent(float t) => BezierUtility.GetBezierTangent(_point0, _point1, _point2, _point3, t);
 
         internal static Quaternion GetAxisRotation(Vector3 forwardAxis, Vector3 upAxis)
         {
@@ -280,45 +242,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
             }
 
             return Quaternion.Inverse(Quaternion.LookRotation(forward, up));
-        }
-
-        internal static Vector3 EvaluatePosition(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t)
-        {
-            t = Mathf.Clamp01(t);
-            var u = 1f - t;
-            return (u * u * u) * p0
-                 + (3f * u * u * t) * p1
-                 + (3f * u * t * t) * p2
-                 + (t * t * t) * p3;
-        }
-
-        internal static Vector3 EvaluateTangent(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t)
-        {
-            t = Mathf.Clamp01(t);
-            var u = 1f - t;
-
-            var term0 = (p1 - p0) * (3f * u * u);
-            var term1 = (p2 - p1) * (6f * u * t);
-            var term2 = (p3 - p2) * (3f * t * t);
-            var derivative = term0 + term1 + term2;
-
-            return derivative.sqrMagnitude > 1e-6f ? derivative.normalized : Vector3.forward;
-        }
-
-        internal static float EstimateCurveLength(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, int samples)
-        {
-            samples = Mathf.Max(8, samples);
-            var total = 0f;
-            var prev = EvaluatePosition(p0, p1, p2, p3, 0f);
-            for (var i = 1; i <= samples; i++)
-            {
-                var t = (float)i / samples;
-                var current = EvaluatePosition(p0, p1, p2, p3, t);
-                total += Vector3.Distance(prev, current);
-                prev = current;
-            }
-
-            return total;
         }
 
         internal static float CalculateModuleLength(Mesh mesh, Vector3 forwardAxis, Vector3 upAxis)
