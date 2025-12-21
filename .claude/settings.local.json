@@ -93,7 +93,5 @@
     "type": "command",
     "command": "node ./.claude/statusline.js"
   },
-  "enabledPlugins": {
-    "code-review@claude-code-plugins": true
-  }
+  "enabledPlugins": {}
 }
