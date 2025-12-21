@@ -15,7 +15,7 @@ namespace Game.Block.Blocks.BeltConveyor
             _blockConnectorComponent = blockConnectorComponent;
         }
 
-        public IItemStack InsertItem(IItemStack itemStack, InsertItemContext context)
+        public IItemStack InsertItem(IItemStack itemStack)
         {
             var targets = _blockConnectorComponent.ConnectedTargets;
             if (targets.Count == 0) return itemStack;
@@ -24,10 +24,9 @@ namespace Game.Block.Blocks.BeltConveyor
 
             // ConnectedInfoからBlockConnectInfoElementを取得
             // Get BlockConnectInfoElement from ConnectedInfo
-            var newContext = new InsertItemContext(connector.Value.SelfConnector, connector.Value.TargetConnector);
-            var output = connector.Key.InsertItem(itemStack, newContext);
-
-            return output;
+            var context = new InsertItemContext(connector.Value.SelfConnector, connector.Value.TargetConnector);
+            
+            return  connector.Key.InsertItem(itemStack, context);
         }
     }
 }

@@ -23,15 +23,15 @@ namespace Game.CraftChainer.BlockComponent
         
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            var context = CraftChainerMainComputerManager.Instance.GetChainerNetworkContext(_startChainerNodeId);
-            if (context == null)
+            var chainerContext = CraftChainerMainComputerManager.Instance.GetChainerNetworkContext(_startChainerNodeId);
+            if (chainerContext == null)
             {
                 return itemStack;
             }
-            
+
             // transporterの場合は既に1個になっているアイテムを挿入する想定
             // In the case of a transporter, it is assumed that the item has already been reduced to one
-            return context.InsertNodeNetworkNextBlock(itemStack, _startChainerNodeId, _blockConnectorComponent);
+            return chainerContext.InsertNodeNetworkNextBlock(itemStack, _startChainerNodeId, _blockConnectorComponent);
         }
     }
 }

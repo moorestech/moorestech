@@ -208,6 +208,7 @@ namespace Game.Block.Blocks.Miner
                 
                 for (var i = 0; i < _openableInventoryItemDataStoreService.InventoryItems.Count; i++)
                 {
+#error ここに適切なInsertItemContextを設定する
                     var insertedItem = _connectInventoryService.InsertItem(_openableInventoryItemDataStoreService.InventoryItems[i]);
                     _openableInventoryItemDataStoreService.SetItem(i, insertedItem);
                 }
@@ -290,8 +291,13 @@ namespace Game.Block.Blocks.Miner
         public IItemStack InsertItem(IItemStack itemStack)
         {
             BlockException.CheckDestroy(this);
-            
+
             return _openableInventoryItemDataStoreService.InsertItem(itemStack);
+        }
+
+        public IItemStack InsertItem(IItemStack itemStack, InsertItemContext context)
+        {
+            return InsertItem(itemStack);
         }
         
         public IItemStack InsertItem(ItemId itemId, int count)

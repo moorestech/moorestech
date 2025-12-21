@@ -160,7 +160,7 @@ namespace Game.Block.Blocks.BeltConveyor
                 {
                     var insertItem = ServerContext.ItemStackFactory.Create(item.ItemId, 1, item.ItemInstanceId);
                     
-                    var output = _blockInventoryInserter.InsertItem(insertItem, InsertItemContext.Empty);
+                    var output = _blockInventoryInserter.InsertItem(insertItem);
                     
                     //渡した結果がnullItemだったらそのアイテムを消す
                     if (output.Id == ItemMaster.EmptyItemId) _inventoryItems[i] = null;
