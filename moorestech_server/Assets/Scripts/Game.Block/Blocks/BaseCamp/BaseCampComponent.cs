@@ -112,17 +112,22 @@ namespace Game.Block.Blocks.BaseCamp
         public IItemStack InsertItem(IItemStack itemStack)
         {
             CheckDestroy(this);
-            
+
             // 必要なアイテムのみ受け入れる
             // Accept only required items
             if (!_requiredItems.ContainsKey(itemStack.Id))
             {
                 return itemStack; // 受け入れないアイテムはそのまま返す / Return items that are not accepted
             }
-            
+
             return _itemDataStoreService.InsertItem(itemStack);
         }
-        
+
+        public IItemStack InsertItem(IItemStack itemStack, InsertItemContext context)
+        {
+            return InsertItem(itemStack);
+        }
+
         public IItemStack InsertItem(ItemId itemId, int count)
         {
             CheckDestroy(this);

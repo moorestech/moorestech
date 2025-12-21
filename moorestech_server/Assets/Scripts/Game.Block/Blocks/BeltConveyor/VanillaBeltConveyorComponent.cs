@@ -7,6 +7,7 @@ using Game.Block.Blocks.Connector;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
+using Mooresmaster.Model.BlockConnectInfoModule;
 using Newtonsoft.Json;
 
 namespace Game.Block.Blocks.BeltConveyor
@@ -48,18 +49,22 @@ namespace Game.Block.Blocks.BeltConveyor
             }
         }
         
-        public IItemStack InsertItem(IItemStack itemStack)
+        public IItemStack InsertItem(IItemStack itemStack, InsertItemContext context)
         {
             BlockException.CheckDestroy(this);
-            
-            //新しく挿入可能か
+
+            // 新しく挿入可能か
+            // Check if insertion is possible
             if (_inventoryItems[^1] != null)
-                //挿入可能でない
                 return itemStack;
-            
-            _inventoryItems[^1] = new VanillaBeltConveyorInventoryItem(itemStack.Id, itemStack.ItemInstanceId);
-            
-            //挿入したのでアイテムを減らして返す
+
+            // TargetConnectorからPathIdを取得してアイテムを挿入
+            // Get PathId from TargetConnector and insert item
+            var pathId = (context.TargetConnector?.ConnectOption as InventoryConnectOption)?.PathId;
+            _inventoryItems[^1] = new VanillaBeltConveyorInventoryItem(itemStack.Id, itemStack.ItemInstanceId, pathId);
+
+            // 挿入したのでアイテムを減らして返す
+            // Return item with count reduced by 1
             return itemStack.SubItem(1);
         }
         public bool InsertionCheck(List<IItemStack> itemStacks)
@@ -94,9 +99,9 @@ namespace Game.Block.Blocks.BeltConveyor
         public void SetItem(int slot, IItemStack itemStack)
         {
             BlockException.CheckDestroy(this);
-            
+
             //TODO lockすべき？？
-            _inventoryItems[slot] = new VanillaBeltConveyorInventoryItem(itemStack.Id, itemStack.ItemInstanceId);
+            _inventoryItems[slot] = new VanillaBeltConveyorInventoryItem(itemStack.Id, itemStack.ItemInstanceId, null);
         }
         
         public bool IsDestroy { get; private set; }
@@ -155,7 +160,7 @@ namespace Game.Block.Blocks.BeltConveyor
                 {
                     var insertItem = ServerContext.ItemStackFactory.Create(item.ItemId, 1, item.ItemInstanceId);
                     
-                    var output = _blockInventoryInserter.InsertItem(insertItem);
+                    var output = _blockInventoryInserter.InsertItem(insertItem, InsertItemContext.Empty);
                     
                     //渡した結果がnullItemだったらそのアイテムを消す
                     if (output.Id == ItemMaster.EmptyItemId) _inventoryItems[i] = null;

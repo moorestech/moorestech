@@ -73,7 +73,8 @@ namespace Game.Block.Blocks.Chest
             
             for (var i = 0; i < _itemDataStoreService.InventoryItems.Count; i++)
             {
-                var setItem = _blockInventoryInserter.InsertItem(_itemDataStoreService.InventoryItems[i]);
+                #error ここに適切なInsertItemContextを設定する
+                var setItem = _blockInventoryInserter.InsertItem(_itemDataStoreService.InventoryItems[i], InsertItemContext.Empty);
                 _itemDataStoreService.SetItem(i, setItem);
             }
         }
@@ -88,6 +89,7 @@ namespace Game.Block.Blocks.Chest
         
         public void SetItem(int slot, IItemStack itemStack) { CheckDestroy(this); _itemDataStoreService.SetItem(slot, itemStack); }
         public IItemStack InsertItem(IItemStack itemStack) { CheckDestroy(this); return _itemDataStoreService.InsertItem(itemStack); }
+        public IItemStack InsertItem(IItemStack itemStack, InsertItemContext context) { return InsertItem(itemStack); }
         public int GetSlotSize() { CheckDestroy(this); return _itemDataStoreService.GetSlotSize(); }
         public ReadOnlyCollection<IItemStack> CreateCopiedItems() { CheckDestroy(this); return _itemDataStoreService.CreateCopiedItems(); }
         public IItemStack GetItem(int slot) { CheckDestroy(this); return _itemDataStoreService.GetItem(slot); }
