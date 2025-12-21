@@ -5,7 +5,7 @@ using UnityEngine;
 /// 4制御点のベジエ曲線に沿ってメッシュを変形するコンポーネント。
 /// 区間を指定できるので、複数モジュールを並べたレールにも利用できる。
 /// </summary>
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
+namespace InGame.Train.Rail
 {
     [RequireComponent(typeof(MeshFilter))]
     public class BezierRailMesh : MonoBehaviour
