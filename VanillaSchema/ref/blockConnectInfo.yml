@@ -34,7 +34,10 @@ items:
     cases:
     - when: Inventory
       type: object
-      properties: []
+      properties:
+      - key: pathId
+        type: string
+        optional: true
     - when: Gear
       type: object
       properties:
