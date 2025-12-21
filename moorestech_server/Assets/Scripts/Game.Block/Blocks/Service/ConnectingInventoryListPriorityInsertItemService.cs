@@ -4,6 +4,7 @@ using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.Connector;
 using Game.Block.Component;
+using Game.Block.Interface;
 using Game.Block.Interface.Component;
 
 namespace Game.Block.Blocks.Service
@@ -15,33 +16,42 @@ namespace Game.Block.Blocks.Service
     public class ConnectingInventoryListPriorityInsertItemService : IBlockInventoryInserter
     {
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
-        
+        private readonly BlockInstanceId _sourceBlockInstanceId;
+
         private int _index = -1;
-        
-        public ConnectingInventoryListPriorityInsertItemService(BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
+
+        public ConnectingInventoryListPriorityInsertItemService(BlockInstanceId sourceBlockInstanceId, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
         {
+            _sourceBlockInstanceId = sourceBlockInstanceId;
             _blockConnectorComponent = blockConnectorComponent;
         }
-        
+
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            IReadOnlyList<IBlockInventory> inventories = _blockConnectorComponent.ConnectedTargets.Keys.ToArray();
+            // 接続先のリストとConnectedInfoを取得
+            // Get list of connected targets and ConnectedInfo
+            var connectedTargets = _blockConnectorComponent.ConnectedTargets;
+            var targetsList = connectedTargets.ToArray();
 
-            for (var i = 0; i < inventories.Count && itemStack.Id != ItemMaster.EmptyItemId; i++)
-                lock (inventories)
+            for (var i = 0; i < targetsList.Length && itemStack.Id != ItemMaster.EmptyItemId; i++)
+                lock (targetsList)
                 {
-                    #error ここに適切なInsertItemContextを設定する
-                    AddIndex();
-                    itemStack = inventories[_index].InsertItem(itemStack, InsertItemContext.Empty);
+                    AddIndex(targetsList.Length);
+                    var target = targetsList[_index];
+
+                    // ConnectedInfoからコネクタ情報を取得してInsertItemContextを作成
+                    // Create InsertItemContext from ConnectedInfo
+                    var context = new InsertItemContext(_sourceBlockInstanceId, target.Value.SelfConnector, target.Value.TargetConnector);
+                    itemStack = target.Key.InsertItem(itemStack, context);
                 }
 
             return itemStack;
         }
-        
-        private void AddIndex()
+
+        private void AddIndex(int count)
         {
             _index++;
-            if (_blockConnectorComponent.ConnectedTargets.Count <= _index) _index = 0;
+            if (count <= _index) _index = 0;
         }
     }
 }

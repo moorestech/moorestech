@@ -42,7 +42,7 @@ namespace Tests.UnitTest.Core.Other
             
             foreach (var inventory in inventoryList) targets.Add(inventory, new ConnectedInfo());
             
-            var service = new ConnectingInventoryListPriorityInsertItemService(inputConnectorComponent);
+            var service = new ConnectingInventoryListPriorityInsertItemService(new BlockInstanceId(1), inputConnectorComponent);
             
             service.InsertItem(itemStackFactory.Create(new ItemId(1), 4));
             service.InsertItem(itemStackFactory.Create(new ItemId(2), 3));

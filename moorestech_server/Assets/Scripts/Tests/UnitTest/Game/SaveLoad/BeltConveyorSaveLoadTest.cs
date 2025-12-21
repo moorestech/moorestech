@@ -55,7 +55,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             //セーブデータをロード
             var blockConnector = new BlockConnectorComponent<IBlockInventory>(null, null, beltPosInfo);
-            var beltConveyorConnector = new VanillaBeltConveyorBlockInventoryInserter(blockConnector);
+            var beltConveyorConnector = new VanillaBeltConveyorBlockInventoryInserter(new BlockInstanceId(1), blockConnector);
 
             var newBelt = new VanillaBeltConveyorComponent(states, 4, 4000, beltConveyorConnector, BeltConveyorSlopeType.Straight);
             var newInventoryItems = (VanillaBeltConveyorInventoryItem[])inventoryItemsField.GetValue(newBelt);
@@ -107,11 +107,11 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             //セーブデータをロード
             var blockConnector = new BlockConnectorComponent<IBlockInventory>(null, null, beltPosInfo);
-            var beltConveyorConnector = new VanillaBeltConveyorBlockInventoryInserter(blockConnector); 
-            
+            var beltConveyorConnector = new VanillaBeltConveyorBlockInventoryInserter(new BlockInstanceId(1), blockConnector);
+
             var newBelt = new VanillaBeltConveyorComponent(states, 4, 4000, beltConveyorConnector, BeltConveyorSlopeType.Straight);
             var newInventoryItems = (VanillaBeltConveyorInventoryItem[])inventoryItemsField.GetValue(newBelt);
-            
+
             //アイテムが一致するかチェック
             Assert.AreEqual(inventoryItems.Length, newInventoryItems.Length);
             Assert.AreEqual(1, newInventoryItems[0].ItemId.AsPrimitive());

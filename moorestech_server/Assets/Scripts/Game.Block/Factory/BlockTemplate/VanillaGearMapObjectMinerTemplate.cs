@@ -31,7 +31,7 @@ namespace Game.Block.Factory.BlockTemplate
             // チェストの作成
             // Create a chest
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(minerParam.InventoryConnectors, blockPositionInfo);
-            var inserter = new ConnectingInventoryListPriorityInsertItemService(inputConnectorComponent);
+            var inserter = new ConnectingInventoryListPriorityInsertItemService(blockInstanceId, inputConnectorComponent);
             var chestComponent = componentStates == null ?
                 new VanillaChestComponent(blockInstanceId, minerParam.ItemSlotCount, inserter) :
                 new VanillaChestComponent(componentStates, blockInstanceId, minerParam.ItemSlotCount, inserter);
