@@ -41,7 +41,7 @@ namespace Tests.CombinedTest.Core
             
             // アイテムを納品
             var deliveredItem = itemStackFactory.Create(requiredItemId, requiredAmount);
-            baseCampInventory.InsertItem(deliveredItem);
+            baseCampInventory.InsertItem(deliveredItem, InsertItemContext.Empty);
             
             // 納品完了の確認
             Assert.IsTrue(baseCampComponent.IsCompleted());
@@ -72,16 +72,16 @@ namespace Tests.CombinedTest.Core
             };
             
             // 部分的に納品
-            var remaining1 = baseCampInventory.InsertItem(itemStackFactory.Create(requiredItems[0].id, requiredItems[0].count));
+            var remaining1 = baseCampInventory.InsertItem(itemStackFactory.Create(requiredItems[0].id, requiredItems[0].count), InsertItemContext.Empty);
             Debug.Log($"After first insert: remaining={remaining1.Count}");
             Assert.IsFalse(baseCampComponent.IsCompleted());
-            
-            var remaining2 = baseCampInventory.InsertItem(itemStackFactory.Create(requiredItems[1].id, requiredItems[1].count));
+
+            var remaining2 = baseCampInventory.InsertItem(itemStackFactory.Create(requiredItems[1].id, requiredItems[1].count), InsertItemContext.Empty);
             Debug.Log($"After second insert: remaining={remaining2.Count}");
             Assert.IsFalse(baseCampComponent.IsCompleted());
-            
+
             // 最後のアイテムを納品
-            var remaining3 = baseCampInventory.InsertItem(itemStackFactory.Create(requiredItems[2].id, requiredItems[2].count));
+            var remaining3 = baseCampInventory.InsertItem(itemStackFactory.Create(requiredItems[2].id, requiredItems[2].count), InsertItemContext.Empty);
             Debug.Log($"After third insert: remaining={remaining3.Count}");
             Debug.Log($"IsCompleted: {baseCampComponent.IsCompleted()}, Progress: {baseCampComponent.GetProgress()}");
             
@@ -116,7 +116,7 @@ namespace Tests.CombinedTest.Core
             var wrongItemId = MasterHolder.ItemMaster.GetItemId(wrongItemGuid);
             var wrongItem = itemStackFactory.Create(wrongItemId, 10);
             
-            var remaining = baseCampInventory.InsertItem(wrongItem);
+            var remaining = baseCampInventory.InsertItem(wrongItem, InsertItemContext.Empty);
             
             // 間違ったアイテムは受け付けないことを確認（全て返される）
             Assert.AreEqual(10, remaining.Count);
@@ -143,13 +143,13 @@ namespace Tests.CombinedTest.Core
             var requiredAmount = 10;
             
             // 部分的に納品
-            baseCampInventory.InsertItem(itemStackFactory.Create(requiredItemId, 3));
+            baseCampInventory.InsertItem(itemStackFactory.Create(requiredItemId, 3), InsertItemContext.Empty);
             Assert.AreEqual(0.3f, baseCampComponent.GetProgress(), 0.01f);
-            
-            baseCampInventory.InsertItem(itemStackFactory.Create(requiredItemId, 4));
+
+            baseCampInventory.InsertItem(itemStackFactory.Create(requiredItemId, 4), InsertItemContext.Empty);
             Assert.AreEqual(0.7f, baseCampComponent.GetProgress(), 0.01f);
-            
-            baseCampInventory.InsertItem(itemStackFactory.Create(requiredItemId, 3));
+
+            baseCampInventory.InsertItem(itemStackFactory.Create(requiredItemId, 3), InsertItemContext.Empty);
             Assert.AreEqual(1.0f, baseCampComponent.GetProgress(), 0.01f);
             Assert.IsTrue(baseCampComponent.IsCompleted());
         }

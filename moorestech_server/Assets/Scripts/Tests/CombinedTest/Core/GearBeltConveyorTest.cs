@@ -62,7 +62,7 @@ namespace Tests.CombinedTest.Core
             var duration = 1f / (generatorRpm * torqueRate * gearBeltConveyorBlockParam.BeltConveyorSpeed);
             var expectedEndTime = DateTime.Now.AddSeconds(duration);
             var startTime = DateTime.Now;
-            beltConveyorComponent.InsertItem(item);
+            beltConveyorComponent.InsertItem(item, InsertItemContext.Empty);
             
             // for (var i = 0; i < 100; i++)
             // {

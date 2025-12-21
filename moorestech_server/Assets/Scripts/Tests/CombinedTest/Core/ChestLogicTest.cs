@@ -44,7 +44,7 @@ namespace Tests.CombinedTest.Core
             // Place the belt conveyor block
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var beltConveyor);
             var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
-            beltConveyorComponent.InsertItem(item);
+            beltConveyorComponent.InsertItem(item, InsertItemContext.Empty);
             
             var beltConnectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
             beltConnectInventory.Add(chestComponent, new ConnectedInfo());
