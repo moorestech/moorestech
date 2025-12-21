@@ -7,18 +7,27 @@ namespace Game.Block.Interface.Component
     {
         public IReadOnlyDictionary<TTarget, ConnectedInfo> ConnectedTargets { get; }
     }
-    
+
     public struct ConnectedInfo
     {
-        public IConnectOption SelfOption { get; }
-        public IConnectOption TargetOption { get; }
-        
+        /// <summary>
+        /// 自分側のコネクター情報
+        /// Connector information on self side
+        /// </summary>
+        public BlockConnectInfoElement SelfConnector { get; }
+
+        /// <summary>
+        /// 接続先のコネクター情報
+        /// Connector information on target side
+        /// </summary>
+        public BlockConnectInfoElement TargetConnector { get; }
+
         public IBlock TargetBlock { get; }
-        
-        public ConnectedInfo(IConnectOption selfOption, IConnectOption targetOption, IBlock targetBlock)
+
+        public ConnectedInfo(BlockConnectInfoElement selfConnector, BlockConnectInfoElement targetConnector, IBlock targetBlock)
         {
-            SelfOption = selfOption;
-            TargetOption = targetOption;
+            SelfConnector = selfConnector;
+            TargetConnector = targetConnector;
             TargetBlock = targetBlock;
         }
     }

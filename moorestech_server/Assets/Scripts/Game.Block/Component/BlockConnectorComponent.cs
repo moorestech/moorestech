@@ -16,31 +16,37 @@ namespace Game.Block.Component
     {
         public IReadOnlyDictionary<TTarget, ConnectedInfo> ConnectedTargets => _connectedTargets;
         private readonly Dictionary<TTarget, ConnectedInfo> _connectedTargets = new();
-        
+
         private readonly List<IDisposable> _blockUpdateEvents = new();
-        
-        private readonly Dictionary<Vector3Int, List<(Vector3Int position, IConnectOption targetOption)>> _inputConnectPoss; // key インプットコネクターの位置 value そのコネクターと接続できる位置
-        private readonly Dictionary<Vector3Int, (Vector3Int position, IConnectOption selfOption)> _outputTargetToOutputConnector; // key アウトプット先の位置 value そのアウトプット先と接続するアウトプットコネクターの位置
-        
+
+        // key: インプットコネクターの位置
+        // value: そのコネクターと接続できる位置とBlockConnectInfoElement
+        private readonly Dictionary<Vector3Int, List<(Vector3Int position, BlockConnectInfoElement element)>> _inputConnectPoss;
+
+        // key: アウトプット先の位置
+        // value: そのアウトプット先と接続するアウトプットコネクターの位置とBlockConnectInfoElement
+        private readonly Dictionary<Vector3Int, (Vector3Int position, BlockConnectInfoElement element)> _outputTargetToOutputConnector;
+
         public BlockConnectorComponent(BlockConnectInfo inputConnectInfo, BlockConnectInfo outputConnectInfo, BlockPositionInfo blockPositionInfo)
         {
             var worldBlockUpdateEvent = ServerContext.WorldBlockUpdateEvent;
-            
+
             _inputConnectPoss = BlockConnectorConnectPositionCalculator.CalculateConnectorToConnectPosList(inputConnectInfo, blockPositionInfo);
             _outputTargetToOutputConnector = BlockConnectorConnectPositionCalculator.CalculateConnectPosToConnector(outputConnectInfo, blockPositionInfo);
-            
+
             foreach (var outputPos in _outputTargetToOutputConnector.Keys)
             {
                 _blockUpdateEvents.Add(worldBlockUpdateEvent.SubscribePlace(outputPos, b => OnPlaceBlock(b.Pos)));
                 _blockUpdateEvents.Add(worldBlockUpdateEvent.SubscribeRemove(outputPos, OnRemoveBlock));
-                
-                //アウトプット先にブロックがあったら接続を試みる
+
+                // アウトプット先にブロックがあったら接続を試みる
+                // If there is a block at the output destination, try to connect
                 if (ServerContext.WorldBlockDatastore.Exists(outputPos)) OnPlaceBlock(outputPos);
             }
         }
-        
+
         public bool IsDestroy { get; private set; }
-        
+
         public void Destroy()
         {
             _connectedTargets.Clear();
@@ -48,7 +54,7 @@ namespace Game.Block.Component
             _blockUpdateEvents.Clear();
             IsDestroy = true;
         }
-        
+
         /// <summary>
         ///     ブロックを接続元から接続先に接続できるなら接続する
         ///     その場所にブロックがあるか、
@@ -56,57 +62,60 @@ namespace Game.Block.Component
         /// </summary>
         private void OnPlaceBlock(Vector3Int outputTargetPos)
         {
-            //接続先にBlockInventoryがなければ処理を終了
+            // 接続先にBlockInventoryがなければ処理を終了
+            // Exit if no BlockInventory at connection target
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             if (!worldBlockDatastore.TryGetBlock(outputTargetPos, out BlockConnectorComponent<TTarget> targetConnector)) return;
             if (!worldBlockDatastore.TryGetBlock<TTarget>(outputTargetPos, out var targetComponent)) return;
-            
+
             // アウトプット先にターゲットのインプットオブジェクトがあるかどうかをチェックする
+            // Check if target's input object exists at output destination
             var isConnect = false;
-            IConnectOption selfOption = null;
-            IConnectOption targetOption = null;
+            BlockConnectInfoElement selfElement = null;
+            BlockConnectInfoElement targetElement = null;
             foreach (var targetInput in targetConnector._inputConnectPoss)
             {
                 // アウトプット先に、インプットのコネクターがあるかどうかをチェックする
                 if (targetInput.Key != outputTargetPos) continue;
-                
+
                 // インプットがどこからでも接続できるならそのまま接続
                 if (targetInput.Value == null)
                 {
                     isConnect = true;
                     break;
                 }
-                
+
                 // インプット先に制限がある場合、その座標にアウトプットのコネクターがあるかをチェックする
                 var outputConnector = _outputTargetToOutputConnector[outputTargetPos];
-                
+
                 // インプット先にアウトプットのコネクターがある場合は接続できる
                 foreach (var target in targetInput.Value)
                     if (target.position == outputConnector.position)
                     {
                         isConnect = true;
-                        selfOption = outputConnector.selfOption;
-                        targetOption = target.targetOption;
+                        selfElement = outputConnector.element;
+                        targetElement = target.element;
                         break;
                     }
             }
-            
+
             if (!isConnect) return;
-            
-            //接続元ブロックと接続先ブロックを接続
+
+            // 接続元ブロックと接続先ブロックを接続
+            // Connect source block to target block
             if (!_connectedTargets.ContainsKey(targetComponent))
             {
                 var block = ServerContext.WorldBlockDatastore.GetBlock(outputTargetPos);
-                var connectedInfo = new ConnectedInfo(selfOption, targetOption, block);
+                var connectedInfo = new ConnectedInfo(selfElement, targetElement, block);
                 _connectedTargets.Add(targetComponent, connectedInfo);
             }
         }
-        
+
         private void OnRemoveBlock(BlockRemoveProperties updateProperties)
         {
-            //削除されたブロックがInputConnectorComponentでない場合、処理を終了する
+            // 削除されたブロックがInputConnectorComponentでない場合、処理を終了する
             if (!ServerContext.WorldBlockDatastore.TryGetBlock<TTarget>(updateProperties.Pos, out var component)) return;
-            
+
             _connectedTargets.Remove(component);
         }
     }
