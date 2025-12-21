@@ -2,6 +2,7 @@ using System.Linq;
 using Core.Item.Interface;
 using Game.Block.Blocks.Connector;
 using Game.Block.Component;
+using Game.Block.Interface;
 using Game.Block.Interface.Component;
 
 namespace Game.Block.Blocks.BeltConveyor
@@ -9,9 +10,11 @@ namespace Game.Block.Blocks.BeltConveyor
     public class VanillaBeltConveyorBlockInventoryInserter : IBlockInventoryInserter
     {
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
+        private readonly BlockInstanceId _sourceBlockInstanceId;
 
-        public VanillaBeltConveyorBlockInventoryInserter(BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
+        public VanillaBeltConveyorBlockInventoryInserter(BlockInstanceId sourceBlockInstanceId, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
         {
+            _sourceBlockInstanceId = sourceBlockInstanceId;
             _blockConnectorComponent = blockConnectorComponent;
         }
 
@@ -24,8 +27,8 @@ namespace Game.Block.Blocks.BeltConveyor
 
             // ConnectedInfoからBlockConnectInfoElementを取得
             // Get BlockConnectInfoElement from ConnectedInfo
-            var context = new InsertItemContext(connector.Value.SelfConnector, connector.Value.TargetConnector);
-            
+            var context = new InsertItemContext(_sourceBlockInstanceId, connector.Value.SelfConnector, connector.Value.TargetConnector);
+
             return  connector.Key.InsertItem(itemStack, context);
         }
     }

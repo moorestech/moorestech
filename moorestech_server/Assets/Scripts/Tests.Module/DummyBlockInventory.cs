@@ -10,9 +10,10 @@ namespace Tests.Module
     public class DummyBlockInventory : IBlockInventory
     {
         private readonly List<IItemStack> _insertedItems;
-        
+        private readonly List<InsertItemContext> _insertedContexts = new();
+
         private int _endInsertCnt;
-        
+
         public DummyBlockInventory(int insertToEndNum = 1, int maxSlot = 100)
         {
             IsItemExists = false;
@@ -20,9 +21,9 @@ namespace Tests.Module
             _endInsertCnt = 0;
             _insertedItems = CreateEmptyItemStacksList.Create(maxSlot).ToList();
         }
-        
+
         public bool IsItemExists { get; private set; }
-        
+
         public List<IItemStack> InsertedItems
         {
             get
@@ -32,9 +33,15 @@ namespace Tests.Module
                 return a.ToList();
             }
         }
-        
+
+        /// <summary>
+        /// 挿入時に受け取ったInsertItemContextを取得
+        /// Get InsertItemContext received during insertion
+        /// </summary>
+        public IReadOnlyList<InsertItemContext> InsertedContexts => _insertedContexts;
+
         private int InsertToEndNum { get; }
-        
+
         public IItemStack InsertItem(IItemStack itemStack)
         {
             for (var i = 0; i < _insertedItems.Count; i++)
@@ -53,6 +60,7 @@ namespace Tests.Module
 
         public IItemStack InsertItem(IItemStack itemStack, InsertItemContext context)
         {
+            _insertedContexts.Add(context);
             return InsertItem(itemStack);
         }
 

@@ -9,6 +9,12 @@ namespace Game.Block.Interface.Component
     public readonly struct InsertItemContext
     {
         /// <summary>
+        /// 挿入元ブロックのインスタンスID
+        /// Source block instance ID
+        /// </summary>
+        public BlockInstanceId SourceBlockInstanceId { get; }
+
+        /// <summary>
         /// 挿入元コネクターの情報
         /// Source connector information
         /// </summary>
@@ -20,12 +26,13 @@ namespace Game.Block.Interface.Component
         /// </summary>
         public BlockConnectInfoElement TargetConnector { get; }
 
-        public InsertItemContext(BlockConnectInfoElement sourceConnector, BlockConnectInfoElement targetConnector)
+        public InsertItemContext(BlockInstanceId sourceBlockInstanceId, BlockConnectInfoElement sourceConnector, BlockConnectInfoElement targetConnector)
         {
+            SourceBlockInstanceId = sourceBlockInstanceId;
             SourceConnector = sourceConnector;
             TargetConnector = targetConnector;
         }
 
-        public static InsertItemContext Empty => new InsertItemContext(null, null);
+        public static InsertItemContext Empty => new(default, null, null);
     }
 }
