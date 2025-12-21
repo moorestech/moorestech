@@ -124,6 +124,7 @@ namespace Game.Block.Blocks.Machine.Inventory
         
         private void InsertConnectInventory()
         {
+            #error ここに適切なInsertItemContextを設定する
             for (var i = 0; i < OutputSlot.Count; i++)
                 _itemDataStoreService.SetItem(i, _connectInventoryService.InsertItem(OutputSlot[i]));
         }

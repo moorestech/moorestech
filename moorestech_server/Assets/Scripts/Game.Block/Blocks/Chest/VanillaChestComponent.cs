@@ -74,7 +74,7 @@ namespace Game.Block.Blocks.Chest
             for (var i = 0; i < _itemDataStoreService.InventoryItems.Count; i++)
             {
                 #error ここに適切なInsertItemContextを設定する
-                var setItem = _blockInventoryInserter.InsertItem(_itemDataStoreService.InventoryItems[i], InsertItemContext.Empty);
+                var setItem = _blockInventoryInserter.InsertItem(_itemDataStoreService.InventoryItems[i]);
                 _itemDataStoreService.SetItem(i, setItem);
             }
         }

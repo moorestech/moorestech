@@ -26,14 +26,15 @@ namespace Game.Block.Blocks.Service
         public IItemStack InsertItem(IItemStack itemStack)
         {
             IReadOnlyList<IBlockInventory> inventories = _blockConnectorComponent.ConnectedTargets.Keys.ToArray();
-            
+
             for (var i = 0; i < inventories.Count && itemStack.Id != ItemMaster.EmptyItemId; i++)
                 lock (inventories)
                 {
+                    #error ここに適切なInsertItemContextを設定する
                     AddIndex();
-                    itemStack = inventories[_index].InsertItem(itemStack);
+                    itemStack = inventories[_index].InsertItem(itemStack, InsertItemContext.Empty);
                 }
-            
+
             return itemStack;
         }
         
