@@ -1,8 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Game.Train.RailGraph;
-using Game.Train.Utility;
-using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
+using InGame.Train.Rail;
 
 namespace Client.Game.InGame.Train
 {
