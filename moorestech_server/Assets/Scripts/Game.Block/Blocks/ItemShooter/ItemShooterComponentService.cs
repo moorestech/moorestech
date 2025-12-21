@@ -163,7 +163,7 @@ namespace Game.Block.Blocks.ItemShooter
                 }
                 else
                 {
-                    var output = connector.Key.InsertItem(insertItem);
+                    var output = connector.Key.InsertItem(insertItem, InsertItemContext.Empty);
                     if (output.Id == ItemMaster.EmptyItemId) _inventoryItems[slotIndex] = null;
                 }
             }
@@ -211,7 +211,7 @@ namespace Game.Block.Blocks.ItemShooter
             {
                 if (_inventoryItems[i] != null) continue;
 
-                _inventoryItems[i] = new ShooterInventoryItem(itemStack.Id, itemStack.ItemInstanceId, _settings.InitialShootSpeed);
+                _inventoryItems[i] = new ShooterInventoryItem(itemStack.Id, itemStack.ItemInstanceId, _settings.InitialShootSpeed, null);
                 _lastInsertElapsedTime = 0;
                 return itemStack.SubItem(1);
             }
@@ -242,7 +242,7 @@ namespace Game.Block.Blocks.ItemShooter
 
         public void SetItem(int slot, IItemStack itemStack)
         {
-            _inventoryItems[slot] = new ShooterInventoryItem(itemStack.Id, itemStack.ItemInstanceId, _settings.InitialShootSpeed);
+            _inventoryItems[slot] = new ShooterInventoryItem(itemStack.Id, itemStack.ItemInstanceId, _settings.InitialShootSpeed, null);
         }
 
         public void SetSlot(int slot, ShooterInventoryItem shooterInventoryItem)
