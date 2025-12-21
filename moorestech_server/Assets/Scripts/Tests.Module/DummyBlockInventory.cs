@@ -44,12 +44,18 @@ namespace Tests.Module
                 _insertedItems[i] = r.ProcessResultItemStack;
                 _endInsertCnt++;
                 IsItemExists = InsertToEndNum <= _endInsertCnt;
-                
+
                 return r.RemainderItemStack;
             }
-            
+
             return itemStack;
         }
+
+        public IItemStack InsertItem(IItemStack itemStack, InsertItemContext context)
+        {
+            return InsertItem(itemStack);
+        }
+
         public bool InsertionCheck(List<IItemStack> itemStacks)
         {
             return true;

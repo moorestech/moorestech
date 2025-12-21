@@ -41,7 +41,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             // 部分的にアイテムを納品
             var requiredItemId = new ItemId(1);
-            baseCampInventory.InsertItem(itemStackFactory.Create(requiredItemId, 3));
+            baseCampInventory.InsertItem(itemStackFactory.Create(requiredItemId, 3), InsertItemContext.Empty);
             
             // 納品されたアイテムと進捗を記録
             var deliveredItems = GetDeliveredItems(baseCampInventory);
@@ -99,9 +99,9 @@ namespace Tests.UnitTest.Game.SaveLoad
             var baseCampInventory = baseCampBlock.GetComponent<IBlockInventory>();
             
             // 複数アイテムの部分納品
-            baseCampInventory.InsertItem(itemStackFactory.Create(new ItemId(1), 2));
-            baseCampInventory.InsertItem(itemStackFactory.Create(new ItemId(2), 3));
-            baseCampInventory.InsertItem(itemStackFactory.Create(new ItemId(3), 1));
+            baseCampInventory.InsertItem(itemStackFactory.Create(new ItemId(1), 2), InsertItemContext.Empty);
+            baseCampInventory.InsertItem(itemStackFactory.Create(new ItemId(2), 3), InsertItemContext.Empty);
+            baseCampInventory.InsertItem(itemStackFactory.Create(new ItemId(3), 1), InsertItemContext.Empty);
             
             var progress = baseCampComponent.GetProgress();
             var blockInstanceId = baseCampBlock.BlockInstanceId;
@@ -143,8 +143,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             // すべてのアイテムを納品（変換直前の状態）
             var requiredItemId = new ItemId(1);
             var requiredAmount = 10;
-            baseCampInventory.InsertItem(itemStackFactory.Create(requiredItemId, requiredAmount));
-            
+            baseCampInventory.InsertItem(itemStackFactory.Create(requiredItemId, requiredAmount), InsertItemContext.Empty);
+
             // 完了しているが変換はまだ実行されていない状態を想定
             Assert.IsTrue(baseCampComponent.IsCompleted());
             
