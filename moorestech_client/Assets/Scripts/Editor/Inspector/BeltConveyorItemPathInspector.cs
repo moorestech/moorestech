@@ -126,6 +126,10 @@ public class BeltConveyorItemPathInspector : Editor
 
     private void OnSceneGUI()
     {
+        // GameObjectのデフォルトギズモを非表示
+        // Hide default GameObject gizmo
+        Tools.hidden = true;
+
         var pathComponent = target as BeltConveyorItemPath;
 
         DrawAllPaths(pathComponent);
