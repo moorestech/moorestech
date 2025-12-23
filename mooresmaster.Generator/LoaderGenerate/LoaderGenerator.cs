@@ -28,7 +28,7 @@ public static class LoaderGenerator
                 inheritTable[interfaceId] = [classId];
         var loaderFiles = definition
             .TypeDefinitions
-            .Select(typeDefinition => GenerateTypeLoaderCode(typeDefinition, semantics, nameTable))
+            .Select(typeDefinition => GenerateTypeLoaderCode(typeDefinition, semantics, nameTable, definition))
             .Concat(
                 inheritTable
                     .Select(inherit => GenerateSwitchLoaderCode(inherit.Key, semantics, nameTable)
@@ -99,15 +99,28 @@ public static class LoaderGenerator
         );
     }
     
-    private static (string fileName, string code) GenerateTypeLoaderCode(TypeDefinition typeDefinition, Semantics semantics, NameTable nameTable)
+    private static (string fileName, string code) GenerateTypeLoaderCode(TypeDefinition typeDefinition, Semantics semantics, NameTable nameTable, Definition definition)
     {
         var targetType = typeDefinition.TypeName;
         var targetTypeName = targetType.GetModelName();
         // プロパティIdが全てnullならroot
         var isRoot = typeDefinition.PropertyTable.All(property => property.Value.PropertyId == null);
         var propertyLoaderCode = isRoot
-            ? GenerateRootPropertyLoaderCode(typeDefinition, semantics)
-            : GeneratePropertiesLoaderCode(typeDefinition, semantics);
+            ? GenerateRootPropertyLoaderCode(typeDefinition, semantics, definition)
+            : GeneratePropertiesLoaderCode(typeDefinition, semantics, definition);
+
+        // IsArrayInnerTypeかどうかを判定
+        var isArrayInnerType = false;
+        if (definition.TypeNameToClassId.TryGetValue(typeDefinition.TypeName, out var classId))
+        {
+            isArrayInnerType = semantics.TypeSemanticsTable[classId].IsArrayInnerType;
+        }
+
+        var loadMethodParams = isArrayInnerType ? "int Index, global::Newtonsoft.Json.Linq.JToken json" : "global::Newtonsoft.Json.Linq.JToken json";
+        var constructorArgs = isArrayInnerType
+            ? string.Join(", ", new[] { "Index" }.Concat(typeDefinition.PropertyTable.Select(property => property.Key)))
+            : string.Join(", ", typeDefinition.PropertyTable.Select(property => property.Key));
+
         return (
             $"mooresmaster.loader.{typeDefinition.TypeName.ModuleName}.{typeDefinition.TypeName.Name}.g.cs",
             $$$"""
@@ -115,13 +128,13 @@ public static class LoaderGenerator
                {
                    public static class {{{typeDefinition.TypeName.Name}}}Loader
                    {
-                       public static {{{targetTypeName}}} Load(global::Newtonsoft.Json.Linq.JToken json)
+                       public static {{{targetTypeName}}} Load({{{loadMethodParams}}})
                        {
                            {{{GenerateNullCheckCode(typeDefinition, semantics).Indent(level: 3)}}}
-                       
+
                            {{{propertyLoaderCode.Indent(level: 3)}}}
-                       
-                           return new {{{targetTypeName}}}({{{string.Join(", ", typeDefinition.PropertyTable.Select(property => property.Key))}}});
+
+                           return new {{{targetTypeName}}}({{{constructorArgs}}});
                        }
                    }
                }
@@ -230,14 +243,14 @@ public static class LoaderGenerator
                   """;
     }
     
-    private static string GenerateRootPropertyLoaderCode(TypeDefinition typeDefinition, Semantics semantics)
+    private static string GenerateRootPropertyLoaderCode(TypeDefinition typeDefinition, Semantics semantics, Definition definition)
     {
         if (typeDefinition.PropertyTable.Count == 0) return string.Empty;
         var property = typeDefinition.PropertyTable.First();
-        return $"{property.Value.Type.GetName()} {property.Key} = {GeneratePropertyLoaderCode(property.Value.Type, "json")};";
+        return $"{property.Value.Type.GetName()} {property.Key} = {GeneratePropertyLoaderCode(property.Value.Type, "json", definition, semantics)};";
     }
     
-    private static string GeneratePropertiesLoaderCode(TypeDefinition typeDefinition, Semantics semantics)
+    private static string GeneratePropertiesLoaderCode(TypeDefinition typeDefinition, Semantics semantics, Definition definition)
     {
         return string.Join(
             "\n",
@@ -246,18 +259,20 @@ public static class LoaderGenerator
                 .Select(property =>
                     {
                         var propertySemantics = semantics.PropertySemanticsTable[property.Value.PropertyId!.Value];
-                        
+
                         return $"{property.Value.Type.GetName()} {property.Key} = {GeneratePropertyLoaderCode(
                             property.Value.Type,
                             propertySemantics.Schema is SwitchSchema ?
                                 "json" :
-                                $"json[\"{propertySemantics.PropertyName}\"]")};";
+                                $"json[\"{propertySemantics.PropertyName}\"]",
+                            definition,
+                            semantics)};";
                     }
                 )
         );
     }
     
-    private static string GeneratePropertyLoaderCode(Type type, string json)
+    private static string GeneratePropertyLoaderCode(Type type, string json, Definition definition, Semantics semantics)
     {
         return type switch
         {
@@ -279,18 +294,35 @@ public static class LoaderGenerator
             CustomType => $$$"""
                              {{{GetLoaderName(type)}}}({{{json}}})
                              """,
-            ArrayType arrayType => $$$"""
-                                      global::System.Linq.Enumerable.ToArray(global::System.Linq.Enumerable.Select({{{json}}}, value => {{{GeneratePropertyLoaderCode(arrayType.InnerType, "value")}}}))
-                                      """,
+            ArrayType arrayType => GenerateArrayLoaderCode(arrayType, json, definition, semantics),
             DictionaryType dictionaryType => $$$"""
                                                 new global::System.Collections.Generic.Dictionary<{{{dictionaryType.KeyType.GetName()}}}, {{{dictionaryType.ValueType.GetName()}}}>()
-                                                {{{json}}}.ToDictionary(key => {{{GeneratePropertyLoaderCode(dictionaryType.KeyType, "key")}}}, value => {{{GeneratePropertyLoaderCode(dictionaryType.ValueType, "value")}}})
+                                                {{{json}}}.ToDictionary(key => {{{GeneratePropertyLoaderCode(dictionaryType.KeyType, "key", definition, semantics)}}}, value => {{{GeneratePropertyLoaderCode(dictionaryType.ValueType, "value", definition, semantics)}}})
                                                 """,
             NullableType nullableType => $$$"""
-                                            (({{{json}}} == null) ? null : {{{GeneratePropertyLoaderCode(nullableType.InnerType, json)}}})
+                                            (({{{json}}} == null) ? null : {{{GeneratePropertyLoaderCode(nullableType.InnerType, json, definition, semantics)}}})
                                             """,
             _ => throw new ArgumentOutOfRangeException(nameof(type))
         };
+    }
+
+    private static string GenerateArrayLoaderCode(ArrayType arrayType, string json, Definition definition, Semantics semantics)
+    {
+        var innerType = arrayType.InnerType;
+
+        // InnerTypeがCustomTypeかつIsArrayInnerTypeの場合、インデックス付きのSelectを使用
+        if (innerType is CustomType customType &&
+            definition.TypeNameToClassId.TryGetValue(customType.Name, out var classId) &&
+            semantics.TypeSemanticsTable[classId].IsArrayInnerType)
+        {
+            return $$$"""
+                      global::System.Linq.Enumerable.ToArray(global::System.Linq.Enumerable.Select({{{json}}}, (value, __Index__) => {{{GetLoaderName(innerType)}}}(__Index__, value)))
+                      """;
+        }
+
+        return $$$"""
+                  global::System.Linq.Enumerable.ToArray(global::System.Linq.Enumerable.Select({{{json}}}, value => {{{GeneratePropertyLoaderCode(innerType, "value", definition, semantics)}}}))
+                  """;
     }
     
     private static string GenerateNullableUnwrapCode(Type type)

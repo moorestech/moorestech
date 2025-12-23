@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using mooresmaster.Generator.Definitions;
 using mooresmaster.Generator.NameResolve;
+using mooresmaster.Generator.Semantic;
 using Type = mooresmaster.Generator.Definitions.Type;
 
 namespace mooresmaster.Generator.CodeGenerate;
@@ -15,7 +16,7 @@ public record CodeFile(string FileName, string Code)
 
 public static class CodeGenerator
 {
-    public static CodeFile[] Generate(Definition definition)
+    public static CodeFile[] Generate(Definition definition, Semantics semantics)
     {
         var files = new Dictionary<string, List<string>>();
 
@@ -23,7 +24,13 @@ public static class CodeGenerator
         {
             if (!files.TryGetValue(typeDefinition.FileName, out _)) files[typeDefinition.FileName] = [];
 
-            files[typeDefinition.FileName].Add(GenerateTypeDefinitionCode(typeDefinition));
+            var isArrayInnerType = false;
+            if (definition.TypeNameToClassId.TryGetValue(typeDefinition.TypeName, out var classId))
+            {
+                isArrayInnerType = semantics.TypeSemanticsTable[classId].IsArrayInnerType;
+            }
+
+            files[typeDefinition.FileName].Add(GenerateTypeDefinitionCode(typeDefinition, isArrayInnerType));
         }
 
         foreach (var interfaceDefinition in definition.InterfaceDefinitions)
@@ -48,39 +55,53 @@ public static class CodeGenerator
             .ToArray();
     }
 
-    private static string GenerateTypeDefinitionCode(TypeDefinition typeDef)
+    private static string GenerateTypeDefinitionCode(TypeDefinition typeDef, bool isArrayInnerType)
     {
         return $$$"""
                   namespace Mooresmaster.Model.{{{typeDef.TypeName.ModuleName}}}
                   {
                       public class {{{typeDef.TypeName.Name}}} {{{GenerateInterfaceImplementationCode(typeDef.InheritList)}}}
                       {
-                          {{{GeneratePropertiesCode(typeDef).Indent(level: 2)}}}
-                          
-                          {{{GenerateTypeConstructorCode(typeDef).Indent(level: 2)}}}
-                          
+                          {{{GeneratePropertiesCode(typeDef, isArrayInnerType).Indent(level: 2)}}}
+
+                          {{{GenerateTypeConstructorCode(typeDef, isArrayInnerType).Indent(level: 2)}}}
+
                           {{{GenerateConstEnumCode(typeDef).Indent(level: 2)}}}
                       }
                   }
                   """;
     }
 
-    private static string GeneratePropertiesCode(TypeDefinition typeDef)
+    private static string GeneratePropertiesCode(TypeDefinition typeDef, bool isArrayInnerType)
     {
-        return string.Join(
-            "\n",
-            typeDef
-                .PropertyTable
-                .Select(kvp => $"public {GenerateTypeCode(kvp.Value.Type)} {kvp.Key} {{ get; }}")
-        );
+        var properties = typeDef
+            .PropertyTable
+            .Select(kvp => $"public {GenerateTypeCode(kvp.Value.Type)} {kvp.Key} {{ get; }}")
+            .ToList();
+
+        if (isArrayInnerType)
+        {
+            properties.Insert(0, "public int Index { get; }");
+        }
+
+        return string.Join("\n", properties);
     }
 
-    private static string GenerateTypeConstructorCode(TypeDefinition typeDef)
+    private static string GenerateTypeConstructorCode(TypeDefinition typeDef, bool isArrayInnerType)
     {
+        var parameters = typeDef.PropertyTable.Select(kvp => $"{GenerateTypeCode(kvp.Value.Type)} {kvp.Key}").ToList();
+        var assignments = typeDef.PropertyTable.Select(kvp => $"this.{kvp.Key} = {kvp.Key};").ToList();
+
+        if (isArrayInnerType)
+        {
+            parameters.Insert(0, "int Index");
+            assignments.Insert(0, "this.Index = Index;");
+        }
+
         return $$$"""
-                  public {{{typeDef.TypeName.Name}}}({{{string.Join(", ", typeDef.PropertyTable.Select(kvp => $"{GenerateTypeCode(kvp.Value.Type)} {kvp.Key}"))}}})
+                  public {{{typeDef.TypeName.Name}}}({{{string.Join(", ", parameters)}}})
                   {
-                      {{{string.Join("\n", typeDef.PropertyTable.Select(kvp => $"this.{kvp.Key} = {kvp.Key};")).Indent()}}}
+                      {{{string.Join("\n", assignments).Indent()}}}
                   }
                   """;
     }

@@ -121,11 +121,13 @@ public record RootSemantics(Schema Root, ClassId ClassId)
 ///     親要素がinterfaceになることはない
 /// </param>
 /// <param name="Schema"></param>
-public record TypeSemantics(PropertyId[] Properties, ISchema Schema, RootId RootId)
+/// <param name="IsArrayInnerType">配列のInnerTypeであるかどうか</param>
+public record TypeSemantics(PropertyId[] Properties, ISchema Schema, RootId RootId, bool IsArrayInnerType = false)
 {
     public PropertyId[] Properties = Properties;
     public RootId RootId = RootId;
     public ISchema Schema = Schema;
+    public bool IsArrayInnerType = IsArrayInnerType;
 }
 
 public record PropertySemantics(ITypeId ParentTypeId, string PropertyName, ITypeId? PropertyType, ISchema Schema, bool IsNullable)
