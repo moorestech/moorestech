@@ -208,7 +208,6 @@ namespace Game.Block.Blocks.Miner
                 
                 for (var i = 0; i < _openableInventoryItemDataStoreService.InventoryItems.Count; i++)
                 {
-#error ここに適切なInsertItemContextを設定する
                     var insertedItem = _connectInventoryService.InsertItem(_openableInventoryItemDataStoreService.InventoryItems[i]);
                     _openableInventoryItemDataStoreService.SetItem(i, insertedItem);
                 }

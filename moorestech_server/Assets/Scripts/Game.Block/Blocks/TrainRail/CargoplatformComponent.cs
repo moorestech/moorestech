@@ -177,8 +177,6 @@ namespace Game.Block.Blocks.TrainRail
                     {
                         continue;
                     }
-                    
-#error ここに適切なInsertItemContextを設定する
                     var remainder = _dockedStationInventory.InsertItem(slotStack, InsertItemContext.Empty);
                     if (IsSameStack(slotStack, remainder))
                     {
