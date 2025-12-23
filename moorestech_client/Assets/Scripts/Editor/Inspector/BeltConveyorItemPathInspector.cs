@@ -205,24 +205,14 @@ public class BeltConveyorItemPathInspector : Editor
             Vector3 startControlWorld = pathTransform.TransformPoint(path.StartControlWorldPosition);
             Handles.color = ControlLineColor;
             Handles.DrawLine(startWorld, startControlWorld);
-            Handles.color = ControlPointColor;
-            Vector3 newStartControlWorld = Handles.FreeMoveHandle(
-                startControlWorld,
-                HandleUtility.GetHandleSize(startControlWorld) * 0.1f,
-                Vector3.zero,
-                Handles.SphereHandleCap);
+            Vector3 newStartControlWorld = Handles.PositionHandle(startControlWorld, Quaternion.identity);
 
             // 制御点のハンドル（終点側）
             // Control point handle (end side)
             Vector3 endControlWorld = pathTransform.TransformPoint(path.EndControlWorldPosition);
             Handles.color = ControlLineColor;
             Handles.DrawLine(endWorld, endControlWorld);
-            Handles.color = ControlPointColor;
-            Vector3 newEndControlWorld = Handles.FreeMoveHandle(
-                endControlWorld,
-                HandleUtility.GetHandleSize(endControlWorld) * 0.1f,
-                Vector3.zero,
-                Handles.SphereHandleCap);
+            Vector3 newEndControlWorld = Handles.PositionHandle(endControlWorld, Quaternion.identity);
 
             if (EditorGUI.EndChangeCheck())
             {
