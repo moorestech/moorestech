@@ -16,29 +16,29 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.BeltConveyor
         [SerializeField] private BezierPath defaultPath;
 
         /// <summary>
-        /// pathIdに対応するパスを取得（見つからない場合はデフォルトパス）
-        /// Get path by pathId (returns default path if not found)
+        /// startIdとgoalIdの組み合わせに対応するパスを取得（見つからない場合はデフォルトパス）
+        /// Get path by startId and goalId combination (returns default path if not found)
         /// </summary>
-        public BezierPath GetPath(string pathId)
+        public BezierPath GetPath(string startId, string goalId)
         {
-            // pathIdがnullまたは空の場合はデフォルトパスを返す
-            // Return default path if pathId is null or empty
-            if (string.IsNullOrEmpty(pathId))
+            // 両方がnullまたは空の場合はデフォルトパスを返す
+            // Return default path if both are null or empty
+            if (string.IsNullOrEmpty(startId) && string.IsNullOrEmpty(goalId))
             {
                 return defaultPath;
             }
 
-            return FindPathById();
+            return FindPathByIds();
 
             #region Internal
 
-            BezierPath FindPathById()
+            BezierPath FindPathByIds()
             {
-                // pathIdに一致するパスを検索
-                // Search for path matching pathId
+                // startIdとgoalIdの両方が一致するパスを検索
+                // Search for path matching both startId and goalId
                 foreach (var path in paths)
                 {
-                    if (path.PathId == pathId)
+                    if (path.StartId == startId && path.GoalId == goalId)
                     {
                         return path.BezierPath;
                     }
@@ -54,9 +54,9 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.BeltConveyor
         /// RemainingPercent（0.0-1.0）に対応するワールド座標を取得
         /// Get world position for given RemainingPercent (0.0-1.0)
         /// </summary>
-        public Vector3 GetWorldPosition(string pathId, float remainingPercent)
+        public Vector3 GetWorldPosition(string startId, string goalId, float remainingPercent)
         {
-            var path = GetPath(pathId);
+            var path = GetPath(startId, goalId);
 
             // RemainingPercentは1.0から0.0に減少する
             // RemainingPercent decreases from 1.0 to 0.0
@@ -73,9 +73,9 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.BeltConveyor
         /// 新しいパスを追加
         /// Add new path
         /// </summary>
-        public void AddPath(string pathId)
+        public void AddPath(string startId, string goalId)
         {
-            var newPath = new BeltConveyorItemPathData(pathId);
+            var newPath = new BeltConveyorItemPathData(startId, goalId);
             newPath.BezierPath.SetDefault(Vector3.zero, Vector3.forward);
             paths.Add(newPath);
         }
