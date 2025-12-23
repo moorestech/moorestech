@@ -8,6 +8,7 @@ public record Definition
 {
     public readonly List<InterfaceDefinition> InterfaceDefinitions = new();
     public readonly List<TypeDefinition> TypeDefinitions = new();
+    public readonly Dictionary<TypeName, ClassId> TypeNameToClassId = new();
 }
 
 public record InterfaceDefinition(string FileName, TypeName TypeName, Dictionary<string, InterfacePropertyDefinition> PropertyTable, List<TypeName> ImplementationList)

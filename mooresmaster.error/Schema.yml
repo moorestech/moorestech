@@ -1,16 +1,2 @@
 id: testSchema
 type: object
-
-defineInterface:
-  - interfaceName: ILocalInterface
-    properties:
-      - key: localValue
-        type: integer
-
-globalDefineInterface:
-  - interfaceName: IGlobalInterface
-    implementationInterface:
-      - ILocalInterface
-    properties:
-      - key: globalValue
-        type: integer

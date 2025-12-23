@@ -114,7 +114,7 @@ public class MooresmasterSourceGenerator : IIncrementalGenerator
         var definition = DefinitionGenerator.Generate(semantics, nameTable, schemaTable);
         analyzer.PostDefinitionLayerAnalyze(analysis, semantics, schemas, schemaTable, definition);
         
-        var codeFiles = CodeGenerator.Generate(definition);
+        var codeFiles = CodeGenerator.Generate(definition, semantics);
         var loaderFiles = LoaderGenerator.Generate(definition, semantics, nameTable);
         
         analysis.ReportCsDiagnostics(context);

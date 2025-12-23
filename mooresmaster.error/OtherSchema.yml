@@ -1,29 +1,11 @@
 id: defineInterfacePrimitiveArrayTestSchema
 type: object
 
-defineInterface:
-  - interfaceName: IOption
-    properties: [ ]
-  - interfaceName: IDefineInterfacePrimitiveArrayTest
-    properties:
-      - key: offset
-        type: vector3Int
-      - key: test
-        type: integer
-      - key: testObject
-        type: object
-        properties:
-          - key: innerTestObject
-            type: object
-            properties:
-              - key: innerInnerTestObject
-                type: object
-      - key: directions
-        type: array
-        items:
-          type: vector3Int
-      - key: option
-        type: object
-        implementationInterface:
-          - IOption
-        
+properties:
+  - key: testArray
+    type: array
+    items:
+      type: object
+      properties:
+        - key: test
+          type: integer

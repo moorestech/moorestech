@@ -132,7 +132,16 @@ public static class SemanticsGenerator
         switch (schema)
         {
             case ArraySchema arraySchema:
-                Generate(table.Table[arraySchema.Items], table, rootId).AddTo(semantics);
+                var itemsSchema = table.Table[arraySchema.Items];
+                if (itemsSchema is ObjectSchema arrayItemObjectSchema)
+                {
+                    var (arrayItemSemantics, _) = Generate(arrayItemObjectSchema, table, rootId, isArrayInnerType: true);
+                    arrayItemSemantics.AddTo(semantics);
+                }
+                else
+                {
+                    Generate(itemsSchema, table, rootId).AddTo(semantics);
+                }
                 break;
             case ObjectSchema objectSchema:
                 var (innerSemantics, _) = Generate(objectSchema, table, rootId);
@@ -181,7 +190,7 @@ public static class SemanticsGenerator
         return (semantics, interfaceId);
     }
     
-    private static (Semantics, ClassId) Generate(ObjectSchema objectSchema, SchemaTable table, RootId rootId)
+    private static (Semantics, ClassId) Generate(ObjectSchema objectSchema, SchemaTable table, RootId rootId, bool isArrayInnerType = false)
     {
         var semantics = new Semantics();
         var typeId = ClassId.New();
@@ -231,11 +240,11 @@ public static class SemanticsGenerator
                     break;
             }
         }
-        
-        var typeSemantics = new TypeSemantics(properties.ToArray(), objectSchema, rootId);
+
+        var typeSemantics = new TypeSemantics(properties.ToArray(), objectSchema, rootId, isArrayInnerType);
         semantics.TypeSemanticsTable[typeId] = typeSemantics;
         semantics.SchemaTypeSemanticsTable[typeSemantics.Schema] = typeId;
-        
+
         return (semantics, typeId);
     }
 }

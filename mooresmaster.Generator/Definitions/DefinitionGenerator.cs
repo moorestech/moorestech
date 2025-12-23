@@ -106,8 +106,9 @@ public static class DefinitionGenerator
             
             
             definition.TypeDefinitions.Add(new TypeDefinition(fileName, typeName, inheritList.Concat(implementations).ToArray(), propertyTable));
+            definition.TypeNameToClassId[typeName] = typeId;
         }
-        
+
         return definition;
     }
     
