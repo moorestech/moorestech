@@ -346,7 +346,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         {
             UnityEngine.Random.InitState(seed);
             var usedLength = new HashSet<int>();
-            SetupCustomTrainCarMasters(Enumerable.Range(0, count).Select(_ =>
+            SetupCustomTrainCarMasters(Enumerable.Range(0, count).Select((_, index) =>
             {
                 var length = GenerateUniqueTrainLength(usedLength);
                 byte[] trainCarGuidBytes = new byte[16];
@@ -359,8 +359,8 @@ namespace Tests.UnitTest.Game.SaveLoad
                 {
                     itemGuidBytes[i] = (byte)UnityEngine.Random.Range(0, 256);
                 }
-                
-                return new TrainCarMasterElement(new Guid(trainCarGuidBytes), new Guid(itemGuidBytes), null, tractionForce, 0, length);
+
+                return new TrainCarMasterElement(index, new Guid(trainCarGuidBytes), new Guid(itemGuidBytes), null, tractionForce, 0, length);
             }).ToArray());
         }
         
