@@ -101,6 +101,7 @@ namespace Client.Tests
         private void BlockPlaceTest(TestCase testCase, bool isStartDirectionZ)
         {
             var blockMasterElement = new BlockMasterElement(
+                0,
                 Guid.Empty,
                 "TestBlock",
                 "TestBlockType",
