@@ -11,18 +11,18 @@ using UnityEngine;
 namespace Client.Game.InGame.Entity.Factory
 {
     /// <summary>
-    /// アイテムエンティティを生成するファクトリー
-    /// Factory to create item entity
+    /// ベルトコンベア上のアイテムエンティティを生成するファクトリー
+    /// Factory to create belt conveyor item entity
     /// </summary>
-    public class ItemEntityObjectFactory : IEntityObjectFactory
+    public class BeltConveyorItemEntityObjectFactory : IEntityObjectFactory
     {
         private const string DefaultItemPrefabPath = "Vanilla/Game/ItemEntity";
 
         private GameObject _defaultItemPrefab;
 
         /// <summary>
-        /// アイテムエンティティを生成
-        /// Create item entity
+        /// ベルトコンベア上のアイテムエンティティを生成
+        /// Create belt conveyor item entity
         /// </summary>
         public async UniTask<IEntityObject> CreateEntity(Transform parent, EntityResponse entity)
         {
@@ -43,12 +43,12 @@ namespace Client.Game.InGame.Entity.Factory
 
             #region Internal
 
-            ItemEntityStateMessagePack DeserializeState()
+            BeltConveyorItemEntityStateMessagePack DeserializeState()
             {
                 // データが空の場合は既定値を返す
                 // Return default state when data is empty
-                if (entity.EntityData == null || entity.EntityData.Length == 0) return new ItemEntityStateMessagePack();
-                return MessagePackSerializer.Deserialize<ItemEntityStateMessagePack>(entity.EntityData);
+                if (entity.EntityData == null || entity.EntityData.Length == 0) return new BeltConveyorItemEntityStateMessagePack();
+                return MessagePackSerializer.Deserialize<BeltConveyorItemEntityStateMessagePack>(entity.EntityData);
             }
 
             async UniTask<IEntityObject> CreateTextureBasedEntity(Transform parentTransform, EntityResponse entityResponse, ItemId id)
@@ -71,7 +71,7 @@ namespace Client.Game.InGame.Entity.Factory
                     texture = viewData.ItemTexture;
                 }
 
-                var item = itemObject.GetComponent<ItemEntityObject>();
+                var item = itemObject.GetComponent<BeltConveyorItemEntityObject>();
                 item.Initialize(entityResponse.InstanceId);
                 item.SetTexture(texture);
                 return item;
@@ -95,9 +95,9 @@ namespace Client.Game.InGame.Entity.Factory
                 // Instantiate custom model
                 var customModelObject = GameObject.Instantiate(loadedAsset.Asset, entityResponse.Position, Quaternion.identity, parentTransform);
 
-                // CustomModelItemEntityObjectコンポーネントを追加
-                // Add CustomModelItemEntityObject component
-                var customModelEntity = customModelObject.AddComponent<CustomModelItemEntityObject>();
+                // CustomModelBeltConveyorItemEntityObjectコンポーネントを追加
+                // Add CustomModelBeltConveyorItemEntityObject component
+                var customModelEntity = customModelObject.AddComponent<CustomModelBeltConveyorItemEntityObject>();
                 customModelEntity.Initialize(entityResponse.InstanceId);
                 return customModelEntity;
             }
