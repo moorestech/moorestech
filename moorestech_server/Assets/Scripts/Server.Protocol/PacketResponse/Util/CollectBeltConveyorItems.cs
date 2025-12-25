@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.BeltConveyor;
-using Game.Block.Blocks.Connector;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
@@ -106,13 +105,13 @@ namespace Server.Protocol.PacketResponse.Util
                 }
                 
                 var position = new Vector3(entityX, y, entityZ);
-                var itemEntity = (ItemEntity)entityFactory.CreateEntity(VanillaEntityType.VanillaItem, new EntityInstanceId(beltConveyorItem.ItemInstanceId.AsPrimitive()), position);
+                var itemEntity = (BeltConveyorItemEntity)entityFactory.CreateEntity(VanillaEntityType.VanillaItem, new EntityInstanceId(beltConveyorItem.ItemInstanceId.AsPrimitive()), position);
 
-                // ConnectorからPathIdを直接取得
-                // Get PathId directly from Connector
-                var startPathId = GetPathIdFromConnector(beltConveyorItem.StartConnector);
-                var goalPathId = GetPathIdFromConnector(beltConveyorItem.GoalConnector);
-                itemEntity.SetItemData(beltConveyorItem.ItemId, 1, startPathId, goalPathId);
+                // ConnectorからGuidを直接取得
+                // Get Guid directly from Connector
+                var sourceConnectorGuid = GetConnectorGuidFromConnector(beltConveyorItem.StartConnector);
+                var goalConnectorGuid = GetConnectorGuidFromConnector(beltConveyorItem.GoalConnector);
+                itemEntity.SetItemData(beltConveyorItem.ItemId, 1, sourceConnectorGuid, goalConnectorGuid);
 
                 result.Add(itemEntity);
             }
@@ -121,13 +120,12 @@ namespace Server.Protocol.PacketResponse.Util
         }
 
         /// <summary>
-        /// BlockConnectInfoElementからPathIdを取得
-        /// Get PathId from BlockConnectInfoElement
+        /// BlockConnectInfoElementからConnectorGuidを取得
+        /// Get ConnectorGuid from BlockConnectInfoElement
         /// </summary>
-        private static string GetPathIdFromConnector(BlockConnectInfoElement connector)
+        private static string GetConnectorGuidFromConnector(BlockConnectInfoElement connector)
         {
-            if (connector == null) return null;
-            return (connector.ConnectOption as InventoryConnectOption)?.PathId;
+            return connector?.ConnectorGuid;
         }
     }
 }
