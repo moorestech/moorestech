@@ -95,7 +95,6 @@ namespace Game.Block.Blocks.BeltConveyor
         /// </summary>
         public int ConnectedCount => _blockConnectorComponent.ConnectedTargets.Count;
 
-        #region Internal
 
         private KeyValuePair<IBlockInventory, ConnectedInfo> GetNextTarget(IReadOnlyDictionary<IBlockInventory, ConnectedInfo> targets)
         {
@@ -108,7 +107,5 @@ namespace Game.Block.Blocks.BeltConveyor
             if (_roundRobinIndex >= targetsList.Length) _roundRobinIndex = 0;
             return targetsList[_roundRobinIndex];
         }
-
-        #endregion
     }
 }
