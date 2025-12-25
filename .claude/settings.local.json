@@ -68,7 +68,8 @@
       "mcp__kiri__snippets_get",
       "Bash(dotnet build:*)",
       "Skill(skill-creator)",
-      "Skill(edit-schema)"
+      "Skill(edit-schema)",
+      "Bash(gh release view:*)"
     ],
     "deny": []
   },
