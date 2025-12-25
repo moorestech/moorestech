@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Core.Item.Interface;
 using Game.Block.Blocks.Connector;
@@ -12,6 +13,7 @@ namespace Game.Block.Blocks.BeltConveyor
     {
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
         private readonly BlockInstanceId _sourceBlockInstanceId;
+        private int _roundRobinIndex = -1;
 
         public VanillaBeltConveyorBlockInventoryInserter(BlockInstanceId sourceBlockInstanceId, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
         {
@@ -24,7 +26,9 @@ namespace Game.Block.Blocks.BeltConveyor
             var targets = _blockConnectorComponent.ConnectedTargets;
             if (targets.Count == 0) return itemStack;
 
-            var connector = targets.First();
+            // ラウンドロビンで出力先を選択する
+            // Select output target with round robin
+            var connector = GetNextTarget(targets);
 
             // ConnectedInfoからBlockConnectInfoElementを取得
             // Get BlockConnectInfoElement from ConnectedInfo
@@ -64,7 +68,10 @@ namespace Game.Block.Blocks.BeltConveyor
         {
             var targets = _blockConnectorComponent.ConnectedTargets;
             if (targets.Count == 0) return null;
-            return targets.First().Value.SelfConnector;
+
+            // ラウンドロビンでGoalConnectorを選択する
+            // Select goal connector with round robin
+            return GetNextTarget(targets).Value.SelfConnector;
         }
 
         /// <summary>
@@ -87,5 +94,21 @@ namespace Game.Block.Blocks.BeltConveyor
         /// Get the number of connected connectors
         /// </summary>
         public int ConnectedCount => _blockConnectorComponent.ConnectedTargets.Count;
+
+        #region Internal
+
+        private KeyValuePair<IBlockInventory, ConnectedInfo> GetNextTarget(IReadOnlyDictionary<IBlockInventory, ConnectedInfo> targets)
+        {
+            var targetsList = targets.ToArray();
+            if (targetsList.Length == 0) return default;
+
+            // 次の接続先インデックスを計算する
+            // Calculate next target index
+            _roundRobinIndex++;
+            if (_roundRobinIndex >= targetsList.Length) _roundRobinIndex = 0;
+            return targetsList[_roundRobinIndex];
+        }
+
+        #endregion
     }
 }
