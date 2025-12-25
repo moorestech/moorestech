@@ -14,8 +14,8 @@ namespace Game.Entity.Interface.EntityInstance
         
         private ItemId _id;
         private int _count;
-        private string _sourceConnectorGuid;
-        private string _goalConnectorGuid;
+        private Guid? _sourceConnectorGuid;
+        private Guid? _goalConnectorGuid;
 
 
         public BeltConveyorItemEntity(EntityInstanceId instanceId, Vector3 position)
@@ -24,7 +24,7 @@ namespace Game.Entity.Interface.EntityInstance
             Position = position;
         }
 
-        public void SetItemData(ItemId id, int count, string sourceConnectorGuid, string goalConnectorGuid)
+        public void SetItemData(ItemId id, int count, Guid? sourceConnectorGuid, Guid? goalConnectorGuid)
         {
             _id = id;
             _count = count;

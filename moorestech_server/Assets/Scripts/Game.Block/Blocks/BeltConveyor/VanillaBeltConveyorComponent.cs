@@ -20,12 +20,12 @@ namespace Game.Block.Blocks.BeltConveyor
         public IReadOnlyList<IOnBeltConveyorItem> BeltConveyorItems => _inventoryItems;
         private readonly VanillaBeltConveyorInventoryItem[] _inventoryItems;
 
-        private readonly VanillaBeltConveyorBlockInventoryInserter _blockInventoryInserter;
+        private readonly IBeltConveyorBlockInventoryInserter _blockInventoryInserter;
         private readonly int _inventoryItemNum;
 
         private double _timeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
 
-        public VanillaBeltConveyorComponent(int inventoryItemNum, float timeOfItemEnterToExit, VanillaBeltConveyorBlockInventoryInserter blockInventoryInserter, BeltConveyorSlopeType slopeType)
+        public VanillaBeltConveyorComponent(int inventoryItemNum, float timeOfItemEnterToExit, IBeltConveyorBlockInventoryInserter blockInventoryInserter, BeltConveyorSlopeType slopeType)
         {
             SlopeType = slopeType;
             _inventoryItemNum = inventoryItemNum;
@@ -35,7 +35,7 @@ namespace Game.Block.Blocks.BeltConveyor
             _inventoryItems = new VanillaBeltConveyorInventoryItem[inventoryItemNum];
         }
 
-        public VanillaBeltConveyorComponent(Dictionary<string, string> componentStates, int inventoryItemNum, float timeOfItemEnterToExit, VanillaBeltConveyorBlockInventoryInserter blockInventoryInserter, BeltConveyorSlopeType slopeType) :
+        public VanillaBeltConveyorComponent(Dictionary<string, string> componentStates, int inventoryItemNum, float timeOfItemEnterToExit, IBeltConveyorBlockInventoryInserter blockInventoryInserter, BeltConveyorSlopeType slopeType) :
             this(inventoryItemNum, timeOfItemEnterToExit, blockInventoryInserter, slopeType)
         {
             var itemJsons = JsonConvert.DeserializeObject<List<string>>(componentStates[SaveKey]);
@@ -182,8 +182,8 @@ namespace Game.Block.Blocks.BeltConveyor
 
             void ValidateAndUpdateGoalConnector(VanillaBeltConveyorInventoryItem targetItem)
             {
-                // VanillaBeltConveyorBlockInventoryInserterでない場合はスキップ
-                // Skip if not VanillaBeltConveyorBlockInventoryInserter
+                // インサーターが未設定ならスキップ
+                // Skip if inserter is not set
                 if (_blockInventoryInserter == null) return;
 
                 // 全てのコネクターがなくなった場合は現在の設定を保持

@@ -11,12 +11,12 @@ namespace Game.Entity.Interface
     {
         [Key(0)] public int ItemId { get; set; }
         [Key(1)] public int Count { get; set; }
-        [Key(2)] public string SourceConnectorGuid { get; set; }
-        [Key(3)] public string GoalConnectorGuid { get; set; }
+        [Key(2)] public Guid? SourceConnectorGuid { get; set; }
+        [Key(3)] public Guid? GoalConnectorGuid { get; set; }
 
         public BeltConveyorItemEntityStateMessagePack() { }
 
-        public BeltConveyorItemEntityStateMessagePack(ItemId itemId, int count, string sourceConnectorGuid, string goalConnectorGuid)
+        public BeltConveyorItemEntityStateMessagePack(ItemId itemId, int count, Guid? sourceConnectorGuid, Guid? goalConnectorGuid)
         {
             ItemId = itemId.AsPrimitive();
             Count = count;

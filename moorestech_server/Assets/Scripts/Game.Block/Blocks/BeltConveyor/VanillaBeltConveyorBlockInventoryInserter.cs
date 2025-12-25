@@ -8,7 +8,15 @@ using Mooresmaster.Model.BlockConnectInfoModule;
 
 namespace Game.Block.Blocks.BeltConveyor
 {
-    public class VanillaBeltConveyorBlockInventoryInserter : IBlockInventoryInserter
+    public interface IBeltConveyorBlockInventoryInserter : IBlockInventoryInserter
+    {
+        IItemStack InsertItem(IItemStack itemStack, BlockConnectInfoElement goalConnector);
+        BlockConnectInfoElement GetFirstGoalConnector();
+        bool IsValidGoalConnector(BlockConnectInfoElement goalConnector);
+        int ConnectedCount { get; }
+    }
+    
+    public class VanillaBeltConveyorBlockInventoryInserter : IBeltConveyorBlockInventoryInserter
     {
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
         private readonly BlockInstanceId _sourceBlockInstanceId;

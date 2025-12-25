@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core.Item.Interface;
 using Core.Master;
@@ -123,7 +124,7 @@ namespace Server.Protocol.PacketResponse.Util
         /// BlockConnectInfoElementからConnectorGuidを取得
         /// Get ConnectorGuid from BlockConnectInfoElement
         /// </summary>
-        private static string GetConnectorGuidFromConnector(BlockConnectInfoElement connector)
+        private static Guid? GetConnectorGuidFromConnector(BlockConnectInfoElement connector)
         {
             return connector?.ConnectorGuid;
         }

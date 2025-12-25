@@ -48,8 +48,8 @@ namespace Tests.CombinedTest.Core
 
             // ベルトコンベア→ターゲットの接続を設定
             // Set up belt conveyor → target connection
-            var selfConnector = new BlockConnectInfoElement("Inventory", Vector3Int.zero, Array.Empty<Vector3Int>(), new InventoryConnectOption("pathId-1"));
-            var targetConnector = new BlockConnectInfoElement("Inventory", Vector3Int.zero, Array.Empty<Vector3Int>(), new InventoryConnectOption("pathId-2"));
+            var selfConnector = CreateInventoryConnector(0, "pathId-1");
+            var targetConnector = CreateInventoryConnector(1, "pathId-2");
             var connectedInfo = new ConnectedInfo(selfConnector, targetConnector, null);
 
             var beltConnectorComponent = beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>();
@@ -109,8 +109,8 @@ namespace Tests.CombinedTest.Core
 
             // チェスト→ターゲットの接続を設定
             // Set up chest → target connection
-            var selfConnector = new BlockConnectInfoElement("Inventory", Vector3Int.zero, Array.Empty<Vector3Int>(), new InventoryConnectOption("chest-output"));
-            var targetConnector = new BlockConnectInfoElement("Inventory", Vector3Int.zero, Array.Empty<Vector3Int>(), new InventoryConnectOption("target-input"));
+            var selfConnector = CreateInventoryConnector(0, "chest-output");
+            var targetConnector = CreateInventoryConnector(1, "target-input");
             var connectedInfo = new ConnectedInfo(selfConnector, targetConnector, null);
 
             var chestConnectorComponent = chest.GetComponent<BlockConnectorComponent<IBlockInventory>>();
@@ -165,8 +165,8 @@ namespace Tests.CombinedTest.Core
 
             // InsertItemContextにPathIdを設定してベルトコンベアにアイテムを挿入
             // Insert item into belt conveyor with PathId set in InsertItemContext
-            var sourceConnector = new BlockConnectInfoElement("Inventory", Vector3Int.zero, Array.Empty<Vector3Int>(), new InventoryConnectOption("source-path"));
-            var targetConnector = new BlockConnectInfoElement("Inventory", Vector3Int.zero, Array.Empty<Vector3Int>(), new InventoryConnectOption("target-path-123"));
+            var sourceConnector = CreateInventoryConnector(0, "source-path");
+            var targetConnector = CreateInventoryConnector(1, "target-path-123");
             var context = new InsertItemContext(new BlockInstanceId(99999), sourceConnector, targetConnector);
 
             var item = itemStackFactory.Create(new ItemId(1), 1);
@@ -209,8 +209,8 @@ namespace Tests.CombinedTest.Core
 
             // 入力チェスト→ベルトコンベアの接続を設定
             // Set up input chest → belt conveyor connection
-            var inputChestConnector = new BlockConnectInfoElement("Inventory", Vector3Int.zero, Array.Empty<Vector3Int>(), new InventoryConnectOption("chest-to-belt"));
-            var beltInputConnector = new BlockConnectInfoElement("Inventory", Vector3Int.zero, Array.Empty<Vector3Int>(), new InventoryConnectOption("belt-input"));
+            var inputChestConnector = CreateInventoryConnector(0, "chest-to-belt");
+            var beltInputConnector = CreateInventoryConnector(1, "belt-input");
             var inputChestConnectedInfo = new ConnectedInfo(inputChestConnector, beltInputConnector, beltConveyor);
 
             var inputChestConnectorComponent = inputChest.GetComponent<BlockConnectorComponent<IBlockInventory>>();
@@ -220,8 +220,8 @@ namespace Tests.CombinedTest.Core
 
             // ベルトコンベア→出力ターゲットの接続を設定
             // Set up belt conveyor → output target connection
-            var beltOutputConnector = new BlockConnectInfoElement("Inventory", Vector3Int.zero, Array.Empty<Vector3Int>(), new InventoryConnectOption("belt-output"));
-            var targetInputConnector = new BlockConnectInfoElement("Inventory", Vector3Int.zero, Array.Empty<Vector3Int>(), new InventoryConnectOption("target-input"));
+            var beltOutputConnector = CreateInventoryConnector(0, "belt-output");
+            var targetInputConnector = CreateInventoryConnector(1, "target-input");
             var beltConnectedInfo = new ConnectedInfo(beltOutputConnector, targetInputConnector, null);
 
             var beltConnectorComponent = beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>();
@@ -252,6 +252,11 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(beltBlockInstanceId, targetContext.SourceBlockInstanceId);
             Assert.AreEqual("belt-output", ((InventoryConnectOption)targetContext.SourceConnector.ConnectOption).PathId);
             Assert.AreEqual("target-input", ((InventoryConnectOption)targetContext.TargetConnector.ConnectOption).PathId);
+        }
+
+        private static BlockConnectInfoElement CreateInventoryConnector(int index, string pathId)
+        {
+            return new BlockConnectInfoElement(index, "Inventory", Guid.NewGuid(), Vector3Int.zero, Array.Empty<Vector3Int>(), new InventoryConnectOption(pathId));
         }
     }
 }
