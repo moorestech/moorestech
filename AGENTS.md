@@ -66,6 +66,12 @@ nullチェックが不要な場面：
 あなたは必要に応じて、テストコードがパスしない時、意図した実装ができないときが発生します。そのようなときは、デバッグログを使用し、原因を究明、修正し、タスクが完了できるように努めてください。
 問題の原因として考えられる5～7つの可能性を検討し、それらを最も可能性の高い1～2つの原因に絞り込み、その後、ログを追加して仮説を検証してください。
 
+# 細かなコーディング規約
+- プロパティを用いた単なるgetter、setterはpublicプロパティと本質的に変わらないので使用禁止
+- 値をSetしたい時は必ず public void SetHoge というメソッドを用意する。
+- [SerializeField]のプロパティは _無し、1文字目が小文字のキャメルケース
+- エディタ拡張からしか呼ばれないものは #if UNITY_EDITOR で囲ってファイルの一番下に配置する
+
 # サーバーコンテキスト参照先
 - サーバー側のコンテキスト実装は `moorestech_server/Assets/Scripts/Game.Context/ServerContext.cs` を参照してください。
 
@@ -244,7 +250,7 @@ IMPORTANT:サーバーの実装をする際はdocs/ServerGuide.mdを、クライ
 IMPORTANT:サーバーのプロトコル（通常のレスポンスプロトコル、イベントプロトコル）を実装する際は、docs/ProtocolImplementationGuide.mdを必ず参照してください。
 IMPORTANT:テスト用のブロックIDは moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTestModBlockId.cs に定義し、それを使うようにしてください。
 IMPORTANT:try-catchは基本的に使用禁止です。エラーハンドリングが必要な場合は、適切な条件分岐やnullチェックで対応してください。
-IMPORTANT:各種ブロックパラメータ（BlockParam）はSourceGeneratorによって自動生成されます。詳細は「マスターデータシステムについて」セクションを参照してください。
+IMPORTANT:各種ブロックパラメータ（BlockParam）はSourceGeneratorによって自動生成されます。スキーマ編集は `/edit-schema` スキルを使用してください。
 IMPORTANT:デフォルト引数の使用禁止。引数の追加は必ずデフォルト値をつけず、呼び出し側を変更する
 
 YOU MUST: Prefab、シーン、ScriptableObject等、Unity独自のYamlを使用するUnity固有ファイルは直接編集すると重大な不整合が生じる恐れが高いため、直接編集しないでください。代わりに、ユーザーに編集するように指示してください。
