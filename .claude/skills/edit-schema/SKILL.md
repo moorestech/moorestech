@@ -93,4 +93,4 @@ implementationInterface:
 
 ## Reference
 
-See [yaml_spec.md](references/yaml_spec.md) for full YAML property reference.
+**MUST**: YAMLスキーマを編集する前に、必ず [yaml_spec.md](references/yaml_spec.md) を確認してください。利用可能なプロパティ、型、設定オプションの完全なリファレンスが記載されています。

@@ -67,7 +67,8 @@
       "mcp__kiri__files_search",
       "mcp__kiri__snippets_get",
       "Bash(dotnet build:*)",
-      "Skill(skill-creator)"
+      "Skill(skill-creator)",
+      "Skill(edit-schema)"
     ],
     "deny": []
   },
