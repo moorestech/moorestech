@@ -29,7 +29,7 @@ namespace Core.Master.Validator
 
             // 予約されている混ざった液体を追加
             // Add reserved mixed fluid
-            sortedFluidElements.Add(new FluidMasterElement("MixedFluid", mixedFluidGuid));
+            sortedFluidElements.Add(new FluidMasterElement(0, "MixedFluid", mixedFluidGuid));
 
             // FluidID 0は空の液体として予約しているので、1から始める
             // Fluid ID 0 is reserved for empty fluid, so start from 1
