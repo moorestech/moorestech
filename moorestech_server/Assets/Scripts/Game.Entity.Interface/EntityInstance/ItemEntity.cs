@@ -15,6 +15,7 @@ namespace Game.Entity.Interface.EntityInstance
         private ItemId _id;
         private int _count;
         private string _sourcePathId;
+        private string _goalPathId;
 
 
         public ItemEntity(EntityInstanceId instanceId, Vector3 position)
@@ -23,11 +24,12 @@ namespace Game.Entity.Interface.EntityInstance
             Position = position;
         }
 
-        public void SetItemData(ItemId id, int count, string sourcePathId)
+        public void SetItemData(ItemId id, int count, string sourcePathId, string goalPathId)
         {
             _id = id;
             _count = count;
             _sourcePathId = sourcePathId;
+            _goalPathId = goalPathId;
         }
 
         public void SetPosition(Vector3 position)
@@ -36,7 +38,7 @@ namespace Game.Entity.Interface.EntityInstance
         }
         public byte[] GetEntityData()
         {
-            var itemState = new ItemEntityStateMessagePack(_id, _count, _sourcePathId);
+            var itemState = new ItemEntityStateMessagePack(_id, _count, _sourcePathId, _goalPathId);
             return MessagePackSerializer.Serialize(itemState);
         }
     }

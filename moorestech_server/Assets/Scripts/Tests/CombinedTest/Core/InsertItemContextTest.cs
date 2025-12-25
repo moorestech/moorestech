@@ -4,6 +4,7 @@ using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Blocks.Chest;
+using Game.Block.Blocks.Connector;
 using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -171,11 +172,12 @@ namespace Tests.CombinedTest.Core
             var item = itemStackFactory.Create(new ItemId(1), 1);
             beltConveyorComponent.InsertItem(item, context);
 
-            // ベルトコンベアのアイテムにPathIdが設定されていることを確認
-            // Verify PathId is set on belt conveyor item
+            // ベルトコンベアのアイテムにStartConnectorが設定されていることを確認
+            // Verify StartConnector is set on belt conveyor item
             var beltItem = beltConveyorComponent.BeltConveyorItems[^1];
             Assert.IsNotNull(beltItem);
-            Assert.AreEqual("target-path-123", beltItem.SourcePathId);
+            Assert.IsNotNull(beltItem.StartConnector);
+            Assert.AreEqual("target-path-123", ((InventoryConnectOption)beltItem.StartConnector.ConnectOption).PathId);
         }
 
         /// <summary>

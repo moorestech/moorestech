@@ -2,12 +2,14 @@ using System.Collections.Generic;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.BeltConveyor;
+using Game.Block.Blocks.Connector;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.Entity.Interface;
 using Game.Entity.Interface.EntityInstance;
 using Game.World.Interface.DataStore;
+using Mooresmaster.Model.BlockConnectInfoModule;
 using UnityEngine;
 
 
@@ -105,12 +107,27 @@ namespace Server.Protocol.PacketResponse.Util
                 
                 var position = new Vector3(entityX, y, entityZ);
                 var itemEntity = (ItemEntity)entityFactory.CreateEntity(VanillaEntityType.VanillaItem, new EntityInstanceId(beltConveyorItem.ItemInstanceId.AsPrimitive()), position);
-                itemEntity.SetItemData(beltConveyorItem.ItemId, 1, beltConveyorItem.SourcePathId);
-                
+
+                // ConnectorからPathIdを直接取得
+                // Get PathId directly from Connector
+                var startPathId = GetPathIdFromConnector(beltConveyorItem.StartConnector);
+                var goalPathId = GetPathIdFromConnector(beltConveyorItem.GoalConnector);
+                itemEntity.SetItemData(beltConveyorItem.ItemId, 1, startPathId, goalPathId);
+
                 result.Add(itemEntity);
             }
             
             return result;
+        }
+
+        /// <summary>
+        /// BlockConnectInfoElementからPathIdを取得
+        /// Get PathId from BlockConnectInfoElement
+        /// </summary>
+        private static string GetPathIdFromConnector(BlockConnectInfoElement connector)
+        {
+            if (connector == null) return null;
+            return (connector.ConnectOption as InventoryConnectOption)?.PathId;
         }
     }
 }
