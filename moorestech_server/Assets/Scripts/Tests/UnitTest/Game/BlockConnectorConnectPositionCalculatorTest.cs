@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Component;
@@ -20,7 +21,7 @@ namespace Tests.UnitTest.Game
             
             var connectInfoItems = new List<BlockConnectInfoElement>
             {
-                new(0, "", new Vector3Int(1, 0, 0), new []{new Vector3Int(1,0,0)}, null),
+                new(0, "", Guid.NewGuid(), new Vector3Int(1, 0, 0), new []{new Vector3Int(1,0,0)}, null),
             };
             var connectionInfo = new BlockConnectInfo(connectInfoItems.ToArray());
             
@@ -44,7 +45,7 @@ namespace Tests.UnitTest.Game
             
             var connectInfoItems = new List<BlockConnectInfoElement>
             {
-                new(0, "", new Vector3Int(1, 0, 0), new []{new Vector3Int(1,0,0)}, null),
+                new(0, "", Guid.NewGuid(), new Vector3Int(1, 0, 0), new []{new Vector3Int(1,0,0)}, null),
             };
             var connectionInfo = new BlockConnectInfo(connectInfoItems.ToArray());
             
