@@ -1,6 +1,7 @@
 using Core.Item.Interface;
 using Core.Master;
 using Game.Context;
+using Mooresmaster.Model.BlockConnectInfoModule;
 using Newtonsoft.Json;
 
 namespace Game.Block.Blocks.BeltConveyor
@@ -10,29 +11,32 @@ namespace Game.Block.Blocks.BeltConveyor
         public double RemainingPercent { get; }
         public ItemId ItemId { get; }
         public ItemInstanceId ItemInstanceId { get; }
-        public string SourcePathId { get; }
+        public BlockConnectInfoElement StartConnector { get; }
+        public BlockConnectInfoElement GoalConnector { get; }
     }
-    
+
     public class VanillaBeltConveyorInventoryItem : IOnBeltConveyorItem
     {
         public double RemainingPercent { get; set; }
         public ItemId ItemId { get; }
         public ItemInstanceId ItemInstanceId { get; }
-        public string SourcePathId { get; }
+        public BlockConnectInfoElement StartConnector { get; }
+        public BlockConnectInfoElement GoalConnector { get; set; }
 
-        public VanillaBeltConveyorInventoryItem(ItemId itemId, ItemInstanceId itemInstanceId, string sourcePathId)
+        public VanillaBeltConveyorInventoryItem(ItemId itemId, ItemInstanceId itemInstanceId, BlockConnectInfoElement startConnector, BlockConnectInfoElement goalConnector)
         {
             ItemId = itemId;
             ItemInstanceId = itemInstanceId;
-            SourcePathId = sourcePathId;
+            StartConnector = startConnector;
+            GoalConnector = goalConnector;
             RemainingPercent = 1;
         }
-        
+
         public string GetSaveJsonString()
         {
             return JsonConvert.SerializeObject(new VanillaBeltConveyorInventoryItemJsonObject(this));
         }
-        
+
         public static VanillaBeltConveyorInventoryItem LoadItem(string jsonString)
         {
             if (jsonString == null) return null;
@@ -42,23 +46,22 @@ namespace Game.Block.Blocks.BeltConveyor
 
             var itemId = MasterHolder.ItemMaster.GetItemId(jsonData.ItemStack.ItemGuid);
             var remainingPercent = jsonData.RemainingPercent;
-            var sourcePathId = jsonData.SourcePathId;
             var itemInstanceId = ItemInstanceId.Create();
 
-            return new VanillaBeltConveyorInventoryItem(itemId, itemInstanceId, sourcePathId)
+            // セーブデータからはコネクター情報を復元できないためnull
+            // Cannot restore connector information from save data, so null
+            return new VanillaBeltConveyorInventoryItem(itemId, itemInstanceId, null, null)
             {
                 RemainingPercent = remainingPercent
             };
         }
     }
-    
+
     public class VanillaBeltConveyorInventoryItemJsonObject
     {
         [JsonProperty("itemStack")] public ItemStackSaveJsonObject ItemStack;
 
         [JsonProperty("remainingTime")] public double RemainingPercent;
-
-        [JsonProperty("sourcePathId")] public string SourcePathId;
 
         public VanillaBeltConveyorInventoryItemJsonObject(VanillaBeltConveyorInventoryItem vanillaBeltConveyorInventoryItem)
         {
@@ -66,14 +69,12 @@ namespace Game.Block.Blocks.BeltConveyor
             {
                 ItemStack = null;
                 RemainingPercent = 1;
-                SourcePathId = null;
                 return;
             }
 
             var item = ServerContext.ItemStackFactory.Create(vanillaBeltConveyorInventoryItem.ItemId, 1);
             ItemStack = new ItemStackSaveJsonObject(item);
             RemainingPercent = vanillaBeltConveyorInventoryItem.RemainingPercent;
-            SourcePathId = vanillaBeltConveyorInventoryItem.SourcePathId;
         }
     }
 }

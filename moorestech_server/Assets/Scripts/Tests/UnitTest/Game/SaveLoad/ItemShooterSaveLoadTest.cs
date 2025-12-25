@@ -38,9 +38,9 @@ namespace Tests.UnitTest.Game.SaveLoad
             var item1RemainingPercent = 0.5f;
             var item2RemainingPercent = 0.3f;
             var item3RemainingPercent = 0.0f;
-            var item0 = new ShooterInventoryItem(new ItemId(1), new ItemInstanceId(0), item1Speed, null) { RemainingPercent = item1RemainingPercent };
-            var item2 = new ShooterInventoryItem(new ItemId(2), new ItemInstanceId(0), item2Speed, null) { RemainingPercent = item2RemainingPercent };
-            var item3 = new ShooterInventoryItem(new ItemId(5), new ItemInstanceId(0), item3Speed, null) { RemainingPercent = item3RemainingPercent };
+            var item0 = new ShooterInventoryItem(new ItemId(1), new ItemInstanceId(0), item1Speed, null, null) { RemainingPercent = item1RemainingPercent };
+            var item2 = new ShooterInventoryItem(new ItemId(2), new ItemInstanceId(0), item2Speed, null, null) { RemainingPercent = item2RemainingPercent };
+            var item3 = new ShooterInventoryItem(new ItemId(5), new ItemInstanceId(0), item3Speed, null, null) { RemainingPercent = item3RemainingPercent };
             // SetSlotを利用して初期化 // Seed inventory via service API
             service.SetSlot(0, item0);
             service.SetSlot(2, item2);

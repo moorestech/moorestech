@@ -103,7 +103,7 @@ namespace Tests.UnitTest.Core.Block
             var shooterItem = shooterComponent.BeltConveyorItems[0] as ShooterInventoryItem;
             var snapshot = shooterItem == null
                 ? null
-                : new ShooterInventoryItem(shooterItem.ItemId, shooterItem.ItemInstanceId, shooterItem.CurrentSpeed, shooterItem.SourcePathId)
+                : new ShooterInventoryItem(shooterItem.ItemId, shooterItem.ItemInstanceId, shooterItem.CurrentSpeed, shooterItem.StartConnector, shooterItem.GoalConnector)
                 {
                     RemainingPercent = shooterItem.RemainingPercent
                 };

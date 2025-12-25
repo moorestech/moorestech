@@ -13,14 +13,16 @@ namespace Game.Entity.Interface
         [Key(1)] public int Count { get; set; }
         // TODO 本当にパスIDにするかは要検討
         [Key(2)] public string SourcePathId { get; set; }
+        [Key(3)] public string GoalPathId { get; set; }
 
         public ItemEntityStateMessagePack() { }
 
-        public ItemEntityStateMessagePack(ItemId itemId, int count, string sourcePathId)
+        public ItemEntityStateMessagePack(ItemId itemId, int count, string sourcePathId, string goalPathId)
         {
             ItemId = itemId.AsPrimitive();
             Count = count;
             SourcePathId = sourcePathId;
+            GoalPathId = goalPathId;
         }
     }
     
