@@ -193,6 +193,13 @@ namespace Tests.CombinedTest.Server
             Assert.IsNotNull(messagePack.GoalConnectorGuid, "GoalConnectorGuidはnullであるべきではない / GoalConnectorGuid should not be null");
             Assert.AreEqual(sourceGuid, messagePack.SourceConnectorGuid.Value, "SourceConnectorGuidが一致すべき / SourceConnectorGuid should match");
             Assert.AreEqual(goalGuid, messagePack.GoalConnectorGuid.Value, "GoalConnectorGuidが一致すべき / GoalConnectorGuid should match");
+            
+            // 進捗割合とブロック座標が送られることを検証
+            // Verify progress ratio and block position are sent
+            Assert.AreEqual(0.75f, messagePack.RemainingPercent, 0.0001f, "RemainingPercentが進捗割合として一致すべき / RemainingPercent should match progress ratio");
+            Assert.AreEqual(0, messagePack.BlockPosX, "BlockPosXが一致すべき / BlockPosX should match");
+            Assert.AreEqual(0, messagePack.BlockPosY, "BlockPosYが一致すべき / BlockPosY should match");
+            Assert.AreEqual(0, messagePack.BlockPosZ, "BlockPosZが一致すべき / BlockPosZ should match");
         }
 
         /// <summary>

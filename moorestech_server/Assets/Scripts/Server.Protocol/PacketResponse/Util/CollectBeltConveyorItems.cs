@@ -63,10 +63,11 @@ namespace Server.Protocol.PacketResponse.Util
                 if (beltConveyorItem == null) continue;
                 if (beltConveyorItem.ItemId == ItemMaster.EmptyItemId) continue;
                 
-                //残り時間をどこまで進んだかに変換するために 1- する
-                var percent = 1f - (float)beltConveyorItem.RemainingPercent;
+                // 残り割合を進捗割合に変換する
+                // Convert remaining ratio to progress ratio
+                var progressPercent = 1f - (float)beltConveyorItem.RemainingPercent;
                 
-                _itemInstanceIdToPercent[beltConveyorItem.ItemInstanceId] = percent;
+                _itemInstanceIdToPercent[beltConveyorItem.ItemInstanceId] = progressPercent;
                 
                 float entityX = pos.x;
                 float entityZ = pos.z;
@@ -74,18 +75,18 @@ namespace Server.Protocol.PacketResponse.Util
                 {
                     case BlockDirection.North:
                         entityX += 0.5f; //ベルトコンベアの基準座標は中心なので0.5を他してアイテムを中心に持ってくる
-                        entityZ += percent;
+                        entityZ += progressPercent;
                         break;
                     case BlockDirection.South:
                         entityX += 0.5f;
-                        entityZ += 1 - percent; //北とは逆向きなので1を引いて逆向きにする
+                        entityZ += 1 - progressPercent; //北とは逆向きなので1を引いて逆向きにする
                         break;
                     case BlockDirection.East:
-                        entityX += percent;
+                        entityX += progressPercent;
                         entityZ += 0.5f;
                         break;
                     case BlockDirection.West:
-                        entityX += 1 - percent;
+                        entityX += 1 - progressPercent;
                         entityZ += 0.5f;
                         break;
                 }
@@ -95,12 +96,12 @@ namespace Server.Protocol.PacketResponse.Util
                 
                 if (beltConveyor.SlopeType == BeltConveyorSlopeType.Up)
                 {
-                    y += percent;
+                    y += progressPercent;
                     y += 0.1f;
                 }
                 else if (beltConveyor.SlopeType == BeltConveyorSlopeType.Down)
                 {
-                    y -= percent;
+                    y -= progressPercent;
                     y += 0.1f;
                     y++;
                 }
@@ -112,7 +113,7 @@ namespace Server.Protocol.PacketResponse.Util
                 // Get Guid directly from Connector
                 var sourceConnectorGuid = GetConnectorGuidFromConnector(beltConveyorItem.StartConnector);
                 var goalConnectorGuid = GetConnectorGuidFromConnector(beltConveyorItem.GoalConnector);
-                itemEntity.SetItemData(beltConveyorItem.ItemId, 1, sourceConnectorGuid, goalConnectorGuid);
+                itemEntity.SetItemData(beltConveyorItem.ItemId, 1, sourceConnectorGuid, goalConnectorGuid, progressPercent, pos);
 
                 result.Add(itemEntity);
             }

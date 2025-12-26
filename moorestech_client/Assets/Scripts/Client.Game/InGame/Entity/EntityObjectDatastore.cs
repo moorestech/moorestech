@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Client.Game.InGame.Entity.Factory;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
+using Game.Entity.Interface;
+using MessagePack;
 using UnityEngine;
 
 namespace Client.Game.InGame.Entity
@@ -45,8 +47,16 @@ namespace Client.Game.InGame.Entity
                 // Update existing entity
                 if (_entities.ContainsKey(entity.InstanceId))
                 {
-                    _entities[entity.InstanceId].objectEntity.SetPositionWithLerp(entity.Position);
-                    _entities[entity.InstanceId] = (DateTime.Now, _entities[entity.InstanceId].objectEntity);
+                    var objectEntity = _entities[entity.InstanceId].objectEntity;
+                    if (entity.Type == VanillaEntityType.VanillaItem)
+                    {
+                        UpdateBeltConveyorItemEntity(entity, objectEntity, true);
+                        _entities[entity.InstanceId] = (DateTime.Now, objectEntity);
+                        continue;
+                    }
+                    
+                    objectEntity.SetPositionWithLerp(entity.Position);
+                    _entities[entity.InstanceId] = (DateTime.Now, objectEntity);
                     
                     continue;
                 }
@@ -62,6 +72,17 @@ namespace Client.Game.InGame.Entity
                     return entityObject;
                 });
             }
+        }
+        
+        private static void UpdateBeltConveyorItemEntity(EntityResponse entity, IEntityObject entityObject, bool useLerp)
+        {
+            // EntityDataからベルトアイテムの位置情報を復元する
+            // Restore belt item position from EntityData
+            if (entityObject is not IBeltConveyorItemEntityObject beltEntity) return;
+            if (entity.EntityData == null || entity.EntityData.Length == 0) return;
+            
+            var state = MessagePackSerializer.Deserialize<BeltConveyorItemEntityStateMessagePack>(entity.EntityData);
+            beltEntity.SetBeltConveyorItemPosition(state, useLerp);
         }
     }
 }
