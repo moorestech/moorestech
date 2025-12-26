@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Item.Interface;
@@ -14,6 +15,7 @@ namespace Game.Block.Blocks.BeltConveyor
         IItemStack InsertItem(IItemStack itemStack, BlockConnectInfoElement goalConnector);
         BlockConnectInfoElement GetFirstGoalConnector();
         bool IsValidGoalConnector(BlockConnectInfoElement goalConnector);
+        BlockConnectInfoElement GetGoalConnector(Guid connectorGuid);
         int ConnectedCount { get; }
     }
     
@@ -95,6 +97,19 @@ namespace Game.Block.Blocks.BeltConveyor
                 if (target.Value.SelfConnector == goalConnector) return true;
             }
             return false;
+        }
+
+        /// <summary>
+        /// GuidからGoalConnectorを取得
+        /// Get GoalConnector by Guid
+        /// </summary>
+        public BlockConnectInfoElement GetGoalConnector(Guid connectorGuid)
+        {
+            foreach (var target in _blockConnectorComponent.ConnectedTargets)
+            {
+                if (target.Value.SelfConnector?.ConnectorGuid == connectorGuid) return target.Value.SelfConnector;
+            }
+            return null;
         }
 
         /// <summary>
