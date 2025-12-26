@@ -190,11 +190,21 @@ namespace Game.Block.Blocks.BeltConveyor
                 // Keep current setting if all connectors are gone
                 if (_blockInventoryInserter.ConnectedCount == 0) return;
 
-                // 現在のGoalConnectorが無効なら、有効なコネクターに変更
-                // Change to valid connector if current GoalConnector is invalid
+                // 現在のGoalConnectorが無効なら、Guid解決を試してからフォールバック
+                // Resolve by Guid before fallback when current GoalConnector is invalid
                 if (!_blockInventoryInserter.IsValidGoalConnector(targetItem.GoalConnector))
                 {
-                    targetItem.GoalConnector = _blockInventoryInserter.GetFirstGoalConnector();
+                    var goalConnectorGuid = targetItem.GetGoalConnectorGuid();
+                    if (goalConnectorGuid != null)
+                    {
+                        var resolvedConnector = _blockInventoryInserter.GetGoalConnector(goalConnectorGuid.Value);
+                        if (resolvedConnector != null)
+                        {
+                            targetItem.SetGoalConnector(resolvedConnector);
+                            return;
+                        }
+                    }
+                    targetItem.SetGoalConnector(_blockInventoryInserter.GetFirstGoalConnector());
                 }
             }
 

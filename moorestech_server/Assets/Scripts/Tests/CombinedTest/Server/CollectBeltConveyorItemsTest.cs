@@ -10,7 +10,9 @@ using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.Entity.Interface;
 using Game.World.Interface.DataStore;
+using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Mooresmaster.Model.BlockConnectInfoModule;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol.PacketResponse.Util;
@@ -154,6 +156,32 @@ namespace Tests.CombinedTest.Server
             //InstanceIdが変化していないことを検証
             Assert.AreEqual(ItemInstanceId, inventory2Items[3].ItemInstanceId.AsPrimitive());
         }
+
+        /// <summary>
+        /// ConnectorGuidがエンティティデータに含まれるかテスト
+        /// Test that ConnectorGuid is included in entity data
+        /// </summary>
+        [Test]
+        public void CollectItemConnectorGuidTest()
+        {
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var worldDataStore = ServerContext.WorldBlockDatastore;
+            var entityFactory = serviceProvider.GetService<IEntityFactory>();
+
+            // ConnectorGuidを持つアイテムを配置する
+            // Place item with ConnectorGuid
+            var sourceGuid = Guid.NewGuid();
+            var goalGuid = Guid.NewGuid();
+            CreateOneItemInsertedItemWithConnector(new Vector3Int(0, 0, 0), BlockDirection.North, worldDataStore, sourceGuid, goalGuid);
+
+            // エンティティデータを取得してGuidを検証する
+            // Retrieve entity data and verify Guid
+            var itemEntity = CollectBeltConveyorItems.CollectItem(entityFactory)[0];
+            var state = MessagePackSerializer.Deserialize<BeltConveyorItemEntityStateMessagePack>(itemEntity.GetEntityData());
+
+            Assert.AreEqual(sourceGuid, state.SourceConnectorGuid);
+            Assert.AreEqual(goalGuid, state.GoalConnectorGuid);
+        }
         
         
         private IBlock CreateOneItemInsertedItem(Vector3Int pos, BlockDirection blockDirection, IWorldBlockDatastore datastore)
@@ -173,6 +201,30 @@ namespace Tests.CombinedTest.Server
             inventoryItems[0].RemainingPercent = 0.25f;
             
             return beltConveyor;
+        }
+
+        private IBlock CreateOneItemInsertedItemWithConnector(Vector3Int pos, BlockDirection blockDirection, IWorldBlockDatastore datastore, Guid sourceGuid, Guid goalGuid)
+        {
+            datastore.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, pos, blockDirection, Array.Empty<BlockCreateParam>(), out var beltConveyor);
+            var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
+
+            //リフレクションで_inventoryItemsを取得
+            var inventoryItemsField = typeof(VanillaBeltConveyorComponent).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
+            var inventoryItems = (VanillaBeltConveyorInventoryItem[])inventoryItemsField.GetValue(beltConveyorComponent);
+
+            // Guid付きのコネクターを作成してアイテムに設定する
+            // Create connectors with Guid and set to item
+            var sourceConnector = CreateInventoryConnector(0, "source-path", sourceGuid);
+            var goalConnector = CreateInventoryConnector(1, "goal-path", goalGuid);
+            inventoryItems[0] = new VanillaBeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(ItemInstanceId), sourceConnector, goalConnector);
+            inventoryItems[0].RemainingPercent = 0.25f;
+
+            return beltConveyor;
+        }
+
+        private static BlockConnectInfoElement CreateInventoryConnector(int index, string pathId, Guid connectorGuid)
+        {
+            return new BlockConnectInfoElement(index, "Inventory", connectorGuid, Vector3Int.zero, Array.Empty<Vector3Int>(), new InventoryConnectOption(pathId));
         }
     }
 }
