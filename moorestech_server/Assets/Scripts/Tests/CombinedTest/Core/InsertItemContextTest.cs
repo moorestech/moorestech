@@ -79,11 +79,13 @@ namespace Tests.CombinedTest.Core
             // SourceConnector is correctly set
             Assert.IsNotNull(context.SourceConnector);
             Assert.AreEqual("pathId-1", ((InventoryConnectOption)context.SourceConnector.ConnectOption).PathId);
+            Assert.AreEqual(selfConnector.ConnectorGuid, context.SourceConnector.ConnectorGuid);
 
             // TargetConnectorが正しく設定されていること
             // TargetConnector is correctly set
             Assert.IsNotNull(context.TargetConnector);
             Assert.AreEqual("pathId-2", ((InventoryConnectOption)context.TargetConnector.ConnectOption).PathId);
+            Assert.AreEqual(targetConnector.ConnectorGuid, context.TargetConnector.ConnectorGuid);
         }
 
         /// <summary>
@@ -140,11 +142,13 @@ namespace Tests.CombinedTest.Core
             // SourceConnector is correctly set
             Assert.IsNotNull(context.SourceConnector);
             Assert.AreEqual("chest-output", ((InventoryConnectOption)context.SourceConnector.ConnectOption).PathId);
+            Assert.AreEqual(selfConnector.ConnectorGuid, context.SourceConnector.ConnectorGuid);
 
             // TargetConnectorが正しく設定されていること
             // TargetConnector is correctly set
             Assert.IsNotNull(context.TargetConnector);
             Assert.AreEqual("target-input", ((InventoryConnectOption)context.TargetConnector.ConnectOption).PathId);
+            Assert.AreEqual(targetConnector.ConnectorGuid, context.TargetConnector.ConnectorGuid);
         }
 
         /// <summary>
@@ -178,6 +182,7 @@ namespace Tests.CombinedTest.Core
             Assert.IsNotNull(beltItem);
             Assert.IsNotNull(beltItem.StartConnector);
             Assert.AreEqual("target-path-123", ((InventoryConnectOption)beltItem.StartConnector.ConnectOption).PathId);
+            Assert.AreEqual(targetConnector.ConnectorGuid, beltItem.StartConnector.ConnectorGuid);
         }
 
         /// <summary>
@@ -252,6 +257,8 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(beltBlockInstanceId, targetContext.SourceBlockInstanceId);
             Assert.AreEqual("belt-output", ((InventoryConnectOption)targetContext.SourceConnector.ConnectOption).PathId);
             Assert.AreEqual("target-input", ((InventoryConnectOption)targetContext.TargetConnector.ConnectOption).PathId);
+            Assert.AreEqual(beltOutputConnector.ConnectorGuid, targetContext.SourceConnector.ConnectorGuid);
+            Assert.AreEqual(targetInputConnector.ConnectorGuid, targetContext.TargetConnector.ConnectorGuid);
         }
 
         private static BlockConnectInfoElement CreateInventoryConnector(int index, string pathId)

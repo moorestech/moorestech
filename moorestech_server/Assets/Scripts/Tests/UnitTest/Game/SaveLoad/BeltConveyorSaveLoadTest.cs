@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Core.Item.Interface;
@@ -8,9 +9,11 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
+using Mooresmaster.Model.BlockConnectInfoModule;
 using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Server.Boot;
+using Tests.Module;
 using Tests.Module.TestMod;
 using UnityEngine;
 
@@ -33,17 +36,20 @@ namespace Tests.UnitTest.Game.SaveLoad
             var inventoryItems = (VanillaBeltConveyorInventoryItem[])inventoryItemsField.GetValue(belt);
             
             //アイテムを設定
-            inventoryItems[0] = new VanillaBeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(0), null, null)
+            var item0GoalGuid = Guid.NewGuid();
+            var item2GoalGuid = Guid.NewGuid();
+            var item3GoalGuid = Guid.NewGuid();
+            inventoryItems[0] = new VanillaBeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(0), CreateInventoryConnector(0, "input-0", Guid.NewGuid()), CreateInventoryConnector(1, "goal-0", item0GoalGuid))
             {
-                RemainingPercent = 0.3f,
+                RemainingPercent = 0.8f,
             };
-            inventoryItems[2] = new VanillaBeltConveyorInventoryItem(new ItemId(2), new ItemInstanceId(0), null, null)
+            inventoryItems[2] = new VanillaBeltConveyorInventoryItem(new ItemId(2), new ItemInstanceId(0), CreateInventoryConnector(2, "input-2", Guid.NewGuid()), CreateInventoryConnector(3, "goal-2", item2GoalGuid))
             {
-                RemainingPercent = 0.5f,
+                RemainingPercent = 0.85f,
             };
-            inventoryItems[3] = new VanillaBeltConveyorInventoryItem(new ItemId(5), new ItemInstanceId(0), null, null)
+            inventoryItems[3] = new VanillaBeltConveyorInventoryItem(new ItemId(5), new ItemInstanceId(0), CreateInventoryConnector(4, "input-3", Guid.NewGuid()), CreateInventoryConnector(5, "goal-3", item3GoalGuid))
             {
-                RemainingPercent = 1f,
+                RemainingPercent = 0.9f,
             };
 
 
@@ -56,6 +62,14 @@ namespace Tests.UnitTest.Game.SaveLoad
             //セーブデータをロード
             var blockConnector = new BlockConnectorComponent<IBlockInventory>(null, null, beltPosInfo);
             var beltConveyorConnector = new VanillaBeltConveyorBlockInventoryInserter(new BlockInstanceId(1), blockConnector);
+            
+            // Guid一致の接続先を用意
+            // Prepare targets matching Guid
+            var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)blockConnector.ConnectedTargets;
+            connectInventory.Clear();
+            connectInventory.Add(new DummyBlockInventory(), new ConnectedInfo(CreateInventoryConnector(10, "goal-0", item0GoalGuid), CreateInventoryConnector(11, "target-0", Guid.NewGuid()), null));
+            connectInventory.Add(new DummyBlockInventory(), new ConnectedInfo(CreateInventoryConnector(12, "goal-2", item2GoalGuid), CreateInventoryConnector(13, "target-2", Guid.NewGuid()), null));
+            connectInventory.Add(new DummyBlockInventory(), new ConnectedInfo(CreateInventoryConnector(14, "goal-3", item3GoalGuid), CreateInventoryConnector(15, "target-3", Guid.NewGuid()), null));
 
             var newBelt = new VanillaBeltConveyorComponent(states, 4, 4000, beltConveyorConnector, BeltConveyorSlopeType.Straight);
             var newInventoryItems = (VanillaBeltConveyorInventoryItem[])inventoryItemsField.GetValue(newBelt);
@@ -63,11 +77,21 @@ namespace Tests.UnitTest.Game.SaveLoad
             //アイテムが一致するかチェック
             Assert.AreEqual(inventoryItems.Length, newInventoryItems.Length);
             Assert.AreEqual(1, newInventoryItems[0].ItemId.AsPrimitive());
-            Assert.AreEqual(0.3f, newInventoryItems[0].RemainingPercent);
+            Assert.AreEqual(0.8f, newInventoryItems[0].RemainingPercent);
             Assert.AreEqual(2, newInventoryItems[2].ItemId.AsPrimitive());
-            Assert.AreEqual(0.5f, newInventoryItems[2].RemainingPercent);
+            Assert.AreEqual(0.85f, newInventoryItems[2].RemainingPercent);
             Assert.AreEqual(5, newInventoryItems[3].ItemId.AsPrimitive());
-            Assert.AreEqual(1f, newInventoryItems[3].RemainingPercent);
+            Assert.AreEqual(0.9f, newInventoryItems[3].RemainingPercent);
+
+            // Guidが復元され、接続先が解決されるかチェック
+            // Verify Guid is restored and target is resolved
+            newBelt.Update();
+            Assert.AreEqual(item0GoalGuid, newInventoryItems[0].GetGoalConnectorGuid());
+            Assert.AreEqual(item2GoalGuid, newInventoryItems[2].GetGoalConnectorGuid());
+            Assert.AreEqual(item3GoalGuid, newInventoryItems[3].GetGoalConnectorGuid());
+            Assert.AreEqual(item0GoalGuid, newInventoryItems[0].GoalConnector.ConnectorGuid);
+            Assert.AreEqual(item2GoalGuid, newInventoryItems[2].GoalConnector.ConnectorGuid);
+            Assert.AreEqual(item3GoalGuid, newInventoryItems[3].GoalConnector.ConnectorGuid);
         }
 
         [Test]
@@ -85,17 +109,20 @@ namespace Tests.UnitTest.Game.SaveLoad
             var inventoryItems = (VanillaBeltConveyorInventoryItem[])inventoryItemsField.GetValue(belt);
 
             //アイテムを設定
-            inventoryItems[0] = new VanillaBeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(0), null, null)
+            var item0GoalGuid = Guid.NewGuid();
+            var item2GoalGuid = Guid.NewGuid();
+            var item3GoalGuid = Guid.NewGuid();
+            inventoryItems[0] = new VanillaBeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(0), CreateInventoryConnector(0, "input-0", Guid.NewGuid()), CreateInventoryConnector(1, "goal-0", item0GoalGuid))
             {
-                RemainingPercent = 0.3f,
+                RemainingPercent = 0.8f,
             };
-            inventoryItems[2] = new VanillaBeltConveyorInventoryItem(new ItemId(2), new ItemInstanceId(0), null, null)
+            inventoryItems[2] = new VanillaBeltConveyorInventoryItem(new ItemId(2), new ItemInstanceId(0), CreateInventoryConnector(2, "input-2", Guid.NewGuid()), CreateInventoryConnector(3, "goal-2", item2GoalGuid))
             {
-                RemainingPercent = 0.5f,
+                RemainingPercent = 0.85f,
             };
-            inventoryItems[3] = new VanillaBeltConveyorInventoryItem(new ItemId(5), new ItemInstanceId(0), null, null)
+            inventoryItems[3] = new VanillaBeltConveyorInventoryItem(new ItemId(5), new ItemInstanceId(0), CreateInventoryConnector(4, "input-3", Guid.NewGuid()), CreateInventoryConnector(5, "goal-3", item3GoalGuid))
             {
-                RemainingPercent = 1f,
+                RemainingPercent = 0.9f,
             };
             
             
@@ -108,6 +135,14 @@ namespace Tests.UnitTest.Game.SaveLoad
             //セーブデータをロード
             var blockConnector = new BlockConnectorComponent<IBlockInventory>(null, null, beltPosInfo);
             var beltConveyorConnector = new VanillaBeltConveyorBlockInventoryInserter(new BlockInstanceId(1), blockConnector);
+            
+            // Guid一致の接続先を用意
+            // Prepare targets matching Guid
+            var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)blockConnector.ConnectedTargets;
+            connectInventory.Clear();
+            connectInventory.Add(new DummyBlockInventory(), new ConnectedInfo(CreateInventoryConnector(10, "goal-0", item0GoalGuid), CreateInventoryConnector(11, "target-0", Guid.NewGuid()), null));
+            connectInventory.Add(new DummyBlockInventory(), new ConnectedInfo(CreateInventoryConnector(12, "goal-2", item2GoalGuid), CreateInventoryConnector(13, "target-2", Guid.NewGuid()), null));
+            connectInventory.Add(new DummyBlockInventory(), new ConnectedInfo(CreateInventoryConnector(14, "goal-3", item3GoalGuid), CreateInventoryConnector(15, "target-3", Guid.NewGuid()), null));
 
             var newBelt = new VanillaBeltConveyorComponent(states, 4, 4000, beltConveyorConnector, BeltConveyorSlopeType.Straight);
             var newInventoryItems = (VanillaBeltConveyorInventoryItem[])inventoryItemsField.GetValue(newBelt);
@@ -115,11 +150,26 @@ namespace Tests.UnitTest.Game.SaveLoad
             //アイテムが一致するかチェック
             Assert.AreEqual(inventoryItems.Length, newInventoryItems.Length);
             Assert.AreEqual(1, newInventoryItems[0].ItemId.AsPrimitive());
-            Assert.AreEqual(0.3f, newInventoryItems[0].RemainingPercent);
+            Assert.AreEqual(0.8f, newInventoryItems[0].RemainingPercent);
             Assert.AreEqual(2, newInventoryItems[2].ItemId.AsPrimitive());
-            Assert.AreEqual(0.5f, newInventoryItems[2].RemainingPercent);
+            Assert.AreEqual(0.85f, newInventoryItems[2].RemainingPercent);
             Assert.AreEqual(5, newInventoryItems[3].ItemId.AsPrimitive());
-            Assert.AreEqual(1f, newInventoryItems[3].RemainingPercent);
+            Assert.AreEqual(0.9f, newInventoryItems[3].RemainingPercent);
+
+            // Guidが復元され、接続先が解決されるかチェック
+            // Verify Guid is restored and target is resolved
+            newBelt.Update();
+            Assert.AreEqual(item0GoalGuid, newInventoryItems[0].GetGoalConnectorGuid());
+            Assert.AreEqual(item2GoalGuid, newInventoryItems[2].GetGoalConnectorGuid());
+            Assert.AreEqual(item3GoalGuid, newInventoryItems[3].GetGoalConnectorGuid());
+            Assert.AreEqual(item0GoalGuid, newInventoryItems[0].GoalConnector.ConnectorGuid);
+            Assert.AreEqual(item2GoalGuid, newInventoryItems[2].GoalConnector.ConnectorGuid);
+            Assert.AreEqual(item3GoalGuid, newInventoryItems[3].GoalConnector.ConnectorGuid);
+        }
+
+        private static BlockConnectInfoElement CreateInventoryConnector(int index, string pathId, Guid connectorGuid)
+        {
+            return new BlockConnectInfoElement(index, "Inventory", connectorGuid, Vector3Int.zero, Array.Empty<Vector3Int>(), new InventoryConnectOption(pathId));
         }
     }
 }
