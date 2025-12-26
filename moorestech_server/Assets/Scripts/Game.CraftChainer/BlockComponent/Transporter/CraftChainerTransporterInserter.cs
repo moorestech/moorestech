@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Core.Item.Interface;
 using Game.Block.Blocks.BeltConveyor;
@@ -57,6 +58,19 @@ namespace Game.CraftChainer.BlockComponent
                 if (target.Value.SelfConnector == goalConnector) return true;
             }
             return false;
+        }
+
+        /// <summary>
+        /// GuidからGoalConnectorを取得
+        /// Get GoalConnector by Guid
+        /// </summary>
+        public BlockConnectInfoElement GetGoalConnector(Guid connectorGuid)
+        {
+            foreach (var target in _blockConnectorComponent.ConnectedTargets)
+            {
+                if (target.Value.SelfConnector?.ConnectorGuid == connectorGuid) return target.Value.SelfConnector;
+            }
+            return null;
         }
 
         public int ConnectedCount => _blockConnectorComponent.ConnectedTargets.Count;
