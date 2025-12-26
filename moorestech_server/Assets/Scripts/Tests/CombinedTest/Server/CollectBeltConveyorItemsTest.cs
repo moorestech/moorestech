@@ -158,32 +158,73 @@ namespace Tests.CombinedTest.Server
         }
 
         /// <summary>
-        /// ConnectorGuidがエンティティデータに含まれるかテスト
-        /// Test that ConnectorGuid is included in entity data
+        /// ベルト上アイテムのStartConnector/GoalConnectorがエンティティデータにConnectorGuidとして含まれることをテスト
+        /// Test that StartConnector/GoalConnector of belt item are included as ConnectorGuid in entity data
         /// </summary>
         [Test]
-        public void CollectItemConnectorGuidTest()
+        public void ConnectorGuidInEntityDataTest()
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldDataStore = ServerContext.WorldBlockDatastore;
             var entityFactory = serviceProvider.GetService<IEntityFactory>();
 
-            // ConnectorGuidを持つアイテムを配置する
-            // Place item with ConnectorGuid
+            // 固定GuidでConnectorを作成
+            // Create connectors with fixed Guids
             var sourceGuid = Guid.NewGuid();
             var goalGuid = Guid.NewGuid();
-            CreateOneItemInsertedItemWithConnector(new Vector3Int(0, 0, 0), BlockDirection.North, worldDataStore, sourceGuid, goalGuid);
+            var sourceConnector = new BlockConnectInfoElement(0, "Inventory", sourceGuid, Vector3Int.zero, Array.Empty<Vector3Int>(), new InventoryConnectOption("source-path"));
+            var goalConnector = new BlockConnectInfoElement(1, "Inventory", goalGuid, Vector3Int.zero, Array.Empty<Vector3Int>(), new InventoryConnectOption("goal-path"));
 
-            // エンティティデータを取得してGuidを検証する
-            // Retrieve entity data and verify Guid
-            var itemEntity = CollectBeltConveyorItems.CollectItem(entityFactory)[0];
-            var state = MessagePackSerializer.Deserialize<BeltConveyorItemEntityStateMessagePack>(itemEntity.GetEntityData());
+            // ベルトコンベアを作成してアイテムを設定
+            // Create belt conveyor and set item
+            var beltConveyor = CreateOneItemInsertedItemWithConnectors(new Vector3Int(0, 0, 0), BlockDirection.North, worldDataStore, sourceConnector, goalConnector);
 
-            Assert.AreEqual(sourceGuid, state.SourceConnectorGuid);
-            Assert.AreEqual(goalGuid, state.GoalConnectorGuid);
+            // エンティティを収集
+            // Collect entities
+            var entities = CollectBeltConveyorItems.CollectItem(entityFactory);
+            Assert.AreEqual(1, entities.Count);
+
+            // エンティティデータをデシリアライズしてConnectorGuidを検証
+            // Deserialize entity data and verify ConnectorGuid
+            var entityData = entities[0].GetEntityData();
+            var messagePack = MessagePackSerializer.Deserialize<BeltConveyorItemEntityStateMessagePack>(entityData);
+
+            Assert.IsNotNull(messagePack.SourceConnectorGuid, "SourceConnectorGuidはnullであるべきではない / SourceConnectorGuid should not be null");
+            Assert.IsNotNull(messagePack.GoalConnectorGuid, "GoalConnectorGuidはnullであるべきではない / GoalConnectorGuid should not be null");
+            Assert.AreEqual(sourceGuid, messagePack.SourceConnectorGuid.Value, "SourceConnectorGuidが一致すべき / SourceConnectorGuid should match");
+            Assert.AreEqual(goalGuid, messagePack.GoalConnectorGuid.Value, "GoalConnectorGuidが一致すべき / GoalConnectorGuid should match");
         }
-        
-        
+
+        /// <summary>
+        /// StartConnector/GoalConnectorがnullの場合、ConnectorGuidもnullになることをテスト
+        /// Test that when StartConnector/GoalConnector are null, ConnectorGuid is also null
+        /// </summary>
+        [Test]
+        public void NullConnectorGuidInEntityDataTest()
+        {
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var worldDataStore = ServerContext.WorldBlockDatastore;
+            var entityFactory = serviceProvider.GetService<IEntityFactory>();
+
+            // コネクターなしでベルトコンベアを作成
+            // Create belt conveyor without connectors
+            CreateOneItemInsertedItem(new Vector3Int(0, 0, 0), BlockDirection.North, worldDataStore);
+
+            // エンティティを収集
+            // Collect entities
+            var entities = CollectBeltConveyorItems.CollectItem(entityFactory);
+            Assert.AreEqual(1, entities.Count);
+
+            // エンティティデータをデシリアライズしてConnectorGuidがnullであることを検証
+            // Deserialize entity data and verify ConnectorGuid is null
+            var entityData = entities[0].GetEntityData();
+            var messagePack = MessagePackSerializer.Deserialize<BeltConveyorItemEntityStateMessagePack>(entityData);
+
+            Assert.IsNull(messagePack.SourceConnectorGuid, "SourceConnectorGuidはnullであるべき / SourceConnectorGuid should be null");
+            Assert.IsNull(messagePack.GoalConnectorGuid, "GoalConnectorGuidはnullであるべき / GoalConnectorGuid should be null");
+        }
+
+
         private IBlock CreateOneItemInsertedItem(Vector3Int pos, BlockDirection blockDirection, IWorldBlockDatastore datastore)
         {
             datastore.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, pos, blockDirection, Array.Empty<BlockCreateParam>(), out var beltConveyor);
@@ -203,28 +244,26 @@ namespace Tests.CombinedTest.Server
             return beltConveyor;
         }
 
-        private IBlock CreateOneItemInsertedItemWithConnector(Vector3Int pos, BlockDirection blockDirection, IWorldBlockDatastore datastore, Guid sourceGuid, Guid goalGuid)
+        private IBlock CreateOneItemInsertedItemWithConnectors(Vector3Int pos, BlockDirection blockDirection, IWorldBlockDatastore datastore, BlockConnectInfoElement startConnector, BlockConnectInfoElement goalConnector)
         {
             datastore.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, pos, blockDirection, Array.Empty<BlockCreateParam>(), out var beltConveyor);
             var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
 
-            //リフレクションで_inventoryItemsを取得
+            // リフレクションで_inventoryItemsを取得
+            // Get _inventoryItems via reflection
             var inventoryItemsField = typeof(VanillaBeltConveyorComponent).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
             var inventoryItems = (VanillaBeltConveyorInventoryItem[])inventoryItemsField.GetValue(beltConveyorComponent);
 
-            // Guid付きのコネクターを作成してアイテムに設定する
-            // Create connectors with Guid and set to item
-            var sourceConnector = CreateInventoryConnector(0, "source-path", sourceGuid);
-            var goalConnector = CreateInventoryConnector(1, "goal-path", goalGuid);
-            inventoryItems[0] = new VanillaBeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(ItemInstanceId), sourceConnector, goalConnector);
+            // コネクター付きでアイテムを設定
+            // Set item with connectors
+            inventoryItems[0] = new VanillaBeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(ItemInstanceId), startConnector, goalConnector);
+            inventoryItems[1] = null;
+            inventoryItems[2] = null;
+            inventoryItems[3] = null;
+
             inventoryItems[0].RemainingPercent = 0.25f;
 
             return beltConveyor;
-        }
-
-        private static BlockConnectInfoElement CreateInventoryConnector(int index, string pathId, Guid connectorGuid)
-        {
-            return new BlockConnectInfoElement(index, "Inventory", connectorGuid, Vector3Int.zero, Array.Empty<Vector3Int>(), new InventoryConnectOption(pathId));
         }
     }
 }
