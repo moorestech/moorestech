@@ -192,20 +192,19 @@ namespace Game.Block.Blocks.BeltConveyor
 
                 // 現在のGoalConnectorが無効なら、Guid解決を試してからフォールバック
                 // Resolve by Guid before fallback when current GoalConnector is invalid
-                if (!_blockInventoryInserter.IsValidGoalConnector(targetItem.GoalConnector))
+                if (_blockInventoryInserter.IsValidGoalConnector(targetItem.GoalConnector)) return;
+                
+                var goalConnectorGuid = targetItem.GetGoalConnectorGuid();
+                if (goalConnectorGuid != null)
                 {
-                    var goalConnectorGuid = targetItem.GetGoalConnectorGuid();
-                    if (goalConnectorGuid != null)
+                    var resolvedConnector = _blockInventoryInserter.GetGoalConnector(goalConnectorGuid.Value);
+                    if (resolvedConnector != null)
                     {
-                        var resolvedConnector = _blockInventoryInserter.GetGoalConnector(goalConnectorGuid.Value);
-                        if (resolvedConnector != null)
-                        {
-                            targetItem.SetGoalConnector(resolvedConnector);
-                            return;
-                        }
+                        targetItem.SetGoalConnector(resolvedConnector);
+                        return;
                     }
-                    targetItem.SetGoalConnector(_blockInventoryInserter.GetFirstGoalConnector());
                 }
+                targetItem.SetGoalConnector(_blockInventoryInserter.GetFirstGoalConnector());
             }
 
             #endregion
