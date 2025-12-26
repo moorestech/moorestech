@@ -84,6 +84,11 @@ namespace Tests.CombinedTest.Core
             // TargetConnector is correctly set
             Assert.IsNotNull(context.TargetConnector);
             Assert.AreEqual("pathId-2", ((InventoryConnectOption)context.TargetConnector.ConnectOption).PathId);
+
+            // ConnectorGuidが一致すること（同一参照からのGuid）
+            // ConnectorGuid should match (Guid from same reference)
+            Assert.AreEqual(selfConnector.ConnectorGuid, context.SourceConnector.ConnectorGuid, "SourceConnector.ConnectorGuidが一致すべき / SourceConnector.ConnectorGuid should match");
+            Assert.AreEqual(targetConnector.ConnectorGuid, context.TargetConnector.ConnectorGuid, "TargetConnector.ConnectorGuidが一致すべき / TargetConnector.ConnectorGuid should match");
         }
 
         /// <summary>
@@ -145,6 +150,11 @@ namespace Tests.CombinedTest.Core
             // TargetConnector is correctly set
             Assert.IsNotNull(context.TargetConnector);
             Assert.AreEqual("target-input", ((InventoryConnectOption)context.TargetConnector.ConnectOption).PathId);
+
+            // ConnectorGuidが一致すること
+            // ConnectorGuid should match
+            Assert.AreEqual(selfConnector.ConnectorGuid, context.SourceConnector.ConnectorGuid, "SourceConnector.ConnectorGuidが一致すべき / SourceConnector.ConnectorGuid should match");
+            Assert.AreEqual(targetConnector.ConnectorGuid, context.TargetConnector.ConnectorGuid, "TargetConnector.ConnectorGuidが一致すべき / TargetConnector.ConnectorGuid should match");
         }
 
         /// <summary>
@@ -178,6 +188,10 @@ namespace Tests.CombinedTest.Core
             Assert.IsNotNull(beltItem);
             Assert.IsNotNull(beltItem.StartConnector);
             Assert.AreEqual("target-path-123", ((InventoryConnectOption)beltItem.StartConnector.ConnectOption).PathId);
+
+            // ConnectorGuidも正しく設定されていることを確認
+            // Verify ConnectorGuid is also correctly set
+            Assert.AreEqual(targetConnector.ConnectorGuid, beltItem.StartConnector.ConnectorGuid, "StartConnector.ConnectorGuidが一致すべき / StartConnector.ConnectorGuid should match");
         }
 
         /// <summary>

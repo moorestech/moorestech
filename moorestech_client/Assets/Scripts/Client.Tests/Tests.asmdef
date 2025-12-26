@@ -11,14 +11,16 @@
         "Server.Protocol",
         "UniTask",
         "Client.Starter",
-      "Unity.InputSystem",
-      "Unity.InputSystem.TestFramework",
-      "Client.Common",
-      "Server.Boot",
-      "Client.Network",
-      "Game.Context",
-      "Game.World.Interface",
-      "Core.Item.Interface"
+        "Unity.InputSystem",
+        "Unity.InputSystem.TestFramework",
+        "Client.Common",
+        "Server.Boot",
+        "Client.Network",
+        "Game.Context",
+        "Game.World.Interface",
+        "Core.Item.Interface",
+        "Game.Entity.Interface",
+        "MessagePack"
     ],
     "includePlatforms": [
         "Editor"
@@ -27,7 +29,9 @@
     "allowUnsafeCode": false,
     "overrideReferences": true,
     "precompiledReferences": [
-        "nunit.framework.dll"
+        "nunit.framework.dll",
+        "MessagePack.dll",
+        "MessagePack.Annotations.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [
