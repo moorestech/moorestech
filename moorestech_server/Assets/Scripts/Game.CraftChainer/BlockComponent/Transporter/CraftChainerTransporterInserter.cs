@@ -43,7 +43,7 @@ namespace Game.CraftChainer.BlockComponent
             return InsertItem(itemStack);
         }
 
-        public BlockConnectInfoElement GetFirstGoalConnector()
+        public BlockConnectInfoElement GetNextGoalConnector()
         {
             var targets = _blockConnectorComponent.ConnectedTargets;
             if (targets.Count == 0) return null;
