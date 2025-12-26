@@ -7,6 +7,7 @@ using Game.Train.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using static Game.Train.Train.TrainMotionParameters;
 
 namespace Game.Train.Train
 {
@@ -35,16 +36,6 @@ namespace Game.Train.Train
         public double CurrentSpeed => _currentSpeed;
         private double _accumulatedDistance; // 累積距離、距離の小数点以下を保持するために使用
         //摩擦係数、空気抵抗係数などはここに追加する
-        private const double FRICTION = 0.0002;
-        private const double AIR_RESISTANCE = 0.00002;
-        private const double SpeedWeight = 0.008;//1tickで_currentSpeedが進む距離に変換されるための重み付け係数
-        private const double AutoRunMaxSpeedDistanceCoefficient = 10000.0;//自動運転の最大速度計算用距離係数
-        private const double AutoRunMaxSpeedOffset = 10.0;//自動運転で、AutoRunMaxSpeedOffsetは目的距離が近すぎても進めるようにするためのバッファ
-        private const double AutoRunSpeedBufferMargin = 0.02;
-        private const double AutoRunSpeedBufferRate = 1.0 - AutoRunSpeedBufferMargin;
-        private const double TractionForceAccelerationRate = 0.1;
-        private const double ManualControlDecelerationFactor = 1.0;//マスコンレベル手動調整用
-        private const int MasconLevelMaximum = 16777216;//電車でGOでP5-B8まであるやつ
         private const int InfiniteLoopGuardThreshold = 1_000_000;
 
         private List<TrainCar> _cars;
@@ -163,14 +154,11 @@ namespace Game.Train.Train
                 }
             }
 
-            //マスコンレベルから燃料を消費しつつ速度を計算する
-            UpdateTrainSpeed();
-            //距離計算 進むor後進する
-            double floatDistance = _currentSpeed * SpeedWeight;
-            _accumulatedDistance += floatDistance;
-            int distance = (int)Math.Truncate(_accumulatedDistance);
-            _accumulatedDistance -= distance;
-            return UpdateTrainByDistance(distance);
+            // マスコンレベルから燃料を消費しつつ速度を計算する
+            // マスコン確定後に進む距離を算出
+            // Calculate distance to travel after mascon decision
+            var distanceToMove = SimulateMotionStep();
+            return UpdateTrainByDistance(distanceToMove);
         }
 
         //キー操作系
@@ -181,54 +169,30 @@ namespace Game.Train.Train
             //sキーでmasconLevel=-16777216
         }
 
-        // AutoRun時に目的地に向かうためのマスコンレベル更新
+        // 自動運転時のマスコン制御を共通ロジックで更新
+        // Update mascon level via shared auto-run calculation
         public void UpdateMasconLevel()
         {
-            masconLevel = 0;
-            //目的地に近ければ減速したい。自動運行での最大速度を決めておく
-            double maxspeed = Math.Sqrt(((double)_remainingDistance) * AutoRunMaxSpeedDistanceCoefficient) + AutoRunMaxSpeedOffset;//AutoRunMaxSpeedOffsetは距離が近すぎても進めるようにするためのバッファ
-            //全力加速する必要がある。マスコンレベルmax
-            if (maxspeed > _currentSpeed)
-            {
-                masconLevel = MasconLevelMaximum;
-            }
-            //
-            if (maxspeed < _currentSpeed * AutoRunSpeedBufferRate)//AutoRunSpeedBufferMarginぶんはバッファ
-            {
-                var bufferAdjustedSpeed = _currentSpeed * AutoRunSpeedBufferRate;
-                var subspeed = maxspeed - bufferAdjustedSpeed;
-                masconLevel = Math.Max((int)subspeed, -MasconLevelMaximum);
-            }
+            var input = new AutoRunMasconInput(
+                _currentSpeed,
+                _remainingDistance);
+            masconLevel = TrainAutoRunMasconCalculator.Calculate(input);
         }
 
-        // 速度更新、自動時、手動時両方
-        // 進むべき距離を返す
-        public void UpdateTrainSpeed() 
+        // 速度と距離のステップ計算
+        // Simulate velocity and distance per tick
+        private int SimulateMotionStep()
         {
-            double force = 0.0;
-            int sign, sign2;
-            //マスコン操作での加減速
-            if (masconLevel > 0)
-            {
-                force = UpdateTractionForce(masconLevel);
-                _currentSpeed += force * TractionForceAccelerationRate;
-            }
-            else
-            {
-                //currentspeedがマイナスも考慮
-                sign = Math.Sign(_currentSpeed);
-                _currentSpeed += sign * masconLevel * ManualControlDecelerationFactor; // ManualControlDecelerationFactorは調整用定数
-                sign2 = Math.Sign(_currentSpeed);
-                if (sign != sign2) _currentSpeed = 0; // 逆方向に行かないようにする
-            }
-
-            //どちらにしても速度は摩擦で減少する。摩擦は速度の1乗、空気抵抗は速度の2乗に比例するとする
-            force = Math.Abs(_currentSpeed) * SpeedWeight * FRICTION + _currentSpeed * _currentSpeed * SpeedWeight * AIR_RESISTANCE;
-            sign = Math.Sign(_currentSpeed);
-            _currentSpeed -= sign * force;
-            sign2 = Math.Sign(_currentSpeed);
-            if (sign != sign2) _currentSpeed = 0; // 逆方向に行かないようにする
-            return;
+            var tractionForce = masconLevel > 0 ? UpdateTractionForce(masconLevel) : 0.0;
+            var stepInput = new TrainMotionStepInput(
+                _currentSpeed,
+                _accumulatedDistance,
+                masconLevel,
+                tractionForce);
+            var stepResult = TrainDistanceSimulator.Step(stepInput);
+            _currentSpeed = stepResult.NewSpeed;
+            _accumulatedDistance = stepResult.NewAccumulatedDistance;
+            return stepResult.DistanceToMove;
         }
 
 
