@@ -20,7 +20,7 @@ namespace Game.Block.Blocks.TrainRail
         public RailNode FrontNode { get; private set; }
         public RailNode BackNode { get; private set; }
 
-        private float controlPointStrength = 0.5f;//default値
+        private float controlPointStrength = 9.5f;//default値
 
         public RailControlPoint FrontControlPoint { get; }
         public RailControlPoint BackControlPoint { get; }
