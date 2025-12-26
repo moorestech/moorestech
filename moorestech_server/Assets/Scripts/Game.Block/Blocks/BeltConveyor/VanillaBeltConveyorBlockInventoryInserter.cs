@@ -13,7 +13,7 @@ namespace Game.Block.Blocks.BeltConveyor
     public interface IBeltConveyorBlockInventoryInserter : IBlockInventoryInserter
     {
         IItemStack InsertItem(IItemStack itemStack, BlockConnectInfoElement goalConnector);
-        BlockConnectInfoElement GetFirstGoalConnector();
+        BlockConnectInfoElement GetNextGoalConnector();
         bool IsValidGoalConnector(BlockConnectInfoElement goalConnector);
         BlockConnectInfoElement GetGoalConnector(Guid connectorGuid);
         int ConnectedCount { get; }
@@ -74,7 +74,7 @@ namespace Game.Block.Blocks.BeltConveyor
         /// 最初のGoalConnectorを取得
         /// Get first goal connector
         /// </summary>
-        public BlockConnectInfoElement GetFirstGoalConnector()
+        public BlockConnectInfoElement GetNextGoalConnector()
         {
             var targets = _blockConnectorComponent.ConnectedTargets;
             if (targets.Count == 0) return null;

@@ -58,7 +58,7 @@ namespace Game.Block.Blocks.BeltConveyor
                 return itemStack;
 
             var startConnector = context.TargetConnector;
-            var goalConnector = _blockInventoryInserter.GetFirstGoalConnector();
+            var goalConnector = _blockInventoryInserter.GetNextGoalConnector();
 
             _inventoryItems[^1] = new VanillaBeltConveyorInventoryItem(itemStack.Id, itemStack.ItemInstanceId, startConnector, goalConnector);
 
@@ -100,7 +100,7 @@ namespace Game.Block.Blocks.BeltConveyor
             BlockException.CheckDestroy(this);
 
             //TODO lockすべき？？
-            var goalConnector = _blockInventoryInserter?.GetFirstGoalConnector();
+            var goalConnector = _blockInventoryInserter?.GetNextGoalConnector();
             _inventoryItems[slot] = new VanillaBeltConveyorInventoryItem(itemStack.Id, itemStack.ItemInstanceId, null, goalConnector);
         }
         
@@ -204,7 +204,7 @@ namespace Game.Block.Blocks.BeltConveyor
                         return;
                     }
                 }
-                targetItem.SetGoalConnector(_blockInventoryInserter.GetFirstGoalConnector());
+                targetItem.SetGoalConnector(_blockInventoryInserter.GetNextGoalConnector());
             }
 
             #endregion

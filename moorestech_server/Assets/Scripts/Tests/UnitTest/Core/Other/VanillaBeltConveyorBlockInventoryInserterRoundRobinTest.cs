@@ -40,10 +40,10 @@ namespace Tests.UnitTest.Core.Other
 
             // GetFirstGoalConnectorが巡回するか確認する
             // Verify GetFirstGoalConnector cycles
-            var first = inserter.GetFirstGoalConnector();
-            var second = inserter.GetFirstGoalConnector();
-            var third = inserter.GetFirstGoalConnector();
-            var fourth = inserter.GetFirstGoalConnector();
+            var first = inserter.GetNextGoalConnector();
+            var second = inserter.GetNextGoalConnector();
+            var third = inserter.GetNextGoalConnector();
+            var fourth = inserter.GetNextGoalConnector();
 
             Assert.AreNotSame(first, second);
             Assert.AreNotSame(second, third);
