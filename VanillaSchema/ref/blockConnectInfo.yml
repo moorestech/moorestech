@@ -35,12 +35,6 @@ items:
   - key: connectOption
     switch: ./connectType
     cases:
-    - when: Inventory
-      type: object
-      properties:
-      - key: pathId
-        type: string
-        optional: true
     - when: Gear
       type: object
       properties:

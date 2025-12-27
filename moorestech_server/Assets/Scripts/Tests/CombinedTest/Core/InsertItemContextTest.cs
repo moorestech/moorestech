@@ -48,8 +48,8 @@ namespace Tests.CombinedTest.Core
 
             // ベルトコンベア→ターゲットの接続を設定
             // Set up belt conveyor → target connection
-            var selfConnector = CreateInventoryConnector(0, "pathId-1");
-            var targetConnector = CreateInventoryConnector(1, "pathId-2");
+            var selfConnector = CreateInventoryConnector(0);
+            var targetConnector = CreateInventoryConnector(1);
             var connectedInfo = new ConnectedInfo(selfConnector, targetConnector, null);
 
             var beltConnectorComponent = beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>();
@@ -78,13 +78,11 @@ namespace Tests.CombinedTest.Core
             // SourceConnectorが正しく設定されていること
             // SourceConnector is correctly set
             Assert.IsNotNull(context.SourceConnector);
-            Assert.AreEqual("pathId-1", ((InventoryConnectOption)context.SourceConnector.ConnectOption).PathId);
             Assert.AreEqual(selfConnector.ConnectorGuid, context.SourceConnector.ConnectorGuid);
 
             // TargetConnectorが正しく設定されていること
             // TargetConnector is correctly set
             Assert.IsNotNull(context.TargetConnector);
-            Assert.AreEqual("pathId-2", ((InventoryConnectOption)context.TargetConnector.ConnectOption).PathId);
             Assert.AreEqual(targetConnector.ConnectorGuid, context.TargetConnector.ConnectorGuid);
         }
 
@@ -111,8 +109,8 @@ namespace Tests.CombinedTest.Core
 
             // チェスト→ターゲットの接続を設定
             // Set up chest → target connection
-            var selfConnector = CreateInventoryConnector(0, "chest-output");
-            var targetConnector = CreateInventoryConnector(1, "target-input");
+            var selfConnector = CreateInventoryConnector(0);
+            var targetConnector = CreateInventoryConnector(1);
             var connectedInfo = new ConnectedInfo(selfConnector, targetConnector, null);
 
             var chestConnectorComponent = chest.GetComponent<BlockConnectorComponent<IBlockInventory>>();
@@ -141,13 +139,11 @@ namespace Tests.CombinedTest.Core
             // SourceConnectorが正しく設定されていること
             // SourceConnector is correctly set
             Assert.IsNotNull(context.SourceConnector);
-            Assert.AreEqual("chest-output", ((InventoryConnectOption)context.SourceConnector.ConnectOption).PathId);
             Assert.AreEqual(selfConnector.ConnectorGuid, context.SourceConnector.ConnectorGuid);
 
             // TargetConnectorが正しく設定されていること
             // TargetConnector is correctly set
             Assert.IsNotNull(context.TargetConnector);
-            Assert.AreEqual("target-input", ((InventoryConnectOption)context.TargetConnector.ConnectOption).PathId);
             Assert.AreEqual(targetConnector.ConnectorGuid, context.TargetConnector.ConnectorGuid);
         }
 
@@ -169,8 +165,8 @@ namespace Tests.CombinedTest.Core
 
             // InsertItemContextにPathIdを設定してベルトコンベアにアイテムを挿入
             // Insert item into belt conveyor with PathId set in InsertItemContext
-            var sourceConnector = CreateInventoryConnector(0, "source-path");
-            var targetConnector = CreateInventoryConnector(1, "target-path-123");
+            var sourceConnector = CreateInventoryConnector(0);
+            var targetConnector = CreateInventoryConnector(1);
             var context = new InsertItemContext(new BlockInstanceId(99999), sourceConnector, targetConnector);
 
             var item = itemStackFactory.Create(new ItemId(1), 1);
@@ -181,7 +177,6 @@ namespace Tests.CombinedTest.Core
             var beltItem = beltConveyorComponent.BeltConveyorItems[^1];
             Assert.IsNotNull(beltItem);
             Assert.IsNotNull(beltItem.StartConnector);
-            Assert.AreEqual("target-path-123", ((InventoryConnectOption)beltItem.StartConnector.ConnectOption).PathId);
             Assert.AreEqual(targetConnector.ConnectorGuid, beltItem.StartConnector.ConnectorGuid);
         }
 
@@ -214,8 +209,8 @@ namespace Tests.CombinedTest.Core
 
             // 入力チェスト→ベルトコンベアの接続を設定
             // Set up input chest → belt conveyor connection
-            var inputChestConnector = CreateInventoryConnector(0, "chest-to-belt");
-            var beltInputConnector = CreateInventoryConnector(1, "belt-input");
+            var inputChestConnector = CreateInventoryConnector(0);
+            var beltInputConnector = CreateInventoryConnector(1);
             var inputChestConnectedInfo = new ConnectedInfo(inputChestConnector, beltInputConnector, beltConveyor);
 
             var inputChestConnectorComponent = inputChest.GetComponent<BlockConnectorComponent<IBlockInventory>>();
@@ -225,8 +220,8 @@ namespace Tests.CombinedTest.Core
 
             // ベルトコンベア→出力ターゲットの接続を設定
             // Set up belt conveyor → output target connection
-            var beltOutputConnector = CreateInventoryConnector(0, "belt-output");
-            var targetInputConnector = CreateInventoryConnector(1, "target-input");
+            var beltOutputConnector = CreateInventoryConnector(0);
+            var targetInputConnector = CreateInventoryConnector(1);
             var beltConnectedInfo = new ConnectedInfo(beltOutputConnector, targetInputConnector, null);
 
             var beltConnectorComponent = beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>();
@@ -255,15 +250,13 @@ namespace Tests.CombinedTest.Core
             // SourceBlockInstanceIdがベルトコンベアのBlockInstanceIdと一致すること（最後の送信元はベルトコンベア）
             // SourceBlockInstanceId matches belt conveyor's BlockInstanceId (last sender is belt conveyor)
             Assert.AreEqual(beltBlockInstanceId, targetContext.SourceBlockInstanceId);
-            Assert.AreEqual("belt-output", ((InventoryConnectOption)targetContext.SourceConnector.ConnectOption).PathId);
-            Assert.AreEqual("target-input", ((InventoryConnectOption)targetContext.TargetConnector.ConnectOption).PathId);
             Assert.AreEqual(beltOutputConnector.ConnectorGuid, targetContext.SourceConnector.ConnectorGuid);
             Assert.AreEqual(targetInputConnector.ConnectorGuid, targetContext.TargetConnector.ConnectorGuid);
         }
 
-        private static BlockConnectInfoElement CreateInventoryConnector(int index, string pathId)
+        private static BlockConnectInfoElement CreateInventoryConnector(int index)
         {
-            return new BlockConnectInfoElement(index, "Inventory", Guid.NewGuid(), Vector3Int.zero, Array.Empty<Vector3Int>(), new InventoryConnectOption(pathId));
+            return new BlockConnectInfoElement(index, "Inventory", Guid.NewGuid(), Vector3Int.zero, Array.Empty<Vector3Int>(), null);
         }
     }
 }
