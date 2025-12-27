@@ -100,25 +100,9 @@ namespace Game.Train.Entity
             var cp0 = currentNode.FrontControlPoint;
             var cp1 = nextNode.BackControlPoint;
             
-            var p0 = cp0.OriginalPosition;
-            var p1 = cp0.ControlPointPosition;
-            var p2 = cp1.ControlPointPosition;
-            var p3 = cp1.OriginalPosition;
-            
-            // 相対座標系に変換（p0を原点とする）
-            // Transform to relative coordinate system (p0 as origin)
-            Vector3 originalP0 = p0;
-            p3 -= p0;
-            p0 = Vector3.zero;
-            p2 += p3;
-            
-            // ベジエ曲線上の座標を計算
-            // Calculate position on Bezier curve
-            Vector3 relativePosition = BezierUtility.GetBezierPoint(p0, p1, p2, p3, t);
-            
-            // ワールド座標に戻す
-            // Transform back to world coordinates
-            return relativePosition + originalP0;
+            // ベジエ曲線上の座標を直接取得
+            // Directly evaluate the world position along the Bezier curve
+            return BezierUtility.GetBezierPoint(cp0, cp1, t);
         }
     }
 }

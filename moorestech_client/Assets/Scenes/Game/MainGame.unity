@@ -51176,6 +51176,10 @@ PrefabInstance:
       propertyPath: m_SceneBindings.Array.data[8].value
       value: 
       objectReference: {fileID: 5103828206815401741}
+    - target: {fileID: 8673118626874321022, guid: efa1e9567bd6a46cc9bb22790eef4693, type: 3}
+      propertyPath: _railPrefab
+      value: 
+      objectReference: {fileID: 3828996803847555924, guid: 082ce28c51d271944aac475b97629bfd, type: 3}
     - target: {fileID: 8692014769385952082, guid: efa1e9567bd6a46cc9bb22790eef4693, type: 3}
       propertyPath: m_SizeDelta.x
       value: 0
