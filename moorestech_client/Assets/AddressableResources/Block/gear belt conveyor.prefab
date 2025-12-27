@@ -58,10 +58,10 @@ MonoBehaviour:
       endControlPoint: {x: 0, y: 0, z: -0.3}
       endPoint: {x: 0.5, y: 0.35, z: 1}
   defaultPath:
-    startPoint: {x: 0, y: 0, z: 0}
-    startControlPoint: {x: 0, y: 0, z: 0}
-    endControlPoint: {x: 0, y: 0, z: 0}
-    endPoint: {x: 0, y: 0, z: 0}
+    startPoint: {x: 0.5, y: 0.35, z: 0}
+    startControlPoint: {x: 0, y: 0, z: 0.3}
+    endControlPoint: {x: 0, y: 0, z: -0.3}
+    endPoint: {x: 0.5, y: 0.35, z: 1}
 --- !u!114 &1920843585219452797
 MonoBehaviour:
   m_ObjectHideFlags: 0
