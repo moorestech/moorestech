@@ -76,7 +76,6 @@ namespace Client.Game.InGame.Entity.Factory
                 var item = itemObject.GetComponent<BeltConveyorItemEntityObject>();
                 item.Initialize(entityResponse.InstanceId);
                 item.SetTexture(texture);
-                ApplyBeltConveyorItemState(item);
                 return item;
             }
 
@@ -102,17 +101,7 @@ namespace Client.Game.InGame.Entity.Factory
                 // Add CustomModelBeltConveyorItemEntityObject component
                 var customModelEntity = customModelObject.AddComponent<CustomModelBeltConveyorItemEntityObject>();
                 customModelEntity.Initialize(entityResponse.InstanceId);
-                ApplyBeltConveyorItemState(customModelEntity);
                 return customModelEntity;
-            }
-
-            void ApplyBeltConveyorItemState(IEntityObject target)
-            {
-                // 受信したベルト情報がある場合のみパス座標を適用する
-                // Apply belt path position only when state data exists
-                if (!hasEntityData) return;
-                if (target is not IBeltConveyorItemEntityObject beltEntity) return;
-                beltEntity.SetBeltConveyorItemPosition(itemState, false);
             }
 
             #endregion
