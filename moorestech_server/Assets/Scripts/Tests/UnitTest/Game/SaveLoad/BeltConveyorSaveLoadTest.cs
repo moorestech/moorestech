@@ -39,15 +39,15 @@ namespace Tests.UnitTest.Game.SaveLoad
             var item0GoalGuid = Guid.NewGuid();
             var item2GoalGuid = Guid.NewGuid();
             var item3GoalGuid = Guid.NewGuid();
-            inventoryItems[0] = new VanillaBeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(0), CreateInventoryConnector(0, "input-0", Guid.NewGuid()), CreateInventoryConnector(1, "goal-0", item0GoalGuid))
+            inventoryItems[0] = new VanillaBeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(0), CreateInventoryConnector(0, Guid.NewGuid()), CreateInventoryConnector(1, item0GoalGuid))
             {
                 RemainingPercent = 0.8f,
             };
-            inventoryItems[2] = new VanillaBeltConveyorInventoryItem(new ItemId(2), new ItemInstanceId(0), CreateInventoryConnector(2, "input-2", Guid.NewGuid()), CreateInventoryConnector(3, "goal-2", item2GoalGuid))
+            inventoryItems[2] = new VanillaBeltConveyorInventoryItem(new ItemId(2), new ItemInstanceId(0), CreateInventoryConnector(2, Guid.NewGuid()), CreateInventoryConnector(3, item2GoalGuid))
             {
                 RemainingPercent = 0.85f,
             };
-            inventoryItems[3] = new VanillaBeltConveyorInventoryItem(new ItemId(5), new ItemInstanceId(0), CreateInventoryConnector(4, "input-3", Guid.NewGuid()), CreateInventoryConnector(5, "goal-3", item3GoalGuid))
+            inventoryItems[3] = new VanillaBeltConveyorInventoryItem(new ItemId(5), new ItemInstanceId(0), CreateInventoryConnector(4, Guid.NewGuid()), CreateInventoryConnector(5, item3GoalGuid))
             {
                 RemainingPercent = 0.9f,
             };
@@ -67,9 +67,9 @@ namespace Tests.UnitTest.Game.SaveLoad
             // Prepare targets matching Guid
             var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)blockConnector.ConnectedTargets;
             connectInventory.Clear();
-            connectInventory.Add(new DummyBlockInventory(), new ConnectedInfo(CreateInventoryConnector(10, "goal-0", item0GoalGuid), CreateInventoryConnector(11, "target-0", Guid.NewGuid()), null));
-            connectInventory.Add(new DummyBlockInventory(), new ConnectedInfo(CreateInventoryConnector(12, "goal-2", item2GoalGuid), CreateInventoryConnector(13, "target-2", Guid.NewGuid()), null));
-            connectInventory.Add(new DummyBlockInventory(), new ConnectedInfo(CreateInventoryConnector(14, "goal-3", item3GoalGuid), CreateInventoryConnector(15, "target-3", Guid.NewGuid()), null));
+            connectInventory.Add(new DummyBlockInventory(), new ConnectedInfo(CreateInventoryConnector(10, item0GoalGuid), CreateInventoryConnector(11, Guid.NewGuid()), null));
+            connectInventory.Add(new DummyBlockInventory(), new ConnectedInfo(CreateInventoryConnector(12, item2GoalGuid), CreateInventoryConnector(13, Guid.NewGuid()), null));
+            connectInventory.Add(new DummyBlockInventory(), new ConnectedInfo(CreateInventoryConnector(14, item3GoalGuid), CreateInventoryConnector(15, Guid.NewGuid()), null));
 
             var newBelt = new VanillaBeltConveyorComponent(states, 4, 4000, beltConveyorConnector, BeltConveyorSlopeType.Straight);
             var newInventoryItems = (VanillaBeltConveyorInventoryItem[])inventoryItemsField.GetValue(newBelt);
@@ -112,15 +112,15 @@ namespace Tests.UnitTest.Game.SaveLoad
             var item0GoalGuid = Guid.NewGuid();
             var item2GoalGuid = Guid.NewGuid();
             var item3GoalGuid = Guid.NewGuid();
-            inventoryItems[0] = new VanillaBeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(0), CreateInventoryConnector(0, "input-0", Guid.NewGuid()), CreateInventoryConnector(1, "goal-0", item0GoalGuid))
+            inventoryItems[0] = new VanillaBeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(0), CreateInventoryConnector(0, Guid.NewGuid()), CreateInventoryConnector(1, item0GoalGuid))
             {
                 RemainingPercent = 0.8f,
             };
-            inventoryItems[2] = new VanillaBeltConveyorInventoryItem(new ItemId(2), new ItemInstanceId(0), CreateInventoryConnector(2, "input-2", Guid.NewGuid()), CreateInventoryConnector(3, "goal-2", item2GoalGuid))
+            inventoryItems[2] = new VanillaBeltConveyorInventoryItem(new ItemId(2), new ItemInstanceId(0), CreateInventoryConnector(2, Guid.NewGuid()), CreateInventoryConnector(3, item2GoalGuid))
             {
                 RemainingPercent = 0.85f,
             };
-            inventoryItems[3] = new VanillaBeltConveyorInventoryItem(new ItemId(5), new ItemInstanceId(0), CreateInventoryConnector(4, "input-3", Guid.NewGuid()), CreateInventoryConnector(5, "goal-3", item3GoalGuid))
+            inventoryItems[3] = new VanillaBeltConveyorInventoryItem(new ItemId(5), new ItemInstanceId(0), CreateInventoryConnector(4, Guid.NewGuid()), CreateInventoryConnector(5, item3GoalGuid))
             {
                 RemainingPercent = 0.9f,
             };
@@ -140,9 +140,9 @@ namespace Tests.UnitTest.Game.SaveLoad
             // Prepare targets matching Guid
             var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)blockConnector.ConnectedTargets;
             connectInventory.Clear();
-            connectInventory.Add(new DummyBlockInventory(), new ConnectedInfo(CreateInventoryConnector(10, "goal-0", item0GoalGuid), CreateInventoryConnector(11, "target-0", Guid.NewGuid()), null));
-            connectInventory.Add(new DummyBlockInventory(), new ConnectedInfo(CreateInventoryConnector(12, "goal-2", item2GoalGuid), CreateInventoryConnector(13, "target-2", Guid.NewGuid()), null));
-            connectInventory.Add(new DummyBlockInventory(), new ConnectedInfo(CreateInventoryConnector(14, "goal-3", item3GoalGuid), CreateInventoryConnector(15, "target-3", Guid.NewGuid()), null));
+            connectInventory.Add(new DummyBlockInventory(), new ConnectedInfo(CreateInventoryConnector(10, item0GoalGuid), CreateInventoryConnector(11, Guid.NewGuid()), null));
+            connectInventory.Add(new DummyBlockInventory(), new ConnectedInfo(CreateInventoryConnector(12, item2GoalGuid), CreateInventoryConnector(13, Guid.NewGuid()), null));
+            connectInventory.Add(new DummyBlockInventory(), new ConnectedInfo(CreateInventoryConnector(14, item3GoalGuid), CreateInventoryConnector(15, Guid.NewGuid()), null));
 
             var newBelt = new VanillaBeltConveyorComponent(states, 4, 4000, beltConveyorConnector, BeltConveyorSlopeType.Straight);
             var newInventoryItems = (VanillaBeltConveyorInventoryItem[])inventoryItemsField.GetValue(newBelt);
@@ -167,9 +167,9 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.AreEqual(item3GoalGuid, newInventoryItems[3].GoalConnector.ConnectorGuid);
         }
 
-        private static BlockConnectInfoElement CreateInventoryConnector(int index, string pathId, Guid connectorGuid)
+        private static BlockConnectInfoElement CreateInventoryConnector(int index, Guid connectorGuid)
         {
-            return new BlockConnectInfoElement(index, "Inventory", connectorGuid, Vector3Int.zero, Array.Empty<Vector3Int>(), new InventoryConnectOption(pathId));
+            return new BlockConnectInfoElement(index, "Inventory", connectorGuid, Vector3Int.zero, Array.Empty<Vector3Int>(), null);
         }
     }
 }

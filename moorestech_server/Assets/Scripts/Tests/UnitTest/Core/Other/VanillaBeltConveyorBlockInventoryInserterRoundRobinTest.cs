@@ -77,16 +77,16 @@ namespace Tests.UnitTest.Core.Other
             var result = new List<RoundRobinTarget>();
             for (var i = 0; i < 3; i++)
             {
-                var selfConnector = CreateInventoryConnector(i * 2, $"self-{i}", Guid.NewGuid());
-                var targetConnector = CreateInventoryConnector(i * 2 + 1, $"target-{i}", Guid.NewGuid());
+                var selfConnector = CreateInventoryConnector(i * 2, Guid.NewGuid());
+                var targetConnector = CreateInventoryConnector(i * 2 + 1, Guid.NewGuid());
                 result.Add(new RoundRobinTarget(new DummyBlockInventory(), new ConnectedInfo(selfConnector, targetConnector, null)));
             }
             return result;
         }
 
-        private static BlockConnectInfoElement CreateInventoryConnector(int index, string pathId, Guid connectorGuid)
+        private static BlockConnectInfoElement CreateInventoryConnector(int index, Guid connectorGuid)
         {
-            return new BlockConnectInfoElement(index, "Inventory", connectorGuid, Vector3Int.zero, Array.Empty<Vector3Int>(), new InventoryConnectOption(pathId));
+            return new BlockConnectInfoElement(index, "Inventory", connectorGuid, Vector3Int.zero, Array.Empty<Vector3Int>(), null);
         }
 
         private sealed class RoundRobinTarget

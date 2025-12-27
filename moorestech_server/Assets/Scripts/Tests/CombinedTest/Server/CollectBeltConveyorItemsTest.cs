@@ -172,8 +172,8 @@ namespace Tests.CombinedTest.Server
             // Create connectors with fixed Guids
             var sourceGuid = Guid.NewGuid();
             var goalGuid = Guid.NewGuid();
-            var sourceConnector = new BlockConnectInfoElement(0, "Inventory", sourceGuid, Vector3Int.zero, Array.Empty<Vector3Int>(), new InventoryConnectOption("source-path"));
-            var goalConnector = new BlockConnectInfoElement(1, "Inventory", goalGuid, Vector3Int.zero, Array.Empty<Vector3Int>(), new InventoryConnectOption("goal-path"));
+            var sourceConnector = new BlockConnectInfoElement(0, "Inventory", sourceGuid, Vector3Int.zero, Array.Empty<Vector3Int>(), null);
+            var goalConnector = new BlockConnectInfoElement(1, "Inventory", goalGuid, Vector3Int.zero, Array.Empty<Vector3Int>(), null);
 
             // ベルトコンベアを作成してアイテムを設定
             // Create belt conveyor and set item
