@@ -35,6 +35,9 @@ items:
   - key: connectOption
     switch: ./connectType
     cases:
+    - when: Inventory
+      type: object
+      properties: []
     - when: Gear
       type: object
       properties:
