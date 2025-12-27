@@ -7,6 +7,8 @@ using Game.Block.Blocks.Connector;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
+using Mooresmaster.Model.BlockConnectInfoModule;
+using Mooresmaster.Model.InventoryConnectsModule;
 using Newtonsoft.Json;
 
 namespace Game.Block.Blocks.BeltConveyor
@@ -35,7 +37,7 @@ namespace Game.Block.Blocks.BeltConveyor
             _inventoryItems = new VanillaBeltConveyorInventoryItem[inventoryItemNum];
         }
 
-        public VanillaBeltConveyorComponent(Dictionary<string, string> componentStates, int inventoryItemNum, float timeOfItemEnterToExit, IBeltConveyorBlockInventoryInserter blockInventoryInserter, BeltConveyorSlopeType slopeType) :
+        public VanillaBeltConveyorComponent(Dictionary<string, string> componentStates, int inventoryItemNum, float timeOfItemEnterToExit, IBeltConveyorBlockInventoryInserter blockInventoryInserter, BeltConveyorSlopeType slopeType, InventoryConnects inventoryConnectors) :
             this(inventoryItemNum, timeOfItemEnterToExit, blockInventoryInserter, slopeType)
         {
             var itemJsons = JsonConvert.DeserializeObject<List<string>>(componentStates[SaveKey]);
@@ -43,7 +45,7 @@ namespace Game.Block.Blocks.BeltConveyor
             {
                 if (itemJsons[i] != null)
                 {
-                    _inventoryItems[i] = VanillaBeltConveyorInventoryItem.LoadItem(itemJsons[i]);
+                    _inventoryItems[i] = VanillaBeltConveyorInventoryItem.LoadItem(itemJsons[i], inventoryConnectors);
                 }
             }
         }
@@ -194,16 +196,6 @@ namespace Game.Block.Blocks.BeltConveyor
                 // Resolve by Guid before fallback when current GoalConnector is invalid
                 if (_blockInventoryInserter.IsValidGoalConnector(targetItem.GoalConnector)) return;
                 
-                var goalConnectorGuid = targetItem.GetGoalConnectorGuid();
-                if (goalConnectorGuid != null)
-                {
-                    var resolvedConnector = _blockInventoryInserter.GetGoalConnector(goalConnectorGuid.Value);
-                    if (resolvedConnector != null)
-                    {
-                        targetItem.SetGoalConnector(resolvedConnector);
-                        return;
-                    }
-                }
                 targetItem.SetGoalConnector(_blockInventoryInserter.GetNextGoalConnector());
             }
 
