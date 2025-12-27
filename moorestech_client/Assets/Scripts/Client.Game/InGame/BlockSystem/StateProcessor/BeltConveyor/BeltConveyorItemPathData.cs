@@ -10,25 +10,20 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.BeltConveyor
     [Serializable]
     public class BeltConveyorItemPathData
     {
-        public string StartId => startId;
-        [SerializeField] private string startId;
+        public string StartGuid => startGuid;
+        [SerializeField] private string startGuid;
 
-        public string GoalId => goalId;
-        [SerializeField] private string goalId;
+        public string GoalGuid => goalGuid;
+        [SerializeField] private string goalGuid;
 
         public BezierPath BezierPath => bezierPath;
         [SerializeField] private BezierPath bezierPath;
 
-        public BeltConveyorItemPathData(string startId, string goalId)
+        public BeltConveyorItemPathData(string startGuid, string goalGuid)
         {
-            this.startId = startId;
-            this.goalId = goalId;
+            this.startGuid = startGuid;
+            this.goalGuid = goalGuid;
             bezierPath = new BezierPath();
         }
-
-#if UNITY_EDITOR
-        public void SetStartId(string value) => startId = value;
-        public void SetGoalId(string value) => goalId = value;
-#endif
     }
 }

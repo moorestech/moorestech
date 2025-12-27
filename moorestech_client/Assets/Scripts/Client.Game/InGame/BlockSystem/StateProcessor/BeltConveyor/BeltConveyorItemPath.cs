@@ -38,7 +38,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.BeltConveyor
                 // Search for path matching both startId and goalId
                 foreach (var path in paths)
                 {
-                    if (path.StartId == startId && path.GoalId == goalId)
+                    if (path.StartGuid == startId && path.GoalGuid == goalId)
                     {
                         return path.BezierPath;
                     }
@@ -69,10 +69,10 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.BeltConveyor
         /// 新しいパスを追加
         /// Add new path
         /// </summary>
-        public void AddPath(string startId, string goalId)
+        public void AddPath(string startGuid, string goalGuid)
         {
-            var newPath = new BeltConveyorItemPathData(startId, goalId);
-            newPath.BezierPath.SetDefault(Vector3.zero, Vector3.forward);
+            var newPath = new BeltConveyorItemPathData(startGuid, goalGuid);
+            newPath.BezierPath.SetDefault();
             paths.Add(newPath);
         }
 
@@ -95,7 +95,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.BeltConveyor
         public void InitializeDefaultPath()
         {
             defaultPath = new BezierPath();
-            defaultPath.SetDefault(Vector3.zero, Vector3.forward);
+            defaultPath.SetDefault();
         }
 #endif
     }

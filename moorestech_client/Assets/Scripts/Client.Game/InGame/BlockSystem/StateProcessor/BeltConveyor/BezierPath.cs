@@ -11,16 +11,16 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.BeltConveyor
     public class BezierPath
     {
         public Vector3 StartPoint => startPoint;
-        [SerializeField] private Vector3 startPoint;
+        [SerializeField] private Vector3 startPoint = new(0.5f, 0.35f, 0f);
 
         public Vector3 StartControlPoint => startControlPoint;
-        [SerializeField] private Vector3 startControlPoint;
+        [SerializeField] private Vector3 startControlPoint = new(0f, 0f, 0.3f);
 
         public Vector3 EndControlPoint => endControlPoint;
-        [SerializeField] private Vector3 endControlPoint;
+        [SerializeField] private Vector3 endControlPoint = new(0f, 0f, -0.3f);
 
         public Vector3 EndPoint => endPoint;
-        [SerializeField] private Vector3 endPoint;
+        [SerializeField] private Vector3 endPoint = new(0.5f, 0.35f, 1f);
 
         // 制御点のワールド座標を取得
         // Get world position of control points
@@ -74,19 +74,13 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.BeltConveyor
         /// デフォルト値で初期化（直線パス）
         /// Initialize with default values (straight path)
         /// </summary>
-        public void SetDefault(Vector3 start, Vector3 end)
+        public void SetDefault()
         {
-            startPoint = start;
-            endPoint = end;
+            startPoint = new Vector3(0.5f, 0.35f, 0f);
+            endPoint = new Vector3(0.5f, 0.35f, 1f);
 
-            // 制御点を始点と終点の間に配置
-            // Place control points between start and end
-            Vector3 direction = (end - start).normalized;
-            float distance = Vector3.Distance(start, end);
-            float controlDistance = distance * 0.3f;
-
-            startControlPoint = direction * controlDistance;
-            endControlPoint = -direction * controlDistance;
+            startControlPoint = new Vector3(0f, 0f, 0.3f);
+            endControlPoint = new Vector3(0f, 0f, -0.3f);
         }
 
         public void SetStartPoint(Vector3 value) => startPoint = value;
