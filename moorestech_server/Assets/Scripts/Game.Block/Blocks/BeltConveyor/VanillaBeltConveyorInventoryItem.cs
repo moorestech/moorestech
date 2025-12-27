@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Context;
 using Mooresmaster.Model.BlockConnectInfoModule;
+using Mooresmaster.Model.InventoryConnectsModule;
 using Newtonsoft.Json;
 
 namespace Game.Block.Blocks.BeltConveyor
@@ -46,8 +48,8 @@ namespace Game.Block.Blocks.BeltConveyor
         {
             return JsonConvert.SerializeObject(new VanillaBeltConveyorInventoryItemJsonObject(this));
         }
-
-        public static VanillaBeltConveyorInventoryItem LoadItem(string jsonString)
+        
+        public static VanillaBeltConveyorInventoryItem LoadItem(string jsonString, InventoryConnects inventoryConnectors)
         {
             if (jsonString == null) return null;
 
@@ -58,11 +60,31 @@ namespace Game.Block.Blocks.BeltConveyor
             var remainingPercent = jsonData.RemainingPercent;
             var itemInstanceId = ItemInstanceId.Create();
             
-            var item = new VanillaBeltConveyorInventoryItem(itemId, itemInstanceId, null, null)
+            var startConnector = FindBlockConnectInfoElementByGuid(jsonData.SourceConnectorGuid, inventoryConnectors.InputConnects.items);
+            var goalConnector = FindBlockConnectInfoElementByGuid(jsonData.GoalConnectorGuid, inventoryConnectors.OutputConnects.items);
+            
+            var item = new VanillaBeltConveyorInventoryItem(itemId, itemInstanceId, startConnector, goalConnector)
             {
                 RemainingPercent = remainingPercent
             };
             return item;
+            
+            #region Intenral
+            
+            BlockConnectInfoElement FindBlockConnectInfoElementByGuid(Guid? guid, BlockConnectInfoElement[] connectInfos)
+            {
+                foreach (var connectInfo in connectInfos)
+                {
+                    if (connectInfo.ConnectorGuid == guid)
+                    {
+                        return connectInfo;
+                    }
+                }
+
+                return null;
+            }
+            
+            #endregion
         }
     }
 
@@ -88,8 +110,8 @@ namespace Game.Block.Blocks.BeltConveyor
             var item = ServerContext.ItemStackFactory.Create(vanillaBeltConveyorInventoryItem.ItemId, 1);
             ItemStack = new ItemStackSaveJsonObject(item);
             RemainingPercent = vanillaBeltConveyorInventoryItem.RemainingPercent;
-            SourceConnectorGuid = vanillaBeltConveyorInventoryItem.GetStartConnectorGuid();
-            GoalConnectorGuid = vanillaBeltConveyorInventoryItem.GetGoalConnectorGuid();
+            SourceConnectorGuid = vanillaBeltConveyorInventoryItem.StartConnector?.ConnectorGuid;
+            GoalConnectorGuid = vanillaBeltConveyorInventoryItem.GoalConnector?.ConnectorGuid;
         }
     }
 }

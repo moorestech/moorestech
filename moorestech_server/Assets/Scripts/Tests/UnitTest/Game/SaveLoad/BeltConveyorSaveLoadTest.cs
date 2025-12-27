@@ -29,6 +29,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var blockFactory = ServerContext.BlockFactory;
             var beltPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
             var beltConveyor = blockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, new BlockInstanceId(1), beltPosInfo);
+            var guid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.BeltConveyorId).BlockGuid;
             
             var belt = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
             //リフレクションで_inventoryItemsを取得
@@ -54,25 +55,13 @@ namespace Tests.UnitTest.Game.SaveLoad
 
 
             //セーブデータ取得
-            var str = belt.GetSaveState();
-            var states = new Dictionary<string, string>() { { belt.SaveKey, str } };
-            Debug.Log(str);
+            var states = new Dictionary<string, string> { { belt.SaveKey, belt.GetSaveState() } };
+            Debug.Log(states[belt.SaveKey]);
 
-
-            //セーブデータをロード
-            var blockConnector = new BlockConnectorComponent<IBlockInventory>(null, null, beltPosInfo);
-            var beltConveyorConnector = new VanillaBeltConveyorBlockInventoryInserter(new BlockInstanceId(1), blockConnector);
             
-            // Guid一致の接続先を用意
-            // Prepare targets matching Guid
-            var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)blockConnector.ConnectedTargets;
-            connectInventory.Clear();
-            connectInventory.Add(new DummyBlockInventory(), new ConnectedInfo(CreateInventoryConnector(10, item0GoalGuid), CreateInventoryConnector(11, Guid.NewGuid()), null));
-            connectInventory.Add(new DummyBlockInventory(), new ConnectedInfo(CreateInventoryConnector(12, item2GoalGuid), CreateInventoryConnector(13, Guid.NewGuid()), null));
-            connectInventory.Add(new DummyBlockInventory(), new ConnectedInfo(CreateInventoryConnector(14, item3GoalGuid), CreateInventoryConnector(15, Guid.NewGuid()), null));
-
-            var newBelt = new VanillaBeltConveyorComponent(states, 4, 4000, beltConveyorConnector, BeltConveyorSlopeType.Straight);
-            var newInventoryItems = (VanillaBeltConveyorInventoryItem[])inventoryItemsField.GetValue(newBelt);
+            //セーブデータをロード
+            var loadedBeltConveyor = blockFactory.Load(guid, new BlockInstanceId(1), states, beltPosInfo);
+            var newInventoryItems = (VanillaBeltConveyorInventoryItem[])inventoryItemsField.GetValue(loadedBeltConveyor.GetComponent<VanillaBeltConveyorComponent>());
 
             //アイテムが一致するかチェック
             Assert.AreEqual(inventoryItems.Length, newInventoryItems.Length);
@@ -85,10 +74,6 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             // Guidが復元され、接続先が解決されるかチェック
             // Verify Guid is restored and target is resolved
-            newBelt.Update();
-            Assert.AreEqual(item0GoalGuid, newInventoryItems[0].GetGoalConnectorGuid());
-            Assert.AreEqual(item2GoalGuid, newInventoryItems[2].GetGoalConnectorGuid());
-            Assert.AreEqual(item3GoalGuid, newInventoryItems[3].GetGoalConnectorGuid());
             Assert.AreEqual(item0GoalGuid, newInventoryItems[0].GoalConnector.ConnectorGuid);
             Assert.AreEqual(item2GoalGuid, newInventoryItems[2].GoalConnector.ConnectorGuid);
             Assert.AreEqual(item3GoalGuid, newInventoryItems[3].GoalConnector.ConnectorGuid);
@@ -102,6 +87,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var blockFactory = ServerContext.BlockFactory;
             var beltPosInfo = new BlockPositionInfo(new Vector3Int(0, 0), BlockDirection.North, Vector3Int.one);
             var beltConveyor = blockFactory.Create(ForUnitTestModBlockId.GearBeltConveyor, new BlockInstanceId(1), beltPosInfo);
+            var guid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearBeltConveyor).BlockGuid;
 
             var belt = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
             //リフレクションで_inventoryItemsを取得
@@ -143,9 +129,9 @@ namespace Tests.UnitTest.Game.SaveLoad
             connectInventory.Add(new DummyBlockInventory(), new ConnectedInfo(CreateInventoryConnector(10, item0GoalGuid), CreateInventoryConnector(11, Guid.NewGuid()), null));
             connectInventory.Add(new DummyBlockInventory(), new ConnectedInfo(CreateInventoryConnector(12, item2GoalGuid), CreateInventoryConnector(13, Guid.NewGuid()), null));
             connectInventory.Add(new DummyBlockInventory(), new ConnectedInfo(CreateInventoryConnector(14, item3GoalGuid), CreateInventoryConnector(15, Guid.NewGuid()), null));
-
-            var newBelt = new VanillaBeltConveyorComponent(states, 4, 4000, beltConveyorConnector, BeltConveyorSlopeType.Straight);
-            var newInventoryItems = (VanillaBeltConveyorInventoryItem[])inventoryItemsField.GetValue(newBelt);
+            
+            var loadedBeltConveyor = blockFactory.Load(guid, new BlockInstanceId(1), states, beltPosInfo);
+            var newInventoryItems = (VanillaBeltConveyorInventoryItem[])inventoryItemsField.GetValue(loadedBeltConveyor.GetComponent<VanillaBeltConveyorComponent>());
 
             //アイテムが一致するかチェック
             Assert.AreEqual(inventoryItems.Length, newInventoryItems.Length);
@@ -158,10 +144,6 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             // Guidが復元され、接続先が解決されるかチェック
             // Verify Guid is restored and target is resolved
-            newBelt.Update();
-            Assert.AreEqual(item0GoalGuid, newInventoryItems[0].GetGoalConnectorGuid());
-            Assert.AreEqual(item2GoalGuid, newInventoryItems[2].GetGoalConnectorGuid());
-            Assert.AreEqual(item3GoalGuid, newInventoryItems[3].GetGoalConnectorGuid());
             Assert.AreEqual(item0GoalGuid, newInventoryItems[0].GoalConnector.ConnectorGuid);
             Assert.AreEqual(item2GoalGuid, newInventoryItems[2].GoalConnector.ConnectorGuid);
             Assert.AreEqual(item3GoalGuid, newInventoryItems[3].GoalConnector.ConnectorGuid);

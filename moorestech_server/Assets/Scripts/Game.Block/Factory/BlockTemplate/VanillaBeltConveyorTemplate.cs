@@ -37,7 +37,7 @@ namespace Game.Block.Factory.BlockTemplate
             
             var beltComponent = componentStates == null ? 
                 new VanillaBeltConveyorComponent(itemCount, time, beltConveyorConnector, slopeType) : 
-                new VanillaBeltConveyorComponent(componentStates, itemCount, time, beltConveyorConnector, slopeType);
+                new VanillaBeltConveyorComponent(componentStates, itemCount, time, beltConveyorConnector, slopeType, beltParam.InventoryConnectors);
             
             
             var components = new List<IBlockComponent>
