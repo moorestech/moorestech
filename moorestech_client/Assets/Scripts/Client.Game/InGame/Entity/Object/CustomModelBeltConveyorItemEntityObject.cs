@@ -2,6 +2,7 @@ using Client.Common.Server;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.StateProcessor.BeltConveyor;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Entity.Object.Util;
 using Game.Entity.Interface;
 using UnityEngine;
 
@@ -11,7 +12,7 @@ namespace Client.Game.InGame.Entity.Object
     /// カスタム3Dモデルを使用するアイテムエンティティ
     /// Item entity using custom 3D model
     /// </summary>
-    public class CustomModelBeltConveyorItemEntityObject : MonoBehaviour, IEntityObject, IBeltConveyorItemEntityObject
+    public class CustomModelBeltConveyorItemEntityObject : MonoBehaviour, IEntityObject
     {
         public long EntityId { get; private set; }
 
@@ -53,33 +54,10 @@ namespace Client.Game.InGame.Entity.Object
             _targetPosition = position;
             _linerTime = 0;
         }
-        
-        public void SetBeltConveyorItemPosition(BeltConveyorItemEntityStateMessagePack state, bool useLerp)
+        public void SetEntityData(byte[] entityEntityData)
         {
-            // ベルトパスから目標座標を算出して反映する
-            // Apply target position resolved from belt path
-            if (!TryGetTargetPosition(state, out var targetPosition)) return;
-            if (useLerp) SetPositionWithLerp(targetPosition);
-            else SetDirectPosition(targetPosition);
-
-            #region Internal
-
-            bool TryGetTargetPosition(BeltConveyorItemEntityStateMessagePack entityState, out Vector3 target)
-            {
-                target = default;
-                
-                var blockPosition = new Vector3Int(entityState.BlockPosX, entityState.BlockPosY, entityState.BlockPosZ);
-                if (!ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(blockPosition, out BlockGameObject block)) return false;
-                var path = block.GetComponentInChildren<BeltConveyorItemPath>();
-                if (path == null) return false;
-                
-                var startId = entityState.SourceConnectorGuid?.ToString();
-                var goalId = entityState.GoalConnectorGuid?.ToString();
-                target = path.GetWorldPosition(startId, goalId, entityState.RemainingPercent);
-                return true;
-            }
-
-            #endregion
+            var pos = BeltConveyorItemPositionCalculator.CalculatePosition(entityEntityData);
+            SetDirectPosition(pos);
         }
 
         public void Destroy()

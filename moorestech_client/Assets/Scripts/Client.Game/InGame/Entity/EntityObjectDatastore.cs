@@ -48,14 +48,9 @@ namespace Client.Game.InGame.Entity
                 if (_entities.ContainsKey(entity.InstanceId))
                 {
                     var objectEntity = _entities[entity.InstanceId].objectEntity;
-                    if (entity.Type == VanillaEntityType.VanillaItem)
-                    {
-                        UpdateBeltConveyorItemEntity(entity, objectEntity, true);
-                        _entities[entity.InstanceId] = (DateTime.Now, objectEntity);
-                        continue;
-                    }
                     
                     objectEntity.SetPositionWithLerp(entity.Position);
+                    objectEntity.SetEntityData(entity.EntityData);
                     _entities[entity.InstanceId] = (DateTime.Now, objectEntity);
                     
                     continue;
@@ -72,17 +67,6 @@ namespace Client.Game.InGame.Entity
                     return entityObject;
                 });
             }
-        }
-        
-        private static void UpdateBeltConveyorItemEntity(EntityResponse entity, IEntityObject entityObject, bool useLerp)
-        {
-            // EntityDataからベルトアイテムの位置情報を復元する
-            // Restore belt item position from EntityData
-            if (entityObject is not IBeltConveyorItemEntityObject beltEntity) return;
-            if (entity.EntityData == null || entity.EntityData.Length == 0) return;
-            
-            var state = MessagePackSerializer.Deserialize<BeltConveyorItemEntityStateMessagePack>(entity.EntityData);
-            beltEntity.SetBeltConveyorItemPosition(state, useLerp);
         }
     }
 }
