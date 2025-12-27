@@ -10,8 +10,8 @@ using UnityEngine;
 public class BeltConveyorItemPathInspector : Editor
 {
     private int _selectedPathIndex = -1; // -1 = デフォルトパス
-    private string _newStartId = "";
-    private string _newGoalId = "";
+    private string _newStartGuid = "";
+    private string _newGoalGuid = "";
 
     private static readonly Color DefaultPathColor = Color.cyan;
     private static readonly Color SelectedPathColor = Color.yellow;
@@ -79,7 +79,8 @@ public class BeltConveyorItemPathInspector : Editor
 
                 // StartId -> GoalId の形式で表示
                 // Display as StartId -> GoalId format
-                var displayName = $"{path.StartId} -> {path.GoalId}";
+                // guidの文字数を5文字までに
+                var displayName = $"{path.StartGuid.Substring(0, 5)} -> {path.GoalGuid.Substring(0, 5)}";
                 GUI.backgroundColor = isSelected ? Color.yellow : Color.white;
                 if (GUILayout.Button(isSelected ? $"[Selected] {displayName}" : displayName))
                 {
@@ -108,20 +109,20 @@ public class BeltConveyorItemPathInspector : Editor
 
             // StartIdとGoalIdの入力フィールド
             // Input fields for StartId and GoalId
-            _newStartId = EditorGUILayout.TextField("Start ID", _newStartId);
-            _newGoalId = EditorGUILayout.TextField("Goal ID", _newGoalId);
+            _newStartGuid = EditorGUILayout.TextField("Start GUID", _newStartGuid);
+            _newGoalGuid = EditorGUILayout.TextField("Goal GUID", _newGoalGuid);
 
             // 両方が入力されている場合のみ追加可能
             // Only allow adding when both are filled
-            using (new EditorGUI.DisabledScope(string.IsNullOrEmpty(_newStartId) && string.IsNullOrEmpty(_newGoalId)))
+            using (new EditorGUI.DisabledScope(string.IsNullOrEmpty(_newStartGuid) && string.IsNullOrEmpty(_newGoalGuid)))
             {
                 if (GUILayout.Button("Add Path"))
                 {
                     Undo.RecordObject(component, "Add Path");
-                    component.AddPath(_newStartId, _newGoalId);
+                    component.AddPath(_newStartGuid, _newGoalGuid);
                     _selectedPathIndex = component.Paths.Count - 1;
-                    _newStartId = "";
-                    _newGoalId = "";
+                    _newStartGuid = "";
+                    _newGoalGuid = "";
                     EditorUtility.SetDirty(component);
                     SceneView.RepaintAll();
                 }
