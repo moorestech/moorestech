@@ -57,7 +57,7 @@ namespace Client.Game.InGame.Entity.Object
         public void SetEntityData(byte[] entityEntityData)
         {
             var pos = BeltConveyorItemPositionCalculator.CalculatePosition(entityEntityData);
-            SetDirectPosition(pos);
+            SetPositionWithLerp(pos);
         }
 
         public void Destroy()
