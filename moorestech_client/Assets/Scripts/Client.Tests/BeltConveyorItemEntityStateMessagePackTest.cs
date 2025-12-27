@@ -3,6 +3,7 @@ using Core.Master;
 using Game.Entity.Interface;
 using MessagePack;
 using NUnit.Framework;
+using UnityEngine;
 
 namespace Client.Tests
 {
@@ -19,7 +20,8 @@ namespace Client.Tests
             // Create MessagePack with Guid
             var sourceGuid = Guid.NewGuid();
             var goalGuid = Guid.NewGuid();
-            var original = new BeltConveyorItemEntityStateMessagePack(new ItemId(1), 1, sourceGuid, goalGuid);
+            var blockPosition = new Vector3Int(3, 4, 5);
+            var original = new BeltConveyorItemEntityStateMessagePack(new ItemId(1), 1, sourceGuid, goalGuid, 0.75f, blockPosition);
 
             // シリアライズ/デシリアライズを行う
             // Serialize/deserialize
@@ -30,6 +32,10 @@ namespace Client.Tests
             Assert.AreEqual(1, restored.Count);
             Assert.AreEqual(sourceGuid, restored.SourceConnectorGuid);
             Assert.AreEqual(goalGuid, restored.GoalConnectorGuid);
+            Assert.AreEqual(0.75f, restored.RemainingPercent);
+            Assert.AreEqual(3, restored.BlockPosX);
+            Assert.AreEqual(4, restored.BlockPosY);
+            Assert.AreEqual(5, restored.BlockPosZ);
         }
     }
 }
