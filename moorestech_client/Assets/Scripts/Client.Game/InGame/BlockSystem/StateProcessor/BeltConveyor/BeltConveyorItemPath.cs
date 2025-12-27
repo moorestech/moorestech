@@ -51,20 +51,16 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.BeltConveyor
         }
 
         /// <summary>
-        /// RemainingPercent（0.0-1.0）に対応するワールド座標を取得
-        /// Get world position for given RemainingPercent (0.0-1.0)
+        /// 進捗割合（0.0-1.0）に対応するワールド座標を取得
+        /// Get world position for given progress ratio (0.0-1.0)
         /// </summary>
-        public Vector3 GetWorldPosition(string startId, string goalId, float remainingPercent)
+        public Vector3 GetWorldPosition(string startId, string goalId, float progressPercent)
         {
             var path = GetPath(startId, goalId);
 
-            // RemainingPercentは1.0から0.0に減少する
-            // RemainingPercent decreases from 1.0 to 0.0
-            // パスのtは0.0から1.0で進む
-            // Path t progresses from 0.0 to 1.0
-            float t = 1f - remainingPercent;
-
-            Vector3 localPosition = path.GetPoint(t);
+            // 進捗割合をそのままBezierのtとして使う
+            // Use progress ratio directly as Bezier t
+            Vector3 localPosition = path.GetPoint(progressPercent);
             return transform.TransformPoint(localPosition);
         }
 
