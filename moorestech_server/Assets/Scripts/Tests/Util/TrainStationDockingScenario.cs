@@ -8,7 +8,6 @@ using Game.Train.Common;
 using Game.Train.RailGraph;
 using Game.Train.Utility;
 using Game.Train.Train;
-using Mooresmaster.Model.TrainModule;
 using NUnit.Framework;
 using Tests.Module.TestMod;
 using UnityEngine;
