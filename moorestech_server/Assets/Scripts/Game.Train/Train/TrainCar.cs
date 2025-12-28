@@ -5,6 +5,7 @@ using Game.Context;
 using System;
 using System.Collections.Generic;
 using Game.Train.Event;
+using Game.Train.Utility;
 using Mooresmaster.Model.TrainModule;
 
 
@@ -53,7 +54,7 @@ namespace Game.Train.Train
             TrainCarMasterElement = trainCarMaster;
             TractionForce = trainCarMaster.TractionForce;
             InventorySlots = trainCarMaster.InventorySlots;
-            Length = trainCarMaster.Length;
+            Length = TrainLengthConverter.ToRailUnits(trainCarMaster.Length);
             IsFacingForward = isFacingForward;
             if (fuelSlots < 0)
             {
