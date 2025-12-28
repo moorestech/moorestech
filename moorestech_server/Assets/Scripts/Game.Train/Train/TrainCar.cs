@@ -2,11 +2,12 @@ using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Context;
-using System;
-using System.Collections.Generic;
 using Game.Train.Event;
+using Game.Train.RailGraph;
 using Game.Train.Utility;
 using Mooresmaster.Model.TrainModule;
+using System;
+using System.Collections.Generic;
 
 
 namespace Game.Train.Train
@@ -18,8 +19,7 @@ namespace Game.Train.Train
     public class TrainCar
     {
         const int WHEIGHT_PER_SLOT = 40;
-        const int FUEL_WEIGHT_PER_SLOT = 40;
-        const int DEFAULT_WEIGHT = 120;
+        const int DEFAULT_WEIGHT = 320;
         const int DEFAULT_TRACTION = 100;
         private readonly Guid _carId = Guid.NewGuid();
         
@@ -89,9 +89,7 @@ namespace Game.Train.Train
         //重さ、推進力を得る
         public (int,int) GetWeightAndTraction()
         {
-            return (DEFAULT_WEIGHT +
-                InventorySlots * WHEIGHT_PER_SLOT +
-                FuelSlots * FUEL_WEIGHT_PER_SLOT
+            return (DEFAULT_WEIGHT + InventorySlots * WHEIGHT_PER_SLOT
                 , IsFacingForward ? TractionForce * DEFAULT_TRACTION : 0);
         }
 
@@ -104,7 +102,78 @@ namespace Game.Train.Train
             IsFacingForward = !IsFacingForward;
         }
 
+        public TrainCarSaveData CreateTrainCarSaveData()
+        {
+            var inventoryItems = new List<ItemStackSaveJsonObject>(this.InventorySlots);
+            for (int i = 0; i < this.InventorySlots; i++)
+            {
+                inventoryItems.Add(new ItemStackSaveJsonObject(this.GetItem(i)));
+            }
 
+            var fuelItems = new List<ItemStackSaveJsonObject>(this.FuelSlots);
+            for (int i = 0; i < this.FuelSlots; i++)
+            {
+                fuelItems.Add(new ItemStackSaveJsonObject(this.GetFuelItem(i)));
+            }
+
+            SerializableVector3Int? dockingPosition = null;
+            if (this.dockingblock != null)
+            {
+                var blockPosition = this.dockingblock.BlockPositionInfo.OriginalPos;
+                dockingPosition = new SerializableVector3Int(blockPosition.x, blockPosition.y, blockPosition.z);
+            }
+
+            return new TrainCarSaveData
+            {
+                TrainCarGuid = this.TrainCarMasterElement.TrainCarGuid,
+                IsFacingForward = this.IsFacingForward,
+                DockingBlockPosition = dockingPosition,
+                InventoryItems = inventoryItems,
+                FuelItems = fuelItems
+            };
+        }
+
+
+        public static TrainCar RestoreTrainCar(TrainCarSaveData data)
+        {
+            if (data == null)
+                return null;
+
+            if (!MasterHolder.TrainUnitMaster.TryGetTrainUnit(data.TrainCarGuid, out var trainCarMaster)) throw new Exception("trainCarMaster is not found");
+            var isFacingForward = data.IsFacingForward;
+            var car = new TrainCar(trainCarMaster, isFacingForward);
+            var empty = ServerContext.ItemStackFactory.CreatEmpty();
+
+            for (int i = 0; i < car.GetSlotSize(); i++)
+            {
+                IItemStack item = empty;
+                if (data.InventoryItems != null && i < data.InventoryItems.Count)
+                {
+                    item = data.InventoryItems[i]?.ToItemStack() ?? empty;
+                }
+                car.SetItem(i, item);
+            }
+
+            for (int i = 0; i < car.FuelSlots; i++)
+            {
+                IItemStack item = empty;
+                if (data.FuelItems != null && i < data.FuelItems.Count)
+                {
+                    item = data.FuelItems[i]?.ToItemStack() ?? empty;
+                }
+                car.SetFuelItem(i, item);
+            }
+
+            if (data.DockingBlockPosition.HasValue)
+            {
+                var block = ServerContext.WorldBlockDatastore.GetBlock((UnityEngine.Vector3Int)data.DockingBlockPosition.Value);
+                if (block != null)
+                {
+                    car.dockingblock = block;
+                }
+            }
+            return car;
+        }
 
 
         /// <summary>

@@ -35,7 +35,6 @@ namespace Game.Train.Train
         private double _currentSpeed;   // m/s など適宜
         public double CurrentSpeed => _currentSpeed;
         private double _accumulatedDistance; // 累積距離、距離の小数点以下を保持するために使用
-        //摩擦係数、空気抵抗係数などはここに追加する
         private const int InfiniteLoopGuardThreshold = 1_000_000;
 
         private List<TrainCar> _cars;
@@ -387,22 +386,21 @@ namespace Game.Train.Train
         //列車編成を保存する。ブロックとは違うことに注意
         public TrainUnitSaveData CreateSaveData()
         {
-            var railSnapshot = _railPosition != null
-                ? new List<ConnectionDestination>(_railPosition.CreateSaveSnapshot())
-                : new List<ConnectionDestination>();
+            var railSnapshot = new List<ConnectionDestination>(_railPosition.CreateSaveSnapshot());
 
-            var carStates = _cars != null
-                ? _cars.Select(CreateTrainCarSaveData).ToList()
-                : new List<TrainCarSaveData>();
+            var carStates = new List<TrainCarSaveData>(); 
+            foreach (var car in _cars)
+            {
+                var carData = car.CreateTrainCarSaveData();
+                carStates.Add(carData);
+            }
 
-            var diagramState = trainDiagram != null
-                ? CreateTrainDiagramSaveData(trainDiagram)
-                : null;
+            var diagramState = trainDiagram.CreateTrainDiagramSaveData();
 
             return new TrainUnitSaveData
             {
-                TrainLength = _railPosition?.TrainLength ?? 0,
-                DistanceToNextNode = _railPosition?.DistanceToNextNode ?? 0,
+                TrainLength = _railPosition.TrainLength,
+                DistanceToNextNode = _railPosition.DistanceToNextNode,
                 RailSnapshot = railSnapshot,
                 IsAutoRun = _isAutoRun,
                 PreviousEntryGuid = _previousEntryGuid,
@@ -411,66 +409,6 @@ namespace Game.Train.Train
                 Cars = carStates,
                 Diagram = diagramState
             };
-        }
-
-        private static TrainCarSaveData CreateTrainCarSaveData(TrainCar car)
-        {
-            var inventoryItems = new List<ItemStackSaveJsonObject>(car.InventorySlots);
-            for (int i = 0; i < car.InventorySlots; i++)
-            {
-                inventoryItems.Add(new ItemStackSaveJsonObject(car.GetItem(i)));
-            }
-
-            var fuelItems = new List<ItemStackSaveJsonObject>(car.FuelSlots);
-            for (int i = 0; i < car.FuelSlots; i++)
-            {
-                fuelItems.Add(new ItemStackSaveJsonObject(car.GetFuelItem(i)));
-            }
-
-            SerializableVector3Int? dockingPosition = null;
-            if (car.dockingblock != null)
-            {
-                var blockPosition = car.dockingblock.BlockPositionInfo.OriginalPos;
-                dockingPosition = new SerializableVector3Int(blockPosition.x, blockPosition.y, blockPosition.z);
-            }
-
-            return new TrainCarSaveData
-            {
-                TrainCarGuid = car.TrainCarMasterElement.TrainCarGuid,
-                IsFacingForward = car.IsFacingForward,
-                DockingBlockPosition = dockingPosition,
-                InventoryItems = inventoryItems,
-                FuelItems = fuelItems
-            };
-        }
-
-        private static TrainDiagramSaveData CreateTrainDiagramSaveData(TrainDiagram diagram)
-        {
-            var entries = new List<TrainDiagramEntrySaveData>();
-            foreach (var entry in diagram.Entries)
-            {
-                entries.Add(new TrainDiagramEntrySaveData
-                {
-                    EntryId = entry.entryId,
-                    Node = CreateConnectionDestinationSnapshot(entry.Node),
-                    DepartureConditions = entry.DepartureConditionTypes?.ToList() ?? new List<TrainDiagram.DepartureConditionType>(),
-                    WaitForTicksInitial = entry.GetWaitForTicksInitialTicks(),
-                    WaitForTicksRemaining = entry.GetWaitForTicksRemainingTicks()
-                });
-            }
-
-            return new TrainDiagramSaveData
-            {
-                CurrentIndex = diagram.CurrentIndex,
-                Entries = entries
-            };
-        }
-
-        private static ConnectionDestination CreateConnectionDestinationSnapshot(IRailNode node)
-        {
-            if (node == null)
-                return ConnectionDestination.Default;
-            return node.ConnectionDestination;
         }
 
         private static List<IRailNode> RestoreRailNodes(IEnumerable<ConnectionDestination> snapshot)
@@ -491,7 +429,7 @@ namespace Game.Train.Train
             }
             return nodes;
         }
-        //別コードに分割したい TODO
+
         private static List<TrainCar> RestoreTrainCars(List<TrainCarSaveData> carData)
         {
             var cars = new List<TrainCar>();
@@ -499,97 +437,33 @@ namespace Game.Train.Train
             {
                 return cars;
             }
-
             foreach (var data in carData)
             {
-                var car = RestoreTrainCar(data);
+                var car = TrainCar.RestoreTrainCar(data);
                 if (car != null)
                 {
                     cars.Add(car);
                 }
             }
-
             return cars;
-        }
-
-        private static TrainCar RestoreTrainCar(TrainCarSaveData data)
-        {
-            if (data == null)
-            {
-                return null;
-            }
-            
-            if (!MasterHolder.TrainUnitMaster.TryGetTrainUnit(data.TrainCarGuid, out var trainCarMaster)) throw new Exception("trainCarMaster is not found");
-            var isFacingForward = data.IsFacingForward;
-            var car = new TrainCar(trainCarMaster, isFacingForward);
-
-            var empty = ServerContext.ItemStackFactory.CreatEmpty();
-
-            for (int i = 0; i < car.GetSlotSize(); i++)
-            {
-                IItemStack item = empty;
-                if (data.InventoryItems != null && i < data.InventoryItems.Count)
-                {
-                    item = data.InventoryItems[i]?.ToItemStack() ?? empty;
-                }
-                car.SetItem(i, item);
-            }
-
-            for (int i = 0; i < car.FuelSlots; i++)
-            {
-                IItemStack item = empty;
-                if (data.FuelItems != null && i < data.FuelItems.Count)
-                {
-                    item = data.FuelItems[i]?.ToItemStack() ?? empty;
-                }
-                car.SetFuelItem(i, item);
-            }
-
-            if (data.DockingBlockPosition.HasValue)
-            {
-                var block = ServerContext.WorldBlockDatastore.GetBlock((UnityEngine.Vector3Int)data.DockingBlockPosition.Value);
-                if (block != null)
-                {
-                    car.dockingblock = block;
-                }
-            }
-
-            return car;
-        }
-
-        private static void RestoreTrainDiagram(TrainDiagram diagram, TrainDiagramSaveData saveData)
-        {
-            if (diagram == null || saveData == null)
-            {
-                return;
-            }
-            diagram.RestoreState(saveData);
         }
 
         public static TrainUnit RestoreFromSaveData(TrainUnitSaveData saveData)
         {
             if (saveData == null)
-            {
                 return null;
-            }
 
             var nodes = RestoreRailNodes(saveData.RailSnapshot);
             if (nodes.Count == 0)
-            {
                 return null;
-            }
 
             var trainLength = saveData.TrainLength;
             if (trainLength < 0)
-            {
                 trainLength = 0;
-            }
 
             var distanceToNextNode = saveData.DistanceToNextNode;
             if (distanceToNextNode < 0)
-            {
                 distanceToNextNode = 0;
-            }
 
             var railPosition = new RailPosition(nodes, trainLength, distanceToNextNode);
             var cars = RestoreTrainCars(saveData.Cars);
@@ -610,14 +484,12 @@ namespace Game.Train.Train
             };
 
             trainUnit._remainingDistance = trainUnit._railPosition.GetDistanceToNextNode();
-
-            RestoreTrainDiagram(trainUnit.trainDiagram, saveData.Diagram);
+            trainUnit.trainDiagram.RestoreState(saveData.Diagram);
 
             if (trainUnit._isAutoRun)
             {
                 trainUnit.DiagramValidation();
             }
-
             return trainUnit;
         }
 
@@ -764,46 +636,4 @@ namespace Game.Train.Train
             _trainId = Guid.Empty;
         }
     }
-
-    [Serializable]
-    public class TrainUnitSaveData
-    {
-        public int TrainLength { get; set; }
-        public int DistanceToNextNode { get; set; }
-        public List<ConnectionDestination> RailSnapshot { get; set; }
-        public bool IsAutoRun { get; set; }
-        public Guid PreviousEntryGuid { get; set; }
-        public long? CurrentSpeedBits { get; set; }
-        public long? AccumulatedDistanceBits { get; set; }
-        public List<TrainCarSaveData> Cars { get; set; }
-        public TrainDiagramSaveData Diagram { get; set; }
-    }
-
-    [Serializable]
-    public class TrainCarSaveData
-    {
-        public Guid TrainCarGuid { get; set; }
-        public bool IsFacingForward { get; set; }
-        public SerializableVector3Int? DockingBlockPosition { get; set; }
-        public List<ItemStackSaveJsonObject> InventoryItems { get; set; }
-        public List<ItemStackSaveJsonObject> FuelItems { get; set; }
-    }
-
-    [Serializable]
-    public class TrainDiagramSaveData
-    {
-        public int CurrentIndex { get; set; }
-        public List<TrainDiagramEntrySaveData> Entries { get; set; }
-    }
-
-    [Serializable]
-    public class TrainDiagramEntrySaveData
-    {
-        public Guid EntryId { get; set; }
-        public ConnectionDestination Node { get; set; }
-        public List<TrainDiagram.DepartureConditionType> DepartureConditions { get; set; }
-        public int? WaitForTicksInitial { get; set; }
-        public int? WaitForTicksRemaining { get; set; }
-    }
-
 }
