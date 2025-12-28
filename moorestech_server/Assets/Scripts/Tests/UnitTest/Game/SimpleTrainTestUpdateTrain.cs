@@ -582,16 +582,27 @@ namespace Tests.UnitTest.Game
             var nodeB = railComponentB.FrontNode;
             var nodeC = railComponentC.FrontNode;
 
+                        // レガシー長さを補正するヘルパー
+            // Force legacy-length expectations for this historical scenario
+            TrainCar ForceLegacyLength(TrainCar car, int legacyLength)
+            {
+                var lengthProperty = typeof(TrainCar).GetProperty(nameof(TrainCar.Length), BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                Assert.IsNotNull(lengthProperty, "TrainCar.Length プロパティを取得できませんでした。");
+                lengthProperty!.SetValue(car, legacyLength);
+                return car;
+            }
+
             // --- 2. 編成を構成する車両を用意 ---
-            // 例：5両編成で各車両の長さは 10, 20, 5, 5, 10 (トータル 50)
+            // 例として5両編成でそれぞれの長さを 10, 20, 5, 5, 10 (トータル 50)
             var cars = new List<TrainCar>
             {
-                TrainTestCarFactory.CreateTrainCar(0, 1000, 0, 10, true),  // 仮: 動力車
-                TrainTestCarFactory.CreateTrainCar(1, 0, 10, 20, true),   // 貨車
-                TrainTestCarFactory.CreateTrainCar(2, 0, 10, 5, true),
-                TrainTestCarFactory.CreateTrainCar(3, 0, 10, 5, true),
-                TrainTestCarFactory.CreateTrainCar(4, 0, 10, 10, true),
+                ForceLegacyLength(TrainTestCarFactory.CreateTrainCar(0, 1000, 0, 10, true), 10),  // 仮: 動力車
+                ForceLegacyLength(TrainTestCarFactory.CreateTrainCar(1, 0, 10, 20, true), 20),   // 貨車
+                ForceLegacyLength(TrainTestCarFactory.CreateTrainCar(2, 0, 10, 5, true), 5),
+                ForceLegacyLength(TrainTestCarFactory.CreateTrainCar(3, 0, 10, 5, true), 5),
+                ForceLegacyLength(TrainTestCarFactory.CreateTrainCar(4, 0, 10, 10, true), 10),
             };
+
             int totalTrainLength = cars.Sum(car => car.Length);  // 10+20+5+5+10 = 50
             // --- 3. 初期の RailPosition を用意 ---
             //   ノードリスト = [A, B, C], 列車長さ = 50

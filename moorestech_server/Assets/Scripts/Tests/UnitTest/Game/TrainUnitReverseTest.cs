@@ -29,7 +29,7 @@ namespace Tests.UnitTest.Game
             var distance = nodeApproaching.GetDistanceToNode(nodeBehind);
             Assert.Greater(distance, 0, "接続されたレール間の距離が正しく計算されていません。");
 
-            var carLength = Mathf.Max(1, distance / 20);
+            var carLength = Mathf.Max(1, distance / 1024 / 20);
             var frontCar = TrainTestCarFactory.CreateTrainCar(0, 600000, 0, carLength, true);
             var rearCar = TrainTestCarFactory.CreateTrainCar(1, 300000, 0, carLength, false);
 

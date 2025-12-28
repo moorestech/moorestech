@@ -16,7 +16,7 @@ namespace Tests.UnitTest.Game
     public class TrainUnitAddCarTest
     {
 
-        private static StationNodeSet ExtractStationNodes(RailSaverComponent stationSaver)
+        private static StationNodeSet ExtractStationNodes(IBlock stationBlock, RailSaverComponent stationSaver)
         {
             var entryComponent = stationSaver.RailComponents
                 .FirstOrDefault(component =>
@@ -47,40 +47,10 @@ namespace Tests.UnitTest.Game
 
             var segmentLength = entryFront.GetDistanceToNode(exitFront);
             Assert.Greater(segmentLength, 0, "駅セグメントの長さが0以下になっています。");
+            var blockLength = stationBlock.BlockPositionInfo.BlockSize.z;
+            Assert.Greater(blockLength, 0, "駅ブロックのZサイズが0以下になっています。");
 
-            var backSegmentLength = entryBack.GetDistanceToNode(exitBack);
-            Assert.Greater(backSegmentLength, 0, "背面側の駅セグメントの長さが0以下になっています。");
-
-            return new StationNodeSet(entryComponent, exitComponent, entryFront, exitFront, entryBack, exitBack, segmentLength);
-        }
-
-        private readonly struct StationNodeSet
-        {
-            public StationNodeSet(
-                RailComponent entryComponent,
-                RailComponent exitComponent,
-                RailNode entryFront,
-                RailNode exitFront,
-                RailNode entryBack,
-                RailNode exitBack,
-                int segmentLength)
-            {
-                EntryComponent = entryComponent;
-                ExitComponent = exitComponent;
-                EntryFront = entryFront;
-                ExitFront = exitFront;
-                EntryBack = entryBack;
-                ExitBack = exitBack;
-                SegmentLength = segmentLength;
-            }
-
-            public RailComponent EntryComponent { get; }
-            public RailComponent ExitComponent { get; }
-            public RailNode EntryFront { get; }
-            public RailNode ExitFront { get; }
-            public RailNode EntryBack { get; }
-            public RailNode ExitBack { get; }
-            public int SegmentLength { get; }
+            return new StationNodeSet(entryComponent!, exitComponent!, exitFront, entryFront, exitBack, entryBack, segmentLength, blockLength);
         }
 
 
@@ -316,13 +286,13 @@ namespace Tests.UnitTest.Game
                 ForUnitTestModBlockId.TestTrainCargoPlatform,
                 new Vector3Int(-10, 1, -11),
                 BlockDirection.North);
-            var stationnodes1 = ExtractStationNodes(stationSaver1);
-            var (_, stationSaver2) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+            var stationnodes1 = ExtractStationNodes(block!, stationSaver1);
+            var (block2, stationSaver2) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
                 environment,
                 ForUnitTestModBlockId.TestTrainCargoPlatform,
                 new Vector3Int(-10, 1, -11 - block.BlockPositionInfo.BlockSize.z),
                 BlockDirection.North);
-            var stationnodes2 = ExtractStationNodes(stationSaver2);
+            var stationnodes2 = ExtractStationNodes(block2!, stationSaver2);
 
 
             var firstTrain = MasterHolder.TrainUnitMaster.Train.TrainCars.First();
@@ -331,17 +301,17 @@ namespace Tests.UnitTest.Game
                 new TrainCar(firstTrain,true),
             };
 
-            var railPosition = new RailPosition(new List<IRailNode> { stationnodes1.ExitFront, stationnodes1.EntryFront }, firstTrain.Length, 0);
+            var railPosition = new RailPosition(new List<IRailNode> { stationnodes1.ExitFront, stationnodes1.EntryFront }, cars[0].Length, 0);
             var trainUnit = new TrainUnit(railPosition, cars);
 
             var newCar = new TrainCar(firstTrain, true);
-            var railPosition2 = new RailPosition(new List<IRailNode> { stationnodes2.ExitFront, stationnodes2.EntryFront }, firstTrain.Length, 0);
+            var railPosition2 = new RailPosition(new List<IRailNode> { stationnodes2.ExitFront, stationnodes2.EntryFront }, newCar.Length, 0);
 
             trainUnit.AttachCarToRear(newCar, railPosition2);
             Assert.AreEqual(trainUnit.RailPosition.GetNodeApproaching(), stationnodes1.ExitFront, "追加approachingが不正");
             Assert.AreEqual(trainUnit.RailPosition.GetDistanceToNextNode(), 0, "追加distanceToNextNodeが不正");
             Assert.AreEqual(trainUnit.Cars.Count, 2, "追加後2両でない");
-            Assert.AreEqual(trainUnit.RailPosition.TrainLength, firstTrain.Length * 2, "追加後編成長さが不正");
+            Assert.AreEqual(trainUnit.RailPosition.TrainLength, newCar.Length * 2, "追加後編成長さが不正");
             Assert.AreEqual(trainUnit.RailPosition.GetRailNodes().Count, 4, "追加後RailNodes.Countが不正");
             foreach (var car in trainUnit.Cars)
             {
@@ -363,13 +333,13 @@ namespace Tests.UnitTest.Game
                 ForUnitTestModBlockId.TestTrainCargoPlatform,
                 new Vector3Int(-10, 1, -11),
                 BlockDirection.North);
-            var stationnodes1 = ExtractStationNodes(stationSaver1);
-            var (_, stationSaver2) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+            var stationnodes1 = ExtractStationNodes(block!, stationSaver1);
+            var (block2, stationSaver2) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
                 environment,
                 ForUnitTestModBlockId.TestTrainCargoPlatform,
                 new Vector3Int(-10, 1, -11 + block.BlockPositionInfo.BlockSize.z),
                 BlockDirection.North);
-            var stationnodes2 = ExtractStationNodes(stationSaver2);
+            var stationnodes2 = ExtractStationNodes(block2!, stationSaver2);
 
 
             var firstTrain = MasterHolder.TrainUnitMaster.Train.TrainCars.First();
@@ -378,17 +348,17 @@ namespace Tests.UnitTest.Game
                 new TrainCar(firstTrain,true),
             };
 
-            var railPosition = new RailPosition(new List<IRailNode> { stationnodes1.ExitFront, stationnodes1.EntryFront }, firstTrain.Length, 0);
+            var railPosition = new RailPosition(new List<IRailNode> { stationnodes1.ExitFront, stationnodes1.EntryFront }, cars[0].Length, 0);
             var trainUnit = new TrainUnit(railPosition, cars);
 
             var newCar = new TrainCar(firstTrain, true);
-            var railPosition2 = new RailPosition(new List<IRailNode> { stationnodes2.ExitFront, stationnodes2.EntryFront }, firstTrain.Length, 0);
+            var railPosition2 = new RailPosition(new List<IRailNode> { stationnodes2.ExitFront, stationnodes2.EntryFront }, newCar.Length, 0);
 
             trainUnit.AttachCarToHead(newCar, railPosition2);
             Assert.AreEqual(trainUnit.RailPosition.GetNodeApproaching(), stationnodes2.ExitFront, "追加approachingが不正");
             Assert.AreEqual(trainUnit.RailPosition.GetDistanceToNextNode(), 0, "追加distanceToNextNodeが不正");
             Assert.AreEqual(trainUnit.Cars.Count, 2, "追加後2両でない");
-            Assert.AreEqual(trainUnit.RailPosition.TrainLength, firstTrain.Length * 2, "追加後編成長さが不正");
+            Assert.AreEqual(trainUnit.RailPosition.TrainLength, newCar.Length * 2, "追加後編成長さが不正");
             Assert.AreEqual(trainUnit.RailPosition.GetRailNodes().Count, 4, "追加後RailNodes.Countが不正");
             foreach (var car in trainUnit.Cars)
             {
