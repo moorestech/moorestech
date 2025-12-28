@@ -78,7 +78,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var backNode = railA.FrontNode;
             var distance = Mathf.Max(1, frontNode.GetDistanceToNode(backNode));
             var railPosition = new RailPosition(new List<IRailNode> { frontNode, backNode }, distance, 0);
-            var trainCar = new TrainCar(new TrainCarMasterElement(0, Guid.Empty, Guid.Empty, null, 1000, 3, distance));
+            var trainCar = TrainTestCarFactory.CreateTrainCar(0, 1000, 3, distance, true);
             var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar });
 
             // 列車をTrainUpdateServiceに登録

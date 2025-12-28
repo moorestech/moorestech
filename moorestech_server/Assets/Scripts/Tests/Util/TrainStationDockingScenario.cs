@@ -136,8 +136,7 @@ namespace Tests.Util
             var trainCars = new List<TrainCar>(carCount);
             for (var i = 0; i < carCount; i++)
             {
-                var master = new TrainCarMasterElement(i, Guid.Empty, Guid.Empty, null, 1000, 1, _station.SegmentLength);
-                trainCars.Add(new TrainCar(master));
+                trainCars.Add(TrainTestCarFactory.CreateTrainCar(i, 1000, 1, _station.SegmentLength, true));
             }
 
             var train = CreateTrain(nodes, trainCars, 0);
