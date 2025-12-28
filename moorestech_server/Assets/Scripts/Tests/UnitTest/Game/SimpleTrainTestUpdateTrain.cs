@@ -88,7 +88,7 @@ namespace Tests.UnitTest.Game
                 // --- 4. TrainUnit を生成 ---
                 var cars = new List<TrainCar>
                 {
-                    new TrainCar(new TrainCarMasterElement(0, Guid.Empty, Guid.Empty, null, 600000, 0, trainLength)),  // 仮: 動力車
+                    TrainTestCarFactory.CreateTrainCar(0, 600000, 0, trainLength, true),  // 仮: 動力車
                 };
                 var trainUnit = new TrainUnit(railPosition, cars);
 
@@ -150,11 +150,11 @@ namespace Tests.UnitTest.Game
             // 例：5両編成で各車両の長さは 10, 20, 5, 5, 10 (トータル 50)
             var cars = new List<TrainCar>
             {
-                new TrainCar(new TrainCarMasterElement(0, Guid.Empty, Guid.Empty, null, 600000, 0, 80)),  // 仮: 動力車
-                new TrainCar(new TrainCarMasterElement(1, Guid.Empty, Guid.Empty, null, 0, 10, 60)),   // 貨車
-                new TrainCar(new TrainCarMasterElement(2, Guid.Empty, Guid.Empty, null, 0, 10, 65)),
-                new TrainCar(new TrainCarMasterElement(3, Guid.Empty, Guid.Empty, null, 0, 10, 65)),
-                new TrainCar(new TrainCarMasterElement(4, Guid.Empty, Guid.Empty, null, 0, 10, 60)),
+                TrainTestCarFactory.CreateTrainCar(0, 600000, 0, 80, true),  // 仮: 動力車
+                TrainTestCarFactory.CreateTrainCar(1, 0, 10, 60, true),   // 貨車
+                TrainTestCarFactory.CreateTrainCar(2, 0, 10, 65, true),
+                TrainTestCarFactory.CreateTrainCar(3, 0, 10, 65, true),
+                TrainTestCarFactory.CreateTrainCar(4, 0, 10, 60, true),
             };
             var railNodes = new List<IRailNode> { nodeC, nodeD };
             int totalTrainLength = cars.Sum(car => car.Length);  // 10+20+5+5+10 = 50
@@ -352,8 +352,8 @@ namespace Tests.UnitTest.Game
                 var destination = railComponentsData[7].FrontNode;//目的地をセット
                 var cars = new List<TrainCar>
                 {
-                    new TrainCar(new TrainCarMasterElement(0, Guid.Empty, Guid.Empty, null, 9600000, 0, trainLength)),  // 仮: 動力車まえ
-                    new TrainCar(new TrainCarMasterElement(1, Guid.Empty, Guid.Empty, null, 9600000, 0, 0), isFacingForward: false),  // 仮: 動力車うしろ
+                    TrainTestCarFactory.CreateTrainCar(0, 9600000, 0, trainLength, true),  // 仮: 動力車まえ
+                    TrainTestCarFactory.CreateTrainCar(1, 9600000, 0, 0, false),  // 仮: 動力車うしろ
                 };
                 var trainUnit = new TrainUnit(railPosition, cars);
                 trainUnit.trainDiagram.AddEntry(destination);
@@ -509,7 +509,7 @@ namespace Tests.UnitTest.Game
                 // --- TrainUnit を生成 ---
                 var cars = new List<TrainCar>
                 {
-                    new TrainCar(new TrainCarMasterElement(0, Guid.Empty, Guid.Empty, null, 600000, 0, trainLength)),  // 仮: 動力車
+                    TrainTestCarFactory.CreateTrainCar(0, 600000, 0, trainLength, true),  // 仮: 動力車
                 };
                 var trainUnit = new TrainUnit(railPosition, cars);
 
@@ -586,11 +586,11 @@ namespace Tests.UnitTest.Game
             // 例：5両編成で各車両の長さは 10, 20, 5, 5, 10 (トータル 50)
             var cars = new List<TrainCar>
             {
-                new TrainCar(new TrainCarMasterElement(0, Guid.Empty, Guid.Empty, null, 1000, 0, 10)),  // 仮: 動力車
-                new TrainCar(new TrainCarMasterElement(1, Guid.Empty, Guid.Empty, null, 0, 10, 20)),   // 貨車
-                new TrainCar(new TrainCarMasterElement(2, Guid.Empty, Guid.Empty, null, 0, 10, 5)),
-                new TrainCar(new TrainCarMasterElement(3, Guid.Empty, Guid.Empty, null, 0, 10, 5)),
-                new TrainCar(new TrainCarMasterElement(4, Guid.Empty, Guid.Empty, null, 0, 10, 10)),
+                TrainTestCarFactory.CreateTrainCar(0, 1000, 0, 10, true),  // 仮: 動力車
+                TrainTestCarFactory.CreateTrainCar(1, 0, 10, 20, true),   // 貨車
+                TrainTestCarFactory.CreateTrainCar(2, 0, 10, 5, true),
+                TrainTestCarFactory.CreateTrainCar(3, 0, 10, 5, true),
+                TrainTestCarFactory.CreateTrainCar(4, 0, 10, 10, true),
             };
             int totalTrainLength = cars.Sum(car => car.Length);  // 10+20+5+5+10 = 50
             // --- 3. 初期の RailPosition を用意 ---

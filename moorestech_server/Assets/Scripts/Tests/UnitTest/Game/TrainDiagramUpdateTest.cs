@@ -35,7 +35,7 @@ namespace Tests.UnitTest.Game
 
             var cars = new List<TrainCar>
             {
-                new TrainCar(new TrainCarMasterElement(0, Guid.Empty, Guid.Empty, null, 1000, 0, 0))
+                TrainTestCarFactory.CreateTrainCar(0, 1000, 0, 0, true)
             };
 
             var railNodes = new List<IRailNode> { startNode };
