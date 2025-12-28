@@ -2,6 +2,7 @@ using Game.Train.Common;
 using Game.Train.RailGraph;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Game.Train.Train
 {
@@ -313,6 +314,29 @@ namespace Game.Train.Train
                 return false;
             }
         }
+
+        public TrainDiagramSaveData CreateTrainDiagramSaveData()
+        {
+            var entries = new List<TrainDiagramEntrySaveData>();
+            foreach (var entry in this.Entries)
+            {
+                entries.Add(new TrainDiagramEntrySaveData
+                {
+                    EntryId = entry.entryId,
+                    Node = entry.Node.ConnectionDestination,
+                    DepartureConditions = entry.DepartureConditionTypes?.ToList() ?? new List<TrainDiagram.DepartureConditionType>(),
+                    WaitForTicksInitial = entry.GetWaitForTicksInitialTicks(),
+                    WaitForTicksRemaining = entry.GetWaitForTicksRemainingTicks()
+                });
+            }
+
+            return new TrainDiagramSaveData
+            {
+                CurrentIndex = this.CurrentIndex,
+                Entries = entries
+            };
+        }
+
 
         public sealed class DiagramEntry
         {
