@@ -7,6 +7,7 @@ using Game.Train.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks.Sources;
 using static Game.Train.Train.TrainMotionParameters;
 
 namespace Game.Train.Train
@@ -386,7 +387,7 @@ namespace Game.Train.Train
         //列車編成を保存する。ブロックとは違うことに注意
         public TrainUnitSaveData CreateSaveData()
         {
-            var railSnapshot = new List<ConnectionDestination>(_railPosition.CreateSaveSnapshot());
+            var railpositionSnapshot = _railPosition.CreateSaveSnapshot();
 
             var carStates = new List<TrainCarSaveData>(); 
             foreach (var car in _cars)
@@ -399,9 +400,7 @@ namespace Game.Train.Train
 
             return new TrainUnitSaveData
             {
-                TrainLength = _railPosition.TrainLength,
-                DistanceToNextNode = _railPosition.DistanceToNextNode,
-                RailSnapshot = railSnapshot,
+                railPositionSaveData = railpositionSnapshot,
                 IsAutoRun = _isAutoRun,
                 PreviousEntryGuid = _previousEntryGuid,
                 CurrentSpeedBits = BitConverter.DoubleToInt64Bits(_currentSpeed),
@@ -453,15 +452,16 @@ namespace Game.Train.Train
             if (saveData == null)
                 return null;
 
-            var nodes = RestoreRailNodes(saveData.RailSnapshot);
+            var railPosData = saveData.railPositionSaveData;
+            var nodes = RestoreRailNodes(railPosData.RailSnapshot);
             if (nodes.Count == 0)
                 return null;
 
-            var trainLength = saveData.TrainLength;
+            var trainLength = railPosData.TrainLength;
             if (trainLength < 0)
                 trainLength = 0;
 
-            var distanceToNextNode = saveData.DistanceToNextNode;
+            var distanceToNextNode = railPosData.DistanceToNextNode;
             if (distanceToNextNode < 0)
                 distanceToNextNode = 0;
 

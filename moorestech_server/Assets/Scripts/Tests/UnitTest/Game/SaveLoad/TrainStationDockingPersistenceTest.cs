@@ -82,7 +82,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var train = scenario.CreateForwardDockingTrain(out _);
             train.trainUnitStationDocking.TryDockWhenStopped();
 
-            var railSnapshotCount = train.RailPosition.CreateSaveSnapshot().Count();
+            var railSnapshotCount = train.RailPosition.CreateSaveSnapshot().RailSnapshot.Count;
             Assert.Greater(railSnapshotCount, 0, "保存前のRailSnapshotが空です。");
 
             var mutation = SaveLoadJsonTestHelper.CreateMutation(scenario.Environment.ServiceProvider);
