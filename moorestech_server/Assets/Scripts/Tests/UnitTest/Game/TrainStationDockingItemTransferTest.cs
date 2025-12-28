@@ -47,7 +47,7 @@ namespace Tests.UnitTest.Game
             var exitNode = railSaver.RailComponents[1].FrontNode;
             Assert.IsNotNull(exitNode, "駅の出口ノードを取得できませんでした。");
 
-            var stationSegmentLength = entryNode!.GetDistanceToNode(exitNode!);
+            var stationSegmentLength = stationBlock!.BlockPositionInfo.BlockSize.z;
             Assert.Greater(stationSegmentLength, 0, "駅セグメントの長さが0以下になっています。");
 
             var railNodes = new List<IRailNode> { exitNode, entryNode };
@@ -105,7 +105,7 @@ namespace Tests.UnitTest.Game
             var exitNode = railSaver.RailComponents[1].FrontNode;
             Assert.IsNotNull(exitNode, "貨物プラットフォームの出口ノードを取得できませんでした。");
 
-            var platformSegmentLength = entryNode!.GetDistanceToNode(exitNode!);
+            var platformSegmentLength = cargoPlatformBlock!.BlockPositionInfo.BlockSize.z;
             Assert.Greater(platformSegmentLength, 0, "貨物プラットフォームセグメントの長さが0以下になっています。");
 
             var railNodes = new List<IRailNode> { exitNode, entryNode };
@@ -164,7 +164,7 @@ namespace Tests.UnitTest.Game
             var exitNode = railSaver.RailComponents[1].FrontNode;
             Assert.IsNotNull(exitNode, "貨物プラットフォームの出口ノードを取得できませんでした。");
 
-            var platformSegmentLength = entryNode!.GetDistanceToNode(exitNode!);
+            var platformSegmentLength = cargoPlatformBlock!.BlockPositionInfo.BlockSize.z;
             Assert.Greater(platformSegmentLength, 0, "貨物プラットフォームセグメントの長さが0以下になっています。");
 
             var railNodes = new List<IRailNode> { exitNode, entryNode };
@@ -220,7 +220,7 @@ namespace Tests.UnitTest.Game
             Assert.IsNotNull(entryNode, "駅の入口ノードを取得できませんでした。");
             Assert.IsNotNull(exitNode, "駅の出口ノードを取得できませんでした。");
 
-            var stationSegmentLength = entryNode!.GetDistanceToNode(exitNode!);
+            var stationSegmentLength = stationBlock!.BlockPositionInfo.BlockSize.z;
             Assert.Greater(stationSegmentLength, 0, "駅セグメントの長さが0以下になっています。");
 
             var maxStack = MasterHolder.ItemMaster.GetItemMaster(ForUnitTestItemId.ItemId1).MaxStack;

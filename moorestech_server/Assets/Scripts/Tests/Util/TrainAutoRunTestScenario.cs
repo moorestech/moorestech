@@ -53,7 +53,7 @@ namespace Tests.Util
         {
             var environment = TrainTestHelper.CreateEnvironment();
 
-            var (_, railSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+            var (stationBlock, railSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
                 environment,
                 ForUnitTestModBlockId.TestTrainCargoPlatform,
                 Vector3Int.zero,
@@ -77,12 +77,16 @@ namespace Tests.Util
                 BlockDirection.South);
             var n2 = r2Saver.RailComponents[0].FrontNode;
 
+            Assert.IsNotNull(stationBlock, "Station block is missing");
             Assert.IsNotNull(railSaver, "RailSaverComponent is missing");
             Assert.IsNotNull(n0, "node0 is missing");
             Assert.IsNotNull(n1, "node1 is missing");
             Assert.IsNotNull(n2, "node2 is missing");
 
-            var stationNodes = ExtractStationNodes(railSaver!);
+            var stationBlockLength = stationBlock!.BlockPositionInfo.BlockSize.z;
+            Assert.Greater(stationBlockLength, 0, "Station block size Z must be positive");
+
+            var stationNodes = ExtractStationNodes(stationBlock, railSaver!);
 
             n0.ConnectNode(stationNodes.EntryFront,9876543);
             stationNodes.ExitFront.ConnectNode(n1, 123456);
@@ -93,7 +97,7 @@ namespace Tests.Util
             var initialDistance = startRunning ? stationNodes.SegmentLength - 1 : 0;
             var railPosition = new RailPosition(initialRailNodes, stationNodes.SegmentLength, initialDistance);
 
-            var trainCar = TrainTestCarFactory.CreateTrainCar(0, 1000, 1, stationNodes.SegmentLength, true);
+            var trainCar = TrainTestCarFactory.CreateTrainCar(0, 1000, 1, stationNodes.BlockLength, true);
             var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar });
 
             trainUnit.trainDiagram.AddEntry(stationNodes.ExitFront);
@@ -121,10 +125,16 @@ namespace Tests.Util
             trainUnit.TurnOnAutoRun();
             Assert.IsTrue(trainUnit.IsAutoRun, "Train should be in auto-run mode.");
 
-            var updateCount = startRunning ? 6 : 1;
-            for (var i = 0; i < updateCount; i++)
+            var updateIterations = startRunning ? Mathf.Max(16, stationNodes.SegmentLength * 8) : 1;
+            var undocked = !startRunning;
+            for (var i = 0; i < updateIterations; i++)
             {
                 trainUnit.Update();
+                if (startRunning && !trainUnit.trainUnitStationDocking.IsDocked)
+                {
+                    undocked = true;
+                    break;
+                }
             }
 
             if (!startRunning)
@@ -134,6 +144,7 @@ namespace Tests.Util
             }
             else
             {
+                Assert.IsTrue(undocked, "Running scenario should represent a train that has departed the station.");
                 Assert.IsFalse(trainUnit.trainUnitStationDocking.IsDocked,
                     "Running scenario should represent a train that has departed the station.");
                 Assert.AreSame(stationNodes.ExitFront, trainUnit.trainDiagram.GetCurrentNode(),
@@ -156,30 +167,7 @@ namespace Tests.Util
             _disposed = true;
         }
 
-        private readonly struct StationNodeSet
-        {
-            public StationNodeSet(
-                RailNode exitFront,
-                RailNode entryFront,
-                RailNode exitBack,
-                RailNode entryBack,
-                int segmentLength)
-            {
-                ExitFront = exitFront;
-                EntryFront = entryFront;
-                ExitBack = exitBack;
-                EntryBack = entryBack;
-                SegmentLength = segmentLength;
-            }
-
-            public RailNode ExitFront { get; }
-            public RailNode EntryFront { get; }
-            public RailNode ExitBack { get; }
-            public RailNode EntryBack { get; }
-            public int SegmentLength { get; }
-        }
-
-        private static StationNodeSet ExtractStationNodes(RailSaverComponent railSaver)
+        private static StationNodeSet ExtractStationNodes(IBlock stationBlock, RailSaverComponent railSaver)
         {
             var nodeInfos = railSaver.RailComponents
                 .SelectMany(component => new[]
@@ -212,8 +200,9 @@ namespace Tests.Util
 
             var segmentLength = entryFront!.GetDistanceToNode(exitFront!);
             Assert.Greater(segmentLength, 0, "Station segment length must be positive");
-
-            return new StationNodeSet(exitFront!, entryFront!, exitBack!, entryBack!, segmentLength);
+            var blockLength = stationBlock.BlockPositionInfo.BlockSize.z;
+            Assert.Greater(blockLength, 0, "Station block size Z must be positive");
+            return new StationNodeSet(exitFront!, entryFront!, exitBack!, entryBack!, segmentLength, blockLength);
         }
     }
 }

@@ -64,7 +64,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             stationA.ExitComponent.ConnectRailComponent(stationB.EntryComponent, true, true, TransitSegmentLength);
             stationB.ExitComponent.ConnectRailComponent(stationA.EntryComponent, true, true, TransitSegmentLength);
 
-            var stationSegmentLength = stationA.EntryFront.GetDistanceToNode(stationA.ExitFront);
+            var stationSegmentLength = stationABlock!.BlockPositionInfo.BlockSize.z;
 
             Assert.IsTrue(stationABlock!.ComponentManager.TryGetComponent<IBlockInventory>(out var inventoryA),
                 "Station A のインベントリ取得に失敗しました。");
