@@ -199,22 +199,26 @@ namespace InGame.Train.Rail
 
         private Quaternion BuildAxisRotation() => GetAxisRotation(_forwardAxis, _upAxis);
 
-        private Quaternion BuildCurveRotation(Vector3 tangent)
-        {
-            var f = tangent.sqrMagnitude > 1e-6f ? tangent.normalized : Vector3.forward;
-            var up = Vector3.up;
-
-            if (Mathf.Abs(Vector3.Dot(f, up)) > 0.999f)
-            {
-                up = Vector3.Cross(f, Vector3.right);
-                if (up.sqrMagnitude < 1e-6f)
-                    up = Vector3.Cross(f, Vector3.up);
-                up.Normalize();
-            }
-
-            return Quaternion.LookRotation(f, up);
-        }
-
+        private Quaternion BuildCurveRotation(Vector3 tangent)
+        {
+            var forward = tangent.sqrMagnitude > 1e-6f ? tangent.normalized : Vector3.forward;
+            var horizontal = new Vector3(forward.x, 0f, forward.z);
+
+            // レール姿勢をヨー→ピッチの順に構築してローリングを抑制
+            // Build yaw first then pitch to keep rails upright without roll
+            if (horizontal.sqrMagnitude < 1e-6f)
+            {
+                var angle = forward.y >= 0f ? 90f : -90f;
+                return Quaternion.AngleAxis(angle, Vector3.right);
+            }
+
+            var yawRotation = Quaternion.LookRotation(horizontal.normalized, Vector3.up);
+            var invYaw = Quaternion.Inverse(yawRotation);
+            var localForward = invYaw * forward;
+            var pitchAngle = Mathf.Atan2(localForward.y, Mathf.Max(1e-6f, localForward.z)) * Mathf.Rad2Deg;
+            return yawRotation * Quaternion.AngleAxis(pitchAngle, Vector3.right);
+        }
+
         private bool BuildArcLengthTable()
         {
             _curveLength = BezierUtility.BuildArcLengthTable(_point0, _point1, _point2, _point3, _curveSamples, ref _arcLengths);

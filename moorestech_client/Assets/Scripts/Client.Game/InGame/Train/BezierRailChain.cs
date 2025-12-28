@@ -3,18 +3,17 @@ using Game.Train.Utility;
 using UnityEngine;
 
 /// <summary>
-/// 1つのベジエ曲線上に3Dレールfbxを複製し敷き詰める。これは親
-/// BezierRailMesh を複数子オブジェクトとして持つ。
+/// 1本のベジエ曲線上にFBXレールモジュールを並べる親オブジェクト
+/// Hosts multiple BezierRailMesh segments under a single spline definition
 /// </summary>
 namespace InGame.Train.Rail
 {
     public class BezierRailChain : MonoBehaviour
     {
-        [SerializeField] private Mesh _moduleMesh;
-        [SerializeField] private Mesh _halfModuleMesh;
-        [SerializeField] private Mesh _quarterModuleMesh;
-        [SerializeField] private Mesh _eighthModuleMesh;
-        [SerializeField] private Material[] _materials;
+        [SerializeField] private GameObject _modulePrefab;
+        [SerializeField] private GameObject _halfModulePrefab;
+        [SerializeField] private GameObject _quarterModulePrefab;
+        [SerializeField] private GameObject _eighthModulePrefab;
 
         private Vector3 _point0 = new(0f, 0f, 0f);
         private Vector3 _point1 = new(0f, 0f, 2f);
@@ -24,9 +23,9 @@ namespace InGame.Train.Rail
         [SerializeField] private Vector3 _upAxis = Vector3.up;
         private int _curveSamples = 64;
 
-        private readonly List<BezierRailMesh> _segments = new();
+        private readonly List<SegmentInstance> _segments = new();
 
-        /// <summary>外部コードから制御点を設定し直す。</summary>
+        /// <summary>外部コードから制御点を再設定する</summary>
         public void SetControlPoints(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3)
         {
             _point0 = p0;
@@ -37,11 +36,13 @@ namespace InGame.Train.Rail
 
         public void Rebuild()
         {
+            // ベジエチェーンを最新情報で組み直す
+            // Rebuild full chain along the current control points
             ClearSegmentsImmediate();
-            if (_moduleMesh == null)
+            if (_modulePrefab == null)
                 return;
 
-            var moduleLength = BezierRailMesh.CalculateModuleLength(_moduleMesh, _forwardAxis, _upAxis);
+            var moduleLength = GetModuleLength(_modulePrefab, 0f);
             if (moduleLength <= 0f)
                 return;
 
@@ -49,15 +50,13 @@ namespace InGame.Train.Rail
             if (curveLength <= 1e-4f)
                 return;
 
-            var sharedMaterials = ResolveMaterials();
             var offset = 0f;
             var fullSegmentCount = Mathf.Max(0, Mathf.FloorToInt(curveLength / moduleLength));
 
             for (var i = 0; i < fullSegmentCount; i++)
             {
-                var segment = CreateSegmentGO(i, _moduleMesh, sharedMaterials);
-                segment.ConfigureSegment(offset, moduleLength);
-                segment.Deform();
+                var segment = CreateSegmentGO(i, _modulePrefab);
+                ConfigureSegmentInstance(segment, offset, moduleLength);
                 offset += moduleLength;
             }
 
@@ -66,12 +65,12 @@ namespace InGame.Train.Rail
                 return;
 
             var remainderSteps = Mathf.Clamp(Mathf.RoundToInt(remainder / moduleLength * 8f), 1, 7);
-            var halfLength = GetModuleLength(_halfModuleMesh, moduleLength * 0.5f);
-            var quarterLength = GetModuleLength(_quarterModuleMesh, moduleLength * 0.25f);
-            var eighthLength = GetModuleLength(_eighthModuleMesh, moduleLength * 0.125f);
-            TryCreatePartialSegment(ref remainderSteps, 4, _halfModuleMesh, halfLength, sharedMaterials, ref offset);
-            TryCreatePartialSegment(ref remainderSteps, 2, _quarterModuleMesh, quarterLength, sharedMaterials, ref offset);
-            TryCreatePartialSegment(ref remainderSteps, 1, _eighthModuleMesh, eighthLength, sharedMaterials, ref offset);
+            var halfLength = _halfModulePrefab != null ? GetModuleLength(_halfModulePrefab, moduleLength * 0.5f) : moduleLength * 0.5f;
+            var quarterLength = _quarterModulePrefab != null ? GetModuleLength(_quarterModulePrefab, moduleLength * 0.25f) : moduleLength * 0.25f;
+            var eighthLength = _eighthModulePrefab != null ? GetModuleLength(_eighthModulePrefab, moduleLength * 0.125f) : moduleLength * 0.125f;
+            TryCreatePartialSegment(ref remainderSteps, 4, _halfModulePrefab, halfLength, ref offset);
+            TryCreatePartialSegment(ref remainderSteps, 2, _quarterModulePrefab, quarterLength, ref offset);
+            TryCreatePartialSegment(ref remainderSteps, 1, _eighthModulePrefab, eighthLength, ref offset);
             if (remainderSteps > 0)
             {
                 Debug.LogWarning($"[BezierRailChain] 端数を埋められませんでした (残りステップ:{remainderSteps}). 必要な長さのモジュールが揃っているか確認してください。", this);
@@ -82,6 +81,7 @@ namespace InGame.Train.Rail
         {
             ClearSegmentsImmediate();
         }
+
         private void OnDisable()
         {
             ClearSegmentsImmediate();
@@ -89,84 +89,122 @@ namespace InGame.Train.Rail
 
         private void ClearSegmentsImmediate()
         {
+            // 生成済みセグメントをすべて破棄
+            // Dispose every spawned segment instance
             for (var i = _segments.Count - 1; i >= 0; i--)
-            {
-                if (_segments[i] == null)
-                    continue;
-                DestroySegment(_segments[i].gameObject);
-            }
-
+                DestroySegment(_segments[i]);
             _segments.Clear();
 
-            // 念のため既存の Segment_* を全削除
-            var children = new List<Transform>();
+            var staleChildren = new List<GameObject>();
             foreach (Transform child in transform)
             {
                 if (child != null && child.name.StartsWith("Segment_"))
-                    children.Add(child);
+                    staleChildren.Add(child.gameObject);
             }
 
-            foreach (var child in children)
-                DestroySegment(child.gameObject);
+            foreach (var child in staleChildren)
+                Destroy(child);
         }
 
-        private Material[] ResolveMaterials()
+        private SegmentInstance CreateSegmentGO(int index, GameObject prefab)
         {
-            if (_materials != null && _materials.Length > 0)
-                return _materials;
-            if (TryGetComponent<MeshRenderer>(out var renderer) && renderer.sharedMaterials.Length > 0)
-                return renderer.sharedMaterials;
-            return null;
-        }
-
-        private BezierRailMesh CreateSegmentGO(int index, Mesh mesh, Material[] sharedMaterials)
-        {
-            var child = new GameObject($"Segment_{index}");
-            child.transform.SetParent(transform, false);
-
-            var meshFilter = child.AddComponent<MeshFilter>();
-            meshFilter.sharedMesh = mesh;
-
-            var meshRenderer = child.AddComponent<MeshRenderer>();
-            if (sharedMaterials != null && sharedMaterials.Length > 0)
-                meshRenderer.sharedMaterials = sharedMaterials;
-
-            child.AddComponent<MeshCollider>();
-
-            var segment = child.AddComponent<BezierRailMesh>();
-            segment.SetSourceMesh(mesh);
-            segment.SetControlPoints(_point0, _point1, _point2, _point3);
-            segment.SetAxes(_forwardAxis, _upAxis);
-            segment.SetSamples(_curveSamples);
-            segment.Deform();
+            // レール用プレハブをインスタンス化しBezier変形対象を収集
+            // Instantiate module prefab and collect mesh deformers
+            var segment = new SegmentInstance();
+            var instance = Instantiate(prefab, transform);
+            instance.name = $"Segment_{index}";
+            segment.Root = instance;
+            PrepareMeshComponents(instance, segment);
             _segments.Add(segment);
             return segment;
         }
 
-        private void TryCreatePartialSegment(ref int remainderSteps, int stepValue, Mesh mesh, float segmentLength, Material[] sharedMaterials, ref float offset)
+        private void PrepareMeshComponents(GameObject root, SegmentInstance segment)
         {
-            if (remainderSteps < stepValue || mesh == null)
+            var filters = root.GetComponentsInChildren<MeshFilter>(true);
+            foreach (var filter in filters)
+            {
+                if (filter.sharedMesh == null)
+                    continue;
+
+                var renderer = filter.GetComponent<MeshRenderer>();
+                if (renderer == null)
+                    renderer = filter.gameObject.AddComponent<MeshRenderer>();
+
+                var collider = filter.GetComponent<MeshCollider>();
+                if (collider == null)
+                    collider = filter.gameObject.AddComponent<MeshCollider>();
+                collider.sharedMesh = filter.sharedMesh;
+
+                var meshComponent = filter.GetComponent<BezierRailMesh>();
+                if (meshComponent == null)
+                    meshComponent = filter.gameObject.AddComponent<BezierRailMesh>();
+                meshComponent.SetSourceMesh(filter.sharedMesh);
+                meshComponent.SetControlPoints(_point0, _point1, _point2, _point3);
+                meshComponent.SetAxes(_forwardAxis, _upAxis);
+                meshComponent.SetSamples(_curveSamples);
+                meshComponent.Deform();
+                segment.Meshes.Add(meshComponent);
+            }
+        }
+
+        private void ConfigureSegmentInstance(SegmentInstance segment, float offset, float length)
+        {
+            foreach (var mesh in segment.Meshes)
+            {
+                mesh.SetControlPoints(_point0, _point1, _point2, _point3);
+                mesh.SetAxes(_forwardAxis, _upAxis);
+                mesh.SetSamples(_curveSamples);
+                mesh.ConfigureSegment(offset, length);
+                mesh.Deform();
+            }
+        }
+
+        private void TryCreatePartialSegment(ref int remainderSteps, int stepValue, GameObject prefab, float segmentLength, ref float offset)
+        {
+            if (remainderSteps < stepValue)
                 return;
-            var segment = CreateSegmentGO(_segments.Count, mesh, sharedMaterials);
-            segment.ConfigureSegment(offset, segmentLength);
-            segment.Deform();
+            if (prefab == null)
+                return;
+
+            var segment = CreateSegmentGO(_segments.Count, prefab);
+            ConfigureSegmentInstance(segment, offset, segmentLength);
             offset += segmentLength;
             remainderSteps -= stepValue;
         }
 
-        private float GetModuleLength(Mesh mesh, float fallback)
+        private float GetModuleLength(GameObject prefab, float fallback)
         {
-            if (mesh == null)
+            // プレハブ配下のメッシュ群から長さを計測し、失敗時はフォールバック
+            // Measure prefab span via child meshes and fall back when unavailable
+            if (prefab == null)
                 return fallback;
-            var length = BezierRailMesh.CalculateModuleLength(mesh, _forwardAxis, _upAxis);
-            return length > 1e-4f ? length : fallback;
+
+            float prefabLength = 0f;
+            var filters = prefab.GetComponentsInChildren<MeshFilter>(true);
+            foreach (var filter in filters)
+            {
+                if (filter.sharedMesh == null)
+                    continue;
+                var candidate = BezierRailMesh.CalculateModuleLength(filter.sharedMesh, _forwardAxis, _upAxis);
+                if (candidate > prefabLength)
+                    prefabLength = candidate;
+            }
+
+            return prefabLength > 1e-4f ? prefabLength : fallback;
         }
 
-        private static void DestroySegment(GameObject go)
+        private static void DestroySegment(SegmentInstance segment)
         {
-            if (go == null)
+            if (segment?.Root == null)
                 return;
-            Destroy(go);
+            Destroy(segment.Root);
+        }
+
+        private sealed class SegmentInstance
+        {
+            internal GameObject Root;
+            internal readonly List<BezierRailMesh> Meshes = new();
         }
     }
 }
