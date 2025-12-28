@@ -41,7 +41,7 @@ namespace Client.Game.InGame.UI.UIState.State
         {
             // Rでリサーチツリーへ、Tab/ESCでゲーム画面へ戻る
             // Go to research tree with R, or back to game screen with Tab/ESC
-            if (Input.GetKeyDown(KeyCode.R)) return new UITransitContext(UIStateEnum.ResearchTree);
+            if (UnityEngine.Input.GetKeyDown(KeyCode.R)) return new UITransitContext(UIStateEnum.ResearchTree);
             if (InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.OpenInventory.GetKeyDown) return new UITransitContext(UIStateEnum.GameScreen);
 
             return null;
