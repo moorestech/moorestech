@@ -65,7 +65,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "8a058396-b25c-4e68-b2f9-aa8d6ee45a6c"
             }
           ],
           "inputConnects": [
@@ -100,7 +101,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "080abeca-2b37-444e-87a3-d50590351ab3"
             }
           ]
         },
@@ -210,7 +212,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "ad60ef62-586d-4ff4-bbb4-1edfda53a0dd"
             }
           ],
           "outputConnects": [
@@ -230,7 +233,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "5fac6867-63ff-4f31-a62b-a6b931108303"
             }
           ]
         },
@@ -347,7 +351,8 @@
               "connectOption": {
                 "flowCapacity": 100,
                 "connectTankIndex": 0
-              }
+              },
+              "connectorGuid": "f37ad107-9c69-4507-87c5-cd04a8d0038e"
             }
           ],
           "outflowConnects": []
@@ -440,7 +445,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "468dc4db-04ed-48e0-9042-beb3f7da4833"
             }
           ],
           "inputConnects": []
@@ -510,7 +516,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "88be548e-a716-4cf8-82b2-73b19c26e43f"
             }
           ],
           "inputConnects": [
@@ -545,7 +552,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "1ca38023-b85e-42b2-9d3a-2a790d66e159"
             }
           ]
         }
@@ -619,7 +627,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "c7abe37a-8557-4f91-8d13-dcc6fe040530"
             }
           ],
           "inputConnects": [
@@ -654,7 +663,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "ec036490-8950-43ce-83ec-a187ca56b6bb"
             }
           ]
         },
@@ -746,7 +756,8 @@
                   0,
                   0
                 ]
-              ]
+              ],
+              "connectorGuid": "5678245e-8990-4cb9-93c4-6bebb4ecc8c9"
             }
           ],
           "inputConnects": [
@@ -760,7 +771,8 @@
               "directions": [],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "a30723f8-2d5b-4432-aedf-796b4ed94a0a"
             }
           ]
         },
@@ -834,7 +846,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "2a8fac1e-1754-4cab-9f42-2d5e4787674d"
             },
             {
               "offset": [
@@ -852,7 +865,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "4ad6a93b-25a7-4cb7-a40f-3526c0f07a5b"
             }
           ],
           "inputConnects": []
@@ -942,7 +956,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "9b64cf43-42ad-4260-ab34-7080b34162de"
             }
           ],
           "inputConnects": [
@@ -956,7 +971,8 @@
               "directions": [],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "8239fac3-9326-434e-a599-1c72746d2dd2"
             }
           ]
         },
@@ -1046,7 +1062,8 @@
                   -1,
                   0
                 ]
-              ]
+              ],
+              "connectorGuid": "a0af84fd-5cc9-4a4d-b756-81521d93d77b"
             },
             {
               "offset": [
@@ -1069,7 +1086,8 @@
               "connectType": "Gear",
               "connectOption": {
                 "isReverse": false
-              }
+              },
+              "connectorGuid": "f2a52ab6-299d-4da8-a3b5-dd9877ad8a49"
             }
           ]
         }
@@ -1129,7 +1147,8 @@
                   0,
                   1
                 ]
-              ]
+              ],
+              "connectorGuid": "a9f87ea0-c370-49a6-a2a5-6f8732fcc52a"
             },
             {
               "offset": [
@@ -1147,7 +1166,8 @@
               "connectType": "Gear",
               "connectOption": {
                 "isReverse": true
-              }
+              },
+              "connectorGuid": "23a400fb-03c8-418d-94e9-a1b9c431f0ef"
             },
             {
               "offset": [
@@ -1165,7 +1185,8 @@
               "connectType": "Gear",
               "connectOption": {
                 "isReverse": true
-              }
+              },
+              "connectorGuid": "fb63936c-5bea-4ce5-83f5-1e428e1def52"
             },
             {
               "offset": [
@@ -1183,7 +1204,8 @@
                   1,
                   0
                 ]
-              ]
+              ],
+              "connectorGuid": "9f9851a6-3c1a-49cc-bff2-223e1458af44"
             },
             {
               "offset": [
@@ -1201,7 +1223,8 @@
               "connectType": "Gear",
               "connectOption": {
                 "isReverse": true
-              }
+              },
+              "connectorGuid": "2c81aa70-b156-4812-980a-6e9c3fc15cc5"
             }
           ]
         },
@@ -1264,7 +1287,8 @@
                   0,
                   1
                 ]
-              ]
+              ],
+              "connectorGuid": "aa9ff63e-efb6-459f-a710-14490e1d49ed"
             }
           ]
         },
@@ -1338,7 +1362,8 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectorGuid": "e0f629c1-18c1-4085-ad94-1cea75b6de57"
             }
           ]
         }
@@ -1403,7 +1428,8 @@
                   0,
                   1
                 ]
-              ]
+              ],
+              "connectorGuid": "2f361fae-dd67-462a-ae39-6268fb973d8b"
             }
           ]
         },
@@ -1440,7 +1466,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "838aab51-8e04-4d78-b7ff-bdbf4739350a"
             }
           ],
           "inputConnects": [
@@ -1475,7 +1502,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "a1f379e7-61e6-497b-b342-504536d2ddf7"
             }
           ]
         },
@@ -1561,7 +1589,8 @@
                   0,
                   0
                 ]
-              ]
+              ],
+              "connectorGuid": "6b34488c-1de8-459e-a11c-f36c436673f6"
             }
           ]
         },
@@ -1639,7 +1668,8 @@
                   0,
                   0
                 ]
-              ]
+              ],
+              "connectorGuid": "ddbbd42d-e8b6-41f6-8836-c63f2c9b8f63"
             }
           ]
         },
@@ -1713,7 +1743,8 @@
                   -1,
                   0
                 ]
-              ]
+              ],
+              "connectorGuid": "5fba294f-51ae-4ffd-8326-c89144ba3663"
             },
             {
               "offset": [
@@ -1736,7 +1767,8 @@
               "connectType": "Gear",
               "connectOption": {
                 "isReverse": false
-              }
+              },
+              "connectorGuid": "2ebcab1f-91b7-422a-ab02-b58cde6fa959"
             }
           ]
         },
@@ -1811,7 +1843,8 @@
                   -1,
                   0
                 ]
-              ]
+              ],
+              "connectorGuid": "b2700339-4db0-42bf-be4c-1c8966672788"
             },
             {
               "offset": [
@@ -1834,7 +1867,8 @@
               "connectType": "Gear",
               "connectOption": {
                 "isReverse": false
-              }
+              },
+              "connectorGuid": "42474ad9-bf31-4977-a775-0749b9c88ea0"
             }
           ]
         },
@@ -1909,7 +1943,8 @@
                   0,
                   0
                 ]
-              ]
+              ],
+              "connectorGuid": "d694e587-5c49-49d0-87d6-eff36b7f316d"
             }
           ]
         },
@@ -1957,7 +1992,8 @@
                   0,
                   0
                 ]
-              ]
+              ],
+              "connectorGuid": "37429f01-2c6d-4127-88cc-72c0bca3d7a5"
             }
           ]
         },
@@ -1994,7 +2030,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "fe0a5448-fe61-42f0-971a-663a9cdf9898"
             }
           ],
           "outputConnects": [
@@ -2014,7 +2051,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "1709fb50-ae95-432f-981c-7f8aa37e3ecf"
             }
           ]
         },
@@ -2081,7 +2119,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "88325939-0fa0-42ed-b2a7-5cbfa554beba"
             }
           ],
           "inputConnects": [
@@ -2116,7 +2155,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "ac1c3820-cfba-41d8-a55a-e7f8cc9b6f39"
             }
           ]
         },
@@ -2179,7 +2219,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "68f4157e-8d61-4d09-acb7-5d0d025ccaa6"
             }
           ],
           "inputConnects": [
@@ -2199,7 +2240,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "bd636660-67bd-48b6-854e-b0662af0e382"
             }
           ]
         },
@@ -2257,7 +2299,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "1263b5d3-8cab-4afb-93fd-39edfa134061"
             }
           ],
           "inputConnects": [
@@ -2282,7 +2325,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "5af2564e-9935-4c5d-b1a2-3b84570d1598"
             }
           ]
         },
@@ -2349,7 +2393,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "83d0d282-7b5c-4d8a-9194-865c6b8f5b2c"
             }
           ],
           "inputConnects": [
@@ -2384,7 +2429,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "e744ddb8-164d-4425-8d56-481847ed37ab"
             }
           ]
         },
@@ -2411,7 +2457,8 @@
                   0,
                   0
                 ]
-              ]
+              ],
+              "connectorGuid": "f1438662-ca05-4bd4-be7e-3daa28dc55c6"
             }
           ]
         },
@@ -2490,7 +2537,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "7e023c0f-3e8e-4f91-934f-1377865c6ae2"
             }
           ],
           "inputConnects": [
@@ -2525,7 +2573,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "0f85d76f-8103-4501-914a-280479d8092a"
             }
           ]
         },
@@ -2609,7 +2658,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "c8f6c4bd-56b9-4b36-ac79-9b5fcb0c5c01"
             }
           ],
           "inputConnects": [
@@ -2644,7 +2694,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "80a0ed8f-2875-47c9-91cb-6f4dab019436"
             }
           ]
         },
@@ -2728,7 +2779,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "630500a0-8082-4f6d-9837-2f548d4906df"
             }
           ],
           "inputConnects": [
@@ -2763,7 +2815,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "2cb6986f-99dd-44ee-b6b4-c5bbee6f57ad"
             }
           ]
         },
@@ -2811,7 +2864,8 @@
                   0,
                   1
                 ]
-              ]
+              ],
+              "connectorGuid": "9894ec52-98f4-41b4-8eec-c034f012e213"
             }
           ]
         },
@@ -2848,7 +2902,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "4427b154-c69e-4a64-b1d6-b549cd0b0415"
             }
           ],
           "inputConnects": []
@@ -2920,7 +2975,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "6f762798-90ba-4675-ac77-dc15b1d8a1b5"
             }
           ],
           "outputConnects": [
@@ -2950,7 +3006,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "98ff52f0-8ff1-44a8-b370-b33bffd22665"
             }
           ]
         }
@@ -3003,7 +3060,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "68d1c2e0-d920-46a9-9621-c4d8ee96732b"
             }
           ],
           "inputConnects": [
@@ -3038,7 +3096,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "6be00294-ad9a-414a-8e35-9f0ebc30473f"
             }
           ]
         }
@@ -3090,7 +3149,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "c8e881ad-d7fc-4f2f-87b4-c89622698042"
             }
           ],
           "inputConnects": [
@@ -3125,7 +3185,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "4fa1d6e5-f5eb-4ec5-a565-309952d09111"
             }
           ]
         }
@@ -3177,7 +3238,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "a7962ed4-1d0a-4c0b-9f59-f3c9775a9657"
             }
           ],
           "inputConnects": [
@@ -3212,7 +3274,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "e7c2c0e2-fa8c-4361-a9f5-945ab57864f1"
             }
           ]
         }
@@ -3269,7 +3332,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "6f8f08f0-964e-4a59-9cde-8f4636d08937"
             }
           ],
           "outputConnects": [
@@ -3289,7 +3353,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "a937e2f0-190a-4b43-9199-5cea534d1910"
             }
           ]
         }
@@ -3348,7 +3413,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "a15b2f42-aa6a-4cd6-b347-d6a85e19c4f5"
             }
           ],
           "inputConnects": [
@@ -3383,7 +3449,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "13ee34c2-fca6-4c65-90d7-8ed3456b5b8a"
             }
           ]
         },
@@ -3449,7 +3516,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "12fdd8b3-3688-4472-80b9-43b5c4f7f6f5"
             }
           ],
           "inputConnects": [
@@ -3484,7 +3552,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "24ee9b6a-96a5-4fdd-8ea5-e5b4b8a1fd52"
             }
           ]
         },
@@ -3551,7 +3620,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "22a9b566-22f7-49fc-b109-266b29eb857e"
             }
           ],
           "outputConnects": [
@@ -3571,7 +3641,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "97ce2996-5357-4728-be3b-b9181ddcbfad"
             }
           ]
         },
@@ -3622,7 +3693,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "e30dff89-02d3-49fb-84db-5a326195953e"
             }
           ],
           "outputConnects": [
@@ -3642,7 +3714,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "2fdecf93-e281-481b-9d21-457cc1fc67d1"
             }
           ]
         },
@@ -3733,7 +3806,8 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectorGuid": "65a9891c-1a16-40ca-9129-2145c87b0fc4"
             }
           ]
         },
@@ -3796,7 +3870,8 @@
               "connectOption": {
                 "flowCapacity": 10,
                 "connectTankIndex": 0
-              }
+              },
+              "connectorGuid": "55683bbe-e1b6-4740-a07c-b084bb7df1b5"
             }
           ],
           "outflowConnects": [
@@ -3842,7 +3917,8 @@
               "connectOption": {
                 "flowCapacity": 10,
                 "connectTankIndex": 0
-              }
+              },
+              "connectorGuid": "ad91432e-e60a-42df-abe1-3f4cea2588ec"
             }
           ]
         },
@@ -3880,7 +3956,8 @@
               "connectOption": {
                 "flowCapacity": 10,
                 "connectTankIndex": 0
-              }
+              },
+              "connectorGuid": "8078e4cf-78c3-4506-9747-9e5ba4899a8e"
             }
           ],
           "outflowConnects": [
@@ -3901,7 +3978,8 @@
               "connectOption": {
                 "flowCapacity": 10,
                 "connectTankIndex": 0
-              }
+              },
+              "connectorGuid": "d0c72f65-4696-41aa-bb60-606e0ab3c559"
             }
           ]
         },
@@ -3957,7 +4035,8 @@
               "connectOption": {
                 "flowCapacity": 10,
                 "connectTankIndex": 0
-              }
+              },
+              "connectorGuid": "6b44fe4f-9026-4b72-a400-13f6ba4635bd"
             },
             {
               "offset": [
@@ -3976,7 +4055,8 @@
               "connectOption": {
                 "flowCapacity": 10,
                 "connectTankIndex": 1
-              }
+              },
+              "connectorGuid": "050bdab8-0310-4de3-9bc5-85b885086095"
             },
             {
               "offset": [
@@ -3995,7 +4075,8 @@
               "connectOption": {
                 "flowCapacity": 10,
                 "connectTankIndex": 2
-              }
+              },
+              "connectorGuid": "c1b89bde-3465-479f-b2bd-6be3fa33c7c1"
             }
           ],
           "outflowConnects": [
@@ -4016,7 +4097,8 @@
               "connectOption": {
                 "flowCapacity": 10,
                 "connectTankIndex": 0
-              }
+              },
+              "connectorGuid": "b9b34d38-d5b5-4e80-9cfe-0ec38ba35f12"
             },
             {
               "offset": [
@@ -4035,7 +4117,8 @@
               "connectOption": {
                 "flowCapacity": 10,
                 "connectTankIndex": 1
-              }
+              },
+              "connectorGuid": "48ad1f5f-6774-40de-af05-caad0648121c"
             }
           ]
         },
@@ -4115,7 +4198,8 @@
               "connectOption": {
                 "flowCapacity": 10,
                 "connectTankIndex": 0
-              }
+              },
+              "connectorGuid": "f5220db3-5e4b-4f6e-898b-dec2a6000786"
             }
           ],
           "outflowConnects": [
@@ -4161,7 +4245,8 @@
               "connectOption": {
                 "flowCapacity": 10,
                 "connectTankIndex": 0
-              }
+              },
+              "connectorGuid": "b79b345c-7b6b-4a0b-89b3-df0f5a2f4796"
             }
           ]
         },
@@ -4348,7 +4433,8 @@
               "connectOption": {
                 "flowCapacity": 100,
                 "connectTankIndex": 0
-              }
+              },
+              "connectorGuid": "9f6d9ca1-44a3-4552-865a-0a4fb75a336c"
             }
           ],
           "inflowConnects": []
@@ -4386,7 +4472,8 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectorGuid": "8202789d-390c-4d4b-b2ef-ffe1a3c7fc9e"
             }
           ]
         },
@@ -4458,7 +4545,8 @@
               "connectOption": {
                 "flowCapacity": 100,
                 "connectTankIndex": 0
-              }
+              },
+              "connectorGuid": "e33b1e10-8986-46e4-b041-d04025d6a7d8"
             }
           ],
           "inflowConnects": []
@@ -4515,7 +4603,8 @@
                   0,
                   0
                 ]
-              ]
+              ],
+              "connectorGuid": "72231375-1dcb-4af7-8314-9eaa783116e9"
             }
           ]
         },

@@ -77,9 +77,10 @@ namespace Game.Block.Blocks.Machine
             var connectedFluids = _fluidConnector.ConnectedTargets;
             foreach (var (fluidInventory, info) in connectedFluids)
             {
-                // SelfOption（自分側）のConnectTankIndexを取得
+                // SelfConnector（自分側）のConnectTankIndexを取得
+                // Get ConnectTankIndex from SelfConnector
                 var tankIndex = -1;
-                if (info.SelfOption is FluidConnectOption selfOption)
+                if (info.SelfConnector?.ConnectOption is FluidConnectOption selfOption)
                 {
                     tankIndex = selfOption.ConnectTankIndex;
                 }
@@ -116,7 +117,8 @@ namespace Game.Block.Blocks.Machine
         private double GetFlowRate(ConnectedInfo info)
         {
             // 接続情報から流量を取得
-            if (info.SelfOption is FluidConnectOption fluidOption)
+            // Get flow rate from connection info
+            if (info.SelfConnector?.ConnectOption is FluidConnectOption fluidOption)
             {
                 return fluidOption.FlowCapacity;
             }
@@ -167,7 +169,8 @@ namespace Game.Block.Blocks.Machine
                     if (pipeContainer == source)
                     {
                         // ターゲット側（自分側）のConnectOptionからConnectTankIndexを取得
-                        if (info.TargetOption is FluidConnectOption targetOption)
+                        // Get ConnectTankIndex from TargetConnector
+                        if (info.TargetConnector?.ConnectOption is FluidConnectOption targetOption)
                         {
                             return targetOption.ConnectTankIndex;
                         }

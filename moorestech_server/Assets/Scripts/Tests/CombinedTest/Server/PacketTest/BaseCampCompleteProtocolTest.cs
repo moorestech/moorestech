@@ -39,7 +39,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 必要なアイテムを納品
             var requiredItemId = new ItemId(1);
             var requiredAmount = 10; // BaseCamp1は10個必要
-            baseCampInventory.InsertItem(itemStackFactory.Create(requiredItemId, requiredAmount));
+            baseCampInventory.InsertItem(itemStackFactory.Create(requiredItemId, requiredAmount), InsertItemContext.Empty);
             
             // 納品完了を確認
             Assert.IsTrue(baseCampComponent.IsCompleted());

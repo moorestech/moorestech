@@ -162,11 +162,11 @@ namespace Tests.CombinedTest.Core
             
             // 正しくオプションが読み込まれているかのテスト
             // Test if the options are read correctly
-            var option0 = connect0.Value.SelfOption as FluidConnectOption;
+            var option0 = connect0.Value.SelfConnector?.ConnectOption as FluidConnectOption;
             Assert.IsNotNull(option0);
             Assert.AreEqual(10, option0.FlowCapacity);
-            
-            var option1 = connect0.Value.SelfOption as FluidConnectOption;
+
+            var option1 = connect0.Value.SelfConnector?.ConnectOption as FluidConnectOption;
             Assert.IsNotNull(option1);
             Assert.AreEqual(10, option1.FlowCapacity);
         }
@@ -195,7 +195,7 @@ namespace Tests.CombinedTest.Core
             {
                 // 出力
                 var connect = oneWayFluidPipeConnector.ConnectedTargets[fluidPipe1];
-                var selfOption = connect.SelfOption as FluidConnectOption;
+                var selfOption = connect.SelfConnector?.ConnectOption as FluidConnectOption;
                 Assert.NotNull(selfOption);
             }
             {

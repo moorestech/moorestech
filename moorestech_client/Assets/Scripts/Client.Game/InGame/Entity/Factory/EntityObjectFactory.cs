@@ -21,7 +21,7 @@ namespace Client.Game.InGame.Entity.Factory
         {
             _factoryMap = new Dictionary<string, IEntityObjectFactory>();
             _factoryMap.Add(VanillaEntityType.VanillaTrain, new TrainEntityObjectFactory());
-            _factoryMap.Add(VanillaEntityType.VanillaItem, new ItemEntityObjectFactory());
+            _factoryMap.Add(VanillaEntityType.VanillaItem, new BeltConveyorItemEntityObjectFactory());
         }
         
         public async UniTask<IEntityObject> CreateEntity(Transform parent, EntityResponse entity)
@@ -35,4 +35,3 @@ namespace Client.Game.InGame.Entity.Factory
         }
     }
 }
-

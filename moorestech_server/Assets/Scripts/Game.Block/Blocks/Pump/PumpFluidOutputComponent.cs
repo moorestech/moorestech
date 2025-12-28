@@ -77,7 +77,7 @@ namespace Game.Block.Blocks.Pump
 
         private static double GetFlowRate(ConnectedInfo info)
         {
-            if (info.SelfOption is FluidConnectOption option)
+            if (info.SelfConnector?.ConnectOption is FluidConnectOption option)
             {
                 return option.FlowCapacity;
             }

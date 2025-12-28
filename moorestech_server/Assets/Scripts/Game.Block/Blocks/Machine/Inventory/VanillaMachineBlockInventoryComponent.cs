@@ -42,10 +42,16 @@ namespace Game.Block.Blocks.Machine.Inventory
         public IItemStack InsertItem(IItemStack itemStack)
         {
             BlockException.CheckDestroy(this);
-            
-            //アイテムをインプットスロットに入れた後、プロセス開始できるなら開始
+
+            // アイテムをインプットスロットに入れた後、プロセス開始できるなら開始
+            // Insert item into input slot, then start process if possible
             var item = _vanillaMachineInputInventory.InsertItem(itemStack);
             return item;
+        }
+
+        public IItemStack InsertItem(IItemStack itemStack, InsertItemContext context)
+        {
+            return InsertItem(itemStack);
         }
         
         public IItemStack InsertItem(ItemId itemId, int count)

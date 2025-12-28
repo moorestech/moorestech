@@ -171,11 +171,11 @@ namespace Game.Block.Blocks.Fluid
         /// </summary>
         private double GetMaxFlowRateFromConnection(ConnectedInfo connectedInfo)
         {
-            var selfOption = connectedInfo.SelfOption as FluidConnectOption;
-            var targetOption = connectedInfo.TargetOption as FluidConnectOption;
-            
+            var selfOption = connectedInfo.SelfConnector?.ConnectOption as FluidConnectOption;
+            var targetOption = connectedInfo.TargetConnector?.ConnectOption as FluidConnectOption;
+
             if (selfOption == null || targetOption == null) throw new ArgumentException();
-            
+
             return Math.Min(selfOption.FlowCapacity, targetOption.FlowCapacity) * GameUpdater.UpdateSecondTime;
         }
     }

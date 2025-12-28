@@ -31,13 +31,13 @@ namespace Game.Block.Factory.BlockTemplate
                 ItemShooterBlockParam.SlopeTypeConst.Straight => BeltConveyorSlopeType.Straight
             };
             var connectorComponent = BlockTemplateUtil.CreateInventoryConnector(beltParam.InventoryConnectors, blockPositionInfo);
-            var beltConveyorConnector = new VanillaBeltConveyorBlockInventoryInserter(connectorComponent);
+            var beltConveyorConnector = new VanillaBeltConveyorBlockInventoryInserter(blockInstanceId, connectorComponent);
             var itemCount = beltParam.BeltConveyorItemCount;
             var time = beltParam.TimeOfItemEnterToExit;
             
             var beltComponent = componentStates == null ? 
                 new VanillaBeltConveyorComponent(itemCount, time, beltConveyorConnector, slopeType) : 
-                new VanillaBeltConveyorComponent(componentStates, itemCount, time, beltConveyorConnector, slopeType);
+                new VanillaBeltConveyorComponent(componentStates, itemCount, time, beltConveyorConnector, slopeType, beltParam.InventoryConnectors);
             
             
             var components = new List<IBlockComponent>

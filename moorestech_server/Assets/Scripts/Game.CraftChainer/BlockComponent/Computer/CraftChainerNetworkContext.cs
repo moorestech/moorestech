@@ -187,7 +187,7 @@ namespace Game.CraftChainer.BlockComponent.Computer
             UpdateCraftQue();
             
             // 次のインベントリにアイテムを入れる
-            return nextInventory.InsertItem(item);
+            return nextInventory.InsertItem(item, InsertItemContext.Empty);
             
             #region Internal
             

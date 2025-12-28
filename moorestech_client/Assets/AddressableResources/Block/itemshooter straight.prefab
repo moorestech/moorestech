@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8963477831894855548}
+  - component: {fileID: -1638471998465328765}
   m_Layer: 7
   m_Name: itemshooter straight
   m_TagString: Untagged
@@ -33,6 +34,24 @@ Transform:
   - {fileID: 2181669081540982671}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &-1638471998465328765
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3768646863689960170}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a87480b01aedd4404aa94ddce067f59a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.StateProcessor.BeltConveyor.BeltConveyorItemPath
+  paths: []
+  defaultPath:
+    startPoint: {x: 0.5, y: 0.35, z: 0}
+    startControlPoint: {x: 0, y: 0, z: 0.3}
+    endControlPoint: {x: 0, y: 0, z: -0.3}
+    endPoint: {x: 0.5, y: 0.35, z: 1}
 --- !u!1001 &33545006544981868
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -90,7 +109,7 @@ PrefabInstance:
       value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 277094265346638427, guid: 46ff888fbddf3984ba88c4e74baa960f, type: 3}
-      propertyPath: m_Materials.Array.data[0]
+      propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: a155fcb6bc444cc46a1854d2e14c4544, type: 2}
     - target: {fileID: 919132149155446097, guid: 46ff888fbddf3984ba88c4e74baa960f, type: 3}
@@ -102,7 +121,7 @@ PrefabInstance:
       value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 3410272414270506081, guid: 46ff888fbddf3984ba88c4e74baa960f, type: 3}
-      propertyPath: m_Materials.Array.data[0]
+      propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: a155fcb6bc444cc46a1854d2e14c4544, type: 2}
     - target: {fileID: 7296069837254451689, guid: 46ff888fbddf3984ba88c4e74baa960f, type: 3}
@@ -110,11 +129,11 @@ PrefabInstance:
       value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 8449996119470504636, guid: 46ff888fbddf3984ba88c4e74baa960f, type: 3}
-      propertyPath: m_Materials.Array.data[0]
+      propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: a155fcb6bc444cc46a1854d2e14c4544, type: 2}
     - target: {fileID: 8449996119470504636, guid: 46ff888fbddf3984ba88c4e74baa960f, type: 3}
-      propertyPath: m_Materials.Array.data[1]
+      propertyPath: 'm_Materials.Array.data[1]'
       value: 
       objectReference: {fileID: 2100000, guid: 43a7d2d53259df94cb60e51d30df1810, type: 2}
     m_RemovedComponents: []

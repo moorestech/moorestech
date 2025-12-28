@@ -27,18 +27,18 @@ namespace Game.CraftChainer.BlockComponent.ProviderChest
         
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            var context = CraftChainerMainComputerManager.Instance.GetChainerNetworkContext(_providerChestNodeId);
-            if (context == null)
+            var chainerContext = CraftChainerMainComputerManager.Instance.GetChainerNetworkContext(_providerChestNodeId);
+            if (chainerContext == null)
             {
                 return itemStack;
             }
-            
+
             // 1個ずつアイテムを挿入し、それを返すため、1個分のアイテムを作成
             // Insert items one by one and return them, so create an item for one item
             var oneItem = ServerContext.ItemStackFactory.Create(itemStack.Id, 1);
-            
-            var insertResult = context.InsertNodeNetworkNextBlock(oneItem, _providerChestNodeId, _blockConnectorComponent);
-            
+
+            var insertResult = chainerContext.InsertNodeNetworkNextBlock(oneItem, _providerChestNodeId, _blockConnectorComponent);
+
             // アイテムが消失しないように、1個ひいたアイテムと、挿入結果のアイテムを合成して返す
             // To prevent the item from disappearing, return a composite of the item with one item subtracted and the inserted item
             var subOneItem = itemStack.SubItem(1);

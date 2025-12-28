@@ -74,6 +74,10 @@ namespace Client.Game.InGame.Entity.Object
         {
             Destroy(gameObject);
         }
+        public void SetEntityData(byte[] entityEntityData)
+        {
+            
+        }
         
         /// <summary>
         /// 毎フレーム呼ばれ、Linear補間で位置を更新する

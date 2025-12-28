@@ -28,21 +28,21 @@ namespace Game.CraftChainer.BlockComponent.Crafter
                 {
                     continue;
                 }
-                
+
                 notChainerConnector.Add(connector.Key);
             }
             if (notChainerConnector.Count == 0)
             {
                 return itemStack;
             }
-            
+
             _index++;
             if (notChainerConnector.Count <= _index)
             {
                 _index = 0;
             }
-            
-            return notChainerConnector[_index].InsertItem(itemStack);
+
+            return notChainerConnector[_index].InsertItem(itemStack, InsertItemContext.Empty);
         }
     }
 }
