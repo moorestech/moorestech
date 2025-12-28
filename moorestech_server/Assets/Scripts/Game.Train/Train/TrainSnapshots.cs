@@ -134,14 +134,12 @@ namespace Game.Train.Train
     // Snapshot representing the entire train diagram
     public readonly struct TrainDiagramSnapshot
     {
-        public TrainDiagramSnapshot(Guid trainId, int currentIndex, IReadOnlyList<TrainDiagramEntrySnapshot> entries)
+        public TrainDiagramSnapshot(int currentIndex, IReadOnlyList<TrainDiagramEntrySnapshot> entries)
         {
-            TrainId = trainId;
             CurrentIndex = currentIndex;
             Entries = entries;
         }
 
-        public Guid TrainId { get; }
         public int CurrentIndex { get; }
         public IReadOnlyList<TrainDiagramEntrySnapshot> Entries { get; }
     }
