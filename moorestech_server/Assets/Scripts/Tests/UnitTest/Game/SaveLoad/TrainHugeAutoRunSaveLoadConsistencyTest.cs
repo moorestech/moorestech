@@ -18,7 +18,6 @@ namespace Tests.UnitTest.Game.SaveLoad
 {
     public class TrainHugeAutoRunTrainSaveLoadConsistencyTest
     {
-        /*
         private const int RailComponentCount = 140;//2200
         private const int DiagramNodeSelectionCount = 99;//8999
         private const int TrainCount = 65;//65
@@ -28,8 +27,8 @@ namespace Tests.UnitTest.Game.SaveLoad
         private const int MinDiagramEntries = 1;//1
         private const int MaxWaitTicks = 96;//4097
         private const int RandomSeed = 3572468;//3572468
-        */
-        
+
+        /*
         private const int RailComponentCount = 6201;
         private const int DiagramNodeSelectionCount = 8999;
         private const int TrainCount = 165;
@@ -39,6 +38,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         private const int MinDiagramEntries = 1;
         private const int MaxWaitTicks = 4097;
         private const int RandomSeed = 3572466;
+        */
 
         [Timeout(500000)]
         [Test]
