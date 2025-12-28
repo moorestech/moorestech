@@ -7,11 +7,17 @@ namespace Game.Train.Train
 {
     // -----------------saveData関連-----------------
     [Serializable]
-    public class TrainUnitSaveData
+    public class RailPositionSaveData
     {
         public int TrainLength { get; set; }
         public int DistanceToNextNode { get; set; }
         public List<ConnectionDestination> RailSnapshot { get; set; }
+    }
+
+    [Serializable]
+    public class TrainUnitSaveData
+    {
+        public RailPositionSaveData railPositionSaveData { get; set; }
         public bool IsAutoRun { get; set; }
         public Guid PreviousEntryGuid { get; set; }
         public long? CurrentSpeedBits { get; set; }
@@ -74,8 +80,6 @@ namespace Game.Train.Train
     {
         public TrainSimulationSnapshot(
             Guid trainId,
-            int distanceToNextNode,
-            IReadOnlyList<ConnectionDestination> railNodes,
             double currentSpeed,
             double accumulatedDistance,
             int remainingDistance,
@@ -84,8 +88,6 @@ namespace Game.Train.Train
             IReadOnlyList<TrainCarSnapshot> cars)
         {
             TrainId = trainId;
-            DistanceToNextNode = distanceToNextNode;
-            RailNodes = railNodes;
             CurrentSpeed = currentSpeed;
             AccumulatedDistance = accumulatedDistance;
             RemainingDistance = remainingDistance;
@@ -95,8 +97,6 @@ namespace Game.Train.Train
         }
 
         public Guid TrainId { get; }
-        public int DistanceToNextNode { get; }
-        public IReadOnlyList<ConnectionDestination> RailNodes { get; }
         public double CurrentSpeed { get; }
         public double AccumulatedDistance { get; }
         public int RemainingDistance { get; }
@@ -150,13 +150,15 @@ namespace Game.Train.Train
     // Bundle grouping both simulation and diagram snapshots
     public readonly struct TrainUnitSnapshotBundle
     {
-        public TrainUnitSnapshotBundle(TrainSimulationSnapshot simulation, TrainDiagramSnapshot diagram)
+        public TrainUnitSnapshotBundle(TrainSimulationSnapshot simulation, TrainDiagramSnapshot diagram, RailPositionSaveData railPositionSnapshot)
         {
+            RailPositionSnapshot = railPositionSnapshot;
             Simulation = simulation;
             Diagram = diagram;
         }
 
         public Guid TrainId => Simulation.TrainId;
+        public RailPositionSaveData RailPositionSnapshot { get; }
         public TrainSimulationSnapshot Simulation { get; }
         public TrainDiagramSnapshot Diagram { get; }
     }

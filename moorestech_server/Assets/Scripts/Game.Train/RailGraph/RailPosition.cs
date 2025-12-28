@@ -1,3 +1,4 @@
+using Game.Train.Train;
 using Game.Train.Utility;
 using System;
 using System.Collections.Generic;
@@ -281,14 +282,20 @@ namespace Game.Train.RailGraph
             return _distanceToNextNode;
         }
 
-        public IReadOnlyList<ConnectionDestination> CreateSaveSnapshot()
+        public RailPositionSaveData CreateSaveSnapshot()
         {
             var snapshot = new List<ConnectionDestination>(_railNodes.Count);
             foreach (var node in _railNodes)
             {
                 snapshot.Add(node.ConnectionDestination);
             }
-            return snapshot;
+            RailPositionSaveData ret = new RailPositionSaveData()
+            {
+                TrainLength = _trainLength,
+                DistanceToNextNode = _distanceToNextNode,
+                RailSnapshot = snapshot
+            };
+            return ret;
         }
 
         public IReadOnlyList<IRailNode> GetRailNodes()
