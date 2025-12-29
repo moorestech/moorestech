@@ -22,11 +22,6 @@ namespace Server.Protocol.PacketResponse
             var snapshots = new List<TrainUnitSnapshotBundleMessagePack>();
             foreach (var train in TrainUpdateService.Instance.GetRegisteredTrains())
             {
-                if (train == null)
-                {
-                    continue;
-                }
-
                 var bundle = TrainUnitSnapshotFactory.CreateSnapshot(train);
                 snapshots.Add(new TrainUnitSnapshotBundleMessagePack(bundle));
             }
