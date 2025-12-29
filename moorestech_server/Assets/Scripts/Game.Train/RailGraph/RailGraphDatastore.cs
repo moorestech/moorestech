@@ -1,4 +1,5 @@
 using Game.Train.Common;
+using Game.Train.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +8,7 @@ using UnityEngine;
 
 namespace Game.Train.RailGraph
 {
-    public class RailGraphDatastore
+    public class RailGraphDatastore : IRailGraphProvider
     {
         // ----- シングルトン実装用 -----
         private static RailGraphDatastore _instance;
@@ -80,6 +81,7 @@ namespace Game.Train.RailGraph
             _pathFinder = new RailGraphPathFinder();
             _cachedGraphHash = 0;
             _isHashDirty = true;
+            RailGraphProvider.SetProvider(this);
         }
 
         private void ResetInternalState()
@@ -142,12 +144,8 @@ namespace Game.Train.RailGraph
         {
             Instance.RemoveNodeInternal(node);
         }
-
-        public static RailNode ResolveRailNode(ConnectionDestination destination)
-        {
-            return Instance.ResolveRailNodeInternal(destination);
-        }
-
+        public static List<IRailNode> FindShortestPath(IRailNode start, IRailNode target)
+            => RailGraphProvider.Current.FindShortestPath(start, target).ToList();
         public static int GetDistanceBetweenNodes(int startid, int targetid)
         {
             return Instance.GetDistanceBetweenNodesInternal(startid, targetid);
@@ -155,14 +153,6 @@ namespace Game.Train.RailGraph
         public static int GetDistanceBetweenNodes(IRailNode start, IRailNode target)
         {
             return Instance.GetDistanceBetweenNodesInternal(start.NodeId, target.NodeId);
-        }
-
-        /// <summary>
-        /// ダイクストラ法による最短経路を返す
-        /// </summary>
-        public static List<IRailNode> FindShortestPath(IRailNode startNode, IRailNode targetNode)
-        {
-            return FindShortestPath(startNode.NodeId, targetNode.NodeId);
         }
 
         public static List<IRailNode> FindShortestPath(int startid, int targetid)
@@ -446,5 +436,30 @@ namespace Game.Train.RailGraph
             var hash = GetGraphHashInternal();
             return new RailGraphSnapshot(nodes, connections, hash, TrainUpdateService.CurrentTick);
         }
+
+        // ------------interface実装部------------
+        public IRailNode ResolveRailNode(ConnectionDestination destination)
+        {
+            return ResolveRailNodeInternal(destination);
+        }
+
+        IReadOnlyList<IRailNode> IRailGraphProvider.FindShortestPath(IRailNode start, IRailNode end)
+        {
+            if (start == null || end == null)
+                return Array.Empty<IRailNode>();
+            return FindShortestPathInternal(start.NodeId, end.NodeId);
+        }
+
+        public int GetDistance(IRailNode start, IRailNode end, bool useFindPath)
+        {
+            if (start == null || end == null)
+                return -1;
+            if (!useFindPath)
+                return GetDistanceBetweenNodesInternal(start.NodeId, end.NodeId);
+
+            var path = FindShortestPathInternal(start.NodeId, end.NodeId);
+            return RailNodeCalculate.CalculateTotalDistanceF(path);
+        }
+        // ------------interface実装部ここまで------------
     }
 }
