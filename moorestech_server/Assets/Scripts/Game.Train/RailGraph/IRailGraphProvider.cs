@@ -6,5 +6,6 @@ namespace Game.Train.RailGraph
     {
         IRailNode ResolveRailNode(ConnectionDestination destination);
         IReadOnlyList<IRailNode> FindShortestPath(IRailNode start, IRailNode end);
+        int GetDistance(IRailNode start, IRailNode end, bool useFindPath);
     }
 }

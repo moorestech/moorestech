@@ -1,4 +1,5 @@
 using Game.Train.RailGraph;
+using Game.Train.Utility;
 using Server.Util.MessagePack;
 using System;
 using System.Collections.Generic;
@@ -361,6 +362,36 @@ namespace Client.Game.InGame.Train
                 return Array.Empty<IRailNode>();
             }
             return FindShortestPath(startId, endId);
+        }
+
+        public int GetDistance(IRailNode start, IRailNode end, bool useFindPath)
+        {
+            if (!TryGetNodeId(start, out var startId) || !TryGetNodeId(end, out var endId))
+            {
+                return -1;
+            }
+
+            if (!useFindPath)
+            {
+                if (!IsWithinCurrentRange(startId))
+                {
+                    return -1;
+                }
+
+                var edges = _connectNodes[startId];
+                for (var i = 0; i < edges.Count; i++)
+                {
+                    var edge = edges[i];
+                    if (edge.targetId == endId)
+                    {
+                        return edge.distance;
+                    }
+                }
+                return -1;
+            }
+
+            var path = FindShortestPath(startId, endId);
+            return RailNodeCalculate.CalculateTotalDistanceF(path);
         }
     }
 }
