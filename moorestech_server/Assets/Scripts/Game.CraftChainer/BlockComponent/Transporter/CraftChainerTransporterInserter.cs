@@ -50,6 +50,11 @@ namespace Game.CraftChainer.BlockComponent
             return targets.First().Value.SelfConnector;
         }
 
+        public BlockConnectInfoElement GetNextGoalConnector(System.Collections.Generic.List<IItemStack> itemStacks)
+        {
+            return GetNextGoalConnector();
+        }
+
         public bool IsValidGoalConnector(BlockConnectInfoElement goalConnector)
         {
             if (goalConnector == null) return false;
