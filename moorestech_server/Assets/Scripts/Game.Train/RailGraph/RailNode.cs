@@ -110,17 +110,9 @@ namespace Game.Train.RailGraph
         //経路探索して接続していれば距離を返す、見つからなければ-1
         public int GetDistanceToNode(IRailNode node, bool UseFindPath = false)
         {
-            // ノードIDを解決できなければ距離計算を諦める
-            // Abort when node ids cannot be resolved for the query
-            if (node == null)
-                return -1;
-            if (node.NodeId < 0)
-                return -1;
-            if (!UseFindPath)
-                return RailGraphDatastore.GetDistanceBetweenNodes(NodeId, node.NodeId);
-            var pathResult = RailGraphDatastore.FindShortestPath(NodeId, node.NodeId);
-            return RailNodeCalculate.CalculateTotalDistanceF(pathResult);
+            return RailGraphProvider.Current.GetDistance(this, node, UseFindPath);
         }
+
 
         Guid IRailNode.NodeGuid => Guid;
 

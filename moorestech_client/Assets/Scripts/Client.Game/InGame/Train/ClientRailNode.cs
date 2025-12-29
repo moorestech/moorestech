@@ -75,21 +75,7 @@ namespace Client.Game.InGame.Train
 
         public int GetDistanceToNode(IRailNode targetnode, bool useFindPath = false)
         {
-            if (!IsActive || targetnode == null || targetnode.NodeId < 0) return -1;
-
-            if (!useFindPath)
-            {
-                foreach (var (tempnode, distance) in ConnectedNodesWithDistance)
-                {
-                    if (tempnode.NodeId == targetnode.NodeId)
-                        return distance;
-                }
-                return -1;
-            }
-
-            // Pathfinding logic
-            var pathResult = _cache.FindShortestPath(NodeId, targetnode.NodeId);
-            return RailNodeCalculate.CalculateTotalDistanceF(pathResult);
+            return RailGraphProvider.Current.GetDistance(this, targetnode, useFindPath);
         }
     }
 
