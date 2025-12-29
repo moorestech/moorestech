@@ -4,15 +4,15 @@ using System.Collections.Generic;
 
 namespace Client.Game.InGame.Train
 {
-    // RailGraphのキャッシュと同様に列車全体を管理するクラス
-    // Cache that mirrors every train unit similar to RailGraphClientCache
+    // RailGraphのキャッシュと同じように列車の状態を保持する
+    // Cache that mirrors every train unit similar to the RailGraph cache
     public sealed class TrainUnitClientCache
     {
-        // クライアントで管理する列車一覧
+        // ローカルで追跡する列車一覧
         // Internal dictionary holding every tracked train
         private readonly Dictionary<Guid, ClientTrainUnit> _units = new();
 
-        // 最新同期済みtick
+        // 最新の適用済みtick
         // Latest tick that has been fully applied
         public long LastServerTick { get; private set; }
 
@@ -20,7 +20,7 @@ namespace Client.Game.InGame.Train
         // Read-only view for external systems
         public IReadOnlyDictionary<Guid, ClientTrainUnit> Units => _units;
 
-        // フルスナップショット受信時に全キャッシュを置き換える
+        // 初期スナップショットでキャッシュ全体を入れ替える
         // Replace the entire cache when a full snapshot arrives
         public void OverrideAll(IReadOnlyList<TrainUnitSnapshotBundle> snapshots, long serverTick)
         {
@@ -30,17 +30,24 @@ namespace Client.Game.InGame.Train
                 LastServerTick = serverTick;
                 return;
             }
+
             for (var i = 0; i < snapshots.Count; i++)
             {
                 var bundle = snapshots[i];
+                if (bundle.TrainId == Guid.Empty)
+                {
+                    continue;
+                }
+
                 var unit = new ClientTrainUnit(bundle.TrainId);
-                unit.Update(bundle.Simulation, bundle.Diagram, serverTick);
+                unit.Update(bundle.Simulation, bundle.Diagram, bundle.RailPositionSnapshot, serverTick);
                 _units[bundle.TrainId] = unit;
             }
+
             LastServerTick = serverTick;
         }
 
-        // 単一列車の差分スナップショットを適用
+        // 単一列車の差分更新を適用
         // Apply a diff snapshot for a single train
         public ClientTrainUnit Upsert(TrainUnitSnapshotBundle snapshot, long serverTick)
         {
@@ -49,7 +56,8 @@ namespace Client.Game.InGame.Train
                 unit = new ClientTrainUnit(snapshot.TrainId);
                 _units[snapshot.TrainId] = unit;
             }
-            unit.Update(snapshot.Simulation, snapshot.Diagram, serverTick);
+
+            unit.Update(snapshot.Simulation, snapshot.Diagram, snapshot.RailPositionSnapshot, serverTick);
             LastServerTick = Math.Max(LastServerTick, serverTick);
             return unit;
         }
@@ -61,7 +69,7 @@ namespace Client.Game.InGame.Train
             return _units.Remove(trainId);
         }
 
-        // 列車情報の取得を試行
+        // 列車情報の取得を試みる
         // Try retrieving the train info
         public bool TryGet(Guid trainId, out ClientTrainUnit unit)
         {
@@ -69,7 +77,7 @@ namespace Client.Game.InGame.Train
         }
     }
 
-    // クライアント上で扱う列車データの最小構成
+    // クライアント上で扱う最小限の列車データ
     // Minimal client-side representation of a train
     public sealed class ClientTrainUnit
     {
@@ -81,14 +89,16 @@ namespace Client.Game.InGame.Train
         public Guid TrainId { get; }
         public TrainSimulationSnapshot Simulation { get; private set; }
         public TrainDiagramSnapshot Diagram { get; private set; }
+        public RailPositionSaveData RailPosition { get; private set; }
         public long LastUpdatedTick { get; private set; }
 
-        // 受信したスナップショットで状態を更新
+        // スナップショットの内容で内部状態を更新
         // Update internal state by the received snapshot
-        public void Update(TrainSimulationSnapshot simulation, TrainDiagramSnapshot diagram, long tick)
+        public void Update(TrainSimulationSnapshot simulation, TrainDiagramSnapshot diagram, RailPositionSaveData railPosition, long tick)
         {
             Simulation = simulation;
             Diagram = diagram;
+            RailPosition = railPosition;
             LastUpdatedTick = tick;
         }
     }

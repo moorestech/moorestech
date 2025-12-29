@@ -36,6 +36,7 @@ namespace Game.Train.Train
         private double _currentSpeed;   // m/s など適宜
         public double CurrentSpeed => _currentSpeed;
         private double _accumulatedDistance; // 累積距離、距離の小数点以下を保持するために使用
+        internal double AccumulatedDistance => _accumulatedDistance;
         private const int InfiniteLoopGuardThreshold = 1_000_000;
 
         private List<TrainCar> _cars;
