@@ -82,7 +82,6 @@ namespace Game.Train.Train
             Guid trainId,
             double currentSpeed,
             double accumulatedDistance,
-            int remainingDistance,
             int masconLevel,
             bool isAutoRun,
             IReadOnlyList<TrainCarSnapshot> cars)
@@ -90,7 +89,6 @@ namespace Game.Train.Train
             TrainId = trainId;
             CurrentSpeed = currentSpeed;
             AccumulatedDistance = accumulatedDistance;
-            RemainingDistance = remainingDistance;
             MasconLevel = masconLevel;
             IsAutoRun = isAutoRun;
             Cars = cars;
@@ -99,7 +97,6 @@ namespace Game.Train.Train
         public Guid TrainId { get; }
         public double CurrentSpeed { get; }
         public double AccumulatedDistance { get; }
-        public int RemainingDistance { get; }
         public int MasconLevel { get; }
         public bool IsAutoRun { get; }
         public IReadOnlyList<TrainCarSnapshot> Cars { get; }
