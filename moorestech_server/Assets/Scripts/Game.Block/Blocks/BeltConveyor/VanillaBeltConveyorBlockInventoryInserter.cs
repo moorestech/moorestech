@@ -15,7 +15,6 @@ namespace Game.Block.Blocks.BeltConveyor
         IItemStack InsertItem(IItemStack itemStack, BlockConnectInfoElement goalConnector);
         BlockConnectInfoElement GetNextGoalConnector();
         bool IsValidGoalConnector(BlockConnectInfoElement goalConnector);
-        BlockConnectInfoElement GetGoalConnector(Guid connectorGuid);
         int ConnectedCount { get; }
     }
     
@@ -58,15 +57,15 @@ namespace Game.Block.Blocks.BeltConveyor
 
             foreach (var target in targets)
             {
-                if (target.Value.SelfConnector == goalConnector)
+                if (target.Value.SelfConnector.ConnectorGuid == goalConnector.ConnectorGuid)
                 {
                     var context = new InsertItemContext(_sourceBlockInstanceId, target.Value.SelfConnector, target.Value.TargetConnector);
                     return target.Key.InsertItem(itemStack, context);
                 }
             }
 
-            // 見つからない場合はFirst()で出力
-            // Use First() if not found
+            // 見つからない場合はラウンドロビンで出力
+            // Use round-robin if not found
             return InsertItem(itemStack);
         }
 
@@ -94,22 +93,9 @@ namespace Game.Block.Blocks.BeltConveyor
             
             foreach (var target in _blockConnectorComponent.ConnectedTargets)
             {
-                if (target.Value.SelfConnector == goalConnector) return true;
+                if (target.Value.SelfConnector.ConnectorGuid == goalConnector.ConnectorGuid) return true;
             }
             return false;
-        }
-
-        /// <summary>
-        /// GuidからGoalConnectorを取得
-        /// Get GoalConnector by Guid
-        /// </summary>
-        public BlockConnectInfoElement GetGoalConnector(Guid connectorGuid)
-        {
-            foreach (var target in _blockConnectorComponent.ConnectedTargets)
-            {
-                if (target.Value.SelfConnector?.ConnectorGuid == connectorGuid) return target.Value.SelfConnector;
-            }
-            return null;
         }
 
         /// <summary>

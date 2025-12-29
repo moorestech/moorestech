@@ -184,10 +184,6 @@ namespace Game.Block.Blocks.BeltConveyor
 
             void ValidateAndUpdateGoalConnector(VanillaBeltConveyorInventoryItem targetItem)
             {
-                // インサーターが未設定ならスキップ
-                // Skip if inserter is not set
-                if (_blockInventoryInserter == null) return;
-
                 // 全てのコネクターがなくなった場合は現在の設定を保持
                 // Keep current setting if all connectors are gone
                 if (_blockInventoryInserter.ConnectedCount == 0) return;
