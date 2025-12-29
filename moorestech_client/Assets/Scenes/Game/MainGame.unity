@@ -17858,6 +17858,14 @@ PrefabInstance:
       propertyPath: instanceId
       value: 1826
       objectReference: {fileID: 0}
+    - target: {fileID: 5458107614731982492, guid: 53d25a583ee974aa59260ebc24130895, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 138.84
+      objectReference: {fileID: 0}
+    - target: {fileID: 5458107614731982492, guid: 53d25a583ee974aa59260ebc24130895, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 80.0871
+      objectReference: {fileID: 0}
     - target: {fileID: 5460466343172357957, guid: 53d25a583ee974aa59260ebc24130895, type: 3}
       propertyPath: instanceId
       value: 944
