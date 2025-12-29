@@ -16,7 +16,6 @@ namespace Client.Game.InGame.Train
         public Guid TrainId { get; }
         public TrainSimulationSnapshot Simulation { get; private set; }
         public TrainDiagramSnapshot Diagram { get; private set; }
-        public RailPositionSaveData RailPositionSnapshot { get; private set; }
         public RailPosition RailPosition { get; private set; }
         public long LastUpdatedTick { get; private set; }
 
@@ -26,8 +25,7 @@ namespace Client.Game.InGame.Train
         {
             Simulation = simulation;
             Diagram = diagram;
-            RailPositionSnapshot = railPosition;
-            RailPosition = RailPositionFactory.Restore(railPosition) ?? RailPosition;
+            RailPosition = RailPositionFactory.Restore(railPosition);
             LastUpdatedTick = tick;
         }
     }
