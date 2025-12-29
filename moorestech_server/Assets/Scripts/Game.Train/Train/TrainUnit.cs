@@ -372,7 +372,8 @@ namespace Game.Train.Train
                 destinationNode = trainDiagram.GetCurrentNode();
                 if (destinationNode == null)
                     break;//なにかの例外
-                newPath = RailGraphDatastore.FindShortestPath(approaching, destinationNode);
+                var path = RailGraphProvider.Current.FindShortestPath(approaching, destinationNode);
+                newPath = path?.ToList();
                 if (newPath == null || newPath.Count < 2)
                 {
                     trainDiagram.MoveToNextEntry();
@@ -411,25 +412,6 @@ namespace Game.Train.Train
             };
         }
 
-        private static List<IRailNode> RestoreRailNodes(IEnumerable<ConnectionDestination> snapshot)
-        {
-            var nodes = new List<IRailNode>();
-            if (snapshot == null)
-            {
-                return nodes;
-            }
-
-            foreach (var destination in snapshot)
-            {
-                var node = RailGraphDatastore.ResolveRailNode(destination);
-                if (node != null)
-                {
-                    nodes.Add(node);
-                }
-            }
-            return nodes;
-        }
-
         private static List<TrainCar> RestoreTrainCars(List<TrainCarSaveData> carData)
         {
             var cars = new List<TrainCar>();
@@ -454,19 +436,9 @@ namespace Game.Train.Train
                 return null;
 
             var railPosData = saveData.railPositionSaveData;
-            var nodes = RestoreRailNodes(railPosData.RailSnapshot);
-            if (nodes.Count == 0)
+            var railPosition = RailPositionFactory.Restore(railPosData);
+            if (railPosition == null)
                 return null;
-
-            var trainLength = railPosData.TrainLength;
-            if (trainLength < 0)
-                trainLength = 0;
-
-            var distanceToNextNode = railPosData.DistanceToNextNode;
-            if (distanceToNextNode < 0)
-                distanceToNextNode = 0;
-
-            var railPosition = new RailPosition(nodes, trainLength, distanceToNextNode);
             var cars = RestoreTrainCars(saveData.Cars);
 
             var restoredSpeed = saveData.CurrentSpeedBits.HasValue

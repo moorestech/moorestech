@@ -171,9 +171,9 @@ namespace Tests.UnitTest.Game
             Assert.GreaterOrEqual(diagram.Entries.Count, 3,
                 "シナリオには少なくとも3つ（start, n1, n2）のエントリが必要です。");
 
-            var startNode = diagram.Entries[0].Node;
-            var firstDestination = diagram.Entries[1].Node;
-            var secondDestination = diagram.Entries[2].Node;
+            var startNode = RequireRailNode(diagram.Entries[0].Node);
+            var firstDestination = RequireRailNode(diagram.Entries[1].Node);
+            var secondDestination = RequireRailNode(diagram.Entries[2].Node);
 
             Assert.AreSame(startNode, diagram.GetCurrentNode(),
                 "初期の目的地は駅の出口ノードであるべきです。");
@@ -249,10 +249,10 @@ namespace Tests.UnitTest.Game
             Assert.GreaterOrEqual(diagram.Entries.Count, 4,
                 "操作5には start, n1, n2, n0 のエントリが必要です。");
 
-            var startNode = diagram.Entries[0].Node;
-            var firstNode = diagram.Entries[1].Node;
-            var secondNode = diagram.Entries[2].Node;
-            var fallbackNode = diagram.Entries[3].Node;
+            var startNode = RequireRailNode(diagram.Entries[0].Node);
+            var firstNode = RequireRailNode(diagram.Entries[1].Node);
+            var secondNode = RequireRailNode(diagram.Entries[2].Node);
+            var fallbackNode = RequireRailNode(diagram.Entries[3].Node);
 
             startNode.DisconnectNode(firstNode);
             firstNode.DisconnectNode(startNode);
@@ -300,10 +300,10 @@ namespace Tests.UnitTest.Game
             Assert.GreaterOrEqual(diagram.Entries.Count, 4,
                 "操作6には start, n1, n2, n0 のエントリが必要です。");
 
-            var startNode = diagram.Entries[0].Node;
-            var n1 = diagram.Entries[1].Node;
-            var n2 = diagram.Entries[2].Node;
-            var n0 = diagram.Entries[3].Node;
+            var startNode = RequireRailNode(diagram.Entries[0].Node);
+            var n1 = RequireRailNode(diagram.Entries[1].Node);
+            var n2 = RequireRailNode(diagram.Entries[2].Node);
+            var n0 = RequireRailNode(diagram.Entries[3].Node);
 
             ConnectNodePair(n2, n0, 7777);
 
@@ -324,14 +324,14 @@ namespace Tests.UnitTest.Game
             var startEntry = diagram.Entries[0];
             startEntry.SetDepartureWaitTicks(0);
 
-            var visitedDestinations = new List<RailNode> { diagram.GetCurrentNode() };
+            var visitedDestinations = new List<RailNode> { RequireRailNode(diagram.GetCurrentNode()) };
             Assert.AreSame(startNode, visitedDestinations[0], "開始ノードは startNode でなければなりません。");
             const int maxUpdates = 65536;
 
             for (var i = 0; i < maxUpdates; i++)
             {
                 trainUnit.Update();
-                var currentDestination = diagram.GetCurrentNode();
+                var currentDestination = RequireRailNode(diagram.GetCurrentNode());
                 if (!ReferenceEquals(currentDestination, visitedDestinations.Last()))
                 {
                     visitedDestinations.Add(currentDestination);
@@ -413,6 +413,15 @@ namespace Tests.UnitTest.Game
             return startRunning
                 ? TrainAutoRunTestScenario.CreateRunningScenario()
                 : TrainAutoRunTestScenario.CreateDockedScenario();
+        }
+
+        // RailNode型を強制的に取得する
+        // Forcefully obtain a concrete RailNode instance
+        private static RailNode RequireRailNode(IRailNode node)
+        {
+            Assert.IsNotNull(node, "IRailNodeがnullです / Target IRailNode is null.");
+            Assert.IsInstanceOf<RailNode>(node, "IRailNodeがRailNodeではありません / IRailNode is not a RailNode.");
+            return (RailNode)node;
         }
 
         private static void ConnectNodePair(RailNode first, RailNode second, int distance)
