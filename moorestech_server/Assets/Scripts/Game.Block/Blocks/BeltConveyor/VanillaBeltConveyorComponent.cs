@@ -56,11 +56,15 @@ namespace Game.Block.Blocks.BeltConveyor
 
             // 新しく挿入可能か
             // Check if insertion is possible
-            if (_inventoryItems[^1] != null)
-                return itemStack;
+            if (_inventoryItems[^1] != null) return itemStack;
 
             var startConnector = context.TargetConnector;
-            var goalConnector = _blockInventoryInserter.GetNextGoalConnector();
+            var checkItems = new List<IItemStack> { ServerContext.ItemStackFactory.Create(itemStack.Id, 1, itemStack.ItemInstanceId) };
+
+            // 挿入時点で行ける接続先を選ぶ
+            // Select destination that can accept at insert time
+            var goalConnector = _blockInventoryInserter.GetNextGoalConnector(checkItems);
+            if (goalConnector == null) return itemStack;
 
             _inventoryItems[^1] = new VanillaBeltConveyorInventoryItem(itemStack.Id, itemStack.ItemInstanceId, startConnector, goalConnector);
 
@@ -76,9 +80,12 @@ namespace Game.Block.Blocks.BeltConveyor
             if (_inventoryItems[^1] != null) return false;
             
             // 挿入スロットが1個かどうか
-            if (itemStacks.Count == 1 && itemStacks[0].Count == 1) return true;
-            
-            return false;
+            // Check if input is exactly one item
+            if (itemStacks.Count != 1 || itemStacks[0].Count != 1) return false;
+
+            // 接続先が存在するか確認する
+            // Ensure there is an available destination
+            return _blockInventoryInserter.GetNextGoalConnector(itemStacks) != null;
         }
         
         public int GetSlotSize()
@@ -191,8 +198,11 @@ namespace Game.Block.Blocks.BeltConveyor
                 // 現在のGoalConnectorが無効なら、Guid解決を試してからフォールバック
                 // Resolve by Guid before fallback when current GoalConnector is invalid
                 if (_blockInventoryInserter.IsValidGoalConnector(targetItem.GoalConnector)) return;
-                
-                targetItem.SetGoalConnector(_blockInventoryInserter.GetNextGoalConnector());
+
+                var checkItems = new List<IItemStack> { ServerContext.ItemStackFactory.Create(targetItem.ItemId, 1, targetItem.ItemInstanceId) };
+                var goalConnector = _blockInventoryInserter.GetNextGoalConnector(checkItems);
+                if (goalConnector == null) return;
+                targetItem.SetGoalConnector(goalConnector);
             }
 
             #endregion

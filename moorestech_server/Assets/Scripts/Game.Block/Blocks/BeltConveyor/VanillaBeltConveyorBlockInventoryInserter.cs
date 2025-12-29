@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Item.Interface;
+using Core.Master;
 using Game.Block.Blocks.Connector;
 using Game.Block.Component;
 using Game.Block.Interface;
@@ -14,6 +15,7 @@ namespace Game.Block.Blocks.BeltConveyor
     {
         IItemStack InsertItem(IItemStack itemStack, BlockConnectInfoElement goalConnector);
         BlockConnectInfoElement GetNextGoalConnector();
+        BlockConnectInfoElement GetNextGoalConnector(List<IItemStack> itemStacks);
         bool IsValidGoalConnector(BlockConnectInfoElement goalConnector);
         int ConnectedCount { get; }
     }
@@ -55,18 +57,51 @@ namespace Game.Block.Blocks.BeltConveyor
             var targets = _blockConnectorComponent.ConnectedTargets;
             if (targets.Count == 0) return itemStack;
 
-            foreach (var target in targets)
+            // まず指定先に挿入し、失敗時は他の接続先を順に試す
+            // Try the goal connector first, then attempt other targets on failure
+            return TryInsertWithReselect(itemStack, goalConnector, targets);
+
+            #region Internal
+
+            IItemStack TryInsertWithReselect(IItemStack targetItem, BlockConnectInfoElement targetConnector, IReadOnlyDictionary<IBlockInventory, ConnectedInfo> connectedTargets)
             {
-                if (target.Value.SelfConnector.ConnectorGuid == goalConnector.ConnectorGuid)
+                var result = TryInsertToGoal(targetItem, targetConnector, connectedTargets, out var attemptedGoal);
+                if (result.Id == ItemMaster.EmptyItemId) return result;
+                if (connectedTargets.Count <= 1) return result;
+
+                var attemptCount = attemptedGoal ? 1 : 0;
+                while (attemptCount < connectedTargets.Count && result.Id != ItemMaster.EmptyItemId)
                 {
-                    var context = new InsertItemContext(_sourceBlockInstanceId, target.Value.SelfConnector, target.Value.TargetConnector);
-                    return target.Key.InsertItem(itemStack, context);
+                    var nextTarget = GetNextTarget(connectedTargets);
+                    if (targetConnector != null && nextTarget.Value.SelfConnector.ConnectorGuid == targetConnector.ConnectorGuid) continue;
+                    result = InsertToTarget(result, nextTarget);
+                    attemptCount++;
                 }
+                return result;
             }
 
-            // 見つからない場合はラウンドロビンで出力
-            // Use round-robin if not found
-            return InsertItem(itemStack);
+            IItemStack TryInsertToGoal(IItemStack targetItem, BlockConnectInfoElement targetConnector, IReadOnlyDictionary<IBlockInventory, ConnectedInfo> connectedTargets, out bool attemptedGoal)
+            {
+                attemptedGoal = false;
+                if (targetConnector == null) return targetItem;
+
+                foreach (var target in connectedTargets)
+                {
+                    if (target.Value.SelfConnector.ConnectorGuid != targetConnector.ConnectorGuid) continue;
+                    attemptedGoal = true;
+                    return InsertToTarget(targetItem, target);
+                }
+
+                return targetItem;
+            }
+
+            IItemStack InsertToTarget(IItemStack targetItem, KeyValuePair<IBlockInventory, ConnectedInfo> target)
+            {
+                var context = new InsertItemContext(_sourceBlockInstanceId, target.Value.SelfConnector, target.Value.TargetConnector);
+                return target.Key.InsertItem(targetItem, context);
+            }
+
+            #endregion
         }
 
         /// <summary>
@@ -81,6 +116,28 @@ namespace Game.Block.Blocks.BeltConveyor
             // ラウンドロビンでGoalConnectorを選択する
             // Select goal connector with round robin
             return GetNextTarget(targets).Value.SelfConnector;
+        }
+
+        /// <summary>
+        /// 挿入可能なGoalConnectorを取得
+        /// Get insertable goal connector
+        /// </summary>
+        public BlockConnectInfoElement GetNextGoalConnector(List<IItemStack> itemStacks)
+        {
+            var targets = _blockConnectorComponent.ConnectedTargets;
+            if (targets.Count == 0) return null;
+
+            // 挿入可能な接続先をラウンドロビンで選択する
+            // Select insertable connector with round robin
+            var targetsList = targets.ToArray();
+            for (var i = 0; i < targetsList.Length; i++)
+            {
+                var target = GetNextTarget(targets);
+                if (!target.Key.InsertionCheck(itemStacks)) continue;
+                return target.Value.SelfConnector;
+            }
+
+            return null;
         }
 
         /// <summary>
