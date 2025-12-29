@@ -47,7 +47,7 @@ namespace Game.Train.Common
         }
 
         // 全てのダイアグラムに対してノード削除を通知  
-        public void NotifyNodeRemoval(RailNode removedNode)
+        public void NotifyNodeRemoval(IRailNode removedNode)
         {
             foreach (var diagram in _diagrams)
             {
@@ -57,7 +57,7 @@ namespace Game.Train.Common
 
         //仮実装中 TODO 今後、ダイアグラムをクライアント側で手動で設定できるようにした場合はこの実装をけす
         //デバッグトグルon off切替時のみ全駅のfront exitノードを全ダイアグラムに追加 wait は300tick。旧ダイアグラムは全削除
-        public void ResetAndNotifyNodeAddition(List<RailNode> newNodes)
+        public void ResetAndNotifyNodeAddition(IReadOnlyList<IRailNode> newNodes)
         {
             foreach (var diagram in _diagrams)
             {

@@ -12,7 +12,7 @@ namespace Client.Game.InGame.Train
     ///     RailGraphの差分同期結果を保持するクライアント側キャッシュ
     ///     Client-side cache that mirrors the rail graph data for diff-based sync
     /// </summary>
-    public sealed class RailGraphClientCache
+    public sealed class RailGraphClientCache : IRailGraphProvider
     {
         // RailNodeInitializationDataのスナップショットを保持
         // Stores RailNodeInitializationData snapshots per nodeId
@@ -53,6 +53,7 @@ namespace Client.Game.InGame.Train
         private RailGraphClientCache()
         {
             _pathFinder = new RailGraphPathFinder();
+            RailGraphProvider.SetProvider(this);
         }
 
         public uint ComputeCurrentHash()
@@ -342,6 +343,24 @@ namespace Client.Game.InGame.Train
                 }
             }
             return result;
+        }
+
+        public IRailNode ResolveRailNode(ConnectionDestination destination)
+        {
+            if (!TryGetNodeId(destination, out var nodeId) || !IsWithinCurrentRange(nodeId))
+            {
+                return null;
+            }
+            return _nodes[nodeId];
+        }
+
+        public IReadOnlyList<IRailNode> FindShortestPath(IRailNode start, IRailNode end)
+        {
+            if (!TryGetNodeId(start, out var startId) || !TryGetNodeId(end, out var endId))
+            {
+                return Array.Empty<IRailNode>();
+            }
+            return FindShortestPath(startId, endId);
         }
     }
 }

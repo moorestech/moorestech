@@ -1,3 +1,4 @@
+using Game.Train.RailGraph;
 using Game.Train.Train;
 using System;
 
@@ -15,7 +16,8 @@ namespace Client.Game.InGame.Train
         public Guid TrainId { get; }
         public TrainSimulationSnapshot Simulation { get; private set; }
         public TrainDiagramSnapshot Diagram { get; private set; }
-        public RailPositionSaveData RailPosition { get; private set; }
+        public RailPositionSaveData RailPositionSnapshot { get; private set; }
+        public RailPosition RailPosition { get; private set; }
         public long LastUpdatedTick { get; private set; }
 
         // スナップショットの内容で内部状態を更新
@@ -24,7 +26,8 @@ namespace Client.Game.InGame.Train
         {
             Simulation = simulation;
             Diagram = diagram;
-            RailPosition = railPosition;
+            RailPositionSnapshot = railPosition;
+            RailPosition = RailPositionFactory.Restore(railPosition) ?? RailPosition;
             LastUpdatedTick = tick;
         }
     }

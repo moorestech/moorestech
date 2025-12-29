@@ -55,7 +55,7 @@ namespace Game.Train.Train
                     continue;
                 }
                 
-                var node = RailGraphDatastore.ResolveRailNode(entryData.Node);
+                var node = RailGraphProvider.Current.ResolveRailNode(entryData.Node);
                 if (node == null)
                 {
                     continue;
@@ -91,7 +91,7 @@ namespace Game.Train.Train
         }
 
         //最後に追加
-        public DiagramEntry AddEntry(RailNode node)
+        public DiagramEntry AddEntry(IRailNode node)
         {
             if (_currentIndex < 0)
                 _currentIndex = 0;
@@ -100,7 +100,7 @@ namespace Game.Train.Train
             return entry;
         }
         //最後に追加のcondition付き
-        public DiagramEntry AddEntry(RailNode node, DepartureConditionType departureConditionType, int waitTicks = 0)
+        public DiagramEntry AddEntry(IRailNode node, DepartureConditionType departureConditionType, int waitTicks = 0)
         {
             var entry = AddEntry(node);
             if (departureConditionType == DepartureConditionType.WaitForTicks)
@@ -114,7 +114,7 @@ namespace Game.Train.Train
             return entry;
         }
         //index指定して追加
-        public DiagramEntry InsertEntry(int index, RailNode node)
+        public DiagramEntry InsertEntry(int index, IRailNode node)
         {
             if (_currentIndex < 0)
                 _currentIndex = 0;
@@ -145,7 +145,7 @@ namespace Game.Train.Train
             return currentEntry.CanDepart(_trainUnit);
         }
 
-        public RailNode GetCurrentNode()
+        public IRailNode GetCurrentNode()
         {
             return TryGetActiveEntry(out var entry) ? entry.Node : null;
         }
@@ -173,7 +173,7 @@ namespace Game.Train.Train
 
         //node削除時かならず呼ばれます->entriesの中身は常に実在するnodeのみ
         //currentIndexも削除対象なら暗黙的に次のnodeに移動します
-        public void HandleNodeRemoval(RailNode removedNode)
+        public void HandleNodeRemoval(IRailNode removedNode)
         {
             if (removedNode == null)
                 return;
@@ -340,7 +340,7 @@ namespace Game.Train.Train
 
         public sealed class DiagramEntry
         {
-            public DiagramEntry(RailNode node)
+            public DiagramEntry(IRailNode node)
             {
                 Node = node;
                 entryId = Guid.NewGuid();
@@ -348,7 +348,7 @@ namespace Game.Train.Train
                 _departureConditionTypes = new List<DepartureConditionType>();
             }
 
-            public RailNode Node { get; private set; }
+            public IRailNode Node { get; private set; }
             public Guid entryId { get; private set; }
 
             private readonly List<IDepartureCondition> _departureConditions;
@@ -368,9 +368,13 @@ namespace Game.Train.Train
                 return _waitForTicksCondition?.RemainingTicks;
             }
 
-            public bool MatchesNode(RailNode node)
+            public bool MatchesNode(IRailNode node)
             {
-                return Node == node;
+                if (Node == null || node == null)
+                {
+                    return ReferenceEquals(Node, node);
+                }
+                return ReferenceEquals(Node, node) || Node.NodeId == node.NodeId;
             }
 
             public bool CanDepart(TrainUnit trainUnit)
@@ -459,7 +463,7 @@ namespace Game.Train.Train
             }
 
             internal static DiagramEntry CreateFromSaveData(
-                RailNode node,
+                IRailNode node,
                 Guid entryGuid,
                 IEnumerable<DepartureConditionType> conditionTypes,
                 int? waitForTicksInitial,
