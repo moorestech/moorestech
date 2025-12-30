@@ -64,6 +64,7 @@ namespace Tests.Watchdog
                 builder.AppendLine("    - Missing async/await or coroutine yield");
                 builder.AppendLine("    - Unity API called from non-main thread causing freeze");
                 builder.AppendLine("    - If your test code is designed to take a long time, add the [Timeout(sec)] attribute and set it to a time that will not time out.");
+                builder.AppendLine("    - The default timeout is set in moorestech_server/Assets/Scripts/Tests/TimeOut.cs");
                 builder.AppendLine();
             }
 
