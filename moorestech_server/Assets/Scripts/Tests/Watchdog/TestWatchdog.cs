@@ -12,7 +12,9 @@ namespace Tests.Watchdog
         private static volatile bool _stop;
         
         private static string _currentTest;
+        private static DateTime _startTimeUtc;
         private static DateTime _deadlineUtc;
+        private static TimeSpan _configuredTimeout;
         private static volatile bool _hasDeadline;
         private static volatile bool _reported;
         
@@ -47,7 +49,9 @@ namespace Tests.Watchdog
             lock (Gate)
             {
                 _currentTest = fullName;
-                _deadlineUtc = DateTime.UtcNow + timeout;
+                _startTimeUtc = DateTime.UtcNow;
+                _deadlineUtc = _startTimeUtc + timeout;
+                _configuredTimeout = timeout;
                 _hasDeadline = true;
                 _reported = false;
             }
@@ -94,15 +98,22 @@ namespace Tests.Watchdog
                     if (_hasDeadline && !_reported && DateTime.UtcNow >= _deadlineUtc)
                     {
                         string name;
+                        DateTime startTime;
+                        DateTime deadline;
+                        TimeSpan timeout;
                         lock (Gate)
                         {
                             name = _currentTest ?? "(unknown)";
+                            startTime = _startTimeUtc;
+                            deadline = _deadlineUtc;
+                            timeout = _configuredTimeout;
                             _reported = true;
                         }
-                        
-                        var msg =TestWatchdogLogExporter.Export(name);
-                        
+
+                        var msg = TestWatchdogLogExporter.Export(name, startTime, deadline, timeout);
+
                         // Unityプロセスを強制終了
+                        // Force terminate Unity process
                         Environment.FailFast(msg);
                     }
                 }
