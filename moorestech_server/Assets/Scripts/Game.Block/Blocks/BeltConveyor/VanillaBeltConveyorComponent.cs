@@ -59,7 +59,6 @@ namespace Game.Block.Blocks.BeltConveyor
             var insertIndex = GetInsertIndex();
             if (insertIndex < 0) return itemStack;
 
-            var startConnector = context.TargetConnector;
             var checkItems = new List<IItemStack> { ServerContext.ItemStackFactory.Create(itemStack.Id, 1, itemStack.ItemInstanceId) };
 
             // 接続先がある場合のみ挿入可否を判定する
@@ -67,12 +66,37 @@ namespace Game.Block.Blocks.BeltConveyor
             var goalConnector = _blockInventoryInserter.GetNextGoalConnector(checkItems);
             if (_blockInventoryInserter.HasAnyConnector && goalConnector == null) return itemStack;
 
+            var startConnector = context.SourceConnector;
             _inventoryItems[insertIndex] = new VanillaBeltConveyorInventoryItem(itemStack.Id, itemStack.ItemInstanceId, startConnector, goalConnector);
 
             // 挿入したのでアイテムを減らして返す
             // Return item with count reduced by 1
             return itemStack.SubItem(1);
+            
+            #region Internal
+            
+            int GetInsertIndex()
+            {
+                // コネクターがある場合は空きスロットを探す
+                // Find any empty slot when connectors exist
+                if (_blockInventoryInserter.HasAnyConnector)
+                {
+                    for (var i = _inventoryItems.Length - 1; i >= 0; i--)
+                    {
+                        if (_inventoryItems[i] == null) return i;
+                    }
+                    return -1;
+                }
+                
+                // コネクターがない場合は入口スロットのみを許可する
+                // When no connector, allow only the entry slot
+                if (_inventoryItems[^1] == null) return _inventoryItems.Length - 1;
+                return -1;
+            }
+            
+            #endregion
         }
+        
         public bool InsertionCheck(List<IItemStack> itemStacks)
         {
             BlockException.CheckDestroy(this);
@@ -92,25 +116,6 @@ namespace Game.Block.Blocks.BeltConveyor
             // 接続先が存在するか確認する
             // Ensure there is an available destination
             return _blockInventoryInserter.GetNextGoalConnector(itemStacks) != null;
-        }
-
-        private int GetInsertIndex()
-        {
-            // コネクターがある場合は空きスロットを探す
-            // Find any empty slot when connectors exist
-            if (_blockInventoryInserter.HasAnyConnector)
-            {
-                for (var i = _inventoryItems.Length - 1; i >= 0; i--)
-                {
-                    if (_inventoryItems[i] == null) return i;
-                }
-                return -1;
-            }
-
-            // コネクターがない場合は入口スロットのみを許可する
-            // When no connector, allow only the entry slot
-            if (_inventoryItems[^1] == null) return _inventoryItems.Length - 1;
-            return -1;
         }
 
         private bool HasInsertableSlot()
