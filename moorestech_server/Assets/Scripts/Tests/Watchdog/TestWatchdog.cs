@@ -3,6 +3,7 @@ using System.Collections;
 using System.IO;
 using System.Threading;
 using NUnit.Framework.Interfaces;
+using UnityEngine;
 
 namespace Tests.Watchdog
 {
@@ -108,16 +109,20 @@ namespace Tests.Watchdog
                         
                         // メインスレッドが止まってても出せる経路を優先
                         Console.Error.WriteLine(msg);
+                        Debug.LogError(msg);
                         
                         // ついでにファイルにも（CIで拾いやすい）
                         try
                         {
-                            File.AppendAllText("test_watchdog_timeout.log", msg + Environment.NewLine);
+                            var logPath = Path.GetFullPath("test_watchdog_timeout.log");
+                            File.AppendAllText(logPath, msg + Environment.NewLine);
+                            OsDefaultOpener.OpenWithDefaultApp(logPath);
                         }
                         catch
                         {
                             /* ignore */
                         }
+                        
                     }
                 }
                 catch
