@@ -79,5 +79,21 @@ namespace Game.CraftChainer.BlockComponent
         }
 
         public int ConnectedCount => _blockConnectorComponent.ConnectedTargets.Count;
+
+        /// <summary>
+        /// SelfConnectorが設定されている接続先があるか
+        /// Check if any target has SelfConnector set
+        /// </summary>
+        public bool HasAnyConnector
+        {
+            get
+            {
+                foreach (var target in _blockConnectorComponent.ConnectedTargets)
+                {
+                    if (target.Value.SelfConnector != null) return true;
+                }
+                return false;
+            }
+        }
     }
 }

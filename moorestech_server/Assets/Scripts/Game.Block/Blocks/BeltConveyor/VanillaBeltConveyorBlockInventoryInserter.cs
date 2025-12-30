@@ -18,6 +18,7 @@ namespace Game.Block.Blocks.BeltConveyor
         BlockConnectInfoElement GetNextGoalConnector(List<IItemStack> itemStacks);
         bool IsValidGoalConnector(BlockConnectInfoElement goalConnector);
         int ConnectedCount { get; }
+        bool HasAnyConnector { get; }
     }
     
     public class VanillaBeltConveyorBlockInventoryInserter : IBeltConveyorBlockInventoryInserter
@@ -67,15 +68,14 @@ namespace Game.Block.Blocks.BeltConveyor
             {
                 var result = TryInsertToGoal(targetItem, targetConnector, connectedTargets, out var attemptedGoal);
                 if (result.Id == ItemMaster.EmptyItemId) return result;
-                if (connectedTargets.Count <= 1) return result;
 
-                var attemptCount = attemptedGoal ? 1 : 0;
-                while (attemptCount < connectedTargets.Count && result.Id != ItemMaster.EmptyItemId)
+                // ゴール指定済みなら他の接続先だけを順に試す
+                // When goal is set, try other targets in sequence
+                for (var i = 0; i < connectedTargets.Count && result.Id != ItemMaster.EmptyItemId; i++)
                 {
                     var nextTarget = GetNextTarget(connectedTargets);
-                    if (targetConnector != null && nextTarget.Value.SelfConnector.ConnectorGuid == targetConnector.ConnectorGuid) continue;
+                    if (attemptedGoal && targetConnector != null && nextTarget.Value.SelfConnector.ConnectorGuid == targetConnector.ConnectorGuid) continue;
                     result = InsertToTarget(result, nextTarget);
-                    attemptCount++;
                 }
                 return result;
             }
@@ -160,6 +160,22 @@ namespace Game.Block.Blocks.BeltConveyor
         /// Get the number of connected connectors
         /// </summary>
         public int ConnectedCount => _blockConnectorComponent.ConnectedTargets.Count;
+
+        /// <summary>
+        /// SelfConnectorが設定されている接続先があるか
+        /// Check if any target has SelfConnector set
+        /// </summary>
+        public bool HasAnyConnector
+        {
+            get
+            {
+                foreach (var target in _blockConnectorComponent.ConnectedTargets)
+                {
+                    if (target.Value.SelfConnector != null) return true;
+                }
+                return false;
+            }
+        }
 
 
         private KeyValuePair<IBlockInventory, ConnectedInfo> GetNextTarget(IReadOnlyDictionary<IBlockInventory, ConnectedInfo> targets)
