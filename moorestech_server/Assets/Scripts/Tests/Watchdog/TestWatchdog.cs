@@ -1,9 +1,7 @@
 using System;
 using System.Collections;
-using System.IO;
 using System.Threading;
 using NUnit.Framework.Interfaces;
-using UnityEngine;
 
 namespace Tests.Watchdog
 {
@@ -18,7 +16,6 @@ namespace Tests.Watchdog
         private static volatile bool _hasDeadline;
         private static volatile bool _reported;
         
-        // 既定値（必要に応じて変更）
         
         public static void EnsureStarted()
         {
@@ -97,37 +94,21 @@ namespace Tests.Watchdog
                     if (_hasDeadline && !_reported && DateTime.UtcNow >= _deadlineUtc)
                     {
                         string name;
-                        DateTime deadline;
                         lock (Gate)
                         {
                             name = _currentTest ?? "(unknown)";
-                            deadline = _deadlineUtc;
                             _reported = true;
                         }
                         
-                        var msg = $"[TEST WATCHDOG] TIMEOUT: {name} (deadline UTC: {deadline:o})";
+                        var msg =TestWatchdogLogExporter.Export(name);
                         
-                        // メインスレッドが止まってても出せる経路を優先
-                        Console.Error.WriteLine(msg);
-                        Debug.LogError(msg);
-                        
-                        // ついでにファイルにも（CIで拾いやすい）
-                        try
-                        {
-                            var logPath = Path.GetFullPath("test_watchdog_timeout.log");
-                            File.AppendAllText(logPath, msg + Environment.NewLine);
-                            OsDefaultOpener.OpenWithDefaultApp(logPath);
-                        }
-                        catch
-                        {
-                            /* ignore */
-                        }
-                        
+                        // Unityプロセスを強制終了
+                        Environment.FailFast(msg);
                     }
                 }
                 catch
                 {
-                    /* ignore */
+                    // ignored
                 }
                 
                 Thread.Sleep(200);
