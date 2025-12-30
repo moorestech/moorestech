@@ -20,7 +20,6 @@ namespace Tests.Watchdog
 
             BuildHeader(sb);
             BuildTestInfo(sb, testName, now, configuredTimeout, elapsed);
-            BuildEnvironmentInfo(sb);
             BuildDiagnosticHints(sb);
             BuildFooter(sb);
 
@@ -52,27 +51,6 @@ namespace Tests.Watchdog
                 builder.AppendLine();
             }
 
-            void BuildEnvironmentInfo(StringBuilder builder)
-            {
-                // 環境情報
-                // Environment information
-                builder.AppendLine(SubSeparator);
-                builder.AppendLine("[ENVIRONMENT]");
-                builder.AppendLine($"  OS             : {Environment.OSVersion}");
-                builder.AppendLine($"  Unity Version  : {Application.unityVersion}");
-                builder.AppendLine($"  Runtime        : {Environment.Version}");
-                builder.AppendLine($"  Platform       : {Application.platform}");
-                builder.AppendLine($"  Processor Count: {Environment.ProcessorCount}");
-
-                // メモリ情報（取得可能な範囲）
-                // Memory information (available range)
-                var process = Process.GetCurrentProcess();
-                var workingSet = process.WorkingSet64 / (1024 * 1024);
-                builder.AppendLine($"  Working Memory : {workingSet} MB");
-
-                builder.AppendLine();
-            }
-
             void BuildDiagnosticHints(StringBuilder builder)
             {
                 // 診断ヒント
@@ -98,8 +76,7 @@ namespace Tests.Watchdog
             {
                 // メインスレッドが止まってても出せる経路を優先
                 // Prioritize output paths that work even when main thread is blocked
-                Console.Error.WriteLine(message);
-                UnityEngine.Debug.LogError(message);
+                CliTestExporter.Export(message);
 
                 // ファイル出力（CIで拾いやすい）
                 // File output (easy to capture in CI)
