@@ -9,6 +9,7 @@ namespace Tests
     /// </summary>
     public class TimeOut
     {
-        public static readonly TimeSpan DefaultTimeout = TimeSpan.FromMinutes(3);
+        //public static readonly TimeSpan DefaultTimeout = TimeSpan.FromMinutes(3);
+        public static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(1);
     }
 }
