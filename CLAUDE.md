@@ -117,3 +117,85 @@ dotnet build mooresmaster.Generator/ -c release && dotnet test
 - YamlDotNet is embedded in the source to avoid dependency conflicts with consuming projects
 - Generator targets netstandard2.0 for broad compatibility
 - Errors are reported as compiler diagnostics via Roslyn's diagnostic API
+
+## Design Patterns
+
+### Diagnostics Design
+
+Diagnosticsは文字列でreasonを保持せず、理由ごとに型を分けて構造化データを保持する:
+
+```csharp
+// Bad: 文字列でreason保持
+public class SomeDiagnostics : IDiagnostics
+{
+    private readonly string _reason;  // "Property 'xxx' not found..."
+}
+
+// Good: 理由ごとに型を分け、構造化データを保持
+public class PropertyNotFoundDiagnostics : IDiagnostics
+{
+    public string PropertyName { get; }
+    public string[] AvailableProperties { get; }
+}
+```
+
+理由:
+- テスト時に型でマッチングでき、プロパティで検証できる
+- エラーメッセージの変更が検証ロジックに影響しない
+
+### Analyzer Test Pattern
+
+テストでは`Assert.IsType<T>`で型チェック＋キャストを行い、プロパティで検証する:
+
+```csharp
+// Bad: 文字列マッチング
+Assert.Equal(typeof(SomeDiagnostics), diagnosticsArray[0].GetType());
+Assert.Contains("propertyName", diagnosticsArray[0].Message);
+
+// Good: 型チェック＋プロパティ検証
+var diagnostics = Assert.IsType<PropertyNotFoundDiagnostics>(diagnosticsArray[0]);
+Assert.Equal("propertyName", diagnostics.PropertyName);
+Assert.Contains("availableProp", diagnostics.AvailableProperties);
+```
+
+### Location Information
+
+エラー報告にはLocation（行・列）が必要。パース時にLocation情報を保持するよう設計する:
+
+```csharp
+// Schema定義にLocationを追加
+public record SwitchSchema(..., Location SwitchPathLocation) : ISchema
+
+// パース時にJsonStringからLocationを取得
+var jsonString = (json[key] as JsonString)!;
+new SomeSchema(..., jsonString.Location)
+```
+
+### Shared SchemaTable Validation
+
+複数スキーマファイルが同一のSchemaTableを共有する場合、各スキーマがどのルートに属するかを追跡する:
+
+```csharp
+// ルートSchemaIdのセットを作成
+var rootSchemaIds = new HashSet<SchemaId>();
+foreach (var schemaFile in schemaFiles)
+    rootSchemaIds.Add(schemaFile.Schema.InnerSchema);
+
+// 各Schemaのルートを親を辿って特定
+```
+
+### .NET Standard 2.0 Compatibility
+
+Source Generatorはnetstandard2.0をターゲットにするため、新しいC#機能に注意:
+
+```csharp
+// NG: KeyValuePairのDeconstruct
+foreach (var (key, value) in dictionary)
+
+// OK
+foreach (var kvp in dictionary)
+{
+    var key = kvp.Key;
+    var value = kvp.Value;
+}
+```

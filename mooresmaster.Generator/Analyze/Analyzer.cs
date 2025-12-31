@@ -50,7 +50,6 @@ public class Analyzer
         IAnalyzer[] analyzers =
         [
             new DefineInterfaceScopeAnalyzer(),
-            new NamingAnalyzer(),
             new SwitchPathAnalyzer()
         ];
 
