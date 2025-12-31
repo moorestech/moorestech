@@ -78,7 +78,7 @@ public class Test
         // Assert.Equivalent(node, answer, true);
     }
     
-    public static (SchemaTable schemaTable, NameTable nameTable, Semantics semantics, Definition definition) Generate(params string[] yamlTexts)
+    public static (SchemaTable schemaTable, NameTable nameTable, Semantics semantics, Definition definition, Analysis analysis) Generate(params string[] yamlTexts)
     {
         var analysis = new Analysis();
         var analyzer = new Analyzer().AddAllAnalyzer();
@@ -108,9 +108,7 @@ public class Test
         var definition = DefinitionGenerator.Generate(semantics, nameTable, schemaTable);
         analyzer.PostDefinitionLayerAnalyze(analysis, semantics, schemaFiles, schemaTable, definition);
         
-        analysis.ThrowDiagnostics();
-        
-        return (schemaTable, nameTable, semantics, definition);
+        return (schemaTable, nameTable, semantics, definition, analysis);
     }
     
     public static string GetSchema(string relativePath)
