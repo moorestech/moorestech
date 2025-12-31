@@ -28,8 +28,7 @@ namespace Client.Game.InGame.Train
         public TrainDiagramSnapshot Diagram { get; private set; }
         public RailPosition RailPosition { get; private set; }
         public long LastUpdatedTick { get; private set; }
-        public TrainDiagramEventMessagePack LastDiagramEvent { get; private set; }
-        public int RemainingDistance { get; private set; } = -1;
+        public int RemainingDistance { get; private set; } = int.MaxValue;
         public ClientTrainUnit(Guid trainId)
         {
             TrainId = trainId;
@@ -42,7 +41,6 @@ namespace Client.Game.InGame.Train
         // Update internal state by the received snapshot
         public void SnapshotUpdate(TrainSimulationSnapshot simulation, TrainDiagramSnapshot diagram, RailPositionSaveData railPosition, long tick)
         {
-            //Simulation = simulation;
             CurrentSpeed = simulation.CurrentSpeed;
             AccumulatedDistance = simulation.AccumulatedDistance;
             MasconLevel = simulation.MasconLevel;
@@ -61,7 +59,6 @@ namespace Client.Game.InGame.Train
                 return;
             }
 
-            LastDiagramEvent = message;
             if (message.EventType == TrainDiagramEventType.Departed)
             {
                 UpdateDiagramIndexByEntryId(message.EntryId);
@@ -91,25 +88,12 @@ namespace Client.Game.InGame.Train
         {
             // 目的地までの概算距離を再計算
             // Recalculate the approximate remaining distance toward destination
-            RemainingDistance = 0;
-
-            // 必要情報が欠けている場合は計算不能を返す
-            // Abort when prerequisites are missing
-            if (RailPosition == null)
+            var destinationNode = ResolveCurrentDestinationNode();
+            var approaching = RailPosition?.GetNodeApproaching();
+            if (destinationNode == null || approaching == null)
             {
-                RemainingDistance = 0;
-                return ;
-            }
-
-            //var destinationSnapshot = Diagram.Entries[index];
-            //var destinationNode = RailGraphProvider.Current.ResolveRailNode(destinationSnapshot.Node);
-            //var approaching = RailPosition.GetNodeApproaching();
-
-            var destinationNode = RailGraphProvider.Current.ResolveRailNode(diagramApproachingRailNode.ConnectionDestination);
-            var approaching = diagramApproachingRailNode;
-            if (approaching == null)
-            {
-                return ;
+                RemainingDistance = int.MaxValue;
+                return;
             }
 
             if (ReferenceEquals(destinationNode, approaching))
@@ -121,19 +105,41 @@ namespace Client.Game.InGame.Train
             var path = RailGraphProvider.Current.FindShortestPath(approaching, destinationNode);
             if (path == null || path.Count < 2)
             {
+                RemainingDistance = int.MaxValue;
                 return;
             }
 
             var tailDistance = RailNodeCalculate.CalculateTotalDistanceF(path);
             if (tailDistance < 0)
             {
+                RemainingDistance = int.MaxValue;
                 return;
             }
 
             RemainingDistance = RailPosition.GetDistanceToNextNode() + tailDistance;
-            return;
         }
 
+
+        private IRailNode ResolveCurrentDestinationNode()
+        {
+            if (Diagram.Entries == null || Diagram.Entries.Count == 0)
+            {
+                diagramApproachingRailNode = null;
+                return null;
+            }
+
+            var index = Diagram.CurrentIndex;
+            if (index < 0 || index >= Diagram.Entries.Count)
+            {
+                diagramApproachingRailNode = null;
+                return null;
+            }
+
+            var destinationSnapshot = Diagram.Entries[index];
+            var destinationNode = RailGraphProvider.Current.ResolveRailNode(destinationSnapshot.Node);
+            diagramApproachingRailNode = destinationNode;
+            return destinationNode;
+        }
 
         //--------------------------------------------------------------------------------------------------------------------
         //--------------------------------------------------------------------------------------------------------------------
@@ -221,7 +227,7 @@ namespace Client.Game.InGame.Train
                 int moveLength = RailPosition.MoveForward(distanceToMove);
                 distanceToMove -= moveLength;
                 totalMoved += moveLength;
-                RemainingDistance -= moveLength;
+                RemainingDistance = Math.Max(0, RemainingDistance - moveLength);
                 //自動運転で目的地に到着してたらドッキング判定を行う必要がある
                 if (IsArrivedDestination() && IsAutoRun)
                 {
@@ -310,21 +316,26 @@ namespace Client.Game.InGame.Train
         //現在のdiagramのcurrentから順にすべてのエントリーを順番にみていって、approachingからエントリーnodeへpathが繋がっていればtrueを返す
         public (bool, List<IRailNode>) CheckAllDiagramPath(IRailNode approaching)
         {
-            /*
+            if (diagramApproachingRailNode == null)
+            {
+                return (false, null);
+            }
+            
             IRailNode destinationNode = null;
             List<IRailNode> newPath = null;
             //ダイアグラム上、次に目的地に変更していく。全部の経路がなくなった場合は自動運転を解除する
             bool found = false;
-            for (int i = 0; i < trainDiagram.Entries.Count; i++)
+            for (int i = 0; i < Diagram.Entries.Count; i++)
             {
-                destinationNode = trainDiagram.GetCurrentNode();
+                destinationNode = ResolveCurrentDestinationNode();
                 if (destinationNode == null)
                     break;//なにかの例外
                 var path = RailGraphProvider.Current.FindShortestPath(approaching, destinationNode);
                 newPath = path?.ToList();
                 if (newPath == null || newPath.Count < 2)
                 {
-                    trainDiagram.MoveToNextEntry();
+                    var tempIndex = Diagram.CurrentIndex;
+                    Diagram =new TrainDiagramSnapshot((tempIndex + 1) % Diagram.Entries.Count, Diagram.Entries);
                     continue;
                 }
                 //見つかったのでループを抜ける
@@ -332,7 +343,8 @@ namespace Client.Game.InGame.Train
                 break;
             }
             return (found, newPath);
-            */
+            
+            /*
             var nlist = RailGraphProvider.Current.FindShortestPath(approaching, diagramApproachingRailNode).ToList();
             if (nlist == null || nlist.Count < 2)
             {
@@ -342,6 +354,7 @@ namespace Client.Game.InGame.Train
             {
                 return (true, nlist);
             }
+            */
         }
 
         //--------------------------------------------------------------------------------------------------------------------
