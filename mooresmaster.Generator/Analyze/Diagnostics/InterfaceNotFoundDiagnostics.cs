@@ -6,5 +6,5 @@ public class InterfaceNotFoundDiagnostics(string interfaceName, Location locatio
 {
     public readonly string InterfaceName = interfaceName;
     public string Message => $"Interface '{InterfaceName}' not found.";
-    public Location Location { get; } = location;
+    public Location[] Locations { get; } = new[] { location };
 }

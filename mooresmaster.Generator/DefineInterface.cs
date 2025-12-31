@@ -10,7 +10,8 @@ public class DefineInterface(
     Dictionary<string, IDefineInterfacePropertySchema> properties,
     string[] implementationInterfaces,
     Dictionary<string, JsonString> implementationNodes,
-    bool isGlobal
+    bool isGlobal,
+    Location location
 )
 {
     public string[] ImplementationInterfaces = implementationInterfaces;
@@ -19,4 +20,5 @@ public class DefineInterface(
     public bool IsGlobal = isGlobal;
     public Dictionary<string, IDefineInterfacePropertySchema> Properties = properties;
     public string RootSchemaId = rootSchemaId;
+    public Location Location = location;
 }

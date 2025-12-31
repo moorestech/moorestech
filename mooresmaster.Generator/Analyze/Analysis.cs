@@ -37,43 +37,47 @@ public class Analysis
     {
         foreach (var diagnostics in DiagnosticsList)
         {
-            var message = $"{diagnostics.Location}: {diagnostics.Message}";
+            var locations = string.Join(", ", diagnostics.Locations.Select(l => l.ToString()));
+            var message = $"{locations}: {diagnostics.Message}";
             var csDiagnostic = Diagnostic.Create(DiagnosticDescriptor, Microsoft.CodeAnalysis.Location.None, message);
             context.ReportDiagnostic(csDiagnostic);
         }
     }
-    
+
     public override string ToString()
     {
-        return $"{string.Join("\n\n", DiagnosticsList.Select(d => $"{d.Location}: {d.Message}"))}";
+        return $"{string.Join("\n\n", DiagnosticsList.Select(d => $"{string.Join(", ", d.Locations.Select(l => l.ToString()))}: {d.Message}"))}";
     }
 }
 
 public interface IDiagnostics
 {
     string Message { get; }
-    public Location Location { get; }
+    Location[] Locations { get; }
 }
 
 public class AnalyzeException : Exception
 {
     public readonly IDiagnostics[] DiagnosticsArray;
-    
+
     public AnalyzeException(IDiagnostics[] diagnosticsArray)
     {
         DiagnosticsArray = diagnosticsArray;
         var messages = new List<string>();
         foreach (var diagnostics in diagnosticsArray)
+        {
+            var locations = string.Join(", ", diagnostics.Locations.Select(l => l.ToString()));
             messages.Add(
                 $"""
                  type: {diagnostics.GetType().Name}
-                     location: {diagnostics.Location}
+                     locations: {locations}
                      {diagnostics.Message.Replace("\n", "\n    ")}
                  """
             );
-        
+        }
+
         Message = string.Join("\n", messages);
     }
-    
+
     public override string Message { get; }
 }

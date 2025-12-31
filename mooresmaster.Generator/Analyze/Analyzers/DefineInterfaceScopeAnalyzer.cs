@@ -43,23 +43,23 @@ public class DefineInterfaceScopeAnalyzer : IPostSemanticsLayerAnalyzer
     {
         public string Message => $"""
                                   Global interface cannot depend on local interface.
-                                  
+
                                   TargetInterface {semantics.InterfaceSemanticsTable[targetInterfaceId].Interface.InterfaceName}
                                   ImplementationInterface {semantics.InterfaceSemanticsTable[implementationInterfaceId].Interface.InterfaceName}
                                   """;
-        
-        public Location Location => location;
+
+        public Location[] Locations { get; } = new[] { location };
     }
-    
+
     public class DefineInterfaceLocalScopeDiagnostics(InterfaceId targetInterfaceId, InterfaceId implementationInterfaceId, Semantics semantics, Location location) : IDiagnostics
     {
-        public Location Location { get; } = location;
-        
+        public Location[] Locations { get; } = new[] { location };
+
         public string Message => $"""
                                   Local interface can only depend on global interface or same scope local interface.
-                                  
+
                                   TargetInterface {semantics.InterfaceSemanticsTable[targetInterfaceId].Interface.InterfaceName}
-                                  
+
                                   ImplementationInterface {semantics.InterfaceSemanticsTable[implementationInterfaceId].Interface.InterfaceName}
                                   """;
     }
