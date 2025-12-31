@@ -57,3 +57,16 @@
 2. Align AutoRun Dock/Depart transitions with server behavior (departure reset / arrival handling)
 3. Build RailGraphClientCache and StationRegistry equivalent to stabilize destination node resolution
 4. Add client-side tests for tick ordering and DiagramHash verification
+
+## Client StationRef Priority
+- ClientRailNode.StationRef is currently null; station/ non-station arrival cannot be distinguished accurately.
+- This blocks correct Docked/Departed alignment and non-station-only local advancement.
+- Priority: define how StationRef (or equivalent) is resolved on the client side.
+
+## TrainUnit Hash Sync (Implemented)
+- GetTrainUnitSnapshots now returns UnitsHash alongside ServerTick.
+- Server broadcasts TrainUnit hash state events at a fixed interval:
+  - Event tag: va:event:trainUnitHashState
+  - Payload: UnitsHash + TrainTick
+- Client compares the hash against TrainUnitClientCache and requests full snapshots on mismatch.
+- Stale ticks (older than LastServerTick) are ignored.

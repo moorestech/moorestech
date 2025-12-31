@@ -17,16 +17,19 @@ namespace Server.Protocol.PacketResponse
 
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
-            // 現在登録済みの列車からスナップショットを構築
-            // Build snapshots for every registered train unit
+            // 全TrainUnitのスナップショットとハッシュを生成する
+            // Build snapshots and hash for every registered train unit
+            var bundles = new List<TrainUnitSnapshotBundle>();
             var snapshots = new List<TrainUnitSnapshotBundleMessagePack>();
             foreach (var train in TrainUpdateService.Instance.GetRegisteredTrains())
             {
                 var bundle = TrainUnitSnapshotFactory.CreateSnapshot(train);
+                bundles.Add(bundle);
                 snapshots.Add(new TrainUnitSnapshotBundleMessagePack(bundle));
             }
 
-            return new ResponseMessagePack(snapshots, TrainUpdateService.CurrentTick);
+            var unitsHash = TrainUnitSnapshotHashCalculator.Compute(bundles);
+            return new ResponseMessagePack(snapshots, TrainUpdateService.CurrentTick, unitsHash);
         }
 
         [MessagePackObject]
@@ -44,6 +47,7 @@ namespace Server.Protocol.PacketResponse
         {
             [Key(2)] public List<TrainUnitSnapshotBundleMessagePack> Snapshots { get; set; }
             [Key(3)] public long ServerTick { get; set; }
+            [Key(4)] public uint UnitsHash { get; set; }
 
             [Obsolete("MessagePack用のコンストラクタです。")]
             public ResponseMessagePack()
@@ -51,11 +55,12 @@ namespace Server.Protocol.PacketResponse
                 Tag = ProtocolTag;
             }
 
-            public ResponseMessagePack(List<TrainUnitSnapshotBundleMessagePack> snapshots, long serverTick)
+            public ResponseMessagePack(List<TrainUnitSnapshotBundleMessagePack> snapshots, long serverTick, uint unitsHash)
             {
                 Tag = ProtocolTag;
                 Snapshots = snapshots;
                 ServerTick = serverTick;
+                UnitsHash = unitsHash;
             }
         }
     }

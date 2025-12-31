@@ -74,6 +74,23 @@ namespace Client.Game.InGame.Train
             RecalculateRemainingDistance();
         }
 
+        // 現在の状態からスナップショットバンドルを生成する
+        // Build a snapshot bundle from the current client state
+        public bool TryCreateSnapshotBundle(out TrainUnitSnapshotBundle bundle)
+        {
+            if (RailPosition == null)
+            {
+                bundle = default;
+                return false;
+            }
+
+            var simulation = CreateSimulationSnapshot();
+            var diagram = Diagram.Snapshot;
+            var railPosition = RailPosition.CreateSaveSnapshot();
+            bundle = new TrainUnitSnapshotBundle(simulation, diagram, railPosition);
+            return true;
+        }
+
         private void RecalculateRemainingDistance()
         {
             // 目的地までの概算距離を再計算
@@ -109,6 +126,20 @@ namespace Client.Game.InGame.Train
             RemainingDistance = RailPosition.GetDistanceToNextNode() + tailDistance;
         }
 
+
+        private TrainSimulationSnapshot CreateSimulationSnapshot()
+        {
+            // クライアントの移動状態をスナップショットへ変換する
+            // Convert client-side motion state into a simulation snapshot
+            var carSnapshots = cars ?? Array.Empty<TrainCarSnapshot>();
+            return new TrainSimulationSnapshot(
+                TrainId,
+                CurrentSpeed,
+                AccumulatedDistance,
+                MasconLevel,
+                IsAutoRun,
+                carSnapshots);
+        }
 
         private IRailNode ResolveCurrentDestinationNode()
         {
