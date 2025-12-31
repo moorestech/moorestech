@@ -11,7 +11,7 @@ namespace Game.Train.Train
     /// 複数車両からなる列車編成全体を表すクラス
     /// Represents an entire train formation composed of multiple cars.
     /// </summary>
-    public class TrainUnit
+    public class TrainUnit : ITrainDiagramContext, ITrainUnitStationDockingListener
     {
         public string SaveKey { get; } = typeof(TrainUnit).FullName;
         
@@ -37,8 +37,9 @@ namespace Game.Train.Train
         private List<TrainCar> _cars;
         public RailPosition RailPosition => _railPosition;
         public IReadOnlyList<TrainCar> Cars => _cars;
-        public TrainUnitStationDocking trainUnitStationDocking; // 列車の駅ドッキング用のクラス
-        public TrainDiagram trainDiagram; // 列車のダイアグラム
+        public TrainUnitStationDocking trainUnitStationDocking { get; private set; } // 列車の駅ドッキング用のクラス
+        public TrainDiagram trainDiagram { get; private set; } // 列車のダイアグラム
+        public bool IsDocked => trainUnitStationDocking?.IsDocked ?? false;
         //キー関連
         //マスコンレベル 0がニュートラル、1が前進1段階、-1が後退1段階.キー入力やテスト、外部から直接制御できる。min maxは±16777216とする(暫定)
         public int masconLevel = 0;
@@ -55,9 +56,9 @@ namespace Game.Train.Train
             _currentSpeed = 0.0; // 仮の初期速度
             _isAutoRun = false;
             _previousEntryGuid = Guid.Empty;
-            trainUnitStationDocking = new TrainUnitStationDocking(this);
+            trainUnitStationDocking = new TrainUnitStationDocking(this, this);
             trainDiagram = new TrainDiagram();
-            trainDiagram.SetOwner(this);
+            trainDiagram.SetContext(this);
             TrainUpdateService.Instance.RegisterTrain(this);
         }
 
@@ -117,7 +118,8 @@ namespace Game.Train.Train
                         UnityEngine.Debug.Log("ドッキング中");// TODO デバッグトグル関係　そのうち消す
                     trainUnitStationDocking.TickDockedStations();
                     // もしtrainDiagramの出発条件を満たしていたら、trainDiagramは次の目的地をセット。次のtickでドッキングを解除、バリデーションが行われる
-                    if (trainDiagram.Update())
+                    trainDiagram.Update();
+                    if (trainDiagram.CanCurrentEntryDepart())
                     {
                         // ドッキングを解除はGuid違いの検出により次のtickで行う
                         //trainUnitStationDocking.UndockFromStation();
@@ -581,6 +583,10 @@ namespace Game.Train.Train
             // RailPositionを更新(内部で自動で追加する車両分の距離を伸ばす)
             _railPosition.AppendRailPositionAtRear(railPosition);
         }
+
+        public void OnTrainDocked() => trainDiagram?.NotifyDocked();
+
+        public void OnTrainUndocked() => trainDiagram?.NotifyDeparted();
 
         public void OnDestroy()
         {

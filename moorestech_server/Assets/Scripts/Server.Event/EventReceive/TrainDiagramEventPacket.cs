@@ -34,7 +34,7 @@ namespace Server.Event.EventReceive
 
             var message = new TrainDiagramEventMessagePack(
                 eventType,
-                data.Unit.TrainId,
+                data.Context.TrainId,
                 data.Entry.entryId,
                 data.Entry.Node.ConnectionDestination,
                 data.Tick);

@@ -10,7 +10,7 @@ namespace Game.Train.Train
     {
         private readonly List<TrainDiagramEntry> _entries;
         private int _currentIndex;
-        private TrainUnit _owner;
+        private ITrainDiagramContext _context;
 
         public IReadOnlyList<TrainDiagramEntry> Entries => _entries;
         public int CurrentIndex => _currentIndex;
@@ -86,9 +86,9 @@ namespace Game.Train.Train
             _currentIndex = restoredIndex;
         }
 
-        internal void SetOwner(TrainUnit owner)
+        internal void SetContext(ITrainDiagramContext context)
         {
-            _owner = owner;
+            _context = context;
         }
 
         //最後に追加
@@ -132,7 +132,23 @@ namespace Game.Train.Train
             return entry;
         }
 
-        public bool Update()
+        public void Update()
+        {
+            if (_currentIndex < 0)
+            {
+                return;
+            }
+
+            if (!TryGetActiveEntry(out var currentEntry))
+            {
+                _currentIndex = -1;
+                return;
+            }
+
+            currentEntry.Tick(_context);
+        }
+
+        public bool CanCurrentEntryDepart()
         {
             if (_currentIndex < 0)
             {
@@ -145,8 +161,7 @@ namespace Game.Train.Train
                 return true;
             }
 
-            currentEntry.Tick(_owner);
-            return currentEntry.CanDepart(_owner);
+            return currentEntry.CanDepart(_context);
         }
 
         public IRailNode GetCurrentNode()
@@ -229,21 +244,21 @@ namespace Game.Train.Train
         internal void NotifyDocked()
         {
             var entry = GetCurrentEntry();
-            if (_owner == null || entry?.Node == null)
+            if (_context == null || entry?.Node == null)
             {
                 return;
             }
-            TrainDiagramManager.Instance.NotifyDocked(_owner, entry, TrainUpdateService.CurrentTick);
+            TrainDiagramManager.Instance.NotifyDocked(_context, entry, TrainUpdateService.CurrentTick);
         }
 
         internal void NotifyDeparted()
         {
             var entry = GetCurrentEntry();
-            if (_owner == null || entry?.Node == null)
+            if (_context == null || entry?.Node == null)
             {
                 return;
             }
-            TrainDiagramManager.Instance.NotifyDeparted(_owner, entry, TrainUpdateService.CurrentTick);
+            TrainDiagramManager.Instance.NotifyDeparted(_context, entry, TrainUpdateService.CurrentTick);
         }
 
         public TrainDiagramSaveData CreateTrainDiagramSaveData()
