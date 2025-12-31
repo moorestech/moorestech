@@ -107,7 +107,7 @@ public class MooresmasterSourceGenerator : IIncrementalGenerator
         var (schemas, schemaTable) = ParseAdditionalText(input.additionalTexts);
         analyzer.PostJsonSchemaLayerAnalyze(analysis, schemas, schemaTable);
         analyzer.PreSemanticsLayerAnalyze(analysis, schemas, schemaTable);
-        var semantics = SemanticsGenerator.Generate(schemas.Select(schema => schema.Schema).ToImmutableArray(), schemaTable);
+        var semantics = SemanticsGenerator.Generate(schemas.Select(schema => schema.Schema).ToImmutableArray(), schemaTable, analysis);
         analyzer.PostSemanticsLayerAnalyze(analysis, semantics, schemas, schemaTable);
         var nameTable = NameResolver.Resolve(semantics, schemaTable);
         analyzer.PreDefinitionLayerAnalyze(analysis, semantics, schemas, schemaTable);
