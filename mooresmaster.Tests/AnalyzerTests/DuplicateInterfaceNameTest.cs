@@ -119,6 +119,40 @@ public class DuplicateInterfaceNameTest
     }
 
     /// <summary>
+    ///     同名のdefineInterfaceが3つ定義されている場合、1つのエラーに3つのLocationが含まれるテスト
+    /// </summary>
+    [Fact]
+    public void TripleDuplicateInterfaceNameTest()
+    {
+        const string schema =
+            """
+            id: testSchema
+            type: object
+
+            defineInterface:
+              - interfaceName: IDuplicateInterface
+                properties:
+                  - key: field1
+                    type: string
+              - interfaceName: IDuplicateInterface
+                properties:
+                  - key: field2
+                    type: integer
+              - interfaceName: IDuplicateInterface
+                properties:
+                  - key: field3
+                    type: boolean
+            """;
+
+        var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
+
+        Assert.Single(diagnosticsArray);
+        var diagnostics = Assert.IsType<DuplicateInterfaceNameDiagnostics>(diagnosticsArray[0]);
+        Assert.Equal("IDuplicateInterface", diagnostics.InterfaceName);
+        Assert.Equal(3, diagnostics.Locations.Length);
+    }
+
+    /// <summary>
     ///     異なる名前のインターフェースが重複しないことのテスト
     /// </summary>
     [Fact]

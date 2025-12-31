@@ -53,14 +53,7 @@ public static class SemanticsGenerator
         foreach (var kvp in semantics.InterfaceSemanticsTable)
         {
             var interfaceName = kvp.Value.Interface.InterfaceName;
-            if (allInterfaceTable.ContainsKey(interfaceName))
-            {
-                var existingId = allInterfaceTable[interfaceName];
-                var existingLocation = semantics.InterfaceSemanticsTable[existingId].Interface.Location;
-                var newLocation = kvp.Value.Interface.Location;
-                analysis.ReportDiagnostics(new DuplicateInterfaceNameDiagnostics(interfaceName, new[] { existingLocation, newLocation }));
-            }
-            else
+            if (!allInterfaceTable.ContainsKey(interfaceName))
                 allInterfaceTable.Add(interfaceName, kvp.Key);
         }
 
