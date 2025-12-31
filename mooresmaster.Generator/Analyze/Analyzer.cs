@@ -51,7 +51,8 @@ public class Analyzer
         [
             new DefineInterfaceScopeAnalyzer(),
             new SwitchPathAnalyzer(),
-            new DuplicateImplementationInterfaceAnalyzer()
+            new DuplicateImplementationInterfaceAnalyzer(),
+            new DuplicateInterfaceNameAnalyzer()
         ];
 
         foreach (var analyzer in analyzers) AddAnalyzer(analyzer);
