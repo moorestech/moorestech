@@ -104,6 +104,14 @@ git subtree pull --prefix=mooresmaster.SandBox/schema schema main
 git subtree push --prefix=mooresmaster.SandBox/schema schema main
 ```
 
+## Development Workflow
+
+After making any code changes, always run the build to verify the changes compile successfully:
+
+```bash
+dotnet build mooresmaster.Generator/ -c release && dotnet test
+```
+
 ## Technical Notes
 
 - YamlDotNet is embedded in the source to avoid dependency conflicts with consuming projects

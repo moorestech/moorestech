@@ -100,7 +100,7 @@ public class Test
         analyzer.PostJsonSchemaLayerAnalyze(analysis, schemaFiles, schemaTable);
         
         analyzer.PreSemanticsLayerAnalyze(analysis, schemaFiles, schemaTable);
-        var semantics = SemanticsGenerator.Generate([..schemaFileList.Select(s => s.Schema)], schemaTable);
+        var semantics = SemanticsGenerator.Generate([..schemaFileList.Select(s => s.Schema)], schemaTable, analysis);
         analyzer.PostSemanticsLayerAnalyze(analysis, semantics, schemaFiles, schemaTable);
         
         var nameTable = NameResolver.Resolve(semantics, schemaTable);

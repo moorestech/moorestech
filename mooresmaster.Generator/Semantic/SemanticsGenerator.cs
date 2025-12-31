@@ -2,13 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using mooresmaster.Generator.Analyze;
 using mooresmaster.Generator.JsonSchema;
 
 namespace mooresmaster.Generator.Semantic;
 
 public static class SemanticsGenerator
 {
-    public static Semantics Generate(ImmutableArray<Schema> schemaArray, SchemaTable table)
+    public static Semantics Generate(ImmutableArray<Schema> schemaArray, SchemaTable table, Analysis analysis)
     {
         var semantics = new Semantics();
         
@@ -38,7 +39,7 @@ public static class SemanticsGenerator
         }
         
         ResolveInterfaceInterfaceImplementations(semantics);
-        ResolveClassInterfaceImplementations(semantics);
+        ResolveClassInterfaceImplementations(semantics, analysis);
         
         return semantics;
     }
@@ -70,7 +71,7 @@ public static class SemanticsGenerator
         }
     }
     
-    private static void ResolveClassInterfaceImplementations(Semantics semantics)
+    private static void ResolveClassInterfaceImplementations(Semantics semantics, Analysis analysis)
     {
         var globalInterfaceTable = semantics.InterfaceSemanticsTable
             .Where(i => i.Value.Interface.IsGlobal)
@@ -93,8 +94,10 @@ public static class SemanticsGenerator
                 }
                 else
                 {
-                    var globalOther = globalInterfaceTable[interfaceName];
-                    semantics.AddClassInterfaceImplementation(target, globalOther);
+                    if (globalInterfaceTable.TryGetValue(interfaceName, out var globalOther))
+                        semantics.AddClassInterfaceImplementation(target, globalOther);
+                    else
+                        throw new Exception();
                 }
         }
     }
@@ -135,13 +138,14 @@ public static class SemanticsGenerator
                 var itemsSchema = table.Table[arraySchema.Items];
                 if (itemsSchema is ObjectSchema arrayItemObjectSchema)
                 {
-                    var (arrayItemSemantics, _) = Generate(arrayItemObjectSchema, table, rootId, isArrayInnerType: true);
+                    var (arrayItemSemantics, _) = Generate(arrayItemObjectSchema, table, rootId, true);
                     arrayItemSemantics.AddTo(semantics);
                 }
                 else
                 {
                     Generate(itemsSchema, table, rootId).AddTo(semantics);
                 }
+                
                 break;
             case ObjectSchema objectSchema:
                 var (innerSemantics, _) = Generate(objectSchema, table, rootId);
@@ -240,11 +244,11 @@ public static class SemanticsGenerator
                     break;
             }
         }
-
+        
         var typeSemantics = new TypeSemantics(properties.ToArray(), objectSchema, rootId, isArrayInnerType);
         semantics.TypeSemanticsTable[typeId] = typeSemantics;
         semantics.SchemaTypeSemanticsTable[typeSemantics.Schema] = typeId;
-
+        
         return (semantics, typeId);
     }
 }
