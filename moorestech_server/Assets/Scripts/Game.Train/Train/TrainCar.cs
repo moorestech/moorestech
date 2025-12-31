@@ -18,9 +18,6 @@ namespace Game.Train.Train
     /// </summary>
     public class TrainCar
     {
-        const int WHEIGHT_PER_SLOT = 40;
-        const int DEFAULT_WEIGHT = 320;
-        const int DEFAULT_TRACTION = 100;
         private readonly Guid _carId = Guid.NewGuid();
         
         // 列車のマスターデータ
@@ -89,8 +86,8 @@ namespace Game.Train.Train
         //重さ、推進力を得る
         public (int,int) GetWeightAndTraction()
         {
-            return (DEFAULT_WEIGHT + InventorySlots * WHEIGHT_PER_SLOT
-                , IsFacingForward ? TractionForce * DEFAULT_TRACTION : 0);
+            return (TrainMotionParameters.DEFAULT_WEIGHT + InventorySlots * TrainMotionParameters.WHEIGHT_PER_SLOT
+                , IsFacingForward ? TractionForce * TrainMotionParameters.DEFAULT_TRACTION : 0);
         }
 
         public void SetFacingForward(bool isFacingForward)

@@ -42,7 +42,7 @@ namespace Client.Game.InGame.Train
                 }
 
                 var unit = new ClientTrainUnit(bundle.TrainId);
-                unit.Update(bundle.Simulation, bundle.Diagram, bundle.RailPositionSnapshot, serverTick);
+                unit.SnapshotUpdate(bundle.Simulation, bundle.Diagram, bundle.RailPositionSnapshot, serverTick);
                 _units[bundle.TrainId] = unit;
             }
 
@@ -59,7 +59,7 @@ namespace Client.Game.InGame.Train
                 _units[snapshot.TrainId] = unit;
             }
 
-            unit.Update(snapshot.Simulation, snapshot.Diagram, snapshot.RailPositionSnapshot, serverTick);
+            unit.SnapshotUpdate(snapshot.Simulation, snapshot.Diagram, snapshot.RailPositionSnapshot, serverTick);
             LastServerTick = Math.Max(LastServerTick, serverTick);
             return unit;
         }
