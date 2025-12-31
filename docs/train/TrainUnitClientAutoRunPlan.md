@@ -70,3 +70,12 @@
   - Payload: UnitsHash + TrainTick
 - Client compares the hash against TrainUnitClientCache and requests full snapshots on mismatch.
 - Stale ticks (older than LastServerTick) are ignored.
+
+## StationRef Strategy (Future-proof)
+- If client will eventually mirror server-side rail node generation from block placement:
+  - Prefer a StationRegistry-style approach (derive StationRef locally from block data).
+  - Avoid relying on server-sent StationRef to prevent double source of truth.
+- Short-term fallback: server can send minimal station flags (IsStation/Role/Side) to bridge gaps.
+- Recommendation:
+  - Long-term: StationRegistry + block-driven resolution on client (best for matching server logic).
+  - Short-term: minimal station metadata in RailGraph snapshots/events if needed for correctness.
