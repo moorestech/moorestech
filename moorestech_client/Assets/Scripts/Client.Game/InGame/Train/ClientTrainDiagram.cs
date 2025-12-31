@@ -20,9 +20,12 @@ namespace Client.Game.InGame.Train
         public TrainDiagramSnapshot Snapshot => _snapshot;
         public int CurrentIndex => _snapshot.CurrentIndex;
         public IReadOnlyList<TrainDiagramEntrySnapshot> Entries => _snapshot.Entries;
+        public int EntryCount => _snapshot.Entries?.Count ?? 0;
 
         public void UpdateSnapshot(TrainDiagramSnapshot snapshot)
         {
+            // スナップショットを置き換えて参照を更新する
+            // Replace the snapshot to refresh reads
             _snapshot = snapshot;
         }
 
@@ -46,8 +49,46 @@ namespace Client.Game.InGame.Train
             }
         }
 
+        public bool TryGetCurrentEntry(out TrainDiagramEntrySnapshot entry)
+        {
+            // 現在のエントリーを取得してUI表示に使う
+            // Get the current entry for UI rendering
+            entry = default;
+            var entries = _snapshot.Entries;
+            if (entries == null || entries.Count == 0)
+            {
+                return false;
+            }
+
+            var index = _snapshot.CurrentIndex;
+            if (index < 0 || index >= entries.Count)
+            {
+                return false;
+            }
+
+            entry = entries[index];
+            return true;
+        }
+
+        public bool TryGetEntry(int index, out TrainDiagramEntrySnapshot entry)
+        {
+            // 任意インデックスのエントリー取得を提供する
+            // Expose entry access by index
+            entry = default;
+            var entries = _snapshot.Entries;
+            if (entries == null || index < 0 || index >= entries.Count)
+            {
+                return false;
+            }
+
+            entry = entries[index];
+            return true;
+        }
+
         public bool TryResolveCurrentDestinationNode(out IRailNode node)
         {
+            // 現在の目的地ノードを解決し、存在しなければ失敗扱いにする
+            // Resolve the current destination node and fail if missing
             var entries = _snapshot.Entries;
             if (entries == null || entries.Count == 0)
             {
@@ -68,6 +109,8 @@ namespace Client.Game.InGame.Train
 
         public bool TryFindPathFrom(IRailNode approaching, out List<IRailNode> path)
         {
+            // 現在のエントリーから順に経路を探索し、見つかれば返す
+            // Walk entries to find a reachable path
             path = null;
             var entries = _snapshot.Entries;
             if (entries == null || entries.Count == 0 || approaching == null)
@@ -75,8 +118,6 @@ namespace Client.Game.InGame.Train
                 return false;
             }
 
-            // 現在のエントリーから順に到達可能な経路を探索する
-            // Walk entries in order to find a reachable path
             for (var i = 0; i < entries.Count; i++)
             {
                 if (!TryResolveCurrentDestinationNode(out var destinationNode))

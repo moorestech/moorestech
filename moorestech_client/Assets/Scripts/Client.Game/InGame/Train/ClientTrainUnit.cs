@@ -298,7 +298,8 @@ namespace Client.Game.InGame.Train
             return false;
         }
 
-        //現在のdiagramのcurrentから順にすべてのエントリーを順番にみていって、approachingからエントリーnodeへpathが繋がっていればtrueを返す
+        // ダイアグラム順に到達可能な経路を探索する
+        // Walk diagram entries to find a reachable path
         public (bool, List<IRailNode>) CheckAllDiagramPath(IRailNode approaching)
         {
             if (approaching == null)
@@ -306,8 +307,6 @@ namespace Client.Game.InGame.Train
                 return (false, null);
             }
 
-            // ????????????????????
-            // Walk diagram entries to find a reachable path
             var found = Diagram.TryFindPathFrom(approaching, out var newPath);
             diagramApproachingRailNode = found && Diagram.TryResolveCurrentDestinationNode(out var destinationNode) ? destinationNode : null;
             return (found, newPath);
