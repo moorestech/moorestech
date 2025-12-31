@@ -41,9 +41,9 @@ namespace Game.Block.Factory.BlockTemplate
             };
             var itemCount = gearBeltParam.BeltConveyorItemCount;
             
-            // 歯車ベルトコンベアはRPMによって速度が変わるため、デフォルトは0となる
-            // Gear belt conveyors have different speeds depending on the RPM, so the default is 0
-            var time = 0;
+            // RPM供給前は搬送を停止させるため、無限大の時間を設定する
+            // Use infinite time to stop transport before RPM is supplied
+            var time = float.PositiveInfinity;
             
             var vanillaBeltConveyorComponent = componentStates == null ? 
                     new VanillaBeltConveyorComponent(itemCount, time, beltConveyorConnector, slopeType) :
