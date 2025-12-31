@@ -50,11 +50,12 @@ public class Analyzer
         IAnalyzer[] analyzers =
         [
             new DefineInterfaceScopeAnalyzer(),
-            new NamingAnalyzer()
+            new NamingAnalyzer(),
+            new SwitchPathAnalyzer()
         ];
-        
+
         foreach (var analyzer in analyzers) AddAnalyzer(analyzer);
-        
+
         return this;
     }
     

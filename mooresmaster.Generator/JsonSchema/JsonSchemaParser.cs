@@ -176,23 +176,23 @@ public static class JsonSchemaParser
     {
         var ifThenList = new List<SwitchCaseSchema>();
         var schemaId = SchemaId.New();
-        
-        var switchReferencePath = (json[Tokens.SwitchKey] as JsonString)!;
-        
+
+        var switchReferencePathJson = (json[Tokens.SwitchKey] as JsonString)!;
+
         foreach (var node in (json["cases"] as JsonArray)!.Nodes)
         {
             var jsonObject = (node as JsonObject)!;
             var whenJson = (JsonString)jsonObject["when"];
             var thenJson = jsonObject;
-            
-            var switchPath = SwitchPathParser.Parse(switchReferencePath.Literal);
-            
+
+            var switchPath = SwitchPathParser.Parse(switchReferencePathJson.Literal);
+
             ifThenList.Add(new SwitchCaseSchema(switchPath, whenJson.Literal, Parse(thenJson, schemaId, false, table)));
         }
-        
+
         var hasOptionalCase = ifThenList.Any(c => table.Table[c.Schema].IsNullable);
-        
-        table.Add(schemaId, new SwitchSchema((json[Tokens.PropertyNameKey] as JsonString)?.Literal, parent, ifThenList.ToArray(), IsNullable(json), hasOptionalCase, isInterfaceProperty));
+
+        table.Add(schemaId, new SwitchSchema((json[Tokens.PropertyNameKey] as JsonString)?.Literal, parent, ifThenList.ToArray(), IsNullable(json), hasOptionalCase, isInterfaceProperty, switchReferencePathJson.Location));
         return schemaId;
     }
     
