@@ -50,7 +50,8 @@ public class Analyzer
         IAnalyzer[] analyzers =
         [
             new DefineInterfaceScopeAnalyzer(),
-            new SwitchPathAnalyzer()
+            new SwitchPathAnalyzer(),
+            new DuplicateImplementationInterfaceAnalyzer()
         ];
 
         foreach (var analyzer in analyzers) AddAnalyzer(analyzer);
