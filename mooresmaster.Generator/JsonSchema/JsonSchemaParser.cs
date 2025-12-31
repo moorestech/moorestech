@@ -58,10 +58,11 @@ public static class JsonSchemaParser
     
     private static DefineInterface ParseDefineInterface(string id, JsonObject node, SchemaTable schemaTable, bool isGlobal)
     {
-        var interfaceName = (node[Tokens.InterfaceNameKey] as JsonString)?.Literal ?? throw new InvalidOperationException();
-        
+        var interfaceNameNode = node[Tokens.InterfaceNameKey] as JsonString ?? throw new InvalidOperationException();
+        var interfaceName = interfaceNameNode.Literal;
+
         var properties = new Dictionary<string, IDefineInterfacePropertySchema>();
-        
+
         if (node.Nodes.TryGetValue(Tokens.PropertiesKey, out var propertiesNode))
         {
             var propertiesArray = propertiesNode as JsonArray;
@@ -69,7 +70,7 @@ public static class JsonSchemaParser
             {
                 // valueがtypeとかdefaultとか
                 // keyがプロパティ名
-                
+
                 var propertySchemaId = Parse(propertyNode, null, true, schemaTable);
                 var key = (propertyNode[Tokens.PropertyNameKey] as JsonString)!;
                 if (schemaTable.Table[propertySchemaId] is IDefineInterfacePropertySchema propertySchema)
@@ -77,7 +78,7 @@ public static class JsonSchemaParser
                 else throw new InvalidOperationException();
             }
         }
-        
+
         // interfaceの継承情報を取得
         var implementationNodes = new Dictionary<string, JsonString>();
         if (node.Nodes.TryGetValue(Tokens.ImplementationInterfaceKey, out var implementationInterfacesNode) && implementationInterfacesNode is JsonArray nodesArray)
@@ -86,19 +87,20 @@ public static class JsonSchemaParser
                 var name = (JsonString)implementationInterfaceNode;
                 implementationNodes[name.Literal] = name;
             }
-        
+
         if (interfaceName == null) throw new Exception("interfaceName is null");
         if (properties == null) throw new Exception("properties is null");
-        
+
         var defineInterface = new DefineInterface(
             id,
             interfaceName,
             properties,
             implementationNodes.Keys.ToArray(),
             implementationNodes,
-            isGlobal
+            isGlobal,
+            interfaceNameNode.Location
         );
-        
+
         return defineInterface;
     }
     

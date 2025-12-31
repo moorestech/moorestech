@@ -151,13 +151,13 @@ public class SwitchPathPropertyNotFoundDiagnostics : IDiagnostics
         SwitchPath = switchPath;
         PropertyName = propertyName;
         AvailableProperties = availableProperties;
-        Location = location;
+        Locations = new[] { location };
     }
 
     public SwitchPath SwitchPath { get; }
     public string PropertyName { get; }
     public string[] AvailableProperties { get; }
-    public Location Location { get; }
+    public Location[] Locations { get; }
 
     public string Message => $"Invalid switch path '{SwitchPathAnalyzer.FormatSwitchPath(SwitchPath)}'. Property '{PropertyName}' not found. Available properties: [{string.Join(", ", AvailableProperties)}]";
 }
@@ -168,12 +168,12 @@ public class SwitchPathNotAnObjectDiagnostics : IDiagnostics
     {
         SwitchPath = switchPath;
         PropertyName = propertyName;
-        Location = location;
+        Locations = new[] { location };
     }
 
     public SwitchPath SwitchPath { get; }
     public string PropertyName { get; }
-    public Location Location { get; }
+    public Location[] Locations { get; }
 
     public string Message => $"Invalid switch path '{SwitchPathAnalyzer.FormatSwitchPath(SwitchPath)}'. Cannot access property '{PropertyName}': current schema is not an object";
 }
@@ -183,11 +183,11 @@ public class SwitchPathCannotNavigateToParentDiagnostics : IDiagnostics
     public SwitchPathCannotNavigateToParentDiagnostics(SwitchPath switchPath, Location location)
     {
         SwitchPath = switchPath;
-        Location = location;
+        Locations = new[] { location };
     }
 
     public SwitchPath SwitchPath { get; }
-    public Location Location { get; }
+    public Location[] Locations { get; }
 
     public string Message => $"Invalid switch path '{SwitchPathAnalyzer.FormatSwitchPath(SwitchPath)}'. Cannot navigate to parent: already at root";
 }
