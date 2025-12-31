@@ -6,23 +6,23 @@ namespace Game.Train.Train
 {
     public interface ITrainDiagramDepartureCondition
     {
-        bool CanDepart(TrainUnit trainUnit);
+        void Tick(TrainUnit trainUnit);
+        bool IsSatisfied(TrainUnit trainUnit);
     }
 
     internal abstract class TrainDiagramInventoryConditionBase : ITrainDiagramDepartureCondition
     {
-        public bool CanDepart(TrainUnit trainUnit)
+        public void Tick(TrainUnit trainUnit)
+        {
+        }
+
+        public bool IsSatisfied(TrainUnit trainUnit)
         {
             if (trainUnit.Cars == null)
                 return true;
 
             foreach (var car in trainUnit.Cars)
             {
-                if (!car.IsDocked)
-                {
-                    continue;
-                }
-
                 if (!MatchesInventoryState(car))
                 {
                     return false;
@@ -73,25 +73,25 @@ namespace Game.Train.Train
             _remainingTicks = Math.Max(Math.Min(remainingTicks, _initialTicks), 0);
         }
 
-        public bool CanDepart(TrainUnit trainUnit)
+        public void Tick(TrainUnit trainUnit)
         {
             if (_remainingTicks <= 0)
             {
-                return true;
+                return;
             }
 
-            if (trainUnit == null || !trainUnit.IsAutoRun)
+            if (trainUnit != null && trainUnit.IsAutoRun)
             {
-                return false;
+                var docking = trainUnit.trainUnitStationDocking;
+                if (docking != null && docking.IsDocked)
+                {
+                    _remainingTicks = Math.Max(_remainingTicks - 1, 0);
+                }
             }
+        }
 
-            var docking = trainUnit.trainUnitStationDocking;
-            if (docking == null || !docking.IsDocked)
-            {
-                return false;
-            }
-
-            _remainingTicks--;
+        public bool IsSatisfied(TrainUnit trainUnit)
+        {
             return _remainingTicks <= 0;
         }
     }
@@ -128,6 +128,14 @@ namespace Game.Train.Train
             return ReferenceEquals(Node, node) || Node.NodeId == node.NodeId;
         }
 
+        public void Tick(TrainUnit trainUnit)
+        {
+            for (var i = 0; i < _departureConditions.Count; i++)
+            {
+                _departureConditions[i].Tick(trainUnit);
+            }
+        }
+
         public bool CanDepart(TrainUnit trainUnit)
         {
             if (_departureConditions.Count == 0)
@@ -137,7 +145,7 @@ namespace Game.Train.Train
 
             foreach (var condition in _departureConditions)
             {
-                if (!condition.CanDepart(trainUnit))
+                if (!condition.IsSatisfied(trainUnit))
                 {
                     return false;
                 }

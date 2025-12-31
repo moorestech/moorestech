@@ -1,14 +1,9 @@
-using Core.Item.Interface;
-using Core.Master;
-using Game.Context;
 using Game.Train.Common;
 using Game.Train.RailGraph;
 using Game.Train.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks.Sources;
-using static Game.Train.Train.TrainMotionParameters;
 
 namespace Game.Train.Train
 {
@@ -122,7 +117,7 @@ namespace Game.Train.Train
                         UnityEngine.Debug.Log("ドッキング中");// TODO デバッグトグル関係　そのうち消す
                     trainUnitStationDocking.TickDockedStations();
                     // もしtrainDiagramの出発条件を満たしていたら、trainDiagramは次の目的地をセット。次のtickでドッキングを解除、バリデーションが行われる
-                    if (trainDiagram.CheckEntries(this))
+                    if (trainDiagram.Update())
                     {
                         // ドッキングを解除はGuid違いの検出により次のtickで行う
                         //trainUnitStationDocking.UndockFromStation();
@@ -298,7 +293,7 @@ namespace Game.Train.Train
                 totalWeight += weight;
                 totalTraction += traction;
             }
-            return (double)totalTraction / totalWeight * masconLevel / MasconLevelMaximum;
+            return (double)totalTraction / totalWeight * masconLevel / TrainMotionParameters.MasconLevelMaximum;
         }
 
         //diagramのindexが見ている目的地にちょうど0距離で到達したか

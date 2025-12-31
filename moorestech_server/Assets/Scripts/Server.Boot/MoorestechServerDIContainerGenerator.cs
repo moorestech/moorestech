@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using Core.Item;
 using Core.Item.Interface;
@@ -168,6 +168,7 @@ namespace Server.Boot
             services.AddSingleton<RailGraphHashStateEventPacket>();
             services.AddSingleton<RailNodeRemovedEventPacket>();
             services.AddSingleton<RailConnectionRemovedEventPacket>();
+            services.AddSingleton<TrainDiagramEventPacket>();
             
             //データのセーブシステム
             services.AddSingleton<AssembleSaveJsonText, AssembleSaveJsonText>();
@@ -200,6 +201,7 @@ namespace Server.Boot
             serviceProvider.GetService<RailGraphHashStateEventPacket>();
             serviceProvider.GetService<RailNodeRemovedEventPacket>();
             serviceProvider.GetService<RailConnectionRemovedEventPacket>();
+            serviceProvider.GetService<TrainDiagramEventPacket>();
             
             serverContext.SetMainServiceProvider(serviceProvider);
 

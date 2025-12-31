@@ -132,18 +132,21 @@ namespace Game.Train.Train
             return entry;
         }
 
-        public bool CheckEntries(TrainUnit _trainUnit)
+        public bool Update()
         {
             if (_currentIndex < 0)
             {
                 return true;
             }
+
             if (!TryGetActiveEntry(out var currentEntry))
             {
                 _currentIndex = -1;
                 return true;
             }
-            return currentEntry.CanDepart(_trainUnit);
+
+            currentEntry.Tick(_owner);
+            return currentEntry.CanDepart(_owner);
         }
 
         public IRailNode GetCurrentNode()
@@ -226,12 +229,20 @@ namespace Game.Train.Train
         internal void NotifyDocked()
         {
             var entry = GetCurrentEntry();
+            if (_owner == null || entry?.Node == null)
+            {
+                return;
+            }
             TrainDiagramManager.Instance.NotifyDocked(_owner, entry, TrainUpdateService.CurrentTick);
         }
 
         internal void NotifyDeparted()
         {
             var entry = GetCurrentEntry();
+            if (_owner == null || entry?.Node == null)
+            {
+                return;
+            }
             TrainDiagramManager.Instance.NotifyDeparted(_owner, entry, TrainUpdateService.CurrentTick);
         }
 

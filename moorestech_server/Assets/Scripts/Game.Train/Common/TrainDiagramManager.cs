@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Game.Train.RailGraph;
 using Game.Train.Train;
+using UniRx;
 
 namespace Game.Train.Common
 {
@@ -19,20 +20,26 @@ namespace Game.Train.Common
         }
 
         private readonly List<TrainDiagram> _diagrams;
-        public event Action<TrainUnit, TrainDiagramEntry, long> TrainDocked;
-        public event Action<TrainUnit, TrainDiagramEntry, long> TrainDeparted;
+        private Subject<TrainDiagramEventData> _trainDocked;
+        private Subject<TrainDiagramEventData> _trainDeparted;
+        public IObservable<TrainDiagramEventData> TrainDocked => _trainDocked;
+        public IObservable<TrainDiagramEventData> TrainDeparted => _trainDeparted;
 
         public TrainDiagramManager()
         {
             _instance = this;
             _diagrams = new List<TrainDiagram>();
+            _trainDocked = new Subject<TrainDiagramEventData>();
+            _trainDeparted = new Subject<TrainDiagramEventData>();
         }
 
         public void ResetInstance()
         {
             _diagrams.Clear();
-            TrainDocked = null;
-            TrainDeparted = null;
+            _trainDocked.Dispose();
+            _trainDeparted.Dispose();
+            _trainDocked = new Subject<TrainDiagramEventData>();
+            _trainDeparted = new Subject<TrainDiagramEventData>();
         }
 
         public void RegisterDiagram(TrainDiagram diagram)
@@ -80,12 +87,26 @@ namespace Game.Train.Common
 
         internal void NotifyDocked(TrainUnit unit, TrainDiagramEntry entry, long tick)
         {
-            TrainDocked?.Invoke(unit, entry, tick);
+            _trainDocked?.OnNext(new TrainDiagramEventData(unit, entry, tick));
         }
 
         internal void NotifyDeparted(TrainUnit unit, TrainDiagramEntry entry, long tick)
         {
-            TrainDeparted?.Invoke(unit, entry, tick);
+            _trainDeparted?.OnNext(new TrainDiagramEventData(unit, entry, tick));
+        }
+
+        public readonly struct TrainDiagramEventData
+        {
+            public TrainDiagramEventData(TrainUnit unit, TrainDiagramEntry entry, long tick)
+            {
+                Unit = unit;
+                Entry = entry;
+                Tick = tick;
+            }
+
+            public TrainUnit Unit { get; }
+            public TrainDiagramEntry Entry { get; }
+            public long Tick { get; }
         }
     }
 }
