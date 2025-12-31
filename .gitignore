@@ -98,3 +98,5 @@ moorestech_client/.vscode/settings.json
 
 
 
+**/__pycache__/
+*.pyc

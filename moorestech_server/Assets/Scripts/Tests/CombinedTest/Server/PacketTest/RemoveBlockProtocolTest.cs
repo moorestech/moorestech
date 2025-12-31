@@ -36,7 +36,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Create block to be removed
             worldBlock.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
             var blockInventory = block.GetComponent<IBlockInventory>();
-            blockInventory.InsertItem(itemStackFactory.Create(new ItemId(10), 7));
+            blockInventory.InsertItem(itemStackFactory.Create(new ItemId(10), 7), InsertItemContext.Empty);
             var blockElement = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId);
 
             // プロトコルを使ってブロックを削除

@@ -82,7 +82,7 @@ namespace Client.Tests.PlayModeTest
                     // Check the item entity
                     for (int i = 0; i < entityDatastore.transform.childCount; i++)
                     {
-                        var itemEntity = entityDatastore.transform.GetChild(i).GetComponent<ItemEntityObject>();
+                        var itemEntity = entityDatastore.transform.GetChild(i).GetComponent<BeltConveyorItemEntityObject>();
                         if (itemEntity == null) continue;
                         
                         // アイテムが許可された座標の近くにのみ存在することをチェック
@@ -102,7 +102,7 @@ namespace Client.Tests.PlayModeTest
                 }
             }
             
-            void AssertItemOnlyAtAllowedPositions(ItemEntityObject itemEntity, List<Vector3Int> allowedPositions)
+            void AssertItemOnlyAtAllowedPositions(BeltConveyorItemEntityObject itemEntity, List<Vector3Int> allowedPositions)
             {
                 const float tolerance = 0.1f; // 誤差
                 bool isInAllowedArea = false;
@@ -140,7 +140,7 @@ namespace Client.Tests.PlayModeTest
                     $"Allowed positions: [{string.Join(", ", allowedPositions)}]");
             }
             
-            void AssertMoveItem(ItemEntityObject itemEntity, Dictionary<long, Vector3> itemObjects, Dictionary<long, DateTime> intervalCheckTime)
+            void AssertMoveItem(BeltConveyorItemEntityObject itemEntity, Dictionary<long, Vector3> itemObjects, Dictionary<long, DateTime> intervalCheckTime)
             {
                 // アイテムエンティティの生成時間を記録
                 // Record the creation time of the item entity

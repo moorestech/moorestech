@@ -4,7 +4,8 @@
     "references": [
         "Server.Boot",
         "Common.Debug",
-        "Game.Paths"
+        "Game.Paths",
+        "Server.Tests"
     ],
     "includePlatforms": [
         "Editor"

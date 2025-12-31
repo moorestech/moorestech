@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Component;
@@ -20,7 +21,7 @@ namespace Tests.UnitTest.Game
             
             var connectInfoItems = new List<BlockConnectInfoElement>
             {
-                new(0, "", new Vector3Int(1, 0, 0), new []{new Vector3Int(1,0,0)}, null),
+                new(0, "", Guid.NewGuid(), new Vector3Int(1, 0, 0), new []{new Vector3Int(1,0,0)}, null),
             };
             var connectionInfo = new BlockConnectInfo(connectInfoItems.ToArray());
             
@@ -44,7 +45,7 @@ namespace Tests.UnitTest.Game
             
             var connectInfoItems = new List<BlockConnectInfoElement>
             {
-                new(0, "", new Vector3Int(1, 0, 0), new []{new Vector3Int(1,0,0)}, null),
+                new(0, "", Guid.NewGuid(), new Vector3Int(1, 0, 0), new []{new Vector3Int(1,0,0)}, null),
             };
             var connectionInfo = new BlockConnectInfo(connectInfoItems.ToArray());
             
@@ -54,7 +55,7 @@ namespace Tests.UnitTest.Game
             AssertConnectors(result, 0, Vector3Int.zero, new Vector3Int(0, 0, -1));
         }
         
-        void AssertConnectors(Dictionary<Vector3Int, (Vector3Int position, IConnectOption selfOption)> result, int index, Vector3Int connectorPosition, Vector3Int targetPosition)
+        void AssertConnectors(Dictionary<Vector3Int, (Vector3Int position, BlockConnectInfoElement element)> result, int index, Vector3Int connectorPosition, Vector3Int targetPosition)
         {
             Assert.AreEqual(connectorPosition, result.Values.ToList()[index].position);
             Assert.AreEqual(targetPosition, result.Keys.ToList()[index]);
