@@ -18,19 +18,21 @@ namespace Server.Util.MessagePack
         [Key(2)] public Guid EntryId { get; set; }
         [Key(3)] public ConnectionDestinationMessagePack Node { get; set; }
         [Key(4)] public long Tick { get; set; }
+        [Key(5)] public uint DiagramHash { get; set; }
 
         [Obsolete("Reserved for MessagePack.")]
         public TrainDiagramEventMessagePack()
         {
         }
 
-        public TrainDiagramEventMessagePack(TrainDiagramEventType eventType, Guid trainId, Guid entryId, ConnectionDestination node, long tick)
+        public TrainDiagramEventMessagePack(TrainDiagramEventType eventType, Guid trainId, Guid entryId, ConnectionDestination node, long tick, uint diagramHash)
         {
             EventType = eventType;
             TrainId = trainId;
             EntryId = entryId;
             Node = new ConnectionDestinationMessagePack(node);
             Tick = tick;
+            DiagramHash = diagramHash;
         }
     }
 }
