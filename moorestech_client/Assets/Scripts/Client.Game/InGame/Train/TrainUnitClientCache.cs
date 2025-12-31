@@ -94,7 +94,7 @@ namespace Client.Game.InGame.Train
             if (_units.TryGetValue(message.TrainId, out var unit))
             {
                 unit.ApplyDiagramEvent(message);
-                var localHash = TrainDiagramHashCalculator.Compute(unit.Diagram);
+                var localHash = TrainDiagramHashCalculator.Compute(unit.Diagram.Snapshot);
                 if (localHash != message.DiagramHash)
                 {
                     Debug.LogWarning($"[TrainDiagramHashVerifier] Hash mismatch for train={message.TrainId}. client={localHash}, server={message.DiagramHash}, tick={message.Tick}, event={message.EventType}.");
