@@ -39,9 +39,10 @@ public record Schema(string SchemaId, SchemaId InnerSchema, DefineInterface[] In
     public string SchemaId = SchemaId;
 }
 
-public record ObjectSchema(string? PropertyName, SchemaId? Parent, Dictionary<string, SchemaId> Properties, string[] Required, bool IsNullable, string[] InterfaceImplementations, bool IsInterfaceProperty) : ISchema, IDefineInterfacePropertySchema
+public record ObjectSchema(string? PropertyName, SchemaId? Parent, Dictionary<string, SchemaId> Properties, string[] Required, bool IsNullable, string[] InterfaceImplementations, Dictionary<string, JsonString> ImplementationNodes, bool IsInterfaceProperty) : ISchema, IDefineInterfacePropertySchema
 {
     public string[] InterfaceImplementations = InterfaceImplementations;
+    public Dictionary<string, JsonString> ImplementationNodes = ImplementationNodes;
     public Dictionary<string, SchemaId> Properties = Properties;
     public string[] Required = Required;
     public string? PropertyName { get; } = PropertyName;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using mooresmaster.Generator.Analyze;
+using mooresmaster.Generator.Analyze.Diagnostics;
 using mooresmaster.Generator.JsonSchema;
 
 namespace mooresmaster.Generator.Semantic;
@@ -97,7 +98,7 @@ public static class SemanticsGenerator
                     if (globalInterfaceTable.TryGetValue(interfaceName, out var globalOther))
                         semantics.AddClassInterfaceImplementation(target, globalOther);
                     else
-                        throw new Exception();
+                        analysis.ReportDiagnostics(new InterfaceNotFoundDiagnostics(interfaceName, objectSchema.ImplementationNodes[interfaceName].Location));
                 }
         }
     }

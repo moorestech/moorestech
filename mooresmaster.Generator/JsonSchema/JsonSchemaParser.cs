@@ -129,32 +129,36 @@ public static class JsonSchemaParser
     private static SchemaId ParseObject(JsonObject json, SchemaId? parent, bool isInterfaceProperty, SchemaTable table)
     {
         var interfaceImplementations = new List<string>();
+        var implementationNodes = new Dictionary<string, JsonString>();
         if (json.Nodes.TryGetValue(Tokens.ImplementationInterfaceKey, out var node) && node is JsonArray array)
             foreach (var implementation in array.Nodes)
                 if (implementation is JsonString name)
+                {
                     interfaceImplementations.Add(name.Literal);
-        
+                    implementationNodes[name.Literal] = name;
+                }
+
         var objectName = json.Nodes.ContainsKey(Tokens.PropertyNameKey) ? (json[Tokens.PropertyNameKey] as JsonString)!.Literal : null;
-        
-        if (!json.Nodes.ContainsKey(Tokens.PropertiesKey)) return table.Add(new ObjectSchema(objectName, parent, new Dictionary<string, SchemaId>(), [], IsNullable(json), interfaceImplementations.ToArray(), isInterfaceProperty));
-        
+
+        if (!json.Nodes.ContainsKey(Tokens.PropertiesKey)) return table.Add(new ObjectSchema(objectName, parent, new Dictionary<string, SchemaId>(), [], IsNullable(json), interfaceImplementations.ToArray(), implementationNodes, isInterfaceProperty));
+
         var propertiesJson = (json[Tokens.PropertiesKey] as JsonArray)!;
         var requiredJson = json["required"] as JsonArray;
         var required = requiredJson is null ? [] : requiredJson.Nodes.OfType<JsonString>().Select(str => str.Literal).ToArray();
         var objectSchemaId = SchemaId.New();
-        
+
         Dictionary<string, SchemaId> properties = [];
         foreach (var propertyNode in propertiesJson.Nodes.OfType<JsonObject>())
         {
             var key = propertyNode.Nodes[Tokens.PropertyNameKey] as JsonString;
             var value = propertyNode;
             var schemaId = Parse(value, objectSchemaId, false, table);
-            
+
             properties.Add(key?.Literal, schemaId);
         }
-        
-        table.Add(objectSchemaId, new ObjectSchema(objectName, parent, properties, required, IsNullable(json), interfaceImplementations.ToArray(), isInterfaceProperty));
-        
+
+        table.Add(objectSchemaId, new ObjectSchema(objectName, parent, properties, required, IsNullable(json), interfaceImplementations.ToArray(), implementationNodes, isInterfaceProperty));
+
         return objectSchemaId;
     }
     
