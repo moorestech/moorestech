@@ -27,7 +27,7 @@ public class OptionalTest
                              optional: true
                          """;
 
-        var (schemaTable, nameTable, semantics, definition) = Test.Generate(yamlSchema);
+        var (schemaTable, nameTable, semantics, definition, analysis) = Test.Generate(yamlSchema);
 
         // 全てのプロパティがoptionalのはず
         foreach (var propertySemantics in semantics.PropertySemanticsTable.Values) Assert.True(propertySemantics.IsNullable);

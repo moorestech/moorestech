@@ -17,7 +17,7 @@ public class Analysis
         true
     );
     
-    public List<IDiagnostics> DiagnosticsList = new();
+    public readonly List<IDiagnostics> DiagnosticsList = new();
     
     public void ReportDiagnostics(IDiagnostics analysis)
     {

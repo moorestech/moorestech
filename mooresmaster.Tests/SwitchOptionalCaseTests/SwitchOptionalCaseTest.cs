@@ -15,8 +15,8 @@ public class SwitchOptionalCaseTest
     {
         var yaml = File.ReadAllText("./SwitchOptionalCaseTests/SwitchOptionalCaseTestSchema.yml");
         
-        var (schemaTable, nameTable, semantics, definition) = Test.Generate(yaml);
-        
+        var (schemaTable, nameTable, semantics, definition, analysis) = Test.Generate(yaml);
+
         var rootSemantics = semantics.RootSemanticsTable.Values.First();
         var rootInnerSchema = schemaTable.Table[rootSemantics.Root.InnerSchema];
         var rootInnerClassId = semantics.SchemaTypeSemanticsTable[rootInnerSchema];

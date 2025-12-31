@@ -9,7 +9,7 @@ public class DefineInterfaceTest
     [Fact]
     public void LocalDefineInterfaceTest()
     {
-        var (schemaTable, nameTable, semantics, definition) = Test.Generate(Test.GetSchema(@"DefineInterfaceTests/DefineInterfaceTestSchema.yml"));
+        var (schemaTable, nameTable, semantics, definition, analysis) = Test.Generate(Test.GetSchema(@"DefineInterfaceTests/DefineInterfaceTestSchema.yml"));
         
         var interfaceTable = semantics.InterfaceSemanticsTable;
         
@@ -23,7 +23,7 @@ public class DefineInterfaceTest
     [Fact]
     public void GlobalDefineInterfaceTest()
     {
-        var (schemaTable, nameTable, semantics, definition) = Test.Generate(Test.GetSchema(@"DefineInterfaceTests/DefineInterfaceTestSchema.yml"));
+        var (schemaTable, nameTable, semantics, definition, analysis) = Test.Generate(Test.GetSchema(@"DefineInterfaceTests/DefineInterfaceTestSchema.yml"));
         
         var interfaceTable = semantics.InterfaceSemanticsTable;
         
@@ -69,8 +69,29 @@ public class DefineInterfaceTest
         
         // ScopeがLocalのInterfaceを別ファイルから参照している場合エラーになる
         Assert.ThrowsAny<Exception>(() => { _ = Test.Generate(defineInterfaceTestSchemaText, failedTestText); });
-
+        
         // globalであれば問題ない
         Test.Generate(defineInterfaceTestSchemaText, passedTestText);
+    }
+    
+    [Fact]
+    public void InterfaceNotFoundDiagnosticsReportTest()
+    {
+        const string source =
+            """
+            id: interfaceNotFoundDiagnosticsReportTestSchema
+            type: object
+            
+            implementationInterface:
+              - INotFoundInterface
+            
+            properties:
+              - key: test2
+                type: integer
+              - key: test3
+                type: integer
+            """;
+        
+        Test.Generate(source);
     }
 }

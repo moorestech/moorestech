@@ -1,4 +1,3 @@
-using mooresmaster.Generator.Analyze;
 using mooresmaster.Generator.Analyze.Analyzers;
 using Xunit;
 
@@ -38,8 +37,7 @@ public class DefineInterfaceScopeAnalyzeTest
                     type: integer
             """;
         
-        var analyzeException = Assert.ThrowsAny<AnalyzeException>(() => Test.Generate(localInterface0, localInterface1));
-        var diagnosticsArray = analyzeException.DiagnosticsArray;
+        var diagnosticsArray = Test.Generate(localInterface0, localInterface1).analysis.DiagnosticsList;
         
         // エラーがDefineInterfaceLocalScopeDiagnosticsのみであることの確認
         Assert.Single(diagnosticsArray);
@@ -47,7 +45,7 @@ public class DefineInterfaceScopeAnalyzeTest
     }
     
     /// <summary>
-    /// LocalInterfaceから別SchemaのGlobalInterfaceへの依存が問題ないことの確認
+    ///     LocalInterfaceから別SchemaのGlobalInterfaceへの依存が問題ないことの確認
     /// </summary>
     [Fact]
     public void LocalInterfaceDependOtherSchemaGlobalInterface()
@@ -113,8 +111,7 @@ public class DefineInterfaceScopeAnalyzeTest
                     type: integer
             """;
         
-        var analyzerException = Assert.ThrowsAny<AnalyzeException>(() => Test.Generate(localInterfaceSchema, globalInterfaceSchema));
-        var diagnosticsArray = analyzerException.DiagnosticsArray;
+        var diagnosticsArray = Test.Generate(localInterfaceSchema, globalInterfaceSchema).analysis.DiagnosticsList;
         
         // エラーがDefineInterfaceGlobalScopeDiagnosticsのみであることの確認
         Assert.Single(diagnosticsArray);
