@@ -70,7 +70,7 @@ public static class SemanticsGenerator
                 else if (allInterfaceTable.TryGetValue(interfaceName, out var allOther))
                     semantics.AddInterfaceInterfaceImplementation(target, allOther);
                 else
-                    analysis.ReportDiagnostics(new InterfaceNotFoundDiagnostics(interfaceName,));
+                    analysis.ReportDiagnostics(new InterfaceNotFoundDiagnostics(interfaceName, kvp.Value.Interface.ImplementationNodes[interfaceName].Location));
         }
     }
     
