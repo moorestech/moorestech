@@ -150,6 +150,7 @@ namespace Client.Starter
             builder.RegisterEntryPoint<SkitFireManager>();
             builder.RegisterEntryPoint<RailGraphCacheNetworkHandler>();
             builder.RegisterEntryPoint<RailGraphConnectionNetworkHandler>();
+            builder.RegisterEntryPoint<TrainDiagramEventNetworkHandler>();
             
             // 設置システム
             // register placement system

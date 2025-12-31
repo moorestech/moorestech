@@ -1,5 +1,6 @@
 using Game.Train.RailGraph;
 using Game.Train.Train;
+using Server.Util.MessagePack;
 using System;
 
 namespace Client.Game.InGame.Train
@@ -18,6 +19,7 @@ namespace Client.Game.InGame.Train
         public TrainDiagramSnapshot Diagram { get; private set; }
         public RailPosition RailPosition { get; private set; }
         public long LastUpdatedTick { get; private set; }
+        public TrainDiagramEventMessagePack LastDiagramEvent { get; private set; }
 
         // スナップショットの内容で内部状態を更新
         // Update internal state by the received snapshot
@@ -27,6 +29,38 @@ namespace Client.Game.InGame.Train
             Diagram = diagram;
             RailPosition = RailPositionFactory.Restore(railPosition);
             LastUpdatedTick = tick;
+        }
+
+        public void ApplyDiagramEvent(TrainDiagramEventMessagePack message)
+        {
+            if (message == null || message.TrainId != TrainId)
+            {
+                return;
+            }
+
+            LastDiagramEvent = message;
+            if (message.EventType == TrainDiagramEventType.Departed)
+            {
+                UpdateDiagramIndexByEntryId(message.EntryId);
+            }
+        }
+
+        private void UpdateDiagramIndexByEntryId(Guid entryId)
+        {
+            if (Diagram.Entries == null || Diagram.Entries.Count == 0)
+            {
+                return;
+            }
+
+            var entries = Diagram.Entries;
+            for (var i = 0; i < entries.Count; i++)
+            {
+                if (entries[i].EntryId == entryId)
+                {
+                    Diagram = new TrainDiagramSnapshot(i, entries);
+                    return;
+                }
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
 using Game.Train.Train;
+using Server.Util.MessagePack;
 using System;
 using System.Collections.Generic;
 
@@ -74,6 +75,19 @@ namespace Client.Game.InGame.Train
         public bool TryGet(Guid trainId, out ClientTrainUnit unit)
         {
             return _units.TryGetValue(trainId, out unit);
+        }
+
+        public void ApplyDiagramEvent(TrainDiagramEventMessagePack message)
+        {
+            if (message == null)
+            {
+                return;
+            }
+
+            if (_units.TryGetValue(message.TrainId, out var unit))
+            {
+                unit.ApplyDiagramEvent(message);
+            }
         }
     }
 }
