@@ -37,7 +37,8 @@ namespace Server.Event.EventReceive
                 data.Context.TrainId,
                 data.Entry.entryId,
                 data.Entry.Node.ConnectionDestination,
-                data.Tick);
+                data.Tick,
+                data.DiagramHash);
             var payload = MessagePackSerializer.Serialize(message);
             var tag = eventType == TrainDiagramEventType.Docked ? DockedEventTag : DepartedEventTag;
             _eventProtocolProvider.AddBroadcastEvent(tag, payload);

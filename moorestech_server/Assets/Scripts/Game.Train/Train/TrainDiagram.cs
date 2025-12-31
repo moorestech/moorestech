@@ -248,7 +248,8 @@ namespace Game.Train.Train
             {
                 return;
             }
-            TrainDiagramManager.Instance.NotifyDocked(_context, entry, TrainUpdateService.CurrentTick);
+            var hash = TrainDiagramHashCalculator.Compute(this);
+            TrainDiagramManager.Instance.NotifyDocked(_context, entry, TrainUpdateService.CurrentTick, hash);
         }
 
         internal void NotifyDeparted()
@@ -258,7 +259,8 @@ namespace Game.Train.Train
             {
                 return;
             }
-            TrainDiagramManager.Instance.NotifyDeparted(_context, entry, TrainUpdateService.CurrentTick);
+            var hash = TrainDiagramHashCalculator.Compute(this);
+            TrainDiagramManager.Instance.NotifyDeparted(_context, entry, TrainUpdateService.CurrentTick, hash);
         }
 
         public TrainDiagramSaveData CreateTrainDiagramSaveData()
