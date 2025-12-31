@@ -78,6 +78,12 @@ namespace Client.Game.InGame.Train
             return _units.TryGetValue(trainId, out unit);
         }
 
+        internal void CopyUnitsTo(List<ClientTrainUnit> buffer)
+        {
+            buffer.Clear();
+            buffer.AddRange(_units.Values);
+        }
+
         public void ApplyDiagramEvent(TrainDiagramEventMessagePack message)
         {
             if (message == null)
