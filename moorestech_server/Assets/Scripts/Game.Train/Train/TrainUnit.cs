@@ -62,6 +62,7 @@ namespace Game.Train.Train
             _previousEntryGuid = Guid.Empty;
             trainUnitStationDocking = new TrainUnitStationDocking(this);
             trainDiagram = new TrainDiagram();
+            trainDiagram.SetOwner(this);
             TrainUpdateService.Instance.RegisterTrain(this);
         }
 
@@ -107,7 +108,6 @@ namespace Game.Train.Train
                     if (trainUnitStationDocking.IsDocked)
                     {
                         trainUnitStationDocking.UndockFromStation();
-                        UnityEngine.Debug.Log("diagram変更検知によるドッキング解除");
                     }
                     DiagramValidation();
                 }
