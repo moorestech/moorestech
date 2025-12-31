@@ -1,11 +1,20 @@
+using System;
 using mooresmaster.Generator.Analyze.Analyzers;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace mooresmaster.Tests.AnalyzerTests;
 
 public class SwitchPathAnalyzerTest
 {
-    /// <summary>
+  private readonly ITestOutputHelper _testOutputHelper;
+  
+  public SwitchPathAnalyzerTest(ITestOutputHelper testOutputHelper)
+  {
+    _testOutputHelper = testOutputHelper;
+  }
+  
+  /// <summary>
     ///     相対パスで存在しないプロパティを参照した場合のエラーのテスト
     /// </summary>
     [Fact]
@@ -33,6 +42,7 @@ public class SwitchPathAnalyzerTest
             """;
 
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
+        _testOutputHelper.WriteLine(Test.Generate(schema).analysis.ToString());
 
         Assert.Single(diagnosticsArray);
         var diagnostics = Assert.IsType<SwitchPathPropertyNotFoundDiagnostics>(diagnosticsArray[0]);
