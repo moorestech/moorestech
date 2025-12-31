@@ -22,8 +22,6 @@ namespace Client.Game.InGame.Train
         public bool IsAutoRun { get; set; }
         public bool IsDocked { get; set; }
         IReadOnlyList<TrainCarSnapshot> cars { get; set; }
-        // 暫定の現在diagramで進む先のirailnode
-        IRailNode diagramApproachingRailNode { get; set; }
 
         public ClientTrainDiagram Diagram { get; }
         public RailPosition RailPosition { get; private set; }
@@ -114,16 +112,9 @@ namespace Client.Game.InGame.Train
 
         private IRailNode ResolveCurrentDestinationNode()
         {
-            // 現在の目皁E��ノ�Eドを解決して参照を更新する
-            // Resolve the current destination node and sync the reference
-            if (!Diagram.TryResolveCurrentDestinationNode(out var destinationNode))
-            {
-                diagramApproachingRailNode = null;
-                return null;
-            }
-
-            diagramApproachingRailNode = destinationNode;
-            return destinationNode;
+        // 現在の目的地ノードを解決する
+            // Resolve the current destination node
+            return Diagram.TryResolveCurrentDestinationNode(out var destinationNode) ? destinationNode : null;
         }
 
         //--------------------------------------------------------------------------------------------------------------------
@@ -149,11 +140,13 @@ namespace Client.Game.InGame.Train
         //--------------------------------------------------------------------------------------------------------------------
         //--------------------------------------------------------------------------------------------------------------------
 
-        //1tickごとに呼ばれる.進んだ距離を返す?
+        // 1tickごとに呼ばれる。進んだ距離を返す
+        // Called every tick and returns moved distance
         public int Update()
         {
-            // 手動運転などを想定
-            if ((diagramApproachingRailNode == null)||(!IsAutoRun))
+            // 自動運転が有効で目的地がある場合のみ進める
+            // Only advance when auto-run is active and a destination exists
+            if (!IsAutoRun || !Diagram.TryResolveCurrentDestinationNode(out _))
             {
                 // TODO 未実装
                 return 0;
@@ -291,7 +284,11 @@ namespace Client.Game.InGame.Train
         private bool IsArrivedDestination()
         {
             var node = RailPosition.GetNodeApproaching();
-            if ((node == diagramApproachingRailNode) & (RailPosition.GetDistanceToNextNode() == 0))
+            if (node == null || !Diagram.TryResolveCurrentDestinationNode(out var destinationNode))
+            {
+                return false;
+            }
+            if ((node == destinationNode) & (RailPosition.GetDistanceToNextNode() == 0))
             {
                 return true;
             }
@@ -308,7 +305,6 @@ namespace Client.Game.InGame.Train
             }
 
             var found = Diagram.TryFindPathFrom(approaching, out var newPath);
-            diagramApproachingRailNode = found && Diagram.TryResolveCurrentDestinationNode(out var destinationNode) ? destinationNode : null;
             return (found, newPath);
         }
 
