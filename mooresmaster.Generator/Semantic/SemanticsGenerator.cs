@@ -22,7 +22,7 @@ public static class SemanticsGenerator
             // ただし、objectSchemaだった場合のちのGenerateで生成されるため、ここでは生成しない
             if (table.Table[schema.InnerSchema] is ObjectSchema objectSchema)
             {
-                var (innerSemantics, id) = Generate(objectSchema, table, rootId);
+                var (innerSemantics, id) = Generate(objectSchema, table, rootId, analysis);
                 semantics.RootSemanticsTable.Add(rootId, new RootSemantics(schema, id));
                 innerSemantics.AddTo(semantics);
             }
@@ -32,20 +32,20 @@ public static class SemanticsGenerator
                 var typeId = semantics.AddTypeSemantics(typeSemantics);
                 semantics.RootSemanticsTable.Add(rootId, new RootSemantics(schema, typeId));
                 
-                Generate(table.Table[schema.InnerSchema], table, rootId).AddTo(semantics);
+                Generate(table.Table[schema.InnerSchema], table, rootId, analysis).AddTo(semantics);
             }
             
             foreach (var defineInterface in schema.Interfaces)
-                GenerateInterfaceSemantics(defineInterface, schema, table, rootId).AddTo(semantics);
+                GenerateInterfaceSemantics(defineInterface, schema, table, rootId, analysis).AddTo(semantics);
         }
         
-        ResolveInterfaceInterfaceImplementations(semantics);
+        ResolveInterfaceInterfaceImplementations(semantics, analysis);
         ResolveClassInterfaceImplementations(semantics, analysis);
         
         return semantics;
     }
     
-    private static void ResolveInterfaceInterfaceImplementations(Semantics semantics)
+    private static void ResolveInterfaceInterfaceImplementations(Semantics semantics, Analysis analysis)
     {
         var allInterfaceTable = semantics.InterfaceSemanticsTable
             .ToDictionary(kvp => kvp.Value.Interface.InterfaceName, kvp => kvp.Key);
@@ -67,8 +67,10 @@ public static class SemanticsGenerator
                     semantics.AddInterfaceInterfaceImplementation(target, localOther);
                 else if (globalInterfaceTable.TryGetValue(interfaceName, out var globalOther))
                     semantics.AddInterfaceInterfaceImplementation(target, globalOther);
+                else if (allInterfaceTable.TryGetValue(interfaceName, out var allOther))
+                    semantics.AddInterfaceInterfaceImplementation(target, allOther);
                 else
-                    semantics.AddInterfaceInterfaceImplementation(target, allInterfaceTable[interfaceName]);
+                    analysis.ReportDiagnostics(new InterfaceNotFoundDiagnostics(interfaceName,));
         }
     }
     
@@ -103,7 +105,7 @@ public static class SemanticsGenerator
         }
     }
     
-    private static Semantics GenerateInterfaceSemantics(DefineInterface defineInterface, Schema schema, SchemaTable table, RootId rootId)
+    private static Semantics GenerateInterfaceSemantics(DefineInterface defineInterface, Schema schema, SchemaTable table, RootId rootId, Analysis analysis)
     {
         var semantics = new Semantics();
         
@@ -114,7 +116,7 @@ public static class SemanticsGenerator
         {
             var propertySchema = property.Value;
             
-            Generate(propertySchema, table, rootId).AddTo(semantics);
+            Generate(propertySchema, table, rootId, analysis).AddTo(semantics);
             
             var propertyId = semantics.AddInterfacePropertySemantics(new InterfacePropertySemantics(propertySchema, interfaceId));
             propertyIds.Add(propertyId);
@@ -129,7 +131,7 @@ public static class SemanticsGenerator
         return semantics;
     }
     
-    private static Semantics Generate(ISchema schema, SchemaTable table, RootId rootId)
+    private static Semantics Generate(ISchema schema, SchemaTable table, RootId rootId, Analysis analysis)
     {
         var semantics = new Semantics();
         
@@ -139,21 +141,21 @@ public static class SemanticsGenerator
                 var itemsSchema = table.Table[arraySchema.Items];
                 if (itemsSchema is ObjectSchema arrayItemObjectSchema)
                 {
-                    var (arrayItemSemantics, _) = Generate(arrayItemObjectSchema, table, rootId, true);
+                    var (arrayItemSemantics, _) = Generate(arrayItemObjectSchema, table, rootId, analysis, true);
                     arrayItemSemantics.AddTo(semantics);
                 }
                 else
                 {
-                    Generate(itemsSchema, table, rootId).AddTo(semantics);
+                    Generate(itemsSchema, table, rootId, analysis).AddTo(semantics);
                 }
                 
                 break;
             case ObjectSchema objectSchema:
-                var (innerSemantics, _) = Generate(objectSchema, table, rootId);
+                var (innerSemantics, _) = Generate(objectSchema, table, rootId, analysis);
                 innerSemantics.AddTo(semantics);
                 break;
             case SwitchSchema oneOfSchema:
-                var (oneOfInnerSemantics, _) = Generate(oneOfSchema, table, rootId);
+                var (oneOfInnerSemantics, _) = Generate(oneOfSchema, table, rootId, analysis);
                 oneOfInnerSemantics.AddTo(semantics);
                 break;
             case RefSchema:
@@ -175,7 +177,7 @@ public static class SemanticsGenerator
         return semantics;
     }
     
-    private static (Semantics, SwitchId) Generate(SwitchSchema switchSchema, SchemaTable table, RootId rootId)
+    private static (Semantics, SwitchId) Generate(SwitchSchema switchSchema, SchemaTable table, RootId rootId, Analysis analysis)
     {
         var semantics = new Semantics();
         
@@ -183,7 +185,7 @@ public static class SemanticsGenerator
         List<(SwitchPath, string, ClassId)> thenList = new();
         foreach (var ifThen in switchSchema.IfThenArray)
         {
-            Generate(table.Table[ifThen.Schema], table, rootId).AddTo(semantics);
+            Generate(table.Table[ifThen.Schema], table, rootId, analysis).AddTo(semantics);
             
             var then = semantics.SchemaTypeSemanticsTable[table.Table[ifThen.Schema]];
             semantics.SwitchInheritList.Add((interfaceId, then));
@@ -195,7 +197,7 @@ public static class SemanticsGenerator
         return (semantics, interfaceId);
     }
     
-    private static (Semantics, ClassId) Generate(ObjectSchema objectSchema, SchemaTable table, RootId rootId, bool isArrayInnerType = false)
+    private static (Semantics, ClassId) Generate(ObjectSchema objectSchema, SchemaTable table, RootId rootId, Analysis analysis, bool isArrayInnerType = false)
     {
         var semantics = new Semantics();
         var typeId = ClassId.New();
@@ -206,7 +208,7 @@ public static class SemanticsGenerator
             switch (schema)
             {
                 case ObjectSchema innerObjectSchema:
-                    var (objectInnerSemantics, objectInnerTypeId) = Generate(innerObjectSchema, table, rootId);
+                    var (objectInnerSemantics, objectInnerTypeId) = Generate(innerObjectSchema, table, rootId, analysis);
                     objectInnerSemantics.AddTo(semantics);
                     properties.Add(semantics.AddPropertySemantics(
                         new PropertySemantics(
@@ -219,7 +221,7 @@ public static class SemanticsGenerator
                     ));
                     break;
                 case SwitchSchema oneOfSchema:
-                    var (oneOfInnerSemantics, oneOfInnerTypeId) = Generate(oneOfSchema, table, rootId);
+                    var (oneOfInnerSemantics, oneOfInnerTypeId) = Generate(oneOfSchema, table, rootId, analysis);
                     oneOfInnerSemantics.AddTo(semantics);
                     properties.Add(semantics.AddPropertySemantics(
                         new PropertySemantics(
@@ -232,7 +234,7 @@ public static class SemanticsGenerator
                     ));
                     break;
                 default:
-                    Generate(table.Table[property.Value], table, rootId).AddTo(semantics);
+                    Generate(table.Table[property.Value], table, rootId, analysis).AddTo(semantics);
                     properties.Add(semantics.AddPropertySemantics(
                         new PropertySemantics(
                             typeId,
