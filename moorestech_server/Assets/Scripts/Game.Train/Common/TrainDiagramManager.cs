@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Game.Train.RailGraph;
 using Game.Train.Train;
@@ -18,6 +19,8 @@ namespace Game.Train.Common
         }
 
         private readonly List<TrainDiagram> _diagrams;
+        public event Action<TrainUnit, TrainDiagramEntry, long> TrainDocked;
+        public event Action<TrainUnit, TrainDiagramEntry, long> TrainDeparted;
 
         public TrainDiagramManager()
         {
@@ -28,6 +31,8 @@ namespace Game.Train.Common
         public void ResetInstance()
         {
             _diagrams.Clear();
+            TrainDocked = null;
+            TrainDeparted = null;
         }
 
         public void RegisterDiagram(TrainDiagram diagram)
@@ -71,6 +76,16 @@ namespace Game.Train.Common
                     diagram.AddEntry(newNode, TrainDiagram.DepartureConditionType.WaitForTicks, 300);
                 }
             }
+        }
+
+        internal void NotifyDocked(TrainUnit unit, TrainDiagramEntry entry, long tick)
+        {
+            TrainDocked?.Invoke(unit, entry, tick);
+        }
+
+        internal void NotifyDeparted(TrainUnit unit, TrainDiagramEntry entry, long tick)
+        {
+            TrainDeparted?.Invoke(unit, entry, tick);
         }
     }
 }

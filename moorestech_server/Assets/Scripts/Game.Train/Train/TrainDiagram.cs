@@ -1,8 +1,8 @@
-using Game.Train.Common;
 using Game.Train.RailGraph;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Game.Train.Common;
 
 namespace Game.Train.Train
 {
@@ -10,6 +10,7 @@ namespace Game.Train.Train
     {
         private readonly List<TrainDiagramEntry> _entries;
         private int _currentIndex;
+        private TrainUnit _owner;
 
         public IReadOnlyList<TrainDiagramEntry> Entries => _entries;
         public int CurrentIndex => _currentIndex;
@@ -85,6 +86,11 @@ namespace Game.Train.Train
             _currentIndex = restoredIndex;
         }
 
+        internal void SetOwner(TrainUnit owner)
+        {
+            _owner = owner;
+        }
+
         //最後に追加
         public TrainDiagramEntry AddEntry(IRailNode node)
         {
@@ -158,12 +164,7 @@ namespace Game.Train.Train
                 return;
             }
 
-            if (TryGetActiveEntry(out var activeEntry))
-            {
-                activeEntry?.OnDeparted();
-                _currentIndex = (_currentIndex + 1) % _entries.Count;
-                return;
-            }
+            _currentIndex = (_currentIndex + 1) % _entries.Count;
         }
 
         //node削除時かならず呼ばれます->entriesの中身は常に実在するnodeのみ
@@ -197,6 +198,11 @@ namespace Game.Train.Train
         }
 
 
+        public TrainDiagramEntry GetCurrentEntry()
+        {
+            return TryGetActiveEntry(out var entry) ? entry : null;
+        }
+
         private bool TryGetActiveEntry(out TrainDiagramEntry entry)
         {
             entry = null;
@@ -215,6 +221,18 @@ namespace Game.Train.Train
             {
                 entry.OnDeparted();
             }
+        }
+
+        internal void NotifyDocked()
+        {
+            var entry = GetCurrentEntry();
+            TrainDiagramManager.Instance.NotifyDocked(_owner, entry, TrainUpdateService.CurrentTick);
+        }
+
+        internal void NotifyDeparted()
+        {
+            var entry = GetCurrentEntry();
+            TrainDiagramManager.Instance.NotifyDeparted(_owner, entry, TrainUpdateService.CurrentTick);
         }
 
         public TrainDiagramSaveData CreateTrainDiagramSaveData()
