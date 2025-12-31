@@ -66,7 +66,9 @@ namespace Game.Block.Blocks.BeltConveyor
             var goalConnector = _blockInventoryInserter.GetNextGoalConnector(checkItems);
             if (_blockInventoryInserter.HasAnyConnector && goalConnector == null) return itemStack;
 
-            var startConnector = context.SourceConnector;
+            // 挿入先コネクター（TargetConnector）をアイテムの開始位置として設定
+            // Set target connector as item's start position
+            var startConnector = context.TargetConnector;
             _inventoryItems[insertIndex] = new VanillaBeltConveyorInventoryItem(itemStack.Id, itemStack.ItemInstanceId, startConnector, goalConnector);
 
             // 挿入したのでアイテムを減らして返す
