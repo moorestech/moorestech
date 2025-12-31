@@ -59,8 +59,17 @@ namespace Client.Game.InGame.Train
                 return;
             }
 
-            if (message.EventType == TrainDiagramEventType.Departed)
+            // ドッキング/発車イベントをクライアント状態へ反映
+            // Apply dock/depart events to client-side state
+            if (message.EventType == TrainDiagramEventType.Docked)
             {
+                IsDocked = true;
+                CurrentSpeed = 0;
+                AccumulatedDistance = 0;
+            }
+            else if (message.EventType == TrainDiagramEventType.Departed)
+            {
+                IsDocked = false;
                 UpdateDiagramIndexByEntryId(message.EntryId);
             }
             RecalculateRemainingDistance();
