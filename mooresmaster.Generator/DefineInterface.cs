@@ -10,12 +10,14 @@ public class DefineInterface(
     Dictionary<string, IDefineInterfacePropertySchema> properties,
     string[] implementationInterfaces,
     Dictionary<string, JsonString> implementationNodes,
+    Dictionary<string, Location[]> duplicateImplementationLocations,
     bool isGlobal,
     Location location
 )
 {
     public string[] ImplementationInterfaces = implementationInterfaces;
     public Dictionary<string, JsonString> ImplementationNodes = implementationNodes;
+    public Dictionary<string, Location[]> DuplicateImplementationLocations = duplicateImplementationLocations;
     public string InterfaceName = interfaceName;
     public bool IsGlobal = isGlobal;
     public Dictionary<string, IDefineInterfacePropertySchema> Properties = properties;

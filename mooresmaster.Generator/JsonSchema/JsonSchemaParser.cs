@@ -81,11 +81,24 @@ public static class JsonSchemaParser
 
         // interfaceの継承情報を取得
         var implementationNodes = new Dictionary<string, JsonString>();
+        var duplicateImplementationLocations = new Dictionary<string, List<Location>>();
         if (node.Nodes.TryGetValue(Tokens.ImplementationInterfaceKey, out var implementationInterfacesNode) && implementationInterfacesNode is JsonArray nodesArray)
             foreach (var implementationInterfaceNode in nodesArray.Nodes)
             {
                 var name = (JsonString)implementationInterfaceNode;
-                implementationNodes[name.Literal] = name;
+                if (implementationNodes.ContainsKey(name.Literal))
+                {
+                    // 重複を検出
+                    if (!duplicateImplementationLocations.ContainsKey(name.Literal))
+                    {
+                        duplicateImplementationLocations[name.Literal] = new List<Location> { implementationNodes[name.Literal].Location };
+                    }
+                    duplicateImplementationLocations[name.Literal].Add(name.Location);
+                }
+                else
+                {
+                    implementationNodes[name.Literal] = name;
+                }
             }
 
         if (interfaceName == null) throw new Exception("interfaceName is null");
@@ -97,6 +110,7 @@ public static class JsonSchemaParser
             properties,
             implementationNodes.Keys.ToArray(),
             implementationNodes,
+            duplicateImplementationLocations.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToArray()),
             isGlobal,
             interfaceNameNode.Location
         );
@@ -130,19 +144,31 @@ public static class JsonSchemaParser
     
     private static SchemaId ParseObject(JsonObject json, SchemaId? parent, bool isInterfaceProperty, SchemaTable table)
     {
-        var interfaceImplementations = new List<string>();
         var implementationNodes = new Dictionary<string, JsonString>();
+        var duplicateImplementationLocations = new Dictionary<string, List<Location>>();
         if (json.Nodes.TryGetValue(Tokens.ImplementationInterfaceKey, out var node) && node is JsonArray array)
             foreach (var implementation in array.Nodes)
                 if (implementation is JsonString name)
                 {
-                    interfaceImplementations.Add(name.Literal);
-                    implementationNodes[name.Literal] = name;
+                    if (implementationNodes.ContainsKey(name.Literal))
+                    {
+                        // 重複を検出
+                        if (!duplicateImplementationLocations.ContainsKey(name.Literal))
+                        {
+                            duplicateImplementationLocations[name.Literal] = new List<Location> { implementationNodes[name.Literal].Location };
+                        }
+                        duplicateImplementationLocations[name.Literal].Add(name.Location);
+                    }
+                    else
+                    {
+                        implementationNodes[name.Literal] = name;
+                    }
                 }
 
         var objectName = json.Nodes.ContainsKey(Tokens.PropertyNameKey) ? (json[Tokens.PropertyNameKey] as JsonString)!.Literal : null;
+        var duplicateLocationsDict = duplicateImplementationLocations.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToArray());
 
-        if (!json.Nodes.ContainsKey(Tokens.PropertiesKey)) return table.Add(new ObjectSchema(objectName, parent, new Dictionary<string, SchemaId>(), [], IsNullable(json), interfaceImplementations.ToArray(), implementationNodes, isInterfaceProperty));
+        if (!json.Nodes.ContainsKey(Tokens.PropertiesKey)) return table.Add(new ObjectSchema(objectName, parent, new Dictionary<string, SchemaId>(), [], IsNullable(json), implementationNodes.Keys.ToArray(), implementationNodes, duplicateLocationsDict, isInterfaceProperty));
 
         var propertiesJson = (json[Tokens.PropertiesKey] as JsonArray)!;
         var requiredJson = json["required"] as JsonArray;
@@ -159,7 +185,7 @@ public static class JsonSchemaParser
             properties.Add(key?.Literal, schemaId);
         }
 
-        table.Add(objectSchemaId, new ObjectSchema(objectName, parent, properties, required, IsNullable(json), interfaceImplementations.ToArray(), implementationNodes, isInterfaceProperty));
+        table.Add(objectSchemaId, new ObjectSchema(objectName, parent, properties, required, IsNullable(json), implementationNodes.Keys.ToArray(), implementationNodes, duplicateLocationsDict, isInterfaceProperty));
 
         return objectSchemaId;
     }
