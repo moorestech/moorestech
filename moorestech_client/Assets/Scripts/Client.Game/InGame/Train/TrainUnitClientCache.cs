@@ -49,6 +49,29 @@ namespace Client.Game.InGame.Train
             LastServerTick = serverTick;
         }
 
+        // 最終Tickだけを更新する
+        // Override only the latest tick marker
+        public void OverrideTick(long serverTick)
+        {
+            LastServerTick = Math.Max(LastServerTick, serverTick);
+        }
+
+        // 現在のTrainUnit状態からハッシュを計算する
+        // Compute a hash from the current train unit cache
+        public uint ComputeCurrentHash()
+        {
+            var bundles = new List<TrainUnitSnapshotBundle>(_units.Count);
+            foreach (var unit in _units.Values)
+            {
+                if (!unit.TryCreateSnapshotBundle(out var bundle))
+                {
+                    continue;
+                }
+                bundles.Add(bundle);
+            }
+            return TrainUnitSnapshotHashCalculator.Compute(bundles);
+        }
+
         // 単一列車の差分更新を適用
         // Apply a diff snapshot for a single train
         public ClientTrainUnit Upsert(TrainUnitSnapshotBundle snapshot, long serverTick)

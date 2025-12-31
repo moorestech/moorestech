@@ -72,7 +72,8 @@ namespace Client.Network.API
             var response = await _packetExchangeManager.GetPacketResponse<GetTrainUnitSnapshotsProtocol.ResponseMessagePack>(request, ct);
             var snapshots = response?.Snapshots ?? new List<TrainUnitSnapshotBundleMessagePack>();
             var tick = response?.ServerTick ?? 0;
-            return new TrainUnitSnapshotResponse(snapshots, tick);
+            var unitsHash = response?.UnitsHash ?? 0u;
+            return new TrainUnitSnapshotResponse(snapshots, tick, unitsHash);
         }
 
         public async UniTask<PlayerInventoryResponse> GetMyPlayerInventory(CancellationToken ct)
