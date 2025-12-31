@@ -85,26 +85,26 @@ namespace Game.Train.Common
             }
         }
 
-        internal void NotifyDocked(TrainUnit unit, TrainDiagramEntry entry, long tick)
+        internal void NotifyDocked(ITrainDiagramContext context, TrainDiagramEntry entry, long tick)
         {
-            _trainDocked?.OnNext(new TrainDiagramEventData(unit, entry, tick));
+            _trainDocked?.OnNext(new TrainDiagramEventData(context, entry, tick));
         }
 
-        internal void NotifyDeparted(TrainUnit unit, TrainDiagramEntry entry, long tick)
+        internal void NotifyDeparted(ITrainDiagramContext context, TrainDiagramEntry entry, long tick)
         {
-            _trainDeparted?.OnNext(new TrainDiagramEventData(unit, entry, tick));
+            _trainDeparted?.OnNext(new TrainDiagramEventData(context, entry, tick));
         }
 
         public readonly struct TrainDiagramEventData
         {
-            public TrainDiagramEventData(TrainUnit unit, TrainDiagramEntry entry, long tick)
+            public TrainDiagramEventData(ITrainDiagramContext context, TrainDiagramEntry entry, long tick)
             {
-                Unit = unit;
+                Context = context;
                 Entry = entry;
                 Tick = tick;
             }
 
-            public TrainUnit Unit { get; }
+            public ITrainDiagramContext Context { get; }
             public TrainDiagramEntry Entry { get; }
             public long Tick { get; }
         }

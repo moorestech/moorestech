@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Interface;
@@ -30,6 +31,7 @@ namespace Game.Train.Train
         //
 
         private TrainUnit _trainUnit;
+        private readonly ITrainUnitStationDockingListener _listener;
         private bool _wasDocked;
 
         private sealed class DockedReceiver
@@ -56,9 +58,10 @@ namespace Game.Train.Train
             }
         }
 
-        public TrainUnitStationDocking(TrainUnit trainUnit)
+        public TrainUnitStationDocking(TrainUnit trainUnit, ITrainUnitStationDockingListener listener)
         {
             _trainUnit = trainUnit;
+            _listener = listener;
         }
         public void OnDestroy()
         {
@@ -101,7 +104,7 @@ namespace Game.Train.Train
                 car.dockingblock = null; // ドッキング状態を解除
             }
             _wasDocked = false;
-            _trainUnit.trainDiagram.NotifyDeparted();
+            _listener?.OnTrainUndocked();
         }
 
         internal void ClearDockingReceivers()
@@ -203,7 +206,7 @@ namespace Game.Train.Train
             _wasDocked = nowDocked;
             if (!previousDockState && nowDocked)
             {
-                _trainUnit.trainDiagram.NotifyDocked();
+                _listener?.OnTrainDocked();
             }
         }
 
