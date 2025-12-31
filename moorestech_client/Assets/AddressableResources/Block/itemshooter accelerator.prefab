@@ -311,6 +311,8 @@ GameObject:
   m_Component:
   - component: {fileID: 618952166650997492}
   - component: {fileID: 8168620791952899524}
+  - component: {fileID: 6695819620671512670}
+  - component: {fileID: -8504509280928808969}
   m_Layer: 7
   m_Name: itemshooter accelerator
   m_TagString: Untagged
@@ -352,24 +354,58 @@ MonoBehaviour:
   - rotationMode: 0
     rotationAxis: 1
     rotationTransform: {fileID: 5598601185852058203}
-    animator: {fileID: 0}
-    rpm60Speed: 1
     isReverse: 0
     rotationSpeed: 1
+    animator: {fileID: 0}
+    rpm60Speed: 1
   - rotationMode: 0
     rotationAxis: 1
     rotationTransform: {fileID: 7430110277937470655}
-    animator: {fileID: 0}
-    rpm60Speed: 1
     isReverse: 1
     rotationSpeed: 1
+    animator: {fileID: 0}
+    rpm60Speed: 1
   - rotationMode: 0
     rotationAxis: 1
     rotationTransform: {fileID: 3123064065566498143}
-    animator: {fileID: 0}
-    rpm60Speed: 1
     isReverse: 0
     rotationSpeed: 1
+    animator: {fileID: 0}
+    rpm60Speed: 1
+--- !u!114 &6695819620671512670
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8150190987432831577}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4bb7f8f1958ea4c37b753af86394eb8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.StateProcessor.GearStateChangeProcessorSimulator
+  targetProcessor: {fileID: 8168620791952899524}
+  isSimulating: 0
+  simulateRpm: 60
+  simulateIsClockwise: 1
+--- !u!114 &-8504509280928808969
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8150190987432831577}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a87480b01aedd4404aa94ddce067f59a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.StateProcessor.BeltConveyor.BeltConveyorItemPath
+  paths: []
+  defaultPath:
+    startPoint: {x: 0.5, y: 0.35, z: 0}
+    startControlPoint: {x: 0, y: 0, z: 0.3}
+    endControlPoint: {x: 0, y: 0, z: -0.3}
+    endPoint: {x: 0.5, y: 0.35, z: 1}
 --- !u!1001 &6460230003691089653
 PrefabInstance:
   m_ObjectHideFlags: 0

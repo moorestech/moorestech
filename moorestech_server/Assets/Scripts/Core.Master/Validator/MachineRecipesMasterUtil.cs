@@ -74,6 +74,23 @@ namespace Core.Master.Validator
                             logs += $"[MachineRecipesMaster] Recipe[{recipeIndex}] has invalid OutputFluid.FluidGuid:{outputFluid.FluidGuid}\n";
                         }
                     }
+
+                    // 空のレシピのチェック（入力も出力もないレシピは無効）
+                    // Check for empty recipe (recipe with no inputs and no outputs is invalid)
+                    var hasNoInput = recipe.InputItems.Length == 0 && recipe.InputFluids.Length == 0;
+                    var hasNoOutput = recipe.OutputItems.Length == 0 && recipe.OutputFluids.Length == 0;
+                    if (hasNoInput && hasNoOutput)
+                    {
+                        logs += $"[MachineRecipesMaster] Recipe[{recipeIndex}] GUID:{recipe.MachineRecipeGuid} is empty (no inputs and no outputs)\n";
+                    }
+                    else if (hasNoInput)
+                    {
+                        logs += $"[MachineRecipesMaster] Recipe[{recipeIndex}] GUID:{recipe.MachineRecipeGuid} has no inputs (inputItems and inputFluids are both empty)\n";
+                    }
+                    else if (hasNoOutput)
+                    {
+                        logs += $"[MachineRecipesMaster] Recipe[{recipeIndex}] GUID:{recipe.MachineRecipeGuid} has no outputs (outputItems and outputFluids are both empty)\n";
+                    }
                 }
 
                 return logs;

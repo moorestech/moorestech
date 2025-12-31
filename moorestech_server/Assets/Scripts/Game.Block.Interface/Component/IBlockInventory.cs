@@ -11,9 +11,9 @@ namespace Game.Block.Interface.Component
     [DisallowMultiple]
     public interface IBlockInventory : IBlockComponent
     {
-        public IItemStack InsertItem(IItemStack itemStack);
+        public IItemStack InsertItem(IItemStack itemStack, InsertItemContext context);
         public bool InsertionCheck(List<IItemStack> itemStacks);
-        
+
         public IItemStack GetItem(int slot);
         void SetItem(int slot, IItemStack itemStack);
         public int GetSlotSize();

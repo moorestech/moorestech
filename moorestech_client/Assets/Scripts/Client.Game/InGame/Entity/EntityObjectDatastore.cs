@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Client.Game.InGame.Entity.Factory;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
+using Game.Entity.Interface;
+using MessagePack;
 using UnityEngine;
 
 namespace Client.Game.InGame.Entity
@@ -45,8 +47,11 @@ namespace Client.Game.InGame.Entity
                 // Update existing entity
                 if (_entities.ContainsKey(entity.InstanceId))
                 {
-                    _entities[entity.InstanceId].objectEntity.SetPositionWithLerp(entity.Position);
-                    _entities[entity.InstanceId] = (DateTime.Now, _entities[entity.InstanceId].objectEntity);
+                    var objectEntity = _entities[entity.InstanceId].objectEntity;
+                    
+                    objectEntity.SetPositionWithLerp(entity.Position);
+                    objectEntity.SetEntityData(entity.EntityData);
+                    _entities[entity.InstanceId] = (DateTime.Now, objectEntity);
                     
                     continue;
                 }

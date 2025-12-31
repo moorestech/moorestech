@@ -134,8 +134,8 @@ namespace Client.Tests.PlayModeTest.Util
         {
             var blockInventory = block.GetComponent<IBlockInventory>();
             var itemStack = ServerContext.ItemStackFactory.Create(itemId, count);
-            
-            return blockInventory.InsertItem(itemStack);
+
+            return blockInventory.InsertItem(itemStack, InsertItemContext.Empty);
         }
     }
 }

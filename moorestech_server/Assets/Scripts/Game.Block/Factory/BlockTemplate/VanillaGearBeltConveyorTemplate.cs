@@ -31,7 +31,7 @@ namespace Game.Block.Factory.BlockTemplate
                 blockPositionInfo
             );
             var inventoryConnector = BlockTemplateUtil.CreateInventoryConnector(gearBeltParam.InventoryConnectors, blockPositionInfo);
-            var beltConveyorConnector = new VanillaBeltConveyorBlockInventoryInserter(inventoryConnector); 
+            var beltConveyorConnector = new VanillaBeltConveyorBlockInventoryInserter(blockInstanceId, inventoryConnector); 
             
             var slopeType = gearBeltParam.SlopeType switch
             {
@@ -47,7 +47,7 @@ namespace Game.Block.Factory.BlockTemplate
             
             var vanillaBeltConveyorComponent = componentStates == null ? 
                     new VanillaBeltConveyorComponent(itemCount, time, beltConveyorConnector, slopeType) :
-                    new VanillaBeltConveyorComponent(componentStates, itemCount, time, beltConveyorConnector,slopeType);
+                    new VanillaBeltConveyorComponent(componentStates, itemCount, time, beltConveyorConnector,slopeType, gearBeltParam.InventoryConnectors);
             
             var gearBeltConveyorComponent = new GearBeltConveyorComponent(vanillaBeltConveyorComponent, blockInstanceId, gearBeltParam.BeltConveyorSpeed, (Torque)gearBeltParam.RequireTorque, gearEnergyTransformerConnector);
             

@@ -35,7 +35,7 @@ namespace Game.Block.Blocks.ItemShooter
                 if (item.ItemStackSave == null) continue;
 
                 var id = MasterHolder.ItemMaster.GetItemId(item.ItemStackSave.ItemGuid);
-                var shooterItem = new ShooterInventoryItem(id, ItemInstanceId.Create(), (float)item.CurrentSpeed)
+                var shooterItem = new ShooterInventoryItem(id, ItemInstanceId.Create(), (float)item.CurrentSpeed, null, null)
                 {
                     RemainingPercent = (float)items[i].RemainingPercent
                 };
@@ -59,6 +59,11 @@ namespace Game.Block.Blocks.ItemShooter
         {
             BlockException.CheckDestroy(this);
             return _service.InsertItem(itemStack);
+        }
+
+        public IItemStack InsertItem(IItemStack itemStack, InsertItemContext context)
+        {
+            return InsertItem(itemStack);
         }
 
         public bool InsertionCheck(List<IItemStack> itemStacks)
