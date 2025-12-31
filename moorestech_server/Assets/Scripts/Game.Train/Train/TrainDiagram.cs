@@ -8,10 +8,10 @@ namespace Game.Train.Train
 {
     public class TrainDiagram
     {
-        private readonly List<DiagramEntry> _entries;
+        private readonly List<TrainDiagramEntry> _entries;
         private int _currentIndex;
 
-        public IReadOnlyList<DiagramEntry> Entries => _entries;
+        public IReadOnlyList<TrainDiagramEntry> Entries => _entries;
         public int CurrentIndex => _currentIndex;
 
         public enum DepartureConditionType
@@ -21,14 +21,9 @@ namespace Game.Train.Train
             WaitForTicks
         }
 
-        public interface IDepartureCondition
-        {
-            bool CanDepart(TrainUnit trainUnit);
-        }
-
         public TrainDiagram()
         {
-            _entries = new List<DiagramEntry>();
+            _entries = new List<TrainDiagramEntry>();
             _currentIndex = -1;
             TrainDiagramManager.Instance.RegisterDiagram(this);
         }
@@ -61,7 +56,7 @@ namespace Game.Train.Train
                     continue;
                 }
 
-                var entry = DiagramEntry.CreateFromSaveData(
+                var entry = TrainDiagramEntry.CreateFromSaveData(
                     node,
                     entryData.EntryId,
                     entryData.DepartureConditions,
@@ -91,16 +86,16 @@ namespace Game.Train.Train
         }
 
         //最後に追加
-        public DiagramEntry AddEntry(IRailNode node)
+        public TrainDiagramEntry AddEntry(IRailNode node)
         {
             if (_currentIndex < 0)
                 _currentIndex = 0;
-            var entry = new DiagramEntry(node);
+            var entry = new TrainDiagramEntry(node);
             _entries.Add(entry);
             return entry;
         }
         //最後に追加のcondition付き
-        public DiagramEntry AddEntry(IRailNode node, DepartureConditionType departureConditionType, int waitTicks = 0)
+        public TrainDiagramEntry AddEntry(IRailNode node, DepartureConditionType departureConditionType, int waitTicks = 0)
         {
             var entry = AddEntry(node);
             if (departureConditionType == DepartureConditionType.WaitForTicks)
@@ -114,7 +109,7 @@ namespace Game.Train.Train
             return entry;
         }
         //index指定して追加
-        public DiagramEntry InsertEntry(int index, IRailNode node)
+        public TrainDiagramEntry InsertEntry(int index, IRailNode node)
         {
             if (_currentIndex < 0)
                 _currentIndex = 0;
@@ -126,7 +121,7 @@ namespace Game.Train.Train
             {
                 index = _entries.Count;
             }
-            var entry = new DiagramEntry(node);
+            var entry = new TrainDiagramEntry(node);
             _entries.Insert(index, entry);
             return entry;
         }
@@ -202,7 +197,7 @@ namespace Game.Train.Train
         }
 
 
-        private bool TryGetActiveEntry(out DiagramEntry entry)
+        private bool TryGetActiveEntry(out TrainDiagramEntry entry)
         {
             entry = null;
             if ((_currentIndex < 0) || (_entries.Count == 0) || (_currentIndex >= _entries.Count))
@@ -222,99 +217,6 @@ namespace Game.Train.Train
             }
         }
 
-        private abstract class TrainInventoryConditionBase : IDepartureCondition
-        {
-            public bool CanDepart(TrainUnit trainUnit)
-            {
-                if (trainUnit == null || trainUnit.Cars == null)
-                {
-                    return false;
-                }
-                foreach (var car in trainUnit.Cars)
-                {
-                    if (!car.IsDocked)
-                    {
-                        continue;
-                    }
-
-                    if (!MatchesInventoryState(car))
-                    {
-                        return false;
-                    }
-                }
-                return true;
-            }
-
-            protected abstract bool MatchesInventoryState(TrainCar car);
-        }
-
-        private sealed class TrainInventoryFullCondition : TrainInventoryConditionBase
-        {
-            protected override bool MatchesInventoryState(TrainCar car)
-            {
-                return car.IsInventoryFull();
-            }
-        }
-
-        private sealed class TrainInventoryEmptyCondition : TrainInventoryConditionBase
-        {
-            protected override bool MatchesInventoryState(TrainCar car)
-            {
-                return car.IsInventoryEmpty();
-            }
-        }
-
-        private sealed class WaitForTicksCondition : IDepartureCondition
-        {
-            private int _initialTicks;
-            private int _remainingTicks;
-
-            public int InitialTicks => _initialTicks;
-            public int RemainingTicks => _remainingTicks;
-
-            public void Configure(int ticks)
-            {
-                if (ticks < 0)
-                {
-                    ticks = 0;
-                }
-
-                _initialTicks = ticks;
-                _remainingTicks = ticks;
-            }
-
-            public void Restore(int initialTicks, int remainingTicks)
-            {
-                Configure(initialTicks);
-                if (remainingTicks < 0)
-                {
-                    remainingTicks = 0;
-                }
-
-                if (remainingTicks > _initialTicks)
-                {
-                    remainingTicks = _initialTicks;
-                }
-
-                _remainingTicks = remainingTicks;
-            }
-
-            public void Reset()
-            {
-                _remainingTicks = _initialTicks;
-            }
-
-            public bool CanDepart(TrainUnit trainUnit)
-            {
-                if (_remainingTicks <= 0)
-                {
-                    return true;
-                }
-                _remainingTicks--;
-                return false;
-            }
-        }
-
         public TrainDiagramSaveData CreateTrainDiagramSaveData()
         {
             var entries = new List<TrainDiagramEntrySaveData>();
@@ -324,7 +226,7 @@ namespace Game.Train.Train
                 {
                     EntryId = entry.entryId,
                     Node = entry.Node.ConnectionDestination,
-                    DepartureConditions = entry.DepartureConditionTypes?.ToList() ?? new List<TrainDiagram.DepartureConditionType>(),
+                    DepartureConditions = entry.DepartureConditionTypes?.ToList() ?? new List<DepartureConditionType>(),
                     WaitForTicksInitial = entry.GetWaitForTicksInitialTicks(),
                     WaitForTicksRemaining = entry.GetWaitForTicksRemainingTicks()
                 });
@@ -335,171 +237,6 @@ namespace Game.Train.Train
                 CurrentIndex = this.CurrentIndex,
                 Entries = entries
             };
-        }
-
-
-        public sealed class DiagramEntry
-        {
-            public DiagramEntry(IRailNode node)
-            {
-                Node = node;
-                entryId = Guid.NewGuid();
-                _departureConditions = new List<IDepartureCondition>();
-                _departureConditionTypes = new List<DepartureConditionType>();
-            }
-
-            public IRailNode Node { get; private set; }
-            public Guid entryId { get; private set; }
-
-            private readonly List<IDepartureCondition> _departureConditions;
-            private readonly List<DepartureConditionType> _departureConditionTypes;
-            private WaitForTicksCondition _waitForTicksCondition;
-
-            public IReadOnlyList<IDepartureCondition> DepartureConditions => _departureConditions;
-            public IReadOnlyList<DepartureConditionType> DepartureConditionTypes => _departureConditionTypes;
-
-            public int? GetWaitForTicksInitialTicks()
-            {
-                return _waitForTicksCondition?.InitialTicks;
-            }
-
-            public int? GetWaitForTicksRemainingTicks()
-            {
-                return _waitForTicksCondition?.RemainingTicks;
-            }
-
-            public bool MatchesNode(IRailNode node)
-            {
-                if (Node == null || node == null)
-                {
-                    return ReferenceEquals(Node, node);
-                }
-                return ReferenceEquals(Node, node) || Node.NodeId == node.NodeId;
-            }
-
-            public bool CanDepart(TrainUnit trainUnit)
-            {
-                if (_departureConditions.Count == 0)
-                {
-                    return true;
-                }
-
-                foreach (var condition in _departureConditions)
-                {
-                    if (!condition.CanDepart(trainUnit))
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-
-            public void SetDepartureCondition(DepartureConditionType conditionType)
-            {
-                SetDepartureConditions(new[] { conditionType });
-            }
-
-            public void SetDepartureConditions(IEnumerable<DepartureConditionType> conditionTypes)
-            {
-                _departureConditions.Clear();
-                _departureConditionTypes.Clear();
-                _waitForTicksCondition = null;
-
-                if (conditionTypes == null)
-                {
-                    return;
-                }
-
-                foreach (var conditionType in conditionTypes)
-                {
-                    AddDepartureCondition(conditionType);
-                }
-            }
-
-            public void AddDepartureCondition(DepartureConditionType conditionType)
-            {
-                var condition = CreateDepartureCondition(conditionType);
-                if (condition == null)
-                {
-                    return;
-                }
-
-                _departureConditions.Add(condition);
-                _departureConditionTypes.Add(conditionType);
-            }
-
-            public bool RemoveDepartureCondition(DepartureConditionType conditionType)
-            {
-                for (var i = 0; i < _departureConditionTypes.Count; i++)
-                {
-                    if (_departureConditionTypes[i] != conditionType)
-                    {
-                        continue;
-                    }
-
-                    _departureConditionTypes.RemoveAt(i);
-                    _departureConditions.RemoveAt(i);
-                    if (conditionType == DepartureConditionType.WaitForTicks)
-                    {
-                        _waitForTicksCondition = null;
-                    }
-                    return true;
-                }
-
-                return false;
-            }
-
-            public void SetDepartureWaitTicks(int ticks)
-            {
-                SetDepartureConditions(new[] { DepartureConditionType.WaitForTicks });
-                _waitForTicksCondition?.Configure(ticks);
-            }
-
-            //事実上発車条件リセット、到着時に呼ばれます。ほかにもよだれたり
-            public void OnDeparted()
-            {
-                _waitForTicksCondition?.Reset();
-            }
-
-            internal static DiagramEntry CreateFromSaveData(
-                IRailNode node,
-                Guid entryGuid,
-                IEnumerable<DepartureConditionType> conditionTypes,
-                int? waitForTicksInitial,
-                int? waitForTicksRemaining)
-            {
-                var entry = new DiagramEntry(node)
-                {
-                    entryId = entryGuid
-                };
-
-                entry.SetDepartureConditions(conditionTypes);
-                if (waitForTicksInitial.HasValue && entry._waitForTicksCondition != null)
-                {
-                    var remaining = waitForTicksRemaining ?? waitForTicksInitial.Value;
-                    entry._waitForTicksCondition.Restore(waitForTicksInitial.Value, remaining);
-                }
-
-                return entry;
-            }
-
-            private IDepartureCondition CreateDepartureCondition(DepartureConditionType conditionType)
-            {
-                switch (conditionType)
-                {
-                    case DepartureConditionType.TrainInventoryEmpty:
-                        return new TrainInventoryEmptyCondition();
-                    case DepartureConditionType.WaitForTicks:
-                        var waitCondition = new WaitForTicksCondition();
-                        _waitForTicksCondition = waitCondition;
-                        return waitCondition;
-                    case DepartureConditionType.TrainInventoryFull:
-                        return new TrainInventoryFullCondition();
-                    default:
-                        return null;
-                }
-            }
         }
     }
 }

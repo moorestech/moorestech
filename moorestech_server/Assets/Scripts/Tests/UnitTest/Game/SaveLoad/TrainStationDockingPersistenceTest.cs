@@ -299,7 +299,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             public bool IsDocked { get; }
             public Vector3Int? DockingBlockPosition { get; }
 
-            public static TrainStateSnapshot Create(TrainUnit train, TrainCar car, TrainDiagram.DiagramEntry? waitEntry, Vector3Int? dockingBlockPosition)
+            public static TrainStateSnapshot Create(TrainUnit train, TrainCar car, TrainDiagramEntry? waitEntry, Vector3Int? dockingBlockPosition)
             {
                 var currentIndex = Mathf.Clamp(train.trainDiagram.CurrentIndex, 0, train.trainDiagram.Entries.Count - 1);
                 var activeEntry = train.trainDiagram.Entries[currentIndex];

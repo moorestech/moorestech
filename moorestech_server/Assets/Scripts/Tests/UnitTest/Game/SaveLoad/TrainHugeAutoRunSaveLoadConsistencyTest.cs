@@ -504,7 +504,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             public int? WaitInitial { get; }
             public int? WaitRemaining { get; }
 
-            public static DiagramEntrySnapshot Create(TrainDiagram.DiagramEntry entry)
+            public static DiagramEntrySnapshot Create(TrainDiagramEntry entry)
             {
                 return new DiagramEntrySnapshot(
                     NodeIdentifier.Create(entry.Node),
