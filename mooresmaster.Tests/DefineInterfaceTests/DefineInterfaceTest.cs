@@ -109,4 +109,30 @@ public class DefineInterfaceTest
         var typedDiagnostics = Assert.IsType<InterfaceNotFoundDiagnostics>(diagnostics);
         Assert.Equal("INotFoundInterface", typedDiagnostics.InterfaceName);
     }
+    
+    [Fact]
+    public void DefineInterfaceInterfaceNotFoundDiagnosticsReportTest()
+    {
+        var source = """
+                     id: defineInterfaceInterfaceNotFoundDiagnosticsReportTestSchema
+                     type: object
+                     
+                     defineInterface:
+                     - interfaceName: ITestInterface
+                       implementationInterface:
+                         - INotFoundInterface
+                       properties:
+                         - key: test0
+                           type: integer
+                     """;
+        
+        var analysis = Test.Generate(source).analysis;
+        _testOutputHelper.WriteLine(analysis.ToString());
+        var diagnosticsList = analysis.DiagnosticsList;
+        
+        Assert.Single(diagnosticsList);
+        var diagnostics = diagnosticsList[0];
+        var typedDiagnostics = Assert.IsType<InterfaceNotFoundDiagnostics>(diagnostics);
+        Assert.Equal("INotFoundInterface", typedDiagnostics.InterfaceName);
+    }
 }
