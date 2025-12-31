@@ -6,6 +6,8 @@ using mooresmaster.Generator.Analyze;
 using mooresmaster.Generator.Analyze.Diagnostics;
 using mooresmaster.Generator.JsonSchema;
 
+// ReSharper disable ForeachCanBeConvertedToQueryUsingAnotherGetEnumerator
+
 namespace mooresmaster.Generator.Semantic;
 
 public static class SemanticsGenerator
@@ -47,21 +49,37 @@ public static class SemanticsGenerator
     
     private static void ResolveInterfaceInterfaceImplementations(Semantics semantics, Analysis analysis)
     {
-        var allInterfaceTable = semantics.InterfaceSemanticsTable
-            .ToDictionary(kvp => kvp.Value.Interface.InterfaceName, kvp => kvp.Key);
-        
-        var globalInterfaceTable = semantics.InterfaceSemanticsTable
-            .Where(i => i.Value.Interface.IsGlobal)
-            .ToDictionary(kvp => kvp.Value.Interface.InterfaceName, kvp => kvp.Key);
-        
+        var allInterfaceTable = new Dictionary<string, InterfaceId>();
+        foreach (var kvp in semantics.InterfaceSemanticsTable)
+        {
+            var interfaceName = kvp.Value.Interface.InterfaceName;
+            if (allInterfaceTable.ContainsKey(interfaceName))
+                analysis.ReportDiagnostics(new DuplicateInterfaceNameDiagnostics(interfaceName));
+            else
+                allInterfaceTable.Add(interfaceName, kvp.Key);
+        }
+
+        var globalInterfaceTable = new Dictionary<string, InterfaceId>();
+        foreach (var kvp in semantics.InterfaceSemanticsTable.Where(i => i.Value.Interface.IsGlobal))
+        {
+            var interfaceName = kvp.Value.Interface.InterfaceName;
+            if (!globalInterfaceTable.ContainsKey(interfaceName))
+                globalInterfaceTable.Add(interfaceName, kvp.Key);
+        }
+
         foreach (var kvp in semantics.InterfaceSemanticsTable)
         {
             var target = kvp.Key;
-            var localInterfaceTable = semantics.InterfaceSemanticsTable
-                .Where(i => i.Value.Schema.SchemaId == kvp.Value.Schema.SchemaId)
-                .Where(i => !i.Value.Interface.IsGlobal)
-                .ToDictionary(kvp => kvp.Value.Interface.InterfaceName, kvp => kvp.Key);
-            
+            var localInterfaceTable = new Dictionary<string, InterfaceId>();
+            foreach (var i in semantics.InterfaceSemanticsTable
+                         .Where(i => i.Value.Schema.SchemaId == kvp.Value.Schema.SchemaId)
+                         .Where(i => !i.Value.Interface.IsGlobal))
+            {
+                var name = i.Value.Interface.InterfaceName;
+                if (!localInterfaceTable.ContainsKey(name))
+                    localInterfaceTable.Add(name, i.Key);
+            }
+
             foreach (var interfaceName in kvp.Value.Interface.ImplementationInterfaces)
                 if (localInterfaceTable.TryGetValue(interfaceName, out var localOther))
                     semantics.AddInterfaceInterfaceImplementation(target, localOther);
@@ -76,17 +94,26 @@ public static class SemanticsGenerator
     
     private static void ResolveClassInterfaceImplementations(Semantics semantics, Analysis analysis)
     {
-        var globalInterfaceTable = semantics.InterfaceSemanticsTable
-            .Where(i => i.Value.Interface.IsGlobal)
-            .ToDictionary(kvp => kvp.Value.Interface.InterfaceName, kvp => kvp.Key);
-        
+        var globalInterfaceTable = new Dictionary<string, InterfaceId>();
+        foreach (var kvp in semantics.InterfaceSemanticsTable.Where(i => i.Value.Interface.IsGlobal))
+        {
+            var interfaceName = kvp.Value.Interface.InterfaceName;
+            if (!globalInterfaceTable.ContainsKey(interfaceName))
+                globalInterfaceTable.Add(interfaceName, kvp.Key);
+        }
+
         foreach (var kvp in semantics.TypeSemanticsTable)
         {
             if (kvp.Value.Schema is not ObjectSchema objectSchema) continue;
-            var localInterfaceTable = semantics.InterfaceSemanticsTable
-                .Where(i => i.Value.Schema.SchemaId == semantics.RootSemanticsTable[kvp.Value.RootId].Root.SchemaId)
-                .Where(i => !i.Value.Interface.IsGlobal)
-                .ToDictionary(kvp => kvp.Value.Interface.InterfaceName, kvp => kvp.Key);
+            var localInterfaceTable = new Dictionary<string, InterfaceId>();
+            foreach (var i in semantics.InterfaceSemanticsTable
+                         .Where(i => i.Value.Schema.SchemaId == semantics.RootSemanticsTable[kvp.Value.RootId].Root.SchemaId)
+                         .Where(i => !i.Value.Interface.IsGlobal))
+            {
+                var interfaceName = i.Value.Interface.InterfaceName;
+                if (!localInterfaceTable.ContainsKey(interfaceName))
+                    localInterfaceTable.Add(interfaceName, i.Key);
+            }
             
             var target = kvp.Key;
             
