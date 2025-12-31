@@ -39,3 +39,21 @@
 5. UI／手動編集への拡張、クライアント→サーバーの差分送信プロトコルを設計。
 
 以上を満たすことで、クライアント側でも TrainUnit の自動運行を再現できる基盤が整います。***
+
+
+
+## Client TrainUnit Implementation Notes (Update)
+- Introduced ClientTrainDiagram to centralize TrainDiagramSnapshot reads, transitions, and UI access
+  - UpdateSnapshot / UpdateIndexByEntryId
+  - TryGetCurrentEntry / TryGetEntry / EntryCount
+  - TryFindPathFrom performs "no destination -> advance to next entry" like the server
+- ClientTrainUnit no longer caches diagramApproachingRailNode; destinations are resolved on demand
+- DiagramHash verification uses ClientTrainDiagram.Snapshot
+- Arrival handling on the client:
+  - Station arrival waits for Docked/Departed events (speed stays at 0 while docked)
+  - Non-station arrival advances to the next diagram entry locally
+## Next Steps (Candidate)
+1. Wire UI to ClientTrainDiagram read APIs for current entry and full entry list
+2. Align AutoRun Dock/Depart transitions with server behavior (departure reset / arrival handling)
+3. Build RailGraphClientCache and StationRegistry equivalent to stabilize destination node resolution
+4. Add client-side tests for tick ordering and DiagramHash verification

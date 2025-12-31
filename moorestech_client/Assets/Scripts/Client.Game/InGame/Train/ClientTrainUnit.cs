@@ -206,11 +206,20 @@ namespace Client.Game.InGame.Train
                 distanceToMove -= moveLength;
                 totalMoved += moveLength;
                 RemainingDistance = Math.Max(0, RemainingDistance - moveLength);
-                //自動運転で目的地に到着してたらドッキング判定を行う必要がある
+                // 自動運転で目的地に到着したら次の処理へ進める
+                // On auto-run arrival, proceed to the next handling
                 if (IsArrivedDestination() && IsAutoRun)
                 {
                     CurrentSpeed = 0;
                     AccumulatedDistance = 0;
+                    // 駅でなければ次のエントリーへ進める
+                    // Advance to the next entry when not at a station
+                    var destinationNode = ResolveCurrentDestinationNode();
+                    if (destinationNode?.StationRef?.StationBlock == null)
+                    {
+                        Diagram.AdvanceToNextEntry();
+                        RecalculateRemainingDistance();
+                    }
                     break;
                 }
                 if (distanceToMove == 0) break;

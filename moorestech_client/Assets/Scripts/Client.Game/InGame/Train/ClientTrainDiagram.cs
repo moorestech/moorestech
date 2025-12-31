@@ -141,6 +141,13 @@ namespace Client.Game.InGame.Train
             return false;
         }
 
+        public void AdvanceToNextEntry()
+        {
+            // 駅でなければ次のエントリーへ進める
+            // Advance to the next entry when not at a station
+            MoveToNextEntry(EntryCount);
+        }
+
         #region Internal
 
         private void MoveToNextEntry(int entriesCount)
