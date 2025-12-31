@@ -1,11 +1,19 @@
-using System;
 using System.Linq;
+using mooresmaster.Generator.Analyze.Diagnostics;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace mooresmaster.Tests.DefineInterfaceTests;
 
 public class DefineInterfaceTest
 {
+    private readonly ITestOutputHelper _testOutputHelper;
+    
+    public DefineInterfaceTest(ITestOutputHelper testOutputHelper)
+    {
+        _testOutputHelper = testOutputHelper;
+    }
+    
     [Fact]
     public void LocalDefineInterfaceTest()
     {
@@ -68,7 +76,7 @@ public class DefineInterfaceTest
         var defineInterfaceTestSchemaText = Test.GetSchema("DefineInterfaceTests/DefineInterfaceTestSchema.yml");
         
         // ScopeがLocalのInterfaceを別ファイルから参照している場合エラーになる
-        Assert.ThrowsAny<Exception>(() => { _ = Test.Generate(defineInterfaceTestSchemaText, failedTestText); });
+        Assert.NotEmpty(Test.Generate(defineInterfaceTestSchemaText, failedTestText).analysis.DiagnosticsList);
         
         // globalであれば問題ない
         Test.Generate(defineInterfaceTestSchemaText, passedTestText);
@@ -92,6 +100,13 @@ public class DefineInterfaceTest
                 type: integer
             """;
         
-        Test.Generate(source);
+        var analysis = Test.Generate(source).analysis;
+        _testOutputHelper.WriteLine(analysis.ToString());
+        var diagnosticsList = analysis.DiagnosticsList;
+        
+        Assert.Single(diagnosticsList);
+        var diagnostics = diagnosticsList[0];
+        var typedDiagnostics = Assert.IsType<InterfaceNotFoundDiagnostics>(diagnostics);
+        Assert.Equal("INotFoundInterface", typedDiagnostics.InterfaceName);
     }
 }

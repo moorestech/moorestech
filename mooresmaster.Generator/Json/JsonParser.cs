@@ -4,24 +4,18 @@ using YamlDotNet.RepresentationModel;
 
 namespace mooresmaster.Generator.Json;
 
-public struct Location
+public readonly struct Location(string filePath, long startLine, long startColumn, long endLine, long endColumn)
 {
-    public string FilePath;
-    public long StartLine;
-    public long StartColumn;
-    public long EndLine;
-    public long EndColumn;
+    public readonly string FilePath = filePath;
+    public readonly long StartLine = startLine;
+    public readonly long StartColumn = startColumn;
+    public readonly long EndLine = endLine;
+    public readonly long EndColumn = endColumn;
     
-    private static Location Create(string filePath, Mark start, Mark end)
+    public static Location Create(string filePath, Mark start, Mark end)
     {
         return new Location
-        {
-            StartLine = start.Line,
-            StartColumn = start.Column,
-            EndLine = end.Line,
-            EndColumn = end.Column,
-            FilePath = filePath
-        };
+            (filePath, start.Line, start.Column, end.Line, end.Column);
     }
     
     public static Location Create(string filePath, YamlNode yamlNode)
