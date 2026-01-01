@@ -16,6 +16,12 @@ namespace Client.Game.InGame.Entity.Object
         public Guid TrainCarId { get; private set; }
         public TrainCarMasterElement TrainCarMasterElement { get; set; }
         
+        /// <summary>
+        /// モデル中心の前後オフセット
+        /// Model forward center offset
+        /// </summary>
+        public float ModelForwardCenterOffset { get; private set; }
+        
         private float _linerTime;
         private Vector3 _previousPosition;
         private Vector3 _targetPosition;
@@ -39,6 +45,9 @@ namespace Client.Game.InGame.Entity.Object
             _rendererMaterialReplacerController = new RendererMaterialReplacerController(gameObject);
             _previousRotation = transform.rotation;
             _targetRotation = transform.rotation;
+            // モデル中心の前後オフセットをキャッシュする
+            // Cache the model forward center offset
+            ModelForwardCenterOffset = ResolveModelForwardCenterOffset();
         }
         
         public void SetTrain(Guid trainCarId, TrainCarMasterElement trainCarMasterElement)
@@ -151,6 +160,20 @@ namespace Client.Game.InGame.Entity.Object
         {
             _rendererMaterialReplacerController.ResetMaterial();
         }
+        #region Internal
+
+        private float ResolveModelForwardCenterOffset()
+        {
+            // レンダラの境界中心から前後オフセットを算出する
+            // Compute forward offset from renderer bounds center
+            var renderers = GetComponentsInChildren<Renderer>(true);
+            var combined = renderers[0].bounds;
+            for (var i = 1; i < renderers.Length; i++) combined.Encapsulate(renderers[i].bounds);
+            var localCenter = transform.InverseTransformPoint(combined.center);
+            return localCenter.z;
+        }
+
+        #endregion
     }
 }
 
