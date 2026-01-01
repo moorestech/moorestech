@@ -80,7 +80,7 @@ namespace Game.Train.Common
                 }
                 foreach (var newNode in newNodes)
                 {
-                    diagram.AddEntry(newNode, TrainDiagram.DepartureConditionType.WaitForTicks, 300);
+                    diagram.AddEntry(newNode, TrainDiagram.DepartureConditionType.WaitForTicks, 60);
                 }
             }
         }
