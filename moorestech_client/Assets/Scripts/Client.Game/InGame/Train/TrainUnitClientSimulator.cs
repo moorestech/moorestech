@@ -37,7 +37,7 @@ namespace Client.Game.InGame.Train
             _cache.CopyUnitsTo(_work);
             for (var i = 0; i < _work.Count; i++)
             {
-                _work[i]?.Update();
+                _work[i].Update();
             }
         }
     }

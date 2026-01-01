@@ -29,25 +29,24 @@ namespace Client.Game.InGame.Train
         // Apply the received snapshot response to the cache
         public void ApplySnapshot(TrainUnitSnapshotResponse response)
         {
-            if (response?.Snapshots == null || response.Snapshots.Count == 0)
+            if (response == null)
             {
                 return;
             }
 
-            var bundles = new List<TrainUnitSnapshotBundle>(response.Snapshots.Count);
-            for (var i = 0; i < response.Snapshots.Count; i++)
+            var snapshotPacks = response.Snapshots;
+            var bundles = new List<TrainUnitSnapshotBundle>(snapshotPacks?.Count ?? 0);
+            if (snapshotPacks != null)
             {
-                var pack = response.Snapshots[i];
-                if (pack == null)
+                for (var i = 0; i < snapshotPacks.Count; i++)
                 {
-                    continue;
+                    var pack = snapshotPacks[i];
+                    if (pack == null)
+                    {
+                        continue;
+                    }
+                    bundles.Add(pack.ToModel());
                 }
-                bundles.Add(pack.ToModel());
-            }
-
-            if (bundles.Count == 0)
-            {
-                return;
             }
 
             _cache.OverrideAll(bundles, response.ServerTick);
