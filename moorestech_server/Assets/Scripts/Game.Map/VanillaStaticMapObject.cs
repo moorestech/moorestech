@@ -4,6 +4,7 @@ using Core.Item.Interface;
 using Core.Master;
 using Game.Context;
 using Game.Map.Interface.MapObject;
+using Mooresmaster.Model.MapObjectsModule;
 using UnityEngine;
 using Random = System.Random;
 
@@ -19,39 +20,28 @@ namespace Game.Map
         public bool IsDestroyed { get; private set; }
         public Vector3 Position { get; }
         public int CurrentHp { get; private set; }
-        
-        public List<IItemStack> EarnItems { get; }
-        
+
         public event Action OnDestroy;
-        
+
         private readonly int _earnItemHpInterval;
-        
+        private readonly MapObjectMasterElement _mapObjectConfig;
+        private readonly Random _random;
+
         public VanillaStaticMapObject(int instanceId, Guid mapObjectGuid, bool isDestroyed, int currentHp, Vector3 position)
         {
             // マップオブジェクトの設定を取得する
             // Retrieve the map object configuration
-            var mapObjectConfig = MasterHolder.MapObjectMaster.GetMapObjectElement(mapObjectGuid);
+            _mapObjectConfig = MasterHolder.MapObjectMaster.GetMapObjectElement(mapObjectGuid);
             InstanceId = instanceId;
             MapObjectGuid = mapObjectGuid;
             IsDestroyed = isDestroyed;
             Position = position;
             CurrentHp = currentHp;
-            
-            // アイテム付与間隔と乱数生成器を準備する
-            // Prepare the item reward interval and deterministic random
-            _earnItemHpInterval = mapObjectConfig.EarnItemHpInterval;
-            var random = new Random(instanceId);
-            EarnItems = new List<IItemStack>();
 
-            // コンフィグに沿って初期獲得アイテムを生成する
-            // Create initial earnable items according to configuration
-            foreach (var earnItemConfig in mapObjectConfig.EarnItems)
-            {
-                var itemCount = random.Next(earnItemConfig.MinCount, earnItemConfig.MaxCount + 1);
-                var itemStack = ServerContext.ItemStackFactory.Create(earnItemConfig.ItemGuid, itemCount);
-                
-                EarnItems.Add(itemStack);
-            }
+            // アイテム付与間隔と乱数生成器を準備する
+            // Prepare the item reward interval and random generator
+            _earnItemHpInterval = _mapObjectConfig.EarnItemHpInterval;
+            _random = new Random();
         }
         
         public List<IItemStack> Attack(int damage)
@@ -61,36 +51,20 @@ namespace Game.Map
             var lastHp = CurrentHp;
             CurrentHp -= damage;
             if (CurrentHp <= 0) Destroy();
-            
+
             // 与ダメージで越えたHP境界数を算出する
             // Calculate how many HP thresholds were crossed by damage
             var earnedCount = CalculateEarnedCount(lastHp, CurrentHp);
             if (earnedCount == 0) return new List<IItemStack>();
-            
-            // 越えた回数に応じて付与アイテムを生成する
-            // Create reward items based on the crossed threshold count
+
+            // 越えた回数に応じてランダムな数量でアイテムを生成する
+            // Create reward items with random quantity based on the crossed threshold count
             var earnedItems = new List<IItemStack>();
-            foreach (var item in EarnItems)
+            for (var i = 0; i < earnedCount; i++)
             {
-                var id = item.Id;
-                var count = item.Count * earnedCount;
-                var maxStack = MasterHolder.ItemMaster.GetItemMaster(id).MaxStack;
-                
-                // 最大のアイテムスタック数のアイテムを追加する
-                var fullItemCount = count / maxStack;
-                for (int i = 0; i < fullItemCount; i++)
-                {
-                    earnedItems.Add(ServerContext.ItemStackFactory.Create(id, maxStack));
-                }
-                
-                // あまりを追加する
-                var remainCount = count % maxStack;
-                if (remainCount != 0)
-                {
-                    earnedItems.Add(ServerContext.ItemStackFactory.Create(id, remainCount));
-                }
+                GenerateEarnItems(earnedItems);
             }
-            
+
             return earnedItems;
 
             #region Internal
@@ -113,6 +87,34 @@ namespace Game.Map
                 }
 
                 return crossedCount;
+            }
+
+            void GenerateEarnItems(List<IItemStack> items)
+            {
+                // 設定に基づいて毎回ランダムな数量のアイテムを生成
+                // Generate items with random quantity based on configuration each time
+                foreach (var earnItemConfig in _mapObjectConfig.EarnItems)
+                {
+                    var itemCount = _random.Next(earnItemConfig.MinCount, earnItemConfig.MaxCount + 1);
+                    var itemId = MasterHolder.ItemMaster.GetItemId(earnItemConfig.ItemGuid);
+                    var maxStack = MasterHolder.ItemMaster.GetItemMaster(itemId).MaxStack;
+
+                    // 最大スタック数を超える場合は分割して追加
+                    // Split into multiple stacks if exceeding max stack size
+                    var fullItemCount = itemCount / maxStack;
+                    for (var j = 0; j < fullItemCount; j++)
+                    {
+                        items.Add(ServerContext.ItemStackFactory.Create(itemId, maxStack));
+                    }
+
+                    // あまりを追加する
+                    // Add remainder
+                    var remainCount = itemCount % maxStack;
+                    if (remainCount != 0)
+                    {
+                        items.Add(ServerContext.ItemStackFactory.Create(itemId, remainCount));
+                    }
+                }
             }
 
             #endregion

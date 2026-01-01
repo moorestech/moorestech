@@ -27,9 +27,10 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public UITransitContext GetNextUpdate()
         {
-            // ESCまたはR入力でゲーム画面へ戻る
-            // Return to game screen when ESC or R is pressed
+            // Tabでインベントリへ、ESC/Rでゲーム画面へ戻る
+            // Go to inventory with Tab, or back to game screen with ESC/R
             // TODO InputManagerに移す
+            if (InputManager.UI.OpenInventory.GetKeyDown) return new UITransitContext(UIStateEnum.PlayerInventory);
             if (InputManager.UI.CloseUI.GetKeyDown || UnityEngine.Input.GetKeyDown(KeyCode.R)) return new UITransitContext(UIStateEnum.GameScreen);
 
             return null;
