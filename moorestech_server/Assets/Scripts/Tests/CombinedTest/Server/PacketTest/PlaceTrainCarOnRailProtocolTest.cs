@@ -9,11 +9,13 @@ using Game.Context;
 using Game.PlayerInventory.Interface;
 using Game.Train.Common;
 using Game.Train.RailGraph;
+using Game.Train.Utility;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol.PacketResponse;
+using Server.Util.MessagePack;
 using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;
@@ -34,11 +36,11 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             // テスト環境を構築
             // Build test environment
-            var (environment, railSpecifier) = SetupEnvironment();
+            var (environment, railSpecifier, railPosition) = SetupEnvironment();
 
             // プロトコルを実行
             // Execute protocol
-            ExecuteProtocol(environment, railSpecifier);
+            ExecuteProtocol(environment, railSpecifier, railPosition);
 
             // 結果を検証
             // Verify result
@@ -46,7 +48,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             #region Internal
 
-            (TrainTestEnvironment Environment, RailComponentSpecifier RailSpecifier) SetupEnvironment()
+            (TrainTestEnvironment Environment, RailComponentSpecifier RailSpecifier, RailPositionSnapshotMessagePack RailPosition) SetupEnvironment()
             {
                 // レールとインベントリを準備
                 // Prepare rails and inventory
@@ -55,22 +57,38 @@ namespace Tests.CombinedTest.Server.PacketTest
                 var railPos1 = new Vector3Int(0, 0, 0);
                 var rail1Component = TrainTestHelper.PlaceRail(environment, railPos1, BlockDirection.North, out _);
                 var rail2Component = TrainTestHelper.PlaceRail(environment, new Vector3Int(1000, 0, 0), BlockDirection.North, out _);
-                
+
+                // レール同士を接続する
+                // Connect rails together
                 rail1Component.ConnectRailComponent(rail2Component, useFrontSideOfThis: true, useFrontSideOfTarget: true);
-                
+
+                // インベントリに列車アイテムを設定する
+                // Put train item in inventory
                 var inventory = environment.ServiceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
                 inventory.MainOpenableInventory.SetItem(InventorySlot, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TrainCarItem, 1));
+
+                // レール位置スナップショットを生成
+                // Create rail position snapshot
+                if (!MasterHolder.TrainUnitMaster.TryGetTrainUnit(ForUnitTestItemId.TrainCarItem, out var trainUnitElement))
+                {
+                    Assert.Fail("テスト用列車マスターが見つかりません / Missing train unit master for test");
+                    return default;
+                }
+                var trainLength = TrainLengthConverter.ToRailUnits(trainUnitElement.Length);
+                var railNodes = new List<IRailNode> { rail1Component.BackNode, rail2Component.BackNode };
+                var railPosition = new RailPosition(railNodes, trainLength, 0);
+                var railPositionSnapshot = new RailPositionSnapshotMessagePack(railPosition.CreateSaveSnapshot());
                 
-                return (environment, RailComponentSpecifier.CreateRailSpecifier(railPos1));
+                return (environment, RailComponentSpecifier.CreateRailSpecifier(railPos1), railPositionSnapshot);
             }
 
-            void ExecuteProtocol(TrainTestEnvironment environment, RailComponentSpecifier railSpecifier)
+            void ExecuteProtocol(TrainTestEnvironment environment, RailComponentSpecifier railSpecifier, RailPositionSnapshotMessagePack railPosition)
             {
                 Assert.AreEqual(0, TrainUpdateService.Instance.GetRegisteredTrains().Count(), "初期状態では列車が存在しないべき / No trains should exist initially");
                 
                 // プロトコルで列車を配置
                 // Place train through protocol
-                var packet = CreatePlaceTrainPacket(railSpecifier, HotBarSlot, PlayerId);
+                var packet = CreatePlaceTrainPacket(railSpecifier, railPosition, HotBarSlot, PlayerId);
                 environment.PacketResponseCreator.GetPacketResponse(packet);
             }
 
@@ -90,10 +108,10 @@ namespace Tests.CombinedTest.Server.PacketTest
             #endregion
         }
 
-        private List<byte> CreatePlaceTrainPacket(RailComponentSpecifier railSpecifier, int hotBarSlot, int playerId)
+        private List<byte> CreatePlaceTrainPacket(RailComponentSpecifier railSpecifier, RailPositionSnapshotMessagePack railPosition, int hotBarSlot, int playerId)
         {
             return MessagePackSerializer
-                .Serialize(new PlaceTrainOnRailRequestMessagePack(railSpecifier, hotBarSlot, playerId))
+                .Serialize(new PlaceTrainOnRailRequestMessagePack(railSpecifier, railPosition, hotBarSlot, playerId))
                 .ToList();
         }
     }
