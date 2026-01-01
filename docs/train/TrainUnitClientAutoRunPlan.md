@@ -55,13 +55,15 @@
 ## Next Steps (Candidate)
 1. Wire UI to ClientTrainDiagram read APIs for current entry and full entry list
 2. Align AutoRun Dock/Depart transitions with server behavior (departure reset / arrival handling)
-3. Build RailGraphClientCache and StationRegistry equivalent to stabilize destination node resolution
-4. Add client-side tests for tick ordering and DiagramHash verification
+3. Add client-side tests for tick ordering and DiagramHash verification
+4. Validate StationRef timing impact when rail data arrives before block data
 
-## Client StationRef Priority
-- ClientRailNode.StationRef is currently null; station/ non-station arrival cannot be distinguished accurately.
-- This blocks correct Docked/Departed alignment and non-station-only local advancement.
-- Priority: define how StationRef (or equivalent) is resolved on the client side.
+## Client StationRef (Implemented)
+- ClientRailNode.StationRef is populated from block data via ClientStationReferenceRegistry.
+- Station blocks are detected by BlockParam type (TrainStationBlockParam / TrainCargoPlatformBlockParam).
+- Station node mapping matches server: component 0/1 with front/back assigns Entry/Exit and Side.
+- ApplyStationReferences() runs only after full snapshot or resync (O(n) over nodes).
+- Diff updates use ApplyStationReference(destination) after node create and block place/remove.
 
 ## TrainUnit Hash Sync (Implemented)
 - GetTrainUnitSnapshots now returns UnitsHash alongside ServerTick.
@@ -71,11 +73,7 @@
 - Client compares the hash against TrainUnitClientCache and requests full snapshots on mismatch.
 - Stale ticks (older than LastServerTick) are ignored.
 
-## StationRef Strategy (Future-proof)
-- If client will eventually mirror server-side rail node generation from block placement:
-  - Prefer a StationRegistry-style approach (derive StationRef locally from block data).
-  - Avoid relying on server-sent StationRef to prevent double source of truth.
-- Short-term fallback: server can send minimal station flags (IsStation/Role/Side) to bridge gaps.
-- Recommendation:
-  - Long-term: StationRegistry + block-driven resolution on client (best for matching server logic).
-  - Short-term: minimal station metadata in RailGraph snapshots/events if needed for correctness.
+## StationRef Ordering Notes
+- Rail data can arrive before block data; StationRef stays empty until the block placement arrives.
+- This can temporarily treat a station arrival as non-station; current behavior allows that.
+- If this becomes visible, gate arrival handling on StationRef readiness or add a short delay.
