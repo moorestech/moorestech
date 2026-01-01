@@ -39,7 +39,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
             if (InputManager.Playable.ScreenLeftClick.GetKeyUp)
             {
-                ClientContext.VanillaApi.SendOnly.PlaceTrainOnRail(hit.Specifier, context.CurrentSelectHotbarSlotIndex);
+                ClientContext.VanillaApi.SendOnly.PlaceTrainOnRail(hit.Specifier, hit.RailPosition, context.CurrentSelectHotbarSlotIndex);
             }
         }
 
