@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Component;
 using Game.Block.Interface;
-using Mooresmaster.Model.BlockConnectInfoModule;
+using Game.Block.Interface.Component;
+using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -19,14 +20,12 @@ namespace Tests.UnitTest.Game
             
             var blockPositionInfo = new BlockPositionInfo(Vector3Int.zero, direction, new Vector3Int(2, 2, 2));
             
-            var connectInfoItems = new List<BlockConnectInfoElement>
+            var connectInfoItems = new List<BlockConnectorInfo>
             {
-                new(0, "", Guid.NewGuid(), new Vector3Int(1, 0, 0), new []{new Vector3Int(1,0,0)}, null),
+                new BlockConnectorInfo(Guid.NewGuid(), new Vector3Int(1, 0, 0), new []{new Vector3Int(1,0,0)}, null),
             };
-            var connectionInfo = new BlockConnectInfo(connectInfoItems.ToArray());
             
-            
-            var result = BlockConnectorConnectPositionCalculator.CalculateConnectPosToConnector(connectionInfo, blockPositionInfo);
+            var result = BlockConnectorConnectPositionCalculator.CalculateConnectPosToConnector(connectInfoItems, blockPositionInfo);
             
             Assert.AreEqual(1, result.Count);
             AssertConnectors(result, 0, new Vector3Int(1, 0, 0), new Vector3Int(2, 0, 0));
@@ -43,19 +42,17 @@ namespace Tests.UnitTest.Game
             
             var blockPositionInfo = new BlockPositionInfo(Vector3Int.zero, direction, new Vector3Int(2, 2, 2));
             
-            var connectInfoItems = new List<BlockConnectInfoElement>
+            var connectInfoItems = new List<BlockConnectorInfo>
             {
-                new(0, "", Guid.NewGuid(), new Vector3Int(1, 0, 0), new []{new Vector3Int(1,0,0)}, null),
+                new BlockConnectorInfo(Guid.NewGuid(), new Vector3Int(1, 0, 0), new []{new Vector3Int(1,0,0)}, null),
             };
-            var connectionInfo = new BlockConnectInfo(connectInfoItems.ToArray());
             
-            
-            var result = BlockConnectorConnectPositionCalculator.CalculateConnectPosToConnector(connectionInfo, blockPositionInfo);
+            var result = BlockConnectorConnectPositionCalculator.CalculateConnectPosToConnector(connectInfoItems, blockPositionInfo);
             
             AssertConnectors(result, 0, Vector3Int.zero, new Vector3Int(0, 0, -1));
         }
         
-        void AssertConnectors(Dictionary<Vector3Int, (Vector3Int position, BlockConnectInfoElement element)> result, int index, Vector3Int connectorPosition, Vector3Int targetPosition)
+        void AssertConnectors(Dictionary<Vector3Int, (Vector3Int position, BlockConnectorInfo connector)> result, int index, Vector3Int connectorPosition, Vector3Int targetPosition)
         {
             Assert.AreEqual(connectorPosition, result.Values.ToList()[index].position);
             Assert.AreEqual(targetPosition, result.Keys.ToList()[index]);

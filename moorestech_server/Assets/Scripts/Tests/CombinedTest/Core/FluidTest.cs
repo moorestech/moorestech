@@ -1,5 +1,4 @@
 ﻿using System;
-﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -12,7 +11,7 @@ using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.Fluid;
-using Mooresmaster.Model.BlockConnectInfoModule;
+using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -162,13 +161,13 @@ namespace Tests.CombinedTest.Core
             
             // 正しくオプションが読み込まれているかのテスト
             // Test if the options are read correctly
-            var option0 = connect0.Value.SelfConnector?.ConnectOption as FluidConnectOption;
+            var option0 = BlockConnectorOptionReader.ReadFluidOption(connect0.Value.SelfConnector?.Option);
             Assert.IsNotNull(option0);
-            Assert.AreEqual(10, option0.FlowCapacity);
+            Assert.AreEqual(10, option0.Value.FlowCapacity);
 
-            var option1 = connect0.Value.SelfConnector?.ConnectOption as FluidConnectOption;
+            var option1 = BlockConnectorOptionReader.ReadFluidOption(connect0.Value.SelfConnector?.Option);
             Assert.IsNotNull(option1);
-            Assert.AreEqual(10, option1.FlowCapacity);
+            Assert.AreEqual(10, option1.Value.FlowCapacity);
         }
         
         /// <summary>
@@ -195,7 +194,7 @@ namespace Tests.CombinedTest.Core
             {
                 // 出力
                 var connect = oneWayFluidPipeConnector.ConnectedTargets[fluidPipe1];
-                var selfOption = connect.SelfConnector?.ConnectOption as FluidConnectOption;
+                var selfOption = BlockConnectorOptionReader.ReadFluidOption(connect.SelfConnector?.Option);
                 Assert.NotNull(selfOption);
             }
             {

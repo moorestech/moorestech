@@ -21,7 +21,9 @@ namespace Game.Block.Factory.BlockTemplate
     {
         public static BlockConnectorComponent<IBlockInventory> CreateInventoryConnector(InventoryConnects inventoryConnects, BlockPositionInfo blockPositionInfo)
         {
-            return new BlockConnectorComponent<IBlockInventory>(inventoryConnects.InputConnects, inventoryConnects.OutputConnects, blockPositionInfo);
+            var inputConnectors = BlockConnectorInfoFactory.FromConnectors(inventoryConnects.InputConnects);
+            var outputConnectors = BlockConnectorInfoFactory.FromConnectors(inventoryConnects.OutputConnects);
+            return new BlockConnectorComponent<IBlockInventory>(inputConnectors, outputConnectors, blockPositionInfo);
         }
         
         // TODO 保存ステートを誰でも持てるようになったので、このあたりも各自でセーブ、ロードできるように簡略化したい

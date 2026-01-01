@@ -7,16 +7,16 @@ using Game.Block.Blocks.Connector;
 using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
-using Mooresmaster.Model.BlockConnectInfoModule;
+using Mooresmaster.Model.BlocksModule;
 
 namespace Game.Block.Blocks.BeltConveyor
 {
     public interface IBeltConveyorBlockInventoryInserter : IBlockInventoryInserter
     {
-        IItemStack InsertItem(IItemStack itemStack, BlockConnectInfoElement goalConnector);
-        BlockConnectInfoElement GetNextGoalConnector();
-        BlockConnectInfoElement GetNextGoalConnector(List<IItemStack> itemStacks);
-        bool IsValidGoalConnector(BlockConnectInfoElement goalConnector);
+        IItemStack InsertItem(IItemStack itemStack, BlockConnectorInfo goalConnector);
+        BlockConnectorInfo GetNextGoalConnector();
+        BlockConnectorInfo GetNextGoalConnector(List<IItemStack> itemStacks);
+        bool IsValidGoalConnector(BlockConnectorInfo goalConnector);
         int ConnectedCount { get; }
         bool HasAnyConnector { get; }
     }
@@ -42,8 +42,8 @@ namespace Game.Block.Blocks.BeltConveyor
             // Select output target with round robin
             var connector = GetNextTarget(targets);
 
-            // ConnectedInfoからBlockConnectInfoElementを取得
-            // Get BlockConnectInfoElement from ConnectedInfo
+            // ConnectedInfoからBlockConnectorInfoを取得
+            // Get BlockConnectorInfo from ConnectedInfo
             var context = new InsertItemContext(_sourceBlockInstanceId, connector.Value.SelfConnector, connector.Value.TargetConnector);
 
             return connector.Key.InsertItem(itemStack, context);
@@ -53,7 +53,7 @@ namespace Game.Block.Blocks.BeltConveyor
         /// 特定のGoalConnectorを指定して出力
         /// Insert item to specific goal connector
         /// </summary>
-        public IItemStack InsertItem(IItemStack itemStack, BlockConnectInfoElement goalConnector)
+        public IItemStack InsertItem(IItemStack itemStack, BlockConnectorInfo goalConnector)
         {
             var targets = _blockConnectorComponent.ConnectedTargets;
             if (targets.Count == 0) return itemStack;
@@ -64,7 +64,7 @@ namespace Game.Block.Blocks.BeltConveyor
 
             #region Internal
 
-            IItemStack TryInsertWithReselect(IItemStack targetItem, BlockConnectInfoElement targetConnector, IReadOnlyDictionary<IBlockInventory, ConnectedInfo> connectedTargets)
+            IItemStack TryInsertWithReselect(IItemStack targetItem, BlockConnectorInfo targetConnector, IReadOnlyDictionary<IBlockInventory, ConnectedInfo> connectedTargets)
             {
                 var result = TryInsertToGoal(targetItem, targetConnector, connectedTargets, out var attemptedGoal);
                 if (result.Id == ItemMaster.EmptyItemId) return result;
@@ -80,7 +80,7 @@ namespace Game.Block.Blocks.BeltConveyor
                 return result;
             }
 
-            IItemStack TryInsertToGoal(IItemStack targetItem, BlockConnectInfoElement targetConnector, IReadOnlyDictionary<IBlockInventory, ConnectedInfo> connectedTargets, out bool attemptedGoal)
+            IItemStack TryInsertToGoal(IItemStack targetItem, BlockConnectorInfo targetConnector, IReadOnlyDictionary<IBlockInventory, ConnectedInfo> connectedTargets, out bool attemptedGoal)
             {
                 attemptedGoal = false;
                 if (targetConnector == null) return targetItem;
@@ -108,7 +108,7 @@ namespace Game.Block.Blocks.BeltConveyor
         /// 最初のGoalConnectorを取得
         /// Get first goal connector
         /// </summary>
-        public BlockConnectInfoElement GetNextGoalConnector()
+        public BlockConnectorInfo GetNextGoalConnector()
         {
             var targets = _blockConnectorComponent.ConnectedTargets;
             if (targets.Count == 0) return null;
@@ -122,7 +122,7 @@ namespace Game.Block.Blocks.BeltConveyor
         /// 挿入可能なGoalConnectorを取得
         /// Get insertable goal connector
         /// </summary>
-        public BlockConnectInfoElement GetNextGoalConnector(List<IItemStack> itemStacks)
+        public BlockConnectorInfo GetNextGoalConnector(List<IItemStack> itemStacks)
         {
             var targets = _blockConnectorComponent.ConnectedTargets;
             if (targets.Count == 0) return null;
@@ -144,7 +144,7 @@ namespace Game.Block.Blocks.BeltConveyor
         /// 指定されたGoalConnectorが有効かどうかを確認
         /// Check if specified GoalConnector is valid
         /// </summary>
-        public bool IsValidGoalConnector(BlockConnectInfoElement goalConnector)
+        public bool IsValidGoalConnector(BlockConnectorInfo goalConnector)
         {
             if (goalConnector == null) return false;
             
