@@ -34,7 +34,8 @@ namespace Game.Block.Factory.BlockTemplate
             
             // ギア接続の設定
             var gearConnectSetting = configParam.Gear.GearConnects;
-            var gearConnectorComponent = new BlockConnectorComponent<IGearEnergyTransformer>(gearConnectSetting, gearConnectSetting, blockPositionInfo);
+            var gearConnectors = BlockConnectorInfoFactory.FromConnectors(gearConnectSetting);
+            var gearConnectorComponent = new BlockConnectorComponent<IGearEnergyTransformer>(gearConnectors, gearConnectors, blockPositionInfo);
             
             // アイテム接続の設定
             var inventoryConnector = BlockTemplateUtil.CreateInventoryConnector(configParam.InventoryConnectors, blockPositionInfo);

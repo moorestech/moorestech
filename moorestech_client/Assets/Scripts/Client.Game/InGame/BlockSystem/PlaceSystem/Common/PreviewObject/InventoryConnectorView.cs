@@ -22,7 +22,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject
             
             void SetInventoryConnectors(InventoryConnects inventory)
             {
-                foreach (var inputConnect in inventory.InputConnects.items)
+                foreach (var inputConnect in inventory.InputConnects)
                 {
                     var endPos = inputConnect.Offset;
                     if (inputConnect.Directions == null) return;
@@ -35,7 +35,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject
                     }
                 }
                 
-                foreach (var outputConnect in inventory.OutputConnects.items)
+                foreach (var outputConnect in inventory.OutputConnects)
                 {
                     var startPos = outputConnect.Offset;
                     if (outputConnect.Directions == null) return;

@@ -6,7 +6,7 @@ using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Fluid;
-using Mooresmaster.Model.BlockConnectInfoModule;
+using Mooresmaster.Model.BlocksModule;
 using Newtonsoft.Json;
 
 namespace Game.Block.Blocks.Pump
@@ -77,11 +77,8 @@ namespace Game.Block.Blocks.Pump
 
         private static double GetFlowRate(ConnectedInfo info)
         {
-            if (info.SelfConnector?.ConnectOption is FluidConnectOption option)
-            {
-                return option.FlowCapacity;
-            }
-            return 10.0;
+            var option = BlockConnectorOptionReader.ReadFluidOption(info.SelfConnector?.Option);
+            return option.HasValue ? option.Value.FlowCapacity : 10d;
         }
         
         public void EnqueueGeneratedFluid(FluidStack fluidStack)

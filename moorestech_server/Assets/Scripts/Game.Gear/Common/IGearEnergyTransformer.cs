@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
-using Mooresmaster.Model.BlockConnectInfoModule;
+using Mooresmaster.Model.BlocksModule;
 
 namespace Game.Gear.Common
 {
@@ -28,10 +28,10 @@ namespace Game.Gear.Common
     public readonly struct GearConnect
     {
         public readonly IGearEnergyTransformer Transformer;
-        public readonly GearConnectOption Self;
-        public readonly GearConnectOption Target;
+        public readonly GearConnectOptionData? Self;
+        public readonly GearConnectOptionData? Target;
         
-        public GearConnect(IGearEnergyTransformer transformer, GearConnectOption self, GearConnectOption target)
+        public GearConnect(IGearEnergyTransformer transformer, GearConnectOptionData? self, GearConnectOptionData? target)
         {
             Transformer = transformer;
             Self = self;

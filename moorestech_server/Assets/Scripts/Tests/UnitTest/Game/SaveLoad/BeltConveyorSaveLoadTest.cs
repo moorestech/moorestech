@@ -3,6 +3,7 @@ using System.Reflection;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.BeltConveyor;
+using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
@@ -42,8 +43,8 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             // ブロックの実際のコネクタを使用してアイテムを設定
             // Set items using the block's actual connectors
-            var inputConnects = beltParam.InventoryConnectors.InputConnects.items;
-            var outputConnects = beltParam.InventoryConnectors.OutputConnects.items;
+            var inputConnects = BlockConnectorInfoFactory.FromConnectors(beltParam.InventoryConnectors.InputConnects);
+            var outputConnects = BlockConnectorInfoFactory.FromConnectors(beltParam.InventoryConnectors.OutputConnects);
             var sourceConnector = inputConnects[0];
             var goalConnector = outputConnects[0];
 
@@ -111,8 +112,8 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             // ブロックの実際のコネクタを使用してアイテムを設定
             // Set items using the block's actual connectors
-            var inputConnects = gearBeltParam.InventoryConnectors.InputConnects.items;
-            var outputConnects = gearBeltParam.InventoryConnectors.OutputConnects.items;
+            var inputConnects = BlockConnectorInfoFactory.FromConnectors(gearBeltParam.InventoryConnectors.InputConnects);
+            var outputConnects = BlockConnectorInfoFactory.FromConnectors(gearBeltParam.InventoryConnectors.OutputConnects);
             var sourceConnector = inputConnects[0];
             var goalConnector = outputConnects[0];
 

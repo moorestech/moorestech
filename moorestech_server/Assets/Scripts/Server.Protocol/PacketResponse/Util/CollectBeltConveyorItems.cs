@@ -4,12 +4,13 @@ using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Interface;
+using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.Entity.Interface;
 using Game.Entity.Interface.EntityInstance;
 using Game.World.Interface.DataStore;
-using Mooresmaster.Model.BlockConnectInfoModule;
+using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 
 
@@ -122,10 +123,10 @@ namespace Server.Protocol.PacketResponse.Util
         }
 
         /// <summary>
-        /// BlockConnectInfoElementからConnectorGuidを取得
-        /// Get ConnectorGuid from BlockConnectInfoElement
+        /// BlockConnectorInfoからConnectorGuidを取得
+        /// Get ConnectorGuid from BlockConnectorInfo
         /// </summary>
-        private static Guid? GetConnectorGuidFromConnector(BlockConnectInfoElement connector)
+        private static Guid? GetConnectorGuidFromConnector(BlockConnectorInfo connector)
         {
             return connector?.ConnectorGuid;
         }

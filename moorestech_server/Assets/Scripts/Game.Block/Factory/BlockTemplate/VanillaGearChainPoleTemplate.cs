@@ -34,7 +34,8 @@ namespace Game.Block.Factory.BlockTemplate
 
             // ギア接続コンポーネントとチェーンポールを初期化する
             // Initialize gear connector and chain pole component
-            var connectorComponent = new BlockConnectorComponent<IGearEnergyTransformer>(gearConnects, gearConnects, blockPositionInfo);
+            var gearConnectors = BlockConnectorInfoFactory.FromConnectors(gearConnects);
+            var connectorComponent = new BlockConnectorComponent<IGearEnergyTransformer>(gearConnectors, gearConnectors, blockPositionInfo);
             var chainPoleComponent = new GearChainPoleComponent(param, blockInstanceId, connectorComponent, componentStates);
 
             var components = new List<IBlockComponent>
