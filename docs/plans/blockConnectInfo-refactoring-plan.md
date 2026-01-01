@@ -89,6 +89,8 @@ properties:
         type: vector3Int
     - key: option
       type: object
+      implementationInterface:
+      - IBlockConnectOption
       properties: []
 ```
 
