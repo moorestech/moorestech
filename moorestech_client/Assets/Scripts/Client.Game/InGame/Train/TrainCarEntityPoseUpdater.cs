@@ -13,6 +13,9 @@ namespace Client.Game.InGame.Train
 {
     public sealed class TrainCarEntityPoseUpdater : ITickable
     {
+        // 車両モデルの前方向補正（レール進行方向に合わせる）
+        // Model forward axis correction to match rail direction
+        private const float ModelYawOffsetDegrees = 90f;
         private readonly TrainUnitClientCache _trainCache;
         private readonly EntityObjectDatastore _entityDatastore;
         private readonly TrainCarPoseCalculator _poseCalculator;
@@ -143,6 +146,9 @@ namespace Client.Game.InGame.Train
             // Build rotation from normalized forward vector
             var safeForward = forward.sqrMagnitude > 1e-6f ? forward.normalized : Vector3.forward;
             var rotation = Quaternion.LookRotation(safeForward, Vector3.up);
+            // モデルの前方向がレールと異なる分を補正する
+            // Correct the model forward axis offset
+            rotation = rotation * Quaternion.Euler(0f, ModelYawOffsetDegrees, 0f);
             if (!isFacingForward) rotation = rotation * Quaternion.Euler(0f, 180f, 0f);
             return rotation;
         }
