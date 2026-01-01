@@ -82,12 +82,16 @@ namespace Client.Game.InGame.Train
             var cts = new CancellationTokenSource();
             _resyncCancellation = cts;
 
-            var snapshot = await api.GetTrainUnitSnapshots(cts.Token).SuppressCancellationThrow();
-            if (cts.IsCancellationRequested)
+            // 再同期スナップショットを取得しキャンセル状態を判定する
+            // Fetch the resync snapshot and check cancellation state.
+            var snapshotResult = await api.GetTrainUnitSnapshots(cts.Token).SuppressCancellationThrow();
+            if (snapshotResult.IsCanceled || cts.IsCancellationRequested)
             {
+                FinalizeResync(cts);
                 return;
             }
 
+            var snapshot = snapshotResult.Result;
             if (snapshot == null)
             {
                 Debug.LogWarning("[TrainUnitHashVerifier] Snapshot response was null.");
@@ -97,14 +101,7 @@ namespace Client.Game.InGame.Train
                 _snapshotApplier.ApplySnapshot(snapshot);
                 _cache.OverrideTick(serverTick);
             }
-
-            if (_resyncCancellation == cts)
-            {
-                _resyncCancellation.Dispose();
-                _resyncCancellation = null;
-            }
-
-            Interlocked.Exchange(ref _resyncInProgress, 0);
+            FinalizeResync(cts);
         }
 
         private void CancelResync()
@@ -118,6 +115,18 @@ namespace Client.Game.InGame.Train
             _resyncCancellation.Cancel();
             _resyncCancellation.Dispose();
             _resyncCancellation = null;
+            Interlocked.Exchange(ref _resyncInProgress, 0);
+        }
+
+        private void FinalizeResync(CancellationTokenSource cts)
+        {
+            // 再同期の後始末を行う
+            // Finalize the resync state.
+            if (_resyncCancellation == cts)
+            {
+                _resyncCancellation.Dispose();
+                _resyncCancellation = null;
+            }
             Interlocked.Exchange(ref _resyncInProgress, 0);
         }
 
