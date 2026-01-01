@@ -23,6 +23,10 @@ namespace Client.Game.InGame.Train
         public bool IsDocked { get; set; }
         IReadOnlyList<TrainCarSnapshot> cars { get; set; }
 
+        // 車両スナップショチE��を外部に公開する
+        // Expose car snapshots for render/update systems
+        public IReadOnlyList<TrainCarSnapshot> Cars => cars ?? Array.Empty<TrainCarSnapshot>();
+
         public ClientTrainDiagram Diagram { get; }
         public RailPosition RailPosition { get; private set; }
         public long LastUpdatedTick { get; private set; }

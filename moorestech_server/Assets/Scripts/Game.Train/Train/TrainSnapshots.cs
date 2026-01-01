@@ -60,15 +60,17 @@ namespace Game.Train.Train
     // -----------------クライアント関連-----------------
     public readonly struct TrainCarSnapshot
     {
-        public TrainCarSnapshot(Guid carId, int inventorySlotsCount, int tractionForce, bool isFacingForward)
+        public TrainCarSnapshot(Guid carId, Guid trainCarGuid, int inventorySlotsCount, int tractionForce, bool isFacingForward)
         {
             CarId = carId;
+            TrainCarGuid = trainCarGuid;
             IsFacingForward = isFacingForward;
             InventorySlotsCount = inventorySlotsCount;
             TractionForce = tractionForce;
         }
 
         public Guid CarId { get; }
+        public Guid TrainCarGuid { get; }
         public bool IsFacingForward { get; }
         public int InventorySlotsCount { get; }
         public int TractionForce { get; }
