@@ -105,8 +105,10 @@ namespace Client.Game.InGame.Train
                     offsetFromHead += carLength;
                     continue;
                 }
+                // RailPositionから決定した姿勢を即時反映する
+                // Apply pose immediately based on RailPosition
                 var rotation = BuildRotation(forward, carSnapshot.IsFacingForward);
-                trainCarEntity.SetPoseWithLerp(position, rotation);
+                trainCarEntity.SetDirectPose(position, rotation);
                 offsetFromHead += carLength;
             }
         }
