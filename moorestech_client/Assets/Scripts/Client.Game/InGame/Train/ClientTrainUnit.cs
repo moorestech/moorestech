@@ -46,7 +46,7 @@ namespace Client.Game.InGame.Train
             IsAutoRun = simulation.IsAutoRun;
             Diagram.UpdateSnapshot(diagram);
             RailPosition = RailPositionFactory.Restore(railPosition);
-            cars = simulation.Cars;
+            cars = simulation.Cars ?? Array.Empty<TrainCarSnapshot>();
             LastUpdatedTick = tick;
             RecalculateRemainingDistance();
         }
@@ -303,14 +303,17 @@ namespace Client.Game.InGame.Train
         //毎フレーム燃料の在庫を確認しながら加速力を計算する
         public double UpdateTractionForce(int masconLevel)
         {
+            var localCars = cars ?? Array.Empty<TrainCarSnapshot>();
+            if (localCars.Count == 0) return 0;
             int totalWeight = 0;
             int totalTraction = 0;
-            foreach (var car in cars)
+            foreach (var car in localCars)
             {
                 var (weight, traction) = GetWeightAndTraction(car);// car.GetWeightAndTraction();//forceに応じて燃料が消費される:未実装
                 totalWeight += weight;
                 totalTraction += traction;
             }
+            if (totalWeight == 0) return 0;
             return (double)totalTraction / totalWeight * masconLevel / TrainMotionParameters.MasconLevelMaximum;
             #region internal
             (int, int) GetWeightAndTraction(TrainCarSnapshot trainCarSnapshot)
