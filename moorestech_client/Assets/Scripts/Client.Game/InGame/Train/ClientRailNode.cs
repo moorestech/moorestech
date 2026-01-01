@@ -2,7 +2,6 @@ using Game.Train.RailGraph;
 using Game.Train.Utility;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace Client.Game.InGame.Train
@@ -18,6 +17,7 @@ namespace Client.Game.InGame.Train
         public ConnectionDestination ConnectionDestination => _connectionDestination;
 
         private readonly RailGraphClientCache _cache;
+        private StationReference _stationRef;
         public int OppositeNodeId => NodeId ^ 1;
         public IRailNode OppositeNode
         {
@@ -28,7 +28,7 @@ namespace Client.Game.InGame.Train
         }
         public RailControlPoint FrontControlPoint { get; }
         public RailControlPoint BackControlPoint { get; }
-        public StationReference StationRef => null;// TODO 今後適切に実装を
+        public StationReference StationRef => _stationRef;
         public bool IsActive 
         { 
             get
@@ -45,6 +45,14 @@ namespace Client.Game.InGame.Train
             FrontControlPoint = new RailControlPoint(origin, primary);
             BackControlPoint = new RailControlPoint(origin, opposite);
             _cache = cache;
+            _stationRef = new StationReference();
+        }
+
+        public void UpdateStationReference(StationReference stationReference)
+        {
+            // 駅参照を更新する
+            // Update station reference.
+            _stationRef = stationReference ?? new StationReference();
         }
 
         public IEnumerable<IRailNode> ConnectedNodes
@@ -78,6 +86,4 @@ namespace Client.Game.InGame.Train
             return RailGraphProvider.Current.GetDistance(this, targetnode, useFindPath);
         }
     }
-
 }
-

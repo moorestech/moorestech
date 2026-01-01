@@ -246,7 +246,7 @@ namespace Client.Game.InGame.Train
                     // 駅でなければ次のエントリーへ進める
                     // Advance to the next entry when not at a station
                     var destinationNode = ResolveCurrentDestinationNode();
-                    if (destinationNode?.StationRef?.StationBlock == null)
+                    if (destinationNode?.StationRef?.HasStation != true)
                     {
                         Diagram.AdvanceToNextEntry();
                         RecalculateRemainingDistance();
