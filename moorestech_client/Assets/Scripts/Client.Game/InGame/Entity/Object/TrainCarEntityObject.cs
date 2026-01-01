@@ -19,6 +19,8 @@ namespace Client.Game.InGame.Entity.Object
         private float _linerTime;
         private Vector3 _previousPosition;
         private Vector3 _targetPosition;
+        private Quaternion _previousRotation;
+        private Quaternion _targetRotation;
         
         private bool _isFacingForward = true;
         private bool _debugAutoRun = false;//////////////////
@@ -26,7 +28,7 @@ namespace Client.Game.InGame.Entity.Object
         private RendererMaterialReplacerController _rendererMaterialReplacerController;
 
         /// <summary>
-        /// エンティティIDを設定し、初期化を行う
+        /// エンチE��チE��IDを設定し、�E期化を行う
         /// Set entity ID and perform initialization
         /// </summary>
         public void Initialize(long entityId)
@@ -35,6 +37,8 @@ namespace Client.Game.InGame.Entity.Object
             _debugAutoRun = DebugParameters.GetValueOrDefaultBool(DebugConst.TrainAutoRunKey);//////////////////
             
             _rendererMaterialReplacerController = new RendererMaterialReplacerController(gameObject);
+            _previousRotation = transform.rotation;
+            _targetRotation = transform.rotation;
         }
         
         public void SetTrain(Guid trainCarId, TrainCarMasterElement trainCarMasterElement)
@@ -44,30 +48,52 @@ namespace Client.Game.InGame.Entity.Object
         }
         
         /// <summary>
-        /// 即座に位置を設定する（補間なし）
+        /// 即座に位置を設定する（補間なし！E
         /// Set position immediately (without interpolation)
         /// </summary>
         public void SetDirectPosition(Vector3 position)
         {
-            _targetPosition = position;
-            _previousPosition = position;
-            transform.position = position;
-            _linerTime = 0;
+            SetDirectPose(position, transform.rotation);
         }
         
         /// <summary>
-        /// 補間を開始して新しい位置に移動する
+        /// 補間を開始して新しい位置に移動すめE
         /// Start interpolation to move to new position
         /// </summary>
         public void SetPositionWithLerp(Vector3 position)
         {
+            SetPoseWithLerp(position, transform.rotation);
+        }
+
+        /// <summary>
+        /// �����Ɉʒu�Ɗp�x��ݒ肷��i��ԂȂ��j
+        /// Set position and rotation immediately (without interpolation)
+        /// </summary>
+        public void SetDirectPose(Vector3 position, Quaternion rotation)
+        {
+            _targetPosition = position;
+            _previousPosition = position;
+            _targetRotation = rotation;
+            _previousRotation = rotation;
+            transform.SetPositionAndRotation(position, rotation);
+            _linerTime = 0;
+        }
+
+        /// <summary>
+        /// 補間を開始して新しい位置と角度に移動すめE
+        /// Start interpolation to move to new pose
+        /// </summary>
+        public void SetPoseWithLerp(Vector3 position, Quaternion rotation)
+        {
             _previousPosition = transform.position;
             _targetPosition = position;
+            _previousRotation = transform.rotation;
+            _targetRotation = rotation;
             _linerTime = 0;
         }
         
         /// <summary>
-        /// GameObjectを破棄する
+        /// GameObjectを破棁E��めE
         /// Destroy GameObject
         /// </summary>
         public void Destroy()
@@ -86,9 +112,10 @@ namespace Client.Game.InGame.Entity.Object
             var rate = _linerTime / NetworkConst.UpdateIntervalSeconds;
             rate = Mathf.Clamp01(rate);
             transform.position = Vector3.Lerp(_previousPosition, _targetPosition, rate);
+            transform.rotation = Quaternion.Slerp(_previousRotation, _targetRotation, rate);
 
 
-            // デバッグ用で自動運転on off切り替え、この処理はtraincar単位で行われてしまっていることに注意。本来はtrainunit単位またはシーン単位だがどうせ消すのでこのままで！！
+            // チE��チE��用で自動運転on off刁E��替え、この処琁E�Etraincar単位で行われてしまってぁE��ことに注意。本来はtrainunit単位また�Eシーン単位だがどぁE��消すのでこ�Eままで�E�E��E
             if (_debugAutoRun != DebugParameters.GetValueOrDefaultBool(DebugConst.TrainAutoRunKey))
             {
                 _debugAutoRun = DebugParameters.GetValueOrDefaultBool(DebugConst.TrainAutoRunKey);
@@ -99,11 +126,11 @@ namespace Client.Game.InGame.Entity.Object
             _linerTime += Time.deltaTime;
         }
 
-        // 全列車の自動運転状態を送信するローカル関数
+        // 全列車�E自動運転状態を送信するローカル関数
         // Local function to send the auto-run state for all trains
         void OnTrainAutoRunChanged(bool isEnabled)
         {
-            // サーバーへ全列車の自動運転切り替えコマンドを送信
+            // サーバ�Eへ全列車�E自動運転刁E��替えコマンドを送信
             // Send the auto-run toggle command for all trains to the server
             var command = isEnabled
                 ? $"{SendCommandProtocol.TrainAutoRunCommand} {SendCommandProtocol.TrainAutoRunOnArgument}"

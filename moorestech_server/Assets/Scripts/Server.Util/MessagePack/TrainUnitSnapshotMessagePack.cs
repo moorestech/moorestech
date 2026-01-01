@@ -85,6 +85,7 @@ namespace Server.Util.MessagePack
         [Key(1)] public int InventorySlotsCount { get; set; }
         [Key(2)] public int TractionForce { get; set; }
         [Key(3)] public bool IsFacingForward { get; set; }
+        [Key(4)] public Guid TrainCarGuid { get; set; }
 
         [Obsolete("Reserved for MessagePack serialization.")]
         public TrainCarSnapshotMessagePack() { }
@@ -95,11 +96,12 @@ namespace Server.Util.MessagePack
             InventorySlotsCount = snapshot.InventorySlotsCount;
             TractionForce = snapshot.TractionForce;
             IsFacingForward = snapshot.IsFacingForward;
+            TrainCarGuid = snapshot.TrainCarGuid;
         }
 
         public TrainCarSnapshot ToModel()
         {
-            return new TrainCarSnapshot(CarId, InventorySlotsCount, TractionForce, IsFacingForward);
+            return new TrainCarSnapshot(CarId, TrainCarGuid, InventorySlotsCount, TractionForce, IsFacingForward);
         }
     }
 
