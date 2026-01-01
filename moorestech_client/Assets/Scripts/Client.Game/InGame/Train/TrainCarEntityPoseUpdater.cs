@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Entity;
 using Client.Game.InGame.Entity.Object;
@@ -13,7 +13,7 @@ namespace Client.Game.InGame.Train
 {
     public sealed class TrainCarEntityPoseUpdater : ITickable
     {
-        // 車両モデルの前方向補正（レール進行方向に合わせる）
+        // 車両モデルの前方向補正量をレール進行方向に合わせる
         // Model forward axis correction to match rail direction
         private const float ModelYawOffsetDegrees = 90f;
         private readonly TrainUnitClientCache _trainCache;
@@ -22,11 +22,7 @@ namespace Client.Game.InGame.Train
         private readonly List<ClientTrainUnit> _units = new();
         private readonly List<TrainCarEntityObject> _trainCars = new();
         private readonly Dictionary<Guid, TrainCarEntityObject> _carLookup = new();
-        private readonly HashSet<Guid> _missingRailPositionLogged = new();
-        private readonly HashSet<Guid> _missingCarSnapshotsLogged = new();
-        private readonly HashSet<Guid> _missingEntitiesLogged = new();
-        private readonly HashSet<Guid> _missingLengthsLogged = new();
-        private readonly HashSet<Guid> _poseFailureLogged = new();
+
         public TrainCarEntityPoseUpdater(TrainUnitClientCache trainCache, EntityObjectDatastore entityDatastore, TrainCarPoseCalculator poseCalculator)
         {
             _trainCache = trainCache;
@@ -36,14 +32,14 @@ namespace Client.Game.InGame.Train
 
         public void Tick()
         {
-            // 列車エンチE��チE��と列車キャチE��ュを集める
+            // 列車エンティティと列車キャッシュを収集する
             // Collect train entities and train unit cache
             _entityDatastore.CopyTrainCarEntitiesTo(_trainCars);
             if (_trainCars.Count == 0) return;
             _trainCache.CopyUnitsTo(_units);
             if (_units.Count == 0) return;
 
-            // 車両IDからエンチE��チE��への索引を作る
+            // 車両IDからエンティティへの索引を作る
             // Build lookup from car id to entity
             BuildCarLookup();
             for (var i = 0; i < _units.Count; i++)
@@ -67,20 +63,12 @@ namespace Client.Game.InGame.Train
 
         private void UpdateUnitPose(ClientTrainUnit unit)
         {
-            // 列車のRailPositionと車両リストを確認する
-            // Validate rail position and car list
+            // 列車キャッシュの値を確認する
+            // Validate the cached train state
             var railPosition = unit.RailPosition;
-            if (railPosition == null)
-            {
-                LogMissingRailPosition(unit);
-                return;
-            }
+            if (railPosition == null) return;
             var carSnapshots = unit.Cars;
-            if (carSnapshots == null || carSnapshots.Count == 0)
-            {
-                LogMissingCarSnapshots(unit);
-                return;
-            }
+            if (carSnapshots == null || carSnapshots.Count == 0) return;
 
             // 先頭からの距離を積み上げて車両の姿勢を更新する
             // Accumulate distance from head and update car poses
@@ -89,28 +77,25 @@ namespace Client.Game.InGame.Train
             {
                 var carSnapshot = carSnapshots[i];
                 var carLength = ResolveCarLength(carSnapshot, _carLookup.TryGetValue(carSnapshot.CarId, out var trainCarEntity) ? trainCarEntity : null);
-                if (carLength <= 0)
-                {
-                    LogMissingLength(carSnapshot);
-                    continue;
-                }
+                if (carLength <= 0) continue;
                 var frontOffset = offsetFromHead;
                 var rearOffset = offsetFromHead + carLength;
                 if (trainCarEntity == null)
                 {
-                    LogMissingEntity(carSnapshot);
                     offsetFromHead += carLength;
                     continue;
                 }
                 if (!TryResolveCarPose(railPosition, frontOffset, rearOffset, out var position, out var forward))
                 {
-                    LogPoseFailure(carSnapshot, frontOffset, rearOffset);
                     offsetFromHead += carLength;
                     continue;
                 }
-                // RailPositionから決定した姿勢を即時反映する
-                // Apply pose immediately based on RailPosition
+
+                // モデル中心の前後オフセットを考慮して姿勢を反映する
+                // Apply pose while accounting for the model center offset
                 var rotation = BuildRotation(forward, carSnapshot.IsFacingForward);
+                var modelForward = rotation * Vector3.forward;
+                position -= modelForward * trainCarEntity.ModelForwardCenterOffset;
                 trainCarEntity.SetDirectPose(position, rotation);
                 offsetFromHead += carLength;
             }
@@ -146,46 +131,11 @@ namespace Client.Game.InGame.Train
             // Build rotation from normalized forward vector
             var safeForward = forward.sqrMagnitude > 1e-6f ? forward.normalized : Vector3.forward;
             var rotation = Quaternion.LookRotation(safeForward, Vector3.up);
-            // モデルの前方向がレールと異なる分を補正する
+            // モデル前方向の差を補正する
             // Correct the model forward axis offset
             rotation = rotation * Quaternion.Euler(0f, ModelYawOffsetDegrees, 0f);
             if (!isFacingForward) rotation = rotation * Quaternion.Euler(0f, 180f, 0f);
             return rotation;
-        }
-
-        private void LogMissingRailPosition(ClientTrainUnit unit)
-        {
-            // RailPositionが未復元の編成を一度だけ警告する
-            // Warn once when RailPosition is missing for a train
-            if (_missingRailPositionLogged.Add(unit.TrainId)) Debug.LogWarning($"[TrainCarPose] RailPosition missing for train={unit.TrainId}.");
-        }
-
-        private void LogMissingCarSnapshots(ClientTrainUnit unit)
-        {
-            // 車両スナップショットが空の編成を一度だけ警告する
-            // Warn once when car snapshots are empty
-            if (_missingCarSnapshotsLogged.Add(unit.TrainId)) Debug.LogWarning($"[TrainCarPose] Car snapshots missing for train={unit.TrainId}.");
-        }
-
-        private void LogMissingEntity(TrainCarSnapshot snapshot)
-        {
-            // 車両エンティティ未生成を一度だけ警告する
-            // Warn once when the train car entity is missing
-            if (_missingEntitiesLogged.Add(snapshot.CarId)) Debug.LogWarning($"[TrainCarPose] Entity missing for car={snapshot.CarId}.");
-        }
-
-        private void LogMissingLength(TrainCarSnapshot snapshot)
-        {
-            // 車両長が解決できない場合に一度だけ警告する
-            // Warn once when car length cannot be resolved
-            if (_missingLengthsLogged.Add(snapshot.CarId)) Debug.LogWarning($"[TrainCarPose] Car length missing for car={snapshot.CarId}, master={snapshot.TrainCarGuid}.");
-        }
-
-        private void LogPoseFailure(TrainCarSnapshot snapshot, int frontOffset, int rearOffset)
-        {
-            // 車両姿勢計算の失敗を一度だけ警告する
-            // Warn once when pose calculation fails
-            if (_poseFailureLogged.Add(snapshot.CarId)) Debug.LogWarning($"[TrainCarPose] Pose resolve failed for car={snapshot.CarId}, frontOffset={frontOffset}, rearOffset={rearOffset}.");
         }
 
         #endregion
