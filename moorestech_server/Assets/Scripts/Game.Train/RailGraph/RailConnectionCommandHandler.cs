@@ -30,6 +30,10 @@ namespace Game.Train.RailGraph
                 return false;
             }
 
+            // 同一ノード/裏ノードへの接続を禁止
+            // Reject connections targeting the same or opposite node
+            if (fromNodeId == toNodeId || fromNodeId == (toNodeId ^ 1)) return false;
+
             var distance = CalculateSegmentDistance(fromNode, toNode);
             fromNode.ConnectNode(toNode, distance);
             ConnectOppositeNodes(fromNode, toNode, distance);
