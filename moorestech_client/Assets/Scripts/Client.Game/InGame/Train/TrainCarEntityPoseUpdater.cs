@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Client.Game.InGame.Entity;
 using Client.Game.InGame.Entity.Object;
 using Core.Master;
+using Game.Train.RailGraph;
+using Game.Train.Train;
 using Game.Train.Utility;
 using UnityEngine;
 using VContainer.Unity;
