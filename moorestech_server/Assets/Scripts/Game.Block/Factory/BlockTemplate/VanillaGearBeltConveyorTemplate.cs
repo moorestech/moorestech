@@ -25,9 +25,10 @@ namespace Game.Block.Factory.BlockTemplate
         {
             var gearBeltParam = blockMasterElement.BlockParam as GearBeltConveyorBlockParam;
             
+            var gearConnects = BlockConnectorAdapter.FromGearConnects(gearBeltParam.Gear.GearConnects);
             var gearEnergyTransformerConnector = new BlockConnectorComponent<IGearEnergyTransformer>(
-                gearBeltParam.Gear.GearConnects,
-                gearBeltParam.Gear.GearConnects,
+                gearConnects,
+                gearConnects,
                 blockPositionInfo
             );
             var inventoryConnector = BlockTemplateUtil.CreateInventoryConnector(gearBeltParam.InventoryConnectors, blockPositionInfo);
