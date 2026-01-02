@@ -9,13 +9,12 @@
 /additionalfile:Assets/../../VanillaSchema/research.yml
 /additionalfile:Assets/../../VanillaSchema/train.yml
 /additionalfile:Assets/../../VanillaSchema/placeSystem.yml
+/additionalfile:Assets/../../VanillaSchema/ref/blockConnectInfo.yml
 /additionalfile:Assets/../../VanillaSchema/ref/inventoryConnects.yml
-/additionalfile:Assets/../../VanillaSchema/ref/inventoryConnectOption.yml
 /additionalfile:Assets/../../VanillaSchema/ref/gearConnects.yml
 /additionalfile:Assets/../../VanillaSchema/ref/mineSettings.yml
 /additionalfile:Assets/../../VanillaSchema/ref/mapObjectMineSettings.yml
 /additionalfile:Assets/../../VanillaSchema/ref/fluidInventoryConnects.yml
-/additionalfile:Assets/../../VanillaSchema/ref/fluidConnectOption.yml
 /additionalfile:Assets/../../VanillaSchema/ref/generateFluids.yml
 /additionalfile:Assets/../../VanillaSchema/ref/gameAction.yml
 /additionalfile:Assets/../../VanillaSchema/ref/graphViewSettings.yml

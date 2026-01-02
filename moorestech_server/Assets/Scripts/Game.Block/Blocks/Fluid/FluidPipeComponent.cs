@@ -8,7 +8,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Fluid;
 using MessagePack;
-using Mooresmaster.Model.BlocksModule;
+using Mooresmaster.Model.BlockConnectInfoModule;
 using Newtonsoft.Json;
 using UniRx;
 
@@ -171,12 +171,12 @@ namespace Game.Block.Blocks.Fluid
         /// </summary>
         private double GetMaxFlowRateFromConnection(ConnectedInfo connectedInfo)
         {
-            var selfOption = BlockConnectorOptionReader.ReadFluidOption(connectedInfo.SelfConnector?.Option);
-            var targetOption = BlockConnectorOptionReader.ReadFluidOption(connectedInfo.TargetConnector?.Option);
+            var selfOption = connectedInfo.SelfConnector?.ConnectOption as FluidConnectOption;
+            var targetOption = connectedInfo.TargetConnector?.ConnectOption as FluidConnectOption;
 
             if (selfOption == null || targetOption == null) throw new ArgumentException();
 
-            return Math.Min(selfOption.Value.FlowCapacity, targetOption.Value.FlowCapacity) * GameUpdater.UpdateSecondTime;
+            return Math.Min(selfOption.FlowCapacity, targetOption.FlowCapacity) * GameUpdater.UpdateSecondTime;
         }
     }
 }

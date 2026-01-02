@@ -158,9 +158,7 @@ namespace Game.Gear.Common
             
             bool IsReverseRotation(GearConnect connect)
             {
-                var selfReverse = connect.Self.HasValue ? connect.Self.Value.IsReverse : true;
-                var targetReverse = connect.Target.HasValue ? connect.Target.Value.IsReverse : true;
-                return selfReverse && targetReverse;
+                return connect.Self.IsReverse && connect.Target.IsReverse;
             }
             
             void SetNetworkStop()

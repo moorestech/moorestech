@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.EnergySystem;
 using Game.Gear.Common;
-using Mooresmaster.Model.BlocksModule;
+using Mooresmaster.Model.BlockConnectInfoModule;
 using UniRx;
 using UnityEngine;
 
@@ -64,9 +63,7 @@ namespace Game.Block.Blocks.Gear
             var result = new List<GearConnect>();
             foreach (var target in _connectorComponent.ConnectedTargets)
             {
-                var selfOption = BlockConnectorOptionReader.ReadGearOption(target.Value.SelfConnector?.Option);
-                var targetOption = BlockConnectorOptionReader.ReadGearOption(target.Value.TargetConnector?.Option);
-                result.Add(new GearConnect(target.Key, selfOption, targetOption));
+                result.Add(new GearConnect(target.Key, (GearConnectOption)target.Value.SelfConnector?.ConnectOption, (GearConnectOption)target.Value.TargetConnector?.ConnectOption));
             }
             return result;
         }

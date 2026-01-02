@@ -1,3 +1,5 @@
+using Mooresmaster.Model.BlockConnectInfoModule;
+
 namespace Game.Block.Interface.Component
 {
     /// <summary>
@@ -16,15 +18,15 @@ namespace Game.Block.Interface.Component
         /// 挿入元コネクターの情報
         /// Source connector information
         /// </summary>
-        public BlockConnectorInfo SourceConnector { get; }
+        public BlockConnectInfoElement SourceConnector { get; }
 
         /// <summary>
         /// 挿入先コネクターの情報
         /// Target connector information
         /// </summary>
-        public BlockConnectorInfo TargetConnector { get; }
+        public BlockConnectInfoElement TargetConnector { get; }
 
-        public InsertItemContext(BlockInstanceId sourceBlockInstanceId, BlockConnectorInfo sourceConnector, BlockConnectorInfo targetConnector)
+        public InsertItemContext(BlockInstanceId sourceBlockInstanceId, BlockConnectInfoElement sourceConnector, BlockConnectInfoElement targetConnector)
         {
             SourceBlockInstanceId = sourceBlockInstanceId;
             SourceConnector = sourceConnector;
