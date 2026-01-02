@@ -10,7 +10,7 @@ using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
 using Game.Fluid;
 using MessagePack;
-using Mooresmaster.Model.BlockConnectInfoModule;
+using Mooresmaster.Model.FluidConnectOptionModule;
 using UniRx;
 
 namespace Game.Block.Blocks.Machine

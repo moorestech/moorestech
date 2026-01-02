@@ -16,5 +16,11 @@ namespace Game.Block.Interface.Component
         Guid ConnectorGuid { get; }
         Vector3Int Offset { get; }
         Vector3Int[] Directions { get; }
+
+        /// <summary>
+        /// コネクタ固有のオプション情報
+        /// Connector-specific option information
+        /// </summary>
+        object ConnectOption { get; }
     }
 }
