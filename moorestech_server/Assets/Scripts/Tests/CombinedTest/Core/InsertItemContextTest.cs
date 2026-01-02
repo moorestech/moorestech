@@ -10,7 +10,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
-using Mooresmaster.Model.BlockConnectInfoModule;
+
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module;
@@ -254,9 +254,9 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(targetInputConnector.ConnectorGuid, targetContext.TargetConnector.ConnectorGuid);
         }
 
-        private static BlockConnectInfoElement CreateInventoryConnector(int index)
+        private static IBlockConnector CreateInventoryConnector(int index)
         {
-            return new BlockConnectInfoElement(index, "Inventory", Guid.NewGuid(), Vector3Int.zero, Array.Empty<Vector3Int>(), null);
+            return BlockConnectorAdapter.CreateForTest(Guid.NewGuid(), Vector3Int.zero, Array.Empty<Vector3Int>());
         }
     }
 }

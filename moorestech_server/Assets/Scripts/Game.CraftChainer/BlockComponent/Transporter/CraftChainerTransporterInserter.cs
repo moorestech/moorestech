@@ -6,7 +6,6 @@ using Game.Block.Blocks.Connector;
 using Game.Block.Component;
 using Game.Block.Interface.Component;
 using Game.CraftChainer.CraftNetwork;
-using Mooresmaster.Model.BlockConnectInfoModule;
 
 namespace Game.CraftChainer.BlockComponent
 {
@@ -18,13 +17,13 @@ namespace Game.CraftChainer.BlockComponent
     {
         private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
         private readonly CraftChainerNodeId _startChainerNodeId;
-        
+
         public CraftChainerTransporterInserter(BlockConnectorComponent<IBlockInventory> blockConnectorComponent, CraftChainerNodeId startChainerNodeId)
         {
             _blockConnectorComponent = blockConnectorComponent;
             _startChainerNodeId = startChainerNodeId;
         }
-        
+
         public IItemStack InsertItem(IItemStack itemStack)
         {
             var chainerContext = CraftChainerMainComputerManager.Instance.GetChainerNetworkContext(_startChainerNodeId);
@@ -38,29 +37,29 @@ namespace Game.CraftChainer.BlockComponent
             return chainerContext.InsertNodeNetworkNextBlock(itemStack, _startChainerNodeId, _blockConnectorComponent);
         }
 
-        public IItemStack InsertItem(IItemStack itemStack, BlockConnectInfoElement goalConnector)
+        public IItemStack InsertItem(IItemStack itemStack, IBlockConnector goalConnector)
         {
             return InsertItem(itemStack);
         }
 
-        public BlockConnectInfoElement GetNextGoalConnector()
+        public IBlockConnector GetNextGoalConnector()
         {
             var targets = _blockConnectorComponent.ConnectedTargets;
             if (targets.Count == 0) return null;
             return targets.First().Value.SelfConnector;
         }
 
-        public BlockConnectInfoElement GetNextGoalConnector(System.Collections.Generic.List<IItemStack> itemStacks)
+        public IBlockConnector GetNextGoalConnector(System.Collections.Generic.List<IItemStack> itemStacks)
         {
             return GetNextGoalConnector();
         }
 
-        public bool IsValidGoalConnector(BlockConnectInfoElement goalConnector)
+        public bool IsValidGoalConnector(IBlockConnector goalConnector)
         {
             if (goalConnector == null) return false;
             foreach (var target in _blockConnectorComponent.ConnectedTargets)
             {
-                if (target.Value.SelfConnector == goalConnector) return true;
+                if (target.Value.SelfConnector?.ConnectorGuid == goalConnector.ConnectorGuid) return true;
             }
             return false;
         }
@@ -69,7 +68,7 @@ namespace Game.CraftChainer.BlockComponent
         /// GuidからGoalConnectorを取得
         /// Get GoalConnector by Guid
         /// </summary>
-        public BlockConnectInfoElement GetGoalConnector(Guid connectorGuid)
+        public IBlockConnector GetGoalConnector(Guid connectorGuid)
         {
             foreach (var target in _blockConnectorComponent.ConnectedTargets)
             {

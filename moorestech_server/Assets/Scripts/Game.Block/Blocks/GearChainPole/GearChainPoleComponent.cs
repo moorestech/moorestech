@@ -30,7 +30,7 @@ namespace Game.Block.Blocks.GearChainPole
         // Hold chain connection and adjacent gear connectors
         private readonly BlockConnectorComponent<IGearEnergyTransformer> _connectorComponent;
         private readonly SimpleGearService _gearService;
-        private readonly IGearConnectOption _chainOption = new GearConnectOptionAdapter(false);
+        private readonly IGearConnectOption _chainOption = new ChainGearConnectOption(false);
 
         private readonly Dictionary<BlockInstanceId, (IGearEnergyTransformer Transformer, GearChainConnectionCost Cost)> _chainTargets = new();
 
@@ -256,5 +256,19 @@ namespace Game.Block.Blocks.GearChainPole
         }
 
         #endregion
+    }
+
+    /// <summary>
+    /// チェーン接続用のギアコネクトオプション
+    /// Gear connect option for chain connections
+    /// </summary>
+    internal readonly struct ChainGearConnectOption : IGearConnectOption
+    {
+        public bool IsReverse { get; }
+
+        public ChainGearConnectOption(bool isReverse)
+        {
+            IsReverse = isReverse;
+        }
     }
 }
