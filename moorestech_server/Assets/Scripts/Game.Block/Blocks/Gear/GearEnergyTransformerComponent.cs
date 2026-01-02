@@ -5,7 +5,6 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.EnergySystem;
 using Game.Gear.Common;
-using Mooresmaster.Model.BlockConnectInfoModule;
 using UniRx;
 using UnityEngine;
 
@@ -63,7 +62,11 @@ namespace Game.Block.Blocks.Gear
             var result = new List<GearConnect>();
             foreach (var target in _connectorComponent.ConnectedTargets)
             {
-                result.Add(new GearConnect(target.Key, (GearConnectOption)target.Value.SelfConnector?.ConnectOption, (GearConnectOption)target.Value.TargetConnector?.ConnectOption));
+                // ギアコネクタからオプションを取得する
+                // Get options from gear connectors
+                var selfOption = (target.Value.SelfConnector as IGearConnector)?.Option;
+                var targetOption = (target.Value.TargetConnector as IGearConnector)?.Option;
+                result.Add(new GearConnect(target.Key, selfOption, targetOption));
             }
             return result;
         }
