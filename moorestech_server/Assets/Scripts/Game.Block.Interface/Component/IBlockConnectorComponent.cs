@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Mooresmaster.Model.BlockConnectInfoModule;
 
 namespace Game.Block.Interface.Component
 {
@@ -14,17 +13,17 @@ namespace Game.Block.Interface.Component
         /// 自分側のコネクター情報
         /// Connector information on self side
         /// </summary>
-        public BlockConnectInfoElement SelfConnector { get; }
+        public IBlockConnector SelfConnector { get; }
 
         /// <summary>
         /// 接続先のコネクター情報
         /// Connector information on target side
         /// </summary>
-        public BlockConnectInfoElement TargetConnector { get; }
+        public IBlockConnector TargetConnector { get; }
 
         public IBlock TargetBlock { get; }
 
-        public ConnectedInfo(BlockConnectInfoElement selfConnector, BlockConnectInfoElement targetConnector, IBlock targetBlock)
+        public ConnectedInfo(IBlockConnector selfConnector, IBlockConnector targetConnector, IBlock targetBlock)
         {
             SelfConnector = selfConnector;
             TargetConnector = targetConnector;
