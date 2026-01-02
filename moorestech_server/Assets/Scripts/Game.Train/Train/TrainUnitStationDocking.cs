@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -194,6 +195,7 @@ namespace Game.Train.Train
 
                             car.dockingblock = dockingBlock;
                             flag = true;
+                            UnityEngine.Debug.Log(" TrainUnitStationDocking: Car docked to station block.");
                             //_dockedNode = _trainUnit.RailPosition.GetNodeApproaching();//駅にドッキングするということはdiagramで見ているエントリーのnodeの駅にドッキングするということ
                             break;
                         }
@@ -206,6 +208,8 @@ namespace Game.Train.Train
             _wasDocked = nowDocked;
             if (!previousDockState && nowDocked)
             {
+                UnityEngine.
+                Debug.Log(" TrainUnitStationDocking: Train docked to station.");
                 _listener?.OnTrainDocked();
             }
         }
