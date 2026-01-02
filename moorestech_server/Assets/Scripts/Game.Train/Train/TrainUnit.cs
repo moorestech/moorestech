@@ -3,7 +3,9 @@ using Game.Train.RailGraph;
 using Game.Train.Utility;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using UnityEngine;
 
 namespace Game.Train.Train
 {
@@ -85,7 +87,9 @@ namespace Game.Train.Train
             //数十回に1回くらいの頻度でデバッグログを出す
             tickCounter++;
             if (TrainUpdateService.TrainAutoRunDebugEnabled && tickCounter % 20 == 0)
-                UnityEngine.Debug.Log("spd="+_currentSpeed + "_Auto=" + IsAutoRun + "_DiagramCount" + trainDiagram.Entries.Count);// TODO デバッグトグル関係　そのうち消す
+            {
+                UnityEngine.Debug.Log("spd=" + _currentSpeed + "_Auto=" + IsAutoRun + "_DiagramCount" + trainDiagram.Entries.Count + "" + IsDocked);// TODO デバッグトグル関係　そのうち消す
+            }
 
             if (IsAutoRun)
             {
@@ -210,27 +214,31 @@ namespace Game.Train.Train
                 totalMoved += moveLength;
                 _remainingDistance -= moveLength;
                 //自動運転で目的地に到着してたらドッキング判定を行う必要がある
-                if (IsArrivedDestination() && _isAutoRun)
+                if (_railPosition.DistanceToNextNode == 0)
                 {
-                    _currentSpeed = 0;
-                    _accumulatedDistance = 0;
-                    //diagramが駅を見ている場合
-                    if (trainDiagram.GetCurrentNode().StationRef.StationBlock != null)
+                    if (IsArrivedDestination() && _isAutoRun)
                     {
-                        trainUnitStationDocking.TryDockWhenStopped();
-                        //この瞬間ドッキングしたら、diagramの出発条件リセット
-                        if (trainUnitStationDocking.IsDocked) 
+                        UnityEngine.Debug.Log("isarrived");
+                        _currentSpeed = 0;
+                        _accumulatedDistance = 0;
+                        //diagramが駅を見ている場合
+                        if (trainDiagram.GetCurrentNode().StationRef.StationBlock != null)
                         {
-                            trainDiagram.ResetCurrentEntryDepartureConditions();
+                            trainUnitStationDocking.TryDockWhenStopped();
+                            //この瞬間ドッキングしたら、diagramの出発条件リセット
+                            if (trainUnitStationDocking.IsDocked)
+                            {
+                                trainDiagram.ResetCurrentEntryDepartureConditions();
+                            }
                         }
+                        else//diagramが非駅を見ている場合 
+                        {
+                            // 次の目的地をセット
+                            _previousEntryGuid = Guid.Empty;//同じentryに戻るときを考慮。別entryにいくものとして扱う
+                            trainDiagram.MoveToNextEntry();
+                        }
+                        break;
                     }
-                    else//diagramが非駅を見ている場合 
-                    {
-                        // 次の目的地をセット
-                        _previousEntryGuid = Guid.Empty;//同じentryに戻るときを考慮。別entryにいくものとして扱う
-                        trainDiagram.MoveToNextEntry();
-                    }
-                    break;
                 }
                 if (distanceToMove == 0) break;
                 //----------------------------------------------------------------------------------------
@@ -302,7 +310,9 @@ namespace Game.Train.Train
         private bool IsArrivedDestination()
         {
             var node = _railPosition.GetNodeApproaching();
-            if ((node == trainDiagram.GetCurrentNode()) & (_railPosition.GetDistanceToNextNode() == 0))
+            var dnode = trainDiagram.GetCurrentNode();
+            if (node != null) return false;
+            if ((node.NodeGuid == trainDiagram.GetCurrentNode().NodeGuid) & (_railPosition.GetDistanceToNextNode() == 0))
             {
                 return true;
             }

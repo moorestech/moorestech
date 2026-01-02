@@ -354,7 +354,7 @@ namespace Game.Train.RailGraph
 
         // intの距離を入力として、railpositionの先頭からその距離さかのぼったところにちょうどあるRailNodeをlistですべて取得する
         // 事実上ドッキング判定のみに使う
-        public List<IRailNode> GetNodesAtDistance(int distance)
+        public IReadOnlyList<IRailNode> GetNodesAtDistance(int distance)
         {
             List<IRailNode> nodesAtDistance = new List<IRailNode>();
             int totalDistance = _distanceToNextNode + distance;//この地点をみたい

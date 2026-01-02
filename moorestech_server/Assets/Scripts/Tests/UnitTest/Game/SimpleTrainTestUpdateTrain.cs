@@ -74,7 +74,7 @@ namespace Tests.UnitTest.Game
             // 列車をある距離進めて、反転して同じ距離進める。同じ場所にもどるはず
             for (int testnum = 0; testnum < 1024; testnum++)
             {
-                var rand = UnityEngine.Random.Range(0.001f, 0.9999f);
+                var rand = UnityEngine.Random.Range(0.0001f, 0.9999f);
                 int trainLength = (int)(totalDist * rand);
                 if (trainLength < 1) trainLength = 1; //最低10
 
@@ -89,6 +89,15 @@ namespace Tests.UnitTest.Game
                 {
                     TrainTestCarFactory.CreateTrainCar(0, 600000, 0, trainLength, true),  // 仮: 動力車
                 };
+
+                // ここで Length を強制上書き（このテストだけ直書き）
+                {
+                    var f = typeof(TrainCar).GetField("<Length>k__BackingField",
+                        BindingFlags.Instance | BindingFlags.NonPublic);
+                    Assert.NotNull(f, "TrainCar Length の backing field が見つかりません。実装が変わった可能性があります。");
+                    f.SetValue(cars[0], trainLength);
+                }
+
                 var trainUnit = new TrainUnit(railPosition, cars);
 
                 // 5) 進めるtotal距離をランダムにきめる
