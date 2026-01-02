@@ -11,7 +11,6 @@ using Game.Gear.Common;
 using Core.Item.Interface;
 using Core.Master;
 using MessagePack;
-using Mooresmaster.Model.BlockConnectInfoModule;
 using Mooresmaster.Model.BlocksModule;
 using Newtonsoft.Json;
 using UniRx;
@@ -31,7 +30,7 @@ namespace Game.Block.Blocks.GearChainPole
         // Hold chain connection and adjacent gear connectors
         private readonly BlockConnectorComponent<IGearEnergyTransformer> _connectorComponent;
         private readonly SimpleGearService _gearService;
-        private readonly GearConnectOption _chainOption = new(false);
+        private readonly IGearConnectOption _chainOption = new GearConnectOptionAdapter(false);
 
         private readonly Dictionary<BlockInstanceId, (IGearEnergyTransformer Transformer, GearChainConnectionCost Cost)> _chainTargets = new();
 
@@ -62,7 +61,11 @@ namespace Game.Block.Blocks.GearChainPole
             var result = new List<GearConnect>();
             foreach (var target in _connectorComponent.ConnectedTargets)
             {
-                result.Add(new GearConnect(target.Key, (GearConnectOption)target.Value.SelfConnector?.ConnectOption, (GearConnectOption)target.Value.TargetConnector?.ConnectOption));
+                // ギアコネクタからオプションを取得する
+                // Get options from gear connectors
+                var selfOption = (target.Value.SelfConnector as IGearConnector)?.Option;
+                var targetOption = (target.Value.TargetConnector as IGearConnector)?.Option;
+                result.Add(new GearConnect(target.Key, selfOption, targetOption));
             }
 
             // チェーン接続があれば追加する
