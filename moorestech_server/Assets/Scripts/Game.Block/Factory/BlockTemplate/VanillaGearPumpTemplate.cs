@@ -29,7 +29,7 @@ namespace Game.Block.Factory.BlockTemplate
             var param = (GearPumpBlockParam)blockMasterElement.BlockParam;
 
             // Gear connector and transformer
-            var gearConnectSetting = param.Gear.GearConnects;
+            var gearConnectSetting = BlockConnectorAdapter.FromGearConnects(param.Gear.GearConnects);
             var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(gearConnectSetting, gearConnectSetting, blockPositionInfo);
             var gearEnergyTransformer = new GearEnergyTransformer(new Torque(param.RequireTorque), blockInstanceId, gearConnector);
 

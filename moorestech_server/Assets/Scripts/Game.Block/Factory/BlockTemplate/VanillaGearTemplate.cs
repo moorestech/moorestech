@@ -24,8 +24,8 @@ namespace Game.Block.Factory.BlockTemplate
         private IBlock CreateGear(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var configParam = blockMasterElement.BlockParam as GearBlockParam;
-            var connectSetting = configParam.Gear.GearConnects;
-            
+            var connectSetting = BlockConnectorAdapter.FromGearConnects(configParam.Gear.GearConnects);
+
             var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(connectSetting, connectSetting, blockPositionInfo);
             var gearComponent = new GearComponent(configParam, blockInstanceId, gearConnector);
             

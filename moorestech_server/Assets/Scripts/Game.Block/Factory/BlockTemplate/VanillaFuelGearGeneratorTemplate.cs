@@ -33,7 +33,7 @@ namespace Game.Block.Factory.BlockTemplate
             var configParam = blockMasterElement.BlockParam as FuelGearGeneratorBlockParam;
             
             // ギア接続の設定
-            var gearConnectSetting = configParam.Gear.GearConnects;
+            var gearConnectSetting = BlockConnectorAdapter.FromGearConnects(configParam.Gear.GearConnects);
             var gearConnectorComponent = new BlockConnectorComponent<IGearEnergyTransformer>(gearConnectSetting, gearConnectSetting, blockPositionInfo);
             
             // アイテム接続の設定
