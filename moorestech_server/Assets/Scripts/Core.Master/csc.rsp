@@ -13,6 +13,8 @@
 /additionalfile:Assets/../../VanillaSchema/ref/inventoryConnectOption.yml
 /additionalfile:Assets/../../VanillaSchema/ref/fluidConnectOption.yml
 /additionalfile:Assets/../../VanillaSchema/ref/gearConnects.yml
+/additionalfile:Assets/../../VanillaSchema/ref/gearConnectOption.yml
+/additionalfile:Assets/Scripts/Game.Block.Interface/Component/IGearConnectOption.cs
 /additionalfile:Assets/../../VanillaSchema/ref/mineSettings.yml
 /additionalfile:Assets/../../VanillaSchema/ref/mapObjectMineSettings.yml
 /additionalfile:Assets/../../VanillaSchema/ref/fluidInventoryConnects.yml

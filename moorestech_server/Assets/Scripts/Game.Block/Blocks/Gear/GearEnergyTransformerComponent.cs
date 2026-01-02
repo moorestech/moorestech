@@ -62,10 +62,10 @@ namespace Game.Block.Blocks.Gear
             var result = new List<GearConnect>();
             foreach (var target in _connectorComponent.ConnectedTargets)
             {
-                // ギアコネクタからオプションを取得する
-                // Get options from gear connectors
-                var selfOption = (target.Value.SelfConnector as IGearConnector)?.Option;
-                var targetOption = (target.Value.TargetConnector as IGearConnector)?.Option;
+                // コネクタのConnectOptionからIGearConnectOptionを取得
+                // Get IGearConnectOption from connector's ConnectOption
+                var selfOption = target.Value.SelfConnector?.ConnectOption as IGearConnectOption;
+                var targetOption = target.Value.TargetConnector?.ConnectOption as IGearConnectOption;
                 result.Add(new GearConnect(target.Key, selfOption, targetOption));
             }
             return result;

@@ -1,4 +1,4 @@
-namespace Game.Gear.Common
+namespace Game.Block.Interface.Component
 {
     /// <summary>
     /// ギアコネクトオプションのインターフェース
