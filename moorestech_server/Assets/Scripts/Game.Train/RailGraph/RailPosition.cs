@@ -340,7 +340,7 @@ namespace Game.Train.RailGraph
         //基本的に長さが短くなるときだけ使う。長くなるときはNodeを超える可能性があるので
         public void SetTrainLength(int newLength)
         {
-            if (newLength >= _trainLength)
+            if (newLength > _trainLength)
             {
                 throw new ArgumentException("列車の長さは短くなる必要があります。");
             }
