@@ -130,7 +130,7 @@ namespace Game.Train.Common
                 if (railNodes[i] != null)
                 {
                     //駅ノードならfront exitノードを全部のダイアグラムに追加
-                    if ((railNodes[i].StationRef.NodeSide == StationNodeSide.Front) && (railNodes[i].StationRef.NodeRole == StationNodeRole.Exit))
+                    if ((railNodes[i].StationRef.NodeSide == StationNodeSide.Back) && (railNodes[i].StationRef.NodeRole == StationNodeRole.Exit))
                     {
                         stationNodes.Add(railNodes[i]);
                     }
