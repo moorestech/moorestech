@@ -8,6 +8,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
+using Mooresmaster.Model.BlockConnectInfoModule;
 using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Server.Boot;
@@ -242,7 +243,7 @@ namespace Tests.CombinedTest.Core
             return (beltConveyorComponent, connectedTargets);
         }
 
-        private static BlockConnectorInfo AddTarget(Dictionary<IBlockInventory, ConnectedInfo> connectedTargets, IBlockInventory inventory, int index)
+        private static BlockConnectInfoElement AddTarget(Dictionary<IBlockInventory, ConnectedInfo> connectedTargets, IBlockInventory inventory, int index)
         {
             var selfConnector = CreateConnector(index);
             var targetConnector = CreateConnector(index + 100);
@@ -250,9 +251,9 @@ namespace Tests.CombinedTest.Core
             return selfConnector;
         }
 
-        private static BlockConnectorInfo CreateConnector(int index)
+        private static BlockConnectInfoElement CreateConnector(int index)
         {
-            return new BlockConnectorInfo(Guid.NewGuid(), Vector3Int.zero, Array.Empty<Vector3Int>(), null);
+            return new BlockConnectInfoElement(index, "Inventory", Guid.NewGuid(), Vector3Int.zero, Array.Empty<Vector3Int>(), null);
         }
 
         private static void UpdateUntil(Func<bool> condition, TimeSpan timeout)

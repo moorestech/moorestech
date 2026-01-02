@@ -39,8 +39,7 @@ namespace Game.Block.Factory.BlockTemplate
             // 歯車の接続に必要なコンポーネント
             // Components required for gear connection
             var gearConnectSetting = minerParam.Gear.GearConnects;
-            var gearConnectors = BlockConnectorInfoFactory.FromConnectors(gearConnectSetting);
-            var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(gearConnectors, gearConnectors, blockPositionInfo);
+            var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(gearConnectSetting, gearConnectSetting, blockPositionInfo);
             var gearEnergyTransformer = new GearEnergyTransformer(new Torque(minerParam.RequireTorque), blockInstanceId, gearConnector);
             
             // MapObject採掘機

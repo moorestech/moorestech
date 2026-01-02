@@ -22,7 +22,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject
             
             void SetGearConnectors(Gear gear)
             {
-                foreach (var gearConnect in gear.GearConnects)
+                foreach (var gearConnect in gear.GearConnects.items)
                 {
                     var endPos = gearConnect.Offset;
                     if (gearConnect.Directions == null) return;

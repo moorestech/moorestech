@@ -10,7 +10,7 @@ using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
 using Game.Fluid;
 using MessagePack;
-using Mooresmaster.Model.BlocksModule;
+using Mooresmaster.Model.BlockConnectInfoModule;
 using UniRx;
 
 namespace Game.Block.Blocks.Machine
@@ -79,8 +79,11 @@ namespace Game.Block.Blocks.Machine
             {
                 // SelfConnector（自分側）のConnectTankIndexを取得
                 // Get ConnectTankIndex from SelfConnector
-                var selfOption = BlockConnectorOptionReader.ReadFluidOption(info.SelfConnector?.Option);
-                var tankIndex = selfOption.HasValue ? selfOption.Value.ConnectTankIndex : -1;
+                var tankIndex = -1;
+                if (info.SelfConnector?.ConnectOption is FluidConnectOption selfOption)
+                {
+                    tankIndex = selfOption.ConnectTankIndex;
+                }
                 
                 // 対応するタンクが存在しない場合はスキップ
                 if (tankIndex < 0 || tankIndex >= _outputInventory.FluidOutputSlot.Count)
@@ -115,8 +118,11 @@ namespace Game.Block.Blocks.Machine
         {
             // 接続情報から流量を取得
             // Get flow rate from connection info
-            var fluidOption = BlockConnectorOptionReader.ReadFluidOption(info.SelfConnector?.Option);
-            return fluidOption.HasValue ? fluidOption.Value.FlowCapacity : 10.0;
+            if (info.SelfConnector?.ConnectOption is FluidConnectOption fluidOption)
+            {
+                return fluidOption.FlowCapacity;
+            }
+            return 10.0; // デフォルト流量
         }
         
         public FluidStack AddLiquid(FluidStack fluidStack, FluidContainer source)
@@ -164,8 +170,10 @@ namespace Game.Block.Blocks.Machine
                     {
                         // ターゲット側（自分側）のConnectOptionからConnectTankIndexを取得
                         // Get ConnectTankIndex from TargetConnector
-                        var targetOption = BlockConnectorOptionReader.ReadFluidOption(info.TargetConnector?.Option);
-                        if (targetOption.HasValue) return targetOption.Value.ConnectTankIndex;
+                        if (info.TargetConnector?.ConnectOption is FluidConnectOption targetOption)
+                        {
+                            return targetOption.ConnectTankIndex;
+                        }
                     }
                 }
             }

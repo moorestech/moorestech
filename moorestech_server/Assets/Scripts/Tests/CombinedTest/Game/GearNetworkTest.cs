@@ -9,7 +9,7 @@ using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.Gear.Common;
 using Microsoft.Extensions.DependencyInjection;
-using Mooresmaster.Model.BlocksModule;
+using Mooresmaster.Model.BlockConnectInfoModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -454,9 +454,9 @@ namespace Tests.CombinedTest.Game
             ((Dictionary<IGearEnergyTransformer, ConnectedInfo>)gear1Connector.ConnectedTargets).Add(gear2Transform, gear2Info);
             ((Dictionary<IGearEnergyTransformer, ConnectedInfo>)gear2Connector.ConnectedTargets).Add(gear1Transform, gear1Info);
 
-            BlockConnectorInfo CreateGearConnector(int index)
+            BlockConnectInfoElement CreateGearConnector(int index)
             {
-                return new BlockConnectorInfo(Guid.NewGuid(), Vector3Int.zero, Array.Empty<Vector3Int>(), new GearConnectOptionData(true));
+                return new BlockConnectInfoElement(index, "", Guid.NewGuid(), Vector3Int.zero, Array.Empty<Vector3Int>(), new GearConnectOption(true));
             }
         }
         

@@ -30,8 +30,7 @@ namespace Game.Block.Factory.BlockTemplate
 
             // Gear connector and transformer
             var gearConnectSetting = param.Gear.GearConnects;
-            var gearConnectors = BlockConnectorInfoFactory.FromConnectors(gearConnectSetting);
-            var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(gearConnectors, gearConnectors, blockPositionInfo);
+            var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(gearConnectSetting, gearConnectSetting, blockPositionInfo);
             var gearEnergyTransformer = new GearEnergyTransformer(new Torque(param.RequireTorque), blockInstanceId, gearConnector);
 
             var fluidConnector = IFluidInventory.CreateFluidInventoryConnector(param.FluidInventoryConnectors, blockPositionInfo);
