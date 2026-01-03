@@ -312,7 +312,7 @@ namespace Game.Train.Train
             var node = _railPosition.GetNodeApproaching();
             var dnode = trainDiagram.GetCurrentNode();
             if (dnode == null) return false;
-            if ((node.NodeGuid == trainDiagram.GetCurrentNode().NodeGuid) & (_railPosition.GetDistanceToNextNode() == 0))
+            if ((node.NodeGuid == trainDiagram.GetCurrentNode().NodeGuid) && (_railPosition.GetDistanceToNextNode() == 0))
             {
                 return true;
             }
