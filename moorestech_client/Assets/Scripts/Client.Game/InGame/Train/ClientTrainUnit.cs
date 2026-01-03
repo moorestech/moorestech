@@ -13,6 +13,7 @@ namespace Client.Game.InGame.Train
     // Minimal client-side representation of a train
     public sealed class ClientTrainUnit
     {
+        private readonly IRailGraphProvider _railGraphProvider;
         
         public Guid TrainId { get; }
 
@@ -31,11 +32,14 @@ namespace Client.Game.InGame.Train
         public RailPosition RailPosition { get; private set; }
         public long LastUpdatedTick { get; private set; }
         public int RemainingDistance { get; private set; } = int.MaxValue;
-        public ClientTrainUnit(Guid trainId)
+        public ClientTrainUnit(Guid trainId, IRailGraphProvider railGraphProvider)
         {
+            // レールグラフプロバイダを保持する
+            // Keep the rail graph provider reference
+            _railGraphProvider = railGraphProvider;
             TrainId = trainId;
             IsDocked = false;
-            Diagram = new ClientTrainDiagram(new TrainDiagramSnapshot(-1, Array.Empty<TrainDiagramEntrySnapshot>()));
+            Diagram = new ClientTrainDiagram(new TrainDiagramSnapshot(-1, Array.Empty<TrainDiagramEntrySnapshot>()), _railGraphProvider);
         }
 
 
@@ -49,7 +53,7 @@ namespace Client.Game.InGame.Train
             MasconLevel = simulation.MasconLevel;
             IsAutoRun = simulation.IsAutoRun;
             Diagram.UpdateSnapshot(diagram);
-            RailPosition = RailPositionFactory.Restore(railPosition);
+            RailPosition = RailPositionFactory.Restore(railPosition, _railGraphProvider);
             cars = simulation.Cars ?? Array.Empty<TrainCarSnapshot>();
             LastUpdatedTick = tick;
             RecalculateRemainingDistance();
@@ -113,7 +117,7 @@ namespace Client.Game.InGame.Train
                 return;
             }
 
-            var path = RailGraphProvider.Current.FindShortestPath(approaching, destinationNode);
+            var path = _railGraphProvider.FindShortestPath(approaching, destinationNode);
             if (path == null || path.Count < 2)
             {
                 RemainingDistance = int.MaxValue;

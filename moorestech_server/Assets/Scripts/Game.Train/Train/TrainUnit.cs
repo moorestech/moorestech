@@ -1,11 +1,10 @@
+using Game.Context;
 using Game.Train.Common;
 using Game.Train.RailGraph;
 using Game.Train.Utility;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using UnityEngine;
 
 namespace Game.Train.Train
 {
@@ -18,6 +17,7 @@ namespace Game.Train.Train
         public string SaveKey { get; } = typeof(TrainUnit).FullName;
         
         private RailPosition _railPosition;
+        private readonly IRailGraphProvider _railGraphProvider;
         private Guid _trainId;
         public Guid TrainId => _trainId;
 
@@ -52,6 +52,9 @@ namespace Game.Train.Train
         )
         {
             _railPosition = initialPosition;
+            // 先頭ノードからグラフプロバイダを取得する
+            // Resolve the graph provider from the head node
+            _railGraphProvider = initialPosition.GetNodeApproaching().GraphProvider;
             TrainRailPositionManager.Instance.RegisterRailPosition(_railPosition);
             _trainId = Guid.NewGuid();
             _cars = cars;
@@ -59,7 +62,7 @@ namespace Game.Train.Train
             _isAutoRun = false;
             _previousEntryGuid = Guid.Empty;
             trainUnitStationDocking = new TrainUnitStationDocking(this, this);
-            trainDiagram = new TrainDiagram();
+            trainDiagram = new TrainDiagram(_railGraphProvider);
             trainDiagram.SetContext(this);
             TrainUpdateService.Instance.RegisterTrain(this);
         }
@@ -218,7 +221,6 @@ namespace Game.Train.Train
                 {
                     if (IsArrivedDestination() && _isAutoRun)
                     {
-                        UnityEngine.Debug.Log("isarrived");
                         _currentSpeed = 0;
                         _accumulatedDistance = 0;
                         //diagramが駅を見ている場合
@@ -379,7 +381,7 @@ namespace Game.Train.Train
                 destinationNode = trainDiagram.GetCurrentNode();
                 if (destinationNode == null)
                     break;//なにかの例外
-                var path = RailGraphProvider.Current.FindShortestPath(approaching, destinationNode);
+                var path = _railGraphProvider.FindShortestPath(approaching, destinationNode);
                 newPath = path?.ToList();
                 if (newPath == null || newPath.Count < 2)
                 {
@@ -443,7 +445,10 @@ namespace Game.Train.Train
                 return null;
 
             var railPosData = saveData.railPositionSaveData;
-            var railPosition = RailPositionFactory.Restore(railPosData);
+            // サーバー側プロバイダでRailPositionを復元する
+            // Restore RailPosition via the server-side provider
+            var railGraphProvider = ServerContext.GetService<IRailGraphProvider>();
+            var railPosition = RailPositionFactory.Restore(railPosData, railGraphProvider);
             if (railPosition == null)
                 return null;
             var cars = RestoreTrainCars(saveData.Cars);

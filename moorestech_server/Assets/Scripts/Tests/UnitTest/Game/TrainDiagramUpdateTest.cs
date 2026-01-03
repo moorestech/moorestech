@@ -174,7 +174,8 @@ namespace Tests.UnitTest.Game
 
             Assert.IsFalse(firstEntry.CanDepart(trainUnit), "ドッキング再開後の1ティック目で出発可能になっています。");
             trainUnit.trainDiagram.Update();
-            Assert.IsFalse(firstEntry.CanDepart(trainUnit), "Should still wait after the first tick while docked.");
+            Assert.IsFalse(firstEntry.CanDepart(trainUnit), "Should still wait after the first tick while docked.");
+
             trainUnit.trainDiagram.Update();
             Assert.IsTrue(firstEntry.CanDepart(trainUnit), "ドッキング状態で2ティック経過しても待機が完了していません。");
 

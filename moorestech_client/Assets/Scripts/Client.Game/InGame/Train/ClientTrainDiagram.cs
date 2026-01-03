@@ -11,10 +11,14 @@ namespace Client.Game.InGame.Train
     public sealed class ClientTrainDiagram
     {
         private TrainDiagramSnapshot _snapshot;
+        private readonly IRailGraphProvider _railGraphProvider;
 
-        public ClientTrainDiagram(TrainDiagramSnapshot snapshot)
+        public ClientTrainDiagram(TrainDiagramSnapshot snapshot, IRailGraphProvider railGraphProvider)
         {
+            // レールグラフプロバイダを保持する
+            // Keep the rail graph provider reference
             _snapshot = snapshot;
+            _railGraphProvider = railGraphProvider;
         }
 
         public TrainDiagramSnapshot Snapshot => _snapshot;
@@ -103,7 +107,7 @@ namespace Client.Game.InGame.Train
                 return false;
             }
 
-            node = RailGraphProvider.Current.ResolveRailNode(entries[index].Node);
+            node = _railGraphProvider.ResolveRailNode(entries[index].Node);
             return node != null;
         }
 
@@ -126,7 +130,7 @@ namespace Client.Game.InGame.Train
                     continue;
                 }
 
-                var foundPath = RailGraphProvider.Current.FindShortestPath(approaching, destinationNode);
+                var foundPath = _railGraphProvider.FindShortestPath(approaching, destinationNode);
                 var newPath = foundPath?.ToList();
                 if (newPath == null || newPath.Count < 2)
                 {

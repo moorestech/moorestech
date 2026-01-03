@@ -243,7 +243,10 @@ namespace Game.Train.RailGraph
                 }
                 //重なっている状態でかつ_railNodesにother._railNodes.First()がふくまれていないので経路を探索する必要がある
                 var currentLastNode = _railNodes.Last();
-                var path = RailGraphProvider.Current.FindShortestPath(otherFirstNode, currentLastNode);
+                // グラフプロバイダから経路を取得する
+                // Fetch a path via the graph provider
+                var graphProvider = _railNodes[0].GraphProvider;
+                var path = graphProvider.FindShortestPath(otherFirstNode, currentLastNode);
                 var nodelist = path?.ToList();//先頭がotherFirstNode
 
                 if (nodelist == null || nodelist.Count < 2)

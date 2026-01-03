@@ -12,6 +12,7 @@ namespace Client.Game.InGame.Train
         public int NodeId => _nodeId;
         private Guid _nodeGuid;
         public Guid NodeGuid => _nodeGuid;
+        public IRailGraphProvider GraphProvider => _cache;
 
         private ConnectionDestination _connectionDestination;
         public ConnectionDestination ConnectionDestination => _connectionDestination;
@@ -83,7 +84,9 @@ namespace Client.Game.InGame.Train
 
         public int GetDistanceToNode(IRailNode targetnode, bool useFindPath = false)
         {
-            return RailGraphProvider.Current.GetDistance(this, targetnode, useFindPath);
+            // キャッシュ側のプロバイダで距離を計算する
+            // Calculate distance via the cache provider
+            return _cache.GetDistance(this, targetnode, useFindPath);
         }
     }
 }

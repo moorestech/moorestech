@@ -56,6 +56,9 @@ namespace Game.Train.Common
                 {
                     trainUnit.Update();
                 }
+                // 外部スナップショットを毎tick記録する
+                // Record external snapshots per tick
+                //TrainTickSnapshotRecorder.RecordTickIfAvailable(_executedTick, _trainUnits);
             }
         }
 

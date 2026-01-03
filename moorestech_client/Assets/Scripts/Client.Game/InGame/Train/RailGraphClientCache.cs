@@ -54,7 +54,6 @@ namespace Client.Game.InGame.Train
         private RailGraphClientCache()
         {
             _pathFinder = new RailGraphPathFinder();
-            RailGraphProvider.SetProvider(this);
         }
 
         public uint ComputeCurrentHash()

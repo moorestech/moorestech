@@ -1,21 +1,15 @@
 using System;
 using System.Collections.Generic;
-using Core.Inventory;
 using Core.Master;
 using Game.Block.Blocks.TrainRail;
-using Game.Block.Interface;
-using Game.Context;
 using Game.PlayerInventory.Interface;
-using Game.Train.Common;
 using Game.Train.RailGraph;
 using Game.Train.Train;
 using Game.Train.Utility;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
-using Mooresmaster.Model.TrainModule;
 using Server.Util.MessagePack;
 using RailComponentSpecifier = Server.Protocol.PacketResponse.RailConnectionEditProtocol.RailComponentSpecifier;
-using Game.Block.Interface.Extension;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -114,7 +108,9 @@ namespace Server.Protocol.PacketResponse
 
                     // RailPositionを復元する
                     // Restore rail position instance
-                    position = RailPositionFactory.Restore(saveData);
+                    // グラフプロバイダを使って復元する
+                    // Restore via the graph provider
+                    position = RailPositionFactory.Restore(saveData, railComponent.FrontNode.GraphProvider);
                     return position != null;
                 }
 
