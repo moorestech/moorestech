@@ -11,6 +11,7 @@ namespace Game.Train.Train
         private readonly List<TrainDiagramEntry> _entries;
         private int _currentIndex;
         private ITrainDiagramContext _context;
+        private readonly IRailGraphProvider _railGraphProvider;
 
         public IReadOnlyList<TrainDiagramEntry> Entries => _entries;
         public int CurrentIndex => _currentIndex;
@@ -22,8 +23,11 @@ namespace Game.Train.Train
             WaitForTicks
         }
 
-        public TrainDiagram()
+        public TrainDiagram(IRailGraphProvider railGraphProvider)
         {
+            // レールグラフプロバイダを保持する
+            // Keep the rail graph provider reference
+            _railGraphProvider = railGraphProvider;
             _entries = new List<TrainDiagramEntry>();
             _currentIndex = -1;
             TrainDiagramManager.Instance.RegisterDiagram(this);
@@ -51,7 +55,7 @@ namespace Game.Train.Train
                     continue;
                 }
                 
-                var node = RailGraphProvider.Current.ResolveRailNode(entryData.Node);
+                var node = _railGraphProvider.ResolveRailNode(entryData.Node);
                 if (node == null)
                 {
                     continue;

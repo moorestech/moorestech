@@ -12,6 +12,7 @@ namespace Client.Game.InGame.Train
     {
         // ローカルで追跡する列車一覧
         // Internal dictionary holding every tracked train
+        private readonly RailGraphClientCache _railGraphProvider;
         private readonly Dictionary<Guid, ClientTrainUnit> _units = new();
 
         // 最新の適用済みtick
@@ -21,6 +22,13 @@ namespace Client.Game.InGame.Train
         // 列車一覧の読み取り専用ビュー
         // Read-only view for external systems
         public IReadOnlyDictionary<Guid, ClientTrainUnit> Units => _units;
+
+        public TrainUnitClientCache(RailGraphClientCache railGraphProvider)
+        {
+            // レールグラフプロバイダを保持する
+            // Keep the rail graph provider reference
+            _railGraphProvider = railGraphProvider;
+        }
 
         // 初期スナップショットでキャッシュ全体を入れ替える
         // Replace the entire cache when a full snapshot arrives
@@ -41,7 +49,7 @@ namespace Client.Game.InGame.Train
                     continue;
                 }
 
-                var unit = new ClientTrainUnit(bundle.TrainId);
+                var unit = new ClientTrainUnit(bundle.TrainId, _railGraphProvider);
                 unit.SnapshotUpdate(bundle.Simulation, bundle.Diagram, bundle.RailPositionSnapshot, serverTick);
                 _units[bundle.TrainId] = unit;
             }
@@ -78,7 +86,7 @@ namespace Client.Game.InGame.Train
         {
             if (!_units.TryGetValue(snapshot.TrainId, out var unit))
             {
-                unit = new ClientTrainUnit(snapshot.TrainId);
+                unit = new ClientTrainUnit(snapshot.TrainId, _railGraphProvider);
                 _units[snapshot.TrainId] = unit;
             }
 

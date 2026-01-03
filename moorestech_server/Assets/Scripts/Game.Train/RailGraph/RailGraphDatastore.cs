@@ -72,6 +72,7 @@ namespace Game.Train.RailGraph
 
         private void InitializeDataStore()
         {
+            Debug.Log("instance");
             railNodeToId = new Dictionary<RailNode, int>();
             railNodes = new List<RailNode>();
             nodeIdAllocator = new RailNodeIdAllocator(EnsureRailNodeSlot);
@@ -81,7 +82,6 @@ namespace Game.Train.RailGraph
             _pathFinder = new RailGraphPathFinder();
             _cachedGraphHash = 0;
             _isHashDirty = true;
-            RailGraphProvider.SetProvider(this);
         }
 
         private void ResetInternalState()
@@ -145,7 +145,7 @@ namespace Game.Train.RailGraph
             Instance.RemoveNodeInternal(node);
         }
         public static List<IRailNode> FindShortestPath(IRailNode start, IRailNode target)
-            => RailGraphProvider.Current.FindShortestPath(start, target).ToList();
+            => Instance.FindShortestPathInternal(start.NodeId, target.NodeId);
         public static int GetDistanceBetweenNodes(int startid, int targetid)
         {
             return Instance.GetDistanceBetweenNodesInternal(startid, targetid);

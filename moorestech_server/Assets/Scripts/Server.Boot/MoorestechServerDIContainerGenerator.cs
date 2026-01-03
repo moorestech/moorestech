@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using Core.Item;
 using Core.Item.Interface;
@@ -119,8 +119,10 @@ namespace Server.Boot
             services.AddSingleton<MaxElectricPoleMachineConnectionRange, MaxElectricPoleMachineConnectionRange>();
             services.AddSingleton<IEntitiesDatastore, EntitiesDatastore>();
             services.AddSingleton<IEntityFactory, EntityFactory>(); // TODO これを削除してContext側に加える？
+            var railGraphDatastore = initializerProvider.GetService<RailGraphDatastore>();
             services.AddSingleton(initializerProvider.GetService<GearNetworkDatastore>());
-            services.AddSingleton(initializerProvider.GetService<RailGraphDatastore>());
+            services.AddSingleton(railGraphDatastore);
+            services.AddSingleton<IRailGraphProvider>(railGraphDatastore);
             services.AddSingleton<RailConnectionCommandHandler>();
             services.AddSingleton(initializerProvider.GetService<TrainDiagramManager>());
             services.AddSingleton(initializerProvider.GetService<TrainRailPositionManager>());

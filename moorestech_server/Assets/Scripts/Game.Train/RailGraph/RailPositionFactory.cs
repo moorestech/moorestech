@@ -6,14 +6,16 @@ namespace Game.Train.RailGraph
 {
     public static class RailPositionFactory
     {
-        public static RailPosition Restore(RailPositionSaveData saveData)
+        public static RailPosition Restore(RailPositionSaveData saveData, IRailGraphProvider railGraphProvider)
         {
             if (saveData == null)
             {
                 return null;
             }
 
-            var nodes = ResolveNodes(saveData.RailSnapshot);
+            // スナップショットをプロバイダで解決する
+            // Resolve snapshot nodes via the provider
+            var nodes = ResolveNodes(saveData.RailSnapshot, railGraphProvider);
             if (nodes.Count == 0)
             {
                 return null;
@@ -24,7 +26,7 @@ namespace Game.Train.RailGraph
             return new RailPosition(nodes, trainLength, distanceToNextNode);
         }
 
-        public static List<IRailNode> ResolveNodes(IEnumerable<ConnectionDestination> snapshot)
+        public static List<IRailNode> ResolveNodes(IEnumerable<ConnectionDestination> snapshot, IRailGraphProvider railGraphProvider)
         {
             var nodes = new List<IRailNode>();
             if (snapshot == null)
@@ -34,7 +36,7 @@ namespace Game.Train.RailGraph
 
             foreach (var destination in snapshot)
             {
-                var node = RailGraphProvider.Current.ResolveRailNode(destination);
+                var node = railGraphProvider.ResolveRailNode(destination);
                 if (node != null)
                 {
                     nodes.Add(node);

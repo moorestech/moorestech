@@ -1,3 +1,4 @@
+using Game.Context;
 using Game.Train.Utility;
 using System;
 using System.Collections.Generic;
@@ -11,6 +12,7 @@ namespace Game.Train.RailGraph
 {
     public class RailNode : IRailNode
     {
+        private readonly IRailGraphProvider _graphProvider;
         public RailControlPoint FrontControlPoint { get; private set; }
         public RailControlPoint BackControlPoint { get; private set; }
         //このノードが駅に対応するときの駅ブロックのworld座標などを格納
@@ -18,6 +20,7 @@ namespace Game.Train.RailGraph
         public ConnectionDestination ConnectionDestination { get; private set; } = ConnectionDestination.Default;
         public bool HasConnectionDestination => !ConnectionDestination.IsDefault();
         public Guid Guid { get; }
+        public IRailGraphProvider GraphProvider => _graphProvider;
         public int NodeId => RailGraphDatastore.TryGetRailNodeId(this, out var nodeId) ? nodeId : -1;
         public int OppositeNodeId => NodeId ^ 1;
 
@@ -57,9 +60,14 @@ namespace Game.Train.RailGraph
             }
         }
 
+        public RailNode() : this(ResolveGraphProvider()) { }
+
         // 基本的にrailComponentからの呼び出しに対応
-        public RailNode()
+        private RailNode(IRailGraphProvider graphProvider)
         {
+            // グラフプロバイダを保持する
+            // Keep the graph provider dependency
+            _graphProvider = graphProvider;
             Guid = Guid.NewGuid();
             FrontControlPoint = new RailControlPoint(new Vector3(-1, -1, -1), new Vector3(-1, -1, -1));
             BackControlPoint = new RailControlPoint(new Vector3(-1, -1, -1), new Vector3(-1, -1, -1));
@@ -110,8 +118,12 @@ namespace Game.Train.RailGraph
         //経路探索して接続していれば距離を返す、見つからなければ-1
         public int GetDistanceToNode(IRailNode node, bool UseFindPath = false)
         {
-            return RailGraphProvider.Current.GetDistance(this, node, UseFindPath);
+            // 指定プロバイダで距離を計算する
+            // Calculate distance via the assigned provider
+            return _graphProvider.GetDistance(this, node, UseFindPath);
         }
+
+        private static IRailGraphProvider ResolveGraphProvider() => ServerContext.GetService<IRailGraphProvider>();
 
 
         Guid IRailNode.NodeGuid => Guid;
