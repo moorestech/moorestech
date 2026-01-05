@@ -84,9 +84,9 @@ public record SwitchSchema(string? PropertyName, SchemaId? Parent, Falliable<Swi
     public SchemaId? Parent { get; } = Parent;
 }
 
-public record SwitchCaseSchema(SwitchPath SwitchReferencePath, string When, SchemaId Schema)
+public record SwitchCaseSchema(SwitchPath SwitchReferencePath, string When, Falliable<SchemaId> Schema)
 {
-    public SchemaId Schema = Schema;
+    public Falliable<SchemaId> Schema = Schema;
     public SwitchPath SwitchReferencePath = SwitchReferencePath;
     public string When = When;
 }

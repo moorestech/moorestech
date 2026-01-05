@@ -142,10 +142,13 @@ public static class SemanticsGenerator
         List<InterfacePropertyId> propertyIds = new();
         foreach (var property in defineInterface.Properties)
         {
-            var propertySchema = property.Value;
-            
+            // 無効なプロパティはスキップ
+            if (!property.Value.IsValid) continue;
+
+            var propertySchema = property.Value.Value!;
+
             Generate(propertySchema, table, rootId, analysis).AddTo(semantics);
-            
+
             var propertyId = semantics.AddInterfacePropertySemantics(new InterfacePropertySemantics(propertySchema, interfaceId));
             propertyIds.Add(propertyId);
         }
@@ -218,9 +221,12 @@ public static class SemanticsGenerator
         if (switchSchema.IfThenArray.IsValid)
             foreach (var ifThen in switchSchema.IfThenArray.Value!)
             {
-                Generate(table.Table[ifThen.Schema], table, rootId, analysis).AddTo(semantics);
-                
-                var then = semantics.SchemaTypeSemanticsTable[table.Table[ifThen.Schema]];
+                // 無効なcaseはスキップ
+                if (!ifThen.Schema.IsValid) continue;
+
+                Generate(table.Table[ifThen.Schema.Value!], table, rootId, analysis).AddTo(semantics);
+
+                var then = semantics.SchemaTypeSemanticsTable[table.Table[ifThen.Schema.Value!]];
                 semantics.SwitchInheritList.Add((interfaceId, then));
                 thenList.Add((ifThen.SwitchReferencePath, ifThen.When, then));
             }
