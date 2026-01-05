@@ -124,10 +124,10 @@ public record RootSemantics(Schema Root, ClassId ClassId)
 /// <param name="IsArrayInnerType">配列のInnerTypeであるかどうか</param>
 public record TypeSemantics(PropertyId[] Properties, ISchema Schema, RootId RootId, bool IsArrayInnerType = false)
 {
+    public bool IsArrayInnerType = IsArrayInnerType;
     public PropertyId[] Properties = Properties;
     public RootId RootId = RootId;
     public ISchema Schema = Schema;
-    public bool IsArrayInnerType = IsArrayInnerType;
 }
 
 public record PropertySemantics(ITypeId ParentTypeId, string PropertyName, ITypeId? PropertyType, ISchema Schema, bool IsNullable)

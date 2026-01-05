@@ -26,19 +26,19 @@ namespace YamlDotNet.Core;
 public sealed class EmitterSettings
 {
     public static readonly EmitterSettings Default = new();
-
+    
     public EmitterSettings()
     {
     }
-
+    
     public EmitterSettings(int bestIndent, int bestWidth, bool isCanonical, int maxSimpleKeyLength, bool skipAnchorName = false, bool indentSequences = false, string? newLine = null, bool useUtf16SurrogatePairs = false)
     {
         if (bestIndent < 2 || bestIndent > 9) throw new ArgumentOutOfRangeException(nameof(bestIndent), "BestIndent must be between 2 and 9, inclusive");
-
+        
         if (bestWidth <= bestIndent * 2) throw new ArgumentOutOfRangeException(nameof(bestWidth), "BestWidth must be greater than BestIndent x 2.");
-
+        
         if (maxSimpleKeyLength < 0) throw new ArgumentOutOfRangeException(nameof(maxSimpleKeyLength), "MaxSimpleKeyLength must be >= 0");
-
+        
         BestIndent = bestIndent;
         BestWidth = bestWidth;
         IsCanonical = isCanonical;
@@ -50,34 +50,34 @@ public sealed class EmitterSettings
 #pragma warning restore RS1035
         UseUtf16SurrogatePairs = useUtf16SurrogatePairs;
     }
-
+    
     /// <summary>
     ///     The preferred indentation.
     /// </summary>
     public int BestIndent { get; } = 2;
-
+    
     /// <summary>
     ///     The preferred text width.
     /// </summary>
     public int BestWidth { get; } = int.MaxValue;
-
+    
     /// <summary>
     ///     New line characters.
     /// </summary>
 #pragma warning disable RS1035
     public string NewLine { get; } = Environment.NewLine;
 #pragma warning restore RS1035
-
+    
     /// <summary>
     ///     If true, write the output in canonical form.
     /// </summary>
     public bool IsCanonical { get; }
-
+    
     /// <summary>
     ///     If true, write output without anchor names.
     /// </summary>
     public bool SkipAnchorName { get; }
-
+    
     /// <summary>
     ///     The maximum allowed length for simple keys.
     /// </summary>
@@ -85,12 +85,12 @@ public sealed class EmitterSettings
     ///     The specifiction mandates 1024 characters, but any desired value may be used.
     /// </remarks>
     public int MaxSimpleKeyLength { get; } = 1024;
-
+    
     /// <summary>
     ///     Indent sequences. The default is to not indent.
     /// </summary>
     public bool IndentSequences { get; }
-
+    
     /// <summary>
     ///     If true, then 4-byte UTF-32 characters are broken into two 2-byte code-points.
     /// </summary>
@@ -99,7 +99,7 @@ public sealed class EmitterSettings
     ///     and instead expects two escaped 2-byte character '\uxxxx\uxxxx'.
     /// </remarks>
     public bool UseUtf16SurrogatePairs { get; }
-
+    
     public EmitterSettings WithBestIndent(int bestIndent)
     {
         return new EmitterSettings(
@@ -113,7 +113,7 @@ public sealed class EmitterSettings
             UseUtf16SurrogatePairs
         );
     }
-
+    
     public EmitterSettings WithBestWidth(int bestWidth)
     {
         return new EmitterSettings(
@@ -127,7 +127,7 @@ public sealed class EmitterSettings
             UseUtf16SurrogatePairs
         );
     }
-
+    
     public EmitterSettings WithMaxSimpleKeyLength(int maxSimpleKeyLength)
     {
         return new EmitterSettings(
@@ -141,7 +141,7 @@ public sealed class EmitterSettings
             UseUtf16SurrogatePairs
         );
     }
-
+    
     public EmitterSettings WithNewLine(string newLine)
     {
         return new EmitterSettings(
@@ -155,7 +155,7 @@ public sealed class EmitterSettings
             UseUtf16SurrogatePairs
         );
     }
-
+    
     public EmitterSettings Canonical()
     {
         return new EmitterSettings(
@@ -166,7 +166,7 @@ public sealed class EmitterSettings
             SkipAnchorName
         );
     }
-
+    
     public EmitterSettings WithoutAnchorName()
     {
         return new EmitterSettings(
@@ -180,7 +180,7 @@ public sealed class EmitterSettings
             UseUtf16SurrogatePairs
         );
     }
-
+    
     public EmitterSettings WithIndentedSequences()
     {
         return new EmitterSettings(
@@ -194,7 +194,7 @@ public sealed class EmitterSettings
             UseUtf16SurrogatePairs
         );
     }
-
+    
     public EmitterSettings WithUtf16SurrogatePairs()
     {
         return new EmitterSettings(

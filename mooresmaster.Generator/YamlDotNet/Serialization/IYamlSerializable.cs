@@ -22,22 +22,21 @@
 using System;
 using YamlDotNet.Core;
 
-namespace YamlDotNet.Serialization
+namespace YamlDotNet.Serialization;
+
+/// <summary>
+///     Allows an object to customize how it is serialized and deserialized.
+/// </summary>
+[Obsolete("Please use IYamlConvertible instead")]
+public interface IYamlSerializable
 {
     /// <summary>
-    /// Allows an object to customize how it is serialized and deserialized.
+    ///     Reads this object's state from a YAML parser.
     /// </summary>
-    [Obsolete("Please use IYamlConvertible instead")]
-    public interface IYamlSerializable
-    {
-        /// <summary>
-        /// Reads this object's state from a YAML parser.
-        /// </summary>
-        void ReadYaml(IParser parser);
-
-        /// <summary>
-        /// Writes this object's state to a YAML emitter.
-        /// </summary>
-        void WriteYaml(IEmitter emitter);
-    }
+    void ReadYaml(IParser parser);
+    
+    /// <summary>
+    ///     Writes this object's state to a YAML emitter.
+    /// </summary>
+    void WriteYaml(IEmitter emitter);
 }

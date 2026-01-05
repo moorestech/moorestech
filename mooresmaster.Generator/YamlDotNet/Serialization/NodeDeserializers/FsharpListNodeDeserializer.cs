@@ -21,44 +21,41 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using YamlDotNet.Core;
 using YamlDotNet.Helpers;
-using YamlDotNet.Serialization.Utilities;
 
-namespace YamlDotNet.Serialization.NodeDeserializers
+namespace YamlDotNet.Serialization.NodeDeserializers;
+
+public sealed class FsharpListNodeDeserializer : INodeDeserializer
 {
-    public sealed class FsharpListNodeDeserializer : INodeDeserializer
+    private readonly INamingConvention enumNamingConvention;
+    private readonly ITypeInspector typeInspector;
+    
+    public FsharpListNodeDeserializer(ITypeInspector typeInspector, INamingConvention enumNamingConvention)
     {
-        private readonly ITypeInspector typeInspector;
-        private readonly INamingConvention enumNamingConvention;
-
-        public FsharpListNodeDeserializer(ITypeInspector typeInspector, INamingConvention enumNamingConvention)
+        this.typeInspector = typeInspector;
+        this.enumNamingConvention = enumNamingConvention;
+    }
+    
+    public bool Deserialize(IParser parser, Type expectedType, Func<IParser, Type, object?> nestedObjectDeserializer, out object? value, ObjectDeserializer rootDeserializer)
+    {
+        if (!FsharpHelper.IsFsharpListType(expectedType))
         {
-            this.typeInspector = typeInspector;
-            this.enumNamingConvention = enumNamingConvention;
+            value = false;
+            return false;
         }
-
-        public bool Deserialize(IParser parser, Type expectedType, Func<IParser, Type, object?> nestedObjectDeserializer, out object? value, ObjectDeserializer rootDeserializer)
-        {
-            if (!FsharpHelper.IsFsharpListType(expectedType))
-            {
-                value = false;
-                return false;
-            }
-
-            var itemsType = expectedType.GetGenericArguments()[0];
-            var collectionType = expectedType.GetGenericTypeDefinition().MakeGenericType(itemsType);
-
-            var items = new ArrayList();
-            CollectionNodeDeserializer.DeserializeHelper(itemsType, parser, nestedObjectDeserializer, items, true, enumNamingConvention, typeInspector);
-
-            var array = Array.CreateInstance(itemsType, items.Count);
-            items.CopyTo(array, 0);
-
-            var collection = FsharpHelper.CreateFsharpListFromArray(collectionType, itemsType, array);
-            value = collection;
-            return true;
-        }
+        
+        var itemsType = expectedType.GetGenericArguments()[0];
+        var collectionType = expectedType.GetGenericTypeDefinition().MakeGenericType(itemsType);
+        
+        var items = new ArrayList();
+        CollectionNodeDeserializer.DeserializeHelper(itemsType, parser, nestedObjectDeserializer, items, true, enumNamingConvention, typeInspector);
+        
+        var array = Array.CreateInstance(itemsType, items.Count);
+        items.CopyTo(array, 0);
+        
+        var collection = FsharpHelper.CreateFsharpListFromArray(collectionType, itemsType, array);
+        value = collection;
+        return true;
     }
 }

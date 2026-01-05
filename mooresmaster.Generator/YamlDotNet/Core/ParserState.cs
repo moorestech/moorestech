@@ -19,33 +19,32 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-namespace YamlDotNet.Core
+namespace YamlDotNet.Core;
+
+internal enum ParserState
 {
-    internal enum ParserState
-    {
-        StreamStart,
-        StreamEnd,
-        ImplicitDocumentStart,
-        DocumentStart,
-        DocumentContent,
-        DocumentEnd,
-        BlockNode,
-        BlockNodeOrIndentlessSequence,
-        FlowNode,
-        BlockSequenceFirstEntry,
-        BlockSequenceEntry,
-        IndentlessSequenceEntry,
-        BlockMappingFirstKey,
-        BlockMappingKey,
-        BlockMappingValue,
-        FlowSequenceFirstEntry,
-        FlowSequenceEntry,
-        FlowSequenceEntryMappingKey,
-        FlowSequenceEntryMappingValue,
-        FlowSequenceEntryMappingEnd,
-        FlowMappingFirstKey,
-        FlowMappingKey,
-        FlowMappingValue,
-        FlowMappingEmptyValue
-    }
+    StreamStart,
+    StreamEnd,
+    ImplicitDocumentStart,
+    DocumentStart,
+    DocumentContent,
+    DocumentEnd,
+    BlockNode,
+    BlockNodeOrIndentlessSequence,
+    FlowNode,
+    BlockSequenceFirstEntry,
+    BlockSequenceEntry,
+    IndentlessSequenceEntry,
+    BlockMappingFirstKey,
+    BlockMappingKey,
+    BlockMappingValue,
+    FlowSequenceFirstEntry,
+    FlowSequenceEntry,
+    FlowSequenceEntryMappingKey,
+    FlowSequenceEntryMappingValue,
+    FlowSequenceEntryMappingEnd,
+    FlowMappingFirstKey,
+    FlowMappingKey,
+    FlowMappingValue,
+    FlowMappingEmptyValue
 }

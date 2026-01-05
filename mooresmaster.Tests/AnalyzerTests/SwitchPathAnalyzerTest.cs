@@ -1,4 +1,3 @@
-using System;
 using mooresmaster.Generator.Analyze.Analyzers;
 using Xunit;
 using Xunit.Abstractions;
@@ -7,14 +6,14 @@ namespace mooresmaster.Tests.AnalyzerTests;
 
 public class SwitchPathAnalyzerTest
 {
-  private readonly ITestOutputHelper _testOutputHelper;
-  
-  public SwitchPathAnalyzerTest(ITestOutputHelper testOutputHelper)
-  {
-    _testOutputHelper = testOutputHelper;
-  }
-  
-  /// <summary>
+    private readonly ITestOutputHelper _testOutputHelper;
+    
+    public SwitchPathAnalyzerTest(ITestOutputHelper testOutputHelper)
+    {
+        _testOutputHelper = testOutputHelper;
+    }
+    
+    /// <summary>
     ///     相対パスで存在しないプロパティを参照した場合のエラーのテスト
     /// </summary>
     [Fact]
@@ -40,17 +39,17 @@ public class SwitchPathAnalyzerTest
                     type: object
                     properties: []
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
         _testOutputHelper.WriteLine(Test.Generate(schema).analysis.ToString());
-
+        
         Assert.Single(diagnosticsArray);
         var diagnostics = Assert.IsType<SwitchPathPropertyNotFoundDiagnostics>(diagnosticsArray[0]);
         Assert.Equal("nonExistentProperty", diagnostics.PropertyName);
         Assert.Contains("blockType", diagnostics.AvailableProperties);
         Assert.Contains("config", diagnostics.AvailableProperties);
     }
-
+    
     /// <summary>
     ///     絶対パスで存在しないプロパティを参照した場合のエラーのテスト
     /// </summary>
@@ -74,15 +73,15 @@ public class SwitchPathAnalyzerTest
                   - key: data2
                     type: string
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
-
+        
         Assert.Single(diagnosticsArray);
         var diagnostics = Assert.IsType<SwitchPathPropertyNotFoundDiagnostics>(diagnosticsArray[0]);
         Assert.Equal("nonExistentProperty", diagnostics.PropertyName);
         Assert.Contains("data0", diagnostics.AvailableProperties);
     }
-
+    
     /// <summary>
     ///     非オブジェクト型に対してプロパティアクセスを試みた場合のエラーのテスト
     /// </summary>
@@ -103,14 +102,14 @@ public class SwitchPathAnalyzerTest
                     type: object
                     properties: []
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
-
+        
         Assert.Single(diagnosticsArray);
         var diagnostics = Assert.IsType<SwitchPathNotAnObjectDiagnostics>(diagnosticsArray[0]);
         Assert.Equal("invalidPath", diagnostics.PropertyName);
     }
-
+    
     /// <summary>
     ///     正しい相対パスの場合はエラーが出ないことのテスト
     /// </summary>
@@ -137,12 +136,12 @@ public class SwitchPathAnalyzerTest
                     type: object
                     properties: []
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
-
+        
         Assert.Empty(diagnosticsArray);
     }
-
+    
     /// <summary>
     ///     正しい絶対パスの場合はエラーが出ないことのテスト
     /// </summary>
@@ -172,12 +171,12 @@ public class SwitchPathAnalyzerTest
                       - Moores
                       - Tech
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
-
+        
         Assert.Empty(diagnosticsArray);
     }
-
+    
     /// <summary>
     ///     利用可能なプロパティ一覧が正しく取得できることのテスト
     /// </summary>
@@ -202,9 +201,9 @@ public class SwitchPathAnalyzerTest
                     type: object
                     properties: []
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
-
+        
         Assert.Single(diagnosticsArray);
         var diagnostics = Assert.IsType<SwitchPathPropertyNotFoundDiagnostics>(diagnosticsArray[0]);
         Assert.Equal(4, diagnostics.AvailableProperties.Length);

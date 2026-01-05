@@ -19,27 +19,26 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-namespace YamlDotNet.Core
+namespace YamlDotNet.Core;
+
+internal enum EmitterState
 {
-    internal enum EmitterState
-    {
-        StreamStart,
-        StreamEnd,
-        FirstDocumentStart,
-        DocumentStart,
-        DocumentContent,
-        DocumentEnd,
-        FlowSequenceFirstItem,
-        FlowSequenceItem,
-        FlowMappingFirstKey,
-        FlowMappingKey,
-        FlowMappingSimpleValue,
-        FlowMappingValue,
-        BlockSequenceFirstItem,
-        BlockSequenceItem,
-        BlockMappingFirstKey,
-        BlockMappingKey,
-        BlockMappingSimpleValue,
-        BlockMappingValue
-    }
+    StreamStart,
+    StreamEnd,
+    FirstDocumentStart,
+    DocumentStart,
+    DocumentContent,
+    DocumentEnd,
+    FlowSequenceFirstItem,
+    FlowSequenceItem,
+    FlowMappingFirstKey,
+    FlowMappingKey,
+    FlowMappingSimpleValue,
+    FlowMappingValue,
+    BlockSequenceFirstItem,
+    BlockSequenceItem,
+    BlockMappingFirstKey,
+    BlockMappingKey,
+    BlockMappingSimpleValue,
+    BlockMappingValue
 }

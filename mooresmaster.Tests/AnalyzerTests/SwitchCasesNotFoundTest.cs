@@ -24,15 +24,15 @@ public class SwitchCasesNotFoundTest
               - key: data
                 switch: ./type
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
-
+        
         Assert.Single(diagnosticsArray);
         var diagnostics = Assert.IsType<SwitchCasesNotFoundDiagnostics>(diagnosticsArray[0]);
         Assert.Equal("data", diagnostics.PropertyName);
         Assert.Equal("./type", diagnostics.SwitchPath);
     }
-
+    
     /// <summary>
     ///     switchにcasesが定義されている場合はエラーが出ないテスト
     /// </summary>
@@ -63,12 +63,12 @@ public class SwitchCasesNotFoundTest
                       - key: valueB
                         type: number
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
-
+        
         Assert.Empty(diagnosticsArray);
     }
-
+    
     /// <summary>
     ///     複数のswitchでcasesが定義されていない場合のエラーのテスト
     /// </summary>
@@ -95,18 +95,18 @@ public class SwitchCasesNotFoundTest
               - key: data2
                 switch: ./type2
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
-
+        
         Assert.Equal(2, diagnosticsArray.Count);
-
+        
         var diagnostics1 = Assert.IsType<SwitchCasesNotFoundDiagnostics>(diagnosticsArray[0]);
         Assert.Equal("data1", diagnostics1.PropertyName);
-
+        
         var diagnostics2 = Assert.IsType<SwitchCasesNotFoundDiagnostics>(diagnosticsArray[1]);
         Assert.Equal("data2", diagnostics2.PropertyName);
     }
-
+    
     /// <summary>
     ///     ネストされたswitchでcasesが定義されていない場合のエラーのテスト
     /// </summary>
@@ -142,15 +142,15 @@ public class SwitchCasesNotFoundTest
                       - key: value
                         type: string
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
-
+        
         Assert.Single(diagnosticsArray);
         var diagnostics = Assert.IsType<SwitchCasesNotFoundDiagnostics>(diagnosticsArray[0]);
         Assert.Equal("innerData", diagnostics.PropertyName);
         Assert.Equal("./innerType", diagnostics.SwitchPath);
     }
-
+    
     /// <summary>
     ///     Diagnosticsに正しいJsonObjectとSchemaIdが含まれていることのテスト
     /// </summary>
@@ -170,12 +170,12 @@ public class SwitchCasesNotFoundTest
               - key: data
                 switch: ./type
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
-
+        
         Assert.Single(diagnosticsArray);
         var diagnostics = Assert.IsType<SwitchCasesNotFoundDiagnostics>(diagnosticsArray[0]);
-
+        
         Assert.NotNull(diagnostics.SwitchJson);
         Assert.Single(diagnostics.Locations);
     }

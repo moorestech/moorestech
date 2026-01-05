@@ -19,41 +19,42 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-namespace YamlDotNet.Serialization
+namespace YamlDotNet.Serialization;
+
+public interface IRegistrationLocationSelectionSyntax<TBaseRegistrationType>
 {
-    public interface IRegistrationLocationSelectionSyntax<TBaseRegistrationType>
-    {
-        /// <summary>
-        /// Registers the component in place of the already registered component of type <typeparamref name="TRegistrationType" />.
-        /// </summary>
-        void InsteadOf<TRegistrationType>() where TRegistrationType : TBaseRegistrationType;
+    /// <summary>
+    ///     Registers the component in place of the already registered component of type
+    ///     <typeparamref name="TRegistrationType" />.
+    /// </summary>
+    void InsteadOf<TRegistrationType>() where TRegistrationType : TBaseRegistrationType;
+    
+    /// <summary>
+    ///     Registers the component before the already registered component of type <typeparamref name="TRegistrationType" />.
+    /// </summary>
+    void Before<TRegistrationType>() where TRegistrationType : TBaseRegistrationType;
+    
+    /// <summary>
+    ///     Registers the component after the already registered component of type <typeparamref name="TRegistrationType" />.
+    /// </summary>
+    void After<TRegistrationType>() where TRegistrationType : TBaseRegistrationType;
+    
+    /// <summary>
+    ///     Registers the component before every other previously registered component.
+    /// </summary>
+    void OnTop();
+    
+    /// <summary>
+    ///     Registers the component after every other previously registered component.
+    /// </summary>
+    void OnBottom();
+}
 
-        /// <summary>
-        /// Registers the component before the already registered component of type <typeparamref name="TRegistrationType" />.
-        /// </summary>
-        void Before<TRegistrationType>() where TRegistrationType : TBaseRegistrationType;
-
-        /// <summary>
-        /// Registers the component after the already registered component of type <typeparamref name="TRegistrationType" />.
-        /// </summary>
-        void After<TRegistrationType>() where TRegistrationType : TBaseRegistrationType;
-
-        /// <summary>
-        /// Registers the component before every other previously registered component.
-        /// </summary>
-        void OnTop();
-
-        /// <summary>
-        /// Registers the component after every other previously registered component.
-        /// </summary>
-        void OnBottom();
-    }
-
-    public interface ITrackingRegistrationLocationSelectionSyntax<TBaseRegistrationType>
-    {
-        /// <summary>
-        /// Registers the component in place of the already registered component of type <typeparamref name="TRegistrationType" />.
-        /// </summary>
-        void InsteadOf<TRegistrationType>() where TRegistrationType : TBaseRegistrationType;
-    }
+public interface ITrackingRegistrationLocationSelectionSyntax<TBaseRegistrationType>
+{
+    /// <summary>
+    ///     Registers the component in place of the already registered component of type
+    ///     <typeparamref name="TRegistrationType" />.
+    /// </summary>
+    void InsteadOf<TRegistrationType>() where TRegistrationType : TBaseRegistrationType;
 }

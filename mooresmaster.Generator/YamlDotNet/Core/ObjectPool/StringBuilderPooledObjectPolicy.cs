@@ -26,43 +26,40 @@
 
 using System.Text;
 
-namespace YamlDotNet.Core.ObjectPool
+namespace YamlDotNet.Core.ObjectPool;
+
+/// <summary>
+///     A policy for pooling <see cref="StringBuilder" /> instances.
+/// </summary>
+internal class StringBuilderPooledObjectPolicy : IPooledObjectPolicy<StringBuilder>
 {
     /// <summary>
-    /// A policy for pooling <see cref="StringBuilder"/> instances.
+    ///     Gets or sets the initial capacity of pooled <see cref="StringBuilder" /> instances.
     /// </summary>
-    internal class StringBuilderPooledObjectPolicy : IPooledObjectPolicy<StringBuilder>
+    /// <value>Defaults to <c>100</c>.</value>
+    public int InitialCapacity { get; set; } = 100;
+    
+    /// <summary>
+    ///     Gets or sets the maximum value for <see cref="StringBuilder.Capacity" /> that is allowed to be
+    ///     retained, when <see cref="Return(StringBuilder)" /> is invoked.
+    /// </summary>
+    /// <value>Defaults to <c>4096</c>.</value>
+    public int MaximumRetainedCapacity { get; set; } = 4 * 1024;
+    
+    /// <inheritdoc />
+    public StringBuilder Create()
     {
-        /// <summary>
-        /// Gets or sets the initial capacity of pooled <see cref="StringBuilder"/> instances.
-        /// </summary>
-        /// <value>Defaults to <c>100</c>.</value>
-        public int InitialCapacity { get; set; } = 100;
-
-        /// <summary>
-        /// Gets or sets the maximum value for <see cref="StringBuilder.Capacity"/> that is allowed to be
-        /// retained, when <see cref="Return(StringBuilder)"/> is invoked.
-        /// </summary>
-        /// <value>Defaults to <c>4096</c>.</value>
-        public int MaximumRetainedCapacity { get; set; } = 4 * 1024;
-
-        /// <inheritdoc />
-        public StringBuilder Create()
-        {
-            return new StringBuilder(InitialCapacity);
-        }
-
-        /// <inheritdoc />
-        public bool Return(StringBuilder obj)
-        {
-            if (obj.Capacity > MaximumRetainedCapacity)
-            {
-                // Too big. Discard this one.
-                return false;
-            }
-
-            obj.Clear();
-            return true;
-        }
+        return new StringBuilder(InitialCapacity);
+    }
+    
+    /// <inheritdoc />
+    public bool Return(StringBuilder obj)
+    {
+        if (obj.Capacity > MaximumRetainedCapacity)
+            // Too big. Discard this one.
+            return false;
+        
+        obj.Clear();
+        return true;
     }
 }

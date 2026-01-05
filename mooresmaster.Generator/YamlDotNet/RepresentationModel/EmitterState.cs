@@ -22,17 +22,16 @@
 using System.Collections.Generic;
 using YamlDotNet.Core;
 
-namespace YamlDotNet.RepresentationModel
+namespace YamlDotNet.RepresentationModel;
+
+/// <summary>
+///     Holds state that is used when emitting a stream.
+/// </summary>
+internal class EmitterState
 {
     /// <summary>
-    /// Holds state that is used when emitting a stream.
+    ///     Gets the already emitted anchors.
     /// </summary>
-    internal class EmitterState
-    {
-        /// <summary>
-        /// Gets the already emitted anchors.
-        /// </summary>
-        /// <value>The emitted anchors.</value>
-        public HashSet<AnchorName> EmittedAnchors { get; } = [];
-    }
+    /// <value>The emitted anchors.</value>
+    public HashSet<AnchorName> EmittedAnchors { get; } = [];
 }

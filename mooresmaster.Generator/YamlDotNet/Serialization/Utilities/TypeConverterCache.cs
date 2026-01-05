@@ -34,16 +34,16 @@ internal sealed class TypeConverterCache
 {
     private readonly ConcurrentDictionary<Type, (bool HasMatch, IYamlTypeConverter? TypeConverter)> cache = new();
     private readonly IYamlTypeConverter[] typeConverters;
-
+    
     public TypeConverterCache(IEnumerable<IYamlTypeConverter>? typeConverters) : this(typeConverters?.ToArray() ?? [])
     {
     }
-
+    
     public TypeConverterCache(IYamlTypeConverter[] typeConverters)
     {
         this.typeConverters = typeConverters;
     }
-
+    
     /// <summary>
     ///     Returns the first <see cref="IYamlTypeConverter" /> that accepts the given type.
     /// </summary>
@@ -56,11 +56,11 @@ internal sealed class TypeConverterCache
     public bool TryGetConverterForType(Type type, out IYamlTypeConverter? typeConverter)
     {
         var result = cache.GetOrAdd(type, static (t, tc) => LookupTypeConverter(t, tc), typeConverters);
-
+        
         typeConverter = result.TypeConverter;
         return result.HasMatch;
     }
-
+    
     /// <summary>
     ///     Returns the <see cref="IYamlTypeConverter" /> of the given type.
     /// </summary>
@@ -79,17 +79,17 @@ internal sealed class TypeConverterCache
         foreach (var typeConverter in typeConverters)
             if (typeConverter.GetType() == converter)
                 return typeConverter;
-
+        
         throw new ArgumentException($"{nameof(IYamlTypeConverter)} of type {converter.FullName} not found", nameof(converter));
     }
-
+    
     private static (bool HasMatch, IYamlTypeConverter? TypeConverter) LookupTypeConverter(Type type, IYamlTypeConverter[] typeConverters)
     {
         // Intentially avoids LINQ as this is on a hot path
         foreach (var typeConverter in typeConverters)
             if (typeConverter.Accepts(type))
                 return (true, typeConverter);
-
+        
         return (false, null);
     }
 }

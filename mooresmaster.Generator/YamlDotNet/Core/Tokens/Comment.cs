@@ -21,39 +21,38 @@
 
 using System;
 
-namespace YamlDotNet.Core.Tokens
+namespace YamlDotNet.Core.Tokens;
+
+/// <summary>
+///     Represents a comment
+/// </summary>
+public sealed class Comment : Token
 {
     /// <summary>
-    /// Represents a comment
+    ///     Initializes a new instance of the <see cref="Comment" /> class.
     /// </summary>
-    public sealed class Comment : Token
+    public Comment(string value, bool isInline)
+        : this(value, isInline, Mark.Empty, Mark.Empty)
     {
-        /// <summary>
-        /// Gets the value of the comment
-        /// </summary>
-        public string Value { get; }
-
-        /// <summary>
-        /// Gets a value indicating whether the comment appears other tokens on that line.
-        /// </summary>
-        public bool IsInline { get; }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Comment"/> class.
-        /// </summary>
-        public Comment(string value, bool isInline)
-            : this(value, isInline, Mark.Empty, Mark.Empty)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Comment"/> class.
-        /// </summary>
-        public Comment(string value, bool isInline, Mark start, Mark end)
-            : base(start, end)
-        {
-            Value = value ?? throw new ArgumentNullException(nameof(value));
-            IsInline = isInline;
-        }
     }
+    
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="Comment" /> class.
+    /// </summary>
+    public Comment(string value, bool isInline, Mark start, Mark end)
+        : base(start, end)
+    {
+        Value = value ?? throw new ArgumentNullException(nameof(value));
+        IsInline = isInline;
+    }
+    
+    /// <summary>
+    ///     Gets the value of the comment
+    /// </summary>
+    public string Value { get; }
+    
+    /// <summary>
+    ///     Gets a value indicating whether the comment appears other tokens on that line.
+    /// </summary>
+    public bool IsInline { get; }
 }

@@ -21,10 +21,9 @@
 
 using System.Text.RegularExpressions;
 
-namespace YamlDotNet
+namespace YamlDotNet;
+
+internal static class StandardRegexOptions
 {
-    internal static class StandardRegexOptions
-    {
-        public const RegexOptions Compiled = RegexOptions.Compiled;
-    }
+    public const RegexOptions Compiled = RegexOptions.Compiled;
 }

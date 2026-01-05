@@ -23,81 +23,72 @@ using System;
 using System.Collections.Generic;
 using YamlDotNet.Core;
 using YamlDotNet.Core.Events;
-using YamlDotNet.Serialization.NamingConventions;
 using YamlDotNet.Serialization.Utilities;
 
-namespace YamlDotNet.Serialization.ValueDeserializers
+namespace YamlDotNet.Serialization.ValueDeserializers;
+
+public sealed class NodeValueDeserializer : IValueDeserializer
 {
-    public sealed class NodeValueDeserializer : IValueDeserializer
+    private readonly IList<INodeDeserializer> deserializers;
+    private readonly INamingConvention enumNamingConvention;
+    private readonly ITypeConverter typeConverter;
+    private readonly ITypeInspector typeInspector;
+    private readonly IList<INodeTypeResolver> typeResolvers;
+    
+    public NodeValueDeserializer(IList<INodeDeserializer> deserializers,
+        IList<INodeTypeResolver> typeResolvers,
+        ITypeConverter typeConverter,
+        INamingConvention enumNamingConvention,
+        ITypeInspector typeInspector)
     {
-        private readonly IList<INodeDeserializer> deserializers;
-        private readonly IList<INodeTypeResolver> typeResolvers;
-        private readonly ITypeConverter typeConverter;
-        private readonly INamingConvention enumNamingConvention;
-        private readonly ITypeInspector typeInspector;
-
-        public NodeValueDeserializer(IList<INodeDeserializer> deserializers,
-            IList<INodeTypeResolver> typeResolvers,
-            ITypeConverter typeConverter,
-            INamingConvention enumNamingConvention,
-            ITypeInspector typeInspector)
+        this.deserializers = deserializers ?? throw new ArgumentNullException(nameof(deserializers));
+        this.typeResolvers = typeResolvers ?? throw new ArgumentNullException(nameof(typeResolvers));
+        this.typeConverter = typeConverter ?? throw new ArgumentNullException(nameof(typeConverter));
+        this.enumNamingConvention = enumNamingConvention ?? throw new ArgumentNullException(nameof(enumNamingConvention));
+        this.typeInspector = typeInspector;
+    }
+    
+    public object? DeserializeValue(IParser parser, Type expectedType, SerializerState state, IValueDeserializer nestedObjectDeserializer)
+    {
+        parser.Accept<NodeEvent>(out var nodeEvent);
+        var nodeType = GetTypeFromEvent(nodeEvent, expectedType);
+        var rootDeserializer = new ObjectDeserializer(x => DeserializeValue(parser, x, state, nestedObjectDeserializer));
+        
+        try
         {
-            this.deserializers = deserializers ?? throw new ArgumentNullException(nameof(deserializers));
-            this.typeResolvers = typeResolvers ?? throw new ArgumentNullException(nameof(typeResolvers));
-            this.typeConverter = typeConverter ?? throw new ArgumentNullException(nameof(typeConverter));
-            this.enumNamingConvention = enumNamingConvention ?? throw new ArgumentNullException(nameof(enumNamingConvention));
-            this.typeInspector = typeInspector;
+            foreach (var deserializer in deserializers)
+            {
+                var result = deserializer.Deserialize(parser, nodeType, (r, t) => nestedObjectDeserializer.DeserializeValue(r, t, state, nestedObjectDeserializer), out var value, rootDeserializer);
+                if (result) return typeConverter.ChangeType(value, expectedType, enumNamingConvention, typeInspector);
+            }
         }
-
-        public object? DeserializeValue(IParser parser, Type expectedType, SerializerState state, IValueDeserializer nestedObjectDeserializer)
+        catch (YamlException)
         {
-            parser.Accept<NodeEvent>(out var nodeEvent);
-            var nodeType = GetTypeFromEvent(nodeEvent, expectedType);
-            var rootDeserializer = new ObjectDeserializer(x => DeserializeValue(parser, x, state, nestedObjectDeserializer));
-
-            try
-            {
-                foreach (var deserializer in deserializers)
-                {
-
-                    var result = deserializer.Deserialize(parser, nodeType, (r, t) => nestedObjectDeserializer.DeserializeValue(r, t, state, nestedObjectDeserializer), out var value, rootDeserializer);
-                    if (result)
-                    {
-                        return typeConverter.ChangeType(value, expectedType, enumNamingConvention, typeInspector);
-                    }
-                }
-            }
-            catch (YamlException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                throw new YamlException(
-                    nodeEvent?.Start ?? Mark.Empty,
-                    nodeEvent?.End ?? Mark.Empty,
-                    "Exception during deserialization",
-                    ex
-                );
-            }
-
+            throw;
+        }
+        catch (Exception ex)
+        {
             throw new YamlException(
                 nodeEvent?.Start ?? Mark.Empty,
                 nodeEvent?.End ?? Mark.Empty,
-                $"No node deserializer was able to deserialize the node into type {expectedType.AssemblyQualifiedName}"
+                "Exception during deserialization",
+                ex
             );
         }
-
-        private Type GetTypeFromEvent(NodeEvent? nodeEvent, Type currentType)
-        {
-            foreach (var typeResolver in typeResolvers)
-            {
-                if (typeResolver.Resolve(nodeEvent, ref currentType))
-                {
-                    break;
-                }
-            }
-            return currentType;
-        }
+        
+        throw new YamlException(
+            nodeEvent?.Start ?? Mark.Empty,
+            nodeEvent?.End ?? Mark.Empty,
+            $"No node deserializer was able to deserialize the node into type {expectedType.AssemblyQualifiedName}"
+        );
+    }
+    
+    private Type GetTypeFromEvent(NodeEvent? nodeEvent, Type currentType)
+    {
+        foreach (var typeResolver in typeResolvers)
+            if (typeResolver.Resolve(nodeEvent, ref currentType))
+                break;
+        
+        return currentType;
     }
 }

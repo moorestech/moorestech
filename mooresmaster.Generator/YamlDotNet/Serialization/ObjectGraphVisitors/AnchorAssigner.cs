@@ -24,82 +24,80 @@ using System.Collections.Generic;
 using System.Globalization;
 using YamlDotNet.Core;
 
-namespace YamlDotNet.Serialization.ObjectGraphVisitors
+namespace YamlDotNet.Serialization.ObjectGraphVisitors;
+
+public sealed class AnchorAssigner : PreProcessingPhaseObjectGraphVisitorSkeleton, IAliasProvider
 {
-    public sealed class AnchorAssigner : PreProcessingPhaseObjectGraphVisitorSkeleton, IAliasProvider
+    private readonly Dictionary<object, AnchorAssignment> assignments = [];
+    private uint nextId;
+    
+    public AnchorAssigner(IEnumerable<IYamlTypeConverter> typeConverters)
+        : base(typeConverters)
     {
-        private class AnchorAssignment
+    }
+    
+    AnchorName IAliasProvider.GetAlias(object target)
+    {
+        if (target != null && assignments.TryGetValue(target, out var assignment)) return assignment.Anchor;
+        return AnchorName.Empty;
+    }
+    
+    protected override bool Enter(IObjectDescriptor value, ObjectSerializer serializer)
+    {
+        if (value.Value != null && assignments.TryGetValue(value.Value, out var assignment))
         {
-            public AnchorName Anchor;
-        }
-
-        private readonly Dictionary<object, AnchorAssignment> assignments = [];
-        private uint nextId;
-
-        public AnchorAssigner(IEnumerable<IYamlTypeConverter> typeConverters)
-            : base(typeConverters)
-        {
-        }
-
-        protected override bool Enter(IObjectDescriptor value, ObjectSerializer serializer)
-        {
-            if (value.Value != null && assignments.TryGetValue(value.Value, out var assignment))
+            if (assignment.Anchor.IsEmpty)
             {
-                if (assignment.Anchor.IsEmpty)
-                {
-                    assignment.Anchor = new AnchorName("o" + nextId.ToString(CultureInfo.InvariantCulture));
-                    ++nextId;
-                }
-                return false;
+                assignment.Anchor = new AnchorName("o" + nextId.ToString(CultureInfo.InvariantCulture));
+                ++nextId;
             }
-
-            return true;
+            
+            return false;
         }
-
-        protected override bool EnterMapping(IObjectDescriptor key, IObjectDescriptor value, ObjectSerializer serializer)
-        {
-            return true;
-        }
-
-        protected override bool EnterMapping(IPropertyDescriptor key, IObjectDescriptor value, ObjectSerializer serializer)
-        {
-            return true;
-        }
-
-        protected override void VisitScalar(IObjectDescriptor scalar, ObjectSerializer serializer)
-        {
-            // Do not assign anchors to scalars
-        }
-
-        protected override void VisitMappingStart(IObjectDescriptor mapping, Type keyType, Type valueType, ObjectSerializer serializer)
-        {
-            VisitObject(mapping);
-        }
-
-        protected override void VisitMappingEnd(IObjectDescriptor mapping, ObjectSerializer serializer) { }
-
-        protected override void VisitSequenceStart(IObjectDescriptor sequence, Type elementType, ObjectSerializer serializer)
-        {
-            VisitObject(sequence);
-        }
-
-        protected override void VisitSequenceEnd(IObjectDescriptor sequence, ObjectSerializer serializer) { }
-
-        private void VisitObject(IObjectDescriptor value)
-        {
-            if (value.Value != null)
-            {
-                assignments.Add(value.Value, new AnchorAssignment());
-            }
-        }
-
-        AnchorName IAliasProvider.GetAlias(object target)
-        {
-            if (target != null && assignments.TryGetValue(target, out var assignment))
-            {
-                return assignment.Anchor;
-            }
-            return AnchorName.Empty;
-        }
+        
+        return true;
+    }
+    
+    protected override bool EnterMapping(IObjectDescriptor key, IObjectDescriptor value, ObjectSerializer serializer)
+    {
+        return true;
+    }
+    
+    protected override bool EnterMapping(IPropertyDescriptor key, IObjectDescriptor value, ObjectSerializer serializer)
+    {
+        return true;
+    }
+    
+    protected override void VisitScalar(IObjectDescriptor scalar, ObjectSerializer serializer)
+    {
+        // Do not assign anchors to scalars
+    }
+    
+    protected override void VisitMappingStart(IObjectDescriptor mapping, Type keyType, Type valueType, ObjectSerializer serializer)
+    {
+        VisitObject(mapping);
+    }
+    
+    protected override void VisitMappingEnd(IObjectDescriptor mapping, ObjectSerializer serializer)
+    {
+    }
+    
+    protected override void VisitSequenceStart(IObjectDescriptor sequence, Type elementType, ObjectSerializer serializer)
+    {
+        VisitObject(sequence);
+    }
+    
+    protected override void VisitSequenceEnd(IObjectDescriptor sequence, ObjectSerializer serializer)
+    {
+    }
+    
+    private void VisitObject(IObjectDescriptor value)
+    {
+        if (value.Value != null) assignments.Add(value.Value, new AnchorAssignment());
+    }
+    
+    private class AnchorAssignment
+    {
+        public AnchorName Anchor;
     }
 }

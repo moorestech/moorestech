@@ -22,31 +22,30 @@
 using System;
 using YamlDotNet.Core;
 
-namespace YamlDotNet.Serialization.NodeDeserializers
+namespace YamlDotNet.Serialization.NodeDeserializers;
+
+public sealed class YamlSerializableNodeDeserializer : INodeDeserializer
 {
-    public sealed class YamlSerializableNodeDeserializer : INodeDeserializer
+    private readonly IObjectFactory objectFactory;
+    
+    public YamlSerializableNodeDeserializer(IObjectFactory objectFactory)
     {
-        private readonly IObjectFactory objectFactory;
-
-        public YamlSerializableNodeDeserializer(IObjectFactory objectFactory)
-        {
-            this.objectFactory = objectFactory;
-        }
-
-        public bool Deserialize(IParser parser, Type expectedType, Func<IParser, Type, object?> nestedObjectDeserializer, out object? value, ObjectDeserializer rootDeserializer)
-        {
+        this.objectFactory = objectFactory;
+    }
+    
+    public bool Deserialize(IParser parser, Type expectedType, Func<IParser, Type, object?> nestedObjectDeserializer, out object? value, ObjectDeserializer rootDeserializer)
+    {
 #pragma warning disable 0618 // IYamlSerializable is obsolete
-            if (typeof(IYamlSerializable).IsAssignableFrom(expectedType))
-            {
-                var serializable = (IYamlSerializable)objectFactory.Create(expectedType);
-                serializable.ReadYaml(parser);
-                value = serializable;
-                return true;
-            }
-#pragma warning restore
-
-            value = null;
-            return false;
+        if (typeof(IYamlSerializable).IsAssignableFrom(expectedType))
+        {
+            var serializable = (IYamlSerializable)objectFactory.Create(expectedType);
+            serializable.ReadYaml(parser);
+            value = serializable;
+            return true;
         }
+#pragma warning restore
+        
+        value = null;
+        return false;
     }
 }

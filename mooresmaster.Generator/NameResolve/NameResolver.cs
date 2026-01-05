@@ -188,7 +188,7 @@ public static class NameResolver
     private static string GetIfThenName(SwitchSchema switchSchema, SchemaTable schemaTable, TypeSemantics typeSemantics)
     {
         if (!switchSchema.IfThenArray.IsValid) return $"Unknown{switchSchema.PropertyName?.ToCamelCase()}";
-
+        
         var ifThenSchema = switchSchema.IfThenArray.Value!.ToDictionary(ifThen => schemaTable.Table[ifThen.Schema])[typeSemantics.Schema];
         return $"{ifThenSchema.When}{switchSchema.PropertyName?.ToCamelCase()}";
     }

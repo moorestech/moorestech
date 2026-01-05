@@ -22,19 +22,18 @@
 using System;
 using YamlDotNet.Core.Events;
 
-namespace YamlDotNet.Serialization
+namespace YamlDotNet.Serialization;
+
+public interface INodeTypeResolver
 {
-    public interface INodeTypeResolver
-    {
-        /// <summary>
-        /// Determines the type of the specified node.
-        /// </summary>
-        /// <param name="nodeEvent">The node to be deserialized.</param>
-        /// <param name="currentType">The type that has been determined so far.</param>
-        /// <returns>
-        /// true if <paramref name="currentType"/> has been resolved completely;
-        /// false if the next type <see cref="INodeTypeResolver"/> should be invoked.
-        /// </returns>
-        bool Resolve(NodeEvent? nodeEvent, ref Type currentType);
-    }
+    /// <summary>
+    ///     Determines the type of the specified node.
+    /// </summary>
+    /// <param name="nodeEvent">The node to be deserialized.</param>
+    /// <param name="currentType">The type that has been determined so far.</param>
+    /// <returns>
+    ///     true if <paramref name="currentType" /> has been resolved completely;
+    ///     false if the next type <see cref="INodeTypeResolver" /> should be invoked.
+    /// </returns>
+    bool Resolve(NodeEvent? nodeEvent, ref Type currentType);
 }

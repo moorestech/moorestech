@@ -25,130 +25,117 @@ using YamlDotNet.Core;
 using YamlDotNet.Core.Events;
 using YamlDotNet.Serialization.Utilities;
 
-namespace YamlDotNet.Serialization
+namespace YamlDotNet.Serialization;
+
+/// <summary>
+///     Deserializes objects from the YAML format.
+///     To customize the behavior of <see cref="Deserializer" />,
+///     use the <see cref="DeserializerBuilder" /> class.
+/// </summary>
+public sealed class Deserializer : IDeserializer
 {
+    private readonly IValueDeserializer valueDeserializer;
+    
     /// <summary>
-    /// Deserializes objects from the YAML format.
-    /// To customize the behavior of <see cref="Deserializer" />,
-    /// use the <see cref="DeserializerBuilder" /> class.
+    ///     Initializes a new instance of <see cref="Deserializer" /> using the default configuration.
     /// </summary>
-    public sealed class Deserializer : IDeserializer
+    /// <remarks>
+    ///     To customize the behavior of the deserializer, use <see cref="DeserializerBuilder" />.
+    /// </remarks>
+    public Deserializer()
+        : this(new DeserializerBuilder().BuildValueDeserializer())
     {
-        private readonly IValueDeserializer valueDeserializer;
-
-        /// <summary>
-        /// Initializes a new instance of <see cref="Deserializer" /> using the default configuration.
-        /// </summary>
-        /// <remarks>
-        /// To customize the behavior of the deserializer, use <see cref="DeserializerBuilder" />.
-        /// </remarks>
-        public Deserializer()
-            : this(new DeserializerBuilder().BuildValueDeserializer())
+    }
+    
+    /// <remarks>
+    ///     This constructor is private to discourage its use.
+    ///     To invoke it, call the <see cref="FromValueDeserializer" /> method.
+    /// </remarks>
+    private Deserializer(IValueDeserializer valueDeserializer)
+    {
+        this.valueDeserializer = valueDeserializer ?? throw new ArgumentNullException(nameof(valueDeserializer));
+    }
+    
+    public T Deserialize<T>(string input)
+    {
+        using var reader = new StringReader(input);
+        return Deserialize<T>(reader);
+    }
+    
+    public T Deserialize<T>(TextReader input)
+    {
+        return Deserialize<T>(new Parser(input));
+    }
+    
+    public T Deserialize<T>(IParser parser)
+    {
+        return (T)Deserialize(parser, typeof(T))!; // We really want an exception if we are trying to deserialize null into a non-nullable type
+    }
+    
+    public object? Deserialize(string input)
+    {
+        return Deserialize<object>(input);
+    }
+    
+    public object? Deserialize(TextReader input)
+    {
+        return Deserialize<object>(input);
+    }
+    
+    public object? Deserialize(IParser parser)
+    {
+        return Deserialize<object>(parser);
+    }
+    
+    public object? Deserialize(string input, Type type)
+    {
+        using var reader = new StringReader(input);
+        return Deserialize(reader, type);
+    }
+    
+    public object? Deserialize(TextReader input, Type type)
+    {
+        return Deserialize(new Parser(input), type);
+    }
+    
+    /// <summary>
+    ///     Deserializes an object of the specified type.
+    /// </summary>
+    /// <param name="parser">The <see cref="IParser" /> from where to deserialize the object.</param>
+    /// <param name="type">The static type of the object to deserialize.</param>
+    /// <returns>Returns the deserialized object.</returns>
+    public object? Deserialize(IParser parser, Type type)
+    {
+        if (parser == null) throw new ArgumentNullException(nameof(parser));
+        
+        if (type == null) throw new ArgumentNullException(nameof(type));
+        
+        var hasStreamStart = parser.TryConsume<StreamStart>(out _);
+        
+        var hasDocumentStart = parser.TryConsume<DocumentStart>(out _);
+        
+        object? result = null;
+        if (!parser.Accept<DocumentEnd>(out _) && !parser.Accept<StreamEnd>(out _))
         {
+            using var state = new SerializerState();
+            result = valueDeserializer.DeserializeValue(parser, type, state, valueDeserializer);
+            state.OnDeserialization();
         }
-
-        /// <remarks>
-        /// This constructor is private to discourage its use.
-        /// To invoke it, call the <see cref="FromValueDeserializer"/> method.
-        /// </remarks>
-        private Deserializer(IValueDeserializer valueDeserializer)
-        {
-            this.valueDeserializer = valueDeserializer ?? throw new ArgumentNullException(nameof(valueDeserializer));
-        }
-
-        /// <summary>
-        /// Creates a new <see cref="Deserializer" /> that uses the specified <see cref="IValueDeserializer" />.
-        /// This method is available for advanced scenarios. The preferred way to customize the behavior of the
-        /// deserializer is to use <see cref="DeserializerBuilder" />.
-        /// </summary>
-        public static Deserializer FromValueDeserializer(IValueDeserializer valueDeserializer)
-        {
-            return new Deserializer(valueDeserializer);
-        }
-
-        public T Deserialize<T>(string input)
-        {
-            using var reader = new StringReader(input);
-            return Deserialize<T>(reader);
-        }
-
-        public T Deserialize<T>(TextReader input)
-        {
-            return Deserialize<T>(new Parser(input));
-        }
-
-        public T Deserialize<T>(IParser parser)
-        {
-            return (T)Deserialize(parser, typeof(T))!; // We really want an exception if we are trying to deserialize null into a non-nullable type
-        }
-
-        public object? Deserialize(string input)
-        {
-            return Deserialize<object>(input);
-        }
-
-        public object? Deserialize(TextReader input)
-        {
-            return Deserialize<object>(input);
-        }
-
-        public object? Deserialize(IParser parser)
-        {
-            return Deserialize<object>(parser);
-        }
-
-        public object? Deserialize(string input, Type type)
-        {
-            using var reader = new StringReader(input);
-            return Deserialize(reader, type);
-        }
-
-        public object? Deserialize(TextReader input, Type type)
-        {
-            return Deserialize(new Parser(input), type);
-        }
-
-        /// <summary>
-        /// Deserializes an object of the specified type.
-        /// </summary>
-        /// <param name="parser">The <see cref="IParser" /> from where to deserialize the object.</param>
-        /// <param name="type">The static type of the object to deserialize.</param>
-        /// <returns>Returns the deserialized object.</returns>
-        public object? Deserialize(IParser parser, Type type)
-        {
-            if (parser == null)
-            {
-                throw new ArgumentNullException(nameof(parser));
-            }
-
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            var hasStreamStart = parser.TryConsume<StreamStart>(out var _);
-
-            var hasDocumentStart = parser.TryConsume<DocumentStart>(out var _);
-
-            object? result = null;
-            if (!parser.Accept<DocumentEnd>(out var _) && !parser.Accept<StreamEnd>(out var _))
-            {
-                using var state = new SerializerState();
-                result = valueDeserializer.DeserializeValue(parser, type, state, valueDeserializer);
-                state.OnDeserialization();
-            }
-
-            if (hasDocumentStart)
-            {
-                parser.Consume<DocumentEnd>();
-            }
-
-            if (hasStreamStart)
-            {
-                parser.Consume<StreamEnd>();
-            }
-
-            return result;
-        }
+        
+        if (hasDocumentStart) parser.Consume<DocumentEnd>();
+        
+        if (hasStreamStart) parser.Consume<StreamEnd>();
+        
+        return result;
+    }
+    
+    /// <summary>
+    ///     Creates a new <see cref="Deserializer" /> that uses the specified <see cref="IValueDeserializer" />.
+    ///     This method is available for advanced scenarios. The preferred way to customize the behavior of the
+    ///     deserializer is to use <see cref="DeserializerBuilder" />.
+    /// </summary>
+    public static Deserializer FromValueDeserializer(IValueDeserializer valueDeserializer)
+    {
+        return new Deserializer(valueDeserializer);
     }
 }

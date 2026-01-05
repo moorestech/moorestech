@@ -19,67 +19,63 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-namespace YamlDotNet.Core.Events
+namespace YamlDotNet.Core.Events;
+
+/// <summary>
+///     Represents an alias event.
+/// </summary>
+public sealed class AnchorAlias : ParsingEvent
 {
     /// <summary>
-    /// Represents an alias event.
+    ///     Initializes a new instance of the <see cref="AnchorAlias" /> class.
     /// </summary>
-    public sealed class AnchorAlias : ParsingEvent
+    /// <param name="value">The value of the alias.</param>
+    /// <param name="start">The start position of the event.</param>
+    /// <param name="end">The end position of the event.</param>
+    public AnchorAlias(AnchorName value, Mark start, Mark end)
+        : base(start, end)
     {
-        /// <summary>
-        /// Gets the event type, which allows for simpler type comparisons.
-        /// </summary>
-        internal override EventType Type => EventType.Alias;
-
-        /// <summary>
-        /// Gets the value of the alias.
-        /// </summary>
-        public AnchorName Value { get; }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="AnchorAlias"/> class.
-        /// </summary>
-        /// <param name="value">The value of the alias.</param>
-        /// <param name="start">The start position of the event.</param>
-        /// <param name="end">The end position of the event.</param>
-        public AnchorAlias(AnchorName value, Mark start, Mark end)
-            : base(start, end)
-        {
-            if (value.IsEmpty)
-            {
-                throw new YamlException(start, end, "Anchor value must not be empty.");
-            }
-
-            this.Value = value;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="AnchorAlias"/> class.
-        /// </summary>
-        /// <param name="value">The value of the alias.</param>
-        public AnchorAlias(AnchorName value)
-            : this(value, Mark.Empty, Mark.Empty)
-        {
-        }
-
-        /// <summary>
-        /// Returns a <see cref="T:System.String"/> that represents the current <see cref="T:System.Object"/>.
-        /// </summary>
-        /// <returns>
-        /// A <see cref="T:System.String"/> that represents the current <see cref="T:System.Object"/>.
-        /// </returns>
-        public override string ToString()
-        {
-            return $"Alias [value = {Value}]";
-        }
-
-        /// <summary>
-        /// Invokes run-time type specific Visit() method of the specified visitor.
-        /// </summary>
-        /// <param name="visitor">visitor, may not be null.</param>
-        public override void Accept(IParsingEventVisitor visitor)
-        {
-            visitor.Visit(this);
-        }
+        if (value.IsEmpty) throw new YamlException(start, end, "Anchor value must not be empty.");
+        
+        Value = value;
+    }
+    
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="AnchorAlias" /> class.
+    /// </summary>
+    /// <param name="value">The value of the alias.</param>
+    public AnchorAlias(AnchorName value)
+        : this(value, Mark.Empty, Mark.Empty)
+    {
+    }
+    
+    /// <summary>
+    ///     Gets the event type, which allows for simpler type comparisons.
+    /// </summary>
+    internal override EventType Type => EventType.Alias;
+    
+    /// <summary>
+    ///     Gets the value of the alias.
+    /// </summary>
+    public AnchorName Value { get; }
+    
+    /// <summary>
+    ///     Returns a <see cref="T:System.String" /> that represents the current <see cref="T:System.Object" />.
+    /// </summary>
+    /// <returns>
+    ///     A <see cref="T:System.String" /> that represents the current <see cref="T:System.Object" />.
+    /// </returns>
+    public override string ToString()
+    {
+        return $"Alias [value = {Value}]";
+    }
+    
+    /// <summary>
+    ///     Invokes run-time type specific Visit() method of the specified visitor.
+    /// </summary>
+    /// <param name="visitor">visitor, may not be null.</param>
+    public override void Accept(IParsingEventVisitor visitor)
+    {
+        visitor.Visit(this);
     }
 }

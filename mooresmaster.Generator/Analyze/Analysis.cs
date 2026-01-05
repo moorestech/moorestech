@@ -43,7 +43,7 @@ public class Analysis
             context.ReportDiagnostic(csDiagnostic);
         }
     }
-
+    
     public override string ToString()
     {
         return $"{string.Join("\n\n", DiagnosticsList.Select(d => $"{string.Join(", ", d.Locations.Select(l => l.ToString()))}: {d.Message}"))}";
@@ -59,7 +59,7 @@ public interface IDiagnostics
 public class AnalyzeException : Exception
 {
     public readonly IDiagnostics[] DiagnosticsArray;
-
+    
     public AnalyzeException(IDiagnostics[] diagnosticsArray)
     {
         DiagnosticsArray = diagnosticsArray;
@@ -75,9 +75,9 @@ public class AnalyzeException : Exception
                  """
             );
         }
-
+        
         Message = string.Join("\n", messages);
     }
-
+    
     public override string Message { get; }
 }

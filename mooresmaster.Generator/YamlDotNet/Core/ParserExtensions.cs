@@ -42,7 +42,7 @@ public static class ParserExtensions
         parser.MoveNext();
         return required;
     }
-
+    
     /// <summary>
     ///     Checks whether the current event is of the specified type.
     ///     If the event is of the specified type, returns it and moves to the next event.
@@ -57,10 +57,10 @@ public static class ParserExtensions
             parser.MoveNext();
             return true;
         }
-
+        
         return false;
     }
-
+    
     /// <summary>
     ///     Enforces that the current event is of the specified type.
     /// </summary>
@@ -75,10 +75,10 @@ public static class ParserExtensions
             if (@event == null) throw new YamlException($"Expected '{typeof(T).Name}', got nothing.");
             throw new YamlException(@event.Start, @event.End, $"Expected '{typeof(T).Name}', got '{@event.GetType().Name}' (at {@event.Start}).");
         }
-
+        
         return required;
     }
-
+    
     /// <summary>
     ///     Checks whether the current event is of the specified type.
     /// </summary>
@@ -89,17 +89,17 @@ public static class ParserExtensions
         if (parser.Current == null)
             if (!parser.MoveNext())
                 throw new EndOfStreamException();
-
+        
         if (parser.Current is T evt)
         {
             @event = evt;
             return true;
         }
-
+        
         @event = default!;
         return false;
     }
-
+    
     /// <summary>
     ///     Skips the current event and any nested event.
     /// </summary>
@@ -112,31 +112,31 @@ public static class ParserExtensions
             depth += next.NestingIncrease;
         } while (depth > 0);
     }
-
+    
     [Obsolete("Please use Consume<T>() instead")]
     public static T Expect<T>(this IParser parser) where T : ParsingEvent
     {
         return parser.Consume<T>();
     }
-
+    
     [Obsolete("Please use TryConsume<T>(out var evt) instead")]
     public static T? Allow<T>(this IParser parser) where T : ParsingEvent
     {
         return parser.TryConsume<T>(out var @event) ? @event : default;
     }
-
+    
     [Obsolete("Please use Accept<T>(out var evt) instead")]
     public static T? Peek<T>(this IParser parser) where T : ParsingEvent
     {
         return parser.Accept<T>(out var @event) ? @event : default;
     }
-
+    
     [Obsolete("Please use TryConsume<T>(out var evt) or Accept<T>(out var evt) instead")]
     public static bool Accept<T>(this IParser parser) where T : ParsingEvent
     {
-        return Accept<T>(parser, out var _);
+        return Accept<T>(parser, out _);
     }
-
+    
     /// <summary>
     ///     Attempts to find a key on a YAML mapping that matches our predicate.
     ///     This is useful for scanning a mapping for type discriminator information.
@@ -166,10 +166,10 @@ public static class ParserExtensions
                     case Scalar scalar:
                         // we've found a scalar, check if it's value matches our predicate
                         var keyMatched = selector(scalar);
-
+                        
                         // move head so we can read or skip value
                         parser.MoveNext();
-
+                        
                         // read the value of the mapping key
                         if (keyMatched)
                         {
@@ -178,10 +178,10 @@ public static class ParserExtensions
                             key = scalar;
                             return true;
                         }
-
+                        
                         // skip the value
                         parser.SkipThisAndNestedEvents();
-
+                        
                         break;
                     case MappingStart _:
                     case SequenceStart _:
@@ -192,7 +192,7 @@ public static class ParserExtensions
                         parser.MoveNext();
                         break;
                 }
-
+        
         key = null;
         value = null;
         return false;

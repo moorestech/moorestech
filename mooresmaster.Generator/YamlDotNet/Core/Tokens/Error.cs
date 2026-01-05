@@ -19,22 +19,21 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-namespace YamlDotNet.Core.Tokens
-{
-    /// <summary>
-    /// Error tokens.
-    /// </summary>
-    public class Error : Token
-    {
-        /// <summary>
-        /// Gets the value of the error
-        /// </summary>
-        public string Value { get; }
+namespace YamlDotNet.Core.Tokens;
 
-        public Error(string value, Mark start, Mark end)
-            : base(start, end)
-        {
-            Value = value;
-        }
+/// <summary>
+///     Error tokens.
+/// </summary>
+public class Error : Token
+{
+    public Error(string value, Mark start, Mark end)
+        : base(start, end)
+    {
+        Value = value;
     }
+    
+    /// <summary>
+    ///     Gets the value of the error
+    /// </summary>
+    public string Value { get; }
 }

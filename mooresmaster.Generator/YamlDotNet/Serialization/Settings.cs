@@ -19,13 +19,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-namespace YamlDotNet.Serialization
+namespace YamlDotNet.Serialization;
+
+public class Settings
 {
-    public class Settings
-    {
-        /// <summary>
-        /// If true then private, parameterless constructors will be invoked if a public one is not available.
-        /// </summary>
-        public bool AllowPrivateConstructors { get; set; }
-    }
+    /// <summary>
+    ///     If true then private, parameterless constructors will be invoked if a public one is not available.
+    /// </summary>
+    public bool AllowPrivateConstructors { get; set; }
 }

@@ -21,39 +21,38 @@
 
 using System;
 
-namespace YamlDotNet.Core
+namespace YamlDotNet.Core;
+
+/// <summary>
+///     The exception that is thrown when an alias references an anchor
+///     that has not yet been defined in a context that does not support forward references.
+/// </summary>
+public sealed class ForwardAnchorNotSupportedException : YamlException
 {
     /// <summary>
-    /// The exception that is thrown when an alias references an anchor
-    /// that has not yet been defined in a context that does not support forward references.
+    ///     Initializes a new instance of the <see cref="AnchorNotFoundException" /> class.
     /// </summary>
-    public sealed class ForwardAnchorNotSupportedException : YamlException
+    /// <param name="message">The message.</param>
+    public ForwardAnchorNotSupportedException(string message)
+        : base(message)
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="AnchorNotFoundException"/> class.
-        /// </summary>
-        /// <param name="message">The message.</param>
-        public ForwardAnchorNotSupportedException(string message)
-            : base(message)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="AnchorNotFoundException"/> class.
-        /// </summary>
-        public ForwardAnchorNotSupportedException(in Mark start, in Mark end, string message)
-            : base(start, end, message)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="AnchorNotFoundException"/> class.
-        /// </summary>
-        /// <param name="message">The message.</param>
-        /// <param name="inner">The inner.</param>
-        public ForwardAnchorNotSupportedException(string message, Exception inner)
-            : base(message, inner)
-        {
-        }
+    }
+    
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="AnchorNotFoundException" /> class.
+    /// </summary>
+    public ForwardAnchorNotSupportedException(in Mark start, in Mark end, string message)
+        : base(start, end, message)
+    {
+    }
+    
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="AnchorNotFoundException" /> class.
+    /// </summary>
+    /// <param name="message">The message.</param>
+    /// <param name="inner">The inner.</param>
+    public ForwardAnchorNotSupportedException(string message, Exception inner)
+        : base(message, inner)
+    {
     }
 }

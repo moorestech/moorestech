@@ -19,23 +19,22 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-namespace YamlDotNet.Core.Events
+namespace YamlDotNet.Core.Events;
+
+/// <summary>
+///     Callback interface for external event Visitor.
+/// </summary>
+public interface IParsingEventVisitor
 {
-    /// <summary>
-    /// Callback interface for external event Visitor.
-    /// </summary>
-    public interface IParsingEventVisitor
-    {
-        void Visit(AnchorAlias e);
-        void Visit(StreamStart e);
-        void Visit(StreamEnd e);
-        void Visit(DocumentStart e);
-        void Visit(DocumentEnd e);
-        void Visit(Scalar e);
-        void Visit(SequenceStart e);
-        void Visit(SequenceEnd e);
-        void Visit(MappingStart e);
-        void Visit(MappingEnd e);
-        void Visit(Comment e);
-    }
+    void Visit(AnchorAlias e);
+    void Visit(StreamStart e);
+    void Visit(StreamEnd e);
+    void Visit(DocumentStart e);
+    void Visit(DocumentEnd e);
+    void Visit(Scalar e);
+    void Visit(SequenceStart e);
+    void Visit(SequenceEnd e);
+    void Visit(MappingStart e);
+    void Visit(MappingEnd e);
+    void Visit(Comment e);
 }

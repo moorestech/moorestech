@@ -19,61 +19,60 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-namespace YamlDotNet.Core.Events
+namespace YamlDotNet.Core.Events;
+
+/// <summary>
+///     Represents a mapping end event.
+/// </summary>
+public class MappingEnd : ParsingEvent
 {
     /// <summary>
-    /// Represents a mapping end event.
+    ///     Initializes a new instance of the <see cref="MappingEnd" /> class.
     /// </summary>
-    public class MappingEnd : ParsingEvent
+    /// <param name="start">The start position of the event.</param>
+    /// <param name="end">The end position of the event.</param>
+    public MappingEnd(in Mark start, in Mark end)
+        : base(start, end)
     {
-        /// <summary>
-        /// Gets a value indicating the variation of depth caused by this event.
-        /// The value can be either -1, 0 or 1. For start events, it will be 1,
-        /// for end events, it will be -1, and for the remaining events, it will be 0.
-        /// </summary>
-        public override int NestingIncrease => -1;
-
-        /// <summary>
-        /// Gets the event type, which allows for simpler type comparisons.
-        /// </summary>
-        internal override EventType Type => EventType.MappingEnd;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MappingEnd"/> class.
-        /// </summary>
-        /// <param name="start">The start position of the event.</param>
-        /// <param name="end">The end position of the event.</param>
-        public MappingEnd(in Mark start, in Mark end)
-            : base(start, end)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MappingEnd"/> class.
-        /// </summary>
-        public MappingEnd()
-            : this(Mark.Empty, Mark.Empty)
-        {
-        }
-
-        /// <summary>
-        /// Returns a <see cref="T:System.String"/> that represents the current <see cref="T:System.Object"/>.
-        /// </summary>
-        /// <returns>
-        /// A <see cref="T:System.String"/> that represents the current <see cref="T:System.Object"/>.
-        /// </returns>
-        public override string ToString()
-        {
-            return "Mapping end";
-        }
-
-        /// <summary>
-        /// Invokes run-time type specific Visit() method of the specified visitor.
-        /// </summary>
-        /// <param name="visitor">visitor, may not be null.</param>
-        public override void Accept(IParsingEventVisitor visitor)
-        {
-            visitor.Visit(this);
-        }
+    }
+    
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="MappingEnd" /> class.
+    /// </summary>
+    public MappingEnd()
+        : this(Mark.Empty, Mark.Empty)
+    {
+    }
+    
+    /// <summary>
+    ///     Gets a value indicating the variation of depth caused by this event.
+    ///     The value can be either -1, 0 or 1. For start events, it will be 1,
+    ///     for end events, it will be -1, and for the remaining events, it will be 0.
+    /// </summary>
+    public override int NestingIncrease => -1;
+    
+    /// <summary>
+    ///     Gets the event type, which allows for simpler type comparisons.
+    /// </summary>
+    internal override EventType Type => EventType.MappingEnd;
+    
+    /// <summary>
+    ///     Returns a <see cref="T:System.String" /> that represents the current <see cref="T:System.Object" />.
+    /// </summary>
+    /// <returns>
+    ///     A <see cref="T:System.String" /> that represents the current <see cref="T:System.Object" />.
+    /// </returns>
+    public override string ToString()
+    {
+        return "Mapping end";
+    }
+    
+    /// <summary>
+    ///     Invokes run-time type specific Visit() method of the specified visitor.
+    /// </summary>
+    /// <param name="visitor">visitor, may not be null.</param>
+    public override void Accept(IParsingEventVisitor visitor)
+    {
+        visitor.Visit(this);
     }
 }

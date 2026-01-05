@@ -22,21 +22,35 @@
 using System;
 using YamlDotNet.Serialization;
 
-namespace YamlDotNet.Helpers
+namespace YamlDotNet.Helpers;
+
+/// <summary>
+///     Empty implementation of the fsharphelper to allow trimming of csharp applications.
+/// </summary>
+public class NullFsharpHelper : IFsharpHelper
 {
-    /// <summary>
-    /// Empty implementation of the fsharphelper to allow trimming of csharp applications.
-    /// </summary>
-    public class NullFsharpHelper : IFsharpHelper
+    public object? CreateFsharpListFromArray(Type t, Type itemsType, Array arr)
     {
-        public object? CreateFsharpListFromArray(Type t, Type itemsType, Array arr) => null;
-
-        public Type? GetOptionUnderlyingType(Type t) => null;
-
-        public object? GetValue(IObjectDescriptor objectDescriptor) => null;
-
-        public bool IsFsharpListType(Type t) => false;
-
-        public bool IsOptionType(Type t) => false;
+        return null;
+    }
+    
+    public Type? GetOptionUnderlyingType(Type t)
+    {
+        return null;
+    }
+    
+    public object? GetValue(IObjectDescriptor objectDescriptor)
+    {
+        return null;
+    }
+    
+    public bool IsFsharpListType(Type t)
+    {
+        return false;
+    }
+    
+    public bool IsOptionType(Type t)
+    {
+        return false;
     }
 }

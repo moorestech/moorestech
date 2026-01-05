@@ -13,35 +13,35 @@ public class SwitchPathTest
     {
         RelativeSwitchPathTestSchemaLoader.Load(Test.GetJson("SwitchPathTests/SwitchPathTestSchema"));
     }
-
+    
     [Fact]
     public void RelativeSwitchPathLoaderThrowTest()
     {
         Assert.ThrowsAny<Exception>(() => RelativeSwitchPathTestSchemaLoader.Load(Test.GetJson("SwitchPathTests/SwitchPathThrowTestSchema")));
     }
-
+    
     [Fact]
     public void AbsoluteSwitchPathLoaderTest()
     {
         AbsoluteSwitchPathTestSchemaLoader.Load(Test.GetJson("SwitchPathTests/SwitchPathTestSchema"));
     }
-
+    
     [Fact]
     public void AbsoluteSwitchPathLoaderThrowTest()
     {
         Assert.ThrowsAny<Exception>(() => AbsoluteSwitchPathTestSchemaLoader.Load(Test.GetJson("SwitchPathTests/SwitchPathThrowTestSchema")));
     }
-
+    
     [Fact]
     public void SchemaSwitchAbsolutePathParseTest()
     {
         var path = "/Test/aaa/bbb";
-
+        
         var switchPath = SwitchPathParser.Parse(path);
-
+        
         // absoluteか
         Assert.Equal(SwitchPathType.Absolute, switchPath.Type);
-
+        
         // パスが正しいか
         var collectSwitchPath = new SwitchPath([
                 new NormalSwitchPathElement("Test"),
@@ -50,20 +50,20 @@ public class SwitchPathTest
             ],
             SwitchPathType.Absolute
         );
-
+        
         Assert.Equal(collectSwitchPath, switchPath);
     }
-
+    
     [Fact]
     public void SchemaSwitchRelativePathParseTest()
     {
         var path = "./Test/aaa/bbb";
-
+        
         var switchPath = SwitchPathParser.Parse(path);
-
+        
         // relativeか
         Assert.Equal(SwitchPathType.Relative, switchPath.Type);
-
+        
         // パスが正しいか
         var collectSwitchPath = new SwitchPath(
             [
@@ -73,20 +73,20 @@ public class SwitchPathTest
             ],
             SwitchPathType.Relative
         );
-
+        
         Assert.Equal(collectSwitchPath, switchPath);
     }
-
+    
     [Fact]
     public void SchemaSwitchParentPathParseTest()
     {
         var path = "./Test/../Test/aaa/bbb";
-
+        
         var switchPath = SwitchPathParser.Parse(path);
-
+        
         // relativeか
         Assert.Equal(SwitchPathType.Relative, switchPath.Type);
-
+        
         // パスが正しいか
         var collectSwitchPath = new SwitchPath(
             [
@@ -98,7 +98,7 @@ public class SwitchPathTest
             ],
             SwitchPathType.Relative
         );
-
+        
         Assert.Equal(collectSwitchPath, switchPath);
     }
 }

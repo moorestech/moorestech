@@ -15,14 +15,14 @@ public enum TokenType
     RSquare,
     LSquare,
     Comma,
-
+    
     True,
     False,
-
+    
     Minus,
     Int,
     Number,
-
+    
     Illegal
 }
 
@@ -31,18 +31,18 @@ public static class JsonTokenizer
     public static Token[] GetTokens(string json)
     {
         var tokens = new List<Token>();
-
+        
         var iterator = new Iterator(json);
-
+        
         while (json.Length > iterator.CurrentIndex)
         {
             // skip whitespace
             while (new[] { ' ', '\t', '\n', '\r' }.Contains(iterator.CurrentChar))
                 iterator.CurrentIndex++;
-
+            
             // end
             if (iterator.CurrentChar == '\0') break;
-
+            
             // tokenize
             switch (iterator.CurrentChar)
             {
@@ -66,7 +66,7 @@ public static class JsonTokenizer
                     break;
                 case '"':
                     var literal = "";
-
+                    
                     while (iterator.NextChar != '"')
                     {
                         iterator.CurrentIndex++;
@@ -74,18 +74,18 @@ public static class JsonTokenizer
                             throw new Exception("not implemented \\");
                         literal += iterator.CurrentChar;
                     }
-
+                    
                     iterator.CurrentIndex++;
-
+                    
                     tokens.Add(new Token(TokenType.String, literal));
                     break;
                 case '/':
                     if (iterator.NextChar != '/') throw new Exception("not implemented");
-
+                    
                     // skip comment
                     iterator.CurrentIndex++;
                     while (iterator.NextChar != '\n') iterator.CurrentIndex++;
-
+                    
                     break;
                 case '-':
                     tokens.Add(new Token(TokenType.Minus, "-"));
@@ -93,16 +93,16 @@ public static class JsonTokenizer
                 case '0' or '1' or '2' or '3' or '4' or '5' or '6' or '7' or '8' or '9':
                     var number = iterator.CurrentChar.ToString();
                     var isNumber = false;
-
+                    
                     while (iterator.NextChar is '0' or '1' or '2' or '3' or '4' or '5' or '6' or '7' or '8' or '9' || (!isNumber && iterator.NextChar is '.'))
                     {
                         if (iterator.NextChar is '.')
                             isNumber = true;
-
+                        
                         iterator.CurrentIndex++;
                         number += iterator.CurrentChar;
                     }
-
+                    
                     tokens.Add(new Token(isNumber ? TokenType.Number : TokenType.Int, number));
                     break;
                 default:
@@ -112,7 +112,7 @@ public static class JsonTokenizer
                         iterator.CurrentIndex++;
                         identifier += iterator.CurrentChar;
                     }
-
+                    
                     switch (identifier)
                     {
                         case "true":
@@ -124,21 +124,21 @@ public static class JsonTokenizer
                         default:
                             throw new Exception($"not implemented: \"{identifier}\"");
                     }
-
+                    
                     break;
             }
-
+            
             iterator.CurrentIndex++;
         }
-
+        
         return tokens.ToArray();
     }
-
-
+    
+    
     private struct Iterator(string sourceText)
     {
         public int CurrentIndex = 0;
-
+        
         public char CurrentChar => sourceText.Length > CurrentIndex ? sourceText[CurrentIndex] : '\0';
         public char NextChar => sourceText.Length > CurrentIndex + 1 ? sourceText[CurrentIndex + 1] : '\0';
     }

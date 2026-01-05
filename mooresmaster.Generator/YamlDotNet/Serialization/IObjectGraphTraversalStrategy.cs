@@ -19,20 +19,19 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-namespace YamlDotNet.Serialization
+namespace YamlDotNet.Serialization;
+
+/// <summary>
+///     Defines a strategy that walks through an object graph.
+/// </summary>
+public interface IObjectGraphTraversalStrategy
 {
     /// <summary>
-    /// Defines a strategy that walks through an object graph.
+    ///     Traverses the specified object graph.
     /// </summary>
-    public interface IObjectGraphTraversalStrategy
-    {
-        /// <summary>
-        /// Traverses the specified object graph.
-        /// </summary>
-        /// <param name="graph">The graph.</param>
-        /// <param name="visitor">An <see cref="IObjectGraphVisitor{TContext}"/> that is to be notified during the traversal.</param>
-        /// <param name="context">A <typeparamref name="TContext" /> that will be passed to the <paramref name="visitor" />.</param>
-        /// <param name="serializer">The serializer to use to serialize complex objects.</param>
-        void Traverse<TContext>(IObjectDescriptor graph, IObjectGraphVisitor<TContext> visitor, TContext context, ObjectSerializer serializer);
-    }
+    /// <param name="graph">The graph.</param>
+    /// <param name="visitor">An <see cref="IObjectGraphVisitor{TContext}" /> that is to be notified during the traversal.</param>
+    /// <param name="context">A <typeparamref name="TContext" /> that will be passed to the <paramref name="visitor" />.</param>
+    /// <param name="serializer">The serializer to use to serialize complex objects.</param>
+    void Traverse<TContext>(IObjectDescriptor graph, IObjectGraphVisitor<TContext> visitor, TContext context, ObjectSerializer serializer);
 }

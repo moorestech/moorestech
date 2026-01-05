@@ -21,20 +21,19 @@
 
 using YamlDotNet.Core.Tokens;
 
-namespace YamlDotNet.Core
-{
-    /// <summary>
-    /// Defines constants that relate to the YAML specification.
-    /// </summary>
-    public static class Constants
-    {
-        public static readonly TagDirective[] DefaultTagDirectives =
-        [
-            new TagDirective("!", "!"),
-            new TagDirective("!!", "tag:yaml.org,2002:")
-        ];
+namespace YamlDotNet.Core;
 
-        public const int MajorVersion = 1;
-        public const int MinorVersion = 3;
-    }
+/// <summary>
+///     Defines constants that relate to the YAML specification.
+/// </summary>
+public static class Constants
+{
+    public const int MajorVersion = 1;
+    public const int MinorVersion = 3;
+    
+    public static readonly TagDirective[] DefaultTagDirectives =
+    [
+        new("!", "!"),
+        new("!!", "tag:yaml.org,2002:")
+    ];
 }

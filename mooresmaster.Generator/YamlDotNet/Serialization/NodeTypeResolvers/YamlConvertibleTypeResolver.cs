@@ -22,13 +22,12 @@
 using System;
 using YamlDotNet.Core.Events;
 
-namespace YamlDotNet.Serialization.NodeTypeResolvers
+namespace YamlDotNet.Serialization.NodeTypeResolvers;
+
+public sealed class YamlConvertibleTypeResolver : INodeTypeResolver
 {
-    public sealed class YamlConvertibleTypeResolver : INodeTypeResolver
+    public bool Resolve(NodeEvent? nodeEvent, ref Type currentType)
     {
-        public bool Resolve(NodeEvent? nodeEvent, ref Type currentType)
-        {
-            return typeof(IYamlConvertible).IsAssignableFrom(currentType);
-        }
+        return typeof(IYamlConvertible).IsAssignableFrom(currentType);
     }
 }

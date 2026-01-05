@@ -49,7 +49,7 @@ public static class TypeConverter
     {
         return (T)ChangeType(value, typeof(T), enumNamingConvention, typeInspector)!; // This cast should always be valid
     }
-
+    
     /// <summary>
     ///     Converts the specified value using the invariant culture.
     /// </summary>
@@ -62,7 +62,7 @@ public static class TypeConverter
     {
         return ChangeType(value, destinationType, CultureInfo.InvariantCulture, enumNamingConvention, typeInspector);
     }
-
+    
     /// <summary>
     ///     Converts the specified value.
     /// </summary>
@@ -78,7 +78,7 @@ public static class TypeConverter
         return ChangeType(value, destinationType, new CultureInfoAdapter(CultureInfo.CurrentCulture, provider), enumNamingConvention, typeInspector);
 #pragma warning restore RS1035
     }
-
+    
     /// <summary>
     ///     Converts the specified value.
     /// </summary>
@@ -92,12 +92,12 @@ public static class TypeConverter
     {
         // Handle null and DBNull
         if (value == null || value.IsDbNull()) return destinationType.IsValueType() ? Activator.CreateInstance(destinationType) : null;
-
+        
         var sourceType = value.GetType();
-
+        
         // If the source type is compatible with the destination type, no conversion is needed
         if (destinationType == sourceType || destinationType.IsAssignableFrom(sourceType)) return value;
-
+        
         // Nullable & fsharp option types get a special treatment
         if (destinationType.IsGenericType())
         {
@@ -109,39 +109,39 @@ public static class TypeConverter
                 return Activator.CreateInstance(destinationType, convertedValue);
             }
         }
-
+        
         // Enums also require special handling
         if (destinationType.IsEnum())
         {
             var result = value;
-
+            
             if (value is string valueText)
             {
                 valueText = enumNamingConvention.Reverse(valueText);
                 valueText = typeInspector.GetEnumName(destinationType, valueText);
                 result = Enum.Parse(destinationType, valueText, true);
             }
-
+            
             return result;
         }
-
+        
         // Special case for booleans to support parsing "1" and "0". This is
         // necessary for compatibility with XML Schema.
         if (destinationType == typeof(bool))
         {
             if ("0".Equals(value)) return false;
-
+            
             if ("1".Equals(value)) return true;
         }
-
+        
         // Try with the source type's converter
         var sourceConverter = TypeDescriptor.GetConverter(sourceType);
         if (sourceConverter != null && sourceConverter.CanConvertTo(destinationType)) return sourceConverter.ConvertTo(null, culture, value, destinationType);
-
+        
         // Try with the destination type's converter
         var destinationConverter = TypeDescriptor.GetConverter(destinationType);
         if (destinationConverter != null && destinationConverter.CanConvertFrom(sourceType)) return destinationConverter.ConvertFrom(null, culture, value);
-
+        
         // Try to find a casting operator in the source or destination type
         foreach (var type in new[] { sourceType, destinationType })
         foreach (var method in type.GetPublicStaticMethods())
@@ -150,15 +150,15 @@ public static class TypeConverter
                 method.IsSpecialName &&
                 (method.Name == "op_Implicit" || method.Name == "op_Explicit") &&
                 destinationType.IsAssignableFrom(method.ReturnParameter.ParameterType);
-
+            
             if (isCastingOperator)
             {
                 var parameters = method.GetParameters();
-
+                
                 var isCompatible =
                     parameters.Length == 1 &&
                     parameters[0].ParameterType.IsAssignableFrom(sourceType);
-
+                
                 if (isCompatible)
                     try
                     {
@@ -170,7 +170,7 @@ public static class TypeConverter
                     }
             }
         }
-
+        
         // If source type is string, try to find a Parse or TryParse method
         if (sourceType == typeof(string))
             try
@@ -178,7 +178,7 @@ public static class TypeConverter
                 // Try with - public static T Parse(string, IFormatProvider)
                 var parseMethod = destinationType.GetPublicStaticMethod("Parse", typeof(string), typeof(IFormatProvider));
                 if (parseMethod != null) return parseMethod.Invoke(null, [value, culture]);
-
+                
                 // Try with - public static T Parse(string)
                 parseMethod = destinationType.GetPublicStaticMethod("Parse", typeof(string));
                 if (parseMethod != null) return parseMethod.Invoke(null, [value]);
@@ -187,14 +187,14 @@ public static class TypeConverter
             {
                 throw ex.InnerException!;
             }
-
+        
         // Handle TimeSpan
         if (destinationType == typeof(TimeSpan)) return TimeSpan.Parse((string)ChangeType(value, typeof(string), CultureInfo.InvariantCulture, enumNamingConvention, typeInspector)!, CultureInfo.InvariantCulture);
-
+        
         // Default to the Convert class
         return Convert.ChangeType(value, destinationType, CultureInfo.InvariantCulture);
     }
-
+    
     /// <summary>
     ///     Registers a <see cref="System.ComponentModel.TypeConverter" /> dynamically.
     /// </summary>
@@ -206,7 +206,7 @@ public static class TypeConverter
         var alreadyRegistered = TypeDescriptor.GetAttributes(typeof(TConvertible))
             .OfType<TypeConverterAttribute>()
             .Any(a => a.ConverterTypeName == typeof(TConverter).AssemblyQualifiedName);
-
+        
         if (!alreadyRegistered) TypeDescriptor.AddAttributes(typeof(TConvertible), new TypeConverterAttribute(typeof(TConverter)));
     }
 }

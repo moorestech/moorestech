@@ -22,15 +22,14 @@
 using System;
 using YamlDotNet.Core.Events;
 
-namespace YamlDotNet.Serialization.NodeTypeResolvers
+namespace YamlDotNet.Serialization.NodeTypeResolvers;
+
+public sealed class YamlSerializableTypeResolver : INodeTypeResolver
 {
-    public sealed class YamlSerializableTypeResolver : INodeTypeResolver
+    public bool Resolve(NodeEvent? nodeEvent, ref Type currentType)
     {
-        public bool Resolve(NodeEvent? nodeEvent, ref Type currentType)
-        {
 #pragma warning disable 0618 // IYamlSerializable is obsolete
-            return typeof(IYamlSerializable).IsAssignableFrom(currentType);
+        return typeof(IYamlSerializable).IsAssignableFrom(currentType);
 #pragma warning restore 0618
-        }
     }
 }

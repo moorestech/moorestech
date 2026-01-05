@@ -21,46 +21,44 @@
 
 using System;
 using System.Diagnostics;
-using YamlDotNet.Core;
 
-namespace YamlDotNet.Core.ObjectPool
+namespace YamlDotNet.Core.ObjectPool;
+
+/// <summary>
+///     Pooling of <see cref="StringLookAheadBuffer" /> instances.
+/// </summary>
+internal static class StringLookAheadBufferPool
 {
-    /// <summary>
-    /// Pooling of <see cref="StringLookAheadBuffer"/> instances.
-    /// </summary>
-    internal static class StringLookAheadBufferPool
+    private static readonly ObjectPool<StringLookAheadBuffer> Pool = ObjectPool.Create(new DefaultPooledObjectPolicy<StringLookAheadBuffer>());
+    
+    public static BufferWrapper Rent(string value)
     {
-        private static readonly ObjectPool<StringLookAheadBuffer> Pool = ObjectPool.Create(new DefaultPooledObjectPolicy<StringLookAheadBuffer>());
-
-        public static BufferWrapper Rent(string value)
+        var buffer = Pool.Get();
+        Debug.Assert(buffer.Length == 0);
+        
+        buffer.Value = value;
+        return new BufferWrapper(buffer, Pool);
+    }
+    
+    internal readonly struct BufferWrapper : IDisposable
+    {
+        public readonly StringLookAheadBuffer Buffer;
+        private readonly ObjectPool<StringLookAheadBuffer> pool;
+        
+        public BufferWrapper(StringLookAheadBuffer buffer, ObjectPool<StringLookAheadBuffer> pool)
         {
-            var buffer = Pool.Get();
-            Debug.Assert(buffer.Length == 0);
-
-            buffer.Value = value;
-            return new BufferWrapper(buffer, Pool);
+            Buffer = buffer;
+            this.pool = pool;
         }
-
-        internal readonly struct BufferWrapper : IDisposable
+        
+        public override string ToString()
         {
-            public readonly StringLookAheadBuffer Buffer;
-            private readonly ObjectPool<StringLookAheadBuffer> pool;
-
-            public BufferWrapper(StringLookAheadBuffer buffer, ObjectPool<StringLookAheadBuffer> pool)
-            {
-                Buffer = buffer;
-                this.pool = pool;
-            }
-
-            public override string ToString()
-            {
-                return Buffer.ToString()!;
-            }
-
-            public void Dispose()
-            {
-                pool.Return(Buffer);
-            }
+            return Buffer.ToString()!;
+        }
+        
+        public void Dispose()
+        {
+            pool.Return(Buffer);
         }
     }
 }

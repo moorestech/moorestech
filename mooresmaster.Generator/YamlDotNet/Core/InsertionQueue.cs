@@ -25,194 +25,175 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using YamlDotNet.Helpers;
 
-namespace YamlDotNet.Core
+namespace YamlDotNet.Core;
+
+/// <summary>
+///     Generic queue on which items may be inserted
+/// </summary>
+public sealed class InsertionQueue<T> : IEnumerable<T>
 {
-    /// <summary>
-    /// Generic queue on which items may be inserted
-    /// </summary>
-    public sealed class InsertionQueue<T> : IEnumerable<T>
-    {
-        private const int DefaultInitialCapacity = 1 << 7; // Must be a power of 2
-
-        // Circular buffer
-        private T[] items;
-        private int readPtr;
-        private int writePtr;
-        private int mask;
+    private const int DefaultInitialCapacity = 1 << 7; // Must be a power of 2
 #pragma warning disable IDE0032
-        private int count;
 #pragma warning restore IDE0032
-
-        public InsertionQueue(int initialCapacity = DefaultInitialCapacity)
+    
+    // Circular buffer
+    private T[] items;
+    private int mask;
+    private int readPtr;
+    private int writePtr;
+    
+    public InsertionQueue(int initialCapacity = DefaultInitialCapacity)
+    {
+        if (initialCapacity <= 0) throw new ArgumentOutOfRangeException(nameof(initialCapacity), "The initial capacity must be a positive number.");
+        
+        if (!initialCapacity.IsPowerOfTwo()) throw new ArgumentException("The initial capacity must be a power of 2.", nameof(initialCapacity));
+        
+        items = new T[initialCapacity];
+        readPtr = initialCapacity / 2;
+        writePtr = initialCapacity / 2;
+        mask = initialCapacity - 1;
+    }
+    
+    /// <summary>
+    ///     Gets the number of items that are contained by the queue.
+    /// </summary>
+    public int Count { get; private set; }
+    
+    public int Capacity => items.Length;
+    
+    public IEnumerator<T> GetEnumerator()
+    {
+        var ptr = readPtr;
+        for (var i = 0; i < Count; i++)
         {
-            if (initialCapacity <= 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(initialCapacity), "The initial capacity must be a positive number.");
-            }
-
-            if (!initialCapacity.IsPowerOfTwo())
-            {
-                throw new ArgumentException("The initial capacity must be a power of 2.", nameof(initialCapacity));
-            }
-
-            items = new T[initialCapacity];
-            readPtr = initialCapacity / 2;
-            writePtr = initialCapacity / 2;
-            mask = initialCapacity - 1;
+            yield return items[ptr];
+            ptr = (ptr - 1) & mask;
         }
-
-        /// <summary>
-        /// Gets the number of items that are contained by the queue.
-        /// </summary>
-        public int Count => count;
-        public int Capacity => items.Length;
-
-        /// <summary>
-        /// Enqueues the specified item.
-        /// </summary>
-        /// <param name="item">The item to be enqueued.</param>
-        public void Enqueue(T item)
+    }
+    
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+    
+    /// <summary>
+    ///     Enqueues the specified item.
+    /// </summary>
+    /// <param name="item">The item to be enqueued.</param>
+    public void Enqueue(T item)
+    {
+        ResizeIfNeeded();
+        
+        items[writePtr] = item;
+        writePtr = (writePtr - 1) & mask;
+        ++Count;
+    }
+    
+    /// <summary>
+    ///     Dequeues an item.
+    /// </summary>
+    /// <returns>Returns the item that been dequeued.</returns>
+    public T Dequeue()
+    {
+        if (Count == 0) throw new InvalidOperationException("The queue is empty");
+        
+        var item = items[readPtr];
+        readPtr = (readPtr - 1) & mask;
+        --Count;
+        return item;
+    }
+    
+    /// <summary>
+    ///     Inserts an item at the specified index.
+    /// </summary>
+    /// <param name="index">The index where to insert the item.</param>
+    /// <param name="item">The item to be inserted.</param>
+    public void Insert(int index, T item)
+    {
+        if (index > Count) throw new InvalidOperationException("Cannot insert outside of the bounds of the queue");
+        
+        ResizeIfNeeded();
+        
+        CalculateInsertionParameters(
+            mask, Count, index,
+            ref readPtr, ref writePtr,
+            out var insertPtr,
+            out var copyIndex, out var copyOffset, out var copyLength
+        );
+        
+        if (copyLength != 0) Array.Copy(items, copyIndex, items, copyIndex + copyOffset, copyLength);
+        
+        items[insertPtr] = item;
+        ++Count;
+    }
+    
+    private void ResizeIfNeeded()
+    {
+        var capacity = items.Length;
+        if (Count == capacity)
         {
-            ResizeIfNeeded();
-
-            items[writePtr] = item;
+            Debug.Assert(readPtr == writePtr);
+            
+            var newItems = new T[capacity * 2];
+            
+            var beginCount = readPtr + 1;
+            if (beginCount > 0) Array.Copy(items, 0, newItems, 0, beginCount);
+            
+            writePtr += capacity;
+            var endCount = capacity - beginCount;
+            if (endCount > 0) Array.Copy(items, readPtr + 1, newItems, writePtr + 1, endCount);
+            
+            items = newItems;
+            mask = mask * 2 + 1;
+        }
+    }
+    
+    internal static void CalculateInsertionParameters(int mask, int count, int index, ref int readPtr, ref int writePtr, out int insertPtr, out int copyIndex, out int copyOffset, out int copyLength)
+    {
+        var indexOfLastElement = (readPtr + 1) & mask;
+        if (index == 0)
+        {
+            insertPtr = readPtr = indexOfLastElement;
+            
+            // No copy is needed
+            copyIndex = 0;
+            copyOffset = 0;
+            copyLength = 0;
+            return;
+        }
+        
+        insertPtr = (readPtr - index) & mask;
+        if (index == count)
+        {
             writePtr = (writePtr - 1) & mask;
-            ++count;
+            
+            // No copy is needed
+            copyIndex = 0;
+            copyOffset = 0;
+            copyLength = 0;
+            return;
         }
-
-        /// <summary>
-        /// Dequeues an item.
-        /// </summary>
-        /// <returns>Returns the item that been dequeued.</returns>
-        public T Dequeue()
+        
+        var canMoveRight = indexOfLastElement >= insertPtr;
+        var moveRightCost = canMoveRight ? readPtr - insertPtr : int.MaxValue;
+        
+        var canMoveLeft = writePtr <= insertPtr;
+        var moveLeftCost = canMoveLeft ? insertPtr - writePtr : int.MaxValue;
+        
+        if (moveRightCost <= moveLeftCost)
         {
-            if (count == 0)
-            {
-                throw new InvalidOperationException("The queue is empty");
-            }
-
-            var item = items[readPtr];
-            readPtr = (readPtr - 1) & mask;
-            --count;
-            return item;
+            ++insertPtr;
+            ++readPtr;
+            copyIndex = insertPtr;
+            copyOffset = 1;
+            copyLength = moveRightCost;
         }
-
-        /// <summary>
-        /// Inserts an item at the specified index.
-        /// </summary>
-        /// <param name="index">The index where to insert the item.</param>
-        /// <param name="item">The item to be inserted.</param>
-        public void Insert(int index, T item)
+        else
         {
-            if (index > count)
-            {
-                throw new InvalidOperationException("Cannot insert outside of the bounds of the queue");
-            }
-
-            ResizeIfNeeded();
-
-            CalculateInsertionParameters(
-                mask, count, index,
-                ref readPtr, ref writePtr,
-                out var insertPtr,
-                out var copyIndex, out var copyOffset, out var copyLength
-            );
-
-            if (copyLength != 0)
-            {
-                Array.Copy(items, copyIndex, items, copyIndex + copyOffset, copyLength);
-            }
-
-            items[insertPtr] = item;
-            ++count;
+            copyIndex = writePtr + 1;
+            copyOffset = -1;
+            copyLength = moveLeftCost;
+            writePtr = (writePtr - 1) & mask;
         }
-
-        private void ResizeIfNeeded()
-        {
-            var capacity = items.Length;
-            if (count == capacity)
-            {
-                Debug.Assert(readPtr == writePtr);
-
-                var newItems = new T[capacity * 2];
-
-                var beginCount = readPtr + 1;
-                if (beginCount > 0)
-                {
-                    Array.Copy(items, 0, newItems, 0, beginCount);
-                }
-
-                writePtr += capacity;
-                var endCount = capacity - beginCount;
-                if (endCount > 0)
-                {
-                    Array.Copy(items, readPtr + 1, newItems, writePtr + 1, endCount);
-                }
-
-                items = newItems;
-                mask = mask * 2 + 1;
-            }
-        }
-
-        internal static void CalculateInsertionParameters(int mask, int count, int index, ref int readPtr, ref int writePtr, out int insertPtr, out int copyIndex, out int copyOffset, out int copyLength)
-        {
-            var indexOfLastElement = (readPtr + 1) & mask;
-            if (index == 0)
-            {
-                insertPtr = readPtr = indexOfLastElement;
-
-                // No copy is needed
-                copyIndex = 0;
-                copyOffset = 0;
-                copyLength = 0;
-                return;
-            }
-
-            insertPtr = (readPtr - index) & mask;
-            if (index == count)
-            {
-                writePtr = (writePtr - 1) & mask;
-
-                // No copy is needed
-                copyIndex = 0;
-                copyOffset = 0;
-                copyLength = 0;
-                return;
-            }
-
-            var canMoveRight = indexOfLastElement >= insertPtr;
-            var moveRightCost = canMoveRight ? readPtr - insertPtr : int.MaxValue;
-
-            var canMoveLeft = writePtr <= insertPtr;
-            var moveLeftCost = canMoveLeft ? insertPtr - writePtr : int.MaxValue;
-
-            if (moveRightCost <= moveLeftCost)
-            {
-                ++insertPtr;
-                ++readPtr;
-                copyIndex = insertPtr;
-                copyOffset = 1;
-                copyLength = moveRightCost;
-            }
-            else
-            {
-                copyIndex = writePtr + 1;
-                copyOffset = -1;
-                copyLength = moveLeftCost;
-                writePtr = (writePtr - 1) & mask;
-            }
-        }
-
-        public IEnumerator<T> GetEnumerator()
-        {
-            var ptr = readPtr;
-            for (var i = 0; i < Count; i++)
-            {
-                yield return items[ptr];
-                ptr = (ptr - 1) & mask;
-            }
-        }
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

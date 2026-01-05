@@ -10,7 +10,7 @@ public record Type
 {
     public static Type GetType(NameTable nameTable, ITypeId? typeId, ISchema schema, Semantics semantics, SchemaTable schemaTable)
     {
-        Type type = schema switch
+        var type = schema switch
         {
             ArraySchema arraySchema => arraySchema.Items.IsValid
                 ? new ArrayType(GetType(
@@ -40,14 +40,14 @@ public record Type
         };
         return schema.IsNullable ? new NullableType(type) : type;
     }
-
+    
     private static Type GetRefType(RefSchema refSchema, NameTable nameTable, Semantics semantics)
     {
         var refTypeId = GetRefTypeId(refSchema, semantics);
         if (refTypeId == null) return new UnknownType();
         return new CustomType(nameTable.TypeNames[refTypeId]);
     }
-
+    
     private static ITypeId? GetRefTypeId(RefSchema schema, Semantics semantics)
     {
         var match = semantics.RootSemanticsTable.FirstOrDefault(root => root.Value.Root.SchemaId == schema.Ref);

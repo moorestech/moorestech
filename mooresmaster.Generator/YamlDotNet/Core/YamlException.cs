@@ -21,63 +21,62 @@
 
 using System;
 
-namespace YamlDotNet.Core
+namespace YamlDotNet.Core;
+
+/// <summary>
+///     Base exception that is thrown when the a problem occurs in the YamlDotNet library.
+/// </summary>
+public class YamlException : Exception
 {
     /// <summary>
-    /// Base exception that is thrown when the a problem occurs in the YamlDotNet library.
+    ///     Initializes a new instance of the <see cref="YamlException" /> class.
     /// </summary>
-    public class YamlException : Exception
+    /// <param name="message">The message.</param>
+    public YamlException(string message)
+        : this(Mark.Empty, Mark.Empty, message)
     {
-        /// <summary>
-        /// Gets the position in the input stream where the event that originated the exception starts.
-        /// </summary>
-        public Mark Start { get; }
-
-        /// <summary>
-        /// Gets the position in the input stream where the event that originated the exception ends.
-        /// </summary>
-        public Mark End { get; }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="YamlException"/> class.
-        /// </summary>
-        /// <param name="message">The message.</param>
-        public YamlException(string message)
-            : this(Mark.Empty, Mark.Empty, message)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="YamlException"/> class.
-        /// </summary>
-        public YamlException(in Mark start, in Mark end, string message)
-            : this(start, end, message, null)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="YamlException"/> class.
-        /// </summary>
-        public YamlException(in Mark start, in Mark end, string message, Exception? innerException)
-            : base(message, innerException)
-        {
-            Start = start;
-            End = end;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="YamlException"/> class.
-        /// </summary>
-        /// <param name="message">The message.</param>
-        /// <param name="inner">The inner.</param>
-        public YamlException(string message, Exception inner)
-            : this(Mark.Empty, Mark.Empty, message, inner)
-        {
-        }
-
-        public override string ToString()
-        {
-            return $"({Start}) - ({End}): {Message}";
-        }
+    }
+    
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="YamlException" /> class.
+    /// </summary>
+    public YamlException(in Mark start, in Mark end, string message)
+        : this(start, end, message, null)
+    {
+    }
+    
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="YamlException" /> class.
+    /// </summary>
+    public YamlException(in Mark start, in Mark end, string message, Exception? innerException)
+        : base(message, innerException)
+    {
+        Start = start;
+        End = end;
+    }
+    
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="YamlException" /> class.
+    /// </summary>
+    /// <param name="message">The message.</param>
+    /// <param name="inner">The inner.</param>
+    public YamlException(string message, Exception inner)
+        : this(Mark.Empty, Mark.Empty, message, inner)
+    {
+    }
+    
+    /// <summary>
+    ///     Gets the position in the input stream where the event that originated the exception starts.
+    /// </summary>
+    public Mark Start { get; }
+    
+    /// <summary>
+    ///     Gets the position in the input stream where the event that originated the exception ends.
+    /// </summary>
+    public Mark End { get; }
+    
+    public override string ToString()
+    {
+        return $"({Start}) - ({End}): {Message}";
     }
 }

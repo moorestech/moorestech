@@ -19,57 +19,54 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using YamlDotNet.Core;
 using YamlDotNet.Serialization.Utilities;
 
-namespace YamlDotNet.Serialization.ObjectGraphVisitors
+namespace YamlDotNet.Serialization.ObjectGraphVisitors;
+
+public sealed class CustomSerializationObjectGraphVisitor : ChainedObjectGraphVisitor
 {
-    public sealed class CustomSerializationObjectGraphVisitor : ChainedObjectGraphVisitor
+    private readonly TypeConverterCache typeConverters;
+    private readonly ObjectSerializer nestedObjectSerializer;
+    
+    public CustomSerializationObjectGraphVisitor(IObjectGraphVisitor<IEmitter> nextVisitor, IEnumerable<IYamlTypeConverter> typeConverters, ObjectSerializer nestedObjectSerializer)
+        : base(nextVisitor)
     {
-        private readonly TypeConverterCache typeConverters;
-        private readonly ObjectSerializer nestedObjectSerializer;
-
-        public CustomSerializationObjectGraphVisitor(IObjectGraphVisitor<IEmitter> nextVisitor, IEnumerable<IYamlTypeConverter> typeConverters, ObjectSerializer nestedObjectSerializer)
-            : base(nextVisitor)
+        this.typeConverters = new TypeConverterCache(typeConverters);
+        this.nestedObjectSerializer = nestedObjectSerializer;
+    }
+    
+    public override bool Enter(IPropertyDescriptor? propertyDescriptor, IObjectDescriptor value, IEmitter context, ObjectSerializer serializer)
+    {
+        //propertydescriptor will be null on the root graph object
+        if (propertyDescriptor?.ConverterType != null)
         {
-            this.typeConverters = new TypeConverterCache(typeConverters);
-            this.nestedObjectSerializer = nestedObjectSerializer;
+            var converter = typeConverters.GetConverterByType(propertyDescriptor.ConverterType);
+            converter.WriteYaml(context, value.Value, value.Type, serializer);
+            return false;
         }
-
-        public override bool Enter(IPropertyDescriptor? propertyDescriptor, IObjectDescriptor value, IEmitter context, ObjectSerializer serializer)
+        
+        if (typeConverters.TryGetConverterForType(value.Type, out var typeConverter))
         {
-            //propertydescriptor will be null on the root graph object
-            if (propertyDescriptor?.ConverterType != null)
-            {
-                var converter = typeConverters.GetConverterByType(propertyDescriptor.ConverterType);
-                converter.WriteYaml(context, value.Value, value.Type, serializer);
-                return false;
-            }
-
-            if (typeConverters.TryGetConverterForType(value.Type, out var typeConverter))
-            {
-                typeConverter.WriteYaml(context, value.Value, value.Type, serializer);
-                return false;
-            }
-
-            if (value.Value is IYamlConvertible convertible)
-            {
-                convertible.Write(context, nestedObjectSerializer);
-                return false;
-            }
-
+            typeConverter.WriteYaml(context, value.Value, value.Type, serializer);
+            return false;
+        }
+        
+        if (value.Value is IYamlConvertible convertible)
+        {
+            convertible.Write(context, nestedObjectSerializer);
+            return false;
+        }
+        
 #pragma warning disable 0618 // IYamlSerializable is obsolete
-            if (value.Value is IYamlSerializable serializable)
-            {
-                serializable.WriteYaml(context);
-                return false;
-            }
-#pragma warning restore
-
-            return base.Enter(propertyDescriptor, value, context, serializer);
+        if (value.Value is IYamlSerializable serializable)
+        {
+            serializable.WriteYaml(context);
+            return false;
         }
+#pragma warning restore
+        
+        return base.Enter(propertyDescriptor, value, context, serializer);
     }
 }

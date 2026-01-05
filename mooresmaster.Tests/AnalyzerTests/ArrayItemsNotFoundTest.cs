@@ -19,14 +19,14 @@ public class ArrayItemsNotFoundTest
               - key: myArray
                 type: array
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
-
+        
         Assert.Single(diagnosticsArray);
         var diagnostics = Assert.IsType<ArrayItemsNotFoundDiagnostics>(diagnosticsArray[0]);
         Assert.Equal("myArray", diagnostics.PropertyName);
     }
-
+    
     /// <summary>
     ///     配列にitemsが定義されている場合はエラーが出ないテスト
     /// </summary>
@@ -43,12 +43,12 @@ public class ArrayItemsNotFoundTest
                 items:
                   type: string
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
-
+        
         Assert.Empty(diagnosticsArray);
     }
-
+    
     /// <summary>
     ///     複数の配列でitemsが定義されていない場合のエラーのテスト
     /// </summary>
@@ -65,18 +65,18 @@ public class ArrayItemsNotFoundTest
               - key: array2
                 type: array
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
-
+        
         Assert.Equal(2, diagnosticsArray.Count);
-
+        
         var diagnostics1 = Assert.IsType<ArrayItemsNotFoundDiagnostics>(diagnosticsArray[0]);
         Assert.Equal("array1", diagnostics1.PropertyName);
-
+        
         var diagnostics2 = Assert.IsType<ArrayItemsNotFoundDiagnostics>(diagnosticsArray[1]);
         Assert.Equal("array2", diagnostics2.PropertyName);
     }
-
+    
     /// <summary>
     ///     ネストされた配列でitemsが定義されていない場合のエラーのテスト
     /// </summary>
@@ -96,14 +96,14 @@ public class ArrayItemsNotFoundTest
                     - key: innerArray
                       type: array
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
-
+        
         Assert.Single(diagnosticsArray);
         var diagnostics = Assert.IsType<ArrayItemsNotFoundDiagnostics>(diagnosticsArray[0]);
         Assert.Equal("innerArray", diagnostics.PropertyName);
     }
-
+    
     /// <summary>
     ///     ルートが配列型でitemsが定義されていない場合のエラーのテスト
     /// </summary>
@@ -115,14 +115,14 @@ public class ArrayItemsNotFoundTest
             id: testSchema
             type: array
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
-
+        
         Assert.Single(diagnosticsArray);
         var diagnostics = Assert.IsType<ArrayItemsNotFoundDiagnostics>(diagnosticsArray[0]);
         Assert.Null(diagnostics.PropertyName);
     }
-
+    
     /// <summary>
     ///     Diagnosticsに正しいJsonObjectとSchemaIdが含まれていることのテスト
     /// </summary>
@@ -137,12 +137,12 @@ public class ArrayItemsNotFoundTest
               - key: myArray
                 type: array
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
-
+        
         Assert.Single(diagnosticsArray);
         var diagnostics = Assert.IsType<ArrayItemsNotFoundDiagnostics>(diagnosticsArray[0]);
-
+        
         Assert.NotNull(diagnostics.ArrayJson);
         Assert.Single(diagnostics.Locations);
     }

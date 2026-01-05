@@ -7,7 +7,7 @@
         <Nullable>enable</Nullable>
         <DefineConstants>ENABLE_MOORESMASTER_GENERATOR;ENABLE_MOORESMASTER_ERROR_FILE_OUTPUT</DefineConstants>
     </PropertyGroup>
-     
+
     <ItemGroup>
         <ProjectReference Include="..\mooresmaster.Generator\mooresmaster.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
@@ -17,8 +17,8 @@
     <ItemGroup>
         <None Remove="Schema.yml"/>
         <AdditionalFiles Include="Schema.yml"/>
-        <None Remove="OtherSchema.yml" />
-        <AdditionalFiles Include="OtherSchema.yml" />
+        <None Remove="OtherSchema.yml"/>
+        <AdditionalFiles Include="OtherSchema.yml"/>
     </ItemGroup>
 
 </Project>

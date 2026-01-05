@@ -19,21 +19,32 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+using System.Runtime.CompilerServices;
+
 #pragma warning disable IDE0130
-namespace YamlDotNet
+namespace YamlDotNet;
 #pragma warning restore IDE0130
+
+
+internal static class Polyfills
 {
-    internal static class Polyfills
-    {
 #if NETFRAMEWORK || NETSTANDARD2_0
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        internal static bool Contains(this string source, char c) => source.IndexOf(c) != -1;
-
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        internal static bool EndsWith(this string source, char c) => source.Length > 0 && source[source.Length - 1] == c;
-
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        internal static bool StartsWith(this string source, char c) => source.Length > 0 && source[0] == c;
-#endif
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static bool Contains(this string source, char c)
+    {
+        return source.IndexOf(c) != -1;
     }
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static bool EndsWith(this string source, char c)
+    {
+        return source.Length > 0 && source[source.Length - 1] == c;
+    }
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static bool StartsWith(this string source, char c)
+    {
+        return source.Length > 0 && source[0] == c;
+    }
+#endif
 }

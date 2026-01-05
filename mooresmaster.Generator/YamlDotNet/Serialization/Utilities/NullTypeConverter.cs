@@ -21,10 +21,12 @@
 
 using System;
 
-namespace YamlDotNet.Serialization.Utilities
+namespace YamlDotNet.Serialization.Utilities;
+
+public class NullTypeConverter : ITypeConverter
 {
-    public class NullTypeConverter : ITypeConverter
+    public object? ChangeType(object? value, Type expectedType, INamingConvention enumNamingConvention, ITypeInspector typeInspector)
     {
-        public object? ChangeType(object? value, Type expectedType, INamingConvention enumNamingConvention, ITypeInspector typeInspector) => value;
+        return value;
     }
 }

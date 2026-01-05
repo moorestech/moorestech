@@ -10,25 +10,17 @@ public class DuplicateImplementationInterfaceAnalyzer : IPostJsonSchemaLayerAnal
     {
         // DefineInterfaceの重複継承をチェック
         foreach (var schemaFile in schemaFiles)
-        {
-            foreach (var defineInterface in schemaFile.Schema.Interfaces)
-            {
-                foreach (var kvp in defineInterface.DuplicateImplementationLocations)
-                {
-                    analysis.ReportDiagnostics(new DuplicateImplementationInterfaceDiagnostics(
-                        defineInterface.InterfaceName,
-                        kvp.Key,
-                        kvp.Value
-                    ));
-                }
-            }
-        }
-
+        foreach (var defineInterface in schemaFile.Schema.Interfaces)
+        foreach (var kvp in defineInterface.DuplicateImplementationLocations)
+            analysis.ReportDiagnostics(new DuplicateImplementationInterfaceDiagnostics(
+                defineInterface.InterfaceName,
+                kvp.Key,
+                kvp.Value
+            ));
+        
         // ObjectSchemaの重複継承をチェック
         foreach (var kvp in schemaTable.Table)
-        {
             if (kvp.Value is ObjectSchema objectSchema)
-            {
                 foreach (var duplicateKvp in objectSchema.DuplicateImplementationLocations)
                 {
                     var targetName = objectSchema.PropertyName ?? "(anonymous object)";
@@ -38,7 +30,5 @@ public class DuplicateImplementationInterfaceAnalyzer : IPostJsonSchemaLayerAnal
                         duplicateKvp.Value
                     ));
                 }
-            }
-        }
     }
 }

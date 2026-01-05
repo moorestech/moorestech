@@ -22,25 +22,24 @@
 using System;
 using System.Globalization;
 
-namespace YamlDotNet
+namespace YamlDotNet;
+
+internal sealed class CultureInfoAdapter : CultureInfo
 {
-    internal sealed class CultureInfoAdapter : CultureInfo
+    private readonly IFormatProvider provider;
+    
+    public CultureInfoAdapter(CultureInfo baseCulture, IFormatProvider provider)
+        : base(baseCulture.Name)
     {
-        private readonly IFormatProvider provider;
-
-        public CultureInfoAdapter(CultureInfo baseCulture, IFormatProvider provider)
-            : base(baseCulture.Name)
-        {
-            this.provider = provider;
-        }
-
+        this.provider = provider;
+    }
+    
 #if NETSTANDARD2_0_OR_GREATER || NET6_0_OR_GREATER
-        public override object GetFormat(Type? formatType)
+    public override object GetFormat(Type? formatType)
 #else
         public override object? GetFormat(Type formatType)
 #endif
-        {
-            return provider.GetFormat(formatType)!;
-        }
+    {
+        return provider.GetFormat(formatType)!;
     }
 }

@@ -22,48 +22,47 @@
 using System;
 using YamlDotNet.Serialization.ObjectFactories;
 
-namespace YamlDotNet.Serialization
+namespace YamlDotNet.Serialization;
+
+/// <summary>
+///     Holds the static object factory and type inspector to use when statically serializing/deserializing YAML.
+/// </summary>
+public abstract class StaticContext
 {
     /// <summary>
-    /// Holds the static object factory and type inspector to use when statically serializing/deserializing YAML.
+    ///     Gets whether the type is known to the context
     /// </summary>
-    public abstract class StaticContext
+    /// <param name="type">Type to check</param>
+    /// <returns></returns>
+    public virtual bool IsKnownType(Type type)
     {
-        /// <summary>
-        /// Gets whether the type is known to the context
-        /// </summary>
-        /// <param name="type">Type to check</param>
-        /// <returns></returns>
-        public virtual bool IsKnownType(Type type)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Gets the <see cref="ITypeResolver"/> to use for serialization
-        /// </summary>
-        /// <returns></returns>
-        public virtual ITypeResolver GetTypeResolver()
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Gets the factory to use for serialization and deserialization
-        /// </summary>
-        /// <returns></returns>
-        public virtual StaticObjectFactory GetFactory()
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Gets the type inspector to use when statically serializing/deserializing YAML.
-        /// </summary>
-        /// <returns></returns>
-        public virtual ITypeInspector GetTypeInspector()
-        {
-            throw new NotImplementedException();
-        }
+        throw new NotImplementedException();
+    }
+    
+    /// <summary>
+    ///     Gets the <see cref="ITypeResolver" /> to use for serialization
+    /// </summary>
+    /// <returns></returns>
+    public virtual ITypeResolver GetTypeResolver()
+    {
+        throw new NotImplementedException();
+    }
+    
+    /// <summary>
+    ///     Gets the factory to use for serialization and deserialization
+    /// </summary>
+    /// <returns></returns>
+    public virtual StaticObjectFactory GetFactory()
+    {
+        throw new NotImplementedException();
+    }
+    
+    /// <summary>
+    ///     Gets the type inspector to use when statically serializing/deserializing YAML.
+    /// </summary>
+    /// <returns></returns>
+    public virtual ITypeInspector GetTypeInspector()
+    {
+        throw new NotImplementedException();
     }
 }

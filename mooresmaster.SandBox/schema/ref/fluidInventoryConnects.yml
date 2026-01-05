@@ -1,7 +1,7 @@
 id: fluidInventoryConnects
 type: object
 properties:
-- key: inflowConnects
-  ref: blockConnectInfo
-- key: outflowConnects
-  ref: blockConnectInfo
+  - key: inflowConnects
+    ref: blockConnectInfo
+  - key: outflowConnects
+    ref: blockConnectInfo

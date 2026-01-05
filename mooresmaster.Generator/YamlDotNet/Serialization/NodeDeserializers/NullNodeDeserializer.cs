@@ -23,41 +23,35 @@ using System;
 using YamlDotNet.Core;
 using YamlDotNet.Core.Events;
 
-namespace YamlDotNet.Serialization.NodeDeserializers
+namespace YamlDotNet.Serialization.NodeDeserializers;
+
+public sealed class NullNodeDeserializer : INodeDeserializer
 {
-    public sealed class NullNodeDeserializer : INodeDeserializer
+    public bool Deserialize(IParser parser, Type expectedType, Func<IParser, Type, object?> nestedObjectDeserializer, out object? value, ObjectDeserializer rootDeserializer)
     {
-        public bool Deserialize(IParser parser, Type expectedType, Func<IParser, Type, object?> nestedObjectDeserializer, out object? value, ObjectDeserializer rootDeserializer)
-        {
-            value = null;
-            if (parser.Accept<NodeEvent>(out var evt))
+        value = null;
+        if (parser.Accept<NodeEvent>(out var evt))
+            if (NodeIsNull(evt))
             {
-                if (NodeIsNull(evt))
-                {
-                    parser.SkipThisAndNestedEvents();
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private static bool NodeIsNull(NodeEvent nodeEvent)
-        {
-            // http://yaml.org/type/null.html
-
-            if (nodeEvent.Tag == "tag:yaml.org,2002:null")
-            {
+                parser.SkipThisAndNestedEvents();
                 return true;
             }
-
-            if (nodeEvent is Scalar scalar && scalar.Style == Core.ScalarStyle.Plain && !scalar.IsKey)
-            {
-                var value = scalar.Value;
-                return value == "" || value == "~" || value == "null" || value == "Null" || value == "NULL";
-            }
-
-            return false;
+        
+        return false;
+    }
+    
+    private static bool NodeIsNull(NodeEvent nodeEvent)
+    {
+        // http://yaml.org/type/null.html
+        
+        if (nodeEvent.Tag == "tag:yaml.org,2002:null") return true;
+        
+        if (nodeEvent is Scalar scalar && scalar.Style == ScalarStyle.Plain && !scalar.IsKey)
+        {
+            var value = scalar.Value;
+            return value == "" || value == "~" || value == "null" || value == "Null" || value == "NULL";
         }
+        
+        return false;
     }
 }

@@ -22,14 +22,13 @@
 using System;
 using YamlDotNet.Serialization;
 
-namespace YamlDotNet.Helpers
+namespace YamlDotNet.Helpers;
+
+public interface IFsharpHelper
 {
-    public interface IFsharpHelper
-    {
-        bool IsOptionType(Type t);
-        Type? GetOptionUnderlyingType(Type t);
-        object? GetValue(IObjectDescriptor objectDescriptor);
-        bool IsFsharpListType(Type t);
-        object? CreateFsharpListFromArray(Type t, Type itemsType, Array arr);
-    }
+    bool IsOptionType(Type t);
+    Type? GetOptionUnderlyingType(Type t);
+    object? GetValue(IObjectDescriptor objectDescriptor);
+    bool IsFsharpListType(Type t);
+    object? CreateFsharpListFromArray(Type t, Type itemsType, Array arr);
 }

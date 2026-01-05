@@ -22,34 +22,31 @@
 using System.Globalization;
 using YamlDotNet.Serialization.Utilities;
 
-namespace YamlDotNet.Serialization.NamingConventions
+namespace YamlDotNet.Serialization.NamingConventions;
+
+/// <summary>
+///     Convert the string with underscores (this_is_a_test) or hyphens (this-is-a-test) to
+///     lower case (thisisatest).
+/// </summary>
+public sealed class LowerCaseNamingConvention : INamingConvention
 {
-    /// <summary>
-    /// Convert the string with underscores (this_is_a_test) or hyphens (this-is-a-test) to 
-    /// lower case (thisisatest).
-    /// </summary>
-    public sealed class LowerCaseNamingConvention : INamingConvention
+    public static readonly INamingConvention Instance = new LowerCaseNamingConvention();
+    
+    private LowerCaseNamingConvention()
     {
-        private LowerCaseNamingConvention() { }
-
-        public string Apply(string value)
-        {
-            return value.ToCamelCase().ToLower(CultureInfo.InvariantCulture);
-        }
-
-        public string Reverse(string value)
-        {
-            // lower case values don't have any context as to what should be upper or not. So we only do the first character
-            if (string.IsNullOrEmpty(value))
-            {
-                return value;
-            }
-
-            var result = char.ToUpperInvariant(value[0]) + value.Substring(1);
-            return result;
-
-        }
-
-        public static readonly INamingConvention Instance = new LowerCaseNamingConvention();
+    }
+    
+    public string Apply(string value)
+    {
+        return value.ToCamelCase().ToLower(CultureInfo.InvariantCulture);
+    }
+    
+    public string Reverse(string value)
+    {
+        // lower case values don't have any context as to what should be upper or not. So we only do the first character
+        if (string.IsNullOrEmpty(value)) return value;
+        
+        var result = char.ToUpperInvariant(value[0]) + value.Substring(1);
+        return result;
     }
 }

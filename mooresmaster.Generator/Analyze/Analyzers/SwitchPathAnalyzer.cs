@@ -12,64 +12,54 @@ public class SwitchPathAnalyzer : IPostJsonSchemaLayerAnalyzer
     {
         // 各スキーマファイルのルートSchemaIdをセットに追加
         var rootSchemaIds = new HashSet<SchemaId>();
-        foreach (var schemaFile in schemaFiles)
-        {
-            rootSchemaIds.Add(schemaFile.Schema.InnerSchema);
-        }
-
+        foreach (var schemaFile in schemaFiles) rootSchemaIds.Add(schemaFile.Schema.InnerSchema);
+        
         foreach (var kvp in schemaTable.Table)
         {
             var schema = kvp.Value;
             if (!(schema is SwitchSchema switchSchema)) continue;
             if (!switchSchema.IfThenArray.IsValid) continue;
             if (switchSchema.IfThenArray.Value!.Length == 0) continue;
-
+            
             var switchPath = switchSchema.IfThenArray.Value![0].SwitchReferencePath;
-
+            
             // このSwitchSchemaのルートを親を辿って見つける
             var rootSchemaId = FindRootSchemaId(switchSchema, schemaTable, rootSchemaIds);
             if (rootSchemaId == null) continue;
-
+            
             ValidateSwitchPath(analysis, schemaTable, switchSchema, switchPath, rootSchemaId.Value);
         }
     }
-
+    
     private SchemaId? FindRootSchemaId(ISchema schema, SchemaTable schemaTable, HashSet<SchemaId> rootSchemaIds)
     {
         var current = schema;
         while (current.Parent.HasValue)
         {
             var parentId = current.Parent.Value;
-            if (rootSchemaIds.Contains(parentId))
-            {
-                return parentId;
-            }
+            if (rootSchemaIds.Contains(parentId)) return parentId;
             current = schemaTable.Table[parentId];
         }
-
+        
         // currentがルートかどうかをチェック
         foreach (var kvp in schemaTable.Table)
-        {
             if (kvp.Value == current && rootSchemaIds.Contains(kvp.Key))
-            {
                 return kvp.Key;
-            }
-        }
-
+        
         return null;
     }
-
+    
     private void ValidateSwitchPath(Analysis analysis, SchemaTable schemaTable, SwitchSchema switchSchema, SwitchPath switchPath, SchemaId rootSchemaId)
     {
         // Switchの親ObjectSchemaを取得
         if (!switchSchema.Parent.HasValue) return;
-
+        
         var parentSchema = schemaTable.Table[switchSchema.Parent.Value];
         if (!(parentSchema is ObjectSchema parentObjectSchema)) return;
-
+        
         SchemaId currentSchemaId;
         ISchema currentSchema;
-
+        
         switch (switchPath.Type)
         {
             case SwitchPathType.Absolute:
@@ -85,9 +75,8 @@ public class SwitchPathAnalyzer : IPostJsonSchemaLayerAnalyzer
             default:
                 return;
         }
-
+        
         foreach (var element in switchPath.Elements)
-        {
             if (element is ParentSwitchPathElement)
             {
                 // 親に遡る
@@ -99,6 +88,7 @@ public class SwitchPathAnalyzer : IPostJsonSchemaLayerAnalyzer
                     ));
                     return;
                 }
+                
                 currentSchemaId = currentSchema.Parent.Value;
                 currentSchema = schemaTable.Table[currentSchemaId];
             }
@@ -114,7 +104,7 @@ public class SwitchPathAnalyzer : IPostJsonSchemaLayerAnalyzer
                     ));
                     return;
                 }
-
+                
                 if (!objectSchema.Properties.ContainsKey(normalElement.Path))
                 {
                     analysis.ReportDiagnostics(new SwitchPathPropertyNotFoundDiagnostics(
@@ -125,13 +115,12 @@ public class SwitchPathAnalyzer : IPostJsonSchemaLayerAnalyzer
                     ));
                     return;
                 }
-
+                
                 currentSchemaId = objectSchema.Properties[normalElement.Path];
                 currentSchema = schemaTable.Table[currentSchemaId];
             }
-        }
     }
-
+    
     public static string FormatSwitchPath(SwitchPath path)
     {
         var prefix = path.Type == SwitchPathType.Absolute ? "/" : "./";
@@ -154,12 +143,12 @@ public class SwitchPathPropertyNotFoundDiagnostics : IDiagnostics
         AvailableProperties = availableProperties;
         Locations = new[] { location };
     }
-
+    
     public SwitchPath SwitchPath { get; }
     public string PropertyName { get; }
     public string[] AvailableProperties { get; }
     public Location[] Locations { get; }
-
+    
     public string Message => $"Invalid switch path '{SwitchPathAnalyzer.FormatSwitchPath(SwitchPath)}'. Property '{PropertyName}' not found. Available properties: [{string.Join(", ", AvailableProperties)}]";
 }
 
@@ -171,11 +160,11 @@ public class SwitchPathNotAnObjectDiagnostics : IDiagnostics
         PropertyName = propertyName;
         Locations = new[] { location };
     }
-
+    
     public SwitchPath SwitchPath { get; }
     public string PropertyName { get; }
     public Location[] Locations { get; }
-
+    
     public string Message => $"Invalid switch path '{SwitchPathAnalyzer.FormatSwitchPath(SwitchPath)}'. Cannot access property '{PropertyName}': current schema is not an object";
 }
 
@@ -186,9 +175,9 @@ public class SwitchPathCannotNavigateToParentDiagnostics : IDiagnostics
         SwitchPath = switchPath;
         Locations = new[] { location };
     }
-
+    
     public SwitchPath SwitchPath { get; }
     public Location[] Locations { get; }
-
+    
     public string Message => $"Invalid switch path '{SwitchPathAnalyzer.FormatSwitchPath(SwitchPath)}'. Cannot navigate to parent: already at root";
 }

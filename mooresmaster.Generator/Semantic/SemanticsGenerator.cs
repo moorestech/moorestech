@@ -176,7 +176,7 @@ public static class SemanticsGenerator
                         Generate(itemsSchema, table, rootId, analysis).AddTo(semantics);
                     }
                 }
-
+                
                 break;
             case ObjectSchema objectSchema:
                 var (innerSemantics, _) = Generate(objectSchema, table, rootId, analysis);
@@ -208,24 +208,22 @@ public static class SemanticsGenerator
     private static (Semantics, SwitchId) Generate(SwitchSchema switchSchema, SchemaTable table, RootId rootId, Analysis analysis)
     {
         var semantics = new Semantics();
-
+        
         var interfaceId = SwitchId.New();
         List<(SwitchPath, string, ClassId)> thenList = new();
-
+        
         if (switchSchema.IfThenArray.IsValid)
-        {
             foreach (var ifThen in switchSchema.IfThenArray.Value!)
             {
                 Generate(table.Table[ifThen.Schema], table, rootId, analysis).AddTo(semantics);
-
+                
                 var then = semantics.SchemaTypeSemanticsTable[table.Table[ifThen.Schema]];
                 semantics.SwitchInheritList.Add((interfaceId, then));
                 thenList.Add((ifThen.SwitchReferencePath, ifThen.When, then));
             }
-        }
-
+        
         semantics.SwitchSemanticsTable.Add(interfaceId, new SwitchSemantics(switchSchema, thenList.ToArray()));
-
+        
         return (semantics, interfaceId);
     }
     

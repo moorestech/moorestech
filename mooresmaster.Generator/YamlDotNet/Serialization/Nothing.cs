@@ -20,12 +20,11 @@
 // SOFTWARE.
 
 
-namespace YamlDotNet.Serialization
+namespace YamlDotNet.Serialization;
+
+/// <summary>
+///     An empty type for cases where a type needs to be provided but won't be used.
+/// </summary>
+public struct Nothing
 {
-    /// <summary>
-    /// An empty type for cases where a type needs to be provided but won't be used.
-    /// </summary>
-    public struct Nothing
-    {
-    }
 }

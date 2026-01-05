@@ -21,44 +21,40 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Text;
 using YamlDotNet.Core;
 using YamlDotNet.Core.Events;
-using YamlDotNet.Serialization.Utilities;
 
-namespace YamlDotNet.Serialization.NodeDeserializers
+namespace YamlDotNet.Serialization.NodeDeserializers;
+
+public abstract class CollectionDeserializer
 {
-    public abstract class CollectionDeserializer
+    protected static void DeserializeHelper(Type tItem, IParser parser, Func<IParser, Type, object?> nestedObjectDeserializer, IList result, bool canUpdate, IObjectFactory objectFactory)
     {
-        protected static void DeserializeHelper(Type tItem, IParser parser, Func<IParser, Type, object?> nestedObjectDeserializer, IList result, bool canUpdate, IObjectFactory objectFactory)
+        parser.Consume<SequenceStart>();
+        while (!parser.TryConsume<SequenceEnd>(out _))
         {
-            parser.Consume<SequenceStart>();
-            while (!parser.TryConsume<SequenceEnd>(out var _))
+            var current = parser.Current;
+            
+            var value = nestedObjectDeserializer(parser, tItem);
+            if (value is IValuePromise promise)
             {
-                var current = parser.Current;
-
-                var value = nestedObjectDeserializer(parser, tItem);
-                if (value is IValuePromise promise)
+                if (canUpdate)
                 {
-                    if (canUpdate)
-                    {
-                        var index = result.Add(objectFactory.CreatePrimitive(tItem));
-                        promise.ValueAvailable += v => result[index] = v;
-                    }
-                    else
-                    {
-                        throw new ForwardAnchorNotSupportedException(
-                            current?.Start ?? Mark.Empty,
-                            current?.End ?? Mark.Empty,
-                            "Forward alias references are not allowed because this type does not implement IList<>"
-                        );
-                    }
+                    var index = result.Add(objectFactory.CreatePrimitive(tItem));
+                    promise.ValueAvailable += v => result[index] = v;
                 }
                 else
                 {
-                    result.Add(value);
+                    throw new ForwardAnchorNotSupportedException(
+                        current?.Start ?? Mark.Empty,
+                        current?.End ?? Mark.Empty,
+                        "Forward alias references are not allowed because this type does not implement IList<>"
+                    );
                 }
+            }
+            else
+            {
+                result.Add(value);
             }
         }
     }

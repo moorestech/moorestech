@@ -19,21 +19,20 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-namespace YamlDotNet.Core.Events
+namespace YamlDotNet.Core.Events;
+
+internal enum EventType
 {
-    internal enum EventType
-    {
-        None,
-        StreamStart,
-        StreamEnd,
-        DocumentStart,
-        DocumentEnd,
-        Alias,
-        Scalar,
-        SequenceStart,
-        SequenceEnd,
-        MappingStart,
-        MappingEnd,
-        Comment,
-    }
+    None,
+    StreamStart,
+    StreamEnd,
+    DocumentStart,
+    DocumentEnd,
+    Alias,
+    Scalar,
+    SequenceStart,
+    SequenceEnd,
+    MappingStart,
+    MappingEnd,
+    Comment
 }

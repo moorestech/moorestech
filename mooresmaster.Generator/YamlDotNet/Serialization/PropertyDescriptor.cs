@@ -22,65 +22,56 @@
 using System;
 using YamlDotNet.Core;
 
-namespace YamlDotNet.Serialization
+namespace YamlDotNet.Serialization;
+
+public sealed class PropertyDescriptor : IPropertyDescriptor
 {
-    public sealed class PropertyDescriptor : IPropertyDescriptor
+    private readonly IPropertyDescriptor baseDescriptor;
+    
+    public PropertyDescriptor(IPropertyDescriptor baseDescriptor)
     {
-        private readonly IPropertyDescriptor baseDescriptor;
-        public PropertyDescriptor(IPropertyDescriptor baseDescriptor)
-        {
-            this.baseDescriptor = baseDescriptor;
-            Name = baseDescriptor.Name;
-        }
-
-        public bool AllowNulls
-        {
-            get
-            {
-                return baseDescriptor.AllowNulls;
-            }
-        }
-
-        public string Name { get; set; }
-
-        public bool Required { get => baseDescriptor.Required; }
-
-        public Type Type { get { return baseDescriptor.Type; } }
-
-        public Type? TypeOverride
-        {
-            get { return baseDescriptor.TypeOverride; }
-            set { baseDescriptor.TypeOverride = value; }
-        }
-
-        public Type? ConverterType => baseDescriptor.ConverterType;
-
-        public int Order { get; set; }
-
-        public ScalarStyle ScalarStyle
-        {
-            get { return baseDescriptor.ScalarStyle; }
-            set { baseDescriptor.ScalarStyle = value; }
-        }
-
-        public bool CanWrite
-        {
-            get { return baseDescriptor.CanWrite; }
-        }
-
-        public void Write(object target, object? value)
-        {
-            baseDescriptor.Write(target, value);
-        }
-
-        public T? GetCustomAttribute<T>() where T : Attribute
-        {
-            return baseDescriptor.GetCustomAttribute<T>();
-        }
-
-        public IObjectDescriptor Read(object target)
-        {
-            return baseDescriptor.Read(target);
-        }
+        this.baseDescriptor = baseDescriptor;
+        Name = baseDescriptor.Name;
+    }
+    
+    public bool AllowNulls => baseDescriptor.AllowNulls;
+    
+    public string Name { get; set; }
+    
+    public bool Required => baseDescriptor.Required;
+    
+    public Type Type => baseDescriptor.Type;
+    
+    public Type? TypeOverride
+    {
+        get => baseDescriptor.TypeOverride;
+        set => baseDescriptor.TypeOverride = value;
+    }
+    
+    public Type? ConverterType => baseDescriptor.ConverterType;
+    
+    public int Order { get; set; }
+    
+    public ScalarStyle ScalarStyle
+    {
+        get => baseDescriptor.ScalarStyle;
+        set => baseDescriptor.ScalarStyle = value;
+    }
+    
+    public bool CanWrite => baseDescriptor.CanWrite;
+    
+    public void Write(object target, object? value)
+    {
+        baseDescriptor.Write(target, value);
+    }
+    
+    public T? GetCustomAttribute<T>() where T : Attribute
+    {
+        return baseDescriptor.GetCustomAttribute<T>();
+    }
+    
+    public IObjectDescriptor Read(object target)
+    {
+        return baseDescriptor.Read(target);
     }
 }

@@ -23,39 +23,41 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace YamlDotNet.Serialization.TypeInspectors
+namespace YamlDotNet.Serialization.TypeInspectors;
+
+/// <summary>
+///     Wraps another <see cref="ITypeInspector" /> and applies a
+///     naming convention to the names of the properties.
+/// </summary>
+public class NamingConventionTypeInspector : TypeInspectorSkeleton
 {
-    /// <summary>
-    /// Wraps another <see cref="ITypeInspector"/> and applies a
-    /// naming convention to the names of the properties.
-    /// </summary>
-    public class NamingConventionTypeInspector : TypeInspectorSkeleton
+    private readonly ITypeInspector innerTypeDescriptor;
+    private readonly INamingConvention namingConvention;
+    
+    public NamingConventionTypeInspector(ITypeInspector innerTypeDescriptor, INamingConvention namingConvention)
     {
-        private readonly ITypeInspector innerTypeDescriptor;
-        private readonly INamingConvention namingConvention;
-
-        public NamingConventionTypeInspector(ITypeInspector innerTypeDescriptor, INamingConvention namingConvention)
-        {
-            this.innerTypeDescriptor = innerTypeDescriptor ?? throw new ArgumentNullException(nameof(innerTypeDescriptor));
-            this.namingConvention = namingConvention ?? throw new ArgumentNullException(nameof(namingConvention));
-        }
-
-        public override string GetEnumName(Type enumType, string name) => this.innerTypeDescriptor.GetEnumName(enumType, name);
-
-        public override string GetEnumValue(object enumValue) => this.innerTypeDescriptor.GetEnumValue(enumValue);
-
-        public override IEnumerable<IPropertyDescriptor> GetProperties(Type type, object? container)
-        {
-            return innerTypeDescriptor.GetProperties(type, container)
-                .Select(p =>
-                {
-                    var attribute = p.GetCustomAttribute<YamlMemberAttribute>();
-                    if (attribute != null && !attribute.ApplyNamingConventions)
-                    {
-                        return p;
-                    }
-                    return new PropertyDescriptor(p) { Name = namingConvention.Apply(p.Name) };
-                });
-        }
+        this.innerTypeDescriptor = innerTypeDescriptor ?? throw new ArgumentNullException(nameof(innerTypeDescriptor));
+        this.namingConvention = namingConvention ?? throw new ArgumentNullException(nameof(namingConvention));
+    }
+    
+    public override string GetEnumName(Type enumType, string name)
+    {
+        return innerTypeDescriptor.GetEnumName(enumType, name);
+    }
+    
+    public override string GetEnumValue(object enumValue)
+    {
+        return innerTypeDescriptor.GetEnumValue(enumValue);
+    }
+    
+    public override IEnumerable<IPropertyDescriptor> GetProperties(Type type, object? container)
+    {
+        return innerTypeDescriptor.GetProperties(type, container)
+            .Select(p =>
+            {
+                var attribute = p.GetCustomAttribute<YamlMemberAttribute>();
+                if (attribute != null && !attribute.ApplyNamingConventions) return p;
+                return new PropertyDescriptor(p) { Name = namingConvention.Apply(p.Name) };
+            });
     }
 }

@@ -25,73 +25,69 @@ using System.Linq;
 using System.Reflection;
 using YamlDotNet.Core;
 
-namespace YamlDotNet.Serialization.TypeInspectors
+namespace YamlDotNet.Serialization.TypeInspectors;
+
+/// <summary>
+///     Returns the properties and fields of a type that are readable.
+/// </summary>
+public class ReadableFieldsTypeInspector : ReflectionTypeInspector
 {
-    /// <summary>
-    /// Returns the properties and fields of a type that are readable.
-    /// </summary>
-    public class ReadableFieldsTypeInspector : ReflectionTypeInspector
+    private readonly ITypeResolver typeResolver;
+    
+    public ReadableFieldsTypeInspector(ITypeResolver typeResolver)
     {
+        this.typeResolver = typeResolver ?? throw new ArgumentNullException(nameof(typeResolver));
+    }
+    
+    public override IEnumerable<IPropertyDescriptor> GetProperties(Type type, object? container)
+    {
+        return type
+            .GetPublicFields()
+            .Select(p => (IPropertyDescriptor)new ReflectionFieldDescriptor(p, typeResolver));
+    }
+    
+    protected class ReflectionFieldDescriptor : IPropertyDescriptor
+    {
+        private readonly FieldInfo fieldInfo;
         private readonly ITypeResolver typeResolver;
-
-        public ReadableFieldsTypeInspector(ITypeResolver typeResolver)
+        
+        public ReflectionFieldDescriptor(FieldInfo fieldInfo, ITypeResolver typeResolver)
         {
-            this.typeResolver = typeResolver ?? throw new ArgumentNullException(nameof(typeResolver));
+            this.fieldInfo = fieldInfo;
+            this.typeResolver = typeResolver;
+            
+            var converterAttribute = fieldInfo.GetCustomAttribute<YamlConverterAttribute>();
+            if (converterAttribute != null) ConverterType = converterAttribute.ConverterType;
+            
+            ScalarStyle = ScalarStyle.Any;
         }
-
-        public override IEnumerable<IPropertyDescriptor> GetProperties(Type type, object? container)
+        
+        public string Name => fieldInfo.Name;
+        public bool Required => fieldInfo.IsRequired();
+        public Type Type => fieldInfo.FieldType;
+        public Type? ConverterType { get; }
+        public Type? TypeOverride { get; set; }
+        public bool AllowNulls => fieldInfo.AcceptsNull();
+        public int Order { get; set; }
+        public bool CanWrite => !fieldInfo.IsInitOnly;
+        public ScalarStyle ScalarStyle { get; set; }
+        
+        public void Write(object target, object? value)
         {
-            return type
-                .GetPublicFields()
-                .Select(p => (IPropertyDescriptor)new ReflectionFieldDescriptor(p, typeResolver));
+            fieldInfo.SetValue(target, value);
         }
-
-        protected class ReflectionFieldDescriptor : IPropertyDescriptor
+        
+        public T? GetCustomAttribute<T>() where T : Attribute
         {
-            private readonly FieldInfo fieldInfo;
-            private readonly ITypeResolver typeResolver;
-
-            public ReflectionFieldDescriptor(FieldInfo fieldInfo, ITypeResolver typeResolver)
-            {
-                this.fieldInfo = fieldInfo;
-                this.typeResolver = typeResolver;
-
-                var converterAttribute = fieldInfo.GetCustomAttribute<YamlConverterAttribute>();
-                if (converterAttribute != null)
-                {
-                    ConverterType = converterAttribute.ConverterType;
-                }
-
-                ScalarStyle = ScalarStyle.Any;
-            }
-
-            public string Name { get { return fieldInfo.Name; } }
-            public bool Required { get => fieldInfo.IsRequired(); }
-            public Type Type { get { return fieldInfo.FieldType; } }
-            public Type? ConverterType { get; }
-            public Type? TypeOverride { get; set; }
-            public bool AllowNulls { get => fieldInfo.AcceptsNull(); }
-            public int Order { get; set; }
-            public bool CanWrite { get { return !fieldInfo.IsInitOnly; } }
-            public ScalarStyle ScalarStyle { get; set; }
-
-            public void Write(object target, object? value)
-            {
-                fieldInfo.SetValue(target, value);
-            }
-
-            public T? GetCustomAttribute<T>() where T : Attribute
-            {
-                var attributes = fieldInfo.GetCustomAttributes(typeof(T), true);
-                return (T?)attributes.FirstOrDefault();
-            }
-
-            public IObjectDescriptor Read(object target)
-            {
-                var propertyValue = fieldInfo.GetValue(target);
-                var actualType = TypeOverride ?? typeResolver.Resolve(Type, propertyValue);
-                return new ObjectDescriptor(propertyValue, actualType, Type, ScalarStyle);
-            }
+            var attributes = fieldInfo.GetCustomAttributes(typeof(T), true);
+            return (T?)attributes.FirstOrDefault();
+        }
+        
+        public IObjectDescriptor Read(object target)
+        {
+            var propertyValue = fieldInfo.GetValue(target);
+            var actualType = TypeOverride ?? typeResolver.Resolve(Type, propertyValue);
+            return new ObjectDescriptor(propertyValue, actualType, Type, ScalarStyle);
         }
     }
 }

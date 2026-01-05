@@ -32,7 +32,7 @@ internal class DocumentLoadingState
 {
     private readonly Dictionary<AnchorName, YamlNode> anchors = [];
     private readonly List<YamlNode> nodesWithUnresolvedAliases = [];
-
+    
     /// <summary>
     ///     Adds the specified node to the anchor list.
     /// </summary>
@@ -40,10 +40,10 @@ internal class DocumentLoadingState
     public void AddAnchor(YamlNode node)
     {
         if (node.Anchor.IsEmpty) throw new ArgumentException("The specified node does not have an anchor");
-
+        
         anchors[node.Anchor] = node;
     }
-
+    
     /// <summary>
     ///     Gets the node with the specified anchor.
     /// </summary>
@@ -58,7 +58,7 @@ internal class DocumentLoadingState
             return target;
         throw new AnchorNotFoundException(start, end, $"The anchor '{anchor}' does not exists");
     }
-
+    
     /// <summary>
     ///     Gets the node with the specified anchor.
     /// </summary>
@@ -69,7 +69,7 @@ internal class DocumentLoadingState
     {
         return anchors.TryGetValue(anchor, out node);
     }
-
+    
     /// <summary>
     ///     Adds the specified node to the collection of nodes with unresolved aliases.
     /// </summary>
@@ -80,7 +80,7 @@ internal class DocumentLoadingState
     {
         nodesWithUnresolvedAliases.Add(node);
     }
-
+    
     /// <summary>
     ///     Resolves the aliases that could not be resolved while loading the document.
     /// </summary>

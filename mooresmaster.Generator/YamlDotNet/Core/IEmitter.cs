@@ -21,16 +21,15 @@
 
 using YamlDotNet.Core.Events;
 
-namespace YamlDotNet.Core
+namespace YamlDotNet.Core;
+
+/// <summary>
+///     Represents a YAML stream emitter.
+/// </summary>
+public interface IEmitter
 {
     /// <summary>
-    /// Represents a YAML stream emitter.
+    ///     Emits an event.
     /// </summary>
-    public interface IEmitter
-    {
-        /// <summary>
-        /// Emits an event.
-        /// </summary>
-        void Emit(ParsingEvent @event);
-    }
+    void Emit(ParsingEvent @event);
 }

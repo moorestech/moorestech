@@ -25,53 +25,52 @@ using System.Collections.Generic;
 using YamlDotNet.Core;
 using YamlDotNet.Helpers;
 
-namespace YamlDotNet.Serialization.NodeDeserializers
+namespace YamlDotNet.Serialization.NodeDeserializers;
+
+public class DictionaryNodeDeserializer : DictionaryDeserializer, INodeDeserializer
 {
-    public class DictionaryNodeDeserializer : DictionaryDeserializer, INodeDeserializer
+    private readonly IObjectFactory objectFactory;
+    
+    public DictionaryNodeDeserializer(IObjectFactory objectFactory, bool duplicateKeyChecking) :
+        base(duplicateKeyChecking)
     {
-        private readonly IObjectFactory objectFactory;
-
-        public DictionaryNodeDeserializer(IObjectFactory objectFactory, bool duplicateKeyChecking) :
-            base(duplicateKeyChecking)
+        this.objectFactory = objectFactory ?? throw new ArgumentNullException(nameof(objectFactory));
+    }
+    
+    public bool Deserialize(IParser parser, Type expectedType, Func<IParser, Type, object?> nestedObjectDeserializer, out object? value, ObjectDeserializer rootDeserializer)
+    {
+        IDictionary? dictionary;
+        Type keyType, valueType;
+        var genericDictionaryType = expectedType.GetImplementationOfOpenGenericInterface(typeof(IDictionary<,>));
+        if (genericDictionaryType != null)
         {
-            this.objectFactory = objectFactory ?? throw new ArgumentNullException(nameof(objectFactory));
+            var genericArguments = genericDictionaryType.GetGenericArguments();
+            keyType = genericArguments[0];
+            valueType = genericArguments[1];
+            
+            value = objectFactory.Create(expectedType);
+            
+            dictionary = value as IDictionary;
+            
+            // Uncommon case where a type implements IDictionary<TKey, TValue> but not IDictionary
+            dictionary ??= (IDictionary?)Activator.CreateInstance(typeof(GenericDictionaryToNonGenericAdapter<,>).MakeGenericType(keyType, valueType), value);
         }
-
-        public bool Deserialize(IParser parser, Type expectedType, Func<IParser, Type, object?> nestedObjectDeserializer, out object? value, ObjectDeserializer rootDeserializer)
+        else if (typeof(IDictionary).IsAssignableFrom(expectedType))
         {
-            IDictionary? dictionary;
-            Type keyType, valueType;
-            var genericDictionaryType = expectedType.GetImplementationOfOpenGenericInterface(typeof(IDictionary<,>));
-            if (genericDictionaryType != null)
-            {
-                var genericArguments = genericDictionaryType.GetGenericArguments();
-                keyType = genericArguments[0];
-                valueType = genericArguments[1];
-
-                value = objectFactory.Create(expectedType);
-
-                dictionary = value as IDictionary;
-
-                // Uncommon case where a type implements IDictionary<TKey, TValue> but not IDictionary
-                dictionary ??= (IDictionary?)Activator.CreateInstance(typeof(GenericDictionaryToNonGenericAdapter<,>).MakeGenericType(keyType, valueType), value);
-            }
-            else if (typeof(IDictionary).IsAssignableFrom(expectedType))
-            {
-                keyType = typeof(object);
-                valueType = typeof(object);
-
-                value = objectFactory.Create(expectedType);
-                dictionary = (IDictionary)value;
-            }
-            else
-            {
-                value = null;
-                return false;
-            }
-
-            Deserialize(keyType, valueType, parser, nestedObjectDeserializer, dictionary!, rootDeserializer);
-
-            return true;
+            keyType = typeof(object);
+            valueType = typeof(object);
+            
+            value = objectFactory.Create(expectedType);
+            dictionary = (IDictionary)value;
         }
+        else
+        {
+            value = null;
+            return false;
+        }
+        
+        Deserialize(keyType, valueType, parser, nestedObjectDeserializer, dictionary!, rootDeserializer);
+        
+        return true;
     }
 }

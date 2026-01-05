@@ -21,13 +21,12 @@
 
 using System;
 
-namespace YamlDotNet.Serialization
+namespace YamlDotNet.Serialization;
+
+/// <summary>
+///     Resolves the type of values.
+/// </summary>
+public interface ITypeResolver
 {
-    /// <summary>
-    /// Resolves the type of values.
-    /// </summary>
-    public interface ITypeResolver
-    {
-        Type Resolve(Type staticType, object? actualValue);
-    }
+    Type Resolve(Type staticType, object? actualValue);
 }

@@ -21,38 +21,37 @@
 
 using System;
 
-namespace YamlDotNet.Core
+namespace YamlDotNet.Core;
+
+/// <summary>
+///     The exception that is thrown when an alias references an anchor that does not exist.
+/// </summary>
+public class AnchorNotFoundException : YamlException
 {
     /// <summary>
-    /// The exception that is thrown when an alias references an anchor that does not exist.
+    ///     Initializes a new instance of the <see cref="AnchorNotFoundException" /> class.
     /// </summary>
-    public class AnchorNotFoundException : YamlException
+    /// <param name="message">The message.</param>
+    public AnchorNotFoundException(string message)
+        : base(message)
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="AnchorNotFoundException"/> class.
-        /// </summary>
-        /// <param name="message">The message.</param>
-        public AnchorNotFoundException(string message)
-            : base(message)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="AnchorNotFoundException"/> class.
-        /// </summary>
-        public AnchorNotFoundException(in Mark start, in Mark end, string message)
-            : base(start, end, message)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="AnchorNotFoundException"/> class.
-        /// </summary>
-        /// <param name="message">The message.</param>
-        /// <param name="inner">The inner.</param>
-        public AnchorNotFoundException(string message, Exception inner)
-            : base(message, inner)
-        {
-        }
+    }
+    
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="AnchorNotFoundException" /> class.
+    /// </summary>
+    public AnchorNotFoundException(in Mark start, in Mark end, string message)
+        : base(start, end, message)
+    {
+    }
+    
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="AnchorNotFoundException" /> class.
+    /// </summary>
+    /// <param name="message">The message.</param>
+    /// <param name="inner">The inner.</param>
+    public AnchorNotFoundException(string message, Exception inner)
+        : base(message, inner)
+    {
     }
 }

@@ -22,29 +22,28 @@
 using System;
 using YamlDotNet.Core;
 
-namespace YamlDotNet.Serialization.NodeDeserializers
+namespace YamlDotNet.Serialization.NodeDeserializers;
+
+public sealed class YamlConvertibleNodeDeserializer : INodeDeserializer
 {
-    public sealed class YamlConvertibleNodeDeserializer : INodeDeserializer
+    private readonly IObjectFactory objectFactory;
+    
+    public YamlConvertibleNodeDeserializer(IObjectFactory objectFactory)
     {
-        private readonly IObjectFactory objectFactory;
-
-        public YamlConvertibleNodeDeserializer(IObjectFactory objectFactory)
+        this.objectFactory = objectFactory;
+    }
+    
+    public bool Deserialize(IParser parser, Type expectedType, Func<IParser, Type, object?> nestedObjectDeserializer, out object? value, ObjectDeserializer rootDeserializer)
+    {
+        if (typeof(IYamlConvertible).IsAssignableFrom(expectedType))
         {
-            this.objectFactory = objectFactory;
+            var convertible = (IYamlConvertible)objectFactory.Create(expectedType);
+            convertible.Read(parser, expectedType, type => nestedObjectDeserializer(parser, type));
+            value = convertible;
+            return true;
         }
-
-        public bool Deserialize(IParser parser, Type expectedType, Func<IParser, Type, object?> nestedObjectDeserializer, out object? value, ObjectDeserializer rootDeserializer)
-        {
-            if (typeof(IYamlConvertible).IsAssignableFrom(expectedType))
-            {
-                var convertible = (IYamlConvertible)objectFactory.Create(expectedType);
-                convertible.Read(parser, expectedType, type => nestedObjectDeserializer(parser, type));
-                value = convertible;
-                return true;
-            }
-
-            value = null;
-            return false;
-        }
+        
+        value = null;
+        return false;
     }
 }

@@ -19,32 +19,31 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-namespace YamlDotNet.Core.Tokens
+namespace YamlDotNet.Core.Tokens;
+
+/// <summary>
+///     Base class for YAML tokens.
+/// </summary>
+public abstract class Token
 {
     /// <summary>
-    /// Base class for YAML tokens.
+    ///     Initializes a new instance of the <see cref="Token" /> class.
     /// </summary>
-    public abstract class Token
+    /// <param name="start">The start position of the token.</param>
+    /// <param name="end">The end position of the token.</param>
+    protected Token(in Mark start, in Mark end)
     {
-        /// <summary>
-        /// Gets the start of the token in the input stream.
-        /// </summary>
-        public Mark Start { get; }
-
-        /// <summary>
-        /// Gets the end of the token in the input stream.
-        /// </summary>
-        public Mark End { get; }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Token"/> class.
-        /// </summary>
-        /// <param name="start">The start position of the token.</param>
-        /// <param name="end">The end position of the token.</param>
-        protected Token(in Mark start, in Mark end)
-        {
-            this.Start = start;
-            this.End = end;
-        }
+        Start = start;
+        End = end;
     }
+    
+    /// <summary>
+    ///     Gets the start of the token in the input stream.
+    /// </summary>
+    public Mark Start { get; }
+    
+    /// <summary>
+    ///     Gets the end of the token in the input stream.
+    /// </summary>
+    public Mark End { get; }
 }

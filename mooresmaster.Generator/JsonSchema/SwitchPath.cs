@@ -11,14 +11,14 @@ public static class SwitchPathParser
         List<ISwitchPathElement> elements = [];
         var type = GetType(path);
         path = GetTopPathExcludedPath(path, type);
-
+        
         var currentPosition = 0;
-
+        
         while (true)
         {
             var (currentChar, nextChar) = GetCurrentAndNextChar(path, currentPosition);
             if (currentChar == '\0') break;
-
+            
             switch (currentChar)
             {
                 case '.': // ../ parentPath
@@ -26,65 +26,65 @@ public static class SwitchPathParser
                     {
                         currentPosition++;
                         (currentChar, nextChar) = GetCurrentAndNextChar(path, currentPosition);
-
+                        
                         if (nextChar == '/')
                         {
                             elements.Add(new ParentSwitchPathElement());
                             currentPosition++;
                         }
                     }
-
+                    
                     break;
                 default:
                     if (IsChar(currentChar))
                     {
                         List<char> chars = [];
-
+                        
                         while (IsChar(currentChar))
                         {
                             chars.Add(currentChar);
                             currentPosition++;
                             (currentChar, nextChar) = GetCurrentAndNextChar(path, currentPosition);
                         }
-
+                        
                         elements.Add(new NormalSwitchPathElement(new string(chars.ToArray())));
                     }
                     else
                     {
                         throw new Exception("Invalid switch path");
                     }
-
+                    
                     break;
             }
-
+            
             currentPosition++;
         }
-
+        
         return new SwitchPath(elements.ToArray(), type);
     }
-
+    
     private static bool IsChar(char c)
     {
         return c != '.' && c != '/' && c != '\0';
     }
-
+    
     private static (char currentChar, char nextChar) GetCurrentAndNextChar(string path, int currentPosition)
     {
         var currentChar = currentPosition < path.Length ? path[currentPosition] : (char)0;
         var nextChar = currentPosition + 1 < path.Length ? path[currentPosition + 1] : (char)0;
-
+        
         return (currentChar, nextChar);
     }
-
+    
     private static SwitchPathType GetType(string path)
     {
         if (path.StartsWith("/")) return SwitchPathType.Absolute;
-
+        
         if (path.StartsWith("./")) return SwitchPathType.Relative;
-
+        
         throw new Exception("Invalid switch path");
     }
-
+    
     private static string GetTopPathExcludedPath(string path, SwitchPathType type)
     {
         var newPath = path.Substring(type == SwitchPathType.Absolute ? 1 : 2);
@@ -96,14 +96,14 @@ public class SwitchPath(ISwitchPathElement[] Elements, SwitchPathType Type) : IE
 {
     public readonly SwitchPathType Type = Type;
     public ISwitchPathElement[] Elements = Elements;
-
+    
     public bool Equals(SwitchPath? other)
     {
         if (other is null) return false;
         if (ReferenceEquals(this, other)) return true;
         return Type == other.Type && Elements.SequenceEqual(other.Elements);
     }
-
+    
     public override bool Equals(object? obj)
     {
         if (obj is null) return false;
@@ -111,7 +111,7 @@ public class SwitchPath(ISwitchPathElement[] Elements, SwitchPathType Type) : IE
         if (obj.GetType() != GetType()) return false;
         return Equals((SwitchPath)obj);
     }
-
+    
     public override int GetHashCode()
     {
         unchecked

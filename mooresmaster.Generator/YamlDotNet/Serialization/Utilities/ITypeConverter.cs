@@ -21,18 +21,17 @@
 
 using System;
 
-namespace YamlDotNet.Serialization.Utilities
+namespace YamlDotNet.Serialization.Utilities;
+
+public interface ITypeConverter
 {
-    public interface ITypeConverter
-    {
-        /// <summary>
-        /// Convert a value to a specified type
-        /// </summary>
-        /// <param name="value"></param>
-        /// <param name="expectedType"></param>
-        /// <param name="enumNamingConvention">Naming convention to use on enums in the type converter.</param>
-        /// <param name="typeInspector">The type inspector to use when getting information about a type.</param>
-        /// <returns></returns>
-        object? ChangeType(object? value, Type expectedType, INamingConvention enumNamingConvention, ITypeInspector typeInspector);
-    }
+    /// <summary>
+    ///     Convert a value to a specified type
+    /// </summary>
+    /// <param name="value"></param>
+    /// <param name="expectedType"></param>
+    /// <param name="enumNamingConvention">Naming convention to use on enums in the type converter.</param>
+    /// <param name="typeInspector">The type inspector to use when getting information about a type.</param>
+    /// <returns></returns>
+    object? ChangeType(object? value, Type expectedType, INamingConvention enumNamingConvention, ITypeInspector typeInspector);
 }

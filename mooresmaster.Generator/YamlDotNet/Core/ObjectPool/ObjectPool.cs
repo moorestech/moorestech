@@ -24,49 +24,54 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-namespace YamlDotNet.Core.ObjectPool
+namespace YamlDotNet.Core.ObjectPool;
+
+/// <summary>
+///     A pool of objects.
+/// </summary>
+/// <typeparam name="T">The type of objects to pool.</typeparam>
+internal abstract class ObjectPool<T> where T : class
 {
     /// <summary>
-    /// A pool of objects.
+    ///     Gets an object from the pool if one is available, otherwise creates one.
     /// </summary>
-    /// <typeparam name="T">The type of objects to pool.</typeparam>
-    internal abstract class ObjectPool<T> where T : class
-    {
-        /// <summary>
-        /// Gets an object from the pool if one is available, otherwise creates one.
-        /// </summary>
-        /// <returns>A <typeparamref name="T"/>.</returns>
-        public abstract T Get();
-
-        /// <summary>
-        /// Return an object to the pool.
-        /// </summary>
-        /// <param name="obj">The object to add to the pool.</param>
-        public abstract void Return(T obj);
-    }
-
+    /// <returns>A <typeparamref name="T" />.</returns>
+    public abstract T Get();
+    
     /// <summary>
-    /// Methods for creating <see cref="ObjectPool{T}"/> instances.
+    ///     Return an object to the pool.
     /// </summary>
-    internal static class ObjectPool
-    {
-        /// <summary>
-        /// Create a new <see cref="ObjectPool{T}"/> instance using the default implementation.
-        /// </summary>
-        /// <typeparam name="T">The type of object to be pooled</typeparam>
-        /// <param name="policy">The <see cref="IPooledObjectPolicy{T}"/> to use (or <see cref="DefaultPooledObjectPolicy{T}"/> if <see langword="null"/>).</param>
-        /// <returns>An instance of <see cref="DefaultObjectPool{T}"/> with the specified policy.</returns>
-        public static ObjectPool<T> Create<T>(IPooledObjectPolicy<T>? policy = null) where T : class, new()
-        {
-            return new DefaultObjectPool<T>(policy ?? new DefaultPooledObjectPolicy<T>());
-        }
+    /// <param name="obj">The object to add to the pool.</param>
+    public abstract void Return(T obj);
+}
 
-        /// <inheritdoc cref="Create{T}(IPooledObjectPolicy{T}?)" />
-        /// <param name="maximumRetained">The maximum number of objects to retain in the pool.</param>
-        /// <param name="policy">The <see cref="IPooledObjectPolicy{T}"/> to use (or <see cref="DefaultPooledObjectPolicy{T}"/> if <see langword="null"/>).</param>
-        public static ObjectPool<T> Create<T>(int maximumRetained, IPooledObjectPolicy<T>? policy = null) where T : class, new()
-        {
-            return new DefaultObjectPool<T>(policy ?? new DefaultPooledObjectPolicy<T>(), maximumRetained);
-        }
+/// <summary>
+///     Methods for creating <see cref="ObjectPool{T}" /> instances.
+/// </summary>
+internal static class ObjectPool
+{
+    /// <summary>
+    ///     Create a new <see cref="ObjectPool{T}" /> instance using the default implementation.
+    /// </summary>
+    /// <typeparam name="T">The type of object to be pooled</typeparam>
+    /// <param name="policy">
+    ///     The <see cref="IPooledObjectPolicy{T}" /> to use (or <see cref="DefaultPooledObjectPolicy{T}" />
+    ///     if <see langword="null" />).
+    /// </param>
+    /// <returns>An instance of <see cref="DefaultObjectPool{T}" /> with the specified policy.</returns>
+    public static ObjectPool<T> Create<T>(IPooledObjectPolicy<T>? policy = null) where T : class, new()
+    {
+        return new DefaultObjectPool<T>(policy ?? new DefaultPooledObjectPolicy<T>());
+    }
+    
+    /// <inheritdoc cref="Create{T}(IPooledObjectPolicy{T}?)" />
+    /// <param name="maximumRetained">The maximum number of objects to retain in the pool.</param>
+    /// <param name="policy">
+    ///     The <see cref="IPooledObjectPolicy{T}" /> to use (or <see cref="DefaultPooledObjectPolicy{T}" />
+    ///     if <see langword="null" />).
+    /// </param>
+    public static ObjectPool<T> Create<T>(int maximumRetained, IPooledObjectPolicy<T>? policy = null) where T : class, new()
+    {
+        return new DefaultObjectPool<T>(policy ?? new DefaultPooledObjectPolicy<T>(), maximumRetained);
     }
 }

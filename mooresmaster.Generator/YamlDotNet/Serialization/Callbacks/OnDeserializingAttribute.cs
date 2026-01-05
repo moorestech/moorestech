@@ -21,10 +21,9 @@
 
 using System;
 
-namespace YamlDotNet.Serialization.Callbacks
+namespace YamlDotNet.Serialization.Callbacks;
+
+[AttributeUsage(AttributeTargets.Method)]
+public sealed class OnDeserializingAttribute : Attribute
 {
-    [AttributeUsage(AttributeTargets.Method)]
-    public sealed class OnDeserializingAttribute : Attribute
-    {
-    }
 }

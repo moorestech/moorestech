@@ -25,61 +25,50 @@ using System.Diagnostics;
 using YamlDotNet.Core;
 using YamlDotNet.Core.Events;
 
-namespace YamlDotNet.Serialization
+namespace YamlDotNet.Serialization;
+
+/// <summary>
+///     An object that contains part of a YAML stream.
+/// </summary>
+public sealed class StreamFragment : IYamlConvertible
 {
+    private readonly List<ParsingEvent> events = [];
+    
     /// <summary>
-    /// An object that contains part of a YAML stream.
+    ///     Gets or sets the events.
     /// </summary>
-    public sealed class StreamFragment : IYamlConvertible
+    /// <value>The events.</value>
+    public IList<ParsingEvent> Events => events;
+    
+    #region IYamlConvertible Members
+    
+    /// <summary>
+    ///     Reads this object's state from a YAML parser.
+    /// </summary>
+    void IYamlConvertible.Read(IParser parser, Type expectedType, ObjectDeserializer nestedObjectDeserializer)
     {
-        private readonly List<ParsingEvent> events = [];
-
-        /// <summary>
-        /// Gets or sets the events.
-        /// </summary>
-        /// <value>The events.</value>
-        public IList<ParsingEvent> Events
+        events.Clear();
+        
+        var depth = 0;
+        do
         {
-            get
-            {
-                return events;
-            }
-        }
-
-        #region IYamlConvertible Members
-        /// <summary>
-        /// Reads this object's state from a YAML parser.
-        /// </summary>
-        void IYamlConvertible.Read(IParser parser, Type expectedType, ObjectDeserializer nestedObjectDeserializer)
-        {
-            events.Clear();
-
-            var depth = 0;
-            do
-            {
-                if (!parser.MoveNext())
-                {
-                    throw new InvalidOperationException("The parser has reached the end before deserialization completed.");
-                }
-
-                var current = parser.Current!;
-                events.Add(current);
-                depth += current.NestingIncrease;
-            } while (depth > 0);
-
-            Debug.Assert(depth == 0);
-        }
-
-        /// <summary>
-        /// Writes this object's state to a YAML emitter.
-        /// </summary>
-        void IYamlConvertible.Write(IEmitter emitter, ObjectSerializer nestedObjectSerializer)
-        {
-            foreach (var item in events)
-            {
-                emitter.Emit(item);
-            }
-        }
-        #endregion
+            if (!parser.MoveNext()) throw new InvalidOperationException("The parser has reached the end before deserialization completed.");
+            
+            var current = parser.Current!;
+            events.Add(current);
+            depth += current.NestingIncrease;
+        } while (depth > 0);
+        
+        Debug.Assert(depth == 0);
     }
+    
+    /// <summary>
+    ///     Writes this object's state to a YAML emitter.
+    /// </summary>
+    void IYamlConvertible.Write(IEmitter emitter, ObjectSerializer nestedObjectSerializer)
+    {
+        foreach (var item in events) emitter.Emit(item);
+    }
+    
+    #endregion
 }
