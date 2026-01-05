@@ -93,8 +93,9 @@ public class RefAnalyzer : IPostJsonSchemaLayerAnalyzer
             case SwitchSchema switchSchema:
                 if (switchSchema.IfThenArray.IsValid)
                     foreach (var caseSchema in switchSchema.IfThenArray.Value!)
-                        CollectRefSchemas(caseSchema.Schema, schemaTable, refSchemas);
-                
+                        if (caseSchema.Schema.IsValid)
+                            CollectRefSchemas(caseSchema.Schema.Value!, schemaTable, refSchemas);
+
                 break;
         }
     }

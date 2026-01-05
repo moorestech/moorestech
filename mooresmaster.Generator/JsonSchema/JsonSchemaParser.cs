@@ -72,8 +72,8 @@ public static class JsonSchemaParser
         var interfaceNameNode = node[Tokens.InterfaceNameKey] as JsonString ?? throw new InvalidOperationException();
         var interfaceName = interfaceNameNode.Literal;
         
-        var properties = new Dictionary<string, IDefineInterfacePropertySchema>();
-        
+        var properties = new Dictionary<string, Falliable<IDefineInterfacePropertySchema>>();
+
         if (node.Nodes.TryGetValue(Tokens.PropertiesKey, out var propertiesNode))
         {
             var propertiesArray = propertiesNode as JsonArray;
@@ -82,13 +82,19 @@ public static class JsonSchemaParser
                 // valueがtypeとかdefaultとか
                 // keyがプロパティ名
 
-                var propertySchemaIdResult = Parse(propertyNode, null, true, schemaTable, analysis);
-                if (!propertySchemaIdResult.IsValid) continue; // typeがない場合はスキップ
-
                 var key = (propertyNode[Tokens.PropertyNameKey] as JsonString)!;
+                var propertySchemaIdResult = Parse(propertyNode, null, true, schemaTable, analysis);
+
+                if (!propertySchemaIdResult.IsValid)
+                {
+                    properties[key.Literal] = Falliable<IDefineInterfacePropertySchema>.Failure();
+                    continue;
+                }
+
                 if (schemaTable.Table[propertySchemaIdResult.Value!] is IDefineInterfacePropertySchema propertySchema)
-                    properties[key.Literal] = propertySchema;
-                else throw new InvalidOperationException();
+                    properties[key.Literal] = Falliable<IDefineInterfacePropertySchema>.Success(propertySchema);
+                else
+                    throw new InvalidOperationException();
             }
         }
         
@@ -248,13 +254,10 @@ public static class JsonSchemaParser
                 var switchPath = SwitchPathParser.Parse(switchReferencePathJson.Literal);
                 var caseSchemaResult = Parse(thenJson, schemaId, false, table, analysis);
 
-                // typeがない場合はスキップ
-                if (!caseSchemaResult.IsValid) continue;
-
-                ifThenList.Add(new SwitchCaseSchema(switchPath, whenJson.Literal, caseSchemaResult.Value!));
+                ifThenList.Add(new SwitchCaseSchema(switchPath, whenJson.Literal, caseSchemaResult));
             }
 
-            hasOptionalCase = ifThenList.Any(c => table.Table[c.Schema].IsNullable);
+            hasOptionalCase = ifThenList.Any(c => c.Schema.IsValid && table.Table[c.Schema.Value!].IsNullable);
             ifThenArray = Falliable<SwitchCaseSchema[]>.Success(ifThenList.ToArray());
         }
         else
