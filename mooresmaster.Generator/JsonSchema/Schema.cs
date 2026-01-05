@@ -41,9 +41,9 @@ public record Schema(string SchemaId, SchemaId InnerSchema, DefineInterface[] In
 
 public record ObjectSchema(string? PropertyName, SchemaId? Parent, Dictionary<string, SchemaId> Properties, string[] Required, bool IsNullable, string[] InterfaceImplementations, Dictionary<string, JsonString> ImplementationNodes, Dictionary<string, Location[]> DuplicateImplementationLocations, bool IsInterfaceProperty) : ISchema, IDefineInterfacePropertySchema
 {
-    public string[] InterfaceImplementations = InterfaceImplementations;
-    public Dictionary<string, JsonString> ImplementationNodes = ImplementationNodes;
     public Dictionary<string, Location[]> DuplicateImplementationLocations = DuplicateImplementationLocations;
+    public Dictionary<string, JsonString> ImplementationNodes = ImplementationNodes;
+    public string[] InterfaceImplementations = InterfaceImplementations;
     public Dictionary<string, SchemaId> Properties = Properties;
     public string[] Required = Required;
     public string? PropertyName { get; } = PropertyName;
@@ -233,25 +233,5 @@ public readonly struct SchemaId : IEquatable<SchemaId>, IComparable<SchemaId>
     public static bool operator !=(SchemaId left, SchemaId right)
     {
         return !left.Equals(right);
-    }
-    
-    public static bool operator <(SchemaId left, SchemaId right)
-    {
-        return left.CompareTo(right) < 0;
-    }
-    
-    public static bool operator <=(SchemaId left, SchemaId right)
-    {
-        return left.CompareTo(right) <= 0;
-    }
-    
-    public static bool operator >(SchemaId left, SchemaId right)
-    {
-        return left.CompareTo(right) > 0;
-    }
-    
-    public static bool operator >=(SchemaId left, SchemaId right)
-    {
-        return left.CompareTo(right) >= 0;
     }
 }
