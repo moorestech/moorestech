@@ -260,7 +260,7 @@ public static class JsonSchemaParser
                     }
                 }
 
-        var objectName = json.Nodes.ContainsKey(Tokens.PropertyNameKey) ? (json[Tokens.PropertyNameKey] as JsonString)!.Literal : null;
+        var objectName = (json[Tokens.PropertyNameKey] as JsonString)?.Literal;
         var duplicateLocationsDict = duplicateImplementationLocations.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToArray());
 
         if (!json.Nodes.TryGetValue(Tokens.PropertiesKey, out var propertiesNode))
@@ -276,13 +276,21 @@ public static class JsonSchemaParser
         var objectSchemaId = SchemaId.New();
 
         Dictionary<string, Falliable<SchemaId>> properties = [];
+        var propertyIndex = 0;
         foreach (var propertyNode in propertiesJson.Nodes.OfType<JsonObject>())
         {
-            var key = propertyNode.Nodes[Tokens.PropertyNameKey] as JsonString;
-            var value = propertyNode;
-            var schemaIdResult = Parse(value, objectSchemaId, false, table, analysis);
+            // keyの取得とバリデーション
+            propertyNode.Nodes.TryGetValue(Tokens.PropertyNameKey, out var keyNode);
+            if (keyNode is not JsonString keyString)
+            {
+                analysis.ReportDiagnostics(new ObjectPropertyKeyNotStringDiagnostics(objectName, propertyNode, keyNode, propertyIndex));
+                propertyIndex++;
+                continue;
+            }
 
-            properties.Add(key?.Literal, schemaIdResult);
+            var schemaIdResult = Parse(propertyNode, objectSchemaId, false, table, analysis);
+            properties.Add(keyString.Literal, schemaIdResult);
+            propertyIndex++;
         }
 
         table.Add(objectSchemaId, new ObjectSchema(objectName, parent, properties, required, IsNullable(json, analysis), implementationNodes.Keys.ToArray(), implementationNodes, duplicateLocationsDict, isInterfaceProperty));
