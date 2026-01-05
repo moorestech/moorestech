@@ -54,7 +54,9 @@ public static class JsonSchemaParser
                 continue;
             }
 
-            interfaces.Add(ParseDefineInterface(id, defineJson, schemaTable, false, analysis));
+            var result = ParseDefineInterface(id, defineJson, schemaTable, false, analysis);
+            if (result.IsValid)
+                interfaces.Add(result.Value!);
         }
 
         return interfaces.ToArray();
@@ -81,50 +83,93 @@ public static class JsonSchemaParser
                 continue;
             }
 
-            interfaces.Add(ParseDefineInterface(id, defineJson, schemaTable, true, analysis));
+            var result = ParseDefineInterface(id, defineJson, schemaTable, true, analysis);
+            if (result.IsValid)
+                interfaces.Add(result.Value!);
         }
 
         return interfaces.ToArray();
     }
 
-    private static DefineInterface ParseDefineInterface(string id, JsonObject node, SchemaTable schemaTable, bool isGlobal, Analysis analysis)
+    private static Falliable<DefineInterface> ParseDefineInterface(string id, JsonObject node, SchemaTable schemaTable, bool isGlobal, Analysis analysis)
     {
-        var interfaceNameNode = node[Tokens.InterfaceNameKey] as JsonString ?? throw new InvalidOperationException();
+        // interfaceNameの取得とバリデーション
+        if (!node.Nodes.TryGetValue(Tokens.InterfaceNameKey, out var interfaceNameNodeRaw))
+        {
+            analysis.ReportDiagnostics(new InterfaceNameNotStringDiagnostics(node, null, isGlobal));
+            return Falliable<DefineInterface>.Failure();
+        }
+
+        if (interfaceNameNodeRaw is not JsonString interfaceNameNode)
+        {
+            analysis.ReportDiagnostics(new InterfaceNameNotStringDiagnostics(node, interfaceNameNodeRaw, isGlobal));
+            return Falliable<DefineInterface>.Failure();
+        }
+
         var interfaceName = interfaceNameNode.Literal;
-        
         var properties = new Dictionary<string, Falliable<IDefineInterfacePropertySchema>>();
 
         if (node.Nodes.TryGetValue(Tokens.PropertiesKey, out var propertiesNode))
         {
-            var propertiesArray = propertiesNode as JsonArray;
-            foreach (var propertyNode in propertiesArray.Nodes.OfType<JsonObject>())
+            // propertiesが配列でない場合はDiagnosticsを報告
+            if (propertiesNode is not JsonArray propertiesArray)
             {
-                // valueがtypeとかdefaultとか
-                // keyがプロパティ名
-
-                var key = (propertyNode[Tokens.PropertyNameKey] as JsonString)!;
-                var propertySchemaIdResult = Parse(propertyNode, null, true, schemaTable, analysis);
-
-                if (!propertySchemaIdResult.IsValid)
+                analysis.ReportDiagnostics(new InterfacePropertiesNotArrayDiagnostics(interfaceName, propertiesNode, isGlobal));
+                // propertiesが不正でも処理を続行（空のpropertiesとして扱う）
+            }
+            else
+            {
+                var propertyIndex = 0;
+                foreach (var propertyNode in propertiesArray.Nodes.OfType<JsonObject>())
                 {
-                    properties[key.Literal] = Falliable<IDefineInterfacePropertySchema>.Failure();
-                    continue;
-                }
+                    // keyの取得とバリデーション
+                    var keyNode = propertyNode[Tokens.PropertyNameKey];
+                    if (keyNode is not JsonString key)
+                    {
+                        analysis.ReportDiagnostics(new InterfacePropertyKeyNotStringDiagnostics(interfaceName, propertyNode, keyNode, propertyIndex, isGlobal));
+                        propertyIndex++;
+                        continue;
+                    }
 
-                if (schemaTable.Table[propertySchemaIdResult.Value!] is IDefineInterfacePropertySchema propertySchema)
-                    properties[key.Literal] = Falliable<IDefineInterfacePropertySchema>.Success(propertySchema);
-                else
-                    throw new InvalidOperationException();
+                    var propertySchemaIdResult = Parse(propertyNode, null, true, schemaTable, analysis);
+
+                    if (!propertySchemaIdResult.IsValid)
+                    {
+                        properties[key.Literal] = Falliable<IDefineInterfacePropertySchema>.Failure();
+                        propertyIndex++;
+                        continue;
+                    }
+
+                    var schema = schemaTable.Table[propertySchemaIdResult.Value!];
+                    if (schema is IDefineInterfacePropertySchema propertySchema)
+                    {
+                        properties[key.Literal] = Falliable<IDefineInterfacePropertySchema>.Success(propertySchema);
+                    }
+                    else
+                    {
+                        analysis.ReportDiagnostics(new InterfacePropertySchemaInvalidTypeDiagnostics(interfaceName, key.Literal, schema, propertyNode, isGlobal));
+                        properties[key.Literal] = Falliable<IDefineInterfacePropertySchema>.Failure();
+                    }
+
+                    propertyIndex++;
+                }
             }
         }
-        
+
         // interfaceの継承情報を取得
         var implementationNodes = new Dictionary<string, JsonString>();
         var duplicateImplementationLocations = new Dictionary<string, List<Location>>();
         if (node.Nodes.TryGetValue(Tokens.ImplementationInterfaceKey, out var implementationInterfacesNode) && implementationInterfacesNode is JsonArray nodesArray)
-            foreach (var implementationInterfaceNode in nodesArray.Nodes)
+        {
+            for (var i = 0; i < nodesArray.Nodes.Length; i++)
             {
-                var name = (JsonString)implementationInterfaceNode;
+                var implementationInterfaceNode = nodesArray.Nodes[i];
+                if (implementationInterfaceNode is not JsonString name)
+                {
+                    analysis.ReportDiagnostics(new ImplementsElementNotStringDiagnostics(interfaceName, implementationInterfaceNode, i, isGlobal));
+                    continue;
+                }
+
                 if (implementationNodes.ContainsKey(name.Literal))
                 {
                     // 重複を検出
@@ -136,10 +181,8 @@ public static class JsonSchemaParser
                     implementationNodes[name.Literal] = name;
                 }
             }
-        
-        if (interfaceName == null) throw new Exception("interfaceName is null");
-        if (properties == null) throw new Exception("properties is null");
-        
+        }
+
         var defineInterface = new DefineInterface(
             id,
             interfaceName,
@@ -150,8 +193,8 @@ public static class JsonSchemaParser
             isGlobal,
             interfaceNameNode.Location
         );
-        
-        return defineInterface;
+
+        return Falliable<DefineInterface>.Success(defineInterface);
     }
     
     private static Falliable<SchemaId> Parse(JsonObject root, SchemaId? parent, bool isInterfaceProperty, SchemaTable schemaTable, Analysis analysis)
