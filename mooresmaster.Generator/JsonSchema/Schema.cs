@@ -33,19 +33,19 @@ public interface ISchema
 
 public interface IDefineInterfacePropertySchema : ISchema;
 
-public record Schema(string SchemaId, SchemaId InnerSchema, DefineInterface[] Interfaces)
+public record Schema(string SchemaId, Falliable<SchemaId> InnerSchema, DefineInterface[] Interfaces)
 {
-    public SchemaId InnerSchema = InnerSchema;
+    public Falliable<SchemaId> InnerSchema = InnerSchema;
     public DefineInterface[] Interfaces = Interfaces;
     public string SchemaId = SchemaId;
 }
 
-public record ObjectSchema(string? PropertyName, SchemaId? Parent, Dictionary<string, SchemaId> Properties, string[] Required, bool IsNullable, string[] InterfaceImplementations, Dictionary<string, JsonString> ImplementationNodes, Dictionary<string, Location[]> DuplicateImplementationLocations, bool IsInterfaceProperty) : ISchema, IDefineInterfacePropertySchema
+public record ObjectSchema(string? PropertyName, SchemaId? Parent, Dictionary<string, Falliable<SchemaId>> Properties, string[] Required, bool IsNullable, string[] InterfaceImplementations, Dictionary<string, JsonString> ImplementationNodes, Dictionary<string, Location[]> DuplicateImplementationLocations, bool IsInterfaceProperty) : ISchema, IDefineInterfacePropertySchema
 {
     public Dictionary<string, Location[]> DuplicateImplementationLocations = DuplicateImplementationLocations;
     public Dictionary<string, JsonString> ImplementationNodes = ImplementationNodes;
     public string[] InterfaceImplementations = InterfaceImplementations;
-    public Dictionary<string, SchemaId> Properties = Properties;
+    public Dictionary<string, Falliable<SchemaId>> Properties = Properties;
     public string[] Required = Required;
     public string? PropertyName { get; } = PropertyName;
     public bool IsInterfaceProperty { get; } = IsInterfaceProperty;

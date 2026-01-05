@@ -13,7 +13,9 @@ public class SwitchPathAnalyzer : IPostJsonSchemaLayerAnalyzer
     {
         // 各スキーマファイルのルートSchemaIdをセットに追加
         var rootSchemaIds = new HashSet<SchemaId>();
-        foreach (var schemaFile in schemaFiles) rootSchemaIds.Add(schemaFile.Schema.InnerSchema);
+        foreach (var schemaFile in schemaFiles)
+            if (schemaFile.Schema.InnerSchema.IsValid)
+                rootSchemaIds.Add(schemaFile.Schema.InnerSchema.Value!);
         
         foreach (var kvp in schemaTable.Table)
         {
@@ -140,8 +142,12 @@ public class SwitchPathAnalyzer : IPostJsonSchemaLayerAnalyzer
                     ));
                     return null;
                 }
-                
-                currentSchemaId = objectSchema.Properties[normalElement.Path];
+
+                var propertySchemaId = objectSchema.Properties[normalElement.Path];
+                // プロパティのスキーマが無効な場合はパス解決を中断
+                if (!propertySchemaId.IsValid) return null;
+
+                currentSchemaId = propertySchemaId.Value!;
                 currentSchema = schemaTable.Table[currentSchemaId];
             }
         

@@ -15,14 +15,17 @@ public static class SemanticsGenerator
     public static Semantics Generate(ImmutableArray<Schema> schemaArray, SchemaTable table, Analysis analysis)
     {
         var semantics = new Semantics();
-        
+
         foreach (var schema in schemaArray)
         {
+            // InnerSchemaが無効な場合はスキップ
+            if (!schema.InnerSchema.IsValid) continue;
+
             var rootId = RootId.New();
-            
+
             // ファイルに分けられているルートの要素はclassになる
             // ただし、objectSchemaだった場合のちのGenerateで生成されるため、ここでは生成しない
-            if (table.Table[schema.InnerSchema] is ObjectSchema objectSchema)
+            if (table.Table[schema.InnerSchema.Value!] is ObjectSchema objectSchema)
             {
                 var (innerSemantics, id) = Generate(objectSchema, table, rootId, analysis);
                 semantics.RootSemanticsTable.Add(rootId, new RootSemantics(schema, id));
@@ -30,11 +33,11 @@ public static class SemanticsGenerator
             }
             else
             {
-                var typeSemantics = new TypeSemantics([], table.Table[schema.InnerSchema], rootId);
+                var typeSemantics = new TypeSemantics([], table.Table[schema.InnerSchema.Value!], rootId);
                 var typeId = semantics.AddTypeSemantics(typeSemantics);
                 semantics.RootSemanticsTable.Add(rootId, new RootSemantics(schema, typeId));
-                
-                Generate(table.Table[schema.InnerSchema], table, rootId, analysis).AddTo(semantics);
+
+                Generate(table.Table[schema.InnerSchema.Value!], table, rootId, analysis).AddTo(semantics);
             }
             
             foreach (var defineInterface in schema.Interfaces)
@@ -234,7 +237,10 @@ public static class SemanticsGenerator
         var properties = new List<PropertyId>();
         foreach (var property in objectSchema.Properties)
         {
-            var schema = table.Table[property.Value];
+            // 無効なプロパティはスキップ
+            if (!property.Value.IsValid) continue;
+
+            var schema = table.Table[property.Value.Value!];
             switch (schema)
             {
                 case ObjectSchema innerObjectSchema:
@@ -264,7 +270,7 @@ public static class SemanticsGenerator
                     ));
                     break;
                 default:
-                    Generate(table.Table[property.Value], table, rootId, analysis).AddTo(semantics);
+                    Generate(table.Table[property.Value.Value!], table, rootId, analysis).AddTo(semantics);
                     properties.Add(semantics.AddPropertySemantics(
                         new PropertySemantics(
                             typeId,
