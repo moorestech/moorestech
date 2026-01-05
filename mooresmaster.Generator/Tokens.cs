@@ -14,6 +14,7 @@ public static class Tokens
     public const string PropertiesKey = "properties";
     public const string PropertyNameKey = "key";
     public const string ImplementationInterfaceKey = "implementationInterface";
+    public const string OverrideCodeGeneratePropertyNameKey = "overrideCodeGeneratePropertyName";
     public const string SwitchKey = "switch";
     public const string RefKey = "ref";
     public const string TypeKey = "type";
