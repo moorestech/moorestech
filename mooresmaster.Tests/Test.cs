@@ -91,7 +91,7 @@ public class Test
         foreach (var yaml in yamlTexts)
         {
             var json = YamlParser.Parse("TestDummyFilePath", yaml);
-            var schema = JsonSchemaParser.ParseSchema(json, schemaTable);
+            var schema = JsonSchemaParser.ParseSchema(json, schemaTable, analysis);
             schemaFileList.Add(new SchemaFile("", schema));
         }
         
