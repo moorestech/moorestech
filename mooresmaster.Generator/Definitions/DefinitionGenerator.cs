@@ -120,7 +120,15 @@ public static class DefinitionGenerator
         switch (typeSemantics.Schema)
         {
             case ArraySchema arraySchema:
-                propertyTable["items"] = new PropertyDefinition(new ArrayType(Type.GetType(nameTable, semantics.SchemaTypeSemanticsTable[table.Table[arraySchema.Items]], table.Table[arraySchema.Items], semantics, table)), "items", null, arraySchema.IsNullable, null);
+                if (arraySchema.Items.IsValid)
+                {
+                    propertyTable["items"] = new PropertyDefinition(new ArrayType(Type.GetType(nameTable, semantics.SchemaTypeSemanticsTable[table.Table[arraySchema.Items.Value!]], table.Table[arraySchema.Items.Value!], semantics, table)), "items", null, arraySchema.IsNullable, null);
+                }
+                else
+                {
+                    propertyTable["items"] = new PropertyDefinition(new ArrayType(new UnknownType()), "items", null, arraySchema.IsNullable, null);
+                }
+
                 break;
             case BooleanSchema:
                 propertyTable["value"] = new PropertyDefinition(new BooleanType(), "value", null, typeSemantics.Schema.IsNullable, null);

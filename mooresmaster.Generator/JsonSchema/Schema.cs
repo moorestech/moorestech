@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using mooresmaster.Generator.Common;
 using mooresmaster.Generator.Json;
 using mooresmaster.Generator.NameResolve;
 
@@ -52,9 +53,9 @@ public record ObjectSchema(string? PropertyName, SchemaId? Parent, Dictionary<st
     public SchemaId? Parent { get; } = Parent;
 }
 
-public record ArraySchema(string? PropertyName, SchemaId? Parent, SchemaId Items, JsonString? OverrideCodeGeneratePropertyName, bool IsNullable, bool IsInterfaceProperty) : ISchema, IDefineInterfacePropertySchema
+public record ArraySchema(string? PropertyName, SchemaId? Parent, Falliable<SchemaId> Items, JsonString? OverrideCodeGeneratePropertyName, bool IsNullable, bool IsInterfaceProperty) : ISchema, IDefineInterfacePropertySchema
 {
-    public SchemaId Items = Items;
+    public Falliable<SchemaId> Items = Items;
     public JsonString? OverrideCodeGeneratePropertyName = OverrideCodeGeneratePropertyName;
     public bool IsNullable { get; } = IsNullable;
     public bool IsInterfaceProperty { get; } = IsInterfaceProperty;

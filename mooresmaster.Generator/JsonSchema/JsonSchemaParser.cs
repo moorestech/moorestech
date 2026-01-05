@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using mooresmaster.Generator.Analyze;
+using mooresmaster.Generator.Analyze.Diagnostics;
+using mooresmaster.Generator.Common;
 using mooresmaster.Generator.Json;
 
 namespace mooresmaster.Generator.JsonSchema;
@@ -189,7 +191,18 @@ public static class JsonSchemaParser
         var overrideCodeGeneratePropertyName = json[Tokens.OverrideCodeGeneratePropertyNameKey] as JsonString;
         var arraySchemaId = SchemaId.New();
         var key = json[Tokens.PropertyNameKey] as JsonString;
-        var items = Parse((json["items"] as JsonObject)!, arraySchemaId, false, table, analysis);
+
+        Falliable<SchemaId> items;
+        if (json["items"] is JsonObject itemsJson)
+        {
+            items = Falliable<SchemaId>.Success(Parse(itemsJson, arraySchemaId, false, table, analysis));
+        }
+        else
+        {
+            analysis.ReportDiagnostics(new ArrayItemsNotFoundDiagnostics(json, arraySchemaId, key?.Literal));
+            items = Falliable<SchemaId>.Failure();
+        }
+
         table.Add(arraySchemaId, new ArraySchema(key?.Literal, parent, items, overrideCodeGeneratePropertyName, IsNullable(json), isInterfaceProperty));
         return arraySchemaId;
     }
