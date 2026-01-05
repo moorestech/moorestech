@@ -35,35 +35,45 @@ public static class JsonSchemaParser
     
     private static DefineInterface[] ParseLocalDefineInterfaces(string id, JsonObject root, SchemaTable schemaTable, Analysis analysis)
     {
-        if (!root.Nodes.ContainsKey(Tokens.DefineInterface)) return [];
-        
+        if (!root.Nodes.TryGetValue(Tokens.DefineInterface, out var defineInterfaceNode)) return [];
+
+        if (defineInterfaceNode is not JsonArray defineJsons)
+        {
+            analysis.ReportDiagnostics(new DefineInterfaceNotArrayDiagnostics(Tokens.DefineInterface, defineInterfaceNode, false));
+            return [];
+        }
+
         List<DefineInterface> interfaces = new();
-        var defineJsons = root[Tokens.DefineInterface] as JsonArray;
-        
-        foreach (var defineJsonNode in defineJsons!.Nodes)
+
+        foreach (var defineJsonNode in defineJsons.Nodes)
         {
             var defineJson = defineJsonNode as JsonObject ?? throw new InvalidOperationException();
-            
+
             interfaces.Add(ParseDefineInterface(id, defineJson, schemaTable, false, analysis));
         }
-        
+
         return interfaces.ToArray();
     }
     
     private static DefineInterface[] ParseGlobalDefineInterfaces(string id, JsonObject root, SchemaTable schemaTable, Analysis analysis)
     {
-        if (!root.Nodes.ContainsKey(Tokens.GlobalDefineInterface)) return [];
-        
+        if (!root.Nodes.TryGetValue(Tokens.GlobalDefineInterface, out var globalDefineInterfaceNode)) return [];
+
+        if (globalDefineInterfaceNode is not JsonArray defineJsons)
+        {
+            analysis.ReportDiagnostics(new DefineInterfaceNotArrayDiagnostics(Tokens.GlobalDefineInterface, globalDefineInterfaceNode, true));
+            return [];
+        }
+
         var interfaces = new List<DefineInterface>();
-        var defineJsons = root[Tokens.GlobalDefineInterface] as JsonArray;
-        
-        foreach (var defineJsonNode in defineJsons!.Nodes)
+
+        foreach (var defineJsonNode in defineJsons.Nodes)
         {
             var defineJson = defineJsonNode as JsonObject ?? throw new InvalidOperationException();
-            
+
             interfaces.Add(ParseDefineInterface(id, defineJson, schemaTable, true, analysis));
         }
-        
+
         return interfaces.ToArray();
     }
     
