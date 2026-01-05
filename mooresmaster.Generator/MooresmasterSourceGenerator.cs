@@ -135,16 +135,20 @@ public class MooresmasterSourceGenerator : IIncrementalGenerator
         var schemas = new List<SchemaFile>();
         var schemaTable = new SchemaTable();
         var parsedFiles = new HashSet<string>();
-        
+
         foreach (var additionalText in additionalTexts.Where(a => Path.GetExtension(a.Path) == ".yml").Where(a => !parsedFiles.Contains(a.Path)))
         {
             var yamlText = additionalText.GetText()!.ToString();
             var json = YamlParser.Parse(additionalText.Path, yamlText);
-            var schema = JsonSchemaParser.ParseSchema(json!, schemaTable, analysis);
-            schemas.Add(new SchemaFile(additionalText.Path, schema));
+            var schemaResult = JsonSchemaParser.ParseSchema(json!, schemaTable, analysis);
+
+            // idがないスキーマはスキップ（Diagnosticsは既に報告済み）
+            if (schemaResult.IsValid)
+                schemas.Add(new SchemaFile(additionalText.Path, schemaResult.Value!));
+
             parsedFiles.Add(additionalText.Path);
         }
-        
+
         return (schemas.ToImmutableArray(), schemaTable);
     }
 }
