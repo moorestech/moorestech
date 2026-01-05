@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using mooresmaster.Generator.Analyze.Diagnostics;
 using mooresmaster.Generator.Json;
 using mooresmaster.Generator.JsonSchema;
 
@@ -27,7 +28,11 @@ public class SwitchPathAnalyzer : IPostJsonSchemaLayerAnalyzer
             var rootSchemaId = FindRootSchemaId(switchSchema, schemaTable, rootSchemaIds);
             if (rootSchemaId == null) continue;
             
-            ValidateSwitchPath(analysis, schemaTable, switchSchema, switchPath, rootSchemaId.Value);
+            var targetSchema = ValidateSwitchPath(analysis, schemaTable, switchSchema, switchPath, rootSchemaId.Value);
+            if (targetSchema != null)
+            {
+                ValidateExhaustiveness(analysis, switchSchema, targetSchema);
+            }
         }
     }
     
@@ -49,13 +54,13 @@ public class SwitchPathAnalyzer : IPostJsonSchemaLayerAnalyzer
         return null;
     }
     
-    private void ValidateSwitchPath(Analysis analysis, SchemaTable schemaTable, SwitchSchema switchSchema, SwitchPath switchPath, SchemaId rootSchemaId)
+    private ISchema? ValidateSwitchPath(Analysis analysis, SchemaTable schemaTable, SwitchSchema switchSchema, SwitchPath switchPath, SchemaId rootSchemaId)
     {
         // Switchの親ObjectSchemaを取得
-        if (!switchSchema.Parent.HasValue) return;
+        if (!switchSchema.Parent.HasValue) return null;
         
         var parentSchema = schemaTable.Table[switchSchema.Parent.Value];
-        if (!(parentSchema is ObjectSchema parentObjectSchema)) return;
+        if (!(parentSchema is ObjectSchema parentObjectSchema)) return null;
         
         SchemaId currentSchemaId;
         ISchema currentSchema;
@@ -73,7 +78,7 @@ public class SwitchPathAnalyzer : IPostJsonSchemaLayerAnalyzer
                 currentSchema = parentObjectSchema;
                 break;
             default:
-                return;
+                return null;
         }
         
         foreach (var element in switchPath.Elements)
@@ -86,7 +91,7 @@ public class SwitchPathAnalyzer : IPostJsonSchemaLayerAnalyzer
                         switchPath,
                         switchSchema.SwitchPathLocation
                     ));
-                    return;
+                    return null;
                 }
                 
                 currentSchemaId = currentSchema.Parent.Value;
@@ -102,7 +107,7 @@ public class SwitchPathAnalyzer : IPostJsonSchemaLayerAnalyzer
                         normalElement.Path,
                         switchSchema.SwitchPathLocation
                     ));
-                    return;
+                    return null;
                 }
                 
                 if (!objectSchema.Properties.ContainsKey(normalElement.Path))
@@ -113,14 +118,43 @@ public class SwitchPathAnalyzer : IPostJsonSchemaLayerAnalyzer
                         objectSchema.Properties.Keys.ToArray(),
                         switchSchema.SwitchPathLocation
                     ));
-                    return;
+                    return null;
                 }
                 
                 currentSchemaId = objectSchema.Properties[normalElement.Path];
                 currentSchema = schemaTable.Table[currentSchemaId];
             }
+
+        return currentSchema;
     }
-    
+
+    private void ValidateExhaustiveness(Analysis analysis, SwitchSchema switchSchema, ISchema targetSchema)
+    {
+        // 対象スキーマがStringSchemaのenumでない場合はスキップ
+        if (!(targetSchema is StringSchema stringSchema)) return;
+        if (stringSchema.Enums == null || stringSchema.Enums.Length == 0) return;
+
+        // カバーされているケースを収集
+        var coveredCases = new HashSet<string>();
+        foreach (var caseSchema in switchSchema.IfThenArray.Value!)
+        {
+            coveredCases.Add(caseSchema.When);
+        }
+
+        // 不足しているケースを検出
+        var missingCases = stringSchema.Enums.Where(option => !coveredCases.Contains(option)).ToArray();
+
+        if (missingCases.Length > 0)
+        {
+            analysis.ReportDiagnostics(new SwitchCasesNotExhaustiveDiagnostics(
+                switchSchema,
+                missingCases,
+                stringSchema.Enums,
+                switchSchema.SwitchPathLocation
+            ));
+        }
+    }
+
     public static string FormatSwitchPath(SwitchPath path)
     {
         var prefix = path.Type == SwitchPathType.Absolute ? "/" : "./";
