@@ -45,16 +45,21 @@ public static class JsonSchemaParser
 
         List<DefineInterface> interfaces = new();
 
-        foreach (var defineJsonNode in defineJsons.Nodes)
+        for (var i = 0; i < defineJsons.Nodes.Length; i++)
         {
-            var defineJson = defineJsonNode as JsonObject ?? throw new InvalidOperationException();
+            var defineJsonNode = defineJsons.Nodes[i];
+            if (defineJsonNode is not JsonObject defineJson)
+            {
+                analysis.ReportDiagnostics(new DefineInterfaceElementNotObjectDiagnostics(Tokens.DefineInterface, defineJsonNode, i, false));
+                continue;
+            }
 
             interfaces.Add(ParseDefineInterface(id, defineJson, schemaTable, false, analysis));
         }
 
         return interfaces.ToArray();
     }
-    
+
     private static DefineInterface[] ParseGlobalDefineInterfaces(string id, JsonObject root, SchemaTable schemaTable, Analysis analysis)
     {
         if (!root.Nodes.TryGetValue(Tokens.GlobalDefineInterface, out var globalDefineInterfaceNode)) return [];
@@ -67,16 +72,21 @@ public static class JsonSchemaParser
 
         var interfaces = new List<DefineInterface>();
 
-        foreach (var defineJsonNode in defineJsons.Nodes)
+        for (var i = 0; i < defineJsons.Nodes.Length; i++)
         {
-            var defineJson = defineJsonNode as JsonObject ?? throw new InvalidOperationException();
+            var defineJsonNode = defineJsons.Nodes[i];
+            if (defineJsonNode is not JsonObject defineJson)
+            {
+                analysis.ReportDiagnostics(new DefineInterfaceElementNotObjectDiagnostics(Tokens.GlobalDefineInterface, defineJsonNode, i, true));
+                continue;
+            }
 
             interfaces.Add(ParseDefineInterface(id, defineJson, schemaTable, true, analysis));
         }
 
         return interfaces.ToArray();
     }
-    
+
     private static DefineInterface ParseDefineInterface(string id, JsonObject node, SchemaTable schemaTable, bool isGlobal, Analysis analysis)
     {
         var interfaceNameNode = node[Tokens.InterfaceNameKey] as JsonString ?? throw new InvalidOperationException();
