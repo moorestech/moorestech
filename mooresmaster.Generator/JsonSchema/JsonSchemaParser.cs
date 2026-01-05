@@ -199,8 +199,8 @@ public static class JsonSchemaParser
     
     private static Falliable<SchemaId> Parse(JsonObject root, SchemaId? parent, bool isInterfaceProperty, SchemaTable schemaTable, Analysis analysis)
     {
-        if (root.Nodes.ContainsKey(Tokens.SwitchKey)) return Falliable<SchemaId>.Success(ParseSwitch(root, parent, isInterfaceProperty, schemaTable, analysis));
-        if (root.Nodes.ContainsKey(Tokens.RefKey)) return Falliable<SchemaId>.Success(ParseRef(root, parent, isInterfaceProperty, schemaTable, analysis));
+        if (root.Nodes.ContainsKey(Tokens.SwitchKey)) return ParseSwitch(root, parent, isInterfaceProperty, schemaTable, analysis);
+        if (root.Nodes.ContainsKey(Tokens.RefKey)) return ParseRef(root, parent, isInterfaceProperty, schemaTable, analysis);
 
         // typeが存在しない場合はDiagnosticsを報告してFailureを返す
         if (!root.Nodes.TryGetValue(Tokens.TypeKey, out var typeNode) || typeNode is not JsonString typeString)
@@ -212,35 +212,35 @@ public static class JsonSchemaParser
 
         var type = typeString.Literal;
 
-        SchemaId? schemaId = type switch
+        Falliable<SchemaId>? schemaIdResult = type switch
         {
             Tokens.ObjectType => ParseObject(root, parent, isInterfaceProperty, schemaTable, analysis),
             Tokens.ArrayType => ParseArray(root, parent, isInterfaceProperty, schemaTable, analysis),
             Tokens.StringType => ParseString(root, parent, isInterfaceProperty, schemaTable, analysis),
             Tokens.EnumType => ParseEnum(root, parent, isInterfaceProperty, schemaTable, analysis),
-            Tokens.NumberType => ParseNumber(root, parent, isInterfaceProperty, schemaTable, analysis),
-            Tokens.IntegerType => ParseInteger(root, parent, isInterfaceProperty, schemaTable, analysis),
-            Tokens.BooleanType => ParseBoolean(root, parent, isInterfaceProperty, schemaTable, analysis),
-            Tokens.UuidType => ParseUuid(root, parent, isInterfaceProperty, schemaTable, analysis),
-            Tokens.Vector2Type => ParseVector2(root, parent, isInterfaceProperty, schemaTable, analysis),
-            Tokens.Vector3Type => ParseVector3(root, parent, isInterfaceProperty, schemaTable, analysis),
-            Tokens.Vector4Type => ParseVector4(root, parent, isInterfaceProperty, schemaTable, analysis),
-            Tokens.Vector2IntType => ParseVector2Int(root, parent, isInterfaceProperty, schemaTable, analysis),
-            Tokens.Vector3IntType => ParseVector3Int(root, parent, isInterfaceProperty, schemaTable, analysis),
+            Tokens.NumberType => Falliable<SchemaId>.Success(ParseNumber(root, parent, isInterfaceProperty, schemaTable, analysis)),
+            Tokens.IntegerType => Falliable<SchemaId>.Success(ParseInteger(root, parent, isInterfaceProperty, schemaTable, analysis)),
+            Tokens.BooleanType => Falliable<SchemaId>.Success(ParseBoolean(root, parent, isInterfaceProperty, schemaTable, analysis)),
+            Tokens.UuidType => Falliable<SchemaId>.Success(ParseUuid(root, parent, isInterfaceProperty, schemaTable, analysis)),
+            Tokens.Vector2Type => Falliable<SchemaId>.Success(ParseVector2(root, parent, isInterfaceProperty, schemaTable, analysis)),
+            Tokens.Vector3Type => Falliable<SchemaId>.Success(ParseVector3(root, parent, isInterfaceProperty, schemaTable, analysis)),
+            Tokens.Vector4Type => Falliable<SchemaId>.Success(ParseVector4(root, parent, isInterfaceProperty, schemaTable, analysis)),
+            Tokens.Vector2IntType => Falliable<SchemaId>.Success(ParseVector2Int(root, parent, isInterfaceProperty, schemaTable, analysis)),
+            Tokens.Vector3IntType => Falliable<SchemaId>.Success(ParseVector3Int(root, parent, isInterfaceProperty, schemaTable, analysis)),
             _ => null
         };
 
-        if (schemaId == null)
+        if (schemaIdResult == null)
         {
             var propertyName = (root[Tokens.PropertyNameKey] as JsonString)?.Literal;
             analysis.ReportDiagnostics(new UnknownTypeDiagnostics(root, propertyName, type, typeString.Location));
             return Falliable<SchemaId>.Failure();
         }
 
-        return Falliable<SchemaId>.Success(schemaId.Value);
+        return schemaIdResult.Value;
     }
     
-    private static SchemaId ParseObject(JsonObject json, SchemaId? parent, bool isInterfaceProperty, SchemaTable table, Analysis analysis)
+    private static Falliable<SchemaId> ParseObject(JsonObject json, SchemaId? parent, bool isInterfaceProperty, SchemaTable table, Analysis analysis)
     {
         var implementationNodes = new Dictionary<string, JsonString>();
         var duplicateImplementationLocations = new Dictionary<string, List<Location>>();
@@ -259,13 +259,19 @@ public static class JsonSchemaParser
                         implementationNodes[name.Literal] = name;
                     }
                 }
-        
+
         var objectName = json.Nodes.ContainsKey(Tokens.PropertyNameKey) ? (json[Tokens.PropertyNameKey] as JsonString)!.Literal : null;
         var duplicateLocationsDict = duplicateImplementationLocations.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToArray());
-        
-        if (!json.Nodes.ContainsKey(Tokens.PropertiesKey)) return table.Add(new ObjectSchema(objectName, parent, new Dictionary<string, Falliable<SchemaId>>(), [], IsNullable(json, analysis), implementationNodes.Keys.ToArray(), implementationNodes, duplicateLocationsDict, isInterfaceProperty));
 
-        var propertiesJson = (json[Tokens.PropertiesKey] as JsonArray)!;
+        if (!json.Nodes.TryGetValue(Tokens.PropertiesKey, out var propertiesNode))
+            return Falliable<SchemaId>.Success(table.Add(new ObjectSchema(objectName, parent, new Dictionary<string, Falliable<SchemaId>>(), [], IsNullable(json, analysis), implementationNodes.Keys.ToArray(), implementationNodes, duplicateLocationsDict, isInterfaceProperty)));
+
+        if (propertiesNode is not JsonArray propertiesJson)
+        {
+            analysis.ReportDiagnostics(new ObjectPropertiesNotArrayDiagnostics(objectName, propertiesNode));
+            return Falliable<SchemaId>.Failure();
+        }
+
         var required = json["required"] is not JsonArray requiredJson ? [] : requiredJson.Nodes.OfType<JsonString>().Select(str => str.Literal).ToArray();
         var objectSchemaId = SchemaId.New();
 
@@ -278,18 +284,18 @@ public static class JsonSchemaParser
 
             properties.Add(key?.Literal, schemaIdResult);
         }
-        
+
         table.Add(objectSchemaId, new ObjectSchema(objectName, parent, properties, required, IsNullable(json, analysis), implementationNodes.Keys.ToArray(), implementationNodes, duplicateLocationsDict, isInterfaceProperty));
-        
-        return objectSchemaId;
+
+        return Falliable<SchemaId>.Success(objectSchemaId);
     }
     
-    private static SchemaId ParseArray(JsonObject json, SchemaId? parent, bool isInterfaceProperty, SchemaTable table, Analysis analysis)
+    private static Falliable<SchemaId> ParseArray(JsonObject json, SchemaId? parent, bool isInterfaceProperty, SchemaTable table, Analysis analysis)
     {
         var overrideCodeGeneratePropertyName = json[Tokens.OverrideCodeGeneratePropertyNameKey] as JsonString;
         var arraySchemaId = SchemaId.New();
         var key = json[Tokens.PropertyNameKey] as JsonString;
-        
+
         Falliable<SchemaId> items;
         if (json["items"] is JsonObject itemsJson)
         {
@@ -300,89 +306,158 @@ public static class JsonSchemaParser
             analysis.ReportDiagnostics(new ArrayItemsNotFoundDiagnostics(json, arraySchemaId, key?.Literal));
             items = Falliable<SchemaId>.Failure();
         }
-        
+
         table.Add(arraySchemaId, new ArraySchema(key?.Literal, parent, items, overrideCodeGeneratePropertyName, IsNullable(json, analysis), isInterfaceProperty));
-        return arraySchemaId;
+        return Falliable<SchemaId>.Success(arraySchemaId);
     }
     
-    private static SchemaId ParseSwitch(JsonObject json, SchemaId? parent, bool isInterfaceProperty, SchemaTable table, Analysis analysis)
+    private static Falliable<SchemaId> ParseSwitch(JsonObject json, SchemaId? parent, bool isInterfaceProperty, SchemaTable table, Analysis analysis)
     {
         var schemaId = SchemaId.New();
         var key = json[Tokens.PropertyNameKey] as JsonString;
-        var switchReferencePathJson = (json[Tokens.SwitchKey] as JsonString)!;
-        
+
+        // switchの値がJsonStringでない場合
+        var switchNode = json[Tokens.SwitchKey];
+        if (switchNode is not JsonString switchReferencePathJson)
+        {
+            analysis.ReportDiagnostics(new SwitchKeyNotStringDiagnostics(key?.Literal, switchNode));
+            return Falliable<SchemaId>.Failure();
+        }
+
+        // switchパスのパース
+        var switchPathResult = SwitchPathParser.Parse(switchReferencePathJson.Literal);
+        if (!switchPathResult.IsValid)
+        {
+            analysis.ReportDiagnostics(new InvalidSwitchPathDiagnostics(key?.Literal, switchReferencePathJson.Literal, switchReferencePathJson.Location));
+            return Falliable<SchemaId>.Failure();
+        }
+
         Falliable<SwitchCaseSchema[]> ifThenArray;
         var hasOptionalCase = false;
-        
+
         if (json["cases"] is JsonArray casesArray)
         {
             var ifThenList = new List<SwitchCaseSchema>();
+            var hasError = false;
 
-            foreach (var node in casesArray.Nodes)
+            for (var i = 0; i < casesArray.Nodes.Length; i++)
             {
-                var jsonObject = (node as JsonObject)!;
-                var whenJson = (JsonString)jsonObject["when"];
-                var thenJson = jsonObject;
+                var node = casesArray.Nodes[i];
 
-                var switchPath = SwitchPathParser.Parse(switchReferencePathJson.Literal);
-                var caseSchemaResult = Parse(thenJson, schemaId, false, table, analysis);
+                // caseがJsonObjectでない場合
+                if (node is not JsonObject jsonObject)
+                {
+                    analysis.ReportDiagnostics(new SwitchCaseNotObjectDiagnostics(key?.Literal, node, i));
+                    hasError = true;
+                    continue;
+                }
 
-                ifThenList.Add(new SwitchCaseSchema(switchPath, whenJson.Literal, caseSchemaResult));
+                // whenがJsonStringでない場合
+                var whenNode = jsonObject["when"];
+                if (whenNode is not JsonString whenJson)
+                {
+                    analysis.ReportDiagnostics(new SwitchCaseWhenNotStringDiagnostics(key?.Literal, jsonObject, whenNode, i));
+                    hasError = true;
+                    continue;
+                }
+
+                var caseSchemaResult = Parse(jsonObject, schemaId, false, table, analysis);
+
+                ifThenList.Add(new SwitchCaseSchema(switchPathResult.Value!, whenJson.Literal, caseSchemaResult));
             }
 
-            hasOptionalCase = ifThenList.Any(c => c.Schema.IsValid && table.Table[c.Schema.Value!].IsNullable);
-            ifThenArray = Falliable<SwitchCaseSchema[]>.Success(ifThenList.ToArray());
+            if (hasError && ifThenList.Count == 0)
+            {
+                ifThenArray = Falliable<SwitchCaseSchema[]>.Failure();
+            }
+            else
+            {
+                hasOptionalCase = ifThenList.Any(c => c.Schema.IsValid && table.Table[c.Schema.Value!].IsNullable);
+                ifThenArray = Falliable<SwitchCaseSchema[]>.Success(ifThenList.ToArray());
+            }
         }
         else
         {
             analysis.ReportDiagnostics(new SwitchCasesNotFoundDiagnostics(json, schemaId, key?.Literal, switchReferencePathJson.Literal));
             ifThenArray = Falliable<SwitchCaseSchema[]>.Failure();
         }
-        
+
         table.Add(schemaId, new SwitchSchema(key?.Literal, parent, ifThenArray, IsNullable(json, analysis), hasOptionalCase, isInterfaceProperty, switchReferencePathJson.Location));
-        return schemaId;
+        return Falliable<SchemaId>.Success(schemaId);
     }
     
-    private static SchemaId ParseRef(JsonObject json, SchemaId? parent, bool isInterfaceProperty, SchemaTable table, Analysis analysis)
+    private static Falliable<SchemaId> ParseRef(JsonObject json, SchemaId? parent, bool isInterfaceProperty, SchemaTable table, Analysis analysis)
     {
-        var refJson = (json[Tokens.RefKey] as JsonString)!;
-        return table.Add(new RefSchema((json[Tokens.PropertyNameKey] as JsonString)?.Literal, parent, refJson.Literal, refJson.Location, IsNullable(json, analysis), isInterfaceProperty));
+        var refNode = json[Tokens.RefKey];
+        var propertyName = (json[Tokens.PropertyNameKey] as JsonString)?.Literal;
+
+        if (refNode is not JsonString refJson)
+        {
+            analysis.ReportDiagnostics(new RefKeyNotStringDiagnostics(propertyName, refNode));
+            return Falliable<SchemaId>.Failure();
+        }
+
+        return Falliable<SchemaId>.Success(table.Add(new RefSchema(propertyName, parent, refJson.Literal, refJson.Location, IsNullable(json, analysis), isInterfaceProperty)));
     }
     
-    private static SchemaId ParseString(JsonObject json, SchemaId? parent, bool isInterfaceProperty, SchemaTable table, Analysis analysis)
+    private static Falliable<SchemaId> ParseString(JsonObject json, SchemaId? parent, bool isInterfaceProperty, SchemaTable table, Analysis analysis)
     {
         var enumJson = json["enum"];
+        var propertyName = (json[Tokens.PropertyNameKey] as JsonString)?.Literal;
         List<string>? enums = null;
+        var hasError = false;
+
         if (enumJson is JsonArray enumArray)
         {
             enums = new List<string>();
-            foreach (var enumNode in enumArray.Nodes)
+            for (var i = 0; i < enumArray.Nodes.Length; i++)
             {
+                var enumNode = enumArray.Nodes[i];
                 if (enumNode is not JsonString enumString)
-                    throw new Exception("Enum must be an array of strings");
-                
+                {
+                    analysis.ReportDiagnostics(new EnumElementNotStringDiagnostics(propertyName, enumNode, i, false));
+                    hasError = true;
+                    continue;
+                }
+
                 enums.Add(enumString.Literal);
             }
         }
-        
-        return table.Add(new StringSchema((json[Tokens.PropertyNameKey] as JsonString)?.Literal, parent, IsNullable(json, analysis), enums?.ToArray(), isInterfaceProperty));
+
+        if (hasError && (enums == null || enums.Count == 0))
+            return Falliable<SchemaId>.Failure();
+
+        return Falliable<SchemaId>.Success(table.Add(new StringSchema(propertyName, parent, IsNullable(json, analysis), enums?.ToArray(), isInterfaceProperty)));
     }
     
-    private static SchemaId ParseEnum(JsonObject json, SchemaId? parent, bool isInterfaceProperty, SchemaTable table, Analysis analysis)
+    private static Falliable<SchemaId> ParseEnum(JsonObject json, SchemaId? parent, bool isInterfaceProperty, SchemaTable table, Analysis analysis)
     {
         var nameJson = json[Tokens.PropertyNameKey] as JsonString;
-        
+        var propertyName = nameJson?.Literal;
+
         var options = new List<string>();
-        
+        var hasError = false;
+
         if (json["options"] is JsonArray enumArray)
-            foreach (var enumNode in enumArray.Nodes)
+        {
+            for (var i = 0; i < enumArray.Nodes.Length; i++)
             {
-                if (enumNode is not JsonString enumString) throw new Exception("Enum must be an array of strings");
-                
+                var enumNode = enumArray.Nodes[i];
+                if (enumNode is not JsonString enumString)
+                {
+                    analysis.ReportDiagnostics(new EnumElementNotStringDiagnostics(propertyName, enumNode, i, true));
+                    hasError = true;
+                    continue;
+                }
+
                 options.Add(enumString.Literal);
             }
-        
-        return table.Add(new StringSchema(nameJson?.Literal, parent, IsNullable(json, analysis), options.ToArray(), isInterfaceProperty));
+        }
+
+        if (hasError && options.Count == 0)
+            return Falliable<SchemaId>.Failure();
+
+        return Falliable<SchemaId>.Success(table.Add(new StringSchema(propertyName, parent, IsNullable(json, analysis), options.ToArray(), isInterfaceProperty)));
     }
     
     private static SchemaId ParseNumber(JsonObject json, SchemaId? parent, bool isInterfaceProperty, SchemaTable table, Analysis analysis)
