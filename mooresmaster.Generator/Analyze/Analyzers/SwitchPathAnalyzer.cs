@@ -21,9 +21,10 @@ public class SwitchPathAnalyzer : IPostJsonSchemaLayerAnalyzer
         {
             var schema = kvp.Value;
             if (!(schema is SwitchSchema switchSchema)) continue;
-            if (switchSchema.IfThenArray.Length == 0) continue;
+            if (!switchSchema.IfThenArray.IsValid) continue;
+            if (switchSchema.IfThenArray.Value!.Length == 0) continue;
 
-            var switchPath = switchSchema.IfThenArray[0].SwitchReferencePath;
+            var switchPath = switchSchema.IfThenArray.Value![0].SwitchReferencePath;
 
             // このSwitchSchemaのルートを親を辿って見つける
             var rootSchemaId = FindRootSchemaId(switchSchema, schemaTable, rootSchemaIds);

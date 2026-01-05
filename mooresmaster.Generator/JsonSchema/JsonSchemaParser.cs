@@ -209,25 +209,38 @@ public static class JsonSchemaParser
     
     private static SchemaId ParseSwitch(JsonObject json, SchemaId? parent, bool isInterfaceProperty, SchemaTable table, Analysis analysis)
     {
-        var ifThenList = new List<SwitchCaseSchema>();
         var schemaId = SchemaId.New();
-        
+        var key = json[Tokens.PropertyNameKey] as JsonString;
         var switchReferencePathJson = (json[Tokens.SwitchKey] as JsonString)!;
-        
-        foreach (var node in (json["cases"] as JsonArray)!.Nodes)
+
+        Falliable<SwitchCaseSchema[]> ifThenArray;
+        var hasOptionalCase = false;
+
+        if (json["cases"] is JsonArray casesArray)
         {
-            var jsonObject = (node as JsonObject)!;
-            var whenJson = (JsonString)jsonObject["when"];
-            var thenJson = jsonObject;
-            
-            var switchPath = SwitchPathParser.Parse(switchReferencePathJson.Literal);
-            
-            ifThenList.Add(new SwitchCaseSchema(switchPath, whenJson.Literal, Parse(thenJson, schemaId, false, table, analysis)));
+            var ifThenList = new List<SwitchCaseSchema>();
+
+            foreach (var node in casesArray.Nodes)
+            {
+                var jsonObject = (node as JsonObject)!;
+                var whenJson = (JsonString)jsonObject["when"];
+                var thenJson = jsonObject;
+
+                var switchPath = SwitchPathParser.Parse(switchReferencePathJson.Literal);
+
+                ifThenList.Add(new SwitchCaseSchema(switchPath, whenJson.Literal, Parse(thenJson, schemaId, false, table, analysis)));
+            }
+
+            hasOptionalCase = ifThenList.Any(c => table.Table[c.Schema].IsNullable);
+            ifThenArray = Falliable<SwitchCaseSchema[]>.Success(ifThenList.ToArray());
         }
-        
-        var hasOptionalCase = ifThenList.Any(c => table.Table[c.Schema].IsNullable);
-        
-        table.Add(schemaId, new SwitchSchema((json[Tokens.PropertyNameKey] as JsonString)?.Literal, parent, ifThenList.ToArray(), IsNullable(json), hasOptionalCase, isInterfaceProperty, switchReferencePathJson.Location));
+        else
+        {
+            analysis.ReportDiagnostics(new SwitchCasesNotFoundDiagnostics(json, schemaId, key?.Literal, switchReferencePathJson.Literal));
+            ifThenArray = Falliable<SwitchCaseSchema[]>.Failure();
+        }
+
+        table.Add(schemaId, new SwitchSchema(key?.Literal, parent, ifThenArray, IsNullable(json), hasOptionalCase, isInterfaceProperty, switchReferencePathJson.Location));
         return schemaId;
     }
     

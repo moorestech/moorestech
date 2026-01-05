@@ -73,10 +73,10 @@ public static class ArraySchemaExtension
     }
 }
 
-public record SwitchSchema(string? PropertyName, SchemaId? Parent, SwitchCaseSchema[] IfThenArray, bool IsNullable, bool HasOptionalCase, bool IsInterfaceProperty, Location SwitchPathLocation) : ISchema
+public record SwitchSchema(string? PropertyName, SchemaId? Parent, Falliable<SwitchCaseSchema[]> IfThenArray, bool IsNullable, bool HasOptionalCase, bool IsInterfaceProperty, Location SwitchPathLocation) : ISchema
 {
     public bool HasOptionalCase = HasOptionalCase;
-    public SwitchCaseSchema[] IfThenArray = IfThenArray;
+    public Falliable<SwitchCaseSchema[]> IfThenArray = IfThenArray;
     public Location SwitchPathLocation = SwitchPathLocation;
     public string? PropertyName { get; } = PropertyName;
     public bool IsNullable { get; } = IsNullable;
