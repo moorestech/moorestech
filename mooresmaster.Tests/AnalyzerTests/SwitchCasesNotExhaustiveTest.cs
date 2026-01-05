@@ -36,13 +36,13 @@ public class SwitchCasesNotExhaustiveTest
                       - key: valueB
                         type: number
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
-
+        
         // SwitchCasesNotExhaustiveDiagnosticsが出ていないことを確認
         Assert.DoesNotContain(diagnosticsArray, d => d is SwitchCasesNotExhaustiveDiagnostics);
     }
-
+    
     /// <summary>
     ///     switchがenumオプションを1つ網羅していない場合のエラーのテスト
     /// </summary>
@@ -74,16 +74,16 @@ public class SwitchCasesNotExhaustiveTest
                       - key: valueB
                         type: number
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
-
+        
         Assert.Single(diagnosticsArray.OfType<SwitchCasesNotExhaustiveDiagnostics>());
         var diagnostics = Assert.IsType<SwitchCasesNotExhaustiveDiagnostics>(diagnosticsArray.First(d => d is SwitchCasesNotExhaustiveDiagnostics));
         Assert.Single(diagnostics.MissingCases);
         Assert.Equal("C", diagnostics.MissingCases[0]);
         Assert.Equal(3, diagnostics.AllEnumOptions.Length);
     }
-
+    
     /// <summary>
     ///     switchがenumオプションを複数網羅していない場合のエラーのテスト
     /// </summary>
@@ -111,9 +111,9 @@ public class SwitchCasesNotExhaustiveTest
                       - key: valueA
                         type: string
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
-
+        
         Assert.Single(diagnosticsArray.OfType<SwitchCasesNotExhaustiveDiagnostics>());
         var diagnostics = Assert.IsType<SwitchCasesNotExhaustiveDiagnostics>(diagnosticsArray.First(d => d is SwitchCasesNotExhaustiveDiagnostics));
         Assert.Equal(3, diagnostics.MissingCases.Length);
@@ -121,7 +121,7 @@ public class SwitchCasesNotExhaustiveTest
         Assert.Contains("C", diagnostics.MissingCases);
         Assert.Contains("D", diagnostics.MissingCases);
     }
-
+    
     /// <summary>
     ///     switchの対象がenumでない場合はエラーが出ないテスト
     /// </summary>
@@ -144,13 +144,13 @@ public class SwitchCasesNotExhaustiveTest
                       - key: valueA
                         type: string
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
-
+        
         // SwitchCasesNotExhaustiveDiagnosticsが出ていないことを確認
         Assert.DoesNotContain(diagnosticsArray, d => d is SwitchCasesNotExhaustiveDiagnostics);
     }
-
+    
     /// <summary>
     ///     複数のswitchで網羅性エラーがある場合のテスト
     /// </summary>
@@ -190,22 +190,22 @@ public class SwitchCasesNotExhaustiveTest
                       - key: value
                         type: string
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
         var exhaustiveDiagnostics = diagnosticsArray.OfType<SwitchCasesNotExhaustiveDiagnostics>().ToArray();
-
+        
         Assert.Equal(2, exhaustiveDiagnostics.Length);
-
+        
         var diag1 = exhaustiveDiagnostics.First(d => d.AllEnumOptions.Contains("A"));
         Assert.Single(diag1.MissingCases);
         Assert.Equal("B", diag1.MissingCases[0]);
-
+        
         var diag2 = exhaustiveDiagnostics.First(d => d.AllEnumOptions.Contains("X"));
         Assert.Equal(2, diag2.MissingCases.Length);
         Assert.Contains("Y", diag2.MissingCases);
         Assert.Contains("Z", diag2.MissingCases);
     }
-
+    
     /// <summary>
     ///     ネストされたswitchでの網羅性チェックのテスト
     /// </summary>
@@ -248,17 +248,17 @@ public class SwitchCasesNotExhaustiveTest
                       - key: value
                         type: string
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
         var exhaustiveDiagnostics = diagnosticsArray.OfType<SwitchCasesNotExhaustiveDiagnostics>().ToArray();
-
+        
         Assert.Single(exhaustiveDiagnostics);
         var diagnostics = exhaustiveDiagnostics[0];
         Assert.Equal(2, diagnostics.MissingCases.Length);
         Assert.Contains("Y", diagnostics.MissingCases);
         Assert.Contains("Z", diagnostics.MissingCases);
     }
-
+    
     /// <summary>
     ///     Diagnosticsに正しいLocation情報が含まれていることのテスト
     /// </summary>
@@ -284,14 +284,14 @@ public class SwitchCasesNotExhaustiveTest
                       - key: value
                         type: string
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
         var diagnostics = diagnosticsArray.OfType<SwitchCasesNotExhaustiveDiagnostics>().First();
-
+        
         Assert.Single(diagnostics.Locations);
         Assert.True(diagnostics.Locations[0].StartLine > 0);
     }
-
+    
     /// <summary>
     ///     Diagnosticsのメッセージに必要な情報が含まれていることのテスト
     /// </summary>
@@ -317,14 +317,14 @@ public class SwitchCasesNotExhaustiveTest
                       - key: value
                         type: string
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
         var diagnostics = diagnosticsArray.OfType<SwitchCasesNotExhaustiveDiagnostics>().First();
-
+        
         Assert.Contains("B", diagnostics.Message);
         Assert.Contains("not exhaustive", diagnostics.Message);
     }
-
+    
     /// <summary>
     ///     絶対パスでの網羅性チェックのテスト
     /// </summary>
@@ -359,15 +359,15 @@ public class SwitchCasesNotExhaustiveTest
                           - key: value
                             type: number
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
         var exhaustiveDiagnostics = diagnosticsArray.OfType<SwitchCasesNotExhaustiveDiagnostics>().ToArray();
-
+        
         Assert.Single(exhaustiveDiagnostics);
         Assert.Single(exhaustiveDiagnostics[0].MissingCases);
         Assert.Equal("C", exhaustiveDiagnostics[0].MissingCases[0]);
     }
-
+    
     /// <summary>
     ///     親パスでの網羅性チェックのテスト
     /// </summary>
@@ -396,10 +396,10 @@ public class SwitchCasesNotExhaustiveTest
                           - key: value
                             type: string
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
         var exhaustiveDiagnostics = diagnosticsArray.OfType<SwitchCasesNotExhaustiveDiagnostics>().ToArray();
-
+        
         Assert.Single(exhaustiveDiagnostics);
         Assert.Single(exhaustiveDiagnostics[0].MissingCases);
         Assert.Equal("B", exhaustiveDiagnostics[0].MissingCases[0]);

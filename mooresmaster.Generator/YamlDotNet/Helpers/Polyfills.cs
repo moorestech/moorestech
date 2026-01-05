@@ -25,7 +25,6 @@ using System.Runtime.CompilerServices;
 namespace YamlDotNet;
 #pragma warning restore IDE0130
 
-
 internal static class Polyfills
 {
 #if NETFRAMEWORK || NETSTANDARD2_0

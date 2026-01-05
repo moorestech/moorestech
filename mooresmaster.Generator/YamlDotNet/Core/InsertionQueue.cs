@@ -33,8 +33,6 @@ namespace YamlDotNet.Core;
 public sealed class InsertionQueue<T> : IEnumerable<T>
 {
     private const int DefaultInitialCapacity = 1 << 7; // Must be a power of 2
-#pragma warning disable IDE0032
-#pragma warning restore IDE0032
     
     // Circular buffer
     private T[] items;
@@ -196,4 +194,6 @@ public sealed class InsertionQueue<T> : IEnumerable<T>
             writePtr = (writePtr - 1) & mask;
         }
     }
+#pragma warning disable IDE0032
+#pragma warning restore IDE0032
 }
