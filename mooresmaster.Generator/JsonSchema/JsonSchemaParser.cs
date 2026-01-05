@@ -60,9 +60,9 @@ public static class JsonSchemaParser
     {
         var interfaceNameNode = node[Tokens.InterfaceNameKey] as JsonString ?? throw new InvalidOperationException();
         var interfaceName = interfaceNameNode.Literal;
-
+        
         var properties = new Dictionary<string, IDefineInterfacePropertySchema>();
-
+        
         if (node.Nodes.TryGetValue(Tokens.PropertiesKey, out var propertiesNode))
         {
             var propertiesArray = propertiesNode as JsonArray;
@@ -70,7 +70,7 @@ public static class JsonSchemaParser
             {
                 // valueがtypeとかdefaultとか
                 // keyがプロパティ名
-
+                
                 var propertySchemaId = Parse(propertyNode, null, true, schemaTable);
                 var key = (propertyNode[Tokens.PropertyNameKey] as JsonString)!;
                 if (schemaTable.Table[propertySchemaId] is IDefineInterfacePropertySchema propertySchema)
@@ -78,7 +78,7 @@ public static class JsonSchemaParser
                 else throw new InvalidOperationException();
             }
         }
-
+        
         // interfaceの継承情報を取得
         var implementationNodes = new Dictionary<string, JsonString>();
         var duplicateImplementationLocations = new Dictionary<string, List<Location>>();
@@ -89,10 +89,7 @@ public static class JsonSchemaParser
                 if (implementationNodes.ContainsKey(name.Literal))
                 {
                     // 重複を検出
-                    if (!duplicateImplementationLocations.ContainsKey(name.Literal))
-                    {
-                        duplicateImplementationLocations[name.Literal] = new List<Location> { implementationNodes[name.Literal].Location };
-                    }
+                    if (!duplicateImplementationLocations.ContainsKey(name.Literal)) duplicateImplementationLocations[name.Literal] = new List<Location> { implementationNodes[name.Literal].Location };
                     duplicateImplementationLocations[name.Literal].Add(name.Location);
                 }
                 else
@@ -100,10 +97,10 @@ public static class JsonSchemaParser
                     implementationNodes[name.Literal] = name;
                 }
             }
-
+        
         if (interfaceName == null) throw new Exception("interfaceName is null");
         if (properties == null) throw new Exception("properties is null");
-
+        
         var defineInterface = new DefineInterface(
             id,
             interfaceName,
@@ -114,7 +111,7 @@ public static class JsonSchemaParser
             isGlobal,
             interfaceNameNode.Location
         );
-
+        
         return defineInterface;
     }
     
@@ -153,10 +150,7 @@ public static class JsonSchemaParser
                     if (implementationNodes.ContainsKey(name.Literal))
                     {
                         // 重複を検出
-                        if (!duplicateImplementationLocations.ContainsKey(name.Literal))
-                        {
-                            duplicateImplementationLocations[name.Literal] = new List<Location> { implementationNodes[name.Literal].Location };
-                        }
+                        if (!duplicateImplementationLocations.ContainsKey(name.Literal)) duplicateImplementationLocations[name.Literal] = new List<Location> { implementationNodes[name.Literal].Location };
                         duplicateImplementationLocations[name.Literal].Add(name.Location);
                     }
                     else
@@ -164,29 +158,28 @@ public static class JsonSchemaParser
                         implementationNodes[name.Literal] = name;
                     }
                 }
-
+        
         var objectName = json.Nodes.ContainsKey(Tokens.PropertyNameKey) ? (json[Tokens.PropertyNameKey] as JsonString)!.Literal : null;
         var duplicateLocationsDict = duplicateImplementationLocations.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToArray());
-
+        
         if (!json.Nodes.ContainsKey(Tokens.PropertiesKey)) return table.Add(new ObjectSchema(objectName, parent, new Dictionary<string, SchemaId>(), [], IsNullable(json), implementationNodes.Keys.ToArray(), implementationNodes, duplicateLocationsDict, isInterfaceProperty));
-
+        
         var propertiesJson = (json[Tokens.PropertiesKey] as JsonArray)!;
-        var requiredJson = json["required"] as JsonArray;
-        var required = requiredJson is null ? [] : requiredJson.Nodes.OfType<JsonString>().Select(str => str.Literal).ToArray();
+        var required = json["required"] is not JsonArray requiredJson ? [] : requiredJson.Nodes.OfType<JsonString>().Select(str => str.Literal).ToArray();
         var objectSchemaId = SchemaId.New();
-
+        
         Dictionary<string, SchemaId> properties = [];
         foreach (var propertyNode in propertiesJson.Nodes.OfType<JsonObject>())
         {
             var key = propertyNode.Nodes[Tokens.PropertyNameKey] as JsonString;
             var value = propertyNode;
             var schemaId = Parse(value, objectSchemaId, false, table);
-
+            
             properties.Add(key?.Literal, schemaId);
         }
-
+        
         table.Add(objectSchemaId, new ObjectSchema(objectName, parent, properties, required, IsNullable(json), implementationNodes.Keys.ToArray(), implementationNodes, duplicateLocationsDict, isInterfaceProperty));
-
+        
         return objectSchemaId;
     }
     
@@ -204,22 +197,22 @@ public static class JsonSchemaParser
     {
         var ifThenList = new List<SwitchCaseSchema>();
         var schemaId = SchemaId.New();
-
+        
         var switchReferencePathJson = (json[Tokens.SwitchKey] as JsonString)!;
-
+        
         foreach (var node in (json["cases"] as JsonArray)!.Nodes)
         {
             var jsonObject = (node as JsonObject)!;
             var whenJson = (JsonString)jsonObject["when"];
             var thenJson = jsonObject;
-
+            
             var switchPath = SwitchPathParser.Parse(switchReferencePathJson.Literal);
-
+            
             ifThenList.Add(new SwitchCaseSchema(switchPath, whenJson.Literal, Parse(thenJson, schemaId, false, table)));
         }
-
+        
         var hasOptionalCase = ifThenList.Any(c => table.Table[c.Schema].IsNullable);
-
+        
         table.Add(schemaId, new SwitchSchema((json[Tokens.PropertyNameKey] as JsonString)?.Literal, parent, ifThenList.ToArray(), IsNullable(json), hasOptionalCase, isInterfaceProperty, switchReferencePathJson.Location));
         return schemaId;
     }
