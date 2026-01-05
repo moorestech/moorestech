@@ -28,10 +28,43 @@ public class SwitchPathAnalyzer : IPostJsonSchemaLayerAnalyzer
             var rootSchemaId = FindRootSchemaId(switchSchema, schemaTable, rootSchemaIds);
             if (rootSchemaId == null) continue;
             
+            // 重複ケースのチェック（パス解決の成否に関わらず実行）
+            ValidateDuplicateCases(analysis, switchSchema);
+
             var targetSchema = ValidateSwitchPath(analysis, schemaTable, switchSchema, switchPath, rootSchemaId.Value);
             if (targetSchema != null)
             {
                 ValidateExhaustiveness(analysis, switchSchema, targetSchema);
+            }
+        }
+    }
+
+    private void ValidateDuplicateCases(Analysis analysis, SwitchSchema switchSchema)
+    {
+        var caseCounts = new Dictionary<string, int>();
+        foreach (var caseSchema in switchSchema.IfThenArray.Value!)
+        {
+            if (caseCounts.ContainsKey(caseSchema.When))
+            {
+                caseCounts[caseSchema.When]++;
+            }
+            else
+            {
+                caseCounts[caseSchema.When] = 1;
+            }
+        }
+
+        // 重複しているケースを報告
+        foreach (var kvp in caseCounts)
+        {
+            if (kvp.Value > 1)
+            {
+                analysis.ReportDiagnostics(new SwitchCasesDuplicateDiagnostics(
+                    switchSchema,
+                    kvp.Key,
+                    kvp.Value,
+                    switchSchema.SwitchPathLocation
+                ));
             }
         }
     }
