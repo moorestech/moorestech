@@ -52,11 +52,12 @@ public class Analyzer
             new DefineInterfaceScopeAnalyzer(),
             new SwitchPathAnalyzer(),
             new DuplicateImplementationInterfaceAnalyzer(),
-            new DuplicateInterfaceNameAnalyzer()
+            new DuplicateInterfaceNameAnalyzer(),
+            new RefAnalyzer()
         ];
-
+        
         foreach (var analyzer in analyzers) AddAnalyzer(analyzer);
-
+        
         return this;
     }
     

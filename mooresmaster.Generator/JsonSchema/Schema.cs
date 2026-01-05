@@ -124,9 +124,10 @@ public record BooleanSchema(string? PropertyName, SchemaId? Parent, bool IsNulla
     public SchemaId? Parent { get; } = Parent;
 }
 
-public record RefSchema(string? PropertyName, SchemaId? Parent, string Ref, bool IsNullable, bool IsInterfaceProperty) : ISchema, IDefineInterfacePropertySchema
+public record RefSchema(string? PropertyName, SchemaId? Parent, string Ref, Location RefLocation, bool IsNullable, bool IsInterfaceProperty) : ISchema, IDefineInterfacePropertySchema
 {
     public string Ref = Ref;
+    public Location RefLocation = RefLocation;
     public string? PropertyName { get; } = PropertyName;
     public bool IsNullable { get; } = IsNullable;
     public bool IsInterfaceProperty { get; } = IsInterfaceProperty;
