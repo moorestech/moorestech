@@ -12,15 +12,17 @@ public record Type
     {
         Type type = schema switch
         {
-            ArraySchema arraySchema => new ArrayType(GetType(
-                nameTable,
-                semantics.SchemaTypeSemanticsTable.ContainsKey(schemaTable.Table[arraySchema.Items])
-                    ? semantics.SchemaTypeSemanticsTable[schemaTable.Table[arraySchema.Items]]
-                    : null,
-                schemaTable.Table[arraySchema.Items],
-                semantics,
-                schemaTable
-            )),
+            ArraySchema arraySchema => arraySchema.Items.IsValid
+                ? new ArrayType(GetType(
+                    nameTable,
+                    semantics.SchemaTypeSemanticsTable.ContainsKey(schemaTable.Table[arraySchema.Items.Value!])
+                        ? semantics.SchemaTypeSemanticsTable[schemaTable.Table[arraySchema.Items.Value!]]
+                        : null,
+                    schemaTable.Table[arraySchema.Items.Value!],
+                    semantics,
+                    schemaTable
+                ))
+                : new ArrayType(new UnknownType()),
             BooleanSchema => new BooleanType(),
             IntegerSchema => new IntType(),
             NumberSchema => new FloatType(),
@@ -64,6 +66,7 @@ public record Type
             Vector4Type vector4Type => "global::UnityEngine.Vector4",
             CustomType customType => customType.Name.GetModelName(),
             NullableType nullableType => $"{nullableType.InnerType.GetName()}?",
+            UnknownType => "object",
             _ => throw new ArgumentOutOfRangeException()
         };
     }
@@ -111,3 +114,5 @@ public record CustomType(TypeName Name) : Type
 {
     public TypeName Name = Name;
 }
+
+public record UnknownType : Type;

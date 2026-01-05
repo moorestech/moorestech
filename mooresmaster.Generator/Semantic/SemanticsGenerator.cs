@@ -163,17 +163,20 @@ public static class SemanticsGenerator
         switch (schema)
         {
             case ArraySchema arraySchema:
-                var itemsSchema = table.Table[arraySchema.Items];
-                if (itemsSchema is ObjectSchema arrayItemObjectSchema)
+                if (arraySchema.Items.IsValid)
                 {
-                    var (arrayItemSemantics, _) = Generate(arrayItemObjectSchema, table, rootId, analysis, true);
-                    arrayItemSemantics.AddTo(semantics);
+                    var itemsSchema = table.Table[arraySchema.Items.Value!];
+                    if (itemsSchema is ObjectSchema arrayItemObjectSchema)
+                    {
+                        var (arrayItemSemantics, _) = Generate(arrayItemObjectSchema, table, rootId, analysis, true);
+                        arrayItemSemantics.AddTo(semantics);
+                    }
+                    else
+                    {
+                        Generate(itemsSchema, table, rootId, analysis).AddTo(semantics);
+                    }
                 }
-                else
-                {
-                    Generate(itemsSchema, table, rootId, analysis).AddTo(semantics);
-                }
-                
+
                 break;
             case ObjectSchema objectSchema:
                 var (innerSemantics, _) = Generate(objectSchema, table, rootId, analysis);
