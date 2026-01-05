@@ -91,8 +91,11 @@ public class Test
         foreach (var yaml in yamlTexts)
         {
             var json = YamlParser.Parse("TestDummyFilePath", yaml);
-            var schema = JsonSchemaParser.ParseSchema(json, schemaTable, analysis);
-            schemaFileList.Add(new SchemaFile("", schema));
+            var schemaResult = JsonSchemaParser.ParseSchema(json, schemaTable, analysis);
+
+            // idがないスキーマはスキップ（Diagnosticsは既に報告済み）
+            if (schemaResult.IsValid)
+                schemaFileList.Add(new SchemaFile("", schemaResult.Value!));
         }
         
         var schemaFiles = schemaFileList.ToImmutableArray();

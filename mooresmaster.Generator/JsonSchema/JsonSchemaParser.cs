@@ -10,11 +10,18 @@ namespace mooresmaster.Generator.JsonSchema;
 
 public static class JsonSchemaParser
 {
-    public static Schema ParseSchema(JsonObject root, SchemaTable schemaTable, Analysis analysis)
+    public static Falliable<Schema> ParseSchema(JsonObject root, SchemaTable schemaTable, Analysis analysis)
     {
-        var id = (root["id"] as JsonString)!.Literal;
+        // idが存在しない場合はDiagnosticsを報告してFailureを返す
+        if (!root.Nodes.TryGetValue("id", out var idNode) || idNode is not JsonString idString)
+        {
+            analysis.ReportDiagnostics(new RootIdNotFoundDiagnostics(root));
+            return Falliable<Schema>.Failure();
+        }
+
+        var id = idString.Literal;
         var defineInterfaces = ParseDefineInterfaces(id, root, schemaTable, analysis);
-        return new Schema(id, Parse(root, null, false, schemaTable, analysis), defineInterfaces);
+        return Falliable<Schema>.Success(new Schema(id, Parse(root, null, false, schemaTable, analysis), defineInterfaces));
     }
     
     private static DefineInterface[] ParseDefineInterfaces(string id, JsonObject root, SchemaTable schemaTable, Analysis analysis)
