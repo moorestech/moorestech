@@ -143,6 +143,33 @@ public class PropertyNotFoundDiagnostics : IDiagnostics
 - テスト時に型でマッチングでき、プロパティで検証できる
 - エラーメッセージの変更が検証ロジックに影響しない
 
+#### Diagnosticsには実際の型を保持する
+
+Diagnosticsには文字列リテラルだけでなく、元のオブジェクト（JsonNode、SchemaIdなど）も保持する:
+
+```csharp
+// Bad: 文字列のみ保持
+public class ArrayItemsNotFoundDiagnostics : IDiagnostics
+{
+    public string? ArrayPropertyName { get; }
+    public Location Location { get; }
+}
+
+// Good: 元のオブジェクトも保持
+public class ArrayItemsNotFoundDiagnostics : IDiagnostics
+{
+    public JsonObject ArrayJson { get; }        // パース対象の生データ
+    public SchemaId ArraySchemaId { get; }      // 生成されたSchemaのID
+    public string? PropertyName { get; }        // 便利用に文字列も保持
+    public Location Location { get; }
+}
+```
+
+理由:
+- 後続の処理で元データにアクセスできる
+- より詳細なエラー情報を動的に生成できる
+- テスト時に元データの状態も検証できる
+
 ### Analyzer Test Pattern
 
 テストでは`Assert.IsType<T>`で型チェック＋キャストを行い、プロパティで検証する:
