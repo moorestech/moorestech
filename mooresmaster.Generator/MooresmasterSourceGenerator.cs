@@ -104,7 +104,7 @@ public class MooresmasterSourceGenerator : IIncrementalGenerator
             .AddAllAnalyzer();
         var analysis = new Analysis();
         analyzer.PreJsonSchemaLayerAnalyze(analysis, input.additionalTexts.ToAnalyzerTextFiles());
-        var (schemas, schemaTable) = ParseAdditionalText(input.additionalTexts);
+        var (schemas, schemaTable) = ParseAdditionalText(input.additionalTexts, analysis);
         analyzer.PostJsonSchemaLayerAnalyze(analysis, schemas, schemaTable);
         analyzer.PreSemanticsLayerAnalyze(analysis, schemas, schemaTable);
         var semantics = SemanticsGenerator.Generate(schemas.Select(schema => schema.Schema).ToImmutableArray(), schemaTable, analysis);
@@ -130,21 +130,21 @@ public class MooresmasterSourceGenerator : IIncrementalGenerator
         context.AddSource(Tokens.ExceptionFileName, LoaderGenerator.GenerateLoaderExceptionTypeCode());
     }
     
-    private (ImmutableArray<SchemaFile> files, SchemaTable schemaTable) ParseAdditionalText(ImmutableArray<AdditionalText> additionalTexts)
+    private (ImmutableArray<SchemaFile> files, SchemaTable schemaTable) ParseAdditionalText(ImmutableArray<AdditionalText> additionalTexts, Analysis analysis)
     {
         var schemas = new List<SchemaFile>();
         var schemaTable = new SchemaTable();
         var parsedFiles = new HashSet<string>();
-        
+
         foreach (var additionalText in additionalTexts.Where(a => Path.GetExtension(a.Path) == ".yml").Where(a => !parsedFiles.Contains(a.Path)))
         {
             var yamlText = additionalText.GetText()!.ToString();
             var json = YamlParser.Parse(additionalText.Path, yamlText);
-            var schema = JsonSchemaParser.ParseSchema(json!, schemaTable);
+            var schema = JsonSchemaParser.ParseSchema(json!, schemaTable, analysis);
             schemas.Add(new SchemaFile(additionalText.Path, schema));
             parsedFiles.Add(additionalText.Path);
         }
-        
+
         return (schemas.ToImmutableArray(), schemaTable);
     }
 }
