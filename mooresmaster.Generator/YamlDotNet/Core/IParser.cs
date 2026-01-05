@@ -21,23 +21,22 @@
 
 using YamlDotNet.Core.Events;
 
-namespace YamlDotNet.Core
+namespace YamlDotNet.Core;
+
+/// <summary>
+///     Represents a YAML stream parser.
+/// </summary>
+public interface IParser
 {
     /// <summary>
-    /// Represents a YAML stream parser.
+    ///     Gets the current event. Returns null before the first call to <see cref="MoveNext" />,
+    ///     and also after <see cref="MoveNext" /> returns false.
     /// </summary>
-    public interface IParser
-    {
-        /// <summary>
-        /// Gets the current event. Returns null before the first call to <see cref="MoveNext" />,
-        /// and also after <see cref="MoveNext" /> returns false.
-        /// </summary>
-        ParsingEvent? Current { get; }
-
-        /// <summary>
-        /// Moves to the next event.
-        /// </summary>
-        /// <returns>Returns true if there are more events available, otherwise returns false.</returns>
-        bool MoveNext();
-    }
+    ParsingEvent? Current { get; }
+    
+    /// <summary>
+    ///     Moves to the next event.
+    /// </summary>
+    /// <returns>Returns true if there are more events available, otherwise returns false.</returns>
+    bool MoveNext();
 }

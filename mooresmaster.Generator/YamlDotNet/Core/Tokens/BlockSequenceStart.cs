@@ -19,29 +19,28 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-namespace YamlDotNet.Core.Tokens
+namespace YamlDotNet.Core.Tokens;
+
+/// <summary>
+///     Represents a block sequence start token.
+/// </summary>
+public sealed class BlockSequenceStart : Token
 {
     /// <summary>
-    /// Represents a block sequence start token.
+    ///     Initializes a new instance of the <see cref="BlockSequenceStart" /> class.
     /// </summary>
-    public sealed class BlockSequenceStart : Token
+    public BlockSequenceStart()
+        : this(Mark.Empty, Mark.Empty)
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="BlockSequenceStart"/> class.
-        /// </summary>
-        public BlockSequenceStart()
-            : this(Mark.Empty, Mark.Empty)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="BlockSequenceStart"/> class.
-        /// </summary>
-        /// <param name="start">The start position of the token.</param>
-        /// <param name="end">The end position of the token.</param>
-        public BlockSequenceStart(in Mark start, in Mark end)
-            : base(start, end)
-        {
-        }
+    }
+    
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="BlockSequenceStart" /> class.
+    /// </summary>
+    /// <param name="start">The start position of the token.</param>
+    /// <param name="end">The end position of the token.</param>
+    public BlockSequenceStart(in Mark start, in Mark end)
+        : base(start, end)
+    {
     }
 }

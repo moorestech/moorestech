@@ -19,13 +19,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-namespace YamlDotNet.Helpers
+namespace YamlDotNet.Helpers;
+
+internal static class NumberExtensions
 {
-    internal static class NumberExtensions
+    public static bool IsPowerOfTwo(this int value)
     {
-        public static bool IsPowerOfTwo(this int value)
-        {
-            return (value & (value - 1)) == 0;
-        }
+        return (value & (value - 1)) == 0;
     }
 }

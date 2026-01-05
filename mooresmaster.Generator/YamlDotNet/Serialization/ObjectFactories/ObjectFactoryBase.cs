@@ -23,56 +23,58 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using YamlDotNet.Helpers;
-using YamlDotNet.Serialization.Utilities;
 
-namespace YamlDotNet.Serialization.ObjectFactories
+namespace YamlDotNet.Serialization.ObjectFactories;
+
+public abstract class ObjectFactoryBase : IObjectFactory
 {
-    public abstract class ObjectFactoryBase : IObjectFactory
+    public abstract object Create(Type type);
+    
+    public virtual object? CreatePrimitive(Type type)
     {
-        public abstract object Create(Type type);
-
-        public virtual object? CreatePrimitive(Type type) => type.IsValueType() ? Activator.CreateInstance(type) : null;
-
-        /// <inheritdoc />
-        public virtual void ExecuteOnDeserialized(object value)
+        return type.IsValueType() ? Activator.CreateInstance(type) : null;
+    }
+    
+    /// <inheritdoc />
+    public virtual void ExecuteOnDeserialized(object value)
+    {
+    }
+    
+    /// <inheritdoc />
+    public virtual void ExecuteOnDeserializing(object value)
+    {
+    }
+    
+    /// <inheritdoc />
+    public virtual void ExecuteOnSerialized(object value)
+    {
+    }
+    
+    /// <inheritdoc />
+    public virtual void ExecuteOnSerializing(object value)
+    {
+    }
+    
+    public virtual bool GetDictionary(IObjectDescriptor descriptor, out IDictionary? dictionary, out Type[]? genericArguments)
+    {
+        var genericDictionaryType = descriptor.Type.GetImplementationOfOpenGenericInterface(typeof(IDictionary<,>));
+        if (genericDictionaryType != null)
         {
+            genericArguments = genericDictionaryType.GetGenericArguments();
+            var adaptedDictionary = Activator.CreateInstance(typeof(GenericDictionaryToNonGenericAdapter<,>).MakeGenericType(genericArguments), descriptor.Value)!;
+            dictionary = adaptedDictionary as IDictionary;
+            return true;
         }
-
-        /// <inheritdoc />
-        public virtual void ExecuteOnDeserializing(object value)
-        {
-        }
-
-        /// <inheritdoc />
-        public virtual void ExecuteOnSerialized(object value)
-        {
-        }
-
-        /// <inheritdoc />
-        public virtual void ExecuteOnSerializing(object value)
-        {
-        }
-
-        public virtual bool GetDictionary(IObjectDescriptor descriptor, out IDictionary? dictionary, out Type[]? genericArguments)
-        {
-            var genericDictionaryType = descriptor.Type.GetImplementationOfOpenGenericInterface(typeof(IDictionary<,>));
-            if (genericDictionaryType != null)
-            {
-                genericArguments = genericDictionaryType.GetGenericArguments();
-                var adaptedDictionary = Activator.CreateInstance(typeof(GenericDictionaryToNonGenericAdapter<,>).MakeGenericType(genericArguments), descriptor.Value)!;
-                dictionary = adaptedDictionary as IDictionary;
-                return true;
-            }
-            genericArguments = null;
-            dictionary = null;
-            return false;
-        }
-
-        public virtual Type GetValueType(Type type)
-        {
-            var enumerableType = type.GetImplementationOfOpenGenericInterface(typeof(IEnumerable<>));
-            var itemType = enumerableType != null ? enumerableType.GetGenericArguments()[0] : typeof(object);
-            return itemType;
-        }
+        
+        genericArguments = null;
+        dictionary = null;
+        return false;
+    }
+    
+    public virtual Type GetValueType(Type type)
+    {
+        var enumerableType = type.GetImplementationOfOpenGenericInterface(typeof(IEnumerable<>));
+        var itemType = enumerableType != null ? enumerableType.GetGenericArguments()[0] : typeof(object);
+        return itemType;
     }
 }

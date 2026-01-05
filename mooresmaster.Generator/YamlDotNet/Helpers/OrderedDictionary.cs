@@ -34,20 +34,20 @@ internal sealed class OrderedDictionary<TKey, TValue> : IOrderedDictionary<TKey,
 {
     private readonly IEqualityComparer<TKey> comparer;
     private readonly List<KeyValuePair<TKey, TValue>> list;
-
+    
     [NonSerialized] private Dictionary<TKey, TValue> dictionary;
-
+    
     public OrderedDictionary() : this(EqualityComparer<TKey>.Default)
     {
     }
-
+    
     public OrderedDictionary(IEqualityComparer<TKey> comparer)
     {
         list = [];
         dictionary = new Dictionary<TKey, TValue>(comparer);
         this.comparer = comparer;
     }
-
+    
     public TValue this[TKey key]
     {
         get => dictionary[key];
@@ -65,63 +65,63 @@ internal sealed class OrderedDictionary<TKey, TValue> : IOrderedDictionary<TKey,
             }
         }
     }
-
+    
     public ICollection<TKey> Keys => new KeyCollection(this);
-
+    
     public ICollection<TValue> Values => new ValueCollection(this);
-
+    
     public int Count => dictionary.Count;
-
+    
     public bool IsReadOnly => false;
-
+    
     public KeyValuePair<TKey, TValue> this[int index]
     {
         get => list[index];
         set => list[index] = value;
     }
-
+    
     public void Add(KeyValuePair<TKey, TValue> item)
     {
         if (!TryAdd(item)) ThrowDuplicateKeyException(item.Key);
     }
-
+    
     public void Add(TKey key, TValue value)
     {
         if (!TryAdd(key, value)) ThrowDuplicateKeyException(key);
     }
-
+    
     public void Clear()
     {
         dictionary.Clear();
         list.Clear();
     }
-
+    
     public bool Contains(KeyValuePair<TKey, TValue> item)
     {
         return dictionary.Contains(item);
     }
-
+    
     public bool ContainsKey(TKey key)
     {
         return dictionary.ContainsKey(key);
     }
-
+    
     public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
     {
         list.CopyTo(array, arrayIndex);
     }
-
+    
     public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
     {
         return list.GetEnumerator();
     }
-
+    
     public void Insert(int index, TKey key, TValue value)
     {
         dictionary.Add(key, value);
         list.Insert(index, new KeyValuePair<TKey, TValue>(key, value));
     }
-
+    
     public bool Remove(TKey key)
     {
         if (dictionary.ContainsKey(key))
@@ -131,45 +131,45 @@ internal sealed class OrderedDictionary<TKey, TValue> : IOrderedDictionary<TKey,
             if (!dictionary.Remove(key)) throw new InvalidOperationException();
             return true;
         }
-
+        
         return false;
     }
-
+    
     public bool Remove(KeyValuePair<TKey, TValue> item)
     {
         return Remove(item.Key);
     }
-
+    
     public void RemoveAt(int index)
     {
         var key = list[index].Key;
         dictionary.Remove(key);
         list.RemoveAt(index);
     }
-
+    
 #if !NET
 #pragma warning disable 8767 // Nullability of reference types in type of parameter ... doesn't match implicitly implemented member
 #endif
-
+    
     public bool TryGetValue(TKey key, out TValue value)
     {
         return dictionary.TryGetValue(key, out value);
     }
-
+    
 #if !NET
 #pragma warning restore 8767
 #endif
-
+    
     IEnumerator IEnumerable.GetEnumerator()
     {
         return list.GetEnumerator();
     }
-
+    
     private static void ThrowDuplicateKeyException(TKey key)
     {
         throw new ArgumentException($"An item with the same key {key} has already been added.");
     }
-
+    
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryAdd(TKey key, TValue value)
     {
@@ -178,10 +178,10 @@ internal sealed class OrderedDictionary<TKey, TValue> : IOrderedDictionary<TKey,
             list.Add(new KeyValuePair<TKey, TValue>(key, value));
             return true;
         }
-
+        
         return false;
     }
-
+    
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryAdd(KeyValuePair<TKey, TValue> item)
     {
@@ -190,11 +190,11 @@ internal sealed class OrderedDictionary<TKey, TValue> : IOrderedDictionary<TKey,
             list.Add(item);
             return true;
         }
-
+        
         return false;
     }
-
-
+    
+    
     [OnDeserialized]
     internal void OnDeserializedMethod(StreamingContext context)
     {
@@ -202,99 +202,99 @@ internal sealed class OrderedDictionary<TKey, TValue> : IOrderedDictionary<TKey,
         dictionary = [];
         foreach (var kvp in list) dictionary[kvp.Key] = kvp.Value;
     }
-
+    
     private class KeyCollection : ICollection<TKey>
     {
         private readonly OrderedDictionary<TKey, TValue> orderedDictionary;
-
+        
         public KeyCollection(OrderedDictionary<TKey, TValue> orderedDictionary)
         {
             this.orderedDictionary = orderedDictionary;
         }
-
+        
         public int Count => orderedDictionary.list.Count;
-
+        
         public bool IsReadOnly => true;
-
+        
         public void Add(TKey item)
         {
             throw new NotSupportedException();
         }
-
+        
         public void Clear()
         {
             throw new NotSupportedException();
         }
-
+        
         public bool Contains(TKey item)
         {
             return orderedDictionary.dictionary.ContainsKey(item);
         }
-
+        
         public void CopyTo(TKey[] array, int arrayIndex)
         {
             for (var i = 0; i < orderedDictionary.list.Count; i++) array[i] = orderedDictionary.list[i + arrayIndex].Key;
         }
-
+        
         public IEnumerator<TKey> GetEnumerator()
         {
             return orderedDictionary.list.Select(kvp => kvp.Key).GetEnumerator();
         }
-
+        
         public bool Remove(TKey item)
         {
             throw new NotSupportedException();
         }
-
+        
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
         }
     }
-
+    
     private class ValueCollection : ICollection<TValue>
     {
         private readonly OrderedDictionary<TKey, TValue> orderedDictionary;
-
+        
         public ValueCollection(OrderedDictionary<TKey, TValue> orderedDictionary)
         {
             this.orderedDictionary = orderedDictionary;
         }
-
+        
         public int Count => orderedDictionary.list.Count;
-
+        
         public bool IsReadOnly => true;
-
+        
         public void Add(TValue item)
         {
             throw new NotSupportedException();
         }
-
+        
         public void Clear()
         {
             throw new NotSupportedException();
         }
-
+        
         public bool Contains(TValue item)
         {
             return orderedDictionary.dictionary.ContainsValue(item);
         }
-
+        
         public void CopyTo(TValue[] array, int arrayIndex)
         {
             for (var i = 0; i < orderedDictionary.list.Count; i++) array[i] = orderedDictionary.list[i + arrayIndex].Value;
         }
-
+        
         public IEnumerator<TValue> GetEnumerator()
         {
             return orderedDictionary.list.Select(kvp => kvp.Value).GetEnumerator();
         }
-
+        
         public bool Remove(TValue item)
         {
             throw new NotSupportedException();
         }
-
+        
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();

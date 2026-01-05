@@ -20,28 +20,23 @@
 // SOFTWARE.
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using YamlDotNet.Helpers;
-using YamlDotNet.Serialization.Utilities;
 
-namespace YamlDotNet.Serialization.ObjectFactories
+namespace YamlDotNet.Serialization.ObjectFactories;
+
+/// <summary>
+///     Creates objects using a Func{Type,object}"/>.
+/// </summary>
+public sealed class LambdaObjectFactory : ObjectFactoryBase
 {
-    /// <summary>
-    /// Creates objects using a Func{Type,object}"/>.
-    /// </summary>
-    public sealed class LambdaObjectFactory : ObjectFactoryBase
+    private readonly Func<Type, object> factory;
+    
+    public LambdaObjectFactory(Func<Type, object> factory)
     {
-        private readonly Func<Type, object> factory;
-
-        public LambdaObjectFactory(Func<Type, object> factory)
-        {
-            this.factory = factory ?? throw new ArgumentNullException(nameof(factory));
-        }
-
-        public override object Create(Type type)
-        {
-            return factory(type);
-        }
+        this.factory = factory ?? throw new ArgumentNullException(nameof(factory));
+    }
+    
+    public override object Create(Type type)
+    {
+        return factory(type);
     }
 }

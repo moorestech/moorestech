@@ -19,45 +19,45 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-namespace YamlDotNet.Core
+namespace YamlDotNet.Core;
+
+/// <summary>
+///     Specifies the style of a YAML scalar.
+/// </summary>
+public enum ScalarStyle
 {
     /// <summary>
-    /// Specifies the style of a YAML scalar.
+    ///     Let the emitter choose the style.
     /// </summary>
-    public enum ScalarStyle
-    {
-        /// <summary>
-        /// Let the emitter choose the style.
-        /// </summary>
-        Any,
-
-        /// <summary>
-        /// The plain scalar style.
-        /// </summary>
-        Plain,
-
-        /// <summary>
-        /// The single-quoted scalar style.
-        /// </summary>
-        SingleQuoted,
-
-        /// <summary>
-        /// The double-quoted scalar style.
-        /// </summary>
-        DoubleQuoted,
-
-        /// <summary>
-        /// The literal scalar style.
-        /// </summary>
-        Literal,
-
-        /// <summary>
-        /// The folded scalar style.
-        /// </summary>
-        Folded,
-        /// <summary>
-        ///  Forced plain scalar, regardless.
-        /// </summary>
-        ForcePlain
-    }
+    Any,
+    
+    /// <summary>
+    ///     The plain scalar style.
+    /// </summary>
+    Plain,
+    
+    /// <summary>
+    ///     The single-quoted scalar style.
+    /// </summary>
+    SingleQuoted,
+    
+    /// <summary>
+    ///     The double-quoted scalar style.
+    /// </summary>
+    DoubleQuoted,
+    
+    /// <summary>
+    ///     The literal scalar style.
+    /// </summary>
+    Literal,
+    
+    /// <summary>
+    ///     The folded scalar style.
+    /// </summary>
+    Folded,
+    
+    /// <summary>
+    ///     Forced plain scalar, regardless.
+    /// </summary>
+    ForcePlain
 }

@@ -19,31 +19,30 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-namespace YamlDotNet.RepresentationModel
+namespace YamlDotNet.RepresentationModel;
+
+/// <summary>
+///     Specifies the type of node in the representation model.
+/// </summary>
+public enum YamlNodeType
 {
     /// <summary>
-    /// Specifies the type of node in the representation model.
+    ///     The node is a <see cref="YamlAliasNode" />.
     /// </summary>
-    public enum YamlNodeType
-    {
-        /// <summary>
-        /// The node is a <see cref="YamlAliasNode"/>.
-        /// </summary>
-        Alias,
-
-        /// <summary>
-        /// The node is a <see cref="YamlMappingNode"/>.
-        /// </summary>
-        Mapping,
-
-        /// <summary>
-        /// The node is a <see cref="YamlScalarNode"/>.
-        /// </summary>
-        Scalar,
-
-        /// <summary>
-        /// The node is a <see cref="YamlSequenceNode"/>.
-        /// </summary>
-        Sequence
-    }
+    Alias,
+    
+    /// <summary>
+    ///     The node is a <see cref="YamlMappingNode" />.
+    /// </summary>
+    Mapping,
+    
+    /// <summary>
+    ///     The node is a <see cref="YamlScalarNode" />.
+    /// </summary>
+    Scalar,
+    
+    /// <summary>
+    ///     The node is a <see cref="YamlSequenceNode" />.
+    /// </summary>
+    Sequence
 }

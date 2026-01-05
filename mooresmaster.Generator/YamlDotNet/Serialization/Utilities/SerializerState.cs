@@ -23,45 +23,39 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace YamlDotNet.Serialization.Utilities
+namespace YamlDotNet.Serialization.Utilities;
+
+/// <summary>
+///     A generic container that is preserved during the entire deserialization process.
+///     Any disposable object added to this collection will be disposed when this object is disposed.
+/// </summary>
+public sealed class SerializerState : IDisposable
 {
-    /// <summary>
-    /// A generic container that is preserved during the entire deserialization process.
-    /// Any disposable object added to this collection will be disposed when this object is disposed.
-    /// </summary>
-    public sealed class SerializerState : IDisposable
+    private readonly Dictionary<Type, object> items = [];
+    
+    public void Dispose()
     {
-        private readonly Dictionary<Type, object> items = [];
-
-        public T Get<T>()
-            where T : class, new()
+        foreach (var disposable in items.Values.OfType<IDisposable>()) disposable.Dispose();
+    }
+    
+    public T Get<T>()
+        where T : class, new()
+    {
+        if (!items.TryGetValue(typeof(T), out var value))
         {
-            if (!items.TryGetValue(typeof(T), out var value))
-            {
-                value = new T();
-                items.Add(typeof(T), value);
-            }
-            return (T)value;
+            value = new T();
+            items.Add(typeof(T), value);
         }
-
-        /// <summary>
-        /// Invokes <see cref="IPostDeserializationCallback.OnDeserialization" /> on all
-        /// objects added to this collection that implement <see cref="IPostDeserializationCallback" />.
-        /// </summary>
-        public void OnDeserialization()
-        {
-            foreach (var callback in items.Values.OfType<IPostDeserializationCallback>())
-            {
-                callback.OnDeserialization();
-            }
-        }
-
-        public void Dispose()
-        {
-            foreach (var disposable in items.Values.OfType<IDisposable>())
-            {
-                disposable.Dispose();
-            }
-        }
+        
+        return (T)value;
+    }
+    
+    /// <summary>
+    ///     Invokes <see cref="IPostDeserializationCallback.OnDeserialization" /> on all
+    ///     objects added to this collection that implement <see cref="IPostDeserializationCallback" />.
+    /// </summary>
+    public void OnDeserialization()
+    {
+        foreach (var callback in items.Values.OfType<IPostDeserializationCallback>()) callback.OnDeserialization();
     }
 }

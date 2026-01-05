@@ -23,39 +23,31 @@ using System;
 using System.Collections.Generic;
 using YamlDotNet.Core.Events;
 
-namespace YamlDotNet.Serialization.NodeTypeResolvers
+namespace YamlDotNet.Serialization.NodeTypeResolvers;
+
+public class MappingNodeTypeResolver : INodeTypeResolver
 {
-    public class MappingNodeTypeResolver : INodeTypeResolver
+    private readonly IDictionary<Type, Type> mappings;
+    
+    public MappingNodeTypeResolver(IDictionary<Type, Type> mappings)
     {
-        private readonly IDictionary<Type, Type> mappings;
-
-        public MappingNodeTypeResolver(IDictionary<Type, Type> mappings)
+        if (mappings == null) throw new ArgumentNullException(nameof(mappings));
+        
+        foreach (var pair in mappings)
+            if (!pair.Key.IsAssignableFrom(pair.Value))
+                throw new InvalidOperationException($"Type '{pair.Value}' does not implement type '{pair.Key}'.");
+        
+        this.mappings = mappings;
+    }
+    
+    public bool Resolve(NodeEvent? nodeEvent, ref Type currentType)
+    {
+        if (mappings.TryGetValue(currentType, out var concreteType))
         {
-            if (mappings == null)
-            {
-                throw new ArgumentNullException(nameof(mappings));
-            }
-
-            foreach (var pair in mappings)
-            {
-                if (!pair.Key.IsAssignableFrom(pair.Value))
-                {
-                    throw new InvalidOperationException($"Type '{pair.Value}' does not implement type '{pair.Key}'.");
-                }
-            }
-
-            this.mappings = mappings;
+            currentType = concreteType;
+            return true;
         }
-
-        public bool Resolve(NodeEvent? nodeEvent, ref Type currentType)
-        {
-            if (mappings.TryGetValue(currentType, out var concreteType))
-            {
-                currentType = concreteType;
-                return true;
-            }
-
-            return false;
-        }
+        
+        return false;
     }
 }

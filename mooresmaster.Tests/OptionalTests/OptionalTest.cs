@@ -26,26 +26,26 @@ public class OptionalTest
                              type: number
                              optional: true
                          """;
-
+        
         var (schemaTable, nameTable, semantics, definition, analysis) = Test.Generate(yamlSchema);
-
+        
         // 全てのプロパティがoptionalのはず
         foreach (var propertySemantics in semantics.PropertySemanticsTable.Values) Assert.True(propertySemantics.IsNullable);
     }
-
+    
     [Fact]
     public void PropertyExistOptionalTest()
     {
         var value = OptionalTestSchemaLoader.Load(Test.GetJson("OptionalTests/OptionalTestSchema1"))!;
-
+        
         Assert.NotNull(value.Data0);
     }
-
+    
     [Fact]
     public void PropertyNotExistOptionalTest()
     {
         var value = OptionalTestSchemaLoader.Load(Test.GetJson("OptionalTests/OptionalTestSchema2"))!;
-
+        
         Assert.Null(value.Data0);
     }
 }

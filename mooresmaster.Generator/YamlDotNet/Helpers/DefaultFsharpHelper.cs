@@ -20,66 +20,52 @@
 // SOFTWARE.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using YamlDotNet.Serialization;
 
-namespace YamlDotNet.Helpers
+namespace YamlDotNet.Helpers;
+
+public class DefaultFsharpHelper : IFsharpHelper
 {
-    public class DefaultFsharpHelper : IFsharpHelper
+    public bool IsOptionType(Type t)
     {
-        private static bool IsFsharpCore(Type t)
-        {
-            return t.Namespace == "Microsoft.FSharp.Core";
-        }
-
-        public bool IsOptionType(Type t)
-        {
-            return IsFsharpCore(t) && t.Name == "FSharpOption`1";
-        }
-
-        public Type? GetOptionUnderlyingType(Type t)
-        {
-            return t.IsGenericType && IsOptionType(t) ? t.GenericTypeArguments[0] : null;
-        }
-
-        public object? GetValue(IObjectDescriptor objectDescriptor)
-        {
-            if (!IsOptionType(objectDescriptor.Type))
-            {
-                throw new InvalidOperationException("Should not be called on non-Option<> type");
-            }
-
-            if (objectDescriptor.Value is null)
-            {
-                return null;
-            }
-
-            return objectDescriptor.Type.GetProperty("Value").GetValue(objectDescriptor.Value);
-        }
-
-        public bool IsFsharpListType(Type t)
-        {
-            return t.Namespace == "Microsoft.FSharp.Collections" && t.Name == "FSharpList`1";
-        }
-
-        public object? CreateFsharpListFromArray(Type t, Type itemsType, Array arr)
-        {
-            if (!IsFsharpListType(t))
-            {
-                return null;
-            }
-
-            var fsharpList =
-                t.Assembly
+        return IsFsharpCore(t) && t.Name == "FSharpOption`1";
+    }
+    
+    public Type? GetOptionUnderlyingType(Type t)
+    {
+        return t.IsGenericType && IsOptionType(t) ? t.GenericTypeArguments[0] : null;
+    }
+    
+    public object? GetValue(IObjectDescriptor objectDescriptor)
+    {
+        if (!IsOptionType(objectDescriptor.Type)) throw new InvalidOperationException("Should not be called on non-Option<> type");
+        
+        if (objectDescriptor.Value is null) return null;
+        
+        return objectDescriptor.Type.GetProperty("Value").GetValue(objectDescriptor.Value);
+    }
+    
+    public bool IsFsharpListType(Type t)
+    {
+        return t.Namespace == "Microsoft.FSharp.Collections" && t.Name == "FSharpList`1";
+    }
+    
+    public object? CreateFsharpListFromArray(Type t, Type itemsType, Array arr)
+    {
+        if (!IsFsharpListType(t)) return null;
+        
+        var fsharpList =
+            t.Assembly
                 .GetType("Microsoft.FSharp.Collections.ListModule")
                 .GetMethod("OfArray")
                 .MakeGenericMethod(itemsType)
                 .Invoke(null, [arr]);
-
-            return fsharpList;
-        }
+        
+        return fsharpList;
+    }
+    
+    private static bool IsFsharpCore(Type t)
+    {
+        return t.Namespace == "Microsoft.FSharp.Core";
     }
 }

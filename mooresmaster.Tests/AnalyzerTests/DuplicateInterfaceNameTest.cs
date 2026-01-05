@@ -1,4 +1,3 @@
-using System;
 using mooresmaster.Generator.Analyze.Diagnostics;
 using Xunit;
 using Xunit.Abstractions;
@@ -24,7 +23,7 @@ public class DuplicateInterfaceNameTest
             """
             id: testSchema
             type: object
-
+            
             defineInterface:
               - interfaceName: IDuplicateInterface
                 properties:
@@ -35,14 +34,14 @@ public class DuplicateInterfaceNameTest
                   - key: field2
                     type: integer
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
-
+        
         Assert.Single(diagnosticsArray);
         var diagnostics = Assert.IsType<DuplicateInterfaceNameDiagnostics>(diagnosticsArray[0]);
         Assert.Equal("IDuplicateInterface", diagnostics.InterfaceName);
     }
-
+    
     /// <summary>
     ///     異なるスキーマファイル間で同名のdefineInterfaceが定義されている場合のエラーのテスト
     /// </summary>
@@ -53,33 +52,33 @@ public class DuplicateInterfaceNameTest
             """
             id: testSchema1
             type: object
-
+            
             defineInterface:
               - interfaceName: IDuplicateInterface
                 properties:
                   - key: field1
                     type: string
             """;
-
+        
         const string schema2 =
             """
             id: testSchema2
             type: object
-
+            
             defineInterface:
               - interfaceName: IDuplicateInterface
                 properties:
                   - key: field2
                     type: integer
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema1, schema2).analysis.DiagnosticsList;
-
+        
         Assert.Single(diagnosticsArray);
         var diagnostics = Assert.IsType<DuplicateInterfaceNameDiagnostics>(diagnosticsArray[0]);
         Assert.Equal("IDuplicateInterface", diagnostics.InterfaceName);
     }
-
+    
     /// <summary>
     ///     異なるスキーマファイル間でglobalDefineInterfaceの同名が定義されている場合のエラーのテスト
     /// </summary>
@@ -90,34 +89,34 @@ public class DuplicateInterfaceNameTest
             """
             id: testSchema1
             type: object
-
+            
             globalDefineInterface:
               - interfaceName: IGlobalDuplicateInterface
                 properties:
                   - key: field1
                     type: string
             """;
-
+        
         const string schema2 =
             """
             id: testSchema2
             type: object
-
+            
             globalDefineInterface:
               - interfaceName: IGlobalDuplicateInterface
                 properties:
                   - key: field2
                     type: integer
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema1, schema2).analysis.DiagnosticsList;
         _testOutputHelper.WriteLine(Test.Generate(schema1, schema2).analysis.ToString());
-
+        
         Assert.Single(diagnosticsArray);
         var diagnostics = Assert.IsType<DuplicateInterfaceNameDiagnostics>(diagnosticsArray[0]);
         Assert.Equal("IGlobalDuplicateInterface", diagnostics.InterfaceName);
     }
-
+    
     /// <summary>
     ///     同名のdefineInterfaceが3つ定義されている場合、1つのエラーに3つのLocationが含まれるテスト
     /// </summary>
@@ -128,7 +127,7 @@ public class DuplicateInterfaceNameTest
             """
             id: testSchema
             type: object
-
+            
             defineInterface:
               - interfaceName: IDuplicateInterface
                 properties:
@@ -143,15 +142,15 @@ public class DuplicateInterfaceNameTest
                   - key: field3
                     type: boolean
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
-
+        
         Assert.Single(diagnosticsArray);
         var diagnostics = Assert.IsType<DuplicateInterfaceNameDiagnostics>(diagnosticsArray[0]);
         Assert.Equal("IDuplicateInterface", diagnostics.InterfaceName);
         Assert.Equal(3, diagnostics.Locations.Length);
     }
-
+    
     /// <summary>
     ///     異なる名前のインターフェースが重複しないことのテスト
     /// </summary>
@@ -162,7 +161,7 @@ public class DuplicateInterfaceNameTest
             """
             id: testSchema
             type: object
-
+            
             defineInterface:
               - interfaceName: IInterface1
                 properties:
@@ -173,9 +172,9 @@ public class DuplicateInterfaceNameTest
                   - key: field2
                     type: integer
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
-
+        
         Assert.Empty(diagnosticsArray);
     }
 }

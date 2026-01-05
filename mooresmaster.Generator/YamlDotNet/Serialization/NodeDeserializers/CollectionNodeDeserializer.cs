@@ -27,103 +27,98 @@ using YamlDotNet.Core.Events;
 using YamlDotNet.Helpers;
 using YamlDotNet.Serialization.Utilities;
 
-namespace YamlDotNet.Serialization.NodeDeserializers
+namespace YamlDotNet.Serialization.NodeDeserializers;
+
+public sealed class CollectionNodeDeserializer : INodeDeserializer
 {
-    public sealed class CollectionNodeDeserializer : INodeDeserializer
+    private readonly INamingConvention enumNamingConvention;
+    private readonly IObjectFactory objectFactory;
+    private readonly ITypeInspector typeInspector;
+    
+    public CollectionNodeDeserializer(IObjectFactory objectFactory, INamingConvention enumNamingConvention, ITypeInspector typeInspector)
     {
-        private readonly IObjectFactory objectFactory;
-        private readonly INamingConvention enumNamingConvention;
-        private readonly ITypeInspector typeInspector;
-
-        public CollectionNodeDeserializer(IObjectFactory objectFactory, INamingConvention enumNamingConvention, ITypeInspector typeInspector)
+        this.objectFactory = objectFactory ?? throw new ArgumentNullException(nameof(objectFactory));
+        this.enumNamingConvention = enumNamingConvention;
+        this.typeInspector = typeInspector;
+    }
+    
+    public bool Deserialize(IParser parser, Type expectedType, Func<IParser, Type, object?> nestedObjectDeserializer, out object? value, ObjectDeserializer rootDeserializer)
+    {
+        IList? list;
+        var canUpdate = true;
+        Type itemType;
+        var genericCollectionType = expectedType.GetImplementationOfOpenGenericInterface(typeof(ICollection<>));
+        if (genericCollectionType != null)
         {
-            this.objectFactory = objectFactory ?? throw new ArgumentNullException(nameof(objectFactory));
-            this.enumNamingConvention = enumNamingConvention;
-            this.typeInspector = typeInspector;
+            var genericArguments = genericCollectionType.GetGenericArguments();
+            itemType = genericArguments[0];
+            
+            value = objectFactory.Create(expectedType);
+            list = value as IList;
+            if (list == null)
+            {
+                // Uncommon case where a type implements IList<T> but not IList
+                var genericListType = expectedType.GetImplementationOfOpenGenericInterface(typeof(IList<>));
+                canUpdate = genericListType != null;
+                list = (IList?)Activator.CreateInstance(typeof(GenericCollectionToNonGenericAdapter<>).MakeGenericType(itemType), value);
+            }
         }
-
-        public bool Deserialize(IParser parser, Type expectedType, Func<IParser, Type, object?> nestedObjectDeserializer, out object? value, ObjectDeserializer rootDeserializer)
+        else if (typeof(IList).IsAssignableFrom(expectedType))
         {
-            IList? list;
-            var canUpdate = true;
-            Type itemType;
-            var genericCollectionType = expectedType.GetImplementationOfOpenGenericInterface((typeof(ICollection<>)));
-            if (genericCollectionType != null)
-            {
-                var genericArguments = genericCollectionType.GetGenericArguments();
-                itemType = genericArguments[0];
-
-                value = objectFactory.Create(expectedType);
-                list = value as IList;
-                if (list == null)
-                {
-                    // Uncommon case where a type implements IList<T> but not IList
-                    var genericListType = expectedType.GetImplementationOfOpenGenericInterface(typeof(IList<>));
-                    canUpdate = genericListType != null;
-                    list = (IList?)Activator.CreateInstance(typeof(GenericCollectionToNonGenericAdapter<>).MakeGenericType(itemType), value);
-                }
-            }
-            else if (typeof(IList).IsAssignableFrom(expectedType))
-            {
-                itemType = typeof(object);
-
-                value = objectFactory.Create(expectedType);
-                list = (IList)value;
-            }
-            else
-            {
-                value = null;
-                return false;
-            }
-
-            DeserializeHelper(itemType, parser, nestedObjectDeserializer, list!, canUpdate, enumNamingConvention, typeInspector);
-
-            return true;
+            itemType = typeof(object);
+            
+            value = objectFactory.Create(expectedType);
+            list = (IList)value;
         }
-
-        internal static void DeserializeHelper(Type tItem,
-            IParser parser,
-            Func<IParser, Type, object?> nestedObjectDeserializer,
-            IList result,
-            bool canUpdate,
-            INamingConvention enumNamingConvention,
-            ITypeInspector typeInspector,
-            Action<int, object?>? promiseResolvedHandler = null)
+        else
         {
-            parser.Consume<SequenceStart>();
-            while (!parser.TryConsume<SequenceEnd>(out var _))
+            value = null;
+            return false;
+        }
+        
+        DeserializeHelper(itemType, parser, nestedObjectDeserializer, list!, canUpdate, enumNamingConvention, typeInspector);
+        
+        return true;
+    }
+    
+    internal static void DeserializeHelper(Type tItem,
+        IParser parser,
+        Func<IParser, Type, object?> nestedObjectDeserializer,
+        IList result,
+        bool canUpdate,
+        INamingConvention enumNamingConvention,
+        ITypeInspector typeInspector,
+        Action<int, object?>? promiseResolvedHandler = null)
+    {
+        parser.Consume<SequenceStart>();
+        while (!parser.TryConsume<SequenceEnd>(out _))
+        {
+            var current = parser.Current;
+            
+            var value = nestedObjectDeserializer(parser, tItem);
+            if (value is IValuePromise promise)
             {
-                var current = parser.Current;
-
-                var value = nestedObjectDeserializer(parser, tItem);
-                if (value is IValuePromise promise)
+                if (canUpdate)
                 {
-                    if (canUpdate)
-                    {
-                        var index = result.Add(tItem.IsValueType() ? Activator.CreateInstance(tItem) : null);
-
-                        if (promiseResolvedHandler != null)
-                        {
-                            promise.ValueAvailable += v => promiseResolvedHandler(index, v);
-                        }
-                        else
-                        {
-                            promise.ValueAvailable += v => result[index] = TypeConverter.ChangeType(v, tItem, enumNamingConvention, typeInspector);
-                        }
-                    }
+                    var index = result.Add(tItem.IsValueType() ? Activator.CreateInstance(tItem) : null);
+                    
+                    if (promiseResolvedHandler != null)
+                        promise.ValueAvailable += v => promiseResolvedHandler(index, v);
                     else
-                    {
-                        throw new ForwardAnchorNotSupportedException(
-                            current?.Start ?? Mark.Empty,
-                            current?.End ?? Mark.Empty,
-                            "Forward alias references are not allowed because this type does not implement IList<>"
-                        );
-                    }
+                        promise.ValueAvailable += v => result[index] = TypeConverter.ChangeType(v, tItem, enumNamingConvention, typeInspector);
                 }
                 else
                 {
-                    result.Add(TypeConverter.ChangeType(value, tItem, enumNamingConvention, typeInspector));
+                    throw new ForwardAnchorNotSupportedException(
+                        current?.Start ?? Mark.Empty,
+                        current?.End ?? Mark.Empty,
+                        "Forward alias references are not allowed because this type does not implement IList<>"
+                    );
                 }
+            }
+            else
+            {
+                result.Add(TypeConverter.ChangeType(value, tItem, enumNamingConvention, typeInspector));
             }
         }
     }

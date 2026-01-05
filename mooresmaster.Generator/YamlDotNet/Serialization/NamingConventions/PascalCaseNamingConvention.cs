@@ -22,31 +22,31 @@
 using System;
 using YamlDotNet.Serialization.Utilities;
 
-namespace YamlDotNet.Serialization.NamingConventions
+namespace YamlDotNet.Serialization.NamingConventions;
+
+/// <summary>
+///     Convert the string with underscores (this_is_a_test) or hyphens (this-is-a-test) to
+///     pascal case (ThisIsATest). Pascal case is the same as camel case, except the first letter
+///     is uppercase.
+/// </summary>
+public sealed class PascalCaseNamingConvention : INamingConvention
 {
-    /// <summary>
-    /// Convert the string with underscores (this_is_a_test) or hyphens (this-is-a-test) to 
-    /// pascal case (ThisIsATest). Pascal case is the same as camel case, except the first letter
-    /// is uppercase.
-    /// </summary>
-    public sealed class PascalCaseNamingConvention : INamingConvention
-    {
-        [Obsolete("Use the Instance static field instead of creating new instances")]
-        public PascalCaseNamingConvention() { }
-
-        public string Apply(string value)
-        {
-            return value.ToPascalCase();
-        }
-
-        public string Reverse(string value)
-        {
-            var result = value.ToPascalCase();
-            return result;
-        }
-
 #pragma warning disable CS0618 // Type or member is obsolete
-        public static readonly INamingConvention Instance = new PascalCaseNamingConvention();
+    public static readonly INamingConvention Instance = new PascalCaseNamingConvention();
 #pragma warning restore CS0618 // Type or member is obsolete
+    [Obsolete("Use the Instance static field instead of creating new instances")]
+    public PascalCaseNamingConvention()
+    {
+    }
+    
+    public string Apply(string value)
+    {
+        return value.ToPascalCase();
+    }
+    
+    public string Reverse(string value)
+    {
+        var result = value.ToPascalCase();
+        return result;
     }
 }

@@ -39,7 +39,7 @@ public interface ITypeInspector
     /// </param>
     /// <returns></returns>
     IEnumerable<IPropertyDescriptor> GetProperties(Type type, object? container);
-
+    
     /// <summary>
     ///     Gets the property of the type with the specified name.
     /// </summary>
@@ -56,7 +56,7 @@ public interface ITypeInspector
     /// <param name="caseInsensitivePropertyMatching">If true use case-insitivity when choosing the property or field.</param>
     /// <returns></returns>
     IPropertyDescriptor GetProperty(Type type, object? container, string name, bool ignoreUnmatched, bool caseInsensitivePropertyMatching);
-
+    
     /// <summary>
     ///     Returns the actual name from the EnumMember attribute
     /// </summary>
@@ -64,7 +64,7 @@ public interface ITypeInspector
     /// <param name="name">The name to lookup.</param>
     /// <returns>The actual name of the enum value.</returns>
     string GetEnumName(Type enumType, string name);
-
+    
     /// <summary>
     ///     Return the value of the enum
     /// </summary>

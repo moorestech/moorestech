@@ -23,35 +23,32 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using YamlDotNet.Core;
-using YamlDotNet.Serialization.Utilities;
 
-namespace YamlDotNet.Serialization.NodeDeserializers
+namespace YamlDotNet.Serialization.NodeDeserializers;
+
+public sealed class EnumerableNodeDeserializer : INodeDeserializer
 {
-    public sealed class EnumerableNodeDeserializer : INodeDeserializer
+    public bool Deserialize(IParser parser, Type expectedType, Func<IParser, Type, object?> nestedObjectDeserializer, out object? value, ObjectDeserializer rootDeserializer)
     {
-        public bool Deserialize(IParser parser, Type expectedType, Func<IParser, Type, object?> nestedObjectDeserializer, out object? value, ObjectDeserializer rootDeserializer)
+        Type itemsType;
+        if (expectedType == typeof(IEnumerable))
         {
-            Type itemsType;
-            if (expectedType == typeof(IEnumerable))
-            {
-                itemsType = typeof(object);
-            }
-            else
-            {
-                var iEnumerable = expectedType.GetImplementationOfOpenGenericInterface(typeof(IEnumerable<>));
-                if (iEnumerable != expectedType)
-                {
-                    value = null;
-                    return false;
-                }
-
-                itemsType = iEnumerable.GetGenericArguments()[0];
-            }
-
-            var collectionType = typeof(List<>).MakeGenericType(itemsType);
-            value = nestedObjectDeserializer(parser, collectionType);
-            return true;
+            itemsType = typeof(object);
         }
+        else
+        {
+            var iEnumerable = expectedType.GetImplementationOfOpenGenericInterface(typeof(IEnumerable<>));
+            if (iEnumerable != expectedType)
+            {
+                value = null;
+                return false;
+            }
+            
+            itemsType = iEnumerable.GetGenericArguments()[0];
+        }
+        
+        var collectionType = typeof(List<>).MakeGenericType(itemsType);
+        value = nestedObjectDeserializer(parser, collectionType);
+        return true;
     }
 }
-

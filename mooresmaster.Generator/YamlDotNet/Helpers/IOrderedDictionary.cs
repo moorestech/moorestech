@@ -21,35 +21,30 @@
 
 using System.Collections.Generic;
 
-namespace YamlDotNet.Helpers
+namespace YamlDotNet.Helpers;
+
+public interface IOrderedDictionary<TKey, TValue> : IDictionary<TKey, TValue>
+    where TKey : notnull
 {
-    public interface IOrderedDictionary<TKey, TValue> : IDictionary<TKey, TValue>
-        where TKey : notnull
-    {
-        /// <summary>
-        /// Gets or sets the element with the specified index.
-        /// </summary>
-        /// <param name="index">The index of the element to get or set.</param>
-        /// <returns>The element with the specified index.</returns>
-        KeyValuePair<TKey, TValue> this[int index]
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Adds an element with the provided key and value to the <see cref="IOrderedDictionary{TKey, TValue}"/>
-        /// at the given index.
-        /// </summary>
-        /// <param name="index">The zero-based index at which the item should be inserted.</param>
-        /// <param name="key">The object to use as the key of the element to add.</param>
-        /// <param name="value">The object to use as the value of the element to add.</param>
-        void Insert(int index, TKey key, TValue value);
-
-        /// <summary>
-        /// Removes the element at the specified index.
-        /// </summary>
-        /// <param name="index">The zero-based index of the element to remove.</param>
-        void RemoveAt(int index);
-    }
+    /// <summary>
+    ///     Gets or sets the element with the specified index.
+    /// </summary>
+    /// <param name="index">The index of the element to get or set.</param>
+    /// <returns>The element with the specified index.</returns>
+    KeyValuePair<TKey, TValue> this[int index] { get; set; }
+    
+    /// <summary>
+    ///     Adds an element with the provided key and value to the <see cref="IOrderedDictionary{TKey, TValue}" />
+    ///     at the given index.
+    /// </summary>
+    /// <param name="index">The zero-based index at which the item should be inserted.</param>
+    /// <param name="key">The object to use as the key of the element to add.</param>
+    /// <param name="value">The object to use as the value of the element to add.</param>
+    void Insert(int index, TKey key, TValue value);
+    
+    /// <summary>
+    ///     Removes the element at the specified index.
+    /// </summary>
+    /// <param name="index">The zero-based index of the element to remove.</param>
+    void RemoveAt(int index);
 }

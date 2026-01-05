@@ -13,7 +13,7 @@ public class DuplicateInterfaceNameAnalyzer : IPostSemanticsLayerAnalyzer
         var interfaceGroups = semantics.InterfaceSemanticsTable
             .GroupBy(kvp => kvp.Value.Interface.InterfaceName)
             .Where(g => g.Count() > 1);
-
+        
         foreach (var group in interfaceGroups)
         {
             var locations = group.Select(kvp => kvp.Value.Interface.Location).ToArray();

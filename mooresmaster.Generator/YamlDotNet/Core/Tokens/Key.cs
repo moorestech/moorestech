@@ -19,29 +19,28 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-namespace YamlDotNet.Core.Tokens
+namespace YamlDotNet.Core.Tokens;
+
+/// <summary>
+///     Represents a key token.
+/// </summary>
+public sealed class Key : Token
 {
     /// <summary>
-    /// Represents a key token.
+    ///     Initializes a new instance of the <see cref="Key" /> class.
     /// </summary>
-    public sealed class Key : Token
+    public Key()
+        : this(Mark.Empty, Mark.Empty)
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Key"/> class.
-        /// </summary>
-        public Key()
-            : this(Mark.Empty, Mark.Empty)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Key"/> class.
-        /// </summary>
-        /// <param name="start">The start position of the token.</param>
-        /// <param name="end">The end position of the token.</param>
-        public Key(in Mark start, in Mark end)
-            : base(start, end)
-        {
-        }
+    }
+    
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="Key" /> class.
+    /// </summary>
+    /// <param name="start">The start position of the token.</param>
+    /// <param name="end">The end position of the token.</param>
+    public Key(in Mark start, in Mark end)
+        : base(start, end)
+    {
     }
 }

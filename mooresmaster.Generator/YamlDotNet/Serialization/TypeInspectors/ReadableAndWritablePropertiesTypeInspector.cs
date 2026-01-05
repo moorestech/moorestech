@@ -23,28 +23,33 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace YamlDotNet.Serialization.TypeInspectors
+namespace YamlDotNet.Serialization.TypeInspectors;
+
+/// <summary>
+///     Returns the properties of a type that are both readable and writable.
+/// </summary>
+public class ReadableAndWritablePropertiesTypeInspector : TypeInspectorSkeleton
 {
-    /// <summary>
-    /// Returns the properties of a type that are both readable and writable.
-    /// </summary>
-    public class ReadableAndWritablePropertiesTypeInspector : TypeInspectorSkeleton
+    private readonly ITypeInspector innerTypeDescriptor;
+    
+    public ReadableAndWritablePropertiesTypeInspector(ITypeInspector innerTypeDescriptor)
     {
-        private readonly ITypeInspector innerTypeDescriptor;
-
-        public ReadableAndWritablePropertiesTypeInspector(ITypeInspector innerTypeDescriptor)
-        {
-            this.innerTypeDescriptor = innerTypeDescriptor ?? throw new ArgumentNullException(nameof(innerTypeDescriptor));
-        }
-
-        public override string GetEnumName(Type enumType, string name) => innerTypeDescriptor.GetEnumName(enumType, name);
-
-        public override string GetEnumValue(object enumValue) => this.innerTypeDescriptor.GetEnumValue(enumValue);
-
-        public override IEnumerable<IPropertyDescriptor> GetProperties(Type type, object? container)
-        {
-            return innerTypeDescriptor.GetProperties(type, container)
-                .Where(p => p.CanWrite);
-        }
+        this.innerTypeDescriptor = innerTypeDescriptor ?? throw new ArgumentNullException(nameof(innerTypeDescriptor));
+    }
+    
+    public override string GetEnumName(Type enumType, string name)
+    {
+        return innerTypeDescriptor.GetEnumName(enumType, name);
+    }
+    
+    public override string GetEnumValue(object enumValue)
+    {
+        return this.innerTypeDescriptor.GetEnumValue(enumValue);
+    }
+    
+    public override IEnumerable<IPropertyDescriptor> GetProperties(Type type, object? container)
+    {
+        return innerTypeDescriptor.GetProperties(type, container)
+            .Where(p => p.CanWrite);
     }
 }

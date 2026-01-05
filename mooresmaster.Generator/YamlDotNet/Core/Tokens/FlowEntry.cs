@@ -19,29 +19,28 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-namespace YamlDotNet.Core.Tokens
+namespace YamlDotNet.Core.Tokens;
+
+/// <summary>
+///     Represents a flow entry event.
+/// </summary>
+public sealed class FlowEntry : Token
 {
     /// <summary>
-    /// Represents a flow entry event.
+    ///     Initializes a new instance of the <see cref="FlowEntry" /> class.
     /// </summary>
-    public sealed class FlowEntry : Token
+    public FlowEntry()
+        : this(Mark.Empty, Mark.Empty)
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="FlowEntry"/> class.
-        /// </summary>
-        public FlowEntry()
-            : this(Mark.Empty, Mark.Empty)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="FlowEntry"/> class.
-        /// </summary>
-        /// <param name="start">The start position of the token.</param>
-        /// <param name="end">The end position of the token.</param>
-        public FlowEntry(in Mark start, in Mark end)
-            : base(start, end)
-        {
-        }
+    }
+    
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="FlowEntry" /> class.
+    /// </summary>
+    /// <param name="start">The start position of the token.</param>
+    /// <param name="end">The end position of the token.</param>
+    public FlowEntry(in Mark start, in Mark end)
+        : base(start, end)
+    {
     }
 }

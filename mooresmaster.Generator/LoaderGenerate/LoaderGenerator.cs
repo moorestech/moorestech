@@ -108,19 +108,16 @@ public static class LoaderGenerator
         var propertyLoaderCode = isRoot
             ? GenerateRootPropertyLoaderCode(typeDefinition, semantics, definition)
             : GeneratePropertiesLoaderCode(typeDefinition, semantics, definition);
-
+        
         // IsArrayInnerTypeかどうかを判定
         var isArrayInnerType = false;
-        if (definition.TypeNameToClassId.TryGetValue(typeDefinition.TypeName, out var classId))
-        {
-            isArrayInnerType = semantics.TypeSemanticsTable[classId].IsArrayInnerType;
-        }
-
+        if (definition.TypeNameToClassId.TryGetValue(typeDefinition.TypeName, out var classId)) isArrayInnerType = semantics.TypeSemanticsTable[classId].IsArrayInnerType;
+        
         var loadMethodParams = isArrayInnerType ? "int Index, global::Newtonsoft.Json.Linq.JToken json" : "global::Newtonsoft.Json.Linq.JToken json";
         var constructorArgs = isArrayInnerType
             ? string.Join(", ", new[] { "Index" }.Concat(typeDefinition.PropertyTable.Select(property => property.Key)))
             : string.Join(", ", typeDefinition.PropertyTable.Select(property => property.Key));
-
+        
         return (
             $"mooresmaster.loader.{typeDefinition.TypeName.ModuleName}.{typeDefinition.TypeName.Name}.g.cs",
             $$$"""
@@ -131,9 +128,9 @@ public static class LoaderGenerator
                        public static {{{targetTypeName}}} Load({{{loadMethodParams}}})
                        {
                            {{{GenerateNullCheckCode(typeDefinition, semantics).Indent(level: 3)}}}
-
+               
                            {{{propertyLoaderCode.Indent(level: 3)}}}
-
+               
                            return new {{{targetTypeName}}}({{{constructorArgs}}});
                        }
                    }
@@ -259,7 +256,7 @@ public static class LoaderGenerator
                 .Select(property =>
                     {
                         var propertySemantics = semantics.PropertySemanticsTable[property.Value.PropertyId!.Value];
-
+                        
                         return $"{property.Value.Type.GetName()} {property.Key} = {GeneratePropertyLoaderCode(
                             property.Value.Type,
                             propertySemantics.Schema is SwitchSchema ?
@@ -305,21 +302,19 @@ public static class LoaderGenerator
             _ => throw new ArgumentOutOfRangeException(nameof(type))
         };
     }
-
+    
     private static string GenerateArrayLoaderCode(ArrayType arrayType, string json, Definition definition, Semantics semantics)
     {
         var innerType = arrayType.InnerType;
-
+        
         // InnerTypeがCustomTypeかつIsArrayInnerTypeの場合、インデックス付きのSelectを使用
         if (innerType is CustomType customType &&
             definition.TypeNameToClassId.TryGetValue(customType.Name, out var classId) &&
             semantics.TypeSemanticsTable[classId].IsArrayInnerType)
-        {
             return $$$"""
                       global::System.Linq.Enumerable.ToArray(global::System.Linq.Enumerable.Select({{{json}}}, (value, __Index__) => {{{GetLoaderName(innerType)}}}(__Index__, value)))
                       """;
-        }
-
+        
         return $$$"""
                   global::System.Linq.Enumerable.ToArray(global::System.Linq.Enumerable.Select({{{json}}}, value => {{{GeneratePropertyLoaderCode(innerType, "value", definition, semantics)}}}))
                   """;

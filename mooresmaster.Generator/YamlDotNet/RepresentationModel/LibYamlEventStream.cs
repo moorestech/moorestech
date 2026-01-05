@@ -24,113 +24,106 @@ using System.IO;
 using YamlDotNet.Core;
 using YamlDotNet.Core.Events;
 
-namespace YamlDotNet.RepresentationModel
+namespace YamlDotNet.RepresentationModel;
+
+/// <summary>
+///     Represents a LibYAML event stream.
+/// </summary>
+public class LibYamlEventStream
 {
+    private readonly IParser parser;
+    
     /// <summary>
-    /// Represents a LibYAML event stream.
+    ///     Initializes a new instance of the <see cref="LibYamlEventStream" /> class
+    ///     from the specified <see cref="IParser" />.
     /// </summary>
-    public class LibYamlEventStream
+    public LibYamlEventStream(IParser iParser)
     {
-        private readonly IParser parser;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="LibYamlEventStream"/> class
-        /// from the specified <see cref="IParser"/>.
-        /// </summary>
-        public LibYamlEventStream(IParser iParser)
+        parser = iParser ?? throw new ArgumentNullException(nameof(iParser));
+    }
+    
+    public void WriteTo(TextWriter textWriter)
+    {
+        while (parser.MoveNext())
         {
-            parser = iParser ?? throw new ArgumentNullException(nameof(iParser));
+            switch (parser.Current)
+            {
+                case AnchorAlias anchorAlias:
+                    textWriter.Write("=ALI *");
+                    textWriter.Write(anchorAlias.Value);
+                    break;
+                case DocumentEnd documentEnd:
+                    textWriter.Write("-DOC");
+                    if (!documentEnd.IsImplicit) textWriter.Write(" ...");
+                    break;
+                case DocumentStart documentStart:
+                    textWriter.Write("+DOC");
+                    if (!documentStart.IsImplicit) textWriter.Write(" ---");
+                    break;
+                case MappingEnd _:
+                    textWriter.Write("-MAP");
+                    break;
+                case MappingStart mappingStart:
+                    textWriter.Write("+MAP");
+                    WriteAnchorAndTag(textWriter, mappingStart);
+                    break;
+                case Scalar scalar:
+                    textWriter.Write("=VAL");
+                    WriteAnchorAndTag(textWriter, scalar);
+                    
+                    switch (scalar.Style)
+                    {
+                        case ScalarStyle.DoubleQuoted: textWriter.Write(" \""); break;
+                        case ScalarStyle.SingleQuoted: textWriter.Write(" '"); break;
+                        case ScalarStyle.Folded: textWriter.Write(" >"); break;
+                        case ScalarStyle.Literal: textWriter.Write(" |"); break;
+                        default: textWriter.Write(" :"); break;
+                    }
+                    
+                    foreach (var character in scalar.Value)
+                        switch (character)
+                        {
+                            case '\b': textWriter.Write("\\b"); break;
+                            case '\t': textWriter.Write("\\t"); break;
+                            case '\n': textWriter.Write("\\n"); break;
+                            case '\r': textWriter.Write("\\r"); break;
+                            case '\\': textWriter.Write("\\\\"); break;
+                            default: textWriter.Write(character); break;
+                        }
+                    
+                    break;
+                case SequenceEnd _:
+                    textWriter.Write("-SEQ");
+                    break;
+                case SequenceStart sequenceStart:
+                    textWriter.Write("+SEQ");
+                    WriteAnchorAndTag(textWriter, sequenceStart);
+                    break;
+                case StreamEnd _:
+                    textWriter.Write("-STR");
+                    break;
+                case StreamStart _:
+                    textWriter.Write("+STR");
+                    break;
+            }
+            
+            textWriter.WriteLine();
         }
-
-        public void WriteTo(TextWriter textWriter)
+    }
+    
+    private static void WriteAnchorAndTag(TextWriter textWriter, NodeEvent nodeEvent)
+    {
+        if (!nodeEvent.Anchor.IsEmpty)
         {
-            while (parser.MoveNext())
-            {
-                switch (parser.Current)
-                {
-                    case AnchorAlias anchorAlias:
-                        textWriter.Write("=ALI *");
-                        textWriter.Write(anchorAlias.Value);
-                        break;
-                    case DocumentEnd documentEnd:
-                        textWriter.Write("-DOC");
-                        if (!documentEnd.IsImplicit)
-                        {
-                            textWriter.Write(" ...");
-                        }
-                        break;
-                    case DocumentStart documentStart:
-                        textWriter.Write("+DOC");
-                        if (!documentStart.IsImplicit)
-                        {
-                            textWriter.Write(" ---");
-                        }
-                        break;
-                    case MappingEnd _:
-                        textWriter.Write("-MAP");
-                        break;
-                    case MappingStart mappingStart:
-                        textWriter.Write("+MAP");
-                        WriteAnchorAndTag(textWriter, mappingStart);
-                        break;
-                    case Scalar scalar:
-                        textWriter.Write("=VAL");
-                        WriteAnchorAndTag(textWriter, scalar);
-
-                        switch (scalar.Style)
-                        {
-                            case ScalarStyle.DoubleQuoted: textWriter.Write(" \""); break;
-                            case ScalarStyle.SingleQuoted: textWriter.Write(" '"); break;
-                            case ScalarStyle.Folded: textWriter.Write(" >"); break;
-                            case ScalarStyle.Literal: textWriter.Write(" |"); break;
-                            default: textWriter.Write(" :"); break;
-                        }
-
-                        foreach (var character in scalar.Value)
-                        {
-                            switch (character)
-                            {
-                                case '\b': textWriter.Write("\\b"); break;
-                                case '\t': textWriter.Write("\\t"); break;
-                                case '\n': textWriter.Write("\\n"); break;
-                                case '\r': textWriter.Write("\\r"); break;
-                                case '\\': textWriter.Write("\\\\"); break;
-                                default: textWriter.Write(character); break;
-                            }
-                        }
-                        break;
-                    case SequenceEnd _:
-                        textWriter.Write("-SEQ");
-                        break;
-                    case SequenceStart sequenceStart:
-                        textWriter.Write("+SEQ");
-                        WriteAnchorAndTag(textWriter, sequenceStart);
-                        break;
-                    case StreamEnd _:
-                        textWriter.Write("-STR");
-                        break;
-                    case StreamStart _:
-                        textWriter.Write("+STR");
-                        break;
-                }
-                textWriter.WriteLine();
-            }
+            textWriter.Write(" &");
+            textWriter.Write(nodeEvent.Anchor);
         }
-
-        private static void WriteAnchorAndTag(TextWriter textWriter, NodeEvent nodeEvent)
+        
+        if (!nodeEvent.Tag.IsEmpty)
         {
-            if (!nodeEvent.Anchor.IsEmpty)
-            {
-                textWriter.Write(" &");
-                textWriter.Write(nodeEvent.Anchor);
-            }
-
-            if (!nodeEvent.Tag.IsEmpty)
-            {
-                textWriter.Write(" <");
-                textWriter.Write(nodeEvent.Tag.Value);
-                textWriter.Write(">");
-            }
+            textWriter.Write(" <");
+            textWriter.Write(nodeEvent.Tag.Value);
+            textWriter.Write(">");
         }
     }
 }

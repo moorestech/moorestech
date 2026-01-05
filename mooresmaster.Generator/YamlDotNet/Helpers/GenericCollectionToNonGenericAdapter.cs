@@ -23,103 +23,81 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace YamlDotNet.Helpers
+namespace YamlDotNet.Helpers;
+
+/// <summary>
+///     Adapts an <see cref="System.Collections.Generic.ICollection{T}" /> to <see cref="IList" />
+///     because not all generic collections implement <see cref="IList" />.
+/// </summary>
+internal sealed class GenericCollectionToNonGenericAdapter<T> : IList
 {
-    /// <summary>
-    /// Adapts an <see cref="System.Collections.Generic.ICollection{T}" /> to <see cref="IList" />
-    /// because not all generic collections implement <see cref="IList" />.
-    /// </summary>
-    internal sealed class GenericCollectionToNonGenericAdapter<T> : IList
+    private readonly ICollection<T> genericCollection;
+    
+    public GenericCollectionToNonGenericAdapter(ICollection<T> genericCollection)
     {
-        private readonly ICollection<T> genericCollection;
-
-        public GenericCollectionToNonGenericAdapter(ICollection<T> genericCollection)
-        {
-            this.genericCollection = genericCollection ?? throw new ArgumentNullException(nameof(genericCollection));
-        }
-
-        public int Add(object? value)
-        {
-            var index = genericCollection.Count;
-            genericCollection.Add((T)value!);
-            return index;
-        }
-
-        public void Clear()
-        {
-            genericCollection.Clear();
-        }
-
-        public bool Contains(object? value)
-        {
-            throw new NotSupportedException();
-        }
-
-        public int IndexOf(object? value)
-        {
-            throw new NotSupportedException();
-        }
-
-        public void Insert(int index, object? value)
-        {
-            throw new NotSupportedException();
-        }
-
-        public bool IsFixedSize
-        {
-            get { throw new NotSupportedException(); }
-        }
-
-        public bool IsReadOnly
-        {
-            get { throw new NotSupportedException(); }
-        }
-
-        public void Remove(object? value)
-        {
-            throw new NotSupportedException();
-        }
-
-        public void RemoveAt(int index)
-        {
-            throw new NotSupportedException();
-        }
-
-        public object? this[int index]
-        {
-            get
-            {
-                throw new NotSupportedException();
-            }
-            set
-            {
-                ((IList<T>)genericCollection)[index] = (T)value!;
-            }
-        }
-
-        public void CopyTo(Array array, int index)
-        {
-            throw new NotSupportedException();
-        }
-
-        public int Count
-        {
-            get { throw new NotSupportedException(); }
-        }
-
-        public bool IsSynchronized
-        {
-            get { throw new NotSupportedException(); }
-        }
-
-        public object SyncRoot
-        {
-            get { throw new NotSupportedException(); }
-        }
-
-        public IEnumerator GetEnumerator()
-        {
-            return genericCollection.GetEnumerator();
-        }
+        this.genericCollection = genericCollection ?? throw new ArgumentNullException(nameof(genericCollection));
+    }
+    
+    public int Add(object? value)
+    {
+        var index = genericCollection.Count;
+        genericCollection.Add((T)value!);
+        return index;
+    }
+    
+    public void Clear()
+    {
+        genericCollection.Clear();
+    }
+    
+    public bool Contains(object? value)
+    {
+        throw new NotSupportedException();
+    }
+    
+    public int IndexOf(object? value)
+    {
+        throw new NotSupportedException();
+    }
+    
+    public void Insert(int index, object? value)
+    {
+        throw new NotSupportedException();
+    }
+    
+    public bool IsFixedSize => throw new NotSupportedException();
+    
+    public bool IsReadOnly => throw new NotSupportedException();
+    
+    public void Remove(object? value)
+    {
+        throw new NotSupportedException();
+    }
+    
+    public void RemoveAt(int index)
+    {
+        throw new NotSupportedException();
+    }
+    
+    public object? this[int index]
+    {
+        get => throw new NotSupportedException();
+        set => ((IList<T>)genericCollection)[index] = (T)value!;
+    }
+    
+    public void CopyTo(Array array, int index)
+    {
+        throw new NotSupportedException();
+    }
+    
+    public int Count => throw new NotSupportedException();
+    
+    public bool IsSynchronized => throw new NotSupportedException();
+    
+    public object SyncRoot => throw new NotSupportedException();
+    
+    public IEnumerator GetEnumerator()
+    {
+        return genericCollection.GetEnumerator();
     }
 }

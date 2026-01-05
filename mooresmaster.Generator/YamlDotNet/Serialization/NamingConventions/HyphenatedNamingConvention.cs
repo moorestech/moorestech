@@ -22,29 +22,29 @@
 using System;
 using YamlDotNet.Serialization.Utilities;
 
-namespace YamlDotNet.Serialization.NamingConventions
+namespace YamlDotNet.Serialization.NamingConventions;
+
+/// <summary>
+///     Convert the string from camelcase (thisIsATest) to a hyphenated (this-is-a-test) string
+/// </summary>
+public sealed class HyphenatedNamingConvention : INamingConvention
 {
-    /// <summary>
-    /// Convert the string from camelcase (thisIsATest) to a hyphenated (this-is-a-test) string
-    /// </summary>
-    public sealed class HyphenatedNamingConvention : INamingConvention
-    {
-        [Obsolete("Use the Instance static field instead of creating new instances")]
-        public HyphenatedNamingConvention() { }
-
-        public string Apply(string value)
-        {
-            return value.FromCamelCase("-");
-        }
-
-        public string Reverse(string value)
-        {
-            var result = value.ToPascalCase();
-            return result;
-        }
-
 #pragma warning disable CS0618 // Type or member is obsolete
-        public static readonly INamingConvention Instance = new HyphenatedNamingConvention();
+    public static readonly INamingConvention Instance = new HyphenatedNamingConvention();
 #pragma warning restore CS0618 // Type or member is obsolete
+    [Obsolete("Use the Instance static field instead of creating new instances")]
+    public HyphenatedNamingConvention()
+    {
+    }
+    
+    public string Apply(string value)
+    {
+        return value.FromCamelCase("-");
+    }
+    
+    public string Reverse(string value)
+    {
+        var result = value.ToPascalCase();
+        return result;
     }
 }

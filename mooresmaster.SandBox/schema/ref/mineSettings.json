@@ -1,9 +1,7 @@
 {
   "$id": "mineSettings",
-
   "type": "array",
   "overrideCodeGeneratePropertyName": "MineSettingsMasterElement",
-  
   "items": {
     "type": "object",
     "properties": {
@@ -12,7 +10,6 @@
         "format": "uuid",
         "foreignKey": "items:itemGuid:name"
       },
-
       "time": {
         "type": "number",
         "default": 1

@@ -22,10 +22,9 @@
 using System;
 using YamlDotNet.Core;
 
-namespace YamlDotNet.Serialization
+namespace YamlDotNet.Serialization;
+
+public interface IValueSerializer
 {
-    public interface IValueSerializer
-    {
-        void SerializeValue(IEmitter emitter, object? value, Type? type);
-    }
+    void SerializeValue(IEmitter emitter, object? value, Type? type);
 }

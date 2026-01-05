@@ -21,45 +21,36 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 
-namespace YamlDotNet.Helpers
+namespace YamlDotNet.Helpers;
+
+internal static class DictionaryExtensions
 {
-    internal static class DictionaryExtensions
+#if NETSTANDARD || NETFRAMEWORK
+    public static bool TryAdd<T, V>(this Dictionary<T, V> dictionary, T key, V value)
     {
-#if NETSTANDARD || NETFRAMEWORK
-        public static bool TryAdd<T, V>(this System.Collections.Generic.Dictionary<T, V> dictionary, T key, V value)
-        {
-            if (dictionary.ContainsKey(key))
-            {
-                return false;
-            }
-
-            dictionary.Add(key, value);
-            return true;
-        }
-#endif
-
-#if NETSTANDARD || NETFRAMEWORK
-        public static TValue GetOrAdd<TKey, TValue, TArg>(this ConcurrentDictionary<TKey, TValue> dictionary, TKey key, Func<TKey, TArg, TValue> valueFactory, TArg arg)
-        {
-            if (dictionary == null) { throw new ArgumentNullException(nameof(dictionary)); }
-            if (key == null) { throw new ArgumentNullException(nameof(key)); }
-            if (valueFactory == null) { throw new ArgumentNullException(nameof(valueFactory)); }
-
-            while (true)
-            {
-                if (dictionary.TryGetValue(key, out var value))
-                {
-                    return value;
-                }
-
-                value = valueFactory(key, arg);
-                if (dictionary.TryAdd(key, value))
-                {
-                    return value;
-                }
-            }
-        }
-#endif
+        if (dictionary.ContainsKey(key)) return false;
+        
+        dictionary.Add(key, value);
+        return true;
     }
+#endif
+    
+#if NETSTANDARD || NETFRAMEWORK
+    public static TValue GetOrAdd<TKey, TValue, TArg>(this ConcurrentDictionary<TKey, TValue> dictionary, TKey key, Func<TKey, TArg, TValue> valueFactory, TArg arg)
+    {
+        if (dictionary == null) throw new ArgumentNullException(nameof(dictionary));
+        if (key == null) throw new ArgumentNullException(nameof(key));
+        if (valueFactory == null) throw new ArgumentNullException(nameof(valueFactory));
+        
+        while (true)
+        {
+            if (dictionary.TryGetValue(key, out var value)) return value;
+            
+            value = valueFactory(key, arg);
+            if (dictionary.TryAdd(key, value)) return value;
+        }
+    }
+#endif
 }

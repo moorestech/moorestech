@@ -22,99 +22,106 @@
 using System;
 using System.Globalization;
 using System.Linq;
-
 using YamlDotNet.Core;
 using YamlDotNet.Core.Events;
 
-namespace YamlDotNet.Serialization.Converters
+namespace YamlDotNet.Serialization.Converters;
+
+/// <summary>
+///     This represents the YAML converter entity for <see cref="DateTime" />.
+/// </summary>
+public class DateTimeConverter : IYamlTypeConverter
 {
+    private readonly bool doubleQuotes;
+    private readonly string[] formats;
+    private readonly DateTimeKind kind;
+    private readonly IFormatProvider provider;
+    
     /// <summary>
-    /// This represents the YAML converter entity for <see cref="DateTime"/>.
+    ///     Initializes a new instance of the <see cref="DateTimeConverter" /> class.
     /// </summary>
-    public class DateTimeConverter : IYamlTypeConverter
+    /// <param name="kind">
+    ///     <see cref="DateTimeKind" /> value. Default value is <see cref="DateTimeKind.Utc" />.
+    ///     <see cref="DateTimeKind.Unspecified" /> is considered as <see cref="DateTimeKind.Utc" />.
+    /// </param>
+    /// <param name="provider">
+    ///     <see cref="IFormatProvider" /> instance. Default value is
+    ///     <see cref="CultureInfo.InvariantCulture" />.
+    /// </param>
+    /// <param name="doubleQuotes">If true, will use double quotes when writing the value to the stream.</param>
+    /// <param name="formats">List of date/time formats for parsing. Default value is "<c>G</c>".</param>
+    /// <remarks>
+    ///     On deserializing, all formats in the list are used for conversion, while on serializing, the first format in
+    ///     the list is used.
+    /// </remarks>
+    public DateTimeConverter(DateTimeKind kind = DateTimeKind.Utc, IFormatProvider? provider = null, bool doubleQuotes = false, params string[] formats)
     {
-        private readonly DateTimeKind kind;
-        private readonly IFormatProvider provider;
-        private readonly bool doubleQuotes;
-        private readonly string[] formats;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DateTimeConverter"/> class.
-        /// </summary>
-        /// <param name="kind"><see cref="DateTimeKind"/> value. Default value is <see cref="DateTimeKind.Utc"/>. <see cref="DateTimeKind.Unspecified"/> is considered as <see cref="DateTimeKind.Utc"/>.</param>
-        /// <param name="provider"><see cref="IFormatProvider"/> instance. Default value is <see cref="CultureInfo.InvariantCulture"/>.</param>
-        /// <param name="doubleQuotes">If true, will use double quotes when writing the value to the stream.</param>
-        /// <param name="formats">List of date/time formats for parsing. Default value is "<c>G</c>".</param>
-        /// <remarks>On deserializing, all formats in the list are used for conversion, while on serializing, the first format in the list is used.</remarks>
-        public DateTimeConverter(DateTimeKind kind = DateTimeKind.Utc, IFormatProvider? provider = null, bool doubleQuotes = false, params string[] formats)
+        this.kind = kind == DateTimeKind.Unspecified ? DateTimeKind.Utc : kind;
+        this.provider = provider ?? CultureInfo.InvariantCulture;
+        this.doubleQuotes = doubleQuotes;
+        this.formats = formats.DefaultIfEmpty("G").ToArray();
+    }
+    
+    /// <summary>
+    ///     Gets a value indicating whether the current converter supports converting the specified type.
+    /// </summary>
+    /// <param name="type"><see cref="Type" /> to check.</param>
+    /// <returns>Returns <c>True</c>, if the current converter supports; otherwise returns <c>False</c>.</returns>
+    public bool Accepts(Type type)
+    {
+        return type == typeof(DateTime);
+    }
+    
+    /// <summary>
+    ///     Reads an object's state from a YAML parser.
+    /// </summary>
+    /// <param name="parser"><see cref="IParser" /> instance.</param>
+    /// <param name="type"><see cref="Type" /> to convert.</param>
+    /// <param name="rootDeserializer">The deserializer to use to deserialize complex types.</param>
+    /// <returns>Returns the <see cref="DateTime" /> instance converted.</returns>
+    /// <remarks>On deserializing, all formats in the list are used for conversion.</remarks>
+    public object ReadYaml(IParser parser, Type type, ObjectDeserializer rootDeserializer)
+    {
+        var value = parser.Consume<Scalar>().Value;
+        var style = kind == DateTimeKind.Local ? DateTimeStyles.AssumeLocal : DateTimeStyles.AssumeUniversal;
+        
+        var dt = DateTime.ParseExact(value, formats, provider, style);
+        dt = EnsureDateTimeKind(dt, kind);
+        return dt;
+    }
+    
+    /// <summary>
+    ///     Writes the specified object's state to a YAML emitter.
+    /// </summary>
+    /// <param name="emitter"><see cref="IEmitter" /> instance.</param>
+    /// <param name="value">Value to write.</param>
+    /// <param name="type"><see cref="Type" /> to convert.</param>
+    /// <param name="serializer">A serializer to serializer complext objects.</param>
+    /// <remarks>On serializing, the first format in the list is used.</remarks>
+    public void WriteYaml(IEmitter emitter, object? value, Type type, ObjectSerializer serializer)
+    {
+        var dt = (DateTime)value!;
+        var adjusted = kind == DateTimeKind.Local ? dt.ToLocalTime() : dt.ToUniversalTime();
+        var formatted = adjusted.ToString(formats.First(), provider); // Always take the first format of the list.
+        
+        emitter.Emit(new Scalar(AnchorName.Empty, TagName.Empty, formatted, doubleQuotes ? ScalarStyle.DoubleQuoted : ScalarStyle.Any, true, false));
+    }
+    
+    private static DateTime EnsureDateTimeKind(DateTime dt, DateTimeKind kind)
+    {
+        DateTime ensured;
+        if (dt.Kind == DateTimeKind.Local && kind == DateTimeKind.Utc)
         {
-            this.kind = kind == DateTimeKind.Unspecified ? DateTimeKind.Utc : kind;
-            this.provider = provider ?? CultureInfo.InvariantCulture;
-            this.doubleQuotes = doubleQuotes;
-            this.formats = formats.DefaultIfEmpty("G").ToArray();
+            ensured = dt.ToUniversalTime();
+            return ensured;
         }
-
-        /// <summary>
-        /// Gets a value indicating whether the current converter supports converting the specified type.
-        /// </summary>
-        /// <param name="type"><see cref="Type"/> to check.</param>
-        /// <returns>Returns <c>True</c>, if the current converter supports; otherwise returns <c>False</c>.</returns>
-        public bool Accepts(Type type)
+        
+        if (dt.Kind == DateTimeKind.Utc && kind == DateTimeKind.Local)
         {
-            return type == typeof(DateTime);
+            ensured = dt.ToLocalTime();
+            return ensured;
         }
-
-        /// <summary>
-        /// Reads an object's state from a YAML parser.
-        /// </summary>
-        /// <param name="parser"><see cref="IParser"/> instance.</param>
-        /// <param name="type"><see cref="Type"/> to convert.</param>
-        /// <param name="rootDeserializer">The deserializer to use to deserialize complex types.</param>
-        /// <returns>Returns the <see cref="DateTime"/> instance converted.</returns>
-        /// <remarks>On deserializing, all formats in the list are used for conversion.</remarks>
-        public object ReadYaml(IParser parser, Type type, ObjectDeserializer rootDeserializer)
-        {
-            var value = parser.Consume<Scalar>().Value;
-            var style = this.kind == DateTimeKind.Local ? DateTimeStyles.AssumeLocal : DateTimeStyles.AssumeUniversal;
-
-            var dt = DateTime.ParseExact(value, this.formats, this.provider, style);
-            dt = EnsureDateTimeKind(dt, this.kind);
-            return dt;
-        }
-
-        /// <summary>
-        /// Writes the specified object's state to a YAML emitter.
-        /// </summary>
-        /// <param name="emitter"><see cref="IEmitter"/> instance.</param>
-        /// <param name="value">Value to write.</param>
-        /// <param name="type"><see cref="Type"/> to convert.</param>
-        /// <param name="serializer">A serializer to serializer complext objects.</param>
-        /// <remarks>On serializing, the first format in the list is used.</remarks>
-        public void WriteYaml(IEmitter emitter, object? value, Type type, ObjectSerializer serializer)
-        {
-            var dt = (DateTime)value!;
-            var adjusted = this.kind == DateTimeKind.Local ? dt.ToLocalTime() : dt.ToUniversalTime();
-            var formatted = adjusted.ToString(this.formats.First(), this.provider); // Always take the first format of the list.
-
-            emitter.Emit(new Scalar(AnchorName.Empty, TagName.Empty, formatted, doubleQuotes ? ScalarStyle.DoubleQuoted : ScalarStyle.Any, true, false));
-        }
-
-        private static DateTime EnsureDateTimeKind(DateTime dt, DateTimeKind kind)
-        {
-            DateTime ensured;
-            if (dt.Kind == DateTimeKind.Local && kind == DateTimeKind.Utc)
-            {
-                ensured = dt.ToUniversalTime();
-                return ensured;
-            }
-
-            if (dt.Kind == DateTimeKind.Utc && kind == DateTimeKind.Local)
-            {
-                ensured = dt.ToLocalTime();
-                return ensured;
-            }
-
-            return dt;
-        }
+        
+        return dt;
     }
 }

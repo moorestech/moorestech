@@ -22,112 +22,112 @@
 using System;
 using System.Collections;
 
-namespace YamlDotNet.Serialization.ObjectFactories
+namespace YamlDotNet.Serialization.ObjectFactories;
+
+/// <summary>
+///     Gets information about and creates statically known, serializable, types.
+/// </summary>
+public abstract class StaticObjectFactory : IObjectFactory
 {
     /// <summary>
-    /// Gets information about and creates statically known, serializable, types.
+    ///     Create an object of the specified type
     /// </summary>
-    public abstract class StaticObjectFactory : IObjectFactory
+    /// <param name="type">Type of object to create</param>
+    /// <returns></returns>
+    public abstract object Create(Type type);
+    
+    /// <summary>
+    ///     Gets the type of the value part of a dictionary or list.
+    /// </summary>
+    /// <param name="type"></param>
+    /// <returns></returns>
+    public abstract Type GetValueType(Type type);
+    
+    /// <summary>
+    ///     Creates the default value of primitive types
+    /// </summary>
+    /// <param name="type"></param>
+    /// <returns></returns>
+    public virtual object? CreatePrimitive(Type type)
     {
-        /// <summary>
-        /// Create an object of the specified type
-        /// </summary>
-        /// <param name="type">Type of object to create</param>
-        /// <returns></returns>
-        public abstract object Create(Type type);
-
-        /// <summary>
-        /// Creates an array of the specified type with the size specified
-        /// </summary>
-        /// <param name="type">The type of the array, should be the whole type, not just the value type</param>
-        /// <param name="count">How large the array should be</param>
-        /// <returns></returns>
-        public abstract Array CreateArray(Type type, int count);
-
-        /// <summary>
-        /// Gets whether the type is a dictionary or not
-        /// </summary>
-        /// <param name="type">Type to check</param>
-        /// <returns></returns>
-        public abstract bool IsDictionary(Type type);
-
-        /// <summary>
-        /// Gets whether the type is an array or not
-        /// </summary>
-        /// <param name="type">Type to check</param>
-        /// <returns></returns>
-        public abstract bool IsArray(Type type);
-
-        /// <summary>
-        /// Gets whether the type is a list
-        /// </summary>
-        /// <param name="type">Type to check</param>
-        /// <returns></returns>
-        public abstract bool IsList(Type type);
-
-        /// <summary>
-        /// Gets the type of the key of a dictionary
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        public abstract Type GetKeyType(Type type);
-
-        /// <summary>
-        /// Gets the type of the value part of a dictionary or list.
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        public abstract Type GetValueType(Type type);
-
-        /// <summary>
-        /// Creates the default value of primitive types
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        public virtual object? CreatePrimitive(Type type)
+        var typeCode = Type.GetTypeCode(type);
+        switch (typeCode)
         {
-            var typeCode = Type.GetTypeCode(type);
-            switch (typeCode)
-            {
-                case TypeCode.Boolean: return false;
-                case TypeCode.Byte: return (byte)0;
-                case TypeCode.Int16: return (short)0;
-                case TypeCode.Int32: return (int)0;
-                case TypeCode.Int64: return (long)0;
-                case TypeCode.SByte: return (sbyte)0;
-                case TypeCode.UInt16: return (ushort)0;
-                case TypeCode.UInt32: return (uint)0;
-                case TypeCode.UInt64: return (ulong)0;
-                case TypeCode.Single: return (float)0;
-                case TypeCode.Double: return (double)0;
-                case TypeCode.Decimal: return (decimal)0;
-                case TypeCode.Char: return (char)0;
-                case TypeCode.DateTime: return new DateTime();
-                default:
-                    return null;
-            }
+            case TypeCode.Boolean: return false;
+            case TypeCode.Byte: return (byte)0;
+            case TypeCode.Int16: return (short)0;
+            case TypeCode.Int32: return 0;
+            case TypeCode.Int64: return (long)0;
+            case TypeCode.SByte: return (sbyte)0;
+            case TypeCode.UInt16: return (ushort)0;
+            case TypeCode.UInt32: return (uint)0;
+            case TypeCode.UInt64: return (ulong)0;
+            case TypeCode.Single: return (float)0;
+            case TypeCode.Double: return (double)0;
+            case TypeCode.Decimal: return (decimal)0;
+            case TypeCode.Char: return (char)0;
+            case TypeCode.DateTime: return new DateTime();
+            default:
+                return null;
         }
-
-        /// <summary>
-        /// The static implementation of yamldotnet doesn't support generating types, so we will return null's and false since we can't do anything.
-        /// </summary>
-        /// <param name="descriptor"></param>
-        /// <param name="dictionary"></param>
-        /// <param name="genericArguments"></param>
-        /// <returns></returns>
-        public bool GetDictionary(IObjectDescriptor descriptor, out IDictionary? dictionary, out Type[]? genericArguments)
-        {
-            dictionary = null;
-            genericArguments = null;
-            return false;
-        }
-
-        public abstract void ExecuteOnDeserializing(object value);
-
-        public abstract void ExecuteOnDeserialized(object value);
-
-        public abstract void ExecuteOnSerializing(object value);
-
-        public abstract void ExecuteOnSerialized(object value);
     }
+    
+    /// <summary>
+    ///     The static implementation of yamldotnet doesn't support generating types, so we will return null's and false since
+    ///     we can't do anything.
+    /// </summary>
+    /// <param name="descriptor"></param>
+    /// <param name="dictionary"></param>
+    /// <param name="genericArguments"></param>
+    /// <returns></returns>
+    public bool GetDictionary(IObjectDescriptor descriptor, out IDictionary? dictionary, out Type[]? genericArguments)
+    {
+        dictionary = null;
+        genericArguments = null;
+        return false;
+    }
+    
+    public abstract void ExecuteOnDeserializing(object value);
+    
+    public abstract void ExecuteOnDeserialized(object value);
+    
+    public abstract void ExecuteOnSerializing(object value);
+    
+    public abstract void ExecuteOnSerialized(object value);
+    
+    /// <summary>
+    ///     Creates an array of the specified type with the size specified
+    /// </summary>
+    /// <param name="type">The type of the array, should be the whole type, not just the value type</param>
+    /// <param name="count">How large the array should be</param>
+    /// <returns></returns>
+    public abstract Array CreateArray(Type type, int count);
+    
+    /// <summary>
+    ///     Gets whether the type is a dictionary or not
+    /// </summary>
+    /// <param name="type">Type to check</param>
+    /// <returns></returns>
+    public abstract bool IsDictionary(Type type);
+    
+    /// <summary>
+    ///     Gets whether the type is an array or not
+    /// </summary>
+    /// <param name="type">Type to check</param>
+    /// <returns></returns>
+    public abstract bool IsArray(Type type);
+    
+    /// <summary>
+    ///     Gets whether the type is a list
+    /// </summary>
+    /// <param name="type">Type to check</param>
+    /// <returns></returns>
+    public abstract bool IsList(Type type);
+    
+    /// <summary>
+    ///     Gets the type of the key of a dictionary
+    /// </summary>
+    /// <param name="type"></param>
+    /// <returns></returns>
+    public abstract Type GetKeyType(Type type);
 }

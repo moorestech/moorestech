@@ -20,25 +20,22 @@
 // SOFTWARE.
 
 using YamlDotNet.Core;
+using YamlDotNet.Core.Events;
 
-namespace YamlDotNet.Serialization.ObjectGraphVisitors
+namespace YamlDotNet.Serialization.ObjectGraphVisitors;
+
+public sealed class CommentsObjectGraphVisitor : ChainedObjectGraphVisitor
 {
-    public sealed class CommentsObjectGraphVisitor : ChainedObjectGraphVisitor
+    public CommentsObjectGraphVisitor(IObjectGraphVisitor<IEmitter> nextVisitor)
+        : base(nextVisitor)
     {
-        public CommentsObjectGraphVisitor(IObjectGraphVisitor<IEmitter> nextVisitor)
-            : base(nextVisitor)
-        {
-        }
-
-        public override bool EnterMapping(IPropertyDescriptor key, IObjectDescriptor value, IEmitter context, ObjectSerializer serializer)
-        {
-            var yamlMember = key.GetCustomAttribute<YamlMemberAttribute>();
-            if (yamlMember?.Description != null)
-            {
-                context.Emit(new Core.Events.Comment(yamlMember.Description, false));
-            }
-
-            return base.EnterMapping(key, value, context, serializer);
-        }
+    }
+    
+    public override bool EnterMapping(IPropertyDescriptor key, IObjectDescriptor value, IEmitter context, ObjectSerializer serializer)
+    {
+        var yamlMember = key.GetCustomAttribute<YamlMemberAttribute>();
+        if (yamlMember?.Description != null) context.Emit(new Comment(yamlMember.Description, false));
+        
+        return base.EnterMapping(key, value, context, serializer);
     }
 }

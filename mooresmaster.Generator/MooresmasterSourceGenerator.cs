@@ -135,7 +135,7 @@ public class MooresmasterSourceGenerator : IIncrementalGenerator
         var schemas = new List<SchemaFile>();
         var schemaTable = new SchemaTable();
         var parsedFiles = new HashSet<string>();
-
+        
         foreach (var additionalText in additionalTexts.Where(a => Path.GetExtension(a.Path) == ".yml").Where(a => !parsedFiles.Contains(a.Path)))
         {
             var yamlText = additionalText.GetText()!.ToString();
@@ -144,7 +144,7 @@ public class MooresmasterSourceGenerator : IIncrementalGenerator
             schemas.Add(new SchemaFile(additionalText.Path, schema));
             parsedFiles.Add(additionalText.Path);
         }
-
+        
         return (schemas.ToImmutableArray(), schemaTable);
     }
 }

@@ -24,88 +24,78 @@ using System.Collections.Generic;
 using System.Linq;
 using YamlDotNet.Serialization.Utilities;
 
-namespace YamlDotNet.Serialization.ObjectGraphVisitors
+namespace YamlDotNet.Serialization.ObjectGraphVisitors;
+
+/// <summary>
+///     A base class that simplifies the correct implementation of <see cref="IObjectGraphVisitor{Nothing}" />.
+/// </summary>
+public abstract class PreProcessingPhaseObjectGraphVisitorSkeleton : IObjectGraphVisitor<Nothing>
 {
-    /// <summary>
-    /// A base class that simplifies the correct implementation of <see cref="IObjectGraphVisitor{Nothing}" />.
-    /// </summary>
-    public abstract class PreProcessingPhaseObjectGraphVisitorSkeleton : IObjectGraphVisitor<Nothing>
+    protected readonly IEnumerable<IYamlTypeConverter> typeConverters; // This is kept for backwards compatibility for subclasses. Use typeConverterCache instead.
+    private readonly TypeConverterCache typeConverterCache;
+    
+    public PreProcessingPhaseObjectGraphVisitorSkeleton(IEnumerable<IYamlTypeConverter> typeConverters)
     {
-        protected readonly IEnumerable<IYamlTypeConverter> typeConverters; // This is kept for backwards compatibility for subclasses. Use typeConverterCache instead.
-        private readonly TypeConverterCache typeConverterCache;
-
-        public PreProcessingPhaseObjectGraphVisitorSkeleton(IEnumerable<IYamlTypeConverter> typeConverters)
-        {
-            var tcs = typeConverters?.ToArray() ?? [];
-
-            this.typeConverters = tcs;
-            this.typeConverterCache = new TypeConverterCache(tcs);
-        }
-
-        bool IObjectGraphVisitor<Nothing>.Enter(IPropertyDescriptor? propertyDescriptor, IObjectDescriptor value, Nothing context, ObjectSerializer serializer)
-        {
-            if (typeConverterCache.TryGetConverterForType(value.Type, out _))
-            {
-                return false;
-            }
-
-            if (value.Value is IYamlConvertible convertible)
-            {
-                return false;
-            }
-
-#pragma warning disable 0618 // IYamlSerializable is obsolete
-            if (value.Value is IYamlSerializable serializable)
-            {
-                return false;
-            }
-#pragma warning restore
-
-            return Enter(value, serializer);
-        }
-
-        bool IObjectGraphVisitor<Nothing>.EnterMapping(IPropertyDescriptor key, IObjectDescriptor value, Nothing context, ObjectSerializer serializer)
-        {
-            return EnterMapping(key, value, serializer);
-        }
-
-        bool IObjectGraphVisitor<Nothing>.EnterMapping(IObjectDescriptor key, IObjectDescriptor value, Nothing context, ObjectSerializer serializer)
-        {
-            return EnterMapping(key, value, serializer);
-        }
-
-        void IObjectGraphVisitor<Nothing>.VisitMappingEnd(IObjectDescriptor mapping, Nothing context, ObjectSerializer serializer)
-        {
-            VisitMappingEnd(mapping, serializer);
-        }
-
-        void IObjectGraphVisitor<Nothing>.VisitMappingStart(IObjectDescriptor mapping, Type keyType, Type valueType, Nothing context, ObjectSerializer serializer)
-        {
-            VisitMappingStart(mapping, keyType, valueType, serializer);
-        }
-
-        void IObjectGraphVisitor<Nothing>.VisitScalar(IObjectDescriptor scalar, Nothing context, ObjectSerializer serializer)
-        {
-            VisitScalar(scalar, serializer);
-        }
-
-        void IObjectGraphVisitor<Nothing>.VisitSequenceEnd(IObjectDescriptor sequence, Nothing context, ObjectSerializer serializer)
-        {
-            VisitSequenceEnd(sequence, serializer);
-        }
-
-        void IObjectGraphVisitor<Nothing>.VisitSequenceStart(IObjectDescriptor sequence, Type elementType, Nothing context, ObjectSerializer serializer)
-        {
-            VisitSequenceStart(sequence, elementType, serializer);
-        }
-
-        protected abstract bool Enter(IObjectDescriptor value, ObjectSerializer serializer);
-        protected abstract bool EnterMapping(IPropertyDescriptor key, IObjectDescriptor value, ObjectSerializer serializer);
-        protected abstract bool EnterMapping(IObjectDescriptor key, IObjectDescriptor value, ObjectSerializer serializer);
-        protected abstract void VisitMappingEnd(IObjectDescriptor mapping, ObjectSerializer serializer);
-        protected abstract void VisitMappingStart(IObjectDescriptor mapping, Type keyType, Type valueType, ObjectSerializer serializer);
-        protected abstract void VisitScalar(IObjectDescriptor scalar, ObjectSerializer serializer);
-        protected abstract void VisitSequenceEnd(IObjectDescriptor sequence, ObjectSerializer serializer);
-        protected abstract void VisitSequenceStart(IObjectDescriptor sequence, Type elementType, ObjectSerializer serializer);
+        var tcs = typeConverters?.ToArray() ?? [];
+        
+        this.typeConverters = tcs;
+        typeConverterCache = new TypeConverterCache(tcs);
     }
+    
+    bool IObjectGraphVisitor<Nothing>.Enter(IPropertyDescriptor? propertyDescriptor, IObjectDescriptor value, Nothing context, ObjectSerializer serializer)
+    {
+        if (typeConverterCache.TryGetConverterForType(value.Type, out _)) return false;
+        
+        if (value.Value is IYamlConvertible convertible) return false;
+        
+#pragma warning disable 0618 // IYamlSerializable is obsolete
+        if (value.Value is IYamlSerializable serializable) return false;
+#pragma warning restore
+        
+        return Enter(value, serializer);
+    }
+    
+    bool IObjectGraphVisitor<Nothing>.EnterMapping(IPropertyDescriptor key, IObjectDescriptor value, Nothing context, ObjectSerializer serializer)
+    {
+        return EnterMapping(key, value, serializer);
+    }
+    
+    bool IObjectGraphVisitor<Nothing>.EnterMapping(IObjectDescriptor key, IObjectDescriptor value, Nothing context, ObjectSerializer serializer)
+    {
+        return EnterMapping(key, value, serializer);
+    }
+    
+    void IObjectGraphVisitor<Nothing>.VisitMappingEnd(IObjectDescriptor mapping, Nothing context, ObjectSerializer serializer)
+    {
+        VisitMappingEnd(mapping, serializer);
+    }
+    
+    void IObjectGraphVisitor<Nothing>.VisitMappingStart(IObjectDescriptor mapping, Type keyType, Type valueType, Nothing context, ObjectSerializer serializer)
+    {
+        VisitMappingStart(mapping, keyType, valueType, serializer);
+    }
+    
+    void IObjectGraphVisitor<Nothing>.VisitScalar(IObjectDescriptor scalar, Nothing context, ObjectSerializer serializer)
+    {
+        VisitScalar(scalar, serializer);
+    }
+    
+    void IObjectGraphVisitor<Nothing>.VisitSequenceEnd(IObjectDescriptor sequence, Nothing context, ObjectSerializer serializer)
+    {
+        VisitSequenceEnd(sequence, serializer);
+    }
+    
+    void IObjectGraphVisitor<Nothing>.VisitSequenceStart(IObjectDescriptor sequence, Type elementType, Nothing context, ObjectSerializer serializer)
+    {
+        VisitSequenceStart(sequence, elementType, serializer);
+    }
+    
+    protected abstract bool Enter(IObjectDescriptor value, ObjectSerializer serializer);
+    protected abstract bool EnterMapping(IPropertyDescriptor key, IObjectDescriptor value, ObjectSerializer serializer);
+    protected abstract bool EnterMapping(IObjectDescriptor key, IObjectDescriptor value, ObjectSerializer serializer);
+    protected abstract void VisitMappingEnd(IObjectDescriptor mapping, ObjectSerializer serializer);
+    protected abstract void VisitMappingStart(IObjectDescriptor mapping, Type keyType, Type valueType, ObjectSerializer serializer);
+    protected abstract void VisitScalar(IObjectDescriptor scalar, ObjectSerializer serializer);
+    protected abstract void VisitSequenceEnd(IObjectDescriptor sequence, ObjectSerializer serializer);
+    protected abstract void VisitSequenceStart(IObjectDescriptor sequence, Type elementType, ObjectSerializer serializer);
 }

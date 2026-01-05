@@ -21,38 +21,37 @@
 
 using System;
 
-namespace YamlDotNet.Core
+namespace YamlDotNet.Core;
+
+/// <summary>
+///     Exception that is thrown when an infinite recursion is detected.
+/// </summary>
+public sealed class MaximumRecursionLevelReachedException : YamlException
 {
     /// <summary>
-    /// Exception that is thrown when an infinite recursion is detected.
+    ///     Initializes a new instance of the <see cref="MaximumRecursionLevelReachedException" /> class.
     /// </summary>
-    public sealed class MaximumRecursionLevelReachedException : YamlException
+    /// <param name="message">The message.</param>
+    public MaximumRecursionLevelReachedException(string message)
+        : base(message)
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MaximumRecursionLevelReachedException"/> class.
-        /// </summary>
-        /// <param name="message">The message.</param>
-        public MaximumRecursionLevelReachedException(string message)
-            : base(message)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MaximumRecursionLevelReachedException"/> class.
-        /// </summary>
-        public MaximumRecursionLevelReachedException(in Mark start, in Mark end, string message)
-            : base(start, end, message)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MaximumRecursionLevelReachedException"/> class.
-        /// </summary>
-        /// <param name="message">The message.</param>
-        /// <param name="inner">The inner.</param>
-        public MaximumRecursionLevelReachedException(string message, Exception inner)
-            : base(message, inner)
-        {
-        }
+    }
+    
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="MaximumRecursionLevelReachedException" /> class.
+    /// </summary>
+    public MaximumRecursionLevelReachedException(in Mark start, in Mark end, string message)
+        : base(start, end, message)
+    {
+    }
+    
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="MaximumRecursionLevelReachedException" /> class.
+    /// </summary>
+    /// <param name="message">The message.</param>
+    /// <param name="inner">The inner.</param>
+    public MaximumRecursionLevelReachedException(string message, Exception inner)
+        : base(message, inner)
+    {
     }
 }

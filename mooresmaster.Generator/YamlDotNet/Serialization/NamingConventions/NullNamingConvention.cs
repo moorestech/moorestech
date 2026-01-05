@@ -21,30 +21,29 @@
 
 
 using System;
-using YamlDotNet.Serialization.Utilities;
 
-namespace YamlDotNet.Serialization.NamingConventions
+namespace YamlDotNet.Serialization.NamingConventions;
+
+/// <summary>
+///     Performs no naming conversion.
+/// </summary>
+public sealed class NullNamingConvention : INamingConvention
 {
-    /// <summary>
-    /// Performs no naming conversion.
-    /// </summary>
-    public sealed class NullNamingConvention : INamingConvention
-    {
-        [Obsolete("Use the Instance static field instead of creating new instances")]
-        public NullNamingConvention() { }
-
-        public string Apply(string value)
-        {
-            return value;
-        }
-
-        public string Reverse(string value)
-        {
-            return value;
-        }
-
 #pragma warning disable CS0618 // Type or member is obsolete
-        public static readonly INamingConvention Instance = new NullNamingConvention();
+    public static readonly INamingConvention Instance = new NullNamingConvention();
 #pragma warning restore CS0618 // Type or member is obsolete
+    [Obsolete("Use the Instance static field instead of creating new instances")]
+    public NullNamingConvention()
+    {
+    }
+    
+    public string Apply(string value)
+    {
+        return value;
+    }
+    
+    public string Reverse(string value)
+    {
+        return value;
     }
 }

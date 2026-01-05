@@ -23,47 +23,46 @@ using System;
 using System.Diagnostics;
 using System.Text;
 
-namespace YamlDotNet.Core.ObjectPool
+namespace YamlDotNet.Core.ObjectPool;
+
+/// <summary>
+///     Pooling of StringBuilder instances.
+/// </summary>
+[DebuggerStepThrough]
+internal static class StringBuilderPool
 {
-    /// <summary>
-    /// Pooling of StringBuilder instances.
-    /// </summary>
-    [DebuggerStepThrough]
-    internal static class StringBuilderPool
+    private static readonly ObjectPool<StringBuilder> Pool = ObjectPool.Create(new StringBuilderPooledObjectPolicy
     {
-        private static readonly ObjectPool<StringBuilder> Pool = ObjectPool.Create(new StringBuilderPooledObjectPolicy
+        InitialCapacity = 16,
+        MaximumRetainedCapacity = 1024
+    });
+    
+    public static BuilderWrapper Rent()
+    {
+        var builder = Pool.Get();
+        Debug.Assert(builder.Length == 0);
+        return new BuilderWrapper(builder, Pool);
+    }
+    
+    internal readonly struct BuilderWrapper : IDisposable
+    {
+        public readonly StringBuilder Builder;
+        private readonly ObjectPool<StringBuilder> pool;
+        
+        public BuilderWrapper(StringBuilder builder, ObjectPool<StringBuilder> pool)
         {
-            InitialCapacity = 16,
-            MaximumRetainedCapacity = 1024
-        });
-
-        public static BuilderWrapper Rent()
-        {
-            var builder = Pool.Get();
-            Debug.Assert(builder.Length == 0);
-            return new BuilderWrapper(builder, Pool);
+            Builder = builder;
+            this.pool = pool;
         }
-
-        internal readonly struct BuilderWrapper : IDisposable
+        
+        public override string ToString()
         {
-            public readonly StringBuilder Builder;
-            private readonly ObjectPool<StringBuilder> pool;
-
-            public BuilderWrapper(StringBuilder builder, ObjectPool<StringBuilder> pool)
-            {
-                Builder = builder;
-                this.pool = pool;
-            }
-
-            public override string ToString()
-            {
-                return Builder.ToString();
-            }
-
-            public void Dispose()
-            {
-                pool.Return(Builder);
-            }
+            return Builder.ToString();
+        }
+        
+        public void Dispose()
+        {
+            pool.Return(Builder);
         }
     }
 }

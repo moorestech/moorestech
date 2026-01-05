@@ -21,16 +21,15 @@
 
 using System;
 
-namespace YamlDotNet.Serialization
-{
-    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
-    public sealed class YamlConverterAttribute : Attribute
-    {
-        public Type ConverterType { get; }
+namespace YamlDotNet.Serialization;
 
-        public YamlConverterAttribute(Type converterType)
-        {
-            ConverterType = converterType;
-        }
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
+public sealed class YamlConverterAttribute : Attribute
+{
+    public YamlConverterAttribute(Type converterType)
+    {
+        ConverterType = converterType;
     }
+    
+    public Type ConverterType { get; }
 }

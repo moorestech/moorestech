@@ -21,10 +21,9 @@
 
 using YamlDotNet.Core;
 
-namespace YamlDotNet.Serialization
+namespace YamlDotNet.Serialization;
+
+public interface IAliasProvider
 {
-    public interface IAliasProvider
-    {
-        AnchorName GetAlias(object target);
-    }
+    AnchorName GetAlias(object target);
 }

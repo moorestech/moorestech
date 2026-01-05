@@ -41,13 +41,13 @@ namespace YamlDotNet.Core.ObjectPool;
 internal class DefaultObjectPool<T> : ObjectPool<T> where T : class
 {
     private readonly Func<T> createFunc;
-
+    
     private protected readonly ConcurrentQueue<T> items = new();
     private readonly int maxCapacity;
     private readonly Func<T, bool> returnFunc;
     private protected T? fastItem;
     private int numItems;
-
+    
     /// <summary>
     ///     Creates an instance of <see cref="DefaultObjectPool{T}" />.
     /// </summary>
@@ -58,7 +58,7 @@ internal class DefaultObjectPool<T> : ObjectPool<T> where T : class
 #pragma warning restore RS1035
     {
     }
-
+    
     /// <summary>
     ///     Creates an instance of <see cref="DefaultObjectPool{T}" />.
     /// </summary>
@@ -71,7 +71,7 @@ internal class DefaultObjectPool<T> : ObjectPool<T> where T : class
         returnFunc = policy.Return;
         maxCapacity = maximumRetained - 1; // -1 to account for fastItem
     }
-
+    
     /// <inheritdoc />
     public override T Get()
     {
@@ -83,20 +83,20 @@ internal class DefaultObjectPool<T> : ObjectPool<T> where T : class
                 Interlocked.Decrement(ref numItems);
                 return item;
             }
-
+            
             // no object available, so go get a brand new one
             return createFunc();
         }
-
+        
         return item;
     }
-
+    
     /// <inheritdoc />
     public override void Return(T obj)
     {
         ReturnCore(obj);
     }
-
+    
     /// <summary>
     ///     Returns an object to the pool.
     /// </summary>
@@ -106,7 +106,7 @@ internal class DefaultObjectPool<T> : ObjectPool<T> where T : class
         if (!returnFunc(obj))
             // policy says to drop this object
             return false;
-
+        
         if (fastItem != null || Interlocked.CompareExchange(ref fastItem, obj, null) != null)
         {
             if (Interlocked.Increment(ref numItems) <= maxCapacity)
@@ -114,12 +114,12 @@ internal class DefaultObjectPool<T> : ObjectPool<T> where T : class
                 items.Enqueue(obj);
                 return true;
             }
-
+            
             // no room, clean up the count and drop the object on the floor
             Interlocked.Decrement(ref numItems);
             return false;
         }
-
+        
         return true;
     }
 }

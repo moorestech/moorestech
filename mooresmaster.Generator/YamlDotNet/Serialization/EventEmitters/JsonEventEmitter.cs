@@ -21,134 +21,125 @@
 
 using System;
 using System.Globalization;
-using System.Text.RegularExpressions;
 using YamlDotNet.Core;
 using YamlDotNet.Core.Events;
-using YamlDotNet.Serialization.NamingConventions;
 
-namespace YamlDotNet.Serialization.EventEmitters
+namespace YamlDotNet.Serialization.EventEmitters;
+
+public sealed class JsonEventEmitter : ChainedEventEmitter
 {
-    public sealed class JsonEventEmitter : ChainedEventEmitter
+    private readonly INamingConvention enumNamingConvention;
+    private readonly YamlFormatter formatter;
+    private readonly ITypeInspector typeInspector;
+    
+    public JsonEventEmitter(IEventEmitter nextEmitter, YamlFormatter formatter, INamingConvention enumNamingConvention, ITypeInspector typeInspector)
+        : base(nextEmitter)
     {
-        private readonly YamlFormatter formatter;
-        private readonly INamingConvention enumNamingConvention;
-        private readonly ITypeInspector typeInspector;
-
-        public JsonEventEmitter(IEventEmitter nextEmitter, YamlFormatter formatter, INamingConvention enumNamingConvention, ITypeInspector typeInspector)
-            : base(nextEmitter)
+        this.formatter = formatter;
+        this.enumNamingConvention = enumNamingConvention;
+        this.typeInspector = typeInspector;
+    }
+    
+    public override void Emit(AliasEventInfo eventInfo, IEmitter emitter)
+    {
+        eventInfo.NeedsExpansion = true;
+    }
+    
+    public override void Emit(ScalarEventInfo eventInfo, IEmitter emitter)
+    {
+        eventInfo.IsPlainImplicit = true;
+        eventInfo.Style = ScalarStyle.Plain;
+        
+        var value = eventInfo.Source.Value;
+        if (value == null)
         {
-            this.formatter = formatter;
-            this.enumNamingConvention = enumNamingConvention;
-            this.typeInspector = typeInspector;
+            eventInfo.RenderedValue = "null";
         }
-
-        public override void Emit(AliasEventInfo eventInfo, IEmitter emitter)
+        else
         {
-            eventInfo.NeedsExpansion = true;
-        }
-
-        public override void Emit(ScalarEventInfo eventInfo, IEmitter emitter)
-        {
-            eventInfo.IsPlainImplicit = true;
-            eventInfo.Style = ScalarStyle.Plain;
-
-            var value = eventInfo.Source.Value;
-            if (value == null)
+            var typeCode = eventInfo.Source.Type.GetTypeCode();
+            switch (typeCode)
             {
-                eventInfo.RenderedValue = "null";
+                case TypeCode.Boolean:
+                    eventInfo.RenderedValue = formatter.FormatBoolean(value);
+                    break;
+                
+                case TypeCode.Byte:
+                case TypeCode.Int16:
+                case TypeCode.Int32:
+                case TypeCode.Int64:
+                case TypeCode.SByte:
+                case TypeCode.UInt16:
+                case TypeCode.UInt32:
+                case TypeCode.UInt64:
+                    var valueIsEnum = eventInfo.Source.Type.IsEnum();
+                    if (valueIsEnum)
+                    {
+                        eventInfo.RenderedValue = formatter.FormatEnum(value, typeInspector, enumNamingConvention);
+                        eventInfo.Style = formatter.PotentiallyQuoteEnums(value) ? ScalarStyle.DoubleQuoted : ScalarStyle.Plain;
+                        break;
+                    }
+                    
+                    eventInfo.RenderedValue = formatter.FormatNumber(value);
+                    break;
+                
+                case TypeCode.Single:
+                    var floatValue = (float)value;
+                    eventInfo.RenderedValue = floatValue.ToString("G", CultureInfo.InvariantCulture);
+                    if (float.IsNaN(floatValue) || float.IsInfinity(floatValue)) eventInfo.Style = ScalarStyle.DoubleQuoted;
+                    
+                    break;
+                
+                case TypeCode.Double:
+                    var doubleValue = (double)value;
+                    eventInfo.RenderedValue = doubleValue.ToString("G", CultureInfo.InvariantCulture);
+                    if (double.IsNaN(doubleValue) || double.IsInfinity(doubleValue)) eventInfo.Style = ScalarStyle.DoubleQuoted;
+                    break;
+                
+                case TypeCode.Decimal:
+                    var decimalValue = (decimal)value;
+                    eventInfo.RenderedValue = decimalValue.ToString(CultureInfo.InvariantCulture);
+                    break;
+                
+                case TypeCode.String:
+                case TypeCode.Char:
+                    eventInfo.RenderedValue = value.ToString()!;
+                    eventInfo.Style = ScalarStyle.DoubleQuoted;
+                    break;
+                
+                case TypeCode.DateTime:
+                    eventInfo.RenderedValue = formatter.FormatDateTime(value);
+                    break;
+                
+                case TypeCode.Empty:
+                    eventInfo.RenderedValue = "null";
+                    break;
+                
+                default:
+                    if (eventInfo.Source.Type == typeof(TimeSpan))
+                    {
+                        eventInfo.RenderedValue = formatter.FormatTimeSpan(value);
+                        break;
+                    }
+                    
+                    throw new NotSupportedException($"TypeCode.{typeCode} is not supported.");
             }
-            else
-            {
-                var typeCode = eventInfo.Source.Type.GetTypeCode();
-                switch (typeCode)
-                {
-                    case TypeCode.Boolean:
-                        eventInfo.RenderedValue = formatter.FormatBoolean(value);
-                        break;
-
-                    case TypeCode.Byte:
-                    case TypeCode.Int16:
-                    case TypeCode.Int32:
-                    case TypeCode.Int64:
-                    case TypeCode.SByte:
-                    case TypeCode.UInt16:
-                    case TypeCode.UInt32:
-                    case TypeCode.UInt64:
-                        var valueIsEnum = eventInfo.Source.Type.IsEnum();
-                        if (valueIsEnum)
-                        {
-                            eventInfo.RenderedValue = formatter.FormatEnum(value, typeInspector, enumNamingConvention);
-                            eventInfo.Style = formatter.PotentiallyQuoteEnums(value) ? ScalarStyle.DoubleQuoted : ScalarStyle.Plain;
-                            break;
-                        }
-
-                        eventInfo.RenderedValue = formatter.FormatNumber(value);
-                        break;
-
-                    case TypeCode.Single:
-                        var floatValue = (float)value;
-                        eventInfo.RenderedValue = floatValue.ToString("G", CultureInfo.InvariantCulture);
-                        if (float.IsNaN(floatValue) || float.IsInfinity(floatValue))
-                        {
-                            eventInfo.Style = ScalarStyle.DoubleQuoted;
-                        }
-
-                        break;
-
-                    case TypeCode.Double:
-                        var doubleValue = (double)value;
-                        eventInfo.RenderedValue = doubleValue.ToString("G", CultureInfo.InvariantCulture);
-                        if (double.IsNaN(doubleValue) || double.IsInfinity(doubleValue))
-                        {
-                            eventInfo.Style = ScalarStyle.DoubleQuoted;
-                        }
-                        break;
-
-                    case TypeCode.Decimal:
-                        var decimalValue = (decimal)value;
-                        eventInfo.RenderedValue = decimalValue.ToString(CultureInfo.InvariantCulture);
-                        break;
-
-                    case TypeCode.String:
-                    case TypeCode.Char:
-                        eventInfo.RenderedValue = value.ToString()!;
-                        eventInfo.Style = ScalarStyle.DoubleQuoted;
-                        break;
-
-                    case TypeCode.DateTime:
-                        eventInfo.RenderedValue = formatter.FormatDateTime(value);
-                        break;
-
-                    case TypeCode.Empty:
-                        eventInfo.RenderedValue = "null";
-                        break;
-
-                    default:
-                        if (eventInfo.Source.Type == typeof(TimeSpan))
-                        {
-                            eventInfo.RenderedValue = formatter.FormatTimeSpan(value);
-                            break;
-                        }
-
-                        throw new NotSupportedException($"TypeCode.{typeCode} is not supported.");
-                }
-            }
-
-            base.Emit(eventInfo, emitter);
         }
-
-        public override void Emit(MappingStartEventInfo eventInfo, IEmitter emitter)
-        {
-            eventInfo.Style = MappingStyle.Flow;
-
-            base.Emit(eventInfo, emitter);
-        }
-
-        public override void Emit(SequenceStartEventInfo eventInfo, IEmitter emitter)
-        {
-            eventInfo.Style = SequenceStyle.Flow;
-
-            base.Emit(eventInfo, emitter);
-        }
+        
+        base.Emit(eventInfo, emitter);
+    }
+    
+    public override void Emit(MappingStartEventInfo eventInfo, IEmitter emitter)
+    {
+        eventInfo.Style = MappingStyle.Flow;
+        
+        base.Emit(eventInfo, emitter);
+    }
+    
+    public override void Emit(SequenceStartEventInfo eventInfo, IEmitter emitter)
+    {
+        eventInfo.Style = SequenceStyle.Flow;
+        
+        base.Emit(eventInfo, emitter);
     }
 }

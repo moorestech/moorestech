@@ -15,12 +15,12 @@ public class DefineInterface(
     Location location
 )
 {
+    public Dictionary<string, Location[]> DuplicateImplementationLocations = duplicateImplementationLocations;
     public string[] ImplementationInterfaces = implementationInterfaces;
     public Dictionary<string, JsonString> ImplementationNodes = implementationNodes;
-    public Dictionary<string, Location[]> DuplicateImplementationLocations = duplicateImplementationLocations;
     public string InterfaceName = interfaceName;
     public bool IsGlobal = isGlobal;
+    public Location Location = location;
     public Dictionary<string, IDefineInterfacePropertySchema> Properties = properties;
     public string RootSchemaId = rootSchemaId;
-    public Location Location = location;
 }

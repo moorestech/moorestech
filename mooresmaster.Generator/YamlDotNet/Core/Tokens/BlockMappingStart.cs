@@ -19,29 +19,28 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-namespace YamlDotNet.Core.Tokens
+namespace YamlDotNet.Core.Tokens;
+
+/// <summary>
+///     Represents a block mapping start token.
+/// </summary>
+public sealed class BlockMappingStart : Token
 {
     /// <summary>
-    /// Represents a block mapping start token.
+    ///     Initializes a new instance of the <see cref="BlockMappingStart" /> class.
     /// </summary>
-    public sealed class BlockMappingStart : Token
+    public BlockMappingStart()
+        : this(Mark.Empty, Mark.Empty)
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="BlockMappingStart"/> class.
-        /// </summary>
-        public BlockMappingStart()
-            : this(Mark.Empty, Mark.Empty)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="BlockMappingStart"/> class.
-        /// </summary>
-        /// <param name="start">The start position of the token.</param>
-        /// <param name="end">The end position of the token.</param>
-        public BlockMappingStart(in Mark start, in Mark end)
-            : base(start, end)
-        {
-        }
+    }
+    
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="BlockMappingStart" /> class.
+    /// </summary>
+    /// <param name="start">The start position of the token.</param>
+    /// <param name="end">The end position of the token.</param>
+    public BlockMappingStart(in Mark start, in Mark end)
+        : base(start, end)
+    {
     }
 }

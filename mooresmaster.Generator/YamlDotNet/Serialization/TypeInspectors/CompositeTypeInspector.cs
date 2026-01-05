@@ -23,68 +23,60 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace YamlDotNet.Serialization.TypeInspectors
+namespace YamlDotNet.Serialization.TypeInspectors;
+
+/// <summary>
+///     Aggregates the results from multiple <see cref="ITypeInspector" /> into a single one.
+/// </summary>
+public class CompositeTypeInspector : TypeInspectorSkeleton
 {
-    /// <summary>
-    /// Aggregates the results from multiple <see cref="ITypeInspector" /> into a single one.
-    /// </summary>
-    public class CompositeTypeInspector : TypeInspectorSkeleton
+    private readonly IEnumerable<ITypeInspector> typeInspectors;
+    
+    public CompositeTypeInspector(params ITypeInspector[] typeInspectors)
+        : this((IEnumerable<ITypeInspector>)typeInspectors)
     {
-        private readonly IEnumerable<ITypeInspector> typeInspectors;
-
-        public CompositeTypeInspector(params ITypeInspector[] typeInspectors)
-            : this((IEnumerable<ITypeInspector>)typeInspectors)
-        {
-        }
-
-        public CompositeTypeInspector(IEnumerable<ITypeInspector> typeInspectors)
-        {
-            this.typeInspectors = typeInspectors?.ToList() ?? throw new ArgumentNullException(nameof(typeInspectors));
-        }
-
-        public override string GetEnumName(Type enumType, string name)
-        {
-            foreach (var inspector in typeInspectors)
+    }
+    
+    public CompositeTypeInspector(IEnumerable<ITypeInspector> typeInspectors)
+    {
+        this.typeInspectors = typeInspectors?.ToList() ?? throw new ArgumentNullException(nameof(typeInspectors));
+    }
+    
+    public override string GetEnumName(Type enumType, string name)
+    {
+        foreach (var inspector in typeInspectors)
+            try
             {
-                try
-                {
-                    return inspector.GetEnumName(enumType, name);
-                }
-                catch
-                {
-                    //inner inspectors throw when they can't handle the type so we swallow it
-                }
+                return inspector.GetEnumName(enumType, name);
             }
-
-            throw new ArgumentOutOfRangeException(nameof(enumType) + "," + nameof(name), "Name not found on enum type");
-        }
-
-        public override string GetEnumValue(object enumValue)
-        {
-            if (enumValue == null)
+            catch
             {
-                throw new ArgumentNullException(nameof(enumValue));
+                //inner inspectors throw when they can't handle the type so we swallow it
             }
-
-            foreach (var inspector in typeInspectors)
+        
+        throw new ArgumentOutOfRangeException(nameof(enumType) + "," + nameof(name), "Name not found on enum type");
+    }
+    
+    public override string GetEnumValue(object enumValue)
+    {
+        if (enumValue == null) throw new ArgumentNullException(nameof(enumValue));
+        
+        foreach (var inspector in typeInspectors)
+            try
             {
-                try
-                {
-                    return inspector.GetEnumValue(enumValue);
-                }
-                catch
-                {
-                    //inner inspectors throw when they can't handle the type so we swallow it
-                }
+                return inspector.GetEnumValue(enumValue);
             }
-
-            throw new ArgumentOutOfRangeException(nameof(enumValue), $"Value not found for ({enumValue})");
-        }
-
-        public override IEnumerable<IPropertyDescriptor> GetProperties(Type type, object? container)
-        {
-            return typeInspectors
-                .SelectMany(i => i.GetProperties(type, container));
-        }
+            catch
+            {
+                //inner inspectors throw when they can't handle the type so we swallow it
+            }
+        
+        throw new ArgumentOutOfRangeException(nameof(enumValue), $"Value not found for ({enumValue})");
+    }
+    
+    public override IEnumerable<IPropertyDescriptor> GetProperties(Type type, object? container)
+    {
+        return typeInspectors
+            .SelectMany(i => i.GetProperties(type, container));
     }
 }

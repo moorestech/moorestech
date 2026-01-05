@@ -29,37 +29,37 @@ namespace YamlDotNet.Serialization.TypeInspectors;
 public abstract class TypeInspectorSkeleton : ITypeInspector
 {
     public abstract string GetEnumName(Type enumType, string name);
-
+    
     public abstract string GetEnumValue(object enumValue);
-
+    
     public abstract IEnumerable<IPropertyDescriptor> GetProperties(Type type, object? container);
-
+    
     public IPropertyDescriptor GetProperty(Type type, object? container, string name, bool ignoreUnmatched, bool caseInsensitivePropertyMatching)
     {
         IEnumerable<IPropertyDescriptor> candidates;
-
+        
         if (caseInsensitivePropertyMatching)
             candidates = GetProperties(type, container)
                 .Where(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
         else
             candidates = GetProperties(type, container)
                 .Where(p => p.Name == name);
-
+        
         using var enumerator = candidates.GetEnumerator();
         if (!enumerator.MoveNext())
         {
             if (ignoreUnmatched) return null!;
-
+            
             throw new SerializationException($"Property '{name}' not found on type '{type.FullName}'.");
         }
-
+        
         var property = enumerator.Current;
-
+        
         if (enumerator.MoveNext())
             throw new SerializationException(
                 $"Multiple properties with the name/alias '{name}' already exists on type '{type.FullName}', maybe you're misusing YamlAlias or maybe you are using the wrong naming convention? The matching properties are: {string.Join(", ", candidates.Select(p => p.Name).ToArray())}"
             );
-
+        
         return property;
     }
 }

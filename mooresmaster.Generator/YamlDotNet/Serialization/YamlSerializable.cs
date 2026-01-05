@@ -21,32 +21,31 @@
 
 using System;
 
-namespace YamlDotNet.Serialization
+namespace YamlDotNet.Serialization;
+
+/// <summary>
+///     Put this attribute either on serializable types or on the <see cref="StaticContext" /> that you want
+///     the static analyzer to detect and use.
+/// </summary>
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Enum, Inherited = false, AllowMultiple = true)]
+public sealed class YamlSerializableAttribute : Attribute
 {
     /// <summary>
-    /// Put this attribute either on serializable types or on the <see cref="StaticContext"/> that you want
-    /// the static analyzer to detect and use.
+    ///     Use this constructor if the attribute is placed on a serializable class.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Enum, Inherited = false, AllowMultiple = true)]
-    public sealed class YamlSerializableAttribute : Attribute
+    public YamlSerializableAttribute()
     {
-        /// <summary>
-        /// Use this constructor if the attribute is placed on a serializable class.
-        /// </summary>
-        public YamlSerializableAttribute()
-        {
-        }
-
-        /// <summary>
-        /// Use this constructor if the attribute is placed on the <see cref="StaticContext"/>.
-        /// </summary>
-        /// <param name="serializableType">The type for which to include static code generation.</param>
+    }
+    
+    /// <summary>
+    ///     Use this constructor if the attribute is placed on the <see cref="StaticContext" />.
+    /// </summary>
+    /// <param name="serializableType">The type for which to include static code generation.</param>
 #pragma warning disable IDE0055 // Bug in Linux where IDE0055 is failing on the pragma warning disable IDE0060
 #pragma warning disable IDE0060
-        public YamlSerializableAttribute(Type serializableType)
+    public YamlSerializableAttribute(Type serializableType)
 #pragma warning restore IDE0060
 #pragma warning restore IDE0055
-        {
-        }
+    {
     }
 }

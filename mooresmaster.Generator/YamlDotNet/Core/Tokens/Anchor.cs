@@ -21,42 +21,38 @@
 
 using System;
 
-namespace YamlDotNet.Core.Tokens
+namespace YamlDotNet.Core.Tokens;
+
+/// <summary>
+///     Represents an anchor token.
+/// </summary>
+public class Anchor : Token
 {
     /// <summary>
-    /// Represents an anchor token.
+    ///     Initializes a new instance of the <see cref="Anchor" /> class.
     /// </summary>
-    public class Anchor : Token
+    /// <param name="value">The value.</param>
+    public Anchor(AnchorName value)
+        : this(value, Mark.Empty, Mark.Empty)
     {
-        /// <summary>
-        /// Gets the value.
-        /// </summary>
-        /// <value>The value.</value>
-        public AnchorName Value { get; }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Anchor"/> class.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        public Anchor(AnchorName value)
-            : this(value, Mark.Empty, Mark.Empty)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Anchor"/> class.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <param name="start">The start position of the token.</param>
-        /// <param name="end">The end position of the token.</param>
-        public Anchor(AnchorName value, Mark start, Mark end)
-            : base(start, end)
-        {
-            if (value.IsEmpty)
-            {
-                throw new ArgumentNullException(nameof(value));
-            }
-            this.Value = value;
-        }
     }
+    
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="Anchor" /> class.
+    /// </summary>
+    /// <param name="value">The value.</param>
+    /// <param name="start">The start position of the token.</param>
+    /// <param name="end">The end position of the token.</param>
+    public Anchor(AnchorName value, Mark start, Mark end)
+        : base(start, end)
+    {
+        if (value.IsEmpty) throw new ArgumentNullException(nameof(value));
+        Value = value;
+    }
+    
+    /// <summary>
+    ///     Gets the value.
+    /// </summary>
+    /// <value>The value.</value>
+    public AnchorName Value { get; }
 }

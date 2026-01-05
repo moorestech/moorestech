@@ -22,50 +22,49 @@
 using System;
 using System.Collections.Generic;
 
-namespace YamlDotNet.Serialization
+namespace YamlDotNet.Serialization;
+
+/// <summary>
+///     Contains mappings between tags and types.
+/// </summary>
+public sealed class TagMappings
 {
+    private readonly Dictionary<string, Type> mappings;
+    
     /// <summary>
-    /// Contains mappings between tags and types.
+    ///     Initializes a new instance of the <see cref="TagMappings" /> class.
     /// </summary>
-    public sealed class TagMappings
+    public TagMappings()
     {
-        private readonly Dictionary<string, Type> mappings;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TagMappings"/> class.
-        /// </summary>
-        public TagMappings()
-        {
-            mappings = [];
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TagMappings"/> class.
-        /// </summary>
-        /// <param name="mappings">The mappings.</param>
-        public TagMappings(IDictionary<string, Type> mappings)
-        {
-            this.mappings = new Dictionary<string, Type>(mappings);
-        }
-
-        /// <summary>
-        /// Adds the specified tag.
-        /// </summary>
-        /// <param name="tag">The tag.</param>
-        /// <param name="mapping">The mapping.</param>
-        public void Add(string tag, Type mapping)
-        {
-            mappings.Add(tag, mapping);
-        }
-
-        /// <summary>
-        /// Gets the mapping.
-        /// </summary>
-        /// <param name="tag">The tag.</param>
-        /// <returns></returns>
-        internal Type? GetMapping(string tag)
-        {
-            return mappings.TryGetValue(tag, out var mapping) ? mapping : null;
-        }
+        mappings = [];
+    }
+    
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="TagMappings" /> class.
+    /// </summary>
+    /// <param name="mappings">The mappings.</param>
+    public TagMappings(IDictionary<string, Type> mappings)
+    {
+        this.mappings = new Dictionary<string, Type>(mappings);
+    }
+    
+    /// <summary>
+    ///     Adds the specified tag.
+    /// </summary>
+    /// <param name="tag">The tag.</param>
+    /// <param name="mapping">The mapping.</param>
+    public void Add(string tag, Type mapping)
+    {
+        mappings.Add(tag, mapping);
+    }
+    
+    /// <summary>
+    ///     Gets the mapping.
+    /// </summary>
+    /// <param name="tag">The tag.</param>
+    /// <returns></returns>
+    internal Type? GetMapping(string tag)
+    {
+        return mappings.TryGetValue(tag, out var mapping) ? mapping : null;
     }
 }

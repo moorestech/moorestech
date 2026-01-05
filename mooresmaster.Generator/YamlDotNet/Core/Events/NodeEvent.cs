@@ -19,54 +19,50 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-namespace YamlDotNet.Core.Events
+namespace YamlDotNet.Core.Events;
+
+/// <summary>
+///     Contains the behavior that is common between node events.
+/// </summary>
+public abstract class NodeEvent : ParsingEvent
 {
     /// <summary>
-    /// Contains the behavior that is common between node events.
+    ///     Initializes a new instance of the <see cref="NodeEvent" /> class.
     /// </summary>
-    public abstract class NodeEvent : ParsingEvent
+    /// <param name="anchor">The anchor.</param>
+    /// <param name="tag">The tag.</param>
+    /// <param name="start">The start position of the event.</param>
+    /// <param name="end">The end position of the event.</param>
+    protected NodeEvent(AnchorName anchor, TagName tag, Mark start, Mark end)
+        : base(start, end)
     {
-        /// <summary>
-        /// Gets the anchor.
-        /// </summary>
-        /// <value></value>
-        public AnchorName Anchor { get; }
-
-        /// <summary>
-        /// Gets the tag.
-        /// </summary>
-        /// <value></value>
-        public TagName Tag { get; }
-
-        /// <summary>
-        /// Gets a value indicating whether this instance is canonical.
-        /// </summary>
-        /// <value></value>
-        public abstract bool IsCanonical
-        {
-            get;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="NodeEvent"/> class.
-        /// </summary>
-        /// <param name="anchor">The anchor.</param>
-        /// <param name="tag">The tag.</param>
-        /// <param name="start">The start position of the event.</param>
-        /// <param name="end">The end position of the event.</param>
-        protected NodeEvent(AnchorName anchor, TagName tag, Mark start, Mark end)
-            : base(start, end)
-        {
-            this.Anchor = anchor;
-            this.Tag = tag;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="NodeEvent"/> class.
-        /// </summary>
-        protected NodeEvent(AnchorName anchor, TagName tag)
-            : this(anchor, tag, Mark.Empty, Mark.Empty)
-        {
-        }
+        Anchor = anchor;
+        Tag = tag;
     }
+    
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="NodeEvent" /> class.
+    /// </summary>
+    protected NodeEvent(AnchorName anchor, TagName tag)
+        : this(anchor, tag, Mark.Empty, Mark.Empty)
+    {
+    }
+    
+    /// <summary>
+    ///     Gets the anchor.
+    /// </summary>
+    /// <value></value>
+    public AnchorName Anchor { get; }
+    
+    /// <summary>
+    ///     Gets the tag.
+    /// </summary>
+    /// <value></value>
+    public TagName Tag { get; }
+    
+    /// <summary>
+    ///     Gets a value indicating whether this instance is canonical.
+    /// </summary>
+    /// <value></value>
+    public abstract bool IsCanonical { get; }
 }

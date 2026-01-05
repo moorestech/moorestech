@@ -27,135 +27,127 @@ using System.Linq;
 using System.Reflection;
 using YamlDotNet.Serialization.Callbacks;
 
-namespace YamlDotNet.Serialization.ObjectFactories
+namespace YamlDotNet.Serialization.ObjectFactories;
+
+/// <summary>
+///     Creates objects using Activator.CreateInstance.
+/// </summary>
+public class DefaultObjectFactory : ObjectFactoryBase
 {
-    /// <summary>
-    /// Creates objects using Activator.CreateInstance.
-    /// </summary>
-    public class DefaultObjectFactory : ObjectFactoryBase
+    private readonly Dictionary<Type, Type> defaultGenericInterfaceImplementations = new()
     {
-        private readonly Dictionary<Type, ConcurrentDictionary<Type, MethodInfo[]>> stateMethods = new()
+        { typeof(IEnumerable<>), typeof(List<>) },
+        { typeof(ICollection<>), typeof(List<>) },
+        { typeof(IList<>), typeof(List<>) },
+        { typeof(IDictionary<,>), typeof(Dictionary<,>) }
+    };
+    
+    private readonly Dictionary<Type, Type> defaultNonGenericInterfaceImplementations = new()
+    {
+        { typeof(IEnumerable), typeof(List<object>) },
+        { typeof(ICollection), typeof(List<object>) },
+        { typeof(IList), typeof(List<object>) },
+        { typeof(IDictionary), typeof(Dictionary<object, object>) }
+    };
+    
+    private readonly Settings settings;
+    
+    private readonly Dictionary<Type, ConcurrentDictionary<Type, MethodInfo[]>> stateMethods = new()
+    {
+        { typeof(OnDeserializedAttribute), new ConcurrentDictionary<Type, MethodInfo[]>() },
+        { typeof(OnDeserializingAttribute), new ConcurrentDictionary<Type, MethodInfo[]>() },
+        { typeof(OnSerializedAttribute), new ConcurrentDictionary<Type, MethodInfo[]>() },
+        { typeof(OnSerializingAttribute), new ConcurrentDictionary<Type, MethodInfo[]>() }
+    };
+    
+    public DefaultObjectFactory()
+        : this(new Dictionary<Type, Type>(), new Settings())
+    {
+    }
+    
+    public DefaultObjectFactory(IDictionary<Type, Type> mappings)
+        : this(mappings, new Settings())
+    {
+    }
+    
+    public DefaultObjectFactory(IDictionary<Type, Type> mappings, Settings settings)
+    {
+        foreach (var pair in mappings)
         {
-            { typeof(OnDeserializedAttribute), new ConcurrentDictionary<Type, MethodInfo[]>() },
-            { typeof(OnDeserializingAttribute), new ConcurrentDictionary<Type, MethodInfo[]>() },
-            { typeof(OnSerializedAttribute), new ConcurrentDictionary<Type, MethodInfo[]>() },
-            { typeof(OnSerializingAttribute), new ConcurrentDictionary<Type, MethodInfo[]>() },
-        };
-
-        private readonly Dictionary<Type, Type> defaultGenericInterfaceImplementations = new()
-        {
-            { typeof(IEnumerable<>), typeof(List<>) },
-            { typeof(ICollection<>), typeof(List<>) },
-            { typeof(IList<>), typeof(List<>) },
-            { typeof(IDictionary<,>), typeof(Dictionary<,>) }
-        };
-
-        private readonly Dictionary<Type, Type> defaultNonGenericInterfaceImplementations = new()
-        {
-            { typeof(IEnumerable), typeof(List<object>) },
-            { typeof(ICollection), typeof(List<object>) },
-            { typeof(IList), typeof(List<object>) },
-            { typeof(IDictionary), typeof(Dictionary<object, object>) }
-        };
-
-        private readonly Settings settings;
-
-        public DefaultObjectFactory()
-            : this(new Dictionary<Type, Type>(), new Settings())
-        {
+            if (!pair.Key.IsAssignableFrom(pair.Value)) throw new InvalidOperationException($"Type '{pair.Value}' does not implement type '{pair.Key}'.");
+            
+            defaultNonGenericInterfaceImplementations.Add(pair.Key, pair.Value);
         }
-
-        public DefaultObjectFactory(IDictionary<Type, Type> mappings)
-            : this(mappings, new Settings())
+        
+        this.settings = settings;
+    }
+    
+    public override object Create(Type type)
+    {
+        if (type.IsInterface())
         {
-        }
-
-        public DefaultObjectFactory(IDictionary<Type, Type> mappings, Settings settings)
-        {
-            foreach (var pair in mappings)
+            if (type.IsGenericType())
             {
-                if (!pair.Key.IsAssignableFrom(pair.Value))
-                {
-                    throw new InvalidOperationException($"Type '{pair.Value}' does not implement type '{pair.Key}'.");
-                }
-
-                defaultNonGenericInterfaceImplementations.Add(pair.Key, pair.Value);
+                if (defaultGenericInterfaceImplementations.TryGetValue(type.GetGenericTypeDefinition(), out var implementationType)) type = implementationType.MakeGenericType(type.GetGenericArguments());
             }
-
-            this.settings = settings;
-        }
-
-        public override object Create(Type type)
-        {
-            if (type.IsInterface())
+            else
             {
-                if (type.IsGenericType())
-                {
-                    if (defaultGenericInterfaceImplementations.TryGetValue(type.GetGenericTypeDefinition(), out var implementationType))
-                    {
-                        type = implementationType.MakeGenericType(type.GetGenericArguments());
-                    }
-                }
-                else
-                {
-                    if (defaultNonGenericInterfaceImplementations.TryGetValue(type, out var implementationType))
-                    {
-                        type = implementationType;
-                    }
-                }
-            }
-
-            try
-            {
-                return Activator.CreateInstance(type, settings.AllowPrivateConstructors)!;
-            }
-            catch (Exception err)
-            {
-                var message = $"Failed to create an instance of type '{type.FullName}'.";
-                throw new InvalidOperationException(message, err);
+                if (defaultNonGenericInterfaceImplementations.TryGetValue(type, out var implementationType)) type = implementationType;
             }
         }
-
-        public override void ExecuteOnDeserialized(object value) =>
-            ExecuteState(typeof(OnDeserializedAttribute), value);
-
-        public override void ExecuteOnDeserializing(object value) =>
-            ExecuteState(typeof(OnDeserializingAttribute), value);
-
-        public override void ExecuteOnSerialized(object value) =>
-            ExecuteState(typeof(OnSerializedAttribute), value);
-
-        public override void ExecuteOnSerializing(object value) =>
-            ExecuteState(typeof(OnSerializingAttribute), value);
-
-        private void ExecuteState(Type attributeType, object value)
+        
+        try
         {
-            if (value == null)
-            {
-                return;
-            }
-
-            var type = value.GetType();
-            var methodsToExecute = GetStateMethods(attributeType, type);
-
-            foreach (var method in methodsToExecute)
-            {
-                method.Invoke(value, null);
-            }
+            return Activator.CreateInstance(type, settings.AllowPrivateConstructors)!;
         }
-
-        private MethodInfo[] GetStateMethods(Type attributeType, Type valueType)
+        catch (Exception err)
         {
-            var stateDictionary = stateMethods[attributeType];
-
-
-            return stateDictionary.GetOrAdd(valueType, type =>
-            {
-                var methods = type.GetMethods(BindingFlags.Public |
-                                              BindingFlags.Instance |
-                                              BindingFlags.NonPublic);
-                return methods.Where(x => x.GetCustomAttributes(attributeType, true).Length > 0).ToArray();
-            });
+            var message = $"Failed to create an instance of type '{type.FullName}'.";
+            throw new InvalidOperationException(message, err);
         }
+    }
+    
+    public override void ExecuteOnDeserialized(object value)
+    {
+        ExecuteState(typeof(OnDeserializedAttribute), value);
+    }
+    
+    public override void ExecuteOnDeserializing(object value)
+    {
+        ExecuteState(typeof(OnDeserializingAttribute), value);
+    }
+    
+    public override void ExecuteOnSerialized(object value)
+    {
+        ExecuteState(typeof(OnSerializedAttribute), value);
+    }
+    
+    public override void ExecuteOnSerializing(object value)
+    {
+        ExecuteState(typeof(OnSerializingAttribute), value);
+    }
+    
+    private void ExecuteState(Type attributeType, object value)
+    {
+        if (value == null) return;
+        
+        var type = value.GetType();
+        var methodsToExecute = GetStateMethods(attributeType, type);
+        
+        foreach (var method in methodsToExecute) method.Invoke(value, null);
+    }
+    
+    private MethodInfo[] GetStateMethods(Type attributeType, Type valueType)
+    {
+        var stateDictionary = stateMethods[attributeType];
+        
+        
+        return stateDictionary.GetOrAdd(valueType, type =>
+        {
+            var methods = type.GetMethods(BindingFlags.Public |
+                                          BindingFlags.Instance |
+                                          BindingFlags.NonPublic);
+            return methods.Where(x => x.GetCustomAttributes(attributeType, true).Length > 0).ToArray();
+        });
     }
 }

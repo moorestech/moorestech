@@ -1,24 +1,20 @@
 {
   "$id": "inventoryConnects",
-
   "type": "object",
   "properties": {
-
     "inputConnects": {
       "fixedParameter": {
-        "path" : "./connectType",
+        "path": "./connectType",
         "value": "Inventory"
       },
-      "$ref" : "blockConnectInfo"
+      "$ref": "blockConnectInfo"
     },
-
     "outputConnects": {
       "fixedParameter": {
-        "path" : "./connectType",
+        "path": "./connectType",
         "value": "Inventory"
       },
-      "$ref" : "blockConnectInfo"
+      "$ref": "blockConnectInfo"
     }
-
   }
 }

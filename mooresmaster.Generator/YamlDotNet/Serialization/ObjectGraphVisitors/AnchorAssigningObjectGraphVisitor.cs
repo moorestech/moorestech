@@ -23,56 +23,53 @@ using System;
 using System.Collections.Generic;
 using YamlDotNet.Core;
 
-namespace YamlDotNet.Serialization.ObjectGraphVisitors
+namespace YamlDotNet.Serialization.ObjectGraphVisitors;
+
+public sealed class AnchorAssigningObjectGraphVisitor : ChainedObjectGraphVisitor
 {
-    public sealed class AnchorAssigningObjectGraphVisitor : ChainedObjectGraphVisitor
+    private readonly IAliasProvider aliasProvider;
+    private readonly HashSet<AnchorName> emittedAliases = [];
+    private readonly IEventEmitter eventEmitter;
+    
+    public AnchorAssigningObjectGraphVisitor(IObjectGraphVisitor<IEmitter> nextVisitor, IEventEmitter eventEmitter, IAliasProvider aliasProvider)
+        : base(nextVisitor)
     {
-        private readonly IEventEmitter eventEmitter;
-        private readonly IAliasProvider aliasProvider;
-        private readonly HashSet<AnchorName> emittedAliases = [];
-
-        public AnchorAssigningObjectGraphVisitor(IObjectGraphVisitor<IEmitter> nextVisitor, IEventEmitter eventEmitter, IAliasProvider aliasProvider)
-            : base(nextVisitor)
+        this.eventEmitter = eventEmitter;
+        this.aliasProvider = aliasProvider;
+    }
+    
+    public override bool Enter(IPropertyDescriptor? propertyDescriptor, IObjectDescriptor value, IEmitter context, ObjectSerializer serializer)
+    {
+        if (value.Value != null)
         {
-            this.eventEmitter = eventEmitter;
-            this.aliasProvider = aliasProvider;
-        }
-
-        public override bool Enter(IPropertyDescriptor? propertyDescriptor, IObjectDescriptor value, IEmitter context, ObjectSerializer serializer)
-        {
-            if (value.Value != null)
+            var alias = aliasProvider.GetAlias(value.Value);
+            if (!alias.IsEmpty && !emittedAliases.Add(alias))
             {
-                var alias = aliasProvider.GetAlias(value.Value);
-                if (!alias.IsEmpty && !emittedAliases.Add(alias))
-                {
-                    var aliasEventInfo = new AliasEventInfo(value, alias);
-                    eventEmitter.Emit(aliasEventInfo, context);
-                    return aliasEventInfo.NeedsExpansion;
-                }
+                var aliasEventInfo = new AliasEventInfo(value, alias);
+                eventEmitter.Emit(aliasEventInfo, context);
+                return aliasEventInfo.NeedsExpansion;
             }
-            return base.Enter(propertyDescriptor, value, context, serializer);
         }
-
-        public override void VisitMappingStart(IObjectDescriptor mapping, Type keyType, Type valueType, IEmitter context, ObjectSerializer serializer)
-        {
-            var anchor = aliasProvider.GetAlias(mapping.NonNullValue());
-            eventEmitter.Emit(new MappingStartEventInfo(mapping) { Anchor = anchor }, context);
-        }
-
-        public override void VisitSequenceStart(IObjectDescriptor sequence, Type elementType, IEmitter context, ObjectSerializer serializer)
-        {
-            var anchor = aliasProvider.GetAlias(sequence.NonNullValue());
-            eventEmitter.Emit(new SequenceStartEventInfo(sequence) { Anchor = anchor }, context);
-        }
-
-        public override void VisitScalar(IObjectDescriptor scalar, IEmitter context, ObjectSerializer serializer)
-        {
-            var scalarInfo = new ScalarEventInfo(scalar);
-            if (scalar.Value != null)
-            {
-                scalarInfo.Anchor = aliasProvider.GetAlias(scalar.Value);
-            }
-            eventEmitter.Emit(scalarInfo, context);
-        }
+        
+        return base.Enter(propertyDescriptor, value, context, serializer);
+    }
+    
+    public override void VisitMappingStart(IObjectDescriptor mapping, Type keyType, Type valueType, IEmitter context, ObjectSerializer serializer)
+    {
+        var anchor = aliasProvider.GetAlias(mapping.NonNullValue());
+        eventEmitter.Emit(new MappingStartEventInfo(mapping) { Anchor = anchor }, context);
+    }
+    
+    public override void VisitSequenceStart(IObjectDescriptor sequence, Type elementType, IEmitter context, ObjectSerializer serializer)
+    {
+        var anchor = aliasProvider.GetAlias(sequence.NonNullValue());
+        eventEmitter.Emit(new SequenceStartEventInfo(sequence) { Anchor = anchor }, context);
+    }
+    
+    public override void VisitScalar(IObjectDescriptor scalar, IEmitter context, ObjectSerializer serializer)
+    {
+        var scalarInfo = new ScalarEventInfo(scalar);
+        if (scalar.Value != null) scalarInfo.Anchor = aliasProvider.GetAlias(scalar.Value);
+        eventEmitter.Emit(scalarInfo, context);
     }
 }

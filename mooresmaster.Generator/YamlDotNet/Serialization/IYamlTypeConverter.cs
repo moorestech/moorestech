@@ -22,26 +22,25 @@
 using System;
 using YamlDotNet.Core;
 
-namespace YamlDotNet.Serialization
+namespace YamlDotNet.Serialization;
+
+/// <summary>
+///     Allows to customize how a type is serialized and deserialized.
+/// </summary>
+public interface IYamlTypeConverter
 {
     /// <summary>
-    /// Allows to customize how a type is serialized and deserialized.
+    ///     Gets a value indicating whether the current converter supports converting the specified type.
     /// </summary>
-    public interface IYamlTypeConverter
-    {
-        /// <summary>
-        /// Gets a value indicating whether the current converter supports converting the specified type.
-        /// </summary>
-        bool Accepts(Type type);
-
-        /// <summary>
-        /// Reads an object's state from a YAML parser.
-        /// </summary>
-        object? ReadYaml(IParser parser, Type type, ObjectDeserializer rootDeserializer);
-
-        /// <summary>
-        /// Writes the specified object's state to a YAML emitter.
-        /// </summary>
-        void WriteYaml(IEmitter emitter, object? value, Type type, ObjectSerializer serializer);
-    }
+    bool Accepts(Type type);
+    
+    /// <summary>
+    ///     Reads an object's state from a YAML parser.
+    /// </summary>
+    object? ReadYaml(IParser parser, Type type, ObjectDeserializer rootDeserializer);
+    
+    /// <summary>
+    ///     Writes the specified object's state to a YAML emitter.
+    /// </summary>
+    void WriteYaml(IEmitter emitter, object? value, Type type, ObjectSerializer serializer);
 }

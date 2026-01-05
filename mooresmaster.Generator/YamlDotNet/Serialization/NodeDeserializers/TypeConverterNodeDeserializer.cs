@@ -21,32 +21,29 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using YamlDotNet.Core;
 using YamlDotNet.Serialization.Utilities;
 
-namespace YamlDotNet.Serialization.NodeDeserializers
+namespace YamlDotNet.Serialization.NodeDeserializers;
+
+public sealed class TypeConverterNodeDeserializer : INodeDeserializer
 {
-    public sealed class TypeConverterNodeDeserializer : INodeDeserializer
+    private readonly TypeConverterCache converters;
+    
+    public TypeConverterNodeDeserializer(IEnumerable<IYamlTypeConverter> converters)
     {
-        private readonly TypeConverterCache converters;
-
-        public TypeConverterNodeDeserializer(IEnumerable<IYamlTypeConverter> converters)
+        this.converters = new TypeConverterCache(converters);
+    }
+    
+    public bool Deserialize(IParser parser, Type expectedType, Func<IParser, Type, object?> nestedObjectDeserializer, out object? value, ObjectDeserializer rootDeserializer)
+    {
+        if (!converters.TryGetConverterForType(expectedType, out var converter))
         {
-            this.converters = new TypeConverterCache(converters);
+            value = null;
+            return false;
         }
-
-        public bool Deserialize(IParser parser, Type expectedType, Func<IParser, Type, object?> nestedObjectDeserializer, out object? value, ObjectDeserializer rootDeserializer)
-        {
-            if (!converters.TryGetConverterForType(expectedType, out var converter))
-            {
-                value = null;
-                return false;
-            }
-
-            value = converter.ReadYaml(parser, expectedType, rootDeserializer);
-            return true;
-        }
+        
+        value = converter.ReadYaml(parser, expectedType, rootDeserializer);
+        return true;
     }
 }
-

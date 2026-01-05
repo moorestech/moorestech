@@ -19,29 +19,28 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-namespace YamlDotNet.Core.Tokens
+namespace YamlDotNet.Core.Tokens;
+
+/// <summary>
+///     Represents a stream end event.
+/// </summary>
+public sealed class StreamEnd : Token
 {
     /// <summary>
-    /// Represents a stream end event.
+    ///     Initializes a new instance of the <see cref="StreamEnd" /> class.
     /// </summary>
-    public sealed class StreamEnd : Token
+    public StreamEnd()
+        : this(Mark.Empty, Mark.Empty)
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="StreamEnd"/> class.
-        /// </summary>
-        public StreamEnd()
-            : this(Mark.Empty, Mark.Empty)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="StreamEnd"/> class.
-        /// </summary>
-        /// <param name="start">The start position of the token.</param>
-        /// <param name="end">The end position of the token.</param>
-        public StreamEnd(in Mark start, in Mark end)
-            : base(start, end)
-        {
-        }
+    }
+    
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="StreamEnd" /> class.
+    /// </summary>
+    /// <param name="start">The start position of the token.</param>
+    /// <param name="end">The end position of the token.</param>
+    public StreamEnd(in Mark start, in Mark end)
+        : base(start, end)
+    {
     }
 }

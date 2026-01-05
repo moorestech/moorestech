@@ -28,7 +28,7 @@ internal sealed class ObjectAnchorCollection
 {
     private readonly Dictionary<object, string> anchorsByObject = [];
     private readonly Dictionary<string, object> objectsByAnchor = [];
-
+    
     /// <summary>
     ///     Gets the <see cref="object" /> with the specified anchor.
     /// </summary>
@@ -38,11 +38,11 @@ internal sealed class ObjectAnchorCollection
         get
         {
             if (objectsByAnchor.TryGetValue(anchor, out var value)) return value;
-
+            
             throw new AnchorNotFoundException($"The anchor '{anchor}' does not exists");
         }
     }
-
+    
     /// <summary>
     ///     Adds the specified anchor.
     /// </summary>
@@ -53,7 +53,7 @@ internal sealed class ObjectAnchorCollection
         objectsByAnchor.Add(anchor, @object);
         if (@object != null) anchorsByObject.Add(@object, anchor);
     }
-
+    
     /// <summary>
     ///     Gets the anchor for the specified object.
     /// </summary>

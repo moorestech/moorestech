@@ -21,10 +21,9 @@
 
 using System;
 
-namespace YamlDotNet.Serialization
+namespace YamlDotNet.Serialization;
+
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class YamlStaticContextAttribute : Attribute
 {
-    [AttributeUsage(AttributeTargets.Class)]
-    public sealed class YamlStaticContextAttribute : Attribute
-    {
-    }
 }

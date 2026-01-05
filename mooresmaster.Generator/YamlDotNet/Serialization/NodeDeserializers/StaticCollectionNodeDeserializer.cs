@@ -21,56 +21,53 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using YamlDotNet.Core;
 using YamlDotNet.Core.Events;
-using YamlDotNet.Helpers;
 using YamlDotNet.Serialization.ObjectFactories;
-using YamlDotNet.Serialization.Utilities;
 
-namespace YamlDotNet.Serialization.NodeDeserializers
+namespace YamlDotNet.Serialization.NodeDeserializers;
+
+public sealed class StaticCollectionNodeDeserializer : INodeDeserializer
 {
-    public sealed class StaticCollectionNodeDeserializer : INodeDeserializer
+    private readonly StaticObjectFactory factory;
+    
+    public StaticCollectionNodeDeserializer(StaticObjectFactory factory)
     {
-        private readonly StaticObjectFactory factory;
-
-        public StaticCollectionNodeDeserializer(StaticObjectFactory factory)
+        this.factory = factory ?? throw new ArgumentNullException(nameof(factory));
+    }
+    
+    public bool Deserialize(IParser parser, Type expectedType, Func<IParser, Type, object?> nestedObjectDeserializer, out object? value, ObjectDeserializer rootDeserializer)
+    {
+        if (!factory.IsList(expectedType))
         {
-            this.factory = factory ?? throw new ArgumentNullException(nameof(factory));
+            value = null;
+            return false;
         }
-
-        public bool Deserialize(IParser parser, Type expectedType, Func<IParser, Type, object?> nestedObjectDeserializer, out object? value, ObjectDeserializer rootDeserializer)
+        
+        var list = (factory.Create(expectedType) as IList)!;
+        value = list;
+        
+        DeserializeHelper(factory.GetValueType(expectedType), parser, nestedObjectDeserializer, list!, factory);
+        
+        return true;
+    }
+    
+    internal static void DeserializeHelper(Type tItem, IParser parser, Func<IParser, Type, object?> nestedObjectDeserializer, IList result, IObjectFactory factory)
+    {
+        parser.Consume<SequenceStart>();
+        while (!parser.TryConsume<SequenceEnd>(out _))
         {
-            if (!factory.IsList(expectedType))
+            var current = parser.Current;
+            
+            var value = nestedObjectDeserializer(parser, tItem);
+            if (value is IValuePromise promise)
             {
-                value = null;
-                return false;
+                var index = result.Add(factory.CreatePrimitive(tItem));
+                promise.ValueAvailable += v => result[index] = v;
             }
-            var list = (factory.Create(expectedType) as IList)!;
-            value = list;
-
-            DeserializeHelper(factory.GetValueType(expectedType), parser, nestedObjectDeserializer, list!, factory);
-
-            return true;
-        }
-
-        internal static void DeserializeHelper(Type tItem, IParser parser, Func<IParser, Type, object?> nestedObjectDeserializer, IList result, IObjectFactory factory)
-        {
-            parser.Consume<SequenceStart>();
-            while (!parser.TryConsume<SequenceEnd>(out var _))
+            else
             {
-                var current = parser.Current;
-
-                var value = nestedObjectDeserializer(parser, tItem);
-                if (value is IValuePromise promise)
-                {
-                    var index = result.Add(factory.CreatePrimitive(tItem));
-                    promise.ValueAvailable += v => result[index] = v;
-                }
-                else
-                {
-                    result.Add(value);
-                }
+                result.Add(value);
             }
         }
     }

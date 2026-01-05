@@ -21,10 +21,9 @@
 
 using System;
 
-namespace YamlDotNet.Serialization
+namespace YamlDotNet.Serialization;
+
+public interface IValuePromise
 {
-    public interface IValuePromise
-    {
-        event Action<object?> ValueAvailable;
-    }
+    event Action<object?> ValueAvailable;
 }

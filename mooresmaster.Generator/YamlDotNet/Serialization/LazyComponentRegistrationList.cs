@@ -24,219 +24,195 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace YamlDotNet.Serialization
+namespace YamlDotNet.Serialization;
+
+internal sealed class LazyComponentRegistrationList<TArgument, TComponent> : IEnumerable<Func<TArgument, TComponent>>
 {
-    internal sealed class LazyComponentRegistrationList<TArgument, TComponent> : IEnumerable<Func<TArgument, TComponent>>
+    private readonly List<LazyComponentRegistration> entries = [];
+    
+    public int Count => entries.Count;
+    
+    public IEnumerable<Func<TArgument, TComponent>> InReverseOrder
     {
-        private readonly List<LazyComponentRegistration> entries = [];
-
-        public LazyComponentRegistrationList<TArgument, TComponent> Clone()
+        get
         {
-            var clone = new LazyComponentRegistrationList<TArgument, TComponent>();
-            foreach (var entry in entries)
+            for (var i = entries.Count - 1; i >= 0; --i) yield return entries[i].Factory;
+        }
+    }
+    
+    public IEnumerator<Func<TArgument, TComponent>> GetEnumerator()
+    {
+        return entries.Select(e => e.Factory).GetEnumerator();
+    }
+    
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+    
+    public LazyComponentRegistrationList<TArgument, TComponent> Clone()
+    {
+        var clone = new LazyComponentRegistrationList<TArgument, TComponent>();
+        foreach (var entry in entries) clone.entries.Add(entry);
+        return clone;
+    }
+    
+    public void Clear()
+    {
+        entries.Clear();
+    }
+    
+    public void Add(Type componentType, Func<TArgument, TComponent> factory)
+    {
+        entries.Add(new LazyComponentRegistration(componentType, factory));
+    }
+    
+    public void Remove(Type componentType)
+    {
+        for (var i = 0; i < entries.Count; ++i)
+            if (entries[i].ComponentType == componentType)
             {
-                clone.entries.Add(entry);
+                entries.RemoveAt(i);
+                return;
             }
-            return clone;
-        }
-
-        public void Clear()
+        
+        throw new KeyNotFoundException($"A component registration of type '{componentType.FullName}' was not found.");
+    }
+    
+    public IRegistrationLocationSelectionSyntax<TComponent> CreateRegistrationLocationSelector(
+        Type componentType,
+        Func<TArgument, TComponent> factory
+    )
+    {
+        return new RegistrationLocationSelector(
+            this,
+            new LazyComponentRegistration(componentType, factory)
+        );
+    }
+    
+    public ITrackingRegistrationLocationSelectionSyntax<TComponent> CreateTrackingRegistrationLocationSelector(
+        Type componentType,
+        Func<TComponent, TArgument, TComponent> factory
+    )
+    {
+        return new TrackingRegistrationLocationSelector(
+            this,
+            new TrackingLazyComponentRegistration(componentType, factory)
+        );
+    }
+    
+    private int IndexOfRegistration(Type registrationType)
+    {
+        for (var i = 0; i < entries.Count; ++i)
+            if (registrationType == entries[i].ComponentType)
+                return i;
+        
+        return -1;
+    }
+    
+    private void EnsureNoDuplicateRegistrationType(Type componentType)
+    {
+        if (IndexOfRegistration(componentType) != -1) throw new InvalidOperationException($"A component of type '{componentType.FullName}' has already been registered.");
+    }
+    
+    private int EnsureRegistrationExists<TRegistrationType>()
+    {
+        var registrationIndex = IndexOfRegistration(typeof(TRegistrationType));
+        if (registrationIndex == -1) throw new InvalidOperationException($"A component of type '{typeof(TRegistrationType).FullName}' has not been registered.");
+        return registrationIndex;
+    }
+    
+    public sealed class LazyComponentRegistration
+    {
+        public readonly Type ComponentType;
+        public readonly Func<TArgument, TComponent> Factory;
+        
+        public LazyComponentRegistration(Type componentType, Func<TArgument, TComponent> factory)
         {
-            entries.Clear();
+            ComponentType = componentType;
+            Factory = factory;
         }
-
-        public sealed class LazyComponentRegistration
+    }
+    
+    public sealed class TrackingLazyComponentRegistration
+    {
+        public readonly Type ComponentType;
+        public readonly Func<TComponent, TArgument, TComponent> Factory;
+        
+        public TrackingLazyComponentRegistration(Type componentType, Func<TComponent, TArgument, TComponent> factory)
         {
-            public readonly Type ComponentType;
-            public readonly Func<TArgument, TComponent> Factory;
-
-            public LazyComponentRegistration(Type componentType, Func<TArgument, TComponent> factory)
-            {
-                ComponentType = componentType;
-                Factory = factory;
-            }
+            ComponentType = componentType;
+            Factory = factory;
         }
-
-        public sealed class TrackingLazyComponentRegistration
+    }
+    
+    private class RegistrationLocationSelector : IRegistrationLocationSelectionSyntax<TComponent>
+    {
+        private readonly LazyComponentRegistration newRegistration;
+        private readonly LazyComponentRegistrationList<TArgument, TComponent> registrations;
+        
+        public RegistrationLocationSelector(LazyComponentRegistrationList<TArgument, TComponent> registrations, LazyComponentRegistration newRegistration)
         {
-            public readonly Type ComponentType;
-            public readonly Func<TComponent, TArgument, TComponent> Factory;
-
-            public TrackingLazyComponentRegistration(Type componentType, Func<TComponent, TArgument, TComponent> factory)
-            {
-                ComponentType = componentType;
-                Factory = factory;
-            }
+            this.registrations = registrations;
+            this.newRegistration = newRegistration;
         }
-
-        public void Add(Type componentType, Func<TArgument, TComponent> factory)
+        
+        void IRegistrationLocationSelectionSyntax<TComponent>.InsteadOf<TRegistrationType>()
         {
-            entries.Add(new LazyComponentRegistration(componentType, factory));
+            if (newRegistration.ComponentType != typeof(TRegistrationType)) registrations.EnsureNoDuplicateRegistrationType(newRegistration.ComponentType);
+            
+            var registrationIndex = registrations.EnsureRegistrationExists<TRegistrationType>();
+            registrations.entries[registrationIndex] = newRegistration;
         }
-
-        public void Remove(Type componentType)
+        
+        void IRegistrationLocationSelectionSyntax<TComponent>.After<TRegistrationType>()
         {
-            for (var i = 0; i < entries.Count; ++i)
-            {
-                if (entries[i].ComponentType == componentType)
-                {
-                    entries.RemoveAt(i);
-                    return;
-                }
-            }
-
-            throw new KeyNotFoundException($"A component registration of type '{componentType.FullName}' was not found.");
+            registrations.EnsureNoDuplicateRegistrationType(newRegistration.ComponentType);
+            var registrationIndex = registrations.EnsureRegistrationExists<TRegistrationType>();
+            registrations.entries.Insert(registrationIndex + 1, newRegistration);
         }
-
-        public int Count => entries.Count;
-
-        public IEnumerable<Func<TArgument, TComponent>> InReverseOrder
+        
+        void IRegistrationLocationSelectionSyntax<TComponent>.Before<TRegistrationType>()
         {
-            get
-            {
-                for (var i = entries.Count - 1; i >= 0; --i)
-                {
-                    yield return entries[i].Factory;
-                }
-            }
+            registrations.EnsureNoDuplicateRegistrationType(newRegistration.ComponentType);
+            var registrationIndex = registrations.EnsureRegistrationExists<TRegistrationType>();
+            registrations.entries.Insert(registrationIndex, newRegistration);
         }
-
-        public IRegistrationLocationSelectionSyntax<TComponent> CreateRegistrationLocationSelector(
-            Type componentType,
-            Func<TArgument, TComponent> factory
-        )
+        
+        void IRegistrationLocationSelectionSyntax<TComponent>.OnBottom()
         {
-            return new RegistrationLocationSelector(
-                this,
-                new LazyComponentRegistration(componentType, factory)
+            registrations.EnsureNoDuplicateRegistrationType(newRegistration.ComponentType);
+            registrations.entries.Add(newRegistration);
+        }
+        
+        void IRegistrationLocationSelectionSyntax<TComponent>.OnTop()
+        {
+            registrations.EnsureNoDuplicateRegistrationType(newRegistration.ComponentType);
+            registrations.entries.Insert(0, newRegistration);
+        }
+    }
+    
+    private class TrackingRegistrationLocationSelector : ITrackingRegistrationLocationSelectionSyntax<TComponent>
+    {
+        private readonly TrackingLazyComponentRegistration newRegistration;
+        private readonly LazyComponentRegistrationList<TArgument, TComponent> registrations;
+        
+        public TrackingRegistrationLocationSelector(LazyComponentRegistrationList<TArgument, TComponent> registrations, TrackingLazyComponentRegistration newRegistration)
+        {
+            this.registrations = registrations;
+            this.newRegistration = newRegistration;
+        }
+        
+        void ITrackingRegistrationLocationSelectionSyntax<TComponent>.InsteadOf<TRegistrationType>()
+        {
+            if (newRegistration.ComponentType != typeof(TRegistrationType)) registrations.EnsureNoDuplicateRegistrationType(newRegistration.ComponentType);
+            
+            var registrationIndex = registrations.EnsureRegistrationExists<TRegistrationType>();
+            var innerComponentFactory = registrations.entries[registrationIndex].Factory;
+            registrations.entries[registrationIndex] = new LazyComponentRegistration(
+                newRegistration.ComponentType,
+                arg => newRegistration.Factory(innerComponentFactory(arg), arg)
             );
-        }
-
-        public ITrackingRegistrationLocationSelectionSyntax<TComponent> CreateTrackingRegistrationLocationSelector(
-            Type componentType,
-            Func<TComponent, TArgument, TComponent> factory
-        )
-        {
-            return new TrackingRegistrationLocationSelector(
-                this,
-                new TrackingLazyComponentRegistration(componentType, factory)
-            );
-        }
-
-        public IEnumerator<Func<TArgument, TComponent>> GetEnumerator()
-        {
-            return entries.Select(e => e.Factory).GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-
-        private int IndexOfRegistration(Type registrationType)
-        {
-            for (var i = 0; i < entries.Count; ++i)
-            {
-                if (registrationType == entries[i].ComponentType)
-                {
-                    return i;
-                }
-            }
-            return -1;
-        }
-
-        private void EnsureNoDuplicateRegistrationType(Type componentType)
-        {
-            if (IndexOfRegistration(componentType) != -1)
-            {
-                throw new InvalidOperationException($"A component of type '{componentType.FullName}' has already been registered.");
-            }
-        }
-
-        private int EnsureRegistrationExists<TRegistrationType>()
-        {
-            var registrationIndex = IndexOfRegistration(typeof(TRegistrationType));
-            if (registrationIndex == -1)
-            {
-                throw new InvalidOperationException($"A component of type '{typeof(TRegistrationType).FullName}' has not been registered.");
-            }
-            return registrationIndex;
-        }
-
-        private class RegistrationLocationSelector : IRegistrationLocationSelectionSyntax<TComponent>
-        {
-            private readonly LazyComponentRegistrationList<TArgument, TComponent> registrations;
-            private readonly LazyComponentRegistration newRegistration;
-
-            public RegistrationLocationSelector(LazyComponentRegistrationList<TArgument, TComponent> registrations, LazyComponentRegistration newRegistration)
-            {
-                this.registrations = registrations;
-                this.newRegistration = newRegistration;
-            }
-
-            void IRegistrationLocationSelectionSyntax<TComponent>.InsteadOf<TRegistrationType>()
-            {
-                if (newRegistration.ComponentType != typeof(TRegistrationType))
-                {
-                    registrations.EnsureNoDuplicateRegistrationType(newRegistration.ComponentType);
-                }
-
-                var registrationIndex = registrations.EnsureRegistrationExists<TRegistrationType>();
-                registrations.entries[registrationIndex] = newRegistration;
-            }
-
-            void IRegistrationLocationSelectionSyntax<TComponent>.After<TRegistrationType>()
-            {
-                registrations.EnsureNoDuplicateRegistrationType(newRegistration.ComponentType);
-                var registrationIndex = registrations.EnsureRegistrationExists<TRegistrationType>();
-                registrations.entries.Insert(registrationIndex + 1, newRegistration);
-            }
-
-            void IRegistrationLocationSelectionSyntax<TComponent>.Before<TRegistrationType>()
-            {
-                registrations.EnsureNoDuplicateRegistrationType(newRegistration.ComponentType);
-                var registrationIndex = registrations.EnsureRegistrationExists<TRegistrationType>();
-                registrations.entries.Insert(registrationIndex, newRegistration);
-            }
-
-            void IRegistrationLocationSelectionSyntax<TComponent>.OnBottom()
-            {
-                registrations.EnsureNoDuplicateRegistrationType(newRegistration.ComponentType);
-                registrations.entries.Add(newRegistration);
-            }
-
-            void IRegistrationLocationSelectionSyntax<TComponent>.OnTop()
-            {
-                registrations.EnsureNoDuplicateRegistrationType(newRegistration.ComponentType);
-                registrations.entries.Insert(0, newRegistration);
-            }
-        }
-
-        private class TrackingRegistrationLocationSelector : ITrackingRegistrationLocationSelectionSyntax<TComponent>
-        {
-            private readonly LazyComponentRegistrationList<TArgument, TComponent> registrations;
-            private readonly TrackingLazyComponentRegistration newRegistration;
-
-            public TrackingRegistrationLocationSelector(LazyComponentRegistrationList<TArgument, TComponent> registrations, TrackingLazyComponentRegistration newRegistration)
-            {
-                this.registrations = registrations;
-                this.newRegistration = newRegistration;
-            }
-
-            void ITrackingRegistrationLocationSelectionSyntax<TComponent>.InsteadOf<TRegistrationType>()
-            {
-                if (newRegistration.ComponentType != typeof(TRegistrationType))
-                {
-                    registrations.EnsureNoDuplicateRegistrationType(newRegistration.ComponentType);
-                }
-
-                var registrationIndex = registrations.EnsureRegistrationExists<TRegistrationType>();
-                var innerComponentFactory = registrations.entries[registrationIndex].Factory;
-                registrations.entries[registrationIndex] = new LazyComponentRegistration(
-                    newRegistration.ComponentType,
-                    arg => newRegistration.Factory(innerComponentFactory(arg), arg)
-                );
-            }
         }
     }
 }
