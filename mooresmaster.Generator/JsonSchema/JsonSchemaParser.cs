@@ -148,7 +148,8 @@ public static class JsonSchemaParser
         }
 
         var type = typeString.Literal;
-        return Falliable<SchemaId>.Success(type switch
+
+        SchemaId? schemaId = type switch
         {
             Tokens.ObjectType => ParseObject(root, parent, isInterfaceProperty, schemaTable, analysis),
             Tokens.ArrayType => ParseArray(root, parent, isInterfaceProperty, schemaTable, analysis),
@@ -163,8 +164,17 @@ public static class JsonSchemaParser
             Tokens.Vector4Type => ParseVector4(root, parent, isInterfaceProperty, schemaTable, analysis),
             Tokens.Vector2IntType => ParseVector2Int(root, parent, isInterfaceProperty, schemaTable, analysis),
             Tokens.Vector3IntType => ParseVector3Int(root, parent, isInterfaceProperty, schemaTable, analysis),
-            _ => throw new Exception($"Unknown type: {type}")
-        });
+            _ => null
+        };
+
+        if (schemaId == null)
+        {
+            var propertyName = (root[Tokens.PropertyNameKey] as JsonString)?.Literal;
+            analysis.ReportDiagnostics(new UnknownTypeDiagnostics(root, propertyName, type, typeString.Location));
+            return Falliable<SchemaId>.Failure();
+        }
+
+        return Falliable<SchemaId>.Success(schemaId.Value);
     }
     
     private static SchemaId ParseObject(JsonObject json, SchemaId? parent, bool isInterfaceProperty, SchemaTable table, Analysis analysis)
