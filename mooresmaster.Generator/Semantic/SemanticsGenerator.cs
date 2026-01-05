@@ -56,7 +56,7 @@ public static class SemanticsGenerator
             if (!allInterfaceTable.ContainsKey(interfaceName))
                 allInterfaceTable.Add(interfaceName, kvp.Key);
         }
-
+        
         var globalInterfaceTable = new Dictionary<string, InterfaceId>();
         foreach (var kvp in semantics.InterfaceSemanticsTable.Where(i => i.Value.Interface.IsGlobal))
         {
@@ -64,7 +64,7 @@ public static class SemanticsGenerator
             if (!globalInterfaceTable.ContainsKey(interfaceName))
                 globalInterfaceTable.Add(interfaceName, kvp.Key);
         }
-
+        
         foreach (var kvp in semantics.InterfaceSemanticsTable)
         {
             var target = kvp.Key;
@@ -77,7 +77,7 @@ public static class SemanticsGenerator
                 if (!localInterfaceTable.ContainsKey(name))
                     localInterfaceTable.Add(name, i.Key);
             }
-
+            
             foreach (var interfaceName in kvp.Value.Interface.ImplementationInterfaces)
                 if (localInterfaceTable.TryGetValue(interfaceName, out var localOther))
                     semantics.AddInterfaceInterfaceImplementation(target, localOther);
@@ -99,7 +99,7 @@ public static class SemanticsGenerator
             if (!globalInterfaceTable.ContainsKey(interfaceName))
                 globalInterfaceTable.Add(interfaceName, kvp.Key);
         }
-
+        
         foreach (var kvp in semantics.TypeSemanticsTable)
         {
             if (kvp.Value.Schema is not ObjectSchema objectSchema) continue;
@@ -188,7 +188,7 @@ public static class SemanticsGenerator
             case IntegerSchema:
             case NumberSchema:
             case StringSchema:
-            case UUIDSchema:
+            case UuidSchema:
             case Vector2Schema:
             case Vector3Schema:
             case Vector4Schema:

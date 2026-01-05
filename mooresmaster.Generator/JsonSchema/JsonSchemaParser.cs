@@ -288,7 +288,7 @@ public static class JsonSchemaParser
     
     private static SchemaId ParseUuid(JsonObject json, SchemaId? parent, bool isInterfaceProperty, SchemaTable table)
     {
-        return table.Add(new UUIDSchema((json[Tokens.PropertyNameKey] as JsonString)?.Literal, parent, IsNullable(json), isInterfaceProperty));
+        return table.Add(new UuidSchema((json[Tokens.PropertyNameKey] as JsonString)?.Literal, parent, IsNullable(json), isInterfaceProperty));
     }
     
     private static SchemaId ParseVector2(JsonObject json, SchemaId? parent, bool isInterfaceProperty, SchemaTable table)

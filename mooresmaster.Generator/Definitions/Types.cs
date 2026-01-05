@@ -28,7 +28,7 @@ public record Type
             ObjectSchema => new CustomType(nameTable.TypeNames[typeId]),
             SwitchSchema => new CustomType(nameTable.TypeNames[typeId]),
             RefSchema refSchema => new CustomType(nameTable.TypeNames[GetRefTypeId(refSchema, semantics)]),
-            UUIDSchema => new UUIDType(),
+            UuidSchema => new UUIDType(),
             Vector2Schema => new Vector2Type(),
             Vector3Schema => new Vector3Type(),
             Vector4Schema => new Vector4Type(),
@@ -38,14 +38,14 @@ public record Type
         };
         return schema.IsNullable ? new NullableType(type) : type;
     }
-
+    
     private static ITypeId GetRefTypeId(RefSchema schema, Semantics semantics)
     {
         var schemaClassId = semantics.RootSemanticsTable.First(root => root.Value.Root.SchemaId == schema.Ref).Value.ClassId;
-
+        
         return schemaClassId;
     }
-
+    
     public string GetName()
     {
         return this switch

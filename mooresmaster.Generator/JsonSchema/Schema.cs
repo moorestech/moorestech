@@ -177,7 +177,7 @@ public record Vector3IntSchema(string? PropertyName, SchemaId? Parent, bool IsNu
     public SchemaId? Parent { get; } = Parent;
 }
 
-public record UUIDSchema(string? PropertyName, SchemaId? Parent, bool IsNullable, bool IsInterfaceProperty) : IDefineInterfacePropertySchema
+public record UuidSchema(string? PropertyName, SchemaId? Parent, bool IsNullable, bool IsInterfaceProperty) : IDefineInterfacePropertySchema
 {
     public string? PropertyName { get; } = PropertyName;
     public bool IsNullable { get; } = IsNullable;
