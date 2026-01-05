@@ -18,12 +18,12 @@ public class SwitchOptionalCaseTest
         var (schemaTable, nameTable, semantics, definition, analysis) = Test.Generate(yaml);
         
         var rootSemantics = semantics.RootSemanticsTable.Values.First();
-        var rootInnerSchema = schemaTable.Table[rootSemantics.Root.InnerSchema];
+        var rootInnerSchema = schemaTable.Table[rootSemantics.Root.InnerSchema.Value!];
         var rootInnerClassId = semantics.SchemaTypeSemanticsTable[rootInnerSchema];
         var rootInnerTypeSemantics = semantics.TypeSemanticsTable[rootInnerClassId];
         var rootInnerTypeObjectSchema = (ObjectSchema)rootInnerTypeSemantics.Schema;
-        var switchSchemaId = rootInnerTypeObjectSchema.Properties.Values.First(v => schemaTable.Table[v].PropertyName == "data");
-        var switchProperty = (SwitchSchema)schemaTable.Table[switchSchemaId];
+        var switchSchemaId = rootInnerTypeObjectSchema.Properties.Values.First(v => v.IsValid && schemaTable.Table[v.Value!].PropertyName == "data");
+        var switchProperty = (SwitchSchema)schemaTable.Table[switchSchemaId.Value!];
         
         Assert.True(switchProperty.HasOptionalCase);
     }

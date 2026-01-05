@@ -69,7 +69,7 @@ public static class DefinitionGenerator
             interfaceList.Add(inherit.switchId);
         }
         
-        var schemaToRootTable = semantics.RootSemanticsTable.ToDictionary(kvp => schemaTable.Table[kvp.Value.Root.InnerSchema], kvp => kvp.Value.Root);
+        var schemaToRootTable = semantics.RootSemanticsTable.ToDictionary(kvp => schemaTable.Table[kvp.Value.Root.InnerSchema.Value!], kvp => kvp.Value.Root);
         
         foreach (var kvp in semantics.TypeSemanticsTable)
         {

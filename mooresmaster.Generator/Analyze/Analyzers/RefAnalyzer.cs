@@ -46,9 +46,12 @@ public class RefAnalyzer : IPostJsonSchemaLayerAnalyzer
         {
             var schemaId = schemaFile.Schema.SchemaId;
             schemaRefDependencies[schemaId] = new List<RefSchema>();
-            
+
+            // InnerSchemaが無効な場合はスキップ
+            if (!schemaFile.Schema.InnerSchema.IsValid) continue;
+
             // このスキーマファイルに含まれる全てのRefSchemaを収集
-            CollectRefSchemas(schemaFile.Schema.InnerSchema, schemaTable, schemaRefDependencies[schemaId]);
+            CollectRefSchemas(schemaFile.Schema.InnerSchema.Value!, schemaTable, schemaRefDependencies[schemaId]);
         }
         
         // 各スキーマから循環参照を検出
@@ -80,7 +83,9 @@ public class RefAnalyzer : IPostJsonSchemaLayerAnalyzer
                 refSchemas.Add(refSchema);
                 break;
             case ObjectSchema objectSchema:
-                foreach (var property in objectSchema.Properties.Values) CollectRefSchemas(property, schemaTable, refSchemas);
+                foreach (var property in objectSchema.Properties.Values)
+                    if (property.IsValid)
+                        CollectRefSchemas(property.Value!, schemaTable, refSchemas);
                 break;
             case ArraySchema arraySchema:
                 if (arraySchema.Items.IsValid) CollectRefSchemas(arraySchema.Items.Value!, schemaTable, refSchemas);
