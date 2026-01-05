@@ -29,7 +29,7 @@ public record Type
             StringSchema => new StringType(),
             ObjectSchema => new CustomType(nameTable.TypeNames[typeId]),
             SwitchSchema => new CustomType(nameTable.TypeNames[typeId]),
-            RefSchema refSchema => new CustomType(nameTable.TypeNames[GetRefTypeId(refSchema, semantics)]),
+            RefSchema refSchema => GetRefType(refSchema, nameTable, semantics),
             UuidSchema => new UUIDType(),
             Vector2Schema => new Vector2Type(),
             Vector3Schema => new Vector3Type(),
@@ -40,12 +40,19 @@ public record Type
         };
         return schema.IsNullable ? new NullableType(type) : type;
     }
-    
-    private static ITypeId GetRefTypeId(RefSchema schema, Semantics semantics)
+
+    private static Type GetRefType(RefSchema refSchema, NameTable nameTable, Semantics semantics)
     {
-        var schemaClassId = semantics.RootSemanticsTable.First(root => root.Value.Root.SchemaId == schema.Ref).Value.ClassId;
-        
-        return schemaClassId;
+        var refTypeId = GetRefTypeId(refSchema, semantics);
+        if (refTypeId == null) return new UnknownType();
+        return new CustomType(nameTable.TypeNames[refTypeId]);
+    }
+
+    private static ITypeId? GetRefTypeId(RefSchema schema, Semantics semantics)
+    {
+        var match = semantics.RootSemanticsTable.FirstOrDefault(root => root.Value.Root.SchemaId == schema.Ref);
+        if (match.Value == null) return null;
+        return match.Value.ClassId;
     }
     
     public string GetName()

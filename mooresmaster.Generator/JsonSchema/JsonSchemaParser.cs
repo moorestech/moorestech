@@ -246,8 +246,8 @@ public static class JsonSchemaParser
     
     private static SchemaId ParseRef(JsonObject json, SchemaId? parent, bool isInterfaceProperty, SchemaTable table, Analysis analysis)
     {
-        var refJson = json[Tokens.RefKey] as JsonString;
-        return table.Add(new RefSchema((json[Tokens.PropertyNameKey] as JsonString)?.Literal, parent, refJson.Literal, IsNullable(json, analysis), isInterfaceProperty));
+        var refJson = (json[Tokens.RefKey] as JsonString)!;
+        return table.Add(new RefSchema((json[Tokens.PropertyNameKey] as JsonString)?.Literal, parent, refJson.Literal, refJson.Location, IsNullable(json, analysis), isInterfaceProperty));
     }
     
     private static SchemaId ParseString(JsonObject json, SchemaId? parent, bool isInterfaceProperty, SchemaTable table, Analysis analysis)
