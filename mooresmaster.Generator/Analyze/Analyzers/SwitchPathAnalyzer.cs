@@ -30,43 +30,30 @@ public class SwitchPathAnalyzer : IPostJsonSchemaLayerAnalyzer
             
             // 重複ケースのチェック（パス解決の成否に関わらず実行）
             ValidateDuplicateCases(analysis, switchSchema);
-
+            
             var targetSchema = ValidateSwitchPath(analysis, schemaTable, switchSchema, switchPath, rootSchemaId.Value);
-            if (targetSchema != null)
-            {
-                ValidateExhaustiveness(analysis, switchSchema, targetSchema);
-            }
+            if (targetSchema != null) ValidateExhaustiveness(analysis, switchSchema, targetSchema);
         }
     }
-
+    
     private void ValidateDuplicateCases(Analysis analysis, SwitchSchema switchSchema)
     {
         var caseCounts = new Dictionary<string, int>();
         foreach (var caseSchema in switchSchema.IfThenArray.Value!)
-        {
             if (caseCounts.ContainsKey(caseSchema.When))
-            {
                 caseCounts[caseSchema.When]++;
-            }
             else
-            {
                 caseCounts[caseSchema.When] = 1;
-            }
-        }
-
+        
         // 重複しているケースを報告
         foreach (var kvp in caseCounts)
-        {
             if (kvp.Value > 1)
-            {
                 analysis.ReportDiagnostics(new SwitchCasesDuplicateDiagnostics(
                     switchSchema,
                     kvp.Key,
                     kvp.Value,
                     switchSchema.SwitchPathLocation
                 ));
-            }
-        }
     }
     
     private SchemaId? FindRootSchemaId(ISchema schema, SchemaTable schemaTable, HashSet<SchemaId> rootSchemaIds)
@@ -157,37 +144,32 @@ public class SwitchPathAnalyzer : IPostJsonSchemaLayerAnalyzer
                 currentSchemaId = objectSchema.Properties[normalElement.Path];
                 currentSchema = schemaTable.Table[currentSchemaId];
             }
-
+        
         return currentSchema;
     }
-
+    
     private void ValidateExhaustiveness(Analysis analysis, SwitchSchema switchSchema, ISchema targetSchema)
     {
         // 対象スキーマがStringSchemaのenumでない場合はスキップ
         if (!(targetSchema is StringSchema stringSchema)) return;
         if (stringSchema.Enums == null || stringSchema.Enums.Length == 0) return;
-
+        
         // カバーされているケースを収集
         var coveredCases = new HashSet<string>();
-        foreach (var caseSchema in switchSchema.IfThenArray.Value!)
-        {
-            coveredCases.Add(caseSchema.When);
-        }
-
+        foreach (var caseSchema in switchSchema.IfThenArray.Value!) coveredCases.Add(caseSchema.When);
+        
         // 不足しているケースを検出
         var missingCases = stringSchema.Enums.Where(option => !coveredCases.Contains(option)).ToArray();
-
+        
         if (missingCases.Length > 0)
-        {
             analysis.ReportDiagnostics(new SwitchCasesNotExhaustiveDiagnostics(
                 switchSchema,
                 missingCases,
                 stringSchema.Enums,
                 switchSchema.SwitchPathLocation
             ));
-        }
     }
-
+    
     public static string FormatSwitchPath(SwitchPath path)
     {
         var prefix = path.Type == SwitchPathType.Absolute ? "/" : "./";

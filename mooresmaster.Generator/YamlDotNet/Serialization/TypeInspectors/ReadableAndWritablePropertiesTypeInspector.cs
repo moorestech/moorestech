@@ -44,7 +44,7 @@ public class ReadableAndWritablePropertiesTypeInspector : TypeInspectorSkeleton
     
     public override string GetEnumValue(object enumValue)
     {
-        return this.innerTypeDescriptor.GetEnumValue(enumValue);
+        return innerTypeDescriptor.GetEnumValue(enumValue);
     }
     
     public override IEnumerable<IPropertyDescriptor> GetProperties(Type type, object? container)

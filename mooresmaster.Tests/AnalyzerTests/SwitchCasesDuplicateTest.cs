@@ -42,12 +42,12 @@ public class SwitchCasesDuplicateTest
                       - key: valueC
                         type: string
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
-
+        
         Assert.DoesNotContain(diagnosticsArray, d => d is SwitchCasesDuplicateDiagnostics);
     }
-
+    
     /// <summary>
     ///     1つのケースが重複している場合のエラーのテスト
     /// </summary>
@@ -83,15 +83,15 @@ public class SwitchCasesDuplicateTest
                       - key: valueB
                         type: string
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
         var duplicateDiagnostics = diagnosticsArray.OfType<SwitchCasesDuplicateDiagnostics>().ToArray();
-
+        
         Assert.Single(duplicateDiagnostics);
         Assert.Equal("A", duplicateDiagnostics[0].DuplicateCase);
         Assert.Equal(2, duplicateDiagnostics[0].OccurrenceCount);
     }
-
+    
     /// <summary>
     ///     同じケースが3回以上重複している場合のテスト
     /// </summary>
@@ -132,15 +132,15 @@ public class SwitchCasesDuplicateTest
                       - key: valueB
                         type: string
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
         var duplicateDiagnostics = diagnosticsArray.OfType<SwitchCasesDuplicateDiagnostics>().ToArray();
-
+        
         Assert.Single(duplicateDiagnostics);
         Assert.Equal("A", duplicateDiagnostics[0].DuplicateCase);
         Assert.Equal(3, duplicateDiagnostics[0].OccurrenceCount);
     }
-
+    
     /// <summary>
     ///     複数のケースが重複している場合のテスト
     /// </summary>
@@ -187,19 +187,19 @@ public class SwitchCasesDuplicateTest
                       - key: valueC
                         type: string
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
         var duplicateDiagnostics = diagnosticsArray.OfType<SwitchCasesDuplicateDiagnostics>().ToArray();
-
+        
         Assert.Equal(2, duplicateDiagnostics.Length);
-
+        
         var diagA = duplicateDiagnostics.First(d => d.DuplicateCase == "A");
         Assert.Equal(2, diagA.OccurrenceCount);
-
+        
         var diagB = duplicateDiagnostics.First(d => d.DuplicateCase == "B");
         Assert.Equal(2, diagB.OccurrenceCount);
     }
-
+    
     /// <summary>
     ///     ネストされたswitchでの重複チェックのテスト
     /// </summary>
@@ -251,15 +251,15 @@ public class SwitchCasesDuplicateTest
                       - key: value
                         type: string
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
         var duplicateDiagnostics = diagnosticsArray.OfType<SwitchCasesDuplicateDiagnostics>().ToArray();
-
+        
         Assert.Single(duplicateDiagnostics);
         Assert.Equal("X", duplicateDiagnostics[0].DuplicateCase);
         Assert.Equal(2, duplicateDiagnostics[0].OccurrenceCount);
     }
-
+    
     /// <summary>
     ///     Diagnosticsに正しいLocation情報が含まれていることのテスト
     /// </summary>
@@ -290,14 +290,14 @@ public class SwitchCasesDuplicateTest
                       - key: value2
                         type: string
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
         var diagnostics = diagnosticsArray.OfType<SwitchCasesDuplicateDiagnostics>().First();
-
+        
         Assert.Single(diagnostics.Locations);
         Assert.True(diagnostics.Locations[0].StartLine > 0);
     }
-
+    
     /// <summary>
     ///     Diagnosticsのメッセージに必要な情報が含まれていることのテスト
     /// </summary>
@@ -328,15 +328,15 @@ public class SwitchCasesDuplicateTest
                       - key: value2
                         type: string
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
         var diagnostics = diagnosticsArray.OfType<SwitchCasesDuplicateDiagnostics>().First();
-
+        
         Assert.Contains("A", diagnostics.Message);
         Assert.Contains("2", diagnostics.Message);
         Assert.Contains("Duplicate", diagnostics.Message);
     }
-
+    
     /// <summary>
     ///     重複と網羅性エラーが同時に発生する場合のテスト
     /// </summary>
@@ -368,14 +368,14 @@ public class SwitchCasesDuplicateTest
                       - key: value2
                         type: string
             """;
-
+        
         var diagnosticsArray = Test.Generate(schema).analysis.DiagnosticsList;
-
+        
         // 重複エラーがある
         var duplicateDiagnostics = diagnosticsArray.OfType<SwitchCasesDuplicateDiagnostics>().ToArray();
         Assert.Single(duplicateDiagnostics);
         Assert.Equal("A", duplicateDiagnostics[0].DuplicateCase);
-
+        
         // 網羅性エラーもある（BとCが不足）
         var exhaustiveDiagnostics = diagnosticsArray.OfType<SwitchCasesNotExhaustiveDiagnostics>().ToArray();
         Assert.Single(exhaustiveDiagnostics);
