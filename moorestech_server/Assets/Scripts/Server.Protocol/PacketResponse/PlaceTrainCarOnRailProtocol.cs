@@ -122,11 +122,6 @@ namespace Server.Protocol.PacketResponse
                 {
                     return false;
                 }
-                if (!IsHeadMatching(railComponent, saveData.RailSnapshot[0]))
-                {
-                    return false;
-                }
-
                 // サーバー側の経路から期待スナップショットを構築する
                 // Build the expected snapshot from the server rail graph
                 if (!TryBuildExpectedSnapshot(railComponent, saveData.RailSnapshot[0], expectedLength, out var expectedSnapshot))
@@ -142,13 +137,6 @@ namespace Server.Protocol.PacketResponse
                 // Restore the rail position instance
                 position = RailPositionFactory.Restore(expectedSnapshot, railComponent.FrontNode.GraphProvider);
                 return position != null;
-            }
-
-            bool IsHeadMatching(RailComponent railComponent, ConnectionDestination headDestination)
-            {
-                // 保持レールのFront/Backに一致するか確認する
-                // Check if the head matches front/back of the rail component
-                return railComponent.FrontNode.ConnectionDestination.Equals(headDestination) || railComponent.BackNode.ConnectionDestination.Equals(headDestination);
             }
 
             bool TryBuildExpectedSnapshot(RailComponent railComponent, ConnectionDestination headDestination, int trainLength, out RailPositionSaveData expected)
