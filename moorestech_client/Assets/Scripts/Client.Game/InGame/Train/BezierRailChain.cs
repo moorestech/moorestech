@@ -6,7 +6,7 @@ using UnityEngine;
 /// 1本のベジエ曲線上にFBXレールモジュールを並べる親オブジェクト
 /// Hosts multiple BezierRailMesh segments under a single spline definition
 /// </summary>
-namespace InGame.Train.Rail
+namespace Client.Game.InGame.Train
 {
     public class BezierRailChain : MonoBehaviour
     {
