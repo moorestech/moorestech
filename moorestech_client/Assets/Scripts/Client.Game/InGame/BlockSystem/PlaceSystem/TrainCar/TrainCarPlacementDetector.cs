@@ -138,32 +138,28 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     {
                         return false;
                     }
-                    // 始点ノードと分岐有無を確認する
-                    // Check the head node and branch state
+                    // 始点ノードを確認する
+                    // Check the head node
                     var headNode = _cache.ResolveRailNode(headDestination);
                     if (headNode == null || !_cache.TryGetNodeId(headNode, out var headNodeId))
                     {
                         return false;
                     }
-                    if (!HasSingleOutgoing(headNodeId))
-                    {
-                        return false;
-                    }
-
                     // 進行方向の逆順でノードを積み上げる
                     // Build node list in reverse travel order
                     var railSnapshot = new List<ConnectionDestination> { headNode.ConnectionDestination };
                     var remaining = length;
                     var currentNodeId = headNodeId;
+                    var guard = 0;
                     while (remaining > 0)
                     {
                         // 入力辺を辿って後方ノードを追加する
                         // Walk incoming edge to append rearward nodes
-                        if (!TryGetSingleIncomingEdge(currentNodeId, out var previousNodeId, out var distance))
+                        if (!TryGetIncomingEdge(currentNodeId, out var previousNodeId, out var distance))
                         {
                             return false;
                         }
-                        if (!HasSingleOutgoing(previousNodeId) || distance <= 0)
+                        if (distance <= 0)
                         {
                             return false;
                         }
@@ -174,6 +170,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                         railSnapshot.Add(previousNode.ConnectionDestination);
                         remaining -= distance;
                         currentNodeId = previousNodeId;
+                        guard++;
+                        if (guard > _cache.ConnectNodes.Count + 1)
+                        {
+                            return false;
+                        }
                     }
 
                     // 配置用スナップショットを生成する
@@ -187,12 +188,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     return true;
                 }
 
-                bool TryGetSingleIncomingEdge(int nodeId, out int sourceNodeId, out int distance)
+                bool TryGetIncomingEdge(int nodeId, out int sourceNodeId, out int distance)
                 {
                     sourceNodeId = -1;
                     distance = 0;
-                    // 分岐なしの入力辺を1本だけ抽出する
-                    // Resolve the unique incoming edge when no branch exists
+                    // 分岐時は最小NodeIdの入力辺を選択する
+                    // Choose the incoming edge with the smallest node id
                     var found = false;
                     for (var i = 0; i < _cache.ConnectNodes.Count; i++)
                     {
@@ -206,27 +207,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                             {
                                 continue;
                             }
-                            if (found)
+                            if (!found || i < sourceNodeId)
                             {
-                                return false;
+                                sourceNodeId = i;
+                                distance = edge.distance;
+                                found = true;
                             }
-                            sourceNodeId = i;
-                            distance = edge.distance;
-                            found = true;
                         }
                     }
                     return found;
-                }
-
-                bool HasSingleOutgoing(int nodeId)
-                {
-                    // 分岐を禁止するため出力辺が1本のみか確認する
-                    // Reject branches by enforcing a single outgoing edge
-                    if (nodeId < 0 || nodeId >= _cache.ConnectNodes.Count)
-                    {
-                        return false;
-                    }
-                    return _cache.ConnectNodes[nodeId].Count == 1;
                 }
 
                 #endregion

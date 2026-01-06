@@ -9,10 +9,12 @@ using Cysharp.Threading.Tasks;
 using Game.Context;
 using Game.CraftTree.Models;
 using Game.Research;
+using Game.Train.Train;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using Server.Util.MessagePack;
 using UnityEngine;
+using static Server.Protocol.PacketResponse.RailConnectionEditProtocol;
 
 namespace Client.Network.API
 {
@@ -74,6 +76,15 @@ namespace Client.Network.API
             var tick = response?.ServerTick ?? 0;
             var unitsHash = response?.UnitsHash ?? 0u;
             return new TrainUnitSnapshotResponse(snapshots, tick, unitsHash);
+        }
+
+        public async UniTask<PlaceTrainCarOnRailProtocol.PlaceTrainOnRailResponseMessagePack> PlaceTrainOnRail(RailComponentSpecifier specifier, RailPositionSaveData railPosition, int hotBarSlot, CancellationToken ct)
+        {
+            // 列車設置のレスポンスを取得する
+            // Get response for train placement
+            var railPositionSnapshot = new RailPositionSnapshotMessagePack(railPosition);
+            var request = new PlaceTrainCarOnRailProtocol.PlaceTrainOnRailRequestMessagePack(specifier, railPositionSnapshot, hotBarSlot, _playerConnectionSetting.PlayerId);
+            return await _packetExchangeManager.GetPacketResponse<PlaceTrainCarOnRailProtocol.PlaceTrainOnRailResponseMessagePack>(request, ct);
         }
 
         public async UniTask<PlayerInventoryResponse> GetMyPlayerInventory(CancellationToken ct)

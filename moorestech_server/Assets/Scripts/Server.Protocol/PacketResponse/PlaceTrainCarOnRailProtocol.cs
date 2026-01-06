@@ -2,12 +2,17 @@ using System;
 using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Blocks.TrainRail;
+using Game.Entity.Interface;
 using Game.PlayerInventory.Interface;
+using Game.Train.Common;
+using Game.Train.Entity;
 using Game.Train.RailGraph;
 using Game.Train.Train;
 using Game.Train.Utility;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Server.Event;
+using Server.Event.EventReceive;
 using Server.Util.MessagePack;
 using RailComponentSpecifier = Server.Protocol.PacketResponse.RailConnectionEditProtocol.RailComponentSpecifier;
 
@@ -18,110 +23,271 @@ namespace Server.Protocol.PacketResponse
         public const string ProtocolTag = "va:placeTrainCar";
 
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
+        private readonly EventProtocolProvider _eventProtocolProvider;
 
         public PlaceTrainCarOnRailProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
+            _eventProtocolProvider = serviceProvider.GetService<EventProtocolProvider>();
         }
 
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
             var request = MessagePackSerializer.Deserialize<PlaceTrainOnRailRequestMessagePack>(payload.ToArray());
-
-            // レールがあるかチェック
-            // Check if rail component exists
-            var railComponent = RailConnectionEditProtocol.ResolveRailComponent(request.RailSpecifier);
-            if (railComponent == null) return null;
-            
-            // 手持ちのアイテム取得
-            // Get the item from player's inventory
-            var mainInventory = _playerInventoryDataStore.GetInventoryData(request.PlayerId).MainOpenableInventory;
-            var item = mainInventory.GetItem(request.InventorySlot);
-
-            // 列車ユニットをスナップショットから生成
-            // Build train unit from the rail position snapshot
-            var trainUnit = CreateTrainUnit(railComponent, item.Id, request.RailPosition);
-            if (trainUnit == null) return null;
-
-            // アイテムを消費
-            // Consume the train item from inventory
-            mainInventory.SetItem(request.InventorySlot, item.Id, item.Count - 1);
-
-            return null;
+            return ExecuteRequest(request);
 
             #region Internal
 
-            TrainUnit CreateTrainUnit(RailComponent rail, ItemId trainItemId, RailPositionSnapshotMessagePack railPositionSnapshot)
+            PlaceTrainOnRailResponseMessagePack ExecuteRequest(PlaceTrainOnRailRequestMessagePack data)
             {
-                // アイテムIDに対応する列車ユニット編成を検索
-                // Search for train unit composition matching the item ID
-                if (!MasterHolder.TrainUnitMaster.TryGetTrainUnit(trainItemId, out var trainUnitElement))
+                // リクエストとレールを検証する
+                // Validate request and rail component
+                if (data == null)
                 {
-                    return null;
+                    return PlaceTrainOnRailResponseMessagePack.CreateFailure(PlaceTrainCarFailureType.InvalidRequest);
+                }
+                var railComponent = RailConnectionEditProtocol.ResolveRailComponent(data.RailSpecifier);
+                if (railComponent == null)
+                {
+                    return PlaceTrainOnRailResponseMessagePack.CreateFailure(PlaceTrainCarFailureType.RailNotFound);
                 }
 
-                // TrainCarElementからTrainCarオブジェクトを生成
-                // Create TrainCar objects from TrainCarElement data
-                var trainCars = new TrainCar(trainUnitElement, true);
-
-                // クライアントのレール位置スナップショットを復元する
-                // Restore rail position from client snapshot
-                var expectedTrainLength = TrainLengthConverter.ToRailUnits(trainUnitElement.Length);
-                if (!TryRestoreRailPosition(rail, railPositionSnapshot, expectedTrainLength, out var railPosition))
+                // 手持ちアイテムを取得し検証する
+                // Resolve and validate inventory item
+                var inventoryData = _playerInventoryDataStore.GetInventoryData(data.PlayerId);
+                var mainInventory = inventoryData.MainOpenableInventory;
+                var item = mainInventory.GetItem(data.InventorySlot);
+                if (item == null || item.Count <= 0)
                 {
-                    return null;
+                    return PlaceTrainOnRailResponseMessagePack.CreateFailure(PlaceTrainCarFailureType.ItemNotFound);
                 }
 
-                // TrainUnitを生成して返す
-                // Create and return TrainUnit
-                return new TrainUnit(railPosition, new List<TrainCar> { trainCars });
-                
-                #region Internal
-
-                bool TryRestoreRailPosition(RailComponent railComponent, RailPositionSnapshotMessagePack snapshot, int expectedLength, out RailPosition position)
+                // 列車ユニットを生成して検証する
+                // Create and validate the train unit
+                if (!TryCreateTrainUnit(railComponent, item.Id, data.RailPosition, out var createdTrain))
                 {
-                    position = null;
-                    // スナップショットと長さを検証する
-                    // Validate snapshot and length
-                    if (snapshot == null)
+                    return PlaceTrainOnRailResponseMessagePack.CreateFailure(PlaceTrainCarFailureType.InvalidRailPosition);
+                }
+
+                // アイテムを消費する
+                // Consume the train item from inventory
+                mainInventory.SetItem(data.InventorySlot, item.Id, item.Count - 1);
+
+                // 生成結果を即時通知する
+                // Broadcast the new train unit
+                BroadcastTrainUnitCreated(createdTrain);
+                return PlaceTrainOnRailResponseMessagePack.CreateSuccess();
+            }
+
+            bool TryCreateTrainUnit(RailComponent railComponent, ItemId trainItemId, RailPositionSnapshotMessagePack railPositionSnapshot, out TrainUnit trainUnit)
+            {
+                trainUnit = null;
+                // アイテムIDに対応する列車マスターを検索する
+                // Resolve train master by item id
+                if (!MasterHolder.TrainUnitMaster.TryGetTrainUnit(trainItemId, out var trainCarMaster))
+                {
+                    return false;
+                }
+
+                // 期待する列車長とレール位置を検証する
+                // Validate expected train length and rail position
+                var expectedLength = TrainLengthConverter.ToRailUnits(trainCarMaster.Length);
+                if (!TryRestoreRailPosition(railComponent, railPositionSnapshot, expectedLength, out var railPosition))
+                {
+                    return false;
+                }
+
+                // 列車ユニットを生成する
+                // Create the train unit
+                var trainCar = new TrainCar(trainCarMaster, true);
+                trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar });
+                return true;
+            }
+
+            bool TryRestoreRailPosition(RailComponent railComponent, RailPositionSnapshotMessagePack snapshot, int expectedLength, out RailPosition position)
+            {
+                position = null;
+                // スナップショットを検証する
+                // Validate snapshot payload
+                if (snapshot == null)
+                {
+                    return false;
+                }
+                var saveData = snapshot.ToModel();
+                if (saveData == null || saveData.RailSnapshot == null || saveData.RailSnapshot.Count == 0)
+                {
+                    return false;
+                }
+                if (saveData.TrainLength != expectedLength)
+                {
+                    return false;
+                }
+                if (!IsHeadMatching(railComponent, saveData.RailSnapshot[0]))
+                {
+                    return false;
+                }
+
+                // サーバー側の経路から期待スナップショットを構築する
+                // Build the expected snapshot from the server rail graph
+                if (!TryBuildExpectedSnapshot(railComponent, saveData.RailSnapshot[0], expectedLength, out var expectedSnapshot))
+                {
+                    return false;
+                }
+                if (!IsSnapshotMatch(saveData, expectedSnapshot))
+                {
+                    return false;
+                }
+
+                // RailPositionを復元する
+                // Restore the rail position instance
+                position = RailPositionFactory.Restore(expectedSnapshot, railComponent.FrontNode.GraphProvider);
+                return position != null;
+            }
+
+            bool IsHeadMatching(RailComponent railComponent, ConnectionDestination headDestination)
+            {
+                // 保持レールのFront/Backに一致するか確認する
+                // Check if the head matches front/back of the rail component
+                return railComponent.FrontNode.ConnectionDestination.Equals(headDestination) || railComponent.BackNode.ConnectionDestination.Equals(headDestination);
+            }
+
+            bool TryBuildExpectedSnapshot(RailComponent railComponent, ConnectionDestination headDestination, int trainLength, out RailPositionSaveData expected)
+            {
+                expected = null;
+                // レールグラフから位置を再構築する
+                // Rebuild placement snapshot from the rail graph
+                var headNode = railComponent.FrontNode.GraphProvider.ResolveRailNode(headDestination);
+                if (headNode == null)
+                {
+                    return false;
+                }
+                var graphSnapshot = RailGraphDatastore.CaptureSnapshot();
+                var railSnapshot = new List<ConnectionDestination> { headNode.ConnectionDestination };
+                var remaining = trainLength;
+                var currentNodeId = headNode.NodeId;
+                var guard = 0;
+                while (remaining > 0)
+                {
+                    if (!TryGetIncomingEdge(graphSnapshot.Connections, currentNodeId, out var previousNodeId, out var distance))
                     {
                         return false;
                     }
-                    var saveData = snapshot.ToModel();
-                    if (saveData == null || saveData.RailSnapshot == null || saveData.RailSnapshot.Count == 0)
+                    if (distance <= 0)
                     {
                         return false;
                     }
-                    // 列車長の一致を確認する
-                    // Confirm the train length matches
-                    if (saveData.TrainLength != expectedLength)
+                    if (!RailGraphDatastore.TryGetRailNode(previousNodeId, out var previousNode))
                     {
                         return false;
                     }
-
-                    // 先頭ノードが指定レールに一致するか確認する
-                    // Ensure the head node matches the specified rail component
-                    if (!IsHeadMatching(railComponent, saveData.RailSnapshot[0]))
+                    railSnapshot.Add(previousNode.ConnectionDestination);
+                    remaining -= distance;
+                    currentNodeId = previousNodeId;
+                    guard++;
+                    if (guard > graphSnapshot.Connections.Count + 1)
                     {
                         return false;
                     }
-
-                    // RailPositionを復元する
-                    // Restore rail position instance
-                    // グラフプロバイダを使って復元する
-                    // Restore via the graph provider
-                    position = RailPositionFactory.Restore(saveData, railComponent.FrontNode.GraphProvider);
-                    return position != null;
                 }
-
-                bool IsHeadMatching(RailComponent railComponent, ConnectionDestination headDestination)
+                expected = new RailPositionSaveData
                 {
-                    // 指定レールのFront/Backに一致するか確認する
-                    // Check if the head matches front/back of the rail component
-                    return railComponent.FrontNode.ConnectionDestination.Equals(headDestination) || railComponent.BackNode.ConnectionDestination.Equals(headDestination);
-                }
+                    TrainLength = trainLength,
+                    DistanceToNextNode = 0,
+                    RailSnapshot = railSnapshot
+                };
+                return true;
+            }
 
-                #endregion
+            bool TryGetIncomingEdge(IReadOnlyList<RailGraphConnectionSnapshot> connections, int nodeId, out int sourceNodeId, out int distance)
+            {
+                sourceNodeId = -1;
+                distance = 0;
+                // 分岐時は最小NodeIdの入力辺を選択する
+                // Choose the incoming edge with the smallest node id
+                var found = false;
+                for (var i = 0; i < connections.Count; i++)
+                {
+                    var connection = connections[i];
+                    if (connection.ToNodeId != nodeId)
+                    {
+                        continue;
+                    }
+                    if (!found || connection.FromNodeId < sourceNodeId)
+                    {
+                        sourceNodeId = connection.FromNodeId;
+                        distance = connection.Distance;
+                        found = true;
+                    }
+                }
+                return found;
+            }
+
+            bool IsSnapshotMatch(RailPositionSaveData clientSnapshot, RailPositionSaveData expectedSnapshot)
+            {
+                // クライアント提案と一致するか確認する
+                // Check if the client snapshot matches the expected snapshot
+                if (clientSnapshot == null || expectedSnapshot == null)
+                {
+                    return false;
+                }
+                if (clientSnapshot.TrainLength != expectedSnapshot.TrainLength)
+                {
+                    return false;
+                }
+                if (clientSnapshot.DistanceToNextNode != expectedSnapshot.DistanceToNextNode)
+                {
+                    return false;
+                }
+                var clientNodes = clientSnapshot.RailSnapshot;
+                var expectedNodes = expectedSnapshot.RailSnapshot;
+                if (clientNodes == null || expectedNodes == null || clientNodes.Count != expectedNodes.Count)
+                {
+                    return false;
+                }
+                for (var i = 0; i < clientNodes.Count; i++)
+                {
+                    if (!clientNodes[i].Equals(expectedNodes[i]))
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            void BroadcastTrainUnitCreated(TrainUnit trainUnit)
+            {
+                // 新規列車ユニットの差分を通知する
+                // Broadcast the diff for newly created train units
+                if (trainUnit == null)
+                {
+                    return;
+                }
+                var snapshot = TrainUnitSnapshotFactory.CreateSnapshot(trainUnit);
+                var snapshotPack = new TrainUnitSnapshotBundleMessagePack(snapshot);
+                var entities = BuildTrainEntities(trainUnit);
+                var message = new TrainUnitCreatedEventMessagePack(snapshotPack, entities, TrainUpdateService.CurrentTick);
+                var payload = MessagePackSerializer.Serialize(message);
+                _eventProtocolProvider.AddBroadcastEvent(TrainUnitCreatedEventPacket.EventTag, payload);
+            }
+
+            EntityMessagePack[] BuildTrainEntities(TrainUnit trainUnit)
+            {
+                // 列車車両ごとのエンティティ情報を作成する
+                // Build entity messages for each train car
+                var cars = trainUnit.Cars;
+                if (cars == null || cars.Count == 0)
+                {
+                    return Array.Empty<EntityMessagePack>();
+                }
+                var entities = new EntityMessagePack[cars.Count];
+                for (var i = 0; i < cars.Count; i++)
+                {
+                    var car = cars[i];
+                    var entityId = new EntityInstanceId(car.GetHashCode());
+                    var trainEntity = new TrainEntity(entityId, trainUnit, car);
+                    entities[i] = new EntityMessagePack(trainEntity);
+                }
+                return entities;
             }
 
             #endregion
@@ -160,6 +326,48 @@ namespace Server.Protocol.PacketResponse
                 HotBarSlot = hotBarSlot;
                 PlayerId = playerId;
             }
+        }
+
+        // 設置レスポンスのペイロード
+        // Response payload for train placement
+        [MessagePackObject]
+        public class PlaceTrainOnRailResponseMessagePack : ProtocolMessagePackBase
+        {
+            [Key(2)] public bool Success { get; set; }
+            [Key(3)] public PlaceTrainCarFailureType FailureType { get; set; }
+
+            [Obsolete("チE��リアライズ用のコンストラクタです。基本皁E��使用しなぁE��ください。")]
+            public PlaceTrainOnRailResponseMessagePack()
+            {
+                Tag = ProtocolTag;
+            }
+
+            public static PlaceTrainOnRailResponseMessagePack CreateSuccess()
+            {
+                return new PlaceTrainOnRailResponseMessagePack
+                {
+                    Success = true,
+                    FailureType = PlaceTrainCarFailureType.None
+                };
+            }
+
+            public static PlaceTrainOnRailResponseMessagePack CreateFailure(PlaceTrainCarFailureType failureType)
+            {
+                return new PlaceTrainOnRailResponseMessagePack
+                {
+                    Success = false,
+                    FailureType = failureType
+                };
+            }
+        }
+
+        public enum PlaceTrainCarFailureType
+        {
+            None = 0,
+            InvalidRequest = 1,
+            RailNotFound = 2,
+            ItemNotFound = 3,
+            InvalidRailPosition = 4,
         }
 
         #endregion
