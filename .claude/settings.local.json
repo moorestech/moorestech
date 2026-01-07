@@ -66,7 +66,10 @@
       "mcp__kiri__context_bundle",
       "mcp__kiri__files_search",
       "mcp__kiri__snippets_get",
-      "Bash(dotnet build:*)"
+      "Bash(dotnet build:*)",
+      "Skill(skill-creator)",
+      "Skill(edit-schema)",
+      "Bash(gh release view:*)"
     ],
     "deny": []
   },
@@ -92,7 +95,5 @@
     "type": "command",
     "command": "node ./.claude/statusline.js"
   },
-  "enabledPlugins": {
-    "code-review@claude-code-plugins": true
-  }
+  "enabledPlugins": {}
 }

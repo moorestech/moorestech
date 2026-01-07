@@ -57,7 +57,7 @@ namespace Game.Block.Blocks.Miner
             
             var itemStackFactory = ServerContext.ItemStackFactory;
             _openableInventoryItemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, itemStackFactory, outputSlotCount);
-            _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(inputConnectorComponent);
+            _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(blockInstanceId, inputConnectorComponent);
             
             SetMiningItem();
             
@@ -290,8 +290,13 @@ namespace Game.Block.Blocks.Miner
         public IItemStack InsertItem(IItemStack itemStack)
         {
             BlockException.CheckDestroy(this);
-            
+
             return _openableInventoryItemDataStoreService.InsertItem(itemStack);
+        }
+
+        public IItemStack InsertItem(IItemStack itemStack, InsertItemContext context)
+        {
+            return InsertItem(itemStack);
         }
         
         public IItemStack InsertItem(ItemId itemId, int count)

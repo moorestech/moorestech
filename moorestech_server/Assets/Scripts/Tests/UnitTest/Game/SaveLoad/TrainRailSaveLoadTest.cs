@@ -176,7 +176,7 @@ namespace Tests.UnitTest.Game.SaveLoad
                 BlockDirection.North);
 
             var testItemStack = ServerContext.ItemStackFactory.Create(new ItemId(1), 10);
-            inputInventory.InsertItem(testItemStack);
+            inputInventory.InsertItem(testItemStack, InsertItemContext.Empty);
 
             var insertedStack = inputInventory.GetItem(0);
             Assert.AreEqual(new ItemId(1), insertedStack.Id, "チェストへの挿入に失敗しました");

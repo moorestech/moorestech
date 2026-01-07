@@ -88,7 +88,7 @@ namespace Game.Block.Factory.BlockTemplate
         private List<IBlockComponent> CreateInventoryComponents(Dictionary<string, string> componentStates, BlockInstanceId instanceId, TrainStationBlockParam param, BlockPositionInfo blockPositionInfo)
         {
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(param.InventoryConnectors, blockPositionInfo);
-            var inserter = new ConnectingInventoryListPriorityInsertItemService(inputConnectorComponent);
+            var inserter = new ConnectingInventoryListPriorityInsertItemService(instanceId, inputConnectorComponent);
             
             var chestComponent = componentStates == null ?
                 new VanillaChestComponent(instanceId, param.ItemSlotCount, inserter) :

@@ -448,11 +448,16 @@ namespace Tests.CombinedTest.Game
             var gear2Transform = gear2.GetComponent<IGearEnergyTransformer>();
             
             
-            var gear1Info = new ConnectedInfo(new GearConnectOption(true), new GearConnectOption(true), gear1);
-            var gear2Info = new ConnectedInfo(new GearConnectOption(true), new GearConnectOption(true), gear2);
+            var gear1Info = new ConnectedInfo(CreateGearConnector(0), CreateGearConnector(1), gear1);
+            var gear2Info = new ConnectedInfo(CreateGearConnector(0), CreateGearConnector(1), gear2);
             
             ((Dictionary<IGearEnergyTransformer, ConnectedInfo>)gear1Connector.ConnectedTargets).Add(gear2Transform, gear2Info);
             ((Dictionary<IGearEnergyTransformer, ConnectedInfo>)gear2Connector.ConnectedTargets).Add(gear1Transform, gear1Info);
+
+            BlockConnectInfoElement CreateGearConnector(int index)
+            {
+                return new BlockConnectInfoElement(index, "", Guid.NewGuid(), Vector3Int.zero, Array.Empty<Vector3Int>(), new GearConnectOption(true));
+            }
         }
         
         private void AreEqual(float expected, RPM actual)

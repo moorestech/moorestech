@@ -40,7 +40,7 @@ namespace Game.CraftChainer.BlockComponent.Template
             
             var beltComponent = componentStates == null ?
                 new VanillaBeltConveyorComponent(itemCount, time, beltConveyorConnector, slopeType) :
-                new VanillaBeltConveyorComponent(componentStates, itemCount, time, beltConveyorConnector, slopeType);
+                new VanillaBeltConveyorComponent(componentStates, itemCount, time, beltConveyorConnector, slopeType, transporterParam.InventoryConnectors);
             
             var components = new List<IBlockComponent>
             {

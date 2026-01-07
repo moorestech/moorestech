@@ -37,7 +37,7 @@ namespace Game.Block.Blocks.Machine.Inventory
             _blockInstanceId = blockInstanceId;
             _inputSlotSize = inputSlotSize;
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, itemStackFactory, outputSlot);
-            _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(blockConnectorComponent);
+            _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(blockInstanceId, blockConnectorComponent);
             
             _fluidContainers = new FluidContainer[outputTankCount];
             for (var i = 0; i < outputTankCount; i++)
