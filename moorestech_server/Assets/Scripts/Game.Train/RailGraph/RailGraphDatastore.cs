@@ -72,7 +72,6 @@ namespace Game.Train.RailGraph
 
         private void InitializeDataStore()
         {
-            Debug.Log("instance");
             railNodeToId = new Dictionary<RailNode, int>();
             railNodes = new List<RailNode>();
             nodeIdAllocator = new RailNodeIdAllocator(EnsureRailNodeSlot);
