@@ -7,7 +7,6 @@ using Game.Block.Interface.Component;
 using Game.Train.Common;
 using Game.Train.RailGraph;
 using Game.Train.Train;
-using Mooresmaster.Model.TrainModule;
 using NUnit.Framework;
 using Tests.Module.TestMod;
 using Tests.Util;
