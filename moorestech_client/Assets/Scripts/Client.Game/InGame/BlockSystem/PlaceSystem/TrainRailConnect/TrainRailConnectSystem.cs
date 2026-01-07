@@ -47,36 +47,55 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 return;
             }
             
-            // 接続先がカーソル上になければreturn
-            // If the connection point is not under the cursor, return.
-            var connectToArea = GetTrainRailConnectAreaCollider();
-            if (connectToArea == null)
-            {
-                _previewObject.SetActive(false);
-                return;
-            }
-            
-            // 接続対象のConnectionDestinationを算出
-            // Compute ConnectionDestination for both endpoints
+            // 接続元のConnectionDestinationを算出
+            // Compute ConnectionDestination for source endpoint
             var fromDestination = _connectFromArea.CreateConnectionDestination();
-            var toDestination = connectToArea.CreateConnectionDestination();
-            if (fromDestination.IsDefault() || toDestination.IsDefault())
+            if (fromDestination.IsDefault())
             {
-                Debug.LogWarning("[TrainRailConnect] Invalid destination detected. Re-select connection target.");
+                Debug.LogWarning("[TrainRailConnect] Invalid source destination detected.");
                 _previewObject.SetActive(false);
                 return;
             }
             
-            var previewData = CalculatePreviewData(fromDestination, toDestination);
-            ShowPreview();
-            SendProtocol(fromDestination, toDestination);
+            // 接続先を取得（橋脚上ならConnectionDestination、そうでなければカーソル位置）
+            // Get destination (ConnectionDestination if on pier, cursor position otherwise)
+            var connectToArea = GetTrainRailConnectAreaCollider();
+            if (connectToArea != null)
+            {
+                // 橋脚上にカーソルがある場合
+                // Cursor is on a pier
+                var toDestination = connectToArea.CreateConnectionDestination();
+                if (toDestination.IsDefault())
+                {
+                    Debug.LogWarning("[TrainRailConnect] Invalid destination detected.");
+                    _previewObject.SetActive(false);
+                    return;
+                }
+                
+                var previewData = CalculatePreviewData(fromDestination, toDestination, _cache);
+                ShowPreview(previewData);
+                SendProtocol(fromDestination, toDestination);
+            }
+            else
+            {
+                // カーソルが橋脚上にない場合、カーソル位置に向かってプレビュー
+                // Cursor is not on a pier, show preview towards cursor position
+                if (!PlaceSystemUtil.TryGetRayHitPosition(_mainCamera, out var cursorWorldPos, out _))
+                {
+                    _previewObject.SetActive(false);
+                    return;
+                }
+                
+                var previewData = CalculatePreviewData(fromDestination, cursorWorldPos, _cache);
+                ShowPreview(previewData);
+            }
             
             #region Internal
             
-            void ShowPreview()
+            void ShowPreview(TrainRailConnectPreviewData data)
             {
                 _previewObject.SetActive(true);
-                _previewObject.ShowPreview(previewData);
+                _previewObject.ShowPreview(data);
             }
             
             void SendProtocol(ConnectionDestination from, ConnectionDestination to)
