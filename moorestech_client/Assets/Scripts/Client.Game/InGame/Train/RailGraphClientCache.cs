@@ -4,8 +4,6 @@ using Server.Util.MessagePack;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using static UnityEngine.UI.Image;
-using RailNodeInitData = Game.Train.RailGraph.RailNodeInitializationNotifier.RailNodeInitializationData;
 
 namespace Client.Game.InGame.Train
 {
