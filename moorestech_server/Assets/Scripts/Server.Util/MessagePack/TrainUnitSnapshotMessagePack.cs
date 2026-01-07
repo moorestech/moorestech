@@ -46,10 +46,9 @@ namespace Server.Util.MessagePack
         [Key(0)] public Guid TrainId { get; set; }
         [Key(1)] public double CurrentSpeed { get; set; }
         [Key(2)] public double AccumulatedDistance { get; set; }
-        [Key(3)] public int RemainingDistance { get; set; }
-        [Key(4)] public int MasconLevel { get; set; }
-        [Key(5)] public bool IsAutoRun { get; set; }
-        [Key(6)] public List<TrainCarSnapshotMessagePack> Cars { get; set; }
+        [Key(3)] public int MasconLevel { get; set; }
+        [Key(4)] public bool IsAutoRun { get; set; }
+        [Key(5)] public List<TrainCarSnapshotMessagePack> Cars { get; set; }
 
         [Obsolete("Reserved for MessagePack serialization.")]
         public TrainSimulationSnapshotMessagePack() { }
