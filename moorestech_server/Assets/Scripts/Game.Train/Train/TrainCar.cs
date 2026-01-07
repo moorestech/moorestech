@@ -86,7 +86,7 @@ namespace Game.Train.Train
         //重さ、推進力を得る
         public (int,int) GetWeightAndTraction()
         {
-            return (TrainMotionParameters.DEFAULT_WEIGHT + InventorySlots * TrainMotionParameters.WHEIGHT_PER_SLOT
+            return (TrainMotionParameters.DEFAULT_WEIGHT + InventorySlots * TrainMotionParameters.WEIGHT_PER_SLOT
                 , IsFacingForward ? TractionForce * TrainMotionParameters.DEFAULT_TRACTION : 0);
         }
 
