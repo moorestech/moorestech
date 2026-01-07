@@ -103,7 +103,7 @@ namespace Client.Game.InGame.Train
 
         private float EnsureArcLengthCache(IRailNode behind, IRailNode ahead, Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, out float[] arcLengths)
         {
-            // キャチE��ュを参�Eして弧長テーブルを再利用する
+            // キャッシュを参考に弧長テーブルを再利用する
             // Reuse cached arc-length table when available
             var key = ComputeSegmentKey(behind.NodeId, ahead.NodeId);
             if (!_segmentCaches.TryGetValue(key, out var cache) || cache.StartGuid != behind.NodeGuid || cache.EndGuid != ahead.NodeGuid)
