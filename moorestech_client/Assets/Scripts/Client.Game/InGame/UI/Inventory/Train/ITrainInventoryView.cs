@@ -1,7 +1,4 @@
-using System.Collections.Generic;
 using Client.Game.InGame.Entity.Object;
-using Core.Item.Interface;
-using Mooresmaster.Model.TrainModule;
 
 namespace Client.Game.InGame.UI.Inventory.Train
 {
