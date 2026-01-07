@@ -77,10 +77,15 @@ namespace Game.Block.Blocks.PowerGenerator
         public IItemStack InsertItem(IItemStack itemStack)
         {
             BlockException.CheckDestroy(this);
-            
+
             return _itemDataStoreService.InsertItem(itemStack);
         }
-        
+
+        public IItemStack InsertItem(IItemStack itemStack, InsertItemContext context)
+        {
+            return InsertItem(itemStack);
+        }
+
         public IItemStack GetItem(int slot)
         {
             BlockException.CheckDestroy(this);

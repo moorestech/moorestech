@@ -6,6 +6,7 @@ using UnityEditor;
 using UnityEditor.Compilation;
 using UnityEditor.TestTools.TestRunner.Api;
 using UnityEngine;
+using static Tests.Watchdog.CliTestExporter;
 
 public static class CliTestRunner
 {
@@ -103,6 +104,7 @@ public static class CliTestRunner
 
                 if (matched.Count == 0)
                 {
+                    Export($" ✅ Compilation succeeded");
                     Export($" 🟡 No tests matched /{pattern}/");
                     EditorApplication.Exit(0);
                     return;
@@ -175,12 +177,5 @@ public static class CliTestRunner
             foreach (var c in node.Children) CollectAllTests(c, list);
         else
             list.Add(node.FullName);
-    }
-
-    // 全行に [CliTest] をつけて出力
-    private static void Export(string msg)
-    {
-        var lines = msg.Split('\n');
-        foreach (var line in lines) Debug.Log($"[CliTest] {line}");
     }
 }

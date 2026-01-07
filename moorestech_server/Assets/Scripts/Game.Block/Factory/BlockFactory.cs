@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Factory.BlockTemplate;
 using Game.Block.Interface;
-using Game.Block.Interface.Component;
-using Game.Block.Interface.Extension;
 
 namespace Game.Block.Factory
 {

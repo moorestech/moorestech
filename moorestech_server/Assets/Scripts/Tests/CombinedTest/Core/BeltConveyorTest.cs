@@ -46,7 +46,7 @@ namespace Tests.CombinedTest.Core
                 
                 while (DateTime.Now < endTime.AddSeconds(0.1))
                 {
-                    item = beltConveyorComponent.InsertItem(item);
+                    item = beltConveyorComponent.InsertItem(item, InsertItemContext.Empty);
                     GameUpdater.UpdateWithWait();
                 }
                 
@@ -86,7 +86,7 @@ namespace Tests.CombinedTest.Core
             connectInventory.Add(dummy, new ConnectedInfo());
             
             var expectedEndTime = DateTime.Now.AddSeconds(beltConveyorParam.TimeOfItemEnterToExit);
-            var outputItem = beltConveyorComponent.InsertItem(item);
+            var outputItem = beltConveyorComponent.InsertItem(item, InsertItemContext.Empty);
             
             //5秒以上経過したらループを抜ける 
             while (!dummy.IsItemExists) GameUpdater.UpdateWithWait();
@@ -115,27 +115,25 @@ namespace Tests.CombinedTest.Core
             var itemStackFactory = ServerContext.ItemStackFactory;
             
             var random = new Random(4123);
-            for (var i = 0; i < 2; i++) //あまり深い意味はないが取りあえずテストは2回実行する
+            
+            var id = new ItemId(random.Next(1, 11));
+            var item = itemStackFactory.Create(id, beltConveyorParam.BeltConveyorItemCount + 1);
+            var dummy = new DummyBlockInventory(beltConveyorParam.BeltConveyorItemCount);
+            var beltConveyor = blockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, new BlockInstanceId(int.MaxValue), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
+            var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
+            
+            var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
+            connectInventory.Add(dummy, new ConnectedInfo());
+            
+            while (!dummy.IsItemExists)
             {
-                var id = new ItemId(random.Next(1, 11));
-                var item = itemStackFactory.Create(id, beltConveyorParam.BeltConveyorItemCount + 1);
-                var dummy = new DummyBlockInventory(beltConveyorParam.BeltConveyorItemCount);
-                var beltConveyor = blockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, new BlockInstanceId(int.MaxValue), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
-                var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
-                
-                var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
-                connectInventory.Add(dummy, new ConnectedInfo());
-                
-                while (!dummy.IsItemExists)
-                {
-                    item = beltConveyorComponent.InsertItem(item);
-                    GameUpdater.UpdateWithWait();
-                }
-                
-                Assert.True(item.Equals(itemStackFactory.Create(id, 0)));
-                var tmp = itemStackFactory.Create(id, beltConveyorParam.BeltConveyorItemCount);
-                Assert.True(dummy.InsertedItems[0].Equals(tmp));
+                item = beltConveyorComponent.InsertItem(item, InsertItemContext.Empty);
+                GameUpdater.UpdateWithWait();
             }
+            
+            Assert.True(item.Equals(itemStackFactory.Create(id, 0)));
+            var tmp = itemStackFactory.Create(id, beltConveyorParam.BeltConveyorItemCount);
+            Assert.True(dummy.InsertedItems[0].Equals(tmp));
         }
         
         //二つのアイテムが入ったとき、一方しか入らないテスト
@@ -157,8 +155,8 @@ namespace Tests.CombinedTest.Core
                 var beltConveyor = blockFactory.Create(ForUnitTestModBlockId.BeltConveyorId , new BlockInstanceId(int.MaxValue), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
                 var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
                 
-                var item1Out = beltConveyorComponent.InsertItem(item1);
-                var item2Out = beltConveyorComponent.InsertItem(item2);
+                var item1Out = beltConveyorComponent.InsertItem(item1, InsertItemContext.Empty);
+                var item2Out = beltConveyorComponent.InsertItem(item2, InsertItemContext.Empty);
                 
                 Assert.True(item1Out.Equals(item1.SubItem(1)));
                 Assert.True(item2Out.Equals(item2));

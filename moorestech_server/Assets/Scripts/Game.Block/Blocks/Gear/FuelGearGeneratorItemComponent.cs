@@ -66,6 +66,11 @@ namespace Game.Block.Blocks.Gear
             return _inventoryService.InsertItem(itemStack);
         }
 
+        public IItemStack InsertItem(IItemStack itemStack, InsertItemContext context)
+        {
+            return InsertItem(itemStack);
+        }
+
         public bool InsertionCheck(List<IItemStack> itemStacks)
         {
             BlockException.CheckDestroy(this);
