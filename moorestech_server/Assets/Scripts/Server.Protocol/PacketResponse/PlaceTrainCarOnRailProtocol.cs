@@ -324,7 +324,7 @@ namespace Server.Protocol.PacketResponse
             [Key(2)] public bool Success { get; set; }
             [Key(3)] public PlaceTrainCarFailureType FailureType { get; set; }
 
-            [Obsolete("チE��リアライズ用のコンストラクタです。基本皁E��使用しなぁE��ください。")]
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public PlaceTrainOnRailResponseMessagePack()
             {
                 Tag = ProtocolTag;
