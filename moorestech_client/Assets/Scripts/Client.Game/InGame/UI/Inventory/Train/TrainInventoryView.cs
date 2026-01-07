@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using Client.Game.InGame.Entity.Object;
 using Client.Game.InGame.UI.Inventory.Common;
 using Core.Item.Interface;
-using Game.Context;
 using Game.PlayerInventory.Interface.Subscription;
 using UnityEngine;
 
