@@ -15,7 +15,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             Debug.DrawLine(data.P0, data.P1, Color.blue);
             Debug.DrawLine(data.P1, data.P2, Color.purple);
             Debug.DrawLine(data.P2, data.P3, Color.red);
-            Debug.DrawLine(data.P0, data.P3, Color.white);
+            Debug.DrawLine(data.P0 - Vector3.down * 0.1f, data.P3 - Vector3.down * 0.1f, Color.white);
             // TODO
         }
     }
