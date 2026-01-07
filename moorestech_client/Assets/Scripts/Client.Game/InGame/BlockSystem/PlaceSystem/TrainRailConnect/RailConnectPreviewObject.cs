@@ -12,6 +12,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         public void ShowPreview(TrainRailConnectPreviewData data)
         {
             Debug.Log($"ShowPreview {data.P0} {data.P1} {data.P2} {data.P3}");
+            Debug.DrawLine(data.P0, data.P1, Color.blue);
+            Debug.DrawLine(data.P1, data.P2, Color.purple);
+            Debug.DrawLine(data.P2, data.P3, Color.red);
+            Debug.DrawLine(data.P0, data.P3, Color.white);
             // TODO
         }
     }
