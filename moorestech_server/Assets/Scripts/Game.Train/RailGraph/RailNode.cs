@@ -1,8 +1,6 @@
 using Game.Context;
-using Game.Train.Utility;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 /// <summary>
 /// 距離はint型で表現している。理由はNotion参照
