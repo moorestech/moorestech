@@ -15,7 +15,7 @@ namespace Client.Game.InGame.Entity.Object
         public long EntityId { get; private set; }
         public Guid TrainCarId { get; private set; }
         public TrainCarMasterElement TrainCarMasterElement { get; set; }
-
+        public bool DestroyFlagIfNoUpdate => false;
         /// <summary>
         /// モデル中心の前後オフセット
         /// Model forward center offset
