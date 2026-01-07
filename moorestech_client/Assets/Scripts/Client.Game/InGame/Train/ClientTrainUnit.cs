@@ -304,7 +304,7 @@ namespace Client.Game.InGame.Train
             {
                 return false;
             }
-            if ((node == destinationNode) & (RailPosition.GetDistanceToNextNode() == 0))
+            if ((node == destinationNode) && (RailPosition.GetDistanceToNextNode() == 0))
             {
                 return true;
             }
