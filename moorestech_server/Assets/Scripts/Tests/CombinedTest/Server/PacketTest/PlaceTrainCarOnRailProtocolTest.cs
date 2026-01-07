@@ -1,9 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using Core.Item.Interface;
 using Core.Master;
-using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
 using Game.Context;
 using Game.PlayerInventory.Interface;
@@ -13,8 +10,6 @@ using Game.Train.Utility;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
-using Server.Boot;
-using Server.Protocol.PacketResponse;
 using Server.Util.MessagePack;
 using Tests.Module.TestMod;
 using Tests.Util;
