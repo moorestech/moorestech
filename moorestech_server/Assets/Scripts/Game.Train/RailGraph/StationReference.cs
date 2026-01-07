@@ -24,7 +24,7 @@ namespace Game.Train.RailGraph
 
         public void SetStationReference(IBlock stationBlock, StationNodeRole role, StationNodeSide side)
         {
-            // 駅参照をBlockインスタンスから設定する
+            // 駅参照を Block インスタンスから設定する
             // Set station reference data from a block instance.
             StationBlock = stationBlock;
             NodeRole = role;
@@ -53,17 +53,22 @@ namespace Game.Train.RailGraph
             _hasStation = true;
         }
 
-        //蜷後§鬧・°縺､Entry-Exit縺ｮ縺､縺後＞縺ｪ繧液rue繧定ｿ斐☆
+        // 同じ駅で、Entry/Exit が対になっていれば true を返す
+        // Returns true if both references point to the same station and form an Entry/Exit pair.
         public bool IsPairWith(StationReference other)
         {
             if (other == null) return false;
             if (!HasStation || !other.HasStation) return false;
             if (!StationBlockInstanceId.Equals(other.StationBlockInstanceId)) return false;
             if (NodeSide != other.NodeSide) return false;
-            return NodeRole != other.NodeRole; // Entry-Exit縺ｮ邨・∩蜷医ｏ縺帙〒縺ゅｋ縺薙→繧堤｢ｺ隱・
+
+            // Entry/Exit の役割が異なるものをペアとして扱う
+            // Treat different roles (Entry vs Exit) as a valid pair.
+            return NodeRole != other.NodeRole;
         }
 
-        // 蠢・ｦ√↓蠢懊§縺ｦ蠎ｧ讓吶ｒ蜿門ｾ・ 
+        // 駅座標を取得する
+        // Returns the station world position.
         public Vector3Int GetStationPosition() => StationPosition;
 
         // 駅参照を未設定状態に戻す
@@ -84,7 +89,8 @@ namespace Game.Train.RailGraph
         Entry,
         Exit,
     }
-    public enum StationNodeSide 
+
+    public enum StationNodeSide
     {
         Front,
         Back
