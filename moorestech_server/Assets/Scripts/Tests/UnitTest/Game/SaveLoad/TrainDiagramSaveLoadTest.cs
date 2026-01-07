@@ -9,7 +9,6 @@ using Game.Block.Blocks.TrainRail;
 using Game.Train.Common;
 using Game.Train.RailGraph;
 using Game.Train.Train;
-using Mooresmaster.Model.TrainModule;
 using NUnit.Framework;
 using Tests.Util;
 using UnityEngine;

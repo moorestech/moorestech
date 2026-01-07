@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Subscription;
 using Game.Train.Event;
 using MessagePack;
