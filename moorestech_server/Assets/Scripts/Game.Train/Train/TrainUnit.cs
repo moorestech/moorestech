@@ -100,7 +100,7 @@ namespace Game.Train.Train
                 // 自動運転中に手動でダイアグラムをいじって目的地がnullになった場合は自動運転を解除する
                 if (trainDiagram.GetCurrentNode() == null)
                 {
-                    UnityEngine.Debug.Log("自動運転中に手動でダイアグラムをいじって目的地がnullになったので自動運転を解除");
+                    //UnityEngine.Debug.Log("自動運転中に手動でダイアグラムをいじって目的地がnullになったので自動運転を解除");
                     TurnOffAutoRun();
                     _currentSpeed = 0;
                     return 0;
