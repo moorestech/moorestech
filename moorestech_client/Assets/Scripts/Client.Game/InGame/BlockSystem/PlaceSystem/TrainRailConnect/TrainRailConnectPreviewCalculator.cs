@@ -1,4 +1,4 @@
-using Client.Game.InGame.Block;
+using Game.Train.RailGraph;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
 {
@@ -7,22 +7,19 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
     /// </summary>
     public class TrainRailConnectPreviewCalculator
     {
-        public static TrainRailConnectPreviewData CalculatePreviewData(IRailComponentConnectAreaCollider fromArea, IRailComponentConnectAreaCollider toArea)
+        public static TrainRailConnectPreviewData CalculatePreviewData(ConnectionDestination from, ConnectionDestination to)
         {
-            // TODO
-            
-            // 仮実装: 常に前面同士を接続する
             return new TrainRailConnectPreviewData
             {
-                IsFromFront = fromArea.IsFront,
-                IsToFront = toArea.IsFront,
+                FromDestination = from,
+                ToDestination = to,
             };
         }
     }
     
     public struct TrainRailConnectPreviewData
     {
-        public bool IsFromFront;
-        public bool IsToFront;
+        public ConnectionDestination FromDestination;
+        public ConnectionDestination ToDestination;
     }
 }

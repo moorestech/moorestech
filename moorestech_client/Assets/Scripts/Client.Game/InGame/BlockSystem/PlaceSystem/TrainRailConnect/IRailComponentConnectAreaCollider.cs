@@ -10,8 +10,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
     /// </summary>
     public interface IRailComponentConnectAreaCollider : IBlockGameObjectInnerComponent
     {
-        public bool IsFront { get; }
-        
         public ConnectionDestination CreateConnectionDestination();
     }
 }

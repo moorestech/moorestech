@@ -42,7 +42,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 {
                     var destination = _connectFromArea.CreateConnectionDestination();
                     var componentPosition = (Vector3Int)destination.railComponentID.Position;
-                    Debug.Log($"接続スタート {_connectFromArea.IsFront} {componentPosition}");
+                    Debug.Log($"接続スタート {destination.IsFront} {destination.railComponentID.ID} {destination.railComponentID.Position}");
                 }
                 return;
             }
@@ -67,7 +67,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 return;
             }
             
-            var previewData = CalculatePreviewData(_connectFromArea, connectToArea);
+            var previewData = CalculatePreviewData(fromDestination, toDestination);
             ShowPreview();
             SendProtocol(fromDestination, toDestination);
             
