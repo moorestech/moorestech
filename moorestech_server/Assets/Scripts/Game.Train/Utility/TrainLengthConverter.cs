@@ -2,11 +2,11 @@ using System;
 
 namespace Game.Train.Utility
 {
-    // マスター記載の長さを内部単位へ変換すめ
+    // マスター記載の長さを内部単位へ変換
     // Converts master-defined lengths into current rail units.
     public static class TrainLengthConverter
     {
-        // 現在のベジエ尺度へ正規化めE
+        // 現在のベジエ尺度へ正規化
         // Normalizes master lengths to the active Bezier scale.
         public static int ToRailUnits(int masterLength)
         {
