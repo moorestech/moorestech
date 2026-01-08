@@ -14,6 +14,7 @@ namespace Client.Game.InGame.Train
         // Internal dictionary holding every tracked train
         private readonly RailGraphClientCache _railGraphProvider;
         private readonly Dictionary<Guid, ClientTrainUnit> _units = new();
+        private readonly TrainCarPoseCalculator _poseCalculator;
 
         // 最新の適用済みtick
         // Latest tick that has been fully applied
@@ -23,11 +24,12 @@ namespace Client.Game.InGame.Train
         // Read-only view for external systems
         public IReadOnlyDictionary<Guid, ClientTrainUnit> Units => _units;
 
-        public TrainUnitClientCache(RailGraphClientCache railGraphProvider)
+        public TrainUnitClientCache(RailGraphClientCache railGraphProvider, TrainCarPoseCalculator poseCalculator)
         {
             // レールグラフプロバイダを保持する
             // Keep the rail graph provider reference
             _railGraphProvider = railGraphProvider;
+            _poseCalculator = poseCalculator;
         }
 
         // 初期スナップショットでキャッシュ全体を入れ替える
@@ -48,8 +50,8 @@ namespace Client.Game.InGame.Train
                 {
                     continue;
                 }
-
-                var unit = new ClientTrainUnit(bundle.TrainId, _railGraphProvider);
+                
+                var unit = new ClientTrainUnit(bundle.TrainId, _railGraphProvider, _poseCalculator);
                 unit.SnapshotUpdate(bundle.Simulation, bundle.Diagram, bundle.RailPositionSnapshot, serverTick);
                 _units[bundle.TrainId] = unit;
             }
@@ -86,7 +88,7 @@ namespace Client.Game.InGame.Train
         {
             if (!_units.TryGetValue(snapshot.TrainId, out var unit))
             {
-                unit = new ClientTrainUnit(snapshot.TrainId, _railGraphProvider);
+                unit = new ClientTrainUnit(snapshot.TrainId, _railGraphProvider, _poseCalculator);
                 _units[snapshot.TrainId] = unit;
             }
 
