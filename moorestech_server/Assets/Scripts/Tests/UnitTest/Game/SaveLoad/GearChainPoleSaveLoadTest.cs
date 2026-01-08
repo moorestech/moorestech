@@ -19,7 +19,6 @@ namespace Tests.UnitTest.Game.SaveLoad
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
-            var blockFactory = ServerContext.BlockFactory;
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearChainPole).BlockGuid;
             
@@ -69,18 +68,12 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             // ブロックをロードする
             // Load block
-            var block1Loaded = worldBlockDatastore.TryAddLoadedBlock(blockGuid, blockInstanceId1, states, pos1, BlockDirection.North, out var block1Reloaded);
-            Assert.IsTrue(block1Loaded);
+            var loadList = new List<BlockJsonObject> { new(pos1, blockGuid.ToString(), blockInstanceId1.AsPrimitive(), states, (int)BlockDirection.North) };
+            worldBlockDatastore.LoadBlockDataList(loadList);
+            var block1Reloaded = worldBlockDatastore.GetBlock(blockInstanceId1);
+            Assert.IsNotNull(block1Reloaded);
             
             var chainPole1Reloaded = block1Reloaded.GetComponent<IGearChainPole>();
-            
-            // 全てのブロックがロードされた後に、OnPostBlockLoad()を呼び出す
-            // Call OnPostBlockLoad() after all blocks are loaded
-            var postBlockLoadComponents = block1Reloaded.ComponentManager.GetComponents<IPostBlockLoad>();
-            foreach (var component in postBlockLoadComponents)
-            {
-                component.OnPostBlockLoad();
-            }
             
             // 接続が正しく復元されたことを確認する
             // Verify connections are correctly restored
