@@ -5,9 +5,6 @@ using Server.Util.MessagePack;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Client.Game.InGame.Entity.Object;
-using UnityEngine;
-
 
 namespace Client.Game.InGame.Train
 {
@@ -26,14 +23,12 @@ namespace Client.Game.InGame.Train
         // 車両スナップショットを外部に公開する
         // Expose car snapshots for render/update systems
         public IReadOnlyList<TrainCarSnapshot> Cars => cars ?? Array.Empty<TrainCarSnapshot>();
-        private Dictionary<Guid, TrainCarEntityObject> TrainCarGuidToObject;
-        private readonly TrainCarPoseCalculator _poseCalculator;
 
         public ClientTrainDiagram Diagram { get; }
         public RailPosition RailPosition { get; private set; }
         public long LastUpdatedTick { get; private set; }
         public int RemainingDistance { get; private set; } = int.MaxValue;
-        public ClientTrainUnit(Guid trainId, IRailGraphProvider railGraphProvider,TrainCarPoseCalculator poseCalculator)
+        public ClientTrainUnit(Guid trainId, IRailGraphProvider railGraphProvider)
         {
             // レールグラフプロバイダを保持する
             // Keep the rail graph provider reference
@@ -41,8 +36,6 @@ namespace Client.Game.InGame.Train
             TrainId = trainId;
             IsDocked = false;
             Diagram = new ClientTrainDiagram(new TrainDiagramSnapshot(-1, Array.Empty<TrainDiagramEntrySnapshot>()), _railGraphProvider);
-            TrainCarGuidToObject = new Dictionary<Guid, TrainCarEntityObject>();
-            _poseCalculator = poseCalculator;
         }
 
         // スナップショットの内容で内部状態を更新
@@ -59,76 +52,6 @@ namespace Client.Game.InGame.Train
             cars = simulation.Cars ?? Array.Empty<TrainCarSnapshot>();
             LastUpdatedTick = tick;
             RecalculateRemainingDistance();
-        }
-        
-        public void RegisterTrainCarEntityObjects(TrainCarEntityObject trainCarObject)
-        {
-            foreach (var car in cars)
-            {
-                if (car.TrainCarGuid == trainCarObject.TrainCarId)
-                    TrainCarGuidToObject[car.TrainCarGuid] = trainCarObject;
-            }
-        }
-        private void UpdateObjectsPose()
-        {
-            // 先頭からの距離を積み上げて車両の姿勢を更新する
-            // Accumulate distance from head and update car poses
-            var offsetFromHead = 0;
-            for (var i = 0; i < Cars.Count; i++)
-            {
-                var carSnapshot = Cars[i];
-                if (!TrainCarGuidToObject.TryGetValue(carSnapshot.TrainCarGuid, out var trainCarEntity))
-                {
-                    continue;
-                }
-                if (trainCarEntity == null)
-                    continue;
-                
-                var carLength = trainCarEntity.TrainCarMasterElement.Length;
-                var frontOffset = offsetFromHead;
-                var rearOffset = offsetFromHead + carLength;
-                offsetFromHead += carLength;
-                if (!TryResolveCarPose(RailPosition, frontOffset, rearOffset, out var position, out var forward))
-                {
-                    continue;
-                }
-                
-                // モデル中心の前後オフセットを考慮して姿勢を反映する
-                // Apply pose while accounting for the model center offset
-                var rotation = BuildRotation(forward, carSnapshot.IsFacingForward);
-                var modelForward = rotation * Vector3.forward;
-                position -= modelForward * trainCarEntity.ModelForwardCenterOffset;
-                trainCarEntity.SetDirectPose(position, rotation);
-                offsetFromHead += carLength;
-            }
-            return;
-            
-            bool TryResolveCarPose(RailPosition railPosition, int frontOffset, int rearOffset, out Vector3 position, out Vector3 forward)
-            {
-                // 前輪と後輪の位置から車両姿勢を算出する
-                // Compute the car pose from front and rear wheel positions
-                position = default;
-                forward = Vector3.forward;
-                if (!_poseCalculator.TryGetPose(railPosition, frontOffset, out var frontPosition, out var frontForward)) return false;
-                if (!_poseCalculator.TryGetPose(railPosition, rearOffset, out var rearPosition, out _)) return false;
-                position = (frontPosition + rearPosition) * 0.5f;
-                var delta = frontPosition - rearPosition;
-                forward = delta.sqrMagnitude > 1e-6f ? delta.normalized : (frontForward.sqrMagnitude > 1e-6f ? frontForward.normalized : Vector3.forward);
-                return true;
-            }
-            Quaternion BuildRotation(Vector3 forward, bool isFacingForward)
-            {
-                const float ModelYawOffsetDegrees = 90f;
-                // 正規化した向きから回転を作る
-                // Build rotation from normalized forward vector
-                var safeForward = forward.sqrMagnitude > 1e-6f ? forward.normalized : Vector3.forward;
-                var rotation = Quaternion.LookRotation(safeForward, Vector3.up);
-                // モデル前方向の差を補正する
-                // Correct the model forward axis offset
-                rotation = rotation * Quaternion.Euler(0f, ModelYawOffsetDegrees, 0f);
-                if (!isFacingForward) rotation = rotation * Quaternion.Euler(0f, 180f, 0f);
-                return rotation;
-            }
         }
 
         public void ApplyDiagramEvent(TrainDiagramEventMessagePack message)
@@ -232,10 +155,6 @@ namespace Client.Game.InGame.Train
         // Called every tick and returns moved distance
         public int Update()
         {
-            // Cars全部の姿勢制御
-            // Update pose for all cars
-            UpdateObjectsPose();
-            
             // 自動運転が有効で目的地がある場合のみ進める
             // Only advance when auto-run is active and a destination exists
             if (!IsAutoRun || !Diagram.TryResolveCurrentDestinationNode(out _))
