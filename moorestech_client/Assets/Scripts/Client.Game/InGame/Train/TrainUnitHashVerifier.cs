@@ -108,13 +108,10 @@ namespace Client.Game.InGame.Train
         {
             // 実行中の再同期があれば停止する
             // Cancel any in-flight resync operation during shutdown
-            if (_resyncCancellation == null)
-            {
-                return;
-            }
-            _resyncCancellation.Cancel();
-            _resyncCancellation.Dispose();
-            _resyncCancellation = null;
+            var cts = Interlocked.Exchange(ref _resyncCancellation, null);
+            if (cts == null) return;
+            cts.Cancel();
+            cts.Dispose();
             Interlocked.Exchange(ref _resyncInProgress, 0);
         }
 
@@ -122,11 +119,8 @@ namespace Client.Game.InGame.Train
         {
             // 再同期の後始末を行う
             // Finalize the resync state.
-            if (_resyncCancellation == cts)
-            {
-                _resyncCancellation.Dispose();
-                _resyncCancellation = null;
-            }
+            var current = Interlocked.CompareExchange(ref _resyncCancellation, null, cts);
+            if (current == cts) cts.Dispose();
             Interlocked.Exchange(ref _resyncInProgress, 0);
         }
 
