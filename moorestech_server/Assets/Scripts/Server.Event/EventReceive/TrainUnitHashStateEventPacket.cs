@@ -23,9 +23,12 @@ namespace Server.Event.EventReceive
 
             // 1秒間隔でTrainUnitハッシュを通知する
             // Broadcast hash/tick every second
+            TrainUpdateService.OnHashEvent.Subscribe(BroadcastHashState).AddTo(_disposables);
+            /*
             Observable.Interval(TimeSpan.FromSeconds(TrainUpdateService.HashBroadcastIntervalSeconds))
                 .Subscribe(_ => BroadcastHashState())
                 .AddTo(_disposables);
+                */
         }
 
         public void Dispose()
@@ -35,7 +38,7 @@ namespace Server.Event.EventReceive
 
         #region Internal
 
-        private void BroadcastHashState()
+        private void BroadcastHashState(long tick)
         {
             // TrainUnitスナップショットのハッシュを計算して送信する
             // Compute and broadcast the latest TrainUnit hash state
@@ -46,7 +49,7 @@ namespace Server.Event.EventReceive
             }
 
             var hash = TrainUnitSnapshotHashCalculator.Compute(bundles);
-            var payload = MessagePackSerializer.Serialize(new TrainUnitHashStateMessagePack(hash, TrainUpdateService.CurrentTick));
+            var payload = MessagePackSerializer.Serialize(new TrainUnitHashStateMessagePack(hash, tick));
             _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
         }
 
