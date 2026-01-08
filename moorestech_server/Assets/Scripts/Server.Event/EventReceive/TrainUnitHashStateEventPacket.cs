@@ -23,7 +23,7 @@ namespace Server.Event.EventReceive
 
             // 1秒間隔でTrainUnitハッシュを通知する
             // Broadcast hash/tick every second
-            TrainUpdateService.OnHashEvent.Subscribe(BroadcastHashState).AddTo(_disposables);
+            TrainUpdateService.Instance.OnHashEvent.Subscribe(BroadcastHashState).AddTo(_disposables);
             /*
             Observable.Interval(TimeSpan.FromSeconds(TrainUpdateService.HashBroadcastIntervalSeconds))
                 .Subscribe(_ => BroadcastHashState())
