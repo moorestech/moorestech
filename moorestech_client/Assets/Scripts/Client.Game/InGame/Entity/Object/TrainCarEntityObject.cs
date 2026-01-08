@@ -1,8 +1,8 @@
 using System;
 using Client.Common;
+using Client.Common.Server;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
-using Client.Game.InGame.Train;
 using Common.Debug;
 using Mooresmaster.Model.TrainModule;
 using Server.Protocol.PacketResponse;
@@ -21,8 +21,15 @@ namespace Client.Game.InGame.Entity.Object
         /// Model forward center offset
         /// </summary>
         public float ModelForwardCenterOffset { get; private set; }
+
+        private float _linerTime;
+        private Vector3 _previousPosition;
+        private Vector3 _targetPosition;
+        private Quaternion _previousRotation;
+        private Quaternion _targetRotation;
+
         private bool _isFacingForward = true;
-        private bool _debugAutoRun = false;
+        private bool _debugAutoRun = false;//////////////////
 
         private RendererMaterialReplacerController _rendererMaterialReplacerController;
 
@@ -34,40 +41,38 @@ namespace Client.Game.InGame.Entity.Object
         {
             EntityId = entityId;
             _debugAutoRun = DebugParameters.GetValueOrDefaultBool(DebugConst.TrainAutoRunKey);//////////////////
+
             _rendererMaterialReplacerController = new RendererMaterialReplacerController(gameObject);
+            _previousRotation = transform.rotation;
+            _targetRotation = transform.rotation;
+
             // モデル中心の前後オフセットをキャッシュする
             // Cache the model forward center offset
             ModelForwardCenterOffset = ResolveModelForwardCenterOffset();
         }
-        
-        public void SetTrain(Guid trainCarId, TrainCarMasterElement trainCarMasterElement, TrainUnitClientCache trainUnitClientCache)
+
+        public void SetTrain(Guid trainCarId, TrainCarMasterElement trainCarMasterElement)
         {
             TrainCarId = trainCarId;
             TrainCarMasterElement = trainCarMasterElement;
-            var units = trainUnitClientCache.Units;
-            // TrainUnitからObjectにアクセスするため
-            // Access from TrainUnit to Object
-            foreach (var unit in units)
-            {
-                if (TrainCarId == unit.Key)
-                {
-                    unit.Value.RegisterTrainCarEntityObjects(this);
-                    break;
-                }
-            }
         }
-        
-        //IEntityObject実装のためだけ
+
+        /// <summary>
+        /// 位置を即座に設定する（補間なし）
+        /// Set position immediately (without interpolation)
+        /// </summary>
         public void SetDirectPosition(Vector3 position)
         {
+            SetDirectPose(position, transform.rotation);
         }
-        //IEntityObject実装のためだけ
-        public void SetEntityData(byte[] entityEntityData)
-        {
-        }
-        //IEntityObject実装のためだけ
+
+        /// <summary>
+        /// 補間を開始し、新しい位置へ移動する
+        /// Start interpolation to move to new position
+        /// </summary>
         public void SetPositionWithLerp(Vector3 position)
         {
+            SetPoseWithLerp(position, transform.rotation);
         }
 
         /// <summary>
@@ -76,7 +81,25 @@ namespace Client.Game.InGame.Entity.Object
         /// </summary>
         public void SetDirectPose(Vector3 position, Quaternion rotation)
         {
+            _targetPosition = position;
+            _previousPosition = position;
+            _targetRotation = rotation;
+            _previousRotation = rotation;
             transform.SetPositionAndRotation(position, rotation);
+            _linerTime = 0;
+        }
+
+        /// <summary>
+        /// 補間を開始し、新しい姿勢（位置＋角度）へ移動する
+        /// Start interpolation to move to new pose
+        /// </summary>
+        public void SetPoseWithLerp(Vector3 position, Quaternion rotation)
+        {
+            _previousPosition = transform.position;
+            _targetPosition = position;
+            _previousRotation = transform.rotation;
+            _targetRotation = rotation;
+            _linerTime = 0;
         }
 
         /// <summary>
@@ -88,8 +111,24 @@ namespace Client.Game.InGame.Entity.Object
             Destroy(gameObject);
         }
 
+        public void SetEntityData(byte[] entityEntityData)
+        {
+
+        }
+
+        /// <summary>
+        /// 毎フレーム呼ばれ、linear 補間で位置と角度を更新する
+        /// Called every frame, updates position with linear interpolation
+        /// </summary>
         private void Update()
         {
+            // NetworkConst.UpdateIntervalSeconds 秒かけて補間する
+            // Interpolate over NetworkConst.UpdateIntervalSeconds seconds
+            var rate = _linerTime / NetworkConst.UpdateIntervalSeconds;
+            rate = Mathf.Clamp01(rate);
+            transform.position = Vector3.Lerp(_previousPosition, _targetPosition, rate);
+            transform.rotation = Quaternion.Slerp(_previousRotation, _targetRotation, rate);
+
             // デバッグ用：列車の自動運転（AutoRun）の ON/OFF が変化したらサーバへ通知する。
             // （監視は TrainCar 側で行い、変化があったタイミングでコマンド送信する）
             if (_debugAutoRun != DebugParameters.GetValueOrDefaultBool(DebugConst.TrainAutoRunKey))
@@ -98,8 +137,10 @@ namespace Client.Game.InGame.Entity.Object
                 OnTrainAutoRunChanged(_debugAutoRun);
                 Debug.Log($"[Debug] Train auto run changed: {_debugAutoRun}");
             }
+
+            _linerTime += Time.deltaTime;
         }
-        
+
         // 自動運転（AutoRun）の状態をサーバへ送信するローカル関数
         // Local function to send the auto-run state for all trains
         void OnTrainAutoRunChanged(bool isEnabled)
@@ -115,6 +156,7 @@ namespace Client.Game.InGame.Entity.Object
         public void SetRemovePreviewing()
         {
             var placePreviewMaterial = Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial);
+
             _rendererMaterialReplacerController.CopyAndSetMaterial(placePreviewMaterial);
             _rendererMaterialReplacerController.SetColor(MaterialConst.PreviewColorPropertyName, MaterialConst.NotPlaceableColor);
             Resources.UnloadAsset(placePreviewMaterial);
@@ -124,6 +166,8 @@ namespace Client.Game.InGame.Entity.Object
         {
             _rendererMaterialReplacerController.ResetMaterial();
         }
+
+        #region Internal
 
         private float ResolveModelForwardCenterOffset()
         {
@@ -135,5 +179,7 @@ namespace Client.Game.InGame.Entity.Object
             var localCenter = transform.InverseTransformPoint(combined.center);
             return localCenter.z;
         }
+
+        #endregion
     }
 }
