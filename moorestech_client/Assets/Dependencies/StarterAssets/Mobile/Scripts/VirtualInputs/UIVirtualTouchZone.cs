@@ -1,11 +1,11 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
 
 public class UIVirtualTouchZone : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
 {
+    [System.Serializable]
+    public class Event : UnityEvent<Vector2> { }
 
     [Header("Rect References")]
     public RectTransform containerRect;
@@ -22,7 +22,7 @@ public class UIVirtualTouchZone : MonoBehaviour, IPointerDownHandler, IDragHandl
     private Vector2 currentPointerPosition;
 
     [Header("Output")]
-    public UnityEvent<Vector2> touchZoneOutputEvent;
+    public Event touchZoneOutputEvent;
 
     void Start()
     {
