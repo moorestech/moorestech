@@ -56,25 +56,11 @@ namespace Client.Game.InGame.Entity.Object
             TrainCarId = trainCarId;
             TrainCarMasterElement = trainCarMasterElement;
         }
-
-        /// <summary>
-        /// 位置を即座に設定する（補間なし）
-        /// Set position immediately (without interpolation)
-        /// </summary>
-        public void SetDirectPosition(Vector3 position)
-        {
-            SetDirectPose(position, transform.rotation);
-        }
-
-        /// <summary>
-        /// 補間を開始し、新しい位置へ移動する
-        /// Start interpolation to move to new position
-        /// </summary>
-        public void SetPositionWithLerp(Vector3 position)
-        {
-            SetPoseWithLerp(position, transform.rotation);
-        }
-
+        
+        public void SetDirectPosition(Vector3 position) { }
+        public void SetPositionWithLerp(Vector3 position) { }
+        public void SetEntityData(byte[] entityEntityData) { }
+        
         /// <summary>
         /// 即座に位置と角度を設定する（補間なし）
         /// Set position and rotation immediately (without interpolation)
@@ -90,19 +76,6 @@ namespace Client.Game.InGame.Entity.Object
         }
 
         /// <summary>
-        /// 補間を開始し、新しい姿勢（位置＋角度）へ移動する
-        /// Start interpolation to move to new pose
-        /// </summary>
-        public void SetPoseWithLerp(Vector3 position, Quaternion rotation)
-        {
-            _previousPosition = transform.position;
-            _targetPosition = position;
-            _previousRotation = transform.rotation;
-            _targetRotation = rotation;
-            _linerTime = 0;
-        }
-
-        /// <summary>
         /// GameObject を破棄する
         /// Destroy GameObject
         /// </summary>
@@ -111,14 +84,10 @@ namespace Client.Game.InGame.Entity.Object
             Destroy(gameObject);
         }
 
-        public void SetEntityData(byte[] entityEntityData)
-        {
-
-        }
 
         /// <summary>
-        /// 毎フレーム呼ばれ、linear 補間で位置と角度を更新する
-        /// Called every frame, updates position with linear interpolation
+        /// 毎フレーム呼ばれ
+        /// Called every frame
         /// </summary>
         private void Update()
         {
