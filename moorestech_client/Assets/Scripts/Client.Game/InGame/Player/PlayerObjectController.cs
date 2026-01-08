@@ -38,6 +38,7 @@ namespace Client.Game.InGame.Player
         
         public void Initialize(InitialHandshakeResponse initialHandshakeResponse)
         {
+            controller.Initialize();
             SetPlayerPosition(initialHandshakeResponse.PlayerPos);
         }
         
@@ -71,6 +72,7 @@ namespace Client.Game.InGame.Player
         /// <param name="playerPos"></param>
         public void SetPlayerPosition(Vector3 playerPos)
         {
+            controller.Warp(playerPos);
         }
         
         public void SetActive(bool active)
@@ -84,6 +86,7 @@ namespace Client.Game.InGame.Player
         }
         public void SetControllable(bool enable)
         {
+            controller.SetControllable(enable);
         }
     }
 }
