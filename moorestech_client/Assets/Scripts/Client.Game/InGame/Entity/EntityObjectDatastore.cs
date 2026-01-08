@@ -5,6 +5,7 @@ using Client.Network.API;
 using Cysharp.Threading.Tasks;
 using Client.Game.InGame.Train;
 using UnityEngine;
+using VContainer;
 
 namespace Client.Game.InGame.Entity
 {
@@ -12,17 +13,13 @@ namespace Client.Game.InGame.Entity
     {
         private EntityObjectFactory _entityObjectFactory;
         private readonly Dictionary<long, (DateTime lastUpdate, IEntityObject objectEntity)> _entities = new();
-        private readonly TrainUnitClientCache _trainUnitClientCache;
         
-        public EntityObjectDatastore(TrainUnitClientCache trainUnitClientCache)
+        [Inject]
+        public void Construct(TrainUnitClientCache trainUnitClientCache)
         {
-            _trainUnitClientCache = trainUnitClientCache;
-        }
-        
-        
-        private void Awake()
-        {
-            _entityObjectFactory = new EntityObjectFactory(_trainUnitClientCache);
+            // 依存注入とファクトリー初期化
+            // Dependency injection and factory initialization
+            _entityObjectFactory = new EntityObjectFactory(trainUnitClientCache);
         }
         
         /// <summary>
