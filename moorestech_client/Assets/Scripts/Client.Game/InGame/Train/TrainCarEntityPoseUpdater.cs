@@ -1,104 +1,120 @@
-﻿using System;
-using System.Collections.Generic;
-using Client.Game.InGame.Entity;
 using Client.Game.InGame.Entity.Object;
 using Core.Master;
 using Game.Train.RailGraph;
 using Game.Train.Train;
 using Game.Train.Utility;
 using UnityEngine;
-using VContainer.Unity;
 
 namespace Client.Game.InGame.Train
 {
-    public sealed class TrainCarEntityPoseUpdater : ITickable
+    public sealed class TrainCarEntityPoseUpdater : MonoBehaviour
     {
         // 車両モデルの前方向補正量をレール進行方向に合わせる
         // Model forward axis correction to match rail direction
         private const float ModelYawOffsetDegrees = 90f;
-        private readonly TrainUnitClientCache _trainCache;
-        private readonly EntityObjectDatastore _entityDatastore;
-        private readonly TrainCarPoseCalculator _poseCalculator;
-        private readonly List<ClientTrainUnit> _units = new();
-        private readonly List<TrainCarEntityObject> _trainCars = new();
-        private readonly Dictionary<Guid, TrainCarEntityObject> _carLookup = new();
+        private TrainUnitClientCache _trainCache;
+        private TrainCarPoseCalculator _poseCalculator;
+        private TrainCarEntityObject _trainCarEntity;
+        private bool _isReady;
 
-        public TrainCarEntityPoseUpdater(TrainUnitClientCache trainCache, EntityObjectDatastore entityDatastore, TrainCarPoseCalculator poseCalculator)
+        public void SetDependencies(TrainCarEntityObject trainCarEntity, TrainUnitClientCache trainCache, TrainCarPoseCalculator poseCalculator)
         {
+            // 姿勢更新に必要な参照を保持する
+            // Store references required for pose updates
+            _trainCarEntity = trainCarEntity;
             _trainCache = trainCache;
-            _entityDatastore = entityDatastore;
             _poseCalculator = poseCalculator;
+            _isReady = true;
         }
 
-        public void Tick()
+        private void Update()
         {
-            // 列車エンティティと列車キャッシュを収集する
-            // Collect train entities and train unit cache
-            _entityDatastore.CopyTrainCarEntitiesTo(_trainCars);
-            if (_trainCars.Count == 0) return;
-            _trainCache.CopyUnitsTo(_units);
-            if (_units.Count == 0) return;
+            // 初期化が完了している場合だけ姿勢を更新する
+            // Update pose only after initialization is complete
+            if (!_isReady) return;
 
-            // 車両IDからエンティティへの索引を作る
-            // Build lookup from car id to entity
-            BuildCarLookup();
-            for (var i = 0; i < _units.Count; i++)
-            {
-                UpdateUnitPose(_units[i]);
-            }
+            // 列車キャッシュから姿勢を計算する
+            // Calculate pose from train cache
+            if (!TryResolveUnitPose(out var position, out var rotation)) return;
+
+            // 計算結果をGameObjectに反映する
+            // Apply the computed pose to the GameObject
+            _trainCarEntity.SetDirectPose(position, rotation);
         }
 
         #region Internal
 
-        private void BuildCarLookup()
+        private bool TryResolveUnitPose(out Vector3 position, out Quaternion rotation)
         {
-            _carLookup.Clear();
-            for (var i = 0; i < _trainCars.Count; i++)
-            {
-                var car = _trainCars[i];
-                if (car == null) continue;
-                _carLookup[car.TrainCarId] = car;
-            }
+            // 出力を初期化する
+            // Initialize output values
+            position = default;
+            rotation = Quaternion.identity;
+
+            // 対象車両のスナップショットを探す
+            // Find the snapshot for this car
+            if (!TryResolveCarSnapshot(out var unit, out var snapshot, out var frontOffset, out var rearOffset)) return false;
+
+            // レール上の姿勢を計算する
+            // Compute pose on the rail
+            var railPosition = unit.RailPosition;
+            if (railPosition == null) return false;
+            if (!TryResolveCarPose(railPosition, frontOffset, rearOffset, out position, out var forward)) return false;
+
+            // モデル補正を加えて回転と位置を確定する
+            // Finalize rotation and position with model correction
+            rotation = BuildRotation(forward, snapshot.IsFacingForward);
+            var modelForward = rotation * Vector3.forward;
+            position -= modelForward * _trainCarEntity.ModelForwardCenterOffset;
+            return true;
         }
 
-        private void UpdateUnitPose(ClientTrainUnit unit)
+        private bool TryResolveCarSnapshot(out ClientTrainUnit unit, out TrainCarSnapshot snapshot, out int frontOffset, out int rearOffset)
         {
-            // 列車キャッシュの値を確認する
-            // Validate the cached train state
-            var railPosition = unit.RailPosition;
-            if (railPosition == null) return;
-            var carSnapshots = unit.Cars;
-            if (carSnapshots == null || carSnapshots.Count == 0) return;
+            // 出力を初期化する
+            // Initialize output values
+            unit = null;
+            snapshot = default;
+            frontOffset = 0;
+            rearOffset = 0;
 
-            // 先頭からの距離を積み上げて車両の姿勢を更新する
-            // Accumulate distance from head and update car poses
-            var offsetFromHead = 0;
-            for (var i = 0; i < carSnapshots.Count; i++)
+            // 列車キャッシュから対象車両を探索する
+            // Search train cache for the target car
+            foreach (var candidate in _trainCache.Units.Values)
             {
-                var carSnapshot = carSnapshots[i];
-                var carLength = ResolveCarLength(carSnapshot, _carLookup.TryGetValue(carSnapshot.CarId, out var trainCarEntity) ? trainCarEntity : null);
-                if (carLength <= 0) continue;
-                var frontOffset = offsetFromHead;
-                var rearOffset = offsetFromHead + carLength;
-                if (trainCarEntity == null)
-                {
-                    offsetFromHead += carLength;
-                    continue;
-                }
-                if (!TryResolveCarPose(railPosition, frontOffset, rearOffset, out var position, out var forward))
-                {
-                    offsetFromHead += carLength;
-                    continue;
-                }
+                var carSnapshots = candidate.Cars;
+                if (carSnapshots.Count == 0) continue;
 
-                // モデル中心の前後オフセットを考慮して姿勢を反映する
-                // Apply pose while accounting for the model center offset
-                var rotation = BuildRotation(forward, carSnapshot.IsFacingForward);
-                var modelForward = rotation * Vector3.forward;
-                position -= modelForward * trainCarEntity.ModelForwardCenterOffset;
-                trainCarEntity.SetDirectPose(position, rotation);
-                offsetFromHead += carLength;
+                // 先頭からの距離を積み上げる
+                // Accumulate distance from head
+                var offsetFromHead = 0;
+                for (var i = 0; i < carSnapshots.Count; i++)
+                {
+                    // 対象車両かを判定しオフセットを算出する
+                    // Determine target car and compute offsets
+                    var carSnapshot = carSnapshots[i];
+                    var isTargetCar = carSnapshot.CarId == _trainCarEntity.TrainCarId;
+                    var carLength = ResolveCarLength(carSnapshot, isTargetCar ? _trainCarEntity : null);
+                    if (carLength <= 0) continue;
+                    var frontOffsetCandidate = offsetFromHead;
+                    var rearOffsetCandidate = offsetFromHead + carLength;
+                    if (!isTargetCar)
+                    {
+                        offsetFromHead += carLength;
+                        continue;
+                    }
+
+                    // 対象車両の結果を確定する
+                    // Finalize the result for the target car
+                    unit = candidate;
+                    snapshot = carSnapshot;
+                    frontOffset = frontOffsetCandidate;
+                    rearOffset = rearOffsetCandidate;
+                    return true;
+                }
             }
+
+            return false;
         }
 
         private int ResolveCarLength(TrainCarSnapshot snapshot, TrainCarEntityObject trainCarEntity)
