@@ -22,7 +22,8 @@ namespace Game.Train.Common
         }
 
         //マジックナンバー。trainはtick制。1tickで速度、位置、ドッキング状態等が決定的に動く。1tick=1/60秒
-        private const double TickSeconds = 1d / 60d;
+        private const int interval = 60;
+        private const double TickSeconds = 1d / interval;
         public const double HashBroadcastIntervalSeconds = 1d;
         private double _accumulatedSeconds;
         private readonly int _maxTicksPerFrame = 65535;
@@ -30,6 +31,9 @@ namespace Game.Train.Common
         private long _executedTick;
 
         public static long CurrentTick => Instance._executedTick;
+        
+        private readonly Subject<long> _onHashEvent = new();
+        public IObservable<long> OnHashEvent => _onHashEvent;
 
         public TrainUpdateService()
         {
@@ -51,11 +55,15 @@ namespace Game.Train.Common
 
             for (var i = 0; i < tickCount; i++)
             {
-                _executedTick++;
                 foreach (var trainUnit in _trainUnits)
                 {
                     trainUnit.Update();
                 }
+                if (_executedTick % interval == 0)
+                {
+                    _onHashEvent.OnNext(_executedTick);
+                }
+                _executedTick++;
                 // 外部スナップショットを毎tick記録する
                 // Record external snapshots per tick
                 //TrainTickSnapshotRecorder.RecordTickIfAvailable(_executedTick, _trainUnits);
