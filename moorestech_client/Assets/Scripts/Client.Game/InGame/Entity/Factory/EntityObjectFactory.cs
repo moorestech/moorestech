@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
 using Game.Entity.Interface;
+using Client.Game.InGame.Train;
 using UnityEngine;
 
 namespace Client.Game.InGame.Entity.Factory
@@ -17,12 +18,13 @@ namespace Client.Game.InGame.Entity.Factory
     {
         private readonly Dictionary<string, IEntityObjectFactory> _factoryMap;
         
-        public EntityObjectFactory()
+        public EntityObjectFactory(TrainUnitClientCache trainUnitClientCache)
         {
             _factoryMap = new Dictionary<string, IEntityObjectFactory>();
-            _factoryMap.Add(VanillaEntityType.VanillaTrain, new TrainEntityObjectFactory());
+            _factoryMap.Add(VanillaEntityType.VanillaTrain, new TrainEntityObjectFactory(trainUnitClientCache));
             _factoryMap.Add(VanillaEntityType.VanillaItem, new BeltConveyorItemEntityObjectFactory());
         }
+        
         
         public async UniTask<IEntityObject> CreateEntity(Transform parent, EntityResponse entity)
         {
