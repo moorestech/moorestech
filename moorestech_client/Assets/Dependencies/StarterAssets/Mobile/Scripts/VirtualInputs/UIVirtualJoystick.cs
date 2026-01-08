@@ -1,11 +1,12 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
 
 public class UIVirtualJoystick : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
 {
-    [System.Serializable]
-    public class Event : UnityEvent<Vector2> { }
+    
     
     [Header("Rect References")]
     public RectTransform containerRect;
@@ -18,7 +19,7 @@ public class UIVirtualJoystick : MonoBehaviour, IPointerDownHandler, IDragHandle
     public bool invertYOutputValue;
 
     [Header("Output")]
-    public Event joystickOutputEvent;
+    public UnityEvent<Vector2> joystickOutputEvent;
 
     void Start()
     {
