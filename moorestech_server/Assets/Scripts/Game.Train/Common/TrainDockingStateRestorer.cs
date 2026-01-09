@@ -1,23 +1,31 @@
 using Game.Block.Interface.Component;
-using Game.Context;
+using Game.World.Interface.DataStore;
 using System.Linq;
 
 namespace Game.Train.Common
 {
     //事実上ゲーム起動時に一度だけ呼ばれる
-    public static class TrainDockingStateRestorer
+    public class TrainDockingStateRestorer
     {
-        public static void RestoreDockingState()
+        private readonly TrainUpdateService _trainUpdateService;
+        private readonly IWorldBlockDatastore _worldBlockDatastore;
+
+        public TrainDockingStateRestorer(TrainUpdateService trainUpdateService, IWorldBlockDatastore worldBlockDatastore)
         {
-            var trains = TrainUpdateService.Instance.GetRegisteredTrains().ToArray();
+            _trainUpdateService = trainUpdateService;
+            _worldBlockDatastore = worldBlockDatastore;
+        }
+
+        public void RestoreDockingState()
+        {
+            var trains = _trainUpdateService.GetRegisteredTrains().ToArray();
 
             foreach (var train in trains)
             {
                 train.trainUnitStationDocking.ClearDockingReceivers();
             }
 
-            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            foreach (var blockData in worldBlockDatastore.BlockMasterDictionary.Values)
+            foreach (var blockData in _worldBlockDatastore.BlockMasterDictionary.Values)
             {
                 foreach (var receiver in blockData.Block.ComponentManager.GetComponents<ITrainDockingReceiver>())
                 {

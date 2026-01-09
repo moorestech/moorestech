@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Core.Master;
 using Game.Context;
@@ -20,10 +20,12 @@ namespace Server.Protocol.PacketResponse
         public const string TrainAutoRunOffArgument = "off";
         
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
+        private readonly TrainUpdateService _trainUpdateService;
         
         public SendCommandProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
+            _trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
         }
         
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
@@ -55,7 +57,7 @@ namespace Server.Protocol.PacketResponse
             {
                 // トグル引数に応じて全列車の自動運転状態を決定
                 // Decide auto-run state for every train based on the toggle argument
-                TrainUpdateService.TurnOnorOffTrainAutoRun(command);
+                _trainUpdateService.TurnOnorOffTrainAutoRun(command);
             }
 
             return null;

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Context;
@@ -61,7 +61,7 @@ namespace Server.Protocol.PacketResponse
         private List<EntityMessagePack> CollectTrainEntities()
         {
             var trainEntities = new List<EntityMessagePack>();
-            var registeredTrains = TrainUpdateService.Instance.GetRegisteredTrains();
+            var registeredTrains = _trainUpdateService.GetRegisteredTrains();
             
             foreach (var trainUnit in registeredTrains)
             {

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Game.Train.Common;
 using Game.Train.Train;
 using MessagePack;
@@ -15,15 +15,17 @@ namespace Server.Event.EventReceive
         public const string EventTag = "va:event:trainUnitHashState";
 
         private readonly EventProtocolProvider _eventProtocolProvider;
+        private readonly TrainUpdateService _trainUpdateService;
 
-        public TrainUnitHashStateEventPacket(EventProtocolProvider eventProtocolProvider)
+        public TrainUnitHashStateEventPacket(EventProtocolProvider eventProtocolProvider, TrainUpdateService trainUpdateService)
         {
             _eventProtocolProvider = eventProtocolProvider;
+            _trainUpdateService = trainUpdateService;
             
             Debug.Log("baaaa");
             // 1秒間隔でTrainUnitハッシュを通知する
             // Broadcast hash/tick every second
-            TrainUpdateService.Instance.OnHashEvent.Subscribe(BroadcastHashState);
+            _trainUpdateService.GetOnHashEvent().Subscribe(BroadcastHashState);
             /*
             Observable.Interval(TimeSpan.FromSeconds(TrainUpdateService.HashBroadcastIntervalSeconds))
                 .Subscribe(_ => BroadcastHashState())
@@ -39,7 +41,7 @@ namespace Server.Event.EventReceive
             // TrainUnitスナップショットのハッシュを計算して送信する
             // Compute and broadcast the latest TrainUnit hash state
             var bundles = new List<TrainUnitSnapshotBundle>();
-            foreach (var train in TrainUpdateService.Instance.GetRegisteredTrains())
+            foreach (var train in _trainUpdateService.GetRegisteredTrains())
             {
                 bundles.Add(TrainUnitSnapshotFactory.CreateSnapshot(train));
             }
@@ -52,3 +54,4 @@ namespace Server.Event.EventReceive
         #endregion
     }
 }
+

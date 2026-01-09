@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Blocks.TrainRail;
@@ -24,11 +24,19 @@ namespace Server.Protocol.PacketResponse
 
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly EventProtocolProvider _eventProtocolProvider;
+        private readonly IRailGraphDatastore _railGraphDatastore;
+        private readonly TrainUpdateService _trainUpdateService;
+        private readonly TrainRailPositionManager _railPositionManager;
+        private readonly TrainDiagramManager _diagramManager;
 
         public PlaceTrainCarOnRailProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
             _eventProtocolProvider = serviceProvider.GetService<EventProtocolProvider>();
+            _railGraphDatastore = serviceProvider.GetService<IRailGraphDatastore>();
+            _trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
+            _railPositionManager = serviceProvider.GetService<TrainRailPositionManager>();
+            _diagramManager = serviceProvider.GetService<TrainDiagramManager>();
         }
 
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
@@ -100,7 +108,7 @@ namespace Server.Protocol.PacketResponse
                 // 列車ユニットを生成する
                 // Create the train unit
                 var trainCar = new TrainCar(trainCarMaster, true);
-                trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar });
+                trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, _trainUpdateService, _railPositionManager, _diagramManager);
                 return true;
             }
 
@@ -149,7 +157,7 @@ namespace Server.Protocol.PacketResponse
                 {
                     return false;
                 }
-                var graphSnapshot = RailGraphDatastore.CaptureSnapshot();
+                var graphSnapshot = _railGraphDatastore.CaptureSnapshot(_trainUpdateService.GetCurrentTick());
                 var railSnapshot = new List<ConnectionDestination> { headNode.ConnectionDestination };
                 var remaining = trainLength;
                 var currentNodeId = headNode.NodeId;
@@ -164,7 +172,7 @@ namespace Server.Protocol.PacketResponse
                     {
                         return false;
                     }
-                    if (!RailGraphDatastore.TryGetRailNode(previousNodeId, out var previousNode))
+                    if (!_railGraphDatastore.TryGetRailNode(previousNodeId, out var previousNode))
                     {
                         return false;
                     }
@@ -253,7 +261,7 @@ namespace Server.Protocol.PacketResponse
                 var snapshot = TrainUnitSnapshotFactory.CreateSnapshot(trainUnit);
                 var snapshotPack = new TrainUnitSnapshotBundleMessagePack(snapshot);
                 var entities = BuildTrainEntities(trainUnit);
-                var message = new TrainUnitCreatedEventMessagePack(snapshotPack, entities, TrainUpdateService.CurrentTick);
+                var message = new TrainUnitCreatedEventMessagePack(snapshotPack, entities, _trainUpdateService.GetCurrentTick());
                 var payload = MessagePackSerializer.Serialize(message);
                 _eventProtocolProvider.AddBroadcastEvent(TrainUnitCreatedEventPacket.EventTag, payload);
             }
@@ -361,3 +369,4 @@ namespace Server.Protocol.PacketResponse
         #endregion
     }
 }
+

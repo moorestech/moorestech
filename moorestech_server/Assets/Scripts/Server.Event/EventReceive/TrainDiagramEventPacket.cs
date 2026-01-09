@@ -1,4 +1,4 @@
-using Game.Train.Common;
+﻿using Game.Train.Common;
 using MessagePack;
 using Server.Util.MessagePack;
 using UniRx;
@@ -13,14 +13,14 @@ namespace Server.Event.EventReceive
         private readonly EventProtocolProvider _eventProtocolProvider;
         private readonly CompositeDisposable _disposable = new();
 
-        public TrainDiagramEventPacket(EventProtocolProvider eventProtocolProvider)
+        public TrainDiagramEventPacket(EventProtocolProvider eventProtocolProvider, TrainDiagramManager diagramManager)
         {
             _eventProtocolProvider = eventProtocolProvider;
 
-            TrainDiagramManager.Instance.TrainDocked
+            diagramManager.TrainDocked
                 .Subscribe(data => BroadcastEvent(data, TrainDiagramEventType.Docked))
                 .AddTo(_disposable);
-            TrainDiagramManager.Instance.TrainDeparted
+            diagramManager.TrainDeparted
                 .Subscribe(data => BroadcastEvent(data, TrainDiagramEventType.Departed))
                 .AddTo(_disposable);
         }
@@ -45,3 +45,4 @@ namespace Server.Event.EventReceive
         }
     }
 }
+

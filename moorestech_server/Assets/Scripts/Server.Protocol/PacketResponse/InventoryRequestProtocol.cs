@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Item.Interface;
@@ -63,7 +63,7 @@ namespace Server.Protocol.PacketResponse
             {
                 var trainCarId = Guid.Parse(identifier.TrainCarId);
                 TrainCar trainCar = null;
-                foreach (var registeredTrain in TrainUpdateService.Instance.GetRegisteredTrains())
+                foreach (var registeredTrain in _trainUpdateService.GetRegisteredTrains())
                 {
                     foreach (var car in registeredTrain.Cars)
                     {
@@ -129,3 +129,4 @@ namespace Server.Protocol.PacketResponse
         }
     }
 }
+

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Game.Train.Utility;
 using UnityEngine; // 追加（ログ出力用）
 
@@ -10,14 +10,14 @@ namespace Game.Train.RailGraph
     /// </summary>
     public sealed class RailConnectionCommandHandler
     {
+        private readonly IRailGraphDatastore _datastore;
         private readonly bool _enableLog; // 追加（ログ抑制用。不要なら消してOK）
 
-        public RailConnectionCommandHandler(RailGraphDatastore datastore, bool enableLog = true) // enableLog 引数を追加
+        public RailConnectionCommandHandler(IRailGraphDatastore datastore, bool enableLog = true) // enableLog 引数を追加
         {
             // 依存解決順序のためインスタンス化を保証する
             // Ensure RailGraphDatastore is constructed via DI
-            _ = datastore;
-
+            _datastore = datastore;
             _enableLog = enableLog; // 追加
         }
 
@@ -61,7 +61,7 @@ namespace Game.Train.RailGraph
             fromNode = null;
             toNode = null;
 
-            if (!RailGraphDatastore.TryGetRailNode(fromNodeId, out var resolvedFrom))
+            if (!_datastore.TryGetRailNode(fromNodeId, out var resolvedFrom))
             {
                 LogWarn($"fromNodeId not found. fromNodeId={fromNodeId}, fromGuid={fromGuid}, toNodeId={toNodeId}, toGuid={toGuid}");
                 return false;
@@ -73,7 +73,7 @@ namespace Game.Train.RailGraph
                 return false;
             }
 
-            if (!RailGraphDatastore.TryGetRailNode(toNodeId, out var resolvedTo))
+            if (!_datastore.TryGetRailNode(toNodeId, out var resolvedTo))
             {
                 LogWarn($"toNodeId not found. fromNodeId={fromNodeId}, fromGuid={fromGuid}, toNodeId={toNodeId}, toGuid={toGuid}");
                 return false;
@@ -132,3 +132,5 @@ namespace Game.Train.RailGraph
         #endregion
     }
 }
+
+
