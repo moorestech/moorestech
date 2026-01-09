@@ -61,6 +61,7 @@ namespace Game.Train.RailGraph
 
         public RailGraphDatastore()
         {
+            Debug.Log("Initializing RailGraphDatastore");
             InitializeDataStore();
             // RailNode -> RailComponentID の解決ロジックを Notifier に渡す
             _nodeInitializationNotifier = new RailNodeInitializationNotifier();

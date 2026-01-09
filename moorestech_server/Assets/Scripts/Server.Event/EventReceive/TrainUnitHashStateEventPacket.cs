@@ -1,29 +1,29 @@
-using System;
 using System.Collections.Generic;
 using Game.Train.Common;
 using Game.Train.Train;
 using MessagePack;
 using Server.Util.MessagePack;
 using UniRx;
+using UnityEngine;
 
 namespace Server.Event.EventReceive
 {
     // TrainUnitのハッシュとTickを定期送信する
     // Periodically broadcasts the current TrainUnit hash/tick state
-    public sealed class TrainUnitHashStateEventPacket : IDisposable
+    public sealed class TrainUnitHashStateEventPacket
     {
         public const string EventTag = "va:event:trainUnitHashState";
 
         private readonly EventProtocolProvider _eventProtocolProvider;
-        private readonly CompositeDisposable _disposables = new();
 
         public TrainUnitHashStateEventPacket(EventProtocolProvider eventProtocolProvider)
         {
             _eventProtocolProvider = eventProtocolProvider;
-
+            
+            Debug.Log("baaaa");
             // 1秒間隔でTrainUnitハッシュを通知する
             // Broadcast hash/tick every second
-            TrainUpdateService.Instance.OnHashEvent.Subscribe(BroadcastHashState).AddTo(_disposables);
+            TrainUpdateService.Instance.OnHashEvent.Subscribe(BroadcastHashState);
             /*
             Observable.Interval(TimeSpan.FromSeconds(TrainUpdateService.HashBroadcastIntervalSeconds))
                 .Subscribe(_ => BroadcastHashState())
@@ -31,15 +31,11 @@ namespace Server.Event.EventReceive
                 */
         }
 
-        public void Dispose()
-        {
-            _disposables.Dispose();
-        }
-
         #region Internal
 
         private void BroadcastHashState(long tick)
         {
+            Debug.Log("aaaa");
             // TrainUnitスナップショットのハッシュを計算して送信する
             // Compute and broadcast the latest TrainUnit hash state
             var bundles = new List<TrainUnitSnapshotBundle>();
