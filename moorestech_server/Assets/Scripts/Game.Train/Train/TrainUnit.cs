@@ -581,7 +581,7 @@ namespace Game.Train.Train
                 int splittedTrainLength = 0;
                 foreach (var car in splittedCars)
                     splittedTrainLength += car.Length;
-                // ????????????????????????
+                // 切り離した長さが列車の全長と一致した時点で、現状のまま戻す
                 // Return as-is when the detached length matches the full train length
                 if (splittedTrainLength == newNodes.TrainLength) return newNodes;
                 //newNodesを反転して、新しい列車長を設定
