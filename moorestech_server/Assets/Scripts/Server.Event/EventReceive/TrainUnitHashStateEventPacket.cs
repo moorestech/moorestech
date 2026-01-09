@@ -26,11 +26,6 @@ namespace Server.Event.EventReceive
             // 1秒間隔でTrainUnitハッシュを通知する
             // Broadcast hash/tick every second
             _trainUpdateService.GetOnHashEvent().Subscribe(BroadcastHashState);
-            /*
-            Observable.Interval(TimeSpan.FromSeconds(TrainUpdateService.HashBroadcastIntervalSeconds))
-                .Subscribe(_ => BroadcastHashState())
-                .AddTo(_disposables);
-                */
         }
 
         #region Internal
