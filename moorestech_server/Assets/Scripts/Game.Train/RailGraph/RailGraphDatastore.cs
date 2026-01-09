@@ -191,13 +191,9 @@ namespace Game.Train.RailGraph
             var nodeid = railNodeToId[node];
             var targetid = railNodeToId[targetNode];
             connectNodes[nodeid].RemoveAll(x => x.Item1 == targetid);
-
             // 接続解除イベントを発行
             // Broadcast the connection removal
             _connectionRemovalNotifier.Notify(nodeid, node.Guid, targetid, targetNode.Guid);
-
-            // レールグラフ更新イベントを発行
-            // TODO 仕様整理: ここでの更新通知が必要か検討
             MarkHashDirty();
         }
 
