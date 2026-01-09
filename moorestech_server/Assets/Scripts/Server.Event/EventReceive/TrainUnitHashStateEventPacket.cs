@@ -21,8 +21,6 @@ namespace Server.Event.EventReceive
         {
             _eventProtocolProvider = eventProtocolProvider;
             _trainUpdateService = trainUpdateService;
-            
-            Debug.Log("baaaa");
             // 1秒間隔でTrainUnitハッシュを通知する
             // Broadcast hash/tick every second
             _trainUpdateService.GetOnHashEvent().Subscribe(BroadcastHashState);
@@ -32,7 +30,6 @@ namespace Server.Event.EventReceive
 
         private void BroadcastHashState(long tick)
         {
-            Debug.Log("aaaa");
             // TrainUnitスナップショットのハッシュを計算して送信する
             // Compute and broadcast the latest TrainUnit hash state
             var bundles = new List<TrainUnitSnapshotBundle>();

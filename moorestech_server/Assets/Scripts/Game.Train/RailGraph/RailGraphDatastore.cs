@@ -42,7 +42,6 @@ namespace Game.Train.RailGraph
         {
             _diagramManager = diagramManager;
             _railPositionManager = railPositionManager;
-            Debug.Log("Initializing RailGraphDatastore");
             InitializeDataStore();
             // RailNode -> RailComponentID の解決ロジックを Notifier に渡す
             // Pass node resolution hooks to notifiers
