@@ -22,6 +22,7 @@ namespace Game.Train.Common
         private long _executedTick;
 
         private readonly Subject<long> _onHashEvent = new();
+        private readonly TrainUnitInitializationNotifier _trainUnitInitializationNotifier;
         private bool _trainAutoRunDebugEnabled;
 
         // 依存サービスを受け取り、更新ループに接続する
@@ -30,11 +31,17 @@ namespace Game.Train.Common
         {
             _diagramManager = diagramManager;
             _railGraphDatastore = railGraphDatastore;
+            // 列車生成通知のハブを初期化する
+            // Initialize the train unit creation notifier
+            _trainUnitInitializationNotifier = new TrainUnitInitializationNotifier();
             GameUpdater.UpdateObservable.Subscribe(_ => UpdateTrains());
         }
 
         public long GetCurrentTick() => _executedTick;
         public IObservable<long> GetOnHashEvent() => _onHashEvent;
+        // 列車生成イベントの購読口を返す
+        // Provide the train unit creation event stream
+        public IObservable<TrainUnitInitializationNotifier.TrainUnitCreatedData> GetTrainUnitCreatedEvent() => _trainUnitInitializationNotifier.TrainUnitInitializedEvent;
         public bool IsTrainAutoRunDebugEnabled() => _trainAutoRunDebugEnabled;
 
         private void UpdateTrains()
@@ -75,7 +82,20 @@ namespace Game.Train.Common
             }
         }
 
-        public void RegisterTrain(TrainUnit trainUnit) => _trainUnits.Add(trainUnit);
+        public void RegisterTrain(TrainUnit trainUnit)
+        {
+            // 列車を登録して生成通知を送る
+            // Register train and emit creation notification
+            _trainUnits.Add(trainUnit);
+            _trainUnitInitializationNotifier.Notify(trainUnit);
+        }
+
+        public void RegisterTrainWithoutNotify(TrainUnit trainUnit)
+        {
+            // 列車を通知なしで登録する
+            // Register train without notification
+            _trainUnits.Add(trainUnit);
+        }
         public void UnregisterTrain(TrainUnit trainUnit) => _trainUnits.Remove(trainUnit);
         public IEnumerable<TrainUnit> GetRegisteredTrains() => _trainUnits.ToArray();
 

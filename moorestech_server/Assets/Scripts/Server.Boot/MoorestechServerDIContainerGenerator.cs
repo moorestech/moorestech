@@ -173,6 +173,7 @@ namespace Server.Boot
             services.AddSingleton<RailConnectionCreatedEventPacket>();
             services.AddSingleton<RailGraphHashStateEventPacket>();
             services.AddSingleton<TrainUnitHashStateEventPacket>();
+            services.AddSingleton<TrainUnitCreatedEventPacket>();
             services.AddSingleton<RailNodeRemovedEventPacket>();
             services.AddSingleton<RailConnectionRemovedEventPacket>();
             services.AddSingleton<TrainDiagramEventPacket>();
@@ -207,6 +208,7 @@ namespace Server.Boot
             serviceProvider.GetService<RailConnectionCreatedEventPacket>();
             serviceProvider.GetService<RailGraphHashStateEventPacket>();
             serviceProvider.GetService<TrainUnitHashStateEventPacket>();
+            serviceProvider.GetService<TrainUnitCreatedEventPacket>();
             serviceProvider.GetService<RailNodeRemovedEventPacket>();
             serviceProvider.GetService<RailConnectionRemovedEventPacket>();
             serviceProvider.GetService<TrainDiagramEventPacket>();
