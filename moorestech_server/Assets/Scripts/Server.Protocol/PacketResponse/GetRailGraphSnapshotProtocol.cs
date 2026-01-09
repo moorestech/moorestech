@@ -1,4 +1,5 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Game.Train.Common;
 using Game.Train.RailGraph;
 using MessagePack;
 using Server.Util.MessagePack;
@@ -11,11 +12,19 @@ namespace Server.Protocol.PacketResponse
     /// </summary>
     public sealed class GetRailGraphSnapshotProtocol : IPacketResponse
     {
+        private readonly IRailGraphDatastore _railGraphDatastore;
+        private readonly TrainUpdateService _trainUpdateService;
         public const string ProtocolTag = "va:getRailGraphSnapshot";
+
+        public GetRailGraphSnapshotProtocol(IRailGraphDatastore railGraphDatastore, TrainUpdateService trainUpdateService)
+        {
+            _railGraphDatastore = railGraphDatastore;
+            _trainUpdateService = trainUpdateService;
+        }
 
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
-            var snapshot = RailGraphDatastore.CaptureSnapshot();
+            var snapshot = _railGraphDatastore.CaptureSnapshot(_trainUpdateService.GetCurrentTick());
             var message = new RailGraphSnapshotMessagePack(snapshot);
             return new ResponseMessagePack(message);
         }
@@ -49,3 +58,5 @@ namespace Server.Protocol.PacketResponse
         }
     }
 }
+
+

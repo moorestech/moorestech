@@ -1,4 +1,4 @@
-using Game.Train.Common;
+﻿using Game.Train.Common;
 using Game.Train.RailGraph;
 using MessagePack;
 using Server.Util.MessagePack;
@@ -15,16 +15,18 @@ namespace Server.Event.EventReceive
         public const string EventTag = "va:event:railNodeCreated";
 
         private readonly EventProtocolProvider _eventProtocolProvider;
+        private readonly TrainUpdateService _trainUpdateService;
 
-        public RailNodeCreatedEventPacket(EventProtocolProvider eventProtocolProvider)
+        public RailNodeCreatedEventPacket(EventProtocolProvider eventProtocolProvider, IRailGraphDatastore railGraphDatastore, TrainUpdateService trainUpdateService)
         {
             _eventProtocolProvider = eventProtocolProvider;
-            RailGraphDatastore.RailNodeInitializedEvent.Subscribe(OnNodeInitialized);
+            _trainUpdateService = trainUpdateService;
+            railGraphDatastore.GetRailNodeInitializedEvent().Subscribe(OnNodeInitialized);
         }
 
         private void OnNodeInitialized(RailNodeInitializationNotifier.RailNodeInitializationData data)
         {
-            var tick = TrainUpdateService.CurrentTick;
+            var tick = _trainUpdateService.GetCurrentTick();
             // ノード生成差分と現在Tickを同時に送信
             // Include current tick alongside node creation diff
             var message = new RailNodeCreatedMessagePack(
@@ -40,3 +42,4 @@ namespace Server.Event.EventReceive
         }
     }
 }
+

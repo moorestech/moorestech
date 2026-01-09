@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using Game.Context;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Train.Common;
@@ -32,6 +30,8 @@ namespace Game.Train.Train
         //
 
         private TrainUnit _trainUnit;
+        private readonly ITrainUnitStationDockingListener _listener;
+        private bool _wasDocked;
 
         private sealed class DockedReceiver
         {
@@ -57,9 +57,10 @@ namespace Game.Train.Train
             }
         }
 
-        public TrainUnitStationDocking(TrainUnit trainUnit)
+        public TrainUnitStationDocking(TrainUnit trainUnit, ITrainUnitStationDockingListener listener)
         {
             _trainUnit = trainUnit;
+            _listener = listener;
         }
         public void OnDestroy()
         {
@@ -96,16 +97,13 @@ namespace Game.Train.Train
                 _dockedReceivers.Clear();
             }
 
-            var cars = _trainUnit?.Cars;
-            if (cars == null)
-            {
-                return;
-            }
-
+            var cars = _trainUnit.Cars;
             foreach (var car in cars)
             {
                 car.dockingblock = null; // ドッキング状態を解除
             }
+            _wasDocked = false;
+            _listener?.OnTrainUndocked();
         }
 
         internal void ClearDockingReceivers()
@@ -115,12 +113,7 @@ namespace Game.Train.Train
 
         internal void RestoreDockingFromSavedState()
         {
-            var cars = _trainUnit?.Cars;
-            if (cars == null)
-            {
-                return;
-            }
-
+            var cars = _trainUnit.Cars;
             _dockedReceivers.Clear();
 
             for (int carIndex = 0; carIndex < cars.Count; carIndex++)
@@ -141,6 +134,8 @@ namespace Game.Train.Train
                     car.dockingblock = null;
                 }
             }
+
+            _wasDocked = IsDocked;
         }
 
 
@@ -154,10 +149,12 @@ namespace Game.Train.Train
         /// </summary>
         public void TryDockWhenStopped()
         {
-            var cars = _trainUnit?.Cars;
-            var railPosition = _trainUnit?.RailPosition;
-            if (cars == null || cars.Count == 0 || railPosition == null)
+            var previousDockState = _wasDocked;
+            var cars = _trainUnit.Cars;
+            var railPosition = _trainUnit.RailPosition;
+            if (cars.Count == 0)
             {
+                _wasDocked = false;
                 return; // 列車が存在しない場合は何もしない
             }
 
@@ -202,6 +199,13 @@ namespace Game.Train.Train
                         if (flag) break;
                     }
                 }
+            }
+
+            var nowDocked = IsDocked;
+            _wasDocked = nowDocked;
+            if (!previousDockState && nowDocked)
+            {
+                _listener?.OnTrainDocked();
             }
         }
 

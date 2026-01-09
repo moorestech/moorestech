@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Context;
@@ -17,10 +17,12 @@ namespace Server.Protocol.PacketResponse
     {
         public const string ProtocolTag = "va:getWorldData";
         private readonly IEntityFactory _entityFactory;
+        private readonly TrainUpdateService _trainUpdateService;
         
         public RequestWorldDataProtocol(ServiceProvider serviceProvider)
         {
             _entityFactory = serviceProvider.GetService<IEntityFactory>();
+            _trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
         }
         
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
@@ -61,7 +63,7 @@ namespace Server.Protocol.PacketResponse
         private List<EntityMessagePack> CollectTrainEntities()
         {
             var trainEntities = new List<EntityMessagePack>();
-            var registeredTrains = TrainUpdateService.Instance.GetRegisteredTrains();
+            var registeredTrains = _trainUpdateService.GetRegisteredTrains();
             
             foreach (var trainUnit in registeredTrains)
             {

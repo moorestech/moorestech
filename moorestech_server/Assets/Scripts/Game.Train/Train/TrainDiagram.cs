@@ -1,16 +1,21 @@
-using Game.Train.Common;
 using Game.Train.RailGraph;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Game.Train.Common;
 
 namespace Game.Train.Train
 {
     public class TrainDiagram
     {
-        private readonly List<DiagramEntry> _entries;
+        private readonly List<TrainDiagramEntry> _entries;
         private int _currentIndex;
+        private ITrainDiagramContext _context;
+        private readonly IRailGraphProvider _railGraphProvider;
+        private readonly TrainDiagramManager _diagramManager;
+        private readonly TrainUpdateService _trainUpdateService;
 
-        public IReadOnlyList<DiagramEntry> Entries => _entries;
+        public IReadOnlyList<TrainDiagramEntry> Entries => _entries;
         public int CurrentIndex => _currentIndex;
 
         public enum DepartureConditionType
@@ -20,20 +25,20 @@ namespace Game.Train.Train
             WaitForTicks
         }
 
-        public interface IDepartureCondition
+        public TrainDiagram(IRailGraphProvider railGraphProvider, TrainDiagramManager diagramManager, TrainUpdateService trainUpdateService)
         {
-            bool CanDepart(TrainUnit trainUnit);
-        }
-
-        public TrainDiagram()
-        {
-            _entries = new List<DiagramEntry>();
+            // レールグラフプロバイダを保持する
+            // Keep the rail graph provider reference
+            _railGraphProvider = railGraphProvider;
+            _diagramManager = diagramManager;
+            _trainUpdateService = trainUpdateService;
+            _entries = new List<TrainDiagramEntry>();
             _currentIndex = -1;
-            TrainDiagramManager.Instance.RegisterDiagram(this);
+            _diagramManager.RegisterDiagram(this);
         }
         public void OnDestroy()
         {
-            TrainDiagramManager.Instance.UnregisterDiagram(this);
+            _diagramManager.UnregisterDiagram(this);
             _entries.Clear();
         }
 
@@ -54,13 +59,13 @@ namespace Game.Train.Train
                     continue;
                 }
                 
-                var node = RailGraphDatastore.ResolveRailNode(entryData.Node);
+                var node = _railGraphProvider.ResolveRailNode(entryData.Node);
                 if (node == null)
                 {
                     continue;
                 }
 
-                var entry = DiagramEntry.CreateFromSaveData(
+                var entry = TrainDiagramEntry.CreateFromSaveData(
                     node,
                     entryData.EntryId,
                     entryData.DepartureConditions,
@@ -89,17 +94,22 @@ namespace Game.Train.Train
             _currentIndex = restoredIndex;
         }
 
+        internal void SetContext(ITrainDiagramContext context)
+        {
+            _context = context;
+        }
+
         //最後に追加
-        public DiagramEntry AddEntry(RailNode node)
+        public TrainDiagramEntry AddEntry(IRailNode node)
         {
             if (_currentIndex < 0)
                 _currentIndex = 0;
-            var entry = new DiagramEntry(node);
+            var entry = new TrainDiagramEntry(node);
             _entries.Add(entry);
             return entry;
         }
         //最後に追加のcondition付き
-        public DiagramEntry AddEntry(RailNode node, DepartureConditionType departureConditionType, int waitTicks = 0)
+        public TrainDiagramEntry AddEntry(IRailNode node, DepartureConditionType departureConditionType, int waitTicks = 0)
         {
             var entry = AddEntry(node);
             if (departureConditionType == DepartureConditionType.WaitForTicks)
@@ -113,7 +123,7 @@ namespace Game.Train.Train
             return entry;
         }
         //index指定して追加
-        public DiagramEntry InsertEntry(int index, RailNode node)
+        public TrainDiagramEntry InsertEntry(int index, IRailNode node)
         {
             if (_currentIndex < 0)
                 _currentIndex = 0;
@@ -125,26 +135,44 @@ namespace Game.Train.Train
             {
                 index = _entries.Count;
             }
-            var entry = new DiagramEntry(node);
+            var entry = new TrainDiagramEntry(node);
             _entries.Insert(index, entry);
             return entry;
         }
 
-        public bool CheckEntries(TrainUnit _trainUnit)
+        public void Update()
+        {
+            if (_currentIndex < 0)
+            {
+                return;
+            }
+
+            if (!TryGetActiveEntry(out var currentEntry))
+            {
+                _currentIndex = -1;
+                return;
+            }
+
+            currentEntry.Tick(_context);
+        }
+
+        public bool CanCurrentEntryDepart()
         {
             if (_currentIndex < 0)
             {
                 return true;
             }
+
             if (!TryGetActiveEntry(out var currentEntry))
             {
                 _currentIndex = -1;
                 return true;
             }
-            return currentEntry.CanDepart(_trainUnit);
+
+            return currentEntry.CanDepart(_context);
         }
 
-        public RailNode GetCurrentNode()
+        public IRailNode GetCurrentNode()
         {
             return TryGetActiveEntry(out var entry) ? entry.Node : null;
         }
@@ -162,17 +190,12 @@ namespace Game.Train.Train
                 return;
             }
 
-            if (TryGetActiveEntry(out var activeEntry))
-            {
-                activeEntry?.OnDeparted();
-                _currentIndex = (_currentIndex + 1) % _entries.Count;
-                return;
-            }
+            _currentIndex = (_currentIndex + 1) % _entries.Count;
         }
 
         //node削除時かならず呼ばれます->entriesの中身は常に実在するnodeのみ
         //currentIndexも削除対象なら暗黙的に次のnodeに移動します
-        public void HandleNodeRemoval(RailNode removedNode)
+        public void HandleNodeRemoval(IRailNode removedNode)
         {
             if (removedNode == null)
                 return;
@@ -201,7 +224,12 @@ namespace Game.Train.Train
         }
 
 
-        private bool TryGetActiveEntry(out DiagramEntry entry)
+        public TrainDiagramEntry GetCurrentEntry()
+        {
+            return TryGetActiveEntry(out var entry) ? entry : null;
+        }
+
+        private bool TryGetActiveEntry(out TrainDiagramEntry entry)
         {
             entry = null;
             if ((_currentIndex < 0) || (_entries.Count == 0) || (_currentIndex >= _entries.Count))
@@ -221,257 +249,48 @@ namespace Game.Train.Train
             }
         }
 
-        private abstract class TrainInventoryConditionBase : IDepartureCondition
+        internal void NotifyDocked()
         {
-            public bool CanDepart(TrainUnit trainUnit)
+            var entry = GetCurrentEntry();
+            if (_context == null || entry?.Node == null)
             {
-                if (trainUnit == null || trainUnit.Cars == null)
-                {
-                    return false;
-                }
-                foreach (var car in trainUnit.Cars)
-                {
-                    if (!car.IsDocked)
-                    {
-                        continue;
-                    }
-
-                    if (!MatchesInventoryState(car))
-                    {
-                        return false;
-                    }
-                }
-                return true;
+                return;
             }
-
-            protected abstract bool MatchesInventoryState(TrainCar car);
+            var hash = TrainDiagramHashCalculator.Compute(this);
+            _diagramManager.NotifyDocked(_context, entry, _trainUpdateService.GetCurrentTick(), hash);
         }
 
-        private sealed class TrainInventoryFullCondition : TrainInventoryConditionBase
+        internal void NotifyDeparted()
         {
-            protected override bool MatchesInventoryState(TrainCar car)
+            var entry = GetCurrentEntry();
+            if (_context == null || entry?.Node == null)
             {
-                return car.IsInventoryFull();
+                return;
             }
+            var hash = TrainDiagramHashCalculator.Compute(this);
+            _diagramManager.NotifyDeparted(_context, entry, _trainUpdateService.GetCurrentTick(), hash);
         }
 
-        private sealed class TrainInventoryEmptyCondition : TrainInventoryConditionBase
+        public TrainDiagramSaveData CreateTrainDiagramSaveData()
         {
-            protected override bool MatchesInventoryState(TrainCar car)
+            var entries = new List<TrainDiagramEntrySaveData>();
+            foreach (var entry in this.Entries)
             {
-                return car.IsInventoryEmpty();
-            }
-        }
-
-        private sealed class WaitForTicksCondition : IDepartureCondition
-        {
-            private int _initialTicks;
-            private int _remainingTicks;
-
-            public int InitialTicks => _initialTicks;
-            public int RemainingTicks => _remainingTicks;
-
-            public void Configure(int ticks)
-            {
-                if (ticks < 0)
+                entries.Add(new TrainDiagramEntrySaveData
                 {
-                    ticks = 0;
-                }
-
-                _initialTicks = ticks;
-                _remainingTicks = ticks;
+                    EntryId = entry.entryId,
+                    Node = entry.Node.ConnectionDestination,
+                    DepartureConditions = entry.DepartureConditionTypes?.ToList() ?? new List<DepartureConditionType>(),
+                    WaitForTicksInitial = entry.GetWaitForTicksInitialTicks(),
+                    WaitForTicksRemaining = entry.GetWaitForTicksRemainingTicks()
+                });
             }
 
-            public void Restore(int initialTicks, int remainingTicks)
+            return new TrainDiagramSaveData
             {
-                Configure(initialTicks);
-                if (remainingTicks < 0)
-                {
-                    remainingTicks = 0;
-                }
-
-                if (remainingTicks > _initialTicks)
-                {
-                    remainingTicks = _initialTicks;
-                }
-
-                _remainingTicks = remainingTicks;
-            }
-
-            public void Reset()
-            {
-                _remainingTicks = _initialTicks;
-            }
-
-            public bool CanDepart(TrainUnit trainUnit)
-            {
-                if (_remainingTicks <= 0)
-                {
-                    return true;
-                }
-                _remainingTicks--;
-                return false;
-            }
-        }
-
-        public sealed class DiagramEntry
-        {
-            public DiagramEntry(RailNode node)
-            {
-                Node = node;
-                entryId = Guid.NewGuid();
-                _departureConditions = new List<IDepartureCondition>();
-                _departureConditionTypes = new List<DepartureConditionType>();
-            }
-
-            public RailNode Node { get; private set; }
-            public Guid entryId { get; private set; }
-
-            private readonly List<IDepartureCondition> _departureConditions;
-            private readonly List<DepartureConditionType> _departureConditionTypes;
-            private WaitForTicksCondition _waitForTicksCondition;
-
-            public IReadOnlyList<IDepartureCondition> DepartureConditions => _departureConditions;
-            public IReadOnlyList<DepartureConditionType> DepartureConditionTypes => _departureConditionTypes;
-
-            public int? GetWaitForTicksInitialTicks()
-            {
-                return _waitForTicksCondition?.InitialTicks;
-            }
-
-            public int? GetWaitForTicksRemainingTicks()
-            {
-                return _waitForTicksCondition?.RemainingTicks;
-            }
-
-            public bool MatchesNode(RailNode node)
-            {
-                return Node == node;
-            }
-
-            public bool CanDepart(TrainUnit trainUnit)
-            {
-                if (_departureConditions.Count == 0)
-                {
-                    return true;
-                }
-
-                foreach (var condition in _departureConditions)
-                {
-                    if (!condition.CanDepart(trainUnit))
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-
-            public void SetDepartureCondition(DepartureConditionType conditionType)
-            {
-                SetDepartureConditions(new[] { conditionType });
-            }
-
-            public void SetDepartureConditions(IEnumerable<DepartureConditionType> conditionTypes)
-            {
-                _departureConditions.Clear();
-                _departureConditionTypes.Clear();
-                _waitForTicksCondition = null;
-
-                if (conditionTypes == null)
-                {
-                    return;
-                }
-
-                foreach (var conditionType in conditionTypes)
-                {
-                    AddDepartureCondition(conditionType);
-                }
-            }
-
-            public void AddDepartureCondition(DepartureConditionType conditionType)
-            {
-                var condition = CreateDepartureCondition(conditionType);
-                if (condition == null)
-                {
-                    return;
-                }
-
-                _departureConditions.Add(condition);
-                _departureConditionTypes.Add(conditionType);
-            }
-
-            public bool RemoveDepartureCondition(DepartureConditionType conditionType)
-            {
-                for (var i = 0; i < _departureConditionTypes.Count; i++)
-                {
-                    if (_departureConditionTypes[i] != conditionType)
-                    {
-                        continue;
-                    }
-
-                    _departureConditionTypes.RemoveAt(i);
-                    _departureConditions.RemoveAt(i);
-                    if (conditionType == DepartureConditionType.WaitForTicks)
-                    {
-                        _waitForTicksCondition = null;
-                    }
-                    return true;
-                }
-
-                return false;
-            }
-
-            public void SetDepartureWaitTicks(int ticks)
-            {
-                SetDepartureConditions(new[] { DepartureConditionType.WaitForTicks });
-                _waitForTicksCondition?.Configure(ticks);
-            }
-
-            //事実上発車条件リセット、到着時に呼ばれます。ほかにもよだれたり
-            public void OnDeparted()
-            {
-                _waitForTicksCondition?.Reset();
-            }
-
-            internal static DiagramEntry CreateFromSaveData(
-                RailNode node,
-                Guid entryGuid,
-                IEnumerable<DepartureConditionType> conditionTypes,
-                int? waitForTicksInitial,
-                int? waitForTicksRemaining)
-            {
-                var entry = new DiagramEntry(node)
-                {
-                    entryId = entryGuid
-                };
-
-                entry.SetDepartureConditions(conditionTypes);
-                if (waitForTicksInitial.HasValue && entry._waitForTicksCondition != null)
-                {
-                    var remaining = waitForTicksRemaining ?? waitForTicksInitial.Value;
-                    entry._waitForTicksCondition.Restore(waitForTicksInitial.Value, remaining);
-                }
-
-                return entry;
-            }
-
-            private IDepartureCondition CreateDepartureCondition(DepartureConditionType conditionType)
-            {
-                switch (conditionType)
-                {
-                    case DepartureConditionType.TrainInventoryEmpty:
-                        return new TrainInventoryEmptyCondition();
-                    case DepartureConditionType.WaitForTicks:
-                        var waitCondition = new WaitForTicksCondition();
-                        _waitForTicksCondition = waitCondition;
-                        return waitCondition;
-                    case DepartureConditionType.TrainInventoryFull:
-                        return new TrainInventoryFullCondition();
-                    default:
-                        return null;
-                }
-            }
+                CurrentIndex = this.CurrentIndex,
+                Entries = entries
+            };
         }
     }
 }

@@ -1,4 +1,4 @@
-using Game.Block.Blocks;
+﻿using Game.Block.Blocks;
 using Game.Block.Blocks.Chest;
 using Game.Block.Blocks.Service;
 using Game.Block.Blocks.TrainRail;
@@ -13,6 +13,12 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaTrainCargoTemplate : IBlockTemplate
     {
+        private readonly IRailGraphDatastore _railGraphDatastore;
+
+        public VanillaTrainCargoTemplate(IRailGraphDatastore railGraphDatastore)
+        {
+            _railGraphDatastore = railGraphDatastore;
+        }
         /// <summary>
         /// 新規にブロック（および対応するRailComponent等）を生成する
         /// </summary>
@@ -24,8 +30,8 @@ namespace Game.Block.Factory.BlockTemplate
             // 駅ブロックは常に2つのRailComponentを持つ
             //①1つのstation内にある2つのRailComponentを直線レールで接続
             //②stationをつなげて設置した場合にピッタリ重なる位置のrailComponentを自動接続するための処理
-            var railComponents = RailComponentUtility.Create2RailComponents(positionInfo, stationParam.EntryRailPosition, stationParam.ExitRailPosition);//①が行われる
-            RailComponentUtility.RegisterAndConnetStationBlocks(railComponents);//②接続処理
+            var railComponents = RailComponentUtility.Create2RailComponents(positionInfo, stationParam.EntryRailPosition, stationParam.ExitRailPosition, _railGraphDatastore);//①が行われる
+            RailComponentUtility.RegisterAndConnetStationBlocks(railComponents, _railGraphDatastore);//②接続処理
             var railSaverComponent = new RailSaverComponent(railComponents);
             var station = new CargoplatformComponent(stationParam);
 
@@ -56,8 +62,8 @@ namespace Game.Block.Factory.BlockTemplate
         {
             // 保存されたRailComponent群を復元。railSaverComponentからセーブ情報の中にrailcomponent同士の接続情報が含まれているのでそれを復元(これで①1つのstation内にある2つのRailComponentを直線で接続と、②stationをつなげて設置した場合に自動でrailComponentを接続、の両方が満たされる)
             var stationParam = masterElement.BlockParam as TrainCargoPlatformBlockParam;
-            var railComponents = RailComponentUtility.Restore2RailComponents(componentStates, positionInfo, stationParam.EntryRailPosition, stationParam.ExitRailPosition);//①復元
-            RailComponentUtility.RegisterAndConnetStationBlocks(railComponents);//②接続処理。実はRestoreで接続復元できているが、Registerはここで改めて行う必要がある
+            var railComponents = RailComponentUtility.Restore2RailComponents(componentStates, positionInfo, stationParam.EntryRailPosition, stationParam.ExitRailPosition, _railGraphDatastore);//①復元
+            RailComponentUtility.RegisterAndConnetStationBlocks(railComponents, _railGraphDatastore);//②接続処理。実はRestoreで接続復元できているが、Registerはここで改めて行う必要がある
             var railSaverComponent = new RailSaverComponent(railComponents);
             var station = new CargoplatformComponent(componentStates, stationParam);
 
@@ -100,3 +106,5 @@ namespace Game.Block.Factory.BlockTemplate
         }
     }
 }
+
+

@@ -26,6 +26,7 @@ namespace Client.Network.API
         public List<string> PlayedSkitIds { get; }
         public Dictionary<Guid, ResearchNodeState> ResearchNodeStates { get; }
         public RailGraphSnapshotMessagePack RailGraphSnapshot { get; }
+        public TrainUnitSnapshotResponse TrainUnitSnapshots { get; }
         
         public InitialHandshakeResponse(
             ResponseInitialHandshakeMessagePack initialHandshake,
@@ -38,7 +39,8 @@ namespace Client.Network.API
                 CraftTreeResponse craftTree,
                 List<string> playedSkitIds,
                 Dictionary<Guid, ResearchNodeState> researchNodeStates,
-                RailGraphSnapshotMessagePack railGraphSnapshot) responses)
+                RailGraphSnapshotMessagePack railGraphSnapshot,
+                TrainUnitSnapshotResponse trainUnitSnapshots) responses)
         {
             PlayerPos = initialHandshake.PlayerPos;
             WorldData = responses.worldData;
@@ -50,6 +52,7 @@ namespace Client.Network.API
             PlayedSkitIds = responses.playedSkitIds;
             ResearchNodeStates = responses.researchNodeStates;
             RailGraphSnapshot = responses.railGraphSnapshot;
+            TrainUnitSnapshots = responses.trainUnitSnapshots;
         }
     }
     
@@ -163,5 +166,21 @@ namespace Client.Network.API
             CraftTrees = craftTrees;
             CurrentTargetNode = currentTargetNode;
         }
+    }
+
+    // 列車スナップショット取得時のレスポンス
+    // Response wrapper for the initial train unit snapshot payload
+    public class TrainUnitSnapshotResponse
+    {
+        public TrainUnitSnapshotResponse(List<TrainUnitSnapshotBundleMessagePack> snapshots, long serverTick, uint unitsHash)
+        {
+            Snapshots = snapshots ?? new List<TrainUnitSnapshotBundleMessagePack>();
+            ServerTick = serverTick;
+            UnitsHash = unitsHash;
+        }
+
+        public List<TrainUnitSnapshotBundleMessagePack> Snapshots { get; }
+        public long ServerTick { get; }
+        public uint UnitsHash { get; }
     }
 }

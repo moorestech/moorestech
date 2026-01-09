@@ -59,13 +59,6 @@ namespace Game.Train.RailGraph
                 return hashCode;
             }
         }
-        /*
-        public static bool operator ==(RailComponentID left, RailComponentID right)
-            => left.Equals(right);
-
-        public static bool operator !=(RailComponentID left, RailComponentID right)
-            => !left.Equals(right);
-        */
     }
 
 

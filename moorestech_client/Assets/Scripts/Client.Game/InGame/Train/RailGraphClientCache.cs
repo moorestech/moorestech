@@ -1,10 +1,9 @@
 using Game.Train.RailGraph;
+using Game.Train.Utility;
 using Server.Util.MessagePack;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using static UnityEngine.UI.Image;
-using RailNodeInitData = Game.Train.RailGraph.RailNodeInitializationNotifier.RailNodeInitializationData;
 
 namespace Client.Game.InGame.Train
 {
@@ -12,7 +11,7 @@ namespace Client.Game.InGame.Train
     ///     RailGraphの差分同期結果を保持するクライアント側キャッシュ
     ///     Client-side cache that mirrors the rail graph data for diff-based sync
     /// </summary>
-    public sealed class RailGraphClientCache
+    public sealed class RailGraphClientCache : IRailGraphProvider
     {
         // RailNodeInitializationDataのスナップショットを保持
         // Stores RailNodeInitializationData snapshots per nodeId
@@ -342,6 +341,54 @@ namespace Client.Game.InGame.Train
                 }
             }
             return result;
+        }
+
+        public IRailNode ResolveRailNode(ConnectionDestination destination)
+        {
+            if (!TryGetNodeId(destination, out var nodeId) || !IsWithinCurrentRange(nodeId))
+            {
+                return null;
+            }
+            return _nodes[nodeId];
+        }
+
+        public IReadOnlyList<IRailNode> FindShortestPath(IRailNode start, IRailNode end)
+        {
+            if (!TryGetNodeId(start, out var startId) || !TryGetNodeId(end, out var endId))
+            {
+                return Array.Empty<IRailNode>();
+            }
+            return FindShortestPath(startId, endId);
+        }
+
+        public int GetDistance(IRailNode start, IRailNode end, bool useFindPath)
+        {
+            if (!TryGetNodeId(start, out var startId) || !TryGetNodeId(end, out var endId))
+            {
+                return -1;
+            }
+
+            if (!useFindPath)
+            {
+                if (!IsWithinCurrentRange(startId))
+                {
+                    return -1;
+                }
+
+                var edges = _connectNodes[startId];
+                for (var i = 0; i < edges.Count; i++)
+                {
+                    var edge = edges[i];
+                    if (edge.targetId == endId)
+                    {
+                        return edge.distance;
+                    }
+                }
+                return -1;
+            }
+
+            var path = FindShortestPath(startId, endId);
+            return RailNodeCalculate.CalculateTotalDistanceF(path);
         }
     }
 }

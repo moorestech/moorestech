@@ -12,6 +12,7 @@ namespace Game.Train.RailGraph
         IRailNode OppositeNode { get; }
         ConnectionDestination ConnectionDestination { get; }
         Guid NodeGuid { get; }
+        IRailGraphProvider GraphProvider { get; }
         StationReference StationRef { get; }
         RailControlPoint FrontControlPoint { get; }
         RailControlPoint BackControlPoint { get; }

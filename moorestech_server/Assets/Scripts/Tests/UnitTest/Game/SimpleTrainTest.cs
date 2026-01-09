@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
@@ -15,17 +15,17 @@ namespace Tests.UnitTest.Game
         public void DijkstraTest0()
         {
             var env = TrainTestHelper.CreateEnvironment();
-            _ = env.GetRailGraphDatastore();
+            var railGraphDatastore = env.GetRailGraphDatastore();
 
-            var node0 = RailNode.CreateSingleAndRegister();
-            var node1 = RailNode.CreateSingleAndRegister();
-            var node2 = RailNode.CreateSingleAndRegister();
-            var node3 = RailNode.CreateSingleAndRegister();
+            var node0 = RailNode.CreateSingleAndRegister(railGraphDatastore);
+            var node1 = RailNode.CreateSingleAndRegister(railGraphDatastore);
+            var node2 = RailNode.CreateSingleAndRegister(railGraphDatastore);
+            var node3 = RailNode.CreateSingleAndRegister(railGraphDatastore);
             node0.ConnectNode(node1, 1);
             node1.ConnectNode(node2, 1);
             node2.ConnectNode(node3, 1);
 
-            var outListPath = RailGraphDatastore.FindShortestPath(node0, node3);
+            var outListPath = railGraphDatastore.FindShortestPath(node0, node3);
 
             Assert.AreEqual(4, outListPath.Count, "経路に含まれるノード数が期待値と一致していません。");
             Assert.AreEqual(node0, outListPath[0], "最短経路の1番目のノードが始点ノードになっていません。");
@@ -38,18 +38,18 @@ namespace Tests.UnitTest.Game
         public void DijkstraTest1()
         {
             var env = TrainTestHelper.CreateEnvironment();
-            _ = env.GetRailGraphDatastore();
+            var railGraphDatastore = env.GetRailGraphDatastore();
 
-            var node0 = RailNode.CreateSingleAndRegister();
-            var node1 = RailNode.CreateSingleAndRegister();
-            var node2 = RailNode.CreateSingleAndRegister();
-            var node3 = RailNode.CreateSingleAndRegister();
+            var node0 = RailNode.CreateSingleAndRegister(railGraphDatastore);
+            var node1 = RailNode.CreateSingleAndRegister(railGraphDatastore);
+            var node2 = RailNode.CreateSingleAndRegister(railGraphDatastore);
+            var node3 = RailNode.CreateSingleAndRegister(railGraphDatastore);
             node0.ConnectNode(node1, 123);
             node0.ConnectNode(node2, 345);
             node1.ConnectNode(node3, 400);
             node2.ConnectNode(node3, 1);
 
-            var outListPath = RailGraphDatastore.FindShortestPath(node0, node3);
+            var outListPath = railGraphDatastore.FindShortestPath(node0, node3);
 
             Assert.AreEqual(3, outListPath.Count, "最短経路のノード数が期待値と一致していません。");
             Assert.AreEqual(node0, outListPath[0], "最短経路の1番目のノードが始点ノードになっていません。");
@@ -61,7 +61,7 @@ namespace Tests.UnitTest.Game
         public void DijkstraTest2()
         {
             var env = TrainTestHelper.CreateEnvironment();
-            _ = env.GetRailGraphDatastore();
+            var railGraphDatastore = env.GetRailGraphDatastore();
 
             const int nodenumPower = 4;
             int nodenum = (int)System.Math.Pow(10, nodenumPower);
@@ -69,7 +69,7 @@ namespace Tests.UnitTest.Game
             RailNode[] nodeList = new RailNode[nodenum];
             for (int i = 0; i < nodenum; i++)
             {
-                nodeList[i] = RailNode.CreateSingleAndRegister();
+                nodeList[i] = RailNode.CreateSingleAndRegister(railGraphDatastore);
             }
 
             for (int i = 0; i < nodenum; i++)
@@ -88,7 +88,7 @@ namespace Tests.UnitTest.Game
                 int rand1 = UnityEngine.Random.Range(0, nodenum);
                 var nodeStart = nodeList[rand0];
                 var nodeEnd = nodeList[rand1];
-                var outListPath = RailGraphDatastore.FindShortestPath(nodeStart, nodeEnd);
+                var outListPath = railGraphDatastore.FindShortestPath(nodeStart, nodeEnd);
 
                 if (outListPath.Count > 5)
                 {
@@ -103,7 +103,7 @@ namespace Tests.UnitTest.Game
         public void TestRailComponentsRandomCase()
         {
             var env = TrainTestHelper.CreateEnvironment();
-            _ = env.GetRailGraphDatastore();
+            var railGraphDatastore = env.GetRailGraphDatastore();
 
             List<(int, int, int)> ShuffleList(List<(int, int, int)> list)
             {
@@ -140,7 +140,7 @@ namespace Tests.UnitTest.Game
                 listIsCreated.Add((x, y, z));
                 listIsDestroy.Remove((x, y, z));
                 var railComponentId = new RailComponentID(new Vector3Int(x, y, z), 0);
-                railBlocks[x, y, z] = new RailComponent(new Vector3(x, y, z), BlockDirection.North, railComponentId);
+                railBlocks[x, y, z] = new RailComponent(railGraphDatastore, new Vector3(x, y, z), BlockDirection.North, railComponentId);
 
                 var (x1, y1, z1) = listIsCreated[UnityEngine.Random.Range(0, listIsCreated.Count)];
                 var (x2, y2, z2) = listIsCreated[UnityEngine.Random.Range(0, listIsCreated.Count)];
@@ -171,7 +171,7 @@ namespace Tests.UnitTest.Game
 
             var nodeStart = railBlocks[0, 0, 0].FrontNode;
             var nodeEnd = railBlocks[size - 1, size - 1, size - 1].FrontNode;
-            var outListPath = RailGraphDatastore.FindShortestPath(nodeStart, nodeEnd);
+            var outListPath = railGraphDatastore.FindShortestPath(nodeStart, nodeEnd);
             Assert.AreNotEqual(0, outListPath.Count, "ランダム生成されたレール構成で始点から終点までの経路が見つかりませんでした。");
 
             for (int x = 1; x < size - 1; x++)
@@ -185,7 +185,7 @@ namespace Tests.UnitTest.Game
                 }
             }
 
-            outListPath = RailGraphDatastore.FindShortestPath(nodeStart, nodeEnd);
+            outListPath = railGraphDatastore.FindShortestPath(nodeStart, nodeEnd);
             Assert.AreEqual(3 * (size - 1) + 1, outListPath.Count, "経路遮断後の最短経路長が期待値と一致していません。");
         }
 
@@ -193,14 +193,14 @@ namespace Tests.UnitTest.Game
         public void Y_NodeCheck()
         {
             var env = TrainTestHelper.CreateEnvironment();
-            _ = env.GetRailGraphDatastore();
+            var railGraphDatastore = env.GetRailGraphDatastore();
 
-            var nodeA = RailNode.CreateSingleAndRegister();
-            var nodeB = RailNode.CreateSingleAndRegister();
-            var nodeC1 = RailNode.CreateSingleAndRegister();
-            var nodeC2 = RailNode.CreateSingleAndRegister();
-            var nodeD1 = RailNode.CreateSingleAndRegister();
-            var nodeD2 = RailNode.CreateSingleAndRegister();
+            var nodeA = RailNode.CreateSingleAndRegister(railGraphDatastore);
+            var nodeB = RailNode.CreateSingleAndRegister(railGraphDatastore);
+            var nodeC1 = RailNode.CreateSingleAndRegister(railGraphDatastore);
+            var nodeC2 = RailNode.CreateSingleAndRegister(railGraphDatastore);
+            var nodeD1 = RailNode.CreateSingleAndRegister(railGraphDatastore);
+            var nodeD2 = RailNode.CreateSingleAndRegister(railGraphDatastore);
             nodeA.ConnectNode(nodeC1, 3782);
             nodeB.ConnectNode(nodeC1, 67329);
             nodeC1.ConnectNode(nodeD1, 71894);
@@ -208,23 +208,23 @@ namespace Tests.UnitTest.Game
             nodeC2.ConnectNode(nodeA, 28973);
             nodeC2.ConnectNode(nodeB, 718);
 
-            var outListPath = RailGraphDatastore.FindShortestPath(nodeA, nodeD1);
+            var outListPath = railGraphDatastore.FindShortestPath(nodeA, nodeD1);
             Assert.AreEqual(3, outListPath.Count, "nodeAからnodeD1までの経路長が期待値と一致していません。");
             Assert.AreEqual(nodeA, outListPath[0], "nodeAからnodeD1までの経路の始点がnodeAになっていません。");
             Assert.AreEqual(nodeC1, outListPath[1], "nodeAからnodeD1までの経路の中継ノードがnodeC1ではありません。");
             Assert.AreEqual(nodeD1, outListPath[2], "nodeAからnodeD1までの経路の終点がnodeD1になっていません。");
 
-            outListPath = RailGraphDatastore.FindShortestPath(nodeD2, nodeA);
+            outListPath = railGraphDatastore.FindShortestPath(nodeD2, nodeA);
             Assert.AreEqual(3, outListPath.Count, "nodeD2からnodeAまでの経路長が期待値と一致していません。");
             Assert.AreEqual(nodeD2, outListPath[0], "nodeD2からnodeAまでの経路の始点がnodeD2になっていません。");
             Assert.AreEqual(nodeC2, outListPath[1], "nodeD2からnodeAまでの経路の中継ノードがnodeC2ではありません。");
             Assert.AreEqual(nodeA, outListPath[2], "nodeD2からnodeAまでの経路の終点がnodeAになっていません。");
 
-            outListPath = RailGraphDatastore.FindShortestPath(nodeA, nodeB);
+            outListPath = railGraphDatastore.FindShortestPath(nodeA, nodeB);
             Assert.AreEqual(0, outListPath.Count, "閉路が存在しない状態でのnodeAからnodeBへの経路が空ではありません。");
 
             nodeD1.ConnectNode(nodeD2, 721);
-            outListPath = RailGraphDatastore.FindShortestPath(nodeA, nodeB);
+            outListPath = railGraphDatastore.FindShortestPath(nodeA, nodeB);
             Assert.AreEqual(6, outListPath.Count, "nodeAからnodeBへの経路長が期待値と一致していません。");
             Assert.AreEqual(nodeA, outListPath[0], "nodeAからnodeBへの経路の始点がnodeAになっていません。");
             Assert.AreEqual(nodeC1, outListPath[1], "nodeAからnodeBへの経路の2番目がnodeC1になっていません。");
@@ -238,11 +238,11 @@ namespace Tests.UnitTest.Game
         public void ConnectedNodesTest()
         {
             var env = TrainTestHelper.CreateEnvironment();
-            _ = env.GetRailGraphDatastore();
+            var railGraphDatastore = env.GetRailGraphDatastore();
 
-            var nodeA = RailNode.CreateSingleAndRegister();
-            var nodeB = RailNode.CreateSingleAndRegister();
-            var nodeC = RailNode.CreateSingleAndRegister();
+            var nodeA = RailNode.CreateSingleAndRegister(railGraphDatastore);
+            var nodeB = RailNode.CreateSingleAndRegister(railGraphDatastore);
+            var nodeC = RailNode.CreateSingleAndRegister(railGraphDatastore);
 
             nodeA.ConnectNode(nodeB, 10);
             nodeA.ConnectNode(nodeC, 20);
@@ -255,3 +255,4 @@ namespace Tests.UnitTest.Game
         }
     }
 }
+

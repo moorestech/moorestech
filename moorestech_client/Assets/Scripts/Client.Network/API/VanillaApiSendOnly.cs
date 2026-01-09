@@ -4,6 +4,7 @@ using Client.Network.Settings;
 using Core.Master;
 using Game.CraftChainer.CraftChain;
 using Game.CraftTree.Models;
+using Game.Train.Train;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using Server.Util.MessagePack;
@@ -124,9 +125,10 @@ namespace Client.Network.API
             var request = RailConnectionEditRequest.CreateConnectRequest(fromNodeId, fromGuid, toNodeId, toGuid);
             _packetSender.Send(request);
         }
-        public void PlaceTrainOnRail(RailComponentSpecifier specifier, int hotBarSlot)
+        public void PlaceTrainOnRail(RailComponentSpecifier specifier, RailPositionSaveData railPosition, int hotBarSlot)
         {
-            var request = new PlaceTrainOnRailRequestMessagePack(specifier, hotBarSlot, _playerId);
+            var railPositionSnapshot = new RailPositionSnapshotMessagePack(railPosition);
+            var request = new PlaceTrainOnRailRequestMessagePack(specifier, railPositionSnapshot, hotBarSlot, _playerId);
             _packetSender.Send(request);
         }
         

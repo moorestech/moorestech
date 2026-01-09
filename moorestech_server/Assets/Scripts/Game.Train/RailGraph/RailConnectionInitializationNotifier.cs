@@ -5,6 +5,7 @@ namespace Game.Train.RailGraph
 {
     public class RailConnectionInitializationNotifier : IDisposable
     {
+        private readonly IRailGraphDatastore _datastore;
         private Subject<RailConnectionInitializationData> _railConnectionInitialized;
         // レール接続初期化イベント
         // Exposes the observable rail connection initialization stream
@@ -12,8 +13,9 @@ namespace Game.Train.RailGraph
 
         // 監視用Subject
         // Initialize the underlying subject used for notifications
-        public RailConnectionInitializationNotifier()
+        public RailConnectionInitializationNotifier(IRailGraphDatastore datastore)
         {
+            _datastore = datastore;
             _railConnectionInitialized = new Subject<RailConnectionInitializationData>();
         }
 
@@ -21,8 +23,8 @@ namespace Game.Train.RailGraph
         // Resolve rail nodes and publish the initialization payload
         public void Notify(int fromNodeId, int toNodeId, int distance)
         {
-            RailGraphDatastore.TryGetRailNode(fromNodeId, out var fromNode);
-            RailGraphDatastore.TryGetRailNode(toNodeId, out var toNode);
+            _datastore.TryGetRailNode(fromNodeId, out var fromNode);
+            _datastore.TryGetRailNode(toNodeId, out var toNode);
             if (fromNode == null || toNode == null) return;
             var data = new RailConnectionInitializationData(fromNodeId, fromNode.Guid, toNodeId, toNode.Guid, distance);
             _railConnectionInitialized?.OnNext(data);

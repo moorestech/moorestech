@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using Core.Item;
 using Core.Item.Interface;
@@ -94,6 +94,7 @@ namespace Server.Boot
             initializerCollection.AddSingleton<IBlockOpenableInventoryUpdateEvent, BlockOpenableInventoryUpdateEvent>();
             initializerCollection.AddSingleton<GearNetworkDatastore>();
             initializerCollection.AddSingleton<RailGraphDatastore>();
+            initializerCollection.AddSingleton<IRailGraphDatastore>(provider => provider.GetService<RailGraphDatastore>());
             initializerCollection.AddSingleton<TrainDiagramManager>();
             initializerCollection.AddSingleton<TrainRailPositionManager>();
 
@@ -119,8 +120,11 @@ namespace Server.Boot
             services.AddSingleton<MaxElectricPoleMachineConnectionRange, MaxElectricPoleMachineConnectionRange>();
             services.AddSingleton<IEntitiesDatastore, EntitiesDatastore>();
             services.AddSingleton<IEntityFactory, EntityFactory>(); // TODO これを削除してContext側に加える？
+            var railGraphDatastore = initializerProvider.GetService<RailGraphDatastore>();
             services.AddSingleton(initializerProvider.GetService<GearNetworkDatastore>());
-            services.AddSingleton(initializerProvider.GetService<RailGraphDatastore>());
+            services.AddSingleton(railGraphDatastore);
+            services.AddSingleton<IRailGraphDatastore>(railGraphDatastore);
+            services.AddSingleton<IRailGraphProvider>(railGraphDatastore);
             services.AddSingleton<RailConnectionCommandHandler>();
             services.AddSingleton(initializerProvider.GetService<TrainDiagramManager>());
             services.AddSingleton(initializerProvider.GetService<TrainRailPositionManager>());
@@ -136,7 +140,9 @@ namespace Server.Boot
             services.AddSingleton<ChallengeDatastore, ChallengeDatastore>();
             services.AddSingleton<ChallengeEvent, ChallengeEvent>();
             services.AddSingleton<TrainSaveLoadService, TrainSaveLoadService>();
+            services.AddSingleton<TrainDockingStateRestorer>();
             services.AddSingleton<ITrainUpdateEvent, TrainUpdateEvent>();
+            services.AddSingleton<TrainUpdateService>();
 
             //JSONファイルのセーブシステムの読み込み
             services.AddSingleton(modResource);
@@ -166,8 +172,11 @@ namespace Server.Boot
             services.AddSingleton<RailNodeCreatedEventPacket>();
             services.AddSingleton<RailConnectionCreatedEventPacket>();
             services.AddSingleton<RailGraphHashStateEventPacket>();
+            services.AddSingleton<TrainUnitHashStateEventPacket>();
+            services.AddSingleton<TrainUnitCreatedEventPacket>();
             services.AddSingleton<RailNodeRemovedEventPacket>();
             services.AddSingleton<RailConnectionRemovedEventPacket>();
+            services.AddSingleton<TrainDiagramEventPacket>();
             
             //データのセーブシステム
             services.AddSingleton<AssembleSaveJsonText, AssembleSaveJsonText>();
@@ -198,8 +207,11 @@ namespace Server.Boot
             serviceProvider.GetService<RailNodeCreatedEventPacket>();
             serviceProvider.GetService<RailConnectionCreatedEventPacket>();
             serviceProvider.GetService<RailGraphHashStateEventPacket>();
+            serviceProvider.GetService<TrainUnitHashStateEventPacket>();
+            serviceProvider.GetService<TrainUnitCreatedEventPacket>();
             serviceProvider.GetService<RailNodeRemovedEventPacket>();
             serviceProvider.GetService<RailConnectionRemovedEventPacket>();
+            serviceProvider.GetService<TrainDiagramEventPacket>();
             
             serverContext.SetMainServiceProvider(serviceProvider);
 
@@ -210,3 +222,4 @@ namespace Server.Boot
         }
     }
 }
+

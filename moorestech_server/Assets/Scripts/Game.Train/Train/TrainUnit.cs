@@ -1,6 +1,4 @@
-using Core.Item.Interface;
-using Core.Master;
-using Game.Context;
+﻿using Game.Context;
 using Game.Train.Common;
 using Game.Train.RailGraph;
 using Game.Train.Utility;
@@ -14,11 +12,15 @@ namespace Game.Train.Train
     /// 複数車両からなる列車編成全体を表すクラス
     /// Represents an entire train formation composed of multiple cars.
     /// </summary>
-    public class TrainUnit
+    public class TrainUnit : ITrainDiagramContext, ITrainUnitStationDockingListener
     {
         public string SaveKey { get; } = typeof(TrainUnit).FullName;
         
         private RailPosition _railPosition;
+        private readonly IRailGraphProvider _railGraphProvider;
+        private readonly TrainUpdateService _trainUpdateService;
+        private readonly TrainRailPositionManager _railPositionManager;
+        private readonly TrainDiagramManager _diagramManager;
         private Guid _trainId;
         public Guid TrainId => _trainId;
 
@@ -34,43 +36,71 @@ namespace Game.Train.Train
         private double _currentSpeed;   // m/s など適宜
         public double CurrentSpeed => _currentSpeed;
         private double _accumulatedDistance; // 累積距離、距離の小数点以下を保持するために使用
-        //摩擦係数、空気抵抗係数などはここに追加する
-        private const double FRICTION = 0.0002;
-        private const double AIR_RESISTANCE = 0.00002;
-        private const double SpeedWeight = 0.008;//1tickで_currentSpeedが進む距離に変換されるための重み付け係数
-        private const double AutoRunMaxSpeedDistanceCoefficient = 10000.0;//自動運転の最大速度計算用距離係数
-        private const double AutoRunMaxSpeedOffset = 10.0;//自動運転で、AutoRunMaxSpeedOffsetは目的距離が近すぎても進めるようにするためのバッファ
-        private const double AutoRunSpeedBufferMargin = 0.02;
-        private const double AutoRunSpeedBufferRate = 1.0 - AutoRunSpeedBufferMargin;
-        private const double TractionForceAccelerationRate = 0.1;
-        private const double ManualControlDecelerationFactor = 1.0;//マスコンレベル手動調整用
-        private const int MasconLevelMaximum = 16777216;//電車でGOでP5-B8まであるやつ
+        internal double AccumulatedDistance => _accumulatedDistance;
         private const int InfiniteLoopGuardThreshold = 1_000_000;
 
         private List<TrainCar> _cars;
         public RailPosition RailPosition => _railPosition;
         public IReadOnlyList<TrainCar> Cars => _cars;
-        public TrainUnitStationDocking trainUnitStationDocking; // 列車の駅ドッキング用のクラス
-        public TrainDiagram trainDiagram; // 列車のダイアグラム
+        public TrainUnitStationDocking trainUnitStationDocking { get; private set; } // 列車の駅ドッキング用のクラス
+        public TrainDiagram trainDiagram { get; private set; } // 列車のダイアグラム
+        public bool IsDocked => trainUnitStationDocking?.IsDocked ?? false;
         //キー関連
         //マスコンレベル 0がニュートラル、1が前進1段階、-1が後退1段階.キー入力やテスト、外部から直接制御できる。min maxは±16777216とする(暫定)
         public int masconLevel = 0;
         private int tickCounter = 0;// TODO デバッグトグル関係　そのうち消す
         public TrainUnit(
             RailPosition initialPosition,
-            List<TrainCar> cars
+            List<TrainCar> cars,
+            TrainUpdateService trainUpdateService,
+            TrainRailPositionManager railPositionManager,
+            TrainDiagramManager diagramManager
+        ) : this(initialPosition, cars, trainUpdateService, railPositionManager, diagramManager, true)
+        {
+        }
+
+        private TrainUnit(
+            RailPosition initialPosition,
+            List<TrainCar> cars,
+            TrainUpdateService trainUpdateService,
+            TrainRailPositionManager railPositionManager,
+            TrainDiagramManager diagramManager,
+            bool notifyOnRegister
         )
         {
             _railPosition = initialPosition;
-            TrainRailPositionManager.Instance.RegisterRailPosition(_railPosition);
+            // 先頭ノードからグラフプロバイダを取得する
+            // Resolve the graph provider from the head node
+            _railGraphProvider = initialPosition.GetNodeApproaching().GraphProvider;
+            _trainUpdateService = trainUpdateService;
+            _railPositionManager = railPositionManager;
+            _diagramManager = diagramManager;
+            _railPositionManager.RegisterRailPosition(_railPosition);
             _trainId = Guid.NewGuid();
             _cars = cars;
             _currentSpeed = 0.0; // 仮の初期速度
             _isAutoRun = false;
             _previousEntryGuid = Guid.Empty;
-            trainUnitStationDocking = new TrainUnitStationDocking(this);
-            trainDiagram = new TrainDiagram();
-            TrainUpdateService.Instance.RegisterTrain(this);
+            trainUnitStationDocking = new TrainUnitStationDocking(this, this);
+            trainDiagram = new TrainDiagram(_railGraphProvider, _diagramManager, _trainUpdateService);
+            trainDiagram.SetContext(this);
+            // 列車登録と生成通知の制御を行う
+            // Register the train and control creation notification
+            RegisterTrain(notifyOnRegister);
+
+            #region Internal
+            void RegisterTrain(bool notify)
+            {
+                // 通知あり/なしで登録先を切り替える
+                // Switch registration based on notification flag
+                if (notify)
+                {
+                    _trainUpdateService.RegisterTrain(this);
+                    return;
+                }
+                _trainUpdateService.RegisterTrainWithoutNotify(this);
+            }
+            #endregion
         }
 
 
@@ -95,8 +125,10 @@ namespace Game.Train.Train
         {
             //数十回に1回くらいの頻度でデバッグログを出す
             tickCounter++;
-            if (TrainUpdateService.TrainAutoRunDebugEnabled && tickCounter % 20 == 0)
-                UnityEngine.Debug.Log("spd="+_currentSpeed + "_Auto=" + IsAutoRun + "_DiagramCount" + trainDiagram.Entries.Count);// TODO デバッグトグル関係　そのうち消す
+            if (_trainUpdateService.IsTrainAutoRunDebugEnabled() && tickCounter % 20 == 0)
+            {
+                UnityEngine.Debug.Log("spd=" + _currentSpeed + "_Auto=" + IsAutoRun + "_DiagramCount" + trainDiagram.Entries.Count + "" + IsDocked);// TODO デバッグトグル関係　そのうち消す
+            }
 
             if (IsAutoRun)
             {
@@ -104,7 +136,7 @@ namespace Game.Train.Train
                 // 自動運転中に手動でダイアグラムをいじって目的地がnullになった場合は自動運転を解除する
                 if (trainDiagram.GetCurrentNode() == null)
                 {
-                    UnityEngine.Debug.Log("自動運転中に手動でダイアグラムをいじって目的地がnullになったので自動運転を解除");
+                    //UnityEngine.Debug.Log("自動運転中に手動でダイアグラムをいじって目的地がnullになったので自動運転を解除");
                     TurnOffAutoRun();
                     _currentSpeed = 0;
                     return 0;
@@ -115,7 +147,6 @@ namespace Game.Train.Train
                     if (trainUnitStationDocking.IsDocked)
                     {
                         trainUnitStationDocking.UndockFromStation();
-                        UnityEngine.Debug.Log("diagram変更検知によるドッキング解除");
                     }
                     DiagramValidation();
                 }
@@ -126,11 +157,12 @@ namespace Game.Train.Train
                 if (trainUnitStationDocking.IsDocked)
                 {
                     _currentSpeed = 0;
-                    if (TrainUpdateService.TrainAutoRunDebugEnabled && tickCounter % 20 == 0)
+                    if (_trainUpdateService.IsTrainAutoRunDebugEnabled() && tickCounter % 20 == 0)
                         UnityEngine.Debug.Log("ドッキング中");// TODO デバッグトグル関係　そのうち消す
                     trainUnitStationDocking.TickDockedStations();
                     // もしtrainDiagramの出発条件を満たしていたら、trainDiagramは次の目的地をセット。次のtickでドッキングを解除、バリデーションが行われる
-                    if (trainDiagram.CheckEntries(this))
+                    trainDiagram.Update();
+                    if (trainDiagram.CanCurrentEntryDepart())
                     {
                         // ドッキングを解除はGuid違いの検出により次のtickで行う
                         //trainUnitStationDocking.UndockFromStation();
@@ -163,14 +195,11 @@ namespace Game.Train.Train
                 }
             }
 
-            //マスコンレベルから燃料を消費しつつ速度を計算する
-            UpdateTrainSpeed();
-            //距離計算 進むor後進する
-            double floatDistance = _currentSpeed * SpeedWeight;
-            _accumulatedDistance += floatDistance;
-            int distance = (int)Math.Truncate(_accumulatedDistance);
-            _accumulatedDistance -= distance;
-            return UpdateTrainByDistance(distance);
+            // マスコンレベルから燃料を消費しつつ速度を計算する
+            // マスコン確定後に進む距離を算出
+            // Calculate distance to travel after mascon decision
+            var distanceToMove = SimulateMotionStep();
+            return UpdateTrainByDistance(distanceToMove);
         }
 
         //キー操作系
@@ -181,54 +210,30 @@ namespace Game.Train.Train
             //sキーでmasconLevel=-16777216
         }
 
-        // AutoRun時に目的地に向かうためのマスコンレベル更新
+        // 自動運転時のマスコン制御を共通ロジックで更新
+        // Update mascon level via shared auto-run calculation
         public void UpdateMasconLevel()
         {
-            masconLevel = 0;
-            //目的地に近ければ減速したい。自動運行での最大速度を決めておく
-            double maxspeed = Math.Sqrt(((double)_remainingDistance) * AutoRunMaxSpeedDistanceCoefficient) + AutoRunMaxSpeedOffset;//AutoRunMaxSpeedOffsetは距離が近すぎても進めるようにするためのバッファ
-            //全力加速する必要がある。マスコンレベルmax
-            if (maxspeed > _currentSpeed)
-            {
-                masconLevel = MasconLevelMaximum;
-            }
-            //
-            if (maxspeed < _currentSpeed * AutoRunSpeedBufferRate)//AutoRunSpeedBufferMarginぶんはバッファ
-            {
-                var bufferAdjustedSpeed = _currentSpeed * AutoRunSpeedBufferRate;
-                var subspeed = maxspeed - bufferAdjustedSpeed;
-                masconLevel = Math.Max((int)subspeed, -MasconLevelMaximum);
-            }
+            var input = new AutoRunMasconInput(
+                _currentSpeed,
+                _remainingDistance);
+            masconLevel = TrainAutoRunMasconCalculator.Calculate(input);
         }
 
-        // 速度更新、自動時、手動時両方
-        // 進むべき距離を返す
-        public void UpdateTrainSpeed() 
+        // 速度と距離のステップ計算
+        // Simulate velocity and distance per tick
+        private int SimulateMotionStep()
         {
-            double force = 0.0;
-            int sign, sign2;
-            //マスコン操作での加減速
-            if (masconLevel > 0)
-            {
-                force = UpdateTractionForce(masconLevel);
-                _currentSpeed += force * TractionForceAccelerationRate;
-            }
-            else
-            {
-                //currentspeedがマイナスも考慮
-                sign = Math.Sign(_currentSpeed);
-                _currentSpeed += sign * masconLevel * ManualControlDecelerationFactor; // ManualControlDecelerationFactorは調整用定数
-                sign2 = Math.Sign(_currentSpeed);
-                if (sign != sign2) _currentSpeed = 0; // 逆方向に行かないようにする
-            }
-
-            //どちらにしても速度は摩擦で減少する。摩擦は速度の1乗、空気抵抗は速度の2乗に比例するとする
-            force = Math.Abs(_currentSpeed) * SpeedWeight * FRICTION + _currentSpeed * _currentSpeed * SpeedWeight * AIR_RESISTANCE;
-            sign = Math.Sign(_currentSpeed);
-            _currentSpeed -= sign * force;
-            sign2 = Math.Sign(_currentSpeed);
-            if (sign != sign2) _currentSpeed = 0; // 逆方向に行かないようにする
-            return;
+            var tractionForce = masconLevel > 0 ? UpdateTractionForce(masconLevel) : 0.0;
+            var stepInput = new TrainMotionStepInput(
+                _currentSpeed,
+                _accumulatedDistance,
+                masconLevel,
+                tractionForce);
+            var stepResult = TrainDistanceSimulator.Step(stepInput);
+            _currentSpeed = stepResult.NewSpeed;
+            _accumulatedDistance = stepResult.NewAccumulatedDistance;
+            return stepResult.DistanceToMove;
         }
 
 
@@ -248,27 +253,30 @@ namespace Game.Train.Train
                 totalMoved += moveLength;
                 _remainingDistance -= moveLength;
                 //自動運転で目的地に到着してたらドッキング判定を行う必要がある
-                if (IsArrivedDestination() && _isAutoRun)
+                if (_railPosition.DistanceToNextNode == 0)
                 {
-                    _currentSpeed = 0;
-                    _accumulatedDistance = 0;
-                    //diagramが駅を見ている場合
-                    if (trainDiagram.GetCurrentNode().StationRef.StationBlock != null)
+                    if (IsArrivedDestination() && _isAutoRun)
                     {
-                        trainUnitStationDocking.TryDockWhenStopped();
-                        //この瞬間ドッキングしたら、diagramの出発条件リセット
-                        if (trainUnitStationDocking.IsDocked) 
+                        _currentSpeed = 0;
+                        _accumulatedDistance = 0;
+                        //diagramが駅を見ている場合
+                        if (trainDiagram.GetCurrentNode().StationRef.StationBlock != null)
                         {
-                            trainDiagram.ResetCurrentEntryDepartureConditions();
+                            trainUnitStationDocking.TryDockWhenStopped();
+                            //この瞬間ドッキングしたら、diagramの出発条件リセット
+                            if (trainUnitStationDocking.IsDocked)
+                            {
+                                trainDiagram.ResetCurrentEntryDepartureConditions();
+                            }
                         }
+                        else//diagramが非駅を見ている場合 
+                        {
+                            // 次の目的地をセット
+                            _previousEntryGuid = Guid.Empty;//同じentryに戻るときを考慮。別entryにいくものとして扱う
+                            trainDiagram.MoveToNextEntry();
+                        }
+                        break;
                     }
-                    else//diagramが非駅を見ている場合 
-                    {
-                        // 次の目的地をセット
-                        _previousEntryGuid = Guid.Empty;//同じentryに戻るときを考慮。別entryにいくものとして扱う
-                        trainDiagram.MoveToNextEntry();
-                    }
-                    break;
                 }
                 if (distanceToMove == 0) break;
                 //----------------------------------------------------------------------------------------
@@ -333,14 +341,16 @@ namespace Game.Train.Train
                 totalWeight += weight;
                 totalTraction += traction;
             }
-            return (double)totalTraction / totalWeight * masconLevel / MasconLevelMaximum;
+            return (double)totalTraction / totalWeight * masconLevel / TrainMotionParameters.MasconLevelMaximum;
         }
 
         //diagramのindexが見ている目的地にちょうど0距離で到達したか
         private bool IsArrivedDestination()
         {
             var node = _railPosition.GetNodeApproaching();
-            if ((node == trainDiagram.GetCurrentNode()) & (_railPosition.GetDistanceToNextNode() == 0))
+            var dnode = trainDiagram.GetCurrentNode();
+            if (dnode == null) return false;
+            if ((node.NodeGuid == trainDiagram.GetCurrentNode().NodeGuid) && (_railPosition.GetDistanceToNextNode() == 0))
             {
                 return true;
             }
@@ -407,7 +417,8 @@ namespace Game.Train.Train
                 destinationNode = trainDiagram.GetCurrentNode();
                 if (destinationNode == null)
                     break;//なにかの例外
-                newPath = RailGraphDatastore.FindShortestPath(approaching, destinationNode);
+                var path = _railGraphProvider.FindShortestPath(approaching, destinationNode);
+                newPath = path?.ToList();
                 if (newPath == null || newPath.Count < 2)
                 {
                     trainDiagram.MoveToNextEntry();
@@ -423,23 +434,20 @@ namespace Game.Train.Train
         //列車編成を保存する。ブロックとは違うことに注意
         public TrainUnitSaveData CreateSaveData()
         {
-            var railSnapshot = _railPosition != null
-                ? new List<ConnectionDestination>(_railPosition.CreateSaveSnapshot())
-                : new List<ConnectionDestination>();
+            var railpositionSnapshot = _railPosition.CreateSaveSnapshot();
 
-            var carStates = _cars != null
-                ? _cars.Select(CreateTrainCarSaveData).ToList()
-                : new List<TrainCarSaveData>();
+            var carStates = new List<TrainCarSaveData>(); 
+            foreach (var car in _cars)
+            {
+                var carData = car.CreateTrainCarSaveData();
+                carStates.Add(carData);
+            }
 
-            var diagramState = trainDiagram != null
-                ? CreateTrainDiagramSaveData(trainDiagram)
-                : null;
+            var diagramState = trainDiagram.CreateTrainDiagramSaveData();
 
             return new TrainUnitSaveData
             {
-                TrainLength = _railPosition?.TrainLength ?? 0,
-                DistanceToNextNode = _railPosition?.DistanceToNextNode ?? 0,
-                RailSnapshot = railSnapshot,
+                railPositionSaveData = railpositionSnapshot,
                 IsAutoRun = _isAutoRun,
                 PreviousEntryGuid = _previousEntryGuid,
                 CurrentSpeedBits = BitConverter.DoubleToInt64Bits(_currentSpeed),
@@ -449,85 +457,6 @@ namespace Game.Train.Train
             };
         }
 
-        private static TrainCarSaveData CreateTrainCarSaveData(TrainCar car)
-        {
-            var inventoryItems = new List<ItemStackSaveJsonObject>(car.InventorySlots);
-            for (int i = 0; i < car.InventorySlots; i++)
-            {
-                inventoryItems.Add(new ItemStackSaveJsonObject(car.GetItem(i)));
-            }
-
-            var fuelItems = new List<ItemStackSaveJsonObject>(car.FuelSlots);
-            for (int i = 0; i < car.FuelSlots; i++)
-            {
-                fuelItems.Add(new ItemStackSaveJsonObject(car.GetFuelItem(i)));
-            }
-
-            SerializableVector3Int? dockingPosition = null;
-            if (car.dockingblock != null)
-            {
-                var blockPosition = car.dockingblock.BlockPositionInfo.OriginalPos;
-                dockingPosition = new SerializableVector3Int(blockPosition.x, blockPosition.y, blockPosition.z);
-            }
-
-            return new TrainCarSaveData
-            {
-                TrainCarGuid = car.TrainCarMasterElement.TrainCarGuid,
-                IsFacingForward = car.IsFacingForward,
-                DockingBlockPosition = dockingPosition,
-                InventoryItems = inventoryItems,
-                FuelItems = fuelItems
-            };
-        }
-
-        private static TrainDiagramSaveData CreateTrainDiagramSaveData(TrainDiagram diagram)
-        {
-            var entries = new List<TrainDiagramEntrySaveData>();
-            foreach (var entry in diagram.Entries)
-            {
-                entries.Add(new TrainDiagramEntrySaveData
-                {
-                    EntryId = entry.entryId,
-                    Node = CreateConnectionDestinationSnapshot(entry.Node),
-                    DepartureConditions = entry.DepartureConditionTypes?.ToList() ?? new List<TrainDiagram.DepartureConditionType>(),
-                    WaitForTicksInitial = entry.GetWaitForTicksInitialTicks(),
-                    WaitForTicksRemaining = entry.GetWaitForTicksRemainingTicks()
-                });
-            }
-
-            return new TrainDiagramSaveData
-            {
-                CurrentIndex = diagram.CurrentIndex,
-                Entries = entries
-            };
-        }
-
-        private static ConnectionDestination CreateConnectionDestinationSnapshot(IRailNode node)
-        {
-            if (node == null)
-                return ConnectionDestination.Default;
-            return node.ConnectionDestination;
-        }
-
-        private static List<IRailNode> RestoreRailNodes(IEnumerable<ConnectionDestination> snapshot)
-        {
-            var nodes = new List<IRailNode>();
-            if (snapshot == null)
-            {
-                return nodes;
-            }
-
-            foreach (var destination in snapshot)
-            {
-                var node = RailGraphDatastore.ResolveRailNode(destination);
-                if (node != null)
-                {
-                    nodes.Add(node);
-                }
-            }
-            return nodes;
-        }
-        //別コードに分割したい TODO
         private static List<TrainCar> RestoreTrainCars(List<TrainCarSaveData> carData)
         {
             var cars = new List<TrainCar>();
@@ -535,99 +464,29 @@ namespace Game.Train.Train
             {
                 return cars;
             }
-
             foreach (var data in carData)
             {
-                var car = RestoreTrainCar(data);
+                var car = TrainCar.RestoreTrainCar(data);
                 if (car != null)
                 {
                     cars.Add(car);
                 }
             }
-
             return cars;
-        }
-
-        private static TrainCar RestoreTrainCar(TrainCarSaveData data)
-        {
-            if (data == null)
-            {
-                return null;
-            }
-            
-            if (!MasterHolder.TrainUnitMaster.TryGetTrainUnit(data.TrainCarGuid, out var trainCarMaster)) throw new Exception("trainCarMaster is not found");
-            var isFacingForward = data.IsFacingForward;
-            var car = new TrainCar(trainCarMaster, isFacingForward);
-
-            var empty = ServerContext.ItemStackFactory.CreatEmpty();
-
-            for (int i = 0; i < car.GetSlotSize(); i++)
-            {
-                IItemStack item = empty;
-                if (data.InventoryItems != null && i < data.InventoryItems.Count)
-                {
-                    item = data.InventoryItems[i]?.ToItemStack() ?? empty;
-                }
-                car.SetItem(i, item);
-            }
-
-            for (int i = 0; i < car.FuelSlots; i++)
-            {
-                IItemStack item = empty;
-                if (data.FuelItems != null && i < data.FuelItems.Count)
-                {
-                    item = data.FuelItems[i]?.ToItemStack() ?? empty;
-                }
-                car.SetFuelItem(i, item);
-            }
-
-            if (data.DockingBlockPosition.HasValue)
-            {
-                var block = ServerContext.WorldBlockDatastore.GetBlock((UnityEngine.Vector3Int)data.DockingBlockPosition.Value);
-                if (block != null)
-                {
-                    car.dockingblock = block;
-                }
-            }
-
-            return car;
-        }
-
-        private static void RestoreTrainDiagram(TrainDiagram diagram, TrainDiagramSaveData saveData)
-        {
-            if (diagram == null || saveData == null)
-            {
-                return;
-            }
-            diagram.RestoreState(saveData);
         }
 
         public static TrainUnit RestoreFromSaveData(TrainUnitSaveData saveData)
         {
             if (saveData == null)
-            {
                 return null;
-            }
 
-            var nodes = RestoreRailNodes(saveData.RailSnapshot);
-            if (nodes.Count == 0)
-            {
+            var railPosData = saveData.railPositionSaveData;
+            // サーバー側プロバイダでRailPositionを復元する
+            // Restore RailPosition via the server-side provider
+            var railGraphProvider = ServerContext.GetService<IRailGraphProvider>();
+            var railPosition = RailPositionFactory.Restore(railPosData, railGraphProvider);
+            if (railPosition == null)
                 return null;
-            }
-
-            var trainLength = saveData.TrainLength;
-            if (trainLength < 0)
-            {
-                trainLength = 0;
-            }
-
-            var distanceToNextNode = saveData.DistanceToNextNode;
-            if (distanceToNextNode < 0)
-            {
-                distanceToNextNode = 0;
-            }
-
-            var railPosition = new RailPosition(nodes, trainLength, distanceToNextNode);
             var cars = RestoreTrainCars(saveData.Cars);
 
             var restoredSpeed = saveData.CurrentSpeedBits.HasValue
@@ -637,7 +496,11 @@ namespace Game.Train.Train
                 ? BitConverter.Int64BitsToDouble(saveData.AccumulatedDistanceBits.Value)
                 : 0;
 
-            var trainUnit = new TrainUnit(railPosition, cars)
+            var trainUpdateService = ServerContext.GetService<TrainUpdateService>();
+            var railPositionManager = ServerContext.GetService<TrainRailPositionManager>();
+            var diagramManager = ServerContext.GetService<TrainDiagramManager>();
+
+            var trainUnit = new TrainUnit(railPosition, cars, trainUpdateService, railPositionManager, diagramManager, false)
             {
                 _isAutoRun = saveData.IsAutoRun,
                 _previousEntryGuid = saveData.PreviousEntryGuid,
@@ -646,14 +509,12 @@ namespace Game.Train.Train
             };
 
             trainUnit._remainingDistance = trainUnit._railPosition.GetDistanceToNextNode();
-
-            RestoreTrainDiagram(trainUnit.trainDiagram, saveData.Diagram);
+            trainUnit.trainDiagram.RestoreState(saveData.Diagram);
 
             if (trainUnit._isAutoRun)
             {
                 trainUnit.DiagramValidation();
             }
-
             return trainUnit;
         }
 
@@ -696,7 +557,10 @@ namespace Game.Train.Train
             // 4) 新しいTrainUnitを作成
             var splittedUnit = new TrainUnit(
                 splittedRailPosition,
-                detachedCars
+                detachedCars,
+                _trainUpdateService,
+                _railPositionManager,
+                _diagramManager
             );
             // 5) 自分が0になっていたら
             if (_cars.Count == 0)
@@ -717,6 +581,9 @@ namespace Game.Train.Train
                 int splittedTrainLength = 0;
                 foreach (var car in splittedCars)
                     splittedTrainLength += car.Length;
+                // 切り離した長さが列車の全長と一致した時点で、現状のまま戻す
+                // Return as-is when the detached length matches the full train length
+                if (splittedTrainLength == newNodes.TrainLength) return newNodes;
                 //newNodesを反転して、新しい列車長を設定
                 newNodes.Reverse();
                 newNodes.SetTrainLength(splittedTrainLength);
@@ -778,9 +645,13 @@ namespace Game.Train.Train
             _railPosition.AppendRailPositionAtRear(railPosition);
         }
 
+        public void OnTrainDocked() => trainDiagram?.NotifyDocked();
+
+        public void OnTrainUndocked() => trainDiagram?.NotifyDeparted();
+
         public void OnDestroy()
         {
-            TrainRailPositionManager.Instance.UnregisterRailPosition(_railPosition);
+            _railPositionManager.UnregisterRailPosition(_railPosition);
             trainDiagram.OnDestroy();
             _railPosition.OnDestroy();
             trainUnitStationDocking.OnDestroy();
@@ -791,7 +662,7 @@ namespace Game.Train.Train
             }
             _cars.Clear();
             
-            TrainUpdateService.Instance.UnregisterTrain(this);
+            _trainUpdateService.UnregisterTrain(this);
 
             trainDiagram = null;
             _railPosition = null;
@@ -800,46 +671,8 @@ namespace Game.Train.Train
             _trainId = Guid.Empty;
         }
     }
-
-    [Serializable]
-    public class TrainUnitSaveData
-    {
-        public int TrainLength { get; set; }
-        public int DistanceToNextNode { get; set; }
-        public List<ConnectionDestination> RailSnapshot { get; set; }
-        public bool IsAutoRun { get; set; }
-        public Guid PreviousEntryGuid { get; set; }
-        public long? CurrentSpeedBits { get; set; }
-        public long? AccumulatedDistanceBits { get; set; }
-        public List<TrainCarSaveData> Cars { get; set; }
-        public TrainDiagramSaveData Diagram { get; set; }
-    }
-
-    [Serializable]
-    public class TrainCarSaveData
-    {
-        public Guid TrainCarGuid { get; set; }
-        public bool IsFacingForward { get; set; }
-        public SerializableVector3Int? DockingBlockPosition { get; set; }
-        public List<ItemStackSaveJsonObject> InventoryItems { get; set; }
-        public List<ItemStackSaveJsonObject> FuelItems { get; set; }
-    }
-
-    [Serializable]
-    public class TrainDiagramSaveData
-    {
-        public int CurrentIndex { get; set; }
-        public List<TrainDiagramEntrySaveData> Entries { get; set; }
-    }
-
-    [Serializable]
-    public class TrainDiagramEntrySaveData
-    {
-        public Guid EntryId { get; set; }
-        public ConnectionDestination Node { get; set; }
-        public List<TrainDiagram.DepartureConditionType> DepartureConditions { get; set; }
-        public int? WaitForTicksInitial { get; set; }
-        public int? WaitForTicksRemaining { get; set; }
-    }
-
 }
+
+
+
+

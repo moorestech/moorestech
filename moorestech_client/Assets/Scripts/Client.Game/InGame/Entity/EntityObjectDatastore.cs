@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using Client.Game.InGame.Entity.Factory;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
-using Game.Entity.Interface;
-using MessagePack;
+using Client.Game.InGame.Train;
 using UnityEngine;
+using VContainer;
 
 namespace Client.Game.InGame.Entity
 {
@@ -14,9 +14,12 @@ namespace Client.Game.InGame.Entity
         private EntityObjectFactory _entityObjectFactory;
         private readonly Dictionary<long, (DateTime lastUpdate, IEntityObject objectEntity)> _entities = new();
         
-        private void Awake()
+        [Inject]
+        public void Construct(TrainUnitClientCache trainUnitClientCache)
         {
-            _entityObjectFactory = new EntityObjectFactory();
+            // 依存注入とファクトリー初期化
+            // Dependency injection and factory initialization
+            _entityObjectFactory = new EntityObjectFactory(trainUnitClientCache);
         }
         
         /// <summary>
@@ -27,7 +30,7 @@ namespace Client.Game.InGame.Entity
             //1秒以上経過していたら削除
             var removeEntities = new List<long>();
             foreach (var entity in _entities)
-                if ((DateTime.Now - entity.Value.lastUpdate).TotalSeconds > 1)
+                if (((DateTime.Now - entity.Value.lastUpdate).TotalSeconds > 1) && (entity.Value.objectEntity.DestroyFlagIfNoUpdate))
                     removeEntities.Add(entity.Key);
             foreach (var removeEntity in removeEntities)
             {
@@ -48,14 +51,11 @@ namespace Client.Game.InGame.Entity
                 if (_entities.ContainsKey(entity.InstanceId))
                 {
                     var objectEntity = _entities[entity.InstanceId].objectEntity;
-                    
                     objectEntity.SetPositionWithLerp(entity.Position);
                     objectEntity.SetEntityData(entity.EntityData);
                     _entities[entity.InstanceId] = (DateTime.Now, objectEntity);
-                    
                     continue;
                 }
-                
                 
                 // 新規エンティティの生成
                 // Create new entity

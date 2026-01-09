@@ -7,7 +7,6 @@ using Game.Block.Interface.Component;
 using Game.Train.Common;
 using Game.Train.RailGraph;
 using Game.Train.Train;
-using Mooresmaster.Model.TrainModule;
 using NUnit.Framework;
 using Tests.Module.TestMod;
 using Tests.Util;
@@ -75,7 +74,7 @@ namespace Tests.UnitTest.Game
             cargoPlatformLoader.SetTransferMode(CargoplatformComponent.CargoTransferMode.LoadToTrain);
             cargoPlatformUnloader.SetTransferMode(CargoplatformComponent.CargoTransferMode.UnloadToPlatform);
 
-            var stationSegmentLength = loadingEntryComponent.FrontNode.GetDistanceToNode(loadingExitComponent.FrontNode);
+            var stationSegmentLength = loadingBlock!.BlockPositionInfo.BlockSize.z;
             Assert.Greater(stationSegmentLength, 0, "プラットフォーム間セグメントの長さが0以下になっています。");
 
             var initialRailNodes = new List<RailNode>
@@ -86,8 +85,8 @@ namespace Tests.UnitTest.Game
 
 
             var railPosition = new RailPosition(new List<IRailNode>(initialRailNodes), stationSegmentLength, 0);
-            var trainCar = new TrainCar(new TrainCarMasterElement(0, Guid.Empty, Guid.Empty, null, 1000, 1, stationSegmentLength));
-            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar });
+            var trainCar = TrainTestCarFactory.CreateTrainCar(0, 1000, 1, stationSegmentLength, true);
+            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
 
             var loadingEntry = trainUnit.trainDiagram.AddEntry(loadingExitComponent.FrontNode);
             loadingEntry.SetDepartureCondition(TrainDiagram.DepartureConditionType.TrainInventoryFull);

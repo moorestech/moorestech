@@ -6,7 +6,7 @@ namespace Game.Train.Utility
     public static class RailNodeCalculate
     {
         //配列を後ろから見ていく
-        public static int CalculateTotalDistance(List<IRailNode> _railNodes)
+        public static int CalculateTotalDistance(IReadOnlyList<IRailNode> _railNodes)
         {
             int totalDistance = 0;
             for (int i = 0; i < _railNodes.Count - 1; i++)
@@ -24,7 +24,7 @@ namespace Game.Train.Utility
         }
 
         //配列を前から見ていく
-        public static int CalculateTotalDistanceF(List<IRailNode> _railNodes)
+        public static int CalculateTotalDistanceF(IReadOnlyList<IRailNode> _railNodes)
         {
             int totalDistance = 0;
             for (int i = 0; i < _railNodes.Count - 1; i++)

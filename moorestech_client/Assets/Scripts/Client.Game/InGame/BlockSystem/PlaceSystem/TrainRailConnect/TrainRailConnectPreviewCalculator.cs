@@ -1,4 +1,3 @@
-using Client.Game.InGame.Block;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
 {

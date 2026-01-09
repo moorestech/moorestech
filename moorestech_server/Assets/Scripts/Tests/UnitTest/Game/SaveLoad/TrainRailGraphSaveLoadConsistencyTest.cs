@@ -15,8 +15,6 @@ namespace Tests.UnitTest.Game.SaveLoad
         [Test]
         public void SmallRailGraphRemainsConsistentAfterSaveLoad()
         {
-            RailGraphDatastore.ResetInstance();
-
             var environment = TrainTestHelper.CreateEnvironment();
             _ = environment.GetRailGraphDatastore();
 
@@ -46,7 +44,7 @@ namespace Tests.UnitTest.Game.SaveLoad
                 environment.WorldBlockDatastore.RemoveBlock(position, BlockRemoveReason.ManualRemove);
             }
 
-            RailGraphDatastore.ResetInstance();
+            environment.GetRailGraphDatastore().Reset();
 
             var loadEnvironment = TrainTestHelper.CreateEnvironment();
             SaveLoadJsonTestHelper.LoadFromJson(loadEnvironment.ServiceProvider, saveJson);
@@ -69,14 +67,12 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             RailGraphNetworkTestHelper.AssertEquivalent(expectedSnapshot, actualSnapshot);
 
-            RailGraphDatastore.ResetInstance();
+            loadEnvironment.GetRailGraphDatastore().Reset();
         }
 
         [Test]
         public void LargeRailGraphWithHubRemainsConsistentAfterSaveLoad()
         {
-            RailGraphDatastore.ResetInstance();
-
             var environment = TrainTestHelper.CreateEnvironment();
             _ = environment.GetRailGraphDatastore();
 
@@ -186,7 +182,7 @@ namespace Tests.UnitTest.Game.SaveLoad
                 environment.WorldBlockDatastore.RemoveBlock(position, BlockRemoveReason.ManualRemove);
             }
 
-            RailGraphDatastore.ResetInstance();
+            environment.GetRailGraphDatastore().Reset();
 
             var loadEnvironment = TrainTestHelper.CreateEnvironment();
             SaveLoadJsonTestHelper.LoadFromJson(loadEnvironment.ServiceProvider, saveJson);
@@ -209,7 +205,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             RailGraphNetworkTestHelper.AssertEquivalent(expectedSnapshot, actualSnapshot);
 
-            RailGraphDatastore.ResetInstance();
+            loadEnvironment.GetRailGraphDatastore().Reset();
         }
     }
 }
