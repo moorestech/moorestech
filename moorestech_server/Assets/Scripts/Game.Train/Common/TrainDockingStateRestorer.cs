@@ -1,6 +1,7 @@
 using Game.Block.Interface.Component;
 using Game.World.Interface.DataStore;
 using System.Linq;
+using Game.Context;
 
 namespace Game.Train.Common
 {
@@ -8,18 +9,17 @@ namespace Game.Train.Common
     public class TrainDockingStateRestorer
     {
         private readonly TrainUpdateService _trainUpdateService;
-        private readonly IWorldBlockDatastore _worldBlockDatastore;
 
-        public TrainDockingStateRestorer(TrainUpdateService trainUpdateService, IWorldBlockDatastore worldBlockDatastore)
+        public TrainDockingStateRestorer(TrainUpdateService trainUpdateService)
         {
             _trainUpdateService = trainUpdateService;
-            _worldBlockDatastore = worldBlockDatastore;
         }
 
         public void RestoreDockingState()
         {
             var trains = _trainUpdateService.GetRegisteredTrains().ToArray();
-
+            var _worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            
             foreach (var train in trains)
             {
                 train.trainUnitStationDocking.ClearDockingReceivers();
