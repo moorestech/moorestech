@@ -12,6 +12,8 @@ namespace Game.Train.Train
         private int _currentIndex;
         private ITrainDiagramContext _context;
         private readonly IRailGraphProvider _railGraphProvider;
+        private readonly TrainDiagramManager _diagramManager;
+        private readonly TrainUpdateService _trainUpdateService;
 
         public IReadOnlyList<TrainDiagramEntry> Entries => _entries;
         public int CurrentIndex => _currentIndex;
@@ -23,18 +25,20 @@ namespace Game.Train.Train
             WaitForTicks
         }
 
-        public TrainDiagram(IRailGraphProvider railGraphProvider)
+        public TrainDiagram(IRailGraphProvider railGraphProvider, TrainDiagramManager diagramManager, TrainUpdateService trainUpdateService)
         {
             // レールグラフプロバイダを保持する
             // Keep the rail graph provider reference
             _railGraphProvider = railGraphProvider;
+            _diagramManager = diagramManager;
+            _trainUpdateService = trainUpdateService;
             _entries = new List<TrainDiagramEntry>();
             _currentIndex = -1;
-            TrainDiagramManager.Instance.RegisterDiagram(this);
+            _diagramManager.RegisterDiagram(this);
         }
         public void OnDestroy()
         {
-            TrainDiagramManager.Instance.UnregisterDiagram(this);
+            _diagramManager.UnregisterDiagram(this);
             _entries.Clear();
         }
 
@@ -253,7 +257,7 @@ namespace Game.Train.Train
                 return;
             }
             var hash = TrainDiagramHashCalculator.Compute(this);
-            TrainDiagramManager.Instance.NotifyDocked(_context, entry, TrainUpdateService.CurrentTick, hash);
+            _diagramManager.NotifyDocked(_context, entry, _trainUpdateService.GetCurrentTick(), hash);
         }
 
         internal void NotifyDeparted()
@@ -264,7 +268,7 @@ namespace Game.Train.Train
                 return;
             }
             var hash = TrainDiagramHashCalculator.Compute(this);
-            TrainDiagramManager.Instance.NotifyDeparted(_context, entry, TrainUpdateService.CurrentTick, hash);
+            _diagramManager.NotifyDeparted(_context, entry, _trainUpdateService.GetCurrentTick(), hash);
         }
 
         public TrainDiagramSaveData CreateTrainDiagramSaveData()

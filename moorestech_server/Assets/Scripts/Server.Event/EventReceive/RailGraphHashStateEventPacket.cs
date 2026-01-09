@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Game.Train.Common;
 using Game.Train.RailGraph;
 using MessagePack;
@@ -16,11 +16,15 @@ namespace Server.Event.EventReceive
         public const string EventTag = "va:event:railGraphHashState";
 
         private readonly EventProtocolProvider _eventProtocolProvider;
+        private readonly IRailGraphDatastore _railGraphDatastore;
+        private readonly TrainUpdateService _trainUpdateService;
         private readonly CompositeDisposable _disposables = new();
 
-        public RailGraphHashStateEventPacket(EventProtocolProvider eventProtocolProvider)
+        public RailGraphHashStateEventPacket(EventProtocolProvider eventProtocolProvider, IRailGraphDatastore railGraphDatastore, TrainUpdateService trainUpdateService)
         {
             _eventProtocolProvider = eventProtocolProvider;
+            _railGraphDatastore = railGraphDatastore;
+            _trainUpdateService = trainUpdateService;
 
             // 1秒周期でRailGraphハッシュを通知
             // Broadcast hash/tick every second
@@ -40,11 +44,12 @@ namespace Server.Event.EventReceive
         {
             // RailGraphのハッシュとtickを取得し全プレイヤーに送信
             // Fetch the latest graph hash/tick and broadcast to every player
-            var hash = RailGraphDatastore.GetConnectNodesHash();
-            var payload = MessagePackSerializer.Serialize(new RailGraphHashStateMessagePack(hash, TrainUpdateService.CurrentTick));
+            var hash = _railGraphDatastore.GetConnectNodesHash();
+            var payload = MessagePackSerializer.Serialize(new RailGraphHashStateMessagePack(hash, _trainUpdateService.GetCurrentTick()));
             _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
         }
 
         #endregion
     }
 }
+

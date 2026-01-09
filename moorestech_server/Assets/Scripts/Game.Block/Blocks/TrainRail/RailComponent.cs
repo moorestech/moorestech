@@ -1,4 +1,4 @@
-using ClassLibrary;
+﻿using ClassLibrary;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Train.RailGraph;
@@ -15,6 +15,8 @@ namespace Game.Block.Blocks.TrainRail
     public class RailComponent : IBlockComponent
     {
         public bool IsDestroy { get; private set; }
+
+        private readonly IRailGraphDatastore _railGraphDatastore;
 
         // このRailComponentが保持する2つのRailNode
         public RailNode FrontNode { get; private set; }
@@ -37,13 +39,15 @@ namespace Game.Block.Blocks.TrainRail
         /// <summary>
         /// レール方向にBlockDirectionを用いるコンストラクタ
         /// </summary>
-        public RailComponent(Vector3 position, BlockDirection blockDirection, RailComponentID railComponentID) : this(position, ToVector3(blockDirection), railComponentID) { }
+        public RailComponent(IRailGraphDatastore railGraphDatastore, Vector3 position, BlockDirection blockDirection, RailComponentID railComponentID) : this(railGraphDatastore, position, ToVector3(blockDirection), railComponentID) { }
 
         /// <summary>
         /// コンストラクタ
         /// </summary>
-        public RailComponent(Vector3 position, Vector3 railDirection ,RailComponentID railComponentID)
+        public RailComponent(IRailGraphDatastore railGraphDatastore, Vector3 position, Vector3 railDirection ,RailComponentID railComponentID)
         {
+            _railGraphDatastore = railGraphDatastore;
+
             Position = position;
             RailDirection = railDirection;
             ComponentID = railComponentID;
@@ -52,14 +56,14 @@ namespace Game.Block.Blocks.TrainRail
             FrontControlPoint = new RailControlPoint(position, CalculateControlPointOffset(true));
             BackControlPoint = new RailControlPoint(position, CalculateControlPointOffset(false));
 
-            FrontNode = new RailNode();
-            BackNode = new RailNode();
+            FrontNode = new RailNode(_railGraphDatastore);
+            BackNode = new RailNode(_railGraphDatastore);
 
             FrontNode.SetRailControlPoints(FrontControlPoint, BackControlPoint);
             BackNode.SetRailControlPoints(BackControlPoint, FrontControlPoint);
             FrontNode.SetConnectionDestination(new ConnectionDestination(railComponentID, true));
             BackNode.SetConnectionDestination(new ConnectionDestination(railComponentID, false));
-            RailGraphDatastore.AddNodePair(FrontNode, BackNode);
+            _railGraphDatastore.AddNodePair(FrontNode, BackNode);
         }
 
 
@@ -206,3 +210,6 @@ namespace Game.Block.Blocks.TrainRail
         }
     }
 }
+
+
+

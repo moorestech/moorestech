@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using Game.Challenge;
 using Game.Context;
@@ -33,11 +33,13 @@ namespace Game.SaveLoad.Json
         private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
         private readonly CraftTreeManager _craftTreeManager;
         private readonly IResearchDataStore _researchDataStore;
+        private readonly TrainSaveLoadService _trainSaveLoadService;
+        private readonly TrainDockingStateRestorer _trainDockingStateRestorer;
 
         public WorldLoaderFromJson(SaveJsonFilePath saveJsonFilePath,
             IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore, 
             ChallengeDatastore challengeDatastore, IGameUnlockStateDataController gameUnlockStateDataController, CraftTreeManager craftTreeManager, MapInfoJson mapInfoJson,
-            IResearchDataStore researchDataStore)
+            IResearchDataStore researchDataStore, TrainSaveLoadService trainSaveLoadService, TrainDockingStateRestorer trainDockingStateRestorer)
         {
             _worldBlockDatastore = ServerContext.WorldBlockDatastore;
             _mapObjectDatastore = ServerContext.MapObjectDatastore;
@@ -51,6 +53,8 @@ namespace Game.SaveLoad.Json
             _craftTreeManager = craftTreeManager;
             _mapInfoJson = mapInfoJson;
             _researchDataStore = researchDataStore;
+            _trainSaveLoadService = trainSaveLoadService;
+            _trainDockingStateRestorer = trainDockingStateRestorer;
         }
         
         public void LoadOrInitialize()
@@ -113,8 +117,8 @@ namespace Game.SaveLoad.Json
             _challengeDatastore.LoadChallenge(load.Challenge);
             _craftTreeManager.LoadCraftTreeInfo(load.CraftTreeInfo);
 
-            TrainSaveLoadService.RestoreTrainStates(load.TrainUnits);
-            TrainDockingStateRestorer.RestoreDockingState();
+            _trainSaveLoadService.RestoreTrainStates(load.TrainUnits);
+            _trainDockingStateRestorer.RestoreDockingState();
         }
         
         public void WorldInitialize()
@@ -124,3 +128,5 @@ namespace Game.SaveLoad.Json
         }
     }
 }
+
+

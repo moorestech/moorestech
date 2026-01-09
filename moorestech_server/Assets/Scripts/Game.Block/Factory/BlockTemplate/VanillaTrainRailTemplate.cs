@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Game.Block.Blocks;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
@@ -15,6 +15,12 @@ namespace Game.Block.Factory.BlockTemplate
     /// </summary>
     public class VanillaTrainRailTemplate : IBlockTemplate
     {
+        private readonly IRailGraphDatastore _railGraphDatastore;
+
+        public VanillaTrainRailTemplate(IRailGraphDatastore railGraphDatastore)
+        {
+            _railGraphDatastore = railGraphDatastore;
+        }
         /// <summary>
         /// 新規にブロック（と対応するRailComponent等）を生成
         /// </summary>
@@ -38,7 +44,7 @@ namespace Game.Block.Factory.BlockTemplate
             // RailComponentを生成
             var railComponentId = new RailComponentID(blockPositionInfo.OriginalPos, 0);
             var railComponentPosition = RailComponentUtility.CalculateRailComponentPosition(blockPositionInfo,trainRailParam.RailPosition);
-            railComponents[0] = new RailComponent(railComponentPosition, railBlockDirection, railComponentId);
+            railComponents[0] = new RailComponent(_railGraphDatastore, railComponentPosition, railBlockDirection, railComponentId);
             var railSaverComponent = new RailSaverComponent(railComponents);
             // StateDetailコンポーネントを生成
             var stateDetailComponent = new RailComponentStateDetailComponent(railComponents[0]);
@@ -60,7 +66,7 @@ namespace Game.Block.Factory.BlockTemplate
                 BlockPositionInfo positionInfo)
         {
             var trainRailParam = masterElement.BlockParam as TrainRailBlockParam;
-            var railComponents = RailComponentUtility.Restore1RailComponents(componentStates, positionInfo, trainRailParam.RailPosition);
+            var railComponents = RailComponentUtility.Restore1RailComponents(componentStates, positionInfo, trainRailParam.RailPosition, _railGraphDatastore);
             var railSaverComponent = new RailSaverComponent(railComponents);
             // StateDetailコンポーネントを生成
             var stateDetailComponent = new RailComponentStateDetailComponent(railComponents[0]);
@@ -73,3 +79,5 @@ namespace Game.Block.Factory.BlockTemplate
         }
     }
 }
+
+

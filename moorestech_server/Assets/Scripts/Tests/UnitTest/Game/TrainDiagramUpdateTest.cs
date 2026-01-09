@@ -1,4 +1,4 @@
-using Core.Master;
+﻿using Core.Master;
 using Game.Context;
 using Game.Train.Common;
 using Game.Train.RailGraph;
@@ -16,14 +16,12 @@ namespace Tests.UnitTest.Game
         [Test]
         public void DiagramRemovesDeletedNodeAndResetsIndex()
         {
-            _ = new TrainDiagramManager();
-
             var env = TrainTestHelper.CreateEnvironment();
-            _ = env.GetRailGraphDatastore();
+            var railGraphDatastore = env.GetRailGraphDatastore();
 
-            var startNode = RailNode.CreateSingleAndRegister();
-            var removedNode = RailNode.CreateSingleAndRegister();
-            var nextNode = RailNode.CreateSingleAndRegister();
+            var startNode = RailNode.CreateSingleAndRegister(railGraphDatastore);
+            var removedNode = RailNode.CreateSingleAndRegister(railGraphDatastore);
+            var nextNode = RailNode.CreateSingleAndRegister(railGraphDatastore);
 
             startNode.ConnectNode(removedNode, 10);
             removedNode.ConnectNode(startNode, 10);
@@ -39,7 +37,7 @@ namespace Tests.UnitTest.Game
             var railNodes = new List<IRailNode> { startNode };
             var railPosition = new RailPosition(railNodes, 0, 0);
 
-            var trainUnit = new TrainUnit(railPosition, cars);
+            var trainUnit = new TrainUnit(railPosition, cars, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
             trainUnit.trainDiagram.AddEntry(removedNode);
             trainUnit.trainDiagram.AddEntry(nextNode);
 
@@ -183,3 +181,4 @@ namespace Tests.UnitTest.Game
         }
     }
 }
+

@@ -1,4 +1,4 @@
-using Game.Context;
+﻿using Game.Context;
 using Game.Train.Common;
 using Game.Train.RailGraph;
 using Game.Train.Utility;
@@ -18,6 +18,9 @@ namespace Game.Train.Train
         
         private RailPosition _railPosition;
         private readonly IRailGraphProvider _railGraphProvider;
+        private readonly TrainUpdateService _trainUpdateService;
+        private readonly TrainRailPositionManager _railPositionManager;
+        private readonly TrainDiagramManager _diagramManager;
         private Guid _trainId;
         public Guid TrainId => _trainId;
 
@@ -48,23 +51,29 @@ namespace Game.Train.Train
         private int tickCounter = 0;// TODO デバッグトグル関係　そのうち消す
         public TrainUnit(
             RailPosition initialPosition,
-            List<TrainCar> cars
+            List<TrainCar> cars,
+            TrainUpdateService trainUpdateService,
+            TrainRailPositionManager railPositionManager,
+            TrainDiagramManager diagramManager
         )
         {
             _railPosition = initialPosition;
             // 先頭ノードからグラフプロバイダを取得する
             // Resolve the graph provider from the head node
             _railGraphProvider = initialPosition.GetNodeApproaching().GraphProvider;
-            TrainRailPositionManager.Instance.RegisterRailPosition(_railPosition);
+            _trainUpdateService = trainUpdateService;
+            _railPositionManager = railPositionManager;
+            _diagramManager = diagramManager;
+            _railPositionManager.RegisterRailPosition(_railPosition);
             _trainId = Guid.NewGuid();
             _cars = cars;
             _currentSpeed = 0.0; // 仮の初期速度
             _isAutoRun = false;
             _previousEntryGuid = Guid.Empty;
             trainUnitStationDocking = new TrainUnitStationDocking(this, this);
-            trainDiagram = new TrainDiagram(_railGraphProvider);
+            trainDiagram = new TrainDiagram(_railGraphProvider, _diagramManager, _trainUpdateService);
             trainDiagram.SetContext(this);
-            TrainUpdateService.Instance.RegisterTrain(this);
+            _trainUpdateService.RegisterTrain(this);
         }
 
 
@@ -89,7 +98,7 @@ namespace Game.Train.Train
         {
             //数十回に1回くらいの頻度でデバッグログを出す
             tickCounter++;
-            if (TrainUpdateService.TrainAutoRunDebugEnabled && tickCounter % 20 == 0)
+            if (_trainUpdateService.IsTrainAutoRunDebugEnabled() && tickCounter % 20 == 0)
             {
                 UnityEngine.Debug.Log("spd=" + _currentSpeed + "_Auto=" + IsAutoRun + "_DiagramCount" + trainDiagram.Entries.Count + "" + IsDocked);// TODO デバッグトグル関係　そのうち消す
             }
@@ -121,7 +130,7 @@ namespace Game.Train.Train
                 if (trainUnitStationDocking.IsDocked)
                 {
                     _currentSpeed = 0;
-                    if (TrainUpdateService.TrainAutoRunDebugEnabled && tickCounter % 20 == 0)
+                    if (_trainUpdateService.IsTrainAutoRunDebugEnabled() && tickCounter % 20 == 0)
                         UnityEngine.Debug.Log("ドッキング中");// TODO デバッグトグル関係　そのうち消す
                     trainUnitStationDocking.TickDockedStations();
                     // もしtrainDiagramの出発条件を満たしていたら、trainDiagramは次の目的地をセット。次のtickでドッキングを解除、バリデーションが行われる
@@ -460,7 +469,11 @@ namespace Game.Train.Train
                 ? BitConverter.Int64BitsToDouble(saveData.AccumulatedDistanceBits.Value)
                 : 0;
 
-            var trainUnit = new TrainUnit(railPosition, cars)
+            var trainUpdateService = ServerContext.GetService<TrainUpdateService>();
+            var railPositionManager = ServerContext.GetService<TrainRailPositionManager>();
+            var diagramManager = ServerContext.GetService<TrainDiagramManager>();
+
+            var trainUnit = new TrainUnit(railPosition, cars, trainUpdateService, railPositionManager, diagramManager)
             {
                 _isAutoRun = saveData.IsAutoRun,
                 _previousEntryGuid = saveData.PreviousEntryGuid,
@@ -517,7 +530,10 @@ namespace Game.Train.Train
             // 4) 新しいTrainUnitを作成
             var splittedUnit = new TrainUnit(
                 splittedRailPosition,
-                detachedCars
+                detachedCars,
+                _trainUpdateService,
+                _railPositionManager,
+                _diagramManager
             );
             // 5) 自分が0になっていたら
             if (_cars.Count == 0)
@@ -608,7 +624,7 @@ namespace Game.Train.Train
 
         public void OnDestroy()
         {
-            TrainRailPositionManager.Instance.UnregisterRailPosition(_railPosition);
+            _railPositionManager.UnregisterRailPosition(_railPosition);
             trainDiagram.OnDestroy();
             _railPosition.OnDestroy();
             trainUnitStationDocking.OnDestroy();
@@ -619,7 +635,7 @@ namespace Game.Train.Train
             }
             _cars.Clear();
             
-            TrainUpdateService.Instance.UnregisterTrain(this);
+            _trainUpdateService.UnregisterTrain(this);
 
             trainDiagram = null;
             _railPosition = null;
@@ -629,3 +645,7 @@ namespace Game.Train.Train
         }
     }
 }
+
+
+
+

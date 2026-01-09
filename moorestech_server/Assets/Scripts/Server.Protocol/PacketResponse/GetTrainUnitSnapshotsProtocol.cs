@@ -1,4 +1,4 @@
-using Game.Train.Common;
+﻿using Game.Train.Common;
 using Game.Train.Train;
 using MessagePack;
 using Server.Util.MessagePack;
@@ -13,7 +13,13 @@ namespace Server.Protocol.PacketResponse
     /// </summary>
     public sealed class GetTrainUnitSnapshotsProtocol : IPacketResponse
     {
+        private readonly TrainUpdateService _trainUpdateService;
         public const string ProtocolTag = "va:getTrainUnitSnapshots";
+
+        public GetTrainUnitSnapshotsProtocol(TrainUpdateService trainUpdateService)
+        {
+            _trainUpdateService = trainUpdateService;
+        }
 
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
@@ -21,7 +27,7 @@ namespace Server.Protocol.PacketResponse
             // Build snapshots and hash for every registered train unit
             var bundles = new List<TrainUnitSnapshotBundle>();
             var snapshots = new List<TrainUnitSnapshotBundleMessagePack>();
-            foreach (var train in TrainUpdateService.Instance.GetRegisteredTrains())
+            foreach (var train in _trainUpdateService.GetRegisteredTrains())
             {
                 var bundle = TrainUnitSnapshotFactory.CreateSnapshot(train);
                 bundles.Add(bundle);
@@ -29,7 +35,7 @@ namespace Server.Protocol.PacketResponse
             }
 
             var unitsHash = TrainUnitSnapshotHashCalculator.Compute(bundles);
-            return new ResponseMessagePack(snapshots, TrainUpdateService.CurrentTick, unitsHash);
+            return new ResponseMessagePack(snapshots, _trainUpdateService.GetCurrentTick(), unitsHash);
         }
 
         [MessagePackObject]
@@ -65,3 +71,4 @@ namespace Server.Protocol.PacketResponse
         }
     }
 }
+

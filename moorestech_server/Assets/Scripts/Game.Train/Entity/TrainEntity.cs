@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Game.Entity.Interface;
 using Game.Train.Train;
 using Game.Train.RailGraph;
@@ -83,7 +83,7 @@ namespace Game.Train.Entity
             
             // セグメント長を取得
             // Get segment length
-            int segmentLength = RailGraphDatastore.GetDistanceBetweenNodes(currentNode, nextNode);
+            int segmentLength = currentNode.GetDistanceToNode(nextNode);
             if (segmentLength <= 0)
             {
                 return nextNode.FrontControlPoint.OriginalPosition;
@@ -105,3 +105,4 @@ namespace Game.Train.Entity
         }
     }
 }
+

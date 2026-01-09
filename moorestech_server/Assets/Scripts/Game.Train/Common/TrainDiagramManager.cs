@@ -8,17 +8,6 @@ namespace Game.Train.Common
 {
     public class TrainDiagramManager
     {
-        private static TrainDiagramManager _instance;
-        public static TrainDiagramManager Instance
-        {
-            get
-            {
-                if (_instance == null)
-                    _instance = new TrainDiagramManager();
-                return _instance;
-            }
-        }
-
         private readonly List<TrainDiagram> _diagrams;
         private Subject<TrainDiagramEventData> _trainDocked;
         private Subject<TrainDiagramEventData> _trainDeparted;
@@ -27,13 +16,12 @@ namespace Game.Train.Common
 
         public TrainDiagramManager()
         {
-            _instance = this;
             _diagrams = new List<TrainDiagram>();
             _trainDocked = new Subject<TrainDiagramEventData>();
             _trainDeparted = new Subject<TrainDiagramEventData>();
         }
 
-        public void ResetInstance()
+        public void Reset()
         {
             _diagrams.Clear();
             _trainDocked.Dispose();

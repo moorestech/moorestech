@@ -1,4 +1,4 @@
-using Game.Block.Blocks.TrainRail;
+﻿using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
 using Game.Train.Common;
 using Game.Train.RailGraph;
@@ -14,15 +14,14 @@ namespace Tests.Util
 {
     public sealed class TrainAutoRunTestScenario : IDisposable
     {
+        private readonly TrainTestEnvironment _environment;
         private readonly TrainCar _trainCar;
         private readonly StationNodeSet _stationNodes;
         private bool _disposed;
 
-        private TrainAutoRunTestScenario(
-            TrainUnit train,
-            TrainCar trainCar,
-            StationNodeSet stationNodes)
+        private TrainAutoRunTestScenario(TrainTestEnvironment environment, TrainUnit train, TrainCar trainCar, StationNodeSet stationNodes)
         {
+            _environment = environment;
             Train = train;
             _trainCar = trainCar;
             _stationNodes = stationNodes;
@@ -95,7 +94,7 @@ namespace Tests.Util
             var railPosition = new RailPosition(initialRailNodes, stationNodes.SegmentLength, initialDistance);
 
             var trainCar = TrainTestCarFactory.CreateTrainCar(0, 1000, 1, stationNodes.BlockLength, true);
-            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar });
+            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, environment.GetTrainUpdateService(), environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
 
             trainUnit.trainDiagram.AddEntry(stationNodes.ExitFront);
             trainUnit.trainDiagram.AddEntry(n1);
@@ -148,7 +147,7 @@ namespace Tests.Util
                     "Train should be heading towards the next station.");
             }
 
-            return new TrainAutoRunTestScenario(trainUnit, trainCar, stationNodes);
+            return new TrainAutoRunTestScenario(environment, trainUnit, trainCar, stationNodes);
         }
 
         public void Dispose()
@@ -159,8 +158,8 @@ namespace Tests.Util
             }
 
             Train.trainUnitStationDocking.UndockFromStation();
-            TrainDiagramManager.Instance.UnregisterDiagram(Train.trainDiagram);
-            TrainUpdateService.Instance.UnregisterTrain(Train);
+            _environment.GetTrainDiagramManager().UnregisterDiagram(Train.trainDiagram);
+            _environment.GetTrainUpdateService().UnregisterTrain(Train);
             _disposed = true;
         }
 
@@ -203,3 +202,4 @@ namespace Tests.Util
         }
     }
 }
+
