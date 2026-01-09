@@ -17,10 +17,12 @@ namespace Server.Protocol.PacketResponse
     {
         public const string ProtocolTag = "va:getWorldData";
         private readonly IEntityFactory _entityFactory;
+        private readonly TrainUpdateService _trainUpdateService;
         
         public RequestWorldDataProtocol(ServiceProvider serviceProvider)
         {
             _entityFactory = serviceProvider.GetService<IEntityFactory>();
+            _trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
         }
         
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
