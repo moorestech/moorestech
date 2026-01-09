@@ -79,7 +79,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             void ExecuteProtocol(TrainTestEnvironment environment, RailComponentSpecifier railSpecifier, RailPositionSnapshotMessagePack railPosition)
             {
-                Assert.AreEqual(0, TrainUpdateService.Instance.GetRegisteredTrains().Count(), "初期状態では列車が存在しないべき / No trains should exist initially");
+                Assert.AreEqual(0, environment.GetTrainUpdateService().GetRegisteredTrains().Count(), "初期状態では列車が存在しないべき / No trains should exist initially");
                 
                 // プロトコルで列車を配置
                 // Place train through protocol
@@ -91,12 +91,12 @@ namespace Tests.CombinedTest.Server.PacketTest
             {
                 // 列車生成とアイテム消費を検証
                 // Validate train creation and item consumption
-                Assert.AreEqual(1, TrainUpdateService.Instance.GetRegisteredTrains().Count(), "列車が1つ生成されるべき / One train should be created");
+                Assert.AreEqual(1, environment.GetTrainUpdateService().GetRegisteredTrains().Count(), "列車が1つ生成されるべき / One train should be created");
                 
                 var inventory = environment.ServiceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
                 Assert.AreEqual(0, inventory.MainOpenableInventory.GetItem(InventorySlot).Count, "列車アイテムが消費されるべき / Train item should be consumed");
                 
-                var createdTrain = TrainUpdateService.Instance.GetRegisteredTrains().Last();
+                var createdTrain = environment.GetTrainUpdateService().GetRegisteredTrains().Last();
                 Assert.Greater(createdTrain.Cars.Count, 0, "列車は1両以上の車両を持つべき / Train should have at least one car");
             }
 

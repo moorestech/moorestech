@@ -34,7 +34,7 @@ namespace Tests.UnitTest.Game
             var railPosition = new RailPosition(new List<IRailNode> { nodeApproaching, nodeBehind }, totalLength, distance / 10);
 
             var cars = new List<TrainCar> { frontCar, rearCar };
-            var trainUnit = new TrainUnit(railPosition, cars);
+            var trainUnit = new TrainUnit(railPosition, cars, environment.GetTrainUpdateService(), environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
 
             double CalculateExpectedForce(IEnumerable<TrainCar> targetCars)
             {

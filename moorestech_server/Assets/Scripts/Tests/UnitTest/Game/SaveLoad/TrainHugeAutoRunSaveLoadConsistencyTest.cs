@@ -61,12 +61,13 @@ namespace Tests.UnitTest.Game.SaveLoad
         private static Dictionary<int, TrainSimulationSnapshot> RunScenarioWithoutSave(int seed, int totalTicks, int saveAfterTicks)
         {
             var (scenario, _) = SetupScenario(seed);
-            AdvanceTicks(totalTicks - saveAfterTicks);
-            AdvanceTicks(saveAfterTicks);
+            var trainUpdateService = scenario.Environment.GetTrainUpdateService();
+            AdvanceTicks(trainUpdateService, totalTicks - saveAfterTicks);
+            AdvanceTicks(trainUpdateService, saveAfterTicks);
 
-            var snapshots = CaptureSnapshots();
+            var snapshots = CaptureSnapshots(scenario.Environment);
 
-            CleanupTrains();
+            CleanupTrains(scenario.Environment);
             CleanupWorld(scenario.Environment);
 
             return snapshots;
@@ -74,22 +75,22 @@ namespace Tests.UnitTest.Game.SaveLoad
 
         private static Dictionary<int, TrainSimulationSnapshot> RunScenarioWithSave(int seed, int totalTicks, int saveAfterTicks)
         {
-            RailGraphDatastore.ResetInstance();
             var (scenario, expectedSnapshot) = SetupScenario(seed);
+            var trainUpdateService = scenario.Environment.GetTrainUpdateService();
 
-            AdvanceTicks(totalTicks - saveAfterTicks);
+            AdvanceTicks(trainUpdateService, totalTicks - saveAfterTicks);
 
             var saveJson = SaveLoadJsonTestHelper.AssembleSaveJson(scenario.Environment.ServiceProvider);
             
-            var preSaveTrains = TrainUpdateService.Instance.GetRegisteredTrains().ToList();
+            var preSaveTrains = trainUpdateService.GetRegisteredTrains().ToList();
             
             foreach (var train in preSaveTrains)
             {
                 train.OnDestroy();
             }
-            TrainUpdateService.Instance.ResetTrains();
+            trainUpdateService.ResetTrains();
             CleanupWorld(scenario.Environment);
-            RailGraphDatastore.ResetInstance();
+            scenario.Environment.GetRailGraphDatastore().Reset();
 
             var loadEnvironment = TrainTestHelper.CreateEnvironment();
             SetupRandomLengthTrainCarMasters(seed, TrainCount, 600000);
@@ -124,9 +125,9 @@ namespace Tests.UnitTest.Game.SaveLoad
             var actualSnapshot = RailGraphNetworkTestHelper.CaptureFromComponents(loadedComponents);
             RailGraphNetworkTestHelper.AssertEquivalent(expectedSnapshot, actualSnapshot);
 
-            AdvanceTicks(saveAfterTicks);
-            var snapshots = CaptureSnapshots();
-            CleanupTrains();
+            AdvanceTicks(loadEnvironment.GetTrainUpdateService(), saveAfterTicks);
+            var snapshots = CaptureSnapshots(loadEnvironment);
+            CleanupTrains(loadEnvironment);
             CleanupWorld(loadEnvironment);
             return snapshots;
         }
@@ -136,7 +137,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             UnityEngine.Random.InitState(seed);
             var environment = TrainTestHelper.CreateEnvironment();
             SetupRandomLengthTrainCarMasters(seed, TrainCount, 600000);
-            TrainUpdateService.Instance.ResetTrains();
+            environment.GetTrainUpdateService().ResetTrains();
 
             var components = BuildRailNetwork(environment, RailComponentCount, seed);
 
@@ -253,7 +254,7 @@ namespace Tests.UnitTest.Game.SaveLoad
                     new TrainCar(trainCarMaster)
                 };
 
-                var train = new TrainUnit(railPosition, cars);
+                var train = new TrainUnit(railPosition, cars, environment.GetTrainUpdateService(), environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
 
                 var entryCount = UnityEngine.Random.Range(MinDiagramEntries, MaxDiagramEntries + 1);
                 for (var j = 0; j < entryCount; j++)
@@ -323,24 +324,21 @@ namespace Tests.UnitTest.Game.SaveLoad
             return list;
         }
 
-        private static void AdvanceTicks(int tickCount)
+        private static void AdvanceTicks(TrainUpdateService trainUpdateService, int tickCount)
         {
-            var action = ManualTickAction;
+            var action = CreateManualTickAction(trainUpdateService);
             for (var i = 0; i < tickCount; i++)
             {
                 action();
             }
         }
 
-        private static Action ManualTickAction => _manualTickAction ??= CreateManualTickAction();
-        private static Action _manualTickAction;
-
-        private static Action CreateManualTickAction()
+        private static Action CreateManualTickAction(TrainUpdateService trainUpdateService)
         {
             var method = typeof(TrainUpdateService)
                 .GetMethod("UpdateTrains1Tickmanually", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
             Assert.IsNotNull(method, "TrainUpdateServiceの手動Tickメソッドが見つかりません。");
-            return (Action)Delegate.CreateDelegate(typeof(Action), TrainUpdateService.Instance, method!);
+            return (Action)Delegate.CreateDelegate(typeof(Action), trainUpdateService, method!);
         }
         
         private static void SetupRandomLengthTrainCarMasters(int seed, int count, int tractionForce)
@@ -379,10 +377,10 @@ namespace Tests.UnitTest.Game.SaveLoad
             trainCarMastersByGuidField!.SetValue(MasterHolder.TrainUnitMaster, trainCarMastersByGuid);
         }
 
-        private static Dictionary<int, TrainSimulationSnapshot> CaptureSnapshots()
+        private static Dictionary<int, TrainSimulationSnapshot> CaptureSnapshots(TrainTestEnvironment environment)
         {
             var snapshots = new Dictionary<int, TrainSimulationSnapshot>();
-            foreach (var train in TrainUpdateService.Instance.GetRegisteredTrains())
+            foreach (var train in environment.GetTrainUpdateService().GetRegisteredTrains())
             {
                 var snapshot = TrainSimulationSnapshot.Create(train);
                 snapshots.Add(snapshot.TrainLength, snapshot);
@@ -390,14 +388,14 @@ namespace Tests.UnitTest.Game.SaveLoad
             return snapshots;
         }
 
-        private static void CleanupTrains()
+        private static void CleanupTrains(TrainTestEnvironment environment)
         {
-            var trains = TrainUpdateService.Instance.GetRegisteredTrains().ToList();
+            var trains = environment.GetTrainUpdateService().GetRegisteredTrains().ToList();
             foreach (var train in trains)
             {
                 train.OnDestroy();
             }
-            TrainUpdateService.Instance.ResetTrains();
+            environment.GetTrainUpdateService().ResetTrains();
         }
 
         private static void CleanupWorld(TrainTestEnvironment environment)

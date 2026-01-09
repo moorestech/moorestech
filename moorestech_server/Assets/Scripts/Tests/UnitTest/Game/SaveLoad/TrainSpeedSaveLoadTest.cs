@@ -30,23 +30,23 @@ namespace Tests.UnitTest.Game.SaveLoad
             var loadEnv = TrainTestHelper.CreateEnvironment();
             SaveLoadJsonTestHelper.LoadFromJson(loadEnv.ServiceProvider, saveJson);
 
-            var loadedTrains = TrainUpdateService.Instance.GetRegisteredTrains().ToList();
+            var loadedTrains = loadEnv.GetTrainUpdateService().GetRegisteredTrains().ToList();
             Assert.AreEqual(1, loadedTrains.Count, "ロード後の登録列車数が一致しません。");
 
             var loadedTrain = loadedTrains[0];
             var loadedCar = loadedTrain.Cars[0];
             Assert.AreEqual(expectedSpeed, loadedTrain.CurrentSpeed, 1e-10, "ロード後の列車速度が一致しません。");
 
-            CleanupTrains(loadedTrains);
+            CleanupTrains(loadEnv, loadedTrains);
         }
 
-        private static void CleanupTrains(IEnumerable<TrainUnit> trains)
+        private static void CleanupTrains(TrainTestEnvironment environment, IEnumerable<TrainUnit> trains)
         {
             foreach (var train in trains)
             {
                 train.trainUnitStationDocking.UndockFromStation();
-                TrainDiagramManager.Instance.UnregisterDiagram(train.trainDiagram);
-                TrainUpdateService.Instance.UnregisterTrain(train);
+                environment.GetTrainDiagramManager().UnregisterDiagram(train.trainDiagram);
+                environment.GetTrainUpdateService().UnregisterTrain(train);
             }
         }
 
