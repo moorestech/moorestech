@@ -22,9 +22,6 @@ namespace Tests.UnitTest.Game.SaveLoad
         [Test]
         public void DiagramEntriesAreRestoredFromSaveData()
         {
-            RailGraphDatastore.ResetInstance();
-            TrainUpdateService.Instance.ResetTrains();
-
             var context = CreateTrainDiagramContext();
 
             var saveJson = SaveLoadJsonTestHelper.AssembleSaveJson(context.Environment.ServiceProvider);
@@ -34,7 +31,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var loadEnv = TrainTestHelper.CreateEnvironment();
             SaveLoadJsonTestHelper.LoadFromJson(loadEnv.ServiceProvider, saveJson);
 
-            var loadedTrains = TrainUpdateService.Instance.GetRegisteredTrains().ToList();
+            var loadedTrains = loadEnv.GetTrainUpdateService().GetRegisteredTrains().ToList();
             Assert.AreEqual(1, loadedTrains.Count, "ロード後の列車数が一致しません。");
 
             var loadedTrain = loadedTrains[0];
@@ -71,9 +68,6 @@ namespace Tests.UnitTest.Game.SaveLoad
         [Test]
         public void DiagramEntriesWithMissingRailsAreSkippedDuringLoad()
         {
-            RailGraphDatastore.ResetInstance();
-            TrainUpdateService.Instance.ResetTrains();
-
             var context = CreateTrainDiagramContext();
 
             var originalJson = SaveLoadJsonTestHelper.AssembleSaveJson(context.Environment.ServiceProvider);
@@ -84,7 +78,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var loadEnv = TrainTestHelper.CreateEnvironment();
             SaveLoadJsonTestHelper.LoadFromJson(loadEnv.ServiceProvider, corruptedJson);
 
-            var loadedTrains = TrainUpdateService.Instance.GetRegisteredTrains().ToList();
+            var loadedTrains = loadEnv.GetTrainUpdateService().GetRegisteredTrains().ToList();
             Assert.AreEqual(1, loadedTrains.Count, "破損データロード後の列車数が一致しません。");
 
             var loadedTrain = loadedTrains[0];
@@ -168,7 +162,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             {
                 TrainTestCarFactory.CreateTrainCar(0, firstTrain.TrainCarGuid, firstTrain.ItemGuid, 1000, 1, trainLength, true)
             };
-            var train = new TrainUnit(railPosition, cars);
+            var train = new TrainUnit(railPosition, cars, environment.GetTrainUpdateService(), environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
 
             foreach (var component in components)
             {
@@ -210,8 +204,8 @@ namespace Tests.UnitTest.Game.SaveLoad
                 context.Environment.WorldBlockDatastore.RemoveBlock(position, BlockRemoveReason.ManualRemove);
             }
 
-            TrainUpdateService.Instance.ResetTrains();
-            RailGraphDatastore.ResetInstance();
+            context.Environment.GetTrainUpdateService().ResetTrains();
+            context.Environment.GetRailGraphDatastore().Reset();
         }
 
         private static void CleanupLoadedState(TrainTestEnvironment environment, List<TrainUnit> trains, IReadOnlyList<Vector3Int> railPositions)
@@ -222,8 +216,8 @@ namespace Tests.UnitTest.Game.SaveLoad
                 environment.WorldBlockDatastore.RemoveBlock(position, BlockRemoveReason.ManualRemove);
             }
 
-            TrainUpdateService.Instance.ResetTrains();
-            RailGraphDatastore.ResetInstance();
+            environment.GetTrainUpdateService().ResetTrains();
+            environment.GetRailGraphDatastore().Reset();
         }
 
         private static void CleanupTrains(IEnumerable<TrainUnit> trains)

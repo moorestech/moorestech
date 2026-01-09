@@ -52,7 +52,7 @@ namespace Tests.UnitTest.Game
             var railPosition = new RailPosition(railNodes, stationSegmentLength, 0);
 
             var trainCar = TrainTestCarFactory.CreateTrainCar(0, 1000, 1, stationSegmentLength, true);
-            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar });
+            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
 
             trainUnit.trainUnitStationDocking.TryDockWhenStopped();
 
@@ -71,8 +71,8 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(ForUnitTestItemId.ItemId1, carStack.Id, "列車貨車が駅のアイテムを受け取っていません。");
             Assert.AreEqual(maxStack, carStack.Count, "列車貨車が駅インベントリの全量を受け取っていません。");
 
-            TrainDiagramManager.Instance.UnregisterDiagram(trainUnit.trainDiagram);
-            TrainUpdateService.Instance.UnregisterTrain(trainUnit);
+            env.GetTrainDiagramManager().UnregisterDiagram(trainUnit.trainDiagram);
+            env.GetTrainUpdateService().UnregisterTrain(trainUnit);
         }
 
         [Test]
@@ -110,7 +110,7 @@ namespace Tests.UnitTest.Game
             var railPosition = new RailPosition(railNodes, platformSegmentLength, 0);
 
             var trainCar = TrainTestCarFactory.CreateTrainCar(0, 1000, 1, platformSegmentLength, true);
-            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar });
+            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
 
             trainUnit.trainUnitStationDocking.TryDockWhenStopped();
 
@@ -129,8 +129,8 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(ForUnitTestItemId.ItemId1, carStack.Id, "列車貨車が貨物プラットフォームのアイテムを受け取っていません。");
             Assert.AreEqual(maxStack, carStack.Count, "列車貨車が貨物プラットフォームから全量を受け取っていません。");
 
-            TrainDiagramManager.Instance.UnregisterDiagram(trainUnit.trainDiagram);
-            TrainUpdateService.Instance.UnregisterTrain(trainUnit);
+            env.GetTrainDiagramManager().UnregisterDiagram(trainUnit.trainDiagram);
+            env.GetTrainUpdateService().UnregisterTrain(trainUnit);
         }
 
         [Test]
@@ -171,7 +171,7 @@ namespace Tests.UnitTest.Game
             var trainCar = TrainTestCarFactory.CreateTrainCar(0, 1000, 1, platformSegmentLength, true);
             trainCar.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, maxStack));
 
-            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar });
+            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
 
             cargoPlatformComponent.SetTransferMode(CargoplatformComponent.CargoTransferMode.UnloadToPlatform);
 
@@ -191,8 +191,8 @@ namespace Tests.UnitTest.Game
             var remainingCarStack = trainCar.GetItem(0);
             Assert.AreEqual(ItemMaster.EmptyItemId, remainingCarStack.Id, "荷降ろし後も列車貨車のインベントリが空になっていません。");
 
-            TrainDiagramManager.Instance.UnregisterDiagram(trainUnit.trainDiagram);
-            TrainUpdateService.Instance.UnregisterTrain(trainUnit);
+            env.GetTrainDiagramManager().UnregisterDiagram(trainUnit.trainDiagram);
+            env.GetTrainUpdateService().UnregisterTrain(trainUnit);
         }
 
         [Test]
@@ -229,7 +229,7 @@ namespace Tests.UnitTest.Game
                 var railNodes = new List<IRailNode> { exitNode, entryNode };
                 var railPosition = new RailPosition(railNodes, stationSegmentLength, 0);
                 car = TrainTestCarFactory.CreateTrainCar(0, 1000, 1, stationSegmentLength, true);
-                return new TrainUnit(railPosition, new List<TrainCar> { car });
+                return new TrainUnit(railPosition, new List<TrainCar> { car }, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
             }
 
             var firstTrain = CreateTrain(out var firstCar);
@@ -259,10 +259,10 @@ namespace Tests.UnitTest.Game
             firstTrain.trainUnitStationDocking.UndockFromStation();
             secondTrain.trainUnitStationDocking.UndockFromStation();
 
-            TrainDiagramManager.Instance.UnregisterDiagram(firstTrain.trainDiagram);
-            TrainUpdateService.Instance.UnregisterTrain(firstTrain);
-            TrainDiagramManager.Instance.UnregisterDiagram(secondTrain.trainDiagram);
-            TrainUpdateService.Instance.UnregisterTrain(secondTrain);
+            env.GetTrainDiagramManager().UnregisterDiagram(firstTrain.trainDiagram);
+            env.GetTrainUpdateService().UnregisterTrain(firstTrain);
+            env.GetTrainDiagramManager().UnregisterDiagram(secondTrain.trainDiagram);
+            env.GetTrainUpdateService().UnregisterTrain(secondTrain);
         }
 
     }
