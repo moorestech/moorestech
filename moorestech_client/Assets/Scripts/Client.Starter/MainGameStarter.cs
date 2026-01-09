@@ -196,7 +196,6 @@ namespace Client.Starter
             builder.Register<TrainUnitClientCache>(Lifetime.Singleton);
             builder.Register<TrainUnitSnapshotApplier>(Lifetime.Singleton).AsSelf().As<IInitializable>();
             builder.Register<TrainUnitClientSimulator>(Lifetime.Singleton).As<ITickable>();
-            builder.Register<TrainCarPoseCalculator>(Lifetime.Singleton);
             builder.Register<RailGraphHashVerifier>(Lifetime.Singleton).As<IInitializable>().As<IDisposable>();
             builder.Register<TrainUnitHashVerifier>(Lifetime.Singleton).As<IInitializable>().As<IDisposable>();
             
