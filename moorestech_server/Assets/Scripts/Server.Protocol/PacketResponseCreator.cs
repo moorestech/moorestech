@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using Game.PlayerInventory.Interface;
+using Game.Train.Common;
+using Game.Train.RailGraph;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Event;
@@ -17,6 +19,10 @@ namespace Server.Protocol
         //TODO この辺もDIコンテナに載せる?こういうパケット周りめっちゃなんとかしたい
         public PacketResponseCreator(ServiceProvider serviceProvider)
         {
+            // パケット生成に必要な列車系サービスを取得
+            // Acquire train-related services required for packet creation
+            var trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
+            var railGraphDatastore = serviceProvider.GetService<IRailGraphDatastore>();
             _packetResponseDictionary.Add(InitialHandshakeProtocol.ProtocolTag, new InitialHandshakeProtocol(serviceProvider));
             _packetResponseDictionary.Add(RequestWorldDataProtocol.ProtocolTag, new RequestWorldDataProtocol(serviceProvider));
             _packetResponseDictionary.Add(PlayerInventoryResponseProtocol.ProtocolTag, new PlayerInventoryResponseProtocol(serviceProvider));
@@ -50,10 +56,10 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(GetResearchInfoProtocol.ProtocolTag, new GetResearchInfoProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetPlayedSkitIdsProtocol.ProtocolTag, new GetPlayedSkitIdsProtocol(serviceProvider));
             _packetResponseDictionary.Add(RailConnectionEditProtocol.Tag, new RailConnectionEditProtocol(serviceProvider));
-            _packetResponseDictionary.Add(GetRailGraphSnapshotProtocol.ProtocolTag, new GetRailGraphSnapshotProtocol());
-            _packetResponseDictionary.Add(GetTrainUnitSnapshotsProtocol.ProtocolTag, new GetTrainUnitSnapshotsProtocol());
+            _packetResponseDictionary.Add(GetRailGraphSnapshotProtocol.ProtocolTag, new GetRailGraphSnapshotProtocol(railGraphDatastore, trainUpdateService));
+            _packetResponseDictionary.Add(GetTrainUnitSnapshotsProtocol.ProtocolTag, new GetTrainUnitSnapshotsProtocol(trainUpdateService));
             _packetResponseDictionary.Add(PlaceTrainCarOnRailProtocol.ProtocolTag, new PlaceTrainCarOnRailProtocol(serviceProvider));
-            _packetResponseDictionary.Add(RemoveTrainCarProtocol.ProtocolTag, new RemoveTrainCarProtocol());
+            _packetResponseDictionary.Add(RemoveTrainCarProtocol.ProtocolTag, new RemoveTrainCarProtocol(trainUpdateService));
         }
         
         public List<List<byte>> GetPacketResponse(List<byte> payload)
