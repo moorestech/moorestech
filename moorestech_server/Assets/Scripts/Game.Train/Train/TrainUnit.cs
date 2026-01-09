@@ -55,6 +55,17 @@ namespace Game.Train.Train
             TrainUpdateService trainUpdateService,
             TrainRailPositionManager railPositionManager,
             TrainDiagramManager diagramManager
+        ) : this(initialPosition, cars, trainUpdateService, railPositionManager, diagramManager, true)
+        {
+        }
+
+        private TrainUnit(
+            RailPosition initialPosition,
+            List<TrainCar> cars,
+            TrainUpdateService trainUpdateService,
+            TrainRailPositionManager railPositionManager,
+            TrainDiagramManager diagramManager,
+            bool notifyOnRegister
         )
         {
             _railPosition = initialPosition;
@@ -73,7 +84,23 @@ namespace Game.Train.Train
             trainUnitStationDocking = new TrainUnitStationDocking(this, this);
             trainDiagram = new TrainDiagram(_railGraphProvider, _diagramManager, _trainUpdateService);
             trainDiagram.SetContext(this);
-            _trainUpdateService.RegisterTrain(this);
+            // 列車登録と生成通知の制御を行う
+            // Register the train and control creation notification
+            RegisterTrain(notifyOnRegister);
+
+            #region Internal
+            void RegisterTrain(bool notify)
+            {
+                // 通知あり/なしで登録先を切り替える
+                // Switch registration based on notification flag
+                if (notify)
+                {
+                    _trainUpdateService.RegisterTrain(this);
+                    return;
+                }
+                _trainUpdateService.RegisterTrainWithoutNotify(this);
+            }
+            #endregion
         }
 
 
@@ -473,7 +500,7 @@ namespace Game.Train.Train
             var railPositionManager = ServerContext.GetService<TrainRailPositionManager>();
             var diagramManager = ServerContext.GetService<TrainDiagramManager>();
 
-            var trainUnit = new TrainUnit(railPosition, cars, trainUpdateService, railPositionManager, diagramManager)
+            var trainUnit = new TrainUnit(railPosition, cars, trainUpdateService, railPositionManager, diagramManager, false)
             {
                 _isAutoRun = saveData.IsAutoRun,
                 _previousEntryGuid = saveData.PreviousEntryGuid,

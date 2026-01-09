@@ -2,17 +2,13 @@
 using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Blocks.TrainRail;
-using Game.Entity.Interface;
 using Game.PlayerInventory.Interface;
 using Game.Train.Common;
-using Game.Train.Entity;
 using Game.Train.RailGraph;
 using Game.Train.Train;
 using Game.Train.Utility;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
-using Server.Event;
-using Server.Event.EventReceive;
 using Server.Util.MessagePack;
 using RailComponentSpecifier = Server.Protocol.PacketResponse.RailConnectionEditProtocol.RailComponentSpecifier;
 
@@ -23,7 +19,6 @@ namespace Server.Protocol.PacketResponse
         public const string ProtocolTag = "va:placeTrainCar";
 
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
-        private readonly EventProtocolProvider _eventProtocolProvider;
         private readonly IRailGraphDatastore _railGraphDatastore;
         private readonly TrainUpdateService _trainUpdateService;
         private readonly TrainRailPositionManager _railPositionManager;
@@ -32,7 +27,6 @@ namespace Server.Protocol.PacketResponse
         public PlaceTrainCarOnRailProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
-            _eventProtocolProvider = serviceProvider.GetService<EventProtocolProvider>();
             _railGraphDatastore = serviceProvider.GetService<IRailGraphDatastore>();
             _trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
             _railPositionManager = serviceProvider.GetService<TrainRailPositionManager>();
@@ -81,9 +75,6 @@ namespace Server.Protocol.PacketResponse
                 // Consume the train item from inventory
                 mainInventory.SetItem(data.InventorySlot, item.Id, item.Count - 1);
 
-                // 生成結果を即時通知する
-                // Broadcast the new train unit
-                BroadcastTrainUnitCreated(createdTrain);
                 return PlaceTrainOnRailResponseMessagePack.CreateSuccess();
             }
 
@@ -248,42 +239,6 @@ namespace Server.Protocol.PacketResponse
                     }
                 }
                 return true;
-            }
-
-            void BroadcastTrainUnitCreated(TrainUnit trainUnit)
-            {
-                // 新規列車ユニットの差分を通知する
-                // Broadcast the diff for newly created train units
-                if (trainUnit == null)
-                {
-                    return;
-                }
-                var snapshot = TrainUnitSnapshotFactory.CreateSnapshot(trainUnit);
-                var snapshotPack = new TrainUnitSnapshotBundleMessagePack(snapshot);
-                var entities = BuildTrainEntities(trainUnit);
-                var message = new TrainUnitCreatedEventMessagePack(snapshotPack, entities, _trainUpdateService.GetCurrentTick());
-                var payload = MessagePackSerializer.Serialize(message);
-                _eventProtocolProvider.AddBroadcastEvent(TrainUnitCreatedEventPacket.EventTag, payload);
-            }
-
-            EntityMessagePack[] BuildTrainEntities(TrainUnit trainUnit)
-            {
-                // 列車車両ごとのエンティティ情報を作成する
-                // Build entity messages for each train car
-                var cars = trainUnit.Cars;
-                if (cars == null || cars.Count == 0)
-                {
-                    return Array.Empty<EntityMessagePack>();
-                }
-                var entities = new EntityMessagePack[cars.Count];
-                for (var i = 0; i < cars.Count; i++)
-                {
-                    var car = cars[i];
-                    var entityId = new EntityInstanceId(car.GetHashCode());
-                    var trainEntity = new TrainEntity(entityId, trainUnit, car);
-                    entities[i] = new EntityMessagePack(trainEntity);
-                }
-                return entities;
             }
 
             #endregion

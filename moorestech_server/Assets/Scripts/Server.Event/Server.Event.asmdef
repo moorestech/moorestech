@@ -19,7 +19,8 @@
     "Game.UnlockState",
     "Game.CraftTree",
     "Game.Research",
-    "Game.Train"
+    "Game.Train",
+    "Game.Entity.Interface"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
