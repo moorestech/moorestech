@@ -59,11 +59,11 @@ namespace Game.Train.Common
                 {
                     trainUnit.Update();
                 }
+                _executedTick++;
                 if (_executedTick % interval == 0)
                 {
                     _onHashEvent.OnNext(_executedTick);
                 }
-                _executedTick++;
                 // 外部スナップショットを毎tick記録する
                 // Record external snapshots per tick
                 //TrainTickSnapshotRecorder.RecordTickIfAvailable(_executedTick, _trainUnits);
