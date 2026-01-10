@@ -95,10 +95,10 @@ namespace Game.Train.Entity
             float distanceFromStart = segmentLength - railPosition.DistanceToNextNode;
             float t = Mathf.Clamp01(distanceFromStart / segmentLength);
             
-            // ベジエ曲線の制御点を設定
-            // Set up Bezier curve control points
+            // ベジエ曲線の制御点を設定（両方とも外向き）
+            // Set up Bezier curve control points (both outward)
             var cp0 = currentNode.FrontControlPoint;
-            var cp1 = nextNode.BackControlPoint;
+            var cp1 = nextNode.FrontControlPoint;
             
             // ベジエ曲線上の座標を直接取得
             // Directly evaluate the world position along the Bezier curve

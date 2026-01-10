@@ -90,7 +90,7 @@ namespace Client.Game.InGame.Train
             if (!HasPairedConnection(fromNodeId, toNodeId))
                 return;
 
-            var (canonicalFrom, canonicalTo) = SelectCanonicalPair(fromNodeId, toNodeId);
+            var (canonicalFrom, canonicalTo, swapped) = SelectCanonicalPair(fromNodeId, toNodeId);
             var railObjectId = ComputeRailObjectId(canonicalFrom, canonicalTo);
             if (_railObjs.ContainsKey(railObjectId))
                 return;
@@ -101,14 +101,17 @@ namespace Client.Game.InGame.Train
             if (!_cache.TryGetNode(canonicalTo, out var endNode))
                 return;
 
-            var lineObject = SpawnRail($"RailLine_{canonicalFrom}_{canonicalTo}", startNode, endNode);
+            // 入れ替わった場合はOppositeNodeのFrontControlPointを使うと方向が逆になるため
+            // BackControlPointを使って正しい方向を維持する
+            // When swapped, use BackControlPoint to maintain correct direction
+            var lineObject = SpawnRail($"RailLine_{canonicalFrom}_{canonicalTo}", startNode, endNode, swapped);
             lineObject.transform.SetParent(transform, false);
             _railObjs[railObjectId] = lineObject;
         }
 
         private void RemoveLine(int fromNodeId, int toNodeId)
         {
-            var (canonicalFrom, canonicalTo) = SelectCanonicalPair(fromNodeId, toNodeId);
+            var (canonicalFrom, canonicalTo, _) = SelectCanonicalPair(fromNodeId, toNodeId);
             var railObjectId = ComputeRailObjectId(canonicalFrom, canonicalTo);
             if (!_railObjs.TryGetValue(railObjectId, out var gobj))
             {
@@ -150,13 +153,19 @@ namespace Client.Game.InGame.Train
             return false;
         }
 
-        private GameObject SpawnRail(string name, IRailNode startNode, IRailNode endNode)
+        private GameObject SpawnRail(string name, IRailNode startNode, IRailNode endNode, bool swapped)
         {
             var instance = Instantiate(_railPrefab, transform);
-            var startControl = startNode.FrontControlPoint.OriginalPosition;
-            var control1 = startNode.FrontControlPoint.ControlPointPosition + startControl;
-            var endControl = endNode.BackControlPoint.OriginalPosition;
-            var control2 = endNode.BackControlPoint.ControlPointPosition + endControl;
+
+            // 入れ替わった場合はBackControlPointを使用（OppositeNodeでは方向が逆転するため）
+            // When swapped, use BackControlPoint (direction is inverted for OppositeNode)
+            var startControlPoint = swapped ? startNode.BackControlPoint : startNode.FrontControlPoint;
+            var endControlPoint = swapped ? endNode.BackControlPoint : endNode.FrontControlPoint;
+
+            var startControl = startControlPoint.OriginalPosition;
+            var control1 = startControlPoint.ControlPointPosition + startControl;
+            var endControl = endControlPoint.OriginalPosition;
+            var control2 = endControlPoint.ControlPointPosition + endControl;
 
             instance.SetControlPoints(startControl, control1, control2, endControl);
             instance.Rebuild();
@@ -164,11 +173,12 @@ namespace Client.Game.InGame.Train
             return instance.gameObject;
         }
 
-        private static (int canonicalFrom, int canonicalTo) SelectCanonicalPair(int fromNodeId, int toNodeId)
+        private static (int canonicalFrom, int canonicalTo, bool swapped) SelectCanonicalPair(int fromNodeId, int toNodeId)
         {
             var alternateFrom = toNodeId ^ 1;
             var alternateTo = fromNodeId ^ 1;
-            return fromNodeId <= alternateFrom ? (fromNodeId, toNodeId) : (alternateFrom, alternateTo);
+            var swapped = fromNodeId > alternateFrom;
+            return swapped ? (alternateFrom, alternateTo, true) : (fromNodeId, toNodeId, false);
         }
 
         private static ulong ComputeRailObjectId(int canonicalFrom, int canonicalTo)

@@ -121,7 +121,9 @@ namespace Game.Train.RailGraph
 
         private static int CalculateSegmentDistance(RailNode fromNode, RailNode toNode)
         {
-            var length = BezierUtility.GetBezierCurveLength(fromNode.FrontControlPoint, toNode.BackControlPoint);
+            // 両方とも外向き（FrontControlPoint）を使用
+            // Use outward control points (FrontControlPoint) for both nodes
+            var length = BezierUtility.GetBezierCurveLength(fromNode.FrontControlPoint, toNode.FrontControlPoint);
             return (int)(length * BezierUtility.RAIL_LENGTH_SCALE + 0.5f);
         }
 
