@@ -31,15 +31,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 return TrainRailConnectPreviewData.Invalid;
             }
             
-            // 起点：IsFrontならFrontControlPoint、そうでなければBackControlPoint
-            // Source: FrontControlPoint if IsFront, otherwise BackControlPoint
-            var fromControlPoint = from.IsFront ? fromNode.FrontControlPoint : fromNode.BackControlPoint;
+            // 起点の制御点（常に外向き = 進行方向）
+            // Source control point (always outward = travel direction)
+            var fromControlPoint = fromNode.FrontControlPoint;
             var p0 = fromControlPoint.OriginalPosition;
             var p1 = fromControlPoint.ControlPointPosition + p0;
-            
-            // 終点：IsFrontならBackControlPoint（反対側）、そうでなければFrontControlPoint
-            // Destination: BackControlPoint if IsFront (opposite side), otherwise FrontControlPoint
-            var toControlPoint = to.IsFront ? toNode.BackControlPoint : toNode.FrontControlPoint;
+
+            // 終点の制御点（常に内向き = 曲線が入ってくる方向）
+            // Destination control point (always inward = curve entry direction)
+            var toControlPoint = toNode.BackControlPoint;
             var p3 = toControlPoint.OriginalPosition;
             var p2 = toControlPoint.ControlPointPosition + p3;
             
