@@ -87,85 +87,62 @@ namespace Client.Game.InGame.Train
 
         private void TryActivateLine(int fromNodeId, int toNodeId)
         {
-            if (!HasPairedConnection(fromNodeId, toNodeId))
-                return;
-
-            var (canonicalFrom, canonicalTo, swapped) = SelectCanonicalPair(fromNodeId, toNodeId);
-            var railObjectId = ComputeRailObjectId(canonicalFrom, canonicalTo);
+            // 重複チェック：既にこのペアのレールが存在する場合はスキップ
+            // Duplicate check: skip if rail for this pair already exists
+            var railObjectId = ComputeRailObjectId(fromNodeId, toNodeId);
             if (_railObjs.ContainsKey(railObjectId))
                 return;
-            if (_cache == null)
-                return;
-            if (!_cache.TryGetNode(canonicalFrom, out var startNode))
-                return;
-            if (!_cache.TryGetNode(canonicalTo, out var endNode))
+
+            // Opposite側のIDでも同じレールとして扱う
+            // Treat opposite side IDs as the same rail
+            var oppositeRailObjectId = ComputeRailObjectId(toNodeId ^ 1, fromNodeId ^ 1);
+            if (_railObjs.ContainsKey(oppositeRailObjectId))
                 return;
 
-            // 入れ替わった場合はOppositeNodeのFrontControlPointを使うと方向が逆になるため
-            // BackControlPointを使って正しい方向を維持する
-            // When swapped, use BackControlPoint to maintain correct direction
-            var lineObject = SpawnRail($"RailLine_{canonicalFrom}_{canonicalTo}", startNode, endNode, swapped);
+            // ノード取得（最初に来たイベントでレールを生成する）
+            // Get nodes (generate rail on first event received)
+            if (_cache == null)
+                return;
+            if (!_cache.TryGetNode(fromNodeId, out var startNode))
+                return;
+            if (!_cache.TryGetNode(toNodeId, out var endNode))
+                return;
+
+            var lineObject = SpawnRail($"RailLine_{fromNodeId}_{toNodeId}", startNode, endNode);
             lineObject.transform.SetParent(transform, false);
             _railObjs[railObjectId] = lineObject;
         }
 
         private void RemoveLine(int fromNodeId, int toNodeId)
         {
-            var (canonicalFrom, canonicalTo, _) = SelectCanonicalPair(fromNodeId, toNodeId);
-            var railObjectId = ComputeRailObjectId(canonicalFrom, canonicalTo);
-            if (!_railObjs.TryGetValue(railObjectId, out var gobj))
+            // 元のIDとOpposite側のID両方をチェック
+            // Check both original ID and opposite side ID
+            var railObjectId = ComputeRailObjectId(fromNodeId, toNodeId);
+            var oppositeRailObjectId = ComputeRailObjectId(toNodeId ^ 1, fromNodeId ^ 1);
+
+            var targetId = _railObjs.ContainsKey(railObjectId) ? railObjectId : oppositeRailObjectId;
+            if (!_railObjs.TryGetValue(targetId, out var gobj))
             {
                 return;
             }
 
-            _railObjs.Remove(railObjectId);
+            _railObjs.Remove(targetId);
             if (gobj != null)
             {
                 Destroy(gobj);
             }
         }
 
-        private bool HasPairedConnection(int fromNodeId, int toNodeId)
-        {
-            if (_cache == null)
-                return false;
-
-            var adjacency = _cache.ConnectNodes;
-            if (!IsValidIndex(adjacency, fromNodeId) || !IsValidIndex(adjacency, toNodeId))
-                return false;
-
-            var oppositeSource = toNodeId ^ 1;
-            var oppositeTarget = fromNodeId ^ 1;
-            if (!IsValidIndex(adjacency, oppositeSource))
-                return false;
-
-            var edges = adjacency[oppositeSource];
-            if (edges == null)
-                return false;
-
-            foreach (var (targetId, _) in edges)
-            {
-                if (targetId == oppositeTarget)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private GameObject SpawnRail(string name, IRailNode startNode, IRailNode endNode, bool swapped)
+        private GameObject SpawnRail(string name, IRailNode startNode, IRailNode endNode)
         {
             var instance = Instantiate(_railPrefab, transform);
 
-            // 入れ替わった場合はBackControlPointを使用（OppositeNodeでは方向が逆転するため）
-            // When swapped, use BackControlPoint (direction is inverted for OppositeNode)
-            var startControlPoint = swapped ? startNode.BackControlPoint : startNode.FrontControlPoint;
-            var endControlPoint = swapped ? endNode.BackControlPoint : endNode.FrontControlPoint;
-
-            var startControl = startControlPoint.OriginalPosition;
-            var control1 = startControlPoint.ControlPointPosition + startControl;
-            var endControl = endControlPoint.OriginalPosition;
-            var control2 = endControlPoint.ControlPointPosition + endControl;
+            // 両方とも外向き（FrontControlPoint）を使用
+            // Use outward control points (FrontControlPoint) for both nodes
+            var startControl = startNode.FrontControlPoint.OriginalPosition;
+            var control1 = startNode.FrontControlPoint.ControlPointPosition + startControl;
+            var endControl = endNode.FrontControlPoint.OriginalPosition;
+            var control2 = endNode.FrontControlPoint.ControlPointPosition + endControl;
 
             instance.SetControlPoints(startControl, control1, control2, endControl);
             instance.Rebuild();
@@ -173,22 +150,9 @@ namespace Client.Game.InGame.Train
             return instance.gameObject;
         }
 
-        private static (int canonicalFrom, int canonicalTo, bool swapped) SelectCanonicalPair(int fromNodeId, int toNodeId)
-        {
-            var alternateFrom = toNodeId ^ 1;
-            var alternateTo = fromNodeId ^ 1;
-            var swapped = fromNodeId > alternateFrom;
-            return swapped ? (alternateFrom, alternateTo, true) : (fromNodeId, toNodeId, false);
-        }
-
         private static ulong ComputeRailObjectId(int canonicalFrom, int canonicalTo)
         {
             return (ulong)canonicalFrom + ((ulong)canonicalTo << 32);
-        }
-
-        private static bool IsValidIndex(IReadOnlyList<IReadOnlyList<(int targetId, int distance)>> adjacency, int index)
-        {
-            return index >= 0 && index < adjacency.Count;
         }
 
         #endregion
