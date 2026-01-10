@@ -1,3 +1,4 @@
+using System;
 using Client.Game.InGame.Train;
 using Game.Train.RailGraph;
 using UnityEngine;
@@ -79,7 +80,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
     ///     レール接続プレビュー用のベジエ曲線制御点データ
     ///     Bezier curve control points for rail connection preview
     /// </summary>
-    public struct TrainRailConnectPreviewData
+    public struct TrainRailConnectPreviewData : IEquatable<TrainRailConnectPreviewData>
     {
         public static readonly TrainRailConnectPreviewData Invalid = new(Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero, false);
         
@@ -96,6 +97,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             P2 = p2;
             P3 = p3;
             IsValid = isValid;
+        }
+        public bool Equals(TrainRailConnectPreviewData other)
+        {
+            return P0.Equals(other.P0) && P1.Equals(other.P1) && P2.Equals(other.P2) && P3.Equals(other.P3) && IsValid == other.IsValid;
+        }
+        public override bool Equals(object obj)
+        {
+            return obj is TrainRailConnectPreviewData other && Equals(other);
+        }
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(P0, P1, P2, P3, IsValid);
         }
     }
 }
