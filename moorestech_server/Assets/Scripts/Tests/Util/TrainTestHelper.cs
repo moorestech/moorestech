@@ -1,4 +1,4 @@
-using Game.Block.Blocks.TrainRail;
+﻿using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
@@ -30,10 +30,16 @@ namespace Tests.Util
         public IWorldBlockDatastore WorldBlockDatastore { get; }
         public PacketResponseCreator PacketResponseCreator { get; }
 
-        public RailGraphDatastore GetRailGraphDatastore()
+        public IRailGraphDatastore GetRailGraphDatastore()
         {
-            return ServiceProvider.GetService<RailGraphDatastore>();
+            return ServiceProvider.GetService<IRailGraphDatastore>();
         }
+
+        public TrainUpdateService GetTrainUpdateService() => ServiceProvider.GetService<TrainUpdateService>();
+
+        public TrainDiagramManager GetTrainDiagramManager() => ServiceProvider.GetService<TrainDiagramManager>();
+
+        public TrainRailPositionManager GetTrainRailPositionManager() => ServiceProvider.GetService<TrainRailPositionManager>();
     }
 
     public static class TrainTestHelper
@@ -42,10 +48,14 @@ namespace Tests.Util
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var environment = new TrainTestEnvironment(serviceProvider, ServerContext.WorldBlockDatastore, packet);
-            TrainRailPositionManager.ResetInstance();
-            TrainDiagramManager.Instance.ResetInstance();
-            TrainUpdateService.Instance.ResetTrains();
-            RailGraphDatastore.ResetInstance();
+            var trainRailPositionManager = serviceProvider.GetService<TrainRailPositionManager>();
+            var trainDiagramManager = serviceProvider.GetService<TrainDiagramManager>();
+            var trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
+            var railGraphDatastore = serviceProvider.GetService<IRailGraphDatastore>();
+            trainRailPositionManager.Reset();
+            trainDiagramManager.Reset();
+            trainUpdateService.ResetTrains();
+            railGraphDatastore.Reset();
             return environment;
         }
 
@@ -123,3 +133,6 @@ namespace Tests.Util
         }
     }
 }
+
+
+

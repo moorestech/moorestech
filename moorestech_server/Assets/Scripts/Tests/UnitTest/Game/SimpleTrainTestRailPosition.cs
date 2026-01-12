@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Game.Train.RailGraph;
 using NUnit.Framework;
 using Tests.Util;
@@ -12,14 +12,14 @@ namespace Tests.UnitTest.Game
         public void MoveForward_LongTrain_MovesAcrossMultipleNodes()
         {
             var env = TrainTestHelper.CreateEnvironment();
-            _ = env.GetRailGraphDatastore();
+            var railGraphDatastore = env.GetRailGraphDatastore();
 
             // ノードを準備
-            var nodeA = RailNode.CreateSingleAndRegister();
-            var nodeB = RailNode.CreateSingleAndRegister();
-            var nodeC = RailNode.CreateSingleAndRegister();
-            var nodeD = RailNode.CreateSingleAndRegister();
-            var nodeE = RailNode.CreateSingleAndRegister();
+            var nodeA = RailNode.CreateSingleAndRegister(railGraphDatastore);
+            var nodeB = RailNode.CreateSingleAndRegister(railGraphDatastore);
+            var nodeC = RailNode.CreateSingleAndRegister(railGraphDatastore);
+            var nodeD = RailNode.CreateSingleAndRegister(railGraphDatastore);
+            var nodeE = RailNode.CreateSingleAndRegister(railGraphDatastore);
 
             // ノードを接続
             nodeB.ConnectNode(nodeA, 10);//9から列車
@@ -57,14 +57,14 @@ namespace Tests.UnitTest.Game
         public void MoveBackward_LongTrain_MovesAcrossMultipleNodes()
         {
             var env = TrainTestHelper.CreateEnvironment();
-            _ = env.GetRailGraphDatastore();
+            var railGraphDatastore = env.GetRailGraphDatastore();
 
             // ノードを準備
-            var (nodeA1, nodeA2) = RailNode.CreatePairAndRegister();
-            var (nodeB1, nodeB2) = RailNode.CreatePairAndRegister();
-            var (nodeC1, nodeC2) = RailNode.CreatePairAndRegister();
-            var (nodeD1, nodeD2) = RailNode.CreatePairAndRegister();
-            var (nodeE1, nodeE2) = RailNode.CreatePairAndRegister();
+            var (nodeA1, nodeA2) = RailNode.CreatePairAndRegister(railGraphDatastore);
+            var (nodeB1, nodeB2) = RailNode.CreatePairAndRegister(railGraphDatastore);
+            var (nodeC1, nodeC2) = RailNode.CreatePairAndRegister(railGraphDatastore);
+            var (nodeD1, nodeD2) = RailNode.CreatePairAndRegister(railGraphDatastore);
+            var (nodeE1, nodeE2) = RailNode.CreatePairAndRegister(railGraphDatastore);
             // ノードを接続
             nodeB1.ConnectNode(nodeA1, 10);//5から列車
             nodeC1.ConnectNode(nodeB1, 15);//列車
@@ -122,3 +122,4 @@ namespace Tests.UnitTest.Game
 
     }
 }
+

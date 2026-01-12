@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Item.Interface;
@@ -21,7 +21,12 @@ namespace Server.Protocol.PacketResponse
     {
         public const string ProtocolTag = "va:invReq";
         
-        public InventoryRequestProtocol(ServiceProvider _) { }
+        private readonly TrainUpdateService _trainUpdateService;
+        
+        public InventoryRequestProtocol(ServiceProvider serviceProvider)
+        {
+            _trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
+        }
         
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
@@ -61,9 +66,11 @@ namespace Server.Protocol.PacketResponse
             
             ResponseInventoryRequestProtocolMessagePack CreateTrainResponse(InventoryIdentifierMessagePack identifier)
             {
+                // 列車カーを探索
+                // Find the target train car
                 var trainCarId = Guid.Parse(identifier.TrainCarId);
                 TrainCar trainCar = null;
-                foreach (var registeredTrain in TrainUpdateService.Instance.GetRegisteredTrains())
+                foreach (var registeredTrain in _trainUpdateService.GetRegisteredTrains())
                 {
                     foreach (var car in registeredTrain.Cars)
                     {
@@ -75,6 +82,8 @@ namespace Server.Protocol.PacketResponse
                 
                 if (trainCar == null) return new ResponseInventoryRequestProtocolMessagePack(InventoryType.Train, identifier, Array.Empty<IItemStack>());
                 
+                // 列車カーのインベントリを生成
+                // Build the train car inventory
                 var items = trainCar.EnumerateInventory().Select(slot => new ItemMessagePack(slot.item)).ToArray();
                 return new ResponseInventoryRequestProtocolMessagePack(InventoryType.Train, identifier, items);
             }
@@ -129,3 +138,4 @@ namespace Server.Protocol.PacketResponse
         }
     }
 }
+

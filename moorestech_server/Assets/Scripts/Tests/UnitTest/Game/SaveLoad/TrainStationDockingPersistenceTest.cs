@@ -53,7 +53,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var loadEnv = TrainTestHelper.CreateEnvironment();
             SaveLoadJsonTestHelper.LoadFromJson(loadEnv.ServiceProvider, saveJson);
 
-            var loadedTrains = TrainUpdateService.Instance.GetRegisteredTrains().ToList();
+            var loadedTrains = loadEnv.GetTrainUpdateService().GetRegisteredTrains().ToList();
             Assert.AreEqual(1, loadedTrains.Count, "ロード後の登録列車数が一致しません。");
 
             var loadedTrain = loadedTrains[0];
@@ -69,7 +69,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.AreEqual(expectedItem.Id, loadedStack.Id, "ロード後の貨車インベントリIDが一致しません。");
             Assert.AreEqual(expectedItem.Count, loadedStack.Count, "ロード後の貨車インベントリ個数が一致しません。");
 
-            CleanupTrains(loadedTrains);
+            CleanupTrains(loadEnv, loadedTrains);
         }
 
 
@@ -82,7 +82,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var train = scenario.CreateForwardDockingTrain(out _);
             train.trainUnitStationDocking.TryDockWhenStopped();
 
-            var railSnapshotCount = train.RailPosition.CreateSaveSnapshot().Count();
+            var railSnapshotCount = train.RailPosition.CreateSaveSnapshot().RailSnapshot.Count;
             Assert.Greater(railSnapshotCount, 0, "保存前のRailSnapshotが空です。");
 
             var mutation = SaveLoadJsonTestHelper.CreateMutation(scenario.Environment.ServiceProvider);
@@ -94,7 +94,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             mutation.Load(loadEnv.ServiceProvider);
 
-            var loadedTrains = TrainUpdateService.Instance.GetRegisteredTrains().ToList();
+            var loadedTrains = loadEnv.GetTrainUpdateService().GetRegisteredTrains().ToList();
             Assert.AreEqual(1, loadedTrains.Count, "破損JSONロード後の登録列車数が一致しません。");
 
             var loadedTrain = loadedTrains[0];
@@ -107,7 +107,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             loadedTrain.trainUnitStationDocking.TryDockWhenStopped();
             Assert.IsTrue(loadedCar.IsDocked, "破損JSONロード後に再ドッキングできません。");
 
-            CleanupTrains(loadedTrains);
+            CleanupTrains(loadEnv, loadedTrains);
         }
 
         [Test]
@@ -121,7 +121,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var dockedSnapshot = ConfigureDockedTrain(dockedTrain, dockedCar, scenario);
             var runningSnapshot = ConfigureRunningTrain(runningTrain, runningCar, scenario);
 
-            var registeredCount = TrainUpdateService.Instance.GetRegisteredTrains().Count();
+            var registeredCount = scenario.Environment.GetTrainUpdateService().GetRegisteredTrains().Count();
             Assert.AreEqual(2, registeredCount, "セーブ前の登録列車数が想定と異なります。");
 
             var saveJson = SaveLoadJsonTestHelper.AssembleSaveJson(scenario.Environment.ServiceProvider);
@@ -131,7 +131,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var loadEnv = TrainTestHelper.CreateEnvironment();
             SaveLoadJsonTestHelper.LoadFromJson(loadEnv.ServiceProvider, saveJson);
 
-            var loadedTrains = TrainUpdateService.Instance.GetRegisteredTrains().ToList();
+            var loadedTrains = loadEnv.GetTrainUpdateService().GetRegisteredTrains().ToList();
             Assert.AreEqual(2, loadedTrains.Count, "ロード後の登録列車数が一致しません。");
 
             var loadedDockedTrain = loadedTrains.Single(train => train.trainUnitStationDocking.IsDocked);
@@ -140,7 +140,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             AssertTrainStateMatches(loadedDockedTrain, dockedSnapshot);
             AssertTrainStateMatches(loadedRunningTrain, runningSnapshot);
 
-            CleanupTrains(loadedTrains);
+            CleanupTrains(loadEnv, loadedTrains);
         }
 
         private static TrainStateSnapshot ConfigureDockedTrain(TrainUnit train, TrainCar car, TrainStationDockingScenario scenario)
@@ -237,13 +237,13 @@ namespace Tests.UnitTest.Game.SaveLoad
             }
         }
 
-        private static void CleanupTrains(IEnumerable<TrainUnit> trains)
+        private static void CleanupTrains(TrainTestEnvironment environment, IEnumerable<TrainUnit> trains)
         {
             foreach (var train in trains)
             {
                 train.trainUnitStationDocking.UndockFromStation();
-                TrainDiagramManager.Instance.UnregisterDiagram(train.trainDiagram);
-                TrainUpdateService.Instance.UnregisterTrain(train);
+                environment.GetTrainDiagramManager().UnregisterDiagram(train.trainDiagram);
+                environment.GetTrainUpdateService().UnregisterTrain(train);
             }
         }
 
@@ -299,7 +299,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             public bool IsDocked { get; }
             public Vector3Int? DockingBlockPosition { get; }
 
-            public static TrainStateSnapshot Create(TrainUnit train, TrainCar car, TrainDiagram.DiagramEntry? waitEntry, Vector3Int? dockingBlockPosition)
+            public static TrainStateSnapshot Create(TrainUnit train, TrainCar car, TrainDiagramEntry? waitEntry, Vector3Int? dockingBlockPosition)
             {
                 var currentIndex = Mathf.Clamp(train.trainDiagram.CurrentIndex, 0, train.trainDiagram.Entries.Count - 1);
                 var activeEntry = train.trainDiagram.Entries[currentIndex];

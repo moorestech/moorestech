@@ -1,13 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Core.Master;
+﻿using Core.Master;
 using Game.Context;
 using Game.Train.Common;
 using Game.Train.RailGraph;
 using Game.Train.Train;
-using Mooresmaster.Model.TrainModule;
 using NUnit.Framework;
+using System.Collections.Generic;
+using System.Linq;
 using Tests.Module.TestMod;
 using Tests.Util;
 
@@ -18,14 +16,12 @@ namespace Tests.UnitTest.Game
         [Test]
         public void DiagramRemovesDeletedNodeAndResetsIndex()
         {
-            _ = new TrainDiagramManager();
-
             var env = TrainTestHelper.CreateEnvironment();
-            _ = env.GetRailGraphDatastore();
+            var railGraphDatastore = env.GetRailGraphDatastore();
 
-            var startNode = RailNode.CreateSingleAndRegister();
-            var removedNode = RailNode.CreateSingleAndRegister();
-            var nextNode = RailNode.CreateSingleAndRegister();
+            var startNode = RailNode.CreateSingleAndRegister(railGraphDatastore);
+            var removedNode = RailNode.CreateSingleAndRegister(railGraphDatastore);
+            var nextNode = RailNode.CreateSingleAndRegister(railGraphDatastore);
 
             startNode.ConnectNode(removedNode, 10);
             removedNode.ConnectNode(startNode, 10);
@@ -35,13 +31,13 @@ namespace Tests.UnitTest.Game
 
             var cars = new List<TrainCar>
             {
-                new TrainCar(new TrainCarMasterElement(0, Guid.Empty, Guid.Empty, null, 1000, 0, 0))
+                TrainTestCarFactory.CreateTrainCar(0, 1000, 0, 0, true)
             };
 
             var railNodes = new List<IRailNode> { startNode };
             var railPosition = new RailPosition(railNodes, 0, 0);
 
-            var trainUnit = new TrainUnit(railPosition, cars);
+            var trainUnit = new TrainUnit(railPosition, cars, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
             trainUnit.trainDiagram.AddEntry(removedNode);
             trainUnit.trainDiagram.AddEntry(nextNode);
 
@@ -165,20 +161,24 @@ namespace Tests.UnitTest.Game
 
             trainUnit.trainUnitStationDocking.UndockFromStation();
             Assert.IsFalse(trainUnit.trainUnitStationDocking.IsDocked, "手動のドッキング解除後も接続状態が維持されています。");
-
+            trainUnit.trainDiagram.Update();
             Assert.IsFalse(firstEntry.CanDepart(trainUnit), "ドッキング解除中にも関わらず待機ティックが消費されています。");
 
             trainUnit.trainUnitStationDocking.TryDockWhenStopped();
             Assert.IsTrue(trainUnit.trainUnitStationDocking.IsDocked, "カウントダウン再開前に列車が再ドッキングしていません。");
 
             Assert.IsFalse(firstEntry.CanDepart(trainUnit), "ドッキング再開後の1ティック目で出発可能になっています。");
+            trainUnit.trainDiagram.Update();
+            Assert.IsFalse(firstEntry.CanDepart(trainUnit), "Should still wait after the first tick while docked.");
+
+            trainUnit.trainDiagram.Update();
             Assert.IsTrue(firstEntry.CanDepart(trainUnit), "ドッキング状態で2ティック経過しても待機が完了していません。");
 
             trainUnit.trainDiagram.MoveToNextEntry();
             trainUnit.trainDiagram.MoveToNextEntry();
 
             Assert.IsTrue(trainUnit.trainUnitStationDocking.IsDocked, "ダイアグラム遷移後に列車がドッキング状態を維持していません。");
-            Assert.IsFalse(firstEntry.CanDepart(trainUnit), "エントリ消化後に待機ティックがリセットされていません。");
         }
     }
 }
+

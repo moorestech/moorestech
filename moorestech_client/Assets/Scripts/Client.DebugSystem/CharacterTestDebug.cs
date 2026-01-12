@@ -54,6 +54,7 @@ namespace Client.DebugSystem
                     GraphHash = 0u,
                     GraphTick = 0,
                 };
+                var trainUnitSnapshots = new TrainUnitSnapshotResponse(new List<TrainUnitSnapshotBundleMessagePack>(), 0, 0u);
                 
                 var responses = (
                     mapObjects,
@@ -64,7 +65,8 @@ namespace Client.DebugSystem
                     craftTree,
                     playedSkitIds,
                     researchNodeStates,
-                    railGraphSnapshot);
+                    railGraphSnapshot,
+                    trainUnitSnapshots);
                 
                 return new InitialHandshakeResponse(handshake, responses);
             }

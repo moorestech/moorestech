@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface.Extension;
@@ -17,10 +17,14 @@ namespace Server.Protocol.PacketResponse
         public const string Tag = "va:railConnectionEdit";
 
         private readonly RailConnectionCommandHandler _commandHandler;
+        private readonly IRailGraphDatastore _railGraphDatastore;
+        private readonly TrainRailPositionManager _railPositionManager;
 
         public RailConnectionEditProtocol(ServiceProvider serviceProvider)
         {
             _commandHandler = serviceProvider.GetService<RailConnectionCommandHandler>();
+            _railGraphDatastore = serviceProvider.GetService<IRailGraphDatastore>();
+            _railPositionManager = serviceProvider.GetService<TrainRailPositionManager>();
         }
 
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
@@ -58,17 +62,17 @@ namespace Server.Protocol.PacketResponse
 
             ResponseRailConnectionEditMessagePack HandleDisconnect(RailConnectionEditRequest data)
             {
-                if (!RailGraphDatastore.TryGetRailNode(data.FromNodeId, out var fromNode) || fromNode == null || fromNode.Guid != data.FromGuid)
+                if (!_railGraphDatastore.TryGetRailNode(data.FromNodeId, out var fromNode) || fromNode == null || fromNode.Guid != data.FromGuid)
                 {
                     return ResponseRailConnectionEditMessagePack.CreateFailure(RailConnectionEditFailureReason.InvalidNode, data.Mode);
                 }
 
-                if (!RailGraphDatastore.TryGetRailNode(data.ToNodeId, out var toNode) || toNode == null || toNode.Guid != data.ToGuid)
+                if (!_railGraphDatastore.TryGetRailNode(data.ToNodeId, out var toNode) || toNode == null || toNode.Guid != data.ToGuid)
                 {
                     return ResponseRailConnectionEditMessagePack.CreateFailure(RailConnectionEditFailureReason.InvalidNode, data.Mode);
                 }
 
-                if (!TrainRailPositionManager.Instance.CanRemoveEdge(fromNode, toNode))
+                if (!_railPositionManager.CanRemoveEdge(fromNode, toNode))
                 {
                     return ResponseRailConnectionEditMessagePack.CreateFailure(RailConnectionEditFailureReason.NodeInUseByTrain, data.Mode);
                 }
@@ -257,3 +261,4 @@ namespace Server.Protocol.PacketResponse
         }
     }
 }
+

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
@@ -10,7 +9,6 @@ using Game.Context;
 using Game.Train.Common;
 using Game.Train.RailGraph;
 using Game.Train.Train;
-using Mooresmaster.Model.TrainModule;
 using NUnit.Framework;
 using Tests.Module.TestMod;
 using Tests.Util;
@@ -35,9 +33,6 @@ namespace Tests.UnitTest.Game.SaveLoad
         [Test]
         public void BidirectionalCargoLoopScenarioProducesExpectedSaveData()
         {
-            _ = new TrainDiagramManager();
-            TrainUpdateService.Instance.ResetTrains();
-
             var environment = TrainTestHelper.CreateEnvironment();
 
             var (stationABlock, stationASaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
@@ -64,7 +59,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             stationA.ExitComponent.ConnectRailComponent(stationB.EntryComponent, true, true, TransitSegmentLength);
             stationB.ExitComponent.ConnectRailComponent(stationA.EntryComponent, true, true, TransitSegmentLength);
 
-            var stationSegmentLength = stationA.EntryFront.GetDistanceToNode(stationA.ExitFront);
+            var stationSegmentLength = stationABlock!.BlockPositionInfo.BlockSize.z;
 
             Assert.IsTrue(stationABlock!.ComponentManager.TryGetComponent<IBlockInventory>(out var inventoryA),
                 "Station A のインベントリ取得に失敗しました。");
@@ -91,16 +86,16 @@ namespace Tests.UnitTest.Game.SaveLoad
                 stationA.ExitFront,
                 stationA.EntryFront
             };
-            var train1Car = new TrainCar(new TrainCarMasterElement(0, Guid.Empty, Guid.Empty, null, 20000, 2, stationSegmentLength));
-            var train1 = new TrainUnit(new RailPosition(train1Nodes, train1Car.Length, 0), new List<TrainCar> { train1Car });
+            var train1Car = TrainTestCarFactory.CreateTrainCar(0, 20000, 2, stationSegmentLength, true);
+            var train1 = new TrainUnit(new RailPosition(train1Nodes, train1Car.Length, 0), new List<TrainCar> { train1Car }, environment.GetTrainUpdateService(), environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
 
             var train2Nodes = new List<IRailNode>
             {
                 stationB.ExitFront,
                 stationB.EntryFront
             };
-            var train2Car = new TrainCar(new TrainCarMasterElement(0, Guid.Empty, Guid.Empty, null, 1000, 2, stationSegmentLength), isFacingForward: false);
-            var train2 = new TrainUnit(new RailPosition(train2Nodes, train2Car.Length, 0), new List<TrainCar> { train2Car });
+            var train2Car = TrainTestCarFactory.CreateTrainCar(0, 1000, 2, stationSegmentLength, false);
+            var train2 = new TrainUnit(new RailPosition(train2Nodes, train2Car.Length, 0), new List<TrainCar> { train2Car }, environment.GetTrainUpdateService(), environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
             train2.Reverse();
             //train1.trainUnitStationDocking.TryDockWhenStopped();
             //train2.trainUnitStationDocking.TryDockWhenStopped();
@@ -212,7 +207,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var saveJson = SaveLoadJsonTestHelper.AssembleSaveJson(environment.ServiceProvider);
             Assert.IsTrue(saveJson.Contains("trainUnits"), "セーブデータに trainUnits セクションが含まれていません。");
             Debug.Log(saveJson);
-            TrainUpdateService.Instance.ResetTrains();
+            environment.GetTrainUpdateService().ResetTrains();
         }
 
         private static StationEndpoints ExtractStationEndpoints(RailSaverComponent saver)

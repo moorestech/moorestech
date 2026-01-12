@@ -5,44 +5,19 @@ namespace Game.Train.Common
 {
     public class TrainRailPositionManager
     {
-        private static TrainRailPositionManager _instance;
-        public static TrainRailPositionManager Instance
-        {
-            get
-            {
-                if (_instance == null)
-                    _instance = new TrainRailPositionManager();
-                return _instance;
-            }
-        }
-
         private List<RailPosition> _list;
 
         public TrainRailPositionManager()
         {
             InitializeDataStore();
-            _instance = this;
         }
 
-        private void InitializeDataStore()
-        {
-            _list = new List<RailPosition>();
-        }
+        private void InitializeDataStore() => _list = new List<RailPosition>();
 
-        private void ResetInternalState()
+        public void Reset()
         {
             _list.Clear();
             InitializeDataStore();
-        }
-
-        public static void ResetInstance()
-        {
-            if (_instance == null)
-            {
-                _instance = new TrainRailPositionManager();
-                return;
-            }
-            _instance.ResetInternalState();
         }
 
         public void RegisterRailPosition(RailPosition position)

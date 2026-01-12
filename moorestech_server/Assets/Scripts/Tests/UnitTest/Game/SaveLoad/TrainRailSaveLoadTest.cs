@@ -41,7 +41,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             Debug.Log("[RailComponentSaveLoadTest] SaveJson:\n" + json);
 
             worldBlockDatastore.RemoveBlock(pos, BlockRemoveReason.ManualRemove);
-            RailGraphDatastore.ResetInstance();
+            env.GetRailGraphDatastore().Reset();
 
             var loadEnv = TrainTestHelper.CreateEnvironment();
             var loadJson = loadEnv.ServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson;
@@ -106,7 +106,7 @@ namespace Tests.UnitTest.Game.SaveLoad
                 worldBlockDatastore.RemoveBlock(positions[i], BlockRemoveReason.ManualRemove);
             }
 
-            RailGraphDatastore.ResetInstance();
+            env.GetRailGraphDatastore().Reset();
 
             var loadEnv = TrainTestHelper.CreateEnvironment();
             var loadJson = loadEnv.ServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson;
@@ -198,7 +198,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             blockStore.RemoveBlock(stationPos, BlockRemoveReason.ManualRemove);
             blockStore.RemoveBlock(inputChestPos, BlockRemoveReason.ManualRemove);
-            RailGraphDatastore.ResetInstance();
+            env.GetRailGraphDatastore().Reset();
 
             var loadEnv = TrainTestHelper.CreateEnvironment();
             var worldLoader = loadEnv.ServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson;

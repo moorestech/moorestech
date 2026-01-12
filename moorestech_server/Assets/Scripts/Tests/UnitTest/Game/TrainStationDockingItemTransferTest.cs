@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Blocks.TrainRail;
@@ -9,7 +8,6 @@ using Game.Context;
 using Game.Train.Common;
 using Game.Train.RailGraph;
 using Game.Train.Train;
-using Mooresmaster.Model.TrainModule;
 using NUnit.Framework;
 using Tests.Module.TestMod;
 using Tests.Util;
@@ -47,14 +45,14 @@ namespace Tests.UnitTest.Game
             var exitNode = railSaver.RailComponents[1].FrontNode;
             Assert.IsNotNull(exitNode, "駅の出口ノードを取得できませんでした。");
 
-            var stationSegmentLength = entryNode!.GetDistanceToNode(exitNode!);
+            var stationSegmentLength = stationBlock!.BlockPositionInfo.BlockSize.z;
             Assert.Greater(stationSegmentLength, 0, "駅セグメントの長さが0以下になっています。");
 
             var railNodes = new List<IRailNode> { exitNode, entryNode };
             var railPosition = new RailPosition(railNodes, stationSegmentLength, 0);
 
-            var trainCar = new TrainCar(new TrainCarMasterElement(0, Guid.Empty, Guid.Empty, null, 1000, 1, stationSegmentLength));
-            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar });
+            var trainCar = TrainTestCarFactory.CreateTrainCar(0, 1000, 1, stationSegmentLength, true);
+            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
 
             trainUnit.trainUnitStationDocking.TryDockWhenStopped();
 
@@ -73,8 +71,8 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(ForUnitTestItemId.ItemId1, carStack.Id, "列車貨車が駅のアイテムを受け取っていません。");
             Assert.AreEqual(maxStack, carStack.Count, "列車貨車が駅インベントリの全量を受け取っていません。");
 
-            TrainDiagramManager.Instance.UnregisterDiagram(trainUnit.trainDiagram);
-            TrainUpdateService.Instance.UnregisterTrain(trainUnit);
+            env.GetTrainDiagramManager().UnregisterDiagram(trainUnit.trainDiagram);
+            env.GetTrainUpdateService().UnregisterTrain(trainUnit);
         }
 
         [Test]
@@ -105,14 +103,14 @@ namespace Tests.UnitTest.Game
             var exitNode = railSaver.RailComponents[1].FrontNode;
             Assert.IsNotNull(exitNode, "貨物プラットフォームの出口ノードを取得できませんでした。");
 
-            var platformSegmentLength = entryNode!.GetDistanceToNode(exitNode!);
+            var platformSegmentLength = cargoPlatformBlock!.BlockPositionInfo.BlockSize.z;
             Assert.Greater(platformSegmentLength, 0, "貨物プラットフォームセグメントの長さが0以下になっています。");
 
             var railNodes = new List<IRailNode> { exitNode, entryNode };
             var railPosition = new RailPosition(railNodes, platformSegmentLength, 0);
 
-            var trainCar = new TrainCar(new TrainCarMasterElement(0, Guid.Empty, Guid.Empty, null, 1000, 1, platformSegmentLength));
-            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar });
+            var trainCar = TrainTestCarFactory.CreateTrainCar(0, 1000, 1, platformSegmentLength, true);
+            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
 
             trainUnit.trainUnitStationDocking.TryDockWhenStopped();
 
@@ -131,8 +129,8 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(ForUnitTestItemId.ItemId1, carStack.Id, "列車貨車が貨物プラットフォームのアイテムを受け取っていません。");
             Assert.AreEqual(maxStack, carStack.Count, "列車貨車が貨物プラットフォームから全量を受け取っていません。");
 
-            TrainDiagramManager.Instance.UnregisterDiagram(trainUnit.trainDiagram);
-            TrainUpdateService.Instance.UnregisterTrain(trainUnit);
+            env.GetTrainDiagramManager().UnregisterDiagram(trainUnit.trainDiagram);
+            env.GetTrainUpdateService().UnregisterTrain(trainUnit);
         }
 
         [Test]
@@ -164,16 +162,16 @@ namespace Tests.UnitTest.Game
             var exitNode = railSaver.RailComponents[1].FrontNode;
             Assert.IsNotNull(exitNode, "貨物プラットフォームの出口ノードを取得できませんでした。");
 
-            var platformSegmentLength = entryNode!.GetDistanceToNode(exitNode!);
+            var platformSegmentLength = cargoPlatformBlock!.BlockPositionInfo.BlockSize.z;
             Assert.Greater(platformSegmentLength, 0, "貨物プラットフォームセグメントの長さが0以下になっています。");
 
             var railNodes = new List<IRailNode> { exitNode, entryNode };
             var railPosition = new RailPosition(railNodes, platformSegmentLength, 0);
 
-            var trainCar = new TrainCar(new TrainCarMasterElement(0, Guid.Empty, Guid.Empty, null, 1000, 1, platformSegmentLength));
+            var trainCar = TrainTestCarFactory.CreateTrainCar(0, 1000, 1, platformSegmentLength, true);
             trainCar.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, maxStack));
 
-            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar });
+            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
 
             cargoPlatformComponent.SetTransferMode(CargoplatformComponent.CargoTransferMode.UnloadToPlatform);
 
@@ -193,8 +191,8 @@ namespace Tests.UnitTest.Game
             var remainingCarStack = trainCar.GetItem(0);
             Assert.AreEqual(ItemMaster.EmptyItemId, remainingCarStack.Id, "荷降ろし後も列車貨車のインベントリが空になっていません。");
 
-            TrainDiagramManager.Instance.UnregisterDiagram(trainUnit.trainDiagram);
-            TrainUpdateService.Instance.UnregisterTrain(trainUnit);
+            env.GetTrainDiagramManager().UnregisterDiagram(trainUnit.trainDiagram);
+            env.GetTrainUpdateService().UnregisterTrain(trainUnit);
         }
 
         [Test]
@@ -220,7 +218,7 @@ namespace Tests.UnitTest.Game
             Assert.IsNotNull(entryNode, "駅の入口ノードを取得できませんでした。");
             Assert.IsNotNull(exitNode, "駅の出口ノードを取得できませんでした。");
 
-            var stationSegmentLength = entryNode!.GetDistanceToNode(exitNode!);
+            var stationSegmentLength = stationBlock!.BlockPositionInfo.BlockSize.z;
             Assert.Greater(stationSegmentLength, 0, "駅セグメントの長さが0以下になっています。");
 
             var maxStack = MasterHolder.ItemMaster.GetItemMaster(ForUnitTestItemId.ItemId1).MaxStack;
@@ -230,8 +228,8 @@ namespace Tests.UnitTest.Game
             {
                 var railNodes = new List<IRailNode> { exitNode, entryNode };
                 var railPosition = new RailPosition(railNodes, stationSegmentLength, 0);
-                car = new TrainCar(new TrainCarMasterElement(0, Guid.Empty, Guid.Empty, null, 1000, 1, stationSegmentLength));
-                return new TrainUnit(railPosition, new List<TrainCar> { car });
+                car = TrainTestCarFactory.CreateTrainCar(0, 1000, 1, stationSegmentLength, true);
+                return new TrainUnit(railPosition, new List<TrainCar> { car }, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
             }
 
             var firstTrain = CreateTrain(out var firstCar);
@@ -261,10 +259,10 @@ namespace Tests.UnitTest.Game
             firstTrain.trainUnitStationDocking.UndockFromStation();
             secondTrain.trainUnitStationDocking.UndockFromStation();
 
-            TrainDiagramManager.Instance.UnregisterDiagram(firstTrain.trainDiagram);
-            TrainUpdateService.Instance.UnregisterTrain(firstTrain);
-            TrainDiagramManager.Instance.UnregisterDiagram(secondTrain.trainDiagram);
-            TrainUpdateService.Instance.UnregisterTrain(secondTrain);
+            env.GetTrainDiagramManager().UnregisterDiagram(firstTrain.trainDiagram);
+            env.GetTrainUpdateService().UnregisterTrain(firstTrain);
+            env.GetTrainDiagramManager().UnregisterDiagram(secondTrain.trainDiagram);
+            env.GetTrainUpdateService().UnregisterTrain(secondTrain);
         }
 
     }

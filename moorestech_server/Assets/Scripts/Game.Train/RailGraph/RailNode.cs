@@ -1,7 +1,5 @@
-using Game.Train.Utility;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 /// <summary>
 /// 距離はint型で表現している。理由はNotion参照
@@ -11,6 +9,7 @@ namespace Game.Train.RailGraph
 {
     public class RailNode : IRailNode
     {
+        private readonly IRailGraphDatastore _graphDatastore;
         public RailControlPoint FrontControlPoint { get; private set; }
         public RailControlPoint BackControlPoint { get; private set; }
         //このノードが駅に対応するときの駅ブロックのworld座標などを格納
@@ -18,7 +17,8 @@ namespace Game.Train.RailGraph
         public ConnectionDestination ConnectionDestination { get; private set; } = ConnectionDestination.Default;
         public bool HasConnectionDestination => !ConnectionDestination.IsDefault();
         public Guid Guid { get; }
-        public int NodeId => RailGraphDatastore.TryGetRailNodeId(this, out var nodeId) ? nodeId : -1;
+        public IRailGraphProvider GraphProvider => _graphDatastore;
+        public int NodeId => _graphDatastore.TryGetRailNodeId(this, out var nodeId) ? nodeId : -1;
         public int OppositeNodeId => NodeId ^ 1;
 
         // 自分に対応する裏表のノード
@@ -26,14 +26,14 @@ namespace Game.Train.RailGraph
         {
             get
             {
-                return RailGraphDatastore.TryGetRailNode(this.OppositeNodeId, out var nodeId) ? nodeId : null;
+                return _graphDatastore.TryGetRailNode(this.OppositeNodeId, out var nodeId) ? nodeId : null;
             }
         }
         public RailNode OppositeRailNode
         {
             get
             {
-                return RailGraphDatastore.TryGetRailNode(this.OppositeNodeId, out var nodeId) ? nodeId : null;
+                return _graphDatastore.TryGetRailNode(this.OppositeNodeId, out var nodeId) ? nodeId : null;
             }
         }
 
@@ -43,7 +43,7 @@ namespace Game.Train.RailGraph
             get
             {
                 //RailNodeの入力に対しつながっているRailNodeを列挙で返す
-                foreach (var (node, _) in RailGraphDatastore.GetConnectedNodesWithDistance(this))
+                foreach (var (node, _) in _graphDatastore.GetConnectedNodesWithDistance(this))
                     yield return node;
             }
         }
@@ -52,14 +52,19 @@ namespace Game.Train.RailGraph
             get
             {
                 //RailNodeの入力に対しつながっているRailNodeと距離を列挙で返す
-                foreach (var entry in RailGraphDatastore.GetConnectedNodesWithDistance(this))
+                foreach (var entry in _graphDatastore.GetConnectedNodesWithDistance(this))
                     yield return entry;
             }
         }
 
+        
+
         // 基本的にrailComponentからの呼び出しに対応
-        public RailNode()
+        public RailNode(IRailGraphDatastore graphDatastore)
         {
+            // グラフプロバイダを保持する
+            // Keep the graph provider dependency
+            _graphDatastore = graphDatastore;
             Guid = Guid.NewGuid();
             FrontControlPoint = new RailControlPoint(new Vector3(-1, -1, -1), new Vector3(-1, -1, -1));
             BackControlPoint = new RailControlPoint(new Vector3(-1, -1, -1), new Vector3(-1, -1, -1));
@@ -67,18 +72,18 @@ namespace Game.Train.RailGraph
             ConnectionDestination = ConnectionDestination.Default;
         }
         // 表裏セットでRailGraphに登録する、テスト用
-        public static (RailNode front, RailNode back) CreatePairAndRegister()
+        public static (RailNode front, RailNode back) CreatePairAndRegister(IRailGraphDatastore graphDatastore)
         {
-            var a = new RailNode();
-            var b = new RailNode();
-            RailGraphDatastore.AddNodePair(a, b);
+            var a = new RailNode(graphDatastore);
+            var b = new RailNode(graphDatastore);
+            graphDatastore.AddNodePair(a, b);
             return (a, b);
         }
         //テスト用など　、片方だけRailGraphに登録したいときに使う
-        public static RailNode CreateSingleAndRegister()
+        public static RailNode CreateSingleAndRegister(IRailGraphDatastore graphDatastore)
         {
-            var n = new RailNode();
-            RailGraphDatastore.AddNodeSingle(n);
+            var n = new RailNode(graphDatastore);
+            graphDatastore.AddNodeSingle(n);
             return n;
         }
 
@@ -97,11 +102,11 @@ namespace Game.Train.RailGraph
         //基本的にrailComponent側からのみよびだす
         public void ConnectNode(RailNode targetNode, int distance)
         {
-            RailGraphDatastore.ConnectNode(this, targetNode, distance);
+            _graphDatastore.ConnectNode(this, targetNode, distance);
         }
         public void DisconnectNode(RailNode targetNode)
         {
-            RailGraphDatastore.DisconnectNode(this, targetNode);
+            _graphDatastore.DisconnectNode(this, targetNode);
         }
         //自分から入力nodeまでの距離を返す
         //UseFindPath=falseのとき
@@ -110,17 +115,13 @@ namespace Game.Train.RailGraph
         //経路探索して接続していれば距離を返す、見つからなければ-1
         public int GetDistanceToNode(IRailNode node, bool UseFindPath = false)
         {
-            // ノードIDを解決できなければ距離計算を諦める
-            // Abort when node ids cannot be resolved for the query
-            if (node == null)
-                return -1;
-            if (node.NodeId < 0)
-                return -1;
-            if (!UseFindPath)
-                return RailGraphDatastore.GetDistanceBetweenNodes(NodeId, node.NodeId);
-            var pathResult = RailGraphDatastore.FindShortestPath(NodeId, node.NodeId);
-            return RailNodeCalculate.CalculateTotalDistanceF(pathResult);
+            // 指定プロバイダで距離を計算する
+            // Calculate distance via the assigned provider
+            return _graphDatastore.GetDistance(this, node, UseFindPath);
         }
+
+        
+
 
         Guid IRailNode.NodeGuid => Guid;
 
@@ -128,10 +129,12 @@ namespace Game.Train.RailGraph
         //RailGraphから削除する
         public void Destroy()
         {
-            RailGraphDatastore.RemoveNode(this);
+            _graphDatastore.RemoveNode(this);
             StationRef = null;
         }
 
     }
 
 }
+
+
