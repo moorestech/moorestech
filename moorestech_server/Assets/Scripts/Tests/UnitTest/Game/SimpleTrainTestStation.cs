@@ -1,10 +1,7 @@
-using Core.Master;
+﻿using Core.Master;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
-using Game.Block.Interface.Component;
-using Game.Block.Interface.Extension;
 using Game.Train.RailGraph;
-using Game.Train.Utility;
 using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using System.Linq;
@@ -38,10 +35,10 @@ namespace Tests.UnitTest.Game
             Assert.NotNull(connectedNode, "RailComponent1のFrontNodeがRailComponent2と接続されていません。");
             Assert.AreEqual(railComponent2.FrontNode, connectedNode.Item1, "RailComponent1のFrontNodeがRailComponent2のFrontNodeと一致していません。");
 
-            var path = RailGraphDatastore.FindShortestPath(railComponent1.FrontNode, railComponent2.FrontNode);
+            var path = env.GetRailGraphDatastore().FindShortestPath(railComponent1.FrontNode, railComponent2.FrontNode);
             Assert.AreNotEqual(0, path.Count, "接続後のFrontNode間で最短経路が見つかりませんでした。");
 
-            path = RailGraphDatastore.FindShortestPath(railComponent2.BackNode, railComponent2.BackNode);
+            path = env.GetRailGraphDatastore().FindShortestPath(railComponent2.BackNode, railComponent2.BackNode);
             Assert.AreNotEqual(0, path.Count, "BackNode同士での最短経路探索が失敗しました。");
         }
 
@@ -121,11 +118,12 @@ namespace Tests.UnitTest.Game
             var railNodeC = secondSaver.RailComponents[0].FrontNode;
             var railNodeD = secondSaver.RailComponents[1].FrontNode;
 
-            Debug.Log(RailGraphDatastore.GetDistanceBetweenNodes(railNodeA, railNodeB));
-            var length0 = RailGraphDatastore.GetDistanceBetweenNodes(railNodeB, railNodeC);
+            Debug.Log(env.GetRailGraphDatastore().GetDistanceBetweenNodes(railNodeA, railNodeB));
+            var length0 = env.GetRailGraphDatastore().GetDistanceBetweenNodes(railNodeB, railNodeC);
             Debug.Log(length0);
             Assert.AreEqual(0, length0, "駅間のFrontNode距離が0になっていません。");
-            Debug.Log(RailGraphDatastore.GetDistanceBetweenNodes(railNodeC, railNodeD));
+            Debug.Log(env.GetRailGraphDatastore().GetDistanceBetweenNodes(railNodeC, railNodeD));
         }
     }
 }
+

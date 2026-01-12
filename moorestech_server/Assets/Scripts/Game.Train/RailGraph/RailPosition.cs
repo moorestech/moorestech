@@ -1,3 +1,4 @@
+using Game.Train.Train;
 using Game.Train.Utility;
 using System;
 using System.Collections.Generic;
@@ -242,7 +243,11 @@ namespace Game.Train.RailGraph
                 }
                 //重なっている状態でかつ_railNodesにother._railNodes.First()がふくまれていないので経路を探索する必要がある
                 var currentLastNode = _railNodes.Last();
-                var nodelist = RailGraphDatastore.FindShortestPath(otherFirstNode, currentLastNode);//先頭がotherFirstNode
+                // グラフプロバイダから経路を取得する
+                // Fetch a path via the graph provider
+                var graphProvider = _railNodes[0].GraphProvider;
+                var path = graphProvider.FindShortestPath(otherFirstNode, currentLastNode);
+                var nodelist = path?.ToList();//先頭がotherFirstNode
 
                 if (nodelist == null || nodelist.Count < 2)
                 {
@@ -281,14 +286,20 @@ namespace Game.Train.RailGraph
             return _distanceToNextNode;
         }
 
-        public IReadOnlyList<ConnectionDestination> CreateSaveSnapshot()
+        public RailPositionSaveData CreateSaveSnapshot()
         {
             var snapshot = new List<ConnectionDestination>(_railNodes.Count);
             foreach (var node in _railNodes)
             {
                 snapshot.Add(node.ConnectionDestination);
             }
-            return snapshot;
+            RailPositionSaveData ret = new RailPositionSaveData()
+            {
+                TrainLength = _trainLength,
+                DistanceToNextNode = _distanceToNextNode,
+                RailSnapshot = snapshot
+            };
+            return ret;
         }
 
         public IReadOnlyList<IRailNode> GetRailNodes()
@@ -332,7 +343,7 @@ namespace Game.Train.RailGraph
         //基本的に長さが短くなるときだけ使う。長くなるときはNodeを超える可能性があるので
         public void SetTrainLength(int newLength)
         {
-            if (newLength >= _trainLength)
+            if (newLength > _trainLength)
             {
                 throw new ArgumentException("列車の長さは短くなる必要があります。");
             }
@@ -346,7 +357,7 @@ namespace Game.Train.RailGraph
 
         // intの距離を入力として、railpositionの先頭からその距離さかのぼったところにちょうどあるRailNodeをlistですべて取得する
         // 事実上ドッキング判定のみに使う
-        public List<IRailNode> GetNodesAtDistance(int distance)
+        public IReadOnlyList<IRailNode> GetNodesAtDistance(int distance)
         {
             List<IRailNode> nodesAtDistance = new List<IRailNode>();
             int totalDistance = _distanceToNextNode + distance;//この地点をみたい

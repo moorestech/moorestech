@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
@@ -8,7 +8,6 @@ using Game.Train.Common;
 using Game.Train.RailGraph;
 using Game.Train.Utility;
 using Game.Train.Train;
-using Mooresmaster.Model.TrainModule;
 using NUnit.Framework;
 using Tests.Module.TestMod;
 using UnityEngine;
@@ -49,6 +48,7 @@ namespace Tests.Util
         public RailNode StationExitBack => _station.ExitBack;
         public RailNode StationEntryBack => _station.EntryBack;
         public Vector3Int StationBlockPosition => _station.EntryComponent.ComponentID.Position;
+        public int StationBlockLength => _station.BlockLength;
 
         public static TrainStationDockingScenario Create()
         {
@@ -56,7 +56,7 @@ namespace Tests.Util
 
             var n0Component = TrainTestHelper.PlaceRail(environment, new Vector3Int(0, 0, 0), BlockDirection.North);
             var n1Component = TrainTestHelper.PlaceRail(environment, new Vector3Int(5, 0, 0), BlockDirection.North);
-            var (_, stationSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+            var (stationBlock, stationSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
                 environment,
                 ForUnitTestModBlockId.TestTrainCargoPlatform,
                 new Vector3Int(10, 20, 0),
@@ -64,9 +64,10 @@ namespace Tests.Util
             var n2Component = TrainTestHelper.PlaceRail(environment, new Vector3Int(15, 0, 0), BlockDirection.North);
             var n3Component = TrainTestHelper.PlaceRail(environment, new Vector3Int(20, 0, 0), BlockDirection.North);
 
+            Assert.IsNotNull(stationBlock, "貨物プラットフォームブロックを取得できませんでした。");
             Assert.IsNotNull(stationSaver, "貨物プラットフォーム用のRailSaverComponentを取得できませんでした。");
 
-            var station = ExtractStationNodes(stationSaver!);
+            var station = ExtractStationNodes(stationBlock!, stationSaver!);
 
             n0Component.ConnectRailComponent(n1Component, true, true);
             n1Component.ConnectRailComponent(station.EntryComponent, true, true);
@@ -84,15 +85,16 @@ namespace Tests.Util
             var n1Component = TrainTestHelper.PlaceRail(environment, new Vector3Int(5, 0, 0), BlockDirection.North);
             var n2Component = TrainTestHelper.PlaceRail(environment, new Vector3Int(15, 0, 0), BlockDirection.North);
             var n3Component = TrainTestHelper.PlaceRail(environment, new Vector3Int(20, 0, 0), BlockDirection.North);
-            var (_, stationSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+            var (stationBlock, stationSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
                 environment,
                 ForUnitTestModBlockId.TestTrainCargoPlatform,
                 new Vector3Int(10, 100, 0),
                 BlockDirection.North);
 
+            Assert.IsNotNull(stationBlock, "貨物プラットフォームブロックを取得できませんでした。");
             Assert.IsNotNull(stationSaver, "貨物プラットフォーム用のRailSaverComponentを取得できませんでした。");
 
-            var station = ExtractStationNodes(stationSaver!);
+            var station = ExtractStationNodes(stationBlock!, stationSaver!);
 
             n0Component.ConnectRailComponent(station.EntryComponent, true, true, station.SegmentLength);
             station.ExitComponent.ConnectRailComponent(n0Component, true, true, station.SegmentLength * 2);
@@ -129,16 +131,16 @@ namespace Tests.Util
         public TrainUnit CreateLoopDockingTrain(int carCount, out IReadOnlyList<TrainCar> cars)
         {
             Assert.GreaterOrEqual(carCount, 16, "超長編成のテストには16両以上の車両数を指定してください。");
-
-            var requiredLength = carCount * _station.SegmentLength;
-            var nodes = BuildLoopRailNodes(requiredLength);
+            int requiredLength = 0;
 
             var trainCars = new List<TrainCar>(carCount);
             for (var i = 0; i < carCount; i++)
             {
-                var master = new TrainCarMasterElement(i, Guid.Empty, Guid.Empty, null, 1000, 1, _station.SegmentLength);
-                trainCars.Add(new TrainCar(master));
+                trainCars.Add(TrainTestCarFactory.CreateTrainCar(i, 1000, 1, _station.BlockLength, true));
+                requiredLength += trainCars[i].Length;
             }
+
+            var nodes = BuildLoopRailNodes(requiredLength);
 
             var train = CreateTrain(nodes, trainCars, 0);
             cars = trainCars;
@@ -159,8 +161,8 @@ namespace Tests.Util
                 {
                     train.trainUnitStationDocking.UndockFromStation();
                 }
-                TrainDiagramManager.Instance.UnregisterDiagram(train.trainDiagram);
-                TrainUpdateService.Instance.UnregisterTrain(train);
+                _environment.GetTrainDiagramManager().UnregisterDiagram(train.trainDiagram);
+                _environment.GetTrainUpdateService().UnregisterTrain(train);
             }
 
             _spawnedTrains.Clear();
@@ -191,7 +193,7 @@ namespace Tests.Util
 
             var trainLength = cars.Sum(trainCar => trainCar.Length);
             var railPosition = new RailPosition(nodes, trainLength, initialDistanceToNextNode);
-            var train = new TrainUnit(railPosition, cars);
+            var train = new TrainUnit(railPosition, cars, _environment.GetTrainUpdateService(), _environment.GetTrainRailPositionManager(), _environment.GetTrainDiagramManager());
             _spawnedTrains.Add(train);
             return train;
         }
@@ -224,7 +226,7 @@ namespace Tests.Util
             }
         }
 
-        private static StationNodeSet ExtractStationNodes(RailSaverComponent stationSaver)
+        private static StationNodeSet ExtractStationNodes(IBlock stationBlock, RailSaverComponent stationSaver)
         {
             var entryComponent = stationSaver.RailComponents
                 .FirstOrDefault(component =>
@@ -255,40 +257,11 @@ namespace Tests.Util
 
             var segmentLength = entryFront.GetDistanceToNode(exitFront);
             Assert.Greater(segmentLength, 0, "駅セグメントの長さが0以下になっています。");
-
-            var backSegmentLength = entryBack.GetDistanceToNode(exitBack);
-            Assert.Greater(backSegmentLength, 0, "背面側の駅セグメントの長さが0以下になっています。");
-
-            return new StationNodeSet(entryComponent, exitComponent, entryFront, exitFront, entryBack, exitBack, segmentLength);
-        }
-
-        private readonly struct StationNodeSet
-        {
-            public StationNodeSet(
-                RailComponent entryComponent,
-                RailComponent exitComponent,
-                RailNode entryFront,
-                RailNode exitFront,
-                RailNode entryBack,
-                RailNode exitBack,
-                int segmentLength)
-            {
-                EntryComponent = entryComponent;
-                ExitComponent = exitComponent;
-                EntryFront = entryFront;
-                ExitFront = exitFront;
-                EntryBack = entryBack;
-                ExitBack = exitBack;
-                SegmentLength = segmentLength;
-            }
-
-            public RailComponent EntryComponent { get; }
-            public RailComponent ExitComponent { get; }
-            public RailNode EntryFront { get; }
-            public RailNode ExitFront { get; }
-            public RailNode EntryBack { get; }
-            public RailNode ExitBack { get; }
-            public int SegmentLength { get; }
+            var blockLength = stationBlock.BlockPositionInfo.BlockSize.z;
+            Assert.Greater(blockLength, 0, "駅ブロックのZサイズが0以下になっています。");
+            return new StationNodeSet(entryComponent!, exitComponent!, exitFront, entryFront, exitBack, entryBack, segmentLength, blockLength);
         }
     }
 }
+
+

@@ -78,12 +78,12 @@ namespace Tests.CombinedTest.Server.PacketTest
             var backNode = railA.FrontNode;
             var distance = Mathf.Max(1, frontNode.GetDistanceToNode(backNode));
             var railPosition = new RailPosition(new List<IRailNode> { frontNode, backNode }, distance, 0);
-            var trainCar = new TrainCar(new TrainCarMasterElement(0, Guid.Empty, Guid.Empty, null, 1000, 3, distance));
-            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar });
+            var trainCar = TrainTestCarFactory.CreateTrainCar(0, 1000, 3, distance, true);
+            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, environment.GetTrainUpdateService(), environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
 
             // 列車をTrainUpdateServiceに登録
             // Register the train to TrainUpdateService
-            TrainUpdateService.Instance.RegisterTrain(trainUnit);
+            environment.GetTrainUpdateService().RegisterTrain(trainUnit);
 
             var itemFactory = ServerContext.ItemStackFactory;
             trainCar.SetItem(0, itemFactory.Create(new ItemId(1), 7));

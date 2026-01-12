@@ -150,6 +150,8 @@ namespace Client.Starter
             builder.RegisterEntryPoint<SkitFireManager>();
             builder.RegisterEntryPoint<RailGraphCacheNetworkHandler>();
             builder.RegisterEntryPoint<RailGraphConnectionNetworkHandler>();
+            builder.RegisterEntryPoint<TrainDiagramEventNetworkHandler>();
+            builder.RegisterEntryPoint<TrainUnitCreatedEventNetworkHandler>();
             
             // 設置システム
             // register placement system
@@ -189,8 +191,13 @@ namespace Client.Starter
             builder.Register<TutorialManager>(Lifetime.Singleton);
             builder.Register<IGameUnlockStateData, ClientGameUnlockStateData>(Lifetime.Singleton);
             builder.Register<RailGraphClientCache>(Lifetime.Singleton);
+            builder.Register<ClientStationReferenceRegistry>(Lifetime.Singleton).AsSelf().As<IInitializable>().As<IDisposable>();
             builder.Register<RailGraphSnapshotApplier>(Lifetime.Singleton).AsSelf().As<IInitializable>();
+            builder.Register<TrainUnitClientCache>(Lifetime.Singleton);
+            builder.Register<TrainUnitSnapshotApplier>(Lifetime.Singleton).AsSelf().As<IInitializable>();
+            builder.Register<TrainUnitClientSimulator>(Lifetime.Singleton).As<ITickable>();
             builder.Register<RailGraphHashVerifier>(Lifetime.Singleton).As<IInitializable>().As<IDisposable>();
+            builder.Register<TrainUnitHashVerifier>(Lifetime.Singleton).As<IInitializable>().As<IDisposable>();
             
             
             //Hierarchy上にあるcomponent

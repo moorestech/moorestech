@@ -1,11 +1,10 @@
-using Core.Master;
+﻿using Core.Master;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Train.RailGraph;
 using Game.Train.Train;
 using Game.Train.Utility;
-using Mooresmaster.Model.TrainModule;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -75,7 +74,7 @@ namespace Tests.UnitTest.Game
             // 列車をある距離進めて、反転して同じ距離進める。同じ場所にもどるはず
             for (int testnum = 0; testnum < 1024; testnum++)
             {
-                var rand = UnityEngine.Random.Range(0.001f, 0.9999f);
+                var rand = UnityEngine.Random.Range(0.0001f, 0.9999f);
                 int trainLength = (int)(totalDist * rand);
                 if (trainLength < 1) trainLength = 1; //最低10
 
@@ -88,9 +87,18 @@ namespace Tests.UnitTest.Game
                 // --- 4. TrainUnit を生成 ---
                 var cars = new List<TrainCar>
                 {
-                    new TrainCar(new TrainCarMasterElement(0, Guid.Empty, Guid.Empty, null, 600000, 0, trainLength)),  // 仮: 動力車
+                    TrainTestCarFactory.CreateTrainCar(0, 600000, 0, trainLength, true),  // 仮: 動力車
                 };
-                var trainUnit = new TrainUnit(railPosition, cars);
+
+                // ここで Length を強制上書き（このテストだけ直書き）
+                {
+                    var f = typeof(TrainCar).GetField("<Length>k__BackingField",
+                        BindingFlags.Instance | BindingFlags.NonPublic);
+                    Assert.NotNull(f, "TrainCar Length の backing field が見つかりません。実装が変わった可能性があります。");
+                    f.SetValue(cars[0], trainLength);
+                }
+
+                var trainUnit = new TrainUnit(railPosition, cars, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
 
                 // 5) 進めるtotal距離をランダムにきめる
                 int totalrunDist = UnityEngine.Random.Range(1, 30000000);
@@ -150,11 +158,11 @@ namespace Tests.UnitTest.Game
             // 例：5両編成で各車両の長さは 10, 20, 5, 5, 10 (トータル 50)
             var cars = new List<TrainCar>
             {
-                new TrainCar(new TrainCarMasterElement(0, Guid.Empty, Guid.Empty, null, 600000, 0, 80)),  // 仮: 動力車
-                new TrainCar(new TrainCarMasterElement(1, Guid.Empty, Guid.Empty, null, 0, 10, 60)),   // 貨車
-                new TrainCar(new TrainCarMasterElement(2, Guid.Empty, Guid.Empty, null, 0, 10, 65)),
-                new TrainCar(new TrainCarMasterElement(3, Guid.Empty, Guid.Empty, null, 0, 10, 65)),
-                new TrainCar(new TrainCarMasterElement(4, Guid.Empty, Guid.Empty, null, 0, 10, 60)),
+                TrainTestCarFactory.CreateTrainCar(0, 600000, 0, 80, true),  // 仮: 動力車
+                TrainTestCarFactory.CreateTrainCar(1, 0, 10, 60, true),   // 貨車
+                TrainTestCarFactory.CreateTrainCar(2, 0, 10, 65, true),
+                TrainTestCarFactory.CreateTrainCar(3, 0, 10, 65, true),
+                TrainTestCarFactory.CreateTrainCar(4, 0, 10, 60, true),
             };
             var railNodes = new List<IRailNode> { nodeC, nodeD };
             int totalTrainLength = cars.Sum(car => car.Length);  // 10+20+5+5+10 = 50
@@ -166,7 +174,7 @@ namespace Tests.UnitTest.Game
 
             // --- 4. TrainUnit を生成 ---
             var destination = nodeA;   // 目的地を A にしておく
-            var trainUnit = new TrainUnit(initialRailPosition, cars);
+            var trainUnit = new TrainUnit(initialRailPosition, cars, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
             trainUnit.trainDiagram.AddEntry(destination);
             trainUnit.TurnOnAutoRun();
             int totaldist = 0;
@@ -352,10 +360,10 @@ namespace Tests.UnitTest.Game
                 var destination = railComponentsData[7].FrontNode;//目的地をセット
                 var cars = new List<TrainCar>
                 {
-                    new TrainCar(new TrainCarMasterElement(0, Guid.Empty, Guid.Empty, null, 9600000, 0, trainLength)),  // 仮: 動力車まえ
-                    new TrainCar(new TrainCarMasterElement(1, Guid.Empty, Guid.Empty, null, 9600000, 0, 0), isFacingForward: false),  // 仮: 動力車うしろ
+                    TrainTestCarFactory.CreateTrainCar(0, 9600000, 0, trainLength, true),  // 仮: 動力車まえ
+                    TrainTestCarFactory.CreateTrainCar(1, 9600000, 0, 0, false),  // 仮: 動力車うしろ
                 };
-                var trainUnit = new TrainUnit(railPosition, cars);
+                var trainUnit = new TrainUnit(railPosition, cars, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
                 trainUnit.trainDiagram.AddEntry(destination);
                 //走行スタート 現在地→駅3の終点
                 RunTrain(trainUnit);
@@ -509,9 +517,9 @@ namespace Tests.UnitTest.Game
                 // --- TrainUnit を生成 ---
                 var cars = new List<TrainCar>
                 {
-                    new TrainCar(new TrainCarMasterElement(0, Guid.Empty, Guid.Empty, null, 600000, 0, trainLength)),  // 仮: 動力車
+                    TrainTestCarFactory.CreateTrainCar(0, 600000, 0, trainLength, true),  // 仮: 動力車
                 };
-                var trainUnit = new TrainUnit(railPosition, cars);
+                var trainUnit = new TrainUnit(railPosition, cars, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
 
                 //進んで目的地についたら次の目的地をランダムにセット。100回繰り返し終了
                 RailNode destination = null;
@@ -582,16 +590,27 @@ namespace Tests.UnitTest.Game
             var nodeB = railComponentB.FrontNode;
             var nodeC = railComponentC.FrontNode;
 
+                        // レガシー長さを補正するヘルパー
+            // Force legacy-length expectations for this historical scenario
+            TrainCar ForceLegacyLength(TrainCar car, int legacyLength)
+            {
+                var lengthProperty = typeof(TrainCar).GetProperty(nameof(TrainCar.Length), BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                Assert.IsNotNull(lengthProperty, "TrainCar.Length プロパティを取得できませんでした。");
+                lengthProperty!.SetValue(car, legacyLength);
+                return car;
+            }
+
             // --- 2. 編成を構成する車両を用意 ---
-            // 例：5両編成で各車両の長さは 10, 20, 5, 5, 10 (トータル 50)
+            // 例として5両編成でそれぞれの長さを 10, 20, 5, 5, 10 (トータル 50)
             var cars = new List<TrainCar>
             {
-                new TrainCar(new TrainCarMasterElement(0, Guid.Empty, Guid.Empty, null, 1000, 0, 10)),  // 仮: 動力車
-                new TrainCar(new TrainCarMasterElement(1, Guid.Empty, Guid.Empty, null, 0, 10, 20)),   // 貨車
-                new TrainCar(new TrainCarMasterElement(2, Guid.Empty, Guid.Empty, null, 0, 10, 5)),
-                new TrainCar(new TrainCarMasterElement(3, Guid.Empty, Guid.Empty, null, 0, 10, 5)),
-                new TrainCar(new TrainCarMasterElement(4, Guid.Empty, Guid.Empty, null, 0, 10, 10)),
+                ForceLegacyLength(TrainTestCarFactory.CreateTrainCar(0, 1000, 0, 10, true), 10),  // 仮: 動力車
+                ForceLegacyLength(TrainTestCarFactory.CreateTrainCar(1, 0, 10, 20, true), 20),   // 貨車
+                ForceLegacyLength(TrainTestCarFactory.CreateTrainCar(2, 0, 10, 5, true), 5),
+                ForceLegacyLength(TrainTestCarFactory.CreateTrainCar(3, 0, 10, 5, true), 5),
+                ForceLegacyLength(TrainTestCarFactory.CreateTrainCar(4, 0, 10, 10, true), 10),
             };
+
             int totalTrainLength = cars.Sum(car => car.Length);  // 10+20+5+5+10 = 50
             // --- 3. 初期の RailPosition を用意 ---
             //   ノードリスト = [A, B, C], 列車長さ = 50
@@ -605,7 +624,7 @@ namespace Tests.UnitTest.Game
             );
 
             // --- 4. TrainUnit を生成 ---
-            var trainUnit = new TrainUnit(initialRailPosition, cars);
+            var trainUnit = new TrainUnit(initialRailPosition, cars, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
 
             // --- 5. SplitTrain(...) で後ろから 2 両切り離す ---
             //   5両 → (前3両) + (後ろ2両) に分割
@@ -665,12 +684,6 @@ namespace Tests.UnitTest.Game
         {
             if (node == null)
                 return;
-            var datastore = GetRailGraphDatastoreInstance();
-            if (datastore == null)
-                return;
-            var dictionaryField = typeof(RailGraphDatastore).GetField("railIdDic", BindingFlags.NonPublic | BindingFlags.Instance);
-            if (dictionaryField == null)
-                return;
             Debug.Log(node.NodeId);
         }
 
@@ -687,12 +700,6 @@ namespace Tests.UnitTest.Game
         }
 
 
-        private static RailGraphDatastore GetRailGraphDatastoreInstance()
-        {
-            var instanceProperty = typeof(RailGraphDatastore).GetProperty("Instance", BindingFlags.NonPublic | BindingFlags.Static);
-            return instanceProperty?.GetValue(null) as RailGraphDatastore;
-        }
-
-
     }
 }
+

@@ -1,5 +1,4 @@
-using System;
-using Core.Master;
+﻿using System;
 using Game.Entity.Interface;
 using Game.Train.Train;
 using Game.Train.RailGraph;
@@ -46,9 +45,9 @@ namespace Game.Train.Entity
         
         public byte[] GetEntityData()
         {
-            // TODO 仮実装でとりあえず0番の車両としてマスターを設定しているけど、TrainCarを全てマスターベースに置き換える
-            var tempTrainCarMasterGuid = MasterHolder.TrainUnitMaster.Train.TrainCars[0].TrainCarGuid;
-            var state = new TrainEntityStateMessagePack(_trainCar.CarId, tempTrainCarMasterGuid);
+            // 車両マスターIDを同梱してクライアント側のPrefab選択に使う
+            // Attach the train car master id so the client can pick the prefab
+            var state = new TrainEntityStateMessagePack(_trainCar.CarId, _trainCar.TrainCarMasterElement.TrainCarGuid);
             return MessagePackSerializer.Serialize(state);
         }
         
@@ -84,7 +83,7 @@ namespace Game.Train.Entity
             
             // セグメント長を取得
             // Get segment length
-            int segmentLength = RailGraphDatastore.GetDistanceBetweenNodes(currentNode, nextNode);
+            int segmentLength = currentNode.GetDistanceToNode(nextNode);
             if (segmentLength <= 0)
             {
                 return nextNode.FrontControlPoint.OriginalPosition;
@@ -106,3 +105,4 @@ namespace Game.Train.Entity
         }
     }
 }
+

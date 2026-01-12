@@ -17,11 +17,13 @@ namespace Client.Game.InGame.Train
     {
         private readonly RailGraphClientCache _cache;
         private readonly InitialHandshakeResponse _initialHandshakeResponse;
+        private readonly ClientStationReferenceRegistry _stationReferenceRegistry;
 
-        public RailGraphSnapshotApplier(RailGraphClientCache cache, InitialHandshakeResponse initialHandshakeResponse)
+        public RailGraphSnapshotApplier(RailGraphClientCache cache, InitialHandshakeResponse initialHandshakeResponse, ClientStationReferenceRegistry stationReferenceRegistry)
         {
             _cache = cache;
             _initialHandshakeResponse = initialHandshakeResponse;
+            _stationReferenceRegistry = stationReferenceRegistry;
         }
 
         public void Initialize()
@@ -54,6 +56,9 @@ namespace Client.Game.InGame.Train
             // まとめてキャッシュへ反映
             // Commit prepared data to cache
             _cache.ApplySnapshot(snapshot, size);
+            // 駅参照をキャッシュへ反映する
+            // Apply station references to cache.
+            _stationReferenceRegistry.ApplyStationReferences();
 
             #region 
             int ResolveMaxNodeId(RailGraphSnapshotMessagePack targetSnapshot)

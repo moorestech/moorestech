@@ -17,11 +17,13 @@ namespace Client.Game.InGame.Train
     public sealed class RailGraphCacheNetworkHandler : IInitializable, IDisposable
     {
         private readonly RailGraphClientCache _cache;
+        private readonly ClientStationReferenceRegistry _stationReferenceRegistry;
         private readonly CompositeDisposable _subscriptions = new();
 
-        public RailGraphCacheNetworkHandler(RailGraphClientCache cache)
+        public RailGraphCacheNetworkHandler(RailGraphClientCache cache, ClientStationReferenceRegistry stationReferenceRegistry)
         {
             _cache = cache;
+            _stationReferenceRegistry = stationReferenceRegistry;
         }
 
         public void Initialize()
@@ -60,6 +62,9 @@ namespace Client.Game.InGame.Train
                 message.FrontControlPoint.ToUnityVector(),
                 message.BackControlPoint.ToUnityVector(),
                 message.Tick);
+            // 駅参照を該当ノードへ反映する
+            // Apply station reference to the updated node.
+            _stationReferenceRegistry.ApplyStationReference(destination);
         }
 
         private void OnRailNodeRemoved(byte[] payload)

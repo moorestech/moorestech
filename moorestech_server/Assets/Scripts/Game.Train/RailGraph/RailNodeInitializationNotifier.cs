@@ -10,18 +10,19 @@ namespace Game.Train.RailGraph
     /// </summary>
     public class RailNodeInitializationNotifier : IDisposable
     {
+        private readonly IRailGraphDatastore _datastore;
         private Subject<RailNodeInitializationData> _railNodeInitialize;
         public IObservable<RailNodeInitializationData> RailNodeInitializedEvent => _railNodeInitialize;
 
-
-        public RailNodeInitializationNotifier()
+        public RailNodeInitializationNotifier(IRailGraphDatastore datastore)
         {
+            _datastore = datastore;
             _railNodeInitialize = new Subject<RailNodeInitializationData>();
         }
 
         public void Notify(int NodeId)
         {
-            RailGraphDatastore.TryGetRailNode(NodeId, out var node);
+            _datastore.TryGetRailNode(NodeId, out var node);
             if (node == null)
                 return;
             _railNodeInitialize?.OnNext(

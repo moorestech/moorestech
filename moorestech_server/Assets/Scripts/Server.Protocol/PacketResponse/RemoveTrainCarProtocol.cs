@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Train.Common;
@@ -9,14 +9,20 @@ namespace Server.Protocol.PacketResponse
 {
     public class RemoveTrainCarProtocol : IPacketResponse
     {
+        private readonly TrainUpdateService _trainUpdateService;
         public const string ProtocolTag = "va:removeTrainCar";
+        
+        public RemoveTrainCarProtocol(TrainUpdateService trainUpdateService)
+        {
+            _trainUpdateService = trainUpdateService;
+        }
         
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
             var request = MessagePackSerializer.Deserialize<RemoveTrainCarRequestMessagePack>(payload.ToArray());
 
             // TODO: オーダーがこのままだとO(n)になっているため、逆引き用の辞書等を用意してO(1)にする
-            var (targetTrain, removeTargetTrainCar) = TrainUpdateService.Instance
+            var (targetTrain, removeTargetTrainCar) = _trainUpdateService
                 .GetRegisteredTrains()
                 .SelectMany(t => t.Cars.Select(c => (t, c)))
                 .First(c => c.c.CarId == request.TrainCarId);

@@ -1,7 +1,7 @@
-using Client.Common;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Context;
 using Client.Input;
+using Cysharp.Threading.Tasks;
+using System.Threading;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
@@ -39,8 +39,23 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
             if (InputManager.Playable.ScreenLeftClick.GetKeyUp)
             {
-                ClientContext.VanillaApi.SendOnly.PlaceTrainOnRail(hit.Specifier, context.CurrentSelectHotbarSlotIndex);
+                RequestPlacementAsync(hit, context.CurrentSelectHotbarSlotIndex).Forget();
             }
+
+            #region Internal
+
+            async UniTaskVoid RequestPlacementAsync(TrainCarPlacementHit placementHit, int hotBarSlot)
+            {
+                // 設置レスポンスを待機する
+                // Await placement response
+                var response = await ClientContext.VanillaApi.Response.PlaceTrainOnRail(placementHit.Specifier, placementHit.RailPosition, hotBarSlot, CancellationToken.None);
+                if (response == null || !response.Success)
+                {
+                    Debug.LogWarning($"[TrainCarPlaceSystem] PlaceTrain failed. reason={response?.FailureType}");
+                }
+            }
+
+            #endregion
         }
 
         public void Disable()

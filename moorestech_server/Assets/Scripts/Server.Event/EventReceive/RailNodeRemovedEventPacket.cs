@@ -1,4 +1,4 @@
-using Game.Train.Common;
+﻿using Game.Train.Common;
 using Game.Train.RailGraph;
 using MessagePack;
 using Server.Event;
@@ -16,18 +16,20 @@ namespace Server.Event.EventReceive
         public const string EventTag = "va:event:railNodeRemoved";
 
         private readonly EventProtocolProvider _eventProtocolProvider;
+        private readonly TrainUpdateService _trainUpdateService;
 
-        public RailNodeRemovedEventPacket(EventProtocolProvider eventProtocolProvider)
+        public RailNodeRemovedEventPacket(EventProtocolProvider eventProtocolProvider, IRailGraphDatastore railGraphDatastore, TrainUpdateService trainUpdateService)
         {
             _eventProtocolProvider = eventProtocolProvider;
-            RailGraphDatastore.RailNodeRemovedEvent.Subscribe(OnNodeRemoved);
+            _trainUpdateService = trainUpdateService;
+            railGraphDatastore.GetRailNodeRemovedEvent().Subscribe(OnNodeRemoved);
         }
 
         private void OnNodeRemoved(RailNodeRemovalNotifier.RailNodeRemovedData data)
         {
             // ノード削除メッセージをシリアライズ
             // Serialize node removal payload
-            var tick = TrainUpdateService.CurrentTick;
+            var tick = _trainUpdateService.GetCurrentTick();
             // 削除差分とTickを束ねて配信
             // Broadcast removal diff together with tick
             var payload = MessagePackSerializer.Serialize(new RailNodeRemovedMessagePack(data.NodeId, data.NodeGuid, tick));
@@ -35,3 +37,4 @@ namespace Server.Event.EventReceive
         }
     }
 }
+

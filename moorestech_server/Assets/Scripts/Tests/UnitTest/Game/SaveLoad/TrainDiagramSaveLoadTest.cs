@@ -9,7 +9,6 @@ using Game.Block.Blocks.TrainRail;
 using Game.Train.Common;
 using Game.Train.RailGraph;
 using Game.Train.Train;
-using Mooresmaster.Model.TrainModule;
 using NUnit.Framework;
 using Tests.Util;
 using UnityEngine;
@@ -23,9 +22,6 @@ namespace Tests.UnitTest.Game.SaveLoad
         [Test]
         public void DiagramEntriesAreRestoredFromSaveData()
         {
-            RailGraphDatastore.ResetInstance();
-            TrainUpdateService.Instance.ResetTrains();
-
             var context = CreateTrainDiagramContext();
 
             var saveJson = SaveLoadJsonTestHelper.AssembleSaveJson(context.Environment.ServiceProvider);
@@ -35,7 +31,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var loadEnv = TrainTestHelper.CreateEnvironment();
             SaveLoadJsonTestHelper.LoadFromJson(loadEnv.ServiceProvider, saveJson);
 
-            var loadedTrains = TrainUpdateService.Instance.GetRegisteredTrains().ToList();
+            var loadedTrains = loadEnv.GetTrainUpdateService().GetRegisteredTrains().ToList();
             Assert.AreEqual(1, loadedTrains.Count, "ロード後の列車数が一致しません。");
 
             var loadedTrain = loadedTrains[0];
@@ -50,8 +46,9 @@ namespace Tests.UnitTest.Game.SaveLoad
                 var actual = loadedTrain.trainDiagram.Entries[i];
 
                 Assert.AreEqual(expected.EntryId, actual.entryId, $"エントリ{i}のIDが一致しません。");
-                var connection = actual.Node.ConnectionDestination;
-                Assert.IsTrue(actual.Node.HasConnectionDestination, $"エントリ{i}のRailComponentIDを解決できません。");
+                var actualNode = RequireRailNode(actual.Node);
+                var connection = actualNode.ConnectionDestination;
+                Assert.IsTrue(actualNode.HasConnectionDestination, $"エントリ{i}のRailComponentIDを解決できません。");
 
                 var destination = connection.railComponentID;
                 var actualPosition = new Vector3Int(destination.Position.x, destination.Position.y, destination.Position.z);
@@ -71,9 +68,6 @@ namespace Tests.UnitTest.Game.SaveLoad
         [Test]
         public void DiagramEntriesWithMissingRailsAreSkippedDuringLoad()
         {
-            RailGraphDatastore.ResetInstance();
-            TrainUpdateService.Instance.ResetTrains();
-
             var context = CreateTrainDiagramContext();
 
             var originalJson = SaveLoadJsonTestHelper.AssembleSaveJson(context.Environment.ServiceProvider);
@@ -84,7 +78,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var loadEnv = TrainTestHelper.CreateEnvironment();
             SaveLoadJsonTestHelper.LoadFromJson(loadEnv.ServiceProvider, corruptedJson);
 
-            var loadedTrains = TrainUpdateService.Instance.GetRegisteredTrains().ToList();
+            var loadedTrains = loadEnv.GetTrainUpdateService().GetRegisteredTrains().ToList();
             Assert.AreEqual(1, loadedTrains.Count, "破損データロード後の列車数が一致しません。");
 
             var loadedTrain = loadedTrains[0];
@@ -101,8 +95,9 @@ namespace Tests.UnitTest.Game.SaveLoad
                 var actual = loadedTrain.trainDiagram.Entries[i];
 
                 Assert.AreEqual(expected.EntryId, actual.entryId, $"エントリ{i}のIDが一致しません。");
-                var connection = actual.Node.ConnectionDestination;
-                Assert.IsTrue(actual.Node.HasConnectionDestination, $"エントリ{i}のRailComponentIDを解決できません。");
+                var actualNode = RequireRailNode(actual.Node);
+                var connection = actualNode.ConnectionDestination;
+                Assert.IsTrue(actualNode.HasConnectionDestination, $"エントリ{i}のRailComponentIDを解決できません。");
 
                 var destination = connection.railComponentID;
                 var actualPosition = new Vector3Int(destination.Position.x, destination.Position.y, destination.Position.z);
@@ -165,9 +160,9 @@ namespace Tests.UnitTest.Game.SaveLoad
             var firstTrain = MasterHolder.TrainUnitMaster.Train.TrainCars.First();
             var cars = new List<TrainCar>
             {
-                new TrainCar(new TrainCarMasterElement(0, firstTrain.TrainCarGuid, firstTrain.ItemGuid, null, 1000, 1, trainLength))
+                TrainTestCarFactory.CreateTrainCar(0, firstTrain.TrainCarGuid, firstTrain.ItemGuid, 1000, 1, trainLength, true)
             };
-            var train = new TrainUnit(railPosition, cars);
+            var train = new TrainUnit(railPosition, cars, environment.GetTrainUpdateService(), environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
 
             foreach (var component in components)
             {
@@ -182,8 +177,9 @@ namespace Tests.UnitTest.Game.SaveLoad
             for (var i = 0; i < train.trainDiagram.Entries.Count; i++)
             {
                 var entry = train.trainDiagram.Entries[i];
-                var connection = entry.Node.ConnectionDestination;
-                Assert.IsTrue(entry.Node.HasConnectionDestination, $"エントリ{i}のRailComponentIDを取得できません。");
+                var entryNode = RequireRailNode(entry.Node);
+                var connection = entryNode.ConnectionDestination;
+                Assert.IsTrue(entryNode.HasConnectionDestination, $"エントリ{i}のRailComponentIDを取得できません。");
 
                 var destination = connection.railComponentID;
                 var position = new Vector3Int(destination.Position.x, destination.Position.y, destination.Position.z);
@@ -208,8 +204,8 @@ namespace Tests.UnitTest.Game.SaveLoad
                 context.Environment.WorldBlockDatastore.RemoveBlock(position, BlockRemoveReason.ManualRemove);
             }
 
-            TrainUpdateService.Instance.ResetTrains();
-            RailGraphDatastore.ResetInstance();
+            context.Environment.GetTrainUpdateService().ResetTrains();
+            context.Environment.GetRailGraphDatastore().Reset();
         }
 
         private static void CleanupLoadedState(TrainTestEnvironment environment, List<TrainUnit> trains, IReadOnlyList<Vector3Int> railPositions)
@@ -220,8 +216,8 @@ namespace Tests.UnitTest.Game.SaveLoad
                 environment.WorldBlockDatastore.RemoveBlock(position, BlockRemoveReason.ManualRemove);
             }
 
-            TrainUpdateService.Instance.ResetTrains();
-            RailGraphDatastore.ResetInstance();
+            environment.GetTrainUpdateService().ResetTrains();
+            environment.GetRailGraphDatastore().Reset();
         }
 
         private static void CleanupTrains(IEnumerable<TrainUnit> trains)
@@ -230,6 +226,13 @@ namespace Tests.UnitTest.Game.SaveLoad
             {
                 train?.OnDestroy();
             }
+        }
+
+        private static RailNode RequireRailNode(IRailNode node)
+        {
+            Assert.IsNotNull(node, "IRailNodeがnullです。");
+            Assert.IsInstanceOf<RailNode>(node, "IRailNodeがRailNodeではありません。");
+            return (RailNode)node;
         }
 
         private static string CorruptDiagramEntry(string originalJson, Guid targetEntryId)
