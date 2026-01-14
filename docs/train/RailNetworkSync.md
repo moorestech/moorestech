@@ -2,6 +2,7 @@
 
 ## Overview
 
+- Train entity bootstrap is based on `GetTrainUnitSnapshotsProtocol` only; `RequestWorldDataProtocol` does not include train entities, and `TrainUnitSnapshotApplier` builds entity updates + removes stale ones (`moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/RequestWorldDataProtocol.cs`, `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/TrainUnitSnapshotApplier.cs`, `moorestech_client/Assets/Scripts/Client.Game/InGame/Entity/EntityObjectDatastore.cs`)
 - 初期同期は `Client.Network.API.VanillaApiWithResponse.InitialHandShake` が `GetRailGraphSnapshotProtocol` と `GetTrainUnitSnapshotsProtocol` を呼び、`RailGraphSnapshotApplier` / `TrainUnitSnapshotApplier` がキャッシュを構築します。(`moorestech_client/Assets/Scripts/Client.Network/API/VanillaApiWithResponse.cs`, `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/RailGraphSnapshotApplier.cs`, `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/TrainUnitSnapshotApplier.cs`)
 - レールの差分は `RailNodeCreatedEventPacket`, `RailNodeRemovedEventPacket`, `RailConnectionCreatedEventPacket`, `RailConnectionRemovedEventPacket` と `RailGraphHashStateEventPacket` のイベントで同期します。(`moorestech_server/Assets/Scripts/Server.Event/EventReceive`, `moorestech_client/Assets/Scripts/Client.Game/InGame/Train`)
 - 列車の差分は新規生成のみ `TrainUnitCreatedEventPacket` が即時配信され、削除や不整合は `TrainUnitHashStateEventPacket` と `GetTrainUnitSnapshotsProtocol` の再同期で補正します。(`moorestech_server/Assets/Scripts/Server.Event/EventReceive`, `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/TrainUnitHashVerifier.cs`)
@@ -53,6 +54,7 @@
 
 ### TrainCar 削除
 
+Note: `TrainUnitSnapshotApplier` removes stale train entities via `EntityObjectDatastore.RemoveTrainEntitiesNotInSnapshot`.
 1. Client: `DeleteObjectState` が `VanillaApiSendOnly.RemoveTrain` (va:removeTrainCar) を送信します。(`moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DeleteObjectState.cs`, `moorestech_client/Assets/Scripts/Client.Network/API/VanillaApiSendOnly.cs`)
 2. Server: `RemoveTrainCarProtocol` が `TrainUnit.RemoveCar` を実行し、編成が空になった場合は `TrainUnit.OnDestroy` で `TrainUpdateService.UnregisterTrain` が呼ばれます。(`moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/RemoveTrainCarProtocol.cs`, `moorestech_server/Assets/Scripts/Game.Train/Train/TrainUnit.cs`)
 3. Broadcast: 直接の削除イベントはなく、`TrainUnitHashStateEventPacket` (va:event:trainUnitHashState) によるハッシュ検証で差分が検出されると `GetTrainUnitSnapshotsProtocol` による再同期が走ります。(`moorestech_server/Assets/Scripts/Server.Event/EventReceive/TrainUnitHashStateEventPacket.cs`, `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/TrainUnitHashVerifier.cs`)
