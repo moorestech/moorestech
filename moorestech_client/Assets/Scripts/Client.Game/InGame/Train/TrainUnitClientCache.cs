@@ -117,7 +117,7 @@ namespace Client.Game.InGame.Train
 
         // 車両スナップショット索引を取得する
         // Resolve a cached car snapshot entry
-        public bool TryGetCarSnapshot(Guid carId, out ClientTrainUnit unit, out TrainCarSnapshot snapshot, out int frontOffset, out int rearOffset)
+        public bool TryGetCarSnapshot(Guid trainCarInstanceGuid, out ClientTrainUnit unit, out TrainCarSnapshot snapshot, out int frontOffset, out int rearOffset)
         {
             // 出力を初期化する
             // Initialize output values
@@ -128,7 +128,7 @@ namespace Client.Game.InGame.Train
 
             // 索引から対象車両を取得する
             // Lookup the target car from the index
-            if (!_carIndex.TryGetValue(carId, out var entry)) return false;
+            if (!_carIndex.TryGetValue(trainCarInstanceGuid, out var entry)) return false;
             unit = entry.Unit;
             snapshot = entry.Snapshot;
             frontOffset = entry.FrontOffset;
@@ -188,8 +188,8 @@ namespace Client.Game.InGame.Train
                 var frontOffset = offsetFromHead;
                 var rearOffset = offsetFromHead + carLength;
                 offsetFromHead += carLength;
-                _carIndex[carSnapshot.CarId] = new TrainCarCacheEntry(unit, carSnapshot, frontOffset, rearOffset);
-                carIds.Add(carSnapshot.CarId);
+                _carIndex[carSnapshot.TrainCarInstanceGuid] = new TrainCarCacheEntry(unit, carSnapshot, frontOffset, rearOffset);
+                carIds.Add(carSnapshot.TrainCarInstanceGuid);
             }
 
             _carIdsByTrain[unit.TrainId] = carIds;
@@ -208,7 +208,7 @@ namespace Client.Game.InGame.Train
         {
             // マスター情報から車両長さを解決する
             // Resolve car length from master data
-            if (MasterHolder.TrainUnitMaster.TryGetTrainUnit(snapshot.TrainCarGuid, out var master) && master.Length > 0) return TrainLengthConverter.ToRailUnits(master.Length);
+            if (MasterHolder.TrainUnitMaster.TryGetTrainUnit(snapshot.TrainCarMasterId, out var master) && master.Length > 0) return TrainLengthConverter.ToRailUnits(master.Length);
             return 0;
         }
 

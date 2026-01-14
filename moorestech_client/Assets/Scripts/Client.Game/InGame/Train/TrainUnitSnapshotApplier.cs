@@ -78,7 +78,7 @@ namespace Client.Game.InGame.Train
                 // Collect train car ids from the snapshot
                 var cars = bundle.Simulation.Cars;
                 if (cars == null) return;
-                for (var i = 0; i < cars.Count; i++) target.Add(cars[i].CarId);
+                for (var i = 0; i < cars.Count; i++) target.Add(cars[i].TrainCarInstanceGuid);
             }
 
             void BuildTrainEntities(TrainUnitSnapshotBundle bundle, ICollection<EntityResponse> target)
@@ -90,8 +90,8 @@ namespace Client.Game.InGame.Train
                 for (var i = 0; i < cars.Count; i++)
                 {
                     var car = cars[i];
-                    var entityId = CreateTrainEntityInstanceId(car.CarId);
-                    var state = new TrainEntityStateMessagePack(car.CarId, car.TrainCarGuid);
+                    var entityId = CreateTrainEntityInstanceId(car.TrainCarInstanceGuid);
+                    var state = new TrainEntityStateMessagePack(car.TrainCarInstanceGuid, car.TrainCarMasterId);
                     var entityPack = new EntityMessagePack
                     {
                         InstanceId = entityId,
