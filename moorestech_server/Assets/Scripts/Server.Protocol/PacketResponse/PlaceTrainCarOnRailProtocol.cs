@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Core.Master;
-using Game.Block.Blocks.TrainRail;
 using Game.PlayerInventory.Interface;
 using Game.Train.Common;
 using Game.Train.RailGraph;
@@ -10,14 +9,12 @@ using Game.Train.Utility;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Util.MessagePack;
-using RailComponentSpecifier = Server.Protocol.PacketResponse.RailConnectionEditProtocol.RailComponentSpecifier;
 
 namespace Server.Protocol.PacketResponse
 {
     public class PlaceTrainCarOnRailProtocol : IPacketResponse
     {
         public const string ProtocolTag = "va:placeTrainCar";
-        
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly IRailGraphDatastore _railGraphDatastore;
         private readonly TrainUpdateService _trainUpdateService;
@@ -41,16 +38,15 @@ namespace Server.Protocol.PacketResponse
             #region Internal
             PlaceTrainOnRailResponseMessagePack ExecuteRequest(PlaceTrainOnRailRequestMessagePack data)
             {
-                // リクエストとレールを検証する
-                // Validate request and rail component
+                // リクエストとレール位置を検証する
+                // Validate request and rail position
                 if (data == null)
                 {
                     return PlaceTrainOnRailResponseMessagePack.CreateFailure(PlaceTrainCarFailureType.InvalidRequest);
                 }
-                var railComponent = RailConnectionEditProtocol.ResolveRailComponent(data.RailSpecifier);
-                if (railComponent == null)
+                if (data.RailPosition == null)
                 {
-                    return PlaceTrainOnRailResponseMessagePack.CreateFailure(PlaceTrainCarFailureType.RailNotFound);
+                    return PlaceTrainOnRailResponseMessagePack.CreateFailure(PlaceTrainCarFailureType.InvalidRailPosition);
                 }
                 
                 // 手持ちアイテムを取得し検証する
@@ -65,9 +61,9 @@ namespace Server.Protocol.PacketResponse
                 
                 // 列車ユニットを生成して検証する
                 // Create and validate the train unit
-                if (!TryCreateTrainUnit(railComponent, item.Id, data.RailPosition, out var createdTrain))
+                if (!TryCreateTrainUnit(item.Id, data.RailPosition, out var createdTrain, out var failureType))
                 {
-                    return PlaceTrainOnRailResponseMessagePack.CreateFailure(PlaceTrainCarFailureType.InvalidRailPosition);
+                    return PlaceTrainOnRailResponseMessagePack.CreateFailure(failureType);
                 }
                 
                 // アイテムを消費する
@@ -76,9 +72,10 @@ namespace Server.Protocol.PacketResponse
                 
                 return PlaceTrainOnRailResponseMessagePack.CreateSuccess();
                 
-                bool TryCreateTrainUnit(RailComponent railComponent, ItemId trainItemId, RailPositionSnapshotMessagePack railPositionSnapshot, out TrainUnit trainUnit)
+                bool TryCreateTrainUnit(ItemId trainItemId, RailPositionSnapshotMessagePack railPositionSnapshot, out TrainUnit trainUnit, out PlaceTrainCarFailureType failureType)
                 {
                     trainUnit = null;
+                    failureType = PlaceTrainCarFailureType.InvalidRailPosition;
                     // アイテムIDに対応する列車マスターを検索する
                     // Resolve train master by item id
                     if (!MasterHolder.TrainUnitMaster.TryGetTrainUnit(trainItemId, out var trainCarMaster))
@@ -89,7 +86,7 @@ namespace Server.Protocol.PacketResponse
                     // 期待する列車長とレール位置を検証する
                     // Validate expected train length and rail position
                     var expectedLength = TrainLengthConverter.ToRailUnits(trainCarMaster.Length);
-                    if (!TryRestoreRailPosition(railComponent, railPositionSnapshot, expectedLength, out var railPosition))
+                    if (!TryRestoreRailPosition(railPositionSnapshot, expectedLength, out var railPosition, out failureType))
                     {
                         return false;
                     }
@@ -101,9 +98,10 @@ namespace Server.Protocol.PacketResponse
                     return true;
                 }
                 
-                bool TryRestoreRailPosition(RailComponent railComponent, RailPositionSnapshotMessagePack snapshot, int expectedLength, out RailPosition position)
+                bool TryRestoreRailPosition(RailPositionSnapshotMessagePack snapshot, int expectedLength, out RailPosition position, out PlaceTrainCarFailureType failureType)
                 {
                     position = null;
+                    failureType = PlaceTrainCarFailureType.InvalidRailPosition;
                     // スナップショットを検証する
                     // Validate snapshot payload
                     if (snapshot == null)
@@ -119,9 +117,17 @@ namespace Server.Protocol.PacketResponse
                     {
                         return false;
                     }
+                    // 始点ノードを検証する
+                    // Validate head node from snapshot
+                    var headNode = _railGraphDatastore.ResolveRailNode(saveData.RailSnapshot[0]);
+                    if (headNode == null)
+                    {
+                        failureType = PlaceTrainCarFailureType.RailNotFound;
+                        return false;
+                    }
                     // サーバー側の経路から期待スナップショットを構築する
                     // Build the expected snapshot from the server rail graph
-                    if (!TryBuildExpectedSnapshot(railComponent, saveData.RailSnapshot[0], expectedLength, out var expectedSnapshot))
+                    if (!TryBuildExpectedSnapshot(headNode, expectedLength, out var expectedSnapshot))
                     {
                         return false;
                     }
@@ -132,20 +138,15 @@ namespace Server.Protocol.PacketResponse
                     
                     // RailPositionを復元する
                     // Restore the rail position instance
-                    position = RailPositionFactory.Restore(expectedSnapshot, railComponent.FrontNode.GraphProvider);
+                    position = RailPositionFactory.Restore(expectedSnapshot, _railGraphDatastore);
                     return position != null;
                 }
                 
-                bool TryBuildExpectedSnapshot(RailComponent railComponent, ConnectionDestination headDestination, int trainLength, out RailPositionSaveData expected)
+                bool TryBuildExpectedSnapshot(IRailNode headNode, int trainLength, out RailPositionSaveData expected)
                 {
                     expected = null;
                     // レールグラフから位置を再構築する
                     // Rebuild placement snapshot from the rail graph
-                    var headNode = railComponent.FrontNode.GraphProvider.ResolveRailNode(headDestination);
-                    if (headNode == null)
-                    {
-                        return false;
-                    }
                     var graphSnapshot = _railGraphDatastore.CaptureSnapshot(_trainUpdateService.GetCurrentTick());
                     var railSnapshot = new List<ConnectionDestination> { headNode.ConnectionDestination };
                     var remaining = trainLength;
@@ -247,11 +248,10 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class PlaceTrainOnRailRequestMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public RailComponentSpecifier RailSpecifier { get; set; }
-            [Key(3)] public RailPositionSnapshotMessagePack RailPosition { get; set; }
-            [Key(4)] public int HotBarSlot { get; set; }
+            [Key(2)] public RailPositionSnapshotMessagePack RailPosition { get; set; }
+            [Key(3)] public int HotBarSlot { get; set; }
             [IgnoreMember] public int InventorySlot => PlayerInventoryConst.HotBarSlotToInventorySlot(HotBarSlot);
-            [Key(5)] public int PlayerId { get; set; }
+            [Key(4)] public int PlayerId { get; set; }
             
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public PlaceTrainOnRailRequestMessagePack()
@@ -262,7 +262,6 @@ namespace Server.Protocol.PacketResponse
             }
             
             public PlaceTrainOnRailRequestMessagePack(
-                RailComponentSpecifier railSpecifier,
                 RailPositionSnapshotMessagePack railPosition,
                 int hotBarSlot,
                 int playerId)
@@ -270,7 +269,6 @@ namespace Server.Protocol.PacketResponse
                 // 必須情報を格納
                 // Store required request information
                 Tag = ProtocolTag;
-                RailSpecifier = railSpecifier;
                 RailPosition = railPosition;
                 HotBarSlot = hotBarSlot;
                 PlayerId = playerId;
