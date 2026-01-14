@@ -55,7 +55,7 @@ namespace Server.Event.EventReceive
             for (var i = 0; i < cars.Count; i++)
             {
                 var car = cars[i];
-                var entityId = new EntityInstanceId(car.GetHashCode()).AsPrimitive();
+                var entityId = CreateTrainEntityInstanceId(car.CarId);
                 var state = new TrainEntityStateMessagePack(car.CarId, car.TrainCarMasterElement.TrainCarGuid);
                 entities[i] = new EntityMessagePack
                 {
@@ -66,6 +66,16 @@ namespace Server.Event.EventReceive
                 };
             }
             return entities;
+        }
+
+        // 車両Guidから安定したInstanceIdを生成する
+        // Generate a stable instance id from the train car Guid
+        private static long CreateTrainEntityInstanceId(Guid trainCarId)
+        {
+            var bytes = trainCarId.ToByteArray();
+            var low = BitConverter.ToInt64(bytes, 0);
+            var high = BitConverter.ToInt64(bytes, 8);
+            return low ^ high;
         }
     }
 }
