@@ -5,7 +5,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 {
     public class TrainCarPreviewController : MonoBehaviour
     {
-        public void ShowPreview(ItemId itemId, Vector3 position, Quaternion rotation, bool isPlaceable)
+        public void ShowPreview(ItemId itemId, bool isPlaceable)
         {
             
         }
