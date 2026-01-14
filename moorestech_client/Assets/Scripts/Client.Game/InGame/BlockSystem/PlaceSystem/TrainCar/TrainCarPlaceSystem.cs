@@ -48,7 +48,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             {
                 // 設置レスポンスを待機する
                 // Await placement response
-                var response = await ClientContext.VanillaApi.Response.PlaceTrainOnRail(placementHit.Specifier, placementHit.RailPosition, hotBarSlot, CancellationToken.None);
+                var response = await ClientContext.VanillaApi.Response.PlaceTrainOnRail(placementHit.RailPosition, hotBarSlot, CancellationToken.None);
                 if (response == null || !response.Success)
                 {
                     Debug.LogWarning($"[TrainCarPlaceSystem] PlaceTrain failed. reason={response?.FailureType}");

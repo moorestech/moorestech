@@ -9,23 +9,20 @@ using Game.Train.Utility;
 using Mooresmaster.Model.TrainModule;
 using System.Collections.Generic;
 using UnityEngine;
-using static Server.Protocol.PacketResponse.RailConnectionEditProtocol;
 using static Client.Common.LayerConst;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 {
     public readonly struct TrainCarPlacementHit
     {
-        public TrainCarPlacementHit(RailComponentSpecifier specifier, Vector3 previewPosition, Quaternion previewRotation, bool isPlaceable, RailPositionSaveData railPosition)
+        public TrainCarPlacementHit(Vector3 previewPosition, Quaternion previewRotation, bool isPlaceable, RailPositionSaveData railPosition)
         {
-            Specifier = specifier;
             PreviewPosition = previewPosition;
             PreviewRotation = previewRotation;
             IsPlaceable = isPlaceable;
             RailPosition = railPosition;
         }
         
-        public RailComponentSpecifier Specifier { get; }
         public Vector3 PreviewPosition { get; }
         public Quaternion PreviewRotation { get; }
         public bool IsPlaceable { get; }
@@ -88,42 +85,36 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 result = default;
                 // ブロック位置と接続情報を解決する
                 // Resolve block position and connection info
-                if (!TryResolveBlock(connectArea, out var blockPosition, out var railIndex, out var isStation))
+                if (!TryResolveBlock(connectArea, out var blockPosition))
                 {
                     return false;
                 }
 
                 // 指定子とレール位置スナップショットを組み立てる
-                // Compose specifier and rail position snapshot
+                // Compose preview and rail position snapshot
                 var destination = connectArea.CreateConnectionDestination();
-                var specifier = isStation ? RailComponentSpecifier.CreateStationSpecifier(blockPosition, railIndex) : RailComponentSpecifier.CreateRailSpecifier(blockPosition);
                 var previewPosition = blockPosition.AddBlockPlaceOffset();
                 var previewRotation = Quaternion.identity;
                 var trainLength = TrainLengthConverter.ToRailUnits(trainCarMasterElement.Length);
                 var isPlaceable = TryBuildRailPosition(destination, trainLength, out var railPosition);
-                result = new TrainCarPlacementHit(specifier, previewPosition, previewRotation, isPlaceable, railPosition);
+                result = new TrainCarPlacementHit(previewPosition, previewRotation, isPlaceable, railPosition);
                 return true;
 
                 #region Internal
 
-                bool TryResolveBlock(IRailComponentConnectAreaCollider area, out Vector3Int position, out int index, out bool station)
+                bool TryResolveBlock(IRailComponentConnectAreaCollider area, out Vector3Int position)
                 {
                     position = default;
-                    index = 0;
-                    station = false;
                     // レール種別ごとの座標を抽出する
                     // Extract block position by rail type
                     if (area is TrainRailConnectAreaCollider railArea)
                     {
                         position = railArea.BlockGameObject.BlockPosInfo.OriginalPos;
-                        station = false;
                         return true;
                     }
                     if (area is StationRailConnectAreaCollider stationArea)
                     {
                         position = stationArea.BlockGameObject.BlockPosInfo.OriginalPos;
-                        index = area.CreateConnectionDestination().railComponentID.ID;
-                        station = true;
                         return true;
                     }
                     return false;
