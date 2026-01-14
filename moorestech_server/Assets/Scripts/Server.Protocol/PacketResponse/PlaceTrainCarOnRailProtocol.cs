@@ -109,134 +109,79 @@ namespace Server.Protocol.PacketResponse
                         return false;
                     }
                     var saveData = snapshot.ToModel();
-                    if (saveData == null || saveData.RailSnapshot == null || saveData.RailSnapshot.Count == 0)
-                    {
-                        return false;
-                    }
-                    if (saveData.TrainLength != expectedLength)
-                    {
-                        return false;
-                    }
-                    // 始点ノードを検証する
-                    // Validate head node from snapshot
-                    var headNode = _railGraphDatastore.ResolveRailNode(saveData.RailSnapshot[0]);
-                    if (headNode == null)
-                    {
-                        failureType = PlaceTrainCarFailureType.RailNotFound;
-                        return false;
-                    }
-                    // サーバー側の経路から期待スナップショットを構築する
-                    // Build the expected snapshot from the server rail graph
-                    if (!TryBuildExpectedSnapshot(headNode, expectedLength, out var expectedSnapshot))
-                    {
-                        return false;
-                    }
-                    if (!IsSnapshotMatch(saveData, expectedSnapshot))
+                    if (!TryValidateSnapshot(saveData, expectedLength, out var validatedSnapshot, out failureType))
                     {
                         return false;
                     }
                     
                     // RailPositionを復元する
                     // Restore the rail position instance
-                    position = RailPositionFactory.Restore(expectedSnapshot, _railGraphDatastore);
+                    position = RailPositionFactory.Restore(validatedSnapshot, _railGraphDatastore);
                     return position != null;
                 }
                 
-                bool TryBuildExpectedSnapshot(IRailNode headNode, int trainLength, out RailPositionSaveData expected)
+                bool TryValidateSnapshot(RailPositionSaveData snapshot, int expectedTrainLength, out RailPositionSaveData validatedSnapshot, out PlaceTrainCarFailureType failure)
                 {
-                    expected = null;
-                    // レールグラフから位置を再構築する
-                    // Rebuild placement snapshot from the rail graph
-                    var graphSnapshot = _railGraphDatastore.CaptureSnapshot(_trainUpdateService.GetCurrentTick());
-                    var railSnapshot = new List<ConnectionDestination> { headNode.ConnectionDestination };
-                    var remaining = trainLength;
-                    var currentNodeId = headNode.NodeId;
-                    var guard = 0;
-                    while (remaining > 0)
+                    validatedSnapshot = null;
+                    failure = PlaceTrainCarFailureType.InvalidRailPosition;
+                    // 入力と列車長を検証する
+                    // Validate inputs and train length
+                    if (snapshot == null || snapshot.RailSnapshot == null || snapshot.RailSnapshot.Count < 2)
                     {
-                        if (!TryGetIncomingEdge(graphSnapshot.Connections, currentNodeId, out var previousNodeId, out var distance))
-                        {
-                            return false;
-                        }
-                        if (distance <= 0)
-                        {
-                            return false;
-                        }
-                        if (!_railGraphDatastore.TryGetRailNode(previousNodeId, out var previousNode))
-                        {
-                            return false;
-                        }
-                        railSnapshot.Add(previousNode.ConnectionDestination);
-                        remaining -= distance;
-                        currentNodeId = previousNodeId;
-                        guard++;
-                        if (guard > graphSnapshot.Connections.Count + 1)
-                        {
-                            return false;
-                        }
+                        return false;
                     }
-                    expected = new RailPositionSaveData
+                    if (snapshot.TrainLength != expectedTrainLength)
                     {
-                        TrainLength = trainLength,
-                        DistanceToNextNode = 0,
-                        RailSnapshot = railSnapshot
+                        return false;
+                    }
+                    if (snapshot.DistanceToNextNode < 0)
+                    {
+                        return false;
+                    }
+                    
+                    // ノード列を解決する
+                    // Resolve node list from destinations
+                    var nodes = new List<IRailNode>(snapshot.RailSnapshot.Count);
+                    for (var i = 0; i < snapshot.RailSnapshot.Count; i++)
+                    {
+                        var node = _railGraphDatastore.ResolveRailNode(snapshot.RailSnapshot[i]);
+                        if (node == null)
+                        {
+                            failure = PlaceTrainCarFailureType.RailNotFound;
+                            return false;
+                        }
+                        nodes.Add(node);
+                    }
+                    
+                    // 距離と経路を検証する
+                    // Validate distances and path connectivity
+                    var totalDistance = 0;
+                    for (var i = 0; i < nodes.Count - 1; i++)
+                    {
+                        var segmentDistance = nodes[i + 1].GetDistanceToNode(nodes[i]);
+                        if (segmentDistance <= 0)
+                        {
+                            return false;
+                        }
+                        if (i == 0 && snapshot.DistanceToNextNode > segmentDistance)
+                        {
+                            return false;
+                        }
+                        totalDistance += segmentDistance;
+                    }
+                    
+                    var requiredDistance = snapshot.TrainLength + snapshot.DistanceToNextNode;
+                    if (totalDistance < requiredDistance)
+                    {
+                        return false;
+                    }
+                    
+                    validatedSnapshot = new RailPositionSaveData
+                    {
+                        TrainLength = expectedTrainLength,
+                        DistanceToNextNode = snapshot.DistanceToNextNode,
+                        RailSnapshot = snapshot.RailSnapshot
                     };
-                    return true;
-                }
-                
-                bool TryGetIncomingEdge(IReadOnlyList<RailGraphConnectionSnapshot> connections, int nodeId, out int sourceNodeId, out int distance)
-                {
-                    sourceNodeId = -1;
-                    distance = 0;
-                    // 分岐時は最小NodeIdの入力辺を選択する
-                    // Choose the incoming edge with the smallest node id
-                    var found = false;
-                    for (var i = 0; i < connections.Count; i++)
-                    {
-                        var connection = connections[i];
-                        if (connection.ToNodeId != nodeId)
-                        {
-                            continue;
-                        }
-                        if (!found || connection.FromNodeId < sourceNodeId)
-                        {
-                            sourceNodeId = connection.FromNodeId;
-                            distance = connection.Distance;
-                            found = true;
-                        }
-                    }
-                    return found;
-                }
-                
-                bool IsSnapshotMatch(RailPositionSaveData clientSnapshot, RailPositionSaveData expectedSnapshot)
-                {
-                    // クライアント提案と一致するか確認する
-                    // Check if the client snapshot matches the expected snapshot
-                    if (clientSnapshot == null || expectedSnapshot == null)
-                    {
-                        return false;
-                    }
-                    if (clientSnapshot.TrainLength != expectedSnapshot.TrainLength)
-                    {
-                        return false;
-                    }
-                    if (clientSnapshot.DistanceToNextNode != expectedSnapshot.DistanceToNextNode)
-                    {
-                        return false;
-                    }
-                    var clientNodes = clientSnapshot.RailSnapshot;
-                    var expectedNodes = expectedSnapshot.RailSnapshot;
-                    if (clientNodes == null || expectedNodes == null || clientNodes.Count != expectedNodes.Count)
-                    {
-                        return false;
-                    }
-                    for (var i = 0; i < clientNodes.Count; i++)
-                    {
-                        if (!clientNodes[i].Equals(expectedNodes[i]))
-                        {
-                            return false;
-                        }
-                    }
                     return true;
                 }
             }

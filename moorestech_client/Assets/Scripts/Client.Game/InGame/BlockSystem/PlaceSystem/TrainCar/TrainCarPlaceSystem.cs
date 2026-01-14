@@ -1,6 +1,9 @@
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Train;
 using Client.Input;
 using Cysharp.Threading.Tasks;
+using Game.Train.RailGraph;
+using Game.Train.Train;
 using System.Threading;
 using UnityEngine;
 
@@ -10,11 +13,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
     {
         private readonly ITrainCarPlacementDetector _detector;
         private readonly TrainCarPreviewController _previewController;
+        private readonly RailGraphClientCache _cache;
         
-        public TrainCarPlaceSystem(ITrainCarPlacementDetector detector, TrainCarPreviewController previewController)
+        public TrainCarPlaceSystem(ITrainCarPlacementDetector detector, TrainCarPreviewController previewController, RailGraphClientCache cache)
         {
             _detector = detector;
             _previewController = previewController;
+            _cache = cache;
         }
 
         public void Enable()
@@ -29,8 +34,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 _previewController.SetActive(false);
                 return;
             }
-            _previewController.SetActive(true);
-            _previewController.ShowPreview(context.HoldingItemId ,hit.PreviewPosition, hit.PreviewRotation, hit.IsPlaceable);
+            var hasPreview = TryResolvePreviewPose(hit.RailPosition);
+            _previewController.SetActive(hasPreview);
+            if (hasPreview)
+            {
+                _previewController.ShowPreview(context.HoldingItemId, hit.IsPlaceable);
+            }
 
             if (!hit.IsPlaceable)
             {
@@ -53,6 +62,26 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 {
                     Debug.LogWarning($"[TrainCarPlaceSystem] PlaceTrain failed. reason={response?.FailureType}");
                 }
+            }
+
+            bool TryResolvePreviewPose(RailPositionSaveData railPositionSaveData)
+            {
+                // レールスナップショットから位置と向きを復元する
+                // Restore pose from the rail snapshot
+                if (railPositionSaveData == null)
+                {
+                    return false;
+                }
+                var railPosition = RailPositionFactory.Restore(railPositionSaveData, _cache);
+                if (railPosition == null)
+                {
+                    return false;
+                }
+                if (!TrainCarPoseCalculator.TryGetPose(railPosition, 0, out var position, out var forward))
+                {
+                    return false;
+                }
+                return true;
             }
 
             #endregion
