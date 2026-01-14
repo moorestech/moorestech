@@ -101,6 +101,7 @@ namespace Client.Game.InGame.Train
                 return;
 
             var lineObject = SpawnRail($"RailLine_{canonicalFrom}_{canonicalTo}", startNode, endNode);
+            ApplyRailObjectId(lineObject, railObjectId);
             lineObject.transform.SetParent(transform, false);
             _railObjs[railObjectId] = lineObject;
         }
@@ -178,6 +179,27 @@ namespace Client.Game.InGame.Train
         private static bool IsValidIndex(IReadOnlyList<IReadOnlyList<(int targetId, int distance)>> adjacency, int index)
         {
             return index >= 0 && index < adjacency.Count;
+        }
+
+        private static void ApplyRailObjectId(GameObject lineObject, ulong railObjectId)
+        {
+            if (lineObject == null)
+                return;
+
+            // レール用コライダーにIDを埋め込む
+            // Embed the rail object id into colliders for raycast lookup
+            var colliders = lineObject.GetComponentsInChildren<Collider>(true);
+            for (var i = 0; i < colliders.Length; i++)
+            {
+                var collider = colliders[i];
+                if (collider == null)
+                    continue;
+
+                var carrier = collider.GetComponent<RailObjectIdCarrier>();
+                if (carrier == null)
+                    carrier = collider.gameObject.AddComponent<RailObjectIdCarrier>();
+                carrier.SetRailObjectId(railObjectId);
+            }
         }
 
         #endregion
