@@ -1,6 +1,12 @@
-using Client.Network.API;
-using Game.Train.Train;
+using System;
 using System.Collections.Generic;
+using Client.Game.InGame.Entity;
+using Client.Network.API;
+using Game.Entity.Interface;
+using Game.Train.Train;
+using MessagePack;
+using Server.Util.MessagePack;
+using UnityEngine;
 using VContainer.Unity;
 
 namespace Client.Game.InGame.Train
@@ -12,12 +18,14 @@ namespace Client.Game.InGame.Train
     public sealed class TrainUnitSnapshotApplier : IInitializable
     {
         private readonly TrainUnitClientCache _cache;
+        private readonly EntityObjectDatastore _entityDatastore;
         private readonly InitialHandshakeResponse _initialHandshakeResponse;
 
-        public TrainUnitSnapshotApplier(TrainUnitClientCache cache, InitialHandshakeResponse initialHandshakeResponse)
+        public TrainUnitSnapshotApplier(TrainUnitClientCache cache, InitialHandshakeResponse initialHandshakeResponse, EntityObjectDatastore entityObjectDatastore)
         {
             _cache = cache;
             _initialHandshakeResponse = initialHandshakeResponse;
+            _entityDatastore = entityObjectDatastore;
         }
 
         public void Initialize()
@@ -34,8 +42,12 @@ namespace Client.Game.InGame.Train
                 return;
             }
 
+            // スナップショットをモデルに変換して列車IDを収集する
+            // Convert snapshots into models and collect train car ids
             var snapshotPacks = response.Snapshots;
             var bundles = new List<TrainUnitSnapshotBundle>(snapshotPacks?.Count ?? 0);
+            var activeTrainCarIds = new HashSet<Guid>();
+            var entityResponses = new List<EntityResponse>();
             if (snapshotPacks != null)
             {
                 for (var i = 0; i < snapshotPacks.Count; i++)
@@ -45,11 +57,63 @@ namespace Client.Game.InGame.Train
                     {
                         continue;
                     }
-                    bundles.Add(pack.ToModel());
+                    var bundle = pack.ToModel();
+                    bundles.Add(bundle);
+                    CollectTrainCarIds(bundle, activeTrainCarIds);
+                    BuildTrainEntities(bundle, entityResponses);
                 }
             }
 
+            // キャッシュ更新後に不要な列車エンティティを除去する
+            // Remove stale train entities after cache update
             _cache.OverrideAll(bundles, response.ServerTick);
+            if (entityResponses.Count > 0) _entityDatastore.OnEntitiesUpdate(entityResponses);
+            _entityDatastore.RemoveTrainEntitiesNotInSnapshot(activeTrainCarIds);
+
+            #region Internal
+
+            void CollectTrainCarIds(TrainUnitSnapshotBundle bundle, ISet<Guid> target)
+            {
+                // 車両スナップショットからIDを集計する
+                // Collect train car ids from the snapshot
+                var cars = bundle.Simulation.Cars;
+                if (cars == null) return;
+                for (var i = 0; i < cars.Count; i++) target.Add(cars[i].CarId);
+            }
+
+            void BuildTrainEntities(TrainUnitSnapshotBundle bundle, ICollection<EntityResponse> target)
+            {
+                // 車両スナップショットからエンティティ更新を構築する
+                // Build entity updates from train car snapshots
+                var cars = bundle.Simulation.Cars;
+                if (cars == null || cars.Count == 0) return;
+                for (var i = 0; i < cars.Count; i++)
+                {
+                    var car = cars[i];
+                    var entityId = CreateTrainEntityInstanceId(car.CarId);
+                    var state = new TrainEntityStateMessagePack(car.CarId, car.TrainCarGuid);
+                    var entityPack = new EntityMessagePack
+                    {
+                        InstanceId = entityId,
+                        Type = VanillaEntityType.VanillaTrain,
+                        Position = new Vector3MessagePack(Vector3.zero),
+                        EntityData = MessagePackSerializer.Serialize(state)
+                    };
+                    target.Add(new EntityResponse(entityPack));
+                }
+            }
+
+            long CreateTrainEntityInstanceId(Guid trainCarId)
+            {
+                // 車両Guidから安定したInstanceIdを生成する
+                // Generate a stable instance id from the train car Guid
+                var bytes = trainCarId.ToByteArray();
+                var low = BitConverter.ToInt64(bytes, 0);
+                var high = BitConverter.ToInt64(bytes, 8);
+                return low ^ high;
+            }
+
+            #endregion
         }
     }
 }

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Client.Game.InGame.Entity.Factory;
+using Client.Game.InGame.Entity.Object;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
 using Client.Game.InGame.Train;
@@ -66,6 +68,28 @@ namespace Client.Game.InGame.Entity
                     
                     return entityObject;
                 });
+            }
+        }
+
+        public void RemoveTrainEntitiesNotInSnapshot(IReadOnlyCollection<Guid> activeTrainCarIds)
+        {
+            // スナップショットに存在しない列車エンティティを抽出する
+            // Collect train entities missing from the snapshot
+            var removeIds = new List<long>();
+            foreach (var entry in _entities)
+            {
+                var trainEntity = entry.Value.objectEntity as TrainCarEntityObject;
+                if (trainEntity == null) continue;
+                if (!activeTrainCarIds.Contains(trainEntity.TrainCarId)) removeIds.Add(entry.Key);
+            }
+
+            // 不要な列車エンティティを破棄して辞書から除去する
+            // Destroy and remove stale train entities
+            for (var i = 0; i < removeIds.Count; i++)
+            {
+                var entityId = removeIds[i];
+                _entities[entityId].objectEntity.Destroy();
+                _entities.Remove(entityId);
             }
         }
     }
