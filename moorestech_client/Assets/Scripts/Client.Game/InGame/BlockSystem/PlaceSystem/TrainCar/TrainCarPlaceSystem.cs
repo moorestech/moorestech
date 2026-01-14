@@ -1,11 +1,12 @@
 using Client.Game.InGame.Context;
-using Client.Game.InGame.Train;
 using Client.Input;
 using Cysharp.Threading.Tasks;
 using Game.Train.RailGraph;
 using Game.Train.Train;
 using System.Threading;
 using UnityEngine;
+using Client.Game.InGame.Train;
+
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 {
@@ -29,23 +30,26 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
         public void ManualUpdate(PlaceSystemUpdateContext context)
         {
+            // レール上の設置候補を検出する
+            // Detect placement candidate on the rail
             if (!_detector.TryDetect(context.HoldingItemId, out var hit))
             {
                 _previewController.SetActive(false);
                 return;
             }
-            var hasPreview = TryResolvePreviewPose(hit.RailPosition);
+            // プレビューの表示可否と描画を更新する
+            // Update preview visibility and rendering
+            var hasRailPosition = TryRestoreRailPosition(hit.RailPosition, out var railPosition);
+            var hasPreview = hasRailPosition && _previewController.ShowPreview(context.HoldingItemId, railPosition, hit.IsPlaceable);
             _previewController.SetActive(hasPreview);
-            if (hasPreview)
-            {
-                _previewController.ShowPreview(context.HoldingItemId, hit.IsPlaceable);
-            }
 
             if (!hit.IsPlaceable)
             {
                 return;
             }
 
+            // クリックで設置リクエストを送信する
+            // Send placement request on click
             if (InputManager.Playable.ScreenLeftClick.GetKeyUp)
             {
                 RequestPlacementAsync(hit, context.CurrentSelectHotbarSlotIndex).Forget();
@@ -55,7 +59,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
             async UniTaskVoid RequestPlacementAsync(TrainCarPlacementHit placementHit, int hotBarSlot)
             {
-                // 設置レスポンスを待機する
+                // レスポンスを待機する
                 // Await placement response
                 var response = await ClientContext.VanillaApi.Response.PlaceTrainOnRail(placementHit.RailPosition, hotBarSlot, CancellationToken.None);
                 if (response == null || !response.Success)
@@ -64,24 +68,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 }
             }
 
-            bool TryResolvePreviewPose(RailPositionSaveData railPositionSaveData)
+            bool TryRestoreRailPosition(RailPositionSaveData railPositionSaveData, out RailPosition railPosition)
             {
-                // レールスナップショットから位置と向きを復元する
-                // Restore pose from the rail snapshot
+                // レールスナップショットから復元する
+                // Restore RailPosition from snapshot
+                railPosition = null;
                 if (railPositionSaveData == null)
                 {
                     return false;
                 }
-                var railPosition = RailPositionFactory.Restore(railPositionSaveData, _cache);
-                if (railPosition == null)
-                {
-                    return false;
-                }
-                if (!TrainCarPoseCalculator.TryGetPose(railPosition, 0, out var position, out var forward))
-                {
-                    return false;
-                }
-                return true;
+                railPosition = RailPositionFactory.Restore(railPositionSaveData, _cache);
+                return railPosition != null;
             }
 
             #endregion
