@@ -6,15 +6,15 @@ using UnityEngine;
 
 namespace Client.Game.InGame.Train
 {
-    public sealed class TrainCarPoseCalculator
+    public static class TrainCarPoseCalculator
     {
         private const int ArcLengthSamples = 64;
         private const float MinCurveLength = 1e-4f;
-        private readonly Dictionary<ulong, SegmentArcLengthCache> _segmentCaches = new();
+        private static readonly Dictionary<ulong, SegmentArcLengthCache> _segmentCaches = new();
 
         // 列車先頭から指定距離の位置と向きを算出する
         // Calculate position and forward direction at the specified head distance
-        public bool TryGetPose(RailPosition railPosition, int distanceFromHead, out Vector3 position, out Vector3 forward)
+        public static bool TryGetPose(RailPosition railPosition, int distanceFromHead, out Vector3 position, out Vector3 forward)
         {
             // 出力を初期化する
             // Initialize output values
@@ -65,7 +65,7 @@ namespace Client.Game.InGame.Train
 
         #region Internal
 
-        private bool TryGetPoseOnSegment(IRailNode behind, IRailNode ahead, int distanceFromBehind, out Vector3 position, out Vector3 forward)
+        private static bool TryGetPoseOnSegment(IRailNode behind, IRailNode ahead, int distanceFromBehind, out Vector3 position, out Vector3 forward)
         {
             // 出力を初期化する
             // Initialize output values
@@ -101,7 +101,7 @@ namespace Client.Game.InGame.Train
             return true;
         }
 
-        private float EnsureArcLengthCache(IRailNode behind, IRailNode ahead, Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, out float[] arcLengths)
+        private static float EnsureArcLengthCache(IRailNode behind, IRailNode ahead, Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, out float[] arcLengths)
         {
             // キャッシュを参考に弧長テーブルを再利用する
             // Reuse cached arc-length table when available
