@@ -154,7 +154,6 @@ namespace Game.Train.Train
             Diagram = diagram;
         }
 
-        public Guid TrainId => Simulation.TrainId;
         public RailPositionSaveData RailPositionSnapshot { get; }
         public TrainSimulationSnapshot Simulation { get; }
         public TrainDiagramSnapshot Diagram { get; }

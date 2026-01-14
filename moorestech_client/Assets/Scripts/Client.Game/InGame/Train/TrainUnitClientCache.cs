@@ -44,14 +44,14 @@ namespace Client.Game.InGame.Train
             for (var i = 0; i < snapshots.Count; i++)
             {
                 var bundle = snapshots[i];
-                if (bundle.TrainId == Guid.Empty)
+                if (bundle.Simulation.TrainId == Guid.Empty)
                 {
                     continue;
                 }
 
-                var unit = new ClientTrainUnit(bundle.TrainId, _railGraphProvider);
+                var unit = new ClientTrainUnit(bundle.Simulation.TrainId, _railGraphProvider);
                 unit.SnapshotUpdate(bundle.Simulation, bundle.Diagram, bundle.RailPositionSnapshot, serverTick);
-                _units[bundle.TrainId] = unit;
+                _units[bundle.Simulation.TrainId] = unit;
             }
 
             LastServerTick = serverTick;
@@ -84,10 +84,10 @@ namespace Client.Game.InGame.Train
         // Apply a diff snapshot for a single train
         public ClientTrainUnit Upsert(TrainUnitSnapshotBundle snapshot, long serverTick)
         {
-            if (!_units.TryGetValue(snapshot.TrainId, out var unit))
+            if (!_units.TryGetValue(snapshot.Simulation.TrainId, out var unit))
             {
-                unit = new ClientTrainUnit(snapshot.TrainId, _railGraphProvider);
-                _units[snapshot.TrainId] = unit;
+                unit = new ClientTrainUnit(snapshot.Simulation.TrainId, _railGraphProvider);
+                _units[snapshot.Simulation.TrainId] = unit;
             }
 
             unit.SnapshotUpdate(snapshot.Simulation, snapshot.Diagram, snapshot.RailPositionSnapshot, serverTick);
