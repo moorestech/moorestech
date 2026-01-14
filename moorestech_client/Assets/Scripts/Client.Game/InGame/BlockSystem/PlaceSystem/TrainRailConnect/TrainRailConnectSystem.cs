@@ -60,6 +60,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             // Compute ConnectionDestination for both endpoints
             var fromDestination = _connectFromArea.CreateConnectionDestination();
             var toDestination = connectToArea.CreateConnectionDestination();
+            toDestination.IsFront = !toDestination.IsFront;
             if (fromDestination.IsDefault() || toDestination.IsDefault())
             {
                 Debug.LogWarning("[TrainRailConnect] Invalid destination detected. Re-select connection target.");
