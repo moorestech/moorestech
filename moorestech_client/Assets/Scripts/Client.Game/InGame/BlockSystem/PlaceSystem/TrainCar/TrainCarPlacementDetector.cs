@@ -60,7 +60,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
             // レール接続コライダーをレイキャストで取得する
             // Raycast to a rail connector collider
-            if (!PlaceSystemUtil.TryGetRaySpecifiedComponentHit<IRailComponentConnectAreaCollider>(_mainCamera, out var connectArea, Without_Player_MapObject_BlockBoundingBox_LayerMask))
+            if (!PlaceSystemUtil.TryGetRaySpecifiedComponentHitPosition<IRailComponentConnectAreaCollider>(_mainCamera,out var pos, out var connectArea, Without_Player_MapObject_BlockBoundingBox_LayerMask))
             {
                 return false;
             }
