@@ -13,17 +13,15 @@ namespace Client.Game.InGame.Train
         // Model forward axis correction to match rail direction
         private const float ModelYawOffsetDegrees = 90f;
         private TrainUnitClientCache _trainCache;
-        private TrainCarPoseCalculator _poseCalculator;
         private TrainCarEntityObject _trainCarEntity;
         private bool _isReady;
 
-        public void SetDependencies(TrainCarEntityObject trainCarEntity, TrainUnitClientCache trainCache, TrainCarPoseCalculator poseCalculator)
+        public void SetDependencies(TrainCarEntityObject trainCarEntity, TrainUnitClientCache trainCache)
         {
             // 姿勢更新に必要な参照を保持する
             // Store references required for pose updates
             _trainCarEntity = trainCarEntity;
             _trainCache = trainCache;
-            _poseCalculator = poseCalculator;
             _isReady = true;
         }
 
@@ -133,8 +131,8 @@ namespace Client.Game.InGame.Train
             // Compute the car pose from front and rear wheel positions
             position = default;
             forward = Vector3.forward;
-            if (!_poseCalculator.TryGetPose(railPosition, frontOffset, out var frontPosition, out var frontForward)) return false;
-            if (!_poseCalculator.TryGetPose(railPosition, rearOffset, out var rearPosition, out _)) return false;
+            if (!TrainCarPoseCalculator.TryGetPose(railPosition, frontOffset, out var frontPosition, out var frontForward)) return false;
+            if (!TrainCarPoseCalculator.TryGetPose(railPosition, rearOffset, out var rearPosition, out _)) return false;
             position = (frontPosition + rearPosition) * 0.5f;
             var delta = frontPosition - rearPosition;
             forward = delta.sqrMagnitude > 1e-6f ? delta.normalized : (frontForward.sqrMagnitude > 1e-6f ? frontForward.normalized : Vector3.forward);
