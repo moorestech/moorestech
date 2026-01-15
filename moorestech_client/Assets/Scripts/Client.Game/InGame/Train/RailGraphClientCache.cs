@@ -11,7 +11,7 @@ namespace Client.Game.InGame.Train
     ///     RailGraphの差分同期結果を保持するクライアント側キャッシュ
     ///     Client-side cache that mirrors the rail graph data for diff-based sync
     /// </summary>
-    public sealed class RailGraphClientCache : IRailGraphProvider
+    public sealed class RailGraphClientCache : IRailGraphProvider, IRailGraphTraversalProvider
     {
         // RailNodeInitializationDataのスナップショットを保持
         // Stores RailNodeInitializationData snapshots per nodeId
