@@ -88,5 +88,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         {
             return HashCode.Combine(StartPoint, StartControlPoint, EndControlPoint, EndPoint);
         }
+        public override string ToString()
+        {
+            return $"({StartPoint}, {StartControlPoint}, {EndControlPoint}, {EndPoint})";
+        }
     }
 }

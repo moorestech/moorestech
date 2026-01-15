@@ -1,3 +1,5 @@
+using Client.Common;
+using Client.Game.InGame.Block;
 using Client.Game.InGame.Train;
 using UnityEngine;
 
@@ -8,10 +10,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         [SerializeField] private BezierRailChain _railChainPrefab;
         private TrainRailConnectPreviewData _previewDataCache;
         private BezierRailChain _railChain;
+        private RendererMaterialReplacerController _rendererMaterialReplacer;
+        private Material _placeMaterial;
         
         private void Start()
         {
             _railChain = Instantiate(_railChainPrefab);
+            _placeMaterial = Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial);
         }
         
         public void SetActive(bool active)
@@ -31,8 +36,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             
             if (!_previewDataCache.Equals(data))
             {
+                Debug.Log($"Rebuild: {data}");
                 _railChain.SetControlPoints(data.StartPoint, data.StartControlPoint, data.EndControlPoint, data.EndPoint);
                 _railChain.Rebuild();
+                _rendererMaterialReplacer = new RendererMaterialReplacerController(_railChain.gameObject);
+                _rendererMaterialReplacer.CopyAndSetMaterial(_placeMaterial);
                 _previewDataCache = data;
             }
         }
