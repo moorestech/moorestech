@@ -4,7 +4,6 @@ using Client.Game.InGame.Entity.Factory;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
 using Client.Game.InGame.Train;
-using Game.Entity.Interface;
 using UnityEngine;
 using VContainer;
 

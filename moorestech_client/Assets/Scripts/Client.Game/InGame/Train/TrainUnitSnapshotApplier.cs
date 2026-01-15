@@ -18,14 +18,14 @@ namespace Client.Game.InGame.Train
     public sealed class TrainUnitSnapshotApplier : IInitializable
     {
         private readonly TrainUnitClientCache _cache;
-        private readonly EntityObjectDatastore _entityDatastore;
+        private readonly TrainEntityObjectDatastore _trainEntityDatastore;
         private readonly InitialHandshakeResponse _initialHandshakeResponse;
 
-        public TrainUnitSnapshotApplier(TrainUnitClientCache cache, InitialHandshakeResponse initialHandshakeResponse, EntityObjectDatastore entityObjectDatastore)
+        public TrainUnitSnapshotApplier(TrainUnitClientCache cache, InitialHandshakeResponse initialHandshakeResponse, TrainEntityObjectDatastore trainEntityObjectDatastore)
         {
             _cache = cache;
             _initialHandshakeResponse = initialHandshakeResponse;
-            _entityDatastore = entityObjectDatastore;
+            _trainEntityDatastore = trainEntityObjectDatastore;
         }
 
         public void Initialize()
@@ -67,8 +67,8 @@ namespace Client.Game.InGame.Train
             // キャッシュ更新後に不要な列車エンティティを除去する
             // Remove stale train entities after cache update
             _cache.OverrideAll(bundles, response.ServerTick);
-            if (entityResponses.Count > 0) _entityDatastore.OnEntitiesUpdate(entityResponses);
-            _entityDatastore.RemoveTrainEntitiesNotInSnapshot(activeTrainCarIds);
+            if (entityResponses.Count > 0) _trainEntityDatastore.OnEntitiesUpdate(entityResponses);
+            _trainEntityDatastore.RemoveTrainEntitiesNotInSnapshot(activeTrainCarIds);
 
             #region Internal
 
