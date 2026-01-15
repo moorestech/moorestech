@@ -33,9 +33,8 @@ namespace Client.Game.InGame.Entity
             foreach (var entity in _entities)
                 if ((DateTime.Now - entity.Value.lastUpdate).TotalSeconds > 1)
                     removeEntities.Add(entity.Key);
-            for (var i = 0; i < removeEntities.Count; i++)
+            foreach (var removeEntity in removeEntities)
             {
-                var removeEntity = removeEntities[i];
                 _entities[removeEntity].objectEntity.Destroy();
                 _entities.Remove(removeEntity);
             }
@@ -69,6 +68,5 @@ namespace Client.Game.InGame.Entity
                 });
             }
         }
-
     }
 }
