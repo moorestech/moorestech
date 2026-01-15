@@ -17,6 +17,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         public void SetActive(bool active)
         {
             gameObject.SetActive(active);
+            _railChain.gameObject.SetActive(active);
+            if (!active) _previewDataCache = TrainRailConnectPreviewData.Invalid;
         }
         
         public void ShowPreview(TrainRailConnectPreviewData data)

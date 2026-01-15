@@ -68,7 +68,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 return;
             }
             
-            var previewData = CalculatePreviewData(_connectFromArea, connectToArea);
+            var previewData = CalculatePreviewData(fromDestination, toDestination, _cache);
             ShowPreview();
             SendProtocol(fromDestination, toDestination);
             
