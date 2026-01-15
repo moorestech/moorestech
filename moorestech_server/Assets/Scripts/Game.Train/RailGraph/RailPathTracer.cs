@@ -76,7 +76,7 @@ namespace Game.Train.RailGraph
                 {
                     // 分岐は決定的に1本を選択する
                     // Pick a deterministic outgoing edge at branches
-                    if (!TrySelectForwardEdge(currentNodeId, out var nextNodeId, out var edgeDistance))
+                    if (!TrySelectForwardEdge(currentNodeId, remainingForward, visited, out var nextNodeId, out var edgeDistance))
                     {
                         return false;
                     }
@@ -121,7 +121,7 @@ namespace Game.Train.RailGraph
                 {
                     // 分岐は決定的に1本を選択する
                     // Pick a deterministic incoming edge at branches
-                    if (!TrySelectIncomingEdge(currentNodeId, out var previousNodeId, out var edgeDistance))
+                    if (!TrySelectIncomingEdge(currentNodeId, remainingBack, visited, out var previousNodeId, out var edgeDistance))
                     {
                         return false;
                     }
@@ -170,30 +170,165 @@ namespace Game.Train.RailGraph
 
             #region Internal
 
-            bool TrySelectForwardEdge(int nodeId, out int nextNodeId, out int distance)
+            bool TrySelectForwardEdge(int nodeId, int remainingDistance, HashSet<int> visitedPath, out int nextNodeId, out int distance)
             {
                 nextNodeId = -1;
                 distance = 0;
-                var edges = _provider.ConnectNodes[nodeId];
-                var found = false;
-                for (var i = 0; i < edges.Count; i++)
+                // 前方候補を昇順で評価する
+                // Evaluate forward candidates in ascending order
+                var candidates = BuildSortedOutgoingEdges(nodeId);
+                for (var i = 0; i < candidates.Count; i++)
                 {
-                    var edge = edges[i];
-                    if (!found || edge.targetId < nextNodeId || (edge.targetId == nextNodeId && edge.distance < distance))
+                    var edge = candidates[i];
+                    if (edge.distance <= 0 || visitedPath.Contains(edge.targetId))
+                    {
+                        continue;
+                    }
+                    // 1エッジで満たせる候補を確定する
+                    // Lock in a candidate that fits within one edge
+                    if (remainingDistance <= edge.distance)
                     {
                         nextNodeId = edge.targetId;
                         distance = edge.distance;
-                        found = true;
+                        return true;
+                    }
+                    var nextVisited = new HashSet<int>(visitedPath) { edge.targetId };
+                    if (CanConsumeForwardDistance(edge.targetId, remainingDistance - edge.distance, nextVisited, 0))
+                    {
+                        nextNodeId = edge.targetId;
+                        distance = edge.distance;
+                        return true;
                     }
                 }
-                return found;
+                return false;
             }
 
-            bool TrySelectIncomingEdge(int nodeId, out int previousNodeId, out int distance)
+            bool TrySelectIncomingEdge(int nodeId, int remainingDistance, HashSet<int> visitedPath, out int previousNodeId, out int distance)
             {
                 previousNodeId = -1;
                 distance = 0;
-                var found = false;
+                // 後方候補を昇順で評価する
+                // Evaluate backward candidates in ascending order
+                var candidates = BuildSortedIncomingEdges(nodeId);
+                for (var i = 0; i < candidates.Count; i++)
+                {
+                    var edge = candidates[i];
+                    if (edge.distance <= 0 || visitedPath.Contains(edge.sourceId))
+                    {
+                        continue;
+                    }
+                    // 1エッジで満たせる候補を確定する
+                    // Lock in a candidate that fits within one edge
+                    if (remainingDistance <= edge.distance)
+                    {
+                        previousNodeId = edge.sourceId;
+                        distance = edge.distance;
+                        return true;
+                    }
+                    var nextVisited = new HashSet<int>(visitedPath) { edge.sourceId };
+                    if (CanConsumeBackwardDistance(edge.sourceId, remainingDistance - edge.distance, nextVisited, 0))
+                    {
+                        previousNodeId = edge.sourceId;
+                        distance = edge.distance;
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            bool CanConsumeForwardDistance(int startNodeId, int remainingDistance, HashSet<int> visitedPath, int guard)
+            {
+                // 入力を検証しガードを更新する
+                // Validate inputs and advance guard
+                if (remainingDistance <= 0)
+                {
+                    return true;
+                }
+                if (guard > _provider.ConnectNodes.Count + 1)
+                {
+                    return false;
+                }
+
+                // 前方候補を昇順で探索する
+                // Explore forward candidates in ascending order
+                var candidates = BuildSortedOutgoingEdges(startNodeId);
+                for (var i = 0; i < candidates.Count; i++)
+                {
+                    var edge = candidates[i];
+                    if (edge.distance <= 0 || visitedPath.Contains(edge.targetId))
+                    {
+                        continue;
+                    }
+                    if (remainingDistance <= edge.distance)
+                    {
+                        return true;
+                    }
+                    visitedPath.Add(edge.targetId);
+                    if (CanConsumeForwardDistance(edge.targetId, remainingDistance - edge.distance, visitedPath, guard + 1))
+                    {
+                        return true;
+                    }
+                    visitedPath.Remove(edge.targetId);
+                }
+                return false;
+            }
+
+            bool CanConsumeBackwardDistance(int startNodeId, int remainingDistance, HashSet<int> visitedPath, int guard)
+            {
+                // 入力を検証しガードを更新する
+                // Validate inputs and advance guard
+                if (remainingDistance <= 0)
+                {
+                    return true;
+                }
+                if (guard > _provider.ConnectNodes.Count + 1)
+                {
+                    return false;
+                }
+
+                // 後方候補を昇順で探索する
+                // Explore backward candidates in ascending order
+                var candidates = BuildSortedIncomingEdges(startNodeId);
+                for (var i = 0; i < candidates.Count; i++)
+                {
+                    var edge = candidates[i];
+                    if (edge.distance <= 0 || visitedPath.Contains(edge.sourceId))
+                    {
+                        continue;
+                    }
+                    if (remainingDistance <= edge.distance)
+                    {
+                        return true;
+                    }
+                    visitedPath.Add(edge.sourceId);
+                    if (CanConsumeBackwardDistance(edge.sourceId, remainingDistance - edge.distance, visitedPath, guard + 1))
+                    {
+                        return true;
+                    }
+                    visitedPath.Remove(edge.sourceId);
+                }
+                return false;
+            }
+
+            List<(int targetId, int distance)> BuildSortedOutgoingEdges(int nodeId)
+            {
+                // 前方候補をソートして返す
+                // Sort outgoing candidates and return them
+                var edges = _provider.ConnectNodes[nodeId];
+                var result = new List<(int targetId, int distance)>(edges.Count);
+                for (var i = 0; i < edges.Count; i++)
+                {
+                    result.Add(edges[i]);
+                }
+                result.Sort((left, right) => left.targetId != right.targetId ? left.targetId.CompareTo(right.targetId) : left.distance.CompareTo(right.distance));
+                return result;
+            }
+
+            List<(int sourceId, int distance)> BuildSortedIncomingEdges(int nodeId)
+            {
+                // 後方候補をソートして返す
+                // Sort incoming candidates and return them
+                var result = new List<(int sourceId, int distance)>();
                 for (var i = 0; i < _provider.ConnectNodes.Count; i++)
                 {
                     var edges = _provider.ConnectNodes[i];
@@ -204,15 +339,11 @@ namespace Game.Train.RailGraph
                         {
                             continue;
                         }
-                        if (!found || i < previousNodeId || (i == previousNodeId && edge.distance < distance))
-                        {
-                            previousNodeId = i;
-                            distance = edge.distance;
-                            found = true;
-                        }
+                        result.Add((i, edge.distance));
                     }
                 }
-                return found;
+                result.Sort((left, right) => left.sourceId != right.sourceId ? left.sourceId.CompareTo(right.sourceId) : left.distance.CompareTo(right.distance));
+                return result;
             }
 
             #endregion
