@@ -1,4 +1,3 @@
-using Client.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Train;
 using Core.Master;
@@ -6,7 +5,6 @@ using Game.Train.RailGraph;
 using Game.Train.Train;
 using Game.Train.Utility;
 using Mooresmaster.Model.TrainModule;
-using System.Collections.Generic;
 using UnityEngine;
 using static Client.Common.LayerConst;
 
@@ -35,11 +33,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
         private const float MinCurveLength = 1e-4f;
         private readonly Camera _mainCamera;
         private readonly RailGraphClientCache _cache;
+        private readonly RailPathTracer _pathTracer;
         
         public TrainCarPlacementDetector(Camera mainCamera, RailGraphClientCache cache)
         {
             _mainCamera = mainCamera;
             _cache = cache;
+            _pathTracer = new RailPathTracer(_cache);
         }
 
         public bool TryDetect(ItemId holdingItemId, out TrainCarPlacementHit hit)
@@ -92,7 +92,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 bool TryBuildRailPosition(Vector3 hitPosition, RailObjectIdCarrier carrier, int trainLength, out RailPositionSaveData railPositionSaveData)
                 {
                     railPositionSaveData = null;
-                    // 入力を検証してレール区間を解決する
+                    // 入力を検証し、対象レール区間（ノード）を解決する
                     // Validate inputs and resolve the rail segment
                     if (carrier == null || trainLength <= 0)
                     {
@@ -104,79 +104,40 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                         return false;
                     }
 
-                    // カーブ上の最近点と距離を算出する
+                    // カーブ上の最近点を求め、始点からの距離（弧長）を算出する
                     // Find the closest point on the curve and its distance
                     if (!TryFindClosestPointOnCurve(canonicalFromNode, canonicalToNode, hitPosition, out var distanceFromStartWorld, out var curveLengthWorld))
                     {
                         return false;
                     }
 
-                    var distanceToStartWorld = distanceFromStartWorld;
                     var distanceToEndWorld = curveLengthWorld - distanceFromStartWorld;
-                    var useForwardEdge = distanceToEndWorld <= distanceToStartWorld;
-                    var headNodeId = useForwardEdge ? canonicalToId : (canonicalFromId ^ 1);
-                    var behindNodeId = useForwardEdge ? canonicalFromId : (canonicalToId ^ 1);
-                    var distanceToNextWorld = useForwardEdge ? distanceToEndWorld : distanceToStartWorld;
 
-                    if (!_cache.TryGetNode(headNodeId, out var headNode))
-                    {
-                        return false;
-                    }
-                    if (!_cache.TryGetNode(behindNodeId, out var behindNode))
-                    {
-                        return false;
-                    }
-
-                    // 先頭区間の距離と進行距離を算出する
+                    // 先頭側（進行方向）の区間距離と、次ノードまでのオフセットを算出する
                     // Resolve the leading segment distance and offset
-                    var segmentDistance = behindNode.GetDistanceToNode(headNode);
+                    var segmentDistance = canonicalFromNode.GetDistanceToNode(canonicalToNode);
                     if (segmentDistance <= 0)
                     {
                         return false;
                     }
-                    var distanceToNext = Mathf.RoundToInt(distanceToNextWorld * BezierUtility.RAIL_LENGTH_SCALE);
+                    var distanceToNext = Mathf.RoundToInt(distanceToEndWorld * BezierUtility.RAIL_LENGTH_SCALE);
                     if (distanceToNext < 0 || distanceToNext > segmentDistance)
                     {
                         return false;
                     }
 
-                    // 先頭ノードから後方へスナップショットを構築する
-                    // Build the snapshot from the head node toward the rear
-                    var railSnapshot = new List<ConnectionDestination> { headNode.ConnectionDestination, behindNode.ConnectionDestination };
-                    var remaining = trainLength + distanceToNext - segmentDistance;
-                    var currentNodeId = behindNodeId;
-                    var guard = 0;
-                    while (remaining > 0)
+                    // 中心（配置点）から両方向へ辿り、必要長さ分のスナップショットを構築する
+                    // Trace both directions from the center to build the snapshot
+                    if (!_pathTracer.TryTraceCentered(canonicalFromId, canonicalToId, distanceToNext, trainLength, out var traceResult))
                     {
-                        // 入力辺を辿って後方ノードを追加する
-                        // Walk incoming edge to append rearward nodes
-                        if (!TryGetIncomingEdge(currentNodeId, out var previousNodeId, out var distance))
-                        {
-                            return false;
-                        }
-                        if (distance <= 0)
-                        {
-                            return false;
-                        }
-                        if (!_cache.TryGetNode(previousNodeId, out var previousNode))
-                        {
-                            return false;
-                        }
-                        railSnapshot.Add(previousNode.ConnectionDestination);
-                        remaining -= distance;
-                        currentNodeId = previousNodeId;
-                        guard++;
-                        if (guard > _cache.ConnectNodes.Count + 1)
-                        {
-                            return false;
-                        }
+                        return false;
                     }
 
                     railPositionSaveData = new RailPositionSaveData
                     {
                         TrainLength = trainLength,
-                        DistanceToNextNode = distanceToNext,
-                        RailSnapshot = railSnapshot
+                        DistanceToNextNode = traceResult.DistanceToNextNode,
+                        RailSnapshot = traceResult.RailSnapshot
                     };
                     return true;
                 }
@@ -244,34 +205,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     }
                     distanceFromStart = arcLengths[bestIndex];
                     return true;
-                }
-
-                bool TryGetIncomingEdge(int nodeId, out int sourceNodeId, out int distance)
-                {
-                    sourceNodeId = -1;
-                    distance = 0;
-                    // 分岐時は最小NodeIdの入力辺を選択する
-                    // Choose the incoming edge with the smallest node id
-                    var found = false;
-                    for (var i = 0; i < _cache.ConnectNodes.Count; i++)
-                    {
-                        var edges = _cache.ConnectNodes[i];
-                        for (var j = 0; j < edges.Count; j++)
-                        {
-                            var edge = edges[j];
-                            if (edge.targetId != nodeId)
-                            {
-                                continue;
-                            }
-                            if (!found || i < sourceNodeId)
-                            {
-                                sourceNodeId = i;
-                                distance = edge.distance;
-                                found = true;
-                            }
-                        }
-                    }
-                    return found;
                 }
 
                 #endregion
