@@ -7,27 +7,32 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
 {
     /// <summary>
     /// レール橋脚同士が接続する際、レール同士がどのような接続をするかを計算します
+    /// Calculates the rail connection when connecting rail piers to each other
     /// </summary>
     public class TrainRailConnectPreviewCalculator
     {
         /// <summary>
-        ///     終点がノードの場合
+        /// 終点がノードの場合
+        /// When the endpoint is a node
         /// </summary>
         public static TrainRailConnectPreviewData CalculatePreviewData(ConnectionDestination from, ConnectionDestination to, RailGraphClientCache cache)
         {
             // 起点ノードを取得
+            // Get the start node
             if (!cache.TryGetNodeId(from, out var fromNodeId) || !cache.TryGetNode(fromNodeId, out var fromNode))
             {
                 return TrainRailConnectPreviewData.Invalid;
             }
             
             // 終点ノードを取得
+            // Get the end node
             if (!cache.TryGetNodeId(to, out var toNodeId) || !cache.TryGetNode(toNodeId, out var toNode))
             {
                 return TrainRailConnectPreviewData.Invalid;
             }
             
             // 起点の制御点
+            // Start control point
             var fromControlPoint = fromNode.FrontControlPoint;
             var p0 = fromControlPoint.OriginalPosition;
             var p1 = fromControlPoint.OriginalPosition + fromControlPoint.ControlPointPosition;
@@ -41,12 +46,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         public static TrainRailConnectPreviewData CalculatePreviewData(ConnectionDestination from, Vector3 cursorPosition, RailGraphClientCache cache)
         {
             // 起点ノードを取得
+            // Get the start node
             if (!cache.TryGetNodeId(from, out var fromNodeId) || !cache.TryGetNode(fromNodeId, out var fromNode))
             {
                 return TrainRailConnectPreviewData.Invalid;
             }
             
             // 起点の制御点
+            // Start control point
             var fromControlPoint = fromNode.FrontControlPoint;
             var p0 = fromControlPoint.OriginalPosition;
             var p1 = fromControlPoint.OriginalPosition + fromControlPoint.ControlPointPosition;
