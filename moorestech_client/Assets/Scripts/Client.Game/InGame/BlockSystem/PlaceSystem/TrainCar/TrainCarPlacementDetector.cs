@@ -45,9 +45,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
         public bool TryDetect(ItemId holdingItemId, out TrainCarPlacementHit hit)
         {
             hit = default;
-            // 列車マスターを解決する
-            // Resolve the train master definition
-            if (!TryResolveTrainMaster(holdingItemId, out var trainCarMaster))
+            // 車両マスターを解決する
+            // Resolve the train car master definition
+            if (!TryResolveTrainCarMaster(holdingItemId, out var trainCarMaster))
             {
                 return false;
             }
@@ -70,11 +70,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
             #region Internal
 
-            bool TryResolveTrainMaster(ItemId itemId, out TrainCarMasterElement trainCarMasterElement)
+            bool TryResolveTrainCarMaster(ItemId itemId, out TrainCarMasterElement trainCarMasterElement)
             {
-                // 手持ちアイテムが列車ユニットか判定する
-                // Ensure the held item represents a train unit
-                return MasterHolder.TrainUnitMaster.TryGetTrainUnit(itemId, out trainCarMasterElement);
+                // 手持ちアイテムが車両マスターに対応するか判定する
+                // Ensure the held item represents a train car master
+                return MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(itemId, out trainCarMasterElement);
             }
 
             bool TryBuildPlacement(Vector3 hitPos, RailObjectIdCarrier railCarrier, TrainCarMasterElement trainCarMasterElement, out TrainCarPlacementHit result)

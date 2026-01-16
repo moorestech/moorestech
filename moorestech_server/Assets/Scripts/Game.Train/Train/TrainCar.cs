@@ -136,7 +136,7 @@ namespace Game.Train.Train
             if (data == null)
                 return null;
 
-            if (!MasterHolder.TrainUnitMaster.TryGetTrainUnit(data.TrainCarGuid, out var trainCarMaster)) throw new Exception("trainCarMaster is not found");
+            if (!MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(data.TrainCarGuid, out var trainCarMaster)) throw new Exception("trainCarMaster is not found");
             var isFacingForward = data.IsFacingForward;
             var car = new TrainCar(trainCarMaster, isFacingForward);
             var empty = ServerContext.ItemStackFactory.CreatEmpty();

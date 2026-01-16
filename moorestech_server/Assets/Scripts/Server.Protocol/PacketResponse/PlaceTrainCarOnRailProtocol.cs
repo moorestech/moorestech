@@ -76,9 +76,9 @@ namespace Server.Protocol.PacketResponse
                 {
                     trainUnit = null;
                     failureType = PlaceTrainCarFailureType.InvalidRailPosition;
-                    // アイテムIDに対応する列車マスターを検索する
-                    // Resolve train master by item id
-                    if (!MasterHolder.TrainUnitMaster.TryGetTrainUnit(trainItemId, out var trainCarMaster))
+                    // アイテムIDに対応する車両マスターを検索する
+                    // Resolve train car master by item id
+                    if (!MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(trainItemId, out var trainCarMaster))
                     {
                         return false;
                     }
@@ -91,8 +91,8 @@ namespace Server.Protocol.PacketResponse
                         return false;
                     }
                     
-                    // 列車ユニットを生成する
-                    // Create the train unit
+                    // 単一車両の列車編成を生成する
+                    // Create a single-car train unit
                     var trainCar = new TrainCar(trainCarMaster, true);
                     trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, _trainUpdateService, _railPositionManager, _diagramManager);
                     return true;
