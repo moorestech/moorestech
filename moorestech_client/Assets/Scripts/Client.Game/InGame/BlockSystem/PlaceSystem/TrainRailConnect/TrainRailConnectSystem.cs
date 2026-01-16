@@ -125,6 +125,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         }
         public void Disable()
         {
+            _previewObject.SetActive(false);
         }
     }
 }
