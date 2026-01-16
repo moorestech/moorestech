@@ -1,3 +1,4 @@
+using Client.Game.InGame.UI.UIState.State;
 using Game.Train.Utility;
 using UnityEngine;
 
@@ -8,7 +9,7 @@ using UnityEngine;
 namespace Client.Game.InGame.Train
 {
     [RequireComponent(typeof(MeshFilter))]
-    public class BezierRailMesh : MonoBehaviour
+    public class BezierRailMesh : MonoBehaviour, IDeleteTarget
     {
         [SerializeField] private Mesh _sourceMesh;
         [SerializeField] private Vector3 _point0 = new(0f, 0f, 0f);
@@ -32,6 +33,12 @@ namespace Client.Game.InGame.Train
         private Vector3[] _deformedNormals;
         private float[] _arcLengths;
         private float _curveLength;
+        private BezierRailChain _railChain;
+        
+        public void SetParentBezierRailChain(BezierRailChain parent)
+        {
+            _railChain = parent;
+        }
 
         /// <summary>制御点を一括設定して再変形する。</summary>
         public void SetControlPoints(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3)
@@ -268,6 +275,14 @@ namespace Client.Game.InGame.Train
             }
 
             return Mathf.Max(1e-4f, max - min);
+        }
+        public void SetRemovePreviewing()
+        {
+            _railChain.SetRemovePreviewing();
+        }
+        public void ResetMaterial()
+        {
+            _railChain.ResetMaterial();
         }
     }
 
