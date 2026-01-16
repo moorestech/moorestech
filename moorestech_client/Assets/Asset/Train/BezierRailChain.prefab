@@ -44,6 +44,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d0e9cc3d5d7b384a8bf1648b1986b33, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail.BezierRailChain
+  _isDeletable: 1
   _modulePrefab: {fileID: 919132149155446097, guid: 4880a00c816937e40b2405035711c886, type: 3}
   _halfModulePrefab: {fileID: 919132149155446097, guid: 1d1312c8ac728cb44a0b669d75d10b16, type: 3}
   _quarterModulePrefab: {fileID: 919132149155446097, guid: f816352eebe22344d8a39cc835143994, type: 3}
