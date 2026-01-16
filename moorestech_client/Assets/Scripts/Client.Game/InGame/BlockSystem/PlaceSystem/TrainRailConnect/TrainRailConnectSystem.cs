@@ -82,6 +82,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             
             void ShowPreview(TrainRailConnectPreviewData previewData)
             {
+                if (!previewData.IsValid)
+                {
+                    _previewObject.SetActive(false);
+                    return;
+                }
                 _previewObject.SetActive(true);
                 _previewObject.ShowPreview(previewData);
             }
