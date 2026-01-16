@@ -12,6 +12,7 @@ namespace Client.Game.InGame.Train
 {
     public class BezierRailChain : MonoBehaviour
     {
+        [SerializeField] private bool _isDeletable;
         [SerializeField] private GameObject _modulePrefab;
         [SerializeField] private GameObject _halfModulePrefab;
         [SerializeField] private GameObject _quarterModulePrefab;
@@ -221,15 +222,26 @@ namespace Client.Game.InGame.Train
             internal readonly List<BezierRailMesh> Meshes = new();
         }
         
+        public void SetIsDeletable(bool isDeletable)
+        {
+            _isDeletable = isDeletable;
+        }
+        
         public void SetRemovePreviewing()
         {
-            _controller.CopyAndSetMaterial(_removeMaterial);
-            _controller.SetColor(MaterialConst.PreviewColorPropertyName, MaterialConst.NotPlaceableColor);
+            if (_isDeletable)
+            {
+                _controller.CopyAndSetMaterial(_removeMaterial);
+                _controller.SetColor(MaterialConst.PreviewColorPropertyName, MaterialConst.NotPlaceableColor);
+            }
         }
         
         public void ResetMaterial()
         {
-            _controller.ResetMaterial();
+            if (_isDeletable)
+            {
+                _controller.ResetMaterial();   
+            }
         }
     }
 }
