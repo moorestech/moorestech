@@ -28,7 +28,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         
         public void ShowPreview(TrainRailConnectPreviewData data)
         {
-            Debug.Log($"ShowPreview {data.StartPoint} {data.StartControlPoint} {data.EndControlPoint} {data.EndPoint}");
             Debug.DrawLine(data.StartPoint, data.StartControlPoint, Color.blue);
             Debug.DrawLine(data.StartControlPoint, data.EndControlPoint, Color.purple);
             Debug.DrawLine(data.EndControlPoint, data.EndPoint, Color.red);
@@ -36,7 +35,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             
             if (!_previewDataCache.Equals(data))
             {
-                Debug.Log($"Rebuild: {data}");
                 _railChain.SetControlPoints(data.StartPoint, data.StartControlPoint, data.EndControlPoint, data.EndPoint);
                 _railChain.Rebuild();
                 _rendererMaterialReplacer = new RendererMaterialReplacerController(_railChain.gameObject);
