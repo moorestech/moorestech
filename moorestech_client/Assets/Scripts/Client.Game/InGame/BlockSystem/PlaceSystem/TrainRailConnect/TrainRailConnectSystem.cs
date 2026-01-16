@@ -47,35 +47,46 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 return;
             }
             
+            // 接続対象のConnectionDestinationを算出
+            // Compute ConnectionDestination for both endpoints
+            var fromDestination = _connectFromArea.CreateConnectionDestination();
+            
             // 接続先がカーソル上になければreturn
             // If the connection point is not under the cursor, return.
             var connectToArea = GetTrainRailConnectAreaCollider();
             if (connectToArea == null)
             {
-                _previewObject.SetActive(false);
-                return;
+                if (PlaceSystemUtil.TryGetRayHitPosition(_mainCamera, out var position, out _))
+                {
+                    var previewData = CalculatePreviewData(fromDestination, position, _cache);
+                    ShowPreview(previewData);
+                }
             }
-            
-            // 接続対象のConnectionDestinationを算出
-            // Compute ConnectionDestination for both endpoints
-            var fromDestination = _connectFromArea.CreateConnectionDestination();
-            var toDestination = connectToArea.CreateConnectionDestination();
-            toDestination.IsFront = !toDestination.IsFront;
-            if (fromDestination.IsDefault() || toDestination.IsDefault())
+            else
             {
-                Debug.LogWarning("[TrainRailConnect] Invalid destination detected. Re-select connection target.");
-                _previewObject.SetActive(false);
-                return;
+                var toDestination = connectToArea.CreateConnectionDestination();
+                toDestination.IsFront = !toDestination.IsFront;
+                if (fromDestination.IsDefault() || toDestination.IsDefault())
+                {
+                    Debug.LogWarning("[TrainRailConnect] Invalid destination detected. Re-select connection target.");
+                    _previewObject.SetActive(false);
+                    return;
+                }
+                
+                var previewData = CalculatePreviewData(fromDestination, toDestination, _cache);
+                ShowPreview(previewData);
+                SendProtocol(fromDestination, toDestination);   
             }
-            
-            var previewData = CalculatePreviewData(_connectFromArea, connectToArea);
-            ShowPreview();
-            SendProtocol(fromDestination, toDestination);
             
             #region Internal
             
-            void ShowPreview()
+            void ShowPreview(TrainRailConnectPreviewData previewData)
             {
+                if (!previewData.IsValid)
+                {
+                    _previewObject.SetActive(false);
+                    return;
+                }
                 _previewObject.SetActive(true);
                 _previewObject.ShowPreview(previewData);
             }
@@ -119,6 +130,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         }
         public void Disable()
         {
+            _previewObject.SetActive(false);
         }
     }
 }
