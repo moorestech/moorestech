@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Client.Common;
+using Client.Game.InGame.Block;
 using Game.Train.Utility;
 using UnityEngine;
 
@@ -24,7 +26,15 @@ namespace Client.Game.InGame.Train
         private int _curveSamples = 64;
 
         private readonly List<SegmentInstance> _segments = new();
-
+        
+        private RendererMaterialReplacerController _controller;
+        private Material _removeMaterial;
+        
+        private void Awake()
+        {
+            _removeMaterial = Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial);
+        }
+        
         /// <summary>外部コードから制御点を再設定する</summary>
         public void SetControlPoints(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3)
         {
@@ -75,6 +85,8 @@ namespace Client.Game.InGame.Train
             {
                 Debug.LogWarning($"[BezierRailChain] 端数を埋められませんでした (残りステップ:{remainderSteps}). 必要な長さのモジュールが揃っているか確認してください。", this);
             }
+            
+            _controller = new RendererMaterialReplacerController(gameObject);
         }
 
         private void OnDestroy()
@@ -112,6 +124,7 @@ namespace Client.Game.InGame.Train
             // Instantiate module prefab and collect mesh deformers
             var segment = new SegmentInstance();
             var instance = Instantiate(prefab, transform);
+            instance.layer = LayerConst.BlockLayer;
             instance.name = $"Segment_{index}";
             segment.Root = instance;
             PrepareMeshComponents(instance, segment);
@@ -143,6 +156,7 @@ namespace Client.Game.InGame.Train
                 meshComponent.SetControlPoints(_point0, _point1, _point2, _point3);
                 meshComponent.SetAxes(_forwardAxis, _upAxis);
                 meshComponent.SetSamples(_curveSamples);
+                meshComponent.SetParentBezierRailChain(this);
                 meshComponent.Deform();
                 segment.Meshes.Add(meshComponent);
             }
@@ -205,6 +219,17 @@ namespace Client.Game.InGame.Train
         {
             internal GameObject Root;
             internal readonly List<BezierRailMesh> Meshes = new();
+        }
+        
+        public void SetRemovePreviewing()
+        {
+            _controller.CopyAndSetMaterial(_removeMaterial);
+            _controller.SetColor(MaterialConst.PreviewColorPropertyName, MaterialConst.NotPlaceableColor);
+        }
+        
+        public void ResetMaterial()
+        {
+            _controller.ResetMaterial();
         }
     }
 }
