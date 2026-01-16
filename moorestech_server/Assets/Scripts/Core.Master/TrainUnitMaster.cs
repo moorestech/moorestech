@@ -29,12 +29,12 @@ namespace Core.Master
             TrainUnitMasterUtil.Initialize(Train, out _trainCarMastersByItemId, out _trainCarMastersByGuid);
         }
 
-        public bool TryGetTrainUnit(ItemId itemId, out TrainCarMasterElement element)
+        public bool TryGetTrainCarMaster(ItemId itemId, out TrainCarMasterElement element)
         {
             return _trainCarMastersByItemId.TryGetValue(itemId, out element);
         }
 
-        public bool TryGetTrainUnit(Guid guid, out TrainCarMasterElement element)
+        public bool TryGetTrainCarMaster(Guid guid, out TrainCarMasterElement element)
         {
             return _trainCarMastersByGuid.TryGetValue(guid, out element);
         }

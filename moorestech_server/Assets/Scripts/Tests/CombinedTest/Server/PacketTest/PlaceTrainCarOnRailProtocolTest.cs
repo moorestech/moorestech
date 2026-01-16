@@ -63,12 +63,12 @@ namespace Tests.CombinedTest.Server.PacketTest
 
                 // レール位置スナップショットを生成
                 // Create rail position snapshot
-                if (!MasterHolder.TrainUnitMaster.TryGetTrainUnit(ForUnitTestItemId.TrainCarItem, out var trainUnitElement))
+                if (!MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(ForUnitTestItemId.TrainCarItem, out var trainCarMasterElement))
                 {
-                    Assert.Fail("テスト用列車マスターが見つかりません / Missing train unit master for test");
+                    Assert.Fail("テスト用車両マスターが見つかりません / Missing train car master for test");
                     return default;
                 }
-                var trainLength = TrainLengthConverter.ToRailUnits(trainUnitElement.Length);
+                var trainLength = TrainLengthConverter.ToRailUnits(trainCarMasterElement.Length);
                 var railNodes = new List<IRailNode> { rail1Component.BackNode, rail2Component.BackNode };
                 var railPosition = new RailPosition(railNodes, trainLength, 0);
                 var railPositionSnapshot = new RailPositionSnapshotMessagePack(railPosition.CreateSaveSnapshot());

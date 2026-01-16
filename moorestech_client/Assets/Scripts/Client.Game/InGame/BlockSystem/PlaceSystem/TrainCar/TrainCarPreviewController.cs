@@ -53,7 +53,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 // 車両マスターを解決する
                 // Resolve the train car master
                 trainCarMasterElement = null;
-                if (!MasterHolder.TrainUnitMaster.TryGetTrainUnit(targetItemId, out trainCarMasterElement))
+                if (!MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(targetItemId, out trainCarMasterElement))
                 {
                     return false;
                 }
