@@ -61,7 +61,8 @@ namespace Client.Game.InGame.Train
             // モデル補正を加えて回転と位置を確定する
             // Finalize rotation and position with model correction
             rotation = BuildRotation(forward, snapshot.IsFacingForward);
-            var modelForward = rotation * Vector3.forward;
+            var localForwardAxis = Quaternion.Euler(0f, -ModelYawOffsetDegrees, 0f) * Vector3.forward;
+            var modelForward = rotation * localForwardAxis;
             position -= modelForward * _trainCarEntity.ModelForwardCenterOffset;
             return true;
         }
