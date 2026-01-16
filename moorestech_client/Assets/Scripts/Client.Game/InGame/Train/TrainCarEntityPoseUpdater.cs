@@ -10,7 +10,7 @@ namespace Client.Game.InGame.Train
     {
         // 車両モデルの前方向補正量をレール進行方向に合わせる
         // Model forward axis correction to match rail direction
-        private const float ModelYawOffsetDegrees = 90f;
+        private const float ModelYawOffsetDegrees = -90f;
         private TrainUnitClientCache _trainCache;
         private TrainCarEntityObject _trainCarEntity;
         private bool _isReady;

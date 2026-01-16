@@ -12,7 +12,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
     public class TrainCarPreviewController : MonoBehaviour
     {
         private const string DefaultTrainAddressablePath = "Vanilla/Game/DefaultTrain";
-        private const float ModelYawOffsetDegrees = 90f;
+        private const float ModelYawOffsetDegrees = -90f;
 
         private GameObject _previewObject;
         private RendererMaterialReplacerController _materialReplacerController;
