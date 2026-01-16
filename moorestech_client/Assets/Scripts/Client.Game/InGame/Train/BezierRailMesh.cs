@@ -33,11 +33,12 @@ namespace Client.Game.InGame.Train
         private Vector3[] _deformedNormals;
         private float[] _arcLengths;
         private float _curveLength;
-        private BezierRailChain _railChain;
+        
+        public BezierRailChain RailChain { get; private set; }
         
         public void SetParentBezierRailChain(BezierRailChain parent)
         {
-            _railChain = parent;
+            RailChain = parent;
         }
 
         /// <summary>制御点を一括設定して再変形する。</summary>
@@ -278,11 +279,11 @@ namespace Client.Game.InGame.Train
         }
         public void SetRemovePreviewing()
         {
-            _railChain.SetRemovePreviewing();
+            RailChain.SetRemovePreviewing();
         }
         public void ResetMaterial()
         {
-            _railChain.ResetMaterial();
+            RailChain.ResetMaterial();
         }
     }
 
