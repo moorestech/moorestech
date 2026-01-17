@@ -65,6 +65,23 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             return true;
         }
         
+        public static bool TryGetRaySpecifiedComponentHitPosition<T>(Camera mainCamera, out Vector3 pos, out T component, int layerMask) where T : class
+        {
+            component = null;
+            pos = Vector3Int.zero;
+            var ray = mainCamera.ScreenPointToRay(UnityEngine.Input.mousePosition);
+            
+            //画面からのrayが何かにヒットしているか
+            if (!Physics.Raycast(ray, out var hit, float.PositiveInfinity, layerMask)) return false;
+            //そのrayが指定されたコンポーネントを持っているか
+            if (!hit.transform.TryGetComponent(out component))
+            {
+                return false;
+            }
+            pos = hit.point;
+            return true;
+        }
+        
         public static Vector3Int CalcPlacePoint(BlockMasterElement holdingBlock ,Vector3 hitPoint, int heightOffset, BlockDirection currentBlockDirection, BlockPreviewBoundingBoxSurface boundingBoxSurface)
         {
             var rotateAction = currentBlockDirection.GetCoordinateConvertAction();

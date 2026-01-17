@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Game.Context;
 using Game.Entity.Interface;
-using Game.Train.Common;
-using Game.Train.Entity;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Event.EventReceive;
@@ -17,12 +15,10 @@ namespace Server.Protocol.PacketResponse
     {
         public const string ProtocolTag = "va:getWorldData";
         private readonly IEntityFactory _entityFactory;
-        private readonly TrainUpdateService _trainUpdateService;
         
         public RequestWorldDataProtocol(ServiceProvider serviceProvider)
         {
             _entityFactory = serviceProvider.GetService<IEntityFactory>();
-            _trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
         }
         
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
@@ -37,8 +33,8 @@ namespace Server.Protocol.PacketResponse
                 blockResult.Add(new BlockDataMessagePack(block.BlockId, pos, blockDirection, block.BlockInstanceId));
             }
             
-            // エンティティ収集：ベルトコンベアアイテムと列車
-            // Collect entities: belt conveyor items and trains
+            // エンティティ収集：ベルトコンベアアイテム
+            // Collect entities: belt conveyor items
             var entities = new List<EntityMessagePack>();
             
             // ベルトコンベアアイテムを収集
@@ -46,42 +42,8 @@ namespace Server.Protocol.PacketResponse
             var items = CollectBeltConveyorItems.CollectItemFromWorld(_entityFactory);
             entities.AddRange(items.Select(item => new EntityMessagePack(item)));
             
-            // 列車エンティティを収集
-            // Collect train entities
-            var trains = CollectTrainEntities();
-            entities.AddRange(trains);
-            
             return new ResponseWorldDataMessagePack(blockResult.ToArray(), entities.ToArray());
         }
-        
-        #region Internal
-        
-        /// <summary>
-        /// 登録された全列車をTrainEntityに変換してEntityMessagePackとして返す
-        /// Convert all registered trains to TrainEntity and return as EntityMessagePack
-        /// </summary>
-        private List<EntityMessagePack> CollectTrainEntities()
-        {
-            var trainEntities = new List<EntityMessagePack>();
-            var registeredTrains = _trainUpdateService.GetRegisteredTrains();
-            
-            foreach (var trainUnit in registeredTrains)
-            {
-                if (trainUnit == null) continue;
-                
-                foreach (var trainCar in trainUnit.Cars)
-                {
-                    // TrainEntityを生成してEntityMessagePackに変換
-                    // Create TrainEntity and convert to EntityMessagePack
-                    var trainEntity = new TrainEntity(new EntityInstanceId(trainCar.GetHashCode()), trainUnit, trainCar);
-                    trainEntities.Add(new EntityMessagePack(trainEntity));
-                }
-            }
-            
-            return trainEntities;
-        }
-        
-        #endregion
         
         
         [MessagePackObject]

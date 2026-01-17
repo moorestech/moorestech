@@ -125,10 +125,10 @@ namespace Client.Network.API
             var request = RailConnectionEditRequest.CreateConnectRequest(fromNodeId, fromGuid, toNodeId, toGuid);
             _packetSender.Send(request);
         }
-        public void PlaceTrainOnRail(RailComponentSpecifier specifier, RailPositionSaveData railPosition, int hotBarSlot)
+        public void PlaceTrainOnRail(RailPositionSaveData railPosition, int hotBarSlot)
         {
             var railPositionSnapshot = new RailPositionSnapshotMessagePack(railPosition);
-            var request = new PlaceTrainOnRailRequestMessagePack(specifier, railPositionSnapshot, hotBarSlot, _playerId);
+            var request = new PlaceTrainOnRailRequestMessagePack(railPositionSnapshot, hotBarSlot, _playerId);
             _packetSender.Send(request);
         }
         
