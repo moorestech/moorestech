@@ -11,7 +11,6 @@ namespace Client.Game.InGame.Entity.Object
         [SerializeField] private MeshRenderer meshRenderer;
         [SerializeField] private Material itemMaterial;
         private float _linerTime;
-        public bool DestroyFlagIfNoUpdate => true;
         private Vector3 _previousPosition;
         
         private Vector3 _targetPosition;

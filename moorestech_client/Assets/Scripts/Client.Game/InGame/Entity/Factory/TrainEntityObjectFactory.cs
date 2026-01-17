@@ -19,15 +19,13 @@ namespace Client.Game.InGame.Entity.Factory
         private const string AddressablePath = "Vanilla/Game/DefaultTrain";
         
         private readonly TrainUnitClientCache _trainCache;
-        private readonly TrainCarPoseCalculator _poseCalculator;
         private readonly GameObject _defaultTrainPrefab;
         
-        public TrainEntityObjectFactory(TrainUnitClientCache trainCache, TrainCarPoseCalculator poseCalculator)
+        public TrainEntityObjectFactory(TrainUnitClientCache trainCache)
         {
             // 姿勢更新に必要な依存を保持する
             // Hold dependencies required for pose updates
             _trainCache = trainCache;
-            _poseCalculator = poseCalculator;
             _defaultTrainPrefab = AddressableLoader.LoadDefault<GameObject>(AddressablePath);
         }
         
@@ -56,7 +54,7 @@ namespace Client.Game.InGame.Entity.Factory
                 
                 // Attach pose update component for this car
                 var poseUpdater = trainObject.AddComponent<TrainCarEntityPoseUpdater>();
-                poseUpdater.SetDependencies(trainEntityObject, _trainCache, _poseCalculator);
+                poseUpdater.SetDependencies(trainEntityObject, _trainCache);
                 
                 // TrainCarEntityChildrenObjectを付与
                 foreach (var mesh in trainEntityObject.GetComponentsInChildren<MeshRenderer>())

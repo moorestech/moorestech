@@ -14,7 +14,6 @@ using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using Server.Util.MessagePack;
 using UnityEngine;
-using static Server.Protocol.PacketResponse.RailConnectionEditProtocol;
 
 namespace Client.Network.API
 {
@@ -78,12 +77,12 @@ namespace Client.Network.API
             return new TrainUnitSnapshotResponse(snapshots, tick, unitsHash);
         }
 
-        public async UniTask<PlaceTrainCarOnRailProtocol.PlaceTrainOnRailResponseMessagePack> PlaceTrainOnRail(RailComponentSpecifier specifier, RailPositionSaveData railPosition, int hotBarSlot, CancellationToken ct)
+        public async UniTask<PlaceTrainCarOnRailProtocol.PlaceTrainOnRailResponseMessagePack> PlaceTrainOnRail(RailPositionSaveData railPosition, int hotBarSlot, CancellationToken ct)
         {
             // 列車設置のレスポンスを取得する
             // Get response for train placement
             var railPositionSnapshot = new RailPositionSnapshotMessagePack(railPosition);
-            var request = new PlaceTrainCarOnRailProtocol.PlaceTrainOnRailRequestMessagePack(specifier, railPositionSnapshot, hotBarSlot, _playerConnectionSetting.PlayerId);
+            var request = new PlaceTrainCarOnRailProtocol.PlaceTrainOnRailRequestMessagePack(railPositionSnapshot, hotBarSlot, _playerConnectionSetting.PlayerId);
             return await _packetExchangeManager.GetPacketResponse<PlaceTrainCarOnRailProtocol.PlaceTrainOnRailResponseMessagePack>(request, ct);
         }
 

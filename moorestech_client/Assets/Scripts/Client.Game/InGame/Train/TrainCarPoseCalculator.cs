@@ -1,20 +1,18 @@
 using System;
-using System.Collections.Generic;
 using Game.Train.RailGraph;
 using Game.Train.Utility;
 using UnityEngine;
 
 namespace Client.Game.InGame.Train
 {
-    public sealed class TrainCarPoseCalculator
+    public static class TrainCarPoseCalculator
     {
         private const int ArcLengthSamples = 64;
         private const float MinCurveLength = 1e-4f;
-        private readonly Dictionary<ulong, SegmentArcLengthCache> _segmentCaches = new();
 
         // 列車先頭から指定距離の位置と向きを算出する
         // Calculate position and forward direction at the specified head distance
-        public bool TryGetPose(RailPosition railPosition, int distanceFromHead, out Vector3 position, out Vector3 forward)
+        public static bool TryGetPose(RailPosition railPosition, int distanceFromHead, out Vector3 position, out Vector3 forward)
         {
             // 出力を初期化する
             // Initialize output values
@@ -65,7 +63,7 @@ namespace Client.Game.InGame.Train
 
         #region Internal
 
-        private bool TryGetPoseOnSegment(IRailNode behind, IRailNode ahead, int distanceFromBehind, out Vector3 position, out Vector3 forward)
+        private static bool TryGetPoseOnSegment(IRailNode behind, IRailNode ahead, int distanceFromBehind, out Vector3 position, out Vector3 forward)
         {
             // 出力を初期化する
             // Initialize output values
@@ -89,7 +87,7 @@ namespace Client.Game.InGame.Train
 
             // 弧長テーブルを用いてtを解決する
             // Resolve t with arc-length lookup
-            var arcLength = EnsureArcLengthCache(behind, ahead, p0, p1, p2, p3, out var arcLengths);
+            var arcLength = BuildArcLengthTable(p0, p1, p2, p3, out var arcLengths);
             var distanceWorld = distanceFromBehind / BezierUtility.RAIL_LENGTH_SCALE;
             var t = arcLength > MinCurveLength ? BezierUtility.DistanceToTime(distanceWorld, arcLength, arcLengths) : ComputeLinearT(distanceWorld, p3);
 
@@ -101,22 +99,15 @@ namespace Client.Game.InGame.Train
             return true;
         }
 
-        private float EnsureArcLengthCache(IRailNode behind, IRailNode ahead, Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, out float[] arcLengths)
+        private static float BuildArcLengthTable(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, out float[] arcLengths)
         {
-            // キャッシュを参考に弧長テーブルを再利用する
-            // Reuse cached arc-length table when available
-            var key = ComputeSegmentKey(behind.NodeId, ahead.NodeId);
-            if (!_segmentCaches.TryGetValue(key, out var cache) || cache.StartGuid != behind.NodeGuid || cache.EndGuid != ahead.NodeGuid)
-            {
-                var reuse = cache?.ArcLengths;
-                var curveLength = BezierUtility.BuildArcLengthTable(p0, p1, p2, p3, ArcLengthSamples, ref reuse);
-                cache = new SegmentArcLengthCache(behind.NodeGuid, ahead.NodeGuid, curveLength, reuse);
-                _segmentCaches[key] = cache;
-            }
-
-            arcLengths = cache.ArcLengths;
-            return cache.CurveLength;
+            // 弧長テーブルは毎回生成する
+            // Build arc-length table every time
+            arcLengths = Array.Empty<float>();
+            return BezierUtility.BuildArcLengthTable(p0, p1, p2, p3, ArcLengthSamples, ref arcLengths);
         }
+
+        
 
         private static float ComputeLinearT(float distanceWorld, Vector3 delta)
         {
@@ -126,26 +117,6 @@ namespace Client.Game.InGame.Train
             return Mathf.Clamp01(distanceWorld / straightLength);
         }
 
-        private static ulong ComputeSegmentKey(int behindNodeId, int aheadNodeId)
-        {
-            return (uint)behindNodeId + ((ulong)(uint)aheadNodeId << 32);
-        }
-
-        private sealed class SegmentArcLengthCache
-        {
-            public SegmentArcLengthCache(Guid startGuid, Guid endGuid, float curveLength, float[] arcLengths)
-            {
-                StartGuid = startGuid;
-                EndGuid = endGuid;
-                CurveLength = curveLength;
-                ArcLengths = arcLengths ?? Array.Empty<float>();
-            }
-
-            public Guid StartGuid { get; }
-            public Guid EndGuid { get; }
-            public float CurveLength { get; }
-            public float[] ArcLengths { get; }
-        }
 
         #endregion
     }

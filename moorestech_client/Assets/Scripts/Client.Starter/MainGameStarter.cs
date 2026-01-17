@@ -71,6 +71,7 @@ namespace Client.Starter
         [SerializeField] private PlayerSystemContainer playerSystemContainer;
         
         [SerializeField] private EntityObjectDatastore entityObjectDatastore;
+        [SerializeField] private TrainEntityObjectDatastore trainEntityObjectDatastore;
         
         [SerializeField] private UIStateControl uIStateControl;
         [SerializeField] private PauseMenuObject pauseMenuObject;
@@ -220,6 +221,7 @@ namespace Client.Starter
             
             builder.RegisterComponent(displayEnergizedRange);
             builder.RegisterComponent(entityObjectDatastore);
+            builder.RegisterComponent(trainEntityObjectDatastore);
             builder.RegisterComponent(playerInventoryViewController);
             builder.RegisterComponent(challengeManager);
             builder.RegisterComponent(craftInventoryView);
@@ -258,6 +260,7 @@ namespace Client.Starter
             _resolver.Resolve<UIStateControl>();
             _resolver.Resolve<DisplayEnergizedRange>();
             _resolver.Resolve<EntityObjectDatastore>();
+            _resolver.Resolve<TrainEntityObjectDatastore>();
             _resolver.Resolve<ChallengeManager>();
             _resolver.Resolve<PlayerSystemContainer>();
             _resolver.Resolve<SkitUI>();

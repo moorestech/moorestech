@@ -1,5 +1,4 @@
 using Client.Common;
-using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Train;
 using Core.Master;
@@ -9,25 +8,18 @@ using Game.Train.Utility;
 using Mooresmaster.Model.TrainModule;
 using System.Collections.Generic;
 using UnityEngine;
-using static Server.Protocol.PacketResponse.RailConnectionEditProtocol;
 using static Client.Common.LayerConst;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 {
     public readonly struct TrainCarPlacementHit
     {
-        public TrainCarPlacementHit(RailComponentSpecifier specifier, Vector3 previewPosition, Quaternion previewRotation, bool isPlaceable, RailPositionSaveData railPosition)
+        public TrainCarPlacementHit(bool isPlaceable, RailPositionSaveData railPosition)
         {
-            Specifier = specifier;
-            PreviewPosition = previewPosition;
-            PreviewRotation = previewRotation;
             IsPlaceable = isPlaceable;
             RailPosition = railPosition;
         }
         
-        public RailComponentSpecifier Specifier { get; }
-        public Vector3 PreviewPosition { get; }
-        public Quaternion PreviewRotation { get; }
         public bool IsPlaceable { get; }
         public RailPositionSaveData RailPosition { get; }
     }
@@ -39,6 +31,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
     
     public class TrainCarPlacementDetector : ITrainCarPlacementDetector
     {
+        private const int CurveSampleCount = 512;
+        private const float MinCurveLength = 1e-4f;
         private readonly Camera _mainCamera;
         private readonly RailGraphClientCache _cache;
         
@@ -58,16 +52,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 return false;
             }
 
-            // レール接続コライダーをレイキャストで取得する
-            // Raycast to a rail connector collider
-            if (!PlaceSystemUtil.TryGetRaySpecifiedComponentHit<IRailComponentConnectAreaCollider>(_mainCamera, out var connectArea, Without_Player_MapObject_BlockBoundingBox_LayerMask))
+            // レールID付きコライダーをレイキャストで取得する
+            // Raycast to obtain the rail collider that carries the object id
+            if (!PlaceSystemUtil.TryGetRaySpecifiedComponentHitPosition<RailObjectIdCarrier>(_mainCamera, out var hitPosition, out var railCarrier, Without_Player_MapObject_BlockBoundingBox_LayerMask))
             {
                 return false;
             }
 
-            // 配置可否とレールスナップショットを解決する
-            // Resolve placement validity and snapshot
-            if (!TryBuildPlacement(connectArea, trainCarMaster, out hit))
+            // 位置からレールスナップショットを組み立てる
+            // Build the rail snapshot from the hit position
+            if (!TryBuildPlacement(hitPosition, railCarrier, trainCarMaster, out hit))
             {
                 return false;
             }
@@ -83,73 +77,74 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 return MasterHolder.TrainUnitMaster.TryGetTrainUnit(itemId, out trainCarMasterElement);
             }
 
-            bool TryBuildPlacement(IRailComponentConnectAreaCollider connectArea, TrainCarMasterElement trainCarMasterElement, out TrainCarPlacementHit result)
+            bool TryBuildPlacement(Vector3 hitPos, RailObjectIdCarrier railCarrier, TrainCarMasterElement trainCarMasterElement, out TrainCarPlacementHit result)
             {
                 result = default;
-                // ブロック位置と接続情報を解決する
-                // Resolve block position and connection info
-                if (!TryResolveBlock(connectArea, out var blockPosition, out var railIndex, out var isStation))
-                {
-                    return false;
-                }
-
-                // 指定子とレール位置スナップショットを組み立てる
-                // Compose specifier and rail position snapshot
-                var destination = connectArea.CreateConnectionDestination();
-                var specifier = isStation ? RailComponentSpecifier.CreateStationSpecifier(blockPosition, railIndex) : RailComponentSpecifier.CreateRailSpecifier(blockPosition);
-                var previewPosition = blockPosition.AddBlockPlaceOffset();
-                var previewRotation = Quaternion.identity;
+                // 列車長とレール位置スナップショットを組み立てる
+                // Compose train length and rail position snapshot
                 var trainLength = TrainLengthConverter.ToRailUnits(trainCarMasterElement.Length);
-                var isPlaceable = TryBuildRailPosition(destination, trainLength, out var railPosition);
-                result = new TrainCarPlacementHit(specifier, previewPosition, previewRotation, isPlaceable, railPosition);
+                var isPlaceable = TryBuildRailPosition(hitPos, railCarrier, trainLength, out var railPosition);
+                result = new TrainCarPlacementHit(isPlaceable, railPosition);
                 return true;
 
                 #region Internal
 
-                bool TryResolveBlock(IRailComponentConnectAreaCollider area, out Vector3Int position, out int index, out bool station)
-                {
-                    position = default;
-                    index = 0;
-                    station = false;
-                    // レール種別ごとの座標を抽出する
-                    // Extract block position by rail type
-                    if (area is TrainRailConnectAreaCollider railArea)
-                    {
-                        position = railArea.BlockGameObject.BlockPosInfo.OriginalPos;
-                        station = false;
-                        return true;
-                    }
-                    if (area is StationRailConnectAreaCollider stationArea)
-                    {
-                        position = stationArea.BlockGameObject.BlockPosInfo.OriginalPos;
-                        index = area.CreateConnectionDestination().railComponentID.ID;
-                        station = true;
-                        return true;
-                    }
-                    return false;
-                }
-
-                bool TryBuildRailPosition(ConnectionDestination headDestination, int length, out RailPositionSaveData railPositionSaveData)
+                bool TryBuildRailPosition(Vector3 hitPosition, RailObjectIdCarrier carrier, int trainLength, out RailPositionSaveData railPositionSaveData)
                 {
                     railPositionSaveData = null;
-                    // 列車長と始点ノードを検証する
-                    // Validate train length and head node
-                    if (length <= 0)
+                    // 入力を検証してレール区間を解決する
+                    // Validate inputs and resolve the rail segment
+                    if (carrier == null || trainLength <= 0)
                     {
                         return false;
                     }
-                    // 始点ノードを確認する
-                    // Check the head node
-                    var headNode = _cache.ResolveRailNode(headDestination);
-                    if (headNode == null || !_cache.TryGetNodeId(headNode, out var headNodeId))
+                    var railObjectId = carrier.GetRailObjectId();
+                    if (!TryResolveCanonicalNodes(railObjectId, out var canonicalFromId, out var canonicalToId, out var canonicalFromNode, out var canonicalToNode))
                     {
                         return false;
                     }
-                    // 進行方向の逆順でノードを積み上げる
-                    // Build node list in reverse travel order
-                    var railSnapshot = new List<ConnectionDestination> { headNode.ConnectionDestination };
-                    var remaining = length;
-                    var currentNodeId = headNodeId;
+
+                    // カーブ上の最近点と距離を算出する
+                    // Find the closest point on the curve and its distance
+                    if (!TryFindClosestPointOnCurve(canonicalFromNode, canonicalToNode, hitPosition, out var distanceFromStartWorld, out var curveLengthWorld))
+                    {
+                        return false;
+                    }
+
+                    var distanceToStartWorld = distanceFromStartWorld;
+                    var distanceToEndWorld = curveLengthWorld - distanceFromStartWorld;
+                    var useForwardEdge = distanceToEndWorld <= distanceToStartWorld;
+                    var headNodeId = useForwardEdge ? canonicalToId : (canonicalFromId ^ 1);
+                    var behindNodeId = useForwardEdge ? canonicalFromId : (canonicalToId ^ 1);
+                    var distanceToNextWorld = useForwardEdge ? distanceToEndWorld : distanceToStartWorld;
+
+                    if (!_cache.TryGetNode(headNodeId, out var headNode))
+                    {
+                        return false;
+                    }
+                    if (!_cache.TryGetNode(behindNodeId, out var behindNode))
+                    {
+                        return false;
+                    }
+
+                    // 先頭区間の距離と進行距離を算出する
+                    // Resolve the leading segment distance and offset
+                    var segmentDistance = behindNode.GetDistanceToNode(headNode);
+                    if (segmentDistance <= 0)
+                    {
+                        return false;
+                    }
+                    var distanceToNext = Mathf.RoundToInt(distanceToNextWorld * BezierUtility.RAIL_LENGTH_SCALE);
+                    if (distanceToNext < 0 || distanceToNext > segmentDistance)
+                    {
+                        return false;
+                    }
+
+                    // 先頭ノードから後方へスナップショットを構築する
+                    // Build the snapshot from the head node toward the rear
+                    var railSnapshot = new List<ConnectionDestination> { headNode.ConnectionDestination, behindNode.ConnectionDestination };
+                    var remaining = trainLength + distanceToNext - segmentDistance;
+                    var currentNodeId = behindNodeId;
                     var guard = 0;
                     while (remaining > 0)
                     {
@@ -177,14 +172,77 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                         }
                     }
 
-                    // 配置用スナップショットを生成する
-                    // Create placement snapshot
                     railPositionSaveData = new RailPositionSaveData
                     {
-                        TrainLength = length,
-                        DistanceToNextNode = 0,
+                        TrainLength = trainLength,
+                        DistanceToNextNode = distanceToNext,
                         RailSnapshot = railSnapshot
                     };
+                    return true;
+                }
+
+                bool TryResolveCanonicalNodes(ulong railObjectId, out int canonicalFromId, out int canonicalToId, out IRailNode canonicalFromNode, out IRailNode canonicalToNode)
+                {
+                    canonicalFromId = (int)(railObjectId & 0xffffffff);
+                    canonicalToId = (int)(railObjectId >> 32);
+                    canonicalFromNode = null;
+                    canonicalToNode = null;
+                    if (!_cache.TryGetNode(canonicalFromId, out canonicalFromNode))
+                    {
+                        return false;
+                    }
+                    if (!_cache.TryGetNode(canonicalToId, out canonicalToNode))
+                    {
+                        return false;
+                    }
+                    return true;
+                }
+
+                bool TryFindClosestPointOnCurve(IRailNode startNode, IRailNode endNode, Vector3 hitPosition, out float distanceFromStart, out float curveLength)
+                {
+                    distanceFromStart = 0f;
+                    curveLength = 0f;
+                    // ベジエ制御点とサンプル距離を計算する
+                    // Build Bezier control points and sample distances
+                    if (startNode == null || endNode == null)
+                    {
+                        return false;
+                    }
+
+                    var startControl = startNode.FrontControlPoint;
+                    var endControl = endNode.BackControlPoint;
+                    BezierUtility.BuildRelativeControlPoints(startControl, endControl, out var origin, out var p0, out var p1, out var p2, out var p3);
+
+                    var steps = CurveSampleCount;
+                    var arcLengths = new float[steps + 1];
+                    var bestIndex = 0;
+                    var bestDistanceSq = (origin - hitPosition).sqrMagnitude;
+
+                    arcLengths[0] = 0f;
+                    var previous = origin + BezierUtility.GetBezierPoint(p0, p1, p2, p3, 0f);
+
+                    for (var i = 1; i <= steps; i++)
+                    {
+                        // サンプル位置と累積距離を更新する
+                        // Update sample position and cumulative distance
+                        var t = (float)i / steps;
+                        var point = origin + BezierUtility.GetBezierPoint(p0, p1, p2, p3, t);
+                        arcLengths[i] = arcLengths[i - 1] + Vector3.Distance(previous, point);
+                        var distanceSq = (point - hitPosition).sqrMagnitude;
+                        if (distanceSq < bestDistanceSq)
+                        {
+                            bestDistanceSq = distanceSq;
+                            bestIndex = i;
+                        }
+                        previous = point;
+                    }
+
+                    curveLength = arcLengths[steps];
+                    if (curveLength <= MinCurveLength)
+                    {
+                        return false;
+                    }
+                    distanceFromStart = arcLengths[bestIndex];
                     return true;
                 }
 
@@ -201,8 +259,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                         for (var j = 0; j < edges.Count; j++)
                         {
                             var edge = edges[j];
-                            // 対象ノードへの入力辺だけを抽出する
-                            // Filter for incoming edges targeting the node
                             if (edge.targetId != nodeId)
                             {
                                 continue;
@@ -225,4 +281,3 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
         }
     }
 }
-

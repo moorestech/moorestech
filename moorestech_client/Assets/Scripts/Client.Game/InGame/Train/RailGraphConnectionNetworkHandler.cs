@@ -16,13 +16,11 @@ namespace Client.Game.InGame.Train
         private readonly RailGraphClientCache _cache;
         private readonly CompositeDisposable _subscriptions = new();
 
-        public static RailGraphConnectionNetworkHandler Instance { get; private set; }
         public RailGraphClientCache Cache => _cache;
 
         public RailGraphConnectionNetworkHandler(RailGraphClientCache cache)
         {
             _cache = cache;
-            Instance = this;
         }
 
         public void Initialize()
@@ -38,10 +36,6 @@ namespace Client.Game.InGame.Train
         public void Dispose()
         {
             _subscriptions.Dispose();
-            if (Instance == this)
-            {
-                Instance = null;
-            }
         }
 
         #region Internal

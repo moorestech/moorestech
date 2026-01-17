@@ -1,5 +1,4 @@
 using Client.Game.InGame.Entity.Object;
-using Core.Master;
 using Game.Train.RailGraph;
 using Game.Train.Train;
 using Game.Train.Utility;
@@ -13,17 +12,15 @@ namespace Client.Game.InGame.Train
         // Model forward axis correction to match rail direction
         private const float ModelYawOffsetDegrees = 90f;
         private TrainUnitClientCache _trainCache;
-        private TrainCarPoseCalculator _poseCalculator;
         private TrainCarEntityObject _trainCarEntity;
         private bool _isReady;
 
-        public void SetDependencies(TrainCarEntityObject trainCarEntity, TrainUnitClientCache trainCache, TrainCarPoseCalculator poseCalculator)
+        public void SetDependencies(TrainCarEntityObject trainCarEntity, TrainUnitClientCache trainCache)
         {
             // 姿勢更新に必要な参照を保持する
             // Store references required for pose updates
             _trainCarEntity = trainCarEntity;
             _trainCache = trainCache;
-            _poseCalculator = poseCalculator;
             _isReady = true;
         }
 
@@ -78,54 +75,11 @@ namespace Client.Game.InGame.Train
             frontOffset = 0;
             rearOffset = 0;
 
-            // 列車キャッシュから対象車両を探索する
-            // Search train cache for the target car
-            foreach (var candidate in _trainCache.Units.Values)
-            {
-                var carSnapshots = candidate.Cars;
-                if (carSnapshots.Count == 0) continue;
-
-                // 先頭からの距離を積み上げる
-                // Accumulate distance from head
-                var offsetFromHead = 0;
-                for (var i = 0; i < carSnapshots.Count; i++)
-                {
-                    // 対象車両かを判定しオフセットを算出する
-                    // Determine target car and compute offsets
-                    var carSnapshot = carSnapshots[i];
-                    var isTargetCar = carSnapshot.CarId == _trainCarEntity.TrainCarId;
-                    var carLength = ResolveCarLength(carSnapshot, isTargetCar ? _trainCarEntity : null);
-                    if (carLength <= 0) continue;
-                    var frontOffsetCandidate = offsetFromHead;
-                    var rearOffsetCandidate = offsetFromHead + carLength;
-                    if (!isTargetCar)
-                    {
-                        offsetFromHead += carLength;
-                        continue;
-                    }
-
-                    // 対象車両の結果を確定する
-                    // Finalize the result for the target car
-                    unit = candidate;
-                    snapshot = carSnapshot;
-                    frontOffset = frontOffsetCandidate;
-                    rearOffset = rearOffsetCandidate;
-                    return true;
-                }
-            }
-
-            return false;
+            // 車両索引からスナップショットを取得する
+            // Resolve the snapshot from the car index
+            return _trainCache.TryGetCarSnapshot(_trainCarEntity.TrainCarId, out unit, out snapshot, out frontOffset, out rearOffset);
         }
 
-        private int ResolveCarLength(TrainCarSnapshot snapshot, TrainCarEntityObject trainCarEntity)
-        {
-            // マスター長さをrail単位に変換する
-            // Convert master length into rail units
-            var master = trainCarEntity?.TrainCarMasterElement;
-            if (master != null && master.Length > 0) return TrainLengthConverter.ToRailUnits(master.Length);
-            if (MasterHolder.TrainUnitMaster.TryGetTrainUnit(snapshot.TrainCarGuid, out var fallbackMaster) && fallbackMaster.Length > 0) return TrainLengthConverter.ToRailUnits(fallbackMaster.Length);
-            return 0;
-        }
 
         private bool TryResolveCarPose(RailPosition railPosition, int frontOffset, int rearOffset, out Vector3 position, out Vector3 forward)
         {
@@ -133,8 +87,8 @@ namespace Client.Game.InGame.Train
             // Compute the car pose from front and rear wheel positions
             position = default;
             forward = Vector3.forward;
-            if (!_poseCalculator.TryGetPose(railPosition, frontOffset, out var frontPosition, out var frontForward)) return false;
-            if (!_poseCalculator.TryGetPose(railPosition, rearOffset, out var rearPosition, out _)) return false;
+            if (!TrainCarPoseCalculator.TryGetPose(railPosition, frontOffset, out var frontPosition, out var frontForward)) return false;
+            if (!TrainCarPoseCalculator.TryGetPose(railPosition, rearOffset, out var rearPosition, out _)) return false;
             position = (frontPosition + rearPosition) * 0.5f;
             var delta = frontPosition - rearPosition;
             forward = delta.sqrMagnitude > 1e-6f ? delta.normalized : (frontForward.sqrMagnitude > 1e-6f ? frontForward.normalized : Vector3.forward);

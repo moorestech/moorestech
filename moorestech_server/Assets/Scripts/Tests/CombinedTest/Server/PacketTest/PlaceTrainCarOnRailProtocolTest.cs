@@ -15,7 +15,6 @@ using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.PlaceTrainCarOnRailProtocol;
-using static Server.Protocol.PacketResponse.RailConnectionEditProtocol;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -31,11 +30,11 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             // テスト環境を構築
             // Build test environment
-            var (environment, railSpecifier, railPosition) = SetupEnvironment();
+            var (environment, railPosition) = SetupEnvironment();
 
             // プロトコルを実行
             // Execute protocol
-            ExecuteProtocol(environment, railSpecifier, railPosition);
+            ExecuteProtocol(environment, railPosition);
 
             // 結果を検証
             // Verify result
@@ -43,7 +42,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             #region Internal
 
-            (TrainTestEnvironment Environment, RailComponentSpecifier RailSpecifier, RailPositionSnapshotMessagePack RailPosition) SetupEnvironment()
+            (TrainTestEnvironment Environment, RailPositionSnapshotMessagePack RailPosition) SetupEnvironment()
             {
                 // レールとインベントリを準備
                 // Prepare rails and inventory
@@ -74,16 +73,16 @@ namespace Tests.CombinedTest.Server.PacketTest
                 var railPosition = new RailPosition(railNodes, trainLength, 0);
                 var railPositionSnapshot = new RailPositionSnapshotMessagePack(railPosition.CreateSaveSnapshot());
                 
-                return (environment, RailComponentSpecifier.CreateRailSpecifier(railPos1), railPositionSnapshot);
+                return (environment, railPositionSnapshot);
             }
 
-            void ExecuteProtocol(TrainTestEnvironment environment, RailComponentSpecifier railSpecifier, RailPositionSnapshotMessagePack railPosition)
+            void ExecuteProtocol(TrainTestEnvironment environment, RailPositionSnapshotMessagePack railPosition)
             {
                 Assert.AreEqual(0, environment.GetTrainUpdateService().GetRegisteredTrains().Count(), "初期状態では列車が存在しないべき / No trains should exist initially");
                 
                 // プロトコルで列車を配置
                 // Place train through protocol
-                var packet = CreatePlaceTrainPacket(railSpecifier, railPosition, HotBarSlot, PlayerId);
+                var packet = CreatePlaceTrainPacket(railPosition, HotBarSlot, PlayerId);
                 environment.PacketResponseCreator.GetPacketResponse(packet);
             }
 
@@ -103,10 +102,10 @@ namespace Tests.CombinedTest.Server.PacketTest
             #endregion
         }
 
-        private List<byte> CreatePlaceTrainPacket(RailComponentSpecifier railSpecifier, RailPositionSnapshotMessagePack railPosition, int hotBarSlot, int playerId)
+        private List<byte> CreatePlaceTrainPacket(RailPositionSnapshotMessagePack railPosition, int hotBarSlot, int playerId)
         {
             return MessagePackSerializer
-                .Serialize(new PlaceTrainOnRailRequestMessagePack(railSpecifier, railPosition, hotBarSlot, playerId))
+                .Serialize(new PlaceTrainOnRailRequestMessagePack(railPosition, hotBarSlot, playerId))
                 .ToList();
         }
     }

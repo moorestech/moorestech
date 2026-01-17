@@ -18,16 +18,14 @@ namespace Client.Game.InGame.Entity.Factory
     {
         private readonly Dictionary<string, IEntityObjectFactory> _factoryMap;
         private readonly TrainUnitClientCache _trainUnitClientCache;
-        private readonly TrainCarPoseCalculator _poseCalculator;
         
         public EntityObjectFactory(TrainUnitClientCache trainUnitClientCache)
         {
             // 車両姿勢更新に必要な依存を保持する
             // Hold dependencies required for train car pose updates
             _trainUnitClientCache = trainUnitClientCache;
-            _poseCalculator = new TrainCarPoseCalculator();
             _factoryMap = new Dictionary<string, IEntityObjectFactory>();
-            _factoryMap.Add(VanillaEntityType.VanillaTrain, new TrainEntityObjectFactory(_trainUnitClientCache, _poseCalculator));
+            _factoryMap.Add(VanillaEntityType.VanillaTrain, new TrainEntityObjectFactory(_trainUnitClientCache));
             _factoryMap.Add(VanillaEntityType.VanillaItem, new BeltConveyorItemEntityObjectFactory());
         }
         

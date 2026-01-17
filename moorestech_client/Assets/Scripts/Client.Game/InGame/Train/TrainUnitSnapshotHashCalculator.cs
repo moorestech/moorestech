@@ -68,8 +68,8 @@ namespace Client.Game.InGame.Train
             for (var i = 0; i < cars.Count; i++)
             {
                 var car = cars[i];
-                hash = MixGuid(hash, car.CarId);
-                hash = MixGuid(hash, car.TrainCarGuid);
+                hash = MixGuid(hash, car.TrainCarInstanceGuid);
+                hash = MixGuid(hash, car.TrainCarMasterId);
                 hash = Mix(hash, car.InventorySlotsCount);
                 hash = Mix(hash, car.TractionForce);
                 hash = Mix(hash, car.IsFacingForward ? 1 : 0);
