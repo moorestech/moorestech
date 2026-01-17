@@ -15,6 +15,7 @@ namespace Client.Game.InGame.Entity.Object
         public long EntityId { get; private set; }
         public Guid TrainCarId { get; private set; }
         public TrainCarMasterElement TrainCarMasterElement { get; set; }
+        private const float ModelYawOffsetDegrees = -90f;
         /// <summary>
         /// モデル中心の前後オフセット
         /// Model forward center offset
@@ -119,8 +120,9 @@ namespace Client.Game.InGame.Entity.Object
             var renderers = GetComponentsInChildren<Renderer>(true);
             var combined = renderers[0].bounds;
             for (var i = 1; i < renderers.Length; i++) combined.Encapsulate(renderers[i].bounds);
+            var localForwardAxis = Quaternion.Euler(0f, -ModelYawOffsetDegrees, 0f) * Vector3.forward;
             var localCenter = transform.InverseTransformPoint(combined.center);
-            return localCenter.z;
+            return Vector3.Dot(localCenter, localForwardAxis);
         }
 
         #endregion

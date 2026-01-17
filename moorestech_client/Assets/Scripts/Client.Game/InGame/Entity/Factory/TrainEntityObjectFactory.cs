@@ -33,9 +33,9 @@ namespace Client.Game.InGame.Entity.Factory
         {
             var state = MessagePackSerializer.Deserialize<TrainEntityStateMessagePack>(entity.EntityData);
             
-            if (!MasterHolder.TrainUnitMaster.TryGetTrainUnit(state.TrainMasterId, out var trainCarMaster)) return CreateTrainEntity(entity.Position, _defaultTrainPrefab);
+            if (!MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(state.TrainCarMasterId, out var trainCarMasterElement)) return CreateTrainEntity(entity.Position, _defaultTrainPrefab);
             
-            var loadedPrefab = await AddressableLoader.LoadAsyncDefault<GameObject>(trainCarMaster.AddressablePath);
+            var loadedPrefab = await AddressableLoader.LoadAsyncDefault<GameObject>(trainCarMasterElement.AddressablePath);
             if (loadedPrefab == null) return CreateTrainEntity(entity.Position, _defaultTrainPrefab);
             
             
@@ -48,7 +48,7 @@ namespace Client.Game.InGame.Entity.Factory
                 var trainObject = GameObject.Instantiate(prefab, position, Quaternion.identity, parent);
                 
                 var trainEntityObject = trainObject.AddComponent<TrainCarEntityObject>();
-                trainEntityObject.SetTrain(state.TrainCarId, trainCarMaster);
+                trainEntityObject.SetTrain(state.TrainCarId, trainCarMasterElement);
                 
                 // 車両姿勢更新コンポーネントを関連付ける
                 

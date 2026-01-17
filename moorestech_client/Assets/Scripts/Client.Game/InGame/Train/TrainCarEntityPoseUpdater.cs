@@ -10,7 +10,7 @@ namespace Client.Game.InGame.Train
     {
         // 車両モデルの前方向補正量をレール進行方向に合わせる
         // Model forward axis correction to match rail direction
-        private const float ModelYawOffsetDegrees = 90f;
+        private const float ModelYawOffsetDegrees = -90f;
         private TrainUnitClientCache _trainCache;
         private TrainCarEntityObject _trainCarEntity;
         private bool _isReady;
@@ -61,7 +61,8 @@ namespace Client.Game.InGame.Train
             // モデル補正を加えて回転と位置を確定する
             // Finalize rotation and position with model correction
             rotation = BuildRotation(forward, snapshot.IsFacingForward);
-            var modelForward = rotation * Vector3.forward;
+            var localForwardAxis = Quaternion.Euler(0f, -ModelYawOffsetDegrees, 0f) * Vector3.forward;
+            var modelForward = rotation * localForwardAxis;
             position -= modelForward * _trainCarEntity.ModelForwardCenterOffset;
             return true;
         }

@@ -208,7 +208,7 @@ namespace Client.Game.InGame.Train
         {
             // マスター情報から車両長さを解決する
             // Resolve car length from master data
-            if (MasterHolder.TrainUnitMaster.TryGetTrainUnit(snapshot.TrainCarMasterId, out var master) && master.Length > 0) return TrainLengthConverter.ToRailUnits(master.Length);
+            if (MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(snapshot.TrainCarMasterId, out var master) && master.Length > 0) return TrainLengthConverter.ToRailUnits(master.Length);
             return 0;
         }
 

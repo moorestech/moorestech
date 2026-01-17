@@ -12,7 +12,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
     public class TrainCarPreviewController : MonoBehaviour
     {
         private const string DefaultTrainAddressablePath = "Vanilla/Game/DefaultTrain";
-        private const float ModelYawOffsetDegrees = 90f;
+        private const float ModelYawOffsetDegrees = -90f;
 
         private GameObject _previewObject;
         private RendererMaterialReplacerController _materialReplacerController;
@@ -53,7 +53,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 // 車両マスターを解決する
                 // Resolve the train car master
                 trainCarMasterElement = null;
-                if (!MasterHolder.TrainUnitMaster.TryGetTrainUnit(targetItemId, out trainCarMasterElement))
+                if (!MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(targetItemId, out trainCarMasterElement))
                 {
                     return false;
                 }
@@ -166,7 +166,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
                 // モデルの前後補正を適用する
                 // Apply model forward offset correction
-                var modelForward = rotation * Vector3.forward;
+                var localForwardAxis = Quaternion.Euler(0f, -ModelYawOffsetDegrees, 0f) * Vector3.forward;
+                var modelForward = rotation * localForwardAxis;
                 position = centerPosition - modelForward * _modelForwardCenterOffset;
                 return true;
             }
@@ -194,8 +195,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 {
                     combined.Encapsulate(renderers[i].bounds);
                 }
+                var localForwardAxis = Quaternion.Euler(0f, -ModelYawOffsetDegrees, 0f) * Vector3.forward;
                 var localCenter = targetTransform.InverseTransformPoint(combined.center);
-                return localCenter.z;
+                return Vector3.Dot(localCenter, localForwardAxis);
             }
 
             void DisableColliders(GameObject targetObject)
