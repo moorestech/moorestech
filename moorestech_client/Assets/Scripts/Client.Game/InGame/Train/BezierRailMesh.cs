@@ -1,4 +1,3 @@
-using Client.Game.InGame.UI.UIState.State;
 using Game.Train.Utility;
 using UnityEngine;
 
@@ -33,7 +32,7 @@ namespace Client.Game.InGame.Train
         private Vector3[] _deformedNormals;
         private float[] _arcLengths;
         private float _curveLength;
-        
+
         /// <summary>制御点を一括設定して再変形する。</summary>
         public void SetControlPoints(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3)
         {
@@ -200,46 +199,26 @@ namespace Client.Game.InGame.Train
 
         private Quaternion BuildAxisRotation() => GetAxisRotation(_forwardAxis, _upAxis);
 
-        private Quaternion BuildCurveRotation(Vector3 tangent)
-
-        {
-
-            var forward = tangent.sqrMagnitude > 1e-6f ? tangent.normalized : Vector3.forward;
-
-            var horizontal = new Vector3(forward.x, 0f, forward.z);
-
-
-
-            // レール姿勢をヨー→ピッチの順に構築してローリングを抑制
-
-            // Build yaw first then pitch to keep rails upright without roll
-
-            if (horizontal.sqrMagnitude < 1e-6f)
-
-            {
-
-                var angle = forward.y >= 0f ? 90f : -90f;
-
-                return Quaternion.AngleAxis(angle, Vector3.right);
-
-            }
-
-
-
-            var yawRotation = Quaternion.LookRotation(horizontal.normalized, Vector3.up);
-
-            var invYaw = Quaternion.Inverse(yawRotation);
-
-            var localForward = invYaw * forward;
-
-            var pitchAngle = Mathf.Atan2(localForward.y, Mathf.Max(1e-6f, localForward.z)) * Mathf.Rad2Deg;
-
-            return yawRotation * Quaternion.AngleAxis(pitchAngle, Vector3.right);
-
-        }
-
-
-
+        private Quaternion BuildCurveRotation(Vector3 tangent)
+        {
+            var forward = tangent.sqrMagnitude > 1e-6f ? tangent.normalized : Vector3.forward;
+            var horizontal = new Vector3(forward.x, 0f, forward.z);
+
+            // レール姿勢をヨー→ピッチの順に構築してローリングを抑制
+            // Build yaw first then pitch to keep rails upright without roll
+            if (horizontal.sqrMagnitude < 1e-6f)
+            {
+                var angle = forward.y >= 0f ? 90f : -90f;
+                return Quaternion.AngleAxis(angle, Vector3.right);
+            }
+
+            var yawRotation = Quaternion.LookRotation(horizontal.normalized, Vector3.up);
+            var invYaw = Quaternion.Inverse(yawRotation);
+            var localForward = invYaw * forward;
+            var pitchAngle = Mathf.Atan2(localForward.y, Mathf.Max(1e-6f, localForward.z)) * Mathf.Rad2Deg;
+            return yawRotation * Quaternion.AngleAxis(pitchAngle, Vector3.right);
+        }
+
         private bool BuildArcLengthTable()
         {
             _curveLength = BezierUtility.BuildArcLengthTable(_point0, _point1, _point2, _point3, _curveSamples, ref _arcLengths);
