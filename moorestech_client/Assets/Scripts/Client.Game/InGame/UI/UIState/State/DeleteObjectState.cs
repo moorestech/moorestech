@@ -64,25 +64,30 @@ namespace Client.Game.InGame.UI.UIState.State
                 _deleteTargetObject = null;
             }
             
-            if (_deleteTargetObject != null && !_deleteTargetObject.IsRemovable(out var reason))
+            if (_deleteTargetObject != null)
             {
-                MouseCursorTooltip.Instance.Show(reason, isLocalize: false);
-                _isRemoveDeniedReasonShown = true;
-            }
-            
-            if (InputManager.Playable.ScreenLeftClick.GetKeyDown && _deleteTargetObject != null)
-            {
-                switch (_deleteTargetObject)
+                if (_deleteTargetObject.IsRemovable(out var reason))
                 {
-                    case BlockGameObjectChild deleteTargetBlock:
-                        var blockPosition = deleteTargetBlock.BlockGameObject.BlockPosInfo.OriginalPos;
-                        ClientContext.VanillaApi.SendOnly.BlockRemove(blockPosition);
-                        break;
-                    case TrainCarEntityChildrenObject deleteTargetTrainCar:
-                        ClientContext.VanillaApi.SendOnly.RemoveTrain(deleteTargetTrainCar.TrainCarEntityObject.TrainCarId);
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException(nameof(_deleteTargetObject));
+                    if (InputManager.Playable.ScreenLeftClick.GetKeyDown)
+                    {
+                        switch (_deleteTargetObject)
+                        {
+                            case BlockGameObjectChild deleteTargetBlock:
+                                var blockPosition = deleteTargetBlock.BlockGameObject.BlockPosInfo.OriginalPos;
+                                ClientContext.VanillaApi.SendOnly.BlockRemove(blockPosition);
+                                break;
+                            case TrainCarEntityChildrenObject deleteTargetTrainCar:
+                                ClientContext.VanillaApi.SendOnly.RemoveTrain(deleteTargetTrainCar.TrainCarEntityObject.TrainCarId);
+                                break;
+                            default:
+                                throw new ArgumentOutOfRangeException(nameof(_deleteTargetObject));
+                        }
+                    }
+                }
+                else
+                {
+                    MouseCursorTooltip.Instance.Show(reason, isLocalize: false);
+                    _isRemoveDeniedReasonShown = true;
                 }
             }
 
