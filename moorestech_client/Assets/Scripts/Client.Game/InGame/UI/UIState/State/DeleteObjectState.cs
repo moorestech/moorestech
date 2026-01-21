@@ -4,6 +4,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Entity.Object;
 using Client.Game.InGame.UI.KeyControl;
+using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.UIState.Input;
 using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Input;
@@ -18,6 +19,7 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly ScreenClickableCameraController _screenClickableCameraController;
         
         private IDeleteTarget _deleteTargetObject;
+        private bool _isRemoveDeniedReasonShown;
         
         public DeleteObjectState(DeleteBarObject deleteBarObject, InGameCameraController inGameCameraController)
         {
@@ -35,6 +37,11 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public UITransitContext GetNextUpdate()
         {
+            if (_isRemoveDeniedReasonShown)
+            {
+                MouseCursorTooltip.Instance.Hide();
+                _isRemoveDeniedReasonShown = false;
+            }
             if (InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.BlockDelete.GetKeyDown) return new UITransitContext(UIStateEnum.GameScreen);
             if (UnityEngine.Input.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.PlaceBlock);
 
@@ -57,19 +64,30 @@ namespace Client.Game.InGame.UI.UIState.State
                 _deleteTargetObject = null;
             }
             
-            if (InputManager.Playable.ScreenLeftClick.GetKeyDown && _deleteTargetObject != null)
+            if (_deleteTargetObject != null)
             {
-                switch (_deleteTargetObject)
+                if (_deleteTargetObject.IsRemovable(out var reason))
                 {
-                    case BlockGameObjectChild deleteTargetBlock:
-                        var blockPosition = deleteTargetBlock.BlockGameObject.BlockPosInfo.OriginalPos;
-                        ClientContext.VanillaApi.SendOnly.BlockRemove(blockPosition);
-                        break;
-                    case TrainCarEntityChildrenObject deleteTargetTrainCar:
-                        ClientContext.VanillaApi.SendOnly.RemoveTrain(deleteTargetTrainCar.TrainCarEntityObject.TrainCarId);
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException(nameof(_deleteTargetObject));
+                    if (InputManager.Playable.ScreenLeftClick.GetKeyDown)
+                    {
+                        switch (_deleteTargetObject)
+                        {
+                            case BlockGameObjectChild deleteTargetBlock:
+                                var blockPosition = deleteTargetBlock.BlockGameObject.BlockPosInfo.OriginalPos;
+                                ClientContext.VanillaApi.SendOnly.BlockRemove(blockPosition);
+                                break;
+                            case TrainCarEntityChildrenObject deleteTargetTrainCar:
+                                ClientContext.VanillaApi.SendOnly.RemoveTrain(deleteTargetTrainCar.TrainCarEntityObject.TrainCarId);
+                                break;
+                            default:
+                                throw new ArgumentOutOfRangeException(nameof(_deleteTargetObject));
+                        }
+                    }
+                }
+                else
+                {
+                    MouseCursorTooltip.Instance.Show(reason, isLocalize: false);
+                    _isRemoveDeniedReasonShown = true;
                 }
             }
 

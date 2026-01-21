@@ -20,5 +20,11 @@ namespace Client.Game.InGame.Entity.Object
         {
             TrainCarEntityObject.ResetMaterial();
         }
+        
+        public bool IsRemovable(out string reason)
+        {
+            reason = null;
+            return true;
+        }
     }
 }
