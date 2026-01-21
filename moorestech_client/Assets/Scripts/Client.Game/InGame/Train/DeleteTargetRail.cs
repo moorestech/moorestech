@@ -31,7 +31,6 @@ namespace Client.Game.InGame.Train
 
         public void SetRemovePreviewing()
         {
-            if (!CanDelete()) return;
             RailChain.SetRemovePreviewing();
         }
         public void ResetMaterial()
@@ -39,18 +38,32 @@ namespace Client.Game.InGame.Train
             RailChain.ResetMaterial();
         }
         
-        private bool CanDelete()
+        public bool IsRemovable(out string reason)
+        {
+            var canDelete = CanDelete();
+            reason = canDelete switch
+            {
+                DeleteDeniedReason.None => null,
+                DeleteDeniedReason.StationInternalEdge => "駅内部のレールは削除できません。",
+                DeleteDeniedReason.NodeInUseByTrain => "レール上に車両があります。",
+                DeleteDeniedReason.UnknownError => "不明なエラー",
+                _ => null,
+            };
+            return canDelete == DeleteDeniedReason.None;
+        }
+        
+        private DeleteDeniedReason CanDelete()
         {
             var railObjectId = RailObjectIdCarrier.GetRailObjectId();
             var fromId = unchecked((int)(uint)railObjectId);
             var toId = unchecked((int)(uint)(railObjectId >> 32));
             
-            if (!_railGraphClientCache.TryGetNode(fromId, out var fromNode)) return false;
-            if (!_railGraphClientCache.TryGetNode(toId, out var toNode)) return false;
+            if (!_railGraphClientCache.TryGetNode(fromId, out var fromNode)) return DeleteDeniedReason.UnknownError;
+            if (!_railGraphClientCache.TryGetNode(toId, out var toNode)) return DeleteDeniedReason.UnknownError;
             
-            if (IsStationInternalEdge(fromNode, toNode)) return false;
+            if (IsStationInternalEdge(fromNode, toNode)) return DeleteDeniedReason.StationInternalEdge;
             
-            return true;
+            return DeleteDeniedReason.None;
         }
         
         private bool IsStationInternalEdge(IRailNode from, IRailNode to)
@@ -60,6 +73,14 @@ namespace Client.Game.InGame.Train
                 return false;
             }
             return from.StationRef.StationBlockInstanceId.Equals(to.StationRef.StationBlockInstanceId);
+        }
+        
+        public enum DeleteDeniedReason
+        {
+            None,
+            StationInternalEdge,
+            NodeInUseByTrain,
+            UnknownError,
         }
     }
 }
