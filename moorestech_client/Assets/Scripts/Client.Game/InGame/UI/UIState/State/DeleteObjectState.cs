@@ -4,6 +4,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Entity.Object;
 using Client.Game.InGame.UI.KeyControl;
+using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.UIState.Input;
 using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Input;
@@ -35,6 +36,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public UITransitContext GetNextUpdate()
         {
+            MouseCursorTooltip.Instance.Hide();
             if (InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.BlockDelete.GetKeyDown) return new UITransitContext(UIStateEnum.GameScreen);
             if (UnityEngine.Input.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.PlaceBlock);
 
@@ -47,8 +49,15 @@ namespace Client.Game.InGame.UI.UIState.State
                 {
                     if (_deleteTargetObject != null) _deleteTargetObject.ResetMaterial();
                     
-                    _deleteTargetObject = deleteTarget;
-                    _deleteTargetObject.SetRemovePreviewing();
+                    if (!deleteTarget.IsRemovable(out var reason))
+                    {
+                        MouseCursorTooltip.Instance.Show(reason, isLocalize: false);
+                    }
+                    else
+                    {
+                        _deleteTargetObject = deleteTarget;
+                        _deleteTargetObject.SetRemovePreviewing();
+                    }
                 }
             }
             else if (_deleteTargetObject != null)
