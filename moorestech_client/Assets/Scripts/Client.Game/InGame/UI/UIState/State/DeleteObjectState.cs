@@ -72,14 +72,17 @@ namespace Client.Game.InGame.UI.UIState.State
                     case TrainCarEntityChildrenObject deleteTargetTrainCar:
                         ClientContext.VanillaApi.SendOnly.RemoveTrain(deleteTargetTrainCar.TrainCarEntityObject.TrainCarId);
                         break;
-                    case BezierRailMesh bezierRailMesh:
+                    case DeleteTargetRail deleteTargetRail:
                         {
-                            // if (!_railGraphClientCache.TryGetNodeId(bezierRailMesh.RailChain.FromConnectionDestination, out var fromId)) break;
-                            // if (!_railGraphClientCache.TryGetNode(fromId, out var fromNode)) break;
-                            // if (!_railGraphClientCache.TryGetNodeId(bezierRailMesh.RailChain.ToConnectionDestination, out var toId)) break;
-                            // if (!_railGraphClientCache.TryGetNode(toId, out var toNode)) break;
-                            //
-                            // ClientContext.VanillaApi.SendOnly.DisconnectRail(fromNode.NodeId, fromNode.NodeGuid, toNode.NodeId, toNode.NodeGuid);
+                            var carrier = deleteTargetRail.GetComponent<RailObjectIdCarrier>();
+                            var railObjectId = carrier.GetRailObjectId();
+                            var fromId = unchecked((int)(uint)railObjectId);
+                            var toId = unchecked((int)(uint)(railObjectId >> 32));
+                            
+                            if (!_railGraphClientCache.TryGetNode(fromId, out var fromNode)) break;
+                            if (!_railGraphClientCache.TryGetNode(toId, out var toNode)) break;
+                            
+                            ClientContext.VanillaApi.SendOnly.DisconnectRail(fromNode.NodeId, fromNode.NodeGuid, toNode.NodeId, toNode.NodeGuid);
                             break;
                         }
                     default:
