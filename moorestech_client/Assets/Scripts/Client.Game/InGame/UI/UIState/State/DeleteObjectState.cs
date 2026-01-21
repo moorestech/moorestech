@@ -54,22 +54,20 @@ namespace Client.Game.InGame.UI.UIState.State
                 {
                     if (_deleteTargetObject != null) _deleteTargetObject.ResetMaterial();
                     
-                    if (!deleteTarget.IsRemovable(out var reason))
-                    {
-                        MouseCursorTooltip.Instance.Show(reason, isLocalize: false);
-                        _isRemoveDeniedReasonShown = true;
-                    }
-                    else
-                    {
-                        _deleteTargetObject = deleteTarget;
-                        _deleteTargetObject.SetRemovePreviewing();
-                    }
+                    _deleteTargetObject = deleteTarget;
+                    _deleteTargetObject.SetRemovePreviewing();
                 }
             }
             else if (_deleteTargetObject != null)
             {
                 _deleteTargetObject.ResetMaterial();
                 _deleteTargetObject = null;
+            }
+            
+            if (_deleteTargetObject != null && !_deleteTargetObject.IsRemovable(out var reason))
+            {
+                MouseCursorTooltip.Instance.Show(reason, isLocalize: false);
+                _isRemoveDeniedReasonShown = true;
             }
             
             if (InputManager.Playable.ScreenLeftClick.GetKeyDown && _deleteTargetObject != null)
