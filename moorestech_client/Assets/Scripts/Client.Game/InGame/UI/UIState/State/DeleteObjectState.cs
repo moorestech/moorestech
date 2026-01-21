@@ -3,6 +3,7 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Entity.Object;
+using Client.Game.InGame.Train;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState.Input;
 using Client.Game.InGame.UI.UIState.UIObject;
@@ -19,10 +20,13 @@ namespace Client.Game.InGame.UI.UIState.State
         
         private IDeleteTarget _deleteTargetObject;
         
-        public DeleteObjectState(DeleteBarObject deleteBarObject, InGameCameraController inGameCameraController)
+        private readonly RailGraphClientCache _railGraphClientCache;
+        
+        public DeleteObjectState(DeleteBarObject deleteBarObject, InGameCameraController inGameCameraController, RailGraphClientCache cache)
         {
             _screenClickableCameraController = new ScreenClickableCameraController(inGameCameraController);
             _deleteBarObject = deleteBarObject;
+            _railGraphClientCache = cache;
             deleteBarObject.gameObject.SetActive(false);
         }
         
@@ -68,6 +72,16 @@ namespace Client.Game.InGame.UI.UIState.State
                     case TrainCarEntityChildrenObject deleteTargetTrainCar:
                         ClientContext.VanillaApi.SendOnly.RemoveTrain(deleteTargetTrainCar.TrainCarEntityObject.TrainCarId);
                         break;
+                    case BezierRailMesh bezierRailMesh:
+                        {
+                            // if (!_railGraphClientCache.TryGetNodeId(bezierRailMesh.RailChain.FromConnectionDestination, out var fromId)) break;
+                            // if (!_railGraphClientCache.TryGetNode(fromId, out var fromNode)) break;
+                            // if (!_railGraphClientCache.TryGetNodeId(bezierRailMesh.RailChain.ToConnectionDestination, out var toId)) break;
+                            // if (!_railGraphClientCache.TryGetNode(toId, out var toNode)) break;
+                            //
+                            // ClientContext.VanillaApi.SendOnly.DisconnectRail(fromNode.NodeId, fromNode.NodeGuid, toNode.NodeId, toNode.NodeGuid);
+                            break;
+                        }
                     default:
                         throw new ArgumentOutOfRangeException(nameof(_deleteTargetObject));
                 }
