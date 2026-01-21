@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using UnityEngine;
 using Game.Train.RailGraph;
+using UnityEngine;
 
 namespace Client.Game.InGame.Train
 {
@@ -159,6 +159,7 @@ namespace Client.Game.InGame.Train
             var control2 = endNode.BackControlPoint.ControlPointPosition + endControl;
 
             instance.SetControlPoints(startControl, control1, control2, endControl);
+            instance.SetRailGraphCache(_cache);
             instance.Rebuild();
             instance.name = name;
             return instance.gameObject;

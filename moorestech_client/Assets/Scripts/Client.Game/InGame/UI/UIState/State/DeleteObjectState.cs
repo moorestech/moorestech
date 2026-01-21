@@ -74,7 +74,7 @@ namespace Client.Game.InGame.UI.UIState.State
                         break;
                     case DeleteTargetRail deleteTargetRail:
                         {
-                            var carrier = deleteTargetRail.GetComponent<RailObjectIdCarrier>();
+                            var carrier = deleteTargetRail.RailObjectIdCarrier;
                             var railObjectId = carrier.GetRailObjectId();
                             var fromId = unchecked((int)(uint)railObjectId);
                             var toId = unchecked((int)(uint)(railObjectId >> 32));
