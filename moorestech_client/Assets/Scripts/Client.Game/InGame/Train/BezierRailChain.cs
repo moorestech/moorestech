@@ -153,11 +153,16 @@ namespace Client.Game.InGame.Train
                 var meshComponent = filter.GetComponent<BezierRailMesh>();
                 if (meshComponent == null)
                     meshComponent = filter.gameObject.AddComponent<BezierRailMesh>();
+                
+                var deleteTarget = filter.GetComponent<DeleteTargetRail>();
+                if (deleteTarget == null)
+                    deleteTarget = filter.gameObject.AddComponent<DeleteTargetRail>();
+                
                 meshComponent.SetSourceMesh(filter.sharedMesh);
                 meshComponent.SetControlPoints(_point0, _point1, _point2, _point3);
                 meshComponent.SetAxes(_forwardAxis, _upAxis);
                 meshComponent.SetSamples(_curveSamples);
-                meshComponent.SetParentBezierRailChain(this);
+                deleteTarget.SetParentBezierRailChain(this);
                 meshComponent.Deform();
                 segment.Meshes.Add(meshComponent);
             }
