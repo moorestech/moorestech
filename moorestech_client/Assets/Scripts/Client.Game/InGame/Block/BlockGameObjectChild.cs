@@ -21,5 +21,11 @@ namespace Client.Game.InGame.Block
         {
             BlockGameObject.ResetMaterial();
         }
+        
+        public bool IsRemovable(out string reason)
+        {
+            reason = null;
+            return true;
+        }
     }
 }
