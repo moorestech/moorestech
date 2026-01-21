@@ -60,17 +60,17 @@ namespace Game.Train.Train
     // -----------------クライアント関連-----------------
     public readonly struct TrainCarSnapshot
     {
-        public TrainCarSnapshot(Guid carId, Guid trainCarGuid, int inventorySlotsCount, int tractionForce, bool isFacingForward)
+        public TrainCarSnapshot(Guid trainCarInstanceGuid, Guid trainCarMasterId, int inventorySlotsCount, int tractionForce, bool isFacingForward)
         {
-            CarId = carId;
-            TrainCarGuid = trainCarGuid;
+            TrainCarInstanceGuid = trainCarInstanceGuid;
+            TrainCarMasterId = trainCarMasterId;
             IsFacingForward = isFacingForward;
             InventorySlotsCount = inventorySlotsCount;
             TractionForce = tractionForce;
         }
 
-        public Guid CarId { get; }
-        public Guid TrainCarGuid { get; }
+        public Guid TrainCarInstanceGuid { get; }
+        public Guid TrainCarMasterId { get; }
         public bool IsFacingForward { get; }
         public int InventorySlotsCount { get; }
         public int TractionForce { get; }
@@ -154,7 +154,6 @@ namespace Game.Train.Train
             Diagram = diagram;
         }
 
-        public Guid TrainId => Simulation.TrainId;
         public RailPositionSaveData RailPositionSnapshot { get; }
         public TrainSimulationSnapshot Simulation { get; }
         public TrainDiagramSnapshot Diagram { get; }

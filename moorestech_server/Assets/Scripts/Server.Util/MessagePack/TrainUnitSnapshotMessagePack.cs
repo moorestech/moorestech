@@ -80,27 +80,27 @@ namespace Server.Util.MessagePack
     [MessagePackObject]
     public class TrainCarSnapshotMessagePack
     {
-        [Key(0)] public Guid CarId { get; set; }
+        [Key(0)] public Guid TrainCarInstanceGuid { get; set; }
         [Key(1)] public int InventorySlotsCount { get; set; }
         [Key(2)] public int TractionForce { get; set; }
         [Key(3)] public bool IsFacingForward { get; set; }
-        [Key(4)] public Guid TrainCarGuid { get; set; }
+        [Key(4)] public Guid TrainCarMasterId { get; set; }
 
         [Obsolete("Reserved for MessagePack serialization.")]
         public TrainCarSnapshotMessagePack() { }
 
         public TrainCarSnapshotMessagePack(TrainCarSnapshot snapshot)
         {
-            CarId = snapshot.CarId;
+            TrainCarInstanceGuid = snapshot.TrainCarInstanceGuid;
             InventorySlotsCount = snapshot.InventorySlotsCount;
             TractionForce = snapshot.TractionForce;
             IsFacingForward = snapshot.IsFacingForward;
-            TrainCarGuid = snapshot.TrainCarGuid;
+            TrainCarMasterId = snapshot.TrainCarMasterId;
         }
 
         public TrainCarSnapshot ToModel()
         {
-            return new TrainCarSnapshot(CarId, TrainCarGuid, InventorySlotsCount, TractionForce, IsFacingForward);
+            return new TrainCarSnapshot(TrainCarInstanceGuid, TrainCarMasterId, InventorySlotsCount, TractionForce, IsFacingForward);
         }
     }
 

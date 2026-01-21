@@ -2,49 +2,65 @@
 
 ## Overview
 
-Rail関連のサーバー／クライアント通信は現在次の6経路で構成されます。ノード・接続の初期状態はスナップショットで構築し、その後は差分イベントとリクエストで同期します。
+- Train entity bootstrap is based on `GetTrainUnitSnapshotsProtocol` only; `RequestWorldDataProtocol` does not include train entities, and `TrainUnitSnapshotApplier` builds entity updates + removes stale ones (`moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/RequestWorldDataProtocol.cs`, `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/TrainUnitSnapshotApplier.cs`, `moorestech_client/Assets/Scripts/Client.Game/InGame/Entity/EntityObjectDatastore.cs`)
+- 初期同期は `Client.Network.API.VanillaApiWithResponse.InitialHandShake` が `GetRailGraphSnapshotProtocol` と `GetTrainUnitSnapshotsProtocol` を呼び、`RailGraphSnapshotApplier` / `TrainUnitSnapshotApplier` がキャッシュを構築します。(`moorestech_client/Assets/Scripts/Client.Network/API/VanillaApiWithResponse.cs`, `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/RailGraphSnapshotApplier.cs`, `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/TrainUnitSnapshotApplier.cs`)
+- レールの差分は `RailNodeCreatedEventPacket`, `RailNodeRemovedEventPacket`, `RailConnectionCreatedEventPacket`, `RailConnectionRemovedEventPacket` と `RailGraphHashStateEventPacket` のイベントで同期します。(`moorestech_server/Assets/Scripts/Server.Event/EventReceive`, `moorestech_client/Assets/Scripts/Client.Game/InGame/Train`)
+- 列車の差分は新規生成のみ `TrainUnitCreatedEventPacket` が即時配信され、削除や不整合は `TrainUnitHashStateEventPacket` と `GetTrainUnitSnapshotsProtocol` の再同期で補正します。(`moorestech_server/Assets/Scripts/Server.Event/EventReceive`, `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/TrainUnitHashVerifier.cs`)
+- ブロックの設置/削除は `PlaceBlockEventPacket` / `RemoveBlockToSetEventPacket` がブロードキャストされ、クライアントは `WorldDataHandler` 経由で `BlockGameObjectDataStore` に反映します。(`moorestech_server/Assets/Scripts/Server.Event/EventReceive/PlaceBlockEventPacket.cs`, `moorestech_server/Assets/Scripts/Server.Event/EventReceive/RemoveBlockEventPacket.cs`, `moorestech_client/Assets/Scripts/Client.Game/InGame/World/WorldDataHandler.cs`)
 
-1. **RailGraphSnapshot (`va:getRailGraphSnapshot`)**  
-   - **サーバー**: `GetRailGraphSnapshotProtocol` が `RailGraphDatastore.CaptureSnapshot()` を呼び出し、すべてのノードと接続、接続ハッシュを `RailGraphSnapshotMessagePack` にまとめて返します。  
-   - **クライアント**: ハンドシェイク直後に `RailGraphSnapshotInitializer` が `RailGraphClientCache.ApplySnapshot` を実行してキャッシュを一括構築します。
+## Operation Flows
 
-2. **RailNodeCreatedEvent (`va:event:railNodeCreated`)**  
-   - **サーバー**: `RailGraphDatastore` にノードが追加されるたび `RailNodeCreatedEventPacket` が `RailNodeCreatedMessagePack` をブロードキャストします。  
-   - **クライアント**: `RailGraphCacheNetworkHandler` が購読し、`RailGraphClientCache.UpsertNode` を通じて Guid/制御点/ConnectionDestination を差分適用します。
-   - **Tick**: サーバーは各生成イベントに現在Tickを同梱し、クライアントは `RailGraphClientCache.LastConfirmedTick` を最大値で更新します。  
-     The server attaches the current tick to every creation event so the client can keep `RailGraphClientCache.LastConfirmedTick` aligned.
+### 橋脚設置 (TrainRail ブロック)
 
-3. **RailNodeRemovedEvent (`va:event:railNodeRemoved`)**  
-   - **サーバー**: `RemoveNodeInternal` がノードを破棄する際に `RailNodeRemovedEventPacket` が `RailNodeRemovedMessagePack` を送信し、nodeId/guid を通知します。  
-   - **クライアント**: `RailGraphCacheNetworkHandler` が Guid を照合し、`RailGraphClientCache.RemoveNode` を実行して接続ごとノードを掃除します。
-   - **Tick**: 削除イベントもTick付きで配信し、適用成否に関わらずローカルの最終更新Tickを前進させます。  
-     Removal events also carry the tick so the cache can advance its latest tick even when nothing changes locally.
+1. Client: `TrainRailPlaceSystem` が `RailBridgePierComponentStateDetail` を含む `PlaceInfo` を作成し、`PlaceSystemUtil.SendPlaceProtocol` -> `VanillaApiSendOnly.PlaceHotBarBlock` を送信します。(`moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/TrainRail/TrainRailPlaceSystem.cs`, `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Util/PlaceSystemUtil.cs`, `moorestech_client/Assets/Scripts/Client.Network/API/VanillaApiSendOnly.cs`)
+2. Server: `PlaceBlockFromHotBarProtocol` が `WorldBlockDatastore.TryAddBlock` を実行し、`VanillaTrainRailTemplate.New` が `RailComponent` を生成して `RailGraphDatastore` にノードを登録します。(`moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/PlaceBlockFromHotBarProtocol.cs`, `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaTrainRailTemplate.cs`)
+3. Broadcast: `PlaceBlockEventPacket` (va:event:blockPlace) と `RailNodeCreatedEventPacket` (va:event:railNodeCreated) が全クライアントへ送信されます。
+4. Client apply: `WorldDataHandler` がブロックを反映し、`RailGraphCacheNetworkHandler` が `RailGraphClientCache.UpsertNode` を更新します。(`moorestech_client/Assets/Scripts/Client.Game/InGame/World/WorldDataHandler.cs`, `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/RailGraphCacheNetworkHandler.cs`)
 
-4. **RailConnectionCreatedEvent (`va:event:railConnectionCreated`)**  
-   - **サーバー**: `ConnectNodeInternal` で接続が確定すると `RailConnectionCreatedEventPacket` が `fromNodeId/guid`, `toNodeId/guid`, `distance` を送出します。  
-   - **クライアント**: `RailGraphConnectionNetworkHandler` が Guid 整合を確認して `_cache.UpsertConnection` を実行し、さらに `TrainRailObjectManager` などへイベントを転送します。
-   - **Tick**: 接続追加もTickを保持し、`RailGraphClientCache.UpsertConnection` の `UpdateTick` が一貫した時間軸を保ちます。  
-     Edge additions include the tick so `RailGraphClientCache.UpsertConnection` can keep a monotonic timeline.
+### 駅設置 (TrainStation / TrainCargoPlatform)
 
-5. **RailConnectionRemovedEvent (`va:event:railConnectionRemoved`)**  
-   - **サーバー**: `DisconnectNodeInternal` がエッジ削除を処理するたび `RailConnectionRemovedEventPacket` が `RailConnectionRemovedMessagePack` を送信します。  
-   - **クライアント**: `RailGraphConnectionNetworkHandler` が両端の nodeId/guid を検証し、`RailGraphClientCache.RemoveConnection` を適用します。
-   - **Tick**: 一方向だけ届いた削除通知でもTickを用い、後段のハッシュ検証を正しい時間軸で行います。  
-     Even single-direction removal notifications carry the tick so later hash verification runs on the correct timeline.
+1. Client: ブロック設置は `CommonBlockPlaceSystem` -> `PlaceSystemUtil.SendPlaceProtocol` -> `VanillaApiSendOnly.PlaceHotBarBlock` で送信されます。(`moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Common/CommonBlockPlaceSystem.cs`, `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Util/PlaceSystemUtil.cs`)
+2. Server: `PlaceBlockFromHotBarProtocol` が `VanillaTrainStationTemplate.New` / `VanillaTrainCargoTemplate.New` を呼び、`RailComponentUtility.Create2RailComponents` と `RegisterAndConnetStationBlocks` で駅内接続および隣接駅との自動接続を行います。(`moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaTrainStationTemplate.cs`, `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaTrainCargoTemplate.cs`, `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/Utility/RailComponentUtility.cs`)
+3. Broadcast: `PlaceBlockEventPacket` に加え、駅内接続/自動接続に応じて `RailNodeCreatedEventPacket` と `RailConnectionCreatedEventPacket` が配信されます。
+4. Client apply: `WorldDataHandler` がブロックを作成し、`RailGraphCacheNetworkHandler` と `RailGraphConnectionNetworkHandler` がキャッシュを更新、`ClientStationReferenceRegistry` が駅参照を再適用します。(`moorestech_client/Assets/Scripts/Client.Game/InGame/Train/RailGraphConnectionNetworkHandler.cs`, `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/ClientStationReferenceRegistry.cs`)
 
-6. **RailConnectionEditProtocol (`va:railConnectionEdit`)**  
-   - **クライアント**: `TrainRailConnectSystem` がレイキャストで取得した `ConnectionDestination` を `RailGraphClientCache` から nodeId/guid に引き当て、接続は `VanillaApiSendOnly.ConnectRail`、切断は `VanillaApiWithResponse.DisconnectRailAsync` を送信します。  
-   - **サーバー**: `RailConnectionEditProtocol` が `RailConnectionCommandHandler` に処理を委譲し、nodeId/guid を照合して接続／切断を実行。結果の差分はイベント(項目2〜5)で配信されます。  
-   - **削除レスポンス**: 切断要求は `VanillaApiWithResponse.DisconnectRailAsync` で送信し、サーバー側で `TrainRailPositionManager.CanRemoveNode` が `false` の場合は `RailConnectionEditFailureReason.NodeInUseByTrain` を返して拒否します。  
-7. **RailGraphHashStateEvent (`va:event:railGraphHashState`)**  
-   - **サーバー**: RailGraphHashStateEventPacket が TrainUpdateService.HashBroadcastIntervalSeconds（1秒）間隔で RailGraph のハッシュ/Tick を計算し、全クライアントへブロードキャストします。  
-   - **クライアント**: RailGraphHashVerifier がイベントを購読し、RailGraphClientCache のハッシュと照合して不一致なら GetRailGraphSnapshotProtocol で再同期を要求します。  
-   - **Tick Handling**: `GraphTick` が `RailGraphClientCache.LastConfirmedTick` より古ければ検証をスキップし、同値以上のみを判定対象にします。  
-     The client ignores hash broadcasts whose `GraphTick` is older than `RailGraphClientCache.LastConfirmedTick`.
+### レール接続 (手動)
+
+1. Client: `TrainRailConnectSystem` が `RailGraphClientCache` から nodeId/guid を解決し、`VanillaApiSendOnly.ConnectRail` (va:railConnectionEdit) を送信します。(`moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/TrainRailConnect/TrainRailConnectSystem.cs`, `moorestech_client/Assets/Scripts/Client.Network/API/VanillaApiSendOnly.cs`)
+2. Server: `RailConnectionEditProtocol` が `RailConnectionCommandHandler.TryConnect` を実行し、`RailGraphDatastore.ConnectNode` が接続を確定します。(`moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/RailConnectionEditProtocol.cs`, `moorestech_server/Assets/Scripts/Game.Train/RailGraph/RailConnectionCommandHandler.cs`)
+3. Broadcast: `RailConnectionCreatedEventPacket` (va:event:railConnectionCreated) が配信されます。
+4. Client apply: `RailGraphConnectionNetworkHandler` が `RailGraphClientCache.UpsertConnection` を適用し、必要に応じて `TrainRailObjectManager` に転送します。(`moorestech_client/Assets/Scripts/Client.Game/InGame/Train/RailGraphConnectionNetworkHandler.cs`)
+
+### レール削除 (ブロック削除)
+
+1. Client: `DeleteObjectState` が `VanillaApiSendOnly.BlockRemove` (va:removeBlock) を送信します。(`moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DeleteObjectState.cs`, `moorestech_client/Assets/Scripts/Client.Network/API/VanillaApiSendOnly.cs`)
+2. Server: `RemoveBlockProtocol` が `WorldBlockDatastore.RemoveBlock` を実行し、レールブロック内の `RailComponent.Destroy` -> `RailNode.Destroy` を通じて `RailGraphDatastore.RemoveNode` が走ります。(`moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/RemoveBlockProtocol.cs`, `moorestech_server/Assets/Scripts/Game.Block/Blocks/TrainRail/RailComponent.cs`, `moorestech_server/Assets/Scripts/Game.Train/RailGraph/RailNode.cs`)
+3. Broadcast: `RemoveBlockToSetEventPacket` (va:event:removeBlock) に加え、`RailNodeRemovedEventPacket` と `RailConnectionRemovedEventPacket` が配信されます。
+4. Client apply: `WorldDataHandler` がブロックを除去し、`RailGraphCacheNetworkHandler` / `RailGraphConnectionNetworkHandler` がノードと接続を削除します。(`moorestech_client/Assets/Scripts/Client.Game/InGame/World/WorldDataHandler.cs`)
+
+### レール接続解除 (接続エッジ削除)
+
+1. Client: `VanillaApiWithResponse.DisconnectRailAsync` が `RailConnectionEditProtocol` (Disconnect) を要求します。(`moorestech_client/Assets/Scripts/Client.Network/API/VanillaApiWithResponse.cs`)
+2. Server: `RailConnectionEditProtocol` が `TrainRailPositionManager.CanRemoveEdge` を検証し、`RailConnectionCommandHandler.TryDisconnect` を実行します。(`moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/RailConnectionEditProtocol.cs`)
+3. Broadcast: `RailConnectionRemovedEventPacket` (va:event:railConnectionRemoved) が配信されます。
+4. Client apply: `RailGraphConnectionNetworkHandler` が `RailGraphClientCache.RemoveConnection` を適用します。(`moorestech_client/Assets/Scripts/Client.Game/InGame/Train/RailGraphConnectionNetworkHandler.cs`)
+
+### TrainCar 設置
+
+1. Client: `TrainCarPlaceSystem` が `TrainCarPlacementDetector` の `RailPositionSaveData` を `VanillaApiWithResponse.PlaceTrainOnRail` で送信します。(`moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/TrainCar/TrainCarPlaceSystem.cs`, `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/TrainCar/TrainCarPlacementDetector.cs`)
+2. Server: `PlaceTrainCarOnRailProtocol` がレールスナップショットとアイテムを検証し、`TrainUnit` を生成して `TrainUpdateService` に登録します。(`moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/PlaceTrainCarOnRailProtocol.cs`, `moorestech_server/Assets/Scripts/Game.Train/Common/TrainUpdateService.cs`)
+3. Broadcast: `TrainUnitCreatedEventPacket` (va:event:trainUnitCreated) が列車スナップショットとエンティティ情報を配信します。(`moorestech_server/Assets/Scripts/Server.Event/EventReceive/TrainUnitCreatedEventPacket.cs`)
+4. Client apply: `TrainUnitCreatedEventNetworkHandler` が `TrainUnitClientCache.Upsert` と `EntityObjectDatastore.OnEntitiesUpdate` を実行します。(`moorestech_client/Assets/Scripts/Client.Game/InGame/Train/TrainUnitCreatedEventNetworkHandler.cs`, `moorestech_client/Assets/Scripts/Client.Game/InGame/Entity/EntityObjectDatastore.cs`)
+
+### TrainCar 削除
+
+Note: `TrainUnitSnapshotApplier` removes stale train entities via `EntityObjectDatastore.RemoveTrainEntitiesNotInSnapshot`.
+1. Client: `DeleteObjectState` が `VanillaApiSendOnly.RemoveTrain` (va:removeTrainCar) を送信します。(`moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DeleteObjectState.cs`, `moorestech_client/Assets/Scripts/Client.Network/API/VanillaApiSendOnly.cs`)
+2. Server: `RemoveTrainCarProtocol` が `TrainUnit.RemoveCar` を実行し、編成が空になった場合は `TrainUnit.OnDestroy` で `TrainUpdateService.UnregisterTrain` が呼ばれます。(`moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/RemoveTrainCarProtocol.cs`, `moorestech_server/Assets/Scripts/Game.Train/Train/TrainUnit.cs`)
+3. Broadcast: 直接の削除イベントはなく、`TrainUnitHashStateEventPacket` (va:event:trainUnitHashState) によるハッシュ検証で差分が検出されると `GetTrainUnitSnapshotsProtocol` による再同期が走ります。(`moorestech_server/Assets/Scripts/Server.Event/EventReceive/TrainUnitHashStateEventPacket.cs`, `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/TrainUnitHashVerifier.cs`)
+4. Client apply: `TrainUnitSnapshotApplier` がキャッシュを上書きし、欠落した列車を削除します。(`moorestech_client/Assets/Scripts/Client.Game/InGame/Train/TrainUnitSnapshotApplier.cs`)
 
 ## Data Flow Highlights
 
-- **ConnectionDestination**: RailComponent座標＋インデックス＋Front/Back情報。ノード生成時にサーバーから伝達され、以後はクライアントキャッシュで逆引きします。
-- **Guid Validation**: nodeId に加え Guid も必ず照合し、古い ID を参照した誤差分適用を防ぎます。
-- **削除イベント**: ノード・接続の削除も専用イベントで通知し、Guid が一致した場合のみローカルキャッシュから除去します。
-- **差分前提**: スナップショット適用後はイベントのみで同期し、RailGraphHashStateEvent から届く1秒ごとのハッシュ/Tickで破損を早期検知します。
+- `ConnectionDestination` と `Guid` 検証により、古い nodeId の誤適用を防止します。(`moorestech_server/Assets/Scripts/Game.Train/RailGraph/RailConnectionCommandHandler.cs`)
+- `RailGraphHashStateEventPacket` と `TrainUnitHashStateEventPacket` は 1 秒周期でハッシュを配信し、クライアントが差分を検知した場合のみスナップショット再取得を行います。
