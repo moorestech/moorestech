@@ -12,8 +12,9 @@
 - レールグラフと駅ブロックを含む最小構成の環境を構築し、1編成だけを配置した状態でセーブ。
 - ゲームを再起動してロードし、列車の位置・向き・速度が保存前と一致していることを確認。
 - AutoRun を有効化した状態でセーブ→ロードし、`TrainUnit.IsAutoRun` が維持されているか、`DiagramValidation()` が自動で再実行されているかをチェック。
-- ✅ 自動テスト: `TrainStationDockingPersistenceTest.ReloadingRestoresDockedTrainState` でドッキング済み列車の復元とAutoRun継続を検証済み。【F:moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainStationDockingPersistenceTest.cs†L32-L89】
-- ✅ 自動テスト: `RailGraphSaveLoadConsistencyTest.SmallRailGraphRemainsConsistentAfterSaveLoad` がノード接続・距離情報をスナップショット比較し、ロード後のRailGraph構造が完全一致することを保証。【F:moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/RailGraphSaveLoadConsistencyTest.cs†L1-L78】【F:moorestech_server/Assets/Scripts/Tests/Util/RailGraphNetworkTestHelper.cs†L1-L93】
+- ✅ 自動テスト: `TrainStationDockingPersistenceTest.ReloadingRestoresDockedTrainState` でドッキング済み列車の復元と AutoRun 継続を検証済み。【F:moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainStationDockingPersistenceTest.cs†L32-L89】
+- ✅ 自動テスト: `TrainRailGraphSaveLoadConsistencyTest.SmallRailGraphRemainsConsistentAfterSaveLoad` がノード接続・距離情報をスナップショット比較し、ロード後の RailGraph 構造が完全一致することを保証。【F:moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainRailGraphSaveLoadConsistencyTest.cs†L1-L78】【F:moorestech_server/Assets/Scripts/Tests/Util/RailGraphNetworkTestHelper.cs†L1-L93】
+- ✅ 自動テスト: `TrainRailGraphSaveLoadConsistencyTest.LargeRailGraphWithHubRemainsConsistentAfterSaveLoad` により、複雑なハブ接続を含む大規模レールネットワークでもセーブ/ロード後に全ての接続が復元され、一貫した RailGraph 構造が維持されることを確認。【F:moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainRailGraphSaveLoadConsistencyTest.cs†L72-L80】【F:moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainRailGraphSaveLoadConsistencyTest.cs†L165-L174】
 
 ## 2. ダイアグラムと発車条件
 - ダイアグラムに複数エントリを追加し、WaitForTicks を含む複数条件を設定した状態でセーブ。
@@ -43,6 +44,12 @@
 ## 6. パフォーマンス・連続保存 これはかなり後でやる
 - 大規模な編成 (例: 10 両以上) を複数配置した状態で連続セーブ/ロードを実施し、フレーム落ちや保存時間が極端に悪化しないことを計測。
 - セーブ直前と直後に `TrainUpdateService` の登録列車数が一致していることをログで確認。
-- ⚠️ 自動テスト: 現状は `HugeAutoRunTrainSaveLoadConsistencyTest.MassiveAutoRunScenarioProducesIdenticalStateWithAndWithoutSaveLoad` が 1200 レール× 7 列車の長時間シナリオでセーブ有無の結果を比較し、状態一致を確認しているが、実際の性能計測までは未着手。【F:moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/HugeAutoRunSaveLoadConsistencyTest.cs†L1-L83】【F:moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/HugeAutoRunSaveLoadConsistencyTest.cs†L84-L191】
+- ⚠️ 自動テスト: 現状は `TrainHugeAutoRunSaveLoadConsistencyTest.MassiveAutoRunScenarioProducesIdenticalStateWithAndWithoutSaveLoad` が 1200 レール×7 列車の長時間シナリオでセーブ有無の結果を比較し、状態一致を確認しているが、実際の性能計測までは未着手。【F:moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainHugeAutoRunSaveLoadConsistencyTest.cs†L1-L83】【F:moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainHugeAutoRunSaveLoadConsistencyTest.cs†L84-L191】
+
+## 7. 双方向貨物ループシナリオ
+- A地点・B地点に貨物駅ブロックを1つずつ設置し、両駅のレールを front 出入口同士で接続して環状のループ線路を構築する。
+- 列車ユニットを2編成生成し、1編成は駅Aのfront側から出発する向き、もう1編成は駅Bから逆方向に向かうように配置する（片方の列車には `TrainUnit.Reverse()` を適用）。両列車のダイアグラムに駅Aで「貨物満載で発車」、駅Bで「貨物空で発車」の条件をそれぞれ設定し、AutoRun を ON にしてしばらく走行させてからセーブ。
+- ロード後、2編成の列車がいずれも欠けることなく復元されていることを確認。Reverse していた列車は向きがセーブ前と同じ（逆方向のまま）で復元され、各列車の貨物積載状態およびダイアグラムの発車条件 (満載 / 空) が保存前から変化していないことを確認。
+- ⚠️ 自動テスト: `TrainBidirectionalCargoLoopSaveDataTest.BidirectionalCargoLoopScenarioProducesExpectedSaveData` が2編成貨物ループのシナリオを構築し、セーブデータ内に両列車の情報 (trainUnits セクション) が正しく含まれていることを検証。【F:moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainBidirectionalCargoLoopSaveDataTest.cs†L32-L40】【F:moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/TrainBidirectionalCargoLoopSaveDataTest.cs†L206-L214】
 
 テスト自動化が難しい項目は、Unity エディタ上でのスモークテスト用シナリオを用意して手動確認を行います。

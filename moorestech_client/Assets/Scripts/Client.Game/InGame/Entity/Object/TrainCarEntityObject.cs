@@ -15,19 +15,12 @@ namespace Client.Game.InGame.Entity.Object
         public long EntityId { get; private set; }
         public Guid TrainCarId { get; private set; }
         public TrainCarMasterElement TrainCarMasterElement { get; set; }
-        public bool DestroyFlagIfNoUpdate => false;
+        private const float ModelYawOffsetDegrees = -90f;
         /// <summary>
         /// モデル中心の前後オフセット
         /// Model forward center offset
         /// </summary>
         public float ModelForwardCenterOffset { get; private set; }
-
-        private float _linerTime;
-        private Vector3 _previousPosition;
-        private Vector3 _targetPosition;
-        private Quaternion _previousRotation;
-        private Quaternion _targetRotation;
-
         private bool _isFacingForward = true;
         private bool _debugAutoRun = false;//////////////////
 
@@ -41,11 +34,7 @@ namespace Client.Game.InGame.Entity.Object
         {
             EntityId = entityId;
             _debugAutoRun = DebugParameters.GetValueOrDefaultBool(DebugConst.TrainAutoRunKey);//////////////////
-
             _rendererMaterialReplacerController = new RendererMaterialReplacerController(gameObject);
-            _previousRotation = transform.rotation;
-            _targetRotation = transform.rotation;
-
             // モデル中心の前後オフセットをキャッシュする
             // Cache the model forward center offset
             ModelForwardCenterOffset = ResolveModelForwardCenterOffset();
@@ -67,12 +56,7 @@ namespace Client.Game.InGame.Entity.Object
         /// </summary>
         public void SetDirectPose(Vector3 position, Quaternion rotation)
         {
-            _targetPosition = position;
-            _previousPosition = position;
-            _targetRotation = rotation;
-            _previousRotation = rotation;
             transform.SetPositionAndRotation(position, rotation);
-            _linerTime = 0;
         }
 
         /// <summary>
@@ -91,13 +75,6 @@ namespace Client.Game.InGame.Entity.Object
         /// </summary>
         private void Update()
         {
-            // NetworkConst.UpdateIntervalSeconds 秒かけて補間する
-            // Interpolate over NetworkConst.UpdateIntervalSeconds seconds
-            var rate = _linerTime / NetworkConst.UpdateIntervalSeconds;
-            rate = Mathf.Clamp01(rate);
-            transform.position = Vector3.Lerp(_previousPosition, _targetPosition, rate);
-            transform.rotation = Quaternion.Slerp(_previousRotation, _targetRotation, rate);
-
             // デバッグ用：列車の自動運転（AutoRun）の ON/OFF が変化したらサーバへ通知する。
             // （監視は TrainCar 側で行い、変化があったタイミングでコマンド送信する）
             if (_debugAutoRun != DebugParameters.GetValueOrDefaultBool(DebugConst.TrainAutoRunKey))
@@ -106,8 +83,6 @@ namespace Client.Game.InGame.Entity.Object
                 OnTrainAutoRunChanged(_debugAutoRun);
                 Debug.Log($"[Debug] Train auto run changed: {_debugAutoRun}");
             }
-
-            _linerTime += Time.deltaTime;
         }
 
         // 自動運転（AutoRun）の状態をサーバへ送信するローカル関数
@@ -145,8 +120,9 @@ namespace Client.Game.InGame.Entity.Object
             var renderers = GetComponentsInChildren<Renderer>(true);
             var combined = renderers[0].bounds;
             for (var i = 1; i < renderers.Length; i++) combined.Encapsulate(renderers[i].bounds);
+            var localForwardAxis = Quaternion.Euler(0f, -ModelYawOffsetDegrees, 0f) * Vector3.forward;
             var localCenter = transform.InverseTransformPoint(combined.center);
-            return localCenter.z;
+            return Vector3.Dot(localCenter, localForwardAxis);
         }
 
         #endregion

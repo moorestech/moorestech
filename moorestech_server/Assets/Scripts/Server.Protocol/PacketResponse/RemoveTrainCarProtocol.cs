@@ -19,19 +19,19 @@ namespace Server.Protocol.PacketResponse
         
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
+            // リクエストの復元
+            // Deserialize request payload
             var request = MessagePackSerializer.Deserialize<RemoveTrainCarRequestMessagePack>(payload.ToArray());
 
-            // TODO: オーダーがこのままだとO(n)になっているため、逆引き用の辞書等を用意してO(1)にする
-            var (targetTrain, removeTargetTrainCar) = _trainUpdateService
-                .GetRegisteredTrains()
-                .SelectMany(t => t.Cars.Select(c => (t, c)))
-                .First(c => c.c.CarId == request.TrainCarId);
-            if (removeTargetTrainCar == null)
-            {
-                Debug.LogError($"Remove train car failed. Train not found. \ncarId: {request.TrainCarId}");
-                return null;
-            } 
-            targetTrain.RemoveCar(request.TrainCarId);
+            // 対象列車の探索
+            // Resolve target train and car
+            var trainCarPairs = _trainUpdateService.GetRegisteredTrains().SelectMany(t => t.Cars.Select(c => (Train: t, Car: c)));
+            var targetPair = trainCarPairs.FirstOrDefault(c => c.Car.CarId == request.TrainCarId);
+            if (targetPair.Car == null) { Debug.LogWarning($"Remove train car failed. Train not found. \ncarId: {request.TrainCarId}"); return null; }
+            
+            // 削除の実行
+            // Apply removal
+            targetPair.Train.RemoveCar(request.TrainCarId);
             return null;
         }
         

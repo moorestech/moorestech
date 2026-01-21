@@ -27,10 +27,11 @@ namespace Client.Game.InGame.Entity
         /// </summary>
         private void Update()
         {
-            //1秒以上経過していたら削除
+            // 一定時間更新が無いエンティティを破棄する
+            // Destroy entities that have not been updated recently
             var removeEntities = new List<long>();
             foreach (var entity in _entities)
-                if (((DateTime.Now - entity.Value.lastUpdate).TotalSeconds > 1) && (entity.Value.objectEntity.DestroyFlagIfNoUpdate))
+                if ((DateTime.Now - entity.Value.lastUpdate).TotalSeconds > 1)
                     removeEntities.Add(entity.Key);
             foreach (var removeEntity in removeEntities)
             {
@@ -38,7 +39,7 @@ namespace Client.Game.InGame.Entity
                 _entities.Remove(removeEntity);
             }
         }
-        
+
         /// <summary>
         ///     エンティティの生成、更新を行う
         /// </summary>
@@ -56,14 +57,13 @@ namespace Client.Game.InGame.Entity
                     _entities[entity.InstanceId] = (DateTime.Now, objectEntity);
                     continue;
                 }
-                
+
                 // 新規エンティティの生成
                 // Create new entity
                 _entityObjectFactory.CreateEntity(transform, entity).ContinueWith(entityObject =>
                 {
                     entityObject.Initialize(entity.InstanceId);
                     _entities.Add(entity.InstanceId, (DateTime.Now, entityObject));
-                    
                     return entityObject;
                 });
             }

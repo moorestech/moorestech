@@ -555,13 +555,7 @@ namespace Game.Train.Train
                 newTrainLength += car.Length;
             _railPosition.SetTrainLength(newTrainLength);
             // 4) 新しいTrainUnitを作成
-            var splittedUnit = new TrainUnit(
-                splittedRailPosition,
-                detachedCars,
-                _trainUpdateService,
-                _railPositionManager,
-                _diagramManager
-            );
+            var splittedUnit = new TrainUnit(splittedRailPosition, detachedCars, _trainUpdateService, _railPositionManager, _diagramManager, false);
             // 5) 自分が0になっていたら
             if (_cars.Count == 0)
                 this.OnDestroy();

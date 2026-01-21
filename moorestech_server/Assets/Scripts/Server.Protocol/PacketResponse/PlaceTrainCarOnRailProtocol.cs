@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Core.Master;
-using Game.Block.Blocks.TrainRail;
 using Game.PlayerInventory.Interface;
 using Game.Train.Common;
 using Game.Train.RailGraph;
@@ -10,20 +9,18 @@ using Game.Train.Utility;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Util.MessagePack;
-using RailComponentSpecifier = Server.Protocol.PacketResponse.RailConnectionEditProtocol.RailComponentSpecifier;
 
 namespace Server.Protocol.PacketResponse
 {
     public class PlaceTrainCarOnRailProtocol : IPacketResponse
     {
         public const string ProtocolTag = "va:placeTrainCar";
-
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly IRailGraphDatastore _railGraphDatastore;
         private readonly TrainUpdateService _trainUpdateService;
         private readonly TrainRailPositionManager _railPositionManager;
         private readonly TrainDiagramManager _diagramManager;
-
+        
         public PlaceTrainCarOnRailProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
@@ -32,28 +29,26 @@ namespace Server.Protocol.PacketResponse
             _railPositionManager = serviceProvider.GetService<TrainRailPositionManager>();
             _diagramManager = serviceProvider.GetService<TrainDiagramManager>();
         }
-
+        
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
             var request = MessagePackSerializer.Deserialize<PlaceTrainOnRailRequestMessagePack>(payload.ToArray());
             return ExecuteRequest(request);
-
+            
             #region Internal
-
             PlaceTrainOnRailResponseMessagePack ExecuteRequest(PlaceTrainOnRailRequestMessagePack data)
             {
-                // リクエストとレールを検証する
-                // Validate request and rail component
+                // リクエストとレール位置を検証する
+                // Validate request and rail position
                 if (data == null)
                 {
                     return PlaceTrainOnRailResponseMessagePack.CreateFailure(PlaceTrainCarFailureType.InvalidRequest);
                 }
-                var railComponent = RailConnectionEditProtocol.ResolveRailComponent(data.RailSpecifier);
-                if (railComponent == null)
+                if (data.RailPosition == null)
                 {
-                    return PlaceTrainOnRailResponseMessagePack.CreateFailure(PlaceTrainCarFailureType.RailNotFound);
+                    return PlaceTrainOnRailResponseMessagePack.CreateFailure(PlaceTrainCarFailureType.InvalidRailPosition);
                 }
-
+                
                 // 手持ちアイテムを取得し検証する
                 // Resolve and validate inventory item
                 var inventoryData = _playerInventoryDataStore.GetInventoryData(data.PlayerId);
@@ -63,198 +58,146 @@ namespace Server.Protocol.PacketResponse
                 {
                     return PlaceTrainOnRailResponseMessagePack.CreateFailure(PlaceTrainCarFailureType.ItemNotFound);
                 }
-
+                
                 // 列車ユニットを生成して検証する
                 // Create and validate the train unit
-                if (!TryCreateTrainUnit(railComponent, item.Id, data.RailPosition, out var createdTrain))
+                if (!TryCreateTrainUnit(item.Id, data.RailPosition, out var createdTrain, out var failureType))
                 {
-                    return PlaceTrainOnRailResponseMessagePack.CreateFailure(PlaceTrainCarFailureType.InvalidRailPosition);
+                    return PlaceTrainOnRailResponseMessagePack.CreateFailure(failureType);
                 }
-
+                
                 // アイテムを消費する
                 // Consume the train item from inventory
                 mainInventory.SetItem(data.InventorySlot, item.Id, item.Count - 1);
-
+                
                 return PlaceTrainOnRailResponseMessagePack.CreateSuccess();
-            }
-
-            bool TryCreateTrainUnit(RailComponent railComponent, ItemId trainItemId, RailPositionSnapshotMessagePack railPositionSnapshot, out TrainUnit trainUnit)
-            {
-                trainUnit = null;
-                // アイテムIDに対応する列車マスターを検索する
-                // Resolve train master by item id
-                if (!MasterHolder.TrainUnitMaster.TryGetTrainUnit(trainItemId, out var trainCarMaster))
+                
+                bool TryCreateTrainUnit(ItemId trainItemId, RailPositionSnapshotMessagePack railPositionSnapshot, out TrainUnit trainUnit, out PlaceTrainCarFailureType failureType)
                 {
-                    return false;
-                }
-
-                // 期待する列車長とレール位置を検証する
-                // Validate expected train length and rail position
-                var expectedLength = TrainLengthConverter.ToRailUnits(trainCarMaster.Length);
-                if (!TryRestoreRailPosition(railComponent, railPositionSnapshot, expectedLength, out var railPosition))
-                {
-                    return false;
-                }
-
-                // 列車ユニットを生成する
-                // Create the train unit
-                var trainCar = new TrainCar(trainCarMaster, true);
-                trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, _trainUpdateService, _railPositionManager, _diagramManager);
-                return true;
-            }
-
-            bool TryRestoreRailPosition(RailComponent railComponent, RailPositionSnapshotMessagePack snapshot, int expectedLength, out RailPosition position)
-            {
-                position = null;
-                // スナップショットを検証する
-                // Validate snapshot payload
-                if (snapshot == null)
-                {
-                    return false;
-                }
-                var saveData = snapshot.ToModel();
-                if (saveData == null || saveData.RailSnapshot == null || saveData.RailSnapshot.Count == 0)
-                {
-                    return false;
-                }
-                if (saveData.TrainLength != expectedLength)
-                {
-                    return false;
-                }
-                // サーバー側の経路から期待スナップショットを構築する
-                // Build the expected snapshot from the server rail graph
-                if (!TryBuildExpectedSnapshot(railComponent, saveData.RailSnapshot[0], expectedLength, out var expectedSnapshot))
-                {
-                    return false;
-                }
-                if (!IsSnapshotMatch(saveData, expectedSnapshot))
-                {
-                    return false;
-                }
-
-                // RailPositionを復元する
-                // Restore the rail position instance
-                position = RailPositionFactory.Restore(expectedSnapshot, railComponent.FrontNode.GraphProvider);
-                return position != null;
-            }
-
-            bool TryBuildExpectedSnapshot(RailComponent railComponent, ConnectionDestination headDestination, int trainLength, out RailPositionSaveData expected)
-            {
-                expected = null;
-                // レールグラフから位置を再構築する
-                // Rebuild placement snapshot from the rail graph
-                var headNode = railComponent.FrontNode.GraphProvider.ResolveRailNode(headDestination);
-                if (headNode == null)
-                {
-                    return false;
-                }
-                var graphSnapshot = _railGraphDatastore.CaptureSnapshot(_trainUpdateService.GetCurrentTick());
-                var railSnapshot = new List<ConnectionDestination> { headNode.ConnectionDestination };
-                var remaining = trainLength;
-                var currentNodeId = headNode.NodeId;
-                var guard = 0;
-                while (remaining > 0)
-                {
-                    if (!TryGetIncomingEdge(graphSnapshot.Connections, currentNodeId, out var previousNodeId, out var distance))
+                    trainUnit = null;
+                    failureType = PlaceTrainCarFailureType.InvalidRailPosition;
+                    // アイテムIDに対応する車両マスターを検索する
+                    // Resolve train car master by item id
+                    if (!MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(trainItemId, out var trainCarMaster))
                     {
                         return false;
                     }
-                    if (distance <= 0)
+                    
+                    // 期待する列車長とレール位置を検証する
+                    // Validate expected train length and rail position
+                    var expectedLength = TrainLengthConverter.ToRailUnits(trainCarMaster.Length);
+                    if (!TryRestoreRailPosition(railPositionSnapshot, expectedLength, out var railPosition, out failureType))
                     {
                         return false;
                     }
-                    if (!_railGraphDatastore.TryGetRailNode(previousNodeId, out var previousNode))
-                    {
-                        return false;
-                    }
-                    railSnapshot.Add(previousNode.ConnectionDestination);
-                    remaining -= distance;
-                    currentNodeId = previousNodeId;
-                    guard++;
-                    if (guard > graphSnapshot.Connections.Count + 1)
-                    {
-                        return false;
-                    }
+                    
+                    // 単一車両の列車編成を生成する
+                    // Create a single-car train unit
+                    var trainCar = new TrainCar(trainCarMaster, true);
+                    trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, _trainUpdateService, _railPositionManager, _diagramManager);
+                    return true;
                 }
-                expected = new RailPositionSaveData
+                
+                bool TryRestoreRailPosition(RailPositionSnapshotMessagePack snapshot, int expectedLength, out RailPosition position, out PlaceTrainCarFailureType failureType)
                 {
-                    TrainLength = trainLength,
-                    DistanceToNextNode = 0,
-                    RailSnapshot = railSnapshot
-                };
-                return true;
+                    position = null;
+                    failureType = PlaceTrainCarFailureType.InvalidRailPosition;
+                    // スナップショットを検証する
+                    // Validate snapshot payload
+                    if (snapshot == null)
+                    {
+                        return false;
+                    }
+                    var saveData = snapshot.ToModel();
+                    if (!TryValidateSnapshot(saveData, expectedLength, out var validatedSnapshot, out failureType))
+                    {
+                        return false;
+                    }
+                    
+                    // RailPositionを復元する
+                    // Restore the rail position instance
+                    position = RailPositionFactory.Restore(validatedSnapshot, _railGraphDatastore);
+                    return position != null;
+                }
+                
+                bool TryValidateSnapshot(RailPositionSaveData snapshot, int expectedTrainLength, out RailPositionSaveData validatedSnapshot, out PlaceTrainCarFailureType failure)
+                {
+                    validatedSnapshot = null;
+                    failure = PlaceTrainCarFailureType.InvalidRailPosition;
+                    // 入力と列車長を検証する
+                    // Validate inputs and train length
+                    if (snapshot == null || snapshot.RailSnapshot == null || snapshot.RailSnapshot.Count < 2)
+                    {
+                        return false;
+                    }
+                    if (snapshot.TrainLength != expectedTrainLength)
+                    {
+                        return false;
+                    }
+                    if (snapshot.DistanceToNextNode < 0)
+                    {
+                        return false;
+                    }
+                    
+                    // ノード列を解決する
+                    // Resolve node list from destinations
+                    var nodes = new List<IRailNode>(snapshot.RailSnapshot.Count);
+                    for (var i = 0; i < snapshot.RailSnapshot.Count; i++)
+                    {
+                        var node = _railGraphDatastore.ResolveRailNode(snapshot.RailSnapshot[i]);
+                        if (node == null)
+                        {
+                            failure = PlaceTrainCarFailureType.RailNotFound;
+                            return false;
+                        }
+                        nodes.Add(node);
+                    }
+                    
+                    // 距離と経路を検証する
+                    // Validate distances and path connectivity
+                    var totalDistance = 0;
+                    for (var i = 0; i < nodes.Count - 1; i++)
+                    {
+                        var segmentDistance = nodes[i + 1].GetDistanceToNode(nodes[i]);
+                        if (segmentDistance <= 0)
+                        {
+                            return false;
+                        }
+                        if (i == 0 && snapshot.DistanceToNextNode > segmentDistance)
+                        {
+                            return false;
+                        }
+                        totalDistance += segmentDistance;
+                    }
+                    
+                    var requiredDistance = snapshot.TrainLength + snapshot.DistanceToNextNode;
+                    if (totalDistance < requiredDistance)
+                    {
+                        return false;
+                    }
+                    
+                    validatedSnapshot = new RailPositionSaveData
+                    {
+                        TrainLength = expectedTrainLength,
+                        DistanceToNextNode = snapshot.DistanceToNextNode,
+                        RailSnapshot = snapshot.RailSnapshot
+                    };
+                    return true;
+                }
             }
-
-            bool TryGetIncomingEdge(IReadOnlyList<RailGraphConnectionSnapshot> connections, int nodeId, out int sourceNodeId, out int distance)
-            {
-                sourceNodeId = -1;
-                distance = 0;
-                // 分岐時は最小NodeIdの入力辺を選択する
-                // Choose the incoming edge with the smallest node id
-                var found = false;
-                for (var i = 0; i < connections.Count; i++)
-                {
-                    var connection = connections[i];
-                    if (connection.ToNodeId != nodeId)
-                    {
-                        continue;
-                    }
-                    if (!found || connection.FromNodeId < sourceNodeId)
-                    {
-                        sourceNodeId = connection.FromNodeId;
-                        distance = connection.Distance;
-                        found = true;
-                    }
-                }
-                return found;
-            }
-
-            bool IsSnapshotMatch(RailPositionSaveData clientSnapshot, RailPositionSaveData expectedSnapshot)
-            {
-                // クライアント提案と一致するか確認する
-                // Check if the client snapshot matches the expected snapshot
-                if (clientSnapshot == null || expectedSnapshot == null)
-                {
-                    return false;
-                }
-                if (clientSnapshot.TrainLength != expectedSnapshot.TrainLength)
-                {
-                    return false;
-                }
-                if (clientSnapshot.DistanceToNextNode != expectedSnapshot.DistanceToNextNode)
-                {
-                    return false;
-                }
-                var clientNodes = clientSnapshot.RailSnapshot;
-                var expectedNodes = expectedSnapshot.RailSnapshot;
-                if (clientNodes == null || expectedNodes == null || clientNodes.Count != expectedNodes.Count)
-                {
-                    return false;
-                }
-                for (var i = 0; i < clientNodes.Count; i++)
-                {
-                    if (!clientNodes[i].Equals(expectedNodes[i]))
-                    {
-                        return false;
-                    }
-                }
-                return true;
-            }
-
             #endregion
         }
-
+        
         #region MessagePack Classes
-
+        
         [MessagePackObject]
         public class PlaceTrainOnRailRequestMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public RailComponentSpecifier RailSpecifier { get; set; }
-            [Key(3)] public RailPositionSnapshotMessagePack RailPosition { get; set; }
-            [Key(4)] public int HotBarSlot { get; set; }
+            [Key(2)] public RailPositionSnapshotMessagePack RailPosition { get; set; }
+            [Key(3)] public int HotBarSlot { get; set; }
             [IgnoreMember] public int InventorySlot => PlayerInventoryConst.HotBarSlotToInventorySlot(HotBarSlot);
-            [Key(5)] public int PlayerId { get; set; }
-
+            [Key(4)] public int PlayerId { get; set; }
+            
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public PlaceTrainOnRailRequestMessagePack()
             {
@@ -262,9 +205,8 @@ namespace Server.Protocol.PacketResponse
                 // Initialize tag with default value
                 Tag = ProtocolTag;
             }
-
+            
             public PlaceTrainOnRailRequestMessagePack(
-                RailComponentSpecifier railSpecifier,
                 RailPositionSnapshotMessagePack railPosition,
                 int hotBarSlot,
                 int playerId)
@@ -272,13 +214,12 @@ namespace Server.Protocol.PacketResponse
                 // 必須情報を格納
                 // Store required request information
                 Tag = ProtocolTag;
-                RailSpecifier = railSpecifier;
                 RailPosition = railPosition;
                 HotBarSlot = hotBarSlot;
                 PlayerId = playerId;
             }
         }
-
+        
         // 設置レスポンスのペイロード
         // Response payload for train placement
         [MessagePackObject]
@@ -286,13 +227,13 @@ namespace Server.Protocol.PacketResponse
         {
             [Key(2)] public bool Success { get; set; }
             [Key(3)] public PlaceTrainCarFailureType FailureType { get; set; }
-
+            
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public PlaceTrainOnRailResponseMessagePack()
             {
                 Tag = ProtocolTag;
             }
-
+            
             public static PlaceTrainOnRailResponseMessagePack CreateSuccess()
             {
                 return new PlaceTrainOnRailResponseMessagePack
@@ -301,7 +242,7 @@ namespace Server.Protocol.PacketResponse
                     FailureType = PlaceTrainCarFailureType.None
                 };
             }
-
+            
             public static PlaceTrainOnRailResponseMessagePack CreateFailure(PlaceTrainCarFailureType failureType)
             {
                 return new PlaceTrainOnRailResponseMessagePack
@@ -311,7 +252,7 @@ namespace Server.Protocol.PacketResponse
                 };
             }
         }
-
+        
         public enum PlaceTrainCarFailureType
         {
             None = 0,
@@ -320,8 +261,7 @@ namespace Server.Protocol.PacketResponse
             ItemNotFound = 3,
             InvalidRailPosition = 4,
         }
-
+        
         #endregion
     }
 }
-
