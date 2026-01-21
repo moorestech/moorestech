@@ -70,7 +70,7 @@ namespace Game.Train.Common
                     break;
                 }
             }
-            return found;
+            return !found;
         }
     }
 }
