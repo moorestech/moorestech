@@ -19,6 +19,7 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly ScreenClickableCameraController _screenClickableCameraController;
         
         private IDeleteTarget _deleteTargetObject;
+        private bool _isRemoveDeniedReasonShown;
         
         public DeleteObjectState(DeleteBarObject deleteBarObject, InGameCameraController inGameCameraController)
         {
@@ -36,7 +37,11 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public UITransitContext GetNextUpdate()
         {
-            MouseCursorTooltip.Instance.Hide();
+            if (_isRemoveDeniedReasonShown)
+            {
+                MouseCursorTooltip.Instance.Hide();
+                _isRemoveDeniedReasonShown = false;
+            }
             if (InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.BlockDelete.GetKeyDown) return new UITransitContext(UIStateEnum.GameScreen);
             if (UnityEngine.Input.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.PlaceBlock);
 
@@ -52,6 +57,7 @@ namespace Client.Game.InGame.UI.UIState.State
                     if (!deleteTarget.IsRemovable(out var reason))
                     {
                         MouseCursorTooltip.Instance.Show(reason, isLocalize: false);
+                        _isRemoveDeniedReasonShown = true;
                     }
                     else
                     {
