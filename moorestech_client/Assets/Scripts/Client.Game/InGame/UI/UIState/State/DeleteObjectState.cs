@@ -1,6 +1,5 @@
 ﻿using System;
 using Client.Game.InGame.Block;
-using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Entity.Object;
 using Client.Game.InGame.Train;
@@ -74,31 +73,7 @@ namespace Client.Game.InGame.UI.UIState.State
                 {
                     if (InputManager.Playable.ScreenLeftClick.GetKeyDown)
                     {
-                        switch (_deleteTargetObject)
-                        {
-                            case BlockGameObjectChild deleteTargetBlock:
-                                var blockPosition = deleteTargetBlock.BlockGameObject.BlockPosInfo.OriginalPos;
-                                ClientContext.VanillaApi.SendOnly.BlockRemove(blockPosition);
-                                break;
-                            case TrainCarEntityChildrenObject deleteTargetTrainCar:
-                                ClientContext.VanillaApi.SendOnly.RemoveTrain(deleteTargetTrainCar.TrainCarEntityObject.TrainCarId);
-                                break;
-                            case DeleteTargetRail deleteTargetRail:
-                            {
-                                var carrier = deleteTargetRail.RailObjectIdCarrier;
-                                var railObjectId = carrier.GetRailObjectId();
-                                var fromId = unchecked((int)(uint)railObjectId);
-                                var toId = unchecked((int)(uint)(railObjectId >> 32));
-                                
-                                if (!_railGraphClientCache.TryGetNode(fromId, out var fromNode)) break;
-                                if (!_railGraphClientCache.TryGetNode(toId, out var toNode)) break;
-                                
-                                ClientContext.VanillaApi.SendOnly.DisconnectRail(fromNode.NodeId, fromNode.NodeGuid, toNode.NodeId, toNode.NodeGuid);
-                                break;
-                            }
-                            default:
-                                throw new ArgumentOutOfRangeException(nameof(_deleteTargetObject));
-                        }
+                        _deleteTargetObject.Delete();
                     }
                 }
                 else
