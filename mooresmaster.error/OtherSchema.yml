@@ -3,7 +3,12 @@ type: object
 
 properties:
   - key: testArray
-    type: array
+    type:
+      [ ]
+      array[@-@-[:
+        fawf;a[@faw::@@f@awepfja;sdfawejaw¥¥¥¥¥
+        [[[[[[[[[
+
     items:
       type: object
       properties:

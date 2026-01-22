@@ -20,6 +20,15 @@ namespace mooresmaster.Generator;
 [Generator(LanguageNames.CSharp)]
 public class MooresmasterSourceGenerator : IIncrementalGenerator
 {
+    private static readonly DiagnosticDescriptor UnhandledExceptionDescriptor = new(
+        "MOORES002",
+        "Mooresmaster Internal Error",
+        "An unhandled exception occurred in Mooresmaster source generator: {0}",
+        "Mooresmaster",
+        DiagnosticSeverity.Error,
+        true
+    );
+    
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var additionalTextsProvider = context.AdditionalTextsProvider.Collect();
@@ -60,6 +69,7 @@ public class MooresmasterSourceGenerator : IIncrementalGenerator
                 catch (Exception e)
                 {
                     GenerateErrorFile(sourceProductionContext, symbols, e);
+                    GenerateDiagnostics(sourceProductionContext, e);
                 }
 #pragma warning restore RS1035
         });
@@ -96,6 +106,14 @@ public class MooresmasterSourceGenerator : IIncrementalGenerator
             Tokens.ErrorFileName,
             errorFile
         );
+    }
+    
+    private void GenerateDiagnostics(SourceProductionContext context, Exception exception)
+    {
+        var stackTrace = exception.StackTrace?.Replace("\n", " | ") ?? "";
+        var message = $"[{exception.GetType().Name}] {exception.Message} | StackTrace: {stackTrace}";
+        var diagnostic = Diagnostic.Create(UnhandledExceptionDescriptor, Location.None, message);
+        context.ReportDiagnostic(diagnostic);
     }
     
     private void Emit(SourceProductionContext context, (Compilation compilation, ImmutableArray<AdditionalText> additionalTexts) input)
@@ -135,20 +153,20 @@ public class MooresmasterSourceGenerator : IIncrementalGenerator
         var schemas = new List<SchemaFile>();
         var schemaTable = new SchemaTable();
         var parsedFiles = new HashSet<string>();
-
+        
         foreach (var additionalText in additionalTexts.Where(a => Path.GetExtension(a.Path) == ".yml").Where(a => !parsedFiles.Contains(a.Path)))
         {
             var yamlText = additionalText.GetText()!.ToString();
             var json = YamlParser.Parse(additionalText.Path, yamlText);
             var schemaResult = JsonSchemaParser.ParseSchema(json!, schemaTable, analysis);
-
+            
             // idがないスキーマはスキップ（Diagnosticsは既に報告済み）
             if (schemaResult.IsValid)
                 schemas.Add(new SchemaFile(additionalText.Path, schemaResult.Value!));
-
+            
             parsedFiles.Add(additionalText.Path);
         }
-
+        
         return (schemas.ToImmutableArray(), schemaTable);
     }
 }
