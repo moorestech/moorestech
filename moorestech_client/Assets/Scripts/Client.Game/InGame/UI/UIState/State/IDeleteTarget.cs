@@ -1,3 +1,5 @@
+using JetBrains.Annotations;
+
 namespace Client.Game.InGame.UI.UIState.State
 {
     /// <summary>
@@ -17,5 +19,11 @@ namespace Client.Game.InGame.UI.UIState.State
         ///     Reset material to original state
         /// </summary>
         void ResetMaterial();
+        
+        /// <summary>
+        ///     Remove可能かどうか
+        ///     Whether this rail can be removed
+        /// </summary>
+        bool IsRemovable([CanBeNull] out string reason);
     }
 }
