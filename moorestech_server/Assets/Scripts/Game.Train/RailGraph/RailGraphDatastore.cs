@@ -2,6 +2,7 @@ using Game.Train.RailGraph.Notification;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Game.Train.RailCalc;
 using Game.Train.SaveLoad;
 using UnityEngine;
 
@@ -383,25 +384,8 @@ namespace Game.Train.RailGraph
                 return GetDistanceBetweenNodesInternal(start.NodeId, end.NodeId);
 
             var path = FindShortestPathInternal(start.NodeId, end.NodeId);
-            return CalculatePathDistance(path);
+            return RailNodeCalculate.CalculateTotalDistanceF(path);
         }
         // ------------interface実装ここまで------------
-
-        private static int CalculatePathDistance(IReadOnlyList<IRailNode> nodes)
-        {
-            if (nodes == null || nodes.Count < 2)
-                return -1;
-            int totalDistance = 0;
-            for (int i = 0; i < nodes.Count - 1; i++)
-            {
-                var segmentDistance = nodes[i].GetDistanceToNode(nodes[i + 1]);
-                // 隣接ブロックの重なりで0距離が発生するため許容する
-                // Allow zero-length edges because adjacent blocks can overlap
-                if (segmentDistance < 0)
-                    return -1;
-                totalDistance += segmentDistance;
-            }
-            return totalDistance;
-        }
     }
 }
