@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Game.Train.RailPosition;
+using Game.Train.RailPositions;
 using Game.Train.RailGraph;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;

@@ -41,11 +41,6 @@
         "MessagePack.Annotations",
         "Game.Context",
         "Game.Gear",
-        "Game.Train.Diagram",
-        "Game.Train.RailCalc",
-        "Game.Train.RailGraph",
-        "Game.Train.RailPosition",
-        "Game.Train.Unit",
         "Game.Challenge",
         "Game.Challenge.Interface",
         "UniRx",
@@ -55,7 +50,8 @@
         "Game.UnlockState",
         "Game.Fluid",
         "Game.Action",
-        "Game.Research"
+        "Game.Research",
+        "Game.Train"
     ],
     "includePlatforms": [
         "Editor"

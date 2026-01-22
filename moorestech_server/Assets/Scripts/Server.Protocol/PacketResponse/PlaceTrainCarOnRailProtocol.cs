@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Core.Master;
 using Game.PlayerInventory.Interface;
 using Game.Train.Diagram;
-using Game.Train.RailPosition;
+using Game.Train.RailPositions;
 using Game.Train.Unit;
 using Game.Train.RailGraph;
 using MessagePack;

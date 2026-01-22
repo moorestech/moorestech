@@ -2,7 +2,7 @@ using Core.Master;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
 using Game.Train.RailGraph;
-using Game.Train.RailPosition;
+using Game.Train.RailPositions;
 using Game.Train.Unit;
 using NUnit.Framework;
 using System.Collections.Generic;
