@@ -2,8 +2,8 @@
 name: edit-schema
 description: |
   マスターデータのYAMLスキーマを編集するためのガイド。スキーマの追加・変更・削除を行う際に使用する。
-  Use when: (1) VanillaSchemaのYAMLファイルを編集する (2) 新しいブロックタイプやパラメータを追加する
-  (3) 既存スキーマの構造を変更する (4) SourceGeneratorのトリガー方法を確認する
+  Use when:1.VanillaSchemaのymlファイル(blocks.yml,items.yml等)を編集する必要がある時2.新しいブロックタイプやパラメータを追加する
+  3.既存スキーマの構造を変更する4.SourceGeneratorのトリガー方法を確認する
 ---
 
 # Schema Editing Guide
