@@ -12,7 +12,7 @@ public class UnknownSchemaTypeDiagnostics : IDiagnostics
     {
         Schema = schema;
         ActualTypeName = actualTypeName;
-        Locations = new Location[0];
+        Locations = new[] { schema.Json.Location };
     }
 
     public ISchema Schema { get; }
