@@ -25,5 +25,11 @@ namespace Client.Game.InGame.UI.UIState.State
         ///     Whether this rail can be removed
         /// </summary>
         bool IsRemovable([CanBeNull] out string reason);
+        
+        /// <summary>
+        ///     実際に対象を削除する
+        ///     Delete the target object
+        /// </summary>
+        void Delete();
     }
 }

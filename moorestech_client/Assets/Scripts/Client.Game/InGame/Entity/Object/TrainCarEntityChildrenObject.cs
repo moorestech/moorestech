@@ -1,3 +1,4 @@
+using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState.State;
 using UnityEngine;
 
@@ -25,6 +26,11 @@ namespace Client.Game.InGame.Entity.Object
         {
             reason = null;
             return true;
+        }
+        
+        public void Delete()
+        {
+            ClientContext.VanillaApi.SendOnly.RemoveTrain(TrainCarEntityObject.TrainCarId);
         }
     }
 }
