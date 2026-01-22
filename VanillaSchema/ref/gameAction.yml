@@ -19,6 +19,10 @@ items:
   - key: gameActionParam
     switch: ./gameActionType
     cases:
+    - when: playBackgroundSkit
+      type: object
+      isDefaultOpen: true
+      properties: []
     - when: unlockCraftRecipe
       type: object
       isDefaultOpen: true
