@@ -32,7 +32,7 @@ using Game.PlayerInventory.Interface.Subscription;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using Game.Train.Diagram;
-using Game.Train.RailPosition;
+using Game.Train.RailPositions;
 using Game.Train.SaveLoad;
 using Game.Train.Unit;
 using Game.Train.Event;

@@ -1,7 +1,7 @@
 ﻿using Core.Master;
 using Game.Context;
 using Game.Train.Diagram;
-using Game.Train.RailPosition;
+using Game.Train.RailPositions;
 using Game.Train.RailGraph;
 using Game.Train.Unit;
 using NUnit.Framework;

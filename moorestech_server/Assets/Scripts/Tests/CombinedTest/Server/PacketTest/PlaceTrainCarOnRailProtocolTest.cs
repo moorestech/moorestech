@@ -5,7 +5,7 @@ using Game.Block.Interface;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using Game.Train.RailGraph;
-using Game.Train.RailPosition;
+using Game.Train.RailPositions;
 using Game.Train.Unit;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;

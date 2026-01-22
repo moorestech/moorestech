@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using Game.Train.RailGraph;
+using Game.Train.SaveLoad;
 
-namespace Game.Train.RailPosition
+namespace Game.Train.RailPositions
 {
     // レール位置のセーブデータ
     // Save data for rail positions

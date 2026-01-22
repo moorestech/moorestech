@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Game.Train.RailGraph;
 
-namespace Game.Train.RailPosition
+namespace Game.Train.RailPositions
 {
     public class TrainRailPositionManager : IRailGraphNodeRemovalListener
     {

@@ -3,7 +3,7 @@ using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Train.RailGraph;
-using Game.Train.RailPosition;
+using Game.Train.RailPositions;
 using Game.Train.Unit;
 using Game.Train.RailCalc;
 using NUnit.Framework;
