@@ -15,16 +15,13 @@
         "Game.Context",
         "Game.Map.Interface",
         "Game.Gear",
-        "Game.Train.RailCalc",
-        "Game.Train.RailGraph",
-        "Game.Train.Unit",
+        "Game.Train",
         "MessagePack",
         "MessagePack.Annotations",
         "Core.Master",
         "Game.Fluid",
         "Server.Util",
-        "ClassLibrary",
-        "Game.Train"
+        "ClassLibrary"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
