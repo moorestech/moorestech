@@ -395,7 +395,9 @@ namespace Game.Train.RailGraph
             for (int i = 0; i < nodes.Count - 1; i++)
             {
                 var segmentDistance = nodes[i].GetDistanceToNode(nodes[i + 1]);
-                if (segmentDistance <= 0)
+                // 隣接ブロックの重なりで0距離が発生するため許容する
+                // Allow zero-length edges because adjacent blocks can overlap
+                if (segmentDistance < 0)
                     return -1;
                 totalDistance += segmentDistance;
             }
