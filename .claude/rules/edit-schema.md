@@ -1,5 +1,7 @@
 ---
-paths: VanillaSchema/**
+paths: 
+ - VanillaSchema/*.yml
+ - VanillaSchema/**/*.yml
 ---
 
 
