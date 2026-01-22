@@ -41,12 +41,13 @@ public record Schema(string SchemaId, Falliable<SchemaId> InnerSchema, DefineInt
     public string SchemaId = SchemaId;
 }
 
-public record ObjectSchema(string? PropertyName, SchemaId? Parent, Dictionary<string, Falliable<SchemaId>> Properties, string[] Required, bool IsNullable, string[] InterfaceImplementations, Dictionary<string, JsonString> ImplementationNodes, Dictionary<string, Location[]> DuplicateImplementationLocations, bool IsInterfaceProperty, JsonObject Json) : ISchema, IDefineInterfacePropertySchema
+public record ObjectSchema(string? PropertyName, SchemaId? Parent, Dictionary<string, Falliable<SchemaId>> Properties, Dictionary<string, JsonObject> PropertiesJson, string[] Required, bool IsNullable, string[] InterfaceImplementations, Dictionary<string, JsonString> ImplementationNodes, Dictionary<string, Location[]> DuplicateImplementationLocations, bool IsInterfaceProperty, JsonObject Json) : ISchema, IDefineInterfacePropertySchema
 {
     public Dictionary<string, Location[]> DuplicateImplementationLocations = DuplicateImplementationLocations;
     public Dictionary<string, JsonString> ImplementationNodes = ImplementationNodes;
     public string[] InterfaceImplementations = InterfaceImplementations;
     public Dictionary<string, Falliable<SchemaId>> Properties = Properties;
+    public Dictionary<string, JsonObject> PropertiesJson = PropertiesJson;
     public string[] Required = Required;
     public string? PropertyName { get; } = PropertyName;
     public bool IsInterfaceProperty { get; } = IsInterfaceProperty;
@@ -55,9 +56,10 @@ public record ObjectSchema(string? PropertyName, SchemaId? Parent, Dictionary<st
     public JsonObject Json { get; } = Json;
 }
 
-public record ArraySchema(string? PropertyName, SchemaId? Parent, Falliable<SchemaId> Items, JsonString? OverrideCodeGeneratePropertyName, bool IsNullable, bool IsInterfaceProperty, JsonObject Json) : ISchema, IDefineInterfacePropertySchema
+public record ArraySchema(string? PropertyName, SchemaId? Parent, Falliable<SchemaId> Items, JsonObject? ItemsJson, JsonString? OverrideCodeGeneratePropertyName, bool IsNullable, bool IsInterfaceProperty, JsonObject Json) : ISchema, IDefineInterfacePropertySchema
 {
     public Falliable<SchemaId> Items = Items;
+    public JsonObject? ItemsJson = ItemsJson;
     public JsonString? OverrideCodeGeneratePropertyName = OverrideCodeGeneratePropertyName;
     public bool IsNullable { get; } = IsNullable;
     public bool IsInterfaceProperty { get; } = IsInterfaceProperty;
@@ -88,8 +90,9 @@ public record SwitchSchema(string? PropertyName, SchemaId? Parent, Falliable<Swi
     public JsonObject Json { get; } = Json;
 }
 
-public record SwitchCaseSchema(SwitchPath SwitchReferencePath, string When, Falliable<SchemaId> Schema)
+public record SwitchCaseSchema(SwitchPath SwitchReferencePath, string When, Falliable<SchemaId> Schema, JsonObject CaseJson)
 {
+    public JsonObject CaseJson = CaseJson;
     public Falliable<SchemaId> Schema = Schema;
     public SwitchPath SwitchReferencePath = SwitchReferencePath;
     public string When = When;
