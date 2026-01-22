@@ -94,8 +94,10 @@ public static class SemanticsGenerator
                     semantics.AddInterfaceInterfaceImplementation(target, globalOther);
                 else if (allInterfaceTable.TryGetValue(interfaceName, out var allOther))
                     semantics.AddInterfaceInterfaceImplementation(target, allOther);
+                else if (kvp.Value.Interface.ImplementationNodes.TryGetValue(interfaceName, out var implNode))
+                    analysis.ReportDiagnostics(new InterfaceNotFoundDiagnostics(interfaceName, implNode.Location));
                 else
-                    analysis.ReportDiagnostics(new InterfaceNotFoundDiagnostics(interfaceName, kvp.Value.Interface.ImplementationNodes[interfaceName].Location));
+                    analysis.ReportDiagnostics(new InterfaceNotFoundDiagnostics(interfaceName, kvp.Value.Interface.Location));
         }
     }
     
@@ -141,8 +143,10 @@ public static class SemanticsGenerator
                 {
                     if (globalInterfaceTable.TryGetValue(interfaceName, out var globalOther))
                         semantics.AddClassInterfaceImplementation(target, globalOther);
+                    else if (objectSchema.ImplementationNodes.TryGetValue(interfaceName, out var implNode))
+                        analysis.ReportDiagnostics(new InterfaceNotFoundDiagnostics(interfaceName, implNode.Location));
                     else
-                        analysis.ReportDiagnostics(new InterfaceNotFoundDiagnostics(interfaceName, objectSchema.ImplementationNodes[interfaceName].Location));
+                        analysis.ReportDiagnostics(new InterfaceNotFoundDiagnostics(interfaceName, objectSchema.Json.Location));
                 }
         }
     }
