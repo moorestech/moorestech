@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -21,11 +20,18 @@ public static class SemanticsGenerator
             // InnerSchemaが無効な場合はスキップ
             if (!schema.InnerSchema.IsValid) continue;
 
+            // SchemaTableにスキーマが存在しない場合はスキップ
+            if (!table.Table.TryGetValue(schema.InnerSchema.Value!, out var innerSchema))
+            {
+                analysis.ReportDiagnostics(new SchemaNotFoundInTableDiagnostics(schema.InnerSchema.Value!, null, "root schema generation"));
+                continue;
+            }
+
             var rootId = RootId.New();
 
             // ファイルに分けられているルートの要素はclassになる
             // ただし、objectSchemaだった場合のちのGenerateで生成されるため、ここでは生成しない
-            if (table.Table[schema.InnerSchema.Value!] is ObjectSchema objectSchema)
+            if (innerSchema is ObjectSchema objectSchema)
             {
                 var (innerSemantics, id) = Generate(objectSchema, table, rootId, analysis);
                 semantics.RootSemanticsTable.Add(rootId, new RootSemantics(schema, id));
@@ -33,13 +39,13 @@ public static class SemanticsGenerator
             }
             else
             {
-                var typeSemantics = new TypeSemantics([], table.Table[schema.InnerSchema.Value!], rootId);
+                var typeSemantics = new TypeSemantics([], innerSchema, rootId);
                 var typeId = semantics.AddTypeSemantics(typeSemantics);
                 semantics.RootSemanticsTable.Add(rootId, new RootSemantics(schema, typeId));
 
-                Generate(table.Table[schema.InnerSchema.Value!], table, rootId, analysis).AddTo(semantics);
+                Generate(innerSchema, table, rootId, analysis).AddTo(semantics);
             }
-            
+
             foreach (var defineInterface in schema.Interfaces)
                 GenerateInterfaceSemantics(defineInterface, schema, table, rootId, analysis).AddTo(semantics);
         }
@@ -106,9 +112,17 @@ public static class SemanticsGenerator
         foreach (var kvp in semantics.TypeSemanticsTable)
         {
             if (kvp.Value.Schema is not ObjectSchema objectSchema) continue;
+
+            // RootSemanticsTableにRootIdが存在しない場合はスキップ
+            if (!semantics.RootSemanticsTable.TryGetValue(kvp.Value.RootId, out var rootSemantics))
+            {
+                analysis.ReportDiagnostics(new RootSemanticsNotFoundDiagnostics(kvp.Value.RootId));
+                continue;
+            }
+
             var localInterfaceTable = new Dictionary<string, InterfaceId>();
             foreach (var i in semantics.InterfaceSemanticsTable
-                         .Where(i => i.Value.Schema.SchemaId == semantics.RootSemanticsTable[kvp.Value.RootId].Root.SchemaId)
+                         .Where(i => i.Value.Schema.SchemaId == rootSemantics.Root.SchemaId)
                          .Where(i => !i.Value.Interface.IsGlobal))
             {
                 var interfaceName = i.Value.Interface.InterfaceName;
@@ -171,7 +185,12 @@ public static class SemanticsGenerator
             case ArraySchema arraySchema:
                 if (arraySchema.Items.IsValid)
                 {
-                    var itemsSchema = table.Table[arraySchema.Items.Value!];
+                    if (!table.Table.TryGetValue(arraySchema.Items.Value!, out var itemsSchema))
+                    {
+                        analysis.ReportDiagnostics(new SchemaNotFoundInTableDiagnostics(arraySchema.Items.Value!, arraySchema.PropertyName, "array items generation"));
+                        break;
+                    }
+
                     if (itemsSchema is ObjectSchema arrayItemObjectSchema)
                     {
                         var (arrayItemSemantics, _) = Generate(arrayItemObjectSchema, table, rootId, analysis, true);
@@ -182,7 +201,7 @@ public static class SemanticsGenerator
                         Generate(itemsSchema, table, rootId, analysis).AddTo(semantics);
                     }
                 }
-                
+
                 break;
             case ObjectSchema objectSchema:
                 var (innerSemantics, _) = Generate(objectSchema, table, rootId, analysis);
@@ -205,7 +224,8 @@ public static class SemanticsGenerator
             case Vector3IntSchema:
                 break;
             default:
-                throw new ArgumentOutOfRangeException(nameof(schema));
+                analysis.ReportDiagnostics(new UnknownSchemaTypeDiagnostics(schema, schema.GetType().Name));
+                break;
         }
         
         return semantics;
@@ -224,9 +244,22 @@ public static class SemanticsGenerator
                 // 無効なcaseはスキップ
                 if (!ifThen.Schema.IsValid) continue;
 
-                Generate(table.Table[ifThen.Schema.Value!], table, rootId, analysis).AddTo(semantics);
+                // SchemaTableにスキーマが存在しない場合はスキップ
+                if (!table.Table.TryGetValue(ifThen.Schema.Value!, out var caseSchema))
+                {
+                    analysis.ReportDiagnostics(new SchemaNotFoundInTableDiagnostics(ifThen.Schema.Value!, switchSchema.PropertyName, "switch case generation"));
+                    continue;
+                }
 
-                var then = semantics.SchemaTypeSemanticsTable[table.Table[ifThen.Schema.Value!]];
+                Generate(caseSchema, table, rootId, analysis).AddTo(semantics);
+
+                // SchemaTypeSemanticsTableにスキーマが存在しない場合はスキップ
+                if (!semantics.SchemaTypeSemanticsTable.TryGetValue(caseSchema, out var then))
+                {
+                    analysis.ReportDiagnostics(new SchemaNotFoundInTableDiagnostics(ifThen.Schema.Value!, switchSchema.PropertyName, "switch case type resolution"));
+                    continue;
+                }
+
                 semantics.SwitchInheritList.Add((interfaceId, then));
                 thenList.Add((ifThen.SwitchReferencePath, ifThen.When, then));
             }
@@ -246,7 +279,13 @@ public static class SemanticsGenerator
             // 無効なプロパティはスキップ
             if (!property.Value.IsValid) continue;
 
-            var schema = table.Table[property.Value.Value!];
+            // SchemaTableにスキーマが存在しない場合はスキップ
+            if (!table.Table.TryGetValue(property.Value.Value!, out var schema))
+            {
+                analysis.ReportDiagnostics(new SchemaNotFoundInTableDiagnostics(property.Value.Value!, property.Key, "object property generation"));
+                continue;
+            }
+
             switch (schema)
             {
                 case ObjectSchema innerObjectSchema:
@@ -276,7 +315,7 @@ public static class SemanticsGenerator
                     ));
                     break;
                 default:
-                    Generate(table.Table[property.Value.Value!], table, rootId, analysis).AddTo(semantics);
+                    Generate(schema, table, rootId, analysis).AddTo(semantics);
                     properties.Add(semantics.AddPropertySemantics(
                         new PropertySemantics(
                             typeId,
