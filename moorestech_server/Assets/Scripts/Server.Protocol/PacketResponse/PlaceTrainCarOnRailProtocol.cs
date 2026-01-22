@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using Core.Master;
 using Game.PlayerInventory.Interface;
-using Game.Train.Common;
+using Game.Train.Diagram;
+using Game.Train.RailPosition;
+using Game.Train.Unit;
 using Game.Train.RailGraph;
-using Game.Train.Train;
-using Game.Train.Utility;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Util.MessagePack;

@@ -1,5 +1,4 @@
-using Game.Train.Common;
-using Game.Train.Utility;
+using Game.Train.RailGraph.Notification;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,8 +8,7 @@ namespace Game.Train.RailGraph
 {
     public class RailGraphDatastore : IRailGraphDatastore
     {
-        private readonly TrainDiagramManager _diagramManager;
-        private readonly TrainRailPositionManager _railPositionManager;
+        private readonly IReadOnlyList<IRailGraphNodeRemovalListener> _nodeRemovalListeners;
         private Dictionary<RailNode, int> railNodeToId;
         private List<RailNode> railNodes;
         private RailNodeIdAllocator nodeIdAllocator;
@@ -26,10 +24,10 @@ namespace Game.Train.RailGraph
         private readonly RailNodeRemovalNotifier _nodeRemovalNotifier;
         private readonly RailConnectionRemovalNotifier _connectionRemovalNotifier;
 
-        public IObservable<RailNodeInitializationNotifier.RailNodeInitializationData> GetRailNodeInitializedEvent() => _nodeInitializationNotifier.RailNodeInitializedEvent;
-        public IObservable<RailConnectionInitializationNotifier.RailConnectionInitializationData> GetRailConnectionInitializedEvent() => _connectionInitializationNotifier.RailConnectionInitializedEvent;
-        public IObservable<RailNodeRemovalNotifier.RailNodeRemovedData> GetRailNodeRemovedEvent() => _nodeRemovalNotifier.RailNodeRemovedEvent;
-        public IObservable<RailConnectionRemovalNotifier.RailConnectionRemovalData> GetRailConnectionRemovedEvent() => _connectionRemovalNotifier.RailConnectionRemovedEvent;
+        public IObservable<RailNodeInitializationData> GetRailNodeInitializedEvent() => _nodeInitializationNotifier.RailNodeInitializedEvent;
+        public IObservable<RailConnectionInitializationData> GetRailConnectionInitializedEvent() => _connectionInitializationNotifier.RailConnectionInitializedEvent;
+        public IObservable<RailNodeRemovedData> GetRailNodeRemovedEvent() => _nodeRemovalNotifier.RailNodeRemovedEvent;
+        public IObservable<RailConnectionRemovalData> GetRailConnectionRemovedEvent() => _connectionRemovalNotifier.RailConnectionRemovedEvent;
 
         // ハッシュキャッシュ制御
         // Hash cache control
@@ -38,10 +36,9 @@ namespace Game.Train.RailGraph
 
         // 依存サービスを受け取り、レールグラフの状態を初期化する
         // Initialize the rail graph with required services
-        public RailGraphDatastore(TrainDiagramManager diagramManager, TrainRailPositionManager railPositionManager)
+        public RailGraphDatastore(IEnumerable<IRailGraphNodeRemovalListener> nodeRemovalListeners)
         {
-            _diagramManager = diagramManager;
-            _railPositionManager = railPositionManager;
+            _nodeRemovalListeners = nodeRemovalListeners.ToList();
             InitializeDataStore();
             // RailNode -> RailComponentID の解決ロジックを Notifier に渡す
             // Pass node resolution hooks to notifiers
@@ -201,8 +198,10 @@ namespace Game.Train.RailGraph
         {
             if (!railNodeToId.ContainsKey(node))
                 return;
-            _diagramManager.NotifyNodeRemoval(node);
-            _railPositionManager.NotifyNodeRemoval(node);
+            foreach (var listener in _nodeRemovalListeners)
+            {
+                listener.NotifyNodeRemoval(node);
+            }
             var nodeid = railNodeToId[node];
 
             // ノード削除差分をクライアントへ通知
@@ -333,13 +332,13 @@ namespace Game.Train.RailGraph
 
         private RailGraphSnapshot CaptureSnapshotInternal(long currentTick)
         {
-            var nodes = new List<RailNodeInitializationNotifier.RailNodeInitializationData>(railNodes.Count);
+            var nodes = new List<RailNodeInitializationData>(railNodes.Count);
             for (var i = 0; i < railNodes.Count; i++)
             {
                 if (railNodes[i] == null)
                     continue;
                 nodes.Add(
-                    new RailNodeInitializationNotifier.RailNodeInitializationData(
+                    new RailNodeInitializationData(
                         i,
                         railNodes[i].Guid,
                         railNodes[i].ConnectionDestination,
@@ -383,8 +382,23 @@ namespace Game.Train.RailGraph
                 return GetDistanceBetweenNodesInternal(start.NodeId, end.NodeId);
 
             var path = FindShortestPathInternal(start.NodeId, end.NodeId);
-            return RailNodeCalculate.CalculateTotalDistanceF(path);
+            return CalculatePathDistance(path);
         }
         // ------------interface実装ここまで------------
+
+        private static int CalculatePathDistance(IReadOnlyList<IRailNode> nodes)
+        {
+            if (nodes == null || nodes.Count < 2)
+                return -1;
+            int totalDistance = 0;
+            for (int i = 0; i < nodes.Count - 1; i++)
+            {
+                var segmentDistance = nodes[i].GetDistanceToNode(nodes[i + 1]);
+                if (segmentDistance <= 0)
+                    return -1;
+                totalDistance += segmentDistance;
+            }
+            return totalDistance;
+        }
     }
 }

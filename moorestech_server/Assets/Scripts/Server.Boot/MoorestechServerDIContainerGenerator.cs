@@ -31,7 +31,10 @@ using Game.PlayerInventory.Interface.Event;
 using Game.PlayerInventory.Interface.Subscription;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
-using Game.Train.Common;
+using Game.Train.Diagram;
+using Game.Train.RailPosition;
+using Game.Train.SaveLoad;
+using Game.Train.Unit;
 using Game.Train.Event;
 using Game.Train.RailGraph;
 using Game.UnlockState;
@@ -97,6 +100,8 @@ namespace Server.Boot
             initializerCollection.AddSingleton<IRailGraphDatastore>(provider => provider.GetService<RailGraphDatastore>());
             initializerCollection.AddSingleton<TrainDiagramManager>();
             initializerCollection.AddSingleton<TrainRailPositionManager>();
+            initializerCollection.AddSingleton<IRailGraphNodeRemovalListener>(provider => provider.GetService<TrainDiagramManager>());
+            initializerCollection.AddSingleton<IRailGraphNodeRemovalListener>(provider => provider.GetService<TrainRailPositionManager>());
 
             var mapPath = Path.Combine(options.ServerDataDirectory, "map", "map.json");
             initializerCollection.AddSingleton(JsonConvert.DeserializeObject<MapInfoJson>(File.ReadAllText(mapPath)));
@@ -128,6 +133,8 @@ namespace Server.Boot
             services.AddSingleton<RailConnectionCommandHandler>();
             services.AddSingleton(initializerProvider.GetService<TrainDiagramManager>());
             services.AddSingleton(initializerProvider.GetService<TrainRailPositionManager>());
+            services.AddSingleton<IRailGraphNodeRemovalListener>(initializerProvider.GetService<TrainDiagramManager>());
+            services.AddSingleton<IRailGraphNodeRemovalListener>(initializerProvider.GetService<TrainRailPositionManager>());
 
             services.AddSingleton<IGameUnlockStateDataController, GameUnlockStateDataController>();
             services.AddSingleton<CraftTreeManager>();

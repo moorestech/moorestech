@@ -1,5 +1,5 @@
 using System;
-using Game.Train.Train;
+using Game.Train.Unit;
 using Mooresmaster.Model.TrainModule;
 
 namespace Tests.Util

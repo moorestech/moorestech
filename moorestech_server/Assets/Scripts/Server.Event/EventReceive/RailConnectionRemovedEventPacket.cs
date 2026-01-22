@@ -1,4 +1,4 @@
-﻿using Game.Train.Common;
+﻿using Game.Train.Unit;
 using Game.Train.RailGraph;
 using MessagePack;
 using Server.Event;
@@ -25,7 +25,7 @@ namespace Server.Event.EventReceive
             railGraphDatastore.GetRailConnectionRemovedEvent().Subscribe(OnConnectionRemoved);
         }
 
-        private void OnConnectionRemoved(RailConnectionRemovalNotifier.RailConnectionRemovalData data)
+        private void OnConnectionRemoved(RailConnectionRemovalData data)
         {
             // 削除された接続情報をMessagePack化
             // Serialize the removed connection payload

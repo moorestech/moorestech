@@ -1,6 +1,7 @@
 using Client.Common.Asset;
 using Client.Game.InGame.Entity.Object;
-using Client.Game.InGame.Train;
+using Client.Game.InGame.Train.Unit;
+using Client.Game.InGame.Train.View;
 using Client.Network.API;
 using Core.Master;
 using Cysharp.Threading.Tasks;

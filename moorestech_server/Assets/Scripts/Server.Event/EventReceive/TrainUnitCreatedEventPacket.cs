@@ -1,7 +1,7 @@
 using System;
 using Game.Entity.Interface;
-using Game.Train.Common;
-using Game.Train.Train;
+using Game.Train.Unit;
+using Game.Train.Unit;
 using MessagePack;
 using Server.Util.MessagePack;
 using UniRx;

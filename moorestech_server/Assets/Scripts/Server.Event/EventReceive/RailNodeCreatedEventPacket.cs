@@ -1,4 +1,4 @@
-﻿using Game.Train.Common;
+﻿using Game.Train.Unit;
 using Game.Train.RailGraph;
 using MessagePack;
 using Server.Util.MessagePack;
@@ -24,7 +24,7 @@ namespace Server.Event.EventReceive
             railGraphDatastore.GetRailNodeInitializedEvent().Subscribe(OnNodeInitialized);
         }
 
-        private void OnNodeInitialized(RailNodeInitializationNotifier.RailNodeInitializationData data)
+        private void OnNodeInitialized(RailNodeInitializationData data)
         {
             var tick = _trainUpdateService.GetCurrentTick();
             // ノード生成差分と現在Tickを同時に送信

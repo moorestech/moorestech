@@ -27,7 +27,10 @@
     "Game.CraftTree",
     "Game.Fluid",
     "Game.Research",
-    "Game.Train",
+    "Game.Train.Diagram",
+    "Game.Train.RailGraph",
+    "Game.Train.RailPosition",
+    "Game.Train.Unit",
     "Game.Gear"
   ],
   "includePlatforms": [],
