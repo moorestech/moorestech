@@ -3,7 +3,7 @@ using Client.Game.InGame.Train.RailGraph;
 using Core.Master;
 using Game.Train.RailGraph;
 using Game.Train.RailCalc;
-using Game.Train.RailPosition;
+using Game.Train.RailPositions;
 using Game.Train.Unit;
 using Mooresmaster.Model.TrainModule;
 using UnityEngine;

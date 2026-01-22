@@ -3,7 +3,7 @@ using Client.Common.Asset;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Train.View;
 using Core.Master;
-using Game.Train.RailPosition;
+using Game.Train.RailPositions;
 using Mooresmaster.Model.TrainModule;
 using UnityEngine;
 
