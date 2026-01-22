@@ -2,7 +2,7 @@
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Entity.Object;
-using Client.Game.InGame.Train;
+using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.UIState.Input;

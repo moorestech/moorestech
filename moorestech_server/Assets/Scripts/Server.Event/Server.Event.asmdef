@@ -19,7 +19,10 @@
     "Game.UnlockState",
     "Game.CraftTree",
     "Game.Research",
-    "Game.Train",
+    "Game.Train.Diagram",
+    "Game.Train.Event",
+    "Game.Train.RailGraph",
+    "Game.Train.Unit",
     "Game.Entity.Interface"
   ],
   "includePlatforms": [],

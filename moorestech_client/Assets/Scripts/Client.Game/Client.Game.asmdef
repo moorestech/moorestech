@@ -61,6 +61,11 @@
         "Game.Fluid",
         "Game.Research",
         "Game.Train",
+        "Game.Train.Diagram",
+        "Game.Train.RailCalc",
+        "Game.Train.RailGraph",
+        "Game.Train.RailPosition",
+        "Game.Train.Unit",
         "Unity.Mathematics",
         "Unity.Splines"
     ],

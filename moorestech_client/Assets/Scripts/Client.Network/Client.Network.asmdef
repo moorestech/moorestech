@@ -44,7 +44,8 @@
     "Game.CraftChainer",
     "Game.CraftTree",
     "Game.Research",
-    "Game.Train"
+    "Game.Train",
+    "Game.Train.RailPosition"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

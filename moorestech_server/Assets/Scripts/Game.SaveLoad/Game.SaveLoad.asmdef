@@ -14,7 +14,8 @@
     "Game.UnlockState",
     "Game.CraftTree",
     "Game.Research",
-    "Game.Train"
+    "Game.Train.SaveLoad",
+    "Game.Train.Unit"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

@@ -8,7 +8,10 @@
     "Core.Util",
     "Game.Base",
     "Core.Master",
-    "Game.Train"
+    "Game.Train.Diagram",
+    "Game.Train.RailGraph",
+    "Game.Train.RailPosition",
+    "Game.Train.Unit"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

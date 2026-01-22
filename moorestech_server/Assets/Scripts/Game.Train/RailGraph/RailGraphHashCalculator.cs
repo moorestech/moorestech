@@ -52,7 +52,7 @@ namespace Game.Train.RailGraph
         /// RailNodeInitializationData / connectNodes から順序独立ハッシュを計算する。
         /// </summary>
         public static uint ComputeGraphStateHash(
-            IReadOnlyList<RailNodeInitializationNotifier.RailNodeInitializationData> nodes,
+            IReadOnlyList<RailNodeInitializationData> nodes,
             IReadOnlyList<IReadOnlyList<(int targetId, int distance)>> connectNodes)
         {
             uint hash = FnvOffset;

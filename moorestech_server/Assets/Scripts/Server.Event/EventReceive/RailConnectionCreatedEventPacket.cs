@@ -1,4 +1,4 @@
-﻿using Game.Train.Common;
+﻿using Game.Train.Unit;
 using Game.Train.RailGraph;
 using MessagePack;
 using UniRx;
@@ -20,7 +20,7 @@ namespace Server.Event.EventReceive
             railGraphDatastore.GetRailConnectionInitializedEvent().Subscribe(OnConnectionInitialized);
         }
 
-        private void OnConnectionInitialized(RailConnectionInitializationNotifier.RailConnectionInitializationData data)
+        private void OnConnectionInitialized(RailConnectionInitializationData data)
         {
             var tick = _trainUpdateService.GetCurrentTick();
             // 辺追加差分とtickを1パケットに封入

@@ -13,7 +13,8 @@ using Game.Research;
 using Game.UnlockState;
 using Game.World.Interface.DataStore;
 using Newtonsoft.Json;
-using Game.Train.Common;
+using Game.Train.SaveLoad;
+using Game.Train.Unit;
 using UnityEngine;
 
 namespace Game.SaveLoad.Json

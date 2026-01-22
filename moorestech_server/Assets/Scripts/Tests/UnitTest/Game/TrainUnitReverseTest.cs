@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using Game.Block.Interface;
 using Game.Train.RailGraph;
-using Game.Train.Train;
+using Game.Train.RailPosition;
+using Game.Train.Unit;
 using NUnit.Framework;
 using Tests.Util;
 using UnityEngine;

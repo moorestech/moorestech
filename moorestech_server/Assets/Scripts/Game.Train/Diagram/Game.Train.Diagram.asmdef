@@ -1,0 +1,17 @@
+{
+    "name": "Game.Train.Diagram",
+    "rootNamespace": "",
+    "references": [
+        "UniRx",
+        "Game.Train.RailGraph"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Core.Master;
 using Game.Context;
 using Game.PlayerInventory.Interface;
-using Game.Train.Common;
+using Game.Train.Unit;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 

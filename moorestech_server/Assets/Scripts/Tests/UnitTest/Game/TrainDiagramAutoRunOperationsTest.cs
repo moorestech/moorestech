@@ -1,8 +1,8 @@
 using Core.Master;
 using Game.Context;
-using Game.Train.Common;
+using Game.Train.Diagram;
 using Game.Train.RailGraph;
-using Game.Train.Train;
+using Game.Train.Unit;
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;

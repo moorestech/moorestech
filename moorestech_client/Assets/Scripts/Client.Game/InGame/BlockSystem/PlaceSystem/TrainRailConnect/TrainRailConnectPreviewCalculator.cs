@@ -1,5 +1,5 @@
 using System;
-using Client.Game.InGame.Train;
+using Client.Game.InGame.Train.RailGraph;
 using Game.Train.RailGraph;
 using UnityEngine;
 

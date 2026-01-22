@@ -6,7 +6,7 @@ using Game.Entity.Interface;
 using Game.Map.Interface.Json;
 using Game.PlayerInventory.Interface;
 using Game.Research;
-using Game.Train.Train;
+using Game.Train.Unit;
 using Game.UnlockState;
 using Game.World.Interface.DataStore;
 using Newtonsoft.Json;
