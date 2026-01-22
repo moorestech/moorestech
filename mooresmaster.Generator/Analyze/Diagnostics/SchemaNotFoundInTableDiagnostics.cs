@@ -8,17 +8,19 @@ namespace mooresmaster.Generator.Analyze.Diagnostics;
 /// </summary>
 public class SchemaNotFoundInTableDiagnostics : IDiagnostics
 {
-    public SchemaNotFoundInTableDiagnostics(SchemaId schemaId, string? propertyName, string context)
+    public SchemaNotFoundInTableDiagnostics(SchemaId schemaId, string? propertyName, string context, ISchema? parentSchema)
     {
         SchemaId = schemaId;
         PropertyName = propertyName;
         Context = context;
-        Locations = new Location[0];
+        ParentSchema = parentSchema;
+        Locations = parentSchema != null ? new[] { parentSchema.Json.Location } : new Location[0];
     }
 
     public SchemaId SchemaId { get; }
     public string? PropertyName { get; }
     public string Context { get; }
+    public ISchema? ParentSchema { get; }
     public Location[] Locations { get; }
 
     public string Message => PropertyName != null

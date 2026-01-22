@@ -23,7 +23,7 @@ public static class SemanticsGenerator
             // SchemaTableにスキーマが存在しない場合はスキップ
             if (!table.Table.TryGetValue(schema.InnerSchema.Value!, out var innerSchema))
             {
-                analysis.ReportDiagnostics(new SchemaNotFoundInTableDiagnostics(schema.InnerSchema.Value!, null, "root schema generation"));
+                analysis.ReportDiagnostics(new SchemaNotFoundInTableDiagnostics(schema.InnerSchema.Value!, null, "root schema generation", null));
                 continue;
             }
 
@@ -116,7 +116,7 @@ public static class SemanticsGenerator
             // RootSemanticsTableにRootIdが存在しない場合はスキップ
             if (!semantics.RootSemanticsTable.TryGetValue(kvp.Value.RootId, out var rootSemantics))
             {
-                analysis.ReportDiagnostics(new RootSemanticsNotFoundDiagnostics(kvp.Value.RootId));
+                analysis.ReportDiagnostics(new RootSemanticsNotFoundDiagnostics(kvp.Value.RootId, kvp.Value.Schema));
                 continue;
             }
 
@@ -187,7 +187,7 @@ public static class SemanticsGenerator
                 {
                     if (!table.Table.TryGetValue(arraySchema.Items.Value!, out var itemsSchema))
                     {
-                        analysis.ReportDiagnostics(new SchemaNotFoundInTableDiagnostics(arraySchema.Items.Value!, arraySchema.PropertyName, "array items generation"));
+                        analysis.ReportDiagnostics(new SchemaNotFoundInTableDiagnostics(arraySchema.Items.Value!, arraySchema.PropertyName, "array items generation", arraySchema));
                         break;
                     }
 
@@ -247,7 +247,7 @@ public static class SemanticsGenerator
                 // SchemaTableにスキーマが存在しない場合はスキップ
                 if (!table.Table.TryGetValue(ifThen.Schema.Value!, out var caseSchema))
                 {
-                    analysis.ReportDiagnostics(new SchemaNotFoundInTableDiagnostics(ifThen.Schema.Value!, switchSchema.PropertyName, "switch case generation"));
+                    analysis.ReportDiagnostics(new SchemaNotFoundInTableDiagnostics(ifThen.Schema.Value!, switchSchema.PropertyName, "switch case generation", switchSchema));
                     continue;
                 }
 
@@ -256,7 +256,7 @@ public static class SemanticsGenerator
                 // SchemaTypeSemanticsTableにスキーマが存在しない場合はスキップ
                 if (!semantics.SchemaTypeSemanticsTable.TryGetValue(caseSchema, out var then))
                 {
-                    analysis.ReportDiagnostics(new SchemaNotFoundInTableDiagnostics(ifThen.Schema.Value!, switchSchema.PropertyName, "switch case type resolution"));
+                    analysis.ReportDiagnostics(new SchemaNotFoundInTableDiagnostics(ifThen.Schema.Value!, switchSchema.PropertyName, "switch case type resolution", switchSchema));
                     continue;
                 }
 
@@ -282,7 +282,7 @@ public static class SemanticsGenerator
             // SchemaTableにスキーマが存在しない場合はスキップ
             if (!table.Table.TryGetValue(property.Value.Value!, out var schema))
             {
-                analysis.ReportDiagnostics(new SchemaNotFoundInTableDiagnostics(property.Value.Value!, property.Key, "object property generation"));
+                analysis.ReportDiagnostics(new SchemaNotFoundInTableDiagnostics(property.Value.Value!, property.Key, "object property generation", objectSchema));
                 continue;
             }
 
