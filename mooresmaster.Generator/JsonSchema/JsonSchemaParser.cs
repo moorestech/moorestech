@@ -264,7 +264,7 @@ public static class JsonSchemaParser
         var duplicateLocationsDict = duplicateImplementationLocations.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToArray());
 
         if (!json.Nodes.TryGetValue(Tokens.PropertiesKey, out var propertiesNode))
-            return Falliable<SchemaId>.Success(table.Add(new ObjectSchema(objectName, parent, new Dictionary<string, Falliable<SchemaId>>(), [], IsNullable(json, analysis), implementationNodes.Keys.ToArray(), implementationNodes, duplicateLocationsDict, isInterfaceProperty, json)));
+            return Falliable<SchemaId>.Success(table.Add(new ObjectSchema(objectName, parent, new Dictionary<string, Falliable<SchemaId>>(), new Dictionary<string, JsonObject>(), [], IsNullable(json, analysis), implementationNodes.Keys.ToArray(), implementationNodes, duplicateLocationsDict, isInterfaceProperty, json)));
 
         if (propertiesNode is not JsonArray propertiesJson)
         {
@@ -276,6 +276,7 @@ public static class JsonSchemaParser
         var objectSchemaId = SchemaId.New();
 
         Dictionary<string, Falliable<SchemaId>> properties = [];
+        Dictionary<string, JsonObject> propertiesJsonDict = [];
         var propertyIndex = 0;
         foreach (var propertyNode in propertiesJson.Nodes.OfType<JsonObject>())
         {
@@ -290,10 +291,11 @@ public static class JsonSchemaParser
 
             var schemaIdResult = Parse(propertyNode, objectSchemaId, false, table, analysis);
             properties.Add(keyString.Literal, schemaIdResult);
+            propertiesJsonDict.Add(keyString.Literal, propertyNode);
             propertyIndex++;
         }
 
-        table.Add(objectSchemaId, new ObjectSchema(objectName, parent, properties, required, IsNullable(json, analysis), implementationNodes.Keys.ToArray(), implementationNodes, duplicateLocationsDict, isInterfaceProperty, json));
+        table.Add(objectSchemaId, new ObjectSchema(objectName, parent, properties, propertiesJsonDict, required, IsNullable(json, analysis), implementationNodes.Keys.ToArray(), implementationNodes, duplicateLocationsDict, isInterfaceProperty, json));
 
         return Falliable<SchemaId>.Success(objectSchemaId);
     }
@@ -305,8 +307,10 @@ public static class JsonSchemaParser
         var key = json[Tokens.PropertyNameKey] as JsonString;
 
         Falliable<SchemaId> items;
+        JsonObject? itemsJsonObject = null;
         if (json["items"] is JsonObject itemsJson)
         {
+            itemsJsonObject = itemsJson;
             items = Parse(itemsJson, arraySchemaId, false, table, analysis);
         }
         else
@@ -315,7 +319,7 @@ public static class JsonSchemaParser
             items = Falliable<SchemaId>.Failure();
         }
 
-        table.Add(arraySchemaId, new ArraySchema(key?.Literal, parent, items, overrideCodeGeneratePropertyName, IsNullable(json, analysis), isInterfaceProperty, json));
+        table.Add(arraySchemaId, new ArraySchema(key?.Literal, parent, items, itemsJsonObject, overrideCodeGeneratePropertyName, IsNullable(json, analysis), isInterfaceProperty, json));
         return Falliable<SchemaId>.Success(arraySchemaId);
     }
     
@@ -371,7 +375,7 @@ public static class JsonSchemaParser
 
                 var caseSchemaResult = Parse(jsonObject, schemaId, false, table, analysis);
 
-                ifThenList.Add(new SwitchCaseSchema(switchPathResult.Value!, whenJson.Literal, caseSchemaResult));
+                ifThenList.Add(new SwitchCaseSchema(switchPathResult.Value!, whenJson.Literal, caseSchemaResult, jsonObject));
             }
 
             if (hasError && ifThenList.Count == 0)
