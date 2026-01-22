@@ -1,6 +1,7 @@
 using System;
 using Game.Train.RailCalc;
-using Game.Train.RailPosition;
+using Game.Train.RailGraph;
+using Game.Train.RailPositions;
 using UnityEngine;
 
 namespace Client.Game.InGame.Train.View

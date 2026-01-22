@@ -1,5 +1,6 @@
 using System;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Train.RailGraph;
 using MessagePack;
 using Server.Event.EventReceive;
 using Server.Util.MessagePack;

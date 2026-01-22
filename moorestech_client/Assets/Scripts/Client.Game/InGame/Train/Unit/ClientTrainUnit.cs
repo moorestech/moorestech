@@ -1,11 +1,12 @@
 using Game.Train.RailCalc;
 using Game.Train.RailGraph;
-using Game.Train.RailPosition;
+using Game.Train.RailPositions;
 using Game.Train.Unit;
 using Server.Util.MessagePack;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Client.Game.InGame.Train.Diagram;
 
 namespace Client.Game.InGame.Train.Unit
 {

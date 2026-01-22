@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Train.Network;
 using Cysharp.Threading.Tasks;
 using MessagePack;
 using Server.Event.EventReceive;

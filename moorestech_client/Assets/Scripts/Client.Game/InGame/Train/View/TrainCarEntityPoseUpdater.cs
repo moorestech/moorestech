@@ -1,6 +1,6 @@
 using Client.Game.InGame.Entity.Object;
 using Client.Game.InGame.Train.Unit;
-using Game.Train.RailPosition;
+using Game.Train.RailPositions;
 using Game.Train.Unit;
 using UnityEngine;
 

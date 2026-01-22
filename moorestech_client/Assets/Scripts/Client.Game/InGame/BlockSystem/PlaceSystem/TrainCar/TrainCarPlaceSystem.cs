@@ -2,7 +2,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.Train.RailGraph;
 using Client.Input;
 using Cysharp.Threading.Tasks;
-using Game.Train.RailPosition;
+using Game.Train.RailPositions;
 using System.Threading;
 using UnityEngine;
 
