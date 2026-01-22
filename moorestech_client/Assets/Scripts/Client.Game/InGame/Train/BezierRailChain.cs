@@ -27,12 +27,18 @@ namespace Client.Game.InGame.Train
 
         private readonly List<SegmentInstance> _segments = new();
         
+        private RailGraphClientCache _railGraphClientCache;
         private RendererMaterialReplacerController _controller;
         private Material _removeMaterial;
         
         private void Awake()
         {
             _removeMaterial = Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial);
+        }
+        
+        public void SetRailGraphCache(RailGraphClientCache cache)
+        {
+            _railGraphClientCache = cache;
         }
         
         /// <summary>外部コードから制御点を再設定する</summary>
@@ -162,6 +168,7 @@ namespace Client.Game.InGame.Train
                 meshComponent.SetAxes(_forwardAxis, _upAxis);
                 meshComponent.SetSamples(_curveSamples);
                 deleteTarget.SetParentBezierRailChain(this);
+                deleteTarget.SetRailGraphCache(_railGraphClientCache);
                 meshComponent.Deform();
                 segment.Meshes.Add(meshComponent);
             }
