@@ -32,13 +32,13 @@
         "Game.Challenge",
         "Core.Master",
         "Game.CraftChainer",
+        "Game.Train",
         "Game.UnlockState",
         "Game.CraftTree",
         "Game.Paths",
         "Game.Research",
         "Game.Action",
-        "UniRx",
-        "Game.Train"
+        "UniRx"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
