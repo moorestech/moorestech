@@ -67,13 +67,31 @@ namespace Server.Protocol.PacketResponse
                     return ResponseRailConnectionEditMessagePack.CreateFailure(RailConnectionEditFailureReason.InvalidNode, data.Mode);
                 }
 
+                if (IsStationInternalEdge(fromNode, toNode))
+                {
+                    return ResponseRailConnectionEditMessagePack.CreateFailure(RailConnectionEditFailureReason.StationInternalEdge, data.Mode);
+                }
+
                 if (!_railPositionManager.CanRemoveEdge(fromNode, toNode))
+                {
+                    return ResponseRailConnectionEditMessagePack.CreateFailure(RailConnectionEditFailureReason.NodeInUseByTrain, data.Mode);
+                }
+                if (!_railPositionManager.CanRemoveEdge(toNode.OppositeRailNode, fromNode.OppositeRailNode))
                 {
                     return ResponseRailConnectionEditMessagePack.CreateFailure(RailConnectionEditFailureReason.NodeInUseByTrain, data.Mode);
                 }
 
                 var disconnected = _commandHandler.TryDisconnect(data.FromNodeId, data.FromGuid, data.ToNodeId, data.ToGuid);
                 return ResponseRailConnectionEditMessagePack.Create(disconnected, disconnected ? RailConnectionEditFailureReason.None : RailConnectionEditFailureReason.UnknownError, data.Mode);
+            }
+
+            bool IsStationInternalEdge(RailNode from, RailNode to)
+            {
+                if (!from.StationRef.HasStation || !to.StationRef.HasStation)
+                {
+                    return false;
+                }
+                return from.StationRef.StationBlockInstanceId.Equals(to.StationRef.StationBlockInstanceId);
             }
 
             #endregion
@@ -156,6 +174,7 @@ namespace Server.Protocol.PacketResponse
             None,
             InvalidNode,
             NodeInUseByTrain,
+            StationInternalEdge,
             InvalidMode,
             UnknownError,
         }
