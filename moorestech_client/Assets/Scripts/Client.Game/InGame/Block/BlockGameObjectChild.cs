@@ -1,3 +1,4 @@
+using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState.State;
 using UnityEngine;
 
@@ -26,6 +27,12 @@ namespace Client.Game.InGame.Block
         {
             reason = null;
             return true;
+        }
+        
+        public void Delete()
+        {
+            var blockPosition = BlockGameObject.BlockPosInfo.OriginalPos;
+            ClientContext.VanillaApi.SendOnly.BlockRemove(blockPosition);
         }
     }
 }

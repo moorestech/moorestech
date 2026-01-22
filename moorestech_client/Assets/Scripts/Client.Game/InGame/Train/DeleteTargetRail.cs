@@ -1,3 +1,4 @@
+using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState.State;
 using Game.Train.RailGraph;
 using UnityEngine;
@@ -50,6 +51,19 @@ namespace Client.Game.InGame.Train
                 _ => null,
             };
             return canDelete == DeleteDeniedReason.None;
+        }
+        
+        public void Delete()
+        {
+            var carrier = RailObjectIdCarrier;
+            var railObjectId = carrier.GetRailObjectId();
+            var fromId = unchecked((int)(uint)railObjectId);
+            var toId = unchecked((int)(uint)(railObjectId >> 32));
+            
+            if (!_railGraphClientCache.TryGetNode(fromId, out var fromNode)) return;
+            if (!_railGraphClientCache.TryGetNode(toId, out var toNode)) return;
+            
+            ClientContext.VanillaApi.SendOnly.DisconnectRail(fromNode.NodeId, fromNode.NodeGuid, toNode.NodeId, toNode.NodeGuid);
         }
         
         private DeleteDeniedReason CanDelete()
