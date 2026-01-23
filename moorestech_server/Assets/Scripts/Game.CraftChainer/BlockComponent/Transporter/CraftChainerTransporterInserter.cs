@@ -50,6 +50,11 @@ namespace Game.CraftChainer.BlockComponent
             return targets.First().Value.SelfConnector;
         }
 
+        public BlockConnectInfoElement PeekNextGoalConnector(System.Collections.Generic.List<IItemStack> itemStacks)
+        {
+            return GetNextGoalConnector();
+        }
+
         public BlockConnectInfoElement GetNextGoalConnector(System.Collections.Generic.List<IItemStack> itemStacks)
         {
             return GetNextGoalConnector();
@@ -95,5 +100,6 @@ namespace Game.CraftChainer.BlockComponent
                 return false;
             }
         }
+
     }
 }

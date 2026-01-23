@@ -4625,7 +4625,7 @@
       "blockType": "GearBeltConveyor",
       "blockParam": {
         "requireTorque": 1,
-        "beltConveyorSpeed": 0.01,
+        "beltConveyorSpeed": 2,
         "beltConveyorItemCount": 4,
         "gear": {
           "gearConnects": [
