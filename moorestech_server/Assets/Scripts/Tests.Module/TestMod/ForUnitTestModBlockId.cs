@@ -34,6 +34,7 @@ namespace Tests.Module.TestMod
         public static BlockId Teeth20RequireTorqueTestGear => GetBlock("00000000-0000-0000-0000-000000000013");
         public static BlockId InfinityTorqueSimpleGearGenerator => GetBlock("00000000-0000-0000-0000-000000000014");
         public static BlockId GearBeltConveyor => GetBlock("00000000-0000-0000-0000-000000000015");
+        public static BlockId GearBeltConveyorSplitter => GetBlock("eccb9f59-4439-4caf-9ae8-67da50549040");
         
         public static BlockId StraightItemShooter => GetBlock("00000000-0000-0000-0000-000000000016");
         public static BlockId DownItemShooter => GetBlock("00000000-0000-0000-0000-000000000017");
