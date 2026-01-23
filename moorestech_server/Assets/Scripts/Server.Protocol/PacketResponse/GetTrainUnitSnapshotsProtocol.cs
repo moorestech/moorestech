@@ -1,5 +1,4 @@
-﻿using Game.Train.Common;
-using Game.Train.Train;
+﻿using Game.Train.Unit;
 using MessagePack;
 using Server.Util.MessagePack;
 using System;

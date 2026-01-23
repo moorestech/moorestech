@@ -1,8 +1,7 @@
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Interface.Component;
-using Game.Train.Common;
-using Game.Train.Train;
+using Game.Train.Unit;
 using Mooresmaster.Model.BlocksModule;
 using Newtonsoft.Json;
 using System;

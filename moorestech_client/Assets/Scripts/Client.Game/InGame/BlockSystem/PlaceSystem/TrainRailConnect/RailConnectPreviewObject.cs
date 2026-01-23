@@ -1,6 +1,6 @@
 using Client.Common;
 using Client.Game.InGame.Block;
-using Client.Game.InGame.Train;
+using Client.Game.InGame.Train.RailGraph;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect

@@ -1,4 +1,4 @@
-﻿using Game.Train.Common;
+﻿using Game.Train.Unit;
 using Game.Train.RailGraph;
 using MessagePack;
 using Server.Event;
@@ -25,7 +25,7 @@ namespace Server.Event.EventReceive
             railGraphDatastore.GetRailNodeRemovedEvent().Subscribe(OnNodeRemoved);
         }
 
-        private void OnNodeRemoved(RailNodeRemovalNotifier.RailNodeRemovedData data)
+        private void OnNodeRemoved(RailNodeRemovedData data)
         {
             // ノード削除メッセージをシリアライズ
             // Serialize node removal payload
