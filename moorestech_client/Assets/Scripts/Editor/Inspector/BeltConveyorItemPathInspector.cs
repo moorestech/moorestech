@@ -18,6 +18,13 @@ public class BeltConveyorItemPathInspector : Editor
     private static readonly Color ControlPointColor = Color.red;
     private static readonly Color ControlLineColor = new Color(1f, 0.5f, 0f, 0.7f);
 
+    // 選択解除時にデフォルトギズモを復元
+    // Restore default gizmo when deselected
+    private void OnDisable()
+    {
+        Tools.hidden = false;
+    }
+
     public override void OnInspectorGUI()
     {
         var pathComponent = target as BeltConveyorItemPath;
