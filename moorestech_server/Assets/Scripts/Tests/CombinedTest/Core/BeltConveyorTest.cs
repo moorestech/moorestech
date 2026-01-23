@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.BeltConveyor;
+using Game.Block.Blocks.Chest;
 using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
+using Game.Gear.Common;
 using Mooresmaster.Model.BlockConnectInfoModule;
 using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
@@ -161,6 +163,85 @@ namespace Tests.CombinedTest.Core
                 Assert.True(item1Out.Equals(item1.SubItem(1)));
                 Assert.True(item2Out.Equals(item2));
             }
+        }
+
+        // 歯車ベルトコンベアスプリッタが2方向に分配できるかのテスト
+        [Test]
+        public void GearBeltConveyorSplitterDistributesToTwoChestsTest()
+        {
+            // テスト環境を初期化する
+            // Initialize test environment
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            var itemStackFactory = ServerContext.ItemStackFactory;
+
+            // スプリッター本体とチェストを配置する
+            // Place splitter and chests
+            var splitterPosition = Vector3Int.zero;
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearBeltConveyorSplitter, splitterPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var splitterBlock);
+            var gearBeltConveyorComponent = splitterBlock.GetComponent<GearBeltConveyorComponent>();
+            var sourceChestPosition = new Vector3Int(0, 0, -1);
+            var outputChestPositionA = new Vector3Int(0, 0, 1);
+            var outputChestPositionB = new Vector3Int(-1, 0, 0);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, sourceChestPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var sourceChestBlock);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, outputChestPositionA, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var outputChestBlockA);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, outputChestPositionB, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var outputChestBlockB);
+            var sourceChest = sourceChestBlock.GetComponent<VanillaChestComponent>();
+            var outputChestA = outputChestBlockA.GetComponent<VanillaChestComponent>();
+            var outputChestB = outputChestBlockB.GetComponent<VanillaChestComponent>();
+
+            // 歯車ネットワークを構築して搬送を有効化する
+            // Build gear network to enable transport
+            var generatorPosition = new Vector3Int(1, 0, 0);
+            var gearPosition = new Vector3Int(2, 0, 0);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.InfinityTorqueSimpleGearGenerator, generatorPosition, BlockDirection.East, Array.Empty<BlockCreateParam>(), out var generatorBlock);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPosition, BlockDirection.East, Array.Empty<BlockCreateParam>(), out var gearBlock);
+
+            // 入力チェストにアイテムを投入する
+            // Insert items into source chest
+            var itemId = new ItemId(1);
+            var itemStack = itemStackFactory.Create(itemId, 4);
+            sourceChest.SetItem(0, itemStack);
+
+            // 両チェストへの分配完了を待つ
+            // Wait for distribution to both chests
+            var splitterParam = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearBeltConveyorSplitter).BlockParam as GearBeltConveyorBlockParam;
+            var startTime = DateTime.Now;
+            var timeoutTime = startTime.AddSeconds(20);
+            while (DateTime.Now <= timeoutTime && !IsDistributed(outputChestA, outputChestB, itemId))
+            {
+                // スプリッターに歯車エネルギーを供給する
+                // Supply gear energy to splitter
+                gearBeltConveyorComponent.SupplyPower(new RPM(10), new Torque(splitterParam.RequireTorque), true);
+                GameUpdater.UpdateWithWait();
+            }
+
+            Assert.AreEqual(2, GetItemCount(outputChestA, itemId));
+            Assert.AreEqual(2, GetItemCount(outputChestB, itemId));
+
+            #region Internal
+
+            int GetItemCount(VanillaChestComponent chest, ItemId targetItemId)
+            {
+                // 対象アイテムの合計数を集計する
+                // Aggregate total count for target item
+                var total = 0;
+                foreach (var stack in chest.InventoryItems)
+                {
+                    if (stack.Id != targetItemId) continue;
+                    total += stack.Count;
+                }
+                return total;
+            }
+
+            bool IsDistributed(VanillaChestComponent chestLeft, VanillaChestComponent chestRight, ItemId targetItemId)
+            {
+                // 左右のチェストが必要数を受け取ったか確認する
+                // Check if both chests received required count
+                return GetItemCount(chestLeft, targetItemId) >= 2 && GetItemCount(chestRight, targetItemId) >= 2;
+            }
+
+            #endregion
         }
     }
 }
