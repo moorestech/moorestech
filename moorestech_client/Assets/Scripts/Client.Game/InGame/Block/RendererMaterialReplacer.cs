@@ -18,6 +18,8 @@ namespace Client.Game.InGame.Block
         private readonly Renderer _renderer;
         private readonly List<Material> _originalMaterials = new();
         private readonly List<Material> _replacedMaterials = new();
+        private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
+        private static readonly int ColorId = Shader.PropertyToID("_Color");
         
         public RendererMaterialReplacer(Renderer renderer)
         {
@@ -45,7 +47,7 @@ namespace Client.Game.InGame.Block
             foreach (var material in _renderer.sharedMaterials)
             {
                 var mainTexture = material.mainTexture;
-                var mainColor = material.color;
+                var mainColor = ResolveMainColor(material);
                 
                 var newMaterial = new Material(placeMaterial)
                 {
@@ -59,6 +61,15 @@ namespace Client.Game.InGame.Block
             }
             
             _renderer.materials = _replacedMaterials.ToArray();
+        }
+
+        private static Color ResolveMainColor(Material material)
+        {
+            // カラープロパティが無い場合は白を使う
+            // Use white when the shader has no color property
+            if (material.HasProperty(BaseColorId)) return material.GetColor(BaseColorId);
+            if (material.HasProperty(ColorId)) return material.GetColor(ColorId);
+            return Color.white;
         }
         
         public void SetPlaceMaterialProperty(string propertyName, float value)

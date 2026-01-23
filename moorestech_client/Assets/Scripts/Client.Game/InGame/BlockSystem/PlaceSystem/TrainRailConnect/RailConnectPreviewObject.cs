@@ -1,5 +1,4 @@
-using Client.Common;
-using Client.Game.InGame.Block;
+﻿using Client.Common;
 using Client.Game.InGame.Train.RailGraph;
 using UnityEngine;
 
@@ -10,13 +9,22 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         [SerializeField] private BezierRailChain _railChainPrefab;
         private TrainRailConnectPreviewData _previewDataCache;
         private BezierRailChain _railChain;
-        private RendererMaterialReplacerController _rendererMaterialReplacer;
-        private Material _placeMaterial;
+        private Material _previewMaterial;
+        private Color _previewColor = MaterialConst.PlaceableColor;
         
         private void Start()
         {
             _railChain = Instantiate(_railChainPrefab);
-            _placeMaterial = Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial);
+            // プレビュー用にGPU変形と軽量構成を設定する
+            // Configure GPU deformation and lightweight preview settings
+            _railChain.SetUseGpuDeform(true);
+            _railChain.SetUseMeshCollider(false);
+            _railChain.SetEnableDeleteTarget(false);
+            _railChain.SetEnableRemovePreviewMaterial(false);
+            // プレビューマテリアルから色を取得する
+            // Resolve preview color from the preview material
+            _previewMaterial = Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial);
+            if (_previewMaterial != null && _previewMaterial.HasProperty(MaterialConst.PreviewColorPropertyName)) _previewColor = _previewMaterial.GetColor(MaterialConst.PreviewColorPropertyName);
         }
         
         public void SetActive(bool active)
@@ -37,8 +45,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             {
                 _railChain.SetControlPoints(data.StartPoint, data.StartControlPoint, data.EndControlPoint, data.EndPoint);
                 _railChain.Rebuild();
-                _rendererMaterialReplacer = new RendererMaterialReplacerController(_railChain.gameObject);
-                _rendererMaterialReplacer.CopyAndSetMaterial(_placeMaterial);
+                _railChain.SetPreviewColor(_previewColor);
+                // マテリアル更新後にGPU変形のパラメータを再適用する
+                // Reapply shader parameters after material update
+                _railChain.RefreshGpuDeform();
                 _previewDataCache = data;
             }
         }
