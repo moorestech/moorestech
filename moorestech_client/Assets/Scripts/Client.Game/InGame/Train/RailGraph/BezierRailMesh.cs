@@ -50,6 +50,9 @@ namespace Client.Game.InGame.Train.RailGraph
         private Material[] _runtimeMaterials;
 
         private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
+        private static readonly int BaseMapId = Shader.PropertyToID("_BaseMap");
+        private static readonly int MainTexId = Shader.PropertyToID("_MainTex");
+        private static readonly int ColorId = Shader.PropertyToID("_Color");
         private static readonly int DeformP0Id = Shader.PropertyToID("_BezierP0");
         private static readonly int DeformP1Id = Shader.PropertyToID("_BezierP1");
         private static readonly int DeformP2Id = Shader.PropertyToID("_BezierP2");
@@ -392,6 +395,7 @@ namespace Client.Game.InGame.Train.RailGraph
                 var runtime = new Material(shader);
                 if (baseMaterial != null)
                     runtime.CopyPropertiesFromMaterial(baseMaterial);
+                SyncMaterialProperties(baseMaterial, runtime);
                 _runtimeMaterials[i] = runtime;
             }
 
@@ -412,6 +416,30 @@ namespace Client.Game.InGame.Train.RailGraph
                     continue;
                 runtime.shader = shader;
             }
+        }
+
+        private static void SyncMaterialProperties(Material baseMaterial, Material runtime)
+        {
+            if (baseMaterial == null || runtime == null)
+                return;
+
+            // ベースマップ設定を補完する
+            // Sync base map properties
+            if (runtime.HasProperty(BaseMapId) && (baseMaterial.HasProperty(BaseMapId) || baseMaterial.HasProperty(MainTexId)))
+            {
+                runtime.mainTexture = baseMaterial.mainTexture;
+                runtime.mainTextureOffset = baseMaterial.mainTextureOffset;
+                runtime.mainTextureScale = baseMaterial.mainTextureScale;
+            }
+
+            // ベースカラー設定を補完する
+            // Sync base color properties
+            if (!runtime.HasProperty(BaseColorId))
+                return;
+            if (baseMaterial.HasProperty(BaseColorId))
+                runtime.SetColor(BaseColorId, baseMaterial.GetColor(BaseColorId));
+            else if (baseMaterial.HasProperty(ColorId))
+                runtime.SetColor(BaseColorId, baseMaterial.GetColor(ColorId));
         }
 
         private void ReleaseRuntimeMaterials()
