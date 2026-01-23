@@ -200,7 +200,8 @@ namespace Tests.CombinedTest.Core
             // 入力チェストにアイテムを投入する
             // Insert items into source chest
             var itemId = new ItemId(1);
-            var itemStack = itemStackFactory.Create(itemId, 4);
+            const int itemCount = 40;
+            var itemStack = itemStackFactory.Create(itemId, itemCount);
             sourceChest.SetItem(0, itemStack);
 
             // 両チェストへの分配完了を待つ
@@ -208,16 +209,16 @@ namespace Tests.CombinedTest.Core
             var splitterParam = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearBeltConveyorSplitter).BlockParam as GearBeltConveyorBlockParam;
             var startTime = DateTime.Now;
             var timeoutTime = startTime.AddSeconds(20);
-            while (DateTime.Now <= timeoutTime && !IsDistributed(outputChestA, outputChestB, itemId))
+            while (DateTime.Now <= timeoutTime && !IsDistributed(outputChestA, outputChestB, itemId, itemCount))
             {
                 // スプリッターに歯車エネルギーを供給する
                 // Supply gear energy to splitter
-                gearBeltConveyorComponent.SupplyPower(new RPM(10), new Torque(splitterParam.RequireTorque), true);
+                gearBeltConveyorComponent.SupplyPower(new RPM(20), new Torque(splitterParam.RequireTorque), true);
                 GameUpdater.UpdateWithWait();
             }
-
-            Assert.AreEqual(2, GetItemCount(outputChestA, itemId));
-            Assert.AreEqual(2, GetItemCount(outputChestB, itemId));
+            
+            Assert.AreEqual(itemCount / 2, GetItemCount(outputChestB, itemId));
+            Assert.AreEqual(itemCount / 2, GetItemCount(outputChestA, itemId));
 
             #region Internal
 
@@ -234,11 +235,12 @@ namespace Tests.CombinedTest.Core
                 return total;
             }
 
-            bool IsDistributed(VanillaChestComponent chestLeft, VanillaChestComponent chestRight, ItemId targetItemId)
+            bool IsDistributed(VanillaChestComponent chestLeft, VanillaChestComponent chestRight, ItemId targetItemId, int insertCount)
             {
                 // 左右のチェストが必要数を受け取ったか確認する
                 // Check if both chests received required count
-                return GetItemCount(chestLeft, targetItemId) >= 2 && GetItemCount(chestRight, targetItemId) >= 2;
+                var chestCount = insertCount / 2;
+                return GetItemCount(chestLeft, targetItemId) >= chestCount && GetItemCount(chestRight, targetItemId) >= chestCount;
             }
 
             #endregion
