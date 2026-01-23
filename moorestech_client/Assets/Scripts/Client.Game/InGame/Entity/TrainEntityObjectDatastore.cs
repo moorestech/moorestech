@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.Entity.Factory;
 using Client.Game.InGame.Entity.Object;
-using Client.Game.InGame.Train;
+using Client.Game.InGame.Train.Unit;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
 using UnityEngine;

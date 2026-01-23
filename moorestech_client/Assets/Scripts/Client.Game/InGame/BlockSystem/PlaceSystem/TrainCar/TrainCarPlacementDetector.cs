@@ -1,9 +1,10 @@
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
-using Client.Game.InGame.Train;
+using Client.Game.InGame.Train.RailGraph;
 using Core.Master;
 using Game.Train.RailGraph;
-using Game.Train.Train;
-using Game.Train.Utility;
+using Game.Train.RailCalc;
+using Game.Train.RailPositions;
+using Game.Train.Unit;
 using Mooresmaster.Model.TrainModule;
 using UnityEngine;
 using static Client.Common.LayerConst;

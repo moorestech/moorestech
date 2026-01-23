@@ -1,4 +1,4 @@
-﻿using Game.Train.Common;
+﻿using Game.Train.Diagram;
 using MessagePack;
 using Server.Util.MessagePack;
 using UniRx;

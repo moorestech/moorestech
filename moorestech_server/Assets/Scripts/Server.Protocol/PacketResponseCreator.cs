@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Game.PlayerInventory.Interface;
-using Game.Train.Common;
+using Game.Train.Unit;
 using Game.Train.RailGraph;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;

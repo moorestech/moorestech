@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.Entity.Factory;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
-using Client.Game.InGame.Train;
+using Client.Game.InGame.Train.Unit;
 using UnityEngine;
 using VContainer;
 
