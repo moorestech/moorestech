@@ -113,14 +113,14 @@ namespace Client.Game.InGame.UI.UIState.State
                 // Show cursor
                 InputManager.MouseCursorVisible(true);
                 
-                // UIオブジェクトを生成
+                // インベントリデータを取得
+                // Fetch inventory data and initialize
+                var inventoryData = await ClientContext.VanillaApi.Response.GetInventory(_subInventorySource.InventoryIdentifier, ct);
+                
+                // UIオブジェクトを生成し初期化
                 // Instantiate UI object
                 var instantiatedView = ClientDIContext.DIContainer.Instantiate(loadedInventory.Asset, _playerInventoryViewController.SubInventoryParent);
                 _currentView = instantiatedView.GetComponent<ISubInventoryView>();
-                
-                // インベントリデータを取得し初期化
-                // Fetch inventory data and initialize
-                var inventoryData = await ClientContext.VanillaApi.Response.GetInventory(_subInventorySource.InventoryIdentifier, ct);
                 _subInventorySource.ExecuteInitialize(_currentView);
                 _currentView.UpdateItemList(inventoryData);
                 
