@@ -4614,6 +4614,158 @@
         "baseDestructionProbability": 0
       },
       "overrideVerticalBlock": {}
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "GearBeltConveyorSplitter",
+      "blockType": "GearBeltConveyor",
+      "blockParam": {
+        "requireTorque": 1,
+        "beltConveyorSpeed": 0.01,
+        "beltConveyorItemCount": 4,
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ],
+              "connectorGuid": "37429f01-2c6d-4127-88cc-72c0bca3d7a5"
+            }
+          ]
+        },
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "connectType": "Inventory",
+              "connectorGuid": "70feded1-8116-44a3-9e47-5de749ed42d0",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ],
+          "outputConnects": [
+            {
+              "connectType": "Inventory",
+              "connectorGuid": "14d6e747-ea5b-4791-bd7c-7fdcca100832",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            },
+            {
+              "connectType": "Inventory",
+              "connectorGuid": "455ab40e-0fae-4e1d-bbc8-7b5802fcddaa",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  -1,
+                  0
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            },
+            {
+              "connectType": "Inventory",
+              "connectorGuid": "7c7aead7-1fbc-4a6e-a35b-06094d7bdbee",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  -1,
+                  0
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ]
+        },
+        "slopeType": "Straight",
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0
+      },
+      "itemGuid": "fa9df7cd-b3ba-4df0-9f86-f477e1a8a30e",
+      "blockGuid": "eccb9f59-4439-4caf-9ae8-67da50549040",
+      "overrideVerticalBlock": {}
     }
   ],
   "gearChainItems": [
