@@ -3,6 +3,8 @@
 
 id: fluidConnectOption
 type: object
+implementationInterface:
+  - IBlockConnectOption
 properties:
 - key: flowCapacity
   type: number
