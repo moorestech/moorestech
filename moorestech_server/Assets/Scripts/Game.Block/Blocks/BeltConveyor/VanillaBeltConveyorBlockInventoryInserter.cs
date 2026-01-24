@@ -14,7 +14,7 @@ namespace Game.Block.Blocks.BeltConveyor
     public interface IBeltConveyorBlockInventoryInserter : IBlockInventoryInserter
     {
         IItemStack InsertItem(IItemStack itemStack, BlockConnectInfoElement goalConnector);
-        BlockConnectInfoElement GetNextGoalConnector();
+        BlockConnectInfoElement PeekNextGoalConnector(List<IItemStack> itemStacks);
         BlockConnectInfoElement GetNextGoalConnector(List<IItemStack> itemStacks);
         bool IsValidGoalConnector(BlockConnectInfoElement goalConnector);
         int ConnectedCount { get; }
@@ -105,30 +105,38 @@ namespace Game.Block.Blocks.BeltConveyor
         }
 
         /// <summary>
-        /// 最初のGoalConnectorを取得
-        /// Get first goal connector
+        /// 挿入可能なGoalConnectorを取得（インデックスを進めない）
+        /// Get insertable goal connector (without advancing index)
         /// </summary>
-        public BlockConnectInfoElement GetNextGoalConnector()
+        public BlockConnectInfoElement PeekNextGoalConnector(List<IItemStack> itemStacks)
         {
             var targets = _blockConnectorComponent.ConnectedTargets;
             if (targets.Count == 0) return null;
 
-            // ラウンドロビンでGoalConnectorを選択する
-            // Select goal connector with round robin
-            return GetNextTarget(targets).Value.SelfConnector;
+            // 挿入可能な接続先を探す（インデックスを進めない）
+            // Find insertable connector (without advancing index)
+            var targetsList = targets.ToArray();
+            for (var i = 0; i < targetsList.Length; i++)
+            {
+                var target = PeekNextTarget(targets, i);
+                if (!target.Key.InsertionCheck(itemStacks)) continue;
+                return target.Value.SelfConnector;
+            }
+
+            return null;
         }
 
         /// <summary>
-        /// 挿入可能なGoalConnectorを取得
-        /// Get insertable goal connector
+        /// 挿入可能なGoalConnectorを取得（インデックスを進める）
+        /// Get insertable goal connector (advances index)
         /// </summary>
         public BlockConnectInfoElement GetNextGoalConnector(List<IItemStack> itemStacks)
         {
             var targets = _blockConnectorComponent.ConnectedTargets;
             if (targets.Count == 0) return null;
 
-            // 挿入可能な接続先をラウンドロビンで選択する
-            // Select insertable connector with round robin
+            // 挿入可能な接続先をラウンドロビンで選択する（インデックスを進める）
+            // Select insertable connector with round robin (advances index)
             var targetsList = targets.ToArray();
             for (var i = 0; i < targetsList.Length; i++)
             {
@@ -188,6 +196,18 @@ namespace Game.Block.Blocks.BeltConveyor
             _roundRobinIndex++;
             if (_roundRobinIndex >= targetsList.Length) _roundRobinIndex = 0;
             return targetsList[_roundRobinIndex];
+        }
+
+        private KeyValuePair<IBlockInventory, ConnectedInfo> PeekNextTarget(IReadOnlyDictionary<IBlockInventory, ConnectedInfo> targets, int offset)
+        {
+            var targetsList = targets.ToArray();
+            if (targetsList.Length == 0) return default;
+
+            // 現在のインデックス + オフセットのターゲットを取得する（インデックスは進めない）
+            // Get target at current index + offset (without advancing index)
+            var index = (_roundRobinIndex + 1 + offset) % targetsList.Length;
+            if (index < 0) index += targetsList.Length;
+            return targetsList[index];
         }
     }
 }

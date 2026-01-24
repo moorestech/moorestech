@@ -61,8 +61,8 @@ namespace Game.Block.Blocks.BeltConveyor
 
             var checkItems = new List<IItemStack> { ServerContext.ItemStackFactory.Create(itemStack.Id, 1, itemStack.ItemInstanceId) };
 
-            // 接続先がある場合のみ挿入可否を判定する
-            // Only validate destination when connectors exist
+            // 接続先がある場合のみ挿入可否を判定し、GoalConnectorを取得する（インデックスを進める）
+            // Validate destination and get GoalConnector (advances index)
             var goalConnector = _blockInventoryInserter.GetNextGoalConnector(checkItems);
             if (_blockInventoryInserter.HasAnyConnector && goalConnector == null) return itemStack;
 
@@ -115,9 +115,9 @@ namespace Game.Block.Blocks.BeltConveyor
             // Allow insertion when no connectors exist
             if (!_blockInventoryInserter.HasAnyConnector) return true;
 
-            // 接続先が存在するか確認する
-            // Ensure there is an available destination
-            return _blockInventoryInserter.GetNextGoalConnector(itemStacks) != null;
+            // 接続先が存在するか確認する（インデックスを進めない）
+            // Ensure there is an available destination (without advancing index)
+            return _blockInventoryInserter.PeekNextGoalConnector(itemStacks) != null;
         }
 
         private bool HasInsertableSlot()
@@ -157,9 +157,9 @@ namespace Game.Block.Blocks.BeltConveyor
         public void SetItem(int slot, IItemStack itemStack)
         {
             BlockException.CheckDestroy(this);
-
+            
             //TODO lockすべき？？
-            var goalConnector = _blockInventoryInserter?.GetNextGoalConnector();
+            var goalConnector = _blockInventoryInserter?.GetNextGoalConnector(new List<IItemStack> {itemStack});
             _inventoryItems[slot] = new VanillaBeltConveyorInventoryItem(itemStack.Id, itemStack.ItemInstanceId, null, goalConnector);
         }
         
@@ -224,7 +224,7 @@ namespace Game.Block.Blocks.BeltConveyor
                     var insertItem = ServerContext.ItemStackFactory.Create(item.ItemId, 1, item.ItemInstanceId);
 
                     var output = _blockInventoryInserter.InsertItem(insertItem, item.GoalConnector);
-                    
+
                     //渡した結果がnullItemだったらそのアイテムを消す
                     if (output.Id == ItemMaster.EmptyItemId) _inventoryItems[i] = null;
 
@@ -249,8 +249,10 @@ namespace Game.Block.Blocks.BeltConveyor
                 // Resolve by Guid before fallback when current GoalConnector is invalid
                 if (_blockInventoryInserter.IsValidGoalConnector(targetItem.GoalConnector)) return;
 
+                // 挿入可能な接続先を探す（インデックスを進めない）
+                // Find insertable connector (without advancing index)
                 var checkItems = new List<IItemStack> { ServerContext.ItemStackFactory.Create(targetItem.ItemId, 1, targetItem.ItemInstanceId) };
-                var goalConnector = _blockInventoryInserter.GetNextGoalConnector(checkItems);
+                var goalConnector = _blockInventoryInserter.PeekNextGoalConnector(checkItems);
                 if (goalConnector == null) return;
                 targetItem.SetGoalConnector(goalConnector);
             }

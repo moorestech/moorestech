@@ -523,6 +523,19 @@
       "recipeViewType": "ForceView",
       "initialUnlocked": true,
       "handGrabModelAddressablePath": ""
+    },
+    {
+      "itemGuid": "fa9df7cd-b3ba-4df0-9f86-f477e1a8a30e",
+      "imagePath": "",
+      "name": "GearBeltConveyorSplitter",
+      "maxStack": 100,
+      "sortPriority": 820,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "addressablePaths": {
+        "handGrabModel": "",
+        "entityModel": ""
+      }
     }
   ]
 }
