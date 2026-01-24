@@ -1,7 +1,7 @@
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.BeltConveyor;
-using Game.Block.Interface.Component;
+using Mooresmaster.Model.BlockConnectInfoModule;
 
 namespace Game.Block.Blocks.ItemShooter
 {
@@ -13,13 +13,13 @@ namespace Game.Block.Blocks.ItemShooter
 
         public double RemainingPercent { get; set; }
 
-        public IBlockConnector StartConnector { get; }
+        public BlockConnectInfoElement StartConnector { get; }
 
-        public IBlockConnector GoalConnector { get; set; }
+        public BlockConnectInfoElement GoalConnector { get; set; }
 
         public float CurrentSpeed { get; set; }
 
-        public ShooterInventoryItem(ItemId itemId, ItemInstanceId itemInstanceId, float currentSpeed, IBlockConnector startConnector, IBlockConnector goalConnector)
+        public ShooterInventoryItem(ItemId itemId, ItemInstanceId itemInstanceId, float currentSpeed, BlockConnectInfoElement startConnector, BlockConnectInfoElement goalConnector)
         {
             ItemId = itemId;
             ItemInstanceId = itemInstanceId;

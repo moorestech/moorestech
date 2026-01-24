@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
+using Mooresmaster.Model.BlockConnectInfoModule;
 
 namespace Game.Gear.Common
 {
@@ -8,9 +9,9 @@ namespace Game.Gear.Common
     {
         public const string WorkingStateName = "Working";
         public const string RockedStateName = "Rocked";
-
+        
         public BlockInstanceId BlockInstanceId { get; }
-
+        
         public GearPower CurrentPower => new(CurrentRpm.AsPrimitive() * CurrentTorque.AsPrimitive());
         public RPM CurrentRpm { get; }
         public Torque CurrentTorque { get; }
@@ -20,17 +21,17 @@ namespace Game.Gear.Common
 
         public void StopNetwork();
         public void SupplyPower(RPM rpm, Torque torque, bool isClockwise);
-
+        
         public List<GearConnect> GetGearConnects();
     }
-
+    
     public readonly struct GearConnect
     {
         public readonly IGearEnergyTransformer Transformer;
-        public readonly IGearConnectOption Self;
-        public readonly IGearConnectOption Target;
-
-        public GearConnect(IGearEnergyTransformer transformer, IGearConnectOption self, IGearConnectOption target)
+        public readonly GearConnectOption Self;
+        public readonly GearConnectOption Target;
+        
+        public GearConnect(IGearEnergyTransformer transformer, GearConnectOption self, GearConnectOption target)
         {
             Transformer = transformer;
             Self = self;

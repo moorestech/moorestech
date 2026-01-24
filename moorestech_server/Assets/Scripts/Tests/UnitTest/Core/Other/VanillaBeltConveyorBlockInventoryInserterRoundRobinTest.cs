@@ -6,7 +6,7 @@ using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
-
+using Mooresmaster.Model.BlockConnectInfoModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module;
@@ -84,9 +84,9 @@ namespace Tests.UnitTest.Core.Other
             return result;
         }
 
-        private static IBlockConnector CreateInventoryConnector(int index, Guid connectorGuid)
+        private static BlockConnectInfoElement CreateInventoryConnector(int index, Guid connectorGuid)
         {
-            return BlockConnectorAdapter.CreateForTest(connectorGuid, Vector3Int.zero, Array.Empty<Vector3Int>());
+            return new BlockConnectInfoElement(index, "Inventory", connectorGuid, Vector3Int.zero, Array.Empty<Vector3Int>(), null);
         }
 
         private sealed class RoundRobinTarget
