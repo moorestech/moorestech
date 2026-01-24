@@ -8,8 +8,6 @@ properties:
   type: array
   items:
     type: object
-    implementationInterface:
-      - IBlockConnector
     properties:
     - key: connectorGuid
       type: uuid
