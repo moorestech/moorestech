@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Component;
@@ -38,12 +39,13 @@ namespace Tests.UnitTest.Core.Other
             connectedTargets.Clear();
             foreach (var target in targets) connectedTargets.Add(target.Inventory, target.ConnectedInfo);
 
-            // GetFirstGoalConnectorが巡回するか確認する
-            // Verify GetFirstGoalConnector cycles
-            var first = inserter.GetNextGoalConnector();
-            var second = inserter.GetNextGoalConnector();
-            var third = inserter.GetNextGoalConnector();
-            var fourth = inserter.GetNextGoalConnector();
+            // GetNextGoalConnectorが巡回するか確認する
+            // Verify GetNextGoalConnector cycles
+            var emptyItemStacks = new List<IItemStack>();
+            var first = inserter.GetNextGoalConnector(emptyItemStacks);
+            var second = inserter.GetNextGoalConnector(emptyItemStacks);
+            var third = inserter.GetNextGoalConnector(emptyItemStacks);
+            var fourth = inserter.GetNextGoalConnector(emptyItemStacks);
 
             Assert.AreNotSame(first, second);
             Assert.AreNotSame(second, third);

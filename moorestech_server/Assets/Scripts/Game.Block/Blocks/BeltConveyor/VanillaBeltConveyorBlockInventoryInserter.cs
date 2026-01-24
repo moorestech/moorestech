@@ -14,7 +14,6 @@ namespace Game.Block.Blocks.BeltConveyor
     public interface IBeltConveyorBlockInventoryInserter : IBlockInventoryInserter
     {
         IItemStack InsertItem(IItemStack itemStack, BlockConnectInfoElement goalConnector);
-        BlockConnectInfoElement GetNextGoalConnector();
         BlockConnectInfoElement PeekNextGoalConnector(List<IItemStack> itemStacks);
         BlockConnectInfoElement GetNextGoalConnector(List<IItemStack> itemStacks);
         bool IsValidGoalConnector(BlockConnectInfoElement goalConnector);
@@ -103,20 +102,6 @@ namespace Game.Block.Blocks.BeltConveyor
             }
 
             #endregion
-        }
-
-        /// <summary>
-        /// 最初のGoalConnectorを取得
-        /// Get first goal connector
-        /// </summary>
-        public BlockConnectInfoElement GetNextGoalConnector()
-        {
-            var targets = _blockConnectorComponent.ConnectedTargets;
-            if (targets.Count == 0) return null;
-
-            // ラウンドロビンでGoalConnectorを選択する
-            // Select goal connector with round robin
-            return GetNextTarget(targets).Value.SelfConnector;
         }
 
         /// <summary>
