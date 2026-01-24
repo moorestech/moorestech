@@ -1,15 +1,16 @@
 using System;
 using System.Collections.Generic;
+using Game.Train.SaveLoad;
 using UnityEngine;
 
 namespace Game.Train.RailGraph
 {
     public interface IRailGraphDatastore : IRailGraphProvider
     {
-        IObservable<RailNodeInitializationNotifier.RailNodeInitializationData> GetRailNodeInitializedEvent();
-        IObservable<RailConnectionInitializationNotifier.RailConnectionInitializationData> GetRailConnectionInitializedEvent();
-        IObservable<RailNodeRemovalNotifier.RailNodeRemovedData> GetRailNodeRemovedEvent();
-        IObservable<RailConnectionRemovalNotifier.RailConnectionRemovalData> GetRailConnectionRemovedEvent();
+        IObservable<RailNodeInitializationData> GetRailNodeInitializedEvent();
+        IObservable<RailConnectionInitializationData> GetRailConnectionInitializedEvent();
+        IObservable<RailNodeRemovedData> GetRailNodeRemovedEvent();
+        IObservable<RailConnectionRemovalData> GetRailConnectionRemovedEvent();
         Dictionary<Vector3Int, (ConnectionDestination first, ConnectionDestination second)> GetRailPositionToConnectionDestination();
         void AddNodeSingle(RailNode node);
         void AddNodePair(RailNode node1, RailNode node2);

@@ -4,7 +4,7 @@ using Client.Network.Settings;
 using Core.Master;
 using Game.CraftChainer.CraftChain;
 using Game.CraftTree.Models;
-using Game.Train.Train;
+using Game.Train.RailPositions;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using Server.Util.MessagePack;

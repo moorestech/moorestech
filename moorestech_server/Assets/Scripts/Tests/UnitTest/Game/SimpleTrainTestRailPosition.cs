@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Game.Train.RailGraph;
+using Game.Train.RailPositions;
 using NUnit.Framework;
 using Tests.Util;
 

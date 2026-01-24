@@ -9,7 +9,7 @@ using Cysharp.Threading.Tasks;
 using Game.Context;
 using Game.CraftTree.Models;
 using Game.Research;
-using Game.Train.Train;
+using Game.Train.RailPositions;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using Server.Util.MessagePack;
