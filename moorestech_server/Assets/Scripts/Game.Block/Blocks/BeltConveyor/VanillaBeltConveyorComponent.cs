@@ -158,9 +158,7 @@ namespace Game.Block.Blocks.BeltConveyor
         {
             BlockException.CheckDestroy(this);
 
-            //TODO lockすべき？？
-            var goalConnector = _blockInventoryInserter?.GetNextGoalConnector();
-            _inventoryItems[slot] = new VanillaBeltConveyorInventoryItem(itemStack.Id, itemStack.ItemInstanceId, null, goalConnector);
+            _inventoryItems[slot] = new VanillaBeltConveyorInventoryItem(itemStack.Id, itemStack.ItemInstanceId, null, null);
         }
         
         public bool IsDestroy { get; private set; }
