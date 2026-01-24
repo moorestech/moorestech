@@ -91,6 +91,7 @@ implementationInterface:
 - 手動で `Mooresmaster.Model.*` クラスを作成しない
 - スキーマ変更後は必ず `_CompileRequester.cs` を更新してコミット
 
+
 ## Reference
 
 **MUST**: IF もし今から実行しようとしているタスクがYAMLを編集する必要がある場合 THEN 必ず [yaml_spec.md](references/yaml_spec.md) を確認してください。利用可能なプロパティ、型、設定オプションの完全なリファレンスが記載されています。
