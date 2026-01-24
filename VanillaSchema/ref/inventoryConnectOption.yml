@@ -3,6 +3,4 @@
 
 id: inventoryConnectOption
 type: object
-implementationInterface:
-  - IBlockConnectOption
 properties: []
