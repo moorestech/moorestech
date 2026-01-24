@@ -11,6 +11,7 @@
 ## Operation Flows
 
 ### 橋脚設置 (TrainRail ブロック)
+注: 本ドキュメントでは歴史的経緯により "TrainRail" を橋脚ブロック名として扱います（レール本体ではありません）。
 
 1. Client: `TrainRailPlaceSystem` が `RailBridgePierComponentStateDetail` を含む `PlaceInfo` を作成し、`PlaceSystemUtil.SendPlaceProtocol` -> `VanillaApiSendOnly.PlaceHotBarBlock` を送信します。(`moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/TrainRail/TrainRailPlaceSystem.cs`, `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Util/PlaceSystemUtil.cs`, `moorestech_client/Assets/Scripts/Client.Network/API/VanillaApiSendOnly.cs`)
 2. Server: `PlaceBlockFromHotBarProtocol` が `WorldBlockDatastore.TryAddBlock` を実行し、`VanillaTrainRailTemplate.New` が `RailComponent` を生成して `RailGraphDatastore` にノードを登録します。(`moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/PlaceBlockFromHotBarProtocol.cs`, `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaTrainRailTemplate.cs`)

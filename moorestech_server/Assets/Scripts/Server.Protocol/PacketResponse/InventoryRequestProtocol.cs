@@ -4,8 +4,8 @@ using System.Linq;
 using Core.Item.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
-using Game.Train.Common;
-using Game.Train.Train;
+using Game.Train.Unit;
+
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Util.MessagePack;

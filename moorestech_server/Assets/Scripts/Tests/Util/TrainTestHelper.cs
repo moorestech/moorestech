@@ -2,7 +2,9 @@
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
-using Game.Train.Common;
+using Game.Train.Diagram;
+using Game.Train.RailPositions;
+using Game.Train.Unit;
 using Game.Train.RailGraph;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;

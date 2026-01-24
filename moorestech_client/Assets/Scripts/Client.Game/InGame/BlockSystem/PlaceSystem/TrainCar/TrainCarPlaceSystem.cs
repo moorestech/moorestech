@@ -1,11 +1,10 @@
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Train.RailGraph;
 using Client.Input;
 using Cysharp.Threading.Tasks;
-using Game.Train.RailGraph;
-using Game.Train.Train;
+using Game.Train.RailPositions;
 using System.Threading;
 using UnityEngine;
-using Client.Game.InGame.Train;
 
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
