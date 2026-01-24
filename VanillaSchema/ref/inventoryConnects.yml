@@ -9,6 +9,8 @@ properties:
   optional: true
   items:
     type: object
+    implementationInterface:
+      - IBlockConnector
     properties:
     - key: connectorGuid
       type: uuid
@@ -31,6 +33,8 @@ properties:
   optional: true
   items:
     type: object
+    implementationInterface:
+      - IBlockConnector
     properties:
     - key: connectorGuid
       type: uuid

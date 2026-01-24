@@ -3,6 +3,8 @@
 
 id: gearConnectOption
 type: object
+implementationInterface:
+  - IBlockConnectOption
 properties:
 - key: isReverse
   type: boolean
