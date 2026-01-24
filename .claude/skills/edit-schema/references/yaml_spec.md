@@ -24,6 +24,7 @@
 | defineInterface | Define interface (root only) | object[] | Yes | Yes |
 | interfaceName | Interface name (in defineInterface) | string | Yes | Yes |
 | implementationInterface | Implement interfaces | string[] | Yes | Yes |
+| globalDefineInterface | Define global interface (root only) | object[] | Yes | Yes |
 
 ## Type Values
 
@@ -69,3 +70,35 @@ private const string dummyText = "any-new-value";
 ```
 
 Commit this file along with schema changes.
+
+## Interface
+
+### DefineInterface (Local Interface)
+
+```yaml
+defineInterface:
+  - interfaceName: ILocalInterfaceName
+    implementationInterface: # option
+      - IOtherInterface
+    properties:
+      - # objectSchema等
+```
+
+- DefineInterfaceではLocalInterfaceを定義できる
+- LocalInterfaceは同じファイルからのみ参照することができる
+- LocalInterfaceからimplementationするInterfaceはLocalでもGlobalでも問題ない
+
+### GlobalDefineInterface (Global Interface)
+
+```yaml
+globalDefineInterface:
+  - interfaceName: IGlobalInterfaceName
+    implementationInterface: # option
+      - IOtherGlobalInterface
+    properties:
+      - # objectSchema等
+```
+
+- GlobalDefineInterfaceではGlobalInterfaceを定義できる
+- GlobalInterfaceはどのファイルからでも参照することができる
+- GlobalInterfaceからimplementationするInterfaceはGlobalである必要がある

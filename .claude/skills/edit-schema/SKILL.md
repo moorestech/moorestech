@@ -2,8 +2,8 @@
 name: edit-schema
 description: |
   マスターデータのYAMLスキーマを編集するためのガイド。スキーマの追加・変更・削除を行う際に使用する。
-  Use when: (1) VanillaSchemaのYAMLファイルを編集する (2) 新しいブロックタイプやパラメータを追加する
-  (3) 既存スキーマの構造を変更する (4) SourceGeneratorのトリガー方法を確認する
+  Use when:1.VanillaSchemaのymlファイル(blocks.yml,items.yml等)を編集する必要がある時2.新しいブロックタイプやパラメータを追加する
+  3.既存スキーマの構造を変更する4.SourceGeneratorのトリガー方法を確認する
 ---
 
 # Schema Editing Guide
@@ -91,6 +91,16 @@ implementationInterface:
 - 手動で `Mooresmaster.Model.*` クラスを作成しない
 - スキーマ変更後は必ず `_CompileRequester.cs` を更新してコミット
 
+## SourceGenerator Troubleshooting
+
+SourceGeneratorはどのような環境（git worktree、root repo、CI/CD）でも動作します。
+
+もしSourceGeneratorでコードが生成されていないことによるコンパイルエラー（例：`The type or namespace name 'Mooresmaster' could not be found (are you missing a using directive or an assembly reference?)` 等）が発生した場合、**100%スキーマの書き方に問題があります**。
+
+このような時は：
+1. YAMLファイル全体を見直して不具合がないかチェック
+2. [yaml_spec.md](references/yaml_spec.md) でYAMLの書き方の仕様を確認
+3. コンパイルエラーが解消するまで修正を続ける
 
 ## Reference
 
