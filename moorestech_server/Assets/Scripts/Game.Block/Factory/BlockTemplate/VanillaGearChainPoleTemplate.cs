@@ -30,7 +30,7 @@ namespace Game.Block.Factory.BlockTemplate
             // マスターからパラメータを抽出する
             // Extract parameters from master data
             var param = blockMasterElement.BlockParam as GearChainPoleBlockParam;
-            var gearConnects = BlockConnectorAdapter.FromGearConnects(param.Gear.GearConnects);
+            var gearConnects = param.Gear.GearConnects;
 
             // ギア接続コンポーネントとチェーンポールを初期化する
             // Initialize gear connector and chain pole component

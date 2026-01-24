@@ -9,7 +9,7 @@ using Game.Context;
 using Game.Entity.Interface;
 using Game.Entity.Interface.EntityInstance;
 using Game.World.Interface.DataStore;
-using Game.Block.Interface.Component;
+using Mooresmaster.Model.BlockConnectInfoModule;
 using UnityEngine;
 
 
@@ -122,10 +122,10 @@ namespace Server.Protocol.PacketResponse.Util
         }
 
         /// <summary>
-        /// IBlockConnectorからConnectorGuidを取得
-        /// Get ConnectorGuid from IBlockConnector
+        /// BlockConnectInfoElementからConnectorGuidを取得
+        /// Get ConnectorGuid from BlockConnectInfoElement
         /// </summary>
-        private static Guid? GetConnectorGuidFromConnector(IBlockConnector connector)
+        private static Guid? GetConnectorGuidFromConnector(BlockConnectInfoElement connector)
         {
             return connector?.ConnectorGuid;
         }

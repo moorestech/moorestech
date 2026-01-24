@@ -27,10 +27,9 @@ namespace Game.Block.Factory.BlockTemplate
             var acceleratorParam = blockMasterElement.BlockParam as ItemShooterAcceleratorBlockParam;
 
             var inventoryConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(acceleratorParam.InventoryConnectors, blockPositionInfo);
-            var gearConnects = BlockConnectorAdapter.FromGearConnects(acceleratorParam.Gear.GearConnects);
             var gearConnectorComponent = new BlockConnectorComponent<IGearEnergyTransformer>(
-                gearConnects,
-                gearConnects,
+                acceleratorParam.Gear.GearConnects,
+                acceleratorParam.Gear.GearConnects,
                 blockPositionInfo);
 
             var settings = new ItemShooterComponentSettings(acceleratorParam);

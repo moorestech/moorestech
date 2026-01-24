@@ -8,7 +8,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Fluid;
 using MessagePack;
-using Mooresmaster.Model.FluidConnectOptionModule;
+using Mooresmaster.Model.BlockConnectInfoModule;
 using Newtonsoft.Json;
 using UniRx;
 

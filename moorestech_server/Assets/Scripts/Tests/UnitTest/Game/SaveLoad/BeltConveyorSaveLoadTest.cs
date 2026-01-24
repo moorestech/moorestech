@@ -4,7 +4,6 @@ using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Interface;
-using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Mooresmaster.Model.BlocksModule;
@@ -43,10 +42,10 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             // ブロックの実際のコネクタを使用してアイテムを設定
             // Set items using the block's actual connectors
-            var inputConnects = beltParam.InventoryConnectors.InputConnects;
-            var outputConnects = beltParam.InventoryConnectors.OutputConnects;
-            var sourceConnector = BlockConnectorAdapter.FromInputConnects(inputConnects)[0];
-            var goalConnector = BlockConnectorAdapter.FromOutputConnects(outputConnects)[0];
+            var inputConnects = beltParam.InventoryConnectors.InputConnects.items;
+            var outputConnects = beltParam.InventoryConnectors.OutputConnects.items;
+            var sourceConnector = inputConnects[0];
+            var goalConnector = outputConnects[0];
 
             inventoryItems[0] = new VanillaBeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(0), sourceConnector, goalConnector)
             {
@@ -112,10 +111,10 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             // ブロックの実際のコネクタを使用してアイテムを設定
             // Set items using the block's actual connectors
-            var inputConnects = gearBeltParam.InventoryConnectors.InputConnects;
-            var outputConnects = gearBeltParam.InventoryConnectors.OutputConnects;
-            var sourceConnector = BlockConnectorAdapter.FromInputConnects(inputConnects)[0];
-            var goalConnector = BlockConnectorAdapter.FromOutputConnects(outputConnects)[0];
+            var inputConnects = gearBeltParam.InventoryConnectors.InputConnects.items;
+            var outputConnects = gearBeltParam.InventoryConnectors.OutputConnects.items;
+            var sourceConnector = inputConnects[0];
+            var goalConnector = outputConnects[0];
 
             inventoryItems[0] = new VanillaBeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(0), sourceConnector, goalConnector)
             {

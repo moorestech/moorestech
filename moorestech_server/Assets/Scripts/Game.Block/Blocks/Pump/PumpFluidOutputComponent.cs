@@ -6,7 +6,7 @@ using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Fluid;
-using Mooresmaster.Model.FluidConnectOptionModule;
+using Mooresmaster.Model.BlockConnectInfoModule;
 using Newtonsoft.Json;
 
 namespace Game.Block.Blocks.Pump

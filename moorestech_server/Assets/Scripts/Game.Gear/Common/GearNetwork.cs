@@ -158,9 +158,6 @@ namespace Game.Gear.Common
             
             bool IsReverseRotation(GearConnect connect)
             {
-                // nullチェックを追加、どちらかがnullの場合はfalseを返す
-                // Add null check, return false if either is null
-                if (connect.Self == null || connect.Target == null) return false;
                 return connect.Self.IsReverse && connect.Target.IsReverse;
             }
             
