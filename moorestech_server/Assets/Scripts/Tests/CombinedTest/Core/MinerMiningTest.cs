@@ -39,7 +39,7 @@ namespace Tests.CombinedTest.Core
             
             var miningItems = (List<IItemStack>)typeof(VanillaMinerProcessorComponent).GetField("_miningItems", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(minerComponent);
             var miningItemId = miningItems[0].Id;
-            var miningTime = (float)typeof(VanillaMinerProcessorComponent).GetField("_defaultMiningTime", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(minerComponent);
+            var miningTicks = (uint)typeof(VanillaMinerProcessorComponent).GetField("_defaultMiningTicks", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(minerComponent);
             
             
             // チェストを隣に設置し、アイテムがアウトプットされていることを確認する
@@ -52,14 +52,14 @@ namespace Tests.CombinedTest.Core
             segment.AddEnergyConsumer(miner.GetComponent<IElectricConsumer>());
             segment.AddGenerator(new TestElectricGenerator(new ElectricPower(10000), new BlockInstanceId(10)));
             
-            // tick数で採掘時間を計算
-            // Calculate mining time in ticks
-            var miningTicks = (int)((miningTime + 0.1) * GameUpdater.TicksPerSecond);
+            // tick数で採掘時間を計算（+2 tickのマージン）
+            // Calculate mining time in ticks (with +2 ticks margin)
+            var waitTicks = (int)(miningTicks + 2);
 
             //テストコードの準備完了
             //鉱石1個分の採掘時間待機（tick数で制御）
             // Wait for one ore mining time (controlled by tick count)
-            for (var i = 0; i < miningTicks; i++) GameUpdater.AdvanceTicks(1);
+            for (var i = 0; i < waitTicks; i++) GameUpdater.AdvanceTicks(1);
             
             //鉱石1個が出力されているかチェック
             Assert.AreEqual(miningItemId, chestComponent.InventoryItems[0].Id);
@@ -70,8 +70,8 @@ namespace Tests.CombinedTest.Core
             
             //鉱石2個分の採掘時間待機（tick数で制御）
             // Wait for two ore mining time (controlled by tick count)
-            var miningTicks2 = (int)((miningTime * 2 + 0.05) * GameUpdater.TicksPerSecond);
-            for (var i = 0; i < miningTicks2; i++) GameUpdater.AdvanceTicks(1);
+            var waitTicks2 = (int)(miningTicks * 2 + 1);
+            for (var i = 0; i < waitTicks2; i++) GameUpdater.AdvanceTicks(1);
             
             //鉱石2個が残っているかチェック
             var outputSlot = miner.GetComponent<VanillaMinerProcessorComponent>().InventoryItems[0];
