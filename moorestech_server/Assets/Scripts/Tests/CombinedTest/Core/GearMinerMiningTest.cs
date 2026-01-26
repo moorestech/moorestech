@@ -51,10 +51,10 @@ namespace Tests.CombinedTest.Core
             // Use reflection to access private fields: _miningItems and _defaultMiningTime.
             var minerProcessorComponent = gearMiner.GetComponent<VanillaMinerProcessorComponent>();
             var miningItemsField = typeof(VanillaMinerProcessorComponent).GetField("_miningItems", BindingFlags.NonPublic | BindingFlags.Instance);
-            var miningTimeField = typeof(VanillaMinerProcessorComponent).GetField("_defaultMiningTime", BindingFlags.NonPublic | BindingFlags.Instance);
+            var miningTicksField = typeof(VanillaMinerProcessorComponent).GetField("_defaultMiningTicks", BindingFlags.NonPublic | BindingFlags.Instance);
             var miningItems = (List<IItemStack>)miningItemsField.GetValue(minerProcessorComponent);
             var miningItemId = miningItems[0].Id;
-            var miningTime = (float)miningTimeField.GetValue(minerProcessorComponent);
+            var miningTicks = (uint)miningTicksField.GetValue(minerProcessorComponent);
             
             
             // 採掘機に RPM とトルクを供給するために、歯車ジェネレータを採掘機の隣に配置する
@@ -75,8 +75,8 @@ namespace Tests.CombinedTest.Core
             
             // 採掘中待機する（tick数で制御）
             // Wait for the mining time to elapse (controlled by tick count)
-            var miningTicks = (int)(miningTime * 1.2f * GameUpdater.TicksPerSecond);
-            for (var i = 0; i < miningTicks; i++) GameUpdater.AdvanceTicks(1);
+            var waitTicks = (int)(miningTicks * 1.2f);
+            for (var i = 0; i < waitTicks; i++) GameUpdater.AdvanceTicks(1);
 
             // アイテムが中にはいっていることを確認
             // Check that an item is stored inside.
@@ -89,8 +89,8 @@ namespace Tests.CombinedTest.Core
 
             // 2回分の採掘時間待機（tick数で制御）
             // Wait for two more mining cycles (controlled by tick count)
-            var miningTicks2 = (int)(miningTime * 2.2f * GameUpdater.TicksPerSecond);
-            for (var i = 0; i < miningTicks2; i++) GameUpdater.AdvanceTicks(1);
+            var waitTicks2 = (int)(miningTicks * 2.2f);
+            for (var i = 0; i < waitTicks2; i++) GameUpdater.AdvanceTicks(1);
 
             // 採掘機の中にアイテムが残っていることを確認
             // Check that two items are stored inside the miner.
