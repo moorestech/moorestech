@@ -38,7 +38,7 @@ namespace Game.Block.Blocks.Gear
             // Manage interval for overload checks
             if (!_overloadEnabled || _isDestroyed) return;
 
-            _elapsedSeconds += GameUpdater.UpdateSecondTime;
+            _elapsedSeconds += GameUpdater.CurrentDeltaSeconds;
             if (_elapsedSeconds < _checkInterval) return;
             _elapsedSeconds = 0;
 

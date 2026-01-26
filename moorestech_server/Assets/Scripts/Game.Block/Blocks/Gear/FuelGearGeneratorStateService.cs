@@ -81,7 +81,7 @@ namespace Game.Block.Blocks.Gear
 
             var allowFluidFuel = !_fluidComponent.IsPipeDisconnected;
             var hasFuel = _fuelService.HasAvailableFuel(allowFluidFuel);
-            StateElapsedTime += (float)GameUpdater.UpdateSecondTime;
+            StateElapsedTime += (float)GameUpdater.CurrentDeltaSeconds;
 
             switch (CurrentState)
             {
