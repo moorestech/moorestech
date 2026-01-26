@@ -10,12 +10,12 @@ namespace Game.Block.Blocks.Gear
     public class FuelGearGeneratorSaveData
     {
         public string CurrentState;
-        public float StateElapsedTime;
+        public uint StateElapsedTicks;
         public float SteamConsumptionRate;
         public float RateAtDecelerationStart;
-        
+
         public string ActiveFuelType;
-        public double RemainingFuelTime;
+        public uint RemainingFuelTicks;
         public string CurrentFuelItemGuidStr;
         public string CurrentFuelFluidGuidStr;
 
@@ -30,12 +30,12 @@ namespace Game.Block.Blocks.Gear
             FuelGearGeneratorFuelService fuelService)
         {
             CurrentState = stateService.CurrentState.ToString();
-            StateElapsedTime = stateService.StateElapsedTime;
+            StateElapsedTicks = stateService.StateElapsedTicks;
             SteamConsumptionRate = stateService.SteamConsumptionRate;
             RateAtDecelerationStart = stateService.RateAtDecelerationStart;
 
             ActiveFuelType = fuelService.CurrentFuelType.ToString();
-            RemainingFuelTime = fuelService.RemainingFuelTime;
+            RemainingFuelTicks = fuelService.RemainingFuelTicks;
 
             if (fuelService.CurrentFuelItemId != ItemMaster.EmptyItemId)
             {

@@ -48,7 +48,7 @@ namespace Game.Block.Blocks.Machine
                 InputFluidSlot = _vanillaMachineInputInventory.FluidInputSlot.Select(fluid => new FluidContainerSaveJsonObject(fluid)).ToList(),
                 OutputFluidSlot = _vanillaMachineOutputInventory.FluidOutputSlot.Select(fluid => new FluidContainerSaveJsonObject(fluid)).ToList(),
                 State = (int)_vanillaMachineProcessorComponent.CurrentState,
-                RemainingTime = _vanillaMachineProcessorComponent.RemainingSecond,
+                RemainingTicks = _vanillaMachineProcessorComponent.RemainingTicks,
                 RecipeGuidStr = _vanillaMachineProcessorComponent.RecipeGuid.ToString(),
             };
             
@@ -71,8 +71,8 @@ namespace Game.Block.Blocks.Machine
         [JsonIgnore]
         public Guid RecipeGuid => Guid.Parse(RecipeGuidStr);
         
-        [JsonProperty("remainingTime")]
-        public double RemainingTime;
+        [JsonProperty("remainingTicks")]
+        public uint RemainingTicks;
         
         [JsonProperty("state")]
         public int State;

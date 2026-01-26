@@ -5,6 +5,7 @@ using System.Linq;
 using Core.Inventory;
 using Core.Item.Interface;
 using Core.Master;
+using Core.Update;
 using Game.Block.Blocks.Service;
 using Game.Block.Blocks.Util;
 using Game.Block.Component;
@@ -41,9 +42,9 @@ namespace Game.Block.Blocks.Miner
         // Use this flag because you want to keep _currentPower until the next energy supply or update
         private bool _usedPower;
         private ElectricPower _currentPower;
-        
-        private float _defaultMiningTime = float.MaxValue;
-        private double _remainingSecond = double.MaxValue;
+
+        private uint _defaultMiningTicks;
+        private uint _remainingTicks;
         
         private VanillaMinerState _lastMinerState;
         private VanillaMinerState _currentState = VanillaMinerState.Idle;
@@ -62,23 +63,23 @@ namespace Game.Block.Blocks.Miner
             SetMiningItem();
             
             #region Internal
-            
+
             void SetMiningItem()
             {
                 List<IMapVein> veins = ServerContext.MapVeinDatastore.GetOverVeins(blockPositionInfo.OriginalPos);
                 foreach (var vein in veins) _miningItems.Add(itemStackFactory.Create(vein.VeinItemId, 1));
                 if (veins.Count == 0) return;
-                
+
                 foreach (var miningSetting in mineSettings.items)
                 {
                     var itemId = MasterHolder.ItemMaster.GetItemId(miningSetting.ItemGuid);
                     if (itemId != veins[0].VeinItemId) continue;
-                    _defaultMiningTime = miningSetting.Time;
-                    _remainingSecond = _defaultMiningTime;
+                    _defaultMiningTicks = GameUpdater.SecondsToTicks(miningSetting.Time);
+                    _remainingTicks = _defaultMiningTicks;
                     break;
                 }
             }
-            
+
             #endregion
         }
         
@@ -95,7 +96,7 @@ namespace Game.Block.Blocks.Miner
                 _openableInventoryItemDataStoreService.SetItemWithoutEvent(i, itemStack);
             }
 
-            _remainingSecond = saveJsonObject.RemainingSecond;
+            _remainingTicks = saveJsonObject.RemainingTicks;
         }
         
         public void SupplyPower(ElectricPower power)
@@ -116,13 +117,13 @@ namespace Game.Block.Blocks.Miner
         public string GetSaveState()
         {
             BlockException.CheckDestroy(this);
-            
+
             var saveData = new VanillaElectricMinerSaveJsonObject
             {
-                RemainingSecond = _remainingSecond,
+                RemainingTicks = _remainingTicks,
                 Items = _openableInventoryItemDataStoreService.InventoryItems.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
             };
-            
+
             return JsonConvert.SerializeObject(saveData);
         }
         
@@ -142,37 +143,43 @@ namespace Game.Block.Blocks.Miner
             CheckStateAndInvokeEventUpdate();
             
             #region Internal
-            
+
             void MinerProgressUpdate()
             {
-                var subTime = MachineCurrentPowerToSubSecond.GetSubSecond(_currentPower, RequestEnergy);
-                if (subTime <= 0)
+                var subTicks = MachineCurrentPowerToSubSecond.GetSubTicks(_currentPower, RequestEnergy);
+                if (subTicks == 0)
                 {
-                    //電力の都合で処理を進められないのでreturn
+                    // 電力の都合で処理を進められないのでreturn
+                    // Cannot proceed due to power constraints
                     _currentState = VanillaMinerState.Idle;
                     return;
                 }
-                
-                //insertできるかチェック
+
+                // insertできるかチェック
+                // Check if insertion is possible
                 if (!_openableInventoryItemDataStoreService.InsertionCheck(_miningItems))
                 {
-                    //挿入できないのでreturn
+                    // 挿入できないのでreturn
+                    // Cannot insert, return
                     _currentState = VanillaMinerState.Idle;
                     return;
                 }
-                
+
                 _currentState = VanillaMinerState.Mining;
-                
-                _remainingSecond -= subTime;
-                
-                if (_remainingSecond <= 0)
+
+                if (subTicks >= _remainingTicks)
                 {
-                    _remainingSecond = _defaultMiningTime;
-                    
-                    //空きスロットを探索し、あるならアイテムを挿入
+                    _remainingTicks = _defaultMiningTicks;
+
+                    // 空きスロットを探索し、あるならアイテムを挿入
+                    // Find empty slot and insert item if available
                     _openableInventoryItemDataStoreService.InsertItem(_miningItems);
                 }
-                
+                else
+                {
+                    _remainingTicks -= subTicks;
+                }
+
                 _usedPower = true;
             }
             
@@ -228,10 +235,10 @@ namespace Game.Block.Blocks.Miner
             };
             
             #region Internal
-            
+
             BlockStateDetail GetMachineBlockStateDetail()
             {
-                var processingRate = 1 - (float)_remainingSecond / _defaultMiningTime;
+                var processingRate = _defaultMiningTicks > 0 ? 1 - (float)_remainingTicks / _defaultMiningTicks : 0;
                 var stateDetail = new CommonMachineBlockStateDetail(_currentPower.AsPrimitive(), RequestEnergy.AsPrimitive(), processingRate, _currentState.ToStr(), _lastMinerState.ToStr());
                 var stateDetailBytes = MessagePackSerializer.Serialize(stateDetail);
                 return new BlockStateDetail(CommonMachineBlockStateDetail.BlockStateDetailKey, stateDetailBytes);
@@ -377,7 +384,7 @@ namespace Game.Block.Blocks.Miner
     {
         [JsonProperty("items")]
         public List<ItemStackSaveJsonObject> Items;
-        [JsonProperty("remainingSecond")]
-        public double RemainingSecond;
+        [JsonProperty("remainingTicks")]
+        public uint RemainingTicks;
     }
 }

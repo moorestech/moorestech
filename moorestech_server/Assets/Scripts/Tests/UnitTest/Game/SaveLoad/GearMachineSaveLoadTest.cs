@@ -47,13 +47,15 @@ namespace Tests.UnitTest.Game.SaveLoad
             machineInventory.InsertItem(itemStackFactory.Create(new ItemId(5), 6));
             machineInventory.InsertItem(itemStackFactory.Create(new ItemId(2), 4));
             
-            //リフレクションで機械の状態を設定
-            //機械のレシピの残り時間設定
+            // リフレクションで機械の状態を設定
+            // Set machine state via reflection
             var vanillaMachineProcessor = gearMachineBlock.GetComponent<VanillaMachineProcessorComponent>();
-            //ステータスをセット
+
+            // 残りtick数を設定（0.3秒 = 6tick）
+            // Set remaining ticks (0.3 seconds = 6 ticks)
             typeof(VanillaMachineProcessorComponent)
-                .GetProperty("RemainingSecond")
-                .SetValue(vanillaMachineProcessor, 0.3);
+                .GetProperty("RemainingTicks")
+                .SetValue(vanillaMachineProcessor, 6u);
             typeof(VanillaMachineProcessorComponent)
                 .GetProperty("CurrentState")
                 .SetValue(vanillaMachineProcessor, ProcessState.Processing);
@@ -87,9 +89,10 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.AreEqual(gearMachineBlock.BlockInstanceId, loadMachineBlock.BlockInstanceId);
             
             
-            //機械のレシピの残り時間のチェック
+            // 機械のレシピの残りtick数のチェック（0.3秒 = 6tick）
+            // Check the remaining ticks of the machine recipe (0.3 seconds = 6 ticks)
             var machineProcessor = loadMachineBlock.GetComponent<VanillaMachineProcessorComponent>();
-            Assert.AreEqual(0.3, machineProcessor.RemainingSecond);
+            Assert.AreEqual(6u, machineProcessor.RemainingTicks);
             //レシピIDのチェック
             Assert.AreEqual(recipeId, machineProcessor.RecipeGuid);
             //機械のステータスのチェック

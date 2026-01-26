@@ -46,7 +46,9 @@ namespace Game.Train.Unit
 
         private void UpdateTrains()
         {
-            _accumulatedSeconds += GameUpdater.UpdateSecondTime;
+            // ゲームのtick数を秒数に変換して積算
+            // Convert game ticks to seconds and accumulate
+            _accumulatedSeconds += GameUpdater.CurrentTickCount * GameUpdater.SecondsPerTick;
 
             var tickCount = Math.Min(_maxTicksPerFrame, (int)(_accumulatedSeconds / TickSeconds));
             if (tickCount == 0)

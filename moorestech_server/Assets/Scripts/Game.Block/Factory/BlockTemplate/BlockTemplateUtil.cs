@@ -116,15 +116,15 @@ namespace Game.Block.Factory.BlockTemplate
             }
             
             var recipe = jsonObject.RecipeGuid == Guid.Empty ? null : MasterHolder.MachineRecipesMaster.GetRecipeElement(jsonObject.RecipeGuid);
-            
+
             var processor = new VanillaMachineProcessorComponent(
                 vanillaMachineInputInventory,
                 vanillaMachineOutputInventory,
                 (ProcessState)jsonObject.State,
-                jsonObject.RemainingTime,
+                jsonObject.RemainingTicks,
                 recipe,
                 requestPower);
-            
+
             return processor;
         }
     }
