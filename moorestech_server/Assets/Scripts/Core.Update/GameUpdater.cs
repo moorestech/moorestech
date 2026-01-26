@@ -88,8 +88,9 @@ namespace Core.Update
 #if UNITY_EDITOR
         public static void UpdateWithWait()
         {
-            //TODO ゲームループ周りの修正についてはちょっと考えたい
-            Update();
+            // テスト用: 1 tickずつ決定論的に進行
+            // For testing: advance deterministically by 1 tick
+            AdvanceTicks(1);
             Wait();
         }
 
