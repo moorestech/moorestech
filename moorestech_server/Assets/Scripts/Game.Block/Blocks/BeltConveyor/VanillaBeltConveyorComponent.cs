@@ -231,8 +231,10 @@ namespace Game.Block.Blocks.BeltConveyor
                     continue;
                 }
 
-                //時間を減らす
-                var diff = (float)(GameUpdater.CurrentDeltaSeconds * (1f / (float)_timeOfItemEnterToExit));
+                // 時間を減らす（tick数を秒に変換）
+                // Reduce time (convert ticks to seconds)
+                var deltaSeconds = GameUpdater.CurrentTickCount * GameUpdater.SecondsPerTick;
+                var diff = (float)(deltaSeconds * (1f / (float)_timeOfItemEnterToExit));
                 item.RemainingPercent -= diff;
                 item.RemainingPercent = Math.Clamp(item.RemainingPercent, 0, 1);
             }

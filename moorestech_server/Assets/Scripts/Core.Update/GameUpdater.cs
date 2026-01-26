@@ -25,14 +25,13 @@ namespace Core.Update
         // Ticks elapsed in the current frame
         public static uint CurrentTickCount { get; private set; }
 
-        // 今回のフレームで進行する秒数（= CurrentTickCount * SecondsPerTick）
-        // Elapsed seconds in the current frame (= CurrentTickCount * SecondsPerTick)
-        public static double CurrentDeltaSeconds { get; private set; }
+        // 秒数をtickに変換するユーティリティ（マスターデータの秒数値を変換する用）
+        // Utility to convert seconds to ticks (for converting master data values)
+        public static uint SecondsToTicks(double seconds) => (uint)Math.Max((int)(seconds * TicksPerSecond), 0);
 
-        // 廃止予定（互換性のため残す）
-        // Deprecated (kept for compatibility)
-        [Obsolete("Use CurrentDeltaSeconds instead")]
-        public static double UpdateSecondTime => CurrentDeltaSeconds;
+        // tickを秒数に変換するユーティリティ（表示用など）
+        // Utility to convert ticks to seconds (for display purposes)
+        public static double TicksToSeconds(uint ticks) => ticks * SecondsPerTick;
 
         public static void Update()
         {
@@ -65,8 +64,6 @@ namespace Core.Update
             var totalSeconds = elapsedSeconds + _tickRemainderSeconds;
             CurrentTickCount = (uint)Math.Max((int)(totalSeconds * TicksPerSecond), 0);
             _tickRemainderSeconds = totalSeconds - CurrentTickCount * SecondsPerTick;
-
-            CurrentDeltaSeconds = CurrentTickCount * SecondsPerTick;
         }
 
         public static void ResetUpdate()
@@ -74,7 +71,6 @@ namespace Core.Update
             _updateSubject = new Subject<Unit>();
             _lateUpdateSubject = new Subject<Unit>();
             CurrentTickCount = 0;
-            CurrentDeltaSeconds = 0;
             _tickRemainderSeconds = 0d;
             _lastUpdateTime = DateTime.Now;
         }
@@ -99,21 +95,9 @@ namespace Core.Update
         public static void AdvanceTicks(uint tickCount)
         {
             CurrentTickCount = tickCount;
-            CurrentDeltaSeconds = tickCount * SecondsPerTick;
 
             _updateSubject.OnNext(Unit.Default);
             _lateUpdateSubject.OnNext(Unit.Default);
-        }
-
-        // 廃止予定（互換性のため残す）
-        // Deprecated (kept for compatibility)
-        [Obsolete("Use AdvanceTicks instead")]
-        public static void SpecifiedDeltaTimeUpdate(double updateSecondTime)
-        {
-            // 秒数をtickに換算
-            // Convert seconds to ticks
-            var tickCount = (uint)Math.Max((int)(updateSecondTime * TicksPerSecond), 0);
-            AdvanceTicks(tickCount);
         }
 
         public static void Wait()

@@ -378,8 +378,10 @@ namespace Tests.CombinedTest.Core
             
             for (var i = 0; i < 10; i++)
             {
-                GameUpdater.SpecifiedDeltaTimeUpdate(0.1);
-                
+                // 0.1秒 = 2tick
+                // 0.1 seconds = 2 ticks
+                GameUpdater.AdvanceTicks(2);
+
                 Assert.AreEqual(fluid0Amount, fluidPipe0.GetAmount());
                 Assert.AreEqual(fluid1Amount, fluidPipe1.GetAmount());
             }
@@ -437,7 +439,9 @@ namespace Tests.CombinedTest.Core
             
             const int steps = 10;
             
-            for (var i = 0; i < steps; i++) GameUpdater.SpecifiedDeltaTimeUpdate(0.1);
+            // 0.1秒 = 2tick
+            // 0.1 seconds = 2 ticks
+            for (var i = 0; i < steps; i++) GameUpdater.AdvanceTicks(2);
             
             // First update: no fluid movement (both pipes have receive flag from initial AddLiquid)
             // Updates 2-10: both pipes change state (sender and receiver)

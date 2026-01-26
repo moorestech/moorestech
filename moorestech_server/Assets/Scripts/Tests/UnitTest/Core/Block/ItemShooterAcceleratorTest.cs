@@ -123,9 +123,9 @@ namespace Tests.UnitTest.Core.Block
                 // 2. Update accelerator first to set external acceleration
                 acceleratorComponent.Update();
 
-                // 3. delta timeを設定してシューターを含む全コンポーネントを更新
-                // 3. Set delta time and update all components including shooter
-                GameUpdater.SpecifiedDeltaTimeUpdate(deltaTime);
+                // 3. 1tickずつ進行してシューターを含む全コンポーネントを更新
+                // 3. Advance by 1 tick and update all components including shooter
+                GameUpdater.AdvanceTicks(1);
 
                 elapsedSeconds += deltaTime;
             }

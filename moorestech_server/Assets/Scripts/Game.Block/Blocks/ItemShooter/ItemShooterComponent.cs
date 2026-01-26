@@ -46,7 +46,10 @@ namespace Game.Block.Blocks.ItemShooter
         public void Update()
         {
             BlockException.CheckDestroy(this);
-            _service.Update((float)GameUpdater.CurrentDeltaSeconds);
+            // tick数を秒数に変換してサービスに渡す
+            // Convert ticks to seconds for the service
+            var deltaSeconds = (float)(GameUpdater.CurrentTickCount * GameUpdater.SecondsPerTick);
+            _service.Update(deltaSeconds);
         }
 
         public ShooterInventoryItem InsertItemFromShooter(ShooterInventoryItem inventoryItem)

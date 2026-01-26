@@ -232,8 +232,8 @@ namespace Game.Block.Blocks.PowerGenerator
         [JsonProperty("inventory")]
         public List<ItemStackSaveJsonObject> Items;
 
-        [JsonProperty("remainingFuelTime")]
-        public double RemainingFuelTime;
+        [JsonProperty("remainingFuelTicks")]
+        public uint RemainingFuelTicks;
 
         [JsonProperty("activeFuelType")]
         public string ActiveFuelType;

@@ -18,14 +18,16 @@ namespace Game.Block.Blocks.Pump
                 return;
             }
 
-            var deltaTime = GameUpdater.CurrentDeltaSeconds;
+            // tick数を秒数に変換
+            // Convert ticks to seconds
+            var deltaSeconds = GameUpdater.CurrentTickCount * GameUpdater.SecondsPerTick;
 
             foreach (var gen in generateFluids)
             {
                 if (gen.GenerateTime <= 0) continue;
 
                 var perSecond = gen.Amount / Math.Max(0.0001, gen.GenerateTime);
-                var addAmount = perSecond * powerRate * deltaTime;
+                var addAmount = perSecond * powerRate * deltaSeconds;
                 if (addAmount <= 0) continue;
 
                 var fluidId = MasterHolder.FluidMaster.GetFluidId(gen.FluidGuid);
