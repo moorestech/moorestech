@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
@@ -7,6 +8,8 @@ using Game.Block.Blocks.ItemShooter;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
+using Game.Gear.Common;
+using Microsoft.Extensions.DependencyInjection;
 using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Server.Boot;
@@ -18,13 +21,17 @@ namespace Tests.UnitTest.Core.Block
 {
     public class ItemShooterAcceleratorTest
     {
-        private const int SimulationSteps = 120;
+        // シミュレーション中にアイテムがベルト上に残るようにステップ数を調整
+        // Adjust step count so item stays on belt during simulation
+        private const int SimulationSteps = 10;
         private int _scenarioOffset;
+        private IServiceProvider _serviceProvider;
 
         [Test]
         public void AcceleratesWhenRequirementsAreMet()
         {
-            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            _serviceProvider = serviceProvider;
             var param = (ItemShooterAcceleratorBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.ItemShooterAccelerator).BlockParam;
 
             // 実行: 要求トルク/RPMを満たすシナリオを走行
@@ -42,7 +49,8 @@ namespace Tests.UnitTest.Core.Block
         [Test]
         public void AccelerationScalesWithSuppliedRpm()
         {
-            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            _serviceProvider = serviceProvider;
             var param = (ItemShooterAcceleratorBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.ItemShooterAccelerator).BlockParam;
 
             // 実行: 基準RPMと倍速RPMで比較シナリオを実施
@@ -82,6 +90,12 @@ namespace Tests.UnitTest.Core.Block
             generatorComponent.SetGenerateRpm((float)rpm);
             generatorComponent.SetGenerateTorque((float)torque);
 
+            // 歯車ネットワークを初期化して電力供給を確立
+            // Initialize gear network to establish power supply
+            var gearNetworkDatastore = _serviceProvider.GetService<GearNetworkDatastore>();
+            var gearNetwork = gearNetworkDatastore.GearNetworks.First().Value;
+            gearNetwork.ManualUpdate();
+
             // 初期アイテムを投入してシミュレーション開始
             // Insert initial item stack to start simulation
             var itemFactory = ServerContext.ItemStackFactory;
@@ -89,13 +103,31 @@ namespace Tests.UnitTest.Core.Block
             var remain = shooterComponent.InsertItem(itemStack);
             Assert.AreEqual(ItemMaster.EmptyItemId, remain.Id);
 
+            // アクセラレータコンポーネントを取得
+            // Get accelerator component
+            var acceleratorComponent = acceleratorBlock.GetComponent<ItemShooterAcceleratorComponent>();
+
             // 指定ステップ分シミュレーション時間を進行
             // Advance simulation for requested steps
+            // 注: 更新順序が重要 - アクセラレータが先に更新される必要がある
+            // Note: Update order matters - accelerator must update before shooter
             var elapsedSeconds = 0f;
+            var deltaTime = (float)GameUpdater.SecondsPerTick;
             for (var i = 0; i < steps; i++)
             {
-                GameUpdater.Update();
-                elapsedSeconds += (float)GameUpdater.CurrentDeltaSeconds;
+                // 1. ギアネットワークを更新して電力を供給
+                // 1. Update gear network to supply power
+                gearNetwork.ManualUpdate();
+
+                // 2. アクセラレータを先に更新して外部加速度を設定
+                // 2. Update accelerator first to set external acceleration
+                acceleratorComponent.Update();
+
+                // 3. delta timeを設定してシューターを含む全コンポーネントを更新
+                // 3. Set delta time and update all components including shooter
+                GameUpdater.SpecifiedDeltaTimeUpdate(deltaTime);
+
+                elapsedSeconds += deltaTime;
             }
 
             // 結果をスナップショット化し、ブロックを片付け
