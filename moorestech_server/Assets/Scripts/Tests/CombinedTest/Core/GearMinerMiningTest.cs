@@ -73,13 +73,10 @@ namespace Tests.CombinedTest.Core
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, chestBlockPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var chestBlock);
             var chestComponent = chestBlock.GetComponent<VanillaChestComponent>();
             
-            // 採掘中待機する
-            // Wait for the mining time to elapse.
-            var mineEndTime = DateTime.Now.AddSeconds(miningTime * 1.2f);
-            while (DateTime.Now < mineEndTime)
-            {
-                GameUpdater.UpdateWithWait();
-            }
+            // 採掘中待機する（tick数で制御）
+            // Wait for the mining time to elapse (controlled by tick count)
+            var miningTicks = (int)(miningTime * 1.2f * GameUpdater.TicksPerSecond);
+            for (var i = 0; i < miningTicks; i++) GameUpdater.AdvanceTicks(1);
 
             // アイテムが中にはいっていることを確認
             // Check that an item is stored inside.
@@ -90,13 +87,10 @@ namespace Tests.CombinedTest.Core
             // Destroy the chest and check that the item remains inside the miner.
             worldBlockDatastore.RemoveBlock(chestBlockPos, BlockRemoveReason.ManualRemove);
 
-            // 2回分の採掘時間待機
-            // Wait for two more mining cycles.
-            mineEndTime = DateTime.Now.AddSeconds(miningTime * 2.2f);
-            while (DateTime.Now < mineEndTime)
-            {
-                GameUpdater.UpdateWithWait();
-            }
+            // 2回分の採掘時間待機（tick数で制御）
+            // Wait for two more mining cycles (controlled by tick count)
+            var miningTicks2 = (int)(miningTime * 2.2f * GameUpdater.TicksPerSecond);
+            for (var i = 0; i < miningTicks2; i++) GameUpdater.AdvanceTicks(1);
 
             // 採掘機の中にアイテムが残っていることを確認
             // Check that two items are stored inside the miner.

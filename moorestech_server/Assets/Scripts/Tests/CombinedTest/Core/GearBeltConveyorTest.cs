@@ -60,29 +60,30 @@ namespace Tests.CombinedTest.Core
             const int generatorRpm = 10;
             var gearBeltConveyorBlockParam = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearBeltConveyor).BlockParam as GearBeltConveyorBlockParam;
             var duration = 1f / (generatorRpm * torqueRate * gearBeltConveyorBlockParam.BeltConveyorSpeed);
-            var expectedEndTime = DateTime.Now.AddSeconds(duration);
-            var startTime = DateTime.Now;
+
+            // 期待されるtick数を計算
+            // Calculate expected tick count
+            var expectedTicks = (int)(duration * GameUpdater.TicksPerSecond);
             beltConveyorComponent.InsertItem(item, InsertItemContext.Empty);
-            
-            // for (var i = 0; i < 100; i++)
-            // {
-            //     GameUpdater.UpdateWithWait();
-            // }
-            var c = 0;
-            while (!dummy.IsItemExists)
+
+            // tick数でループ制御（タイムアウト付き）
+            // Loop controlled by tick count (with timeout)
+            var elapsedTicks = 0;
+            var maxTicks = (int)(20 * GameUpdater.TicksPerSecond); // 20秒でタイムアウト
+            while (!dummy.IsItemExists && elapsedTicks < maxTicks)
             {
-                c++;
-                GameUpdater.UpdateWithWait();
-                var elapsed = DateTime.Now - startTime;
-                if (elapsed.TotalSeconds > 20) Assert.Fail();
+                elapsedTicks++;
+                GameUpdater.AdvanceTicks(1);
             }
-            
-            Assert.True(dummy.IsItemExists);
-            
-            var now = DateTime.Now;
-            Debug.Log($"{now.Second} {expectedEndTime.Second}\n{(now - startTime).TotalSeconds}\n{(expectedEndTime - now).TotalSeconds}\n{duration}\n{c}");
-            Assert.True(now <= expectedEndTime.AddSeconds(0.4));
-            Assert.True(expectedEndTime.AddSeconds(-0.4) <= now);
+
+            Assert.True(dummy.IsItemExists, "Item should have been output");
+
+            // 期待したtick数近辺でアイテムが到達したことを確認
+            // Verify item arrived around expected tick count
+            var tickTolerance = (int)(0.4 * GameUpdater.TicksPerSecond); // 0.4秒の許容誤差
+            Debug.Log($"Expected ticks: {expectedTicks}, Elapsed ticks: {elapsedTicks}, Duration: {duration}");
+            Assert.True(elapsedTicks <= expectedTicks + tickTolerance, $"Item should arrive within tolerance. Expected: {expectedTicks}, Actual: {elapsedTicks}");
+            Assert.True(elapsedTicks >= expectedTicks - tickTolerance, $"Item should not arrive too early. Expected: {expectedTicks}, Actual: {elapsedTicks}");
         }
     }
 }
