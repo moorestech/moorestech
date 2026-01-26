@@ -43,8 +43,10 @@ namespace Tests.CombinedTest.Core
             var pumpParam = (GearPumpBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearPump).BlockParam;
             var fullRatePerSec = pumpParam.GenerateFluid.items.Sum(g => g.Amount / Math.Max(0.0001f, g.GenerateTime));
 
-            // テストウィンドウ
+            // テストウィンドウ（tick数で制御）
+            // Test window (controlled by tick count)
             const float testSeconds = 4f;
+            var testTicks = (int)(testSeconds * GameUpdater.TicksPerSecond);
 
             // 1) フルパワー（RequiredRpm / RequireTorque を満たす）
             // +XにSimpleGearGeneratorを設置し、ExtensionでRPM/Torqueを設定
@@ -53,11 +55,7 @@ namespace Tests.CombinedTest.Core
             simpleGenerator.SetGenerateRpm(pumpParam.RequiredRpm);
             simpleGenerator.SetGenerateTorque(pumpParam.RequireTorque);
 
-            var start = DateTime.Now;
-            while ((DateTime.Now - start).TotalSeconds < testSeconds)
-            {
-                GameUpdater.UpdateWithWait();
-            }
+            for (var i = 0; i < testTicks; i++) GameUpdater.AdvanceTicks(1);
 
             var fullAmount = GetPipeAmount(pipeNegX) + GetPipeAmount(pipePosZ) + GetPipeAmount(pipeNegZ);
             var expectedFull = fullRatePerSec * testSeconds;
@@ -77,11 +75,7 @@ namespace Tests.CombinedTest.Core
             var halfRpm = new RPM(Math.Max(0.0f, pumpParam.RequiredRpm / 2f));
             simpleGenerator.SetGenerateRpm(halfRpm.AsPrimitive());
             simpleGenerator.SetGenerateTorque(pumpParam.RequireTorque);
-            start = DateTime.Now;
-            while ((DateTime.Now - start).TotalSeconds < testSeconds)
-            {
-                GameUpdater.UpdateWithWait();
-            }
+            for (var i = 0; i < testTicks; i++) GameUpdater.AdvanceTicks(1);
 
             var halfAmount = GetPipeAmount(pipeNegX) + GetPipeAmount(pipePosZ) + GetPipeAmount(pipeNegZ);
             var expectedHalf = expectedFull * 0.5f;
@@ -141,13 +135,11 @@ namespace Tests.CombinedTest.Core
             // InfinityTorqueSimpleGearGeneratorを+Xに隣接設置（常時トルク供給）
             world.TryAddBlock(ForUnitTestModBlockId.InfinityTorqueSimpleGearGenerator, new Vector3Int(1, 0, 0), BlockDirection.East, Array.Empty<BlockCreateParam>(), out var generatorBlock);
 
-            // 起動・接続安定化のため少しアップデート
+            // 起動・接続安定化のため少しアップデート（tick数で制御）
+            // Stabilize startup and connection (controlled by tick count)
             var testDurationSec = 2.5f;
-            var start = DateTime.Now;
-            while ((DateTime.Now - start).TotalSeconds < testDurationSec)
-            {
-                GameUpdater.UpdateWithWait();
-            }
+            var testTicks = (int)(testDurationSec * GameUpdater.TicksPerSecond);
+            for (var i = 0; i < testTicks; i++) GameUpdater.AdvanceTicks(1);
 
             // ポンプの出力先パイプに液体が生成されていること（> 0）を確認
             var totalOut = GetPipeAmount(pipeNegX) + GetPipeAmount(pipePosZ) + GetPipeAmount(pipeNegZ);

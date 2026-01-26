@@ -473,8 +473,9 @@ namespace Tests.CombinedTest.Core
                 Assert.AreEqual(0f, completeRate, 0.01f, "処理完了後に処理率が0になっていません");
             }
             
-            // 処理中に継続的な状態変化があったことを確認
-            Assert.Greater(stateChangeCount, previousCount + 5, "処理中の継続的なOnChangeBlockStateが発火していません");
+            // 処理中に継続的な状態変化があったことを確認（tick制では変化回数が少なくなるため閾値を調整）
+            // Verify continuous state changes during processing (threshold adjusted for tick-based updates)
+            Assert.Greater(stateChangeCount, previousCount + 1, "処理中の継続的なOnChangeBlockStateが発火していません");
             
             // 電力供給なしで処理が開始しないことを確認
             Debug.Log("Testing without power supply...");
