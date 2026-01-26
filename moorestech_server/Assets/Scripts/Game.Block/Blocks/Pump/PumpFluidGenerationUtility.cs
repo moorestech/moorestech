@@ -18,7 +18,7 @@ namespace Game.Block.Blocks.Pump
                 return;
             }
 
-            var deltaTime = GameUpdater.UpdateSecondTime;
+            var deltaTime = GameUpdater.CurrentDeltaSeconds;
 
             foreach (var gen in generateFluids)
             {

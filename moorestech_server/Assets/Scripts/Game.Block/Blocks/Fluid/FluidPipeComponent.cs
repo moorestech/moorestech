@@ -176,7 +176,7 @@ namespace Game.Block.Blocks.Fluid
 
             if (selfOption == null || targetOption == null) throw new ArgumentException();
 
-            return Math.Min(selfOption.FlowCapacity, targetOption.FlowCapacity) * GameUpdater.UpdateSecondTime;
+            return Math.Min(selfOption.FlowCapacity, targetOption.FlowCapacity) * GameUpdater.CurrentDeltaSeconds;
         }
     }
 }

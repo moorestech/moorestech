@@ -223,7 +223,7 @@ namespace Game.Block.Blocks.Gear
         {
             if (!IsFuelActive) return;
 
-            RemainingFuelTime -= GameUpdater.UpdateSecondTime * operatingRate;
+            RemainingFuelTime -= GameUpdater.CurrentDeltaSeconds * operatingRate;
             if (RemainingFuelTime > 0) return;
 
             ClearFuelState();

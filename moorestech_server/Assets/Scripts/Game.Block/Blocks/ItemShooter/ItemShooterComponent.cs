@@ -46,7 +46,7 @@ namespace Game.Block.Blocks.ItemShooter
         public void Update()
         {
             BlockException.CheckDestroy(this);
-            _service.Update((float)GameUpdater.UpdateSecondTime);
+            _service.Update((float)GameUpdater.CurrentDeltaSeconds);
         }
 
         public ShooterInventoryItem InsertItemFromShooter(ShooterInventoryItem inventoryItem)

@@ -95,7 +95,7 @@ namespace Tests.UnitTest.Core.Block
             for (var i = 0; i < steps; i++)
             {
                 GameUpdater.Update();
-                elapsedSeconds += (float)GameUpdater.UpdateSecondTime;
+                elapsedSeconds += (float)GameUpdater.CurrentDeltaSeconds;
             }
 
             // 結果をスナップショット化し、ブロックを片付け

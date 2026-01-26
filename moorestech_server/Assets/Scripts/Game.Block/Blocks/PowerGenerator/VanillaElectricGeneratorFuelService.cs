@@ -117,7 +117,7 @@ namespace Game.Block.Blocks.PowerGenerator
 
             void TickFuelTimer()
             {
-                _remainingFuelTime -= GameUpdater.UpdateSecondTime;
+                _remainingFuelTime -= GameUpdater.CurrentDeltaSeconds;
                 if (_remainingFuelTime > 0) return;
 
                 ClearFuelState();

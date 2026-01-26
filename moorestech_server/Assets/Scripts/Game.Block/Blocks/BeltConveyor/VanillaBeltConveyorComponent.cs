@@ -232,7 +232,7 @@ namespace Game.Block.Blocks.BeltConveyor
                 }
 
                 //時間を減らす
-                var diff = (float)(GameUpdater.UpdateSecondTime * (1f / (float)_timeOfItemEnterToExit));
+                var diff = (float)(GameUpdater.CurrentDeltaSeconds * (1f / (float)_timeOfItemEnterToExit));
                 item.RemainingPercent -= diff;
                 item.RemainingPercent = Math.Clamp(item.RemainingPercent, 0, 1);
             }
