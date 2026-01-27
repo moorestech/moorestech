@@ -1,8 +1,7 @@
 using System;
 using Client.Game.InGame.Train.RailGraph;
-using Game.Train.RailCalc;
-using Game.Train.SaveLoad;
 using UnityEngine;
+using Game.Train.SaveLoad;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
 {
@@ -40,9 +39,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             var toControlPoint = toNode.BackControlPoint;
             var p2 = toControlPoint.OriginalPosition + toControlPoint.ControlPointPosition;
             var p3 = toControlPoint.OriginalPosition;
-            var length = BezierUtility.GetBezierCurveLength(p0, p1, p2, p3, 64);
             
-            return new TrainRailConnectPreviewData(p0, p1, p2, p3, length);
+            return new TrainRailConnectPreviewData(p0, p1, p2, p3);
         }
         
         public static TrainRailConnectPreviewData CalculatePreviewData(ConnectionDestination from, Vector3 cursorPosition, RailGraphClientCache cache)
@@ -63,29 +61,26 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             var toControlPointDirection = (p1 - cursorPosition).normalized;
             var p2 = cursorPosition + toControlPointDirection * controlPointLength;
             var p3 = cursorPosition;
-            var length = BezierUtility.GetBezierCurveLength(p0, p1, p2, p3, 64);
             
-            return new TrainRailConnectPreviewData(p0, p1, p2, p3, length);
+            return new TrainRailConnectPreviewData(p0, p1, p2, p3);
         }
     }
     
     public struct TrainRailConnectPreviewData : IEquatable<TrainRailConnectPreviewData>
     {
-        public static TrainRailConnectPreviewData Invalid => new(Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero, 0f, false); 
+        public static TrainRailConnectPreviewData Invalid => new(Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero, false); 
         public Vector3 StartPoint;
         public Vector3 StartControlPoint;
         public Vector3 EndControlPoint;
         public Vector3 EndPoint;
-        public float Length;
         public bool IsValid;
         
-        public TrainRailConnectPreviewData(Vector3 startPoint, Vector3 startControlPoint, Vector3 endControlPoint, Vector3 endPoint, float length, bool isValid = true)
+        public TrainRailConnectPreviewData(Vector3 startPoint, Vector3 startControlPoint, Vector3 endControlPoint, Vector3 endPoint, bool isValid = true)
         {
             StartPoint = startPoint;
             StartControlPoint = startControlPoint;
             EndControlPoint = endControlPoint;
             EndPoint = endPoint;
-            Length = length;
             IsValid = isValid;
         }
         public bool Equals(TrainRailConnectPreviewData other)
