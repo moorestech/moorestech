@@ -10,7 +10,6 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
 using Mooresmaster.Model.BlocksModule;
-using UnityEngine;
 
 namespace Game.Block.Blocks.ItemShooter
 {
@@ -21,11 +20,9 @@ namespace Game.Block.Blocks.ItemShooter
     public readonly struct ItemShooterComponentSettings
     {
         public int InventoryItemNum { get; }
-        public float InitialShootSpeed { get; }
-        public float ItemShootSpeed { get; }
-        public float Acceleration { get; }
+        public uint TotalTicks { get; }
         public BeltConveyorSlopeType SlopeType { get; }
-        
+
         public ItemShooterComponentSettings(ItemShooterAcceleratorBlockParam param)
         {
             var slope = param.SlopeType switch
@@ -34,15 +31,17 @@ namespace Game.Block.Blocks.ItemShooter
                 ItemShooterAcceleratorBlockParam.SlopeTypeConst.Down => BeltConveyorSlopeType.Down,
                 _ => BeltConveyorSlopeType.Straight
             };
-            
+
             InventoryItemNum = param.InventoryItemNum;
-            InitialShootSpeed = param.InitialShootSpeed;
-            ItemShootSpeed = param.ItemShootSpeed;
-            Acceleration = param.Acceleration;
             SlopeType = slope;
+
+            // ItemShootSpeedから総tick数を計算（1秒あたりの進行割合→通過秒数→tick数）
+            // Calculate total ticks from ItemShootSpeed (progress per second -> transit seconds -> ticks)
+            var transitSeconds = 1.0 / param.ItemShootSpeed;
+            TotalTicks = GameUpdater.SecondsToTicks(transitSeconds);
         }
-        
-        
+
+
         public ItemShooterComponentSettings(ItemShooterBlockParam param)
         {
             var slope = param.SlopeType switch
@@ -51,14 +50,15 @@ namespace Game.Block.Blocks.ItemShooter
                 ItemShooterAcceleratorBlockParam.SlopeTypeConst.Down => BeltConveyorSlopeType.Down,
                 _ => BeltConveyorSlopeType.Straight
             };
-            
+
             InventoryItemNum = param.InventoryItemNum;
-            InitialShootSpeed = param.InitialShootSpeed;
-            ItemShootSpeed = param.ItemShootSpeed;
-            Acceleration = param.Acceleration;
             SlopeType = slope;
+
+            // ItemShootSpeedから総tick数を計算
+            // Calculate total ticks from ItemShootSpeed
+            var transitSeconds = 1.0 / param.ItemShootSpeed;
+            TotalTicks = GameUpdater.SecondsToTicks(transitSeconds);
         }
-        
     }
 
     /// <summary>
@@ -79,46 +79,36 @@ namespace Game.Block.Blocks.ItemShooter
         // Item insertion interval in ticks
         private readonly uint _insertItemIntervalTicks = GameUpdater.SecondsToTicks(1); // TODO to master
         private uint _lastInsertElapsedTicks = uint.MaxValue;
-        private float? _externalAcceleration;
 
-        // 
         /// <summary>
         /// 依存関係と在庫スロットを初期化
         /// Initialize dependencies and slot buffer
         /// </summary>
-        /// <param name="connectorComponent"></param>
-        /// <param name="settings"></param>
         public ItemShooterComponentService(BlockConnectorComponent<IBlockInventory> connectorComponent, ItemShooterComponentSettings settings)
         {
             _connectorComponent = connectorComponent;
             _settings = settings;
             _inventoryItems = new ShooterInventoryItem[_settings.InventoryItemNum];
         }
-        
+
         private int _lastInsertSlotIndex = -1;
 
         /// <summary>
-        /// 更新処理で射出進行と速度を管理
-        /// Update travel progress and velocity each frame
+        /// 更新処理でtick進行を管理
+        /// Update tick-based progress
         /// </summary>
-        public void Update(float deltaTime)
+        public void Update()
         {
             // 経過tick数を積算
             // Accumulate elapsed ticks for insertion interval
             UpdateElapsedTicks();
 
-            var acceleration = _externalAcceleration ?? _settings.Acceleration;
-
             // スロットごとのアイテムを処理
             // Iterate slot-wise over conveyor items
             for (var i = 0; i < _inventoryItems.Length; i++)
             {
-                ProcessSlot(i, deltaTime, acceleration);
+                ProcessSlot(i);
             }
-
-            // 外部加速度のフラグをクリア
-            // Clear external acceleration flag
-            ResetExternalAcceleration();
 
             #region Internal
 
@@ -131,18 +121,18 @@ namespace Game.Block.Blocks.ItemShooter
 
             // 各スロットのアイテムを処理する
             // Process a single slot item
-            void ProcessSlot(int slotIndex, float stepDelta, float slotAcceleration)
+            void ProcessSlot(int slotIndex)
             {
                 var item = _inventoryItems[slotIndex];
                 if (item == null) return;
 
-                if (item.RemainingPercent <= 0)
+                if (item.RemainingTicks == 0)
                 {
                     HandleFinishedItem(slotIndex, item);
                     return;
                 }
 
-                UpdateActiveItem(item, stepDelta, slotAcceleration);
+                UpdateActiveItem(item);
             }
 
             // 完了したアイテムを隣接ブロックへ渡す
@@ -152,7 +142,7 @@ namespace Game.Block.Blocks.ItemShooter
                 var insertItem = ServerContext.ItemStackFactory.Create(finishedItem.ItemId, 1, finishedItem.ItemInstanceId);
 
                 if (_connectorComponent.ConnectedTargets.Count == 0) return;
-                
+
                 _lastInsertSlotIndex++;
                 if (_lastInsertSlotIndex >= _connectorComponent.ConnectedTargets.Count)
                 {
@@ -171,22 +161,19 @@ namespace Game.Block.Blocks.ItemShooter
                 }
             }
 
-            // 進行中のアイテムの残距離と速度を更新
-            // Update remaining distance and speed of active item
-            void UpdateActiveItem(ShooterInventoryItem activeItem, float stepDelta, float slotAcceleration)
+            // 残りtick数を減らす
+            // Decrease remaining ticks
+            void UpdateActiveItem(ShooterInventoryItem activeItem)
             {
-                activeItem.RemainingPercent -= stepDelta * _settings.ItemShootSpeed * activeItem.CurrentSpeed;
-                activeItem.RemainingPercent = Math.Clamp(activeItem.RemainingPercent, 0, 1);
-
-                activeItem.CurrentSpeed += slotAcceleration * stepDelta;
-                activeItem.CurrentSpeed = Mathf.Clamp(activeItem.CurrentSpeed, 0, float.MaxValue);
-            }
-
-            // 外部加速度設定をリセット
-            // Reset external acceleration flag
-            void ResetExternalAcceleration()
-            {
-                _externalAcceleration = null;
+                var ticksToSubtract = GameUpdater.CurrentTickCount;
+                if (activeItem.RemainingTicks > ticksToSubtract)
+                {
+                    activeItem.RemainingTicks -= ticksToSubtract;
+                }
+                else
+                {
+                    activeItem.RemainingTicks = 0;
+                }
             }
 
             #endregion
@@ -199,7 +186,7 @@ namespace Game.Block.Blocks.ItemShooter
                 if (_inventoryItems[i] != null) continue;
 
                 _inventoryItems[i] = inventoryItem;
-                _inventoryItems[i].RemainingPercent = 1;
+                _inventoryItems[i].RemainingTicks = _settings.TotalTicks;
                 return null;
             }
 
@@ -216,7 +203,7 @@ namespace Game.Block.Blocks.ItemShooter
             {
                 if (_inventoryItems[i] != null) continue;
 
-                _inventoryItems[i] = new ShooterInventoryItem(itemStack.Id, itemStack.ItemInstanceId, _settings.InitialShootSpeed, null, null);
+                _inventoryItems[i] = new ShooterInventoryItem(itemStack.Id, itemStack.ItemInstanceId, _settings.TotalTicks, null, null);
                 _lastInsertElapsedTicks = 0;
                 return itemStack.SubItem(1);
             }
@@ -247,7 +234,7 @@ namespace Game.Block.Blocks.ItemShooter
 
         public void SetItem(int slot, IItemStack itemStack)
         {
-            _inventoryItems[slot] = new ShooterInventoryItem(itemStack.Id, itemStack.ItemInstanceId, _settings.InitialShootSpeed, null, null);
+            _inventoryItems[slot] = new ShooterInventoryItem(itemStack.Id, itemStack.ItemInstanceId, _settings.TotalTicks, null, null);
         }
 
         public void SetSlot(int slot, ShooterInventoryItem shooterInventoryItem)
@@ -258,11 +245,6 @@ namespace Game.Block.Blocks.ItemShooter
         public IEnumerable<ShooterInventoryItem> EnumerateInventoryItems()
         {
             return _inventoryItems;
-        }
-
-        public void SetExternalAcceleration(float acceleration)
-        {
-            _externalAcceleration = acceleration;
         }
     }
 }

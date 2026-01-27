@@ -47,7 +47,7 @@ namespace Game.Block.Blocks.BeltConveyor
             {
                 if (itemJsons[i] != null)
                 {
-                    _inventoryItems[i] = VanillaBeltConveyorInventoryItem.LoadItem(itemJsons[i], inventoryConnectors);
+                    _inventoryItems[i] = VanillaBeltConveyorInventoryItem.LoadItem(itemJsons[i], inventoryConnectors, _ticksOfItemEnterToExit);
                 }
             }
         }
@@ -71,7 +71,7 @@ namespace Game.Block.Blocks.BeltConveyor
             // 挿入先コネクター（TargetConnector）をアイテムの開始位置として設定
             // Set target connector as item's start position
             var startConnector = context.TargetConnector;
-            _inventoryItems[insertIndex] = new VanillaBeltConveyorInventoryItem(itemStack.Id, itemStack.ItemInstanceId, startConnector, goalConnector);
+            _inventoryItems[insertIndex] = new VanillaBeltConveyorInventoryItem(itemStack.Id, itemStack.ItemInstanceId, startConnector, goalConnector, _ticksOfItemEnterToExit);
 
             // 挿入したのでアイテムを減らして返す
             // Return item with count reduced by 1
@@ -159,10 +159,10 @@ namespace Game.Block.Blocks.BeltConveyor
         public void SetItem(int slot, IItemStack itemStack)
         {
             BlockException.CheckDestroy(this);
-            
+
             //TODO lockすべき？？
-            var goalConnector = _blockInventoryInserter?.GetNextGoalConnector(new List<IItemStack> {itemStack});
-            _inventoryItems[slot] = new VanillaBeltConveyorInventoryItem(itemStack.Id, itemStack.ItemInstanceId, null, goalConnector);
+            var goalConnector = _blockInventoryInserter?.GetNextGoalConnector(new List<IItemStack> { itemStack });
+            _inventoryItems[slot] = new VanillaBeltConveyorInventoryItem(itemStack.Id, itemStack.ItemInstanceId, null, goalConnector, _ticksOfItemEnterToExit);
         }
         
         public bool IsDestroy { get; private set; }
@@ -206,11 +206,14 @@ namespace Game.Block.Blocks.BeltConveyor
                 // Validate connector and fallback if necessary
                 ValidateAndUpdateGoalConnector(item);
 
-                //次のインデックスに入れる時間かどうかをチェックする
-                var nextIndexStartTime = i * (1f / _inventoryItemNum);
-                var isNextInsertable = item.RemainingPercent <= nextIndexStartTime;
-                
-                //次に空きがあれば次に移動する
+                // 次のインデックスに入れる時間かどうかをチェックする（tick単位）
+                // Check if it's time to move to next index (in ticks)
+                var ticksPerSlot = _ticksOfItemEnterToExit / (uint)_inventoryItemNum;
+                var nextIndexStartTicks = (uint)i * ticksPerSlot;
+                var isNextInsertable = item.RemainingTicks <= nextIndexStartTicks;
+
+                // 次に空きがあれば次に移動する
+                // Move to next slot if available
                 if (isNextInsertable && i != 0)
                 {
                     if (_inventoryItems[i - 1] == null)
@@ -219,26 +222,33 @@ namespace Game.Block.Blocks.BeltConveyor
                         _inventoryItems[i] = null;
                     }
                 }
-                
-                //最後のアイテムの場合は接続先に渡す
-                if (i == 0 && item.RemainingPercent <= 0)
+
+                // 最後のアイテムの場合は接続先に渡す
+                // Pass to connected block if item reached the end
+                if (i == 0 && item.RemainingTicks == 0)
                 {
                     var insertItem = ServerContext.ItemStackFactory.Create(item.ItemId, 1, item.ItemInstanceId);
 
                     var output = _blockInventoryInserter.InsertItem(insertItem, item.GoalConnector);
 
-                    //渡した結果がnullItemだったらそのアイテムを消す
+                    // 渡した結果がnullItemだったらそのアイテムを消す
+                    // Remove item if successfully inserted
                     if (output.Id == ItemMaster.EmptyItemId) _inventoryItems[i] = null;
 
                     continue;
                 }
 
-                // 進行率を減らす（tick単位）
-                // Reduce progress rate in ticks
-                var progressPerTick = 1.0 / _ticksOfItemEnterToExit;
-                var diff = (float)(GameUpdater.CurrentTickCount * progressPerTick);
-                item.RemainingPercent -= diff;
-                item.RemainingPercent = Math.Clamp(item.RemainingPercent, 0, 1);
+                // 残りtick数を減らす
+                // Decrease remaining ticks
+                var ticksToSubtract = GameUpdater.CurrentTickCount;
+                if (item.RemainingTicks > ticksToSubtract)
+                {
+                    item.RemainingTicks -= ticksToSubtract;
+                }
+                else
+                {
+                    item.RemainingTicks = 0;
+                }
             }
 
             #region Internal
@@ -265,12 +275,12 @@ namespace Game.Block.Blocks.BeltConveyor
         }
 
         /// <summary>
-        /// ベルトコンベアの速度を秒単位で設定（内部でtickに変換）
-        /// Set belt conveyor speed in seconds (internally converted to ticks)
+        /// ベルトコンベアの速度をtick単位で設定
+        /// Set belt conveyor speed in ticks
         /// </summary>
-        public void SetTimeOfItemEnterToExit(double timeSeconds)
+        public void SetTicksOfItemEnterToExit(uint ticks)
         {
-            _ticksOfItemEnterToExit = GameUpdater.SecondsToTicks(timeSeconds);
+            _ticksOfItemEnterToExit = ticks;
         }
     }
 }

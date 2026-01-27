@@ -96,7 +96,9 @@ namespace Game.Block.Blocks.Miner
                 _openableInventoryItemDataStoreService.SetItemWithoutEvent(i, itemStack);
             }
 
-            _remainingTicks = saveJsonObject.RemainingTicks;
+            // 秒数からtickに変換して復元
+            // Convert seconds back to ticks for restoration
+            _remainingTicks = GameUpdater.SecondsToTicks(saveJsonObject.RemainingSeconds);
         }
         
         public void SupplyPower(ElectricPower power)
@@ -118,9 +120,11 @@ namespace Game.Block.Blocks.Miner
         {
             BlockException.CheckDestroy(this);
 
+            // tickを秒数に変換して保存（tick数の変動に対応）
+            // Convert ticks to seconds for storage (to handle tick rate changes)
             var saveData = new VanillaElectricMinerSaveJsonObject
             {
-                RemainingTicks = _remainingTicks,
+                RemainingSeconds = GameUpdater.TicksToSeconds(_remainingTicks),
                 Items = _openableInventoryItemDataStoreService.InventoryItems.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
             };
 
@@ -384,7 +388,10 @@ namespace Game.Block.Blocks.Miner
     {
         [JsonProperty("items")]
         public List<ItemStackSaveJsonObject> Items;
-        [JsonProperty("remainingTicks")]
-        public uint RemainingTicks;
+
+        // 秒数として保存（tick数の変動に対応）
+        // Save as seconds (to handle tick rate changes)
+        [JsonProperty("remainingSeconds")]
+        public double RemainingSeconds;
     }
 }

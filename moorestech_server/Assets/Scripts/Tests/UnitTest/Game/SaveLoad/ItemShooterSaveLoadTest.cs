@@ -3,10 +3,12 @@ using System.Linq;
 using System.Reflection;
 using Core.Item.Interface;
 using Core.Master;
+using Core.Update;
 using Game.Block.Blocks.ItemShooter;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
+using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -30,17 +32,21 @@ namespace Tests.UnitTest.Game.SaveLoad
             var serviceField = typeof(ItemShooterComponent).GetField("_service", BindingFlags.NonPublic | BindingFlags.Instance);
             var service = (ItemShooterComponentService)serviceField.GetValue(shooter);
             var inventoryItems = service.EnumerateInventoryItems().ToArray();
-            
-            //アイテムを設定
-            var item1Speed = 1.5f;
-            var item2Speed = 2.2f;
-            var item3Speed = 5f;
-            var item1RemainingPercent = 0.5f;
-            var item2RemainingPercent = 0.3f;
-            var item3RemainingPercent = 0.0f;
-            var item0 = new ShooterInventoryItem(new ItemId(1), new ItemInstanceId(0), item1Speed, null, null) { RemainingPercent = item1RemainingPercent };
-            var item2 = new ShooterInventoryItem(new ItemId(2), new ItemInstanceId(0), item2Speed, null, null) { RemainingPercent = item2RemainingPercent };
-            var item3 = new ShooterInventoryItem(new ItemId(5), new ItemInstanceId(0), item3Speed, null, null) { RemainingPercent = item3RemainingPercent };
+
+            // マスターデータからtotalTicksを取得
+            // Get totalTicks from master data
+            var shooterParam = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.StraightItemShooter).BlockParam as ItemShooterBlockParam;
+            var transitSeconds = 1.0 / shooterParam.ItemShootSpeed;
+            var totalTicks = GameUpdater.SecondsToTicks(transitSeconds);
+
+            // アイテムを設定（tick化によりスピードは廃止、残りtickで管理）
+            // Set items (speed removed after tick conversion, managed by remaining ticks)
+            var item1RemainingTicks = (uint)(totalTicks * 0.5);
+            var item2RemainingTicks = (uint)(totalTicks * 0.3);
+            var item3RemainingTicks = 0u;
+            var item0 = new ShooterInventoryItem(new ItemId(1), new ItemInstanceId(0), totalTicks, null, null) { RemainingTicks = item1RemainingTicks };
+            var item2 = new ShooterInventoryItem(new ItemId(2), new ItemInstanceId(0), totalTicks, null, null) { RemainingTicks = item2RemainingTicks };
+            var item3 = new ShooterInventoryItem(new ItemId(5), new ItemInstanceId(0), totalTicks, null, null) { RemainingTicks = item3RemainingTicks };
             // SetSlotを利用して初期化 // Seed inventory via service API
             service.SetSlot(0, item0);
             service.SetSlot(2, item2);
@@ -57,22 +63,23 @@ namespace Tests.UnitTest.Game.SaveLoad
             var newService = (ItemShooterComponentService)serviceField.GetValue(newShooter);
             var newInventoryItems = newService.EnumerateInventoryItems().ToArray();
             
-            //アイテムが一致するかチェック
+            // アイテムが一致するかチェック
+            // Check that items match
             Assert.AreEqual(service.SlotSize, newInventoryItems.Length);
-            
+
             Assert.AreEqual(1, newInventoryItems[0].ItemId.AsPrimitive());
-            Assert.AreEqual(item1Speed, newInventoryItems[0].CurrentSpeed);
-            Assert.AreEqual(item1RemainingPercent, newInventoryItems[0].RemainingPercent);
-            
+            Assert.AreEqual(item1RemainingTicks, newInventoryItems[0].RemainingTicks);
+            Assert.AreEqual(totalTicks, newInventoryItems[0].TotalTicks);
+
             Assert.IsTrue(newInventoryItems[1] == null);
-            
+
             Assert.AreEqual(2, newInventoryItems[2].ItemId.AsPrimitive());
-            Assert.AreEqual(item2Speed, newInventoryItems[2].CurrentSpeed);
-            Assert.AreEqual(item2RemainingPercent, newInventoryItems[2].RemainingPercent);
-            
+            Assert.AreEqual(item2RemainingTicks, newInventoryItems[2].RemainingTicks);
+            Assert.AreEqual(totalTicks, newInventoryItems[2].TotalTicks);
+
             Assert.AreEqual(5, newInventoryItems[3].ItemId.AsPrimitive());
-            Assert.AreEqual(item3Speed, newInventoryItems[3].CurrentSpeed);
-            Assert.AreEqual(item3RemainingPercent, newInventoryItems[3].RemainingPercent);
+            Assert.AreEqual(item3RemainingTicks, newInventoryItems[3].RemainingTicks);
+            Assert.AreEqual(totalTicks, newInventoryItems[3].TotalTicks);
         }
     }
 }

@@ -255,7 +255,9 @@ namespace Game.Block.Blocks.Gear
         // Restore the fuel state saved during serialization
         public void Restore(FuelGearGeneratorSaveData saveData)
         {
-            RemainingFuelTicks = saveData.RemainingFuelTicks;
+            // 秒数からtickに変換して復元
+            // Convert seconds back to ticks for restoration
+            RemainingFuelTicks = GameUpdater.SecondsToTicks(saveData.RemainingFuelSeconds);
             CurrentFuelType = Enum.TryParse(saveData.ActiveFuelType, out FuelType parsed) ? parsed : FuelType.None;
             CurrentFuelItemId = saveData.CurrentFuelItemGuid.HasValue
                 ? MasterHolder.ItemMaster.GetItemId(saveData.CurrentFuelItemGuid.Value)
