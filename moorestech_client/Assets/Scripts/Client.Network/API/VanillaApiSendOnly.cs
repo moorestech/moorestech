@@ -122,7 +122,7 @@ namespace Client.Network.API
 
         public void ConnectRail(int fromNodeId, Guid fromGuid, int toNodeId, Guid toGuid)
         {
-            var request = RailConnectionEditRequest.CreateConnectRequest(fromNodeId, fromGuid, toNodeId, toGuid);
+            var request = RailConnectionEditRequest.CreateConnectRequest(_playerId, fromNodeId, fromGuid, toNodeId, toGuid);
             _packetSender.Send(request);
         }
         
