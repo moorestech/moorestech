@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Core.Inventory;
+using Core.Item.Interface;
 using Core.Master;
 using Game.PlayerInventory.Interface;
 using Game.Train.RailCalc;
@@ -61,7 +61,7 @@ namespace Server.Protocol.PacketResponse
                         var length = GetRailLength(fromNode, toNode);
                         
                         var inventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory;
-                        (RailItemMasterElement element, int requiredCount)[] placeableRailItems = GetPlaceableRailItems(inventory, length);
+                        (RailItemMasterElement element, int requiredCount)[] placeableRailItems = GetPlaceableRailItems(inventory.InventoryItems, length);
                         
                         if (placeableRailItems.Length == 0) return ResponseRailConnectionEditMessagePack.CreateFailure(RailConnectionEditFailureReason.NotEnoughRailItem, data.Mode);
                         var placeRailItem = placeableRailItems[0];
@@ -149,9 +149,10 @@ namespace Server.Protocol.PacketResponse
             return length;
         }
         
-        public static (RailItemMasterElement element, int requiredCount)[] GetPlaceableRailItems(IOpenableInventory inventory, float railLength)
+        public static (RailItemMasterElement element, int requiredCount)[] GetPlaceableRailItems(IEnumerable<IItemStack> inventory, float railLength)
         {
             var placeableRailItems = new List<(RailItemMasterElement element, int requiredCount)>();
+            IItemStack[] itemStacks = inventory as IItemStack[] ?? inventory.ToArray();
             foreach (var railMasterElement in MasterHolder.TrainUnitMaster.GetRailItems())
             {
                 // 設置に必要なアイテム数
@@ -159,7 +160,7 @@ namespace Server.Protocol.PacketResponse
                 
                 // inventoryにその分があるならplaceableRailItemsに追加
                 var railItemId = MasterHolder.ItemMaster.GetItemId(railMasterElement.ItemGuid);
-                var ownedRailItemCount = inventory.InventoryItems.Where(stack => stack.Id == railItemId).Sum(stack => stack.Count);
+                var ownedRailItemCount = itemStacks.Where(stack => stack.Id == railItemId).Sum(stack => stack.Count);
                 if (ownedRailItemCount >= requiredCount)
                 {
                     placeableRailItems.Add((railMasterElement, requiredCount));
