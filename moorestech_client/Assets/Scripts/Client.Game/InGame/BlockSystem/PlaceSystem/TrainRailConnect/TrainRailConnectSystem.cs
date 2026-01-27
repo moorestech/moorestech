@@ -63,6 +63,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             {
                 if (PlaceSystemUtil.TryGetRayHitPosition(_mainCamera, out var position, out _))
                 {
+                    (RailItemMasterElement element, int requiredCount)[] placeableRailItems = RailConnectionEditProtocol.GetPlaceableRailItems(_playerInventory, length);
                     var previewData = CalculatePreviewData(fromDestination, position, _cache);
                     ShowPreview(previewData);
                 }
