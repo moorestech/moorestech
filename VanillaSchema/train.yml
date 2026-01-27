@@ -29,4 +29,17 @@ properties:
       default: 1
     - key: length
       type: integer
+- key: railItems
+  type: array
+  overrideCodeGeneratePropertyName: RailItemMasterElement
+  items:
+    type: object
+    properties:
+    - key: itemGuid
+      type: uuid
+      foreignKey:
+        schemaId: items
+        foreignKeyIdPath: /data/[*]/itemGuid
+        displayElementPath: /data/[*]/name
 
+ 
