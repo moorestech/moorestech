@@ -86,8 +86,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                     return;
                 }
                 
+                var length = RailConnectionEditProtocol.GetRailLength(fromNode, toNode);
+                (RailItemMasterElement element, int requiredCount)[] placeableRailItems = RailConnectionEditProtocol.GetPlaceableRailItems(_playerInventory, length);
+                
                 var previewData = CalculatePreviewData(fromDestination, toDestination, _cache);
                 ShowPreview(previewData);
+                
+                if (placeableRailItems.Length == 0) return;
                 SendProtocol(fromNode, toNode);   
             }
             
@@ -109,10 +114,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 if (!InputManager.Playable.ScreenLeftClick.GetKeyDown) return;
                 
                 _previewObject.SetActive(false);
-                
-                var length = RailConnectionEditProtocol.GetRailLength(from, to);
-                (RailItemMasterElement element, int requiredCount)[] placeableRailItems = RailConnectionEditProtocol.GetPlaceableRailItems(_playerInventory, length);
-                if (placeableRailItems.Length == 0) return;
                 
                 Debug.Log($"Connecting rails: From NodeId={from.NodeId}, Guid={from.NodeGuid} To NodeId={to.NodeId}, Guid={to.NodeGuid}");
                 ClientContext.VanillaApi.SendOnly.ConnectRail(from.NodeId, from.NodeGuid, to.NodeId, to.NodeGuid);
