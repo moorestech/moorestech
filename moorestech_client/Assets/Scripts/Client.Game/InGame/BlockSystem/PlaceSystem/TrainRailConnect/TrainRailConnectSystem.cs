@@ -5,8 +5,6 @@ using Client.Game.InGame.UI.Inventory.Main;
 using Client.Input;
 using Game.Train.RailGraph;
 using Game.Train.SaveLoad;
-using Mooresmaster.Model.TrainModule;
-using Server.Protocol.PacketResponse;
 using UnityEngine;
 using static Client.Common.LayerConst;
 using static Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect.TrainRailConnectPreviewCalculator;
@@ -63,8 +61,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             {
                 if (PlaceSystemUtil.TryGetRayHitPosition(_mainCamera, out var position, out _))
                 {
-                    (RailItemMasterElement element, int requiredCount)[] placeableRailItems = RailConnectionEditProtocol.GetPlaceableRailItems(_playerInventory, length);
-                    var previewData = CalculatePreviewData(fromDestination, position, _cache);
+                    var previewData = CalculatePreviewData(fromDestination, position, _cache, _playerInventory);
                     ShowPreview(previewData);
                 }
             }
@@ -87,13 +84,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                     return;
                 }
                 
-                var length = RailConnectionEditProtocol.GetRailLength(fromNode, toNode);
-                (RailItemMasterElement element, int requiredCount)[] placeableRailItems = RailConnectionEditProtocol.GetPlaceableRailItems(_playerInventory, length);
-                
-                var previewData = CalculatePreviewData(fromDestination, toDestination, _cache);
+                var previewData = CalculatePreviewData(fromDestination, toDestination, _cache, _playerInventory);
                 ShowPreview(previewData);
                 
-                if (placeableRailItems.Length == 0) return;
+                // 必要数アイテムを持っていないなら設置処理を呼ばない
+                if (!previewData.HasEnoughRailItem) return;
+                
                 SendProtocol(fromNode, toNode);   
             }
             
