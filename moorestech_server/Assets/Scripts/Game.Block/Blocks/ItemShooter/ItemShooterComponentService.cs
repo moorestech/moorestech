@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Item.Interface;
 using Core.Master;
+using Core.Update;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Component;
 using Game.Block.Interface;
@@ -74,8 +75,10 @@ namespace Game.Block.Blocks.ItemShooter
         private readonly ItemShooterComponentSettings _settings;
         private readonly ShooterInventoryItem[] _inventoryItems;
 
-        private const float InsertItemInterval = 1f; // TODO to master
-        private float _lastInsertElapsedTime = float.MaxValue;
+        // アイテム挿入間隔（tick単位）
+        // Item insertion interval in ticks
+        private readonly uint _insertItemIntervalTicks = GameUpdater.SecondsToTicks(1); // TODO to master
+        private uint _lastInsertElapsedTicks = uint.MaxValue;
         private float? _externalAcceleration;
 
         // 
@@ -100,9 +103,9 @@ namespace Game.Block.Blocks.ItemShooter
         /// </summary>
         public void Update(float deltaTime)
         {
-            // 更新時間を積算
-            // Accumulate elapsed time for insertion interval
-            UpdateElapsedTime(deltaTime);
+            // 経過tick数を積算
+            // Accumulate elapsed ticks for insertion interval
+            UpdateElapsedTicks();
 
             var acceleration = _externalAcceleration ?? _settings.Acceleration;
 
@@ -119,11 +122,11 @@ namespace Game.Block.Blocks.ItemShooter
 
             #region Internal
 
-            // 経過時間を累積する
-            // Accumulate elapsed insertion time
-            void UpdateElapsedTime(float elapsedStep)
+            // 経過tick数を累積する
+            // Accumulate elapsed insertion ticks
+            void UpdateElapsedTicks()
             {
-                _lastInsertElapsedTime += elapsedStep;
+                _lastInsertElapsedTicks += GameUpdater.CurrentTickCount;
             }
 
             // 各スロットのアイテムを処理する
@@ -205,14 +208,16 @@ namespace Game.Block.Blocks.ItemShooter
 
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            if (_lastInsertElapsedTime < InsertItemInterval) return itemStack;
+            // tick単位で挿入間隔をチェック
+            // Check insertion interval in ticks
+            if (_lastInsertElapsedTicks < _insertItemIntervalTicks) return itemStack;
 
             for (var i = 0; i < _inventoryItems.Length; i++)
             {
                 if (_inventoryItems[i] != null) continue;
 
                 _inventoryItems[i] = new ShooterInventoryItem(itemStack.Id, itemStack.ItemInstanceId, _settings.InitialShootSpeed, null, null);
-                _lastInsertElapsedTime = 0;
+                _lastInsertElapsedTicks = 0;
                 return itemStack.SubItem(1);
             }
 

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
@@ -31,10 +30,10 @@ namespace Tests.CombinedTest.Core
         public void ItemProcessingOutputTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            
+
             var itemStackFactory = ServerContext.ItemStackFactory;
             var blockFactory = ServerContext.BlockFactory;
-            
+
             var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data[GearMachineRecipeIndex];
 
             // ギアマシンブロックの配置
@@ -46,23 +45,27 @@ namespace Tests.CombinedTest.Core
             {
                 blockInventory.InsertItem(itemStackFactory.Create(inputItem.ItemGuid, inputItem.Count));
             }
-            
+
             var gearEnergyTransformer = block.GetComponent<GearEnergyTransformer>();
             var gearMachineParam = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearMachine).BlockParam as GearMachineBlockParam;
             var machineProcessor = block.GetComponent<VanillaMachineProcessorComponent>();
-            
-            //最大クラフト時間を超過するまでクラフトする
-            var craftTime = DateTime.Now.AddSeconds(recipe.Time);
-            while (craftTime.AddSeconds(0.4).CompareTo(DateTime.Now) == 1)
+
+            // クラフト時間をtick単位で計算（マージン付き）
+            // Calculate craft time in ticks with margin
+            var craftTicks = GameUpdater.SecondsToTicks(recipe.Time) + 10;
+
+            for (uint tick = 0; tick < craftTicks; tick++)
             {
+                // tick数を先に設定してから処理を行う
+                // Set tick count before processing
+                GameUpdater.AdvanceTicks(1);
+
                 var requiredRpm = new RPM(gearMachineParam.RequiredRpm);
                 var requiredTorque = new Torque(gearMachineParam.RequireTorque);
                 gearEnergyTransformer.SupplyPower(requiredRpm, requiredTorque, true);
                 machineProcessor.Update();
-                GameUpdater.Wait();
-                GameUpdater.UpdateDeltaTime();
             }
-            
+
             //検証
             AssertInventory(blockInventory, recipe);
         }
@@ -70,13 +73,14 @@ namespace Tests.CombinedTest.Core
         
         [Test]
         // RPM、トルクが足りないときに処理に時間がかかるテスト
+        // Test that processing takes longer when RPM or torque is insufficient
         public void NotEnoughTorqueOrRpmTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            
+
             var itemStackFactory = ServerContext.ItemStackFactory;
             var blockFactory = ServerContext.BlockFactory;
-            
+
             var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data[GearMachineRecipeIndex];
 
             // ギアマシンブロックの配置
@@ -84,38 +88,41 @@ namespace Tests.CombinedTest.Core
             var recipeBlockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
             ServerContext.WorldBlockDatastore.TryAddBlock(recipeBlockId, Vector3Int.one, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var lackRpmBlock);
             ServerContext.WorldBlockDatastore.TryAddBlock(recipeBlockId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var lackTorqueBlock);
-            
+
             var lackRpmInventory = lackRpmBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
             var lackTorqueInventory = lackTorqueBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
-            
+
             foreach (var inputItem in recipe.InputItems)
             {
                 lackRpmInventory.InsertItem(itemStackFactory.Create(inputItem.ItemGuid, inputItem.Count));
                 lackTorqueInventory.InsertItem(itemStackFactory.Create(inputItem.ItemGuid, inputItem.Count));
             }
-            
+
             var lackRpmGearMachine = lackRpmBlock.GetComponent<GearEnergyTransformer>();
             var lackTorqueGearMachine = lackTorqueBlock.GetComponent<GearEnergyTransformer>();
             var gearMachineParam = lackRpmBlock.BlockMasterElement.BlockParam as GearMachineBlockParam;
-            
+
             var lackRpmProcessor = lackRpmBlock.GetComponent<VanillaMachineProcessorComponent>();
             var lackTorqueProcessor = lackTorqueBlock.GetComponent<VanillaMachineProcessorComponent>();
-            
-            //最大クラフト時間を超過するまでクラフトする
-            var craftTime = DateTime.Now.AddSeconds(recipe.Time * 2);
-            while (craftTime.AddSeconds(0.3).CompareTo(DateTime.Now) == 1)
+
+            // 半分のRPM/トルクなので2倍の時間が必要（マージン付き）
+            // Half RPM/torque means 2x time needed (with margin)
+            var craftTicks = GameUpdater.SecondsToTicks(recipe.Time * 2) + 10;
+
+            for (uint tick = 0; tick < craftTicks; tick++)
             {
+                // tick数を先に設定してから処理を行う
+                // Set tick count before processing
+                GameUpdater.AdvanceTicks(1);
+
                 var rpm = new RPM(gearMachineParam.RequiredRpm / 2f);
                 lackRpmGearMachine.SupplyPower(rpm, new Torque(gearMachineParam.RequireTorque), true);
                 lackTorqueGearMachine.SupplyPower(new RPM(gearMachineParam.RequiredRpm), (Torque)gearMachineParam.RequireTorque / 2f, true);
-                
+
                 lackRpmProcessor.Update();
                 lackTorqueProcessor.Update();
-                
-                GameUpdater.Wait();
-                GameUpdater.UpdateDeltaTime();
             }
-            
+
             //検証
             AssertInventory(lackRpmInventory, recipe);
             AssertInventory(lackTorqueInventory, recipe);
