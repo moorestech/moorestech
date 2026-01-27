@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
+using Core.Update;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Component;
@@ -117,11 +118,15 @@ namespace Game.Block.Factory.BlockTemplate
             
             var recipe = jsonObject.RecipeGuid == Guid.Empty ? null : MasterHolder.MachineRecipesMaster.GetRecipeElement(jsonObject.RecipeGuid);
 
+            // 秒数からtickに変換して復元
+            // Convert seconds back to ticks for restoration
+            var remainingTicks = GameUpdater.SecondsToTicks(jsonObject.RemainingSeconds);
+
             var processor = new VanillaMachineProcessorComponent(
                 vanillaMachineInputInventory,
                 vanillaMachineOutputInventory,
                 (ProcessState)jsonObject.State,
-                jsonObject.RemainingTicks,
+                remainingTicks,
                 recipe,
                 requestPower);
 

@@ -35,9 +35,14 @@ namespace Game.Block.Blocks.ItemShooter
                 if (item.ItemStackSave == null) continue;
 
                 var id = MasterHolder.ItemMaster.GetItemId(item.ItemStackSave.ItemGuid);
-                var shooterItem = new ShooterInventoryItem(id, ItemInstanceId.Create(), (float)item.CurrentSpeed, null, null)
+
+                // 秒数からtickに変換して復元
+                // Convert seconds to ticks for restoration
+                var totalTicks = GameUpdater.SecondsToTicks(item.TotalSeconds);
+                var remainingTicks = GameUpdater.SecondsToTicks(item.RemainingSeconds);
+                var shooterItem = new ShooterInventoryItem(id, ItemInstanceId.Create(), totalTicks, null, null)
                 {
-                    RemainingPercent = (float)items[i].RemainingPercent
+                    RemainingTicks = remainingTicks
                 };
                 _service.SetSlot(i, shooterItem);
             }
@@ -46,10 +51,7 @@ namespace Game.Block.Blocks.ItemShooter
         public void Update()
         {
             BlockException.CheckDestroy(this);
-            // tick数を秒数に変換してサービスに渡す
-            // Convert ticks to seconds for the service
-            var deltaSeconds = (float)(GameUpdater.CurrentTickCount * GameUpdater.SecondsPerTick);
-            _service.Update(deltaSeconds);
+            _service.Update();
         }
 
         public ShooterInventoryItem InsertItemFromShooter(ShooterInventoryItem inventoryItem)
@@ -101,16 +103,12 @@ namespace Game.Block.Blocks.ItemShooter
         }
 
         public string SaveKey { get; } = typeof(ItemShooterComponent).FullName;
+
         public string GetSaveState()
         {
             BlockException.CheckDestroy(this);
             var items = _service.EnumerateInventoryItems().Select(item => new ItemShooterItemJsonObject(item)).ToList();
             return JsonConvert.SerializeObject(items);
-        }
-
-        public void SetExternalAcceleration(float acceleration)
-        {
-            _service.SetExternalAcceleration(acceleration);
         }
     }
 
@@ -118,24 +116,28 @@ namespace Game.Block.Blocks.ItemShooter
     {
         [JsonProperty("itemStack")] public ItemStackSaveJsonObject ItemStackSave;
 
-        [JsonProperty("remainingTime")] public double RemainingPercent;
-
-        [JsonProperty("currentSpeed")] public double CurrentSpeed;
+        // 秒数として保存（tick数の変動に対応）
+        // Save as seconds (to handle tick rate changes)
+        [JsonProperty("remainingSeconds")] public double RemainingSeconds;
+        [JsonProperty("totalSeconds")] public double TotalSeconds;
 
         public ItemShooterItemJsonObject(ShooterInventoryItem shooterInventoryItem)
         {
             if (shooterInventoryItem == null)
             {
                 ItemStackSave = null;
-                RemainingPercent = 0;
-                CurrentSpeed = 0;
+                RemainingSeconds = 0;
+                TotalSeconds = 0;
                 return;
             }
 
             var item = ServerContext.ItemStackFactory.Create(shooterInventoryItem.ItemId, 1);
             ItemStackSave = new ItemStackSaveJsonObject(item);
-            RemainingPercent = shooterInventoryItem.RemainingPercent;
-            CurrentSpeed = shooterInventoryItem.CurrentSpeed;
+
+            // tickを秒数に変換して保存
+            // Convert ticks to seconds for storage
+            RemainingSeconds = GameUpdater.TicksToSeconds(shooterInventoryItem.RemainingTicks);
+            TotalSeconds = GameUpdater.TicksToSeconds(shooterInventoryItem.TotalTicks);
         }
     }
 }

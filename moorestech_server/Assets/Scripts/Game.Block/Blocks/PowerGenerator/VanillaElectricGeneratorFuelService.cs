@@ -248,9 +248,9 @@ namespace Game.Block.Blocks.PowerGenerator
 
         public void WriteSaveData(VanillaElectricGeneratorSaveJsonObject saveData)
         {
-            // 現在の燃焼状況と残量を記録し、セーブ・ロード後に同じ状態を再現できるようにする。
-            // Record the current combustion status and remaining amount so that the same state can be reproduced after saving and loading.
-            saveData.RemainingFuelTicks = _remainingFuelTicks;
+            // tickを秒数に変換して保存（tick数の変動に対応）
+            // Convert ticks to seconds for storage (to handle tick rate changes)
+            saveData.RemainingFuelSeconds = GameUpdater.TicksToSeconds(_remainingFuelTicks);
             saveData.ActiveFuelType = _currentFuelType.ToString();
 
             saveData.CurrentFuelItemGuidStr = null;
@@ -281,9 +281,9 @@ namespace Game.Block.Blocks.PowerGenerator
         {
             if (saveData == null) return;
 
-            // 保存データから燃焼状態とタンクを復元し、液体燃料が無効ならアイドルへ戻す。
-            // Restore the combustion state and tank from the saved data, and return to idle if liquid fuel is disabled.
-            _remainingFuelTicks = saveData.RemainingFuelTicks;
+            // 秒数からtickに変換して復元
+            // Convert seconds back to ticks for restoration
+            _remainingFuelTicks = GameUpdater.SecondsToTicks(saveData.RemainingFuelSeconds);
 
             if (!string.IsNullOrEmpty(saveData.ActiveFuelType) && Enum.TryParse(saveData.ActiveFuelType, out FuelType parsedType))
             {

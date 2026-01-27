@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Item.Interface;
 using Core.Master;
+using Core.Update;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -40,7 +41,8 @@ namespace Game.Block.Blocks.Machine
         {
             BlockException.CheckDestroy(this);
             
-            // JsonObjectにリファクタ
+            // tickを秒数に変換して保存（tick数の変動に対応）
+            // Convert ticks to seconds for storage (to handle tick rate changes)
             var jsonObject = new VanillaMachineJsonObject
             {
                 InputSlot = _vanillaMachineInputInventory.InputSlot.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
@@ -48,7 +50,7 @@ namespace Game.Block.Blocks.Machine
                 InputFluidSlot = _vanillaMachineInputInventory.FluidInputSlot.Select(fluid => new FluidContainerSaveJsonObject(fluid)).ToList(),
                 OutputFluidSlot = _vanillaMachineOutputInventory.FluidOutputSlot.Select(fluid => new FluidContainerSaveJsonObject(fluid)).ToList(),
                 State = (int)_vanillaMachineProcessorComponent.CurrentState,
-                RemainingTicks = _vanillaMachineProcessorComponent.RemainingTicks,
+                RemainingSeconds = GameUpdater.TicksToSeconds(_vanillaMachineProcessorComponent.RemainingTicks),
                 RecipeGuidStr = _vanillaMachineProcessorComponent.RecipeGuid.ToString(),
             };
             
@@ -70,10 +72,12 @@ namespace Game.Block.Blocks.Machine
         public string RecipeGuidStr;
         [JsonIgnore]
         public Guid RecipeGuid => Guid.Parse(RecipeGuidStr);
-        
-        [JsonProperty("remainingTicks")]
-        public uint RemainingTicks;
-        
+
+        // 秒数として保存（tick数の変動に対応）
+        // Save as seconds (to handle tick rate changes)
+        [JsonProperty("remainingSeconds")]
+        public double RemainingSeconds;
+
         [JsonProperty("state")]
         public int State;
     }

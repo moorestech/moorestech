@@ -209,7 +209,9 @@ namespace Game.Block.Blocks.Gear
         public void Restore(FuelGearGeneratorSaveData saveData)
         {
             CurrentState = Enum.TryParse(saveData.CurrentState, out FuelGearGeneratorState parsedState) ? parsedState : FuelGearGeneratorState.Idle;
-            StateElapsedTicks = saveData.StateElapsedTicks;
+            // 秒数からtickに変換して復元
+            // Convert seconds back to ticks for restoration
+            StateElapsedTicks = GameUpdater.SecondsToTicks(saveData.StateElapsedSeconds);
             SteamConsumptionRate = saveData.SteamConsumptionRate;
             RateAtDecelerationStart = saveData.RateAtDecelerationStart;
         }

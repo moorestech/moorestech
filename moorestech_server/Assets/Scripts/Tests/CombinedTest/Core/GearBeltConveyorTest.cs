@@ -54,8 +54,11 @@ namespace Tests.CombinedTest.Core
             
             var gearNetworkDatastore = serviceProvider.GetService<GearNetworkDatastore>();
             IReadOnlyDictionary<GearNetworkId, GearNetwork> gearNetwork = gearNetworkDatastore.GearNetworks;
-            
-            
+
+            // ギアネットワークを確立するための更新サイクルを実行
+            // Run update cycle to establish gear network
+            GameUpdater.AdvanceTicks(1);
+
             const int torqueRate = 1;
             const int generatorRpm = 10;
             var gearBeltConveyorBlockParam = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearBeltConveyor).BlockParam as GearBeltConveyorBlockParam;

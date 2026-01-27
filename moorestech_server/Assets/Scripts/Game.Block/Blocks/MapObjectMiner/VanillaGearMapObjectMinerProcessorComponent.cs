@@ -66,15 +66,17 @@ namespace Game.Block.Blocks.MapObjectMiner
         public VanillaGearMapObjectMinerProcessorComponent(Dictionary<string, string> componentStates, BlockPositionInfo blockPositionInfo, GearMapObjectMinerBlockParam blockParam, VanillaChestComponent vanillaChestComponent) :
             this(blockPositionInfo, blockParam, vanillaChestComponent)
         {
-            var itemJsons = JsonConvert.DeserializeObject<Dictionary<Guid, uint>>(componentStates[SaveKey]);
-            foreach (var (guid, remainingMiningTicks) in itemJsons)
+            // 秒数からtickに変換して復元
+            // Convert seconds back to ticks for restoration
+            var itemJsons = JsonConvert.DeserializeObject<Dictionary<Guid, double>>(componentStates[SaveKey]);
+            foreach (var (guid, remainingMiningSeconds) in itemJsons)
             {
                 if (!_miningTargetInfos.TryGetValue(guid, out var info))
                 {
                     continue;
                 }
 
-                info.RemainingMiningTicks = remainingMiningTicks;
+                info.RemainingMiningTicks = GameUpdater.SecondsToTicks(remainingMiningSeconds);
             }
         }
         
@@ -128,13 +130,15 @@ namespace Game.Block.Blocks.MapObjectMiner
         public string SaveKey { get; } = typeof(VanillaGearMapObjectMinerProcessorComponent).FullName;
         public string GetSaveState()
         {
-            var remainMiningTicks = new Dictionary<Guid, uint>();
+            // tickを秒数に変換して保存（tick数の変動に対応）
+            // Convert ticks to seconds for storage (to handle tick rate changes)
+            var remainMiningSeconds = new Dictionary<Guid, double>();
             foreach (var (guid, info) in _miningTargetInfos)
             {
-                remainMiningTicks.Add(guid, info.RemainingMiningTicks);
+                remainMiningSeconds.Add(guid, GameUpdater.TicksToSeconds(info.RemainingMiningTicks));
             }
 
-            return JsonConvert.SerializeObject(remainMiningTicks);
+            return JsonConvert.SerializeObject(remainMiningSeconds);
         }
         
         public bool IsDestroy { get; private set; }

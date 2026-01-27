@@ -232,8 +232,10 @@ namespace Game.Block.Blocks.PowerGenerator
         [JsonProperty("inventory")]
         public List<ItemStackSaveJsonObject> Items;
 
-        [JsonProperty("remainingFuelTicks")]
-        public uint RemainingFuelTicks;
+        // 秒数として保存（tick数の変動に対応）
+        // Save as seconds (to handle tick rate changes)
+        [JsonProperty("remainingFuelSeconds")]
+        public double RemainingFuelSeconds;
 
         [JsonProperty("activeFuelType")]
         public string ActiveFuelType;
