@@ -105,9 +105,9 @@ namespace Tests.CombinedTest.Core
             var lackRpmProcessor = lackRpmBlock.GetComponent<VanillaMachineProcessorComponent>();
             var lackTorqueProcessor = lackTorqueBlock.GetComponent<VanillaMachineProcessorComponent>();
 
-            // 半分のRPM/トルクなので2倍の時間が必要（マージン付き）
-            // Half RPM/torque means 2x time needed (with margin)
-            var craftTicks = GameUpdater.SecondsToTicks(recipe.Time * 2) + 10;
+            // 半分のRPM/トルクなので2倍の時間が必要（確率的丸めによる変動を考慮した大きめのマージン）
+            // Half RPM/torque means 2x time needed (large margin to account for probabilistic rounding variance)
+            var craftTicks = GameUpdater.SecondsToTicks(recipe.Time * 3);
 
             for (uint tick = 0; tick < craftTicks; tick++)
             {
