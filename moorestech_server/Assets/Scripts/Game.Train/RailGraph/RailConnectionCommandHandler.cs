@@ -1,5 +1,7 @@
 ﻿using System;
-using UnityEngine; // 追加（ログ出力用）
+using UnityEngine;
+
+// 追加（ログ出力用）
 
 namespace Game.Train.RailGraph
 {
@@ -54,42 +56,42 @@ namespace Game.Train.RailGraph
             DisconnectOppositeNodes(fromNode, toNode);
             return true;
         }
-
-        #region Internal
-
-        private bool TryResolveNodes(int fromNodeId, Guid fromGuid, int toNodeId, Guid toGuid, out RailNode fromNode, out RailNode toNode)
+        
+        public bool TryResolveNodes(int fromNodeId, Guid fromGuid, int toNodeId, Guid toGuid, out RailNode fromNode, out RailNode toNode)
         {
             fromNode = null;
             toNode = null;
-
+            
             if (!_datastore.TryGetRailNode(fromNodeId, out var resolvedFrom))
             {
                 LogWarn($"fromNodeId not found. fromNodeId={fromNodeId}, fromGuid={fromGuid}, toNodeId={toNodeId}, toGuid={toGuid}");
                 return false;
             }
-
+            
             if (resolvedFrom.Guid != fromGuid)
             {
                 LogWarn($"fromGuid mismatch. fromNodeId={fromNodeId}, expected(fromGuid)={fromGuid}, actual={resolvedFrom.Guid}, toNodeId={toNodeId}, toGuid={toGuid}");
                 return false;
             }
-
+            
             if (!_datastore.TryGetRailNode(toNodeId, out var resolvedTo))
             {
                 LogWarn($"toNodeId not found. fromNodeId={fromNodeId}, fromGuid={fromGuid}, toNodeId={toNodeId}, toGuid={toGuid}");
                 return false;
             }
-
+            
             if (resolvedTo.Guid != toGuid)
             {
                 LogWarn($"toGuid mismatch. toNodeId={toNodeId}, expected(toGuid)={toGuid}, actual={resolvedTo.Guid}, fromNodeId={fromNodeId}, fromGuid={fromGuid}");
                 return false;
             }
-
+            
             fromNode = resolvedFrom;
             toNode = resolvedTo;
             return true;
         }
+
+        #region Internal
 
         private void LogWarn(string message) // 追加
         {
