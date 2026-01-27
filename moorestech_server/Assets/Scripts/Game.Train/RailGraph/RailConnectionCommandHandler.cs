@@ -61,31 +61,31 @@ namespace Game.Train.RailGraph
         {
             fromNode = null;
             toNode = null;
-            
+
             if (!_datastore.TryGetRailNode(fromNodeId, out var resolvedFrom))
             {
                 LogWarn($"fromNodeId not found. fromNodeId={fromNodeId}, fromGuid={fromGuid}, toNodeId={toNodeId}, toGuid={toGuid}");
                 return false;
             }
-            
+
             if (resolvedFrom.Guid != fromGuid)
             {
                 LogWarn($"fromGuid mismatch. fromNodeId={fromNodeId}, expected(fromGuid)={fromGuid}, actual={resolvedFrom.Guid}, toNodeId={toNodeId}, toGuid={toGuid}");
                 return false;
             }
-            
+
             if (!_datastore.TryGetRailNode(toNodeId, out var resolvedTo))
             {
                 LogWarn($"toNodeId not found. fromNodeId={fromNodeId}, fromGuid={fromGuid}, toNodeId={toNodeId}, toGuid={toGuid}");
                 return false;
             }
-            
+
             if (resolvedTo.Guid != toGuid)
             {
                 LogWarn($"toGuid mismatch. toNodeId={toNodeId}, expected(toGuid)={toGuid}, actual={resolvedTo.Guid}, fromNodeId={fromNodeId}, fromGuid={fromGuid}");
                 return false;
             }
-            
+
             fromNode = resolvedFrom;
             toNode = resolvedTo;
             return true;
