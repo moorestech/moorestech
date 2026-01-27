@@ -1,7 +1,12 @@
 using System;
+using System.Linq;
 using Client.Game.InGame.Train.RailGraph;
-using UnityEngine;
+using Client.Game.InGame.UI.Inventory.Main;
+using Game.Train.RailCalc;
 using Game.Train.SaveLoad;
+using Mooresmaster.Model.TrainModule;
+using Server.Protocol.PacketResponse;
+using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
 {
@@ -15,7 +20,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         /// 終点がノードの場合
         /// When the endpoint is a node
         /// </summary>
-        public static TrainRailConnectPreviewData CalculatePreviewData(ConnectionDestination from, ConnectionDestination to, RailGraphClientCache cache)
+        public static TrainRailConnectPreviewData CalculatePreviewData(ConnectionDestination from, ConnectionDestination to, RailGraphClientCache cache, ILocalPlayerInventory playerInventory)
         {
             // 起点ノードを取得
             // Get the start node
@@ -39,11 +44,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             var toControlPoint = toNode.BackControlPoint;
             var p2 = toControlPoint.OriginalPosition + toControlPoint.ControlPointPosition;
             var p3 = toControlPoint.OriginalPosition;
+            var length = BezierUtility.GetBezierCurveLength(p0, p1, p2, p3, 64);
             
-            return new TrainRailConnectPreviewData(p0, p1, p2, p3);
+            (RailItemMasterElement element, int requiredCount)[] placeableRailItems = RailConnectionEditProtocol.GetPlaceableRailItems(playerInventory, length);
+            
+            return new TrainRailConnectPreviewData(p0, p1, p2, p3, length, placeableRailItems.Any());
         }
         
-        public static TrainRailConnectPreviewData CalculatePreviewData(ConnectionDestination from, Vector3 cursorPosition, RailGraphClientCache cache)
+        public static TrainRailConnectPreviewData CalculatePreviewData(ConnectionDestination from, Vector3 cursorPosition, RailGraphClientCache cache, ILocalPlayerInventory playerInventory)
         {
             // 起点ノードを取得
             // Get the start node
@@ -61,27 +69,34 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             var toControlPointDirection = (p1 - cursorPosition).normalized;
             var p2 = cursorPosition + toControlPointDirection * controlPointLength;
             var p3 = cursorPosition;
+            var length = BezierUtility.GetBezierCurveLength(p0, p1, p2, p3, 64);
             
-            return new TrainRailConnectPreviewData(p0, p1, p2, p3);
+            (RailItemMasterElement element, int requiredCount)[] placeableRailItems = RailConnectionEditProtocol.GetPlaceableRailItems(playerInventory, length);
+            
+            return new TrainRailConnectPreviewData(p0, p1, p2, p3, length, placeableRailItems.Any());
         }
     }
     
     public struct TrainRailConnectPreviewData : IEquatable<TrainRailConnectPreviewData>
     {
-        public static TrainRailConnectPreviewData Invalid => new(Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero, false); 
+        public static TrainRailConnectPreviewData Invalid => new(Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero, 0f, false, false); 
         public Vector3 StartPoint;
         public Vector3 StartControlPoint;
         public Vector3 EndControlPoint;
         public Vector3 EndPoint;
+        public float Length;
         public bool IsValid;
+        public bool HasEnoughRailItem;
         
-        public TrainRailConnectPreviewData(Vector3 startPoint, Vector3 startControlPoint, Vector3 endControlPoint, Vector3 endPoint, bool isValid = true)
+        public TrainRailConnectPreviewData(Vector3 startPoint, Vector3 startControlPoint, Vector3 endControlPoint, Vector3 endPoint, float length, bool hasEnoughRailItem, bool isValid = true)
         {
             StartPoint = startPoint;
             StartControlPoint = startControlPoint;
             EndControlPoint = endControlPoint;
             EndPoint = endPoint;
             IsValid = isValid;
+            Length = length;
+            HasEnoughRailItem = hasEnoughRailItem;
         }
         public bool Equals(TrainRailConnectPreviewData other)
         {
