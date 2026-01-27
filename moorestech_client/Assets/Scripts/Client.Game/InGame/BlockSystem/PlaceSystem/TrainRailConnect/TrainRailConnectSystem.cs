@@ -2,8 +2,12 @@ using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Train.RailGraph;
+using Client.Game.InGame.UI.Inventory.Main;
 using Client.Input;
+using Game.Train.RailGraph;
 using Game.Train.SaveLoad;
+using Mooresmaster.Model.TrainModule;
+using Server.Protocol.PacketResponse;
 using UnityEngine;
 using static Client.Common.LayerConst;
 using static Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect.TrainRailConnectPreviewCalculator;
@@ -15,13 +19,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         private readonly RailConnectPreviewObject _previewObject;
         private readonly Camera _mainCamera;
         private readonly RailGraphClientCache _cache;
+        private readonly ILocalPlayerInventory _playerInventory;
         
         private IRailComponentConnectAreaCollider _connectFromArea;
-        public TrainRailConnectSystem(Camera mainCamera, RailConnectPreviewObject previewObject, RailGraphClientCache cache)
+        public TrainRailConnectSystem(Camera mainCamera, RailConnectPreviewObject previewObject, RailGraphClientCache cache, LocalPlayerInventoryController localPlayerInventory)
         {
             _mainCamera = mainCamera;
             _previewObject = previewObject;
             _cache = cache;
+            _playerInventory = localPlayerInventory.LocalPlayerInventory;
         }
         
         public void Enable()
@@ -96,14 +102,19 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 if (!InputManager.Playable.ScreenLeftClick.GetKeyDown) return;
                 
                 _previewObject.SetActive(false);
-
-                if (!TryResolveNode(from, out var fromNodeId, out var fromGuid) ||
-                    !TryResolveNode(to, out var toNodeId, out var toGuid))
+                
+                if (!TryResolveNode(from, out var fromNodeId, out var fromGuid, out var fromNode) ||
+                    !TryResolveNode(to, out var toNodeId, out var toGuid, out var toNode))
                 {
                     Debug.LogWarning("[TrainRailConnect] Failed to resolve node info from cache.");
                     _connectFromArea = null;
                     return;
                 }
+                
+                var length = RailConnectionEditProtocol.GetRailLength(fromNode, toNode);
+                (RailItemMasterElement element, int requiredCount)[] placeableRailItems = RailConnectionEditProtocol.GetPlaceableRailItems(_playerInventory, length);
+                if (placeableRailItems.Length == 0) return;
+                
                 Debug.Log($"Connecting rails: From NodeId={fromNodeId}, Guid={fromGuid} To NodeId={toNodeId}, Guid={toGuid}");
                 ClientContext.VanillaApi.SendOnly.ConnectRail(fromNodeId, fromGuid, toNodeId, toGuid);
                 _connectFromArea = null;
@@ -114,15 +125,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 PlaceSystemUtil.TryGetRaySpecifiedComponentHit<IRailComponentConnectAreaCollider>(_mainCamera, out var connectArea, Without_Player_MapObject_BlockBoundingBox_LayerMask);
                 return connectArea;
             }
-
-            bool TryResolveNode(ConnectionDestination destination, out int nodeId, out Guid nodeGuid)
+            
+            bool TryResolveNode(ConnectionDestination destination, out int nodeId, out Guid nodeGuid, out IRailNode railNode)
             {
                 nodeGuid = Guid.Empty;
+                railNode = null;
                 if (!_cache.TryGetNodeId(destination, out nodeId)) 
                     return false;
-                if (!_cache.TryGetNode(nodeId, out var irailnode)) 
+                if (!_cache.TryGetNode(nodeId, out railNode)) 
                     return false;
-                nodeGuid = irailnode.NodeGuid;
+                nodeGuid = railNode.NodeGuid;
                 return true;
             }
             
