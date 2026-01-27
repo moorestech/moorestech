@@ -74,7 +74,7 @@ namespace Server.Protocol.PacketResponse
                         {
                             var railItemId = MasterHolder.ItemMaster.GetItemId(placeRailItem.element.ItemGuid);
                             var remainSubCount = placeRailItem.requiredCount;
-                            foreach (var (stack, i) in inventory.InventoryItems.Select((stack, i) => (stack, i)).Where(stack => stack.stack.Id == railItemId))
+                            foreach (var (stack, i) in inventory.InventoryItems.ToArray().Select((stack, i) => (stack, i)).Where(stack => stack.stack.Id == railItemId))
                             {
                                 var subCount = Mathf.Min(stack.Count, remainSubCount);
                                 Debug.Log($"Subtracting {subCount} from stack {stack.Id}");
