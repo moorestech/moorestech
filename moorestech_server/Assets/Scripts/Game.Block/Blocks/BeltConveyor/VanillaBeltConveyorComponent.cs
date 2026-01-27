@@ -25,20 +25,22 @@ namespace Game.Block.Blocks.BeltConveyor
         private readonly IBeltConveyorBlockInventoryInserter _blockInventoryInserter;
         private readonly int _inventoryItemNum;
 
-        private double _timeOfItemEnterToExit; //ベルトコンベアにアイテムが入って出るまでの時間
+        // ベルトコンベアにアイテムが入って出るまでのtick数
+        // Ticks for item to enter and exit the belt conveyor
+        private uint _ticksOfItemEnterToExit;
 
-        public VanillaBeltConveyorComponent(int inventoryItemNum, float timeOfItemEnterToExit, IBeltConveyorBlockInventoryInserter blockInventoryInserter, BeltConveyorSlopeType slopeType)
+        public VanillaBeltConveyorComponent(int inventoryItemNum, float timeOfItemEnterToExitSeconds, IBeltConveyorBlockInventoryInserter blockInventoryInserter, BeltConveyorSlopeType slopeType)
         {
             SlopeType = slopeType;
             _inventoryItemNum = inventoryItemNum;
-            _timeOfItemEnterToExit = timeOfItemEnterToExit;
+            _ticksOfItemEnterToExit = GameUpdater.SecondsToTicks(timeOfItemEnterToExitSeconds);
             _blockInventoryInserter = blockInventoryInserter;
 
             _inventoryItems = new VanillaBeltConveyorInventoryItem[inventoryItemNum];
         }
 
-        public VanillaBeltConveyorComponent(Dictionary<string, string> componentStates, int inventoryItemNum, float timeOfItemEnterToExit, IBeltConveyorBlockInventoryInserter blockInventoryInserter, BeltConveyorSlopeType slopeType, InventoryConnects inventoryConnectors) :
-            this(inventoryItemNum, timeOfItemEnterToExit, blockInventoryInserter, slopeType)
+        public VanillaBeltConveyorComponent(Dictionary<string, string> componentStates, int inventoryItemNum, float timeOfItemEnterToExitSeconds, IBeltConveyorBlockInventoryInserter blockInventoryInserter, BeltConveyorSlopeType slopeType, InventoryConnects inventoryConnectors) :
+            this(inventoryItemNum, timeOfItemEnterToExitSeconds, blockInventoryInserter, slopeType)
         {
             var itemJsons = JsonConvert.DeserializeObject<List<string>>(componentStates[SaveKey]);
             for (var i = 0; i < itemJsons.Count && i < inventoryItemNum; i++)
@@ -231,10 +233,10 @@ namespace Game.Block.Blocks.BeltConveyor
                     continue;
                 }
 
-                // 時間を減らす（tick数を秒に変換）
-                // Reduce time (convert ticks to seconds)
-                var deltaSeconds = GameUpdater.CurrentTickCount * GameUpdater.SecondsPerTick;
-                var diff = (float)(deltaSeconds * (1f / (float)_timeOfItemEnterToExit));
+                // 進行率を減らす（tick単位）
+                // Reduce progress rate in ticks
+                var progressPerTick = 1.0 / _ticksOfItemEnterToExit;
+                var diff = (float)(GameUpdater.CurrentTickCount * progressPerTick);
                 item.RemainingPercent -= diff;
                 item.RemainingPercent = Math.Clamp(item.RemainingPercent, 0, 1);
             }
@@ -262,9 +264,13 @@ namespace Game.Block.Blocks.BeltConveyor
             #endregion
         }
 
-        public void SetTimeOfItemEnterToExit(double time)
+        /// <summary>
+        /// ベルトコンベアの速度を秒単位で設定（内部でtickに変換）
+        /// Set belt conveyor speed in seconds (internally converted to ticks)
+        /// </summary>
+        public void SetTimeOfItemEnterToExit(double timeSeconds)
         {
-            _timeOfItemEnterToExit = time;
+            _ticksOfItemEnterToExit = GameUpdater.SecondsToTicks(timeSeconds);
         }
     }
 }
