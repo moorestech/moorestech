@@ -89,10 +89,10 @@ namespace Server.Protocol.PacketResponse
                         {
                             var railItemId = MasterHolder.ItemMaster.GetItemId(placeRailItem.element.ItemGuid);
                             var remainSubCount = placeRailItem.requiredCount;
-                            foreach (var stack in inventory.InventoryItems.Where(stack => stack.Id == railItemId))
+                            foreach (var (stack, i) in inventory.InventoryItems.Select((stack, i) => (stack, i)).Where(stack => stack.stack.Id == railItemId))
                             {
                                 var subCount = Mathf.Min(stack.Count, remainSubCount);
-                                stack.SubItem(subCount);
+                                inventory.SetItem(i, stack.SubItem(subCount));
                                 remainSubCount -= subCount;
                                 
                                 if (remainSubCount == 0) break;
