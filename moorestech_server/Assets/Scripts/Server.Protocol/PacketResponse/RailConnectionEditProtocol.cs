@@ -81,6 +81,7 @@ namespace Server.Protocol.PacketResponse
                         
                         if (placeableRailItems.Count == 0) return ResponseRailConnectionEditMessagePack.CreateFailure(RailConnectionEditFailureReason.NotEnoughRailItem, data.Mode);
                         var placeRailItem = placeableRailItems[0];
+                        Debug.Log($"Placeable rail items: {placeableRailItems.Count}, Place rail item: {placeRailItem.element.ItemGuid}, Required count: {placeRailItem.requiredCount}");
                         
                         var connectResult = _commandHandler.TryConnect(data.FromNodeId, data.FromGuid, data.ToNodeId, data.ToGuid);
                         
@@ -92,6 +93,7 @@ namespace Server.Protocol.PacketResponse
                             foreach (var (stack, i) in inventory.InventoryItems.Select((stack, i) => (stack, i)).Where(stack => stack.stack.Id == railItemId))
                             {
                                 var subCount = Mathf.Min(stack.Count, remainSubCount);
+                                Debug.Log($"Subtracting {subCount} from stack {stack.Id}");
                                 inventory.SetItem(i, stack.SubItem(subCount));
                                 remainSubCount -= subCount;
                                 
