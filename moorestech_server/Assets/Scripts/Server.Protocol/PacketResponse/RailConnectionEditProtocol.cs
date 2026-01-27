@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Core.Inventory;
 using Core.Master;
 using Game.PlayerInventory.Interface;
 using Game.Train.RailCalc;
@@ -56,32 +57,15 @@ namespace Server.Protocol.PacketResponse
                     case RailEditMode.Connect:
                         if (!_commandHandler.TryResolveNodes(data.FromNodeId, data.FromGuid, data.ToNodeId, data.ToGuid, out var fromNode, out var toNode))
                             return ResponseRailConnectionEditMessagePack.CreateFailure(RailConnectionEditFailureReason.InvalidNode, data.Mode);
-                        var p0 = fromNode.FrontControlPoint.OriginalPosition;
-                        var p1 = fromNode.FrontControlPoint.OriginalPosition + fromNode.FrontControlPoint.ControlPointPosition;
-                        var p2 = toNode.BackControlPoint.OriginalPosition + toNode.BackControlPoint.ControlPointPosition;
-                        var p3 = toNode.BackControlPoint.OriginalPosition;
-                        var length = BezierUtility.GetBezierCurveLength(p0, p1, p2, p3, 64);
+                        
+                        var length = GetRailLength(fromNode, toNode);
                         
                         var inventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory;
+                        (RailItemMasterElement element, int requiredCount)[] placeableRailItems = GetPlaceableRailItems(inventory, length);
                         
-                        var placeableRailItems = new List<(RailItemMasterElement element, int requiredCount)>();
-                        foreach (var railMasterElement in MasterHolder.TrainUnitMaster.GetRailItems())
-                        {
-                            // 設置に必要なアイテム数
-                            var requiredCount = Mathf.CeilToInt(length * railMasterElement.ConsumptionPerUnitLength);
-                            
-                            // inventoryにその分があるならplaceableRailItemsに追加
-                            var railItemId = MasterHolder.ItemMaster.GetItemId(railMasterElement.ItemGuid);
-                            var ownedRailItemCount = inventory.InventoryItems.Where(stack => stack.Id == railItemId).Sum(stack => stack.Count);
-                            if (ownedRailItemCount >= requiredCount)
-                            {
-                                placeableRailItems.Add((railMasterElement, requiredCount));
-                            }
-                        }
-                        
-                        if (placeableRailItems.Count == 0) return ResponseRailConnectionEditMessagePack.CreateFailure(RailConnectionEditFailureReason.NotEnoughRailItem, data.Mode);
+                        if (placeableRailItems.Length == 0) return ResponseRailConnectionEditMessagePack.CreateFailure(RailConnectionEditFailureReason.NotEnoughRailItem, data.Mode);
                         var placeRailItem = placeableRailItems[0];
-                        Debug.Log($"Placeable rail items: {placeableRailItems.Count}, Place rail item: {placeRailItem.element.ItemGuid}, Required count: {placeRailItem.requiredCount}");
+                        Debug.Log($"Placeable rail items: {placeableRailItems.Length}, Place rail item: {placeRailItem.element.ItemGuid}, Required count: {placeRailItem.requiredCount}");
                         
                         var connectResult = _commandHandler.TryConnect(data.FromNodeId, data.FromGuid, data.ToNodeId, data.ToGuid);
                         
@@ -152,6 +136,37 @@ namespace Server.Protocol.PacketResponse
             }
 
             #endregion
+        }
+        
+        public static float GetRailLength(IRailNode fromNode, IRailNode toNode)
+        {
+            var p0 = fromNode.FrontControlPoint.OriginalPosition;
+            var p1 = fromNode.FrontControlPoint.OriginalPosition + fromNode.FrontControlPoint.ControlPointPosition;
+            var p2 = toNode.BackControlPoint.OriginalPosition + toNode.BackControlPoint.ControlPointPosition;
+            var p3 = toNode.BackControlPoint.OriginalPosition;
+            var length = BezierUtility.GetBezierCurveLength(p0, p1, p2, p3, 64);
+            
+            return length;
+        }
+        
+        public static (RailItemMasterElement element, int requiredCount)[] GetPlaceableRailItems(IOpenableInventory inventory, float railLength)
+        {
+            var placeableRailItems = new List<(RailItemMasterElement element, int requiredCount)>();
+            foreach (var railMasterElement in MasterHolder.TrainUnitMaster.GetRailItems())
+            {
+                // 設置に必要なアイテム数
+                var requiredCount = Mathf.CeilToInt(railLength * railMasterElement.ConsumptionPerUnitLength);
+                
+                // inventoryにその分があるならplaceableRailItemsに追加
+                var railItemId = MasterHolder.ItemMaster.GetItemId(railMasterElement.ItemGuid);
+                var ownedRailItemCount = inventory.InventoryItems.Where(stack => stack.Id == railItemId).Sum(stack => stack.Count);
+                if (ownedRailItemCount >= requiredCount)
+                {
+                    placeableRailItems.Add((railMasterElement, requiredCount));
+                }
+            }
+            
+            return placeableRailItems.ToArray();
         }
 
         [MessagePackObject]
