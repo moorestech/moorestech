@@ -1,7 +1,11 @@
 using System;
+using System.Linq;
 using Client.Game.InGame.Train.RailGraph;
+using Client.Game.InGame.UI.Inventory.Main;
 using Game.Train.RailCalc;
 using Game.Train.SaveLoad;
+using Mooresmaster.Model.TrainModule;
+using Server.Protocol.PacketResponse;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
@@ -16,7 +20,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         /// 終点がノードの場合
         /// When the endpoint is a node
         /// </summary>
-        public static TrainRailConnectPreviewData CalculatePreviewData(ConnectionDestination from, ConnectionDestination to, RailGraphClientCache cache, bool hasEnoughRailItem)
+        public static TrainRailConnectPreviewData CalculatePreviewData(ConnectionDestination from, ConnectionDestination to, RailGraphClientCache cache, ILocalPlayerInventory playerInventory)
         {
             // 起点ノードを取得
             // Get the start node
@@ -42,10 +46,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             var p3 = toControlPoint.OriginalPosition;
             var length = BezierUtility.GetBezierCurveLength(p0, p1, p2, p3, 64);
             
-            return new TrainRailConnectPreviewData(p0, p1, p2, p3, length, hasEnoughRailItem);
+            (RailItemMasterElement element, int requiredCount)[] placeableRailItems = RailConnectionEditProtocol.GetPlaceableRailItems(playerInventory, length);
+            
+            return new TrainRailConnectPreviewData(p0, p1, p2, p3, length, placeableRailItems.Any());
         }
         
-        public static TrainRailConnectPreviewData CalculatePreviewData(ConnectionDestination from, Vector3 cursorPosition, RailGraphClientCache cache, bool hasEnoughRailItem)
+        public static TrainRailConnectPreviewData CalculatePreviewData(ConnectionDestination from, Vector3 cursorPosition, RailGraphClientCache cache, ILocalPlayerInventory playerInventory)
         {
             // 起点ノードを取得
             // Get the start node
@@ -65,7 +71,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             var p3 = cursorPosition;
             var length = BezierUtility.GetBezierCurveLength(p0, p1, p2, p3, 64);
             
-            return new TrainRailConnectPreviewData(p0, p1, p2, p3, length, hasEnoughRailItem);
+            (RailItemMasterElement element, int requiredCount)[] placeableRailItems = RailConnectionEditProtocol.GetPlaceableRailItems(playerInventory, length);
+            
+            return new TrainRailConnectPreviewData(p0, p1, p2, p3, length, placeableRailItems.Any());
         }
     }
     
