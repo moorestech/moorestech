@@ -128,7 +128,7 @@ namespace Client.Network.API
         
         public void DisconnectRail(int fromNodeId, Guid fromGuid, int toNodeId, Guid toGuid)
         {
-            var request = RailConnectionEditRequest.CreateDisconnectRequest(fromNodeId, fromGuid, toNodeId, toGuid);
+            var request = RailConnectionEditRequest.CreateDisconnectRequest(_playerId, fromNodeId, fromGuid, toNodeId, toGuid);
             _packetSender.Send(request);
         }
         
