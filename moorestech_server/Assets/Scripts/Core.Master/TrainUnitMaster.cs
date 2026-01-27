@@ -13,6 +13,8 @@ namespace Core.Master
 
         private Dictionary<ItemId, TrainCarMasterElement> _trainCarMastersByItemId;
         private Dictionary<Guid, TrainCarMasterElement> _trainCarMastersByGuid;
+        private RailItemMasterElement[] _railItems;
+        private Dictionary<ItemId, RailItemMasterElement> _railItemsByItemId;
 
         public TrainUnitMaster(JToken jToken)
         {
@@ -26,7 +28,7 @@ namespace Core.Master
 
         public void Initialize()
         {
-            TrainUnitMasterUtil.Initialize(Train, out _trainCarMastersByItemId, out _trainCarMastersByGuid);
+            TrainUnitMasterUtil.Initialize(Train, out _trainCarMastersByItemId, out _trainCarMastersByGuid, out _railItems, out _railItemsByItemId);
         }
 
         public bool TryGetTrainCarMaster(ItemId itemId, out TrainCarMasterElement element)
@@ -37,6 +39,11 @@ namespace Core.Master
         public bool TryGetTrainCarMaster(Guid guid, out TrainCarMasterElement element)
         {
             return _trainCarMastersByGuid.TryGetValue(guid, out element);
+        }
+        
+        public ReadOnlySpan<RailItemMasterElement> GetRailItems()
+        {
+            return _railItems;
         }
     }
 }
