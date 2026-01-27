@@ -40,6 +40,11 @@ namespace Core.Master
         {
             return _trainCarMastersByGuid.TryGetValue(guid, out element);
         }
+        
+        public ReadOnlySpan<RailItemMasterElement> GetRailItems()
+        {
+            return _railItems;
+        }
     }
 }
 
