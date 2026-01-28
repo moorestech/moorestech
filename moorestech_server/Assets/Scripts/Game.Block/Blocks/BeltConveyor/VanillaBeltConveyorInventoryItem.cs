@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Core.Item.Interface;
 using Core.Master;
+using Core.Update;
 using Game.Context;
 using Mooresmaster.Model.BlockConnectInfoModule;
 using Mooresmaster.Model.InventoryConnectsModule;
@@ -11,7 +12,8 @@ namespace Game.Block.Blocks.BeltConveyor
 {
     public interface IOnBeltConveyorItem
     {
-        public double RemainingPercent { get; }
+        public uint RemainingTicks { get; }
+        public uint TotalTicks { get; }
         public ItemId ItemId { get; }
         public ItemInstanceId ItemInstanceId { get; }
         public BlockConnectInfoElement StartConnector { get; }
@@ -20,19 +22,21 @@ namespace Game.Block.Blocks.BeltConveyor
 
     public class VanillaBeltConveyorInventoryItem : IOnBeltConveyorItem
     {
-        public double RemainingPercent { get; set; }
+        public uint RemainingTicks { get; set; }
+        public uint TotalTicks { get; }
         public ItemId ItemId { get; }
         public ItemInstanceId ItemInstanceId { get; }
         public BlockConnectInfoElement StartConnector { get; }
         public BlockConnectInfoElement GoalConnector { get; private set; }
 
-        public VanillaBeltConveyorInventoryItem(ItemId itemId, ItemInstanceId itemInstanceId, BlockConnectInfoElement startConnector, BlockConnectInfoElement goalConnector)
+        public VanillaBeltConveyorInventoryItem(ItemId itemId, ItemInstanceId itemInstanceId, BlockConnectInfoElement startConnector, BlockConnectInfoElement goalConnector, uint totalTicks)
         {
             ItemId = itemId;
             ItemInstanceId = itemInstanceId;
             StartConnector = startConnector;
             GoalConnector = goalConnector;
-            RemainingPercent = 1;
+            TotalTicks = totalTicks;
+            RemainingTicks = totalTicks;
         }
 
         /// <summary>
@@ -48,8 +52,15 @@ namespace Game.Block.Blocks.BeltConveyor
         {
             return JsonConvert.SerializeObject(new VanillaBeltConveyorInventoryItemJsonObject(this));
         }
-        
-        public static VanillaBeltConveyorInventoryItem LoadItem(string jsonString, InventoryConnects inventoryConnectors)
+
+        /// <summary>
+        /// JSONからアイテムをロードする
+        /// Load item from JSON string
+        /// </summary>
+        /// <param name="jsonString">JSON文字列</param>
+        /// <param name="inventoryConnectors">コネクター情報</param>
+        /// <param name="totalTicks">ベルトコンベアの総tick数</param>
+        public static VanillaBeltConveyorInventoryItem LoadItem(string jsonString, InventoryConnects inventoryConnectors, uint totalTicks)
         {
             if (jsonString == null) return null;
 
@@ -57,20 +68,23 @@ namespace Game.Block.Blocks.BeltConveyor
             if (jsonData.ItemStack == null) return null;
 
             var itemId = MasterHolder.ItemMaster.GetItemId(jsonData.ItemStack.ItemGuid);
-            var remainingPercent = jsonData.RemainingPercent;
             var itemInstanceId = ItemInstanceId.Create();
-            
+
+            // 残り秒数からtickに変換
+            // Convert remaining seconds to ticks
+            var remainingTicks = GameUpdater.SecondsToTicks(jsonData.RemainingSeconds);
+
             var startConnector = FindBlockConnectInfoElementByGuid(jsonData.SourceConnectorGuid, inventoryConnectors.InputConnects.items);
             var goalConnector = FindBlockConnectInfoElementByGuid(jsonData.GoalConnectorGuid, inventoryConnectors.OutputConnects.items);
-            
-            var item = new VanillaBeltConveyorInventoryItem(itemId, itemInstanceId, startConnector, goalConnector)
+
+            var item = new VanillaBeltConveyorInventoryItem(itemId, itemInstanceId, startConnector, goalConnector, totalTicks)
             {
-                RemainingPercent = remainingPercent
+                RemainingTicks = remainingTicks
             };
             return item;
-            
-            #region Intenral
-            
+
+            #region Internal
+
             BlockConnectInfoElement FindBlockConnectInfoElementByGuid(Guid? guid, BlockConnectInfoElement[] connectInfos)
             {
                 foreach (var connectInfo in connectInfos)
@@ -83,7 +97,7 @@ namespace Game.Block.Blocks.BeltConveyor
 
                 return null;
             }
-            
+
             #endregion
         }
     }
@@ -92,10 +106,12 @@ namespace Game.Block.Blocks.BeltConveyor
     {
         [JsonProperty("itemStack")] public ItemStackSaveJsonObject ItemStack;
 
-        [JsonProperty("remainingTime")] public double RemainingPercent;
-        
+        // 秒数として保存（tick数の変動に対応）
+        // Save as seconds (to handle tick rate changes)
+        [JsonProperty("remainingSeconds")] public double RemainingSeconds;
+
         [JsonProperty("sourceConnectorGuid")] public Guid? SourceConnectorGuid;
-        
+
         [JsonProperty("goalConnectorGuid")] public Guid? GoalConnectorGuid;
 
         public VanillaBeltConveyorInventoryItemJsonObject(VanillaBeltConveyorInventoryItem vanillaBeltConveyorInventoryItem)
@@ -103,13 +119,17 @@ namespace Game.Block.Blocks.BeltConveyor
             if (vanillaBeltConveyorInventoryItem == null)
             {
                 ItemStack = null;
-                RemainingPercent = 1;
+                RemainingSeconds = 0;
                 return;
             }
 
             var item = ServerContext.ItemStackFactory.Create(vanillaBeltConveyorInventoryItem.ItemId, 1);
             ItemStack = new ItemStackSaveJsonObject(item);
-            RemainingPercent = vanillaBeltConveyorInventoryItem.RemainingPercent;
+
+            // tickを秒数に変換して保存
+            // Convert ticks to seconds for storage
+            RemainingSeconds = GameUpdater.TicksToSeconds(vanillaBeltConveyorInventoryItem.RemainingTicks);
+
             SourceConnectorGuid = vanillaBeltConveyorInventoryItem.StartConnector?.ConnectorGuid;
             GoalConnectorGuid = vanillaBeltConveyorInventoryItem.GoalConnector?.ConnectorGuid;
         }

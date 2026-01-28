@@ -7,69 +7,135 @@ namespace Core.Update
 {
     public static class GameUpdater
     {
+        // tick設定（1tick = 50ms = 1/20秒）
+        // Tick settings (1 tick = 50ms = 1/20 second)
+        public const int TicksPerSecond = 20;
+        public const double SecondsPerTick = 1d / TicksPerSecond;
+
         public static IObservable<Unit> UpdateObservable => _updateSubject;
         private static Subject<Unit> _updateSubject = new();
-        
+
         public static IObservable<Unit> LateUpdateObservable => _lateUpdateSubject;
         private static Subject<Unit> _lateUpdateSubject = new();
-        
+
         private static DateTime _lastUpdateTime = DateTime.Now;
-        
-        [Obsolete("いつかアップデートシステム自体をリファクタしたい")] public static double UpdateSecondTime { get; private set; }
-        
+        private static double _tickRemainderSeconds;
+
+        // 今回のフレームで進行するtick数
+        // Ticks elapsed in the current frame
+        public static uint CurrentTickCount { get; private set; }
+
         public static void Update()
         {
-            //アップデートの実行
+            // デルタタイムの更新
+            // Update delta time
             UpdateDeltaTime();
-            
+
             // Updateの実行
-            var updateProfilerMask = new ProfilerMarker("Update");
-            updateProfilerMask.Begin();
-            _updateSubject.OnNext(Unit.Default);
-            updateProfilerMask.End();
-            
+            // Execute Update
+            ExecuteUpdate();
+
             // LateUpdateの実行
-            var lateUpdateProfilerMask = new ProfilerMarker("LateUpdate");
-            lateUpdateProfilerMask.Begin();
-            _lateUpdateSubject.OnNext(Unit.Default);
-            lateUpdateProfilerMask.End();
+            // Execute LateUpdate
+            ExecuteLateUpdate();
+
+            #region Internal
+
+            void UpdateDeltaTime()
+            {
+                var elapsedSeconds = (DateTime.Now - _lastUpdateTime).TotalSeconds;
+                _lastUpdateTime = DateTime.Now;
+
+                // 秒数をtickに換算（余りは次回に繰り越し）
+                // Convert seconds to ticks (remainder carried to next frame)
+                var totalSeconds = elapsedSeconds + _tickRemainderSeconds;
+                CurrentTickCount = (uint)Math.Max((int)(totalSeconds * TicksPerSecond), 0);
+                _tickRemainderSeconds = totalSeconds - CurrentTickCount * SecondsPerTick;
+            }
+
+            void ExecuteUpdate()
+            {
+                var updateProfilerMask = new ProfilerMarker("Update");
+                updateProfilerMask.Begin();
+                _updateSubject.OnNext(Unit.Default);
+                updateProfilerMask.End();
+            }
+
+            void ExecuteLateUpdate()
+            {
+                var lateUpdateProfilerMask = new ProfilerMarker("LateUpdate");
+                lateUpdateProfilerMask.Begin();
+                _lateUpdateSubject.OnNext(Unit.Default);
+                lateUpdateProfilerMask.End();
+            }
+
+            #endregion
         }
-        
-        public static void UpdateDeltaTime()
-        {
-            UpdateSecondTime = (DateTime.Now - _lastUpdateTime).TotalSeconds;
-            _lastUpdateTime = DateTime.Now;
-        }
-        
+
         public static void ResetUpdate()
         {
             _updateSubject = new Subject<Unit>();
             _lateUpdateSubject = new Subject<Unit>();
-            UpdateSecondTime = 0;
+            CurrentTickCount = 0;
+            _tickRemainderSeconds = 0d;
             _lastUpdateTime = DateTime.Now;
         }
-        
+
         public static void Dispose()
         {
             _updateSubject.Dispose();
             _lateUpdateSubject.Dispose();
         }
-        
+
+        // 秒数をtickに変換するユーティリティ（マスターデータの秒数値を変換する用）
+        // Utility to convert seconds to ticks (for converting master data values)
+        public static uint SecondsToTicks(double seconds)
+        {
+            // 非数値や無限大、0以下の値は0tickとして扱う
+            // Treat NaN, Infinity, and non-positive values as 0 ticks
+            if (double.IsNaN(seconds) || double.IsInfinity(seconds) || seconds <= 0d)
+            {
+                return 0u;
+            }
+
+            var ticksDouble = seconds * TicksPerSecond;
+
+            // 非常に大きい値はuint.MaxValueにクランプ
+            // Clamp extremely large values to avoid overflow
+            if (ticksDouble >= uint.MaxValue)
+            {
+                return uint.MaxValue;
+            }
+
+            // 正の秒数だが1tick未満の場合は、最低でも1tickとする
+            // For positive durations smaller than one tick, ensure at least 1 tick
+            var ticks = (uint)ticksDouble;
+            return ticks == 0u ? 1u : ticks;
+        }
+
+        // tickを秒数に変換するユーティリティ（表示用など）
+        // Utility to convert ticks to seconds (for display purposes)
+        public static double TicksToSeconds(uint ticks) => ticks * SecondsPerTick;
+
 #if UNITY_EDITOR
         public static void UpdateWithWait()
         {
-            //TODO ゲームループ周りの修正についてはちょっと考えたい
-            Update();
+            // テスト用: 1 tickずつ決定論的に進行
+            // For testing: advance deterministically by 1 tick
+            AdvanceTicks(1);
             Wait();
         }
-        
-        public static void SpecifiedDeltaTimeUpdate(double updateSecondTime)
+
+        // テスト用: 指定tick数だけ進行
+        // For testing: advance by specified tick count
+        public static void AdvanceTicks(uint tickCount)
         {
-            UpdateSecondTime = updateSecondTime;
+            CurrentTickCount = tickCount;
+
             _updateSubject.OnNext(Unit.Default);
             _lateUpdateSubject.OnNext(Unit.Default);
         }
-        
+
         public static void Wait()
         {
             Thread.Sleep(5);

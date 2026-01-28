@@ -8,25 +8,20 @@ namespace Game.Block.Blocks.ItemShooter
     public class ShooterInventoryItem : IOnBeltConveyorItem
     {
         public ItemId ItemId { get; }
-
         public ItemInstanceId ItemInstanceId { get; }
-
-        public double RemainingPercent { get; set; }
-
+        public uint RemainingTicks { get; set; }
+        public uint TotalTicks { get; }
         public BlockConnectInfoElement StartConnector { get; }
-
         public BlockConnectInfoElement GoalConnector { get; set; }
 
-        public float CurrentSpeed { get; set; }
-
-        public ShooterInventoryItem(ItemId itemId, ItemInstanceId itemInstanceId, float currentSpeed, BlockConnectInfoElement startConnector, BlockConnectInfoElement goalConnector)
+        public ShooterInventoryItem(ItemId itemId, ItemInstanceId itemInstanceId, uint totalTicks, BlockConnectInfoElement startConnector, BlockConnectInfoElement goalConnector)
         {
             ItemId = itemId;
             ItemInstanceId = itemInstanceId;
-            CurrentSpeed = currentSpeed;
+            TotalTicks = totalTicks;
+            RemainingTicks = totalTicks;
             StartConnector = startConnector;
             GoalConnector = goalConnector;
-            RemainingPercent = 1;
         }
     }
 }
