@@ -15,6 +15,8 @@ namespace Game.Block.Blocks.Gear
     // Component that monitors block destruction due to overload
     public class GearOverloadBreakageComponent : IUpdatableBlockComponent
     {
+        private const int RandomSeed = 19890604;
+        private static readonly System.Random SharedRandom = new(RandomSeed);
         private readonly BlockInstanceId _blockInstanceId;
         private readonly IGearEnergyTransformer _gearEnergyTransformer;
         private readonly IGearOverloadParam _overloadParam;
@@ -46,7 +48,7 @@ namespace Game.Block.Blocks.Gear
             // Calculate destruction probability when overloaded and roll
             var chance = CalculateDestructionProbability();
             if (chance <= 0f) return;
-            if (UnityEngine.Random.value <= chance) RequestRemove();
+            if (SharedRandom.NextDouble() <= chance) RequestRemove();
 
             #region Internal
 
