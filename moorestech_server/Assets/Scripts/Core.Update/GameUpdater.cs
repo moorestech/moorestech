@@ -41,29 +41,43 @@ namespace Core.Update
 
             // Updateの実行
             // Execute Update
-            var updateProfilerMask = new ProfilerMarker("Update");
-            updateProfilerMask.Begin();
-            _updateSubject.OnNext(Unit.Default);
-            updateProfilerMask.End();
+            ExecuteUpdate();
 
             // LateUpdateの実行
             // Execute LateUpdate
-            var lateUpdateProfilerMask = new ProfilerMarker("LateUpdate");
-            lateUpdateProfilerMask.Begin();
-            _lateUpdateSubject.OnNext(Unit.Default);
-            lateUpdateProfilerMask.End();
-        }
-
-        public static void UpdateDeltaTime()
-        {
-            var elapsedSeconds = (DateTime.Now - _lastUpdateTime).TotalSeconds;
-            _lastUpdateTime = DateTime.Now;
-
-            // 秒数をtickに換算（余りは次回に繰り越し）
-            // Convert seconds to ticks (remainder carried to next frame)
-            var totalSeconds = elapsedSeconds + _tickRemainderSeconds;
-            CurrentTickCount = (uint)Math.Max((int)(totalSeconds * TicksPerSecond), 0);
-            _tickRemainderSeconds = totalSeconds - CurrentTickCount * SecondsPerTick;
+            ExecuteLateUpdate();
+            
+            #region Internal
+            
+            void UpdateDeltaTime()
+            {
+                var elapsedSeconds = (DateTime.Now - _lastUpdateTime).TotalSeconds;
+                _lastUpdateTime = DateTime.Now;
+                
+                // 秒数をtickに換算（余りは次回に繰り越し）
+                // Convert seconds to ticks (remainder carried to next frame)
+                var totalSeconds = elapsedSeconds + _tickRemainderSeconds;
+                CurrentTickCount = (uint)Math.Max((int)(totalSeconds * TicksPerSecond), 0);
+                _tickRemainderSeconds = totalSeconds - CurrentTickCount * SecondsPerTick;
+            }
+            
+            void ExecuteUpdate()
+            {
+                var updateProfilerMask = new ProfilerMarker("Update");
+                updateProfilerMask.Begin();
+                _updateSubject.OnNext(Unit.Default);
+                updateProfilerMask.End();
+            }
+            
+            void ExecuteLateUpdate()
+            {
+                var lateUpdateProfilerMask = new ProfilerMarker("LateUpdate");
+                lateUpdateProfilerMask.Begin();
+                _lateUpdateSubject.OnNext(Unit.Default);
+                lateUpdateProfilerMask.End();
+            }
+            
+            #endregion
         }
 
         public static void ResetUpdate()
