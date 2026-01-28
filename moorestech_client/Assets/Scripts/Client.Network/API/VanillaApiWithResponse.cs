@@ -216,13 +216,14 @@ namespace Client.Network.API
         }
 
         public async UniTask<RailConnectionEditProtocol.ResponseRailConnectionEditMessagePack> DisconnectRailAsync(
+            int playerId,
             int fromNodeId,
             Guid fromGuid,
             int toNodeId,
             Guid toGuid,
             CancellationToken ct)
         {
-            var request = RailConnectionEditProtocol.RailConnectionEditRequest.CreateDisconnectRequest(fromNodeId, fromGuid, toNodeId, toGuid);
+            var request = RailConnectionEditProtocol.RailConnectionEditRequest.CreateDisconnectRequest(playerId, fromNodeId, fromGuid, toNodeId, toGuid);
             return await _packetExchangeManager.GetPacketResponse<RailConnectionEditProtocol.ResponseRailConnectionEditMessagePack>(request, ct);
         }
         
