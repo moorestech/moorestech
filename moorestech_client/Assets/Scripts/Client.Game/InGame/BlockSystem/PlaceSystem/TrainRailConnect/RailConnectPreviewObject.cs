@@ -39,6 +39,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 _railChain.Rebuild();
                 _rendererMaterialReplacer = new RendererMaterialReplacerController(_railChain.gameObject);
                 _rendererMaterialReplacer.CopyAndSetMaterial(_placeMaterial);
+                if (!data.HasEnoughRailItem) _rendererMaterialReplacer.SetColor(MaterialConst.PreviewColorPropertyName, MaterialConst.NotPlaceableColor);
                 _previewDataCache = data;
             }
         }
