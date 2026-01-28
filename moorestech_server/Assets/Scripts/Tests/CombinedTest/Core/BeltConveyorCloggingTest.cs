@@ -218,7 +218,7 @@ namespace Tests.CombinedTest.Core
             // 2つの接続先を作成してGoalConnectorを保持する
             // Create two outputs and keep GoalConnector
             var (beltConveyorComponent, connectedTargets) = CreateBeltConveyor();
-            beltConveyorComponent.SetTimeOfItemEnterToExit(beltConveyorParam.TimeOfItemEnterToExit * 10);
+            beltConveyorComponent.SetTicksOfItemEnterToExit(GameUpdater.SecondsToTicks(beltConveyorParam.TimeOfItemEnterToExit * 10));
             var openInventoryA = new ConfigurableBlockInventory(1, 10, true, false);
             var openInventoryB = new ConfigurableBlockInventory(1, 10, true, false);
             var connectorA = AddTarget(connectedTargets, openInventoryA, 0);

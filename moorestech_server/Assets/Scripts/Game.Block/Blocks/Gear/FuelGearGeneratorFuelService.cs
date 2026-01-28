@@ -14,33 +14,39 @@ namespace Game.Block.Blocks.Gear
     /// </summary>
     public class FuelGearGeneratorFuelService
     {
+        private const int RandomSeed = 19890604;
+        private static readonly Random SharedRandom = new(RandomSeed);
         public enum FuelType
         {
             None,
             Item,
             Fluid
         }
-        
+
         public FuelType CurrentFuelType { get; private set; }
         public ItemId CurrentFuelItemId { get; private set; }
         public FluidId CurrentFuelFluidId { get; private set; }
-        
-        public double RemainingFuelTime { get; private set; }
-        
-        public double CurrentFuelTime
+
+        // 残り燃料tick数（uint tick単位で管理）
+        // Remaining fuel ticks (managed as uint ticks)
+        public uint RemainingFuelTicks { get; private set; }
+
+        // 現在の燃料の総tick数（マスターデータの秒数から変換）
+        // Total ticks for current fuel (converted from master data seconds)
+        public uint CurrentFuelTicks
         {
             get
             {
                 return CurrentFuelType switch
                 {
                     FuelType.None => 0,
-                    FuelType.Fluid => _fluidFuelSettings.TryGetValue(CurrentFuelFluidId, out var itemSetting) ? itemSetting.ConsumptionTime : 0,
-                    FuelType.Item => _itemFuelSettings.TryGetValue(CurrentFuelItemId, out var fluidSetting) ? fluidSetting.ConsumptionTime : 0,
+                    FuelType.Fluid => _fluidFuelSettings.TryGetValue(CurrentFuelFluidId, out var itemSetting) ? itemSetting.ConsumptionTicks : 0,
+                    FuelType.Item => _itemFuelSettings.TryGetValue(CurrentFuelItemId, out var fluidSetting) ? fluidSetting.ConsumptionTicks : 0,
                     _ => 0,
                 };
             }
         }
-            
+
 
         // インベントリ・流体タンクと燃料設定を参照するためのフィールド群
         // Fields referencing inventories, fluid tanks, and fuel configuration tables
@@ -62,7 +68,7 @@ namespace Game.Block.Blocks.Gear
             CurrentFuelType = FuelType.None;
             CurrentFuelItemId = ItemMaster.EmptyItemId;
             CurrentFuelFluidId = FluidMaster.EmptyFluidId;
-            RemainingFuelTime = 0;
+            RemainingFuelTicks = 0;
 
             #region Internal
 
@@ -74,7 +80,8 @@ namespace Game.Block.Blocks.Gear
                 foreach (var element in blockParam.GearFuelItems)
                 {
                     var itemId = MasterHolder.ItemMaster.GetItemId(element.ItemGuid);
-                    settings[itemId] = new ItemFuelSetting(Math.Max(1, element.Amount), element.ConsumptionTime);
+                    var consumptionTicks = GameUpdater.SecondsToTicks(element.ConsumptionTime);
+                    settings[itemId] = new ItemFuelSetting(Math.Max(1, element.Amount), consumptionTicks);
                 }
 
                 return settings;
@@ -88,7 +95,8 @@ namespace Game.Block.Blocks.Gear
                 foreach (var element in blockParam.RequiredFluids)
                 {
                     var fluidId = MasterHolder.FluidMaster.GetFluidId(element.FluidGuid);
-                    settings[fluidId] = new FluidFuelSetting(Math.Max(0d, element.Amount), element.ConsumptionTime);
+                    var consumptionTicks = GameUpdater.SecondsToTicks(element.ConsumptionTime);
+                    settings[fluidId] = new FluidFuelSetting(Math.Max(0d, element.Amount), consumptionTicks);
                 }
 
                 return settings;
@@ -96,8 +104,8 @@ namespace Game.Block.Blocks.Gear
 
             #endregion
         }
-        
-        private bool IsFuelActive => CurrentFuelType != FuelType.None && RemainingFuelTime > 0;
+
+        private bool IsFuelActive => CurrentFuelType != FuelType.None && RemainingFuelTicks > 0;
         
         public bool HasAvailableFuel(bool allowFluidFuel)
         {
@@ -170,49 +178,49 @@ namespace Game.Block.Blocks.Gear
             bool TryStartItemFuel()
             {
                 if (_itemFuelSettings.Count == 0) return false;
-                
+
                 var slotSize = _inventoryService.GetSlotSize();
                 for (var i = 0; i < slotSize; i++)
                 {
                     var slotItem = _inventoryService.GetItem(i);
                     if (!_itemFuelSettings.TryGetValue(slotItem.Id, out var setting)) continue;
                     if (slotItem.Count < setting.Count) continue;
-                    
+
                     var remainder = slotItem.SubItem(setting.Count);
                     _inventoryService.SetItem(i, remainder);
-                    
+
                     CurrentFuelType = FuelType.Item;
                     CurrentFuelItemId = slotItem.Id;
                     CurrentFuelFluidId = FluidMaster.EmptyFluidId;
-                    RemainingFuelTime = setting.ConsumptionTime;
+                    RemainingFuelTicks = setting.ConsumptionTicks;
                     return true;
                 }
-                
+
                 return false;
             }
-            
+
             // タンク内の流体燃料を消費して燃焼を開始する
             // Ignite combustion by consuming fuel from the internal fluid tank
             bool TryStartFluidFuel()
             {
                 if (_fluidFuelSettings.Count == 0) return false;
-                
+
                 var tank = _fluidComponent.SteamTank;
                 var fluidId = tank.FluidId;
                 if (!_fluidFuelSettings.TryGetValue(fluidId, out var setting)) return false;
                 if (tank.Amount < setting.Amount) return false;
-                
+
                 tank.Amount -= setting.Amount;
                 if (tank.Amount <= 0)
                 {
                     tank.Amount = 0;
                     tank.FluidId = FluidMaster.EmptyFluidId;
                 }
-                
+
                 CurrentFuelType = FuelType.Fluid;
                 CurrentFuelFluidId = fluidId;
                 CurrentFuelItemId = ItemMaster.EmptyItemId;
-                RemainingFuelTime = setting.ConsumptionTime;
+                RemainingFuelTicks = setting.ConsumptionTicks;
                 return true;
             }
             
@@ -223,17 +231,35 @@ namespace Game.Block.Blocks.Gear
         {
             if (!IsFuelActive) return;
 
-            RemainingFuelTime -= GameUpdater.UpdateSecondTime * operatingRate;
-            if (RemainingFuelTime > 0) return;
+            // tick単位で燃料を消費（operatingRateが1未満の場合は確率的に消費）
+            // Consume fuel in ticks (probabilistically when operatingRate < 1)
+            var ticksToConsume = GameUpdater.CurrentTickCount;
+            if (operatingRate < 1f)
+            {
+                // operatingRateに応じて確率的にtickを消費
+                // Probabilistically consume ticks based on operatingRate
+                var effectiveTicks = (uint)(ticksToConsume * operatingRate);
+                var remainder = ticksToConsume * operatingRate - effectiveTicks;
+                if (SharedRandom.NextDouble() < remainder) effectiveTicks++;
+                ticksToConsume = effectiveTicks;
+            }
 
-            ClearFuelState();
+            if (ticksToConsume >= RemainingFuelTicks)
+            {
+                ClearFuelState();
+                return;
+            }
+
+            RemainingFuelTicks -= ticksToConsume;
         }
 
         // セーブ時に保持した燃料状態を復元する
         // Restore the fuel state saved during serialization
         public void Restore(FuelGearGeneratorSaveData saveData)
         {
-            RemainingFuelTime = saveData.RemainingFuelTime;
+            // 秒数からtickに変換して復元
+            // Convert seconds back to ticks for restoration
+            RemainingFuelTicks = GameUpdater.SecondsToTicks(saveData.RemainingFuelSeconds);
             CurrentFuelType = Enum.TryParse(saveData.ActiveFuelType, out FuelType parsed) ? parsed : FuelType.None;
             CurrentFuelItemId = saveData.CurrentFuelItemGuid.HasValue
                 ? MasterHolder.ItemMaster.GetItemId(saveData.CurrentFuelItemGuid.Value)
@@ -245,17 +271,17 @@ namespace Game.Block.Blocks.Gear
             // 必要に応じて燃料状態のクリアを行う
             // Clear fuel state as needed
             ClearRestore();
-            
+
             #region Internal
-            
+
             void ClearRestore()
             {
-                if (RemainingFuelTime <= 0)
+                if (RemainingFuelTicks == 0)
                 {
                     ClearFuelState();
                     return;
                 }
-                
+
                 // マスターが変わった時に不整合が生じるので、アイテムが存在しない場合は燃料状態をクリアする
                 // To prevent inconsistencies when masters change, clear fuel state if the item no longer exists
                 if (CurrentFuelType == FuelType.Item && !_itemFuelSettings.ContainsKey(CurrentFuelItemId))
@@ -263,13 +289,13 @@ namespace Game.Block.Blocks.Gear
                     ClearFuelState();
                     return;
                 }
-                
+
                 if (CurrentFuelType == FuelType.Fluid && !_fluidFuelSettings.ContainsKey(CurrentFuelFluidId))
                 {
                     ClearFuelState();
-                } 
+                }
             }
-            
+
             #endregion
         }
 
@@ -278,31 +304,31 @@ namespace Game.Block.Blocks.Gear
             CurrentFuelType = FuelType.None;
             CurrentFuelItemId = ItemMaster.EmptyItemId;
             CurrentFuelFluidId = FluidMaster.EmptyFluidId;
-            RemainingFuelTime = 0;
+            RemainingFuelTicks = 0;
         }
 
         private readonly struct ItemFuelSetting
         {
             public int Count { get; }
-            public double ConsumptionTime { get; }
-            
-            public ItemFuelSetting(int count, double consumptionTime)
+            public uint ConsumptionTicks { get; }
+
+            public ItemFuelSetting(int count, uint consumptionTicks)
             {
                 Count = count;
-                ConsumptionTime = consumptionTime;
+                ConsumptionTicks = consumptionTicks;
             }
         }
 
         private readonly struct FluidFuelSetting
         {
             public double Amount { get; }
-            public double ConsumptionTime { get; }
-            public FluidFuelSetting(double amount, double consumptionTime)
+            public uint ConsumptionTicks { get; }
+
+            public FluidFuelSetting(double amount, uint consumptionTicks)
             {
                 Amount = amount;
-                ConsumptionTime = consumptionTime;
+                ConsumptionTicks = consumptionTicks;
             }
-
         }
     }
 }

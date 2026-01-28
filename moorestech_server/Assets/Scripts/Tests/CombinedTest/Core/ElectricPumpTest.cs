@@ -89,15 +89,15 @@ namespace Tests.CombinedTest.Core
                 PlacePumpWithPipes(out pumpComponentRef, out pipeNegXRef, out pipePosZRef, out pipeNegZRef);
             }
 
-            // 指定秒数分、毎フレーム電力を供給しながらゲームを進めるヘルパー
-            // Helper to run the game for a specified number of seconds while supplying power each frame
+            // 指定秒数分、毎フレーム電力を供給しながらゲームを進めるヘルパー（tick数で制御）
+            // Helper to run the game for a specified number of seconds while supplying power each frame (controlled by tick count)
             void RunForSeconds(ElectricPumpComponent component, ElectricPower supply, float seconds)
             {
-                var start = DateTime.Now;
-                while ((DateTime.Now - start).TotalSeconds < seconds)
+                var ticks = (int)(seconds * GameUpdater.TicksPerSecond);
+                for (var i = 0; i < ticks; i++)
                 {
                     component.SupplyEnergy(supply);
-                    GameUpdater.UpdateWithWait();
+                    GameUpdater.AdvanceTicks(1);
                 }
             }
             

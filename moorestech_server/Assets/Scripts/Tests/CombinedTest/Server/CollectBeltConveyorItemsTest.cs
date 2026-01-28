@@ -145,9 +145,10 @@ namespace Tests.CombinedTest.Server
             
             var belt1 = CreateOneItemInsertedItem(new Vector3Int(0, 0, 0), BlockDirection.North, worldDataStore);
             
-            //4秒間アップデートする
-            var now = DateTime.Now;
-            while (DateTime.Now - now < TimeSpan.FromSeconds(RemainingTime * 1.1)) GameUpdater.UpdateWithWait();
+            // tick数でアップデートする（RemainingTime * 1.1秒間）
+            // Update for RemainingTime * 1.1 seconds (controlled by tick count)
+            var updateTicks = (int)(RemainingTime * 1.1 * GameUpdater.TicksPerSecond);
+            for (var i = 0; i < updateTicks; i++) GameUpdater.AdvanceTicks(1);
             
             //ベルトコンベアからアイテムを取得
             var inventoryItemsField = typeof(VanillaBeltConveyorComponent).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -236,18 +237,25 @@ namespace Tests.CombinedTest.Server
         {
             datastore.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, pos, blockDirection, Array.Empty<BlockCreateParam>(), out var beltConveyor);
             var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
-            
-            //リフレクションで_inventoryItemsを取得
+
+            // リフレクションで_inventoryItemsと_ticksOfItemEnterToExitを取得
+            // Get _inventoryItems and _ticksOfItemEnterToExit via reflection
             var inventoryItemsField = typeof(VanillaBeltConveyorComponent).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
             var inventoryItems = (VanillaBeltConveyorInventoryItem[])inventoryItemsField.GetValue(beltConveyorComponent);
-            
-            inventoryItems[0] = new VanillaBeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(ItemInstanceId), null, null);
+            var ticksField = typeof(VanillaBeltConveyorComponent).GetField("_ticksOfItemEnterToExit", BindingFlags.NonPublic | BindingFlags.Instance);
+            var totalTicks = (uint)ticksField.GetValue(beltConveyorComponent);
+
+            // 残り25%（進捗75%）を設定
+            // Set 25% remaining (75% progress)
+            var remainingTicks = (uint)(totalTicks * 0.25);
+            inventoryItems[0] = new VanillaBeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(ItemInstanceId), null, null, totalTicks)
+            {
+                RemainingTicks = remainingTicks
+            };
             inventoryItems[1] = null;
             inventoryItems[2] = null;
             inventoryItems[3] = null;
-            
-            inventoryItems[0].RemainingPercent = 0.25f;
-            
+
             return beltConveyor;
         }
 
@@ -256,19 +264,23 @@ namespace Tests.CombinedTest.Server
             datastore.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, pos, blockDirection, Array.Empty<BlockCreateParam>(), out var beltConveyor);
             var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
 
-            // リフレクションで_inventoryItemsを取得
-            // Get _inventoryItems via reflection
+            // リフレクションで_inventoryItemsと_ticksOfItemEnterToExitを取得
+            // Get _inventoryItems and _ticksOfItemEnterToExit via reflection
             var inventoryItemsField = typeof(VanillaBeltConveyorComponent).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
             var inventoryItems = (VanillaBeltConveyorInventoryItem[])inventoryItemsField.GetValue(beltConveyorComponent);
+            var ticksField = typeof(VanillaBeltConveyorComponent).GetField("_ticksOfItemEnterToExit", BindingFlags.NonPublic | BindingFlags.Instance);
+            var totalTicks = (uint)ticksField.GetValue(beltConveyorComponent);
 
-            // コネクター付きでアイテムを設定
-            // Set item with connectors
-            inventoryItems[0] = new VanillaBeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(ItemInstanceId), startConnector, goalConnector);
+            // 残り25%（進捗75%）を設定
+            // Set 25% remaining (75% progress)
+            var remainingTicks = (uint)(totalTicks * 0.25);
+            inventoryItems[0] = new VanillaBeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(ItemInstanceId), startConnector, goalConnector, totalTicks)
+            {
+                RemainingTicks = remainingTicks
+            };
             inventoryItems[1] = null;
             inventoryItems[2] = null;
             inventoryItems[3] = null;
-
-            inventoryItems[0].RemainingPercent = 0.25f;
 
             return beltConveyor;
         }

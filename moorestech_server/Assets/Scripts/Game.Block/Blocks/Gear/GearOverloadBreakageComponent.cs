@@ -15,12 +15,14 @@ namespace Game.Block.Blocks.Gear
     // Component that monitors block destruction due to overload
     public class GearOverloadBreakageComponent : IUpdatableBlockComponent
     {
+        private const int RandomSeed = 19890604;
+        private static readonly System.Random SharedRandom = new(RandomSeed);
         private readonly BlockInstanceId _blockInstanceId;
         private readonly IGearEnergyTransformer _gearEnergyTransformer;
         private readonly IGearOverloadParam _overloadParam;
-        private readonly double _checkInterval;
+        private readonly uint _checkIntervalTicks;
         private readonly bool _overloadEnabled;
-        private double _elapsedSeconds;
+        private uint _elapsedTicks;
         private bool _isDestroyed;
 
         public GearOverloadBreakageComponent(BlockInstanceId blockInstanceId, IGearEnergyTransformer gearEnergyTransformer, IGearOverloadParam overloadParam)
@@ -28,7 +30,7 @@ namespace Game.Block.Blocks.Gear
             _blockInstanceId = blockInstanceId;
             _gearEnergyTransformer = gearEnergyTransformer;
             _overloadParam = overloadParam;
-            _checkInterval = Math.Max(overloadParam.DestructionCheckInterval, 0.001f);
+            _checkIntervalTicks = GameUpdater.SecondsToTicks(Math.Max(overloadParam.DestructionCheckInterval, 0.001f));
             _overloadEnabled = overloadParam.BaseDestructionProbability > 0 && (overloadParam.OverloadMaxRpm > 0 || overloadParam.OverloadMaxTorque > 0);
         }
 
@@ -38,15 +40,15 @@ namespace Game.Block.Blocks.Gear
             // Manage interval for overload checks
             if (!_overloadEnabled || _isDestroyed) return;
 
-            _elapsedSeconds += GameUpdater.UpdateSecondTime;
-            if (_elapsedSeconds < _checkInterval) return;
-            _elapsedSeconds = 0;
+            _elapsedTicks += GameUpdater.CurrentTickCount;
+            if (_elapsedTicks < _checkIntervalTicks) return;
+            _elapsedTicks = 0;
 
             // 過負荷時の破壊確率を計算し、抽選する
             // Calculate destruction probability when overloaded and roll
             var chance = CalculateDestructionProbability();
             if (chance <= 0f) return;
-            if (UnityEngine.Random.value <= chance) RequestRemove();
+            if (SharedRandom.NextDouble() <= chance) RequestRemove();
 
             #region Internal
 

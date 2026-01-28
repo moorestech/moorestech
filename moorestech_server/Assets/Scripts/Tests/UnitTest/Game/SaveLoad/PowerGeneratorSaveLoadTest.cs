@@ -40,11 +40,14 @@ namespace Tests.UnitTest.Game.SaveLoad
             var fuelItemId = MasterHolder.ItemMaster.GetItemId(Guid.Parse("00000000-0000-0000-1234-000000000001"));
             var secondaryItemId = MasterHolder.ItemMaster.GetItemId(Guid.Parse("00000000-0000-0000-1234-000000000002"));
             var fuelFluidId = MasterHolder.FluidMaster.GetFluidId(Guid.Parse("00000000-0000-0000-1234-000000000003"));
-            const double remainingFuelTime = 567d;
+
+            // テスト用の残り燃料tick数（567 tick）
+            // Test remaining fuel ticks (567 ticks)
+            const uint remainingFuelTicks = 567u;
 
             // プライベートフィールドを利用して燃料状態とインベントリを直接構築する
             // Directly configure fuel state and inventory through private fields.
-            SetFuelState(powerGenerator, fuelItemId, remainingFuelTime);
+            SetFuelState(powerGenerator, fuelItemId, remainingFuelTicks);
 
             // テスト用にアイテムを設定する際はイベントを発火させない（ブロックがまだWorldBlockDatastoreに登録されていないため）
             // Set items for testing without firing events (block not yet registered in WorldBlockDatastore)
@@ -77,7 +80,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             // Verify that the restored fuel state matches the original snapshot.
             var loadedFuelState = CaptureFuelState(loadedPowerGenerator);
             Assert.AreEqual(expectedFuelState.CurrentFuelItemId, loadedFuelState.CurrentFuelItemId);
-            Assert.AreEqual(expectedFuelState.RemainingFuelTime, loadedFuelState.RemainingFuelTime);
+            Assert.AreEqual(expectedFuelState.RemainingFuelTicks, loadedFuelState.RemainingFuelTicks);
             Assert.AreEqual(expectedFuelState.FuelType, loadedFuelState.FuelType);
 
             // インベントリの内容が一致することを確認する
@@ -92,7 +95,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             #region Internal
 
-            void SetFuelState(VanillaElectricGeneratorComponent component, ItemId itemId, double fuelTime)
+            void SetFuelState(VanillaElectricGeneratorComponent component, ItemId itemId, uint fuelTicks)
             {
                 // 燃料サービスのプライベートフィールドを書き換えて任意の燃焼状態を作る
                 // Modify the fuel service's private fields to emulate the desired combustion state.
@@ -108,8 +111,8 @@ namespace Tests.UnitTest.Game.SaveLoad
                     .GetField("_currentFuelType", BindingFlags.NonPublic | BindingFlags.Instance)
                     .SetValue(fuelService, fuelTypeValue);
                 fuelServiceType
-                    .GetField("_remainingFuelTime", BindingFlags.NonPublic | BindingFlags.Instance)
-                    .SetValue(fuelService, fuelTime);
+                    .GetField("_remainingFuelTicks", BindingFlags.NonPublic | BindingFlags.Instance)
+                    .SetValue(fuelService, fuelTicks);
                 fuelServiceType
                     .GetField("_currentFuelFluidId", BindingFlags.NonPublic | BindingFlags.Instance)
                     .SetValue(fuelService, FluidMaster.EmptyFluidId);
@@ -125,7 +128,7 @@ namespace Tests.UnitTest.Game.SaveLoad
                 }
             }
 
-            (ItemId CurrentFuelItemId, double RemainingFuelTime, string FuelType) CaptureFuelState(VanillaElectricGeneratorComponent component)
+            (ItemId CurrentFuelItemId, uint RemainingFuelTicks, string FuelType) CaptureFuelState(VanillaElectricGeneratorComponent component)
             {
                 // 燃料サービスから現在の燃焼状況を読み取って比較用データを作成する
                 // Inspect the fuel service to build comparison data for the current burn state.
@@ -135,15 +138,15 @@ namespace Tests.UnitTest.Game.SaveLoad
                 var currentFuelItemId = (ItemId)fuelServiceType
                     .GetField("_currentFuelItemId", BindingFlags.NonPublic | BindingFlags.Instance)
                     .GetValue(fuelService);
-                var remainingFuel = (double)fuelServiceType
-                    .GetField("_remainingFuelTime", BindingFlags.NonPublic | BindingFlags.Instance)
+                var remainingFuelTicks = (uint)fuelServiceType
+                    .GetField("_remainingFuelTicks", BindingFlags.NonPublic | BindingFlags.Instance)
                     .GetValue(fuelService);
                 var fuelType = fuelServiceType
                     .GetField("_currentFuelType", BindingFlags.NonPublic | BindingFlags.Instance)
                     .GetValue(fuelService)
                     .ToString();
 
-                return (currentFuelItemId, remainingFuel, fuelType);
+                return (currentFuelItemId, remainingFuelTicks, fuelType);
             }
 
             List<(ItemId ItemId, int Count)> CaptureInventorySnapshot(VanillaElectricGeneratorComponent component)
