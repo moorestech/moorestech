@@ -64,35 +64,35 @@ namespace Tests.CombinedTest.Core
             for (int i = 0; i < 4; i++)
             {
                 SetSteam();
-                GameUpdater.UpdateWithWait();
+                GameUpdater.AdvanceTicks(1);
             }
-            
-            // アップデートループ
-            var startTime = DateTime.Now;
+
+            // アップデートループ（tick数で制御）
+            // Update loop (controlled by tick count)
+            var maxTicks = (int)((timeToMax + 0.5) * GameUpdater.TicksPerSecond);
             var previousRpm = gearGeneratorComponent.GenerateRpm.AsPrimitive();
             var previousTorque = gearGeneratorComponent.GenerateTorque.AsPrimitive();
 
-            
-            while (DateTime.Now < startTime.AddSeconds(timeToMax + 0.5))  // 少し余裕を持たせる
+            for (var tick = 0; tick < maxTicks; tick++)
             {
                 // すべてのパイプに蒸気を充填
                 SetSteam();
-                
+
                 // アップデート
-                GameUpdater.UpdateWithWait();
-                
+                GameUpdater.AdvanceTicks(1);
+
                 var generateRpm = gearGeneratorComponent.GenerateRpm.AsPrimitive();
                 var generateTorque = gearGeneratorComponent.GenerateTorque.AsPrimitive();
-                
+
                 // 増加傾向があったことを確認（等しい場合も許容）
                 Assert.IsTrue(generateRpm >= previousRpm && generateTorque >= previousTorque, "RPMまたはトルクが時間経過とともに減少しています");
                 Debug.Log($"GenerateRpm: {generateRpm}, GenerateTorque: {generateTorque}");
-                
+
                 if (generateRpm >= maxRpm && generateTorque >= maxTorque)
                 {
                     break;
                 }
-                
+
                 // 両方が前回より大きい場合のみ更新
                 if (generateRpm > previousRpm || generateTorque > previousTorque)
                 {
@@ -117,53 +117,55 @@ namespace Tests.CombinedTest.Core
             worldBlockDatastore.RemoveBlock(fluidPipeBlock4.BlockPositionInfo.OriginalPos, BlockRemoveReason.ManualRemove);
             
             // まだ前回と同じ値なので1回だけアップデートしておく
-            GameUpdater.UpdateWithWait();
-            
+            GameUpdater.AdvanceTicks(1);
+
             // 減速テスト前に現在の値を記録（最大値のはず）
             previousRpm = gearGeneratorComponent.GenerateRpm.AsPrimitive();
             previousTorque = gearGeneratorComponent.GenerateTorque.AsPrimitive();
-            
-            startTime = DateTime.Now;
+
+            // 減速ループ（tick数で制御）
+            // Deceleration loop (controlled by tick count)
             var hasStartedDecelerating = false;
-            while (DateTime.Now < startTime.AddSeconds(timeToMax + 0.5))  // 少し余裕を持たせる
+            var elapsedTicks = 0;
+            for (var tick = 0; tick < maxTicks; tick++)
             {
                 // アップデート
-                GameUpdater.UpdateWithWait();
-                
+                GameUpdater.AdvanceTicks(1);
+                elapsedTicks++;
+
                 var generateRpm = gearGeneratorComponent.GenerateRpm.AsPrimitive();
                 var generateTorque = gearGeneratorComponent.GenerateTorque.AsPrimitive();
                 Debug.Log($"GenerateRpm: {generateRpm}, GenerateTorque: {generateTorque}");
 
-                
                 // 減少傾向があったことを確認
                 if (!hasStartedDecelerating && (generateRpm < previousRpm || generateTorque < previousTorque))
                 {
                     hasStartedDecelerating = true;
                 }
-                
+
                 // 減速が始まったら、常に前回以下であることを確認
                 if (hasStartedDecelerating && generateTorque != 0 && generateRpm != 0)
                 {
                     Assert.IsTrue(generateRpm <= previousRpm && generateTorque <= previousTorque, $"RPMまたはトルクが時間経過とともに減少していません。現在の値: {generateRpm} {generateTorque} 前回の値: {previousRpm} {previousTorque}");
                 }
-                
+
                 // 値を更新
                 previousRpm = generateRpm;
                 previousTorque = generateTorque;
-                
+
                 // ゼロになったら終了
                 if (generateRpm == 0 && generateTorque == 0)
                 {
                     break;
                 }
             }
-            
+
             // ゼロになっていることを確認
             Assert.AreEqual(0, gearGeneratorComponent.CurrentRpm.AsPrimitive(), 0.5, "RPMが0になっていません");
             Assert.AreEqual(0, gearGeneratorComponent.CurrentTorque.AsPrimitive(), 0.5, "トルクが0になっていません");
-            // ゼロに達した時間が+-0.5秒以内になっていることを確認
-            var timeToZero = DateTime.Now - startTime;
-            Assert.IsTrue(Math.Abs(gearGeneratorComponent.GenerateRpm.AsPrimitive()) < 0.5, $"RPMが0になっている時間が+-0.5秒以内になっていません。0になった秒数：{timeToZero.TotalSeconds}"); 
+            // ゼロに達した時間が適切であることを確認（tick数で判定）
+            var elapsedSeconds = elapsedTicks * GameUpdater.SecondsPerTick;
+            Assert.IsTrue(Math.Abs(gearGeneratorComponent.GenerateRpm.AsPrimitive()) < 0.5, $"RPMが0になっている時間が+-0.5秒以内になっていません。0になった秒数：{elapsedSeconds}"); 
             
             #region Internal
             
@@ -201,13 +203,13 @@ namespace Tests.CombinedTest.Core
             openableInventory.InsertItem(fuelItemId, 80);
             var initialTotalFuel = openableInventory.InventoryItems.Sum(item => item.Count);
 
-            // 最大出力に到達するまで燃料を供給し続ける
-            // Continue feeding fuel until the generator reaches peak output
-            var accelerationLimit = DateTime.Now.AddSeconds(param.TimeToMax + 2);
+            // 最大出力に到達するまで燃料を供給し続ける（tick数で制御）
+            // Continue feeding fuel until the generator reaches peak output (controlled by tick count)
+            var accelerationTicks = (int)((param.TimeToMax + 2) * GameUpdater.TicksPerSecond);
             var reachedMax = false;
-            while (DateTime.Now < accelerationLimit)
+            for (var tick = 0; tick < accelerationTicks; tick++)
             {
-                GameUpdater.UpdateWithWait();
+                GameUpdater.AdvanceTicks(1);
                 if (generatorComponent.GenerateRpm.AsPrimitive() >= param.GenerateMaxRpm - 0.5f &&
                     generatorComponent.GenerateTorque.AsPrimitive() >= param.GenerateMaxTorque - 0.5f)
                 {
@@ -232,14 +234,14 @@ namespace Tests.CombinedTest.Core
             var rpmBeforeDrain = generatorComponent.GenerateRpm.AsPrimitive();
             var torqueBeforeDrain = generatorComponent.GenerateTorque.AsPrimitive();
 
-            // 負荷ゼロの状態では出力が維持されることを確認する
-            // Confirm that output is maintained while operating with zero load
-            var decelerationLimit = DateTime.Now.AddSeconds(param.TimeToMax + 2);
+            // 負荷ゼロの状態では出力が維持されることを確認する（tick数で制御）
+            // Confirm that output is maintained while operating with zero load (controlled by tick count)
+            var decelerationTicks = (int)((param.TimeToMax + 2) * GameUpdater.TicksPerSecond);
             var minObservedRpm = rpmBeforeDrain;
             var minObservedTorque = torqueBeforeDrain;
-            while (DateTime.Now < decelerationLimit)
+            for (var tick = 0; tick < decelerationTicks; tick++)
             {
-                GameUpdater.UpdateWithWait();
+                GameUpdater.AdvanceTicks(1);
                 var currentRpm = generatorComponent.GenerateRpm.AsPrimitive();
                 var currentTorque = generatorComponent.GenerateTorque.AsPrimitive();
                 if (currentRpm < minObservedRpm) minObservedRpm = currentRpm;

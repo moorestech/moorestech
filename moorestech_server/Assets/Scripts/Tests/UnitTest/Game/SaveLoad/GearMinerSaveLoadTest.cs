@@ -36,8 +36,9 @@ namespace Tests.UnitTest.Core.Block
             var originalMiner = blockFactory.Create(ForUnitTestModBlockId.GearMiner, new BlockInstanceId(1), minerPosInfo);
             var originalMinerComponent = originalMiner.GetComponent<VanillaMinerProcessorComponent>();
 
-            // Set the remaining mining time to a specific value.
-            var originalRemainingSecond = 0.35;
+            // 残り採掘tick数を設定（7 tick）
+            // Set the remaining mining ticks to a specific value (7 ticks)
+            var originalRemainingTicks = 7u;
 
             // Access the miner's inventory using reflection to set test items.
             var inventory =
@@ -50,10 +51,11 @@ namespace Tests.UnitTest.Core.Block
             inventory.SetItemWithoutEvent(0, ServerContext.ItemStackFactory.Create(new ItemId(1), 1));
             inventory.SetItemWithoutEvent(2, ServerContext.ItemStackFactory.Create(new ItemId(4), 1));
 
-            // Set the remaining mining time using reflection.
+            // 残り採掘tick数をリフレクションで設定
+            // Set the remaining mining ticks using reflection.
             typeof(VanillaMinerProcessorComponent)
-                .GetField("_remainingSecond", BindingFlags.Instance | BindingFlags.NonPublic)
-                .SetValue(originalMinerComponent, originalRemainingSecond);
+                .GetField("_remainingTicks", BindingFlags.Instance | BindingFlags.NonPublic)
+                .SetValue(originalMinerComponent, originalRemainingTicks);
 
             // Save the state of the miner to a JSON string.
             var json = originalMiner.GetSaveState();
@@ -69,9 +71,9 @@ namespace Tests.UnitTest.Core.Block
                     .GetField("_openableInventoryItemDataStoreService", BindingFlags.Instance | BindingFlags.NonPublic)
                     .GetValue(loadedMinerComponent);
 
-            var loadedRemainingSecond =
-                (double)typeof(VanillaMinerProcessorComponent)
-                    .GetField("_remainingSecond", BindingFlags.Instance | BindingFlags.NonPublic)
+            var loadedRemainingTicks =
+                (uint)typeof(VanillaMinerProcessorComponent)
+                    .GetField("_remainingTicks", BindingFlags.Instance | BindingFlags.NonPublic)
                     .GetValue(loadedMinerComponent);
 
             // Assert that the original and loaded inventories are equal.
@@ -79,8 +81,9 @@ namespace Tests.UnitTest.Core.Block
             Assert.AreEqual(inventory.GetItem(1), loadedInventory.GetItem(1));
             Assert.AreEqual(inventory.GetItem(2), loadedInventory.GetItem(2));
 
-            // Assert that the remaining mining time is the same.
-            Assert.AreEqual(originalRemainingSecond, loadedRemainingSecond);
+            // 残り採掘tick数が同じであることを確認
+            // Assert that the remaining mining ticks is the same
+            Assert.AreEqual(originalRemainingTicks, loadedRemainingTicks);
         }
     }
 }

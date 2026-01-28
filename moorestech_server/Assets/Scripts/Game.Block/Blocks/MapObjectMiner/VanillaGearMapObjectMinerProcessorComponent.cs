@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Core.Update;
 using Game.Block.Blocks.Chest;
 using Game.Block.Blocks.Util;
 using Game.Block.Interface;
@@ -65,15 +66,17 @@ namespace Game.Block.Blocks.MapObjectMiner
         public VanillaGearMapObjectMinerProcessorComponent(Dictionary<string, string> componentStates, BlockPositionInfo blockPositionInfo, GearMapObjectMinerBlockParam blockParam, VanillaChestComponent vanillaChestComponent) :
             this(blockPositionInfo, blockParam, vanillaChestComponent)
         {
-            var itemJsons = JsonConvert.DeserializeObject<Dictionary<Guid, float>>(componentStates[SaveKey]);
-            foreach (var (guid, remainingMiningTime) in itemJsons)
+            // 秒数からtickに変換して復元
+            // Convert seconds back to ticks for restoration
+            var itemJsons = JsonConvert.DeserializeObject<Dictionary<Guid, double>>(componentStates[SaveKey]);
+            foreach (var (guid, remainingMiningSeconds) in itemJsons)
             {
                 if (!_miningTargetInfos.TryGetValue(guid, out var info))
                 {
                     continue;
                 }
-                
-                info.RemainingMiningTime = remainingMiningTime;
+
+                info.RemainingMiningTicks = GameUpdater.SecondsToTicks(remainingMiningSeconds);
             }
         }
         
@@ -94,34 +97,32 @@ namespace Game.Block.Blocks.MapObjectMiner
                 {
                     continue;
                 }
-                
-                // 残り時間を減らす
-                // Reduce remaining time
-                var subTime = MachineCurrentPowerToSubSecond.GetSubSecond(_currentPower, _requestEnergy);
-                info.RemainingMiningTime -= (float)subTime;
-                
-                // 残り時間が0以下になるまで待機
-                // Wait until the remaining time is 0 or less
-                if (info.RemainingMiningTime > 0)
+
+                // 残りtick数を減らす
+                // Reduce remaining ticks
+                var subTicks = MachineCurrentPowerToSubSecond.GetSubTicks(_currentPower, _requestEnergy);
+                if (subTicks >= info.RemainingMiningTicks)
                 {
-                    continue;
+                    // 指定HPを攻撃し、アイテムを取得
+                    // Attack the specified HP and obtain an item
+                    info.RemainingMiningTicks = info.DefaultMiningTicks;
+                    foreach (var mapObject in info.MapObjects)
+                    {
+                        var items = mapObject.Attack(info.Setting.AttackHp);
+
+                        // TODO 残りスロットがなくても採掘し続ける不具合があるので修正したい
+                        // TODO There is a bug that continues to mine even if there are no remaining slots, so I want to fix it
+                        _vanillaChestComponent.InsertItem(items);
+                    }
+
+                    // 破壊された場合は削除
+                    // If it is destroyed, delete it
+                    info.MapObjects.RemoveAll(mapObject => mapObject.IsDestroyed);
                 }
-                
-                // 指定HPを攻撃し、アイテムを取得
-                // Attack the specified HP and obtain an item
-                info.RemainingMiningTime = info.Setting.MiningTime;
-                foreach (var mapObject in info.MapObjects)
+                else
                 {
-                    var items = mapObject.Attack(info.Setting.AttackHp);
-                    
-                    // TODO 残りスロットがなくても採掘し続ける不具合があるので修正したい
-                    // TODO There is a bug that continues to mine even if there are no remaining slots, so I want to fix it
-                    _vanillaChestComponent.InsertItem(items);
+                    info.RemainingMiningTicks -= subTicks;
                 }
-                
-                // 破壊された場合は削除
-                // If it is destroyed, delete it
-                info.MapObjects.RemoveAll(mapObject => mapObject.IsDestroyed);
             }
         }
         
@@ -129,13 +130,15 @@ namespace Game.Block.Blocks.MapObjectMiner
         public string SaveKey { get; } = typeof(VanillaGearMapObjectMinerProcessorComponent).FullName;
         public string GetSaveState()
         {
-            var remainMiningTimes = new Dictionary<Guid, float>();
+            // tickを秒数に変換して保存（tick数の変動に対応）
+            // Convert ticks to seconds for storage (to handle tick rate changes)
+            var remainMiningSeconds = new Dictionary<Guid, double>();
             foreach (var (guid, info) in _miningTargetInfos)
             {
-                remainMiningTimes.Add(guid, info.RemainingMiningTime);
+                remainMiningSeconds.Add(guid, GameUpdater.TicksToSeconds(info.RemainingMiningTicks));
             }
-            
-            return JsonConvert.SerializeObject(remainMiningTimes);
+
+            return JsonConvert.SerializeObject(remainMiningSeconds);
         }
         
         public bool IsDestroy { get; private set; }
@@ -148,15 +151,17 @@ namespace Game.Block.Blocks.MapObjectMiner
     }
     public class MiningTargetInfo
     {
-        public float RemainingMiningTime { get; set; }
+        public uint RemainingMiningTicks { get; set; }
+        public uint DefaultMiningTicks { get; }
         public MapObjectMineSettingsMasterElement Setting { get; }
         public List<IMapObject> MapObjects { get; }
-        
+
         public MiningTargetInfo(MapObjectMineSettingsMasterElement setting, List<IMapObject> mapObjects)
         {
             MapObjects = mapObjects;
             Setting = setting;
-            RemainingMiningTime = setting.MiningTime;
+            DefaultMiningTicks = GameUpdater.SecondsToTicks(setting.MiningTime);
+            RemainingMiningTicks = DefaultMiningTicks;
         }
     }
 }
