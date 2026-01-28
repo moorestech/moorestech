@@ -1,5 +1,7 @@
 ﻿using System;
-using UnityEngine; // 追加（ログ出力用）
+using UnityEngine;
+
+// 追加（ログ出力用）
 
 namespace Game.Train.RailGraph
 {
@@ -54,10 +56,8 @@ namespace Game.Train.RailGraph
             DisconnectOppositeNodes(fromNode, toNode);
             return true;
         }
-
-        #region Internal
-
-        private bool TryResolveNodes(int fromNodeId, Guid fromGuid, int toNodeId, Guid toGuid, out RailNode fromNode, out RailNode toNode)
+        
+        public bool TryResolveNodes(int fromNodeId, Guid fromGuid, int toNodeId, Guid toGuid, out RailNode fromNode, out RailNode toNode)
         {
             fromNode = null;
             toNode = null;
@@ -90,6 +90,8 @@ namespace Game.Train.RailGraph
             toNode = resolvedTo;
             return true;
         }
+
+        #region Internal
 
         private void LogWarn(string message) // 追加
         {
