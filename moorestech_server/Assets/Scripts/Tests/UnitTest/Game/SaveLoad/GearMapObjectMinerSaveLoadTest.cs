@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Core.Update;
 using Game.Block.Blocks.Chest;
 using Game.Block.Blocks.MapObjectMiner;
 using Game.Block.Interface;
@@ -37,12 +38,12 @@ namespace Tests.UnitTest.Game.SaveLoad
             var mtField = typeof(VanillaGearMapObjectMinerProcessorComponent).GetField("_miningTargetInfos", BindingFlags.NonPublic | BindingFlags.Instance);
             var miningTargetInfos = mtField.GetValue(processor) as Dictionary<Guid, MiningTargetInfo>;
             
-            // 採掘対象の残り採掘時間を設定する
-            // Set the remaining mining time of the mining target
+            // 採掘対象の残り採掘tick数を設定する
+            // Set the remaining mining ticks of the mining target
             var firstKey = miningTargetInfos.Keys.ToList()[0];
             miningTargetInfos.TryGetValue(firstKey, out var miningTargetInfo);
-            const float testRemainingTime = 0.5f;
-            miningTargetInfo.RemainingMiningTime = testRemainingTime;
+            var testRemainingTicks = GameUpdater.SecondsToTicks(0.5);
+            miningTargetInfo.RemainingMiningTicks = testRemainingTicks;
             
             
             // 保存状態を取得
@@ -61,11 +62,11 @@ namespace Tests.UnitTest.Game.SaveLoad
             var loadedMtField = typeof(VanillaGearMapObjectMinerProcessorComponent).GetField("_miningTargetInfos", BindingFlags.NonPublic | BindingFlags.Instance);
             var loadedMiningTargetInfos = loadedMtField.GetValue(loadedProcessor) as Dictionary<Guid, MiningTargetInfo>;
             
-            // 採掘対象の残り採掘時間が一致するかチェック
-            // Check if the remaining mining time of the mining target matches
+            // 採掘対象の残り採掘tick数が一致するかチェック
+            // Check if the remaining mining ticks of the mining target matches
             loadedMiningTargetInfos.TryGetValue(firstKey, out var loadedMiningTargetInfo);
-            
-            Assert.AreEqual(testRemainingTime, loadedMiningTargetInfo.RemainingMiningTime);
+
+            Assert.AreEqual(testRemainingTicks, loadedMiningTargetInfo.RemainingMiningTicks);
         }
     }
 }

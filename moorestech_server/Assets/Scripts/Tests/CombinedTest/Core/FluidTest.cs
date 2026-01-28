@@ -50,16 +50,12 @@ namespace Tests.CombinedTest.Core
             // fluidPipeのcapacityは100だから溢れない
             if (remainAmount.Amount > 0) Assert.Fail();
             
-            //TODO: どこかのタイミングで仮想化する必要がある。このままだと実際にかかる時間分テストでも時間がかかる
-            var startTime = DateTime.Now;
-            // 全て搬入するのにかかる時間
-            const float fillTime = 3f;
-            while (true)
+            // tick数でループを制御（3秒 = 60 tick）
+            // Loop controlled by tick count (3 seconds = 60 ticks)
+            const int fillTicks = 60;
+            for (var i = 0; i < fillTicks; i++)
             {
-                GameUpdater.UpdateWithWait();
-                
-                var elapsedTime = DateTime.Now - startTime;
-                if (elapsedTime.TotalSeconds > fillTime) break;
+                GameUpdater.AdvanceTicks(1);
             }
             
             Assert.AreEqual(0f, fluidPipe0.GetAmount(), 1f);
@@ -93,20 +89,22 @@ namespace Tests.CombinedTest.Core
             // fluidPipeのcapacityは100だから溢れない
             if (remainAmount.Amount > 0) Assert.Fail();
             
-            //TODO: どこかのタイミングで仮想化する必要がある。このままだと実際にかかる時間分テストでも時間がかかる
-            var startTime = DateTime.Now;
-            while (true)
+            // tick数でループを制御（3秒 = 60 tick）
+            // Loop controlled by tick count (3 seconds = 60 ticks)
+            const int fillTicks = 60;
+            for (var tick = 0; tick < fillTicks; tick++)
             {
-                GameUpdater.UpdateWithWait();
-                
-                var elapsedTime = DateTime.Now - startTime;
-                
+                GameUpdater.AdvanceTicks(1);
+
+                // 経過秒数（tick × SecondsPerTick）
+                // Elapsed seconds (tick × SecondsPerTick)
+                var elapsedSeconds = (tick + 1) * GameUpdater.SecondsPerTick;
+
                 // 輸送済み液体量
-                var currentTransportedAmount = (pipeFlowCapacity * elapsedTime).TotalSeconds;
+                // Transported fluid amount
+                var currentTransportedAmount = pipeFlowCapacity * elapsedSeconds;
                 Assert.AreEqual(amount - currentTransportedAmount, fluidPipe0.GetAmount(), 1f);
                 Assert.AreEqual(currentTransportedAmount, fluidPipe1.GetAmount(), 1f);
-                
-                if (elapsedTime.TotalSeconds > fillTime) break;
             }
             
             Assert.AreEqual(0f, fluidPipe0.GetAmount(), 1f);
@@ -213,13 +211,12 @@ namespace Tests.CombinedTest.Core
             // fluidPipe0からoneWayFluidPipe、fluidPipe1に流れる
             // oneWayFluidPipeはfluidPipe1方向にしか流れないからfluidPipe0には流れない
             // よって、ある程度時間が経つと全ての液体がfluidPipe1でとどまる
-            var startTime = DateTime.Now;
-            while (true)
+            // tick数でループを制御（5秒 = 100 tick）
+            // Loop controlled by tick count (5 seconds = 100 ticks)
+            const int ticks = 100;
+            for (var i = 0; i < ticks; i++)
             {
-                GameUpdater.UpdateWithWait();
-                
-                var elapsedTime = DateTime.Now - startTime;
-                if (elapsedTime.TotalSeconds > 5) break;
+                GameUpdater.AdvanceTicks(1);
             }
             
             Assert.AreEqual(0, fluidPipe0.GetAmount(), 0.01d);
@@ -258,13 +255,12 @@ namespace Tests.CombinedTest.Core
             var totalAmount = fluidPipe0.GetAmount() + fluidPipe1.GetAmount() + fluidPipe2.GetAmount();
             
             // fluidPipe0からfluidPipe1に流れる
-            var startTime = DateTime.Now;
-            while (true)
+            // tick数でループを制御（10秒 = 200 tick）
+            // Loop controlled by tick count (10 seconds = 200 ticks)
+            const int ticks = 200;
+            for (var i = 0; i < ticks; i++)
             {
-                GameUpdater.UpdateWithWait();
-                
-                var elapsedTime = DateTime.Now - startTime;
-                if (elapsedTime.TotalSeconds > 10) break;
+                GameUpdater.AdvanceTicks(1);
             }
             
             var lastTotalAmount = fluidPipe0.GetAmount() + fluidPipe1.GetAmount() + fluidPipe2.GetAmount();
@@ -293,14 +289,13 @@ namespace Tests.CombinedTest.Core
             const double addingAmount = 20d;
             var addingStack = new FluidStack(addingAmount, FluidId);
             fluidPipe1.AddLiquid(addingStack, FluidContainer.Empty);
-            
-            var startTime = DateTime.Now;
-            while (true)
+
+            // tick数でループを制御（1秒 = 20 tick）
+            // Loop controlled by tick count (1 second = 20 ticks)
+            const int ticks = 20;
+            for (var i = 0; i < ticks; i++)
             {
-                GameUpdater.UpdateWithWait();
-                
-                var elapsedTime = DateTime.Now - startTime;
-                if (elapsedTime.TotalSeconds > 1) break;
+                GameUpdater.AdvanceTicks(1);
             }
             
             // 0と2に流れる
@@ -329,31 +324,24 @@ namespace Tests.CombinedTest.Core
             const double amount = 10d;
             var addingStack = new FluidStack(amount, FluidId);
             fluidPipe0.AddLiquid(addingStack, FluidContainer.Empty);
-            
+
+            // tick数でループを制御（1秒 = 20 tick）
+            // Loop controlled by tick count (1 second = 20 ticks)
+            const int ticks = 20;
+            for (var i = 0; i < ticks; i++)
             {
-                var startTime = DateTime.Now;
-                while (true)
-                {
-                    GameUpdater.UpdateWithWait();
-                    
-                    var elapsedTime = DateTime.Now - startTime;
-                    if (elapsedTime.TotalSeconds > 1) break;
-                }
+                GameUpdater.AdvanceTicks(1);
             }
-            
+
             // fluidPipe1に全て流れたことを確認
             Assert.AreEqual(0d, fluidPipe0.GetAmount(), 1d);
             Assert.AreEqual(10d, fluidPipe1.GetAmount(), 1d);
-            
+
+            // もう1秒待つ
+            // Wait another second
+            for (var i = 0; i < ticks; i++)
             {
-                var startTime = DateTime.Now;
-                while (true)
-                {
-                    GameUpdater.UpdateWithWait();
-                    
-                    var elapsedTime = DateTime.Now - startTime;
-                    if (elapsedTime.TotalSeconds > 1) break;
-                }
+                GameUpdater.AdvanceTicks(1);
             }
             
             // fluidPipe0に全て流れたことを確認
@@ -390,8 +378,10 @@ namespace Tests.CombinedTest.Core
             
             for (var i = 0; i < 10; i++)
             {
-                GameUpdater.SpecifiedDeltaTimeUpdate(0.1);
-                
+                // 0.1秒 = 2tick
+                // 0.1 seconds = 2 ticks
+                GameUpdater.AdvanceTicks(2);
+
                 Assert.AreEqual(fluid0Amount, fluidPipe0.GetAmount());
                 Assert.AreEqual(fluid1Amount, fluidPipe1.GetAmount());
             }
@@ -449,7 +439,9 @@ namespace Tests.CombinedTest.Core
             
             const int steps = 10;
             
-            for (var i = 0; i < steps; i++) GameUpdater.SpecifiedDeltaTimeUpdate(0.1);
+            // 0.1秒 = 2tick
+            // 0.1 seconds = 2 ticks
+            for (var i = 0; i < steps; i++) GameUpdater.AdvanceTicks(2);
             
             // First update: no fluid movement (both pipes have receive flag from initial AddLiquid)
             // Updates 2-10: both pipes change state (sender and receiver)

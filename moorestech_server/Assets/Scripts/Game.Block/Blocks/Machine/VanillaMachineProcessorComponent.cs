@@ -1,4 +1,5 @@
 using System;
+using Core.Update;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Util;
 using Game.Block.Interface;
@@ -14,24 +15,25 @@ namespace Game.Block.Blocks.Machine
     public class VanillaMachineProcessorComponent : IBlockStateObservable, IUpdatableBlockComponent
     {
         public ProcessState CurrentState { get; private set; } = ProcessState.Idle;
-        
-        public double RemainingSecond { get; private set; }
-        
+
+        public uint RemainingTicks { get; private set; }
+
         public Guid RecipeGuid => _processingRecipe?.MachineRecipeGuid ?? Guid.Empty;
         public IObservable<Unit> OnChangeBlockState => _changeState;
         private readonly Subject<Unit> _changeState = new();
-        
+
         private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
         private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
-        
+
         public readonly ElectricPower RequestPower;
-        
+
         // 次のエネルギー供給かアップデートがあるまでは_currentPowerを維持しておきたいのでこのフラグを使う
         // Use this flag because you want to keep _currentPower until the next energy supply or update
         private bool _usedPower;
         private ElectricPower _currentPower;
         private ProcessState _lastState = ProcessState.Idle;
         private MachineRecipeMasterElement _processingRecipe;
+        private uint _processingRecipeTicks;
         
         
         public VanillaMachineProcessorComponent(
@@ -48,16 +50,17 @@ namespace Game.Block.Blocks.Machine
         public VanillaMachineProcessorComponent(
             VanillaMachineInputInventory vanillaMachineInputInventory,
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
-            ProcessState currentState, double remainingSecond, MachineRecipeMasterElement processingRecipe,
+            ProcessState currentState, uint remainingTicks, MachineRecipeMasterElement processingRecipe,
             ElectricPower requestPower)
         {
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
-            
+
             _processingRecipe = processingRecipe;
+            _processingRecipeTicks = processingRecipe != null ? GameUpdater.SecondsToTicks(processingRecipe.Time) : 0;
             RequestPower = requestPower;
-            RemainingSecond = remainingSecond;
-            
+            RemainingTicks = remainingTicks;
+
             CurrentState = currentState;
         }
         
@@ -65,13 +68,13 @@ namespace Game.Block.Blocks.Machine
         public BlockStateDetail[] GetBlockStateDetails()
         {
             BlockException.CheckDestroy(this);
-            
-            var processingRate = _processingRecipe != null ? 1 - (float)RemainingSecond / _processingRecipe.Time : 0;
-            
+
+            var processingRate = _processingRecipeTicks > 0 ? 1 - (float)RemainingTicks / _processingRecipeTicks : 0;
+
             var commonMachineBlock = CommonMachineBlockStateDetail.CreateState(_currentPower.AsPrimitive(), RequestPower.AsPrimitive(), processingRate, CurrentState.ToStr(), _lastState.ToStr());
             var machineBlock = MachineBlockStateDetail.CreateState(processingRate, _processingRecipe?.MachineRecipeGuid ?? Guid.Empty);
-            
-            return new []{ commonMachineBlock, machineBlock };
+
+            return new[] { commonMachineBlock, machineBlock };
         }
         
         public void SupplyPower(ElectricPower power)
@@ -121,26 +124,33 @@ namespace Game.Block.Blocks.Machine
             var isStartProcess = CurrentState == ProcessState.Idle && isGetRecipe &&
                    _vanillaMachineInputInventory.IsAllowedToStartProcess() &&
                    _vanillaMachineOutputInventory.IsAllowedToOutputItem(recipe);
-            
+
             if (isStartProcess)
             {
                 CurrentState = ProcessState.Processing;
                 _processingRecipe = recipe;
+                _processingRecipeTicks = GameUpdater.SecondsToTicks(_processingRecipe.Time);
                 _vanillaMachineInputInventory.ReduceInputSlot(_processingRecipe);
-                RemainingSecond = _processingRecipe.Time;
+                RemainingTicks = _processingRecipeTicks;
             }
         }
-        
+
         private void Processing()
         {
-            RemainingSecond -= MachineCurrentPowerToSubSecond.GetSubSecond(_currentPower, RequestPower);
-            if (RemainingSecond <= 0)
+            var subTicks = MachineCurrentPowerToSubSecond.GetSubTicks(_currentPower, RequestPower);
+            if (subTicks >= RemainingTicks)
             {
+                RemainingTicks = 0;
                 CurrentState = ProcessState.Idle;
                 _vanillaMachineOutputInventory.InsertOutputSlot(_processingRecipe);
             }
-            
-            //電力を消費する
+            else
+            {
+                RemainingTicks -= subTicks;
+            }
+
+            // 電力を消費する
+            // Consume power
             _usedPower = true;
         }
         

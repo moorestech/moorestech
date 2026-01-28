@@ -1,5 +1,6 @@
 using System;
 using Core.Master;
+using Core.Update;
 using Newtonsoft.Json;
 
 namespace Game.Block.Blocks.Gear
@@ -10,12 +11,18 @@ namespace Game.Block.Blocks.Gear
     public class FuelGearGeneratorSaveData
     {
         public string CurrentState;
-        public float StateElapsedTime;
+
+        // 秒数として保存（tick数の変動に対応）
+        // Save as seconds (to handle tick rate changes)
+        public double StateElapsedSeconds;
         public float SteamConsumptionRate;
         public float RateAtDecelerationStart;
-        
+
         public string ActiveFuelType;
-        public double RemainingFuelTime;
+
+        // 秒数として保存（tick数の変動に対応）
+        // Save as seconds (to handle tick rate changes)
+        public double RemainingFuelSeconds;
         public string CurrentFuelItemGuidStr;
         public string CurrentFuelFluidGuidStr;
 
@@ -29,13 +36,15 @@ namespace Game.Block.Blocks.Gear
             FuelGearGeneratorStateService stateService,
             FuelGearGeneratorFuelService fuelService)
         {
+            // tickを秒数に変換して保存（tick数の変動に対応）
+            // Convert ticks to seconds for storage (to handle tick rate changes)
             CurrentState = stateService.CurrentState.ToString();
-            StateElapsedTime = stateService.StateElapsedTime;
+            StateElapsedSeconds = GameUpdater.TicksToSeconds(stateService.StateElapsedTicks);
             SteamConsumptionRate = stateService.SteamConsumptionRate;
             RateAtDecelerationStart = stateService.RateAtDecelerationStart;
 
             ActiveFuelType = fuelService.CurrentFuelType.ToString();
-            RemainingFuelTime = fuelService.RemainingFuelTime;
+            RemainingFuelSeconds = GameUpdater.TicksToSeconds(fuelService.RemainingFuelTicks);
 
             if (fuelService.CurrentFuelItemId != ItemMaster.EmptyItemId)
             {

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Core.Item.Interface;
 using Core.Master;
+using Core.Update;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
@@ -46,18 +47,19 @@ namespace Tests.UnitTest.Game.SaveLoad
             var outputConnects = beltParam.InventoryConnectors.OutputConnects.items;
             var sourceConnector = inputConnects[0];
             var goalConnector = outputConnects[0];
+            var totalTicks = GameUpdater.SecondsToTicks(beltParam.TimeOfItemEnterToExit);
 
-            inventoryItems[0] = new VanillaBeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(0), sourceConnector, goalConnector)
+            inventoryItems[0] = new VanillaBeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(0), sourceConnector, goalConnector, totalTicks)
             {
-                RemainingPercent = 0.8f,
+                RemainingTicks = (uint)(totalTicks * 0.8),
             };
-            inventoryItems[2] = new VanillaBeltConveyorInventoryItem(new ItemId(2), new ItemInstanceId(0), sourceConnector, goalConnector)
+            inventoryItems[2] = new VanillaBeltConveyorInventoryItem(new ItemId(2), new ItemInstanceId(0), sourceConnector, goalConnector, totalTicks)
             {
-                RemainingPercent = 0.85f,
+                RemainingTicks = (uint)(totalTicks * 0.85),
             };
-            inventoryItems[3] = new VanillaBeltConveyorInventoryItem(new ItemId(5), new ItemInstanceId(0), sourceConnector, goalConnector)
+            inventoryItems[3] = new VanillaBeltConveyorInventoryItem(new ItemId(5), new ItemInstanceId(0), sourceConnector, goalConnector, totalTicks)
             {
-                RemainingPercent = 0.9f,
+                RemainingTicks = (uint)(totalTicks * 0.9),
             };
 
             // セーブデータ取得
@@ -74,11 +76,11 @@ namespace Tests.UnitTest.Game.SaveLoad
             // Check that items match
             Assert.AreEqual(inventoryItems.Length, newInventoryItems.Length);
             Assert.AreEqual(1, newInventoryItems[0].ItemId.AsPrimitive());
-            Assert.AreEqual(0.8f, newInventoryItems[0].RemainingPercent);
+            Assert.AreEqual((uint)(totalTicks * 0.8), newInventoryItems[0].RemainingTicks);
             Assert.AreEqual(2, newInventoryItems[2].ItemId.AsPrimitive());
-            Assert.AreEqual(0.85f, newInventoryItems[2].RemainingPercent);
+            Assert.AreEqual((uint)(totalTicks * 0.85), newInventoryItems[2].RemainingTicks);
             Assert.AreEqual(5, newInventoryItems[3].ItemId.AsPrimitive());
-            Assert.AreEqual(0.9f, newInventoryItems[3].RemainingPercent);
+            Assert.AreEqual((uint)(totalTicks * 0.9), newInventoryItems[3].RemainingTicks);
 
             // コネクタGuidが復元されているかチェック
             // Verify connector Guid is restored
@@ -115,18 +117,21 @@ namespace Tests.UnitTest.Game.SaveLoad
             var outputConnects = gearBeltParam.InventoryConnectors.OutputConnects.items;
             var sourceConnector = inputConnects[0];
             var goalConnector = outputConnects[0];
+            // 歯車ベルトコンベアはRPMによって速度が変わるため、テスト用に任意のtotalTicksを使用
+            // Gear belt conveyor speed varies by RPM, use arbitrary totalTicks for testing
+            uint totalTicks = 100;
 
-            inventoryItems[0] = new VanillaBeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(0), sourceConnector, goalConnector)
+            inventoryItems[0] = new VanillaBeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(0), sourceConnector, goalConnector, totalTicks)
             {
-                RemainingPercent = 0.8f,
+                RemainingTicks = (uint)(totalTicks * 0.8),
             };
-            inventoryItems[2] = new VanillaBeltConveyorInventoryItem(new ItemId(2), new ItemInstanceId(0), sourceConnector, goalConnector)
+            inventoryItems[2] = new VanillaBeltConveyorInventoryItem(new ItemId(2), new ItemInstanceId(0), sourceConnector, goalConnector, totalTicks)
             {
-                RemainingPercent = 0.85f,
+                RemainingTicks = (uint)(totalTicks * 0.85),
             };
-            inventoryItems[3] = new VanillaBeltConveyorInventoryItem(new ItemId(5), new ItemInstanceId(0), sourceConnector, goalConnector)
+            inventoryItems[3] = new VanillaBeltConveyorInventoryItem(new ItemId(5), new ItemInstanceId(0), sourceConnector, goalConnector, totalTicks)
             {
-                RemainingPercent = 0.9f,
+                RemainingTicks = (uint)(totalTicks * 0.9),
             };
 
             // セーブデータ取得
@@ -144,11 +149,11 @@ namespace Tests.UnitTest.Game.SaveLoad
             // Check that items match
             Assert.AreEqual(inventoryItems.Length, newInventoryItems.Length);
             Assert.AreEqual(1, newInventoryItems[0].ItemId.AsPrimitive());
-            Assert.AreEqual(0.8f, newInventoryItems[0].RemainingPercent);
+            Assert.AreEqual((uint)(totalTicks * 0.8), newInventoryItems[0].RemainingTicks);
             Assert.AreEqual(2, newInventoryItems[2].ItemId.AsPrimitive());
-            Assert.AreEqual(0.85f, newInventoryItems[2].RemainingPercent);
+            Assert.AreEqual((uint)(totalTicks * 0.85), newInventoryItems[2].RemainingTicks);
             Assert.AreEqual(5, newInventoryItems[3].ItemId.AsPrimitive());
-            Assert.AreEqual(0.9f, newInventoryItems[3].RemainingPercent);
+            Assert.AreEqual((uint)(totalTicks * 0.9), newInventoryItems[3].RemainingTicks);
 
             // コネクタGuidが復元されているかチェック
             // Verify connector Guid is restored

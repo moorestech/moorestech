@@ -63,9 +63,11 @@ namespace Server.Protocol.PacketResponse.Util
                 if (beltConveyorItem == null) continue;
                 if (beltConveyorItem.ItemId == ItemMaster.EmptyItemId) continue;
                 
-                // 残り割合を進捗割合に変換する
-                // Convert remaining ratio to progress ratio
-                var progressPercent = 1f - (float)beltConveyorItem.RemainingPercent;
+                // 残りtickから進捗割合を計算する
+                // Calculate progress ratio from remaining ticks
+                var progressPercent = beltConveyorItem.TotalTicks > 0
+                    ? 1f - (float)beltConveyorItem.RemainingTicks / beltConveyorItem.TotalTicks
+                    : 0f;
                 
                 _itemInstanceIdToPercent[beltConveyorItem.ItemInstanceId] = progressPercent;
                 

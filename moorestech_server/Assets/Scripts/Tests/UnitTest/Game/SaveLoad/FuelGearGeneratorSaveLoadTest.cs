@@ -120,8 +120,9 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.AreEqual(acceleratingTorque, loadedSteamGeneratorComponent.GenerateTorque.AsPrimitive(), 0.01f, "ロード後のトルクが一致しません");
             
             // 内部状態が同じであることを確認
+            // Verify internal state is the same
             Assert.AreEqual(runtimeState.State, loadedState.State, "状態が一致しません");
-            Assert.AreEqual(runtimeState.Elapsed, loadedState.Elapsed, 0.01f, "経過時間が一致しません");
+            Assert.AreEqual(runtimeState.ElapsedTicks, loadedState.ElapsedTicks, "経過tick数が一致しません");
             Assert.AreEqual(runtimeState.Rate, loadedState.Rate, 0.01f, "消費率が一致しません");
             
             // 流体タンクの状態を確認
@@ -301,10 +302,10 @@ namespace Tests.UnitTest.Game.SaveLoad
             return (blockFactory, worldBlockDatastore, playerInventoryDataStore, assembleSaveJsonText, loadJsonFile);
         }
 
-        private static (string State, float Elapsed, float Rate) CaptureState(FuelGearGeneratorComponent component)
+        private static (string State, uint ElapsedTicks, float Rate) CaptureState(FuelGearGeneratorComponent component)
         {
             var service = GetStateService(component);
-            return (service.CurrentState.ToString(), service.StateElapsedTime, service.SteamConsumptionRate);
+            return (service.CurrentState.ToString(), service.StateElapsedTicks, service.SteamConsumptionRate);
         }
 
 

@@ -87,18 +87,27 @@ namespace Tests.CombinedTest.Core
             var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
             connectInventory.Add(dummy, new ConnectedInfo());
             
-            var expectedEndTime = DateTime.Now.AddSeconds(beltConveyorParam.TimeOfItemEnterToExit);
+            // 期待されるtick数を計算
+            // Calculate expected tick count
+            var expectedTicks = (int)(beltConveyorParam.TimeOfItemEnterToExit * GameUpdater.TicksPerSecond);
             var outputItem = beltConveyorComponent.InsertItem(item, InsertItemContext.Empty);
-            
-            //5秒以上経過したらループを抜ける 
-            while (!dummy.IsItemExists) GameUpdater.UpdateWithWait();
-            
-            
-            //チェック
-            Assert.True(DateTime.Now <= expectedEndTime.AddSeconds(0.1));
-            Assert.True(expectedEndTime.AddSeconds(-0.1) <= DateTime.Now);
-            
-            Debug.Log($"{(DateTime.Now - expectedEndTime).TotalSeconds}");
+
+            // tick数でループ制御（タイムアウト付き）
+            // Loop controlled by tick count (with timeout)
+            var elapsedTicks = 0;
+            var maxTicks = expectedTicks + 10; // 余裕を持たせる
+            while (!dummy.IsItemExists && elapsedTicks < maxTicks)
+            {
+                GameUpdater.AdvanceTicks(1);
+                elapsedTicks++;
+            }
+
+            // 期待したtick数近辺でアイテムが到達したことを確認
+            // Verify item arrived around expected tick count
+            Assert.True(dummy.IsItemExists, "Item should have been output");
+            Assert.True(elapsedTicks <= expectedTicks + 2 && elapsedTicks >= expectedTicks - 2, $"Item should arrive around expected tick count. Expected: {expectedTicks}, Actual: {elapsedTicks}");
+
+            Debug.Log($"Expected ticks: {expectedTicks}, Elapsed ticks: {elapsedTicks}");
             
             Assert.True(outputItem.Equals(itemStackFactory.Create(id, count - 1)));
             var tmp = itemStackFactory.Create(id, 1);
