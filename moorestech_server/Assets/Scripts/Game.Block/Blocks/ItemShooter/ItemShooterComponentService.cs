@@ -78,7 +78,7 @@ namespace Game.Block.Blocks.ItemShooter
         // アイテム挿入間隔（tick単位）
         // Item insertion interval in ticks
         private readonly uint _insertItemIntervalTicks = GameUpdater.SecondsToTicks(1); // TODO to master
-        private uint _lastInsertElapsedTicks = uint.MaxValue;
+        private uint _lastInsertElapsedTicks;
 
         /// <summary>
         /// 依存関係と在庫スロットを初期化
@@ -89,6 +89,10 @@ namespace Game.Block.Blocks.ItemShooter
             _connectorComponent = connectorComponent;
             _settings = settings;
             _inventoryItems = new ShooterInventoryItem[_settings.InventoryItemNum];
+
+            // 起動直後にアイテム挿入を許可するため、挿入間隔tickを初期値として設定
+            // Initialize to insertion interval to allow immediate item insertion on startup
+            _lastInsertElapsedTicks = _insertItemIntervalTicks;
         }
 
         private int _lastInsertSlotIndex = -1;
@@ -112,11 +116,20 @@ namespace Game.Block.Blocks.ItemShooter
 
             #region Internal
 
-            // 経過tick数を累積する
-            // Accumulate elapsed insertion ticks
+            // 経過tick数を累積する（飽和加算でオーバーフロー防止）
+            // Accumulate elapsed insertion ticks (saturating add to prevent overflow)
             void UpdateElapsedTicks()
             {
-                _lastInsertElapsedTicks += GameUpdater.CurrentTickCount;
+                var currentTicks = GameUpdater.CurrentTickCount;
+                var remaining = _insertItemIntervalTicks - _lastInsertElapsedTicks;
+                if (_lastInsertElapsedTicks >= _insertItemIntervalTicks || currentTicks >= remaining)
+                {
+                    _lastInsertElapsedTicks = _insertItemIntervalTicks;
+                }
+                else
+                {
+                    _lastInsertElapsedTicks += currentTicks;
+                }
             }
 
             // 各スロットのアイテムを処理する

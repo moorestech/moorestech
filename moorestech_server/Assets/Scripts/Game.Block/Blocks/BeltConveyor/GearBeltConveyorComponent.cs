@@ -36,6 +36,10 @@ namespace Game.Block.Blocks.BeltConveyor
             var torqueRate = torque / _requiredTorque;
             var speed = torqueRate.AsPrimitive() * rpm.AsPrimitive() * _beltConveyorSpeed;
 
+            // 速度が0以下の場合はtickを更新しない（停止状態を維持）
+            // If speed is 0 or less, don't update ticks (maintain stopped state)
+            if (speed <= 0) return;
+
             // 速度から通過秒数を計算し、tick数に変換
             // Calculate transit time from speed and convert to ticks
             var transitSeconds = 1 / speed;

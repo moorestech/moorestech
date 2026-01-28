@@ -53,7 +53,7 @@ namespace Tests.UnitTest.Core.Block
             var loadedInventory =
                 (OpenableInventoryItemDataStoreService)typeof(VanillaMinerProcessorComponent)
                     .GetField("_openableInventoryItemDataStoreService", BindingFlags.Instance | BindingFlags.NonPublic)
-                    .GetValue(originalMinerComponent);
+                    .GetValue(loadedMinerComponent);
             var loadedRemainingTicks =
                 (uint)typeof(VanillaMinerProcessorComponent)
                     .GetField("_remainingTicks", BindingFlags.Instance | BindingFlags.NonPublic)
