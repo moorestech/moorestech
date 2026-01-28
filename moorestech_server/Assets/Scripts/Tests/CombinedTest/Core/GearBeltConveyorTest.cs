@@ -119,14 +119,14 @@ namespace Tests.CombinedTest.Core
             var generator = generatorBlock.GetComponent<global::Game.Block.Blocks.Gear.SimpleGearGeneratorComponent>();
             generator.SetGenerateRpm(10f);
             generator.SetGenerateTorque(1f);
-            GameUpdater.SpecifiedDeltaTimeUpdate(0.1);
-            
+            GameUpdater.AdvanceTicks(GameUpdater.SecondsToTicks(0.1));
+
             Assert.True(gearBeltConveyorComponent.CurrentRpm.AsPrimitive() > 0f);
-            
+
             // 出力を止めてRPMを0にする
             // Stop output to force RPM to 0
             generator.SetGenerateTorque(0f);
-            GameUpdater.SpecifiedDeltaTimeUpdate(0.1);
+            GameUpdater.AdvanceTicks(GameUpdater.SecondsToTicks(0.1));
             
             Assert.AreEqual(0f, gearBeltConveyorComponent.CurrentRpm.AsPrimitive());
             
@@ -141,7 +141,7 @@ namespace Tests.CombinedTest.Core
             var previousSpeed = 10f * 1f * gearBeltParam.BeltConveyorSpeed;
             var timeOfItemEnterToExit = 1f / previousSpeed;
             var updateCount = (int)Math.Ceiling(timeOfItemEnterToExit / 0.1f) + beltConveyorComponent.BeltConveyorItems.Count + 2;
-            for (var i = 0; i < updateCount; i++) GameUpdater.SpecifiedDeltaTimeUpdate(0.1);
+            for (var i = 0; i < updateCount; i++) GameUpdater.AdvanceTicks(GameUpdater.SecondsToTicks(0.1));
             
             Assert.False(dummy.IsItemExists);
         }
