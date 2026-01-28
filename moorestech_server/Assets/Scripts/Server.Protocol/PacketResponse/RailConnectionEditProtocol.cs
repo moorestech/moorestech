@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Item.Interface;
 using Core.Master;
+using Game.Context;
 using Game.PlayerInventory.Interface;
 using Game.Train.RailCalc;
 using Game.Train.RailGraph;
@@ -121,8 +122,27 @@ namespace Server.Protocol.PacketResponse
                 {
                     return ResponseRailConnectionEditMessagePack.CreateFailure(RailConnectionEditFailureReason.NodeInUseByTrain, data.Mode);
                 }
+                
+                var inventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory;
+                var railLength = GetRailLength(fromNode, toNode);
+                var railItem = MasterHolder.TrainUnitMaster.GetRailItems()[0]; // TODO: 一旦レールの種類は1つであると仮定して進める。いずれRailに対して情報を持たせ適切なレールを選択するようにする。
+                var requiredCount = CalculateRailItemRequiredCount(railLength, railItem);
+                var itemStack = ServerContext.ItemStackFactory.Create(railItem.ItemGuid, requiredCount);
+                
+                // playerインベントリに空きがない場合は削除不可
+                if (!inventory.InsertionCheck(new List<IItemStack> { itemStack }))
+                {
+                    return ResponseRailConnectionEditMessagePack.CreateFailure(RailConnectionEditFailureReason.NotEnoughInventorySpace, data.Mode);
+                }
 
                 var disconnected = _commandHandler.TryDisconnect(data.FromNodeId, data.FromGuid, data.ToNodeId, data.ToGuid);
+                
+                // アイテムを返却
+                if (disconnected)
+                {
+                    inventory.InsertItem(itemStack);
+                }
+                
                 return ResponseRailConnectionEditMessagePack.Create(disconnected, disconnected ? RailConnectionEditFailureReason.None : RailConnectionEditFailureReason.UnknownError, data.Mode);
             }
 
@@ -156,7 +176,7 @@ namespace Server.Protocol.PacketResponse
             foreach (var railMasterElement in MasterHolder.TrainUnitMaster.GetRailItems())
             {
                 // 設置に必要なアイテム数
-                var requiredCount = Mathf.CeilToInt(railLength * railMasterElement.ConsumptionPerUnitLength);
+                var requiredCount = CalculateRailItemRequiredCount(railLength, railMasterElement);
                 
                 // inventoryにその分があるならplaceableRailItemsに追加
                 var railItemId = MasterHolder.ItemMaster.GetItemId(railMasterElement.ItemGuid);
@@ -168,6 +188,11 @@ namespace Server.Protocol.PacketResponse
             }
             
             return placeableRailItems.ToArray();
+        }
+        
+        private static int CalculateRailItemRequiredCount(float railLength, RailItemMasterElement railMasterElement)
+        {
+            return Mathf.CeilToInt(railLength * railMasterElement.ConsumptionPerUnitLength);
         }
 
         [MessagePackObject]
@@ -195,11 +220,12 @@ namespace Server.Protocol.PacketResponse
                     Mode = RailEditMode.Connect,
                 };
             }
-
-            public static RailConnectionEditRequest CreateDisconnectRequest(int fromNodeId, Guid fromGuid, int toNodeId, Guid toGuid)
+            
+            public static RailConnectionEditRequest CreateDisconnectRequest(int playerId, int fromNodeId, Guid fromGuid, int toNodeId, Guid toGuid)
             {
                 return new RailConnectionEditRequest
                 {
+                    PlayerId = playerId,
                     FromNodeId = fromNodeId,
                     FromGuid = fromGuid,
                     ToNodeId = toNodeId,
@@ -252,6 +278,7 @@ namespace Server.Protocol.PacketResponse
             StationInternalEdge,
             InvalidMode,
             NotEnoughRailItem,
+            NotEnoughInventorySpace,
             UnknownError,
         }
     }
