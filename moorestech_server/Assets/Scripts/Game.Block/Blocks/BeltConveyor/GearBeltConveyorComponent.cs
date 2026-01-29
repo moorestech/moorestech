@@ -27,6 +27,15 @@ namespace Game.Block.Blocks.BeltConveyor
             BlockException.CheckDestroy(this);
         }
 
+        public override void StopNetwork()
+        {
+            base.StopNetwork();
+
+            // ネットワーク停止時はアイテムを搬送しない
+            // Prevent item transport when network is stopped
+            _beltConveyorComponent.SetTicksOfItemEnterToExit(uint.MaxValue);
+        }
+
         public override void SupplyPower(RPM rpm, Torque torque, bool isClockwise)
         {
             base.SupplyPower(rpm, torque, isClockwise);
@@ -36,9 +45,13 @@ namespace Game.Block.Blocks.BeltConveyor
             var torqueRate = torque / _requiredTorque;
             var speed = torqueRate.AsPrimitive() * rpm.AsPrimitive() * _beltConveyorSpeed;
 
-            // 速度が0以下の場合はtickを更新しない（停止状態を維持）
-            // If speed is 0 or less, don't update ticks (maintain stopped state)
-            if (speed <= 0) return;
+            // 速度が0以下の場合はアイテムを搬送しない（非常に大きなtick数を設定）
+            // When speed is zero or negative, prevent item transport by setting very large tick count
+            if (speed <= 0)
+            {
+                _beltConveyorComponent.SetTicksOfItemEnterToExit(uint.MaxValue);
+                return;
+            }
 
             // 速度から通過秒数を計算し、tick数に変換
             // Calculate transit time from speed and convert to ticks

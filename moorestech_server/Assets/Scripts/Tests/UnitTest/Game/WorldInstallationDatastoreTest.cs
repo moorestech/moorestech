@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using Game.Block.Interface;
 using Game.Context;
+using Game.World.Interface.DataStore;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -45,9 +47,13 @@ namespace Tests.UnitTest.Game
             var blockGuid = originalBlock.BlockGuid;
             var state = originalBlock.GetSaveState();
             
-            //座標だけ変えてintIDは同じ
-            var result = worldData.TryAddLoadedBlock(blockGuid, originalBlock.BlockInstanceId, state, new Vector3Int(10, 10), BlockDirection.North, out _);
-            Assert.False(result);
+            // 同じインスタンスIDでロードを試行する
+            // Try loading with the same instance ID
+            var loadList = new List<BlockJsonObject> { new(new Vector3Int(10, 10), blockGuid.ToString(), originalBlock.BlockInstanceId.AsPrimitive(), state, (int)BlockDirection.North) };
+            worldData.LoadBlockDataList(loadList);
+            
+            Assert.AreEqual(1, worldData.BlockMasterDictionary.Count);
+            Assert.AreEqual(new Vector3Int(1, 1), worldData.GetBlockPosition(originalBlock.BlockInstanceId));
         }
         
         [Test]

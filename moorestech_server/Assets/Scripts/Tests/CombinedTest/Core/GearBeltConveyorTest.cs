@@ -16,6 +16,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Tests.Module;
 using Tests.Module.TestMod;
+using Tests.Util;
 using UnityEngine;
 
 namespace Tests.CombinedTest.Core
@@ -87,6 +88,62 @@ namespace Tests.CombinedTest.Core
             Debug.Log($"Expected ticks: {expectedTicks}, Elapsed ticks: {elapsedTicks}, Duration: {duration}");
             Assert.True(elapsedTicks <= expectedTicks + tickTolerance, $"Item should arrive within tolerance. Expected: {expectedTicks}, Actual: {elapsedTicks}");
             Assert.True(elapsedTicks >= expectedTicks - tickTolerance, $"Item should not arrive too early. Expected: {expectedTicks}, Actual: {elapsedTicks}");
+        }
+
+        // RPMが0のときはアイテムが搬送されないことのテスト
+        [Test]
+        public void NoOutputWhenRpmIsZero()
+        {
+            // テスト用のDIコンテナを初期化する
+            // Initialize the test DI container
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            
+            var itemStackFactory = ServerContext.ItemStackFactory;
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            
+            // 歯車ベルトコンベアと出力先を用意する
+            // Prepare the gear belt conveyor and its output
+            var gearBeltConveyorPosition = new Vector3Int(0, 0, 0);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearBeltConveyor, gearBeltConveyorPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var gearBeltConveyor);
+            var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)gearBeltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
+            var dummy = new DummyBlockInventory();
+            connectInventory.Add(dummy, new ConnectedInfo());
+            
+            var beltConveyorComponent = gearBeltConveyor.GetComponent<VanillaBeltConveyorComponent>();
+            var gearBeltConveyorComponent = gearBeltConveyor.GetComponent<GearBeltConveyorComponent>();
+            
+            // 歯車ジェネレーターで一度稼働させ、速度を設定する
+            // Run once with a gear generator to set the speed
+            var generatorPosition = new Vector3Int(1, 0, 0);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.East, Array.Empty<BlockCreateParam>(), out var generatorBlock);
+            var generator = generatorBlock.GetComponent<global::Game.Block.Blocks.Gear.SimpleGearGeneratorComponent>();
+            generator.SetGenerateRpm(10f);
+            generator.SetGenerateTorque(1f);
+            GameUpdater.AdvanceTicks(GameUpdater.SecondsToTicks(0.1));
+
+            Assert.True(gearBeltConveyorComponent.CurrentRpm.AsPrimitive() > 0f);
+
+            // 出力を止めてRPMを0にする
+            // Stop output to force RPM to 0
+            generator.SetGenerateTorque(0f);
+            GameUpdater.AdvanceTicks(GameUpdater.SecondsToTicks(0.1));
+            
+            Assert.AreEqual(0f, gearBeltConveyorComponent.CurrentRpm.AsPrimitive());
+            
+            // RPM0の状態でアイテムを挿入する
+            // Insert an item while RPM is zero
+            var item = itemStackFactory.Create(new ItemId(2), 1);
+            beltConveyorComponent.InsertItem(item, InsertItemContext.Empty);
+            
+            // ベルトの速度に相当する時間を超えても搬送されないことを確認する
+            // Ensure the item is not transported even after exceeding the belt travel time
+            var gearBeltParam = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearBeltConveyor).BlockParam as GearBeltConveyorBlockParam;
+            var previousSpeed = 10f * 1f * gearBeltParam.BeltConveyorSpeed;
+            var timeOfItemEnterToExit = 1f / previousSpeed;
+            var updateCount = (int)Math.Ceiling(timeOfItemEnterToExit / 0.1f) + beltConveyorComponent.BeltConveyorItems.Count + 2;
+            for (var i = 0; i < updateCount; i++) GameUpdater.AdvanceTicks(GameUpdater.SecondsToTicks(0.1));
+            
+            Assert.False(dummy.IsItemExists);
         }
     }
 }

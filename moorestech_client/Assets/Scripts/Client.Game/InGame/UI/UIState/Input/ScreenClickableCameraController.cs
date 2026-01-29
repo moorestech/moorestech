@@ -28,7 +28,11 @@ namespace Client.Game.InGame.UI.UIState.Input
             {
                 _startCameraTweenInfo = _inGameCameraController.CreateCurrentCameraTweenCameraInfo();
             }
-            
+            else
+            {
+                _startCameraTweenInfo = null;
+            }
+
             InputManager.MouseCursorVisible(true);
         }
         

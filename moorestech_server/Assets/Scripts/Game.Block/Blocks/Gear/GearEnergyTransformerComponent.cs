@@ -48,7 +48,7 @@ namespace Game.Block.Blocks.Gear
             return RequiredTorque;
         }
         
-        public void StopNetwork()
+        public virtual void StopNetwork()
         {
             _simpleGearService.StopNetwork();
         }
