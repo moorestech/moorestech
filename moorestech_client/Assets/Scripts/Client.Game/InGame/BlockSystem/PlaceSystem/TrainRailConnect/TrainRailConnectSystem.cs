@@ -3,6 +3,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Input;
+using Core.Master;
 using Game.Train.RailGraph;
 using Game.Train.SaveLoad;
 using UnityEngine;
@@ -90,7 +91,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 // 必要数アイテムを持っていないなら設置処理を呼ばない
                 if (!previewData.HasEnoughRailItem) return;
                 
-                SendProtocol(fromNode, toNode);   
+                SendProtocol(fromNode, toNode, previewData.SelectedRailItemId);   
             }
             
             #region Internal
@@ -106,14 +107,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 _previewObject.ShowPreview(previewData);
             }
             
-            void SendProtocol(IRailNode from, IRailNode to)
+            void SendProtocol(IRailNode from, IRailNode to, ItemId railItemId)
             {
                 if (!InputManager.Playable.ScreenLeftClick.GetKeyDown) return;
                 
                 _previewObject.SetActive(false);
                 
                 Debug.Log($"Connecting rails: From NodeId={from.NodeId}, Guid={from.NodeGuid} To NodeId={to.NodeId}, Guid={to.NodeGuid}");
-                ClientContext.VanillaApi.SendOnly.ConnectRail(from.NodeId, from.NodeGuid, to.NodeId, to.NodeGuid);
+                ClientContext.VanillaApi.SendOnly.ConnectRail(from.NodeId, from.NodeGuid, to.NodeId, to.NodeGuid, railItemId);
                 _connectFromArea = null;
             }
             

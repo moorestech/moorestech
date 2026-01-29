@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Core.Master;
 using Game.Train.RailGraph;
 using Game.Train.SaveLoad;
 using MessagePack;
@@ -127,7 +128,8 @@ namespace Server.Util.MessagePack
                 Connections.Add(new RailGraphConnectionSnapshotMessagePack(
                     connection.FromNodeId,
                     connection.ToNodeId,
-                    connection.Distance));
+                    connection.Distance,
+                    connection.RailItemId));
             }
 
             GraphHash = snapshot.ConnectNodesHash;
@@ -141,15 +143,17 @@ namespace Server.Util.MessagePack
         [Key(0)] public int FromNodeId { get; set; }
         [Key(1)] public int ToNodeId { get; set; }
         [Key(2)] public int Distance { get; set; }
+        [Key(3)] public ItemId RailItemId { get; set; }
 
         [Obsolete("デシリアライズ用コンストラクタです。")]
         public RailGraphConnectionSnapshotMessagePack() { }
 
-        public RailGraphConnectionSnapshotMessagePack(int fromNodeId, int toNodeId, int distance)
+        public RailGraphConnectionSnapshotMessagePack(int fromNodeId, int toNodeId, int distance, ItemId railItemId)
         {
             FromNodeId = fromNodeId;
             ToNodeId = toNodeId;
             Distance = distance;
+            RailItemId = railItemId;
         }
     }
 

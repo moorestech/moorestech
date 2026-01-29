@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Core.Master;
 using Game.Train.SaveLoad;
 using UnityEngine;
 
@@ -12,6 +13,10 @@ namespace Game.Train.RailGraph
         IObservable<RailNodeRemovedData> GetRailNodeRemovedEvent();
         IObservable<RailConnectionRemovalData> GetRailConnectionRemovedEvent();
         Dictionary<Vector3Int, (ConnectionDestination first, ConnectionDestination second)> GetRailPositionToConnectionDestination();
+        void UpsertRailSegment(RailSegmentId segmentId, ItemId railItemId);
+        void RemoveRailSegment(RailSegmentId segmentId);
+        bool TryGetRailSegment(RailSegmentId segmentId, out RailSegment segment);
+        bool TryGetRailItemId(int fromNodeId, int toNodeId, out ItemId railItemId);
         void AddNodeSingle(RailNode node);
         void AddNodePair(RailNode node1, RailNode node2);
         void ConnectNode(RailNode node, RailNode targetNode, int distance);

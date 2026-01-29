@@ -1,7 +1,6 @@
 ﻿using System;
+using Core.Master;
 using UnityEngine;
-
-// 追加（ログ出力用）
 
 namespace Game.Train.RailGraph
 {
@@ -14,19 +13,19 @@ namespace Game.Train.RailGraph
         private const float RailLengthScale = 1024.0f;
         private const int BezierSamples = 512;
         private readonly IRailGraphDatastore _datastore;
-        private readonly bool _enableLog; // 追加（ログ抑制用。不要なら消してOK）
+        private readonly bool _enableLog;
 
-        public RailConnectionCommandHandler(IRailGraphDatastore datastore, bool enableLog = true) // enableLog 引数を追加
+        public RailConnectionCommandHandler(IRailGraphDatastore datastore)
         {
             // 依存解決順序のためインスタンス化を保証する
             // Ensure RailGraphDatastore is constructed via DI
             _datastore = datastore;
-            _enableLog = enableLog; // 追加
+            _enableLog = true;
         }
 
         // RailNode同士の接続を試行
         // Try to connect two rail nodes
-        public bool TryConnect(int fromNodeId, Guid fromGuid, int toNodeId, Guid toGuid)
+        public bool TryConnect(int fromNodeId, Guid fromGuid, int toNodeId, Guid toGuid, ItemId railItemId)
         {
             if (!TryResolveNodes(fromNodeId, fromGuid, toNodeId, toGuid, out var fromNode, out var toNode))
             {
@@ -38,6 +37,8 @@ namespace Game.Train.RailGraph
             if (fromNodeId == toNodeId || fromNodeId == (toNodeId ^ 1)) return false;
 
             var distance = CalculateSegmentDistance(fromNode, toNode);
+            var segmentId = RailSegmentId.CreateCanonical(fromNodeId, toNodeId);
+            _datastore.UpsertRailSegment(segmentId, railItemId);
             fromNode.ConnectNode(toNode, distance);
             ConnectOppositeNodes(fromNode, toNode, distance);
             return true;
@@ -93,13 +94,13 @@ namespace Game.Train.RailGraph
 
         #region Internal
 
-        private void LogWarn(string message) // 追加
+        private void LogWarn(string message)
         {
             if (!_enableLog) return;
 
-            // エラーは出さず、logだけ
+            // 警告ログのみを出力する
+            // Emit warning log only
             Debug.LogWarning($"[RailConnectionCommandHandler] {message}");
-            // Debug.Log($"[RailConnectionCommandHandler] {message}"); // Warningではなく通常ログにしたい場合はこちら
         }
 
         private static void ConnectOppositeNodes(RailNode fromNode, RailNode toNode, int distance)

@@ -8,15 +8,15 @@ namespace Client.Game.InGame.Train.RailGraph
     public class DeleteTargetRail : MonoBehaviour, IDeleteTarget
     {       
         public BezierRailChain RailChain { get; private set; }
-        private RailObjectIdCarrier _railObjectIdCarrier;
+        private RailSegmentCarrier _railSegmentCarrier;
         private RailGraphClientCache _railGraphClientCache;
         
-        public RailObjectIdCarrier RailObjectIdCarrier
+        public RailSegmentCarrier RailSegmentCarrier
         {
             get
             {
-                if (_railObjectIdCarrier) return _railObjectIdCarrier;
-                return _railObjectIdCarrier = GetComponent<RailObjectIdCarrier>();
+                if (_railSegmentCarrier) return _railSegmentCarrier;
+                return _railSegmentCarrier = GetComponent<RailSegmentCarrier>();
             }
         }
         
@@ -55,10 +55,10 @@ namespace Client.Game.InGame.Train.RailGraph
         
         public void Delete()
         {
-            var carrier = RailObjectIdCarrier;
-            var railObjectId = carrier.GetRailObjectId();
-            var fromId = unchecked((int)(uint)railObjectId);
-            var toId = unchecked((int)(uint)(railObjectId >> 32));
+            var carrier = RailSegmentCarrier;
+            var segmentId = carrier.GetRailSegment().GetSegmentId();
+            var fromId = segmentId.GetFromNodeId();
+            var toId = segmentId.GetToNodeId();
             
             if (!_railGraphClientCache.TryGetNode(fromId, out var fromNode)) return;
             if (!_railGraphClientCache.TryGetNode(toId, out var toNode)) return;
@@ -68,9 +68,9 @@ namespace Client.Game.InGame.Train.RailGraph
         
         private DeleteDeniedReason CanDelete()
         {
-            var railObjectId = RailObjectIdCarrier.GetRailObjectId();
-            var fromId = unchecked((int)(uint)railObjectId);
-            var toId = unchecked((int)(uint)(railObjectId >> 32));
+            var segmentId = RailSegmentCarrier.GetRailSegment().GetSegmentId();
+            var fromId = segmentId.GetFromNodeId();
+            var toId = segmentId.GetToNodeId();
             
             if (!_railGraphClientCache.TryGetNode(fromId, out var fromNode)) return DeleteDeniedReason.UnknownError;
             if (!_railGraphClientCache.TryGetNode(toId, out var toNode)) return DeleteDeniedReason.UnknownError;

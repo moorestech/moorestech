@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Core.Master;
 using Game.Train.SaveLoad;
 using UnityEngine;
 
@@ -22,7 +23,7 @@ namespace Game.Train.RailGraph
         /// <summary>
         /// railNodes / connectNodes の状態から順序独立ハッシュを計算する。
         /// </summary>
-        public static uint ComputeGraphStateHash(IReadOnlyList<IRailNode> railNodes, List<List<(int targetId, int distance)>> connectNodes)
+        public static uint ComputeGraphStateHash(IReadOnlyList<IRailNode> railNodes, List<List<(int targetId, int distance)>> connectNodes, IReadOnlyDictionary<RailSegmentId, RailSegment> railSegments)
         {
             uint hash = FnvOffset;
 
@@ -46,7 +47,8 @@ namespace Game.Train.RailGraph
             }
 
             hash = Mix(hash, unchecked((int)0x3F6A_2B1D));
-            return MixConnections(hash, connectNodes);
+            hash = MixConnections(hash, connectNodes);
+            return MixRailSegments(hash, railSegments);
         }
 
         /// <summary>
@@ -54,7 +56,8 @@ namespace Game.Train.RailGraph
         /// </summary>
         public static uint ComputeGraphStateHash(
             IReadOnlyList<RailNodeInitializationData> nodes,
-            IReadOnlyList<IReadOnlyList<(int targetId, int distance)>> connectNodes)
+            IReadOnlyList<IReadOnlyList<(int targetId, int distance)>> connectNodes,
+            IReadOnlyDictionary<RailSegmentId, RailSegment> railSegments)
         {
             uint hash = FnvOffset;
 
@@ -75,7 +78,8 @@ namespace Game.Train.RailGraph
             }
 
             hash = Mix(hash, unchecked((int)0x3F6A_2B1D));
-            return MixConnections(hash, connectNodes);
+            hash = MixConnections(hash, connectNodes);
+            return MixRailSegments(hash, railSegments);
         }
 
         /// <summary>
@@ -184,6 +188,32 @@ namespace Game.Train.RailGraph
                     hash = Mix(hash, normalized[i].target);
                     hash = Mix(hash, normalized[i].dist);
                 }
+            }
+
+            return hash;
+        }
+
+        private static uint MixRailSegments(uint current, IReadOnlyDictionary<RailSegmentId, RailSegment> railSegments)
+        {
+            if (railSegments == null || railSegments.Count == 0)
+                return current;
+
+            var keys = new List<RailSegmentId>(railSegments.Keys);
+            keys.Sort((a, b) =>
+            {
+                var fromCompare = a.GetFromNodeId().CompareTo(b.GetFromNodeId());
+                return fromCompare != 0 ? fromCompare : a.GetToNodeId().CompareTo(b.GetToNodeId());
+            });
+
+            var hash = current;
+            for (var i = 0; i < keys.Count; i++)
+            {
+                var segmentId = keys[i];
+                if (!railSegments.TryGetValue(segmentId, out var segment))
+                    continue;
+                hash = Mix(hash, segmentId.GetFromNodeId());
+                hash = Mix(hash, segmentId.GetToNodeId());
+                hash = Mix(hash, segment.GetRailItemId().AsPrimitive());
             }
 
             return hash;

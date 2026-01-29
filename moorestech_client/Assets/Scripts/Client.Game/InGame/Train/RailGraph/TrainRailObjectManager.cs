@@ -12,7 +12,7 @@ namespace Client.Game.InGame.Train.RailGraph
     {
         public static TrainRailObjectManager Instance { get; private set; }
         [SerializeField] private BezierRailChain _railPrefab;
-        private readonly Dictionary<ulong, GameObject> _railObjs = new();
+        private readonly Dictionary<RailSegmentId, GameObject> _railObjs = new();
         private RailGraphClientCache _cache;
 
         private void Awake()
@@ -89,9 +89,10 @@ namespace Client.Game.InGame.Train.RailGraph
             if (!HasPairedConnection(fromNodeId, toNodeId))
                 return;
 
-            var (canonicalFrom, canonicalTo) = SelectCanonicalPair(fromNodeId, toNodeId);
-            var railObjectId = ComputeRailObjectId(canonicalFrom, canonicalTo);
-            if (_railObjs.ContainsKey(railObjectId))
+            var segmentId = RailSegmentId.CreateCanonical(fromNodeId, toNodeId);
+            var canonicalFrom = segmentId.GetFromNodeId();
+            var canonicalTo = segmentId.GetToNodeId();
+            if (_railObjs.ContainsKey(segmentId))
                 return;
             if (_cache == null)
                 return;
@@ -99,23 +100,24 @@ namespace Client.Game.InGame.Train.RailGraph
                 return;
             if (!_cache.TryGetNode(canonicalTo, out var endNode))
                 return;
+            if (!_cache.TryGetRailSegment(segmentId, out var railSegment))
+                return;
 
             var lineObject = SpawnRail($"RailLine_{canonicalFrom}_{canonicalTo}", startNode, endNode);
-            ApplyRailObjectId(lineObject, railObjectId);
+            ApplyRailSegment(lineObject, railSegment);
             lineObject.transform.SetParent(transform, false);
-            _railObjs[railObjectId] = lineObject;
+            _railObjs[segmentId] = lineObject;
         }
 
         private void RemoveLine(int fromNodeId, int toNodeId)
         {
-            var (canonicalFrom, canonicalTo) = SelectCanonicalPair(fromNodeId, toNodeId);
-            var railObjectId = ComputeRailObjectId(canonicalFrom, canonicalTo);
-            if (!_railObjs.TryGetValue(railObjectId, out var gobj))
+            var segmentId = RailSegmentId.CreateCanonical(fromNodeId, toNodeId);
+            if (!_railObjs.TryGetValue(segmentId, out var gobj))
             {
                 return;
             }
 
-            _railObjs.Remove(railObjectId);
+            _railObjs.Remove(segmentId);
             if (gobj != null)
             {
                 Destroy(gobj);
@@ -165,30 +167,18 @@ namespace Client.Game.InGame.Train.RailGraph
             return instance.gameObject;
         }
 
-        private static (int canonicalFrom, int canonicalTo) SelectCanonicalPair(int fromNodeId, int toNodeId)
-        {
-            var alternateFrom = toNodeId ^ 1;
-            var alternateTo = fromNodeId ^ 1;
-            return fromNodeId <= alternateFrom ? (fromNodeId, toNodeId) : (alternateFrom, alternateTo);
-        }
-
-        private static ulong ComputeRailObjectId(int canonicalFrom, int canonicalTo)
-        {
-            return (ulong)canonicalFrom + ((ulong)canonicalTo << 32);
-        }
-
         private static bool IsValidIndex(IReadOnlyList<IReadOnlyList<(int targetId, int distance)>> adjacency, int index)
         {
             return index >= 0 && index < adjacency.Count;
         }
 
-        private static void ApplyRailObjectId(GameObject lineObject, ulong railObjectId)
+        private static void ApplyRailSegment(GameObject lineObject, RailSegment railSegment)
         {
             if (lineObject == null)
                 return;
 
-            // レール用コライダーにIDを埋め込む
-            // Embed the rail object id into colliders for raycast lookup
+            // レール用コライダーに区間情報を埋め込む
+            // Embed the rail segment into colliders for raycast lookup
             var colliders = lineObject.GetComponentsInChildren<Collider>(true);
             for (var i = 0; i < colliders.Length; i++)
             {
@@ -196,10 +186,10 @@ namespace Client.Game.InGame.Train.RailGraph
                 if (collider == null)
                     continue;
 
-                var carrier = collider.GetComponent<RailObjectIdCarrier>();
+                var carrier = collider.GetComponent<RailSegmentCarrier>();
                 if (carrier == null)
-                    carrier = collider.gameObject.AddComponent<RailObjectIdCarrier>();
-                carrier.SetRailObjectId(railObjectId);
+                    carrier = collider.gameObject.AddComponent<RailSegmentCarrier>();
+                carrier.SetRailSegment(railSegment);
             }
         }
 

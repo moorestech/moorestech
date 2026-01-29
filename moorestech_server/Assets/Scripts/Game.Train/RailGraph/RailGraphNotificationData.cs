@@ -1,4 +1,5 @@
 using System;
+using Core.Master;
 using UnityEngine;
 using Game.Train.SaveLoad;
 
@@ -28,13 +29,14 @@ namespace Game.Train.RailGraph
 
     public readonly struct RailConnectionInitializationData
     {
-        public RailConnectionInitializationData(int fromNodeId, Guid fromGuid, int toNodeId, Guid toGuid, int distance)
+        public RailConnectionInitializationData(int fromNodeId, Guid fromGuid, int toNodeId, Guid toGuid, int distance, ItemId railItemId)
         {
             FromNodeId = fromNodeId;
             FromGuid = fromGuid;
             ToNodeId = toNodeId;
             ToGuid = toGuid;
             Distance = distance;
+            RailItemId = railItemId;
         }
 
         public int FromNodeId { get; }
@@ -42,6 +44,7 @@ namespace Game.Train.RailGraph
         public int ToNodeId { get; }
         public Guid ToGuid { get; }
         public int Distance { get; }
+        public ItemId RailItemId { get; }
     }
 
     public readonly struct RailNodeRemovedData

@@ -1,4 +1,5 @@
 using System;
+using Core.Master;
 using UniRx;
 
 namespace Game.Train.RailGraph.Notification
@@ -21,12 +22,12 @@ namespace Game.Train.RailGraph.Notification
 
         // レールノードを参照して初期化結果を発行
         // Resolve rail nodes and publish the initialization payload
-        public void Notify(int fromNodeId, int toNodeId, int distance)
+        public void Notify(int fromNodeId, int toNodeId, int distance, ItemId railItemId)
         {
             _datastore.TryGetRailNode(fromNodeId, out var fromNode);
             _datastore.TryGetRailNode(toNodeId, out var toNode);
             if (fromNode == null || toNode == null) return;
-            var data = new RailConnectionInitializationData(fromNodeId, fromNode.Guid, toNodeId, toNode.Guid, distance);
+            var data = new RailConnectionInitializationData(fromNodeId, fromNode.Guid, toNodeId, toNode.Guid, distance, railItemId);
             _railConnectionInitialized?.OnNext(data);
         }
 

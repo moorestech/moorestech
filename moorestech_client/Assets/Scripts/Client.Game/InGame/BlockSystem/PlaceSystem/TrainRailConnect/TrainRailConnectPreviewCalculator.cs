@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.UI.Inventory.Main;
+using Core.Master;
 using Game.Train.RailCalc;
 using Game.Train.SaveLoad;
 using Mooresmaster.Model.TrainModule;
@@ -48,7 +49,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             
             (RailItemMasterElement element, int requiredCount)[] placeableRailItems = RailConnectionEditProtocol.GetPlaceableRailItems(playerInventory, length);
             
-            return new TrainRailConnectPreviewData(p0, p1, p2, p3, length, placeableRailItems.Any());
+            var hasEnoughRailItem = placeableRailItems.Length > 0;
+            var selectedRailItemId = hasEnoughRailItem ? MasterHolder.ItemMaster.GetItemId(placeableRailItems[0].element.ItemGuid) : ItemMaster.EmptyItemId;
+            return new TrainRailConnectPreviewData(p0, p1, p2, p3, length, hasEnoughRailItem, selectedRailItemId, true);
         }
         
         public static TrainRailConnectPreviewData CalculatePreviewData(ConnectionDestination from, Vector3 cursorPosition, RailGraphClientCache cache, ILocalPlayerInventory playerInventory)
@@ -73,13 +76,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             
             (RailItemMasterElement element, int requiredCount)[] placeableRailItems = RailConnectionEditProtocol.GetPlaceableRailItems(playerInventory, length);
             
-            return new TrainRailConnectPreviewData(p0, p1, p2, p3, length, placeableRailItems.Any());
+            var hasEnoughRailItem = placeableRailItems.Length > 0;
+            var selectedRailItemId = hasEnoughRailItem ? MasterHolder.ItemMaster.GetItemId(placeableRailItems[0].element.ItemGuid) : ItemMaster.EmptyItemId;
+            return new TrainRailConnectPreviewData(p0, p1, p2, p3, length, hasEnoughRailItem, selectedRailItemId, true);
         }
     }
     
     public struct TrainRailConnectPreviewData : IEquatable<TrainRailConnectPreviewData>
     {
-        public static TrainRailConnectPreviewData Invalid => new(Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero, 0f, false, false); 
+        public static TrainRailConnectPreviewData Invalid => new(Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero, 0f, false, ItemMaster.EmptyItemId, false);
         public Vector3 StartPoint;
         public Vector3 StartControlPoint;
         public Vector3 EndControlPoint;
@@ -87,8 +92,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         public float Length;
         public bool IsValid;
         public bool HasEnoughRailItem;
+        public ItemId SelectedRailItemId;
         
-        public TrainRailConnectPreviewData(Vector3 startPoint, Vector3 startControlPoint, Vector3 endControlPoint, Vector3 endPoint, float length, bool hasEnoughRailItem, bool isValid = true)
+        public TrainRailConnectPreviewData(Vector3 startPoint, Vector3 startControlPoint, Vector3 endControlPoint, Vector3 endPoint, float length, bool hasEnoughRailItem, ItemId selectedRailItemId, bool isValid)
         {
             StartPoint = startPoint;
             StartControlPoint = startControlPoint;
@@ -97,10 +103,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             IsValid = isValid;
             Length = length;
             HasEnoughRailItem = hasEnoughRailItem;
+            SelectedRailItemId = selectedRailItemId;
         }
         public bool Equals(TrainRailConnectPreviewData other)
         {
-            return StartPoint.Equals(other.StartPoint) && StartControlPoint.Equals(other.StartControlPoint) && EndControlPoint.Equals(other.EndControlPoint) && EndPoint.Equals(other.EndPoint);
+            var samePoints = StartPoint.Equals(other.StartPoint) && StartControlPoint.Equals(other.StartControlPoint) && EndControlPoint.Equals(other.EndControlPoint) && EndPoint.Equals(other.EndPoint);
+            return samePoints && HasEnoughRailItem == other.HasEnoughRailItem && SelectedRailItemId.Equals(other.SelectedRailItemId);
         }
         public override bool Equals(object obj)
         {
@@ -108,7 +116,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         }
         public override int GetHashCode()
         {
-            return HashCode.Combine(StartPoint, StartControlPoint, EndControlPoint, EndPoint);
+            return HashCode.Combine(StartPoint, StartControlPoint, EndControlPoint, EndPoint, HasEnoughRailItem, SelectedRailItemId);
         }
         public override string ToString()
         {

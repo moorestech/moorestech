@@ -1,4 +1,5 @@
 ﻿using ClassLibrary;
+using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Train.RailGraph;
@@ -90,6 +91,11 @@ namespace Game.Block.Blocks.TrainRail
             int distance = explicitDistance >= 0
                 ? explicitDistance
                 : ComputeDistanceToComponent(targetComponent, useFrontSideOfThis, useFrontSideOfTarget);
+
+            // レール種別を先に登録
+            // Register rail segment type before connecting nodes
+            var segmentId = RailSegmentId.CreateCanonical(thisNode.NodeId, targetNode.NodeId);
+            _railGraphDatastore.UpsertRailSegment(segmentId, GetDefaultRailItemId());
 
             // 相互接続
             thisNode.ConnectNode(targetNode, distance);
@@ -184,6 +190,13 @@ namespace Game.Block.Blocks.TrainRail
         private Vector3 CalculateControlPointOffset(bool useFrontSide)
         {
             return useFrontSide ? RailDirection * controlPointStrength : -RailDirection * controlPointStrength;
+        }
+
+        private static ItemId GetDefaultRailItemId()
+        {
+            var railItems = MasterHolder.TrainUnitMaster.GetRailItems();
+            var railItem = railItems[0];
+            return MasterHolder.ItemMaster.GetItemId(railItem.ItemGuid);
         }
 
         /// <summary>

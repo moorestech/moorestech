@@ -4,6 +4,7 @@ using Server.Util.MessagePack;
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Train.Network;
+using Core.Master;
 using Game.Train.SaveLoad;
 using UnityEngine;
 
@@ -28,6 +29,10 @@ namespace Client.Game.InGame.Train.RailGraph
         // ConnectionDestination→RailNodeIdの逆引き辞書
         // Reverse lookup dictionary from ConnectionDestination to RailNodeId
         private readonly Dictionary<ConnectionDestination, int> _connectionDestinationToNodeId = new();
+
+        // RailSegmentId→RailSegmentのマッピング
+        // Mapping from RailSegmentId to RailSegment
+        private readonly Dictionary<RailSegmentId, RailSegment> _railSegments = new();
 
         // 差分適用済みの最新Tick
         // Latest tick that has been fully applied to the cache
@@ -58,7 +63,7 @@ namespace Client.Game.InGame.Train.RailGraph
 
         public uint ComputeCurrentHash()
         {
-            return RailGraphHashCalculator.ComputeGraphStateHash(_nodes, _connectNodes);
+            return RailGraphHashCalculator.ComputeGraphStateHash(_nodes, _connectNodes, _railSegments);
         }
 
         internal void OverrideTick(long serverTick)
@@ -89,6 +94,7 @@ namespace Client.Game.InGame.Train.RailGraph
                 _nodes.Clear();
                 _connectNodes.Clear();
                 _connectionDestinationToNodeId.Clear();
+                _railSegments.Clear();
                 for (var i = 0; i < requiredCount; i++)
                 {
                     _nodes.Add(null);
@@ -130,6 +136,8 @@ namespace Client.Game.InGame.Train.RailGraph
                     if (connection == null || connection.FromNodeId < 0 || connection.FromNodeId >= adjacencyList.Count)
                         continue;
                     adjacencyList[connection.FromNodeId].Add((connection.ToNodeId, connection.Distance));
+                    var segmentId = RailSegmentId.CreateCanonical(connection.FromNodeId, connection.ToNodeId);
+                    _railSegments[segmentId] = new RailSegment(segmentId, connection.RailItemId);
                 }
             }
             #endregion
@@ -182,6 +190,7 @@ namespace Client.Game.InGame.Train.RailGraph
             {
                 foreach (var (targetId, _) in outgoing)
                 {
+                    RemoveRailSegment(nodeId, targetId);
                     TrainRailObjectManager.Instance?.OnConnectionRemoved(nodeId, targetId, this);
                 }
                 outgoing.Clear();
@@ -192,11 +201,11 @@ namespace Client.Game.InGame.Train.RailGraph
 
         // 接続情報の差分を適用する（存在すれば距離上書き）
         // Apply or overwrite an edge diff connecting two nodes
-        public void UpsertConnection(int fromNodeId, int toNodeId, int distance, long eventTick)
+        public void UpsertConnection(int fromNodeId, int toNodeId, int distance, ItemId railItemId, long eventTick)
         {
             if (!IsWithinCurrentRange(fromNodeId) || !IsWithinCurrentRange(toNodeId))
                 return;
-            Debug.Log($"UpsertConnection: fromNodeId={fromNodeId}, toNodeId={toNodeId}, distance={distance}");
+            Debug.Log($"UpsertConnection: fromNodeId={fromNodeId}, toNodeId={toNodeId}, distance={distance}, railItemId={railItemId}");
             var connections = _connectNodes[fromNodeId];
             var replaced = false;
             for (var i = 0; i < connections.Count; i++)
@@ -210,6 +219,8 @@ namespace Client.Game.InGame.Train.RailGraph
             {
                 connections.Add((toNodeId, distance));
             }
+            var segmentId = RailSegmentId.CreateCanonical(fromNodeId, toNodeId);
+            _railSegments[segmentId] = new RailSegment(segmentId, railItemId);
             UpdateTick(eventTick);
             TrainRailObjectManager.Instance?.OnConnectionUpserted(fromNodeId, toNodeId, this);
         }
@@ -223,6 +234,7 @@ namespace Client.Game.InGame.Train.RailGraph
             var removed = _connectNodes[fromNodeId].RemoveAll(x => x.targetId == toNodeId) > 0;
             if (!removed)
                 return;
+            RemoveRailSegment(fromNodeId, toNodeId);
             UpdateTick(eventTick);
             TrainRailObjectManager.Instance?.OnConnectionRemoved(fromNodeId, toNodeId, this);
         }
@@ -241,6 +253,11 @@ namespace Client.Game.InGame.Train.RailGraph
                 irailnode = null;
                 return false;
             }
+        }
+
+        public bool TryGetRailSegment(RailSegmentId segmentId, out RailSegment segment)
+        {
+            return _railSegments.TryGetValue(segmentId, out segment);
         }
 
         // ConnectionDestinationからRailNodeIdを逆引き
@@ -311,9 +328,16 @@ namespace Client.Game.InGame.Train.RailGraph
                     }
 
                     edges.RemoveAt(index);
+                    RemoveRailSegment(i, targetNodeId);
                     TrainRailObjectManager.Instance?.OnConnectionRemoved(i, targetNodeId, this);
                 }
             }
+        }
+
+        private void RemoveRailSegment(int fromNodeId, int toNodeId)
+        {
+            var segmentId = RailSegmentId.CreateCanonical(fromNodeId, toNodeId);
+            _railSegments.Remove(segmentId);
         }
 
         // Tick値を更新（最新値を保持）

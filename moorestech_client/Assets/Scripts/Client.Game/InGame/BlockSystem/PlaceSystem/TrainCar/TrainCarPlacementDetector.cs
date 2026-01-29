@@ -55,7 +55,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
             // レールID付きコライダーをレイキャストで取得する
             // Raycast to obtain the rail collider that carries the object id
-            if (!PlaceSystemUtil.TryGetRaySpecifiedComponentHitPosition<RailObjectIdCarrier>(_mainCamera, out var hitPosition, out var railCarrier, Without_Player_MapObject_BlockBoundingBox_LayerMask))
+            if (!PlaceSystemUtil.TryGetRaySpecifiedComponentHitPosition<RailSegmentCarrier>(_mainCamera, out var hitPosition, out var railCarrier, Without_Player_MapObject_BlockBoundingBox_LayerMask))
             {
                 return false;
             }
@@ -78,7 +78,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 return MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(itemId, out trainCarMasterElement);
             }
 
-            bool TryBuildPlacement(Vector3 hitPos, RailObjectIdCarrier railCarrier, TrainCarMasterElement trainCarMasterElement, out TrainCarPlacementHit result)
+            bool TryBuildPlacement(Vector3 hitPos, RailSegmentCarrier railCarrier, TrainCarMasterElement trainCarMasterElement, out TrainCarPlacementHit result)
             {
                 result = default;
                 // 列車長とレール位置スナップショットを組み立てる
@@ -90,7 +90,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
                 #region Internal
 
-                bool TryBuildRailPosition(Vector3 hitPosition, RailObjectIdCarrier carrier, int trainLength, out RailPositionSaveData railPositionSaveData)
+                bool TryBuildRailPosition(Vector3 hitPosition, RailSegmentCarrier carrier, int trainLength, out RailPositionSaveData railPositionSaveData)
                 {
                     railPositionSaveData = null;
                     // 入力を検証し、対象レール区間（ノード）を解決する
@@ -99,8 +99,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     {
                         return false;
                     }
-                    var railObjectId = carrier.GetRailObjectId();
-                    if (!TryResolveCanonicalNodes(railObjectId, out var canonicalFromId, out var canonicalToId, out var canonicalFromNode, out var canonicalToNode))
+                    var segmentId = carrier.GetRailSegment().GetSegmentId();
+                    if (!TryResolveCanonicalNodes(segmentId, out var canonicalFromId, out var canonicalToId, out var canonicalFromNode, out var canonicalToNode))
                     {
                         return false;
                     }
@@ -143,10 +143,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     return true;
                 }
 
-                bool TryResolveCanonicalNodes(ulong railObjectId, out int canonicalFromId, out int canonicalToId, out IRailNode canonicalFromNode, out IRailNode canonicalToNode)
+                bool TryResolveCanonicalNodes(RailSegmentId railSegmentId, out int canonicalFromId, out int canonicalToId, out IRailNode canonicalFromNode, out IRailNode canonicalToNode)
                 {
-                    canonicalFromId = (int)(railObjectId & 0xffffffff);
-                    canonicalToId = (int)(railObjectId >> 32);
+                    canonicalFromId = railSegmentId.GetFromNodeId();
+                    canonicalToId = railSegmentId.GetToNodeId();
                     canonicalFromNode = null;
                     canonicalToNode = null;
                     if (!_cache.TryGetNode(canonicalFromId, out canonicalFromNode))
