@@ -13,10 +13,10 @@ namespace Client.Game.InGame.Train.RailGraph
     {
         internal const int MaxCurveSamples = 16;
         private const int CpuMaxCurveSamples = 1024;
+        private const int BoundsSampleCount = 12;
         private const string MainTexPropertyName = "_MainTex";
         private const string ColorPropertyName = "_Color";
         private const string ScanlineSpeedPropertyName = "_ScanlineSpeed";
-        private const string AlphaPropertyName = "_Alpha";
 
         [SerializeField] private Mesh _sourceMesh;
         [SerializeField] private Vector3 _point0 = new(0f, 0f, 0f);
@@ -71,7 +71,6 @@ namespace Client.Game.InGame.Train.RailGraph
         private static readonly int MainTexId = Shader.PropertyToID(MainTexPropertyName);
         private static readonly int ColorId = Shader.PropertyToID(ColorPropertyName);
         private static readonly int ScanlineSpeedId = Shader.PropertyToID(ScanlineSpeedPropertyName);
-        private static readonly int AlphaId = Shader.PropertyToID(AlphaPropertyName);
 
         // 制御点を設定する
         // Set control points
@@ -408,7 +407,6 @@ namespace Client.Game.InGame.Train.RailGraph
         {
             if (runtime == null) return;
             if (runtime.HasProperty(ScanlineSpeedId)) runtime.SetFloat(ScanlineSpeedId, 10f);
-            if (runtime.HasProperty(AlphaId)) runtime.SetFloat(AlphaId, 1f);
             if (runtime.HasProperty(PreviewColorId)) runtime.SetColor(PreviewColorId, _previewColor);
         }
 
@@ -473,9 +471,9 @@ namespace Client.Game.InGame.Train.RailGraph
             _propertyBlock.SetFloat(DeformSampleCountId, _curveSamples);
             _propertyBlock.SetFloatArray(DeformArcLengthsId, _arcLengthBuffer);
             _propertyBlock.SetColor(PreviewColorId, _previewColor);
-            _propertyBlock.SetFloat(ScanlineSpeedId, 10f);
 
             _meshRenderer.SetPropertyBlock(_propertyBlock);
+            UpdateRendererBounds(startDistance, endDistance);
         }
 
         // アーク長テーブルを固定長配列に転写する
@@ -499,6 +497,37 @@ namespace Client.Game.InGame.Train.RailGraph
         {
             var maxSamples = _useGpuDeform ? MaxCurveSamples : CpuMaxCurveSamples;
             return Mathf.Clamp(_curveSamples, 8, maxSamples);
+        }
+
+        // GPU変形時の描画範囲を更新する
+        // Update renderer bounds for GPU deformation
+        private void UpdateRendererBounds(float startDistance, float endDistance)
+        {
+            if (!_useGpuDeform) return;
+            if (_meshRenderer == null && !TryGetComponent(out _meshRenderer)) return;
+            if (_sourceMesh == null) return;
+
+            var tStart = DistanceToTime(startDistance);
+            var tEnd = DistanceToTime(endDistance);
+            var min = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
+            var max = new Vector3(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity);
+            var padding = Mathf.Max(_sourceMesh.bounds.extents.x, Mathf.Max(_sourceMesh.bounds.extents.y, _sourceMesh.bounds.extents.z));
+            var step = 1f / BoundsSampleCount;
+
+            // 曲線上の点をサンプリングしてAABBを作る
+            // Sample curve points to build AABB
+            for (var i = 0; i <= BoundsSampleCount; i++)
+            {
+                var t = Mathf.Lerp(tStart, tEnd, i * step);
+                var worldPoint = EvaluatePosition(t);
+                var localPoint = transform.InverseTransformPoint(worldPoint);
+                min = Vector3.Min(min, localPoint);
+                max = Vector3.Max(max, localPoint);
+            }
+
+            var bounds = new Bounds();
+            bounds.SetMinMax(min - Vector3.one * padding, max + Vector3.one * padding);
+            _meshRenderer.localBounds = bounds;
         }
 
         // プレビュー用マテリアルを取得する

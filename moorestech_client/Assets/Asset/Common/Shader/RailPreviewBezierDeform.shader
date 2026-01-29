@@ -6,7 +6,6 @@
         _Color("Color", Color) = (1,1,1,1)
         _PreviewColor("Preview Color", Color) = (0.41349236,0.5979935,0.8679245,1)
         _ScanlineSpeed("Scanline Speed", Float) = 10
-        _Alpha("Alpha", Range(0, 1)) = 1
     }
     SubShader
     {
@@ -38,7 +37,6 @@
                 float4 _PreviewColor;
                 float4 _MainTex_ST;
                 float _ScanlineSpeed;
-                float _Alpha;
                 float4 _BezierP0;
                 float4 _BezierP1;
                 float4 _BezierP2;
@@ -59,7 +57,6 @@
             struct Attributes
             {
                 float4 positionOS : POSITION;
-                float3 normalOS : NORMAL;
                 float2 uv : TEXCOORD0;
             };
 
@@ -67,9 +64,7 @@
             {
                 float4 positionCS : SV_POSITION;
                 float2 uv : TEXCOORD0;
-                float3 normalWS : TEXCOORD1;
-                float3 positionWS : TEXCOORD2;
-                float3 positionOS : TEXCOORD3;
+                float3 positionWS : TEXCOORD1;
             };
 
             float3 RotateByQuaternion(float3 v, float4 q)
@@ -178,14 +173,9 @@
                 float3 offset = right * aligned.x + up * aligned.y;
                 float3 deformedPos = curvePos + offset;
 
-                float3 alignedNormal = RotateByQuaternion(input.normalOS, _BezierAxisRotation);
-                float3 deformedNormal = normalize(right * alignedNormal.x + up * alignedNormal.y + forward * alignedNormal.z);
-
                 output.positionCS = TransformObjectToHClip(deformedPos);
                 output.positionWS = TransformObjectToWorld(deformedPos);
-                output.positionOS = deformedPos;
                 output.uv = TRANSFORM_TEX(input.uv, _MainTex);
-                output.normalWS = TransformObjectToWorldNormal(deformedNormal);
                 return output;
             }
 
