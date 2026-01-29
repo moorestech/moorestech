@@ -15,7 +15,6 @@ namespace Client.Game.InGame.Train.RailGraph
         private const int CpuMaxCurveSamples = 1024;
         private const string BaseMapPropertyName = "_BaseMap";
         private const string BaseColorPropertyName = "_BaseColor";
-        private const string ScanlineSpeedPropertyName = "_ScanlineSpeed";
         private const string AlphaPropertyName = "_Alpha";
 
         [SerializeField] private Mesh _sourceMesh;
@@ -68,7 +67,6 @@ namespace Client.Game.InGame.Train.RailGraph
         private static readonly int PreviewColorId = Shader.PropertyToID(MaterialConst.PreviewColorPropertyName);
         private static readonly int BaseMapId = Shader.PropertyToID(BaseMapPropertyName);
         private static readonly int BaseColorId = Shader.PropertyToID(BaseColorPropertyName);
-        private static readonly int ScanlineSpeedId = Shader.PropertyToID(ScanlineSpeedPropertyName);
         private static readonly int AlphaId = Shader.PropertyToID(AlphaPropertyName);
 
         // 制御点を設定する
@@ -405,7 +403,6 @@ namespace Client.Game.InGame.Train.RailGraph
             if (runtime == null) return;
             if (runtime.HasProperty(BaseMapId)) runtime.SetTexture(BaseMapId, null);
             if (runtime.HasProperty(BaseColorId)) runtime.SetColor(BaseColorId, Color.white);
-            if (runtime.HasProperty(ScanlineSpeedId)) runtime.SetFloat(ScanlineSpeedId, 10f);
             if (runtime.HasProperty(AlphaId)) runtime.SetFloat(AlphaId, 1f);
             if (runtime.HasProperty(PreviewColorId)) runtime.SetColor(PreviewColorId, _previewColor);
         }

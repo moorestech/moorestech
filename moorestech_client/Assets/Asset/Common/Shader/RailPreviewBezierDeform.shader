@@ -5,7 +5,6 @@
         _BaseMap("Base Map", 2D) = "white" {}
         _BaseColor("Base Color", Color) = (1,1,1,1)
         _PreviewColor("Preview Color", Color) = (0.41349236,0.5979935,0.8679245,1)
-        _ScanlineSpeed("Scanline Speed", Float) = 10
         _Alpha("Alpha", Range(0, 1)) = 1
     }
     SubShader
@@ -37,7 +36,6 @@
                 float4 _BaseColor;
                 float4 _PreviewColor;
                 float4 _BaseMap_ST;
-                float _ScanlineSpeed;
                 float _Alpha;
                 float4 _BezierP0;
                 float4 _BezierP1;
@@ -191,7 +189,7 @@
 
             half4 Frag(Varyings input) : SV_Target
             {
-                float scanlinePhase = input.positionOS.y * 60.0 + _TimeParameters.x * _ScanlineSpeed;
+                float scanlinePhase = input.positionOS.x * 60.0 + _Time.y * 20.0;
                 float scanline = sin(scanlinePhase) + 1.34;
                 float4 baseSample = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv);
                 float4 tinted = baseSample * _BaseColor;
@@ -201,7 +199,7 @@
                 surfaceData.albedo = albedo;
                 surfaceData.specular = float3(0.5, 0.5, 0.5);
                 surfaceData.metallic = 0.0;
-                surfaceData.smoothness = 0.5;
+                surfaceData.smoothness = 0.0;
                 surfaceData.normalTS = float3(0.0, 0.0, 1.0);
                 surfaceData.emission = float3(0.0, 0.0, 0.0);
                 surfaceData.occlusion = 1.0;
@@ -215,7 +213,7 @@
                 inputData.normalWS = NormalizeNormalPerPixel(input.normalWS);
                 inputData.viewDirectionWS = GetWorldSpaceNormalizeViewDir(input.positionWS);
                 inputData.shadowCoord = TransformWorldToShadowCoord(input.positionWS);
-                inputData.fogCoord = ComputeFogFactor(input.positionCS.z);
+                inputData.fogCoord = ComputeFogFactor(input.positionCS.x);
                 inputData.vertexLighting = VertexLighting(input.positionWS, inputData.normalWS);
                 inputData.bakedGI = SampleSH(inputData.normalWS);
                 inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
