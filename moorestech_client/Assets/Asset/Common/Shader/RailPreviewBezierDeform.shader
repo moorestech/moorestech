@@ -2,9 +2,10 @@
 {
     Properties
     {
-        _BaseMap("Base Map", 2D) = "white" {}
-        _BaseColor("Base Color", Color) = (1,1,1,1)
+        _MainTex("MainTex", 2D) = "white" {}
+        _Color("Color", Color) = (1,1,1,1)
         _PreviewColor("Preview Color", Color) = (0.41349236,0.5979935,0.8679245,1)
+        _ScanlineSpeed("Scanline Speed", Float) = 10
         _Alpha("Alpha", Range(0, 1)) = 1
     }
     SubShader
@@ -33,9 +34,10 @@
             #define BEZIER_MAX_SAMPLES 16
 
             CBUFFER_START(UnityPerMaterial)
-                float4 _BaseColor;
+                float4 _Color;
                 float4 _PreviewColor;
-                float4 _BaseMap_ST;
+                float4 _MainTex_ST;
+                float _ScanlineSpeed;
                 float _Alpha;
                 float4 _BezierP0;
                 float4 _BezierP1;
@@ -51,8 +53,8 @@
                 float _BezierArcLengths[BEZIER_MAX_SAMPLES + 1];
             CBUFFER_END
 
-            TEXTURE2D(_BaseMap);
-            SAMPLER(sampler_BaseMap);
+            TEXTURE2D(_MainTex);
+            SAMPLER(sampler_MainTex);
 
             struct Attributes
             {
@@ -182,47 +184,20 @@
                 output.positionCS = TransformObjectToHClip(deformedPos);
                 output.positionWS = TransformObjectToWorld(deformedPos);
                 output.positionOS = deformedPos;
-                output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
+                output.uv = TRANSFORM_TEX(input.uv, _MainTex);
                 output.normalWS = TransformObjectToWorldNormal(deformedNormal);
                 return output;
             }
 
             half4 Frag(Varyings input) : SV_Target
             {
-                float scanlinePhase = input.positionOS.x * 60.0 + _Time.y * 20.0;
+                float3 viewPos = TransformWorldToView(input.positionWS);
+                float scanlinePhase = viewPos.y * 60.0 + _TimeParameters.x * _ScanlineSpeed;
                 float scanline = sin(scanlinePhase) + 1.34;
-                float4 baseSample = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv);
-                float4 tinted = baseSample * _BaseColor;
-                float3 albedo = (tinted * scanline * _PreviewColor).rgb;
-
-                SurfaceData surfaceData = (SurfaceData)0;
-                surfaceData.albedo = albedo;
-                surfaceData.specular = float3(0.5, 0.5, 0.5);
-                surfaceData.metallic = 0.0;
-                surfaceData.smoothness = 0.0;
-                surfaceData.normalTS = float3(0.0, 0.0, 1.0);
-                surfaceData.emission = float3(0.0, 0.0, 0.0);
-                surfaceData.occlusion = 1.0;
-                surfaceData.alpha = _Alpha;
-                surfaceData.clearCoatMask = 0.0;
-                surfaceData.clearCoatSmoothness = 0.0;
-
-                InputData inputData = (InputData)0;
-                inputData.positionWS = input.positionWS;
-                inputData.positionCS = input.positionCS;
-                inputData.normalWS = NormalizeNormalPerPixel(input.normalWS);
-                inputData.viewDirectionWS = GetWorldSpaceNormalizeViewDir(input.positionWS);
-                inputData.shadowCoord = TransformWorldToShadowCoord(input.positionWS);
-                inputData.fogCoord = ComputeFogFactor(input.positionCS.x);
-                inputData.vertexLighting = VertexLighting(input.positionWS, inputData.normalWS);
-                inputData.bakedGI = SampleSH(inputData.normalWS);
-                inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
-                inputData.shadowMask = half4(1.0, 1.0, 1.0, 1.0);
-
-                half4 color = UniversalFragmentPBR(inputData, surfaceData);
-                color.rgb = MixFog(color.rgb, inputData.fogCoord);
-                color.a = OutputAlpha(color.a, false);
-                return color;
+                float4 baseSample = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv);
+                float4 tinted = baseSample * _Color;
+                float4 shaded = tinted * scanline * _PreviewColor;
+                return half4(shaded.rgb, 1.0);
             }
             ENDHLSL
         }
