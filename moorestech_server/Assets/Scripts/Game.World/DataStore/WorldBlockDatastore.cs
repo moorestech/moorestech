@@ -36,14 +36,6 @@ namespace Game.World.DataStore
             _blockFactory = blockFactory;
         }
         
-        public bool TryAddLoadedBlock(Guid blockGuid, BlockInstanceId blockInstanceId, Dictionary<string,string> componentStates, Vector3Int position, BlockDirection direction, out IBlock block)
-        {
-            var blockSize = MasterHolder.BlockMaster.GetBlockMaster(blockGuid).BlockSize;
-            var blockPositionInfo = new BlockPositionInfo(position, direction, blockSize);
-            block = _blockFactory.Load(blockGuid, blockInstanceId, componentStates, blockPositionInfo);
-            return TryAddBlock(block);
-        }
-
         public bool RemoveBlock(Vector3Int pos, BlockRemoveReason reason)
         {
             if (!this.Exists(pos)) return false;

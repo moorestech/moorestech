@@ -48,7 +48,7 @@ namespace Client.Game.InGame.Mining
                 if (!hit.collider.gameObject.TryGetComponent(out MapObjectRayTarget mapObjectRayTarget)) return null;
                 
                 var playerPos = PlayerSystemContainer.Instance.PlayerObjectController.Position;
-                var mapObjectPos = mapObjectRayTarget.transform.position;
+                var mapObjectPos = mapObjectRayTarget.MapObjectGameObject.GetPosition();
                 if (miningDistance < Vector3.Distance(playerPos, mapObjectPos)) return null;
                 
                 return mapObjectRayTarget.MapObjectGameObject;

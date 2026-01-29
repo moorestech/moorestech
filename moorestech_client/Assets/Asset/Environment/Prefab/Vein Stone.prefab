@@ -134,7 +134,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 96a4f386a6a8247488530d37e03185d0, type: 2}
+  - {fileID: 2100000, guid: 2e3488f91c446414da07c7c31f747ebb, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -190,7 +190,7 @@ GameObject:
   - component: {fileID: 3511257979520308621}
   - component: {fileID: 5990750896162685171}
   m_Layer: 6
-  m_Name: LimeStone
+  m_Name: Vein Stone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -229,7 +229,7 @@ MonoBehaviour:
   outlineObject: {fileID: 0}
   hpBarView: {fileID: 220702310046901491}
   instanceId: 0
-  mapObjectGuid: b8bd2280-f851-468d-846c-83601742ad69
+  mapObjectGuid: 684eb2c1-d1c4-448b-bdaf-d24df5b7ff44
 --- !u!1001 &7699419025567653180
 PrefabInstance:
   m_ObjectHideFlags: 0
