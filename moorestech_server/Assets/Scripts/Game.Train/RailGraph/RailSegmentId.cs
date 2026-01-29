@@ -3,8 +3,8 @@ using System;
 namespace Game.Train.RailGraph
 {
     /// <summary>
-    ///     ????????????????ID
-    ///     Identifier for a canonical rail segment
+    ///     レールセグメントの正規化ID
+    ///     Canonical identifier for a rail segment
     /// </summary>
     public readonly struct RailSegmentId : IEquatable<RailSegmentId>
     {
@@ -20,7 +20,7 @@ namespace Game.Train.RailGraph
         public int GetFromNodeId() => _fromNodeId;
         public int GetToNodeId() => _toNodeId;
 
-        // ??????????????ID???
+        // ノードペアから正規化IDを生成する
         // Build a canonical id from a node pair
         public static RailSegmentId CreateCanonical(int fromNodeId, int toNodeId)
         {
@@ -32,6 +32,8 @@ namespace Game.Train.RailGraph
         public bool Equals(RailSegmentId other) => _fromNodeId == other._fromNodeId && _toNodeId == other._toNodeId;
         public override bool Equals(object obj) => obj is RailSegmentId other && Equals(other);
 
+        // ノード順を反映してハッシュを計算する
+        // Calculate hash from ordered nodes
         public override int GetHashCode()
         {
             unchecked

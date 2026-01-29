@@ -283,7 +283,7 @@ namespace Game.Train.RailGraph
             }
         }
 
-        // ?????????????????????????
+        // 不足しているレールアイテム種別をデフォルトで補完する
         // Fill missing rail item type with the default rail item
         private ItemId ResolveRailItemId(int fromNodeId, int toNodeId)
         {

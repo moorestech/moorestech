@@ -3,7 +3,7 @@ using Core.Master;
 namespace Game.Train.RailGraph
 {
     /// <summary>
-    ///     ???2????????????
+    ///     2つのノードを結ぶレールセグメント
     ///     Rail segment connecting two nodes with a rail item type
     /// </summary>
     public readonly struct RailSegment
