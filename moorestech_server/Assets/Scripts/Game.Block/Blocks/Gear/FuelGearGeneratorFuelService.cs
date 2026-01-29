@@ -80,7 +80,9 @@ namespace Game.Block.Blocks.Gear
                 foreach (var element in blockParam.GearFuelItems)
                 {
                     var itemId = MasterHolder.ItemMaster.GetItemId(element.ItemGuid);
-                    var consumptionTicks = GameUpdater.SecondsToTicks(element.ConsumptionTime);
+                    // 最低1tickを保証（SecondsToTicksが0を返す場合の防御）
+                    // Ensure at least 1 tick (defense against SecondsToTicks returning 0)
+                    var consumptionTicks = Math.Max(1u, GameUpdater.SecondsToTicks(element.ConsumptionTime));
                     settings[itemId] = new ItemFuelSetting(Math.Max(1, element.Amount), consumptionTicks);
                 }
 
@@ -95,7 +97,9 @@ namespace Game.Block.Blocks.Gear
                 foreach (var element in blockParam.RequiredFluids)
                 {
                     var fluidId = MasterHolder.FluidMaster.GetFluidId(element.FluidGuid);
-                    var consumptionTicks = GameUpdater.SecondsToTicks(element.ConsumptionTime);
+                    // 最低1tickを保証（SecondsToTicksが0を返す場合の防御）
+                    // Ensure at least 1 tick (defense against SecondsToTicks returning 0)
+                    var consumptionTicks = Math.Max(1u, GameUpdater.SecondsToTicks(element.ConsumptionTime));
                     settings[fluidId] = new FluidFuelSetting(Math.Max(0d, element.Amount), consumptionTicks);
                 }
 

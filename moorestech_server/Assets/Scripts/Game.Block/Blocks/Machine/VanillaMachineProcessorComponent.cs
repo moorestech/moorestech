@@ -69,7 +69,11 @@ namespace Game.Block.Blocks.Machine
         {
             BlockException.CheckDestroy(this);
 
-            var processingRate = _processingRecipeTicks > 0 ? 1 - (float)RemainingTicks / _processingRecipeTicks : 0;
+            // 処理率を計算し、0〜1の範囲にクランプ
+            // Calculate processing rate and clamp to 0-1 range
+            var processingRate = _processingRecipeTicks > 0 ? 1f - (float)RemainingTicks / _processingRecipeTicks : 0f;
+            if (processingRate < 0f) processingRate = 0f;
+            else if (processingRate > 1f) processingRate = 1f;
 
             var commonMachineBlock = CommonMachineBlockStateDetail.CreateState(_currentPower.AsPrimitive(), RequestPower.AsPrimitive(), processingRate, CurrentState.ToStr(), _lastState.ToStr());
             var machineBlock = MachineBlockStateDetail.CreateState(processingRate, _processingRecipe?.MachineRecipeGuid ?? Guid.Empty);
