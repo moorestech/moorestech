@@ -15,6 +15,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             // Initialize preview rail chain
             _railChain = Instantiate(_railChainPrefab);
             _railChain.SetUseGpuDeform(true);
+            _railChain.SetUseMeshCollider(false);
             _railChain.SetPreviewColor(MaterialConst.PlaceableColor);
         }
         

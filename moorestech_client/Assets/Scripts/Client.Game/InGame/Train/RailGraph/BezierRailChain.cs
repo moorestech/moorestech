@@ -16,6 +16,7 @@ namespace Client.Game.InGame.Train.RailGraph
         [SerializeField] private GameObject _halfModulePrefab;
         [SerializeField] private GameObject _quarterModulePrefab;
         [SerializeField] private GameObject _eighthModulePrefab;
+        [SerializeField] private bool _useMeshCollider = true;
 
         private Vector3 _point0 = new(0f, 0f, 0f);
         private Vector3 _point1 = new(0f, 0f, 2f);
@@ -60,6 +61,19 @@ namespace Client.Game.InGame.Train.RailGraph
         {
             _previewColor = color;
             foreach (var segment in _segments) foreach (var mesh in segment.Meshes) mesh.SetPreviewColor(_previewColor);
+        }
+
+        // MeshColliderの使用可否を設定する
+        // Configure MeshCollider usage
+        public void SetUseMeshCollider(bool useMeshCollider)
+        {
+            _useMeshCollider = useMeshCollider;
+            foreach (var segment in _segments)
+            {
+                if (segment?.Root == null) continue;
+                var colliders = segment.Root.GetComponentsInChildren<MeshCollider>(true);
+                foreach (var collider in colliders) collider.enabled = _useMeshCollider;
+            }
         }
         
         /// <summary>外部コードから制御点を再設定する</summary>
@@ -172,10 +186,7 @@ namespace Client.Game.InGame.Train.RailGraph
                 if (renderer == null)
                     renderer = filter.gameObject.AddComponent<MeshRenderer>();
 
-                var collider = filter.GetComponent<MeshCollider>();
-                if (collider == null)
-                    collider = filter.gameObject.AddComponent<MeshCollider>();
-                collider.sharedMesh = filter.sharedMesh;
+                ConfigureMeshCollider(filter);
 
                 var meshComponent = filter.GetComponent<BezierRailMesh>();
                 if (meshComponent == null)
@@ -250,6 +261,21 @@ namespace Client.Game.InGame.Train.RailGraph
             if (segment?.Root == null)
                 return;
             Destroy(segment.Root);
+        }
+
+        // MeshColliderを設定する
+        // Configure MeshCollider
+        private void ConfigureMeshCollider(MeshFilter filter)
+        {
+            var collider = filter.GetComponent<MeshCollider>();
+            if (_useMeshCollider)
+            {
+                if (collider == null) collider = filter.gameObject.AddComponent<MeshCollider>();
+                collider.sharedMesh = filter.sharedMesh;
+                collider.enabled = true;
+                return;
+            }
+            if (collider != null) collider.enabled = false;
         }
 
         private sealed class SegmentInstance
