@@ -24,6 +24,11 @@ namespace Client.Game.InGame.Train.RailGraph
         [SerializeField] private Vector3 _forwardAxis = Vector3.forward;
         [SerializeField] private Vector3 _upAxis = Vector3.up;
         private int _curveSamples = 64;
+        private int _curveSampleCountCache = 64;
+        private float _curveLength;
+        private float[] _arcLengths;
+        private bool _useGpuDeform;
+        private Color _previewColor = MaterialConst.PlaceableColor;
 
         private readonly List<SegmentInstance> _segments = new();
         
@@ -39,6 +44,22 @@ namespace Client.Game.InGame.Train.RailGraph
         public void SetRailGraphCache(RailGraphClientCache cache)
         {
             _railGraphClientCache = cache;
+        }
+
+        // GPU変形の使用を設定する
+        // Configure GPU deform usage
+        public void SetUseGpuDeform(bool enable)
+        {
+            _useGpuDeform = enable;
+            foreach (var segment in _segments) foreach (var mesh in segment.Meshes) mesh.SetUseGpuDeform(_useGpuDeform);
+        }
+
+        // プレビュー色を設定する
+        // Set preview color
+        public void SetPreviewColor(Color color)
+        {
+            _previewColor = color;
+            foreach (var segment in _segments) foreach (var mesh in segment.Meshes) mesh.SetPreviewColor(_previewColor);
         }
         
         /// <summary>外部コードから制御点を再設定する</summary>
@@ -62,12 +83,13 @@ namespace Client.Game.InGame.Train.RailGraph
             if (moduleLength <= 0f)
                 return;
 
-            var curveLength = BezierUtility.GetBezierCurveLength(_point0, _point1, _point2, _point3, _curveSamples);
-            if (curveLength <= 1e-4f)
+            _curveSampleCountCache = _useGpuDeform ? Mathf.Clamp(_curveSamples, 8, BezierRailMesh.MaxCurveSamples) : _curveSamples;
+            _curveLength = BezierUtility.BuildArcLengthTable(_point0, _point1, _point2, _point3, _curveSampleCountCache, ref _arcLengths);
+            if (_curveLength <= 1e-4f)
                 return;
 
             var offset = 0f;
-            var fullSegmentCount = Mathf.Max(0, Mathf.FloorToInt(curveLength / moduleLength));
+            var fullSegmentCount = Mathf.Max(0, Mathf.FloorToInt(_curveLength / moduleLength));
 
             for (var i = 0; i < fullSegmentCount; i++)
             {
@@ -76,7 +98,7 @@ namespace Client.Game.InGame.Train.RailGraph
                 offset += moduleLength;
             }
 
-            var remainder = Mathf.Max(0f, curveLength - offset);
+            var remainder = Mathf.Max(0f, _curveLength - offset);
             if (remainder <= 1e-4f)
                 return;
 
@@ -92,7 +114,7 @@ namespace Client.Game.InGame.Train.RailGraph
                 Debug.LogWarning($"[BezierRailChain] 端数を埋められませんでした (残りステップ:{remainderSteps}). 必要な長さのモジュールが揃っているか確認してください。", this);
             }
             
-            _controller = new RendererMaterialReplacerController(gameObject);
+            if (!_useGpuDeform) _controller = new RendererMaterialReplacerController(gameObject);
         }
 
         private void OnDestroy()
@@ -164,12 +186,12 @@ namespace Client.Game.InGame.Train.RailGraph
                     deleteTarget = filter.gameObject.AddComponent<DeleteTargetRail>();
                 
                 meshComponent.SetSourceMesh(filter.sharedMesh);
-                meshComponent.SetControlPoints(_point0, _point1, _point2, _point3);
                 meshComponent.SetAxes(_forwardAxis, _upAxis);
                 meshComponent.SetSamples(_curveSamples);
+                meshComponent.SetUseGpuDeform(_useGpuDeform);
+                meshComponent.SetPreviewColor(_previewColor);
                 deleteTarget.SetParentBezierRailChain(this);
                 deleteTarget.SetRailGraphCache(_railGraphClientCache);
-                meshComponent.Deform();
                 segment.Meshes.Add(meshComponent);
             }
         }
@@ -181,6 +203,9 @@ namespace Client.Game.InGame.Train.RailGraph
                 mesh.SetControlPoints(_point0, _point1, _point2, _point3);
                 mesh.SetAxes(_forwardAxis, _upAxis);
                 mesh.SetSamples(_curveSamples);
+                mesh.SetUseGpuDeform(_useGpuDeform);
+                mesh.SetCurveData(_curveLength, _arcLengths, _curveSampleCountCache);
+                mesh.SetPreviewColor(_previewColor);
                 mesh.ConfigureSegment(offset, length);
                 mesh.Deform();
             }
