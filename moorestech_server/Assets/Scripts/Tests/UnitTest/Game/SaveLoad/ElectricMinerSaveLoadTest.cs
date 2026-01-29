@@ -50,6 +50,7 @@ namespace Tests.UnitTest.Core.Block
             inventory.SetItemWithoutEvent(0, ServerContext.ItemStackFactory.Create(new ItemId(1), 1));
             inventory.SetItemWithoutEvent(2, ServerContext.ItemStackFactory.Create(new ItemId(4), 1));
 
+            // 残り採掘tick数をリフレクションで設定
             // Set the remaining mining ticks using reflection.
             typeof(VanillaMinerProcessorComponent)
                 .GetField("_remainingTicks", BindingFlags.Instance | BindingFlags.NonPublic)
