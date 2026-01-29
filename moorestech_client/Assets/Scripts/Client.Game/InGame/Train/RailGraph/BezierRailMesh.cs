@@ -13,8 +13,9 @@ namespace Client.Game.InGame.Train.RailGraph
     {
         internal const int MaxCurveSamples = 16;
         private const int CpuMaxCurveSamples = 1024;
-        private const string BaseMapPropertyName = "_BaseMap";
-        private const string BaseColorPropertyName = "_BaseColor";
+        private const string MainTexPropertyName = "_MainTex";
+        private const string ColorPropertyName = "_Color";
+        private const string ScanlineSpeedPropertyName = "_ScanlineSpeed";
         private const string AlphaPropertyName = "_Alpha";
 
         [SerializeField] private Mesh _sourceMesh;
@@ -49,6 +50,8 @@ namespace Client.Game.InGame.Train.RailGraph
         private bool _useGpuDeform;
         private MaterialPropertyBlock _propertyBlock;
         private Material[] _runtimeMaterials;
+        private static Material _previewBaseMaterial;
+        private static bool _previewMaterialLoaded;
         private Shader _deformShader;
         private Color _previewColor = MaterialConst.PlaceableColor;
 
@@ -65,8 +68,9 @@ namespace Client.Game.InGame.Train.RailGraph
         private static readonly int DeformSampleCountId = Shader.PropertyToID("_BezierSampleCount");
         private static readonly int DeformArcLengthsId = Shader.PropertyToID("_BezierArcLengths");
         private static readonly int PreviewColorId = Shader.PropertyToID(MaterialConst.PreviewColorPropertyName);
-        private static readonly int BaseMapId = Shader.PropertyToID(BaseMapPropertyName);
-        private static readonly int BaseColorId = Shader.PropertyToID(BaseColorPropertyName);
+        private static readonly int MainTexId = Shader.PropertyToID(MainTexPropertyName);
+        private static readonly int ColorId = Shader.PropertyToID(ColorPropertyName);
+        private static readonly int ScanlineSpeedId = Shader.PropertyToID(ScanlineSpeedPropertyName);
         private static readonly int AlphaId = Shader.PropertyToID(AlphaPropertyName);
 
         // 制御点を設定する
@@ -363,14 +367,16 @@ namespace Client.Game.InGame.Train.RailGraph
             if (baseMaterials == null || baseMaterials.Length == 0) return;
 
             _runtimeMaterials = new Material[baseMaterials.Length];
+            var previewMaterial = ResolvePreviewMaterial();
 
-            // 元マテリアルをコピーして置換する
-            // Copy base materials and replace shader
+            // プレビュー用マテリアルをベースにし、元マテリアルの見た目を上書きする
+            // Use preview material base and override with source material data
             for (var i = 0; i < baseMaterials.Length; i++)
             {
                 var baseMaterial = baseMaterials[i];
                 var runtime = new Material(shader);
-                if (baseMaterial != null) runtime.CopyPropertiesFromMaterial(baseMaterial);
+                if (previewMaterial != null) runtime.CopyPropertiesFromMaterial(previewMaterial);
+                if (baseMaterial != null) ApplyBaseMaterialOverrides(runtime, baseMaterial);
                 ApplyPreviewDefaults(runtime);
                 _runtimeMaterials[i] = runtime;
             }
@@ -401,8 +407,7 @@ namespace Client.Game.InGame.Train.RailGraph
         private void ApplyPreviewDefaults(Material runtime)
         {
             if (runtime == null) return;
-            if (runtime.HasProperty(BaseMapId)) runtime.SetTexture(BaseMapId, null);
-            if (runtime.HasProperty(BaseColorId)) runtime.SetColor(BaseColorId, Color.white);
+            if (runtime.HasProperty(ScanlineSpeedId)) runtime.SetFloat(ScanlineSpeedId, 10f);
             if (runtime.HasProperty(AlphaId)) runtime.SetFloat(AlphaId, 1f);
             if (runtime.HasProperty(PreviewColorId)) runtime.SetColor(PreviewColorId, _previewColor);
         }
@@ -468,6 +473,7 @@ namespace Client.Game.InGame.Train.RailGraph
             _propertyBlock.SetFloat(DeformSampleCountId, _curveSamples);
             _propertyBlock.SetFloatArray(DeformArcLengthsId, _arcLengthBuffer);
             _propertyBlock.SetColor(PreviewColorId, _previewColor);
+            _propertyBlock.SetFloat(ScanlineSpeedId, 10f);
 
             _meshRenderer.SetPropertyBlock(_propertyBlock);
         }
@@ -493,6 +499,30 @@ namespace Client.Game.InGame.Train.RailGraph
         {
             var maxSamples = _useGpuDeform ? MaxCurveSamples : CpuMaxCurveSamples;
             return Mathf.Clamp(_curveSamples, 8, maxSamples);
+        }
+
+        // プレビュー用マテリアルを取得する
+        // Resolve preview material resource
+        private static Material ResolvePreviewMaterial()
+        {
+            if (_previewMaterialLoaded) return _previewBaseMaterial;
+            _previewBaseMaterial = Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial);
+            _previewMaterialLoaded = true;
+            return _previewBaseMaterial;
+        }
+
+        // 元マテリアルの見た目を反映する
+        // Apply source material look
+        private void ApplyBaseMaterialOverrides(Material runtime, Material source)
+        {
+            if (runtime == null || source == null) return;
+            if (runtime.HasProperty(MainTexId))
+            {
+                runtime.SetTexture(MainTexId, source.mainTexture);
+                runtime.SetTextureOffset(MainTexId, source.mainTextureOffset);
+                runtime.SetTextureScale(MainTexId, source.mainTextureScale);
+            }
+            if (runtime.HasProperty(ColorId)) runtime.SetColor(ColorId, source.color);
         }
 
         private Quaternion BuildCurveRotation(Vector3 tangent)
