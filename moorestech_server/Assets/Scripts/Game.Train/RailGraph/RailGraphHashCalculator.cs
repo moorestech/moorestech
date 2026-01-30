@@ -201,8 +201,8 @@ namespace Game.Train.RailGraph
             var keys = new List<RailSegmentId>(railSegments.Keys);
             keys.Sort((a, b) =>
             {
-                var fromCompare = a.GetFromNodeId().CompareTo(b.GetFromNodeId());
-                return fromCompare != 0 ? fromCompare : a.GetToNodeId().CompareTo(b.GetToNodeId());
+                var fromCompare = a.GetMinNodeId().CompareTo(b.GetMinNodeId());
+                return fromCompare != 0 ? fromCompare : a.GetMaxNodeId().CompareTo(b.GetMaxNodeId());
             });
 
             var hash = current;
@@ -211,9 +211,10 @@ namespace Game.Train.RailGraph
                 var segmentId = keys[i];
                 if (!railSegments.TryGetValue(segmentId, out var segment))
                     continue;
-                hash = Mix(hash, segmentId.GetFromNodeId());
-                hash = Mix(hash, segmentId.GetToNodeId());
+                hash = Mix(hash, segmentId.GetMinNodeId());
+                hash = Mix(hash, segmentId.GetMaxNodeId());
                 hash = Mix(hash, segment.GetRailItemId().AsPrimitive());
+                hash = Mix(hash, segment.GetDirectionFlags());
             }
 
             return hash;

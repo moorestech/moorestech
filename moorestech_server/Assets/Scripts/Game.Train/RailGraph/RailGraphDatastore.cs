@@ -167,6 +167,12 @@ namespace Game.Train.RailGraph
 
         private void UpsertRailSegmentInternal(RailSegmentId segmentId, ItemId railItemId)
         {
+            if (railSegments.TryGetValue(segmentId, out var existing))
+            {
+                railSegments[segmentId] = existing.WithRailItemId(railItemId);
+                MarkHashDirty();
+                return;
+            }
             railSegments[segmentId] = new RailSegment(segmentId, railItemId);
             MarkHashDirty();
         }
@@ -181,6 +187,48 @@ namespace Game.Train.RailGraph
         private bool TryGetRailSegmentInternal(RailSegmentId segmentId, out RailSegment segment)
         {
             return railSegments.TryGetValue(segmentId, out segment);
+        }
+
+        // 接続方向を追加してレールセグメントを更新する
+        // Update the rail segment by adding a connection direction
+        private void AddSegmentDirectionInternal(int fromNodeId, int toNodeId)
+        {
+            var segmentId = RailSegmentId.CreateCanonical(fromNodeId, toNodeId);
+            var isMinToMax = RailSegmentId.IsMinToMaxDirection(fromNodeId, toNodeId);
+            if (!railSegments.TryGetValue(segmentId, out var segment))
+            {
+                var defaultRailItemId = GetDefaultRailItemId();
+                railSegments[segmentId] = new RailSegment(segmentId, defaultRailItemId, RailSegment.GetDirectionFlag(isMinToMax));
+                MarkHashDirty();
+                return;
+            }
+
+            var updated = segment.AddDirection(isMinToMax);
+            if (updated.GetDirectionFlags() == segment.GetDirectionFlags())
+                return;
+            railSegments[segmentId] = updated;
+            MarkHashDirty();
+        }
+
+        // 接続方向を削除してレールセグメントを更新する
+        // Update the rail segment by removing a connection direction
+        private void RemoveSegmentDirectionInternal(int fromNodeId, int toNodeId)
+        {
+            var segmentId = RailSegmentId.CreateCanonical(fromNodeId, toNodeId);
+            if (!railSegments.TryGetValue(segmentId, out var segment))
+                return;
+            var isMinToMax = RailSegmentId.IsMinToMaxDirection(fromNodeId, toNodeId);
+            var updated = segment.RemoveDirection(isMinToMax);
+            if (updated.GetDirectionFlags() == segment.GetDirectionFlags())
+                return;
+            if (!updated.HasAnyDirection())
+            {
+                railSegments.Remove(segmentId);
+                MarkHashDirty();
+                return;
+            }
+            railSegments[segmentId] = updated;
+            MarkHashDirty();
         }
 
         private bool TryGetRailItemIdInternal(int fromNodeId, int toNodeId, out ItemId railItemId)
@@ -217,6 +265,7 @@ namespace Game.Train.RailGraph
             // Fire rail graph update event
             // 距離更新の場合は上書き
             // In case of distance update, overwrite
+            AddSegmentDirectionInternal(nodeid, targetid);
             var railItemId = ResolveRailItemId(nodeid, targetid);
             _connectionInitializationNotifier.Notify(nodeid, targetid, distance, railItemId);
 
@@ -228,7 +277,7 @@ namespace Game.Train.RailGraph
             var nodeid = railNodeToId[node];
             var targetid = railNodeToId[targetNode];
             connectNodes[nodeid].RemoveAll(x => x.Item1 == targetid);
-            RemoveRailSegmentInternal(RailSegmentId.CreateCanonical(nodeid, targetid));
+            RemoveSegmentDirectionInternal(nodeid, targetid);
             // 接続解除イベントを発行
             // Broadcast the connection removal
             _connectionRemovalNotifier.Notify(nodeid, node.Guid, targetid, targetNode.Guid);
@@ -267,7 +316,7 @@ namespace Game.Train.RailGraph
             for (int i = 0; i < connectNodes.Count; i++)
             {
                 if (connectNodes[i].RemoveAll(x => x.Item1 == nodeid) > 0)
-                    RemoveRailSegmentInternal(RailSegmentId.CreateCanonical(i, nodeid));
+                    RemoveSegmentDirectionInternal(i, nodeid);
             }
             MarkHashDirty();
         }
@@ -279,7 +328,7 @@ namespace Game.Train.RailGraph
                 return;
             for (var i = 0; i < edges.Count; i++)
             {
-                RemoveRailSegmentInternal(RailSegmentId.CreateCanonical(nodeId, edges[i].Item1));
+                RemoveSegmentDirectionInternal(nodeId, edges[i].Item1);
             }
         }
 
