@@ -1,5 +1,9 @@
 # Train System Notes
 
+## RailSegmentId
+- RailSegmentIdはレールセグメントの正規化IDです。`CreateCanonical(from,to)` で `(from,to)` と `(to^1,from^1)` を同一キーとして扱います。RailSegmentId is a canonical rail segment id that treats `(from,to)` and `(to^1,from^1)` as the same key.
+- RailGraphDatastoreは `Dictionary<RailSegmentId, RailSegment>` でRailSegmentIdとRailSegmentの対応を管理します。RailGraphDatastore maps RailSegmentId to RailSegment via a dictionary.
+
 列車システムの実装・テスト方針を以下にまとめます。テストや仕様確認の際は [Train Documentation Index](README.md) と併せて参照してください。
 
 ## テスト環境のセットアップ
