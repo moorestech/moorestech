@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Client.Common;
 using Client.Game.InGame.Block;
+using Cysharp.Threading.Tasks;
 using Game.Train.RailCalc;
 using UnityEngine;
 
@@ -36,6 +37,9 @@ namespace Client.Game.InGame.Train.RailGraph
         private RailGraphClientCache _railGraphClientCache;
         private RendererMaterialReplacerController _controller;
         private Material _removeMaterial;
+        private RendererShaderAnimation _rendererShaderAnimation;
+        
+        public bool IsRemoving { get; private set; }
         
         private void Awake()
         {
@@ -61,6 +65,19 @@ namespace Client.Game.InGame.Train.RailGraph
         {
             _previewColor = color;
             foreach (var segment in _segments) foreach (var mesh in segment.Meshes) mesh.SetPreviewColor(_previewColor);
+        }
+        
+        public async UniTask PlaceAnimation()
+        {
+            _rendererShaderAnimation ??= gameObject.AddComponent<RendererShaderAnimation>();
+            await _rendererShaderAnimation.PlaceAnimation();
+        }
+        
+        public async UniTask RemoveAnimation()
+        {
+            IsRemoving = true;
+            _rendererShaderAnimation ??= gameObject.AddComponent<RendererShaderAnimation>();
+            await _rendererShaderAnimation.RemoveAnimation();
         }
 
         // MeshColliderの使用可否を設定する
@@ -286,6 +303,7 @@ namespace Client.Game.InGame.Train.RailGraph
         
         public void SetRemovePreviewing()
         {
+            if (IsRemoving) return;
             _controller.CopyAndSetMaterial(_removeMaterial);
             _controller.SetColor(MaterialConst.PreviewColorPropertyName, MaterialConst.NotPlaceableColor);
         }
