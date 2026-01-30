@@ -56,9 +56,11 @@ namespace Client.Game.InGame.Train.RailGraph
         public void Delete()
         {
             var carrier = RailSegmentCarrier;
-            var segmentId = carrier.GetRailSegment().GetSegmentId();
-            var fromId = segmentId.GetFromNodeId();
-            var toId = segmentId.GetToNodeId();
+            var railSegment = carrier.GetRailSegment();
+            var segmentId = railSegment.GetSegmentId();
+            var minNodeId = segmentId.GetMinNodeId();
+            var maxNodeId = segmentId.GetMaxNodeId();
+            ResolveDisconnectDirection(railSegment, minNodeId, maxNodeId, out var fromId, out var toId);
             
             if (!_railGraphClientCache.TryGetNode(fromId, out var fromNode)) return;
             if (!_railGraphClientCache.TryGetNode(toId, out var toNode)) return;
@@ -68,9 +70,11 @@ namespace Client.Game.InGame.Train.RailGraph
         
         private DeleteDeniedReason CanDelete()
         {
-            var segmentId = RailSegmentCarrier.GetRailSegment().GetSegmentId();
-            var fromId = segmentId.GetFromNodeId();
-            var toId = segmentId.GetToNodeId();
+            var railSegment = RailSegmentCarrier.GetRailSegment();
+            var segmentId = railSegment.GetSegmentId();
+            var minNodeId = segmentId.GetMinNodeId();
+            var maxNodeId = segmentId.GetMaxNodeId();
+            ResolveDisconnectDirection(railSegment, minNodeId, maxNodeId, out var fromId, out var toId);
             
             if (!_railGraphClientCache.TryGetNode(fromId, out var fromNode)) return DeleteDeniedReason.UnknownError;
             if (!_railGraphClientCache.TryGetNode(toId, out var toNode)) return DeleteDeniedReason.UnknownError;
@@ -87,6 +91,26 @@ namespace Client.Game.InGame.Train.RailGraph
                 return false;
             }
             return from.StationRef.StationBlockInstanceId.Equals(to.StationRef.StationBlockInstanceId);
+        }
+
+        // レールセグメントの向きに合わせて切断方向を決める
+        // Resolve the disconnect direction based on segment orientation
+        private static void ResolveDisconnectDirection(RailSegment railSegment, int minNodeId, int maxNodeId, out int fromId, out int toId)
+        {
+            if (railSegment.HasMinToMax())
+            {
+                fromId = minNodeId;
+                toId = maxNodeId;
+                return;
+            }
+            if (railSegment.HasMaxToMin())
+            {
+                fromId = maxNodeId;
+                toId = minNodeId;
+                return;
+            }
+            fromId = minNodeId;
+            toId = maxNodeId;
         }
         
         public enum DeleteDeniedReason

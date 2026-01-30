@@ -86,24 +86,23 @@ namespace Client.Game.InGame.Train.RailGraph
 
         private void TryActivateLine(int fromNodeId, int toNodeId)
         {
-            if (!HasPairedConnection(fromNodeId, toNodeId))
-                return;
-
             var segmentId = RailSegmentId.CreateCanonical(fromNodeId, toNodeId);
-            var canonicalFrom = segmentId.GetFromNodeId();
-            var canonicalTo = segmentId.GetToNodeId();
+            var minNodeId = segmentId.GetMinNodeId();
+            var maxNodeId = segmentId.GetMaxNodeId();
             if (_railObjs.ContainsKey(segmentId))
                 return;
             if (_cache == null)
                 return;
-            if (!_cache.TryGetNode(canonicalFrom, out var startNode))
+            if (!_cache.TryGetNode(minNodeId, out var startNode))
                 return;
-            if (!_cache.TryGetNode(canonicalTo, out var endNode))
+            if (!_cache.TryGetNode(maxNodeId, out var endNode))
                 return;
             if (!_cache.TryGetRailSegment(segmentId, out var railSegment))
                 return;
+            if (!railSegment.HasAnyDirection())
+                return;
 
-            var lineObject = SpawnRail($"RailLine_{canonicalFrom}_{canonicalTo}", startNode, endNode);
+            var lineObject = SpawnRail($"RailLine_{minNodeId}_{maxNodeId}", startNode, endNode);
             ApplyRailSegment(lineObject, railSegment);
             lineObject.transform.SetParent(transform, false);
             _railObjs[segmentId] = lineObject;
@@ -122,34 +121,6 @@ namespace Client.Game.InGame.Train.RailGraph
             {
                 Destroy(gobj);
             }
-        }
-
-        private bool HasPairedConnection(int fromNodeId, int toNodeId)
-        {
-            if (_cache == null)
-                return false;
-
-            var adjacency = _cache.ConnectNodes;
-            if (!IsValidIndex(adjacency, fromNodeId) || !IsValidIndex(adjacency, toNodeId))
-                return false;
-
-            var oppositeSource = toNodeId ^ 1;
-            var oppositeTarget = fromNodeId ^ 1;
-            if (!IsValidIndex(adjacency, oppositeSource))
-                return false;
-
-            var edges = adjacency[oppositeSource];
-            if (edges == null)
-                return false;
-
-            foreach (var (targetId, _) in edges)
-            {
-                if (targetId == oppositeTarget)
-                {
-                    return true;
-                }
-            }
-            return false;
         }
 
         private GameObject SpawnRail(string name, IRailNode startNode, IRailNode endNode)

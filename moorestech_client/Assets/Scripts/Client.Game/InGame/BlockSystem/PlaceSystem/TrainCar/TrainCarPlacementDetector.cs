@@ -143,17 +143,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     return true;
                 }
 
-                bool TryResolveCanonicalNodes(RailSegmentId railSegmentId, out int canonicalFromId, out int canonicalToId, out IRailNode canonicalFromNode, out IRailNode canonicalToNode)
+                bool TryResolveCanonicalNodes(RailSegmentId railSegmentId, out int minNodeId, out int maxNodeId, out IRailNode minNode, out IRailNode maxNode)
                 {
-                    canonicalFromId = railSegmentId.GetFromNodeId();
-                    canonicalToId = railSegmentId.GetToNodeId();
-                    canonicalFromNode = null;
-                    canonicalToNode = null;
-                    if (!_cache.TryGetNode(canonicalFromId, out canonicalFromNode))
+                    minNodeId = railSegmentId.GetMinNodeId();
+                    maxNodeId = railSegmentId.GetMaxNodeId();
+                    minNode = null;
+                    maxNode = null;
+                    if (!_cache.TryGetNode(minNodeId, out minNode))
                     {
                         return false;
                     }
-                    if (!_cache.TryGetNode(canonicalToId, out canonicalToNode))
+                    if (!_cache.TryGetNode(maxNodeId, out maxNode))
                     {
                         return false;
                     }

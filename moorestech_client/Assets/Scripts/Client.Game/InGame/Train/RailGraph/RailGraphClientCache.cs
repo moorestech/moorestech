@@ -136,8 +136,7 @@ namespace Client.Game.InGame.Train.RailGraph
                     if (connection == null || connection.FromNodeId < 0 || connection.FromNodeId >= adjacencyList.Count)
                         continue;
                     adjacencyList[connection.FromNodeId].Add((connection.ToNodeId, connection.Distance));
-                    var segmentId = RailSegmentId.CreateCanonical(connection.FromNodeId, connection.ToNodeId);
-                    _railSegments[segmentId] = new RailSegment(segmentId, connection.RailItemId);
+                    UpsertRailSegment(connection.FromNodeId, connection.ToNodeId, connection.RailItemId);
                 }
             }
             #endregion
@@ -190,7 +189,7 @@ namespace Client.Game.InGame.Train.RailGraph
             {
                 foreach (var (targetId, _) in outgoing)
                 {
-                    RemoveRailSegment(nodeId, targetId);
+                    RemoveRailSegmentDirection(nodeId, targetId);
                     TrainRailObjectManager.Instance?.OnConnectionRemoved(nodeId, targetId, this);
                 }
                 outgoing.Clear();
@@ -219,8 +218,7 @@ namespace Client.Game.InGame.Train.RailGraph
             {
                 connections.Add((toNodeId, distance));
             }
-            var segmentId = RailSegmentId.CreateCanonical(fromNodeId, toNodeId);
-            _railSegments[segmentId] = new RailSegment(segmentId, railItemId);
+            UpsertRailSegment(fromNodeId, toNodeId, railItemId);
             UpdateTick(eventTick);
             TrainRailObjectManager.Instance?.OnConnectionUpserted(fromNodeId, toNodeId, this);
         }
@@ -234,7 +232,7 @@ namespace Client.Game.InGame.Train.RailGraph
             var removed = _connectNodes[fromNodeId].RemoveAll(x => x.targetId == toNodeId) > 0;
             if (!removed)
                 return;
-            RemoveRailSegment(fromNodeId, toNodeId);
+            RemoveRailSegmentDirection(fromNodeId, toNodeId);
             UpdateTick(eventTick);
             TrainRailObjectManager.Instance?.OnConnectionRemoved(fromNodeId, toNodeId, this);
         }
@@ -328,16 +326,41 @@ namespace Client.Game.InGame.Train.RailGraph
                     }
 
                     edges.RemoveAt(index);
-                    RemoveRailSegment(i, targetNodeId);
+                    RemoveRailSegmentDirection(i, targetNodeId);
                     TrainRailObjectManager.Instance?.OnConnectionRemoved(i, targetNodeId, this);
                 }
             }
         }
-
-        private void RemoveRailSegment(int fromNodeId, int toNodeId)
+        // レールセグメントの方向を追加/更新する
+        // Upsert rail segment and append the directional flag
+        private void UpsertRailSegment(int fromNodeId, int toNodeId, ItemId railItemId)
         {
             var segmentId = RailSegmentId.CreateCanonical(fromNodeId, toNodeId);
-            _railSegments.Remove(segmentId);
+            var isMinToMax = RailSegmentId.IsMinToMaxDirection(fromNodeId, toNodeId);
+            if (!_railSegments.TryGetValue(segmentId, out var segment))
+            {
+                _railSegments[segmentId] = new RailSegment(segmentId, railItemId, RailSegment.GetDirectionFlag(isMinToMax));
+                return;
+            }
+            var updated = segment.WithRailItemId(railItemId).AddDirection(isMinToMax);
+            _railSegments[segmentId] = updated;
+        }
+
+        // レールセグメントの方向を削除し、必要なら破棄する
+        // Remove a direction flag and purge the segment if empty
+        private void RemoveRailSegmentDirection(int fromNodeId, int toNodeId)
+        {
+            var segmentId = RailSegmentId.CreateCanonical(fromNodeId, toNodeId);
+            if (!_railSegments.TryGetValue(segmentId, out var segment))
+                return;
+            var isMinToMax = RailSegmentId.IsMinToMaxDirection(fromNodeId, toNodeId);
+            var updated = segment.RemoveDirection(isMinToMax);
+            if (!updated.HasAnyDirection())
+            {
+                _railSegments.Remove(segmentId);
+                return;
+            }
+            _railSegments[segmentId] = updated;
         }
 
         // Tick値を更新（最新値を保持）
