@@ -1,274 +1,180 @@
-using Game.Train.RailCalc;
+﻿using Client.Common;
 using UnityEngine;
 
 /// <summary>
-/// 4制御点のベジエ曲線に沿ってメッシュを変形するコンポーネント。
-/// 区間を指定できるので、複数モジュールを並べたレールにも利用できる。
+/// 4つのベジェ制御点に沿ってメッシュを変形するコンポーネント。
+/// Deforms a mesh along a cubic Bezier curve.
 /// </summary>
 namespace Client.Game.InGame.Train.RailGraph
 {
     [RequireComponent(typeof(MeshFilter))]
     public class BezierRailMesh : MonoBehaviour
     {
-        [SerializeField] private Mesh _sourceMesh;
-        [SerializeField] private Vector3 _point0 = new(0f, 0f, 0f);
-        [SerializeField] private Vector3 _point1 = new(0f, 0f, 2f);
-        [SerializeField] private Vector3 _point2 = new(0f, 0f, 4f);
-        [SerializeField] private Vector3 _point3 = new(0f, 0f, 6f);
-        [SerializeField] private Vector3 _forwardAxis = Vector3.forward;
-        [SerializeField] private Vector3 _upAxis = Vector3.up;
-        private int _curveSamples = 64;
-        [SerializeField, HideInInspector] private float _distanceOffset;
-        [SerializeField, HideInInspector] private float _segmentLength = -1f;
+        internal const int MaxCurveSamples = 16;
+        internal const int CpuMaxCurveSamples = 1024;
+        internal const int BoundsSampleCount = 12;
+        internal const string MainTexPropertyName = "_MainTex";
+        internal const string ColorPropertyName = "_Color";
+        internal const string ScanlineSpeedPropertyName = "_ScanlineSpeed";
 
-        private MeshFilter _meshFilter;
-        private MeshCollider _meshCollider;
-        private Mesh _deformedMesh;
-        private Mesh _originalMesh;
-        private Vector3[] _originalVertices;
-        private Vector3[] _originalNormals;
-        private Vector3[] _alignedVertices;
-        private Vector3[] _deformedVertices;
-        private Vector3[] _deformedNormals;
-        private float[] _arcLengths;
-        private float _curveLength;
+        [SerializeField] internal Mesh _sourceMesh;
+        [SerializeField] internal Vector3 _point0 = new(0f, 0f, 0f);
+        [SerializeField] internal Vector3 _point1 = new(0f, 0f, 2f);
+        [SerializeField] internal Vector3 _point2 = new(0f, 0f, 4f);
+        [SerializeField] internal Vector3 _point3 = new(0f, 0f, 6f);
+        [SerializeField] internal Vector3 _forwardAxis = Vector3.forward;
+        [SerializeField] internal Vector3 _upAxis = Vector3.up;
+        [SerializeField, HideInInspector] internal float _distanceOffset;
+        [SerializeField, HideInInspector] internal float _segmentLength = -1f;
 
-        /// <summary>制御点を一括設定して再変形する。</summary>
+        internal MeshFilter _meshFilter;
+        internal MeshRenderer _meshRenderer;
+        internal MeshCollider _meshCollider;
+        internal Mesh _deformedMesh;
+        internal Mesh _originalMesh;
+        internal Vector3[] _originalVertices;
+        internal Vector3[] _originalNormals;
+        internal Vector3[] _alignedVertices;
+        internal Vector3[] _deformedVertices;
+        internal Vector3[] _deformedNormals;
+        internal float[] _arcLengths;
+        internal float _curveLength;
+        internal float[] _arcLengthBuffer;
+        internal Quaternion _axisRotation = Quaternion.identity;
+        internal float _forwardMin;
+        internal float _meshLength;
+        internal int _curveSamples = 64;
+        internal bool _meshDataDirty = true;
+        internal bool _curveDataDirty = true;
+        internal bool _useGpuDeform;
+        internal MaterialPropertyBlock _propertyBlock;
+        internal Material[] _runtimeMaterials;
+        internal static Material _previewBaseMaterial;
+        internal static bool _previewMaterialLoaded;
+        internal Shader _deformShader;
+        internal Color _previewColor = MaterialConst.PlaceableColor;
+
+        internal static readonly int DeformP0Id = Shader.PropertyToID("_BezierP0");
+        internal static readonly int DeformP1Id = Shader.PropertyToID("_BezierP1");
+        internal static readonly int DeformP2Id = Shader.PropertyToID("_BezierP2");
+        internal static readonly int DeformP3Id = Shader.PropertyToID("_BezierP3");
+        internal static readonly int DeformAxisRotationId = Shader.PropertyToID("_BezierAxisRotation");
+        internal static readonly int DeformCurveLengthId = Shader.PropertyToID("_BezierCurveLength");
+        internal static readonly int DeformSegmentStartId = Shader.PropertyToID("_BezierSegmentStart");
+        internal static readonly int DeformSegmentLengthId = Shader.PropertyToID("_BezierSegmentLength");
+        internal static readonly int DeformForwardMinId = Shader.PropertyToID("_BezierForwardMin");
+        internal static readonly int DeformMeshLengthId = Shader.PropertyToID("_BezierMeshLength");
+        internal static readonly int DeformSampleCountId = Shader.PropertyToID("_BezierSampleCount");
+        internal static readonly int DeformArcLengthsId = Shader.PropertyToID("_BezierArcLengths");
+        internal static readonly int PreviewColorId = Shader.PropertyToID(MaterialConst.PreviewColorPropertyName);
+        internal static readonly int MainTexId = Shader.PropertyToID(MainTexPropertyName);
+        internal static readonly int ColorId = Shader.PropertyToID(ColorPropertyName);
+        internal static readonly int ScanlineSpeedId = Shader.PropertyToID(ScanlineSpeedPropertyName);
+
+        // 制御点を設定する
+        // Set control points
         public void SetControlPoints(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3)
         {
             _point0 = p0;
             _point1 = p1;
             _point2 = p2;
             _point3 = p3;
+            _curveDataDirty = true;
         }
 
-        /// <summary>使用する元メッシュを差し替える。</summary>
+        // 参照メッシュを設定する
+        // Set source mesh
         public void SetSourceMesh(Mesh mesh)
         {
-            if (_sourceMesh == mesh)
-                return;
-
+            if (_sourceMesh == mesh) return;
             _sourceMesh = mesh;
             _originalMesh = null;
-            _deformedMesh = null;
+            _meshDataDirty = true;
         }
 
-        /// <summary>軸設定を変更する。</summary>
+        // 軸方向を設定する
+        // Set mesh axes
         public void SetAxes(Vector3 forward, Vector3 up)
         {
             _forwardAxis = forward;
             _upAxis = up;
+            _meshDataDirty = true;
         }
 
-        /// <summary>ベジエのサンプル数を設定する。</summary>
+        // サンプル数を設定する
+        // Set curve sample count
         public void SetSamples(int samples)
         {
-            _curveSamples = Mathf.Clamp(samples, 8, 1024);
+            _curveSamples = Mathf.Clamp(samples, 8, CpuMaxCurveSamples);
+            _curveDataDirty = true;
         }
 
-        /// <summary>曲線上のどの距離区間を使用するか設定する。</summary>
+        // 曲線データを設定する
+        // Set curve data
+        public void SetCurveData(float curveLength, float[] arcLengths, int samples)
+        {
+            _curveLength = curveLength;
+            _arcLengths = arcLengths;
+            _curveSamples = Mathf.Clamp(samples, 8, CpuMaxCurveSamples);
+            _curveDataDirty = false;
+        }
+
+        // セグメント範囲を設定する
+        // Configure segment range
         public void ConfigureSegment(float distanceOffset, float segmentLength)
         {
             _distanceOffset = Mathf.Max(0f, distanceOffset);
             _segmentLength = segmentLength;
         }
 
+        // GPU変形の有効化を設定する
+        // Enable or disable GPU deform
+        public void SetUseGpuDeform(bool enable)
+        {
+            if (_useGpuDeform == enable) return;
+            _useGpuDeform = enable;
+            _meshDataDirty = true;
+            _curveDataDirty = true;
+            if (_useGpuDeform) BezierRailMeshData.ReleaseDeformedMesh(this);
+            if (!_useGpuDeform) BezierRailMeshMaterials.ReleaseRuntimeMaterials(this);
+        }
+
+        // プレビュー色を設定する
+        // Set preview color
+        public void SetPreviewColor(Color color)
+        {
+            _previewColor = color;
+            if (_useGpuDeform) BezierRailMeshGpu.ApplyPropertyBlock(this);
+        }
+
+        // 変形処理を実行する
+        // Execute deformation
         public void Deform()
         {
-            if (!EnsureMeshData())
-                return;
-
-            if (!BuildArcLengthTable())
-                return;
-
-            var axisRotation = BuildAxisRotation();
-            if (_alignedVertices == null || _alignedVertices.Length != _originalVertices.Length)
-                _alignedVertices = new Vector3[_originalVertices.Length];
-
-            float forwardMin = float.PositiveInfinity;
-            float forwardMax = float.NegativeInfinity;
-
-            // 元メッシュの前方向範囲を取得
-            for (var i = 0; i < _originalVertices.Length; i++)
-            {
-                var aligned = axisRotation * _originalVertices[i];
-                _alignedVertices[i] = aligned;
-                var z = aligned.z;
-                if (z < forwardMin) forwardMin = z;
-                if (z > forwardMax) forwardMax = z;
-            }
-
-            var meshLength = Mathf.Max(1e-4f, forwardMax - forwardMin);
-            if (_curveLength <= 1e-4f)
-                return;
-
-            var targetSegmentLength = _segmentLength > 0f ? Mathf.Min(_segmentLength, _curveLength) : _curveLength;
-            var startDistance = Mathf.Clamp(_distanceOffset, 0f, _curveLength);
-            var endDistance = Mathf.Clamp(startDistance + targetSegmentLength, 0f, _curveLength);
-            var usableLength = Mathf.Max(1e-4f, endDistance - startDistance);
-
-            EnsureWorkingBuffers();
-
-            for (var i = 0; i < _alignedVertices.Length; i++)
-            {
-                var alignedVertex = _alignedVertices[i];
-                var normalizedForward = (alignedVertex.z - forwardMin) / meshLength;
-                var distanceOnCurve = startDistance + normalizedForward * usableLength;
-
-                var t = DistanceToTime(distanceOnCurve);
-                var curvePos = EvaluatePosition(t);
-                var curveTangent = EvaluateTangent(t);
-                var rotation = BuildCurveRotation(curveTangent);
-
-                var offset = rotation * new Vector3(alignedVertex.x, alignedVertex.y, 0f);
-                _deformedVertices[i] = curvePos + offset;
-
-                var normal = axisRotation * _originalNormals[i];
-                _deformedNormals[i] = rotation * normal;
-            }
-
-            _deformedMesh.vertices = _deformedVertices;
-            _deformedMesh.normals = _deformedNormals;
-            _deformedMesh.RecalculateBounds();
-
-            if (_meshCollider != null)
-                _meshCollider.sharedMesh = _deformedMesh;
+            // 変形モードを切り替える
+            // Select deformation mode
+            if (_useGpuDeform) { BezierRailMeshGpu.Deform(this); return; }
+            BezierRailMeshCpu.Deform(this);
         }
+
+        // モジュール長を推定する
+        // Estimate module length
+        internal static float CalculateModuleLength(Mesh mesh, Vector3 forwardAxis, Vector3 upAxis) => BezierRailMeshData.CalculateModuleLength(mesh, forwardAxis, upAxis);
 
         private void Awake()
         {
             TryGetComponent(out _meshFilter);
+            TryGetComponent(out _meshRenderer);
             TryGetComponent(out _meshCollider);
-        }
-
-        private void Start()
-        {
         }
 
         private void OnDestroy()
         {
-            if (!Application.isPlaying && _meshFilter != null && _originalMesh != null)
-                _meshFilter.sharedMesh = _originalMesh;
-            if (_deformedMesh == null)
-                return;
-            Destroy(_deformedMesh);
-            _deformedMesh = null;
-        }
-
-        private bool EnsureMeshData()
-        {
-            if (_meshFilter == null && !TryGetComponent(out _meshFilter))
-                return false;
-
-            if (_meshCollider == null)
-                TryGetComponent(out _meshCollider);
-
-            if (_sourceMesh == null)
-                _sourceMesh = _meshFilter.sharedMesh;
-
-            if (_sourceMesh == null)
-                return false;
-
-            if (_originalMesh != _sourceMesh)
-            {
-                _originalMesh = _sourceMesh;
-                _originalVertices = _originalMesh.vertices;
-                _originalNormals = _originalMesh.normals;
-                _deformedVertices = null;
-                _deformedNormals = null;
-            }
-
-            if (_deformedMesh == null)
-            {
-                _deformedMesh = Instantiate(_sourceMesh);
-                _deformedMesh.name = $"{_sourceMesh.name}_Bezier";
-            }
-
-            _meshFilter.mesh = _deformedMesh;
-            return _originalVertices != null && _originalNormals != null;
-        }
-
-        private void EnsureWorkingBuffers()
-        {
-            if (_deformedVertices == null || _deformedVertices.Length != _originalVertices.Length)
-                _deformedVertices = new Vector3[_originalVertices.Length];
-
-            if (_deformedNormals == null || _deformedNormals.Length != _originalNormals.Length)
-                _deformedNormals = new Vector3[_originalNormals.Length];
-        }
-
-        private Quaternion BuildAxisRotation() => GetAxisRotation(_forwardAxis, _upAxis);
-
-        private Quaternion BuildCurveRotation(Vector3 tangent)
-        {
-            var forward = tangent.sqrMagnitude > 1e-6f ? tangent.normalized : Vector3.forward;
-            var horizontal = new Vector3(forward.x, 0f, forward.z);
-
-            // レール姿勢をヨー→ピッチの順に構築してローリングを抑制
-            // Build yaw first then pitch to keep rails upright without roll
-            if (horizontal.sqrMagnitude < 1e-6f)
-            {
-                var angle = forward.y >= 0f ? 90f : -90f;
-                return Quaternion.AngleAxis(angle, Vector3.right);
-            }
-
-            var yawRotation = Quaternion.LookRotation(horizontal.normalized, Vector3.up);
-            var invYaw = Quaternion.Inverse(yawRotation);
-            var localForward = invYaw * forward;
-            var pitchAngle = Mathf.Atan2(localForward.y, Mathf.Max(1e-6f, localForward.z)) * Mathf.Rad2Deg;
-            return yawRotation * Quaternion.AngleAxis(pitchAngle, Vector3.right);
-        }
-
-        private bool BuildArcLengthTable()
-        {
-            _curveLength = BezierUtility.BuildArcLengthTable(_point0, _point1, _point2, _point3, _curveSamples, ref _arcLengths);
-            return _curveLength > 1e-4f;
-        }
-
-        private float DistanceToTime(float distance) => BezierUtility.DistanceToTime(distance, _curveLength, _arcLengths);
-
-        private Vector3 EvaluatePosition(float t) => BezierUtility.GetBezierPoint(_point0, _point1, _point2, _point3, t);
-
-        private Vector3 EvaluateTangent(float t) => BezierUtility.GetBezierTangent(_point0, _point1, _point2, _point3, t);
-
-        internal static Quaternion GetAxisRotation(Vector3 forwardAxis, Vector3 upAxis)
-        {
-            var forward = forwardAxis.sqrMagnitude > 1e-4f ? forwardAxis.normalized : Vector3.forward;
-            var up = upAxis.sqrMagnitude > 1e-4f ? upAxis.normalized : Vector3.up;
-
-            if (Mathf.Abs(Vector3.Dot(forward, up)) > 0.999f)
-            {
-                up = Vector3.Cross(forward, Vector3.right);
-                if (up.sqrMagnitude < 1e-4f)
-                    up = Vector3.Cross(forward, Vector3.up);
-                up = up.normalized;
-            }
-
-            return Quaternion.Inverse(Quaternion.LookRotation(forward, up));
-        }
-
-        internal static float CalculateModuleLength(Mesh mesh, Vector3 forwardAxis, Vector3 upAxis)
-        {
-            if (mesh == null)
-                return 0f;
-
-            var vertices = mesh.vertices;
-            if (vertices == null || vertices.Length == 0)
-                return 0f;
-
-            var axisRotation = GetAxisRotation(forwardAxis, upAxis);
-            var min = float.PositiveInfinity;
-            var max = float.NegativeInfinity;
-
-            foreach (var vertex in vertices)
-            {
-                var aligned = axisRotation * vertex;
-                if (aligned.z < min) min = aligned.z;
-                if (aligned.z > max) max = aligned.z;
-            }
-
-            return Mathf.Max(1e-4f, max - min);
+            // 実行時生成のリソースを破棄する
+            // Release runtime resources
+            if (!Application.isPlaying && _meshFilter != null && _originalMesh != null) _meshFilter.sharedMesh = _originalMesh;
+            BezierRailMeshData.ReleaseDeformedMesh(this);
+            BezierRailMeshMaterials.ReleaseRuntimeMaterials(this);
         }
     }
-
 }

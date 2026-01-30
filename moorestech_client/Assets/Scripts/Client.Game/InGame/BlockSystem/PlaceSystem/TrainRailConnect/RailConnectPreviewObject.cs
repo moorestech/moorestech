@@ -1,5 +1,4 @@
 using Client.Common;
-using Client.Game.InGame.Block;
 using Client.Game.InGame.Train.RailGraph;
 using UnityEngine;
 
@@ -10,13 +9,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         [SerializeField] private BezierRailChain _railChainPrefab;
         private TrainRailConnectPreviewData _previewDataCache;
         private BezierRailChain _railChain;
-        private RendererMaterialReplacerController _rendererMaterialReplacer;
-        private Material _placeMaterial;
-        
         private void Start()
         {
+            // プレビュー用レールを初期化する
+            // Initialize preview rail chain
             _railChain = Instantiate(_railChainPrefab);
-            _placeMaterial = Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial);
+            _railChain.SetUseGpuDeform(true);
+            _railChain.SetUseMeshCollider(false);
+            _railChain.SetPreviewColor(MaterialConst.PlaceableColor);
         }
         
         public void SetActive(bool active)
@@ -35,11 +35,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             
             if (!_previewDataCache.Equals(data))
             {
+                // プレビュー内容が変わった時だけ更新する
+                // Update only when preview data changes
                 _railChain.SetControlPoints(data.StartPoint, data.StartControlPoint, data.EndControlPoint, data.EndPoint);
+                _railChain.SetPreviewColor(data.HasEnoughRailItem ? MaterialConst.PlaceableColor : MaterialConst.NotPlaceableColor);
                 _railChain.Rebuild();
-                _rendererMaterialReplacer = new RendererMaterialReplacerController(_railChain.gameObject);
-                _rendererMaterialReplacer.CopyAndSetMaterial(_placeMaterial);
-                if (!data.HasEnoughRailItem) _rendererMaterialReplacer.SetColor(MaterialConst.PreviewColorPropertyName, MaterialConst.NotPlaceableColor);
                 _previewDataCache = data;
             }
         }
