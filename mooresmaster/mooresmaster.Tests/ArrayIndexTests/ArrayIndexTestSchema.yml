@@ -1,0 +1,12 @@
+id: arrayIndexTest
+type: object
+properties:
+  - key: items
+    type: array
+    items:
+      type: object
+      properties:
+        - key: name
+          type: string
+        - key: value
+          type: integer

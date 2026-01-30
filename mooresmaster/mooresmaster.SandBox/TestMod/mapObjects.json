@@ -1,0 +1,29 @@
+{
+  "data": [
+    {
+      "earnItemHps": [
+        0,
+        10,
+        20
+      ],
+      "hp": 30,
+      "mapObjectName": "vanilla:Tree",
+      "miningTools": [
+        {
+          "attackSpeed": 1.6,
+          "damage": 1,
+          "toolItemGuid": "00000000-0000-0000-1234-000000000001"
+        }
+      ],
+      "earnItems": [
+        {
+          "maxCount": 5,
+          "minCount": 3,
+          "itemGuid": "00000000-0000-0000-1234-000000000001"
+        }
+      ],
+      "mapObjectGuid": "8c0e1339-be75-4690-99cd-58b5385a17cd",
+      "soundEffectType": "tree"
+    }
+  ]
+}
