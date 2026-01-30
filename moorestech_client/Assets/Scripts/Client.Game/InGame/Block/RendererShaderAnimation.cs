@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Client.Game.InGame.Block
 {
-    public class BlockShaderAnimation : MonoBehaviour
+    public class RendererShaderAnimation : MonoBehaviour
     {
         private const string WorldMinY = "_WorldMinY";
         private const string WorldMaxY = "_WorldMaxY";
