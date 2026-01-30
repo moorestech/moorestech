@@ -1,3 +1,4 @@
+using System;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState.State;
 using Game.Train.RailGraph;
@@ -48,7 +49,8 @@ namespace Client.Game.InGame.Train.RailGraph
                 DeleteDeniedReason.StationInternalEdge => "駅内部のレールは削除できません。",
                 DeleteDeniedReason.NodeInUseByTrain => "レール上に車両があります。",
                 DeleteDeniedReason.UnknownError => "不明なエラー",
-                _ => null,
+                DeleteDeniedReason.Removed => null,
+                _ => throw new ArgumentOutOfRangeException(),
             };
             return canDelete == DeleteDeniedReason.None;
         }
@@ -68,6 +70,8 @@ namespace Client.Game.InGame.Train.RailGraph
         
         private DeleteDeniedReason CanDelete()
         {
+            if (RailChain.IsRemoving) return DeleteDeniedReason.Removed;
+            
             var railObjectId = RailObjectIdCarrier.GetRailObjectId();
             var fromId = unchecked((int)(uint)railObjectId);
             var toId = unchecked((int)(uint)(railObjectId >> 32));
@@ -94,6 +98,7 @@ namespace Client.Game.InGame.Train.RailGraph
             None,
             StationInternalEdge,
             NodeInUseByTrain,
+            Removed,
             UnknownError,
         }
     }
