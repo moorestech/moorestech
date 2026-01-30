@@ -1,0 +1,26 @@
+﻿{
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "DebugRoslynSourceGenerator": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "../mooresmaster.SandBox/mooresmaster.SandBox.csproj",
+      "environmentVariables": {
+        "IsSourceGeneratorDebug": "true"
+      }
+    },
+    "DebugTestRoslynSourceGenerator": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "../mooresmaster.Tests/mooresmaster.Tests.csproj",
+      "environmentVariables": {
+        "IsSourceGeneratorDebug": "true"
+      }
+    },
+    "DebugErrorRoslynSourceGenerator": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "../mooresmaster.error/mooresmaster.error.csproj",
+      "environmentVariables": {
+        "IsSourceGeneratorDebug": "true"
+      }
+    }
+  }
+}
