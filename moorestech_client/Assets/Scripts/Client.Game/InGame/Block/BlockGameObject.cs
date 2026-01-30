@@ -29,7 +29,7 @@ namespace Client.Game.InGame.Block
         public IObservable<BlockGameObject> OnFinishedPlaceAnimation => _onFinishedPlaceAnimation;
         private readonly Subject<BlockGameObject> _onFinishedPlaceAnimation = new();
         
-        private BlockShaderAnimation _blockShaderAnimation;
+        private RendererShaderAnimation _rendererShaderAnimation;
         private RendererMaterialReplacerController _rendererMaterialReplacerController;
         private List<VisualEffect> _visualEffects = new();
         private List<IPreviewOnlyObject> _previewOnlyObjects = new();
@@ -46,7 +46,7 @@ namespace Client.Game.InGame.Block
             BlockMasterElement = blockMasterElement;
             BlockStateChangeProcessors = gameObject.GetComponentsInChildren<IBlockStateChangeProcessor>().ToList();
             _visualEffects = gameObject.GetComponentsInChildren<VisualEffect>(true).ToList();
-            _blockShaderAnimation = gameObject.AddComponent<BlockShaderAnimation>();
+            _rendererShaderAnimation = gameObject.AddComponent<RendererShaderAnimation>();
            
             _rendererMaterialReplacerController = new RendererMaterialReplacerController(gameObject);
             
@@ -135,7 +135,7 @@ namespace Client.Game.InGame.Block
         {
             _isShaderAnimating = true;
             SetVfxActive(false);
-            await _blockShaderAnimation.PlaceAnimation();
+            await _rendererShaderAnimation.PlaceAnimation();
             _isShaderAnimating = false;
             SetVfxActive(true);
             _onFinishedPlaceAnimation.OnNext(this);
@@ -170,7 +170,7 @@ namespace Client.Game.InGame.Block
         {
             _isShaderAnimating = true;
             SetVfxActive(false);
-            await _blockShaderAnimation.RemoveAnimation();
+            await _rendererShaderAnimation.RemoveAnimation();
             Destroy(gameObject);
         }
         

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using Game.Train.RailGraph;
 using UnityEngine;
 
@@ -118,7 +119,12 @@ namespace Client.Game.InGame.Train.RailGraph
             _railObjs.Remove(railObjectId);
             if (gobj != null)
             {
-                Destroy(gobj);
+                UniTask.Create(async () =>
+                {
+                    var bezierRailChain = gobj.GetComponent<BezierRailChain>();
+                    await bezierRailChain.RemoveAnimation();
+                    Destroy(gobj);
+                }).Forget();
             }
         }
 
@@ -161,6 +167,7 @@ namespace Client.Game.InGame.Train.RailGraph
             instance.SetControlPoints(startControl, control1, control2, endControl);
             instance.SetRailGraphCache(_cache);
             instance.Rebuild();
+            instance.PlaceAnimation().Forget();
             instance.name = name;
             return instance.gameObject;
         }
