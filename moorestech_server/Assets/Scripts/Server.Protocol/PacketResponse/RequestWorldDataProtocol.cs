@@ -15,7 +15,7 @@ namespace Server.Protocol.PacketResponse
     public class RequestWorldDataProtocol : IPacketResponse
     {
         public const string ProtocolTag = "va:getWorldData";
-        public const float ItemVisibilityDistance = 10f;
+        public const float ItemVisibilityDistance = 20f;
 
         private readonly IEntityFactory _entityFactory;
         private readonly IEntitiesDatastore _entitiesDatastore;
