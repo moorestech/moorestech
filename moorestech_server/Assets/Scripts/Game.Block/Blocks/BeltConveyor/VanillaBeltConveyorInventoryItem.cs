@@ -49,17 +49,17 @@ namespace Game.Block.Blocks.BeltConveyor
         }
 
         /// <summary>
-        /// 停止状態から復帰した際にTotalTicksとRemainingTicksをリセットする
-        /// Reset TotalTicks and RemainingTicks when recovering from stopped state
+        /// 停止状態から復帰した際に、未進行状態のアイテムのTotalTicksとRemainingTicksをリセットする
+        /// When recovering from a stopped state, reset TotalTicks and RemainingTicks for items with no valid progress
         /// </summary>
         public void ResetTicksOnSpeedRecovery(uint newTotalTicks)
         {
-            // 現在の進捗率を維持しながらtickを更新
-            // Update ticks while maintaining current progress ratio
+            // TotalTicks が 0 または uint.MaxValue の場合のみ、新しい速度に合わせて tick を初期化する
+            // Only initialize ticks to the new speed when TotalTicks is 0 or uint.MaxValue
             if (TotalTicks == 0 || TotalTicks == uint.MaxValue)
             {
-                // 停止中に投入されたアイテムは進捗0からスタート
-                // Items inserted while stopped start from 0 progress
+                // 停止中に投入されたアイテムは新しいTotalTicksで進捗0からスタート
+                // Items inserted while stopped start from 0 progress with the new TotalTicks
                 TotalTicks = newTotalTicks;
                 RemainingTicks = newTotalTicks;
             }
