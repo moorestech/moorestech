@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.BeltConveyor;
+using Game.Block.Blocks.Chest;
 using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -241,73 +242,97 @@ namespace Tests.CombinedTest.Core
             // Initialize dependencies
             var (_, _) = new MoorestechServerDIContainerGenerator().Create(
                 new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var itemStackFactory = ServerContext.ItemStackFactory;
             var beltConveyorParam = MasterHolder.BlockMaster
                 .GetBlockMaster(ForUnitTestModBlockId.BeltConveyorId).BlockParam as BeltConveyorBlockParam;
 
-            // 挿入チェックはパスするが搬出で拒否される接続先を作成する
-            // Create output that passes insertion check but rejects on actual output
-            var (beltConveyorComponent, connectedTargets) = CreateBeltConveyor();
+            // ベルトコンベアを配置する（出力先は詰まり状態）
+            // Place belt conveyor (output is blocked)
+            var beltPosition = Vector3Int.zero;
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, beltPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var beltBlock);
+            var beltConveyorComponent = beltBlock.GetComponent<VanillaBeltConveyorComponent>();
+
+            // チェストをベルトコンベアの入力側に配置する
+            // Place chest at input side of belt conveyor
+            var inputChestPosition = new Vector3Int(0, 0, -1);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, inputChestPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var inputChestBlock);
+            var inputChest = inputChestBlock.GetComponent<VanillaChestComponent>();
+
+            // 出力先として詰まるチェストを配置する（InsertionCheckをパスするがInsertItemで拒否）
+            // Place blocked output chest (passes InsertionCheck but rejects InsertItem)
             var blockedInventory = new ConfigurableBlockInventory(1, 10, true, true);
+            var connectedTargets = (Dictionary<IBlockInventory, ConnectedInfo>)beltBlock.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
+            connectedTargets.Clear();
             AddTarget(connectedTargets, blockedInventory, 0);
 
-            // 2つのアイテムを投入する（間隔を空けて）
-            // Insert two items with spacing
-            var item1 = itemStackFactory.Create(new ItemId(1), 1);
-            beltConveyorComponent.InsertItem(item1, InsertItemContext.Empty);
+            // チェストに4つのアイテムを入れる
+            // Insert 4 items into chest
+            var itemId = new ItemId(1);
+            for (var i = 0; i < 4; i++)
+            {
+                inputChest.SetItem(i, itemStackFactory.Create(itemId, 1));
+            }
 
-            // 最初のアイテムを途中まで進める
-            // Advance first item partway
-            var halfTime = TimeSpan.FromSeconds(beltConveyorParam.TimeOfItemEnterToExit * 0.5);
+            // すべてのアイテムがベルトコンベアに移動し、詰まるまで待つ
+            // Wait until all items are on belt conveyor and clogged
+            var timeout = TimeSpan.FromSeconds(beltConveyorParam.TimeOfItemEnterToExit * 5);
             UpdateUntil(() =>
             {
-                var items = beltConveyorComponent.BeltConveyorItems;
-                var firstItem = System.Linq.Enumerable.FirstOrDefault(items, x => x != null);
-                return firstItem != null && firstItem.RemainingTicks <= firstItem.TotalTicks / 2;
-            }, halfTime);
+                var itemCount = System.Linq.Enumerable.Count(beltConveyorComponent.BeltConveyorItems, x => x != null);
+                var frontItem = beltConveyorComponent.BeltConveyorItems[0];
+                return itemCount == 4 && frontItem != null && frontItem.RemainingTicks == 0;
+            }, timeout);
 
-            // 2つ目のアイテムを投入する
-            // Insert second item
-            var item2 = itemStackFactory.Create(new ItemId(2), 1);
-            beltConveyorComponent.InsertItem(item2, InsertItemContext.Empty);
-
-            // 先頭アイテムがRemainingTicks=0になるまで待つ
-            // Wait until the first item reaches RemainingTicks=0
-            var fullTime = TimeSpan.FromSeconds(beltConveyorParam.TimeOfItemEnterToExit * 2);
-            UpdateUntil(() =>
-            {
-                var items = beltConveyorComponent.BeltConveyorItems;
-                return items[0] != null && items[0].RemainingTicks == 0;
-            }, fullTime);
-
-            // さらに同じ時間だけ待つ（2番目のアイテムが詰まりに巻き込まれる時間を確保）
-            // Wait additional time to let second item potentially get clogged
-            var additionalTime = TimeSpan.FromSeconds(beltConveyorParam.TimeOfItemEnterToExit);
+            // さらに待機して詰まり状態を安定させる
+            // Wait additional time to stabilize clogged state
+            var additionalTime = TimeSpan.FromSeconds(beltConveyorParam.TimeOfItemEnterToExit * 2);
             var startTime = DateTime.Now;
             while (DateTime.Now - startTime < additionalTime)
             {
                 GameUpdater.UpdateWithWait();
             }
 
-            // 各アイテムのRemainingTicksが適切な間隔を保っていることを確認する
-            // Verify items maintain proper spacing in RemainingTicks
+            // ベルトコンベア上に4つのアイテムがあることを確認する
+            // Verify 4 items are on belt conveyor
             var beltItems = System.Linq.Enumerable.ToList(
                 System.Linq.Enumerable.Where(beltConveyorComponent.BeltConveyorItems, x => x != null));
-            Assert.AreEqual(2, beltItems.Count, "Should have 2 items on belt");
+            Assert.AreEqual(4, beltItems.Count, "Should have 4 items on belt");
+
+            // アイテム間隔を検証する（各アイテムは25%=TotalTicks/4の間隔で並ぶべき）
+            // Verify item spacing (each item should be spaced at 25% = TotalTicks/4)
+            var totalTicks = beltConveyorComponent.BeltConveyorItems[0].TotalTicks;
+            var expectedInterval = totalTicks / 4u;
+            var tolerance = expectedInterval / 10u; // 10%の許容誤差
+
+            // 各スロットのアイテム位置を確認する
+            // Verify item positions in each slot
+            // スロット0: 先頭（RemainingTicks = 0）
+            // スロット1: 25%の位置（RemainingTicks ≈ TotalTicks * 0.25）
+            // スロット2: 50%の位置（RemainingTicks ≈ TotalTicks * 0.50）
+            // スロット3: 75%の位置（RemainingTicks ≈ TotalTicks * 0.75）
+            var items = beltConveyorComponent.BeltConveyorItems;
+            Assert.IsNotNull(items[0], "Item at slot 0 should exist");
+            Assert.IsNotNull(items[1], "Item at slot 1 should exist");
+            Assert.IsNotNull(items[2], "Item at slot 2 should exist");
+            Assert.IsNotNull(items[3], "Item at slot 3 should exist");
 
             // 先頭アイテムはRemainingTicks=0（搬出待ち）
-            // First item should have RemainingTicks=0 (waiting to output)
-            var frontItem = beltConveyorComponent.BeltConveyorItems[0];
-            Assert.AreEqual(0u, frontItem.RemainingTicks, "Front item should be at RemainingTicks=0");
+            // Front item should have RemainingTicks=0 (waiting to output)
+            Assert.AreEqual(0u, items[0].RemainingTicks, "Front item (slot 0) should be at RemainingTicks=0");
 
-            // 2つ目のアイテムは前のスロットが詰まっているため、その位置で待機すべき
-            // Second item should wait at its position because previous slot is blocked
-            // バグの場合: RemainingTicks=0になってしまう
-            // Bug case: RemainingTicks becomes 0
-            var secondItem = System.Linq.Enumerable.FirstOrDefault(beltItems, x => x != frontItem);
-            Assert.IsNotNull(secondItem, "Second item should exist");
-            Assert.Greater(secondItem.RemainingTicks, 0u,
-                $"Second item should maintain spacing - RemainingTicks should be > 0 when blocked, but was {secondItem.RemainingTicks}");
+            // 各アイテムのRemainingTicksが期待値に近いことを確認する
+            // Verify each item's RemainingTicks is close to expected value
+            var expectedRemainingTicks1 = expectedInterval * 1; // 25%
+            var expectedRemainingTicks2 = expectedInterval * 2; // 50%
+            var expectedRemainingTicks3 = expectedInterval * 3; // 75%
+
+            Assert.That(items[1].RemainingTicks, Is.InRange(expectedRemainingTicks1 - tolerance, expectedRemainingTicks1 + tolerance),
+                $"Item at slot 1 should have RemainingTicks ≈ {expectedRemainingTicks1} (25%), but was {items[1].RemainingTicks}");
+            Assert.That(items[2].RemainingTicks, Is.InRange(expectedRemainingTicks2 - tolerance, expectedRemainingTicks2 + tolerance),
+                $"Item at slot 2 should have RemainingTicks ≈ {expectedRemainingTicks2} (50%), but was {items[2].RemainingTicks}");
+            Assert.That(items[3].RemainingTicks, Is.InRange(expectedRemainingTicks3 - tolerance, expectedRemainingTicks3 + tolerance),
+                $"Item at slot 3 should have RemainingTicks ≈ {expectedRemainingTicks3} (75%), but was {items[3].RemainingTicks}");
         }
 
         private static (VanillaBeltConveyorComponent Component, Dictionary<IBlockInventory, ConnectedInfo> ConnectedTargets) CreateBeltConveyor()
