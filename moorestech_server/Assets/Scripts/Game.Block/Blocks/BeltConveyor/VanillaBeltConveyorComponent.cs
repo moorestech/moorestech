@@ -281,6 +281,16 @@ namespace Game.Block.Blocks.BeltConveyor
         public void SetTicksOfItemEnterToExit(uint ticks)
         {
             _ticksOfItemEnterToExit = ticks;
+
+            // 有効な速度が設定された場合、停止中に投入されたアイテムのtickを更新
+            // When valid speed is set, update ticks of items inserted while stopped
+            if (ticks != 0 && ticks != uint.MaxValue)
+            {
+                foreach (var item in _inventoryItems)
+                {
+                    item?.ResetTicksOnSpeedRecovery(ticks);
+                }
+            }
         }
     }
 }
