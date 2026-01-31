@@ -36,7 +36,9 @@ namespace Tests.CombinedTest.Server.PacketTest
                 worldBlockDatastore.TryAddBlock((BlockId)blockId, pos, blockDirection, Array.Empty<BlockCreateParam>(), out _);
             }
             
-            var requestBytes = MessagePackSerializer.Serialize(new RequestWorldDataMessagePack());
+            // PlayerIdを指定してリクエストを作成（Tagが正しく設定される）
+            // Create request with PlayerId (Tag is correctly set)
+            var requestBytes = MessagePackSerializer.Serialize(new RequestWorldDataMessagePack(0));
             List<byte> responseBytes = packetResponse.GetPacketResponse(requestBytes.ToList())[0];
             var responseWorld = MessagePackSerializer.Deserialize<ResponseWorldDataMessagePack>(responseBytes.ToArray());
             
@@ -64,7 +66,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             //ブロックの設置
             worldBlock.TryAddBlock(Block_1x4_Id, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             
-            var requestBytes = MessagePackSerializer.Serialize(new RequestWorldDataMessagePack());
+            // PlayerIdを指定してリクエストを作成（Tagが正しく設定される）
+            // Create request with PlayerId (Tag is correctly set)
+            var requestBytes = MessagePackSerializer.Serialize(new RequestWorldDataMessagePack(0));
             List<byte> responseBytes = packetResponse.GetPacketResponse(requestBytes.ToList())[0];
             var responseWorld = MessagePackSerializer.Deserialize<ResponseWorldDataMessagePack>(responseBytes.ToArray());
             
