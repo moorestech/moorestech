@@ -196,7 +196,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &6098340719469096340
 Transform:
   m_ObjectHideFlags: 0
@@ -345,6 +345,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 6098340719469096340}
     m_Modifications:
+    - target: {fileID: 6837161692775537191, guid: 6b30a50b2c72dc94f9e6763ab6755447, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7379783776434672465, guid: 6b30a50b2c72dc94f9e6763ab6755447, type: 3}
       propertyPath: m_Name
       value: FX_Flame_2
