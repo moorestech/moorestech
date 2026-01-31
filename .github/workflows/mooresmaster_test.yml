@@ -1,0 +1,33 @@
+name: Mooresmaster Test
+
+on:
+  push:
+    branches: [ "master" ]
+    paths:
+      - 'mooresmaster/**'
+  pull_request:
+    paths:
+      - 'mooresmaster/**'
+
+  # 手動実行デバッグ用
+  # Manual execution for debugging
+  workflow_dispatch: {}
+
+jobs:
+  test:
+    name: Mooresmaster Test
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Build Generator
+      run: dotnet build mooresmaster/mooresmaster.Generator/ -c release
+
+    - name: Run Tests
+      run: dotnet test mooresmaster/
