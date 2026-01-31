@@ -214,12 +214,14 @@ namespace Game.Block.Blocks.BeltConveyor
 
                 // 次に空きがあれば次に移動する
                 // Move to next slot if available
+                var didMove = false;
                 if (isNextInsertable && i != 0)
                 {
                     if (_inventoryItems[i - 1] == null)
                     {
                         _inventoryItems[i - 1] = item;
                         _inventoryItems[i] = null;
+                        didMove = true;
                     }
                 }
 
@@ -238,16 +240,23 @@ namespace Game.Block.Blocks.BeltConveyor
                     continue;
                 }
 
-                // 残りtick数を減らす
-                // Decrease remaining ticks
-                var ticksToSubtract = GameUpdater.CurrentTickCount;
-                if (item.RemainingTicks > ticksToSubtract)
+                // 前のスロットが詰まっているかどうかを判定する（移動した場合は除く）
+                // Check if blocked by previous slot (exclude if just moved)
+                var isBlockedByPreviousSlot = !didMove && i != 0 && _inventoryItems[i - 1] != null && isNextInsertable;
+
+                // 残りtick数を減らす（詰まっていない場合のみ）
+                // Decrease remaining ticks (only when not blocked)
+                if (!isBlockedByPreviousSlot)
                 {
-                    item.RemainingTicks -= ticksToSubtract;
-                }
-                else
-                {
-                    item.RemainingTicks = 0;
+                    var ticksToSubtract = GameUpdater.CurrentTickCount;
+                    if (item.RemainingTicks > ticksToSubtract)
+                    {
+                        item.RemainingTicks -= ticksToSubtract;
+                    }
+                    else
+                    {
+                        item.RemainingTicks = 0;
+                    }
                 }
             }
 

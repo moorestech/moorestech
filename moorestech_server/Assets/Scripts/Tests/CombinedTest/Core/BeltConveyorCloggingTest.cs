@@ -234,6 +234,82 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(connectorB.ConnectorGuid, beltItem.GoalConnector.ConnectorGuid);
         }
 
+        [Test]
+        public void ItemsKeepSpacingWhenCloggedTest()
+        {
+            // 依存関係を初期化する
+            // Initialize dependencies
+            var (_, _) = new MoorestechServerDIContainerGenerator().Create(
+                new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var itemStackFactory = ServerContext.ItemStackFactory;
+            var beltConveyorParam = MasterHolder.BlockMaster
+                .GetBlockMaster(ForUnitTestModBlockId.BeltConveyorId).BlockParam as BeltConveyorBlockParam;
+
+            // 挿入チェックはパスするが搬出で拒否される接続先を作成する
+            // Create output that passes insertion check but rejects on actual output
+            var (beltConveyorComponent, connectedTargets) = CreateBeltConveyor();
+            var blockedInventory = new ConfigurableBlockInventory(1, 10, true, true);
+            AddTarget(connectedTargets, blockedInventory, 0);
+
+            // 2つのアイテムを投入する（間隔を空けて）
+            // Insert two items with spacing
+            var item1 = itemStackFactory.Create(new ItemId(1), 1);
+            beltConveyorComponent.InsertItem(item1, InsertItemContext.Empty);
+
+            // 最初のアイテムを途中まで進める
+            // Advance first item partway
+            var halfTime = TimeSpan.FromSeconds(beltConveyorParam.TimeOfItemEnterToExit * 0.5);
+            UpdateUntil(() =>
+            {
+                var items = beltConveyorComponent.BeltConveyorItems;
+                var firstItem = System.Linq.Enumerable.FirstOrDefault(items, x => x != null);
+                return firstItem != null && firstItem.RemainingTicks <= firstItem.TotalTicks / 2;
+            }, halfTime);
+
+            // 2つ目のアイテムを投入する
+            // Insert second item
+            var item2 = itemStackFactory.Create(new ItemId(2), 1);
+            beltConveyorComponent.InsertItem(item2, InsertItemContext.Empty);
+
+            // 先頭アイテムがRemainingTicks=0になるまで待つ
+            // Wait until the first item reaches RemainingTicks=0
+            var fullTime = TimeSpan.FromSeconds(beltConveyorParam.TimeOfItemEnterToExit * 2);
+            UpdateUntil(() =>
+            {
+                var items = beltConveyorComponent.BeltConveyorItems;
+                return items[0] != null && items[0].RemainingTicks == 0;
+            }, fullTime);
+
+            // さらに同じ時間だけ待つ（2番目のアイテムが詰まりに巻き込まれる時間を確保）
+            // Wait additional time to let second item potentially get clogged
+            var additionalTime = TimeSpan.FromSeconds(beltConveyorParam.TimeOfItemEnterToExit);
+            var startTime = DateTime.Now;
+            while (DateTime.Now - startTime < additionalTime)
+            {
+                GameUpdater.UpdateWithWait();
+            }
+
+            // 各アイテムのRemainingTicksが適切な間隔を保っていることを確認する
+            // Verify items maintain proper spacing in RemainingTicks
+            var beltItems = System.Linq.Enumerable.ToList(
+                System.Linq.Enumerable.Where(beltConveyorComponent.BeltConveyorItems, x => x != null));
+            Assert.AreEqual(2, beltItems.Count, "Should have 2 items on belt");
+
+            // 先頭アイテムはRemainingTicks=0（搬出待ち）
+            // First item should have RemainingTicks=0 (waiting to output)
+            var frontItem = beltConveyorComponent.BeltConveyorItems[0];
+            Assert.AreEqual(0u, frontItem.RemainingTicks, "Front item should be at RemainingTicks=0");
+
+            // 2つ目のアイテムは前のスロットが詰まっているため、その位置で待機すべき
+            // Second item should wait at its position because previous slot is blocked
+            // バグの場合: RemainingTicks=0になってしまう
+            // Bug case: RemainingTicks becomes 0
+            var secondItem = System.Linq.Enumerable.FirstOrDefault(beltItems, x => x != frontItem);
+            Assert.IsNotNull(secondItem, "Second item should exist");
+            Assert.Greater(secondItem.RemainingTicks, 0u,
+                $"Second item should maintain spacing - RemainingTicks should be > 0 when blocked, but was {secondItem.RemainingTicks}");
+        }
+
         private static (VanillaBeltConveyorComponent Component, Dictionary<IBlockInventory, ConnectedInfo> ConnectedTargets) CreateBeltConveyor()
         {
             var blockFactory = ServerContext.BlockFactory;
