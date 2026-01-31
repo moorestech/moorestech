@@ -112,7 +112,7 @@ namespace Client.Network.API
         
         public async UniTask<WorldDataResponse> GetWorldData(CancellationToken ct)
         {
-            var request = new RequestWorldDataProtocol.RequestWorldDataMessagePack();
+            var request = new RequestWorldDataProtocol.RequestWorldDataMessagePack(_playerConnectionSetting.PlayerId);
             var response = await _packetExchangeManager.GetPacketResponse<RequestWorldDataProtocol.ResponseWorldDataMessagePack>(request, ct);
             
             return ParseWorldResponse(response);

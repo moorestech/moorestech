@@ -8,21 +8,39 @@ using Microsoft.Extensions.DependencyInjection;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse.Util;
 using Server.Util.MessagePack;
+using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
 {
     public class RequestWorldDataProtocol : IPacketResponse
     {
         public const string ProtocolTag = "va:getWorldData";
+        public const float ItemVisibilityDistance = 20f;
+
         private readonly IEntityFactory _entityFactory;
-        
+        private readonly IEntitiesDatastore _entitiesDatastore;
+
         public RequestWorldDataProtocol(ServiceProvider serviceProvider)
         {
             _entityFactory = serviceProvider.GetService<IEntityFactory>();
+            _entitiesDatastore = serviceProvider.GetService<IEntitiesDatastore>();
         }
-        
+
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
+            // リクエストからPlayerIdを取得
+            // Get PlayerId from request
+            var request = MessagePackSerializer.Deserialize<RequestWorldDataMessagePack>(payload.ToArray());
+
+            // プレイヤー位置を取得
+            // Get player position
+            var playerEntityId = new EntityInstanceId(request.PlayerId);
+            var playerPosition = _entitiesDatastore.Exists(playerEntityId)
+                ? _entitiesDatastore.GetPosition(playerEntityId)
+                : Vector3.zero;
+
+            // ブロック収集（既存処理）
+            // Collect blocks (existing logic)
             var blockMasterDictionary = ServerContext.WorldBlockDatastore.BlockMasterDictionary;
             var blockResult = new List<BlockDataMessagePack>();
             foreach (var blockMaster in blockMasterDictionary)
@@ -32,27 +50,30 @@ namespace Server.Protocol.PacketResponse
                 var blockDirection = blockMaster.Value.BlockPositionInfo.BlockDirection;
                 blockResult.Add(new BlockDataMessagePack(block.BlockId, pos, blockDirection, block.BlockInstanceId));
             }
-            
-            // エンティティ収集：ベルトコンベアアイテム
-            // Collect entities: belt conveyor items
+
+            // エンティティ収集（距離フィルタリング付き）
+            // Collect entities with distance filtering
             var entities = new List<EntityMessagePack>();
-            
-            // ベルトコンベアアイテムを収集
-            // Collect belt conveyor items
-            var items = CollectBeltConveyorItems.CollectItemFromWorld(_entityFactory);
+            var items = CollectBeltConveyorItems.CollectItemFromWorld(_entityFactory, playerPosition, ItemVisibilityDistance);
             entities.AddRange(items.Select(item => new EntityMessagePack(item)));
-            
+
             return new ResponseWorldDataMessagePack(blockResult.ToArray(), entities.ToArray());
         }
-        
-        
+
+
         [MessagePackObject]
         public class RequestWorldDataMessagePack : ProtocolMessagePackBase
         {
-            public RequestWorldDataMessagePack()
+            [Key(2)] public int PlayerId { get; set; }
+
+            public RequestWorldDataMessagePack(int playerId)
             {
                 Tag = ProtocolTag;
+                PlayerId = playerId;
             }
+
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public RequestWorldDataMessagePack() { }
         }
         
         [MessagePackObject]
