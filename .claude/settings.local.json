@@ -69,7 +69,8 @@
       "Bash(dotnet build:*)",
       "Skill(skill-creator)",
       "Skill(edit-schema)",
-      "Bash(gh release view:*)"
+      "Bash(gh release view:*)",
+      "mcp__serena__activate_project"
     ],
     "deny": []
   },
