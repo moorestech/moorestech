@@ -175,19 +175,27 @@ namespace Game.CraftChainer.BlockComponent.Computer
                 return item;
             }
             
-            // 次のインベントリにアイテムを入れられるか
+            // 次のインベントリにアイテムを入れられるか（事前チェック）
+            // Pre-check if next inventory can accept
             var nextInventory = result[0].Item2;
             if (!nextInventory.InsertionCheck(new List<IItemStack> {item}))
             {
                 return item;
             }
-            
-            // アイテムを入れられるのでキューの情報を更新する
-            DebugExportCraftChainRecipeQueLog();
-            UpdateCraftQue();
-            
+
             // 次のインベントリにアイテムを入れる
-            return nextInventory.InsertItem(item, InsertItemContext.Empty);
+            // Insert item into next inventory
+            var insertResult = nextInventory.InsertItem(item, InsertItemContext.Empty);
+
+            // 挿入が成功した場合のみキューを更新する
+            // Update queue only if insertion succeeded
+            if (insertResult.Id == ItemMaster.EmptyItemId)
+            {
+                DebugExportCraftChainRecipeQueLog();
+                UpdateCraftQue();
+            }
+
+            return insertResult;
             
             #region Internal
             
