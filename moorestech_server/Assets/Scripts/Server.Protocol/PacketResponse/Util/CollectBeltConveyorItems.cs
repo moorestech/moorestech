@@ -22,33 +22,34 @@ namespace Server.Protocol.PacketResponse.Util
     {
         public const float DefaultBeltConveyorHeight = 0.3f;
         
-        public static List<IEntity> CollectItem(IEntityFactory entityFactory)
+        public static List<IEntity> CollectItemFromWorld(IEntityFactory entityFactory, Vector3 playerPosition, float maxDistance)
         {
             var result = new List<IEntity>();
-            result.AddRange(CollectItemFromWorld(entityFactory));
-            
-            return result;
-        }
-        
-        public static List<IEntity> CollectItemFromWorld(IEntityFactory entityFactory)
-        {
-            var result = new List<IEntity>();
-            
-            //TODO 個々のパフォーマンス問題を何とかする
+            var maxDistanceSqr = maxDistance * maxDistance;
+
             foreach (KeyValuePair<BlockInstanceId, WorldBlockData> blockMaster in ServerContext.WorldBlockDatastore.BlockMasterDictionary)
             {
                 var block = blockMaster.Value.Block;
                 var pos = blockMaster.Value.BlockPositionInfo.OriginalPos;
-                // TODO 重かったら考える
+
+                // 距離チェック（sqrMagnitudeで平方根計算を回避）
+                // Distance check (avoid sqrt calculation using sqrMagnitude)
+                var blockCenter = new Vector3(pos.x + 0.5f, pos.y, pos.z + 0.5f);
+                var distanceSqr = (blockCenter - playerPosition).sqrMagnitude;
+                if (distanceSqr > maxDistanceSqr)
+                {
+                    continue;
+                }
+
                 if (!block.TryGetComponent<IItemCollectableBeltConveyor>(out var component))
                 {
                     continue;
                 }
-                
+
                 var direction = ServerContext.WorldBlockDatastore.GetBlockDirection(pos);
                 result.AddRange(CollectItemFromBeltConveyor(entityFactory, component, pos, direction));
             }
-            
+
             return result;
         }
         
