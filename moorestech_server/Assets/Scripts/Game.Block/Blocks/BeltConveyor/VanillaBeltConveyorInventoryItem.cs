@@ -23,7 +23,7 @@ namespace Game.Block.Blocks.BeltConveyor
     public class VanillaBeltConveyorInventoryItem : IOnBeltConveyorItem
     {
         public uint RemainingTicks { get; set; }
-        public uint TotalTicks { get; }
+        public uint TotalTicks { get; private set; }
         public ItemId ItemId { get; }
         public ItemInstanceId ItemInstanceId { get; }
         public BlockConnectInfoElement StartConnector { get; }
@@ -46,6 +46,23 @@ namespace Game.Block.Blocks.BeltConveyor
         public void SetGoalConnector(BlockConnectInfoElement goalConnector)
         {
             GoalConnector = goalConnector;
+        }
+
+        /// <summary>
+        /// 停止状態から復帰した際にTotalTicksとRemainingTicksをリセットする
+        /// Reset TotalTicks and RemainingTicks when recovering from stopped state
+        /// </summary>
+        public void ResetTicksOnSpeedRecovery(uint newTotalTicks)
+        {
+            // 現在の進捗率を維持しながらtickを更新
+            // Update ticks while maintaining current progress ratio
+            if (TotalTicks == 0 || TotalTicks == uint.MaxValue)
+            {
+                // 停止中に投入されたアイテムは進捗0からスタート
+                // Items inserted while stopped start from 0 progress
+                TotalTicks = newTotalTicks;
+                RemainingTicks = newTotalTicks;
+            }
         }
 
         public string GetSaveJsonString()

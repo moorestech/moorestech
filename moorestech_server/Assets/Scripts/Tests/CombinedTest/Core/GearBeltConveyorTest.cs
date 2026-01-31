@@ -204,13 +204,16 @@ namespace Tests.CombinedTest.Core
 
             Assert.True(gearBeltConveyorComponent.CurrentRpm.AsPrimitive() > 0f, "Belt should be running again");
 
-            // アイテムが搬送されるまで十分な時間待機する
-            // Wait enough time for the item to be transported
+            // アイテムが搬送されるまで十分な時間待機する（1tickずつ進める）
+            // Wait enough time for the item to be transported (advance 1 tick at a time)
             var gearBeltParam = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearBeltConveyor).BlockParam as GearBeltConveyorBlockParam;
             var speed = 10f * 1f * gearBeltParam.BeltConveyorSpeed;
             var timeOfItemEnterToExit = 1f / speed;
             var waitTicks = GameUpdater.SecondsToTicks(timeOfItemEnterToExit * 2); // 2倍の時間待つ
-            GameUpdater.AdvanceTicks(waitTicks);
+            for (uint i = 0; i < waitTicks; i++)
+            {
+                GameUpdater.AdvanceTicks(1);
+            }
 
             // アイテムが出力先に到達していることを確認
             // Verify the item has reached the output
