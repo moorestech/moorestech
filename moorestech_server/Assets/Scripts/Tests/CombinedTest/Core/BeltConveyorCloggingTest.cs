@@ -252,7 +252,6 @@ namespace Tests.CombinedTest.Core
             var (_, _) = new MoorestechServerDIContainerGenerator().Create(
                 new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            var itemStackFactory = ServerContext.ItemStackFactory;
 
             // DI初期化後にBlockIdを取得する
             // Get BlockId after DI initialization
@@ -273,6 +272,12 @@ namespace Tests.CombinedTest.Core
             }
 
             #endregion
+
+            // 搬出用チェストを配置する（z=-1の位置）
+            // Place input chest at z=-1
+            var chestPosition = new Vector3Int(0, 0, -1);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, chestPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var chestBlock);
+            var chestComponent = chestBlock.GetComponent<VanillaChestComponent>();
 
             // ベルトコンベアを配置する
             // Place belt conveyors
@@ -313,14 +318,13 @@ namespace Tests.CombinedTest.Core
             // Calculate timeout based on block type
             var transportTime = CalculateTransportTime(blockMaster, isGearBeltConveyor);
 
-            // 最初のベルトコンベアにアイテムを挿入する
-            // Insert items into first belt conveyor
+            // チェストにアイテムを設定する
+            // Set items in chest
             var itemId = new ItemId(1);
-            var firstBelt = beltComponents[0];
-            var insertedCount = 0;
+            chestComponent.SetItem(0, itemId, expectedItemCount);
 
             // 歯車ベルトコンベアの場合、搬送時間を初期化する
-            // Initialize gear belt conveyor transport time before inserting items
+            // Initialize gear belt conveyor transport time before items start moving
             if (isGearBeltConveyor)
             {
                 for (var i = 0; i < 5; i++)
@@ -330,35 +334,9 @@ namespace Tests.CombinedTest.Core
                 }
             }
 
-            // すべてのアイテムを挿入し、ベルトコンベアで移動させる
-            // Insert all items and transport on belt conveyor
-            var timeout = TimeSpan.FromSeconds(transportTime * beltCount * 10);
-            var startTime = DateTime.Now;
-            while (insertedCount < expectedItemCount && DateTime.Now - startTime < timeout)
-            {
-                // 歯車ベルトコンベアの場合は電力を供給する
-                // Supply power for gear belt conveyor
-                SupplyPowerIfNeeded();
-
-                // アイテムを挿入を試みる
-                // Try to insert item
-                var item = itemStackFactory.Create(itemId, 1);
-                var remaining = firstBelt.InsertItem(item, InsertItemContext.Empty);
-                if (remaining.Count == 0)
-                {
-                    insertedCount++;
-                }
-
-                GameUpdater.UpdateWithWait();
-            }
-
-            // 挿入されたアイテム数で検証を行う
-            // Use actual inserted count for verification
-            var actualExpectedItems = insertedCount;
-
             // 全アイテムが詰まるまで待つ
             // Wait until all items are clogged
-            var clogTimeout = TimeSpan.FromSeconds(transportTime * beltCount * 5);
+            var clogTimeout = TimeSpan.FromSeconds(transportTime * beltCount * 10);
             UpdateUntilWithPowerLocal(() =>
             {
                 var totalItemCount = 0;
@@ -367,17 +345,13 @@ namespace Tests.CombinedTest.Core
                     totalItemCount += System.Linq.Enumerable.Count(belt.BeltConveyorItems, x => x != null);
                 }
                 var frontItem = beltComponents[^1].BeltConveyorItems[0];
-                return totalItemCount == actualExpectedItems && frontItem != null && frontItem.RemainingTicks == 0;
+                return totalItemCount == expectedItemCount && frontItem != null && frontItem.RemainingTicks == 0;
             }, clogTimeout);
-
-            // 期待したアイテム数がベルトに乗っていることを確認する
-            // Assert that all 16 items are on belts
-            Assert.AreEqual(expectedItemCount, actualExpectedItems, $"Expected {expectedItemCount} items but only {actualExpectedItems} were inserted. This indicates a belt clogging bug.");
 
             // さらに待機して詰まり状態を安定させる
             // Wait additional time to stabilize clogged state
             var additionalTime = TimeSpan.FromSeconds(transportTime * 2);
-            startTime = DateTime.Now;
+            var startTime = DateTime.Now;
             while (DateTime.Now - startTime < additionalTime)
             {
                 SupplyPowerIfNeeded();
