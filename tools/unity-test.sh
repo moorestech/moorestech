@@ -58,6 +58,18 @@ if [ $IS_GUI -eq 1 ]; then
 fi
 
 ###############################################################################
+# 重複起動チェック
+# Check for duplicate Unity instance
+###############################################################################
+LOCKFILE="$PROJECT/Temp/UnityLockfile"
+if [ -f "$LOCKFILE" ]; then
+  echo "❌ Another Unity instance is already running with this project"
+  echo "    Project: $PROJECT"
+  echo "    Please close the existing Unity instance first"
+  exit 1
+fi
+
+###############################################################################
 # Unity 実行
 ###############################################################################
 LOGFILE="$(mktemp -t unity_cli_XXXX).log"
@@ -114,6 +126,14 @@ then
   grep -E "error CS[0-9]{4}:" "$LOGFILE" | sed 's/^/    /'
   echo "❌ Compilation failed — tests were not executed"
   RET=1        # CI で失敗扱いにしたいので必ず 1
+elif ! grep -q '\[CliTest\]' "$LOGFILE"; then
+  # --- ❸ テスト結果が出力されていない場合（重複起動等） --------------------
+  echo "❌ Test results not found in log"
+  echo "    Possible causes:"
+  echo "      - Another Unity instance is running with this project"
+  echo "      - Unity failed to start properly"
+  echo "      - CliTestRunner was not executed"
+  RET=1
 else
   # --- ❷ [CliTest] 行 (テスト結果) だけ表示 -------------------------------
   grep '\[CliTest\]' "$LOGFILE" | sed 's/\[CliTest\][[:space:]]*//'
