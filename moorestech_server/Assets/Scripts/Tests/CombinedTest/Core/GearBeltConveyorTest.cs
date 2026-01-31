@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.BeltConveyor;
@@ -144,6 +145,79 @@ namespace Tests.CombinedTest.Core
             for (var i = 0; i < updateCount; i++) GameUpdater.AdvanceTicks(GameUpdater.SecondsToTicks(0.1));
             
             Assert.False(dummy.IsItemExists);
+        }
+
+        // 停止中にアイテムを投入し、速度復帰後に正常に搬送されることのテスト
+        // Test that items inserted while stopped are transported normally after speed recovery
+        [Test]
+        public void ItemInsertedWhileStoppedShouldTransportAfterSpeedRecovery()
+        {
+            // テスト用のDIコンテナを初期化する
+            // Initialize the test DI container
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            var itemStackFactory = ServerContext.ItemStackFactory;
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+
+            // 歯車ベルトコンベアと出力先を用意する
+            // Prepare the gear belt conveyor and its output
+            var gearBeltConveyorPosition = new Vector3Int(0, 0, 0);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearBeltConveyor, gearBeltConveyorPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var gearBeltConveyor);
+            var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)gearBeltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
+            var dummy = new DummyBlockInventory();
+            connectInventory.Add(dummy, new ConnectedInfo());
+
+            var beltConveyorComponent = gearBeltConveyor.GetComponent<VanillaBeltConveyorComponent>();
+            var gearBeltConveyorComponent = gearBeltConveyor.GetComponent<GearBeltConveyorComponent>();
+
+            // 歯車ジェネレーターを配置し、一度稼働させてから停止する
+            // Place a gear generator, run once, then stop
+            var generatorPosition = new Vector3Int(1, 0, 0);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.East, Array.Empty<BlockCreateParam>(), out var generatorBlock);
+            var generator = generatorBlock.GetComponent<global::Game.Block.Blocks.Gear.SimpleGearGeneratorComponent>();
+            generator.SetGenerateRpm(10f);
+            generator.SetGenerateTorque(1f);
+            GameUpdater.AdvanceTicks(GameUpdater.SecondsToTicks(0.1));
+
+            Assert.True(gearBeltConveyorComponent.CurrentRpm.AsPrimitive() > 0f, "Belt should be running initially");
+
+            // 出力を止めてRPMを0にする
+            // Stop output to force RPM to 0
+            generator.SetGenerateTorque(0f);
+            GameUpdater.AdvanceTicks(GameUpdater.SecondsToTicks(0.1));
+
+            Assert.AreEqual(0f, gearBeltConveyorComponent.CurrentRpm.AsPrimitive(), "Belt should be stopped");
+
+            // 停止中にアイテムを挿入する
+            // Insert an item while the belt is stopped
+            var item = itemStackFactory.Create(new ItemId(2), 1);
+            beltConveyorComponent.InsertItem(item, InsertItemContext.Empty);
+
+            // アイテムがベルトに載っていることを確認
+            // Verify the item is on the belt
+            Assert.AreEqual(1, beltConveyorComponent.BeltConveyorItems.Count(i => i != null), "Item should be on the belt");
+
+            // 速度を復帰させる
+            // Restore speed
+            generator.SetGenerateTorque(1f);
+            GameUpdater.AdvanceTicks(GameUpdater.SecondsToTicks(0.1));
+
+            Assert.True(gearBeltConveyorComponent.CurrentRpm.AsPrimitive() > 0f, "Belt should be running again");
+
+            // アイテムが搬送されるまで十分な時間待機する（1tickずつ進める）
+            // Wait enough time for the item to be transported (advance 1 tick at a time)
+            var gearBeltParam = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearBeltConveyor).BlockParam as GearBeltConveyorBlockParam;
+            var speed = 10f * 1f * gearBeltParam.BeltConveyorSpeed;
+            var timeOfItemEnterToExit = 1f / speed;
+            var waitTicks = GameUpdater.SecondsToTicks(timeOfItemEnterToExit * 2); // 2倍の時間待つ
+            for (uint i = 0; i < waitTicks; i++)
+            {
+                GameUpdater.AdvanceTicks(1);
+            }
+
+            // アイテムが出力先に到達していることを確認
+            // Verify the item has reached the output
+            Assert.True(dummy.IsItemExists, "Item should have been transported after speed recovery");
         }
     }
 }
