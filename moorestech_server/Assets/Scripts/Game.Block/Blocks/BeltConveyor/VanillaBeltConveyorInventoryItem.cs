@@ -54,8 +54,8 @@ namespace Game.Block.Blocks.BeltConveyor
         /// </summary>
         public void ResetTicksOnSpeedRecovery(uint newTotalTicks)
         {
-            // 現在の進捗率を維持しながらtickを更新
-            // Update ticks while maintaining current progress ratio
+            // 停止中に投入されたアイテムのtickをリセット
+            // Reset ticks for items inserted while stopped
             if (TotalTicks == 0 || TotalTicks == uint.MaxValue)
             {
                 // 停止中に投入されたアイテムは進捗0からスタート
