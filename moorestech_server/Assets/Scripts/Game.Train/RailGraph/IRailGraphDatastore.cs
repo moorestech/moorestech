@@ -25,7 +25,7 @@ namespace Game.Train.RailGraph
         bool TryGetRailNodeId(RailNode node, out int nodeId);
         bool TryGetRailNode(int nodeId, out RailNode railNode);
         IReadOnlyCollection<RailSegment> GetRailSegments();
-        bool TryRestoreRailSegment(ConnectionDestination start, ConnectionDestination end, int length, float bezierStrength);
+        bool TryRestoreRailSegment(ConnectionDestination start, ConnectionDestination end, int length);
         uint GetConnectNodesHash();
         RailGraphSnapshot CaptureSnapshot(long currentTick);
         IReadOnlyList<RailNode> GetRailNodes();
