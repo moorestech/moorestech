@@ -50,7 +50,7 @@ namespace Tests.CombinedTest.Core
 
             // 1回目のループ
             // First loop
-            GameUpdater.UpdateWithWait();
+            GameUpdater.UpdateOneTick();
 
             // 供給電力の確認
             // Check the supplied power
@@ -110,7 +110,7 @@ namespace Tests.CombinedTest.Core
             var generatorConfigParam = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.InfinityGeneratorId).BlockParam as ElectricGeneratorBlockParam;
             
             //1回目のループ
-            GameUpdater.UpdateWithWait();
+            GameUpdater.UpdateOneTick();
             
             //供給電力の確認
             Assert.AreEqual(generatorConfigParam.InfinityPower, generatorComponent.OutputEnergy().AsPrimitive());
@@ -137,7 +137,7 @@ namespace Tests.CombinedTest.Core
             var remain = generatorComponent.AddLiquid(new FluidStack(totalAmount, fluidId), FluidContainer.Empty);
             Assert.AreEqual(0d, remain.Amount);
 
-            GameUpdater.UpdateWithWait();
+            GameUpdater.UpdateOneTick();
 
             // タンクに液体が入っており、発電が開始されていることを確認する
             var fuelContainer = GetFuelServiceField<FluidContainer>(fuelService, "_fuelFluidContainer");

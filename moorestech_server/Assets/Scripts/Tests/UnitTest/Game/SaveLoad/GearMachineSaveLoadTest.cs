@@ -42,7 +42,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             //処理を開始
             gearMachineBlock.GetComponent<GearEnergyTransformer>().SupplyPower(new RPM(1000), new Torque(1000), true);
-            GameUpdater.UpdateWithWait();
+            GameUpdater.UpdateOneTick();
             //別のアイテムを追加
             machineInventory.InsertItem(itemStackFactory.Create(new ItemId(5), 6));
             machineInventory.InsertItem(itemStackFactory.Create(new ItemId(2), 4));

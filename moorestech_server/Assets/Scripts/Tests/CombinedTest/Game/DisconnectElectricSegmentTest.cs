@@ -122,7 +122,7 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(0, worldElectricSegment.GetEnergySegmentListCount());
             
             // アップデートを呼び出してもエラーが起きないことを確認
-            Assert.DoesNotThrow(() => GameUpdater.UpdateWithWait());
+            Assert.DoesNotThrow(() => GameUpdater.UpdateOneTick());
         }
 
         //電柱を消してもループによって1つのセグメントになっている時のテスト

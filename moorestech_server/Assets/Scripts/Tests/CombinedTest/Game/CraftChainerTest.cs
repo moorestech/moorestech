@@ -131,7 +131,7 @@ namespace Tests.CombinedTest.Game
             {
                 try
                 {
-                    GameUpdater.UpdateWithWait();
+                    GameUpdater.UpdateOneTick();
                 }
                 catch (Exception e)
                 {

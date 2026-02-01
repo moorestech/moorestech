@@ -22,22 +22,22 @@ namespace Tests.UnitTest.Core.Block
             
             segment.AddGenerator(generate);
             segment.AddEnergyConsumer(electric);
-            GameUpdater.UpdateWithWait();
+            GameUpdater.UpdateOneTick();
             Assert.AreEqual(100, electric.CurrentPower.AsPrimitive());
             
             segment.RemoveGenerator(generate);
-            GameUpdater.UpdateWithWait();
+            GameUpdater.UpdateOneTick();
             Assert.AreEqual(0, electric.CurrentPower.AsPrimitive());
             
             var electric2 = new BlockElectricConsumer(new ElectricPower(300), new BlockInstanceId(1));
             segment.AddGenerator(generate);
             segment.AddEnergyConsumer(electric2);
-            GameUpdater.UpdateWithWait();
+            GameUpdater.UpdateOneTick();
             Assert.AreEqual(25, electric.CurrentPower.AsPrimitive());
             Assert.AreEqual(75, electric2.CurrentPower.AsPrimitive());
             
             segment.RemoveEnergyConsumer(electric);
-            GameUpdater.UpdateWithWait();
+            GameUpdater.UpdateOneTick();
             Assert.AreEqual(25, electric.CurrentPower.AsPrimitive());
             Assert.AreEqual(100, electric2.CurrentPower.AsPrimitive());
         }

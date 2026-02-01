@@ -298,7 +298,7 @@ namespace Tests.CombinedTest.Core
                 for (int i = 0; i < 20; i++)
                 {
                     SetSteam();
-                    GameUpdater.UpdateWithWait();
+                    GameUpdater.UpdateOneTick();
                     var steamTank = fluidComponent.SteamTank;
                     var stateDetails = steamGeneratorComponent.GetBlockStateDetails();
                     var stateData = MessagePackSerializer.Deserialize<FuelGearGeneratorBlockStateDetail>(stateDetails[0].Value);
@@ -319,7 +319,7 @@ namespace Tests.CombinedTest.Core
                 for (int i = 0; i < 5; i++)
                 {
                     SetSteam();  // 継続的に蒸気を供給
-                    GameUpdater.UpdateWithWait();
+                    GameUpdater.UpdateOneTick();
                     
                     var steamTank = fluidComponent.SteamTank;
                     var stateDetails = steamGeneratorComponent.GetBlockStateDetails();
@@ -343,7 +343,7 @@ namespace Tests.CombinedTest.Core
                 for (int i = 0; i < 10; i++)
                 {
                     SetSteam();
-                    GameUpdater.UpdateWithWait();
+                    GameUpdater.UpdateOneTick();
                     SetSteam();  // 消費後も十分な蒸気を確保するため2回供給
                     
                     var details = stateObservable.GetBlockStateDetails();
@@ -371,7 +371,7 @@ namespace Tests.CombinedTest.Core
                 for (int i = 0; i < 50; i++)
                 {
                     SetSteam();
-                    GameUpdater.UpdateWithWait();
+                    GameUpdater.UpdateOneTick();
                     
                     var details = stateObservable.GetBlockStateDetails();
                     var (currentState, _, _, _, _, _) = ExtractDetails(details);
@@ -397,7 +397,7 @@ namespace Tests.CombinedTest.Core
                 for (int i = 0; i < 10; i++)
                 {
                     // パイプが削除されたので蒸気は追加しない
-                    GameUpdater.UpdateWithWait();
+                    GameUpdater.UpdateOneTick();
                     
                     var details = stateObservable.GetBlockStateDetails();
                     var (currentState, _, _, _, _, _) = ExtractDetails(details);
@@ -424,7 +424,7 @@ namespace Tests.CombinedTest.Core
                 Debug.Log("Waiting for complete stop...");
                 for (int i = 0; i < 200; i++)
                 {
-                    GameUpdater.UpdateWithWait();
+                    GameUpdater.UpdateOneTick();
                     
                     var currentDetails = stateObservable.GetBlockStateDetails();
                     var (currentState, currentRpm, _, _, _, _) = ExtractDetails(currentDetails);

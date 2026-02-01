@@ -53,7 +53,7 @@ namespace Tests.CombinedTest.Core
             while (craftTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1)
             {
                 blockMachineComponent.SupplyEnergy(new ElectricPower(10000));
-                GameUpdater.UpdateWithWait();
+                GameUpdater.UpdateOneTick();
             }
             
             //検証
@@ -105,7 +105,7 @@ namespace Tests.CombinedTest.Core
             while (craftTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1)
             {
                 blockMachineComponent.SupplyEnergy(new ElectricPower(10000));
-                GameUpdater.UpdateWithWait();
+                GameUpdater.UpdateOneTick();
             }
             
             (List<IItemStack> input, List<IItemStack> output) = GetInputOutputSlot(blockInventory);
