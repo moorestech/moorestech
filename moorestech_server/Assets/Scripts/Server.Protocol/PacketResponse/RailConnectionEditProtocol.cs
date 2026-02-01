@@ -147,16 +147,16 @@ namespace Server.Protocol.PacketResponse
                     return ResponseRailConnectionEditMessagePack.CreateFailure(RailConnectionEditFailureReason.NotEnoughInventorySpace, data.Mode);
                 }
 
-                var disconnected = _commandHandler.TryDisconnect(data.FromNodeId, data.FromGuid, data.ToNodeId, data.ToGuid);
+                var disconnectedflag = _commandHandler.TryDisconnect(data.FromNodeId, data.FromGuid, data.ToNodeId, data.ToGuid);
                 
                 // アイテムを返却
                 // Return rail items
-                if (disconnected)
+                if (disconnectedflag)
                 {
                     inventory.InsertItem(itemStack);
                 }
                 
-                return ResponseRailConnectionEditMessagePack.Create(disconnected, disconnected ? RailConnectionEditFailureReason.None : RailConnectionEditFailureReason.UnknownError, data.Mode);
+                return ResponseRailConnectionEditMessagePack.Create(disconnectedflag, disconnectedflag ? RailConnectionEditFailureReason.None : RailConnectionEditFailureReason.UnknownError, data.Mode);
             }
 
             bool IsStationInternalEdge(RailNode from, RailNode to)
