@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Client.Game.InGame.Train.RailGraph
 {
     /// <summary>
-    ///     キャッシュ更新に追随してレールラインを生成/削除する管理クラス
+    ///     レールキャッシュ更新に追従するランタイム描画を管理するクラス
     ///     Manages runtime line renderers driven directly by rail cache updates
     /// </summary>
     public sealed class TrainRailObjectManager : MonoBehaviour
@@ -160,13 +160,16 @@ namespace Client.Game.InGame.Train.RailGraph
         private GameObject SpawnRail(string name, IRailNode startNode, IRailNode endNode)
         {
             var instance = Instantiate(_railPrefab, transform);
-            // セグメント強度から制御点を算出
+            // セグメント強度から制御点を計算
             // Build control points from segment strength
-            var startControl = startNode.FrontControlPoint.OriginalPosition;
-            var control1 = startNode.FrontControlPoint.ControlPointPosition + startControl;
-            var endControl = endNode.BackControlPoint.OriginalPosition;
-            var control2 = endNode.BackControlPoint.ControlPointPosition + endControl;
-            instance.SetControlPoints(startControl, control1, control2, endControl);
+            var startPosition = startNode.FrontControlPoint.OriginalPosition;
+            var endPosition = endNode.BackControlPoint.OriginalPosition;
+            var startDirection = startNode.FrontControlPoint.ControlPointPosition;
+            var endDirection = endNode.BackControlPoint.ControlPointPosition;
+            var strength = BezierUtility.CalculateSegmentStrength(startPosition, endPosition);
+            var control1 = startPosition + startDirection * strength;
+            var control2 = endPosition + endDirection * strength;
+            instance.SetControlPoints(startPosition, control1, control2, endPosition);
             instance.SetRailGraphCache(_cache);
             instance.Rebuild();
             instance.PlaceAnimation().Forget();
