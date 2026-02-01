@@ -1,0 +1,26 @@
+id: switchOptionalCaseTestSchema
+type: object
+properties:
+  - key: type
+    type: enum
+    options:
+      - A
+      - B
+  - key: data
+    switch: ./type
+    cases:
+      - when: A
+        type: object
+        optional: true
+        properties:
+          - key: child0
+            type: number
+          - key: child1
+            type: string
+      - when: B
+        type: object
+        properties:
+          - key: child0
+            type: number
+          - key: child1
+            type: string

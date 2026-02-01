@@ -1,0 +1,5 @@
+id: testSchema
+type: object
+
+implementationInterface:
+  - testInterface

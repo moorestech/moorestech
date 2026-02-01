@@ -1,0 +1,69 @@
+id: blockConnectInfo
+type: array
+overrideCodeGeneratePropertyName: blockConnectInfoElement
+items:
+  type: object
+  properties:
+    - key: connectType
+      type: enum
+      options:
+        - Inventory
+        - Gear
+        - Fluid
+      description: TODO これは後々外部（上位スキーマ？）から設定できるようにする
+    - key: offset
+      type: vector3Int
+      default:
+        - 0
+        - 0
+        - 0
+    - key: directions
+      type: array
+      optional: true
+      items:
+        type: vector3Int
+        default:
+          - 0
+          - 0
+          - 0
+    - key: connectOption
+      switch: ./connectType
+      cases:
+        - when: Inventory
+          type: object
+          optional: true
+          properties:
+            - key: inventoryOptions
+              type: array
+              optional: true
+              items:
+                type: object
+                properties:
+                  - key: inventoryConnectOptionType
+                    type: enum
+                    options:
+                      - CraftChainerCrafter
+                  - key: inventoryConnectOptionParam
+                    switch: ./inventoryConnectOptionType
+                    cases:
+                      - when: CraftChainerCrafter
+                        type: object
+                        properties:
+                          - key: connectType
+                            type: enum
+                            options:
+                              - Network
+                              - Factory
+        - when: Gear
+          type: object
+          properties:
+            - key: isReverse
+              type: boolean
+              default: true
+        - when: Fluid
+          type: object
+          properties:
+            - key: flowCapacity
+              type: number
+            - key: connectTankIndex
+              type: integer
