@@ -14,6 +14,24 @@ namespace Game.Train.RailCalc
         {
             return Vector3.Distance(startPosition, endPosition) * CONTROLSTRENGTH;
         }
+
+        // 描画用の制御点をワールド座標で生成
+        // Build render control points in world space
+        public static void BuildRenderControlPoints(RailControlPoint startControlPoint, RailControlPoint endControlPoint, out Vector3 p0, out Vector3 p1, out Vector3 p2, out Vector3 p3)
+        {
+            BuildRenderControlPoints(startControlPoint.OriginalPosition, endControlPoint.OriginalPosition, startControlPoint.ControlPointPosition, endControlPoint.ControlPointPosition, out p0, out p1, out p2, out p3);
+        }
+
+        // 描画用の制御点をワールド座標で生成
+        // Build render control points in world space
+        public static void BuildRenderControlPoints(Vector3 startPosition, Vector3 endPosition, Vector3 startDirection, Vector3 endDirection, out Vector3 p0, out Vector3 p1, out Vector3 p2, out Vector3 p3)
+        {
+            var strength = CalculateSegmentStrength(startPosition, endPosition);
+            p0 = startPosition;
+            p1 = startPosition + startDirection * strength;
+            p2 = endPosition + endDirection * strength;
+            p3 = endPosition;
+        }
         
         // ベジエ曲線上の座標を計算
         // Evaluate point on cubic Bezier curve
@@ -69,6 +87,34 @@ namespace Game.Train.RailCalc
         {
             return GetBezierCurveLength(n0.FrontControlPoint, n1.BackControlPoint, samples);
         }
+
+        // 長さ計算向けに相対制御点を生成
+        // Build relative control points for length calculation
+        public static void BuildRelativeControlPointsForLength(RailControlPoint startControlPoint, RailControlPoint endControlPoint, out Vector3 origin, out Vector3 p0, out Vector3 p1, out Vector3 p2, out Vector3 p3)
+        {
+            var startPosition = startControlPoint.OriginalPosition;
+            var endPosition = endControlPoint.OriginalPosition;
+            var startDirection = startControlPoint.ControlPointPosition;
+            var endDirection = endControlPoint.ControlPointPosition;
+            var strength = CalculateSegmentStrength(startPosition, endPosition);
+            startDirection *= strength;
+            endDirection *= strength;
+
+            // 数値安定のため始点終点を並び替える
+            // Swap endpoints for numeric stability
+            if (IsLexicographicallySmaller(endPosition, startPosition))
+            {
+                (startPosition, endPosition) = (endPosition, startPosition);
+                (startDirection, endDirection) = (endDirection, startDirection);
+            }
+
+            origin = startPosition;
+            p0 = Vector3.zero;
+            p1 = startDirection;
+            var delta = endPosition - origin;
+            p2 = endDirection + delta;
+            p3 = delta;
+        }
         
         public static void Getp0p1p2p3(IRailNode n0, IRailNode n1, out Vector3 p0, out Vector3 p1,out Vector3 p2,out Vector3 p3)
         {
@@ -76,39 +122,7 @@ namespace Game.Train.RailCalc
         }
         public static void Getp0p1p2p3(RailControlPoint cp0, RailControlPoint cp1, out Vector3 p0, out Vector3 p1,out Vector3 p2,out Vector3 p3)
         {
-            // 1) まず必要な値をローカルに退避
-            Vector3 aPos = cp0.OriginalPosition;
-            Vector3 bPos = cp1.OriginalPosition;
-            Vector3 aCtrl = cp0.ControlPointPosition;
-            Vector3 bCtrl = cp1.ControlPointPosition;
-            // 2) 強度をローカルに反映（呼び出し元は一切変わらない）
-            float strength = CalculateSegmentStrength(aPos, bPos);
-            aCtrl *= strength;
-            bCtrl *= strength;
-            // 3) 並び順も「ローカル変数」で安定化
-            if (IsLexicographicallySmaller(bPos, aPos))
-            {
-                (aPos, bPos) = (bPos, aPos);
-                (aCtrl, bCtrl) = (bCtrl, aCtrl);
-            }
-            // 4) 相対制御点を直接組み立て（RailControlPoint自体不要）
-            Vector3 origin = aPos;
-            p0 = Vector3.zero;
-            p1 = aCtrl;
-            Vector3 delta = bPos - origin;
-            p2 = bCtrl + delta;
-            p3 = delta;
-            return;
-            // 位置比較を辞書式で実施
-            // Lexicographical comparison helper
-            static bool IsLexicographicallySmaller(Vector3 a, Vector3 b)
-            {
-                if (a.x < b.x) return true;
-                if (a.x > b.x) return false;
-                if (a.y < b.y) return true;
-                if (a.y > b.y) return false;
-                return a.z < b.z;
-            }
+            BuildRelativeControlPointsForLength(cp0, cp1, out _, out p0, out p1, out p2, out p3);
         }
         
         
@@ -230,6 +244,17 @@ namespace Game.Train.RailCalc
             return 1f;
         }
 
+
+        // 位置ベクトルの辞書順比較
+        // Lexicographical comparison for positions
+        private static bool IsLexicographicallySmaller(Vector3 a, Vector3 b)
+        {
+            if (a.x < b.x) return true;
+            if (a.x > b.x) return false;
+            if (a.y < b.y) return true;
+            if (a.y > b.y) return false;
+            return a.z < b.z;
+        }
 
         private static bool IsZeroLength(Vector3 p0, Vector3 p3) => Vector3.Distance(p0, p3) <= 1e-6f;
         private static bool IsStraightLine(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3)
