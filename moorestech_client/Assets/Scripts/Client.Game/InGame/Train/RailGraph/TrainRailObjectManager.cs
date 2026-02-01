@@ -162,8 +162,11 @@ namespace Client.Game.InGame.Train.RailGraph
             var instance = Instantiate(_railPrefab, transform);
             // セグメント強度から制御点を算出
             // Build control points from segment strength
-            BezierUtility.Getp0p1p2p3(startNode, endNode, out var p0, out var p1, out var p2, out var p3);
-            instance.SetControlPoints(p0, p1, p2, p3);
+            var startControl = startNode.FrontControlPoint.OriginalPosition;
+            var control1 = startNode.FrontControlPoint.ControlPointPosition + startControl;
+            var endControl = endNode.BackControlPoint.OriginalPosition;
+            var control2 = endNode.BackControlPoint.ControlPointPosition + endControl;
+            instance.SetControlPoints(startControl, control1, control2, endControl);
             instance.SetRailGraphCache(_cache);
             instance.Rebuild();
             instance.PlaceAnimation().Forget();
