@@ -160,16 +160,10 @@ namespace Client.Game.InGame.Train.RailGraph
         private GameObject SpawnRail(string name, IRailNode startNode, IRailNode endNode)
         {
             var instance = Instantiate(_railPrefab, transform);
-            // セグメント強度から制御点を計算
-            // Build control points from segment strength
-            var startPosition = startNode.FrontControlPoint.OriginalPosition;
-            var endPosition = endNode.BackControlPoint.OriginalPosition;
-            var startDirection = startNode.FrontControlPoint.ControlPointPosition;
-            var endDirection = endNode.BackControlPoint.ControlPointPosition;
-            var strength = BezierUtility.CalculateSegmentStrength(startPosition, endPosition);
-            var control1 = startPosition + startDirection * strength;
-            var control2 = endPosition + endDirection * strength;
-            instance.SetControlPoints(startPosition, control1, control2, endPosition);
+            // 描画用の制御点を生成
+            // Build render control points
+            BezierUtility.BuildRenderControlPoints(startNode.FrontControlPoint, endNode.BackControlPoint, out var p0, out var p1, out var p2, out var p3);
+            instance.SetControlPoints(p0, p1, p2, p3);
             instance.SetRailGraphCache(_cache);
             instance.Rebuild();
             instance.PlaceAnimation().Forget();
