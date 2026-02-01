@@ -27,8 +27,6 @@ namespace Game.Train.RailGraph
         private readonly RailConnectionInitializationNotifier _connectionInitializationNotifier;
         private readonly RailNodeRemovalNotifier _nodeRemovalNotifier;
         private readonly RailConnectionRemovalNotifier _connectionRemovalNotifier;
-        private const float BezierStrengthBaseLength = 1f;
-
         public IObservable<RailNodeInitializationData> GetRailNodeInitializedEvent() => _nodeInitializationNotifier.RailNodeInitializedEvent;
         public IObservable<RailConnectionInitializationData> GetRailConnectionInitializedEvent() => _connectionInitializationNotifier.RailConnectionInitializedEvent;
         public IObservable<RailNodeRemovedData> GetRailNodeRemovedEvent() => _nodeRemovalNotifier.RailNodeRemovedEvent;
@@ -233,10 +231,12 @@ namespace Game.Train.RailGraph
                 if (edges[i].targetId != targetId)
                     continue;
                 edges[i] = (targetId, segment);
+                ApplySegmentControlPoints(nodeId, targetId, segment.BezierStrength);
                 return;
             }
             edges.Add((targetId, segment));
             segment.AddEdgeReference();
+            ApplySegmentControlPoints(nodeId, targetId, segment.BezierStrength);
         }
 
         // レールセグメント参照を解除する
@@ -296,12 +296,12 @@ namespace Game.Train.RailGraph
             var key = NormalizeSegmentKey(nodeId, targetId);
             if (!railSegmentByKey.TryGetValue(key, out var segment))
             {
-                var strength = CalculateSegmentBezierStrength(key.startId, length);
+                var strength = CalculateSegmentBezierStrength(key.startId, key.endId);
                 segment = new RailSegment(key.startId, key.endId, length, strength);
                 railSegmentByKey[key] = segment;
             }
             segment.SetLength(length);
-            segment.SetBezierStrength(CalculateSegmentBezierStrength(key.startId, length));
+            segment.SetBezierStrength(CalculateSegmentBezierStrength(key.startId, key.endId));
             return segment;
         }
 
@@ -342,13 +342,33 @@ namespace Game.Train.RailGraph
 
         // ベジエ強度を計算する
         // Calculate bezier strength
-        private float CalculateSegmentBezierStrength(int startNodeId, int length)
+        private float CalculateSegmentBezierStrength(int startNodeId, int endNodeId)
         {
             if (!TryGetRailNodeInternal(startNodeId, out var startNode))
                 return 0f;
-            var baseStrength = startNode.FrontControlPoint.ControlPointPosition.magnitude;
-            var scale = length / BezierStrengthBaseLength;
-            return baseStrength * scale;
+            if (!TryGetRailNodeInternal(endNodeId, out var endNode))
+                return 0f;
+            var startPosition = startNode.FrontControlPoint.OriginalPosition;
+            var endPosition = endNode.BackControlPoint.OriginalPosition;
+            return RailSegmentCurveUtility.CalculateSegmentStrength(startPosition, endPosition);
+        }
+
+        // セグメント強度から制御点を更新する
+        // Update control points from segment strength
+        private void ApplySegmentControlPoints(int startNodeId, int endNodeId, float strength)
+        {
+            if (!TryGetRailNodeInternal(startNodeId, out var startNode))
+                return;
+            if (!TryGetRailNodeInternal(endNodeId, out var endNode))
+                return;
+
+            var startPosition = startNode.FrontControlPoint.OriginalPosition;
+            var endPosition = endNode.BackControlPoint.OriginalPosition;
+            var startDirection = startNode.FrontControlPoint.ControlPointPosition;
+            var endDirection = endNode.BackControlPoint.ControlPointPosition;
+            RailSegmentCurveUtility.BuildControlPoints(startPosition, startDirection, endPosition, endDirection, strength, out var p0, out var p1, out var p2, out var p3);
+            startNode.FrontControlPoint.ControlPointPosition = p1 - p0;
+            endNode.BackControlPoint.ControlPointPosition = p2 - p3;
         }
 
         private void DisconnectNodeInternal(RailNode node, RailNode targetNode)
