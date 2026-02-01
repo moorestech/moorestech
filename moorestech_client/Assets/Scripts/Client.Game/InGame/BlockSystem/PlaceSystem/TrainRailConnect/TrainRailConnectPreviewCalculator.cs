@@ -11,7 +11,7 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
 {
     /// <summary>
-    /// レール橋脚同士が接続する際、レール同士がどのような接続をするかを計算します
+    /// レール橋脚間接続時のプレビュー曲線を計算する
     /// Calculates the rail connection when connecting rail piers to each other
     /// </summary>
     public class TrainRailConnectPreviewCalculator
@@ -22,7 +22,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         /// </summary>
         public static TrainRailConnectPreviewData CalculatePreviewData(ConnectionDestination from, ConnectionDestination to, RailGraphClientCache cache, ILocalPlayerInventory playerInventory)
         {
-            // 起点ノードを取得
+            // 始点ノードを取得
             // Get the start node
             if (!cache.TryGetNodeId(from, out var fromNodeId) || !cache.TryGetNode(fromNodeId, out var fromNode))
             {
@@ -36,14 +36,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 return TrainRailConnectPreviewData.Invalid;
             }
             
-            // 起点の制御点
-            // Start control point
+            // レール長から設置可能なレールを判定
+            // Determine placeable rail items from curve length
             var length = BezierUtility.GetBezierCurveLength(fromNode, toNode, 64);
             (RailItemMasterElement element, int requiredCount)[] placeableRailItems = RailConnectionEditProtocol.GetPlaceableRailItems(playerInventory, length);
             var railTypeGuid = placeableRailItems.Length > 0 ? placeableRailItems[0].element.ItemGuid : Guid.Empty;
             
-            // 起点の制御点
-            // Start control point
+            // 制御点計算に必要な位置と方向を取得
+            // Get positions and directions for control points
             var startPosition = fromNode.FrontControlPoint.OriginalPosition;
             var endPosition = toNode.BackControlPoint.OriginalPosition;
             var startDirection = fromNode.FrontControlPoint.ControlPointPosition;
@@ -59,15 +59,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         
         public static TrainRailConnectPreviewData CalculatePreviewData(ConnectionDestination from, Vector3 cursorPosition, RailGraphClientCache cache, ILocalPlayerInventory playerInventory)
         {
-            // 起点ノードを取得
+            // 始点ノードを取得
             // Get the start node
             if (!cache.TryGetNodeId(from, out var fromNodeId) || !cache.TryGetNode(fromNodeId, out var fromNode))
             {
                 return TrainRailConnectPreviewData.Invalid;
             }
             
-            // 起点の制御点
-            // Start control point
+            // 制御点計算に必要な位置と方向を取得
+            // Get positions and directions for control points
             var startPosition = fromNode.FrontControlPoint.OriginalPosition;
             var endPosition = cursorPosition;
             var startDirection = fromNode.FrontControlPoint.ControlPointPosition;
