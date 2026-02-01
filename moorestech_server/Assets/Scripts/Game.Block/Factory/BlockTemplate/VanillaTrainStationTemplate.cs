@@ -61,8 +61,10 @@ namespace Game.Block.Factory.BlockTemplate
             BlockInstanceId instanceId,
             BlockPositionInfo positionInfo)
         {
-            // RailComponentは復元とconnectionMap登録までに留め、接続はRailSegment復元に委ねる
-            // Restore RailComponents and register to the connection map only; connections are restored by rail segments
+            // 保存されたRailComponent群を復元。旧仕様ではrailSaverComponentの接続情報で①と②を復元していた
+            // Restore saved RailComponents; legacy flow restored ① and ② connections via RailSaverComponent
+            // 現仕様では接続はRailSegment復元に委ねるため、ここでは登録のみ行う
+            // In current flow, connections are restored by rail segments, so we only register here
             var stationParam = masterElement.BlockParam as TrainStationBlockParam;
             var railComponents = RailComponentUtility.Restore2RailComponents(componentStates, positionInfo, stationParam.EntryRailPosition, stationParam.ExitRailPosition, _railGraphDatastore);//①復元
             RailComponentUtility.RegisterStationBlocks(railComponents, _railGraphDatastore);//②登録のみ
