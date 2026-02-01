@@ -70,14 +70,18 @@
       "Skill(skill-creator)",
       "Skill(edit-schema)",
       "Bash(gh release view:*)",
-      "mcp__serena__activate_project"
+      "mcp__serena__activate_project",
+      "mcp__serena__think_about_task_adherence",
+      "mcp__serena__think_about_whether_you_are_done",
+      "Bash(git commit:*)"
     ],
     "deny": []
   },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "moorestech_server",
-    "moorestech_client"
+    "moorestech_client",
+    "serena"
   ],
   "hooks": {
     "Stop": [

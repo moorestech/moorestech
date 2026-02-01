@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.BeltConveyor;
+using Game.Block.Blocks.Chest;
 using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
+using Game.Gear.Common;
 using Mooresmaster.Model.BlockConnectInfoModule;
 using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
@@ -234,6 +236,237 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(connectorB.ConnectorGuid, beltItem.GoalConnector.ConnectorGuid);
         }
 
+        [TestCase("BeltConveyorId")]
+        [TestCase("GearBeltConveyor")]
+        public void ItemsKeepSpacingWhenCloggedTest(string blockIdName)
+        {
+            // テストを実行する（blockIdの取得はDI初期化後に行う）
+            // Execute test (blockId retrieval is done after DI initialization)
+            ExecuteItemSpacingTest(blockIdName, beltCount: 4, expectedItemCount: 16);
+        }
+
+        private void ExecuteItemSpacingTest(string blockIdName, int beltCount, int expectedItemCount)
+        {
+            // 依存関係を初期化する
+            // Initialize dependencies
+            var (_, _) = new MoorestechServerDIContainerGenerator().Create(
+                new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+
+            // DI初期化後にBlockIdを取得する
+            // Get BlockId after DI initialization
+            var beltConveyorBlockId = GetBlockIdByName(blockIdName);
+            var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(beltConveyorBlockId);
+            var isGearBeltConveyor = blockMaster.BlockType == "GearBeltConveyor";
+
+            #region Internal - GetBlockIdByName
+
+            BlockId GetBlockIdByName(string name)
+            {
+                return name switch
+                {
+                    "BeltConveyorId" => ForUnitTestModBlockId.BeltConveyorId,
+                    "GearBeltConveyor" => ForUnitTestModBlockId.GearBeltConveyor,
+                    _ => throw new ArgumentException($"Unknown block ID name: {name}")
+                };
+            }
+
+            #endregion
+
+            // 搬出用チェストを配置する（z=-1の位置）
+            // Place input chest at z=-1
+            var chestPosition = new Vector3Int(0, 0, -1);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, chestPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var chestBlock);
+            var chestComponent = chestBlock.GetComponent<VanillaChestComponent>();
+
+            // ベルトコンベアを配置する
+            // Place belt conveyors
+            var beltComponents = new List<VanillaBeltConveyorComponent>();
+            var beltBlocks = new List<IBlock>();
+            for (var i = 0; i < beltCount; i++)
+            {
+                var beltPosition = new Vector3Int(0, 0, i);
+                worldBlockDatastore.TryAddBlock(beltConveyorBlockId, beltPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var beltBlock);
+                var beltComponent = beltBlock.GetComponent<VanillaBeltConveyorComponent>();
+                beltComponents.Add(beltComponent);
+                beltBlocks.Add(beltBlock);
+            }
+
+            // 歯車ベルトコンベアの場合は各ベルトに無限トルクジェネレータを配置する
+            // Place infinite torque generator next to each gear belt conveyor
+            GearBeltConveyorBlockParam gearBeltParam = null;
+            if (isGearBeltConveyor)
+            {
+                for (var i = 0; i < beltCount; i++)
+                {
+                    var generatorPosition = new Vector3Int(1, 0, i);
+                    worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.InfinityTorqueSimpleGearGenerator, generatorPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+                }
+                gearBeltParam = blockMaster.BlockParam as GearBeltConveyorBlockParam;
+            }
+
+            // 最後のベルトコンベアの出力先として詰まるインベントリを設定する
+            // Set blocked inventory as output of last belt conveyor
+            var lastBelt = beltComponents[^1];
+            var blockedInventory = new ConfigurableBlockInventory(1, 10, true, true);
+            var lastBeltBlock = worldBlockDatastore.GetBlock(new Vector3Int(0, 0, beltCount - 1));
+            var connectedTargets = (Dictionary<IBlockInventory, ConnectedInfo>)lastBeltBlock.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
+            connectedTargets.Clear();
+            AddTarget(connectedTargets, blockedInventory, 0);
+
+            // タイムアウト時間を計算する（ブロックタイプに応じて異なる）
+            // Calculate timeout based on block type
+            var transportTime = CalculateTransportTime(blockMaster, isGearBeltConveyor);
+
+            // チェストにアイテムを設定する
+            // Set items in chest
+            var itemId = new ItemId(1);
+            chestComponent.SetItem(0, itemId, expectedItemCount);
+
+            // 歯車ベルトコンベアの場合、搬送時間を初期化する
+            // Initialize gear belt conveyor transport time before items start moving
+            if (isGearBeltConveyor)
+            {
+                for (var i = 0; i < 5; i++)
+                {
+                    SupplyPowerIfNeeded();
+                    GameUpdater.UpdateWithWait();
+                }
+            }
+
+            // 全アイテムが詰まるまで待つ
+            // Wait until all items are clogged
+            var clogTimeout = TimeSpan.FromSeconds(transportTime * beltCount * 10);
+            UpdateUntilWithPowerLocal(() =>
+            {
+                var totalItemCount = 0;
+                foreach (var belt in beltComponents)
+                {
+                    totalItemCount += System.Linq.Enumerable.Count(belt.BeltConveyorItems, x => x != null);
+                }
+                var frontItem = beltComponents[^1].BeltConveyorItems[0];
+                return totalItemCount == expectedItemCount && frontItem != null && frontItem.RemainingTicks == 0;
+            }, clogTimeout);
+
+            // さらに待機して詰まり状態を安定させる
+            // Wait additional time to stabilize clogged state
+            var additionalTime = TimeSpan.FromSeconds(transportTime * 2);
+            var startTime = DateTime.Now;
+            while (DateTime.Now - startTime < additionalTime)
+            {
+                SupplyPowerIfNeeded();
+                GameUpdater.UpdateWithWait();
+            }
+
+            #region Internal - SupplyPower
+
+            void SupplyPowerIfNeeded()
+            {
+                if (!isGearBeltConveyor) return;
+                foreach (var block in beltBlocks)
+                {
+                    var gearComp = block.GetComponent<GearBeltConveyorComponent>();
+                    gearComp.SupplyPower(new RPM(10), new Torque(gearBeltParam.RequireTorque), true);
+                }
+            }
+
+            void UpdateUntilWithPowerLocal(Func<bool> condition, TimeSpan localTimeout)
+            {
+                var endTime = DateTime.Now.Add(localTimeout);
+                while (!condition())
+                {
+                    if (DateTime.Now > endTime) Assert.Fail("Timeout waiting for belt conveyor condition.");
+                    SupplyPowerIfNeeded();
+                    GameUpdater.AdvanceTicks(1);
+                }
+            }
+
+            #endregion
+
+            #region Internal
+
+            float CalculateTransportTime(BlockMasterElement master, bool isGear)
+            {
+                if (isGear)
+                {
+                    // 歯車ベルトコンベア: duration = 1 / (rpm * torqueRate * beltConveyorSpeed)
+                    // Gear belt conveyor: duration = 1 / (rpm * torqueRate * beltConveyorSpeed)
+                    var gearBeltParam = master.BlockParam as GearBeltConveyorBlockParam;
+                    const int generatorRpm = 10; // InfinityTorqueSimpleGearGeneratorのRPM
+                    const float torqueRate = 1f;
+                    return 1f / (generatorRpm * torqueRate * gearBeltParam.BeltConveyorSpeed);
+                }
+                else
+                {
+                    // 通常ベルトコンベア
+                    // Normal belt conveyor
+                    var beltParam = master.BlockParam as BeltConveyorBlockParam;
+                    return beltParam.TimeOfItemEnterToExit;
+                }
+            }
+
+            #endregion
+            
+            // ベルトコンベア上のアイテム数を確認する
+            // Verify item count on belt conveyors
+            var totalItemCount = 0;
+            foreach (var belt in beltComponents)
+            {
+                totalItemCount += System.Linq.Enumerable.Count(belt.BeltConveyorItems, x => x != null);
+            }
+            Assert.AreEqual(expectedItemCount, totalItemCount, $"Should have {expectedItemCount} items on belts");
+            
+            // 各アイテムの間隔を検証する（0.25の間隔）
+            // Verify item spacing (0.25 interval)
+            VerifyItemSpacing(beltComponents, expectedItemCount);
+        }
+        
+        private void VerifyItemSpacing(List<VanillaBeltConveyorComponent> beltComponents, int expectedItemCount)
+        {
+            var itemsPerBelt = expectedItemCount / beltComponents.Count;
+            var tolerance = 0.15; // 15%の許容誤差
+            
+            // 各ベルトコンベアのアイテム間隔を検証する
+            // Verify item spacing on each belt conveyor
+            for (var beltIndex = 0; beltIndex < beltComponents.Count; beltIndex++)
+            {
+                var belt = beltComponents[beltIndex];
+                var items = belt.BeltConveyorItems;
+                var totalTicks = items[0]?.TotalTicks ?? items[1]?.TotalTicks ?? 0;
+                
+                // 各スロットのアイテムが存在することを確認する
+                // Verify items exist in each slot
+                for (var slotIndex = 0; slotIndex < itemsPerBelt; slotIndex++)
+                {
+                    Assert.IsNotNull(items[slotIndex], $"Belt {beltIndex}, slot {slotIndex} should have an item");
+                }
+                
+                // 間隔を検証する
+                // Verify spacing
+                var expectedInterval = (double)totalTicks / itemsPerBelt;
+                
+                for (var slotIndex = 0; slotIndex < itemsPerBelt; slotIndex++)
+                {
+                    var item = items[slotIndex];
+                    var expectedRemainingTicks = expectedInterval * slotIndex;
+                    var actualRemainingTicks = (double)item.RemainingTicks;
+                    var toleranceTicks = expectedInterval * tolerance;
+                    
+                    // 最後のベルトの先頭アイテムは0
+                    // Front item of last belt should be 0
+                    if (beltIndex == beltComponents.Count - 1 && slotIndex == 0)
+                    {
+                        Assert.AreEqual(0u, item.RemainingTicks, $"Belt {beltIndex}, slot {slotIndex}: front item should have RemainingTicks=0");
+                    }
+                    else
+                    {
+                        Assert.That(actualRemainingTicks, Is.InRange(expectedRemainingTicks - toleranceTicks, expectedRemainingTicks + toleranceTicks),
+                            $"Belt {beltIndex}, slot {slotIndex}: expected RemainingTicks ≈ {expectedRemainingTicks}, but was {actualRemainingTicks}");
+                    }
+                }
+            }
+        }
+
         private static (VanillaBeltConveyorComponent Component, Dictionary<IBlockInventory, ConnectedInfo> ConnectedTargets) CreateBeltConveyor()
         {
             var blockFactory = ServerContext.BlockFactory;
@@ -265,5 +498,6 @@ namespace Tests.CombinedTest.Core
                 GameUpdater.UpdateWithWait();
             }
         }
+
     }
 }
