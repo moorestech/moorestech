@@ -118,12 +118,11 @@ namespace Core.Update
         public static double TicksToSeconds(uint ticks) => ticks * SecondsPerTick;
 
 #if UNITY_EDITOR
-        public static void UpdateWithWait()
+        public static void UpdateOneTick()
         {
             // テスト用: 1 tickずつ決定論的に進行
             // For testing: advance deterministically by 1 tick
             AdvanceTicks(1);
-            Wait();
         }
 
         // テスト用: 指定tick数だけ進行
@@ -134,11 +133,6 @@ namespace Core.Update
 
             _updateSubject.OnNext(Unit.Default);
             _lateUpdateSubject.OnNext(Unit.Default);
-        }
-
-        public static void Wait()
-        {
-            Thread.Sleep(5);
         }
 #endif
     }

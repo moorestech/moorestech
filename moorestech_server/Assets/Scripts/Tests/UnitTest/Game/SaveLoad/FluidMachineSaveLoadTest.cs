@@ -58,7 +58,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             outputFluidContainers[1].Amount = 20.0;
             
             //処理を開始
-            GameUpdater.UpdateWithWait();
+            GameUpdater.UpdateOneTick();
             //別のアイテムを追加（機械は1スロットしかないので、追加のアイテムは既存のアイテムとマージされるか無視される）
             
             // リフレクションで機械の状態を設定

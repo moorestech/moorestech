@@ -42,7 +42,7 @@ namespace Tests.CombinedTest.Core
 
             for (var i = 0; i < 120 && world.Exists(gearPos); i++)
             {
-                GameUpdater.UpdateWithWait();
+                GameUpdater.UpdateOneTick();
             }
 
             Assert.IsFalse(world.Exists(gearPos));
@@ -63,7 +63,7 @@ namespace Tests.CombinedTest.Core
             for (var i = 0; i < 160; i++)
             {
                 transformer.SupplyPower(new RPM(5), new Torque(5), true);
-                GameUpdater.UpdateWithWait();
+                GameUpdater.UpdateOneTick();
             }
 
             Assert.IsTrue(world.Exists(pos));
