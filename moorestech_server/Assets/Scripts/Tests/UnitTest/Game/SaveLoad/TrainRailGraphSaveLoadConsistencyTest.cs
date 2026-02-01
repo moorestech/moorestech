@@ -55,12 +55,12 @@ namespace Tests.UnitTest.Game.SaveLoad
                 var block = loadEnvironment.WorldBlockDatastore.GetBlock(position);
                 Assert.IsNotNull(block, $"座標 {position} にレールブロックがロードされていません。");
 
-                var saverComponent = block.GetComponent<RailSaverComponent>();
-                Assert.IsNotNull(saverComponent, $"座標 {position} のRailSaverComponentを取得できませんでした。");
-                Assert.IsNotEmpty(saverComponent.RailComponents,
-                    $"座標 {position} のRailSaverComponentにRailComponentが含まれていません。");
+                var railComponents = block.GetComponents<RailComponent>();
+                Assert.IsNotNull(railComponents, $"座標 {position} のRailComponentを取得できませんでした。");
+                Assert.IsNotEmpty(railComponents,
+                    $"座標 {position} のRailComponentにRailComponentが含まれていません。");
 
-                loadedComponents.Add(saverComponent.RailComponents[0]);
+                loadedComponents.Add(railComponents[0]);
             }
 
             var actualSnapshot = RailGraphNetworkTestHelper.CaptureFromComponents(loadedComponents);
@@ -193,12 +193,12 @@ namespace Tests.UnitTest.Game.SaveLoad
                 var block = loadEnvironment.WorldBlockDatastore.GetBlock(position);
                 Assert.IsNotNull(block, $"座標 {position} にレールブロックがロードされていません。");
 
-                var saverComponent = block.GetComponent<RailSaverComponent>();
-                Assert.IsNotNull(saverComponent, $"座標 {position} のRailSaverComponentを取得できませんでした。");
-                Assert.IsNotEmpty(saverComponent.RailComponents,
-                    $"座標 {position} のRailSaverComponentにRailComponentが含まれていません。");
+                var railComponents = block.GetComponents<RailComponent>();
+                Assert.IsNotNull(railComponents, $"座標 {position} のRailComponentを取得できませんでした。");
+                Assert.IsNotEmpty(railComponents,
+                    $"座標 {position} のRailComponentにRailComponentが含まれていません。");
 
-                loadedComponents.Add(saverComponent.RailComponents[0]);
+                loadedComponents.Add(railComponents[0]);
             }
 
             var actualSnapshot = RailGraphNetworkTestHelper.CaptureFromComponents(loadedComponents);

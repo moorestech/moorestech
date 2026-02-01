@@ -45,7 +45,7 @@ namespace Game.Train.RailGraph
         {
             _nodeRemovalListeners = nodeRemovalListeners.ToList();
             InitializeDataStore();
-            // RailNode -> RailComponentID の解決ロジックを Notifier に渡す
+            // RailNode -> ConnectionDestination の解決ロジックを Notifier に渡す
             // Pass node resolution hooks to notifiers
             _nodeInitializationNotifier = new RailNodeInitializationNotifier(this);
             _connectionInitializationNotifier = new RailConnectionInitializationNotifier(this);

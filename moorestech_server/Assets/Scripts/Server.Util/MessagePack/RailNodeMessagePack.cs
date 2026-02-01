@@ -14,8 +14,9 @@ namespace Server.Util.MessagePack
     [MessagePackObject]
     public class ConnectionDestinationMessagePack
     {
-        [Key(0)] public RailComponentIDMessagePack ComponentId { get; set; }
-        [Key(1)] public bool IsFrontSide { get; set; }
+        [Key(0)] public Vector3IntMessagePack BlockPosition { get; set; }
+        [Key(1)] public int ComponentIndex { get; set; }
+        [Key(2)] public bool IsFrontSide { get; set; }
 
         [Obsolete("デシリアライズ用コンストラクタです。")]
         public ConnectionDestinationMessagePack()
@@ -24,14 +25,14 @@ namespace Server.Util.MessagePack
 
         public ConnectionDestinationMessagePack(ConnectionDestination destination)
         {
-            ComponentId = new RailComponentIDMessagePack(destination.railComponentID);
+            BlockPosition = new Vector3IntMessagePack(destination.blockPosition);
+            ComponentIndex = destination.componentIndex;
             IsFrontSide = destination.IsFront;
         }
 
         public ConnectionDestination ToModel()
         {
-            var componentId = new RailComponentID(ComponentId.Position.Vector3Int, ComponentId.ID);
-            return new ConnectionDestination(componentId, IsFrontSide);
+            return new ConnectionDestination(BlockPosition.Vector3Int, ComponentIndex, IsFrontSide);
         }
     }
 

@@ -7,7 +7,6 @@ using Mooresmaster.Model.BlocksModule;
 using Game.Train.RailGraph;
 using UnityEngine;
 using Game.Block.Factory.BlockTemplate.Utility;
-using Game.Train.SaveLoad;
 
 namespace Game.Block.Factory.BlockTemplate
 {
@@ -43,15 +42,12 @@ namespace Game.Block.Factory.BlockTemplate
             var railBlockDirection = state?.RailBlockDirection;
 
             // RailComponentを生成
-            var railComponentId = new RailComponentID(blockPositionInfo.OriginalPos, 0);
             var railComponentPosition = RailComponentUtility.CalculateRailComponentPosition(blockPositionInfo,trainRailParam.RailPosition);
-            railComponents[0] = new RailComponent(_railGraphDatastore, railComponentPosition, railBlockDirection, railComponentId);
-            var railSaverComponent = new RailSaverComponent(railComponents);
+            railComponents[0] = new RailComponent(_railGraphDatastore, railComponentPosition, railBlockDirection, blockPositionInfo.OriginalPos, 0);
             // StateDetailコンポーネントを生成
             var stateDetailComponent = new RailComponentStateDetailComponent(railComponents[0]);
             // コンポーネントをまとめてブロックに登録
             var components = new List<IBlockComponent>();
-            components.Add(railSaverComponent);
             components.AddRange(railComponents);
             components.Add(stateDetailComponent);
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
@@ -67,12 +63,11 @@ namespace Game.Block.Factory.BlockTemplate
                 BlockPositionInfo positionInfo)
         {
             var trainRailParam = masterElement.BlockParam as TrainRailBlockParam;
-            var railComponents = RailComponentUtility.Restore1RailComponents(componentStates, positionInfo, trainRailParam.RailPosition, _railGraphDatastore);
-            var railSaverComponent = new RailSaverComponent(railComponents);
+            var railComponents = RailComponentUtility.Restore1RailComponents(positionInfo, trainRailParam.RailPosition, _railGraphDatastore);
             // StateDetailコンポーネントを生成
             var stateDetailComponent = new RailComponentStateDetailComponent(railComponents[0]);
 
-            var components = new List<IBlockComponent> { railSaverComponent };
+            var components = new List<IBlockComponent>();
             components.AddRange(railComponents);
             components.Add(stateDetailComponent);
 

@@ -117,11 +117,11 @@ namespace Tests.UnitTest.Game.SaveLoad
                 var block = loadEnvironment.WorldBlockDatastore.GetBlock(position);
                 Assert.IsNotNull(block, $"座標 {position} にレールブロックがロードされていません。");
 
-                var saverComponent = block.GetComponent<RailSaverComponent>();
-                Assert.IsNotNull(saverComponent, $"座標 {position} のRailSaverComponentを取得できませんでした。");
-                Assert.IsNotEmpty(saverComponent.RailComponents,
-                    $"座標 {position} のRailSaverComponentにRailComponentが含まれていません。");
-                loadedComponents.Add(saverComponent.RailComponents[0]);
+                var railComponents = block.GetComponents<RailComponent>();
+                Assert.IsNotNull(railComponents, $"座標 {position} のRailComponentを取得できませんでした。");
+                Assert.IsNotEmpty(railComponents,
+                    $"座標 {position} のRailComponentにRailComponentが含まれていません。");
+                loadedComponents.Add(railComponents[0]);
             }
 
             var actualSnapshot = RailGraphNetworkTestHelper.CaptureFromComponents(loadedComponents);
@@ -541,11 +541,11 @@ namespace Tests.UnitTest.Game.SaveLoad
                 var destination = node.ConnectionDestination;
                 if (destination.IsDefault())
                 {
-                    throw new InvalidOperationException("RailNodeからRailComponentIDを取得できませんでした。");
+                    throw new InvalidOperationException("RailNodeからConnectionDestinationを取得できませんでした。");
                 }
 
-                var componentId = destination.railComponentID;
-                return new NodeIdentifier(componentId.Position, componentId.ID, destination.IsFront);
+                var blockPosition = destination.blockPosition;
+                return new NodeIdentifier(blockPosition, destination.componentIndex, destination.IsFront);
             }
 
             public bool Equals(NodeIdentifier other)

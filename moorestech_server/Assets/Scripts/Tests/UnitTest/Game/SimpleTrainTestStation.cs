@@ -50,17 +50,17 @@ namespace Tests.UnitTest.Game
         {
             var env = TrainTestHelper.CreateEnvironment();
 
-            var (stationBlockA, railSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+            var (stationBlockA, railComponents) = TrainTestHelper.PlaceBlockWithRailComponents(
                 env,
                 ForUnitTestModBlockId.TestTrainStation,
                 new Vector3Int(0, 0, 0),
                 BlockDirection.North);
             Assert.IsNotNull(stationBlockA, "駅ブロックの設置に失敗しました。");
-            Assert.IsNotNull(railSaver, "RailSaverComponentの取得に失敗しました。");
+            Assert.IsNotNull(railComponents, "RailComponentの取得に失敗しました。");
 
-            Assert.AreEqual(2, railSaver.RailComponents.Length, "駅ブロックに紐づくRailComponent数が期待値と一致しません。");
-            var railComponentA = railSaver.RailComponents[0];
-            var railComponentB = railSaver.RailComponents[1];
+            Assert.AreEqual(2, railComponents.Count, "駅ブロックに紐づくRailComponent数が期待値と一致しません。");
+            var railComponentA = railComponents[0];
+            var railComponentB = railComponents[1];
             Debug.Log("railComponentA Position: " + railComponentA.Position);
             Debug.Log("railComponentB Position: " + railComponentB.Position);
         }
@@ -77,17 +77,17 @@ namespace Tests.UnitTest.Game
             for (int i = 0; i < 4; i++)
             {
                 var direction = (BlockDirection)4 + i;
-                var (stationBlockA, railSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+                var (stationBlockA, railComponents) = TrainTestHelper.PlaceBlockWithRailComponents(
                     env,
                     ForUnitTestModBlockId.TestTrainStation,
                     new Vector3Int(0, 5 * i, 0),
                     direction);
                 Assert.IsNotNull(stationBlockA, "駅ブロックの設置に失敗しました。");
-                Assert.IsNotNull(railSaver, "RailSaverComponentの取得に失敗しました。");
+                Assert.IsNotNull(railComponents, "RailComponentの取得に失敗しました。");
 
-                Assert.AreEqual(2, railSaver.RailComponents.Length, "駅ブロックに紐づくRailComponent数が期待値と一致しません。");
-                var railComponentA = railSaver.RailComponents[0];
-                var railComponentB = railSaver.RailComponents[1];
+                Assert.AreEqual(2, railComponents.Count, "駅ブロックに紐づくRailComponent数が期待値と一致しません。");
+                var railComponentA = railComponents[0];
+                var railComponentB = railComponents[1];
                 Debug.Log("railComponentA Position: " + railComponentA.Position);
                 Debug.Log("railComponentB Position: " + railComponentB.Position);
             }
@@ -98,25 +98,25 @@ namespace Tests.UnitTest.Game
         {
             var env = TrainTestHelper.CreateEnvironment();
 
-            var (_, firstSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+            var (_, firstComponents) = TrainTestHelper.PlaceBlockWithRailComponents(
                 env,
                 ForUnitTestModBlockId.TestTrainStation,
                 new Vector3Int(0, 0, 0),
                 BlockDirection.North);
-            var railNodeA = firstSaver.RailComponents[0].FrontNode;
-            var railNodeB = firstSaver.RailComponents[1].FrontNode;
+            var railNodeA = firstComponents[0].FrontNode;
+            var railNodeB = firstComponents[1].FrontNode;
 
             var stationParam = (TrainStationBlockParam)MasterHolder.BlockMaster
                 .GetBlockMaster(ForUnitTestModBlockId.TestTrainStation).BlockParam;
             var stationPosition = new Vector3Int(0, 0, 8);
 
-            var (_, secondSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+            var (_, secondComponents) = TrainTestHelper.PlaceBlockWithRailComponents(
                 env,
                 ForUnitTestModBlockId.TestTrainStation,
                 stationPosition,
                 BlockDirection.North);
-            var railNodeC = secondSaver.RailComponents[0].FrontNode;
-            var railNodeD = secondSaver.RailComponents[1].FrontNode;
+            var railNodeC = secondComponents[0].FrontNode;
+            var railNodeD = secondComponents[1].FrontNode;
 
             Debug.Log(env.GetRailGraphDatastore().GetDistanceBetweenNodes(railNodeA, railNodeB));
             var length0 = env.GetRailGraphDatastore().GetDistanceBetweenNodes(railNodeB, railNodeC);

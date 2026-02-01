@@ -112,6 +112,19 @@ namespace Tests.Util
             return (block, block?.ComponentManager.GetComponent<TComponent>());
         }
 
+        // RailComponent一覧をまとめて取得する
+        // Collect all RailComponents from a placed block
+        public static (IBlock Block, List<RailComponent> Components) PlaceBlockWithRailComponents(
+            TrainTestEnvironment environment,
+            BlockId blockId,
+            Vector3Int position,
+            BlockDirection direction)
+        {
+            var block = PlaceBlock(environment, blockId, position, direction);
+            var components = block?.ComponentManager.GetComponents<RailComponent>() ?? new List<RailComponent>();
+            return (block, components);
+        }
+
         public static RailComponent PlaceRail(TrainTestEnvironment environment, Vector3Int position, BlockDirection direction)
         {
             var (_, component) = PlaceBlockWithComponent<RailComponent>(environment, ForUnitTestModBlockId.TestTrainRail, position, direction);

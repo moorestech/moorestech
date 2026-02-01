@@ -30,12 +30,12 @@ namespace Tests.UnitTest.Game.SaveLoad
             var assembleSaveJsonText = env.ServiceProvider.GetService<AssembleSaveJsonText>();
 
             var pos = new Vector3Int(10, 0, 10);
-            var (_, railSaverComponent) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+            var (_, railComponents) = TrainTestHelper.PlaceBlockWithRailComponents(
                 env,
                 ForUnitTestModBlockId.TestTrainRail,
                 pos,
                 BlockDirection.North);
-            Assert.IsNotNull(railSaverComponent, "RailSaverComponentが取得できませんでした");
+            Assert.IsNotNull(railComponents, "RailComponentが取得できませんでした");
 
             var json = assembleSaveJsonText.AssembleSaveJson();
             Debug.Log("[RailComponentSaveLoadTest] SaveJson:\n" + json);
@@ -51,10 +51,10 @@ namespace Tests.UnitTest.Game.SaveLoad
             var loadedRailBlock = loadEnv.WorldBlockDatastore.GetBlock(pos);
             Assert.IsNotNull(loadedRailBlock, "RailBlockが正しくロードされていません");
 
-            var loadedRailComp = loadedRailBlock.GetComponent<RailSaverComponent>();
-            Assert.IsNotNull(loadedRailComp, "ロード後のRailComponentがnullです");
+            var loadedRailComponents = loadedRailBlock.GetComponents<RailComponent>();
+            Assert.IsNotNull(loadedRailComponents, "ロード後のRailComponentがnullです");
 
-            var isDestroy = loadedRailComp.RailComponents[0].IsDestroy;
+            var isDestroy = loadedRailComponents[0].IsDestroy;
             Assert.AreEqual(false, isDestroy, "RailComponentが読み込まれませんでした");
         }
 
@@ -72,13 +72,13 @@ namespace Tests.UnitTest.Game.SaveLoad
             for (int i = 0; i < num; i++)
             {
                 positions[i] = new Vector3Int(UnityEngine.Random.Range(-100, 100), 0, UnityEngine.Random.Range(-100, 100));
-                var (_, railSaverComponent) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+                var (_, railComponents) = TrainTestHelper.PlaceBlockWithRailComponents(
                     env,
                     ForUnitTestModBlockId.TestTrainRail,
                     positions[i],
                     BlockDirection.North);
-                Assert.IsNotNull(railSaverComponent, $"RailSaverComponent[{i}]が取得できませんでした");
-                allRailComponents[i] = railSaverComponent.RailComponents[0];
+                Assert.IsNotNull(railComponents, $"RailComponent[{i}]が取得できませんでした");
+                allRailComponents[i] = railComponents[0];
             }
 
             var allConnect = new Dictionary<(int, int, bool, bool), bool>();
@@ -118,9 +118,9 @@ namespace Tests.UnitTest.Game.SaveLoad
                 var loadedRailBlock = loadEnv.WorldBlockDatastore.GetBlock(positions[i]);
                 Assert.IsNotNull(loadedRailBlock, "RailBlockが正しくロードされていません");
 
-                var loadedRailComp = loadedRailBlock.GetComponent<RailSaverComponent>();
-                Assert.IsNotNull(loadedRailComp, "ロード後のRailComponentがnullです");
-                allRailComponents[i] = loadedRailComp.RailComponents[0];
+                var loadedRailComponents = loadedRailBlock.GetComponents<RailComponent>();
+                Assert.IsNotNull(loadedRailComponents, "ロード後のRailComponentがnullです");
+                allRailComponents[i] = loadedRailComponents[0];
             }
 
             for (int i = 0; i < num; i++)
