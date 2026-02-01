@@ -35,7 +35,6 @@ namespace Game.Block.Factory.BlockTemplate.Utility
             railComponentPositions[1] = exitPosition;
             var railComponents = RestoreMain(componentStates, blockPositionInfo, railComponentPositions, railGraphDatastore);//ここで②が復元できているはず(または隣接ブロックがまだか)
             // ①復元
-            railComponents[0].ConnectRailComponent(railComponents[1], true, true);//
             return railComponents;
         }
 
@@ -82,22 +81,6 @@ namespace Game.Block.Factory.BlockTemplate.Utility
                 railComponents[i].UpdateControlPointStrength(componentInfo.BezierStrength);// ベジェ曲線の強度を設定
             }
 
-            // 接続情報の復元 (Front/Back)
-            for (int i = 0; i < count; i++)
-            {
-                var componentInfo = saverData.Values[i];
-                var currentComponent = railComponents[i];
-                // FrontNodeへの接続情報を復元
-                foreach (var destinationConnection in componentInfo.ConnectMyFrontTo)
-                {
-                    EstablishConnection(currentComponent, destinationConnection, true);
-                }
-                // BackNodeへの接続情報を復元
-                foreach (var destinationConnection in componentInfo.ConnectMyBackTo)
-                {
-                    EstablishConnection(currentComponent, destinationConnection, false);
-                }
-            }
             return railComponents;
         }
 
@@ -115,17 +98,6 @@ namespace Game.Block.Factory.BlockTemplate.Utility
             var blockDirection = positionInfo.BlockDirection;
             var baseOriginPosition = (Vector3)blockDirection.GetBlockModelOriginPos(positionInfo.OriginalPos, positionInfo.BlockSize);
             return CoordinateConvert(blockDirection, componentPosition) + baseOriginPosition;
-        }
-
-        // 自分の駅or貨物駅ブロック内のRailComponentから、別ブロックのRailComponentへの接続を確立する
-        // 自分から自分への接続はWorldBlockDatastore.GetBlockが失敗するため、ここでは扱わない
-        static public void EstablishConnection(RailComponent sourceComponent, ConnectionDestination destinationConnection, bool isFrontSideOfComponent)
-        {
-            var targetComponent = ConnectionDestinationToRailComponent(destinationConnection);
-            if (targetComponent == null) return;
-            var useFrontSideOfTarget = destinationConnection.IsFront;
-            // 接続を実施 (既に接続済みの場合、距離が上書きされるだけ)
-            sourceComponent.ConnectRailComponent(targetComponent, isFrontSideOfComponent, useFrontSideOfTarget);
         }
 
         /// <summary>

@@ -131,26 +131,8 @@ namespace Game.Block.Blocks.TrainRail
             {
                 MyID = ComponentID,
                 BezierStrength = controlPointStrength,
-                ConnectMyFrontTo = new List<ConnectionDestination>(),
-                ConnectMyBackTo = new List<ConnectionDestination>(),
                 RailDirection = new Vector3JsoObjects(RailDirection),
             };
-
-            // FrontNode の接続リスト
-            foreach (var node in FrontNode.ConnectedNodes)
-            {
-                var connectionInfo = node.ConnectionDestination;
-                if (!connectionInfo.IsDefault())
-                    state.ConnectMyFrontTo.Add(connectionInfo);
-            }
-
-            // BackNode の接続リスト
-            foreach (var node in BackNode.ConnectedNodes)
-            {
-                var connectionInfo = node.ConnectionDestination;
-                if (!connectionInfo.IsDefault())
-                    state.ConnectMyBackTo.Add(connectionInfo);
-            }
 
             return state;
         }

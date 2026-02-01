@@ -2,7 +2,6 @@ using UnityEngine;
 using System;
 using System.Collections.Generic;
 using ClassLibrary;
-using System.ComponentModel;
 
 namespace Game.Train.SaveLoad
 {
@@ -110,8 +109,6 @@ namespace Game.Train.SaveLoad
     {
         public RailComponentID MyID;
         public float BezierStrength;
-        public List<ConnectionDestination> ConnectMyFrontTo = new List<ConnectionDestination>();
-        public List<ConnectionDestination> ConnectMyBackTo = new List<ConnectionDestination>();
         
         public Vector3JsoObjects RailDirection;
     }

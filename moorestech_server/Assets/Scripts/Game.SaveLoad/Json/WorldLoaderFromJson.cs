@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Game.Challenge;
 using Game.Context;
@@ -35,12 +36,13 @@ namespace Game.SaveLoad.Json
         private readonly CraftTreeManager _craftTreeManager;
         private readonly IResearchDataStore _researchDataStore;
         private readonly TrainSaveLoadService _trainSaveLoadService;
+        private readonly RailGraphSaveLoadService _railGraphSaveLoadService;
         private readonly TrainDockingStateRestorer _trainDockingStateRestorer;
 
         public WorldLoaderFromJson(SaveJsonFilePath saveJsonFilePath,
             IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore, 
             ChallengeDatastore challengeDatastore, IGameUnlockStateDataController gameUnlockStateDataController, CraftTreeManager craftTreeManager, MapInfoJson mapInfoJson,
-            IResearchDataStore researchDataStore, TrainSaveLoadService trainSaveLoadService, TrainDockingStateRestorer trainDockingStateRestorer)
+            IResearchDataStore researchDataStore, TrainSaveLoadService trainSaveLoadService, RailGraphSaveLoadService railGraphSaveLoadService, TrainDockingStateRestorer trainDockingStateRestorer)
         {
             _worldBlockDatastore = ServerContext.WorldBlockDatastore;
             _mapObjectDatastore = ServerContext.MapObjectDatastore;
@@ -55,6 +57,7 @@ namespace Game.SaveLoad.Json
             _mapInfoJson = mapInfoJson;
             _researchDataStore = researchDataStore;
             _trainSaveLoadService = trainSaveLoadService;
+            _railGraphSaveLoadService = railGraphSaveLoadService;
             _trainDockingStateRestorer = trainDockingStateRestorer;
         }
         
@@ -89,6 +92,10 @@ namespace Game.SaveLoad.Json
             
             _gameUnlockStateDataController.LoadUnlockState(load.GameUnlockStateJsonObject);
             _worldBlockDatastore.LoadBlockDataList(load.World);
+            // レールセグメントを復元する
+            // Restore rail segments
+            var segments = load.RailSegments ?? new List<RailSegmentSaveData>();
+            _railGraphSaveLoadService.RestoreRailSegments(segments);
             _inventoryDataStore.LoadPlayerInventory(load.Inventory);
             _entitiesDatastore.LoadBlockDataList(load.Entities);
             _worldSettingsDatastore.LoadSettingData(load.Setting);

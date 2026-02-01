@@ -15,6 +15,8 @@ namespace Game.Train.RailGraph
         private List<RailNode> railNodes;
         private RailNodeIdAllocator nodeIdAllocator;
         private List<List<(int, int)>> connectNodes;
+        private List<List<(int targetId, RailSegment segment)>> railSegments;
+        private Dictionary<(int startId, int endId), RailSegment> railSegmentByKey;
         private RailGraphPathFinder _pathFinder;
         private Dictionary<ConnectionDestination, int> connectionDestinationToRailId;
         private Dictionary<Vector3Int, (ConnectionDestination first, ConnectionDestination second)> railPositionToConnectionDestination;
@@ -25,6 +27,7 @@ namespace Game.Train.RailGraph
         private readonly RailConnectionInitializationNotifier _connectionInitializationNotifier;
         private readonly RailNodeRemovalNotifier _nodeRemovalNotifier;
         private readonly RailConnectionRemovalNotifier _connectionRemovalNotifier;
+        private const float BezierStrengthBaseLength = 1f;
 
         public IObservable<RailNodeInitializationData> GetRailNodeInitializedEvent() => _nodeInitializationNotifier.RailNodeInitializedEvent;
         public IObservable<RailConnectionInitializationData> GetRailConnectionInitializedEvent() => _connectionInitializationNotifier.RailConnectionInitializedEvent;
@@ -56,6 +59,8 @@ namespace Game.Train.RailGraph
             railNodes = new List<RailNode>();
             nodeIdAllocator = new RailNodeIdAllocator(EnsureRailNodeSlot);
             connectNodes = new List<List<(int, int)>>();
+            railSegments = new List<List<(int targetId, RailSegment segment)>>();
+            railSegmentByKey = new Dictionary<(int startId, int endId), RailSegment>();
             connectionDestinationToRailId = new Dictionary<ConnectionDestination, int>();
             railPositionToConnectionDestination = new Dictionary<Vector3Int, (ConnectionDestination first, ConnectionDestination second)>();
             _pathFinder = new RailGraphPathFinder();
@@ -103,6 +108,8 @@ namespace Game.Train.RailGraph
         public List<IRailNode> FindShortestPath(int startid, int targetid) => FindShortestPathInternal(startid, targetid);
         public bool TryGetRailNodeId(RailNode node, out int nodeId) => TryGetRailNodeIdInternal(node, out nodeId);
         public bool TryGetRailNode(int nodeId, out RailNode railNode) => TryGetRailNodeInternal(nodeId, out railNode);
+        public IReadOnlyCollection<RailSegment> GetRailSegments() => railSegmentByKey.Values;
+        public bool TryRestoreRailSegment(ConnectionDestination start, ConnectionDestination end, int length, float bezierStrength) => TryRestoreRailSegmentInternal(start, end, length, bezierStrength);
         public uint GetConnectNodesHash() => GetGraphHashInternal();
         public RailGraphSnapshot CaptureSnapshot(long currentTick) => CaptureSnapshotInternal(currentTick);
         public IReadOnlyList<RailNode> GetRailNodes() => railNodes;
@@ -117,6 +124,7 @@ namespace Game.Train.RailGraph
             {
                 railNodes.Add(null);
                 connectNodes.Add(new List<(int, int)>());
+                railSegments.Add(new List<(int targetId, RailSegment segment)>());
             }
         }
 
@@ -166,15 +174,10 @@ namespace Game.Train.RailGraph
             if (!railNodeToId.ContainsKey(targetNode))
                 throw new InvalidOperationException("Attempted to connect to a RailNode that is not registered in RailGraphDatastore.");
             var targetid = railNodeToId[targetNode];
-            if (!connectNodes[nodeid].Any(x => x.Item1 == targetid))
-            {
-                connectNodes[nodeid].Add((targetid, distance));
-            }
-            else // すでに接続が存在する場合は距離を上書き
-            {
-                connectNodes[nodeid].RemoveAll(x => x.Item1 == targetid);
-                connectNodes[nodeid].Add((targetid, distance));
-            }
+            // 接続の隣接リストとレールセグメントを更新する
+            // Update adjacency list and rail segment data
+            UpsertConnectNodes(nodeid, targetid, distance);
+            UpsertRailSegmentEdge(nodeid, targetid, distance);
 
             // レールグラフ更新イベントを発行
             // Fire rail graph update event
@@ -185,14 +188,215 @@ namespace Game.Train.RailGraph
             MarkHashDirty();
         }
 
+        // 接続リストを更新する
+        // Update the connection list
+        private void UpsertConnectNodes(int nodeId, int targetId, int distance)
+        {
+            var connections = connectNodes[nodeId];
+            var replaced = false;
+            for (int i = 0; i < connections.Count; i++)
+            {
+                if (connections[i].Item1 != targetId)
+                    continue;
+                connections[i] = (targetId, distance);
+                replaced = true;
+                break;
+            }
+
+            if (!replaced)
+                connections.Add((targetId, distance));
+        }
+
+        // レールセグメントを更新する
+        // Update the rail segment entry
+        private void UpsertRailSegmentEdge(int nodeId, int targetId, int distance)
+        {
+            var segment = GetOrCreateSegment(nodeId, targetId, distance);
+            UpsertRailSegmentEdgeInternal(nodeId, targetId, segment);
+        }
+
+        // レールセグメントを明示強度で更新する
+        // Update the rail segment entry with explicit strength
+        private void UpsertRailSegmentEdge(int nodeId, int targetId, int distance, float bezierStrength)
+        {
+            var segment = GetOrCreateSegmentWithBezier(nodeId, targetId, distance, bezierStrength);
+            UpsertRailSegmentEdgeInternal(nodeId, targetId, segment);
+        }
+
+        // レールセグメント参照を登録する
+        // Register the rail segment reference
+        private void UpsertRailSegmentEdgeInternal(int nodeId, int targetId, RailSegment segment)
+        {
+            var edges = railSegments[nodeId];
+            for (int i = 0; i < edges.Count; i++)
+            {
+                if (edges[i].targetId != targetId)
+                    continue;
+                edges[i] = (targetId, segment);
+                return;
+            }
+            edges.Add((targetId, segment));
+            segment.AddEdgeReference();
+        }
+
+        // レールセグメント参照を解除する
+        // Remove the rail segment reference
+        private void RemoveRailSegmentEdge(int nodeId, int targetId)
+        {
+            var edges = railSegments[nodeId];
+            for (int i = 0; i < edges.Count; i++)
+            {
+                if (edges[i].targetId != targetId)
+                    continue;
+                var segment = edges[i].segment;
+                edges.RemoveAt(i);
+                if (segment.RemoveEdgeReference())
+                    railSegmentByKey.Remove((segment.StartNodeId, segment.EndNodeId));
+                return;
+            }
+        }
+
+        // ノードのセグメント参照を全解除する
+        // Remove all rail segment references for a node
+        private void RemoveRailSegmentEdgesFromNode(int nodeId)
+        {
+            var edges = railSegments[nodeId];
+            for (int i = edges.Count - 1; i >= 0; i--)
+            {
+                var segment = edges[i].segment;
+                edges.RemoveAt(i);
+                if (segment.RemoveEdgeReference())
+                    railSegmentByKey.Remove((segment.StartNodeId, segment.EndNodeId));
+            }
+        }
+
+        // 対象ノードへの参照を削除する
+        // Remove rail segment references pointing to a node
+        private void RemoveRailSegmentEdgesToNode(int targetNodeId)
+        {
+            for (int i = 0; i < railSegments.Count; i++)
+            {
+                var edges = railSegments[i];
+                for (int index = edges.Count - 1; index >= 0; index--)
+                {
+                    if (edges[index].targetId != targetNodeId)
+                        continue;
+                    var segment = edges[index].segment;
+                    edges.RemoveAt(index);
+                    if (segment.RemoveEdgeReference())
+                        railSegmentByKey.Remove((segment.StartNodeId, segment.EndNodeId));
+                }
+            }
+        }
+
+        // レールセグメントを取得または作成する
+        // Get or create a rail segment
+        private RailSegment GetOrCreateSegment(int nodeId, int targetId, int length)
+        {
+            var key = NormalizeSegmentKey(nodeId, targetId);
+            if (!railSegmentByKey.TryGetValue(key, out var segment))
+            {
+                var strength = CalculateSegmentBezierStrength(key.startId, length);
+                segment = new RailSegment(key.startId, key.endId, length, strength);
+                railSegmentByKey[key] = segment;
+            }
+            segment.SetLength(length);
+            segment.SetBezierStrength(CalculateSegmentBezierStrength(key.startId, length));
+            return segment;
+        }
+
+        // 明示強度でセグメントを取得または作成する
+        // Get or create a rail segment with explicit strength
+        private RailSegment GetOrCreateSegmentWithBezier(int nodeId, int targetId, int length, float bezierStrength)
+        {
+            var key = NormalizeSegmentKey(nodeId, targetId);
+            if (!railSegmentByKey.TryGetValue(key, out var segment))
+            {
+                segment = new RailSegment(key.startId, key.endId, length, bezierStrength);
+                railSegmentByKey[key] = segment;
+            }
+            segment.SetLength(length);
+            segment.SetBezierStrength(bezierStrength);
+            return segment;
+        }
+
+        // レールセグメントキーを正規化する
+        // Normalize the rail segment key
+        private (int startId, int endId) NormalizeSegmentKey(int startId, int endId)
+        {
+            var alternateStart = endId ^ 1;
+            var alternateEnd = startId ^ 1;
+            return IsSegmentKeyLowerOrEqual(startId, endId, alternateStart, alternateEnd)
+                ? (startId, endId)
+                : (alternateStart, alternateEnd);
+        }
+
+        // レールセグメントキーを比較する
+        // Compare rail segment keys
+        private bool IsSegmentKeyLowerOrEqual(int startA, int endA, int startB, int endB)
+        {
+            if (startA != startB)
+                return startA < startB;
+            return endA <= endB;
+        }
+
+        // ベジエ強度を計算する
+        // Calculate bezier strength
+        private float CalculateSegmentBezierStrength(int startNodeId, int length)
+        {
+            if (!TryGetRailNodeInternal(startNodeId, out var startNode))
+                return 0f;
+            var baseStrength = startNode.FrontControlPoint.ControlPointPosition.magnitude;
+            var scale = length / BezierStrengthBaseLength;
+            return baseStrength * scale;
+        }
+
         private void DisconnectNodeInternal(RailNode node, RailNode targetNode)
         {
             var nodeid = railNodeToId[node];
             var targetid = railNodeToId[targetNode];
             connectNodes[nodeid].RemoveAll(x => x.Item1 == targetid);
+            RemoveRailSegmentEdge(nodeid, targetid);
             // 接続解除イベントを発行
             // Broadcast the connection removal
             _connectionRemovalNotifier.Notify(nodeid, node.Guid, targetid, targetNode.Guid);
+            MarkHashDirty();
+        }
+
+        // 保存データからレールセグメントを復元する
+        // Restore rail segments from save data
+        private bool TryRestoreRailSegmentInternal(ConnectionDestination start, ConnectionDestination end, int length, float bezierStrength)
+        {
+            var startNode = ResolveRailNodeInternal(start);
+            if (startNode == null)
+                return false;
+            var endNode = ResolveRailNodeInternal(end);
+            if (endNode == null)
+                return false;
+            var oppositeStart = startNode.OppositeRailNode;
+            var oppositeEnd = endNode.OppositeRailNode;
+            if (oppositeStart == null || oppositeEnd == null)
+                return false;
+
+            ConnectNodeInternalWithBezier(startNode, endNode, length, bezierStrength);
+            ConnectNodeInternalWithBezier(oppositeEnd, oppositeStart, length, bezierStrength);
+            return true;
+        }
+
+        // 明示強度でノードを接続する
+        // Connect nodes with explicit bezier strength
+        private void ConnectNodeInternalWithBezier(RailNode node, RailNode targetNode, int distance, float bezierStrength)
+        {
+            if (!railNodeToId.ContainsKey(node))
+                throw new InvalidOperationException("Attempted to connect a RailNode that is not registered in RailGraphDatastore.");
+            var nodeid = railNodeToId[node];
+            if (!railNodeToId.ContainsKey(targetNode))
+                throw new InvalidOperationException("Attempted to connect to a RailNode that is not registered in RailGraphDatastore.");
+            var targetid = railNodeToId[targetNode];
+            UpsertConnectNodes(nodeid, targetid, distance);
+            UpsertRailSegmentEdge(nodeid, targetid, distance, bezierStrength);
+
+            _connectionInitializationNotifier.Notify(nodeid, targetid, distance);
             MarkHashDirty();
         }
 
@@ -217,6 +421,7 @@ namespace Game.Train.RailGraph
             }
             railNodes[nodeid] = null;
             nodeIdAllocator.Return(nodeid);
+            RemoveRailSegmentEdgesFromNode(nodeid);
             connectNodes[nodeid].Clear();
             RemoveNodeTo(nodeid);
             MarkHashDirty();
@@ -228,6 +433,7 @@ namespace Game.Train.RailGraph
             {
                 connectNodes[i].RemoveAll(x => x.Item1 == nodeid);
             }
+            RemoveRailSegmentEdgesToNode(nodeid);
             MarkHashDirty();
         }
 
