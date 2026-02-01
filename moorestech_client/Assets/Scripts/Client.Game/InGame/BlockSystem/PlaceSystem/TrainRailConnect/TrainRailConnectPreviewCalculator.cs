@@ -41,7 +41,19 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             var length = BezierUtility.GetBezierCurveLength(fromNode, toNode, 64);
             (RailItemMasterElement element, int requiredCount)[] placeableRailItems = RailConnectionEditProtocol.GetPlaceableRailItems(playerInventory, length);
             var railTypeGuid = placeableRailItems.Length > 0 ? placeableRailItems[0].element.ItemGuid : Guid.Empty;
-            BezierUtility.Getp0p1p2p3(fromNode, toNode, out Vector3 p0, out Vector3 p1, out Vector3 p2, out Vector3 p3);
+            
+            // 起点の制御点
+            // Start control point
+            var startPosition = fromNode.FrontControlPoint.OriginalPosition;
+            var endPosition = toNode.BackControlPoint.OriginalPosition;
+            var startDirection = fromNode.FrontControlPoint.ControlPointPosition;
+            var endDirection = toNode.BackControlPoint.ControlPointPosition;
+            
+            var p0 = startPosition;
+            var p3 = endPosition;
+            var strength = BezierUtility.CalculateSegmentStrength(p0, p3);
+            var p1 = p0 + startDirection * strength;
+            var p2 = p3 + endDirection * strength;
             return new TrainRailConnectPreviewData(p0, p1, p2, p3, railTypeGuid, placeableRailItems.Any());
         }
         
@@ -59,7 +71,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             var startPosition = fromNode.FrontControlPoint.OriginalPosition;
             var endPosition = cursorPosition;
             var startDirection = fromNode.FrontControlPoint.ControlPointPosition;
-            startDirection.Normalize();
             var endDirection = startPosition - endPosition;
             if (endDirection.sqrMagnitude < 1e-6)
             {
@@ -70,9 +81,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 endDirection.Normalize();
             }
             var p0 = startPosition;
-            var p1 = startDirection + p0;
             var p3 = endPosition;
-            var p2 = endDirection + endPosition;
+            var strength = BezierUtility.CalculateSegmentStrength(p0, p3);
+            var p1 = p0 + startDirection * strength;
+            var p2 = p3 + endDirection * strength;
             var length = BezierUtility.GetBezierCurveLength(p0, p1, p2, p3, 64);
             (RailItemMasterElement element, int requiredCount)[] placeableRailItems = RailConnectionEditProtocol.GetPlaceableRailItems(playerInventory, length);
             var railTypeGuid = placeableRailItems.Length > 0 ? placeableRailItems[0].element.ItemGuid : Guid.Empty;
