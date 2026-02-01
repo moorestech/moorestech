@@ -50,7 +50,7 @@ namespace Tests.CombinedTest.Core
             beltConnectInventory.Add(chestComponent, new ConnectedInfo());
             
             
-            while (!chestComponent.GetItem(0).Equals(item)) GameUpdater.UpdateWithWait();
+            while (!chestComponent.GetItem(0).Equals(item)) GameUpdater.UpdateOneTick();
             
             Assert.True(chestComponent.GetItem(0).Equals(item));
         }
@@ -76,7 +76,7 @@ namespace Tests.CombinedTest.Core
             
             var chestConnectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)chest.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
             chestConnectInventory.Add(beltConveyorComponent, new ConnectedInfo());
-            GameUpdater.UpdateWithWait();
+            GameUpdater.UpdateOneTick();
             
             
             Assert.AreEqual(chestComponent.GetItem(0).Count, 0);

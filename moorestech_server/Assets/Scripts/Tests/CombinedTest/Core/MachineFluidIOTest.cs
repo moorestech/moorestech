@@ -80,7 +80,7 @@ namespace Tests.CombinedTest.Core
             var startTime = DateTime.Now;
             while (true)
             {
-                GameUpdater.UpdateWithWait();
+                GameUpdater.UpdateOneTick();
                 
                 var elapsedTime = DateTime.Now - startTime;
                 if (elapsedTime.TotalSeconds > 10) break; // 10秒待機
@@ -138,7 +138,7 @@ namespace Tests.CombinedTest.Core
             var startTime = DateTime.Now;
             while (true)
             {
-                GameUpdater.UpdateWithWait();
+                GameUpdater.UpdateOneTick();
                 
                 var elapsedTime = DateTime.Now - startTime;
                 if (elapsedTime.TotalSeconds > 10) break; // 10秒待機
@@ -208,7 +208,7 @@ namespace Tests.CombinedTest.Core
             while (DateTime.Now < endTime)
             {
                 blockMachineComponent.SupplyEnergy(new ElectricPower(10000));
-                GameUpdater.UpdateWithWait();
+                GameUpdater.UpdateOneTick();
             }
             
             // 検証
@@ -320,7 +320,7 @@ namespace Tests.CombinedTest.Core
             for (int i = 0; i < 5; i++)
             {
                 machineComponent.SupplyEnergy(new ElectricPower(100));
-                GameUpdater.UpdateWithWait();
+                GameUpdater.UpdateOneTick();
             }
             
             // アイドル状態でも電力供給で状態変化があることを確認
@@ -390,7 +390,7 @@ namespace Tests.CombinedTest.Core
             for (int i = 0; i < 10; i++)
             {
                 machineComponent.SupplyEnergy(new ElectricPower(1000));
-                GameUpdater.UpdateWithWait();
+                GameUpdater.UpdateOneTick();
                 
                 var details = stateObservable.GetBlockStateDetails();
                 var (state, _, _, rate) = ExtractMachineDetails(details);
@@ -422,7 +422,7 @@ namespace Tests.CombinedTest.Core
             for (int i = 0; i < recipeTime * 10 + 20; i++) // 余裕を持って待つ
             {
                 machineComponent.SupplyEnergy(new ElectricPower(1000));
-                GameUpdater.UpdateWithWait();
+                GameUpdater.UpdateOneTick();
                 
                 if (i % 10 == 0)
                 {
@@ -444,7 +444,7 @@ namespace Tests.CombinedTest.Core
             Debug.Log("Waiting for return to idle state...");
             for (int i = 0; i < 20; i++)
             {
-                GameUpdater.UpdateWithWait();
+                GameUpdater.UpdateOneTick();
                 var details = stateObservable.GetBlockStateDetails();
                 var (state, _, _, rate) = ExtractMachineDetails(details);
                 
@@ -488,7 +488,7 @@ namespace Tests.CombinedTest.Core
             // 電力供給なしでアップデート
             for (int i = 0; i < 5; i++)
             {
-                GameUpdater.UpdateWithWait();
+                GameUpdater.UpdateOneTick();
             }
             
             // 状態がアイドルのままであることを確認
@@ -501,7 +501,7 @@ namespace Tests.CombinedTest.Core
             for (int i = 0; i < 20; i++)
             {
                 machineComponent.SupplyEnergy(new ElectricPower(requiredPower / 2)); // 半分の電力
-                GameUpdater.UpdateWithWait();
+                GameUpdater.UpdateOneTick();
                 
                 var details = stateObservable.GetBlockStateDetails();
                 var (state, current, requested, rate) = ExtractMachineDetails(details);
@@ -607,7 +607,7 @@ namespace Tests.CombinedTest.Core
             var startTime = DateTime.Now;
             while (true)
             {
-                GameUpdater.UpdateWithWait();
+                GameUpdater.UpdateOneTick();
                 
                 var elapsedTime = DateTime.Now - startTime;
                 if (elapsedTime.TotalSeconds > 5) break; // 5秒待機
@@ -647,7 +647,7 @@ namespace Tests.CombinedTest.Core
             startTime = DateTime.Now;
             while (true)
             {
-                GameUpdater.UpdateWithWait();
+                GameUpdater.UpdateOneTick();
                 
                 var elapsedTime = DateTime.Now - startTime;
                 if (elapsedTime.TotalSeconds > 5) break; // 5秒待機

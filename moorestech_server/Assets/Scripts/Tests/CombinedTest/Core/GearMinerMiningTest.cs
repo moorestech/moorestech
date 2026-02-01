@@ -105,7 +105,7 @@ namespace Tests.CombinedTest.Core
 
             // チェストにアイテムが入っていることを確認するためにアップデート
             // Update to ensure that the chest contains the items.
-            GameUpdater.UpdateWithWait();
+            GameUpdater.UpdateOneTick();
 
             // アイテムがさらに 2 個入っていることを確認
             // Check that two more items are stored inside the chest.

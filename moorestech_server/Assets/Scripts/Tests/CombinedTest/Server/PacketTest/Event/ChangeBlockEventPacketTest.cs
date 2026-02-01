@@ -51,7 +51,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(0));
             
             //アップデートしてステートを更新する
-            GameUpdater.UpdateWithWait();
+            GameUpdater.UpdateOneTick();
             
             
             //ステートが実行中になっているかをチェック

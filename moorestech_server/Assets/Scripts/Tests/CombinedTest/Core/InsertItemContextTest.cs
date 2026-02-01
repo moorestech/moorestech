@@ -64,7 +64,7 @@ namespace Tests.CombinedTest.Core
 
             // アイテムが出力されるまで待つ
             // Wait until item is output
-            while (dummyTarget.InsertedContexts.Count == 0) GameUpdater.UpdateWithWait();
+            while (dummyTarget.InsertedContexts.Count == 0) GameUpdater.UpdateOneTick();
 
             // InsertItemContextが正しく設定されていることを確認
             // Verify InsertItemContext is correctly set
@@ -125,7 +125,7 @@ namespace Tests.CombinedTest.Core
 
             // アイテムがターゲットに転送されるまで待つ
             // Wait until item is transferred to target
-            while (dummyTarget.InsertedContexts.Count == 0) GameUpdater.UpdateWithWait();
+            while (dummyTarget.InsertedContexts.Count == 0) GameUpdater.UpdateOneTick();
 
             // InsertItemContextが正しく設定されていることを確認
             // Verify InsertItemContext is correctly set
@@ -236,7 +236,7 @@ namespace Tests.CombinedTest.Core
 
             // アイテムが最終ターゲットに届くまで待つ
             // Wait until item reaches final target
-            while (dummyTarget.InsertedContexts.Count == 0) GameUpdater.UpdateWithWait();
+            while (dummyTarget.InsertedContexts.Count == 0) GameUpdater.UpdateOneTick();
 
             // ベルトコンベアのアイテムに入力時のPathIdが設定されていることを確認
             // Verify PathId from input is set on belt conveyor item (item already moved, check via dummy target)
