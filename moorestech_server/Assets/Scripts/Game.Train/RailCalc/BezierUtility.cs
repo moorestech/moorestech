@@ -6,12 +6,13 @@ namespace Game.Train.RailCalc
     public static class BezierUtility
     {
         public const float RAIL_LENGTH_SCALE = 1024.0f;
+        public const float CONTROLSTRENGTH = 0.4967f;
         
         // セグメント強度を直線距離から算出する
         // Calculate segment strength from straight distance
         public static float CalculateSegmentStrength(Vector3 startPosition, Vector3 endPosition)
         {
-            return Vector3.Distance(startPosition, endPosition);
+            return Vector3.Distance(startPosition, endPosition) * CONTROLSTRENGTH;
         }
         
         // ベジエ曲線上の座標を計算
@@ -69,7 +70,6 @@ namespace Game.Train.RailCalc
             return GetBezierCurveLength(n0.FrontControlPoint, n1.BackControlPoint, samples);
         }
         
-        
         public static void Getp0p1p2p3(IRailNode n0, IRailNode n1, out Vector3 p0, out Vector3 p1,out Vector3 p2,out Vector3 p3)
         {
             Getp0p1p2p3(n0.FrontControlPoint, n1.BackControlPoint, out p0, out p1, out p2, out p3);
@@ -82,7 +82,7 @@ namespace Game.Train.RailCalc
             Vector3 aCtrl = cp0.ControlPointPosition;
             Vector3 bCtrl = cp1.ControlPointPosition;
             // 2) 強度をローカルに反映（呼び出し元は一切変わらない）
-            float strength = CalculateSegmentStrength(aPos, bPos) * 0.25f;
+            float strength = CalculateSegmentStrength(aPos, bPos);
             aCtrl *= strength;
             bCtrl *= strength;
             // 3) 並び順も「ローカル変数」で安定化
@@ -110,10 +110,6 @@ namespace Game.Train.RailCalc
                 return a.z < b.z;
             }
         }
-        
-        
-        
-        
         
         
         // ベジエ曲線の接線ベクトルを計算

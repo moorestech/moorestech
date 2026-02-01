@@ -25,6 +25,14 @@ namespace Game.Train.RailGraph
         {
             OriginalPosition = originalPosition;
             ControlPointPosition = controlPointPosition;
+            if (ControlPointPosition.sqrMagnitude < 1e-6)
+            {
+                ControlPointPosition = new Vector3(0, 1f, 0);
+            }
+            else
+            {
+                ControlPointPosition.Normalize();                
+            }
         }
     }
 }
