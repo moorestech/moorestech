@@ -1,0 +1,11 @@
+id: defineInterfacePrimitiveArrayTestSchema
+type: object
+
+properties:
+  - key: testArray
+    type: array
+    items:
+      type: object
+      properties:
+        - key: test
+          type: integer

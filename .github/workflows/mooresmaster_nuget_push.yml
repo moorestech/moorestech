@@ -1,0 +1,26 @@
+name: Mooresmaster NuGet Push
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  push:
+    name: Push to NuGet
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Build Generator
+      run: dotnet build mooresmaster/mooresmaster.Generator/ -c release
+
+    - name: Pack
+      run: dotnet pack mooresmaster/mooresmaster.Generator/
+
+    - name: Push
+      run: dotnet nuget push ./mooresmaster/mooresmaster.Generator/bin/Release/*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate

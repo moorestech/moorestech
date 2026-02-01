@@ -1,0 +1,238 @@
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using mooresmaster.Generator.Analyze.Diagnostics;
+using mooresmaster.Generator.Json;
+using mooresmaster.Generator.JsonSchema;
+
+namespace mooresmaster.Generator.Analyze.Analyzers;
+
+public class SwitchPathAnalyzer : IPostJsonSchemaLayerAnalyzer
+{
+    public void PostJsonSchemaLayerAnalyze(Analysis analysis, ImmutableArray<SchemaFile> schemaFiles, SchemaTable schemaTable)
+    {
+        // 各スキーマファイルのルートSchemaIdをセットに追加
+        var rootSchemaIds = new HashSet<SchemaId>();
+        foreach (var schemaFile in schemaFiles)
+            if (schemaFile.Schema.InnerSchema.IsValid)
+                rootSchemaIds.Add(schemaFile.Schema.InnerSchema.Value!);
+        
+        foreach (var kvp in schemaTable.Table)
+        {
+            var schema = kvp.Value;
+            if (!(schema is SwitchSchema switchSchema)) continue;
+            if (!switchSchema.IfThenArray.IsValid) continue;
+            if (switchSchema.IfThenArray.Value!.Length == 0) continue;
+            
+            var switchPath = switchSchema.IfThenArray.Value![0].SwitchReferencePath;
+            
+            // このSwitchSchemaのルートを親を辿って見つける
+            var rootSchemaId = FindRootSchemaId(switchSchema, schemaTable, rootSchemaIds);
+            if (rootSchemaId == null) continue;
+            
+            // 重複ケースのチェック（パス解決の成否に関わらず実行）
+            ValidateDuplicateCases(analysis, switchSchema);
+            
+            var targetSchema = ValidateSwitchPath(analysis, schemaTable, switchSchema, switchPath, rootSchemaId.Value);
+            if (targetSchema != null) ValidateExhaustiveness(analysis, switchSchema, targetSchema);
+        }
+    }
+    
+    private void ValidateDuplicateCases(Analysis analysis, SwitchSchema switchSchema)
+    {
+        var caseCounts = new Dictionary<string, int>();
+        foreach (var caseSchema in switchSchema.IfThenArray.Value!)
+            if (caseCounts.ContainsKey(caseSchema.When))
+                caseCounts[caseSchema.When]++;
+            else
+                caseCounts[caseSchema.When] = 1;
+        
+        // 重複しているケースを報告
+        foreach (var kvp in caseCounts)
+            if (kvp.Value > 1)
+                analysis.ReportDiagnostics(new SwitchCasesDuplicateDiagnostics(
+                    switchSchema,
+                    kvp.Key,
+                    kvp.Value,
+                    switchSchema.SwitchPathLocation
+                ));
+    }
+    
+    private SchemaId? FindRootSchemaId(ISchema schema, SchemaTable schemaTable, HashSet<SchemaId> rootSchemaIds)
+    {
+        var current = schema;
+        while (current.Parent.HasValue)
+        {
+            var parentId = current.Parent.Value;
+            if (rootSchemaIds.Contains(parentId)) return parentId;
+            current = schemaTable.Table[parentId];
+        }
+        
+        // currentがルートかどうかをチェック
+        foreach (var kvp in schemaTable.Table)
+            if (kvp.Value == current && rootSchemaIds.Contains(kvp.Key))
+                return kvp.Key;
+        
+        return null;
+    }
+    
+    private ISchema? ValidateSwitchPath(Analysis analysis, SchemaTable schemaTable, SwitchSchema switchSchema, SwitchPath switchPath, SchemaId rootSchemaId)
+    {
+        // Switchの親ObjectSchemaを取得
+        if (!switchSchema.Parent.HasValue) return null;
+        
+        var parentSchema = schemaTable.Table[switchSchema.Parent.Value];
+        if (!(parentSchema is ObjectSchema parentObjectSchema)) return null;
+        
+        SchemaId currentSchemaId;
+        ISchema currentSchema;
+        
+        switch (switchPath.Type)
+        {
+            case SwitchPathType.Absolute:
+                // 絶対パス: ルートから辿る
+                currentSchemaId = rootSchemaId;
+                currentSchema = schemaTable.Table[rootSchemaId];
+                break;
+            case SwitchPathType.Relative:
+                // 相対パス: 親ObjectSchemaから開始
+                currentSchemaId = switchSchema.Parent.Value;
+                currentSchema = parentObjectSchema;
+                break;
+            default:
+                return null;
+        }
+        
+        foreach (var element in switchPath.Elements)
+            if (element is ParentSwitchPathElement)
+            {
+                // 親に遡る
+                if (currentSchema.Parent == null)
+                {
+                    analysis.ReportDiagnostics(new SwitchPathCannotNavigateToParentDiagnostics(
+                        switchPath,
+                        switchSchema.SwitchPathLocation
+                    ));
+                    return null;
+                }
+                
+                currentSchemaId = currentSchema.Parent.Value;
+                currentSchema = schemaTable.Table[currentSchemaId];
+            }
+            else if (element is NormalSwitchPathElement normalElement)
+            {
+                // プロパティ名で辿る
+                if (!(currentSchema is ObjectSchema objectSchema))
+                {
+                    analysis.ReportDiagnostics(new SwitchPathNotAnObjectDiagnostics(
+                        switchPath,
+                        normalElement.Path,
+                        switchSchema.SwitchPathLocation
+                    ));
+                    return null;
+                }
+                
+                if (!objectSchema.Properties.ContainsKey(normalElement.Path))
+                {
+                    analysis.ReportDiagnostics(new SwitchPathPropertyNotFoundDiagnostics(
+                        switchPath,
+                        normalElement.Path,
+                        objectSchema.Properties.Keys.ToArray(),
+                        switchSchema.SwitchPathLocation
+                    ));
+                    return null;
+                }
+
+                var propertySchemaId = objectSchema.Properties[normalElement.Path];
+                // プロパティのスキーマが無効な場合はパス解決を中断
+                if (!propertySchemaId.IsValid) return null;
+
+                currentSchemaId = propertySchemaId.Value!;
+                currentSchema = schemaTable.Table[currentSchemaId];
+            }
+        
+        return currentSchema;
+    }
+    
+    private void ValidateExhaustiveness(Analysis analysis, SwitchSchema switchSchema, ISchema targetSchema)
+    {
+        // 対象スキーマがStringSchemaのenumでない場合はスキップ
+        if (!(targetSchema is StringSchema stringSchema)) return;
+        if (stringSchema.Enums == null || stringSchema.Enums.Length == 0) return;
+        
+        // カバーされているケースを収集
+        var coveredCases = new HashSet<string>();
+        foreach (var caseSchema in switchSchema.IfThenArray.Value!) coveredCases.Add(caseSchema.When);
+        
+        // 不足しているケースを検出
+        var missingCases = stringSchema.Enums.Where(option => !coveredCases.Contains(option)).ToArray();
+        
+        if (missingCases.Length > 0)
+            analysis.ReportDiagnostics(new SwitchCasesNotExhaustiveDiagnostics(
+                switchSchema,
+                missingCases,
+                stringSchema.Enums,
+                switchSchema.SwitchPathLocation
+            ));
+    }
+    
+    public static string FormatSwitchPath(SwitchPath path)
+    {
+        var prefix = path.Type == SwitchPathType.Absolute ? "/" : "./";
+        var elements = string.Join("/", path.Elements.Select(e =>
+        {
+            if (e is NormalSwitchPathElement normal) return normal.Path;
+            if (e is ParentSwitchPathElement) return "..";
+            return "?";
+        }));
+        return prefix + elements;
+    }
+}
+
+public class SwitchPathPropertyNotFoundDiagnostics : IDiagnostics
+{
+    public SwitchPathPropertyNotFoundDiagnostics(SwitchPath switchPath, string propertyName, string[] availableProperties, Location location)
+    {
+        SwitchPath = switchPath;
+        PropertyName = propertyName;
+        AvailableProperties = availableProperties;
+        Locations = new[] { location };
+    }
+    
+    public SwitchPath SwitchPath { get; }
+    public string PropertyName { get; }
+    public string[] AvailableProperties { get; }
+    public Location[] Locations { get; }
+    
+    public string Message => $"Invalid switch path '{SwitchPathAnalyzer.FormatSwitchPath(SwitchPath)}'. Property '{PropertyName}' not found. Available properties: [{string.Join(", ", AvailableProperties)}]";
+}
+
+public class SwitchPathNotAnObjectDiagnostics : IDiagnostics
+{
+    public SwitchPathNotAnObjectDiagnostics(SwitchPath switchPath, string propertyName, Location location)
+    {
+        SwitchPath = switchPath;
+        PropertyName = propertyName;
+        Locations = new[] { location };
+    }
+    
+    public SwitchPath SwitchPath { get; }
+    public string PropertyName { get; }
+    public Location[] Locations { get; }
+    
+    public string Message => $"Invalid switch path '{SwitchPathAnalyzer.FormatSwitchPath(SwitchPath)}'. Cannot access property '{PropertyName}': current schema is not an object";
+}
+
+public class SwitchPathCannotNavigateToParentDiagnostics : IDiagnostics
+{
+    public SwitchPathCannotNavigateToParentDiagnostics(SwitchPath switchPath, Location location)
+    {
+        SwitchPath = switchPath;
+        Locations = new[] { location };
+    }
+    
+    public SwitchPath SwitchPath { get; }
+    public Location[] Locations { get; }
+    
+    public string Message => $"Invalid switch path '{SwitchPathAnalyzer.FormatSwitchPath(SwitchPath)}'. Cannot navigate to parent: already at root";
+}
