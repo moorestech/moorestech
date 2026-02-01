@@ -304,8 +304,8 @@ namespace Tests.UnitTest.Game
                     worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainStation, position, blockDirections[i], Array.Empty<BlockCreateParam>(), out var stationBlockA);
                     //気動車に対応する駅2
                     worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainStation, position + dirarray[i] * (stationBlockSize.z + 4 * cargoBBlockSize.z), blockDirections[i], Array.Empty<BlockCreateParam>(), out var stationBlockB);
-                    var railcomposA = stationBlockA.GetComponent<RailSaverComponent>();
-                    var railcomposB = stationBlockB.GetComponent<RailSaverComponent>();
+                    var railcomposA = stationBlockA.GetComponents<RailComponent>();
+                    var railcomposB = stationBlockB.GetComponents<RailComponent>();
                     //中間の貨物駅
                     for (int j = 0; j < 4; j++)
                     {
@@ -314,10 +314,10 @@ namespace Tests.UnitTest.Game
                         if (blockDirections[i] == BlockDirection.South) offset11or22 = cargoBBlockSize.z;
                         worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainCargoPlatform, position + dirarray[i] * (offset11or22 + cargoBBlockSize.z * j), blockDirections[i], Array.Empty<BlockCreateParam>(), out var cargoblock);
                     }
-                    Assert.AreEqual(2, railcomposA.RailComponents.Length, "駅Aに付随するRailComponent数が2本ではありません。");
-                    Assert.AreEqual(2, railcomposB.RailComponents.Length, "駅Bに付随するRailComponent数が2本ではありません。");
-                    var railComponentA = railcomposA.RailComponents[0];
-                    var railComponentB = railcomposB.RailComponents[1];
+                    Assert.AreEqual(2, railcomposA.Count, "駅Aに付随するRailComponent数が2本ではありません。");
+                    Assert.AreEqual(2, railcomposB.Count, "駅Bに付随するRailComponent数が2本ではありません。");
+                    var railComponentA = railcomposA[0];
+                    var railComponentB = railcomposB[1];
                     railComponentsData[i * 2 + 0] = railComponentA;
                     railComponentsData[i * 2 + 1] = railComponentB;
                 }
@@ -328,7 +328,7 @@ namespace Tests.UnitTest.Game
                     //y=0,1,2で重ならないよう調整は-1000～1000のランダム
                     var position = new Vector3Int(UnityEngine.Random.Range(-1000, 1000), i, UnityEngine.Random.Range(-1000, 1000));
                     var railBlockA = TrainTestHelper.PlaceBlock(env, ForUnitTestModBlockId.TestTrainRail, position, BlockDirection.West);
-                    var railComponentA = railBlockA.GetComponent<RailSaverComponent>().RailComponents[0];
+                    var railComponentA = railBlockA.GetComponent<RailComponent>();
                     railComponentsData[8 + i] = railComponentA;
                 }
 

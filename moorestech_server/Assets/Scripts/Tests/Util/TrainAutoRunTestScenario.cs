@@ -49,32 +49,32 @@ namespace Tests.Util
         {
             var environment = TrainTestHelper.CreateEnvironment();
 
-            var (stationBlock, railSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+            var (stationBlock, stationComponents) = TrainTestHelper.PlaceBlockWithRailComponents(
                 environment,
                 ForUnitTestModBlockId.TestTrainCargoPlatform,
                 Vector3Int.zero,
                 BlockDirection.North);
-            var (_, r0Saver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+            var (_, r0Component) = TrainTestHelper.PlaceBlockWithComponent<RailComponent>(
                 environment,
                 ForUnitTestModBlockId.TestTrainRail,
                 new Vector3Int(12, 34, 56),
                 BlockDirection.North);
-            var n0 = r0Saver.RailComponents[0].BackNode;
-            var (_, r1Saver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+            var n0 = r0Component.BackNode;
+            var (_, r1Component) = TrainTestHelper.PlaceBlockWithComponent<RailComponent>(
                 environment,
                 ForUnitTestModBlockId.TestTrainRail,
                 new Vector3Int(-65, 32, -10),
                 BlockDirection.South);
-            var n1 = r1Saver.RailComponents[0].FrontNode;
-            var (_, r2Saver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+            var n1 = r1Component.FrontNode;
+            var (_, r2Component) = TrainTestHelper.PlaceBlockWithComponent<RailComponent>(
                 environment,
                 ForUnitTestModBlockId.TestTrainRail,
                 new Vector3Int(-65, 32, -10),
                 BlockDirection.South);
-            var n2 = r2Saver.RailComponents[0].FrontNode;
+            var n2 = r2Component.FrontNode;
 
             Assert.IsNotNull(stationBlock, "Station block is missing");
-            Assert.IsNotNull(railSaver, "RailSaverComponent is missing");
+            Assert.IsNotNull(stationComponents, "RailComponent list is missing");
             Assert.IsNotNull(n0, "node0 is missing");
             Assert.IsNotNull(n1, "node1 is missing");
             Assert.IsNotNull(n2, "node2 is missing");
@@ -82,7 +82,7 @@ namespace Tests.Util
             var stationBlockLength = stationBlock!.BlockPositionInfo.BlockSize.z;
             Assert.Greater(stationBlockLength, 0, "Station block size Z must be positive");
 
-            var stationNodes = ExtractStationNodes(stationBlock, railSaver!);
+            var stationNodes = ExtractStationNodes(stationBlock, stationComponents);
 
             n0.ConnectNode(stationNodes.EntryFront,9876543);
             stationNodes.ExitFront.ConnectNode(n1, 123456);
@@ -163,9 +163,9 @@ namespace Tests.Util
             _disposed = true;
         }
 
-        private static StationNodeSet ExtractStationNodes(IBlock stationBlock, RailSaverComponent railSaver)
+        private static StationNodeSet ExtractStationNodes(IBlock stationBlock, IReadOnlyList<RailComponent> railComponents)
         {
-            var nodeInfos = railSaver.RailComponents
+            var nodeInfos = railComponents
                 .SelectMany(component => new[]
                 {
                     (Node: component.FrontNode, IsFront: true),

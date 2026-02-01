@@ -28,9 +28,6 @@ namespace Game.Block.Blocks.TrainRail
         public RailControlPoint FrontControlPoint { get; }
         public RailControlPoint BackControlPoint { get; }
 
-        // ブロック座標とIDが格納されている
-        public RailComponentID ComponentID { get; }
-
         //ブロックではなくレールのつなぎ目としてのこのcomponentの位置
         //Vector3形式であるが、現時点でこの値自体の誤差は許容している。もしrailcomponent.positionを新規に使う場合すでに誤差が含まれていることを考慮すること
         public Vector3 Position { get; }
@@ -40,18 +37,17 @@ namespace Game.Block.Blocks.TrainRail
         /// <summary>
         /// レール方向にBlockDirectionを用いるコンストラクタ
         /// </summary>
-        public RailComponent(IRailGraphDatastore railGraphDatastore, Vector3 position, BlockDirection blockDirection, RailComponentID railComponentID) : this(railGraphDatastore, position, ToVector3(blockDirection), railComponentID) { }
+        public RailComponent(IRailGraphDatastore railGraphDatastore, Vector3 position, BlockDirection blockDirection, Vector3Int blockPosition, int componentIndex) : this(railGraphDatastore, position, ToVector3(blockDirection), blockPosition, componentIndex) { }
 
         /// <summary>
         /// コンストラクタ
         /// </summary>
-        public RailComponent(IRailGraphDatastore railGraphDatastore, Vector3 position, Vector3 railDirection ,RailComponentID railComponentID)
+        public RailComponent(IRailGraphDatastore railGraphDatastore, Vector3 position, Vector3 railDirection, Vector3Int blockPosition, int componentIndex)
         {
             _railGraphDatastore = railGraphDatastore;
 
             Position = position;
             RailDirection = railDirection;
-            ComponentID = railComponentID;
 
             // ベジェ曲線の制御点を初期化
             FrontControlPoint = new RailControlPoint(position, CalculateControlPointOffset(true));
@@ -62,8 +58,8 @@ namespace Game.Block.Blocks.TrainRail
 
             FrontNode.SetRailControlPoints(FrontControlPoint, BackControlPoint);
             BackNode.SetRailControlPoints(BackControlPoint, FrontControlPoint);
-            FrontNode.SetConnectionDestination(new ConnectionDestination(railComponentID, true));
-            BackNode.SetConnectionDestination(new ConnectionDestination(railComponentID, false));
+            FrontNode.SetConnectionDestination(new ConnectionDestination(blockPosition, componentIndex, true));
+            BackNode.SetConnectionDestination(new ConnectionDestination(blockPosition, componentIndex, false));
             _railGraphDatastore.AddNodePair(FrontNode, BackNode);
         }
 
@@ -120,21 +116,6 @@ namespace Game.Block.Blocks.TrainRail
             controlPointStrength = strength;
             FrontControlPoint.ControlPointPosition = CalculateControlPointOffset(true);
             BackControlPoint.ControlPointPosition = CalculateControlPointOffset(false);
-        }
-
-        /// <summary>
-        /// セーブ用の情報を部分的に取得
-        /// </summary>
-        public RailComponentInfo GetPartialSaveState()
-        {
-            var state = new RailComponentInfo
-            {
-                MyID = ComponentID,
-                BezierStrength = controlPointStrength,
-                RailDirection = new Vector3JsoObjects(RailDirection),
-            };
-
-            return state;
         }
 
         /// <summary>

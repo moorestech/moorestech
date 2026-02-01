@@ -26,27 +26,27 @@ namespace Tests.UnitTest.Game
 
             var env = TrainTestHelper.CreateEnvironment();
 
-            var (loadingBlock, loadingSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+            var (loadingBlock, loadingComponents) = TrainTestHelper.PlaceBlockWithRailComponents(
                 env,
                 ForUnitTestModBlockId.TestTrainCargoPlatform,
                 new Vector3Int(0, 0, 0),
                 BlockDirection.North);
 
-            var (unloadingBlock, unloadingSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+            var (unloadingBlock, unloadingComponents) = TrainTestHelper.PlaceBlockWithRailComponents(
                 env,
                 ForUnitTestModBlockId.TestTrainCargoPlatform,
                 new Vector3Int(0, 0, 10),
                 BlockDirection.North);
 
             Assert.IsNotNull(loadingBlock, "積込プラットフォームブロックの設置に失敗しました。");
-            Assert.IsNotNull(loadingSaver, "積込プラットフォームのRailSaverComponentが取得できませんでした。");
+            Assert.IsNotNull(loadingComponents, "積込プラットフォームのRailComponentが取得できませんでした。");
             Assert.IsNotNull(unloadingBlock, "荷降ろしプラットフォームブロックの設置に失敗しました。");
-            Assert.IsNotNull(unloadingSaver, "荷降ろしプラットフォームのRailSaverComponentが取得できませんでした。");
+            Assert.IsNotNull(unloadingComponents, "荷降ろしプラットフォームのRailComponentが取得できませんでした。");
 
-            var loadingEntryComponent = loadingSaver.RailComponents[0];
-            var loadingExitComponent = loadingSaver.RailComponents[1];
-            var unloadingEntryComponent = unloadingSaver.RailComponents[0];
-            var unloadingExitComponent = unloadingSaver.RailComponents[1];
+            var loadingEntryComponent = loadingComponents[0];
+            var loadingExitComponent = loadingComponents[1];
+            var unloadingEntryComponent = unloadingComponents[0];
+            var unloadingExitComponent = unloadingComponents[1];
 
             var transitRailA = TrainTestHelper.PlaceRail(env, new Vector3Int(0, 0, 3), BlockDirection.North);
             var transitRailB = TrainTestHelper.PlaceRail(env, new Vector3Int(0, 0, 6), BlockDirection.North);

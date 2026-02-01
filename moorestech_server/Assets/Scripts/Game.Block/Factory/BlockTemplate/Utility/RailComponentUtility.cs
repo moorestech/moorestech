@@ -1,10 +1,7 @@
 ﻿using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
-using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.Train.RailGraph;
-using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
 using Game.Train.SaveLoad;
 using UnityEngine;
@@ -16,71 +13,25 @@ namespace Game.Block.Factory.BlockTemplate.Utility
         /// <summary>
         /// 復元メイン
         /// </summary>
-        //駅のように2つのRailComponentを持つブロックの接続情報復元処理
-        static public RailComponent[] Restore2RailComponents(Dictionary<string, string> componentStates, BlockPositionInfo blockPositionInfo, Vector3 entryPosition, Vector3 exitPosition, IRailGraphDatastore railGraphDatastore)
+        //駅のように2つのRailComponentを持つブロックの復元処理
+        static public RailComponent[] Restore2RailComponents(BlockPositionInfo blockPositionInfo, Vector3 entryPosition, Vector3 exitPosition, IRailGraphDatastore railGraphDatastore)
         {
-            //ここもそのうちまとめたい、またはけすか　TODO
-            string railSaverJson = componentStates[typeof(RailSaverComponent).FullName];
-            var saverData = JsonConvert.DeserializeObject<RailSaverData>(railSaverJson);
-            int count = saverData.Values.Count;
-            //2!=countならエラー
-            if (count != 2)
-            {
-                Debug.LogError($"駅復元処理エラー。RailComponentUtility.Restore2RailComponents: Expected 2 RailComponents, but got {count}.");
-                return Array.Empty<RailComponent>();
-            }
-
             var railComponentPositions = new Vector3[2];
-            railComponentPositions[0] = entryPosition;
-            railComponentPositions[1] = exitPosition;
-            var railComponents = RestoreMain(componentStates, blockPositionInfo, railComponentPositions, railGraphDatastore);//ここで②が復元できているはず(または隣接ブロックがまだか)
-            // ①復元
+            railComponentPositions[0] = CalculateRailComponentPosition(blockPositionInfo, entryPosition);
+            railComponentPositions[1] = CalculateRailComponentPosition(blockPositionInfo, exitPosition);
+
+            var railComponents = new RailComponent[2];
+            railComponents[0] = new RailComponent(railGraphDatastore, railComponentPositions[0], blockPositionInfo.BlockDirection, blockPositionInfo.OriginalPos, 0);
+            railComponents[1] = new RailComponent(railGraphDatastore, railComponentPositions[1], blockPositionInfo.BlockDirection, blockPositionInfo.OriginalPos, 1);
             return railComponents;
         }
 
-        //駅以外、事実上橋脚ブロックの接続情報復元処理
-        static public RailComponent[] Restore1RailComponents(Dictionary<string, string> componentStates, BlockPositionInfo blockPositionInfo, Vector3 componentPosition, IRailGraphDatastore railGraphDatastore)
+        //駅以外、事実上橋脚ブロックの復元処理
+        static public RailComponent[] Restore1RailComponents(BlockPositionInfo blockPositionInfo, Vector3 componentPosition, IRailGraphDatastore railGraphDatastore)
         {
-            string railSaverJson = componentStates[typeof(RailSaverComponent).FullName];
-            var saverData = JsonConvert.DeserializeObject<RailSaverData>(railSaverJson);
-            int count = saverData.Values.Count;
-            //2!=countならエラー
-            if (count != 1)
-            {
-                Debug.LogError($"橋脚復元処理エラー。RailComponentUtility.Restore1RailComponents: Expected 1 RailComponents, but got {count}.");
-                return Array.Empty<RailComponent>();
-            }
-
-            var railComponentPositions = new Vector3[1];
-            railComponentPositions[0] = componentPosition;
-            var railComponents = RestoreMain(componentStates, blockPositionInfo, railComponentPositions, railGraphDatastore);
-            return railComponents;
-        }
-
-        static private RailComponent[] RestoreMain(Dictionary<string, string> componentStates, BlockPositionInfo positionInfo, Vector3[] railComponentPositions, IRailGraphDatastore railGraphDatastore)
-        {
-            // JSON形式の保存データを取得・復元
-            string railSaverJson = componentStates[typeof(RailSaverComponent).FullName];
-            var saverData = JsonConvert.DeserializeObject<RailSaverData>(railSaverJson);
-            int count = saverData.Values.Count;
-            var railComponents = new RailComponent[count];
-            //count!=railComponentPositions.Lengthならエラー
-            if (count != railComponentPositions.Length) 
-            {
-                Debug.LogError($"レール復元時、RailComponent数が想定通りでない_saverData.Values.Count={count}_railComponentPositions.Length={railComponentPositions.Length}");
-                return railComponents;
-            }
-
-            for (int i = 0; i < railComponentPositions.Length; i++)
-                railComponentPositions[i] = CalculateRailComponentPosition(positionInfo, railComponentPositions[i]);
-
-            for (int i = 0; i < count; i++)// 各RailComponentを生成
-            {
-                var componentInfo = saverData.Values[i];
-                railComponents[i] = new RailComponent(railGraphDatastore, railComponentPositions[i], componentInfo.RailDirection.Vector3, componentInfo.MyID);
-                railComponents[i].UpdateControlPointStrength(componentInfo.BezierStrength);// ベジェ曲線の強度を設定
-            }
-
+            var railComponentPosition = CalculateRailComponentPosition(blockPositionInfo, componentPosition);
+            var railComponents = new RailComponent[1];
+            railComponents[0] = new RailComponent(railGraphDatastore, railComponentPosition, blockPositionInfo.BlockDirection, blockPositionInfo.OriginalPos, 0);
             return railComponents;
         }
 
@@ -114,8 +65,7 @@ namespace Game.Block.Factory.BlockTemplate.Utility
             var components = new RailComponent[2];
             for (int i = 0; i < 2; i++)
             {
-                var componentId = new RailComponentID(positionInfo.OriginalPos, i);
-                components[i] = new RailComponent(railGraphDatastore, positions[i], positionInfo.BlockDirection, componentId);
+                components[i] = new RailComponent(railGraphDatastore, positions[i], positionInfo.BlockDirection, positionInfo.OriginalPos, i);
             }
             // stationの前と後ろにそれぞれrailComponentがある、自動で接続する
             components[0].ConnectRailComponent(components[1], true, true);
@@ -199,8 +149,7 @@ namespace Game.Block.Factory.BlockTemplate.Utility
                         targetComponent.ConnectRailComponent(components[componentIndex], useFrontSideOfTarget, isFrontOfSelf);
                     }
 
-                    var isFront = componentIndex == 1;
-                    var newdata = new ConnectionDestination(components[componentIndex].ComponentID, isFront);
+                    var newdata = GetStationConnectionDestination(components[componentIndex], componentIndex);
                     if (pair.first.IsDefault())
                     {
                         pair.first = newdata;
@@ -214,8 +163,7 @@ namespace Game.Block.Factory.BlockTemplate.Utility
                 }
                 else
                 {
-                    var isFront = componentIndex == 1;
-                    var newdata = new ConnectionDestination(components[componentIndex].ComponentID, isFront);
+                    var newdata = GetStationConnectionDestination(components[componentIndex], componentIndex);
                     var newpair = (newdata, ConnectionDestination.Default);
                     connectionMap[roundedPosition] = newpair;
                     break;
@@ -223,23 +171,26 @@ namespace Game.Block.Factory.BlockTemplate.Utility
             }
         }
 
+        // 駅ブロックの接続先判定を統一する
+        // Unify connection destination selection for station blocks
+        static private ConnectionDestination GetStationConnectionDestination(RailComponent component, int componentIndex)
+        {
+            return componentIndex == 1 ? component.FrontNode.ConnectionDestination : component.BackNode.ConnectionDestination;
+        }
+
         // DestinationConnectionからRailComponentを復元する、ワールドブロックデータを使うversion
         static private RailComponent ConnectionDestinationToRailComponent(ConnectionDestination destinationConnection)
         {
-            var destinationComponentId = destinationConnection.railComponentID;
-            var destinationPosition = destinationComponentId.Position;
-            var componentIndex = destinationComponentId.ID;
+            var destinationPosition = destinationConnection.blockPosition;
+            var componentIndex = destinationConnection.componentIndex;
             // 対象ブロックをワールドから取得
             var targetBlock = ServerContext.WorldBlockDatastore.GetBlock(destinationPosition);
             if (targetBlock == null) return null;
-            // 対象ブロックがRailSaverComponentを持っているか確認
-            if (!targetBlock.TryGetComponent<RailSaverComponent>(out var targetRailSaver))
+            // 対象ブロックがRailComponentを持っているか確認
+            var targetComponents = targetBlock.ComponentManager.GetComponents<RailComponent>();
+            if (componentIndex < 0 || componentIndex >= targetComponents.Count)
                 return null;
-            // RailComponents配列から対象のRailComponentを取得
-            if (componentIndex < 0 || componentIndex >= targetRailSaver.RailComponents.Length)
-                return null;
-            var targetComponent = targetRailSaver.RailComponents[componentIndex];
-            return targetComponent;
+            return targetComponents[componentIndex];
         }
     }
 }

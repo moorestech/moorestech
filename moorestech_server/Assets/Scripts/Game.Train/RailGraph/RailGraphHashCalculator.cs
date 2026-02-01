@@ -118,11 +118,11 @@ namespace Game.Train.RailGraph
                 return Mix(current, -1);
             }
 
-            var position = destination.railComponentID.Position;
+            var position = destination.blockPosition;
             current = Mix(current, position.x);
             current = Mix(current, position.y);
             current = Mix(current, position.z);
-            current = Mix(current, destination.railComponentID.ID);
+            current = Mix(current, destination.componentIndex);
             current = Mix(current, destination.IsFront ? 1 : 0);
             return current;
         }
