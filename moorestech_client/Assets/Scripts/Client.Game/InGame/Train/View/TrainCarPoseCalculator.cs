@@ -77,20 +77,13 @@ namespace Client.Game.InGame.Train.View
 
             // ベジエ制御点を相対座標で構成する
             // Build control points from segment strength
-            var startPosition = behind.FrontControlPoint.OriginalPosition;
-            var endPosition = ahead.BackControlPoint.OriginalPosition;
-            var startDirection = behind.FrontControlPoint.ControlPointPosition;
-            var endDirection = ahead.BackControlPoint.ControlPointPosition;
-            var strength = RailSegmentCurveUtility.CalculateSegmentStrength(startPosition, endPosition);
-            RailSegmentCurveUtility.BuildControlPoints(startPosition, startDirection, endPosition, endDirection, strength, out var p0, out var p1, out var p2, out var p3);
-
+            BezierUtility.Getp0p1p2p3(behind, ahead, out var p0, out var p1, out var p2, out var p3);
             // 弧長テーブルを用いてtを解決する
             // Resolve t with arc-length lookup
             var arcLength = BuildArcLengthTable(p0, p1, p2, p3, out var arcLengths);
             var distanceWorld = distanceFromBehind / BezierUtility.RAIL_LENGTH_SCALE;
             var delta = p3 - p0;
             var t = arcLength > MinCurveLength ? BezierUtility.DistanceToTime(distanceWorld, arcLength, arcLengths) : ComputeLinearT(distanceWorld, delta);
-
             // 位置と向きを計算する
             // Compute position and forward vector
             position = BezierUtility.GetBezierPoint(p0, p1, p2, p3, t);
