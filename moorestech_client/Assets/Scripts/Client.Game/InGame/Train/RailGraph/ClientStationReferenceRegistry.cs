@@ -150,7 +150,7 @@ namespace Client.Game.InGame.Train.RailGraph
 
         private static ConnectionDestination CreateDestination(Vector3Int position, int componentIndex, bool isFront)
         {
-            return new ConnectionDestination(new RailComponentID(position, componentIndex), isFront);
+            return new ConnectionDestination(position, componentIndex, isFront);
         }
 
         private static StationNodeRole ResolveNodeRole(int componentIndex, bool isFront)

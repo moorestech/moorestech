@@ -12,13 +12,14 @@ namespace Server.Util.MessagePack
         [Key(3)] public Guid ToGuid { get; set; }
         [Key(4)] public int Distance { get; set; }
         [Key(5)] public long Tick { get; set; }
+        [Key(6)] public Guid RailTypeGuid { get; set; }
 
         [Obsolete("For serialization")]
         public RailConnectionCreatedMessagePack()
         {
         }
 
-        public RailConnectionCreatedMessagePack(int fromNodeId, Guid fromGuid, int toNodeId, Guid toGuid, int distance, long tick)
+        public RailConnectionCreatedMessagePack(int fromNodeId, Guid fromGuid, int toNodeId, Guid toGuid, int distance, long tick, Guid railTypeGuid)
         {
             FromNodeId = fromNodeId;
             FromGuid = fromGuid;
@@ -26,6 +27,7 @@ namespace Server.Util.MessagePack
             ToGuid = toGuid;
             Distance = distance;
             Tick = tick;
+            RailTypeGuid = railTypeGuid;
         }
     }
 }

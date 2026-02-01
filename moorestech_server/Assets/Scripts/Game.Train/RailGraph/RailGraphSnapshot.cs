@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Game.Train.RailGraph
@@ -27,15 +28,17 @@ namespace Game.Train.RailGraph
 
     public readonly struct RailGraphConnectionSnapshot
     {
-        public RailGraphConnectionSnapshot(int fromNodeId, int toNodeId, int distance)
+        public RailGraphConnectionSnapshot(int fromNodeId, int toNodeId, int distance, Guid railTypeGuid)
         {
             FromNodeId = fromNodeId;
             ToNodeId = toNodeId;
             Distance = distance;
+            RailTypeGuid = railTypeGuid;
         }
 
         public int FromNodeId { get; }
         public int ToNodeId { get; }
         public int Distance { get; }
+        public Guid RailTypeGuid { get; }
     }
 }

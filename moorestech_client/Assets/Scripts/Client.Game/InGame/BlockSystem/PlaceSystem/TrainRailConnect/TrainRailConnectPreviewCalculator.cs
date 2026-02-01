@@ -47,8 +47,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             var length = BezierUtility.GetBezierCurveLength(p0, p1, p2, p3, 64);
             
             (RailItemMasterElement element, int requiredCount)[] placeableRailItems = RailConnectionEditProtocol.GetPlaceableRailItems(playerInventory, length);
+            var railTypeGuid = placeableRailItems.Length > 0 ? placeableRailItems[0].element.ItemGuid : Guid.Empty;
             
-            return new TrainRailConnectPreviewData(p0, p1, p2, p3, length, placeableRailItems.Any());
+            return new TrainRailConnectPreviewData(p0, p1, p2, p3, length, railTypeGuid, placeableRailItems.Any());
         }
         
         public static TrainRailConnectPreviewData CalculatePreviewData(ConnectionDestination from, Vector3 cursorPosition, RailGraphClientCache cache, ILocalPlayerInventory playerInventory)
@@ -71,23 +72,25 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             var length = BezierUtility.GetBezierCurveLength(p0, p1, p2, p3, 64);
             
             (RailItemMasterElement element, int requiredCount)[] placeableRailItems = RailConnectionEditProtocol.GetPlaceableRailItems(playerInventory, length);
+            var railTypeGuid = placeableRailItems.Length > 0 ? placeableRailItems[0].element.ItemGuid : Guid.Empty;
             
-            return new TrainRailConnectPreviewData(p0, p1, p2, p3, length, placeableRailItems.Any());
+            return new TrainRailConnectPreviewData(p0, p1, p2, p3, length, railTypeGuid, placeableRailItems.Any());
         }
     }
     
     public struct TrainRailConnectPreviewData : IEquatable<TrainRailConnectPreviewData>
     {
-        public static TrainRailConnectPreviewData Invalid => new(Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero, 0f, false, false); 
+        public static TrainRailConnectPreviewData Invalid => new(Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero, 0f, Guid.Empty, false, false); 
         public Vector3 StartPoint;
         public Vector3 StartControlPoint;
         public Vector3 EndControlPoint;
         public Vector3 EndPoint;
         public float Length;
+        public Guid RailTypeGuid;
         public bool IsValid;
         public bool HasEnoughRailItem;
         
-        public TrainRailConnectPreviewData(Vector3 startPoint, Vector3 startControlPoint, Vector3 endControlPoint, Vector3 endPoint, float length, bool hasEnoughRailItem, bool isValid = true)
+        public TrainRailConnectPreviewData(Vector3 startPoint, Vector3 startControlPoint, Vector3 endControlPoint, Vector3 endPoint, float length, Guid railTypeGuid, bool hasEnoughRailItem, bool isValid = true)
         {
             StartPoint = startPoint;
             StartControlPoint = startControlPoint;
@@ -95,11 +98,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             EndPoint = endPoint;
             IsValid = isValid;
             Length = length;
+            RailTypeGuid = railTypeGuid;
             HasEnoughRailItem = hasEnoughRailItem;
         }
         public bool Equals(TrainRailConnectPreviewData other)
         {
-            return StartPoint.Equals(other.StartPoint) && StartControlPoint.Equals(other.StartControlPoint) && EndControlPoint.Equals(other.EndControlPoint) && EndPoint.Equals(other.EndPoint);
+            return StartPoint.Equals(other.StartPoint) && StartControlPoint.Equals(other.StartControlPoint) && EndControlPoint.Equals(other.EndControlPoint) && EndPoint.Equals(other.EndPoint) && RailTypeGuid.Equals(other.RailTypeGuid);
         }
         public override bool Equals(object obj)
         {
@@ -107,7 +111,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         }
         public override int GetHashCode()
         {
-            return HashCode.Combine(StartPoint, StartControlPoint, EndControlPoint, EndPoint);
+            return HashCode.Combine(StartPoint, StartControlPoint, EndControlPoint, EndPoint, RailTypeGuid);
         }
         public override string ToString()
         {

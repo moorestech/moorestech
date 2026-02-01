@@ -38,7 +38,7 @@ namespace Game.Train.SaveLoad
             {
                 if (segment == null)
                     continue;
-                _railGraphDatastore.TryRestoreRailSegment(segment.A, segment.B, segment.Length);
+                _railGraphDatastore.TryRestoreRailSegment(segment.A, segment.B, segment.Length, segment.RailTypeGuid);
             }
         }
 
@@ -62,7 +62,8 @@ namespace Game.Train.SaveLoad
             {
                 A = startNode.ConnectionDestination,
                 B = endNode.ConnectionDestination,
-                Length = segment.Length
+                Length = segment.Length,
+                RailTypeGuid = segment.RailTypeGuid
             };
             return true;
         }

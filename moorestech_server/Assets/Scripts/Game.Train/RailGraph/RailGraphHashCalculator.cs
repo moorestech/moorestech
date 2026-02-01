@@ -22,7 +22,7 @@ namespace Game.Train.RailGraph
         /// <summary>
         /// railNodes / connectNodes の状態から順序独立ハッシュを計算する。
         /// </summary>
-        public static uint ComputeGraphStateHash(IReadOnlyList<IRailNode> railNodes, List<List<(int targetId, int distance)>> connectNodes)
+        public static uint ComputeGraphStateHash(IReadOnlyList<IRailNode> railNodes, List<List<(int targetId, int distance)>> connectNodes, Func<int, int, Guid> resolveRailType)
         {
             uint hash = FnvOffset;
 
@@ -46,7 +46,7 @@ namespace Game.Train.RailGraph
             }
 
             hash = Mix(hash, unchecked((int)0x3F6A_2B1D));
-            return MixConnections(hash, connectNodes);
+            return MixConnections(hash, connectNodes, resolveRailType);
         }
 
         /// <summary>
@@ -54,7 +54,8 @@ namespace Game.Train.RailGraph
         /// </summary>
         public static uint ComputeGraphStateHash(
             IReadOnlyList<RailNodeInitializationData> nodes,
-            IReadOnlyList<IReadOnlyList<(int targetId, int distance)>> connectNodes)
+            IReadOnlyList<IReadOnlyList<(int targetId, int distance)>> connectNodes,
+            Func<int, int, Guid> resolveRailType)
         {
             uint hash = FnvOffset;
 
@@ -75,7 +76,7 @@ namespace Game.Train.RailGraph
             }
 
             hash = Mix(hash, unchecked((int)0x3F6A_2B1D));
-            return MixConnections(hash, connectNodes);
+            return MixConnections(hash, connectNodes, resolveRailType);
         }
 
         /// <summary>
@@ -155,7 +156,8 @@ namespace Game.Train.RailGraph
 
         private static uint MixConnections(
             uint current,
-            IReadOnlyList<IReadOnlyList<(int targetId, int distance)>> connectNodes)
+            IReadOnlyList<IReadOnlyList<(int targetId, int distance)>> connectNodes,
+            Func<int, int, Guid> resolveRailType)
         {
             if (connectNodes == null || connectNodes.Count == 0)
                 return current;
@@ -183,10 +185,16 @@ namespace Game.Train.RailGraph
                 {
                     hash = Mix(hash, normalized[i].target);
                     hash = Mix(hash, normalized[i].dist);
+                    hash = MixGuid(hash, ResolveRailTypeGuid(resolveRailType, nodeId, normalized[i].target));
                 }
             }
 
             return hash;
+        }
+
+        private static Guid ResolveRailTypeGuid(Func<int, int, Guid> resolveRailType, int startNodeId, int endNodeId)
+        {
+            return resolveRailType == null ? Guid.Empty : resolveRailType(startNodeId, endNodeId);
         }
     }
 }

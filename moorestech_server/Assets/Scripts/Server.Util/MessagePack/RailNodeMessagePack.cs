@@ -128,7 +128,8 @@ namespace Server.Util.MessagePack
                 Connections.Add(new RailGraphConnectionSnapshotMessagePack(
                     connection.FromNodeId,
                     connection.ToNodeId,
-                    connection.Distance));
+                    connection.Distance,
+                    connection.RailTypeGuid));
             }
 
             GraphHash = snapshot.ConnectNodesHash;
@@ -142,15 +143,17 @@ namespace Server.Util.MessagePack
         [Key(0)] public int FromNodeId { get; set; }
         [Key(1)] public int ToNodeId { get; set; }
         [Key(2)] public int Distance { get; set; }
+        [Key(3)] public Guid RailTypeGuid { get; set; }
 
         [Obsolete("デシリアライズ用コンストラクタです。")]
         public RailGraphConnectionSnapshotMessagePack() { }
 
-        public RailGraphConnectionSnapshotMessagePack(int fromNodeId, int toNodeId, int distance)
+        public RailGraphConnectionSnapshotMessagePack(int fromNodeId, int toNodeId, int distance, Guid railTypeGuid)
         {
             FromNodeId = fromNodeId;
             ToNodeId = toNodeId;
             Distance = distance;
+            RailTypeGuid = railTypeGuid;
         }
     }
 

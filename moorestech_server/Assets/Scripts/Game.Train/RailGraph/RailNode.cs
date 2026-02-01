@@ -103,7 +103,11 @@ namespace Game.Train.RailGraph
         //基本的にrailComponent側からのみよびだす
         public void ConnectNode(RailNode targetNode, int distance)
         {
-            _graphDatastore.ConnectNode(this, targetNode, distance);
+            _graphDatastore.ConnectNode(this, targetNode, distance, Guid.Empty);
+        }
+        public void ConnectNode(RailNode targetNode, int distance, Guid railTypeGuid)
+        {
+            _graphDatastore.ConnectNode(this, targetNode, distance, railTypeGuid);
         }
         public void DisconnectNode(RailNode targetNode)
         {
