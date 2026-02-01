@@ -122,117 +122,82 @@ namespace Game.Block.Factory.BlockTemplate.Utility
             return components;
         }
 
-        // 駅ブロック設置時、他の駅ブロックと隣接時にrailcomponentを自動接続する処理。あとconnectionMapへ登録する
-        // 接続判定について詳細
-        // 旧：ブロック座標を1マスずつスライドして同じ駅種のブロックにヒットするまでみていた(north,eastはブロックサイズ分シフトすればよかったがsouth,westは他人ブロックサイズが不明なので1マスずつスライドする必要があった)
-        // 新：マスタ定義のentryPositionとexitPositionを有効活用する方針とした
-        // たとえば駅1のentryPositionを駅2のexitPosition座標が一致していれば隣接接続してほしい
-        // これをRailGraphDataStoreのconnectionMapに辞書登録
-        // 座標とConnectionDestinationを対応登録。ConnectionDestinationは事実上、駅のRailComponentのentry exitのみならずfront backの情報ももつ
-        // このConnectionDestinationから接続させたい2つのRailComponentと向きが求まる
-        // なお座標はVector3だと浮動小数点数誤差(回転計算)で一致しなくなることがあったので2倍&四捨五入でVector3Int化した
-        // 座標→ConnectionDestinationの対応関係については、2つのConnectionDestinationをもつようにDictionary<Vector3, (ConnectionDestination first, ConnectionDestination second)> としている。3つ以上の重なりは考慮しない
+        // 駅のRailComponentをconnectionMapへ登録し、必要な場合のみ隣接接続を行う
+        // Register station RailComponents into the connection map and optionally connect neighbors
         static public void RegisterAndConnetStationBlocks(RailComponent[] components, IRailGraphDatastore railGraphDatastore) // componentsが2つ限定ver
         {
+            RegisterStationBlocksInternal(components, railGraphDatastore, true);
+        }
+
+        static public void RegisterStationBlocks(RailComponent[] components, IRailGraphDatastore railGraphDatastore) // componentsが2つ限定ver
+        {
+            RegisterStationBlocksInternal(components, railGraphDatastore, false);
+        }
+
+        static private void RegisterStationBlocksInternal(RailComponent[] components, IRailGraphDatastore railGraphDatastore, bool connectNeighbors)
+        {
             var connectionMap = railGraphDatastore.GetRailPositionToConnectionDestination();
-            Vector3Int[] roundedPositions = new Vector3Int[2];
-            // *2 → 四捨五入 → int 化
-            roundedPositions[0].x = Mathf.RoundToInt(components[0].Position.x * 2f);
-            roundedPositions[0].y = Mathf.RoundToInt(components[0].Position.y * 2f);
-            roundedPositions[0].z = Mathf.RoundToInt(components[0].Position.z * 2f);
-            roundedPositions[1].x = Mathf.RoundToInt(components[1].Position.x * 2f);
-            roundedPositions[1].y = Mathf.RoundToInt(components[1].Position.y * 2f);
-            roundedPositions[1].z = Mathf.RoundToInt(components[1].Position.z * 2f);
+            var roundedPosition0 = RoundRailPosition(components[0].Position);
+            var roundedPosition1 = RoundRailPosition(components[1].Position);
+            RegisterStationBlock(components, connectionMap, roundedPosition0, 0, connectNeighbors);
+            RegisterStationBlock(components, connectionMap, roundedPosition1, 1, connectNeighbors);
+        }
 
-            // もしpositions[0]がRailPositionToConnectionDestinationにみつかってかつpairのうちどちらか1個が存在するならそこに接続し残りを埋める、0個なら新規登録、2個の場合は考えない
+        static private Vector3Int RoundRailPosition(Vector3 position)
+        {
+            var roundedPosition = new Vector3Int();
+            roundedPosition.x = Mathf.RoundToInt(position.x * 2f);
+            roundedPosition.y = Mathf.RoundToInt(position.y * 2f);
+            roundedPosition.z = Mathf.RoundToInt(position.z * 2f);
+            return roundedPosition;
+        }
+
+        static private void RegisterStationBlock(RailComponent[] components, Dictionary<Vector3Int, (ConnectionDestination first, ConnectionDestination second)> connectionMap, Vector3Int roundedPosition, int componentIndex, bool connectNeighbors)
+        {
             while (true)
             {
-                if (connectionMap.TryGetValue(roundedPositions[0], out var pair))
+                if (connectionMap.TryGetValue(roundedPosition, out var pair))
                 {
-                    if ((!pair.Item1.IsDefault()) && (!pair.Item2.IsDefault()))
+                    if ((!pair.first.IsDefault()) && (!pair.second.IsDefault()))
                     {
-                        Debug.Assert(false, "RailComponentFactory.Create2RailComponents: Found multiple connection destinations for a single rail position.");
+                        Debug.Assert(false, "RailComponentFactory.RegisterStationBlocksInternal: Found multiple connection destinations for a single rail position.");
                         break;
                     }
-                    if ((pair.Item1.IsDefault()) && (pair.Item2.IsDefault()))
+                    if ((pair.first.IsDefault()) && (pair.second.IsDefault()))
                     {
-                        //connectionMapのpositions[0]キーを削除
-                        connectionMap.Remove(roundedPositions[0]);
+                        connectionMap.Remove(roundedPosition);
                         continue;
                     }
 
-                    var destinationConnection = (!pair.Item1.IsDefault()) ? pair.Item1 : pair.Item2;
-                    var useFrontSideOfTarget = destinationConnection.IsFront;
-                    var targetComponent = ConnectionDestinationToRailComponent(destinationConnection);
-                    if (targetComponent == null) break;
-                    //相手から自分に接続を考える(どっちでもいいが)
-                    targetComponent.ConnectRailComponent(components[0], useFrontSideOfTarget, true);
-
-                    var newdata = new ConnectionDestination(components[0].ComponentID, false);
-                    if (pair.Item1.IsDefault())
+                    if (connectNeighbors)
                     {
-                        pair.Item1 = newdata;
+                        var destinationConnection = (!pair.first.IsDefault()) ? pair.first : pair.second;
+                        var useFrontSideOfTarget = destinationConnection.IsFront;
+                        var targetComponent = ConnectionDestinationToRailComponent(destinationConnection);
+                        if (targetComponent == null) break;
+                        var isFrontOfSelf = componentIndex == 0;
+                        targetComponent.ConnectRailComponent(components[componentIndex], useFrontSideOfTarget, isFrontOfSelf);
+                    }
+
+                    var isFront = componentIndex == 1;
+                    var newdata = new ConnectionDestination(components[componentIndex].ComponentID, isFront);
+                    if (pair.first.IsDefault())
+                    {
+                        pair.first = newdata;
                     }
                     else
                     {
-                        pair.Item2 = newdata;
+                        pair.second = newdata;
                     }
-                    connectionMap[roundedPositions[0]] = pair;
+                    connectionMap[roundedPosition] = pair;
                     break;
                 }
                 else
                 {
-                    // 新規登録
-                    var newdata = new ConnectionDestination(components[0].ComponentID, false);
+                    var isFront = componentIndex == 1;
+                    var newdata = new ConnectionDestination(components[componentIndex].ComponentID, isFront);
                     var newpair = (newdata, ConnectionDestination.Default);
-                    connectionMap[roundedPositions[0]] = newpair;
-                    break;
-                }
-            }
-
-            // もしpositions[1]がRailPositionToConnectionDestinationにみつかってかつpairのうちどちらか1個が存在するならそこに接続し残りを埋める、0個なら新規登録、2個の場合は考えない
-            while (true)
-            {
-                if (connectionMap.TryGetValue(roundedPositions[1], out var pair))
-                {
-                    if ((!pair.Item1.IsDefault()) && (!pair.Item2.IsDefault()))
-                    {
-                        Debug.Assert(false, "RailComponentFactory.Create2RailComponents: Found multiple connection destinations for a single rail position.");
-                        break;
-                    }
-
-                    if ((pair.Item1.IsDefault()) && (pair.Item2.IsDefault()))
-                    {
-                        //connectionMapのpositions[1]キーを削除
-                        connectionMap.Remove(roundedPositions[1]);
-                        continue;
-                    }
-
-                    var destinationConnection = (!pair.Item1.IsDefault()) ? pair.Item1 : pair.Item2;
-                    var useFrontSideOfTarget = destinationConnection.IsFront;
-                    var targetComponent = ConnectionDestinationToRailComponent(destinationConnection);
-                    if (targetComponent == null) break;
-                    //相手から自分に接続を考える(どっちでもいいが)
-                    targetComponent.ConnectRailComponent(components[1], useFrontSideOfTarget, false);
-
-                    var newdata = new ConnectionDestination(components[1].ComponentID, true);
-                    if (pair.Item1.IsDefault())
-                    {
-                        pair.Item1 = newdata;
-                    }
-                    else
-                    {
-                        pair.Item2 = newdata;
-                    }
-                    connectionMap[roundedPositions[1]] = pair;
-                    break;
-                }
-                else
-                {
-                    // 新規登録
-                    var newdata = new ConnectionDestination(components[1].ComponentID, true);
-                    var newpair = (newdata, ConnectionDestination.Default);
-                    connectionMap[roundedPositions[1]] = newpair;
+                    connectionMap[roundedPosition] = newpair;
                     break;
                 }
             }

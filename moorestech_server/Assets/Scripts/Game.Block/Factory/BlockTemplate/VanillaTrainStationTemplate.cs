@@ -61,10 +61,11 @@ namespace Game.Block.Factory.BlockTemplate
             BlockInstanceId instanceId,
             BlockPositionInfo positionInfo)
         {
-            // 保存されたRailComponent群を復元。railSaverComponentからセーブ情報の中にrailcomponent同士の接続情報が含まれているのでそれを復元(これで①1つのstation内にある2つのRailComponentを直線で接続と、②stationをつなげて設置した場合に自動でrailComponentを接続、の両方が満たされる)
+            // RailComponentは復元とconnectionMap登録までに留め、接続はRailSegment復元に委ねる
+            // Restore RailComponents and register to the connection map only; connections are restored by rail segments
             var stationParam = masterElement.BlockParam as TrainStationBlockParam;
             var railComponents = RailComponentUtility.Restore2RailComponents(componentStates, positionInfo, stationParam.EntryRailPosition, stationParam.ExitRailPosition, _railGraphDatastore);//①復元
-            RailComponentUtility.RegisterAndConnetStationBlocks(railComponents, _railGraphDatastore);//②接続処理。実はRestoreで接続復元できているが、Registerはここで改めて行う必要がある
+            RailComponentUtility.RegisterStationBlocks(railComponents, _railGraphDatastore);//②登録のみ
             var railSaverComponent = new RailSaverComponent(railComponents);
             var station = new StationComponent("test", stationParam);
 
