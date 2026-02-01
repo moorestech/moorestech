@@ -91,8 +91,11 @@ namespace Tests.UnitTest.Game.SaveLoad
 
                     bool isFrontThis = UnityEngine.Random.Range(0, 2) == 0;
                     bool isFrontTarget = UnityEngine.Random.Range(0, 2) == 0;
-
-                    allRailComponents[i].ConnectRailComponent(allRailComponents[j], isFrontThis, isFrontTarget);
+                    //allRailComponents[i].ConnectRailComponent(allRailComponents[j], isFrontThis, isFrontTarget);
+                    var tmpn0 = isFrontThis ? allRailComponents[i].FrontNode : allRailComponents[i].BackNode;
+                    var tmpn2 = isFrontTarget ? allRailComponents[j].FrontNode : allRailComponents[j].BackNode;
+                    tmpn0.ConnectNode(tmpn2);
+                    tmpn2.OppositeRailNode.ConnectNode(tmpn0.OppositeRailNode);
                     allConnect[(i, j, isFrontThis, isFrontTarget)] = true;
                     allConnect[(j, i, !isFrontTarget, !isFrontThis)] = true;
                 }

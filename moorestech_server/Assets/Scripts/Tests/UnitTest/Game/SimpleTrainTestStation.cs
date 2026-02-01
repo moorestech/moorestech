@@ -27,8 +27,10 @@ namespace Tests.UnitTest.Game
             Assert.NotNull(railComponent1, "レールコンポーネント1の生成に失敗しています。");
             Assert.NotNull(railComponent2, "レールコンポーネント2の生成に失敗しています。");
 
-            railComponent1.ConnectRailComponent(railComponent2, true, true);
-
+            //railComponent1.ConnectRailComponent(railComponent2, true, true);
+            railComponent1.FrontNode.ConnectNode(railComponent2.FrontNode);
+            railComponent2.BackNode.ConnectNode(railComponent1.BackNode);
+            
             var connectedNodes = railComponent1.FrontNode.ConnectedNodesWithDistance;
             var connectedNode = connectedNodes.FirstOrDefault();
 

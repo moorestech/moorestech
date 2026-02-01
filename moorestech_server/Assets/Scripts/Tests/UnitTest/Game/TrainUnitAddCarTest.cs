@@ -65,7 +65,8 @@ namespace Tests.UnitTest.Game
             var environment = TrainTestHelper.CreateEnvironment();
             var railA = TrainTestHelper.PlaceRail(environment, new Vector3Int(0, 0, 0), BlockDirection.North);
             var railB = TrainTestHelper.PlaceRail(environment, new Vector3Int(1100, 0, 0), BlockDirection.North);
-            railB.ConnectRailComponent(railA, true, true);
+            railB.FrontNode.ConnectNode(railA.FrontNode);
+            railA.BackNode.ConnectNode(railB.BackNode);
 
             var firstTrain = MasterHolder.TrainUnitMaster.Train.TrainCars.First();
 
@@ -115,7 +116,9 @@ namespace Tests.UnitTest.Game
             var environment = TrainTestHelper.CreateEnvironment();
             var railA = TrainTestHelper.PlaceRail(environment, new Vector3Int(0, 0, 0), BlockDirection.North);
             var railB = TrainTestHelper.PlaceRail(environment, new Vector3Int(1100, 0, 0), BlockDirection.North);
-            railB.ConnectRailComponent(railA, true, true);
+            //railB.ConnectRailComponent(railA, true, true);
+            railB.FrontNode.ConnectNode(railA.FrontNode);
+            railA.BackNode.ConnectNode(railB.BackNode);
 
             var firstTrain = MasterHolder.TrainUnitMaster.Train.TrainCars.First();
 
@@ -164,8 +167,12 @@ namespace Tests.UnitTest.Game
             var railA = TrainTestHelper.PlaceRail(environment, new Vector3Int(0, 0, 0), BlockDirection.North);
             var railB = TrainTestHelper.PlaceRail(environment, new Vector3Int(1100, 0, 0), BlockDirection.North);
             var railC = TrainTestHelper.PlaceRail(environment, new Vector3Int(2100, 0, 0), BlockDirection.North);
-            railB.ConnectRailComponent(railA, true, true);
-            railC.ConnectRailComponent(railB, true, true);
+            //railB.ConnectRailComponent(railA, true, true);
+            railB.FrontNode.ConnectNode(railA.FrontNode);
+            railA.BackNode.ConnectNode(railB.BackNode);
+            //railC.ConnectRailComponent(railB, true, true);
+            railC.FrontNode.ConnectNode(railB.FrontNode);
+            railB.BackNode.ConnectNode(railC.BackNode);
 
             var firstTrain = MasterHolder.TrainUnitMaster.Train.TrainCars.First();
             var ablength = railB.FrontNode.GetDistanceToNode(railA.FrontNode);
@@ -224,8 +231,12 @@ namespace Tests.UnitTest.Game
             var railA = TrainTestHelper.PlaceRail(environment, new Vector3Int(0, 0, 0), BlockDirection.North);
             var railB = TrainTestHelper.PlaceRail(environment, new Vector3Int(1100, 0, 0), BlockDirection.North);
             var railC = TrainTestHelper.PlaceRail(environment, new Vector3Int(2100, 0, 0), BlockDirection.North);
-            railB.ConnectRailComponent(railA, true, true);
-            railC.ConnectRailComponent(railB, true, true);
+            //railB.ConnectRailComponent(railA, true, true);
+            railB.FrontNode.ConnectNode(railA.FrontNode);
+            railA.BackNode.ConnectNode(railB.BackNode);
+            //railC.ConnectRailComponent(railB, true, true);
+            railC.FrontNode.ConnectNode(railB.FrontNode);
+            railB.BackNode.ConnectNode(railC.BackNode);
 
             var firstTrain = MasterHolder.TrainUnitMaster.Train.TrainCars.First();
             var cblength = railC.FrontNode.GetDistanceToNode(railB.FrontNode);

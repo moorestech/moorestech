@@ -57,8 +57,12 @@ namespace Tests.UnitTest.Game.SaveLoad
             var stationB = ExtractStationEndpoints(stationBComponents!);
 
             const int TransitSegmentLength = 5000;
-            stationA.ExitComponent.ConnectRailComponent(stationB.EntryComponent, true, true, TransitSegmentLength);
-            stationB.ExitComponent.ConnectRailComponent(stationA.EntryComponent, true, true, TransitSegmentLength);
+            //stationA.ExitComponent.ConnectRailComponent(stationB.EntryComponent, true, true, TransitSegmentLength);
+            stationA.ExitComponent.FrontNode.ConnectNode(stationB.EntryComponent.FrontNode, TransitSegmentLength);
+            stationB.EntryComponent.BackNode.ConnectNode(stationA.ExitComponent.BackNode, TransitSegmentLength);
+            //stationB.ExitComponent.ConnectRailComponent(stationA.EntryComponent, true, true, TransitSegmentLength);
+            stationB.ExitComponent.FrontNode.ConnectNode(stationA.EntryComponent.FrontNode, TransitSegmentLength);
+            stationA.EntryComponent.BackNode.ConnectNode(stationB.ExitComponent.BackNode, TransitSegmentLength);
 
             var stationSegmentLength = stationABlock!.BlockPositionInfo.BlockSize.z;
 

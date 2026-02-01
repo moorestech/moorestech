@@ -54,7 +54,9 @@ namespace Tests.CombinedTest.Server.PacketTest
 
                 // レール同士を接続する
                 // Connect rails together
-                rail1Component.ConnectRailComponent(rail2Component, useFrontSideOfThis: true, useFrontSideOfTarget: true);
+                //rail1Component.ConnectRailComponent(rail2Component, useFrontSideOfThis: true, useFrontSideOfTarget: true);
+                rail1Component.FrontNode.ConnectNode(rail2Component.FrontNode);
+                rail2Component.BackNode.ConnectNode(rail1Component.BackNode);
 
                 // インベントリに列車アイテムを設定する
                 // Put train item in inventory
