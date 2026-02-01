@@ -292,18 +292,9 @@ namespace Tests.CombinedTest.Core
                 beltBlocks.Add(beltBlock);
             }
 
-            // 歯車ベルトコンベアの場合は各ベルトに無限トルクジェネレータを配置する
-            // Place infinite torque generator next to each gear belt conveyor
-            GearBeltConveyorBlockParam gearBeltParam = null;
-            if (isGearBeltConveyor)
-            {
-                for (var i = 0; i < beltCount; i++)
-                {
-                    var generatorPosition = new Vector3Int(1, 0, i);
-                    worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.InfinityTorqueSimpleGearGenerator, generatorPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
-                }
-                gearBeltParam = blockMaster.BlockParam as GearBeltConveyorBlockParam;
-            }
+            // 無限トルクジェネレータを配置する
+            // Place an infinite torque generator
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.InfinityTorqueSimpleGearGenerator, new Vector3Int(1, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
 
             // 最後のベルトコンベアの出力先として詰まるインベントリを設定する
             // Set blocked inventory as output of last belt conveyor
@@ -322,17 +313,6 @@ namespace Tests.CombinedTest.Core
             // Set items in chest
             var itemId = new ItemId(1);
             chestComponent.SetItem(0, itemId, expectedItemCount);
-
-            // 歯車ベルトコンベアの場合、搬送時間を初期化する
-            // Initialize gear belt conveyor transport time before items start moving
-            if (isGearBeltConveyor)
-            {
-                for (var i = 0; i < 5; i++)
-                {
-                    SupplyPowerIfNeeded();
-                    GameUpdater.UpdateWithWait();
-                }
-            }
 
             // 全アイテムが詰まるまで待つ
             // Wait until all items are clogged
@@ -354,21 +334,11 @@ namespace Tests.CombinedTest.Core
             var startTime = DateTime.Now;
             while (DateTime.Now - startTime < additionalTime)
             {
-                SupplyPowerIfNeeded();
                 GameUpdater.UpdateWithWait();
             }
 
             #region Internal - SupplyPower
 
-            void SupplyPowerIfNeeded()
-            {
-                if (!isGearBeltConveyor) return;
-                foreach (var block in beltBlocks)
-                {
-                    var gearComp = block.GetComponent<GearBeltConveyorComponent>();
-                    gearComp.SupplyPower(new RPM(10), new Torque(gearBeltParam.RequireTorque), true);
-                }
-            }
 
             void UpdateUntilWithPowerLocal(Func<bool> condition, TimeSpan localTimeout)
             {
@@ -376,7 +346,6 @@ namespace Tests.CombinedTest.Core
                 while (!condition())
                 {
                     if (DateTime.Now > endTime) Assert.Fail("Timeout waiting for belt conveyor condition.");
-                    SupplyPowerIfNeeded();
                     GameUpdater.AdvanceTicks(1);
                 }
             }
