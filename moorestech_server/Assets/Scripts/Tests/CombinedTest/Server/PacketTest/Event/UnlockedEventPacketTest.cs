@@ -89,7 +89,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             playerInventoryData.MainOpenableInventory.SetItem(2, item2);
             
             // アップデートしてチャレンジをコンプリートする
-            GameUpdater.UpdateWithWait();
+            GameUpdater.UpdateOneTick();
             
             // イベントを受け取り、テストする
             // Receive and test the event

@@ -39,7 +39,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             machineInventory.InsertItem(itemStackFactory.Create(new ItemId(1), 3));
             machineInventory.InsertItem(itemStackFactory.Create(new ItemId(2), 1));
             //処理を開始
-            GameUpdater.UpdateWithWait();
+            GameUpdater.UpdateOneTick();
             //別のアイテムを追加
             machineInventory.InsertItem(itemStackFactory.Create(new ItemId(5), 6));
             machineInventory.InsertItem(itemStackFactory.Create(new ItemId(2), 4));

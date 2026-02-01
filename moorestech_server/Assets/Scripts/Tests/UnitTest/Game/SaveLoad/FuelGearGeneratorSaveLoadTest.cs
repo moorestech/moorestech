@@ -51,7 +51,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             for (int i = 0; i < 20; i++)
             {
                 SetSteam();
-                GameUpdater.UpdateWithWait();
+                GameUpdater.UpdateOneTick();
                 
                 var tank = fluidComponent.SteamTank;
                 if (tank.Amount >= 10.0)
@@ -64,7 +64,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             for (int i = 0; i < 30; i++)
             {
                 SetSteam();
-                GameUpdater.UpdateWithWait();
+                GameUpdater.UpdateOneTick();
                 
                 if (steamGeneratorComponent.GenerateRpm.AsPrimitive() > 0)
                 {
@@ -169,7 +169,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             for (int i = 0; i < 4; i++)
             {
                 SetSteam();
-                GameUpdater.UpdateWithWait();
+                GameUpdater.UpdateOneTick();
             }
             
             // 現在の状態を取得するためのフィールド
@@ -180,7 +180,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             while (System.DateTime.Now < startTime.AddSeconds(param.TimeToMax + 1))
             {
                 SetSteam();
-                GameUpdater.UpdateWithWait();
+                GameUpdater.UpdateOneTick();
                 
                 if (steamGeneratorComponent.GenerateRpm.AsPrimitive() >= param.GenerateMaxRpm * 0.99f)
                 {
@@ -195,13 +195,13 @@ namespace Tests.UnitTest.Game.SaveLoad
             worldBlockDatastore.RemoveBlock(new Vector3Int(-1, 0, 0), BlockRemoveReason.ManualRemove);
             
             // パイプ切断を検知するまで少し待つ（1更新で検知されるはず）
-            GameUpdater.UpdateWithWait();
+            GameUpdater.UpdateOneTick();
             
             // 減速が始まるまで待つ
             bool foundDecelerating = false;
             for (int i = 0; i < 10; i++)
             {
-                GameUpdater.UpdateWithWait();
+                GameUpdater.UpdateOneTick();
                 
                 // 現在の状態を確認
                 var state = stateService.CurrentState.ToString();
@@ -214,7 +214,7 @@ namespace Tests.UnitTest.Game.SaveLoad
                     // 減速が始まったら、さらに数回更新して値が下がるのを待つ
                     for (int j = 0; j < 10; j++)
                     {
-                        GameUpdater.UpdateWithWait();
+                        GameUpdater.UpdateOneTick();
                         rpm = steamGeneratorComponent.GenerateRpm.AsPrimitive();
                         Debug.Log($"Deceleration update {j}: RPM={rpm}");
                         

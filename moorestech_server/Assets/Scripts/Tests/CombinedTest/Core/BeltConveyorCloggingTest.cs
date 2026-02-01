@@ -231,7 +231,7 @@ namespace Tests.CombinedTest.Core
             // 接続を外してGoalConnectorが更新されることを確認する
             // Remove connection and verify GoalConnector updates
             connectedTargets.Remove(openInventoryA);
-            GameUpdater.UpdateWithWait();
+            GameUpdater.UpdateOneTick();
             var beltItem = beltConveyorComponent.BeltConveyorItems[^1];
             Assert.AreEqual(connectorB.ConnectorGuid, beltItem.GoalConnector.ConnectorGuid);
         }
@@ -334,7 +334,7 @@ namespace Tests.CombinedTest.Core
             var startTime = DateTime.Now;
             while (DateTime.Now - startTime < additionalTime)
             {
-                GameUpdater.UpdateWithWait();
+                GameUpdater.UpdateOneTick();
             }
 
             #region Internal - SupplyPower
@@ -464,7 +464,7 @@ namespace Tests.CombinedTest.Core
             while (!condition())
             {
                 if (DateTime.Now > endTime) Assert.Fail("Timeout waiting for belt conveyor condition.");
-                GameUpdater.UpdateWithWait();
+                GameUpdater.UpdateOneTick();
             }
         }
 

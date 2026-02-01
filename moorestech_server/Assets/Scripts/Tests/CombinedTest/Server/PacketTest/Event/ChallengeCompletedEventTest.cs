@@ -86,7 +86,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             playerInventoryData.MainOpenableInventory.SetItem(2, item2);
             
             // アップデートしてチャレンジをコンプリートする
-            GameUpdater.UpdateWithWait();
+            GameUpdater.UpdateOneTick();
             
             // イベントを受け取り、テストする
             // Receive and test the event
@@ -115,7 +115,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(0,0,0), BlockDirection.East, Array.Empty<BlockCreateParam>(), out _);
             
             // アップデートを呼び出してイベントを処理
-            GameUpdater.UpdateWithWait();
+            GameUpdater.UpdateOneTick();
             
             // イベントを受け取り、テストする
             // Receive and test the event

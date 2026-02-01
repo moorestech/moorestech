@@ -1,7 +1,9 @@
 using System;
 using System.Collections;
+using System.IO;
 using System.Threading;
 using NUnit.Framework.Interfaces;
+using UnityEngine;
 
 namespace Tests.Watchdog
 {
@@ -112,6 +114,10 @@ namespace Tests.Watchdog
 
                         var msg = TestWatchdogLogExporter.Export(name, startTime, deadline, timeout);
 
+                        // FailFast前にUnityロックファイルを削除
+                        // Delete Unity lock file before FailFast
+                        DeleteUnityLockFile();
+
                         // Unityプロセスを強制終了
                         // Force terminate Unity process
                         Environment.FailFast(msg);
@@ -124,6 +130,20 @@ namespace Tests.Watchdog
                 
                 Thread.Sleep(200);
             }
+        }
+
+        private static void DeleteUnityLockFile()
+        {
+            // Unityのロックファイルパスを取得
+            // Get Unity lock file path
+            var projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
+            var lockFilePath = Path.Combine(projectRoot, "Temp", "UnityLockfile");
+
+            // ロックファイルを削除
+            // Delete lock file
+            if (!File.Exists(lockFilePath)) return;
+
+            File.Delete(lockFilePath);
         }
     }
 }
