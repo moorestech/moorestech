@@ -1,4 +1,4 @@
-using Game.Train.RailGraph.Notification;
+﻿using Game.Train.RailGraph.Notification;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -107,7 +107,7 @@ namespace Game.Train.RailGraph
         public bool TryGetRailNodeId(RailNode node, out int nodeId) => TryGetRailNodeIdInternal(node, out nodeId);
         public bool TryGetRailNode(int nodeId, out RailNode railNode) => TryGetRailNodeInternal(nodeId, out railNode);
         public IReadOnlyCollection<RailSegment> GetRailSegments() => railSegmentByKey.Values;
-        public bool TryRestoreRailSegment(ConnectionDestination start, ConnectionDestination end, int length, float bezierStrength) => TryRestoreRailSegmentInternal(start, end, length, bezierStrength);
+        public bool TryRestoreRailSegment(ConnectionDestination start, ConnectionDestination end, int length) => TryRestoreRailSegmentInternal(start, end, length);
         public uint GetConnectNodesHash() => GetGraphHashInternal();
         public RailGraphSnapshot CaptureSnapshot(long currentTick) => CaptureSnapshotInternal(currentTick);
         public IReadOnlyList<RailNode> GetRailNodes() => railNodes;
@@ -213,14 +213,6 @@ namespace Game.Train.RailGraph
             UpsertRailSegmentEdgeInternal(nodeId, targetId, segment);
         }
 
-        // レールセグメントを明示強度で更新する
-        // Update the rail segment entry with explicit strength
-        private void UpsertRailSegmentEdge(int nodeId, int targetId, int distance, float bezierStrength)
-        {
-            var segment = GetOrCreateSegmentWithBezier(nodeId, targetId, distance, bezierStrength);
-            UpsertRailSegmentEdgeInternal(nodeId, targetId, segment);
-        }
-
         // レールセグメント参照を登録する
         // Register the rail segment reference
         private void UpsertRailSegmentEdgeInternal(int nodeId, int targetId, RailSegment segment)
@@ -231,12 +223,12 @@ namespace Game.Train.RailGraph
                 if (edges[i].targetId != targetId)
                     continue;
                 edges[i] = (targetId, segment);
-                ApplySegmentControlPoints(nodeId, targetId, segment.BezierStrength);
+                ApplySegmentControlPoints(nodeId, targetId);
                 return;
             }
             edges.Add((targetId, segment));
             segment.AddEdgeReference();
-            ApplySegmentControlPoints(nodeId, targetId, segment.BezierStrength);
+            ApplySegmentControlPoints(nodeId, targetId);
         }
 
         // レールセグメント参照を解除する
@@ -296,30 +288,15 @@ namespace Game.Train.RailGraph
             var key = NormalizeSegmentKey(nodeId, targetId);
             if (!railSegmentByKey.TryGetValue(key, out var segment))
             {
-                var strength = CalculateSegmentBezierStrength(key.startId, key.endId);
-                segment = new RailSegment(key.startId, key.endId, length, strength);
+                segment = new RailSegment(key.startId, key.endId, length);
                 railSegmentByKey[key] = segment;
             }
             segment.SetLength(length);
-            segment.SetBezierStrength(CalculateSegmentBezierStrength(key.startId, key.endId));
             return segment;
         }
 
         // 明示強度でセグメントを取得または作成する
         // Get or create a rail segment with explicit strength
-        private RailSegment GetOrCreateSegmentWithBezier(int nodeId, int targetId, int length, float bezierStrength)
-        {
-            var key = NormalizeSegmentKey(nodeId, targetId);
-            if (!railSegmentByKey.TryGetValue(key, out var segment))
-            {
-                segment = new RailSegment(key.startId, key.endId, length, bezierStrength);
-                railSegmentByKey[key] = segment;
-            }
-            segment.SetLength(length);
-            segment.SetBezierStrength(bezierStrength);
-            return segment;
-        }
-
         // レールセグメントキーを正規化する
         // Normalize the rail segment key
         private (int startId, int endId) NormalizeSegmentKey(int startId, int endId)
@@ -342,20 +319,9 @@ namespace Game.Train.RailGraph
 
         // ベジエ強度を計算する
         // Calculate bezier strength
-        private float CalculateSegmentBezierStrength(int startNodeId, int endNodeId)
-        {
-            if (!TryGetRailNodeInternal(startNodeId, out var startNode))
-                return 0f;
-            if (!TryGetRailNodeInternal(endNodeId, out var endNode))
-                return 0f;
-            var startPosition = startNode.FrontControlPoint.OriginalPosition;
-            var endPosition = endNode.BackControlPoint.OriginalPosition;
-            return RailSegmentCurveUtility.CalculateSegmentStrength(startPosition, endPosition);
-        }
-
         // セグメント強度から制御点を更新する
         // Update control points from segment strength
-        private void ApplySegmentControlPoints(int startNodeId, int endNodeId, float strength)
+        private void ApplySegmentControlPoints(int startNodeId, int endNodeId)
         {
             if (!TryGetRailNodeInternal(startNodeId, out var startNode))
                 return;
@@ -366,6 +332,7 @@ namespace Game.Train.RailGraph
             var endPosition = endNode.BackControlPoint.OriginalPosition;
             var startDirection = startNode.FrontControlPoint.ControlPointPosition;
             var endDirection = endNode.BackControlPoint.ControlPointPosition;
+            var strength = RailSegmentCurveUtility.CalculateSegmentStrength(startPosition, endPosition);
             RailSegmentCurveUtility.BuildControlPoints(startPosition, startDirection, endPosition, endDirection, strength, out var p0, out var p1, out var p2, out var p3);
             startNode.FrontControlPoint.ControlPointPosition = p1 - p0;
             endNode.BackControlPoint.ControlPointPosition = p2 - p3;
@@ -385,7 +352,7 @@ namespace Game.Train.RailGraph
 
         // 保存データからレールセグメントを復元する
         // Restore rail segments from save data
-        private bool TryRestoreRailSegmentInternal(ConnectionDestination start, ConnectionDestination end, int length, float bezierStrength)
+        private bool TryRestoreRailSegmentInternal(ConnectionDestination start, ConnectionDestination end, int length)
         {
             var startNode = ResolveRailNodeInternal(start);
             if (startNode == null)
@@ -398,28 +365,13 @@ namespace Game.Train.RailGraph
             if (oppositeStart == null || oppositeEnd == null)
                 return false;
 
-            ConnectNodeInternalWithBezier(startNode, endNode, length, bezierStrength);
-            ConnectNodeInternalWithBezier(oppositeEnd, oppositeStart, length, bezierStrength);
+            ConnectNodeInternal(startNode, endNode, length);
+            ConnectNodeInternal(oppositeEnd, oppositeStart, length);
             return true;
         }
 
         // 明示強度でノードを接続する
         // Connect nodes with explicit bezier strength
-        private void ConnectNodeInternalWithBezier(RailNode node, RailNode targetNode, int distance, float bezierStrength)
-        {
-            if (!railNodeToId.ContainsKey(node))
-                throw new InvalidOperationException("Attempted to connect a RailNode that is not registered in RailGraphDatastore.");
-            var nodeid = railNodeToId[node];
-            if (!railNodeToId.ContainsKey(targetNode))
-                throw new InvalidOperationException("Attempted to connect to a RailNode that is not registered in RailGraphDatastore.");
-            var targetid = railNodeToId[targetNode];
-            UpsertConnectNodes(nodeid, targetid, distance);
-            UpsertRailSegmentEdge(nodeid, targetid, distance, bezierStrength);
-
-            _connectionInitializationNotifier.Notify(nodeid, targetid, distance);
-            MarkHashDirty();
-        }
-
         private void RemoveNodeInternal(RailNode node)
         {
             if (!railNodeToId.ContainsKey(node))

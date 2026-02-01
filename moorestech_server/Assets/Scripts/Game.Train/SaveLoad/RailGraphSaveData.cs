@@ -10,6 +10,5 @@ namespace Game.Train.SaveLoad
         public ConnectionDestination A;
         public ConnectionDestination B;
         public int Length;
-        public float BezierStrength;
     }
 }

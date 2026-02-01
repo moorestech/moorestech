@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Game.Train.RailGraph;
 
 namespace Game.Train.SaveLoad
@@ -12,7 +12,7 @@ namespace Game.Train.SaveLoad
             _railGraphDatastore = railGraphDatastore;
         }
 
-        // レールセグメントの保存データを生成する
+        // レールセグメントの保存データを作成する
         // Build save data for rail segments
         public List<RailSegmentSaveData> GetSaveData()
         {
@@ -38,13 +38,13 @@ namespace Game.Train.SaveLoad
             {
                 if (segment == null)
                     continue;
-                _railGraphDatastore.TryRestoreRailSegment(segment.A, segment.B, segment.Length, segment.BezierStrength);
+                _railGraphDatastore.TryRestoreRailSegment(segment.A, segment.B, segment.Length);
             }
         }
 
         #region Internal
 
-        // セグメント情報から保存データを組み立てる
+        // セグメントから保存データを組み立てる
         // Build save payload from a segment
         private bool TryCreateSaveData(RailSegment segment, out RailSegmentSaveData saveData)
         {
@@ -62,8 +62,7 @@ namespace Game.Train.SaveLoad
             {
                 A = startNode.ConnectionDestination,
                 B = endNode.ConnectionDestination,
-                Length = segment.Length,
-                BezierStrength = segment.BezierStrength
+                Length = segment.Length
             };
             return true;
         }
