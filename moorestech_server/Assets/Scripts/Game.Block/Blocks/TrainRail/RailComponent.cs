@@ -23,6 +23,7 @@ namespace Game.Block.Blocks.TrainRail
         public RailNode FrontNode { get; private set; }
         public RailNode BackNode { get; private set; }
 
+        private const int BezierSamples = 512;
         private float controlPointStrength = 9.5f;//default値
 
         public RailControlPoint FrontControlPoint { get; }
@@ -133,10 +134,10 @@ namespace Game.Block.Blocks.TrainRail
         /// </summary>
         private int ComputeDistanceToComponent(RailComponent targetComponent, bool useFrontSideOfThis, bool useFrontSideOfTarget)
         {
-            var thisControlPoint = useFrontSideOfThis ? FrontControlPoint : BackControlPoint;
-            var targetControlPoint = useFrontSideOfTarget ? targetComponent.BackControlPoint : targetComponent.FrontControlPoint;
-
-            float rawLength = BezierUtility.GetBezierCurveLength(thisControlPoint, targetControlPoint);
+            var startDirection = useFrontSideOfThis ? RailDirection : -RailDirection;
+            var endDirection = useFrontSideOfTarget ? -targetComponent.RailDirection : targetComponent.RailDirection;
+            var strength = RailSegmentCurveUtility.CalculateSegmentStrength(Position, targetComponent.Position);
+            float rawLength = RailSegmentCurveUtility.GetBezierCurveLength(Position, startDirection, targetComponent.Position, endDirection, strength, BezierSamples);
             float scaledLength = rawLength * BezierUtility.RAIL_LENGTH_SCALE;
             return (int)(scaledLength + 0.5f);
         }
