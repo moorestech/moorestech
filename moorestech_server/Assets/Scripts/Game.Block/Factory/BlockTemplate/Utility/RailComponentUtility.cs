@@ -122,6 +122,26 @@ namespace Game.Block.Factory.BlockTemplate.Utility
             return components;
         }
 
+        // 駅ブロック設置時、他の駅ブロックと隣接時にrailcomponentを自動接続する処理。あとconnectionMapへ登録する
+        // When placing a station block, auto-connect rail components to adjacent stations and register to the connection map
+        // 接続判定について詳細
+        // Details about the connection judgement
+        // 旧：ブロック座標を1マスずつスライドして同じ駅種のブロックにヒットするまでみていた(north,eastはブロックサイズ分シフトすればよかったがsouth,westは他人ブロックサイズが不明なので1マスずつスライドする必要があった)
+        // Old: slide block coordinates one tile at a time until hitting the same station type (north/east could shift by block size, south/west required step-by-step because other block size was unknown)
+        // 新：マスタ定義のentryPositionとexitPositionを有効活用する方針とした
+        // New: use master-defined entryPosition and exitPosition effectively
+        // たとえば駅1のentryPositionを駅2のexitPosition座標が一致していれば隣接接続してほしい
+        // For example, if station1 entryPosition matches station2 exitPosition, they should connect as adjacent
+        // これをRailGraphDataStoreのconnectionMapに辞書登録
+        // Register this mapping into RailGraphDataStore connectionMap
+        // 座標とConnectionDestinationを対応登録。ConnectionDestinationは事実上、駅のRailComponentのentry exitのみならずfront backの情報ももつ
+        // Register coordinate to ConnectionDestination mapping; ConnectionDestination carries entry/exit as well as front/back info
+        // このConnectionDestinationから接続させたい2つのRailComponentと向きが求まる
+        // From ConnectionDestination, determine the two RailComponents to connect and their orientation
+        // なお座標はVector3だと浮動小数点数誤差(回転計算)で一致しなくなることがあったので2倍&四捨五入でVector3Int化した
+        // Vector3 positions may not match due to rotation precision, so multiply by 2 and round to Vector3Int
+        // 座標→ConnectionDestinationの対応関係については、2つのConnectionDestinationをもつようにDictionary<Vector3Int, (ConnectionDestination first, ConnectionDestination second)> としている。3つ以上の重なりは考慮しない
+        // For coordinate->ConnectionDestination mapping, use Dictionary<Vector3Int, (ConnectionDestination first, ConnectionDestination second)> and ignore overlaps of 3 or more
         // 駅のRailComponentをconnectionMapへ登録し、必要な場合のみ隣接接続を行う
         // Register station RailComponents into the connection map and optionally connect neighbors
         static public void RegisterAndConnetStationBlocks(RailComponent[] components, IRailGraphDatastore railGraphDatastore) // componentsが2つ限定ver
