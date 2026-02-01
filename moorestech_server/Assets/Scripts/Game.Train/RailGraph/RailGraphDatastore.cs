@@ -15,7 +15,7 @@ namespace Game.Train.RailGraph
         private List<RailNode> railNodes;
         private RailNodeIdAllocator nodeIdAllocator;
         private List<List<(int, int)>> connectNodes;
-        private List<List<(int targetId, RailSegment segment)>> railSegments;
+        private List<Dictionary<int, RailSegment>> railSegments;
         private Dictionary<(int startId, int endId), RailSegment> railSegmentByKey;
         private RailGraphPathFinder _pathFinder;
         private Dictionary<ConnectionDestination, int> connectionDestinationToRailId;
@@ -59,7 +59,7 @@ namespace Game.Train.RailGraph
             railNodes = new List<RailNode>();
             nodeIdAllocator = new RailNodeIdAllocator(EnsureRailNodeSlot);
             connectNodes = new List<List<(int, int)>>();
-            railSegments = new List<List<(int targetId, RailSegment segment)>>();
+            railSegments = new List<Dictionary<int, RailSegment>>();
             railSegmentByKey = new Dictionary<(int startId, int endId), RailSegment>();
             connectionDestinationToRailId = new Dictionary<ConnectionDestination, int>();
             railPositionToConnectionDestination = new Dictionary<Vector3Int, (ConnectionDestination first, ConnectionDestination second)>();
@@ -124,7 +124,7 @@ namespace Game.Train.RailGraph
             {
                 railNodes.Add(null);
                 connectNodes.Add(new List<(int, int)>());
-                railSegments.Add(new List<(int targetId, RailSegment segment)>());
+                railSegments.Add(new Dictionary<int, RailSegment>());
             }
         }
 
@@ -228,14 +228,17 @@ namespace Game.Train.RailGraph
         private void UpsertRailSegmentEdgeInternal(int nodeId, int targetId, RailSegment segment)
         {
             var edges = railSegments[nodeId];
-            for (int i = 0; i < edges.Count; i++)
+            if (edges.TryGetValue(targetId, out var existing))
             {
-                if (edges[i].targetId != targetId)
-                    continue;
-                edges[i] = (targetId, segment);
+                if (ReferenceEquals(existing, segment))
+                    return;
+                if (existing.RemoveEdgeReference())
+                    railSegmentByKey.Remove((existing.StartNodeId, existing.EndNodeId));
+                edges[targetId] = segment;
+                segment.AddEdgeReference();
                 return;
             }
-            edges.Add((targetId, segment));
+            edges[targetId] = segment;
             segment.AddEdgeReference();
         }
 
@@ -244,16 +247,11 @@ namespace Game.Train.RailGraph
         private void RemoveRailSegmentEdge(int nodeId, int targetId)
         {
             var edges = railSegments[nodeId];
-            for (int i = 0; i < edges.Count; i++)
-            {
-                if (edges[i].targetId != targetId)
-                    continue;
-                var segment = edges[i].segment;
-                edges.RemoveAt(i);
-                if (segment.RemoveEdgeReference())
-                    railSegmentByKey.Remove((segment.StartNodeId, segment.EndNodeId));
+            if (!edges.TryGetValue(targetId, out var segment))
                 return;
-            }
+            edges.Remove(targetId);
+            if (segment.RemoveEdgeReference())
+                railSegmentByKey.Remove((segment.StartNodeId, segment.EndNodeId));
         }
 
         // ノードのセグメント参照を全解除する
@@ -261,10 +259,10 @@ namespace Game.Train.RailGraph
         private void RemoveRailSegmentEdgesFromNode(int nodeId)
         {
             var edges = railSegments[nodeId];
-            for (int i = edges.Count - 1; i >= 0; i--)
+            var segments = edges.Values.ToList();
+            edges.Clear();
+            foreach (var segment in segments)
             {
-                var segment = edges[i].segment;
-                edges.RemoveAt(i);
                 if (segment.RemoveEdgeReference())
                     railSegmentByKey.Remove((segment.StartNodeId, segment.EndNodeId));
             }
@@ -277,15 +275,11 @@ namespace Game.Train.RailGraph
             for (int i = 0; i < railSegments.Count; i++)
             {
                 var edges = railSegments[i];
-                for (int index = edges.Count - 1; index >= 0; index--)
-                {
-                    if (edges[index].targetId != targetNodeId)
-                        continue;
-                    var segment = edges[index].segment;
-                    edges.RemoveAt(index);
-                    if (segment.RemoveEdgeReference())
-                        railSegmentByKey.Remove((segment.StartNodeId, segment.EndNodeId));
-                }
+                if (!edges.TryGetValue(targetNodeId, out var segment))
+                    continue;
+                edges.Remove(targetNodeId);
+                if (segment.RemoveEdgeReference())
+                    railSegmentByKey.Remove((segment.StartNodeId, segment.EndNodeId));
             }
         }
 
