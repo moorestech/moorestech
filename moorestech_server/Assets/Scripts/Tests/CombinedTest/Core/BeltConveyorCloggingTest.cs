@@ -292,9 +292,26 @@ namespace Tests.CombinedTest.Core
                 beltBlocks.Add(beltBlock);
             }
 
-            // 無限トルクジェネレータを配置する
-            // Place an infinite torque generator
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.InfinityTorqueSimpleGearGenerator, new Vector3Int(1, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            // ギアネットワークを構築する
+            // Build gear network
+            if (isGearBeltConveyor)
+            {
+                // 各ベルトコンベアの横にSmallGearを配置してチェーンを作る
+                // Place SmallGear next to each belt conveyor to create a chain
+                for (var i = 0; i < beltCount; i++)
+                {
+                    var gearPosition = new Vector3Int(1, 0, i);
+                    worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+                }
+                // ジェネレーターをSmallGearチェーンの東端に配置
+                // Place generator at the east end of the SmallGear chain
+                worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.InfinityTorqueSimpleGearGenerator, new Vector3Int(2, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            }
+            else
+            {
+                // 通常のベルトコンベアは動力不要
+                // Normal belt conveyor does not require power
+            }
 
             // 最後のベルトコンベアの出力先として詰まるインベントリを設定する
             // Set blocked inventory as output of last belt conveyor
