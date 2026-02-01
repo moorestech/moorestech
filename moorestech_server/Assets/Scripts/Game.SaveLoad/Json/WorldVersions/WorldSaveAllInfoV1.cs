@@ -6,6 +6,7 @@ using Game.Entity.Interface;
 using Game.Map.Interface.Json;
 using Game.PlayerInventory.Interface;
 using Game.Research;
+using Game.Train.SaveLoad;
 using Game.Train.Unit;
 using Game.UnlockState;
 using Game.World.Interface.DataStore;
@@ -27,7 +28,8 @@ namespace Game.SaveLoad.Json.WorldVersions
             GameUnlockStateJsonObject gameUnlockStateJsonObject,
             List<PlayerCraftTreeJsonObject> craftTreeInfo,
             ResearchSaveJsonObject research,
-            List<TrainUnitSaveData> trainUnits)
+            List<TrainUnitSaveData> trainUnits,
+            List<RailSegmentSaveData> railSegments)
         {
             World = world;
             Inventory = inventory;
@@ -39,6 +41,7 @@ namespace Game.SaveLoad.Json.WorldVersions
             CraftTreeInfo = craftTreeInfo;
             Research = research;
             TrainUnits = trainUnits ?? new List<TrainUnitSaveData>();
+            RailSegments = railSegments ?? new List<RailSegmentSaveData>();
         }
         
         [JsonProperty("world")] public List<BlockJsonObject> World { get; }
@@ -52,5 +55,6 @@ namespace Game.SaveLoad.Json.WorldVersions
         [JsonProperty("currentlyActiveChallenge")] public ChallengeJsonObject CurrentlyActiveChallenge { get; set; }
         [JsonProperty("research")] public ResearchSaveJsonObject Research { get; }
         [JsonProperty("trainUnits")] public List<TrainUnitSaveData> TrainUnits { get; }
+        [JsonProperty("railSegments")] public List<RailSegmentSaveData> RailSegments { get; }
     }
 }

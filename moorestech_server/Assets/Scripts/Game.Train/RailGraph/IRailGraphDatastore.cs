@@ -24,6 +24,8 @@ namespace Game.Train.RailGraph
         int GetDistanceBetweenNodes(IRailNode start, IRailNode target);
         bool TryGetRailNodeId(RailNode node, out int nodeId);
         bool TryGetRailNode(int nodeId, out RailNode railNode);
+        IReadOnlyCollection<RailSegment> GetRailSegments();
+        bool TryRestoreRailSegment(ConnectionDestination start, ConnectionDestination end, int length, float bezierStrength);
         uint GetConnectNodesHash();
         RailGraphSnapshot CaptureSnapshot(long currentTick);
         IReadOnlyList<RailNode> GetRailNodes();
