@@ -72,7 +72,7 @@ namespace Tests.CombinedTest.Core
             var start = DateTime.Now;
             while ((DateTime.Now - start).TotalSeconds < seconds)
             {
-                GameUpdater.UpdateWithWait();
+                GameUpdater.UpdateOneTick();
             }
         }
 

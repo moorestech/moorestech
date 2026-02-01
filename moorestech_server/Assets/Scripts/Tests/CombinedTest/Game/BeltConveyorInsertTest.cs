@@ -33,7 +33,7 @@ namespace Tests.CombinedTest.Game
             
             //ベルトコンベアのアイテムが出てから入るまでの6秒間アップデートする
             var now = DateTime.Now;
-            while (DateTime.Now - now < TimeSpan.FromSeconds(5)) GameUpdater.UpdateWithWait();
+            while (DateTime.Now - now < TimeSpan.FromSeconds(5)) GameUpdater.UpdateOneTick();
             
             //アイテムが出ているか確認
             Assert.AreEqual(0, inputChestComponent.GetItem(0).Count);

@@ -49,7 +49,7 @@ namespace Tests.CombinedTest.Core
                 while (DateTime.Now < endTime.AddSeconds(0.1))
                 {
                     item = beltConveyorComponent.InsertItem(item, InsertItemContext.Empty);
-                    GameUpdater.UpdateWithWait();
+                    GameUpdater.UpdateOneTick();
                 }
                 
                 Assert.AreEqual(item.Count, 1);
@@ -58,7 +58,7 @@ namespace Tests.CombinedTest.Core
                 
                 var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
                 connectInventory.Add(dummy, new ConnectedInfo());
-                GameUpdater.UpdateWithWait();
+                GameUpdater.UpdateOneTick();
                 
                 Assert.AreEqual(itemStackFactory.Create(id, 1).ToString(), dummy.InsertedItems[0].ToString());
             }
@@ -139,7 +139,7 @@ namespace Tests.CombinedTest.Core
             while (!dummy.IsItemExists)
             {
                 item = beltConveyorComponent.InsertItem(item, InsertItemContext.Empty);
-                GameUpdater.UpdateWithWait();
+                GameUpdater.UpdateOneTick();
             }
             
             Assert.True(item.Equals(itemStackFactory.Create(id, 0)));
@@ -223,7 +223,7 @@ namespace Tests.CombinedTest.Core
                 // スプリッターに歯車エネルギーを供給する
                 // Supply gear energy to splitter
                 gearBeltConveyorComponent.SupplyPower(new RPM(20), new Torque(splitterParam.RequireTorque), true);
-                GameUpdater.UpdateWithWait();
+                GameUpdater.UpdateOneTick();
             }
             
             Assert.AreEqual(itemCount / 2, GetItemCount(outputChestB, itemId));
