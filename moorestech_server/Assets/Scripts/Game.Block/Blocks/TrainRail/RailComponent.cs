@@ -1,9 +1,7 @@
-﻿using ClassLibrary;
-using Game.Block.Interface;
+﻿using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Train.RailGraph;
 using Game.Train.RailCalc;
-using System.Collections.Generic;
 using Game.Train.SaveLoad;
 using UnityEngine;
 
@@ -24,8 +22,6 @@ namespace Game.Block.Blocks.TrainRail
         public RailNode BackNode { get; private set; }
 
         private const int BezierSamples = 512;
-        private float controlPointStrength = 9.5f;//default値
-
         public RailControlPoint FrontControlPoint { get; }
         public RailControlPoint BackControlPoint { get; }
 
@@ -109,17 +105,6 @@ namespace Game.Block.Blocks.TrainRail
         }
 
         /// <summary>
-        /// ベジェ曲線の強度を変更し、制御点を更新する
-        /// 距離再計算と距離適応は未実装 TODO 必要なら実装、クライアント通信も実装するよう
-        /// </summary>
-        public void UpdateControlPointStrength(float strength)
-        {
-            controlPointStrength = strength;
-            FrontControlPoint.ControlPointPosition = CalculateControlPointOffset(true);
-            BackControlPoint.ControlPointPosition = CalculateControlPointOffset(false);
-        }
-
-        /// <summary>
         /// 指定されたサイドに応じて FrontNode/BackNodeを返すヘルパーメソッド
         /// </summary>
         private (RailNode node, RailNode oppositeNode) GetRailNodesBySide(bool useFrontSide)
@@ -147,7 +132,7 @@ namespace Game.Block.Blocks.TrainRail
         /// </summary>
         private Vector3 CalculateControlPointOffset(bool useFrontSide)
         {
-            return useFrontSide ? RailDirection * controlPointStrength : -RailDirection * controlPointStrength;
+            return useFrontSide ? RailDirection : -RailDirection;
         }
 
         /// <summary>
