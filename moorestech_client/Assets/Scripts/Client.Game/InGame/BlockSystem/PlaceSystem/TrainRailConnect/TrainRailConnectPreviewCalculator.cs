@@ -38,14 +38,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             
             // 起点の制御点
             // Start control point
-            var startPosition = fromNode.FrontControlPoint.OriginalPosition;
-            var endPosition = toNode.BackControlPoint.OriginalPosition;
-            var startDirection = fromNode.FrontControlPoint.ControlPointPosition;
-            var endDirection = toNode.BackControlPoint.ControlPointPosition;
-            var strength = RailSegmentCurveUtility.CalculateSegmentStrength(startPosition, endPosition);
-            RailSegmentCurveUtility.BuildControlPoints(startPosition, startDirection, endPosition, endDirection, strength, out var p0, out var p1, out var p2, out var p3);
+            var fromControlPoint = fromNode.FrontControlPoint;
+            var p0 = fromControlPoint.OriginalPosition;
+            var p1 = fromControlPoint.OriginalPosition + fromControlPoint.ControlPointPosition;
+            var toControlPoint = toNode.BackControlPoint;
+            var p2 = toControlPoint.OriginalPosition + toControlPoint.ControlPointPosition;
+            var p3 = toControlPoint.OriginalPosition;
             var length = BezierUtility.GetBezierCurveLength(p0, p1, p2, p3, 64);
-            
             (RailItemMasterElement element, int requiredCount)[] placeableRailItems = RailConnectionEditProtocol.GetPlaceableRailItems(playerInventory, length);
             var railTypeGuid = placeableRailItems.Length > 0 ? placeableRailItems[0].element.ItemGuid : Guid.Empty;
             
