@@ -1,5 +1,22 @@
 ---
 description: ghでPRを作成（日本語・差分確認→サマリー→PR作成）
+allowed-tools: >
+  Bash(git status:*),
+  Bash(git branch:*),
+  Bash(git log:*),
+  Bash(git diff:*),
+  Bash(git add:*),
+  Bash(git commit:*),
+  Bash(git push:*),
+  Bash(git rev-parse:*),
+  Bash(git symbolic-ref:*),
+  Bash(mkdir:*),
+  Bash(gh pr list:*),
+  Bash(gh pr create:*),
+  Bash(gh pr edit:*),
+  Bash(gh pr view:*),
+  Write(*),
+  Read(*)
 ---
 
 # PR作成（差分チェック → サマリー作成 → ghでPR作成）
@@ -14,7 +31,7 @@ description: ghでPRを作成（日本語・差分確認→サマリー→PR作�
   - 1-3. `_CompileRequester.cs` の扱い（最重要）
   - 1-4. コミット手順
 - 2) 今までのブランチ差分をチェックしてサマリーを考える
-  - 2-1. ベースブランチを決める
+  - 2-1. ベース参照と現在ブランチの扱い
   - 2-2. 差分情報の取得（必ず）
   - 2-3. PRサマリー（日本語）を作る
 - 3) ghコマンドでPRを作成する
@@ -38,8 +55,7 @@ description: ghでPRを作成（日本語・差分確認→サマリー→PR作�
 
 ## 事前情報（必ず取得して利用）
 - 現在ブランチ: !`git branch --show-current`
-- originのデフォルトブランチ推定: !`git symbolic-ref --quiet --short refs/remotes/origin/HEAD || echo origin/main`
-  - 上の出力が `origin/main` のように出るので、ベースブランチ名は `origin/` を除いたもの（例: `main`）
+- ベース参照（originのデフォルトブランチのリモート追跡ブランチ）: !`git symbolic-ref --quiet --short refs/remotes/origin/HEAD || echo origin/main`
 - 作業ツリー状況: !`git status --porcelain`
 - 直近コミット: !`git log --oneline -20`
 
@@ -65,8 +81,8 @@ description: ghでPRを作成（日本語・差分確認→サマリー→PR作�
 ### 1-4. コミット手順
 - 未コミット差分がある場合:
   1) コミット対象ファイルを決める（上記ルールで `_CompileRequester.cs` を除外/含める）
-  2) `git add <対象ファイル>` を実行
-  3) 1つのコミットにまとめて `git commit -m "<日本語コミットメッセージ>"` を実行
+  2) `git add 対象ファイル...` を実行（対象ファイルを明示して add する）
+  3) 1つのコミットにまとめて `git commit -m "日本語コミットメッセージ"` を実行
      - メッセージは「何をどう変えたか」が分かる日本語にする（例: `スキーマ更新に伴う生成コード更新` / `○○の不具合修正`）
 
 - 未コミット差分が無い場合:
@@ -75,21 +91,24 @@ description: ghでPRを作成（日本語・差分確認→サマリー→PR作�
 ---
 
 ## 2) 今までのブランチ差分をチェックしてサマリーを考える
-### 2-1. ベースブランチを決める
-- `originのデフォルトブランチ推定` の出力から `origin/` を除いた値をベースブランチにする（例: `origin/main` → `main`）。
-- 以降、ベースブランチを `<BASE>`、現在ブランチを `<HEAD>` として扱う。
+### 2-1. ベース参照と現在ブランチの扱い
+- 差分比較は「ベース参照（例: origin/main）」と「現在ブランチ（HEAD）」で行う。
+- ベース参照は毎回以下の式で取得して使う:
+  - `$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD || echo origin/main)`
+- 現在ブランチ名は必要なら以下で取得する:
+  - `$(git branch --show-current)`
 
 ### 2-2. 差分情報の取得（必ず）
-- 差分統計: !`git diff <BASE>...HEAD --stat`
-- 変更ファイル一覧: !`git diff <BASE>...HEAD --name-status`
-- 差分内容（必要に応じて）: !`git diff <BASE>...HEAD`
+- 差分統計: !`git diff "$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD || echo origin/main)"...HEAD --stat`
+- 変更ファイル一覧: !`git diff "$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD || echo origin/main)"...HEAD --name-status`
+- 差分内容（必要に応じて）: !`git diff "$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD || echo origin/main)"...HEAD`
 
 ### 2-3. PRサマリー（日本語）を作る
-以下を作成する:
-- **PRタイトル（日本語）**
+- PRタイトル（日本語）
   - `$ARGUMENTS` があればそれを使用
   - なければ差分から 1行で要点が分かるタイトルを生成
-- **PR本文（Markdown、日本語）** を `./.tmp/pr-body.md` に書き出す
+- PR本文（Markdown、日本語）を `./.tmp/pr-body.md` に書き出す
+  - 事前にディレクトリを作る: !`mkdir -p ./.tmp`
   - 形式:
     - 概要（2〜5行）
     - 変更点（箇条書き）
@@ -101,22 +120,27 @@ description: ghでPRを作成（日本語・差分確認→サマリー→PR作�
 
 ## 3) ghコマンドでPRを作成する
 ### 3-1. PR作成前チェック
-- ブランチにコミット済み差分があるか確認:
-  - !`git diff <BASE>...HEAD --name-only`
+- コミット済み差分があるか確認:
+  - !`git diff "$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD || echo origin/main)"...HEAD --name-only`
 - 差分が空なら **PRを作らず停止**（理由を説明）
 
 ### 3-2. リモートへpush（force禁止）
 - 現在ブランチを `origin` に push:
-  - `git push -u origin <HEAD>`
+  - `git push -u origin "$(git branch --show-current)"`
 
 ### 3-3. 既存PRがあるか確認し、作成 or 更新
 - 既存PR確認:
-  - `gh pr list --head <HEAD> --state open --json number,url,title`
+  - `gh pr list --head "$(git branch --show-current)" --state open --json number,url,title`
+
 - 既存PRがある場合:
-  - `gh pr edit <number> --title "<TITLE>" --body-file ./.tmp/pr-body.md`
-  - その後 `gh pr view <number> --web` 相当の情報（URL等）を表示
+  - `gh pr edit PR番号 --title "PRタイトル" --body-file ./.tmp/pr-body.md`
+  - `gh pr view PR番号 --web` 相当の情報（URL等）を表示
+
 - 既存PRが無い場合:
-  - `gh pr create --base <BASE> --head <HEAD> --title "<TITLE>" --body-file ./.tmp/pr-body.md`
+  - `gh pr create --base "$(
+      ref="$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD || echo origin/main)";
+      echo "${ref#origin/}"
+    )" --head "$(git branch --show-current)" --title "PRタイトル" --body-file ./.tmp/pr-body.md`
   - 作成後に表示されるURLを出す
 
 ---
