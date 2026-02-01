@@ -1966,46 +1966,20 @@
       "name": "GearBeltConveyor",
       "blockType": "GearBeltConveyor",
       "blockParam": {
-        "requireTorque": 1,
-        "beltConveyorSpeed": 0.01,
         "beltConveyorItemCount": 4,
-        "gear": {
-          "gearConnects": [
-            {
-              "offset": [
-                0,
-                0,
-                0
-              ],
-              "connectType": "Gear",
-              "connectOption": {
-                "isReverse": false
-              },
-              "directions": [
-                [
-                  1,
-                  0,
-                  0
-                ],
-                [
-                  -1,
-                  0,
-                  0
-                ]
-              ],
-              "connectorGuid": "37429f01-2c6d-4127-88cc-72c0bca3d7a5"
-            }
-          ]
-        },
+        "beltConveyorSpeed": 0.25,
+        "requireTorque": 0.02,
+        "slopeType": "Straight",
         "inventoryConnectors": {
           "inputConnects": [
             {
+              "connectType": "Inventory",
+              "connectorGuid": "4ae77921-ab7e-4eda-91a0-81dd09ec131b",
               "offset": [
                 0,
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -2025,42 +1999,109 @@
                 [
                   -1,
                   0,
+                  0
+                ],
+                [
+                  -1,
+                  -1,
+                  0
+                ],
+                [
+                  1,
+                  -1,
                   0
                 ]
               ],
               "connectOption": {
                 "inventoryOptions": []
-              },
-              "connectorGuid": "fe0a5448-fe61-42f0-971a-663a9cdf9898"
+              }
             }
           ],
           "outputConnects": [
             {
+              "connectType": "Inventory",
+              "connectorGuid": "d52edf59-03f1-4beb-a77f-7d47bfb224c2",
               "offset": [
                 0,
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
                   0,
                   1
+                ],
+                [
+                  0,
+                  -1,
+                  1
                 ]
               ],
               "connectOption": {
                 "inventoryOptions": []
-              },
-              "connectorGuid": "1709fb50-ae95-432f-981c-7f8aa37e3ecf"
+              }
             }
           ]
         },
-        "slopeType": "Straight",
-        "overloadMaxRpm": 0,
-        "overloadMaxTorque": 0,
-        "destructionCheckInterval": 1,
-        "baseDestructionProbability": 0
+        "gear": {
+          "gearConnects": [
+            {
+              "connectType": "Gear",
+              "connectorGuid": "69243017-2300-4b39-b145-ab024c959800",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  -1,
+                  0
+                ],
+                [
+                  1,
+                  -1,
+                  0
+                ]
+              ],
+              "connectOption": {
+                "isReverse": false
+              }
+            }
+          ]
+        }
       },
       "itemGuid": "12200000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-000000000015",
