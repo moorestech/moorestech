@@ -170,14 +170,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     {
                         return false;
                     }
-
-                    var startPosition = startNode.FrontControlPoint.OriginalPosition;
-                    var endPosition = endNode.BackControlPoint.OriginalPosition;
-                    var startDirection = startNode.FrontControlPoint.ControlPointPosition;
-                    var endDirection = endNode.BackControlPoint.ControlPointPosition;
-                    var strength = RailSegmentCurveUtility.CalculateSegmentStrength(startPosition, endPosition);
-                    RailSegmentCurveUtility.BuildControlPoints(startPosition, startDirection, endPosition, endDirection, strength, out var p0, out var p1, out var p2, out var p3);
-
+                    
+                    BezierUtility.Getp0p1p2p3(startNode, endNode, out Vector3 p0, out Vector3 p1, out Vector3 p2, out Vector3 p3);
                     var steps = CurveSampleCount;
                     var arcLengths = new float[steps + 1];
                     var bestIndex = 0;

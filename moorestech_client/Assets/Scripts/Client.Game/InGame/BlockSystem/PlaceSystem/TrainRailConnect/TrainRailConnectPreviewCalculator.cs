@@ -38,17 +38,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             
             // 起点の制御点
             // Start control point
-            var fromControlPoint = fromNode.FrontControlPoint;
-            var p0 = fromControlPoint.OriginalPosition;
-            var p1 = fromControlPoint.OriginalPosition + fromControlPoint.ControlPointPosition;
-            var toControlPoint = toNode.BackControlPoint;
-            var p2 = toControlPoint.OriginalPosition + toControlPoint.ControlPointPosition;
-            var p3 = toControlPoint.OriginalPosition;
-            var length = BezierUtility.GetBezierCurveLength(p0, p1, p2, p3, 64);
+            var length = BezierUtility.GetBezierCurveLength(fromNode, toNode, 64);
             (RailItemMasterElement element, int requiredCount)[] placeableRailItems = RailConnectionEditProtocol.GetPlaceableRailItems(playerInventory, length);
             var railTypeGuid = placeableRailItems.Length > 0 ? placeableRailItems[0].element.ItemGuid : Guid.Empty;
-            
-            return new TrainRailConnectPreviewData(p0, p1, p2, p3, length, railTypeGuid, placeableRailItems.Any());
+            BezierUtility.Getp0p1p2p3(fromNode, toNode, out Vector3 p0, out Vector3 p1, out Vector3 p2, out Vector3 p3);
+            return new TrainRailConnectPreviewData(p0, p1, p2, p3, railTypeGuid, placeableRailItems.Any());
         }
         
         public static TrainRailConnectPreviewData CalculatePreviewData(ConnectionDestination from, Vector3 cursorPosition, RailGraphClientCache cache, ILocalPlayerInventory playerInventory)
@@ -65,38 +59,45 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             var startPosition = fromNode.FrontControlPoint.OriginalPosition;
             var endPosition = cursorPosition;
             var startDirection = fromNode.FrontControlPoint.ControlPointPosition;
+            startDirection.Normalize();
             var endDirection = startPosition - endPosition;
-            var strength = RailSegmentCurveUtility.CalculateSegmentStrength(startPosition, endPosition);
-            RailSegmentCurveUtility.BuildControlPoints(startPosition, startDirection, endPosition, endDirection, strength, out var p0, out var p1, out var p2, out var p3);
+            if (endDirection.sqrMagnitude < 1e-6)
+            {
+                endDirection = new Vector3(0, 1f, 0);
+            }
+            else
+            {
+                endDirection.Normalize();
+            }
+            var p0 = startPosition;
+            var p1 = startDirection + p0;
+            var p3 = endPosition;
+            var p2 = endDirection + endPosition;
             var length = BezierUtility.GetBezierCurveLength(p0, p1, p2, p3, 64);
-            
             (RailItemMasterElement element, int requiredCount)[] placeableRailItems = RailConnectionEditProtocol.GetPlaceableRailItems(playerInventory, length);
             var railTypeGuid = placeableRailItems.Length > 0 ? placeableRailItems[0].element.ItemGuid : Guid.Empty;
-            
-            return new TrainRailConnectPreviewData(p0, p1, p2, p3, length, railTypeGuid, placeableRailItems.Any());
+            return new TrainRailConnectPreviewData(p0, p1, p2, p3, railTypeGuid, placeableRailItems.Any());
         }
     }
     
     public struct TrainRailConnectPreviewData : IEquatable<TrainRailConnectPreviewData>
     {
-        public static TrainRailConnectPreviewData Invalid => new(Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero, 0f, Guid.Empty, false, false); 
+        public static TrainRailConnectPreviewData Invalid => new(Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero, Guid.Empty, false, false); 
         public Vector3 StartPoint;
         public Vector3 StartControlPoint;
         public Vector3 EndControlPoint;
         public Vector3 EndPoint;
-        public float Length;
         public Guid RailTypeGuid;
         public bool IsValid;
         public bool HasEnoughRailItem;
         
-        public TrainRailConnectPreviewData(Vector3 startPoint, Vector3 startControlPoint, Vector3 endControlPoint, Vector3 endPoint, float length, Guid railTypeGuid, bool hasEnoughRailItem, bool isValid = true)
+        public TrainRailConnectPreviewData(Vector3 startPoint, Vector3 startControlPoint, Vector3 endControlPoint, Vector3 endPoint, Guid railTypeGuid, bool hasEnoughRailItem, bool isValid = true)
         {
             StartPoint = startPoint;
             StartControlPoint = startControlPoint;
             EndControlPoint = endControlPoint;
             EndPoint = endPoint;
             IsValid = isValid;
-            Length = length;
             RailTypeGuid = railTypeGuid;
             HasEnoughRailItem = hasEnoughRailItem;
         }

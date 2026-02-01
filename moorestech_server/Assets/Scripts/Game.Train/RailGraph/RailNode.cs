@@ -109,9 +109,7 @@ namespace Game.Train.RailGraph
         {
             if (distance == -1)
             {
-                var thisControlPoint = FrontControlPoint;
-                var targetControlPoint = targetNode.BackControlPoint;
-                float rawLength = BezierUtility.GetBezierCurveLength(thisControlPoint, targetControlPoint);
+                float rawLength = BezierUtility.GetBezierCurveLength(this, targetNode);
                 float scaledLength = rawLength * BezierUtility.RAIL_LENGTH_SCALE;
                 distance = (int)(scaledLength + 0.5f);   
             }
