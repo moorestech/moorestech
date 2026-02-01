@@ -16,6 +16,7 @@ using UnityEngine;
 using System;
 using Server.Protocol;
 using UnityEngine.Assertions;
+using System.Collections.Generic;
 
 namespace Tests.Util
 {
