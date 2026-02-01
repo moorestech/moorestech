@@ -137,8 +137,12 @@ namespace Tests.UnitTest.Game.SaveLoad
                 var next = components[i + 1];
 
                 // 実際の線路では双方向の接続が保存されるため、前後双方のノードを明示的な距離で結ぶ。
-                current.ConnectRailComponent(next, true, true, SegmentLength);
-                next.ConnectRailComponent(current, true, true, SegmentLength);
+                //current.ConnectRailComponent(next, true, true, SegmentLength);
+                //next.ConnectRailComponent(current, true, true, SegmentLength);
+                current.FrontNode.ConnectNode(next.FrontNode, SegmentLength);
+                next.BackNode.ConnectNode(current.BackNode, SegmentLength);
+                next.FrontNode.ConnectNode(current.FrontNode, SegmentLength);
+                current.BackNode.ConnectNode(next.BackNode, SegmentLength);
             }
 
             var railNodes = new List<RailNode>();

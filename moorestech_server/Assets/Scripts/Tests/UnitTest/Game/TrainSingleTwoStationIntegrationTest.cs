@@ -136,7 +136,9 @@ namespace Tests.UnitTest.Game
 
         private static void ConnectFront(RailComponent source, RailComponent target, int explicitDistance)
         {
-            source.ConnectRailComponent(target, true, true, explicitDistance);
+            //source.ConnectRailComponent(target, true, true, explicitDistance);
+            source.FrontNode.ConnectNode(target.FrontNode, explicitDistance);
+            target.BackNode.ConnectNode(source.BackNode, explicitDistance);
         }
 
         private static void AdvanceUntil(TrainUnit trainUnit, Func<bool> predicate, int maxIterations, string failureMessage)

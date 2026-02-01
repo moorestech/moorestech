@@ -68,7 +68,9 @@ namespace Game.Block.Factory.BlockTemplate.Utility
                 components[i] = new RailComponent(railGraphDatastore, positions[i], positionInfo.BlockDirection, positionInfo.OriginalPos, i);
             }
             // stationの前と後ろにそれぞれrailComponentがある、自動で接続する
-            components[0].ConnectRailComponent(components[1], true, true);
+            //components[0].ConnectRailComponent(components[1], true, true);
+            components[0].FrontNode.ConnectNode(components[1].FrontNode);
+            components[1].BackNode.ConnectNode(components[0].BackNode);
             return components;
         }
 
@@ -109,8 +111,8 @@ namespace Game.Block.Factory.BlockTemplate.Utility
             var connectionMap = railGraphDatastore.GetRailPositionToConnectionDestination();
             var roundedPosition0 = RoundRailPosition(components[0].Position);
             var roundedPosition1 = RoundRailPosition(components[1].Position);
-            RegisterStationBlock(components, connectionMap, roundedPosition0, 0, connectNeighbors);
-            RegisterStationBlock(components, connectionMap, roundedPosition1, 1, connectNeighbors);
+            RegisterStationBlock(components, connectionMap, roundedPosition0, 0, connectNeighbors, railGraphDatastore);
+            RegisterStationBlock(components, connectionMap, roundedPosition1, 1, connectNeighbors, railGraphDatastore);
         }
 
         static private Vector3Int RoundRailPosition(Vector3 position)
@@ -122,7 +124,7 @@ namespace Game.Block.Factory.BlockTemplate.Utility
             return roundedPosition;
         }
 
-        static private void RegisterStationBlock(RailComponent[] components, Dictionary<Vector3Int, (ConnectionDestination first, ConnectionDestination second)> connectionMap, Vector3Int roundedPosition, int componentIndex, bool connectNeighbors)
+        static private void RegisterStationBlock(RailComponent[] components, Dictionary<Vector3Int, (ConnectionDestination first, ConnectionDestination second)> connectionMap, Vector3Int roundedPosition, int componentIndex, bool connectNeighbors,IRailGraphDatastore railGraphDatastore)
         {
             while (true)
             {
@@ -141,12 +143,12 @@ namespace Game.Block.Factory.BlockTemplate.Utility
 
                     if (connectNeighbors)
                     {
-                        var destinationConnection = (!pair.first.IsDefault()) ? pair.first : pair.second;
-                        var useFrontSideOfTarget = destinationConnection.IsFront;
-                        var targetComponent = ConnectionDestinationToRailComponent(destinationConnection);
-                        if (targetComponent == null) break;
-                        var isFrontOfSelf = componentIndex == 0;
-                        targetComponent.ConnectRailComponent(components[componentIndex], useFrontSideOfTarget, isFrontOfSelf);
+                        var destinationConnection = !pair.first.IsDefault() ? pair.first : pair.second;
+                        var targetNode = railGraphDatastore.ResolveRailNode(destinationConnection) as RailNode;
+                        var n0 = componentIndex == 0 ? components[componentIndex].FrontNode : components[componentIndex].BackNode;
+                        var n1 = componentIndex == 0 ? components[componentIndex].BackNode : components[componentIndex].FrontNode;
+                        targetNode.ConnectNode(n0);
+                        n1.ConnectNode(targetNode.OppositeRailNode);
                     }
 
                     var newdata = GetStationConnectionDestination(components[componentIndex], componentIndex);
@@ -178,20 +180,6 @@ namespace Game.Block.Factory.BlockTemplate.Utility
             return componentIndex == 1 ? component.FrontNode.ConnectionDestination : component.BackNode.ConnectionDestination;
         }
 
-        // DestinationConnectionからRailComponentを復元する、ワールドブロックデータを使うversion
-        static private RailComponent ConnectionDestinationToRailComponent(ConnectionDestination destinationConnection)
-        {
-            var destinationPosition = destinationConnection.blockPosition;
-            var componentIndex = destinationConnection.componentIndex;
-            // 対象ブロックをワールドから取得
-            var targetBlock = ServerContext.WorldBlockDatastore.GetBlock(destinationPosition);
-            if (targetBlock == null) return null;
-            // 対象ブロックがRailComponentを持っているか確認
-            var targetComponents = targetBlock.ComponentManager.GetComponents<RailComponent>();
-            if (componentIndex < 0 || componentIndex >= targetComponents.Count)
-                return null;
-            return targetComponents[componentIndex];
-        }
     }
 }
 

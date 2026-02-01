@@ -184,7 +184,6 @@ namespace Game.Train.RailGraph
             // 距離更新の場合は上書き
             // In case of distance update, overwrite
             _connectionInitializationNotifier.Notify(nodeid, targetid, distance, railTypeGuid);
-
             MarkHashDirty();
         }
 
@@ -212,25 +211,16 @@ namespace Game.Train.RailGraph
         private void UpsertRailSegmentEdge(int nodeId, int targetId, int distance, Guid railTypeGuid)
         {
             var segment = GetOrCreateSegment(nodeId, targetId, distance, railTypeGuid);
-            UpsertRailSegmentEdgeInternal(nodeId, targetId, segment);
-        }
-
-        // レールセグメント参照を登録する
-        // Register the rail segment reference
-        private void UpsertRailSegmentEdgeInternal(int nodeId, int targetId, RailSegment segment)
-        {
             var edges = railSegments[nodeId];
             for (int i = 0; i < edges.Count; i++)
             {
                 if (edges[i].targetId != targetId)
                     continue;
                 edges[i] = (targetId, segment);
-                ApplySegmentControlPoints(nodeId, targetId);
                 return;
             }
             edges.Add((targetId, segment));
             segment.AddEdgeReference();
-            ApplySegmentControlPoints(nodeId, targetId);
         }
 
         // レールセグメント参照を解除する
@@ -351,27 +341,6 @@ namespace Game.Train.RailGraph
         private Guid ResolveRailTypeGuid(int startNodeId, int endNodeId)
         {
             return TryGetRailSegmentTypeInternal(startNodeId, endNodeId, out var railTypeGuid) ? railTypeGuid : Guid.Empty;
-        }
-
-        // ベジエ強度を計算する
-        // Calculate bezier strength
-        // セグメント強度から制御点を更新する
-        // Update control points from segment strength
-        private void ApplySegmentControlPoints(int startNodeId, int endNodeId)
-        {
-            if (!TryGetRailNodeInternal(startNodeId, out var startNode))
-                return;
-            if (!TryGetRailNodeInternal(endNodeId, out var endNode))
-                return;
-
-            var startPosition = startNode.FrontControlPoint.OriginalPosition;
-            var endPosition = endNode.BackControlPoint.OriginalPosition;
-            var startDirection = startNode.FrontControlPoint.ControlPointPosition;
-            var endDirection = endNode.BackControlPoint.ControlPointPosition;
-            var strength = RailSegmentCurveUtility.CalculateSegmentStrength(startPosition, endPosition);
-            RailSegmentCurveUtility.BuildControlPoints(startPosition, startDirection, endPosition, endDirection, strength, out var p0, out var p1, out var p2, out var p3);
-            startNode.FrontControlPoint.ControlPointPosition = p1 - p0;
-            endNode.BackControlPoint.ControlPointPosition = p2 - p3;
         }
 
         private void DisconnectNodeInternal(RailNode node, RailNode targetNode)

@@ -241,7 +241,9 @@ namespace Tests.UnitTest.Game.SaveLoad
                     new Vector3Int(-100000 - (i * 17), 0, -50000 + (i * 23)),
                     BlockDirection.South);
 
-                startComponent.ConnectRailComponent(entryComponent, true, true);
+                //startComponent.ConnectRailComponent(entryComponent, true, true);
+                startComponent.FrontNode.ConnectNode(entryComponent.FrontNode);
+                entryComponent.BackNode.ConnectNode(startComponent.BackNode);
 
                 var nodeList = new List<IRailNode>
                 {
@@ -304,7 +306,11 @@ namespace Tests.UnitTest.Game.SaveLoad
                 return;
             }
 
-            components[from].ConnectRailComponent(components[to], useFrontFrom, useFrontTo);
+            //components[from].ConnectRailComponent(components[to], useFrontFrom, useFrontTo);
+            var tmpn0 = useFrontFrom ? components[from].FrontNode : components[from].BackNode;
+            var tmpm1 = useFrontTo ? components[to].FrontNode : components[to].BackNode;
+            tmpn0.ConnectNode(tmpm1);
+            tmpm1.OppositeRailNode.ConnectNode(tmpn0.OppositeRailNode);
             connected.Add(key);
             connected.Add(reverse);
         }

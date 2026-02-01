@@ -208,12 +208,12 @@ namespace Server.Protocol.PacketResponse
         
         public static float GetRailLength(IRailNode fromNode, IRailNode toNode)
         {
-            var startPosition = fromNode.FrontControlPoint.OriginalPosition;
-            var endPosition = toNode.BackControlPoint.OriginalPosition;
-            var startDirection = fromNode.FrontControlPoint.ControlPointPosition;
-            var endDirection = toNode.BackControlPoint.ControlPointPosition;
-            var strength = RailSegmentCurveUtility.CalculateSegmentStrength(startPosition, endPosition);
-            return RailSegmentCurveUtility.GetBezierCurveLength(startPosition, startDirection, endPosition, endDirection, strength, 64);
+            var p0 = fromNode.FrontControlPoint.OriginalPosition;
+            var p1 = fromNode.FrontControlPoint.OriginalPosition + fromNode.FrontControlPoint.ControlPointPosition;
+            var p2 = toNode.BackControlPoint.OriginalPosition + toNode.BackControlPoint.ControlPointPosition;
+            var p3 = toNode.BackControlPoint.OriginalPosition;
+            var length = BezierUtility.GetBezierCurveLength(p0, p1, p2, p3, 64);
+            return length;
         }
         
         public static (RailItemMasterElement element, int requiredCount)[] GetPlaceableRailItems(IEnumerable<IItemStack> inventory, float railLength)

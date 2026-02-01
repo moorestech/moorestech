@@ -37,10 +37,8 @@ namespace Game.Train.RailGraph
             // 同一ノード/裏ノードへの接続を禁止
             // Reject connections targeting the same or opposite node
             if (fromNodeId == toNodeId || fromNodeId == (toNodeId ^ 1)) return false;
-
-            var distance = CalculateSegmentDistance(fromNode, toNode);
-            fromNode.ConnectNode(toNode, distance, railTypeGuid);
-            ConnectOppositeNodes(fromNode, toNode, distance, railTypeGuid);
+            fromNode.ConnectNode(toNode, railTypeGuid);
+            ConnectOppositeNodes(fromNode, toNode, railTypeGuid);
             return true;
         }
 
@@ -103,7 +101,7 @@ namespace Game.Train.RailGraph
             // Debug.Log($"[RailConnectionCommandHandler] {message}"); // Warningではなく通常ログにしたい場合はこちら
         }
 
-        private static void ConnectOppositeNodes(RailNode fromNode, RailNode toNode, int distance, Guid railTypeGuid)
+        private static void ConnectOppositeNodes(RailNode fromNode, RailNode toNode, Guid railTypeGuid)
         {
             var fromOpposite = fromNode.OppositeRailNode;
             var toOpposite = toNode.OppositeRailNode;
@@ -112,7 +110,7 @@ namespace Game.Train.RailGraph
                 return;
             }
 
-            toOpposite.ConnectNode(fromOpposite, distance, railTypeGuid);
+            toOpposite.ConnectNode(fromOpposite, railTypeGuid);
         }
 
         private static void DisconnectOppositeNodes(RailNode fromNode, RailNode toNode)
@@ -125,17 +123,6 @@ namespace Game.Train.RailGraph
             }
 
             toOpposite.DisconnectNode(fromOpposite);
-        }
-
-        private static int CalculateSegmentDistance(RailNode fromNode, RailNode toNode)
-        {
-            var startPosition = fromNode.FrontControlPoint.OriginalPosition;
-            var endPosition = toNode.BackControlPoint.OriginalPosition;
-            var startDirection = fromNode.FrontControlPoint.ControlPointPosition;
-            var endDirection = toNode.BackControlPoint.ControlPointPosition;
-            var strength = RailSegmentCurveUtility.CalculateSegmentStrength(startPosition, endPosition);
-            var length = RailSegmentCurveUtility.GetBezierCurveLength(startPosition, startDirection, endPosition, endDirection, strength, BezierSamples);
-            return (int)(length * RailLengthScale + 0.5f);
         }
 
         #endregion

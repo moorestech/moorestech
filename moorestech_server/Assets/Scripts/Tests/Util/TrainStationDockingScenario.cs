@@ -68,11 +68,19 @@ namespace Tests.Util
             Assert.IsNotNull(stationComponents, "貨物プラットフォーム用のRailComponentを取得できませんでした。");
 
             var station = ExtractStationNodes(stationBlock!, stationComponents);
-
-            n0Component.ConnectRailComponent(n1Component, true, true);
-            n1Component.ConnectRailComponent(station.EntryComponent, true, true);
-            station.ExitComponent.ConnectRailComponent(n2Component, true, true);
-            n2Component.ConnectRailComponent(n3Component, true, true);
+            //n0Component.ConnectRailComponent(n1Component, true, true);
+            //n1Component.ConnectRailComponent(station.EntryComponent, true, true);
+            //station.ExitComponent.ConnectRailComponent(n2Component, true, true);
+            //n2Component.ConnectRailComponent(n3Component, true, true);
+            
+            n0Component.FrontNode.ConnectNode(n1Component.FrontNode);
+            n1Component.BackNode.ConnectNode(n1Component.BackNode);
+            n1Component.FrontNode.ConnectNode(station.EntryComponent.FrontNode);
+            station.EntryComponent.BackNode.ConnectNode(n1Component.BackNode);
+            station.ExitComponent.FrontNode.ConnectNode(n2Component.FrontNode);
+            n2Component.BackNode.ConnectNode(station.ExitComponent.BackNode);
+            n2Component.FrontNode.ConnectNode(n3Component.FrontNode);
+            n3Component.BackNode.ConnectNode(n2Component.BackNode);
 
             return new TrainStationDockingScenario(environment, n0Component, n1Component, station, n2Component, n3Component);
         }
@@ -95,10 +103,12 @@ namespace Tests.Util
             Assert.IsNotNull(stationComponents, "貨物プラットフォーム用のRailComponentを取得できませんでした。");
 
             var station = ExtractStationNodes(stationBlock!, stationComponents);
-
-            n0Component.ConnectRailComponent(station.EntryComponent, true, true, station.SegmentLength);
-            station.ExitComponent.ConnectRailComponent(n0Component, true, true, station.SegmentLength * 2);
-
+            //n0Component.ConnectRailComponent(station.EntryComponent, true, true, station.SegmentLength);
+            n0Component.FrontNode.ConnectNode(station.EntryComponent.FrontNode,station.SegmentLength);
+            station.EntryComponent.BackNode.ConnectNode(n0Component.BackNode, station.SegmentLength);
+            //station.ExitComponent.ConnectRailComponent(n0Component, true, true, station.SegmentLength * 2);
+            station.ExitComponent.FrontNode.ConnectNode(n0Component.FrontNode, station.SegmentLength * 2);
+            n0Component.BackNode.ConnectNode(station.ExitComponent.BackNode, station.SegmentLength * 2);
             return new TrainStationDockingScenario(environment, n0Component, n1Component, station, n2Component, n3Component);
         }
 

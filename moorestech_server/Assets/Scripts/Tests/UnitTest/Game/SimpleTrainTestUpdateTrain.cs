@@ -48,11 +48,19 @@ namespace Tests.UnitTest.Game
             // 2) レールどうしを Connect
             // D→C→B→A→D の順でつなげる
             //    defaultdistance=-1 ならばベジェ曲線長が自動計算される
-            railComponentD.ConnectRailComponent(railComponentC, true, true, -1);
-            railComponentC.ConnectRailComponent(railComponentB, true, true, -1);
-            railComponentB.ConnectRailComponent(railComponentA, true, true, -1);
-            railComponentA.ConnectRailComponent(railComponentD, true, true, -1);
-
+            
+            //railComponentD.ConnectRailComponent(railComponentC, true, true);
+            railComponentD.FrontNode.ConnectNode(railComponentC.FrontNode);
+            railComponentC.BackNode.ConnectNode(railComponentD.BackNode);
+            //railComponentC.ConnectRailComponent(railComponentB, true, true);
+            railComponentC.FrontNode.ConnectNode(railComponentB.FrontNode);
+            railComponentB.BackNode.ConnectNode(railComponentC.BackNode);
+            //railComponentB.ConnectRailComponent(railComponentA, true, true);
+            railComponentB.FrontNode.ConnectNode(railComponentA.FrontNode);
+            railComponentA.BackNode.ConnectNode(railComponentB.BackNode);
+            //railComponentA.ConnectRailComponent(railComponentD, true, true);
+            railComponentA.FrontNode.ConnectNode(railComponentD.FrontNode);
+            railComponentD.BackNode.ConnectNode(railComponentA.BackNode);
             // ノード列を組み立てる
             // Aに向かっているという状況
             var nodeList = new List<RailNode>();
@@ -146,10 +154,16 @@ namespace Tests.UnitTest.Game
             var railComponentD = railD.GetComponent<RailComponent>();
 
             // Connect the two RailComponents
-            railComponentD.ConnectRailComponent(railComponentC, true, true);
-            railComponentC.ConnectRailComponent(railComponentB, true, true);
-            railComponentB.ConnectRailComponent(railComponentA, true, true);
-
+            //railComponentD.ConnectRailComponent(railComponentC, true, true);
+            railComponentD.FrontNode.ConnectNode(railComponentC.FrontNode);
+            railComponentC.BackNode.ConnectNode(railComponentD.BackNode);
+            //railComponentC.ConnectRailComponent(railComponentB, true, true);
+            railComponentC.FrontNode.ConnectNode(railComponentB.FrontNode);
+            railComponentB.BackNode.ConnectNode(railComponentC.BackNode);
+            //railComponentB.ConnectRailComponent(railComponentA, true, true);
+            railComponentB.FrontNode.ConnectNode(railComponentA.FrontNode);
+            railComponentA.BackNode.ConnectNode(railComponentB.BackNode);
+            
             var nodeA = railComponentA.FrontNode;
             var nodeB = railComponentB.FrontNode;
             var nodeC = railComponentC.FrontNode;
@@ -331,13 +345,25 @@ namespace Tests.UnitTest.Game
                     var railComponentA = railBlockA.GetComponent<RailComponent>();
                     railComponentsData[8 + i] = railComponentA;
                 }
-
-                railComponentsData[1].ConnectRailComponent(railComponentsData[8], true, true, -1);
-                railComponentsData[8].ConnectRailComponent(railComponentsData[9], true, true, -1);
-                railComponentsData[9].ConnectRailComponent(railComponentsData[2], true, true, -1);
-                railComponentsData[3].ConnectRailComponent(railComponentsData[10], true, true, -1);
-                railComponentsData[10].ConnectRailComponent(railComponentsData[4], true, true, -1);
-                railComponentsData[5].ConnectRailComponent(railComponentsData[6], true, true, -1);
+                
+                //railComponentsData[1].ConnectRailComponent(railComponentsData[8], true, true);
+                railComponentsData[1].FrontNode.ConnectNode(railComponentsData[8].FrontNode);
+                railComponentsData[8].BackNode.ConnectNode(railComponentsData[1].BackNode);
+                //railComponentsData[8].ConnectRailComponent(railComponentsData[9], true, true);
+                railComponentsData[8].FrontNode.ConnectNode(railComponentsData[9].FrontNode);
+                railComponentsData[9].BackNode.ConnectNode(railComponentsData[8].BackNode);
+                //railComponentsData[9].ConnectRailComponent(railComponentsData[2], true, true);
+                railComponentsData[9].FrontNode.ConnectNode(railComponentsData[2].FrontNode);
+                railComponentsData[2].BackNode.ConnectNode(railComponentsData[9].BackNode);
+                //railComponentsData[3].ConnectRailComponent(railComponentsData[10], true, true);
+                railComponentsData[3].FrontNode.ConnectNode(railComponentsData[10].FrontNode);
+                railComponentsData[10].BackNode.ConnectNode(railComponentsData[3].BackNode);
+                //railComponentsData[10].ConnectRailComponent(railComponentsData[4], true, true);
+                railComponentsData[10].FrontNode.ConnectNode(railComponentsData[4].FrontNode);
+                railComponentsData[4].BackNode.ConnectNode(railComponentsData[10].BackNode);
+                //railComponentsData[5].ConnectRailComponent(railComponentsData[6], true, true);
+                railComponentsData[5].FrontNode.ConnectNode(railComponentsData[6].FrontNode);
+                railComponentsData[6].BackNode.ConnectNode(railComponentsData[5].BackNode);
                 //これで駅0→点8→点9→駅1→点10→駅2→駅3の順でつながった
 
                 TrainTestHelper.Node2NodeCheckAndAssert(railComponentsData[0].FrontNode, railComponentsData[1].FrontNode, "駅0", "駅1");
@@ -463,7 +489,11 @@ namespace Tests.UnitTest.Game
             //connectBを実行
             foreach (var key in connectB.Keys)
             {
-                railComponents[key.Item1].ConnectRailComponent(railComponents[key.Item2], key.Item3, key.Item4);
+                //railComponents[key.Item1].ConnectRailComponent(railComponents[key.Item2], key.Item3, key.Item4);
+                var tmpn0 = key.Item3 ? railComponents[key.Item1].FrontNode : railComponents[key.Item1].BackNode;
+                var tmpm1 = key.Item4 ? railComponents[key.Item2].FrontNode : railComponents[key.Item2].BackNode;
+                tmpn0.ConnectNode(tmpm1);
+                tmpm1.OppositeRailNode.ConnectNode(tmpn0.OppositeRailNode);
             }
 
             //Aを作成
@@ -473,7 +503,9 @@ namespace Tests.UnitTest.Game
                 for (int j = 0; j < 10; j++)
                 {
                     var next = (i * 10) % nodenum + j;
-                    railComponents[i].ConnectRailComponent(railComponents[next], true, true);
+                    //railComponents[i].ConnectRailComponent(railComponents[next], true, true);
+                    railComponents[i].FrontNode.ConnectNode(railComponents[next].FrontNode);
+                    railComponents[next].BackNode.ConnectNode(railComponents[i].BackNode);
                 }
             }
 
@@ -485,7 +517,11 @@ namespace Tests.UnitTest.Game
                 {
                     var next = (key.Item1 * 10) % nodenum / 10;
                     if ((key.Item2 / 10 == next) & (key.Item3) & (key.Item4)) continue;
-                    railComponents[key.Item1].DisconnectRailComponent(railComponents[key.Item2], key.Item3, key.Item4);
+                    //railComponents[key.Item1].DisconnectRailComponent(railComponents[key.Item2], key.Item3, key.Item4);
+                    var tmpn0 = key.Item3 ? railComponents[key.Item1].FrontNode : railComponents[key.Item1].BackNode;
+                    var tmpm1 = key.Item4 ? railComponents[key.Item2].FrontNode : railComponents[key.Item2].BackNode;
+                    tmpn0.DisconnectNode(tmpm1);
+                    tmpm1.OppositeRailNode.DisconnectNode(tmpn0.OppositeRailNode);
                 }
             }
 
@@ -497,8 +533,10 @@ namespace Tests.UnitTest.Game
             //複数の長さの列車を走らせる。短い～長い
             //列車を乗せるためのレールを新規に生成
             var railComponentStart = TrainTestHelper.PlaceRail(env, new Vector3Int(-100000, 0, 0), BlockDirection.South);
-            railComponentStart.ConnectRailComponent(railComponents[0], true, true);
-
+            //railComponentStart.ConnectRailComponent(railComponents[0], true, true);
+            railComponentStart.FrontNode.ConnectNode(railComponents[0].FrontNode);
+            railComponents[0].BackNode.ConnectNode(railComponentStart.BackNode);
+            
             // ノード列を組み立てる
             // 列車がrailComponents[0]に向かっているという状況
             var nodeList = new List<RailNode>();
@@ -583,8 +621,10 @@ namespace Tests.UnitTest.Game
             var railComponentC = TrainTestHelper.PlaceRail(env, new Vector3Int(1, 0, 0), BlockDirection.North);
 
             // Connect the two RailComponents
-            railComponentC.ConnectRailComponent(railComponentB, true, true, 40);
-            railComponentB.ConnectRailComponent(railComponentA, true, true, 20);
+            railComponentC.FrontNode.ConnectNode(railComponentB.FrontNode, 40);
+            railComponentB.BackNode.ConnectNode(railComponentC.BackNode, 40);
+            railComponentB.FrontNode.ConnectNode(railComponentA.FrontNode, 20);
+            railComponentA.BackNode.ConnectNode(railComponentB.BackNode, 20);
 
             // これで A -> B -> C の合計距離は 60
             var nodeA = railComponentA.FrontNode;
