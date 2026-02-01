@@ -67,8 +67,8 @@ namespace Game.Block.Blocks.BeltConveyor
             // Get GoalConnector
             var goalConnector = _blockInventoryInserter.GetNextGoalConnector(checkItems);
 
-            // コネクターが存在するのにGoalConnectorがない場合は挿入を拒否する（バックプレッシャー）
-            // Reject insertion when connectors exist but no valid GoalConnector (backpressure)
+            // コネクターが存在するのにGoalConnectorがない場合は挿入を拒否する
+            // Reject insertion when connectors exist but no valid GoalConnector
             if (_blockInventoryInserter.HasAnyConnector && goalConnector == null) return itemStack;
 
             // 挿入先コネクター（TargetConnector）をアイテムの開始位置として設定
