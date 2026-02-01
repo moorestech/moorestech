@@ -15,6 +15,7 @@ namespace Game.Train.RailGraph
         void AddNodeSingle(RailNode node);
         void AddNodePair(RailNode node1, RailNode node2);
         void ConnectNode(RailNode node, RailNode targetNode, int distance);
+        void ConnectNode(RailNode node, RailNode targetNode, int distance, Guid railTypeGuid);
         void DisconnectNode(RailNode node, RailNode targetNode);
         List<(IRailNode, int)> GetConnectedNodesWithDistance(IRailNode node);
         void RemoveNode(RailNode node);
@@ -25,7 +26,8 @@ namespace Game.Train.RailGraph
         bool TryGetRailNodeId(RailNode node, out int nodeId);
         bool TryGetRailNode(int nodeId, out RailNode railNode);
         IReadOnlyCollection<RailSegment> GetRailSegments();
-        bool TryRestoreRailSegment(ConnectionDestination start, ConnectionDestination end, int length);
+        bool TryRestoreRailSegment(ConnectionDestination start, ConnectionDestination end, int length, Guid railTypeGuid);
+        bool TryGetRailSegmentType(int startNodeId, int endNodeId, out Guid railTypeGuid);
         uint GetConnectNodesHash();
         RailGraphSnapshot CaptureSnapshot(long currentTick);
         IReadOnlyList<RailNode> GetRailNodes();

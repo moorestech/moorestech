@@ -96,7 +96,8 @@ namespace Game.Train.RailGraph
 
         public void AddNodeSingle(RailNode node) => AddNodeSingleInternal(node);
         public void AddNodePair(RailNode node1, RailNode node2) => AddNodePairInternal(node1, node2);
-        public void ConnectNode(RailNode node, RailNode targetNode, int distance) => ConnectNodeInternal(node, targetNode, distance);
+        public void ConnectNode(RailNode node, RailNode targetNode, int distance) => ConnectNodeInternal(node, targetNode, distance, Guid.Empty);
+        public void ConnectNode(RailNode node, RailNode targetNode, int distance, Guid railTypeGuid) => ConnectNodeInternal(node, targetNode, distance, railTypeGuid);
         public void DisconnectNode(RailNode node, RailNode targetNode) => DisconnectNodeInternal(node, targetNode);
         public List<(IRailNode, int)> GetConnectedNodesWithDistance(IRailNode node) => GetConnectedNodesWithDistanceInternal(node);
         public void RemoveNode(RailNode node) => RemoveNodeInternal(node);
@@ -107,7 +108,8 @@ namespace Game.Train.RailGraph
         public bool TryGetRailNodeId(RailNode node, out int nodeId) => TryGetRailNodeIdInternal(node, out nodeId);
         public bool TryGetRailNode(int nodeId, out RailNode railNode) => TryGetRailNodeInternal(nodeId, out railNode);
         public IReadOnlyCollection<RailSegment> GetRailSegments() => railSegmentByKey.Values;
-        public bool TryRestoreRailSegment(ConnectionDestination start, ConnectionDestination end, int length) => TryRestoreRailSegmentInternal(start, end, length);
+        public bool TryRestoreRailSegment(ConnectionDestination start, ConnectionDestination end, int length, Guid railTypeGuid) => TryRestoreRailSegmentInternal(start, end, length, railTypeGuid);
+        public bool TryGetRailSegmentType(int startNodeId, int endNodeId, out Guid railTypeGuid) => TryGetRailSegmentTypeInternal(startNodeId, endNodeId, out railTypeGuid);
         public uint GetConnectNodesHash() => GetGraphHashInternal();
         public RailGraphSnapshot CaptureSnapshot(long currentTick) => CaptureSnapshotInternal(currentTick);
         public IReadOnlyList<RailNode> GetRailNodes() => railNodes;
@@ -164,7 +166,7 @@ namespace Game.Train.RailGraph
             MarkHashDirty();
         }
 
-        private void ConnectNodeInternal(RailNode node, RailNode targetNode, int distance)
+        private void ConnectNodeInternal(RailNode node, RailNode targetNode, int distance, Guid railTypeGuid)
         {
             if (!railNodeToId.ContainsKey(node))
                 throw new InvalidOperationException("Attempted to connect a RailNode that is not registered in RailGraphDatastore.");
@@ -175,13 +177,13 @@ namespace Game.Train.RailGraph
             // 接続の隣接リストとレールセグメントを更新する
             // Update adjacency list and rail segment data
             UpsertConnectNodes(nodeid, targetid, distance);
-            UpsertRailSegmentEdge(nodeid, targetid, distance);
+            UpsertRailSegmentEdge(nodeid, targetid, distance, railTypeGuid);
 
             // レールグラフ更新イベントを発行
             // Fire rail graph update event
             // 距離更新の場合は上書き
             // In case of distance update, overwrite
-            _connectionInitializationNotifier.Notify(nodeid, targetid, distance);
+            _connectionInitializationNotifier.Notify(nodeid, targetid, distance, railTypeGuid);
 
             MarkHashDirty();
         }
@@ -207,9 +209,9 @@ namespace Game.Train.RailGraph
 
         // レールセグメントを更新する
         // Update the rail segment entry
-        private void UpsertRailSegmentEdge(int nodeId, int targetId, int distance)
+        private void UpsertRailSegmentEdge(int nodeId, int targetId, int distance, Guid railTypeGuid)
         {
-            var segment = GetOrCreateSegment(nodeId, targetId, distance);
+            var segment = GetOrCreateSegment(nodeId, targetId, distance, railTypeGuid);
             UpsertRailSegmentEdgeInternal(nodeId, targetId, segment);
         }
 
@@ -283,16 +285,28 @@ namespace Game.Train.RailGraph
 
         // レールセグメントを取得または作成する
         // Get or create a rail segment
-        private RailSegment GetOrCreateSegment(int nodeId, int targetId, int length)
+        private RailSegment GetOrCreateSegment(int nodeId, int targetId, int length, Guid railTypeGuid)
         {
             var key = NormalizeSegmentKey(nodeId, targetId);
             if (!railSegmentByKey.TryGetValue(key, out var segment))
             {
-                segment = new RailSegment(key.startId, key.endId, length);
+                segment = new RailSegment(key.startId, key.endId, length, railTypeGuid);
                 railSegmentByKey[key] = segment;
             }
             segment.SetLength(length);
+            ApplyRailType(segment, railTypeGuid);
             return segment;
+        }
+
+        // セグメントのレール種類を更新する
+        // Update the rail type on the segment
+        private static void ApplyRailType(RailSegment segment, Guid railTypeGuid)
+        {
+            if (segment == null)
+                return;
+            if (railTypeGuid == Guid.Empty && segment.RailTypeGuid != Guid.Empty)
+                return;
+            segment.SetRailType(railTypeGuid);
         }
 
         // 明示強度でセグメントを取得または作成する
@@ -315,6 +329,28 @@ namespace Game.Train.RailGraph
             if (startA != startB)
                 return startA < startB;
             return endA <= endB;
+        }
+
+        // レールセグメントの種類を取得する
+        // Get the rail type stored on a segment
+        private bool TryGetRailSegmentTypeInternal(int startNodeId, int endNodeId, out Guid railTypeGuid)
+        {
+            var key = NormalizeSegmentKey(startNodeId, endNodeId);
+            if (!railSegmentByKey.TryGetValue(key, out var segment))
+            {
+                railTypeGuid = Guid.Empty;
+                return false;
+            }
+
+            railTypeGuid = segment.RailTypeGuid;
+            return true;
+        }
+
+        // レール種類を解決する
+        // Resolve rail type guid
+        private Guid ResolveRailTypeGuid(int startNodeId, int endNodeId)
+        {
+            return TryGetRailSegmentTypeInternal(startNodeId, endNodeId, out var railTypeGuid) ? railTypeGuid : Guid.Empty;
         }
 
         // ベジエ強度を計算する
@@ -352,7 +388,7 @@ namespace Game.Train.RailGraph
 
         // 保存データからレールセグメントを復元する
         // Restore rail segments from save data
-        private bool TryRestoreRailSegmentInternal(ConnectionDestination start, ConnectionDestination end, int length)
+        private bool TryRestoreRailSegmentInternal(ConnectionDestination start, ConnectionDestination end, int length, Guid railTypeGuid)
         {
             var startNode = ResolveRailNodeInternal(start);
             if (startNode == null)
@@ -365,8 +401,8 @@ namespace Game.Train.RailGraph
             if (oppositeStart == null || oppositeEnd == null)
                 return false;
 
-            ConnectNodeInternal(startNode, endNode, length);
-            ConnectNodeInternal(oppositeEnd, oppositeStart, length);
+            ConnectNodeInternal(startNode, endNode, length, railTypeGuid);
+            ConnectNodeInternal(oppositeEnd, oppositeStart, length, railTypeGuid);
             return true;
         }
 
@@ -500,7 +536,7 @@ namespace Game.Train.RailGraph
         {
             if (!_isHashDirty)
                 return _cachedGraphHash;
-            _cachedGraphHash = RailGraphHashCalculator.ComputeGraphStateHash(railNodes, connectNodes);
+            _cachedGraphHash = RailGraphHashCalculator.ComputeGraphStateHash(railNodes, connectNodes, ResolveRailTypeGuid);
             _isHashDirty = false;
             return _cachedGraphHash;
         }
@@ -533,7 +569,8 @@ namespace Game.Train.RailGraph
             {
                 foreach (var (targetId, distance) in connectNodes[fromId])
                 {
-                    connections.Add(new RailGraphConnectionSnapshot(fromId, targetId, distance));
+                    var railTypeGuid = ResolveRailTypeGuid(fromId, targetId);
+                    connections.Add(new RailGraphConnectionSnapshot(fromId, targetId, distance, railTypeGuid));
                 }
             }
 

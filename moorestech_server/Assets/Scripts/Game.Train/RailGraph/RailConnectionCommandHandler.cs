@@ -27,7 +27,7 @@ namespace Game.Train.RailGraph
 
         // RailNode同士の接続を試行
         // Try to connect two rail nodes
-        public bool TryConnect(int fromNodeId, Guid fromGuid, int toNodeId, Guid toGuid)
+        public bool TryConnect(int fromNodeId, Guid fromGuid, int toNodeId, Guid toGuid, Guid railTypeGuid)
         {
             if (!TryResolveNodes(fromNodeId, fromGuid, toNodeId, toGuid, out var fromNode, out var toNode))
             {
@@ -39,8 +39,8 @@ namespace Game.Train.RailGraph
             if (fromNodeId == toNodeId || fromNodeId == (toNodeId ^ 1)) return false;
 
             var distance = CalculateSegmentDistance(fromNode, toNode);
-            fromNode.ConnectNode(toNode, distance);
-            ConnectOppositeNodes(fromNode, toNode, distance);
+            fromNode.ConnectNode(toNode, distance, railTypeGuid);
+            ConnectOppositeNodes(fromNode, toNode, distance, railTypeGuid);
             return true;
         }
 
@@ -103,7 +103,7 @@ namespace Game.Train.RailGraph
             // Debug.Log($"[RailConnectionCommandHandler] {message}"); // Warningではなく通常ログにしたい場合はこちら
         }
 
-        private static void ConnectOppositeNodes(RailNode fromNode, RailNode toNode, int distance)
+        private static void ConnectOppositeNodes(RailNode fromNode, RailNode toNode, int distance, Guid railTypeGuid)
         {
             var fromOpposite = fromNode.OppositeRailNode;
             var toOpposite = toNode.OppositeRailNode;
@@ -112,7 +112,7 @@ namespace Game.Train.RailGraph
                 return;
             }
 
-            toOpposite.ConnectNode(fromOpposite, distance);
+            toOpposite.ConnectNode(fromOpposite, distance, railTypeGuid);
         }
 
         private static void DisconnectOppositeNodes(RailNode fromNode, RailNode toNode)

@@ -10,46 +10,40 @@ using UnityEngine;
 namespace Client.Game.InGame.Train.RailGraph
 {
     /// <summary>
-    ///     RailGraphの差分同期結果を保持するクライアント側キャッシュ
     ///     Client-side cache that mirrors the rail graph data for diff-based sync
     /// </summary>
     public sealed class RailGraphClientCache : IRailGraphProvider, IRailGraphTraversalProvider
     {
-        // RailNodeInitializationDataのスナップショットを保持
         // Stores RailNodeInitializationData snapshots per nodeId
         private readonly List<ClientRailNode> _nodes = new();
 
-        // RailGraphDatastoreと同型の接続リスト（indexがRailNodeId）
         // Connection list equivalent to RailGraphDatastore (index equals RailNodeId)
         private readonly List<List<(int targetId, int distance)>> _connectNodes = new();
 
+        // Rail segment type lookup table
+        private readonly Dictionary<(int startId, int endId), Guid> _railTypeByKey = new();
+
         private static readonly Vector3 DefaultPosition = new Vector3(-1f, -1f, -1f);
 
-        // ConnectionDestination→RailNodeIdの逆引き辞書
         // Reverse lookup dictionary from ConnectionDestination to RailNodeId
         private readonly Dictionary<ConnectionDestination, int> _connectionDestinationToNodeId = new();
 
-        // 差分適用済みの最新Tick
         // Latest tick that has been fully applied to the cache
         private long _lastConfirmedTick;
 
-        // RailNodeスナップショットを公開（読み取りのみ）
         // Expose rail node snapshots as read-only
         public IReadOnlyList<ClientRailNode> Nodes => _nodes;
 
-        // 接続情報の参照を外部へ公開（読み取りのみ）
         // Expose connection adjacency list as read-only
         public IReadOnlyList<IReadOnlyList<(int targetId, int distance)>> ConnectNodes => _connectNodes;
 
-        // ConnectionDestination→RailNodeIdの逆引き（読み取りのみ）
         // Expose reverse lookup dictionary as read-only
         public IReadOnlyDictionary<ConnectionDestination, int> ConnectionDestinationIndex => _connectionDestinationToNodeId;
 
-        // 最新Tickを確認するためのプロパティ
         // Property to observe the newest applied tick
         public long LastConfirmedTick => _lastConfirmedTick;
 
-        private RailGraphPathFinder _pathFinder;//ダイクストラ法は専用クラスに委譲する
+        private RailGraphPathFinder _pathFinder;//ダイクストラ法
 
         private RailGraphClientCache()
         {
@@ -58,7 +52,7 @@ namespace Client.Game.InGame.Train.RailGraph
 
         public uint ComputeCurrentHash()
         {
-            return RailGraphHashCalculator.ComputeGraphStateHash(_nodes, _connectNodes);
+            return RailGraphHashCalculator.ComputeGraphStateHash(_nodes, _connectNodes, ResolveRailTypeGuid);
         }
 
         internal void OverrideTick(long serverTick)
@@ -66,16 +60,13 @@ namespace Client.Game.InGame.Train.RailGraph
             _lastConfirmedTick = Math.Max(_lastConfirmedTick, serverTick);
         }
 
-        // スナップショットを受け取ってキャッシュ全体を再構築する
         // Rebuild the cache from a full snapshot
         public void ApplySnapshot(
             RailGraphSnapshotMessagePack snapshot,int size)
         {
-            // 入力整合性:skip してからクリア＆コピー
             // Validate inputs(:skip) before clearing the cache and copying data
             ResetSlots(size);
             PopulateNodes(snapshot, _nodes);
-            // 辺データを隣接リストへ登録
             // Apply edge information onto adjacency list
             PopulateConnections(snapshot, _connectNodes);
             
@@ -89,6 +80,7 @@ namespace Client.Game.InGame.Train.RailGraph
                 _nodes.Clear();
                 _connectNodes.Clear();
                 _connectionDestinationToNodeId.Clear();
+                _railTypeByKey.Clear();
                 for (var i = 0; i < requiredCount; i++)
                 {
                     _nodes.Add(null);
@@ -98,7 +90,6 @@ namespace Client.Game.InGame.Train.RailGraph
 
             void PopulateNodes(RailGraphSnapshotMessagePack targetSnapshot, List<ClientRailNode> nodeList)
             {
-                // ノードごとの必須データを単純代入
                 // Copy core node data with simple assignments
                 foreach (var node in targetSnapshot.Nodes)
                 {
@@ -117,7 +108,6 @@ namespace Client.Game.InGame.Train.RailGraph
 
             void PopulateConnections(RailGraphSnapshotMessagePack targetSnapshot, List<List<(int targetId, int distance)>> adjacencyList)
             {
-                // 辺が無ければ終了
                 // Exit early when there are no edges
                 if (targetSnapshot.Connections == null)
                 {
@@ -130,12 +120,12 @@ namespace Client.Game.InGame.Train.RailGraph
                     if (connection == null || connection.FromNodeId < 0 || connection.FromNodeId >= adjacencyList.Count)
                         continue;
                     adjacencyList[connection.FromNodeId].Add((connection.ToNodeId, connection.Distance));
+                    ApplyRailType(connection.FromNodeId, connection.ToNodeId, connection.RailTypeGuid);
                 }
             }
             #endregion
         }
 
-        // 単体ノードの差分更新を適用する
         // Apply incremental update for a single node
         public void UpsertNode(
             int nodeId,
@@ -154,14 +144,13 @@ namespace Client.Game.InGame.Train.RailGraph
             var nextnode = new ClientRailNode(nodeId, nodeGuid, connectionDestination, controlOrigin, primaryControlPoint, oppositeControlPoint, this);
             if (previous != null)
             {
-                RemoveNode(nodeId, eventTick);//先にremoveされるので同じnodeidで上書きされることは基本無いが、一応
+                RemoveNode(nodeId, eventTick);
             }
             _nodes[nodeId] = nextnode;
             _connectionDestinationToNodeId[nextnode.ConnectionDestination] = nodeId;
             UpdateTick(eventTick);
         }
 
-        // ノード削除差分を適用し関連接続も破棄する
         // Apply node removal diff and purge related connections
         public void RemoveNode(int nodeId, long eventTick)
         {
@@ -183,6 +172,7 @@ namespace Client.Game.InGame.Train.RailGraph
                 foreach (var (targetId, _) in outgoing)
                 {
                     TrainRailObjectManager.Instance?.OnConnectionRemoved(nodeId, targetId, this);
+                    RemoveRailTypeIfOrphaned(nodeId, targetId);
                 }
                 outgoing.Clear();
             }
@@ -190,9 +180,8 @@ namespace Client.Game.InGame.Train.RailGraph
             UpdateTick(eventTick);
         }
 
-        // 接続情報の差分を適用する（存在すれば距離上書き）
         // Apply or overwrite an edge diff connecting two nodes
-        public void UpsertConnection(int fromNodeId, int toNodeId, int distance, long eventTick)
+        public void UpsertConnection(int fromNodeId, int toNodeId, int distance, Guid railTypeGuid, long eventTick)
         {
             if (!IsWithinCurrentRange(fromNodeId) || !IsWithinCurrentRange(toNodeId))
                 return;
@@ -210,11 +199,11 @@ namespace Client.Game.InGame.Train.RailGraph
             {
                 connections.Add((toNodeId, distance));
             }
+            ApplyRailType(fromNodeId, toNodeId, railTypeGuid);
             UpdateTick(eventTick);
             TrainRailObjectManager.Instance?.OnConnectionUpserted(fromNodeId, toNodeId, this);
         }
 
-        // 接続削除の差分を適用する
         // Apply an edge removal diff
         public void RemoveConnection(int fromNodeId, int toNodeId, long eventTick)
         {
@@ -223,11 +212,11 @@ namespace Client.Game.InGame.Train.RailGraph
             var removed = _connectNodes[fromNodeId].RemoveAll(x => x.targetId == toNodeId) > 0;
             if (!removed)
                 return;
+            RemoveRailTypeIfOrphaned(fromNodeId, toNodeId);
             UpdateTick(eventTick);
             TrainRailObjectManager.Instance?.OnConnectionRemoved(fromNodeId, toNodeId, this);
         }
 
-        // RailNodeIdからIrailNodeを取り出す
         // Retrieve IrailNode by RailNodeId
         public bool TryGetNode(int nodeId, out IRailNode irailnode)
         {
@@ -243,7 +232,6 @@ namespace Client.Game.InGame.Train.RailGraph
             }
         }
 
-        // ConnectionDestinationからRailNodeIdを逆引き
         // Reverse lookup RailNodeId from ConnectionDestination
         public bool TryGetNodeId(ConnectionDestination destination, out int nodeId)
         {
@@ -260,7 +248,6 @@ namespace Client.Game.InGame.Train.RailGraph
             return _connectionDestinationToNodeId.TryGetValue(destination, out nodeId);
         }
 
-        // 指定idを格納できるようにリストを拡張する
         // Expand backing lists so the id can be stored safely
         private void EnsureNodeSlot(int nodeId)
         {
@@ -271,7 +258,6 @@ namespace Client.Game.InGame.Train.RailGraph
             }
         }
 
-        // 有効範囲かどうか簡易チェック
         // Quick check to see if the index is within range
         private bool IsWithinCurrentRange(int nodeId)
         {
@@ -291,7 +277,74 @@ namespace Client.Game.InGame.Train.RailGraph
             }   
         }
 
-        // すべてのノードから対象id宛の接続を削除
+        // Get rail type by segment key
+        public bool TryGetRailType(int fromNodeId, int toNodeId, out Guid railTypeGuid)
+        {
+            var key = NormalizeSegmentKey(fromNodeId, toNodeId);
+            return _railTypeByKey.TryGetValue(key, out railTypeGuid);
+        }
+
+        // Apply rail type to cache
+        private void ApplyRailType(int fromNodeId, int toNodeId, Guid railTypeGuid)
+        {
+            var key = NormalizeSegmentKey(fromNodeId, toNodeId);
+            if (_railTypeByKey.TryGetValue(key, out var current) && railTypeGuid == Guid.Empty && current != Guid.Empty)
+                return;
+            _railTypeByKey[key] = railTypeGuid;
+        }
+
+        // Remove rail type when no paired connection remains
+        private void RemoveRailTypeIfOrphaned(int fromNodeId, int toNodeId)
+        {
+            if (HasPairedConnection(fromNodeId, toNodeId))
+                return;
+            var key = NormalizeSegmentKey(fromNodeId, toNodeId);
+            _railTypeByKey.Remove(key);
+        }
+
+        // Check whether the opposite connection exists
+        private bool HasPairedConnection(int fromNodeId, int toNodeId)
+        {
+            var adjacency = _connectNodes;
+            if (!IsWithinCurrentRange(fromNodeId) || !IsWithinCurrentRange(toNodeId))
+                return false;
+            var oppositeSource = toNodeId ^ 1;
+            var oppositeTarget = fromNodeId ^ 1;
+            if (!IsWithinCurrentRange(oppositeSource))
+                return false;
+            var edges = adjacency[oppositeSource];
+            if (edges == null)
+                return false;
+            foreach (var (targetId, _) in edges)
+            {
+                if (targetId == oppositeTarget)
+                    return true;
+            }
+            return false;
+        }
+
+        // Normalize segment key
+        private (int startId, int endId) NormalizeSegmentKey(int startId, int endId)
+        {
+            var alternateStart = endId ^ 1;
+            var alternateEnd = startId ^ 1;
+            return IsSegmentKeyLowerOrEqual(startId, endId, alternateStart, alternateEnd) ? (startId, endId) : (alternateStart, alternateEnd);
+        }
+
+        // Compare segment keys
+        private static bool IsSegmentKeyLowerOrEqual(int startA, int endA, int startB, int endB)
+        {
+            if (startA != startB)
+                return startA < startB;
+            return endA <= endB;
+        }
+
+        // Resolve rail type guid
+        private Guid ResolveRailTypeGuid(int fromNodeId, int toNodeId)
+        {
+            return TryGetRailType(fromNodeId, toNodeId, out var railTypeGuid) ? railTypeGuid : Guid.Empty;
+        }
+
         // Remove all incoming edges pointing to the target id
         private void RemoveIncomingConnections(int targetNodeId)
         {
@@ -311,12 +364,12 @@ namespace Client.Game.InGame.Train.RailGraph
                     }
 
                     edges.RemoveAt(index);
+                    RemoveRailTypeIfOrphaned(i, targetNodeId);
                     TrainRailObjectManager.Instance?.OnConnectionRemoved(i, targetNodeId, this);
                 }
             }
         }
 
-        // Tick値を更新（最新値を保持）
         // Update the stored tick with the latest value
         private void UpdateTick(long eventTick)
         {
@@ -325,8 +378,6 @@ namespace Client.Game.InGame.Train.RailGraph
 
         public List<IRailNode> FindShortestPath(int startid, int targetid)
         {
-            // RailGraphPathFinder に処理を委譲
-            // ID 列を RailNode 列へ変換
             var pathIds = _pathFinder.FindShortestPath(_connectNodes, startid, targetid);
             var result = new List<IRailNode>(pathIds.Count);
             for (int i = 0; i < pathIds.Count; i++)
@@ -338,7 +389,6 @@ namespace Client.Game.InGame.Train.RailGraph
                 }
                 else
                 {
-                    // 異常系：範囲外なら null を詰めておく（実際には起こらない想定）
                     result.Add(null);
                 }
             }
@@ -394,3 +444,15 @@ namespace Client.Game.InGame.Train.RailGraph
         }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+

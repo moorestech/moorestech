@@ -120,9 +120,9 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
 
-        public void ConnectRail(int fromNodeId, Guid fromGuid, int toNodeId, Guid toGuid)
+        public void ConnectRail(int fromNodeId, Guid fromGuid, int toNodeId, Guid toGuid, Guid railTypeGuid)
         {
-            var request = RailConnectionEditRequest.CreateConnectRequest(_playerId, fromNodeId, fromGuid, toNodeId, toGuid);
+            var request = RailConnectionEditRequest.CreateConnectRequest(_playerId, fromNodeId, fromGuid, toNodeId, toGuid, railTypeGuid);
             _packetSender.Send(request);
         }
         
