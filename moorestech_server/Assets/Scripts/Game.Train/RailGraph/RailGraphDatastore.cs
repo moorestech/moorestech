@@ -220,7 +220,6 @@ namespace Game.Train.RailGraph
                 return;
             }
             edges.Add((targetId, segment));
-            segment.AddEdgeReference();
         }
 
         // レールセグメント参照を解除する
@@ -232,10 +231,8 @@ namespace Game.Train.RailGraph
             {
                 if (edges[i].targetId != targetId)
                     continue;
-                var segment = edges[i].segment;
                 edges.RemoveAt(i);
-                if (segment.RemoveEdgeReference())
-                    railSegmentByKey.Remove((segment.StartNodeId, segment.EndNodeId));
+                railSegmentByKey.Remove((nodeId, targetId));
                 return;
             }
         }
@@ -247,10 +244,9 @@ namespace Game.Train.RailGraph
             var edges = railSegments[nodeId];
             for (int i = edges.Count - 1; i >= 0; i--)
             {
-                var segment = edges[i].segment;
+                var targetId = edges[i].targetId;
                 edges.RemoveAt(i);
-                if (segment.RemoveEdgeReference())
-                    railSegmentByKey.Remove((segment.StartNodeId, segment.EndNodeId));
+                railSegmentByKey.Remove((nodeId, targetId));
             }
         }
 
@@ -265,10 +261,8 @@ namespace Game.Train.RailGraph
                 {
                     if (edges[index].targetId != targetNodeId)
                         continue;
-                    var segment = edges[index].segment;
                     edges.RemoveAt(index);
-                    if (segment.RemoveEdgeReference())
-                        railSegmentByKey.Remove((segment.StartNodeId, segment.EndNodeId));
+                    railSegmentByKey.Remove((i, targetNodeId));
                 }
             }
         }
@@ -277,10 +271,10 @@ namespace Game.Train.RailGraph
         // Get or create a rail segment
         private RailSegment GetOrCreateSegment(int nodeId, int targetId, int length, Guid railTypeGuid)
         {
-            var key = NormalizeSegmentKey(nodeId, targetId);
+            var key = (nodeId, targetId);
             if (!railSegmentByKey.TryGetValue(key, out var segment))
             {
-                segment = new RailSegment(key.startId, key.endId, length, railTypeGuid);
+                segment = new RailSegment(nodeId, targetId, length, railTypeGuid);
                 railSegmentByKey[key] = segment;
             }
             segment.SetLength(length);
@@ -299,33 +293,11 @@ namespace Game.Train.RailGraph
             segment.SetRailType(railTypeGuid);
         }
 
-        // 明示強度でセグメントを取得または作成する
-        // Get or create a rail segment with explicit strength
-        // レールセグメントキーを正規化する
-        // Normalize the rail segment key
-        private (int startId, int endId) NormalizeSegmentKey(int startId, int endId)
-        {
-            var alternateStart = endId ^ 1;
-            var alternateEnd = startId ^ 1;
-            return IsSegmentKeyLowerOrEqual(startId, endId, alternateStart, alternateEnd)
-                ? (startId, endId)
-                : (alternateStart, alternateEnd);
-        }
-
-        // レールセグメントキーを比較する
-        // Compare rail segment keys
-        private bool IsSegmentKeyLowerOrEqual(int startA, int endA, int startB, int endB)
-        {
-            if (startA != startB)
-                return startA < startB;
-            return endA <= endB;
-        }
-
         // レールセグメントの種類を取得する
         // Get the rail type stored on a segment
         private bool TryGetRailSegmentTypeInternal(int startNodeId, int endNodeId, out Guid railTypeGuid)
         {
-            var key = NormalizeSegmentKey(startNodeId, endNodeId);
+            var key = (startNodeId, endNodeId);
             if (!railSegmentByKey.TryGetValue(key, out var segment))
             {
                 railTypeGuid = Guid.Empty;
