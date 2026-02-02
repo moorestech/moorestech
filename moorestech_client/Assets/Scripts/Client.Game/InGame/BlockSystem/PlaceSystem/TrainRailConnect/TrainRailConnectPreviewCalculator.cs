@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
 using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.UI.Inventory.Main;
 using Game.Train.RailCalc;
@@ -51,7 +52,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             return new TrainRailConnectPreviewData(p0, p1, p2, p3, length, placeableRailItems.Any());
         }
         
-        public static TrainRailConnectPreviewData CalculatePreviewData(ConnectionDestination from, Vector3 cursorPosition, RailGraphClientCache cache, ILocalPlayerInventory playerInventory)
+        public static TrainRailConnectPreviewData CalculatePreviewData(ConnectionDestination from, Vector3 placePosition, RailComponentDirection direction, RailGraphClientCache cache, ILocalPlayerInventory playerInventory)
         {
             // 起点ノードを取得
             // Get the start node
@@ -65,10 +66,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             var fromControlPoint = fromNode.FrontControlPoint;
             var p0 = fromControlPoint.OriginalPosition;
             var p1 = fromControlPoint.OriginalPosition + fromControlPoint.ControlPointPosition;
-            var controlPointLength = Mathf.Min(fromControlPoint.ControlPointPosition.magnitude, (p1 - cursorPosition).magnitude);
-            var toControlPointDirection = (p1 - cursorPosition).normalized;
-            var p2 = cursorPosition + toControlPointDirection * controlPointLength;
-            var p3 = cursorPosition;
+            var controlPointLength = Mathf.Min(fromControlPoint.ControlPointPosition.magnitude, (p1 - placePosition).magnitude);
+            var toControlPointDirection = direction.ToVector3();
+            var p2 = placePosition + toControlPointDirection * controlPointLength;
+            var p3 = placePosition;
             var length = BezierUtility.GetBezierCurveLength(p0, p1, p2, p3, 64);
             
             (RailItemMasterElement element, int requiredCount)[] placeableRailItems = RailConnectionEditProtocol.GetPlaceableRailItems(playerInventory, length);

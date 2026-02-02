@@ -83,14 +83,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                     
                     if (!pierSlots.Any())
                     {
-                        var previewData = CalculatePreviewData(fromDestination, position, _cache, _playerInventory);
+                        var previewData = CalculatePreviewData(fromDestination, position, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory);
                         ShowPreview(previewData);
                     }
                     else
                     {
                         var (_, inventorySlot) = pierSlots.First();
-                        _trainRailPlaceSystemService.ManualUpdate(inventorySlot);
-                        var previewData = CalculatePreviewData(fromDestination, position, _cache, _playerInventory);
+                        var placePosition = _trainRailPlaceSystemService.ManualUpdate(inventorySlot);
+                        var previewData = CalculatePreviewData(fromDestination, placePosition, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory);
                         ShowPreview(previewData);
                     }
                 }

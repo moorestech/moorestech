@@ -7,6 +7,7 @@ using Core.Master;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
 using MessagePack;
+using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 
@@ -17,6 +18,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
         private const int HeightOffset = 0;
         private const BlockDirection DefaultBlockDirection = BlockDirection.North;
         public RailComponentDirection RailDirection { get; private set; }
+        public Vector3Int PlacePosition { get; private set; }
         
         private readonly Camera _mainCamera;
         private readonly IPlacementPreviewBlockGameObjectController _previewBlockController;
@@ -30,15 +32,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
             _localPlayerInventory = playerInventory;
         }
         
-        public void ManualUpdate(int inventorySlot)
+        public Vector3 ManualUpdate(int inventorySlot)
         {
             _previewBlockController.SetActive(false);
             
-            if (!_isActive) return;
+            if (!_isActive) return Vector3.zero;
             
             var itemStack = _localPlayerInventory[inventorySlot];
             var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(MasterHolder.BlockMaster.GetBlockId(itemStack.Id));
-             if (!PlaceSystemUtil.TryGetRayHitBlockPosition(_mainCamera, HeightOffset, DefaultBlockDirection, holdingBlockMaster, out var placePoint, out var boundingBoxSurface)) return;
+            if (!PlaceSystemUtil.TryGetRayHitBlockPosition(_mainCamera, HeightOffset, DefaultBlockDirection, holdingBlockMaster, out var placePoint, out var boundingBoxSurface)) return GetConnectorPosition(holdingBlockMaster);
+            PlacePosition = placePoint;
             
             _previewBlockController.SetActive(true);
             
@@ -47,6 +50,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
             List<PlaceInfo> placeInfo = CreatePlaceInfo();
             _previewBlockController.SetPreviewAndGroundDetect(placeInfo, holdingBlockMaster);
             PlaceBlock(placeInfo);
+            
+            return GetConnectorPosition(holdingBlockMaster);
             
             #region Internal
             
@@ -84,6 +89,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
                 if (!InputManager.Playable.ScreenLeftClick.GetKeyUp) return;
                 
                 PlaceSystemUtil.SendPlaceProtocol(info, inventorySlot);
+            }
+            
+            Vector3 GetConnectorPosition(BlockMasterElement element)
+            {
+                return PlacePosition + new Vector3(element.BlockSize.x / 2f, element.BlockSize.y, element.BlockSize.z / 2f);
             }
             
             #endregion
