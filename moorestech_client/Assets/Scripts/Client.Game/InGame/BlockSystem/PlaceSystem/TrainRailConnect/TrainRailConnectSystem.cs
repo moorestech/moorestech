@@ -1,10 +1,15 @@
+using System.Linq;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
+using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Input;
+using Core.Master;
 using Game.Train.RailGraph;
 using Game.Train.SaveLoad;
+using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 using static Client.Common.LayerConst;
 using static Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect.TrainRailConnectPreviewCalculator;
@@ -17,14 +22,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         private readonly Camera _mainCamera;
         private readonly RailGraphClientCache _cache;
         private readonly ILocalPlayerInventory _playerInventory;
+        private readonly TrainRailPlaceSystemService _trainRailPlaceSystemService;
         
         private IRailComponentConnectAreaCollider _connectFromArea;
-        public TrainRailConnectSystem(Camera mainCamera, RailConnectPreviewObject previewObject, RailGraphClientCache cache, LocalPlayerInventoryController localPlayerInventory)
+        public TrainRailConnectSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController controller, RailConnectPreviewObject previewObject, RailGraphClientCache cache, LocalPlayerInventoryController localPlayerInventory)
         {
             _mainCamera = mainCamera;
             _previewObject = previewObject;
             _cache = cache;
             _playerInventory = localPlayerInventory.LocalPlayerInventory;
+            _trainRailPlaceSystemService = new TrainRailPlaceSystemService(mainCamera, controller);
         }
         
         public void Enable()
@@ -33,6 +40,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         }
         public void ManualUpdate(PlaceSystemUpdateContext context)
         {
+            _trainRailPlaceSystemService.Disable();
+            
             // 接続元が未選択なら接続元を選択する
             // If the connection source is not selected, select the connection source.
             if (_connectFromArea == null)
@@ -61,6 +70,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             {
                 if (PlaceSystemUtil.TryGetRayHitPosition(_mainCamera, out var position, out _))
                 {
+                    _trainRailPlaceSystemService.Enable();
+                    
+                    var pierBlock = MasterHolder.BlockMaster.Blocks.Data.First(block => block.BlockType == BlockMasterElement.BlockTypeConst.TrainRail);
+                    var pierBlockId = MasterHolder.BlockMaster.GetBlockId(pierBlock.BlockGuid);
+                    _trainRailPlaceSystemService.ManualUpdate(pierBlockId);
                     var previewData = CalculatePreviewData(fromDestination, position, _cache, _playerInventory);
                     ShowPreview(previewData);
                 }
@@ -134,6 +148,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         public void Disable()
         {
             _previewObject.SetActive(false);
+            _trainRailPlaceSystemService.Disable();
         }
     }
 }
