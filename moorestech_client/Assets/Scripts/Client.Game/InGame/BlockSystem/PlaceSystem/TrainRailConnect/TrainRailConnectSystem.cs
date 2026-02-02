@@ -6,6 +6,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Input;
+using Core.Item.Interface;
 using Core.Master;
 using Game.Train.RailGraph;
 using Game.Train.SaveLoad;
@@ -31,7 +32,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             _previewObject = previewObject;
             _cache = cache;
             _playerInventory = localPlayerInventory.LocalPlayerInventory;
-            _trainRailPlaceSystemService = new TrainRailPlaceSystemService(mainCamera, controller);
+            _trainRailPlaceSystemService = new TrainRailPlaceSystemService(mainCamera, controller, localPlayerInventory.LocalPlayerInventory);
         }
         
         public void Enable()
@@ -72,11 +73,24 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 {
                     _trainRailPlaceSystemService.Enable();
                     
-                    var pierBlock = MasterHolder.BlockMaster.Blocks.Data.First(block => block.BlockType == BlockMasterElement.BlockTypeConst.TrainRail);
-                    var pierBlockId = MasterHolder.BlockMaster.GetBlockId(pierBlock.BlockGuid);
-                    _trainRailPlaceSystemService.ManualUpdate(pierBlockId);
-                    var previewData = CalculatePreviewData(fromDestination, position, _cache, _playerInventory);
-                    ShowPreview(previewData);
+                    (IItemStack stack, int i)[] pierSlots = _playerInventory.Select((stack, i) => (stack, i)).Where(itemStack =>
+                    {
+                        if (!MasterHolder.BlockMaster.IsBlock(itemStack.stack.Id)) return false;
+                        var blockId = MasterHolder.BlockMaster.GetBlockId(itemStack.stack.Id);
+                        var blockMasterElement = MasterHolder.BlockMaster.GetBlockMaster(blockId);
+                        return blockMasterElement.BlockType == BlockMasterElement.BlockTypeConst.TrainRail;
+                    }).ToArray();
+                    
+                    if (!pierSlots.Any())
+                    {
+                        var previewData = CalculatePreviewData(fromDestination, position, _cache, _playerInventory);
+                        ShowPreview(previewData);
+                    }
+                    else
+                    {
+                        var (_, inventorySlot) = pierSlots.First();
+                        _trainRailPlaceSystemService.ManualUpdate(inventorySlot);
+                    }
                 }
             }
             else
