@@ -337,13 +337,8 @@ namespace Game.Train.RailGraph
             var endNode = ResolveRailNodeInternal(end);
             if (endNode == null)
                 return false;
-            var oppositeStart = startNode.OppositeRailNode;
-            var oppositeEnd = endNode.OppositeRailNode;
-            if (oppositeStart == null || oppositeEnd == null)
-                return false;
 
             ConnectNodeInternal(startNode, endNode, length, railTypeGuid);
-            ConnectNodeInternal(oppositeEnd, oppositeStart, length, railTypeGuid);
             return true;
         }
 
