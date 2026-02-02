@@ -90,6 +90,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                     {
                         var (_, inventorySlot) = pierSlots.First();
                         _trainRailPlaceSystemService.ManualUpdate(inventorySlot);
+                        var previewData = CalculatePreviewData(fromDestination, position, _cache, _playerInventory);
+                        ShowPreview(previewData);
                     }
                 }
             }
