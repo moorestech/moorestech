@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using Game.Train.RailGraph;
+using Game.Train.RailCalc;
+using UnityEngine;
 
 namespace Game.Train.SaveLoad
 {
@@ -38,7 +40,17 @@ namespace Game.Train.SaveLoad
             {
                 if (segment == null)
                     continue;
-                _railGraphDatastore.TryRestoreRailSegment(segment.A, segment.B, segment.Length, segment.RailTypeGuid, segment.IsDrawable);
+                // 描画対象の距離検証と補正
+                // Validate and fix drawable segment length
+                var length = segment.Length;
+                if (segment.IsDrawable && TryResolveExpectedLength(segment.A, segment.B, out var expectedLength) && expectedLength != length)
+                {
+                    var a = segment.A;
+                    var b = segment.B;
+                    Debug.LogWarning($"[RailGraphSaveLoadService] RailSegment length mismatch. saved={length} expected={expectedLength} A=({a.blockPosition.x},{a.blockPosition.y},{a.blockPosition.z},{a.componentIndex},{a.IsFront}) B=({b.blockPosition.x},{b.blockPosition.y},{b.blockPosition.z},{b.componentIndex},{b.IsFront})");
+                    length = expectedLength;
+                }
+                _railGraphDatastore.TryRestoreRailSegment(segment.A, segment.B, length, segment.RailTypeGuid, segment.IsDrawable);
             }
         }
 
@@ -66,6 +78,23 @@ namespace Game.Train.SaveLoad
                 RailTypeGuid = segment.RailTypeGuid,
                 IsDrawable = segment.IsDrawable
             };
+            return true;
+        }
+
+        // 描画対象の距離検証を行う
+        // Validate drawable segment length
+        private bool TryResolveExpectedLength(ConnectionDestination start, ConnectionDestination end, out int expectedLength)
+        {
+            expectedLength = 0;
+            var startNode = _railGraphDatastore.ResolveRailNode(start);
+            if (startNode == null)
+                return false;
+            var endNode = _railGraphDatastore.ResolveRailNode(end);
+            if (endNode == null)
+                return false;
+            var rawLength = BezierUtility.GetBezierCurveLength(startNode, endNode);
+            var scaledLength = rawLength * BezierUtility.RAIL_LENGTH_SCALE;
+            expectedLength = (int)(scaledLength + 0.5f);
             return true;
         }
 
