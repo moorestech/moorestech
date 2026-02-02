@@ -45,7 +45,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 {
                     var destination = _connectFromArea.CreateConnectionDestination();
                     var componentPosition = destination.blockPosition;
-                    Debug.Log($"???????????{_connectFromArea.IsFront} ({componentPosition.x},{componentPosition.y},{componentPosition.z})");
+                    Debug.Log($"[TrainRailConnect] Select FROM: IsFront={_connectFromArea.IsFront} pos=({componentPosition.x},{componentPosition.y},{componentPosition.z})");
                 }
                 return;
             }
