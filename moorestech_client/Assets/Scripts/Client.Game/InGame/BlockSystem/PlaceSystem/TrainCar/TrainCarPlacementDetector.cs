@@ -164,14 +164,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 {
                     distanceFromStart = 0f;
                     curveLength = 0f;
-                    // ベジエ制御点とサンプル距離を計算する
-                    // Build Bezier control points and sample distances
+                    // 描画用の制御点を作り曲線上の距離をサンプルする
+                    // Build render control points and sample distances on the curve
                     if (startNode == null || endNode == null)
                     {
                         return false;
                     }
                     
-                    BezierUtility.Getp0p1p2p3(startNode, endNode, out Vector3 p0, out Vector3 p1, out Vector3 p2, out Vector3 p3);
+                    BezierUtility.BuildRenderControlPoints(startNode.FrontControlPoint, endNode.BackControlPoint, out Vector3 p0, out Vector3 p1, out Vector3 p2, out Vector3 p3);
                     var steps = CurveSampleCount;
                     var arcLengths = new float[steps + 1];
                     var bestIndex = 0;

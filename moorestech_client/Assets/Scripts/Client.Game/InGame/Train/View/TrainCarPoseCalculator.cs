@@ -75,9 +75,9 @@ namespace Client.Game.InGame.Train.View
             // Validate segment inputs
             if (behind == null || ahead == null || distanceFromBehind < 0) return false;
 
-            // ベジエ制御点を相対座標で構成する
-            // Build control points from segment strength
-            BezierUtility.Getp0p1p2p3(behind, ahead, out var p0, out var p1, out var p2, out var p3);
+            // 描画用の制御点を使ってセグメントの位置を計算する
+            // Build render control points for the segment
+            BezierUtility.BuildRenderControlPoints(behind.FrontControlPoint, ahead.BackControlPoint, out var p0, out var p1, out var p2, out var p3);
             // 弧長テーブルを用いてtを解決する
             // Resolve t with arc-length lookup
             var arcLength = BuildArcLengthTable(p0, p1, p2, p3, out var arcLengths);
