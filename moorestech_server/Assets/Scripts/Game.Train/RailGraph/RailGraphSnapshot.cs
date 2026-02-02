@@ -28,17 +28,19 @@ namespace Game.Train.RailGraph
 
     public readonly struct RailGraphConnectionSnapshot
     {
-        public RailGraphConnectionSnapshot(int fromNodeId, int toNodeId, int distance, Guid railTypeGuid)
+        public RailGraphConnectionSnapshot(int fromNodeId, int toNodeId, int distance, Guid railTypeGuid, bool isDrawable)
         {
             FromNodeId = fromNodeId;
             ToNodeId = toNodeId;
             Distance = distance;
             RailTypeGuid = railTypeGuid;
+            IsDrawable = isDrawable;
         }
 
         public int FromNodeId { get; }
         public int ToNodeId { get; }
         public int Distance { get; }
         public Guid RailTypeGuid { get; }
+        public bool IsDrawable { get; }
     }
 }

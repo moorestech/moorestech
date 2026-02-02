@@ -107,13 +107,14 @@ namespace Game.Train.RailGraph
         }
         public void ConnectNode(RailNode targetNode, Guid railTypeGuid, int distance=-1)
         {
+            var isDrawable = distance == -1;
             if (distance == -1)
             {
                 float rawLength = BezierUtility.GetBezierCurveLength(this, targetNode);
                 float scaledLength = rawLength * BezierUtility.RAIL_LENGTH_SCALE;
                 distance = (int)(scaledLength + 0.5f);   
             }
-            _graphDatastore.ConnectNode(this, targetNode, distance, railTypeGuid);
+            _graphDatastore.ConnectNode(this, targetNode, distance, railTypeGuid, isDrawable);
         }
         public void DisconnectNode(RailNode targetNode)
         {

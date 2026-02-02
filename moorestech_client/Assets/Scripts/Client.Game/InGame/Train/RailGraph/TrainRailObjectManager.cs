@@ -134,27 +134,18 @@ namespace Client.Game.InGame.Train.RailGraph
             if (_cache == null)
                 return false;
 
-            var adjacency = _cache.ConnectNodes;
-            if (!IsValidIndex(adjacency, fromNodeId) || !IsValidIndex(adjacency, toNodeId))
+            // 双方向の接続と描画フラグを確認する
+            // Check paired connection and drawable flags
+            if (!_cache.TryGetRailSegment(fromNodeId, toNodeId, out var directSegment))
+                return false;
+            if (!directSegment.IsDrawable)
                 return false;
 
             var oppositeSource = toNodeId ^ 1;
             var oppositeTarget = fromNodeId ^ 1;
-            if (!IsValidIndex(adjacency, oppositeSource))
+            if (!_cache.TryGetRailSegment(oppositeSource, oppositeTarget, out var oppositeSegment))
                 return false;
-
-            var edges = adjacency[oppositeSource];
-            if (edges == null)
-                return false;
-
-            foreach (var (targetId, _) in edges)
-            {
-                if (targetId == oppositeTarget)
-                {
-                    return true;
-                }
-            }
-            return false;
+            return oppositeSegment.IsDrawable;
         }
 
         private GameObject SpawnRail(string name, IRailNode startNode, IRailNode endNode)

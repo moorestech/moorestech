@@ -28,7 +28,7 @@ namespace Game.Train.RailGraph
 
     public readonly struct RailConnectionInitializationData
     {
-        public RailConnectionInitializationData(int fromNodeId, Guid fromGuid, int toNodeId, Guid toGuid, int distance, Guid railTypeGuid)
+        public RailConnectionInitializationData(int fromNodeId, Guid fromGuid, int toNodeId, Guid toGuid, int distance, Guid railTypeGuid, bool isDrawable)
         {
             FromNodeId = fromNodeId;
             FromGuid = fromGuid;
@@ -36,6 +36,7 @@ namespace Game.Train.RailGraph
             ToGuid = toGuid;
             Distance = distance;
             RailTypeGuid = railTypeGuid;
+            IsDrawable = isDrawable;
         }
 
         public int FromNodeId { get; }
@@ -44,6 +45,7 @@ namespace Game.Train.RailGraph
         public Guid ToGuid { get; }
         public int Distance { get; }
         public Guid RailTypeGuid { get; }
+        public bool IsDrawable { get; }
     }
 
     public readonly struct RailNodeRemovedData

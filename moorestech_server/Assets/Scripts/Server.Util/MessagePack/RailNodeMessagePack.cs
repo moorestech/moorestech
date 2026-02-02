@@ -129,7 +129,8 @@ namespace Server.Util.MessagePack
                     connection.FromNodeId,
                     connection.ToNodeId,
                     connection.Distance,
-                    connection.RailTypeGuid));
+                    connection.RailTypeGuid,
+                    connection.IsDrawable));
             }
 
             GraphHash = snapshot.ConnectNodesHash;
@@ -144,16 +145,18 @@ namespace Server.Util.MessagePack
         [Key(1)] public int ToNodeId { get; set; }
         [Key(2)] public int Distance { get; set; }
         [Key(3)] public Guid RailTypeGuid { get; set; }
+        [Key(4)] public bool IsDrawable { get; set; }
 
         [Obsolete("デシリアライズ用コンストラクタです。")]
         public RailGraphConnectionSnapshotMessagePack() { }
 
-        public RailGraphConnectionSnapshotMessagePack(int fromNodeId, int toNodeId, int distance, Guid railTypeGuid)
+        public RailGraphConnectionSnapshotMessagePack(int fromNodeId, int toNodeId, int distance, Guid railTypeGuid, bool isDrawable)
         {
             FromNodeId = fromNodeId;
             ToNodeId = toNodeId;
             Distance = distance;
             RailTypeGuid = railTypeGuid;
+            IsDrawable = isDrawable;
         }
     }
 
