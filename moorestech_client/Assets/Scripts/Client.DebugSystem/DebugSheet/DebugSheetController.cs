@@ -1,5 +1,6 @@
 using System.Reflection;
 using Client.DebugSystem.Environment;
+using Client.Game;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Player;
 using IngameDebugConsole;
@@ -51,6 +52,7 @@ namespace Client.DebugSystem
             });
             
             rootPage.AddEnumPickerWithSave(DebugEnvironmentType.Debug, "Select Environment", "DebugEnvironmentTypeKey", DebugEnvironmentController.SetEnvironment);
+            rootPage.AddEnumPickerWithSave(DebugFpsLimit.Fps60, FpsLimitLabel, FpsLimitKey, fps => Application.targetFrameRate = (int)fps);
             rootPage.AddButton("Warp Environment Default Position", clicked: () =>
             {
                 var allPositions = Object.FindObjectsByType<EnvironmentDefaultPosition>(FindObjectsInactive.Include, FindObjectsSortMode.None);
