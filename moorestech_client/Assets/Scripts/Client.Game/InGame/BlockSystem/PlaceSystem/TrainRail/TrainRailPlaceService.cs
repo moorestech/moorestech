@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
+using Client.Game.InGame.UI.Inventory.Main;
 using Client.Input;
 using Core.Master;
 using Game.Block.Blocks.TrainRail;
@@ -19,19 +20,25 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
         
         private readonly Camera _mainCamera;
         private readonly IPlacementPreviewBlockGameObjectController _previewBlockController;
+        private readonly ILocalPlayerInventory _localPlayerInventory;
+        private bool _isActive;
         
-        public TrainRailPlaceSystemService(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController)
+        public TrainRailPlaceSystemService(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, ILocalPlayerInventory playerInventory)
         {
             _mainCamera = mainCamera;
             _previewBlockController = previewBlockController;
+            _localPlayerInventory = playerInventory;
         }
         
-        public void ManualUpdate(PlaceSystemUpdateContext context)
+        public void ManualUpdate(int inventorySlot)
         {
             _previewBlockController.SetActive(false);
             
-            var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(context.HoldingItemId);
-            if (!PlaceSystemUtil.TryGetRayHitBlockPosition(_mainCamera, HeightOffset, DefaultBlockDirection, holdingBlockMaster, out var placePoint, out var boundingBoxSurface)) return;
+            if (!_isActive) return;
+            
+            var itemStack = _localPlayerInventory[inventorySlot];
+            var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(MasterHolder.BlockMaster.GetBlockId(itemStack.Id));
+             if (!PlaceSystemUtil.TryGetRayHitBlockPosition(_mainCamera, HeightOffset, DefaultBlockDirection, holdingBlockMaster, out var placePoint, out var boundingBoxSurface)) return;
             
             _previewBlockController.SetActive(true);
             
@@ -76,15 +83,21 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
             {
                 if (!InputManager.Playable.ScreenLeftClick.GetKeyUp) return;
                 
-                PlaceSystemUtil.SendPlaceProtocol(info, context);
+                PlaceSystemUtil.SendPlaceProtocol(info, inventorySlot);
             }
             
             #endregion
         }
         
+        public void Enable()
+        {
+            _isActive = true;
+        }
+        
         public void Disable()
         {
             _previewBlockController.SetActive(false);
+            _isActive = false;
         }
     }
 }
