@@ -152,5 +152,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             ClientContext.VanillaApi.SendOnly.PlaceHotBarBlock(currentPlaceInfos, context.CurrentSelectHotbarSlotIndex);
             SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
         }
+        
+        public static void SendPlaceProtocol(List<PlaceInfo> currentPlaceInfos, int inventorySlot)
+        {
+            ClientContext.VanillaApi.SendOnly.PlaceInventoryBlock(currentPlaceInfos, inventorySlot);
+        }
     }
 }
