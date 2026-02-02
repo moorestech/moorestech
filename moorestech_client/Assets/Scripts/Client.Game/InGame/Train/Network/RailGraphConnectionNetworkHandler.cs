@@ -54,7 +54,7 @@ namespace Client.Game.InGame.Train.Network
                 return;
             // 問題なければキャッシュに接続を反映
             // Apply the connection diff to the cache
-            _cache.UpsertConnection(message.FromNodeId, message.ToNodeId, message.Distance, message.RailTypeGuid, message.Tick);
+            _cache.UpsertConnection(message.FromNodeId, message.ToNodeId, message.Distance, message.RailTypeGuid, message.IsDrawable, message.Tick);
         }
 
         private void OnConnectionRemoved(byte[] payload)
