@@ -33,14 +33,12 @@ namespace Game.Block.Factory.BlockTemplate
             //②stationをつなげて設置した場合にピッタリ重なる位置のrailComponentを自動接続するための処理
             var railComponents = RailComponentUtility.Create2RailComponents(positionInfo, stationParam.EntryRailPosition, stationParam.ExitRailPosition, _railGraphDatastore);//①が行われる
             RailComponentUtility.RegisterAndConnetStationBlocks(railComponents, _railGraphDatastore);//②接続処理
-            var railSaverComponent = new RailSaverComponent(railComponents);
             var station = new StationComponent("test", stationParam);
 
             var inventoryComponents = CreateInventoryComponents(null, instanceId, stationParam, positionInfo);
 
             // 生成したコンポーネントをブロックに登録する
             var blockComponents = new List<IBlockComponent>();
-            blockComponents.Add(railSaverComponent);
             blockComponents.AddRange(railComponents);
             blockComponents.Add(station);
             blockComponents.AddRange(inventoryComponents);
@@ -61,18 +59,19 @@ namespace Game.Block.Factory.BlockTemplate
             BlockInstanceId instanceId,
             BlockPositionInfo positionInfo)
         {
-            // 保存されたRailComponent群を復元。railSaverComponentからセーブ情報の中にrailcomponent同士の接続情報が含まれているのでそれを復元(これで①1つのstation内にある2つのRailComponentを直線で接続と、②stationをつなげて設置した場合に自動でrailComponentを接続、の両方が満たされる)
+            // 保存されたRailComponent群を復元。旧仕様ではRailComponent保存情報で①と②を復元していた
+            // Restore saved RailComponents; legacy flow restored ① and ② connections from RailComponent save data
+            // 現仕様では接続はRailSegment復元に委ねるため、ここでは登録のみ行う
+            // In current flow, connections are restored by rail segments, so we only register here
             var stationParam = masterElement.BlockParam as TrainStationBlockParam;
-            var railComponents = RailComponentUtility.Restore2RailComponents(componentStates, positionInfo, stationParam.EntryRailPosition, stationParam.ExitRailPosition, _railGraphDatastore);//①復元
-            RailComponentUtility.RegisterAndConnetStationBlocks(railComponents, _railGraphDatastore);//②接続処理。実はRestoreで接続復元できているが、Registerはここで改めて行う必要がある
-            var railSaverComponent = new RailSaverComponent(railComponents);
+            var railComponents = RailComponentUtility.Restore2RailComponents(positionInfo, stationParam.EntryRailPosition, stationParam.ExitRailPosition, _railGraphDatastore);//①復元
+            RailComponentUtility.RegisterStationBlocks(railComponents, _railGraphDatastore);//②登録のみ
             var station = new StationComponent("test", stationParam);
 
             var inventoryComponents = CreateInventoryComponents(componentStates, instanceId, stationParam, positionInfo);
 
             // 復元したコンポーネントをブロックに登録する
             var blockComponents = new List<IBlockComponent>();
-            blockComponents.Add(railSaverComponent);
             blockComponents.AddRange(railComponents);
             blockComponents.Add(station);
             blockComponents.AddRange(inventoryComponents);

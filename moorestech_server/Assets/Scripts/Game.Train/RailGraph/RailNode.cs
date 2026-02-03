@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using Game.Train.RailCalc;
 using Game.Train.SaveLoad;
+using UnityEditor;
 using UnityEngine;
 /// <summary>
 /// 距離はint型で表現している。理由はNotion参照
@@ -18,6 +20,7 @@ namespace Game.Train.RailGraph
         public ConnectionDestination ConnectionDestination { get; private set; } = ConnectionDestination.Default;
         public bool HasConnectionDestination => !ConnectionDestination.IsDefault();
         public Guid Guid { get; }
+        Guid IRailNode.NodeGuid => Guid;
         public IRailGraphProvider GraphProvider => _graphDatastore;
         public int NodeId => _graphDatastore.TryGetRailNodeId(this, out var nodeId) ? nodeId : -1;
         public int OppositeNodeId => NodeId ^ 1;
@@ -38,7 +41,6 @@ namespace Game.Train.RailGraph
             }
         }
 
-        /// </summary>
         public IEnumerable<IRailNode> ConnectedNodes
         {
             get
@@ -57,8 +59,6 @@ namespace Game.Train.RailGraph
                     yield return entry;
             }
         }
-
-        
 
         // 基本的にrailComponentからの呼び出しに対応
         public RailNode(IRailGraphDatastore graphDatastore)
@@ -100,10 +100,21 @@ namespace Game.Train.RailGraph
         }
 
         //RailGraphに登録する
-        //基本的にrailComponent側からのみよびだす
-        public void ConnectNode(RailNode targetNode, int distance)
+        //デフォルトでdistanceを強制的に決めると自動距離計算はあきらめ、レール実体は描画不可能フラグがたつ
+        public void ConnectNode(RailNode targetNode, int distance=-1)
         {
-            _graphDatastore.ConnectNode(this, targetNode, distance);
+            ConnectNode(targetNode, Guid.Empty, distance);
+        }
+        public void ConnectNode(RailNode targetNode, Guid railTypeGuid, int distance=-1)
+        {
+            var isDrawable = distance == -1;
+            if (distance == -1)
+            {
+                float rawLength = BezierUtility.GetBezierCurveLength(this, targetNode);
+                float scaledLength = rawLength * BezierUtility.RAIL_LENGTH_SCALE;
+                distance = (int)(scaledLength + 0.5f);   
+            }
+            _graphDatastore.ConnectNode(this, targetNode, distance, railTypeGuid, isDrawable);
         }
         public void DisconnectNode(RailNode targetNode)
         {
@@ -120,12 +131,6 @@ namespace Game.Train.RailGraph
             // Calculate distance via the assigned provider
             return _graphDatastore.GetDistance(this, node, UseFindPath);
         }
-
-        
-
-
-        Guid IRailNode.NodeGuid => Guid;
-
 
         //RailGraphから削除する
         public void Destroy()

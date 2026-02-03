@@ -32,9 +32,15 @@ namespace Tests.UnitTest.Game.SaveLoad
                 TrainTestHelper.PlaceRail(environment, positions[2], BlockDirection.South)
             };
 
-            components[0].ConnectRailComponent(components[1], true, false);
-            components[1].ConnectRailComponent(components[2], true, true);
-            components[2].ConnectRailComponent(components[0], false, false);
+            //components[0].ConnectRailComponent(components[1], true, false);
+            components[0].FrontNode.ConnectNode(components[1].BackNode);
+            components[1].FrontNode.ConnectNode(components[0].BackNode);
+            //components[1].ConnectRailComponent(components[2], true, true);
+            components[1].FrontNode.ConnectNode(components[2].FrontNode);
+            components[2].BackNode.ConnectNode(components[1].BackNode);
+            //components[2].ConnectRailComponent(components[0], false, false);
+            components[2].BackNode.ConnectNode(components[0].BackNode);
+            components[0].FrontNode.ConnectNode(components[2].FrontNode);
 
             var expectedSnapshot = RailGraphNetworkTestHelper.CaptureFromComponents(components);
             var saveJson = SaveLoadJsonTestHelper.AssembleSaveJson(environment.ServiceProvider);
@@ -55,12 +61,12 @@ namespace Tests.UnitTest.Game.SaveLoad
                 var block = loadEnvironment.WorldBlockDatastore.GetBlock(position);
                 Assert.IsNotNull(block, $"座標 {position} にレールブロックがロードされていません。");
 
-                var saverComponent = block.GetComponent<RailSaverComponent>();
-                Assert.IsNotNull(saverComponent, $"座標 {position} のRailSaverComponentを取得できませんでした。");
-                Assert.IsNotEmpty(saverComponent.RailComponents,
-                    $"座標 {position} のRailSaverComponentにRailComponentが含まれていません。");
+                var railComponents = block.GetComponents<RailComponent>();
+                Assert.IsNotNull(railComponents, $"座標 {position} のRailComponentを取得できませんでした。");
+                Assert.IsNotEmpty(railComponents,
+                    $"座標 {position} のRailComponentにRailComponentが含まれていません。");
 
-                loadedComponents.Add(saverComponent.RailComponents[0]);
+                loadedComponents.Add(railComponents[0]);
             }
 
             var actualSnapshot = RailGraphNetworkTestHelper.CaptureFromComponents(loadedComponents);
@@ -124,7 +130,11 @@ namespace Tests.UnitTest.Game.SaveLoad
                         var eastIndex = Index(x + 1, z);
                         var useFrontCurrent = (x + z) % 2 == 0;
                         var useFrontEast = (x + 1 + z) % 2 == 0;
-                        components[index].ConnectRailComponent(components[eastIndex], useFrontCurrent, useFrontEast);
+                        //components[index].ConnectRailComponent(components[eastIndex], useFrontCurrent, useFrontEast);
+                        var tmpn0 = useFrontCurrent ? components[index].FrontNode : components[index].BackNode;
+                        var tmpm1 = useFrontEast ? components[eastIndex].FrontNode : components[eastIndex].BackNode;
+                        tmpn0.ConnectNode(tmpm1);
+                        tmpm1.OppositeRailNode.ConnectNode(tmpn0.OppositeRailNode);
                     }
 
                     if (z < gridSize - 1)
@@ -132,7 +142,11 @@ namespace Tests.UnitTest.Game.SaveLoad
                         var southIndex = Index(x, z + 1);
                         var useFrontCurrent = (x + z) % 2 != 0;
                         var useFrontSouth = (x + z + 1) % 2 != 0;
-                        components[index].ConnectRailComponent(components[southIndex], useFrontCurrent, useFrontSouth);
+                        //components[index].ConnectRailComponent(components[southIndex], useFrontCurrent, useFrontSouth);
+                        var tmpn0 = useFrontCurrent ? components[index].FrontNode : components[index].BackNode;
+                        var tmpm1 = useFrontSouth ? components[southIndex].FrontNode : components[southIndex].BackNode;
+                        tmpn0.ConnectNode(tmpm1);
+                        tmpm1.OppositeRailNode.ConnectNode(tmpn0.OppositeRailNode);
                     }
                 }
             }
@@ -158,7 +172,10 @@ namespace Tests.UnitTest.Game.SaveLoad
 
                     var targetIndex = Index(x, z);
                     var useFrontTarget = (x + z) % 2 == 0;
-                    hubComponent.ConnectRailComponent(components[targetIndex], true, useFrontTarget);
+                    //hubComponent.ConnectRailComponent(components[targetIndex], true, useFrontTarget);
+                    var tmpn0 = useFrontTarget ? components[targetIndex].FrontNode : components[targetIndex].BackNode;
+                    hubComponent.FrontNode.ConnectNode(tmpn0);
+                    tmpn0.OppositeRailNode.ConnectNode(hubComponent.BackNode);
                     additionalConnections++;
                 }
             }
@@ -193,12 +210,12 @@ namespace Tests.UnitTest.Game.SaveLoad
                 var block = loadEnvironment.WorldBlockDatastore.GetBlock(position);
                 Assert.IsNotNull(block, $"座標 {position} にレールブロックがロードされていません。");
 
-                var saverComponent = block.GetComponent<RailSaverComponent>();
-                Assert.IsNotNull(saverComponent, $"座標 {position} のRailSaverComponentを取得できませんでした。");
-                Assert.IsNotEmpty(saverComponent.RailComponents,
-                    $"座標 {position} のRailSaverComponentにRailComponentが含まれていません。");
+                var railComponents = block.GetComponents<RailComponent>();
+                Assert.IsNotNull(railComponents, $"座標 {position} のRailComponentを取得できませんでした。");
+                Assert.IsNotEmpty(railComponents,
+                    $"座標 {position} のRailComponentにRailComponentが含まれていません。");
 
-                loadedComponents.Add(saverComponent.RailComponents[0]);
+                loadedComponents.Add(railComponents[0]);
             }
 
             var actualSnapshot = RailGraphNetworkTestHelper.CaptureFromComponents(loadedComponents);

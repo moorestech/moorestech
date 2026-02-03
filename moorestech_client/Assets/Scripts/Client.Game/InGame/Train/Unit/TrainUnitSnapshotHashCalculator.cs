@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Game.Train.Diagram;
 using Game.Train.RailPositions;
@@ -112,11 +112,11 @@ namespace Client.Game.InGame.Train.Unit
                 return Mix(current, -1);
             }
 
-            var id = destination.railComponentID;
-            var hash = Mix(current, id.Position.x);
-            hash = Mix(hash, id.Position.y);
-            hash = Mix(hash, id.Position.z);
-            hash = Mix(hash, id.ID);
+            var position = destination.blockPosition;
+            var hash = Mix(current, position.x);
+            hash = Mix(hash, position.y);
+            hash = Mix(hash, position.z);
+            hash = Mix(hash, destination.componentIndex);
             hash = Mix(hash, destination.IsFront ? 1 : 0);
             return hash;
         }
