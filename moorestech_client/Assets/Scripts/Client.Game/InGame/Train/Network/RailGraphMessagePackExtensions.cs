@@ -14,14 +14,13 @@ namespace Client.Game.InGame.Train.Network
         // Convert ConnectionDestinationMessagePack into server-side ConnectionDestination
         public static ConnectionDestination ToConnectionDestination(this ConnectionDestinationMessagePack message)
         {
-            if (message == null || message.ComponentId == null)
+            if (message == null || message.BlockPosition == null)
             {
                 return ConnectionDestination.Default;
             }
 
-            var position = message.ComponentId.Position?.Vector3Int ?? Vector3Int.zero;
-            var componentId = new RailComponentID(position, message.ComponentId.ID);
-            return new ConnectionDestination(componentId, message.IsFrontSide);
+            var position = message.BlockPosition.Vector3Int;
+            return new ConnectionDestination(position, message.ComponentIndex, message.IsFrontSide);
         }
 
         // Vector3MessagePackを安全にVector3化

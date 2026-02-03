@@ -1,12 +1,13 @@
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using Game.Train.RailGraph;
+using Game.Train.RailCalc;
 using UnityEngine;
 
 namespace Client.Game.InGame.Train.RailGraph
 {
     /// <summary>
-    ///     キャッシュ更新に追随してレールラインを生成/削除する管理クラス
+    ///     レールキャッシュ更新に追従するランタイム描画を管理するクラス
     ///     Manages runtime line renderers driven directly by rail cache updates
     /// </summary>
     public sealed class TrainRailObjectManager : MonoBehaviour
@@ -133,38 +134,27 @@ namespace Client.Game.InGame.Train.RailGraph
             if (_cache == null)
                 return false;
 
-            var adjacency = _cache.ConnectNodes;
-            if (!IsValidIndex(adjacency, fromNodeId) || !IsValidIndex(adjacency, toNodeId))
+            // 双方向の接続と描画フラグを確認する
+            // Check paired connection and drawable flags
+            if (!_cache.TryGetRailSegment(fromNodeId, toNodeId, out var directSegment))
+                return false;
+            if (!directSegment.IsDrawable)
                 return false;
 
             var oppositeSource = toNodeId ^ 1;
             var oppositeTarget = fromNodeId ^ 1;
-            if (!IsValidIndex(adjacency, oppositeSource))
+            if (!_cache.TryGetRailSegment(oppositeSource, oppositeTarget, out var oppositeSegment))
                 return false;
-
-            var edges = adjacency[oppositeSource];
-            if (edges == null)
-                return false;
-
-            foreach (var (targetId, _) in edges)
-            {
-                if (targetId == oppositeTarget)
-                {
-                    return true;
-                }
-            }
-            return false;
+            return oppositeSegment.IsDrawable;
         }
 
         private GameObject SpawnRail(string name, IRailNode startNode, IRailNode endNode)
         {
             var instance = Instantiate(_railPrefab, transform);
-            var startControl = startNode.FrontControlPoint.OriginalPosition;
-            var control1 = startNode.FrontControlPoint.ControlPointPosition + startControl;
-            var endControl = endNode.BackControlPoint.OriginalPosition;
-            var control2 = endNode.BackControlPoint.ControlPointPosition + endControl;
-
-            instance.SetControlPoints(startControl, control1, control2, endControl);
+            // 描画用の制御点を生成
+            // Build render control points
+            BezierUtility.BuildRenderControlPoints(startNode.FrontControlPoint, endNode.BackControlPoint, out var p0, out var p1, out var p2, out var p3);
+            instance.SetControlPoints(p0, p1, p2, p3);
             instance.SetRailGraphCache(_cache);
             instance.Rebuild();
             instance.PlaceAnimation().Forget();

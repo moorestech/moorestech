@@ -147,6 +147,7 @@ namespace Server.Boot
             services.AddSingleton<ChallengeDatastore, ChallengeDatastore>();
             services.AddSingleton<ChallengeEvent, ChallengeEvent>();
             services.AddSingleton<TrainSaveLoadService, TrainSaveLoadService>();
+            services.AddSingleton<RailGraphSaveLoadService, RailGraphSaveLoadService>();
             services.AddSingleton<TrainDockingStateRestorer>();
             services.AddSingleton<ITrainUpdateEvent, TrainUpdateEvent>();
             services.AddSingleton<TrainUpdateService>();

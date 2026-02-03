@@ -21,8 +21,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         public ConnectionDestination CreateConnectionDestination()
         {
             var origin = BlockGameObject.BlockPosInfo.OriginalPos;
-            var componentId = new RailComponentID(origin, 0);
-            return new ConnectionDestination(componentId, isFront);
+            return new ConnectionDestination(origin, 0, isFront);
         }
     }
 }

@@ -14,8 +14,9 @@ namespace Server.Util.MessagePack
     [MessagePackObject]
     public class ConnectionDestinationMessagePack
     {
-        [Key(0)] public RailComponentIDMessagePack ComponentId { get; set; }
-        [Key(1)] public bool IsFrontSide { get; set; }
+        [Key(0)] public Vector3IntMessagePack BlockPosition { get; set; }
+        [Key(1)] public int ComponentIndex { get; set; }
+        [Key(2)] public bool IsFrontSide { get; set; }
 
         [Obsolete("デシリアライズ用コンストラクタです。")]
         public ConnectionDestinationMessagePack()
@@ -24,14 +25,14 @@ namespace Server.Util.MessagePack
 
         public ConnectionDestinationMessagePack(ConnectionDestination destination)
         {
-            ComponentId = new RailComponentIDMessagePack(destination.railComponentID);
+            BlockPosition = new Vector3IntMessagePack(destination.blockPosition);
+            ComponentIndex = destination.componentIndex;
             IsFrontSide = destination.IsFront;
         }
 
         public ConnectionDestination ToModel()
         {
-            var componentId = new RailComponentID(ComponentId.Position.Vector3Int, ComponentId.ID);
-            return new ConnectionDestination(componentId, IsFrontSide);
+            return new ConnectionDestination(BlockPosition.Vector3Int, ComponentIndex, IsFrontSide);
         }
     }
 
@@ -127,7 +128,9 @@ namespace Server.Util.MessagePack
                 Connections.Add(new RailGraphConnectionSnapshotMessagePack(
                     connection.FromNodeId,
                     connection.ToNodeId,
-                    connection.Distance));
+                    connection.Distance,
+                    connection.RailTypeGuid,
+                    connection.IsDrawable));
             }
 
             GraphHash = snapshot.ConnectNodesHash;
@@ -141,15 +144,19 @@ namespace Server.Util.MessagePack
         [Key(0)] public int FromNodeId { get; set; }
         [Key(1)] public int ToNodeId { get; set; }
         [Key(2)] public int Distance { get; set; }
+        [Key(3)] public Guid RailTypeGuid { get; set; }
+        [Key(4)] public bool IsDrawable { get; set; }
 
         [Obsolete("デシリアライズ用コンストラクタです。")]
         public RailGraphConnectionSnapshotMessagePack() { }
 
-        public RailGraphConnectionSnapshotMessagePack(int fromNodeId, int toNodeId, int distance)
+        public RailGraphConnectionSnapshotMessagePack(int fromNodeId, int toNodeId, int distance, Guid railTypeGuid, bool isDrawable)
         {
             FromNodeId = fromNodeId;
             ToNodeId = toNodeId;
             Distance = distance;
+            RailTypeGuid = railTypeGuid;
+            IsDrawable = isDrawable;
         }
     }
 

@@ -36,29 +36,33 @@ namespace Tests.UnitTest.Game.SaveLoad
         {
             var environment = TrainTestHelper.CreateEnvironment();
 
-            var (stationABlock, stationASaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+            var (stationABlock, stationAComponents) = TrainTestHelper.PlaceBlockWithRailComponents(
                 environment,
                 ForUnitTestModBlockId.TestTrainCargoPlatform,
                 new Vector3Int(1, 0, 0),
                 BlockDirection.North);
 
-            var (stationBBlock, stationBSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+            var (stationBBlock, stationBComponents) = TrainTestHelper.PlaceBlockWithRailComponents(
                 environment,
                 ForUnitTestModBlockId.TestTrainCargoPlatform,
                 new Vector3Int(0, 0, 24),
                 BlockDirection.North);
 
             Assert.IsNotNull(stationABlock, "Station A のブロック生成に失敗しました。");
-            Assert.IsNotNull(stationASaver, "Station A の RailSaverComponent 取得に失敗しました。");
+            Assert.IsNotNull(stationAComponents, "Station A の RailComponent 取得に失敗しました。");
             Assert.IsNotNull(stationBBlock, "Station B のブロック生成に失敗しました。");
-            Assert.IsNotNull(stationBSaver, "Station B の RailSaverComponent 取得に失敗しました。");
+            Assert.IsNotNull(stationBComponents, "Station B の RailComponent 取得に失敗しました。");
 
-            var stationA = ExtractStationEndpoints(stationASaver!);
-            var stationB = ExtractStationEndpoints(stationBSaver!);
+            var stationA = ExtractStationEndpoints(stationAComponents!);
+            var stationB = ExtractStationEndpoints(stationBComponents!);
 
             const int TransitSegmentLength = 5000;
-            stationA.ExitComponent.ConnectRailComponent(stationB.EntryComponent, true, true, TransitSegmentLength);
-            stationB.ExitComponent.ConnectRailComponent(stationA.EntryComponent, true, true, TransitSegmentLength);
+            //stationA.ExitComponent.ConnectRailComponent(stationB.EntryComponent, true, true, TransitSegmentLength);
+            stationA.ExitComponent.FrontNode.ConnectNode(stationB.EntryComponent.FrontNode, TransitSegmentLength);
+            stationB.EntryComponent.BackNode.ConnectNode(stationA.ExitComponent.BackNode, TransitSegmentLength);
+            //stationB.ExitComponent.ConnectRailComponent(stationA.EntryComponent, true, true, TransitSegmentLength);
+            stationB.ExitComponent.FrontNode.ConnectNode(stationA.EntryComponent.FrontNode, TransitSegmentLength);
+            stationA.EntryComponent.BackNode.ConnectNode(stationB.ExitComponent.BackNode, TransitSegmentLength);
 
             var stationSegmentLength = stationABlock!.BlockPositionInfo.BlockSize.z;
 
@@ -211,11 +215,11 @@ namespace Tests.UnitTest.Game.SaveLoad
             environment.GetTrainUpdateService().ResetTrains();
         }
 
-        private static StationEndpoints ExtractStationEndpoints(RailSaverComponent saver)
+        private static StationEndpoints ExtractStationEndpoints(IReadOnlyList<RailComponent> components)
         {
-            var entryComponent = saver.RailComponents
+            var entryComponent = components
                 .First(component => component.FrontNode.StationRef.NodeRole == StationNodeRole.Entry);
-            var exitComponent = saver.RailComponents
+            var exitComponent = components
                 .First(component => component.FrontNode.StationRef.NodeRole == StationNodeRole.Exit);
 
             var entryFront = entryComponent.FrontNode;
