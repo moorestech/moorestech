@@ -13,7 +13,7 @@ namespace Game.Block.Blocks.TrainRail
     /// 貨物駅用のコンポーネント。
     /// オープン可能なインベントリを持ち、かつ列車が到着・出発した状態も持つ。
     /// </summary>
-    public class CargoplatformComponent : IBlockSaveState, ITrainDockingReceiver
+    public class CargoplatformComponent : IBlockSaveState, ITrainDockingReceiver, IUpdatableBlockComponent
     {
         // ブロックパラメータ参照を保持
         // Keep reference to generated block parameter
@@ -22,6 +22,7 @@ namespace Game.Block.Blocks.TrainRail
         private Guid? _dockedCarId;
         private TrainCar _dockedTrainCar;
         private IBlockInventory _dockedStationInventory;
+        private TrainDockHandle _dockedHandle;
 
         public enum CargoTransferMode
         {
@@ -31,6 +32,22 @@ namespace Game.Block.Blocks.TrainRail
 
         private CargoTransferMode _transferMode = CargoTransferMode.LoadToTrain;
 
+        // アームアニメーションのtick設定
+        // Arm animation tick settings
+        private const int ArmExtendTicks = 60;
+        private const int ArmRetractTicks = 60;
+
+        private enum ArmState
+        {
+            Idle,
+            Extending,
+            Retracting
+        }
+
+        private ArmState _armState = ArmState.Idle;
+        private int _armProgressTicks;
+        private bool _shouldStartOnDock;
+
         // インベントリスロット数やUI更新のための設定
         // プラットフォームのスロット数
         // Number of cargo platform slots
@@ -39,6 +56,14 @@ namespace Game.Block.Blocks.TrainRail
         public bool IsDestroy { get; private set; }
 
         public CargoTransferMode TransferMode => _transferMode;
+
+        private void StartRetractingFromCurrent()
+        {
+            // 現在の進捗からリトラクト状態へ移行
+            // Switch to retracting from the current arm progress
+            _armState = ArmState.Retracting;
+            _armProgressTicks = Math.Min(_armProgressTicks, ArmRetractTicks);
+        }
 
         /// <summary>
         /// コンストラクタ
@@ -84,62 +109,138 @@ namespace Game.Block.Blocks.TrainRail
             if (_dockedCarId.HasValue && _dockedCarId != handle.CarId) return;
             _dockedTrainId = handle.TrainId;
             _dockedCarId = handle.CarId;
+            _dockedHandle = handle as TrainDockHandle;
+            _shouldStartOnDock = true;
             UpdateDockedReferences(handle);
         }
 
         public void OnTrainDockedTick(ITrainDockHandle handle)
         {
-            if (!IsValidDockingHandle(handle))
-            {
-                return;
-            }
+            if (handle == null) return;
+            if (_dockedTrainId != handle.TrainId || _dockedCarId != handle.CarId) return;
+            _dockedHandle = handle as TrainDockHandle;
+            if (_dockedTrainCar != null && _dockedStationInventory != null) return;
+            UpdateDockedReferences(handle);
+        }
 
-            switch (_transferMode)
-            {
-                case CargoTransferMode.LoadToTrain:
-                    if (_dockedTrainCar.IsInventoryFull())
-                    {
-                        return;
-                    }
+        public void Update()
+        {
+            // アームアニメーションと転送タイミングを更新
+            // Advance arm animation and transfer timing per tick
+            if (IsDestroy) return;
 
-                    TransferItemsToTrainCar();
+            // ドッキング状態に応じて参照を補完
+            // Resolve docking references when needed
+            var isDocked = _dockedTrainId.HasValue && _dockedCarId.HasValue;
+            if (isDocked && _dockedHandle != null && (_dockedTrainCar == null || _dockedStationInventory == null)) UpdateDockedReferences(_dockedHandle);
+
+            // アーム状態を進めて転送タイミングを処理
+            // Advance arm state and transfer timing
+            switch (_armState)
+            {
+                case ArmState.Idle:
+                    if (isDocked && (_shouldStartOnDock || CanTransferNow())) StartExtending();
+                    _shouldStartOnDock = false;
                     break;
 
-                case CargoTransferMode.UnloadToPlatform:
-                    if (_dockedTrainCar.IsInventoryEmpty())
+                case ArmState.Extending:
+                    if (!isDocked)
                     {
-                        return;
+                        StartRetractingFromCurrent();
+                        break;
                     }
 
-                    TransferItemsToStationInventory();
+                    if (_armProgressTicks < ArmExtendTicks)
+                    {
+                        _armProgressTicks++;
+                        break;
+                    }
+
+                    if (CanTransferNow()) ExecuteTransfer();
+                    StartRetractingFromFull();
+                    break;
+
+                case ArmState.Retracting:
+                    if (_armProgressTicks > 0)
+                    {
+                        _armProgressTicks--;
+                        if (_armProgressTicks == 0) _armState = ArmState.Idle;
+                        break;
+                    }
+
+                    _armState = ArmState.Idle;
                     break;
             }
 
             #region Internal
 
-            bool IsValidDockingHandle(ITrainDockHandle currentHandle)
+            void StartExtending()
             {
-                if (currentHandle == null)
+                _armState = ArmState.Extending;
+                _armProgressTicks = Math.Min(1, ArmExtendTicks);
+            }
+
+            void StartRetractingFromFull()
+            {
+                _armState = ArmState.Retracting;
+                _armProgressTicks = ArmRetractTicks;
+            }
+
+            bool CanTransferNow()
+            {
+                if (!isDocked) return false;
+                if (_dockedTrainCar == null || _dockedStationInventory == null) return false;
+                return _transferMode == CargoTransferMode.LoadToTrain ? CanLoadToTrain() : CanUnloadToPlatform();
+            }
+
+            bool CanLoadToTrain()
+            {
+                if (_dockedTrainCar.IsInventoryFull()) return false;
+                for (var slot = 0; slot < _dockedStationInventory.GetSlotSize(); slot++)
                 {
-                    return false;
+                    var stack = _dockedStationInventory.GetItem(slot);
+                    if (!IsEmptyStack(stack)) return true;
                 }
 
-                if (_dockedTrainId != currentHandle.TrainId || _dockedCarId != currentHandle.CarId)
+                return false;
+            }
+
+            bool CanUnloadToPlatform()
+            {
+                if (_dockedTrainCar.IsInventoryEmpty()) return false;
+                for (var slot = 0; slot < _dockedTrainCar.GetSlotSize(); slot++)
                 {
-                    return false;
+                    var stack = _dockedTrainCar.GetItem(slot);
+                    if (IsEmptyStack(stack)) continue;
+                    if (CanInsertToStation(stack)) return true;
                 }
 
-                if (_dockedTrainCar == null || _dockedStationInventory == null)
-                {
-                    UpdateDockedReferences(currentHandle);
+                return false;
+            }
 
-                    if (_dockedTrainCar == null || _dockedStationInventory == null)
-                    {
-                        return false;
-                    }
+            bool CanInsertToStation(IItemStack stack)
+            {
+                if (IsEmptyStack(stack)) return false;
+                var maxStack = MasterHolder.ItemMaster.GetItemMaster(stack.Id).MaxStack;
+                for (var slot = 0; slot < _dockedStationInventory.GetSlotSize(); slot++)
+                {
+                    var stationStack = _dockedStationInventory.GetItem(slot);
+                    if (IsEmptyStack(stationStack)) return true;
+                    if (stationStack.Id == stack.Id && stationStack.Count < maxStack) return true;
                 }
 
-                return true;
+                return false;
+            }
+
+            void ExecuteTransfer()
+            {
+                if (_transferMode == CargoTransferMode.LoadToTrain)
+                {
+                    TransferItemsToTrainCar();
+                    return;
+                }
+
+                TransferItemsToStationInventory();
             }
 
             void TransferItemsToTrainCar()
@@ -147,23 +248,13 @@ namespace Game.Block.Blocks.TrainRail
                 for (var slot = 0; slot < _dockedStationInventory.GetSlotSize(); slot++)
                 {
                     var slotStack = _dockedStationInventory.GetItem(slot);
-                    if (slotStack == null || slotStack.Id == ItemMaster.EmptyItemId || slotStack.Count == 0)
-                    {
-                        continue;
-                    }
+                    if (IsEmptyStack(slotStack)) continue;
 
                     var remainder = _dockedTrainCar.InsertItem(slotStack);
-                    if (IsSameStack(slotStack, remainder))
-                    {
-                        continue;
-                    }
+                    if (IsSameStack(slotStack, remainder)) continue;
 
                     _dockedStationInventory.SetItem(slot, remainder);
-
-                    if (_dockedTrainCar.IsInventoryFull())
-                    {
-                        break;
-                    }
+                    if (_dockedTrainCar.IsInventoryFull()) break;
                 }
             }
 
@@ -172,24 +263,17 @@ namespace Game.Block.Blocks.TrainRail
                 for (var slot = 0; slot < _dockedTrainCar.GetSlotSize(); slot++)
                 {
                     var slotStack = _dockedTrainCar.GetItem(slot);
-                    if (slotStack == null || slotStack.Id == ItemMaster.EmptyItemId || slotStack.Count == 0)
-                    {
-                        continue;
-                    }
+                    if (IsEmptyStack(slotStack)) continue;
+
                     var remainder = _dockedStationInventory.InsertItem(slotStack, InsertItemContext.Empty);
-                    if (IsSameStack(slotStack, remainder))
-                    {
-                        continue;
-                    }
+                    if (IsSameStack(slotStack, remainder)) continue;
 
                     _dockedTrainCar.SetItem(slot, remainder);
-
-                    if (_dockedTrainCar.IsInventoryEmpty())
-                    {
-                        break;
-                    }
+                    if (_dockedTrainCar.IsInventoryEmpty()) break;
                 }
             }
+
+            bool IsEmptyStack(IItemStack stack) => stack == null || stack.Id == ItemMaster.EmptyItemId || stack.Count == 0;
 
             #endregion
         }
@@ -200,12 +284,14 @@ namespace Game.Block.Blocks.TrainRail
             if (_dockedTrainId == handle.TrainId && _dockedCarId == handle.CarId)
             {
                 ClearDockedReferences();
+                if (_armState == ArmState.Extending) StartRetractingFromCurrent();
             }
         }
 
         public void ForceUndock()
         {
             ClearDockedReferences();
+            if (_armState == ArmState.Extending) StartRetractingFromCurrent();
         }
 
         /// <summary>
@@ -252,6 +338,7 @@ namespace Game.Block.Blocks.TrainRail
                 return;
             }
 
+            _dockedHandle = dockHandle;
             _dockedTrainCar = dockHandle.TrainCar;
             _dockedStationInventory = ResolveStationInventory(_dockedTrainCar);
         }
@@ -260,6 +347,8 @@ namespace Game.Block.Blocks.TrainRail
         {
             _dockedTrainId = null;
             _dockedCarId = null;
+            _dockedHandle = null;
+            _shouldStartOnDock = false;
             _dockedTrainCar = null;
             _dockedStationInventory = null;
         }

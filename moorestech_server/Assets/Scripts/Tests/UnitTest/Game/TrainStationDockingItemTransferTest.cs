@@ -58,7 +58,8 @@ namespace Tests.UnitTest.Game
 
             Assert.IsTrue(trainCar.IsDocked, "列車貨車が駅ブロックにドッキングしていません。");
             Assert.IsTrue(trainCar.IsInventoryEmpty(), "列車貨車のインベントリが初期状態で空になっていません。");
-
+            // ドッキング中の駅から列車へ通常転送
+            // Transfer from station to train while docked
             for (var i = 0; i < maxStack; i++)
             {
                 trainUnit.trainUnitStationDocking.TickDockedStations();
@@ -117,9 +118,13 @@ namespace Tests.UnitTest.Game
             Assert.IsTrue(trainCar.IsDocked, "列車貨車が貨物プラットフォームにドッキングしていません。");
             Assert.IsTrue(trainCar.IsInventoryEmpty(), "列車貨車のインベントリが初期状態で空になっていません。");
 
-            for (var i = 0; i < maxStack; i++)
+            // 伸長60tick + 接触1tickで一括転送
+            // 伸長60tick + 接触1tickで一括転送
+            // Transfer in bulk after 60 ticks extend + 1 tick contact
+            const int transferTicks = 61;
+            for (var i = 0; i < transferTicks; i++)
             {
-                trainUnit.trainUnitStationDocking.TickDockedStations();
+                cargoPlatformComponent.Update();
             }
 
             var remainingStack = cargoInventory.GetItem(0);
@@ -179,9 +184,13 @@ namespace Tests.UnitTest.Game
 
             Assert.IsTrue(trainCar.IsDocked, "列車貨車が貨物プラットフォームにドッキングしていません。");
 
-            for (var i = 0; i < maxStack; i++)
+                        // 伸長60tick + 接触1tickで一括転送
+            // 伸長60tick + 接触1tickで一括転送
+            // Transfer in bulk after 60 ticks extend + 1 tick contact
+            const int transferTicks = 61;
+            for (var i = 0; i < transferTicks; i++)
             {
-                trainUnit.trainUnitStationDocking.TickDockedStations();
+                cargoPlatformComponent.Update();
             }
 
             var cargoStack = cargoInventory.GetItem(0);
