@@ -13,6 +13,7 @@ namespace Server.Util
         private List<byte> _continuationFromLastTimeBytes = new();
 
         private bool _isGettingLength;
+        private bool _isReadingPayload;
         private int _nextPacketLengthOffset;
         private int _packetLength;
         private int _remainingHeaderLength;
@@ -30,15 +31,16 @@ namespace Server.Util
             // Loop until all received data is processed
             while (0 < reminderLength)
             {
-                // 前回からの続きのデータがない場合
-                // If no continuation data from previous call
-                if (_continuationFromLastTimeBytes.Count == 0)
+                // ペイロード読み取り中でない場合は新しいパケットのヘッダを解析
+                // If not currently reading payload, parse header for new packet
+                if (!_isReadingPayload)
                 {
                     // パケット長を取得
                     // Get packet length from header
                     if (TryGetLength(packet, actualStartPacketDataIndex, length, out var payloadLength, out var headerLength))
                     {
                         _packetLength = payloadLength;
+                        _isReadingPayload = true;
                         // パケット長の4バイトヘッダを取り除く
                         // Remove the 4-byte header from remaining length
                         reminderLength -= _packetLength + headerLength;
@@ -84,9 +86,10 @@ namespace Server.Util
                     _continuationFromLastTimeBytes.Add(packet[actualStartPacketDataIndex]);
 
                 result.Add(_continuationFromLastTimeBytes);
-                // 受信したパケットに対する応答を返す
-                // Reset continuation buffer for next packet
+                // パケット完了、次のパケットに備えてリセット
+                // Packet complete, reset for next packet
                 _continuationFromLastTimeBytes = new List<byte>();
+                _isReadingPayload = false;
             }
 
             return result;

@@ -292,6 +292,88 @@ namespace Tests.UnitTest.Server
         }
 
         /// <summary>
+        /// ヘッダのみが受信され、ペイロードが次の受信で届く場合のテスト
+        /// _continuationFromLastTimeBytes.Count==0がペイロード0バイト保存時に誤判定するバグの再現
+        /// </summary>
+        [Test]
+        public void ParseWithHeaderOnlyThenPayloadInNextReceive()
+        {
+            // テストデータ（5バイト固定）
+            // Test data (5 bytes fixed)
+            var testMessageBytes = MessagePackSerializer.Serialize(new PasserTestMessagePack { t = "t" });
+            var header = BitConverter.GetBytes(5).Reverse().ToArray();
+
+            var parser = new PacketBufferParser();
+
+            // 1回目: ヘッダのみ（4バイト）— ペイロードは0バイト
+            // First: header only (4 bytes) - no payload bytes
+            var buffer1 = new byte[4096];
+            header.CopyTo(buffer1, 0);
+            for (var i = 4; i < buffer1.Length; i++) buffer1[i] = (byte)'W';
+
+            var result1 = parser.Parse(buffer1, 4);
+            Assert.AreEqual(0, result1.Count, "ヘッダのみでパケットは完成しない");
+
+            // 2回目: ペイロードのみ（5バイト）
+            // Second: payload only (5 bytes)
+            var buffer2 = new byte[4096];
+            testMessageBytes.CopyTo(buffer2, 0);
+            for (var i = testMessageBytes.Length; i < buffer2.Length; i++) buffer2[i] = (byte)'X';
+
+            var result2 = parser.Parse(buffer2, testMessageBytes.Length);
+            Assert.AreEqual(1, result2.Count, "1つのパケットがパースされるべき");
+            Assert.AreEqual("t", MessagePackSerializer.Deserialize<PasserTestMessagePack>(result2[0].ToArray()).t);
+        }
+
+        /// <summary>
+        /// 完全なパケットの後にヘッダだけがバッファ末尾に含まれ、
+        /// ペイロードが次の受信で届く場合のテスト
+        /// </summary>
+        [Test]
+        public void ParseWithCompletePacketThenHeaderOnlyAtEndOfBuffer()
+        {
+            // パケット1とパケット2のデータを作成
+            // Create data for packet 1 and packet 2
+            var packet1Bytes = MessagePackSerializer.Serialize(new PasserTestMessagePack { t = "1" });
+            var header1 = BitConverter.GetBytes(packet1Bytes.Length).Reverse().ToArray();
+
+            var packet2Bytes = MessagePackSerializer.Serialize(new PasserTestMessagePack { t = "2" });
+            var header2 = BitConverter.GetBytes(packet2Bytes.Length).Reverse().ToArray();
+
+            var parser = new PacketBufferParser();
+
+            // 1回目: パケット1(完全) + パケット2のヘッダのみ
+            // First: complete packet1 + header-only of packet2
+            var buffer1 = new byte[4096];
+            var offset = 0;
+            header1.CopyTo(buffer1, offset);
+            offset += 4;
+            packet1Bytes.CopyTo(buffer1, offset);
+            offset += packet1Bytes.Length;
+            header2.CopyTo(buffer1, offset);
+            offset += 4;
+
+            // 残りはガベージ
+            // Rest is garbage
+            var actualLength1 = offset;
+            for (var i = actualLength1; i < buffer1.Length; i++) buffer1[i] = (byte)'W';
+
+            var result1 = parser.Parse(buffer1, actualLength1);
+            Assert.AreEqual(1, result1.Count, "パケット1のみがパースされるべき");
+            Assert.AreEqual("1", MessagePackSerializer.Deserialize<PasserTestMessagePack>(result1[0].ToArray()).t);
+
+            // 2回目: パケット2のペイロードのみ
+            // Second: payload only of packet2
+            var buffer2 = new byte[4096];
+            packet2Bytes.CopyTo(buffer2, 0);
+            for (var i = packet2Bytes.Length; i < buffer2.Length; i++) buffer2[i] = (byte)'X';
+
+            var result2 = parser.Parse(buffer2, packet2Bytes.Length);
+            Assert.AreEqual(1, result2.Count, "パケット2がパースされるべき");
+            Assert.AreEqual("2", MessagePackSerializer.Deserialize<PasserTestMessagePack>(result2[0].ToArray()).t);
+        }
+
+        /// <summary>
         /// ProtocolMessagePackBaseを使用した実際のプロトコルに近いテスト
         /// </summary>
         [Test]
