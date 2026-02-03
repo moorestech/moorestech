@@ -192,6 +192,106 @@ namespace Tests.UnitTest.Server
         }
 
         /// <summary>
+        /// ヘッダが1バイトずつ届く場合のテスト（_isGettingLengthバグの再現）
+        /// _isGettingLengthパスでactualLengthをチェックしないとガベージデータを読む
+        /// </summary>
+        [Test]
+        public void ParseWithHeaderSplitOneByteAtATime()
+        {
+            // テストデータ（5バイト固定）
+            // Test data (5 bytes fixed)
+            var testMessageBytes = MessagePackSerializer.Serialize(new PasserTestMessagePack { t = "t" });
+            var header = BitConverter.GetBytes(5).Reverse().ToArray();
+
+            var parser = new PacketBufferParser();
+
+            // 1回目: ヘッダの1バイト目のみ（残りバッファはガベージ）
+            // First: only 1st byte of header (rest is garbage)
+            var buffer1 = new byte[4096];
+            buffer1[0] = header[0];
+            for (var i = 1; i < buffer1.Length; i++) buffer1[i] = (byte)'W'; // 87 = ガベージ
+
+            var result1 = parser.Parse(buffer1, 1);
+            Assert.AreEqual(0, result1.Count, "まだパケットは完成していないはず");
+
+            // 2回目: ヘッダの2バイト目のみ（残りバッファはガベージ）
+            // Second: only 2nd byte of header (rest is garbage)
+            var buffer2 = new byte[4096];
+            buffer2[0] = header[1];
+            for (var i = 1; i < buffer2.Length; i++) buffer2[i] = (byte)'X';
+
+            var result2 = parser.Parse(buffer2, 1);
+            Assert.AreEqual(0, result2.Count, "まだパケットは完成していないはず");
+
+            // 3回目: ヘッダの3バイト目のみ
+            // Third: only 3rd byte of header
+            var buffer3 = new byte[4096];
+            buffer3[0] = header[2];
+            for (var i = 1; i < buffer3.Length; i++) buffer3[i] = (byte)'Y';
+
+            var result3 = parser.Parse(buffer3, 1);
+            Assert.AreEqual(0, result3.Count, "まだパケットは完成していないはず");
+
+            // 4回目: ヘッダの4バイト目 + ペイロード
+            // Fourth: 4th byte of header + payload
+            var buffer4 = new byte[4096];
+            buffer4[0] = header[3];
+            testMessageBytes.CopyTo(buffer4, 1);
+            for (var i = 6; i < buffer4.Length; i++) buffer4[i] = (byte)'Z';
+
+            var result4 = parser.Parse(buffer4, 6);
+            Assert.AreEqual(1, result4.Count, "1つのパケットがパースされるべき");
+            Assert.AreEqual("t", MessagePackSerializer.Deserialize<PasserTestMessagePack>(result4[0].ToArray()).t);
+        }
+
+        /// <summary>
+        /// _isGettingLength状態でさらに分割が発生する場合のテスト
+        /// ヘッダ3バイト送信後、残りのヘッダ1バイトが次の受信で届くが
+        /// その受信のバッファにもガベージが含まれるケース
+        /// </summary>
+        [Test]
+        public void ParseWithIsGettingLengthAndInsufficientBytes()
+        {
+            // テストデータ
+            // Test data
+            var testMessageBytes = MessagePackSerializer.Serialize(new PasserTestMessagePack { t = "t" });
+            var header = BitConverter.GetBytes(5).Reverse().ToArray();
+
+            var parser = new PacketBufferParser();
+
+            // 1回目: ヘッダの2バイトのみ
+            // First: only first 2 bytes of header
+            var buffer1 = new byte[4096];
+            buffer1[0] = header[0];
+            buffer1[1] = header[1];
+            for (var i = 2; i < buffer1.Length; i++) buffer1[i] = (byte)0xFF;
+
+            var result1 = parser.Parse(buffer1, 2);
+            Assert.AreEqual(0, result1.Count);
+
+            // 2回目: ヘッダの3バイト目のみ（_isGettingLength=true, _remainingHeaderLength=2の状態）
+            // Second: only 3rd byte (state: _isGettingLength=true, _remainingHeaderLength=2)
+            // ここでバグが発生: _remainingHeaderLength=2だが受信は1バイト
+            var buffer2 = new byte[4096];
+            buffer2[0] = header[2];
+            for (var i = 1; i < buffer2.Length; i++) buffer2[i] = (byte)0xAB; // ガベージ
+
+            var result2 = parser.Parse(buffer2, 1);
+            Assert.AreEqual(0, result2.Count, "まだヘッダが完成していないはず");
+
+            // 3回目: ヘッダの4バイト目 + ペイロード全体
+            // Third: 4th byte of header + full payload
+            var buffer3 = new byte[4096];
+            buffer3[0] = header[3];
+            testMessageBytes.CopyTo(buffer3, 1);
+            for (var i = 6; i < buffer3.Length; i++) buffer3[i] = (byte)0xCD;
+
+            var result3 = parser.Parse(buffer3, 6);
+            Assert.AreEqual(1, result3.Count, "1つのパケットがパースされるべき");
+            Assert.AreEqual("t", MessagePackSerializer.Deserialize<PasserTestMessagePack>(result3[0].ToArray()).t);
+        }
+
+        /// <summary>
         /// ProtocolMessagePackBaseを使用した実際のプロトコルに近いテスト
         /// </summary>
         [Test]

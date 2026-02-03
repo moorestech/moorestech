@@ -98,8 +98,25 @@ namespace Server.Util
             List<byte> headerBytes;
             if (_isGettingLength)
             {
+                // 実際の受信バイト数と必要なヘッダバイト数を比較
+                // Compare actual received bytes with required header bytes
+                var availableBytes = actualLength - startIndex;
+                if (availableBytes < _remainingHeaderLength)
+                {
+                    // バイト数が足りない場合は読めた分だけ保存して次回に持ち越す
+                    // Not enough bytes: save what we can and wait for next receive
+                    for (var i = 0; i < availableBytes; i++)
+                    {
+                        _packetLengthBytes.Add(bytes[startIndex + i]);
+                    }
+                    _remainingHeaderLength -= availableBytes;
+                    payloadLength = -1;
+                    headerLength = availableBytes;
+                    return false;
+                }
+
                 headerLength = _remainingHeaderLength;
-                for (var i = 0; i < _remainingHeaderLength; i++) _packetLengthBytes.Add(bytes[i]);
+                for (var i = 0; i < _remainingHeaderLength; i++) _packetLengthBytes.Add(bytes[startIndex + i]);
                 headerBytes = _packetLengthBytes;
                 _isGettingLength = false;
             }
