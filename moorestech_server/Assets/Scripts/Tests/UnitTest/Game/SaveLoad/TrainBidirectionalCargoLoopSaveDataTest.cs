@@ -155,7 +155,7 @@ namespace Tests.UnitTest.Game.SaveLoad
                 UpdateTransferModes();
                 train1.Update();
                 train2.Update();
-                // è²¨ç©ã¢ã¼ã ã®tickãé²ãã
+                // 貨物アームのtickを進める
                 // Advance cargo platform arm ticks
                 cargoA.Update();
                 cargoB.Update();
