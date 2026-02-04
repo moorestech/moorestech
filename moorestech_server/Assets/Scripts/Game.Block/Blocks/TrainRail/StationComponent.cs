@@ -26,8 +26,8 @@ namespace Game.Block.Blocks.TrainRail
         private TrainDockHandle _dockedHandle;
         // アームアニメーションのtick設定
         // Arm animation tick settings
-        private const int ArmExtendTicks = 60;
-        private const int ArmRetractTicks = 60;
+        private readonly int _armExtendTicks;
+        private readonly int _armRetractTicks;
 
         private enum ArmState
         {
@@ -49,6 +49,8 @@ namespace Game.Block.Blocks.TrainRail
         {
             StationName = stationName;
             _param = param;
+            _armExtendTicks = _param.LoadingSpeed;
+            _armRetractTicks = _param.LoadingSpeed;
         }
         public bool CanDock(ITrainDockHandle handle)
         {
@@ -105,7 +107,7 @@ namespace Game.Block.Blocks.TrainRail
                         break;
                     }
 
-                    if (_armProgressTicks < ArmExtendTicks)
+                    if (_armProgressTicks < _armExtendTicks)
                     {
                         _armProgressTicks++;
                         break;
@@ -132,13 +134,13 @@ namespace Game.Block.Blocks.TrainRail
             void StartExtending()
             {
                 _armState = ArmState.Extending;
-                _armProgressTicks = Math.Min(1, ArmExtendTicks);
+                _armProgressTicks = Math.Min(1, _armExtendTicks);
             }
 
             void StartRetractingFromFull()
             {
                 _armState = ArmState.Retracting;
-                _armProgressTicks = ArmRetractTicks;
+                _armProgressTicks = _armRetractTicks;
             }
 
             bool CanTransferNow()
@@ -219,7 +221,7 @@ namespace Game.Block.Blocks.TrainRail
             // 現在の進捗からリトラクトへ移行する
             // Switch to retracting from the current arm progress
             _armState = ArmState.Retracting;
-            _armProgressTicks = Math.Min(_armProgressTicks, ArmRetractTicks);
+            _armProgressTicks = Math.Min(_armProgressTicks, _armRetractTicks);
         }
 
         private IBlockInventory ResolveStationInventory(TrainCar trainCar)
