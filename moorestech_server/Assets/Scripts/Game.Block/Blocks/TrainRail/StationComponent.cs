@@ -143,7 +143,7 @@ namespace Game.Block.Blocks.TrainRail
             void StartExtending()
             {
                 _armState = ArmState.Extending;
-                _armProgressTicks = Math.Min(1, _armAnimationTicks);
+                _armProgressTicks = 1;
             }
 
             void StartRetractingFromFull()
