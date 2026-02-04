@@ -12,8 +12,6 @@ XY問題に気をつけてください、目先の問題にとらわれず、根
 
 また、`using` を積極的に活用し、コード部分での文字数を適切に抑えるようにしてください。
 
-一つの行の処理については、改行せずワンライナーで書くか、説明変数を導入して単一処理の改行を避けてください。メソッドチェーンや関数呼び出しが続く場合も、可能な限り1行にまとめ、必要に応じて説明変数を導入して可読性を向上させてください。
-
 例：
 ```csharp
 public void ComplexMethod()
@@ -132,20 +130,6 @@ MasterHolder.Load()
 1. **手動でのクラス作成禁止**: `Mooresmaster.Model.*` 名前空間のクラスは絶対に手動で作成しない
 2. **BlockParamなどは自動生成**: ブロックパラメータ等もSourceGeneratorが生成するため手動実装禁止
 
-### スキーマを変更する場合
-1. `VanillaSchema/*.yml` の該当ファイルを編集
-2. スキーマを変更したら、`moorestech_server/Assets/Scripts/Core.Master/Dummy.cs` の`dummyText`の内容を別の値に変更すること。これによってSourceGeneratorが働き、コード生成が行われる。
-3. プロジェクトをリビルドして自動生成を実行
-4. 生成されたクラスを確認
-
-**重要：スキーマにプロパティを追加する際は、基本的に `optional: false` を設定してください。** nullableな値が必要な特別な理由がある場合のみ `optional: true` を使用します。これにより、不要なnullチェックを減らし、コードの可読性と安全性を向上させます。
-
-### 新しいマスターデータを追加する場合
-1. `VanillaSchema/` に新しいYAMLファイルを作成
-2. `Core.Master.MasterHolder` にプロパティを追加
-3. 対応するMasterクラス（例：`NewDataMaster`）を実装
-4. `MasterHolder.Load()` メソッドに読み込み処理を追加
-
 ## テスト時の注意事項
 ユニットテストでマスターデータが必要な場合は、以下のテスト用マスターデータを使用してください：
 
@@ -179,18 +163,9 @@ MasterHolder.Load()
 # サーバー側のテスト
 ./tools/unity-test.sh moorestech_server "^Tests\\.CombinedTest\\.Core\\.ElectricPumpTest$"
 
-# クライアント側のコンパイルチェック クライアント側のテストを実行する際はテストをする前に必ず最初にコンパイルチェックを行う。コンパイルチェックをする時はisGui オプションは追加しない。
-./tools/unity-test.sh moorestech_client "^0"
-
 # クライアント側のテスト クライアント側の場合、バッチモードでは結果が安定しないことがあるため、 isGui オプションを追加してください。
 ./tools/unity-test.sh moorestech_client "^ClientTests\\.Feature\\.InventoryTest$" isGui
 ```
-
-### 重要な注意事項
-- **必ず正規表現で実行対象を限定してください**
-- 全テストの一括実行は時間がかかり、不安定になる可能性があります
-- 関連するテストのみを実行して開発サイクルを高速化しましょう
-
 
 
 # シングルトンパターンの実装指針
