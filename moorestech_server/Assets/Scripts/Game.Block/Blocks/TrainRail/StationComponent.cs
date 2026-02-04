@@ -15,7 +15,7 @@ namespace Game.Block.Blocks.TrainRail
     /// </summary>
     public class StationComponent : IBlockSaveState, ITrainDockingReceiver, IUpdatableBlockComponent
     {
-        public string StationName { get; }
+        public string StationName { get; private set; }
         // ブロックパラメータ参照を保持
         // Keep reference to the generated train station parameter
         private readonly TrainStationBlockParam _param;
@@ -50,6 +50,17 @@ namespace Game.Block.Blocks.TrainRail
             _param = param;
             _armAnimationTicks = _param.LoadingSpeed;
         }
+
+        public StationComponent(Dictionary<string, string> componentStates, TrainStationBlockParam param) : this("test", param)
+        {
+            var serialized = componentStates[SaveKey];
+            var saveData = JsonConvert.DeserializeObject<StationComponentSaverData>(serialized);
+            if (saveData == null) return;
+            StationName = saveData.stationName;
+            _armState = (ArmState)saveData.armState;
+            _armProgressTicks = Math.Min(Math.Max(0, saveData.armProgressTicks), _armAnimationTicks);
+            _shouldStartOnDock = saveData.shouldStartOnDock;
+        }
         public bool CanDock(ITrainDockHandle handle)
         {
             if (handle == null) return false;
@@ -65,7 +76,7 @@ namespace Game.Block.Blocks.TrainRail
             _dockedTrainId = handle.TrainId;
             _dockedCarId = handle.CarId;
             _dockedHandle = handle as TrainDockHandle;
-            _shouldStartOnDock = true;
+            if (_armState == ArmState.Idle && _armProgressTicks == 0) _shouldStartOnDock = true;
             UpdateDockedReferences(handle);
         }
 
@@ -299,7 +310,7 @@ namespace Game.Block.Blocks.TrainRail
 
         public string GetSaveState()
         {
-            var stationComponentSaverData = new StationComponentSaverData(StationName);
+            var stationComponentSaverData = new StationComponentSaverData(StationName, (int)_armState, _armProgressTicks, _shouldStartOnDock);
             /*foreach (var item in _itemDataStoreService.InventoryItems)
             {
                 stationComponentSaverData.itemJson.Add(new ItemStackSaveJsonObject(item));
@@ -312,10 +323,17 @@ namespace Game.Block.Blocks.TrainRail
         {
             public List<ItemStackSaveJsonObject> itemJson;
             public string stationName;
-            public StationComponentSaverData(string name)
+            public int armState;
+            public int armProgressTicks;
+            public bool shouldStartOnDock;
+
+            public StationComponentSaverData(string name, int state, int progressTicks, bool startOnDock)
             {
                 itemJson = new List<ItemStackSaveJsonObject>();
                 stationName = name;
+                armState = state;
+                armProgressTicks = progressTicks;
+                shouldStartOnDock = startOnDock;
             }
         }
 

@@ -66,7 +66,7 @@ namespace Game.Block.Factory.BlockTemplate
             var stationParam = masterElement.BlockParam as TrainStationBlockParam;
             var railComponents = RailComponentUtility.Restore2RailComponents(positionInfo, stationParam.EntryRailPosition, stationParam.ExitRailPosition, _railGraphDatastore);//①復元
             RailComponentUtility.RegisterStationBlocks(railComponents, _railGraphDatastore);//②登録のみ
-            var station = new StationComponent("test", stationParam);
+            var station = new StationComponent(componentStates, stationParam);
 
             var inventoryComponents = CreateInventoryComponents(componentStates, instanceId, stationParam, positionInfo);
 

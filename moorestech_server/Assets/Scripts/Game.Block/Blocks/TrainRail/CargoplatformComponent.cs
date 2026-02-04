@@ -80,6 +80,9 @@ namespace Game.Block.Blocks.TrainRail
             var saveData = JsonConvert.DeserializeObject<CargoplatformComponentSaverData>(serialized);
             if (saveData == null) return;
             _transferMode = saveData.transferMode;
+            _armState = (ArmState)saveData.armState;
+            _armProgressTicks = Math.Min(Math.Max(0, saveData.armProgressTicks), _armAnimationTicks);
+            _shouldStartOnDock = saveData.shouldStartOnDock;
         }
 
         public void SetTransferMode(CargoTransferMode mode)
@@ -110,7 +113,7 @@ namespace Game.Block.Blocks.TrainRail
             _dockedTrainId = handle.TrainId;
             _dockedCarId = handle.CarId;
             _dockedHandle = handle as TrainDockHandle;
-            _shouldStartOnDock = true;
+            if (_armState == ArmState.Idle && _armProgressTicks == 0) _shouldStartOnDock = true;
             UpdateDockedReferences(handle);
         }
 
@@ -320,7 +323,7 @@ namespace Game.Block.Blocks.TrainRail
 
         public string GetSaveState()
         {
-            var saveData = new CargoplatformComponentSaverData("cargo", _transferMode);
+            var saveData = new CargoplatformComponentSaverData("cargo", (int)_armState, _armProgressTicks, _shouldStartOnDock, _transferMode);
             /*foreach (var item in _itemDataStoreService.InventoryItems)
             {
                 saveData.itemJson.Add(new ItemStackSaveJsonObject(item));
@@ -389,7 +392,7 @@ namespace Game.Block.Blocks.TrainRail
         {
             public CargoTransferMode transferMode;
 
-            public CargoplatformComponentSaverData(string name, CargoTransferMode mode) : base(name)
+            public CargoplatformComponentSaverData(string name, int state, int progressTicks, bool startOnDock, CargoTransferMode mode) : base(name, state, progressTicks, startOnDock)
             {
                 transferMode = mode;
             }
