@@ -265,7 +265,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             var exitNode = railComponents[1].FrontNode;
             var segmentLength = stationBlock.BlockPositionInfo.BlockSize.z;
             var railPosition = new RailPosition(new List<IRailNode> { exitNode, entryNode }, segmentLength, 0);
-            var trainCar = TrainTestCarFactory.CreateTrainCar(0, 1000, 1, segmentLength, true);
+            var firstTrainCarMaster = MasterHolder.TrainUnitMaster.Train.TrainCars.First();
+            var trainCar = new TrainCar(firstTrainCarMaster, true);
             var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, environment.GetTrainUpdateService(), environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
             trainUnit.trainUnitStationDocking.TryDockWhenStopped();
             Assert.IsTrue(trainCar.IsDocked, "列車が駅にドッキングしていません。");
