@@ -93,53 +93,9 @@ implementationInterface:
 
 ## Validation for foreignKey (CRITICAL)
 
-**foreignKeyを持つプロパティをBlockParamに追加した場合、C#バリデーションも必ず追加する。**
+**MUST**: foreignKeyを持つプロパティを追加した場合、**必ず `/validate-schema` スキルを実行**してC#バリデーションを追加すること。
 
-SourceGeneratorはforeignKeyからバリデーションコードを自動生成しない。手動で `BlockMasterUtil.Validate` に追加が必要。
-
-### バリデーション追加手順
-
-1. **対象ファイル**: `moorestech_server/Assets/Scripts/Core.Master/Validator/BlockMasterUtil.cs`
-
-2. **追加場所**: `BlockParamValidation()` 内の既存パターンに従う
-
-3. **コードパターン**:
-```csharp
-// NewBlockType: propertyName
-// NewBlockType: propertyName
-if (block.BlockParam is NewBlockTypeBlockParam newBlock)
-{
-    // ItemGuidの場合
-    var id = MasterHolder.ItemMaster.GetItemIdOrNull(newBlock.PropertyName);
-    if (id == null)
-    {
-        logs += $"[BlockMaster] Name:{block.Name} has invalid PropertyName:{newBlock.PropertyName}\n";
-    }
-
-    // FluidGuidの場合
-    var id = MasterHolder.FluidMaster.GetFluidIdOrNull(newBlock.FluidProperty);
-    if (id == null)
-    {
-        logs += $"[BlockMaster] Name:{block.Name} has invalid FluidProperty:{newBlock.FluidProperty}\n";
-    }
-
-    // BlockGuidの場合
-    if (!ExistsBlockGuid(newBlock.BlockProperty))
-    {
-        logs += $"[BlockMaster] Name:{block.Name} has invalid BlockProperty:{newBlock.BlockProperty}\n";
-    }
-}
-```
-
-### チェックリスト
-
-スキーマ編集完了時に必ず確認：
-
-- [ ] foreignKeyを持つ新しいプロパティを追加したか？
-- [ ] 追加した場合、BlockMasterUtil.Validateに対応するバリデーションを追加したか？
-- [ ] コンパイルが通ることを確認したか？
-
-**WARNING**: バリデーション漏れは実行時エラー（InvalidOperationException）の原因となる
+SourceGeneratorはforeignKeyからバリデーションコードを自動生成しない。手動追加を怠ると実行時エラー（InvalidOperationException）の原因となる。
 
 ## SourceGenerator Troubleshooting
 
