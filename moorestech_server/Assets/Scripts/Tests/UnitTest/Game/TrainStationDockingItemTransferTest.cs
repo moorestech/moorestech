@@ -8,6 +8,7 @@ using Game.Context;
 using Game.Train.RailGraph;
 using Game.Train.RailPositions;
 using Game.Train.Unit;
+using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Tests.Module.TestMod;
 using Tests.Util;
@@ -60,7 +61,7 @@ namespace Tests.UnitTest.Game
             Assert.IsTrue(trainCar.IsInventoryEmpty(), "列車貨車のインベントリが初期状態で空になっていません。");
             // 伸長60tick + 接触1tickで一括転送
             // Transfer in bulk after 60 ticks extend + 1 tick contact
-            const int transferTicks = 61;
+            var transferTicks = GetStationTransferTicks();
             for (var i = 0; i < transferTicks; i++)
             {
                 stationComponent.Update();
@@ -120,9 +121,8 @@ namespace Tests.UnitTest.Game
             Assert.IsTrue(trainCar.IsInventoryEmpty(), "列車貨車のインベントリが初期状態で空になっていません。");
 
             // 伸長60tick + 接触1tickで一括転送
-            // 伸長60tick + 接触1tickで一括転送
             // Transfer in bulk after 60 ticks extend + 1 tick contact
-            const int transferTicks = 61;
+            var transferTicks = GetCargoTransferTicks();
             for (var i = 0; i < transferTicks; i++)
             {
                 cargoPlatformComponent.Update();
@@ -185,10 +185,9 @@ namespace Tests.UnitTest.Game
 
             Assert.IsTrue(trainCar.IsDocked, "列車貨車が貨物プラットフォームにドッキングしていません。");
 
-                        // 伸長60tick + 接触1tickで一括転送
             // 伸長60tick + 接触1tickで一括転送
             // Transfer in bulk after 60 ticks extend + 1 tick contact
-            const int transferTicks = 61;
+            var transferTicks = GetCargoTransferTicks();
             for (var i = 0; i < transferTicks; i++)
             {
                 cargoPlatformComponent.Update();
@@ -254,7 +253,7 @@ namespace Tests.UnitTest.Game
 
             // 伸長60tick + 接触1tickで一括転送
             // Transfer in bulk after 60 ticks extend + 1 tick contact
-            const int transferTicks = 61;
+            var transferTicks = GetStationTransferTicks();
             for (var i = 0; i < transferTicks; i++)
             {
                 stationComponent.Update();
@@ -279,6 +278,17 @@ namespace Tests.UnitTest.Game
             env.GetTrainUpdateService().UnregisterTrain(secondTrain);
         }
 
+        private static int GetStationTransferTicks()
+        {
+            var stationParam = (TrainStationBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainStation).BlockParam;
+            return stationParam.LoadingSpeed + 1;
+        }
+
+        private static int GetCargoTransferTicks()
+        {
+            var cargoParam = (TrainCargoPlatformBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainCargoPlatform).BlockParam;
+            return cargoParam.LoadingSpeed + 1;
+        }
     }
 }
 

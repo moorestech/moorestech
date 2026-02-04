@@ -34,8 +34,8 @@ namespace Game.Block.Blocks.TrainRail
 
         // アームアニメーションのtick設定
         // Arm animation tick settings
-        private const int ArmExtendTicks = 60;
-        private const int ArmRetractTicks = 60;
+        private readonly int _armExtendTicks;
+        private readonly int _armRetractTicks;
 
         private enum ArmState
         {
@@ -62,7 +62,7 @@ namespace Game.Block.Blocks.TrainRail
             // 現在の進捗からリトラクト状態へ移行
             // Switch to retracting from the current arm progress
             _armState = ArmState.Retracting;
-            _armProgressTicks = Math.Min(_armProgressTicks, ArmRetractTicks);
+            _armProgressTicks = Math.Min(_armProgressTicks, _armRetractTicks);
         }
 
         /// <summary>
@@ -71,6 +71,8 @@ namespace Game.Block.Blocks.TrainRail
         public CargoplatformComponent(TrainCargoPlatformBlockParam param)
         {
             _param = param;
+            _armExtendTicks = _param.LoadingSpeed;
+            _armRetractTicks = _param.LoadingSpeed;
         }
 
         public CargoplatformComponent(Dictionary<string, string> componentStates, TrainCargoPlatformBlockParam param) : this(param)
@@ -150,7 +152,7 @@ namespace Game.Block.Blocks.TrainRail
                         break;
                     }
 
-                    if (_armProgressTicks < ArmExtendTicks)
+                    if (_armProgressTicks < _armExtendTicks)
                     {
                         _armProgressTicks++;
                         break;
@@ -177,13 +179,13 @@ namespace Game.Block.Blocks.TrainRail
             void StartExtending()
             {
                 _armState = ArmState.Extending;
-                _armProgressTicks = Math.Min(1, ArmExtendTicks);
+                _armProgressTicks = Math.Min(1, _armExtendTicks);
             }
 
             void StartRetractingFromFull()
             {
                 _armState = ArmState.Retracting;
-                _armProgressTicks = ArmRetractTicks;
+                _armProgressTicks = _armRetractTicks;
             }
 
             bool CanTransferNow()
