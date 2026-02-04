@@ -26,8 +26,7 @@ namespace Game.Block.Blocks.TrainRail
         private TrainDockHandle _dockedHandle;
         // アームアニメーションのtick設定
         // Arm animation tick settings
-        private readonly int _armExtendTicks;
-        private readonly int _armRetractTicks;
+        private readonly int _armAnimationTicks;
 
         private enum ArmState
         {
@@ -49,8 +48,7 @@ namespace Game.Block.Blocks.TrainRail
         {
             StationName = stationName;
             _param = param;
-            _armExtendTicks = _param.LoadingSpeed;
-            _armRetractTicks = _param.LoadingSpeed;
+            _armAnimationTicks = _param.LoadingSpeed;
         }
         public bool CanDock(ITrainDockHandle handle)
         {
@@ -107,7 +105,7 @@ namespace Game.Block.Blocks.TrainRail
                         break;
                     }
 
-                    if (_armProgressTicks < _armExtendTicks)
+                    if (_armProgressTicks < _armAnimationTicks)
                     {
                         _armProgressTicks++;
                         break;
@@ -134,13 +132,13 @@ namespace Game.Block.Blocks.TrainRail
             void StartExtending()
             {
                 _armState = ArmState.Extending;
-                _armProgressTicks = Math.Min(1, _armExtendTicks);
+                _armProgressTicks = Math.Min(1, _armAnimationTicks);
             }
 
             void StartRetractingFromFull()
             {
                 _armState = ArmState.Retracting;
-                _armProgressTicks = _armRetractTicks;
+                _armProgressTicks = _armAnimationTicks;
             }
 
             bool CanTransferNow()
@@ -221,7 +219,7 @@ namespace Game.Block.Blocks.TrainRail
             // 現在の進捗からリトラクトへ移行する
             // Switch to retracting from the current arm progress
             _armState = ArmState.Retracting;
-            _armProgressTicks = Math.Min(_armProgressTicks, _armRetractTicks);
+            _armProgressTicks = Math.Min(_armProgressTicks, _armAnimationTicks);
         }
 
         private IBlockInventory ResolveStationInventory(TrainCar trainCar)
