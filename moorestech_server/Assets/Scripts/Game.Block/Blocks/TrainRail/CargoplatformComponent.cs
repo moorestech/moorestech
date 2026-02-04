@@ -195,41 +195,20 @@ namespace Game.Block.Blocks.TrainRail
 
             bool CanLoadToTrain()
             {
-                if (_dockedTrainCar.IsInventoryFull()) return false;
-                for (var slot = 0; slot < _dockedStationInventory.GetSlotSize(); slot++)
-                {
-                    var stack = _dockedStationInventory.GetItem(slot);
-                    if (!IsEmptyStack(stack)) return true;
-                }
-
-                return false;
+                return HasTransferCandidate(
+                    _dockedStationInventory.GetSlotSize(),
+                    _dockedStationInventory.GetItem,
+                    _dockedTrainCar.GetSlotSize(),
+                    _dockedTrainCar.GetItem);
             }
 
             bool CanUnloadToPlatform()
             {
-                if (_dockedTrainCar.IsInventoryEmpty()) return false;
-                for (var slot = 0; slot < _dockedTrainCar.GetSlotSize(); slot++)
-                {
-                    var stack = _dockedTrainCar.GetItem(slot);
-                    if (IsEmptyStack(stack)) continue;
-                    if (CanInsertToStation(stack)) return true;
-                }
-
-                return false;
-            }
-
-            bool CanInsertToStation(IItemStack stack)
-            {
-                if (IsEmptyStack(stack)) return false;
-                var maxStack = MasterHolder.ItemMaster.GetItemMaster(stack.Id).MaxStack;
-                for (var slot = 0; slot < _dockedStationInventory.GetSlotSize(); slot++)
-                {
-                    var stationStack = _dockedStationInventory.GetItem(slot);
-                    if (IsEmptyStack(stationStack)) return true;
-                    if (stationStack.Id == stack.Id && stationStack.Count < maxStack) return true;
-                }
-
-                return false;
+                return HasTransferCandidate(
+                    _dockedTrainCar.GetSlotSize(),
+                    _dockedTrainCar.GetItem,
+                    _dockedStationInventory.GetSlotSize(),
+                    _dockedStationInventory.GetItem);
             }
 
             void ExecuteTransfer()
@@ -245,35 +224,75 @@ namespace Game.Block.Blocks.TrainRail
 
             void TransferItemsToTrainCar()
             {
-                for (var slot = 0; slot < _dockedStationInventory.GetSlotSize(); slot++)
-                {
-                    var slotStack = _dockedStationInventory.GetItem(slot);
-                    if (IsEmptyStack(slotStack)) continue;
-
-                    var remainder = _dockedTrainCar.InsertItem(slotStack);
-                    if (IsSameStack(slotStack, remainder)) continue;
-
-                    _dockedStationInventory.SetItem(slot, remainder);
-                    if (_dockedTrainCar.IsInventoryFull()) break;
-                }
+                TransferByDestinationPriority(
+                    _dockedStationInventory.GetSlotSize(),
+                    _dockedStationInventory.GetItem,
+                    _dockedStationInventory.SetItem,
+                    _dockedTrainCar.GetSlotSize(),
+                    _dockedTrainCar.GetItem,
+                    _dockedTrainCar.SetItem);
             }
 
             void TransferItemsToStationInventory()
             {
-                for (var slot = 0; slot < _dockedTrainCar.GetSlotSize(); slot++)
-                {
-                    var slotStack = _dockedTrainCar.GetItem(slot);
-                    if (IsEmptyStack(slotStack)) continue;
-
-                    var remainder = _dockedStationInventory.InsertItem(slotStack, InsertItemContext.Empty);
-                    if (IsSameStack(slotStack, remainder)) continue;
-
-                    _dockedTrainCar.SetItem(slot, remainder);
-                    if (_dockedTrainCar.IsInventoryEmpty()) break;
-                }
+                TransferByDestinationPriority(
+                    _dockedTrainCar.GetSlotSize(),
+                    _dockedTrainCar.GetItem,
+                    _dockedTrainCar.SetItem,
+                    _dockedStationInventory.GetSlotSize(),
+                    _dockedStationInventory.GetItem,
+                    _dockedStationInventory.SetItem);
             }
 
             bool IsEmptyStack(IItemStack stack) => stack == null || stack.Id == ItemMaster.EmptyItemId || stack.Count == 0;
+
+            bool HasTransferCandidate(int sourceSlotCount, Func<int, IItemStack> getSource, int destinationSlotCount, Func<int, IItemStack> getDestination)
+            {
+                for (var destinationSlot = 0; destinationSlot < destinationSlotCount; destinationSlot++)
+                {
+                    var destination = getDestination(destinationSlot);
+                    if (destination == null) continue;
+
+                    for (var sourceSlot = 0; sourceSlot < sourceSlotCount; sourceSlot++)
+                    {
+                        var source = getSource(sourceSlot);
+                        if (IsEmptyStack(source)) continue;
+                        if (destination.IsAllowedToAddWithRemain(source)) return true;
+                    }
+                }
+
+                return false;
+            }
+
+            void TransferByDestinationPriority(int sourceSlotCount, Func<int, IItemStack> getSource, Action<int, IItemStack> setSource, int destinationSlotCount, Func<int, IItemStack> getDestination, Action<int, IItemStack> setDestination)
+            {
+                for (var destinationSlot = 0; destinationSlot < destinationSlotCount; destinationSlot++)
+                {
+                    var destination = getDestination(destinationSlot);
+                    if (destination == null) continue;
+
+                    for (var sourceSlot = 0; sourceSlot < sourceSlotCount; sourceSlot++)
+                    {
+                        var source = getSource(sourceSlot);
+                        if (IsEmptyStack(source)) continue;
+                        if (!destination.IsAllowedToAddWithRemain(source)) continue;
+
+                        var processResult = destination.AddItem(source);
+                        if (IsSameStack(destination, processResult.ProcessResultItemStack) && IsSameStack(source, processResult.RemainderItemStack)) continue;
+
+                        setDestination(destinationSlot, processResult.ProcessResultItemStack);
+                        setSource(sourceSlot, processResult.RemainderItemStack);
+                        destination = processResult.ProcessResultItemStack;
+                        if (IsDestinationFull(destination)) break;
+                    }
+                }
+            }
+
+            bool IsDestinationFull(IItemStack destinationStack)
+            {
+                if (IsEmptyStack(destinationStack)) return false;
+                return destinationStack.Count >= MasterHolder.ItemMaster.GetItemMaster(destinationStack.Id).MaxStack;
+            }
 
             #endregion
         }
