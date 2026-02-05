@@ -96,7 +96,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                         
                         // 設置
                         if (InputManager.Playable.ScreenLeftClick.GetKeyUp && TryResolveNode(fromDestination, out var fromNode))
-                            ClientContext.VanillaApi.SendOnly.PlaceRailWithPier(fromNode.NodeId, fromNode.NodeGuid, pierInventorySlot, placeInfo);
+                            ClientContext.VanillaApi.SendOnly.PlaceRailWithPier(fromNode.NodeId, fromNode.NodeGuid, pierInventorySlot, placeInfo, previewData.RailTypeGuid);
                     }
                 }
             }

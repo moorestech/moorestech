@@ -11,6 +11,7 @@ using Game.Train.RailGraph;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -58,6 +59,24 @@ namespace Server.Protocol.PacketResponse
             if (!RailConnectionEditProtocol.TryResolveRailItemForPlacement(request.RailTypeGuid, inventoryData.MainOpenableInventory.InventoryItems, RailConnectionEditProtocol.GetRailLength(fromNode, toNode), out var railItem, out var requiredCount)) return null;
             
             var connectResult = _commandHandler.TryConnect(fromNode.NodeId, fromNode.Guid, toNode.NodeId, toNode.Guid, request.RailTypeGuid);
+            
+            if (connectResult && request.RailTypeGuid != Guid.Empty)
+            {
+                var railItemId = MasterHolder.ItemMaster.GetItemId(railItem.ItemGuid);
+                var remainSubCount = requiredCount;
+                foreach (var (stack, i) in inventoryData.MainOpenableInventory.InventoryItems.ToArray().Select((stack, i) => (stack, i)).Where(stack => stack.stack.Id == railItemId))
+                {
+                    var subCount = Mathf.Min(stack.Count, remainSubCount);
+                    Debug.Log($"Subtracting {subCount} from stack {stack.Id}");
+                    inventoryData.MainOpenableInventory.SetItem(i, stack.SubItem(subCount));
+                    remainSubCount -= subCount;
+                    
+                    if (remainSubCount == 0) break;
+                }
+                
+                // 残りがまだあるということがあってはならない
+                if (remainSubCount > 0) throw new Exception($"Rail item count is not enough. Required: {requiredCount}, Inventory: {inventoryData.MainOpenableInventory.InventoryItems.Where(stack => stack.Id == railItemId).Sum(stack => stack.Count)}");
+            }
             
             // アイテムを減らし、セットする
             itemStack = itemStack.SubItem(1);
