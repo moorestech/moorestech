@@ -30,7 +30,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
             _previewBlockController = previewBlockController;
         }
         
-        public List<PlaceInfo> ManualUpdate(ItemId itemId)
+        public PlaceInfo ManualUpdate(ItemId itemId)
         {
             _previewBlockController.SetActive(false);
             
@@ -44,8 +44,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
             
             RotationRailComponent();
             
-            List<PlaceInfo> placeInfo = CreatePlaceInfo();
-            _previewBlockController.SetPreviewAndGroundDetect(placeInfo, holdingBlockMaster);
+            var placeInfo = CreatePlaceInfo();
+            _previewBlockController.SetPreviewAndGroundDetect(new List<PlaceInfo> { placeInfo }, holdingBlockMaster);
             ConnectorPosition = GetConnectorPosition(holdingBlockMaster);
             
             return placeInfo;
@@ -64,7 +64,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
                 RailDirection = (RailComponentDirection)nextDirection;
             }
             
-            List<PlaceInfo> CreatePlaceInfo()
+            PlaceInfo CreatePlaceInfo()
             {
                 var info = new PlaceInfo
                 {
@@ -77,7 +77,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
                         new(RailBridgePierComponentStateDetail.StateDetailKey, MessagePackSerializer.Serialize(new RailBridgePierComponentStateDetail(RailDirection.ToVector3()))),
                     },
                 };
-                return new List<PlaceInfo> { info };
+                
+                return info;
             }
             
             Vector3 GetConnectorPosition(BlockMasterElement element)

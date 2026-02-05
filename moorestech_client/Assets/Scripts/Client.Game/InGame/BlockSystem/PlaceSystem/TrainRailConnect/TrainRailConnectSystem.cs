@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
@@ -13,7 +12,6 @@ using Core.Master;
 using Game.Train.RailGraph;
 using Game.Train.SaveLoad;
 using Mooresmaster.Model.BlocksModule;
-using Server.Protocol.PacketResponse;
 using UnityEngine;
 using static Client.Common.LayerConst;
 using static Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect.TrainRailConnectPreviewCalculator;
@@ -84,15 +82,21 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                     
                     if (!pierSlots.Any())
                     {
+                        // pierがない場合は設置不可
                         var previewData = CalculatePreviewData(fromDestination, position, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory);
                         ShowPreview(previewData);
                     }
                     else
                     {
-                        var (itemStack, inventorySlot) = pierSlots.First();
-                        List<PlaceInfo> placeInfos = _trainRailPlaceSystemService.ManualUpdate(itemStack.Id);
+                        // pierがある場合は設置可能
+                        var (itemStack, pierInventorySlot) = pierSlots.First();
+                        var placeInfo = _trainRailPlaceSystemService.ManualUpdate(itemStack.Id);
                         var previewData = CalculatePreviewData(fromDestination, _trainRailPlaceSystemService.ConnectorPosition, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory);
                         ShowPreview(previewData);
+                        
+                        // 設置
+                        if (InputManager.Playable.ScreenLeftClick.GetKeyUp && !TryResolveNode(fromDestination, out var fromNode))
+                            ClientContext.VanillaApi.SendOnly.PlaceRailWithPier(fromNode.NodeId, fromNode.NodeGuid, pierInventorySlot, placeInfo);
                     }
                 }
             }
