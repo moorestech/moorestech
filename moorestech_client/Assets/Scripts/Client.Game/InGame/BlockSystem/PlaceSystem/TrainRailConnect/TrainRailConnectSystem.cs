@@ -12,6 +12,7 @@ using Core.Master;
 using Game.Train.RailGraph;
 using Game.Train.SaveLoad;
 using Mooresmaster.Model.BlocksModule;
+using Server.Protocol.PacketResponse;
 using UnityEngine;
 using static Client.Common.LayerConst;
 using static Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect.TrainRailConnectPreviewCalculator;
@@ -95,8 +96,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                         ShowPreview(previewData);
                         
                         // 設置
-                        if (InputManager.Playable.ScreenLeftClick.GetKeyUp && TryResolveNode(fromDestination, out var fromNode))
-                            ClientContext.VanillaApi.SendOnly.PlaceRailWithPier(fromNode.NodeId, fromNode.NodeGuid, pierInventorySlot, placeInfo, previewData.RailTypeGuid);
+                        SendConnectRailWithPlacePierProtocol(placeInfo, previewData.RailTypeGuid, pierInventorySlot);
                     }
                 }
             }
@@ -124,7 +124,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 
                 if (!previewData.HasEnoughRailItem) return;
                 
-                SendProtocol(fromNode, toNode, previewData.RailTypeGuid);   
+                SendConnectRailProtocol(fromNode, toNode, previewData.RailTypeGuid);   
             }
             
             #region Internal
@@ -140,7 +140,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 _previewObject.ShowPreview(previewData);
             }
             
-            void SendProtocol(IRailNode from, IRailNode to, Guid railTypeGuid)
+            void SendConnectRailProtocol(IRailNode from, IRailNode to, Guid railTypeGuid)
             {
                 if (!InputManager.Playable.ScreenLeftClick.GetKeyDown) return;
                 
@@ -148,6 +148,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 
                 Debug.Log($"Connecting rails: From NodeId={from.NodeId}, Guid={from.NodeGuid} To NodeId={to.NodeId}, Guid={to.NodeGuid}");
                 ClientContext.VanillaApi.SendOnly.ConnectRail(from.NodeId, from.NodeGuid, to.NodeId, to.NodeGuid, railTypeGuid);
+                _connectFromArea = null;
+            }
+            
+            void SendConnectRailWithPlacePierProtocol(PlaceInfo placeInfo, Guid railTypeGuid, int pierInventorySlot)
+            {
+                if (!InputManager.Playable.ScreenLeftClick.GetKeyDown) return;
+                if (!TryResolveNode(fromDestination, out var fromNode)) return;
+                
+                _previewObject.SetActive(false);
+
+                ClientContext.VanillaApi.SendOnly.PlaceRailWithPier(fromNode.NodeId, fromNode.NodeGuid, pierInventorySlot, placeInfo, railTypeGuid);
                 _connectFromArea = null;
             }
             
