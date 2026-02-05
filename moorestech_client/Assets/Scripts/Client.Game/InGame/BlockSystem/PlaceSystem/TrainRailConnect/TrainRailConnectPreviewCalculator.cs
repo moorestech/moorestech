@@ -61,9 +61,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             // 制御点計算に必要な位置と方向を取得
             // Get positions and directions for control points
             var startPosition = fromNode.FrontControlPoint.OriginalPosition;
-            var endPosition = cursorPosition;
+            var endPosition = placePosition;
             var startDirection = fromNode.FrontControlPoint.ControlPointPosition;
-            var endDirection = startPosition - endPosition;
+            var endDirection = direction.ToVector3();
             if (endDirection.sqrMagnitude < 1e-6)
             {
                 endDirection = new Vector3(0, 1f, 0);
