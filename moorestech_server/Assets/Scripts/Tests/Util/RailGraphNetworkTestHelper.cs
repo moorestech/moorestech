@@ -76,15 +76,14 @@ namespace Tests.Util
         private static ConnectionDestination Clone(ConnectionDestination destination)
         {
             Assert.IsNotNull(destination, "ConnectionDestinationがnullです。");
-            var originalId = destination.railComponentID;
-            var copiedId = new RailComponentID(originalId.Position, originalId.ID);
-            return new ConnectionDestination(copiedId, destination.IsFront);
+            var blockPosition = destination.blockPosition;
+            return new ConnectionDestination(blockPosition, destination.componentIndex, destination.IsFront);
         }
 
         private static string Describe(ConnectionDestination destination)
         {
-            var id = destination.railComponentID;
-            return $"({id.Position.x}, {id.Position.y}, {id.Position.z}) {(destination.IsFront ? "Front" : "Back")}";
+            var position = destination.blockPosition;
+            return $"({position.x}, {position.y}, {position.z}) {(destination.IsFront ? "Front" : "Back")}";
         }
     }
 

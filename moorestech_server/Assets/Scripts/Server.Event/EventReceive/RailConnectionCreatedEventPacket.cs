@@ -31,7 +31,9 @@ namespace Server.Event.EventReceive
                 data.ToNodeId,
                 data.ToGuid,
                 data.Distance,
-                tick));
+                tick,
+                data.RailTypeGuid,
+                data.IsDrawable));
             _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
         }
     }

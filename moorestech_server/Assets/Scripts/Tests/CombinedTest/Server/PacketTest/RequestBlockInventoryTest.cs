@@ -69,9 +69,12 @@ namespace Tests.CombinedTest.Server.PacketTest
             var environment = TrainTestHelper.CreateEnvironment();
             var railA = TrainTestHelper.PlaceRail(environment, new Vector3Int(0, 0, 0), BlockDirection.North);
             var railB = TrainTestHelper.PlaceRail(environment, new Vector3Int(100, 0, 0), BlockDirection.North);
-            railA.ConnectRailComponent(railB, true, true, 10);
-            railB.ConnectRailComponent(railA, true, true, 10);
-
+            
+            railA.FrontNode.ConnectNode(railB.FrontNode, 10);
+            railB.BackNode.ConnectNode(railA.BackNode, 10);
+            railB.FrontNode.ConnectNode(railA.FrontNode, 10);
+            railA.BackNode.ConnectNode(railB.BackNode, 10);
+            
             // 列車とインベントリを準備
             // Prepare train and its inventory
             var frontNode = railB.FrontNode;

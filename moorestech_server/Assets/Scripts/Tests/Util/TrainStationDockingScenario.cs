@@ -47,7 +47,7 @@ namespace Tests.Util
         public RailNode StationEntryFront => _station.EntryFront;
         public RailNode StationExitBack => _station.ExitBack;
         public RailNode StationEntryBack => _station.EntryBack;
-        public Vector3Int StationBlockPosition => _station.EntryComponent.ComponentID.Position;
+        public Vector3Int StationBlockPosition => _station.EntryComponent.FrontNode.ConnectionDestination.blockPosition;
         public int StationBlockLength => _station.BlockLength;
 
         public static TrainStationDockingScenario Create()
@@ -56,7 +56,7 @@ namespace Tests.Util
 
             var n0Component = TrainTestHelper.PlaceRail(environment, new Vector3Int(0, 0, 0), BlockDirection.North);
             var n1Component = TrainTestHelper.PlaceRail(environment, new Vector3Int(5, 0, 0), BlockDirection.North);
-            var (stationBlock, stationSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+            var (stationBlock, stationComponents) = TrainTestHelper.PlaceBlockWithRailComponents(
                 environment,
                 ForUnitTestModBlockId.TestTrainCargoPlatform,
                 new Vector3Int(10, 20, 0),
@@ -65,14 +65,22 @@ namespace Tests.Util
             var n3Component = TrainTestHelper.PlaceRail(environment, new Vector3Int(20, 0, 0), BlockDirection.North);
 
             Assert.IsNotNull(stationBlock, "貨物プラットフォームブロックを取得できませんでした。");
-            Assert.IsNotNull(stationSaver, "貨物プラットフォーム用のRailSaverComponentを取得できませんでした。");
+            Assert.IsNotNull(stationComponents, "貨物プラットフォーム用のRailComponentを取得できませんでした。");
 
-            var station = ExtractStationNodes(stationBlock!, stationSaver!);
-
-            n0Component.ConnectRailComponent(n1Component, true, true);
-            n1Component.ConnectRailComponent(station.EntryComponent, true, true);
-            station.ExitComponent.ConnectRailComponent(n2Component, true, true);
-            n2Component.ConnectRailComponent(n3Component, true, true);
+            var station = ExtractStationNodes(stationBlock!, stationComponents);
+            //n0Component.ConnectRailComponent(n1Component, true, true);
+            //n1Component.ConnectRailComponent(station.EntryComponent, true, true);
+            //station.ExitComponent.ConnectRailComponent(n2Component, true, true);
+            //n2Component.ConnectRailComponent(n3Component, true, true);
+            
+            n0Component.FrontNode.ConnectNode(n1Component.FrontNode);
+            n1Component.BackNode.ConnectNode(n1Component.BackNode);
+            n1Component.FrontNode.ConnectNode(station.EntryComponent.FrontNode);
+            station.EntryComponent.BackNode.ConnectNode(n1Component.BackNode);
+            station.ExitComponent.FrontNode.ConnectNode(n2Component.FrontNode);
+            n2Component.BackNode.ConnectNode(station.ExitComponent.BackNode);
+            n2Component.FrontNode.ConnectNode(n3Component.FrontNode);
+            n3Component.BackNode.ConnectNode(n2Component.BackNode);
 
             return new TrainStationDockingScenario(environment, n0Component, n1Component, station, n2Component, n3Component);
         }
@@ -85,20 +93,22 @@ namespace Tests.Util
             var n1Component = TrainTestHelper.PlaceRail(environment, new Vector3Int(5, 0, 0), BlockDirection.North);
             var n2Component = TrainTestHelper.PlaceRail(environment, new Vector3Int(15, 0, 0), BlockDirection.North);
             var n3Component = TrainTestHelper.PlaceRail(environment, new Vector3Int(20, 0, 0), BlockDirection.North);
-            var (stationBlock, stationSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+            var (stationBlock, stationComponents) = TrainTestHelper.PlaceBlockWithRailComponents(
                 environment,
                 ForUnitTestModBlockId.TestTrainCargoPlatform,
                 new Vector3Int(10, 100, 0),
                 BlockDirection.North);
 
             Assert.IsNotNull(stationBlock, "貨物プラットフォームブロックを取得できませんでした。");
-            Assert.IsNotNull(stationSaver, "貨物プラットフォーム用のRailSaverComponentを取得できませんでした。");
+            Assert.IsNotNull(stationComponents, "貨物プラットフォーム用のRailComponentを取得できませんでした。");
 
-            var station = ExtractStationNodes(stationBlock!, stationSaver!);
-
-            n0Component.ConnectRailComponent(station.EntryComponent, true, true, station.SegmentLength);
-            station.ExitComponent.ConnectRailComponent(n0Component, true, true, station.SegmentLength * 2);
-
+            var station = ExtractStationNodes(stationBlock!, stationComponents);
+            //n0Component.ConnectRailComponent(station.EntryComponent, true, true, station.SegmentLength);
+            n0Component.FrontNode.ConnectNode(station.EntryComponent.FrontNode,station.SegmentLength);
+            station.EntryComponent.BackNode.ConnectNode(n0Component.BackNode, station.SegmentLength);
+            //station.ExitComponent.ConnectRailComponent(n0Component, true, true, station.SegmentLength * 2);
+            station.ExitComponent.FrontNode.ConnectNode(n0Component.FrontNode, station.SegmentLength * 2);
+            n0Component.BackNode.ConnectNode(station.ExitComponent.BackNode, station.SegmentLength * 2);
             return new TrainStationDockingScenario(environment, n0Component, n1Component, station, n2Component, n3Component);
         }
 
@@ -226,15 +236,15 @@ namespace Tests.Util
             }
         }
 
-        private static StationNodeSet ExtractStationNodes(IBlock stationBlock, RailSaverComponent stationSaver)
+        private static StationNodeSet ExtractStationNodes(IBlock stationBlock, IReadOnlyList<RailComponent> stationComponents)
         {
-            var entryComponent = stationSaver.RailComponents
+            var entryComponent = stationComponents
                 .FirstOrDefault(component =>
                     component.FrontNode.StationRef.NodeRole == StationNodeRole.Entry &&
                     component.FrontNode.StationRef.NodeSide == StationNodeSide.Front);
             Assert.IsNotNull(entryComponent, "駅の正面Entryノードを持つRailComponentが見つかりません。");
 
-            var exitComponent = stationSaver.RailComponents
+            var exitComponent = stationComponents
                 .FirstOrDefault(component =>
                     component.FrontNode.StationRef.NodeRole == StationNodeRole.Exit &&
                     component.FrontNode.StationRef.NodeSide == StationNodeSide.Front);

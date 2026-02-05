@@ -17,15 +17,15 @@ namespace Tests.UnitTest.Game
     public class TrainUnitAddCarTest
     {
 
-        private static StationNodeSet ExtractStationNodes(IBlock stationBlock, RailSaverComponent stationSaver)
+        private static StationNodeSet ExtractStationNodes(IBlock stationBlock, IReadOnlyList<RailComponent> stationComponents)
         {
-            var entryComponent = stationSaver.RailComponents
+            var entryComponent = stationComponents
                 .FirstOrDefault(component =>
                     component.FrontNode.StationRef.NodeRole == StationNodeRole.Entry &&
                     component.FrontNode.StationRef.NodeSide == StationNodeSide.Front);
             Assert.IsNotNull(entryComponent, "駅の正面Entryノードを持つRailComponentが見つかりません。");
 
-            var exitComponent = stationSaver.RailComponents
+            var exitComponent = stationComponents
                 .FirstOrDefault(component =>
                     component.FrontNode.StationRef.NodeRole == StationNodeRole.Exit &&
                     component.FrontNode.StationRef.NodeSide == StationNodeSide.Front);
@@ -65,7 +65,8 @@ namespace Tests.UnitTest.Game
             var environment = TrainTestHelper.CreateEnvironment();
             var railA = TrainTestHelper.PlaceRail(environment, new Vector3Int(0, 0, 0), BlockDirection.North);
             var railB = TrainTestHelper.PlaceRail(environment, new Vector3Int(1100, 0, 0), BlockDirection.North);
-            railB.ConnectRailComponent(railA, true, true);
+            railB.FrontNode.ConnectNode(railA.FrontNode);
+            railA.BackNode.ConnectNode(railB.BackNode);
 
             var firstTrain = MasterHolder.TrainUnitMaster.Train.TrainCars.First();
 
@@ -115,7 +116,9 @@ namespace Tests.UnitTest.Game
             var environment = TrainTestHelper.CreateEnvironment();
             var railA = TrainTestHelper.PlaceRail(environment, new Vector3Int(0, 0, 0), BlockDirection.North);
             var railB = TrainTestHelper.PlaceRail(environment, new Vector3Int(1100, 0, 0), BlockDirection.North);
-            railB.ConnectRailComponent(railA, true, true);
+            //railB.ConnectRailComponent(railA, true, true);
+            railB.FrontNode.ConnectNode(railA.FrontNode);
+            railA.BackNode.ConnectNode(railB.BackNode);
 
             var firstTrain = MasterHolder.TrainUnitMaster.Train.TrainCars.First();
 
@@ -164,8 +167,12 @@ namespace Tests.UnitTest.Game
             var railA = TrainTestHelper.PlaceRail(environment, new Vector3Int(0, 0, 0), BlockDirection.North);
             var railB = TrainTestHelper.PlaceRail(environment, new Vector3Int(1100, 0, 0), BlockDirection.North);
             var railC = TrainTestHelper.PlaceRail(environment, new Vector3Int(2100, 0, 0), BlockDirection.North);
-            railB.ConnectRailComponent(railA, true, true);
-            railC.ConnectRailComponent(railB, true, true);
+            //railB.ConnectRailComponent(railA, true, true);
+            railB.FrontNode.ConnectNode(railA.FrontNode);
+            railA.BackNode.ConnectNode(railB.BackNode);
+            //railC.ConnectRailComponent(railB, true, true);
+            railC.FrontNode.ConnectNode(railB.FrontNode);
+            railB.BackNode.ConnectNode(railC.BackNode);
 
             var firstTrain = MasterHolder.TrainUnitMaster.Train.TrainCars.First();
             var ablength = railB.FrontNode.GetDistanceToNode(railA.FrontNode);
@@ -224,8 +231,12 @@ namespace Tests.UnitTest.Game
             var railA = TrainTestHelper.PlaceRail(environment, new Vector3Int(0, 0, 0), BlockDirection.North);
             var railB = TrainTestHelper.PlaceRail(environment, new Vector3Int(1100, 0, 0), BlockDirection.North);
             var railC = TrainTestHelper.PlaceRail(environment, new Vector3Int(2100, 0, 0), BlockDirection.North);
-            railB.ConnectRailComponent(railA, true, true);
-            railC.ConnectRailComponent(railB, true, true);
+            //railB.ConnectRailComponent(railA, true, true);
+            railB.FrontNode.ConnectNode(railA.FrontNode);
+            railA.BackNode.ConnectNode(railB.BackNode);
+            //railC.ConnectRailComponent(railB, true, true);
+            railC.FrontNode.ConnectNode(railB.FrontNode);
+            railB.BackNode.ConnectNode(railC.BackNode);
 
             var firstTrain = MasterHolder.TrainUnitMaster.Train.TrainCars.First();
             var cblength = railC.FrontNode.GetDistanceToNode(railB.FrontNode);
@@ -282,18 +293,18 @@ namespace Tests.UnitTest.Game
         {
             var environment = TrainTestHelper.CreateEnvironment();
 
-            var (block, stationSaver1) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+            var (block, stationComponents1) = TrainTestHelper.PlaceBlockWithRailComponents(
                 environment,
                 ForUnitTestModBlockId.TestTrainCargoPlatform,
                 new Vector3Int(-10, 1, -11),
                 BlockDirection.North);
-            var stationnodes1 = ExtractStationNodes(block!, stationSaver1);
-            var (block2, stationSaver2) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+            var stationnodes1 = ExtractStationNodes(block!, stationComponents1);
+            var (block2, stationComponents2) = TrainTestHelper.PlaceBlockWithRailComponents(
                 environment,
                 ForUnitTestModBlockId.TestTrainCargoPlatform,
                 new Vector3Int(-10, 1, -11 - block.BlockPositionInfo.BlockSize.z),
                 BlockDirection.North);
-            var stationnodes2 = ExtractStationNodes(block2!, stationSaver2);
+            var stationnodes2 = ExtractStationNodes(block2!, stationComponents2);
 
 
             var firstTrain = MasterHolder.TrainUnitMaster.Train.TrainCars.First();
@@ -329,18 +340,18 @@ namespace Tests.UnitTest.Game
         {
             var environment = TrainTestHelper.CreateEnvironment();
 
-            var (block, stationSaver1) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+            var (block, stationComponents1) = TrainTestHelper.PlaceBlockWithRailComponents(
                 environment,
                 ForUnitTestModBlockId.TestTrainCargoPlatform,
                 new Vector3Int(-10, 1, -11),
                 BlockDirection.North);
-            var stationnodes1 = ExtractStationNodes(block!, stationSaver1);
-            var (block2, stationSaver2) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+            var stationnodes1 = ExtractStationNodes(block!, stationComponents1);
+            var (block2, stationComponents2) = TrainTestHelper.PlaceBlockWithRailComponents(
                 environment,
                 ForUnitTestModBlockId.TestTrainCargoPlatform,
                 new Vector3Int(-10, 1, -11 + block.BlockPositionInfo.BlockSize.z),
                 BlockDirection.North);
-            var stationnodes2 = ExtractStationNodes(block2!, stationSaver2);
+            var stationnodes2 = ExtractStationNodes(block2!, stationComponents2);
 
 
             var firstTrain = MasterHolder.TrainUnitMaster.Train.TrainCars.First();

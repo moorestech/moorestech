@@ -6,7 +6,33 @@ namespace Game.Train.RailCalc
     public static class BezierUtility
     {
         public const float RAIL_LENGTH_SCALE = 1024.0f;
+        public const float CONTROLSTRENGTH = 0.4967f;
+        
+        // セグメント強度を直線距離から算出する
+        // Calculate segment strength from straight distance
+        public static float CalculateSegmentStrength(Vector3 startPosition, Vector3 endPosition)
+        {
+            return Vector3.Distance(startPosition, endPosition) * CONTROLSTRENGTH;
+        }
 
+        // 描画用の制御点をワールド座標で生成
+        // Build render control points in world space
+        public static void BuildRenderControlPoints(RailControlPoint startControlPoint, RailControlPoint endControlPoint, out Vector3 p0, out Vector3 p1, out Vector3 p2, out Vector3 p3)
+        {
+            BuildRenderControlPoints(startControlPoint.OriginalPosition, endControlPoint.OriginalPosition, startControlPoint.ControlPointPosition, endControlPoint.ControlPointPosition, out p0, out p1, out p2, out p3);
+        }
+
+        // 描画用の制御点をワールド座標で生成
+        // Build render control points in world space
+        public static void BuildRenderControlPoints(Vector3 startPosition, Vector3 endPosition, Vector3 startDirection, Vector3 endDirection, out Vector3 p0, out Vector3 p1, out Vector3 p2, out Vector3 p3)
+        {
+            var strength = CalculateSegmentStrength(startPosition, endPosition);
+            p0 = startPosition;
+            p1 = startPosition + startDirection * strength;
+            p2 = endPosition + endDirection * strength;
+            p3 = endPosition;
+        }
+        
         // ベジエ曲線上の座標を計算
         // Evaluate point on cubic Bezier curve
         public static Vector3 GetBezierPoint(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t)
@@ -27,44 +53,7 @@ namespace Game.Train.RailCalc
             point += ttt * p3;
             return point;
         }
-
-        // ベジエ曲線の接線ベクトルを計算
-        // Evaluate normalized tangent on cubic Bezier curve
-        public static Vector3 GetBezierTangent(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t)
-        {
-            t = Mathf.Clamp01(t);
-            if (IsZeroLength(p0, p3))
-                return Vector3.forward;
-
-            Vector3 straightDir = p3 - p0;
-            if (IsStraightLine(p0, p1, p2, p3) && straightDir.sqrMagnitude > 1e-6f)
-                return straightDir.normalized;
-
-            float u = 1f - t;
-            Vector3 term0 = (p1 - p0) * (3f * u * u);
-            Vector3 term1 = (p2 - p1) * (6f * u * t);
-            Vector3 term2 = (p3 - p2) * (3f * t * t);
-            Vector3 derivative = term0 + term1 + term2;
-            return derivative.sqrMagnitude > 1e-6f ? derivative.normalized : (straightDir.sqrMagnitude > 1e-6f ? straightDir.normalized : Vector3.forward);
-        }
-
-        // RailControlPointを利用した座標取得
-        // Evaluate point using RailControlPoints
-        public static Vector3 GetBezierPoint(RailControlPoint startControlPoint, RailControlPoint endControlPoint, float t)
-        {
-            BuildRelativeControlPoints(startControlPoint, endControlPoint, out var origin, out var p0, out var p1, out var p2, out var p3);
-            Vector3 relative = GetBezierPoint(p0, p1, p2, p3, t);
-            return relative + origin;
-        }
-
-        // RailControlPointを利用した接線取得
-        // Evaluate tangent using RailControlPoints
-        public static Vector3 GetBezierTangent(RailControlPoint startControlPoint, RailControlPoint endControlPoint, float t)
-        {
-            BuildRelativeControlPoints(startControlPoint, endControlPoint, out _, out var p0, out var p1, out var p2, out var p3);
-            return GetBezierTangent(p0, p1, p2, p3, t);
-        }
-
+        
         // 3次ベジエ曲線の概算距離
         // Approximate curve length by sampling
         public static float GetBezierCurveLength(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, int samples)
@@ -87,16 +76,94 @@ namespace Game.Train.RailCalc
             }
             return length;
         }
-
-        // RailControlPointの概算距離
-        // Approximate curve length using RailControlPoints
+        
         public static float GetBezierCurveLength(RailControlPoint cp0, RailControlPoint cp1, int samples = 512)
         {
-            EnsureDeterministicOrder(ref cp0, ref cp1);
-            BuildRelativeControlPoints(cp0, cp1, out _, out var p0, out var p1, out var p2, out var p3);
+            Getp0p1p2p3(cp0, cp1, out var p0, out var p1, out var p2, out var p3);
             return GetBezierCurveLength(p0, p1, p2, p3, samples);
         }
+        
+        public static float GetBezierCurveLength(IRailNode n0, IRailNode n1, int samples = 512)
+        {
+            return GetBezierCurveLength(n0.FrontControlPoint, n1.BackControlPoint, samples);
+        }
 
+        // 長さ計算向けに相対制御点を生成
+        // Build relative control points for length calculation
+        public static void BuildRelativeControlPointsForLength(RailControlPoint startControlPoint, RailControlPoint endControlPoint, out Vector3 origin, out Vector3 p0, out Vector3 p1, out Vector3 p2, out Vector3 p3)
+        {
+            var startPosition = startControlPoint.OriginalPosition;
+            var endPosition = endControlPoint.OriginalPosition;
+            var startDirection = startControlPoint.ControlPointPosition;
+            var endDirection = endControlPoint.ControlPointPosition;
+            var strength = CalculateSegmentStrength(startPosition, endPosition);
+            startDirection *= strength;
+            endDirection *= strength;
+
+            // 数値安定のため始点終点を並び替える
+            // Swap endpoints for numeric stability
+            if (IsLexicographicallySmaller(endPosition, startPosition))
+            {
+                (startPosition, endPosition) = (endPosition, startPosition);
+                (startDirection, endDirection) = (endDirection, startDirection);
+            }
+
+            origin = startPosition;
+            p0 = Vector3.zero;
+            p1 = startDirection;
+            var delta = endPosition - origin;
+            p2 = endDirection + delta;
+            p3 = delta;
+        }
+        
+        public static void Getp0p1p2p3(IRailNode n0, IRailNode n1, out Vector3 p0, out Vector3 p1,out Vector3 p2,out Vector3 p3)
+        {
+            Getp0p1p2p3(n0.FrontControlPoint, n1.BackControlPoint, out p0, out p1, out p2, out p3);
+        }
+        public static void Getp0p1p2p3(RailControlPoint cp0, RailControlPoint cp1, out Vector3 p0, out Vector3 p1,out Vector3 p2,out Vector3 p3)
+        {
+            BuildRelativeControlPointsForLength(cp0, cp1, out _, out p0, out p1, out p2, out p3);
+        }
+        
+        
+        // ベジエ曲線の接線ベクトルを計算
+        // Evaluate normalized tangent on cubic Bezier curve
+        public static Vector3 GetBezierTangent(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t)
+        {
+            t = Mathf.Clamp01(t);
+            if (IsZeroLength(p0, p3))
+                return Vector3.forward;
+        
+            Vector3 straightDir = p3 - p0;
+            if (IsStraightLine(p0, p1, p2, p3) && straightDir.sqrMagnitude > 1e-6f)
+                return straightDir.normalized;
+        
+            float u = 1f - t;
+            Vector3 term0 = (p1 - p0) * (3f * u * u);
+            Vector3 term1 = (p2 - p1) * (6f * u * t);
+            Vector3 term2 = (p3 - p2) * (3f * t * t);
+            Vector3 derivative = term0 + term1 + term2;
+            return derivative.sqrMagnitude > 1e-6f ? derivative.normalized : (straightDir.sqrMagnitude > 1e-6f ? straightDir.normalized : Vector3.forward);
+        }
+        // RailControlPointを利用した座標取得
+        // Evaluate point using RailControlPoints
+        public static Vector3 GetBezierPoint(RailControlPoint startControlPoint, RailControlPoint endControlPoint, float t)
+        {
+            BuildRelativeControlPoints(startControlPoint, endControlPoint, out var origin, out var p0, out var p1, out var p2, out var p3);
+            Vector3 relative = GetBezierPoint(p0, p1, p2, p3, t);
+            return relative + origin;
+        }
+        
+        // RailControlPointを利用した接線取得
+        // Evaluate tangent using RailControlPoints
+        public static Vector3 GetBezierTangent(RailControlPoint startControlPoint, RailControlPoint endControlPoint, float t)
+        {
+            BuildRelativeControlPoints(startControlPoint, endControlPoint, out _, out var p0, out var p1, out var p2, out var p3);
+            return GetBezierTangent(p0, p1, p2, p3, t);
+        }
+        
+
+        
         // RailControlPointを相対座標に変換
         // Convert RailControlPoints to relative control points
         public static void BuildRelativeControlPoints(RailControlPoint startControlPoint, RailControlPoint endControlPoint, out Vector3 origin, out Vector3 p0, out Vector3 p1, out Vector3 p2, out Vector3 p3)
@@ -108,30 +175,8 @@ namespace Game.Train.RailCalc
             p2 = endControlPoint.ControlPointPosition + delta;
             p3 = delta;
         }
-
-        // 制御点の順番を安定化
-        // Ensure deterministic ordering of control points
-        private static void EnsureDeterministicOrder(ref RailControlPoint cp0, ref RailControlPoint cp1)
-        {
-            if (!IsLexicographicallySmaller(cp1.OriginalPosition, cp0.OriginalPosition))
-                return;
-
-            RailControlPoint tmp = cp0;
-            cp0 = cp1;
-            cp1 = tmp;
-        }
-
-        // 位置比較を辞書式で実施
-        // Lexicographical comparison helper
-        private static bool IsLexicographicallySmaller(Vector3 a, Vector3 b)
-        {
-            if (a.x < b.x) return true;
-            if (a.x > b.x) return false;
-            if (a.y < b.y) return true;
-            if (a.y > b.y) return false;
-            return a.z < b.z;
-        }
-
+        
+        
         // 弧長テーブルを構築
         // Build arc-length lookup table
         public static float BuildArcLengthTable(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, int samples, ref float[] arcLengths)
@@ -171,6 +216,8 @@ namespace Game.Train.RailCalc
 
             return total;
         }
+        
+        
 
         // 距離からtを求める
         // Convert travelled distance to Bezier parameter t
@@ -197,8 +244,19 @@ namespace Game.Train.RailCalc
             return 1f;
         }
 
-        private static bool IsZeroLength(Vector3 p0, Vector3 p3) => Vector3.Distance(p0, p3) <= 1e-6f;
 
+        // 位置ベクトルの辞書順比較
+        // Lexicographical comparison for positions
+        private static bool IsLexicographicallySmaller(Vector3 a, Vector3 b)
+        {
+            if (a.x < b.x) return true;
+            if (a.x > b.x) return false;
+            if (a.y < b.y) return true;
+            if (a.y > b.y) return false;
+            return a.z < b.z;
+        }
+
+        private static bool IsZeroLength(Vector3 p0, Vector3 p3) => Vector3.Distance(p0, p3) <= 1e-6f;
         private static bool IsStraightLine(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3)
         {
             Vector3 direction = p3 - p0;

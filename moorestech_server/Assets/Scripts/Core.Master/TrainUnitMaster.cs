@@ -45,6 +45,22 @@ namespace Core.Master
         {
             return _railItems;
         }
+
+        public bool TryGetRailItem(Guid railTypeGuid, out RailItemMasterElement element)
+        {
+            element = default;
+            if (railTypeGuid == Guid.Empty || _railItems == null)
+                return false;
+            for (int i = 0; i < _railItems.Length; i++)
+            {
+                if (_railItems[i].ItemGuid.Equals(railTypeGuid))
+                {
+                    element = _railItems[i];
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }
 

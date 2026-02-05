@@ -18,8 +18,10 @@ namespace Tests.UnitTest.Game
             var railA = TrainTestHelper.PlaceRail(environment, new Vector3Int(0, 0, 0), BlockDirection.North);
             var railB = TrainTestHelper.PlaceRail(environment, new Vector3Int(100, 0, 0), BlockDirection.North);
 
-            railA.ConnectRailComponent(railB, true, true, -1);
-            railB.ConnectRailComponent(railA, true, true, -1);
+            railA.FrontNode.ConnectNode(railB.FrontNode);
+            railB.BackNode.ConnectNode(railA.BackNode);
+            railB.FrontNode.ConnectNode(railA.FrontNode);
+            railA.BackNode.ConnectNode(railB.BackNode);
 
             var nodeApproaching = railB.FrontNode;
             var nodeBehind = railA.FrontNode;

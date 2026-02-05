@@ -22,14 +22,14 @@ namespace Tests.UnitTest.Game
         {
             var env = TrainTestHelper.CreateEnvironment();
 
-            var (stationBlock, railSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+            var (stationBlock, railComponents) = TrainTestHelper.PlaceBlockWithRailComponents(
                 env,
                 ForUnitTestModBlockId.TestTrainStation,
                 Vector3Int.zero,
                 BlockDirection.North);
 
             Assert.IsNotNull(stationBlock, "駅ブロックの設置に失敗しました。");
-            Assert.IsNotNull(railSaver, "RailSaverComponentの取得に失敗しました。");
+            Assert.IsNotNull(railComponents, "RailComponentの取得に失敗しました。");
 
             var stationComponent = stationBlock.GetComponent<StationComponent>();
             Assert.IsNotNull(stationComponent, "StationComponentの取得に失敗しました。");
@@ -40,9 +40,9 @@ namespace Tests.UnitTest.Game
 
             stationInventory.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, maxStack));
 
-            var entryNode = railSaver.RailComponents[0].FrontNode;
+            var entryNode = railComponents[0].FrontNode;
             Assert.IsNotNull(entryNode, "駅の入口ノードを取得できませんでした。");
-            var exitNode = railSaver.RailComponents[1].FrontNode;
+            var exitNode = railComponents[1].FrontNode;
             Assert.IsNotNull(exitNode, "駅の出口ノードを取得できませんでした。");
 
             var stationSegmentLength = stationBlock!.BlockPositionInfo.BlockSize.z;
@@ -80,14 +80,14 @@ namespace Tests.UnitTest.Game
         {
             var env = TrainTestHelper.CreateEnvironment();
 
-            var (cargoPlatformBlock, railSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+            var (cargoPlatformBlock, railComponents) = TrainTestHelper.PlaceBlockWithRailComponents(
                 env,
                 ForUnitTestModBlockId.TestTrainCargoPlatform,
                 Vector3Int.zero,
                 BlockDirection.North);
 
             Assert.IsNotNull(cargoPlatformBlock, "貨物プラットフォームブロックの設置に失敗しました。");
-            Assert.IsNotNull(railSaver, "RailSaverComponentの取得に失敗しました。");
+            Assert.IsNotNull(railComponents, "RailComponentの取得に失敗しました。");
 
             var cargoPlatformComponent = cargoPlatformBlock.GetComponent<CargoplatformComponent>();
             Assert.IsNotNull(cargoPlatformComponent, "CargoplatformComponentの取得に失敗しました。");
@@ -98,9 +98,9 @@ namespace Tests.UnitTest.Game
 
             cargoInventory.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, maxStack));
 
-            var entryNode = railSaver.RailComponents[0].FrontNode;
+            var entryNode = railComponents[0].FrontNode;
             Assert.IsNotNull(entryNode, "貨物プラットフォームの入口ノードを取得できませんでした。");
-            var exitNode = railSaver.RailComponents[1].FrontNode;
+            var exitNode = railComponents[1].FrontNode;
             Assert.IsNotNull(exitNode, "貨物プラットフォームの出口ノードを取得できませんでした。");
 
             var platformSegmentLength = cargoPlatformBlock!.BlockPositionInfo.BlockSize.z;
@@ -138,14 +138,14 @@ namespace Tests.UnitTest.Game
         {
             var env = TrainTestHelper.CreateEnvironment();
 
-            var (cargoPlatformBlock, railSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+            var (cargoPlatformBlock, railComponents) = TrainTestHelper.PlaceBlockWithRailComponents(
                 env,
                 ForUnitTestModBlockId.TestTrainCargoPlatform,
                 Vector3Int.zero,
                 BlockDirection.North);
 
             Assert.IsNotNull(cargoPlatformBlock, "貨物プラットフォームブロックの設置に失敗しました。");
-            Assert.IsNotNull(railSaver, "RailSaverComponentの取得に失敗しました。");
+            Assert.IsNotNull(railComponents, "RailComponentの取得に失敗しました。");
 
             var cargoPlatformComponent = cargoPlatformBlock.GetComponent<CargoplatformComponent>();
             Assert.IsNotNull(cargoPlatformComponent, "CargoplatformComponentの取得に失敗しました。");
@@ -157,9 +157,9 @@ namespace Tests.UnitTest.Game
 
             cargoInventory.SetItem(0, ServerContext.ItemStackFactory.CreatEmpty());
 
-            var entryNode = railSaver.RailComponents[0].FrontNode;
+            var entryNode = railComponents[0].FrontNode;
             Assert.IsNotNull(entryNode, "貨物プラットフォームの入口ノードを取得できませんでした。");
-            var exitNode = railSaver.RailComponents[1].FrontNode;
+            var exitNode = railComponents[1].FrontNode;
             Assert.IsNotNull(exitNode, "貨物プラットフォームの出口ノードを取得できませんでした。");
 
             var platformSegmentLength = cargoPlatformBlock!.BlockPositionInfo.BlockSize.z;
@@ -200,20 +200,20 @@ namespace Tests.UnitTest.Game
         {
             var env = TrainTestHelper.CreateEnvironment();
 
-            var (stationBlock, railSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+            var (stationBlock, railComponents) = TrainTestHelper.PlaceBlockWithRailComponents(
                 env,
                 ForUnitTestModBlockId.TestTrainStation,
                 Vector3Int.zero,
                 BlockDirection.North);
 
             Assert.IsNotNull(stationBlock, "駅ブロックの設置に失敗しました。");
-            Assert.IsNotNull(railSaver, "RailSaverComponentの取得に失敗しました。");
+            Assert.IsNotNull(railComponents, "RailComponentの取得に失敗しました。");
 
             Assert.IsTrue(stationBlock.ComponentManager.TryGetComponent<IBlockInventory>(out var stationInventory),
                 "駅ブロックのインベントリコンポーネントが見つかりません。");
 
-            var entryNode = railSaver.RailComponents[0].FrontNode;
-            var exitNode = railSaver.RailComponents[1].FrontNode;
+            var entryNode = railComponents[0].FrontNode;
+            var exitNode = railComponents[1].FrontNode;
 
             Assert.IsNotNull(entryNode, "駅の入口ノードを取得できませんでした。");
             Assert.IsNotNull(exitNode, "駅の出口ノードを取得できませんでした。");

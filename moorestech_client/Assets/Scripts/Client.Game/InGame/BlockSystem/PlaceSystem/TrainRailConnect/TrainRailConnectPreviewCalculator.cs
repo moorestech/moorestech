@@ -12,7 +12,7 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
 {
     /// <summary>
-    /// レール橋脚同士が接続する際、レール同士がどのような接続をするかを計算します
+    /// レール橋脚間接続時のプレビュー曲線を計算する
     /// Calculates the rail connection when connecting rail piers to each other
     /// </summary>
     public class TrainRailConnectPreviewCalculator
@@ -23,7 +23,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         /// </summary>
         public static TrainRailConnectPreviewData CalculatePreviewData(ConnectionDestination from, ConnectionDestination to, RailGraphClientCache cache, ILocalPlayerInventory playerInventory)
         {
-            // 起点ノードを取得
+            // 始点ノードを取得
             // Get the start node
             if (!cache.TryGetNodeId(from, out var fromNodeId) || !cache.TryGetNode(fromNodeId, out var fromNode))
             {
@@ -37,71 +37,75 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 return TrainRailConnectPreviewData.Invalid;
             }
             
-            // 起点の制御点
-            // Start control point
-            var fromControlPoint = fromNode.FrontControlPoint;
-            var p0 = fromControlPoint.OriginalPosition;
-            var p1 = fromControlPoint.OriginalPosition + fromControlPoint.ControlPointPosition;
-            var toControlPoint = toNode.BackControlPoint;
-            var p2 = toControlPoint.OriginalPosition + toControlPoint.ControlPointPosition;
-            var p3 = toControlPoint.OriginalPosition;
-            var length = BezierUtility.GetBezierCurveLength(p0, p1, p2, p3, 64);
-            
+            // レール長から設置可能なレールを判定
+            // Determine placeable rail items from curve length
+            var length = BezierUtility.GetBezierCurveLength(fromNode, toNode, 64);
             (RailItemMasterElement element, int requiredCount)[] placeableRailItems = RailConnectionEditProtocol.GetPlaceableRailItems(playerInventory, length);
+            var railTypeGuid = placeableRailItems.Length > 0 ? placeableRailItems[0].element.ItemGuid : Guid.Empty;
             
-            return new TrainRailConnectPreviewData(p0, p1, p2, p3, length, placeableRailItems.Any());
+            // 描画用の制御点を生成
+            // Build render control points
+            BezierUtility.BuildRenderControlPoints(fromNode.FrontControlPoint, toNode.BackControlPoint, out var p0, out var p1, out var p2, out var p3);
+            return new TrainRailConnectPreviewData(p0, p1, p2, p3, railTypeGuid, placeableRailItems.Any());
         }
         
         public static TrainRailConnectPreviewData CalculatePreviewData(ConnectionDestination from, Vector3 placePosition, RailComponentDirection direction, RailGraphClientCache cache, ILocalPlayerInventory playerInventory)
         {
-            // 起点ノードを取得
+            // 始点ノードを取得
             // Get the start node
             if (!cache.TryGetNodeId(from, out var fromNodeId) || !cache.TryGetNode(fromNodeId, out var fromNode))
             {
                 return TrainRailConnectPreviewData.Invalid;
             }
             
-            // 起点の制御点
-            // Start control point
-            var fromControlPoint = fromNode.FrontControlPoint;
-            var p0 = fromControlPoint.OriginalPosition;
-            var p1 = fromControlPoint.OriginalPosition + fromControlPoint.ControlPointPosition;
-            var controlPointLength = Mathf.Min(fromControlPoint.ControlPointPosition.magnitude, (p1 - placePosition).magnitude);
-            var toControlPointDirection = direction.ToVector3();
-            var p2 = placePosition + toControlPointDirection * controlPointLength;
-            var p3 = placePosition;
+            // 制御点計算に必要な位置と方向を取得
+            // Get positions and directions for control points
+            var startPosition = fromNode.FrontControlPoint.OriginalPosition;
+            var endPosition = cursorPosition;
+            var startDirection = fromNode.FrontControlPoint.ControlPointPosition;
+            var endDirection = startPosition - endPosition;
+            if (endDirection.sqrMagnitude < 1e-6)
+            {
+                endDirection = new Vector3(0, 1f, 0);
+            }
+            else
+            {
+                endDirection.Normalize();
+            }
+            // 描画用の制御点を生成
+            // Build render control points
+            BezierUtility.BuildRenderControlPoints(startPosition, endPosition, startDirection, endDirection, out var p0, out var p1, out var p2, out var p3);
             var length = BezierUtility.GetBezierCurveLength(p0, p1, p2, p3, 64);
-            
             (RailItemMasterElement element, int requiredCount)[] placeableRailItems = RailConnectionEditProtocol.GetPlaceableRailItems(playerInventory, length);
-            
-            return new TrainRailConnectPreviewData(p0, p1, p2, p3, length, placeableRailItems.Any());
+            var railTypeGuid = placeableRailItems.Length > 0 ? placeableRailItems[0].element.ItemGuid : Guid.Empty;
+            return new TrainRailConnectPreviewData(p0, p1, p2, p3, railTypeGuid, placeableRailItems.Any());
         }
     }
     
     public struct TrainRailConnectPreviewData : IEquatable<TrainRailConnectPreviewData>
     {
-        public static TrainRailConnectPreviewData Invalid => new(Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero, 0f, false, false); 
+        public static TrainRailConnectPreviewData Invalid => new(Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero, Guid.Empty, false, false); 
         public Vector3 StartPoint;
         public Vector3 StartControlPoint;
         public Vector3 EndControlPoint;
         public Vector3 EndPoint;
-        public float Length;
+        public Guid RailTypeGuid;
         public bool IsValid;
         public bool HasEnoughRailItem;
         
-        public TrainRailConnectPreviewData(Vector3 startPoint, Vector3 startControlPoint, Vector3 endControlPoint, Vector3 endPoint, float length, bool hasEnoughRailItem, bool isValid = true)
+        public TrainRailConnectPreviewData(Vector3 startPoint, Vector3 startControlPoint, Vector3 endControlPoint, Vector3 endPoint, Guid railTypeGuid, bool hasEnoughRailItem, bool isValid = true)
         {
             StartPoint = startPoint;
             StartControlPoint = startControlPoint;
             EndControlPoint = endControlPoint;
             EndPoint = endPoint;
             IsValid = isValid;
-            Length = length;
+            RailTypeGuid = railTypeGuid;
             HasEnoughRailItem = hasEnoughRailItem;
         }
         public bool Equals(TrainRailConnectPreviewData other)
         {
-            return StartPoint.Equals(other.StartPoint) && StartControlPoint.Equals(other.StartControlPoint) && EndControlPoint.Equals(other.EndControlPoint) && EndPoint.Equals(other.EndPoint);
+            return StartPoint.Equals(other.StartPoint) && StartControlPoint.Equals(other.StartControlPoint) && EndControlPoint.Equals(other.EndControlPoint) && EndPoint.Equals(other.EndPoint) && RailTypeGuid.Equals(other.RailTypeGuid);
         }
         public override bool Equals(object obj)
         {
@@ -109,7 +113,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         }
         public override int GetHashCode()
         {
-            return HashCode.Combine(StartPoint, StartControlPoint, EndControlPoint, EndPoint);
+            return HashCode.Combine(StartPoint, StartControlPoint, EndControlPoint, EndPoint, RailTypeGuid);
         }
         public override string ToString()
         {
