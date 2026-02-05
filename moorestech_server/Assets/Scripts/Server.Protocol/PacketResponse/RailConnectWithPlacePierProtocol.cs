@@ -2,14 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
+using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.PlayerInventory.Interface;
+using Game.Train.RailGraph;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
-using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -17,10 +18,14 @@ namespace Server.Protocol.PacketResponse
     {
         public const string Tag = "va:railConnectWithPlacePier";
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
+        private readonly IRailGraphDatastore _railGraphDatastore;
+        private readonly RailConnectionCommandHandler _commandHandler;
         
         public RailConnectWithPlacePierProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
+            _railGraphDatastore = serviceProvider.GetService<IRailGraphDatastore>();
+            _commandHandler = serviceProvider.GetService<RailConnectionCommandHandler>();
         }
         
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
@@ -28,15 +33,18 @@ namespace Server.Protocol.PacketResponse
             var request = MessagePackSerializer.Deserialize<RailConnectWithPlacePierRequest>(payload.ToArray());
             var inventoryData = _playerInventoryDataStore.GetInventoryData(request.PlayerId);
             
+            // fromNodeの取得
+            if (!_railGraphDatastore.TryGetRailNode(request.FromNodeId, out var fromNode) || fromNode == null || fromNode.Guid != request.FromGuid) return null;
+            
             // すでにブロックがある場合はそのまま処理を終了
             if (ServerContext.WorldBlockDatastore.Exists(request.PierPlaceInfo.Position)) return null;
             
             // アイテムIDがブロックIDに変換できない場合はそのまま処理を終了
-            var item = inventoryData.MainOpenableInventory.GetItem(request.PierInventorySlot);
-            if (!MasterHolder.BlockMaster.IsBlock(item.Id)) return null;
+            var itemStack = inventoryData.MainOpenableInventory.GetItem(request.PierInventorySlot);
+            if (!MasterHolder.BlockMaster.IsBlock(itemStack.Id)) return null;
             
             // ブロックIDの設定
-            var blockId = MasterHolder.BlockMaster.GetBlockId(item.Id);
+            var blockId = MasterHolder.BlockMaster.GetBlockId(itemStack.Id);
             blockId = blockId.GetVerticalOverrideBlockId(request.PierPlaceInfo.VerticalDirection);
             
             // paramsの設定
@@ -44,10 +52,16 @@ namespace Server.Protocol.PacketResponse
             
             // ブロックの設置
             ServerContext.WorldBlockDatastore.TryAddBlock(blockId, request.PierPlaceInfo.Position, request.PierPlaceInfo.Direction, createParams, out var block);
+            var railComponent = block.GetComponent<RailComponent>();
+            var toNode = railComponent.BackNode;
+            
+            if (!RailConnectionEditProtocol.TryResolveRailItemForPlacement(request.RailTypeGuid, inventoryData.MainOpenableInventory.InventoryItems, RailConnectionEditProtocol.GetRailLength(fromNode, toNode), out var railItem, out var requiredCount)) return null;
+            
+            var connectResult = _commandHandler.TryConnect(fromNode.NodeId, fromNode.Guid, toNode.NodeId, toNode.Guid, request.RailTypeGuid);
             
             // アイテムを減らし、セットする
-            item = item.SubItem(1);
-            inventoryData.MainOpenableInventory.SetItem(request.PierInventorySlot, item);
+            itemStack = itemStack.SubItem(1);
+            inventoryData.MainOpenableInventory.SetItem(request.PierInventorySlot, itemStack);
             
             return null;
         }
