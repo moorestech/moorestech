@@ -48,13 +48,13 @@ namespace Tests.UnitTest.Game.SaveLoad
                 Assert.AreEqual(expected.EntryId, actual.entryId, $"エントリ{i}のIDが一致しません。");
                 var actualNode = RequireRailNode(actual.Node);
                 var connection = actualNode.ConnectionDestination;
-                Assert.IsTrue(actualNode.HasConnectionDestination, $"エントリ{i}のRailComponentIDを解決できません。");
+                Assert.IsTrue(actualNode.HasConnectionDestination, $"エントリ{i}のConnectionDestinationを解決できません。");
 
-                var destination = connection.railComponentID;
-                var actualPosition = new Vector3Int(destination.Position.x, destination.Position.y, destination.Position.z);
+                var blockPosition = connection.blockPosition;
+                var actualPosition = new Vector3Int(blockPosition.x, blockPosition.y, blockPosition.z);
 
                 Assert.AreEqual(expected.Position, actualPosition, $"エントリ{i}の座標が一致しません。");
-                Assert.AreEqual(expected.ComponentIndex, destination.ID, $"エントリ{i}のコンポーネントIDが一致しません。");
+                Assert.AreEqual(expected.ComponentIndex, connection.componentIndex, $"エントリ{i}のコンポーネントIDが一致しません。");
                 Assert.AreEqual(expected.IsFront, connection.IsFront, $"エントリ{i}の接続面情報が一致しません。");
                 Assert.AreEqual(expected.WaitInitial, actual.GetWaitForTicksInitialTicks(),
                     $"エントリ{i}の待機初期値が一致しません。");
@@ -97,13 +97,13 @@ namespace Tests.UnitTest.Game.SaveLoad
                 Assert.AreEqual(expected.EntryId, actual.entryId, $"エントリ{i}のIDが一致しません。");
                 var actualNode = RequireRailNode(actual.Node);
                 var connection = actualNode.ConnectionDestination;
-                Assert.IsTrue(actualNode.HasConnectionDestination, $"エントリ{i}のRailComponentIDを解決できません。");
+                Assert.IsTrue(actualNode.HasConnectionDestination, $"エントリ{i}のConnectionDestinationを解決できません。");
 
-                var destination = connection.railComponentID;
-                var actualPosition = new Vector3Int(destination.Position.x, destination.Position.y, destination.Position.z);
+                var blockPosition = connection.blockPosition;
+                var actualPosition = new Vector3Int(blockPosition.x, blockPosition.y, blockPosition.z);
 
                 Assert.AreEqual(expected.Position, actualPosition, $"エントリ{i}の座標が一致しません。");
-                Assert.AreEqual(expected.ComponentIndex, destination.ID, $"エントリ{i}のコンポーネントIDが一致しません。");
+                Assert.AreEqual(expected.ComponentIndex, connection.componentIndex, $"エントリ{i}のコンポーネントIDが一致しません。");
                 Assert.AreEqual(expected.IsFront, connection.IsFront, $"エントリ{i}の接続面情報が一致しません。");
                 Assert.AreEqual(expected.WaitInitial, actual.GetWaitForTicksInitialTicks(),
                     $"エントリ{i}の待機初期値が一致しません。");
@@ -137,8 +137,12 @@ namespace Tests.UnitTest.Game.SaveLoad
                 var next = components[i + 1];
 
                 // 実際の線路では双方向の接続が保存されるため、前後双方のノードを明示的な距離で結ぶ。
-                current.ConnectRailComponent(next, true, true, SegmentLength);
-                next.ConnectRailComponent(current, true, true, SegmentLength);
+                //current.ConnectRailComponent(next, true, true, SegmentLength);
+                //next.ConnectRailComponent(current, true, true, SegmentLength);
+                current.FrontNode.ConnectNode(next.FrontNode, SegmentLength);
+                next.BackNode.ConnectNode(current.BackNode, SegmentLength);
+                next.FrontNode.ConnectNode(current.FrontNode, SegmentLength);
+                current.BackNode.ConnectNode(next.BackNode, SegmentLength);
             }
 
             var railNodes = new List<RailNode>();
@@ -179,15 +183,15 @@ namespace Tests.UnitTest.Game.SaveLoad
                 var entry = train.trainDiagram.Entries[i];
                 var entryNode = RequireRailNode(entry.Node);
                 var connection = entryNode.ConnectionDestination;
-                Assert.IsTrue(entryNode.HasConnectionDestination, $"エントリ{i}のRailComponentIDを取得できません。");
+                Assert.IsTrue(entryNode.HasConnectionDestination, $"エントリ{i}のConnectionDestinationを取得できません。");
 
-                var destination = connection.railComponentID;
-                var position = new Vector3Int(destination.Position.x, destination.Position.y, destination.Position.z);
+                var blockPosition = connection.blockPosition;
+                var position = new Vector3Int(blockPosition.x, blockPosition.y, blockPosition.z);
 
                 expectedEntries.Add(new ExpectedEntry(
                     entry.entryId,
                     position,
-                    destination.ID,
+                    connection.componentIndex,
                     connection.IsFront,
                     entry.GetWaitForTicksInitialTicks(),
                     entry.GetWaitForTicksRemainingTicks()));
@@ -274,14 +278,13 @@ namespace Tests.UnitTest.Game.SaveLoad
                 var nodeObject = entryObject["Node"] as JsonObject;
                 Assert.IsNotNull(nodeObject, "ダイアグラムエントリにNode情報が存在しません。");
 
-                var destinationObject = nodeObject["railComponentID"] as JsonObject;
-                Assert.IsNotNull(destinationObject, "ダイアグラムエントリにrailComponentIDが存在しません。");
+                var positionObject = nodeObject["blockPosition"] as JsonObject ?? new JsonObject();
+                Assert.IsNotNull(positionObject, "ダイアグラムエントリにblockPositionが存在しません。");
 
-                var positionObject = destinationObject["Position"] as JsonObject ?? new JsonObject();
                 positionObject["x"] = 99;
                 positionObject["y"] = 0;
                 positionObject["z"] = 0;
-                destinationObject["Position"] = positionObject;
+                nodeObject["blockPosition"] = positionObject;
 
                 found = true;
                 break;

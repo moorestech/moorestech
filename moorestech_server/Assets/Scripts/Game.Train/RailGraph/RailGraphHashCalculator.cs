@@ -22,7 +22,7 @@ namespace Game.Train.RailGraph
         /// <summary>
         /// railNodes / connectNodes の状態から順序独立ハッシュを計算する。
         /// </summary>
-        public static uint ComputeGraphStateHash(IReadOnlyList<IRailNode> railNodes, List<List<(int targetId, int distance)>> connectNodes)
+        public static uint ComputeGraphStateHash(IReadOnlyList<IRailNode> railNodes, List<List<(int targetId, int distance)>> connectNodes, Func<int, int, Guid> resolveRailType, Func<int, int, bool> resolveRailDrawable)
         {
             uint hash = FnvOffset;
 
@@ -46,7 +46,7 @@ namespace Game.Train.RailGraph
             }
 
             hash = Mix(hash, unchecked((int)0x3F6A_2B1D));
-            return MixConnections(hash, connectNodes);
+            return MixConnections(hash, connectNodes, resolveRailType, resolveRailDrawable);
         }
 
         /// <summary>
@@ -54,7 +54,9 @@ namespace Game.Train.RailGraph
         /// </summary>
         public static uint ComputeGraphStateHash(
             IReadOnlyList<RailNodeInitializationData> nodes,
-            IReadOnlyList<IReadOnlyList<(int targetId, int distance)>> connectNodes)
+            IReadOnlyList<IReadOnlyList<(int targetId, int distance)>> connectNodes,
+            Func<int, int, Guid> resolveRailType,
+            Func<int, int, bool> resolveRailDrawable)
         {
             uint hash = FnvOffset;
 
@@ -75,7 +77,7 @@ namespace Game.Train.RailGraph
             }
 
             hash = Mix(hash, unchecked((int)0x3F6A_2B1D));
-            return MixConnections(hash, connectNodes);
+            return MixConnections(hash, connectNodes, resolveRailType, resolveRailDrawable);
         }
 
         /// <summary>
@@ -118,11 +120,11 @@ namespace Game.Train.RailGraph
                 return Mix(current, -1);
             }
 
-            var position = destination.railComponentID.Position;
+            var position = destination.blockPosition;
             current = Mix(current, position.x);
             current = Mix(current, position.y);
             current = Mix(current, position.z);
-            current = Mix(current, destination.railComponentID.ID);
+            current = Mix(current, destination.componentIndex);
             current = Mix(current, destination.IsFront ? 1 : 0);
             return current;
         }
@@ -155,7 +157,9 @@ namespace Game.Train.RailGraph
 
         private static uint MixConnections(
             uint current,
-            IReadOnlyList<IReadOnlyList<(int targetId, int distance)>> connectNodes)
+            IReadOnlyList<IReadOnlyList<(int targetId, int distance)>> connectNodes,
+            Func<int, int, Guid> resolveRailType,
+            Func<int, int, bool> resolveRailDrawable)
         {
             if (connectNodes == null || connectNodes.Count == 0)
                 return current;
@@ -183,10 +187,22 @@ namespace Game.Train.RailGraph
                 {
                     hash = Mix(hash, normalized[i].target);
                     hash = Mix(hash, normalized[i].dist);
+                    hash = MixGuid(hash, ResolveRailTypeGuid(resolveRailType, nodeId, normalized[i].target));
+                    hash = Mix(hash, ResolveRailDrawable(resolveRailDrawable, nodeId, normalized[i].target) ? 1 : 0);
                 }
             }
 
             return hash;
+        }
+
+        private static Guid ResolveRailTypeGuid(Func<int, int, Guid> resolveRailType, int startNodeId, int endNodeId)
+        {
+            return resolveRailType == null ? Guid.Empty : resolveRailType(startNodeId, endNodeId);
+        }
+
+        private static bool ResolveRailDrawable(Func<int, int, bool> resolveRailDrawable, int startNodeId, int endNodeId)
+        {
+            return resolveRailDrawable != null && resolveRailDrawable(startNodeId, endNodeId);
         }
     }
 }

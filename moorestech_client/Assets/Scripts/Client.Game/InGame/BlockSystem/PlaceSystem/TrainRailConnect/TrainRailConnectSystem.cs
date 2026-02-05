@@ -1,6 +1,4 @@
-using System.Linq;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
-using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
+using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Train.RailGraph;
@@ -54,17 +52,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 if (_connectFromArea != null)
                 {
                     var destination = _connectFromArea.CreateConnectionDestination();
-                    var componentPosition = (Vector3Int)destination.railComponentID.Position;
-                    Debug.Log($"接続スタート {_connectFromArea.IsFront} {componentPosition}");
+                    var componentPosition = destination.blockPosition;
+                    Debug.Log($"[TrainRailConnect] Select FROM: IsFront={_connectFromArea.IsFront} pos=({componentPosition.x},{componentPosition.y},{componentPosition.z})");
                 }
                 return;
             }
             
-            // 接続対象のConnectionDestinationを算出
             // Compute ConnectionDestination for both endpoints
             var fromDestination = _connectFromArea.CreateConnectionDestination();
             
-            // 接続先がカーソル上になければreturn
             // If the connection point is not under the cursor, return.
             var connectToArea = GetTrainRailConnectAreaCollider();
             if (connectToArea == null)
@@ -117,10 +113,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 var previewData = CalculatePreviewData(fromDestination, toDestination, _cache, _playerInventory);
                 ShowPreview(previewData);
                 
-                // 必要数アイテムを持っていないなら設置処理を呼ばない
                 if (!previewData.HasEnoughRailItem) return;
                 
-                SendProtocol(fromNode, toNode);   
+                SendProtocol(fromNode, toNode, previewData.RailTypeGuid);   
             }
             
             #region Internal
@@ -136,14 +131,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 _previewObject.ShowPreview(previewData);
             }
             
-            void SendProtocol(IRailNode from, IRailNode to)
+            void SendProtocol(IRailNode from, IRailNode to, Guid railTypeGuid)
             {
                 if (!InputManager.Playable.ScreenLeftClick.GetKeyDown) return;
                 
                 _previewObject.SetActive(false);
                 
                 Debug.Log($"Connecting rails: From NodeId={from.NodeId}, Guid={from.NodeGuid} To NodeId={to.NodeId}, Guid={to.NodeGuid}");
-                ClientContext.VanillaApi.SendOnly.ConnectRail(from.NodeId, from.NodeGuid, to.NodeId, to.NodeGuid);
+                ClientContext.VanillaApi.SendOnly.ConnectRail(from.NodeId, from.NodeGuid, to.NodeId, to.NodeGuid, railTypeGuid);
                 _connectFromArea = null;
             }
             

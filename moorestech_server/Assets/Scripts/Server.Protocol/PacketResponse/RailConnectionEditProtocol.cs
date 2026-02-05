@@ -62,19 +62,18 @@ namespace Server.Protocol.PacketResponse
                         var length = GetRailLength(fromNode, toNode);
                         
                         var inventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory;
-                        (RailItemMasterElement element, int requiredCount)[] placeableRailItems = GetPlaceableRailItems(inventory.InventoryItems, length);
-                        
-                        if (placeableRailItems.Length == 0) return ResponseRailConnectionEditMessagePack.CreateFailure(RailConnectionEditFailureReason.NotEnoughRailItem, data.Mode);
-                        var placeRailItem = placeableRailItems[0];
-                        Debug.Log($"Placeable rail items: {placeableRailItems.Length}, Place rail item: {placeRailItem.element.ItemGuid}, Required count: {placeRailItem.requiredCount}");
-                        
-                        var connectResult = _commandHandler.TryConnect(data.FromNodeId, data.FromGuid, data.ToNodeId, data.ToGuid);
+                        var railTypeGuid = data.RailTypeGuid;
+                        if (!TryResolveRailItemForPlacement(railTypeGuid, inventory.InventoryItems, length, out var placeRailItem, out var requiredCount))
+                            return ResponseRailConnectionEditMessagePack.CreateFailure(RailConnectionEditFailureReason.NotEnoughRailItem, data.Mode);
+
+                        var connectResult = _commandHandler.TryConnect(data.FromNodeId, data.FromGuid, data.ToNodeId, data.ToGuid, railTypeGuid);
                         
                         // 成功したらインベントリから引く
-                        if (connectResult)
+                        // Consume rail items on success
+                        if (connectResult && railTypeGuid != Guid.Empty)
                         {
-                            var railItemId = MasterHolder.ItemMaster.GetItemId(placeRailItem.element.ItemGuid);
-                            var remainSubCount = placeRailItem.requiredCount;
+                            var railItemId = MasterHolder.ItemMaster.GetItemId(placeRailItem.ItemGuid);
+                            var remainSubCount = requiredCount;
                             foreach (var (stack, i) in inventory.InventoryItems.ToArray().Select((stack, i) => (stack, i)).Where(stack => stack.stack.Id == railItemId))
                             {
                                 var subCount = Mathf.Min(stack.Count, remainSubCount);
@@ -86,7 +85,7 @@ namespace Server.Protocol.PacketResponse
                             }
                             
                             // 残りがまだあるということがあってはならない
-                            if (remainSubCount > 0) throw new Exception($"Rail item count is not enough. Required: {placeRailItem.requiredCount}, Inventory: {inventory.InventoryItems.Where(stack => stack.Id == railItemId).Sum(stack => stack.Count)}");
+                            if (remainSubCount > 0) throw new Exception($"Rail item count is not enough. Required: {requiredCount}, Inventory: {inventory.InventoryItems.Where(stack => stack.Id == railItemId).Sum(stack => stack.Count)}");
                         }
                         
                         return ResponseRailConnectionEditMessagePack.Create(connectResult, connectResult ? RailConnectionEditFailureReason.None : RailConnectionEditFailureReason.InvalidNode, data.Mode);
@@ -123,27 +122,41 @@ namespace Server.Protocol.PacketResponse
                     return ResponseRailConnectionEditMessagePack.CreateFailure(RailConnectionEditFailureReason.NodeInUseByTrain, data.Mode);
                 }
                 
+                var railTypeGuid = ResolveRailTypeGuid(data.FromNodeId, data.ToNodeId);
                 var inventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory;
                 var railLength = GetRailLength(fromNode, toNode);
-                var railItem = MasterHolder.TrainUnitMaster.GetRailItems()[0]; // TODO: 一旦レールの種類は1つであると仮定して進める。いずれRailに対して情報を持たせ適切なレールを選択するようにする。
+                if (railTypeGuid == Guid.Empty)
+                {
+                    var disconnected = _commandHandler.TryDisconnect(data.FromNodeId, data.FromGuid, data.ToNodeId, data.ToGuid);
+                    return ResponseRailConnectionEditMessagePack.Create(disconnected, disconnected ? RailConnectionEditFailureReason.None : RailConnectionEditFailureReason.UnknownError, data.Mode);
+                }
+
+                if (!MasterHolder.TrainUnitMaster.TryGetRailItem(railTypeGuid, out var railItem))
+                {
+                    var disconnected = _commandHandler.TryDisconnect(data.FromNodeId, data.FromGuid, data.ToNodeId, data.ToGuid);
+                    return ResponseRailConnectionEditMessagePack.Create(disconnected, disconnected ? RailConnectionEditFailureReason.None : RailConnectionEditFailureReason.UnknownError, data.Mode);
+                }
+
                 var requiredCount = CalculateRailItemRequiredCount(railLength, railItem);
                 var itemStack = ServerContext.ItemStackFactory.Create(railItem.ItemGuid, requiredCount);
                 
                 // playerインベントリに空きがない場合は削除不可
+                // Abort when there is no inventory space to return the item
                 if (!inventory.InsertionCheck(new List<IItemStack> { itemStack }))
                 {
                     return ResponseRailConnectionEditMessagePack.CreateFailure(RailConnectionEditFailureReason.NotEnoughInventorySpace, data.Mode);
                 }
 
-                var disconnected = _commandHandler.TryDisconnect(data.FromNodeId, data.FromGuid, data.ToNodeId, data.ToGuid);
+                var disconnectedflag = _commandHandler.TryDisconnect(data.FromNodeId, data.FromGuid, data.ToNodeId, data.ToGuid);
                 
                 // アイテムを返却
-                if (disconnected)
+                // Return rail items
+                if (disconnectedflag)
                 {
                     inventory.InsertItem(itemStack);
                 }
                 
-                return ResponseRailConnectionEditMessagePack.Create(disconnected, disconnected ? RailConnectionEditFailureReason.None : RailConnectionEditFailureReason.UnknownError, data.Mode);
+                return ResponseRailConnectionEditMessagePack.Create(disconnectedflag, disconnectedflag ? RailConnectionEditFailureReason.None : RailConnectionEditFailureReason.UnknownError, data.Mode);
             }
 
             bool IsStationInternalEdge(RailNode from, RailNode to)
@@ -153,6 +166,41 @@ namespace Server.Protocol.PacketResponse
                     return false;
                 }
                 return from.StationRef.StationBlockInstanceId.Equals(to.StationRef.StationBlockInstanceId);
+            }
+
+            // レール設置用のアイテム情報を解決する
+            // Resolve rail item information for placement
+            bool TryResolveRailItemForPlacement(Guid railTypeGuid, IEnumerable<IItemStack> inventoryItems, float railLength, out RailItemMasterElement railItem, out int requiredCount)
+            {
+                railItem = default;
+                requiredCount = 0;
+                if (railTypeGuid == Guid.Empty)
+                {
+                    return true;
+                }
+
+                if (!MasterHolder.TrainUnitMaster.TryGetRailItem(railTypeGuid, out railItem))
+                {
+                    return false;
+                }
+
+                requiredCount = CalculateRailItemRequiredCount(railLength, railItem);
+                var railItemId = MasterHolder.ItemMaster.GetItemId(railItem.ItemGuid);
+                var ownedCount = inventoryItems.Where(stack => stack.Id == railItemId).Sum(stack => stack.Count);
+                if (ownedCount < requiredCount)
+                {
+                    return false;
+                }
+
+                Debug.Log($"Place rail item: {railItem.ItemGuid}, Required count: {requiredCount}");
+                return true;
+            }
+
+            // レール種別をセグメントから解決する
+            // Resolve rail type from the segment data
+            Guid ResolveRailTypeGuid(int fromNodeId, int toNodeId)
+            {
+                return _railGraphDatastore.TryGetRailSegmentType(fromNodeId, toNodeId, out var railTypeGuid) ? railTypeGuid : Guid.Empty;
             }
 
             #endregion
@@ -165,7 +213,6 @@ namespace Server.Protocol.PacketResponse
             var p2 = toNode.BackControlPoint.OriginalPosition + toNode.BackControlPoint.ControlPointPosition;
             var p3 = toNode.BackControlPoint.OriginalPosition;
             var length = BezierUtility.GetBezierCurveLength(p0, p1, p2, p3, 64);
-            
             return length;
         }
         
@@ -204,11 +251,12 @@ namespace Server.Protocol.PacketResponse
             [Key(5)] public Guid ToGuid { get; set; }
             [Key(6)] public RailEditMode Mode { get; set; }
             [Key(7)] public int PlayerId { get; set; }
+            [Key(8)] public Guid RailTypeGuid { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public RailConnectionEditRequest() { Tag = RailConnectionEditProtocol.Tag; }
             
-            public static RailConnectionEditRequest CreateConnectRequest(int playerId, int fromNodeId, Guid fromGuid, int toNodeId, Guid toGuid)
+            public static RailConnectionEditRequest CreateConnectRequest(int playerId, int fromNodeId, Guid fromGuid, int toNodeId, Guid toGuid, Guid railTypeGuid)
             {
                 return new RailConnectionEditRequest
                 {
@@ -218,6 +266,7 @@ namespace Server.Protocol.PacketResponse
                     ToNodeId = toNodeId,
                     ToGuid = toGuid,
                     Mode = RailEditMode.Connect,
+                    RailTypeGuid = railTypeGuid,
                 };
             }
             
@@ -231,6 +280,7 @@ namespace Server.Protocol.PacketResponse
                     ToNodeId = toNodeId,
                     ToGuid = toGuid,
                     Mode = RailEditMode.Disconnect,
+                    RailTypeGuid = Guid.Empty,
                 };
             }
         }

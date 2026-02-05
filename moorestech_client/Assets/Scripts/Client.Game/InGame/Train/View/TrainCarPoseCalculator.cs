@@ -75,26 +75,18 @@ namespace Client.Game.InGame.Train.View
             // Validate segment inputs
             if (behind == null || ahead == null || distanceFromBehind < 0) return false;
 
-            // ベジエ制御点を相対座標で構成する
-            // Build relative Bezier control points
-            var startControl = behind.FrontControlPoint;
-            var endControl = ahead.BackControlPoint;
-            var origin = startControl.OriginalPosition;
-            var p0 = Vector3.zero;
-            var p1 = startControl.ControlPointPosition;
-            var delta = endControl.OriginalPosition - origin;
-            var p2 = endControl.ControlPointPosition + delta;
-            var p3 = delta;
-
+            // 描画用の制御点を使ってセグメントの位置を計算する
+            // Build render control points for the segment
+            BezierUtility.BuildRenderControlPoints(behind.FrontControlPoint, ahead.BackControlPoint, out var p0, out var p1, out var p2, out var p3);
             // 弧長テーブルを用いてtを解決する
             // Resolve t with arc-length lookup
             var arcLength = BuildArcLengthTable(p0, p1, p2, p3, out var arcLengths);
             var distanceWorld = distanceFromBehind / BezierUtility.RAIL_LENGTH_SCALE;
-            var t = arcLength > MinCurveLength ? BezierUtility.DistanceToTime(distanceWorld, arcLength, arcLengths) : ComputeLinearT(distanceWorld, p3);
-
+            var delta = p3 - p0;
+            var t = arcLength > MinCurveLength ? BezierUtility.DistanceToTime(distanceWorld, arcLength, arcLengths) : ComputeLinearT(distanceWorld, delta);
             // 位置と向きを計算する
             // Compute position and forward vector
-            position = origin + BezierUtility.GetBezierPoint(p0, p1, p2, p3, t);
+            position = BezierUtility.GetBezierPoint(p0, p1, p2, p3, t);
             var tangent = BezierUtility.GetBezierTangent(p0, p1, p2, p3, t);
             forward = tangent.sqrMagnitude > 1e-6f ? tangent.normalized : (delta.sqrMagnitude > 1e-6f ? delta.normalized : Vector3.forward);
             return true;

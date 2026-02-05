@@ -140,14 +140,18 @@ namespace Tests.UnitTest.Game
                 var (x, y, z) = listIsDestroy[UnityEngine.Random.Range(0, listIsDestroy.Count)];
                 listIsCreated.Add((x, y, z));
                 listIsDestroy.Remove((x, y, z));
-                var railComponentId = new RailComponentID(new Vector3Int(x, y, z), 0);
-                railBlocks[x, y, z] = new RailComponent(railGraphDatastore, new Vector3(x, y, z), BlockDirection.North, railComponentId);
+                var blockPosition = new Vector3Int(x, y, z);
+                railBlocks[x, y, z] = new RailComponent(railGraphDatastore, new Vector3(x, y, z), BlockDirection.North, blockPosition, 0);
 
                 var (x1, y1, z1) = listIsCreated[UnityEngine.Random.Range(0, listIsCreated.Count)];
                 var (x2, y2, z2) = listIsCreated[UnityEngine.Random.Range(0, listIsCreated.Count)];
                 if (x1 == 0 || x1 == size - 1 || y1 == 0 || y1 == size - 1 || z1 == 0 || z1 == size - 1) continue;
                 if ((x1, y1, z1) == (x2, y2, z2)) continue;
-                railBlocks[x1, y1, z1].ConnectRailComponent(railBlocks[x2, y2, z2], true, true);
+                //railBlocks[x1, y1, z1].ConnectRailComponent(railBlocks[x2, y2, z2], true, true);
+                var tmpn0 = railBlocks[x1, y1, z1];
+                var tmpm1 = railBlocks[x2, y2, z2];
+                tmpn0.FrontNode.ConnectNode(tmpm1.FrontNode);
+                tmpm1.BackNode.ConnectNode(tmpn0.BackNode);
 
                 if (UnityEngine.Random.Range(0, 2) == 0) continue;
 
@@ -163,9 +167,31 @@ namespace Tests.UnitTest.Game
                 {
                     for (int z = 0; z < size; z++)
                     {
-                        if (x > 0) railBlocks[x, y, z].ConnectRailComponent(railBlocks[x - 1, y, z], false, false);
-                        if (y > 0) railBlocks[x, y, z].ConnectRailComponent(railBlocks[x, y - 1, z], false, false);
-                        if (z > 0) railBlocks[x, y, z].ConnectRailComponent(railBlocks[x, y, z - 1], false, false);
+                        if (x > 0)
+                        {
+                            //railBlocks[x, y, z].ConnectRailComponent(railBlocks[x - 1, y, z], false, false);
+                            var tmpn0 = railBlocks[x, y, z];
+                            var tmpm1 = railBlocks[x - 1, y, z];
+                            tmpn0.BackNode.ConnectNode(tmpm1.BackNode);
+                            tmpm1.FrontNode.ConnectNode(tmpn0.FrontNode);
+                        }
+                        
+                        if (y > 0)
+                        {
+                            //railBlocks[x, y, z].ConnectRailComponent(railBlocks[x, y - 1, z], false, false);
+                            var tmpn0 = railBlocks[x, y, z];
+                            var tmpm1 = railBlocks[x, y - 1, z];
+                            tmpn0.BackNode.ConnectNode(tmpm1.BackNode);
+                            tmpm1.FrontNode.ConnectNode(tmpn0.FrontNode);
+                        }
+                        if (z > 0)
+                        {
+                            //railBlocks[x, y, z].ConnectRailComponent(railBlocks[x, y, z - 1], false, false);
+                            var tmpn0 = railBlocks[x, y, z];
+                            var tmpm1 = railBlocks[x, y, z - 1];
+                            tmpn0.BackNode.ConnectNode(tmpm1.BackNode);
+                            tmpm1.FrontNode.ConnectNode(tmpn0.FrontNode);
+                        }
                     }
                 }
             }

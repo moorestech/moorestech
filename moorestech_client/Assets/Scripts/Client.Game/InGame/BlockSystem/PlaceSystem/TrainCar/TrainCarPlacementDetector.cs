@@ -164,31 +164,28 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 {
                     distanceFromStart = 0f;
                     curveLength = 0f;
-                    // ベジエ制御点とサンプル距離を計算する
-                    // Build Bezier control points and sample distances
+                    // 描画用の制御点を作り曲線上の距離をサンプルする
+                    // Build render control points and sample distances on the curve
                     if (startNode == null || endNode == null)
                     {
                         return false;
                     }
-
-                    var startControl = startNode.FrontControlPoint;
-                    var endControl = endNode.BackControlPoint;
-                    BezierUtility.BuildRelativeControlPoints(startControl, endControl, out var origin, out var p0, out var p1, out var p2, out var p3);
-
+                    
+                    BezierUtility.BuildRenderControlPoints(startNode.FrontControlPoint, endNode.BackControlPoint, out Vector3 p0, out Vector3 p1, out Vector3 p2, out Vector3 p3);
                     var steps = CurveSampleCount;
                     var arcLengths = new float[steps + 1];
                     var bestIndex = 0;
-                    var bestDistanceSq = (origin - hitPosition).sqrMagnitude;
+                    var bestDistanceSq = (p0 - hitPosition).sqrMagnitude;
 
                     arcLengths[0] = 0f;
-                    var previous = origin + BezierUtility.GetBezierPoint(p0, p1, p2, p3, 0f);
+                    var previous = BezierUtility.GetBezierPoint(p0, p1, p2, p3, 0f);
 
                     for (var i = 1; i <= steps; i++)
                     {
                         // サンプル位置と累積距離を更新する
                         // Update sample position and cumulative distance
                         var t = (float)i / steps;
-                        var point = origin + BezierUtility.GetBezierPoint(p0, p1, p2, p3, t);
+                        var point = BezierUtility.GetBezierPoint(p0, p1, p2, p3, t);
                         arcLengths[i] = arcLengths[i - 1] + Vector3.Distance(previous, point);
                         var distanceSq = (point - hitPosition).sqrMagnitude;
                         if (distanceSq < bestDistanceSq)

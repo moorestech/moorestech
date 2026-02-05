@@ -33,27 +33,27 @@ namespace Tests.UnitTest.Game
             var (cargoPosition, stationPosition) = ResolveBlockPositions(cargoDirection, stationDirection);
             //Debug.Log($"貨物駅位置: {cargoPosition}, 駅位置: {stationPosition}");
 
-            // 貨物駅ブロックを設置してRailSaverを取得する
-            // Place cargo platform block and obtain its RailSaver component
-            var (_, cargoSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+            // 貨物駅ブロックを設置してRailComponentを取得する
+            // Place cargo platform block and obtain its RailComponent component
+            var (_, cargoComponents) = TrainTestHelper.PlaceBlockWithRailComponents(
                 environment,
                 ForUnitTestModBlockId.TestTrainCargoPlatform,
                 cargoPosition,
                 cargoDirection);
-            Assert.IsNotNull(cargoSaver, "貨物駅のRailSaverComponentを取得できませんでした。");
+            Assert.IsNotNull(cargoComponents, "貨物駅のRailComponentを取得できませんでした。");
 
-            // 駅ブロックを設置してRailSaverを取得する
-            // Place station block and obtain its RailSaver component
-            var (_, stationSaver) = TrainTestHelper.PlaceBlockWithComponent<RailSaverComponent>(
+            // 駅ブロックを設置してRailComponentを取得する
+            // Place station block and obtain its RailComponent component
+            var (_, stationComponents) = TrainTestHelper.PlaceBlockWithRailComponents(
                 environment,
                 ForUnitTestModBlockId.TestTrainStation,
                 stationPosition,
                 stationDirection);
-            Assert.IsNotNull(stationSaver, "駅ブロックのRailSaverComponentを取得できませんでした。");
+            Assert.IsNotNull(stationComponents, "駅ブロックのRailComponentを取得できませんでした。");
 
             // 双方のRailComponentが距離0で接続されていることを確認する
             // Ensure at least one pair of rail nodes connects with zero distance
-            AssertRailComponentsAreLinked(cargoSaver!, stationSaver!);
+            AssertRailComponentsAreLinked(cargoComponents, stationComponents);
 
             #region Internal
 
@@ -165,12 +165,12 @@ namespace Tests.UnitTest.Game
                 }
             }
 
-            void AssertRailComponentsAreLinked(RailSaverComponent firstSaver, RailSaverComponent secondSaver)
+            void AssertRailComponentsAreLinked(IReadOnlyList<RailComponent> firstComponents, IReadOnlyList<RailComponent> secondComponents)
             {
                 // RailNodeを列挙して接続が存在するか探索する
                 // Enumerate RailNodes and search for direct connections
-                var firstNodes = CollectNodes(firstSaver);
-                var secondNodes = CollectNodes(secondSaver);
+                var firstNodes = CollectNodes(firstComponents);
+                var secondNodes = CollectNodes(secondComponents);
 
                 // すべての組み合わせで距離を計算し、直接接続を検出する
                 // Calculate distances across all node pairs to detect direct adjacency
@@ -195,12 +195,12 @@ namespace Tests.UnitTest.Game
 
                 Assert.IsTrue(isConnected, "隣接する貨物駅と駅のRailComponentが接続されていません。");
 
-                List<RailNode> CollectNodes(RailSaverComponent saver)
+                List<RailNode> CollectNodes(IReadOnlyList<RailComponent> components)
                 {
-                    // RailSaverに含まれる全ノードを収集する
-                    // Gather all nodes contained within the RailSaver
-                    var nodes = new List<RailNode>(saver.RailComponents.Length * 2);
-                    foreach (var component in saver.RailComponents)
+                    // RailComponentに含まれる全ノードを収集する
+                    // Gather all nodes contained within the RailComponent
+                    var nodes = new List<RailNode>(components.Count * 2);
+                    foreach (var component in components)
                     {
                         nodes.Add(component.FrontNode);
                         nodes.Add(component.BackNode);
