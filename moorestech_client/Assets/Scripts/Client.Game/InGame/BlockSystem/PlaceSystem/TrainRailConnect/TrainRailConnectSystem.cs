@@ -1,4 +1,8 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
+using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Train.RailGraph;
@@ -9,6 +13,7 @@ using Core.Master;
 using Game.Train.RailGraph;
 using Game.Train.SaveLoad;
 using Mooresmaster.Model.BlocksModule;
+using Server.Protocol.PacketResponse;
 using UnityEngine;
 using static Client.Common.LayerConst;
 using static Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect.TrainRailConnectPreviewCalculator;
@@ -30,7 +35,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             _previewObject = previewObject;
             _cache = cache;
             _playerInventory = localPlayerInventory.LocalPlayerInventory;
-            _trainRailPlaceSystemService = new TrainRailPlaceSystemService(mainCamera, controller, localPlayerInventory.LocalPlayerInventory);
+            _trainRailPlaceSystemService = new TrainRailPlaceSystemService(mainCamera, controller);
         }
         
         public void Enable()
@@ -84,9 +89,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                     }
                     else
                     {
-                        var (_, inventorySlot) = pierSlots.First();
-                        var placePosition = _trainRailPlaceSystemService.ManualUpdate(inventorySlot);
-                        var previewData = CalculatePreviewData(fromDestination, placePosition, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory);
+                        var (itemStack, inventorySlot) = pierSlots.First();
+                        List<PlaceInfo> placeInfos = _trainRailPlaceSystemService.ManualUpdate(itemStack.Id);
+                        var previewData = CalculatePreviewData(fromDestination, _trainRailPlaceSystemService.ConnectorPosition, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory);
                         ShowPreview(previewData);
                     }
                 }

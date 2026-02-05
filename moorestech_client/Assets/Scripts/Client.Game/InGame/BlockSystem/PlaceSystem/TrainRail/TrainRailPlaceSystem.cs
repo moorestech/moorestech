@@ -1,6 +1,10 @@
+using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.UI.Inventory.Main;
+using Client.Input;
 using Game.PlayerInventory.Interface;
+using Server.Protocol.PacketResponse;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
@@ -8,9 +12,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
     public class TrainRailPlaceSystem : IPlaceSystem
     {
         private readonly TrainRailPlaceSystemService _trainRailPlaceSystemService;
+        private readonly ILocalPlayerInventory _localPlayerInventory;
+            
         public TrainRailPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, ILocalPlayerInventory localPlayerInventory)
         {
-            _trainRailPlaceSystemService = new TrainRailPlaceSystemService(mainCamera, previewBlockController, localPlayerInventory);
+            _trainRailPlaceSystemService = new TrainRailPlaceSystemService(mainCamera, previewBlockController);
+            _localPlayerInventory = localPlayerInventory;
         }
         
         public void Enable()
@@ -22,7 +29,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
         {
             var slotIndex = context.CurrentSelectHotbarSlotIndex;
             var inventorySlot = PlayerInventoryConst.HotBarSlotToInventorySlot(slotIndex);
-            _trainRailPlaceSystemService.ManualUpdate(inventorySlot);
+            var itemStack = _localPlayerInventory[inventorySlot];
+            var itemId = itemStack.Id;
+            List<PlaceInfo> placeInfos = _trainRailPlaceSystemService.ManualUpdate(itemId);
+            if (!InputManager.Playable.ScreenLeftClick.GetKeyUp) return;
+            
+            PlaceSystemUtil.SendPlaceProtocol(placeInfos, context);
         }
         
         public void Disable()
