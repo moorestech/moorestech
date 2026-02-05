@@ -31,10 +31,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
             var inventorySlot = PlayerInventoryConst.HotBarSlotToInventorySlot(slotIndex);
             var itemStack = _localPlayerInventory[inventorySlot];
             var itemId = itemStack.Id;
-            List<PlaceInfo> placeInfos = _trainRailPlaceSystemService.ManualUpdate(itemId);
+            var placeInfo = _trainRailPlaceSystemService.ManualUpdate(itemId);
             if (!InputManager.Playable.ScreenLeftClick.GetKeyUp) return;
             
-            PlaceSystemUtil.SendPlaceProtocol(placeInfos, context);
+            PlaceSystemUtil.SendPlaceProtocol(new List<PlaceInfo> { placeInfo }, context);
         }
         
         public void Disable()

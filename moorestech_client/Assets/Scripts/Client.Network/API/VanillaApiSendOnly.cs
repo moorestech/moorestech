@@ -132,6 +132,12 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
         
+        public void PlaceRailWithPier(int fromNodeId, Guid fromGuid, int pierInventorySlot, PlaceInfo pierPlaceInfo)
+        {
+            var request = RailConnectWithPlacePierProtocol.RailConnectWithPlacePierRequest.Create(_playerId, fromNodeId, fromGuid, pierInventorySlot, pierPlaceInfo, Guid.Empty);
+            _packetSender.Send(request);
+        }
+        
         public void PlaceTrainOnRail(RailPositionSaveData railPosition, int hotBarSlot)
         {
             var railPositionSnapshot = new RailPositionSnapshotMessagePack(railPosition);
