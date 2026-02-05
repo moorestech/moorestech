@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
-using Client.Game.InGame.UI.Inventory.Main;
 using Client.Input;
 using Core.Master;
 using Game.Block.Blocks.TrainRail;
@@ -19,28 +18,26 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
         private const BlockDirection DefaultBlockDirection = BlockDirection.North;
         public RailComponentDirection RailDirection { get; private set; }
         public Vector3Int PlacePosition { get; private set; }
+        public Vector3 ConnectorPosition { get; private set; }
         
         private readonly Camera _mainCamera;
         private readonly IPlacementPreviewBlockGameObjectController _previewBlockController;
-        private readonly ILocalPlayerInventory _localPlayerInventory;
         private bool _isActive;
         
-        public TrainRailPlaceSystemService(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, ILocalPlayerInventory playerInventory)
+        public TrainRailPlaceSystemService(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController)
         {
             _mainCamera = mainCamera;
             _previewBlockController = previewBlockController;
-            _localPlayerInventory = playerInventory;
         }
         
-        public Vector3 ManualUpdate(int inventorySlot)
+        public List<PlaceInfo> ManualUpdate(ItemId itemId)
         {
             _previewBlockController.SetActive(false);
             
-            if (!_isActive) return Vector3.zero;
+            if (!_isActive) return null;
             
-            var itemStack = _localPlayerInventory[inventorySlot];
-            var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(MasterHolder.BlockMaster.GetBlockId(itemStack.Id));
-            if (!PlaceSystemUtil.TryGetRayHitBlockPosition(_mainCamera, HeightOffset, DefaultBlockDirection, holdingBlockMaster, out var placePoint, out var boundingBoxSurface)) return GetConnectorPosition(holdingBlockMaster);
+            var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(MasterHolder.BlockMaster.GetBlockId(itemId));
+            if (!PlaceSystemUtil.TryGetRayHitBlockPosition(_mainCamera, HeightOffset, DefaultBlockDirection, holdingBlockMaster, out var placePoint, out var boundingBoxSurface)) return null;
             PlacePosition = placePoint;
             
             _previewBlockController.SetActive(true);
@@ -49,9 +46,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
             
             List<PlaceInfo> placeInfo = CreatePlaceInfo();
             _previewBlockController.SetPreviewAndGroundDetect(placeInfo, holdingBlockMaster);
-            PlaceBlock(placeInfo);
+            ConnectorPosition = GetConnectorPosition(holdingBlockMaster);
             
-            return GetConnectorPosition(holdingBlockMaster);
+            return placeInfo;
             
             #region Internal
             
@@ -81,14 +78,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
                     },
                 };
                 return new List<PlaceInfo> { info };
-            }
-            
-            
-            void PlaceBlock(List<PlaceInfo> info)
-            {
-                if (!InputManager.Playable.ScreenLeftClick.GetKeyUp) return;
-                
-                PlaceSystemUtil.SendPlaceProtocol(info, inventorySlot);
             }
             
             Vector3 GetConnectorPosition(BlockMasterElement element)
