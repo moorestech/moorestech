@@ -35,14 +35,14 @@ namespace Server.Protocol.PacketResponse
             var inventoryData = _playerInventoryDataStore.GetInventoryData(request.PlayerId);
             
             // fromNodeの取得
-            if (!_railGraphDatastore.TryGetRailNode(request.FromNodeId, out var fromNode) || fromNode == null || fromNode.Guid != request.FromGuid) return null;
+            if (!_railGraphDatastore.TryGetRailNode(request.FromNodeId, out var fromNode) || fromNode == null || fromNode.Guid != request.FromGuid) return RailConnectWithPlacePierResponse.CreateFailedResponse();
             
             // すでにブロックがある場合はそのまま処理を終了
-            if (ServerContext.WorldBlockDatastore.Exists(request.PierPlaceInfo.Position)) return null;
+            if (ServerContext.WorldBlockDatastore.Exists(request.PierPlaceInfo.Position)) return RailConnectWithPlacePierResponse.CreateFailedResponse();
             
             // アイテムIDがブロックIDに変換できない場合はそのまま処理を終了
             var itemStack = inventoryData.MainOpenableInventory.GetItem(request.PierInventorySlot);
-            if (!MasterHolder.BlockMaster.IsBlock(itemStack.Id)) return null;
+            if (!MasterHolder.BlockMaster.IsBlock(itemStack.Id))  return RailConnectWithPlacePierResponse.CreateFailedResponse();
             
             // ブロックIDの設定
             var blockId = MasterHolder.BlockMaster.GetBlockId(itemStack.Id);
@@ -56,7 +56,7 @@ namespace Server.Protocol.PacketResponse
             var railComponent = block.GetComponent<RailComponent>();
             var toNode = railComponent.BackNode;
             
-            if (!RailConnectionEditProtocol.TryResolveRailItemForPlacement(request.RailTypeGuid, inventoryData.MainOpenableInventory.InventoryItems, RailConnectionEditProtocol.GetRailLength(fromNode, toNode), out var railItem, out var requiredCount)) return null;
+            if (!RailConnectionEditProtocol.TryResolveRailItemForPlacement(request.RailTypeGuid, inventoryData.MainOpenableInventory.InventoryItems, RailConnectionEditProtocol.GetRailLength(fromNode, toNode), out var railItem, out var requiredCount))  return RailConnectWithPlacePierResponse.CreateFailedResponse();
             
             var connectResult = _commandHandler.TryConnect(fromNode.NodeId, fromNode.Guid, toNode.NodeId, toNode.Guid, request.RailTypeGuid);
             
@@ -82,7 +82,38 @@ namespace Server.Protocol.PacketResponse
             itemStack = itemStack.SubItem(1);
             inventoryData.MainOpenableInventory.SetItem(request.PierInventorySlot, itemStack);
             
-            return null;
+            return RailConnectWithPlacePierResponse.Create(toNode.NodeId, toNode.Guid);
+        }
+        
+        [MessagePackObject]
+        public class RailConnectWithPlacePierResponse : ProtocolMessagePackBase
+        {
+            [Key(2)] public bool Success { get; set; }
+            [Key(3)] public int ToNodeId { get; set; }
+            [Key(4)] public Guid ToNodeGuid { get; set; }
+            
+            public RailConnectWithPlacePierResponse()
+            {
+                Tag = RailConnectWithPlacePierProtocol.Tag;
+            }
+            
+            public static RailConnectWithPlacePierResponse CreateFailedResponse()
+            {
+                return new RailConnectWithPlacePierResponse()
+                {
+                    Success = false
+                };
+            }
+            
+            public static RailConnectWithPlacePierResponse Create(int toNodeId, Guid toNodeGuid)
+            {
+                return new RailConnectWithPlacePierResponse()
+                {
+                    Success = true,
+                    ToNodeId = toNodeId,
+                    ToNodeGuid = toNodeGuid
+                };
+            }
         }
         
         [MessagePackObject]
