@@ -83,7 +83,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
             
             Vector3 GetConnectorPosition(BlockMasterElement element)
             {
-                return PlacePosition + new Vector3(element.BlockSize.x / 2f, element.BlockSize.y, element.BlockSize.z / 2f);
+                var trainRailBlockParam = element.BlockParam as TrainRailBlockParam;
+                return PlacePosition + trainRailBlockParam?.RailPosition ?? Vector3.zero;
             }
             
             #endregion
