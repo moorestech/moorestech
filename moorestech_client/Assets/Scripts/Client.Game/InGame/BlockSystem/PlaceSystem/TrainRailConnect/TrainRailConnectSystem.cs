@@ -1,5 +1,7 @@
 using System;
 using System.Linq;
+using System.Threading;
+using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
@@ -9,6 +11,7 @@ using Client.Game.InGame.UI.Inventory.Main;
 using Client.Input;
 using Core.Item.Interface;
 using Core.Master;
+using Cysharp.Threading.Tasks;
 using Game.Train.RailGraph;
 using Game.Train.SaveLoad;
 using Mooresmaster.Model.BlocksModule;
@@ -26,15 +29,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         private readonly RailGraphClientCache _cache;
         private readonly ILocalPlayerInventory _playerInventory;
         private readonly TrainRailPlaceSystemService _trainRailPlaceSystemService;
+        private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
         
         private IRailComponentConnectAreaCollider _connectFromArea;
-        public TrainRailConnectSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController controller, RailConnectPreviewObject previewObject, RailGraphClientCache cache, LocalPlayerInventoryController localPlayerInventory)
+        public TrainRailConnectSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController controller, RailConnectPreviewObject previewObject, RailGraphClientCache cache, LocalPlayerInventoryController localPlayerInventory, BlockGameObjectDataStore blockGameObjectDataStore)
         {
             _mainCamera = mainCamera;
             _previewObject = previewObject;
             _cache = cache;
             _playerInventory = localPlayerInventory.LocalPlayerInventory;
             _trainRailPlaceSystemService = new TrainRailPlaceSystemService(mainCamera, controller);
+            _blockGameObjectDataStore = blockGameObjectDataStore;
         }
         
         public void Enable()
@@ -157,9 +162,37 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 if (!TryResolveNode(fromDestination, out var fromNode)) return;
                 
                 _previewObject.SetActive(false);
-
-                ClientContext.VanillaApi.SendOnly.PlaceRailWithPier(fromNode.NodeId, fromNode.NodeGuid, pierInventorySlot, placeInfo, railTypeGuid);
+                
                 _connectFromArea = null;
+                
+                UniTask.Create(async () =>
+                {
+                    var response = await ClientContext.VanillaApi.Response.PlaceRailWithPier(fromNode.NodeId, fromNode.NodeGuid, pierInventorySlot, placeInfo, railTypeGuid, CancellationToken.None);
+                    if (!response.Success) return;
+                    
+                    await UniTask.WhenAny(
+                        UniTask.WaitForSeconds(1f),
+                        UniTask.WaitUntil(() => _cache.TryGetNode(response.ToNodeId, out _))
+                    );
+                    
+                    if (_cache.TryGetNode(response.ToNodeId, out var node))
+                    {
+                        var pierBlock = _blockGameObjectDataStore.GetBlockGameObject(node.ConnectionDestination.blockPosition);
+                        TrainRailConnectAreaCollider[] areas = pierBlock.gameObject.GetComponentsInChildren<TrainRailConnectAreaCollider>();
+                        var area = areas.First(area =>
+                        {
+                            if (_cache.TryGetNodeId(area.CreateConnectionDestination(), out var nodeId) && _cache.TryGetNode(nodeId, out var clientNode))
+                            {
+                                return clientNode.NodeId == node.NodeId && clientNode.NodeGuid == node.NodeGuid;
+                            }
+                            
+                            return false;
+                        });
+                        
+                        _connectFromArea = area;
+                        Debug.Log("PierBlock", pierBlock);
+                    }
+                });
             }
             
             IRailComponentConnectAreaCollider GetTrainRailConnectAreaCollider()
