@@ -10,7 +10,7 @@ namespace Server.Boot
         public const string DebugServerDirectorySettingKey = "DebugServerDirectory";
         public static string GetDirectory()
         {
-#if DEBUG
+#if UNITY_EDITOR
             var debugServerDirectory = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "../../moorestech_master/server_v4/"));
             var serverDirectory = DebugParameters.GetValueOrDefaultString(DebugServerDirectorySettingKey ,debugServerDirectory);
 #else
