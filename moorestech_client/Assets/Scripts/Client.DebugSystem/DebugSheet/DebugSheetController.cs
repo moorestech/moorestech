@@ -75,15 +75,6 @@ namespace Client.DebugSystem
             rootPage.AddBoolWithSave(false, TrainAutoRunLabel, TrainAutoRunKey);
             rootPage.AddBoolWithSave(false, PlacePreviewKeepLabel, PlacePreviewKeepKey);
         }
-        
-        
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        public static void CreateDebugger()
-        {
-            var prefab = Resources.Load<GameObject>("moorestech Debug Objects");
-            Instantiate(prefab);
-        }
-        
         public static void CloseDebugSheet()
         {
             // OnCloseButtonClickedをリフレクションで実行
