@@ -800,6 +800,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c9bdd7548801c438f8933c4b821e31c9
+    m_Address: Vanilla/Debug/DebugObjects
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: cd09f2fef40b549f58b0c29a968536c4
     m_Address: Vanilla/UI/Block/GearMachineBlockInventory
     m_ReadOnly: 0

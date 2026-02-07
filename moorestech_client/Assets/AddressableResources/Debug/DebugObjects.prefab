@@ -557,9 +557,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1422861368398882594}
   - component: {fileID: 107448729943039872}
-  - component: {fileID: 2271334702769182280}
   m_Layer: 0
-  m_Name: Debug Objects
+  m_Name: DebugObjects
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -600,21 +599,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   runtimeHierarchyInspector: {fileID: 7702450004000118107}
   debugSheet: {fileID: 9136287523547561334}
---- !u!114 &2271334702769182280
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6789440423282204126}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c424462f79d0417cbc1de283b8e4c4d0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  debugEnvironment: {fileID: 0}
-  pureNatureEnvironment: {fileID: 0}
-  otherEnvironment: {fileID: 0}
 --- !u!1 &7226106797956784029
 GameObject:
   m_ObjectHideFlags: 0
