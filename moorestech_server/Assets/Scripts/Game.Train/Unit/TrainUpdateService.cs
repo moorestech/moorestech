@@ -15,10 +15,7 @@ namespace Game.Train.Unit
         // Trainはサーバーのゲームtickに同期し、1tick = 1/20秒で進める
         // Train tick is aligned with the server game tick (1 tick = 1/20 second).
         private const int Interval = GameUpdater.TicksPerSecond;
-        private const double TickSeconds = GameUpdater.SecondsPerTick;
         public const double HashBroadcastIntervalSeconds = 1d;
-        private double _accumulatedSeconds;
-        private readonly int _maxTicksPerFrame = 65535;
         private readonly List<TrainUnit> _trainUnits = new();
         private long _executedTick;
 
@@ -47,27 +44,30 @@ namespace Game.Train.Unit
 
         private void UpdateTrains()
         {
-            //TODO
-            //ここに操作コマンド系
-            //
-            
-            //HashVerifier用ブロードキャスト
-            if (_executedTick % Interval == 0)
+            for (int i = 0; i < GameUpdater.CurrentTickCount; i++)
             {
-                _onHashEvent.OnNext(_executedTick);
+                //TODO
+                //ここに操作コマンド系
+                //
+                
+                //HashVerifier用ブロードキャスト
+                if (_executedTick % Interval == 0)
+                {
+                    _onHashEvent.OnNext(_executedTick);
+                }
+                
+                //simulation
+                foreach (var trainUnit in _trainUnits)
+                {
+                    trainUnit.Update();
+                }
+                
+                //ここにdiagram限定コマンド系(サーバーがブロードキャスト)
+                //
+                
+                //_executedTick++;
+                _executedTick++;
             }
-            
-            //simulation
-            foreach (var trainUnit in _trainUnits)
-            {
-                trainUnit.Update();
-            }
-            
-            //ここにdiagram限定コマンド系(サーバーがブロードキャスト)
-            //
-            
-            //_executedTick++;
-            _executedTick++;
         }
 
         private void UpdateTrains1Tickmanually()
@@ -98,7 +98,6 @@ namespace Game.Train.Unit
         public void ResetTrains()
         {
             _trainUnits.Clear();
-            _accumulatedSeconds = 0d;
             _executedTick = 0;
         }
 
