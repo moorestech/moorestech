@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.AddressableAssets.Settings;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 
@@ -53,6 +54,10 @@ public class BuildPipeline
             scenes = EditorBuildSettings.scenes.Select(s => s.path).ToArray(),
         };
         
+        // Addressablesコンテンツをビルドする
+        // Build Addressables content before building the player
+        AddressableAssetSettings.BuildPlayerContent();
+
         var report = UnityEditor.BuildPipeline.BuildPlayer(buildOptions);
         
         if (isSelectOutputPath) EditorUtility.RevealInFinder(path);
