@@ -31,27 +31,40 @@ public class BuildPipeline
     {
         Debug.Log("Build Start Time : " + DateTime.Now);
         var buildStartTime = DateTime.Now;
-        
+
+        // Development Buildかどうかを選択する
+        // Select whether to use Development Build
+        var isDevelopmentBuild = false;
+        if (isSelectOutputPath)
+        {
+            isDevelopmentBuild = EditorUtility.DisplayDialog(
+                "Build Configuration",
+                "Development Buildで実行しますか？",
+                "Development Build",
+                "Release Build");
+        }
+
         var path = "Output_" + buildTarget;
         if (isSelectOutputPath)
         {
             var playerPrefsKey = OutputPathKey + buildTarget;
             path = EditorUtility.OpenFolderPanel("Build", PlayerPrefs.GetString(playerPrefsKey, ""), "");
-            
+
             if (path == string.Empty) return;
-            
+
             PlayerPrefs.SetString(playerPrefsKey, path);
             PlayerPrefs.Save();
         }
-        
-        
+
+
         //DirectoryProcessor.CopyAndReplace(ServerConst.ServerDirectory, Path.Combine(path, ServerConst.ServerDirName));
-        
+
         var buildOptions = new BuildPlayerOptions
         {
             target = buildTarget,
             locationPathName = path + (buildTarget == BuildTarget.StandaloneWindows64 ? "/moorestech.exe" : "/moorestech"),
             scenes = EditorBuildSettings.scenes.Select(s => s.path).ToArray(),
+            options = isDevelopmentBuild ? BuildOptions.Development : BuildOptions.None,
         };
         
         // Addressablesコンテンツをビルドする
