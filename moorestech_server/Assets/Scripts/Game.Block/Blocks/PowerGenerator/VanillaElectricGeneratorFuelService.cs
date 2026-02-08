@@ -120,14 +120,13 @@ namespace Game.Block.Blocks.PowerGenerator
 
             void TickFuelTimer()
             {
-                var ticksToConsume = GameUpdater.CurrentTickCount;
-                if (ticksToConsume >= _remainingFuelTicks)
+                if (1u >= _remainingFuelTicks)
                 {
                     ClearFuelState();
                     return;
                 }
 
-                _remainingFuelTicks -= ticksToConsume;
+                _remainingFuelTicks--;
             }
 
             bool TryStartItemFuel()

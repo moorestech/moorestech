@@ -40,7 +40,7 @@ namespace Game.Block.Blocks.Gear
             // Manage interval for overload checks
             if (!_overloadEnabled || _isDestroyed) return;
 
-            _elapsedTicks += GameUpdater.CurrentTickCount;
+            _elapsedTicks++;
             if (_elapsedTicks < _checkIntervalTicks) return;
             _elapsedTicks = 0;
 

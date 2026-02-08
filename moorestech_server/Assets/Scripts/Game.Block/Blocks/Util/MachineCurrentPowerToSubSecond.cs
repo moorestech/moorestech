@@ -16,19 +16,18 @@ namespace Game.Block.Blocks.Util
         // Return ticks adjusted by power ratio (with probabilistic rounding)
         public static uint GetSubTicks(ElectricPower currentPower, ElectricPower requiredPower)
         {
-            // 必要電力が0の時はそのフレームのtick数をそのまま返す
-            // When required power is 0, return the full tick count
-            if (requiredPower.AsPrimitive() == 0) return GameUpdater.CurrentTickCount;
+            // 必要電力が0の時は1tickをそのまま返す
+            // When required power is 0, return 1 tick
+            if (requiredPower.AsPrimitive() == 0) return 1;
 
             // 現在の電力量を必要電力で割った割合でtick数を計算
             // Calculate effective ticks based on power ratio
             var powerRatio = currentPower.AsPrimitive() / (double)requiredPower.AsPrimitive();
-            var effectiveTicks = GameUpdater.CurrentTickCount * powerRatio;
 
             // 整数部と小数部に分離し、小数部は確率的に丸める
             // Split into integer and fractional parts, round fractionally probabilistically
-            var wholeTicks = (uint)effectiveTicks;
-            var remainder = effectiveTicks - wholeTicks;
+            var wholeTicks = (uint)powerRatio;
+            var remainder = powerRatio - wholeTicks;
             if (SharedRandom.NextDouble() < remainder) wholeTicks++;
 
             return wholeTicks;

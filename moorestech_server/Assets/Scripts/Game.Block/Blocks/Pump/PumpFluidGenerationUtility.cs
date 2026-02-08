@@ -20,7 +20,7 @@ namespace Game.Block.Blocks.Pump
 
             // tick数を秒数に変換
             // Convert ticks to seconds
-            var deltaSeconds = GameUpdater.CurrentTickCount * GameUpdater.SecondsPerTick;
+            var deltaSeconds = GameUpdater.SecondsPerTick;
 
             foreach (var gen in generateFluids)
             {

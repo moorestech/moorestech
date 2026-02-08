@@ -1,5 +1,4 @@
 using System;
-using System.Threading;
 using UniRx;
 using Unity.Profiling;
 
@@ -18,19 +17,8 @@ namespace Core.Update
         public static IObservable<Unit> LateUpdateObservable => _lateUpdateSubject;
         private static Subject<Unit> _lateUpdateSubject = new();
 
-        private static DateTime _lastUpdateTime = DateTime.Now;
-        private static double _tickRemainderSeconds;
-
-        // 今回のフレームで進行するtick数
-        // Ticks elapsed in the current frame
-        public static uint CurrentTickCount { get; private set; }
-
         public static void Update()
         {
-            // デルタタイムの更新
-            // Update delta time
-            UpdateDeltaTime();
-
             // Updateの実行
             // Execute Update
             ExecuteUpdate();
@@ -40,18 +28,6 @@ namespace Core.Update
             ExecuteLateUpdate();
 
             #region Internal
-
-            void UpdateDeltaTime()
-            {
-                var elapsedSeconds = (DateTime.Now - _lastUpdateTime).TotalSeconds;
-                _lastUpdateTime = DateTime.Now;
-
-                // 秒数をtickに換算（余りは次回に繰り越し）
-                // Convert seconds to ticks (remainder carried to next frame)
-                var totalSeconds = elapsedSeconds + _tickRemainderSeconds;
-                CurrentTickCount = (uint)Math.Max((int)(totalSeconds * TicksPerSecond), 0);
-                _tickRemainderSeconds = totalSeconds - CurrentTickCount * SecondsPerTick;
-            }
 
             void ExecuteUpdate()
             {
@@ -76,9 +52,6 @@ namespace Core.Update
         {
             _updateSubject = new Subject<Unit>();
             _lateUpdateSubject = new Subject<Unit>();
-            CurrentTickCount = 0;
-            _tickRemainderSeconds = 0d;
-            _lastUpdateTime = DateTime.Now;
         }
 
         public static void Dispose()
@@ -129,10 +102,11 @@ namespace Core.Update
         // For testing: advance by specified tick count
         public static void AdvanceTicks(uint tickCount)
         {
-            CurrentTickCount = tickCount;
-
-            _updateSubject.OnNext(Unit.Default);
-            _lateUpdateSubject.OnNext(Unit.Default);
+            for (var i = 0u; i < tickCount; i++)
+            {
+                _updateSubject.OnNext(Unit.Default);
+                _lateUpdateSubject.OnNext(Unit.Default);
+            }
         }
 #endif
     }
