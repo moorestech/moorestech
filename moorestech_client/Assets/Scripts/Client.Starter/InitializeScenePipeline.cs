@@ -68,16 +68,45 @@ namespace Client.Starter
             var initializeHandle = Addressables.InitializeAsync();
             await initializeHandle.ToUniTask();
             
-            // Addressablesの初期化直後に一度アセットをロードしておかないと、後続のロードが無限に続くため実行する
-            // バンドル参照を維持するためDisposeしない（解放するとバンドル再取得時にハングする）
-            // Load an asset right after Addressables init to prevent infinite loading of subsequent loads.
-            // Do NOT dispose - releasing the bundle reference causes hangs on re-acquisition.
+            // ---- Addressables事前ロードフェーズ ----
+            // ---- Addressables pre-load phase ----
+            //
+            // 以下のアセットは後続の並列タスク（UniTask.WhenAll）に入れず、ここで事前にロードする。
+            // The following assets must be pre-loaded here, NOT inside the parallel UniTask.WhenAll below.
+            //
+            // 【観察された事実 / Observed facts】
+            // - Addressables の "Use Existing Build" モード（ローカルバンドルからロード）で、
+            //   並列タスク内から複数のアセットを同時にロードすると、一部のロードが永久にハングする。
+            //   In "Use Existing Build" mode (loading from local bundles), loading multiple assets
+            //   concurrently from within parallel tasks causes some loads to hang indefinitely.
+            //
+            // - 具体的には、BlockGameObjectPrefabContainer のブロックプレハブ群（大量）と
+            //   ItemSlotView / FluidSlotView を同じ WhenAll 内で並列ロードすると、
+            //   後者だけが完了せずハングする。ブロック側は正常に完了する。
+            //   Specifically, when block prefabs (many) and ItemSlotView/FluidSlotView are loaded
+            //   in the same WhenAll, only the latter hangs. Block loads complete normally.
+            //
+            // - Addressables 初期化直後にここで事前ロードしておけば、ハングは発生しない。
+            //   Pre-loading them here right after Addressables init prevents the hang.
+            //
+            // - ChestBlockInventory もDisposeせずバンドル参照を維持する必要がある。
+            //   解放すると後続のバンドル再取得時にハングする。
+            //   ChestBlockInventory must also keep its bundle reference (no Dispose).
+            //   Releasing it causes hangs on subsequent bundle re-acquisition.
+            //
+            // 【根本原因は不明 / Root cause is unknown】
+            // - アプリケーションコード側のロード処理はすべて同じ AddressableLoader.LoadAsync を使用しており、
+            //   ロード方法自体に違いはない。
+            //   All loading goes through the same AddressableLoader.LoadAsync; there is no difference
+            //   in how the loads are issued from the application side.
+            //
+            // - Addressables 内部のバンドルロードスケジューリングやロック機構に起因すると推測されるが、
+            //   内部実装まで追跡しておらず、確定的な原因は特定できていない。
+            //   It is suspected to be caused by Addressables' internal bundle load scheduling or
+            //   locking mechanism, but the internal implementation has not been traced, so the
+            //   definitive cause remains unidentified.
+            //
             await AddressableLoader.LoadAsync<GameObject>("Vanilla/UI/Block/ChestBlockInventory");
-
-            // staticなアセットをAddressables初期化直後に順次ロードする
-            // 並列タスク内でロードするとAddressablesがハングするため、事前にロードする
-            // Load static assets sequentially right after Addressables init.
-            // Loading them inside parallel tasks causes Addressables to hang.
             await UniTask.WhenAll(ItemSlotView.LoadItemSlotViewPrefab(), FluidSlotView.LoadItemSlotViewPrefab());
 
             _proprieties ??= InitializeProprieties.CreateDefault();
