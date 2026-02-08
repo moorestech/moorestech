@@ -51,7 +51,7 @@ namespace Game.Train.Unit
                 //
                 
                 //HashVerifier用ブロードキャスト
-                if (_executedTick % Interval == 0)
+                if (_executedTick % Interval == (Interval-1))
                 {
                     _onHashEvent.OnNext(_executedTick);
                 }
