@@ -168,34 +168,6 @@ namespace Server.Protocol.PacketResponse
                 return from.StationRef.StationBlockInstanceId.Equals(to.StationRef.StationBlockInstanceId);
             }
 
-            // レール設置用のアイテム情報を解決する
-            // Resolve rail item information for placement
-            bool TryResolveRailItemForPlacement(Guid railTypeGuid, IEnumerable<IItemStack> inventoryItems, float railLength, out RailItemMasterElement railItem, out int requiredCount)
-            {
-                railItem = default;
-                requiredCount = 0;
-                if (railTypeGuid == Guid.Empty)
-                {
-                    return true;
-                }
-
-                if (!MasterHolder.TrainUnitMaster.TryGetRailItem(railTypeGuid, out railItem))
-                {
-                    return false;
-                }
-
-                requiredCount = CalculateRailItemRequiredCount(railLength, railItem);
-                var railItemId = MasterHolder.ItemMaster.GetItemId(railItem.ItemGuid);
-                var ownedCount = inventoryItems.Where(stack => stack.Id == railItemId).Sum(stack => stack.Count);
-                if (ownedCount < requiredCount)
-                {
-                    return false;
-                }
-
-                Debug.Log($"Place rail item: {railItem.ItemGuid}, Required count: {requiredCount}");
-                return true;
-            }
-
             // レール種別をセグメントから解決する
             // Resolve rail type from the segment data
             Guid ResolveRailTypeGuid(int fromNodeId, int toNodeId)
@@ -204,6 +176,34 @@ namespace Server.Protocol.PacketResponse
             }
 
             #endregion
+        }
+        
+        /// レール設置用のアイテム情報を解決する
+        /// Resolve rail item information for placement
+        public static bool TryResolveRailItemForPlacement(Guid railTypeGuid, IEnumerable<IItemStack> inventoryItems, float railLength, out RailItemMasterElement railItem, out int requiredCount)
+        {
+            railItem = default;
+            requiredCount = 0;
+            if (railTypeGuid == Guid.Empty)
+            {
+                return true;
+            }
+            
+            if (!MasterHolder.TrainUnitMaster.TryGetRailItem(railTypeGuid, out railItem))
+            {
+                return false;
+            }
+            
+            requiredCount = CalculateRailItemRequiredCount(railLength, railItem);
+            var railItemId = MasterHolder.ItemMaster.GetItemId(railItem.ItemGuid);
+            var ownedCount = inventoryItems.Where(stack => stack.Id == railItemId).Sum(stack => stack.Count);
+            if (ownedCount < requiredCount)
+            {
+                return false;
+            }
+            
+            Debug.Log($"Place rail item: {railItem.ItemGuid}, Required count: {requiredCount}");
+            return true;
         }
         
         public static float GetRailLength(IRailNode fromNode, IRailNode toNode)

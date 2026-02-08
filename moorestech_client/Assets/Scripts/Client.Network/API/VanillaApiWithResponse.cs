@@ -227,6 +227,18 @@ namespace Client.Network.API
             return await _packetExchangeManager.GetPacketResponse<RailConnectionEditProtocol.ResponseRailConnectionEditMessagePack>(request, ct);
         }
         
+        public async UniTask<RailConnectWithPlacePierProtocol.RailConnectWithPlacePierResponse> PlaceRailWithPier(
+            int fromNodeId,
+            Guid fromGuid,
+            int pierInventorySlot,
+            PlaceInfo pierPlaceInfo,
+            Guid railTypeGuid,
+            CancellationToken ct)
+        {
+            var request = RailConnectWithPlacePierProtocol.RailConnectWithPlacePierRequest.Create(_playerConnectionSetting.PlayerId, fromNodeId, fromGuid, pierInventorySlot, pierPlaceInfo, railTypeGuid);
+            return await _packetExchangeManager.GetPacketResponse<RailConnectWithPlacePierProtocol.RailConnectWithPlacePierResponse>(request, ct);
+        }
+        
         #region Internal
         
         private List<IItemStack> CreateStacks(ItemMessagePack[] items)
