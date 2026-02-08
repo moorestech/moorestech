@@ -229,14 +229,9 @@ namespace Game.Block.Blocks.BeltConveyor
                 // Decrease remaining ticks (only when not blocked)
                 if (!isBlockedByPreviousSlot)
                 {
-                    var ticksToSubtract = GameUpdater.CurrentTickCount;
-                    if (item.RemainingTicks > ticksToSubtract)
+                    if (item.RemainingTicks > 0)
                     {
-                        item.RemainingTicks -= ticksToSubtract;
-                    }
-                    else
-                    {
-                        item.RemainingTicks = 0;
+                        item.RemainingTicks--;
                     }
                 }
             }

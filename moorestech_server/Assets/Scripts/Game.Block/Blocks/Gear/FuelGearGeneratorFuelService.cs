@@ -237,15 +237,12 @@ namespace Game.Block.Blocks.Gear
 
             // tick単位で燃料を消費（operatingRateが1未満の場合は確率的に消費）
             // Consume fuel in ticks (probabilistically when operatingRate < 1)
-            var ticksToConsume = GameUpdater.CurrentTickCount;
+            var ticksToConsume = 1u;
             if (operatingRate < 1f)
             {
                 // operatingRateに応じて確率的にtickを消費
                 // Probabilistically consume ticks based on operatingRate
-                var effectiveTicks = (uint)(ticksToConsume * operatingRate);
-                var remainder = ticksToConsume * operatingRate - effectiveTicks;
-                if (SharedRandom.NextDouble() < remainder) effectiveTicks++;
-                ticksToConsume = effectiveTicks;
+                ticksToConsume = SharedRandom.NextDouble() < operatingRate ? 1u : 0u;
             }
 
             if (ticksToConsume >= RemainingFuelTicks)
