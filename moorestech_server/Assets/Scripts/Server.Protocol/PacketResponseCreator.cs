@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Game.PlayerInventory.Interface;
-using Game.Train.Unit;
 using Game.Train.RailGraph;
+using Game.Train.Unit;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Event;
@@ -56,6 +55,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(GetResearchInfoProtocol.ProtocolTag, new GetResearchInfoProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetPlayedSkitIdsProtocol.ProtocolTag, new GetPlayedSkitIdsProtocol(serviceProvider));
             _packetResponseDictionary.Add(RailConnectionEditProtocol.Tag, new RailConnectionEditProtocol(serviceProvider));
+            _packetResponseDictionary.Add(RailConnectWithPlacePierProtocol.Tag, new RailConnectWithPlacePierProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetRailGraphSnapshotProtocol.ProtocolTag, new GetRailGraphSnapshotProtocol(railGraphDatastore, trainUpdateService));
             _packetResponseDictionary.Add(GetTrainUnitSnapshotsProtocol.ProtocolTag, new GetTrainUnitSnapshotsProtocol(trainUpdateService));
             _packetResponseDictionary.Add(PlaceTrainCarOnRailProtocol.ProtocolTag, new PlaceTrainCarOnRailProtocol(serviceProvider));
