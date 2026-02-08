@@ -60,7 +60,7 @@ namespace Tests.UnitTest.Game
 
             Assert.IsTrue(trainCar.IsDocked, "列車貨車が駅ブロックにドッキングしていません。");
             Assert.IsTrue(trainCar.IsInventoryEmpty(), "列車貨車のインベントリが初期状態で空になっていません。");
-            // loadingAnimeSpeed(?)?tick???????+??1tick??????
+            // loadingAnimeSpeed(秒)をtickに変換し、伸長+接触1tick後に一括転送
             // Convert loadingAnimeSpeed seconds to ticks, then transfer after extend + 1 contact tick
             var transferTicks = GetStationTransferTicks();
             for (var i = 0; i < transferTicks; i++)
@@ -121,7 +121,7 @@ namespace Tests.UnitTest.Game
             Assert.IsTrue(trainCar.IsDocked, "列車貨車が貨物プラットフォームにドッキングしていません。");
             Assert.IsTrue(trainCar.IsInventoryEmpty(), "列車貨車のインベントリが初期状態で空になっていません。");
 
-            // loadingAnimeSpeed(?)?tick???????+??1tick??????
+            // loadingAnimeSpeed(秒)をtickに変換し、伸長+接触1tick後に一括転送
             // Convert loadingAnimeSpeed seconds to ticks, then transfer after extend + 1 contact tick
             var transferTicks = GetCargoTransferTicks();
             for (var i = 0; i < transferTicks; i++)
@@ -186,7 +186,7 @@ namespace Tests.UnitTest.Game
 
             Assert.IsTrue(trainCar.IsDocked, "列車貨車が貨物プラットフォームにドッキングしていません。");
 
-            // loadingAnimeSpeed(?)?tick???????+??1tick??????
+            // loadingAnimeSpeed(秒)をtickに変換し、伸長+接触1tick後に一括転送
             // Convert loadingAnimeSpeed seconds to ticks, then transfer after extend + 1 contact tick
             var transferTicks = GetCargoTransferTicks();
             for (var i = 0; i < transferTicks; i++)
@@ -252,7 +252,7 @@ namespace Tests.UnitTest.Game
             secondTrain.trainUnitStationDocking.TryDockWhenStopped();
             Assert.IsFalse(secondCar.IsDocked, "駅占有中にも関わらず2列車目がドッキングしています。");
 
-            // loadingAnimeSpeed(?)?tick???????+??1tick??????
+            // loadingAnimeSpeed(秒)をtickに変換し、伸長+接触1tick後に一括転送
             // Convert loadingAnimeSpeed seconds to ticks, then transfer after extend + 1 contact tick
             var transferTicks = GetStationTransferTicks();
             for (var i = 0; i < transferTicks; i++)
