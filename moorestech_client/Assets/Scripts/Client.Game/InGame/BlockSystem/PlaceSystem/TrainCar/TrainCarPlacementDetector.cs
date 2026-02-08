@@ -30,7 +30,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
     
     public class TrainCarPlacementDetector : ITrainCarPlacementDetector
     {
-        private const int CurveSampleCount = 512;
+        private const int CurveSampleCount = 128;
         private const float MinCurveLength = 1e-4f;
         private readonly Camera _mainCamera;
         private readonly RailGraphClientCache _cache;
