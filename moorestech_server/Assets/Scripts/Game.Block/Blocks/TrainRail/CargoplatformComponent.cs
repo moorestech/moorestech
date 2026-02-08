@@ -1,5 +1,6 @@
 using Core.Item.Interface;
 using Core.Master;
+using Core.Update;
 using Game.Block.Interface.Component;
 using Game.Train.Unit;
 using Mooresmaster.Model.BlocksModule;
@@ -70,7 +71,8 @@ namespace Game.Block.Blocks.TrainRail
         public CargoplatformComponent(TrainCargoPlatformBlockParam param)
         {
             _param = param;
-            _armAnimationTicks = _param.LoadingSpeed;
+            var armAnimationTicks = GameUpdater.SecondsToTicks(_param.LoadingAnimeSpeed);
+            _armAnimationTicks = armAnimationTicks > int.MaxValue ? int.MaxValue : (int)armAnimationTicks;
         }
 
         public CargoplatformComponent(Dictionary<string, string> componentStates, TrainCargoPlatformBlockParam param) : this(param)

@@ -11,6 +11,7 @@ using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
+using Core.Update;
 using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;
@@ -50,7 +51,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             trainUnit.trainUnitStationDocking.TryDockWhenStopped();
             Assert.IsTrue(trainCar.IsDocked, "列車が貨物プラットフォームにドッキングしていません。");
 
-            var elapsedTicks = cargoParam.LoadingSpeed / 2;
+            var totalTicks = GetArmAnimationTicks(cargoParam.LoadingAnimeSpeed);
+            var elapsedTicks = totalTicks / 2;
             for (var i = 0; i < elapsedTicks; i++) cargoPlatformComponent.Update();
             Assert.IsTrue(trainCar.IsInventoryEmpty(), "セーブ前に一括移送が発生しています。");
 
@@ -68,7 +70,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var loadedCar = loadedTrain.Cars[0];
             Assert.IsTrue(loadedCar.IsDocked, "ロード後に列車ドッキング状態が復元されていません。");
 
-            var remainingTicks = cargoParam.LoadingSpeed + 1 - elapsedTicks;
+            var remainingTicks = totalTicks + 1 - elapsedTicks;
             for (var i = 0; i < remainingTicks; i++) loadedComponent.Update();
 
             var platformStack = loadedInventory.GetItem(0);
@@ -134,6 +136,12 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             Assert.AreEqual(CargoplatformComponent.CargoTransferMode.UnloadToPlatform, loadedUnloadCargo!.TransferMode,
                 "Unloadモード側の貨物プラットフォームの転送モードが復元されていません。");
+        }
+
+        private static int GetArmAnimationTicks(double loadingAnimeSeconds)
+        {
+            var ticks = GameUpdater.SecondsToTicks(loadingAnimeSeconds);
+            return ticks > int.MaxValue ? int.MaxValue : (int)ticks;
         }
     }
 }
