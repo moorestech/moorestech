@@ -68,10 +68,18 @@ namespace Client.Starter
             var initializeHandle = Addressables.InitializeAsync();
             await initializeHandle.ToUniTask();
             
-            // 理由はわからないが、Addressablesの初期化処理直後に一回何かしらのオブジェクトをロードしないと、他のロードが無限に続いてゲームがスタートできないので実行する
-            var handle = await AddressableLoader.LoadAsync<GameObject>("Vanilla/UI/Block/ChestBlockInventory");
-            handle.Dispose();
-            
+            // Addressablesの初期化直後に一度アセットをロードしておかないと、後続のロードが無限に続くため実行する
+            // バンドル参照を維持するためDisposeしない（解放するとバンドル再取得時にハングする）
+            // Load an asset right after Addressables init to prevent infinite loading of subsequent loads.
+            // Do NOT dispose - releasing the bundle reference causes hangs on re-acquisition.
+            await AddressableLoader.LoadAsync<GameObject>("Vanilla/UI/Block/ChestBlockInventory");
+
+            // staticなアセットをAddressables初期化直後に順次ロードする
+            // 並列タスク内でロードするとAddressablesがハングするため、事前にロードする
+            // Load static assets sequentially right after Addressables init.
+            // Loading them inside parallel tasks causes Addressables to hang.
+            await UniTask.WhenAll(ItemSlotView.LoadItemSlotViewPrefab(), FluidSlotView.LoadItemSlotViewPrefab());
+
             _proprieties ??= InitializeProprieties.CreateDefault();
             
             // DIコンテナによるServerContextの作成
@@ -94,9 +102,10 @@ namespace Client.Starter
             ModalManager modalManager = new ModalManager();
             
             //各種ロードを並列実行
+            // Execute various loading tasks in parallel.
             try
             {
-                await UniTask.WhenAll(CreateAndStartVanillaApi(), LoadModAssets(), MainGameSceneLoad(), LoadStaticAsset());
+                await UniTask.WhenAll(CreateAndStartVanillaApi(), LoadModAssets(), MainGameSceneLoad());
             }
             catch (Exception e)
             {
@@ -155,8 +164,6 @@ namespace Client.Starter
                 {
                     // 10秒以内にサーバー接続できなければタイムアウト
                     var serverCommunicator = await ServerCommunicator.CreateConnectedInstance(serverProperties).Timeout(timeOut);
-                    
-                    Debug.Log("接続完了");
                     return serverCommunicator;
                 }
                 catch (SocketException)
@@ -171,12 +178,10 @@ namespace Client.Starter
                             serverStarter.SetArgs(_proprieties.CreateLocalServerArgs);
                         }
                         DontDestroyOnLoad(serverInstanceGameObject);
-                        
+
                         await UniTask.Delay(1000);
-                        
+
                         var serverCommunicator = await ServerCommunicator.CreateConnectedInstance(serverProperties).Timeout(timeOut);
-                        
-                        Debug.Log("接続完了");
                         return serverCommunicator;
                     }
                     catch (Exception e)
@@ -193,6 +198,7 @@ namespace Client.Starter
             async UniTask LoadModAssets()
             {
                 // ブロックとアイテムのアセットをロード
+                // Load block and item assets.
                 await UniTask.WhenAll(LoadBlockAssets(), LoadItemAssets(), LoadFluidAssets());
                 
                 // アイテム画像がロードされていないブロックのアイテム画像をロードする
@@ -257,9 +263,9 @@ namespace Client.Starter
             {
                 sceneLoadTask = SceneManager.LoadSceneAsync(SceneConstant.MainGameSceneName, LoadSceneMode.Single);
                 sceneLoadTask.allowSceneActivation = false;
-                
+
                 var sceneLoadCts = new CancellationTokenSource();
-                
+
                 try
                 {
                     await sceneLoadTask.ToUniTask(Progress.Create<float>(
@@ -273,16 +279,12 @@ namespace Client.Starter
                 catch (OperationCanceledException)
                 {
                     // シーンロード完了
+                    // Scene load complete.
                 }
-                
+
                 loadingLog.text += $"\nシーンロード完了  {loadingStopwatch.Elapsed}";
             }
             
-            // staticなアセットをロード
-            async UniTask LoadStaticAsset()
-            {
-                await UniTask.WhenAll(ItemSlotView.LoadItemSlotViewPrefab(), FluidSlotView.LoadItemSlotViewPrefab());
-            }
             
             #endregion
         }
