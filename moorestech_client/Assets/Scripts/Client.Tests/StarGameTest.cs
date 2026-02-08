@@ -10,7 +10,7 @@ namespace Client.Tests
     public class StarGameTest
     {
         [UnityTest]
-        public IEnumerator BeltConveyorItemEntityPositionTest()
+        public IEnumerator StarGameCheckTest()
         {
             yield return new EnterPlayMode(expectDomainReload: true);
             
