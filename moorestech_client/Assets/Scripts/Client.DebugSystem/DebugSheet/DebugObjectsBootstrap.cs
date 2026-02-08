@@ -9,6 +9,7 @@ namespace Client.DebugSystem
         private const string DebugObjectsAddress = "Vanilla/Debug/DebugObjects";
         
         private static GameObject _debugObjectsInstance;
+        private static LoadedAsset<GameObject> _debugObjectsAsset;
         private static bool _isCreatingDebugObjects;
         
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
@@ -18,6 +19,11 @@ namespace Client.DebugSystem
             // Initialize scene-loaded subscription.
             SceneManager.sceneLoaded -= OnSceneLoaded;
             SceneManager.sceneLoaded += OnSceneLoaded;
+            
+            // アプリ終了時にAddressables参照を解放する
+            // Release Addressables reference on app quit.
+            Application.quitting -= OnApplicationQuitting;
+            Application.quitting += OnApplicationQuitting;
         }
         
         private static async void OnSceneLoaded(Scene scene, LoadSceneMode _)
@@ -36,8 +42,9 @@ namespace Client.DebugSystem
             
             // DebugObjectsを永続ルートに移動する
             // Move DebugObjects to persistent root.
+            _debugObjectsAsset = loadedAsset;
             _debugObjectsInstance = Object.Instantiate(loadedAsset.Asset);
-            loadedAsset.Dispose();
+            ActivateDebugLogPopup(_debugObjectsInstance);
             Object.DontDestroyOnLoad(_debugObjectsInstance);
             
             _isCreatingDebugObjects = false;
@@ -56,6 +63,24 @@ namespace Client.DebugSystem
             }
             
             return false;
+        }
+        
+        private static void ActivateDebugLogPopup(GameObject debugObjectsInstance)
+        {
+            // 非アクティブなPopupを有効化して初期化を保証する
+            // Ensure inactive popup gets initialized by activating it.
+            var popupTransform = debugObjectsInstance.transform.Find("IngameDebugConsole/DebugLogPopup");
+            if (popupTransform == null || popupTransform.gameObject.activeSelf) return;
+            popupTransform.gameObject.SetActive(true);
+        }
+        
+        private static void OnApplicationQuitting()
+        {
+            // 保持したAddressables参照を明示解放する
+            // Explicitly release held Addressables reference.
+            if (_debugObjectsAsset == null) return;
+            _debugObjectsAsset.Dispose();
+            _debugObjectsAsset = null;
         }
     }
 }

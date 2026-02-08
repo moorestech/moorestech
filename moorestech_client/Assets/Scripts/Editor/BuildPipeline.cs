@@ -67,9 +67,17 @@ public class BuildPipeline
             options = isDevelopmentBuild ? BuildOptions.Development : BuildOptions.None,
         };
         
-        // Addressablesコンテンツをビルドする
-        // Build Addressables content before building the player
-        AddressableAssetSettings.BuildPlayerContent();
+        // Addressablesコンテンツをクリーンビルドする
+        // Clean build Addressables content before building the player
+        AddressableAssetSettings.CleanPlayerContent();
+        AddressableAssetSettings.BuildPlayerContent(out var addressablesResult);
+        if (!string.IsNullOrEmpty(addressablesResult.Error))
+        {
+            Debug.LogError("Addressables Build Failed: " + addressablesResult.Error);
+            if (isErrorExit) EditorApplication.Exit(1);
+            return;
+        }
+        Debug.Log("Addressables Build Succeeded: " + addressablesResult.OutputPath);
 
         var report = UnityEditor.BuildPipeline.BuildPlayer(buildOptions);
         
