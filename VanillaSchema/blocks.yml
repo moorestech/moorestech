@@ -715,9 +715,9 @@ properties:
           default: 0.5
         - key: itemSlotCount
           type: integer
-        - key: loadingSpeed
-          type: integer
-          default: 20
+        - key: loadingAnimeSpeed
+          type: number
+          default: 1
         - key: inventoryConnectors
           ref: inventoryConnects
       - when: TrainCargoPlatform
@@ -746,9 +746,9 @@ properties:
         - key: itemSlotCount
           type: integer
           default: 10
-        - key: loadingSpeed
-          type: integer
-          default: 20
+        - key: loadingAnimeSpeed
+          type: number
+          default: 1
         - key: inventoryConnectors
           ref: inventoryConnects
       - when: FluidPipe

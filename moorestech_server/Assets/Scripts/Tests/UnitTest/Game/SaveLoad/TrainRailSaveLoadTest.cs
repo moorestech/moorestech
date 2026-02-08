@@ -271,7 +271,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             trainUnit.trainUnitStationDocking.TryDockWhenStopped();
             Assert.IsTrue(trainCar.IsDocked, "列車が駅にドッキングしていません。");
 
-            var elapsedTicks = stationParam.LoadingSpeed / 2;
+            var totalTicks = GetArmAnimationTicks(stationParam.LoadingAnimeSpeed);
+            var elapsedTicks = totalTicks / 2;
             for (var i = 0; i < elapsedTicks; i++) stationComponent.Update();
             Assert.IsTrue(trainCar.IsInventoryEmpty(), "セーブ前に一括移送が発生しています。");
 
@@ -289,7 +290,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var loadedCar = loadedTrain.Cars[0];
             Assert.IsTrue(loadedCar.IsDocked, "ロード後に列車ドッキング状態が復元されていません。");
 
-            var remainingTicks = stationParam.LoadingSpeed + 1 - elapsedTicks;
+            var remainingTicks = totalTicks + 1 - elapsedTicks;
             for (var i = 0; i < remainingTicks; i++) loadedStation.Update();
 
             var platformStack = loadedInventory.GetItem(0);
@@ -316,6 +317,12 @@ namespace Tests.UnitTest.Game.SaveLoad
             }
 
             Assert.IsTrue(isConnect, "接続情報が正しくロードされていません");
+        }
+
+        private static int GetArmAnimationTicks(double loadingAnimeSeconds)
+        {
+            var ticks = GameUpdater.SecondsToTicks(loadingAnimeSeconds);
+            return ticks > int.MaxValue ? int.MaxValue : (int)ticks;
         }
     }
 }
