@@ -46,33 +46,16 @@ namespace Game.Train.Unit
 
         private void UpdateTrains()
         {
-            // ゲームのtick数を秒数に変換して積算
-            // Convert game ticks to seconds and accumulate
-            _accumulatedSeconds += GameUpdater.CurrentTickCount * GameUpdater.SecondsPerTick;
-
-            var tickCount = Math.Min(_maxTicksPerFrame, (int)(_accumulatedSeconds / TickSeconds));
-            if (tickCount == 0)
+            // 毎フレーム1tickだけ更新する
+            // Update exactly 1 tick per frame
+            foreach (var trainUnit in _trainUnits)
             {
-                return;
+                trainUnit.Update();
             }
-
-            _accumulatedSeconds -= tickCount * TickSeconds;
-
-            for (var i = 0; i < tickCount; i++)
+            _executedTick++;
+            if (_executedTick % Interval == 0)
             {
-                foreach (var trainUnit in _trainUnits)
-                {
-                    trainUnit.Update();
-                }
-                _executedTick++;
-                if (_executedTick % Interval == 0)
-                {
-                    _onHashEvent.OnNext(_executedTick);
-                }
-
-                // 外部スナップショットを毎tick記録する
-                // Record external snapshots per tick
-                //TrainTickSnapshotRecorder.RecordTickIfAvailable(_executedTick, _trainUnits);
+                _onHashEvent.OnNext(_executedTick);
             }
         }
 
