@@ -1,6 +1,9 @@
 using Client.Common.Asset;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace Client.DebugSystem
 {
@@ -12,9 +15,21 @@ namespace Client.DebugSystem
         private static LoadedAsset<GameObject> _debugObjectsAsset;
         private static bool _isCreatingDebugObjects;
         
+        // テスト時にデバッグオブジェクトの生成を無効化するフラグ
+        // Flag to disable debug object creation during tests.
+        public static bool Disabled { get; set; }
+        
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void Initialize()
         {
+            if (Disabled) return;
+
+#if UNITY_EDITOR
+            // SessionStateはドメインリロード後も保持されるため、テスト中の無効化に使用
+            // SessionState persists across domain reload, used to disable during tests.
+            if (SessionState.GetBool("DebugObjectsBootstrap_Disabled", false)) return;
+#endif
+            
             // シーンロード時にイベント購読を初期化する
             // Initialize scene-loaded subscription.
             SceneManager.sceneLoaded -= OnSceneLoaded;
@@ -40,12 +55,21 @@ namespace Client.DebugSystem
                 return;
             }
             
-            // DebugObjectsを永続ルートに移動する
-            // Move DebugObjects to persistent root.
             _debugObjectsAsset = loadedAsset;
+            
+            // 非アクティブ状態でインスタンスを作成し、DontDestroyOnLoad後にアクティブ化する
+            // 子コンポーネントのAwakeがDontDestroyOnLoad前に走ると警告やNullRefが発生するため
+            // Instantiate inactive, apply DontDestroyOnLoad, then activate.
+            // Child component Awake running before DontDestroyOnLoad causes warnings and NullRef.
+            var wasActive = loadedAsset.Asset.activeSelf;
+            loadedAsset.Asset.SetActive(false);
             _debugObjectsInstance = Object.Instantiate(loadedAsset.Asset);
-            ActivateDebugLogPopup(_debugObjectsInstance);
+            loadedAsset.Asset.SetActive(wasActive);
+            
             Object.DontDestroyOnLoad(_debugObjectsInstance);
+            _debugObjectsInstance.SetActive(true);
+            
+            ActivateDebugLogPopup(_debugObjectsInstance);
             
             _isCreatingDebugObjects = false;
             SceneManager.sceneLoaded -= OnSceneLoaded;
