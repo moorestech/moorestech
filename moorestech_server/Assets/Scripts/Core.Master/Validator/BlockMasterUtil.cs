@@ -113,6 +113,34 @@ namespace Core.Master.Validator
                             }
                         }
                     }
+
+                    // GearPump: generateFluid
+                    // GearPump: generateFluid
+                    if (block.BlockParam is GearPumpBlockParam gearPump)
+                    {
+                        foreach (var generateFluid in gearPump.GenerateFluid.items)
+                        {
+                            var id = MasterHolder.FluidMaster.GetFluidIdOrNull(generateFluid.FluidGuid);
+                            if (id == null)
+                            {
+                                logs += $"[BlockMaster] Name:{block.Name} has invalid GenerateFluid.FluidGuid:{generateFluid.FluidGuid}\n";
+                            }
+                        }
+                    }
+
+                    // ElectricPump: generateFluid
+                    // ElectricPump: generateFluid
+                    if (block.BlockParam is ElectricPumpBlockParam electricPump)
+                    {
+                        foreach (var generateFluid in electricPump.GenerateFluid.items)
+                        {
+                            var id = MasterHolder.FluidMaster.GetFluidIdOrNull(generateFluid.FluidGuid);
+                            if (id == null)
+                            {
+                                logs += $"[BlockMaster] Name:{block.Name} has invalid GenerateFluid.FluidGuid:{generateFluid.FluidGuid}\n";
+                            }
+                        }
+                    }
                 }
 
                 return logs;

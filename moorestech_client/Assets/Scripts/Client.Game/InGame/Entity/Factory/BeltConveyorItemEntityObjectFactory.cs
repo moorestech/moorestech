@@ -7,6 +7,7 @@ using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Entity.Interface;
 using MessagePack;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Client.Game.InGame.Entity.Factory
@@ -20,6 +21,7 @@ namespace Client.Game.InGame.Entity.Factory
         private const string DefaultItemPrefabPath = "Vanilla/Game/ItemEntity";
 
         private GameObject _defaultItemPrefab;
+        private readonly Dictionary<ItemId, GameObject> _customModelPrefabCache = new();
 
         /// <summary>
         /// ベルトコンベア上のアイテムエンティティを生成
@@ -32,7 +34,6 @@ namespace Client.Game.InGame.Entity.Factory
             var itemState = DeserializeState();
             var itemId = new ItemId(itemState.ItemId);
             var itemMaster = MasterHolder.ItemMaster.GetItemMaster(itemId);
-            var hasEntityData = entity.EntityData != null && entity.EntityData.Length > 0;
 
             // カスタムモデルパスが設定されている場合
             // If custom model path is set
@@ -75,27 +76,40 @@ namespace Client.Game.InGame.Entity.Factory
 
                 var item = itemObject.GetComponent<BeltConveyorItemEntityObject>();
                 item.Initialize(entityResponse.InstanceId);
-                item.SetTexture(texture);
+                item.SetTexture(texture, id);
                 return item;
             }
 
             async UniTask<IEntityObject> CreateCustomModelEntity(Transform parentTransform, EntityResponse entityResponse, string addressablePath, ItemId id)
             {
-                // カスタムモデルをロード（LoadAsyncでLoadedAssetを取得）
-                // Load custom model (get LoadedAsset with LoadAsync)
-                using var loadedAsset = await AddressableLoader.LoadAsync<GameObject>(addressablePath);
-
-                // ロード失敗時はテクスチャベースにフォールバック
-                // Fallback to texture-based if load fails
-                if (loadedAsset?.Asset == null)
+                // キャッシュから取得
+                // Retrieve from prefab cache
+                GameObject prefabToUse;
+                if (_customModelPrefabCache.TryGetValue(id, out var cachedPrefab))
                 {
-                    Debug.LogError($"Failed to load custom entity model: {addressablePath}. Falling back to texture-based display.");
-                    return await CreateTextureBasedEntity(parentTransform, entityResponse, id);
+                    prefabToUse = cachedPrefab;
+                }
+                else
+                {
+                    // キャッシュにない場合はロード
+                    // Load custom model (get LoadedAsset with LoadAsync)
+                    var loadedAsset = await AddressableLoader.LoadAsync<GameObject>(addressablePath);
+
+                    // ロード失敗時はテクスチャベースにフォールバック
+                    // Fallback to texture-based if load fails
+                    if (loadedAsset?.Asset == null)
+                    {
+                        Debug.LogError($"Failed to load custom entity model: {addressablePath}. Falling back to texture-based display.");
+                        return await CreateTextureBasedEntity(parentTransform, entityResponse, id);
+                    }
+
+                    prefabToUse = loadedAsset.Asset;
+                    _customModelPrefabCache[id] = prefabToUse;
                 }
 
                 // カスタムモデルをインスタンス化
                 // Instantiate custom model
-                var customModelObject = GameObject.Instantiate(loadedAsset.Asset, entityResponse.Position, Quaternion.identity, parentTransform);
+                var customModelObject = GameObject.Instantiate(prefabToUse, entityResponse.Position, Quaternion.identity, parentTransform);
 
                 // CustomModelBeltConveyorItemEntityObjectコンポーネントを追加
                 // Add CustomModelBeltConveyorItemEntityObject component

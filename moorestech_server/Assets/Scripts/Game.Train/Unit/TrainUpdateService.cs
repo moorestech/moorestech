@@ -44,40 +44,29 @@ namespace Game.Train.Unit
 
         private void UpdateTrains()
         {
-            for (int i = 0; i < GameUpdater.CurrentTickCount; i++)
+            //TODO
+            //ここに操作コマンド系
+            //
+            
+            //HashVerifier用ブロードキャスト
+            if (_executedTick % Interval == 0)
             {
-                //TODO
-                //ここに操作コマンド系
-                //
-                
-                //HashVerifier用ブロードキャスト
-                if (_executedTick % Interval == 0)
-                {
-                    _onHashEvent.OnNext(_executedTick);
-                }
-                
-                //simulation
-                foreach (var trainUnit in _trainUnits)
-                {
-                    trainUnit.Update();
-                }
-                
-                //ここにdiagram限定コマンド系(サーバーがブロードキャスト)
-                //
-                
-                //_executedTick++;
-                _executedTick++;
+                _onHashEvent.OnNext(_executedTick);
             }
-        }
-
-        private void UpdateTrains1Tickmanually()
-        {
+            
+            //simulation
             foreach (var trainUnit in _trainUnits)
             {
                 trainUnit.Update();
             }
+            
+            //ここにdiagram限定コマンド系(サーバーがブロードキャスト)
+            //
+            
+            //_executedTick++;
+            _executedTick++;
         }
-
+        
         public void RegisterTrain(TrainUnit trainUnit)
         {
             // 列車を登録して生成通知を送る

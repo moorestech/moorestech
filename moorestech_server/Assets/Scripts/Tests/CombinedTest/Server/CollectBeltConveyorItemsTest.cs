@@ -148,7 +148,7 @@ namespace Tests.CombinedTest.Server
             // tick数でアップデートする（RemainingTime * 1.1秒間）
             // Update for RemainingTime * 1.1 seconds (controlled by tick count)
             var updateTicks = (int)(RemainingTime * 1.1 * GameUpdater.TicksPerSecond);
-            for (var i = 0; i < updateTicks; i++) GameUpdater.AdvanceTicks(1);
+            for (var i = 0; i < updateTicks; i++) GameUpdater.RunFrames(1);
             
             //ベルトコンベアからアイテムを取得
             var inventoryItemsField = typeof(VanillaBeltConveyorComponent).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);

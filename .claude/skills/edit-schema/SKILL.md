@@ -91,6 +91,12 @@ implementationInterface:
 - 手動で `Mooresmaster.Model.*` クラスを作成しない
 - スキーマ変更後は必ず `_CompileRequester.cs` を更新してコミット
 
+## Validation for foreignKey (CRITICAL)
+
+**MUST**: foreignKeyを持つプロパティを追加した場合、**必ず `/validate-schema` スキルを実行**してC#バリデーションを追加すること。
+
+SourceGeneratorはforeignKeyからバリデーションコードを自動生成しない。手動追加を怠ると実行時エラー（InvalidOperationException）の原因となる。
+
 ## SourceGenerator Troubleshooting
 
 SourceGeneratorはどのような環境（git worktree、root repo、CI/CD）でも動作します。
