@@ -24,10 +24,10 @@ namespace Client.Game.InGame.Train.View.Object
         private RendererMaterialReplacerController _rendererMaterialReplacerController;
 
         /// <summary>
-        /// エンティティIDを設定し、初期化を行う
-        /// Set entity ID and perform initialization
+        /// 初期化を行う
+        /// Perform initialization
         /// </summary>
-        public void Initialize(long entityId)
+        public void Initialize()
         {
             _debugAutoRun = DebugParameters.GetValueOrDefaultBool(DebugConst.TrainAutoRunKey);//////////////////
             _rendererMaterialReplacerController = new RendererMaterialReplacerController(gameObject);
