@@ -38,6 +38,7 @@ using Client.Game.InGame.Train.Network;
 using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Train.View;
+using Client.Game.InGame.Train.View.Object;
 using Client.Game.InGame.UI.Inventory.Craft;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.SubInventory;

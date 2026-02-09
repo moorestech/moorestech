@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Entity;
 using Client.Game.InGame.Train.Unit;
+using Client.Game.InGame.Train.View.Object;
 using Client.Network.API;
 using MessagePack;
 using Server.Event.EventReceive;
@@ -69,7 +70,7 @@ namespace Client.Game.InGame.Train.Network
             {
                 responses.Add(new EntityResponse(entities[i]));
             }
-            _trainEntityDatastore.OnEntitiesUpdate(responses);
+            _trainEntityDatastore.OnTrainObjectUpdate(responses);
         }
 
         #endregion

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
 using Game.Entity.Interface;
-using Client.Game.InGame.Train.Unit;
 using UnityEngine;
 
 namespace Client.Game.InGame.Entity.Factory
@@ -17,15 +16,10 @@ namespace Client.Game.InGame.Entity.Factory
     public class EntityObjectFactory
     {
         private readonly Dictionary<string, IEntityObjectFactory> _factoryMap;
-        private readonly TrainUnitClientCache _trainUnitClientCache;
         
-        public EntityObjectFactory(TrainUnitClientCache trainUnitClientCache)
+        public EntityObjectFactory()
         {
-            // 車両姿勢更新に必要な依存を保持する
-            // Hold dependencies required for train car pose updates
-            _trainUnitClientCache = trainUnitClientCache;
             _factoryMap = new Dictionary<string, IEntityObjectFactory>();
-            _factoryMap.Add(VanillaEntityType.VanillaTrain, new TrainEntityObjectFactory(_trainUnitClientCache));
             _factoryMap.Add(VanillaEntityType.VanillaItem, new BeltConveyorItemEntityObjectFactory());
         }
         

@@ -1,6 +1,5 @@
 using System;
 using Client.Common;
-using Client.Common.Server;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Common.Debug;
@@ -8,11 +7,10 @@ using Mooresmaster.Model.TrainModule;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 
-namespace Client.Game.InGame.Entity.Object
+namespace Client.Game.InGame.Train.View.Object
 {
-    public class TrainCarEntityObject : MonoBehaviour, IEntityObject
+    public class TrainCarEntityObject : MonoBehaviour
     {
-        public long EntityId { get; private set; }
         public Guid TrainCarId { get; private set; }
         public TrainCarMasterElement TrainCarMasterElement { get; set; }
         private const float ModelYawOffsetDegrees = -90f;
@@ -21,7 +19,6 @@ namespace Client.Game.InGame.Entity.Object
         /// Model forward center offset
         /// </summary>
         public float ModelForwardCenterOffset { get; private set; }
-        private bool _isFacingForward = true;
         private bool _debugAutoRun = false;//////////////////
 
         private RendererMaterialReplacerController _rendererMaterialReplacerController;
@@ -32,7 +29,6 @@ namespace Client.Game.InGame.Entity.Object
         /// </summary>
         public void Initialize(long entityId)
         {
-            EntityId = entityId;
             _debugAutoRun = DebugParameters.GetValueOrDefaultBool(DebugConst.TrainAutoRunKey);//////////////////
             _rendererMaterialReplacerController = new RendererMaterialReplacerController(gameObject);
             // モデル中心の前後オフセットをキャッシュする
@@ -46,9 +42,6 @@ namespace Client.Game.InGame.Entity.Object
             TrainCarMasterElement = trainCarMasterElement;
         }
         
-        public void SetDirectPosition(Vector3 position) { }
-        public void SetPositionWithLerp(Vector3 position) { }
-        public void SetEntityData(byte[] entityEntityData) { }
         
         /// <summary>
         /// 即座に位置と角度を設定する（補間なし）
