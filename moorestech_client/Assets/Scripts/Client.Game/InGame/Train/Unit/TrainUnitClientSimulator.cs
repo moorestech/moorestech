@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Server.Boot.Loop;
 using UnityEngine;
 using VContainer.Unity;
 
@@ -6,7 +7,9 @@ namespace Client.Game.InGame.Train.Unit
 {
     public sealed class TrainUnitClientSimulator : ITickable
     {
-        private const double TickSeconds = 1d / 60d;
+        // サーバー更新間隔を参照してクライアントの列車シミュレーション幅を揃える
+        // Align client train simulation step with the server update interval
+        private const double TickSeconds = ServerGameUpdater.FrameIntervalMs / 1000d;
         private readonly TrainUnitClientCache _cache;
         private readonly List<ClientTrainUnit> _work = new();
         private double _accumulatedSeconds;
