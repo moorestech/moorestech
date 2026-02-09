@@ -84,7 +84,8 @@
                   -1,
                   0
                 ]
-              ]
+              ],
+              "connectorGuid": "9dd5c189-9306-419f-83ea-dc4d39943c75"
             },
             {
               "offset": [
@@ -107,10 +108,15 @@
               "connectType": "Gear",
               "connectOption": {
                 "isReverse": false
-              }
+              },
+              "connectorGuid": "c410d96a-1ec2-4f3e-aa20-6623f917f778"
             }
           ]
-        }
+        },
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0
       },
       "itemGuid": "19fb4202-de45-49f1-a480-3d154309dd99",
       "blockGuid": "ce060607-996d-4270-87ec-204073f6e3f7",
@@ -149,7 +155,8 @@
                   0,
                   0
                 ]
-              ]
+              ],
+              "connectorGuid": "5e19142d-7be3-49b9-90a0-0b1bf3774c22"
             },
             {
               "offset": [
@@ -167,10 +174,15 @@
               "connectType": "Gear",
               "connectOption": {
                 "isReverse": false
-              }
+              },
+              "connectorGuid": "39e1bb67-982e-407e-9d7e-81b591b55b2a"
             }
           ]
-        }
+        },
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0
       },
       "itemGuid": "370b1996-237e-475e-a5e3-a3f4f2a88587",
       "blockGuid": "f07acb35-f9c2-4905-b1dd-88c6723707b6",
@@ -226,7 +238,8 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectorGuid": "8ea05b98-f83c-4e55-a0aa-13e4bf09b292"
             }
           ],
           "outputConnects": [
@@ -262,7 +275,8 @@
               "connectOption": {
                 "isReverse": true,
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "279abd08-6d4c-485a-8de0-98fa372a92f1"
             }
           ]
         },
@@ -299,7 +313,8 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectorGuid": "98f49afe-acea-42aa-ba86-7a4c0f109158"
             }
           ]
         },
@@ -313,7 +328,11 @@
         },
         "inputTankCount": 0,
         "innerTankCapacity": 0,
-        "outputTankCount": 0
+        "outputTankCount": 0,
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0
       },
       "itemGuid": "8b7a77d9-bda9-4eb5-85f3-8eefc6f90a84",
       "blockGuid": "db586a13-e960-4414-9d63-85fa07fded7f",
@@ -369,7 +388,8 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectorGuid": "d83f6669-02bf-4752-9e25-98ff922f555e"
             }
           ],
           "outputConnects": [
@@ -405,7 +425,8 @@
               "connectOption": {
                 "isReverse": true,
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "c24a7a4d-8ce0-40c7-b7a4-6c55e65fc51a"
             }
           ]
         },
@@ -442,7 +463,8 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectorGuid": "5136e5ec-21a2-4b4b-ae49-b317e14c807e"
             }
           ]
         },
@@ -456,7 +478,11 @@
         },
         "outputTankCount": 0,
         "inputTankCount": 0,
-        "innerTankCapacity": 0
+        "innerTankCapacity": 0,
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0
       },
       "itemGuid": "1da13d89-8aa1-42f7-8d7f-96ef0d216c2b",
       "blockGuid": "47afbbce-ca2c-4470-8348-3d8c1d887506",
@@ -534,7 +560,8 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectorGuid": "62168b57-0d87-40de-9f3f-c0de12888e1d"
             }
           ]
         },
@@ -543,7 +570,11 @@
         "requiredRpm": 5,
         "inputSlotCount": 1,
         "teethCount": 10,
-        "outputSlotCount": 1
+        "outputSlotCount": 1,
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0
       },
       "itemGuid": "96b45ab2-3345-4fcd-99af-f3dc06605e73",
       "blockGuid": "3dda0801-b12a-4624-b759-2ac3c62969a6",
@@ -582,7 +613,8 @@
                   0,
                   0
                 ]
-              ]
+              ],
+              "connectorGuid": "bf0c23d8-3a9a-4efb-98db-42060df5044c"
             },
             {
               "offset": [
@@ -600,10 +632,15 @@
               "connectType": "Gear",
               "connectOption": {
                 "isReverse": false
-              }
+              },
+              "connectorGuid": "46aed99a-3bc2-4725-87b0-129112e7c0a7"
             }
           ]
-        }
+        },
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0
       },
       "itemGuid": "02dda87e-01f3-41dd-b76a-27fbc17b43c0",
       "blockGuid": "6fc49eb9-d2d7-4ab9-ba0e-17a210719a28",
@@ -637,7 +674,8 @@
                 "isReverse": true,
                 "inventoryOptions": []
               },
-              "directions": []
+              "directions": [],
+              "connectorGuid": "45c4977a-ca9f-45d4-9eeb-829a1f0d4230"
             }
           ],
           "outputConnects": [
@@ -658,7 +696,8 @@
               "connectOption": {
                 "isReverse": true,
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "f2276bf2-4c08-4921-a12d-8d214739809a"
             }
           ]
         },
@@ -695,7 +734,8 @@
                   0,
                   1
                 ]
-              ]
+              ],
+              "connectorGuid": "17dbd398-cd13-4fac-b78a-d913c1649952"
             }
           ]
         },
@@ -709,7 +749,11 @@
         },
         "innerTankCapacity": 0,
         "outputTankCount": 0,
-        "inputTankCount": 0
+        "inputTankCount": 0,
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0
       },
       "name": "プレス機",
       "blockGuid": "20ebdedb-da4e-4cee-b9ba-772e6394653c",
@@ -767,7 +811,8 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectorGuid": "ffacb1e6-f9e9-437c-936d-577e1e7549b8"
             }
           ],
           "outputConnects": [
@@ -803,7 +848,8 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectorGuid": "065c3698-bca3-4dc0-8b55-96fe30db5aa8"
             }
           ]
         },
@@ -840,7 +886,8 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectorGuid": "eb0bde11-599b-4627-a7f8-ecf803e9d486"
             }
           ]
         },
@@ -854,7 +901,11 @@
         },
         "innerTankCapacity": 0,
         "outputTankCount": 0,
-        "inputTankCount": 0
+        "inputTankCount": 0,
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0
       },
       "blockPrefabAddressablesPath": "Vanilla/Block/stone crasher",
       "blockUIAddressablesPath": "Vanilla/UI/Block/GearMachineBlockInventory",
@@ -925,7 +976,8 @@
                   -1,
                   0
                 ]
-              ]
+              ],
+              "connectorGuid": "9ecb7a3d-76e3-4702-a3f3-e9167a52ad61"
             }
           ]
         },
@@ -972,7 +1024,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "e771a995-1ae5-4236-aa27-2b6d76ec8e34"
             }
           ],
           "outputConnects": [
@@ -997,11 +1050,16 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "85f96224-0514-49b0-814c-858f558e4972"
             }
           ]
         },
-        "slopeType": "Straight"
+        "slopeType": "Straight",
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0
       },
       "itemGuid": "52f09be4-e12b-4674-afec-d183cebed28f",
       "blockGuid": "67255c7b-135d-4c46-95e8-fcf01f151580",
@@ -1054,7 +1112,8 @@
                   -1,
                   -1
                 ]
-              ]
+              ],
+              "connectorGuid": "589ebab3-9f63-48d3-a91c-2b18cfff1619"
             }
           ]
         },
@@ -1076,7 +1135,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "e0416e02-890d-45b6-b653-28748f467552"
             }
           ],
           "inputConnects": [
@@ -1101,11 +1161,16 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "4eaf23de-8243-4910-beb5-acf8d80f1eff"
             }
           ]
         },
-        "slopeType": "Up"
+        "slopeType": "Up",
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0
       },
       "itemGuid": "b3b2cbce-94fb-493a-97b9-a0dbc88d4a41",
       "blockGuid": "11c8a7c9-b4c9-41c6-b52e-4f7b78d7e51d",
@@ -1159,7 +1224,8 @@
                   -1,
                   1
                 ]
-              ]
+              ],
+              "connectorGuid": "595248dd-0ede-4dd1-9d40-af68421a668a"
             }
           ]
         },
@@ -1186,7 +1252,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "9ffa7bcb-0930-4dde-883b-4e47d52e45e8"
             }
           ],
           "inputConnects": [
@@ -1206,11 +1273,16 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "1b283493-d7ec-4051-8d9e-d42247369a27"
             }
           ]
         },
-        "slopeType": "Down"
+        "slopeType": "Down",
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0
       },
       "itemGuid": "de18ccf5-7560-4733-8416-676a4cdf52ec",
       "blockGuid": "c568f762-ee82-4e5f-8c80-0d70e3cbd8a2",
@@ -1255,7 +1327,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "52a5e59d-706c-4256-8f5e-2df4c4b0d3c4"
             }
           ],
           "inputConnects": [
@@ -1290,7 +1363,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "dde12236-8050-4619-b660-a4e4649d652e"
             }
           ]
         },
@@ -1341,7 +1415,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "c49bea29-fc47-4a3e-a711-37cf142574b4"
             }
           ],
           "inputConnects": [
@@ -1361,7 +1436,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "f9d506a7-e9a9-4d51-8a7a-ad2900cc8bff"
             }
           ]
         },
@@ -1403,7 +1479,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "55024900-85c2-4155-a69e-3b51ae52185d"
             }
           ],
           "inputConnects": [
@@ -1428,7 +1505,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "534d5cd4-4f60-493d-bc83-06482efccc02"
             }
           ]
         },
@@ -1473,7 +1551,8 @@
                   0,
                   1
                 ]
-              ]
+              ],
+              "connectorGuid": "ee534dd1-1ca1-45d1-996c-4953475f40f1"
             },
             {
               "offset": [
@@ -1491,7 +1570,8 @@
               "connectType": "Gear",
               "connectOption": {
                 "isReverse": true
-              }
+              },
+              "connectorGuid": "883dd7a6-24b9-4881-990e-1533726a1998"
             },
             {
               "offset": [
@@ -1509,7 +1589,8 @@
               "connectType": "Gear",
               "connectOption": {
                 "isReverse": true
-              }
+              },
+              "connectorGuid": "95741460-fd60-4517-9932-4b4a5e8a8e50"
             },
             {
               "offset": [
@@ -1527,7 +1608,8 @@
                   1,
                   0
                 ]
-              ]
+              ],
+              "connectorGuid": "5c68b659-9fc6-48a8-9954-423abd739e82"
             },
             {
               "offset": [
@@ -1545,10 +1627,15 @@
               "connectType": "Gear",
               "connectOption": {
                 "isReverse": true
-              }
+              },
+              "connectorGuid": "33940bdf-65e9-41bd-bf5b-fb4a4868776e"
             }
           ]
-        }
+        },
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0
       },
       "initialUnlocked": true,
       "itemGuid": "ba3cf978-dc21-47f9-810e-50f1c26015ed",
@@ -1590,7 +1677,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "b68ede1b-7d4a-4db9-9a3c-e46ae7bb60f4"
             }
           ]
         },
@@ -1621,7 +1709,8 @@
                   0,
                   0
                 ]
-              ]
+              ],
+              "connectorGuid": "400357a8-d21c-478b-8dd3-b4603f98a826"
             },
             {
               "offset": [
@@ -1639,10 +1728,15 @@
                   0,
                   0
                 ]
-              ]
+              ],
+              "connectorGuid": "3bd0cca5-61f6-4834-b940-8a91dc1006c1"
             }
           ]
-        }
+        },
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0
       },
       "blockPrefabAddressablesPath": "Vanilla/Block/bronze_miner",
       "blockUIAddressablesPath": "Vanilla/UI/Block/GearMinerBlockInventory",
@@ -1680,7 +1774,8 @@
                 "isReverse": true,
                 "inventoryOptions": []
               },
-              "directions": []
+              "directions": [],
+              "connectorGuid": "5f90c920-a95e-4d05-bce3-2c4a3ec6df19"
             }
           ],
           "outputConnects": [
@@ -1701,7 +1796,8 @@
               "connectOption": {
                 "isReverse": true,
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "7cfc2bc9-5e18-4830-8d91-df9f9ee47dd2"
             }
           ]
         },
@@ -1738,7 +1834,8 @@
                   0,
                   1
                 ]
-              ]
+              ],
+              "connectorGuid": "6a788ea5-5c74-4267-a94a-e19714699c45"
             }
           ]
         },
@@ -1752,7 +1849,11 @@
         },
         "outputTankCount": 0,
         "innerTankCapacity": 0,
-        "inputTankCount": 0
+        "inputTankCount": 0,
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0
       },
       "itemGuid": "2df8862b-dfd1-4e64-b688-952b69212902",
       "name": "圧延機",
@@ -1796,7 +1897,8 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectorGuid": "b935bf66-edd4-407c-b61a-34e855cf7771"
             }
           ],
           "outputConnects": [
@@ -1817,7 +1919,8 @@
               "connectOption": {
                 "isReverse": true,
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "1d792219-31a9-4ce3-8309-51ff9f3a6cff"
             }
           ]
         },
@@ -1854,7 +1957,8 @@
                   0,
                   1
                 ]
-              ]
+              ],
+              "connectorGuid": "7b290b19-2fc6-48f5-9ca4-8fe9c7339edd"
             }
           ]
         },
@@ -1868,7 +1972,11 @@
         },
         "outputTankCount": 0,
         "inputTankCount": 0,
-        "innerTankCapacity": 0
+        "innerTankCapacity": 0,
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0
       },
       "overrideVerticalBlock": {},
       "blockUIAddressablesPath": "Vanilla/UI/Block/GearMachineBlockInventory"
@@ -1904,7 +2012,11 @@
         },
         "innerTankCapacity": 0,
         "inputTankCount": 0,
-        "outputTankCount": 0
+        "outputTankCount": 0,
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0
       },
       "itemGuid": "3fbc5f0e-e39d-4753-9757-e5464284850d",
       "blockGuid": "4ff330a1-ecf4-4687-b782-423f25bd9dbf",
@@ -1947,10 +2059,15 @@
                   -1,
                   0
                 ]
-              ]
+              ],
+              "connectorGuid": "85c1ec94-4be2-4164-89e2-6c564939e28a"
             }
           ]
-        }
+        },
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0
       },
       "itemGuid": "855ec61a-a6c1-4a37-a885-1c5994ce573b",
       "name": "縦シャフト",
@@ -2014,10 +2131,15 @@
                   0,
                   -1
                 ]
-              ]
+              ],
+              "connectorGuid": "5ba25009-a877-49bb-bcd1-d02a76bd3ded"
             }
           ]
-        }
+        },
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0
       },
       "blockGuid": "b1bddbd5-85c7-4c09-a539-646c34ce9afd",
       "blockPrefabAddressablesPath": "Vanilla/Block/Shaft Box",
@@ -2101,7 +2223,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "5710cfa0-f296-4d31-89f2-ba5825ebe152"
             }
           ],
           "outputConnects": [
@@ -2126,7 +2249,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "c5c48153-533e-42c6-85c2-c70f850b8b22"
             }
           ]
         }
@@ -2172,7 +2296,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "37bb6aa7-b7c8-4761-8707-7891d7a42810"
             }
           ],
           "inputConnects": [
@@ -2197,7 +2322,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "ab2d1437-3dd5-4632-883f-7ce3b594e32b"
             }
           ]
         }
@@ -2248,7 +2374,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "2062d5ed-b5d1-48bf-bb1e-2ac1b994fc9c"
             }
           ],
           "inputConnects": [
@@ -2268,7 +2395,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "39f21d26-dcab-4e97-974a-128b5e535de2"
             }
           ]
         }
@@ -2327,7 +2455,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "d4b9a8c9-2936-4fb0-a97e-d576926a10a2"
             }
           ],
           "outputConnects": [
@@ -2362,7 +2491,8 @@
               ],
               "connectOption": {
                 "inventoryOptions": []
-              }
+              },
+              "connectorGuid": "1b72b75b-5576-4e47-bb0f-093b38bd14c7"
             }
           ]
         }
@@ -2432,10 +2562,15 @@
               ],
               "connectOption": {
                 "isReverse": false
-              }
+              },
+              "connectorGuid": "fd5a0906-34d1-4324-9e5e-3b7bd58c2bce"
             }
           ]
-        }
+        },
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0
       }
     },
     {
@@ -2502,5 +2637,6 @@
         }
       }
     }
-  ]
+  ],
+  "gearChainItems": []
 }

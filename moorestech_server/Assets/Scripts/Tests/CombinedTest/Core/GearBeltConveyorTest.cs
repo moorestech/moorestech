@@ -59,7 +59,7 @@ namespace Tests.CombinedTest.Core
 
             // ギアネットワークを確立するための更新サイクルを実行
             // Run update cycle to establish gear network
-            GameUpdater.AdvanceTicks(1);
+            GameUpdater.RunFrames(1);
 
             const int torqueRate = 1;
             const int generatorRpm = 10;
@@ -78,7 +78,7 @@ namespace Tests.CombinedTest.Core
             while (!dummy.IsItemExists && elapsedTicks < maxTicks)
             {
                 elapsedTicks++;
-                GameUpdater.AdvanceTicks(1);
+                GameUpdater.RunFrames(1);
             }
 
             Assert.True(dummy.IsItemExists, "Item should have been output");
@@ -120,14 +120,14 @@ namespace Tests.CombinedTest.Core
             var generator = generatorBlock.GetComponent<global::Game.Block.Blocks.Gear.SimpleGearGeneratorComponent>();
             generator.SetGenerateRpm(10f);
             generator.SetGenerateTorque(1f);
-            GameUpdater.AdvanceTicks(GameUpdater.SecondsToTicks(0.1));
+            GameUpdater.RunFrames(GameUpdater.SecondsToTicks(0.1));
 
             Assert.True(gearBeltConveyorComponent.CurrentRpm.AsPrimitive() > 0f);
 
             // 出力を止めてRPMを0にする
             // Stop output to force RPM to 0
             generator.SetGenerateTorque(0f);
-            GameUpdater.AdvanceTicks(GameUpdater.SecondsToTicks(0.1));
+            GameUpdater.RunFrames(GameUpdater.SecondsToTicks(0.1));
             
             Assert.AreEqual(0f, gearBeltConveyorComponent.CurrentRpm.AsPrimitive());
             
@@ -142,7 +142,7 @@ namespace Tests.CombinedTest.Core
             var previousSpeed = 10f * 1f * gearBeltParam.BeltConveyorSpeed;
             var timeOfItemEnterToExit = 1f / previousSpeed;
             var updateCount = (int)Math.Ceiling(timeOfItemEnterToExit / 0.1f) + beltConveyorComponent.BeltConveyorItems.Count + 2;
-            for (var i = 0; i < updateCount; i++) GameUpdater.AdvanceTicks(GameUpdater.SecondsToTicks(0.1));
+            for (var i = 0; i < updateCount; i++) GameUpdater.RunFrames(GameUpdater.SecondsToTicks(0.1));
             
             Assert.False(dummy.IsItemExists);
         }
@@ -177,14 +177,14 @@ namespace Tests.CombinedTest.Core
             var generator = generatorBlock.GetComponent<global::Game.Block.Blocks.Gear.SimpleGearGeneratorComponent>();
             generator.SetGenerateRpm(10f);
             generator.SetGenerateTorque(1f);
-            GameUpdater.AdvanceTicks(GameUpdater.SecondsToTicks(0.1));
+            GameUpdater.RunFrames(GameUpdater.SecondsToTicks(0.1));
 
             Assert.True(gearBeltConveyorComponent.CurrentRpm.AsPrimitive() > 0f, "Belt should be running initially");
 
             // 出力を止めてRPMを0にする
             // Stop output to force RPM to 0
             generator.SetGenerateTorque(0f);
-            GameUpdater.AdvanceTicks(GameUpdater.SecondsToTicks(0.1));
+            GameUpdater.RunFrames(GameUpdater.SecondsToTicks(0.1));
 
             Assert.AreEqual(0f, gearBeltConveyorComponent.CurrentRpm.AsPrimitive(), "Belt should be stopped");
 
@@ -200,7 +200,7 @@ namespace Tests.CombinedTest.Core
             // 速度を復帰させる
             // Restore speed
             generator.SetGenerateTorque(1f);
-            GameUpdater.AdvanceTicks(GameUpdater.SecondsToTicks(0.1));
+            GameUpdater.RunFrames(GameUpdater.SecondsToTicks(0.1));
 
             Assert.True(gearBeltConveyorComponent.CurrentRpm.AsPrimitive() > 0f, "Belt should be running again");
 
@@ -212,7 +212,7 @@ namespace Tests.CombinedTest.Core
             var waitTicks = GameUpdater.SecondsToTicks(timeOfItemEnterToExit * 2); // 2倍の時間待つ
             for (uint i = 0; i < waitTicks; i++)
             {
-                GameUpdater.AdvanceTicks(1);
+                GameUpdater.RunFrames(1);
             }
 
             // アイテムが出力先に到達していることを確認

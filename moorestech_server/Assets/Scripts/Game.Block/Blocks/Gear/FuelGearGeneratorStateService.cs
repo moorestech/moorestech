@@ -83,7 +83,7 @@ namespace Game.Block.Blocks.Gear
 
             var allowFluidFuel = !_fluidComponent.IsPipeDisconnected;
             var hasFuel = _fuelService.HasAvailableFuel(allowFluidFuel);
-            StateElapsedTicks += GameUpdater.CurrentTickCount;
+            StateElapsedTicks++;
 
             switch (CurrentState)
             {

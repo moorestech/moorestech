@@ -59,7 +59,7 @@ namespace Tests.CombinedTest.Core
             //テストコードの準備完了
             //鉱石1個分の採掘時間待機（tick数で制御）
             // Wait for one ore mining time (controlled by tick count)
-            for (var i = 0; i < waitTicks; i++) GameUpdater.AdvanceTicks(1);
+            for (var i = 0; i < waitTicks; i++) GameUpdater.RunFrames(1);
             
             //鉱石1個が出力されているかチェック
             Assert.AreEqual(miningItemId, chestComponent.InventoryItems[0].Id);
@@ -71,7 +71,7 @@ namespace Tests.CombinedTest.Core
             //鉱石2個分の採掘時間待機（tick数で制御）
             // Wait for two ore mining time (controlled by tick count)
             var waitTicks2 = (int)(miningTicks * 2 + 1);
-            for (var i = 0; i < waitTicks2; i++) GameUpdater.AdvanceTicks(1);
+            for (var i = 0; i < waitTicks2; i++) GameUpdater.RunFrames(1);
             
             //鉱石2個が残っているかチェック
             var outputSlot = miner.GetComponent<VanillaMinerProcessorComponent>().InventoryItems[0];
@@ -84,7 +84,7 @@ namespace Tests.CombinedTest.Core
             chestComponent = chestBlock.GetComponent<VanillaChestComponent>();
             
             //コネクターにアイテムを入れるためのアップデート
-            GameUpdater.AdvanceTicks(1);
+            GameUpdater.RunFrames(1);
             
             //アイテムがさらに2個入っているかチェック
             Assert.AreEqual(miningItemId, chestComponent.InventoryItems[0].Id);
