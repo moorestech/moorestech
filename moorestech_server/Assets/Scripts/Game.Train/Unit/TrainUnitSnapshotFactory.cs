@@ -29,6 +29,7 @@ namespace Game.Train.Unit
                 train.AccumulatedDistance,
                 train.masconLevel,
                 train.IsAutoRun,
+                train.IsDocked,
                 carSnapshots);
         }
 

@@ -50,6 +50,7 @@ namespace Game.Train.Unit
             hash = MixLong(hash, BitConverter.DoubleToInt64Bits(simulation.AccumulatedDistance));
             hash = Mix(hash, simulation.MasconLevel);
             hash = Mix(hash, simulation.IsAutoRun ? 1 : 0);
+            hash = Mix(hash, simulation.IsDocked ? 1 : 0);
             hash = MixCars(hash, simulation.Cars);
 
             var diagramHash = TrainDiagramHashCalculator.Compute(bundle.Diagram);

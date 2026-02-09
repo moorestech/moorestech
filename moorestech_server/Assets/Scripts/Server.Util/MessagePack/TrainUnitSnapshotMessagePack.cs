@@ -50,7 +50,8 @@ namespace Server.Util.MessagePack
         [Key(2)] public double AccumulatedDistance { get; set; }
         [Key(3)] public int MasconLevel { get; set; }
         [Key(4)] public bool IsAutoRun { get; set; }
-        [Key(5)] public List<TrainCarSnapshotMessagePack> Cars { get; set; }
+        [Key(5)] public bool IsDocked { get; set; }
+        [Key(6)] public List<TrainCarSnapshotMessagePack> Cars { get; set; }
 
         [Obsolete("Reserved for MessagePack serialization.")]
         public TrainSimulationSnapshotMessagePack() { }
@@ -62,6 +63,7 @@ namespace Server.Util.MessagePack
             AccumulatedDistance = snapshot.AccumulatedDistance;
             MasconLevel = snapshot.MasconLevel;
             IsAutoRun = snapshot.IsAutoRun;
+            IsDocked = snapshot.IsDocked;
             Cars = snapshot.Cars?.Select(car => new TrainCarSnapshotMessagePack(car)).ToList()
                    ?? new List<TrainCarSnapshotMessagePack>();
         }
@@ -75,6 +77,7 @@ namespace Server.Util.MessagePack
                 AccumulatedDistance,
                 MasconLevel,
                 IsAutoRun,
+                IsDocked,
                 cars);
         }
     }
