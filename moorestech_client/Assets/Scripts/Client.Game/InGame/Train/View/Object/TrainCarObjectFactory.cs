@@ -1,14 +1,12 @@
 using Client.Common.Asset;
 using Client.Game.InGame.Entity.Object;
 using Client.Game.InGame.Train.Unit;
-using Client.Game.InGame.Train.View;
-using Client.Game.InGame.Train.View.Object;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Train.Unit;
 using UnityEngine;
 
-namespace Client.Game.InGame.Entity.Factory
+namespace Client.Game.InGame.Train.View.Object
 {
     /// <summary>
     /// 列車エンティティを生成するファクトリー
