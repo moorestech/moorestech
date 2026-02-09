@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using Game.Train.RailGraph;
 using Game.Train.Unit;
+using TrainDiagramType = global::Game.Train.Diagram.TrainDiagram;
 
 namespace Client.Game.InGame.Train.Diagram
 {
-    // クライアント側のダイアグラム参照と遷移をまとめる
-    // Centralize client-side diagram reads and transitions
+    // クライアント側のダイアグラム参照と遷移をまとめる。
+    // Centralize client-side diagram reads and transitions.
     public sealed class ClientTrainDiagram
     {
         private TrainDiagramSnapshot _snapshot;
@@ -15,8 +16,8 @@ namespace Client.Game.InGame.Train.Diagram
 
         public ClientTrainDiagram(TrainDiagramSnapshot snapshot, IRailGraphProvider railGraphProvider)
         {
-            // レールグラフプロバイダを保持する
-            // Keep the rail graph provider reference
+            // レールグラフ参照を保持する。
+            // Keep the rail graph provider reference.
             _snapshot = snapshot;
             _railGraphProvider = railGraphProvider;
         }
@@ -28,8 +29,6 @@ namespace Client.Game.InGame.Train.Diagram
 
         public void UpdateSnapshot(TrainDiagramSnapshot snapshot)
         {
-            // スナップショットを置き換えて参照を更新する
-            // Replace the snapshot to refresh reads
             _snapshot = snapshot;
         }
 
@@ -41,8 +40,6 @@ namespace Client.Game.InGame.Train.Diagram
                 return;
             }
 
-            // 対象のエントリーを探してカレントを更新する
-            // Update current index by locating the matching entry
             for (var i = 0; i < entries.Count; i++)
             {
                 if (entries[i].EntryId == entryId)
@@ -55,8 +52,6 @@ namespace Client.Game.InGame.Train.Diagram
 
         public bool TryGetCurrentEntry(out TrainDiagramEntrySnapshot entry)
         {
-            // 現在のエントリーを取得してUI表示に使う
-            // Get the current entry for UI rendering
             entry = default;
             var entries = _snapshot.Entries;
             if (entries == null || entries.Count == 0)
@@ -76,8 +71,6 @@ namespace Client.Game.InGame.Train.Diagram
 
         public bool TryGetEntry(int index, out TrainDiagramEntrySnapshot entry)
         {
-            // 任意インデックスのエントリー取得を提供する
-            // Expose entry access by index
             entry = default;
             var entries = _snapshot.Entries;
             if (entries == null || index < 0 || index >= entries.Count)
@@ -91,8 +84,6 @@ namespace Client.Game.InGame.Train.Diagram
 
         public bool TryResolveCurrentDestinationNode(out IRailNode node)
         {
-            // 現在の目的地ノードを解決し、存在しなければ失敗扱いにする
-            // Resolve the current destination node and fail if missing
             var entries = _snapshot.Entries;
             if (entries == null || entries.Count == 0)
             {
@@ -113,8 +104,6 @@ namespace Client.Game.InGame.Train.Diagram
 
         public bool TryFindPathFrom(IRailNode approaching, out List<IRailNode> path)
         {
-            // 現在のエントリーから順に経路を探索し、見つかれば返す
-            // Walk entries to find a reachable path
             path = null;
             var entries = _snapshot.Entries;
             if (entries == null || entries.Count == 0 || approaching == null)
@@ -145,10 +134,93 @@ namespace Client.Game.InGame.Train.Diagram
             return false;
         }
 
+        // ドッキング中の待機tickを進める。
+        // Advance docked wait-ticks.
+        public void TickDockedDepartureConditions(bool isAutoRun)
+        {
+            if (!isAutoRun)
+            {
+                return;
+            }
+            if (!TryGetCurrentEntry(out var entry))
+            {
+                return;
+            }
+            if (!HasWaitForTicksCondition(entry))
+            {
+                return;
+            }
+
+            var remaining = entry.WaitForTicksRemaining ?? entry.WaitForTicksInitial;
+            if (!remaining.HasValue || remaining.Value <= 0)
+            {
+                return;
+            }
+
+            ReplaceCurrentEntry(new TrainDiagramEntrySnapshot(
+                entry.EntryId,
+                entry.Node,
+                entry.DepartureConditions,
+                entry.WaitForTicksInitial,
+                Math.Max(remaining.Value - 1, 0)));
+        }
+
+        public bool CanCurrentEntryDepart()
+        {
+            if (!TryGetCurrentEntry(out var entry))
+            {
+                return true;
+            }
+
+            var conditions = entry.DepartureConditions;
+            if (conditions == null || conditions.Count == 0)
+            {
+                return true;
+            }
+
+            for (var i = 0; i < conditions.Count; i++)
+            {
+                if (conditions[i] == TrainDiagramType.DepartureConditionType.WaitForTicks)
+                {
+                    var remaining = entry.WaitForTicksRemaining ?? entry.WaitForTicksInitial ?? 0;
+                    if (remaining > 0)
+                    {
+                        return false;
+                    }
+                    continue;
+                }
+
+                return false;
+            }
+
+            return true;
+        }
+
+        public void ResetCurrentEntryDepartureConditions()
+        {
+            if (!TryGetCurrentEntry(out var entry))
+            {
+                return;
+            }
+            if (!HasWaitForTicksCondition(entry))
+            {
+                return;
+            }
+            if (!entry.WaitForTicksInitial.HasValue)
+            {
+                return;
+            }
+
+            ReplaceCurrentEntry(new TrainDiagramEntrySnapshot(
+                entry.EntryId,
+                entry.Node,
+                entry.DepartureConditions,
+                entry.WaitForTicksInitial,
+                entry.WaitForTicksInitial));
+        }
+
         public void AdvanceToNextEntry()
         {
-            // 駅でなければ次のエントリーへ進める
-            // Advance to the next entry when not at a station
             MoveToNextEntry(EntryCount);
         }
 
@@ -156,8 +228,6 @@ namespace Client.Game.InGame.Train.Diagram
 
         private void MoveToNextEntry(int entriesCount)
         {
-            // エントリー数に応じて次のインデックスへ進める
-            // Move to the next index based on current entry count
             if (entriesCount <= 0)
             {
                 var fallbackEntries = _snapshot.Entries ?? Array.Empty<TrainDiagramEntrySnapshot>();
@@ -167,6 +237,66 @@ namespace Client.Game.InGame.Train.Diagram
 
             var nextIndex = (_snapshot.CurrentIndex + 1) % entriesCount;
             _snapshot = new TrainDiagramSnapshot(nextIndex, _snapshot.Entries);
+        }
+
+        private static bool HasWaitForTicksCondition(TrainDiagramEntrySnapshot entry)
+        {
+            var conditions = entry.DepartureConditions;
+            if (conditions == null || conditions.Count == 0)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < conditions.Count; i++)
+            {
+                if (conditions[i] == TrainDiagramType.DepartureConditionType.WaitForTicks)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private void ReplaceCurrentEntry(TrainDiagramEntrySnapshot entry)
+        {
+            if (!TryGetCurrentIndex(out var index))
+            {
+                return;
+            }
+
+            var entries = _snapshot.Entries;
+            if (entries == null || entries.Count == 0)
+            {
+                return;
+            }
+
+            var copied = new TrainDiagramEntrySnapshot[entries.Count];
+            for (var i = 0; i < entries.Count; i++)
+            {
+                copied[i] = entries[i];
+            }
+
+            copied[index] = entry;
+            _snapshot = new TrainDiagramSnapshot(index, copied);
+        }
+
+        private bool TryGetCurrentIndex(out int index)
+        {
+            index = -1;
+            var entries = _snapshot.Entries;
+            if (entries == null || entries.Count == 0)
+            {
+                return false;
+            }
+
+            if (_snapshot.CurrentIndex < 0 || _snapshot.CurrentIndex >= entries.Count)
+            {
+                return false;
+            }
+
+            index = _snapshot.CurrentIndex;
+            return true;
         }
 
         #endregion
