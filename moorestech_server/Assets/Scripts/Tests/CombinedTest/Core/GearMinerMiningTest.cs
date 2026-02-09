@@ -76,7 +76,7 @@ namespace Tests.CombinedTest.Core
             // 採掘中待機する（tick数で制御、切り上げで確実に完了を待つ）
             // Wait for the mining time to elapse (controlled by tick count, ceiling to ensure completion)
             var waitTicks = (int)Math.Ceiling(miningTicks * 1.2d);
-            for (var i = 0; i < waitTicks; i++) GameUpdater.AdvanceTicks(1);
+            for (var i = 0; i < waitTicks; i++) GameUpdater.RunFrames(1);
 
             // アイテムが中にはいっていることを確認
             // Check that an item is stored inside.
@@ -90,7 +90,7 @@ namespace Tests.CombinedTest.Core
             // 2回分の採掘時間待機（tick数で制御、切り上げで確実に完了を待つ）
             // Wait for two more mining cycles (controlled by tick count, ceiling to ensure completion)
             var waitTicks2 = (int)Math.Ceiling(miningTicks * 2.2d);
-            for (var i = 0; i < waitTicks2; i++) GameUpdater.AdvanceTicks(1);
+            for (var i = 0; i < waitTicks2; i++) GameUpdater.RunFrames(1);
 
             // 採掘機の中にアイテムが残っていることを確認
             // Check that two items are stored inside the miner.

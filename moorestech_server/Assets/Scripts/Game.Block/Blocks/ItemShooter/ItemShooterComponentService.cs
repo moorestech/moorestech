@@ -120,15 +120,14 @@ namespace Game.Block.Blocks.ItemShooter
             // Accumulate elapsed insertion ticks (saturating add to prevent overflow)
             void UpdateElapsedTicks()
             {
-                var currentTicks = GameUpdater.CurrentTickCount;
                 var remaining = _insertItemIntervalTicks - _lastInsertElapsedTicks;
-                if (_lastInsertElapsedTicks >= _insertItemIntervalTicks || currentTicks >= remaining)
+                if (_lastInsertElapsedTicks >= _insertItemIntervalTicks || 1u >= remaining)
                 {
                     _lastInsertElapsedTicks = _insertItemIntervalTicks;
                 }
                 else
                 {
-                    _lastInsertElapsedTicks += currentTicks;
+                    _lastInsertElapsedTicks++;
                 }
             }
 
@@ -178,14 +177,9 @@ namespace Game.Block.Blocks.ItemShooter
             // Decrease remaining ticks
             void UpdateActiveItem(ShooterInventoryItem activeItem)
             {
-                var ticksToSubtract = GameUpdater.CurrentTickCount;
-                if (activeItem.RemainingTicks > ticksToSubtract)
+                if (activeItem.RemainingTicks > 0)
                 {
-                    activeItem.RemainingTicks -= ticksToSubtract;
-                }
-                else
-                {
-                    activeItem.RemainingTicks = 0;
+                    activeItem.RemainingTicks--;
                 }
             }
 

@@ -97,7 +97,7 @@ namespace Tests.CombinedTest.Core
                 for (var i = 0; i < ticks; i++)
                 {
                     component.SupplyEnergy(supply);
-                    GameUpdater.AdvanceTicks(1);
+                    GameUpdater.RunFrames(1);
                 }
             }
             

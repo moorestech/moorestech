@@ -55,7 +55,7 @@ namespace Tests.CombinedTest.Core
             simpleGenerator.SetGenerateRpm(pumpParam.RequiredRpm);
             simpleGenerator.SetGenerateTorque(pumpParam.RequireTorque);
 
-            for (var i = 0; i < testTicks; i++) GameUpdater.AdvanceTicks(1);
+            for (var i = 0; i < testTicks; i++) GameUpdater.RunFrames(1);
 
             var fullAmount = GetPipeAmount(pipeNegX) + GetPipeAmount(pipePosZ) + GetPipeAmount(pipeNegZ);
             var expectedFull = fullRatePerSec * testSeconds;
@@ -75,7 +75,7 @@ namespace Tests.CombinedTest.Core
             var halfRpm = new RPM(Math.Max(0.0f, pumpParam.RequiredRpm / 2f));
             simpleGenerator.SetGenerateRpm(halfRpm.AsPrimitive());
             simpleGenerator.SetGenerateTorque(pumpParam.RequireTorque);
-            for (var i = 0; i < testTicks; i++) GameUpdater.AdvanceTicks(1);
+            for (var i = 0; i < testTicks; i++) GameUpdater.RunFrames(1);
 
             var halfAmount = GetPipeAmount(pipeNegX) + GetPipeAmount(pipePosZ) + GetPipeAmount(pipeNegZ);
             var expectedHalf = expectedFull * 0.5f;
@@ -139,7 +139,7 @@ namespace Tests.CombinedTest.Core
             // Stabilize startup and connection (controlled by tick count)
             var testDurationSec = 2.5f;
             var testTicks = (int)(testDurationSec * GameUpdater.TicksPerSecond);
-            for (var i = 0; i < testTicks; i++) GameUpdater.AdvanceTicks(1);
+            for (var i = 0; i < testTicks; i++) GameUpdater.RunFrames(1);
 
             // ポンプの出力先パイプに液体が生成されていること（> 0）を確認
             var totalOut = GetPipeAmount(pipeNegX) + GetPipeAmount(pipePosZ) + GetPipeAmount(pipeNegZ);

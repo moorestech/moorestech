@@ -65,7 +65,7 @@ namespace Tests.UnitTest.Core.Block
             for (var i = 0; i < 10; i++)
             {
                 acceleratorComponent.Update();
-                GameUpdater.AdvanceTicks(1);
+                GameUpdater.RunFrames(1);
             }
 
             // アイテムがまだ存在することを確認（移動中）
@@ -130,7 +130,7 @@ namespace Tests.UnitTest.Core.Block
             {
                 gearNetwork.ManualUpdate();
                 acceleratorComponent.Update();
-                GameUpdater.AdvanceTicks(1);
+                GameUpdater.RunFrames(1);
             }
 
             // tick化により、TotalTicksは変化しない（加速機能が廃止されているため）

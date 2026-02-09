@@ -346,7 +346,7 @@ namespace Tests.CombinedTest.Core
                 while (!condition())
                 {
                     if (DateTime.Now > endTime) Assert.Fail("Timeout waiting for belt conveyor condition.");
-                    GameUpdater.AdvanceTicks(1);
+                    GameUpdater.RunFrames(1);
                 }
             }
 

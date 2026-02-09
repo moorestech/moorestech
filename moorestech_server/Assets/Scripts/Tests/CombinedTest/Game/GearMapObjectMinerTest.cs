@@ -26,7 +26,7 @@ namespace Tests.CombinedTest.Game
             // 1秒間採掘（tick数で制御）。採掘時間は2秒に設定している
             // Mining for 1 second (controlled by tick count). The mining time is set to 2 seconds.
             var oneSecondTicks = (int)(1 * GameUpdater.TicksPerSecond);
-            for (var i = 0; i < oneSecondTicks; i++) GameUpdater.AdvanceTicks(1);
+            for (var i = 0; i < oneSecondTicks; i++) GameUpdater.RunFrames(1);
 
             // まだインベントリに木がないことを確認する
             // Make sure there is no wood in the inventory yet
@@ -36,7 +36,7 @@ namespace Tests.CombinedTest.Game
             // 1.1秒間採掘（tick数で制御）
             // Mining for 1.1 seconds (controlled by tick count)
             var onePointOneSecondTicks = (int)(1.1 * GameUpdater.TicksPerSecond);
-            for (var i = 0; i < onePointOneSecondTicks; i++) GameUpdater.AdvanceTicks(1);
+            for (var i = 0; i < onePointOneSecondTicks; i++) GameUpdater.RunFrames(1);
 
             // インベントリにアイテムが入っていることを確認する
             // Make sure there is wood in the inventory
@@ -49,7 +49,7 @@ namespace Tests.CombinedTest.Game
             // 2.1秒間採掘（tick数で制御）
             // Mining for 2.1 seconds (controlled by tick count)
             var twoPointOneSecondTicks = (int)(2.1 * GameUpdater.TicksPerSecond);
-            for (var i = 0; i < twoPointOneSecondTicks; i++) GameUpdater.AdvanceTicks(1);
+            for (var i = 0; i < twoPointOneSecondTicks; i++) GameUpdater.RunFrames(1);
 
             // インベントリのアイテムが増えていることを確認する
             // Make sure the inventory items have increased
