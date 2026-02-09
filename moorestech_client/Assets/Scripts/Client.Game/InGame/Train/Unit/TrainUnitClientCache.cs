@@ -87,7 +87,7 @@ namespace Client.Game.InGame.Train.Unit
                 }
                 bundles.Add(bundle);
             }
-            return TrainUnitSnapshotHashCalculator.Compute(bundles);
+            return global::Game.Train.Unit.TrainUnitSnapshotHashCalculator.Compute(bundles);
         }
 
         // 単一列車の差分更新を適用
