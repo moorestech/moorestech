@@ -75,6 +75,10 @@ namespace Tests.UnitTest.Game
             cargoPlatformLoader.SetTransferMode(CargoplatformComponent.CargoTransferMode.LoadToTrain);
             cargoPlatformUnloader.SetTransferMode(CargoplatformComponent.CargoTransferMode.UnloadToPlatform);
 
+            // 貨物駅アームのtickを進める
+            // Advance cargo platform arm ticks
+            Action tickCargoArms = () => { cargoPlatformLoader.Update(); cargoPlatformUnloader.Update(); };
+
             var stationSegmentLength = loadingBlock!.BlockPositionInfo.BlockSize.z;
             Assert.Greater(stationSegmentLength, 0, "プラットフォーム間セグメントの長さが0以下になっています。");
 
@@ -101,21 +105,21 @@ namespace Tests.UnitTest.Game
             Assert.IsTrue(trainCar.IsDocked, "列車が積込プラットフォームにドッキングした状態で開始していません。");
             Assert.AreSame(loadingBlock, trainCar.dockingblock, "列車が最初に積込プラットフォームへドッキングしていません。");
 
-            AdvanceUntil(trainUnit, () => trainCar.IsInventoryFull(), maxIterations: maxStack * 4,
+            AdvanceUntil(trainUnit, tickCargoArms, () => trainCar.IsInventoryFull(), maxIterations: maxStack * 4,
                 "積込プラットフォームにドッキング中に列車インベントリが満杯になりませんでした");
 
             var depletedStack = loadingInventory.GetItem(0);
             Assert.AreEqual(ItemMaster.EmptyItemId, depletedStack.Id, "積込プラットフォームが列車へ全量を移送できていません。");
 
-            AdvanceUntil(trainUnit, () => !trainUnit.trainUnitStationDocking.IsDocked, maxIterations: 120,
+            AdvanceUntil(trainUnit, tickCargoArms, () => !trainUnit.trainUnitStationDocking.IsDocked, maxIterations: 120,
                 "積込完了後に列車が出発しませんでした");
 
-            AdvanceUntil(trainUnit,
+            AdvanceUntil(trainUnit, tickCargoArms,
                 () => trainCar.IsDocked && ReferenceEquals(trainCar.dockingblock, unloadingBlock),
                 maxIterations: 25000,
                 "列車が荷降ろしプラットフォームに到達しませんでした");
 
-            AdvanceUntil(trainUnit, () => trainCar.IsInventoryEmpty(), maxIterations: maxStack * 4,
+            AdvanceUntil(trainUnit, tickCargoArms, () => trainCar.IsInventoryEmpty(), maxIterations: maxStack * 4,
                 "荷降ろしプラットフォームにドッキング中に列車インベントリが空になりませんでした");
 
             var receivedStack = unloadingInventory.GetItem(0);
@@ -123,10 +127,10 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(maxStack, receivedStack.Count,
                 "荷降ろしプラットフォームが列車から全量を受け取っていません。");
 
-            AdvanceUntil(trainUnit, () => !trainUnit.trainUnitStationDocking.IsDocked, maxIterations: 120,
+            AdvanceUntil(trainUnit, tickCargoArms, () => !trainUnit.trainUnitStationDocking.IsDocked, maxIterations: 120,
                 "荷降ろし後に列車が出発しませんでした");
 
-            AdvanceUntil(trainUnit,
+            AdvanceUntil(trainUnit, tickCargoArms,
                 () => trainCar.IsDocked && ReferenceEquals(trainCar.dockingblock, loadingBlock),
                 maxIterations: 25000,
                 "列車がループ完了のために積込プラットフォームへ戻っていません");
@@ -141,10 +145,11 @@ namespace Tests.UnitTest.Game
             target.BackNode.ConnectNode(source.BackNode, explicitDistance);
         }
 
-        private static void AdvanceUntil(TrainUnit trainUnit, Func<bool> predicate, int maxIterations, string failureMessage)
+        private static void AdvanceUntil(TrainUnit trainUnit, Action tickAction, Func<bool> predicate, int maxIterations, string failureMessage)
         {
             for (var i = 0; i < maxIterations; i++)
             {
+                tickAction();
                 trainUnit.Update();
                 if (predicate())
                 {
