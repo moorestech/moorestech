@@ -49,6 +49,7 @@ namespace Client.Game.InGame.Train.Unit
             AccumulatedDistance = simulation.AccumulatedDistance;
             MasconLevel = simulation.MasconLevel;
             IsAutoRun = simulation.IsAutoRun;
+            IsDocked = simulation.IsDocked;
             Diagram.UpdateSnapshot(diagram);
             RailPosition = RailPositionFactory.Restore(railPosition, _railGraphProvider);
             cars = simulation.Cars ?? Array.Empty<TrainCarSnapshot>();
@@ -143,6 +144,7 @@ namespace Client.Game.InGame.Train.Unit
                 AccumulatedDistance,
                 MasconLevel,
                 IsAutoRun,
+                IsDocked,
                 carSnapshots);
         }
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Client.Game.InGame.Train.Network;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Train.View.Object;
 using Client.Network.API;
@@ -15,12 +16,21 @@ namespace Client.Game.InGame.Train.View
     public sealed class TrainUnitSnapshotApplier : IInitializable
     {
         private readonly TrainUnitClientCache _cache;
+        private readonly TrainUnitTickState _tickState;
+        private readonly TrainUnitFutureMessageBuffer _futureMessageBuffer;
         private readonly TrainCarObjectDatastore _trainCarDatastore;
         private readonly InitialHandshakeResponse _initialHandshakeResponse;
 
-        public TrainUnitSnapshotApplier(TrainUnitClientCache cache, InitialHandshakeResponse initialHandshakeResponse, TrainCarObjectDatastore trainCarDatastore)
+        public TrainUnitSnapshotApplier(
+            TrainUnitClientCache cache,
+            TrainUnitTickState tickState,
+            TrainUnitFutureMessageBuffer futureMessageBuffer,
+            InitialHandshakeResponse initialHandshakeResponse,
+            TrainCarObjectDatastore trainCarDatastore)
         {
             _cache = cache;
+            _tickState = tickState;
+            _futureMessageBuffer = futureMessageBuffer;
             _initialHandshakeResponse = initialHandshakeResponse;
             _trainCarDatastore = trainCarDatastore;
         }
@@ -61,6 +71,9 @@ namespace Client.Game.InGame.Train.View
             // キャッシュ更新後に不要な列車エンティティを除去する
             // Remove stale train entities after cache update
             _cache.OverrideAll(bundles, response.ServerTick);
+            _tickState.SetSnapshotBaselineTick(response.ServerTick);
+            _futureMessageBuffer.DiscardUpToTick(response.ServerTick);
+            _futureMessageBuffer.FlushBySimulatedTick();
             _trainCarDatastore.RemoveTrainEntitiesNotInSnapshot(activeTrainCarIds);
 
             #region Internal

@@ -1,7 +1,5 @@
 using System;
 using Client.Game.InGame.Context;
-using Client.Game.InGame.Train.Unit;
-using Client.Game.InGame.Train.View.Object;
 using MessagePack;
 using Server.Event.EventReceive;
 using Server.Util.MessagePack;
@@ -11,14 +9,12 @@ namespace Client.Game.InGame.Train.Network
 {
     public sealed class TrainUnitCreatedEventNetworkHandler : IInitializable, IDisposable
     {
-        private readonly TrainUnitClientCache _cache;
-        private readonly TrainCarObjectDatastore _trainCarDatastore;
+        private readonly TrainUnitFutureMessageBuffer _futureMessageBuffer;
         private IDisposable _subscription;
 
-        public TrainUnitCreatedEventNetworkHandler(TrainUnitClientCache cache, TrainCarObjectDatastore trainCarDatastore)
+        public TrainUnitCreatedEventNetworkHandler(TrainUnitFutureMessageBuffer futureMessageBuffer)
         {
-            _cache = cache;
-            _trainCarDatastore = trainCarDatastore;
+            _futureMessageBuffer = futureMessageBuffer;
         }
 
         public void Initialize()
@@ -45,11 +41,10 @@ namespace Client.Game.InGame.Train.Network
             var message = MessagePackSerializer.Deserialize<TrainUnitCreatedEventMessagePack>(payload);
             if (message?.Snapshot == null) return;
 
-            // スナップショットをキャッシュに反映し、車両オブジェクトを生成する
-            // Apply snapshot to cache and create train car objects
+            // スナップショットを将来tickバッファへ投入する
+            // Push snapshot into the future-tick buffer
             var bundle = message.Snapshot.ToModel();
-            _cache.Upsert(bundle, message.ServerTick);
-            _trainCarDatastore.OnTrainObjectUpdate(bundle.Simulation.Cars);
+            _futureMessageBuffer.EnqueueCreated(bundle, message.ServerTick);
         }
 
         #endregion
