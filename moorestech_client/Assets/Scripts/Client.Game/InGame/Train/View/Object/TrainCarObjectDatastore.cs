@@ -10,7 +10,7 @@ using VContainer;
 
 namespace Client.Game.InGame.Train.View.Object
 {
-    public class TrainEntityObjectDatastore : MonoBehaviour
+    public class TrainCarObjectDatastore : MonoBehaviour
     {
         private TrainCarObjectFactory carObjectFactory;
         private readonly Dictionary<long, TrainCarEntityObject> _entities = new();
