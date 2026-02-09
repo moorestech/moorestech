@@ -410,6 +410,52 @@ namespace Tests.UnitTest.Server
             Assert.AreEqual(testProtocol.SequenceId, deserialized.SequenceId);
             Assert.AreEqual(testProtocol.ExtraData, deserialized.ExtraData);
         }
+
+        /// <summary>
+        /// 負のペイロード長を持つヘッダを受信した場合、パケットが生成されないことを確認
+        /// Ensure no packets are produced when header contains negative payload length
+        /// </summary>
+        [Test]
+        public void ParseWithNegativePayloadLengthShouldNotProducePackets()
+        {
+            var parser = new PacketBufferParser();
+
+            // 負のペイロード長（-1）のヘッダを作成
+            // Create header with negative payload length (-1)
+            var buffer = new byte[4096];
+            var header = BitConverter.GetBytes(-1).Reverse().ToArray();
+            header.CopyTo(buffer, 0);
+            for (var i = 4; i < buffer.Length; i++) buffer[i] = 0x00;
+
+            var result = parser.Parse(buffer, 8);
+
+            // 不正なペイロード長ではパケットが生成されるべきではない
+            // No packets should be produced with invalid payload length
+            Assert.AreEqual(0, result.Count, "負のペイロード長のパケットは生成されるべきではない");
+        }
+
+        /// <summary>
+        /// ゼロのペイロード長を持つヘッダを受信した場合、空パケットが生成されないことを確認
+        /// Ensure no empty packets are produced when header contains zero payload length
+        /// </summary>
+        [Test]
+        public void ParseWithZeroPayloadLengthShouldNotProducePackets()
+        {
+            var parser = new PacketBufferParser();
+
+            // ゼロのペイロード長のヘッダを作成
+            // Create header with zero payload length
+            var buffer = new byte[4096];
+            var header = BitConverter.GetBytes(0).Reverse().ToArray();
+            header.CopyTo(buffer, 0);
+            for (var i = 4; i < buffer.Length; i++) buffer[i] = 0x00;
+
+            var result = parser.Parse(buffer, 8);
+
+            // ゼロのペイロード長ではパケットが生成されるべきではない
+            // No packets should be produced with zero payload length
+            Assert.AreEqual(0, result.Count, "ゼロのペイロード長のパケットは生成されるべきではない");
+        }
     }
 
     [MessagePackObject(true)]
