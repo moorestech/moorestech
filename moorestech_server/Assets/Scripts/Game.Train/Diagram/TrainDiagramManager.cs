@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Core.Update;
 using Game.Train.RailGraph;
 using UniRx;
 
@@ -67,7 +68,7 @@ namespace Game.Train.Diagram
                 }
                 foreach (var newNode in newNodes)
                 {
-                    diagram.AddEntry(newNode, TrainDiagram.DepartureConditionType.WaitForTicks, 60);
+                    diagram.AddEntry(newNode, TrainDiagram.DepartureConditionType.WaitForTicks, GameUpdater.TicksPerSecond);
                 }
             }
         }
