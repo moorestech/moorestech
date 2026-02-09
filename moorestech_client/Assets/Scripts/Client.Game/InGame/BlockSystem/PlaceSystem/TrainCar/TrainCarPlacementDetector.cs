@@ -30,11 +30,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
     
     public class TrainCarPlacementDetector : ITrainCarPlacementDetector
     {
-        private const int CurveSampleCount = 512;
+        private const int CurveSampleCount = 128;
+        private const int CurveRefineIterations = 6;
         private const float MinCurveLength = 1e-4f;
         private readonly Camera _mainCamera;
         private readonly RailGraphClientCache _cache;
         private readonly RailPathTracer _pathTracer;
+        private float[] _arcLengthBuffer;
         
         public TrainCarPlacementDetector(Camera mainCamera, RailGraphClientCache cache)
         {
@@ -107,12 +109,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
                     // カーブ上の最近点を求め、始点からの距離（弧長）を算出する
                     // Find the closest point on the curve and its distance
-                    if (!TryFindClosestPointOnCurve(canonicalFromNode, canonicalToNode, hitPosition, out var distanceFromStartWorld, out var curveLengthWorld))
+                    if (!TryFindClosestPointOnCurve(canonicalFromNode, canonicalToNode, hitPosition, out var distanceFromStartWorld))
                     {
                         return false;
                     }
-
-                    var distanceToEndWorld = curveLengthWorld - distanceFromStartWorld;
 
                     // 先頭側（進行方向）の区間距離と、次ノードまでのオフセットを算出する
                     // Resolve the leading segment distance and offset
@@ -121,11 +121,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     {
                         return false;
                     }
-                    var distanceToNext = Mathf.RoundToInt(distanceToEndWorld * BezierUtility.RAIL_LENGTH_SCALE);
-                    if (distanceToNext < 0 || distanceToNext > segmentDistance)
-                    {
-                        return false;
-                    }
+                    var distanceFromStartRail = Mathf.RoundToInt(distanceFromStartWorld * BezierUtility.RAIL_LENGTH_SCALE);
+                    distanceFromStartRail = Mathf.Clamp(distanceFromStartRail, 0, segmentDistance);
+                    var distanceToNext = segmentDistance - distanceFromStartRail;
 
                     // 中心（配置点）から両方向へ辿り、必要長さ分のスナップショットを構築する
                     // Trace both directions from the center to build the snapshot
@@ -160,10 +158,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     return true;
                 }
 
-                bool TryFindClosestPointOnCurve(IRailNode startNode, IRailNode endNode, Vector3 hitPosition, out float distanceFromStart, out float curveLength)
+                bool TryFindClosestPointOnCurve(IRailNode startNode, IRailNode endNode, Vector3 hitPosition, out float distanceFromStart)
                 {
                     distanceFromStart = 0f;
-                    curveLength = 0f;
                     // 描画用の制御点を作り曲線上の距離をサンプルする
                     // Build render control points and sample distances on the curve
                     if (startNode == null || endNode == null)
@@ -173,12 +170,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     
                     BezierUtility.BuildRenderControlPoints(startNode.FrontControlPoint, endNode.BackControlPoint, out Vector3 p0, out Vector3 p1, out Vector3 p2, out Vector3 p3);
                     var steps = CurveSampleCount;
-                    var arcLengths = new float[steps + 1];
-                    var bestIndex = 0;
-                    var bestDistanceSq = (p0 - hitPosition).sqrMagnitude;
-
+                    var arcLengths = PrepareArcLengthBuffer(steps + 1);
                     arcLengths[0] = 0f;
                     var previous = BezierUtility.GetBezierPoint(p0, p1, p2, p3, 0f);
+                    var bestIndex = 0;
+                    var bestDistanceSq = (previous - hitPosition).sqrMagnitude;
 
                     for (var i = 1; i <= steps; i++)
                     {
@@ -196,13 +192,74 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                         previous = point;
                     }
 
-                    curveLength = arcLengths[steps];
+                    var curveLength = arcLengths[steps];
                     if (curveLength <= MinCurveLength)
                     {
                         return false;
                     }
-                    distanceFromStart = arcLengths[bestIndex];
+                    // 近傍区間でtを精緻化し、レール距離を補間する
+                    // Refine t locally and interpolate arc length
+                    var refinedT = RefineClosestTime(p0, p1, p2, p3, hitPosition, steps, bestIndex);
+                    distanceFromStart = EvaluateArcLength(arcLengths, refinedT, steps);
                     return true;
+
+                    #region Internal
+
+                    float RefineClosestTime(Vector3 start, Vector3 control0, Vector3 control1, Vector3 end, Vector3 target, int sampleSteps, int baseIndex)
+                    {
+                        // 局所区間で三分探索を行う
+                        // Run ternary search in a local interval
+                        var lowIndex = Mathf.Max(0, baseIndex - 1);
+                        var highIndex = Mathf.Min(sampleSteps, baseIndex + 1);
+                        var low = (float)lowIndex / sampleSteps;
+                        var high = (float)highIndex / sampleSteps;
+
+                        for (var i = 0; i < CurveRefineIterations; i++)
+                        {
+                            var range = high - low;
+                            var t1 = low + range / 3f;
+                            var t2 = high - range / 3f;
+                            var d1 = (BezierUtility.GetBezierPoint(start, control0, control1, end, t1) - target).sqrMagnitude;
+                            var d2 = (BezierUtility.GetBezierPoint(start, control0, control1, end, t2) - target).sqrMagnitude;
+                            if (d1 <= d2)
+                            {
+                                high = t2;
+                                continue;
+                            }
+                            low = t1;
+                        }
+
+                        return (low + high) * 0.5f;
+                    }
+
+                    float EvaluateArcLength(float[] lengthTable, float t, int sampleSteps)
+                    {
+                        // tからアーク長を線形補間で求める
+                        // Evaluate arc length from t using linear interpolation
+                        var clamped = Mathf.Clamp01(t);
+                        var scaled = clamped * sampleSteps;
+                        var index = Mathf.FloorToInt(scaled);
+                        if (index >= sampleSteps)
+                        {
+                            return lengthTable[sampleSteps];
+                        }
+                        var nextIndex = index + 1;
+                        var ratio = scaled - index;
+                        return Mathf.Lerp(lengthTable[index], lengthTable[nextIndex], ratio);
+                    }
+
+                    float[] PrepareArcLengthBuffer(int length)
+                    {
+                        // アーク長バッファを再利用して確保する
+                        // Prepare and reuse the arc-length buffer
+                        if (_arcLengthBuffer == null || _arcLengthBuffer.Length != length)
+                        {
+                            _arcLengthBuffer = new float[length];
+                        }
+                        return _arcLengthBuffer;
+                    }
+
+                    #endregion
                 }
 
                 #endregion
