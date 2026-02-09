@@ -15,13 +15,13 @@ namespace Client.Game.InGame.Train.Network
     public sealed class TrainUnitCreatedEventNetworkHandler : IInitializable, IDisposable
     {
         private readonly TrainUnitClientCache _cache;
-        private readonly TrainEntityObjectDatastore _trainEntityDatastore;
+        private readonly TrainCarObjectDatastore _trainCarDatastore;
         private IDisposable _subscription;
 
-        public TrainUnitCreatedEventNetworkHandler(TrainUnitClientCache cache, TrainEntityObjectDatastore trainEntityObjectDatastore)
+        public TrainUnitCreatedEventNetworkHandler(TrainUnitClientCache cache, TrainCarObjectDatastore trainCarDatastore)
         {
             _cache = cache;
-            _trainEntityDatastore = trainEntityObjectDatastore;
+            _trainCarDatastore = trainCarDatastore;
         }
 
         public void Initialize()
@@ -70,7 +70,7 @@ namespace Client.Game.InGame.Train.Network
             {
                 responses.Add(new EntityResponse(entities[i]));
             }
-            _trainEntityDatastore.OnTrainObjectUpdate(responses);
+            _trainCarDatastore.OnTrainObjectUpdate(responses);
         }
 
         #endregion
