@@ -34,7 +34,6 @@ namespace Client.Game.InGame.Entity.Factory
             var itemState = DeserializeState();
             var itemId = new ItemId(itemState.ItemId);
             var itemMaster = MasterHolder.ItemMaster.GetItemMaster(itemId);
-            var hasEntityData = entity.EntityData != null && entity.EntityData.Length > 0;
 
             // カスタムモデルパスが設定されている場合
             // If custom model path is set
@@ -84,6 +83,7 @@ namespace Client.Game.InGame.Entity.Factory
             async UniTask<IEntityObject> CreateCustomModelEntity(Transform parentTransform, EntityResponse entityResponse, string addressablePath, ItemId id)
             {
                 // キャッシュから取得
+                // Retrieve from prefab cache
                 GameObject prefabToUse;
                 if (_customModelPrefabCache.TryGetValue(id, out var cachedPrefab))
                 {
@@ -93,7 +93,7 @@ namespace Client.Game.InGame.Entity.Factory
                 {
                     // キャッシュにない場合はロード
                     // Load custom model (get LoadedAsset with LoadAsync)
-                    using var loadedAsset = await AddressableLoader.LoadAsync<GameObject>(addressablePath);
+                    var loadedAsset = await AddressableLoader.LoadAsync<GameObject>(addressablePath);
 
                     // ロード失敗時はテクスチャベースにフォールバック
                     // Fallback to texture-based if load fails
