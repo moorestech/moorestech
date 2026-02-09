@@ -3700,7 +3700,7 @@
         ],
         "entryControlPointLength": 0.5,
         "exitControlPointLength": 0.5,
-        "loadingSpeed": 20
+        "loadingAnimeSpeed": 1
       },
       "name": "TestTrainStation",
       "blockGuid": "00000000-0000-0000-0000-000000000025",
@@ -3715,7 +3715,6 @@
       "itemGuid": "4a2cd701-ecd0-45f1-ae00-1e43adcadd84",
       "blockType": "TrainCargoPlatform",
       "blockParam": {
-        "loadingSpeed": 20,
         "inventoryConnectors": {
           "inputConnects": [
             {
@@ -3772,7 +3771,8 @@
           0.5,
           8
         ],
-        "itemSlotCount": 10
+        "itemSlotCount": 10,
+        "loadingAnimeSpeed": 1
       },
       "name": "TestTrainCargoPlatform",
       "blockGuid": "00000000-0000-0000-0000-000000000026",
