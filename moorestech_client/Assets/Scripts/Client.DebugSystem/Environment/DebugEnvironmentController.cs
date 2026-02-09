@@ -16,15 +16,9 @@ namespace Client.DebugSystem.Environment
             if (_pureNatureEnvironment == null) _pureNatureEnvironment = Object.FindObjectOfType<PureNatureEnvironmentObjectRoot>(true);
             if (_otherEnvironment == null) _otherEnvironment = Object.FindObjectOfType<OtherEnvironmentObjectRoot>(true);
 
-            // nullだった場合はエラーを出して処理を中止する
-            // If any are still null, log error and abort
-            if (_debugEnvironment == null || _pureNatureEnvironment == null || _otherEnvironment == null)
-            {
-                if (_debugEnvironment == null) Debug.LogError("DebugEnvironmentObjectRoot が見つかりませんでした");
-                if (_pureNatureEnvironment == null) Debug.LogError("PureNatureEnvironmentObjectRoot が見つかりませんでした");
-                if (_otherEnvironment == null) Debug.LogError("OtherEnvironmentObjectRoot が見つかりませんでした");
-                return;
-            }
+            // nullだった場合は環境オブジェクトが存在しないシーンなので処理を中止する
+            // If any are still null, environment objects don't exist in this scene - abort silently
+            if (_debugEnvironment == null || _pureNatureEnvironment == null || _otherEnvironment == null) return;
 
             // 環境タイプに応じてアクティブ状態を切り替える
             // Switch active state based on environment type
