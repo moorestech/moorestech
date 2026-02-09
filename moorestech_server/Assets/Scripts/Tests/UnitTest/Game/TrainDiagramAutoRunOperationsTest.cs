@@ -390,21 +390,37 @@ namespace Tests.UnitTest.Game
                 trainCar.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, maxStack));
             }
 
+            Assert.IsTrue(trainUnit.trainUnitStationDocking.IsDocked,
+                "単一エントリ・ループ検証前に列車はドッキング状態に到達している必要があります。");
+
             var previousDockState = trainUnit.trainUnitStationDocking.IsDocked;
-            var docked = previousDockState;
+            var sawUndockedAfterStart = false;
+            var sawDockedAfterUndocked = false;
 
             const int maxUpdates = 256;
             for (var i = 0; i < maxUpdates; i++)
             {
                 trainUnit.Update();
-                previousDockState = docked;
-                docked = trainUnit.trainUnitStationDocking.IsDocked;
-                if (i == 0) continue;
-                if (startRunning == false)
-                    Assert.IsTrue(docked, "単一エントリ・ループでは、各Updateでドッキング状態が切り替わるべきです。");
-                if (startRunning == true)
-                    Assert.IsTrue(docked, "単一エントリ・ループでは、各Updateでドッキング状態が切り替わるべきです。");
+                var currentDockState = trainUnit.trainUnitStationDocking.IsDocked;
+
+                if (previousDockState && !currentDockState)
+                {
+                    sawUndockedAfterStart = true;
+                }
+
+                if (sawUndockedAfterStart && !previousDockState && currentDockState)
+                {
+                    sawDockedAfterUndocked = true;
+                    break;
+                }
+
+                previousDockState = currentDockState;
             }
+
+            Assert.IsTrue(sawUndockedAfterStart,
+                "単一エントリ・ループでは、少なくとも一度は出発してドッキング解除されるべきです。");
+            Assert.IsTrue(sawDockedAfterUndocked,
+                "単一エントリ・ループでは、ドッキング解除後に再度ドッキングへ戻るべきです。");
             Assert.AreSame(diagram.Entries[0].Node, diagram.GetCurrentNode(), "単一エントリのダイヤグラムでは、常にその単一ノードを目標にし続けるはずです。");
         }
 
