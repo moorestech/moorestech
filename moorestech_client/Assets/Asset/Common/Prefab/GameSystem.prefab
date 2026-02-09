@@ -89,6 +89,50 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 80e1a2e5093a449889b3ec5b3857e9e2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar.TrainCarPreviewController
+--- !u!1 &2447255371277743941
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2424237766305545628}
+  - component: {fileID: 7885969649220293225}
+  m_Layer: 0
+  m_Name: TrainEntity
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2424237766305545628
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2447255371277743941}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8289102133947741992}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7885969649220293225
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2447255371277743941}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca603336ea1fec34d95c7abc0b1027ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.Entity.TrainEntityObjectDatastore
 --- !u!1 &2450945537476807615
 GameObject:
   m_ObjectHideFlags: 0
@@ -570,6 +614,7 @@ Transform:
   - {fileID: 3928518110855870374}
   - {fileID: 6480903064254151838}
   - {fileID: 3463260241662771382}
+  - {fileID: 2424237766305545628}
   m_Father: {fileID: 8466354111555762101}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6076494679112279449
@@ -748,6 +793,7 @@ MonoBehaviour:
   mapObjectMiningController: {fileID: 6370490414090957468}
   playerSystemContainer: {fileID: 9095410978574352372}
   entityObjectDatastore: {fileID: 9004822369202094949}
+  trainCarObjectDatastore: {fileID: 7885969649220293225}
   uIStateControl: {fileID: 4694271036350155273}
   pauseMenuObject: {fileID: 7499633600282642158}
   deleteBarObject: {fileID: 4640722214229418808}
