@@ -12,13 +12,13 @@ namespace Client.Game.InGame.Train.View.Object
 {
     public class TrainCarObjectDatastore : MonoBehaviour
     {
-        private TrainCarObjectFactory carObjectFactory;
+        private TrainCarObjectFactory _carObjectFactory;
         private readonly Dictionary<long, TrainCarEntityObject> _entities = new();
 
         [Inject]
         public void Construct(TrainUnitClientCache trainUnitClientCache)
         {
-            carObjectFactory = new TrainCarObjectFactory(trainUnitClientCache);
+            _carObjectFactory = new TrainCarObjectFactory(trainUnitClientCache);
         }
 
         public void OnTrainObjectUpdate(List<EntityResponse> entities)
@@ -30,7 +30,7 @@ namespace Client.Game.InGame.Train.View.Object
                 var entity = entities[i];
                 // EntityObjectDatastoreにならう
                 // Following EntityObjectDatastore
-                carObjectFactory.CreateTrainCarObject(transform, entity).ContinueWith(entityObject =>
+                _carObjectFactory.CreateTrainCarObject(transform, entity).ContinueWith(entityObject =>
                 {
                     entityObject.Initialize(entity.InstanceId);
                     _entities.Add(entity.InstanceId, entityObject);
