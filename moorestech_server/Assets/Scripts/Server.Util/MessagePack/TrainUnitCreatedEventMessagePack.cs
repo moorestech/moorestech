@@ -9,18 +9,16 @@ namespace Server.Util.MessagePack
     public class TrainUnitCreatedEventMessagePack
     {
         [Key(0)] public TrainUnitSnapshotBundleMessagePack Snapshot { get; set; }
-        [Key(1)] public EntityMessagePack[] Entities { get; set; }
-        [Key(2)] public long ServerTick { get; set; }
+        [Key(1)] public long ServerTick { get; set; }
 
         [Obsolete("Reserved for MessagePack.")]
         public TrainUnitCreatedEventMessagePack()
         {
         }
 
-        public TrainUnitCreatedEventMessagePack(TrainUnitSnapshotBundleMessagePack snapshot, EntityMessagePack[] entities, long serverTick)
+        public TrainUnitCreatedEventMessagePack(TrainUnitSnapshotBundleMessagePack snapshot, long serverTick)
         {
             Snapshot = snapshot;
-            Entities = entities;
             ServerTick = serverTick;
         }
     }
