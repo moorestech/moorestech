@@ -19,7 +19,7 @@ namespace Client.Game.InGame.Entity
         {
             // 依存注入とファクトリー初期化
             // Dependency injection and factory initialization
-            _entityObjectFactory = new EntityObjectFactory(trainUnitClientCache);
+            _entityObjectFactory = new EntityObjectFactory();
         }
         
         /// <summary>

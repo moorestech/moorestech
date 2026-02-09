@@ -1,4 +1,5 @@
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Train.View.Object;
 using Client.Game.InGame.UI.UIState.State;
 using UnityEngine;
 
