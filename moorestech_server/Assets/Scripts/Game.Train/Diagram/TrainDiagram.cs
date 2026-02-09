@@ -258,9 +258,8 @@ namespace Game.Train.Diagram
             _diagramManager.NotifyDocked(_context, entry, currentTick, hash);
         }
 
-        internal void NotifyDeparted(long currentTick)
+        internal void NotifyDeparted(TrainDiagramEntry entry, long currentTick)
         {
-            var entry = GetCurrentEntry();
             if (_context == null || entry?.Node == null)
             {
                 return;
