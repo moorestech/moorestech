@@ -39,6 +39,14 @@ namespace Server.Util
                     // Get packet length from header
                     if (TryGetLength(packet, actualStartPacketDataIndex, length, out var payloadLength, out var headerLength))
                     {
+                        // 不正なペイロード長を検出した場合はリセット
+                        // Reset if payload length is invalid
+                        if (payloadLength <= 0)
+                        {
+                            _isReadingPayload = false;
+                            break;
+                        }
+
                         _packetLength = payloadLength;
                         _isReadingPayload = true;
                         // パケット長の4バイトヘッダを取り除く
