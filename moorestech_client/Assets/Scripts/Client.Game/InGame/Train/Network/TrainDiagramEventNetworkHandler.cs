@@ -1,5 +1,4 @@
 using Client.Game.InGame.Context;
-using Client.Game.InGame.Train.Unit;
 using Server.Event.EventReceive;
 using Server.Util.MessagePack;
 using System;
@@ -11,12 +10,12 @@ namespace Client.Game.InGame.Train.Network
 {
     public sealed class TrainDiagramEventNetworkHandler : IInitializable, IDisposable
     {
-        private readonly TrainUnitClientCache _cache;
+        private readonly TrainUnitFutureMessageBuffer _futureMessageBuffer;
         private readonly CompositeDisposable _subscriptions = new();
 
-        public TrainDiagramEventNetworkHandler(TrainUnitClientCache cache)
+        public TrainDiagramEventNetworkHandler(TrainUnitFutureMessageBuffer futureMessageBuffer)
         {
-            _cache = cache;
+            _futureMessageBuffer = futureMessageBuffer;
         }
 
         public void Initialize()
@@ -47,7 +46,7 @@ namespace Client.Game.InGame.Train.Network
         private void HandleEvent(byte[] payload)
         {
             var message = MessagePackSerializer.Deserialize<TrainDiagramEventMessagePack>(payload);
-            _cache.ApplyDiagramEvent(message);
+            _futureMessageBuffer.EnqueueDiagram(message);
         }
     }
 }

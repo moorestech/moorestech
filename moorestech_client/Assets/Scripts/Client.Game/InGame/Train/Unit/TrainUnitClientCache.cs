@@ -1,10 +1,10 @@
+using System;
+using System.Collections.Generic;
 using Client.Game.InGame.Train.RailGraph;
 using Core.Master;
 using Game.Train.Diagram;
 using Game.Train.Unit;
 using Server.Util.MessagePack;
-using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Client.Game.InGame.Train.Unit
@@ -21,10 +21,6 @@ namespace Client.Game.InGame.Train.Unit
         // Index for train car snapshots
         private readonly Dictionary<Guid, TrainCarCacheEntry> _carIndex = new();
         private readonly Dictionary<Guid, List<Guid>> _carIdsByTrain = new();
-
-        // 最新の適用済みtick
-        // Latest tick that has been fully applied
-        public long LastServerTick { get; private set; }
 
         // 列車一覧の読み取り専用ビュー
         // Read-only view for external systems
@@ -46,7 +42,6 @@ namespace Client.Game.InGame.Train.Unit
             _carIdsByTrain.Clear();
             if (snapshots == null)
             {
-                LastServerTick = serverTick;
                 return;
             }
 
@@ -63,15 +58,6 @@ namespace Client.Game.InGame.Train.Unit
                 _units[bundle.Simulation.TrainId] = unit;
                 BuildCarIndexForUnit(unit);
             }
-
-            LastServerTick = serverTick;
-        }
-
-        // 最終Tickだけを更新する
-        // Override only the latest tick marker
-        public void OverrideTick(long serverTick)
-        {
-            LastServerTick = Math.Max(LastServerTick, serverTick);
         }
 
         // 現在のTrainUnit状態からハッシュを計算する
@@ -104,7 +90,6 @@ namespace Client.Game.InGame.Train.Unit
             RemoveCarIndex(trainId);
             unit.SnapshotUpdate(snapshot.Simulation, snapshot.Diagram, snapshot.RailPositionSnapshot, serverTick);
             BuildCarIndexForUnit(unit);
-            LastServerTick = Math.Max(LastServerTick, serverTick);
             return unit;
         }
 
