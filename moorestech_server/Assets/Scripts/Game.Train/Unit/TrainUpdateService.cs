@@ -12,12 +12,7 @@ namespace Game.Train.Unit
         private readonly TrainDiagramManager _diagramManager;
         private readonly IRailGraphDatastore _railGraphDatastore;
 
-        // マジックナンバー。trainはtick制で、tickで速度、位置、ドッキング状態等が決定的に動く。tick=1/60秒
-        private const int Interval = 60;
-        private const double TickSeconds = 1d / Interval;
         public const double HashBroadcastIntervalSeconds = 1d;
-        private double _accumulatedSeconds;
-        private readonly int _maxTicksPerFrame = 65535;
         private readonly List<TrainUnit> _trainUnits = new();
         private long _executedTick;
 
@@ -53,7 +48,7 @@ namespace Game.Train.Unit
                 trainUnit.Update();
             }
             _executedTick++;
-            if (_executedTick % Interval == 0)
+            if (_executedTick % GameUpdater.TicksPerSecond == 0)
             {
                 _onHashEvent.OnNext(_executedTick);
             }
@@ -87,7 +82,6 @@ namespace Game.Train.Unit
         public void ResetTrains()
         {
             _trainUnits.Clear();
-            _accumulatedSeconds = 0d;
             _executedTick = 0;
         }
 
