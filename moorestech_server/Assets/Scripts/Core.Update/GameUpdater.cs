@@ -95,14 +95,14 @@ namespace Core.Update
         {
             // テスト用: 1 tickずつ決定論的に進行
             // For testing: advance deterministically by 1 tick
-            AdvanceTicks(1);
+            RunFrames(1);
         }
 
         // テスト用: 指定tick数だけ進行
         // For testing: advance by specified tick count
-        public static void AdvanceTicks(uint tickCount)
+        public static void RunFrames(uint frameCount)
         {
-            for (var i = 0u; i < tickCount; i++)
+            for (var i = 0u; i < frameCount; i++)
             {
                 _updateSubject.OnNext(Unit.Default);
                 _lateUpdateSubject.OnNext(Unit.Default);

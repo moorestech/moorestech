@@ -58,7 +58,7 @@ namespace Tests.CombinedTest.Core
             {
                 // tick数を先に設定してから処理を行う
                 // Set tick count before processing
-                GameUpdater.AdvanceTicks(1);
+                GameUpdater.RunFrames(1);
 
                 var requiredRpm = new RPM(gearMachineParam.RequiredRpm);
                 var requiredTorque = new Torque(gearMachineParam.RequireTorque);
@@ -113,7 +113,7 @@ namespace Tests.CombinedTest.Core
             {
                 // tick数を先に設定してから処理を行う
                 // Set tick count before processing
-                GameUpdater.AdvanceTicks(1);
+                GameUpdater.RunFrames(1);
 
                 var rpm = new RPM(gearMachineParam.RequiredRpm / 2f);
                 lackRpmGearMachine.SupplyPower(rpm, new Torque(gearMachineParam.RequireTorque), true);
