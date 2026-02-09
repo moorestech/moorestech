@@ -2,6 +2,7 @@ using Client.Common.Asset;
 using Client.Game.InGame.Entity.Object;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Train.View;
+using Client.Game.InGame.Train.View.Object;
 using Client.Network.API;
 using Core.Master;
 using Cysharp.Threading.Tasks;
@@ -15,14 +16,14 @@ namespace Client.Game.InGame.Entity.Factory
     /// 列車エンティティを生成するファクトリー
     /// Factory to create train entity
     /// </summary>
-    public class TrainEntityObjectFactory : IEntityObjectFactory
+    public class TrainCarObjectFactory
     {
         private const string AddressablePath = "Vanilla/Game/DefaultTrain";
         
         private readonly TrainUnitClientCache _trainCache;
         private readonly GameObject _defaultTrainPrefab;
         
-        public TrainEntityObjectFactory(TrainUnitClientCache trainCache)
+        public TrainCarObjectFactory(TrainUnitClientCache trainCache)
         {
             // 姿勢更新に必要な依存を保持する
             // Hold dependencies required for pose updates
@@ -30,7 +31,7 @@ namespace Client.Game.InGame.Entity.Factory
             _defaultTrainPrefab = AddressableLoader.LoadDefault<GameObject>(AddressablePath);
         }
         
-        public async UniTask<IEntityObject> CreateEntity(Transform parent, EntityResponse entity)
+        public async UniTask<TrainCarEntityObject> CreateTrainCarObject(Transform parent, EntityResponse entity)
         {
             var state = MessagePackSerializer.Deserialize<TrainEntityStateMessagePack>(entity.EntityData);
             
@@ -44,7 +45,7 @@ namespace Client.Game.InGame.Entity.Factory
             
             #region Internal
             
-            IEntityObject CreateTrainEntity(Vector3 position, GameObject prefab)
+            TrainCarEntityObject CreateTrainEntity(Vector3 position, GameObject prefab)
             {
                 var trainObject = GameObject.Instantiate(prefab, position, Quaternion.identity, parent);
                 

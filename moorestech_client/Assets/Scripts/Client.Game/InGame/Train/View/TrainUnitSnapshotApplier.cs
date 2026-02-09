@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Entity;
 using Client.Game.InGame.Train.Unit;
+using Client.Game.InGame.Train.View.Object;
 using Client.Network.API;
 using Game.Entity.Interface;
 using Game.Train.Unit;
@@ -68,7 +69,7 @@ namespace Client.Game.InGame.Train.View
             // キャッシュ更新後に不要な列車エンティティを除去する
             // Remove stale train entities after cache update
             _cache.OverrideAll(bundles, response.ServerTick);
-            if (entityResponses.Count > 0) _trainEntityDatastore.OnEntitiesUpdate(entityResponses);
+            if (entityResponses.Count > 0) _trainEntityDatastore.OnTrainObjectUpdate(entityResponses);
             _trainEntityDatastore.RemoveTrainEntitiesNotInSnapshot(activeTrainCarIds);
 
             #region Internal
