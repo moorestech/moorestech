@@ -54,14 +54,6 @@ namespace Game.Train.Unit
             }
         }
 
-        private void UpdateTrains1Tickmanually()
-        {
-            foreach (var trainUnit in _trainUnits)
-            {
-                trainUnit.Update();
-            }
-        }
-
         public void RegisterTrain(TrainUnit trainUnit)
         {
             // 列車を登録して生成通知を送る
