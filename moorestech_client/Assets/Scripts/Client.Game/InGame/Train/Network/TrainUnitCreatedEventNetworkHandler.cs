@@ -1,10 +1,7 @@
 using System;
-using System.Collections.Generic;
 using Client.Game.InGame.Context;
-using Client.Game.InGame.Entity;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Train.View.Object;
-using Client.Network.API;
 using MessagePack;
 using Server.Event.EventReceive;
 using Server.Util.MessagePack;
@@ -43,34 +40,16 @@ namespace Client.Game.InGame.Train.Network
         {
             // 受信イベントを適用する
             // Apply the incoming event
-            if (payload == null || payload.Length == 0)
-            {
-                return;
-            }
+            if (payload == null || payload.Length == 0) return;
+
             var message = MessagePackSerializer.Deserialize<TrainUnitCreatedEventMessagePack>(payload);
-            if (message == null || message.Snapshot == null)
-            {
-                return;
-            }
+            if (message?.Snapshot == null) return;
+
+            // スナップショットをキャッシュに反映し、車両オブジェクトを生成する
+            // Apply snapshot to cache and create train car objects
             var bundle = message.Snapshot.ToModel();
             _cache.Upsert(bundle, message.ServerTick);
-            ApplyEntities(message.Entities);
-        }
-
-        private void ApplyEntities(EntityMessagePack[] entities)
-        {
-            // 生成エンティティを即時反映する
-            // Apply spawned entities immediately
-            if (entities == null || entities.Length == 0)
-            {
-                return;
-            }
-            var responses = new List<EntityResponse>(entities.Length);
-            for (var i = 0; i < entities.Length; i++)
-            {
-                responses.Add(new EntityResponse(entities[i]));
-            }
-            _trainCarDatastore.OnTrainObjectUpdate(responses);
+            _trainCarDatastore.OnTrainObjectUpdate(bundle.Simulation.Cars);
         }
 
         #endregion

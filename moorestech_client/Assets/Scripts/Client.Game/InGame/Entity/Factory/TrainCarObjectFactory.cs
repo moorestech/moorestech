@@ -3,11 +3,9 @@ using Client.Game.InGame.Entity.Object;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Train.View;
 using Client.Game.InGame.Train.View.Object;
-using Client.Network.API;
 using Core.Master;
 using Cysharp.Threading.Tasks;
-using Game.Entity.Interface;
-using MessagePack;
+using Game.Train.Unit;
 using UnityEngine;
 
 namespace Client.Game.InGame.Entity.Factory
@@ -19,10 +17,10 @@ namespace Client.Game.InGame.Entity.Factory
     public class TrainCarObjectFactory
     {
         private const string AddressablePath = "Vanilla/Game/DefaultTrain";
-        
+
         private readonly TrainUnitClientCache _trainCache;
         private readonly GameObject _defaultTrainPrefab;
-        
+
         public TrainCarObjectFactory(TrainUnitClientCache trainCache)
         {
             // 姿勢更新に必要な依存を保持する
@@ -30,34 +28,32 @@ namespace Client.Game.InGame.Entity.Factory
             _trainCache = trainCache;
             _defaultTrainPrefab = AddressableLoader.LoadDefault<GameObject>(AddressablePath);
         }
-        
-        public async UniTask<TrainCarEntityObject> CreateTrainCarObject(Transform parent, EntityResponse entity)
+
+        public async UniTask<TrainCarEntityObject> CreateTrainCarObject(Transform parent, TrainCarSnapshot carSnapshot)
         {
-            var state = MessagePackSerializer.Deserialize<TrainEntityStateMessagePack>(entity.EntityData);
-            
-            if (!MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(state.TrainCarMasterId, out var trainCarMasterElement)) return CreateTrainEntity(entity.Position, _defaultTrainPrefab);
-            
+            // スナップショットからマスターデータを取得する
+            // Retrieve master data from snapshot
+            if (!MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(carSnapshot.TrainCarMasterId, out var trainCarMasterElement)) return CreateTrainEntity(_defaultTrainPrefab);
+
             var loadedPrefab = await AddressableLoader.LoadAsyncDefault<GameObject>(trainCarMasterElement.AddressablePath);
-            if (loadedPrefab == null) return CreateTrainEntity(entity.Position, _defaultTrainPrefab);
-            
-            
-            return CreateTrainEntity(entity.Position, loadedPrefab);
-            
+            if (loadedPrefab == null) return CreateTrainEntity(_defaultTrainPrefab);
+
+            return CreateTrainEntity(loadedPrefab);
+
             #region Internal
-            
-            TrainCarEntityObject CreateTrainEntity(Vector3 position, GameObject prefab)
+
+            TrainCarEntityObject CreateTrainEntity(GameObject prefab)
             {
-                var trainObject = GameObject.Instantiate(prefab, position, Quaternion.identity, parent);
-                
+                var trainObject = GameObject.Instantiate(prefab, Vector3.zero, Quaternion.identity, parent);
+
                 var trainEntityObject = trainObject.AddComponent<TrainCarEntityObject>();
-                trainEntityObject.SetTrain(state.TrainCarId, trainCarMasterElement);
-                
+                trainEntityObject.SetTrain(carSnapshot.TrainCarInstanceGuid, trainCarMasterElement);
+
                 // 車両姿勢更新コンポーネントを関連付ける
-                
                 // Attach pose update component for this car
                 var poseUpdater = trainObject.AddComponent<TrainCarEntityPoseUpdater>();
                 poseUpdater.SetDependencies(trainEntityObject, _trainCache);
-                
+
                 // TrainCarEntityChildrenObjectを付与
                 foreach (var mesh in trainEntityObject.GetComponentsInChildren<MeshRenderer>())
                 {
@@ -65,13 +61,14 @@ namespace Client.Game.InGame.Entity.Factory
                     mesh.gameObject.AddComponent<MeshCollider>();
                 }
                 // 元からTrainCarEntityChildrenObjectがついているかもしれないので、再度取得して初期化する
+                // Re-fetch and initialize TrainCarEntityChildrenObject in case some already existed
                 foreach (var trainCarEntityChildren in trainEntityObject.GetComponentsInChildren<TrainCarEntityChildrenObject>())
                 {
                     trainCarEntityChildren.Initialize(trainEntityObject);
                 }
                 return trainEntityObject;
             }
-            
+
             #endregion
         }
     }
