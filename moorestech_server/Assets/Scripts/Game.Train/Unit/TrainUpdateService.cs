@@ -12,12 +12,10 @@ namespace Game.Train.Unit
         private readonly TrainDiagramManager _diagramManager;
         private readonly IRailGraphDatastore _railGraphDatastore;
 
-        // マジックナンバー。trainはtick制で、tickで速度、位置、ドッキング状態等が決定的に動く。tick=1/60秒
-        private const int Interval = 60;
-        private const double TickSeconds = 1d / Interval;
+        // Trainはサーバーのゲームtickに同期し、1tick = 1/20秒で進める
+        // Train tick is aligned with the server game tick (1 tick = 1/20 second).
+        private const int Interval = GameUpdater.TicksPerSecond;
         public const double HashBroadcastIntervalSeconds = 1d;
-        private double _accumulatedSeconds;
-        private readonly int _maxTicksPerFrame = 65535;
         private readonly List<TrainUnit> _trainUnits = new();
         private long _executedTick;
 
@@ -46,33 +44,29 @@ namespace Game.Train.Unit
 
         private void UpdateTrains()
         {
-            // ゲームのtick数を秒数に変換して積算
-            // Convert game ticks to seconds and accumulate
-            _accumulatedSeconds += GameUpdater.CurrentTickCount * GameUpdater.SecondsPerTick;
-
-            var tickCount = Math.Min(_maxTicksPerFrame, (int)(_accumulatedSeconds / TickSeconds));
-            if (tickCount == 0)
+            for (int i = 0; i < GameUpdater.CurrentTickCount; i++)
             {
-                return;
-            }
-
-            _accumulatedSeconds -= tickCount * TickSeconds;
-
-            for (var i = 0; i < tickCount; i++)
-            {
-                foreach (var trainUnit in _trainUnits)
-                {
-                    trainUnit.Update();
-                }
-                _executedTick++;
+                //TODO
+                //ここに操作コマンド系
+                //
+                
+                //HashVerifier用ブロードキャスト
                 if (_executedTick % Interval == 0)
                 {
                     _onHashEvent.OnNext(_executedTick);
                 }
-
-                // 外部スナップショットを毎tick記録する
-                // Record external snapshots per tick
-                //TrainTickSnapshotRecorder.RecordTickIfAvailable(_executedTick, _trainUnits);
+                
+                //simulation
+                foreach (var trainUnit in _trainUnits)
+                {
+                    trainUnit.Update();
+                }
+                
+                //ここにdiagram限定コマンド系(サーバーがブロードキャスト)
+                //
+                
+                //_executedTick++;
+                _executedTick++;
             }
         }
 
@@ -104,7 +98,6 @@ namespace Game.Train.Unit
         public void ResetTrains()
         {
             _trainUnits.Clear();
-            _accumulatedSeconds = 0d;
             _executedTick = 0;
         }
 

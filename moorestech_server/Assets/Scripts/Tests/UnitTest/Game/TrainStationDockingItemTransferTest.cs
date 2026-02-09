@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Core.Master;
+using Core.Update;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -8,6 +9,7 @@ using Game.Context;
 using Game.Train.RailGraph;
 using Game.Train.RailPositions;
 using Game.Train.Unit;
+using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Tests.Module.TestMod;
 using Tests.Util;
@@ -58,10 +60,12 @@ namespace Tests.UnitTest.Game
 
             Assert.IsTrue(trainCar.IsDocked, "列車貨車が駅ブロックにドッキングしていません。");
             Assert.IsTrue(trainCar.IsInventoryEmpty(), "列車貨車のインベントリが初期状態で空になっていません。");
-
-            for (var i = 0; i < maxStack; i++)
+            // loadingAnimeSpeed(秒)をtickに変換し、伸長+接触1tick後に一括転送
+            // Convert loadingAnimeSpeed seconds to ticks, then transfer after extend + 1 contact tick
+            var transferTicks = GetStationTransferTicks();
+            for (var i = 0; i < transferTicks; i++)
             {
-                trainUnit.trainUnitStationDocking.TickDockedStations();
+                stationComponent.Update();
             }
 
             var remainingStack = stationInventory.GetItem(0);
@@ -117,9 +121,12 @@ namespace Tests.UnitTest.Game
             Assert.IsTrue(trainCar.IsDocked, "列車貨車が貨物プラットフォームにドッキングしていません。");
             Assert.IsTrue(trainCar.IsInventoryEmpty(), "列車貨車のインベントリが初期状態で空になっていません。");
 
-            for (var i = 0; i < maxStack; i++)
+            // loadingAnimeSpeed(秒)をtickに変換し、伸長+接触1tick後に一括転送
+            // Convert loadingAnimeSpeed seconds to ticks, then transfer after extend + 1 contact tick
+            var transferTicks = GetCargoTransferTicks();
+            for (var i = 0; i < transferTicks; i++)
             {
-                trainUnit.trainUnitStationDocking.TickDockedStations();
+                cargoPlatformComponent.Update();
             }
 
             var remainingStack = cargoInventory.GetItem(0);
@@ -179,9 +186,12 @@ namespace Tests.UnitTest.Game
 
             Assert.IsTrue(trainCar.IsDocked, "列車貨車が貨物プラットフォームにドッキングしていません。");
 
-            for (var i = 0; i < maxStack; i++)
+            // loadingAnimeSpeed(秒)をtickに変換し、伸長+接触1tick後に一括転送
+            // Convert loadingAnimeSpeed seconds to ticks, then transfer after extend + 1 contact tick
+            var transferTicks = GetCargoTransferTicks();
+            for (var i = 0; i < transferTicks; i++)
             {
-                trainUnit.trainUnitStationDocking.TickDockedStations();
+                cargoPlatformComponent.Update();
             }
 
             var cargoStack = cargoInventory.GetItem(0);
@@ -208,6 +218,8 @@ namespace Tests.UnitTest.Game
 
             Assert.IsNotNull(stationBlock, "駅ブロックの設置に失敗しました。");
             Assert.IsNotNull(railComponents, "RailComponentの取得に失敗しました。");
+            var stationComponent = stationBlock.GetComponent<StationComponent>();
+            Assert.IsNotNull(stationComponent, "StationComponentの取得に失敗しました。");
 
             Assert.IsTrue(stationBlock.ComponentManager.TryGetComponent<IBlockInventory>(out var stationInventory),
                 "駅ブロックのインベントリコンポーネントが見つかりません。");
@@ -240,10 +252,12 @@ namespace Tests.UnitTest.Game
             secondTrain.trainUnitStationDocking.TryDockWhenStopped();
             Assert.IsFalse(secondCar.IsDocked, "駅占有中にも関わらず2列車目がドッキングしています。");
 
-            for (var i = 0; i < maxStack; i++)
+            // loadingAnimeSpeed(秒)をtickに変換し、伸長+接触1tick後に一括転送
+            // Convert loadingAnimeSpeed seconds to ticks, then transfer after extend + 1 contact tick
+            var transferTicks = GetStationTransferTicks();
+            for (var i = 0; i < transferTicks; i++)
             {
-                firstTrain.trainUnitStationDocking.TickDockedStations();
-                secondTrain.trainUnitStationDocking.TickDockedStations();
+                stationComponent.Update();
             }
 
             var remainingStack = stationInventory.GetItem(0);
@@ -265,6 +279,23 @@ namespace Tests.UnitTest.Game
             env.GetTrainUpdateService().UnregisterTrain(secondTrain);
         }
 
+        private static int GetStationTransferTicks()
+        {
+            var stationParam = (TrainStationBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainStation).BlockParam;
+            return GetTransferTicks(stationParam.LoadingAnimeSpeed) + 1;
+        }
+
+        private static int GetCargoTransferTicks()
+        {
+            var cargoParam = (TrainCargoPlatformBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainCargoPlatform).BlockParam;
+            return GetTransferTicks(cargoParam.LoadingAnimeSpeed) + 1;
+        }
+
+        private static int GetTransferTicks(double loadingAnimeSeconds)
+        {
+            var ticks = GameUpdater.SecondsToTicks(loadingAnimeSeconds);
+            return ticks > int.MaxValue ? int.MaxValue : (int)ticks;
+        }
     }
 }
 
