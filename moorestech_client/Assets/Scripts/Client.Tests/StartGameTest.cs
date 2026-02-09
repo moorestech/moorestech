@@ -9,6 +9,16 @@ using static Client.Tests.PlayModeTest.Util.PlayModeTestUtil;
 
 namespace Client.Tests
 {
+    /// <summary>
+    /// ゲームが正常に起動できるかを検証する統合テスト。
+    ///
+    /// 【重要: unity-test.sh (CliTestRunner) からは実行できません】
+    /// このテストは EnterPlayMode を使用しており、ドメインリロードが発生します。
+    /// CliTestRunner は runSynchronously = true で動作するため、ドメインリロード時に
+    /// ResultCallbacks インスタンスが破棄され、テスト結果が 0件（passed: 0, failed: 0）として報告されます。
+    ///
+    /// 実行方法: Unity エディタの Test Runner ウィンドウ (Window > General > Test Runner) から手動実行してください。
+    /// </summary>
     public class StartGameTest
     {
         [UnityTest]
