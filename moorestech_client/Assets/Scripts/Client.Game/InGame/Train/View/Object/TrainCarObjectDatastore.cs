@@ -46,7 +46,7 @@ namespace Client.Game.InGame.Train.View.Object
             var removeIds = new List<long>();
             foreach (var entry in _entities)
             {
-                var trainEntity = entry.Value as TrainCarEntityObject;
+                var trainEntity = entry.Value;
                 if (trainEntity == null) continue;
                 if (!activeTrainCarIds.Contains(trainEntity.TrainCarId)) removeIds.Add(entry.Key);
             }
