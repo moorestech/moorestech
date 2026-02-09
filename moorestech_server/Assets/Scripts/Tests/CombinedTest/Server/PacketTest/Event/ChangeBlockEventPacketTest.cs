@@ -57,7 +57,12 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             //ステートが実行中になっているかをチェック
             List<List<byte>> response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(0));
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
-            var payLoad = eventMessagePack.Events[0].Payload;
+            // ブロックステート変更イベントを明示的に選択する
+            // Select the change block state event explicitly
+            var expectedTag = ChangeBlockStateEventPacket.CreateSpecifiedBlockEventTag(machine.BlockPositionInfo);
+            var changeStateEvent = eventMessagePack.Events.Find(eventMessage => eventMessage.Tag == expectedTag);
+            Assert.IsNotNull(changeStateEvent, "ChangeBlockStateイベントが取得できません。");
+            var payLoad = changeStateEvent!.Payload;
             
             var changeStateData = MessagePackSerializer.Deserialize<BlockStateMessagePack>(payLoad);
             var stateDetail = changeStateData.GetStateDetail<CommonMachineBlockStateDetail>(CommonMachineBlockStateDetail.BlockStateDetailKey);

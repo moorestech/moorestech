@@ -155,6 +155,10 @@ namespace Tests.UnitTest.Game.SaveLoad
                 UpdateTransferModes();
                 train1.Update();
                 train2.Update();
+                // 貨物アームのtickを進める
+                // Advance cargo platform arm ticks
+                cargoA.Update();
+                cargoB.Update();
 
                 if (!train1LoadedAtA && train1Car.IsInventoryFull() && ReferenceEquals(train1Car.dockingblock, stationABlock))
                 {
