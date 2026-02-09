@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Core.Master;
+using Core.Update;
 using Tests.Util;
 using UnityEngine;
 using Game.Block.Interface.Extension;
@@ -64,8 +65,8 @@ namespace Tests.UnitTest.Game.SaveLoad
         {
             var (scenario, _) = SetupScenario(seed);
             var trainUpdateService = scenario.Environment.GetTrainUpdateService();
-            AdvanceTicks(trainUpdateService, totalTicks - saveAfterTicks);
-            AdvanceTicks(trainUpdateService, saveAfterTicks);
+            AdvanceTicks(totalTicks - saveAfterTicks);
+            AdvanceTicks(saveAfterTicks);
 
             var snapshots = CaptureSnapshots(scenario.Environment);
 
@@ -80,7 +81,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var (scenario, expectedSnapshot) = SetupScenario(seed);
             var trainUpdateService = scenario.Environment.GetTrainUpdateService();
 
-            AdvanceTicks(trainUpdateService, totalTicks - saveAfterTicks);
+            AdvanceTicks(totalTicks - saveAfterTicks);
 
             var saveJson = SaveLoadJsonTestHelper.AssembleSaveJson(scenario.Environment.ServiceProvider);
             
@@ -127,7 +128,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var actualSnapshot = RailGraphNetworkTestHelper.CaptureFromComponents(loadedComponents);
             RailGraphNetworkTestHelper.AssertEquivalent(expectedSnapshot, actualSnapshot);
 
-            AdvanceTicks(loadEnvironment.GetTrainUpdateService(), saveAfterTicks);
+            AdvanceTicks(saveAfterTicks);
             var snapshots = CaptureSnapshots(loadEnvironment);
             CleanupTrains(loadEnvironment);
             CleanupWorld(loadEnvironment);
@@ -332,21 +333,12 @@ namespace Tests.UnitTest.Game.SaveLoad
             return list;
         }
 
-        private static void AdvanceTicks(TrainUpdateService trainUpdateService, int tickCount)
+        private static void AdvanceTicks(int tickCount)
         {
-            var action = CreateManualTickAction(trainUpdateService);
             for (var i = 0; i < tickCount; i++)
             {
-                action();
+                GameUpdater.UpdateOneTick();
             }
-        }
-
-        private static Action CreateManualTickAction(TrainUpdateService trainUpdateService)
-        {
-            var method = typeof(TrainUpdateService)
-                .GetMethod("UpdateTrains1Tickmanually", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-            Assert.IsNotNull(method, "TrainUpdateServiceの手動Tickメソッドが見つかりません。");
-            return (Action)Delegate.CreateDelegate(typeof(Action), trainUpdateService, method!);
         }
         
         private static void SetupRandomLengthTrainCarMasters(int seed, int count, int tractionForce)
