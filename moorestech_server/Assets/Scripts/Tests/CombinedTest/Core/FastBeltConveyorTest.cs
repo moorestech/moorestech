@@ -24,7 +24,7 @@ namespace Tests.CombinedTest.Core
             //PlaceBlock(ForUnitTestModBlockId.FastBeltConveyor, new Vector3Int(0, 0, 1));
             //PlaceBlock(ForUnitTestModBlockId.FastBeltConveyor, new Vector3Int(0, 0, 2));
             
-            GameUpdater.AdvanceTicks(GameUpdater.SecondsToTicks(1));
+            GameUpdater.RunFrames(GameUpdater.SecondsToTicks(1));
         }
         
         IBlock PlaceBlock(BlockId blockId, Vector3Int position)

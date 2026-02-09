@@ -98,7 +98,7 @@ namespace Tests.CombinedTest.Core
             var maxTicks = expectedTicks + 10; // 余裕を持たせる
             while (!dummy.IsItemExists && elapsedTicks < maxTicks)
             {
-                GameUpdater.AdvanceTicks(1);
+                GameUpdater.RunFrames(1);
                 elapsedTicks++;
             }
 

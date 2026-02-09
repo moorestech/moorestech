@@ -64,7 +64,7 @@ namespace Tests.CombinedTest.Core
             for (int i = 0; i < 4; i++)
             {
                 SetSteam();
-                GameUpdater.AdvanceTicks(1);
+                GameUpdater.RunFrames(1);
             }
 
             // アップデートループ（tick数で制御）
@@ -79,7 +79,7 @@ namespace Tests.CombinedTest.Core
                 SetSteam();
 
                 // アップデート
-                GameUpdater.AdvanceTicks(1);
+                GameUpdater.RunFrames(1);
 
                 var generateRpm = gearGeneratorComponent.GenerateRpm.AsPrimitive();
                 var generateTorque = gearGeneratorComponent.GenerateTorque.AsPrimitive();
@@ -117,7 +117,7 @@ namespace Tests.CombinedTest.Core
             worldBlockDatastore.RemoveBlock(fluidPipeBlock4.BlockPositionInfo.OriginalPos, BlockRemoveReason.ManualRemove);
             
             // まだ前回と同じ値なので1回だけアップデートしておく
-            GameUpdater.AdvanceTicks(1);
+            GameUpdater.RunFrames(1);
 
             // 減速テスト前に現在の値を記録（最大値のはず）
             previousRpm = gearGeneratorComponent.GenerateRpm.AsPrimitive();
@@ -130,7 +130,7 @@ namespace Tests.CombinedTest.Core
             for (var tick = 0; tick < maxTicks; tick++)
             {
                 // アップデート
-                GameUpdater.AdvanceTicks(1);
+                GameUpdater.RunFrames(1);
                 elapsedTicks++;
 
                 var generateRpm = gearGeneratorComponent.GenerateRpm.AsPrimitive();
@@ -209,7 +209,7 @@ namespace Tests.CombinedTest.Core
             var reachedMax = false;
             for (var tick = 0; tick < accelerationTicks; tick++)
             {
-                GameUpdater.AdvanceTicks(1);
+                GameUpdater.RunFrames(1);
                 if (generatorComponent.GenerateRpm.AsPrimitive() >= param.GenerateMaxRpm - 0.5f &&
                     generatorComponent.GenerateTorque.AsPrimitive() >= param.GenerateMaxTorque - 0.5f)
                 {
@@ -241,7 +241,7 @@ namespace Tests.CombinedTest.Core
             var minObservedTorque = torqueBeforeDrain;
             for (var tick = 0; tick < decelerationTicks; tick++)
             {
-                GameUpdater.AdvanceTicks(1);
+                GameUpdater.RunFrames(1);
                 var currentRpm = generatorComponent.GenerateRpm.AsPrimitive();
                 var currentTorque = generatorComponent.GenerateTorque.AsPrimitive();
                 if (currentRpm < minObservedRpm) minObservedRpm = currentRpm;
