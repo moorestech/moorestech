@@ -58,7 +58,7 @@ namespace Tests.CombinedTest.Core
 
             // 燃料の枯渇までループ（tick数で制御）
             // Loop until fuel is exhausted (controlled by tick count)
-            for (var i = 0; i < fuelTicks1; i++) GameUpdater.AdvanceTicks(1);
+            for (var i = 0; i < fuelTicks1; i++) GameUpdater.RunFrames(1);
 
             // 燃料が枯渇したことをサービス側の状態で確認する
             // Confirm that the fuel has been exhausted in the service side state
@@ -74,7 +74,7 @@ namespace Tests.CombinedTest.Core
             // 燃料の1個目の枯渇までループ（tick数で制御）
             // Loop until the first fuel is exhausted (controlled by tick count)
             var fuelTicks1WithMargin = (int)((fuelTime1 + 0.3) * GameUpdater.TicksPerSecond);
-            for (var i = 0; i < fuelTicks1WithMargin; i++) GameUpdater.AdvanceTicks(1);
+            for (var i = 0; i < fuelTicks1WithMargin; i++) GameUpdater.RunFrames(1);
 
             // サービスの現在燃料IDが2個目を指していることを確認する
             // Confirm that the current fuel ID of the service points to the second one
@@ -89,7 +89,7 @@ namespace Tests.CombinedTest.Core
             // Loop until the second fuel is exhausted (controlled by tick count)
             var fuelTime2 = generatorConfigParam.FuelItems[FuelItem2Id].Time;
             var fuelTicks2 = (int)((fuelTime2 + 0.1) * GameUpdater.TicksPerSecond);
-            for (var i = 0; i < fuelTicks2; i++) GameUpdater.AdvanceTicks(1);
+            for (var i = 0; i < fuelTicks2; i++) GameUpdater.RunFrames(1);
 
             // 2個目も消費し終わったことをサービスの状態で確認する
             currentFuelType = GetFuelServiceField<object>(fuelService, "_currentFuelType");
@@ -149,7 +149,7 @@ namespace Tests.CombinedTest.Core
             // 1サイクル目が終わるまでアップデートをまわす（tick数で制御）
             // Loop until the first cycle ends (controlled by tick count)
             var cycleTicks = (int)((fluidFuel.Time + 0.1) * GameUpdater.TicksPerSecond);
-            for (var i = 0; i < cycleTicks; i++) GameUpdater.AdvanceTicks(1);
+            for (var i = 0; i < cycleTicks; i++) GameUpdater.RunFrames(1);
 
             // 継続して電力が出力されていること、燃料タイプが液体のままであることを確認する
             currentFuelType = GetFuelServiceField<object>(fuelService, "_currentFuelType");
@@ -158,7 +158,7 @@ namespace Tests.CombinedTest.Core
 
             // 2サイクル目も同様に経過させ、最終的に液体がすべて消費されることを検証する（tick数で制御）
             // Loop until the second cycle ends (controlled by tick count)
-            for (var i = 0; i < cycleTicks; i++) GameUpdater.AdvanceTicks(1);
+            for (var i = 0; i < cycleTicks; i++) GameUpdater.RunFrames(1);
 
             // 燃料が枯渇していることをサービスの状態で確認する
             Assert.Zero(generatorComponent.OutputEnergy().AsPrimitive());

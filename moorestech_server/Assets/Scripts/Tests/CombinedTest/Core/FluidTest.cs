@@ -55,7 +55,7 @@ namespace Tests.CombinedTest.Core
             const int fillTicks = 60;
             for (var i = 0; i < fillTicks; i++)
             {
-                GameUpdater.AdvanceTicks(1);
+                GameUpdater.RunFrames(1);
             }
             
             Assert.AreEqual(0f, fluidPipe0.GetAmount(), 1f);
@@ -94,7 +94,7 @@ namespace Tests.CombinedTest.Core
             const int fillTicks = 60;
             for (var tick = 0; tick < fillTicks; tick++)
             {
-                GameUpdater.AdvanceTicks(1);
+                GameUpdater.RunFrames(1);
 
                 // 経過秒数（tick × SecondsPerTick）
                 // Elapsed seconds (tick × SecondsPerTick)
@@ -216,7 +216,7 @@ namespace Tests.CombinedTest.Core
             const int ticks = 100;
             for (var i = 0; i < ticks; i++)
             {
-                GameUpdater.AdvanceTicks(1);
+                GameUpdater.RunFrames(1);
             }
             
             Assert.AreEqual(0, fluidPipe0.GetAmount(), 0.01d);
@@ -260,7 +260,7 @@ namespace Tests.CombinedTest.Core
             const int ticks = 200;
             for (var i = 0; i < ticks; i++)
             {
-                GameUpdater.AdvanceTicks(1);
+                GameUpdater.RunFrames(1);
             }
             
             var lastTotalAmount = fluidPipe0.GetAmount() + fluidPipe1.GetAmount() + fluidPipe2.GetAmount();
@@ -295,7 +295,7 @@ namespace Tests.CombinedTest.Core
             const int ticks = 20;
             for (var i = 0; i < ticks; i++)
             {
-                GameUpdater.AdvanceTicks(1);
+                GameUpdater.RunFrames(1);
             }
             
             // 0と2に流れる
@@ -330,7 +330,7 @@ namespace Tests.CombinedTest.Core
             const int ticks = 20;
             for (var i = 0; i < ticks; i++)
             {
-                GameUpdater.AdvanceTicks(1);
+                GameUpdater.RunFrames(1);
             }
 
             // fluidPipe1に全て流れたことを確認
@@ -341,7 +341,7 @@ namespace Tests.CombinedTest.Core
             // Wait another second
             for (var i = 0; i < ticks; i++)
             {
-                GameUpdater.AdvanceTicks(1);
+                GameUpdater.RunFrames(1);
             }
             
             // fluidPipe0に全て流れたことを確認
@@ -380,7 +380,7 @@ namespace Tests.CombinedTest.Core
             {
                 // 0.1秒 = 2tick
                 // 0.1 seconds = 2 ticks
-                GameUpdater.AdvanceTicks(2);
+                GameUpdater.RunFrames(2);
 
                 Assert.AreEqual(fluid0Amount, fluidPipe0.GetAmount());
                 Assert.AreEqual(fluid1Amount, fluidPipe1.GetAmount());
@@ -439,12 +439,15 @@ namespace Tests.CombinedTest.Core
             
             const int steps = 10;
             
-            // 0.1秒 = 2tick
-            // 0.1 seconds = 2 ticks
-            for (var i = 0; i < steps; i++) GameUpdater.AdvanceTicks(2);
+            // 毎フレーム1tick固定なので、1tickずつ進行
+            // Each frame advances exactly 1 tick
+            for (var i = 0; i < steps; i++) GameUpdater.RunFrames(1);
             
-            // First update: no fluid movement (both pipes have receive flag from initial AddLiquid)
-            // Updates 2-10: both pipes change state (sender and receiver)
+            // 最初のtick: 液体移動なし（AddLiquidによるreceiveフラグが立っている）
+            // First tick: no fluid movement (both pipes have receive flag from initial AddLiquid)
+            // 2〜10tick目: 両パイプの状態が変化（送信側と受信側）
+            // Ticks 2-10: both pipes change state (sender and receiver)
+            // 合計: 0 + 9*2 = 18回の状態変更
             // Total: 0 + 9*2 = 18 state changes
             Assert.AreEqual(18, callCount);
         }
