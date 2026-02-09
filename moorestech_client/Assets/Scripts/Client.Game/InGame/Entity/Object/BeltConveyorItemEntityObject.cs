@@ -68,6 +68,7 @@ namespace Client.Game.InGame.Entity.Object
         public void SetTexture(Texture texture, ItemId itemId)
         {
             // キャッシュから取得
+            // Retrieve from material cache
             if (MaterialCache.TryGetValue(itemId, out var cachedMaterial))
             {
                 meshRenderer.material = cachedMaterial;
@@ -75,8 +76,12 @@ namespace Client.Game.InGame.Entity.Object
             }
 
             // キャッシュにない場合は新規作成
+            // Create new material if not cached
             var newMaterial = new Material(itemMaterial) { mainTexture = texture };
-            MaterialCache[itemId] = newMaterial;
+            if (texture != null)
+            {
+                MaterialCache[itemId] = newMaterial;
+            }
             meshRenderer.material = newMaterial;
         }
     }
