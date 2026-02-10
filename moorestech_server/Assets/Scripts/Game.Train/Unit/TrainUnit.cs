@@ -214,20 +214,13 @@ namespace Game.Train.Unit
 
         private void DepartFromCurrentEntry()
         {
-            var departingEntry = trainDiagram.GetCurrentEntry();
-            if (departingEntry == null)
-            {
-                return;
-            }
-
             if (trainUnitStationDocking.IsDocked)
             {
                 trainUnitStationDocking.UndockFromStation();
             }
 
             _previousEntryGuid = Guid.Empty;
-            trainDiagram.MoveToNextEntry();
-            trainDiagram.NotifyDeparted(departingEntry, _trainUpdateService.GetCurrentTick());
+            trainDiagram.TryMoveToNextEntryAndNotifyDeparted(_trainUpdateService.GetCurrentTick());
         }
 
         // 自動運転時のマスコン制御を共通ロジックで更新

@@ -191,6 +191,20 @@ namespace Game.Train.Diagram
             _currentIndex = (_currentIndex + 1) % _entries.Count;
         }
 
+        // 現在entryがある場合のみ次entryへ進め、Departed通知を送る。
+        // Advance to next entry and send Departed notification only when current entry exists.
+        public bool TryMoveToNextEntryAndNotifyDeparted(long currentTick)
+        {
+            if (!TryGetActiveEntry(out _))
+            {
+                return false;
+            }
+
+            MoveToNextEntry();
+            NotifyDeparted(currentTick);
+            return true;
+        }
+
         //node削除時かならず呼ばれます->entriesの中身は常に実在するnodeのみ
         //currentIndexも削除対象なら暗黙的に次のnodeに移動します
         public void HandleNodeRemoval(IRailNode removedNode)
@@ -258,8 +272,9 @@ namespace Game.Train.Diagram
             _diagramManager.NotifyDocked(_context, entry, currentTick, hash);
         }
 
-        internal void NotifyDeparted(TrainDiagramEntry entry, long currentTick)
+        internal void NotifyDeparted(long currentTick)
         {
+            var entry = GetCurrentEntry();
             if (_context == null || entry?.Node == null)
             {
                 return;
