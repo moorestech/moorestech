@@ -70,6 +70,9 @@ namespace Client.Game.InGame.Train.Unit
             // Apply dock/depart events to client-side state
             if (message.EventType == TrainDiagramEventType.Docked)
             {
+                // Dockedイベント時もサーバー送信entryIdに現在indexを同期する
+                // Align current index to the server entryId even on Docked events.
+                Diagram.UpdateIndexByEntryId(message.EntryId);
                 IsDocked = true;
                 CurrentSpeed = 0;
                 AccumulatedDistance = 0;
