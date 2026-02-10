@@ -32,24 +32,24 @@ namespace Client.Game.InGame.Train.Diagram
             _snapshot = snapshot;
         }
 
-        // 現時点ではDepartedイベントで受信したentryIdに現在インデックスを同期する用途でのみ使用する。該当がなければ変更しない。
-        // Currently used only by the Departed event path to align current index from server entryId, and keeps state unchanged when not found.
-        public void UpdateIndexByEntryId(Guid entryId)
+        // イベントで受信したentryIdに現在インデックスを同期する。該当がなければ変更しない。
+        // Align current index from the event entryId, and keep state unchanged when not found.
+        public bool UpdateIndexByEntryId(Guid entryId)
         {
             var entries = _snapshot.Entries;
             if (entries == null || entries.Count == 0)
             {
-                return;
+                return false;
             }
-
             for (var i = 0; i < entries.Count; i++)
             {
                 if (entries[i].EntryId == entryId)
                 {
                     _snapshot = new TrainDiagramSnapshot(i, entries);
-                    return;
+                    return true;
                 }
             }
+            return false;
         }
 
         // 現在のインデックス位置にあるダイアグラムエントリを取得する。
