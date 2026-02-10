@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Train.Network;
@@ -17,21 +16,18 @@ namespace Client.Game.InGame.Train.View
     // Listens to server hash/tick events and validates TrainUnit cache consistency
     public sealed class TrainUnitHashVerifier : ITrainUnitHashTickGate, IInitializable, IDisposable
     {
-        private const int HashHistoryCapacity = 256;
-
         private readonly TrainUnitSnapshotApplier _snapshotApplier;
         private readonly TrainUnitFutureMessageBuffer _futureMessageBuffer;
-        private readonly Dictionary<long, uint> _localHashHistory = new();
-        private readonly Queue<long> _localHashHistoryOrder = new();
-        private readonly List<TrainUnitHashStateMessagePack> _hashMessages = new();
+        private readonly TrainUnitClientCache _cache;
         private IDisposable _subscription;
         private CancellationTokenSource _resyncCancellation;
         private int _resyncInProgress;
 
-        public TrainUnitHashVerifier(TrainUnitSnapshotApplier snapshotApplier, TrainUnitFutureMessageBuffer futureMessageBuffer)
+        public TrainUnitHashVerifier(TrainUnitSnapshotApplier snapshotApplier, TrainUnitFutureMessageBuffer futureMessageBuffer, TrainUnitClientCache cache)
         {
             _snapshotApplier = snapshotApplier;
             _futureMessageBuffer = futureMessageBuffer;
+            _cache = cache;
         }
 
         public void Initialize()
@@ -48,7 +44,6 @@ namespace Client.Game.InGame.Train.View
             _subscription?.Dispose();
             _subscription = null;
             CancelResync();
-            ClearLocalHashHistory();
         }
 
         public bool CanAdvanceTick(long currentTick)
@@ -60,9 +55,7 @@ namespace Client.Game.InGame.Train.View
                 return false;
             }
 
-            var localHash = _futureMessageBuffer.ComputeCurrentHash();
-            RecordLocalHash(currentTick, localHash);
-            ValidatePendingHashes(currentTick);
+            ValidateCurrentTickHash(currentTick);
             return Interlocked.CompareExchange(ref _resyncInProgress, 0, 0) == 0;
         }
 
@@ -86,38 +79,28 @@ namespace Client.Game.InGame.Train.View
             _futureMessageBuffer.EnqueueHash(message);
         }
 
-        private void ValidatePendingHashes(long currentTick)
+        private void ValidateCurrentTickHash(long currentTick)
         {
-            _futureMessageBuffer.DequeueHashesAtOrBefore(currentTick, _hashMessages);
-            for (var i = 0; i < _hashMessages.Count; i++)
+            if (!_futureMessageBuffer.TryDequeueHashAtTick(currentTick, out var message))
             {
-                var message = _hashMessages[i];
-                var hashTick = message.TrainTick;
-                var serverHash = message.UnitsHash;
-
-                if (!_localHashHistory.TryGetValue(hashTick, out var localHash))
-                {
-                    // 履歴外の古いhashは検証不能なので警告のみでスキップする
-                    // Skip too-late hashes that are outside local hash history
-                    Debug.LogWarning($"[TrainUnitHashVerifier] Hash arrived too late to validate. hashTick={hashTick}, currentTick={currentTick}.");
-                    continue;
-                }
-
-                if (localHash == serverHash)
-                {
-                    _futureMessageBuffer.RecordHashVerified(hashTick);
-                    continue;
-                }
-
-                Debug.LogWarning($"[TrainUnitHashVerifier] Hash mismatch detected. hashTick={hashTick}, currentTick={currentTick}, client={localHash}, server={serverHash}. Requesting snapshot.");
-                if (Interlocked.CompareExchange(ref _resyncInProgress, 1, 0) == 1)
-                {
-                    return;
-                }
-
-                RequestSnapshotAsync(hashTick).Forget();
                 return;
             }
+
+            var localHash = _cache.ComputeCurrentHash();
+            var serverHash = message.UnitsHash;
+            if (localHash == serverHash)
+            {
+                _futureMessageBuffer.RecordHashVerified(currentTick);
+                return;
+            }
+
+            Debug.LogWarning($"[TrainUnitHashVerifier] Hash mismatch detected. tick={currentTick}, client={localHash}, server={serverHash}. Requesting snapshot.");
+            if (Interlocked.CompareExchange(ref _resyncInProgress, 1, 0) == 1)
+            {
+                return;
+            }
+
+            RequestSnapshotAsync(currentTick).Forget();
         }
 
         private async UniTask RequestSnapshotAsync(long serverTick)
@@ -143,7 +126,6 @@ namespace Client.Game.InGame.Train.View
             else
             {
                 _snapshotApplier.ApplySnapshot(snapshot);
-                ClearLocalHashHistory();
             }
             FinalizeResync(cts);
         }
@@ -166,30 +148,6 @@ namespace Client.Game.InGame.Train.View
             var current = Interlocked.CompareExchange(ref _resyncCancellation, null, cts);
             if (current == cts) cts.Dispose();
             Interlocked.Exchange(ref _resyncInProgress, 0);
-        }
-
-        private void RecordLocalHash(long tick, uint hash)
-        {
-            if (_localHashHistory.TryAdd(tick, hash))
-            {
-                _localHashHistoryOrder.Enqueue(tick);
-            }
-            else
-            {
-                _localHashHistory[tick] = hash;
-            }
-
-            while (_localHashHistoryOrder.Count > HashHistoryCapacity)
-            {
-                var oldTick = _localHashHistoryOrder.Dequeue();
-                _localHashHistory.Remove(oldTick);
-            }
-        }
-
-        private void ClearLocalHashHistory()
-        {
-            _localHashHistory.Clear();
-            _localHashHistoryOrder.Clear();
         }
 
         #endregion
