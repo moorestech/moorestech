@@ -12,7 +12,6 @@ namespace Game.Train.Unit
     {
         public RailPositionSaveData railPositionSaveData { get; set; }
         public bool IsAutoRun { get; set; }
-        public Guid PreviousEntryGuid { get; set; }
         public long? CurrentSpeedBits { get; set; }
         public long? AccumulatedDistanceBits { get; set; }
         public List<TrainCarSaveData> Cars { get; set; }
