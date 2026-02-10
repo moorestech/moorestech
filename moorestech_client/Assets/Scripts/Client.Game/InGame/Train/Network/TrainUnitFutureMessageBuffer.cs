@@ -24,13 +24,6 @@ namespace Client.Game.InGame.Train.Network
             _trainCarDatastore = trainCarDatastore;
         }
 
-        // 現在の列車キャッシュhashを取得する。
-        // Compute hash from the current train unit cache state.
-        public uint ComputeCurrentHash()
-        {
-            return _cache.ComputeCurrentHash();
-        }
-
         // hash検証通過tickを記録する。
         // Record a tick that passed hash verification.
         public void RecordHashVerified(long tick)
@@ -95,6 +88,10 @@ namespace Client.Game.InGame.Train.Network
             {
                 return;
             }
+            if (message.TrainTick < _tickState.GetSimulatedTick())
+            {
+                return;
+            }
 
             if (message.TrainTick <= _tickState.GetHashVerifiedTick())
             {
@@ -105,17 +102,18 @@ namespace Client.Game.InGame.Train.Network
             _tickState.RecordHashReceived(message.TrainTick);
         }
 
-        // 指定tickまでのハッシュイベントを取り出す。
-        // Dequeue hash states at or before the specified tick.
-        public void DequeueHashesAtOrBefore(long tick, List<TrainUnitHashStateMessagePack> buffer)
+        // 指定tickのハッシュイベントを取り出す。
+        // Dequeue hash state at the specified tick.
+        public bool TryDequeueHashAtTick(long tick, out TrainUnitHashStateMessagePack message)
         {
-            buffer.Clear();
-            while (TryGetFirstTick(_futureHashStates, out var targetTick) && targetTick <= tick)
+            if (_futureHashStates.TryGetValue(tick, out var hash))
             {
-                var hash = _futureHashStates[targetTick];
-                buffer.Add(new TrainUnitHashStateMessagePack(hash, targetTick));
-                _futureHashStates.Remove(targetTick);
+                _futureHashStates.Remove(tick);
+                message = new TrainUnitHashStateMessagePack(hash, tick);
+                return true;
             }
+            message = null;
+            return false;
         }
 
         // 到達済みtickまでのキュー済みイベントを適用する。
