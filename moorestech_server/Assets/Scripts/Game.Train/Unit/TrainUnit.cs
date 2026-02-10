@@ -31,8 +31,6 @@ namespace Game.Train.Unit
         {
             get { return _isAutoRun; }
         }
-        //autorun時の1tick前のentryのguid
-        private Guid _previousEntryGuid;
 
         private double _currentSpeed;   // m/s など適宜
         public double CurrentSpeed => _currentSpeed;
@@ -82,7 +80,6 @@ namespace Game.Train.Unit
             _cars = cars;
             _currentSpeed = 0.0; // 仮の初期速度
             _isAutoRun = false;
-            _previousEntryGuid = Guid.Empty;
             trainUnitStationDocking = new TrainUnitStationDocking(this, this);
             trainDiagram = new TrainDiagram(_railGraphProvider, _diagramManager);
             trainDiagram.SetContext(this);
@@ -143,20 +140,6 @@ namespace Game.Train.Unit
                     _currentSpeed = 0;
                     return 0;
                 }
-                //diagramを手動でいじって、現在ドッキング中の駅をエントリーから削除したときなど。その場合は安全にドッキング解除しtrainDiagram.MoveToNextEntry();はしない
-                //いったん機能off そのうちけすかも
-                /*
-                if (_previousEntryGuid != trainDiagram.GetCurrentGuid())
-                {
-                    if (trainUnitStationDocking.IsDocked)
-                    {
-                        trainUnitStationDocking.UndockFromStation();
-                    }
-                    DiagramValidation();
-                }
-                */
-
-
                 // 自動運転中はドッキング中なら進まない、ドッキング中じゃないなら目的地に向かって加速
                 if (trainUnitStationDocking.IsDocked)
                 {
@@ -286,7 +269,6 @@ namespace Game.Train.Unit
                         else//diagramが非駅を見ている場合 
                         {
                             // 次の目的地をセット
-                            _previousEntryGuid = Guid.Empty;//同じentryに戻るときを考慮。別entryにいくものとして扱う
                             trainDiagram.TryAdvanceToNextEntryFromDeparture();
                         }
                         break;
@@ -461,7 +443,6 @@ namespace Game.Train.Unit
             {
                 railPositionSaveData = railpositionSnapshot,
                 IsAutoRun = _isAutoRun,
-                PreviousEntryGuid = _previousEntryGuid,
                 CurrentSpeedBits = BitConverter.DoubleToInt64Bits(_currentSpeed),
                 AccumulatedDistanceBits = BitConverter.DoubleToInt64Bits(_accumulatedDistance),
                 Cars = carStates,
@@ -515,7 +496,6 @@ namespace Game.Train.Unit
             var trainUnit = new TrainUnit(railPosition, cars, trainUpdateService, railPositionManager, diagramManager, false)
             {
                 _isAutoRun = saveData.IsAutoRun,
-                _previousEntryGuid = saveData.PreviousEntryGuid,
                 _currentSpeed = restoredSpeed,
                 _accumulatedDistance = restoredAccumulatedDistance
             };
