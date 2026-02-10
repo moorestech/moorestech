@@ -33,19 +33,4 @@ namespace Game.Entity.Interface
             BlockPosZ = blockPosition.z;
         }
     }
-    
-    [MessagePackObject]
-    public class TrainEntityStateMessagePack
-    {
-        [Key(0)] public Guid TrainCarId { get; set; }
-        [Key(1)] public Guid TrainCarMasterId { get; set; }
-        
-        public TrainEntityStateMessagePack() { }
-        
-        public TrainEntityStateMessagePack(Guid trainCarId, Guid trainCarMasterId)
-        {
-            TrainCarId = trainCarId;
-            TrainCarMasterId = trainCarMasterId;
-        }
-    }
 }

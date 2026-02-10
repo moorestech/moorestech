@@ -2891,45 +2891,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d563077406e34b01b306b563e46b92b9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!1 &285216838
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 285216839}
-  - component: {fileID: 285216840}
-  m_Layer: 0
-  m_Name: TrainEntity
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &285216839
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 285216838}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1488041413}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &285216840
+--- !u!114 &285216840 stripped
 MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 7885969649220293225, guid: efa1e9567bd6a46cc9bb22790eef4693, type: 3}
+  m_PrefabInstance: {fileID: 5103828206815401739}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 285216838}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ca603336ea1fec34d95c7abc0b1027ab, type: 3}
@@ -24712,11 +24679,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d563077406e34b01b306b563e46b92b9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!4 &1488041413 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 8466354111555762101, guid: efa1e9567bd6a46cc9bb22790eef4693, type: 3}
-  m_PrefabInstance: {fileID: 5103828206815401739}
-  m_PrefabAsset: {fileID: 0}
 --- !u!114 &1491570284 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1395962035652017129, guid: 53d25a583ee974aa59260ebc24130895, type: 3}
@@ -52127,10 +52089,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects:
     - {fileID: 7623927846172718322, guid: efa1e9567bd6a46cc9bb22790eef4693, type: 3}
-    m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: 8466354111555762101, guid: efa1e9567bd6a46cc9bb22790eef4693, type: 3}
-      insertIndex: 10
-      addedObject: {fileID: 285216839}
+    m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: efa1e9567bd6a46cc9bb22790eef4693, type: 3}
 --- !u!1 &5103828206815401740 stripped
