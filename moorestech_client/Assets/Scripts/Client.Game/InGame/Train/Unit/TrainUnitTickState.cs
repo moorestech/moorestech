@@ -20,6 +20,11 @@ namespace Client.Game.InGame.Train.Unit
             return _simulatedTick;
         }
 
+        public long GetHashReceivedTick()
+        {
+            return _hashReceivedTick;
+        }
+
         // スナップショット基準tickへ状態を揃える。
         // Align state to the snapshot baseline tick.
         public void SetSnapshotBaselineTick(long serverTick)
