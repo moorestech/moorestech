@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Train.RailGraph;
@@ -7,7 +7,7 @@ using TrainDiagramType = global::Game.Train.Diagram.TrainDiagram;
 
 namespace Client.Game.InGame.Train.Diagram
 {
-    // クライアント側のダイアグラム参照と遷移をまとめる。
+    // クライアント側のダイアグラム参照と遷移操作を一箇所に集約する。
     // Centralize client-side diagram reads and transitions.
     public sealed class ClientTrainDiagram
     {
@@ -16,22 +16,24 @@ namespace Client.Game.InGame.Train.Diagram
 
         public ClientTrainDiagram(TrainDiagramSnapshot snapshot, IRailGraphProvider railGraphProvider)
         {
-            // レールグラフ参照を保持する。
-            // Keep the rail graph provider reference.
+            // レールグラフ参照を保持してノード解決に利用する。
+            // Keep the rail graph provider reference for node resolution.
             _snapshot = snapshot;
             _railGraphProvider = railGraphProvider;
         }
 
         public TrainDiagramSnapshot Snapshot => _snapshot;
-        public int CurrentIndex => _snapshot.CurrentIndex;
-        public IReadOnlyList<TrainDiagramEntrySnapshot> Entries => _snapshot.Entries;
         public int EntryCount => _snapshot.Entries?.Count ?? 0;
 
+        // サーバーのスナップショット通信時のみdiagram全体を置き換える（初期同期・再同期・差分反映）。
+        // Replace the whole diagram only in server snapshot flows (initial sync, resync, and diff upsert), not in event packets.
         public void UpdateSnapshot(TrainDiagramSnapshot snapshot)
         {
             _snapshot = snapshot;
         }
 
+        // 現時点ではDepartedイベントで受信したentryIdに現在インデックスを同期する用途でのみ使用する。該当がなければ変更しない。
+        // Currently used only by the Departed event path to align current index from server entryId, and keeps state unchanged when not found.
         public void UpdateIndexByEntryId(Guid entryId)
         {
             var entries = _snapshot.Entries;
@@ -50,6 +52,8 @@ namespace Client.Game.InGame.Train.Diagram
             }
         }
 
+        // 現在のインデックス位置にあるダイアグラムエントリを取得する。
+        // Get the diagram entry at the current index.
         public bool TryGetCurrentEntry(out TrainDiagramEntrySnapshot entry)
         {
             entry = default;
@@ -69,19 +73,8 @@ namespace Client.Game.InGame.Train.Diagram
             return true;
         }
 
-        public bool TryGetEntry(int index, out TrainDiagramEntrySnapshot entry)
-        {
-            entry = default;
-            var entries = _snapshot.Entries;
-            if (entries == null || index < 0 || index >= entries.Count)
-            {
-                return false;
-            }
-
-            entry = entries[index];
-            return true;
-        }
-
+        // 現在エントリの接続先をレールグラフノードへ解決する。
+        // Resolve the current entry destination into a rail graph node.
         public bool TryResolveCurrentDestinationNode(out IRailNode node)
         {
             var entries = _snapshot.Entries;
@@ -134,8 +127,8 @@ namespace Client.Game.InGame.Train.Diagram
             return false;
         }
 
-        // ドッキング中の待機tickを進める。
-        // Advance docked wait-ticks.
+        // ドッキング中の待機tick条件を1tick進める。
+        // Advance docked wait-tick conditions by one tick.
         public void TickDockedDepartureConditions(bool isAutoRun)
         {
             if (!isAutoRun)
