@@ -148,7 +148,7 @@ namespace Client.Game.InGame.Train.Unit
                 var localHash = TrainDiagramHashCalculator.Compute(unit.Diagram.Snapshot);
                 if (localHash != message.DiagramHash)
                 {
-                    Debug.LogWarning($"[TrainDiagramHashVerifier] Hash mismatch for train={{message.TrainId}}. client={{localHash}}, server={{message.DiagramHash}}, tick={{message.Tick}}, event={{message.EventType}}.");
+                    Debug.LogWarning($"[TrainDiagramHashVerifier] Hash mismatch for train={message.TrainId}. client={localHash}, server={message.DiagramHash}, tick={message.Tick}, event={message.EventType}.");
                 }
             }
         }
