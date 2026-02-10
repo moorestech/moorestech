@@ -111,10 +111,10 @@ namespace Client.Game.InGame.Train.View
                     return;
                 }
 
-                RequestSnapshotAsync(currentTick).Forget();
+                RequestSnapshotAsync().Forget();
                 return;
                 
-                async UniTask RequestSnapshotAsync(long serverTick)
+                async UniTask RequestSnapshotAsync()
                 {
                     var api = ClientContext.VanillaApi.Response;
                     var cts = new CancellationTokenSource();
