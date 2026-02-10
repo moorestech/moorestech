@@ -1,10 +1,7 @@
 using System;
 using Core.Item.Interface;
-using Game.Block.Interface.Event;
-using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Subscription;
 using Game.Train.Event;
-using Game.World.Interface.DataStore;
 using MessagePack;
 using Server.Util.MessagePack;
 using static Server.Util.MessagePack.InventoryIdentifierMessagePack;
@@ -73,7 +70,7 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
             return identifier switch
             {
                 BlockInventorySubInventoryIdentifier blockId => CreateBlockMessage(blockId.Position),
-                TrainInventorySubInventoryIdentifier trainId => CreateTrainMessage(trainId.TrainCarId),
+                TrainInventorySubInventoryIdentifier trainId => CreateTrainMessage(trainId.TrainCarInstanceId),
                 _ => throw new ArgumentException($"Unknown ISubscriptionIdentifier type: {identifier.GetType()}")
             };
         }

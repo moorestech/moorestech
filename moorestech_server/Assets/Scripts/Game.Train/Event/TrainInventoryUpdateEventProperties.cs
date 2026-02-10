@@ -1,5 +1,5 @@
-using System;
 using Core.Item.Interface;
+using Game.Train.Unit;
 
 namespace Game.Train.Event
 {
@@ -9,13 +9,13 @@ namespace Game.Train.Event
     /// </summary>
     public class TrainInventoryUpdateEventProperties
     {
-        public Guid TrainCarId { get; }
+        public TrainCarInstanceId TrainCarInstanceId { get; }
         public int Slot { get; }
         public IItemStack ItemStack { get; }
         
-        public TrainInventoryUpdateEventProperties(Guid trainCarId, int slot, IItemStack itemStack)
+        public TrainInventoryUpdateEventProperties(TrainCarInstanceId trainCarInstanceId, int slot, IItemStack itemStack)
         {
-            TrainCarId = trainCarId;
+            TrainCarInstanceId = trainCarInstanceId;
             Slot = slot;
             ItemStack = itemStack;
         }

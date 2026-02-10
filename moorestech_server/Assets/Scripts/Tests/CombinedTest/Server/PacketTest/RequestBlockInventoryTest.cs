@@ -17,7 +17,6 @@ using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;
 using System;
-using Mooresmaster.Model.TrainModule;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -92,7 +91,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             trainCar.SetItem(0, itemFactory.Create(new ItemId(1), 7));
             trainCar.SetItem(1, itemFactory.Create(new ItemId(2), 3));
 
-            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestTrain(trainCar.CarId))[0];
+            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestTrain(trainCar.TrainCarInstanceId))[0];
             var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(responseBytes.ToArray());
 
             Assert.AreEqual(InventoryType.Train, data.InventoryType); // inventory type
@@ -103,9 +102,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(3, data.Items[1].Count);
         }
 
-        private List<byte> RequestTrain(Guid trainId)
+        private List<byte> RequestTrain(TrainCarInstanceId trainCarInstanceId)
         {
-            var identifier = InventoryIdentifierMessagePack.CreateTrainMessage(trainId);
+            var identifier = InventoryIdentifierMessagePack.CreateTrainMessage(trainCarInstanceId.AsPrimitive());
             return MessagePackSerializer.Serialize(new InventoryRequestProtocol.RequestInventoryRequestProtocolMessagePack(identifier)).ToList();
         }
     }

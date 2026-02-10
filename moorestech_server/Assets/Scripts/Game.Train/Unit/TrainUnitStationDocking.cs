@@ -232,7 +232,7 @@ namespace Game.Train.Unit
 
             if (_dockedReceivers.TryGetValue(block, out var existing))
             {
-                return existing.Handle.CarId == car.CarId;
+                return existing.Handle.TrainCarInstanceId == car.TrainCarInstanceId.AsPrimitive();
             }
 
             if (block.ComponentManager.TryGetComponent<ITrainDockingReceiver>(out var receiver))
@@ -253,5 +253,3 @@ namespace Game.Train.Unit
 
     }
 }
-
-

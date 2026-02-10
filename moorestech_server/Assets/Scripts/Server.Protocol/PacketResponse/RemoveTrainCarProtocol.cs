@@ -26,19 +26,20 @@ namespace Server.Protocol.PacketResponse
             // 対象列車の探索
             // Resolve target train and car
             var trainCarPairs = _trainUpdateService.GetRegisteredTrains().SelectMany(t => t.Cars.Select(c => (Train: t, Car: c)));
-            var targetPair = trainCarPairs.FirstOrDefault(c => c.Car.CarId == request.TrainCarId);
-            if (targetPair.Car == null) { Debug.LogWarning($"Remove train car failed. Train not found. \ncarId: {request.TrainCarId}"); return null; }
+            var trainCarInstanceId = new TrainCarInstanceId(request.TrainCarInstanceId);
+            var targetPair = trainCarPairs.FirstOrDefault(c => c.Car.TrainCarInstanceId == trainCarInstanceId);
+            if (targetPair.Car == null) { Debug.LogWarning($"Remove train car failed. Train not found. \ncarId: {trainCarInstanceId}"); return null; }
             
             // 削除の実行
             // Apply removal
-            targetPair.Train.RemoveCar(request.TrainCarId);
+            targetPair.Train.RemoveCar(trainCarInstanceId);
             return null;
         }
         
         [MessagePackObject]
         public class RemoveTrainCarRequestMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public Guid TrainCarId { get; set; }
+            [Key(2)] public long TrainCarInstanceId { get; set; }
             
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public RemoveTrainCarRequestMessagePack()
@@ -46,10 +47,10 @@ namespace Server.Protocol.PacketResponse
                 Tag = ProtocolTag;
             }
             
-            public RemoveTrainCarRequestMessagePack(Guid trainCarId)
+            public RemoveTrainCarRequestMessagePack(long trainCarInstanceId)
             {
                 Tag = ProtocolTag;
-                TrainCarId = trainCarId;
+                TrainCarInstanceId = trainCarInstanceId;
             }
         }
     }
