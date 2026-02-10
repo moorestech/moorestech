@@ -64,6 +64,8 @@ namespace Client.Game.InGame.Train.Unit
                 return;
             }
 
+            var wasDocked = IsDocked;
+
             // ドッキング/発車イベントをクライアント状態へ反映
             // Apply dock/depart events to client-side state
             if (message.EventType == TrainDiagramEventType.Docked)
@@ -71,6 +73,13 @@ namespace Client.Game.InGame.Train.Unit
                 IsDocked = true;
                 CurrentSpeed = 0;
                 AccumulatedDistance = 0;
+
+                // ドッキング遷移時のみ待機条件を初期値へ戻す
+                // Reset departure wait conditions only on dock transition.
+                if (!wasDocked)
+                {
+                    Diagram.ResetCurrentEntryDepartureConditions();
+                }
             }
             else if (message.EventType == TrainDiagramEventType.Departed)
             {
@@ -168,14 +177,19 @@ namespace Client.Game.InGame.Train.Unit
             }
 
             // 自動運転中はドッキング中なら進まない、ドッキング中じゃないなら目的地に向かって加速
+            // During auto-run, stop while docked and accelerate only when undocked.
             if (IsDocked)
             {
+                // ドッキング中は移動計算に入らず停止状態を維持する
+                // Keep the train stopped and skip movement simulation while docked.
+                CurrentSpeed = 0;
+                Diagram.TickDockedDepartureConditions(IsAutoRun);
+                return 0;
             }
-            else
-            {
-                // ドッキング中でなければ目的地に向かって進む
-                UpdateMasconLevel();
-            }
+
+            // ドッキング中でなければ目的地に向かって進む
+            // When not docked, proceed toward the destination.
+            UpdateMasconLevel();
             // マスコンレベルから燃料を消費しつつ速度を計算する
             // マスコン確定後に進む距離を算出
             // Calculate distance to travel after mascon decision
