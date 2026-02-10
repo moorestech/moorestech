@@ -11,6 +11,7 @@ namespace Game.Train.Diagram
     {
         private const uint FnvOffset = 2166136261;
         private const uint FnvPrime = 16777619;
+        private const int EntryIndexMixSalt = unchecked((int)0x5F3759D5);
 
         // サーバー側のTrainDiagramから即時計算する
         // Computes a hash directly from the live TrainDiagram
@@ -45,7 +46,7 @@ namespace Game.Train.Diagram
 
             for (var i = 0; i < entries.Count; i++)
             {
-                hash = Mix(hash, unchecked((int)0x5F3759D5) ^ i);
+                hash = Mix(hash, EntryIndexMixSalt ^ i);
                 var entry = entries[i];
                 if (entry == null)
                 {
@@ -75,7 +76,7 @@ namespace Game.Train.Diagram
 
             for (var i = 0; i < entries.Count; i++)
             {
-                hash = Mix(hash, unchecked((int)0x0F0F0F0F) ^ i);
+                hash = Mix(hash, EntryIndexMixSalt ^ i);
                 var entry = entries[i];
                 hash = MixGuid(hash, entry.EntryId);
                 hash = MixDestination(hash, entry.Node);
