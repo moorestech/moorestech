@@ -170,7 +170,7 @@ namespace Game.Train.Unit
                         //trainUnitStationDocking.UndockFromStation();
                         // 次の目的地をセット
                         _previousEntryGuid = Guid.Empty;//同じentryに戻るときを考慮。別entryにいくものとして扱う
-                        trainDiagram.MoveToNextEntry();
+                        DepartFromCurrentEntry();
                     }
                     return 0;
                 }
@@ -210,6 +210,24 @@ namespace Game.Train.Unit
             masconLevel = 0;
             //wキーでmasconLevel=16777216
             //sキーでmasconLevel=-16777216
+        }
+
+        private void DepartFromCurrentEntry()
+        {
+            var departingEntry = trainDiagram.GetCurrentEntry();
+            if (departingEntry == null)
+            {
+                return;
+            }
+
+            if (trainUnitStationDocking.IsDocked)
+            {
+                trainUnitStationDocking.UndockFromStation();
+            }
+
+            _previousEntryGuid = Guid.Empty;
+            trainDiagram.MoveToNextEntry();
+            trainDiagram.NotifyDeparted(departingEntry, _trainUpdateService.GetCurrentTick());
         }
 
         // 自動運転時のマスコン制御を共通ロジックで更新
@@ -264,11 +282,16 @@ namespace Game.Train.Unit
                         //diagramが駅を見ている場合
                         if (trainDiagram.GetCurrentNode().StationRef.StationBlock != null)
                         {
+                            var wasDocked = trainUnitStationDocking.IsDocked;
                             trainUnitStationDocking.TryDockWhenStopped();
                             //この瞬間ドッキングしたら、diagramの出発条件リセット
                             if (trainUnitStationDocking.IsDocked)
                             {
                                 trainDiagram.ResetCurrentEntryDepartureConditions();
+                                if (!wasDocked)
+                                {
+                                    trainDiagram.NotifyDocked(_trainUpdateService.GetCurrentTick());
+                                }
                             }
                         }
                         else//diagramが非駅を見ている場合 
@@ -641,9 +664,13 @@ namespace Game.Train.Unit
             _railPosition.AppendRailPositionAtRear(railPosition);
         }
 
-        public void OnTrainDocked() => trainDiagram?.NotifyDocked(_trainUpdateService.GetCurrentTick());
+        public void OnTrainDocked()
+        {
+        }
 
-        public void OnTrainUndocked() => trainDiagram?.NotifyDeparted(_trainUpdateService.GetCurrentTick());
+        public void OnTrainUndocked()
+        {
+        }
 
         public void OnDestroy()
         {
