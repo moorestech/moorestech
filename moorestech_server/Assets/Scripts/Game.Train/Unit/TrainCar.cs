@@ -18,7 +18,7 @@ namespace Game.Train.Unit
     /// </summary>
     public class TrainCar : ITrainDiagramCar
     {
-        private readonly Guid _carId = Guid.NewGuid();
+        private readonly TrainCarInstanceId _trainCarInstanceId = TrainCarInstanceId.Create();
         
         // 列車のマスターデータ
         public TrainCarMasterElement TrainCarMasterElement { get; }
@@ -36,7 +36,7 @@ namespace Game.Train.Unit
         public int Length { get; private set; }
         //列車が駅とドッキングしているかどうか
         public bool IsDocked => dockingblock != null; // ドッキングしているかどうかのプロパティ
-        public Guid CarId => _carId;
+        public TrainCarInstanceId TrainCarInstanceId => _trainCarInstanceId;
         public IBlock dockingblock { get; set; }// このTrainCarがcargoやstation駅blockでドッキングしているときにのみ非nullになる。前輪を登録
 
         private readonly IItemStack[] _inventoryItems;
@@ -122,7 +122,7 @@ namespace Game.Train.Unit
 
             return new TrainCarSaveData
             {
-                TrainCarGuid = this.TrainCarMasterElement.TrainCarGuid,
+                TrainCarMasterId = this.TrainCarMasterElement.TrainCarGuid,
                 IsFacingForward = this.IsFacingForward,
                 DockingBlockPosition = dockingPosition,
                 InventoryItems = inventoryItems,
@@ -136,7 +136,7 @@ namespace Game.Train.Unit
             if (data == null)
                 return null;
 
-            if (!MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(data.TrainCarGuid, out var trainCarMaster)) throw new Exception("trainCarMaster is not found");
+            if (!MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(data.TrainCarMasterId, out var trainCarMaster)) throw new Exception("trainCarMaster is not found");
             var isFacingForward = data.IsFacingForward;
             var car = new TrainCar(trainCarMaster, isFacingForward);
             var empty = ServerContext.ItemStackFactory.CreatEmpty();
@@ -230,13 +230,13 @@ namespace Game.Train.Unit
 
         public void Destroy()
         {
-            _trainUpdateEvent.InvokeTrainRemoved(_carId);
+            _trainUpdateEvent.InvokeTrainCarRemoved(_trainCarInstanceId);
         }
 
         private void InvokeInventoryUpdate(int slot)
         {
             var item = _inventoryItems[slot] ?? ServerContext.ItemStackFactory.CreatEmpty();
-            _trainUpdateEvent.InvokeInventoryUpdate(new TrainInventoryUpdateEventProperties(_carId, slot, item));
+            _trainUpdateEvent.InvokeInventoryUpdate(new TrainInventoryUpdateEventProperties(_trainCarInstanceId, slot, item));
         }
 
         // インベントリーサイズ取得  

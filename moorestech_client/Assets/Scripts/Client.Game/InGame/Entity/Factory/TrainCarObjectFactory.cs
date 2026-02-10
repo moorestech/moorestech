@@ -47,7 +47,7 @@ namespace Client.Game.InGame.Entity.Factory
                 var trainObject = GameObject.Instantiate(prefab, Vector3.zero, Quaternion.identity, parent);
 
                 var trainEntityObject = trainObject.AddComponent<TrainCarEntityObject>();
-                trainEntityObject.SetTrain(carSnapshot.TrainCarInstanceGuid, trainCarMasterElement);
+                trainEntityObject.SetTrain(carSnapshot.TrainCarInstanceId, trainCarMasterElement);
 
                 // 車両姿勢更新コンポーネントを関連付ける
                 // Attach pose update component for this car

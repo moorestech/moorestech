@@ -68,13 +68,13 @@ namespace Server.Protocol.PacketResponse
             {
                 // 列車カーを探索
                 // Find the target train car
-                var trainCarId = Guid.Parse(identifier.TrainCarId);
+                var trainCarInstanceId = new TrainCarInstanceId(long.Parse(identifier.TrainCarInstanceId));
                 TrainCar trainCar = null;
                 foreach (var registeredTrain in _trainUpdateService.GetRegisteredTrains())
                 {
                     foreach (var car in registeredTrain.Cars)
                     {
-                        if (car.CarId != trainCarId) continue;
+                        if (car.TrainCarInstanceId != trainCarInstanceId) continue;
                         trainCar = car;
                         break;
                     }
@@ -138,4 +138,3 @@ namespace Server.Protocol.PacketResponse
         }
     }
 }
-

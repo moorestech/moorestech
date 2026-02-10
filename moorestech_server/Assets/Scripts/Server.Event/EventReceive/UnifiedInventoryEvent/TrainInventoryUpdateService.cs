@@ -1,7 +1,7 @@
-using System;
 using System.Collections.Generic;
 using Game.PlayerInventory.Interface.Subscription;
 using Game.Train.Event;
+using Game.Train.Unit;
 using MessagePack;
 using UniRx;
 
@@ -25,33 +25,33 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
             _inventorySubscriptionStore = inventorySubscriptionStore;
             
             trainUpdateEvent.OnInventoryUpdated.Subscribe(OnTrainInventoryUpdate);
-            trainUpdateEvent.OnTrainRemoved.Subscribe(OnTrainRemoved);
+            trainUpdateEvent.OnTrainCarRemoved.Subscribe(OnTrainCarRemoved);
         }
         
         private void OnTrainInventoryUpdate(TrainInventoryUpdateEventProperties properties)
         {
             // サブスクライバーを取得
             // Get subscribers
-            var (identifier, playerIds) = GetSubscribers(properties.TrainCarId);
+            var (identifier, playerIds) = GetSubscribers(properties.TrainCarInstanceId);
             if (playerIds.Count == 0) return;
             
             var message = UnifiedInventoryEventMessagePack.CreateUpdate(identifier, properties.Slot, properties.ItemStack);
             AddEvent(message, playerIds);
         }
         
-        private void OnTrainRemoved(Guid trainId)
+        private void OnTrainCarRemoved(TrainCarInstanceId trainCarInstanceId)
         {
             // サブスクライバーを取得
             // Get subscribers
-            var (identifier, playerIds) = GetSubscribers(trainId);
+            var (identifier, playerIds) = GetSubscribers(trainCarInstanceId);
             if (playerIds.Count == 0) return;
             
             AddEvent(UnifiedInventoryEventMessagePack.CreateRemove(identifier), playerIds);
         }
         
-        private (TrainInventorySubInventoryIdentifier identifier, List<int> playerIds) GetSubscribers(Guid trainId)
+        private (TrainInventorySubInventoryIdentifier identifier, List<int> playerIds) GetSubscribers(TrainCarInstanceId trainCarInstanceId)
         {
-            var id = new TrainInventorySubInventoryIdentifier(trainId);
+            var id = new TrainInventorySubInventoryIdentifier(trainCarInstanceId.AsPrimitive());
             var players = _inventorySubscriptionStore.GetSubscribers(id);
             return (id, players);
         }

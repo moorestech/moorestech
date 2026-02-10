@@ -1,14 +1,9 @@
 using System;
 using System.Collections.Generic;
-using Game.Block.Interface.Component;
-using Game.Context;
-using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Subscription;
-using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Util.MessagePack;
-using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -51,7 +46,7 @@ namespace Server.Protocol.PacketResponse
                 return id.InventoryType switch
                 {
                     InventoryType.Block => new BlockInventorySubInventoryIdentifier(id.BlockPosition.Vector3Int),
-                    InventoryType.Train => new TrainInventorySubInventoryIdentifier(Guid.Parse(id.TrainCarId)),
+                    InventoryType.Train => new TrainInventorySubInventoryIdentifier(long.Parse(id.TrainCarInstanceId)),
                     _ => throw new ArgumentException($"Unknown InventoryType: {id.InventoryType}")
                 };
             }
