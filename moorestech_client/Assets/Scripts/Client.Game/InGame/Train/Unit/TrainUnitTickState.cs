@@ -8,16 +8,16 @@ namespace Client.Game.InGame.Train.Unit
     {
         private long _hashVerifiedTick;
         private long _hashReceivedTick;
-        private long _simulatedTick;
+        private long _tick;
 
         public long GetHashVerifiedTick()
         {
             return _hashVerifiedTick;
         }
 
-        public long GetSimulatedTick()
+        public long GetTick()
         {
-            return _simulatedTick;
+            return _tick;
         }
 
         public long GetHashReceivedTick()
@@ -29,7 +29,7 @@ namespace Client.Game.InGame.Train.Unit
         // Align state to the snapshot baseline tick.
         public void SetSnapshotBaselineTick(long serverTick)
         {
-            _simulatedTick = serverTick;
+            _tick = serverTick;
             _hashVerifiedTick = Math.Max(_hashVerifiedTick, serverTick);
             _hashReceivedTick = Math.Max(_hashReceivedTick, serverTick);
         }
@@ -46,28 +46,21 @@ namespace Client.Game.InGame.Train.Unit
         public void RecordHashVerified(long serverTick)
         {
             _hashVerifiedTick = Math.Max(_hashVerifiedTick, serverTick);
-            _hashReceivedTick = Math.Max(_hashReceivedTick, serverTick);
         }
 
-        // 1tick先へ進めるかを判定し、進行先tickを返す。
-        // Decide whether one more local simulation tick can run.
-        public bool TryGetNextSimulationTick(out long tick)
+        // 1tick先へ進めるかを判定
+        // local simulation tick can run.
+        public bool IsAllowSimulationNowTick()
         {
-            if (_simulatedTick >= _hashReceivedTick)
+            if (_tick >= _hashReceivedTick)
             {
-                tick = _simulatedTick;
                 return false;
             }
-
-            tick = _simulatedTick + 1;
             return true;
         }
-
-        // シミュレーション進行結果を確定する。
-        // Commit local simulation tick progress.
-        public void CompleteSimulationTick(long tick)
+        public void AdvanceTick()
         {
-            _simulatedTick = Math.Max(_simulatedTick, tick);
+            _tick++;
         }
     }
 }

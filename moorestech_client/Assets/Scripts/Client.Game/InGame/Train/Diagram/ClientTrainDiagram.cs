@@ -214,6 +214,9 @@ namespace Client.Game.InGame.Train.Diagram
 
         public void AdvanceToNextEntry()
         {
+            // 出発で進む場合のみ現在entryの待機状態を初期化する。
+            // Reset wait-state only when advancing as a departure transition.
+            ResetCurrentEntryDepartureConditions();
             MoveToNextEntry(EntryCount);
         }
 
