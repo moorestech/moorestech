@@ -632,9 +632,9 @@ namespace Game.Train.Unit
             var removeCar = SplitTrain(1);
             removeCar?.OnDestroy();
         }
-        public void RemoveCar(Guid trainCarId)
+        public void RemoveCar(TrainCarInstanceId trainCarInstanceId)
         {
-            var targetIndex = _cars.FindIndex(car => car.CarId == trainCarId);
+            var targetIndex = _cars.FindIndex(car => car.TrainCarInstanceId == trainCarInstanceId);
             RemoveCar(targetIndex);
         }
 
@@ -695,7 +695,5 @@ namespace Game.Train.Unit
         }
     }
 }
-
-
 
 

@@ -1,4 +1,3 @@
-using System;
 using MessagePack;
 using UnityEngine;
 
@@ -26,10 +25,10 @@ namespace Server.Util.MessagePack
         [Key(1)] public Vector3IntMessagePack BlockPosition { get; set; }
         
         /// <summary>
-        /// 列車インベントリの場合のTrainCarId
-        /// TrainId for train inventory
+        /// 列車インベントリの場合のTrainCarInstanceId
+        /// Train car instance id for train inventory
         /// </summary>
-        [Key(2)] public string TrainCarId { get; set; }
+        [Key(2)] public string TrainCarInstanceId { get; set; }
         
         
         public InventoryIdentifierMessagePack() { }
@@ -43,15 +42,14 @@ namespace Server.Util.MessagePack
             };
         }
         
-        public static InventoryIdentifierMessagePack CreateTrainMessage(Guid trainId)
+        public static InventoryIdentifierMessagePack CreateTrainMessage(long trainCarInstanceId)
         {
             return new InventoryIdentifierMessagePack
             {
                 InventoryType = InventoryType.Train,
-                TrainCarId = trainId.ToString(),
+                TrainCarInstanceId = trainCarInstanceId.ToString(),
             };
         }
         
     }
 }
-

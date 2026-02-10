@@ -69,7 +69,7 @@ namespace Game.Train.Unit
             for (var i = 0; i < cars.Count; i++)
             {
                 var car = cars[i];
-                hash = MixGuid(hash, car.TrainCarInstanceGuid);
+                hash = MixLong(hash, car.TrainCarInstanceId.AsPrimitive());
                 hash = MixGuid(hash, car.TrainCarMasterId);
                 hash = Mix(hash, car.InventorySlotsCount);
                 hash = Mix(hash, car.TractionForce);

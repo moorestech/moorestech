@@ -1,4 +1,5 @@
 using System;
+using Game.Train.Unit;
 using UniRx;
 
 namespace Game.Train.Event
@@ -8,17 +9,17 @@ namespace Game.Train.Event
         public IObservable<TrainInventoryUpdateEventProperties> OnInventoryUpdated => _inventorySubject;
         private readonly Subject<TrainInventoryUpdateEventProperties> _inventorySubject = new();
         
-        public IObservable<Guid> OnTrainRemoved => _removedSubject;
-        private readonly Subject<Guid> _removedSubject = new();
+        public IObservable<TrainCarInstanceId> OnTrainCarRemoved => _removedSubject;
+        private readonly Subject<TrainCarInstanceId> _removedSubject = new();
         
         public void InvokeInventoryUpdate(TrainInventoryUpdateEventProperties properties)
         {
             _inventorySubject.OnNext(properties);
         }
         
-        public void InvokeTrainRemoved(Guid trainId)
+        public void InvokeTrainCarRemoved(TrainCarInstanceId trainCarInstanceId)
         {
-            _removedSubject.OnNext(trainId);
+            _removedSubject.OnNext(trainCarInstanceId);
         }
     }
 }

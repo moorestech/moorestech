@@ -1,4 +1,3 @@
-using Client.Game.InGame.Entity.Object;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Train.View.Object;
 using Game.Train.RailPositions;
@@ -79,7 +78,7 @@ namespace Client.Game.InGame.Train.View
 
             // 車両索引からスナップショットを取得する
             // Resolve the snapshot from the car index
-            return _trainCache.TryGetCarSnapshot(_trainCarEntity.TrainCarId, out unit, out snapshot, out frontOffset, out rearOffset);
+            return _trainCache.TryGetCarSnapshot(_trainCarEntity.TrainCarInstanceId, out unit, out snapshot, out frontOffset, out rearOffset);
         }
 
 

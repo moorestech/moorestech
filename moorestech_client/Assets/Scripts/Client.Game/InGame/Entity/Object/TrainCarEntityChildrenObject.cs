@@ -31,7 +31,7 @@ namespace Client.Game.InGame.Entity.Object
         
         public void Delete()
         {
-            ClientContext.VanillaApi.SendOnly.RemoveTrain(TrainCarEntityObject.TrainCarId);
+            ClientContext.VanillaApi.SendOnly.RemoveTrain(TrainCarEntityObject.TrainCarInstanceId);
         }
     }
 }

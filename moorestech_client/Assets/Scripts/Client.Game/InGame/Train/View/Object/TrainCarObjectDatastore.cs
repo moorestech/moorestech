@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.Entity.Factory;
@@ -10,10 +9,10 @@ using VContainer;
 
 namespace Client.Game.InGame.Train.View.Object
 {
-    public class TrainCarObjectDatastore : MonoBehaviour
+        public class TrainCarObjectDatastore : MonoBehaviour
     {
         private TrainCarObjectFactory _carObjectFactory;
-        private readonly Dictionary<Guid, TrainCarEntityObject> _entities = new();
+        private readonly Dictionary<TrainCarInstanceId, TrainCarEntityObject> _entities = new();
 
         [Inject]
         public void Construct(TrainUnitClientCache trainUnitClientCache)
@@ -28,35 +27,35 @@ namespace Client.Game.InGame.Train.View.Object
             for (var i = 0; i < carSnapshots.Count; i++)
             {
                 var car = carSnapshots[i];
-                if (_entities.ContainsKey(car.TrainCarInstanceGuid)) continue;
+                if (_entities.ContainsKey(car.TrainCarInstanceId)) continue;
 
                 // 新規車両のオブジェクトを生成する
                 // Create object for new train car
                 _carObjectFactory.CreateTrainCarObject(transform, car).ContinueWith(entityObject =>
                 {
                     entityObject.Initialize();
-                    _entities.Add(car.TrainCarInstanceGuid, entityObject);
+                    _entities.Add(car.TrainCarInstanceId, entityObject);
                     return entityObject;
                 });
             }
         }
 
-        public void RemoveTrainEntitiesNotInSnapshot(IReadOnlyCollection<Guid> activeTrainCarIds)
+        public void RemoveTrainEntitiesNotInSnapshot(IReadOnlyCollection<TrainCarInstanceId> activeTrainCarInstanceIds)
         {
             // スナップショットに存在しない列車エンティティを削除する
             // Remove train entities that are missing from the snapshot
-            var removeIds = new List<Guid>();
+            var removeIds = new List<TrainCarInstanceId>();
             foreach (var entry in _entities)
             {
                 if (entry.Value == null) continue;
-                if (!activeTrainCarIds.Contains(entry.Key)) removeIds.Add(entry.Key);
+                if (!activeTrainCarInstanceIds.Contains(entry.Key)) removeIds.Add(entry.Key);
             }
 
             for (var i = 0; i < removeIds.Count; i++)
             {
-                var carId = removeIds[i];
-                _entities[carId].Destroy();
-                _entities.Remove(carId);
+                var trainCarInstanceId = removeIds[i];
+                _entities[trainCarInstanceId].Destroy();
+                _entities.Remove(trainCarInstanceId);
             }
         }
     }

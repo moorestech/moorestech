@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Subscription;
 using Server.Util.MessagePack;
-using UnityEngine;
 
 namespace Game.PlayerInventory
 {
@@ -91,8 +89,8 @@ namespace Game.PlayerInventory
                     var position = ((BlockInventorySubInventoryIdentifier) identifier).Position;
                     return (identifier.Type, $"{position.x},{position.y},{position.z}");
                 case InventoryType.Train:
-                    var carId = ((TrainInventorySubInventoryIdentifier) identifier).TrainCarId;
-                    return (identifier.Type, carId.ToString());
+                    var trainCarInstanceId = ((TrainInventorySubInventoryIdentifier) identifier).TrainCarInstanceId;
+                    return (identifier.Type, trainCarInstanceId.ToString());
                 default:
                     throw new ArgumentException($"Invalid identifier type for InventoryType {identifier.Type}");
             }
