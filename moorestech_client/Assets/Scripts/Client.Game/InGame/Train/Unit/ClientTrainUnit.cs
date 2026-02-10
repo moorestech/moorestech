@@ -64,8 +64,6 @@ namespace Client.Game.InGame.Train.Unit
                 return;
             }
 
-            var wasDocked = IsDocked;
-
             // ドッキング/発車イベントをクライアント状態へ反映
             // Apply dock/depart events to client-side state
             if (message.EventType == TrainDiagramEventType.Docked)
@@ -77,15 +75,12 @@ namespace Client.Game.InGame.Train.Unit
                 CurrentSpeed = 0;
                 AccumulatedDistance = 0;
 
-                // ドッキング遷移時のみ待機条件を初期値へ戻す
-                // Reset departure wait conditions only on dock transition.
-                if (!wasDocked)
-                {
-                    Diagram.ResetCurrentEntryDepartureConditions();
-                }
+                // Docked受信では位置と停車状態のみ同期する
+                // Docked event syncs only position and stop state.
             }
             else if (message.EventType == TrainDiagramEventType.Departed)
             {
+                Diagram.ResetCurrentEntryDepartureConditions();
                 IsDocked = false;
                 Diagram.UpdateIndexByEntryId(message.EntryId);
             }

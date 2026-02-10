@@ -144,6 +144,8 @@ namespace Game.Train.Unit
                     return 0;
                 }
                 //diagramを手動でいじって、現在ドッキング中の駅をエントリーから削除したときなど。その場合は安全にドッキング解除しtrainDiagram.MoveToNextEntry();はしない
+                //いったん機能off そのうちけすかも
+                /*
                 if (_previousEntryGuid != trainDiagram.GetCurrentGuid())
                 {
                     if (trainUnitStationDocking.IsDocked)
@@ -152,8 +154,8 @@ namespace Game.Train.Unit
                     }
                     DiagramValidation();
                 }
+                */
 
-                _previousEntryGuid = trainDiagram.GetCurrentGuid();
 
                 // 自動運転中はドッキング中なら進まない、ドッキング中じゃないなら目的地に向かって加速
                 if (trainUnitStationDocking.IsDocked)
@@ -166,10 +168,7 @@ namespace Game.Train.Unit
                     trainDiagram.Update();
                     if (trainDiagram.CanCurrentEntryDepart())
                     {
-                        // ドッキングを解除はGuid違いの検出により次のtickで行う
-                        //trainUnitStationDocking.UndockFromStation();
                         // 次の目的地をセット
-                        _previousEntryGuid = Guid.Empty;//同じentryに戻るときを考慮。別entryにいくものとして扱う
                         DepartFromCurrentEntry();
                     }
                     return 0;
@@ -183,7 +182,6 @@ namespace Game.Train.Unit
             else 
             {
                 // もしドッキング中なら
-                _previousEntryGuid = Guid.Empty;
                 if (trainUnitStationDocking.IsDocked)
                 {
                     // 強制ドッキング解除
@@ -218,8 +216,6 @@ namespace Game.Train.Unit
             {
                 trainUnitStationDocking.UndockFromStation();
             }
-
-            _previousEntryGuid = Guid.Empty;
             trainDiagram.TryMoveToNextEntryAndNotifyDeparted(_trainUpdateService.GetCurrentTick());
         }
 
@@ -277,10 +273,10 @@ namespace Game.Train.Unit
                         {
                             var wasDocked = trainUnitStationDocking.IsDocked;
                             trainUnitStationDocking.TryDockWhenStopped();
-                            //この瞬間ドッキングしたら、diagramの出発条件リセット
+                            // この瞬間ドッキングしたらDockedイベントのみ通知する
+                            // Notify Docked only when transition to docked is observed.
                             if (trainUnitStationDocking.IsDocked)
                             {
-                                trainDiagram.ResetCurrentEntryDepartureConditions();
                                 if (!wasDocked)
                                 {
                                     trainDiagram.NotifyDocked(_trainUpdateService.GetCurrentTick());
@@ -291,7 +287,7 @@ namespace Game.Train.Unit
                         {
                             // 次の目的地をセット
                             _previousEntryGuid = Guid.Empty;//同じentryに戻るときを考慮。別entryにいくものとして扱う
-                            trainDiagram.MoveToNextEntry();
+                            trainDiagram.TryAdvanceToNextEntryFromDeparture();
                         }
                         break;
                     }
@@ -320,7 +316,6 @@ namespace Game.Train.Unit
                     _railPosition.AddNodeToHead(newPath[1]);//newPath[0]はapproachingがはいってる
                                                             //残りの距離を再更新
                     _remainingDistance = RailNodeCalculate.CalculateTotalDistanceF(newPath);//計算量NlogN(logはnodeからintの辞書アクセス)
-                    _previousEntryGuid = trainDiagram.GetCurrentGuid();
                 }
                 else
                 {
@@ -420,7 +415,6 @@ namespace Game.Train.Unit
             {
                 trainUnitStationDocking.UndockFromStation();
             }
-            _previousEntryGuid = Guid.Empty;
         }
 
         //現在のdiagramのcurrentから順にすべてのエントリーを順番にみていって、approachingからエントリーnodeへpathが繋がっていればtrueを返す

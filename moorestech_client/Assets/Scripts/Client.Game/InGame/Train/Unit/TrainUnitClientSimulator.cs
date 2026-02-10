@@ -52,44 +52,44 @@ namespace Client.Game.InGame.Train.Unit
 
             for (var i = 0; i < totalBudget; i++)
             {
-                if (!_hashTickGate.CanAdvanceTick(_tickState.GetSimulatedTick()))
+                if (!_tickState.IsAllowSimulationNowTick())
                 {
                     break;
                 }
-
-                if (!_tickState.TryGetNextSimulationTick(out var nextTick))
+                if (!_hashTickGate.CanAdvanceTick(_tickState.GetTick()))
                 {
                     break;
                 }
-
+                
+                SimulateUpdate();
+                
+                _futureMessageBuffer.FlushBySimulatedTick();
+                
                 if (i < realtimeBudget)
                 {
                     _accumulatedSeconds -= TickSeconds;
                 }
-
-                SimulateOneTick();
-                _tickState.CompleteSimulationTick(nextTick);
-                _futureMessageBuffer.FlushBySimulatedTick();
+                
+                _tickState.AdvanceTick();
             }
-        }
-
+            
         #region Internal
-
-        private int ComputeFastForwardBudget(int realtimeBudget)
+            
+        int ComputeFastForwardBudget(int realtimeBudget)
         {
             // 受信済みhash tickとの差分から、追加tick数を決定する
             // Determine extra ticks from lag against the latest received hash tick.
-            var lagTicks = _tickState.GetHashReceivedTick() - _tickState.GetSimulatedTick();
+            var lagTicks = _tickState.GetHashReceivedTick() - _tickState.GetTick();
             var remainingLagAfterRealtime = lagTicks - realtimeBudget;
             if (remainingLagAfterRealtime < FastForwardStartLagTicks)
             {
                 return 0;
             }
-
+            
             return (int)Math.Min(remainingLagAfterRealtime, MaxFastForwardTicksPerFrame);
         }
-
-        private void SimulateOneTick()
+        
+        void SimulateUpdate()
         {
             _cache.CopyUnitsTo(_work);
             for (var i = 0; i < _work.Count; i++)
@@ -97,7 +97,9 @@ namespace Client.Game.InGame.Train.Unit
                 _work[i].Update();
             }
         }
-
+            
         #endregion
+        }
+
     }
 }

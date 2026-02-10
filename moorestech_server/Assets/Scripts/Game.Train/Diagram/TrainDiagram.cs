@@ -195,13 +195,26 @@ namespace Game.Train.Diagram
         // Advance to next entry and send Departed notification only when current entry exists.
         public bool TryMoveToNextEntryAndNotifyDeparted(long currentTick)
         {
-            if (!TryGetActiveEntry(out _))
+            if (!TryAdvanceToNextEntryFromDeparture())
             {
                 return false;
             }
 
-            MoveToNextEntry();
             NotifyDeparted(currentTick);
+            return true;
+        }
+
+        // 出発時に現在entryの状態を初期化してから次entryへ移動する。
+        // Reset current entry state on departure, then move to the next entry.
+        public bool TryAdvanceToNextEntryFromDeparture()
+        {
+            if (!TryGetActiveEntry(out var currentEntry))
+            {
+                return false;
+            }
+
+            currentEntry.OnDeparted();
+            MoveToNextEntry();
             return true;
         }
 

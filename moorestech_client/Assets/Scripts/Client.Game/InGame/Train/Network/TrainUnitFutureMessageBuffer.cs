@@ -35,7 +35,7 @@ namespace Client.Game.InGame.Train.Network
         // Queue creation events only when their tick is still in the future.
         public void EnqueueCreated(TrainUnitSnapshotBundle snapshot, long serverTick)
         {
-            if (serverTick <= _tickState.GetSimulatedTick())
+            if (serverTick <= _tickState.GetTick())
             {
                 return;
             }
@@ -62,7 +62,7 @@ namespace Client.Game.InGame.Train.Network
                 return;
             }
 
-            if (message.Tick <= _tickState.GetSimulatedTick())
+            if (message.Tick <= _tickState.GetTick())
             {
                 return;
             }
@@ -88,7 +88,7 @@ namespace Client.Game.InGame.Train.Network
             {
                 return;
             }
-            if (message.TrainTick < _tickState.GetSimulatedTick())
+            if (message.TrainTick < _tickState.GetTick())
             {
                 return;
             }
@@ -120,7 +120,7 @@ namespace Client.Game.InGame.Train.Network
         // Apply queued events that are now reachable by simulated tick.
         public void FlushBySimulatedTick()
         {
-            var simulatedTick = _tickState.GetSimulatedTick();
+            var simulatedTick = _tickState.GetTick();
             FlushCreated(simulatedTick);
             FlushDiagram(simulatedTick);
 
