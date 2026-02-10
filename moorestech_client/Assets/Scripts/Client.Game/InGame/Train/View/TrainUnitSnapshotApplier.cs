@@ -73,7 +73,7 @@ namespace Client.Game.InGame.Train.View
             _tickState.SetSnapshotBaselineTick(response.ServerTick);
             _futureMessageBuffer.DiscardUpToTick(response.ServerTick);
             _futureMessageBuffer.FlushBySimulatedTick();
-            _trainCarDatastore.RemoveTrainEntitiesNotInSnapshot(activeTrainCarIds);
+            _trainCarDatastore.RemoveTrainEntitiesNotInSnapshot(activeTrainCarInstanceIds);
 
             #region Internal
 
