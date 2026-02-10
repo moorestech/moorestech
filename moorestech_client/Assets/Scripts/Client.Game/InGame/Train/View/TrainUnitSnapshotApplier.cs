@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Train.Network;
 using Client.Game.InGame.Train.Unit;
@@ -50,7 +49,7 @@ namespace Client.Game.InGame.Train.View
             // Convert snapshots into models and collect train car ids
             var snapshotPacks = response.Snapshots;
             var bundles = new List<TrainUnitSnapshotBundle>(snapshotPacks?.Count ?? 0);
-            var activeTrainCarIds = new HashSet<Guid>();
+            var activeTrainCarInstanceIds = new HashSet<TrainCarInstanceId>();
             if (snapshotPacks != null)
             {
                 for (var i = 0; i < snapshotPacks.Count; i++)
@@ -60,7 +59,7 @@ namespace Client.Game.InGame.Train.View
 
                     var bundle = pack.ToModel();
                     bundles.Add(bundle);
-                    CollectTrainCarIds(bundle, activeTrainCarIds);
+                    CollectTrainCarInstanceIds(bundle, activeTrainCarInstanceIds);
 
                     // 車両オブジェクトを生成する
                     // Create train car objects
@@ -78,13 +77,13 @@ namespace Client.Game.InGame.Train.View
 
             #region Internal
 
-            void CollectTrainCarIds(TrainUnitSnapshotBundle bundle, ISet<Guid> target)
+            void CollectTrainCarInstanceIds(TrainUnitSnapshotBundle bundle, ISet<TrainCarInstanceId> target)
             {
                 // 車両スナップショットからIDを集計する
                 // Collect train car ids from the snapshot
                 var cars = bundle.Simulation.Cars;
                 if (cars == null) return;
-                for (var i = 0; i < cars.Count; i++) target.Add(cars[i].TrainCarInstanceGuid);
+                for (var i = 0; i < cars.Count; i++) target.Add(cars[i].TrainCarInstanceId);
             }
 
             #endregion

@@ -19,8 +19,8 @@ namespace Client.Game.InGame.Train.Unit
         private readonly Dictionary<Guid, ClientTrainUnit> _units = new();
         // 車両スナップショット索引
         // Index for train car snapshots
-        private readonly Dictionary<Guid, TrainCarCacheEntry> _carIndex = new();
-        private readonly Dictionary<Guid, List<Guid>> _carIdsByTrain = new();
+        private readonly Dictionary<TrainCarInstanceId, TrainCarCacheEntry> _carIndex = new();
+        private readonly Dictionary<Guid, List<TrainCarInstanceId>> _carIdsByTrain = new();
 
         // 列車一覧の読み取り専用ビュー
         // Read-only view for external systems
@@ -73,7 +73,7 @@ namespace Client.Game.InGame.Train.Unit
                 }
                 bundles.Add(bundle);
             }
-            return global::Game.Train.Unit.TrainUnitSnapshotHashCalculator.Compute(bundles);
+            return TrainUnitSnapshotHashCalculator.Compute(bundles);
         }
 
         // 単一列車の差分更新を適用
@@ -103,7 +103,7 @@ namespace Client.Game.InGame.Train.Unit
 
         // 車両スナップショット索引を取得する
         // Resolve a cached car snapshot entry
-        public bool TryGetCarSnapshot(Guid trainCarInstanceGuid, out ClientTrainUnit unit, out TrainCarSnapshot snapshot, out int frontOffset, out int rearOffset)
+        public bool TryGetCarSnapshot(TrainCarInstanceId trainCarInstanceId, out ClientTrainUnit unit, out TrainCarSnapshot snapshot, out int frontOffset, out int rearOffset)
         {
             // 出力を初期化する
             // Initialize output values
@@ -114,7 +114,7 @@ namespace Client.Game.InGame.Train.Unit
 
             // 索引から対象車両を取得する
             // Lookup the target car from the index
-            if (!_carIndex.TryGetValue(trainCarInstanceGuid, out var entry)) return false;
+            if (!_carIndex.TryGetValue(trainCarInstanceId, out var entry)) return false;
             unit = entry.Unit;
             snapshot = entry.Snapshot;
             frontOffset = entry.FrontOffset;
@@ -148,7 +148,7 @@ namespace Client.Game.InGame.Train.Unit
                 var localHash = TrainDiagramHashCalculator.Compute(unit.Diagram.Snapshot);
                 if (localHash != message.DiagramHash)
                 {
-                    Debug.LogWarning($"[TrainDiagramHashVerifier] Hash mismatch for train={message.TrainId}. client={localHash}, server={message.DiagramHash}, tick={message.Tick}, event={message.EventType}.");
+                    Debug.LogWarning($"[TrainDiagramHashVerifier] Hash mismatch for train={{message.TrainId}}. client={{localHash}}, server={{message.DiagramHash}}, tick={{message.Tick}}, event={{message.EventType}}.");
                 }
             }
         }
@@ -162,7 +162,7 @@ namespace Client.Game.InGame.Train.Unit
             var cars = unit.Cars;
             if (cars.Count == 0) return;
 
-            var carIds = new List<Guid>(cars.Count);
+            var carIds = new List<TrainCarInstanceId>(cars.Count);
             var offsetFromHead = 0;
             for (var i = 0; i < cars.Count; i++)
             {
@@ -174,8 +174,8 @@ namespace Client.Game.InGame.Train.Unit
                 var frontOffset = offsetFromHead;
                 var rearOffset = offsetFromHead + carLength;
                 offsetFromHead += carLength;
-                _carIndex[carSnapshot.TrainCarInstanceGuid] = new TrainCarCacheEntry(unit, carSnapshot, frontOffset, rearOffset);
-                carIds.Add(carSnapshot.TrainCarInstanceGuid);
+                _carIndex[carSnapshot.TrainCarInstanceId] = new TrainCarCacheEntry(unit, carSnapshot, frontOffset, rearOffset);
+                carIds.Add(carSnapshot.TrainCarInstanceId);
             }
 
             _carIdsByTrain[unit.TrainId] = carIds;

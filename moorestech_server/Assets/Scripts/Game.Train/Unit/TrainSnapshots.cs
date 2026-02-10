@@ -22,7 +22,7 @@ namespace Game.Train.Unit
     [Serializable]
     public class TrainCarSaveData
     {
-        public Guid TrainCarGuid { get; set; }
+        public Guid TrainCarMasterId { get; set; }
         public bool IsFacingForward { get; set; }
         public SerializableVector3Int? DockingBlockPosition { get; set; }
         public List<ItemStackSaveJsonObject> InventoryItems { get; set; }
@@ -53,16 +53,16 @@ namespace Game.Train.Unit
     // -----------------クライアント関連-----------------
     public readonly struct TrainCarSnapshot
     {
-        public TrainCarSnapshot(Guid trainCarInstanceGuid, Guid trainCarMasterId, int inventorySlotsCount, int tractionForce, bool isFacingForward)
+        public TrainCarSnapshot(TrainCarInstanceId trainCarInstanceId, Guid trainCarMasterId, int inventorySlotsCount, int tractionForce, bool isFacingForward)
         {
-            TrainCarInstanceGuid = trainCarInstanceGuid;
+            TrainCarInstanceId = trainCarInstanceId;
             TrainCarMasterId = trainCarMasterId;
             IsFacingForward = isFacingForward;
             InventorySlotsCount = inventorySlotsCount;
             TractionForce = tractionForce;
         }
 
-        public Guid TrainCarInstanceGuid { get; }
+        public TrainCarInstanceId TrainCarInstanceId { get; }
         public Guid TrainCarMasterId { get; }
         public bool IsFacingForward { get; }
         public int InventorySlotsCount { get; }

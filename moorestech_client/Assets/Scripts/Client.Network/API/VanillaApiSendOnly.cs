@@ -5,6 +5,7 @@ using Core.Master;
 using Game.CraftChainer.CraftChain;
 using Game.CraftTree.Models;
 using Game.Train.RailPositions;
+using Game.Train.Unit;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using Server.Util.MessagePack;
@@ -145,9 +146,9 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
         
-        public void RemoveTrain(Guid trainCarId)
+        public void RemoveTrain(TrainCarInstanceId trainCarInstanceId)
         {
-            var request = new RemoveTrainCarProtocol.RemoveTrainCarRequestMessagePack(trainCarId);
+            var request = new RemoveTrainCarProtocol.RemoveTrainCarRequestMessagePack(trainCarInstanceId.AsPrimitive());
             _packetSender.Send(request);
         }
         

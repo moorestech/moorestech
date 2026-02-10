@@ -11,7 +11,7 @@ namespace Game.PlayerInventory.Interface.Subscription
             return identifier switch
             {
                 BlockInventorySubInventoryIdentifier blockId => CreateBlockMessage(blockId.Position),
-                TrainInventorySubInventoryIdentifier trainId => CreateTrainMessage(trainId.TrainCarId),
+                TrainInventorySubInventoryIdentifier trainId => CreateTrainMessage(trainId.TrainCarInstanceId),
                 _ => throw new ArgumentException($"Unknown ISubInventoryIdentifier type: {identifier.GetType()}")
             };
         }
