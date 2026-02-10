@@ -87,7 +87,7 @@ namespace Client.Game.InGame.Train.Unit
                 }
                 bundles.Add(bundle);
             }
-            return global::Game.Train.Unit.TrainUnitSnapshotHashCalculator.Compute(bundles);
+            return TrainUnitSnapshotHashCalculator.Compute(bundles);
         }
 
         // 単一列車の差分更新を適用
@@ -163,7 +163,7 @@ namespace Client.Game.InGame.Train.Unit
                 var localHash = TrainDiagramHashCalculator.Compute(unit.Diagram.Snapshot);
                 if (localHash != message.DiagramHash)
                 {
-                    Debug.LogWarning($"[TrainDiagramHashVerifier] Hash mismatch for train={message.TrainId}. client={localHash}, server={message.DiagramHash}, tick={message.Tick}, event={message.EventType}.");
+                    Debug.LogWarning($"[TrainDiagramHashVerifier] Hash mismatch for train={{message.TrainId}}. client={{localHash}}, server={{message.DiagramHash}}, tick={{message.Tick}}, event={{message.EventType}}.");
                 }
             }
         }
