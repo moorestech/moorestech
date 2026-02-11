@@ -224,6 +224,7 @@ namespace Game.Train.Diagram
         {
             if (removedNode == null)
                 return;
+            var isCurrentEntryRemoved = false;
             for (var i = _entries.Count - 1; i >= 0; i--)
             {
                 if (!_entries[i].MatchesNode(removedNode))
@@ -235,6 +236,10 @@ namespace Game.Train.Diagram
                 {
                     _currentIndex--;
                 }
+                else if (_currentIndex >= 0 && i == _currentIndex)
+                {
+                    isCurrentEntryRemoved = true;
+                }
                 _entries.RemoveAt(i);
             }
 
@@ -245,6 +250,11 @@ namespace Game.Train.Diagram
             else 
             {
                 _currentIndex %= _entries.Count;
+            }
+
+            if (isCurrentEntryRemoved && _entries.Count > 0)
+            {
+                _context?.OnCurrentEntryShiftedByRemoval();
             }
         }
 
