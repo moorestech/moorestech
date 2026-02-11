@@ -38,11 +38,11 @@ namespace Game.Block.Factory.BlockTemplate
             if (state == null)
             {
                 Debug.LogError($"[VanillaTrainRailTemplate] Missing create param: {RailBridgePierComponentStateDetail.StateDetailKey} for block {blockMasterElement.Name}");
+                return null;
             }
 
-            var railDirection = state?.RailBlockDirection;
             var railComponentPosition = RailComponentUtility.CalculateRailComponentPosition(blockPositionInfo, trainRailParam.RailPosition);
-            railComponents[0] = new RailComponent(_railGraphDatastore, railComponentPosition, railDirection, blockPositionInfo.OriginalPos, 0);
+            railComponents[0] = new RailComponent(_railGraphDatastore, railComponentPosition, state.RailBlockDirection, blockPositionInfo.OriginalPos, 0);
 
             var stateDetailComponent = new RailComponentStateDetailComponent(railComponents[0]);
             var components = new List<IBlockComponent>();
