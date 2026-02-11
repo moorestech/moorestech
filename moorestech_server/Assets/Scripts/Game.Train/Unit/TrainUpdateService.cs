@@ -44,9 +44,8 @@ namespace Game.Train.Unit
 
         private void UpdateTrains()
         {
-            //TODO
-            //ここに操作コマンド系
-            //
+            //_executedTick++;
+            _executedTick++;
             
             //HashVerifier用ブロードキャスト
             if (_executedTick % TrainUnitHashBroadcastIntervalTicks == 0)
@@ -60,11 +59,8 @@ namespace Game.Train.Unit
                 trainUnit.Update();
             }
             
-            //ここにdiagram限定コマンド系(サーバーがブロードキャスト)
-            //
-            
-            //_executedTick++;
-            _executedTick++;
+            //↓これ以降にクライアントからの操作コマンド系適応がはいる
+            //↓lastUpdate
         }
         
         public void RegisterTrain(TrainUnit trainUnit)
@@ -122,28 +118,32 @@ namespace Game.Train.Unit
 
             // on/off以外が来た場合はなにもしない
             return;
-        }
 
-        // トグルスイッチを切り替えたときに全列車・全ダイアグラムを更新する。
-        // 既に存在する駅のfront exitノードを全てのダイアグラムに追加するだけ。
-        private void AutoDiagramNodeAdditionExample()
-        {
-            // 自動運転の対象駅ノードを抽出する
-            // Collect station nodes for auto-run
-            var railNodes = _railGraphDatastore.GetRailNodes();
-            var stationNodes = new List<RailNode>();
-            for (int i = 0; i < railNodes.Count; i++)
+            #region Internal
+
+            // トグルスイッチを切り替えたときに全列車・全ダイアグラムを更新する。
+            // 既に存在する駅のfront exitノードを全てのダイアグラムに追加するだけ。
+            void AutoDiagramNodeAdditionExample()
             {
-                if (railNodes[i] != null)
+                // 自動運転の対象駅ノードを抽出する
+                // Collect station nodes for auto-run
+                var railNodes = _railGraphDatastore.GetRailNodes();
+                var stationNodes = new List<RailNode>();
+                for (int i = 0; i < railNodes.Count; i++)
                 {
-                    // 駅ノードならfront exitノードを全てのダイアグラムに追加
-                    if ((railNodes[i].StationRef.NodeSide == StationNodeSide.Back) && (railNodes[i].StationRef.NodeRole == StationNodeRole.Exit))
+                    if (railNodes[i] != null)
                     {
-                        stationNodes.Add(railNodes[i]);
+                        // 駅ノードならfront exitノードを全てのダイアグラムに追加
+                        if ((railNodes[i].StationRef.NodeSide == StationNodeSide.Back) && (railNodes[i].StationRef.NodeRole == StationNodeRole.Exit))
+                        {
+                            stationNodes.Add(railNodes[i]);
+                        }
                     }
                 }
+                _diagramManager.ResetAndNotifyNodeAddition(stationNodes);
             }
-            _diagramManager.ResetAndNotifyNodeAddition(stationNodes);
+
+            #endregion
         }
     }
 }

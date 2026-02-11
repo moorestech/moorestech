@@ -179,6 +179,18 @@ namespace Client.Game.InGame.Train.Unit
             }
 
             _carIdsByTrain[unit.TrainId] = carIds;
+
+            #region Internal
+
+            int ResolveCarLength(TrainCarSnapshot snapshot)
+            {
+                // マスター情報から車両長さを解決する
+                // Resolve car length from master data
+                if (MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(snapshot.TrainCarMasterId, out var master) && master.Length > 0) return TrainLengthConverter.ToRailUnits(master.Length);
+                return 0;
+            }
+
+            #endregion
         }
 
         private void RemoveCarIndex(Guid trainId)
@@ -188,14 +200,6 @@ namespace Client.Game.InGame.Train.Unit
             if (!_carIdsByTrain.TryGetValue(trainId, out var carIds)) return;
             for (var i = 0; i < carIds.Count; i++) _carIndex.Remove(carIds[i]);
             _carIdsByTrain.Remove(trainId);
-        }
-
-        private int ResolveCarLength(TrainCarSnapshot snapshot)
-        {
-            // マスター情報から車両長さを解決する
-            // Resolve car length from master data
-            if (MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(snapshot.TrainCarMasterId, out var master) && master.Length > 0) return TrainLengthConverter.ToRailUnits(master.Length);
-            return 0;
         }
 
         private readonly struct TrainCarCacheEntry

@@ -65,7 +65,7 @@ namespace Client.Game.InGame.Train.View
             _subscription = null;
             CancelResync();
             
-            #region internal
+            #region Internal
             void CancelResync()
             {
                 // 終了時に進行中の再同期処理をキャンセルする
@@ -91,7 +91,7 @@ namespace Client.Game.InGame.Train.View
             ValidateCurrentTickHash(currentTick);
             return Interlocked.CompareExchange(ref _resyncInProgress, 0, 0) == 0;
             
-            #region internal
+            #region Internal
             void ValidateCurrentTickHash(long currentTick)
             {
                 if (!_futureMessageBuffer.TryDequeueHashAtTick(currentTick, out var message))

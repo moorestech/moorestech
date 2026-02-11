@@ -137,6 +137,14 @@ namespace Client.Game.InGame.Train.Network
                     }
                     _futureCreatedSnapshots.Remove(targetTick);
                 }
+
+                void ApplyCreated(TrainUnitSnapshotBundle snapshot, long serverTick)
+                {
+                    // キャッシュ更新と車両オブジェクト更新を同時に適用する。
+                    // Apply cache update and train-car-object update together.
+                    _cache.Upsert(snapshot, serverTick);
+                    _trainCarDatastore.OnTrainObjectUpdate(snapshot.Simulation.Cars);
+                }
             }
 
             void FlushDiagram(long currentTick)
@@ -206,14 +214,6 @@ namespace Client.Game.InGame.Train.Network
 
             tick = 0;
             return false;
-        }
-
-        private void ApplyCreated(TrainUnitSnapshotBundle snapshot, long serverTick)
-        {
-            // キャッシュ更新と車両オブジェクト更新を同時に適用する。
-            // Apply cache update and train-car-object update together.
-            _cache.Upsert(snapshot, serverTick);
-            _trainCarDatastore.OnTrainObjectUpdate(snapshot.Simulation.Cars);
         }
 
         #endregion
