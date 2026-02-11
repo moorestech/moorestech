@@ -1,8 +1,8 @@
-using System;
 using Client.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Common.Debug;
+using Game.Train.Unit;
 using Mooresmaster.Model.TrainModule;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
@@ -11,7 +11,7 @@ namespace Client.Game.InGame.Train.View.Object
 {
     public class TrainCarEntityObject : MonoBehaviour
     {
-        public Guid TrainCarId { get; private set; }
+        public TrainCarInstanceId TrainCarInstanceId { get; private set; }
         public TrainCarMasterElement TrainCarMasterElement { get; set; }
         private const float ModelYawOffsetDegrees = -90f;
         /// <summary>
@@ -36,9 +36,9 @@ namespace Client.Game.InGame.Train.View.Object
             ModelForwardCenterOffset = ResolveModelForwardCenterOffset();
         }
 
-        public void SetTrain(Guid trainCarId, TrainCarMasterElement trainCarMasterElement)
+        public void SetTrain(TrainCarInstanceId trainCarInstanceId, TrainCarMasterElement trainCarMasterElement)
         {
-            TrainCarId = trainCarId;
+            TrainCarInstanceId = trainCarInstanceId;
             TrainCarMasterElement = trainCarMasterElement;
         }
         

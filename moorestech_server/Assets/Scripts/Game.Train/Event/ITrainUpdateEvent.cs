@@ -1,4 +1,5 @@
 using System;
+using Game.Train.Unit;
 
 namespace Game.Train.Event
 {
@@ -9,6 +10,6 @@ namespace Game.Train.Event
     public interface ITrainUpdateEvent
     {
         IObservable<TrainInventoryUpdateEventProperties> OnInventoryUpdated { get; }
-        IObservable<Guid> OnTrainRemoved { get; }
+        IObservable<TrainCarInstanceId> OnTrainCarRemoved { get; }
     }
 }

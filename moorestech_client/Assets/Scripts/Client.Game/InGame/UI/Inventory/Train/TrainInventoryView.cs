@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Client.Game.InGame.Entity.Object;
 using Client.Game.InGame.Train.View.Object;
 using Client.Game.InGame.UI.Inventory.Common;
 using Core.Item.Interface;
@@ -22,7 +21,7 @@ namespace Client.Game.InGame.UI.Inventory.Train
         
         public void Initialize(TrainCarEntityObject trainCarEntity)
         {
-            ISubInventoryIdentifier = new TrainInventorySubInventoryIdentifier(trainCarEntity.TrainCarId);
+            ISubInventoryIdentifier = new TrainInventorySubInventoryIdentifier(trainCarEntity.TrainCarInstanceId.AsPrimitive());
             for (int i = 0; i < trainCarEntity.TrainCarMasterElement.InventorySlots; i++)
             {
                 var slotObject = Instantiate(ItemSlotView.Prefab, slotParentTransform);
