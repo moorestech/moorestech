@@ -102,6 +102,25 @@ namespace Client.Game.InGame.Train.Unit
             var railPosition = RailPosition.CreateSaveSnapshot();
             bundle = new TrainUnitSnapshotBundle(simulation, diagram, railPosition);
             return true;
+
+            #region Internal
+
+            TrainSimulationSnapshot CreateSimulationSnapshot()
+            {
+                // クライアントの移動状態をスナップショットへ変換する
+                // Convert client-side motion state into a simulation snapshot
+                var carSnapshots = cars ?? Array.Empty<TrainCarSnapshot>();
+                return new TrainSimulationSnapshot(
+                    TrainId,
+                    CurrentSpeed,
+                    AccumulatedDistance,
+                    MasconLevel,
+                    IsAutoRun,
+                    IsDocked,
+                    carSnapshots);
+            }
+
+            #endregion
         }
 
         private void RecalculateRemainingDistance()
@@ -139,21 +158,6 @@ namespace Client.Game.InGame.Train.Unit
             RemainingDistance = RailPosition.GetDistanceToNextNode() + tailDistance;
         }
 
-
-        private TrainSimulationSnapshot CreateSimulationSnapshot()
-        {
-            // クライアントの移動状態をスナップショットへ変換する
-            // Convert client-side motion state into a simulation snapshot
-            var carSnapshots = cars ?? Array.Empty<TrainCarSnapshot>();
-            return new TrainSimulationSnapshot(
-                TrainId,
-                CurrentSpeed,
-                AccumulatedDistance,
-                MasconLevel,
-                IsAutoRun,
-                IsDocked,
-                carSnapshots);
-        }
 
         private IRailNode ResolveCurrentDestinationNode()
         {
@@ -193,6 +197,22 @@ namespace Client.Game.InGame.Train.Unit
             // Calculate distance to travel after mascon decision
             var distanceToMove = SimulateMotionStep();
             return UpdateTrainByDistance(distanceToMove);
+
+            #region Internal
+
+            int SimulateMotionStep()
+            {
+                // 速度と距離のステップ計算
+                // Simulate velocity and distance per tick
+                var tractionForce = MasconLevel > 0 ? UpdateTractionForce(MasconLevel) : 0.0;
+                var stepInput = new TrainMotionStepInput(CurrentSpeed, AccumulatedDistance, MasconLevel, tractionForce);
+                var stepResult = TrainDistanceSimulator.Step(stepInput);
+                CurrentSpeed = stepResult.NewSpeed;
+                AccumulatedDistance = stepResult.NewAccumulatedDistance;
+                return stepResult.DistanceToMove;
+            }
+
+            #endregion
         }
 
         // 自動運転時のマスコン制御を共通ロジックで更新
@@ -201,18 +221,6 @@ namespace Client.Game.InGame.Train.Unit
         {
             var input = new AutoRunMasconInput(CurrentSpeed, RemainingDistance);
             MasconLevel = TrainAutoRunMasconCalculator.Calculate(input);
-        }
-
-        // 速度と距離のステップ計算
-        // Simulate velocity and distance per tick
-        private int SimulateMotionStep()
-        {
-            var tractionForce = MasconLevel > 0 ? UpdateTractionForce(MasconLevel) : 0.0;
-            var stepInput = new TrainMotionStepInput(CurrentSpeed, AccumulatedDistance, MasconLevel, tractionForce);
-            var stepResult = TrainDistanceSimulator.Step(stepInput);
-            CurrentSpeed = stepResult.NewSpeed;
-            AccumulatedDistance = stepResult.NewAccumulatedDistance;
-            return stepResult.DistanceToMove;
         }
 
         // Updateの距離int版
@@ -286,6 +294,26 @@ namespace Client.Game.InGame.Train.Unit
                 }
             }
             return totalMoved;
+
+            #region Internal
+
+            bool IsArrivedDestination()
+            {
+                // diagramのindexが見ている目的地にちょうど0距離で到達したか
+                // Whether the train reached current diagram destination with zero remaining distance
+                var node = RailPosition.GetNodeApproaching();
+                if (node == null || !Diagram.TryResolveCurrentDestinationNode(out var destinationNode))
+                {
+                    return false;
+                }
+                if ((node == destinationNode) && (RailPosition.GetDistanceToNextNode() == 0))
+                {
+                    return true;
+                }
+                return false;
+            }
+
+            #endregion
         }
 
 
@@ -304,27 +332,12 @@ namespace Client.Game.InGame.Train.Unit
             }
             if (totalWeight == 0) return 0;
             return (double)totalTraction / totalWeight * masconLevel / TrainMotionParameters.MasconLevelMaximum;
-            #region internal
+            #region Internal
             (int, int) GetWeightAndTraction(TrainCarSnapshot trainCarSnapshot)
             {
                 return (TrainMotionParameters.DEFAULT_WEIGHT + trainCarSnapshot.InventorySlotsCount * TrainMotionParameters.WEIGHT_PER_SLOT, trainCarSnapshot.IsFacingForward ? trainCarSnapshot.TractionForce * TrainMotionParameters.DEFAULT_TRACTION : 0);
             }
             #endregion
-        }
-
-        //diagramのindexが見ている目的地にちょうど0距離で到達したか
-        private bool IsArrivedDestination()
-        {
-            var node = RailPosition.GetNodeApproaching();
-            if (node == null || !Diagram.TryResolveCurrentDestinationNode(out var destinationNode))
-            {
-                return false;
-            }
-            if ((node == destinationNode) && (RailPosition.GetDistanceToNextNode() == 0))
-            {
-                return true;
-            }
-            return false;
         }
 
         // ダイアグラム順に到達可能な経路を探索する

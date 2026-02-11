@@ -275,24 +275,28 @@ namespace Client.Game.InGame.Train.Diagram
 
             copied[index] = entry;
             _snapshot = new TrainDiagramSnapshot(index, copied);
-        }
 
-        private bool TryGetCurrentIndex(out int index)
-        {
-            index = -1;
-            var entries = _snapshot.Entries;
-            if (entries == null || entries.Count == 0)
+            #region Internal
+
+            bool TryGetCurrentIndex(out int index)
             {
-                return false;
+                index = -1;
+                var entries = _snapshot.Entries;
+                if (entries == null || entries.Count == 0)
+                {
+                    return false;
+                }
+
+                if (_snapshot.CurrentIndex < 0 || _snapshot.CurrentIndex >= entries.Count)
+                {
+                    return false;
+                }
+
+                index = _snapshot.CurrentIndex;
+                return true;
             }
 
-            if (_snapshot.CurrentIndex < 0 || _snapshot.CurrentIndex >= entries.Count)
-            {
-                return false;
-            }
-
-            index = _snapshot.CurrentIndex;
-            return true;
+            #endregion
         }
 
         #endregion
