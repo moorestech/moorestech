@@ -12,6 +12,7 @@ namespace Game.Train.Diagram
         private const uint FnvOffset = 2166136261;
         private const uint FnvPrime = 16777619;
         private const int EntryIndexMixSalt = unchecked((int)0x5F3759D5);
+        private const int NullEntryMixSalt = unchecked((int)0x11C3A55B);
 
         // サーバー側のTrainDiagramから即時計算する
         // Computes a hash directly from the live TrainDiagram
@@ -46,19 +47,8 @@ namespace Game.Train.Diagram
 
             for (var i = 0; i < entries.Count; i++)
             {
-                hash = Mix(hash, EntryIndexMixSalt ^ i);
-                var entry = entries[i];
-                if (entry == null)
-                {
-                    hash = Mix(hash, unchecked((int)0x11C3A55B));
-                    continue;
-                }
-
-                hash = MixGuid(hash, entry.entryId);
-                hash = MixDestination(hash, entry.Node?.ConnectionDestination ?? ConnectionDestination.Default);
-                hash = MixConditions(hash, entry.DepartureConditionTypes);
-                hash = MixOptional(hash, entry.GetWaitForTicksInitialTicks());
-                hash = MixOptional(hash, entry.GetWaitForTicksRemainingTicks());
+                var entryState = ConvertToHashInput(entries[i]);
+                hash = MixEntry(hash, i, entryState);
             }
 
             return hash;
@@ -76,16 +66,56 @@ namespace Game.Train.Diagram
 
             for (var i = 0; i < entries.Count; i++)
             {
-                hash = Mix(hash, EntryIndexMixSalt ^ i);
-                var entry = entries[i];
-                hash = MixGuid(hash, entry.EntryId);
-                hash = MixDestination(hash, entry.Node);
-                hash = MixConditions(hash, entry.DepartureConditions);
-                hash = MixOptional(hash, entry.WaitForTicksInitial);
-                hash = MixOptional(hash, entry.WaitForTicksRemaining);
+                var entryState = ConvertToHashInput(entries[i]);
+                hash = MixEntry(hash, i, entryState);
             }
 
             return hash;
+        }
+
+        // Live/Snapshotを共通入力へ正規化して1回で混合する
+        // Convert both live/snapshot into one deterministic input and mix once
+        private static uint MixEntry(uint current, int entryIndex, DiagramHashEntryState entryState)
+        {
+            var hash = Mix(current, EntryIndexMixSalt ^ entryIndex);
+            if (!entryState.HasEntry)
+            {
+                return Mix(hash, NullEntryMixSalt);
+            }
+
+            hash = MixGuid(hash, entryState.EntryId);
+            hash = MixDestination(hash, entryState.Destination);
+            hash = MixConditions(hash, entryState.DepartureConditions);
+            hash = MixOptional(hash, entryState.WaitForTicksInitial);
+            hash = MixOptional(hash, entryState.WaitForTicksRemaining);
+            return hash;
+        }
+
+        private static DiagramHashEntryState ConvertToHashInput(TrainDiagramEntry entry)
+        {
+            if (entry == null)
+            {
+                return DiagramHashEntryState.Empty;
+            }
+
+            return new DiagramHashEntryState(
+                true,
+                entry.entryId,
+                entry.Node?.ConnectionDestination ?? ConnectionDestination.Default,
+                entry.DepartureConditionTypes,
+                entry.GetWaitForTicksInitialTicks(),
+                entry.GetWaitForTicksRemainingTicks());
+        }
+
+        private static DiagramHashEntryState ConvertToHashInput(TrainDiagramEntrySnapshot entry)
+        {
+            return new DiagramHashEntryState(
+                true,
+                entry.EntryId,
+                entry.Node,
+                entry.DepartureConditions,
+                entry.WaitForTicksInitial,
+                entry.WaitForTicksRemaining);
         }
 
         private static uint MixConditions(uint current, IReadOnlyList<TrainDiagram.DepartureConditionType> conditions)
@@ -153,6 +183,34 @@ namespace Game.Train.Diagram
                 result *= FnvPrime;
                 return result;
             }
+        }
+
+        private readonly struct DiagramHashEntryState
+        {
+            public static DiagramHashEntryState Empty => new DiagramHashEntryState(false, Guid.Empty, ConnectionDestination.Default, null, null, null);
+
+            public DiagramHashEntryState(
+                bool hasEntry,
+                Guid entryId,
+                ConnectionDestination destination,
+                IReadOnlyList<TrainDiagram.DepartureConditionType> departureConditions,
+                int? waitForTicksInitial,
+                int? waitForTicksRemaining)
+            {
+                HasEntry = hasEntry;
+                EntryId = entryId;
+                Destination = destination;
+                DepartureConditions = departureConditions;
+                WaitForTicksInitial = waitForTicksInitial;
+                WaitForTicksRemaining = waitForTicksRemaining;
+            }
+
+            public bool HasEntry { get; }
+            public Guid EntryId { get; }
+            public ConnectionDestination Destination { get; }
+            public IReadOnlyList<TrainDiagram.DepartureConditionType> DepartureConditions { get; }
+            public int? WaitForTicksInitial { get; }
+            public int? WaitForTicksRemaining { get; }
         }
 
         #endregion
