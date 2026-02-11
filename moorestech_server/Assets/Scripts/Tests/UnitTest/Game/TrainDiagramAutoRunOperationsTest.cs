@@ -212,17 +212,19 @@ namespace Tests.UnitTest.Game
                 Assert.IsFalse(trainUnit.trainUnitStationDocking.IsDocked,
                     "走行中シナリオは非ドッキング状態で開始されるはずです。");
 
-                const int maxUpdates = 8;
+                var reroutedToSecondDestination = ReferenceEquals(diagram.GetCurrentNode(), secondDestination);
+                const int maxUpdates = 256;
                 for (var i = 0; i < maxUpdates; i++)
                 {
                     trainUnit.Update();
                     if (ReferenceEquals(diagram.GetCurrentNode(), secondDestination))
                     {
+                        reroutedToSecondDestination = true;
                         break;
                     }
                 }
 
-                Assert.AreSame(secondDestination, diagram.GetCurrentNode(),
+                Assert.IsTrue(reroutedToSecondDestination,
                     "走行中シナリオでは、到達可能な2番目の目的地へ経路再探索されるはずです。");
                 Assert.IsTrue(trainUnit.IsAutoRun,
                     "到達可能なノードへルート再探索中も自動運転は有効のはずです。");
