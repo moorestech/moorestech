@@ -47,11 +47,31 @@ namespace Game.Train.Diagram
 
             for (var i = 0; i < entries.Count; i++)
             {
-                var entryState = ConvertToHashInput(entries[i]);
+                var entryState = ConvertEntryToHashInput(entries[i]);
                 hash = MixEntry(hash, i, entryState);
             }
 
             return hash;
+
+            #region Internal
+
+            DiagramHashEntryState ConvertEntryToHashInput(TrainDiagramEntry entry)
+            {
+                if (entry == null)
+                {
+                    return DiagramHashEntryState.Empty;
+                }
+
+                return new DiagramHashEntryState(
+                    true,
+                    entry.entryId,
+                    entry.Node?.ConnectionDestination ?? ConnectionDestination.Default,
+                    entry.DepartureConditionTypes,
+                    entry.GetWaitForTicksInitialTicks(),
+                    entry.GetWaitForTicksRemainingTicks());
+            }
+
+            #endregion
         }
 
         // Snapshot列を巡回してハッシュ化
@@ -66,11 +86,26 @@ namespace Game.Train.Diagram
 
             for (var i = 0; i < entries.Count; i++)
             {
-                var entryState = ConvertToHashInput(entries[i]);
+                var entryState = ConvertEntryToHashInput(entries[i]);
                 hash = MixEntry(hash, i, entryState);
             }
 
             return hash;
+
+            #region Internal
+
+            DiagramHashEntryState ConvertEntryToHashInput(TrainDiagramEntrySnapshot entry)
+            {
+                return new DiagramHashEntryState(
+                    true,
+                    entry.EntryId,
+                    entry.Node,
+                    entry.DepartureConditions,
+                    entry.WaitForTicksInitial,
+                    entry.WaitForTicksRemaining);
+            }
+
+            #endregion
         }
 
         // Live/Snapshotを共通入力へ正規化して1回で混合する
@@ -89,33 +124,6 @@ namespace Game.Train.Diagram
             hash = MixOptional(hash, entryState.WaitForTicksInitial);
             hash = MixOptional(hash, entryState.WaitForTicksRemaining);
             return hash;
-        }
-
-        private static DiagramHashEntryState ConvertToHashInput(TrainDiagramEntry entry)
-        {
-            if (entry == null)
-            {
-                return DiagramHashEntryState.Empty;
-            }
-
-            return new DiagramHashEntryState(
-                true,
-                entry.entryId,
-                entry.Node?.ConnectionDestination ?? ConnectionDestination.Default,
-                entry.DepartureConditionTypes,
-                entry.GetWaitForTicksInitialTicks(),
-                entry.GetWaitForTicksRemainingTicks());
-        }
-
-        private static DiagramHashEntryState ConvertToHashInput(TrainDiagramEntrySnapshot entry)
-        {
-            return new DiagramHashEntryState(
-                true,
-                entry.EntryId,
-                entry.Node,
-                entry.DepartureConditions,
-                entry.WaitForTicksInitial,
-                entry.WaitForTicksRemaining);
         }
 
         private static uint MixConditions(uint current, IReadOnlyList<TrainDiagram.DepartureConditionType> conditions)

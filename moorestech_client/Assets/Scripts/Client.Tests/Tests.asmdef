@@ -11,16 +11,18 @@
         "Server.Protocol",
         "UniTask",
         "Client.Starter",
-      "Unity.InputSystem",
-      "Unity.InputSystem.TestFramework",
-      "Client.Common",
-      "Server.Boot",
-      "Client.Network",
-      "Game.Context",
-      "Game.World.Interface",
-      "Core.Item.Interface",
-      "Game.Entity.Interface",
-      "MessagePack"
+        "Unity.InputSystem",
+        "Unity.InputSystem.TestFramework",
+        "Client.Common",
+        "Server.Boot",
+        "Client.Network",
+        "Game.Context",
+        "Game.World.Interface",
+        "Core.Item.Interface",
+        "Game.Entity.Interface",
+        "MessagePack",
+        "Server.Util",
+        "Game.Train"
     ],
     "includePlatforms": [
         "Editor"
