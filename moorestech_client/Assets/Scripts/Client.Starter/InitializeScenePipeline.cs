@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Client.Common;
 using Client.Common.Asset;
+using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Common;
@@ -161,6 +162,10 @@ namespace Client.Starter
                 var starter = FindObjectOfType<MainGameStarter>();
                 var resolver = starter.StartGame(handshakeResponse);
                 new ClientDIContext(new DIContainer(resolver));
+
+                // ゲーム初期化完了イベントを発火
+                // Fire game initialization complete event
+                GameInitializedEvent.FireGameInitialized();
             }
             
             async UniTask CreateAndStartVanillaApi()
