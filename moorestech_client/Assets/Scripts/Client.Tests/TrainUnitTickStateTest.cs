@@ -31,13 +31,11 @@ namespace Client.Tests
             // Ensure baseline updates do not roll back received/verified ticks.
             var state = new TrainUnitTickState();
             state.RecordHashReceived(20);
-            state.RecordHashVerified(18);
 
             state.SetSnapshotBaselineTick(10);
 
             Assert.AreEqual(10, state.GetTick());
             Assert.AreEqual(20, state.GetHashReceivedTick());
-            Assert.AreEqual(18, state.GetHashVerifiedTick());
         }
     }
 }

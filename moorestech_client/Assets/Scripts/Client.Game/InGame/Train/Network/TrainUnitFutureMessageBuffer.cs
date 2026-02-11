@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Train.Unit;
-using Client.Game.InGame.Train.View.Object;
-using Game.Train.Unit;
 using Server.Util.MessagePack;
 
 namespace Client.Game.InGame.Train.Network
@@ -10,74 +8,34 @@ namespace Client.Game.InGame.Train.Network
     // Buffer future train events and apply them when simulation reaches their tick.
     public sealed class TrainUnitFutureMessageBuffer
     {
-        private readonly TrainUnitClientCache _cache;
         private readonly TrainUnitTickState _tickState;
-        private readonly TrainCarObjectDatastore _trainCarDatastore;
-        private readonly SortedDictionary<long, List<TrainUnitSnapshotBundle>> _futureCreatedSnapshots = new();
-        private readonly SortedDictionary<long, List<TrainDiagramEventMessagePack>> _futureDiagramEvents = new();
+        private readonly SortedDictionary<long, List<ITrainTickBufferedEvent>> _futureEvents = new();
         private readonly SortedDictionary<long, uint> _futureHashStates = new();
 
-        public TrainUnitFutureMessageBuffer(TrainUnitClientCache cache, TrainUnitTickState tickState, TrainCarObjectDatastore trainCarDatastore)
+        public TrainUnitFutureMessageBuffer(TrainUnitTickState tickState)
         {
-            _cache = cache;
             _tickState = tickState;
-            _trainCarDatastore = trainCarDatastore;
         }
 
-        // hash検証通過tickを記録する。
-        // Record a tick that passed hash verification.
-        public void RecordHashVerified(long tick)
+        // 列車イベントを将来tick分だけキューへ積む。
+        // Queue a train event only when its tick is still in the future.
+        public void Enqueue(long serverTick, ITrainTickBufferedEvent bufferedEvent)
         {
-            _tickState.RecordHashVerified(tick);
-        }
-
-        // 生成イベントを将来tick分だけキューへ積む。
-        // Queue creation events only when their tick is still in the future.
-        public void EnqueueCreated(TrainUnitSnapshotBundle snapshot, long serverTick)
-        {
+            if (bufferedEvent == null)
+            {
+                return;
+            }
             if (serverTick <= _tickState.GetTick())
             {
                 return;
             }
 
-            if (serverTick <= _tickState.GetHashVerifiedTick())
+            if (!_futureEvents.TryGetValue(serverTick, out var events))
             {
-                return;
+                events = new List<ITrainTickBufferedEvent>();
+                _futureEvents.Add(serverTick, events);
             }
-
-            if (!_futureCreatedSnapshots.TryGetValue(serverTick, out var snapshots))
-            {
-                snapshots = new List<TrainUnitSnapshotBundle>();
-                _futureCreatedSnapshots.Add(serverTick, snapshots);
-            }
-            snapshots.Add(snapshot);
-        }
-
-        // ダイアグラムイベントを将来tick分だけキューへ積む。
-        // Queue diagram events only when their tick is still in the future.
-        public void EnqueueDiagram(TrainDiagramEventMessagePack message)
-        {
-            if (message == null)
-            {
-                return;
-            }
-
-            if (message.Tick <= _tickState.GetTick())
-            {
-                return;
-            }
-
-            if (message.Tick <= _tickState.GetHashVerifiedTick())
-            {
-                return;
-            }
-
-            if (!_futureDiagramEvents.TryGetValue(message.Tick, out var messages))
-            {
-                messages = new List<TrainDiagramEventMessagePack>();
-                _futureDiagramEvents.Add(message.Tick, messages);
-            }
-            messages.Add(message);
+            events.Add(bufferedEvent);
         }
 
         // ハッシュイベントをtick単位でキューへ積む。
@@ -89,11 +47,6 @@ namespace Client.Game.InGame.Train.Network
                 return;
             }
             if (message.TrainTick < _tickState.GetTick())
-            {
-                return;
-            }
-
-            if (message.TrainTick <= _tickState.GetHashVerifiedTick())
             {
                 return;
             }
@@ -121,42 +74,35 @@ namespace Client.Game.InGame.Train.Network
         public void FlushBySimulatedTick()
         {
             var simulatedTick = _tickState.GetTick();
-            FlushCreated(simulatedTick);
-            FlushDiagram(simulatedTick);
+            FlushFutureEvents(simulatedTick);
 
             #region Internal
 
-            void FlushCreated(long currentTick)
+            void FlushFutureEvents(long currentTick)
             {
-                while (TryGetFirstTick(_futureCreatedSnapshots, out var targetTick) && targetTick <= currentTick)
+                while (TryGetFirstTick(_futureEvents, out var targetTick) && targetTick <= currentTick)
                 {
-                    var snapshots = _futureCreatedSnapshots[targetTick];
-                    for (var i = 0; i < snapshots.Count; i++)
+                    var events = _futureEvents[targetTick];
+                    for (var i = 0; i < events.Count; i++)
                     {
-                        ApplyCreated(snapshots[i], targetTick);
+                        // 受信時に束ねたapply処理をtick到達時に実行する。
+                        // Execute the pre-built apply action when the tick is reached.
+                        events[i].Apply();
                     }
-                    _futureCreatedSnapshots.Remove(targetTick);
+                    _futureEvents.Remove(targetTick);
                 }
 
-                void ApplyCreated(TrainUnitSnapshotBundle snapshot, long serverTick)
+                bool TryGetFirstTick<T>(SortedDictionary<long, List<T>> source, out long tick)
                 {
-                    // キャッシュ更新と車両オブジェクト更新を同時に適用する。
-                    // Apply cache update and train-car-object update together.
-                    _cache.Upsert(snapshot, serverTick);
-                    _trainCarDatastore.OnTrainObjectUpdate(snapshot.Simulation.Cars);
-                }
-            }
-
-            void FlushDiagram(long currentTick)
-            {
-                while (TryGetFirstTick(_futureDiagramEvents, out var targetTick) && targetTick <= currentTick)
-                {
-                    var messages = _futureDiagramEvents[targetTick];
-                    for (var i = 0; i < messages.Count; i++)
+                    using var enumerator = source.GetEnumerator();
+                    if (enumerator.MoveNext())
                     {
-                        _cache.ApplyDiagramEvent(messages[i]);
+                        tick = enumerator.Current.Key;
+                        return true;
                     }
-                    _futureDiagramEvents.Remove(targetTick);
+
+                    tick = 0;
+                    return false;
                 }
             }
 
@@ -167,55 +113,54 @@ namespace Client.Game.InGame.Train.Network
         // Discard queued events at or below the tick already covered by snapshot.
         public void DiscardUpToTick(long tick)
         {
-            RemoveUpToTick(_futureCreatedSnapshots, tick);
-            RemoveUpToTick(_futureDiagramEvents, tick);
-            RemoveUpToTick(_futureHashStates, tick);
-        }
+            RemoveUpToTickForListDictionary(_futureEvents, tick);
+            RemoveUpToTickForValueDictionary(_futureHashStates, tick);
 
-        #region Internal
+            #region Internal
 
-        private static void RemoveUpToTick<T>(SortedDictionary<long, List<T>> source, long tick)
-        {
-            while (TryGetFirstTick(source, out var targetTick) && targetTick <= tick)
+            void RemoveUpToTickForListDictionary<T>(SortedDictionary<long, List<T>> source, long maxTick)
             {
-                source.Remove(targetTick);
-            }
-        }
-
-        private static void RemoveUpToTick<T>(SortedDictionary<long, T> source, long tick)
-        {
-            while (TryGetFirstTick(source, out var targetTick) && targetTick <= tick)
-            {
-                source.Remove(targetTick);
-            }
-        }
-
-        private static bool TryGetFirstTick<T>(SortedDictionary<long, List<T>> source, out long tick)
-        {
-            using var enumerator = source.GetEnumerator();
-            if (enumerator.MoveNext())
-            {
-                tick = enumerator.Current.Key;
-                return true;
+                while (TryGetFirstTickForListDictionary(source, out var targetTick) && targetTick <= maxTick)
+                {
+                    source.Remove(targetTick);
+                }
             }
 
-            tick = 0;
-            return false;
-        }
-
-        private static bool TryGetFirstTick<T>(SortedDictionary<long, T> source, out long tick)
-        {
-            using var enumerator = source.GetEnumerator();
-            if (enumerator.MoveNext())
+            void RemoveUpToTickForValueDictionary<T>(SortedDictionary<long, T> source, long maxTick)
             {
-                tick = enumerator.Current.Key;
-                return true;
+                while (TryGetFirstTickForValueDictionary(source, out var targetTick) && targetTick <= maxTick)
+                {
+                    source.Remove(targetTick);
+                }
             }
 
-            tick = 0;
-            return false;
-        }
+            bool TryGetFirstTickForListDictionary<T>(SortedDictionary<long, List<T>> source, out long firstTick)
+            {
+                using var enumerator = source.GetEnumerator();
+                if (enumerator.MoveNext())
+                {
+                    firstTick = enumerator.Current.Key;
+                    return true;
+                }
 
-        #endregion
+                firstTick = 0;
+                return false;
+            }
+
+            bool TryGetFirstTickForValueDictionary<T>(SortedDictionary<long, T> source, out long firstTick)
+            {
+                using var enumerator = source.GetEnumerator();
+                if (enumerator.MoveNext())
+                {
+                    firstTick = enumerator.Current.Key;
+                    return true;
+                }
+
+                firstTick = 0;
+                return false;
+            }
+
+            #endregion
+        }
     }
 }

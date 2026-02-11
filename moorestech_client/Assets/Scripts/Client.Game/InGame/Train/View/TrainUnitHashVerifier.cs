@@ -102,7 +102,6 @@ namespace Client.Game.InGame.Train.View
                 var serverHash = message.UnitsHash;
                 if (localHash == serverHash)
                 {
-                    _futureMessageBuffer.RecordHashVerified(currentTick);
                     return;
                 }
                 Debug.LogWarning($"[TrainUnitHashVerifier] Hash mismatch detected. tick={currentTick}, client={localHash}, server={serverHash}. Requesting snapshot.");
