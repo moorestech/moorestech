@@ -1,16 +1,12 @@
 using Client.Game.InGame.Train.Network;
-using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.Train.Unit;
-using Client.Game.InGame.Train.View.Object;
 using NUnit.Framework;
 using Server.Util.MessagePack;
-using UnityEngine;
 
 namespace Client.Tests
 {
     public class TrainUnitFutureMessageBufferTest
     {
-        private GameObject _testRoot;
         private TrainUnitTickState _tickState;
         private TrainUnitFutureMessageBuffer _buffer;
 
@@ -19,21 +15,8 @@ namespace Client.Tests
         {
             // バッファ検証に必要な最小依存だけを組み立てる。
             // Build only the minimum dependencies required for buffer tests.
-            var railGraphCache = RailGraphClientCache.CreateForEditorTest();
-            var trainCache = new TrainUnitClientCache(railGraphCache);
             _tickState = new TrainUnitTickState();
-            _testRoot = new GameObject("TrainUnitFutureMessageBufferTestRoot");
-            var trainCarDatastore = _testRoot.AddComponent<TrainCarObjectDatastore>();
-            _buffer = new TrainUnitFutureMessageBuffer(trainCache, _tickState, trainCarDatastore);
-        }
-
-        [TearDown]
-        public void TearDown()
-        {
-            if (_testRoot != null)
-            {
-                UnityEngine.Object.DestroyImmediate(_testRoot);
-            }
+            _buffer = new TrainUnitFutureMessageBuffer(_tickState);
         }
 
         [Test]
@@ -72,7 +55,6 @@ namespace Client.Tests
             // 検証済みtick以下のhashは再利用しない。
             // Drop hash at or below the verified tick.
             _tickState.SetSnapshotBaselineTick(50);
-            _buffer.RecordHashVerified(55);
 
             _buffer.EnqueueHash(CreateHashMessage(1, 54));
             _buffer.EnqueueHash(CreateHashMessage(2, 55));

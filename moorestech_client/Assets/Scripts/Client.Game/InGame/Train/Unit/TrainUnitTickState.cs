@@ -6,14 +6,8 @@ namespace Client.Game.InGame.Train.Unit
     // Centralized tick state for client train simulation and verification.
     public sealed class TrainUnitTickState
     {
-        private long _hashVerifiedTick;
         private long _hashReceivedTick;
         private long _tick;
-
-        public long GetHashVerifiedTick()
-        {
-            return _hashVerifiedTick;
-        }
 
         public long GetTick()
         {
@@ -30,7 +24,6 @@ namespace Client.Game.InGame.Train.Unit
         public void SetSnapshotBaselineTick(long serverTick)
         {
             _tick = serverTick;
-            _hashVerifiedTick = Math.Max(_hashVerifiedTick, serverTick);
             _hashReceivedTick = Math.Max(_hashReceivedTick, serverTick);
         }
 
@@ -39,13 +32,6 @@ namespace Client.Game.InGame.Train.Unit
         public void RecordHashReceived(long serverTick)
         {
             _hashReceivedTick = Math.Max(_hashReceivedTick, serverTick);
-        }
-
-        // hash検証通過後に検証済みtickを更新する。
-        // Update verified tick after hash validation passes.
-        public void RecordHashVerified(long serverTick)
-        {
-            _hashVerifiedTick = Math.Max(_hashVerifiedTick, serverTick);
         }
 
         // 1tick先へ進めるかを判定
