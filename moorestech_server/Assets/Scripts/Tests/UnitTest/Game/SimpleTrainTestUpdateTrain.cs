@@ -387,8 +387,8 @@ namespace Tests.UnitTest.Game
                 var destination = railComponentsData[7].FrontNode;//目的地をセット
                 var cars = new List<TrainCar>
                 {
-                    TrainTestCarFactory.CreateTrainCar(0, 9600000, 0, trainLength, true),  // 仮: 動力車まえ
-                    TrainTestCarFactory.CreateTrainCar(1, 9600000, 0, 0, false),  // 仮: 動力車うしろ
+                    TrainTestCarFactory.CreateTrainCar(0, 960000, 0, trainLength, true),  // 仮: 動力車まえ
+                    TrainTestCarFactory.CreateTrainCar(1, 960000, 0, 0, false),  // 仮: 動力車うしろ
                 };
                 var trainUnit = new TrainUnit(railPosition, cars, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
                 trainUnit.trainDiagram.AddEntry(destination);

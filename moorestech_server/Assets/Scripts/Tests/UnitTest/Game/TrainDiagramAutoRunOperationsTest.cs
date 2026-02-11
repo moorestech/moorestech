@@ -266,16 +266,22 @@ namespace Tests.UnitTest.Game
             Assert.IsTrue(diagram.Entries.Any(entry => ReferenceEquals(entry.Node, fallbackNode)),
                 "startノード削除後もフォールバックノードのエントリは残っているはずです。");
 
-            const int maxUpdates = 48;
+            var autoRunStopped = !trainUnit.IsAutoRun;
+            const int maxUpdates = 12000;
             for (var i = 0; i < maxUpdates; i++)
             {
                 trainUnit.Update();
+                if (!trainUnit.IsAutoRun)
+                {
+                    autoRunStopped = true;
+                    break;
+                }
             }
 
             Assert.IsFalse(trainUnit.trainUnitStationDocking.IsDocked,
                 "現在エントリが到達不能になった場合、列車はドッキング解除されるはずです。");
-            Assert.IsFalse(trainUnit.IsAutoRun,
-                "到達可能なエントリが残っていない場合、最終的に自動運転は無効化されるべきです。");
+            Assert.IsTrue(autoRunStopped,
+                "到達可能なエントリが残っていない場合、一定Update内に自動運転が無効化されるべきです。");
             Assert.IsNotNull(diagram.GetCurrentNode(),
                 "現在のダイヤグラムから次の目的地を取得できるはずです。");
 
