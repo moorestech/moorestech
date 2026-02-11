@@ -12,10 +12,13 @@ namespace Game.Train.Unit
         private readonly TrainDiagramManager _diagramManager;
         private readonly IRailGraphDatastore _railGraphDatastore;
 
-        // Trainはサーバーのゲームtickに同期し、1tick = 1/20秒で進める
-        // Train tick is aligned with the server game tick (1 tick = 1/20 second).
-        private const int TrainUnitHashBroadcastIntervalTicks = 4;
-        public const double HashBroadcastIntervalSeconds = 1d;
+        // Trainはサーバーのゲームtickに同期して進める
+        // Train tick is aligned with the server game tick interval.
+        // ServerGameUpdater.FrameIntervalMs(100ms)に合わせる。
+        // Keep this aligned with ServerGameUpdater.FrameIntervalMs (100ms).
+        private const double TickSeconds = 0.1d;
+        public const double HashBroadcastIntervalSeconds = 0.4d;
+        private static readonly long TrainUnitHashBroadcastIntervalTicks = Math.Max(1L, (long)Math.Ceiling(HashBroadcastIntervalSeconds / TickSeconds));
         private readonly List<TrainUnit> _trainUnits = new();
         private long _executedTick;
 

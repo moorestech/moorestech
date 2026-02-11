@@ -14,10 +14,12 @@ namespace Client.Game.InGame.Train.Unit
         private const double TickSeconds = ServerGameUpdater.FrameIntervalMs / 1000d;
         // 遅延時のみ1フレームで追加処理するtick上限
         // Maximum extra ticks to process per frame only when lagging behind.
-        private const int MaxFastForwardTicksPerFrame = 8;
+        private const double MaxFastForwardSecondsPerFrame = 0.8d;
+        private static readonly int MaxFastForwardTicksPerFrame = Math.Max(1, (int)Math.Ceiling(MaxFastForwardSecondsPerFrame / TickSeconds));
         // このtick差以上で早送り処理を有効化する
         // Enable fast-forward when lag reaches this threshold.
-        private const int FastForwardStartLagTicks = 2;
+        private const double FastForwardStartLagSeconds = 0.2d;
+        private static readonly int FastForwardStartLagTicks = Math.Max(1, (int)Math.Ceiling(FastForwardStartLagSeconds / TickSeconds));
 
         private readonly TrainUnitClientCache _cache;
         private readonly TrainUnitTickState _tickState;
