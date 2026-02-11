@@ -54,25 +54,23 @@ namespace Client.Game.InGame.Train.Unit
 
             for (var i = 0; i < totalBudget; i++)
             {
+                _futureMessageBuffer.FlushBySimulatedTick();
                 if (!_tickState.IsAllowSimulationNowTick())
                 {
                     break;
                 }
+                _tickState.AdvanceTick();
+                if (i < realtimeBudget)
+                {
+                    _accumulatedSeconds -= TickSeconds;
+                }
+                
                 if (!_hashTickGate.CanAdvanceTick(_tickState.GetTick()))
                 {
                     break;
                 }
                 
                 SimulateUpdate();
-                
-                _futureMessageBuffer.FlushBySimulatedTick();
-                
-                if (i < realtimeBudget)
-                {
-                    _accumulatedSeconds -= TickSeconds;
-                }
-                
-                _tickState.AdvanceTick();
             }
             
         #region Internal
