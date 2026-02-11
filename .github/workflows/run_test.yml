@@ -4,7 +4,7 @@ on:
 
   # 手動実行デバッグ用
   workflow_dispatch: {}
-  
+
 jobs:
   test:
     name: Run Unity Test
@@ -29,8 +29,20 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
+      # 年月日を取得　キャッシュのkeyに利用
+      - name: Set current datetime as env variable
+        env:
+          TZ: 'Asia/Tokyo'
+        run: echo "CURRENT_DATETIME=$(date +'%Y-%m')" >> $GITHUB_ENV
+
+      # キャッシュ keyを月跨ぎで更新することで定期的にキャッシュ自体の更新を行う
+      - uses: actions/cache@v3
+        with:
+          path: moorestech_client/Library
+          key: "Library_Test_${{ env.CURRENT_DATETIME }}"
+
       # GameCI の Test runner を利用して
-      # EditMode 及び PlayMode のテストを実行する
+      # EditMode のテストを実行する
       - name: Run Unity Test
         uses: game-ci/unity-test-runner@v4
         env:
@@ -38,7 +50,7 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          projectPath: moorestech_server/
+          projectPath: moorestech_client/
           githubToken: ${{ steps.generate_token.outputs.token }}
           unityVersion: 6000.2.6f1
           testMode: editmode
