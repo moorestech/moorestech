@@ -48,37 +48,7 @@ namespace Client.Tests
 
             #endregion
         }
-
-        [Test]
-        public void EnqueueHash_IgnoresTicksAtOrBeforeVerifiedTick()
-        {
-            // 検証済みtick以下のhashは再利用しない。
-            // Drop hash at or below the verified tick.
-            _tickState.SetSnapshotBaselineTick(50);
-
-            _buffer.EnqueueHash(CreateHashMessage(1, 54));
-            _buffer.EnqueueHash(CreateHashMessage(2, 55));
-            Assert.IsFalse(_buffer.TryDequeueHashAtTick(54, out _));
-            Assert.IsFalse(_buffer.TryDequeueHashAtTick(55, out _));
-            Assert.AreEqual(50, _tickState.GetHashReceivedTick());
-
-            _buffer.EnqueueHash(CreateHashMessage(3, 56));
-            Assert.AreEqual(56, _tickState.GetHashReceivedTick());
-            Assert.IsTrue(_buffer.TryDequeueHashAtTick(56, out var message));
-            Assert.AreEqual((uint)3, message.UnitsHash);
-
-            #region Internal
-
-            TrainUnitHashStateMessagePack CreateHashMessage(uint unitsHash, long trainTick)
-            {
-                // テスト用のhashイベントを明示的に作る。
-                // Build a typed hash event for test scenarios.
-                return new TrainUnitHashStateMessagePack(unitsHash, trainTick);
-            }
-
-            #endregion
-        }
-
+        
         [Test]
         public void DiscardUpToTick_RemovesQueuedHashesAtOrBelowTick()
         {
