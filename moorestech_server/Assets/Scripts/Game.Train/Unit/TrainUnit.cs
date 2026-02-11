@@ -639,6 +639,15 @@ namespace Game.Train.Unit
         {
         }
 
+        public void OnCurrentEntryShiftedByRemoval()
+        {
+            if (!trainUnitStationDocking.IsDocked)
+            {
+                return;
+            }
+            trainUnitStationDocking.UndockFromStation();
+        }
+
         public void OnDestroy()
         {
             _railPositionManager.UnregisterRailPosition(_railPosition);

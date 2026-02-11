@@ -82,8 +82,8 @@ namespace Tests.UnitTest.Game
 
             if (!startRunning)
             {
-                Assert.IsTrue(trainUnit.trainUnitStationDocking.IsDocked,
-                    "停泊シナリオでは、次のティックまで列車はドッキング状態を維持するはずです。");
+                Assert.IsFalse(trainUnit.trainUnitStationDocking.IsDocked,
+                    "停泊シナリオでは、現在エントリ削除直後に強制ドッキング解除されるべきです。");
 
                 trainUnit.Update();
 
@@ -134,8 +134,8 @@ namespace Tests.UnitTest.Game
 
             if (!startRunning)
             {
-                Assert.IsTrue(trainUnit.trainUnitStationDocking.IsDocked,
-                    "停泊シナリオでは、削除直後は列車がドッキング中であると報告されるはずです。");
+                Assert.IsFalse(trainUnit.trainUnitStationDocking.IsDocked,
+                    "停泊シナリオでは、現在エントリがシフト削除された時点でドッキング解除済みであるべきです。");
 
                 trainUnit.Update();
 
@@ -195,8 +195,8 @@ namespace Tests.UnitTest.Game
 
             if (!startRunning)
             {
-                Assert.IsTrue(trainUnit.trainUnitStationDocking.IsDocked,
-                    "停泊シナリオでは、削除直後は依然としてドッキング中のはずです。");
+                Assert.IsFalse(trainUnit.trainUnitStationDocking.IsDocked,
+                    "停泊シナリオでは、現在エントリ削除後に即時ドッキング解除されるべきです。");
 
                 trainUnit.Update();
 
