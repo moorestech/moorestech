@@ -122,9 +122,9 @@ namespace Game.Train.Unit
         //1tickごとに呼ばれる.進んだ距離を返す?
         public int Update()
         {
-            //数十回に1回くらいの頻度でデバッグログを出す
+            //数十回に1回くらいの頻度でデバッグログを出す TODO diagramAutoRunを実装したらけす
             tickCounter++;
-            if (_trainUpdateService.IsTrainAutoRunDebugEnabled() && tickCounter % 1 == 0)
+            if (_trainUpdateService.IsTrainAutoRunDebugEnabled() && tickCounter % 20 == 0)
             {
                 UnityEngine.Debug.Log("spd=" + _currentSpeed + "_Auto=" + IsAutoRun + "_DiagramCount" + trainDiagram.Entries.Count + "" + IsDocked);// TODO デバッグトグル関係　そのうち消す
             }
