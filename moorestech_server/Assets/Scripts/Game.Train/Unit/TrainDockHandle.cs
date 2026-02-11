@@ -17,7 +17,7 @@ namespace Game.Train.Unit
         }
 
         public Guid TrainId => _trainUnit.TrainId;
-        public Guid CarId => _trainCar.CarId;
+        public long TrainCarInstanceId => _trainCar.TrainCarInstanceId.AsPrimitive();
         public int CarIndex => _carIndex;
 
         public TrainUnit TrainUnit => _trainUnit;

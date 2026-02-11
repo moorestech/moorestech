@@ -1,4 +1,3 @@
-using System;
 using Server.Util.MessagePack;
 
 namespace Game.PlayerInventory.Interface.Subscription
@@ -8,25 +7,25 @@ namespace Game.PlayerInventory.Interface.Subscription
     public class TrainInventorySubInventoryIdentifier : ISubInventoryIdentifier
     {
         public InventoryType Type => InventoryType.Train;
-        public Guid TrainCarId { get; }
+        public long TrainCarInstanceId { get; }
 
-        public TrainInventorySubInventoryIdentifier(Guid trainCarId)
+        public TrainInventorySubInventoryIdentifier(long trainCarInstanceId)
         {
-            TrainCarId = trainCarId;
+            TrainCarInstanceId = trainCarInstanceId;
         }
 
         public override bool Equals(object obj)
         {
             if (obj is TrainInventorySubInventoryIdentifier other)
             {
-                return TrainCarId.Equals(other.TrainCarId);
+                return TrainCarInstanceId.Equals(other.TrainCarInstanceId);
             }
             return false;
         }
 
         public override int GetHashCode()
         {
-            return TrainCarId.GetHashCode();
+            return TrainCarInstanceId.GetHashCode();
         }
     }
 }

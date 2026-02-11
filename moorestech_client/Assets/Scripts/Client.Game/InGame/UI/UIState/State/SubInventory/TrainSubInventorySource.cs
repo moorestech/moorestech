@@ -1,4 +1,3 @@
-using Client.Game.InGame.Entity.Object;
 using Client.Game.InGame.Train.View.Object;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Train;
@@ -16,7 +15,7 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
         public TrainSubInventorySource(TrainCarEntityObject trainCarEntityObject)
         {
             _trainCarEntityObject = trainCarEntityObject;
-            InventoryIdentifier = InventoryIdentifierMessagePack.CreateTrainMessage(trainCarEntityObject.TrainCarId);
+            InventoryIdentifier = InventoryIdentifierMessagePack.CreateTrainMessage(trainCarEntityObject.TrainCarInstanceId.AsPrimitive());
         }
         
         public void ExecuteInitialize(ISubInventoryView subInventoryView)
