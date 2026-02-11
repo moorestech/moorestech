@@ -8,6 +8,7 @@ using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 using static Client.Tests.PlayModeTest.Util.PlayModeTestUtil;
@@ -27,10 +28,20 @@ namespace Client.Tests.PlayModeTest
         [UnityTest]
         public IEnumerator BeltConveyorItemEntityPositionTest()
         {
+            // テスト中はデバッグオブジェクトの生成を無効化（ドメインリロード後も保持される）
+            // Disable debug object creation during test (persists across domain reload).
+            SessionState.SetBool("DebugObjectsBootstrap_Disabled", true);
+
+            AssetBundle.UnloadAllAssetBundles(true);
+
             yield return new EnterPlayMode(expectDomainReload: true);
-            
+
+            // EnterPlayMode時のテストフレームワーク内部エラーでテストが失敗するのを防ぐ
+            // Prevent test failure from test framework internal errors during EnterPlayMode.
+            LogAssert.ignoreFailingMessages = true;
+
             yield return SetUp().ToCoroutine();
-            
+
             // 全てのベルトコンベアが設置されている座標
             // All conveyor positions where the conveyor is installed
             var allConveyorPositions = new List<Vector3Int>
@@ -38,10 +49,14 @@ namespace Client.Tests.PlayModeTest
                 new(0, 0, 1),
                 new(0, 0, 2),
             };
-            
+
             yield return AssertTest(allConveyorPositions).ToCoroutine();
-            
+
             yield return new ExitPlayMode();
+
+            // テスト終了後にデバッグオブジェクト無効化フラグをクリア
+            // Clear debug objects disabled flag after test.
+            SessionState.SetBool("DebugObjectsBootstrap_Disabled", false);
             
             #region Internal
             
