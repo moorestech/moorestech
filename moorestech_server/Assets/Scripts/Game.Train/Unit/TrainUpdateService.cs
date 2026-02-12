@@ -45,14 +45,10 @@ namespace Game.Train.Unit
 
         private void UpdateTrains()
         {
-            //_executedTick++;
-            _executedTick++;
-            
             //HashVerifier用ブロードキャスト
-            if (_executedTick % TrainUnitHashBroadcastIntervalTicks == 0)
-            {
-                _onHashEvent.OnNext(_executedTick);
-            }
+            _onHashEvent.OnNext(_executedTick);
+            
+            _executedTick++;
             
             //simulation
             foreach (var trainUnit in _trainUnits)
@@ -61,8 +57,7 @@ namespace Game.Train.Unit
             }
             
             //↓これ以降にクライアントからの操作コマンド系適応がはいる、hashmismatchなどによるブロードキャストもはいる
-            //snapshot,mascon,生成イベント系
-            
+            //snapshot,生成イベント系
         }
         
         public void RegisterTrain(TrainUnit trainUnit)

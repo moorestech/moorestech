@@ -16,6 +16,7 @@ namespace Game.Train.Unit
     public class TrainUnit : ITrainDiagramContext, ITrainUnitStationDockingListener
     {
         public string SaveKey { get; } = typeof(TrainUnit).FullName;
+        private const int InfiniteLoopGuardThreshold = 1_000_000;
         
         private RailPosition _railPosition;
         private readonly IRailGraphProvider _railGraphProvider;
@@ -24,30 +25,25 @@ namespace Game.Train.Unit
         private readonly TrainDiagramManager _diagramManager;
         private Guid _trainId;
         public Guid TrainId => _trainId;
-
         private int _remainingDistance;// 自動減速用
         private bool _isAutoRun;
-        public bool IsAutoRun
-        {
-            get { return _isAutoRun; }
-        }
-
+        public bool IsAutoRun => _isAutoRun;
         private double _currentSpeed;   // m/s など適宜
         public double CurrentSpeed => _currentSpeed;
         private double _accumulatedDistance; // 累積距離、距離の小数点以下を保持するために使用
         internal double AccumulatedDistance => _accumulatedDistance;
-        private const int InfiniteLoopGuardThreshold = 1_000_000;
 
         private List<TrainCar> _cars;
-        public RailPosition RailPosition => _railPosition;
         public IReadOnlyList<TrainCar> Cars => _cars;
         IReadOnlyList<ITrainDiagramCar> ITrainDiagramContext.Cars => _cars;
+        public RailPosition RailPosition => _railPosition;
         public TrainUnitStationDocking trainUnitStationDocking { get; private set; } // 列車の駅ドッキング用のクラス
         public TrainDiagram trainDiagram { get; private set; } // 列車のダイアグラム
         public bool IsDocked => trainUnitStationDocking?.IsDocked ?? false;
         //キー関連
         //マスコンレベル 0がニュートラル、1が前進1段階、-1が後退1段階.キー入力やテスト、外部から直接制御できる。min maxは±16777216とする(暫定)
         public int masconLevel = 0;
+        public int pre_masconLevel = 0;
         private int tickCounter = 0;// TODO デバッグトグル関係　そのうち消す
         public TrainUnit(
             RailPosition initialPosition,
@@ -86,7 +82,6 @@ namespace Game.Train.Unit
             // 列車登録と生成通知の制御を行う
             // Register the train and control creation notification
             RegisterTrain(notifyOnRegister);
-
             #region Internal
             void RegisterTrain(bool notify)
             {
@@ -102,22 +97,17 @@ namespace Game.Train.Unit
             #endregion
         }
 
-
         public void Reverse()
         {
             _railPosition?.Reverse();
             if (_cars == null)
-            {
                 return;
-            }
-
             _cars.Reverse();
             foreach (var car in _cars)
             {
                 car.Reverse();
             }
         }
-
 
         //1tickごとに呼ばれる.進んだ距離を返す?
         public int Update()
@@ -135,7 +125,6 @@ namespace Game.Train.Unit
                 // 自動運転中に手動でダイアグラムをいじって目的地がnullになった場合は自動運転を解除する
                 if (trainDiagram.GetCurrentNode() == null)
                 {
-                    //UnityEngine.Debug.Log("自動運転中に手動でダイアグラムをいじって目的地がnullになったので自動運転を解除");
                     TurnOffAutoRun();
                     _currentSpeed = 0;
                     return 0;
@@ -144,6 +133,7 @@ namespace Game.Train.Unit
                 if (trainUnitStationDocking.IsDocked)
                 {
                     _currentSpeed = 0;
+                    masconLevel = 0;
                     if (_trainUpdateService.IsTrainAutoRunDebugEnabled() && tickCounter % 20 == 0)
                         UnityEngine.Debug.Log("ドッキング中");// TODO デバッグトグル関係　そのうち消す
                     trainUnitStationDocking.TickDockedStations();
@@ -199,7 +189,7 @@ namespace Game.Train.Unit
             {
                 trainUnitStationDocking.UndockFromStation();
             }
-            trainDiagram.TryMoveToNextEntryAndNotifyDeparted(_trainUpdateService.GetCurrentTick());
+            trainDiagram.NextEntryAndDepartureReset();
         }
 
         // 自動運転時のマスコン制御を共通ロジックで更新
@@ -634,7 +624,6 @@ namespace Game.Train.Unit
         public void OnTrainDocked()
         {
         }
-
         public void OnTrainUndocked()
         {
         }

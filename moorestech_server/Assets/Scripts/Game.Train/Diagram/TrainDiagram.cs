@@ -191,31 +191,16 @@ namespace Game.Train.Diagram
             _currentIndex = (_currentIndex + 1) % _entries.Count;
         }
 
-        // 現在entryがある場合のみ次entryへ進め、Departed通知を送る。
-        // Advance to next entry and send Departed notification only when current entry exists.
-        public bool TryMoveToNextEntryAndNotifyDeparted(long currentTick)
-        {
-            if (!TryAdvanceToNextEntryFromDeparture())
-            {
-                return false;
-            }
-
-            NotifyDeparted(currentTick);
-            return true;
-        }
-
         // 出発時に現在entryの状態を初期化してから次entryへ移動する。
         // Reset current entry state on departure, then move to the next entry.
-        public bool TryAdvanceToNextEntryFromDeparture()
+        public void NextEntryAndDepartureReset()
         {
             if (!TryGetActiveEntry(out var currentEntry))
             {
-                return false;
+                return;
             }
-
             currentEntry.OnDeparted();
             MoveToNextEntry();
-            return true;
         }
 
         //node削除時かならず呼ばれます->entriesの中身は常に実在するnodeのみ
@@ -282,28 +267,6 @@ namespace Game.Train.Diagram
             {
                 entry.OnDeparted();
             }
-        }
-
-        internal void NotifyDocked(long currentTick)
-        {
-            var entry = GetCurrentEntry();
-            if (_context == null || entry?.Node == null)
-            {
-                return;
-            }
-            var hash = TrainDiagramHashCalculator.Compute(this);
-            _diagramManager.NotifyDocked(_context, entry, currentTick, hash);
-        }
-
-        internal void NotifyDeparted(long currentTick)
-        {
-            var entry = GetCurrentEntry();
-            if (_context == null || entry?.Node == null)
-            {
-                return;
-            }
-            var hash = TrainDiagramHashCalculator.Compute(this);
-            _diagramManager.NotifyDeparted(_context, entry, currentTick, hash);
         }
 
         public TrainDiagramSaveData CreateTrainDiagramSaveData()
