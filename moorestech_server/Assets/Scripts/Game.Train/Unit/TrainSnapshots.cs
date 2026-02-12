@@ -99,59 +99,18 @@ namespace Game.Train.Unit
         public IReadOnlyList<TrainCarSnapshot> Cars { get; }
     }
 
-    // ダイアグラムの各エントリを転送しやすい形へ整形
-    // Diagram entry snapshot that can be transferred easily
-    public readonly struct TrainDiagramEntrySnapshot
-    {
-        public TrainDiagramEntrySnapshot(
-            Guid entryId,
-            ConnectionDestination node,
-            IReadOnlyList<TrainDiagram.DepartureConditionType> departureConditions,
-            int? waitForTicksInitial,
-            int? waitForTicksRemaining)
-        {
-            EntryId = entryId;
-            Node = node;
-            DepartureConditions = departureConditions;
-            WaitForTicksInitial = waitForTicksInitial;
-            WaitForTicksRemaining = waitForTicksRemaining;
-        }
-
-        public Guid EntryId { get; }
-        public ConnectionDestination Node { get; }
-        public IReadOnlyList<TrainDiagram.DepartureConditionType> DepartureConditions { get; }
-        public int? WaitForTicksInitial { get; }
-        public int? WaitForTicksRemaining { get; }
-    }
-
-    // 列車ダイアグラム全体のスナップショット
-    // Snapshot representing the entire train diagram
-    public readonly struct TrainDiagramSnapshot
-    {
-        public TrainDiagramSnapshot(int currentIndex, IReadOnlyList<TrainDiagramEntrySnapshot> entries)
-        {
-            CurrentIndex = currentIndex;
-            Entries = entries;
-        }
-
-        public int CurrentIndex { get; }
-        public IReadOnlyList<TrainDiagramEntrySnapshot> Entries { get; }
-    }
-
-    // シミュレーションとダイアグラムをまとめて扱うためのバンドル
-    // Bundle grouping both simulation and diagram snapshots
+    // シミュレーションと線路位置をまとめて扱うためのバンドル
+    // Bundle grouping simulation and rail-position snapshots
     public readonly struct TrainUnitSnapshotBundle
     {
-        public TrainUnitSnapshotBundle(TrainSimulationSnapshot simulation, TrainDiagramSnapshot diagram, RailPositionSaveData railPositionSnapshot)
+        public TrainUnitSnapshotBundle(TrainSimulationSnapshot simulation, RailPositionSaveData railPositionSnapshot)
         {
             RailPositionSnapshot = railPositionSnapshot;
             Simulation = simulation;
-            Diagram = diagram;
         }
 
         public RailPositionSaveData RailPositionSnapshot { get; }
         public TrainSimulationSnapshot Simulation { get; }
-        public TrainDiagramSnapshot Diagram { get; }
     }
     // -----------------クライアント関連ここまで-----------------
 }
