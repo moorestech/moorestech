@@ -21,6 +21,7 @@ namespace Game.Train.Unit
         private long _executedTick;
 
         private readonly Subject<long> _onHashEvent = new();
+        private readonly Subject<TrainTickDiffBatch> _onPreSimulationDiffEvent = new();
         private readonly TrainUnitInitializationNotifier _trainUnitInitializationNotifier;
         private bool _trainAutoRunDebugEnabled;
 
@@ -38,6 +39,7 @@ namespace Game.Train.Unit
 
         public long GetCurrentTick() => _executedTick;
         public IObservable<long> GetOnHashEvent() => _onHashEvent;
+        public IObservable<TrainTickDiffBatch> GetOnPreSimulationDiffEvent() => _onPreSimulationDiffEvent;
         // 列車生成イベントの購読口を返す
         // Provide the train unit creation event stream
         public IObservable<TrainUnitInitializationNotifier.TrainUnitCreatedData> GetTrainUnitCreatedEvent() => _trainUnitInitializationNotifier.TrainUnitInitializedEvent;
@@ -55,9 +57,45 @@ namespace Game.Train.Unit
             {
                 trainUnit.Update();
             }
+
+            NotifyPreSimulationDiff(_executedTick);
             
             //↓これ以降にクライアントからの操作コマンド系適応がはいる、hashmismatchなどによるブロードキャストもはいる
             //snapshot,生成イベント系
+
+            return;
+
+            #region Internal
+
+            // 全TrainUnitの差分を集約し、差分があるユニットのみ通知する
+            // Aggregate per-unit diffs and publish only changed units.
+            void NotifyPreSimulationDiff(long tick)
+            {
+                var diffs = new List<TrainTickDiffData>();
+                foreach (var trainUnit in _trainUnits)
+                {
+                    var (masconLevelDiff, isNowDockingSpeedZero, approachingNodeIdDiff) = trainUnit.GetTickDiff();
+                    if (!HasDiff(masconLevelDiff, isNowDockingSpeedZero, approachingNodeIdDiff))
+                    {
+                        continue;
+                    }
+                    diffs.Add(new TrainTickDiffData(trainUnit.TrainId, masconLevelDiff, isNowDockingSpeedZero, approachingNodeIdDiff));
+                }
+
+                if (diffs.Count == 0)
+                {
+                    return;
+                }
+
+                _onPreSimulationDiffEvent.OnNext(new TrainTickDiffBatch(tick, diffs));
+            }
+
+            bool HasDiff(int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeIdDiff)
+            {
+                return masconLevelDiff != 0 || isNowDockingSpeedZero || approachingNodeIdDiff != 0;
+            }
+
+            #endregion
         }
         
         public void RegisterTrain(TrainUnit trainUnit)
@@ -141,6 +179,34 @@ namespace Game.Train.Unit
             }
 
             #endregion
+        }
+
+        public readonly struct TrainTickDiffBatch
+        {
+            public long Tick { get; }
+            public IReadOnlyList<TrainTickDiffData> Diffs { get; }
+
+            public TrainTickDiffBatch(long tick, IReadOnlyList<TrainTickDiffData> diffs)
+            {
+                Tick = tick;
+                Diffs = diffs;
+            }
+        }
+
+        public readonly struct TrainTickDiffData
+        {
+            public Guid TrainId { get; }
+            public int MasconLevelDiff { get; }
+            public bool IsNowDockingSpeedZero { get; }
+            public int ApproachingNodeIdDiff { get; }
+
+            public TrainTickDiffData(Guid trainId, int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeIdDiff)
+            {
+                TrainId = trainId;
+                MasconLevelDiff = masconLevelDiff;
+                IsNowDockingSpeedZero = isNowDockingSpeedZero;
+                ApproachingNodeIdDiff = approachingNodeIdDiff;
+            }
         }
     }
 }

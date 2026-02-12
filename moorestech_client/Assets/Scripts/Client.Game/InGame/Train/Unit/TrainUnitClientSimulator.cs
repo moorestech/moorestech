@@ -53,7 +53,6 @@ namespace Client.Game.InGame.Train.Unit
             int loopTicks = Mathf.Min((int)((long)Math.Floor(_estimatedClientTick) - _tickState.GetTick()), 2);
             for (var i = 0; i < loopTicks; i++)
             {
-                _futureMessageBuffer.FlushBySimulatedTick();
                 if (!_tickState.IsAllowSimulationNowTick())
                 {
                     _estimatedClientTick = _tickState.GetTick();
@@ -61,6 +60,7 @@ namespace Client.Game.InGame.Train.Unit
                 }
 
                 _tickState.AdvanceTick();
+                _futureMessageBuffer.FlushBySimulatedTick();
                 if (!_hashTickGate.CanAdvanceTick(_tickState.GetTick()))
                 {
                     break;
