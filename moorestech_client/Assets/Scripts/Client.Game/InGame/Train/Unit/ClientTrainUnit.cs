@@ -1,4 +1,3 @@
-using Game.Train.RailCalc;
 using Game.Train.RailGraph;
 using Game.Train.RailPositions;
 using Game.Train.Unit;
@@ -19,8 +18,6 @@ namespace Client.Game.InGame.Train.Unit
         public double CurrentSpeed { get; set; }
         public double AccumulatedDistance { get; set; }
         public int MasconLevel { get; set; }
-        public bool IsAutoRun { get; set; }
-        public bool IsDocked { get; set; }
 
         private IReadOnlyList<TrainCarSnapshot> _cars;
         // 車両スナップショットを外部に公開する
@@ -37,7 +34,6 @@ namespace Client.Game.InGame.Train.Unit
             // Keep the rail graph provider reference
             _railGraphProvider = railGraphProvider;
             TrainId = trainId;
-            IsDocked = false;
         }
 
         // スナップショットの内容で内部状態を更新
@@ -47,8 +43,6 @@ namespace Client.Game.InGame.Train.Unit
             CurrentSpeed = simulation.CurrentSpeed;
             AccumulatedDistance = simulation.AccumulatedDistance;
             MasconLevel = simulation.MasconLevel;
-            IsAutoRun = simulation.IsAutoRun;
-            IsDocked = simulation.IsDocked;
             RailPosition = RailPositionFactory.Restore(railPosition, _railGraphProvider);
             _cars = simulation.Cars ?? Array.Empty<TrainCarSnapshot>();
             LastUpdatedTick = tick;
@@ -66,7 +60,6 @@ namespace Client.Game.InGame.Train.Unit
             {
                 CurrentSpeed = 0;
                 AccumulatedDistance = 0;
-                IsDocked = true;
             }
             if (approachingNodeIdDiff != 0)
             {
@@ -103,8 +96,6 @@ namespace Client.Game.InGame.Train.Unit
                     CurrentSpeed,
                     AccumulatedDistance,
                     MasconLevel,
-                    IsAutoRun,
-                    IsDocked,
                     carSnapshots);
             }
 
@@ -115,24 +106,15 @@ namespace Client.Game.InGame.Train.Unit
         // Called every tick and returns moved distance
         public int Update()
         {
-            // 自動運転が有効で目標ノードがある場合のみ進める
-            // Only advance when auto-run is active and target node exists
-            if (!IsAutoRun || ResolveCurrentDestinationNode() == null)
+            // 進行先ノードが未確定の間はシミュレーションを進めない
+            // Skip simulation until the target node is available.
+            if (ResolveCurrentDestinationNode() == null)
             {
                 return 0;
             }
 
-            // ドッキング中は停止状態を維持する
-            // Keep train stopped while docked
-            if (IsDocked)
-            {
-                CurrentSpeed = 0;
-                return 0;
-            }
-
-            // 目標ノードへ向けてマスコンを更新して移動する
-            // Update mascon and move toward target node
-            UpdateMasconLevel();
+            // サーバー通知済みMasconLevelで速度シミュレーションを進める
+            // Simulate movement using the server-synchronized mascon level.
             var distanceToMove = SimulateMotionStep();
             return UpdateTrainByDistance(distanceToMove);
 
@@ -153,14 +135,6 @@ namespace Client.Game.InGame.Train.Unit
             #endregion
         }
 
-        // 自動運転時のマスコン制御を共通ロジックで更新
-        // Update mascon level via shared auto-run calculation
-        public void UpdateMasconLevel()
-        {
-            var input = new AutoRunMasconInput(CurrentSpeed, RemainingDistance);
-            MasconLevel = TrainAutoRunMasconCalculator.Calculate(input);
-        }
-
         // Updateの距離int版
         // distanceToMoveの距離絶対進む。進んだ距離を返す
         public int UpdateTrainByDistance(int distanceToMove)
@@ -176,7 +150,7 @@ namespace Client.Game.InGame.Train.Unit
 
                 // 目標ノードに到達したら停止し、次目標を仮決定する
                 // Stop on target arrival and select next provisional target
-                if (IsArrivedDestination() && IsAutoRun)
+                if (IsArrivedDestination())
                 {
                     CurrentSpeed = 0;
                     AccumulatedDistance = 0;
@@ -200,28 +174,14 @@ namespace Client.Game.InGame.Train.Unit
                     break;
                 }
 
-                if (IsAutoRun)
+                var (found, newPath) = TryFindPathToSimulationTarget(approaching);
+                if (!found)
                 {
-                    var (found, newPath) = TryFindPathToSimulationTarget(approaching);
-                    if (!found)
-                    {
-                        break;
-                    }
-
-                    RailPosition.AddNodeToHead(newPath[1]);
-                    RemainingDistance = RailNodeCalculate.CalculateTotalDistanceF(newPath);
+                    break;
                 }
-                else
-                {
-                    var nextNodeList = approaching.ConnectedNodes.ToList();
-                    if (nextNodeList.Count == 0)
-                    {
-                        CurrentSpeed = 0;
-                        break;
-                    }
 
-                    RailPosition.AddNodeToHead(nextNodeList[0]);
-                }
+                RailPosition.AddNodeToHead(newPath[1]);
+                RemainingDistance = RailNodeCalculate.CalculateTotalDistanceF(newPath);
 
                 loopCount++;
                 if (loopCount > 1000000)
@@ -375,3 +335,4 @@ namespace Client.Game.InGame.Train.Unit
         #endregion
     }
 }
+

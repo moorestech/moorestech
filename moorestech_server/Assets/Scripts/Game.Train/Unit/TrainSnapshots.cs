@@ -77,16 +77,12 @@ namespace Game.Train.Unit
             double currentSpeed,
             double accumulatedDistance,
             int masconLevel,
-            bool isAutoRun,
-            bool isDocked,
             IReadOnlyList<TrainCarSnapshot> cars)
         {
             TrainId = trainId;
             CurrentSpeed = currentSpeed;
             AccumulatedDistance = accumulatedDistance;
             MasconLevel = masconLevel;
-            IsAutoRun = isAutoRun;
-            IsDocked = isDocked;
             Cars = cars;
         }
 
@@ -94,8 +90,6 @@ namespace Game.Train.Unit
         public double CurrentSpeed { get; }
         public double AccumulatedDistance { get; }
         public int MasconLevel { get; }
-        public bool IsAutoRun { get; }
-        public bool IsDocked { get; }
         public IReadOnlyList<TrainCarSnapshot> Cars { get; }
     }
 
