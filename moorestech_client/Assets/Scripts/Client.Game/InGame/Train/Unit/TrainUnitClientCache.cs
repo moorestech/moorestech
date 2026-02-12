@@ -2,10 +2,8 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Train.RailGraph;
 using Core.Master;
-using Game.Train.Diagram;
 using Game.Train.Unit;
 using Server.Util.MessagePack;
-using UnityEngine;
 
 namespace Client.Game.InGame.Train.Unit
 {
@@ -133,24 +131,6 @@ namespace Client.Game.InGame.Train.Unit
         {
             buffer.Clear();
             buffer.AddRange(_units.Values);
-        }
-
-        public void ApplyDiagramEvent(TrainDiagramEventMessagePack message)
-        {
-            if (message == null)
-            {
-                return;
-            }
-
-            if (_units.TryGetValue(message.TrainId, out var unit))
-            {
-                unit.ApplyDiagramEvent(message);
-                var localHash = TrainDiagramHashCalculator.Compute(unit.Diagram.Snapshot);
-                if (localHash != message.DiagramHash)
-                {
-                    Debug.LogWarning($"[TrainDiagramHashVerifier] Hash mismatch for train={message.TrainId}. client={localHash}, server={message.DiagramHash}, tick={message.Tick}, event={message.EventType}.");
-                }
-            }
         }
 
         #region Internal

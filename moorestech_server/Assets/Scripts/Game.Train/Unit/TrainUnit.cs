@@ -244,22 +244,12 @@ namespace Game.Train.Unit
                         //diagramが駅を見ている場合
                         if (trainDiagram.GetCurrentNode().StationRef.StationBlock != null)
                         {
-                            var wasDocked = trainUnitStationDocking.IsDocked;
                             trainUnitStationDocking.TryDockWhenStopped();
-                            // この瞬間ドッキングしたらDockedイベントのみ通知する
-                            // Notify Docked only when transition to docked is observed.
-                            if (trainUnitStationDocking.IsDocked)
-                            {
-                                if (!wasDocked)
-                                {
-                                    trainDiagram.NotifyDocked(_trainUpdateService.GetCurrentTick());
-                                }
-                            }
                         }
                         else//diagramが非駅を見ている場合 
                         {
                             // 次の目的地をセット
-                            trainDiagram.TryAdvanceToNextEntryFromDeparture();
+                            trainDiagram.NextEntryAndDepartureReset();
                         }
                         break;
                     }
