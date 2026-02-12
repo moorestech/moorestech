@@ -61,7 +61,8 @@ namespace Game.Train.Unit
             }
             
             //↓これ以降にクライアントからの操作コマンド系適応がはいる、hashmismatchなどによるブロードキャストもはいる
-            //↓lastUpdate
+            //snapshot,mascon,生成イベント系
+            
         }
         
         public void RegisterTrain(TrainUnit trainUnit)
