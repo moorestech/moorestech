@@ -8,8 +8,7 @@ namespace Server.Boot.Loop
 {
     public static class ServerGameUpdater
     {
-        public const int FrameIntervalMs = 100;
-        private static readonly TimeSpan FrameInterval = TimeSpan.FromMilliseconds(FrameIntervalMs);
+        private static readonly TimeSpan FrameInterval = TimeSpan.FromSeconds(GameUpdater.SecondsPerTick);
         
         
         public static void StartUpdate(CancellationToken token)
