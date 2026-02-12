@@ -28,7 +28,6 @@ namespace Client.Game.InGame.Train.Unit
         public IReadOnlyList<TrainCarSnapshot> Cars => _cars ?? Array.Empty<TrainCarSnapshot>();
 
         public RailPosition RailPosition { get; private set; }
-        public long LastUpdatedTick { get; private set; }
         public int RemainingDistance { get; private set; } = int.MaxValue;
 
         public ClientTrainUnit(Guid trainId, IRailGraphProvider railGraphProvider)
@@ -49,8 +48,6 @@ namespace Client.Game.InGame.Train.Unit
             MasconLevel = simulation.MasconLevel;
             RailPosition = RailPositionFactory.Restore(railPosition, _railGraphProvider);
             _cars = simulation.Cars ?? Array.Empty<TrainCarSnapshot>();
-            LastUpdatedTick = tick;
-
             UpdateSimulationTargetNodeBySnapshot();
             SyncServerApproachingNodeIdFromRailPosition();
             RecalculateRemainingDistance();
@@ -70,7 +67,6 @@ namespace Client.Game.InGame.Train.Unit
                 // このtickのシミュレーション内でドッキング停止処理を実行する
                 _isDockingStopPendingForTick = true;
             }
-            LastUpdatedTick = Math.Max(LastUpdatedTick, tick);
         }
 
         // 現在の状態からスナップショットバンドルを生成する
