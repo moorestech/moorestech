@@ -55,16 +55,17 @@ namespace Client.Game.InGame.Train.Unit
             {
                 if (!_tickState.IsAllowSimulationNowTick())
                 {
-                    _estimatedClientTick = _tickState.GetTick();
+                    _estimatedClientTick = _tickState.GetTick() + 1;
+                    break;
+                }
+                
+                if (!_hashTickGate.CanAdvanceTick(_tickState.GetTick()))
+                {
                     break;
                 }
 
                 _tickState.AdvanceTick();
                 _futureMessageBuffer.FlushBySimulatedTick();
-                if (!_hashTickGate.CanAdvanceTick(_tickState.GetTick()))
-                {
-                    break;
-                }
 
                 SimulateUpdate();
             }
