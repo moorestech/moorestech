@@ -39,6 +39,7 @@ namespace Client.Game.InGame.SoundEffect
         
         public void PlaySoundEffect(SoundEffectType soundEffectType)
         {
+            return;
             audioSource.PlayOneShot(_soundEffectTypeToAudioClip[soundEffectType]);
         }
     }
