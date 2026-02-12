@@ -91,6 +91,27 @@ namespace Client.Game.InGame.Train.Unit
             return unit;
         }
 
+        // pre sim差分イベントを対象TrainUnitへ反映する
+        // Apply a pre-simulation diff event to the target train.
+        public bool ApplyPreSimulationDiff(TrainUnitTickDiffMessagePack diff, long serverTick)
+        {
+            if (diff == null)
+            {
+                return false;
+            }
+            if (!_units.TryGetValue(diff.TrainId, out var unit))
+            {
+                return false;
+            }
+
+            unit.ApplyPreSimulationDiff(
+                diff.MasconLevelDiff,
+                diff.IsNowDockingSpeedZero,
+                diff.ApproachingNodeIdDiff,
+                serverTick);
+            return true;
+        }
+
         // キャッシュから列車を削除
         // Remove a train from the cache
         public bool Remove(Guid trainId)

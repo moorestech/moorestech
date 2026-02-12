@@ -350,6 +350,7 @@ namespace Game.Train.Unit
             int ret3val = -1;
             if (ret3n != null) ret3val = ret3n.NodeId;
             var ret3 = ret3val - pre_approachingNodeId;
+            pre_approachingNodeId = ret3val;
             return (ret1, ret2, ret3);
         }
 

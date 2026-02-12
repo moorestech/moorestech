@@ -57,6 +57,25 @@ namespace Client.Game.InGame.Train.Unit
             RecalculateRemainingDistance();
         }
 
+        // pre sim差分イベントを反映する
+        // Apply pre-simulation diff values from the server.
+        public void ApplyPreSimulationDiff(int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeIdDiff, long tick)
+        {
+            MasconLevel += masconLevelDiff;
+            if (isNowDockingSpeedZero)
+            {
+                CurrentSpeed = 0;
+                AccumulatedDistance = 0;
+                IsDocked = true;
+            }
+            if (approachingNodeIdDiff != 0)
+            {
+                UpdateSimulationTargetNodeBySnapshot();
+                RecalculateRemainingDistance();
+            }
+            LastUpdatedTick = Math.Max(LastUpdatedTick, tick);
+        }
+
         // 現在の状態からスナップショットバンドルを生成する
         // Build a snapshot bundle from the current client state
         public bool TryCreateSnapshotBundle(out TrainUnitSnapshotBundle bundle)
