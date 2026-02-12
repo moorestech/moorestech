@@ -25,13 +25,16 @@ namespace Client.Game.InGame.SoundEffect
         
         private void Awake()
         {
+            Instance = this;
+            return;
+            
+            // 一旦サウンド基盤を作り直すので、すべてのサウンドが出ないようにする
             _soundEffectTypeToAudioClip.Add(SoundEffectType.DestroyBlock, destroyBlockSound);
             _soundEffectTypeToAudioClip.Add(SoundEffectType.DestroyStone, destroyStoneSound);
             _soundEffectTypeToAudioClip.Add(SoundEffectType.DestroyTree, destroyTreeSound);
             _soundEffectTypeToAudioClip.Add(SoundEffectType.DestroyBush, destroyBushSound);
             _soundEffectTypeToAudioClip.Add(SoundEffectType.PlaceBlock, placeBlockSound);
             
-            Instance = this;
         }
         
         public void PlaySoundEffect(SoundEffectType soundEffectType)
