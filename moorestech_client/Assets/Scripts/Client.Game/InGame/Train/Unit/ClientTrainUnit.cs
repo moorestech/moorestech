@@ -13,8 +13,10 @@ namespace Client.Game.InGame.Train.Unit
     public sealed class ClientTrainUnit
     {
         private readonly IRailGraphProvider _railGraphProvider;
+        private readonly IRailGraphTraversalProvider _railGraphTraversalProvider;
         private IRailNode _simulationTargetNode;
         private bool _isDockingStopPendingForTick;
+        private int _serverApproachingNodeId = -1;
 
         public Guid TrainId { get; }
         public double CurrentSpeed { get; set; }
@@ -34,6 +36,7 @@ namespace Client.Game.InGame.Train.Unit
             // レールグラフプロバイダを保持する
             // Keep the rail graph provider reference
             _railGraphProvider = railGraphProvider;
+            _railGraphTraversalProvider = railGraphProvider as IRailGraphTraversalProvider;
             TrainId = trainId;
         }
 
@@ -49,6 +52,7 @@ namespace Client.Game.InGame.Train.Unit
             LastUpdatedTick = tick;
 
             UpdateSimulationTargetNodeBySnapshot();
+            SyncServerApproachingNodeIdFromRailPosition();
             RecalculateRemainingDistance();
         }
 
@@ -59,8 +63,7 @@ namespace Client.Game.InGame.Train.Unit
             MasconLevel += masconLevelDiff;
             if (approachingNodeIdDiff != 0)
             {
-                UpdateSimulationTargetNodeBySnapshot();
-                RecalculateRemainingDistance();
+                ApplyApproachingNodeIdDiff(approachingNodeIdDiff);
             }
             if (isNowDockingSpeedZero)
             {
@@ -334,6 +337,41 @@ namespace Client.Game.InGame.Train.Unit
             }
 
             MoveSimulationTargetNodeToNext(_simulationTargetNode);
+        }
+
+        private void SyncServerApproachingNodeIdFromRailPosition()
+        {
+            // スナップショット基準でサーバー側approaching node idを同期する
+            // Sync server-side approaching node id from snapshot baseline.
+            var approachingNode = RailPosition?.GetNodeApproaching();
+            _serverApproachingNodeId = approachingNode?.NodeId ?? -1;
+        }
+
+        private void ApplyApproachingNodeIdDiff(int approachingNodeIdDiff)
+        {
+            // 差分値を累積してサーバー側approaching node idを再現する
+            // Reconstruct server-side approaching node id by accumulating diffs.
+            _serverApproachingNodeId += approachingNodeIdDiff;
+            if (_serverApproachingNodeId < 0)
+            {
+                _simulationTargetNode = null;
+                RemainingDistance = int.MaxValue;
+                return;
+            }
+
+            if (_railGraphTraversalProvider == null)
+            {
+                return;
+            }
+
+            if (!_railGraphTraversalProvider.TryGetNode(_serverApproachingNodeId, out var approachingNode))
+            {
+                return;
+            }
+
+            _simulationTargetNode = approachingNode;
+            MoveSimulationTargetNodeToNext(_simulationTargetNode);
+            RecalculateRemainingDistance();
         }
 
         private void MoveSimulationTargetNodeToNext(IRailNode currentNode)
