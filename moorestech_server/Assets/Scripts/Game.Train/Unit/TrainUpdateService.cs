@@ -62,11 +62,9 @@ namespace Game.Train.Unit
             
             //↓これ以降にクライアントからの操作コマンド系適応がはいる、hashmismatchなどによるブロードキャストもはいる
             //snapshot,生成イベント系
-
             return;
 
             #region Internal
-
             // 全TrainUnitの差分を集約し、差分があるユニットのみ通知する
             // Aggregate per-unit diffs and publish only changed units.
             void NotifyPreSimulationDiff(long tick)
@@ -81,20 +79,16 @@ namespace Game.Train.Unit
                     }
                     diffs.Add(new TrainTickDiffData(trainUnit.TrainId, masconLevelDiff, isNowDockingSpeedZero, approachingNodeIdDiff));
                 }
-
                 if (diffs.Count == 0)
                 {
                     return;
                 }
-
                 _onPreSimulationDiffEvent.OnNext(new TrainTickDiffBatch(tick, diffs));
+                bool HasDiff(int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeIdDiff)
+                {
+                    return masconLevelDiff != 0 || isNowDockingSpeedZero || approachingNodeIdDiff != 0;
+                }
             }
-
-            bool HasDiff(int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeIdDiff)
-            {
-                return masconLevelDiff != 0 || isNowDockingSpeedZero || approachingNodeIdDiff != 0;
-            }
-
             #endregion
         }
         
