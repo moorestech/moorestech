@@ -1,33 +1,21 @@
-using System;
 using System.Collections.Generic;
 using Core.Update;
 using Game.Train.RailGraph;
-using UniRx;
 
 namespace Game.Train.Diagram
 {
     public class TrainDiagramManager : IRailGraphNodeRemovalListener
     {
         private readonly List<TrainDiagram> _diagrams;
-        private Subject<TrainDiagramEventData> _trainDocked;
-        private Subject<TrainDiagramEventData> _trainDeparted;
-        public IObservable<TrainDiagramEventData> TrainDocked => _trainDocked;
-        public IObservable<TrainDiagramEventData> TrainDeparted => _trainDeparted;
 
         public TrainDiagramManager()
         {
             _diagrams = new List<TrainDiagram>();
-            _trainDocked = new Subject<TrainDiagramEventData>();
-            _trainDeparted = new Subject<TrainDiagramEventData>();
         }
 
         public void Reset()
         {
             _diagrams.Clear();
-            _trainDocked.Dispose();
-            _trainDeparted.Dispose();
-            _trainDocked = new Subject<TrainDiagramEventData>();
-            _trainDeparted = new Subject<TrainDiagramEventData>();
         }
 
         public void RegisterDiagram(TrainDiagram diagram)
@@ -73,30 +61,5 @@ namespace Game.Train.Diagram
             }
         }
 
-        internal void NotifyDocked(ITrainDiagramContext context, TrainDiagramEntry entry, long tick, uint diagramHash)
-        {
-            _trainDocked?.OnNext(new TrainDiagramEventData(context, entry, tick, diagramHash));
-        }
-
-        internal void NotifyDeparted(ITrainDiagramContext context, TrainDiagramEntry entry, long tick, uint diagramHash)
-        {
-            _trainDeparted?.OnNext(new TrainDiagramEventData(context, entry, tick, diagramHash));
-        }
-
-        public readonly struct TrainDiagramEventData
-        {
-            public TrainDiagramEventData(ITrainDiagramContext context, TrainDiagramEntry entry, long tick, uint diagramHash)
-            {
-                Context = context;
-                Entry = entry;
-                Tick = tick;
-                DiagramHash = diagramHash;
-            }
-
-            public ITrainDiagramContext Context { get; }
-            public TrainDiagramEntry Entry { get; }
-            public long Tick { get; }
-            public uint DiagramHash { get; }
-        }
     }
 }

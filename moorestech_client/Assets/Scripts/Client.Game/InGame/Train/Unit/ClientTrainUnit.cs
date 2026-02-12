@@ -57,36 +57,6 @@ namespace Client.Game.InGame.Train.Unit
             RecalculateRemainingDistance();
         }
 
-        public void ApplyDiagramEvent(TrainDiagramEventMessagePack message)
-        {
-            if (message == null || message.TrainId != TrainId)
-            {
-                return;
-            }
-
-            // ドッキング/発車イベントをクライアント状態へ反映
-            // Apply dock/depart events to client-side state
-            if (message.EventType == TrainDiagramEventType.Docked)
-            {
-                // Dockedイベント時もサーバー送信entryIdに現在indexを同期する
-                // Align current index to the server entryId even on Docked events.
-                Diagram.UpdateIndexByEntryId(message.EntryId);
-                IsDocked = true;
-                CurrentSpeed = 0;
-                AccumulatedDistance = 0;
-
-                // Docked受信では位置と停車状態のみ同期する
-                // Docked event syncs only position and stop state.
-            }
-            else if (message.EventType == TrainDiagramEventType.Departed)
-            {
-                Diagram.ResetCurrentEntryDepartureConditions();
-                IsDocked = false;
-                Diagram.UpdateIndexByEntryId(message.EntryId);
-            }
-            RecalculateRemainingDistance();
-        }
-
         // 現在の状態からスナップショットバンドルを生成する
         // Build a snapshot bundle from the current client state
         public bool TryCreateSnapshotBundle(out TrainUnitSnapshotBundle bundle)
