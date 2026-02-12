@@ -25,12 +25,12 @@ namespace Game.Train.RailPositions
         {
             if (railNodes == null || railNodes.Count < 1)
             {
-                throw new ArgumentException("RailNodeリストには1つ以上の要素が必要です。");
+                throw new ArgumentException("RailNode list must have at least one element.");
             }
 
             if (trainLength < 0)
             {
-                throw new ArgumentException("列車の長さは0以上である必要があります。");
+                throw new ArgumentException("Train length must be 0 or greater.");
             }
 
             _railNodes = railNodes;
@@ -97,7 +97,7 @@ namespace Game.Train.RailPositions
             {
                 if (_distanceToNextNode != 0)
                 {
-                    throw new InvalidOperationException("RailPositionの内部状態が不正です。");
+                    throw new InvalidOperationException("RailPosition internal state is invalid.");
                 }
                 else 
                 {
@@ -149,7 +149,7 @@ namespace Game.Train.RailPositions
             isCoverLength = totalListDistance >= distanceFromFront;//長さがたりてるか
             if (!isCoverLength) 
             {
-                throw new InvalidOperationException("RailPositionのrailnode全体長がlengthに足りてません");
+                throw new InvalidOperationException("RailPosition total railnode length is insufficient for the required length");
             }
             return;
         }
@@ -198,14 +198,14 @@ namespace Game.Train.RailPositions
             var othersRailNodes = other.GetRailNodes();
             var assetcount = (_distanceToNextNode != 0) ? 1 : 0;
             if (assetcount >= _railNodes.Count)
-                throw new InvalidOperationException("railpositionの内容が不正です");
+                throw new InvalidOperationException("RailPosition content is invalid");
             if (assetcount >= othersRailNodes.Count)
-                throw new InvalidOperationException("railpositionの内容が不正です");
+                throw new InvalidOperationException("RailPosition content is invalid");
             // railpositionの最後尾とotherの先頭が同じ位置か確認
             var rearPosition = GetRearRailPosition();
             UnityEngine.Debug.Assert(
                 rearPosition.IsSamePositionAllowNodeOverlap(other.GetHeadRailPosition())
-                , "railpositionの最後尾と追加するrailpositionの先頭があいません"
+                , "The tail of the railposition does not match the head of the appended railposition"
                 );
 
             //接続ポイントがnode位置と重なっていない状態
@@ -252,7 +252,7 @@ namespace Game.Train.RailPositions
 
                 if (nodelist == null || nodelist.Count < 2)
                 {
-                    throw new InvalidOperationException("結合失敗。RailPositionのAppendRailPositionAtRearのアサート漏れの可能性があります。要確認");
+                    throw new InvalidOperationException("Merge failed. Possible missing assertion in RailPosition.AppendRailPositionAtRear. Needs investigation");
                 }
 
                 nodelist.Reverse();//先頭がcurrentLastNode
@@ -346,11 +346,11 @@ namespace Game.Train.RailPositions
         {
             if (newLength > _trainLength)
             {
-                throw new ArgumentException("列車の長さは短くなる必要があります。");
+                throw new ArgumentException("Train length must become shorter.");
             }
             if (newLength < 0) 
             {
-                throw new ArgumentException("列車の長さは0または正の値である必要があります。");
+                throw new ArgumentException("Train length must be 0 or a positive value.");
             }
             _trainLength = newLength;
             RemoveUnnecessaryNodes();

@@ -52,7 +52,7 @@ namespace Client.Game.InGame.Block
             var bounds = block.GetComponentsInChildren<Renderer>().Select(b => b.bounds).ToList();
             if (bounds.Count == 0)
             {
-                throw new System.Exception("ブロックにメッシュレンダラーがありませんでした:" + block.name + " " + blockPrefabInfo.BlockMasterElement.Name);
+                throw new System.Exception("Block has no mesh renderer: " + block.name + " " + blockPrefabInfo.BlockMasterElement.Name);
             }
             var center = bounds.Select(b => b.center).Aggregate((b1, b2) => b1 + b2) / bounds.Count;
             

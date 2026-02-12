@@ -53,7 +53,7 @@ namespace Server.Protocol.PacketResponse
             [Key(3)] public int InstanceId { get; set; }
             [Key(4)] public int AttackDamage { get; set; }
             
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public GetMapObjectProtocolProtocolMessagePack() { }
             
             public GetMapObjectProtocolProtocolMessagePack(int playerId, int instanceId, int attackDamage)

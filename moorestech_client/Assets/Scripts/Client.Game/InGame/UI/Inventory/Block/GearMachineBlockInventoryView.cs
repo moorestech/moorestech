@@ -21,7 +21,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
             var state = BlockGameObject.GetStateDetail<GearStateDetail>(GearStateDetail.BlockStateDetailKey);
             if (state == null)
             {
-                Debug.LogError("CommonMachineBlockStateDetailが取得できません。");
+                Debug.LogError("Failed to get CommonMachineBlockStateDetail.");
                 return;
             }
             
@@ -37,23 +37,23 @@ namespace Client.Game.InGame.UI.Inventory.Block
             var currentTorque = state.CurrentTorque;
             var currentRpm = state.CurrentRpm;
             
-            torqueText.text = $"トルク: {currentTorque:F2} / {requireTorque:F2}";
+            torqueText.text = $"Torque: {currentTorque:F2} / {requireTorque:F2}";
             if (currentTorque < requireTorque)
             {
-                torqueText.text = $"トルク: <color=red>{currentTorque:F2}</color> / {requireTorque:F2}";
+                torqueText.text = $"Torque: <color=red>{currentTorque:F2}</color> / {requireTorque:F2}";
             }
             
-            rpmText.text = $"回転数: {currentRpm:F2} / {requireRpm:F2}";
+            rpmText.text = $"RPM: {currentRpm:F2} / {requireRpm:F2}";
             if (currentRpm < requireRpm)
             {
-                rpmText.text = $"回転数: <color=red>{currentRpm:F2}</color> / {requireRpm:F2}";
+                rpmText.text = $"RPM: <color=red>{currentRpm:F2}</color> / {requireRpm:F2}";
             }
             
             var rate = state.GearNetworkOperatingRate;
             var requiredPower = state.GearNetworkTotalRequiredPower;
             var generatePower = state.GearNetworkTotalGeneratePower;
             
-            networkInfoText.text = $"{GetStopReasonText(state.StopReason)} 必要力: {requiredPower:F2} 生成力: {generatePower:F2}";
+            networkInfoText.text = $"{GetStopReasonText(state.StopReason)} Required power: {requiredPower:F2} Generated power: {generatePower:F2}";
         }
     }
 }

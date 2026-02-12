@@ -98,7 +98,7 @@ namespace Server.Protocol.PacketResponse
             [Key(2)] public InventoryIdentifierMessagePack Identifier { get; set; }
             
             
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public RequestInventoryRequestProtocolMessagePack() { }
             
             public RequestInventoryRequestProtocolMessagePack(InventoryIdentifierMessagePack identifier)
@@ -116,7 +116,7 @@ namespace Server.Protocol.PacketResponse
             [Key(4)] public ItemMessagePack[] Items { get; set; }
             
             
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public ResponseInventoryRequestProtocolMessagePack() { }
             
             public ResponseInventoryRequestProtocolMessagePack(InventoryType inventoryType, InventoryIdentifierMessagePack identifier, IReadOnlyList<IItemStack> items)

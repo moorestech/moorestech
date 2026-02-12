@@ -68,7 +68,7 @@ namespace Server.Protocol.PacketResponse
             [IgnoreMember] public Vector3Int PosAVector => PosA;
             [IgnoreMember] public Vector3Int PosBVector => PosB;
 
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public GearChainConnectionEditRequest() { Tag = GearChainConnectionEditProtocol.Tag; }
 
             public static GearChainConnectionEditRequest CreateConnectRequest(Vector3Int posA, Vector3Int posB, int playerId, ItemId itemId)
@@ -105,7 +105,7 @@ namespace Server.Protocol.PacketResponse
 
             [IgnoreMember] public bool HasError => !string.IsNullOrEmpty(Error);
 
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public GearChainConnectionEditResponse() { }
 
             public GearChainConnectionEditResponse(bool isSuccess, string error)

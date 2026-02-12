@@ -49,7 +49,7 @@ namespace Client.Game.InGame.Mining
             
             // 左クリックがされていなければ現状を維持
             // If left click is not pressed, maintain the current state
-            MouseCursorTooltip.Instance.Show("左クリックで取得", isLocalize: false);
+            MouseCursorTooltip.Instance.Show("Left click to collect", isLocalize: false);
             return this;
         }
         
@@ -95,7 +95,7 @@ namespace Client.Game.InGame.Mining
             // If not clicked, maintain focus
             if (!InputManager.Playable.ScreenLeftClick.GetKey)
             {
-                MouseCursorTooltip.Instance.Show("左クリック長押しで取得", isLocalize: false);
+                MouseCursorTooltip.Instance.Show("Hold left click to collect", isLocalize: false);
                 return this;
             }
             
@@ -116,7 +116,7 @@ namespace Client.Game.InGame.Mining
                 result.Add(itemMaster.Name);
             }
             
-            var text = "このアイテムが必要です:" + string.Join(", ",result);
+            var text = "This item is required: " + string.Join(", ",result);
             
             MouseCursorTooltip.Instance.Show(text, isLocalize: false);
         }

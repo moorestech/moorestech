@@ -57,7 +57,7 @@ namespace Client.Game.InGame.UI.UIState.State
             }
             _blockPlacedDisposable.Add(_blockGameObjectDataStore.OnBlockPlaced.Subscribe(OnPlaceBlock));
 
-            KeyControlDescription.Instance.SetText("1~9: 設置ブロック選択\nQ: 設置高さ上げる\nE: ブロック高さ下げる\nB: 配置モード終了\n左クリック: ブロック配置\nG:ブロック削除");
+            KeyControlDescription.Instance.SetText("1~9: Select placement block\nQ: Raise placement height\nE: Lower block height\nB: Exit placement mode\nLeft click: Place block\nG: Delete block");
         }
 
         public UITransitContext GetNextUpdate()

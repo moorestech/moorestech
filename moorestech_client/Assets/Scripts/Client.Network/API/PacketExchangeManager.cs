@@ -93,7 +93,7 @@ namespace Client.Network.API
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError($"デシリアライズに失敗しました。Tag:{request.Tag}\n{e.Message}\n{e.StackTrace}");
+                    Debug.LogError($"Deserialization failed. Tag:{request.Tag}\n{e.Message}\n{e.StackTrace}");
                     Console.WriteLine(e);
                     return null;
                 }

@@ -31,9 +31,9 @@ namespace Server.Boot
         
         private void FinishServer()
         {
-            Debug.Log("サーバーを終了します");
+            Debug.Log("Shutting down server");
             _startServer.Dispose();
-            Debug.Log("サーバーを終了しました");
+            Debug.Log("Server shut down");
         }
     }
 }

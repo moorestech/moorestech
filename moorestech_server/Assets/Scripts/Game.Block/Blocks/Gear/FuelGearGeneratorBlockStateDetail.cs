@@ -49,7 +49,7 @@ namespace Game.Block.Blocks.Gear
             SteamFluidId = steamTank.FluidId.AsPrimitive();
         }
         
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        [Obsolete("Constructor for deserialization. Do not use directly.")]
         public FuelGearGeneratorBlockStateDetail()
         {
         }

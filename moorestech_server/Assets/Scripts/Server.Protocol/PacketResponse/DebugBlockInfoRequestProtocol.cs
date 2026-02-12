@@ -47,7 +47,7 @@ namespace Server.Protocol.PacketResponse
             [Key(2)] public Vector3IntMessagePack BlockPos { get; set; }
             
             
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public RequestDebugBlockInfoRequestProtocolMessagePack() { }
             
             public RequestDebugBlockInfoRequestProtocolMessagePack(Vector3Int pos)
@@ -62,7 +62,7 @@ namespace Server.Protocol.PacketResponse
         {
             [Key(2)] public List<BlockDebugInfo> BlockDebugInfos { get; set; }
             
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public ResponseDebugBlockInfoRequestProtocolMessagePack() { }
             public ResponseDebugBlockInfoRequestProtocolMessagePack(List<BlockDebugInfo> blockDebugInfo)
             {

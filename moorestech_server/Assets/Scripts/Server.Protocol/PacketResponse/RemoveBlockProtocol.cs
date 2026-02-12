@@ -101,7 +101,7 @@ namespace Server.Protocol.PacketResponse
             [Key(2)] public int PlayerId { get; set; }
             [Key(3)] public Vector3IntMessagePack Pos { get; set; }
             
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public RemoveBlockProtocolMessagePack() { }
             public RemoveBlockProtocolMessagePack(int playerId, Vector3Int pos)
             {

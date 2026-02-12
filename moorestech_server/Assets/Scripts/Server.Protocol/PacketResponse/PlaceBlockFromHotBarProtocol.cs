@@ -86,7 +86,7 @@ namespace Server.Protocol.PacketResponse
                 PlacePositions = placeInfos.ConvertAll(v => new PlaceInfoMessagePack(v));
             }
             
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public SendPlaceHotBarBlockProtocolMessagePack() { }
         }
         
@@ -100,7 +100,7 @@ namespace Server.Protocol.PacketResponse
             [Key(2)] public BlockVerticalDirection VerticalDirection { get; set; }
             [Key(3)] public BlockCreateParamMessagePack[] BlockCreateParams { get; set; }
             
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public PlaceInfoMessagePack() { }
             
             public PlaceInfoMessagePack(PlaceInfo placeInfo)
@@ -119,7 +119,7 @@ namespace Server.Protocol.PacketResponse
             [Key(0)] public string Key { get; set; }
             [Key(1)] public byte[] Value { get; set; }
             
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public BlockCreateParamMessagePack() { }
             
             public BlockCreateParamMessagePack(BlockCreateParam param)

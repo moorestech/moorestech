@@ -30,7 +30,7 @@ namespace Game.Map
                 var mapObjectConfig = MasterHolder.MapObjectMaster.GetMapObjectElementOrNull(mapObjectInfo.MapObjectGuid);
                 if (mapObjectConfig == null)
                 {
-                    Debug.Log($"マップに guid:{mapObjectInfo.MapObjectGuid} instanceId:{mapObjectInfo.InstanceId} の設定がありましたが、マスターにそのMapObjectが存在しませんでした。");
+                    Debug.Log($"Map had setting for guid:{mapObjectInfo.MapObjectGuid} instanceId:{mapObjectInfo.InstanceId}, but the MapObject does not exist in the master.");
                     continue;
                 }
                 var hp = mapObjectConfig.Hp;
@@ -79,7 +79,7 @@ namespace Game.Map
         {
             foreach (var savedMapObject in savedMapObjects)
             {
-                if (!_mapObjects.TryGetValue(savedMapObject.instanceId, out var loadedMapObject)) throw new KeyNotFoundException($"セーブデータ内にあるインスタンスID: {savedMapObject.instanceId} のmapObjectが実際のマップに存在しません。");
+                if (!_mapObjects.TryGetValue(savedMapObject.instanceId, out var loadedMapObject)) throw new KeyNotFoundException($"MapObject with instanceId: {savedMapObject.instanceId} from save data does not exist in the actual map.");
                 
                 // 破壊状況をロード
                 // Load destruction status

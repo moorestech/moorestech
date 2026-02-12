@@ -25,7 +25,7 @@ namespace Client.Game.InGame.UI.UIState.State
         {
             _pauseMenu.gameObject.SetActive(true);
             InputManager.MouseCursorVisible(true);
-            KeyControlDescription.Instance.SetText("Esc: ゲームに戻る");
+            KeyControlDescription.Instance.SetText("Esc: Return to game");
         }
         
         public void OnExit()

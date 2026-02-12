@@ -53,7 +53,7 @@ namespace Server.Event.EventReceive
             return CurrentStateDetail.GetStateDetail<TBlockState>(stateKey);
         }
         
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        [Obsolete("This constructor is for deserialization. Do not use directly.")]
         public BlockStateMessagePack()
         {
         }

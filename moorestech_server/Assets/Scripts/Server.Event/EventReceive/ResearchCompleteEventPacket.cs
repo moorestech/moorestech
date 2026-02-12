@@ -31,7 +31,7 @@ namespace Server.Event.EventReceive
 
             [IgnoreMember] public Guid ResearchNodeGuid => Guid.Parse(ResearchGuidStr);
 
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public ResearchCompleteEventMessagePack() { }
             
             public ResearchCompleteEventMessagePack(int playerId, Guid researchGuid)

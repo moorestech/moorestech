@@ -32,7 +32,7 @@ namespace Game.PlayerInventory.Interface
         public static int HotBarSlotToInventorySlot(int slot)
         {
             if (slot < 0 || MainInventoryColumns <= slot)
-                throw new Exception("ホットバーは0～8までです");
+                throw new Exception("Hotbar index must be between 0 and 8");
             //インベントリの一番したがホットバーとなる
             return (MainInventoryRows - 1) * MainInventoryColumns + slot;
         }

@@ -53,7 +53,7 @@ namespace Client.Game.Skit
             var storyCsv = await AddressableLoader.LoadAsyncDefault<TextAsset>(addressablePath);
             if (!storyCsv)
             {
-                Debug.LogError($"ストーリーCSVが見つかりません : {addressablePath}");
+                Debug.LogError($"Story CSV not found: {addressablePath}");
                 return;
             }
             
@@ -116,7 +116,7 @@ namespace Client.Game.Skit
                     }
                     else
                     {
-                        Debug.LogError($"キャラクターモデルのロードに失敗しました: {path}");
+                        Debug.LogError($"Failed to load character model: {path}");
                     }
                 }
                 

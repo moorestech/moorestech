@@ -55,7 +55,7 @@ namespace Game.Block.Interface.State
             return new BlockStateDetail(BlockStateDetailKey, MessagePackSerializer.Serialize(stateDetail));
         } 
         
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        [Obsolete("This constructor is for deserialization. Do not use directly.")]
         public CommonMachineBlockStateDetail()
         {
         }

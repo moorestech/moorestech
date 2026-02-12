@@ -32,7 +32,7 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class RequestMessagePack : ProtocolMessagePackBase
         {
-            [System.Obsolete("デシリアライズ用のコンストラクタです。")]
+            [System.Obsolete("This constructor is for deserialization. Do not use directly.")]
             public RequestMessagePack()
             {
                 Tag = ProtocolTag;
@@ -44,7 +44,7 @@ namespace Server.Protocol.PacketResponse
         {
             [Key(2)] public RailGraphSnapshotMessagePack Snapshot { get; set; }
 
-            [System.Obsolete("デシリアライズ用のコンストラクタです。")]
+            [System.Obsolete("This constructor is for deserialization. Do not use directly.")]
             public ResponseMessagePack()
             {
                 Tag = ProtocolTag;

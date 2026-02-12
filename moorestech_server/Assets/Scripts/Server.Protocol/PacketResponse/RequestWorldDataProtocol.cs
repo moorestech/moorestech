@@ -72,7 +72,7 @@ namespace Server.Protocol.PacketResponse
                 PlayerId = playerId;
             }
 
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public RequestWorldDataMessagePack() { }
         }
         
@@ -82,7 +82,7 @@ namespace Server.Protocol.PacketResponse
             [Key(2)] public BlockDataMessagePack[] Blocks { get; set; }
             [Key(3)] public EntityMessagePack[] Entities { get; set; }
             
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public ResponseWorldDataMessagePack() { }
             public ResponseWorldDataMessagePack(BlockDataMessagePack[] Block, EntityMessagePack[] entities)
             {

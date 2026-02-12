@@ -42,7 +42,7 @@ namespace Server.Protocol.PacketResponse
             [IgnoreMember] public ItemId ItemId => new(ItemIdInt);
             [Key(4)] public int Count { get; set; }
             
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public SetCraftChainerMainComputerRequestItemProtocolMessagePack() { }
             
             public SetCraftChainerMainComputerRequestItemProtocolMessagePack(Vector3Int blockPos, ItemId itemId, int count)

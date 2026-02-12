@@ -36,7 +36,7 @@ namespace Client.Game.InGame.Tutorial.UIHighlight
                 return highlightView;
             }
             
-            Debug.LogError($"ハイライトのターゲットが見つかりませんでした: {targetId}\n本文：{setText}");
+            Debug.LogError($"Highlight target not found: {targetId}\nText: {setText}");
             return null;
         }
     }

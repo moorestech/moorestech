@@ -50,7 +50,7 @@ namespace Server.Event.EventReceive
         
         
         
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        [Obsolete("This constructor is for deserialization. Do not use directly.")]
         public UnlockEventMessagePack() { }
         
         public UnlockEventMessagePack(ItemId itemId)

@@ -268,7 +268,7 @@ namespace Client.Game.InGame.Train.Unit
                 loopCount++;
                 if (loopCount > 1000000)
                 {
-                    throw new InvalidOperationException("列車速度が無限に近いか、レール経路の無限ループを検知しました。");
+                    throw new InvalidOperationException("Train speed is near infinity or an infinite loop in the rail route was detected.");
                 }
             }
             return totalMoved;

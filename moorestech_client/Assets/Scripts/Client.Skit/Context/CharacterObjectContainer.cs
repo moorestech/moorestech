@@ -17,7 +17,7 @@ namespace Client.Skit.Context
         {
             if (!_characters.TryGetValue(characterKey, out var character))
             {
-                Debug.LogError($"キャラクターが見つかりません: {characterKey}");
+                Debug.LogError($"Character not found: {characterKey}");
                 return null;
             }
             

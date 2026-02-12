@@ -35,7 +35,7 @@ namespace Server.Protocol.PacketResponse
         {
             [Key(2)] public List<string> PlayedSkitIds;
             
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public ResponseGetPlayedSkitIdsMessagePack() {}
             
             public ResponseGetPlayedSkitIdsMessagePack(List<string> playedSkitIds)

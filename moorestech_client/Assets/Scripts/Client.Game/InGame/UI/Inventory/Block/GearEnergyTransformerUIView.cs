@@ -29,20 +29,20 @@ namespace Client.Game.InGame.UI.Inventory.Block
             var state = _blockGameObject.GetStateDetail<GearStateDetail>(GearStateDetail.BlockStateDetailKey);
             if (state == null)
             {
-                Debug.LogError("CommonMachineBlockStateDetailが取得できません。");
+                Debug.LogError("Failed to get CommonMachineBlockStateDetail.");
                 return;
             }
             
             var currentTorque = state.CurrentTorque;
             var currentRpm = state.CurrentRpm;
             
-            torque.text = $"トルク: {currentTorque}";
-            rpm.text = $"回転数: {currentRpm}";
+            torque.text = $"Torque: {currentTorque}";
+            rpm.text = $"RPM: {currentRpm}";
             
             var rate = state.GearNetworkOperatingRate;
             var requiredPower = state.GearNetworkTotalRequiredPower;
             var generatePower = state.GearNetworkTotalGeneratePower;
-            networkInfo.text = $"{GetStopReasonText(state.StopReason)} 必要力: {requiredPower:F2} 生成力: {generatePower:F2}";
+            networkInfo.text = $"{GetStopReasonText(state.StopReason)} Required power: {requiredPower:F2} Generated power: {generatePower:F2}";
         }
         
         public static string GetStopReasonText(GearNetworkStopReason reason)
@@ -50,8 +50,8 @@ namespace Client.Game.InGame.UI.Inventory.Block
             var text = reason switch
             {
                 GearNetworkStopReason.None => string.Empty,
-                GearNetworkStopReason.OverRequirePower => "パワー不足",
-                GearNetworkStopReason.Rocked => "ロック",
+                GearNetworkStopReason.OverRequirePower => "Insufficient power",
+                GearNetworkStopReason.Rocked => "Locked",
                 _ => string.Empty
             };
             

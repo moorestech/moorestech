@@ -34,7 +34,7 @@ namespace Client.Network
         public static async UniTask<ServerCommunicator> CreateConnectedInstance(ConnectionServerProperties connectionServerProperties)
         {
             //IPアドレスやポートを設定
-            if (!IPAddress.TryParse(connectionServerProperties.IP, out var ipAddress)) throw new ArgumentException("IP解析失敗");
+            if (!IPAddress.TryParse(connectionServerProperties.IP, out var ipAddress)) throw new ArgumentException("IP parsing failed");
             
             var socket = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             
@@ -44,7 +44,7 @@ namespace Client.Network
             // 接続に10秒かかったらエラーを出す
             await UniTask.WaitUntil(() => socket.Connected).Timeout(TimeSpan.FromSeconds(10));
             
-            Debug.Log("サーバーに接続しました");
+            Debug.Log("Connected to server");
             
             return new ServerCommunicator(socket);
         }
@@ -63,7 +63,7 @@ namespace Client.Network
                     var length = _socket.Receive(buffer);
                     if (length == 0)
                     {
-                        Debug.LogError("ストリームがゼロによる切断");
+                        Debug.LogError("Disconnected due to zero-length stream");
                         break;
                     }
                     
@@ -74,25 +74,25 @@ namespace Client.Network
             }
             catch (Exception e)
             {
-                Debug.LogError("エラーによりサーバーから切断されました");
+                Debug.LogError("Disconnected from server due to error");
                 Debug.LogError($"Message {e.Message} StackTrace {e.StackTrace}");
                 if (_socket.Connected) _socket.Close();
                 
                 try
                 {
                     var json = MessagePackSerializer.ConvertToJson(buffer);
-                    Debug.LogError("受信パケット内容 JSON:" + json);
+                    Debug.LogError("Received packet content JSON:" + json);
                 }
                 catch (Exception exception)
                 {
-                    Debug.LogError("受信パケット内容 JSON:解析に失敗");
+                    Debug.LogError("Received packet content JSON: parsing failed");
                 }
                 
                 throw;
             }
             finally
             {
-                Debug.Log("通信ループ終了");
+                Debug.Log("Communication loop ended");
                 InvokeDisconnect().Forget();
             }
             

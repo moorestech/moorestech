@@ -35,7 +35,7 @@ namespace Client.Game.InGame.UI.UIState.State
         {
             _screenClickableCameraController.OnEnter(false);
             _deleteBarObject.gameObject.SetActive(true);
-            KeyControlDescription.Instance.SetText("左クリック: ブロックを削除\nECS: 破壊モード終了\nB: 設置モード\nTab: インベントリ");
+            KeyControlDescription.Instance.SetText("Left click: Delete block\nESC: Exit destroy mode\nB: Placement mode\nTab: Inventory");
         }
 
         public UITransitContext GetNextUpdate()

@@ -463,7 +463,7 @@ namespace Game.Train.RailGraph
                 if (neighbor == targetid)
                     return distance;
             }
-            Debug.LogWarning("RailNodeが見つかりません " + startid + " to " + targetid);
+            Debug.LogWarning("RailNode not found " + startid + " to " + targetid);
             return -1;
         }
 

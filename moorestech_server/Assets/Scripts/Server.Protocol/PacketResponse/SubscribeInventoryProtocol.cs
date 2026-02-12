@@ -63,7 +63,7 @@ namespace Server.Protocol.PacketResponse
             [Key(5)] public bool IsSubscribe { get; set; }
             
             
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public SubscribeInventoryRequestMessagePack() { }
             
             public SubscribeInventoryRequestMessagePack(int playerId, InventoryIdentifierMessagePack identifier, bool isSubscribe)

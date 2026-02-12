@@ -55,7 +55,7 @@ namespace Client.Game.InGame.Mining
                     break;
                 default:
                     soundEffectType = SoundEffectType.DestroyStone;
-                    Debug.LogError("採掘音が設定されていません");
+                    Debug.LogError("Mining sound is not set");
                     break;
             }
             

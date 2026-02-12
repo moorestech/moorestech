@@ -38,7 +38,7 @@ namespace Server.Protocol.PacketResponse
             [Key(3)] public string ResearchGuidStr { get; set; }
             [IgnoreMember] public Guid ResearchGuid => Guid.Parse(ResearchGuidStr);
 
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public RequestCompleteResearchMessagePack()
             {
             }
@@ -58,7 +58,7 @@ namespace Server.Protocol.PacketResponse
             [Key(3)] public string CompletedResearchGuidStr { get; set; }
             [Key(4)] public GetResearchInfoProtocol.ResponseResearchInfoMessagePack NodeState { get; set; }
 
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public ResponseCompleteResearchMessagePack()
             {
             }

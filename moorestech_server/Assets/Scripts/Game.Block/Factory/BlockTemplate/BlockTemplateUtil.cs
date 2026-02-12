@@ -78,7 +78,7 @@ namespace Game.Block.Factory.BlockTemplate
             {
                 if (vanillaMachineInputInventory.InputSlot.Count <= i)
                 {
-                    Debug.LogError($"ロードするデータのインベントリサイズが超過しています。一部のアイテムは消失します。ブロック名:{blockMasterElement.Name} Guid:{blockMasterElement.BlockGuid}");
+                    Debug.LogError($"Inventory size of data to load exceeds capacity. Some items will be lost. BlockName:{blockMasterElement.Name} Guid:{blockMasterElement.BlockGuid}");
                     break;
                 }
                 vanillaMachineInputInventory.SetItemWithoutEvent(i, inputItems[i]);
@@ -89,7 +89,7 @@ namespace Game.Block.Factory.BlockTemplate
             {
                 if (vanillaMachineOutputInventory.OutputSlot.Count <= i)
                 {
-                    Debug.LogError($"ロードするデータのインベントリサイズが超過しています。一部のアイテムは消失します。ブロック名:{blockMasterElement.Name} Guid:{blockMasterElement.BlockGuid}");
+                    Debug.LogError($"Inventory size of data to load exceeds capacity. Some items will be lost. BlockName:{blockMasterElement.Name} Guid:{blockMasterElement.BlockGuid}");
                     break;
                 }
                 vanillaMachineOutputInventory.SetItemWithoutEvent(i, outputItems[i]);

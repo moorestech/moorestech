@@ -69,20 +69,20 @@ namespace Game.SaveLoad.Json
                 try
                 {
                     Load(json);
-                    Debug.Log("セーブデータのロードが完了しました。");
+                    Debug.Log("Save data loaded successfully.");
                     return;
                 }
                 catch (Exception e)
                 {
                     //TODO ログ基盤
-                    Debug.Log("セーブデータが破損していたか古いバージョンでした。削除したら治る可能性があります。\nサポートが必要な場合はDiscordサーバー ( https://discord.gg/ekFYmY3rDP ) にて連絡をお願いします。");
-                    Debug.Log($"セーブファイルパス {_saveJsonFilePath.Path}");
+                    Debug.Log("Save data was corrupted or from an old version. Deleting it may fix the issue.\nIf you need support, please contact us on the Discord server ( https://discord.gg/ekFYmY3rDP ).");
+                    Debug.Log($"Save file path {_saveJsonFilePath.Path}");
                     throw new Exception(
-                        $"セーブファイルのロードに失敗しました。セーブファイルを確認してください。\n Message : {e.Message} \n StackTrace : {e.StackTrace}");
+                        $"Failed to load save file. Please check the save file.\n Message : {e.Message} \n StackTrace : {e.StackTrace}");
                 }
             }
             
-            Debug.Log("セーブデータがありませんでした。新規作成します。");
+            Debug.Log("No save data found. Creating new data.");
             WorldInitialize();
         }
         

@@ -16,7 +16,7 @@ namespace Game.CraftTree
         [Key(3)] public int RequiredCount { get; set; }
         [Key(4)] public int CurrentCount { get; set; }
         
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        [Obsolete("This constructor is for deserialization. Do not use directly.")]
         public CraftTreeNodeMessagePack() { }
         
         public CraftTreeNodeMessagePack(CraftTreeNode craftTreeNode)

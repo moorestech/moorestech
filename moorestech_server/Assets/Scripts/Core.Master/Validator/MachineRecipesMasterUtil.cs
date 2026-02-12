@@ -138,9 +138,9 @@ namespace Core.Master.Validator
                     var recipe1Index = machineRecipes.Data.ToList().FindIndex(x => x.MachineRecipeGuid == recipe1Guid);
                     var recipe2Index = machineRecipes.Data.ToList().FindIndex(x => x.MachineRecipeGuid == recipe2Guid);
 
-                    throw new Exception($"機械レシピマスタに同じレシピが登録されています。ブロックID:{blockMaster.Name} アイテムIDリスト: {string.Join(", ", inputItemMaster.Select(i => i.Name))} \n" +
-                                        $"レシピIndex1: {recipe1Index} レシピIndex2: {recipe2Index} \n" +
-                                        $"レシピID1: {recipe1Guid} レシピID2: {recipe2Guid}");
+                    throw new Exception($"Duplicate recipe registered in machine recipe master. BlockID:{blockMaster.Name} ItemIDList: {string.Join(", ", inputItemMaster.Select(i => i.Name))} \n" +
+                                        $"RecipeIndex1: {recipe1Index} RecipeIndex2: {recipe2Index} \n" +
+                                        $"RecipeID1: {recipe1Guid} RecipeID2: {recipe2Guid}");
                 }
             }
         }

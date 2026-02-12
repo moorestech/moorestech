@@ -19,7 +19,7 @@ namespace Game.World.DataStore
                 return segment;
             }
             
-            throw new Exception("電力セグメントが見つかりませんでした");
+            throw new Exception("Energy segment not found");
         }
         public bool TryGetEnergySegment(IElectricConsumer consumer, out TSegment segment)
         {

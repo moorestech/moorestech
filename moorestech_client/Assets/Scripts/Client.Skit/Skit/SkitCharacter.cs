@@ -65,7 +65,7 @@ namespace Client.Skit.Skit
                 }
             }
             
-            throw new ArgumentException($"ボーンが見つかりませんでした。指定されたボーン名：{boneName}");
+            throw new ArgumentException($"Bone not found. Specified bone name: {boneName}");
         }
     }
 }

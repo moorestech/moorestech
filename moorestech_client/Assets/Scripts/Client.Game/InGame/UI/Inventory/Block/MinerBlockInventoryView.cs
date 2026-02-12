@@ -73,7 +73,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
                 var state = BlockGameObject.GetStateDetail<CommonMachineBlockStateDetail>(CommonMachineBlockStateDetail.BlockStateDetailKey);
                 if (state == null)
                 {
-                    Debug.LogError("CommonMachineBlockStateDetailが取得できません。");
+                    Debug.LogError("Failed to get CommonMachineBlockStateDetail.");
                     return;
                 }
                 
@@ -87,7 +87,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
                 var colorTag = powerRate < 1.0f ? "<color=red>" : string.Empty;
                 var resetTag = powerRate < 1.0f ? "</color>" : string.Empty;
                 
-                powerRateText.text = $"エネルギー {colorTag}{powerRate * 100:F2}{resetTag}% {colorTag}{currentPower:F2}{resetTag}/{requiredPower:F2}";
+                powerRateText.text = $"Energy {colorTag}{powerRate * 100:F2}{resetTag}% {colorTag}{currentPower:F2}{resetTag}/{requiredPower:F2}";
             }
             
             #endregion
@@ -101,14 +101,14 @@ namespace Client.Game.InGame.UI.Inventory.Block
             var blockStates = await ClientContext.VanillaApi.Response.GetBlockState(pos, _gameObjectCancellationToken);
             if (blockStates == null)
             {
-                Debug.LogError("ステートが取得できませんでした。");
+                Debug.LogError("Failed to get state.");
                 return;
             }
             
             var state = blockStates.GetStateDetail<CommonMinerBlockStateDetail>(CommonMinerBlockStateDetail.BlockStateDetailKey);
             if (state == null)
             {
-                Debug.LogError("CommonMinerのステートが取得できませんでした。");
+                Debug.LogError("Failed to get CommonMiner state.");
                 return;
             }
             
@@ -135,7 +135,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
                 
                 var perMinute = 60f / settings.Time;
                 var itemName = MasterHolder.ItemMaster.GetItemMaster(settings.ItemGuid).Name;
-                mineItemCount += $"{itemName} : {perMinute:F1}/分 ";
+                mineItemCount += $"{itemName} : {perMinute:F1}/min ";
             }
             miningItemCount.text = mineItemCount;
         } 

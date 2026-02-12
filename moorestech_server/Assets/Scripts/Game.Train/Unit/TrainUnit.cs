@@ -160,7 +160,7 @@ namespace Game.Train.Unit
                 {
                     _currentSpeed = 0;
                     if (_trainUpdateService.IsTrainAutoRunDebugEnabled() && tickCounter % 20 == 0)
-                        UnityEngine.Debug.Log("ドッキング中");// TODO デバッグトグル関係　そのうち消す
+                        UnityEngine.Debug.Log("Currently docked");// TODO デバッグトグル関係　そのうち消す
                     trainUnitStationDocking.TickDockedStations();
                     // もしtrainDiagramの出発条件を満たしていたら、trainDiagramは次の目的地をセット。次のtickでドッキングを解除、バリデーションが行われる
                     trainDiagram.Update();
@@ -311,7 +311,7 @@ namespace Game.Train.Unit
                 {
                     TurnOffAutoRun();
                     _currentSpeed = 0;
-                    throw new InvalidOperationException("列車が進行中に接近しているノードがnullになりました。");
+                    throw new InvalidOperationException("Approaching node became null while the train was moving.");
                 }
 
                 if (IsAutoRun)
@@ -319,7 +319,7 @@ namespace Game.Train.Unit
                     var (found, newPath) = CheckAllDiagramPath(approaching);
                     if (!found)//全部の経路がなくなった
                     {
-                        UnityEngine.Debug.Log("diagramの登録nodeに対する経路が全てなくなった。自動運転off");
+                        UnityEngine.Debug.Log("All routes to diagram registered nodes are gone. Turning off auto-run.");
                         TurnOffAutoRun();
                         break;
                     }
@@ -347,7 +347,7 @@ namespace Game.Train.Unit
                 loopCount++;
                 if (loopCount > InfiniteLoopGuardThreshold)
                 {
-                    throw new InvalidOperationException("列車速度が無限に近いか、レール経路の無限ループを検知しました。");
+                    throw new InvalidOperationException("Train speed is near-infinite or an infinite loop in the rail route was detected.");
                 }
             }
             return totalMoved;
@@ -408,7 +408,7 @@ namespace Game.Train.Unit
             var (found, newPath) = CheckAllDiagramPath(approaching);
             if (!found)//全部の経路がなくなった
             {
-                UnityEngine.Debug.Log("diagramの登録nodeに対する経路が全てない。自動運転off");
+                UnityEngine.Debug.Log("No routes to any diagram registered nodes. Turning off auto-run.");
                 TurnOffAutoRun();
                 return;
             }
@@ -561,7 +561,7 @@ namespace Game.Train.Unit
             if (numberOfCarsToDetach <= 0 || numberOfCarsToDetach > _cars.Count)
             {
                 if (numberOfCarsToDetach != 0)
-                    UnityEngine.Debug.LogWarning("SplitTrain: 指定両数が不正です。");
+                    UnityEngine.Debug.LogWarning("SplitTrain: Invalid number of cars specified.");
                 return null;
             }
             TurnOffAutoRun();
@@ -647,7 +647,7 @@ namespace Game.Train.Unit
         {
             //trainUnitの先頭にcarが連結するのでcarのrailPositionはcarの前輪～trainUnitの先頭前輪までを指してないといけない
             if (!_railPosition.GetHeadRailPosition().IsSamePositionAllowNodeOverlap(railPosition.GetRearRailPosition()))
-                throw new InvalidOperationException("trainUnitの先頭にcarが連結するのでcarのrailPositionはcarの前輪～trainUnitの先頭前輪までを指してないといけない");
+                throw new InvalidOperationException("When attaching a car to the head, the car's railPosition must span from the car's front wheel to the trainUnit's head front wheel.");
             Reverse();
             railPosition.Reverse();
             car.Reverse();
@@ -658,7 +658,7 @@ namespace Game.Train.Unit
         public void AttachCarToRear(TrainCar car, RailPosition railPosition)//trainUnitの最後尾にcarが連結するのでcarのrailPositionはtrainunitの最後尾～carの後輪までを指してないといけない
         {
             if (!railPosition.GetHeadRailPosition().IsSamePositionAllowNodeOverlap(_railPosition.GetRearRailPosition()))
-                throw new InvalidOperationException("trainUnitの最後尾にcarが連結するのでcarのrailPositionはtrainunitの最後尾～carの後輪までを指してないといけない");
+                throw new InvalidOperationException("When attaching a car to the rear, the car's railPosition must span from the trainUnit's rear to the car's rear wheel.");
             _cars.Add(car);
             // RailPositionを更新(内部で自動で追加する車両分の距離を伸ばす)
             _railPosition.AppendRailPositionAtRear(railPosition);

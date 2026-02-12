@@ -29,20 +29,20 @@ namespace Client.MainMenu
         {
             if (!IPAddress.TryParse(serverIp.text, out var address))
             {
-                serverConnectPopup.SetText("IPアドレスが正しくありません");
+                serverConnectPopup.SetText("Invalid IP address");
                 return;
             }
             
             var port = int.Parse(serverPort.text);
             if (65535 < port)
             {
-                serverConnectPopup.SetText("ポート番号は65535以下である必要があります");
+                serverConnectPopup.SetText("Port number must be 65535 or less");
                 return;
             }
             
             if (port <= 1024)
             {
-                serverConnectPopup.SetText("ポート番号は1024以上である必要があります");
+                serverConnectPopup.SetText("Port number must be 1024 or greater");
                 return;
             }
             
@@ -64,7 +64,7 @@ namespace Client.MainMenu
             }
             catch (Exception e)
             {
-                serverConnectPopup.SetText("サーバーへの接続に失敗しました\n" + e);
+                serverConnectPopup.SetText("Failed to connect to server\n" + e);
             }
         }
         

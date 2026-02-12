@@ -34,7 +34,7 @@ namespace Game.Block.Blocks.Machine
             IsDestroy = true;
         }
         
-        [Obsolete("機械のセーブ周りのリファクタをしたい")] // TODO 機械のセーブ、保存周りのリファクタ
+        [Obsolete("Want to refactor machine save system")] // TODO Refactor machine save/load system
         public static string SaveKeyStatic => typeof(VanillaMachineSaveComponent).FullName;
         public string SaveKey { get; } = typeof(VanillaMachineSaveComponent).FullName;
         public string GetSaveState()

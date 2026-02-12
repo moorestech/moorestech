@@ -24,7 +24,7 @@ namespace Client.Game.InGame.BlockSystem
             return originPos;
         }
         
-        [Obsolete("一応残してある")]
+        [Obsolete("Kept for reference")]
         public static (Vector3 position, Quaternion rotation, Vector3 scale) GetSlopeBeltConveyorTransform(string blockType, Vector3Int blockPosition, BlockDirection blockDirection, Vector3Int blockSize)
         {
             //実際のブロックのモデルは+0.5した値が中心になる
@@ -62,7 +62,7 @@ namespace Client.Game.InGame.BlockSystem
             
             if (!Physics.Raycast(checkRay, out var checkHit, 1500, GroundLayerMask))
             {
-                Debug.LogError("地面が見つかりませんでした pos:" + pos + " layer:" + GroundLayerMask);
+                Debug.LogError("Ground not found pos:" + pos + " layer:" + GroundLayerMask);
                 return null;
             }
             return checkHit.point;

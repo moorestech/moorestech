@@ -50,7 +50,7 @@ namespace Server.Protocol.PacketResponse
         {
             [Key(2)] public List<ResearchNodeStateMessagePack> ResearchNodeStates { get; set; }
             
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public ResponseResearchInfoMessagePack()
             {
             }
@@ -80,7 +80,7 @@ namespace Server.Protocol.PacketResponse
             [IgnoreMember] public Guid ResearchGuid => Guid.Parse(ResearchGuidStr);
             [IgnoreMember] public ResearchNodeState ResearchNodeState => (ResearchNodeState)State;
 
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public ResearchNodeStateMessagePack()
             {
             }

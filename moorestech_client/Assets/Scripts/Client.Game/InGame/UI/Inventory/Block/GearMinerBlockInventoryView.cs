@@ -19,7 +19,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
             var state = BlockGameObject.GetStateDetail<GearStateDetail>(GearStateDetail.BlockStateDetailKey);
             if (state == null)
             {
-                Debug.LogError("CommonMachineBlockStateDetailが取得できません。");
+                Debug.LogError("Failed to get CommonMachineBlockStateDetail.");
                 return;
             }
             

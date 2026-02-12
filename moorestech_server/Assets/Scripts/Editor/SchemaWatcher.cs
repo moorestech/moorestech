@@ -82,7 +82,7 @@ public static class SchemaWatcher
         }
         else
         {
-            Debug.LogWarning($"Schemaフォルダが見つかりません: {schemaFolderPath}");
+            Debug.LogWarning($"Schema folder not found: {schemaFolderPath}");
             return;
         }
         
@@ -90,7 +90,7 @@ public static class SchemaWatcher
         
         if (hasChanged)
         {
-            Debug.Log("Schemaフォルダに変更がありました。Core.Masterアセンブリを再コンパイルします。");
+            Debug.Log("Schema folder has changed. Recompiling Core.Master assembly.");
             
             // キャッシュを更新
             cachedFileHashes = currentFileHashes;
@@ -146,7 +146,7 @@ public static class SchemaWatcher
             // Core.Masterフォルダが存在するか確認
             if (!Directory.Exists(coreMasterFolderPath))
             {
-                Debug.LogError($"Core.Masterフォルダが見つかりません: {coreMasterFolderPath}");
+                Debug.LogError($"Core.Master folder not found: {coreMasterFolderPath}");
                 return;
             }
             

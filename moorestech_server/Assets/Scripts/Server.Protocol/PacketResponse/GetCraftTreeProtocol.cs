@@ -44,7 +44,7 @@ namespace Server.Protocol.PacketResponse
         {
             [Key(2)] public int PlayerId { get; set; }
             
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public RequestGetCraftTreeMessagePack() { }
             
             public RequestGetCraftTreeMessagePack(int playerId)
@@ -60,7 +60,7 @@ namespace Server.Protocol.PacketResponse
             [Key(2)] public List<CraftTreeNodeMessagePack> CraftTrees { get; set; }
             [Key(3)] public Guid CurrentTargetNode { get; set; }
             
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public ResponseGetCraftTreeMessagePack() { }
             
             public ResponseGetCraftTreeMessagePack(List<CraftTreeNodeMessagePack> craftTrees, Guid currentTargetNode)

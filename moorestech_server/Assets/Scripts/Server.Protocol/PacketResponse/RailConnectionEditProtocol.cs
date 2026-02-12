@@ -253,7 +253,7 @@ namespace Server.Protocol.PacketResponse
             [Key(7)] public int PlayerId { get; set; }
             [Key(8)] public Guid RailTypeGuid { get; set; }
 
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public RailConnectionEditRequest() { Tag = RailConnectionEditProtocol.Tag; }
             
             public static RailConnectionEditRequest CreateConnectRequest(int playerId, int fromNodeId, Guid fromGuid, int toNodeId, Guid toGuid, Guid railTypeGuid)
@@ -292,7 +292,7 @@ namespace Server.Protocol.PacketResponse
             [Key(3)] public RailConnectionEditFailureReason FailureReason { get; set; }
             [Key(4)] public RailEditMode Mode { get; set; }
 
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public ResponseRailConnectionEditMessagePack()
             {
                 Tag = RailConnectionEditProtocol.Tag;

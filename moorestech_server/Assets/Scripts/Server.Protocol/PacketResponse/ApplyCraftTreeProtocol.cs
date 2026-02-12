@@ -43,7 +43,7 @@ namespace Server.Protocol.PacketResponse
             [Key(4)] public List<CraftTreeNodeMessagePack> CraftTrees { get; set; }
             
             
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public ApplyCraftProtocolMessagePack() { }
             
             public ApplyCraftProtocolMessagePack(int playerId, Guid currentTargetNode, List<CraftTreeNode> craftTrees)

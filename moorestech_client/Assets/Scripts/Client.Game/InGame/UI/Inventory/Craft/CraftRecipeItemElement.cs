@@ -18,11 +18,11 @@ namespace Client.Game.InGame.UI.Inventory.Craft
     /// </summary>
     public class CraftRecipeItemElement : MonoBehaviour
     {
-        [Header("矢印")]
+        [Header("Arrow")]
         [SerializeField] private ProgressArrowView progressArrow;
         public ProgressArrowView ProgressArrowView => progressArrow;
         
-        [Header("UI部品")]
+        [Header("UI Parts")]
         [SerializeField] private RectTransform materialParent;
         [SerializeField] private RectTransform resultParent;
         [SerializeField] private Button recipeSelectButton;
@@ -60,7 +60,7 @@ namespace Client.Game.InGame.UI.Inventory.Craft
             SetupResultSlot();
             
             // アイテム名と製作時間を設定
-            craftTimeText.text = $"{craftRecipe.CraftTime}秒";
+            craftTimeText.text = $"{craftRecipe.CraftTime}sec";
             
             SetSelected(false);
             UpdateCraftableState(isCraftable);
@@ -161,7 +161,7 @@ namespace Client.Game.InGame.UI.Inventory.Craft
             
             string CreateToolTipText(string itemName, int ownedCount, int requiredCount)
             {
-                return $"{itemName}\n所持数: {ownedCount}\n必要数: {requiredCount}\n<size=25>クリックでこのアイテムの\nレシピを確認</size>";
+                return $"{itemName}\nOwned: {ownedCount}\nRequired: {requiredCount}\n<size=25>Click to view\nrecipes for this item</size>";
             }
             
             #endregion

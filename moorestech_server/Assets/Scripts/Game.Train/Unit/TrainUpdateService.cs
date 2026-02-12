@@ -102,7 +102,7 @@ namespace Game.Train.Unit
             if (string.Equals(mode, TrainAutoRunOnArgument, StringComparison.OrdinalIgnoreCase))
             {
                 _trainAutoRunDebugEnabled = true;
-                UnityEngine.Debug.Log("トグルスイッチ: Turning on auto-run for all trains.");
+                UnityEngine.Debug.Log("Toggle switch: Turning on auto-run for all trains.");
                 AutoDiagramNodeAdditionExample();
                 foreach (var train in GetRegisteredTrains())
                 {
@@ -113,7 +113,7 @@ namespace Game.Train.Unit
             if (string.Equals(mode, TrainAutoRunOffArgument, StringComparison.OrdinalIgnoreCase))
             {
                 _trainAutoRunDebugEnabled = false;
-                UnityEngine.Debug.Log("トグルスイッチ: Turning off auto-run for all trains.");
+                UnityEngine.Debug.Log("Toggle switch: Turning off auto-run for all trains.");
                 foreach (var train in GetRegisteredTrains())
                 {
                     train.TurnOffAutoRun();

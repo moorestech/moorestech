@@ -43,7 +43,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
             if (SubInventory.Count <= slot)
             {
                 //TODO ログ基盤にいれる
-                Debug.LogError($"インベントリのサイズを超えています。item:{item} slot:{slot}");
+                Debug.LogError($"Exceeds inventory size. item:{item} slot:{slot}");
                 return;
             }
             

@@ -47,7 +47,7 @@ namespace Server.Protocol.PacketResponse
         {
             [Key(2)] public Vector3IntMessagePack Pos { get; set; }
             
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public GetFluidInventoryRequestMessagePack()
             {
             }
@@ -65,7 +65,7 @@ namespace Server.Protocol.PacketResponse
             [Key(2)] public Vector3IntMessagePack Pos { get; set; }
             [Key(3)] public FluidMessagePack[] Fluids { get; set; }
             
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public GetFluidInventoryResponseMessagePack()
             {
             }
@@ -84,7 +84,7 @@ namespace Server.Protocol.PacketResponse
             [Key(0)] public int FluidId { get; set; }
             [Key(1)] public double Amount { get; set; }
             
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public FluidMessagePack()
             {
             }

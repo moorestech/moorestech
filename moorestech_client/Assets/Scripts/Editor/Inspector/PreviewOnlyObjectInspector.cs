@@ -10,6 +10,6 @@ public class PreviewOnlyObjectInspector : Editor
         base.OnInspectorGUI();
         //TODO i18n対応
         
-        EditorGUILayout.HelpBox("このオブジェクトは設置プレビュー時のみオンになります", MessageType.Info);
+        EditorGUILayout.HelpBox("This object is only active during placement preview", MessageType.Info);
     }
 }

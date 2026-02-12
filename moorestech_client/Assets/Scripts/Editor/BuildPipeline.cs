@@ -39,7 +39,7 @@ public class BuildPipeline
         {
             isDevelopmentBuild = EditorUtility.DisplayDialog(
                 "Build Configuration",
-                "Development Buildで実行しますか？",
+                "Run with Development Build?",
                 "Development Build",
                 "Release Build");
         }

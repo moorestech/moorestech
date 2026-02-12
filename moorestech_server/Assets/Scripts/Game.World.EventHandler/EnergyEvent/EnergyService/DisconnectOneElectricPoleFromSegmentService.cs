@@ -29,7 +29,7 @@ namespace Game.World.EventHandler.EnergyEvent.EnergyService
             var electricPoles = FindElectricPoleFromPeripheralService.Find(
                 pos, poleConfig);
             
-            if (electricPoles.Count != 1) throw new Exception("周辺の電柱が1つではありません");
+            if (electricPoles.Count != 1) throw new Exception("Number of surrounding electric poles is not 1");
             
             
             //セグメントから電柱の接続状態を解除

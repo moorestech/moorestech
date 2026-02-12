@@ -101,7 +101,7 @@ namespace Server.Protocol.PacketResponse
             [Key(7)] public List<string> UnlockedChallengeCategoryGuidsStr { get; set; }
             
             
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public ResponseGameUnlockStateProtocolMessagePack() { }
             public ResponseGameUnlockStateProtocolMessagePack(
                 List<string> unlockedCraftRecipeGuidsStr, List<string> lockedCraftRecipeGuidsStr,

@@ -69,7 +69,7 @@ namespace Game.Block.Blocks
                 {
                     if (!detailStates.TryAdd(detail.Key, detail.Value))
                     {
-                        Debug.LogError($"同一キーのステート詳細が既に存在します。重複キー:{detail.Key}, \nブロック:{BlockMasterElement.Name} Position:{BlockPositionInfo.OriginalPos} InstanceId:{BlockInstanceId}");
+                        Debug.LogError($"Duplicate state detail key already exists. DuplicateKey:{detail.Key}, \nBlock:{BlockMasterElement.Name} Position:{BlockPositionInfo.OriginalPos} InstanceId:{BlockInstanceId}");
                     }
                 }
             }
@@ -120,7 +120,7 @@ namespace Game.Block.Blocks
             }
             catch (Exception e)
             {
-                Debug.LogError("ブロックの破壊に失敗しました。");
+                Debug.LogError("Failed to destroy block.");
                 Debug.LogException(e);
                 throw;
             }

@@ -26,7 +26,7 @@ namespace Server.Boot.Loop.PacketProcessing
 
             // 送信スレッドを起動
             _sendThread = new Thread(SendThreadLoop);
-            _sendThread.Name = "[moorestech] パケット送信スレッド";
+            _sendThread.Name = "[moorestech] Packet send thread";
             _sendThread.Start();
         }
 
@@ -55,7 +55,7 @@ namespace Server.Boot.Loop.PacketProcessing
             {
                 if (!_cancellationTokenSource.Token.IsCancellationRequested)
                 {
-                    Debug.LogError("送信スレッドでエラーが発生しました");
+                    Debug.LogError("An error occurred in the send thread");
                     Debug.LogException(e);
                 }
             }

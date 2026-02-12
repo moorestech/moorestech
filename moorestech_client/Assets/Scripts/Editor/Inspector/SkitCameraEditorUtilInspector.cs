@@ -9,7 +9,7 @@ public class SkitCameraEditorUtilInspector : Editor
     {
         var obj = (SkitCameraEditorUtil)target;
         
-        if (GUILayout.Button("カメラワープコマンドをコピー"))
+        if (GUILayout.Button("Copy camera warp command"))
         {
             var pos = obj.transform.position;
             var rot = obj.transform.eulerAngles;

@@ -41,7 +41,7 @@ namespace Server.Event.EventReceive
     {
         [Key(0)] public BlockDataMessagePack BlockData { get; set; }
         
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        [Obsolete("This constructor is for deserialization. Do not use directly.")]
         public PlaceBlockEventMessagePack()
         {
         }
@@ -65,7 +65,7 @@ namespace Server.Event.EventReceive
         [IgnoreMember] public BlockId BlockId => (BlockId)BlockIdInt;
         [IgnoreMember] public BlockInstanceId BlockInstanceId => new(BlockInstanceIdInt);
         
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        [Obsolete("This constructor is for deserialization. Do not use directly.")]
         public BlockDataMessagePack() { }
         
         public BlockDataMessagePack(BlockId blockId, Vector3Int blockPos, BlockDirection blockDirection, BlockInstanceId blockInstanceId)

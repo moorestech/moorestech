@@ -57,7 +57,7 @@ namespace Client.Game.InGame.UI.UIState.State
             UpdatePlayerInventory(_cancellationTokenSource.Token).Forget();
 
             InputManager.MouseCursorVisible(true);
-            KeyControlDescription.Instance.SetText("Tab/ECS: インベントリを閉じる\nR: リサーチツリー");
+            KeyControlDescription.Instance.SetText("Tab/ESC: Close inventory\nR: Research tree");
         }
         
         public void OnExit()

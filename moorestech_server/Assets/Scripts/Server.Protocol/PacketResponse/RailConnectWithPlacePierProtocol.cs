@@ -130,7 +130,7 @@ namespace Server.Protocol.PacketResponse
             [Key(6)] public int PierInventorySlot { get; set; }
             [Key(7)] public Guid RailTypeGuid { get; set; }
             
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public RailConnectWithPlacePierRequest()
             {
                 Tag = RailConnectWithPlacePierProtocol.Tag;

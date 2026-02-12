@@ -112,7 +112,7 @@ namespace Server.Protocol.PacketResponse
             [Key(6)] public ItemMoveInventoryInfoMessagePack ToInventory { get; set; }
             
             
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public InventoryItemMoveProtocolMessagePack() { }
             public InventoryItemMoveProtocolMessagePack(int playerId, int count, ItemMoveType itemMoveType,
                 ItemMoveInventoryInfo inventory, int fromSlot,
@@ -131,7 +131,7 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class ItemMoveInventoryInfoMessagePack
         {
-            [Obsolete("シリアライズ用の値です。InventoryTypeを使用してください。")]
+            [Obsolete("This value is for serialization. Use InventoryType instead.")]
             [Key(2)] public int InventoryId { get; set; }
 
             [IgnoreMember] public ItemMoveInventoryType InventoryType => (ItemMoveInventoryType)Enum.ToObject(typeof(ItemMoveInventoryType), InventoryId);
@@ -144,7 +144,7 @@ namespace Server.Protocol.PacketResponse
             /// </summary>
             [Key(4)] public InventoryIdentifierMessagePack InventoryIdentifier { get; set; }
 
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public ItemMoveInventoryInfoMessagePack() { }
             public ItemMoveInventoryInfoMessagePack(ItemMoveInventoryInfo info, int slot)
             {

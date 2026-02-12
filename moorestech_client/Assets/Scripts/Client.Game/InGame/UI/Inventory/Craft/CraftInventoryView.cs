@@ -67,7 +67,7 @@ namespace Client.Game.InGame.UI.Inventory.Craft
             {
                 noRecipesText.gameObject.SetActive(true);
                 craftButton.gameObject.SetActive(false);
-                itemNameText.text = "レシピがありません";
+                itemNameText.text = "No recipes";
                 return;
             }
             
@@ -206,7 +206,7 @@ namespace Client.Game.InGame.UI.Inventory.Craft
             if (craftRecipes.Length == 0) return tooltipText;
             
             // レシピがあればテキストを追加
-            tooltipText += $"\n<size=25>クリックでこのアイテムの\nレシピを確認</size>";
+            tooltipText += $"\n<size=25>Click to view\nrecipes for this item</size>";
             
             return tooltipText;
         }

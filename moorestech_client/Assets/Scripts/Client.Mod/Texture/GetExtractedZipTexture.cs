@@ -26,7 +26,7 @@ namespace Client.Mod.Texture
             }
             catch (Exception e)
             {
-                Debug.Log($"画像のロード中にエラーが発生しました。パス {imgPath} \nMessage {e.Message} \nStackTrace {e.StackTrace}");
+                Debug.Log($"An error occurred while loading image. Path {imgPath} \nMessage {e.Message} \nStackTrace {e.StackTrace}");
                 return null;
             }
         }

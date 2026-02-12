@@ -44,7 +44,7 @@ namespace Server.Boot
                     saveJsonFilePath = new SaveJsonFilePath(settings.SaveFilePath),
                 };
             
-            Debug.Log("データをロードします　パス:" + serverDirectory);
+            Debug.Log("Loading data, path:" + serverDirectory);
             
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(options);
             
@@ -57,7 +57,7 @@ namespace Server.Boot
                 m => m.Value.ModEntryPoints.ForEach(
                     e =>
                     {
-                        Debug.Log("Modをロードしました modId:" + m.Value + " className:" + e.GetType().Name);
+                        Debug.Log("Mod loaded, modId:" + m.Value + " className:" + e.GetType().Name);
                         e.OnLoad(new ServerModEntryInterface(serviceProvider, packet));
                     }));
             
@@ -68,7 +68,7 @@ namespace Server.Boot
             
             // パケットキュープロセッサを作成してメインスレッドで処理を開始
             var connectionUpdateThread = new Thread(() => new ServerListenAcceptor().StartServer(packet, token));
-            connectionUpdateThread.Name = "[moorestech]通信受け入れスレッド";
+            connectionUpdateThread.Name = "[moorestech]Connection accept thread";
             connectionUpdateThread.Start();
             
             if (settings.AutoSave)
@@ -77,7 +77,7 @@ namespace Server.Boot
             }
             // アップデートのタスク名を設定
             var gameUpdateThread = new Thread(() => ServerGameUpdater.StartUpdate(token));
-            gameUpdateThread.Name = "[moorestech]ゲームアップデートスレッド";
+            gameUpdateThread.Name = "[moorestech]Game update thread";
             gameUpdateThread.Start();
             
             return (connectionUpdateThread, gameUpdateThread, cancellationToken);

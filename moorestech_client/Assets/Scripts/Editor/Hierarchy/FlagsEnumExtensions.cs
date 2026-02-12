@@ -53,7 +53,7 @@ namespace Abelia.Editor
         {
             if (Enum.GetUnderlyingType(enumType) != typeof(int))
             {
-                Debug.LogWarning($"ベースタイプがintではないenumです。 type: {enumType}");
+                Debug.LogWarning($"Enum base type is not int. type: {enumType}");
             }
         }
         

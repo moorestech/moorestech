@@ -54,7 +54,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
                 if (collider == null) return;
 
                 _connectFromPole = collider;
-                Debug.Log($"[GearChainPoleConnect] 接続元選択: {_connectFromPole.GetBlockPosition()}");
+                Debug.Log($"[GearChainPoleConnect] Source pole selected: {_connectFromPole.GetBlockPosition()}");
             }
 
             void SelectTargetAndConnect(PlaceSystemUpdateContext ctx)
@@ -72,13 +72,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
                 var toPos = connectToPole.GetBlockPosition();
                 if (fromPos == toPos)
                 {
-                    Debug.Log("[GearChainPoleConnect] 同一ブロックへの接続は無視されました");
+                    Debug.Log("[GearChainPoleConnect] Connection to the same block was ignored");
                     return;
                 }
 
                 // 接続プロトコルを送信する
                 // Send connection protocol
-                Debug.Log($"[GearChainPoleConnect] 接続実行: {fromPos} -> {toPos}");
+                Debug.Log($"[GearChainPoleConnect] Executing connection: {fromPos} -> {toPos}");
                 ClientContext.VanillaApi.SendOnly.ConnectGearChain(fromPos, toPos, ctx.HoldingItemId);
 
                 // 接続元の選択をリセットする

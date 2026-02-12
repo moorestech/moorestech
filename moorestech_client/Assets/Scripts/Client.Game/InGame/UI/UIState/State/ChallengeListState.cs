@@ -18,7 +18,7 @@ namespace Client.Game.InGame.UI.UIState.State
         {
             _challengeListView.SetActive(true);
             InputManager.MouseCursorVisible(true);
-            KeyControlDescription.Instance.SetText("T: リストを閉じる");
+            KeyControlDescription.Instance.SetText("T: Close list");
         }
 
         public UITransitContext GetNextUpdate()

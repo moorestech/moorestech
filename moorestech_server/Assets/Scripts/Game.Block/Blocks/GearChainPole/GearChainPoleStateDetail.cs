@@ -29,7 +29,7 @@ namespace Game.Block.Blocks.GearChainPole
             PartnerBlockInstanceIds = partnerIds.Select(id => id.AsPrimitive()).ToArray();
         }
 
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        [Obsolete("Constructor for deserialization. Do not use directly.")]
         public GearChainPoleStateDetail()
         {
         }

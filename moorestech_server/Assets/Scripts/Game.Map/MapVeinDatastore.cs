@@ -17,7 +17,7 @@ namespace Game.Map
             {
                 if (!MasterHolder.ItemMaster.ExistItemId(veinJson.VeinItemGuid))
                 {
-                    Debug.LogError($"GUID:{veinJson.VeinItemGuid}に対応するItemIdが存在しません。鉱脈の生成をスキップします。");
+                    Debug.LogError($"No ItemId found for GUID:{veinJson.VeinItemGuid}. Skipping vein generation.");
                     continue;
                 }
                 

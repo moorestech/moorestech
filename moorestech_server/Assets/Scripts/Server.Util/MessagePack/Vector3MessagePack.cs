@@ -7,7 +7,7 @@ namespace Server.Util.MessagePack
     [MessagePackObject]
     public class Vector3MessagePack
     {
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        [Obsolete("This constructor is for deserialization. Do not use directly.")]
         public Vector3MessagePack()
         {
         }

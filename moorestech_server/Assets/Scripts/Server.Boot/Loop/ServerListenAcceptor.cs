@@ -18,13 +18,13 @@ namespace Server.Boot.Loop
             //通信の受け入れ準備
             listener.Bind(new IPEndPoint(IPAddress.Any, Port));
             listener.Listen(10);
-            Debug.Log("moorestechサーバー 起動完了");
+            Debug.Log("moorestech server startup complete");
 
             while (true)
             {
                 //通信の確立
                 var client = listener.Accept();
-                Debug.Log("接続確立");
+                Debug.Log("Connection established");
 
                 // 送信・受信キュープロセッサを作成
                 var sendQueueProcessor = new SendQueueProcessor(client);
@@ -32,7 +32,7 @@ namespace Server.Boot.Loop
 
                 // 受信スレッドを起動
                 var receiveThread = new Thread(() => new UserPacketHandler(client, receiveQueueProcessor, sendQueueProcessor).StartListen(token));
-                receiveThread.Name = "[moorestech] 受信スレッド";
+                receiveThread.Name = "[moorestech] Receive thread";
                 receiveThread.Start();
             }
         }

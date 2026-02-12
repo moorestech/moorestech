@@ -92,11 +92,11 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
             {
                 var text = node.State switch
                 {
-                    ResearchNodeState.UnresearchableAllReasons => "研究アイテムが足りません。\n前提研究が完了していません。",
-                    ResearchNodeState.UnresearchableNotEnoughItem => "研究アイテムが足りません。",
-                    ResearchNodeState.UnresearchableNotEnoughPreNode => "前提研究が完了していません。",
-                    ResearchNodeState.Researchable => "クリックして研究",
-                    ResearchNodeState.Completed => "研究済み",
+                    ResearchNodeState.UnresearchableAllReasons => "Not enough research items.\nPrerequisite research not completed.",
+                    ResearchNodeState.UnresearchableNotEnoughItem => "Not enough research items.",
+                    ResearchNodeState.UnresearchableNotEnoughPreNode => "Prerequisite research not completed.",
+                    ResearchNodeState.Researchable => "Click to research",
+                    ResearchNodeState.Completed => "Researched",
                     _ => ""
                 };
                 researchButtonTooltipTarget.SetText(text, false);

@@ -159,7 +159,7 @@ namespace Server.Protocol.PacketResponse
                 CraftRecipeGuidStr = craftRecipeGuid.ToString();
             }
             
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public RequestOneClickCraftProtocolMessagePack() { }
         }
     }

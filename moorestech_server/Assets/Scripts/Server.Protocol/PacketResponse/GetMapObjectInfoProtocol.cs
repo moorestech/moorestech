@@ -45,7 +45,7 @@ namespace Server.Protocol.PacketResponse
         {
             [Key(2)] public List<MapObjectsInfoMessagePack> MapObjects { get; set; }
             
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public ResponseMapObjectInfosMessagePack() { }
             
             public ResponseMapObjectInfosMessagePack(List<MapObjectsInfoMessagePack> mapObjects)
@@ -62,7 +62,7 @@ namespace Server.Protocol.PacketResponse
             [Key(1)] public bool IsDestroyed { get; set; }
             [Key(2)] public int CurrentHp { get; set; }
             
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public MapObjectsInfoMessagePack() { }
             public MapObjectsInfoMessagePack(int instanceId, bool isDestroyed, int currentHp)
             {

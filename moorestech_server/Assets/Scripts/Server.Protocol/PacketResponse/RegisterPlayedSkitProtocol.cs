@@ -44,7 +44,7 @@ namespace Server.Protocol.PacketResponse
             [Key(2)] public int PlayerId { get; set; }
             [Key(3)] public string SkitId { get; set; }
             
-            [System.Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [System.Obsolete("This constructor is for deserialization. Do not use directly.")]
             public RegisterPlayedSkitMessagePack() { }
             
             public RegisterPlayedSkitMessagePack(int playerId, string skitId)

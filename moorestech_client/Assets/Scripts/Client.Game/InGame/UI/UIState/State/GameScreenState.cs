@@ -44,7 +44,7 @@ namespace Client.Game.InGame.UI.UIState.State
             InputManager.MouseCursorVisible(false);
             _inGameCameraController.SetControllable(true);
 
-            KeyControlDescription.Instance.SetText("Tab: インベントリ\n1~9: アイテム持ち替え\nB: ブロック配置\nG:ブロック削除\nT: チャレンジ一覧\nR: リサーチツリー\n");
+            KeyControlDescription.Instance.SetText("Tab: Inventory\n1~9: Switch items\nB: Place block\nG: Delete block\nT: Challenge list\nR: Research tree\n");
         }
         
         public void OnExit()

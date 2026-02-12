@@ -33,7 +33,7 @@ namespace Server.Protocol.PacketResponse
         {
             [Key(2)] public int PlayerId { get; set; }
             
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public EventProtocolMessagePack() { }
             
             public EventProtocolMessagePack(int playerId)
@@ -54,7 +54,7 @@ namespace Server.Protocol.PacketResponse
                 Events = events;
             }
             
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public ResponseEventProtocolMessagePack() { }
         }
     }

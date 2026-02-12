@@ -26,7 +26,7 @@ namespace Game.World.Interface.DataStore
             LastSessionStartDateTime = lastSessionStartDateTime.ToString("o");
         }
         
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        [Obsolete("This constructor is for deserialization. Do not use directly.")]
         public WorldSettingJsonObject() { }
     }
 }

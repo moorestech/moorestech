@@ -24,7 +24,7 @@ namespace Game.Block.Blocks.PowerGenerator
             CurrentFuelTime = GameUpdater.TicksToSeconds(fuelService.CurrentFuelTicks);
         }
 
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        [Obsolete("Constructor for deserialization. Do not use directly.")]
         public PowerGeneratorStateDetail() { }
     }
 }

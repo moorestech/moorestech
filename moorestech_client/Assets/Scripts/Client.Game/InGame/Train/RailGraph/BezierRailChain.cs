@@ -142,7 +142,7 @@ namespace Client.Game.InGame.Train.RailGraph
             TryCreatePartialSegment(ref remainderSteps, 1, _eighthModulePrefab, eighthLength, ref offset);
             if (remainderSteps > 0)
             {
-                Debug.LogWarning($"[BezierRailChain] 端数を埋められませんでした (残りステップ:{remainderSteps}). 必要な長さのモジュールが揃っているか確認してください。", this);
+                Debug.LogWarning($"[BezierRailChain] Could not fill remainder (remaining steps: {remainderSteps}). Please check that modules of the required length are available.", this);
             }
             
             if (!_useGpuDeform) _controller = new RendererMaterialReplacerController(gameObject);

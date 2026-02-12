@@ -20,7 +20,7 @@ namespace Core.Item.Implementation
             
             var itemMaster = MasterHolder.ItemMaster.GetItemMaster(id);
             if (itemMaster.MaxStack < count)
-                throw new ArgumentOutOfRangeException($"アイテムスタック数の最大値を超えています ID:{id} Count:{count} MaxStack:{itemMaster.MaxStack}");
+                throw new ArgumentOutOfRangeException($"Item stack count exceeds maximum ID:{id} Count:{count} MaxStack:{itemMaster.MaxStack}");
             
             Id = id;
             Count = count;

@@ -47,7 +47,7 @@ namespace Server.Protocol.PacketResponse
         {
             [Key(2)] public int PlayerId { get; set; }
             
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public RequestPlayerInventoryProtocolMessagePack() { }
             
             public RequestPlayerInventoryProtocolMessagePack(int playerId)
@@ -65,7 +65,7 @@ namespace Server.Protocol.PacketResponse
             [Key(4)] public ItemMessagePack Grab { get; set; }
             
             
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public PlayerInventoryResponseProtocolMessagePack() { }
             
             public PlayerInventoryResponseProtocolMessagePack(int playerId, ItemMessagePack[] main, ItemMessagePack grab)

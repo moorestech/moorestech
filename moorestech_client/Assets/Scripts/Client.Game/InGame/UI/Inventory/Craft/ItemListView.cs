@@ -134,7 +134,7 @@ namespace Client.Game.InGame.UI.Inventory.Craft
                     return true;
                 }
                 
-                throw new Exception($"{itemMaster.RecipeViewType}タイプの判定の実装が足りません");
+                throw new Exception($"Implementation missing for type determination: {itemMaster.RecipeViewType}");
             }
             
   #endregion

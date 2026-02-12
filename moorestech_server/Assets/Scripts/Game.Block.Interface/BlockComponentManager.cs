@@ -85,7 +85,7 @@ namespace Game.Block.Interface
                     
                     if (_blockComponents.Any(c => iface.IsInstanceOfType(c)))
                     {
-                        throw new InvalidOperationException($"{iface.Name}は既に追加されています。");
+                        throw new InvalidOperationException($"{iface.Name} has already been added.");
                     }
                 }
             }

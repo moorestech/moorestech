@@ -36,7 +36,7 @@ namespace Server.Boot.Loop.PacketProcessing
                     var error = ReceiveProcess(parser, buffer);
                     if (error)
                     {
-                        Debug.Log("切断されました");
+                        Debug.Log("Disconnected");
                         break;
                     }
                 }
@@ -44,12 +44,12 @@ namespace Server.Boot.Loop.PacketProcessing
             catch (OperationCanceledException)
             {
                 Cleanup();
-                Debug.Log("切断されました");
+                Debug.Log("Disconnected");
             }
             catch (Exception e)
             {
                 Cleanup();
-                Debug.LogError("moorestech内のロジックによるエラーで切断");
+                Debug.LogError("Disconnected due to logic error in moorestech");
                 Debug.LogException(e);
             }
         }

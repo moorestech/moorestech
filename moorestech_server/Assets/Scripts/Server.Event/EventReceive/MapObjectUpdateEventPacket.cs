@@ -46,7 +46,7 @@ namespace Server.Event.EventReceive
         public const string HpUpdateEventType = "hpUpdate";
         
         
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        [Obsolete("This constructor is for deserialization. Do not use directly.")]
         public MapObjectUpdateEventMessagePack()
         {
         }

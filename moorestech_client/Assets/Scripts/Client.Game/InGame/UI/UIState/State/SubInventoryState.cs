@@ -84,14 +84,14 @@ namespace Client.Game.InGame.UI.UIState.State
             _subInventorySource = context.GetContext<ISubInventorySource>();
             if (_subInventorySource == null)
             {
-                Debug.LogError("SubInventoryState: サブインベントリソースが指定されていません");
+                Debug.LogError("SubInventoryState: Sub-inventory source is not specified");
                 return;
             }
             
             // サブインベントリを生成し、データを取得、表示する
             // Create sub inventory, fetch data, and display
             LoadInventory().Forget();
-            KeyControlDescription.Instance.SetText("Esc: インベントリを閉じる");
+            KeyControlDescription.Instance.SetText("Esc: Close inventory");
             
             #region Internal
             
@@ -105,7 +105,7 @@ namespace Client.Game.InGame.UI.UIState.State
                 using var loadedInventory = await AddressableLoader.LoadAsync<GameObject>(_subInventorySource.UIPrefabAddressablePath, ct);
                 if (loadedInventory == null)
                 {
-                    Debug.LogError($"SubInventoryState: インベントリビューのロードに失敗しました Path:{_subInventorySource.UIPrefabAddressablePath}");
+                    Debug.LogError($"SubInventoryState: Failed to load inventory view Path:{_subInventorySource.UIPrefabAddressablePath}");
                     return;
                 }
                 

@@ -17,7 +17,7 @@ namespace Game.Block.Blocks.TrainRail
             RailBlockDirection = new Vector3MessagePack(direction);
         }
         
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        [Obsolete("Constructor for deserialization. Do not use directly.")]
         public RailBridgePierComponentStateDetail() { }
     }
 }

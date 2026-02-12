@@ -18,7 +18,7 @@ namespace Server.Util.MessagePack
         [Key(1)] public int ComponentIndex { get; set; }
         [Key(2)] public bool IsFrontSide { get; set; }
 
-        [Obsolete("デシリアライズ用コンストラクタです。")]
+        [Obsolete("This constructor is for deserialization. Do not use directly.")]
         public ConnectionDestinationMessagePack()
         {
         }
@@ -51,7 +51,7 @@ namespace Server.Util.MessagePack
         [Key(5)] public Vector3MessagePack BackControlPoint { get; set; }
         [Key(6)] public long Tick { get; set; }
 
-        [Obsolete("デシリアライズ用コンストラクタです。")]
+        [Obsolete("This constructor is for deserialization. Do not use directly.")]
         public RailNodeCreatedMessagePack()
         {
         }
@@ -104,7 +104,7 @@ namespace Server.Util.MessagePack
         [Key(2)] public uint GraphHash { get; set; }
         [Key(3)] public long GraphTick { get; set; }
 
-        [Obsolete("デシリアライズ用のコンストラクタです。")]
+        [Obsolete("This constructor is for deserialization. Do not use directly.")]
         public RailGraphSnapshotMessagePack() { }
 
         public RailGraphSnapshotMessagePack(RailGraphSnapshot snapshot)
@@ -147,7 +147,7 @@ namespace Server.Util.MessagePack
         [Key(3)] public Guid RailTypeGuid { get; set; }
         [Key(4)] public bool IsDrawable { get; set; }
 
-        [Obsolete("デシリアライズ用コンストラクタです。")]
+        [Obsolete("This constructor is for deserialization. Do not use directly.")]
         public RailGraphConnectionSnapshotMessagePack() { }
 
         public RailGraphConnectionSnapshotMessagePack(int fromNodeId, int toNodeId, int distance, Guid railTypeGuid, bool isDrawable)

@@ -9,7 +9,7 @@ public class SkitCharacterEditorUtilInspector : Editor
     {
         var obj = (SkitCharacterEditorUtil)target;
         
-        if (GUILayout.Button("キャラ位置設定コマンドをコピー"))
+        if (GUILayout.Button("Copy character position command"))
         {
             var pos = obj.transform.position;
             var rot = obj.transform.eulerAngles;

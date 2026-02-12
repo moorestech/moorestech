@@ -38,17 +38,17 @@ namespace Core.Item.Implementation
         public ItemStackMetaData GetMeta(string key)
         {
             //TODO ログに入れる
-            throw new InvalidOperationException("空のアイテムにメタデータは存在しません");
+            throw new InvalidOperationException("No metadata exists for an empty item");
         }
         
         public bool TryGetMeta(string key, out ItemStackMetaData value)
         {
-            throw new InvalidOperationException("空のアイテムにメタデータは存在しません");
+            throw new InvalidOperationException("No metadata exists for an empty item");
         }
         
         public IItemStack SetMeta(string key, ItemStackMetaData value)
         {
-            throw new InvalidOperationException("空のアイテムにメタデータは入れられません");
+            throw new InvalidOperationException("Cannot set metadata on an empty item");
         }
         
         public IItemStack Clone()

@@ -66,7 +66,7 @@ public class TreePlacer : EditorWindow
         // 木を配置するボタンを表示
         if (GUILayout.Button("Place Trees")) OnPlaceButton();
         
-        if (GUILayout.Button("キャッシュをクリア")) _trees.Clear();
+        if (GUILayout.Button("Clear cache")) _trees.Clear();
         
         so.ApplyModifiedProperties();
     }

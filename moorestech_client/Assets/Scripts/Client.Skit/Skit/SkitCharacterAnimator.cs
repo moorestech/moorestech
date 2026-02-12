@@ -53,7 +53,7 @@ namespace Client.Skit.Skit
             var clip = await AddressableLoader.LoadAsyncDefault<AnimationClip>(animationId);
             if (clip == null)
             {
-                Debug.LogError($"{nameof(SkitCharacterAnimator)} : AnimationClip '{animationId}' が見つかりません");
+                Debug.LogError($"{nameof(SkitCharacterAnimator)} : AnimationClip '{animationId}' not found");
                 return;
             }
 

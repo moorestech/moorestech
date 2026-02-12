@@ -14,7 +14,7 @@ namespace Client.Common.Util
         {
             if (material.shader.name != "Standard")
             {
-                Debug.Log("このマテリアルはStandardではありません :" + material.name);
+                Debug.Log("This material is not Standard:" + material.name);
                 return null;
             }
             

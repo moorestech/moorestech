@@ -77,7 +77,7 @@ namespace Server.Event.EventReceive
         [IgnoreMember] public Guid CompletedChallengeGuid => Guid.Parse(CompletedChallengeGuidStr);
         [IgnoreMember] public List<Guid> NextChallengeGuids => NextChallengeGuidsStr.ConvertAll(Guid.Parse);
         
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        [Obsolete("This constructor is for deserialization. Do not use directly.")]
         public CompletedChallengeEventMessagePack()
         {
         }

@@ -139,7 +139,7 @@ namespace Client.Starter
             }
             catch (Exception e)
             {
-                Debug.LogError($"初期化処理中にエラーが発生しました: {e.GetType()} {e.Message}\n{e.StackTrace}");
+                Debug.LogError($"An error occurred during initialization: {e.GetType()} {e.Message}\n{e.StackTrace}");
                 // 初期化に失敗した場合はメインメニューへ戻る
                 SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
                 return;
@@ -173,7 +173,7 @@ namespace Client.Starter
                 //サーバーとの接続を確立
                 var serverCommunicator = await ConnectionToServer();
                 
-                loadingLog.text += $"\nサーバーとの接続完了  {loadingStopwatch.Elapsed}";
+                loadingLog.text += $"\nServer connection complete  {loadingStopwatch.Elapsed}";
                 
                 //データの受付開始
                 var packetSender = new PacketSender(serverCommunicator);
@@ -187,7 +187,7 @@ namespace Client.Starter
                 // Fetch the initial data bundle
                 handshakeResponse = await vanillaApi.Response.InitialHandShake(playerConnectionSetting.PlayerId, default);
                 
-                loadingLog.text += $"\n初期データ取得完了  {loadingStopwatch.Elapsed}";
+                loadingLog.text += $"\nInitial data retrieval complete  {loadingStopwatch.Elapsed}";
             }
             
             async UniTask<ServerCommunicator> ConnectionToServer()
@@ -202,7 +202,7 @@ namespace Client.Starter
                 }
                 catch (SocketException)
                 {
-                    loadingLog.text += "\nサーバーの接続が失敗しました。サーバーを起動します。";
+                    loadingLog.text += "\nServer connection failed. Starting server.";
                     try
                     {
                         var serverInstanceGameObject = new GameObject("ServerInstance");
@@ -220,8 +220,8 @@ namespace Client.Starter
                     }
                     catch (Exception e)
                     {
-                        Debug.LogError($"サーバーへの接続に失敗しました: {e.Message}");
-                        loadingLog.text += "\nサーバーへの接続に失敗しました。メインメニューに戻ります。";
+                        Debug.LogError($"Failed to connect to server: {e.Message}");
+                        loadingLog.text += "\nFailed to connect to server. Returning to main menu.";
                         await UniTask.Delay(2000);
                         SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
                         throw;
@@ -243,7 +243,7 @@ namespace Client.Starter
             {
                 // TODo この辺も必要な時に必要なだけロードする用にしたいなぁ
                 blockGameObjectPrefabContainer = await BlockGameObjectPrefabContainer.CreateAndLoadBlockGameObjectContainer(missingBlockIdObject);
-                loadingLog.text += $"\nブロックアセットロード完了  {loadingStopwatch.Elapsed}";
+                loadingLog.text += $"\nBlock asset loading complete  {loadingStopwatch.Elapsed}";
             }
             
             async UniTask LoadItemAssets()
@@ -252,7 +252,7 @@ namespace Client.Starter
                 //TODO 非同期で実行できるようにする
                 var modDirectory = ServerConst.CreateServerModsDirectory(serverDirectory);
                 itemImageContainer = ItemImageContainer.CreateAndLoadItemImageContainer(modDirectory);
-                loadingLog.text += $"\nアイテム画像ロード完了  {loadingStopwatch.Elapsed}";
+                loadingLog.text += $"\nItem image loading complete  {loadingStopwatch.Elapsed}";
             }
             
             async UniTask LoadFluidAssets()
@@ -261,7 +261,7 @@ namespace Client.Starter
                 //TODO 非同期で実行できるようにする
                 var modDirectory = ServerConst.CreateServerModsDirectory(serverDirectory);
                 fluidImageContainer = FluidImageContainer.CreateAndLoadFluidImageContainer(modDirectory);
-                loadingLog.text += $"\n液体画像ロード完了  {loadingStopwatch.Elapsed}";
+                loadingLog.text += $"\nFluid image loading complete  {loadingStopwatch.Elapsed}";
             }
             
             async UniTask TakeBlockItemImage()
@@ -290,7 +290,7 @@ namespace Client.Starter
                     itemImageContainer.AddItemView(itemIds[i], itemViewData);
                 }
                 
-                loadingLog.text += $"\nブロックスクリーンショット完了  {loadingStopwatch.Elapsed}";
+                loadingLog.text += $"\nBlock screenshot complete  {loadingStopwatch.Elapsed}";
             }
             
             async UniTask MainGameSceneLoad()
@@ -316,7 +316,7 @@ namespace Client.Starter
                     // Scene load complete.
                 }
 
-                loadingLog.text += $"\nシーンロード完了  {loadingStopwatch.Elapsed}";
+                loadingLog.text += $"\nScene loading complete  {loadingStopwatch.Elapsed}";
             }
             
             

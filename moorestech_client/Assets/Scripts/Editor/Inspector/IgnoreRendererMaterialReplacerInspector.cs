@@ -9,6 +9,6 @@ public class IgnoreRendererMaterialReplacerInspector : Editor
         base.OnInspectorGUI();
         //TODO i18n対応
         
-        EditorGUILayout.HelpBox("このコンポーネント以下のレンダラーはマテリアル置き換えされません", MessageType.Info);
+        EditorGUILayout.HelpBox("Renderers under this component will not have materials replaced", MessageType.Info);
     }
 }

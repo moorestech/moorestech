@@ -46,7 +46,7 @@ namespace Server.Protocol.PacketResponse
                 Pos = new Vector3MessagePack(pos);
             }
             
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public PlayerCoordinateSendProtocolMessagePack() { }
         }
     }

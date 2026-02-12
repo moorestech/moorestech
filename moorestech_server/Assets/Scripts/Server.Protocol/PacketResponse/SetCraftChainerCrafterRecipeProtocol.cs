@@ -41,7 +41,7 @@ namespace Server.Protocol.PacketResponse
             [Key(3)] public List<CraftingSolverItemJsonObjectMessagePack> Inputs { get; set; }
             [Key(4)] public List<CraftingSolverItemJsonObjectMessagePack> Outputs { get; set; }
             
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public SetCraftChainerCrafterRecipeProtocolMessagePack() { }
             
             public SetCraftChainerCrafterRecipeProtocolMessagePack(Vector3Int blockPos, List<CraftingSolverItem> inputs, List<CraftingSolverItem> outputs)

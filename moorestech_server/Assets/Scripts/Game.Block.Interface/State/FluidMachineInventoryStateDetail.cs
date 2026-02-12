@@ -30,7 +30,7 @@ namespace Game.Block.Interface.State
             OutputTanks = outputTanks;
         }
         
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        [Obsolete("This constructor is for deserialization. Do not use directly.")]
         public FluidMachineInventoryStateDetail()
         {
         }
@@ -43,7 +43,7 @@ namespace Game.Block.Interface.State
         [Key(1)] public double Amount { get; set; }
         [Key(2)] public double MaxCapacity { get; set; }
         
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        [Obsolete("This constructor is for deserialization. Do not use directly.")]
         public FluidMessagePack()
         {
         }

@@ -46,9 +46,9 @@ namespace Client.Game.InGame.Train.RailGraph
             reason = canDelete switch
             {
                 DeleteDeniedReason.None => null,
-                DeleteDeniedReason.StationInternalEdge => "駅内部のレールは削除できません。",
-                DeleteDeniedReason.NodeInUseByTrain => "レール上に車両があります。",
-                DeleteDeniedReason.UnknownError => "不明なエラー",
+                DeleteDeniedReason.StationInternalEdge => "Cannot delete rails inside a station.",
+                DeleteDeniedReason.NodeInUseByTrain => "A train is on the rail.",
+                DeleteDeniedReason.UnknownError => "Unknown error",
                 DeleteDeniedReason.Removed => null,
                 _ => throw new ArgumentOutOfRangeException(),
             };

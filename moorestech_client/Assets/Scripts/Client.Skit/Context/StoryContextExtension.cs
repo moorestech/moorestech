@@ -25,7 +25,7 @@ namespace Client.Skit.Context
             }
             catch (VContainerException e)
             {
-                Debug.LogError("CharacterObjectContainerがコンテキストに設定されていませんでした。");
+                Debug.LogError("CharacterObjectContainer was not set in the context.");
                 return null;
             }
         }

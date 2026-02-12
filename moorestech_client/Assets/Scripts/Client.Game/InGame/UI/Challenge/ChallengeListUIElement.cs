@@ -70,7 +70,7 @@ namespace Client.Game.InGame.UI.Challenge
                     {
                         case GameActionElement.GameActionTypeConst.unlockCraftRecipe :
                             var recipeGuids = ((UnlockCraftRecipeGameActionParam)clearedActionsElement.GameActionParam).UnlockRecipeGuids;
-                            var unlockRecipeText = "レシピ解放: \n\t";
+                            var unlockRecipeText = "Recipe unlock: \n\t";
                             foreach (var guid in recipeGuids)
                             {
                                 var recipe = MasterHolder.CraftRecipeMaster.GetCraftRecipe(guid);
@@ -87,7 +87,7 @@ namespace Client.Game.InGame.UI.Challenge
                             break;
                         case GameActionElement.GameActionTypeConst.unlockItemRecipeView :
                             var itemGuids = ((UnlockItemRecipeViewGameActionParam)clearedActionsElement.GameActionParam).UnlockItemGuids;
-                            clearedActionsTest += $"アイテム解放: ";
+                            clearedActionsTest += $"Item unlock: ";
                             foreach (var guid in itemGuids)
                             {
                                 var itemMaster = MasterHolder.ItemMaster.GetItemMaster(guid);
@@ -97,9 +97,9 @@ namespace Client.Game.InGame.UI.Challenge
                         case GameActionElement.GameActionTypeConst.giveItem :
                             var giveItemParam = (GiveItemGameActionParam)clearedActionsElement.GameActionParam;
                             var targetLabel = giveItemParam.DeliveryTarget == GiveItemGameActionParam.DeliveryTargetConst.allPlayers
-                                ? "全員"
-                                : "完了者のみ";
-                            clearedActionsTest += $"アイテム支給({targetLabel}): ";
+                                ? "Everyone"
+                                : "Completers only";
+                            clearedActionsTest += $"Item grant({targetLabel}): ";
                             var rewardItems = giveItemParam.RewardItems;
                             foreach (var reward in rewardItems)
                             {

@@ -118,7 +118,7 @@ namespace Client.Game.InGame.UI.Inventory.Craft
         {
             if (!_isInteractable)
             {
-                MouseCursorTooltip.Instance.Show("アイテムが足りないためクラフトできません", isLocalize: false);
+                MouseCursorTooltip.Instance.Show("Cannot craft due to insufficient items", isLocalize: false);
             }
             
             if (restartElapsedTimeUpdateOnPointerEnter) _isCursorStay = true;

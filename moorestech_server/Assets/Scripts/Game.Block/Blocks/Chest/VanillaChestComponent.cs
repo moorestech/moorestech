@@ -49,7 +49,7 @@ namespace Game.Block.Blocks.Chest
 
             if (slotNum < itemJsons.Count)
             {
-                Debug.LogError($"保存されているアイテムスロット数が、チェストのスロット数を超えています。BlockInstanceId:{blockInstanceId}");
+                Debug.LogError($"Saved item slot count exceeds chest slot count. BlockInstanceId:{blockInstanceId}");
             }
         }
         

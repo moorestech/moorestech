@@ -55,7 +55,7 @@ namespace Client.Game.InGame.Context
             var path = masterElement.BlockPrefabAddressablesPath;
             if (string.IsNullOrEmpty(path))
             {
-                Debug.LogError($"ブロックのパスの設定がありません。 Name:{masterElement.Name} GUID:{masterElement.BlockGuid}");
+                Debug.LogError($"Block path is not configured. Name:{masterElement.Name} GUID:{masterElement.BlockGuid}");
                 return null;
             }
             
@@ -63,7 +63,7 @@ namespace Client.Game.InGame.Context
             if (blockAsset == null)
             {
                 //TODO ログ基盤に入れる
-                Debug.LogError($"ブロックのアセットが見つかりません。Name:{masterElement.Name} Path:{masterElement.BlockPrefabAddressablesPath} GUID:{masterElement.BlockGuid} ");
+                Debug.LogError($"Block asset not found. Name:{masterElement.Name} Path:{masterElement.BlockPrefabAddressablesPath} GUID:{masterElement.BlockGuid} ");
                 return null;
             }
             
@@ -166,7 +166,7 @@ namespace Client.Game.InGame.Context
             if (!_blockPrefabInfos.TryGetValue(blockId, out var blockObjectInfo))
             {
                 var blockMasterElement = MasterHolder.BlockMaster.GetBlockMaster(blockId);
-                throw new System.Exception($"ブロックの登録がありません。Name:{blockMasterElement.Name} GUID:{blockMasterElement.BlockGuid}");
+                throw new System.Exception($"Block is not registered. Name:{blockMasterElement.Name} GUID:{blockMasterElement.BlockGuid}");
             }
             
             //ブロックの作成とセットアップをして返す

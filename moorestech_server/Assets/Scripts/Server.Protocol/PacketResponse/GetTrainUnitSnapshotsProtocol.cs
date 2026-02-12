@@ -40,7 +40,7 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class RequestMessagePack : ProtocolMessagePackBase
         {
-            [Obsolete("MessagePack用のコンストラクタです。")]
+            [Obsolete("This constructor is for MessagePack deserialization. Do not use directly.")]
             public RequestMessagePack()
             {
                 Tag = ProtocolTag;
@@ -54,7 +54,7 @@ namespace Server.Protocol.PacketResponse
             [Key(3)] public long ServerTick { get; set; }
             [Key(4)] public uint UnitsHash { get; set; }
 
-            [Obsolete("MessagePack用のコンストラクタです。")]
+            [Obsolete("This constructor is for MessagePack deserialization. Do not use directly.")]
             public ResponseMessagePack()
             {
                 Tag = ProtocolTag;

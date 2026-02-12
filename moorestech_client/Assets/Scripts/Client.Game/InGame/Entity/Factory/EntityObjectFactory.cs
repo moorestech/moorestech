@@ -30,7 +30,7 @@ namespace Client.Game.InGame.Entity.Factory
                 return　await factory.CreateEntity(parent, entity);
             }
             
-            throw new ArgumentException($"エンティティタイプに対応するファクトリーがありません: {entity.Type}");
+            throw new ArgumentException($"No factory found for entity type: {entity.Type}");
         }
     }
 }

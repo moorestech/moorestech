@@ -104,7 +104,7 @@ namespace Client.Game.InGame.Block
                             }
                             catch (Exception e)
                             {
-                                Debug.LogError($"Name:{BlockMasterElement.Name} Pos: {BlockPosInfo.OriginalPos} BlockStateChangeProcessorの{processor.GetType().Name}で例外が発生しました。\n{e.Message}\n{e.StackTrace}");
+                                Debug.LogError($"Name:{BlockMasterElement.Name} Pos: {BlockPosInfo.OriginalPos} Exception occurred in BlockStateChangeProcessor {processor.GetType().Name}.\n{e.Message}\n{e.StackTrace}");
                             }
                         }
                         

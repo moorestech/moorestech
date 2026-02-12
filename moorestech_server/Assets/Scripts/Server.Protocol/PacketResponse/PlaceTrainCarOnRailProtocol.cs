@@ -198,7 +198,7 @@ namespace Server.Protocol.PacketResponse
             [IgnoreMember] public int InventorySlot => PlayerInventoryConst.HotBarSlotToInventorySlot(HotBarSlot);
             [Key(4)] public int PlayerId { get; set; }
             
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public PlaceTrainOnRailRequestMessagePack()
             {
                 // タグを既定値に設定
@@ -228,7 +228,7 @@ namespace Server.Protocol.PacketResponse
             [Key(2)] public bool Success { get; set; }
             [Key(3)] public PlaceTrainCarFailureType FailureType { get; set; }
             
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public PlaceTrainOnRailResponseMessagePack()
             {
                 Tag = ProtocolTag;

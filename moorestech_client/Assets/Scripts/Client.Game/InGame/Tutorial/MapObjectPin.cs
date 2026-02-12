@@ -54,7 +54,7 @@ namespace Client.Game.InGame.Tutorial
                 
                 if (mapObject == null)
                 {
-                    Debug.LogError($"未破壊のMapObject {_currentTutorialParam.MapObjectGuid} が存在しません");
+                    Debug.LogError($"Undestroyed MapObject {_currentTutorialParam.MapObjectGuid} does not exist");
                     return;
                 }
                 

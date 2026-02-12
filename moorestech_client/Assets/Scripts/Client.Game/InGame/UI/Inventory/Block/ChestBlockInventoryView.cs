@@ -25,7 +25,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
                 var blockName = blockGameObject.BlockMasterElement.Name;
                 var guid = blockGameObject.BlockMasterElement.BlockGuid;
                 // TODO ログ基盤にいれる
-                Debug.LogError($"ブロック名:{blockName} guid:{guid} はIChestParamを持っていません。指定しているUIを見直すか、スキーマを見直してください。");
+                Debug.LogError($"Block name:{blockName} guid:{guid} does not have IChestParam. Please review the assigned UI or the schema.");
                 return;
             }
             

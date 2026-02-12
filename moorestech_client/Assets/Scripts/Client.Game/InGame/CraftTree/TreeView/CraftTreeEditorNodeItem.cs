@@ -68,9 +68,9 @@ namespace Client.Game.InGame.CraftTree.TreeView
             {
                 var contextMenus = new List<ContextMenuBarInfo>
                 {
-                    new("レシピを非表示", HideChildrenNode),
-                    new("これより下を完了", () => { ChildrenComplete(Node); }),
-                    new("これより上を未完了に", () => { ParentUnComplete(Node); }),
+                    new("Hide recipe", HideChildrenNode),
+                    new("Complete all below", () => { ChildrenComplete(Node); }),
+                    new("Mark all above incomplete", () => { ParentUnComplete(Node); }),
                 };
                 contextMenuTarget.SetContextMenuBars(contextMenus);
             }

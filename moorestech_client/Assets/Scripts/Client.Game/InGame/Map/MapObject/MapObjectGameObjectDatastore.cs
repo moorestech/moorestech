@@ -31,7 +31,7 @@ namespace Client.Game.InGame.Map.MapObject
             {
                 if (mapObject == null)
                 {
-                    Debug.LogError("MapObjectGameObjectDatastore: mapObjectsにnullが含まれています。moorestech/MapExportAndSettingを実行して設定してください");
+                    Debug.LogError("MapObjectGameObjectDatastore: mapObjects contains null. Please run moorestech/MapExportAndSetting to configure");
                     continue;
                 }
                 _allMapObjects.Add(mapObject.InstanceId, mapObject);
@@ -59,7 +59,7 @@ namespace Client.Game.InGame.Map.MapObject
                     _allMapObjects[data.InstanceId].UpdateHp(data.CurrentHp);
                     break;
                 default:
-                    throw new Exception("MapObjectUpdateEventProtocol: EventTypeが不正か実装されていません");
+                    throw new Exception("MapObjectUpdateEventProtocol: EventType is invalid or not implemented");
             }
         }
         

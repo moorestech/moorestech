@@ -86,7 +86,7 @@ namespace Game.World.DataStore
         {
             if (_blockMasterDictionary.TryGetValue(blockInstanceId, out var data)) return data.BlockPositionInfo.OriginalPos;
             
-            throw new Exception("ブロックがありません");
+            throw new Exception("Block not found");
         }
         
         public bool TryAddBlock(BlockId blockId, Vector3Int position, BlockDirection direction, BlockCreateParam[] createParams, out IBlock block)

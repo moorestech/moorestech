@@ -110,7 +110,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
                     {
                         var resultCount = item.Count * minutesCount;
                         var itemName = MasterHolder.ItemMaster.GetItemMaster(item.ItemGuid).Name;
-                        machineRecipeCountText += $"{itemName} : {resultCount:F1}/分 ";
+                        machineRecipeCountText += $"{itemName} : {resultCount:F1}/min ";
                     }
                 }
                 machineRecipeCount.text = machineRecipeCountText;
@@ -134,7 +134,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
                 var colorTag = powerRate < 1.0f ? "<color=red>" : string.Empty;
                 var resetTag = powerRate < 1.0f ? "</color>" : string.Empty;
                 
-                powerRateText.text = $"エネルギー {colorTag}{powerRate * 100:F2}{resetTag}% {colorTag}{currentPower:F2}{resetTag}/{requiredPower:F2}";
+                powerRateText.text = $"Energy {colorTag}{powerRate * 100:F2}{resetTag}% {colorTag}{currentPower:F2}{resetTag}/{requiredPower:F2}";
             }
             
             void UpdateFluidInventory()

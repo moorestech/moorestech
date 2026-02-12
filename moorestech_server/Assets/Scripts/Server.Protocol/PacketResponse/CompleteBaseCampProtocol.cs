@@ -64,7 +64,7 @@ namespace Server.Protocol.PacketResponse
             [Key(2)] public int PlayerId { get; set; }
             [Key(3)] public Vector3IntMessagePack Position { get; set; }
             
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            [Obsolete("This constructor is for deserialization. Do not use directly.")]
             public CompleteBaseCampProtocolMessagePack() { }
             
             public CompleteBaseCampProtocolMessagePack(int playerId, Vector3Int position)

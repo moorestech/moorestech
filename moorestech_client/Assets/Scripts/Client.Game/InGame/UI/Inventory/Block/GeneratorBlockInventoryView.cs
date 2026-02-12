@@ -46,12 +46,12 @@ namespace Client.Game.InGame.UI.Inventory.Block
             var state = _blockGameObject.GetStateDetail<PowerGeneratorStateDetail>(PowerGeneratorStateDetail.StateDetailKey);
             if (state == null)
             {
-                Debug.LogError("PowerGeneratorStateDetailが取得できません。");
+                Debug.LogError("Failed to get PowerGeneratorStateDetail.");
                 return;
             }
             
             fuelProgressSlider.value = (float)(state.RemainingFuelTime / state.CurrentFuelTime);
-            operatingRateText.text = $"燃料消費は稼働率に応じて高くなる\n稼働率: {state.OperatingRate * 100f:F0}%";
+            operatingRateText.text = $"Fuel consumption increases with operating rate\nOperating rate: {state.OperatingRate * 100f:F0}%";
         }
     }
 }

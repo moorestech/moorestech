@@ -29,7 +29,7 @@ namespace Game.Gear.Common
             GearNetworkOperatingRate = gearNetworkInfo.OperatingRate;
         }
         
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        [Obsolete("This constructor is for deserialization. Do not use directly.")]
         public GearStateDetail()
         {
         }

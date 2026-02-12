@@ -60,7 +60,7 @@ namespace Client.Editor.Toolbar
                 button.style.backgroundColor = normalColor;
             });
 
-            button.tooltip = "ホームシーンに遷移 (Transition to Home Scene)";
+            button.tooltip = "Transition to Home Scene";
 
             return button;
         }
@@ -76,7 +76,7 @@ namespace Client.Editor.Toolbar
             var sceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(HomeScenePath);
             if (sceneAsset == null)
             {
-                Debug.LogError($"ホームシーンが見つかりません: {HomeScenePath}\nHome scene not found: {HomeScenePath}");
+                Debug.LogError($"Home scene not found: {HomeScenePath}");
                 return;
             }
 
@@ -85,11 +85,11 @@ namespace Client.Editor.Toolbar
             if (EditorSceneManager.GetActiveScene().isDirty)
             {
                 var result = EditorUtility.DisplayDialogComplex(
-                    "シーンの変更を保存 / Save Scene Changes",
-                    "現在のシーンに保存されていない変更があります。保存しますか？\nThere are unsaved changes in the current scene. Do you want to save?",
-                    "保存 / Save",
-                    "保存しない / Don't Save",
-                    "キャンセル / Cancel"
+                    "Save Scene Changes",
+                    "There are unsaved changes in the current scene. Do you want to save?",
+                    "Save",
+                    "Don't Save",
+                    "Cancel"
                 );
 
                 switch (result)
