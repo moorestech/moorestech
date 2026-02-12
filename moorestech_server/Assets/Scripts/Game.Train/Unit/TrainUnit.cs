@@ -40,10 +40,13 @@ namespace Game.Train.Unit
         public TrainUnitStationDocking trainUnitStationDocking { get; private set; } // 列車の駅ドッキング用のクラス
         public TrainDiagram trainDiagram { get; private set; } // 列車のダイアグラム
         public bool IsDocked => trainUnitStationDocking?.IsDocked ?? false;
-        //キー関連
+        //キー関連、差分通知関連
         //マスコンレベル 0がニュートラル、1が前進1段階、-1が後退1段階.キー入力やテスト、外部から直接制御できる。min maxは±16777216とする(暫定)
         public int masconLevel = 0;
-        public int pre_masconLevel = 0;
+        private int pre_masconLevel = 0;
+        private bool isNowDockingSpeedZero = false;//ドッキングした瞬間強制速度0になるのでmasconlevel差分通知ではズレが生じる
+        private int pre_approachingNodeId = -1;
+        
         private int tickCounter = 0;// TODO デバッグトグル関係　そのうち消す
         public TrainUnit(
             RailPosition initialPosition,
@@ -241,6 +244,7 @@ namespace Game.Train.Unit
                     {
                         _currentSpeed = 0;
                         _accumulatedDistance = 0;
+                        isNowDockingSpeedZero = true;
                         //diagramが駅を見ている場合
                         if (trainDiagram.GetCurrentNode().StationRef.StationBlock != null)
                         {
@@ -291,9 +295,7 @@ namespace Game.Train.Unit
                     var nextNode = nextNodelist[0];
                     _railPosition.AddNodeToHead(nextNode);
                 }
-
                 //----------------------------------------------------------------------------------------
-
                 loopCount++;
                 if (loopCount > InfiniteLoopGuardThreshold)
                 {
@@ -303,13 +305,11 @@ namespace Game.Train.Unit
             return totalMoved;
         }
 
-
         //毎フレーム燃料の在庫を確認しながら加速力を計算する
         public double UpdateTractionForce(int masconLevel)
         {
             int totalWeight = 0;
             int totalTraction = 0;
-
             foreach (var car in _cars)
             {
                 var (weight, traction) = car.GetWeightAndTraction();//forceに応じて燃料が消費される:未実装
@@ -325,19 +325,32 @@ namespace Game.Train.Unit
             var node = _railPosition.GetNodeApproaching();
             var dnode = trainDiagram.GetCurrentNode();
             if (dnode == null) return false;
-            if ((node.NodeGuid == trainDiagram.GetCurrentNode().NodeGuid) && (_railPosition.GetDistanceToNextNode() == 0))
+            if (node.NodeGuid == trainDiagram.GetCurrentNode().NodeGuid && _railPosition.GetDistanceToNextNode() == 0)
             {
                 return true;
             }
             return false;
         }
 
-        
         public void TurnOnAutoRun()
         {
             //バリデーションでoff条件をあらいだし
             _isAutoRun = true;
             DiagramValidation();
+        }
+        
+        // masconlevelなどの差分を抽出
+        public (int,bool,int) GetTickDiff()
+        {
+            var ret1 = masconLevel - pre_masconLevel;
+            pre_masconLevel = masconLevel;
+            var ret2 = isNowDockingSpeedZero;
+            isNowDockingSpeedZero = false;
+            var ret3n = _railPosition.GetNodeApproaching();
+            int ret3val = -1;
+            if (ret3n != null) ret3val = ret3n.NodeId;
+            var ret3 = ret3val - pre_approachingNodeId;
+            return (ret1, ret2, ret3);
         }
 
         public void DiagramValidation() 
