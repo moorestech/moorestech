@@ -49,13 +49,13 @@ namespace Client.Tests
         }
 
         [Test]
-        public void RecordSimulationRequest_ConsumeResetsCount()
+        public void RecordSimulationRequest_TryConsumeConsumesOnce()
         {
             _buffer.RecordSimulationRequest();
             _buffer.RecordSimulationRequest();
 
-            Assert.AreEqual(2, _buffer.ConsumeSimulationRequestCount());
-            Assert.AreEqual(0, _buffer.ConsumeSimulationRequestCount());
+            Assert.IsTrue(_buffer.TryConsumeSimulationRequest());
+            Assert.IsFalse(_buffer.TryConsumeSimulationRequest());
         }
 
         [Test]

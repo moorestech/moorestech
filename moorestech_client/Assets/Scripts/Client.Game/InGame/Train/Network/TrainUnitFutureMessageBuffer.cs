@@ -13,7 +13,7 @@ namespace Client.Game.InGame.Train.Network
         private readonly SortedDictionary<ulong, List<ITrainTickBufferedEvent>> _futurePreEvents = new();
         private readonly SortedDictionary<ulong, List<ITrainTickBufferedEvent>> _futurePostEvents = new();
         private readonly SortedDictionary<ulong, TrainUnitHashStateMessagePack> _futureHashStates = new();
-        private int _pendingSimulationRequestCount;
+        private bool _hasPendingSimulationRequest;
 
         public TrainUnitFutureMessageBuffer(TrainUnitTickState tickState)
         {
@@ -114,20 +114,24 @@ namespace Client.Game.InGame.Train.Network
             FlushFutureEvents(_futurePostEvents, _tickState.GetTick());
         }
 
-        // preイベントが要求したsim実行数を加算する。
-        // Increment simulation request count emitted by pre events.
+        // preイベントが要求したsim実行フラグを立てる。
+        // Set the simulation request flag emitted by pre events.
         public void RecordSimulationRequest()
         {
-            _pendingSimulationRequestCount++;
+            _hasPendingSimulationRequest = true;
         }
 
-        // 現在tickで消費すべきsim実行要求数を返してリセットする。
-        // Return and reset the number of simulation executions requested for the current tick.
-        public int ConsumeSimulationRequestCount()
+        // 現在tickでsim実行要求を1回だけ消費する。
+        // Consume at most one simulation execution request for the current tick.
+        public bool TryConsumeSimulationRequest()
         {
-            var count = _pendingSimulationRequestCount;
-            _pendingSimulationRequestCount = 0;
-            return count;
+            if (!_hasPendingSimulationRequest)
+            {
+                return false;
+            }
+
+            _hasPendingSimulationRequest = false;
+            return true;
         }
 
         // スナップショット基準までのtickUnifiedIdを全キューから破棄する。
@@ -137,7 +141,7 @@ namespace Client.Game.InGame.Train.Network
             RemoveUpToUnifiedIdFromListDictionary(_futurePreEvents, tickUnifiedId);
             RemoveUpToUnifiedIdFromListDictionary(_futurePostEvents, tickUnifiedId);
             RemoveUpToUnifiedIdFromValueDictionary(_futureHashStates, tickUnifiedId);
-            _pendingSimulationRequestCount = 0;
+            _hasPendingSimulationRequest = false;
 
             #region Internal
 
