@@ -82,16 +82,16 @@ namespace Client.Tests
             Assert.AreEqual(101, _tickState.GetHashReceivedTick());
             Assert.IsTrue(_buffer.TryDequeueHashAtTick(101, out var message));
             Assert.AreEqual((uint)20, message.UnitsHash);
-            Assert.AreEqual(101, message.TrainTick);
+            Assert.AreEqual(101, message.ServerTick);
             Assert.IsFalse(_buffer.TryDequeueHashAtTick(101, out _));
 
             #region Internal
 
-            TrainUnitHashStateMessagePack CreateHashMessage(uint unitsHash, long trainTick)
+            TrainUnitHashStateMessagePack CreateHashMessage(uint unitsHash, long serverTick)
             {
                 // テスト用のhashイベントを明示的に作る。
                 // Build a typed hash event for test scenarios.
-                return new TrainUnitHashStateMessagePack(unitsHash, trainTick);
+                return new TrainUnitHashStateMessagePack(unitsHash, serverTick);
             }
 
             #endregion
@@ -116,11 +116,11 @@ namespace Client.Tests
 
             #region Internal
 
-            TrainUnitHashStateMessagePack CreateHashMessage(uint unitsHash, long trainTick)
+            TrainUnitHashStateMessagePack CreateHashMessage(uint unitsHash, long serverTick)
             {
                 // テスト用のhashイベントを明示的に作る。
                 // Build a typed hash event for test scenarios.
-                return new TrainUnitHashStateMessagePack(unitsHash, trainTick);
+                return new TrainUnitHashStateMessagePack(unitsHash, serverTick);
             }
 
             #endregion

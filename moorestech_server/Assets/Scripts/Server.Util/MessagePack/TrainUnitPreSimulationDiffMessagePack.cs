@@ -10,7 +10,7 @@ namespace Server.Util.MessagePack
     [MessagePackObject]
     public class TrainUnitPreSimulationDiffMessagePack
     {
-        [Key(0)] public long TrainTick { get; set; }
+        [Key(0)] public long ServerTick { get; set; }
         [Key(1)] public List<TrainUnitTickDiffMessagePack> Diffs { get; set; }
 
         [Obsolete("Reserved for MessagePack.")]
@@ -20,7 +20,7 @@ namespace Server.Util.MessagePack
 
         public TrainUnitPreSimulationDiffMessagePack(TrainUpdateService.TrainTickDiffBatch batch)
         {
-            TrainTick = batch.Tick;
+            ServerTick = batch.Tick;
             Diffs = new List<TrainUnitTickDiffMessagePack>(batch.Diffs.Count);
             foreach (var diff in batch.Diffs)
             {
