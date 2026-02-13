@@ -11,7 +11,7 @@ namespace Server.Util.MessagePack
         [Key(2)] public int ToNodeId { get; set; }
         [Key(3)] public Guid ToGuid { get; set; }
         [Key(4)] public int Distance { get; set; }
-        [Key(5)] public long Tick { get; set; }
+        [Key(5)] public long ServerTick { get; set; }
         [Key(6)] public Guid RailTypeGuid { get; set; }
         [Key(7)] public bool IsDrawable { get; set; }
 
@@ -20,14 +20,14 @@ namespace Server.Util.MessagePack
         {
         }
 
-        public RailConnectionCreatedMessagePack(int fromNodeId, Guid fromGuid, int toNodeId, Guid toGuid, int distance, long tick, Guid railTypeGuid, bool isDrawable)
+        public RailConnectionCreatedMessagePack(int fromNodeId, Guid fromGuid, int toNodeId, Guid toGuid, int distance, long serverTick, Guid railTypeGuid, bool isDrawable)
         {
             FromNodeId = fromNodeId;
             FromGuid = fromGuid;
             ToNodeId = toNodeId;
             ToGuid = toGuid;
             Distance = distance;
-            Tick = tick;
+            ServerTick = serverTick;
             RailTypeGuid = railTypeGuid;
             IsDrawable = isDrawable;
         }
