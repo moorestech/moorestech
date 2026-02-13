@@ -4,14 +4,14 @@ using Server.Util.MessagePack;
 
 namespace Client.Game.InGame.Train.Network
 {
-    // 未来tickのTrainUnitイベントを種類別に保持して、シミュレーションtick到達時に適用する。
-    // Buffer future train events by phase and apply them when simulation reaches their tick.
+    // 未来tickのTrain/Railイベントを種類別に保持して、シミュレーションtick到達時に適用する。
+    // Buffer future train/rail events by phase and apply them when simulation reaches their tick.
     public sealed class TrainUnitFutureMessageBuffer
     {
         private readonly TrainUnitTickState _tickState;
         private readonly SortedDictionary<long, List<ITrainTickBufferedEvent>> _futurePreEvents = new();
         private readonly SortedDictionary<long, List<ITrainTickBufferedEvent>> _futurePostEvents = new();
-        private readonly SortedDictionary<long, uint> _futureHashStates = new();
+        private readonly SortedDictionary<long, TrainUnitHashStateMessagePack> _futureHashStates = new();
         private readonly SortedSet<long> _snapshotAppliedTicks = new();
 
         public TrainUnitFutureMessageBuffer(TrainUnitTickState tickState)
@@ -46,7 +46,7 @@ namespace Client.Game.InGame.Train.Network
                 return;
             }
 
-            _futureHashStates[message.ServerTick] = message.UnitsHash;
+            _futureHashStates[message.ServerTick] = message;
             _tickState.RecordHashReceived(message.ServerTick);
         }
 
@@ -54,10 +54,10 @@ namespace Client.Game.InGame.Train.Network
         // Dequeue hash state at the specified tick.
         public bool TryDequeueHashAtTick(long tick, out TrainUnitHashStateMessagePack message)
         {
-            if (_futureHashStates.TryGetValue(tick, out var hash))
+            if (_futureHashStates.TryGetValue(tick, out var hashState))
             {
                 _futureHashStates.Remove(tick);
-                message = new TrainUnitHashStateMessagePack(hash, tick);
+                message = hashState;
                 return true;
             }
             message = null;
