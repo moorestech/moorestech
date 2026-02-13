@@ -63,6 +63,9 @@ namespace Game.Train.Unit
             }
             
             _executedTick++;
+            // tickが進んだら同tick内順序のカウンタを初期化する
+            // Reset per-tick ordering counter when tick advances.
+            _tickSequenceId = 0;
             
             //simulation
             foreach (var trainUnit in _trainUnits)
