@@ -24,9 +24,9 @@ namespace Client.Tests
         public void FlushPreBySimulatedTick_AppliesOnlyPreEvents()
         {
             var applied = new List<string>();
-            _tickState.SetSnapshotBaselineTick(10);
-            _buffer.EnqueuePre(11, TrainTickBufferedEvent.Create("preA", () => applied.Add("preA")));
-            _buffer.EnqueuePost(11, TrainTickBufferedEvent.Create("postA", () => applied.Add("postA")));
+            _tickState.SetSnapshotBaseline(10, 100);
+            _buffer.EnqueuePre(11, 101, TrainTickBufferedEvent.Create("preA", () => applied.Add("preA")));
+            _buffer.EnqueuePost(11, 102, TrainTickBufferedEvent.Create("postA", () => applied.Add("postA")));
 
             _tickState.AdvanceTick();
             _buffer.FlushPreBySimulatedTick();
@@ -38,9 +38,9 @@ namespace Client.Tests
         public void FlushPostBySimulatedTick_AppliesOnlyPostEvents()
         {
             var applied = new List<string>();
-            _tickState.SetSnapshotBaselineTick(20);
-            _buffer.EnqueuePre(21, TrainTickBufferedEvent.Create("preA", () => applied.Add("preA")));
-            _buffer.EnqueuePost(21, TrainTickBufferedEvent.Create("postA", () => applied.Add("postA")));
+            _tickState.SetSnapshotBaseline(20, 200);
+            _buffer.EnqueuePre(21, 201, TrainTickBufferedEvent.Create("preA", () => applied.Add("preA")));
+            _buffer.EnqueuePost(21, 202, TrainTickBufferedEvent.Create("postA", () => applied.Add("postA")));
 
             _tickState.AdvanceTick();
             _buffer.FlushPostBySimulatedTick();
@@ -72,57 +72,93 @@ namespace Client.Tests
         {
             // 現在tick以下のhashは捨て、未来tickのみをキューへ入れる。
             // Ignore hash at or before current tick, and enqueue only future hash.
-            _tickState.SetSnapshotBaselineTick(100);
+            _tickState.SetSnapshotBaseline(100, 1000);
 
-            _buffer.EnqueueHash(CreateHashMessage(10, 100, 99));
+            _buffer.EnqueueHash(CreateHashMessage(10, 100, 99, 1001));
             Assert.AreEqual(100, _tickState.GetHashReceivedTick());
             Assert.IsFalse(_buffer.TryDequeueHashAtTick(99, out _));
 
-            _buffer.EnqueueHash(CreateHashMessage(20, 200, 101));
+            _buffer.EnqueueHash(CreateHashMessage(20, 200, 101, 1002));
             Assert.AreEqual(101, _tickState.GetHashReceivedTick());
             Assert.IsTrue(_buffer.TryDequeueHashAtTick(101, out var message));
             Assert.AreEqual((uint)20, message.UnitsHash);
             Assert.AreEqual((uint)200, message.RailGraphHash);
             Assert.AreEqual(101, message.ServerTick);
+            Assert.AreEqual((uint)1002, message.TickSequenceId);
             Assert.IsFalse(_buffer.TryDequeueHashAtTick(101, out _));
 
             #region Internal
 
-            TrainUnitHashStateMessagePack CreateHashMessage(uint unitsHash, uint railGraphHash, long serverTick)
+            TrainUnitHashStateMessagePack CreateHashMessage(uint unitsHash, uint railGraphHash, uint serverTick, uint tickSequenceId)
             {
                 // テスト用のhashイベントを明示的に作る。
                 // Build a typed hash event for test scenarios.
-                return new TrainUnitHashStateMessagePack(unitsHash, railGraphHash, serverTick);
+                return new TrainUnitHashStateMessagePack(unitsHash, railGraphHash, serverTick, tickSequenceId);
             }
 
             #endregion
         }
         
         [Test]
-        public void DiscardUpToTick_RemovesQueuedHashesAtOrBelowTick()
+        public void DiscardUpToTickUnifiedId_RemovesQueuedHashesAtOrBelowTick()
         {
             // スナップショット適用後は対象tick以下のキューを破棄する。
             // Discard queued hash entries up to the snapshot-covered tick.
-            _tickState.SetSnapshotBaselineTick(10);
-            _buffer.EnqueueHash(CreateHashMessage(10, 100, 11));
-            _buffer.EnqueueHash(CreateHashMessage(20, 200, 12));
-            _buffer.EnqueueHash(CreateHashMessage(30, 300, 13));
+            _tickState.SetSnapshotBaseline(10, 110);
+            _buffer.EnqueueHash(CreateHashMessage(10, 100, 11, 111));
+            _buffer.EnqueueHash(CreateHashMessage(20, 200, 12, 112));
+            _buffer.EnqueueHash(CreateHashMessage(30, 300, 13, 113));
 
-            _buffer.DiscardUpToTick(12);
+            _buffer.DiscardUpToTickUnifiedId(TrainTickUnifiedIdUtility.CreateTickUnifiedId(12, uint.MaxValue));
 
             Assert.IsFalse(_buffer.TryDequeueHashAtTick(11, out _));
             Assert.IsFalse(_buffer.TryDequeueHashAtTick(12, out _));
             Assert.IsTrue(_buffer.TryDequeueHashAtTick(13, out var message));
             Assert.AreEqual((uint)30, message.UnitsHash);
             Assert.AreEqual((uint)300, message.RailGraphHash);
+            Assert.AreEqual((uint)113, message.TickSequenceId);
 
             #region Internal
 
-            TrainUnitHashStateMessagePack CreateHashMessage(uint unitsHash, uint railGraphHash, long serverTick)
+            TrainUnitHashStateMessagePack CreateHashMessage(uint unitsHash, uint railGraphHash, uint serverTick, uint tickSequenceId)
             {
                 // テスト用のhashイベントを明示的に作る。
                 // Build a typed hash event for test scenarios.
-                return new TrainUnitHashStateMessagePack(unitsHash, railGraphHash, serverTick);
+                return new TrainUnitHashStateMessagePack(unitsHash, railGraphHash, serverTick, tickSequenceId);
+            }
+
+            #endregion
+        }
+
+        [Test]
+        public void DiscardUpToTickUnifiedId_RemovesQueuedEventsAndHashesAtOrBelowSequence()
+        {
+            // スナップショット基準sequence以下のイベントとhashが破棄されることを確認する。
+            // Ensure events/hashes at or below snapshot sequence baseline are discarded.
+            var applied = new List<string>();
+            _tickState.SetSnapshotBaseline(50, 500);
+
+            _buffer.EnqueuePre(51, 501, TrainTickBufferedEvent.Create("preA", () => applied.Add("preA")));
+            _buffer.EnqueuePre(51, 502, TrainTickBufferedEvent.Create("preB", () => applied.Add("preB")));
+            _buffer.EnqueueHash(CreateHashMessage(11, 22, 51, 501));
+            _buffer.EnqueueHash(CreateHashMessage(33, 44, 52, 503));
+
+            _buffer.DiscardUpToTickUnifiedId(TrainTickUnifiedIdUtility.CreateTickUnifiedId(51, 501));
+
+            _tickState.AdvanceTick();
+            _buffer.FlushPreBySimulatedTick();
+            CollectionAssert.AreEqual(new[] { "preB" }, applied);
+            Assert.IsFalse(_buffer.TryDequeueHashAtTick(51, out _));
+            Assert.IsTrue(_buffer.TryDequeueHashAtTick(52, out var hash));
+            Assert.AreEqual((uint)503, hash.TickSequenceId);
+
+            #region Internal
+
+            TrainUnitHashStateMessagePack CreateHashMessage(uint unitsHash, uint railGraphHash, uint serverTick, uint tickSequenceId)
+            {
+                // テスト用のhashイベントを明示的に作る。
+                // Build a typed hash event for test scenarios.
+                return new TrainUnitHashStateMessagePack(unitsHash, railGraphHash, serverTick, tickSequenceId);
             }
 
             #endregion

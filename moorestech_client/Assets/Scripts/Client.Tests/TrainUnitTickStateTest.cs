@@ -32,10 +32,12 @@ namespace Client.Tests
             var state = new TrainUnitTickState();
             state.RecordHashReceived(20);
 
-            state.SetSnapshotBaselineTick(10);
+            state.SetSnapshotBaseline(10, 500);
 
             Assert.AreEqual(10, state.GetTick());
             Assert.AreEqual(20, state.GetHashReceivedTick());
+            Assert.AreEqual(10, state.GetLastHashVerifiedTick());
+            Assert.AreEqual((uint)500, state.GetAppliedTickSequenceId());
         }
 
         [Test]
@@ -52,6 +54,23 @@ namespace Client.Tests
             Assert.IsTrue(state.TryGetLatestHashTickWindow(out var previousHashTick, out var latestHashTick));
             Assert.AreEqual(126, previousHashTick);
             Assert.AreEqual(130, latestHashTick);
+        }
+
+        [Test]
+        public void IsAllowSimulationNowTick_StopsWhenCurrentTickIsNotHashVerified()
+        {
+            // hash受信済みでも直前tickが未検証なら進行不可になることを確認する。
+            // Ensure simulation stops when current tick is not hash-verified yet.
+            var state = new TrainUnitTickState();
+            state.SetSnapshotBaseline(100, 1000);
+            state.RecordHashReceived(103);
+
+            Assert.IsTrue(state.IsAllowSimulationNowTick());
+            state.AdvanceTick();
+            Assert.IsFalse(state.IsAllowSimulationNowTick());
+
+            state.RecordHashVerified(101);
+            Assert.IsTrue(state.IsAllowSimulationNowTick());
         }
     }
 }
