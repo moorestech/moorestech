@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Client.Game.InGame.Train.Network;
 using Core.Update;
 using UnityEngine;
@@ -67,7 +66,6 @@ namespace Client.Game.InGame.Train.Unit
                 }
                 else
                 {
-                    _estimatedClientTick = _tickState.GetTick() + 1;
                     break;             
                 }
             }
