@@ -25,11 +25,6 @@ namespace Server.Event.EventReceive
 
         private void OnPreSimulationDiff(TrainUpdateService.TrainTickDiffBatch batch)
         {
-            if (batch.Diffs == null || batch.Diffs.Count == 0)
-            {
-                return;
-            }
-
             var tickSequenceId = _trainUpdateService.NextTickSequenceId();
             var payload = MessagePackSerializer.Serialize(new TrainUnitPreSimulationDiffMessagePack(batch, tickSequenceId));
             _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);

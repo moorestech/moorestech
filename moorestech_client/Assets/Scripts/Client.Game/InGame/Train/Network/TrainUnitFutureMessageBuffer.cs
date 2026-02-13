@@ -13,7 +13,7 @@ namespace Client.Game.InGame.Train.Network
         private readonly SortedDictionary<ulong, List<ITrainTickBufferedEvent>> _futurePreEvents = new();
         private readonly SortedDictionary<ulong, List<ITrainTickBufferedEvent>> _futurePostEvents = new();
         private readonly SortedDictionary<ulong, TrainUnitHashStateMessagePack> _futureHashStates = new();
-        private readonly SortedSet<uint> _snapshotAppliedTicks = new();
+        private int _pendingSimulationRequestCount;
 
         public TrainUnitFutureMessageBuffer(TrainUnitTickState tickState)
         {
@@ -59,7 +59,7 @@ namespace Client.Game.InGame.Train.Network
             {
                 // 既に適用済みの統合順序以下は破棄する。
                 // Drop hashes already covered by applied unified order.
-                Debug.LogWarning(
+                Debug.Log(
                     "[TrainUnitFutureMessageBuffer] Dropped stale hash by tick unified id. " +
                     $"serverTick={message.ServerTick}, tickSequenceId={message.TickSequenceId}, " +
                     $"messageTickUnifiedId={messageTickUnifiedId}, appliedTickUnifiedId={_tickState.GetAppliedTickUnifiedId()}");
@@ -114,29 +114,20 @@ namespace Client.Game.InGame.Train.Network
             FlushFutureEvents(_futurePostEvents, _tickState.GetTick());
         }
 
-        // スナップショットを即時適用したtickを記録する。
-        // Record the tick where snapshot has already been applied immediately.
-        public void RecordSnapshotAppliedTick(uint tick)
+        // preイベントが要求したsim実行数を加算する。
+        // Increment simulation request count emitted by pre events.
+        public void RecordSimulationRequest()
         {
-            _snapshotAppliedTicks.Add(tick);
+            _pendingSimulationRequestCount++;
         }
 
-        // 指定tickのSimulateUpdateをスキップするか判定し、対象なら消費する。
-        // Return true when simulation should be skipped for this tick and consume it.
-        public bool TryConsumeSimulationSkipTick(uint tick)
+        // 現在tickで消費すべきsim実行要求数を返してリセットする。
+        // Return and reset the number of simulation executions requested for the current tick.
+        public int ConsumeSimulationRequestCount()
         {
-            while (_snapshotAppliedTicks.Count > 0 && _snapshotAppliedTicks.Min < tick)
-            {
-                _snapshotAppliedTicks.Remove(_snapshotAppliedTicks.Min);
-            }
-
-            if (!_snapshotAppliedTicks.Contains(tick))
-            {
-                return false;
-            }
-
-            _snapshotAppliedTicks.Remove(tick);
-            return true;
+            var count = _pendingSimulationRequestCount;
+            _pendingSimulationRequestCount = 0;
+            return count;
         }
 
         // スナップショット基準までのtickUnifiedIdを全キューから破棄する。
@@ -146,7 +137,7 @@ namespace Client.Game.InGame.Train.Network
             RemoveUpToUnifiedIdFromListDictionary(_futurePreEvents, tickUnifiedId);
             RemoveUpToUnifiedIdFromListDictionary(_futurePostEvents, tickUnifiedId);
             RemoveUpToUnifiedIdFromValueDictionary(_futureHashStates, tickUnifiedId);
-            RemoveUpToTickFromSnapshotAppliedTicks(_snapshotAppliedTicks, TrainTickUnifiedIdUtility.ExtractTick(tickUnifiedId));
+            _pendingSimulationRequestCount = 0;
 
             #region Internal
 
@@ -165,14 +156,6 @@ namespace Client.Game.InGame.Train.Network
                        targetTickUnifiedId <= maxTickUnifiedId)
                 {
                     source.Remove(targetTickUnifiedId);
-                }
-            }
-
-            void RemoveUpToTickFromSnapshotAppliedTicks(SortedSet<uint> source, uint maxTick)
-            {
-                while (source.Count > 0 && source.Min <= maxTick)
-                {
-                    source.Remove(source.Min);
                 }
             }
 
@@ -199,7 +182,6 @@ namespace Client.Game.InGame.Train.Network
                 return;
             }
             var eventTickUnifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(serverTick, tickSequenceId);
-            var currentTickUpperBoundUnifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(_tickState.GetTick(), uint.MaxValue);
             if (eventTickUnifiedId <= _tickState.GetAppliedTickUnifiedId())
             {
                 // スナップショット適用済みの統合順序以下は捨てる。
@@ -210,15 +192,16 @@ namespace Client.Game.InGame.Train.Network
                     $"eventTickUnifiedId={eventTickUnifiedId}, appliedTickUnifiedId={_tickState.GetAppliedTickUnifiedId()}");
                 return;
             }
-            if (eventTickUnifiedId <= currentTickUpperBoundUnifiedId)
+            var currentTickFloorUnifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(_tickState.GetTick(), 0);
+            if (eventTickUnifiedId < currentTickFloorUnifiedId)
             {
-                // 既に過ぎたtickのイベントは適用できないため破棄する。
-                // Drop events targeting past/current ticks because they can no longer be applied deterministically.
+                // 現在tick未満は過去イベントとして破棄する。
+                // Drop events below current tick floor as stale events.
                 Debug.LogWarning(
-                    "[TrainUnitFutureMessageBuffer] Dropped stale buffered event by current tick unified range. " +
+                    "[TrainUnitFutureMessageBuffer] Dropped stale buffered event by current tick floor. " +
                     $"eventTag={bufferedEvent.EventTag}, serverTick={serverTick}, currentTick={_tickState.GetTick()}, " +
                     $"tickSequenceId={tickSequenceId}, eventTickUnifiedId={eventTickUnifiedId}, " +
-                    $"currentTickUpperBoundUnifiedId={currentTickUpperBoundUnifiedId}");
+                    $"currentTickFloorUnifiedId={currentTickFloorUnifiedId}");
                 return;
             }
 

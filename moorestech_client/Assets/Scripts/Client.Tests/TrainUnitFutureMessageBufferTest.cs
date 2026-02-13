@@ -49,22 +49,27 @@ namespace Client.Tests
         }
 
         [Test]
-        public void TryConsumeSimulationSkipTick_ReturnsTrueOnlyForRecordedTick()
+        public void RecordSimulationRequest_ConsumeResetsCount()
         {
-            _buffer.RecordSnapshotAppliedTick(30);
+            _buffer.RecordSimulationRequest();
+            _buffer.RecordSimulationRequest();
 
-            Assert.IsFalse(_buffer.TryConsumeSimulationSkipTick(29));
-            Assert.IsTrue(_buffer.TryConsumeSimulationSkipTick(30));
-            Assert.IsFalse(_buffer.TryConsumeSimulationSkipTick(30));
+            Assert.AreEqual(2, _buffer.ConsumeSimulationRequestCount());
+            Assert.AreEqual(0, _buffer.ConsumeSimulationRequestCount());
         }
 
         [Test]
-        public void TryConsumeSimulationSkipTick_RemovesStaleTicksWhenAdvanced()
+        public void EnqueuePre_AllowsCurrentTickFutureSequence()
         {
-            _buffer.RecordSnapshotAppliedTick(40);
+            // 同一tickでも未適用sequenceなら受け入れて適用できることを確認する。
+            // Ensure same-tick future sequence events are accepted and applied.
+            var applied = new List<string>();
+            _tickState.SetSnapshotBaseline(50, 500);
+            _buffer.EnqueuePre(50, 501, TrainTickBufferedEvent.Create("preCurrentTick", () => applied.Add("preCurrentTick")));
 
-            Assert.IsFalse(_buffer.TryConsumeSimulationSkipTick(41));
-            Assert.IsFalse(_buffer.TryConsumeSimulationSkipTick(40));
+            _buffer.FlushPreBySimulatedTick();
+
+            CollectionAssert.AreEqual(new[] { "preCurrentTick" }, applied);
         }
 
         [Test]
