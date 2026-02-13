@@ -51,10 +51,32 @@ namespace Client.Network.API
                 
                 foreach (var eventMessagePack in response.Events)
                 {
-                    if (!_eventResponseSubjects.TryGetValue(eventMessagePack.Tag, out var subjects)) continue;
+                    if (!_eventResponseSubjects.TryGetValue(eventMessagePack.Tag, out var subjects))
+                    {
+                        // 購読者が居ないまま破棄されるtrain/railイベントを可視化する。
+                        // Surface dropped train/rail events when no subscriber is registered yet.
+                        if (IsTrainOrRailEvent(eventMessagePack.Tag))
+                        {
+                            Debug.LogWarning(
+                                "[VanillaApiEvent] Dropped event because no subscriber was registered yet. " +
+                                $"tag={eventMessagePack.Tag}, payloadLength={eventMessagePack.Payload?.Length ?? 0}");
+                        }
+                        continue;
+                    }
                     
                     subjects.OnNext(eventMessagePack.Payload);
                 }
+            }
+
+            bool IsTrainOrRailEvent(string tag)
+            {
+                if (string.IsNullOrEmpty(tag))
+                {
+                    return false;
+                }
+
+                return tag.StartsWith("va:event:train", StringComparison.Ordinal) ||
+                       tag.StartsWith("va:event:rail", StringComparison.Ordinal);
             }
             
             #endregion
