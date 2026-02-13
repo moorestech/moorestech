@@ -96,9 +96,36 @@ namespace Client.Game.InGame.Train.Network
                 return false;
             var bufferedEvent = _futureEvents[eventTickUnifiedId];
             bufferedEvent.Apply();
-            _futureEvents.Remove(eventTickUnifiedId);
+            
+            // 実行済みイベント以下は再適用不要なので一括破棄する。
+            // Drop all events at or below executed unified id to prevent re-apply.
+            RemoveEventsAtOrBelow(eventTickUnifiedId);
             _tickState.RecordAppliedTickUnifiedId(eventTickUnifiedId);
             return true;
+            
+            #region Internal
+            void RemoveEventsAtOrBelow(ulong maxTickUnifiedId)
+            {
+                while (TryGetFirstTickUnifiedId(_futureEvents, out var firstTickUnifiedId) &&
+                    firstTickUnifiedId <= maxTickUnifiedId)
+                {
+                    _futureEvents.Remove(firstTickUnifiedId);
+                }
+            }
+            
+            static bool TryGetFirstTickUnifiedId<TValue>(SortedDictionary<ulong, TValue> source, out ulong firstTickUnifiedId)
+            {
+                using var enumerator = source.GetEnumerator();
+                if (enumerator.MoveNext())
+                {
+                    firstTickUnifiedId = enumerator.Current.Key;
+                    return true;
+                }
+                
+                firstTickUnifiedId = 0;
+                return false;
+            }
+            #endregion
         }
 
     }
