@@ -13,7 +13,6 @@ namespace Client.Game.InGame.Train.Network
         private readonly SortedDictionary<ulong, List<ITrainTickBufferedEvent>> _futurePreEvents = new();
         private readonly SortedDictionary<ulong, List<ITrainTickBufferedEvent>> _futurePostEvents = new();
         private readonly SortedDictionary<ulong, TrainUnitHashStateMessagePack> _futureHashStates = new();
-        private bool _hasPendingSimulationRequest;
 
         public TrainUnitFutureMessageBuffer(TrainUnitTickState tickState)
         {
@@ -102,9 +101,9 @@ namespace Client.Game.InGame.Train.Network
 
         // 現在tickで適用可能なpre-simイベントを適用する。
         // Apply pre-simulation events that are now reachable by simulated tick.
-        public void FlushPreBySimulatedTick()
+        public bool FlushPreBySimulatedTick()
         {
-            FlushFutureEvents(_futurePreEvents, _tickState.GetTick());
+            return FlushFutureEvents(_futurePreEvents, _tickState.GetTick());
         }
 
         // 現在tickで適用可能なpost-simイベントを適用する。
@@ -114,26 +113,6 @@ namespace Client.Game.InGame.Train.Network
             FlushFutureEvents(_futurePostEvents, _tickState.GetTick());
         }
 
-        // preイベントが要求したsim実行フラグを立てる。
-        // Set the simulation request flag emitted by pre events.
-        public void RecordSimulationRequest()
-        {
-            _hasPendingSimulationRequest = true;
-        }
-
-        // 現在tickでsim実行要求を1回だけ消費する。
-        // Consume at most one simulation execution request for the current tick.
-        public bool TryConsumeSimulationRequest()
-        {
-            if (!_hasPendingSimulationRequest)
-            {
-                return false;
-            }
-
-            _hasPendingSimulationRequest = false;
-            return true;
-        }
-
         // スナップショット基準までのtickUnifiedIdを全キューから破棄する。
         // Discard queued entries whose tickUnifiedId is at or below snapshot baseline.
         public void DiscardUpToTickUnifiedId(ulong tickUnifiedId)
@@ -141,7 +120,6 @@ namespace Client.Game.InGame.Train.Network
             RemoveUpToUnifiedIdFromListDictionary(_futurePreEvents, tickUnifiedId);
             RemoveUpToUnifiedIdFromListDictionary(_futurePostEvents, tickUnifiedId);
             RemoveUpToUnifiedIdFromValueDictionary(_futureHashStates, tickUnifiedId);
-            _hasPendingSimulationRequest = false;
 
             #region Internal
 
@@ -217,9 +195,10 @@ namespace Client.Game.InGame.Train.Network
             events.Add(bufferedEvent);
         }
 
-        private void FlushFutureEvents(SortedDictionary<ulong, List<ITrainTickBufferedEvent>> source, uint currentTick)
+        private bool FlushFutureEvents(SortedDictionary<ulong, List<ITrainTickBufferedEvent>> source, uint currentTick)
         {
             var currentTickUpperBoundUnifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(currentTick, uint.MaxValue);
+            var hasAppliedEvent = false;
             while (TryGetFirstTickUnifiedId(source, out var targetTickUnifiedId) &&
                    targetTickUnifiedId <= currentTickUpperBoundUnifiedId)
             {
@@ -227,12 +206,15 @@ namespace Client.Game.InGame.Train.Network
                 for (var i = 0; i < events.Count; i++)
                 {
                     events[i].Apply();
+                    hasAppliedEvent = true;
                 }
                 source.Remove(targetTickUnifiedId);
                 _tickState.RecordAppliedTickUnifiedId(
                     TrainTickUnifiedIdUtility.ExtractTick(targetTickUnifiedId),
                     TrainTickUnifiedIdUtility.ExtractTickSequenceId(targetTickUnifiedId));
             }
+
+            return hasAppliedEvent;
 
             bool TryGetFirstTickUnifiedId(SortedDictionary<ulong, List<ITrainTickBufferedEvent>> sourceDictionary, out ulong tickUnifiedId)
             {
