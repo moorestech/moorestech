@@ -157,6 +157,7 @@ namespace Client.Starter
             builder.RegisterEntryPoint<RailGraphConnectionNetworkHandler>();
             builder.RegisterEntryPoint<TrainUnitCreatedEventNetworkHandler>();
             builder.RegisterEntryPoint<TrainUnitPreSimulationDiffEventNetworkHandler>();
+            builder.RegisterEntryPoint<TrainCarRemovedEventNetworkHandler>();
             
             // 設置システム
             // register placement system
