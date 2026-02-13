@@ -65,3 +65,10 @@ Note: `TrainUnitSnapshotApplier` removes stale train entities via `EntityObjectD
 
 - `ConnectionDestination` と `Guid` 検証により、古い nodeId の誤適用を防止します。(`moorestech_server/Assets/Scripts/Game.Train/RailGraph/RailConnectionCommandHandler.cs`)
 - `RailGraphHashStateEventPacket` と `TrainUnitHashStateEventPacket` は 1 秒周期でハッシュを配信し、クライアントが差分を検知した場合のみスナップショット再取得を行います。
+
+## Planned Tick-Phase Sync (Mascon Diff)
+
+- 詳細設計は `docs/train/TrainTickSimulation.md` を参照。
+- 方針は「hashをtick進行ゲートに使う」「event系をpre-sim/post-simで分離する」「mascon差分は1tick 1バッチで送る」。
+- 既存の `TrainUnitCreatedEventMessagePack(ServerTick)` / `TrainDiagramEventMessagePack(Tick)` / `GetTrainUnitSnapshotsProtocol.ResponseMessagePack(ServerTick)` と同様に、追加イベントもtick同梱を前提にする。
+- `va:event` はポーリング取得のため、到着は複数tick分が束ねられ得る。クライアントは受信順ではなくtickで適用順を制御する。

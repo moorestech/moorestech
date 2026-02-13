@@ -11,12 +11,17 @@ namespace Client.Game.InGame.Train.Network
 {
     public sealed class TrainUnitCreatedEventNetworkHandler : IInitializable, IDisposable
     {
+        private readonly TrainUnitFutureMessageBuffer _futureMessageBuffer;
         private readonly TrainUnitClientCache _cache;
         private readonly TrainCarObjectDatastore _trainCarDatastore;
         private IDisposable _subscription;
 
-        public TrainUnitCreatedEventNetworkHandler(TrainUnitClientCache cache, TrainCarObjectDatastore trainCarDatastore)
+        public TrainUnitCreatedEventNetworkHandler(
+            TrainUnitFutureMessageBuffer futureMessageBuffer,
+            TrainUnitClientCache cache,
+            TrainCarObjectDatastore trainCarDatastore)
         {
+            _futureMessageBuffer = futureMessageBuffer;
             _cache = cache;
             _trainCarDatastore = trainCarDatastore;
         }
@@ -34,8 +39,6 @@ namespace Client.Game.InGame.Train.Network
             _subscription = null;
         }
 
-        #region Internal
-
         private void OnEventReceived(byte[] payload)
         {
             // 受信イベントを適用する
@@ -45,13 +48,30 @@ namespace Client.Game.InGame.Train.Network
             var message = MessagePackSerializer.Deserialize<TrainUnitCreatedEventMessagePack>(payload);
             if (message?.Snapshot == null) return;
 
-            // スナップショットをキャッシュに反映し、車両オブジェクトを生成する
-            // Apply snapshot to cache and create train car objects
+            // スナップショットを将来tickバッファへ投入する
+            // Push snapshot into the future-tick buffer
             var bundle = message.Snapshot.ToModel();
-            _cache.Upsert(bundle, message.ServerTick);
-            _trainCarDatastore.OnTrainObjectUpdate(bundle.Simulation.Cars);
-        }
+            var serverTick = message.ServerTick;
+            _futureMessageBuffer.EnqueuePost(serverTick, CreateBufferedEvent());
 
-        #endregion
+            #region Internal
+
+            ITrainTickBufferedEvent CreateBufferedEvent()
+            {
+                // 適用処理をイベント化してtickバッファへ渡す
+                // Wrap the apply action into a buffered event for the tick queue
+                return TrainTickBufferedEvent.Create(TrainUnitCreatedEventPacket.EventTag, ApplyCreatedEvent);
+
+                void ApplyCreatedEvent()
+                {
+                    // 列車キャッシュと車両オブジェクトを同期更新する
+                    // Update train cache and train-car objects together
+                    _cache.Upsert(bundle);
+                    _trainCarDatastore.OnTrainObjectUpdate(bundle.Simulation.Cars);
+                }
+            }
+
+            #endregion
+        }
     }
 }

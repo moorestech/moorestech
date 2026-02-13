@@ -1,0 +1,57 @@
+using Client.Game.InGame.Train.Unit;
+using NUnit.Framework;
+
+namespace Client.Tests
+{
+    public class TrainUnitTickStateTest
+    {
+        [Test]
+        public void HashReceivedTick_GatesSimulationProgress()
+        {
+            // 受信済みhashのtickが進行可能な上限tickになることを確認する。
+            // Verify the received hash tick acts as simulation upper bound.
+            var state = new TrainUnitTickState();
+            Assert.IsFalse(state.IsAllowSimulationNowTick());
+
+            state.RecordHashReceived(3);
+            Assert.IsTrue(state.IsAllowSimulationNowTick());
+
+            state.AdvanceTick();
+            state.AdvanceTick();
+            state.AdvanceTick();
+
+            Assert.AreEqual(3, state.GetTick());
+            Assert.IsFalse(state.IsAllowSimulationNowTick());
+        }
+
+        [Test]
+        public void SnapshotBaselineTick_DoesNotRollbackVerifiedOrReceivedTick()
+        {
+            // スナップショット基準tick更新で受信済みtickが巻き戻らないことを確認する。
+            // Ensure baseline update does not roll back received hash tick.
+            var state = new TrainUnitTickState();
+            state.RecordHashReceived(20);
+
+            state.SetSnapshotBaselineTick(10);
+
+            Assert.AreEqual(10, state.GetTick());
+            Assert.AreEqual(20, state.GetHashReceivedTick());
+        }
+
+        [Test]
+        public void LatestHashTickWindow_ReturnsPreviousAndLatestHashTicks()
+        {
+            // hashを2回以上受信したら直近の窓情報が取得できることを確認する。
+            // Ensure the latest hash window is available after two hash receives.
+            var state = new TrainUnitTickState();
+
+            state.RecordHashReceived(126);
+            Assert.IsFalse(state.TryGetLatestHashTickWindow(out _, out _));
+
+            state.RecordHashReceived(130);
+            Assert.IsTrue(state.TryGetLatestHashTickWindow(out var previousHashTick, out var latestHashTick));
+            Assert.AreEqual(126, previousHashTick);
+            Assert.AreEqual(130, latestHashTick);
+        }
+    }
+}

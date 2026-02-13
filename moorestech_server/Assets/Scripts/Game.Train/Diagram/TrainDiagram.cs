@@ -191,12 +191,25 @@ namespace Game.Train.Diagram
             _currentIndex = (_currentIndex + 1) % _entries.Count;
         }
 
+        // 出発時に現在entryの状態を初期化してから次entryへ移動する。
+        // Reset current entry state on departure, then move to the next entry.
+        public void NextEntryAndDepartureReset()
+        {
+            if (!TryGetActiveEntry(out var currentEntry))
+            {
+                return;
+            }
+            currentEntry.OnDeparted();
+            MoveToNextEntry();
+        }
+
         //node削除時かならず呼ばれます->entriesの中身は常に実在するnodeのみ
         //currentIndexも削除対象なら暗黙的に次のnodeに移動します
         public void HandleNodeRemoval(IRailNode removedNode)
         {
             if (removedNode == null)
                 return;
+            var isCurrentEntryRemoved = false;
             for (var i = _entries.Count - 1; i >= 0; i--)
             {
                 if (!_entries[i].MatchesNode(removedNode))
@@ -208,6 +221,10 @@ namespace Game.Train.Diagram
                 {
                     _currentIndex--;
                 }
+                else if (_currentIndex >= 0 && i == _currentIndex)
+                {
+                    isCurrentEntryRemoved = true;
+                }
                 _entries.RemoveAt(i);
             }
 
@@ -218,6 +235,11 @@ namespace Game.Train.Diagram
             else 
             {
                 _currentIndex %= _entries.Count;
+            }
+
+            if (isCurrentEntryRemoved && _entries.Count > 0)
+            {
+                _context?.OnCurrentEntryShiftedByRemoval();
             }
         }
 
@@ -245,27 +267,6 @@ namespace Game.Train.Diagram
             {
                 entry.OnDeparted();
             }
-        }
-
-        internal void NotifyDocked(long currentTick)
-        {
-            var entry = GetCurrentEntry();
-            if (_context == null || entry?.Node == null)
-            {
-                return;
-            }
-            var hash = TrainDiagramHashCalculator.Compute(this);
-            _diagramManager.NotifyDocked(_context, entry, currentTick, hash);
-        }
-
-        internal void NotifyDeparted(TrainDiagramEntry entry, long currentTick)
-        {
-            if (_context == null || entry?.Node == null)
-            {
-                return;
-            }
-            var hash = TrainDiagramHashCalculator.Compute(this);
-            _diagramManager.NotifyDeparted(_context, entry, currentTick, hash);
         }
 
         public TrainDiagramSaveData CreateTrainDiagramSaveData()
