@@ -49,14 +49,14 @@ namespace Server.Util.MessagePack
         [Key(3)] public Vector3MessagePack OriginPoint { get; set; }
         [Key(4)] public Vector3MessagePack FrontControlPoint { get; set; }
         [Key(5)] public Vector3MessagePack BackControlPoint { get; set; }
-        [Key(6)] public long Tick { get; set; }
+        [Key(6)] public long ServerTick { get; set; }
 
         [Obsolete("デシリアライズ用コンストラクタです。")]
         public RailNodeCreatedMessagePack()
         {
         }
 
-        public RailNodeCreatedMessagePack(int nodeId, Guid nodeGuid, ConnectionDestination connectionDestination, Vector3 originPoint, Vector3 frontControlPoint, Vector3 backControlPoint, long tick)
+        public RailNodeCreatedMessagePack(int nodeId, Guid nodeGuid, ConnectionDestination connectionDestination, Vector3 originPoint, Vector3 frontControlPoint, Vector3 backControlPoint, long serverTick)
         {
             NodeId = nodeId;
             NodeGuid = nodeGuid;
@@ -64,7 +64,7 @@ namespace Server.Util.MessagePack
             OriginPoint = new Vector3MessagePack(originPoint);
             FrontControlPoint = new Vector3MessagePack(frontControlPoint);
             BackControlPoint = new Vector3MessagePack(backControlPoint);
-            Tick = tick;
+            ServerTick = serverTick;
         }
     }
 
@@ -77,18 +77,18 @@ namespace Server.Util.MessagePack
     {
         [Key(0)] public int NodeId { get; set; }
         [Key(1)] public Guid NodeGuid { get; set; }
-        [Key(2)] public long Tick { get; set; }
+        [Key(2)] public long ServerTick { get; set; }
 
         [Obsolete("Reserved for MessagePack serialization.")]
         public RailNodeRemovedMessagePack()
         {
         }
 
-        public RailNodeRemovedMessagePack(int nodeId, Guid nodeGuid, long tick)
+        public RailNodeRemovedMessagePack(int nodeId, Guid nodeGuid, long serverTick)
         {
             NodeId = nodeId;
             NodeGuid = nodeGuid;
-            Tick = tick;
+            ServerTick = serverTick;
         }
     }
 
