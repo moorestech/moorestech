@@ -59,19 +59,14 @@ namespace Client.Game.InGame.Train.Unit
                 {
                     // hash未検証tickに滞留している場合は、現在tickのhash照合だけ試行する。
                     // When blocked on an unverified tick, try hash validation for the current tick only.
+                    FlushAndSimulateCurrentTickIfRequested();
                     _hashTickGate.CanAdvanceTick(_tickState.GetTick());
                     _estimatedClientTick = _tickState.GetTick() + 1;
                     break;
                 }
                 
                 _tickState.AdvanceTick();
-                _futureMessageBuffer.FlushPreBySimulatedTick();
-                var shouldSkipSimulation = _futureMessageBuffer.TryConsumeSimulationSkipTick(_tickState.GetTick());
-                if (!shouldSkipSimulation)
-                {
-                    SimulateUpdate();
-                }
-                _futureMessageBuffer.FlushPostBySimulatedTick();
+                FlushAndSimulateCurrentTickIfRequested();
                 
                 if (!_hashTickGate.CanAdvanceTick(_tickState.GetTick()))
                 {
@@ -155,6 +150,19 @@ namespace Client.Game.InGame.Train.Unit
                 {
                     _work[i].Update();
                 }
+            }
+
+            void FlushAndSimulateCurrentTickIfRequested()
+            {
+                // preイベントを順序どおり適用し、要求された回数だけsimを実行する。
+                // Apply pre events in order, then run simulation as many times as requested.
+                _futureMessageBuffer.FlushPreBySimulatedTick();
+                var simulationRequestCount = _futureMessageBuffer.ConsumeSimulationRequestCount();
+                for (var i = 0; i < simulationRequestCount; i++)
+                {
+                    SimulateUpdate();
+                }
+                _futureMessageBuffer.FlushPostBySimulatedTick();
             }
 
             #endregion

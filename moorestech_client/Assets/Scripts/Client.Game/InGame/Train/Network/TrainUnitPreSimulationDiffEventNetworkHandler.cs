@@ -41,7 +41,7 @@ namespace Client.Game.InGame.Train.Network
             }
 
             var message = MessagePackSerializer.Deserialize<TrainUnitPreSimulationDiffMessagePack>(payload);
-            if (message?.Diffs == null || message.Diffs.Count == 0)
+            if (message == null)
             {
                 return;
             }
@@ -56,10 +56,15 @@ namespace Client.Game.InGame.Train.Network
 
                 void ApplyDiffs()
                 {
-                    for (var i = 0; i < messagePack.Diffs.Count; i++)
+                    var diffs = messagePack.Diffs;
+                    if (diffs != null)
                     {
-                        _cache.ApplyPreSimulationDiff(messagePack.Diffs[i]);
+                        for (var i = 0; i < diffs.Count; i++)
+                        {
+                            _cache.ApplyPreSimulationDiff(diffs[i]);
+                        }
                     }
+                    _futureMessageBuffer.RecordSimulationRequest();
                 }
             }
 

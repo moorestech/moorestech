@@ -23,8 +23,9 @@ namespace Server.Util.MessagePack
         {
             ServerTick = batch.Tick;
             TickSequenceId = tickSequenceId;
-            Diffs = new List<TrainUnitTickDiffMessagePack>(batch.Diffs.Count);
-            foreach (var diff in batch.Diffs)
+            var sourceDiffs = batch.Diffs ?? Array.Empty<TrainUpdateService.TrainTickDiffData>();
+            Diffs = new List<TrainUnitTickDiffMessagePack>(sourceDiffs.Count);
+            foreach (var diff in sourceDiffs)
             {
                 Diffs.Add(new TrainUnitTickDiffMessagePack(diff));
             }

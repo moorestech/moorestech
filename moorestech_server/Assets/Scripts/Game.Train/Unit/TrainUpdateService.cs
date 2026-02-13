@@ -94,10 +94,8 @@ namespace Game.Train.Unit
                     }
                     diffs.Add(new TrainTickDiffData(trainUnit.TrainId, masconLevelDiff, isNowDockingSpeedZero, approachingNodeIdDiff));
                 }
-                if (diffs.Count == 0)
-                {
-                    return;
-                }
+                // 差分0件でもsim実行トリガとして同tickイベントを送る。
+                // Emit the same-tick event even when diffs are empty as a simulation trigger.
                 _onPreSimulationDiffEvent.OnNext(new TrainTickDiffBatch(tick, diffs));
                 bool HasDiff(int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeIdDiff)
                 {
