@@ -12,8 +12,9 @@ Use this skill when creating new train/rail events so that server and client app
 ## Core Rules
 
 1. Include tick in almost all new train/rail events.
-2. Default to `post-sim`.
-3. Use `pre-sim` only when the event data must affect simulation results of the same tick.
+2. Include `TickSequenceId` in almost all new train/rail events.
+3. Default to `post-sim`.
+4. Use `pre-sim` only when the event data must affect simulation results of the same tick.
 
 ## Current Baseline (Must Preserve)
 
@@ -29,6 +30,16 @@ Use this skill when creating new train/rail events so that server and client app
 
 - Tick is required when the event affects train/rail simulation state, cache consistency, hash validation timing, or snapshot ordering.
 - Use `ServerTick` consistently as the tick field name in MessagePack payloads.
+- Use `TickSequenceId` as the per-tick ordering field in MessagePack payloads.
+
+## Tick Sequence Rule (Required)
+
+- When emitting train/rail events or hash-state events, allocate sequence by calling `_trainUpdateService.NextTickSequenceId()`.
+- Call it once per emitted payload right before constructing MessagePack data.
+- Never hardcode sequence ids (for example: `0`).
+- Do not share one sequence id across different logical payloads.
+- If one logical payload is multicast to multiple clients, reuse the same `TickSequenceId` for that payload.
+- Client-side stale checks and ordering assume monotonic `(ServerTick, TickSequenceId)` ordering.
 
 ## Phase Decision Rule
 
@@ -50,12 +61,12 @@ Reason:
 ## Existing Phase Examples
 
 - `pre-sim`: `va:event:trainUnitPreSimulationDiff`
-  - Payload: `TrainUnitPreSimulationDiffMessagePack { ServerTick, Diffs[] }`
+  - Payload: `TrainUnitPreSimulationDiffMessagePack { ServerTick, TickSequenceId, Diffs[] }`
   - `Diffs[]`: `TrainId`, `MasconLevelDiff`, `IsNowDockingSpeedZero`, `ApproachingNodeIdDiff`
   - Queued with `EnqueuePre(...)`
   - Applied by `FlushPreBySimulatedTick()` before `SimulateUpdate()`
 - `post-sim`: `va:event:trainUnitCreated`
-  - Payload includes `ServerTick`
+  - Payload includes `ServerTick` and `TickSequenceId`
   - Queued with `EnqueuePost(...)`
   - Applied by `FlushPostBySimulatedTick()` after `SimulateUpdate()`
 
@@ -73,8 +84,8 @@ At each simulated tick in `TrainUnitClientSimulator`:
 
 - On mismatch, request train snapshots and apply baseline tick.
 - Keep queue cleanup semantics:
-  - `SetSnapshotBaselineTick(serverTick)`
-  - `DiscardUpToTick(serverTick)`
+  - `SetSnapshotBaseline(serverTick, tickSequenceId)`
+  - `DiscardUpToTickUnifiedId(((ulong)serverTick << 32) | tickSequenceId)`
   - `RecordSnapshotAppliedTick(serverTick)`
 
 ## Determinism and Randomness
@@ -86,19 +97,22 @@ At each simulated tick in `TrainUnitClientSimulator`:
 ## Implementation Checklist
 
 1. Define or update MessagePack payload with tick field.
-2. Add or update server event packet and event tag.
-3. On client, choose queue API:
-   - `EnqueuePre(serverTick, ...)`
-   - `EnqueuePost(serverTick, ...)`
-4. Ensure handler does not apply immediately; enqueue for tick-based flush.
-5. Verify hash mismatch and snapshot resync behavior is preserved.
+2. On server emit path, assign `var tickSequenceId = _trainUpdateService.NextTickSequenceId();`.
+3. Include both `ServerTick` and `TickSequenceId` in payload.
+4. Add or update server event packet and event tag.
+5. On client, choose queue API:
+   - `EnqueuePre(serverTick, tickSequenceId, ...)`
+   - `EnqueuePost(serverTick, tickSequenceId, ...)`
+6. Ensure handler does not apply immediately; enqueue for tick-based flush.
+7. Verify hash mismatch and snapshot resync behavior is preserved.
 
 ## Validation Checklist
 
 1. Same-tick ordering is correct (pre -> simulate -> post).
-2. Event does not apply to past ticks.
-3. Snapshot baseline handling does not double-apply event data.
-4. Hash verification path remains stable.
+2. Same-tick events are ordered by `TickSequenceId`.
+3. Event does not apply to past ticks.
+4. Snapshot baseline handling does not double-apply event data.
+5. Hash verification path remains stable.
 
 ## Key Files
 
