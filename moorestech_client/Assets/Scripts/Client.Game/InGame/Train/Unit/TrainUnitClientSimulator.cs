@@ -59,15 +59,15 @@ namespace Client.Game.InGame.Train.Unit
                     break;
                 }
                 
-                if (!_hashTickGate.CanAdvanceTick(_tickState.GetTick()))
-                {
-                    break;
-                }
-
                 _tickState.AdvanceTick();
                 _futureMessageBuffer.FlushBySimulatedTick();
 
                 SimulateUpdate();
+                
+                if (!_hashTickGate.CanAdvanceTick(_tickState.GetTick()))
+                {
+                    break;
+                }
             }
 
             #region Internal
