@@ -60,8 +60,8 @@ namespace Client.Game.InGame.Train.Network
                 message.OriginPoint.ToUnityVector(),
                 destination,
                 message.FrontControlPoint.ToUnityVector(),
-                message.BackControlPoint.ToUnityVector(),
-                message.Tick);
+                message.BackControlPoint.ToUnityVector()
+                );
             // 駅参照を該当ノードへ反映する
             // Apply station reference to the updated node.
             _stationReferenceRegistry.ApplyStationReference(destination);
@@ -75,7 +75,7 @@ namespace Client.Game.InGame.Train.Network
             if (_cache.TryValidateEndpoint(message.NodeId, message.NodeGuid))
             // Guidが一致した場合のみノード削除
             // Remove the node only when guid matches
-            _cache.RemoveNode(message.NodeId, message.Tick);
+            _cache.RemoveNode(message.NodeId);
         }
 
         #endregion
