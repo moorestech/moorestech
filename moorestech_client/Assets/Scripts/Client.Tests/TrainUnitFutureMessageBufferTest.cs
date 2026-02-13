@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Client.Game.InGame.Train.Network;
 using Client.Game.InGame.Train.Unit;
 using NUnit.Framework;
@@ -17,6 +18,34 @@ namespace Client.Tests
             // Build only the minimum dependencies required for buffer tests.
             _tickState = new TrainUnitTickState();
             _buffer = new TrainUnitFutureMessageBuffer(_tickState);
+        }
+
+        [Test]
+        public void FlushPreBySimulatedTick_AppliesOnlyPreEvents()
+        {
+            var applied = new List<string>();
+            _tickState.SetSnapshotBaselineTick(10);
+            _buffer.EnqueuePre(11, TrainTickBufferedEvent.Create("preA", () => applied.Add("preA")));
+            _buffer.EnqueuePost(11, TrainTickBufferedEvent.Create("postA", () => applied.Add("postA")));
+
+            _tickState.AdvanceTick();
+            _buffer.FlushPreBySimulatedTick();
+
+            CollectionAssert.AreEqual(new[] { "preA" }, applied);
+        }
+
+        [Test]
+        public void FlushPostBySimulatedTick_AppliesOnlyPostEvents()
+        {
+            var applied = new List<string>();
+            _tickState.SetSnapshotBaselineTick(20);
+            _buffer.EnqueuePre(21, TrainTickBufferedEvent.Create("preA", () => applied.Add("preA")));
+            _buffer.EnqueuePost(21, TrainTickBufferedEvent.Create("postA", () => applied.Add("postA")));
+
+            _tickState.AdvanceTick();
+            _buffer.FlushPostBySimulatedTick();
+
+            CollectionAssert.AreEqual(new[] { "postA" }, applied);
         }
 
         [Test]

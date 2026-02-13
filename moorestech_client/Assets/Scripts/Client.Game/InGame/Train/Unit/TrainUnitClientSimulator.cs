@@ -60,9 +60,10 @@ namespace Client.Game.InGame.Train.Unit
                 }
                 
                 _tickState.AdvanceTick();
-                _futureMessageBuffer.FlushBySimulatedTick();
+                _futureMessageBuffer.FlushPreBySimulatedTick();
 
                 SimulateUpdate();
+                _futureMessageBuffer.FlushPostBySimulatedTick();
                 
                 if (!_hashTickGate.CanAdvanceTick(_tickState.GetTick()))
                 {

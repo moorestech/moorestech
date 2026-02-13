@@ -33,7 +33,7 @@ namespace Client.Game.InGame.Train.Unit
 
         // 初期スナップショットでキャッシュ全体を入れ替える
         // Replace the entire cache when a full snapshot arrives
-        public void OverrideAll(IReadOnlyList<TrainUnitSnapshotBundle> snapshots, long serverTick)
+        public void OverrideAll(IReadOnlyList<TrainUnitSnapshotBundle> snapshots)
         {
             _units.Clear();
             _carIndex.Clear();
@@ -76,7 +76,7 @@ namespace Client.Game.InGame.Train.Unit
 
         // 単一列車の差分更新を適用
         // Apply a diff snapshot for a single train
-        public ClientTrainUnit Upsert(TrainUnitSnapshotBundle snapshot, long serverTick)
+        public ClientTrainUnit Upsert(TrainUnitSnapshotBundle snapshot)
         {
             var trainId = snapshot.Simulation.TrainId;
             if (!_units.TryGetValue(trainId, out var unit))

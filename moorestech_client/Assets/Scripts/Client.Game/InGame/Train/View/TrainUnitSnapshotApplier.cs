@@ -69,7 +69,7 @@ namespace Client.Game.InGame.Train.View
 
             // キャッシュ更新後に不要な列車エンティティを除去する
             // Remove stale train entities after cache update
-            _cache.OverrideAll(bundles, response.ServerTick);
+            _cache.OverrideAll(bundles);
             _tickState.SetSnapshotBaselineTick(response.ServerTick);
             _futureMessageBuffer.DiscardUpToTick(response.ServerTick);
             _trainCarDatastore.RemoveTrainEntitiesNotInSnapshot(activeTrainCarInstanceIds);
