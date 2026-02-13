@@ -1,0 +1,3 @@
+interface:
+  display_name: "Train Test Priorities"
+  short_description: "Prioritize train test work by documented coverage gaps"
