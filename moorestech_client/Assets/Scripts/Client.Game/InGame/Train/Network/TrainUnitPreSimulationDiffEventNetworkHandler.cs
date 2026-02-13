@@ -64,7 +64,6 @@ namespace Client.Game.InGame.Train.Network
                             _cache.ApplyPreSimulationDiff(diffs[i]);
                         }
                     }
-                    _futureMessageBuffer.RecordSimulationRequest();
                 }
             }
 
