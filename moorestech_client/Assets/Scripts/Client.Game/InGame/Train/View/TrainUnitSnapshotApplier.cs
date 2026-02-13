@@ -72,6 +72,7 @@ namespace Client.Game.InGame.Train.View
             _cache.OverrideAll(bundles);
             _tickState.SetSnapshotBaselineTick(response.ServerTick);
             _futureMessageBuffer.DiscardUpToTick(response.ServerTick);
+            _futureMessageBuffer.RecordSnapshotAppliedTick(response.ServerTick);
             _trainCarDatastore.RemoveTrainEntitiesNotInSnapshot(activeTrainCarInstanceIds);
 
             #region Internal
