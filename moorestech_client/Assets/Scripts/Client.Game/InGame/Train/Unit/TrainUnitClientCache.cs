@@ -110,6 +110,36 @@ namespace Client.Game.InGame.Train.Unit
 
         // キャッシュから列車を削除
         // Remove a train from the cache
+        // 指定TrainCarをキャッシュから削除し、列車索引を再構築する
+        // Remove the specified train car and rebuild train indexes.
+        public bool RemoveTrainCar(TrainCarInstanceId trainCarInstanceId)
+        {
+            if (!_carIndex.TryGetValue(trainCarInstanceId, out var entry))
+            {
+                return false;
+            }
+
+            var unit = entry.Unit;
+            if (unit == null)
+            {
+                return false;
+            }
+            if (!unit.RemoveCar(trainCarInstanceId))
+            {
+                return false;
+            }
+
+            RemoveCarIndex(unit.TrainId);
+            if (unit.Cars.Count == 0)
+            {
+                _units.Remove(unit.TrainId);
+                return true;
+            }
+
+            BuildCarIndexForUnit(unit);
+            return true;
+        }
+
         public bool Remove(Guid trainId)
         {
             RemoveCarIndex(trainId);
