@@ -93,7 +93,7 @@ namespace Client.Game.InGame.Train.Unit
 
         // pre sim差分イベントを対象TrainUnitへ反映する
         // Apply a pre-simulation diff event to the target train.
-        public bool ApplyPreSimulationDiff(TrainUnitTickDiffMessagePack diff, long serverTick)
+        public bool ApplyPreSimulationDiff(TrainUnitTickDiffMessagePack diff)
         {
             if (diff == null)
             {
