@@ -12,6 +12,7 @@ namespace Client.Game.InGame.Train.Network
         private readonly SortedDictionary<long, List<ITrainTickBufferedEvent>> _futurePreEvents = new();
         private readonly SortedDictionary<long, List<ITrainTickBufferedEvent>> _futurePostEvents = new();
         private readonly SortedDictionary<long, uint> _futureHashStates = new();
+        private readonly SortedSet<long> _snapshotAppliedTicks = new();
 
         public TrainUnitFutureMessageBuffer(TrainUnitTickState tickState)
         {
@@ -77,6 +78,31 @@ namespace Client.Game.InGame.Train.Network
             FlushFutureEvents(_futurePostEvents, _tickState.GetTick());
         }
 
+        // スナップショットを即時適用したtickを記録する。
+        // Record the tick where snapshot has already been applied immediately.
+        public void RecordSnapshotAppliedTick(long tick)
+        {
+            _snapshotAppliedTicks.Add(tick);
+        }
+
+        // 指定tickのSimulateUpdateをスキップするか判定し、対象なら消費する。
+        // Return true when simulation should be skipped for this tick and consume it.
+        public bool TryConsumeSimulationSkipTick(long tick)
+        {
+            while (_snapshotAppliedTicks.Count > 0 && _snapshotAppliedTicks.Min < tick)
+            {
+                _snapshotAppliedTicks.Remove(_snapshotAppliedTicks.Min);
+            }
+
+            if (!_snapshotAppliedTicks.Contains(tick))
+            {
+                return false;
+            }
+
+            _snapshotAppliedTicks.Remove(tick);
+            return true;
+        }
+
         // スナップショット適用済みtick以下のキューを破棄する。
         // Discard queued events at or below the tick already covered by snapshot.
         public void DiscardUpToTick(long tick)
@@ -84,6 +110,7 @@ namespace Client.Game.InGame.Train.Network
             RemoveUpToTickForListDictionary(_futurePreEvents, tick);
             RemoveUpToTickForListDictionary(_futurePostEvents, tick);
             RemoveUpToTickForValueDictionary(_futureHashStates, tick);
+            RemoveUpToTickForSortedSet(_snapshotAppliedTicks, tick);
 
             #region Internal
 
@@ -100,6 +127,14 @@ namespace Client.Game.InGame.Train.Network
                 while (TryGetFirstTickForValueDictionary(source, out var targetTick) && targetTick <= maxTick)
                 {
                     source.Remove(targetTick);
+                }
+            }
+
+            void RemoveUpToTickForSortedSet(SortedSet<long> source, long maxTick)
+            {
+                while (source.Count > 0 && source.Min <= maxTick)
+                {
+                    source.Remove(source.Min);
                 }
             }
 
