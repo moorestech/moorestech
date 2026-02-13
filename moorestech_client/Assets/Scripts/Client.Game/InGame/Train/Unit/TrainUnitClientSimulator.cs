@@ -155,10 +155,9 @@ namespace Client.Game.InGame.Train.Unit
             void FlushAndSimulateCurrentTickIfRequested()
             {
                 // preイベントを順序どおり適用し、要求された回数だけsimを実行する。
-                // Apply pre events in order, then run simulation as many times as requested.
+                // Apply pre events in order, then run simulation at most once if requested.
                 _futureMessageBuffer.FlushPreBySimulatedTick();
-                var simulationRequestCount = _futureMessageBuffer.ConsumeSimulationRequestCount();
-                for (var i = 0; i < simulationRequestCount; i++)
+                if (_futureMessageBuffer.TryConsumeSimulationRequest())
                 {
                     SimulateUpdate();
                 }
