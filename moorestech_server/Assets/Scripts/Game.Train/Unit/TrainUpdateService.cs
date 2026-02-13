@@ -14,8 +14,8 @@ namespace Game.Train.Unit
 
         // Trainはサーバーのゲームtickに同期して進める
         // Train tick is aligned with the server game tick interval.
-        private const double TickSeconds = 0.1d;
-        public const double HashBroadcastIntervalSeconds = 0.1d;
+        private const double TickSeconds = GameUpdater.SecondsPerTick;
+        public const double HashBroadcastIntervalSeconds = TickSeconds;
         private static readonly long TrainUnitHashBroadcastIntervalTicks = Math.Max(1L, (long)Math.Ceiling(HashBroadcastIntervalSeconds / TickSeconds));
         private readonly List<TrainUnit> _trainUnits = new();
         private long _executedTick;
@@ -48,7 +48,10 @@ namespace Game.Train.Unit
         private void UpdateTrains()
         {
             //HashVerifier用ブロードキャスト
-            _onHashEvent.OnNext(_executedTick);
+            if (_executedTick % TrainUnitHashBroadcastIntervalTicks == 0)
+            {
+                _onHashEvent.OnNext(_executedTick);
+            }
             
             _executedTick++;
             
