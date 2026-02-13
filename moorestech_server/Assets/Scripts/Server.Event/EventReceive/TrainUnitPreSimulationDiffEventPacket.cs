@@ -19,7 +19,7 @@ namespace Server.Event.EventReceive
         {
             _eventProtocolProvider = eventProtocolProvider;
             _trainUpdateService = trainUpdateService;
-            _trainUpdateService.OnPreSimulationDiffEvent.Subscribe((uint tick, IReadOnlyList<TrainUpdateService.TrainTickDiffData> diffs));
+            _trainUpdateService.OnPreSimulationDiffEvent.Subscribe(tuple => OnPreSimulationDiff(tuple.Item1, tuple.Item2));
         }
 
         #region Internal
@@ -27,7 +27,7 @@ namespace Server.Event.EventReceive
         private void OnPreSimulationDiff(uint tick, IReadOnlyList<TrainUpdateService.TrainTickDiffData> diffs)
         {
             var tickSequenceId = _trainUpdateService.NextTickSequenceId();
-            var payload = MessagePackSerializer.Serialize(new TrainUnitPreSimulationDiffMessagePack(batch, tickSequenceId));
+            var payload = MessagePackSerializer.Serialize(new TrainUnitPreSimulationDiffMessagePack(tick, tickSequenceId, diffs));
             _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
         }
 
