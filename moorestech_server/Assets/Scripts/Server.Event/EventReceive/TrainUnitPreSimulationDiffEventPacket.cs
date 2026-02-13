@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Game.Train.Unit;
 using MessagePack;
 using Server.Util.MessagePack;
@@ -18,12 +19,12 @@ namespace Server.Event.EventReceive
         {
             _eventProtocolProvider = eventProtocolProvider;
             _trainUpdateService = trainUpdateService;
-            _trainUpdateService.OnPreSimulationDiffEvent.Subscribe(OnPreSimulationDiff);
+            _trainUpdateService.OnPreSimulationDiffEvent.Subscribe((uint tick, IReadOnlyList<TrainUpdateService.TrainTickDiffData> diffs));
         }
 
         #region Internal
 
-        private void OnPreSimulationDiff(TrainUpdateService.TrainTickDiffBatch batch)
+        private void OnPreSimulationDiff(uint tick, IReadOnlyList<TrainUpdateService.TrainTickDiffData> diffs)
         {
             var tickSequenceId = _trainUpdateService.NextTickSequenceId();
             var payload = MessagePackSerializer.Serialize(new TrainUnitPreSimulationDiffMessagePack(batch, tickSequenceId));

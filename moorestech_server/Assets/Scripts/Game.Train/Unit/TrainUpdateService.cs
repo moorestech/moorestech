@@ -22,7 +22,7 @@ namespace Game.Train.Unit
         private uint _tickSequenceId;
 
         private readonly Subject<uint> _onHashEvent = new();
-        private readonly Subject<TrainTickDiffBatch> _onPreSimulationDiffEvent = new();
+        private readonly Subject<(uint, IReadOnlyList<TrainTickDiffData>)> _onPreSimulationDiffEvent = new();
         private readonly TrainUnitInitializationNotifier _trainUnitInitializationNotifier;
         private bool _trainAutoRunDebugEnabled;
 
@@ -48,7 +48,7 @@ namespace Game.Train.Unit
             return _tickSequenceId;
         }
         public IObservable<uint> OnHashEvent => _onHashEvent;
-        public IObservable<TrainTickDiffBatch> OnPreSimulationDiffEvent => _onPreSimulationDiffEvent;
+        public IObservable<(uint, IReadOnlyList<TrainTickDiffData>)> OnPreSimulationDiffEvent => _onPreSimulationDiffEvent;
         // 列車生成イベントの購読口を返す
         // Provide the train unit creation event stream
         public IObservable<TrainUnitInitializationNotifier.TrainUnitCreatedData> TrainUnitCreatedEvent => _trainUnitInitializationNotifier.TrainUnitInitializedEvent;
@@ -96,7 +96,9 @@ namespace Game.Train.Unit
                 }
                 // 差分0件でもsim実行トリガとして同tickイベントを送る。
                 // Emit the same-tick event even when diffs are empty as a simulation trigger.
-                _onPreSimulationDiffEvent.OnNext(new TrainTickDiffBatch(tick, diffs));
+                _onPreSimulationDiffEvent.OnNext((tick, diffs));
+                
+                
                 bool HasDiff(int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeIdDiff)
                 {
                     return masconLevelDiff != 0 || isNowDockingSpeedZero || approachingNodeIdDiff != -1;
@@ -187,18 +189,6 @@ namespace Game.Train.Unit
             }
 
             #endregion
-        }
-
-        public readonly struct TrainTickDiffBatch
-        {
-            public uint Tick { get; }
-            public IReadOnlyList<TrainTickDiffData> Diffs { get; }
-
-            public TrainTickDiffBatch(uint tick, IReadOnlyList<TrainTickDiffData> diffs)
-            {
-                Tick = tick;
-                Diffs = diffs;
-            }
         }
 
         public readonly struct TrainTickDiffData
