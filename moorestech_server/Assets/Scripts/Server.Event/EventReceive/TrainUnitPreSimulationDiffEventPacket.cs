@@ -30,7 +30,8 @@ namespace Server.Event.EventReceive
                 return;
             }
 
-            var payload = MessagePackSerializer.Serialize(new TrainUnitPreSimulationDiffMessagePack(batch));
+            var tickSequenceId = _trainUpdateService.NextTickSequenceId();
+            var payload = MessagePackSerializer.Serialize(new TrainUnitPreSimulationDiffMessagePack(batch, tickSequenceId));
             _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
         }
 

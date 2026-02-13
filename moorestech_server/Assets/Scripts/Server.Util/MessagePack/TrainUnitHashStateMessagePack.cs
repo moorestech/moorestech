@@ -10,18 +10,20 @@ namespace Server.Util.MessagePack
     {
         [Key(0)] public uint UnitsHash { get; set; }
         [Key(1)] public uint RailGraphHash { get; set; }
-        [Key(2)] public long ServerTick { get; set; }
+        [Key(2)] public uint ServerTick { get; set; }
+        [Key(3)] public uint TickSequenceId { get; set; }
 
         [Obsolete("Reserved for MessagePack serialization.")]
         public TrainUnitHashStateMessagePack()
         {
         }
 
-        public TrainUnitHashStateMessagePack(uint unitsHash, uint railGraphHash, long serverTick)
+        public TrainUnitHashStateMessagePack(uint unitsHash, uint railGraphHash, uint serverTick, uint tickSequenceId)
         {
             UnitsHash = unitsHash;
             RailGraphHash = railGraphHash;
             ServerTick = serverTick;
+            TickSequenceId = tickSequenceId;
         }
     }
 }

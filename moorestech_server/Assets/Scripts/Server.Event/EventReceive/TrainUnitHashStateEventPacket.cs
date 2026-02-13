@@ -32,7 +32,7 @@ namespace Server.Event.EventReceive
 
         #region Internal
 
-        private void BroadcastHashState(long tick)
+        private void BroadcastHashState(uint tick)
         {
             // TrainUnit/RailGraphのハッシュを同一tickで計算して送信する
             // Compute train/rail hashes and broadcast with the same tick
@@ -44,7 +44,8 @@ namespace Server.Event.EventReceive
 
             var unitsHash = TrainUnitSnapshotHashCalculator.Compute(bundles);
             var railGraphHash = _railGraphDatastore.GetConnectNodesHash();
-            var payload = MessagePackSerializer.Serialize(new TrainUnitHashStateMessagePack(unitsHash, railGraphHash, tick));
+            var tickSequenceId = _trainUpdateService.NextTickSequenceId();
+            var payload = MessagePackSerializer.Serialize(new TrainUnitHashStateMessagePack(unitsHash, railGraphHash, tick, tickSequenceId));
             _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
         }
 

@@ -49,14 +49,15 @@ namespace Server.Util.MessagePack
         [Key(3)] public Vector3MessagePack OriginPoint { get; set; }
         [Key(4)] public Vector3MessagePack FrontControlPoint { get; set; }
         [Key(5)] public Vector3MessagePack BackControlPoint { get; set; }
-        [Key(6)] public long ServerTick { get; set; }
+        [Key(6)] public uint ServerTick { get; set; }
+        [Key(7)] public uint TickSequenceId { get; set; }
 
         [Obsolete("デシリアライズ用コンストラクタです。")]
         public RailNodeCreatedMessagePack()
         {
         }
 
-        public RailNodeCreatedMessagePack(int nodeId, Guid nodeGuid, ConnectionDestination connectionDestination, Vector3 originPoint, Vector3 frontControlPoint, Vector3 backControlPoint, long serverTick)
+        public RailNodeCreatedMessagePack(int nodeId, Guid nodeGuid, ConnectionDestination connectionDestination, Vector3 originPoint, Vector3 frontControlPoint, Vector3 backControlPoint, uint serverTick, uint tickSequenceId)
         {
             NodeId = nodeId;
             NodeGuid = nodeGuid;
@@ -65,6 +66,7 @@ namespace Server.Util.MessagePack
             FrontControlPoint = new Vector3MessagePack(frontControlPoint);
             BackControlPoint = new Vector3MessagePack(backControlPoint);
             ServerTick = serverTick;
+            TickSequenceId = tickSequenceId;
         }
     }
 
@@ -77,18 +79,20 @@ namespace Server.Util.MessagePack
     {
         [Key(0)] public int NodeId { get; set; }
         [Key(1)] public Guid NodeGuid { get; set; }
-        [Key(2)] public long ServerTick { get; set; }
+        [Key(2)] public uint ServerTick { get; set; }
+        [Key(3)] public uint TickSequenceId { get; set; }
 
         [Obsolete("Reserved for MessagePack serialization.")]
         public RailNodeRemovedMessagePack()
         {
         }
 
-        public RailNodeRemovedMessagePack(int nodeId, Guid nodeGuid, long serverTick)
+        public RailNodeRemovedMessagePack(int nodeId, Guid nodeGuid, uint serverTick, uint tickSequenceId)
         {
             NodeId = nodeId;
             NodeGuid = nodeGuid;
             ServerTick = serverTick;
+            TickSequenceId = tickSequenceId;
         }
     }
 
@@ -102,12 +106,18 @@ namespace Server.Util.MessagePack
         [Key(0)] public List<RailNodeCreatedMessagePack> Nodes { get; set; }
         [Key(1)] public List<RailGraphConnectionSnapshotMessagePack> Connections { get; set; }
         [Key(2)] public uint GraphHash { get; set; }
-        [Key(3)] public long GraphTick { get; set; }
+        [Key(3)] public uint GraphTick { get; set; }
+        [Key(4)] public uint GraphTickSequenceId { get; set; }
 
         [Obsolete("デシリアライズ用のコンストラクタです。")]
         public RailGraphSnapshotMessagePack() { }
 
         public RailGraphSnapshotMessagePack(RailGraphSnapshot snapshot)
+            : this(snapshot, 0)
+        {
+        }
+
+        public RailGraphSnapshotMessagePack(RailGraphSnapshot snapshot, uint graphTickSequenceId)
         {
             Nodes = new List<RailNodeCreatedMessagePack>(snapshot.Nodes.Count);
             foreach (var node in snapshot.Nodes)
@@ -119,7 +129,8 @@ namespace Server.Util.MessagePack
                     node.OriginPoint,
                     node.FrontControlPoint,
                     node.BackControlPoint,
-                    snapshot.GraphTick));
+                    snapshot.GraphTick,
+                    graphTickSequenceId));
             }
 
             Connections = new List<RailGraphConnectionSnapshotMessagePack>(snapshot.Connections.Count);
@@ -135,6 +146,7 @@ namespace Server.Util.MessagePack
 
             GraphHash = snapshot.ConnectNodesHash;
             GraphTick = snapshot.GraphTick;
+            GraphTickSequenceId = graphTickSequenceId;
         }
     }
 

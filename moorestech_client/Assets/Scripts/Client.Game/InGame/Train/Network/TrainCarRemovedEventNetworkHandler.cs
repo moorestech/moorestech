@@ -53,7 +53,7 @@ namespace Client.Game.InGame.Train.Network
                 return;
             }
 
-            _futureMessageBuffer.EnqueuePost(message.ServerTick, CreateBufferedEvent(message));
+            _futureMessageBuffer.EnqueuePost(message.ServerTick, message.TickSequenceId, CreateBufferedEvent(message));
 
             #region Internal
 
@@ -78,17 +78,19 @@ namespace Client.Game.InGame.Train.Network
         internal sealed class TrainCarRemovedEventMessagePack
         {
             [Key(0)] public long TrainCarInstanceId { get; set; }
-            [Key(1)] public long ServerTick { get; set; }
+            [Key(1)] public uint ServerTick { get; set; }
+            [Key(2)] public uint TickSequenceId { get; set; }
 
             [Obsolete("Reserved for MessagePack.")]
             public TrainCarRemovedEventMessagePack()
             {
             }
 
-            public TrainCarRemovedEventMessagePack(long trainCarInstanceId, long serverTick)
+            public TrainCarRemovedEventMessagePack(long trainCarInstanceId, uint serverTick, uint tickSequenceId)
             {
                 TrainCarInstanceId = trainCarInstanceId;
                 ServerTick = serverTick;
+                TickSequenceId = tickSequenceId;
             }
         }
     }

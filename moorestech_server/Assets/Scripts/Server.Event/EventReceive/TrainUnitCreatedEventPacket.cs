@@ -31,7 +31,8 @@ namespace Server.Event.EventReceive
             // Broadcast the train unit creation diff
             var snapshot = TrainUnitSnapshotFactory.CreateSnapshot(data.TrainUnit);
             var snapshotPack = new TrainUnitSnapshotBundleMessagePack(snapshot);
-            var message = new TrainUnitCreatedEventMessagePack(snapshotPack, _trainUpdateService.GetCurrentTick());
+            var tickSequenceId = _trainUpdateService.NextTickSequenceId();
+            var message = new TrainUnitCreatedEventMessagePack(snapshotPack, _trainUpdateService.GetCurrentTick(), tickSequenceId);
             var payload = MessagePackSerializer.Serialize(message);
             _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
         }

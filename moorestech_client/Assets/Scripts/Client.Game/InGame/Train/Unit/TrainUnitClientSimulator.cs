@@ -25,7 +25,8 @@ namespace Client.Game.InGame.Train.Unit
         private readonly List<ClientTrainUnit> _work = new();
 
         private double _estimatedClientTick;
-        private long _lastHandledHashTick = -1;
+        private uint _lastHandledHashTick;
+        private bool _hasLastHandledHashTick;
         private double _fastForwardTicksPerSecond;
         private double _fastForwardRemainingTicks;
 
@@ -50,11 +51,15 @@ namespace Client.Game.InGame.Train.Unit
             _estimatedClientTick += Time.deltaTime / TickSeconds;
             ApplyScheduledFastForward();
 
-            int loopTicks = Mathf.Min((int)((long)Math.Floor(_estimatedClientTick) - _tickState.GetTick()), 2);
+            var pendingTicks = (long)Math.Floor(_estimatedClientTick) - _tickState.GetTick();
+            int loopTicks = Mathf.Min((int)Math.Max(0, pendingTicks), 2);
             for (var i = 0; i < loopTicks; i++)
             {
                 if (!_tickState.IsAllowSimulationNowTick())
                 {
+                    // hash未検証tickに滞留している場合は、現在tickのhash照合だけ試行する。
+                    // When blocked on an unverified tick, try hash validation for the current tick only.
+                    _hashTickGate.CanAdvanceTick(_tickState.GetTick());
                     _estimatedClientTick = _tickState.GetTick() + 1;
                     break;
                 }
@@ -88,12 +93,13 @@ namespace Client.Game.InGame.Train.Unit
             void RefreshFastForwardScheduleByHashWindow()
             {
                 var latestHashTick = _tickState.GetHashReceivedTick();
-                if (latestHashTick <= _lastHandledHashTick)
+                if (_hasLastHandledHashTick && latestHashTick <= _lastHandledHashTick)
                 {
                     return;
                 }
 
                 _lastHandledHashTick = latestHashTick;
+                _hasLastHandledHashTick = true;
                 if (!_tickState.TryGetLatestHashTickWindow(out var previousHashTick, out var currentHashTick))
                 {
                     ResetFastForwardSchedule();

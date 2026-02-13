@@ -52,7 +52,7 @@ namespace Client.Game.InGame.Train.Network
             // Push snapshot into the future-tick buffer
             var bundle = message.Snapshot.ToModel();
             var serverTick = message.ServerTick;
-            _futureMessageBuffer.EnqueuePost(serverTick, CreateBufferedEvent());
+            _futureMessageBuffer.EnqueuePost(serverTick, message.TickSequenceId, CreateBufferedEvent());
 
             #region Internal
 
