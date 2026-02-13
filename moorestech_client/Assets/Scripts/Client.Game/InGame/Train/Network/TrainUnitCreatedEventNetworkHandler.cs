@@ -52,7 +52,7 @@ namespace Client.Game.InGame.Train.Network
             // Push snapshot into the future-tick buffer
             var bundle = message.Snapshot.ToModel();
             var serverTick = message.ServerTick;
-            _futureMessageBuffer.Enqueue(serverTick, CreateBufferedEvent());
+            _futureMessageBuffer.EnqueuePost(serverTick, CreateBufferedEvent());
 
             #region Internal
 
@@ -66,7 +66,7 @@ namespace Client.Game.InGame.Train.Network
                 {
                     // 列車キャッシュと車両オブジェクトを同期更新する
                     // Update train cache and train-car objects together
-                    _cache.Upsert(bundle, serverTick);
+                    _cache.Upsert(bundle);
                     _trainCarDatastore.OnTrainObjectUpdate(bundle.Simulation.Cars);
                 }
             }
