@@ -41,13 +41,13 @@ namespace Client.Game.InGame.Train.Network
             {
                 return;
             }
-            if (message.TrainTick < _tickState.GetTick())
+            if (message.ServerTick < _tickState.GetTick())
             {
                 return;
             }
 
-            _futureHashStates[message.TrainTick] = message.UnitsHash;
-            _tickState.RecordHashReceived(message.TrainTick);
+            _futureHashStates[message.ServerTick] = message.UnitsHash;
+            _tickState.RecordHashReceived(message.ServerTick);
         }
 
         // 指定tickのハッシュを取り出す。
