@@ -118,5 +118,6 @@ At each simulated tick in `TrainUnitClientSimulator`:
 
 - `moorestech_server/Assets/Scripts/Game.Train/Unit/TrainUpdateService.cs`
 - `moorestech_server/Assets/Scripts/Server.Event/EventReceive/TrainUnitPreSimulationDiffEventPacket.cs`
+- `moorestech_server/Assets/Scripts/Server.Event/EventReceive/TrainUnitHashStateEventPacket.cs`
 - `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Network/TrainUnitFutureMessageBuffer.cs`
 - `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Unit/TrainUnitClientSimulator.cs`
