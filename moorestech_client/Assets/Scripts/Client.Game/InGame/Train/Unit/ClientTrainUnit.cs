@@ -64,38 +64,6 @@ namespace Client.Game.InGame.Train.Unit
             }
         }
 
-        // 指定したTrainCarを現在の列車スナップショットから削除する
-        // Remove the specified train car from the current snapshot state.
-        public bool RemoveCar(TrainCarInstanceId trainCarInstanceId)
-        {
-            var localCars = _cars ?? Array.Empty<TrainCarSnapshot>();
-            if (localCars.Count == 0)
-            {
-                return false;
-            }
-
-            var nextCars = new List<TrainCarSnapshot>(localCars.Count);
-            var removed = false;
-            for (var i = 0; i < localCars.Count; i++)
-            {
-                var car = localCars[i];
-                if (car.TrainCarInstanceId == trainCarInstanceId)
-                {
-                    removed = true;
-                    continue;
-                }
-                nextCars.Add(car);
-            }
-
-            if (!removed)
-            {
-                return false;
-            }
-
-            _cars = nextCars;
-            return true;
-        }
-
         // 現在の状態からスナップショットバンドルを生成する
         public bool TryCreateSnapshotBundle(out TrainUnitSnapshotBundle bundle)
         {

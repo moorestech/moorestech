@@ -55,10 +55,18 @@ namespace Client.Game.InGame.Train.RailGraph
         private async UniTaskVoid HandleHashStateAsync(byte[] payload)
         {
             var message = MessagePackSerializer.Deserialize<RailGraphHashStateMessagePack>(payload);
-            
+            var lastTick = _cache.LastConfirmedTick;
+            if (message.GraphTick < lastTick)
+            {
+                // 過去Tickの通知は整合性チェック対象外
+                // Ignore hash states that are older than the local tick
+                return;
+            }
+
             var clientHash = _cache.ComputeCurrentHash();
             if (clientHash == message.GraphHash)
             {
+                _cache.OverrideTick(message.GraphTick);
                 return;
             }
 
@@ -85,7 +93,9 @@ namespace Client.Game.InGame.Train.RailGraph
                     Debug.LogWarning("[RailGraphHashVerifier] Snapshot response was null.");
                     return;
                 }
+
                 _snapshotApplier.ApplySnapshot(snapshot);
+                _cache.OverrideTick(serverTick);
             }
             catch (OperationCanceledException)
             {

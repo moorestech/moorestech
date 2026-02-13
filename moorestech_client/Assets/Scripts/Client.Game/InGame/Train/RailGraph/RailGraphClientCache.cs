@@ -29,6 +29,9 @@ namespace Client.Game.InGame.Train.RailGraph
         // Reverse lookup dictionary from ConnectionDestination to RailNodeId
         private readonly Dictionary<ConnectionDestination, int> _connectionDestinationToNodeId = new();
 
+        // Latest tick that has been fully applied to the cache
+        private long _lastConfirmedTick;
+
         // Expose rail node snapshots as read-only
         public IReadOnlyList<ClientRailNode> Nodes => _nodes;
 
@@ -37,6 +40,9 @@ namespace Client.Game.InGame.Train.RailGraph
 
         // Expose reverse lookup dictionary as read-only
         public IReadOnlyDictionary<ConnectionDestination, int> ConnectionDestinationIndex => _connectionDestinationToNodeId;
+
+        // Property to observe the newest applied tick
+        public long LastConfirmedTick => _lastConfirmedTick;
 
         private RailGraphPathFinder _pathFinder;//ダイクストラ法
 
@@ -49,7 +55,12 @@ namespace Client.Game.InGame.Train.RailGraph
         {
             return RailGraphHashCalculator.ComputeGraphStateHash(_nodes, _connectNodes, ResolveRailTypeGuid, ResolveRailDrawable);
         }
-        
+
+        internal void OverrideTick(long serverTick)
+        {
+            _lastConfirmedTick = Math.Max(_lastConfirmedTick, serverTick);
+        }
+
         // Rebuild the cache from a full snapshot
         public void ApplySnapshot(
             RailGraphSnapshotMessagePack snapshot,int size)
@@ -59,7 +70,10 @@ namespace Client.Game.InGame.Train.RailGraph
             PopulateNodes(snapshot, _nodes);
             // Apply edge information onto adjacency list
             PopulateConnections(snapshot, _connectNodes);
+            
+            _lastConfirmedTick = snapshot.GraphTick;
             TrainRailObjectManager.Instance?.OnCacheRebuilt(this);
+
             #region Internal
 
             void ResetSlots(int requiredCount)
@@ -120,8 +134,8 @@ namespace Client.Game.InGame.Train.RailGraph
             Vector3 controlOrigin,
             ConnectionDestination connectionDestination,
             Vector3 primaryControlPoint,
-            Vector3 oppositeControlPoint
-            )
+            Vector3 oppositeControlPoint,
+            long eventTick)
         {
             Debug.Log($"UpsertNode: nodeId={nodeId}, connectionDestination={connectionDestination}");
             EnsureNodeSlot(nodeId);
@@ -131,14 +145,15 @@ namespace Client.Game.InGame.Train.RailGraph
             var nextnode = new ClientRailNode(nodeId, nodeGuid, connectionDestination, controlOrigin, primaryControlPoint, oppositeControlPoint, this);
             if (previous != null)
             {
-                RemoveNode(nodeId);
+                RemoveNode(nodeId, eventTick);
             }
             _nodes[nodeId] = nextnode;
             _connectionDestinationToNodeId[nextnode.ConnectionDestination] = nodeId;
+            UpdateTick(eventTick);
         }
 
         // Apply node removal diff and purge related connections
-        public void RemoveNode(int nodeId)
+        public void RemoveNode(int nodeId, long eventTick)
         {
             if (!IsWithinCurrentRange(nodeId))
                 return;
@@ -163,10 +178,11 @@ namespace Client.Game.InGame.Train.RailGraph
                 outgoing.Clear();
             }
             RemoveIncomingConnections(nodeId);
+            UpdateTick(eventTick);
         }
 
         // Apply or overwrite an edge diff connecting two nodes
-        public void UpsertConnection(int fromNodeId, int toNodeId, int distance, Guid railTypeGuid, bool isDrawable)
+        public void UpsertConnection(int fromNodeId, int toNodeId, int distance, Guid railTypeGuid, bool isDrawable, long eventTick)
         {
             if (!IsWithinCurrentRange(fromNodeId) || !IsWithinCurrentRange(toNodeId))
                 return;
@@ -185,11 +201,12 @@ namespace Client.Game.InGame.Train.RailGraph
                 connections.Add((toNodeId, distance));
             }
             UpsertRailSegment(fromNodeId, toNodeId, distance, railTypeGuid, isDrawable);
+            UpdateTick(eventTick);
             TrainRailObjectManager.Instance?.OnConnectionUpserted(fromNodeId, toNodeId, this);
         }
 
         // Apply an edge removal diff
-        public void RemoveConnection(int fromNodeId, int toNodeId)
+        public void RemoveConnection(int fromNodeId, int toNodeId, long eventTick)
         {
             if (!IsWithinCurrentRange(fromNodeId))
                 return;
@@ -197,6 +214,7 @@ namespace Client.Game.InGame.Train.RailGraph
             if (!removed)
                 return;
             RemoveRailSegment(fromNodeId, toNodeId);
+            UpdateTick(eventTick);
             TrainRailObjectManager.Instance?.OnConnectionRemoved(fromNodeId, toNodeId, this);
         }
 
@@ -355,6 +373,12 @@ namespace Client.Game.InGame.Train.RailGraph
             }
         }
 
+        // Update the stored tick with the latest value
+        private void UpdateTick(long eventTick)
+        {
+            _lastConfirmedTick = Math.Max(_lastConfirmedTick, eventTick);
+        }
+
         public List<IRailNode> FindShortestPath(int startid, int targetid)
         {
             var pathIds = _pathFinder.FindShortestPath(_connectNodes, startid, targetid);
@@ -432,3 +456,15 @@ namespace Client.Game.InGame.Train.RailGraph
 #endif
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
