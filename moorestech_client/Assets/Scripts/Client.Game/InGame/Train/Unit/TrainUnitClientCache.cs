@@ -52,7 +52,7 @@ namespace Client.Game.InGame.Train.Unit
                 }
 
                 var unit = new ClientTrainUnit(bundle.Simulation.TrainId, _railGraphProvider);
-                unit.SnapshotUpdate(bundle.Simulation, bundle.RailPositionSnapshot, serverTick);
+                unit.SnapshotUpdate(bundle.Simulation, bundle.RailPositionSnapshot);
                 _units[bundle.Simulation.TrainId] = unit;
                 BuildCarIndexForUnit(unit);
             }
@@ -86,7 +86,7 @@ namespace Client.Game.InGame.Train.Unit
             }
 
             RemoveCarIndex(trainId);
-            unit.SnapshotUpdate(snapshot.Simulation, snapshot.RailPositionSnapshot, serverTick);
+            unit.SnapshotUpdate(snapshot.Simulation, snapshot.RailPositionSnapshot);
             BuildCarIndexForUnit(unit);
             return unit;
         }
@@ -103,12 +103,8 @@ namespace Client.Game.InGame.Train.Unit
             {
                 return false;
             }
-
-            unit.ApplyPreSimulationDiff(
-                diff.MasconLevelDiff,
-                diff.IsNowDockingSpeedZero,
-                diff.ApproachingNodeIdDiff,
-                serverTick);
+            
+            unit.ApplyPreSimulationDiff(diff.MasconLevelDiff, diff.IsNowDockingSpeedZero, diff.ApproachingNodeIdDiff);
             return true;
         }
 

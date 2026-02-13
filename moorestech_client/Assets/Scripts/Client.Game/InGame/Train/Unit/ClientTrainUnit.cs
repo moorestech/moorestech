@@ -5,6 +5,7 @@ using Game.Train.Unit;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace Client.Game.InGame.Train.Unit
 {
@@ -14,9 +15,8 @@ namespace Client.Game.InGame.Train.Unit
     {
         private readonly IRailGraphProvider _railGraphProvider;
         private readonly IRailGraphTraversalProvider _railGraphTraversalProvider;
-        private IRailNode _simulationTargetNode;
         private bool _isDockingStopPendingForTick;
-        private int _serverApproachingNodeId = -1;
+        private IRailNode _simulationTargetNode;
 
         public Guid TrainId { get; }
         public double CurrentSpeed { get; set; }
@@ -26,9 +26,7 @@ namespace Client.Game.InGame.Train.Unit
         private IReadOnlyList<TrainCarSnapshot> _cars;
         // 車両スナップショットを外部に公開する
         public IReadOnlyList<TrainCarSnapshot> Cars => _cars ?? Array.Empty<TrainCarSnapshot>();
-
         public RailPosition RailPosition { get; private set; }
-        public int RemainingDistance { get; private set; } = int.MaxValue;
 
         public ClientTrainUnit(Guid trainId, IRailGraphProvider railGraphProvider)
         {
@@ -41,26 +39,24 @@ namespace Client.Game.InGame.Train.Unit
 
         // スナップショットの内容で内部状態を更新
         // Update internal state by the received snapshot
-        public void SnapshotUpdate(TrainSimulationSnapshot simulation, RailPositionSaveData railPosition, long tick)
+        public void SnapshotUpdate(TrainSimulationSnapshot simulation, RailPositionSaveData railPosition)
         {
             CurrentSpeed = simulation.CurrentSpeed;
             AccumulatedDistance = simulation.AccumulatedDistance;
             MasconLevel = simulation.MasconLevel;
             RailPosition = RailPositionFactory.Restore(railPosition, _railGraphProvider);
             _cars = simulation.Cars ?? Array.Empty<TrainCarSnapshot>();
-            UpdateSimulationTargetNodeBySnapshot();
-            SyncServerApproachingNodeIdFromRailPosition();
-            RecalculateRemainingDistance();
+            _simulationTargetNode = RailPosition?.GetNodeApproaching();
         }
 
         // pre sim差分イベントを反映する
         // Apply pre-simulation diff values from the server.
-        public void ApplyPreSimulationDiff(int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeIdDiff, long tick)
+        public void ApplyPreSimulationDiff(int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeId)
         {
             MasconLevel += masconLevelDiff;
-            if (approachingNodeIdDiff != 0)
+            if (approachingNodeId != -1)
             {
-                ApplyApproachingNodeIdDiff(approachingNodeIdDiff);
+                _railGraphTraversalProvider.TryGetNode(approachingNodeId, out _simulationTargetNode);
             }
             if (isNowDockingSpeedZero)
             {
@@ -105,47 +101,12 @@ namespace Client.Game.InGame.Train.Unit
         // Called every tick and returns moved distance
         public int Update()
         {
-            // 進行先ノードが未確定の間はシミュレーションを進めない
-            if (ResolveCurrentDestinationNode() == null)
-            {
-                if (_isDockingStopPendingForTick)
-                {
-                    _isDockingStopPendingForTick = false;
-                    CurrentSpeed = 0;
-                    AccumulatedDistance = 0;
-                }
-                return 0;
-            }
-
             // サーバー通知済みMasconLevelで速度シミュレーションを進める
             // Simulate movement using the server-synchronized mascon level.
-            if (_isDockingStopPendingForTick)
-            {
-                _isDockingStopPendingForTick = false;
-                return SimulateDockingStopTick();
-            }
-
             var distanceToMove = SimulateMotionStep();
             return UpdateTrainByDistance(distanceToMove);
 
             #region Internal
-
-            int SimulateDockingStopTick()
-            {
-                // ドッキング確定tickでは目的地まで進めて残移動を捨てる
-                if (!TryCalculateDistanceToSimulationTarget(out var forceMoveDistance))
-                {
-                    CurrentSpeed = 0;
-                    AccumulatedDistance = 0;
-                    return 0;
-                }
-
-                var moved = forceMoveDistance > 0 ? UpdateTrainByDistance(forceMoveDistance) : 0;
-                CurrentSpeed = 0;
-                AccumulatedDistance = 0;
-                RemainingDistance = 0;
-                return moved;
-            }
 
             int SimulateMotionStep()
             {
@@ -156,8 +117,28 @@ namespace Client.Game.InGame.Train.Unit
                 CurrentSpeed = stepResult.NewSpeed;
                 AccumulatedDistance = stepResult.NewAccumulatedDistance;
                 return stepResult.DistanceToMove;
+                // 加速力を計算する
+                // Calculate traction force
+                double UpdateTractionForce(int masconLevel)
+                {
+                    var localCars = _cars ?? Array.Empty<TrainCarSnapshot>();
+                    if (localCars.Count == 0) return 0;
+                    int totalWeight = 0;
+                    int totalTraction = 0;
+                    foreach (var car in localCars)
+                    {
+                        var (weight, traction) = GetWeightAndTraction(car);
+                        totalWeight += weight;
+                        totalTraction += traction;
+                    }
+                    if (totalWeight == 0) return 0;
+                    return (double)totalTraction / totalWeight * masconLevel / TrainMotionParameters.MasconLevelMaximum;
+                    (int, int) GetWeightAndTraction(TrainCarSnapshot trainCarSnapshot)
+                    {
+                        return (TrainMotionParameters.DEFAULT_WEIGHT + trainCarSnapshot.InventorySlotsCount * TrainMotionParameters.WEIGHT_PER_SLOT, trainCarSnapshot.IsFacingForward ? trainCarSnapshot.TractionForce * TrainMotionParameters.DEFAULT_TRACTION : 0);
+                    }
+                }
             }
-
             #endregion
         }
 
@@ -171,22 +152,25 @@ namespace Client.Game.InGame.Train.Unit
                 int moveLength = RailPosition.MoveForward(distanceToMove);
                 distanceToMove -= moveLength;
                 totalMoved += moveLength;
-                RemainingDistance = Math.Max(0, RemainingDistance - moveLength);
 
-                // 目標ノードに到達したら停止し、次目標を仮決定する
+                // 目標ノードに到達したら停止
                 if (IsArrivedDestination())
                 {
-                    CurrentSpeed = 0;
-                    AccumulatedDistance = 0;
-
-                    var destinationNode = ResolveCurrentDestinationNode();
-                    if (destinationNode?.StationRef?.HasStation != true)
+                    if (_isDockingStopPendingForTick)
                     {
-                        MoveSimulationTargetNodeToNext(destinationNode);
-                        RecalculateRemainingDistance();
+                        CurrentSpeed = 0;
+                        AccumulatedDistance = 0;
+                        _isDockingStopPendingForTick = false;
+                        break;
                     }
-
-                    break;
+                    else
+                    {
+                        if (distanceToMove > 0)
+                        {
+                            Debug.LogWarning("サーバーから停止の差分が届いてない可能性があります。次のhash検証でmismatchになる可能性あり");
+                            break;
+                        }
+                    }
                 }
 
                 if (distanceToMove == 0) break;
@@ -195,6 +179,7 @@ namespace Client.Game.InGame.Train.Unit
                 if (approaching == null)
                 {
                     CurrentSpeed = 0;
+                    Debug.LogWarning("クライアント側でRailPositionの解決に失敗");
                     break;
                 }
 
@@ -205,7 +190,6 @@ namespace Client.Game.InGame.Train.Unit
                 }
 
                 RailPosition.AddNodeToHead(newPath[1]);
-                RemainingDistance = RailNodeCalculate.CalculateTotalDistanceF(newPath);
 
                 loopCount++;
                 if (loopCount > 1000000)
@@ -213,55 +197,23 @@ namespace Client.Game.InGame.Train.Unit
                     throw new InvalidOperationException("列車速度が無限に近いか、レール経路の無限ループを検知しました。");
                 }
             }
-
             return totalMoved;
 
             #region Internal
-
             bool IsArrivedDestination()
             {
                 // 目標ノードに0距離で到達したか判定する
                 var node = RailPosition.GetNodeApproaching();
-                var destinationNode = ResolveCurrentDestinationNode();
-                if (node == null || destinationNode == null)
+                if (node == null || _simulationTargetNode == null)
                 {
                     return false;
                 }
-
-                return (node == destinationNode) && (RailPosition.GetDistanceToNextNode() == 0);
+                return (node.NodeGuid == _simulationTargetNode.NodeGuid) && (RailPosition.GetDistanceToNextNode() == 0);
             }
 
             #endregion
         }
-
-        // 毎フレーム燃料在庫を確認しながら加速力を計算する
-        public double UpdateTractionForce(int masconLevel)
-        {
-            var localCars = _cars ?? Array.Empty<TrainCarSnapshot>();
-            if (localCars.Count == 0) return 0;
-
-            int totalWeight = 0;
-            int totalTraction = 0;
-            foreach (var car in localCars)
-            {
-                var (weight, traction) = GetWeightAndTraction(car);
-                totalWeight += weight;
-                totalTraction += traction;
-            }
-
-            if (totalWeight == 0) return 0;
-            return (double)totalTraction / totalWeight * masconLevel / TrainMotionParameters.MasconLevelMaximum;
-
-            #region Internal
-
-            (int, int) GetWeightAndTraction(TrainCarSnapshot trainCarSnapshot)
-            {
-                return (TrainMotionParameters.DEFAULT_WEIGHT + trainCarSnapshot.InventorySlotsCount * TrainMotionParameters.WEIGHT_PER_SLOT, trainCarSnapshot.IsFacingForward ? trainCarSnapshot.TractionForce * TrainMotionParameters.DEFAULT_TRACTION : 0);
-            }
-
-            #endregion
-        }
-
+        
         // 現在の目標ノードに到達する経路を探索する
         // Find path toward the current target node
         public (bool, List<IRailNode>) TryFindPathToSimulationTarget(IRailNode approaching)
@@ -270,159 +222,14 @@ namespace Client.Game.InGame.Train.Unit
             {
                 return (false, null);
             }
-
             var path = _railGraphProvider.FindShortestPath(approaching, _simulationTargetNode);
             var newPath = path?.ToList();
             if (newPath == null || newPath.Count < 2)
             {
                 return (false, null);
             }
-
             return (true, newPath);
         }
-
-        #region Internal
-
-        private IRailNode ResolveCurrentDestinationNode()
-        {
-            return _simulationTargetNode;
-        }
-
-        private void RecalculateRemainingDistance()
-        {
-            // 目的地までの概算距離を再計算
-            var destinationNode = ResolveCurrentDestinationNode();
-            var approaching = RailPosition?.GetNodeApproaching();
-            if (destinationNode == null || approaching == null)
-            {
-                RemainingDistance = int.MaxValue;
-                return;
-            }
-
-            if (ReferenceEquals(destinationNode, approaching))
-            {
-                RemainingDistance = RailPosition.GetDistanceToNextNode();
-                return;
-            }
-
-            var path = _railGraphProvider.FindShortestPath(approaching, destinationNode);
-            if (path == null || path.Count < 2)
-            {
-                RemainingDistance = int.MaxValue;
-                return;
-            }
-
-            var tailDistance = RailNodeCalculate.CalculateTotalDistanceF(path);
-            if (tailDistance < 0)
-            {
-                RemainingDistance = int.MaxValue;
-                return;
-            }
-
-            RemainingDistance = RailPosition.GetDistanceToNextNode() + tailDistance;
-        }
-
-        private void UpdateSimulationTargetNodeBySnapshot()
-        {
-            // スナップショット適用時は接近ノードを暫定目標として採用する
-            // Adopt approaching node as provisional target on snapshot apply
-            _simulationTargetNode = RailPosition?.GetNodeApproaching();
-            if (_simulationTargetNode == null)
-            {
-                return;
-            }
-
-            MoveSimulationTargetNodeToNext(_simulationTargetNode);
-        }
-
-        private void SyncServerApproachingNodeIdFromRailPosition()
-        {
-            // スナップショット基準でサーバー側approaching node idを同期する
-            // Sync server-side approaching node id from snapshot baseline.
-            var approachingNode = RailPosition?.GetNodeApproaching();
-            _serverApproachingNodeId = approachingNode?.NodeId ?? -1;
-        }
-
-        private void ApplyApproachingNodeIdDiff(int approachingNodeIdDiff)
-        {
-            // 差分値を累積してサーバー側approaching node idを再現する
-            // Reconstruct server-side approaching node id by accumulating diffs.
-            _serverApproachingNodeId += approachingNodeIdDiff;
-            if (_serverApproachingNodeId < 0)
-            {
-                _simulationTargetNode = null;
-                RemainingDistance = int.MaxValue;
-                return;
-            }
-
-            if (_railGraphTraversalProvider == null)
-            {
-                return;
-            }
-
-            if (!_railGraphTraversalProvider.TryGetNode(_serverApproachingNodeId, out var approachingNode))
-            {
-                return;
-            }
-
-            _simulationTargetNode = approachingNode;
-            MoveSimulationTargetNodeToNext(_simulationTargetNode);
-            RecalculateRemainingDistance();
-        }
-
-        private void MoveSimulationTargetNodeToNext(IRailNode currentNode)
-        {
-            if (currentNode == null)
-            {
-                _simulationTargetNode = null;
-                return;
-            }
-
-            var nextNodeList = currentNode.ConnectedNodes.ToList();
-            if (nextNodeList.Count == 0)
-            {
-                _simulationTargetNode = currentNode;
-                return;
-            }
-
-            _simulationTargetNode = nextNodeList[0];
-        }
-
-        private bool TryCalculateDistanceToSimulationTarget(out int distance)
-        {
-            distance = int.MaxValue;
-
-            var destinationNode = ResolveCurrentDestinationNode();
-            var approaching = RailPosition?.GetNodeApproaching();
-            if (destinationNode == null || approaching == null)
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(destinationNode, approaching))
-            {
-                distance = RailPosition.GetDistanceToNextNode();
-                return true;
-            }
-
-            var path = _railGraphProvider.FindShortestPath(approaching, destinationNode);
-            if (path == null || path.Count < 2)
-            {
-                return false;
-            }
-
-            var tailDistance = RailNodeCalculate.CalculateTotalDistanceF(path);
-            if (tailDistance < 0)
-            {
-                return false;
-            }
-
-            distance = RailPosition.GetDistanceToNextNode() + tailDistance;
-            return true;
-        }
-
-
-        #endregion
     }
 }
 

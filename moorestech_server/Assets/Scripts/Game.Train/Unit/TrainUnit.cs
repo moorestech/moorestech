@@ -45,7 +45,7 @@ namespace Game.Train.Unit
         public int masconLevel = 0;
         private int pre_masconLevel = 0;
         private bool isNowDockingSpeedZero = false;//ドッキングした瞬間強制速度0になるのでmasconlevel差分通知ではズレが生じる
-        private int pre_approachingNodeId = -1;
+        private int _lastBranchSelectedNodeId = -1; 
         
         private int tickCounter = 0;// TODO デバッグトグル関係　そのうち消す
         public TrainUnit(
@@ -245,6 +245,7 @@ namespace Game.Train.Unit
                         _currentSpeed = 0;
                         _accumulatedDistance = 0;
                         isNowDockingSpeedZero = true;
+                        _lastBranchSelectedNodeId = _railPosition.GetNodeApproaching()?.NodeId ?? -1;
                         //diagramが駅を見ている場合
                         if (trainDiagram.GetCurrentNode().StationRef.StationBlock != null)
                         {
@@ -280,7 +281,8 @@ namespace Game.Train.Unit
                     }
                     //見つかったので一番いいルートを自動選択
                     _railPosition.AddNodeToHead(newPath[1]);//newPath[0]はapproachingがはいってる
-                                                            //残りの距離を再更新
+                    _lastBranchSelectedNodeId = trainDiagram.GetCurrentNode().NodeId;
+                    //残りの距離を再更新
                     _remainingDistance = RailNodeCalculate.CalculateTotalDistanceF(newPath);//計算量NlogN(logはnodeからintの辞書アクセス)
                 }
                 else
@@ -294,6 +296,7 @@ namespace Game.Train.Unit
                     }
                     var nextNode = nextNodelist[0];
                     _railPosition.AddNodeToHead(nextNode);
+                    _lastBranchSelectedNodeId = nextNode.NodeId;
                 }
                 //----------------------------------------------------------------------------------------
                 loopCount++;
@@ -346,11 +349,8 @@ namespace Game.Train.Unit
             pre_masconLevel = masconLevel;
             var ret2 = isNowDockingSpeedZero;
             isNowDockingSpeedZero = false;
-            var ret3n = _railPosition.GetNodeApproaching();
-            int ret3val = -1;
-            if (ret3n != null) ret3val = ret3n.NodeId;
-            var ret3 = ret3val - pre_approachingNodeId;
-            pre_approachingNodeId = ret3val;
+            var ret3 = _lastBranchSelectedNodeId;
+            _lastBranchSelectedNodeId = -1;
             return (ret1, ret2, ret3);
         }
 
