@@ -22,7 +22,7 @@ namespace Server.Event.EventReceive
             _trainUpdateService = trainUpdateService;
             // 列車生成イベントを購読する
             // Subscribe to train unit creation events
-            _trainUpdateService.GetTrainUnitCreatedEvent().Subscribe(OnTrainUnitCreated);
+            _trainUpdateService.TrainUnitCreatedEvent.Subscribe(OnTrainUnitCreated);
         }
 
         private void OnTrainUnitCreated(TrainUnitInitializationNotifier.TrainUnitCreatedData data)

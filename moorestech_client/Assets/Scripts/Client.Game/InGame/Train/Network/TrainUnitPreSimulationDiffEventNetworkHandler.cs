@@ -58,7 +58,7 @@ namespace Client.Game.InGame.Train.Network
                 {
                     for (var i = 0; i < messagePack.Diffs.Count; i++)
                     {
-                        _cache.ApplyPreSimulationDiff(messagePack.Diffs[i], messagePack.TrainTick);
+                        _cache.ApplyPreSimulationDiff(messagePack.Diffs[i]);
                     }
                 }
             }

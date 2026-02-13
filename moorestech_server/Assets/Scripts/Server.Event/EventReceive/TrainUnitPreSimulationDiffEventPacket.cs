@@ -18,7 +18,7 @@ namespace Server.Event.EventReceive
         {
             _eventProtocolProvider = eventProtocolProvider;
             _trainUpdateService = trainUpdateService;
-            _trainUpdateService.GetOnPreSimulationDiffEvent().Subscribe(OnPreSimulationDiff);
+            _trainUpdateService.OnPreSimulationDiffEvent.Subscribe(OnPreSimulationDiff);
         }
 
         #region Internal

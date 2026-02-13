@@ -14,8 +14,8 @@ namespace Game.Train.Unit
 
         // Trainはサーバーのゲームtickに同期して進める
         // Train tick is aligned with the server game tick interval.
-        private const double TickSeconds = 0.1d;
-        public const double HashBroadcastIntervalSeconds = 0.1d;
+        private const double TickSeconds = GameUpdater.SecondsPerTick;
+        public const double HashBroadcastIntervalSeconds = TickSeconds;
         private static readonly long TrainUnitHashBroadcastIntervalTicks = Math.Max(1L, (long)Math.Ceiling(HashBroadcastIntervalSeconds / TickSeconds));
         private readonly List<TrainUnit> _trainUnits = new();
         private long _executedTick;
@@ -38,17 +38,20 @@ namespace Game.Train.Unit
         }
 
         public long GetCurrentTick() => _executedTick;
-        public IObservable<long> GetOnHashEvent() => _onHashEvent;
-        public IObservable<TrainTickDiffBatch> GetOnPreSimulationDiffEvent() => _onPreSimulationDiffEvent;
+        public IObservable<long> OnHashEvent => _onHashEvent;
+        public IObservable<TrainTickDiffBatch> OnPreSimulationDiffEvent => _onPreSimulationDiffEvent;
         // 列車生成イベントの購読口を返す
         // Provide the train unit creation event stream
-        public IObservable<TrainUnitInitializationNotifier.TrainUnitCreatedData> GetTrainUnitCreatedEvent() => _trainUnitInitializationNotifier.TrainUnitInitializedEvent;
+        public IObservable<TrainUnitInitializationNotifier.TrainUnitCreatedData> TrainUnitCreatedEvent => _trainUnitInitializationNotifier.TrainUnitInitializedEvent;
         public bool IsTrainAutoRunDebugEnabled() => _trainAutoRunDebugEnabled;
 
         private void UpdateTrains()
         {
             //HashVerifier用ブロードキャスト
-            _onHashEvent.OnNext(_executedTick);
+            if (_executedTick % TrainUnitHashBroadcastIntervalTicks == 0)
+            {
+                _onHashEvent.OnNext(_executedTick);
+            }
             
             _executedTick++;
             

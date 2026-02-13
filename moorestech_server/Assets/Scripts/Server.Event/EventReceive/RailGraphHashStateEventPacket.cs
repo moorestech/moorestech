@@ -26,10 +26,10 @@ namespace Server.Event.EventReceive
             _railGraphDatastore = railGraphDatastore;
             _trainUpdateService = trainUpdateService;
 
-            // 1秒周期でRailGraphハッシュを通知
-            // Broadcast hash/tick every second
-            Observable.Interval(TimeSpan.FromSeconds(TrainUpdateService.HashBroadcastIntervalSeconds))
-                .Subscribe(_ => BroadcastHashState())
+            // Trainのtick通知に合わせてRailGraphハッシュを送信
+            // Broadcast RailGraph hash in sync with train tick notifications.
+            _trainUpdateService.OnHashEvent
+                .Subscribe(BroadcastHashState)
                 .AddTo(_disposables);
         }
 
@@ -40,12 +40,12 @@ namespace Server.Event.EventReceive
 
         #region Internal
 
-        private void BroadcastHashState()
+        private void BroadcastHashState(long tick)
         {
             // RailGraphのハッシュとtickを取得し全プレイヤーに送信
             // Fetch the latest graph hash/tick and broadcast to every player
             var hash = _railGraphDatastore.GetConnectNodesHash();
-            var payload = MessagePackSerializer.Serialize(new RailGraphHashStateMessagePack(hash, _trainUpdateService.GetCurrentTick()));
+            var payload = MessagePackSerializer.Serialize(new RailGraphHashStateMessagePack(hash, tick));
             _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
         }
 
