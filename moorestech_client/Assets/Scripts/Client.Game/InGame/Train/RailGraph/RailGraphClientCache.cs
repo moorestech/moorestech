@@ -445,6 +445,15 @@ namespace Client.Game.InGame.Train.RailGraph
             var path = FindShortestPath(startId, endId);
             return RailNodeCalculate.CalculateTotalDistanceF(path);
         }
+
+#if UNITY_EDITOR
+        // エディタテストからのみ使う生成ヘルパー。
+        // Factory helper used only by editor-side tests.
+        public static RailGraphClientCache CreateForEditorTest()
+        {
+            return new RailGraphClientCache();
+        }
+#endif
     }
 }
 

@@ -181,10 +181,10 @@ namespace Server.Boot
             services.AddSingleton<RailConnectionCreatedEventPacket>();
             services.AddSingleton<RailGraphHashStateEventPacket>();
             services.AddSingleton<TrainUnitHashStateEventPacket>();
+            services.AddSingleton<TrainUnitPreSimulationDiffEventPacket>();
             services.AddSingleton<TrainUnitCreatedEventPacket>();
             services.AddSingleton<RailNodeRemovedEventPacket>();
             services.AddSingleton<RailConnectionRemovedEventPacket>();
-            services.AddSingleton<TrainDiagramEventPacket>();
             
             //データのセーブシステム
             services.AddSingleton<AssembleSaveJsonText, AssembleSaveJsonText>();
@@ -216,10 +216,10 @@ namespace Server.Boot
             serviceProvider.GetService<RailConnectionCreatedEventPacket>();
             serviceProvider.GetService<RailGraphHashStateEventPacket>();
             serviceProvider.GetService<TrainUnitHashStateEventPacket>();
+            serviceProvider.GetService<TrainUnitPreSimulationDiffEventPacket>();
             serviceProvider.GetService<TrainUnitCreatedEventPacket>();
             serviceProvider.GetService<RailNodeRemovedEventPacket>();
             serviceProvider.GetService<RailConnectionRemovedEventPacket>();
-            serviceProvider.GetService<TrainDiagramEventPacket>();
             
             serverContext.SetMainServiceProvider(serviceProvider);
 

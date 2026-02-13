@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Game.Train.Diagram;
 using Game.Train.RailPositions;
 using Game.Train.SaveLoad;
 
@@ -42,18 +41,14 @@ namespace Game.Train.Unit
 
         private static uint MixBundle(uint current, TrainUnitSnapshotBundle bundle)
         {
-            // Simulation/Diagram/RailPositionの要素を順に混ぜる
-            // Mix simulation, diagram, and rail position fields in order
+            // Simulation/RailPositionの要素を順に混ぜる
+            // Mix simulation and rail position fields in order
             var simulation = bundle.Simulation;
             var hash = MixGuid(current, simulation.TrainId);
             hash = MixLong(hash, BitConverter.DoubleToInt64Bits(simulation.CurrentSpeed));
             hash = MixLong(hash, BitConverter.DoubleToInt64Bits(simulation.AccumulatedDistance));
             hash = Mix(hash, simulation.MasconLevel);
-            hash = Mix(hash, simulation.IsAutoRun ? 1 : 0);
             hash = MixCars(hash, simulation.Cars);
-
-            var diagramHash = TrainDiagramHashCalculator.Compute(bundle.Diagram);
-            hash = Mix(hash, unchecked((int)diagramHash));
             hash = MixRailPosition(hash, bundle.RailPositionSnapshot);
             return hash;
         }

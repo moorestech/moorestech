@@ -8,9 +8,9 @@ namespace Game.Train.Unit
     /// </summary>
     public static class TrainMotionParameters
     {
-        public const double Friction = 0.0002;
-        public const double AirResistance = 0.00002;
-        public const double SpeedWeight = 0.008;
+        public const double Friction = 0.00353;
+        public const double AirResistance = 0.0000117;
+        public const double SpeedWeight = 0.09;
         public const double AutoRunMaxSpeedDistanceCoefficient = 10000.0;
         public const double AutoRunMaxSpeedOffset = 10.0;
         public const double AutoRunSpeedBufferMargin = 0.02;
@@ -20,7 +20,7 @@ namespace Game.Train.Unit
         public const int MasconLevelMaximum = 16777216;
         public const int WEIGHT_PER_SLOT = 40;
         public const int DEFAULT_WEIGHT = 320;
-        public const int DEFAULT_TRACTION = 100;
+        public const int DEFAULT_TRACTION = 400;
     }
 
     public readonly struct AutoRunMasconInput

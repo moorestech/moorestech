@@ -1,11 +1,9 @@
-using Client.Game.InGame.Train.RailGraph;
-using Core.Master;
-using Game.Train.Diagram;
-using Game.Train.Unit;
-using Server.Util.MessagePack;
 using System;
 using System.Collections.Generic;
-using UnityEngine;
+using Client.Game.InGame.Train.RailGraph;
+using Core.Master;
+using Game.Train.Unit;
+using Server.Util.MessagePack;
 
 namespace Client.Game.InGame.Train.Unit
 {
@@ -22,10 +20,6 @@ namespace Client.Game.InGame.Train.Unit
         private readonly Dictionary<TrainCarInstanceId, TrainCarCacheEntry> _carIndex = new();
         private readonly Dictionary<Guid, List<TrainCarInstanceId>> _carIdsByTrain = new();
 
-        // 最新の適用済みtick
-        // Latest tick that has been fully applied
-        public long LastServerTick { get; private set; }
-
         // 列車一覧の読み取り専用ビュー
         // Read-only view for external systems
         public IReadOnlyDictionary<Guid, ClientTrainUnit> Units => _units;
@@ -39,14 +33,13 @@ namespace Client.Game.InGame.Train.Unit
 
         // 初期スナップショットでキャッシュ全体を入れ替える
         // Replace the entire cache when a full snapshot arrives
-        public void OverrideAll(IReadOnlyList<TrainUnitSnapshotBundle> snapshots, long serverTick)
+        public void OverrideAll(IReadOnlyList<TrainUnitSnapshotBundle> snapshots)
         {
             _units.Clear();
             _carIndex.Clear();
             _carIdsByTrain.Clear();
             if (snapshots == null)
             {
-                LastServerTick = serverTick;
                 return;
             }
 
@@ -59,19 +52,10 @@ namespace Client.Game.InGame.Train.Unit
                 }
 
                 var unit = new ClientTrainUnit(bundle.Simulation.TrainId, _railGraphProvider);
-                unit.SnapshotUpdate(bundle.Simulation, bundle.Diagram, bundle.RailPositionSnapshot, serverTick);
+                unit.SnapshotUpdate(bundle.Simulation, bundle.RailPositionSnapshot);
                 _units[bundle.Simulation.TrainId] = unit;
                 BuildCarIndexForUnit(unit);
             }
-
-            LastServerTick = serverTick;
-        }
-
-        // 最終Tickだけを更新する
-        // Override only the latest tick marker
-        public void OverrideTick(long serverTick)
-        {
-            LastServerTick = Math.Max(LastServerTick, serverTick);
         }
 
         // 現在のTrainUnit状態からハッシュを計算する
@@ -92,7 +76,7 @@ namespace Client.Game.InGame.Train.Unit
 
         // 単一列車の差分更新を適用
         // Apply a diff snapshot for a single train
-        public ClientTrainUnit Upsert(TrainUnitSnapshotBundle snapshot, long serverTick)
+        public ClientTrainUnit Upsert(TrainUnitSnapshotBundle snapshot)
         {
             var trainId = snapshot.Simulation.TrainId;
             if (!_units.TryGetValue(trainId, out var unit))
@@ -102,10 +86,26 @@ namespace Client.Game.InGame.Train.Unit
             }
 
             RemoveCarIndex(trainId);
-            unit.SnapshotUpdate(snapshot.Simulation, snapshot.Diagram, snapshot.RailPositionSnapshot, serverTick);
+            unit.SnapshotUpdate(snapshot.Simulation, snapshot.RailPositionSnapshot);
             BuildCarIndexForUnit(unit);
-            LastServerTick = Math.Max(LastServerTick, serverTick);
             return unit;
+        }
+
+        // pre sim差分イベントを対象TrainUnitへ反映する
+        // Apply a pre-simulation diff event to the target train.
+        public bool ApplyPreSimulationDiff(TrainUnitTickDiffMessagePack diff)
+        {
+            if (diff == null)
+            {
+                return false;
+            }
+            if (!_units.TryGetValue(diff.TrainId, out var unit))
+            {
+                return false;
+            }
+            
+            unit.ApplyPreSimulationDiff(diff.MasconLevelDiff, diff.IsNowDockingSpeedZero, diff.ApproachingNodeIdDiff);
+            return true;
         }
 
         // キャッシュから列車を削除
@@ -150,24 +150,6 @@ namespace Client.Game.InGame.Train.Unit
             buffer.AddRange(_units.Values);
         }
 
-        public void ApplyDiagramEvent(TrainDiagramEventMessagePack message)
-        {
-            if (message == null)
-            {
-                return;
-            }
-
-            if (_units.TryGetValue(message.TrainId, out var unit))
-            {
-                unit.ApplyDiagramEvent(message);
-                var localHash = TrainDiagramHashCalculator.Compute(unit.Diagram.Snapshot);
-                if (localHash != message.DiagramHash)
-                {
-                    Debug.LogWarning($"[TrainDiagramHashVerifier] Hash mismatch for train={{message.TrainId}}. client={{localHash}}, server={{message.DiagramHash}}, tick={{message.Tick}}, event={{message.EventType}}.");
-                }
-            }
-        }
-
         #region Internal
 
         private void BuildCarIndexForUnit(ClientTrainUnit unit)
@@ -194,6 +176,18 @@ namespace Client.Game.InGame.Train.Unit
             }
 
             _carIdsByTrain[unit.TrainId] = carIds;
+
+            #region Internal
+
+            int ResolveCarLength(TrainCarSnapshot snapshot)
+            {
+                // マスター情報から車両長さを解決する
+                // Resolve car length from master data
+                if (MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(snapshot.TrainCarMasterId, out var master) && master.Length > 0) return TrainLengthConverter.ToRailUnits(master.Length);
+                return 0;
+            }
+
+            #endregion
         }
 
         private void RemoveCarIndex(Guid trainId)
@@ -203,14 +197,6 @@ namespace Client.Game.InGame.Train.Unit
             if (!_carIdsByTrain.TryGetValue(trainId, out var carIds)) return;
             for (var i = 0; i < carIds.Count; i++) _carIndex.Remove(carIds[i]);
             _carIdsByTrain.Remove(trainId);
-        }
-
-        private int ResolveCarLength(TrainCarSnapshot snapshot)
-        {
-            // マスター情報から車両長さを解決する
-            // Resolve car length from master data
-            if (MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(snapshot.TrainCarMasterId, out var master) && master.Length > 0) return TrainLengthConverter.ToRailUnits(master.Length);
-            return 0;
         }
 
         private readonly struct TrainCarCacheEntry

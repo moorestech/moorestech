@@ -15,5 +15,6 @@ namespace Game.Train.Diagram
         IReadOnlyList<ITrainDiagramCar> Cars { get; }
         bool IsAutoRun { get; }
         bool IsDocked { get; }
+        void OnCurrentEntryShiftedByRemoval();
     }
 }
