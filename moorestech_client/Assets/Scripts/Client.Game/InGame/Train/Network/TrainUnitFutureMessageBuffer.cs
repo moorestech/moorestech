@@ -101,9 +101,9 @@ namespace Client.Game.InGame.Train.Network
 
         // 現在tickで適用可能なpre-simイベントを適用する。
         // Apply pre-simulation events that are now reachable by simulated tick.
-        public bool FlushPreBySimulatedTick()
+        public void FlushPreBySimulatedTick()
         {
-            return FlushFutureEvents(_futurePreEvents, _tickState.GetTick());
+            FlushFutureEvents(_futurePreEvents, _tickState.GetTick());
         }
 
         // 現在tickで適用可能なpost-simイベントを適用する。
@@ -195,10 +195,9 @@ namespace Client.Game.InGame.Train.Network
             events.Add(bufferedEvent);
         }
 
-        private bool FlushFutureEvents(SortedDictionary<ulong, List<ITrainTickBufferedEvent>> source, uint currentTick)
+        private void FlushFutureEvents(SortedDictionary<ulong, List<ITrainTickBufferedEvent>> source, uint currentTick)
         {
             var currentTickUpperBoundUnifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(currentTick, uint.MaxValue);
-            var hasAppliedEvent = false;
             while (TryGetFirstTickUnifiedId(source, out var targetTickUnifiedId) &&
                    targetTickUnifiedId <= currentTickUpperBoundUnifiedId)
             {
@@ -206,15 +205,12 @@ namespace Client.Game.InGame.Train.Network
                 for (var i = 0; i < events.Count; i++)
                 {
                     events[i].Apply();
-                    hasAppliedEvent = true;
                 }
                 source.Remove(targetTickUnifiedId);
                 _tickState.RecordAppliedTickUnifiedId(
                     TrainTickUnifiedIdUtility.ExtractTick(targetTickUnifiedId),
                     TrainTickUnifiedIdUtility.ExtractTickSequenceId(targetTickUnifiedId));
             }
-
-            return hasAppliedEvent;
 
             bool TryGetFirstTickUnifiedId(SortedDictionary<ulong, List<ITrainTickBufferedEvent>> sourceDictionary, out ulong tickUnifiedId)
             {

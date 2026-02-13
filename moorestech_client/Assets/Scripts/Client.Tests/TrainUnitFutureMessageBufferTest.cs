@@ -29,10 +29,9 @@ namespace Client.Tests
             _buffer.EnqueuePost(11, 102, TrainTickBufferedEvent.Create("postA", () => applied.Add("postA")));
 
             _tickState.AdvanceTick();
-            var hasPreEvent = _buffer.FlushPreBySimulatedTick();
+            _buffer.FlushPreBySimulatedTick();
 
             CollectionAssert.AreEqual(new[] { "preA" }, applied);
-            Assert.IsTrue(hasPreEvent);
         }
 
         [Test]
@@ -50,14 +49,6 @@ namespace Client.Tests
         }
 
         [Test]
-        public void FlushPreBySimulatedTick_ReturnsFalseWhenNoEventApplied()
-        {
-            _tickState.SetSnapshotBaseline(30, 300);
-            var hasPreEvent = _buffer.FlushPreBySimulatedTick();
-            Assert.IsFalse(hasPreEvent);
-        }
-
-        [Test]
         public void EnqueuePre_AllowsCurrentTickFutureSequence()
         {
             // 同一tickでも未適用sequenceなら受け入れて適用できることを確認する。
@@ -66,10 +57,9 @@ namespace Client.Tests
             _tickState.SetSnapshotBaseline(50, 500);
             _buffer.EnqueuePre(50, 501, TrainTickBufferedEvent.Create("preCurrentTick", () => applied.Add("preCurrentTick")));
 
-            var hasPreEvent = _buffer.FlushPreBySimulatedTick();
+            _buffer.FlushPreBySimulatedTick();
 
             CollectionAssert.AreEqual(new[] { "preCurrentTick" }, applied);
-            Assert.IsTrue(hasPreEvent);
         }
 
         [Test]
@@ -151,9 +141,8 @@ namespace Client.Tests
             _buffer.DiscardUpToTickUnifiedId(TrainTickUnifiedIdUtility.CreateTickUnifiedId(51, 501));
 
             _tickState.AdvanceTick();
-            var hasPreEvent = _buffer.FlushPreBySimulatedTick();
+            _buffer.FlushPreBySimulatedTick();
             CollectionAssert.AreEqual(new[] { "preB" }, applied);
-            Assert.IsTrue(hasPreEvent);
             Assert.IsFalse(_buffer.TryDequeueHashAtTick(51, out _));
             Assert.IsTrue(_buffer.TryDequeueHashAtTick(52, out var hash));
             Assert.AreEqual((uint)503, hash.TickSequenceId);
