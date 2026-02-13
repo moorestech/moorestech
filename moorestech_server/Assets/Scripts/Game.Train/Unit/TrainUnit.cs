@@ -43,9 +43,9 @@ namespace Game.Train.Unit
         //キー関連、差分通知関連
         //マスコンレベル 0がニュートラル、1が前進1段階、-1が後退1段階.キー入力やテスト、外部から直接制御できる。min maxは±16777216とする(暫定)
         public int masconLevel = 0;
-        private int pre_masconLevel = 0;
-        private bool isNowDockingSpeedZero = false;//ドッキングした瞬間強制速度0になるのでmasconlevel差分通知ではズレが生じる
-        private int _lastBranchSelectedNodeId = -1; 
+        private int _previousMasconLevel = 0;
+        private bool _isDockingSpeedForcedToZero = false;//ドッキングした瞬間強制速度0になるのでmasconlevel差分通知ではズレが生じる
+        private int _pendingApproachingNodeId = -1;
         
         private int tickCounter = 0;// TODO デバッグトグル関係　そのうち消す
         public TrainUnit(
@@ -243,8 +243,8 @@ namespace Game.Train.Unit
                     {
                         _currentSpeed = 0;
                         _accumulatedDistance = 0;
-                        isNowDockingSpeedZero = true;
-                        _lastBranchSelectedNodeId = _railPosition.GetNodeApproaching()?.NodeId ?? -1;
+                        _isDockingSpeedForcedToZero = true;
+                        _pendingApproachingNodeId = _railPosition.GetNodeApproaching()?.NodeId ?? -1;
                         //diagramが駅を見ている場合
                         if (trainDiagram.GetCurrentNode().StationRef.StationBlock != null)
                         {
@@ -280,7 +280,7 @@ namespace Game.Train.Unit
                     }
                     //見つかったので一番いいルートを自動選択
                     _railPosition.AddNodeToHead(newPath[1]);//newPath[0]はapproachingがはいってる
-                    _lastBranchSelectedNodeId = trainDiagram.GetCurrentNode().NodeId;
+                    _pendingApproachingNodeId = newPath[1].NodeId;
                     //残りの距離を再更新
                     _remainingDistance = RailNodeCalculate.CalculateTotalDistanceF(newPath);//計算量NlogN(logはnodeからintの辞書アクセス)
                 }
@@ -295,7 +295,7 @@ namespace Game.Train.Unit
                     }
                     var nextNode = nextNodelist[0];
                     _railPosition.AddNodeToHead(nextNode);
-                    _lastBranchSelectedNodeId = nextNode.NodeId;
+                    _pendingApproachingNodeId = nextNode.NodeId;
                 }
                 //----------------------------------------------------------------------------------------
                 loopCount++;
@@ -344,12 +344,12 @@ namespace Game.Train.Unit
         // masconlevelなどの差分を抽出
         public (int,bool,int) GetTickDiff()
         {
-            var ret1 = masconLevel - pre_masconLevel;
-            pre_masconLevel = masconLevel;
-            var ret2 = isNowDockingSpeedZero;
-            isNowDockingSpeedZero = false;
-            var ret3 = _lastBranchSelectedNodeId;
-            _lastBranchSelectedNodeId = -1;
+            var ret1 = masconLevel - _previousMasconLevel;
+            _previousMasconLevel = masconLevel;
+            var ret2 = _isDockingSpeedForcedToZero;
+            _isDockingSpeedForcedToZero = false;
+            var ret3 = _pendingApproachingNodeId;
+            _pendingApproachingNodeId = -1;
             return (ret1, ret2, ret3);
         }
 
