@@ -38,11 +38,11 @@ namespace Game.Train.Unit
         }
 
         public long GetCurrentTick() => _executedTick;
-        public IObservable<long> GetOnHashEvent() => _onHashEvent;
-        public IObservable<TrainTickDiffBatch> GetOnPreSimulationDiffEvent() => _onPreSimulationDiffEvent;
+        public IObservable<long> OnHashEvent => _onHashEvent;
+        public IObservable<TrainTickDiffBatch> OnPreSimulationDiffEvent => _onPreSimulationDiffEvent;
         // 列車生成イベントの購読口を返す
         // Provide the train unit creation event stream
-        public IObservable<TrainUnitInitializationNotifier.TrainUnitCreatedData> GetTrainUnitCreatedEvent() => _trainUnitInitializationNotifier.TrainUnitInitializedEvent;
+        public IObservable<TrainUnitInitializationNotifier.TrainUnitCreatedData> TrainUnitCreatedEvent => _trainUnitInitializationNotifier.TrainUnitInitializedEvent;
         public bool IsTrainAutoRunDebugEnabled() => _trainAutoRunDebugEnabled;
 
         private void UpdateTrains()

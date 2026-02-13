@@ -23,7 +23,7 @@ namespace Server.Event.EventReceive
             _trainUpdateService = trainUpdateService;
             // 1秒間隔でTrainUnitハッシュを通知する
             // Broadcast hash/tick every second
-            _trainUpdateService.GetOnHashEvent().Subscribe(BroadcastHashState);
+            _trainUpdateService.OnHashEvent.Subscribe(BroadcastHashState);
         }
 
         #region Internal
