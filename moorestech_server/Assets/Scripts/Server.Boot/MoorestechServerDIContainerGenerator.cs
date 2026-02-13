@@ -183,7 +183,6 @@ namespace Server.Boot
             services.AddSingleton<TrainUnitHashStateEventPacket>();
             services.AddSingleton<TrainUnitPreSimulationDiffEventPacket>();
             services.AddSingleton<TrainUnitCreatedEventPacket>();
-            services.AddSingleton<TrainCarRemovedEventPacket>();
             services.AddSingleton<RailNodeRemovedEventPacket>();
             services.AddSingleton<RailConnectionRemovedEventPacket>();
             
@@ -219,7 +218,6 @@ namespace Server.Boot
             serviceProvider.GetService<TrainUnitHashStateEventPacket>();
             serviceProvider.GetService<TrainUnitPreSimulationDiffEventPacket>();
             serviceProvider.GetService<TrainUnitCreatedEventPacket>();
-            serviceProvider.GetService<TrainCarRemovedEventPacket>();
             serviceProvider.GetService<RailNodeRemovedEventPacket>();
             serviceProvider.GetService<RailConnectionRemovedEventPacket>();
             

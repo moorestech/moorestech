@@ -54,7 +54,7 @@ namespace Client.Game.InGame.Train.Network
                 return;
             // 問題なければキャッシュに接続を反映
             // Apply the connection diff to the cache
-            _cache.UpsertConnection(message.FromNodeId, message.ToNodeId, message.Distance, message.RailTypeGuid, message.IsDrawable);
+            _cache.UpsertConnection(message.FromNodeId, message.ToNodeId, message.Distance, message.RailTypeGuid, message.IsDrawable, message.Tick);
         }
 
         private void OnConnectionRemoved(byte[] payload)
@@ -70,7 +70,7 @@ namespace Client.Game.InGame.Train.Network
                 return;
             // 両端一致時のみ接続情報を削除
             // Remove the cached connection only when both ends match
-            _cache.RemoveConnection(message.FromNodeId, message.ToNodeId);
+            _cache.RemoveConnection(message.FromNodeId, message.ToNodeId, message.Tick);
         }
 
         #endregion
