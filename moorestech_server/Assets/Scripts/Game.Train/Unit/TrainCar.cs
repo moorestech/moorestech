@@ -27,7 +27,7 @@ namespace Game.Train.Unit
         // 駆動力 (動力車での推進力、貨車では0)
         public int TractionForce { get; private set; }
         
-        [CanBeNull] public ITrainCarContainer Container;
+        [CanBeNull] public ITrainCarContainer Container { get; private set; }
 
         //列車自体の長さ
         public int Length { get; private set; }
