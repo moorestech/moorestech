@@ -4,6 +4,6 @@ namespace Client.Game.InGame.Train.Unit
     // Gate that decides whether train simulation can advance by one tick.
     public interface ITrainUnitHashTickGate
     {
-        bool CanAdvanceTick(uint currentTick);
+        bool CanAdvanceTick(ulong currentTickUnifiedId);
     }
 }

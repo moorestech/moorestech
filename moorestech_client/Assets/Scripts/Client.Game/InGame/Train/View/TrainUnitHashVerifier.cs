@@ -101,7 +101,7 @@ namespace Client.Game.InGame.Train.View
             #endregion
         }
 
-        public bool CanAdvanceTick(uint currentTick)
+        public bool CanAdvanceTick(ulong currentTickUnifiedId)
         {
             // 再同期中はtick進行を止める
             // Stop simulation advance while resync is in progress
@@ -110,23 +110,22 @@ namespace Client.Game.InGame.Train.View
                 return false;
             }
 
-            if (currentTick <= _tickState.GetLastHashVerifiedTick())
+            if (currentTickUnifiedId <= _tickState.GetAppliedTickUnifiedId())
             {
                 return true;
             }
 
-            var isVerified = ValidateCurrentTickHash(currentTick);
+            var isVerified = ValidateCurrentTickHash(currentTickUnifiedId);
             return isVerified && Interlocked.CompareExchange(ref _resyncInProgress, 0, 0) == 0;
 
             #region Internal
 
-            bool ValidateCurrentTickHash(uint targetTick)
+            bool ValidateCurrentTickHash(ulong tickUnifiedId)
             {
-                if (!_futureMessageBuffer.TryDequeueHashAtTick(targetTick, out var message))
+                if (!_futureMessageBuffer.TryDequeueHashAtTickSequenceId(tickUnifiedId, out var message))
                 {
                     return false;
                 }
-
                 // 同一tickでTrain/Railのローカルhashを照合する
                 // Compare local train/rail hashes on the same tick
                 var localTrainHash = _trainCache.ComputeCurrentHash();
@@ -135,13 +134,12 @@ namespace Client.Game.InGame.Train.View
                 var isRailGraphMismatch = localRailGraphHash != message.RailGraphHash;
                 if (!isTrainMismatch && !isRailGraphMismatch)
                 {
-                    _tickState.RecordHashVerified(targetTick);
-                    _tickState.RecordAppliedTickUnifiedId(targetTick, message.TickSequenceId);
+                    _tickState.RecordAppliedTickUnifiedId(tickUnifiedId);
                     return true;
                 }
 
                 Debug.LogWarning(
-                    $"[TrainUnitHashVerifier] Hash mismatch detected. tick={targetTick}, " +
+                    $"[TrainUnitHashVerifier] Hash mismatch detected. tick={_tickState.GetTick()}, " +
                     $"train(client={localTrainHash}, server={message.UnitsHash}), " +
                     $"rail(client={localRailGraphHash}, server={message.RailGraphHash}), " +
                     $"tickSequenceId={message.TickSequenceId}. Requesting snapshot.");
@@ -150,11 +148,11 @@ namespace Client.Game.InGame.Train.View
                     return false;
                 }
 
-                RequestSnapshotAsync(targetTick, isRailGraphMismatch).Forget();
+                RequestSnapshotAsync(isRailGraphMismatch).Forget();
                 return false;
             }
 
-            async UniTask RequestSnapshotAsync(uint mismatchTick, bool includeRailGraphSnapshot)
+            async UniTask RequestSnapshotAsync(bool includeRailGraphSnapshot)
             {
                 var api = ClientContext.VanillaApi.Response;
                 var cts = new CancellationTokenSource();
@@ -182,8 +180,8 @@ namespace Client.Game.InGame.Train.View
                     }
 
                     EnqueueRailSnapshotAsPost(railGraphSnapshot);
-                    EnqueueTrainSnapshotAsPost(trainSnapshot, mismatchTick);
-                    _tickState.RecordHashVerified(mismatchTick);
+                    EnqueueTrainSnapshotAsPost(trainSnapshot);
+                    _tickState.RecordAppliedTickUnifiedId(railGraphSnapshot.GraphTick, railGraphSnapshot.GraphTickSequenceId);
                     FinalizeResync(cts);
                     return;
                 }
@@ -204,8 +202,8 @@ namespace Client.Game.InGame.Train.View
                 }
                 else
                 {
-                    EnqueueTrainSnapshotAsPost(snapshot, mismatchTick);
-                    _tickState.RecordHashVerified(mismatchTick);
+                    EnqueueTrainSnapshotAsPost(snapshot);
+                    _tickState.RecordAppliedTickUnifiedId(snapshot.ServerTick, snapshot.TickSequenceId);
                 }
                 FinalizeResync(cts);
 
@@ -225,7 +223,7 @@ namespace Client.Game.InGame.Train.View
                 {
                     // snapshot応答をpostイベントとして同じtick順序キューへ流す。
                     // Enqueue snapshot response into the same post-event order queue.
-                    _futureMessageBuffer.EnqueuePost(
+                    _futureMessageBuffer.EnqueueEvent(
                         railGraphSnapshot.GraphTick,
                         railGraphSnapshot.GraphTickSequenceId,
                         TrainTickBufferedEvent.Create(RailSnapshotPostEventTag, ApplyRailSnapshot));
@@ -236,11 +234,11 @@ namespace Client.Game.InGame.Train.View
                     }
                 }
 
-                void EnqueueTrainSnapshotAsPost(Client.Network.API.TrainUnitSnapshotResponse trainSnapshot, uint targetMismatchTick)
+                void EnqueueTrainSnapshotAsPost(Client.Network.API.TrainUnitSnapshotResponse trainSnapshot)
                 {
                     // snapshot応答をpostイベントとして同じtick順序キューへ流す。
                     // Enqueue snapshot response into the same post-event order queue.
-                    _futureMessageBuffer.EnqueuePost(
+                    _futureMessageBuffer.EnqueueEvent(
                         trainSnapshot.ServerTick,
                         trainSnapshot.TickSequenceId,
                         TrainTickBufferedEvent.Create(TrainSnapshotPostEventTag, ApplyTrainSnapshot));
@@ -248,7 +246,6 @@ namespace Client.Game.InGame.Train.View
                     void ApplyTrainSnapshot()
                     {
                         _trainSnapshotApplier.ApplySnapshot(trainSnapshot);
-                        _tickState.RecordHashVerified(targetMismatchTick);
                     }
                 }
             }

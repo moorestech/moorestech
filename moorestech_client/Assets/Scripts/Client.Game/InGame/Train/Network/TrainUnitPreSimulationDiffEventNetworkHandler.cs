@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Train.Unit;
 using MessagePack;
@@ -8,7 +9,7 @@ using VContainer.Unity;
 
 namespace Client.Game.InGame.Train.Network
 {
-    // TrainUnitのpre sim差分イベント受信ハンドラ
+    // TrainUnitのpre sim差分イベント受信ハンドラ sim本体も含む
     // Network handler for TrainUnit pre-simulation diff events.
     public sealed class TrainUnitPreSimulationDiffEventNetworkHandler : IInitializable, IDisposable
     {
@@ -46,7 +47,7 @@ namespace Client.Game.InGame.Train.Network
                 return;
             }
 
-            _futureMessageBuffer.EnqueuePre(message.ServerTick, message.TickSequenceId, CreateBufferedEvent(message));
+            _futureMessageBuffer.EnqueueEvent(message.ServerTick, message.TickSequenceId, CreateBufferedEvent(message));
 
             #region Internal
 
@@ -56,6 +57,7 @@ namespace Client.Game.InGame.Train.Network
 
                 void ApplyDiffs()
                 {
+                    // pre diff ここではマスコンレベル差分など
                     var diffs = messagePack.Diffs;
                     if (diffs != null)
                     {
@@ -63,6 +65,13 @@ namespace Client.Game.InGame.Train.Network
                         {
                             _cache.ApplyPreSimulationDiff(diffs[i]);
                         }
+                    }
+                    // sim本体
+                    List<ClientTrainUnit> _work = new();
+                    _cache.CopyUnitsTo(_work);
+                    for (var i = 0; i < _work.Count; i++)
+                    {
+                        _work[i].Update();
                     }
                 }
             }
