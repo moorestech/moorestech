@@ -204,7 +204,6 @@ namespace Client.Starter
             builder.Register<TrainUnitFutureMessageBuffer>(Lifetime.Singleton);
             builder.Register<TrainUnitSnapshotApplier>(Lifetime.Singleton).AsSelf().As<IInitializable>();
             builder.Register<TrainUnitClientSimulator>(Lifetime.Singleton).As<ITickable>();
-            builder.Register<RailGraphHashVerifier>(Lifetime.Singleton).As<IInitializable>().As<IDisposable>();
             builder.Register<TrainUnitHashVerifier>(Lifetime.Singleton).As<ITrainUnitHashTickGate>().As<IInitializable>().As<IDisposable>();
             
             

@@ -74,24 +74,25 @@ namespace Client.Tests
             // Ignore hash at or before current tick, and enqueue only future hash.
             _tickState.SetSnapshotBaselineTick(100);
 
-            _buffer.EnqueueHash(CreateHashMessage(10, 99));
+            _buffer.EnqueueHash(CreateHashMessage(10, 100, 99));
             Assert.AreEqual(100, _tickState.GetHashReceivedTick());
             Assert.IsFalse(_buffer.TryDequeueHashAtTick(99, out _));
 
-            _buffer.EnqueueHash(CreateHashMessage(20, 101));
+            _buffer.EnqueueHash(CreateHashMessage(20, 200, 101));
             Assert.AreEqual(101, _tickState.GetHashReceivedTick());
             Assert.IsTrue(_buffer.TryDequeueHashAtTick(101, out var message));
             Assert.AreEqual((uint)20, message.UnitsHash);
+            Assert.AreEqual((uint)200, message.RailGraphHash);
             Assert.AreEqual(101, message.ServerTick);
             Assert.IsFalse(_buffer.TryDequeueHashAtTick(101, out _));
 
             #region Internal
 
-            TrainUnitHashStateMessagePack CreateHashMessage(uint unitsHash, long serverTick)
+            TrainUnitHashStateMessagePack CreateHashMessage(uint unitsHash, uint railGraphHash, long serverTick)
             {
                 // テスト用のhashイベントを明示的に作る。
                 // Build a typed hash event for test scenarios.
-                return new TrainUnitHashStateMessagePack(unitsHash, serverTick);
+                return new TrainUnitHashStateMessagePack(unitsHash, railGraphHash, serverTick);
             }
 
             #endregion
@@ -103,9 +104,9 @@ namespace Client.Tests
             // スナップショット適用後は対象tick以下のキューを破棄する。
             // Discard queued hash entries up to the snapshot-covered tick.
             _tickState.SetSnapshotBaselineTick(10);
-            _buffer.EnqueueHash(CreateHashMessage(10, 11));
-            _buffer.EnqueueHash(CreateHashMessage(20, 12));
-            _buffer.EnqueueHash(CreateHashMessage(30, 13));
+            _buffer.EnqueueHash(CreateHashMessage(10, 100, 11));
+            _buffer.EnqueueHash(CreateHashMessage(20, 200, 12));
+            _buffer.EnqueueHash(CreateHashMessage(30, 300, 13));
 
             _buffer.DiscardUpToTick(12);
 
@@ -113,14 +114,15 @@ namespace Client.Tests
             Assert.IsFalse(_buffer.TryDequeueHashAtTick(12, out _));
             Assert.IsTrue(_buffer.TryDequeueHashAtTick(13, out var message));
             Assert.AreEqual((uint)30, message.UnitsHash);
+            Assert.AreEqual((uint)300, message.RailGraphHash);
 
             #region Internal
 
-            TrainUnitHashStateMessagePack CreateHashMessage(uint unitsHash, long serverTick)
+            TrainUnitHashStateMessagePack CreateHashMessage(uint unitsHash, uint railGraphHash, long serverTick)
             {
                 // テスト用のhashイベントを明示的に作る。
                 // Build a typed hash event for test scenarios.
-                return new TrainUnitHashStateMessagePack(unitsHash, serverTick);
+                return new TrainUnitHashStateMessagePack(unitsHash, railGraphHash, serverTick);
             }
 
             #endregion

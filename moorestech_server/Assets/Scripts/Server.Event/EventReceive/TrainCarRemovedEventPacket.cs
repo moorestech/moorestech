@@ -33,7 +33,7 @@ namespace Server.Event.EventReceive
         }
 
         [MessagePackObject]
-        private sealed class TrainCarRemovedEventMessagePack
+        internal sealed class TrainCarRemovedEventMessagePack
         {
             [Key(0)] public long TrainCarInstanceId { get; set; }
             [Key(1)] public long ServerTick { get; set; }
