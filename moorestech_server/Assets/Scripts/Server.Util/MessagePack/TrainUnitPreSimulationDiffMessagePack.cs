@@ -19,11 +19,11 @@ namespace Server.Util.MessagePack
         {
         }
 
-        public TrainUnitPreSimulationDiffMessagePack(TrainUpdateService.TrainTickDiffBatch batch, uint tickSequenceId)
+        public TrainUnitPreSimulationDiffMessagePack(uint serverTick, uint tickSequenceId, IReadOnlyList<TrainUpdateService.TrainTickDiffData> diffs)
         {
-            ServerTick = batch.Tick;
+            ServerTick = serverTick;
             TickSequenceId = tickSequenceId;
-            var sourceDiffs = batch.Diffs ?? Array.Empty<TrainUpdateService.TrainTickDiffData>();
+            var sourceDiffs = diffs ?? Array.Empty<TrainUpdateService.TrainTickDiffData>();
             Diffs = new List<TrainUnitTickDiffMessagePack>(sourceDiffs.Count);
             foreach (var diff in sourceDiffs)
             {
