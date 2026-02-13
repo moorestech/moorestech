@@ -27,8 +27,9 @@ namespace Server.Event.EventReceive
         {
             // 現在の列車tickと削除対象車両IDをまとめて配信する
             // Broadcast removed car id with the current train tick.
+            var tickSequenceId = _trainUpdateService.NextTickSequenceId();
             var payload = MessagePackSerializer.Serialize(
-                new TrainCarRemovedEventMessagePack(trainCarInstanceId.AsPrimitive(), _trainUpdateService.GetCurrentTick()));
+                new TrainCarRemovedEventMessagePack(trainCarInstanceId.AsPrimitive(), _trainUpdateService.GetCurrentTick(), tickSequenceId));
             _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
         }
 
@@ -36,17 +37,19 @@ namespace Server.Event.EventReceive
         internal sealed class TrainCarRemovedEventMessagePack
         {
             [Key(0)] public long TrainCarInstanceId { get; set; }
-            [Key(1)] public long ServerTick { get; set; }
+            [Key(1)] public uint ServerTick { get; set; }
+            [Key(2)] public uint TickSequenceId { get; set; }
 
             [System.Obsolete("Reserved for MessagePack.")]
             public TrainCarRemovedEventMessagePack()
             {
             }
 
-            public TrainCarRemovedEventMessagePack(long trainCarInstanceId, long serverTick)
+            public TrainCarRemovedEventMessagePack(long trainCarInstanceId, uint serverTick, uint tickSequenceId)
             {
                 TrainCarInstanceId = trainCarInstanceId;
                 ServerTick = serverTick;
+                TickSequenceId = tickSequenceId;
             }
         }
 

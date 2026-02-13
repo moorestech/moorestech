@@ -46,7 +46,7 @@ namespace Client.Game.InGame.Train.Network
                 return;
             }
 
-            _futureMessageBuffer.EnqueuePre(message.ServerTick, CreateBufferedEvent(message));
+            _futureMessageBuffer.EnqueuePre(message.ServerTick, message.TickSequenceId, CreateBufferedEvent(message));
 
             #region Internal
 

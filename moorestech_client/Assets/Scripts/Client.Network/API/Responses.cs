@@ -172,15 +172,17 @@ namespace Client.Network.API
     // Response wrapper for the initial train unit snapshot payload
     public class TrainUnitSnapshotResponse
     {
-        public TrainUnitSnapshotResponse(List<TrainUnitSnapshotBundleMessagePack> snapshots, long serverTick, uint unitsHash)
+        public TrainUnitSnapshotResponse(List<TrainUnitSnapshotBundleMessagePack> snapshots, uint serverTick, uint unitsHash, uint tickSequenceId)
         {
             Snapshots = snapshots ?? new List<TrainUnitSnapshotBundleMessagePack>();
             ServerTick = serverTick;
             UnitsHash = unitsHash;
+            TickSequenceId = tickSequenceId;
         }
 
         public List<TrainUnitSnapshotBundleMessagePack> Snapshots { get; }
-        public long ServerTick { get; }
+        public uint ServerTick { get; }
         public uint UnitsHash { get; }
+        public uint TickSequenceId { get; }
     }
 }

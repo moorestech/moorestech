@@ -16,11 +16,12 @@ namespace Game.Train.Unit
         // Train tick is aligned with the server game tick interval.
         private const double TickSeconds = GameUpdater.SecondsPerTick;
         public const double HashBroadcastIntervalSeconds = TickSeconds;
-        private static readonly long TrainUnitHashBroadcastIntervalTicks = Math.Max(1L, (long)Math.Ceiling(HashBroadcastIntervalSeconds / TickSeconds));
+        private static readonly uint TrainUnitHashBroadcastIntervalTicks = Math.Max(1u, (uint)Math.Ceiling(HashBroadcastIntervalSeconds / TickSeconds));
         private readonly List<TrainUnit> _trainUnits = new();
-        private long _executedTick;
+        private uint _executedTick;
+        private uint _tickSequenceId;
 
-        private readonly Subject<long> _onHashEvent = new();
+        private readonly Subject<uint> _onHashEvent = new();
         private readonly Subject<TrainTickDiffBatch> _onPreSimulationDiffEvent = new();
         private readonly TrainUnitInitializationNotifier _trainUnitInitializationNotifier;
         private bool _trainAutoRunDebugEnabled;
@@ -37,8 +38,16 @@ namespace Game.Train.Unit
             GameUpdater.UpdateObservable.Subscribe(_ => UpdateTrains());
         }
 
-        public long GetCurrentTick() => _executedTick;
-        public IObservable<long> OnHashEvent => _onHashEvent;
+        public uint GetCurrentTick() => _executedTick;
+        public uint GetCurrentTickSequenceId() => _tickSequenceId;
+        public uint NextTickSequenceId()
+        {
+            // train/railイベント順序を表す単調IDを採番する
+            // Issue a monotonic id that represents train/rail event order.
+            _tickSequenceId++;
+            return _tickSequenceId;
+        }
+        public IObservable<uint> OnHashEvent => _onHashEvent;
         public IObservable<TrainTickDiffBatch> OnPreSimulationDiffEvent => _onPreSimulationDiffEvent;
         // 列車生成イベントの購読口を返す
         // Provide the train unit creation event stream
@@ -70,7 +79,7 @@ namespace Game.Train.Unit
             #region Internal
             // 全TrainUnitの差分を集約し、差分があるユニットのみ通知する
             // Aggregate per-unit diffs and publish only changed units.
-            void NotifyPreSimulationDiff(long tick)
+            void NotifyPreSimulationDiff(uint tick)
             {
                 var diffs = new List<TrainTickDiffData>();
                 foreach (var trainUnit in _trainUnits)
@@ -116,6 +125,7 @@ namespace Game.Train.Unit
         {
             _trainUnits.Clear();
             _executedTick = 0;
+            _tickSequenceId = 0;
         }
 
         // TODO デバッグトグルスイッチ関連なので最終的に消すのを忘れずに
@@ -180,10 +190,10 @@ namespace Game.Train.Unit
 
         public readonly struct TrainTickDiffBatch
         {
-            public long Tick { get; }
+            public uint Tick { get; }
             public IReadOnlyList<TrainTickDiffData> Diffs { get; }
 
-            public TrainTickDiffBatch(long tick, IReadOnlyList<TrainTickDiffData> diffs)
+            public TrainTickDiffBatch(uint tick, IReadOnlyList<TrainTickDiffData> diffs)
             {
                 Tick = tick;
                 Diffs = diffs;

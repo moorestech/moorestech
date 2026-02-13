@@ -12,7 +12,7 @@ namespace Game.Train.RailGraph
             IReadOnlyList<RailNodeInitializationData> nodes,
             IReadOnlyList<RailGraphConnectionSnapshot> connections,
             uint connectNodesHash,
-            long graphTick)
+            uint graphTick)
         {
             Nodes = nodes;
             Connections = connections;
@@ -23,7 +23,7 @@ namespace Game.Train.RailGraph
         public IReadOnlyList<RailNodeInitializationData> Nodes { get; }
         public IReadOnlyList<RailGraphConnectionSnapshot> Connections { get; }
         public uint ConnectNodesHash { get; }
-        public long GraphTick { get; }
+        public uint GraphTick { get; }
     }
 
     public readonly struct RailGraphConnectionSnapshot

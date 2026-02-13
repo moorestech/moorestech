@@ -110,7 +110,7 @@ namespace Game.Train.RailGraph
         public bool TryRestoreRailSegment(ConnectionDestination start, ConnectionDestination end, int length, Guid railTypeGuid, bool isDrawable) => TryRestoreRailSegmentInternal(start, end, length, railTypeGuid, isDrawable);
         public bool TryGetRailSegmentType(int startNodeId, int endNodeId, out Guid railTypeGuid) => TryGetRailSegmentTypeInternal(startNodeId, endNodeId, out railTypeGuid);
         public uint GetConnectNodesHash() => GetGraphHashInternal();
-        public RailGraphSnapshot CaptureSnapshot(long currentTick) => CaptureSnapshotInternal(currentTick);
+        public RailGraphSnapshot CaptureSnapshot(uint currentTick) => CaptureSnapshotInternal(currentTick);
         public IReadOnlyList<RailNode> GetRailNodes() => railNodes;
         public Dictionary<Vector3Int, (ConnectionDestination first, ConnectionDestination second)> GetRailPositionToConnectionDestination() => railPositionToConnectionDestination;
 
@@ -504,7 +504,7 @@ namespace Game.Train.RailGraph
             _isHashDirty = true;
         }
 
-        private RailGraphSnapshot CaptureSnapshotInternal(long currentTick)
+        private RailGraphSnapshot CaptureSnapshotInternal(uint currentTick)
         {
             var nodes = new List<RailNodeInitializationData>(railNodes.Count);
             for (var i = 0; i < railNodes.Count; i++)
