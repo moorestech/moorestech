@@ -220,8 +220,7 @@ namespace Game.Train.Unit
             _accumulatedDistance = stepResult.NewAccumulatedDistance;
             return stepResult.DistanceToMove;
         }
-
-
+        
         // Updateの距離int版
         // distanceToMoveの距離絶対進む。進んだ距離を返す
         // 目的地は常にtrainDiagram.GetNextDestination()を見るので最新のtrainDiagramが適応される。もし目的地がnullなら_isAutoRun = false;は上記ループで行われる(なぜなら1フレーム対応が遅れるので)

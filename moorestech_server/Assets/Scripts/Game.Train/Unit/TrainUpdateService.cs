@@ -86,7 +86,7 @@ namespace Game.Train.Unit
                 _onPreSimulationDiffEvent.OnNext(new TrainTickDiffBatch(tick, diffs));
                 bool HasDiff(int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeIdDiff)
                 {
-                    return masconLevelDiff != 0 || isNowDockingSpeedZero || approachingNodeIdDiff != 0;
+                    return masconLevelDiff != 0 || isNowDockingSpeedZero || approachingNodeIdDiff != -1;
                 }
             }
             #endregion

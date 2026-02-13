@@ -8,9 +8,9 @@ namespace Game.Train.Unit
     /// </summary>
     public static class TrainMotionParameters
     {
-        public const double Friction = 0.0008;
-        public const double AirResistance = 0.0002;
-        public const double SpeedWeight = 0.03;
+        public const double Friction = 0.00035;
+        public const double AirResistance = 0.00003;
+        public const double SpeedWeight = 0.09;
         public const double AutoRunMaxSpeedDistanceCoefficient = 10000.0;
         public const double AutoRunMaxSpeedOffset = 10.0;
         public const double AutoRunSpeedBufferMargin = 0.02;
