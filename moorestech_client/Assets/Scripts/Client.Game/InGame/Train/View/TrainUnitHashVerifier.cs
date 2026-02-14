@@ -5,17 +5,14 @@ using Client.Game.InGame.Train.Network;
 using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.Train.Unit;
 using Cysharp.Threading.Tasks;
-using MessagePack;
-using Server.Event.EventReceive;
 using Server.Util.MessagePack;
 using UnityEngine;
-using VContainer.Unity;
 
 namespace Client.Game.InGame.Train.View
 {
-    // Train/Railのハッシュ・tick検証イベントを購読する
-    // Listen to hash/tick events and validate train/rail cache consistency
-    public sealed class TrainUnitHashVerifier : ITrainUnitHashTickGate, IInitializable, IDisposable
+    // Train/Railのhash gate判定と不整合時リシンクを担当する
+    // Handles train/rail hash gate checks and resync on mismatch.
+    public sealed class TrainUnitHashVerifier : ITrainUnitHashTickGate, IDisposable
     {
         private readonly TrainUnitSnapshotApplier _trainSnapshotApplier;
         private readonly RailGraphSnapshotApplier _railGraphSnapshotApplier;
@@ -23,7 +20,6 @@ namespace Client.Game.InGame.Train.View
         private readonly TrainUnitClientCache _trainCache;
         private readonly RailGraphClientCache _railGraphCache;
         private readonly TrainUnitTickState _tickState;
-        private IDisposable _subscription;
         private CancellationTokenSource _resyncCancellation;
         private int _resyncInProgress;
 
@@ -43,41 +39,8 @@ namespace Client.Game.InGame.Train.View
             _tickState = tickState;
         }
 
-        public void Initialize()
-        {
-            // 統合ハッシュ状態イベントを購読して検証処理を開始する
-            // Subscribe unified hash state events and start validation
-            _subscription = ClientContext.VanillaApi.Event.SubscribeEventResponse(
-                TrainUnitHashStateEventPacket.EventTag,
-                OnHashStateReceived);
-
-            #region Internal
-
-            void OnHashStateReceived(byte[] payload)
-            {
-                HandleHashState(payload);
-                return;
-
-                void HandleHashState(byte[] hashPayload)
-                {
-                    var message = MessagePackSerializer.Deserialize<TrainUnitHashStateMessagePack>(hashPayload);
-                    if (message == null)
-                    {
-                        return;
-                    }
-                    // hashはtickバッファへ積み、シミュレーションtickで照合する
-                    // Enqueue hash and verify on simulation tick boundary
-                    _futureMessageBuffer.EnqueueHash(message);
-                }
-            }
-
-            #endregion
-        }
-
         public void Dispose()
         {
-            _subscription?.Dispose();
-            _subscription = null;
             CancelResync();
 
             #region Internal
@@ -124,6 +87,12 @@ namespace Client.Game.InGame.Train.View
 
             bool ValidateCurrentTickHash()
             {
+                if (IsDummyHash(message))
+                {
+                    _tickState.RecordAppliedTickUnifiedId(currentTickUnifiedId);
+                    return true;
+                }
+
                 // 同一tickでTrain/Railのローカルhashを照合する
                 // Compare local train/rail hashes on the same tick
                 var localTrainHash = _trainCache.ComputeCurrentHash();
@@ -215,6 +184,12 @@ namespace Client.Game.InGame.Train.View
                     }
                     Interlocked.Exchange(ref _resyncInProgress, 0);
                 }
+            }
+
+            bool IsDummyHash(TrainUnitHashStateMessagePack hashState)
+            {
+                return hashState.UnitsHash == TrainUnitHashStateMessagePack.DummyHash &&
+                    hashState.RailGraphHash == TrainUnitHashStateMessagePack.DummyHash;
             }
 
             #endregion

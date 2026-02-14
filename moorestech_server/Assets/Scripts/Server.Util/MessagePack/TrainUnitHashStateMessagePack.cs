@@ -8,6 +8,8 @@ namespace Server.Util.MessagePack
     [MessagePackObject]
     public class TrainUnitHashStateMessagePack
     {
+        public const uint DummyHash = uint.MaxValue;
+
         [Key(0)] public uint UnitsHash { get; set; }
         [Key(1)] public uint RailGraphHash { get; set; }
         [Key(2)] public uint ServerTick { get; set; }
