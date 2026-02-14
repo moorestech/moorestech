@@ -25,10 +25,6 @@ namespace Client.Game.InGame.Train.Unit
         private readonly TrainUnitFutureMessageBuffer _futureMessageBuffer;
 
         private double _estimatedClientTick;
-        private uint _lastHandledHashTick;
-        private bool _hasLastHandledHashTick;
-        private double _fastForwardTicksPerSecond;
-        private double _fastForwardRemainingTicks;
 
         public TrainUnitClientSimulator(
             TrainUnitTickState tickState,
