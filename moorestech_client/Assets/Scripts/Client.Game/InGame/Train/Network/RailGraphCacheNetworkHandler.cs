@@ -67,7 +67,7 @@ namespace Client.Game.InGame.Train.Network
 
             ITrainTickBufferedEvent CreateBufferedEvent(RailNodeCreatedMessagePack messagePack)
             {
-                return TrainTickBufferedEvent.Create(RailNodeCreatedEventPacket.EventTag, ApplyCreatedNode);
+                return TrainTickBufferedEvent.Create(ApplyCreatedNode);
 
                 void ApplyCreatedNode()
                 {
@@ -103,7 +103,7 @@ namespace Client.Game.InGame.Train.Network
 
             ITrainTickBufferedEvent CreateBufferedEvent(RailNodeRemovedMessagePack messagePack)
             {
-                return TrainTickBufferedEvent.Create(RailNodeRemovedEventPacket.EventTag, ApplyRemovedNode);
+                return TrainTickBufferedEvent.Create(ApplyRemovedNode);
 
                 void ApplyRemovedNode()
                 {

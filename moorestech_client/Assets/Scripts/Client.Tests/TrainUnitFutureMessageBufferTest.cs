@@ -27,7 +27,7 @@ namespace Client.Tests
             // Ensure queued event is applied and state advances at requested unified id.
             var applied = new List<string>();
             _tickState.RecordAppliedTickUnifiedId(10, 0);
-            _buffer.EnqueueEvent(11, 1, TrainTickBufferedEvent.Create("eventA", () => applied.Add("eventA")));
+            _buffer.EnqueueEvent(11, 1, TrainTickBufferedEvent.Create(() => applied.Add("eventA")));
 
             var flushed = _buffer.TryFlushEvent(11, 1);
             var flushedAgain = _buffer.TryFlushEvent(11, 1);
@@ -47,9 +47,9 @@ namespace Client.Tests
             // Ensure stale events are dropped and only future events are applied.
             var applied = new List<string>();
             _tickState.RecordAppliedTickUnifiedId(20, 5);
-            _buffer.EnqueueEvent(20, 4, TrainTickBufferedEvent.Create("staleA", () => applied.Add("staleA")));
-            _buffer.EnqueueEvent(20, 5, TrainTickBufferedEvent.Create("staleB", () => applied.Add("staleB")));
-            _buffer.EnqueueEvent(21, 0, TrainTickBufferedEvent.Create("future", () => applied.Add("future")));
+            _buffer.EnqueueEvent(20, 4, TrainTickBufferedEvent.Create(() => applied.Add("staleA")));
+            _buffer.EnqueueEvent(20, 5, TrainTickBufferedEvent.Create(() => applied.Add("staleB")));
+            _buffer.EnqueueEvent(21, 0, TrainTickBufferedEvent.Create(() => applied.Add("future")));
 
             Assert.IsFalse(_buffer.TryFlushEvent(20, 4));
             Assert.IsFalse(_buffer.TryFlushEvent(20, 5));
@@ -64,8 +64,8 @@ namespace Client.Tests
             // Ensure events can be applied in same-tick sequence order.
             var applied = new List<string>();
             _tickState.RecordAppliedTickUnifiedId(50, 0);
-            _buffer.EnqueueEvent(50, 2, TrainTickBufferedEvent.Create("event2", () => applied.Add("event2")));
-            _buffer.EnqueueEvent(50, 1, TrainTickBufferedEvent.Create("event1", () => applied.Add("event1")));
+            _buffer.EnqueueEvent(50, 2, TrainTickBufferedEvent.Create(() => applied.Add("event2")));
+            _buffer.EnqueueEvent(50, 1, TrainTickBufferedEvent.Create(() => applied.Add("event1")));
 
             Assert.IsTrue(_buffer.TryFlushEvent(TrainTickUnifiedIdUtility.CreateTickUnifiedId(50, 1)));
             Assert.IsTrue(_buffer.TryFlushEvent(TrainTickUnifiedIdUtility.CreateTickUnifiedId(50, 2)));
@@ -79,8 +79,8 @@ namespace Client.Tests
             // Ensure applying higher sequence removes unapplied events at or below that unified id.
             var applied = new List<string>();
             _tickState.RecordAppliedTickUnifiedId(60, 0);
-            _buffer.EnqueueEvent(60, 1, TrainTickBufferedEvent.Create("event1", () => applied.Add("event1")));
-            _buffer.EnqueueEvent(60, 2, TrainTickBufferedEvent.Create("event2", () => applied.Add("event2")));
+            _buffer.EnqueueEvent(60, 1, TrainTickBufferedEvent.Create(() => applied.Add("event1")));
+            _buffer.EnqueueEvent(60, 2, TrainTickBufferedEvent.Create(() => applied.Add("event2")));
 
             Assert.IsTrue(_buffer.TryFlushEvent(TrainTickUnifiedIdUtility.CreateTickUnifiedId(60, 2)));
             Assert.IsFalse(_buffer.TryFlushEvent(TrainTickUnifiedIdUtility.CreateTickUnifiedId(60, 1)));

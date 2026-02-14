@@ -53,7 +53,7 @@ namespace Client.Game.InGame.Train.Network
 
             ITrainTickBufferedEvent CreateBufferedEvent(TrainUnitPreSimulationDiffMessagePack messagePack)
             {
-                return TrainTickBufferedEvent.Create(TrainUnitPreSimulationDiffEventPacket.EventTag, ApplyDiffs);
+                return TrainTickBufferedEvent.Create(ApplyDiffs);
 
                 void ApplyDiffs()
                 {
