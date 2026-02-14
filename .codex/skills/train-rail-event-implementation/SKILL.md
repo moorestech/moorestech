@@ -1,123 +1,81 @@
 ---
 name: train-rail-event-implementation
-description: Implement new train/rail network events with correct tick semantics and simulation phase placement. Use when adding or modifying server/client event packets, MessagePack payloads, or network handlers for train and rail systems, especially when deciding whether an event must include tick and whether it belongs to pre-sim or post-sim.
+description: Implement new train/rail network events with unified chronological ordering. Use when adding or modifying server/client event packets, MessagePack payloads, or network handlers for train and rail systems, ensuring correct TickUnifiedId assignment and sequence continuity.
 ---
 
-# Train/Rail Event Implementation
+# Train/Rail Event Implementation (Unified Chronological Ordering)
 
 ## Overview
 
-Use this skill when creating new train/rail events so that server and client apply data at the correct tick and phase.
+In the current architecture, the distinction between `pre-sim` and `post-sim` queues has been **unified** into a single chronological event stream. All events (including the simulation trigger itself) are ordered by a 64-bit `TickUnifiedId`.
 
-## Core Rules
+## Core Concepts
 
-1. Include tick in almost all new train/rail events.
-2. Include `TickSequenceId` in almost all new train/rail events.
-3. Default to `post-sim`.
-4. Use `pre-sim` only when the event data must affect simulation results of the same tick.
+### 1. TickUnifiedId
+- A 64-bit value: `((ulong)ServerTick << 32) | TickSequenceId`.
+- `ServerTick`: The cumulative game tick count (20Hz).
+- `TickSequenceId`: A monotonic, continuous sequence number within a tick, allocated via `_trainUpdateService.NextTickSequenceId()`.
 
-## Current Baseline (Must Preserve)
+### 2. Unified Event Queue
+- All events are enqueued into `TrainUnitFutureMessageBuffer` via `EnqueueEvent`.
+- Events are wrapped in `ITrainTickBufferedEvent` which has a single `Apply()` method.
+- The client-side simulator advances through these events by incrementing the `TickUnifiedId` by 1.
 
-- Tick rate is fixed at `20Hz` (`GameUpdater.TicksPerSecond = 20`, `SecondsPerTick = 1d / 20`).
-- Server update order in `TrainUpdateService.UpdateTrains()` is:
-  1. hash notify (`_onHashEvent.OnNext(_executedTick)`)
-  2. `_executedTick++`
-  3. `trainUnit.Update()` for all trains
-  4. `NotifyPreSimulationDiff(_executedTick)`
-- Hash broadcast interval is effectively every tick under current constants.
+### 3. Simulation as an Event
+- The train simulation (`Update()`) is now just another event in the stream.
+- It is typically triggered by the `va:event:trainUnitTickDiffBundle` event.
+- This bundle contains:
+    - **Hash** for tick $n-1$ (used for validation).
+    - **Diffs** for tick $n$ (input changes like Mascon).
+    - **Simulation Trigger** for tick $n$.
 
-## Tick Rule
+## Execution Order
 
-- Tick is required when the event affects train/rail simulation state, cache consistency, hash validation timing, or snapshot ordering.
-- Use `ServerTick` consistently as the tick field name in MessagePack payloads.
-- Use `TickSequenceId` as the per-tick ordering field in MessagePack payloads.
+The client-side `TrainUnitClientSimulator.Tick()` follows this logic:
+1.  **Flush Events**: It attempts to flush events with ID `current_id + 1` in a loop.
+    *   If an event exists for that ID, its `Apply()` method is called.
+    *   This might apply diffs, run simulation, or create/destroy train units.
+2.  **Hash Gate**: If no more events are available for the next ID, it checks if it can advance to the next tick's base ID (`(tick + 1) << 32`).
+3.  **Advance Tick**: If allowed, it moves to the next tick and starts the loop again.
 
-## Tick Sequence Rule (Required)
+## Implementation Rules
 
-- When emitting train/rail events or hash-state events, allocate sequence by calling `_trainUpdateService.NextTickSequenceId()`.
-- Call it once per emitted payload right before constructing MessagePack data.
-- Never hardcode sequence ids (for example: `0`).
-- Do not share one sequence id across different logical payloads.
-- If one logical payload is multicast to multiple clients, reuse the same `TickSequenceId` for that payload.
-- Client-side stale checks and ordering assume monotonic `(ServerTick, TickSequenceId)` ordering.
+### Server-Side (Emitting Events)
+1.  **Allocate Sequence ID**: Always use `_trainUpdateService.NextTickSequenceId()` for any event that needs chronological ordering.
+2.  **Consistency**: Ensure that all events that affect the simulation or are affected by it are sent with the current `ServerTick` and a valid `TickSequenceId`.
+3.  **Continuity**: Because the client expects sequential IDs (`id + 1`), you must ensure that events are emitted in a way that doesn't create gaps if the client expects to process them all. (Note: The current system relies on `NextTickSequenceId()` being called for all broadcast events).
 
-## Phase Decision Rule
+### Client-Side (Receiving Events)
+1.  **Enqueue Chronologically**: Use `_futureMessageBuffer.EnqueueEvent(serverTick, tickSequenceId, CreateBufferedEvent())`.
+2.  **No Immediate Side Effects**: Never apply changes directly in the network handler. Always wrap them in a `BufferedEvent` and enqueue them.
+3.  **Simulation Triggering**: If a new event type requires its own simulation step, it should be included in its `Apply()` logic or handled via the existing `TickDiffBundle` if it's just an input diff.
 
-Choose `pre-sim` only if all of the following are true:
-- The value is directly used by `SimulateUpdate()` in the same tick.
-- The value is computed as simulation input in or around server train update flow.
-- Applying after simulation would cause deterministic mismatch for that tick.
+## Existing Event Examples
 
-Otherwise choose `post-sim`.
-
-Current practical rule in this project:
-- New train/rail events are generally `post-sim`.
-- `pre-sim` is a special case (for example: `va:event:trainUnitPreSimulationDiff`).
-
-Reason:
-- Most events are produced from processing that happens after train simulation in the frame/update pipeline.
-- These events should not retroactively affect the already-executed simulation step of the same tick.
-
-## Existing Phase Examples
-
-- `pre-sim`: `va:event:trainUnitPreSimulationDiff`
-  - Payload: `TrainUnitPreSimulationDiffMessagePack { ServerTick, TickSequenceId, Diffs[] }`
-  - `Diffs[]`: `TrainId`, `MasconLevelDiff`, `IsNowDockingSpeedZero`, `ApproachingNodeIdDiff`
-  - Queued with `EnqueuePre(...)`
-  - Applied by `FlushPreBySimulatedTick()` before `SimulateUpdate()`
-- `post-sim`: `va:event:trainUnitCreated`
-  - Payload includes `ServerTick` and `TickSequenceId`
-  - Queued with `EnqueuePost(...)`
-  - Applied by `FlushPostBySimulatedTick()` after `SimulateUpdate()`
-
-## Client Tick Apply Order (Must Preserve)
-
-At each simulated tick in `TrainUnitClientSimulator`:
-1. `AdvanceTick()`
-2. `FlushPreBySimulatedTick()`
-3. Optional simulation skip consume
-4. `SimulateUpdate()`
-5. `FlushPostBySimulatedTick()`
-6. hash gate check via `CanAdvanceTick(currentTick)`
-
-## Hash Mismatch Resync (Must Preserve)
-
-- On mismatch, request train snapshots and apply baseline tick.
-- Keep queue cleanup semantics:
-  - `SetSnapshotBaseline(serverTick, tickSequenceId)`
-  - `DiscardUpToTickUnifiedId(((ulong)serverTick << 32) | tickSequenceId)`
-  - `RecordSnapshotAppliedTick(serverTick)`
-
-## Determinism and Randomness
-
-- Train motion step is deterministic (`TrainDistanceSimulator.Step` + `Math.Truncate` distance conversion).
-- Current train route selection in simulation path does not depend on random branching.
-- `System.Random` usage for train car instance id generation is out-of-band from tick simulation behavior.
+- `va:event:trainUnitTickDiffBundle`
+    - Apply Logic: Updates `MasconLevel` etc. for affected trains, then calls `unit.Update()` for **all** trains.
+- `va:event:trainUnitCreated`
+    - Apply Logic: Adds a new train to the `TrainUnitClientCache` and updates views.
 
 ## Implementation Checklist
 
-1. Define or update MessagePack payload with tick field.
-2. On server emit path, assign `var tickSequenceId = _trainUpdateService.NextTickSequenceId();`.
-3. Include both `ServerTick` and `TickSequenceId` in payload.
-4. Add or update server event packet and event tag.
-5. On client, choose queue API:
-   - `EnqueuePre(serverTick, tickSequenceId, ...)`
-   - `EnqueuePost(serverTick, tickSequenceId, ...)`
-6. Ensure handler does not apply immediately; enqueue for tick-based flush.
-7. Verify hash mismatch and snapshot resync behavior is preserved.
-
-## Validation Checklist
-
-1. Same-tick ordering is correct (pre -> simulate -> post).
-2. Same-tick events are ordered by `TickSequenceId`.
-3. Event does not apply to past ticks.
-4. Snapshot baseline handling does not double-apply event data.
-5. Hash verification path remains stable.
+1.  **MessagePack**: Update or create a payload with `uint ServerTick` and `uint TickSequenceId`.
+2.  **Server Packet**:
+    *   Subscribe to the relevant event stream in `TrainUpdateService`.
+    *   In the handler, call `_trainUpdateService.NextTickSequenceId()`.
+    *   Serialize and broadcast using `_eventProtocolProvider.AddBroadcastEvent`.
+3.  **Client Handler**:
+    *   Deserialize the payload.
+    *   Define a local function/region for the `Apply` logic.
+    *   Call `_futureMessageBuffer.EnqueueEvent(...)` with a `TrainTickBufferedEvent`.
+4.  **Verification**:
+    *   Ensure the event happens at the correct logical time relative to the simulation.
+    *   Check that `NextTickSequenceId()` is called exactly once per emitted payload.
 
 ## Key Files
 
 - `moorestech_server/Assets/Scripts/Game.Train/Unit/TrainUpdateService.cs`
-- `moorestech_server/Assets/Scripts/Server.Event/EventReceive/TrainUnitPreSimulationDiffEventPacket.cs`
-- `moorestech_server/Assets/Scripts/Server.Event/EventReceive/TrainUnitHashStateEventPacket.cs`
+- `moorestech_server/Assets/Scripts/Server.Event/EventReceive/TrainUnitTickDiffBundleEventPacket.cs`
 - `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Network/TrainUnitFutureMessageBuffer.cs`
 - `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Unit/TrainUnitClientSimulator.cs`
+- `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Network/TrainUnitTickDiffBundleEventNetworkHandler.cs`
