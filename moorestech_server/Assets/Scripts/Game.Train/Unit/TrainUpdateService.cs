@@ -16,7 +16,7 @@ namespace Game.Train.Unit
         // Train tick is aligned with the server game tick interval.
         private const double TickSeconds = GameUpdater.SecondsPerTick;
         public const double HashBroadcastIntervalSeconds = TickSeconds;
-        private static readonly uint TrainUnitHashBroadcastIntervalTicks = Math.Max(1u, (uint)Math.Ceiling(HashBroadcastIntervalSeconds / TickSeconds));
+        private static readonly uint TrainUnitHashBroadcastIntervalTicks = Math.Max(4u, (uint)Math.Ceiling(HashBroadcastIntervalSeconds / TickSeconds));
         private readonly List<TrainUnit> _trainUnits = new();
         private uint _executedTick;
         private uint _tickSequenceId;
@@ -44,7 +44,6 @@ namespace Game.Train.Unit
             // train/railイベント順序を表す単調IDを採番する
             // Issue a monotonic id that represents train/rail event order.
             _tickSequenceId++;
-            //UnityEngine.Debug.Log(_executedTick * 10000 + _tickSequenceId);
             return _tickSequenceId;
         }
         public IObservable<HashStateEventData> OnHashEvent => _onHashEvent;
@@ -113,8 +112,7 @@ namespace Game.Train.Unit
                 // 差分0件でもsim実行トリガとして同tickイベントを送る。
                 // Emit the same-tick event even when diffs are empty as a simulation trigger.
                 _onPreSimulationDiffEvent.OnNext((tick, diffs));
-
-
+                
                 bool HasDiff(int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeIdDiff)
                 {
                     return masconLevelDiff != 0 || isNowDockingSpeedZero || approachingNodeIdDiff != -1;
