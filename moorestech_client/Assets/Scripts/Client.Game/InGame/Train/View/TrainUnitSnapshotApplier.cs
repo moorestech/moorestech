@@ -42,6 +42,7 @@ namespace Client.Game.InGame.Train.View
         {
             if (response == null) return;
             var snapshotTickUnifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(response.ServerTick, response.TickSequenceId);
+            Debug.Log("apunit" + response.ServerTick * 100000 + response.TickSequenceId);
             if (snapshotTickUnifiedId < _tickState.GetAppliedTickUnifiedId())
             {
                 // 遅延して届いた古いsnapshotは適用せず破棄する。
@@ -90,6 +91,8 @@ namespace Client.Game.InGame.Train.View
             }
 
             _trainCarDatastore.RemoveTrainEntitiesNotInSnapshot(activeTrainCarInstanceIds);
+            Debug.Log("apunitRecordApplied" + response.ServerTick * 100000 + response.TickSequenceId);
+            _tickState.RecordAppliedTickUnifiedId(snapshotTickUnifiedId);
 
             #region Internal
 

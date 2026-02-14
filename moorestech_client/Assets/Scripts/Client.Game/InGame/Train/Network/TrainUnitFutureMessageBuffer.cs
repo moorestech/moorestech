@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.Train.Unit;
 using Server.Util.MessagePack;
 using UnityEngine;
+using System.Linq;
 
 namespace Client.Game.InGame.Train.Network
 {
@@ -35,6 +36,7 @@ namespace Client.Game.InGame.Train.Network
                     $"eventTickUnifiedId={eventTickUnifiedId}, appliedTickUnifiedId={_tickState.GetAppliedTickUnifiedId()}");
                 return;
             }
+            UnityEngine.Debug.Log(serverTick * 10000 + tickSequenceId);
             _futureEvents[eventTickUnifiedId] = bufferedEvent;
         }
 
@@ -47,42 +49,51 @@ namespace Client.Game.InGame.Train.Network
                 return;
             }
             var messageTickUnifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(message.ServerTick, message.TickSequenceId);
+            if (messageTickUnifiedId <= _tickState.GetAppliedTickUnifiedId())
+            {
+                // 適用済みの統合順序以下は捨てる。
+                // Drop hash states already covered.
+                Debug.LogWarning(
+                    "[TrainUnitFutureMessageBuffer] Dropped stale buffered hash state by tick unified id. " +
+                    $"serverTick={message.ServerTick}, tickSequenceId={message.TickSequenceId}, " +
+                    $"messageTickUnifiedId={messageTickUnifiedId}, appliedTickUnifiedId={_tickState.GetAppliedTickUnifiedId()}");
+                return;
+            }
+            UnityEngine.Debug.Log(message.ServerTick * 10000 + message.TickSequenceId);
             _futureHashStates[messageTickUnifiedId] = message;
         }
 
         // 指定tickのハッシュを取り出す。
         // Dequeue hash state at the specified tick.
-        public bool TryDequeueHashAtTickSequenceId(ulong tickSequenceId, out TrainUnitHashStateMessagePack message)
+        public bool TryDequeueHashAtTickSequenceId(ulong tickUnifiedId, out TrainUnitHashStateMessagePack message)
         {
-            message = null;
-
-            // 対象tickより古いhashは検証対象外として破棄する。
-            // Discard hashes older than the requested tick.
-            while (TryGetFirstTickUnifiedId(_futureHashStates, out var firstTickUnifiedId) &&
-                firstTickUnifiedId < tickSequenceId)
+            return _futureHashStates.TryGetValue(tickUnifiedId, out message);
+        }
+        
+        // 対象tickより古いhashは検証対象外として破棄する。
+        // Discard hashes older than the requested tick.
+        public void DiscardHashesOlderThan(ulong tickUnifiedId)
+        {
+            while (true)
             {
-                _futureHashStates.Remove(firstTickUnifiedId);
-            }
-            
-            if (!_futureHashStates.ContainsKey(tickSequenceId))
-                return false;
-            message = _futureHashStates[tickSequenceId];
-            return true;
-            
-            #region Internal
-            static bool TryGetFirstTickUnifiedId<TValue>(SortedDictionary<ulong, TValue> source, out ulong firstTickUnifiedId)
-            {
-                using var enumerator = source.GetEnumerator();
-                if (enumerator.MoveNext())
+                ulong firstTickUnifiedId = GetFirstHashTickUnifiedId();
+                if (firstTickUnifiedId < tickUnifiedId)
                 {
-                    firstTickUnifiedId = enumerator.Current.Key;
-                    return true;
+                    _futureHashStates.Remove(firstTickUnifiedId);
+                    continue;
                 }
-                
-                firstTickUnifiedId = 0;
-                return false;
+                break;
             }
-            #endregion
+        }
+        // 最初のkeyを取得
+        // Get the first key
+        public ulong GetFirstHashTickUnifiedId()
+        {
+            if (_futureHashStates.Count > 0)
+            {
+                return _futureHashStates.First().Key;
+            }
+            return ulong.MaxValue;
         }
         
         public bool TryFlushEvent(uint currentTick, uint tickSequenceId)
