@@ -59,7 +59,7 @@ namespace Client.Game.InGame.Train.Network
 
             ITrainTickBufferedEvent CreateBufferedEvent(TrainCarRemovedEventMessagePack messagePack)
             {
-                return TrainTickBufferedEvent.Create(EventTag, ApplyRemovedEvent);
+                return TrainTickBufferedEvent.Create(ApplyRemovedEvent);
 
                 void ApplyRemovedEvent()
                 {
