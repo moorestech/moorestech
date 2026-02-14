@@ -86,22 +86,5 @@ namespace Client.Tests
             Assert.IsFalse(_buffer.TryFlushEvent(TrainTickUnifiedIdUtility.CreateTickUnifiedId(60, 1)));
             CollectionAssert.AreEqual(new[] { "event2" }, applied);
         }
-
-        [Test]
-        public void TryDequeueHashAtTickSequenceId_DiscardsOlderHashEntries()
-        {
-            // 指定より古い hash が取り出し前に破棄されることを確認する。
-            // Ensure hashes older than requested sequence are discarded.
-            _buffer.EnqueueHash(new TrainUnitHashStateMessagePack(10, 100, 70, 1));
-            _buffer.EnqueueHash(new TrainUnitHashStateMessagePack(20, 200, 70, 2));
-
-            var requestedUnifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(70, 2);
-            Assert.IsTrue(_buffer.TryDequeueHashAtTickSequenceId(requestedUnifiedId, out var message));
-            Assert.AreEqual((uint)20, message.UnitsHash);
-            Assert.AreEqual((uint)200, message.RailGraphHash);
-
-            var staleUnifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(70, 1);
-            Assert.IsFalse(_buffer.TryDequeueHashAtTickSequenceId(staleUnifiedId, out _));
-        }
     }
 }

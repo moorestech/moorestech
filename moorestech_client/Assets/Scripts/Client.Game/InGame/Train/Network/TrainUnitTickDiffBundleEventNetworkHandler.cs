@@ -37,16 +37,10 @@ namespace Client.Game.InGame.Train.Network
         private void OnEventReceived(byte[] payload)
         {
             if (payload == null || payload.Length == 0)
-            {
                 return;
-            }
-
             var message = MessagePackSerializer.Deserialize<TrainUnitTickDiffBundleMessagePack>(payload);
             if (message == null)
-            {
                 return;
-            }
-
             EnqueueHash(message);
             _futureMessageBuffer.EnqueueEvent(message.ServerTick, message.DiffTickSequenceId, CreateBufferedEvent(message));
             return;
@@ -58,9 +52,7 @@ namespace Client.Game.InGame.Train.Network
                 // bundleは n tick のdiffを持つのでhashは n-1 tick として展開する。
                 // Bundle carries diff at tick n, so hash is expanded as tick n-1.
                 if (bundleMessage.ServerTick == 0)
-                {
                     return;
-                }
                 var hashTick = bundleMessage.ServerTick - 1;
                 var hashMessage = new TrainUnitHashStateMessagePack(
                     bundleMessage.UnitsHash,

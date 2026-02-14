@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.Train.Unit;
 using Server.Util.MessagePack;
 using System.Linq;
+using UnityEngine;
 
 namespace Client.Game.InGame.Train.Network
 {
@@ -32,6 +33,7 @@ namespace Client.Game.InGame.Train.Network
                 // Drop events already covered.
                 return;
             }
+            _tickState.SetMaxBufferedTicks(serverTick);
             _futureEvents[eventTickUnifiedId] = bufferedEvent;
         }
 
@@ -50,6 +52,7 @@ namespace Client.Game.InGame.Train.Network
                 // Drop hash states already covered.
                 return;
             }
+            _tickState.SetMaxBufferedTicks(message.ServerTick);
             _futureHashStates[messageTickUnifiedId] = message;
         }
 

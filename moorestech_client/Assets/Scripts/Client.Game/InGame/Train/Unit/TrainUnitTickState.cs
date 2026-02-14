@@ -1,3 +1,5 @@
+using System;
+
 namespace Client.Game.InGame.Train.Unit
 {
     // tick と tickSequenceId を単一の比較キーに統合する。
@@ -17,6 +19,7 @@ namespace Client.Game.InGame.Train.Unit
     public sealed class TrainUnitTickState
     {
         private ulong _appliedTickUnifiedId = 0;
+        private uint _maxBufferedTicks = 0;
         
         // 統合IDから上位32bitのtickを取り出す。
         // Extract high 32-bit tick from unified id.
@@ -49,6 +52,16 @@ namespace Client.Game.InGame.Train.Unit
                 return;
             }
             _appliedTickUnifiedId = tickUnifiedId;
+        }
+        
+        // バッファー済み最大tick
+        public void SetMaxBufferedTicks(uint maxBufferedTicks)
+        {
+            _maxBufferedTicks = Math.Max(_maxBufferedTicks, maxBufferedTicks); 
+        }
+        public uint GetMaxBufferedTicks()
+        {
+            return _maxBufferedTicks;
         }
 
         public void AdvanceTick()
