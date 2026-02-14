@@ -15,7 +15,10 @@ namespace Client.Game.InGame.Train.Unit
         // この遅延秒数を超えたぶんだけを均等早送り対象にする。
         // Only the lag that exceeds this threshold is distributed as fast-forward.
         private const double FastForwardStartLagSeconds = 0.1d;
-        private static readonly int FastForwardStartLagTicks = Math.Max(1, (int)Math.Ceiling(FastForwardStartLagSeconds / TickSeconds));
+        private static readonly double FastForwardStartLagTicks = Math.Max(1.0, Math.Ceiling(FastForwardStartLagSeconds / TickSeconds));
+        // 1フレームで追いつく最大Tick数
+        // Maximum ticks to catch up in a single frame.
+        private const int MaxCatchUpTicksPerFrame = 4;
 
         private readonly TrainUnitTickState _tickState;
         private readonly ITrainUnitHashTickGate _hashTickGate;
@@ -42,12 +45,13 @@ namespace Client.Game.InGame.Train.Unit
             // 現在フレーム分の通常進行tickを加算する。
             // Add normal tick progress based on the current frame delta.
             _estimatedClientTick += Time.deltaTime / TickSeconds;
-            var pendingTicks = (long)Math.Floor(_estimatedClientTick) - _tickState.GetTick();
+            double pendingTicks = Math.Floor(_estimatedClientTick) - _tickState.GetMaxBufferedTicks();
             if (pendingTicks < -FastForwardStartLagTicks)
             {
-                _estimatedClientTick += 0.5 * (_tickState.GetTick() - _estimatedClientTick) + 0.1;
+                _estimatedClientTick += 0.5 * (_tickState.GetMaxBufferedTicks() - _estimatedClientTick) + 0.1;
             }
-            int loopTicks = Mathf.Min((int)Math.Max(0, pendingTicks), 2);
+            int loopTicks = Mathf.Min((int)Math.Max(0, Math.Floor(_estimatedClientTick) - _tickState.GetTick()), MaxCatchUpTicksPerFrame);
+            
             for (var i = 0; i < loopTicks; i++)
             {
                 ulong id = 0;

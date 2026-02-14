@@ -51,9 +51,7 @@ namespace Client.Game.InGame.Train.View
                 // Cancel any in-flight resync operation during shutdown
                 var cts = Interlocked.Exchange(ref _resyncCancellation, null);
                 if (cts == null)
-                {
                     return;
-                }
                 cts.Cancel();
                 cts.Dispose();
                 Interlocked.Exchange(ref _resyncInProgress, 0);
@@ -67,9 +65,7 @@ namespace Client.Game.InGame.Train.View
             // 再同期中はtick進行を止める
             // Stop simulation advance while resync is in progress
             if (Interlocked.CompareExchange(ref _resyncInProgress, 0, 0) == 1)
-            {
                 return false;
-            }
             // 古いhashはバッファから捨てる
             // Discard any stale hashes that are older than the current tick
             _futureMessageBuffer.DiscardHashesOlderThan(currentTickUnifiedId);
@@ -77,9 +73,7 @@ namespace Client.Game.InGame.Train.View
             // このtickにメッセージがなく将来tickにメッセージがある場合このtickのメッセージは送られてこない可能性が非常に高い。なのでTickを強制的に進めることにする
             // If there is no message for the current tick but there are messages for future ticks, it's likely that the current tick's message won't arrive. In that case, we will force advance the tick.
             if (!_futureMessageBuffer.TryDequeueHashAtTickSequenceId(currentTickUnifiedId, out var message))
-            {
                 return _futureMessageBuffer.TryGetFirstHashTickUnifiedId(out _);
-            }
             var isVerified = ValidateCurrentTickHash();
             return isVerified && Interlocked.CompareExchange(ref _resyncInProgress, 0, 0) == 0;
 
@@ -110,9 +104,7 @@ namespace Client.Game.InGame.Train.View
                     $"rail(client={localRailGraphHash}, server={message.RailGraphHash}), " +
                     $"tickSequenceId={message.TickSequenceId}. Requesting snapshot.");
                 if (Interlocked.CompareExchange(ref _resyncInProgress, 1, 0) == 1)
-                {
                     return false;
-                }
                 RequestSnapshotAsync(isRailGraphMismatch).Forget();
                 return false;
             }
