@@ -17,8 +17,6 @@ namespace Client.Game.InGame.Train.View
     // Listen to hash/tick events and validate train/rail cache consistency
     public sealed class TrainUnitHashVerifier : ITrainUnitHashTickGate, IInitializable, IDisposable
     {
-        private const string TrainSnapshotPostEventTag = "va:event:trainUnitSnapshotPost";
-        private const string RailSnapshotPostEventTag = "va:event:railGraphSnapshotPost";
         private readonly TrainUnitSnapshotApplier _trainSnapshotApplier;
         private readonly RailGraphSnapshotApplier _railGraphSnapshotApplier;
         private readonly TrainUnitFutureMessageBuffer _futureMessageBuffer;
@@ -117,13 +115,7 @@ namespace Client.Game.InGame.Train.View
             // If there is no message for the current tick but there are messages for future ticks, it's likely that the current tick's message won't arrive. In that case, we will force advance the tick.
             if (!_futureMessageBuffer.TryDequeueHashAtTickSequenceId(currentTickUnifiedId, out var message))
             {
-                var firstFutureHashTickUnifiedId = _futureMessageBuffer.GetFirstHashTickUnifiedId();
-                if (firstFutureHashTickUnifiedId != ulong.MaxValue)
-                {
-                    Debug.LogWarning($"[TrainUnitHashVerifier] No hash message for current tick {currentTickUnifiedId}, but future hash exists at {firstFutureHashTickUnifiedId}. Advancing tick to avoid stall.");
-                    return true;
-                }
-                return false;
+                return _futureMessageBuffer.TryGetFirstHashTickUnifiedId(out _);
             }
             var isVerified = ValidateCurrentTickHash();
             return isVerified && Interlocked.CompareExchange(ref _resyncInProgress, 0, 0) == 0;
@@ -182,10 +174,10 @@ namespace Client.Game.InGame.Train.View
                         FinalizeResync(cts);
                         return;
                     }
-
-                    EnqueueRailSnapshotAsPost(railGraphSnapshot);
-                    EnqueueTrainSnapshotAsPost(trainSnapshot);
-                    _tickState.RecordAppliedTickUnifiedId(railGraphSnapshot.GraphTick, railGraphSnapshot.GraphTickSequenceId);
+                    // 再同期snapshotはキューに積まず即時適用する（rail -> train の順）。
+                    // Apply resync snapshots immediately without queueing (rail -> train order).
+                    _railGraphSnapshotApplier.ApplySnapshot(railGraphSnapshot);
+                    _trainSnapshotApplier.ApplySnapshot(trainSnapshot);
                     FinalizeResync(cts);
                     return;
                 }
@@ -206,8 +198,9 @@ namespace Client.Game.InGame.Train.View
                 }
                 else
                 {
-                    EnqueueTrainSnapshotAsPost(snapshot);
-                    _tickState.RecordAppliedTickUnifiedId(snapshot.ServerTick, snapshot.TickSequenceId);
+                    // trainのみの再同期snapshotも即時適用し、古いキューを破棄する。
+                    // Apply train-only resync snapshot immediately and discard stale queued data.
+                    _trainSnapshotApplier.ApplySnapshot(snapshot);
                 }
                 FinalizeResync(cts);
 
@@ -221,36 +214,6 @@ namespace Client.Game.InGame.Train.View
                         targetCancellation.Dispose();
                     }
                     Interlocked.Exchange(ref _resyncInProgress, 0);
-                }
-
-                void EnqueueRailSnapshotAsPost(RailGraphSnapshotMessagePack railGraphSnapshot)
-                {
-                    // snapshot応答をpostイベントとして同じtick順序キューへ流す。
-                    // Enqueue snapshot response into the same post-event order queue.
-                    _futureMessageBuffer.EnqueueEvent(
-                        railGraphSnapshot.GraphTick,
-                        railGraphSnapshot.GraphTickSequenceId,
-                        TrainTickBufferedEvent.Create(RailSnapshotPostEventTag, ApplyRailSnapshot));
-
-                    void ApplyRailSnapshot()
-                    {
-                        _railGraphSnapshotApplier.ApplySnapshot(railGraphSnapshot);
-                    }
-                }
-
-                void EnqueueTrainSnapshotAsPost(Client.Network.API.TrainUnitSnapshotResponse trainSnapshot)
-                {
-                    // snapshot応答をpostイベントとして同じtick順序キューへ流す。
-                    // Enqueue snapshot response into the same post-event order queue.
-                    _futureMessageBuffer.EnqueueEvent(
-                        trainSnapshot.ServerTick,
-                        trainSnapshot.TickSequenceId,
-                        TrainTickBufferedEvent.Create(TrainSnapshotPostEventTag, ApplyTrainSnapshot));
-
-                    void ApplyTrainSnapshot()
-                    {
-                        _trainSnapshotApplier.ApplySnapshot(trainSnapshot);
-                    }
                 }
             }
 

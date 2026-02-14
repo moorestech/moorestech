@@ -1,7 +1,7 @@
+using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Train.Unit;
 using Server.Util.MessagePack;
-using UnityEngine;
 using System.Linq;
 
 namespace Client.Game.InGame.Train.Network
@@ -30,13 +30,8 @@ namespace Client.Game.InGame.Train.Network
             {
                 // 適用済みの統合順序以下は捨てる。
                 // Drop events already covered.
-                Debug.LogWarning(
-                    "[TrainUnitFutureMessageBuffer] Dropped stale buffered event by tick unified id. " +
-                    $"eventTag={bufferedEvent.EventTag}, tickSequenceId={tickSequenceId}, " +
-                    $"eventTickUnifiedId={eventTickUnifiedId}, appliedTickUnifiedId={_tickState.GetAppliedTickUnifiedId()}");
                 return;
             }
-            UnityEngine.Debug.Log(serverTick * 10000 + tickSequenceId);
             _futureEvents[eventTickUnifiedId] = bufferedEvent;
         }
 
@@ -53,13 +48,8 @@ namespace Client.Game.InGame.Train.Network
             {
                 // 適用済みの統合順序以下は捨てる。
                 // Drop hash states already covered.
-                Debug.LogWarning(
-                    "[TrainUnitFutureMessageBuffer] Dropped stale buffered hash state by tick unified id. " +
-                    $"serverTick={message.ServerTick}, tickSequenceId={message.TickSequenceId}, " +
-                    $"messageTickUnifiedId={messageTickUnifiedId}, appliedTickUnifiedId={_tickState.GetAppliedTickUnifiedId()}");
                 return;
             }
-            UnityEngine.Debug.Log(message.ServerTick * 10000 + message.TickSequenceId);
             _futureHashStates[messageTickUnifiedId] = message;
         }
 
@@ -76,24 +66,28 @@ namespace Client.Game.InGame.Train.Network
         {
             while (true)
             {
-                ulong firstTickUnifiedId = GetFirstHashTickUnifiedId();
-                if (firstTickUnifiedId < tickUnifiedId)
+                if (TryGetFirstHashTickUnifiedId(out var firstTickUnifiedId))
                 {
-                    _futureHashStates.Remove(firstTickUnifiedId);
-                    continue;
+                    if (firstTickUnifiedId < tickUnifiedId)
+                    {
+                        _futureHashStates.Remove(firstTickUnifiedId);
+                        continue;
+                    }
                 }
                 break;
             }
         }
         // 最初のkeyを取得
         // Get the first key
-        public ulong GetFirstHashTickUnifiedId()
+        public bool TryGetFirstHashTickUnifiedId(out ulong tickUnifiedId)
         {
+            tickUnifiedId = UInt64.MaxValue;
             if (_futureHashStates.Count > 0)
             {
-                return _futureHashStates.First().Key;
+                tickUnifiedId = _futureHashStates.First().Key;
+                return true;
             }
-            return ulong.MaxValue;
+            return false;
         }
         
         public bool TryFlushEvent(uint currentTick, uint tickSequenceId)
@@ -138,6 +132,5 @@ namespace Client.Game.InGame.Train.Network
             }
             #endregion
         }
-
     }
 }
