@@ -21,7 +21,7 @@ namespace Game.Train.Unit
         private uint _executedTick;
         private uint _tickSequenceId;
 
-        private readonly Subject<uint> _onHashEvent = new();
+        private readonly Subject<HashStateEventData> _onHashEvent = new();
         private readonly Subject<(uint, IReadOnlyList<TrainTickDiffData>)> _onPreSimulationDiffEvent = new();
         private readonly TrainUnitInitializationNotifier _trainUnitInitializationNotifier;
         private bool _trainAutoRunDebugEnabled;
@@ -47,7 +47,7 @@ namespace Game.Train.Unit
             //UnityEngine.Debug.Log(_executedTick * 10000 + _tickSequenceId);
             return _tickSequenceId;
         }
-        public IObservable<uint> OnHashEvent => _onHashEvent;
+        public IObservable<HashStateEventData> OnHashEvent => _onHashEvent;
         public IObservable<(uint, IReadOnlyList<TrainTickDiffData>)> OnPreSimulationDiffEvent => _onPreSimulationDiffEvent;
         // 列車生成イベントの購読口を返す
         // Provide the train unit creation event stream
@@ -56,17 +56,16 @@ namespace Game.Train.Unit
 
         private void UpdateTrains()
         {
-            //HashVerifier用ブロードキャスト
-            if (_executedTick % TrainUnitHashBroadcastIntervalTicks == 0)
-            {
-                _onHashEvent.OnNext(_executedTick);
-            }
-            
+            // hash計算タイミングはTrainUpdateService側で管理し、間引き時はdummyを送る
+            // TrainUpdateService owns hash timing and emits dummy on skipped ticks.
+            var hashState = BuildHashStateEventData(_executedTick);
+            _onHashEvent.OnNext(hashState);
+
             _executedTick++;
             // tickが進んだら同tick内順序のカウンタを初期化する
             // Reset per-tick ordering counter when tick advances.
             _tickSequenceId = 0;
-            
+
             //simulation
             foreach (var trainUnit in _trainUnits)
             {
@@ -74,12 +73,29 @@ namespace Game.Train.Unit
             }
 
             NotifyPreSimulationDiff(_executedTick);
-            
+
             //↓これ以降にクライアントからの操作コマンド系適応がはいる、hashmismatchなどによるブロードキャストもはいる
             //snapshot,生成イベント系
             return;
 
             #region Internal
+            HashStateEventData BuildHashStateEventData(uint hashTick)
+            {
+                if (hashTick % TrainUnitHashBroadcastIntervalTicks != 0)
+                {
+                    return new HashStateEventData(hashTick, uint.MaxValue, uint.MaxValue);
+                }
+
+                var bundles = new List<TrainUnitSnapshotBundle>();
+                foreach (var train in _trainUnits)
+                {
+                    bundles.Add(TrainUnitSnapshotFactory.CreateSnapshot(train));
+                }
+                var unitsHash = TrainUnitSnapshotHashCalculator.Compute(bundles);
+                var railGraphHash = _railGraphDatastore.GetConnectNodesHash();
+                return new HashStateEventData(hashTick, unitsHash, railGraphHash);
+            }
+
             // 全TrainUnitの差分を集約し、差分があるユニットのみ通知する
             // Aggregate per-unit diffs and publish only changed units.
             void NotifyPreSimulationDiff(uint tick)
@@ -97,8 +113,8 @@ namespace Game.Train.Unit
                 // 差分0件でもsim実行トリガとして同tickイベントを送る。
                 // Emit the same-tick event even when diffs are empty as a simulation trigger.
                 _onPreSimulationDiffEvent.OnNext((tick, diffs));
-                
-                
+
+
                 bool HasDiff(int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeIdDiff)
                 {
                     return masconLevelDiff != 0 || isNowDockingSpeedZero || approachingNodeIdDiff != -1;
@@ -106,7 +122,7 @@ namespace Game.Train.Unit
             }
             #endregion
         }
-        
+
         public void RegisterTrain(TrainUnit trainUnit)
         {
             // 列車を登録して生成通知を送る
@@ -204,6 +220,20 @@ namespace Game.Train.Unit
                 MasconLevelDiff = masconLevelDiff;
                 IsNowDockingSpeedZero = isNowDockingSpeedZero;
                 ApproachingNodeIdDiff = approachingNodeIdDiff;
+            }
+        }
+
+        public readonly struct HashStateEventData
+        {
+            public uint Tick { get; }
+            public uint UnitsHash { get; }
+            public uint RailGraphHash { get; }
+
+            public HashStateEventData(uint tick, uint unitsHash, uint railGraphHash)
+            {
+                Tick = tick;
+                UnitsHash = unitsHash;
+                RailGraphHash = railGraphHash;
             }
         }
     }
