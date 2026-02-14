@@ -39,12 +39,12 @@ namespace Game.Train.Unit
         }
 
         public uint GetCurrentTick() => _executedTick;
-        public uint GetCurrentTickSequenceId() => _tickSequenceId;
         public uint NextTickSequenceId()
         {
             // train/railイベント順序を表す単調IDを採番する
             // Issue a monotonic id that represents train/rail event order.
             _tickSequenceId++;
+            //UnityEngine.Debug.Log(_executedTick * 10000 + _tickSequenceId);
             return _tickSequenceId;
         }
         public IObservable<uint> OnHashEvent => _onHashEvent;

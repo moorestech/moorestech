@@ -40,8 +40,9 @@ namespace Client.Game.InGame.Train.Network
 
         public void ApplySnapshot(RailGraphSnapshotMessagePack snapshot)
         {
-            if (snapshot != null &&
-                TrainTickUnifiedIdUtility.CreateTickUnifiedId(snapshot.GraphTick, snapshot.GraphTickSequenceId) < _tickState.GetAppliedTickUnifiedId())
+            var unifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(snapshot?.GraphTick ?? 0, snapshot?.GraphTickSequenceId ?? 0);
+            Debug.Log("aprail" + snapshot.GraphTick  * 100000 + snapshot.GraphTickSequenceId);
+            if (snapshot != null && unifiedId < _tickState.GetAppliedTickUnifiedId())
             {
                 // 遅延rail snapshotが既に適用済み範囲より古い場合は破棄する。
                 // Ignore delayed rail snapshots older than the applied sequence baseline.
@@ -76,6 +77,8 @@ namespace Client.Game.InGame.Train.Network
             // 駅参照をキャッシュへ反映する
             // Apply station references to cache.
             _stationReferenceRegistry.ApplyStationReferences();
+            Debug.Log("aprailRecordApplied" + snapshot.GraphTick  * 100000 + snapshot.GraphTickSequenceId);
+            _tickState.RecordAppliedTickUnifiedId(unifiedId);
 
             #region 
             int ResolveMaxNodeId(RailGraphSnapshotMessagePack targetSnapshot)

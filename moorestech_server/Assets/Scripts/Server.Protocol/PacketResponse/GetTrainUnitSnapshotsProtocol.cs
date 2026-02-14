@@ -38,7 +38,7 @@ namespace Server.Protocol.PacketResponse
                 snapshots,
                 _trainUpdateService.GetCurrentTick(),
                 unitsHash,
-                _trainUpdateService.GetCurrentTickSequenceId());
+                _trainUpdateService.NextTickSequenceId());
         }
 
         [MessagePackObject]

@@ -25,7 +25,7 @@ namespace Server.Protocol.PacketResponse
         public ProtocolMessagePackBase GetResponse(List<byte> payload)
         {
             var snapshot = _railGraphDatastore.CaptureSnapshot(_trainUpdateService.GetCurrentTick());
-            var message = new RailGraphSnapshotMessagePack(snapshot, _trainUpdateService.GetCurrentTickSequenceId());
+            var message = new RailGraphSnapshotMessagePack(snapshot, _trainUpdateService.NextTickSequenceId());
             return new ResponseMessagePack(message);
         }
 

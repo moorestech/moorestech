@@ -16,13 +16,19 @@ namespace Client.Game.InGame.Train.Unit
     // Centralize tick state for client train simulation.
     public sealed class TrainUnitTickState
     {
-        private ulong _appliedTickUnifiedId;
+        private ulong _appliedTickUnifiedId = 0;
         
         // 統合IDから上位32bitのtickを取り出す。
         // Extract high 32-bit tick from unified id.
         public uint GetTick()
         {
             return (uint)(_appliedTickUnifiedId >> 32);
+        }
+        // 下位32bitをとりだす
+        // Extract low 32-bit tickSequenceId from unified id.
+        public uint GetTickSequenceId()
+        {
+            return (uint)(_appliedTickUnifiedId & 0xFFFFFFFF);
         }
 
         public ulong GetAppliedTickUnifiedId()

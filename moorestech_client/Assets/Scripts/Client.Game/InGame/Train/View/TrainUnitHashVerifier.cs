@@ -109,23 +109,29 @@ namespace Client.Game.InGame.Train.View
             {
                 return false;
             }
-
-            if (currentTickUnifiedId <= _tickState.GetAppliedTickUnifiedId())
+            // 古いhashはバッファから捨てる
+            // Discard any stale hashes that are older than the current tick
+            _futureMessageBuffer.DiscardHashesOlderThan(currentTickUnifiedId);
+            
+            // このtickにメッセージがなく将来tickにメッセージがある場合このtickのメッセージは送られてこない可能性が非常に高い。なのでTickを強制的に進めることにする
+            // If there is no message for the current tick but there are messages for future ticks, it's likely that the current tick's message won't arrive. In that case, we will force advance the tick.
+            if (!_futureMessageBuffer.TryDequeueHashAtTickSequenceId(currentTickUnifiedId, out var message))
             {
-                return true;
+                var firstFutureHashTickUnifiedId = _futureMessageBuffer.GetFirstHashTickUnifiedId();
+                if (firstFutureHashTickUnifiedId != ulong.MaxValue)
+                {
+                    Debug.LogWarning($"[TrainUnitHashVerifier] No hash message for current tick {currentTickUnifiedId}, but future hash exists at {firstFutureHashTickUnifiedId}. Advancing tick to avoid stall.");
+                    return true;
+                }
+                return false;
             }
-
-            var isVerified = ValidateCurrentTickHash(currentTickUnifiedId);
+            var isVerified = ValidateCurrentTickHash();
             return isVerified && Interlocked.CompareExchange(ref _resyncInProgress, 0, 0) == 0;
 
             #region Internal
 
-            bool ValidateCurrentTickHash(ulong tickUnifiedId)
+            bool ValidateCurrentTickHash()
             {
-                if (!_futureMessageBuffer.TryDequeueHashAtTickSequenceId(tickUnifiedId, out var message))
-                {
-                    return false;
-                }
                 // 同一tickでTrain/Railのローカルhashを照合する
                 // Compare local train/rail hashes on the same tick
                 var localTrainHash = _trainCache.ComputeCurrentHash();
@@ -134,10 +140,9 @@ namespace Client.Game.InGame.Train.View
                 var isRailGraphMismatch = localRailGraphHash != message.RailGraphHash;
                 if (!isTrainMismatch && !isRailGraphMismatch)
                 {
-                    _tickState.RecordAppliedTickUnifiedId(tickUnifiedId);
+                    _tickState.RecordAppliedTickUnifiedId(currentTickUnifiedId);
                     return true;
                 }
-
                 Debug.LogWarning(
                     $"[TrainUnitHashVerifier] Hash mismatch detected. tick={_tickState.GetTick()}, " +
                     $"train(client={localTrainHash}, server={message.UnitsHash}), " +
@@ -147,7 +152,6 @@ namespace Client.Game.InGame.Train.View
                 {
                     return false;
                 }
-
                 RequestSnapshotAsync(isRailGraphMismatch).Forget();
                 return false;
             }
