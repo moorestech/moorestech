@@ -9,15 +9,15 @@ using VContainer.Unity;
 
 namespace Client.Game.InGame.Train.Network
 {
-    // TrainUnitのpre sim差分イベント受信ハンドラ sim本体も含む
-    // Network handler for TrainUnit pre-simulation diff events.
-    public sealed class TrainUnitPreSimulationDiffEventNetworkHandler : IInitializable, IDisposable
+    // TickDiffBundle受信をhash+diffに分解してキューするハンドラ
+    // Handler that splits TickDiffBundle into hash+diff queue entries.
+    public sealed class TrainUnitTickDiffBundleEventNetworkHandler : IInitializable, IDisposable
     {
         private readonly TrainUnitFutureMessageBuffer _futureMessageBuffer;
         private readonly TrainUnitClientCache _cache;
         private IDisposable _subscription;
 
-        public TrainUnitPreSimulationDiffEventNetworkHandler(TrainUnitFutureMessageBuffer futureMessageBuffer, TrainUnitClientCache cache)
+        public TrainUnitTickDiffBundleEventNetworkHandler(TrainUnitFutureMessageBuffer futureMessageBuffer, TrainUnitClientCache cache)
         {
             _futureMessageBuffer = futureMessageBuffer;
             _cache = cache;
@@ -25,7 +25,7 @@ namespace Client.Game.InGame.Train.Network
 
         public void Initialize()
         {
-            _subscription = ClientContext.VanillaApi.Event.SubscribeEventResponse(TrainUnitPreSimulationDiffEventPacket.EventTag, OnEventReceived);
+            _subscription = ClientContext.VanillaApi.Event.SubscribeEventResponse(TrainUnitTickDiffBundleEventPacket.EventTag, OnEventReceived);
         }
 
         public void Dispose()
@@ -41,17 +41,36 @@ namespace Client.Game.InGame.Train.Network
                 return;
             }
 
-            var message = MessagePackSerializer.Deserialize<TrainUnitPreSimulationDiffMessagePack>(payload);
+            var message = MessagePackSerializer.Deserialize<TrainUnitTickDiffBundleMessagePack>(payload);
             if (message == null)
             {
                 return;
             }
 
-            _futureMessageBuffer.EnqueueEvent(message.ServerTick, message.TickSequenceId, CreateBufferedEvent(message));
+            EnqueueHash(message);
+            _futureMessageBuffer.EnqueueEvent(message.ServerTick, message.DiffTickSequenceId, CreateBufferedEvent(message));
+            return;
 
             #region Internal
 
-            ITrainTickBufferedEvent CreateBufferedEvent(TrainUnitPreSimulationDiffMessagePack messagePack)
+            void EnqueueHash(TrainUnitTickDiffBundleMessagePack bundleMessage)
+            {
+                // bundleは n tick のdiffを持つのでhashは n-1 tick として展開する。
+                // Bundle carries diff at tick n, so hash is expanded as tick n-1.
+                if (bundleMessage.ServerTick == 0)
+                {
+                    return;
+                }
+                var hashTick = bundleMessage.ServerTick - 1;
+                var hashMessage = new TrainUnitHashStateMessagePack(
+                    bundleMessage.UnitsHash,
+                    bundleMessage.RailGraphHash,
+                    hashTick,
+                    bundleMessage.HashTickSequenceId);
+                _futureMessageBuffer.EnqueueHash(hashMessage);
+            }
+
+            ITrainTickBufferedEvent CreateBufferedEvent(TrainUnitTickDiffBundleMessagePack messagePack)
             {
                 return TrainTickBufferedEvent.Create(ApplyDiffs);
 
