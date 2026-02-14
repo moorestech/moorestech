@@ -48,7 +48,6 @@ namespace Client.Game.InGame.Train.Unit
                 _estimatedClientTick += 0.5 * (_tickState.GetTick() - _estimatedClientTick) + 0.1;
             }
             int loopTicks = Mathf.Min((int)Math.Max(0, pendingTicks), 2);
-            Debug.Log("" + _estimatedClientTick + "_" + _tickState.GetTick());
             for (var i = 0; i < loopTicks; i++)
             {
                 ulong id = 0;
