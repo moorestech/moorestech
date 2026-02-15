@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Network.Settings;
 using Core.Master;
-using Game.CraftChainer.CraftChain;
+
 using Game.CraftTree.Models;
 using Game.Train.RailPositions;
 using Game.Train.Unit;
@@ -70,18 +70,6 @@ namespace Client.Network.API
         public void AttackMapObject(int mapObjectInstanceId, int attackDamage)
         {
             var request = new MapObjectAcquisitionProtocol.GetMapObjectProtocolProtocolMessagePack(_playerId, mapObjectInstanceId, attackDamage);
-            _packetSender.Send(request);
-        }
-        
-        public void SetCraftChainerCrafterRecipe(Vector3Int block ,List<CraftingSolverItem> inputs, List<CraftingSolverItem> outputs)
-        {
-            var request = new SetCraftChainerCrafterRecipeProtocol.SetCraftChainerCrafterRecipeProtocolMessagePack(block, inputs, outputs);
-            _packetSender.Send(request);
-        }
-        
-        public void SetCraftChainerMainComputerRequestItem(Vector3Int block, ItemId itemId, int count)
-        {
-            var request = new SetCraftChainerMainComputerRequestItemProtocol.SetCraftChainerMainComputerRequestItemProtocolMessagePack(block, itemId, count);
             _packetSender.Send(request);
         }
         

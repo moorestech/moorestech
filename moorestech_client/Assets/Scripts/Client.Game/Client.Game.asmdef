@@ -55,7 +55,6 @@
         "Game.Challenge.Interface",
         "UniTask.DOTween",
         "Core.Master",
-        "Game.CraftChainer",
         "Game.UnlockState",
         "Common.Debug",
         "Game.Fluid",
