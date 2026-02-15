@@ -43,6 +43,11 @@ namespace lilToon
         public static string GetMainFolderPath() // "Assets/lilToon"
         {
             string editorPath = GetEditorFolderPath();
+            // バッチモードでGUID解決が失敗する場合のフォールバック
+            if (string.IsNullOrEmpty(editorPath) || editorPath.Length < 7)
+            {
+                return "Assets/Dependencies/lilToon";
+            }
             return editorPath.Substring(0, editorPath.Length - 7);
         }
         public static string GetShaderSettingPath()         => "ProjectSettings/lilToonSetting.json";     // "ProjectSettings/lilToonSetting.json"
