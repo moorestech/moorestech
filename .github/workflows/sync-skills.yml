@@ -74,6 +74,7 @@ jobs:
           rsync -a --delete "${source_dir}/" "${target_dir}/"
 
       - name: Create pull request
+        id: create-pr
         if: steps.source.outputs.skip != 'true'
         uses: peter-evans/create-pull-request@v6
         with:
@@ -84,3 +85,9 @@ jobs:
             - Sync skills directory changes from `${{ steps.source.outputs.source }}` to `${{ steps.source.outputs.target }}`.
           branch: "sync-skills-${{ github.run_id }}"
           delete-branch: true
+
+      - name: Auto-merge pull request
+        if: steps.create-pr.outputs.pull-request-number
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr merge "${{ steps.create-pr.outputs.pull-request-number }}" --merge
