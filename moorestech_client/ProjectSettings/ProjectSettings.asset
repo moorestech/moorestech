@@ -86,6 +86,7 @@ PlayerSettings:
   muteOtherAudioSources: 0
   Prepare IOS For Recording: 0
   Force IOS Speakers When Recording: 0
+  audioSpatialExperience: 0
   deferSystemGesturesMode: 0
   hideHomeButton: 0
   submitAnalytics: 1
@@ -132,6 +133,7 @@ PlayerSettings:
   switchNVNMaxPublicSamplerIDCount: 0
   switchMaxWorkerMultiple: 8
   switchNVNGraphicsFirmwareMemory: 32
+  switchGraphicsJobsSyncAfterKick: 1
   vulkanNumSwapchainBuffers: 3
   vulkanEnableSetSRGBWrite: 0
   vulkanEnablePreTransform: 0
@@ -272,6 +274,9 @@ PlayerSettings:
   AndroidBuildApkPerCpuArchitecture: 0
   AndroidTVCompatibility: 0
   AndroidIsGame: 1
+  androidAppCategory: 3
+  useAndroidAppCategory: 1
+  androidAppCategoryOther: 
   AndroidEnableTango: 0
   androidEnableBanner: 1
   androidUseLowAccuracyLocation: 0
@@ -882,25 +887,25 @@ PlayerSettings:
   webWasm2023: 0
   webEnableSubmoduleStrippingCompatibility: 0
   scriptingDefineSymbols:
-    Android: DOTWEEN;ENVIRO_3;ENVIRO_URP
+    Android: DOTWEEN;ENVIRO_3;ENVIRO_URP;ULOOPMCP_HAS_ROSLYN
     EmbeddedLinux: DOTWEEN;ENVIRO_3;ENVIRO_URP
     GameCoreScarlett: DOTWEEN;ENVIRO_3;ENVIRO_URP
     GameCoreXboxOne: DOTWEEN;ENVIRO_3;ENVIRO_URP
     Kepler: ENVIRO_3;ENVIRO_URP
     LinuxHeadlessSimulation: DOTWEEN;ENVIRO_3;ENVIRO_URP
     Nintendo Switch: DOTWEEN;ENVIRO_3;ENVIRO_URP
-    PS4: DOTWEEN;ENVIRO_3;ENVIRO_URP
+    PS4: DOTWEEN;ENVIRO_3;ENVIRO_URP;ULOOPMCP_HAS_ROSLYN
     PS5: DOTWEEN;ENVIRO_3;ENVIRO_URP
     QNX: DOTWEEN;ENVIRO_3;ENVIRO_URP
     ReservedCFE: ENVIRO_3;ENVIRO_URP
     Stadia: DOTWEEN
-    Standalone: DOTWEEN;UNITASK_DOTWEEN_SUPPORT;STARTER_ASSETS_PACKAGES_CHECKED;UDS_INGAMEDEBUGCOSOLE_SUPPORT;UDS_GRAPHY_SUPPORT;MAPMAGIC2;MM_NATIVE;STEAMWORKS_NET;MAGICACLOTH2;ENVIRO_3;ENVIRO_URP
+    Standalone: DOTWEEN;UNITASK_DOTWEEN_SUPPORT;STARTER_ASSETS_PACKAGES_CHECKED;UDS_INGAMEDEBUGCOSOLE_SUPPORT;UDS_GRAPHY_SUPPORT;MAPMAGIC2;MM_NATIVE;STEAMWORKS_NET;MAGICACLOTH2;ENVIRO_3;ENVIRO_URP;ULOOPMCP_HAS_ROSLYN
     VisionOS: ENVIRO_3;ENVIRO_URP
-    WebGL: DOTWEEN;ENVIRO_3;ENVIRO_URP
-    Windows Store Apps: DOTWEEN
-    XboxOne: DOTWEEN;ENVIRO_3;ENVIRO_URP
-    iPhone: DOTWEEN
-    tvOS: DOTWEEN;ENVIRO_3;ENVIRO_URP
+    WebGL: DOTWEEN;ENVIRO_3;ENVIRO_URP;ULOOPMCP_HAS_ROSLYN
+    Windows Store Apps: DOTWEEN;ULOOPMCP_HAS_ROSLYN
+    XboxOne: DOTWEEN;ENVIRO_3;ENVIRO_URP;ULOOPMCP_HAS_ROSLYN
+    iPhone: DOTWEEN;ULOOPMCP_HAS_ROSLYN
+    tvOS: DOTWEEN;ENVIRO_3;ENVIRO_URP;ULOOPMCP_HAS_ROSLYN
   additionalCompilerArguments:
     Standalone: []
   platformArchitecture: {}

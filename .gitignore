@@ -8,7 +8,8 @@
 /moorestech_*/[Bb]uild/
 /moorestech_*/[Bb]uilds/
 /moorestech_*/[Ll]ogs/
-/moorestech_*/[Uu]ser[Ss]ettings/
+/moorestech_*/[Uu]ser[Ss]ettings/*
+!/moorestech_*/[Uu]ser[Ss]ettings/UnityMcpSettings.json
 
 
 # MemoryCaptures can get excessive in size.
