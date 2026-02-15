@@ -284,6 +284,12 @@
       "dependencies": {},
       "hash": "b1204706248cea04f1b762dca8591e32ae044652"
     },
+    "com.yujiap.project-window-history": {
+      "version": "file:../../moorestech_client/LocalPackages/ProjectWindowHistory",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {}
+    },
     "io.github.hatayama.uloopmcp": {
       "version": "https://github.com/hatayama/uLoopMCP.git?path=/Packages/src",
       "depth": 0,
