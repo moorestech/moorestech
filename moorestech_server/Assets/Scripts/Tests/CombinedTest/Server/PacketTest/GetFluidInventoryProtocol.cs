@@ -52,8 +52,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(0, remaining3.Amount);
             
             // プロトコル経由で液体を取得
-            var request = MessagePackSerializer.Serialize(new GetFluidInventoryRequestMessagePack(Vector3Int.zero)).ToList();
-            var response = packet.GetPacketResponse(request)[0].ToArray();
+            var request = MessagePackSerializer.Serialize(new GetFluidInventoryRequestMessagePack(Vector3Int.zero));
+            var response = packet.GetPacketResponse(request)[0];
             var data = MessagePackSerializer.Deserialize<GetFluidInventoryResponseMessagePack>(response);
             
             // 機械の液体とプロトコルで取得した液体を比較
@@ -92,8 +92,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(0, remaining.Amount);
             
             // プロトコル経由で液体を取得
-            var request = MessagePackSerializer.Serialize(new GetFluidInventoryRequestMessagePack(Vector3Int.zero)).ToList();
-            var response = packet.GetPacketResponse(request)[0].ToArray();
+            var request = MessagePackSerializer.Serialize(new GetFluidInventoryRequestMessagePack(Vector3Int.zero));
+            var response = packet.GetPacketResponse(request)[0];
             var data = MessagePackSerializer.Deserialize<GetFluidInventoryResponseMessagePack>(response);
             
             // 蒸気タンクの内容を確認
@@ -121,8 +121,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(0, remainAmount.Amount);
             
             // プロトコル経由で液体を取得
-            var request = MessagePackSerializer.Serialize(new GetFluidInventoryRequestMessagePack(Vector3Int.zero)).ToList();
-            var response = packet.GetPacketResponse(request)[0].ToArray();
+            var request = MessagePackSerializer.Serialize(new GetFluidInventoryRequestMessagePack(Vector3Int.zero));
+            var response = packet.GetPacketResponse(request)[0];
             var data = MessagePackSerializer.Deserialize<GetFluidInventoryResponseMessagePack>(response);
             
             // パイプの液体を確認

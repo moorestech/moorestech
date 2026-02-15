@@ -21,9 +21,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             //からの時のデータ要求
-            var payload = MessagePackSerializer.Serialize(new RequestPlayerInventoryProtocolMessagePack(playerId)).ToList();
+            var payload = MessagePackSerializer.Serialize(new RequestPlayerInventoryProtocolMessagePack(playerId));
             //データの検証
-            var data = MessagePackSerializer.Deserialize<PlayerInventoryResponseProtocolMessagePack>(packet.GetPacketResponse(payload)[0].ToArray());
+            var data = MessagePackSerializer.Deserialize<PlayerInventoryResponseProtocolMessagePack>(packet.GetPacketResponse(payload)[0]);
             Assert.AreEqual(playerId, data.PlayerId);
             
             //プレイヤーインベントリの検証
@@ -47,7 +47,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             
             //2回目のデータ要求
-            data = MessagePackSerializer.Deserialize<PlayerInventoryResponseProtocolMessagePack>(packet.GetPacketResponse(payload)[0].ToArray());
+            data = MessagePackSerializer.Deserialize<PlayerInventoryResponseProtocolMessagePack>(packet.GetPacketResponse(payload)[0]);
             Assert.AreEqual(playerId, data.PlayerId);
             
             //データの検証

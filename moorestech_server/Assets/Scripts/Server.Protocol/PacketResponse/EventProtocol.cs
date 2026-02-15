@@ -16,9 +16,9 @@ namespace Server.Protocol.PacketResponse
             _eventProtocolProvider = eventProtocolProvider;
         }
         
-        public ProtocolMessagePackBase GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload)
         {
-            var data = MessagePackSerializer.Deserialize<EventProtocolMessagePack>(payload.ToArray());
+            var data = MessagePackSerializer.Deserialize<EventProtocolMessagePack>(payload);
             
             //イベントプロトコルプロバイダからデータを取得して返す
             var events = _eventProtocolProvider.GetEventBytesList(data.PlayerId);

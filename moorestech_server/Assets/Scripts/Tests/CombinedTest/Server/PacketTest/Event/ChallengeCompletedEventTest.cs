@@ -41,7 +41,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             // イベントを受け取り、テストする
             // Receive and test the event
             var response = packet.GetPacketResponse(EventTestUtil.EventRequestData(0));
-            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
+            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             var challengeCompleted = eventMessagePack.Events.First(e => e.Tag == CompletedChallengeEventPacket.EventTag);
             var completedChallenge = MessagePackSerializer.Deserialize<CompletedChallengeEventMessagePack>(challengeCompleted.Payload);
             
@@ -63,7 +63,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             // クラフトを実行
             // Execute the craft
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, craftRecipeElement.CraftRecipeGuid)).ToList());
+            packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, craftRecipeElement.CraftRecipeGuid)));
         }
         
         [Test]
@@ -91,7 +91,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             // イベントを受け取り、テストする
             // Receive and test the event
             var response = packet.GetPacketResponse(EventTestUtil.EventRequestData(0));
-            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
+            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             var challengeCompleted = eventMessagePack.Events.First(e => e.Tag == CompletedChallengeEventPacket.EventTag);
             var completedChallenge = MessagePackSerializer.Deserialize<CompletedChallengeEventMessagePack>(challengeCompleted.Payload);
             
@@ -120,7 +120,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             // イベントを受け取り、テストする
             // Receive and test the event
             var response = packet.GetPacketResponse(EventTestUtil.EventRequestData(0));
-            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
+            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             
             var challengeCompleted = eventMessagePack.Events.First(e => e.Tag == CompletedChallengeEventPacket.EventTag);
             var completedChallenge = MessagePackSerializer.Deserialize<CompletedChallengeEventMessagePack>(challengeCompleted.Payload);

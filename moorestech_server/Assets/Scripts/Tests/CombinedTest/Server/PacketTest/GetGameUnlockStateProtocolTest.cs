@@ -39,8 +39,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             // サーバーからアンロック状態を取得
             // Get the unlock state from the server
             var messagePack = new RequestGameUnlockStateProtocolMessagePack();
-            var responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack).ToList())[0];
-            var response = MessagePackSerializer.Deserialize<ResponseGameUnlockStateProtocolMessagePack>(responseBytes.ToArray());
+            var responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack))[0];
+            var response = MessagePackSerializer.Deserialize<ResponseGameUnlockStateProtocolMessagePack>(responseBytes);
             
             Assert.True(response.UnlockedCraftRecipeGuids.Contains(Craft1));
             Assert.True(response.UnlockedCraftRecipeGuids.Contains(Craft2));
@@ -61,8 +61,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             // 再びサーバーからアンロック状態を取得
             // Get the unlock state from the server again
-            responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack).ToList())[0];
-            response = MessagePackSerializer.Deserialize<ResponseGameUnlockStateProtocolMessagePack>(responseBytes.ToArray());
+            responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack))[0];
+            response = MessagePackSerializer.Deserialize<ResponseGameUnlockStateProtocolMessagePack>(responseBytes);
             
             Assert.True(response.UnlockedCraftRecipeGuids.Contains(Craft1));
             Assert.True(response.UnlockedCraftRecipeGuids.Contains(Craft2));

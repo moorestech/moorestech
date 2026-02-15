@@ -20,7 +20,7 @@ namespace Server.Protocol.PacketResponse
             _trainUpdateService = trainUpdateService;
         }
 
-        public ProtocolMessagePackBase GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload)
         {
             // 全TrainUnitのスナップショットとハッシュを生成する
             // Build snapshots and hash for every registered train unit

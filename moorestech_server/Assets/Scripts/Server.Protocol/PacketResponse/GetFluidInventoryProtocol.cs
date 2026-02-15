@@ -21,9 +21,9 @@ namespace Server.Protocol.PacketResponse
         {
         }
         
-        public ProtocolMessagePackBase GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload)
         {
-            var data = MessagePackSerializer.Deserialize<GetFluidInventoryRequestMessagePack>(payload.ToArray());
+            var data = MessagePackSerializer.Deserialize<GetFluidInventoryRequestMessagePack>(payload);
             
             // IFluidInventoryコンポーネントを持つかチェック
             var blockDatastore = ServerContext.WorldBlockDatastore;

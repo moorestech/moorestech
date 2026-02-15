@@ -23,8 +23,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         {
             var (packetResponse, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
-            List<List<byte>> response = packetResponse.GetPacketResponse(EventRequestData(0));
-            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
+            List<byte[]> response = packetResponse.GetPacketResponse(EventRequestData(0));
+            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             Assert.AreEqual(0, eventMessagePack.Events.Count);
         }
         
@@ -36,8 +36,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var worldBlockDataStore = ServerContext.WorldBlockDatastore;
             
             //イベントキューにIDを登録する
-            List<List<byte>> response = packetResponse.GetPacketResponse(EventRequestData(0));
-            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
+            List<byte[]> response = packetResponse.GetPacketResponse(EventRequestData(0));
+            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             Assert.AreEqual(0, eventMessagePack.Events.Count);
             
             var random = new Random(1410);
@@ -61,7 +61,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             //イベントパケットをリクエストする
             response = packetResponse.GetPacketResponse(EventRequestData(0));
-            eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
+            eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             
             //返ってきたイベントパケットと設置したブロックを照合し、あったら削除する
             foreach (var r in eventMessagePack.Events)
@@ -78,7 +78,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             //イベントのリクエストを送ったので次は何も返ってこないテスト
             response = packetResponse.GetPacketResponse(EventRequestData(0));
-            eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
+            eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             Assert.AreEqual(0, eventMessagePack.Events.Count);
         }
         
@@ -89,9 +89,9 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             return new TestBlockData(data.BlockPos, data.BlockId, data.Direction);
         }
         
-        private List<byte> EventRequestData(int plyaerID)
+        private byte[] EventRequestData(int plyaerID)
         {
-            return MessagePackSerializer.Serialize(new EventProtocolMessagePack(plyaerID)).ToList();
+            return MessagePackSerializer.Serialize(new EventProtocolMessagePack(plyaerID));
         }
         
         private class TestBlockData

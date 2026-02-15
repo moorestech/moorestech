@@ -45,9 +45,9 @@ namespace Server.Protocol.PacketResponse
             _dependency = serviceProvider.GetService<ISomeDependency>();
         }
 
-        public ProtocolMessagePackBase GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload)
         {
-            var data = MessagePackSerializer.Deserialize<YourRequestMessagePack>(payload.ToArray());
+            var data = MessagePackSerializer.Deserialize<YourRequestMessagePack>(payload);
             // ビジネスロジック
             return new YourResponseMessagePack(/* result */);
         }
