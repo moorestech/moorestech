@@ -26,9 +26,9 @@ namespace Server.Protocol.PacketResponse
         }
         
         
-        public ProtocolMessagePackBase GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload)
         {
-            var data = MessagePackSerializer.Deserialize<RequestOneClickCraftProtocolMessagePack>(payload.ToArray());
+            var data = MessagePackSerializer.Deserialize<RequestOneClickCraftProtocolMessagePack>(payload);
             
             var craftConfig = MasterHolder.CraftRecipeMaster.GetCraftRecipe(data.CraftRecipeGuid);
             //プレイヤーインベントリを取得

@@ -48,12 +48,12 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(8, playerInventory.MainOpenableInventory.GetItem(id2Slot).Count);
         }
         
-        private List<byte> GetGiveCommandPacket(int playerId, int itemId, int count)
+        private byte[] GetGiveCommandPacket(int playerId, int itemId, int count)
         {
             var giveCommand = $"give {playerId} {itemId} {count}"; //give <playerId> <itemId> <count>
             
             
-            return MessagePackSerializer.Serialize(new SendCommandProtocolMessagePack(giveCommand)).ToList();
+            return MessagePackSerializer.Serialize(new SendCommandProtocolMessagePack(giveCommand));
         }
     }
 }

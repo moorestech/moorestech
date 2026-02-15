@@ -22,7 +22,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var responses = packet.GetPacketResponse(requestData);
 
             // デシリアライズして検証
-            var response = MessagePackSerializer.Deserialize<ResponseMessage>(responses[0].ToArray());
+            var response = MessagePackSerializer.Deserialize<ResponseMessage>(responses[0]);
             Assert.AreEqual(expected, response.Value);
         }
     }

@@ -29,7 +29,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             //最初のハンドシェイクを実行
             var response = packet.GetPacketResponse(GetHandshakePacket(PlayerId))[0];
             var handShakeResponse =
-                MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response.ToArray());
+                MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response);
             
             // スポーンポイントの座標のチェック
             var pos = new Vector3(186, 15.7f, -37.401f);;
@@ -45,23 +45,23 @@ namespace Tests.CombinedTest.Server.PacketTest
             //再度ハンドシェイクを実行して座標が変更されていることを確認
             response = packet.GetPacketResponse(GetHandshakePacket(PlayerId))[0];
             handShakeResponse =
-                MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response.ToArray());
+                MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response);
             Assert.AreEqual(100, handShakeResponse.PlayerPos.X);
             Assert.AreEqual(0, handShakeResponse.PlayerPos.Y);
             Assert.AreEqual(-100, handShakeResponse.PlayerPos.Z);
         }
         
-        private List<byte> GetHandshakePacket(int playerId)
+        private byte[] GetHandshakePacket(int playerId)
         {
             return MessagePackSerializer.Serialize(
-                new RequestInitialHandshakeMessagePack(playerId, "test player name")).ToList();
+                new RequestInitialHandshakeMessagePack(playerId, "test player name"));
         }
         
         
-        private List<byte> GetPlayerPositionPacket(int playerId, Vector3 pos)
+        private byte[] GetPlayerPositionPacket(int playerId, Vector3 pos)
         {
             return MessagePackSerializer.Serialize(
-                new SetPlayerCoordinateProtocol.PlayerCoordinateSendProtocolMessagePack(playerId, pos)).ToList();
+                new SetPlayerCoordinateProtocol.PlayerCoordinateSendProtocolMessagePack(playerId, pos));
         }
     }
 }

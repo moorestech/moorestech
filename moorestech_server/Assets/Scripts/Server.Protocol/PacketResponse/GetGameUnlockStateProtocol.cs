@@ -20,7 +20,7 @@ namespace Server.Protocol.PacketResponse
             gameUnlockStateData = serviceProvider.GetService<IGameUnlockStateDataController>();
         }
         
-        public ProtocolMessagePackBase GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload)
         {
             var infos = gameUnlockStateData.CraftRecipeUnlockStateInfos;
             

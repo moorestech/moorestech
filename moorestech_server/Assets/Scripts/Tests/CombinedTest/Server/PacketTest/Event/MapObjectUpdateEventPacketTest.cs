@@ -21,7 +21,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId));
-            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
+            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             //イベントがないことを確認する
             Assert.AreEqual(0, eventMessagePack.Events.Count);
             
@@ -31,7 +31,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             //map objectが破壊されたことを確かめる
             response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId));
-            eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
+            eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             Assert.AreEqual(1, eventMessagePack.Events.Count);
             
             var data = MessagePackSerializer.Deserialize<MapObjectUpdateEventMessagePack>(eventMessagePack.Events[0].Payload);

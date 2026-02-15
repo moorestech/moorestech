@@ -95,7 +95,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(BlockDirection.West, worldBlockDatastore.GetBlockDirection(new Vector3Int(2, 7)));
         }
         
-        private List<byte> CreateUseHotBarProtocol(int x, int y, BlockDirection blockDirection)
+        private byte[] CreateUseHotBarProtocol(int x, int y, BlockDirection blockDirection)
         {
             var placeInfo = new List<PlaceInfo>
             {
@@ -108,8 +108,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             };
             
             return MessagePackSerializer
-                .Serialize(new SendPlaceHotBarBlockProtocolMessagePack(PlayerId, HotBarSlot, placeInfo))
-                .ToList();
+                .Serialize(new SendPlaceHotBarBlockProtocolMessagePack(PlayerId, HotBarSlot, placeInfo));
         }
     }
 }

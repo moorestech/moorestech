@@ -28,11 +28,11 @@ namespace Server.Protocol.PacketResponse
             _trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
         }
         
-        public ProtocolMessagePackBase GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload)
         {
             // リクエストをデシリアライズ
             // Deserialize request
-            var request = MessagePackSerializer.Deserialize<RequestInventoryRequestProtocolMessagePack>(payload.ToArray());
+            var request = MessagePackSerializer.Deserialize<RequestInventoryRequestProtocolMessagePack>(payload);
             
             // 識別子ごとのインベントリを判定取得
             // Dispatch inventory retrieval by identifier type

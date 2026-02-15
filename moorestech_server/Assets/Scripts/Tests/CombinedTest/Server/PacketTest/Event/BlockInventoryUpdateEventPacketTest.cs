@@ -52,10 +52,10 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             //パケットが送られていることをチェック
             //イベントパケットを取得
-            List<List<byte>> eventPacket = packetResponse.GetPacketResponse(GetEventPacket());
+            List<byte[]> eventPacket = packetResponse.GetPacketResponse(GetEventPacket());
             
             
-            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(eventPacket[0].ToArray());
+            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(eventPacket[0]);
             //イベントパケットをチェック
             Assert.AreEqual(1, eventMessagePack.Events.Count);
             var payLoad = eventMessagePack.Events[0].Payload;
@@ -80,7 +80,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             //パケットが送られていないことをチェック
             //イベントパケットを取得
             eventPacket = packetResponse.GetPacketResponse(GetEventPacket());
-            eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(eventPacket[0].ToArray());
+            eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(eventPacket[0]);
             Assert.AreEqual(0, eventMessagePack.Events.Count);
         }
         
@@ -120,8 +120,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             // パケットが送られていることをチェック（複数サブスクリプション対応のため）
             // Check that packet is sent (multiple subscriptions are now supported)
-            List<List<byte>> response = packetResponse.GetPacketResponse(GetEventPacket());
-            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
+            List<byte[]> response = packetResponse.GetPacketResponse(GetEventPacket());
+            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             Assert.AreEqual(1, eventMessagePack.Events.Count);
 
             // イベントの内容を検証
@@ -144,7 +144,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             // パケットが送られていることをチェック
             // Check that packet is sent
             response = packetResponse.GetPacketResponse(GetEventPacket());
-            eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
+            eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             Assert.AreEqual(1, eventMessagePack.Events.Count);
 
             // イベントの内容を検証
@@ -159,16 +159,16 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         }
         
         
-        private List<byte> OpenCloseBlockInventoryPacket(Vector3Int pos, bool isOpen)
+        private byte[] OpenCloseBlockInventoryPacket(Vector3Int pos, bool isOpen)
         {
             var identifier = InventoryIdentifierMessagePack.CreateBlockMessage(pos);
             return MessagePackSerializer
-                .Serialize(new SubscribeInventoryProtocol.SubscribeInventoryRequestMessagePack(PlayerId, identifier, isOpen)).ToList();
+                .Serialize(new SubscribeInventoryProtocol.SubscribeInventoryRequestMessagePack(PlayerId, identifier, isOpen));
         }
         
-        private List<byte> GetEventPacket()
+        private byte[] GetEventPacket()
         {
-            return MessagePackSerializer.Serialize(new EventProtocolMessagePack(PlayerId)).ToList();
+            return MessagePackSerializer.Serialize(new EventProtocolMessagePack(PlayerId));
         }
     }
 }
