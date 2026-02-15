@@ -15,7 +15,8 @@ Use this skill to keep server and client train/rail state transitions aligned.
 - Train bootstrap is snapshot-based (`GetTrainUnitSnapshots`); train entities are not sourced from `RequestWorldData`.
 - Event stream applies state diffs for rail nodes/connections and block updates.
 - Hash-state events drive mismatch detection and snapshot re-fetch only when needed.
-- Train deletion is corrected via hash mismatch + snapshot reconciliation path.
+- Train-car deletion has a dedicated event (`va:event:trainCarRemoved`) and is applied on the post-simulation tick queue.
+- Hash-state + snapshot reconciliation remains the recovery path for any divergence.
 - Event polling may deliver multiple ticks in one response; apply by tick semantics, not arrival order.
 
 ## Operation Flows
@@ -59,8 +60,9 @@ Train placement flow:
 Train removal flow:
 1. Client sends remove-train request.
 2. Server removes cars and may destroy/unregister train unit.
-3. Hash-state mismatch detects divergence.
-4. Client reconciles with snapshot and removes stale train entities.
+3. Server broadcasts `va:event:trainCarRemoved` with `trainCarInstanceId` and `serverTick`.
+4. Client enqueues the event into post-simulation tick processing and removes car from cache/object datastore.
+5. Hash-state verification still runs and requests snapshots only when mismatch is detected.
 
 ## Workflow
 
