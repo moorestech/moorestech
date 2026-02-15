@@ -191,7 +191,7 @@ namespace lilToon
         private static void RewriteInputHLSL(Dictionary<string, TexProp> dicT, Dictionary<string, STProp> dicD, Dictionary<string, FloatProp> dicF, Dictionary<string, ColorProp> dicC)
         {
             string optHLSL = RewriteInputHLSLText(dicT, dicD, dicF, dicC);
-            string pathOpt = AssetDatabase.GUIDToAssetPath("571051a232e4af44a98389bda858df27");
+            string pathOpt = AssetDatabase.GUIDToAssetPath("c24086469a8564e70952518cab5ee718");
             var sw = new StreamWriter(pathOpt, false);
             sw.Write(optHLSL);
             sw.Close();
@@ -200,8 +200,8 @@ namespace lilToon
         private static string RewriteInputHLSLText(Dictionary<string, TexProp> dicT, Dictionary<string, STProp> dicD, Dictionary<string, FloatProp> dicF, Dictionary<string, ColorProp> dicC)
         {
             if(dicT.Count == 0 && dicD.Count == 0 && dicF.Count == 0 && dicC.Count == 0) return null;
-            string pathBase = AssetDatabase.GUIDToAssetPath("8ff7f7d9c86e1154fb3aac5a8a8681bb");
-            string pathOpt = AssetDatabase.GUIDToAssetPath("571051a232e4af44a98389bda858df27");
+            string pathBase = AssetDatabase.GUIDToAssetPath("42a75ad834eb1428c96e376a3543476d");
+            string pathOpt = AssetDatabase.GUIDToAssetPath("c24086469a8564e70952518cab5ee718");
             if(string.IsNullOrEmpty(pathBase) || string.IsNullOrEmpty(pathOpt) || !File.Exists(pathBase) || !File.Exists(pathOpt)) return null;
             var shader = Shader.Find("Hidden/ltspass_proponly");
             var sb = new StringBuilder();
@@ -312,8 +312,8 @@ namespace lilToon
 
         internal static void ResetInputHLSL()
         {
-            string pathBase = AssetDatabase.GUIDToAssetPath("8ff7f7d9c86e1154fb3aac5a8a8681bb");
-            string pathOpt = AssetDatabase.GUIDToAssetPath("571051a232e4af44a98389bda858df27");
+            string pathBase = AssetDatabase.GUIDToAssetPath("42a75ad834eb1428c96e376a3543476d");
+            string pathOpt = AssetDatabase.GUIDToAssetPath("c24086469a8564e70952518cab5ee718");
             if(string.IsNullOrEmpty(pathBase) || string.IsNullOrEmpty(pathOpt) || !File.Exists(pathBase) || !File.Exists(pathOpt)) return;
             var sw = new StreamWriter(pathOpt, false);
             var sr = new StreamReader(pathBase);

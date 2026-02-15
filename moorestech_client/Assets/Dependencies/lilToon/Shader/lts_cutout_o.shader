@@ -640,9 +640,11 @@ Shader "Hidden/lilToonCutoutOutline"
         Tags {"RenderType" = "TransparentCutout" "Queue" = "AlphaTest"}
         UsePass "Hidden/ltspass_cutout/FORWARD"
         UsePass "Hidden/ltspass_cutout/FORWARD_OUTLINE"
-        UsePass "Hidden/ltspass_cutout/FORWARD_ADD"
-        UsePass "Hidden/ltspass_cutout/FORWARD_ADD_OUTLINE"
-        UsePass "Hidden/ltspass_cutout/SHADOW_CASTER_OUTLINE"
+        UsePass "Hidden/ltspass_cutout/SHADOW_CASTER"
+        UsePass "Hidden/ltspass_cutout/DEPTHONLY"
+        UsePass "Hidden/ltspass_cutout/DEPTHNORMALS"
+        UsePass "Hidden/ltspass_cutout/MOTIONVECTORS"
+        UsePass "Hidden/ltspass_cutout/UNIVERSAL2D"
         UsePass "Hidden/ltspass_cutout/META"
         Pass
         {
@@ -715,8 +717,7 @@ Shader "Hidden/lilToonCutoutOutline"
             ENDHLSL
         }
     }
-    Fallback "Unlit/Texture"
+    Fallback "Universal Render Pipeline/Unlit"
 
     CustomEditor "lilToon.lilToonInspector"
 }
-

@@ -124,18 +124,18 @@ namespace lilToon
             };
             if(EditorGUIUtility.isProSkin)
             {
-                boxOuter.normal.background      = (Texture2D)EditorGUIUtility.Load(lilDirectoryManager.GetGUIBoxOutDarkPath());
-                boxInnerHalf.normal.background  = (Texture2D)EditorGUIUtility.Load(lilDirectoryManager.GetGUIBoxInHalfDarkPath());
-                boxInner.normal.background      = (Texture2D)EditorGUIUtility.Load(lilDirectoryManager.GetGUIBoxInDarkPath());
-                customBox.normal.background     = (Texture2D)EditorGUIUtility.Load(lilDirectoryManager.GetGUICustomBoxDarkPath());
+                boxOuter.normal.background      = AssetDatabase.LoadAssetAtPath<Texture2D>(lilDirectoryManager.GetGUIBoxOutDarkPath());
+                boxInnerHalf.normal.background  = AssetDatabase.LoadAssetAtPath<Texture2D>(lilDirectoryManager.GetGUIBoxInHalfDarkPath());
+                boxInner.normal.background      = AssetDatabase.LoadAssetAtPath<Texture2D>(lilDirectoryManager.GetGUIBoxInDarkPath());
+                customBox.normal.background     = AssetDatabase.LoadAssetAtPath<Texture2D>(lilDirectoryManager.GetGUICustomBoxDarkPath());
                 customToggleFont = EditorStyles.label;
             }
             else
             {
-                boxOuter.normal.background      = (Texture2D)EditorGUIUtility.Load(lilDirectoryManager.GetGUIBoxOutLightPath());
-                boxInnerHalf.normal.background  = (Texture2D)EditorGUIUtility.Load(lilDirectoryManager.GetGUIBoxInHalfLightPath());
-                boxInner.normal.background      = (Texture2D)EditorGUIUtility.Load(lilDirectoryManager.GetGUIBoxInLightPath());
-                customBox.normal.background     = (Texture2D)EditorGUIUtility.Load(lilDirectoryManager.GetGUICustomBoxLightPath());
+                boxOuter.normal.background      = AssetDatabase.LoadAssetAtPath<Texture2D>(lilDirectoryManager.GetGUIBoxOutLightPath());
+                boxInnerHalf.normal.background  = AssetDatabase.LoadAssetAtPath<Texture2D>(lilDirectoryManager.GetGUIBoxInHalfLightPath());
+                boxInner.normal.background      = AssetDatabase.LoadAssetAtPath<Texture2D>(lilDirectoryManager.GetGUIBoxInLightPath());
+                customBox.normal.background     = AssetDatabase.LoadAssetAtPath<Texture2D>(lilDirectoryManager.GetGUICustomBoxLightPath());
                 customToggleFont = new GUIStyle();
                 customToggleFont.normal.textColor = Color.white;
                 customToggleFont.contentOffset = new Vector2(2f,0f);

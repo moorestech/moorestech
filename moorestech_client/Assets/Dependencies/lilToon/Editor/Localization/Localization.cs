@@ -14,7 +14,7 @@ namespace lilToon
         private static string[] languages;
         private static string[] languageNames;
         private static readonly Dictionary<string, GUIContent> guicontents = new();
-        private static string localizationFolder => AssetDatabase.GUIDToAssetPath("2feb2bcbf5b4ef043910b310c21b6ba7");
+        private static string localizationFolder => AssetDatabase.GUIDToAssetPath("5dc8e582539b24692b39896d97e8468a");
 
         internal static void Load()
         {

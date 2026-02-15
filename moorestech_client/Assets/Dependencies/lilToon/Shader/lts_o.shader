@@ -640,9 +640,11 @@ Shader "Hidden/lilToonOutline"
         Tags {"RenderType" = "Opaque" "Queue" = "Geometry"}
         UsePass "Hidden/ltspass_opaque/FORWARD"
         UsePass "Hidden/ltspass_opaque/FORWARD_OUTLINE"
-        UsePass "Hidden/ltspass_opaque/FORWARD_ADD"
-        UsePass "Hidden/ltspass_opaque/FORWARD_ADD_OUTLINE"
-        UsePass "Hidden/ltspass_opaque/SHADOW_CASTER_OUTLINE"
+        UsePass "Hidden/ltspass_opaque/SHADOW_CASTER"
+        UsePass "Hidden/ltspass_opaque/DEPTHONLY"
+        UsePass "Hidden/ltspass_opaque/DEPTHNORMALS"
+        UsePass "Hidden/ltspass_opaque/MOTIONVECTORS"
+        UsePass "Hidden/ltspass_opaque/UNIVERSAL2D"
         UsePass "Hidden/ltspass_opaque/META"
         Pass
         {
@@ -715,8 +717,7 @@ Shader "Hidden/lilToonOutline"
             ENDHLSL
         }
     }
-    Fallback "Unlit/Texture"
+    Fallback "Universal Render Pipeline/Unlit"
 
     CustomEditor "lilToon.lilToonInspector"
 }
-

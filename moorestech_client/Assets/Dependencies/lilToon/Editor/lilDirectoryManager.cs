@@ -22,23 +22,23 @@ namespace lilToon
             public const string rspPath = "Assets/mcs.rsp";
         #endif
 
-        public static string GetPackageJsonPath()           => GUIDToPath("397d2fa9e93fb5d44a9540d5f01437fc"); // "package.json"
-        public static string GetBaseShaderFolderPath()      => GUIDToPath("d465bb256af2e3a4ca646387f4bd83e7"); // "BaseShaderResources"
-        public static string GetEditorFolderPath()          => GUIDToPath("3e73d675b9c1adc4f8b6b8ef01bce51c"); // "Editor"
-        public static string GetPresetsFolderPath()         => GUIDToPath("35817d21af2f3134182c4a7e4c07786b"); // "Presets"
-        public static string GetEditorPath()                => GUIDToPath("aefa51cbc37d602418a38a02c3b9afb9"); // "Editor/lilInspector.cs"
-        public static string GetShaderFolderPath()          => GUIDToPath("ac0a8f602b5e72f458f4914bf08f0269"); // "Shader"
-        public static string GetShaderPipelinePath()        => GUIDToPath("32299664512e2e042bbc351c1d46d383"); // "Shader/Includes/lil_pipeline.hlsl";
-        public static string GetShaderCommonPath()          => GUIDToPath("5520e766422958546bbe885a95d5a67e"); // "Shader/Includes/lil_common.hlsl";
-        public static string GetGUIBoxInDarkPath()          => GUIDToPath("bb1313c9ea1425b41b74e98fd04bcbc8"); // "Editor/Resources/gui_box_inner_dark.guiskin"
-        public static string GetGUIBoxInLightPath()         => GUIDToPath("f18d71f528511e748887f5e246abcc16"); // "Editor/Resources/gui_box_inner_light.guiskin"
-        public static string GetGUIBoxInHalfDarkPath()      => GUIDToPath("a72199a4c9cc3714d8edfbc5d3b13823"); // "Editor/Resources/gui_box_inner_half_dark.guiskin"
-        public static string GetGUIBoxInHalfLightPath()     => GUIDToPath("8343038a4a0cbef4d8af45c073520436"); // "Editor/Resources/gui_box_inner_half_light.guiskin"
-        public static string GetGUIBoxOutDarkPath()         => GUIDToPath("29f3c01461cd0474eab36bf2e939bb58"); // "Editor/Resources/gui_box_outer_dark.guiskin"
-        public static string GetGUIBoxOutLightPath()        => GUIDToPath("16cc103a658d8404894e66dd8f35cb77"); // "Editor/Resources/gui_box_outer_light.guiskin"
-        public static string GetGUICustomBoxDarkPath()      => GUIDToPath("45dfb1bafd2c7d34ab453c29c0b1f46e"); // "Editor/Resources/gui_custom_box_dark.guiskin"
-        public static string GetGUICustomBoxLightPath()     => GUIDToPath("a1ed8756474bfd34f80fa22e6c43b2e5"); // "Editor/Resources/gui_custom_box_light.guiskin"
-        public static string GetCurrentRPPath()             => GUIDToPath("142b3aeca72105442a83089b616e92b8"); // "Editor/CurrentRP.txt"
+        public static string GetPackageJsonPath()           => GUIDToPath("3d0fceb0fac2e486c901303f200d9a08"); // "package.json"
+        public static string GetBaseShaderFolderPath()      => GUIDToPath("10192b226f79f42818d5205261638066"); // "BaseShaderResources"
+        public static string GetEditorFolderPath()          => GUIDToPath("1c21482cf9c2945bfb1c84889fa5e7eb"); // "Editor"
+        public static string GetPresetsFolderPath()         => GUIDToPath("a41c530ac9717430584e8bab20b1be6c"); // "Presets"
+        public static string GetEditorPath()                => GUIDToPath("43457116803c54ee79163cc9891fb7c1"); // "Editor/lilInspector/lilInspector.cs"
+        public static string GetShaderFolderPath()          => GUIDToPath("82bf9e58018a84d71b24df202741a464"); // "Shader"
+        public static string GetShaderPipelinePath()        => GetShaderFolderPath() + "/Includes/lil_pipeline.hlsl"; // .metaが存在しないためパス構築
+        public static string GetShaderCommonPath()          => GUIDToPath("f06a6e421bf7b4bc7a65da9660c56a08"); // "Shader/Includes/lil_common.hlsl";
+        public static string GetGUIBoxInDarkPath()          => GUIDToPath("a24018224a0504345a88590b3664a7fb"); // "Editor/Resources/gui_box_inner_dark.png"
+        public static string GetGUIBoxInLightPath()         => GUIDToPath("928eb99d4cfef400bb4074ba81771cee"); // "Editor/Resources/gui_box_inner_light.png"
+        public static string GetGUIBoxInHalfDarkPath()      => GUIDToPath("63bcd584db6494211a5e3f75a0bd5a00"); // "Editor/Resources/gui_box_inner_half_dark.png"
+        public static string GetGUIBoxInHalfLightPath()     => GUIDToPath("57c21f83cda8042b796943106efc0d76"); // "Editor/Resources/gui_box_inner_half_light.png"
+        public static string GetGUIBoxOutDarkPath()         => GUIDToPath("06db0e1754f0b4954b4a406afcbb1f36"); // "Editor/Resources/gui_box_outer_dark.png"
+        public static string GetGUIBoxOutLightPath()        => GUIDToPath("ae606761de1be415ab8c2e23b2c94a41"); // "Editor/Resources/gui_box_outer_light.png"
+        public static string GetGUICustomBoxDarkPath()      => GUIDToPath("e0439ae55172942c7af7cae830bde350"); // "Editor/Resources/gui_custom_box_dark.png"
+        public static string GetGUICustomBoxLightPath()     => GUIDToPath("54bb7b553df8b4425b25f099a9b1df78"); // "Editor/Resources/gui_custom_box_light.png"
+        public static string GetCurrentRPPath()             => GetEditorFolderPath() + "/CurrentRP.txt"; // .metaが存在しないためパス構築
         public static string GetClusterCreatorKitPath()     => GUIDToPath("6f11c0d5c326e4a6c851aa1c02ff11ee"); // "ClusterCreatorKit/package.json"
         public static string GetMainFolderPath() // "Assets/lilToon"
         {

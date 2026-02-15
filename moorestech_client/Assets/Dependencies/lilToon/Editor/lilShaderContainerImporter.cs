@@ -159,7 +159,7 @@ namespace lilToon
         private static Dictionary<string, string> replaces      = new Dictionary<string, string>();
 
         private const string customShaderDataFile               = "lilCustomShaderDatas.lilblock";
-        private const string customShaderResourcesFolderGUID    = "1acd4e79a7d2c6c44aa8b97a1e33f20b"; // "Assets/lilToon/CustomShaderResources"
+        private const string customShaderResourcesFolderGUID    = "08e68c6398c0b498a9faeeb881c3ca20"; // "Assets/Dependencies/lilToon/CustomShaderResources"
         private static string GetCustomShaderResourcesFolderPath() { return AssetDatabase.GUIDToAssetPath(customShaderResourcesFolderGUID); }
 
         private static string passShaderName = "";
@@ -396,7 +396,7 @@ namespace lilToon
                 !string.IsNullOrEmpty(lilEditorParameters.instance.modifiedShaders)
             )
             {
-                string pathOpt = AssetDatabase.GUIDToAssetPath("571051a232e4af44a98389bda858df27");
+                string pathOpt = AssetDatabase.GUIDToAssetPath("c24086469a8564e70952518cab5ee718");
                 if(!string.IsNullOrEmpty(pathOpt))
                 {
                     StringBuilder sbInput = new StringBuilder();
@@ -1582,11 +1582,13 @@ namespace lilToon
 
         private static string GetSkipVariantsLightmaps()
         {
+            if(version.RP != lilRenderPipeline.BRP) return "";
             return "#pragma skip_variants LIGHTMAP_ON DYNAMICLIGHTMAP_ON LIGHTMAP_SHADOW_MIXING SHADOWS_SHADOWMASK DIRLIGHTMAP_COMBINED _MIXED_LIGHTING_SUBTRACTIVE";
         }
 
         private static string GetSkipVariantsDecals()
         {
+            if(version.RP != lilRenderPipeline.BRP) return "";
             return "#pragma skip_variants DECALS_OFF DECALS_3RT DECALS_4RT DECAL_SURFACE_GRADIENT _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3";
         }
 
@@ -1598,6 +1600,7 @@ namespace lilToon
 
         private static string GetSkipVariantsAddLightShadows()
         {
+            if(version.RP != lilRenderPipeline.BRP) return "";
             return "#pragma skip_variants _ADDITIONAL_LIGHT_SHADOWS";
         }
 
@@ -1609,6 +1612,7 @@ namespace lilToon
 
         private static string GetSkipVariantsAO()
         {
+            if(version.RP != lilRenderPipeline.BRP) return "";
             return "#pragma skip_variants _SCREEN_SPACE_OCCLUSION";
         }
 
@@ -1619,6 +1623,7 @@ namespace lilToon
 
         private static string GetSkipVariantsReflections()
         {
+            if(version.RP != lilRenderPipeline.BRP) return "";
             return "#pragma skip_variants _REFLECTION_PROBE_BLENDING _REFLECTION_PROBE_BOX_PROJECTION";
         }
 

@@ -639,8 +639,11 @@ Shader "Hidden/lilToonTessellationCutout"
     {
         Tags {"RenderType" = "TransparentCutout" "Queue" = "AlphaTest"}
         UsePass "Hidden/ltspass_tess_cutout/FORWARD"
-        UsePass "Hidden/ltspass_tess_cutout/FORWARD_ADD"
         UsePass "Hidden/ltspass_tess_cutout/SHADOW_CASTER"
+        UsePass "Hidden/ltspass_tess_cutout/DEPTHONLY"
+        UsePass "Hidden/ltspass_tess_cutout/DEPTHNORMALS"
+        UsePass "Hidden/ltspass_tess_cutout/MOTIONVECTORS"
+        UsePass "Hidden/ltspass_tess_cutout/UNIVERSAL2D"
         UsePass "Hidden/ltspass_tess_cutout/META"
         Pass
         {
@@ -713,8 +716,7 @@ Shader "Hidden/lilToonTessellationCutout"
             ENDHLSL
         }
     }
-    Fallback "Unlit/Texture"
+    Fallback "Universal Render Pipeline/Unlit"
 
     CustomEditor "lilToon.lilToonInspector"
 }
-
