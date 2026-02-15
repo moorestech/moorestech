@@ -53,6 +53,10 @@ Currently, PRs created by the following workflows are targeted:
 
 - ✅ 特定のブランチパターン（`sync-skills-*`）のみが対象
 - ✅ Only specific branch patterns (`sync-skills-*`) are eligible
+- ✅ **`auto-merge` ラベルが付いているPRのみ対象**
+- ✅ **Only PRs with `auto-merge` label are eligible**
+- ✅ **GitHub Actions bot（`github-actions[bot]`）が作成したPRのみ対象**
+- ✅ **Only PRs created by GitHub Actions bot (`github-actions[bot]`) are eligible**
 - ✅ すべての必須CIチェックが成功する必要がある
 - ✅ All required CI checks must pass
 - ✅ マージコンフリクトがある場合は自動マージしない
@@ -60,12 +64,20 @@ Currently, PRs created by the following workflows are targeted:
 - ✅ GitHub App トークンを使用した適切な権限管理
 - ✅ Proper permission management using GitHub App token
 
+**セキュリティ強化**: 手動で `sync-skills-*` ブランチを作成しても、`auto-merge` ラベルと正しいbot作成者がない限り自動マージされません。
+
+**Security enhancement**: Even if someone manually creates a `sync-skills-*` branch, it won't be auto-merged without the `auto-merge` label and correct bot authorship.
+
 ## 手動介入が必要な場合 / When Manual Intervention is Needed
 
 以下の場合、自動マージは実行されず、手動での対応が必要です：
 
 Auto-merge will not execute in the following cases, requiring manual intervention:
 
+- **`auto-merge` ラベルが付いていない場合**
+- **When PR doesn't have `auto-merge` label**
+- **GitHub Actions bot以外が作成したPRの場合**
+- **When PR is not created by GitHub Actions bot**
 - CIチェックが失敗した場合
 - When CI checks fail
 - マージコンフリクトが発生した場合

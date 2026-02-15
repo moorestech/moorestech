@@ -65,10 +65,70 @@ jobs:
           echo "No PR found, skipping auto-merge"
           exit 0
 
+      # PRのセキュリティチェック: auto-mergeラベルと作成者を確認
+      # Security check: verify PR has auto-merge label and is created by automation
+      - name: Verify PR is from automated workflow
+        if: steps.pr.outputs.number != ''
+        id: verify_pr
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ steps.generate_token.outputs.token }}
+          script: |
+            const prNumber = ${{ steps.pr.outputs.number }};
+            
+            // PRの詳細を取得
+            // Get PR details
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber
+            });
+            
+            // auto-mergeラベルが付いているか確認
+            // Check if PR has auto-merge label
+            const hasAutoMergeLabel = pr.data.labels.some(label => 
+              label.name === 'auto-merge'
+            );
+            
+            if (!hasAutoMergeLabel) {
+              core.warning('PR does not have auto-merge label, skipping auto-merge');
+              core.setOutput('is_valid', 'false');
+              return;
+            }
+            
+            // PRの作成者がGitHub Actionsのbotか確認
+            // Check if PR author is GitHub Actions bot
+            const author = pr.data.user.login;
+            const validAuthors = [
+              'github-actions[bot]',
+              'github-actions'
+            ];
+            
+            // peter-evans/create-pull-requestは "github-actions[bot]" として表示される
+            // peter-evans/create-pull-request appears as "github-actions[bot]"
+            const isValidAuthor = validAuthors.includes(author);
+            
+            if (!isValidAuthor) {
+              core.warning(`PR author '${author}' is not a recognized automation bot, skipping auto-merge`);
+              core.setOutput('is_valid', 'false');
+              return;
+            }
+            
+            core.info('PR is from valid automated workflow');
+            core.setOutput('is_valid', 'true');
+
+      # セキュリティチェックに失敗した場合はスキップ
+      # Skip if security check failed
+      - name: Skip if not from automated workflow
+        if: steps.verify_pr.outputs.is_valid != 'true'
+        run: |
+          echo "PR is not from an authorized automated workflow, skipping auto-merge"
+          exit 0
+
       # すべてのチェックが完了しているか確認
       # Check if all required checks have passed
       - name: Check all status checks
-        if: steps.pr.outputs.number != ''
+        if: steps.pr.outputs.number != '' && steps.verify_pr.outputs.is_valid == 'true'
         id: check_status
         uses: actions/github-script@v7
         with:
@@ -120,7 +180,7 @@ jobs:
       # PRを自動承認
       # Auto-approve PR
       - name: Approve PR
-        if: steps.pr.outputs.number != '' && steps.check_status.outputs.all_passed == 'true'
+        if: steps.pr.outputs.number != '' && steps.verify_pr.outputs.is_valid == 'true' && steps.check_status.outputs.all_passed == 'true'
         uses: actions/github-script@v7
         with:
           github-token: ${{ steps.generate_token.outputs.token }}
@@ -155,7 +215,7 @@ jobs:
       # PRをマージ
       # Merge PR
       - name: Merge PR
-        if: steps.pr.outputs.number != '' && steps.check_status.outputs.all_passed == 'true'
+        if: steps.pr.outputs.number != '' && steps.verify_pr.outputs.is_valid == 'true' && steps.check_status.outputs.all_passed == 'true'
         uses: actions/github-script@v7
         with:
           github-token: ${{ steps.generate_token.outputs.token }}
