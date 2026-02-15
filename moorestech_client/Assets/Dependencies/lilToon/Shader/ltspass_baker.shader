@@ -18,6 +18,8 @@ Shader "Hidden/ltsother_baker"
                         _Color2nd                   ("Color", Color) = (1,1,1,1)
                         _Main2ndTex                 ("Texture", 2D) = "white" {}
         [lilAngle]      _Main2ndTexAngle            ("Angle", Float) = 0
+        [lilDecalAnim]  _Main2ndTexDecalAnimation   ("sDecalAnimations", Vector) = (1,1,1,30)
+        [lilDecalSub]   _Main2ndTexDecalSubParam    ("sDecalSubParams", Vector) = (1,1,0,1)
         [lilToggle]     _Main2ndTexIsDecal          ("As Decal", Int) = 0
         [lilToggle]     _Main2ndTexIsLeftOnly       ("Left Only", Int) = 0
         [lilToggle]     _Main2ndTexIsRightOnly      ("Right Only", Int) = 0
@@ -34,6 +36,8 @@ Shader "Hidden/ltsother_baker"
                         _Color3rd                   ("Color", Color) = (1,1,1,1)
                         _Main3rdTex                 ("Texture", 2D) = "white" {}
         [lilAngle]      _Main3rdTexAngle            ("Angle", Float) = 0
+        [lilDecalAnim]  _Main3rdTexDecalAnimation   ("sDecalAnimations", Vector) = (1,1,1,30)
+        [lilDecalSub]   _Main3rdTexDecalSubParam    ("sDecalSubParams", Vector) = (1,1,0,1)
         [lilToggle]     _Main3rdTexIsDecal          ("As Decal", Int) = 0
         [lilToggle]     _Main3rdTexIsLeftOnly       ("Left Only", Int) = 0
         [lilToggle]     _Main3rdTexIsRightOnly      ("Right Only", Int) = 0
@@ -85,6 +89,7 @@ Shader "Hidden/ltsother_baker"
             #define LIL_FEATURE_RECEIVE_SHADOW
             #define LIL_FEATURE_SHADOW_3RD
             #define LIL_FEATURE_SHADOW_LUT
+            #define LIL_FEATURE_RIMSHADE
             #define LIL_FEATURE_EMISSION_1ST
             #define LIL_FEATURE_EMISSION_2ND
             #define LIL_FEATURE_ANIMATE_EMISSION_UV
@@ -109,6 +114,7 @@ Shader "Hidden/ltsother_baker"
             #define LIL_FEATURE_DISSOLVE
             #define LIL_FEATURE_DITHER
             #define LIL_FEATURE_IDMASK
+            #define LIL_FEATURE_UDIMDISCARD
             #define LIL_FEATURE_OUTLINE_TONE_CORRECTION
             #define LIL_FEATURE_OUTLINE_RECEIVE_SHADOW
             #define LIL_FEATURE_ANIMATE_OUTLINE_UV
@@ -136,6 +142,7 @@ Shader "Hidden/ltsother_baker"
             #define LIL_FEATURE_ShadowColorTex
             #define LIL_FEATURE_Shadow2ndColorTex
             #define LIL_FEATURE_Shadow3rdColorTex
+            #define LIL_FEATURE_RimShadeMask
             #define LIL_FEATURE_BacklightColorTex
             #define LIL_FEATURE_SmoothnessTex
             #define LIL_FEATURE_MetallicGlossMap
@@ -171,6 +178,7 @@ Shader "Hidden/ltsother_baker"
             #define LIL_OPTIMIZE_APPLY_SHADOW_FA
             #define LIL_OPTIMIZE_USE_FORWARDADD
             #define LIL_OPTIMIZE_USE_VERTEXLIGHT
+            #define LIL_FEATURE_VRCLIGHTVOLUMES_WITHOUTPACKAGE
             #pragma skip_variants LIGHTMAP_ON DYNAMICLIGHTMAP_ON LIGHTMAP_SHADOW_MIXING SHADOWS_SHADOWMASK DIRLIGHTMAP_COMBINED _MIXED_LIGHTING_SUBTRACTIVE
         ENDHLSL
 
@@ -319,3 +327,4 @@ Shader "Hidden/ltsother_baker"
         }
     }
 }
+

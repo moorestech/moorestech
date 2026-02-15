@@ -3,6 +3,18 @@ Shader "_lil/[Optional] lilToonOverlayOnePass"
     Properties
     {
         //----------------------------------------------------------------------------------------------------------------------
+        // Dummy
+        _DummyProperty ("If you are seeing this, some script is broken.", Float) = 0
+        _DummyProperty ("This also happens if something other than lilToon is broken.", Float) = 0
+        _DummyProperty ("You need to check the error on the console and take appropriate action, such as reinstalling the relevant tool.", Float) = 0
+        _DummyProperty (" ", Float) = 0
+        _DummyProperty ("これが表示されている場合、なんらかのスクリプトが壊れています。", Float) = 0
+        _DummyProperty ("これはlilToon以外のものが壊れている場合にも発生します。", Float) = 0
+        _DummyProperty ("コンソールでエラーを確認し、該当するツールを入れ直すなどの対処を行う必要があります。", Float) = 0
+        [Space(1000)]
+        _DummyProperty ("", Float) = 0
+
+        //----------------------------------------------------------------------------------------------------------------------
         // Base
         [lilToggle]     _Invisible                  ("sInvisible", Int) = 0
                         _AsUnlit                    ("sAsUnlit", Range(0, 1)) = 0
@@ -24,6 +36,8 @@ Shader "_lil/[Optional] lilToonOverlayOnePass"
         [lilToggle]     _UseDither                  ("sDither", Int) = 0
         [NoScaleOffset] _DitherTex                  ("Dither", 2D) = "white" {}
                         _DitherMaxValue             ("Max Value", Float) = 255
+                        _EnvRimBorder               ("[VRCLV] Rim Border", Range(0, 3)) = 3.0
+                        _EnvRimBlur                 ("[VRCLV] Rim Blur", Range(0, 1)) = 0.35
 
         //----------------------------------------------------------------------------------------------------------------------
         // Main
@@ -192,6 +206,16 @@ Shader "_lil/[Optional] lilToonOverlayOnePass"
         [lilEnum]       _ShadowMaskType             ("sShadowMaskTypes", Int) = 0
                         _ShadowFlatBorder           ("sBorder", Range(-2, 2)) = 1
                         _ShadowFlatBlur             ("sBlur", Range(0.001, 2)) = 1
+
+        //----------------------------------------------------------------------------------------------------------------------
+        // Rim Shade
+        [lilToggleLeft] _UseRimShade                ("RimShade", Int) = 0
+                        _RimShadeColor              ("sColor", Color) = (0.5,0.5,0.5,1.0)
+        [NoScaleOffset] _RimShadeMask               ("Mask", 2D) = "white" {}
+                        _RimShadeNormalStrength     ("sNormalStrength", Range(0, 1)) = 1.0
+                        _RimShadeBorder             ("sBorder", Range(0, 1)) = 0.5
+                        _RimShadeBlur               ("sBlur", Range(0, 1)) = 1.0
+        [PowerSlider(3.0)]_RimShadeFresnelPower     ("sFresnelPower", Range(0.01, 50)) = 1.0
 
         //----------------------------------------------------------------------------------------------------------------------
         // Reflection
@@ -445,6 +469,11 @@ Shader "_lil/[Optional] lilToonOverlayOnePass"
 
         //----------------------------------------------------------------------------------------------------------------------
         // ID Mask
+        // _IDMaskCompile will enable compilation of IDMask-related systems. For compatibility, setting certain
+        // parameters to non-zero values will also enable the IDMask feature, but this enable switch ensures that
+        // animator-controlled IDMasked meshes will be compiled correctly. Note that this _only_ controls compilation,
+        // and is ignored at runtime.
+        [ToggleUI]      _IDMaskCompile              ("_IDMaskCompile", Int) = 0
         [lilEnum]       _IDMaskFrom                 ("_IDMaskFrom|0: UV0|1: UV1|2: UV2|3: UV3|4: UV4|5: UV5|6: UV6|7: UV7|8: VertexID", Int) = 8
         [ToggleUI]      _IDMask1                    ("_IDMask1", Int) = 0
         [ToggleUI]      _IDMask2                    ("_IDMask2", Int) = 0
@@ -454,6 +483,7 @@ Shader "_lil/[Optional] lilToonOverlayOnePass"
         [ToggleUI]      _IDMask6                    ("_IDMask6", Int) = 0
         [ToggleUI]      _IDMask7                    ("_IDMask7", Int) = 0
         [ToggleUI]      _IDMask8                    ("_IDMask8", Int) = 0
+        [ToggleUI]      _IDMaskIsBitmap             ("_IDMaskIsBitmap", Int) = 0
                         _IDMaskIndex1               ("_IDMaskIndex1", Int) = 0
                         _IDMaskIndex2               ("_IDMaskIndex2", Int) = 0
                         _IDMaskIndex3               ("_IDMaskIndex3", Int) = 0
@@ -463,42 +493,37 @@ Shader "_lil/[Optional] lilToonOverlayOnePass"
                         _IDMaskIndex7               ("_IDMaskIndex7", Int) = 0
                         _IDMaskIndex8               ("_IDMaskIndex8", Int) = 0
 
+        [ToggleUI]      _IDMaskControlsDissolve     ("_IDMaskControlsDissolve", Int) = 0
+        [ToggleUI]      _IDMaskPrior1               ("_IDMaskPrior1", Int) = 0
+        [ToggleUI]      _IDMaskPrior2               ("_IDMaskPrior2", Int) = 0
+        [ToggleUI]      _IDMaskPrior3               ("_IDMaskPrior3", Int) = 0
+        [ToggleUI]      _IDMaskPrior4               ("_IDMaskPrior4", Int) = 0
+        [ToggleUI]      _IDMaskPrior5               ("_IDMaskPrior5", Int) = 0
+        [ToggleUI]      _IDMaskPrior6               ("_IDMaskPrior6", Int) = 0
+        [ToggleUI]      _IDMaskPrior7               ("_IDMaskPrior7", Int) = 0
+        [ToggleUI]      _IDMaskPrior8               ("_IDMaskPrior8", Int) = 0
+
         //----------------------------------------------------------------------------------------------------------------------
-        // Encryption
-        [lilToggle]     _IgnoreEncryption           ("sIgnoreEncryption", Int) = 0
-                        _Keys                       ("sKeys", Vector) = (0,0,0,0)
-                        _BitKey0                    ("_BitKey0", Float) = 0
-                        _BitKey1                    ("_BitKey1", Float) = 0
-                        _BitKey2                    ("_BitKey2", Float) = 0
-                        _BitKey3                    ("_BitKey3", Float) = 0
-                        _BitKey4                    ("_BitKey4", Float) = 0
-                        _BitKey5                    ("_BitKey5", Float) = 0
-                        _BitKey6                    ("_BitKey6", Float) = 0
-                        _BitKey7                    ("_BitKey7", Float) = 0
-                        _BitKey8                    ("_BitKey8", Float) = 0
-                        _BitKey9                    ("_BitKey9", Float) = 0
-                        _BitKey10                   ("_BitKey10", Float) = 0
-                        _BitKey11                   ("_BitKey11", Float) = 0
-                        _BitKey12                   ("_BitKey12", Float) = 0
-                        _BitKey13                   ("_BitKey13", Float) = 0
-                        _BitKey14                   ("_BitKey14", Float) = 0
-                        _BitKey15                   ("_BitKey15", Float) = 0
-                        _BitKey16                   ("_BitKey16", Float) = 0
-                        _BitKey17                   ("_BitKey17", Float) = 0
-                        _BitKey18                   ("_BitKey18", Float) = 0
-                        _BitKey19                   ("_BitKey19", Float) = 0
-                        _BitKey20                   ("_BitKey20", Float) = 0
-                        _BitKey21                   ("_BitKey21", Float) = 0
-                        _BitKey22                   ("_BitKey22", Float) = 0
-                        _BitKey23                   ("_BitKey23", Float) = 0
-                        _BitKey24                   ("_BitKey24", Float) = 0
-                        _BitKey25                   ("_BitKey25", Float) = 0
-                        _BitKey26                   ("_BitKey26", Float) = 0
-                        _BitKey27                   ("_BitKey27", Float) = 0
-                        _BitKey28                   ("_BitKey28", Float) = 0
-                        _BitKey29                   ("_BitKey29", Float) = 0
-                        _BitKey30                   ("_BitKey30", Float) = 0
-                        _BitKey31                   ("_BitKey31", Float) = 0
+        // UDIM Discard
+        [lilToggleLeft] _UDIMDiscardCompile         ("sUDIMDiscard", Int) = 0
+        [lilEnum]       _UDIMDiscardUV              ("sUDIMDiscardUV|0: UV0|1: UV1|2: UV2|3: UV3", Int) = 0
+        [lilEnum]       _UDIMDiscardMode            ("sUDIMDiscardMode|0: Vertex|1: Pixel (slower)", Int) = 0
+        [lilToggle]     _UDIMDiscardRow3_3          ("", Int) = 0
+        [lilToggle]     _UDIMDiscardRow3_2          ("", Int) = 0
+        [lilToggle]     _UDIMDiscardRow3_1          ("", Int) = 0
+        [lilToggle]     _UDIMDiscardRow3_0          ("", Int) = 0
+        [lilToggle]     _UDIMDiscardRow2_3          ("", Int) = 0
+        [lilToggle]     _UDIMDiscardRow2_2          ("", Int) = 0
+        [lilToggle]     _UDIMDiscardRow2_1          ("", Int) = 0
+        [lilToggle]     _UDIMDiscardRow2_0          ("", Int) = 0
+        [lilToggle]     _UDIMDiscardRow1_3          ("", Int) = 0
+        [lilToggle]     _UDIMDiscardRow1_2          ("", Int) = 0
+        [lilToggle]     _UDIMDiscardRow1_1          ("", Int) = 0
+        [lilToggle]     _UDIMDiscardRow1_0          ("", Int) = 0
+        [lilToggle]     _UDIMDiscardRow0_3          ("", Int) = 0
+        [lilToggle]     _UDIMDiscardRow0_2          ("", Int) = 0
+        [lilToggle]     _UDIMDiscardRow0_1          ("", Int) = 0
+        [lilToggle]     _UDIMDiscardRow0_0          ("", Int) = 0
 
         //----------------------------------------------------------------------------------------------------------------------
         // Outline
@@ -542,7 +567,11 @@ Shader "_lil/[Optional] lilToonOverlayOnePass"
         [HideInInspector]                               _BaseColor          ("sColor", Color) = (1,1,1,1)
         [HideInInspector]                               _BaseMap            ("Texture", 2D) = "white" {}
         [HideInInspector]                               _BaseColorMap       ("Texture", 2D) = "white" {}
-        [HideInInspector]                               _lilToonVersion     ("Version", Int) = 35
+        [HideInInspector]                               _lilToonVersion     ("Version", Int) = 45
+
+        //----------------------------------------------------------------------------------------------------------------------
+        // VRChat
+        _Ramp ("Shadow Ramp", 2D) = "white" {}
 
         //----------------------------------------------------------------------------------------------------------------------
         // Advanced
@@ -643,8 +672,79 @@ Shader "_lil/[Optional] lilToonOverlayOnePass"
     {
         Tags {"RenderType" = "TransparentCutout" "Queue" = "AlphaTest+10"}
         UsePass "Hidden/ltspass_transparent/FORWARD"
+        Pass
+        {
+            Tags { "LightMode" = "Never" }
+
+            HLSLPROGRAM
+            // Unity strips unused UV channels from meshes; unfortunately, in 2022.3.13f1, Unity fails to detect that UV channels
+            // are used when they are referenced from a pass included via `UsePass`. This fake pass is #included directly into
+            // each shader to work around this; because this has an invalid lightmode set, it will never actually be executed.
+            //
+            // Unity bug report ID: IN-60271
+            #pragma vertex vert
+            #pragma fragment frag
+
+            // For some reason, using struct appdata from lil_common_appdata doesn't work as a workaround...
+            //#include "Includes/lil_pipeline_brp.hlsl"
+            //#include "Includes/lil_common.hlsl"
+            //#include "Includes/lil_common_appdata.hlsl"
+
+
+            struct appdata
+            {
+                float2 uv : TEXCOORD0;
+                float2 uv1 : TEXCOORD1;
+                float2 uv2 : TEXCOORD2;
+                float2 uv3 : TEXCOORD3;
+
+                float2 uv4 : TEXCOORD4;
+                float2 uv5 : TEXCOORD5;
+                float2 uv6 : TEXCOORD6;
+                float2 uv7 : TEXCOORD7;
+
+                float4 color        : COLOR;
+                float3 normalOS     : NORMAL;
+                float4 tangentOS    : TANGENT;
+                #if !defined(SHADER_API_MOBILE) && !defined(SHADER_API_GLES)
+                uint vertexID       : SV_VertexID;
+                #endif
+
+                float4 pos : POSITION;
+            };
+
+            struct v2f
+            {
+                float4 pos : POSITION;
+                float4 col : TEXCOORD0;
+            };
+
+            struct v2f vert(struct appdata input)
+            {
+                struct v2f output;
+                // Don't actually render to the screen, but pass UV-derived data all the way down to the fragment
+                // shader so it shows up as an input in the compiled shader program.
+                output.pos = float4(0,0,0,1);
+                output.col = float4(input.uv, input.uv1) + float4(input.uv2, input.uv3)
+                  + float4(input.uv4, input.uv5) + float4(input.uv6, input.uv7)
+                  + input.color + float4(input.normalOS, 1) + input.tangentOS;
+
+                #if !defined(SHADER_API_MOBILE) && !defined(SHADER_API_GLES)
+                output.col.a += input.vertexID;
+                #endif
+
+                return output;
+            }
+
+            float4 frag(v2f i) : SV_Target
+            {
+                return i.col;
+            }
+            ENDHLSL
+        }
     }
-    Fallback "Universal Render Pipeline/Unlit"
+    Fallback "Unlit/Texture"
 
     CustomEditor "lilToon.lilToonInspector"
 }
+

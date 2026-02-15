@@ -57,7 +57,7 @@
             LIL_VECTOR_INTERPOLATION float4 tangentWS    : TEXCOORD4;
         #endif
         #if defined(LIL_V2F_POSITION_OS)
-            float3 positionOS   : TEXCOORD5;
+            float4 positionOSdissolve   : TEXCOORD5;
         #endif
         LIL_LIGHTCOLOR_COORDS(6)
         LIL_LIGHTDIRECTION_COORDS(7)
@@ -95,6 +95,7 @@
     {
         //------------------------------------------------------------------------------------------------------------------------------
         // Initialize
+        LIL_FORCE_SCENE_LIGHT;
         LIL_SETUP_INSTANCE_ID(input);
         LIL_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
         lilFragData fd = lilInitFragData();
@@ -108,6 +109,12 @@
         #endif
         LIL_GET_LIGHTING_DATA(input,fd);
 
+        //------------------------------------------------------------------------------------------------------------------------------
+        // UDIM Discard
+        #if defined(LIL_FEATURE_UDIMDISCARD)
+            OVERRIDE_UDIMDISCARD
+        #endif
+        
         //------------------------------------------------------------------------------------------------------------------------------
         // View Direction
         #if defined(LIL_V2F_POSITION_WS)

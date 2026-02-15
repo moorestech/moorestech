@@ -12,6 +12,7 @@
     "LIL_FEATURE_RECEIVE_SHADOW": true,
     "LIL_FEATURE_SHADOW_3RD": true,
     "LIL_FEATURE_SHADOW_LUT": true,
+    "LIL_FEATURE_RIMSHADE": true,
     "LIL_FEATURE_EMISSION_1ST": true,
     "LIL_FEATURE_EMISSION_2ND": true,
     "LIL_FEATURE_ANIMATE_EMISSION_UV": true,
@@ -36,8 +37,8 @@
     "LIL_FEATURE_AUDIOLINK_LOCAL": true,
     "LIL_FEATURE_DISSOLVE": true,
     "LIL_FEATURE_IDMASK": true,
+    "LIL_FEATURE_UDIMDISCARD": true,
     "LIL_FEATURE_DITHER": true,
-    "LIL_FEATURE_ENCRYPTION": false,
     "LIL_FEATURE_ANIMATE_OUTLINE_UV": true,
     "LIL_FEATURE_OUTLINE_TONE_CORRECTION": true,
     "LIL_FEATURE_OUTLINE_RECEIVE_SHADOW": true,
@@ -65,6 +66,7 @@
     "LIL_FEATURE_ShadowColorTex": true,
     "LIL_FEATURE_Shadow2ndColorTex": true,
     "LIL_FEATURE_Shadow3rdColorTex": true,
+    "LIL_FEATURE_RimShadeMask": true,
     "LIL_FEATURE_BacklightColorTex": true,
     "LIL_FEATURE_SmoothnessTex": true,
     "LIL_FEATURE_MetallicGlossMap": true,
@@ -102,10 +104,13 @@
     "LIL_OPTIMIZE_USE_FORWARDADD_SHADOW": false,
     "LIL_OPTIMIZE_USE_VERTEXLIGHT": true,
     "LIL_OPTIMIZE_USE_LIGHTMAP": false,
+    "LIL_OPTIMIZE_USE_VRCLIGHTVOLUMES": true,
     "LIL_OPTIMIZE_DEFFERED": false,
     "isLocked": false,
     "isDebugOptimize": false,
     "isOptimizeInTestBuild": false,
+    "isOptimizeInNDMF": false,
+    "isMigrateInStartUp": true,
     "defaultAsUnlit": 0.0,
     "defaultVertexLightStrength": 0.0,
     "defaultLightMinLimit": 0.05000000074505806,
@@ -130,5 +135,6 @@
     },
     "presetCloth": {
         "instanceID": 0
-    }
+    },
+    "previousVersion": 45
 }
