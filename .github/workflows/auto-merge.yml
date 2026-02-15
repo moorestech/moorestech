@@ -1,0 +1,163 @@
+name: Auto-merge
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - synchronize
+      - reopened
+  workflow_run:
+    workflows:
+      - "Build"
+      - "Run Unity Test"
+      - "Check zero-width characters in JSON"
+      - "Mooresmaster Test"
+    types:
+      - completed
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+    # sync-skillsブランチからのPRのみを対象にする
+    # Only target PRs from sync-skills branches
+    if: startsWith(github.head_ref, 'sync-skills-') || (github.event.workflow_run.head_branch && startsWith(github.event.workflow_run.head_branch, 'sync-skills-'))
+    
+    steps:
+      # GitHub Appトークンを生成
+      # Generate GitHub App token
+      - name: Generate github token
+        id: generate_token
+        uses: tibdex/github-app-token@v1
+        with:
+          app_id: ${{ secrets.APP_ID }}
+          private_key: ${{ secrets.PRIVATE_KEY }}
+
+      # PRの情報を取得
+      # Get PR information
+      - name: Get PR number
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ steps.generate_token.outputs.token }}
+          script: |
+            let prNumber;
+            if (context.eventName === 'pull_request_target') {
+              prNumber = context.payload.pull_request.number;
+            } else if (context.eventName === 'workflow_run') {
+              const prs = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                commit_sha: context.payload.workflow_run.head_sha
+              });
+              if (prs.data.length === 0) {
+                core.info('No PR found for this workflow run');
+                return;
+              }
+              prNumber = prs.data[0].number;
+            }
+            core.setOutput('number', prNumber);
+            return prNumber;
+
+      # PRが存在しない場合はスキップ
+      # Skip if PR doesn't exist
+      - name: Check PR exists
+        if: steps.pr.outputs.number == ''
+        run: |
+          echo "No PR found, skipping auto-merge"
+          exit 0
+
+      # 必須チェックの完了を待つ
+      # Wait for required checks to complete
+      - name: Wait for checks
+        if: steps.pr.outputs.number != ''
+        uses: lewagon/wait-on-check-action@v1.3.4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.event.workflow_run.head_sha }}
+          repo-token: ${{ steps.generate_token.outputs.token }}
+          wait-interval: 30
+          running-workflow-name: 'auto-merge'
+
+      # PRを自動承認
+      # Auto-approve PR
+      - name: Approve PR
+        if: steps.pr.outputs.number != ''
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ steps.generate_token.outputs.token }}
+          script: |
+            const prNumber = ${{ steps.pr.outputs.number }};
+            
+            // すでに承認されているかチェック
+            // Check if already approved
+            const reviews = await github.rest.pulls.listReviews({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber
+            });
+            
+            const hasApproval = reviews.data.some(review => 
+              review.state === 'APPROVED'
+            );
+            
+            if (!hasApproval) {
+              await github.rest.pulls.createReview({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber,
+                event: 'APPROVE',
+                body: '✅ Auto-approving sync-skills PR'
+              });
+              core.info('PR approved');
+            } else {
+              core.info('PR already approved');
+            }
+
+      # PRをマージ
+      # Merge PR
+      - name: Merge PR
+        if: steps.pr.outputs.number != ''
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ steps.generate_token.outputs.token }}
+          script: |
+            const prNumber = ${{ steps.pr.outputs.number }};
+            
+            try {
+              // PRの状態を確認
+              // Check PR status
+              const pr = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber
+              });
+              
+              if (pr.data.mergeable === false) {
+                core.setFailed('PR is not mergeable (conflicts detected)');
+                return;
+              }
+              
+              if (pr.data.merged) {
+                core.info('PR already merged');
+                return;
+              }
+              
+              // マージを実行
+              // Execute merge
+              await github.rest.pulls.merge({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber,
+                merge_method: 'squash',
+                commit_title: `${pr.data.title} (#${prNumber})`,
+                commit_message: 'Auto-merged by sync-skills workflow'
+              });
+              
+              core.info('PR merged successfully');
+            } catch (error) {
+              core.setFailed(`Failed to merge PR: ${error.message}`);
+            }

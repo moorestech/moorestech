@@ -16,10 +16,20 @@ jobs:
   sync-skills:
     runs-on: ubuntu-latest
     steps:
+      # GitHub Appトークンを生成してCI triggersを有効化
+      # Generate GitHub App token to enable CI triggers
+      - name: Generate github token
+        id: generate_token
+        uses: tibdex/github-app-token@v1
+        with:
+          app_id: ${{ secrets.APP_ID }}
+          private_key: ${{ secrets.PRIVATE_KEY }}
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ steps.generate_token.outputs.token }}
 
       - name: Determine sync source
         id: source
@@ -77,10 +87,16 @@ jobs:
         if: steps.source.outputs.skip != 'true'
         uses: peter-evans/create-pull-request@v6
         with:
+          token: ${{ steps.generate_token.outputs.token }}
           commit-message: "Sync skills directory"
           title: "Sync skills directory"
           body: |
             ## Summary
             - Sync skills directory changes from `${{ steps.source.outputs.source }}` to `${{ steps.source.outputs.target }}`.
+            
+            This PR will be automatically merged after all CI checks pass.
           branch: "sync-skills-${{ github.run_id }}"
           delete-branch: true
+          labels: |
+            automated
+            auto-merge
