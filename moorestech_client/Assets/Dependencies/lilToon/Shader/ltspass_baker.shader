@@ -18,8 +18,6 @@ Shader "Hidden/ltsother_baker"
                         _Color2nd                   ("Color", Color) = (1,1,1,1)
                         _Main2ndTex                 ("Texture", 2D) = "white" {}
         [lilAngle]      _Main2ndTexAngle            ("Angle", Float) = 0
-        [lilDecalAnim]  _Main2ndTexDecalAnimation   ("sDecalAnimations", Vector) = (1,1,1,30)
-        [lilDecalSub]   _Main2ndTexDecalSubParam    ("sDecalSubParams", Vector) = (1,1,0,1)
         [lilToggle]     _Main2ndTexIsDecal          ("As Decal", Int) = 0
         [lilToggle]     _Main2ndTexIsLeftOnly       ("Left Only", Int) = 0
         [lilToggle]     _Main2ndTexIsRightOnly      ("Right Only", Int) = 0
@@ -36,8 +34,6 @@ Shader "Hidden/ltsother_baker"
                         _Color3rd                   ("Color", Color) = (1,1,1,1)
                         _Main3rdTex                 ("Texture", 2D) = "white" {}
         [lilAngle]      _Main3rdTexAngle            ("Angle", Float) = 0
-        [lilDecalAnim]  _Main3rdTexDecalAnimation   ("sDecalAnimations", Vector) = (1,1,1,30)
-        [lilDecalSub]   _Main3rdTexDecalSubParam    ("sDecalSubParams", Vector) = (1,1,0,1)
         [lilToggle]     _Main3rdTexIsDecal          ("As Decal", Int) = 0
         [lilToggle]     _Main3rdTexIsLeftOnly       ("Left Only", Int) = 0
         [lilToggle]     _Main3rdTexIsRightOnly      ("Right Only", Int) = 0
@@ -178,8 +174,7 @@ Shader "Hidden/ltsother_baker"
             #define LIL_OPTIMIZE_APPLY_SHADOW_FA
             #define LIL_OPTIMIZE_USE_FORWARDADD
             #define LIL_OPTIMIZE_USE_VERTEXLIGHT
-            #define LIL_FEATURE_VRCLIGHTVOLUMES_WITHOUTPACKAGE
-            #pragma skip_variants LIGHTMAP_ON DYNAMICLIGHTMAP_ON LIGHTMAP_SHADOW_MIXING SHADOWS_SHADOWMASK DIRLIGHTMAP_COMBINED _MIXED_LIGHTING_SUBTRACTIVE
+            
         ENDHLSL
 
         Pass
@@ -327,4 +322,3 @@ Shader "Hidden/ltsother_baker"
         }
     }
 }
-
