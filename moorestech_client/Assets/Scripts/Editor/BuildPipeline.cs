@@ -59,12 +59,18 @@ public class BuildPipeline
 
         //DirectoryProcessor.CopyAndReplace(ServerConst.ServerDirectory, Path.Combine(path, ServerConst.ServerDirName));
 
+        // バッチモードの場合はメモリ効率を優先して Development Build を使用
+        // Use Development Build in batch mode to reduce memory consumption
+        var buildOptionsFlags = isDevelopmentBuild || !isSelectOutputPath
+            ? BuildOptions.Development
+            : BuildOptions.CompressWithLz4;
+
         var buildOptions = new BuildPlayerOptions
         {
             target = buildTarget,
             locationPathName = path + (buildTarget == BuildTarget.StandaloneWindows64 ? "/moorestech.exe" : "/moorestech"),
             scenes = EditorBuildSettings.scenes.Select(s => s.path).ToArray(),
-            options = isDevelopmentBuild ? BuildOptions.Development : BuildOptions.None,
+            options = buildOptionsFlags,
         };
         
         // Addressablesコンテンツをクリーンビルドする
