@@ -85,6 +85,7 @@ jobs:
 
       - name: Create pull request
         if: steps.source.outputs.skip != 'true'
+        id: create_pr
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ steps.generate_token.outputs.token }}
@@ -100,3 +101,141 @@ jobs:
           labels: |
             automated
             auto-merge
+
+      # PR作成後、すべてのCIチェックが完了するまで待機
+      # Wait for all CI checks to complete after PR creation
+      - name: Wait for CI checks
+        if: steps.source.outputs.skip != 'true' && steps.create_pr.outputs.pull-request-number != ''
+        id: wait_ci
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ steps.generate_token.outputs.token }}
+          script: |
+            const prNumber = ${{ steps.create_pr.outputs.pull-request-number }};
+            const maxWaitTime = 60 * 60 * 1000; // 1時間 / 1 hour
+            const pollInterval = 30 * 1000; // 30秒 / 30 seconds
+            const startTime = Date.now();
+            
+            core.info(`Waiting for CI checks on PR #${prNumber}...`);
+            
+            while (Date.now() - startTime < maxWaitTime) {
+              // PRの詳細を取得
+              // Get PR details
+              const pr = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber
+              });
+              
+              // ステータスチェックを取得
+              // Get status checks
+              const checks = await github.rest.checks.listForRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: pr.data.head.sha
+              });
+              
+              // すべてのチェックを確認
+              // Check all checks
+              const checkRuns = checks.data.check_runs;
+              
+              if (checkRuns.length === 0) {
+                core.info('No checks found yet, waiting...');
+                await new Promise(resolve => setTimeout(resolve, pollInterval));
+                continue;
+              }
+              
+              const allCompleted = checkRuns.every(check => check.status === 'completed');
+              const allSuccess = checkRuns.every(check => 
+                check.status === 'completed' && check.conclusion === 'success'
+              );
+              
+              core.info(`Checks status: ${checkRuns.length} total, completed: ${allCompleted}, all success: ${allSuccess}`);
+              
+              if (allCompleted) {
+                if (allSuccess) {
+                  core.info('All CI checks passed!');
+                  core.setOutput('all_passed', 'true');
+                  return;
+                } else {
+                  const failedChecks = checkRuns.filter(check => 
+                    check.conclusion !== 'success'
+                  ).map(check => `${check.name}: ${check.conclusion}`);
+                  core.setFailed(`Some CI checks failed: ${failedChecks.join(', ')}`);
+                  core.setOutput('all_passed', 'false');
+                  return;
+                }
+              }
+              
+              // まだ完了していないのでポーリング継続
+              // Continue polling as checks haven't completed yet
+              await new Promise(resolve => setTimeout(resolve, pollInterval));
+            }
+            
+            core.setFailed('Timeout waiting for CI checks');
+            core.setOutput('all_passed', 'false');
+
+      # PRを自動承認
+      # Auto-approve PR
+      - name: Approve PR
+        if: steps.source.outputs.skip != 'true' && steps.create_pr.outputs.pull-request-number != '' && steps.wait_ci.outputs.all_passed == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ steps.generate_token.outputs.token }}
+          script: |
+            const prNumber = ${{ steps.create_pr.outputs.pull-request-number }};
+            
+            await github.rest.pulls.createReview({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+              event: 'APPROVE',
+              body: '✅ Auto-approving sync-skills PR after all CI checks passed'
+            });
+            
+            core.info('PR approved');
+
+      # PRをマージ
+      # Merge PR
+      - name: Merge PR
+        if: steps.source.outputs.skip != 'true' && steps.create_pr.outputs.pull-request-number != '' && steps.wait_ci.outputs.all_passed == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ steps.generate_token.outputs.token }}
+          script: |
+            const prNumber = ${{ steps.create_pr.outputs.pull-request-number }};
+            
+            try {
+              // PRの状態を確認
+              // Check PR status
+              const pr = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber
+              });
+              
+              if (pr.data.mergeable === false) {
+                core.setFailed('PR has merge conflicts');
+                return;
+              }
+              
+              if (pr.data.merged) {
+                core.info('PR already merged');
+                return;
+              }
+              
+              // マージを実行
+              // Execute merge
+              await github.rest.pulls.merge({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber,
+                merge_method: 'squash',
+                commit_title: `${pr.data.title} (#${prNumber})`,
+                commit_message: 'Auto-merged after all CI checks passed'
+              });
+              
+              core.info('PR merged successfully');
+            } catch (error) {
+              core.setFailed(`Failed to merge PR: ${error.message}`);
+            }

@@ -6,14 +6,38 @@
 
 This repository has an auto-merge feature for specific automated pull requests.
 
+## 実装方法 / Implementation
+
+自動マージ機能は **`sync-skills.yml` ワークフロー内に統合**されています。
+
+Auto-merge functionality is **integrated into the `sync-skills.yml` workflow**.
+
+### 動作の流れ / Flow
+
+1. スキルディレクトリの変更を検知
+2. PRを作成（`sync-skills-*` ブランチ、`auto-merge` ラベル付き）
+3. **すべてのCIチェックが完了するまで待機**（ポーリング方式）
+4. すべて成功したらPRを自動承認
+5. Squash mergeで自動マージ
+
+1. Detect skill directory changes
+2. Create PR (with `sync-skills-*` branch, `auto-merge` label)
+3. **Wait for all CI checks to complete** (polling method)
+4. Auto-approve PR when all checks pass
+5. Auto-merge with squash merge
+
 ## 対象のプルリクエスト / Target Pull Requests
 
 以下の条件を満たすプルリクエストが自動マージの対象となります：
 
 The following pull requests are eligible for auto-merge:
 
-- ブランチ名が `sync-skills-` で始まるプルリクエスト
-- Pull requests from branches starting with `sync-skills-`
+- `sync-skills.yml` ワークフローで作成されたPR
+- PRs created by the `sync-skills.yml` workflow
+- ブランチ名が `sync-skills-` で始まる
+- Branch name starts with `sync-skills-`
+- ラベル `automated` と `auto-merge` が付与される
+- Labels `automated` and `auto-merge` are added
 
 現在、以下のワークフローから作成されるPRが対象です：
 
@@ -39,11 +63,17 @@ Currently, PRs created by the following workflows are targeted:
      - Mooresmaster Tests
      - JSON Zero-width Character Check
 
-3. **自動承認 / Auto-approval**
+3. **待機 / Waiting**
+   - ワークフローが30秒ごとにポーリングしてCIの完了を確認
+   - Workflow polls every 30 seconds to check CI completion
+   - 最大1時間まで待機
+   - Maximum wait time: 1 hour
+
+4. **自動承認 / Auto-approval**
    - すべてのCIチェックが成功すると、PRが自動承認される
    - When all CI checks pass, the PR is auto-approved
 
-4. **自動マージ / Auto-merge**
+5. **自動マージ / Auto-merge**
    - 承認後、PRが自動的にマージされる
    - After approval, the PR is automatically merged
    - マージ方法: Squash merge
@@ -51,8 +81,8 @@ Currently, PRs created by the following workflows are targeted:
 
 ## 安全機能 / Safety Features
 
-- ✅ 特定のブランチパターン（`sync-skills-*`）のみが対象
-- ✅ Only specific branch patterns (`sync-skills-*`) are eligible
+- ✅ 特定のワークフロー（`sync-skills.yml`）からのPRのみが対象
+- ✅ Only PRs from specific workflow (`sync-skills.yml`) are eligible
 - ✅ **`auto-merge` ラベルが付いているPRのみ対象**
 - ✅ **Only PRs with `auto-merge` label are eligible**
 - ✅ **GitHub Actions bot（`github-actions[bot]`）が作成したPRのみ対象**
@@ -61,12 +91,14 @@ Currently, PRs created by the following workflows are targeted:
 - ✅ All required CI checks must pass
 - ✅ マージコンフリクトがある場合は自動マージしない
 - ✅ Will not auto-merge if there are merge conflicts
+- ✅ 最大待機時間: 1時間（タイムアウト保護）
+- ✅ Maximum wait time: 1 hour (timeout protection)
 - ✅ GitHub App トークンを使用した適切な権限管理
 - ✅ Proper permission management using GitHub App token
 
-**セキュリティ強化**: 手動で `sync-skills-*` ブランチを作成しても、`auto-merge` ラベルと正しいbot作成者がない限り自動マージされません。
+**効率性の改善**: 以前の実装では各CIワークフロー完了ごとにトリガーされていましたが、現在は1回のみ実行されます。
 
-**Security enhancement**: Even if someone manually creates a `sync-skills-*` branch, it won't be auto-merged without the `auto-merge` label and correct bot authorship.
+**Efficiency improvement**: Previous implementation triggered on each CI workflow completion, now executes only once.
 
 ## 手動介入が必要な場合 / When Manual Intervention is Needed
 
@@ -74,12 +106,10 @@ Currently, PRs created by the following workflows are targeted:
 
 Auto-merge will not execute in the following cases, requiring manual intervention:
 
-- **`auto-merge` ラベルが付いていない場合**
-- **When PR doesn't have `auto-merge` label**
-- **GitHub Actions bot以外が作成したPRの場合**
-- **When PR is not created by GitHub Actions bot**
-- CIチェックが失敗した場合
-- When CI checks fail
+- **CIチェックが1時間以内に完了しない場合**
+- **When CI checks don't complete within 1 hour**
+- **CIチェックが失敗した場合**
+- **When CI checks fail**
 - マージコンフリクトが発生した場合
 - When there are merge conflicts
 - ブランチ名が対象パターンに一致しない場合
@@ -87,26 +117,39 @@ Auto-merge will not execute in the following cases, requiring manual interventio
 
 ## 設定ファイル / Configuration Files
 
-- **自動マージワークフロー**: `.github/workflows/auto-merge.yml`
-- **Auto-merge workflow**: `.github/workflows/auto-merge.yml`
-- **Sync Skillsワークフロー**: `.github/workflows/sync-skills.yml`
-- **Sync Skills workflow**: `.github/workflows/sync-skills.yml`
+- **Sync Skills + Auto-merge**: `.github/workflows/sync-skills.yml`
+- **Sync Skills + Auto-merge workflow**: `.github/workflows/sync-skills.yml`
+- **無効化された旧ワークフロー**: `.github/workflows/auto-merge.yml.disabled`
+- **Disabled old workflow**: `.github/workflows/auto-merge.yml.disabled`
 
 ## トラブルシューティング / Troubleshooting
 
 ### 自動マージが実行されない / Auto-merge not executing
 
-1. ブランチ名が `sync-skills-` で始まっているか確認
-   Check if branch name starts with `sync-skills-`
+1. ワークフローログを確認（Actions タブ → "Sync skills directories"）
+   Check workflow logs (Actions tab → "Sync skills directories")
 
-2. すべてのCIチェックが成功しているか確認
+2. CIチェックがすべて成功しているか確認
    Check if all CI checks have passed
 
-3. GitHub App トークンの権限を確認
-   Check GitHub App token permissions
+3. PRに `auto-merge` ラベルが付いているか確認
+   Check if PR has `auto-merge` label
 
-4. ワークフローログを確認（Actions タブ）
-   Check workflow logs (Actions tab)
+4. PRの作成者が `github-actions[bot]` か確認
+   Check if PR author is `github-actions[bot]`
+
+5. タイムアウト（1時間）に達していないか確認
+   Check if timeout (1 hour) has been reached
+
+### CIチェックの待機が長すぎる / CI check wait is too long
+
+デフォルトでは最大1時間待機します。これを調整するには、`sync-skills.yml` の `maxWaitTime` 変数を変更してください。
+
+By default, waits up to 1 hour. To adjust, modify the `maxWaitTime` variable in `sync-skills.yml`.
+
+```yaml
+const maxWaitTime = 60 * 60 * 1000; // 1時間 / 1 hour
+```
 
 ### 新しい自動マージ対象を追加する / Adding New Auto-merge Targets
 
