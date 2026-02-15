@@ -19,6 +19,7 @@
     "com.vrmc.vrm": "https://github.com/vrm-c/UniVRM.git?path=/Assets/VRM10#v0.99.0",
     "com.vrmc.vrmshaders": "https://github.com/vrm-c/UniVRM.git?path=/Assets/VRMShaders#v0.99.0",
     "com.yasirkula.ingamedebugconsole": "https://github.com/yasirkula/UnityIngameDebugConsole.git",
+    "com.yujiap.project-window-history": "file:../../moorestech_client/LocalPackages/ProjectWindowHistory",
     "io.github.hatayama.uloopmcp": "https://github.com/hatayama/uLoopMCP.git?path=/Packages/src",
     "org.nuget.microsoft.codeanalysis.csharp": "4.14.0",
     "com.unity.modules.accessibility": "1.0.0",
