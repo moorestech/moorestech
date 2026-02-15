@@ -28,7 +28,7 @@ namespace Game.Train.RailGraph
         bool TryRestoreRailSegment(ConnectionDestination start, ConnectionDestination end, int length, Guid railTypeGuid, bool isDrawable);
         bool TryGetRailSegmentType(int startNodeId, int endNodeId, out Guid railTypeGuid);
         uint GetConnectNodesHash();
-        RailGraphSnapshot CaptureSnapshot(long currentTick);
+        RailGraphSnapshot CaptureSnapshot(uint currentTick);
         IReadOnlyList<RailNode> GetRailNodes();
         void Reset();
     }

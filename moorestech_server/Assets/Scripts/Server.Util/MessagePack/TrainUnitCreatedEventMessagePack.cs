@@ -9,17 +9,19 @@ namespace Server.Util.MessagePack
     public class TrainUnitCreatedEventMessagePack
     {
         [Key(0)] public TrainUnitSnapshotBundleMessagePack Snapshot { get; set; }
-        [Key(1)] public long ServerTick { get; set; }
+        [Key(1)] public uint ServerTick { get; set; }
+        [Key(2)] public uint TickSequenceId { get; set; }
 
         [Obsolete("Reserved for MessagePack.")]
         public TrainUnitCreatedEventMessagePack()
         {
         }
 
-        public TrainUnitCreatedEventMessagePack(TrainUnitSnapshotBundleMessagePack snapshot, long serverTick)
+        public TrainUnitCreatedEventMessagePack(TrainUnitSnapshotBundleMessagePack snapshot, uint serverTick, uint tickSequenceId)
         {
             Snapshot = snapshot;
             ServerTick = serverTick;
+            TickSequenceId = tickSequenceId;
         }
     }
 }

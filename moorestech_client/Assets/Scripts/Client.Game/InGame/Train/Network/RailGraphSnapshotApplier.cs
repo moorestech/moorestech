@@ -1,7 +1,9 @@
 using System;
 using Client.Game.InGame.Train.RailGraph;
+using Client.Game.InGame.Train.Unit;
 using Client.Network.API;
 using Server.Util.MessagePack;
+using UnityEngine;
 using VContainer.Unity;
 
 namespace Client.Game.InGame.Train.Network
@@ -15,12 +17,18 @@ namespace Client.Game.InGame.Train.Network
         private readonly RailGraphClientCache _cache;
         private readonly InitialHandshakeResponse _initialHandshakeResponse;
         private readonly ClientStationReferenceRegistry _stationReferenceRegistry;
+        private readonly TrainUnitTickState _tickState;
 
-        public RailGraphSnapshotApplier(RailGraphClientCache cache, InitialHandshakeResponse initialHandshakeResponse, ClientStationReferenceRegistry stationReferenceRegistry)
+        public RailGraphSnapshotApplier(
+            RailGraphClientCache cache,
+            InitialHandshakeResponse initialHandshakeResponse,
+            ClientStationReferenceRegistry stationReferenceRegistry,
+            TrainUnitTickState tickState)
         {
             _cache = cache;
             _initialHandshakeResponse = initialHandshakeResponse;
             _stationReferenceRegistry = stationReferenceRegistry;
+            _tickState = tickState;
         }
 
         public void Initialize()
@@ -32,6 +40,18 @@ namespace Client.Game.InGame.Train.Network
 
         public void ApplySnapshot(RailGraphSnapshotMessagePack snapshot)
         {
+            var unifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(snapshot?.GraphTick ?? 0, snapshot?.GraphTickSequenceId ?? 0);
+            if (snapshot != null && unifiedId < _tickState.GetAppliedTickUnifiedId())
+            {
+                // 遅延rail snapshotが既に適用済み範囲より古い場合は破棄する。
+                // Ignore delayed rail snapshots older than the applied sequence baseline.
+                Debug.LogWarning(
+                    "[RailGraphSnapshotApplier] Ignored stale rail snapshot. " +
+                    $"graphTick={snapshot.GraphTick}, graphTickSequenceId={snapshot.GraphTickSequenceId}, " +
+                    $"appliedTickUnifiedId={_tickState.GetAppliedTickUnifiedId()}");
+                return;
+            }
+
             // スナップショットが空のときは何もしない
             // Skip when snapshot payload is missing or empty
             if (snapshot?.Nodes == null || snapshot.Nodes.Count == 0)
@@ -56,6 +76,7 @@ namespace Client.Game.InGame.Train.Network
             // 駅参照をキャッシュへ反映する
             // Apply station references to cache.
             _stationReferenceRegistry.ApplyStationReferences();
+            _tickState.RecordAppliedTickUnifiedId(unifiedId);
 
             #region 
             int ResolveMaxNodeId(RailGraphSnapshotMessagePack targetSnapshot)
