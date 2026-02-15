@@ -41,7 +41,6 @@
     "Game.Challenge",
     "Game.Challenge.Interface",
     "Core.Master",
-    "Game.CraftChainer",
     "Game.CraftTree",
     "Game.Research",
     "Game.Train"

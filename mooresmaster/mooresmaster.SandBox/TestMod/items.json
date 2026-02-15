@@ -134,24 +134,6 @@
     },
     {
       "maxStack": 100,
-      "name": "StraightTestItemShooter",
-      "itemGuid": "11500000-0000-0000-0000-000000000000",
-      "imagePath": "Test1"
-    },
-    {
-      "maxStack": 100,
-      "name": "DownTestItemShooter",
-      "itemGuid": "11600000-0000-0000-0000-000000000000",
-      "imagePath": "Test1"
-    },
-    {
-      "maxStack": 100,
-      "name": "UpTestItemShooter",
-      "itemGuid": "11700000-0000-0000-0000-000000000000",
-      "imagePath": "Test1"
-    },
-    {
-      "maxStack": 100,
       "name": "GearBeltConveyor",
       "itemGuid": "11800000-0000-0000-0000-000000000000",
       "imagePath": "Test1"
