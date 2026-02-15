@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEditor;
+using UnityEngine;
 
 namespace ProjectWindowHistory
 {
@@ -133,10 +134,14 @@ namespace ProjectWindowHistory
         public static int[] GetLastFolderInstanceIds(EditorWindow targetProjectWindow)
         {
             // 選択中のフォルダのパス配列を取得
+            // Get selected folder path array
             var lastFolderPaths = LastFoldersField.GetValue(targetProjectWindow) ?? Array.Empty<object>();
 
-            // インスタンスID配列にして返す
-            return (int[]) GetFolderInstanceIDsMethod.Invoke(null, new[] { lastFolderPaths });
+            // Unity 6.3でint[]からEntityId[]に変更された
+            // Unity 6.3 changed return type from int[] to EntityId[]
+            var result = GetFolderInstanceIDsMethod.Invoke(null, new[] { lastFolderPaths });
+            var entityIds = (EntityId[]) result;
+            return entityIds.Select(id => (int) id).ToArray();
         }
 
         /// <summary>
@@ -146,7 +151,10 @@ namespace ProjectWindowHistory
         /// <param name="selectedFolderInstanceIds"></param>
         public static void SetFolderSelection(EditorWindow targetProjectWindow, int[] selectedFolderInstanceIds)
         {
-            SetFolderSelectionMethod.Invoke(targetProjectWindow, new object[] { selectedFolderInstanceIds, false });
+            // Unity 6.3でint[]からEntityId[]に変更された
+            // Unity 6.3 changed parameter type from int[] to EntityId[]
+            var entityIds = selectedFolderInstanceIds.Select(id => (EntityId) id).ToArray();
+            SetFolderSelectionMethod.Invoke(targetProjectWindow, new object[] { entityIds, false });
         }
 
         /// <summary>
