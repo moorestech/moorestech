@@ -21,109 +21,70 @@ namespace Client.Tests
         }
 
         [Test]
-        public void FlushPreBySimulatedTick_AppliesOnlyPreEvents()
+        public void TryFlushEvent_AppliesQueuedEventAndUpdatesAppliedTickUnifiedId()
         {
+            // 指定した tickUnifiedId のイベントが適用され、状態が進むことを確認する。
+            // Ensure queued event is applied and state advances at requested unified id.
             var applied = new List<string>();
-            _tickState.SetSnapshotBaselineTick(10);
-            _buffer.EnqueuePre(11, TrainTickBufferedEvent.Create("preA", () => applied.Add("preA")));
-            _buffer.EnqueuePost(11, TrainTickBufferedEvent.Create("postA", () => applied.Add("postA")));
+            _tickState.RecordAppliedTickUnifiedId(10, 0);
+            _buffer.EnqueueEvent(11, 1, TrainTickBufferedEvent.Create(() => applied.Add("eventA")));
 
-            _tickState.AdvanceTick();
-            _buffer.FlushPreBySimulatedTick();
+            var flushed = _buffer.TryFlushEvent(11, 1);
+            var flushedAgain = _buffer.TryFlushEvent(11, 1);
 
-            CollectionAssert.AreEqual(new[] { "preA" }, applied);
+            Assert.IsTrue(flushed);
+            Assert.IsFalse(flushedAgain);
+            CollectionAssert.AreEqual(new[] { "eventA" }, applied);
+            Assert.AreEqual(
+                TrainTickUnifiedIdUtility.CreateTickUnifiedId(11, 1),
+                _tickState.GetAppliedTickUnifiedId());
         }
 
         [Test]
-        public void FlushPostBySimulatedTick_AppliesOnlyPostEvents()
+        public void EnqueueEvent_DropsStaleEventAtOrBelowAppliedTickUnifiedId()
         {
+            // 適用済み以下のイベントは破棄され、未来イベントのみ適用されることを確認する。
+            // Ensure stale events are dropped and only future events are applied.
             var applied = new List<string>();
-            _tickState.SetSnapshotBaselineTick(20);
-            _buffer.EnqueuePre(21, TrainTickBufferedEvent.Create("preA", () => applied.Add("preA")));
-            _buffer.EnqueuePost(21, TrainTickBufferedEvent.Create("postA", () => applied.Add("postA")));
+            _tickState.RecordAppliedTickUnifiedId(20, 5);
+            _buffer.EnqueueEvent(20, 4, TrainTickBufferedEvent.Create(() => applied.Add("staleA")));
+            _buffer.EnqueueEvent(20, 5, TrainTickBufferedEvent.Create(() => applied.Add("staleB")));
+            _buffer.EnqueueEvent(21, 0, TrainTickBufferedEvent.Create(() => applied.Add("future")));
 
-            _tickState.AdvanceTick();
-            _buffer.FlushPostBySimulatedTick();
-
-            CollectionAssert.AreEqual(new[] { "postA" }, applied);
+            Assert.IsFalse(_buffer.TryFlushEvent(20, 4));
+            Assert.IsFalse(_buffer.TryFlushEvent(20, 5));
+            Assert.IsTrue(_buffer.TryFlushEvent(21, 0));
+            CollectionAssert.AreEqual(new[] { "future" }, applied);
         }
 
         [Test]
-        public void TryConsumeSimulationSkipTick_ReturnsTrueOnlyForRecordedTick()
+        public void TryFlushEvent_ByUnifiedIdProcessesQueuedEventsInSequence()
         {
-            _buffer.RecordSnapshotAppliedTick(30);
+            // 同一tick内の sequence 順でイベントが適用できることを確認する。
+            // Ensure events can be applied in same-tick sequence order.
+            var applied = new List<string>();
+            _tickState.RecordAppliedTickUnifiedId(50, 0);
+            _buffer.EnqueueEvent(50, 2, TrainTickBufferedEvent.Create(() => applied.Add("event2")));
+            _buffer.EnqueueEvent(50, 1, TrainTickBufferedEvent.Create(() => applied.Add("event1")));
 
-            Assert.IsFalse(_buffer.TryConsumeSimulationSkipTick(29));
-            Assert.IsTrue(_buffer.TryConsumeSimulationSkipTick(30));
-            Assert.IsFalse(_buffer.TryConsumeSimulationSkipTick(30));
-        }
-
-        [Test]
-        public void TryConsumeSimulationSkipTick_RemovesStaleTicksWhenAdvanced()
-        {
-            _buffer.RecordSnapshotAppliedTick(40);
-
-            Assert.IsFalse(_buffer.TryConsumeSimulationSkipTick(41));
-            Assert.IsFalse(_buffer.TryConsumeSimulationSkipTick(40));
-        }
-
-        [Test]
-        public void EnqueueHash_AcceptsOnlyFutureTickAndTracksReceivedTick()
-        {
-            // 現在tick以下のhashは捨て、未来tickのみをキューへ入れる。
-            // Ignore hash at or before current tick, and enqueue only future hash.
-            _tickState.SetSnapshotBaselineTick(100);
-
-            _buffer.EnqueueHash(CreateHashMessage(10, 99));
-            Assert.AreEqual(100, _tickState.GetHashReceivedTick());
-            Assert.IsFalse(_buffer.TryDequeueHashAtTick(99, out _));
-
-            _buffer.EnqueueHash(CreateHashMessage(20, 101));
-            Assert.AreEqual(101, _tickState.GetHashReceivedTick());
-            Assert.IsTrue(_buffer.TryDequeueHashAtTick(101, out var message));
-            Assert.AreEqual((uint)20, message.UnitsHash);
-            Assert.AreEqual(101, message.TrainTick);
-            Assert.IsFalse(_buffer.TryDequeueHashAtTick(101, out _));
-
-            #region Internal
-
-            TrainUnitHashStateMessagePack CreateHashMessage(uint unitsHash, long trainTick)
-            {
-                // テスト用のhashイベントを明示的に作る。
-                // Build a typed hash event for test scenarios.
-                return new TrainUnitHashStateMessagePack(unitsHash, trainTick);
-            }
-
-            #endregion
+            Assert.IsTrue(_buffer.TryFlushEvent(TrainTickUnifiedIdUtility.CreateTickUnifiedId(50, 1)));
+            Assert.IsTrue(_buffer.TryFlushEvent(TrainTickUnifiedIdUtility.CreateTickUnifiedId(50, 2)));
+            CollectionAssert.AreEqual(new[] { "event1", "event2" }, applied);
         }
         
         [Test]
-        public void DiscardUpToTick_RemovesQueuedHashesAtOrBelowTick()
+        public void TryFlushEvent_RemovesQueuedEventsAtOrBelowExecutedUnifiedId()
         {
-            // スナップショット適用後は対象tick以下のキューを破棄する。
-            // Discard queued hash entries up to the snapshot-covered tick.
-            _tickState.SetSnapshotBaselineTick(10);
-            _buffer.EnqueueHash(CreateHashMessage(10, 11));
-            _buffer.EnqueueHash(CreateHashMessage(20, 12));
-            _buffer.EnqueueHash(CreateHashMessage(30, 13));
+            // 大きい sequence を適用した場合に、それ以下の未適用イベントが破棄されることを確認する。
+            // Ensure applying higher sequence removes unapplied events at or below that unified id.
+            var applied = new List<string>();
+            _tickState.RecordAppliedTickUnifiedId(60, 0);
+            _buffer.EnqueueEvent(60, 1, TrainTickBufferedEvent.Create(() => applied.Add("event1")));
+            _buffer.EnqueueEvent(60, 2, TrainTickBufferedEvent.Create(() => applied.Add("event2")));
 
-            _buffer.DiscardUpToTick(12);
-
-            Assert.IsFalse(_buffer.TryDequeueHashAtTick(11, out _));
-            Assert.IsFalse(_buffer.TryDequeueHashAtTick(12, out _));
-            Assert.IsTrue(_buffer.TryDequeueHashAtTick(13, out var message));
-            Assert.AreEqual((uint)30, message.UnitsHash);
-
-            #region Internal
-
-            TrainUnitHashStateMessagePack CreateHashMessage(uint unitsHash, long trainTick)
-            {
-                // テスト用のhashイベントを明示的に作る。
-                // Build a typed hash event for test scenarios.
-                return new TrainUnitHashStateMessagePack(unitsHash, trainTick);
-            }
-
-            #endregion
+            Assert.IsTrue(_buffer.TryFlushEvent(TrainTickUnifiedIdUtility.CreateTickUnifiedId(60, 2)));
+            Assert.IsFalse(_buffer.TryFlushEvent(TrainTickUnifiedIdUtility.CreateTickUnifiedId(60, 1)));
+            CollectionAssert.AreEqual(new[] { "event2" }, applied);
         }
     }
 }

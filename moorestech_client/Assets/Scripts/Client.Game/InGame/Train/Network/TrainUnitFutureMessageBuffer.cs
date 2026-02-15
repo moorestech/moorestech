@@ -1,36 +1,40 @@
+using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Train.Unit;
 using Server.Util.MessagePack;
+using System.Linq;
+using UnityEngine;
 
 namespace Client.Game.InGame.Train.Network
 {
-    // 未来tickのTrainUnitイベントを種類別に保持して、シミュレーションtick到達時に適用する。
-    // Buffer future train events by phase and apply them when simulation reaches their tick.
+    // 未来tickのTrain/Railイベントを種類別に保持して、シミュレーションtick到達時に適用する。
+    // Buffer future train/rail events by phase and apply them when simulation reaches their tick.
     public sealed class TrainUnitFutureMessageBuffer
     {
         private readonly TrainUnitTickState _tickState;
-        private readonly SortedDictionary<long, List<ITrainTickBufferedEvent>> _futurePreEvents = new();
-        private readonly SortedDictionary<long, List<ITrainTickBufferedEvent>> _futurePostEvents = new();
-        private readonly SortedDictionary<long, uint> _futureHashStates = new();
-        private readonly SortedSet<long> _snapshotAppliedTicks = new();
+        private readonly SortedDictionary<ulong, ITrainTickBufferedEvent> _futureEvents = new();
+        private readonly SortedDictionary<ulong, TrainUnitHashStateMessagePack> _futureHashStates = new();
 
         public TrainUnitFutureMessageBuffer(TrainUnitTickState tickState)
         {
             _tickState = tickState;
         }
 
-        // pre-simイベントを未来tickキューへ積む。
+        // イベントを未来tickキューへ積む。
         // Queue a pre-simulation event only when its tick is still in the future.
-        public void EnqueuePre(long serverTick, ITrainTickBufferedEvent bufferedEvent)
+        public void EnqueueEvent(uint serverTick, uint tickSequenceId, ITrainTickBufferedEvent bufferedEvent)
         {
-            Enqueue(_futurePreEvents, serverTick, bufferedEvent);
-        }
-
-        // post-simイベントを未来tickキューへ積む。
-        // Queue a post-simulation event only when its tick is still in the future.
-        public void EnqueuePost(long serverTick, ITrainTickBufferedEvent bufferedEvent)
-        {
-            Enqueue(_futurePostEvents, serverTick, bufferedEvent);
+            if (bufferedEvent == null)
+                return;
+            var eventTickUnifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(serverTick, tickSequenceId);
+            if (eventTickUnifiedId <= _tickState.GetAppliedTickUnifiedId())
+            {
+                // 適用済みの統合順序以下は捨てる。
+                // Drop events already covered.
+                return;
+            }
+            _tickState.SetMaxBufferedTicks(serverTick);
+            _futureEvents[eventTickUnifiedId] = bufferedEvent;
         }
 
         // ハッシュイベントをtick基準でキューへ積む。
@@ -41,175 +45,95 @@ namespace Client.Game.InGame.Train.Network
             {
                 return;
             }
-            if (message.TrainTick < _tickState.GetTick())
+            var messageTickUnifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(message.ServerTick, message.TickSequenceId);
+            if (messageTickUnifiedId <= _tickState.GetAppliedTickUnifiedId())
             {
+                // 適用済みの統合順序以下は捨てる。
+                // Drop hash states already covered.
                 return;
             }
-
-            _futureHashStates[message.TrainTick] = message.UnitsHash;
-            _tickState.RecordHashReceived(message.TrainTick);
+            _tickState.SetMaxBufferedTicks(message.ServerTick);
+            _futureHashStates[messageTickUnifiedId] = message;
         }
 
         // 指定tickのハッシュを取り出す。
         // Dequeue hash state at the specified tick.
-        public bool TryDequeueHashAtTick(long tick, out TrainUnitHashStateMessagePack message)
+        public bool TryDequeueHashAtTickSequenceId(ulong tickUnifiedId, out TrainUnitHashStateMessagePack message)
         {
-            if (_futureHashStates.TryGetValue(tick, out var hash))
+            return _futureHashStates.TryGetValue(tickUnifiedId, out message);
+        }
+        
+        // 対象tickより古いhashは検証対象外として破棄する。
+        // Discard hashes older than the requested tick.
+        public void DiscardHashesOlderThan(ulong tickUnifiedId)
+        {
+            while (true)
             {
-                _futureHashStates.Remove(tick);
-                message = new TrainUnitHashStateMessagePack(hash, tick);
+                if (TryGetFirstHashTickUnifiedId(out var firstTickUnifiedId))
+                {
+                    if (firstTickUnifiedId < tickUnifiedId)
+                    {
+                        _futureHashStates.Remove(firstTickUnifiedId);
+                        continue;
+                    }
+                }
+                break;
+            }
+        }
+        // 最初のkeyを取得
+        // Get the first key
+        public bool TryGetFirstHashTickUnifiedId(out ulong tickUnifiedId)
+        {
+            tickUnifiedId = UInt64.MaxValue;
+            if (_futureHashStates.Count > 0)
+            {
+                tickUnifiedId = _futureHashStates.First().Key;
                 return true;
             }
-            message = null;
             return false;
         }
-
-        // 現在tickで適用可能なpre-simイベントを適用する。
-        // Apply pre-simulation events that are now reachable by simulated tick.
-        public void FlushPreBySimulatedTick()
+        
+        public bool TryFlushEvent(uint currentTick, uint tickSequenceId)
         {
-            FlushFutureEvents(_futurePreEvents, _tickState.GetTick());
+            var eventTickUnifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(currentTick, tickSequenceId);
+            return TryFlushEvent(eventTickUnifiedId);
         }
-
-        // 現在tickで適用可能なpost-simイベントを適用する。
-        // Apply post-simulation events that are now reachable by simulated tick.
-        public void FlushPostBySimulatedTick()
+        public bool TryFlushEvent(ulong eventTickUnifiedId)
         {
-            FlushFutureEvents(_futurePostEvents, _tickState.GetTick());
-        }
-
-        // スナップショットを即時適用したtickを記録する。
-        // Record the tick where snapshot has already been applied immediately.
-        public void RecordSnapshotAppliedTick(long tick)
-        {
-            _snapshotAppliedTicks.Add(tick);
-        }
-
-        // 指定tickのSimulateUpdateをスキップするか判定し、対象なら消費する。
-        // Return true when simulation should be skipped for this tick and consume it.
-        public bool TryConsumeSimulationSkipTick(long tick)
-        {
-            while (_snapshotAppliedTicks.Count > 0 && _snapshotAppliedTicks.Min < tick)
-            {
-                _snapshotAppliedTicks.Remove(_snapshotAppliedTicks.Min);
-            }
-
-            if (!_snapshotAppliedTicks.Contains(tick))
-            {
+            if (!_futureEvents.ContainsKey(eventTickUnifiedId))
                 return false;
-            }
-
-            _snapshotAppliedTicks.Remove(tick);
+            var bufferedEvent = _futureEvents[eventTickUnifiedId];
+            bufferedEvent.Apply();
+            
+            // 実行済みイベント以下は再適用不要なので一括破棄する。
+            // Drop all events at or below executed unified id to prevent re-apply.
+            RemoveEventsAtOrBelow(eventTickUnifiedId);
+            _tickState.RecordAppliedTickUnifiedId(eventTickUnifiedId);
             return true;
-        }
-
-        // スナップショット適用済みtick以下のキューを破棄する。
-        // Discard queued events at or below the tick already covered by snapshot.
-        public void DiscardUpToTick(long tick)
-        {
-            RemoveUpToTickForListDictionary(_futurePreEvents, tick);
-            RemoveUpToTickForListDictionary(_futurePostEvents, tick);
-            RemoveUpToTickForValueDictionary(_futureHashStates, tick);
-            RemoveUpToTickForSortedSet(_snapshotAppliedTicks, tick);
-
+            
             #region Internal
-
-            void RemoveUpToTickForListDictionary<T>(SortedDictionary<long, List<T>> source, long maxTick)
+            void RemoveEventsAtOrBelow(ulong maxTickUnifiedId)
             {
-                while (TryGetFirstTickForListDictionary(source, out var targetTick) && targetTick <= maxTick)
+                while (TryGetFirstTickUnifiedId(_futureEvents, out var firstTickUnifiedId) &&
+                    firstTickUnifiedId <= maxTickUnifiedId)
                 {
-                    source.Remove(targetTick);
+                    _futureEvents.Remove(firstTickUnifiedId);
                 }
             }
-
-            void RemoveUpToTickForValueDictionary<T>(SortedDictionary<long, T> source, long maxTick)
-            {
-                while (TryGetFirstTickForValueDictionary(source, out var targetTick) && targetTick <= maxTick)
-                {
-                    source.Remove(targetTick);
-                }
-            }
-
-            void RemoveUpToTickForSortedSet(SortedSet<long> source, long maxTick)
-            {
-                while (source.Count > 0 && source.Min <= maxTick)
-                {
-                    source.Remove(source.Min);
-                }
-            }
-
-            bool TryGetFirstTickForListDictionary<T>(SortedDictionary<long, List<T>> source, out long firstTick)
+            
+            static bool TryGetFirstTickUnifiedId<TValue>(SortedDictionary<ulong, TValue> source, out ulong firstTickUnifiedId)
             {
                 using var enumerator = source.GetEnumerator();
                 if (enumerator.MoveNext())
                 {
-                    firstTick = enumerator.Current.Key;
+                    firstTickUnifiedId = enumerator.Current.Key;
                     return true;
                 }
-
-                firstTick = 0;
+                
+                firstTickUnifiedId = 0;
                 return false;
             }
-
-            bool TryGetFirstTickForValueDictionary<T>(SortedDictionary<long, T> source, out long firstTick)
-            {
-                using var enumerator = source.GetEnumerator();
-                if (enumerator.MoveNext())
-                {
-                    firstTick = enumerator.Current.Key;
-                    return true;
-                }
-
-                firstTick = 0;
-                return false;
-            }
-
             #endregion
-        }
-
-        private void Enqueue(SortedDictionary<long, List<ITrainTickBufferedEvent>> target, long serverTick, ITrainTickBufferedEvent bufferedEvent)
-        {
-            if (bufferedEvent == null)
-            {
-                return;
-            }
-            if (serverTick <= _tickState.GetTick())
-            {
-                return;
-            }
-
-            if (!target.TryGetValue(serverTick, out var events))
-            {
-                events = new List<ITrainTickBufferedEvent>();
-                target.Add(serverTick, events);
-            }
-            events.Add(bufferedEvent);
-        }
-
-        private static void FlushFutureEvents(SortedDictionary<long, List<ITrainTickBufferedEvent>> source, long currentTick)
-        {
-            while (TryGetFirstTick(source, out var targetTick) && targetTick <= currentTick)
-            {
-                var events = source[targetTick];
-                for (var i = 0; i < events.Count; i++)
-                {
-                    events[i].Apply();
-                }
-                source.Remove(targetTick);
-            }
-
-            bool TryGetFirstTick<T>(SortedDictionary<long, List<T>> sourceDictionary, out long tick)
-            {
-                using var enumerator = sourceDictionary.GetEnumerator();
-                if (enumerator.MoveNext())
-                {
-                    tick = enumerator.Current.Key;
-                    return true;
-                }
-
-                tick = 0;
-                return false;
-            }
         }
     }
 }

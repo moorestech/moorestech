@@ -34,7 +34,11 @@ namespace Server.Protocol.PacketResponse
             }
 
             var unitsHash = TrainUnitSnapshotHashCalculator.Compute(bundles);
-            return new ResponseMessagePack(snapshots, _trainUpdateService.GetCurrentTick(), unitsHash);
+            return new ResponseMessagePack(
+                snapshots,
+                _trainUpdateService.GetCurrentTick(),
+                unitsHash,
+                _trainUpdateService.NextTickSequenceId());
         }
 
         [MessagePackObject]
@@ -51,8 +55,9 @@ namespace Server.Protocol.PacketResponse
         public class ResponseMessagePack : ProtocolMessagePackBase
         {
             [Key(2)] public List<TrainUnitSnapshotBundleMessagePack> Snapshots { get; set; }
-            [Key(3)] public long ServerTick { get; set; }
+            [Key(3)] public uint ServerTick { get; set; }
             [Key(4)] public uint UnitsHash { get; set; }
+            [Key(5)] public uint TickSequenceId { get; set; }
 
             [Obsolete("MessagePack用のコンストラクタです。")]
             public ResponseMessagePack()
@@ -60,12 +65,13 @@ namespace Server.Protocol.PacketResponse
                 Tag = ProtocolTag;
             }
 
-            public ResponseMessagePack(List<TrainUnitSnapshotBundleMessagePack> snapshots, long serverTick, uint unitsHash)
+            public ResponseMessagePack(List<TrainUnitSnapshotBundleMessagePack> snapshots, uint serverTick, uint unitsHash, uint tickSequenceId)
             {
                 Tag = ProtocolTag;
                 Snapshots = snapshots;
                 ServerTick = serverTick;
                 UnitsHash = unitsHash;
+                TickSequenceId = tickSequenceId;
             }
         }
     }

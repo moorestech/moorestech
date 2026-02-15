@@ -58,5 +58,19 @@ namespace Client.Game.InGame.Train.View.Object
                 _entities.Remove(trainCarInstanceId);
             }
         }
+
+        // 指定TrainCarエンティティを削除する
+        // Remove a single train car entity by id.
+        public bool RemoveTrainEntity(TrainCarInstanceId trainCarInstanceId)
+        {
+            if (!_entities.TryGetValue(trainCarInstanceId, out var entity))
+            {
+                return false;
+            }
+
+            entity.Destroy();
+            _entities.Remove(trainCarInstanceId);
+            return true;
+        }
     }
 }

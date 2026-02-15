@@ -52,7 +52,6 @@ namespace Client.Network.API
                 foreach (var eventMessagePack in response.Events)
                 {
                     if (!_eventResponseSubjects.TryGetValue(eventMessagePack.Tag, out var subjects)) continue;
-                    
                     subjects.OnNext(eventMessagePack.Payload);
                 }
             }

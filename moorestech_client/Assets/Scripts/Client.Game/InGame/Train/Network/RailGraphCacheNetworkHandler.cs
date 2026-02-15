@@ -1,40 +1,45 @@
+using System;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Train.RailGraph;
+using Game.Train.SaveLoad;
 using MessagePack;
 using Server.Event.EventReceive;
 using Server.Util.MessagePack;
-using System;
-using Client.Game.InGame.Train.RailGraph;
-using Game.Train.SaveLoad;
 using UniRx;
 using VContainer.Unity;
 
 namespace Client.Game.InGame.Train.Network
 {
     /// <summary>
-    ///     RailNode生成イベントを購読してクライアントキャッシュへ反映する
-    ///     Subscribes to rail node creation events and updates the local cache
+    ///     RailNode差分イベントを購読してpost-sim tickでキャッシュへ反映する
+    ///     Subscribes to rail node diffs and applies them on post-simulation tick
     /// </summary>
     public sealed class RailGraphCacheNetworkHandler : IInitializable, IDisposable
     {
+        private readonly TrainUnitFutureMessageBuffer _futureMessageBuffer;
         private readonly RailGraphClientCache _cache;
         private readonly ClientStationReferenceRegistry _stationReferenceRegistry;
         private readonly CompositeDisposable _subscriptions = new();
 
-        public RailGraphCacheNetworkHandler(RailGraphClientCache cache, ClientStationReferenceRegistry stationReferenceRegistry)
+        public RailGraphCacheNetworkHandler(
+            TrainUnitFutureMessageBuffer futureMessageBuffer,
+            RailGraphClientCache cache,
+            ClientStationReferenceRegistry stationReferenceRegistry)
         {
+            _futureMessageBuffer = futureMessageBuffer;
             _cache = cache;
             _stationReferenceRegistry = stationReferenceRegistry;
         }
 
         public void Initialize()
         {
-            // RailNode生成イベントを購読して差分適用を待機
-            // Subscribe to node creation events for diff application
+            // RailNode生成イベントを購読してtick同期反映を待機する
+            // Subscribe node-creation diffs and wait for tick-aligned apply
             ClientContext.VanillaApi.Event.SubscribeEventResponse(
                 RailNodeCreatedEventPacket.EventTag,
                 OnRailNodeCreated).AddTo(_subscriptions);
-            // RailNode削除イベントも購読し整合性保持
-            // Also subscribe to removal events for consistency
+            // RailNode削除イベントも同じtick同期経路へ流す
+            // Route node-removal diffs through the same tick-aligned path
             ClientContext.VanillaApi.Event.SubscribeEventResponse(
                 RailNodeRemovedEventPacket.EventTag,
                 OnRailNodeRemoved).AddTo(_subscriptions);
@@ -49,33 +54,69 @@ namespace Client.Game.InGame.Train.Network
 
         private void OnRailNodeCreated(byte[] payload)
         {
-            // メッセージを復号しキャッシュへUpsert
-            // Decode message and upsert into cache
+            // 受信差分を復号し、post-simキューへ積む
+            // Deserialize incoming diff and enqueue into post-sim buffer
             var message = MessagePackSerializer.Deserialize<RailNodeCreatedMessagePack>(payload);
-            var destination = message.ConnectionDestination?.ToConnectionDestination() ?? ConnectionDestination.Default;
+            if (message == null)
+            {
+                return;
+            }
+            _futureMessageBuffer.EnqueueEvent(message.ServerTick, message.TickSequenceId, CreateBufferedEvent(message));
 
-            _cache.UpsertNode(
-                message.NodeId,
-                message.NodeGuid,
-                message.OriginPoint.ToUnityVector(),
-                destination,
-                message.FrontControlPoint.ToUnityVector(),
-                message.BackControlPoint.ToUnityVector(),
-                message.Tick);
-            // 駅参照を該当ノードへ反映する
-            // Apply station reference to the updated node.
-            _stationReferenceRegistry.ApplyStationReference(destination);
+            #region Internal
+
+            ITrainTickBufferedEvent CreateBufferedEvent(RailNodeCreatedMessagePack messagePack)
+            {
+                return TrainTickBufferedEvent.Create(ApplyCreatedNode);
+
+                void ApplyCreatedNode()
+                {
+                    // ノード追加と駅参照更新を同一tickで反映する
+                    // Apply node insertion and station reference update on the same tick
+                    var destination = messagePack.ConnectionDestination?.ToConnectionDestination() ?? ConnectionDestination.Default;
+                    _cache.UpsertNode(
+                        messagePack.NodeId,
+                        messagePack.NodeGuid,
+                        messagePack.OriginPoint.ToUnityVector(),
+                        destination,
+                        messagePack.FrontControlPoint.ToUnityVector(),
+                        messagePack.BackControlPoint.ToUnityVector());
+                    _stationReferenceRegistry.ApplyStationReference(destination);
+                }
+            }
+
+            #endregion
         }
 
         private void OnRailNodeRemoved(byte[] payload)
         {
-            // 削除メッセージを解析してGuid一致を確認
-            // Decode removal payload and verify guid consistency
+            // 削除差分を復号し、post-simキューへ積む
+            // Deserialize removal diff and enqueue into post-sim buffer
             var message = MessagePackSerializer.Deserialize<RailNodeRemovedMessagePack>(payload);
-            if (_cache.TryValidateEndpoint(message.NodeId, message.NodeGuid))
-            // Guidが一致した場合のみノード削除
-            // Remove the node only when guid matches
-            _cache.RemoveNode(message.NodeId, message.Tick);
+            if (message == null)
+            {
+                return;
+            }
+            _futureMessageBuffer.EnqueueEvent(message.ServerTick, message.TickSequenceId, CreateBufferedEvent(message));
+
+            #region Internal
+
+            ITrainTickBufferedEvent CreateBufferedEvent(RailNodeRemovedMessagePack messagePack)
+            {
+                return TrainTickBufferedEvent.Create(ApplyRemovedNode);
+
+                void ApplyRemovedNode()
+                {
+                    // Guid一致時のみノード削除を適用する
+                    // Remove node only when guid still matches at apply time
+                    if (_cache.TryValidateEndpoint(messagePack.NodeId, messagePack.NodeGuid))
+                    {
+                        _cache.RemoveNode(messagePack.NodeId);
+                    }
+                }
+            }
+
+            #endregion
         }
 
         #endregion

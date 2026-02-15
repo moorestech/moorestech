@@ -27,6 +27,7 @@ namespace Server.Event.EventReceive
         private void OnNodeInitialized(RailNodeInitializationData data)
         {
             var tick = _trainUpdateService.GetCurrentTick();
+            var tickSequenceId = _trainUpdateService.NextTickSequenceId();
             // ノード生成差分と現在Tickを同時に送信
             // Include current tick alongside node creation diff
             var message = new RailNodeCreatedMessagePack(
@@ -36,7 +37,8 @@ namespace Server.Event.EventReceive
                 data.OriginPoint,
                 data.FrontControlPoint,
                 data.BackControlPoint,
-                tick);
+                tick,
+                tickSequenceId);
             var payload = MessagePackSerializer.Serialize(message);
             _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
         }

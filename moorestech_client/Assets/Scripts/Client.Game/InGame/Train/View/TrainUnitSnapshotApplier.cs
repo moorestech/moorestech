@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using Client.Game.InGame.Train.Network;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Train.View.Object;
 using Client.Network.API;
 using Game.Train.Unit;
+using UnityEngine;
 using VContainer.Unity;
 
 namespace Client.Game.InGame.Train.View
@@ -16,20 +16,17 @@ namespace Client.Game.InGame.Train.View
     {
         private readonly TrainUnitClientCache _cache;
         private readonly TrainUnitTickState _tickState;
-        private readonly TrainUnitFutureMessageBuffer _futureMessageBuffer;
         private readonly TrainCarObjectDatastore _trainCarDatastore;
         private readonly InitialHandshakeResponse _initialHandshakeResponse;
 
         public TrainUnitSnapshotApplier(
             TrainUnitClientCache cache,
             TrainUnitTickState tickState,
-            TrainUnitFutureMessageBuffer futureMessageBuffer,
             InitialHandshakeResponse initialHandshakeResponse,
             TrainCarObjectDatastore trainCarDatastore)
         {
             _cache = cache;
             _tickState = tickState;
-            _futureMessageBuffer = futureMessageBuffer;
             _initialHandshakeResponse = initialHandshakeResponse;
             _trainCarDatastore = trainCarDatastore;
         }
@@ -44,6 +41,17 @@ namespace Client.Game.InGame.Train.View
         public void ApplySnapshot(TrainUnitSnapshotResponse response)
         {
             if (response == null) return;
+            var snapshotTickUnifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(response.ServerTick, response.TickSequenceId);
+            if (snapshotTickUnifiedId < _tickState.GetAppliedTickUnifiedId())
+            {
+                // 遅延して届いた古いsnapshotは適用せず破棄する。
+                // Ignore delayed snapshots that are older than the applied sequence baseline.
+                Debug.LogWarning(
+                    "[TrainUnitSnapshotApplier] Ignored stale snapshot response. " +
+                    $"serverTick={response.ServerTick}, tickSequenceId={response.TickSequenceId}, " +
+                    $"snapshotTickUnifiedId={snapshotTickUnifiedId}, appliedTickUnifiedId={_tickState.GetAppliedTickUnifiedId()}");
+                return;
+            }
 
             // スナップショットをモデルに変換して列車IDを収集する
             // Convert snapshots into models and collect train car ids
@@ -70,10 +78,19 @@ namespace Client.Game.InGame.Train.View
             // キャッシュ更新後に不要な列車エンティティを除去する
             // Remove stale train entities after cache update
             _cache.OverrideAll(bundles);
-            _tickState.SetSnapshotBaselineTick(response.ServerTick);
-            _futureMessageBuffer.DiscardUpToTick(response.ServerTick);
-            _futureMessageBuffer.RecordSnapshotAppliedTick(response.ServerTick);
+            var localHashAfterApply = _cache.ComputeCurrentHash();
+            if (localHashAfterApply != response.UnitsHash)
+            {
+                // 初期適用直後のhash差分を検知して原因切り分けに使う
+                // Detect hash differences right after snapshot apply for root-cause isolation.
+                Debug.LogWarning(
+                    "[TrainUnitSnapshotApplier] Snapshot hash mismatch right after apply. " +
+                    $"serverTick={response.ServerTick}, snapshotCount={bundles.Count}, " +
+                    $"serverHash={response.UnitsHash}, clientHash={localHashAfterApply}, cacheTrainCount={_cache.Units.Count}");
+            }
+
             _trainCarDatastore.RemoveTrainEntitiesNotInSnapshot(activeTrainCarInstanceIds);
+            _tickState.RecordAppliedTickUnifiedId(snapshotTickUnifiedId);
 
             #region Internal
 

@@ -2,92 +2,72 @@ using System;
 
 namespace Client.Game.InGame.Train.Unit
 {
+    // tick と tickSequenceId を単一の比較キーに統合する。
+    // Compose tick and tickSequenceId into a single monotonic order key.
+    public static class TrainTickUnifiedIdUtility
+    {
+        // 上位32bitにtick、下位32bitにtickSequenceIdを詰める。
+        // Pack tick into high 32 bits and tickSequenceId into low 32 bits.
+        public static ulong CreateTickUnifiedId(uint tick, uint tickSequenceId)
+        {
+            return ((ulong)tick << 32) | tickSequenceId;
+        }
+    }
+
     // クライアント列車シミュレーションのtick状態を一元管理する。
     // Centralize tick state for client train simulation.
     public sealed class TrainUnitTickState
     {
-        private long _hashReceivedTick;
-        private long _previousHashReceivedTick;
-        private bool _hasReceivedHashTick;
-        private bool _hasPreviousHashTick;
-        private long _tick;
-
-        public long GetTick()
+        private ulong _appliedTickUnifiedId = 0;
+        private uint _maxBufferedTicks = 0;
+        
+        // 統合IDから上位32bitのtickを取り出す。
+        // Extract high 32-bit tick from unified id.
+        public uint GetTick()
         {
-            return _tick;
+            return (uint)(_appliedTickUnifiedId >> 32);
+        }
+        // 下位32bitをとりだす
+        // Extract low 32-bit tickSequenceId from unified id.
+        public uint GetTickSequenceId()
+        {
+            return (uint)(_appliedTickUnifiedId & 0xFFFFFFFF);
         }
 
-        public long GetHashReceivedTick()
+        public ulong GetAppliedTickUnifiedId()
         {
-            return _hashReceivedTick;
+            return _appliedTickUnifiedId;
         }
 
-        // 直近2回のhash受信tickを返す。
-        // Return the latest two received hash ticks.
-        public bool TryGetLatestHashTickWindow(out long previousHashTick, out long latestHashTick)
+        // 適用済みの最大tickUnifiedIdを更新する。
+        // Update the highest applied tickUnifiedId.
+        public void RecordAppliedTickUnifiedId(uint tick, uint tickSequenceId)
         {
-            if (!_hasPreviousHashTick)
-            {
-                previousHashTick = 0;
-                latestHashTick = 0;
-                return false;
-            }
-
-            previousHashTick = _previousHashReceivedTick;
-            latestHashTick = _hashReceivedTick;
-            return true;
+            RecordAppliedTickUnifiedId(TrainTickUnifiedIdUtility.CreateTickUnifiedId(tick, tickSequenceId));
         }
-
-        // スナップショット適用後の基準tickへ同期する。
-        // Align state to the snapshot baseline tick.
-        public void SetSnapshotBaselineTick(long serverTick)
+        public void RecordAppliedTickUnifiedId(ulong tickUnifiedId)
         {
-            _tick = serverTick;
-            if (!_hasReceivedHashTick || serverTick > _hashReceivedTick)
-            {
-                _hashReceivedTick = serverTick;
-                _hasReceivedHashTick = true;
-                _hasPreviousHashTick = false;
-                return;
-            }
-
-            _hashReceivedTick = Math.Max(_hashReceivedTick, serverTick);
-        }
-
-        // 受信したhash tickを進行上限として記録する。
-        // Record a received hash tick as the simulation upper bound.
-        public void RecordHashReceived(long serverTick)
-        {
-            if (_hasReceivedHashTick && serverTick <= _hashReceivedTick)
+            if (tickUnifiedId <= _appliedTickUnifiedId)
             {
                 return;
             }
-
-            if (_hasReceivedHashTick)
-            {
-                _previousHashReceivedTick = _hashReceivedTick;
-                _hasPreviousHashTick = true;
-            }
-
-            _hashReceivedTick = serverTick;
-            _hasReceivedHashTick = true;
+            _appliedTickUnifiedId = tickUnifiedId;
         }
-
-        // 現在tickでシミュレーションを進められるか判定する。
-        // Check whether simulation can advance at the current tick.
-        public bool IsAllowSimulationNowTick()
+        
+        // バッファー済み最大tick
+        public void SetMaxBufferedTicks(uint maxBufferedTicks)
         {
-            if (_tick >= _hashReceivedTick)
-            {
-                return false;
-            }
-
-            return true;
+            _maxBufferedTicks = Math.Max(_maxBufferedTicks, maxBufferedTicks); 
+        }
+        public uint GetMaxBufferedTicks()
+        {
+            return _maxBufferedTicks;
         }
 
         public void AdvanceTick()
         {
-            _tick++;
+            var tick = GetTick() + 1;
+            _appliedTickUnifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(tick, 0);
         }
     }
 }

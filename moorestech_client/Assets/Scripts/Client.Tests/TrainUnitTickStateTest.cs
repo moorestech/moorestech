@@ -6,52 +6,59 @@ namespace Client.Tests
     public class TrainUnitTickStateTest
     {
         [Test]
-        public void HashReceivedTick_GatesSimulationProgress()
+        public void CreateTickUnifiedId_PacksTickAndSequence()
         {
-            // 受信済みhashのtickが進行可能な上限tickになることを確認する。
-            // Verify the received hash tick acts as simulation upper bound.
-            var state = new TrainUnitTickState();
-            Assert.IsFalse(state.IsAllowSimulationNowTick());
+            // tick と sequence が 64bit に正しく詰められることを確認する。
+            // Verify tick and sequence are packed into 64-bit unified id.
+            const uint tick = 123;
+            const uint tickSequenceId = 456;
+            var unifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(tick, tickSequenceId);
 
-            state.RecordHashReceived(3);
-            Assert.IsTrue(state.IsAllowSimulationNowTick());
-
-            state.AdvanceTick();
-            state.AdvanceTick();
-            state.AdvanceTick();
-
-            Assert.AreEqual(3, state.GetTick());
-            Assert.IsFalse(state.IsAllowSimulationNowTick());
+            Assert.AreEqual(((ulong)tick << 32) | tickSequenceId, unifiedId);
         }
 
         [Test]
-        public void SnapshotBaselineTick_DoesNotRollbackVerifiedOrReceivedTick()
+        public void RecordAppliedTickUnifiedId_WithTickAndSequence_UpdatesState()
         {
-            // スナップショット基準tick更新で受信済みtickが巻き戻らないことを確認する。
-            // Ensure baseline update does not roll back received hash tick.
+            // 明示指定した tickUnifiedId が適用状態に反映されることを確認する。
+            // Ensure explicit tickUnifiedId is reflected in applied state.
             var state = new TrainUnitTickState();
-            state.RecordHashReceived(20);
-
-            state.SetSnapshotBaselineTick(10);
+            state.RecordAppliedTickUnifiedId(10, 500);
 
             Assert.AreEqual(10, state.GetTick());
-            Assert.AreEqual(20, state.GetHashReceivedTick());
+            Assert.AreEqual(
+                TrainTickUnifiedIdUtility.CreateTickUnifiedId(10, 500),
+                state.GetAppliedTickUnifiedId());
         }
 
         [Test]
-        public void LatestHashTickWindow_ReturnsPreviousAndLatestHashTicks()
+        public void RecordAppliedTickUnifiedId_DoesNotRollbackOnOlderValue()
         {
-            // hashを2回以上受信したら直近の窓情報が取得できることを確認する。
-            // Ensure the latest hash window is available after two hash receives.
+            // 古い tickUnifiedId で更新しても巻き戻らないことを確認する。
+            // Ensure state never rolls back when an older unified id is recorded.
             var state = new TrainUnitTickState();
+            state.RecordAppliedTickUnifiedId(30, 100);
+            state.RecordAppliedTickUnifiedId(29, uint.MaxValue);
 
-            state.RecordHashReceived(126);
-            Assert.IsFalse(state.TryGetLatestHashTickWindow(out _, out _));
+            Assert.AreEqual(30, state.GetTick());
+            Assert.AreEqual(
+                TrainTickUnifiedIdUtility.CreateTickUnifiedId(30, 100),
+                state.GetAppliedTickUnifiedId());
+        }
 
-            state.RecordHashReceived(130);
-            Assert.IsTrue(state.TryGetLatestHashTickWindow(out var previousHashTick, out var latestHashTick));
-            Assert.AreEqual(126, previousHashTick);
-            Assert.AreEqual(130, latestHashTick);
+        [Test]
+        public void AdvanceTick_MovesToNextTickAndResetsSequenceToZero()
+        {
+            // tick 進行時は sequence を 0 にして次tickへ移動することを確認する。
+            // Ensure tick advance moves to next tick with sequence reset to zero.
+            var state = new TrainUnitTickState();
+            state.RecordAppliedTickUnifiedId(40, 999);
+            state.AdvanceTick();
+
+            Assert.AreEqual(41, state.GetTick());
+            Assert.AreEqual(
+                TrainTickUnifiedIdUtility.CreateTickUnifiedId(41, 0),
+                state.GetAppliedTickUnifiedId());
         }
     }
 }

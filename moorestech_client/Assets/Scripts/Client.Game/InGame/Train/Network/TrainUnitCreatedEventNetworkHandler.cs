@@ -52,7 +52,7 @@ namespace Client.Game.InGame.Train.Network
             // Push snapshot into the future-tick buffer
             var bundle = message.Snapshot.ToModel();
             var serverTick = message.ServerTick;
-            _futureMessageBuffer.EnqueuePost(serverTick, CreateBufferedEvent());
+            _futureMessageBuffer.EnqueueEvent(serverTick, message.TickSequenceId, CreateBufferedEvent());
 
             #region Internal
 
@@ -60,7 +60,7 @@ namespace Client.Game.InGame.Train.Network
             {
                 // 適用処理をイベント化してtickバッファへ渡す
                 // Wrap the apply action into a buffered event for the tick queue
-                return TrainTickBufferedEvent.Create(TrainUnitCreatedEventPacket.EventTag, ApplyCreatedEvent);
+                return TrainTickBufferedEvent.Create(ApplyCreatedEvent);
 
                 void ApplyCreatedEvent()
                 {

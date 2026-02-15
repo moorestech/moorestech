@@ -4,7 +4,6 @@ namespace Client.Game.InGame.Train.Network
     // Represents a buffered train event applied when its tick is reached.
     public interface ITrainTickBufferedEvent
     {
-        string EventTag { get; }
         void Apply();
     }
 }
