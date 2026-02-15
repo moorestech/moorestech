@@ -60,6 +60,7 @@ public void ComplexMethod()
 
 # テスト・コンパイルの実行
 テスト、コンパイルともにMCPツール優先、MCPツール優先、使用不可時は`tools/unity-test.sh`をフォールバックとして使用。
+- `*.yml` / `*.yaml`のみの編集タスクでは`unity-test.sh`によるテスト・コンパイル実行は不要（例: `.github/workflows/*.yml`のCI設定変更）。
 
 ## コンパイル
 編集パスに応じてMCPツールを使用。フォールバック時はunity-test.shに何にもマッチしない正規表現（例: `"^$"`）を渡してコンパイルのみ実行。
@@ -90,7 +91,7 @@ GameObjectはシーン/Prefabに事前配置前提とし、Awakeで_instanceを�
 }
 
 # 絶対に守る指示
-コードを書き終わったから必ずコンパイルを実行する
+コードを書き終わったら必ずコンパイルを実行する（ただし`*.yml` / `*.yaml`のみの編集タスクは除く）
 .metaファイルは絶対に手動作成しない。Unity自動生成のため。Unity起動で作成された.metaのコミットは可
 Prefab・シーン・ScriptableObject等のUnity固有ファイル（YAML形式）は直接編集禁止。ユーザーに編集を指示すること。
 Library/ディレクトリは絶対に削除禁止。再インポートに膨大な時間がかかるため
