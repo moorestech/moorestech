@@ -36,12 +36,16 @@ v2g vert(appdata input)
     //------------------------------------------------------------------------------------------------------------------------------
     // Invisible
     if(_Invisible) return output;
-
+    
     //------------------------------------------------------------------------------------------------------------------------------
     // Single Pass Instanced rendering
     LIL_SETUP_INSTANCE_ID(input);
     LIL_TRANSFER_INSTANCE_ID(input, output);
     LIL_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
+    //------------------------------------------------------------------------------------------------------------------------------
+    // Set up light color
+    LIL_FORCE_SCENE_LIGHT;
 
     //------------------------------------------------------------------------------------------------------------------------------
     // UV
@@ -50,7 +54,6 @@ v2g vert(appdata input)
 
     //------------------------------------------------------------------------------------------------------------------------------
     // Vertex Modification
-    #include "lil_vert_encryption.hlsl"
     lilCustomVertexOS(input, uvMain, input.positionOS);
 
     //------------------------------------------------------------------------------------------------------------------------------
@@ -61,7 +64,6 @@ v2g vert(appdata input)
             input.previousPositionOS -= input.precomputedVelocity;
         #endif
         #define LIL_MODIFY_PREVPOS
-        #include "lil_vert_encryption.hlsl"
         lilCustomVertexOS(input, uvMain, input.previousPositionOS);
         #undef LIL_MODIFY_PREVPOS
 
@@ -124,6 +126,18 @@ v2g vert(appdata input)
     LIL_CUSTOM_VERT_COPY
 
     //------------------------------------------------------------------------------------------------------------------------------
+    // UDIM Discard
+    #if defined(LIL_FEATURE_UDIMDISCARD) && !defined(LIL_LITE)
+        if(_UDIMDiscardMode == 0 && _UDIMDiscardCompile == 1 && LIL_CHECK_UDIMDISCARD(input)) // Discard Vertices instead of just pixels
+        {
+            #if defined(LIL_V2F_POSITION_CS)
+            output.positionWS = 0.0/0.0;
+            #endif
+            return output;
+        }
+    #endif
+    
+    //------------------------------------------------------------------------------------------------------------------------------
     // Fog & Lighting
     lilFragData fd = lilInitFragData();
     LIL_GET_HDRPDATA(vertexInput,fd);
@@ -137,7 +151,7 @@ v2g vert(appdata input)
         output.lightDirection   = lightdataInput.lightDirection;
     #endif
     #if defined(LIL_V2F_INDLIGHTCOLOR)
-        output.indLightColor    = lightdataInput.indLightColor * _ShadowEnvStrength;
+        output.indLightColor    = lightdataInput.indLightColor;
     #endif
     #if defined(LIL_V2G_SHADOW)
         LIL_TRANSFER_SHADOW(vertexInput, input.uv1, output);
@@ -219,7 +233,7 @@ v2g vert(appdata input)
             #endif
             default: idMaskArg = input.vertexID; break;
         }
-        bool idMasked = IDMask(idMaskArg,idMaskIndices,idMaskFlags);
+        bool idMasked = IDMask(idMaskArg,_IDMaskIsBitmap,idMaskIndices,idMaskFlags);
         #if defined(LIL_V2G_POSITION_WS)
             output.positionWS = idMasked ? 0.0/0.0 : output.positionWS;
         #endif
@@ -262,6 +276,9 @@ void AppendFur(inout TriangleStream<v2f> outStream, inout v2f output, v2g input[
     #if defined(LIL_V2F_NORMAL_WS)
         output.normalWS = lilLerp3(input[0].normalWS, input[1].normalWS, input[2].normalWS, factor);
     #endif
+    #if defined(LIL_V2F_LIGHTCOLOR) && (defined(LIL_FEATURE_LTCGI) || defined(LIL_FEATURE_VRCLIGHTVOLUMES) || defined(LIL_FEATURE_VRCLIGHTVOLUMES_WITHOUTPACKAGE)) && defined(LIL_PASS_FORWARD)
+        output.lightColor = lilLerp3(input[0].lightColor, input[1].lightColor, input[2].lightColor, factor);
+    #endif
     #if defined(LIL_V2F_VERTEXLIGHT_FOG) && !(!defined(LIL_USE_ADDITIONALLIGHT_VS) && defined(LIL_HDRP))
         output.vlf = lilLerp3(input[0].vlf, input[1].vlf, input[2].vlf, factor);
     #endif
@@ -285,13 +302,13 @@ void AppendFur(inout TriangleStream<v2f> outStream, inout v2f output, v2g input[
         // Clipping Canceller
         #if defined(UNITY_REVERSED_Z)
             // DirectX
-            if(output.positionCS.w < _ProjectionParams.y * 1.01 && output.positionCS.w > 0 && _ProjectionParams.y < LIL_NEARCLIP_THRESHOLD LIL_MULTI_SHOULD_CLIPPING)
+            if(output.positionCS.w < _ProjectionParams.y * 1.01 && output.positionCS.w > 0 && _ProjectionParams.y < LIL_NEARCLIP_THRESHOLD LIL_MULTI_SHOULD_CLIPPING && !LIL_IS_MIRROR)
             {
                 output.positionCS.z = output.positionCS.z * 0.0001 + output.positionCS.w * 0.999;
             }
         #else
             // OpenGL
-            if(output.positionCS.w < _ProjectionParams.y * 1.01 && output.positionCS.w > 0 && _ProjectionParams.y < LIL_NEARCLIP_THRESHOLD LIL_MULTI_SHOULD_CLIPPING)
+            if(output.positionCS.w < _ProjectionParams.y * 1.01 && output.positionCS.w > 0 && _ProjectionParams.y < LIL_NEARCLIP_THRESHOLD LIL_MULTI_SHOULD_CLIPPING && !LIL_IS_MIRROR)
             {
                 output.positionCS.z = output.positionCS.z * 0.0001 - output.positionCS.w * 0.999;
             }
@@ -329,13 +346,13 @@ void AppendFur(inout TriangleStream<v2f> outStream, inout v2f output, v2g input[
         // Clipping Canceller
         #if defined(UNITY_REVERSED_Z)
             // DirectX
-            if(output.positionCS.w < _ProjectionParams.y * 1.01 && output.positionCS.w > 0 && _ProjectionParams.y < LIL_NEARCLIP_THRESHOLD LIL_MULTI_SHOULD_CLIPPING)
+            if(output.positionCS.w < _ProjectionParams.y * 1.01 && output.positionCS.w > 0 && _ProjectionParams.y < LIL_NEARCLIP_THRESHOLD LIL_MULTI_SHOULD_CLIPPING && !LIL_IS_MIRROR)
             {
                 output.positionCS.z = output.positionCS.z * 0.0001 + output.positionCS.w * 0.999;
             }
         #else
             // OpenGL
-            if(output.positionCS.w < _ProjectionParams.y * 1.01 && output.positionCS.w > 0 && _ProjectionParams.y < LIL_NEARCLIP_THRESHOLD LIL_MULTI_SHOULD_CLIPPING)
+            if(output.positionCS.w < _ProjectionParams.y * 1.01 && output.positionCS.w > 0 && _ProjectionParams.y < LIL_NEARCLIP_THRESHOLD LIL_MULTI_SHOULD_CLIPPING && !LIL_IS_MIRROR)
             {
                 output.positionCS.z = output.positionCS.z * 0.0001 - output.positionCS.w * 0.999;
             }
@@ -436,60 +453,53 @@ void geom(triangle v2g input[3], inout TriangleStream<v2f> outStream)
         output.indLightColor = input[0].indLightColor;
     #endif
 
-    if(_FurMeshType)
-    {
-        #include "lil_common_vert_fur_thirdparty.hlsl"
-    }
-    else
-    {
-        float3 furVectors[3];
-        furVectors[0] = input[0].furVector;
-        furVectors[1] = input[1].furVector;
-        furVectors[2] = input[2].furVector;
-        #if !defined(LIL_NOT_SUPPORT_VERTEXID)
-            uint3 n0 = (input[0].vertexID * 3 + input[1].vertexID * 1 + input[2].vertexID * 1) * uint3(1597334677U, 3812015801U, 2912667907U);
-            uint3 n1 = (input[0].vertexID * 1 + input[1].vertexID * 3 + input[2].vertexID * 1) * uint3(1597334677U, 3812015801U, 2912667907U);
-            uint3 n2 = (input[0].vertexID * 1 + input[1].vertexID * 1 + input[2].vertexID * 3) * uint3(1597334677U, 3812015801U, 2912667907U);
-            float3 noise0 = normalize(float3(n0) * (2.0/float(0xffffffffU)) - 1.0);
-            float3 noise1 = normalize(float3(n1) * (2.0/float(0xffffffffU)) - 1.0);
-            float3 noise2 = normalize(float3(n2) * (2.0/float(0xffffffffU)) - 1.0);
-            furVectors[0] += noise0 * _FurVector.w * _FurRandomize;
-            furVectors[1] += noise1 * _FurVector.w * _FurRandomize;
-            furVectors[2] += noise2 * _FurVector.w * _FurRandomize;
-        #endif
-        #if defined(LIL_FEATURE_FurLengthMask)
-            furVectors[0] *= LIL_SAMPLE_2D_LOD(_FurLengthMask, lil_sampler_linear_repeat, input[0].uv0 * _MainTex_ST.xy + _MainTex_ST.zw, 0).r;
-            furVectors[1] *= LIL_SAMPLE_2D_LOD(_FurLengthMask, lil_sampler_linear_repeat, input[1].uv0 * _MainTex_ST.xy + _MainTex_ST.zw, 0).r;
-            furVectors[2] *= LIL_SAMPLE_2D_LOD(_FurLengthMask, lil_sampler_linear_repeat, input[2].uv0 * _MainTex_ST.xy + _MainTex_ST.zw, 0).r;
-        #endif
+    float3 furVectors[3];
+    furVectors[0] = input[0].furVector;
+    furVectors[1] = input[1].furVector;
+    furVectors[2] = input[2].furVector;
+    #if !defined(LIL_NOT_SUPPORT_VERTEXID)
+        uint3 n0 = (input[0].vertexID * 3 + input[1].vertexID * 1 + input[2].vertexID * 1) * uint3(1597334677U, 3812015801U, 2912667907U);
+        uint3 n1 = (input[0].vertexID * 1 + input[1].vertexID * 3 + input[2].vertexID * 1) * uint3(1597334677U, 3812015801U, 2912667907U);
+        uint3 n2 = (input[0].vertexID * 1 + input[1].vertexID * 1 + input[2].vertexID * 3) * uint3(1597334677U, 3812015801U, 2912667907U);
+        float3 noise0 = normalize(float3(n0) * (2.0/float(0xffffffffU)) - 1.0);
+        float3 noise1 = normalize(float3(n1) * (2.0/float(0xffffffffU)) - 1.0);
+        float3 noise2 = normalize(float3(n2) * (2.0/float(0xffffffffU)) - 1.0);
+        furVectors[0] += noise0 * _FurVector.w * _FurRandomize;
+        furVectors[1] += noise1 * _FurVector.w * _FurRandomize;
+        furVectors[2] += noise2 * _FurVector.w * _FurRandomize;
+    #endif
+    #if defined(LIL_FEATURE_FurLengthMask)
+        furVectors[0] *= LIL_SAMPLE_2D_LOD(_FurLengthMask, lil_sampler_linear_repeat, input[0].uv0 * _MainTex_ST.xy + _MainTex_ST.zw, 0).r;
+        furVectors[1] *= LIL_SAMPLE_2D_LOD(_FurLengthMask, lil_sampler_linear_repeat, input[1].uv0 * _MainTex_ST.xy + _MainTex_ST.zw, 0).r;
+        furVectors[2] *= LIL_SAMPLE_2D_LOD(_FurLengthMask, lil_sampler_linear_repeat, input[2].uv0 * _MainTex_ST.xy + _MainTex_ST.zw, 0).r;
+    #endif
 
-        if(_FurLayerNum == 1)
-        {
-            AppendFur(outStream, output, input, furVectors, float3(1.0, 0.0, 0.0) / 1.0);
-            AppendFur(outStream, output, input, furVectors, float3(0.0, 1.0, 0.0) / 1.0);
-            AppendFur(outStream, output, input, furVectors, float3(0.0, 0.0, 1.0) / 1.0);
-        }
-        else if(_FurLayerNum >= 2)
-        {
-            AppendFur(outStream, output, input, furVectors, float3(1.0, 0.0, 0.0) / 1.0);
-            AppendFur(outStream, output, input, furVectors, float3(0.0, 1.0, 1.0) / 2.0);
-            AppendFur(outStream, output, input, furVectors, float3(0.0, 1.0, 0.0) / 1.0);
-            AppendFur(outStream, output, input, furVectors, float3(1.0, 0.0, 1.0) / 2.0);
-            AppendFur(outStream, output, input, furVectors, float3(0.0, 0.0, 1.0) / 1.0);
-            AppendFur(outStream, output, input, furVectors, float3(1.0, 1.0, 0.0) / 2.0);
-        }
-        if(_FurLayerNum >= 3)
-        {
-            AppendFur(outStream, output, input, furVectors, float3(1.0, 4.0, 1.0) / 6.0);
-            AppendFur(outStream, output, input, furVectors, float3(0.0, 1.0, 1.0) / 2.0);
-            AppendFur(outStream, output, input, furVectors, float3(1.0, 1.0, 4.0) / 6.0);
-            AppendFur(outStream, output, input, furVectors, float3(1.0, 0.0, 1.0) / 2.0);
-            AppendFur(outStream, output, input, furVectors, float3(4.0, 1.0, 1.0) / 6.0);
-            AppendFur(outStream, output, input, furVectors, float3(1.0, 1.0, 0.0) / 2.0);
-        }
+    if(_FurLayerNum == 1)
+    {
         AppendFur(outStream, output, input, furVectors, float3(1.0, 0.0, 0.0) / 1.0);
-        outStream.RestartStrip();
+        AppendFur(outStream, output, input, furVectors, float3(0.0, 1.0, 0.0) / 1.0);
+        AppendFur(outStream, output, input, furVectors, float3(0.0, 0.0, 1.0) / 1.0);
     }
+    else if(_FurLayerNum >= 2)
+    {
+        AppendFur(outStream, output, input, furVectors, float3(1.0, 0.0, 0.0) / 1.0);
+        AppendFur(outStream, output, input, furVectors, float3(0.0, 1.0, 1.0) / 2.0);
+        AppendFur(outStream, output, input, furVectors, float3(0.0, 1.0, 0.0) / 1.0);
+        AppendFur(outStream, output, input, furVectors, float3(1.0, 0.0, 1.0) / 2.0);
+        AppendFur(outStream, output, input, furVectors, float3(0.0, 0.0, 1.0) / 1.0);
+        AppendFur(outStream, output, input, furVectors, float3(1.0, 1.0, 0.0) / 2.0);
+    }
+    if(_FurLayerNum >= 3)
+    {
+        AppendFur(outStream, output, input, furVectors, float3(1.0, 4.0, 1.0) / 6.0);
+        AppendFur(outStream, output, input, furVectors, float3(0.0, 1.0, 1.0) / 2.0);
+        AppendFur(outStream, output, input, furVectors, float3(1.0, 1.0, 4.0) / 6.0);
+        AppendFur(outStream, output, input, furVectors, float3(1.0, 0.0, 1.0) / 2.0);
+        AppendFur(outStream, output, input, furVectors, float3(4.0, 1.0, 1.0) / 6.0);
+        AppendFur(outStream, output, input, furVectors, float3(1.0, 1.0, 0.0) / 2.0);
+    }
+    AppendFur(outStream, output, input, furVectors, float3(1.0, 0.0, 0.0) / 1.0);
+    outStream.RestartStrip();
 }
 
 #endif

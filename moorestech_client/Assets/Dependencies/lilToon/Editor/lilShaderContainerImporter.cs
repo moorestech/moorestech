@@ -23,13 +23,19 @@ namespace lilToon
         {
             public override void OnImportAsset(AssetImportContext ctx)
             {
+                var source = lilShaderContainer.UnpackContainer(ctx.assetPath, ctx);
                 #if UNITY_2019_4_0 || UNITY_2019_4_1 || UNITY_2019_4_2 || UNITY_2019_4_3 || UNITY_2019_4_4 || UNITY_2019_4_5 || UNITY_2019_4_6 || UNITY_2019_4_7 || UNITY_2019_4_8 || UNITY_2019_4_9 || UNITY_2019_4_10
-                    var shader = ShaderUtil.CreateShaderAsset(lilShaderContainer.UnpackContainer(ctx.assetPath, ctx), false);
+                    var shader = ShaderUtil.CreateShaderAsset(source, false);
                 #else
-                    var shader = ShaderUtil.CreateShaderAsset(ctx, lilShaderContainer.UnpackContainer(ctx.assetPath, ctx), false);
+                    var shader = ShaderUtil.CreateShaderAsset(ctx, source, false);
                 #endif
 
+                var text = new TextAsset(source);
+                text.name = "Shader Source";
+                text.hideFlags = HideFlags.HideInHierarchy;
+
                 ctx.AddObjectToAsset("main obj", shader);
+                ctx.AddObjectToAsset("Shader Source", text);
                 ctx.SetMainObject(shader);
             }
         }
@@ -103,6 +109,7 @@ namespace lilToon
         private const string LIL_SUBSHADER_INSERT           = "*LIL_SUBSHADER_INSERT*";
         private const string LIL_SUBSHADER_INSERT_POST      = "*LIL_SUBSHADER_INSERT_POST*";
         private const string LIL_SHADER_SETTING             = "*LIL_SHADER_SETTING*";
+        private const string LIL_SHADER_SETTING_MULTI       = "*LIL_SHADER_SETTING_MULTI*";
         private const string LIL_SRP_VERSION                = "*LIL_SRP_VERSION*";
         private const string LIL_PASS_SHADER_NAME           = "*LIL_PASS_SHADER_NAME*";
         private const string LIL_SUBSHADER_TAGS             = "*LIL_SUBSHADER_TAGS*";
@@ -140,7 +147,7 @@ namespace lilToon
         private const string LIL_LIGHTMODE_URP_9_FORWARD_0  = "SRPDefaultUnlit";
         private const string LIL_LIGHTMODE_URP_9_FORWARD_1  = "UniversalForward";
         private const string LIL_LIGHTMODE_URP_9_FORWARD_2  = "UniversalForwardOnly";
-
+        
         private const string csdShaderNameTag                   = "ShaderName";
         private const string csdEditorNameTag                   = "EditorName";
         private const string csdReplaceTag                      = "Replace";
@@ -160,6 +167,7 @@ namespace lilToon
         private static string insertText = "";
         private static string insertPostText = "";
         private static string shaderSettingText = "";
+        private static string shaderSettingMultiText = "";
         private static string resourcesFolderPath = "";
         private static string assetFolderPath = "";
         private static string shaderLibsPath = "";
@@ -175,6 +183,8 @@ namespace lilToon
         private static string insertPassPost = "";
         private static string insertUsePassPre = "";
         private static string insertUsePassPost = "";
+
+        private static string insertUsePassReference = "";
 
         private static PackageVersionInfos version = new PackageVersionInfos();
         private static int indent = 12;
@@ -192,6 +202,7 @@ namespace lilToon
             shaderLibsPath = lilDirectoryManager.GetShaderFolderPath() + "/Includes";
             assetName = Path.GetFileName(assetPath);
             shaderSettingText = BuildShaderSettingString(false, ref useBaseShadow, ref useOutlineShadow).Replace(Environment.NewLine, Environment.NewLine + "            ");
+            shaderSettingMultiText = lilToonSetting.BuildShaderSettingStringMulti().Replace(Environment.NewLine, Environment.NewLine + "            ");
             shaderName = "";
             editorName = "";
             origShaderName = "";
@@ -199,6 +210,9 @@ namespace lilToon
             insertPassPost = "";
             insertUsePassPre = "";
             insertUsePassPost = "";
+            insertUsePassReference = File.ReadAllText(
+                GetCustomShaderResourcesFolderPath() + "/Misc/ReferenceUVs.lilblock"
+            );
             isOrigShaderNameLoaded = false;
             replaces = new Dictionary<string, string>();
 
@@ -236,6 +250,8 @@ namespace lilToon
             ReplaceMultiCompiles(ref insertPassPost, version, indent, false);
             ReplaceMultiCompiles(ref insertUsePassPre, version, indent, false);
             ReplaceMultiCompiles(ref insertUsePassPost, version, indent, false);
+            insertUsePassPost += insertUsePassReference;
+                
             sb.Replace(LIL_INSERT_PASS_PRE,         insertPassPre);
             sb.Replace(LIL_INSERT_PASS_POST,        insertPassPost);
             sb.Replace(LIL_INSERT_USEPASS_PRE,      insertUsePassPre);
@@ -245,6 +261,7 @@ namespace lilToon
             sb.Replace(LIL_SUBSHADER_INSERT,        insertText);
             sb.Replace(LIL_SUBSHADER_INSERT_POST,   insertPostText);
             sb.Replace(LIL_SHADER_SETTING,          shaderSettingText);
+            sb.Replace(LIL_SHADER_SETTING_MULTI,    shaderSettingMultiText);
             if(version.RP != lilRenderPipeline.BRP && version.Major > 0)
             {
                 sb.Replace(
@@ -376,7 +393,7 @@ namespace lilToon
                 !assetName.Contains("ltspass_lite") &&
                 !assetName.Contains("ltsl") &&
                 !assetName.Contains("fakeshadow") &&
-                File.Exists(lilDirectoryManager.postBuildTempPath)
+                !string.IsNullOrEmpty(lilEditorParameters.instance.modifiedShaders)
             )
             {
                 string pathOpt = AssetDatabase.GUIDToAssetPath("571051a232e4af44a98389bda858df27");
@@ -427,7 +444,7 @@ namespace lilToon
 
         public static string UnpackContainer(string assetPath, AssetImportContext ctx = null)
         {
-            bool doOptimize = File.Exists(lilDirectoryManager.postBuildTempPath);
+            bool doOptimize = !string.IsNullOrEmpty(lilEditorParameters.instance.modifiedShaders);
             return UnpackContainer(assetPath, ctx, doOptimize);
         }
 
@@ -816,6 +833,9 @@ namespace lilToon
             }
 
             subShaderTags = line.Substring(first, second - first);
+            #if LILTOON_LTCGI
+            subShaderTags += " \"LTCGI\"=\"ALWAYS\"";
+            #endif
         }
 
         private static string ReadTextFile(string path)
@@ -1027,6 +1047,32 @@ namespace lilToon
             }
             else if(version.RP == lilRenderPipeline.URP)
             {
+                if(version.Major >= 17)
+                {
+                    return GenerateIndentText(indent,
+                        "#pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN",
+                        "#pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS",
+                        "#pragma multi_compile _ PROBE_VOLUMES_L1 PROBE_VOLUMES_L2",
+                        // Always calculate in vertex shader
+                        //"#pragma multi_compile _ EVALUATE_SH_MIXED EVALUATE_SH_VERTEX",
+                        "#pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS",
+                        "#pragma multi_compile_fragment _ _REFLECTION_PROBE_BLENDING",
+                        "#pragma multi_compile_fragment _ _REFLECTION_PROBE_BOX_PROJECTION",
+                        "#pragma multi_compile_fragment _ _SHADOWS_SOFT",
+                        "#pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION",
+                        "#pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3",
+                        "#pragma multi_compile _ _LIGHT_LAYERS",
+                        "#pragma multi_compile_fragment _ _LIGHT_COOKIES",
+                        "#pragma multi_compile _ _CLUSTER_LIGHT_LOOP",
+                        "#pragma multi_compile _ LIGHTMAP_SHADOW_MIXING",
+                        "#pragma multi_compile _ SHADOWS_SHADOWMASK",
+                        "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
+                        "#pragma multi_compile _ LIGHTMAP_ON",
+                        "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
+                        "#pragma multi_compile_vertex _ FOG_LINEAR FOG_EXP FOG_EXP2",
+                        "#pragma multi_compile_instancing",
+                        "#define LIL_PASS_FORWARD");
+                }
                 if(version.Major >= 16)
                 {
                     return GenerateIndentText(indent,
@@ -1205,6 +1251,9 @@ namespace lilToon
                     "#pragma multi_compile_fwdbase",
                     "#pragma multi_compile_vertex _ FOG_LINEAR FOG_EXP FOG_EXP2",
                     "#pragma multi_compile_instancing",
+                    #if LILTOON_LTCGI
+                    "#define LIL_FEATURE_LTCGI",
+                    #endif
                     "#define LIL_PASS_FORWARD");
             }
         }
@@ -1554,7 +1603,8 @@ namespace lilToon
 
         private static string GetSkipVariantsProbeVolumes()
         {
-            return "#pragma skip_variants PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2";
+            return "";
+            //return "#pragma skip_variants PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2";
         }
 
         private static string GetSkipVariantsAO()

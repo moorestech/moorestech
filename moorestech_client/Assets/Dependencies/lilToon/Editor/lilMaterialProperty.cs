@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace lilToon
 {
     internal class lilMaterialProperty
     {
         public MaterialProperty p;
-        public List<PropertyBlock> blocks;
+        public HashSet<PropertyBlock> blocks;
         public string propertyName;
         public bool isTexture;
 
@@ -50,12 +51,6 @@ namespace lilToon
             private set { }
         }
 
-        public UnityEngine.Rendering.ShaderPropertyFlags flags
-        {
-            get { return p.propertyFlags; }
-            private set { }
-        }
-
         public bool hasMixedValue
         {
             get { return p.hasMixedValue; }
@@ -74,15 +69,31 @@ namespace lilToon
             private set { }
         }
 
-        public UnityEngine.Rendering.TextureDimension textureDimension
+        public TextureDimension textureDimension
         {
             get { return p.textureDimension; }
             private set { }
         }
 
-        public UnityEngine.Rendering.ShaderPropertyType type
+        public ShaderPropertyType propertyType
         {
+#if UNITY_6000_1_OR_NEWER
             get { return p.propertyType; }
+#else
+            get
+            {
+                return p.type switch
+                {
+                    MaterialProperty.PropType.Color => ShaderPropertyType.Color,
+                    MaterialProperty.PropType.Vector => ShaderPropertyType.Vector,
+                    MaterialProperty.PropType.Float => ShaderPropertyType.Float,
+                    MaterialProperty.PropType.Range => ShaderPropertyType.Range,
+                    MaterialProperty.PropType.Texture => ShaderPropertyType.Texture,
+                    MaterialProperty.PropType.Int => ShaderPropertyType.Int,
+                    _ => ShaderPropertyType.Float,
+                };
+            }
+#endif
             private set { }
         }
 
@@ -94,7 +105,7 @@ namespace lilToon
         public lilMaterialProperty()
         {
             p = null;
-            blocks = new List<PropertyBlock>();
+            blocks = new HashSet<PropertyBlock>();
             isTexture = false;
             propertyName = null;
         }
@@ -102,7 +113,7 @@ namespace lilToon
         public lilMaterialProperty(string name, params PropertyBlock[] inBrocks)
         {
             p = null;
-            blocks = inBrocks.ToList();
+            blocks = new HashSet<PropertyBlock>(inBrocks);
             isTexture = false;
             propertyName = name;
         }
@@ -110,7 +121,7 @@ namespace lilToon
         public lilMaterialProperty(string name, bool isTex, params PropertyBlock[] inBrocks)
         {
             p = null;
-            blocks = inBrocks.ToList();
+            blocks = new HashSet<PropertyBlock>(inBrocks);
             isTexture = isTex;
             propertyName = name;
         }

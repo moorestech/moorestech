@@ -2,10 +2,6 @@
 #define LIL_REPLACE_KEYWORDS_INCLUDED
 
 //----------------------------------------------------------------------------------------------------------------------
-// AvatarEncryption
-//#define LIL_FEATURE_ENCRYPTION
-
-//----------------------------------------------------------------------------------------------------------------------
 // Ignore shader setting
 #define LIL_IGNORE_SHADERSETTING
 
@@ -25,6 +21,7 @@
 // _COLOROVERLAY_ON                     LIL_FEATURE_ALPHAMASK
 // ------------------------------------ --------------------------------------------------------------------------------
 // _REQUIRE_UV2                         LIL_FEATURE_SHADOW
+// AUTO_KEY_VALUE                       LIL_FEATURE_RIMSHADE
 // ANTI_FLICKER                         LIL_FEATURE_BACKLIGHT
 // _EMISSION                            LIL_FEATURE_EMISSION_1ST
 // GEOM_TYPE_BRANCH                     LIL_FEATURE_EMISSION_2ND
@@ -110,6 +107,11 @@
 #if defined(_REQUIRE_UV2)
     #define LIL_FEATURE_SHADOW
     #undef _REQUIRE_UV2
+#endif
+
+#if defined(AUTO_KEY_VALUE)
+    #define LIL_FEATURE_RIMSHADE
+    #undef AUTO_KEY_VALUE
 #endif
 
 #if defined(ANTI_FLICKER)
@@ -239,6 +241,7 @@
 #define LIL_FEATURE_AUDIOLINK_VERTEX
 #define LIL_FEATURE_CLIPPING_CANCELLER
 #define LIL_FEATURE_IDMASK
+#define LIL_FEATURE_UDIMDISCARD
 #define LIL_FEATURE_ANIMATE_OUTLINE_UV
 #define LIL_FEATURE_OUTLINE_RECEIVE_SHADOW
 #define LIL_FEATURE_FUR_COLLISION
@@ -266,6 +269,7 @@
 #define LIL_FEATURE_ShadowColorTex
 #define LIL_FEATURE_Shadow2ndColorTex
 #define LIL_FEATURE_Shadow3rdColorTex
+#define LIL_FEATURE_RimShadeMask
 #define LIL_FEATURE_BacklightColorTex
 #define LIL_FEATURE_SmoothnessTex
 #define LIL_FEATURE_MetallicGlossMap

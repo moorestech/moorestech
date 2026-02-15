@@ -17,13 +17,11 @@
 // v2g
 #define LIL_V2G_TEXCOORD0
 #define LIL_V2G_POSITION_WS
-#if defined(LIL_V2G_FORCE_NORMAL_WS) || defined(LIL_SHOULD_NORMAL)
-    #define LIL_V2G_NORMAL_WS
-#endif
+#define LIL_V2G_NORMAL_WS
 #if !defined(LIL_PASS_FORWARDADD)
     #define LIL_V2G_LIGHTCOLOR
     #define LIL_V2G_LIGHTDIRECTION
-    #if defined(LIL_FEATURE_SHADOW)
+    #if defined(LIL_FEATURE_SHADOW) && (defined(LIL_BRP) || defined(LIL_HDRP))
         #define LIL_V2G_INDLIGHTCOLOR
     #endif
 #endif
@@ -33,19 +31,14 @@
 
 // g2f
 #define LIL_V2F_POSITION_CS
+#define LIL_V2F_POSITION_WS
 #define LIL_V2F_TEXCOORD0
+#define LIL_V2F_NORMAL_WS
 
-#if defined(LIL_V2F_FORCE_POSITION_WS) || defined(LIL_PASS_FORWARDADD) || defined(LIL_FEATURE_DISTANCE_FADE) || !defined(LIL_BRP) || defined(LIL_USE_LPPV)
-    #define LIL_V2F_POSITION_WS
-#endif
-
-#if defined(LIL_V2F_FORCE_NORMAL_WS) || defined(LIL_SHOULD_NORMAL)
-    #define LIL_V2F_NORMAL_WS
-#endif
 #if !defined(LIL_PASS_FORWARDADD)
     #define LIL_V2F_LIGHTCOLOR
     #define LIL_V2F_LIGHTDIRECTION
-    #if defined(LIL_FEATURE_SHADOW)
+    #if defined(LIL_BRP) || defined(LIL_HDRP)
         #define LIL_V2F_INDLIGHTCOLOR
     #endif
 #endif
@@ -58,9 +51,7 @@ struct v2g
     float3 positionWS   : TEXCOORD1;
     float3 furVector    : TEXCOORD2;
     uint vertexID       : TEXCOORD3;
-    #if defined(LIL_V2G_NORMAL_WS)
-        float3 normalWS     : TEXCOORD4;
-    #endif
+    float3 normalWS     : TEXCOORD4;
     LIL_LIGHTCOLOR_COORDS(5)
     LIL_LIGHTDIRECTION_COORDS(6)
     LIL_INDLIGHTCOLOR_COORDS(7)
@@ -74,12 +65,8 @@ struct v2f
 {
     float4 positionCS   : SV_POSITION;
     float2 uv0          : TEXCOORD0;
-    #if defined(LIL_V2F_POSITION_WS)
-        float3 positionWS   : TEXCOORD1;
-    #endif
-    #if defined(LIL_V2F_NORMAL_WS)
-        LIL_VECTOR_INTERPOLATION float3 normalWS     : TEXCOORD2;
-    #endif
+    float3 positionWS   : TEXCOORD1;
+    LIL_VECTOR_INTERPOLATION float3 normalWS     : TEXCOORD2;
     float furLayer      : TEXCOORD3;
     LIL_LIGHTCOLOR_COORDS(4)
     LIL_LIGHTDIRECTION_COORDS(5)
@@ -99,9 +86,32 @@ float4 frag(v2f input) : SV_Target
 {
     //------------------------------------------------------------------------------------------------------------------------------
     // Initialize
+    LIL_FORCE_SCENE_LIGHT;
     LIL_SETUP_INSTANCE_ID(input);
     LIL_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
     lilFragData fd = lilInitFragData();
+
+    // For VRCLV
+    #if defined(LIL_BRP) && defined(LIL_PASS_FORWARD) && defined(VRC_LIGHT_VOLUMES_INCLUDED) && (defined(LIL_INPUT_OPTIMIZED) || defined(LIL_MULTI))
+        if(_UdonLightVolumeEnabled)
+        {
+            lilVertexPositionInputs vertexInput = lilGetVertexPositionInputsFromWS(input.positionWS);
+            lilVertexNormalInputs vertexNormalInput = lilGetVertexNormalInputsFromWS(input.normalWS);
+            LIL_UNPACK_TEXCOORD1(input,fd);
+            #define input fd
+            LIL_CALC_MAINLIGHT(vertexInput, lightdataInput);
+            #undef input
+            #if defined(LIL_V2F_LIGHTCOLOR)
+                input.lightColor     = lightdataInput.lightColor;
+            #endif
+            #if defined(LIL_V2F_LIGHTDIRECTION)
+                input.lightDirection = lightdataInput.lightDirection;
+            #endif
+            #if defined(LIL_V2F_INDLIGHTCOLOR)
+                input.indLightColor  = lightdataInput.indLightColor;
+            #endif
+        }
+    #endif
 
     BEFORE_UNPACK_V2F
     OVERRIDE_UNPACK_V2F
@@ -109,6 +119,7 @@ float4 frag(v2f input) : SV_Target
     #if defined(LIL_V2F_SHADOW) || defined(LIL_PASS_FORWARDADD)
         LIL_LIGHT_ATTENUATION(fd.attenuation, input);
     #endif
+
     LIL_GET_LIGHTING_DATA(input,fd);
 
     //------------------------------------------------------------------------------------------------------------------------------
@@ -155,12 +166,28 @@ float4 frag(v2f input) : SV_Target
         clip(fd.col.a - _Cutoff);
     #endif
 
+    fd.origN = normalize(input.normalWS);
+    fd.N = normalize(input.normalWS);
+    fd.ln = dot(fd.L, fd.N);
+
+    #if defined(LIL_BRP) && defined(LIL_PASS_FORWARD) && defined(VRC_LIGHT_VOLUMES_INCLUDED)
+    if(_UdonLightVolumeEnabled)
+    {
+        LIL_CORRECT_LIGHTCOLOR_PS(fd.indLightColor);
+        LIL_CORRECT_LIGHTCOLOR_VS(fd.indLightColor);
+        float borderMin = _EnvRimBorder - _EnvRimBlur * 0.5;
+        float borderMax = _EnvRimBorder + _EnvRimBlur * 0.5;
+        float fakerim = saturate((fd.ln - fd.vl - borderMin) / saturate(borderMax - borderMin + fwidth(fd.ln - fd.vl) * _AAStrength));
+        fd.lightColor += saturate(fd.indLightColor - fd.lightColor) * fakerim;
+        fd.indLightColor = 0;
+    }
+    #endif
+
     BEFORE_SHADOW
     #ifndef LIL_PASS_FORWARDADD
         //------------------------------------------------------------------------------------------------------------------------------
         // Lighting
         #if defined(LIL_FEATURE_SHADOW)
-            fd.N = normalize(input.normalWS);
             fd.ln = dot(fd.L, fd.N);
             OVERRIDE_SHADOW
             fd.col.rgb += fd.albedo * fd.addLightColor;
@@ -170,7 +197,6 @@ float4 frag(v2f input) : SV_Target
         #endif
     #else
         #if defined(LIL_FEATURE_SHADOW) && defined(LIL_OPTIMIZE_APPLY_SHADOW_FA)
-            fd.N = normalize(input.normalWS);
             fd.ln = dot(fd.L, fd.N);
             OVERRIDE_SHADOW
         #else
@@ -181,6 +207,15 @@ float4 frag(v2f input) : SV_Target
             fd.col.rgb *= saturate(fd.col.a * _AlphaBoostFA);
         #endif
     #endif
+
+    //------------------------------------------------------------------------------------------------------------------------------
+    // Rim Shade
+    BEFORE_RIMSHADE
+    #if defined(LIL_FEATURE_RIMSHADE)
+        OVERRIDE_RIMSHADE
+    #endif
+
+    fd.col.rgb += input.furLayer * pow(saturate(1-abs(dot(normalize(fd.N), fd.V))), _FurRimFresnelPower) * lerp(1,lilGray(fd.invLighting), _FurRimAntiLight) * _FurRimColor.rgb * fd.lightColor;
 
     //------------------------------------------------------------------------------------------------------------------------------
     // Distance Fade

@@ -17,16 +17,19 @@ namespace lilToon
 {
     public static class lilToonEditorUtils
     {
+        #pragma warning disable CS0612
         //------------------------------------------------------------------------------------------------------------------------------
         // Constant
         private const string menuPathAssets                 = "Assets/lilToon/";
         private const string menuPathGameObject             = "GameObject/lilToon/";
         private const string menuPathRefreshShaders         = menuPathAssets + "[Shader] Refresh shaders";
         private const string menuPathRemoveUnusedProperties = menuPathAssets + "[Material] Remove unused properties";
+        private const string menuPathRunMigration           = menuPathAssets + "[Material] Run migration";
         private const string menuPathConvertNormal          = menuPathAssets + "[Texture] Convert normal map (DirectX <-> OpenGL)";
         private const string menuPathPixelArtReduction      = menuPathAssets + "[Texture] Pixel art reduction";
         private const string menuPathConvertGifToAtlas      = menuPathAssets + "[Texture] Convert Gif to Atlas";
         private const string menuPathConvertLUTToPNG        = menuPathAssets + "[Texture] Convert LUT to PNG";
+        private const string menuPathGenerateRamp           = menuPathAssets + "[Texture] Generate Ramp";
         private const string menuPathSetupFromFBX           = menuPathAssets + "[Model] Setup from FBX";
         private const string menuPathFixLighting            = menuPathGameObject + "[GameObject] Fix lighting";
 
@@ -34,11 +37,13 @@ namespace lilToon
         private const int menuPriorityGameObject = 21; // This must be 21 or less
         private const int menuPriorityRefreshShaders            = menuPriorityAssets + 0;
         private const int menuPriorityRemoveUnusedProperties    = menuPriorityAssets + 20;
-        private const int menuPriorityConvertNormal             = menuPriorityAssets + 21;
-        private const int menuPriorityPixelArtReduction         = menuPriorityAssets + 22;
-        private const int menuPriorityConvertGifToAtlas         = menuPriorityAssets + 23;
-        private const int menuPriorityConvertLUTToPNG           = menuPriorityAssets + 24;
-        private const int menuPrioritySetupFromFBX              = menuPriorityAssets + 25;
+        private const int menuPriorityRunMigration              = menuPriorityAssets + 21;
+        private const int menuPriorityConvertNormal             = menuPriorityAssets + 22;
+        private const int menuPriorityPixelArtReduction         = menuPriorityAssets + 23;
+        private const int menuPriorityConvertGifToAtlas         = menuPriorityAssets + 24;
+        private const int menuPriorityConvertLUTToPNG           = menuPriorityAssets + 25;
+        private const int menuPriorityGenerateRamp              = menuPriorityAssets + 26;
+        private const int menuPrioritySetupFromFBX              = menuPriorityAssets + 27;
         private const int menuPriorityFixLighting               = menuPriorityGameObject;
 
         private const string anchorName = "AutoAnchorObject";
@@ -48,7 +53,7 @@ namespace lilToon
         [MenuItem(menuPathRefreshShaders, false, menuPriorityRefreshShaders)]
         private static void RefreshShaders()
         {
-            if(File.Exists(lilDirectoryManager.postBuildTempPath)) File.Delete(lilDirectoryManager.postBuildTempPath);
+            lilEditorParameters.instance.modifiedShaders = "";
             lilToonSetting shaderSetting = null;
             lilToonSetting.InitializeShaderSetting(ref shaderSetting);
             if(shaderSetting.isDebugOptimize)
@@ -85,6 +90,15 @@ namespace lilToon
         private static bool CheckRemoveUnusedProperties()
         {
             return CheckExtension(".mat");
+        }
+
+        //------------------------------------------------------------------------------------------------------------------------------
+        // Assets/lilToon/Run migration
+        [MenuItem(menuPathRunMigration, false, menuPriorityRunMigration)]
+        private static void RunMigration()
+        {
+            lilStartup.MigrateMaterials();
+            EditorUtility.DisplayDialog("[lilToon] Run migration",GetLoc("sComplete"),GetLoc("sOK"));
         }
 
         //------------------------------------------------------------------------------------------------------------------------------
@@ -148,6 +162,24 @@ namespace lilToon
         private static bool CheckConvertLUTToPNG()
         {
             return CheckExtension(".cube");
+        }
+
+        //------------------------------------------------------------------------------------------------------------------------------
+        // Assets/lilToon/Generate Ramp
+        [MenuItem(menuPathGenerateRamp, false, menuPriorityGenerateRamp)]
+        private static void GenerateRamp()
+        {
+            foreach (var o in Selection.objects)
+            {
+                if(o is not Material m || !lilMaterialUtils.CheckShaderIslilToon(m)) continue;
+                    lilToon2Ramp.ConvertAndSave(m);
+            }
+        }
+
+        [MenuItem(menuPathGenerateRamp, true, menuPriorityGenerateRamp)]
+        private static bool CheckGenerateRamp()
+        {
+            return CheckExtension(".mat");
         }
 
         //------------------------------------------------------------------------------------------------------------------------------
@@ -330,7 +362,7 @@ namespace lilToon
             else if(materialLowerName.Contains("hair"))                                         lilToonPreset.ApplyPreset(material, presetHair, false);
             else                                                                                lilToonPreset.ApplyPreset(material, presetCloth, false);
 
-            bool isOutl = material.shader.name.Contains("Outline");
+            bool isOutl = lilShaderUtils.IsOutlineShaderName(material.shader.name);
 
             if(!material.HasProperty("_ShadowStrengthMask") || material.GetTexture("_ShadowStrengthMask") == null)
             {
@@ -597,10 +629,17 @@ namespace lilToon
             sb.AppendLine();
 
             sb.AppendLine("# SRP Information");
-            if(GraphicsSettings.defaultRenderPipeline != null)
+#if UNITY_6000_0_OR_NEWER
+            if (GraphicsSettings.defaultRenderPipeline != null)
             {
                 sb.AppendLine("Current RP: " + GraphicsSettings.defaultRenderPipeline.ToString());
             }
+#else
+            if (GraphicsSettings.renderPipelineAsset != null)
+            {
+                sb.AppendLine("Current RP: " + GraphicsSettings.renderPipelineAsset.ToString());
+            }
+#endif
             else
             {
                 sb.AppendLine("Current RP: " + "Built-in Render Pipeline");
@@ -723,106 +762,10 @@ namespace lilToon
                    assetPath.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase);
         }
 
-        public static string GetLoc(string value) { return lilLanguageManager.GetLoc(value); }
+        private static string GetLoc(string value) { return lilLanguageManager.GetLoc(value); }
     }
 
 #if LILTOON_DISABLE_ASSET_MODIFICATION == false
-#if UNITY_2019_3_OR_NEWER
-    //------------------------------------------------------------------------------------------------------------------------------
-    // Build size optimization
-    public class lilToonPreprocessShaders : IPreprocessShaders
-    {
-        public int callbackOrder { get { return default(int); } }
-
-        public void OnProcessShader(Shader shader, ShaderSnippetData snippet, IList<ShaderCompilerData> data)
-        {
-            if(!shader.name.Contains("lilToon") && !shader.name.Contains("ltspass")) return;
-
-            var lilRP = lilRenderPipelineReader.GetRP();
-            if(lilRP != lilRenderPipeline.BRP) return; // Avoid conflicts with custom render pipelines
-
-            if(shader.name.Contains("lilToonMulti"))
-            {
-                var keywords = GatherKeywords(shader, data);
-                var materials = GatherMaterials(shader);
-
-                for(int i = data.Count - 1; i >= 0; i--)
-                {
-                    //bool isMatch = false;
-                    if(ShouldRemoveShadowsScreen(shader, data[i].shaderKeywordSet, lilRP))
-                    {
-                        data.RemoveAt(i);
-                        continue;
-                    }
-                }
-            }
-        }
-
-        private Material[] GatherMaterials(Shader shader)
-        {
-            return lilDirectoryManager.FindAssets<Material>("t:material").Where(m => m.shader == shader).ToArray();
-        }
-
-        private bool IsMatchKeywords(Material material, ShaderKeywordSet shaderKeywordSet, Shader shader, string[] keywords)
-        {
-            foreach(var keyword in keywords)
-            {
-                bool materialHasKeyword = Array.IndexOf(material.shaderKeywords, keyword) >= 0;
-                var keyword2 = new ShaderKeyword(shader, keyword);
-                if(materialHasKeyword && shaderKeywordSet.IsEnabled(keyword2))
-                {
-                    continue;
-                }
-                if(!materialHasKeyword && !shaderKeywordSet.IsEnabled(keyword2))
-                {
-                    continue;
-                }
-                return false;
-            }
-            return true;
-        }
-
-        private bool ShouldRemoveShadowsScreen(Shader shader, ShaderKeywordSet shaderKeywordSet, lilRenderPipeline RP)
-        {
-            var _REQUIRE_UV2 = new ShaderKeyword(shader, "_REQUIRE_UV2");
-            var ANTI_FLICKER = new ShaderKeyword(shader, "ANTI_FLICKER");
-            if(shaderKeywordSet.IsEnabled(_REQUIRE_UV2) || shaderKeywordSet.IsEnabled(ANTI_FLICKER)) return false;
-            if(RP == lilRenderPipeline.BRP)
-            {
-                var SHADOWS_SCREEN                = new ShaderKeyword(shader, "SHADOWS_SCREEN");
-                return shaderKeywordSet.IsEnabled(SHADOWS_SCREEN);
-            }
-            else if(RP == lilRenderPipeline.LWRP || RP == lilRenderPipeline.URP)
-            {
-                var _MAIN_LIGHT_SHADOWS           = new ShaderKeyword(shader, "_MAIN_LIGHT_SHADOWS");
-                var _MAIN_LIGHT_SHADOWS_CASCADE   = new ShaderKeyword(shader, "_MAIN_LIGHT_SHADOWS_CASCADE");
-                var _MAIN_LIGHT_SHADOWS_SCREEN    = new ShaderKeyword(shader, "_MAIN_LIGHT_SHADOWS_SCREEN");
-                var _SHADOWS_SOFT                 = new ShaderKeyword(shader, "_SHADOWS_SOFT");
-                return shaderKeywordSet.IsEnabled(_MAIN_LIGHT_SHADOWS) || shaderKeywordSet.IsEnabled(_MAIN_LIGHT_SHADOWS_CASCADE) || shaderKeywordSet.IsEnabled(_MAIN_LIGHT_SHADOWS_SCREEN) || shaderKeywordSet.IsEnabled(_SHADOWS_SOFT);
-            }
-            else if(RP == lilRenderPipeline.HDRP)
-            {
-                var SCREEN_SPACE_SHADOWS_OFF      = new ShaderKeyword(shader, "SCREEN_SPACE_SHADOWS_OFF");
-                var SCREEN_SPACE_SHADOWS_ON       = new ShaderKeyword(shader, "SCREEN_SPACE_SHADOWS_ON");
-                var SHADOW_LOW                    = new ShaderKeyword(shader, "SHADOW_LOW");
-                var SHADOW_MEDIUM                 = new ShaderKeyword(shader, "SHADOW_MEDIUM");
-                var SHADOW_HIGH                   = new ShaderKeyword(shader, "SHADOW_HIGH");
-                return shaderKeywordSet.IsEnabled(SCREEN_SPACE_SHADOWS_OFF) || shaderKeywordSet.IsEnabled(SCREEN_SPACE_SHADOWS_ON) || shaderKeywordSet.IsEnabled(SHADOW_LOW) || shaderKeywordSet.IsEnabled(SHADOW_MEDIUM) || shaderKeywordSet.IsEnabled(SHADOW_HIGH);
-            }
-            return false;
-        }
-
-        private string[] GatherKeywords(Shader shader, IList<ShaderCompilerData> data)
-        {
-            #if UNITY_2021_2_OR_NEWER
-                return data.SelectMany(p => p.shaderKeywordSet.GetShaderKeywords()).Where(k => ShaderKeyword.IsKeywordLocal(k)).Select(k => k.name).Distinct().ToArray();
-            #else
-                return data.SelectMany(p => p.shaderKeywordSet.GetShaderKeywords()).Where(k => ShaderKeyword.IsKeywordLocal(k)).Select(k => ShaderKeyword.GetKeywordName(shader, k)).Distinct().ToArray();
-            #endif
-        }
-    }
-#endif
-
     public class lilToonBuildProcessor : IPreprocessBuildWithReport, IPostprocessBuildWithReport
     {
         public int callbackOrder { get { return 100; } }
