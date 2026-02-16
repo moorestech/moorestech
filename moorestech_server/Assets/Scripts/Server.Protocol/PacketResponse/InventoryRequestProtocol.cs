@@ -84,8 +84,8 @@ namespace Server.Protocol.PacketResponse
                 
                 // 列車カーのインベントリを生成
                 // Build the train car inventory
-                var items = trainCar.EnumerateInventory().Select(slot => new ItemMessagePack(slot.item)).ToArray();
-                return new ResponseInventoryRequestProtocolMessagePack(InventoryType.Train, identifier, items);
+                // TODO: インベントリを持つContainerの場合はそれを送るようにする
+                return new ResponseInventoryRequestProtocolMessagePack(InventoryType.Train, identifier, Array.Empty<IItemStack>());
             }
             
             #endregion
