@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Game.Train.RailGraph;
 using Game.Train.Unit;
 using MessagePack;
@@ -62,13 +61,13 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(RemoveTrainCarProtocol.ProtocolTag, new RemoveTrainCarProtocol(trainUpdateService));
         }
         
-        public List<List<byte>> GetPacketResponse(List<byte> payload)
+        public List<byte[]> GetPacketResponse(byte[] payload)
         {
             ProtocolMessagePackBase request = null;
             ProtocolMessagePackBase response = null;
             try
             {
-                request = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(payload.ToArray());
+                request = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(payload);
                 response = _packetResponseDictionary[request.Tag].GetResponse(payload);
             }
             catch (Exception e)
@@ -76,13 +75,13 @@ namespace Server.Protocol
                 // TODO ログ基盤
                 Debug.LogError($"PacketResponseCreator Error:{e.Message}\n{e.StackTrace}");
             }
-            
-            if (response == null) return new List<List<byte>>();
-            
+
+            if (response == null) return new List<byte[]>();
+
             response.SequenceId = request.SequenceId;
             var responseBytes = MessagePackSerializer.Serialize(Convert.ChangeType(response, response.GetType()));
-            
-            return new List<List<byte>> { responseBytes.ToList() };
+
+            return new List<byte[]> { responseBytes };
         }
     }
 }

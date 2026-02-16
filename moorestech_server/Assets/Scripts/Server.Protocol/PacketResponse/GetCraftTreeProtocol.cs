@@ -16,9 +16,9 @@ namespace Server.Protocol.PacketResponse
             _craftTreeManager = serviceProvider.GetService<CraftTreeManager>();
         }
         
-        public ProtocolMessagePackBase GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload)
         {
-            var data = MessagePackSerializer.Deserialize<RequestGetCraftTreeMessagePack>(payload.ToArray());
+            var data = MessagePackSerializer.Deserialize<RequestGetCraftTreeMessagePack>(payload);
             
             // プレイヤーIDからCraftTreeInfoを取得
             var craftTreeInfo = _craftTreeManager.GetCraftTreeInfo(data.PlayerId);

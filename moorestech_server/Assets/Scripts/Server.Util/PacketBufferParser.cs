@@ -9,23 +9,23 @@ namespace Server.Util
     /// </summary>
     public class PacketBufferParser
     {
-        private readonly List<byte> _packetLengthBytes = new();
-        private List<byte> _continuationFromLastTimeBytes = new();
+        private readonly byte[] _packetLengthBytes = new byte[4];
+        private int _packetLengthBytesCount;
+        private byte[] _continuationFromLastTimeBytes;
+        private int _continuationWriteOffset;
 
         private bool _isGettingLength;
         private bool _isReadingPayload;
-        private int _nextPacketLengthOffset;
         private int _packetLength;
-        private int _remainingHeaderLength;
 
-        public List<List<byte>> Parse(byte[] packet, int length)
+        public List<byte[]> Parse(byte[] packet, int length)
         {
             // プロトコル長から実際のプロトコルを作る
             // Parse actual protocol data from buffer
             var actualStartPacketDataIndex = 0;
             var reminderLength = length;
 
-            var result = new List<List<byte>>();
+            var result = new List<byte[]>();
 
             // 受信したパケットの最後までループ
             // Loop until all received data is processed
@@ -49,6 +49,10 @@ namespace Server.Util
 
                         _packetLength = payloadLength;
                         _isReadingPayload = true;
+                        // ヘッダー解析後にバッファを事前確保
+                        // Pre-allocate buffer after header parsing
+                        _continuationFromLastTimeBytes = new byte[_packetLength];
+                        _continuationWriteOffset = 0;
                         // パケット長の4バイトヘッダを取り除く
                         // Remove the 4-byte header from remaining length
                         reminderLength -= _packetLength + headerLength;
@@ -65,8 +69,8 @@ namespace Server.Util
                 {
                     // 前回からの続きのデータがある場合
                     // If continuation data exists from previous call
-                    _packetLength -= _nextPacketLengthOffset;
-                    reminderLength = length - _packetLength;
+                    var remaining = _packetLength - _continuationWriteOffset;
+                    reminderLength = length - remaining;
                 }
 
                 // パケットが切れているので、残りのデータを一時保存
@@ -76,27 +80,24 @@ namespace Server.Util
                     // 実際の受信バイト数までのデータのみを保存
                     // Only save data up to actual received byte count
                     var bytesToCopy = length - actualStartPacketDataIndex;
-                    for (var i = 0; i < bytesToCopy; i++)
-                    {
-                        _continuationFromLastTimeBytes.Add(packet[actualStartPacketDataIndex + i]);
-                    }
-                    // 次回の受信のためにどこからデータを保存するかのオフセットを保存
-                    // Save offset for next receive
-                    _nextPacketLengthOffset = bytesToCopy;
+                    Array.Copy(packet, actualStartPacketDataIndex, _continuationFromLastTimeBytes, _continuationWriteOffset, bytesToCopy);
+                    _continuationWriteOffset += bytesToCopy;
                     break;
                 }
 
                 // パケットの長さ分だけデータを取得
                 // Get data for the packet length
-                for (var i = 0;
-                     i < _packetLength && actualStartPacketDataIndex < length;
-                     actualStartPacketDataIndex++, i++)
-                    _continuationFromLastTimeBytes.Add(packet[actualStartPacketDataIndex]);
+                var copyLength = _packetLength - _continuationWriteOffset;
+                if (actualStartPacketDataIndex + copyLength > length)
+                    copyLength = length - actualStartPacketDataIndex;
+                Array.Copy(packet, actualStartPacketDataIndex, _continuationFromLastTimeBytes, _continuationWriteOffset, copyLength);
+                actualStartPacketDataIndex += copyLength;
 
                 result.Add(_continuationFromLastTimeBytes);
                 // パケット完了、次のパケットに備えてリセット
                 // Packet complete, reset for next packet
-                _continuationFromLastTimeBytes = new List<byte>();
+                _continuationFromLastTimeBytes = null;
+                _continuationWriteOffset = 0;
                 _isReadingPayload = false;
             }
 
@@ -106,29 +107,26 @@ namespace Server.Util
 
         private bool TryGetLength(byte[] bytes, int startIndex, int actualLength, out int payloadLength, out int headerLength)
         {
-            List<byte> headerBytes;
             if (_isGettingLength)
             {
                 // 実際の受信バイト数と必要なヘッダバイト数を比較
                 // Compare actual received bytes with required header bytes
                 var availableBytes = actualLength - startIndex;
-                if (availableBytes < _remainingHeaderLength)
+                var remainingHeader = 4 - _packetLengthBytesCount;
+                if (availableBytes < remainingHeader)
                 {
                     // バイト数が足りない場合は読めた分だけ保存して次回に持ち越す
                     // Not enough bytes: save what we can and wait for next receive
-                    for (var i = 0; i < availableBytes; i++)
-                    {
-                        _packetLengthBytes.Add(bytes[startIndex + i]);
-                    }
-                    _remainingHeaderLength -= availableBytes;
+                    Array.Copy(bytes, startIndex, _packetLengthBytes, _packetLengthBytesCount, availableBytes);
+                    _packetLengthBytesCount += availableBytes;
                     payloadLength = -1;
                     headerLength = availableBytes;
                     return false;
                 }
 
-                headerLength = _remainingHeaderLength;
-                for (var i = 0; i < _remainingHeaderLength; i++) _packetLengthBytes.Add(bytes[startIndex + i]);
-                headerBytes = _packetLengthBytes;
+                headerLength = remainingHeader;
+                Array.Copy(bytes, startIndex, _packetLengthBytes, _packetLengthBytesCount, remainingHeader);
+                _packetLengthBytesCount = 4;
                 _isGettingLength = false;
             }
             else
@@ -139,12 +137,11 @@ namespace Server.Util
                 // If header cannot be fully read (use actual received byte count)
                 if (actualLength <= startIndex + 3)
                 {
-                    _packetLengthBytes.Clear();
-                    _remainingHeaderLength = 4;
+                    _packetLengthBytesCount = 0;
                     for (var i = startIndex; i < actualLength; i++)
                     {
-                        _remainingHeaderLength = 3 - (i - startIndex);
-                        _packetLengthBytes.Add(bytes[i]);
+                        _packetLengthBytes[_packetLengthBytesCount] = bytes[i];
+                        _packetLengthBytesCount++;
                     }
 
                     _isGettingLength = true;
@@ -152,19 +149,23 @@ namespace Server.Util
                 }
 
                 headerLength = 4;
-                headerBytes = new List<byte>
-                {
-                    bytes[startIndex],
-                    bytes[startIndex + 1],
-                    bytes[startIndex + 2],
-                    bytes[startIndex + 3],
-                };
+                _packetLengthBytes[0] = bytes[startIndex];
+                _packetLengthBytes[1] = bytes[startIndex + 1];
+                _packetLengthBytes[2] = bytes[startIndex + 2];
+                _packetLengthBytes[3] = bytes[startIndex + 3];
+                _packetLengthBytesCount = 4;
             }
 
+            // ビッグエンディアンからリトルエンディアンに変換（ローカルコピーで行う）
+            // Convert from big-endian to little-endian (using local copy)
+            var lengthBytes = new byte[4];
+            Array.Copy(_packetLengthBytes, lengthBytes, 4);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(lengthBytes);
+            }
 
-            if (BitConverter.IsLittleEndian) headerBytes.Reverse();
-
-            payloadLength = BitConverter.ToInt32(headerBytes.ToArray(), 0);
+            payloadLength = BitConverter.ToInt32(lengthBytes, 0);
             return true;
         }
     }

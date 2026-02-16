@@ -16,7 +16,7 @@ namespace Server.Protocol.PacketResponse
             _challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
         }
         
-        public ProtocolMessagePackBase GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload)
         {
             return new ResponseGetPlayedSkitIdsMessagePack(_challengeDatastore.CurrentChallengeInfo.PlayedSkitIds);
         }

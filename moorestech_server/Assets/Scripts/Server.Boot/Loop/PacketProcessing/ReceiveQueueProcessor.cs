@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using Core.Update;
 using Server.Protocol;
 using Server.Util;
@@ -19,7 +18,7 @@ namespace Server.Boot.Loop.PacketProcessing
         private readonly PacketResponseCreator _packetResponseCreator;
         private readonly SendQueueProcessor _sendQueueProcessor;
         private readonly IDisposable _updateSubscription;
-        private readonly ConcurrentQueue<List<byte>> _receiveQueue = new();
+        private readonly ConcurrentQueue<byte[]> _receiveQueue = new();
 
         public ReceiveQueueProcessor(PacketResponseCreator packetResponseCreator, SendQueueProcessor sendQueueProcessor)
         {
@@ -30,7 +29,7 @@ namespace Server.Boot.Loop.PacketProcessing
             _updateSubscription = GameUpdater.LateUpdateObservable.Subscribe(_ => ProcessReceiveQueue());
         }
 
-        public void EnqueuePacket(List<byte> packet)
+        public void EnqueuePacket(byte[] packet)
         {
             _receiveQueue.Enqueue(packet);
         }
@@ -44,11 +43,15 @@ namespace Server.Boot.Loop.PacketProcessing
                 var results = _packetResponseCreator.GetPacketResponse(packet);
                 foreach (var result in results)
                 {
-                    result.InsertRange(0, ToByteList.Convert(result.Count));
-                    var array = result.ToArray();
+                    // パケット長ヘッダーを付与して送信データを構築
+                    // Build send data with packet length header
+                    var header = ToByteArray.Convert(result.Length);
+                    var sendData = new byte[header.Length + result.Length];
+                    header.CopyTo(sendData, 0);
+                    result.CopyTo(sendData, header.Length);
 
                     // 送信キューに追加（実際の送信は送信スレッドで行う）
-                    _sendQueueProcessor.EnqueueSendData(array);
+                    _sendQueueProcessor.EnqueueSendData(sendData);
                 }
             }
         }

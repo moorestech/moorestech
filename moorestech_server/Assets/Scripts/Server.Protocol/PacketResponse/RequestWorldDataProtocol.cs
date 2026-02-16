@@ -26,11 +26,11 @@ namespace Server.Protocol.PacketResponse
             _entitiesDatastore = serviceProvider.GetService<IEntitiesDatastore>();
         }
 
-        public ProtocolMessagePackBase GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload)
         {
             // リクエストからPlayerIdを取得
             // Get PlayerId from request
-            var request = MessagePackSerializer.Deserialize<RequestWorldDataMessagePack>(payload.ToArray());
+            var request = MessagePackSerializer.Deserialize<RequestWorldDataMessagePack>(payload);
 
             // プレイヤー位置を取得
             // Get player position

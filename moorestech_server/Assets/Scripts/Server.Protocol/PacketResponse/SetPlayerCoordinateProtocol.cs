@@ -22,9 +22,9 @@ namespace Server.Protocol.PacketResponse
             _entitiesDatastore = serviceProvider.GetService<IEntitiesDatastore>();
         }
         
-        public ProtocolMessagePackBase GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload)
         {
-            var data = MessagePackSerializer.Deserialize<PlayerCoordinateSendProtocolMessagePack>(payload.ToArray());
+            var data = MessagePackSerializer.Deserialize<PlayerCoordinateSendProtocolMessagePack>(payload);
             
             //プレイヤーの座標を更新する
             _entitiesDatastore.SetPosition(new EntityInstanceId(data.PlayerId), data.Pos.Vector3);

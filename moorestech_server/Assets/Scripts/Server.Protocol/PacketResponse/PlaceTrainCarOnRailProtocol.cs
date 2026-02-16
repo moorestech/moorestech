@@ -30,9 +30,9 @@ namespace Server.Protocol.PacketResponse
             _diagramManager = serviceProvider.GetService<TrainDiagramManager>();
         }
         
-        public ProtocolMessagePackBase GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload)
         {
-            var request = MessagePackSerializer.Deserialize<PlaceTrainOnRailRequestMessagePack>(payload.ToArray());
+            var request = MessagePackSerializer.Deserialize<PlaceTrainOnRailRequestMessagePack>(payload);
             return ExecuteRequest(request);
             
             #region Internal

@@ -21,9 +21,9 @@ namespace Server.Protocol.PacketResponse
             _inventorySubscriptionStore = serviceProvider.GetService<IInventorySubscriptionStore>();
         }
         
-        public ProtocolMessagePackBase GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload)
         {
-            var data = MessagePackSerializer.Deserialize<SubscribeInventoryRequestMessagePack>(payload.ToArray());
+            var data = MessagePackSerializer.Deserialize<SubscribeInventoryRequestMessagePack>(payload);
             
             // サブスクライブまたはアンサブスクライブを実行
             // Execute subscribe or unsubscribe
