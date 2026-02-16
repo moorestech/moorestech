@@ -14,15 +14,11 @@
     #define LIL_V2F_POSITION_CS
     #define LIL_V2F_PACKED_TEXCOORD01
     #define LIL_V2F_PACKED_TEXCOORD23
-    #if defined(LIL_V2F_FORCE_POSITION_OS) || defined(LIL_SHOULD_POSITION_OS)
+    #if defined(LIL_V2F_FORCE_POSITION_OS) || defined(LIL_SHOULD_POSITION_OS) || defined(LIL_FEATURE_IDMASK)
         #define LIL_V2F_POSITION_OS
     #endif
-    #if defined(LIL_V2F_FORCE_POSITION_WS) || defined(LIL_PASS_FORWARDADD) || defined(LIL_FEATURE_OUTLINE_RECEIVE_SHADOW) || defined(LIL_FEATURE_DISTANCE_FADE) || !defined(LIL_BRP) || defined(LIL_USE_LPPV)
-        #define LIL_V2F_POSITION_WS
-    #endif
-    #if defined(LIL_V2F_FORCE_NORMAL) || defined(LIL_USE_LIGHTMAP) && defined(LIL_LIGHTMODE_SUBTRACTIVE) || defined(LIL_HDRP)
-        #define LIL_V2F_NORMAL_WS
-    #endif
+    #define LIL_V2F_POSITION_WS
+    #define LIL_V2F_NORMAL_WS
     #if !defined(LIL_PASS_FORWARDADD)
         #define LIL_V2F_LIGHTCOLOR
         #if defined(LIL_FEATURE_OUTLINE_RECEIVE_SHADOW)
@@ -30,7 +26,6 @@
         #endif
     #endif
     #define LIL_V2F_VERTEXLIGHT_FOG
-    #define LIL_V2F_NDOTL
 
     struct v2f
     {
@@ -38,7 +33,7 @@
         float4 uv01         : TEXCOORD0;
         float4 uv23         : TEXCOORD1;
         #if defined(LIL_V2F_POSITION_OS)
-            float3 positionOS   : TEXCOORD2;
+            float4 positionOSdissolve   : TEXCOORD2;
         #endif
         #if defined(LIL_V2F_POSITION_WS)
             float3 positionWS   : TEXCOORD3;
@@ -46,13 +41,12 @@
         #if defined(LIL_V2F_NORMAL_WS)
             LIL_VECTOR_INTERPOLATION float3 normalWS     : TEXCOORD4;
         #endif
-        float NdotL         : TEXCOORD5;
-        LIL_LIGHTCOLOR_COORDS(6)
-        LIL_VERTEXLIGHT_FOG_COORDS(7)
+        LIL_LIGHTCOLOR_COORDS(5)
+        LIL_VERTEXLIGHT_FOG_COORDS(6)
         #if defined(LIL_V2F_SHADOW)
-            LIL_SHADOW_COORDS(8)
+            LIL_SHADOW_COORDS(7)
         #endif
-        LIL_CUSTOM_V2F_MEMBER(9,10,11,12,13,14,15,16)
+        LIL_CUSTOM_V2F_MEMBER(8,9,10,11,12,13,14,15)
         LIL_VERTEX_INPUT_INSTANCE_ID
         LIL_VERTEX_OUTPUT_STEREO
     };
@@ -60,22 +54,18 @@
     #define LIL_V2F_POSITION_CS
     #define LIL_V2F_PACKED_TEXCOORD01
     #define LIL_V2F_PACKED_TEXCOORD23
-    #if defined(LIL_V2F_FORCE_POSITION_OS) || defined(LIL_SHOULD_POSITION_OS)
+    #if defined(LIL_V2F_FORCE_POSITION_OS) || defined(LIL_SHOULD_POSITION_OS) || defined(LIL_FEATURE_IDMASK)
         #define LIL_V2F_POSITION_OS
     #endif
-    #if defined(LIL_V2F_FORCE_POSITION_WS) || defined(LIL_SHOULD_POSITION_WS)
-        #define LIL_V2F_POSITION_WS
-    #endif
-    #if defined(LIL_V2F_FORCE_NORMAL) || defined(LIL_SHOULD_NORMAL)
-        #define LIL_V2F_NORMAL_WS
-    #endif
+    #define LIL_V2F_POSITION_WS
+    #define LIL_V2F_NORMAL_WS
     #if defined(LIL_V2F_FORCE_TANGENT) || defined(LIL_SHOULD_TBN)
         #define LIL_V2F_TANGENT_WS
     #endif
     #if !defined(LIL_PASS_FORWARDADD)
         #define LIL_V2F_LIGHTCOLOR
         #define LIL_V2F_LIGHTDIRECTION
-        #if defined(LIL_FEATURE_SHADOW)
+        #if defined(LIL_BRP) || defined(LIL_HDRP)
             #define LIL_V2F_INDLIGHTCOLOR
         #endif
         #if defined(LIL_FEATURE_SHADOW) || defined(LIL_FEATURE_BACKLIGHT)
@@ -90,7 +80,7 @@
         float4 uv01         : TEXCOORD0;
         float4 uv23         : TEXCOORD1;
         #if defined(LIL_V2F_POSITION_OS)
-            float3 positionOS   : TEXCOORD2;
+            float4 positionOSdissolve   : TEXCOORD2;
         #endif
         #if defined(LIL_V2F_POSITION_WS)
             float3 positionWS   : TEXCOORD3;
@@ -123,9 +113,32 @@ float4 frag(v2f input LIL_VFACE(facing)) : SV_Target
 {
     //------------------------------------------------------------------------------------------------------------------------------
     // Initialize
+    LIL_FORCE_SCENE_LIGHT;
     LIL_SETUP_INSTANCE_ID(input);
     LIL_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
     lilFragData fd = lilInitFragData();
+
+    // For VRCLV
+    #if defined(LIL_BRP) && defined(LIL_PASS_FORWARD) && defined(VRC_LIGHT_VOLUMES_INCLUDED) && (defined(LIL_INPUT_OPTIMIZED) || defined(LIL_MULTI))
+        if(_UdonLightVolumeEnabled)
+        {
+            lilVertexPositionInputs vertexInput = lilGetVertexPositionInputsFromWS(input.positionWS);
+            lilVertexNormalInputs vertexNormalInput = lilGetVertexNormalInputsFromWS(input.normalWS);
+            LIL_UNPACK_TEXCOORD1(input,fd);
+            #define input fd
+            LIL_CALC_MAINLIGHT(vertexInput, lightdataInput);
+            #undef input
+            #if defined(LIL_V2F_LIGHTCOLOR)
+                input.lightColor     = lightdataInput.lightColor;
+            #endif
+            #if defined(LIL_V2F_LIGHTDIRECTION)
+                input.lightDirection = lightdataInput.lightDirection;
+            #endif
+            #if defined(LIL_V2F_INDLIGHTCOLOR)
+                input.indLightColor  = lightdataInput.indLightColor;
+            #endif
+        }
+    #endif
 
     BEFORE_UNPACK_V2F
     OVERRIDE_UNPACK_V2F
@@ -134,8 +147,15 @@ float4 frag(v2f input LIL_VFACE(facing)) : SV_Target
     #if defined(LIL_V2F_SHADOW) || defined(LIL_PASS_FORWARDADD)
         LIL_LIGHT_ATTENUATION(fd.attenuation, input);
     #endif
+
     LIL_GET_LIGHTING_DATA(input,fd);
 
+    //------------------------------------------------------------------------------------------------------------------------------
+    // UDIM Discard
+    #if defined(LIL_FEATURE_UDIMDISCARD)
+        OVERRIDE_UDIMDISCARD
+    #endif
+    
     //------------------------------------------------------------------------------------------------------------------------------
     // View Direction
     #if defined(LIL_V2F_POSITION_WS)
@@ -159,6 +179,12 @@ float4 frag(v2f input LIL_VFACE(facing)) : SV_Target
         OVERRIDE_CALC_DDX_DDY
 
         //------------------------------------------------------------------------------------------------------------------------------
+        // Normal
+        #if defined(LIL_V2F_NORMAL_WS)
+            fd.N = normalize(input.normalWS);
+        #endif
+
+        //------------------------------------------------------------------------------------------------------------------------------
         // Main Color
         BEFORE_OUTLINE_COLOR
         OVERRIDE_OUTLINE_COLOR
@@ -175,7 +201,18 @@ float4 frag(v2f input LIL_VFACE(facing)) : SV_Target
         BEFORE_DISSOLVE
         #if defined(LIL_FEATURE_DISSOLVE) && LIL_RENDER != 0
             float dissolveAlpha = 0.0;
-            OVERRIDE_DISSOLVE
+            if (fd.dissolveActive)
+            {
+                float priorAlpha = fd.col.a;
+                fd.col.a = 1.0f;
+                OVERRIDE_DISSOLVE
+                if (fd.dissolveInvert)
+                {
+                    fd.col.a = 1.0f - fd.col.a;
+                }
+                
+                fd.col.a *= priorAlpha;
+            }
         #endif
 
         //------------------------------------------------------------------------------------------------------------------------------
@@ -242,6 +279,63 @@ float4 frag(v2f input LIL_VFACE(facing)) : SV_Target
         OVERRIDE_MAIN
 
         //------------------------------------------------------------------------------------------------------------------------------
+        // Normal
+        #if defined(LIL_V2F_NORMAL_WS)
+            #if defined(LIL_FEATURE_NORMAL_1ST) || defined(LIL_FEATURE_NORMAL_2ND)
+                float3 normalmap = float3(0.0,0.0,1.0);
+
+                // 1st
+                BEFORE_NORMAL_1ST
+                #if defined(LIL_FEATURE_NORMAL_1ST)
+                    OVERRIDE_NORMAL_1ST
+                #endif
+
+                // 2nd
+                BEFORE_NORMAL_2ND
+                #if defined(LIL_FEATURE_NORMAL_2ND)
+                    OVERRIDE_NORMAL_2ND
+                #endif
+
+                fd.N = normalize(mul(normalmap, fd.TBN));
+                fd.N = fd.facing < (_FlipNormal-1.0) ? -fd.N : fd.N;
+            #else
+                fd.N = normalize(input.normalWS);
+                fd.N = fd.facing < (_FlipNormal-1.0) ? -fd.N : fd.N;
+            #endif
+            fd.ln = dot(fd.L, fd.N);
+            #if defined(LIL_V2F_POSITION_WS)
+                fd.nv = saturate(dot(fd.N, fd.V));
+                fd.nvabs = abs(dot(fd.N, fd.V));
+                fd.uvRim = float2(fd.nvabs,fd.nvabs);
+            #endif
+            fd.origN = normalize(input.normalWS);
+            fd.uvMat = mul(fd.cameraMatrix, fd.N).xy * 0.5 + 0.5;
+        #endif
+        fd.reflectionN = fd.N;
+        fd.matcapN = fd.N;
+        fd.matcap2ndN = fd.N;
+
+        #if defined(LIL_BRP) && defined(LIL_PASS_FORWARD) && defined(VRC_LIGHT_VOLUMES_INCLUDED)
+        if(_UdonLightVolumeEnabled)
+        {
+            LIL_CORRECT_LIGHTCOLOR_PS(fd.indLightColor);
+            LIL_CORRECT_LIGHTCOLOR_VS(fd.indLightColor);
+            float borderMin = _EnvRimBorder - _EnvRimBlur * 0.5;
+            float borderMax = _EnvRimBorder + _EnvRimBlur * 0.5;
+            float fakerim = saturate((fd.ln - fd.vl - borderMin) / saturate(borderMax - borderMin + fwidth(fd.ln - fd.vl) * _AAStrength));
+            fd.lightColor += saturate(fd.indLightColor - fd.lightColor) * fakerim;
+            fd.indLightColor = 0;
+        }
+        #endif
+
+        //------------------------------------------------------------------------------------------------------------------------------
+        // AudioLink
+        BEFORE_AUDIOLINK
+        #if defined(LIL_FEATURE_AUDIOLINK)
+            OVERRIDE_AUDIOLINK
+        #endif
+
+        //------------------------------------------------------------------------------------------------------------------------------
         // Layer Color
         #if defined(LIL_V2F_TANGENT_WS)
             fd.isRightHand = input.tangentWS.w > 0.0;
@@ -274,7 +368,18 @@ float4 frag(v2f input LIL_VFACE(facing)) : SV_Target
         BEFORE_DISSOLVE
         #if defined(LIL_FEATURE_DISSOLVE) && LIL_RENDER != 0
             float dissolveAlpha = 0.0;
-            OVERRIDE_DISSOLVE
+            if (fd.dissolveActive)
+            {
+                float priorAlpha = fd.col.a;
+                fd.col.a = 1.0f;
+                OVERRIDE_DISSOLVE
+                if (fd.dissolveInvert)
+                {
+                    fd.col.a = 1.0f - fd.col.a;
+                }
+                        
+                fd.col.a *= priorAlpha;
+            }
         #endif
 
         //------------------------------------------------------------------------------------------------------------------------------
@@ -327,54 +432,10 @@ float4 frag(v2f input LIL_VFACE(facing)) : SV_Target
         #endif
 
         //------------------------------------------------------------------------------------------------------------------------------
-        // Normal
-        #if defined(LIL_V2F_NORMAL_WS)
-            #if defined(LIL_FEATURE_NORMAL_1ST) || defined(LIL_FEATURE_NORMAL_2ND)
-                float3 normalmap = float3(0.0,0.0,1.0);
-
-                // 1st
-                BEFORE_NORMAL_1ST
-                #if defined(LIL_FEATURE_NORMAL_1ST)
-                    OVERRIDE_NORMAL_1ST
-                #endif
-
-                // 2nd
-                BEFORE_NORMAL_2ND
-                #if defined(LIL_FEATURE_NORMAL_2ND)
-                    OVERRIDE_NORMAL_2ND
-                #endif
-
-                fd.N = normalize(mul(normalmap, fd.TBN));
-                fd.N = fd.facing < (_FlipNormal-1.0) ? -fd.N : fd.N;
-            #else
-                fd.N = normalize(input.normalWS);
-                fd.N = fd.facing < (_FlipNormal-1.0) ? -fd.N : fd.N;
-            #endif
-            fd.ln = dot(fd.L, fd.N);
-            #if defined(LIL_V2F_POSITION_WS)
-                fd.nv = saturate(dot(fd.N, fd.V));
-                fd.nvabs = abs(dot(fd.N, fd.V));
-                fd.uvRim = float2(fd.nvabs,fd.nvabs);
-            #endif
-            fd.origN = normalize(input.normalWS);
-            fd.uvMat = mul(fd.cameraMatrix, fd.N).xy * 0.5 + 0.5;
-        #endif
-        fd.reflectionN = fd.N;
-        fd.matcapN = fd.N;
-        fd.matcap2ndN = fd.N;
-
-        //------------------------------------------------------------------------------------------------------------------------------
         // Anisotropy
         BEFORE_ANISOTROPY
         #if defined(LIL_FEATURE_ANISOTROPY)
             OVERRIDE_ANISOTROPY
-        #endif
-
-        //------------------------------------------------------------------------------------------------------------------------------
-        // AudioLink
-        BEFORE_AUDIOLINK
-        #if defined(LIL_FEATURE_AUDIOLINK)
-            OVERRIDE_AUDIOLINK
         #endif
 
         //------------------------------------------------------------------------------------------------------------------------------
@@ -418,6 +479,13 @@ float4 frag(v2f input LIL_VFACE(facing)) : SV_Target
             #if defined(LIL_FEATURE_MAIN3RD)
                 if(_UseMain3rdTex) fd.col.rgb = lerp(fd.col.rgb, 0, color3rd.a - color3rd.a * _Main3rdEnableLighting);
             #endif
+        #endif
+
+        //------------------------------------------------------------------------------------------------------------------------------
+        // Rim Shade
+        BEFORE_RIMSHADE
+        #if defined(LIL_FEATURE_RIMSHADE)
+            OVERRIDE_RIMSHADE
         #endif
 
         //------------------------------------------------------------------------------------------------------------------------------

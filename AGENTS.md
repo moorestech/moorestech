@@ -49,36 +49,43 @@ public void ComplexMethod()
 デフォルト引数は基本使用禁止。引数の追加は必ずデフォルト値をつけず、呼び出し側を変更する
 
 # マスタデータについて
-全マスタデータ（ブロック、アイテム、液体、レシピ等）は以下の4段階で管理されます：
+全マスタデータ（ブロック、アイテム、液体、レシピ等）は以下の4段階で管理
 1. YAMLスキーマ定義（VanillaSchema/*.yml）
 2. SourceGeneratorで自動生成（Mooresmaster.Model.*Module）
-3. JSONで実データ作成 → 4. MasterHolderで実行時ロード
+3. JSONで実データ作成
+4. MasterHolderで実行時ロード
 
 - yamlを編集する際は当該skillを参照すること  
 - Mooresmaster.Model.*Module（BlocksModule, ItemsModule, FluidsModule等）は全て自動生成、手動作成禁止
 - MasterHolder（Core.Master.MasterHolder）が全Masterを静的プロパティで一元管理し、Load(MasterJsonFileContainer)でJSONからロード
 
 # テスト・コンパイルの実行
-テスト、コンパイルともにMCPツール優先、MCPツール優先、使用不可時は`tools/unity-test.sh`をフォールバックとして使用。
+uLoop CLI（Skills経由）を優先、使用不可時は`tools/unity-test.sh`をフォールバックとして使用。
 
 ## コンパイル
-編集パスに応じてMCPツールを使用。フォールバック時はunity-test.shに何にもマッチしない正規表現（例: `"^$"`）を渡してコンパイルのみ実行。
+編集パスに応じてuLoop CLIを使用。フォールバック時はunity-test.shに何にもマッチしない正規表現（例: `"^$"`）を渡してコンパイルのみ実行。
 
-| | コンパイル | エラー確認 |
-| サーバー | `mcp__moorestech_server__RefreshAssets` | `mcp__moorestech_server__GetCompileLogs` |
-| クライアント | `mcp__moorestech_client__RefreshAssets` | `mcp__moorestech_client__GetCompileLogs` |
+| | コンパイル |
+| サーバー | `uloop compile --port 56901` |
+| クライアント | `uloop compile --port 56902` |
 
 ## テスト
-基本的に`groupNames`/正規表現で実行対象を限定すること。
+基本的に`--filter-type regex`で実行対象を限定すること。
 
-| | MCP（推奨） | シェル（フォールバック） |
-| サーバー | `mcp__moorestech_server__RunEditModeTests` | `./tools/unity-test.sh moorestech_server "正規表現"` |
-| クライアント | `mcp__moorestech_client__RunEditModeTests` | `./tools/unity-test.sh moorestech_client "正規表現" isGui` |
+| | uLoop CLI（推奨） | シェル（フォールバック） |
+| サーバー | `uloop run-tests --port 56901 --filter-type regex --filter-value "正規表現"` | `./tools/unity-test.sh moorestech_server "正規表現"` |
+| クライアント | `uloop run-tests --port 56902 --filter-type regex --filter-value "正規表現"` | `./tools/unity-test.sh moorestech_client "正規表現" isGui` |
 
 - クライアント側シェル実行時は`isGui`オプション必須（バッチモードでは不安定）
 
+## ログ確認
+| | コマンド |
+| サーバー | `uloop get-logs --port 56901 --log-type Error` |
+| クライアント | `uloop get-logs --port 56902 --log-type Error` |
+
 # Objectシングルトンパターン
-GameObjectはシーン/Prefabに事前配置前提とし、Awakeで_instanceを設定。Instanceプロパティでの動的生成は禁止。                                                                                                                     public class MySingleton : MonoBehaviour
+GameObjectはシーン/Prefabに事前配置前提とし、Awakeで_instanceを設定。Instanceプロパティでの動的生成は禁止
+public class MySingleton : MonoBehaviour
 {
     private static MySingleton _instance;
     public static MySingleton Instance => _instance;
@@ -90,7 +97,7 @@ GameObjectはシーン/Prefabに事前配置前提とし、Awakeで_instanceを�
 }
 
 # 絶対に守る指示
-コードを書き終わったから必ずコンパイルを実行する
+コードを書き終わったら必ずコンパイルを実行する(.csファイル変更限定)
 .metaファイルは絶対に手動作成しない。Unity自動生成のため。Unity起動で作成された.metaのコミットは可
 Prefab・シーン・ScriptableObject等のUnity固有ファイル（YAML形式）は直接編集禁止。ユーザーに編集を指示すること。
 Library/ディレクトリは絶対に削除禁止。再インポートに膨大な時間がかかるため

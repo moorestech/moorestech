@@ -2,6 +2,7 @@
     {
         Tags {*LIL_SUBSHADER_TAGS*}
         HLSLINCLUDE
+            *LIL_SHADER_SETTING_MULTI*
             #pragma require geometry
             #pragma fragmentoption ARB_precision_hint_fastest
             #define LIL_FUR
@@ -11,6 +12,7 @@
             #define LIL_MULTI_INPUTS_MAIN3RD
             #define LIL_MULTI_INPUTS_ALPHAMASK
             #define LIL_MULTI_INPUTS_SHADOW
+            #define LIL_MULTI_INPUTS_RIMSHADE
             #define LIL_MULTI_INPUTS_BACKLIGHT
             #define LIL_MULTI_INPUTS_EMISSION
             #define LIL_MULTI_INPUTS_EMISSION_2ND
@@ -27,6 +29,7 @@
             #define LIL_MULTI_INPUTS_AUDIOLINK
             #define LIL_MULTI_INPUTS_DISSOLVE
             #define LIL_MULTI_INPUTS_IDMASK
+            #define LIL_MULTI_INPUTS_UDIMDISCARD
 
             #pragma lil_skip_variants_shadows
             #pragma lil_skip_variants_decals
@@ -87,6 +90,7 @@
             #pragma shader_feature_local _SUNDISK_NONE
             #pragma shader_feature_local GEOM_TYPE_FROND
             #pragma shader_feature_local _REQUIRE_UV2
+            #pragma shader_feature_local AUTO_KEY_VALUE
             #pragma shader_feature_local ANTI_FLICKER
             #pragma shader_feature_local _EMISSION
             #pragma shader_feature_local GEOM_TYPE_BRANCH
@@ -235,6 +239,7 @@
             #pragma shader_feature_local _SUNDISK_NONE
             #pragma shader_feature_local GEOM_TYPE_FROND
             #pragma shader_feature_local _REQUIRE_UV2
+            #pragma shader_feature_local AUTO_KEY_VALUE
             #pragma shader_feature_local _NORMALMAP
             #pragma shader_feature_local EFFECT_BUMP
             #pragma shader_feature_local SOURCE_GBUFFER
@@ -333,6 +338,17 @@
         {
             Name "SHADOW_CASTER"
             Tags {"LightMode" = "ShadowCaster"}
+
+            Stencil
+            {
+                Ref [_StencilRef]
+                ReadMask [_StencilReadMask]
+                WriteMask [_StencilWriteMask]
+                Comp [_StencilComp]
+                Pass [_StencilPass]
+                Fail [_StencilFail]
+                ZFail [_StencilZFail]
+            }
             Offset 1, 1
             Cull [_Cull]
 

@@ -3,7 +3,6 @@ namespace lilToon
 {
     public enum EditorMode
     {
-        Simple,
         Advanced,
         Preset,
         Settings
@@ -29,15 +28,6 @@ namespace lilToon
         TwoPass
     }
 
-    [System.Obsolete]
-    public enum BlendMode
-    {
-        Alpha,
-        Add,
-        Screen,
-        Mul
-    }
-
     public enum LightingPreset
     {
         Default,
@@ -55,6 +45,7 @@ namespace lilToon
         MainColor3rd,
         AlphaMask,
         Shadow,
+        RimShade,
         Emission,
         Emission1st,
         Emission2nd,
@@ -77,9 +68,9 @@ namespace lilToon
         AudioLink,
         Dissolve,
         IDMask,
+        UDIMDiscard,
         Refraction,
         Fur,
-        Encryption,
         Stencil,
         Rendering,
         Tessellation,
