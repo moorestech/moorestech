@@ -31,7 +31,6 @@
         "Game.Gear",
         "Game.Challenge",
         "Core.Master",
-        "Game.CraftChainer",
         "Game.Train",
         "Game.UnlockState",
         "Game.CraftTree",
