@@ -50,11 +50,11 @@ public class InitialHandshakeProtocol : IPacketResponse
         _entityFactory = serviceProvider.GetService<IEntityFactory>();
     }
 
-    public ProtocolMessagePackBase GetResponse(List<byte> payload)
+    public ProtocolMessagePackBase GetResponse(byte[] payload)
     {
         // リクエストをデシリアライズ
         // Deserialize request
-        var data = MessagePackSerializer.Deserialize<RequestInitialHandshakeMessagePack>(payload.ToArray());
+        var data = MessagePackSerializer.Deserialize<RequestInitialHandshakeMessagePack>(payload);
 
         // レスポンスを返す
         // Return response

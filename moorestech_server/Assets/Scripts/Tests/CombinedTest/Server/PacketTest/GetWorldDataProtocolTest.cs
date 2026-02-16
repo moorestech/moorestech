@@ -39,8 +39,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             // PlayerIdを指定してリクエストを作成（Tagが正しく設定される）
             // Create request with PlayerId (Tag is correctly set)
             var requestBytes = MessagePackSerializer.Serialize(new RequestWorldDataMessagePack(0));
-            List<byte> responseBytes = packetResponse.GetPacketResponse(requestBytes.ToList())[0];
-            var responseWorld = MessagePackSerializer.Deserialize<ResponseWorldDataMessagePack>(responseBytes.ToArray());
+            byte[] responseBytes = packetResponse.GetPacketResponse(requestBytes)[0];
+            var responseWorld = MessagePackSerializer.Deserialize<ResponseWorldDataMessagePack>(responseBytes);
             
             //検証
             for (var i = 0; i < responseWorld.Blocks.Length; i++)
@@ -69,8 +69,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             // PlayerIdを指定してリクエストを作成（Tagが正しく設定される）
             // Create request with PlayerId (Tag is correctly set)
             var requestBytes = MessagePackSerializer.Serialize(new RequestWorldDataMessagePack(0));
-            List<byte> responseBytes = packetResponse.GetPacketResponse(requestBytes.ToList())[0];
-            var responseWorld = MessagePackSerializer.Deserialize<ResponseWorldDataMessagePack>(responseBytes.ToArray());
+            byte[] responseBytes = packetResponse.GetPacketResponse(requestBytes)[0];
+            var responseWorld = MessagePackSerializer.Deserialize<ResponseWorldDataMessagePack>(responseBytes);
             
             //ブロックが設置されていることを確認する
             Assert.AreEqual(Block_1x4_Id, responseWorld.Blocks[0].BlockId);

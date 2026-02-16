@@ -26,9 +26,9 @@ namespace Server.Protocol.PacketResponse
         }
         
         
-        public ProtocolMessagePackBase GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload)
         {
-            var data = MessagePackSerializer.Deserialize<GetMapObjectProtocolProtocolMessagePack>(payload.ToArray());
+            var data = MessagePackSerializer.Deserialize<GetMapObjectProtocolProtocolMessagePack>(payload);
             
             var mapObject = ServerContext.MapObjectDatastore.Get(data.InstanceId);
             var playerMainInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory;

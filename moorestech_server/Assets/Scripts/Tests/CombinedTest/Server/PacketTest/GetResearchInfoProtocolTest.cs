@@ -40,10 +40,10 @@ namespace Tests.CombinedTest.Server.PacketTest
         private GetResearchInfoProtocol.ResponseResearchInfoMessagePack SendGetResearchInfoRequest(PacketResponseCreator packet)
         {
             var request = new GetResearchInfoProtocol.RequestResearchInfoMessagePack(PlayerId);
-            var requestData = MessagePackSerializer.Serialize(request).ToList();
+            var requestData = MessagePackSerializer.Serialize(request);
             var response = packet.GetPacketResponse(requestData);
 
-            return MessagePackSerializer.Deserialize<GetResearchInfoProtocol.ResponseResearchInfoMessagePack>(response[0].ToArray());
+            return MessagePackSerializer.Deserialize<GetResearchInfoProtocol.ResponseResearchInfoMessagePack>(response[0]);
         }
 
         private ResearchNodeState GetNodeState(GetResearchInfoProtocol.ResponseResearchInfoMessagePack response, Guid researchGuid)

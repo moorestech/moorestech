@@ -20,9 +20,9 @@ namespace Server.Protocol.PacketResponse
             _worldBlockDatastore = serviceProvider.GetService<IWorldBlockDatastore>();
         }
         
-        public ProtocolMessagePackBase GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload)
         {
-            var data = MessagePackSerializer.Deserialize<RequestDebugBlockInfoRequestProtocolMessagePack>(payload.ToArray());
+            var data = MessagePackSerializer.Deserialize<RequestDebugBlockInfoRequestProtocolMessagePack>(payload);
             
             var block = _worldBlockDatastore.GetBlock(data.BlockPos);
             if (block == null)

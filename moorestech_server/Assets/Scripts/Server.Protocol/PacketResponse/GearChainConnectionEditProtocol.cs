@@ -17,11 +17,11 @@ namespace Server.Protocol.PacketResponse
         {
         }
 
-        public ProtocolMessagePackBase GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload)
         {
             // 要求データをデシリアライズする
             // Deserialize request payload
-            var request = MessagePackSerializer.Deserialize<GearChainConnectionEditRequest>(payload.ToArray());
+            var request = MessagePackSerializer.Deserialize<GearChainConnectionEditRequest>(payload);
 
             // 編集処理を実行し、結果データを構築する
             // Execute edit operation and build response data

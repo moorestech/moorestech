@@ -8,9 +8,9 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 {
     public class EventTestUtil
     {
-        public static List<byte> EventRequestData(int playerID)
+        public static byte[] EventRequestData(int playerID)
         {
-            return MessagePackSerializer.Serialize(new EventProtocolMessagePack(playerID)).ToList();
+            return MessagePackSerializer.Serialize(new EventProtocolMessagePack(playerID));
         }
     }
 }

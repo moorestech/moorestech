@@ -17,11 +17,11 @@ namespace Server.Protocol.PacketResponse
             _trainUpdateService = trainUpdateService;
         }
         
-        public ProtocolMessagePackBase GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload)
         {
             // リクエストの復元
             // Deserialize request payload
-            var request = MessagePackSerializer.Deserialize<RemoveTrainCarRequestMessagePack>(payload.ToArray());
+            var request = MessagePackSerializer.Deserialize<RemoveTrainCarRequestMessagePack>(payload);
 
             // 対象列車の探索
             // Resolve target train and car

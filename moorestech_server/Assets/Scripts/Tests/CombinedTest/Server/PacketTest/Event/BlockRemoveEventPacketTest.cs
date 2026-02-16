@@ -26,8 +26,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         {
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             //イベントキューにIDを登録する
-            List<List<byte>> response = packetResponse.GetPacketResponse(EventRequestData(0));
-            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
+            List<byte[]> response = packetResponse.GetPacketResponse(EventRequestData(0));
+            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             Assert.AreEqual(0, eventMessagePack.Events.Count);
             var worldBlock = ServerContext.WorldBlockDatastore;
             var blockFactory = ServerContext.BlockFactory;
@@ -40,7 +40,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             //イベントを取得
             response = packetResponse.GetPacketResponse(EventRequestData(0));
-            eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
+            eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             Assert.AreEqual(4, eventMessagePack.Events.Count);
             
             var worldDataStore = ServerContext.WorldBlockDatastore;
@@ -49,7 +49,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             //イベントを取得
             response = packetResponse.GetPacketResponse(EventRequestData(0));
-            eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
+            eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             
             Assert.AreEqual(1, eventMessagePack.Events.Count);
             var pos = AnalysisResponsePacket(eventMessagePack.Events[0].Payload);
@@ -61,7 +61,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             worldDataStore.RemoveBlock(new Vector3Int(1, 4), BlockRemoveReason.ManualRemove);
             //イベントを取得
             response = packetResponse.GetPacketResponse(EventRequestData(0));
-            eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
+            eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             Assert.AreEqual(2, eventMessagePack.Events.Count);
             pos = AnalysisResponsePacket(eventMessagePack.Events[0].Payload);
             Assert.AreEqual(3, pos.x);
@@ -76,14 +76,14 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             worldBlockDatastore.TryAddBlock((BlockId)id, new Vector3Int(x, y), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
         }
         
-        private List<byte> EventRequestData(int playerID)
+        private byte[] EventRequestData(int playerID)
         {
-            return MessagePackSerializer.Serialize(new EventProtocolMessagePack(playerID)).ToList();
+            return MessagePackSerializer.Serialize(new EventProtocolMessagePack(playerID));
         }
         
         private Vector3Int AnalysisResponsePacket(byte[] payload)
         {
-            var data = MessagePackSerializer.Deserialize<RemoveBlockEventMessagePack>(payload.ToArray());
+            var data = MessagePackSerializer.Deserialize<RemoveBlockEventMessagePack>(payload);
             
             return data.Position;
         }

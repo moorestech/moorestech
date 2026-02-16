@@ -48,7 +48,7 @@ namespace Tests.UnitTest.Server
             var result = parser.Parse(buffer, packetData.Count); // 実際の受信バイト数は9
 
             Assert.AreEqual(1, result.Count, "1つのパケットがパースされるべき");
-            Assert.AreEqual("t", MessagePackSerializer.Deserialize<PasserTestMessagePack>(result[0].ToArray()).t);
+            Assert.AreEqual("t", MessagePackSerializer.Deserialize<PasserTestMessagePack>(result[0]).t);
         }
 
         /// <summary>
@@ -84,7 +84,7 @@ namespace Tests.UnitTest.Server
 
             var result2 = parser.Parse(buffer2, 6);
             Assert.AreEqual(1, result2.Count, "1つのパケットがパースされるべき");
-            Assert.AreEqual("t", MessagePackSerializer.Deserialize<PasserTestMessagePack>(result2[0].ToArray()).t);
+            Assert.AreEqual("t", MessagePackSerializer.Deserialize<PasserTestMessagePack>(result2[0]).t);
         }
 
         /// <summary>
@@ -125,7 +125,7 @@ namespace Tests.UnitTest.Server
             var result2 = parser.Parse(buffer2, remainingLength);
             Assert.AreEqual(1, result2.Count, "1つのパケットがパースされるべき");
 
-            var deserializedData = MessagePackSerializer.Deserialize<LargerTestMessagePack>(result2[0].ToArray());
+            var deserializedData = MessagePackSerializer.Deserialize<LargerTestMessagePack>(result2[0]);
             Assert.AreEqual(testData.Data, deserializedData.Data);
         }
 
@@ -173,8 +173,8 @@ namespace Tests.UnitTest.Server
 
             var result1 = parser.Parse(buffer1, actualLength1);
             Assert.AreEqual(2, result1.Count, "2つのパケットがパースされるべき");
-            Assert.AreEqual("1", MessagePackSerializer.Deserialize<PasserTestMessagePack>(result1[0].ToArray()).t);
-            Assert.AreEqual("2", MessagePackSerializer.Deserialize<PasserTestMessagePack>(result1[1].ToArray()).t);
+            Assert.AreEqual("1", MessagePackSerializer.Deserialize<PasserTestMessagePack>(result1[0]).t);
+            Assert.AreEqual("2", MessagePackSerializer.Deserialize<PasserTestMessagePack>(result1[1]).t);
 
             // 2回目: パケット3の残り
             // Second: rest of packet3
@@ -187,7 +187,7 @@ namespace Tests.UnitTest.Server
             var result2 = parser.Parse(buffer2, remainingLength);
             Assert.AreEqual(1, result2.Count, "1つのパケットがパースされるべき");
 
-            var deserializedData = MessagePackSerializer.Deserialize<LargerTestMessagePack>(result2[0].ToArray());
+            var deserializedData = MessagePackSerializer.Deserialize<LargerTestMessagePack>(result2[0]);
             Assert.AreEqual(largeData.Data, deserializedData.Data);
         }
 
@@ -241,7 +241,7 @@ namespace Tests.UnitTest.Server
 
             var result4 = parser.Parse(buffer4, 6);
             Assert.AreEqual(1, result4.Count, "1つのパケットがパースされるべき");
-            Assert.AreEqual("t", MessagePackSerializer.Deserialize<PasserTestMessagePack>(result4[0].ToArray()).t);
+            Assert.AreEqual("t", MessagePackSerializer.Deserialize<PasserTestMessagePack>(result4[0]).t);
         }
 
         /// <summary>
@@ -288,7 +288,7 @@ namespace Tests.UnitTest.Server
 
             var result3 = parser.Parse(buffer3, 6);
             Assert.AreEqual(1, result3.Count, "1つのパケットがパースされるべき");
-            Assert.AreEqual("t", MessagePackSerializer.Deserialize<PasserTestMessagePack>(result3[0].ToArray()).t);
+            Assert.AreEqual("t", MessagePackSerializer.Deserialize<PasserTestMessagePack>(result3[0]).t);
         }
 
         /// <summary>
@@ -322,7 +322,7 @@ namespace Tests.UnitTest.Server
 
             var result2 = parser.Parse(buffer2, testMessageBytes.Length);
             Assert.AreEqual(1, result2.Count, "1つのパケットがパースされるべき");
-            Assert.AreEqual("t", MessagePackSerializer.Deserialize<PasserTestMessagePack>(result2[0].ToArray()).t);
+            Assert.AreEqual("t", MessagePackSerializer.Deserialize<PasserTestMessagePack>(result2[0]).t);
         }
 
         /// <summary>
@@ -360,7 +360,7 @@ namespace Tests.UnitTest.Server
 
             var result1 = parser.Parse(buffer1, actualLength1);
             Assert.AreEqual(1, result1.Count, "パケット1のみがパースされるべき");
-            Assert.AreEqual("1", MessagePackSerializer.Deserialize<PasserTestMessagePack>(result1[0].ToArray()).t);
+            Assert.AreEqual("1", MessagePackSerializer.Deserialize<PasserTestMessagePack>(result1[0]).t);
 
             // 2回目: パケット2のペイロードのみ
             // Second: payload only of packet2
@@ -370,7 +370,7 @@ namespace Tests.UnitTest.Server
 
             var result2 = parser.Parse(buffer2, packet2Bytes.Length);
             Assert.AreEqual(1, result2.Count, "パケット2がパースされるべき");
-            Assert.AreEqual("2", MessagePackSerializer.Deserialize<PasserTestMessagePack>(result2[0].ToArray()).t);
+            Assert.AreEqual("2", MessagePackSerializer.Deserialize<PasserTestMessagePack>(result2[0]).t);
         }
 
         /// <summary>
@@ -405,7 +405,7 @@ namespace Tests.UnitTest.Server
 
             Assert.AreEqual(1, result.Count, "1つのパケットがパースされるべき");
 
-            var deserialized = MessagePackSerializer.Deserialize<TestProtocolMessagePack>(result[0].ToArray());
+            var deserialized = MessagePackSerializer.Deserialize<TestProtocolMessagePack>(result[0]);
             Assert.AreEqual(testProtocol.Tag, deserialized.Tag);
             Assert.AreEqual(testProtocol.SequenceId, deserialized.SequenceId);
             Assert.AreEqual(testProtocol.ExtraData, deserialized.ExtraData);

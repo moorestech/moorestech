@@ -39,7 +39,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             machineComponent.SetItem(2, itemStackFactory.Create(new ItemId(4), 5));
             
             //レスポンスの取得
-            var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(packet.GetPacketResponse(RequestBlock(new Vector3Int(5, 10)))[0].ToArray());
+            var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(packet.GetPacketResponse(RequestBlock(new Vector3Int(5, 10)))[0]);
             
             Assert.AreEqual(InputSlotNum + OutPutSlotNum, data.Items.Length); // slot num
             
@@ -54,10 +54,10 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(5, data.Items[2].Count);
         }
         
-        private List<byte> RequestBlock(Vector3Int pos)
+        private byte[] RequestBlock(Vector3Int pos)
         {
             var identifier = InventoryIdentifierMessagePack.CreateBlockMessage(pos);
-            return MessagePackSerializer.Serialize(new InventoryRequestProtocol.RequestInventoryRequestProtocolMessagePack(identifier)).ToList();
+            return MessagePackSerializer.Serialize(new InventoryRequestProtocol.RequestInventoryRequestProtocolMessagePack(identifier));
         }
 
         [Test]
@@ -92,7 +92,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             trainCar.SetItem(1, itemFactory.Create(new ItemId(2), 3));
 
             var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestTrain(trainCar.TrainCarInstanceId))[0];
-            var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(responseBytes.ToArray());
+            var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(responseBytes);
 
             Assert.AreEqual(InventoryType.Train, data.InventoryType); // inventory type
             Assert.AreEqual(3, data.Items.Length); // slot count
@@ -102,10 +102,10 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(3, data.Items[1].Count);
         }
 
-        private List<byte> RequestTrain(TrainCarInstanceId trainCarInstanceId)
+        private byte[] RequestTrain(TrainCarInstanceId trainCarInstanceId)
         {
             var identifier = InventoryIdentifierMessagePack.CreateTrainMessage(trainCarInstanceId.AsPrimitive());
-            return MessagePackSerializer.Serialize(new InventoryRequestProtocol.RequestInventoryRequestProtocolMessagePack(identifier)).ToList();
+            return MessagePackSerializer.Serialize(new InventoryRequestProtocol.RequestInventoryRequestProtocolMessagePack(identifier));
         }
     }
 }

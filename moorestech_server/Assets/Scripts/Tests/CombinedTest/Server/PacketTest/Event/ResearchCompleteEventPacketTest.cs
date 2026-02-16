@@ -20,7 +20,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             // イベントがないことを確認する
             var response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId));
-            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
+            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             Assert.AreEqual(0, eventMessagePack.Events.Count);
 
             // Research 1を完了させる
@@ -28,7 +28,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             // イベントを受け取り、テストする
             response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId));
-            eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
+            eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
 
             var researchEvents = eventMessagePack.Events
                 .Where(e => e.Tag == ResearchCompleteEventPacket.EventTag)
@@ -45,7 +45,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             // イベントを受け取り、テストする
             response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId));
-            eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
+            eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
 
             researchEvents = eventMessagePack.Events
                 .Where(e => e.Tag == ResearchCompleteEventPacket.EventTag)
