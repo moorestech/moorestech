@@ -28,6 +28,9 @@
 #if defined(LIL_V2G_NORMAL_WS)
     float3 ndc = (input[0].normalWS     +input[1].normalWS      +input[2].normalWS)     *0.333333333333;
 #endif
+#if defined(LIL_V2F_LIGHTCOLOR) && defined(LIL_FEATURE_LTCGI) && defined(LIL_PASS_FORWARD)
+    float3 lcc = (input[0].lightColor   +input[1].lightColor    +input[2].lightColor)   * 0.333333333333;
+#endif
 #if defined(LIL_V2G_VERTEXLIGHT_FOG) && !(!defined(LIL_USE_ADDITIONALLIGHT_VS) && defined(LIL_HDRP))
     LIL_VERTEXLIGHT_FOG_TYPE vlfc = (input[0].vlf + input[1].vlf + input[2].vlf) * 0.333333333333;
 #endif
@@ -65,6 +68,9 @@ for(uint fl = 0; fl < _FurLayerNum; fl++)
         #if defined(LIL_V2F_NORMAL_WS)
             output.normalWS = lerp(input[ii2].normalWS,ndc,lpmix);
         #endif
+        #if defined(LIL_V2F_LIGHTCOLOR) && defined(LIL_FEATURE_LTCGI) && defined(LIL_PASS_FORWARD)
+            output.lightColor = lerp(input[ii2].lightColor,lcc,lpmix);
+        #endif
         #if defined(LIL_V2F_VERTEXLIGHT_FOG) && !(!defined(LIL_USE_ADDITIONALLIGHT_VS) && defined(LIL_HDRP))
             output.vlf = lerp(input[ii2].vlf,vlfc,lpmix);
         #endif
@@ -100,13 +106,13 @@ for(uint fl = 0; fl < _FurLayerNum; fl++)
             // Clipping Canceller
             #if defined(UNITY_REVERSED_Z)
                 // DirectX
-                if(output.positionCS.w < _ProjectionParams.y * 1.01 && output.positionCS.w > 0 && _ProjectionParams.y < LIL_NEARCLIP_THRESHOLD LIL_MULTI_SHOULD_CLIPPING)
+                if(output.positionCS.w < _ProjectionParams.y * 1.01 && output.positionCS.w > 0 && _ProjectionParams.y < LIL_NEARCLIP_THRESHOLD LIL_MULTI_SHOULD_CLIPPING && !LIL_IS_MIRROR)
                 {
                     output.positionCS.z = output.positionCS.z * 0.0001 + output.positionCS.w * 0.999;
                 }
             #else
                 // OpenGL
-                if(output.positionCS.w < _ProjectionParams.y * 1.01 && output.positionCS.w > 0 && _ProjectionParams.y < LIL_NEARCLIP_THRESHOLD LIL_MULTI_SHOULD_CLIPPING)
+                if(output.positionCS.w < _ProjectionParams.y * 1.01 && output.positionCS.w > 0 && _ProjectionParams.y < LIL_NEARCLIP_THRESHOLD LIL_MULTI_SHOULD_CLIPPING && !LIL_IS_MIRROR)
                 {
                     output.positionCS.z = output.positionCS.z * 0.0001 - output.positionCS.w * 0.999;
                 }
@@ -143,13 +149,13 @@ for(uint fl = 0; fl < _FurLayerNum; fl++)
             // Clipping Canceller
             #if defined(UNITY_REVERSED_Z)
                 // DirectX
-                if(output.positionCS.w < _ProjectionParams.y * 1.01 && output.positionCS.w > 0 && _ProjectionParams.y < LIL_NEARCLIP_THRESHOLD LIL_MULTI_SHOULD_CLIPPING)
+                if(output.positionCS.w < _ProjectionParams.y * 1.01 && output.positionCS.w > 0 && _ProjectionParams.y < LIL_NEARCLIP_THRESHOLD LIL_MULTI_SHOULD_CLIPPING && !LIL_IS_MIRROR)
                 {
                     output.positionCS.z = output.positionCS.z * 0.0001 + output.positionCS.w * 0.999;
                 }
             #else
                 // OpenGL
-                if(output.positionCS.w < _ProjectionParams.y * 1.01 && output.positionCS.w > 0 && _ProjectionParams.y < LIL_NEARCLIP_THRESHOLD LIL_MULTI_SHOULD_CLIPPING)
+                if(output.positionCS.w < _ProjectionParams.y * 1.01 && output.positionCS.w > 0 && _ProjectionParams.y < LIL_NEARCLIP_THRESHOLD LIL_MULTI_SHOULD_CLIPPING && !LIL_IS_MIRROR)
                 {
                     output.positionCS.z = output.positionCS.z * 0.0001 - output.positionCS.w * 0.999;
                 }

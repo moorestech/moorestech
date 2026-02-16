@@ -60,7 +60,7 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          unityVersion: 6000.2.6f1
+          unityVersion: 6000.3.8f1
           buildMethod: ${{ matrix.platform.buildMethod }}
           targetPlatform: ${{ matrix.platform.name }}
           allowDirtyBuild: true

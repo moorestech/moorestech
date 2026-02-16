@@ -205,6 +205,16 @@ lilVertexPositionInputs lilGetVertexPositionInputs(float3 positionOS)
     return lilGetVertexPositionInputs(float4(positionOS, 1.0));
 }
 
+lilVertexPositionInputs lilGetVertexPositionInputsFromWS(float3 positionWS)
+{
+    lilVertexPositionInputs output;
+    output.positionWS = positionWS;
+    output.positionVS = lilTransformWStoVS(output.positionWS);
+    output.positionCS = lilTransformWStoCS(output.positionWS);
+    output.positionSS = lilTransformCStoSS(output.positionCS);
+    return output;
+}
+
 lilVertexPositionInputs lilReGetVertexPositionInputs(lilVertexPositionInputs output)
 {
     output.positionVS = lilTransformWStoVS(output.positionWS);
@@ -246,6 +256,15 @@ lilVertexNormalInputs lilGetVertexNormalInputs(float3 normalOS, float4 tangentOS
     output.normalWS     = lilTransformNormalOStoWS(normalOS, true);
     output.tangentWS    = lilTransformDirOStoWS(tangentOS.xyz, true);
     output.bitangentWS  = cross(output.normalWS, output.tangentWS) * (tangentOS.w * LIL_NEGATIVE_SCALE);
+    return output;
+}
+
+lilVertexNormalInputs lilGetVertexNormalInputsFromWS(float3 normalWS)
+{
+    lilVertexNormalInputs output;
+    output.normalWS     = normalWS;
+    output.tangentWS    = float3(1.0, 0.0, 0.0);
+    output.bitangentWS  = float3(0.0, 1.0, 0.0);
     return output;
 }
 
@@ -511,15 +530,20 @@ float2 lilCalcDecalUV(
         isRightHand);
 }
 
-float2 lilCalcAtlasAnimation(float2 uv, float4 decalAnimation, float4 decalSubParam)
+float2 lilCalcAtlasAnimationAtAnimTime(float2 uv, float4 decalAnimation, float4 decalSubParam, uint animTime)
 {
     float2 outuv = lerp(float2(uv.x, 1.0-uv.y), 0.5, decalSubParam.z);
-    uint animTime = (uint)(LIL_TIME * decalAnimation.w) % (uint)decalAnimation.z;
     uint offsetX = animTime % (uint)decalAnimation.x;
     uint offsetY = animTime / (uint)decalAnimation.x;
     outuv = (outuv + float2(offsetX,offsetY)) * decalSubParam.xy / decalAnimation.xy;
     outuv.y = 1.0-outuv.y;
     return outuv;
+}
+
+float2 lilCalcAtlasAnimation(float2 uv, float4 decalAnimation, float4 decalSubParam)
+{
+    uint animTime = decalAnimation.w == 0.0 ? (uint)decalAnimation.z : (uint)(LIL_TIME * decalAnimation.w) % (uint)decalAnimation.z;
+    return lilCalcAtlasAnimationAtAnimTime(uv, decalAnimation, decalSubParam, animTime);
 }
 
 // MatCap
@@ -534,7 +558,7 @@ float2 lilCalcMatCapUV(float2 uv1, float3 normalWS, float3 viewDirection, float3
     float3 tangentVD = cross(normalVD, bitangentVD);
     float3x3 tbnVD = float3x3(tangentVD, bitangentVD, normalVD);
     float2 uvMat = mul(tbnVD, normalWS).xy;
-    uvMat = lerp(uvMat, uv1*2-1, matcapBlendUV1);
+    uvMat = lerp(uvMat, saturate(uv1)*2-1, matcapBlendUV1);
     uvMat = uvMat * matcap_ST.xy + matcap_ST.zw;
     uvMat = uvMat * 0.5 + 0.5;
     return uvMat;
@@ -611,6 +635,8 @@ void lilCalcDissolve(
     bool dissolveMaskEnabled
     LIL_SAMP_IN_FUNC(samp))
 {
+    dissolveParams.xy = round(dissolveParams.xy); // mode, shape
+    
     if(dissolveParams.r)
     {
         float dissolveMaskVal = 1.0;
@@ -655,6 +681,8 @@ void lilCalcDissolveWithNoise(
     float dissolveNoiseStrength
     LIL_SAMP_IN_FUNC(samp))
 {
+    dissolveParams.xy = round(dissolveParams.xy); // mode, shape
+    
     if(dissolveParams.r)
     {
         float dissolveMaskVal = 1.0;
@@ -742,12 +770,19 @@ float4 lilGetSubTexWithoutAnimation(
     bool shouldFlipMirror,
     bool shouldFlipCopy,
     bool isMSDF,
-    bool isRightHand
+    bool isRightHand,
+    float4 decalAnimation,
+    float4 decalSubParam
     LIL_SAMP_IN_FUNC(samp))
 {
     #if defined(LIL_FEATURE_DECAL)
         float2 uv2 = lilCalcDecalUV(uv, uv_ST, angle, isLeftOnly, isRightOnly, shouldCopy, shouldFlipMirror, shouldFlipCopy, isRightHand);
-        float4 outCol = LIL_SAMPLE_2D(tex,samp,uv2);
+        #if defined(LIL_FEATURE_ANIMATE_DECAL)
+            float2 uv2samp = lilCalcAtlasAnimationAtAnimTime(uv2, decalAnimation, decalSubParam, 0);
+        #else
+            float2 uv2samp = uv2;
+        #endif
+        float4 outCol = LIL_SAMPLE_2D(tex,samp,uv2samp);
         if(isMSDF) outCol = float4(1.0, 1.0, 1.0, lilMSDF(outCol.rgb));
         if(isDecal) outCol.a *= lilIsIn0to1(uv2, saturate(nv-0.05));
         return outCol;
@@ -987,6 +1022,94 @@ void lilGetLightColorDouble(out float3 lightColor, out float3 indLightColor)
     indLightColor = saturate(shMin);
 }
 
+#if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
+#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
+void lilGetToonSHDoubleAPV(float3 lightDirection, float3 positionWS, float3 normalWS, out float3 shMax, out float3 shMin)
+{
+    float4 SHAr = unity_SHAr;
+    float4 SHAg = unity_SHAg;
+    float4 SHAb = unity_SHAb;
+    float4 SHBr = unity_SHBr;
+    float4 SHBg = unity_SHBg;
+    float4 SHBb = unity_SHBb;
+    float3 SHC = unity_SHC.rgb;
+
+    float3 V = normalize(lilViewDirection(positionWS));
+    APVSample apvSample = SampleAPV(positionWS, normalWS, lilGetRenderingLayer(), V);
+    if (apvSample.status != APV_SAMPLE_STATUS_INVALID)
+    {
+        apvSample.Decode();
+
+        #if defined(PROBE_VOLUMES_L1)
+            SHAr = half4(apvSample.L1_R, apvSample.L0.r);
+            SHAg = half4(apvSample.L1_G, apvSample.L0.g);
+            SHAb = half4(apvSample.L1_B, apvSample.L0.b);
+        #elif defined(PROBE_VOLUMES_L2)
+            SHAr = half4(apvSample.L1_R, apvSample.L0.r);
+            SHAg = half4(apvSample.L1_G, apvSample.L0.g);
+            SHAb = half4(apvSample.L1_B, apvSample.L0.b);
+            SHBr = apvSample.L2_R;
+            SHBg = apvSample.L2_G;
+            SHBb = apvSample.L2_B;
+            SHC = apvSample.L2_C.rgb;
+        #endif
+        SHBr *= _APVWeight;
+        SHBg *= _APVWeight;
+        SHBb *= _APVWeight;
+        SHC *= _APVWeight;
+    }
+
+    float3 N = lightDirection * 0.666666;
+    float4 vB = N.xyzz * N.yzzx;
+    // L0 L2
+    float3 res = float3(SHAr.w,SHAg.w,SHAb.w);
+    res.r += dot(SHBr, vB);
+    res.g += dot(SHBg, vB);
+    res.b += dot(SHBb, vB);
+    res += SHC * (N.x * N.x - N.y * N.y);
+    // L1
+    float3 l1;
+    l1.r = dot(SHAr.rgb, N);
+    l1.g = dot(SHAg.rgb, N);
+    l1.b = dot(SHAb.rgb, N);
+    shMax = res + l1;
+    shMin = res - l1;
+    #ifdef LIL_COLORSPACE_GAMMA
+        shMax = lilLinearToSRGB(shMax);
+        shMin = lilLinearToSRGB(shMin);
+    #endif
+}
+
+float3 lilGetFixedLightDirectionAPV(float3 positionWS, float3 normalWS, float4 lightDirectionOverride)
+{
+    float3 mainDir = LIL_MAINLIGHT_DIRECTION * lilLuminance(LIL_MAINLIGHT_COLOR);
+    float4 SHAr = unity_SHAr;
+    float4 SHAg = unity_SHAg;
+    float4 SHAb = unity_SHAb;
+    float3 V = normalize(lilViewDirection(positionWS));
+    APVSample apvSample = SampleAPV(positionWS, normalWS, lilGetRenderingLayer(), V);
+    if (apvSample.status != APV_SAMPLE_STATUS_INVALID)
+    {
+        apvSample.Decode();
+        SHAr = half4(apvSample.L1_R, apvSample.L0.r);
+        SHAg = half4(apvSample.L1_G, apvSample.L0.g);
+        SHAb = half4(apvSample.L1_B, apvSample.L0.b);
+    }
+
+    float3 sh9Dir = SHAr.xyz * 0.333333 + SHAg.xyz * 0.333333 + SHAb.xyz * 0.333333;
+    float3 L = float3(sh9Dir.x, abs(sh9Dir.y), sh9Dir.z) + mainDir + lilGetCustomLightDirection(lightDirectionOverride);
+    return L;
+}
+
+void lilGetLightColorDoubleAPV(float3 positionWS, float3 normalWS, out float3 lightColor, out float3 indLightColor)
+{
+    float3 shMax, shMin;
+    lilGetToonSHDoubleAPV(lilGetFixedLightDirectionAPV(positionWS, normalWS, float4(0,0.001,0,0)), positionWS, normalWS, shMax, shMin);
+    lightColor = LIL_MAINLIGHT_COLOR + shMax;
+    indLightColor = saturate(shMin);
+}
+#endif
+
 //------------------------------------------------------------------------------------------------------------------------------
 // Geometric Specular Antialiasing
 void GSAA(inout float roughness, float3 N, float strength)
@@ -1197,10 +1320,24 @@ float IDToMeshNum(uint vertexID, int indices[8])
     return dot(masks[0],float4(1,2,3,4)) + dot(masks[1],float4(5,6,7,8));
 }
 
-bool IDMask(uint vertexID, int indices[8], float flags[8])
+bool IDMask(uint maskInput, bool isBitmask, int indices[8], float flags[8])
 {
-    float4x4 masks = IDToMeshMask(vertexID,indices);
-    return dot(masks[0],float4(flags[0],flags[1],flags[2],flags[3])) + dot(masks[1],float4(flags[4],flags[5],flags[6],flags[7]));
+    if (isBitmask) {
+        uint enableMask = dot(
+            round(float4(flags[0], flags[1], flags[2], flags[3])),
+            float4(1, 2, 4, 8)
+        ) + dot(
+            round(float4(flags[4], flags[5], flags[6], flags[7])),
+            float4(16, 32, 64, 128)
+        );
+        // If only some if the bits flagged against this mask are 1, return 0; this ensures that we only hide a vertex
+        // if all of the "parts" it belongs to are hidden. This is useful when dealing with "boundary" polygons between
+        // two hidable areas, where we don't want to move only some of the vertices of the polygon.
+        return maskInput && (enableMask & maskInput) == maskInput; 
+    } else {
+        float4x4 masks = IDToMeshMask(maskInput,indices);
+        return dot(masks[0],float4(flags[0],flags[1],flags[2],flags[3])) + dot(masks[1],float4(flags[4],flags[5],flags[6],flags[7]));
+    }
 }
 
 #endif
