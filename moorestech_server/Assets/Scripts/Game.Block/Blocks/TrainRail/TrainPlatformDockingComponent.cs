@@ -1,22 +1,59 @@
 using System;
+using System.Collections.Generic;
+using Core.Update;
 using Game.Block.Interface.Component;
 using Game.Train.Unit;
+using Mooresmaster.Model.BlocksModule;
+using Newtonsoft.Json;
 
 namespace Game.Block.Blocks.TrainRail
 {
-    public class TrainPlatformDockingComponent : IBlockComponent, ITrainDockingReceiver
+    public class TrainPlatformDockingComponent : IBlockComponent, ITrainDockingReceiver, IBlockSaveState, IUpdatableBlockComponent
     {
         public Guid? DockedTrainId;
         private long? _dockedTrainCarInstanceId;
         private TrainCar _dockedTrainCar;
         private IBlockInventory _dockedStationInventory;
         private TrainDockHandle _dockedHandle;
+        private ArmState _armState = ArmState.Idle;
+        private int _armProgressTicks;
+        private readonly int _armAnimationTicks;
+        private bool _shouldStartOnDock;
+        public string SaveKey { get; } = typeof(TrainPlatformArmComponent).FullName;
         
         public bool IsDestroy { get; private set; }
+        
+        public TrainPlatformDockingComponent(TrainStationBlockParam param)
+        {
+            var armAnimationTicks = GameUpdater.SecondsToTicks(param.LoadingAnimeSpeed);
+            _armProgressTicks = armAnimationTicks > int.MaxValue ? int.MaxValue : (int)armAnimationTicks;
+        }
+        
+        public TrainPlatformDockingComponent(Dictionary<string, string> componentStates, TrainStationBlockParam param) : this(param)
+        {
+            var serialized = componentStates[SaveKey];
+            var saveData = JsonConvert.DeserializeObject<TrainPlatformDockingComponentSaveData>(serialized);
+            if (saveData == null) return;
+            
+            _armState = (ArmState)saveData.armState;
+            _armProgressTicks = saveData.armProgressTicks;
+            _shouldStartOnDock = saveData.shouldStartOnDock;
+        }
+        
+        
+        public string GetSaveState()
+        {
+            return JsonConvert.SerializeObject(new TrainPlatformDockingComponentSaveData(_armState, _armProgressTicks, _shouldStartOnDock));
+        }
         
         public void Destroy()
         {
             IsDestroy = true;
+        }
+        
+        public void Update()
+        {
+            throw new NotImplementedException();
         }
         
         public bool CanDock(ITrainDockHandle handle)
@@ -29,8 +66,7 @@ namespace Game.Block.Blocks.TrainRail
         public void ForceUndock()
         {
             ClearDockedReferences();
-            //TODO: もう少しいい感じに一般化できないか
-            // if (_armState == ArmState.Extending) StartRetractingFromCurrent();
+            if (_armState == ArmState.Extending) StartRetractingFromCurrent();
         }
         
         public void OnTrainDocked(ITrainDockHandle handle)
@@ -41,8 +77,7 @@ namespace Game.Block.Blocks.TrainRail
             DockedTrainId = handle.TrainId;
             _dockedTrainCarInstanceId = handle.TrainCarInstanceId;
             _dockedHandle = handle as TrainDockHandle;
-            //TODO: もう少しいい感じに一般化できないか
-            // if (_armState == ArmState.Idle && _armProgressTicks == 0) _shouldStartOnDock = true;
+            if (_armState == ArmState.Idle && _armProgressTicks == 0) _shouldStartOnDock = true;
             UpdateDockedReferences(handle);
         }
         
@@ -61,8 +96,7 @@ namespace Game.Block.Blocks.TrainRail
             if (DockedTrainId == handle.TrainId && _dockedTrainCarInstanceId == handle.TrainCarInstanceId)
             {
                 ClearDockedReferences();
-                //TODO: もう少しいい感じに一般化できないか
-                // if (_armState == ArmState.Extending) StartRetractingFromCurrent();
+                if (_armState == ArmState.Extending) StartRetractingFromCurrent();
             }
         }
         
@@ -85,10 +119,23 @@ namespace Game.Block.Blocks.TrainRail
             DockedTrainId = null;
             _dockedTrainCarInstanceId = null;
             _dockedHandle = null;
-            //TODO: もう少しいい感じに一般化できないか
-            // _shouldStartOnDock = false;
+            _shouldStartOnDock = false;
             _dockedTrainCar = null;
             _dockedStationInventory = null;
+        }
+        
+        void StartRetractingFromFull()
+        {
+            _armState = ArmState.Retracting;
+            _armProgressTicks = _armAnimationTicks;
+        }
+        
+        private void StartRetractingFromCurrent()
+        {
+            // 現在の進捗からリトラクトへ移行する
+            // Switch to retracting from the current arm progress
+            _armState = ArmState.Retracting;
+            _armProgressTicks = Math.Min(_armProgressTicks, _armAnimationTicks);
         }
         
         //TODO: 必要性がわからない、なぜtrainCarから自身のInventoryを取得しているのか
@@ -102,6 +149,28 @@ namespace Game.Block.Blocks.TrainRail
             return trainCar.dockingblock.ComponentManager.TryGetComponent<IBlockInventory>(out var inventory)
                 ? inventory
                 : null;
+        }
+        
+        [Serializable]
+        public class TrainPlatformDockingComponentSaveData
+        {
+            public int armState;
+            public int armProgressTicks;
+            public bool shouldStartOnDock;
+            
+            public TrainPlatformDockingComponentSaveData(ArmState armState, int armProgressTicks, bool shouldStartOnDock)
+            {
+                this.armState = (int)armState;
+                this.armProgressTicks = armProgressTicks;
+                this.shouldStartOnDock = shouldStartOnDock;
+            }
+        }
+        
+        public enum ArmState
+        {
+            Idle,
+            Extending,
+            Retracting,
         }
     }
 }

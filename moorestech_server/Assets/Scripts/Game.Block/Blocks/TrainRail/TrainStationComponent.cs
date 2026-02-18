@@ -20,7 +20,7 @@ namespace Game.Block.Blocks.TrainRail
             StationName = stationName;
         }
         
-        public TrainStationComponent(Dictionary<string, string> componentStates)
+        public TrainStationComponent(Dictionary<string, string> componentStates) : this("test")
         {
             var serialized = componentStates[SaveKey];
             var saveData = JsonConvert.DeserializeObject<TrainStationComponentSaveData>(serialized);
