@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Core.Update;
 using Game.Block.Interface.Component;
 using Game.Train.Unit;
-using Mooresmaster.Model.BlocksModule;
 using Newtonsoft.Json;
 
 namespace Game.Block.Blocks.TrainRail
@@ -96,12 +95,14 @@ namespace Game.Block.Blocks.TrainRail
         
         public void StartExtending()
         {
+            if (ArmState is ArmState.Extended or ArmState.Extending) return;
             ArmState = ArmState.Extending;
             _armProgressTicks = Math.Max(_armProgressTicks, 1);
         }
         
         public void StartRetracting()
         {
+            if (ArmState is ArmState.Idle or ArmState.Retracting) return;
             ArmState = ArmState.Retracting;
             _armProgressTicks = Math.Min(_armProgressTicks, _armAnimationTicks);
         }
