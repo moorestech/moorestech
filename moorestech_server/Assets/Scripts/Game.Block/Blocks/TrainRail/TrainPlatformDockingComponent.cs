@@ -26,7 +26,7 @@ namespace Game.Block.Blocks.TrainRail
         public TrainPlatformDockingComponent(TrainStationBlockParam param)
         {
             var armAnimationTicks = GameUpdater.SecondsToTicks(param.LoadingAnimeSpeed);
-            _armProgressTicks = armAnimationTicks > int.MaxValue ? int.MaxValue : (int)armAnimationTicks;
+            _armAnimationTicks = armAnimationTicks > int.MaxValue ? int.MaxValue : (int)armAnimationTicks;
         }
         
         public TrainPlatformDockingComponent(Dictionary<string, string> componentStates, TrainStationBlockParam param) : this(param)
@@ -93,7 +93,7 @@ namespace Game.Block.Blocks.TrainRail
         public void StartExtending()
         {
             _armState = ArmState.Extending;
-            _armProgressTicks = 1;
+            _armProgressTicks = Math.Max(_armProgressTicks, 1);
         }
         
         public void StartRetracting()
