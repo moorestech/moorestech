@@ -23,13 +23,13 @@ namespace Game.Block.Blocks.TrainRail
         
         public bool IsDestroy { get; private set; }
         
-        public TrainPlatformDockingComponent(TrainStationBlockParam param)
+        public TrainPlatformDockingComponent(float loadingAnimationSpeed)
         {
-            var armAnimationTicks = GameUpdater.SecondsToTicks(param.LoadingAnimeSpeed);
+            var armAnimationTicks = GameUpdater.SecondsToTicks(loadingAnimationSpeed);
             _armAnimationTicks = armAnimationTicks > int.MaxValue ? int.MaxValue : (int)armAnimationTicks;
         }
         
-        public TrainPlatformDockingComponent(Dictionary<string, string> componentStates, TrainStationBlockParam param) : this(param)
+        public TrainPlatformDockingComponent(Dictionary<string, string> componentStates, float loadingAnimationSpeed) : this(loadingAnimationSpeed)
         {
             var serialized = componentStates[SaveKey];
             var saveData = JsonConvert.DeserializeObject<TrainPlatformDockingComponentSaveData>(serialized);
