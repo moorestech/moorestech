@@ -15,7 +15,7 @@ namespace Game.Block.Blocks.TrainRail
         private TrainCar _dockedTrainCar;
         private IBlockInventory _dockedStationInventory;
         private TrainDockHandle _dockedHandle;
-        private ArmState _armState = ArmState.Idle;
+        public ArmState ArmState { get; private set; } = ArmState.Idle;
         private int _armProgressTicks;
         private readonly int _armAnimationTicks;
         private bool _shouldStartOnDock;
@@ -35,7 +35,7 @@ namespace Game.Block.Blocks.TrainRail
             var saveData = JsonConvert.DeserializeObject<TrainPlatformDockingComponentSaveData>(serialized);
             if (saveData == null) return;
             
-            _armState = (ArmState)saveData.armState;
+            ArmState = (ArmState)saveData.armState;
             _armProgressTicks = saveData.armProgressTicks;
             _shouldStartOnDock = saveData.shouldStartOnDock;
         }
@@ -43,7 +43,7 @@ namespace Game.Block.Blocks.TrainRail
         
         public string GetSaveState()
         {
-            return JsonConvert.SerializeObject(new TrainPlatformDockingComponentSaveData(_armState, _armProgressTicks, _shouldStartOnDock));
+            return JsonConvert.SerializeObject(new TrainPlatformDockingComponentSaveData(ArmState, _armProgressTicks, _shouldStartOnDock));
         }
         
         public void Destroy()
@@ -58,7 +58,7 @@ namespace Game.Block.Blocks.TrainRail
             var isDocked = DockedTrainId.HasValue && _dockedTrainCarInstanceId.HasValue;
             if (isDocked && _dockedHandle != null && (_dockedTrainCar == null || _dockedStationInventory == null)) UpdateDockedReferences(_dockedHandle);
             
-            switch (_armState)
+            switch (ArmState)
             {
                 case ArmState.Idle:
                     break;
@@ -72,18 +72,21 @@ namespace Game.Block.Blocks.TrainRail
                     if (_armProgressTicks < _armAnimationTicks)
                     {
                         _armProgressTicks++;
+                        break;
                     }
+                    
+                    ArmState = ArmState.Extended;
                     
                     break;
                 case ArmState.Retracting:
                     if (_armProgressTicks > 0)
                     {
                         _armProgressTicks--;
-                        if (_armProgressTicks == 0) _armState = ArmState.Idle;
+                        if (_armProgressTicks == 0) ArmState = ArmState.Idle;
                         break;
                     }
                     
-                    _armState = ArmState.Idle;
+                    ArmState = ArmState.Idle;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -92,13 +95,13 @@ namespace Game.Block.Blocks.TrainRail
         
         public void StartExtending()
         {
-            _armState = ArmState.Extending;
+            ArmState = ArmState.Extending;
             _armProgressTicks = Math.Max(_armProgressTicks, 1);
         }
         
         public void StartRetracting()
         {
-            _armState = ArmState.Retracting;
+            ArmState = ArmState.Retracting;
             _armProgressTicks = Math.Min(_armProgressTicks, _armAnimationTicks);
         }
         
@@ -112,7 +115,7 @@ namespace Game.Block.Blocks.TrainRail
         public void ForceUndock()
         {
             ClearDockedReferences();
-            if (_armState == ArmState.Extending) StartRetractingFromCurrent();
+            if (ArmState == ArmState.Extending) StartRetractingFromCurrent();
         }
         
         public void OnTrainDocked(ITrainDockHandle handle)
@@ -123,7 +126,7 @@ namespace Game.Block.Blocks.TrainRail
             DockedTrainId = handle.TrainId;
             _dockedTrainCarInstanceId = handle.TrainCarInstanceId;
             _dockedHandle = handle as TrainDockHandle;
-            if (_armState == ArmState.Idle && _armProgressTicks == 0) _shouldStartOnDock = true;
+            if (ArmState == ArmState.Idle && _armProgressTicks == 0) _shouldStartOnDock = true;
             UpdateDockedReferences(handle);
         }
         
@@ -142,7 +145,7 @@ namespace Game.Block.Blocks.TrainRail
             if (DockedTrainId == handle.TrainId && _dockedTrainCarInstanceId == handle.TrainCarInstanceId)
             {
                 ClearDockedReferences();
-                if (_armState == ArmState.Extending) StartRetractingFromCurrent();
+                if (ArmState == ArmState.Extending) StartRetractingFromCurrent();
             }
         }
         
@@ -172,7 +175,7 @@ namespace Game.Block.Blocks.TrainRail
         
         void StartRetractingFromFull()
         {
-            _armState = ArmState.Retracting;
+            ArmState = ArmState.Retracting;
             _armProgressTicks = _armAnimationTicks;
         }
         
@@ -180,7 +183,7 @@ namespace Game.Block.Blocks.TrainRail
         {
             // 現在の進捗からリトラクトへ移行する
             // Switch to retracting from the current arm progress
-            _armState = ArmState.Retracting;
+            ArmState = ArmState.Retracting;
             _armProgressTicks = Math.Min(_armProgressTicks, _armAnimationTicks);
         }
         
@@ -211,12 +214,13 @@ namespace Game.Block.Blocks.TrainRail
                 this.shouldStartOnDock = shouldStartOnDock;
             }
         }
-        
-        public enum ArmState
-        {
-            Idle,
-            Extending,
-            Retracting,
-        }
+    }
+    
+    public enum ArmState
+    {
+        Idle,
+        Extending,
+        Extended,
+        Retracting,
     }
 }
