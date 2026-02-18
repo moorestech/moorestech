@@ -12,7 +12,6 @@ namespace Game.Block.Blocks.TrainRail
         public Guid? DockedTrainId;
         private long? _dockedTrainCarInstanceId;
         private TrainCar _dockedTrainCar;
-        private IBlockInventory _dockedStationInventory;
         private TrainDockHandle _dockedHandle;
         
         public ArmState ArmState { get; private set; } = ArmState.Idle;
@@ -56,7 +55,7 @@ namespace Game.Block.Blocks.TrainRail
             if (IsDestroy) return;
             
             var isDocked = IsDocked();
-            if (isDocked && _dockedHandle != null && (_dockedTrainCar == null || _dockedStationInventory == null)) UpdateDockedReferences(_dockedHandle);
+            if (isDocked && _dockedHandle != null && _dockedTrainCar == null) UpdateDockedReferences(_dockedHandle);
             
             switch (ArmState)
             {
@@ -137,7 +136,7 @@ namespace Game.Block.Blocks.TrainRail
             if (handle == null) return;
             if (DockedTrainId != handle.TrainId || _dockedTrainCarInstanceId != handle.TrainCarInstanceId) return;
             _dockedHandle = handle as TrainDockHandle;
-            if (_dockedTrainCar != null && _dockedStationInventory != null) return;
+            if (_dockedTrainCar != null) return;
             UpdateDockedReferences(handle);
         }
         
@@ -156,13 +155,11 @@ namespace Game.Block.Blocks.TrainRail
             if (handle is not TrainDockHandle dockHandle)
             {
                 _dockedTrainCar = null;
-                _dockedStationInventory = null;
                 return;
             }
             
             _dockedHandle = dockHandle;
             _dockedTrainCar = dockHandle.TrainCar;
-            _dockedStationInventory = ResolveStationInventory(_dockedTrainCar);
         }
         
         private void ClearDockedReferences()
@@ -172,20 +169,6 @@ namespace Game.Block.Blocks.TrainRail
             _dockedHandle = null;
             _shouldStartOnDock = false;
             _dockedTrainCar = null;
-            _dockedStationInventory = null;
-        }
-        
-        //TODO: 必要性がわからない、なぜtrainCarから自身のInventoryを取得しているのか
-        private IBlockInventory ResolveStationInventory(TrainCar trainCar)
-        {
-            if (trainCar?.dockingblock == null)
-            {
-                return null;
-            }
-            
-            return trainCar.dockingblock.ComponentManager.TryGetComponent<IBlockInventory>(out var inventory)
-                ? inventory
-                : null;
         }
         
         public bool IsDocked()
