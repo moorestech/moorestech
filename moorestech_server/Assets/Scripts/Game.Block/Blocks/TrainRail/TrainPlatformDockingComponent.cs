@@ -11,7 +11,7 @@ namespace Game.Block.Blocks.TrainRail
     {
         public Guid? DockedTrainId;
         private long? _dockedTrainCarInstanceId;
-        private TrainCar _dockedTrainCar;
+        public TrainCar DockedTrainCar { get; private set; }
         private TrainDockHandle _dockedHandle;
         
         public ArmState ArmState { get; private set; } = ArmState.Idle;
@@ -55,7 +55,7 @@ namespace Game.Block.Blocks.TrainRail
             if (IsDestroy) return;
             
             var isDocked = IsDocked();
-            if (isDocked && _dockedHandle != null && _dockedTrainCar == null) UpdateDockedReferences(_dockedHandle);
+            if (isDocked && _dockedHandle != null && DockedTrainCar == null) UpdateDockedReferences(_dockedHandle);
             
             switch (ArmState)
             {
@@ -136,7 +136,7 @@ namespace Game.Block.Blocks.TrainRail
             if (handle == null) return;
             if (DockedTrainId != handle.TrainId || _dockedTrainCarInstanceId != handle.TrainCarInstanceId) return;
             _dockedHandle = handle as TrainDockHandle;
-            if (_dockedTrainCar != null) return;
+            if (DockedTrainCar != null) return;
             UpdateDockedReferences(handle);
         }
         
@@ -154,12 +154,12 @@ namespace Game.Block.Blocks.TrainRail
         {
             if (handle is not TrainDockHandle dockHandle)
             {
-                _dockedTrainCar = null;
+                DockedTrainCar = null;
                 return;
             }
             
             _dockedHandle = dockHandle;
-            _dockedTrainCar = dockHandle.TrainCar;
+            DockedTrainCar = dockHandle.TrainCar;
         }
         
         private void ClearDockedReferences()
@@ -168,7 +168,7 @@ namespace Game.Block.Blocks.TrainRail
             _dockedTrainCarInstanceId = null;
             _dockedHandle = null;
             _shouldStartOnDock = false;
-            _dockedTrainCar = null;
+            DockedTrainCar = null;
         }
         
         public bool IsDocked()
