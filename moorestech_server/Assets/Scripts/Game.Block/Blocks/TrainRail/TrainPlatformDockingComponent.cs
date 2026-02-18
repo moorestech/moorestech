@@ -15,12 +15,13 @@ namespace Game.Block.Blocks.TrainRail
         private TrainCar _dockedTrainCar;
         private IBlockInventory _dockedStationInventory;
         private TrainDockHandle _dockedHandle;
+        
         public ArmState ArmState { get; private set; } = ArmState.Idle;
         private int _armProgressTicks;
         private readonly int _armAnimationTicks;
         private bool _shouldStartOnDock;
-        public string SaveKey { get; } = typeof(TrainPlatformDockingComponent).FullName;
         
+        public string SaveKey { get; } = typeof(TrainPlatformDockingComponent).FullName;
         public bool IsDestroy { get; private set; }
         
         public TrainPlatformDockingComponent(float loadingAnimationSpeed)
@@ -55,7 +56,7 @@ namespace Game.Block.Blocks.TrainRail
         {
             if (IsDestroy) return;
             
-            var isDocked = DockedTrainId.HasValue && _dockedTrainCarInstanceId.HasValue;
+            var isDocked = IsDocked();
             if (isDocked && _dockedHandle != null && (_dockedTrainCar == null || _dockedStationInventory == null)) UpdateDockedReferences(_dockedHandle);
             
             switch (ArmState)
@@ -65,7 +66,7 @@ namespace Game.Block.Blocks.TrainRail
                 case ArmState.Extending:
                     if (!isDocked)
                     {
-                        StartRetractingFromCurrent();
+                        StartRetracting();
                         break;
                     }
                     
@@ -115,7 +116,7 @@ namespace Game.Block.Blocks.TrainRail
         public void ForceUndock()
         {
             ClearDockedReferences();
-            if (ArmState == ArmState.Extending) StartRetractingFromCurrent();
+            if (ArmState == ArmState.Extending) StartRetracting();
         }
         
         public void OnTrainDocked(ITrainDockHandle handle)
@@ -145,7 +146,7 @@ namespace Game.Block.Blocks.TrainRail
             if (DockedTrainId == handle.TrainId && _dockedTrainCarInstanceId == handle.TrainCarInstanceId)
             {
                 ClearDockedReferences();
-                if (ArmState == ArmState.Extending) StartRetractingFromCurrent();
+                if (ArmState == ArmState.Extending) StartRetracting();
             }
         }
         
@@ -173,20 +174,6 @@ namespace Game.Block.Blocks.TrainRail
             _dockedStationInventory = null;
         }
         
-        void StartRetractingFromFull()
-        {
-            ArmState = ArmState.Retracting;
-            _armProgressTicks = _armAnimationTicks;
-        }
-        
-        private void StartRetractingFromCurrent()
-        {
-            // 現在の進捗からリトラクトへ移行する
-            // Switch to retracting from the current arm progress
-            ArmState = ArmState.Retracting;
-            _armProgressTicks = Math.Min(_armProgressTicks, _armAnimationTicks);
-        }
-        
         //TODO: 必要性がわからない、なぜtrainCarから自身のInventoryを取得しているのか
         private IBlockInventory ResolveStationInventory(TrainCar trainCar)
         {
@@ -198,6 +185,11 @@ namespace Game.Block.Blocks.TrainRail
             return trainCar.dockingblock.ComponentManager.TryGetComponent<IBlockInventory>(out var inventory)
                 ? inventory
                 : null;
+        }
+        
+        public bool IsDocked()
+        {
+            return DockedTrainId.HasValue && _dockedTrainCarInstanceId.HasValue;
         }
         
         [Serializable]
