@@ -1,21 +1,21 @@
 ﻿using Game.Block.Blocks;
 using Game.Block.Blocks.Chest;
 using Game.Block.Blocks.Service;
-using Game.Block.Blocks.TrainRail;
 using Game.Block.Factory.BlockTemplate.Utility;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Train.RailGraph;
 using Mooresmaster.Model.BlocksModule;
 using System.Collections.Generic;
+using Game.Block.Blocks.TrainRail;
 
 namespace Game.Block.Factory.BlockTemplate
 {
-    public class VanillaTrainCargoTemplate : IBlockTemplate
+    public class VanillaTrainCargoPlatformTemplate : IBlockTemplate
     {
         private readonly IRailGraphDatastore _railGraphDatastore;
 
-        public VanillaTrainCargoTemplate(IRailGraphDatastore railGraphDatastore)
+        public VanillaTrainCargoPlatformTemplate(IRailGraphDatastore railGraphDatastore)
         {
             _railGraphDatastore = railGraphDatastore;
         }
@@ -32,14 +32,14 @@ namespace Game.Block.Factory.BlockTemplate
             //②stationをつなげて設置した場合にピッタリ重なる位置のrailComponentを自動接続するための処理
             var railComponents = RailComponentUtility.Create2RailComponents(positionInfo, stationParam.EntryRailPosition, stationParam.ExitRailPosition, _railGraphDatastore);//①が行われる
             RailComponentUtility.RegisterAndConnetStationBlocks(railComponents, _railGraphDatastore);//②接続処理
-            var station = new CargoplatformComponent(stationParam);
+            var trainPlatformDockingComponent = new TrainPlatformDockingComponent(stationParam.LoadingAnimeSpeed);
 
             var inventoryComponents = CreateInventoryComponents(null, instanceId, stationParam, positionInfo);
 
             // 生成したコンポーネントをブロックに登録する
             var blockComponents = new List<IBlockComponent>();
             blockComponents.AddRange(railComponents);
-            blockComponents.Add(station);
+            blockComponents.Add(trainPlatformDockingComponent);
             blockComponents.AddRange(inventoryComponents);
             
             // ここで各RailNodeにStationReferenceを設定  
@@ -65,14 +65,14 @@ namespace Game.Block.Factory.BlockTemplate
             var stationParam = masterElement.BlockParam as TrainCargoPlatformBlockParam;
             var railComponents = RailComponentUtility.Restore2RailComponents(positionInfo, stationParam.EntryRailPosition, stationParam.ExitRailPosition, _railGraphDatastore);//①復元
             RailComponentUtility.RegisterStationBlocks(railComponents, _railGraphDatastore);//②登録のみ
-            var station = new CargoplatformComponent(componentStates, stationParam);
+            var trainPlatformDockingComponent = new TrainPlatformDockingComponent(componentStates, stationParam.LoadingAnimeSpeed);
 
             var inventoryComponents = CreateInventoryComponents(componentStates, instanceId, stationParam, positionInfo);
 
             // 復元したコンポーネントをブロックに登録する
             var blockComponents = new List<IBlockComponent>();
             blockComponents.AddRange(railComponents);
-            blockComponents.Add(station);
+            blockComponents.Add(trainPlatformDockingComponent);
             blockComponents.AddRange(inventoryComponents);
 
             // ここで各RailNodeにStationReferenceを設定  

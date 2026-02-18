@@ -33,7 +33,7 @@ namespace Game.Block.Factory.BlockTemplate
             var railComponents = RailComponentUtility.Create2RailComponents(positionInfo, stationParam.EntryRailPosition, stationParam.ExitRailPosition, _railGraphDatastore);//①が行われる
             RailComponentUtility.RegisterAndConnetStationBlocks(railComponents, _railGraphDatastore);//②接続処理
             var station = new TrainStationComponent("test");
-            var trainPlatformDockingComponent = new TrainPlatformDockingComponent(stationParam);
+            var trainPlatformDockingComponent = new TrainPlatformDockingComponent(stationParam.LoadingAnimeSpeed);
            
             var inventoryComponents = CreateInventoryComponents(null, instanceId, stationParam, positionInfo);
 
@@ -68,7 +68,7 @@ namespace Game.Block.Factory.BlockTemplate
             var railComponents = RailComponentUtility.Restore2RailComponents(positionInfo, stationParam.EntryRailPosition, stationParam.ExitRailPosition, _railGraphDatastore);//①復元
             RailComponentUtility.RegisterStationBlocks(railComponents, _railGraphDatastore);//②登録のみ
             var station = new TrainStationComponent(componentStates);
-            var trainPlatformDockingComponent = new TrainPlatformDockingComponent(componentStates, stationParam);
+            var trainPlatformDockingComponent = new TrainPlatformDockingComponent(componentStates, stationParam.LoadingAnimeSpeed);
 
             var inventoryComponents = CreateInventoryComponents(componentStates, instanceId, stationParam, positionInfo);
 
