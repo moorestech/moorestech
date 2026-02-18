@@ -1,12 +1,11 @@
+using System;
+using System.Collections.Generic;
 using Core.Item.Interface;
-using Core.Master;
 using Core.Update;
 using Game.Block.Interface.Component;
 using Game.Train.Unit;
 using Mooresmaster.Model.BlocksModule;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
 
 namespace Game.Block.Blocks.TrainRail
 {
@@ -14,7 +13,7 @@ namespace Game.Block.Blocks.TrainRail
     /// 貨物駅用のコンポーネント。
     /// オープン可能なインベントリを持ち、かつ列車が到着・出発した状態も持つ。
     /// </summary>
-    public class CargoplatformComponent : IBlockSaveState, ITrainDockingReceiver, IUpdatableBlockComponent
+    public class CargoplatformComponentOld : IBlockSaveState, ITrainDockingReceiver, IUpdatableBlockComponent
     {
         // ブロックパラメータ参照を保持
         // Keep reference to generated block parameter
