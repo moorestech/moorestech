@@ -19,7 +19,7 @@ namespace Game.Block.Blocks.TrainRail
         private int _armProgressTicks;
         private readonly int _armAnimationTicks;
         private bool _shouldStartOnDock;
-        public string SaveKey { get; } = typeof(TrainPlatformArmComponent).FullName;
+        public string SaveKey { get; } = typeof(TrainPlatformDockingComponent).FullName;
         
         public bool IsDestroy { get; private set; }
         
@@ -53,7 +53,53 @@ namespace Game.Block.Blocks.TrainRail
         
         public void Update()
         {
-            throw new NotImplementedException();
+            if (IsDestroy) return;
+            
+            var isDocked = DockedTrainId.HasValue && _dockedTrainCarInstanceId.HasValue;
+            if (isDocked && _dockedHandle != null && (_dockedTrainCar == null || _dockedStationInventory == null)) UpdateDockedReferences(_dockedHandle);
+            
+            switch (_armState)
+            {
+                case ArmState.Idle:
+                    break;
+                case ArmState.Extending:
+                    if (!isDocked)
+                    {
+                        StartRetractingFromCurrent();
+                        break;
+                    }
+                    
+                    if (_armProgressTicks < _armAnimationTicks)
+                    {
+                        _armProgressTicks++;
+                    }
+                    
+                    break;
+                case ArmState.Retracting:
+                    if (_armProgressTicks > 0)
+                    {
+                        _armProgressTicks--;
+                        if (_armProgressTicks == 0) _armState = ArmState.Idle;
+                        break;
+                    }
+                    
+                    _armState = ArmState.Idle;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+        
+        public void StartExtending()
+        {
+            _armState = ArmState.Extending;
+            _armProgressTicks = 1;
+        }
+        
+        public void StartRetracting()
+        {
+            _armState = ArmState.Retracting;
+            _armProgressTicks = Math.Min(_armProgressTicks, _armAnimationTicks);
         }
         
         public bool CanDock(ITrainDockHandle handle)
