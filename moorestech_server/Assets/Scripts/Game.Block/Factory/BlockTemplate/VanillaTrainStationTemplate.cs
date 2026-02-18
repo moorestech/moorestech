@@ -66,6 +66,7 @@ namespace Game.Block.Factory.BlockTemplate
             var railComponents = RailComponentUtility.Restore2RailComponents(positionInfo, stationParam.EntryRailPosition, stationParam.ExitRailPosition, _railGraphDatastore);//①復元
             RailComponentUtility.RegisterStationBlocks(railComponents, _railGraphDatastore);//②登録のみ
             var station = new TrainStationComponent(componentStates);
+            var trainPlatformDockingComponent = new TrainPlatformDockingComponent();
 
             var inventoryComponents = CreateInventoryComponents(componentStates, instanceId, stationParam, positionInfo);
 
@@ -73,6 +74,7 @@ namespace Game.Block.Factory.BlockTemplate
             var blockComponents = new List<IBlockComponent>();
             blockComponents.AddRange(railComponents);
             blockComponents.Add(station);
+            blockComponents.Add(trainPlatformDockingComponent);
             blockComponents.AddRange(inventoryComponents);
 
             // ここで各RailNodeにStationReferenceを設定  
