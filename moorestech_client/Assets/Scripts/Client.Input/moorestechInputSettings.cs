@@ -578,7 +578,7 @@ public partial class @MoorestechInputSettings: IInputActionCollection2, IDisposa
                     ""name"": ""Hot Bar Key Board"",
                     ""id"": ""853740fe-6882-4ac4-8439-4c65c70f4ff7"",
                     ""path"": ""HotBarKeyBoard"",
-                    ""interactions"": ""Tap"",
+                    ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""HotBar"",
