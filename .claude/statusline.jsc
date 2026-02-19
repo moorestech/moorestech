@@ -1,0 +1,231 @@
+#!/usr/bin/env node
+
+const fs = require('fs');
+const path = require('path');
+const readline = require('readline');
+
+// Constants
+const COMPACTION_THRESHOLD = 200000 * 0.8
+
+// Read JSON from stdin
+let input = '';
+process.stdin.on('data', chunk => input += chunk);
+process.stdin.on('end', async () => {
+    try {
+        const data = JSON.parse(input);
+
+        // Extract values
+        const model = data.model?.display_name || 'Unknown';
+        const currentDirPath = data.workspace?.current_dir || data.cwd || '.';
+        const currentDir = path.basename(currentDirPath);
+        const sessionId = data.session_id;
+
+        // file:// link (Finder convenience)
+        const fileUrl = toFileUrl(currentDirPath);
+
+        // Calculate token usage for current session
+        let totalTokens = 0;
+
+        // Read first user request from transcript
+        let firstUserMessage = '';
+
+        // Prefer transcript_path from stdin (more reliable than scanning)
+        let transcriptFile = expandHome(data.transcript_path || '');
+
+        if (!transcriptFile || !fs.existsSync(transcriptFile)) {
+            transcriptFile = '';
+
+            if (sessionId) {
+                // Find all transcript files
+                const projectsDir = path.join(process.env.HOME, '.claude', 'projects');
+
+                if (fs.existsSync(projectsDir)) {
+                    // Get all project directories
+                    const projectDirs = fs.readdirSync(projectsDir)
+                        .map(dir => path.join(projectsDir, dir))
+                        .filter(dir => fs.statSync(dir).isDirectory());
+
+                    // Search for the current session's transcript file (support multiple layouts)
+                    for (const projectDir of projectDirs) {
+                        const candidates = [
+                            path.join(projectDir, `${sessionId}.jsonl`),
+                            path.join(projectDir, sessionId, 'transcript.jsonl'),
+                            path.join(projectDir, sessionId, `${sessionId}.jsonl`),
+                        ];
+
+                        for (const candidate of candidates) {
+                            if (fs.existsSync(candidate)) {
+                                transcriptFile = candidate;
+                                break;
+                            }
+                        }
+
+                        if (transcriptFile) break;
+                    }
+                }
+            }
+        }
+
+        if (transcriptFile && fs.existsSync(transcriptFile)) {
+            const analysis = await analyzeTranscript(transcriptFile);
+            totalTokens = analysis.totalTokens;
+            firstUserMessage = analysis.firstUserMessage;
+        }
+
+        // Calculate percentage
+        const percentage = Math.min(100, Math.round((totalTokens / COMPACTION_THRESHOLD) * 100));
+
+        // Format token display
+        const tokenDisplay = formatTokenCount(totalTokens);
+
+        // One-line + truncate for status line
+        const firstMsgOneLine = truncate(oneLine(firstUserMessage), 60);
+
+        // Build status line (requested order)
+        const statusLine = firstMsgOneLine
+            ? `[${model}] 📁 ${currentDir} | 🪙 ${tokenDisplay} | ${percentage}% | ${fileUrl} | 🗣 ${firstMsgOneLine}`
+            : `[${model}] 📁 ${currentDir} | 🪙 ${tokenDisplay} | ${percentage}% | ${fileUrl}`;
+
+        console.log(statusLine);
+    } catch (error) {
+        // Fallback status line on error
+        console.log('[Error] 📁 . | 🪙 0 | 0% | file:///');
+    }
+});
+
+async function analyzeTranscript(filePath) {
+    return new Promise((resolve, reject) => {
+        let firstUserMessage = '';
+        let mostRecentUsage = null;
+        let mostRecentTimestamp = null;
+
+        const fileStream = fs.createReadStream(filePath);
+        const rl = readline.createInterface({
+            input: fileStream,
+            crlfDelay: Infinity
+        });
+
+        rl.on('line', (line) => {
+            try {
+                const entry = JSON.parse(line);
+
+                // Skip sidechains (agents) and API error messages when analyzing main session context
+                if (entry.isSidechain === true) return;
+                if (entry.isApiErrorMessage === true) return;
+
+                // Capture the first user message in the main chain
+                if (!firstUserMessage && entry.type === 'user') {
+                    const text = extractMessageText(entry);
+                    if (text) firstUserMessage = text;
+                }
+
+                // Track most recent usage entry (prefer timestamp ordering)
+                if (entry.message?.usage) {
+                    if (entry.timestamp) {
+                        const t = new Date(entry.timestamp).getTime();
+                        if (!Number.isNaN(t) && (mostRecentTimestamp === null || t > mostRecentTimestamp)) {
+                            mostRecentTimestamp = t;
+                            mostRecentUsage = entry.message.usage;
+                        }
+                    } else if (mostRecentTimestamp === null) {
+                        // Fallback if timestamp is missing
+                        mostRecentUsage = entry.message.usage;
+                    }
+                }
+            } catch (e) {
+                // Skip invalid JSON lines
+            }
+        });
+
+        rl.on('close', () => {
+            let totalTokens = 0;
+
+            if (mostRecentUsage) {
+                // The most recent usage entry contains cumulative tokens
+                totalTokens = (mostRecentUsage.input_tokens || 0) +
+                    (mostRecentUsage.output_tokens || 0) +
+                    (mostRecentUsage.cache_creation_input_tokens || 0) +
+                    (mostRecentUsage.cache_read_input_tokens || 0);
+            }
+
+            resolve({ totalTokens, firstUserMessage });
+        });
+
+        rl.on('error', (err) => {
+            reject(err);
+        });
+
+        fileStream.on('error', (err) => {
+            reject(err);
+        });
+    });
+}
+
+function extractMessageText(entry) {
+    const msg = entry?.message;
+    if (!msg) return '';
+
+    // Some formats may use `text`
+    if (typeof msg.text === 'string' && msg.text.trim()) return msg.text;
+
+    const content = msg.content;
+
+    // Some entries use a plain string
+    if (typeof content === 'string') return content;
+
+    // Messages are often an array of blocks like {type:"text", text:"..."}
+    if (Array.isArray(content)) {
+        let out = '';
+        for (const block of content) {
+            if (!block) continue;
+            if (typeof block === 'string') {
+                out += block;
+                continue;
+            }
+            if (block.type === 'text' && typeof block.text === 'string') {
+                out += block.text;
+            }
+        }
+        return out;
+    }
+
+    return '';
+}
+
+function formatTokenCount(tokens) {
+    if (tokens >= 1000000) {
+        return `${(tokens / 1000000).toFixed(1)}M`;
+    } else if (tokens >= 1000) {
+        return `${(tokens / 1000).toFixed(1)}K`;
+    }
+    return tokens.toString();
+}
+
+function expandHome(p) {
+    if (!p || typeof p !== 'string') return '';
+    if (p.startsWith('~/')) return path.join(process.env.HOME || '', p.slice(2));
+    return p;
+}
+
+function oneLine(s) {
+    if (!s) return '';
+    return String(s).replace(/\s+/g, ' ').trim();
+}
+
+function truncate(s, maxLen) {
+    if (!s) return '';
+    if (s.length <= maxLen) return s;
+    return s.slice(0, Math.max(0, maxLen - 1)) + '…';
+}
+
+function toFileUrl(p) {
+    // Make absolute if needed
+    const abs = path.resolve(p);
+
+    // Encode for URLs (spaces etc.)
+    // Convert Windows backslashes defensively too.
+    const normalized = abs.replace(/\\/g, '/');
+    const encoded = normalized.split('/').map(encodeURIComponent).join('/');
+
+    return `file://${encoded}`;
+}

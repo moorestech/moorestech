@@ -78,7 +78,7 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "node ./.claude/statusline.js"
+    "command": "node ./.claude/statusline.jsc"
   },
   "enabledPlugins": {}
 }
