@@ -4,8 +4,12 @@ using Game.Train.RailGraph;
 
 namespace Game.Train.RailPositions
 {
+    // 日本語: 入力RailPositionは TrainLength==0（点位置）を想定する経路距離計算ユーティリティ。
+    // English: Route-distance utility assuming input RailPosition values are point positions (TrainLength==0).
     public static class RailPositionRouteDistanceFinder
     {
+        // 日本語: 呼び出し側契約は「start/endともにTrainLength==0」。防御的に先頭点へ正規化して計算する。
+        // English: Caller contract is start/end with TrainLength==0; defensively normalizes to head points.
         public static int FindShortestDistance(RailPosition start, RailPosition end)
         {
             if (start == null || end == null) return -1;
