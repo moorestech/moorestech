@@ -35,6 +35,7 @@ namespace Game.Block.Factory.BlockTemplate
             RailComponentUtility.RegisterAndConnetStationBlocks(railComponents, _railGraphDatastore);//②接続処理
             var trainPlatformDockingComponent = new TrainPlatformDockingComponent(stationParam.LoadingAnimeSpeed);
             var trainPlatformContainerComponent = new TrainPlatformContainerComponent(container: null);
+            var trainPlatformTransferComponent = new TrainPlatformTransferComponent(TrainPlatformTransferComponent.TransferMode.LoadToTrain);
             var trainPlatformItemTransferComponent = new TrainPlatformItemTransferComponent(trainPlatformDockingComponent, trainPlatformContainerComponent);
             
             var inventoryComponents = CreateInventoryComponents(null, instanceId, stationParam, positionInfo);
@@ -44,6 +45,7 @@ namespace Game.Block.Factory.BlockTemplate
             blockComponents.AddRange(railComponents);
             blockComponents.Add(trainPlatformDockingComponent);
             blockComponents.Add(trainPlatformContainerComponent);
+            blockComponents.Add(trainPlatformTransferComponent);
             blockComponents.Add(trainPlatformItemTransferComponent);
             blockComponents.AddRange(inventoryComponents);
             
@@ -72,6 +74,7 @@ namespace Game.Block.Factory.BlockTemplate
             RailComponentUtility.RegisterStationBlocks(railComponents, _railGraphDatastore);//②登録のみ
             var trainPlatformDockingComponent = new TrainPlatformDockingComponent(componentStates, stationParam.LoadingAnimeSpeed);
             var trainPlatformContainerComponent = new TrainPlatformContainerComponent(componentStates);
+            var trainPlatformTransferComponent = new TrainPlatformTransferComponent(componentStates);
             
             var inventoryComponents = CreateInventoryComponents(componentStates, instanceId, stationParam, positionInfo);
 
@@ -80,6 +83,7 @@ namespace Game.Block.Factory.BlockTemplate
             blockComponents.AddRange(railComponents);
             blockComponents.Add(trainPlatformDockingComponent);
             blockComponents.Add(trainPlatformContainerComponent);
+            blockComponents.Add(trainPlatformTransferComponent);
             blockComponents.AddRange(inventoryComponents);
 
             // ここで各RailNodeにStationReferenceを設定  
