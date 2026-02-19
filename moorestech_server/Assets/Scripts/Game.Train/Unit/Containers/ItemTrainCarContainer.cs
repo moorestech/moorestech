@@ -48,6 +48,13 @@ namespace Game.Train.Unit.Containers
                 }
             }
             
+            if (itemStackMap.ContainsKey(ItemMaster.EmptyItemId))
+            {
+                foreach (KVPair<ItemId, NativeList<int>> kvp in itemStackMap) kvp.Value.Dispose();
+                itemStackMap.Dispose();
+                return true;
+            }
+            
             for (var i = 0; i < other._inventoryItems.Length; i++)
             {
                 var otherInventoryItem = other._inventoryItems[i];
@@ -58,7 +65,7 @@ namespace Game.Train.Unit.Containers
                 {
                     for (int j = 0; j < itemStackIndices.Length; j++)
                     {
-                        if (_inventoryItems[j].IsAllowedToAddWithRemain(addingItemStack))
+                        if (_inventoryItems[itemStackIndices[j]].IsAllowedToAddWithRemain(addingItemStack))
                         {
                             foreach (KVPair<ItemId, NativeList<int>> kvp in itemStackMap) kvp.Value.Dispose();
                             itemStackMap.Dispose();
@@ -102,11 +109,16 @@ namespace Game.Train.Unit.Containers
                 var addingItemStack = otherInventoryItem;
                 if (itemStackMap.TryGetValue(otherInventoryItem.Id, out NativeList<int> itemStackIndices))
                 {
-                    for (int j = 0; j < itemStackIndices.Length; j++)
+                    for (int j = itemStackIndices.Length - 1; j >= 0; j--)
                     {
-                        var result = _inventoryItems[j].AddItem(addingItemStack);
-                        _inventoryItems[j] = result.ProcessResultItemStack;
+                        var result = _inventoryItems[itemStackIndices[j]].AddItem(addingItemStack);
+                        _inventoryItems[itemStackIndices[j]] = result.ProcessResultItemStack;
                         addingItemStack = result.RemainderItemStack;
+                        
+                        if (MasterHolder.ItemMaster.GetItemMaster(_inventoryItems[itemStackIndices[j]].Id).MaxStack <= _inventoryItems[itemStackIndices[j]].Count)
+                        {
+                            itemStackIndices.RemoveAt(j);
+                        }
                     }
                 }
                 
