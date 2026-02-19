@@ -185,6 +185,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 27573138a551b45ad8848e502f7c7b1d
+    m_Address: Vanilla/Block/wood_conveyor
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 278ea2ee295354217ab12bd5e9c2aad4
     m_Address: Vanilla/Block/SmallGear
     m_ReadOnly: 0

@@ -97,7 +97,11 @@ moorestech_client/.vscode/settings.json
 # デバッグの設定
 /cache
 
-
+# MCPのアウトプット
+/moorestech_*/.uloop/outputs/TestResults/*
 
 **/__pycache__/
 *.pyc
+
+
+
