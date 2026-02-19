@@ -1,13 +1,14 @@
-﻿using Game.Block.Blocks;
+﻿using System.Collections.Generic;
+using Game.Block.Blocks;
 using Game.Block.Blocks.Chest;
 using Game.Block.Blocks.Service;
+using Game.Block.Blocks.TrainRail;
+using Game.Block.Blocks.TrainRail.TransferComponents;
 using Game.Block.Factory.BlockTemplate.Utility;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Train.RailGraph;
 using Mooresmaster.Model.BlocksModule;
-using System.Collections.Generic;
-using Game.Block.Blocks.TrainRail;
 
 namespace Game.Block.Factory.BlockTemplate
 {
@@ -34,7 +35,8 @@ namespace Game.Block.Factory.BlockTemplate
             RailComponentUtility.RegisterAndConnetStationBlocks(railComponents, _railGraphDatastore);//②接続処理
             var trainPlatformDockingComponent = new TrainPlatformDockingComponent(stationParam.LoadingAnimeSpeed);
             var trainPlatformContainerComponent = new TrainPlatformContainerComponent(container: null);
-
+            var trainPlatformItemTransferComponent = new TrainPlatformItemTransferComponent(trainPlatformDockingComponent, trainPlatformContainerComponent);
+            
             var inventoryComponents = CreateInventoryComponents(null, instanceId, stationParam, positionInfo);
 
             // 生成したコンポーネントをブロックに登録する
@@ -42,6 +44,7 @@ namespace Game.Block.Factory.BlockTemplate
             blockComponents.AddRange(railComponents);
             blockComponents.Add(trainPlatformDockingComponent);
             blockComponents.Add(trainPlatformContainerComponent);
+            blockComponents.Add(trainPlatformItemTransferComponent);
             blockComponents.AddRange(inventoryComponents);
             
             // ここで各RailNodeにStationReferenceを設定  
