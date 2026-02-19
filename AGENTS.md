@@ -60,14 +60,14 @@ public void ComplexMethod()
 - MasterHolder（Core.Master.MasterHolder）が全Masterを静的プロパティで一元管理し、Load(MasterJsonFileContainer)でJSONからロード
 
 # テスト・コンパイルの実行
-uLoop CLI（Skills経由）を優先、使用不可時は`tools/unity-test.sh`をフォールバックとして使用。
+uLoop CLI（Skills経由）を優先、使用不可時は`tools/unity-test.sh`をフォールバックとして使用。ただし、ワークツリー環境下ではuloopを使用しない。
 
 ## コンパイル
-編集パスに応じてuLoop CLIを使用。フォールバック時はunity-test.shに何にもマッチしない正規表現（例: `"^$"`）を渡してコンパイルのみ実行。
+編集パスに応じてuLoop CLIを使用。
+unity-test.sh使用時は何にもマッチしない正規表現（例: `"^$"`）を渡してコンパイルのみ実行。
 
-| | コンパイル |
-| サーバー | `uloop compile --port 56901` |
-| クライアント | `uloop compile --port 56902` |
+サーバー`uloop compile --port 56901`
+クライアント`uloop compile --port 56902`
 
 ## テスト
 基本的に`--filter-type regex`で実行対象を限定すること。
@@ -102,4 +102,4 @@ public class MySingleton : MonoBehaviour
 Prefab・シーン・ScriptableObject等のUnity固有ファイル（YAML形式）は直接編集禁止。ユーザーに編集を指示すること。
 Library/ディレクトリは絶対に削除禁止。再インポートに膨大な時間がかかるため
 try-catchは基本的に使用禁止。エラーハンドリングが必要な場合は、適切な条件分岐やnullチェックで対応
-git worktree頻用のため、最初に必ず`pwd`で現在ディレクトリを確認すること。worktree環境ではMCPを使わず`unity-test.sh`でテスト・コンパイル確認し、タスク終了前に必ず全作業をコミットすること。作業消失防止
+git worktree頻用のため、最初に必ず`pwd`で現在ディレクトリを確認すること。worktree環境ではuloopを使わず`unity-test.sh`でテスト・コンパイル確認し、タスク終了前に必ず全作業をコミットすること。作業消失防止
