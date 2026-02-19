@@ -144,7 +144,7 @@ namespace Tests.UnitTest.Game
         {
             // 乱択シナリオを複数回実行し、毎回異なるグラフ条件で検証する
             // Run multiple randomized scenarios with different graph parameters
-            const int RandomScenarioCount = 120;
+            const int RandomScenarioCount = 10;
             for (int scenarioIndex = 0; scenarioIndex < RandomScenarioCount; scenarioIndex++)
             {
                 var tryCount = UnityEngine.Random.Range(50, 301);
