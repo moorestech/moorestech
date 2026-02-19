@@ -5,6 +5,7 @@ using Core.Master;
 using Game.Block.Interface;
 using Game.CraftTree.Models;
 using Game.Research;
+using Game.Train.Unit;
 using Mooresmaster.Model.ChallengesModule;
 using Server.Event.EventReceive;
 using Server.Util.MessagePack;
@@ -172,15 +173,15 @@ namespace Client.Network.API
     // Response wrapper for the initial train unit snapshot payload
     public class TrainUnitSnapshotResponse
     {
-        public TrainUnitSnapshotResponse(List<TrainUnitSnapshotBundleMessagePack> snapshots, uint serverTick, uint unitsHash, uint tickSequenceId)
+        public TrainUnitSnapshotResponse(List<TrainUnitSnapshotBundle> snapshots, uint serverTick, uint unitsHash, uint tickSequenceId)
         {
-            Snapshots = snapshots ?? new List<TrainUnitSnapshotBundleMessagePack>();
+            Snapshots = snapshots ?? new List<TrainUnitSnapshotBundle>();
             ServerTick = serverTick;
             UnitsHash = unitsHash;
             TickSequenceId = tickSequenceId;
         }
 
-        public List<TrainUnitSnapshotBundleMessagePack> Snapshots { get; }
+        public List<TrainUnitSnapshotBundle> Snapshots { get; }
         public uint ServerTick { get; }
         public uint UnitsHash { get; }
         public uint TickSequenceId { get; }

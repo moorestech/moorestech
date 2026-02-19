@@ -10,6 +10,7 @@ using Game.Context;
 using Game.CraftTree.Models;
 using Game.Research;
 using Game.Train.RailPositions;
+using Game.Train.Unit;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using Server.Util.MessagePack;
@@ -71,7 +72,20 @@ namespace Client.Network.API
         {
             var request = new GetTrainUnitSnapshotsProtocol.RequestMessagePack();
             var response = await _packetExchangeManager.GetPacketResponse<GetTrainUnitSnapshotsProtocol.ResponseMessagePack>(request, ct);
-            var snapshots = response?.Snapshots ?? new List<TrainUnitSnapshotBundleMessagePack>();
+            var snapshotPacks = response?.Snapshots;
+            var snapshots = new List<TrainUnitSnapshotBundle>(snapshotPacks?.Count ?? 0);
+            if (snapshotPacks != null)
+            {
+                for (var i = 0; i < snapshotPacks.Count; i++)
+                {
+                    var snapshotPack = snapshotPacks[i];
+                    if (snapshotPack == null)
+                    {
+                        continue;
+                    }
+                    snapshots.Add(snapshotPack.ToModel());
+                }
+            }
             var tick = response?.ServerTick ?? 0u;
             var unitsHash = response?.UnitsHash ?? 0u;
             var tickSequenceId = response?.TickSequenceId ?? 0u;

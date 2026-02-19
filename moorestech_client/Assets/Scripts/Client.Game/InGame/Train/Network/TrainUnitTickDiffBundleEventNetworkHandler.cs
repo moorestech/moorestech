@@ -54,12 +54,11 @@ namespace Client.Game.InGame.Train.Network
                 if (bundleMessage.ServerTick == 0)
                     return;
                 var hashTick = bundleMessage.ServerTick - 1;
-                var hashMessage = new TrainUnitHashStateMessagePack(
+                _futureMessageBuffer.EnqueueHash(
                     bundleMessage.UnitsHash,
                     bundleMessage.RailGraphHash,
                     hashTick,
                     bundleMessage.HashTickSequenceId);
-                _futureMessageBuffer.EnqueueHash(hashMessage);
             }
 
             ITrainTickBufferedEvent CreateBufferedEvent(TrainUnitTickDiffBundleMessagePack messagePack)
@@ -74,7 +73,12 @@ namespace Client.Game.InGame.Train.Network
                     {
                         for (var i = 0; i < diffs.Count; i++)
                         {
-                            _cache.ApplyPreSimulationDiff(diffs[i]);
+                            var diff = diffs[i];
+                            if (diff == null)
+                            {
+                                continue;
+                            }
+                            _cache.ApplyPreSimulationDiff(diff.TrainInstanceId, diff.MasconLevelDiff, diff.IsNowDockingSpeedZero, diff.ApproachingNodeIdDiff);
                         }
                     }
                     // sim本体

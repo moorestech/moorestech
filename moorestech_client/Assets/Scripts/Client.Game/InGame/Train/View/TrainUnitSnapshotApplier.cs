@@ -54,18 +54,15 @@ namespace Client.Game.InGame.Train.View
             }
 
             // スナップショットをモデルに変換して列車IDを収集する
-            // Convert snapshots into models and collect train car ids
-            var snapshotPacks = response.Snapshots;
-            var bundles = new List<TrainUnitSnapshotBundle>(snapshotPacks?.Count ?? 0);
+            // Iterate snapshots and collect train car ids
+            var snapshots = response.Snapshots;
+            var bundles = new List<TrainUnitSnapshotBundle>(snapshots?.Count ?? 0);
             var activeTrainCarInstanceIds = new HashSet<TrainCarInstanceId>();
-            if (snapshotPacks != null)
+            if (snapshots != null)
             {
-                for (var i = 0; i < snapshotPacks.Count; i++)
+                for (var i = 0; i < snapshots.Count; i++)
                 {
-                    var pack = snapshotPacks[i];
-                    if (pack == null) continue;
-
-                    var bundle = pack.ToModel();
+                    var bundle = snapshots[i];
                     bundles.Add(bundle);
                     CollectTrainCarInstanceIds(bundle, activeTrainCarInstanceIds);
 
