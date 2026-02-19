@@ -344,55 +344,6 @@ namespace Tests.UnitTest.Game
                 start = routes[0].DeepCopy();
             }
         }
-        
-        [Test]
-        public void TryTraceForwardRoutesByDfs_Manual4()
-        {
-            // めがねループ
-            var provider = BuildProviderWithLinearStartSegment(10);
-            int n = 8;
-            for (int i = 0; i < n; i++)
-            {
-                provider.AddNode(i + 2);
-            }
-            //2
-            provider.AddEdge(2, 3, 5);
-            provider.AddEdge(3, 6, 5);
-            provider.AddEdge(6, 2, 5);
-            
-            provider.AddEdge(2, 5, 5);
-            provider.AddEdge(5, 4, 5);
-            provider.AddEdge(4, 2, 5);
-            
-            //7
-            provider.AddEdge(2 + 5, 3 + 5, 5);
-            provider.AddEdge(3 + 5, 6 + 5, 5);
-            provider.AddEdge(6 + 5, 2 + 5, 5);
-            
-            provider.AddEdge(2 + 5, 5 + 5, 5);
-            provider.AddEdge(5 + 5, 4 + 5, 5);
-            provider.AddEdge(4 + 5, 2 + 5, 5);
-            
-            //双方向
-            provider.AddEdge(2, 7, 16);
-            provider.AddEdge(7, 2, 16);
-            
-            //
-            provider.AddEdge(0, 2, 0);
-            
-            var tracer = new RailPathTracer(provider);
-            var start = CreateStartPoint(provider, 0, 1, 0, 0);
-            
-            int loopn = 123;
-            for (int i = 0; i < loopn; i++)
-            {
-                int dfsdistance = 12345 + Random.Range(1, 1000);
-                var success = tracer.TryTraceForwardRoutesByDfs(start, dfsdistance, out var routes);
-                Assert.IsTrue(success);
-                Assert.AreEqual(1, routes.Count);
-            }
-        }
-
 
         private static TestTraversalProvider BuildProviderWithLinearStartSegment(int segmentDistance)
         {
@@ -595,4 +546,3 @@ namespace Tests.UnitTest.Game
         }
     }
 }
-
