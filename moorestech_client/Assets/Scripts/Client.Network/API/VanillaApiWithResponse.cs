@@ -9,9 +9,7 @@ using Cysharp.Threading.Tasks;
 using Game.Context;
 using Game.CraftTree.Models;
 using Game.Research;
-using Game.Train.RailGraph;
 using Game.Train.RailPositions;
-using Game.Train.SaveLoad;
 using Game.Train.Unit;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
@@ -63,12 +61,11 @@ namespace Client.Network.API
             return response?.MapObjects;
         }
 
-        public async UniTask<(RailGraphSnapshot snapshot, uint tickSequenceId)> GetRailGraphSnapshot(CancellationToken ct)
+        public async UniTask<RailGraphSnapshotMessagePack> GetRailGraphSnapshot(CancellationToken ct)
         {
             var request = new GetRailGraphSnapshotProtocol.RequestMessagePack();
             var response = await _packetExchangeManager.GetPacketResponse<GetRailGraphSnapshotProtocol.ResponseMessagePack>(request, ct);
-            var snapshotPack = response?.Snapshot;
-            return (CreateRailGraphSnapshot(snapshotPack), snapshotPack?.GraphTickSequenceId ?? 0u);
+            return response?.Snapshot;
         }
 
         public async UniTask<TrainUnitSnapshotResponse> GetTrainUnitSnapshots(CancellationToken ct)
@@ -271,54 +268,6 @@ namespace Client.Network.API
                 stacks.Add(_itemStackFactory.Create(item.Id, item.Count));
             }
             return stacks;
-        }
-
-        private RailGraphSnapshot CreateRailGraphSnapshot(RailGraphSnapshotMessagePack snapshotPack)
-        {
-            var nodePacks = snapshotPack?.Nodes;
-            var nodes = new List<RailNodeInitializationData>(nodePacks?.Count ?? 0);
-            if (nodePacks != null)
-            {
-                for (var i = 0; i < nodePacks.Count; i++)
-                {
-                    var node = nodePacks[i];
-                    if (node == null)
-                    {
-                        continue;
-                    }
-                    var destination = node.ConnectionDestination?.ToModel() ?? ConnectionDestination.Default;
-                    var origin = node.OriginPoint?.Vector3 ?? Vector3.zero;
-                    var front = node.FrontControlPoint?.Vector3 ?? Vector3.zero;
-                    var back = node.BackControlPoint?.Vector3 ?? Vector3.zero;
-                    nodes.Add(new RailNodeInitializationData(node.NodeId, node.NodeGuid, destination, origin, front, back));
-                }
-            }
-
-            var connectionPacks = snapshotPack?.Connections;
-            var connections = new List<RailGraphConnectionSnapshot>(connectionPacks?.Count ?? 0);
-            if (connectionPacks != null)
-            {
-                for (var i = 0; i < connectionPacks.Count; i++)
-                {
-                    var connection = connectionPacks[i];
-                    if (connection == null)
-                    {
-                        continue;
-                    }
-                    connections.Add(new RailGraphConnectionSnapshot(
-                        connection.FromNodeId,
-                        connection.ToNodeId,
-                        connection.Distance,
-                        connection.RailTypeGuid,
-                        connection.IsDrawable));
-                }
-            }
-
-            return new RailGraphSnapshot(
-                nodes,
-                connections,
-                snapshotPack?.GraphHash ?? 0u,
-                snapshotPack?.GraphTick ?? 0u);
         }
         
         #endregion
