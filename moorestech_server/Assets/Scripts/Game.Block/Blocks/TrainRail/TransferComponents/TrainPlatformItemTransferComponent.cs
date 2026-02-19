@@ -1,3 +1,4 @@
+using System;
 using Game.Block.Interface.Component;
 using Game.Train.Unit.Containers;
 
@@ -20,19 +21,46 @@ namespace Game.Block.Blocks.TrainRail.TransferComponents
         public void Update()
         {
             if (!IsTargetContainer(out var targetContainer, out var container)) return;
-            if (!CanTransfer(targetContainer, container))
+            
+            switch (_transferComponent.Mode)
             {
-                _dockingComponent.StartRetracting();
-                return;
+                case TrainPlatformTransferComponent.TransferMode.LoadToTrain:
+                    {
+                        if (!CanTransfer(container, targetContainer))
+                        {
+                            _dockingComponent.StartRetracting();
+                            return;
+                        }
+                        
+                        _dockingComponent.StartExtending();
+                        
+                        if (_dockingComponent.ArmState != ArmState.Extended) return;
+                        
+                        container.MergeFrom(targetContainer);
+                        
+                        _dockingComponent.StartRetracting();
+                        break;
+                    }
+                case TrainPlatformTransferComponent.TransferMode.UnloadToPlatform:
+                    {
+                        if (!CanTransfer(targetContainer, container))
+                        {
+                            _dockingComponent.StartRetracting();
+                            return;
+                        }
+                        
+                        _dockingComponent.StartExtending();
+                        
+                        if (_dockingComponent.ArmState != ArmState.Extended) return;
+                        
+                        targetContainer.MergeFrom(container);
+                        
+                        _dockingComponent.StartRetracting();
+                        break;
+                    }
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
-            
-            _dockingComponent.StartExtending();
-            
-            if (_dockingComponent.ArmState != ArmState.Extended) return;
-            
-            targetContainer.MergeFrom(container);
-            
-            _dockingComponent.StartRetracting();
         }
         
         private bool IsTargetContainer(out ItemTrainCarContainer trainCarContainer, out ItemTrainCarContainer stationContainer)
