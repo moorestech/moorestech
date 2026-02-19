@@ -412,7 +412,7 @@ namespace Game.Train.RailGraph
                 // EN: Remaining zero terminates at current node and does not step into zero-length successors.
                 if (remain == 0)
                 {
-                    if (TryCreateRouteTerminatedAtNode(forwardPath, out var routeAtNode))
+                    if (TryCreateRouteTerminated(forwardPath, currentNodeId, 0, out var routeAtNode))
                     {
                         resultRoutes.Add(routeAtNode);
                     }
@@ -440,7 +440,7 @@ namespace Game.Train.RailGraph
                         var distanceToNextNode = edge.distance - remain;
                         // JP: ノード終端(0)も辺途中(>0)も同じヘルパーで経路化する。
                         // EN: Build both node-end(0) and in-edge(>0) routes via one helper.
-                        if (TryCreateRouteTerminatedOnEdge(forwardPath, edge.targetId, distanceToNextNode, out var routeOnEdge))
+                        if (TryCreateRouteTerminated(forwardPath, edge.targetId, distanceToNextNode, out var routeOnEdge))
                         {
                             resultRoutes.Add(routeOnEdge);
                         }
@@ -464,24 +464,7 @@ namespace Game.Train.RailGraph
                 }
             }
 
-            bool TryCreateRouteTerminatedAtNode(IReadOnlyList<int> pathFromApproaching, out RailPosition route)
-            {
-                route = null;
-                if (pathFromApproaching == null || pathFromApproaching.Count <= 0)
-                {
-                    return false;
-                }
-
-                if (!TryBuildNodeChain(pathFromApproaching, -1, out var nodes))
-                {
-                    return false;
-                }
-
-                route = new RailPosition(nodes, distance, 0);
-                return true;
-            }
-
-            bool TryCreateRouteTerminatedOnEdge(IReadOnlyList<int> pathFromApproaching, int terminalApproachingNodeId, int distanceToNextNode, out RailPosition route)
+            bool TryCreateRouteTerminated(IReadOnlyList<int> pathFromApproaching, int terminalApproachingNodeId, int distanceToNextNode, out RailPosition route)
             {
                 route = null;
                 if (pathFromApproaching == null || pathFromApproaching.Count <= 0 || terminalApproachingNodeId < 0 || distanceToNextNode < 0)
@@ -517,7 +500,13 @@ namespace Game.Train.RailGraph
                     nodes.Add(terminalNode);
                 }
 
-                for (var i = pathFromApproaching.Count - 1; i >= 0; i--)
+                var pathIndexStart = pathFromApproaching.Count - 1;
+                if (terminalApproachingNodeId >= 0 && pathFromApproaching[pathFromApproaching.Count - 1] == terminalApproachingNodeId)
+                {
+                    pathIndexStart = pathFromApproaching.Count - 2;
+                }
+
+                for (var i = pathIndexStart; i >= 0; i--)
                 {
                     if (!_provider.TryGetNode(pathFromApproaching[i], out var node))
                     {
