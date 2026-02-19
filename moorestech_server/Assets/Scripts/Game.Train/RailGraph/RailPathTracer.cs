@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Game.Train.RailPositions;
 using Game.Train.SaveLoad;
 
 namespace Game.Train.RailGraph
@@ -345,6 +346,217 @@ namespace Game.Train.RailGraph
                 }
                 result.Sort((left, right) => left.sourceId != right.sourceId ? left.sourceId.CompareTo(right.sourceId) : left.distance.CompareTo(right.distance));
                 return result;
+            }
+
+            #endregion
+        }
+
+        public bool TryEnumerateForwardRoutesFromPoint(RailPosition startPoint, int distance, out List<RailPosition> routes)
+        {
+            routes = new List<RailPosition>();
+            var resultRoutes = routes;
+
+            // JP: 入力を検証し、探索基準点を先頭点(length=0)に正規化する。
+            // EN: Validate input and normalize to head point(length=0).
+            if (startPoint == null || distance < 0)
+            {
+                return false;
+            }
+
+            var normalizedStart = startPoint.GetHeadRailPosition();
+            var approachingNode = normalizedStart.GetNodeApproaching();
+            var passedNode = normalizedStart.GetNodeJustPassed();
+            var distanceToApproaching = normalizedStart.GetDistanceToNextNode();
+            if (approachingNode == null)
+                return false;
+            if (!_provider.TryGetNode(approachingNode.NodeId, out approachingNode))
+                return false;
+
+            var includePassedNode = false;//これいる？？？？？？？？？？？？？？////////////////////////////////////////////////////
+            if (passedNode != null)
+            {
+                if (!_provider.TryGetNode(passedNode.NodeId, out passedNode))
+                    return false;
+                includePassedNode = true;
+            }
+            else if (distanceToApproaching != 0)
+            {
+                return false;
+            }
+
+            // JP: 分岐を越えない距離は1経路のみを即時生成する。
+            // EN: Distances within the start segment return a single route immediately.
+            if (distance <= distanceToApproaching)
+            {
+                var nodes = passedNode != null
+                    ? new List<IRailNode> { approachingNode, passedNode }
+                    : new List<IRailNode> { approachingNode };
+                var route = new RailPosition(nodes, distance, distanceToApproaching - distance);
+                resultRoutes.Add(route);
+                return true;
+            }
+
+            // JP: approachingノード以降を前方向DFSで全列挙する。
+            // EN: Enumerate all forward routes from the approaching node.
+            var remainingDistance = distance - distanceToApproaching;
+            var forwardPath = new List<int> { approachingNode.NodeId };
+            var pathStateGuard = new HashSet<(int nodeId, int remain)> { (approachingNode.NodeId, remainingDistance) };
+            EnumerateForward(approachingNode.NodeId, remainingDistance);
+            return resultRoutes.Count > 0;
+
+            #region Internal
+
+            void EnumerateForward(int currentNodeId, int remain)
+            {
+                // JP: 残距離0は現ノード終端として確定し、0距離先ノードへは進まない。
+                // EN: Remaining zero terminates at current node and does not step into zero-length successors.
+                if (remain == 0)
+                {
+                    if (TryCreateRouteTerminatedAtNode(forwardPath, out var routeAtNode))
+                    {
+                        resultRoutes.Add(routeAtNode);
+                    }
+                    return;
+                }
+
+                if (currentNodeId < 0 || currentNodeId >= _provider.ConnectNodes.Count)
+                {
+                    return;
+                }
+
+                var outgoing = BuildSortedOutgoingEdges(currentNodeId);
+                for (var i = 0; i < outgoing.Count; i++)
+                {
+                    var edge = outgoing[i];
+                    if (edge.targetId < 0 || edge.distance < 0)
+                    {
+                        continue;
+                    }
+
+                    // JP: 1辺内で終端できる場合はその場で経路を生成する。
+                    // EN: If the remaining distance fits in one edge, emit a route immediately.
+                    if (remain <= edge.distance)
+                    {
+                        var distanceToNextNode = edge.distance - remain;
+                        if (distanceToNextNode == 0)
+                        {
+                            forwardPath.Add(edge.targetId);
+                            if (TryCreateRouteTerminatedAtNode(forwardPath, out var routeAtTargetNode))
+                            {
+                                resultRoutes.Add(routeAtTargetNode);
+                            }
+                            forwardPath.RemoveAt(forwardPath.Count - 1);
+                        }
+                        else
+                        {
+                            if (TryCreateRouteTerminatedOnEdge(forwardPath, edge.targetId, distanceToNextNode, out var routeOnEdge))
+                            {
+                                resultRoutes.Add(routeOnEdge);
+                            }
+                        }
+                        continue;
+                    }
+
+                    // JP: 辺を完全に消費して次ノードへ再帰する。
+                    // EN: Consume the edge and recurse to the next node.
+                    var nextRemain = remain - edge.distance;
+                    var nextState = (edge.targetId, nextRemain);
+                    if (pathStateGuard.Contains(nextState))
+                    {
+                        continue;
+                    }
+
+                    forwardPath.Add(edge.targetId);
+                    pathStateGuard.Add(nextState);
+                    EnumerateForward(edge.targetId, nextRemain);
+                    pathStateGuard.Remove(nextState);
+                    forwardPath.RemoveAt(forwardPath.Count - 1);
+                }
+            }
+
+            bool TryCreateRouteTerminatedAtNode(IReadOnlyList<int> pathFromApproaching, out RailPosition route)
+            {
+                route = null;
+                if (pathFromApproaching == null || pathFromApproaching.Count <= 0)
+                {
+                    return false;
+                }
+
+                if (!TryBuildNodeChain(pathFromApproaching, -1, out var nodes))
+                {
+                    return false;
+                }
+
+                route = new RailPosition(nodes, distance, 0);
+                return true;
+            }
+
+            bool TryCreateRouteTerminatedOnEdge(IReadOnlyList<int> pathFromApproaching, int terminalApproachingNodeId, int distanceToNextNode, out RailPosition route)
+            {
+                route = null;
+                if (pathFromApproaching == null || pathFromApproaching.Count <= 0 || terminalApproachingNodeId < 0 || distanceToNextNode <= 0)
+                {
+                    return false;
+                }
+
+                if (!TryBuildNodeChain(pathFromApproaching, terminalApproachingNodeId, out var nodes))
+                {
+                    return false;
+                }
+
+                route = new RailPosition(nodes, distance, distanceToNextNode);
+                return true;
+            }
+
+            bool TryBuildNodeChain(IReadOnlyList<int> pathFromApproaching, int terminalApproachingNodeId, out List<IRailNode> nodes)
+            {
+                nodes = new List<IRailNode>();
+                if (pathFromApproaching == null || pathFromApproaching.Count <= 0)
+                {
+                    return false;
+                }
+
+                // JP: 先頭(前方終端)から後方(開始点)へノード列を組み立てる。
+                // EN: Build nodes from front endpoint back to the start point.
+                if (terminalApproachingNodeId >= 0)
+                {
+                    if (!_provider.TryGetNode(terminalApproachingNodeId, out var terminalNode))
+                    {
+                        return false;
+                    }
+                    nodes.Add(terminalNode);
+                }
+
+                for (var i = pathFromApproaching.Count - 1; i >= 0; i--)
+                {
+                    if (!_provider.TryGetNode(pathFromApproaching[i], out var node))
+                    {
+                        return false;
+                    }
+                    nodes.Add(node);
+                }
+
+                if (includePassedNode)
+                {
+                    nodes.Add(passedNode);
+                }
+
+                return nodes.Count > 0;
+            }
+
+            List<(int targetId, int distance)> BuildSortedOutgoingEdges(int nodeId)
+            {
+                var edges = _provider.ConnectNodes[nodeId];
+                var sorted = new List<(int targetId, int distance)>(edges.Count);
+                for (var i = 0; i < edges.Count; i++)
+                {
+                    sorted.Add(edges[i]);
+                }
+                sorted.Sort((left, right) =>
+                    left.targetId != right.targetId
+                        ? left.targetId.CompareTo(right.targetId)
+                        : left.distance.CompareTo(right.distance));
+                return sorted;
             }
 
             #endregion
