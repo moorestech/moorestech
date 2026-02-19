@@ -8,11 +8,13 @@ namespace Game.Block.Blocks.TrainRail.TransferComponents
         public bool IsDestroy { get; private set; }
         private readonly TrainPlatformDockingComponent _dockingComponent;
         private readonly TrainPlatformContainerComponent _containerComponent;
+        private readonly TrainPlatformTransferComponent _transferComponent;
         
-        public TrainPlatformItemTransferComponent(TrainPlatformDockingComponent dockingComponent, TrainPlatformContainerComponent containerComponent)
+        public TrainPlatformItemTransferComponent(TrainPlatformDockingComponent dockingComponent, TrainPlatformContainerComponent containerComponent, TrainPlatformTransferComponent transferComponent)
         {
             _dockingComponent = dockingComponent;
             _containerComponent = containerComponent;
+            _transferComponent = transferComponent;
         }
         
         public void Update()

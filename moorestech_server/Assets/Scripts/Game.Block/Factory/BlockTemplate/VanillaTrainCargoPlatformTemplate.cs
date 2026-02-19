@@ -36,7 +36,7 @@ namespace Game.Block.Factory.BlockTemplate
             var trainPlatformDockingComponent = new TrainPlatformDockingComponent(stationParam.LoadingAnimeSpeed);
             var trainPlatformContainerComponent = new TrainPlatformContainerComponent(container: null);
             var trainPlatformTransferComponent = new TrainPlatformTransferComponent(TrainPlatformTransferComponent.TransferMode.LoadToTrain);
-            var trainPlatformItemTransferComponent = new TrainPlatformItemTransferComponent(trainPlatformDockingComponent, trainPlatformContainerComponent);
+            var trainPlatformItemTransferComponent = new TrainPlatformItemTransferComponent(trainPlatformDockingComponent, trainPlatformContainerComponent, trainPlatformTransferComponent);
             
             var inventoryComponents = CreateInventoryComponents(null, instanceId, stationParam, positionInfo);
 
@@ -75,6 +75,7 @@ namespace Game.Block.Factory.BlockTemplate
             var trainPlatformDockingComponent = new TrainPlatformDockingComponent(componentStates, stationParam.LoadingAnimeSpeed);
             var trainPlatformContainerComponent = new TrainPlatformContainerComponent(componentStates);
             var trainPlatformTransferComponent = new TrainPlatformTransferComponent(componentStates);
+            var trainPlatformItemTransferComponent = new TrainPlatformItemTransferComponent(trainPlatformDockingComponent, trainPlatformContainerComponent, trainPlatformTransferComponent);
             
             var inventoryComponents = CreateInventoryComponents(componentStates, instanceId, stationParam, positionInfo);
 
@@ -84,6 +85,7 @@ namespace Game.Block.Factory.BlockTemplate
             blockComponents.Add(trainPlatformDockingComponent);
             blockComponents.Add(trainPlatformContainerComponent);
             blockComponents.Add(trainPlatformTransferComponent);
+            blockComponents.Add(trainPlatformItemTransferComponent);
             blockComponents.AddRange(inventoryComponents);
 
             // ここで各RailNodeにStationReferenceを設定  
