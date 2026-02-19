@@ -36,7 +36,7 @@ namespace Game.Block.Blocks.TrainRail.TransferComponents
                         
                         if (_dockingComponent.ArmState != ArmState.Extended) return;
                         
-                        container.MergeFrom(targetContainer);
+                        targetContainer.MergeFrom(container);
                         
                         _dockingComponent.StartRetracting();
                         break;
@@ -53,7 +53,7 @@ namespace Game.Block.Blocks.TrainRail.TransferComponents
                         
                         if (_dockingComponent.ArmState != ArmState.Extended) return;
                         
-                        targetContainer.MergeFrom(container);
+                        container.MergeFrom(targetContainer);
                         
                         _dockingComponent.StartRetracting();
                         break;
@@ -78,9 +78,9 @@ namespace Game.Block.Blocks.TrainRail.TransferComponents
             return false;
         }
         
-        private bool CanTransfer(ItemTrainCarContainer trainCarContainer, ItemTrainCarContainer stationContainer)
+        private bool CanTransfer(ItemTrainCarContainer to, ItemTrainCarContainer from)
         {
-            if (!trainCarContainer.CanInsert(stationContainer)) return false;
+            if (!to.CanInsert(from)) return false;
             return true;
         }
         
