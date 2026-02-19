@@ -13,16 +13,16 @@ namespace Server.Util.MessagePack
     {
         [Key(0)] public TrainSimulationSnapshotMessagePack Simulation { get; set; }
         [Key(1)] public RailPositionSnapshotMessagePack RailPosition { get; set; }
-
+        
         [Obsolete("Reserved for MessagePack serialization.")]
         public TrainUnitSnapshotBundleMessagePack() { }
-
+        
         public TrainUnitSnapshotBundleMessagePack(TrainUnitSnapshotBundle bundle)
         {
             Simulation = new TrainSimulationSnapshotMessagePack(bundle.Simulation);
             RailPosition = new RailPositionSnapshotMessagePack(bundle.RailPositionSnapshot);
         }
-
+        
         public TrainUnitSnapshotBundle ToModel()
         {
             return new TrainUnitSnapshotBundle(
@@ -30,7 +30,7 @@ namespace Server.Util.MessagePack
                 RailPosition.ToModel());
         }
     }
-
+    
     [MessagePackObject]
     public class TrainSimulationSnapshotMessagePack
     {

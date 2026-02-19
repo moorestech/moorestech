@@ -26,7 +26,8 @@ namespace Game.Train.Unit
             // TrainInstanceId順に並べて順序非依存にする
             // Sort by TrainInstanceId to keep the hash order-independent
             var ordered = new List<TrainUnitSnapshotBundle>(bundles);
-            ordered.Sort((left, right) => left.Simulation.TrainInstanceId.CompareTo(right.Simulation.TrainInstanceId));
+            ordered.Sort((left, right) =>
+                left.Simulation.TrainInstanceId.AsPrimitive().CompareTo(right.Simulation.TrainInstanceId.AsPrimitive()));
 
             for (var i = 0; i < ordered.Count; i++)
             {

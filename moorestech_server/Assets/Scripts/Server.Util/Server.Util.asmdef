@@ -8,6 +8,7 @@
     "Core.Util",
     "Game.Base",
     "Core.Master",
+    "Game.Block.Interface",
     "Game.Train"
   ],
   "includePlatforms": [],
