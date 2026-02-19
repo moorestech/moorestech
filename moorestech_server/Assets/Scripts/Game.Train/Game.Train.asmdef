@@ -12,7 +12,8 @@
         "Core.Update",
         "MessagePack.Annotations",
         "ClassLibrary",
-        "Game.Entity.Interface"
+        "Game.Entity.Interface",
+        "Unity.Collections"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
