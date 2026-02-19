@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.Entity;
 using Client.Game.InGame.Entity.Object;
 using Client.Game.InGame.UI.Challenge;
+using Client.Tests.PlayModeTest.Util;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
@@ -28,13 +29,7 @@ namespace Client.Tests.PlayModeTest
         [UnityTest]
         public IEnumerator BeltConveyorItemEntityPositionTest()
         {
-            // テスト中はデバッグオブジェクトの生成を無効化（ドメインリロード後も保持される）
-            // Disable debug object creation during test (persists across domain reload).
-            SessionState.SetBool("DebugObjectsBootstrap_Disabled", true);
-
-            AssetBundle.UnloadAllAssetBundles(true);
-
-            yield return new EnterPlayMode(expectDomainReload: true);
+            yield return EnterPlayModeUtil();
 
             // EnterPlayMode時のテストフレームワーク内部エラーでテストが失敗するのを防ぐ
             // Prevent test failure from test framework internal errors during EnterPlayMode.
