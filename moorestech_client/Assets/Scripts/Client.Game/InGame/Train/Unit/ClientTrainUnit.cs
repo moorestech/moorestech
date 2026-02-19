@@ -17,7 +17,7 @@ namespace Client.Game.InGame.Train.Unit
         private bool _isDockingStopPendingForTick;
         private IRailNode _simulationTargetNode;
 
-        public Guid TrainId { get; }
+        public TrainInstanceId TrainInstanceId { get; }
         public double CurrentSpeed { get; set; }
         public double AccumulatedDistance { get; set; }
         public int MasconLevel { get; set; }
@@ -27,13 +27,13 @@ namespace Client.Game.InGame.Train.Unit
         public IReadOnlyList<TrainCarSnapshot> Cars => _cars ?? Array.Empty<TrainCarSnapshot>();
         public RailPosition RailPosition { get; private set; }
 
-        public ClientTrainUnit(Guid trainId, IRailGraphProvider railGraphProvider)
+        public ClientTrainUnit(TrainInstanceId trainInstanceId, IRailGraphProvider railGraphProvider)
         {
             // レールグラフプロバイダを保持する
             // Keep the rail graph provider reference
             _railGraphProvider = railGraphProvider;
             _railGraphTraversalProvider = railGraphProvider as IRailGraphTraversalProvider;
-            TrainId = trainId;
+            TrainInstanceId = trainInstanceId;
         }
 
         // スナップショットの内容で内部状態を更新
@@ -118,7 +118,7 @@ namespace Client.Game.InGame.Train.Unit
                 // Convert client-side motion state into a simulation snapshot
                 var carSnapshots = _cars ?? Array.Empty<TrainCarSnapshot>();
                 return new TrainSimulationSnapshot(
-                    TrainId,
+                    TrainInstanceId,
                     CurrentSpeed,
                     AccumulatedDistance,
                     MasconLevel,

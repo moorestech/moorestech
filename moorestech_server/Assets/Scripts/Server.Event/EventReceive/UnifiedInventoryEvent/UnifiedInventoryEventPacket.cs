@@ -70,7 +70,7 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
             return identifier switch
             {
                 BlockInventorySubInventoryIdentifier blockId => CreateBlockMessage(blockId.Position),
-                TrainInventorySubInventoryIdentifier trainId => CreateTrainMessage(trainId.TrainCarInstanceId),
+                TrainInventorySubInventoryIdentifier trainInventoryIdentifier => CreateTrainMessage(trainInventoryIdentifier.TrainCarInstanceId),
                 _ => throw new ArgumentException($"Unknown ISubscriptionIdentifier type: {identifier.GetType()}")
             };
         }
