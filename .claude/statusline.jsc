@@ -1,231 +1,226 @@
 #!/usr/bin/env node
 
+const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const readline = require('readline');
+const os = require('os');
 
-// Constants
-const COMPACTION_THRESHOLD = 200000 * 0.8
+const STATE_FILE = path.join(os.homedir(), '.claude', 'statusline_state.json');
+const BAR_WIDTH = 20;
+const SPARK_CHARS = '▁▂▃▄▅▆▇█';
+const SESSION_HOURS = 5;
 
 // Read JSON from stdin
 let input = '';
 process.stdin.on('data', chunk => input += chunk);
-process.stdin.on('end', async () => {
+process.stdin.on('end', () => {
     try {
-        const data = JSON.parse(input);
-
-        // Extract values
-        const model = data.model?.display_name || 'Unknown';
-        const currentDirPath = data.workspace?.current_dir || data.cwd || '.';
-        const currentDir = path.basename(currentDirPath);
-        const sessionId = data.session_id;
-
-        // file:// link (Finder convenience)
-        const fileUrl = toFileUrl(currentDirPath);
-
-        // Calculate token usage for current session
-        let totalTokens = 0;
-
-        // Read first user request from transcript
-        let firstUserMessage = '';
-
-        // Prefer transcript_path from stdin (more reliable than scanning)
-        let transcriptFile = expandHome(data.transcript_path || '');
-
-        if (!transcriptFile || !fs.existsSync(transcriptFile)) {
-            transcriptFile = '';
-
-            if (sessionId) {
-                // Find all transcript files
-                const projectsDir = path.join(process.env.HOME, '.claude', 'projects');
-
-                if (fs.existsSync(projectsDir)) {
-                    // Get all project directories
-                    const projectDirs = fs.readdirSync(projectsDir)
-                        .map(dir => path.join(projectsDir, dir))
-                        .filter(dir => fs.statSync(dir).isDirectory());
-
-                    // Search for the current session's transcript file (support multiple layouts)
-                    for (const projectDir of projectDirs) {
-                        const candidates = [
-                            path.join(projectDir, `${sessionId}.jsonl`),
-                            path.join(projectDir, sessionId, 'transcript.jsonl'),
-                            path.join(projectDir, sessionId, `${sessionId}.jsonl`),
-                        ];
-
-                        for (const candidate of candidates) {
-                            if (fs.existsSync(candidate)) {
-                                transcriptFile = candidate;
-                                break;
-                            }
-                        }
-
-                        if (transcriptFile) break;
-                    }
-                }
-            }
-        }
-
-        if (transcriptFile && fs.existsSync(transcriptFile)) {
-            const analysis = await analyzeTranscript(transcriptFile);
-            totalTokens = analysis.totalTokens;
-            firstUserMessage = analysis.firstUserMessage;
-        }
-
-        // Calculate percentage
-        const percentage = Math.min(100, Math.round((totalTokens / COMPACTION_THRESHOLD) * 100));
-
-        // Format token display
-        const tokenDisplay = formatTokenCount(totalTokens);
-
-        // One-line + truncate for status line
-        const firstMsgOneLine = truncate(oneLine(firstUserMessage), 60);
-
-        // Build status line (requested order)
-        const statusLine = firstMsgOneLine
-            ? `[${model}] 📁 ${currentDir} | 🪙 ${tokenDisplay} | ${percentage}% | ${fileUrl} | 🗣 ${firstMsgOneLine}`
-            : `[${model}] 📁 ${currentDir} | 🪙 ${tokenDisplay} | ${percentage}% | ${fileUrl}`;
-
-        console.log(statusLine);
+        const data = JSON.parse(input || '{}');
+        console.log(buildStatusLine(data));
     } catch (error) {
-        // Fallback status line on error
-        console.log('[Error] 📁 . | 🪙 0 | 0% | file:///');
+        console.log(`[Error] ${error.message}`);
+        console.log(`Stack: ${error.stack}`);
+        console.log(`Input: ${input.slice(0, 500)}`);
     }
 });
 
-async function analyzeTranscript(filePath) {
-    return new Promise((resolve, reject) => {
-        let firstUserMessage = '';
-        let mostRecentUsage = null;
-        let mostRecentTimestamp = null;
-
-        const fileStream = fs.createReadStream(filePath);
-        const rl = readline.createInterface({
-            input: fileStream,
-            crlfDelay: Infinity
-        });
-
-        rl.on('line', (line) => {
-            try {
-                const entry = JSON.parse(line);
-
-                // Skip sidechains (agents) and API error messages when analyzing main session context
-                if (entry.isSidechain === true) return;
-                if (entry.isApiErrorMessage === true) return;
-
-                // Capture the first user message in the main chain
-                if (!firstUserMessage && entry.type === 'user') {
-                    const text = extractMessageText(entry);
-                    if (text) firstUserMessage = text;
-                }
-
-                // Track most recent usage entry (prefer timestamp ordering)
-                if (entry.message?.usage) {
-                    if (entry.timestamp) {
-                        const t = new Date(entry.timestamp).getTime();
-                        if (!Number.isNaN(t) && (mostRecentTimestamp === null || t > mostRecentTimestamp)) {
-                            mostRecentTimestamp = t;
-                            mostRecentUsage = entry.message.usage;
-                        }
-                    } else if (mostRecentTimestamp === null) {
-                        // Fallback if timestamp is missing
-                        mostRecentUsage = entry.message.usage;
-                    }
-                }
-            } catch (e) {
-                // Skip invalid JSON lines
-            }
-        });
-
-        rl.on('close', () => {
-            let totalTokens = 0;
-
-            if (mostRecentUsage) {
-                // The most recent usage entry contains cumulative tokens
-                totalTokens = (mostRecentUsage.input_tokens || 0) +
-                    (mostRecentUsage.output_tokens || 0) +
-                    (mostRecentUsage.cache_creation_input_tokens || 0) +
-                    (mostRecentUsage.cache_read_input_tokens || 0);
-            }
-
-            resolve({ totalTokens, firstUserMessage });
-        });
-
-        rl.on('error', (err) => {
-            reject(err);
-        });
-
-        fileStream.on('error', (err) => {
-            reject(err);
-        });
-    });
+// claude-sonnet-4-6 -> Sonnet 4.6  (model can be string or {id, display_name})
+function formatModel(model) {
+    if (!model) return 'Unknown';
+    if (typeof model === 'object') {
+        if (model.display_name) return model.display_name;
+        model = model.id || '';
+    }
+    const m = model.match(/claude-(\w+)-(\d+)-(\d+)/i);
+    if (m) {
+        const name = m[1][0].toUpperCase() + m[1].slice(1);
+        return `${name} ${m[2]}.${m[3]}`;
+    }
+    return model.replace(/^claude-/i, '');
 }
 
-function extractMessageText(entry) {
-    const msg = entry?.message;
-    if (!msg) return '';
+// Run git commands to get branch and status
+function getGitInfo(cwd) {
+    try {
+        const branch = execSync('git rev-parse --abbrev-ref HEAD', {
+            cwd, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe']
+        }).trim();
 
-    // Some formats may use `text`
-    if (typeof msg.text === 'string' && msg.text.trim()) return msg.text;
+        const status = execSync('git status --porcelain', {
+            cwd, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe']
+        }).trim();
 
-    const content = msg.content;
-
-    // Some entries use a plain string
-    if (typeof content === 'string') return content;
-
-    // Messages are often an array of blocks like {type:"text", text:"..."}
-    if (Array.isArray(content)) {
-        let out = '';
-        for (const block of content) {
-            if (!block) continue;
-            if (typeof block === 'string') {
-                out += block;
-                continue;
-            }
-            if (block.type === 'text' && typeof block.text === 'string') {
-                out += block.text;
+        let modified = 0, untracked = 0;
+        if (status) {
+            for (const line of status.split('\n')) {
+                if (line.trim()) {
+                    if (line.startsWith('??')) untracked++;
+                    else modified++;
+                }
             }
         }
-        return out;
+
+        let s = `🌿 ${branch}`;
+        if (modified > 0) s += ` M${modified}`;
+        if (untracked > 0) s += ` +${untracked}`;
+        return s;
+    } catch {
+        return null;
+    }
+}
+
+// Count turn entries in the JSONL transcript file
+function getTurnCount(transcriptPath) {
+    try {
+        if (!transcriptPath || !fs.existsSync(transcriptPath)) return 0;
+        const content = fs.readFileSync(transcriptPath, 'utf8');
+        return content.split('\n').filter(l => l.trim()).length;
+    } catch {
+        return 0;
+    }
+}
+
+// Format large numbers: 91800 -> "91.8K", 14000000 -> "14.0M"
+function formatK(n) {
+    if (n >= 1e6) return `${(n / 1e6).toFixed(1)}M`;
+    if (n >= 1e3) return `${(n / 1e3).toFixed(1)}K`;
+    return `${n}`;
+}
+
+// Build a progress bar: ratio=0.58, width=20 -> "████████████▒▒▒▒▒▒▒▒"
+function makeBar(ratio, width) {
+    const filled = Math.max(0, Math.min(width, Math.round(ratio * width)));
+    return '█'.repeat(filled) + '▒'.repeat(width - filled);
+}
+
+// Format milliseconds as "1h15m" or "45m"
+function formatDuration(ms) {
+    const h = Math.floor(ms / 3600000);
+    const m = Math.floor((ms % 3600000) / 60000);
+    if (h > 0) return m > 0 ? `${h}h${m}m` : `${h}h`;
+    return `${m}m`;
+}
+
+// Format timestamp as "09:15"
+function formatHHMM(ts) {
+    const d = new Date(ts);
+    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+function loadState() {
+    try {
+        return JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
+    } catch {
+        return {};
+    }
+}
+
+function saveState(state) {
+    try {
+        fs.writeFileSync(STATE_FILE, JSON.stringify(state), 'utf8');
+    } catch {}
+}
+
+// Update per-session state (startTime + token history for sparkline)
+function updateSession(state, sessionId, now, totalTokens) {
+    if (!state.sessions) state.sessions = {};
+
+    // Remove sessions older than 24 hours
+    const cutoff = now - 24 * 3600000;
+    for (const id of Object.keys(state.sessions)) {
+        if (state.sessions[id].startTime < cutoff) delete state.sessions[id];
     }
 
-    return '';
-}
-
-function formatTokenCount(tokens) {
-    if (tokens >= 1000000) {
-        return `${(tokens / 1000000).toFixed(1)}M`;
-    } else if (tokens >= 1000) {
-        return `${(tokens / 1000).toFixed(1)}K`;
+    if (!state.sessions[sessionId]) {
+        state.sessions[sessionId] = { startTime: now, history: [] };
     }
-    return tokens.toString();
+
+    const sess = state.sessions[sessionId];
+    const hist = sess.history;
+    // Snapshot at most once per minute
+    if (hist.length === 0 || now - hist[hist.length - 1].t >= 60000) {
+        hist.push({ t: now, tokens: totalTokens });
+        if (hist.length > 20) sess.history = hist.slice(-20);
+    }
+
+    return sess;
 }
 
-function expandHome(p) {
-    if (!p || typeof p !== 'string') return '';
-    if (p.startsWith('~/')) return path.join(process.env.HOME || '', p.slice(2));
-    return p;
+// Build sparkline from token-per-minute history
+function makeSparkline(history, width) {
+    if (!history || history.length < 2) return '▁'.repeat(width);
+
+    const rates = [];
+    for (let i = 1; i < history.length; i++) {
+        const dt = (history[i].t - history[i - 1].t) / 60000;
+        const dn = Math.max(0, history[i].tokens - history[i - 1].tokens);
+        rates.push(dt > 0 ? dn / dt : 0);
+    }
+
+    const maxRate = Math.max(...rates, 1);
+    while (rates.length < width) rates.unshift(0);
+    return rates.slice(-width)
+        .map(r => SPARK_CHARS[Math.min(SPARK_CHARS.length - 1, Math.floor((r / maxRate) * SPARK_CHARS.length))])
+        .join('');
 }
 
-function oneLine(s) {
-    if (!s) return '';
-    return String(s).replace(/\s+/g, ' ').trim();
-}
+function buildStatusLine(data) {
+    const now = Date.now();
 
-function truncate(s, maxLen) {
-    if (!s) return '';
-    if (s.length <= maxLen) return s;
-    return s.slice(0, Math.max(0, maxLen - 1)) + '…';
-}
+    // data.model is {id, display_name}
+    const model = data.model || {};
+    const cwd = data.cwd || process.cwd();
+    const sessionId = data.session_id || 'default';
 
-function toFileUrl(p) {
-    // Make absolute if needed
-    const abs = path.resolve(p);
+    // data.cost is {total_cost_usd, total_duration_ms, ...}
+    const costObj = data.cost || {};
+    const cost = costObj.total_cost_usd || 0;
 
-    // Encode for URLs (spaces etc.)
-    // Convert Windows backslashes defensively too.
-    const normalized = abs.replace(/\\/g, '/');
-    const encoded = normalized.split('/').map(encodeURIComponent).join('/');
+    // data.context_window is {total_input_tokens, total_output_tokens, context_window_size, current_usage, used_percentage}
+    const ctxWin = data.context_window || {};
+    const inputTokens = ctxWin.total_input_tokens || 0;
+    const outputTokens = ctxWin.total_output_tokens || 0;
+    const contextMax = ctxWin.context_window_size || 200000;
+    // current_usage can be a number, null, or unexpectedly an object — only use if it's numeric
+    const rawUsage = ctxWin.current_usage;
+    const contextUsed = (typeof rawUsage === 'number' ? rawUsage : null) ?? inputTokens;
+    const contextRatio = Math.min(contextUsed / contextMax, 1);
 
-    return `file://${encoded}`;
+    // Total tokens for sparkline (cumulative over session)
+    const totalTokens = inputTokens + outputTokens;
+
+    // Turn count from transcript JSONL line count
+    const numTurns = getTurnCount(data.transcript_path);
+
+    // Session tracking (persisted across turns)
+    const state = loadState();
+    const session = updateSession(state, sessionId, now, totalTokens);
+    saveState(state);
+
+    const elapsed = now - session.startTime;
+    const sessionMs = SESSION_HOURS * 3600000;
+    const sessionRatio = Math.min(elapsed / sessionMs, 1);
+    const sessionEnd = session.startTime + sessionMs;
+
+    // Line 1: [Model] | 🌿 branch M1 +2 | 📁 dir | 💬 N | 💰 $0.031
+    const gitInfo = getGitInfo(cwd);
+    const parts = [`🤖 [${formatModel(model)}]`];
+    if (gitInfo) parts.push(gitInfo);
+    parts.push(`📁 ${path.basename(cwd)}`);
+    parts.push(`💬 ${numTurns}`);
+    parts.push(`💰 $${cost.toFixed(3)}`);
+    const line1 = parts.join(' | ');
+
+    // Line 2: Compact: [bar] [58%] 91.8K/200.0K
+    const pct2 = Math.round(contextRatio * 100);
+    const line2 = `Compact: ${makeBar(contextRatio, BAR_WIDTH)} [${pct2}%] ${formatK(contextUsed)}/${formatK(contextMax)}`;
+
+    // Line 3: Session: [bar] [25%] 1h15m/5h 09:15 (08:00 to 13:00)
+    const pct3 = Math.round(sessionRatio * 100);
+    const line3 = `Session: ${makeBar(sessionRatio, BAR_WIDTH)} [${pct3}%] ${formatDuration(elapsed)}/${SESSION_HOURS}h ${formatHHMM(now)} (${formatHHMM(session.startTime)} to ${formatHHMM(sessionEnd)})`;
+
+    // Line 4: Burn:    [sparkline] 14.0M tokens
+    const line4 = `Burn:    ${makeSparkline(session.history, BAR_WIDTH)} ${formatK(totalTokens)} tokens`;
+
+    return [line1, line2, line3, line4].join('\n');
 }
