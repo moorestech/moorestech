@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Client.Game.InGame.Train.RailGraph;
 using Core.Master;
 using Game.Train.Unit;
-using Server.Util.MessagePack;
 
 namespace Client.Game.InGame.Train.Unit
 {
@@ -93,18 +92,14 @@ namespace Client.Game.InGame.Train.Unit
 
         // pre sim差分イベントを対象TrainUnitへ反映する
         // Apply a pre-simulation diff event to the target train.
-        public bool ApplyPreSimulationDiff(TrainUnitTickDiffMessagePack diff)
+        public bool ApplyPreSimulationDiff(TrainInstanceId trainInstanceId, int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeId)
         {
-            if (diff == null)
-            {
-                return false;
-            }
-            if (!_units.TryGetValue(diff.TrainInstanceId, out var unit))
+            if (!_units.TryGetValue(trainInstanceId, out var unit))
             {
                 return false;
             }
             
-            unit.ApplyPreSimulationDiff(diff.MasconLevelDiff, diff.IsNowDockingSpeedZero, diff.ApproachingNodeIdDiff);
+            unit.ApplyPreSimulationDiff(masconLevelDiff, isNowDockingSpeedZero, approachingNodeId);
             return true;
         }
 
