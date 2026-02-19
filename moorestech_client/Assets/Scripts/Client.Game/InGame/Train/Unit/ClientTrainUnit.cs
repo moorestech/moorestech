@@ -38,12 +38,12 @@ namespace Client.Game.InGame.Train.Unit
 
         // スナップショットの内容で内部状態を更新
         // Update internal state by the received snapshot
-        public void SnapshotUpdate(TrainSimulationSnapshot simulation, RailPositionSaveData railPosition)
+        public void SnapshotUpdate(TrainSimulationSnapshot simulation, RailPosition railPosition)
         {
             CurrentSpeed = simulation.CurrentSpeed;
             AccumulatedDistance = simulation.AccumulatedDistance;
             MasconLevel = simulation.MasconLevel;
-            RailPosition = RailPositionFactory.Restore(railPosition, _railGraphProvider);
+            RailPosition = railPosition;
             _cars = simulation.Cars ?? Array.Empty<TrainCarSnapshot>();
             _simulationTargetNode = RailPosition?.GetNodeApproaching();
         }
@@ -94,38 +94,6 @@ namespace Client.Game.InGame.Train.Unit
 
             _cars = nextCars;
             return true;
-        }
-
-        // 現在の状態からスナップショットバンドルを生成する
-        public bool TryCreateSnapshotBundle(out TrainUnitSnapshotBundle bundle)
-        {
-            if (RailPosition == null)
-            {
-                bundle = default;
-                return false;
-            }
-
-            var simulation = CreateSimulationSnapshot();
-            var railPosition = RailPosition.CreateSaveSnapshot();
-            bundle = new TrainUnitSnapshotBundle(simulation, railPosition);
-            return true;
-
-            #region Internal
-
-            TrainSimulationSnapshot CreateSimulationSnapshot()
-            {
-                // クライアントの移動状態をスナップショットへ変換する
-                // Convert client-side motion state into a simulation snapshot
-                var carSnapshots = _cars ?? Array.Empty<TrainCarSnapshot>();
-                return new TrainSimulationSnapshot(
-                    TrainInstanceId,
-                    CurrentSpeed,
-                    AccumulatedDistance,
-                    MasconLevel,
-                    carSnapshots);
-            }
-
-            #endregion
         }
 
         // 1tickごとに呼ばれる。進んだ距離を返す

@@ -128,7 +128,7 @@ namespace Client.Game.InGame.Train.View
                     }
 
                     var (railGraphSnapshot, trainSnapshot) = snapshotResult.Result;
-                    if (railGraphSnapshot == null || trainSnapshot == null)
+                    if (trainSnapshot == null)
                     {
                         Debug.LogWarning("[TrainUnitHashVerifier] Rail+Train snapshot response was null.");
                         FinalizeResync(cts);

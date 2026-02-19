@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Game.Train.RailPositions;
+using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Train.View.Object;
 using Client.Network.API;
@@ -15,17 +17,20 @@ namespace Client.Game.InGame.Train.View
     public sealed class TrainUnitSnapshotApplier : IInitializable
     {
         private readonly TrainUnitClientCache _cache;
+        private readonly RailGraphClientCache _railGraphProvider;
         private readonly TrainUnitTickState _tickState;
         private readonly TrainCarObjectDatastore _trainCarDatastore;
         private readonly InitialHandshakeResponse _initialHandshakeResponse;
 
         public TrainUnitSnapshotApplier(
             TrainUnitClientCache cache,
+            RailGraphClientCache railGraphProvider,
             TrainUnitTickState tickState,
             InitialHandshakeResponse initialHandshakeResponse,
             TrainCarObjectDatastore trainCarDatastore)
         {
             _cache = cache;
+            _railGraphProvider = railGraphProvider;
             _tickState = tickState;
             _initialHandshakeResponse = initialHandshakeResponse;
             _trainCarDatastore = trainCarDatastore;
@@ -56,15 +61,20 @@ namespace Client.Game.InGame.Train.View
             // スナップショットをモデルに変換して列車IDを収集する
             // Iterate snapshots and collect train car ids
             var snapshots = response.Snapshots;
-            var bundles = new List<TrainUnitSnapshotBundle>(snapshots?.Count ?? 0);
+            var units = new List<(TrainSimulationSnapshot simulation, RailPosition railPosition)>(snapshots?.Count ?? 0);
             var activeTrainCarInstanceIds = new HashSet<TrainCarInstanceId>();
             if (snapshots != null)
             {
                 for (var i = 0; i < snapshots.Count; i++)
                 {
                     var bundle = snapshots[i];
-                    bundles.Add(bundle);
-                    CollectTrainCarInstanceIds(bundle, activeTrainCarInstanceIds);
+                    if (bundle.Simulation.TrainInstanceId == TrainInstanceId.Empty)
+                    {
+                        continue;
+                    }
+                    var railPosition = RailPositionFactory.Restore(bundle.RailPositionSnapshot, _railGraphProvider);
+                    units.Add((bundle.Simulation, railPosition));
+                    CollectTrainCarInstanceIds(bundle.Simulation, activeTrainCarInstanceIds);
 
                     // 車両オブジェクトを生成する
                     // Create train car objects
@@ -74,7 +84,7 @@ namespace Client.Game.InGame.Train.View
 
             // キャッシュ更新後に不要な列車エンティティを除去する
             // Remove stale train entities after cache update
-            _cache.OverrideAll(bundles);
+            _cache.OverrideAll(units);
             var localHashAfterApply = _cache.ComputeCurrentHash();
             if (localHashAfterApply != response.UnitsHash)
             {
@@ -82,7 +92,7 @@ namespace Client.Game.InGame.Train.View
                 // Detect hash differences right after snapshot apply for root-cause isolation.
                 Debug.LogWarning(
                     "[TrainUnitSnapshotApplier] Snapshot hash mismatch right after apply. " +
-                    $"serverTick={response.ServerTick}, snapshotCount={bundles.Count}, " +
+                    $"serverTick={response.ServerTick}, snapshotCount={units.Count}, " +
                     $"serverHash={response.UnitsHash}, clientHash={localHashAfterApply}, cacheTrainCount={_cache.Units.Count}");
             }
 
@@ -91,11 +101,11 @@ namespace Client.Game.InGame.Train.View
 
             #region Internal
 
-            void CollectTrainCarInstanceIds(TrainUnitSnapshotBundle bundle, ISet<TrainCarInstanceId> target)
+            void CollectTrainCarInstanceIds(TrainSimulationSnapshot simulation, ISet<TrainCarInstanceId> target)
             {
                 // 車両スナップショットからIDを集計する
                 // Collect train car ids from the snapshot
-                var cars = bundle.Simulation.Cars;
+                var cars = simulation.Cars;
                 if (cars == null) return;
                 for (var i = 0; i < cars.Count; i++) target.Add(cars[i].TrainCarInstanceId);
             }

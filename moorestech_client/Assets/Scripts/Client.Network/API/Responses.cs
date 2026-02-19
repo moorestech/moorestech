@@ -5,6 +5,7 @@ using Core.Master;
 using Game.Block.Interface;
 using Game.CraftTree.Models;
 using Game.Research;
+using Game.Train.RailGraph;
 using Game.Train.Unit;
 using Mooresmaster.Model.ChallengesModule;
 using Server.Event.EventReceive;
@@ -26,7 +27,7 @@ namespace Client.Network.API
         public CraftTreeResponse CraftTree { get; }
         public List<string> PlayedSkitIds { get; }
         public Dictionary<Guid, ResearchNodeState> ResearchNodeStates { get; }
-        public RailGraphSnapshotMessagePack RailGraphSnapshot { get; }
+        public (RailGraphSnapshot snapshot, uint tickSequenceId) RailGraphSnapshot { get; }
         public TrainUnitSnapshotResponse TrainUnitSnapshots { get; }
         
         public InitialHandshakeResponse(
@@ -40,7 +41,7 @@ namespace Client.Network.API
                 CraftTreeResponse craftTree,
                 List<string> playedSkitIds,
                 Dictionary<Guid, ResearchNodeState> researchNodeStates,
-                RailGraphSnapshotMessagePack railGraphSnapshot,
+                (RailGraphSnapshot snapshot, uint tickSequenceId) railGraphSnapshot,
                 TrainUnitSnapshotResponse trainUnitSnapshots) responses)
         {
             PlayerPos = initialHandshake.PlayerPos;

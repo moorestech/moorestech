@@ -38,6 +38,32 @@ namespace Game.Train.Unit
             return hash;
         }
 
+        // ランタイム状態からTrainUnit全体の状態ハッシュを算出する
+        // Compute the hash from runtime train simulation + rail position data
+        public static uint Compute(IReadOnlyList<(TrainSimulationSnapshot simulation, RailPosition railPosition)> units)
+        {
+            var count = units?.Count ?? 0;
+            uint hash = Mix(FnvOffset, count);
+            if (count == 0)
+            {
+                return hash;
+            }
+
+            // TrainInstanceId順に並べて順序非依存にする
+            // Sort by TrainInstanceId to keep the hash order-independent
+            var ordered = new List<(TrainSimulationSnapshot simulation, RailPosition railPosition)>(units);
+            ordered.Sort((left, right) =>
+                left.simulation.TrainInstanceId.AsPrimitive().CompareTo(right.simulation.TrainInstanceId.AsPrimitive()));
+
+            for (var i = 0; i < ordered.Count; i++)
+            {
+                hash = Mix(hash, i);
+                hash = MixRuntimeBundle(hash, ordered[i].simulation, ordered[i].railPosition);
+            }
+
+            return hash;
+        }
+
         #region Internal
 
         private static uint MixBundle(uint current, TrainUnitSnapshotBundle bundle)
@@ -51,6 +77,17 @@ namespace Game.Train.Unit
             hash = Mix(hash, simulation.MasconLevel);
             hash = MixCars(hash, simulation.Cars);
             hash = MixRailPosition(hash, bundle.RailPositionSnapshot);
+            return hash;
+        }
+
+        private static uint MixRuntimeBundle(uint current, TrainSimulationSnapshot simulation, RailPosition railPosition)
+        {
+            var hash = MixGuid(current, simulation.TrainInstanceId.AsPrimitive());
+            hash = MixLong(hash, BitConverter.DoubleToInt64Bits(simulation.CurrentSpeed));
+            hash = MixLong(hash, BitConverter.DoubleToInt64Bits(simulation.AccumulatedDistance));
+            hash = Mix(hash, simulation.MasconLevel);
+            hash = MixCars(hash, simulation.Cars);
+            hash = MixRailPosition(hash, railPosition);
             return hash;
         }
 
@@ -95,6 +132,33 @@ namespace Game.Train.Unit
             for (var i = 0; i < nodes.Count; i++)
             {
                 hash = MixDestination(hash, nodes[i]);
+            }
+
+            return hash;
+        }
+
+        private static uint MixRailPosition(uint current, RailPosition railPosition)
+        {
+            if (railPosition == null)
+            {
+                return Mix(current, -1);
+            }
+
+            var hash = Mix(current, railPosition.TrainLength);
+            hash = Mix(hash, railPosition.DistanceToNextNode);
+
+            var nodes = railPosition.GetRailNodes();
+            if (nodes == null || nodes.Count == 0)
+            {
+                return Mix(hash, -1);
+            }
+
+            hash = Mix(hash, nodes.Count);
+            for (var i = 0; i < nodes.Count; i++)
+            {
+                var node = nodes[i];
+                var destination = node == null ? ConnectionDestination.Default : node.ConnectionDestination;
+                hash = MixDestination(hash, destination);
             }
 
             return hash;
