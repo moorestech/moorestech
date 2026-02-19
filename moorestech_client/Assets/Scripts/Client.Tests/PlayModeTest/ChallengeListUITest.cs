@@ -7,6 +7,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
+using static Client.Tests.PlayModeTest.Util.PlayModeTestUtil;
 
 namespace Client.Tests.PlayModeTest
 {
@@ -19,11 +20,7 @@ namespace Client.Tests.PlayModeTest
         [UnityTest]
         public IEnumerator CategoryElementTest()
         {
-            // テスト中はデバッグオブジェクトの生成を無効化（ドメインリロード後も保持される）
-            // Disable debug object creation during test (persists across domain reload).
-            SessionState.SetBool("DebugObjectsBootstrap_Disabled", true);
-
-            AssetBundle.UnloadAllAssetBundles(true);
+            yield return EnterPlayModeUtil();
 
             yield return new EnterPlayMode(expectDomainReload: true);
 
