@@ -28,15 +28,13 @@ namespace Client.Tests.PlayModeTest.Util
     {
         public static string PlayModeTestServerDirectoryPath => Path.Combine(Environment.CurrentDirectory, "../", "moorestech_client", "Assets/Scripts/Client.Tests/PlayModeTest/ServerData");
         
-        public static IEnumerator EnterPlayModeUtil()
+        public static void EnterPlayModeUtil()
         {
             // テスト中はデバッグオブジェクトの生成を無効化（ドメインリロード後も保持される）
             // Disable debug object creation during test (persists across domain reload).
             SessionState.SetBool("DebugObjectsBootstrap_Disabled", true);
             
             AssetBundle.UnloadAllAssetBundles(true);
-            
-            yield return new EnterPlayMode(expectDomainReload: true);
         }
         
         public static async UniTask LoadMainGame(string serverDirectory = null, string saveFilePath = null)

@@ -20,8 +20,10 @@ namespace Client.Tests.PlayModeTest
         [UnityTest]
         public IEnumerator CategoryElementTest()
         {
-            yield return EnterPlayModeUtil();
-
+            EnterPlayModeUtil();
+            
+            // yield return new EnterPlayMode　は必ず[UnityTest]関数の直下で呼び出すこと。そうでないとなぜかわからないがプレイモードに入らない
+            // Always call yield return new EnterPlayMode directly under the [UnityTest] function. Otherwise, for unknown reasons, it will not enter PlayMode.
             yield return new EnterPlayMode(expectDomainReload: true);
 
             // EnterPlayMode時のテストフレームワーク内部エラーでテストが失敗するのを防ぐ
