@@ -3,16 +3,17 @@ using System.Collections.Generic;
 using Core.Update;
 using Game.Block.Interface.Component;
 using Game.Train.Unit;
+using JetBrains.Annotations;
 using Newtonsoft.Json;
 
 namespace Game.Block.Blocks.TrainRail
 {
-    public class TrainPlatformDockingComponent : IBlockComponent, ITrainDockingReceiver, IBlockSaveState, IUpdatableBlockComponent
+    public class TrainPlatformDockingComponent : ITrainDockingReceiver, IBlockSaveState, IUpdatableBlockComponent
     {
         public Guid? DockedTrainId;
         private long? _dockedTrainCarInstanceId;
-        public TrainCar DockedTrainCar { get; private set; }
-        private TrainDockHandle _dockedHandle;
+        [CanBeNull] public TrainCar DockedTrainCar { get; private set; }
+        [CanBeNull] private TrainDockHandle _dockedHandle;
         
         public ArmState ArmState { get; private set; } = ArmState.Idle;
         private int _armProgressTicks;

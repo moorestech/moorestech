@@ -65,7 +65,7 @@ namespace Game.Block.Blocks.TrainRail.TransferComponents
         
         private bool IsTargetContainer(out ItemTrainCarContainer trainCarContainer, out ItemTrainCarContainer stationContainer)
         {
-            if (_dockingComponent.DockedTrainCar.Container is ItemTrainCarContainer itemTrainCarContainer
+            if (_dockingComponent.DockedTrainCar?.Container is ItemTrainCarContainer itemTrainCarContainer
                 && _containerComponent.Container is ItemTrainCarContainer itemStationContainer)
             {
                 trainCarContainer = itemTrainCarContainer;
