@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Game.Train.RailGraph;
 using Game.Train.RailPositions;
@@ -11,7 +11,7 @@ namespace Tests.UnitTest.Game
     public class RailPathTracerForwardDfsTest
     {
         [Test]
-        public void TryEnumerateForwardRoutesFromPoint_WhenDistanceWithinStartSegment_ReturnsSingleLocalRoute()
+        public void TryTraceForwardRoutesByDfs_WhenDistanceWithinStartSegment_ReturnsSingleLocalRoute()
         {
             // 日本語: 分岐に到達しない距離は開始セグメント内の1経路のみを返す。
             // English: Distance within the start segment should return one local route.
@@ -19,7 +19,7 @@ namespace Tests.UnitTest.Game
             var tracer = new RailPathTracer(provider);
             var start = CreateStartPoint(provider, 0, 1, 7, 0);
 
-            var success = tracer.TryEnumerateForwardRoutesFromPoint(start, 4, out var routes);
+            var success = tracer.TryTraceForwardRoutesByDfs(start, 4, out var routes);
 
             Assert.IsTrue(success);
             Assert.AreEqual(1, routes.Count);
@@ -29,7 +29,7 @@ namespace Tests.UnitTest.Game
         }
 
         [Test]
-        public void TryEnumerateForwardRoutesFromPoint_WhenDistanceEqualsDistanceToApproaching_ReturnsSingleRouteAtApproaching()
+        public void TryTraceForwardRoutesByDfs_WhenDistanceEqualsDistanceToApproaching_ReturnsSingleRouteAtApproaching()
         {
             // 日本語: 距離がdistanceToApproachingと一致する場合はapproachingノード終端になる。
             // English: Distance exactly matching distanceToApproaching should terminate at approaching node.
@@ -37,7 +37,7 @@ namespace Tests.UnitTest.Game
             var tracer = new RailPathTracer(provider);
             var start = CreateStartPoint(provider, 0, 1, 7, 0);
 
-            var success = tracer.TryEnumerateForwardRoutesFromPoint(start, 7, out var routes);
+            var success = tracer.TryTraceForwardRoutesByDfs(start, 7, out var routes);
 
             Assert.IsTrue(success);
             Assert.AreEqual(1, routes.Count);
@@ -47,7 +47,7 @@ namespace Tests.UnitTest.Game
         }
 
         [Test]
-        public void TryEnumerateForwardRoutesFromPoint_WhenBranchExists_EnumeratesAllReachableRoutes()
+        public void TryTraceForwardRoutesByDfs_WhenBranchExists_EnumeratesAllReachableRoutes()
         {
             // 日本語: approaching以降に分岐がある場合は到達可能な経路を全列挙する。
             // English: Branches after approaching should enumerate all reachable routes.
@@ -62,7 +62,7 @@ namespace Tests.UnitTest.Game
             var tracer = new RailPathTracer(provider);
             var start = CreateStartPoint(provider, 0, 1, 2, 0);
 
-            var success = tracer.TryEnumerateForwardRoutesFromPoint(start, 8, out var routes);
+            var success = tracer.TryTraceForwardRoutesByDfs(start, 8, out var routes);
 
             Assert.IsTrue(success);
             Assert.AreEqual(2, routes.Count);
@@ -73,7 +73,7 @@ namespace Tests.UnitTest.Game
         }
 
         [Test]
-        public void TryEnumerateForwardRoutesFromPoint_WhenStoppingInsideEdge_ReturnsNonZeroDistanceToNext()
+        public void TryTraceForwardRoutesByDfs_WhenStoppingInsideEdge_ReturnsNonZeroDistanceToNext()
         {
             // 日本語: 1辺の途中で終端する場合はdistanceToNextNodeが正値で返る。
             // English: Terminating inside an edge should return positive distanceToNextNode.
@@ -84,7 +84,7 @@ namespace Tests.UnitTest.Game
             var tracer = new RailPathTracer(provider);
             var start = CreateStartPoint(provider, 0, 1, 3, 0);
 
-            var success = tracer.TryEnumerateForwardRoutesFromPoint(start, 9, out var routes);
+            var success = tracer.TryTraceForwardRoutesByDfs(start, 9, out var routes);
 
             Assert.IsTrue(success);
             Assert.AreEqual(1, routes.Count);
@@ -93,7 +93,7 @@ namespace Tests.UnitTest.Game
         }
 
         [Test]
-        public void TryEnumerateForwardRoutesFromPoint_WhenRemainingZero_DoesNotIncludeFurtherZeroDistanceNode()
+        public void TryTraceForwardRoutesByDfs_WhenRemainingZero_DoesNotIncludeFurtherZeroDistanceNode()
         {
             // 日本語: 残距離0で終端した場合は、その先の0距離ノードを含めない。
             // English: When remaining distance is zero, do not include farther zero-distance nodes.
@@ -104,7 +104,7 @@ namespace Tests.UnitTest.Game
             var tracer = new RailPathTracer(provider);
             var start = CreateStartPoint(provider, 0, 1, 2, 0);
 
-            var success = tracer.TryEnumerateForwardRoutesFromPoint(start, 2, out var routes);
+            var success = tracer.TryTraceForwardRoutesByDfs(start, 2, out var routes);
 
             Assert.IsTrue(success);
             Assert.AreEqual(1, routes.Count);
@@ -112,7 +112,7 @@ namespace Tests.UnitTest.Game
         }
 
         [Test]
-        public void TryEnumerateForwardRoutesFromPoint_WhenZeroDistanceEdgeBeforePositiveEdge_TraversesAndFindsRoute()
+        public void TryTraceForwardRoutesByDfs_WhenZeroDistanceEdgeBeforePositiveEdge_TraversesAndFindsRoute()
         {
             // 日本語: 0距離辺の先に正距離辺がある場合は探索を継続して到達できる。
             // English: DFS should traverse zero-distance edges before consuming positive edges.
@@ -125,7 +125,7 @@ namespace Tests.UnitTest.Game
             var tracer = new RailPathTracer(provider);
             var start = CreateStartPoint(provider, 0, 1, 1, 0);
 
-            var success = tracer.TryEnumerateForwardRoutesFromPoint(start, 3, out var routes);
+            var success = tracer.TryTraceForwardRoutesByDfs(start, 3, out var routes);
 
             Assert.IsTrue(success);
             Assert.AreEqual(1, routes.Count);
@@ -134,7 +134,7 @@ namespace Tests.UnitTest.Game
         }
 
         [Test]
-        public void TryEnumerateForwardRoutesFromPoint_WhenZeroDistanceCycleExists_DoesNotLoopInfinitely()
+        public void TryTraceForwardRoutesByDfs_WhenZeroDistanceCycleExists_DoesNotLoopInfinitely()
         {
             // 日本語: 0距離サイクルがあっても状態ガードで無限再帰せず列挙できる。
             // English: State guard should prevent infinite recursion on zero-distance cycles.
@@ -148,7 +148,7 @@ namespace Tests.UnitTest.Game
             var tracer = new RailPathTracer(provider);
             var start = CreateStartPoint(provider, 0, 1, 1, 0);
 
-            var success = tracer.TryEnumerateForwardRoutesFromPoint(start, 3, out var routes);
+            var success = tracer.TryTraceForwardRoutesByDfs(start, 3, out var routes);
 
             Assert.IsTrue(success);
             Assert.AreEqual(1, routes.Count);
@@ -156,7 +156,7 @@ namespace Tests.UnitTest.Game
         }
 
         [Test]
-        public void TryEnumerateForwardRoutesFromPoint_WhenStartIsOnNode_EnumeratesOnlyOutgoingDirections()
+        public void TryTraceForwardRoutesByDfs_WhenStartIsOnNode_EnumeratesOnlyOutgoingDirections()
         {
             // 日本語: 開始点がノード直上ならそのノードのoutgoing辺のみで全列挙する。
             // English: On-node start should enumerate only outgoing directions.
@@ -170,7 +170,7 @@ namespace Tests.UnitTest.Game
             var tracer = new RailPathTracer(provider);
             var start = CreateStartPoint(provider, 0, null, 0, 0);
 
-            var success = tracer.TryEnumerateForwardRoutesFromPoint(start, 3, out var routes);
+            var success = tracer.TryTraceForwardRoutesByDfs(start, 3, out var routes);
 
             Assert.IsTrue(success);
             Assert.AreEqual(2, routes.Count);
@@ -179,7 +179,7 @@ namespace Tests.UnitTest.Game
         }
 
         [Test]
-        public void TryEnumerateForwardRoutesFromPoint_WhenDistanceIsNegative_ReturnsFalse()
+        public void TryTraceForwardRoutesByDfs_WhenDistanceIsNegative_ReturnsFalse()
         {
             // 日本語: 負の距離は無効入力としてfalseを返す。
             // English: Negative distance should be rejected as invalid input.
@@ -187,14 +187,14 @@ namespace Tests.UnitTest.Game
             var tracer = new RailPathTracer(provider);
             var start = CreateStartPoint(provider, 0, 1, 7, 0);
 
-            var success = tracer.TryEnumerateForwardRoutesFromPoint(start, -1, out var routes);
+            var success = tracer.TryTraceForwardRoutesByDfs(start, -1, out var routes);
 
             Assert.IsFalse(success);
             Assert.AreEqual(0, routes.Count);
         }
 
         [Test]
-        public void TryEnumerateForwardRoutesFromPoint_WhenApproachingNodeIsMissingInProvider_ReturnsFalse()
+        public void TryTraceForwardRoutesByDfs_WhenApproachingNodeIsMissingInProvider_ReturnsFalse()
         {
             // 日本語: 開始点ノードがプロバイダから消えた場合は探索不能としてfalseを返す。
             // English: Missing approaching node in provider should fail safely.
@@ -203,14 +203,14 @@ namespace Tests.UnitTest.Game
             var start = CreateStartPoint(provider, 0, 1, 7, 0);
             provider.RemoveNode(0);
 
-            var success = tracer.TryEnumerateForwardRoutesFromPoint(start, 4, out var routes);
+            var success = tracer.TryTraceForwardRoutesByDfs(start, 4, out var routes);
 
             Assert.IsFalse(success);
             Assert.AreEqual(0, routes.Count);
         }
 
         [Test]
-        public void TryEnumerateForwardRoutesFromPoint_WhenStartLengthIsNonZero_NormalizesToHeadPoint()
+        public void TryTraceForwardRoutesByDfs_WhenStartLengthIsNonZero_NormalizesToHeadPoint()
         {
             // 日本語: 入力lengthが0でなくても先頭点へ正規化して同じ結果を返す。
             // English: Non-zero input length should be normalized to head point.
@@ -218,7 +218,7 @@ namespace Tests.UnitTest.Game
             var tracer = new RailPathTracer(provider);
             var start = CreateStartPoint(provider, 0, 1, 7, 2);
 
-            var success = tracer.TryEnumerateForwardRoutesFromPoint(start, 4, out var routes);
+            var success = tracer.TryTraceForwardRoutesByDfs(start, 4, out var routes);
 
             Assert.IsTrue(success);
             Assert.AreEqual(1, routes.Count);
@@ -228,7 +228,7 @@ namespace Tests.UnitTest.Game
         }
 
         [Test]
-        public void TryEnumerateForwardRoutesFromPoint_WhenBranchTargetsDiffer_ReturnsDeterministicOrder()
+        public void TryTraceForwardRoutesByDfs_WhenBranchTargetsDiffer_ReturnsDeterministicOrder()
         {
             // 日本語: 分岐列挙順はtargetId昇順で安定させる。
             // English: Branch ordering should be deterministic by ascending targetId.
@@ -243,7 +243,7 @@ namespace Tests.UnitTest.Game
             var tracer = new RailPathTracer(provider);
             var start = CreateStartPoint(provider, 0, 1, 2, 0);
 
-            var success = tracer.TryEnumerateForwardRoutesFromPoint(start, 4, out var routes);
+            var success = tracer.TryTraceForwardRoutesByDfs(start, 4, out var routes);
 
             Assert.IsTrue(success);
             Assert.AreEqual(3, routes.Count);
@@ -453,3 +453,4 @@ namespace Tests.UnitTest.Game
         }
     }
 }
+

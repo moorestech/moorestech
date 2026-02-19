@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Game.Train.RailPositions;
 using Game.Train.SaveLoad;
 
@@ -351,7 +351,7 @@ namespace Game.Train.RailGraph
             #endregion
         }
 
-        public bool TryEnumerateForwardRoutesFromPoint(RailPosition startPoint, int distance, out List<RailPosition> routes)
+        public bool TryTraceForwardRoutesByDfs(RailPosition startPoint, int distance, out List<RailPosition> routes)
         {
             routes = new List<RailPosition>();
             var resultRoutes = routes;
@@ -531,3 +531,4 @@ namespace Game.Train.RailGraph
         }
     }
 }
+
