@@ -142,33 +142,46 @@ namespace Tests.UnitTest.Game
         [Test]
         public void HasOverlap_Manual1()
         {
-            var rlist = CreateSamplePositions2(42, 155, 17);
-            var listA = new List<RailPosition>();
-            var listB = new List<RailPosition>();
-            const int TryCount = 300;
-            for (int i = 0; i < TryCount; i++)
+            // 乱択シナリオを複数回実行し、毎回異なるグラフ条件で検証する
+            // Run multiple randomized scenarios with different graph parameters
+            const int RandomScenarioCount = 120;
+            for (int scenarioIndex = 0; scenarioIndex < RandomScenarioCount; scenarioIndex++)
             {
-                listA.Clear();
-                listB.Clear();
-                for (int j = 0; j < rlist.Count; j++)
+                var tryCount = UnityEngine.Random.Range(50, 301);
+                var nodePairCount = UnityEngine.Random.Range(2, 53);
+                var railPositionCount = UnityEngine.Random.Range(2, 256);
+                var loopLength = UnityEngine.Random.Range(1, 18);
+
+                var railPositions = CreateSamplePositions2(nodePairCount, railPositionCount, loopLength);
+                var listA = new List<RailPosition>();
+                var listB = new List<RailPosition>();
+
+                // 同一シナリオ内で分割パターンを乱択しながら比較する
+                // Compare overlap checks across randomized splits in the same scenario
+                for (int tryIndex = 0; tryIndex < tryCount; tryIndex++)
                 {
-                    if (UnityEngine.Random.Range(0, 2) == 0)
+                    listA.Clear();
+                    listB.Clear();
+                    for (int railIndex = 0; railIndex < railPositions.Count; railIndex++)
                     {
-                        if (UnityEngine.Random.Range(0, 3) != 0)
-                            listA.Add(rlist[j]);
+                        if (UnityEngine.Random.Range(0, 2) == 0)
+                        {
+                            if (UnityEngine.Random.Range(0, 3) != 0)
+                                listA.Add(railPositions[railIndex]);
+                        }
+                        else
+                        {
+                            if (UnityEngine.Random.Range(0, 3) != 0)
+                                listB.Add(railPositions[railIndex]);
+                        }
                     }
-                    else
-                    {
-                        if (UnityEngine.Random.Range(0, 3) != 0)
-                            listB.Add(rlist[j]);
-                    }
+
+                    var check1 = RailPositionOverlapDetector.HasOverlap(listA, listB);
+                    var check2 = RailPositionOverlapDetector.HasOverlap(listB, listA);
+                    Assert.AreEqual(check1, check2);
+                    var strictCheck = HasOverlapByUnitBuffer(listA, listB);
+                    Assert.AreEqual(check1, strictCheck);
                 }
-                var check1 = RailPositionOverlapDetector.HasOverlap(listA, listB);
-                var check2 = RailPositionOverlapDetector.HasOverlap(listB, listA);
-                Assert.AreEqual(check1, check2);
-                // ここに1刻みの厳密チェック
-                var strictCheck = HasOverlapByUnitBuffer(listA, listB);
-                Assert.AreEqual(check1, strictCheck);
             }
         }
         
