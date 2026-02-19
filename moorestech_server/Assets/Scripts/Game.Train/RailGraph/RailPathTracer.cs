@@ -25,6 +25,7 @@ namespace Game.Train.RailGraph
     public sealed class RailPathTracer
     {
         private readonly IRailGraphTraversalProvider _provider;
+        private const int DefaultMaxRouteCount = 65537;
 
         public RailPathTracer(IRailGraphTraversalProvider provider)
         {
@@ -351,10 +352,12 @@ namespace Game.Train.RailGraph
             #endregion
         }
 
+
         public bool TryTraceForwardRoutesByDfs(RailPosition startPoint, int distance, out List<RailPosition> routes)
         {
             routes = new List<RailPosition>();
             var resultRoutes = routes;
+            var isRouteLimitReached = false;
 
             // JP: 入力を検証し、開始点を先頭点(length=0)へ正規化する。
             // EN: Validate input and normalize to head point(length=0).
@@ -406,6 +409,13 @@ namespace Game.Train.RailGraph
 
             void EnumerateForward(int currentNodeId, int remain)
             {
+                // JP: ルート上限に到達したら探索を即終了する。
+                // EN: Stop DFS immediately once route limit is reached.
+                if (isRouteLimitReached)
+                {
+                    return;
+                }
+
                 // JP: 残距離0は現ノード終端とし、0距離先ノードには進まない。
                 // EN: Remaining zero terminates at current node and does not step into zero-length successors.
                 if (remain == 0)
@@ -413,6 +423,10 @@ namespace Game.Train.RailGraph
                     if (TryCreateRouteTerminated(forwardPath, currentNodeId, 0, out var routeAtNode))
                     {
                         resultRoutes.Add(routeAtNode);
+                        if (resultRoutes.Count >= DefaultMaxRouteCount )
+                        {
+                            isRouteLimitReached = true;
+                        }
                     }
                     return;
                 }
@@ -440,6 +454,11 @@ namespace Game.Train.RailGraph
                         if (TryCreateRouteTerminated(forwardPath, edge.targetId, distanceToNextNode, out var routeOnEdge))
                         {
                             resultRoutes.Add(routeOnEdge);
+                            if (resultRoutes.Count >= DefaultMaxRouteCount )
+                            {
+                                isRouteLimitReached = true;
+                                return;
+                            }
                         }
                         continue;
                     }
@@ -458,6 +477,10 @@ namespace Game.Train.RailGraph
                     EnumerateForward(edge.targetId, nextRemain);
                     pathStateGuard.Remove(nextState);
                     forwardPath.RemoveAt(forwardPath.Count - 1);
+                    if (isRouteLimitReached)
+                    {
+                        return;
+                    }
                 }
             }
 
