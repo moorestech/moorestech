@@ -69,15 +69,53 @@ function getGitInfo(cwd) {
     }
 }
 
-// Count turn entries in the JSONL transcript file
-function getTurnCount(transcriptPath) {
+// Parse transcript JSONL: returns { turnCount, firstUserMessage }
+function analyzeTranscript(transcriptPath) {
     try {
-        if (!transcriptPath || !fs.existsSync(transcriptPath)) return 0;
-        const content = fs.readFileSync(transcriptPath, 'utf8');
-        return content.split('\n').filter(l => l.trim()).length;
+        if (!transcriptPath || !fs.existsSync(transcriptPath)) return { turnCount: 0, firstUserMessage: '' };
+        const lines = fs.readFileSync(transcriptPath, 'utf8').split('\n').filter(l => l.trim());
+        let firstUserMessage = '';
+        for (const line of lines) {
+            try {
+                const entry = JSON.parse(line);
+                if (entry.isSidechain || entry.isApiErrorMessage) continue;
+                if (!firstUserMessage && entry.type === 'user') {
+                    firstUserMessage = extractMessageText(entry);
+                }
+            } catch {}
+        }
+        return { turnCount: lines.length, firstUserMessage };
     } catch {
-        return 0;
+        return { turnCount: 0, firstUserMessage: '' };
     }
+}
+
+// Extract plain text from a transcript entry's message content
+function extractMessageText(entry) {
+    const msg = entry?.message;
+    if (!msg) return '';
+    if (typeof msg.text === 'string' && msg.text.trim()) return msg.text;
+    const content = msg.content;
+    if (typeof content === 'string') return content;
+    if (Array.isArray(content)) {
+        return content
+            .map(b => (b && b.type === 'text' && typeof b.text === 'string') ? b.text : (typeof b === 'string' ? b : ''))
+            .join('');
+    }
+    return '';
+}
+
+// Convert absolute path to file:// URL
+function toFileUrl(p) {
+    const abs = path.resolve(p);
+    const encoded = abs.split('/').map(encodeURIComponent).join('/');
+    return `file://${encoded}`;
+}
+
+// Collapse whitespace and truncate with ellipsis
+function truncate(s, maxLen) {
+    const oneline = String(s || '').replace(/\s+/g, ' ').trim();
+    return oneline.length <= maxLen ? oneline : oneline.slice(0, maxLen - 1) + '…';
 }
 
 // Format large numbers: 91800 -> "91.8K", 14000000 -> "14.0M"
@@ -189,8 +227,8 @@ function buildStatusLine(data) {
     // Total tokens for sparkline (cumulative over session)
     const totalTokens = inputTokens + outputTokens;
 
-    // Turn count from transcript JSONL line count
-    const numTurns = getTurnCount(data.transcript_path);
+    // Turn count and first user message from transcript JSONL
+    const { turnCount: numTurns, firstUserMessage } = analyzeTranscript(data.transcript_path);
 
     // Session tracking (persisted across turns)
     const state = loadState();
@@ -202,13 +240,15 @@ function buildStatusLine(data) {
     const sessionRatio = Math.min(elapsed / sessionMs, 1);
     const sessionEnd = session.startTime + sessionMs;
 
-    // Line 1: [Model] | 🌿 branch M1 +2 | 📁 dir | 💬 N | 💰 $0.031
+    // Line 1: [🤖Model] | 🌿 branch M1 +2 | 📁 dir | 💬 N | 💰 $0.031 | file:// | 🗣 first msg
     const gitInfo = getGitInfo(cwd);
-    const parts = [`🤖 [${formatModel(model)}]`];
+    const parts = [`[🤖${formatModel(model)}]`];
     if (gitInfo) parts.push(gitInfo);
     parts.push(`📁 ${path.basename(cwd)}`);
     parts.push(`💬 ${numTurns}`);
     parts.push(`💰 $${cost.toFixed(3)}`);
+    parts.push(toFileUrl(cwd));
+    if (firstUserMessage) parts.push(`🗣 ${truncate(firstUserMessage, 60)}`);
     const line1 = parts.join(' | ');
 
     // Line 2: Compact: [bar] [58%] 91.8K/200.0K
