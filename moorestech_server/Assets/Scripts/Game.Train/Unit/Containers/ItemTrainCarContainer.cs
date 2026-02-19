@@ -121,6 +121,33 @@ namespace Game.Train.Unit.Containers
                         }
                     }
                 }
+
+                // 余りがあれば空スロットに入れる
+                // Put remainder into empty slots
+                if (addingItemStack.Id != ItemMaster.EmptyItemId && itemStackMap.TryGetValue(ItemMaster.EmptyItemId, out NativeList<int> emptySlotIndices))
+                {
+                    while (addingItemStack.Id != ItemMaster.EmptyItemId && emptySlotIndices.Length > 0)
+                    {
+                        var emptyIndex = emptySlotIndices[emptySlotIndices.Length - 1];
+                        var result = _inventoryItems[emptyIndex].AddItem(addingItemStack);
+                        _inventoryItems[emptyIndex] = result.ProcessResultItemStack;
+                        addingItemStack = result.RemainderItemStack;
+
+                        // 空スロットを使用済みとして削除し、アイテムIDのマップに追加
+                        // Remove used empty slot and add to item ID map
+                        emptySlotIndices.RemoveAt(emptySlotIndices.Length - 1);
+                        if (itemStackMap.TryGetValue(result.ProcessResultItemStack.Id, out NativeList<int> existingIndices))
+                        {
+                            existingIndices.Add(emptyIndex);
+                        }
+                        else
+                        {
+                            var list = new NativeList<int>(Allocator.Temp);
+                            list.Add(emptyIndex);
+                            itemStackMap.Add(result.ProcessResultItemStack.Id, list);
+                        }
+                    }
+                }
                 
                 other._inventoryItems[i] = addingItemStack;
             }
