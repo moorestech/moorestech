@@ -1,11 +1,8 @@
 using Client.Game.InGame.Context;
-using Client.Game.InGame.Train.RailGraph;
 using Client.Input;
 using Cysharp.Threading.Tasks;
-using Game.Train.RailPositions;
 using System.Threading;
 using UnityEngine;
-
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 {
@@ -13,13 +10,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
     {
         private readonly ITrainCarPlacementDetector _detector;
         private readonly TrainCarPreviewController _previewController;
-        private readonly RailGraphClientCache _cache;
-        
-        public TrainCarPlaceSystem(ITrainCarPlacementDetector detector, TrainCarPreviewController previewController, RailGraphClientCache cache)
+
+        public TrainCarPlaceSystem(ITrainCarPlacementDetector detector, TrainCarPreviewController previewController)
         {
             _detector = detector;
             _previewController = previewController;
-            _cache = cache;
         }
 
         public void Enable()
@@ -36,12 +31,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 _previewController.SetActive(false);
                 return;
             }
-            // プレビューの表示可否と描画を更新する
-            // Update preview visibility and rendering
-            var hasRailPosition = TryRestoreRailPosition(hit.RailPosition, out var railPosition);
-            var hasPreview = hasRailPosition && _previewController.ShowPreview(context.HoldingItemId, railPosition, hit.IsPlaceable);
-            _previewController.SetActive(hasPreview);
 
+            // プレビュー表示可否と描画状態を更新する
+            // Update preview visibility and rendering
+            var railPosition = hit.RailPosition;
+            var hasPreview = railPosition != null && _previewController.ShowPreview(context.HoldingItemId, railPosition, hit.IsPlaceable);
+            _previewController.SetActive(hasPreview);
             if (!hit.IsPlaceable)
             {
                 return;
@@ -58,26 +53,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
             async UniTaskVoid RequestPlacementAsync(TrainCarPlacementHit placementHit, int hotBarSlot)
             {
-                // レスポンスを待機する
-                // Await placement response
+                // レスポンスを待機して結果を検証する
+                // Await placement response and validate result
                 var response = await ClientContext.VanillaApi.Response.PlaceTrainOnRail(placementHit.RailPosition, hotBarSlot, CancellationToken.None);
                 if (response == null || !response.Success)
                 {
                     Debug.LogWarning($"[TrainCarPlaceSystem] PlaceTrain failed. reason={response?.FailureType}");
                 }
-            }
-
-            bool TryRestoreRailPosition(RailPositionSaveData railPositionSaveData, out RailPosition railPosition)
-            {
-                // レールスナップショットから復元する
-                // Restore RailPosition from snapshot
-                railPosition = null;
-                if (railPositionSaveData == null)
-                {
-                    return false;
-                }
-                railPosition = RailPositionFactory.Restore(railPositionSaveData, _cache);
-                return railPosition != null;
             }
 
             #endregion
