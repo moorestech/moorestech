@@ -17,6 +17,38 @@ PlayModeテストは`EnterPlayMode`によるドメインリロードを含む。
 git worktree環境ではuLoopが使用できないため、PlayModeテストはworktree環境では実行不可。
 メインのワーキングツリーで実行すること。
 
+## EnterPlayModeの呼び出し位置制約
+
+### `yield return new EnterPlayMode(...)` は `[UnityTest]` メソッド直下で呼ぶこと
+
+`EnterPlayMode` はヘルパーメソッド内からyield returnしてもPlayModeに遷移しない（原因不明）。
+必ず `[UnityTest]` 属性のついたIEnumeratorメソッドの直下で呼び出すこと。
+
+```csharp
+// 正しいパターン
+// Correct pattern
+[UnityTest]
+public IEnumerator MyTest()
+{
+    EnterPlayModeUtil();  // 準備のみ（void）
+    yield return new EnterPlayMode(expectDomainReload: true);  // [UnityTest]直下で呼ぶ
+    // ...
+}
+
+// 間違ったパターン（PlayModeに遷移しない）
+// Wrong pattern (will NOT enter PlayMode)
+[UnityTest]
+public IEnumerator MyTest()
+{
+    yield return SomeHelper();  // ヘルパー内でEnterPlayModeをyield returnしても動かない
+}
+
+IEnumerator SomeHelper()
+{
+    yield return new EnterPlayMode(expectDomainReload: true);  // ここからでは遷移しない
+}
+```
+
 ## ドメインリロード関連
 
 ### SessionStateの使用
