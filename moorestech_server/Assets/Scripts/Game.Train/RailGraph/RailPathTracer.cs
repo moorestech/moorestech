@@ -438,21 +438,11 @@ namespace Game.Train.RailGraph
                     if (remain <= edge.distance)
                     {
                         var distanceToNextNode = edge.distance - remain;
-                        if (distanceToNextNode == 0)
+                        // JP: ノード終端(0)も辺途中(>0)も同じヘルパーで経路化する。
+                        // EN: Build both node-end(0) and in-edge(>0) routes via one helper.
+                        if (TryCreateRouteTerminatedOnEdge(forwardPath, edge.targetId, distanceToNextNode, out var routeOnEdge))
                         {
-                            forwardPath.Add(edge.targetId);
-                            if (TryCreateRouteTerminatedAtNode(forwardPath, out var routeAtTargetNode))
-                            {
-                                resultRoutes.Add(routeAtTargetNode);
-                            }
-                            forwardPath.RemoveAt(forwardPath.Count - 1);
-                        }
-                        else
-                        {
-                            if (TryCreateRouteTerminatedOnEdge(forwardPath, edge.targetId, distanceToNextNode, out var routeOnEdge))
-                            {
-                                resultRoutes.Add(routeOnEdge);
-                            }
+                            resultRoutes.Add(routeOnEdge);
                         }
                         continue;
                     }
@@ -494,7 +484,7 @@ namespace Game.Train.RailGraph
             bool TryCreateRouteTerminatedOnEdge(IReadOnlyList<int> pathFromApproaching, int terminalApproachingNodeId, int distanceToNextNode, out RailPosition route)
             {
                 route = null;
-                if (pathFromApproaching == null || pathFromApproaching.Count <= 0 || terminalApproachingNodeId < 0 || distanceToNextNode <= 0)
+                if (pathFromApproaching == null || pathFromApproaching.Count <= 0 || terminalApproachingNodeId < 0 || distanceToNextNode < 0)
                 {
                     return false;
                 }
