@@ -5,13 +5,27 @@
 ## EnterPlayModeUtil
 
 ```csharp
-public static IEnumerator EnterPlayModeUtil()
+public static void EnterPlayModeUtil()
 ```
 
-PlayMode遷移の準備と実行を行う。以下を内部で実行:
+PlayMode遷移の**準備のみ**を行う（PlayMode遷移自体は行わない）。以下を内部で実行:
 1. `SessionState.SetBool("DebugObjectsBootstrap_Disabled", true)` - デバッグオブジェクト無効化
 2. `AssetBundle.UnloadAllAssetBundles(true)` - 前回の残留AssetBundleクリーンアップ
-3. `new EnterPlayMode(expectDomainReload: true)` をyield return
+
+**重要**: このメソッド呼び出し後、`[UnityTest]`メソッド直下で `yield return new EnterPlayMode(expectDomainReload: true);` を呼ぶ必要がある。
+ヘルパーメソッド内から `EnterPlayMode` をyield returnしてもPlayModeに遷移しない（原因不明）。
+
+```csharp
+// 正しい使い方
+// Correct usage
+[UnityTest]
+public IEnumerator MyTest()
+{
+    EnterPlayModeUtil();
+    yield return new EnterPlayMode(expectDomainReload: true);
+    // ...
+}
+```
 
 ## LoadMainGame
 

@@ -28,11 +28,12 @@ PlayModeテストは実際にゲームを起動し、クライアント側の動
 
 テストメソッドの基本構造（詳細テンプレートは [references/template.md](references/template.md) を参照）:
 
-1. `yield return EnterPlayModeUtil();` - PlayMode遷移
-2. `LogAssert.ignoreFailingMessages = true;` - フレームワーク内部エラー抑制
-3. `yield return TestBody().ToCoroutine();` - async処理をIEnumeratorに変換して実行
-4. `yield return new ExitPlayMode();` - PlayMode終了
-5. `SessionState.SetBool("DebugObjectsBootstrap_Disabled", false);` - フラグクリア
+1. `EnterPlayModeUtil();` - PlayMode遷移の準備（SessionState設定 + AssetBundleクリーンアップ）
+2. `yield return new EnterPlayMode(expectDomainReload: true);` - **[UnityTest]メソッド直下で直接呼ぶこと**（ヘルパー経由不可）
+3. `LogAssert.ignoreFailingMessages = true;` - フレームワーク内部エラー抑制
+4. `yield return TestBody().ToCoroutine();` - async処理をIEnumeratorに変換して実行
+5. `yield return new ExitPlayMode();` - PlayMode終了
+6. `SessionState.SetBool("DebugObjectsBootstrap_Disabled", false);` - フラグクリア
 
 テンプレート種別:
 - **基本テンプレート** - ゲーム起動して検証
@@ -43,7 +44,7 @@ PlayModeテストは実際にゲームを起動し、クライアント側の動
 ### 2. 必須ルール
 
 - **`[UnityTest]` + `IEnumerator`** を使用（`[Test]`ではない）
-- **`EnterPlayModeUtil()`** を最初にyield return（SessionState設定とAssetBundleクリーンアップを含む）
+- **`EnterPlayModeUtil()`** を最初に呼び出し（SessionState設定とAssetBundleクリーンアップ）、直後に **`yield return new EnterPlayMode(expectDomainReload: true);`** を`[UnityTest]`メソッド直下で実行
 - **`LogAssert.ignoreFailingMessages = true`** をEnterPlayMode直後に設定
 - **`ExitPlayMode`** をテスト終了時にyield return
 - **`SessionState.SetBool("DebugObjectsBootstrap_Disabled", false)`** でフラグクリア
@@ -60,7 +61,7 @@ PlayModeテストは実際にゲームを起動し、クライアント側の動
 
 | メソッド | 用途 |
 |---------|------|
-| `EnterPlayModeUtil()` | PlayMode遷移（SessionState設定 + AssetBundleクリーンアップ含む） |
+| `EnterPlayModeUtil()` | PlayMode遷移の準備（SessionState設定 + AssetBundleクリーンアップ）。直後に`yield return new EnterPlayMode(...)`が必要 |
 | `LoadMainGame(serverDirectory, saveFilePath)` | ゲーム起動してメインシーンロード |
 | `GiveItem(itemName, count)` | プレイヤーにアイテム付与 |
 | `PlaceBlock(blockName, position, direction)` | サーバー側にブロック設置 |
