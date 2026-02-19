@@ -1,7 +1,8 @@
+using System;
 using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.Train.Unit;
 using Client.Network.API;
-using Game.Train.RailGraph;
+using Server.Util.MessagePack;
 using UnityEngine;
 using VContainer.Unity;
 
@@ -37,44 +38,61 @@ namespace Client.Game.InGame.Train.Network
             ApplySnapshot(_initialHandshakeResponse?.RailGraphSnapshot);
         }
 
-        public void ApplySnapshot((RailGraphSnapshot snapshot, uint tickSequenceId)? snapshotResponse)
+        public void ApplySnapshot(RailGraphSnapshotMessagePack snapshot)
         {
-            if (!snapshotResponse.HasValue)
-            {
-                return;
-            }
-
-            var (snapshot, tickSequenceId) = snapshotResponse.Value;
-            var unifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(snapshot.GraphTick, tickSequenceId);
-            if (unifiedId < _tickState.GetAppliedTickUnifiedId())
+            var unifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(snapshot?.GraphTick ?? 0, snapshot?.GraphTickSequenceId ?? 0);
+            if (snapshot != null && unifiedId < _tickState.GetAppliedTickUnifiedId())
             {
                 // 遅延rail snapshotが既に適用済み範囲より古い場合は破棄する。
                 // Ignore delayed rail snapshots older than the applied sequence baseline.
                 Debug.LogWarning(
                     "[RailGraphSnapshotApplier] Ignored stale rail snapshot. " +
-                    $"graphTick={snapshot.GraphTick}, graphTickSequenceId={tickSequenceId}, " +
+                    $"graphTick={snapshot.GraphTick}, graphTickSequenceId={snapshot.GraphTickSequenceId}, " +
                     $"appliedTickUnifiedId={_tickState.GetAppliedTickUnifiedId()}");
                 return;
             }
 
             // スナップショットが空のときは何もしない
             // Skip when snapshot payload is missing or empty
-            if (snapshot.Nodes == null || snapshot.Nodes.Count == 0)
+            if (snapshot?.Nodes == null || snapshot.Nodes.Count == 0)
             {
                 return;
             }
 
-            // ノード最大ID算出と配列サイズ確定はcache側に移譲
-            // Max node id resolution and buffer sizing are delegated to cache.
-            // ノード情報を事前確保コンテナへ流し込む処理もcache側で実施
-            // Node/container population is also executed inside cache.
+            // ノードと辺の最大IDを算出し、配列サイズを先に確定
+            // Determine the max node id before allocating buffers
+            var maxNodeId = ResolveMaxNodeId(snapshot);
+            if (maxNodeId < 0)
+            {
+                return;
+            }
+
+            // 事前確保したコンテナにノード情報を流し込み
+            // Populate prepared containers with node information
+            var size = maxNodeId + 1;
             // まとめてキャッシュへ反映
             // Commit prepared data to cache
-            _cache.ApplySnapshot(snapshot);
+            _cache.ApplySnapshot(snapshot, size);
             // 駅参照をキャッシュへ反映する
             // Apply station references to cache.
             _stationReferenceRegistry.ApplyStationReferences();
             _tickState.RecordAppliedTickUnifiedId(unifiedId);
+
+            #region 
+            int ResolveMaxNodeId(RailGraphSnapshotMessagePack targetSnapshot)
+            {
+                // ノードから最大IDを探索
+                // Look at nodes and edges to find the max node id
+                var max = -1;
+                foreach (var node in targetSnapshot.Nodes)
+                {
+                    if (node == null)
+                        continue;
+                    max = Math.Max(max, node.NodeId);
+                }
+                return max;
+            }
+            #endregion
         }
     }
 }

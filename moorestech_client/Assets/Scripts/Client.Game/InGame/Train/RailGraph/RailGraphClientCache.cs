@@ -1,5 +1,6 @@
 using Game.Train.RailCalc;
 using Game.Train.RailGraph;
+using Server.Util.MessagePack;
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Train.Network;
@@ -22,6 +23,8 @@ namespace Client.Game.InGame.Train.RailGraph
         // レールセグメントキャッシュ
         // Rail segment cache
         private readonly Dictionary<(int startId, int endId), RailSegment> _railSegments = new();
+
+        private static readonly Vector3 DefaultPosition = new Vector3(-1f, -1f, -1f);
 
         // Reverse lookup dictionary from ConnectionDestination to RailNodeId
         private readonly Dictionary<ConnectionDestination, int> _connectionDestinationToNodeId = new();
@@ -48,32 +51,16 @@ namespace Client.Game.InGame.Train.RailGraph
         }
         
         // Rebuild the cache from a full snapshot
-        public void ApplySnapshot(RailGraphSnapshot snapshot)
+        public void ApplySnapshot(
+            RailGraphSnapshotMessagePack snapshot,int size)
         {
-            var nodeSnapshots = snapshot.Nodes;
-            if (nodeSnapshots == null || nodeSnapshots.Count == 0)
-            {
-                ResetSlots(0);
-                TrainRailObjectManager.Instance?.OnCacheRebuilt(this);
-                return;
-            }
-
-            var size = ResolveNodeBufferSize(nodeSnapshots);
+            // Validate inputs(:skip) before clearing the cache and copying data
             ResetSlots(size);
-            PopulateNodes(nodeSnapshots);
-            PopulateConnections(snapshot.Connections, _connectNodes);
+            PopulateNodes(snapshot, _nodes);
+            // Apply edge information onto adjacency list
+            PopulateConnections(snapshot, _connectNodes);
             TrainRailObjectManager.Instance?.OnCacheRebuilt(this);
             #region Internal
-
-            int ResolveNodeBufferSize(IReadOnlyList<RailNodeInitializationData> sourceNodes)
-            {
-                var maxNodeId = -1;
-                for (var i = 0; i < sourceNodes.Count; i++)
-                {
-                    maxNodeId = Math.Max(maxNodeId, sourceNodes[i].NodeId);
-                }
-                return maxNodeId + 1;
-            }
 
             void ResetSlots(int requiredCount)
             {
@@ -88,38 +75,36 @@ namespace Client.Game.InGame.Train.RailGraph
                 }
             }
 
-            void PopulateNodes(IReadOnlyList<RailNodeInitializationData> sourceNodes)
+            void PopulateNodes(RailGraphSnapshotMessagePack targetSnapshot, List<ClientRailNode> nodeList)
             {
-                if (sourceNodes == null)
+                // Copy core node data with simple assignments
+                foreach (var node in targetSnapshot.Nodes)
                 {
-                    return;
-                }
-
-                for (var i = 0; i < sourceNodes.Count; i++)
-                {
-                    var node = sourceNodes[i];
-                    if (node.NodeId < 0 || node.NodeId >= _nodes.Count)
+                    if (node == null || node.NodeId < 0 || node.NodeId >= _nodes.Count)
                     {
                         continue;
                     }
-                    _nodes[node.NodeId] = new ClientRailNode(node.NodeId, node.NodeGuid, node.ConnectionDestination, node.OriginPoint, node.FrontControlPoint, node.BackControlPoint, this);
-                    _connectionDestinationToNodeId[node.ConnectionDestination] = node.NodeId;
+                    var destination = node.ConnectionDestination?.ToConnectionDestination() ?? ConnectionDestination.Default;
+                    var origin = node.OriginPoint?.ToUnityVector() ?? DefaultPosition;
+                    var primary = node.FrontControlPoint?.ToUnityVector() ?? DefaultPosition;
+                    var opposite = node.BackControlPoint?.ToUnityVector() ?? DefaultPosition;
+                    _nodes[node.NodeId] = new ClientRailNode(node.NodeId, node.NodeGuid, destination, origin, primary, opposite, this);
+                    _connectionDestinationToNodeId[destination] = node.NodeId;
                 }
             }
 
-            void PopulateConnections(IReadOnlyList<RailGraphConnectionSnapshot> sourceConnections, List<List<(int targetId, int distance)>> adjacencyList)
+            void PopulateConnections(RailGraphSnapshotMessagePack targetSnapshot, List<List<(int targetId, int distance)>> adjacencyList)
             {
                 // Exit early when there are no edges
-                if (sourceConnections == null)
+                if (targetSnapshot.Connections == null)
                 {
                     return;
                 }
                 // 隣接リストへ追加
                 // Append adjacency info to each origin node
-                for (var i = 0; i < sourceConnections.Count; i++)
+                foreach (var connection in targetSnapshot.Connections)
                 {
-                    var connection = sourceConnections[i];
-                    if (connection.FromNodeId < 0 || connection.FromNodeId >= adjacencyList.Count)
+                    if (connection == null || connection.FromNodeId < 0 || connection.FromNodeId >= adjacencyList.Count)
                         continue;
                     adjacencyList[connection.FromNodeId].Add((connection.ToNodeId, connection.Distance));
                     UpsertRailSegment(connection.FromNodeId, connection.ToNodeId, connection.Distance, connection.RailTypeGuid, connection.IsDrawable);
