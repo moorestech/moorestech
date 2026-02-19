@@ -5,6 +5,7 @@ using Game.Train.RailPositions;
 using Game.Train.SaveLoad;
 using NUnit.Framework;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Tests.UnitTest.Game
 {
@@ -200,7 +201,9 @@ namespace Tests.UnitTest.Game
             // English: Missing approaching node in provider should fail safely.
             var provider = BuildProviderWithLinearStartSegment(10);
             var tracer = new RailPathTracer(provider);
-            var start = CreateStartPoint(provider, 0, 1, 7, 0);
+            // 日本語: RailPosition整合性を保つため、開始点はノード直上に置く。
+            // English: Keep RailPosition internally valid by starting exactly on a node.
+            var start = CreateStartPoint(provider, 0, null, 0, 0);
             provider.RemoveNode(0);
 
             var success = tracer.TryTraceForwardRoutesByDfs(start, 4, out var routes);
@@ -251,6 +254,145 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(4, routes[1].GetNodeApproaching().NodeId);
             Assert.AreEqual(5, routes[2].GetNodeApproaching().NodeId);
         }
+        
+        [Test]
+        public void TryTraceForwardRoutesByDfs_Manual1()
+        {
+            // 鎖
+            var provider = BuildProviderWithLinearStartSegment(10);
+            int n = 15;//n=16:65536通りで0.29sec
+            for (int i = 2; i < n * 3 + 5; i++)
+            {
+                provider.AddNode(i);                
+            }
+            int x = 0;
+            for (int i = 0; i < n; i++)
+            {
+                provider.AddEdge(x, 2 + i * 3, 4);
+                provider.AddEdge(x, 3 + i * 3, 4);
+                provider.AddEdge(2 + i * 3, 4 + i * 3, 7);
+                provider.AddEdge(3 + i * 3, 4 + i * 3, 7);
+                x = 4 + i * 3;
+            }
+            
+            var tracer = new RailPathTracer(provider);
+            int firstdistance = Random.Range(0,8);
+            var start = CreateStartPoint(provider, 0, 1, firstdistance, 0);
+            
+            var success = tracer.TryTraceForwardRoutesByDfs(start, n * (4 + 7) + firstdistance, out var routes);
+            
+            Assert.IsTrue(success);
+            //2のn乗
+            int ans = (int)Mathf.Pow(2, n);
+            Assert.AreEqual(ans, routes.Count);
+        }
+        
+        [Test]
+        public void TryTraceForwardRoutesByDfs_Manual2()
+        {
+            // 円をn回指定ループ
+            var provider = BuildProviderWithLinearStartSegment(10);
+            int n = 10;
+            for (int i = 0; i < n; i++)
+            {
+                provider.AddNode(i + 2);
+            }
+            for (int i = 0; i < n; i++)
+            {
+                provider.AddEdge(2 + i, (1 + i) % n + 2, 5);
+            }
+            provider.AddEdge(0, 2, 51);
+            
+            var tracer = new RailPathTracer(provider);
+            int firstdistance = Random.Range(0,8);
+            var start = CreateStartPoint(provider, 0, 1, firstdistance, 0);
+            int dfsdistance = n * 5 * Random.Range(1, 28) + firstdistance + 51;
+            var success = tracer.TryTraceForwardRoutesByDfs(start, dfsdistance, out var routes);
+            
+            Assert.IsTrue(success);
+            Assert.AreEqual(1, routes.Count);
+            Assert.AreEqual(2, routes[0].GetNodeApproaching().NodeId);
+        }
+        
+        [Test]
+        public void TryTraceForwardRoutesByDfs_Manual3()
+        {
+            // 円をランダムループ
+            var provider = BuildProviderWithLinearStartSegment(10);
+            int n = 10;
+            for (int i = 0; i < n; i++)
+            {
+                provider.AddNode(i + 2);
+            }
+            for (int i = 0; i < n; i++)
+            {
+                provider.AddEdge(2 + i, (1 + i) % n + 2, 5);
+            }
+            provider.AddEdge(0, 2, 1);
+            
+            var tracer = new RailPathTracer(provider);
+            int firstdistance = Random.Range(0,8);
+            var start = CreateStartPoint(provider, 0, 1, firstdistance, 0);
+            
+            int loopn = 2000 + Random.Range(1, 1000);
+            for (int i = 0; i < loopn; i++) 
+            {
+                int dfsdistance = Random.Range(1, 1000);
+                var success = tracer.TryTraceForwardRoutesByDfs(start, dfsdistance, out var routes);
+                Assert.IsTrue(success);
+                Assert.AreEqual(1, routes.Count);
+                start = routes[0].DeepCopy();
+            }
+        }
+        
+        [Test]
+        public void TryTraceForwardRoutesByDfs_Manual4()
+        {
+            // めがねループ
+            var provider = BuildProviderWithLinearStartSegment(10);
+            int n = 8;
+            for (int i = 0; i < n; i++)
+            {
+                provider.AddNode(i + 2);
+            }
+            //2
+            provider.AddEdge(2, 3, 5);
+            provider.AddEdge(3, 6, 5);
+            provider.AddEdge(6, 2, 5);
+            
+            provider.AddEdge(2, 5, 5);
+            provider.AddEdge(5, 4, 5);
+            provider.AddEdge(4, 2, 5);
+            
+            //7
+            provider.AddEdge(2 + 5, 3 + 5, 5);
+            provider.AddEdge(3 + 5, 6 + 5, 5);
+            provider.AddEdge(6 + 5, 2 + 5, 5);
+            
+            provider.AddEdge(2 + 5, 5 + 5, 5);
+            provider.AddEdge(5 + 5, 4 + 5, 5);
+            provider.AddEdge(4 + 5, 2 + 5, 5);
+            
+            //双方向
+            provider.AddEdge(2, 7, 16);
+            provider.AddEdge(7, 2, 16);
+            
+            //
+            provider.AddEdge(0, 2, 0);
+            
+            var tracer = new RailPathTracer(provider);
+            var start = CreateStartPoint(provider, 0, 1, 0, 0);
+            
+            int loopn = 123;
+            for (int i = 0; i < loopn; i++)
+            {
+                int dfsdistance = 12345 + Random.Range(1, 1000);
+                var success = tracer.TryTraceForwardRoutesByDfs(start, dfsdistance, out var routes);
+                Assert.IsTrue(success);
+                Assert.AreEqual(1, routes.Count);
+            }
+        }
+
 
         private static TestTraversalProvider BuildProviderWithLinearStartSegment(int segmentDistance)
         {
