@@ -139,9 +139,9 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
         
-        public void PlaceTrainOnRail(RailPositionSaveData railPosition, int hotBarSlot)
+        public void PlaceTrainOnRail(RailPosition railPosition, int hotBarSlot)
         {
-            var railPositionSnapshot = new RailPositionSnapshotMessagePack(railPosition);
+            var railPositionSnapshot = new RailPositionSnapshotMessagePack(railPosition?.CreateSaveSnapshot());
             var request = new PlaceTrainOnRailRequestMessagePack(railPositionSnapshot, hotBarSlot, _playerId);
             _packetSender.Send(request);
         }
