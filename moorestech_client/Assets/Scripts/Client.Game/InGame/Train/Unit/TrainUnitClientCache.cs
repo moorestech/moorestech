@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Train.RailGraph;
 using Core.Master;
+using Game.Train.RailPositions;
 using Game.Train.Unit;
 
 namespace Client.Game.InGame.Train.Unit
@@ -32,7 +33,7 @@ namespace Client.Game.InGame.Train.Unit
 
         // 初期スナップショットでキャッシュ全体を入れ替える
         // Replace the entire cache when a full snapshot arrives
-        public void OverrideAll(IReadOnlyList<TrainUnitSnapshotBundle> snapshots)
+        public void OverrideAll(IReadOnlyList<(TrainSimulationSnapshot simulation, RailPosition railPosition)> snapshots)
         {
             _units.Clear();
             _carIndex.Clear();
@@ -44,15 +45,15 @@ namespace Client.Game.InGame.Train.Unit
 
             for (var i = 0; i < snapshots.Count; i++)
             {
-                var bundle = snapshots[i];
-                if (bundle.Simulation.TrainInstanceId == TrainInstanceId.Empty)
+                var (simulation, railPosition) = snapshots[i];
+                if (simulation.TrainInstanceId == TrainInstanceId.Empty)
                 {
                     continue;
                 }
 
-                var unit = new ClientTrainUnit(bundle.Simulation.TrainInstanceId, _railGraphProvider);
-                unit.SnapshotUpdate(bundle.Simulation, bundle.RailPositionSnapshot);
-                _units[bundle.Simulation.TrainInstanceId] = unit;
+                var unit = new ClientTrainUnit(simulation.TrainInstanceId, _railGraphProvider);
+                unit.SnapshotUpdate(simulation, railPosition);
+                _units[simulation.TrainInstanceId] = unit;
                 BuildCarIndexForUnit(unit);
             }
         }
@@ -61,23 +62,33 @@ namespace Client.Game.InGame.Train.Unit
         // Compute a hash from the current train unit cache
         public uint ComputeCurrentHash()
         {
-            var bundles = new List<TrainUnitSnapshotBundle>(_units.Count);
+            var units = new List<(TrainSimulationSnapshot simulation, RailPosition railPosition)>(_units.Count);
             foreach (var unit in _units.Values)
             {
-                if (!unit.TryCreateSnapshotBundle(out var bundle))
+                var railPosition = unit.RailPosition;
+                if (railPosition == null)
                 {
                     continue;
                 }
-                bundles.Add(bundle);
+
+                units.Add((
+                    new TrainSimulationSnapshot(
+                        unit.TrainInstanceId,
+                        unit.CurrentSpeed,
+                        unit.AccumulatedDistance,
+                        unit.MasconLevel,
+                        unit.Cars),
+                    railPosition));
             }
-            return TrainUnitSnapshotHashCalculator.Compute(bundles);
+
+            return TrainUnitSnapshotHashCalculator.Compute(units);
         }
 
         // 単一列車の差分更新を適用
         // Apply a diff snapshot for a single train
-        public ClientTrainUnit Upsert(TrainUnitSnapshotBundle snapshot)
+        public ClientTrainUnit Upsert(TrainSimulationSnapshot simulation, RailPosition railPosition)
         {
-            var trainInstanceId = snapshot.Simulation.TrainInstanceId;
+            var trainInstanceId = simulation.TrainInstanceId;
             if (!_units.TryGetValue(trainInstanceId, out var unit))
             {
                 unit = new ClientTrainUnit(trainInstanceId, _railGraphProvider);
@@ -85,7 +96,7 @@ namespace Client.Game.InGame.Train.Unit
             }
 
             RemoveCarIndex(trainInstanceId);
-            unit.SnapshotUpdate(snapshot.Simulation, snapshot.RailPositionSnapshot);
+            unit.SnapshotUpdate(simulation, railPosition);
             BuildCarIndexForUnit(unit);
             return unit;
         }

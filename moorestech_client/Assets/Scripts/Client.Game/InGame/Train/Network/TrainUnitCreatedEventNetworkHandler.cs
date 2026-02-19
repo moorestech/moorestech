@@ -1,7 +1,9 @@
 using System;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Train.View.Object;
+using Game.Train.RailPositions;
 using MessagePack;
 using Server.Event.EventReceive;
 using Server.Util.MessagePack;
@@ -13,16 +15,19 @@ namespace Client.Game.InGame.Train.Network
     {
         private readonly TrainUnitFutureMessageBuffer _futureMessageBuffer;
         private readonly TrainUnitClientCache _cache;
+        private readonly RailGraphClientCache _railGraphProvider;
         private readonly TrainCarObjectDatastore _trainCarDatastore;
         private IDisposable _subscription;
 
         public TrainUnitCreatedEventNetworkHandler(
             TrainUnitFutureMessageBuffer futureMessageBuffer,
             TrainUnitClientCache cache,
+            RailGraphClientCache railGraphProvider,
             TrainCarObjectDatastore trainCarDatastore)
         {
             _futureMessageBuffer = futureMessageBuffer;
             _cache = cache;
+            _railGraphProvider = railGraphProvider;
             _trainCarDatastore = trainCarDatastore;
         }
 
@@ -66,7 +71,8 @@ namespace Client.Game.InGame.Train.Network
                 {
                     // 列車キャッシュと車両オブジェクトを同期更新する
                     // Update train cache and train-car objects together
-                    _cache.Upsert(bundle);
+                    var railPosition = RailPositionFactory.Restore(bundle.RailPositionSnapshot, _railGraphProvider);
+                    _cache.Upsert(bundle.Simulation, railPosition);
                     _trainCarDatastore.OnTrainObjectUpdate(bundle.Simulation.Cars);
                 }
             }
