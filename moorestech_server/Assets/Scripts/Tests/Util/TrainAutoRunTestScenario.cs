@@ -7,6 +7,7 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Game.Train.Unit.Containers;
 using Tests.Module.TestMod;
 using UnityEngine;
 
@@ -29,6 +30,7 @@ namespace Tests.Util
 
         public TrainUnit Train { get; }
         public TrainCar TrainCar => _trainCar;
+        public ItemTrainCarContainer ItemContainer => _trainCar.Container as ItemTrainCarContainer;
         public RailNode StationExitFront => _stationNodes.ExitFront;
         public RailNode StationEntryFront => _stationNodes.EntryFront;
         public RailNode StationExitBack => _stationNodes.ExitBack;
@@ -95,6 +97,7 @@ namespace Tests.Util
 
             var trainCar = TrainTestCarFactory.CreateTrainCar(0, 1000, 1, stationNodes.BlockLength, true);
             var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, environment.GetTrainUpdateService(), environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
+            trainCar.SetContainer(ItemTrainCarContainer.CreateWithEmptySlots(1));
 
             trainUnit.trainDiagram.AddEntry(stationNodes.ExitFront);
             trainUnit.trainDiagram.AddEntry(n1);
