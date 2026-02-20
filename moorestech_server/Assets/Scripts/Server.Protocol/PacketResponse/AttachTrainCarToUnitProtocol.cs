@@ -68,9 +68,9 @@ namespace Server.Protocol.PacketResponse
                     return AttachTrainCarToUnitResponseMessagePack.CreateFailure(failureType);
                 }
 
-                // 接続端点を判定してhead/rearへ連結する
-                // Detect endpoint and attach to head/rear
-                if (!TryAttachToTargetTrain(targetTrain, attachingCar, attachingRailPosition))
+                // クライアント指定の接続端点(head/rear)で連結する
+                // Attach using client-specified target endpoint (head/rear)
+                if (!TryAttachToTargetTrain(targetTrain, attachingCar, attachingRailPosition, data.AttachToTargetTrainHead))
                 {
                     return AttachTrainCarToUnitResponseMessagePack.CreateFailure(AttachTrainCarFailureType.InvalidRailPosition);
                 }
@@ -127,36 +127,44 @@ namespace Server.Protocol.PacketResponse
                     return false;
                 }
 
-                // 追加車両を作成する
-                // Create attaching car
-                attachingCar = new TrainCar(trainCarMaster, request.AttachCarFacingForward);
+                // 追加車両を作成する 自分の接続面が前、相手の接続面も前なら接続後の自分の向きはunitからみて反対向きになる->facingforwardはfalse
+                // Create attaching car. Facing forward is false if both self and target connection sides are front, which means the attached car will face opposite direction from unit perspective after attachment.
+                attachingCar = new TrainCar(trainCarMaster, request.AttachCarFacingForward ^ request.AttachToTargetTrainHead);
+                
+                // attachingRailPositionは接続先編成からみた方向に正規化する
+                // 
+                if (!attachingCar.IsFacingForward)
+                    attachingRailPosition.Reverse();
                 return true;
             }
 
-            bool TryAttachToTargetTrain(TrainUnit targetTrain, TrainCar car, RailPosition railPosition)
+            bool TryAttachToTargetTrain(TrainUnit targetTrain, TrainCar car, RailPosition railPosition, bool attachToTargetTrainHead)
             {
                 if (targetTrain == null || car == null || railPosition == null)
                 {
                     return false;
                 }
 
-                // head連結条件を満たすか判定する
-                // Check if head attach condition is satisfied
-                if (targetTrain.RailPosition.GetHeadRailPosition().IsSamePositionAllowNodeOverlap(railPosition.GetRearRailPosition()))
+                // 指定された既存編成の先頭に連結する
+                // Attach to target train head when requested
+                if (attachToTargetTrainHead)
                 {
+                    if (!targetTrain.RailPosition.GetHeadRailPosition().IsSamePositionAllowNodeOverlap(railPosition.GetRearRailPosition()))
+                    {
+                        return false;
+                    }
                     targetTrain.AttachCarToHead(car, railPosition);
                     return true;
                 }
 
-                // rear連結条件を満たすか判定する
-                // Check if rear attach condition is satisfied
-                if (railPosition.GetHeadRailPosition().IsSamePositionAllowNodeOverlap(targetTrain.RailPosition.GetRearRailPosition()))
+                // 指定された既存編成の最後尾に連結する
+                // Attach to target train rear when requested
+                if (!railPosition.GetHeadRailPosition().IsSamePositionAllowNodeOverlap(targetTrain.RailPosition.GetRearRailPosition()))
                 {
-                    targetTrain.AttachCarToRear(car, railPosition);
-                    return true;
+                    return false;
                 }
-
-                return false;
+                targetTrain.AttachCarToRear(car, railPosition);
+                return true;
             }
 
             bool TryRestoreRailPosition(
@@ -268,6 +276,7 @@ namespace Server.Protocol.PacketResponse
             [IgnoreMember] public int InventorySlot => PlayerInventoryConst.HotBarSlotToInventorySlot(HotBarSlot);
             [Key(5)] public int PlayerId { get; set; }
             [Key(6)] public bool AttachCarFacingForward { get; set; }
+            [Key(7)] public bool AttachToTargetTrainHead { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public AttachTrainCarToUnitRequestMessagePack()
@@ -280,7 +289,8 @@ namespace Server.Protocol.PacketResponse
                 RailPositionSnapshotMessagePack railPosition,
                 int hotBarSlot,
                 int playerId,
-                bool attachCarFacingForward)
+                bool attachCarFacingForward,
+                bool attachToTargetTrainHead)
             {
                 Tag = ProtocolTag;
                 TargetTrainInstanceId = targetTrainInstanceId;
@@ -288,6 +298,7 @@ namespace Server.Protocol.PacketResponse
                 HotBarSlot = hotBarSlot;
                 PlayerId = playerId;
                 AttachCarFacingForward = attachCarFacingForward;
+                AttachToTargetTrainHead = attachToTargetTrainHead;
             }
         }
 

@@ -95,6 +95,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                         placementHit.RailPosition,
                         hotBarSlot,
                         placementHit.AttachCarFacingForward,
+                        placementHit.AttachTargetEndpoint == TrainCarAttachTargetEndpoint.Head,
                         CancellationToken.None);
                     if (attachResponse == null || !attachResponse.Success)
                     {
