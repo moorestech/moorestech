@@ -73,20 +73,20 @@ namespace Game.Train.Unit
     public readonly struct TrainSimulationSnapshot
     {
         public TrainSimulationSnapshot(
-            Guid trainId,
+            TrainInstanceId trainInstanceId,
             double currentSpeed,
             double accumulatedDistance,
             int masconLevel,
             IReadOnlyList<TrainCarSnapshot> cars)
         {
-            TrainId = trainId;
+            TrainInstanceId = trainInstanceId;
             CurrentSpeed = currentSpeed;
             AccumulatedDistance = accumulatedDistance;
             MasconLevel = masconLevel;
             Cars = cars;
         }
 
-        public Guid TrainId { get; }
+        public TrainInstanceId TrainInstanceId { get; }
         public double CurrentSpeed { get; }
         public double AccumulatedDistance { get; }
         public int MasconLevel { get; }
