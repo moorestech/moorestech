@@ -14,9 +14,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             IReadOnlyList<RailPosition> rearRoutes,
             int frontMaxDistance,
             int rearMaxDistance,
-            out RailPosition snapStartPoint)
+            out RailPosition snapStartPoint,
+            out bool snapFromCenterForward)
         {
             snapStartPoint = null;
+            snapFromCenterForward = true;
             if (centerRailPosition == null || frontRoutes == null || rearRoutes == null || frontMaxDistance < 0 || rearMaxDistance < 0)
             {
                 return false;
@@ -28,6 +30,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
             var nearestDistance = int.MaxValue;
             var nearestPoint = default(RailPosition);
+            var nearestFromCenterForward = true;
             EvaluateRouteList(frontRoutes, frontMaxDistance);
             EvaluateRouteList(rearRoutes, rearMaxDistance);
             if (nearestPoint == null)
@@ -36,6 +39,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             }
 
             snapStartPoint = nearestPoint;
+            snapFromCenterForward = nearestFromCenterForward;
             return true;
 
             #region Internal
@@ -66,7 +70,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                         {
                             continue;
                         }
-                        if (!TryOrientPointTowardCenter(stationPoint, centerForwardPoint, centerBackwardPoint, out var orientedPoint, out var distanceToCenter))
+                        if (!TryOrientPointTowardCenter(
+                                stationPoint,
+                                centerForwardPoint,
+                                centerBackwardPoint,
+                                out var orientedPoint,
+                                out var distanceToCenter,
+                                out var isCenterForwardSide))
                         {
                             continue;
                         }
@@ -82,6 +92,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                         }
                         nearestDistance = distanceToCenter;
                         nearestPoint = orientedPoint;
+                        nearestFromCenterForward = isCenterForwardSide;
                     }
                 }
             }
@@ -95,9 +106,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             RailPosition centerRailPosition,
             IReadOnlyList<RailPathTracer.UnreachedRoute> frontUnreachedRoutes,
             IReadOnlyList<RailPathTracer.UnreachedRoute> rearUnreachedRoutes,
-            out RailPosition snapStartPoint)
+            out RailPosition snapStartPoint,
+            out bool snapFromCenterForward)
         {
             snapStartPoint = null;
+            snapFromCenterForward = true;
             if (centerRailPosition == null)
             {
                 return false;
@@ -109,6 +122,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
             var nearestReachedDistance = int.MaxValue;
             var nearestPoint = default(RailPosition);
+            var nearestFromCenterForward = true;
             EvaluateUnreachedRoutes(frontUnreachedRoutes);
             EvaluateUnreachedRoutes(rearUnreachedRoutes);
             if (nearestPoint == null)
@@ -117,6 +131,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             }
 
             snapStartPoint = nearestPoint;
+            snapFromCenterForward = nearestFromCenterForward;
             return true;
 
             #region Internal
@@ -136,7 +151,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                         continue;
                     }
                     var edgePoint = candidate.Route.GetHeadRailPosition();
-                    if (!TryOrientPointTowardCenter(edgePoint, centerForwardPoint, centerBackwardPoint, out var orientedPoint, out _))
+                    if (!TryOrientPointTowardCenter(
+                            edgePoint,
+                            centerForwardPoint,
+                            centerBackwardPoint,
+                            out var orientedPoint,
+                            out _,
+                            out var isCenterForwardSide))
                     {
                         continue;
                     }
@@ -146,6 +167,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     }
                     nearestReachedDistance = candidate.ReachedDistance;
                     nearestPoint = orientedPoint;
+                    nearestFromCenterForward = isCenterForwardSide;
                 }
             }
 
@@ -213,17 +235,20 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             RailPosition centerForwardPoint,
             RailPosition centerBackwardPoint,
             out RailPosition orientedPoint,
-            out int distanceToCenter)
+            out int distanceToCenter,
+            out bool isCenterForwardSide)
         {
             if (point == null || centerForwardPoint == null || centerBackwardPoint == null)
             {
                 orientedPoint = null;
                 distanceToCenter = int.MaxValue;
+                isCenterForwardSide = true;
                 return false;
             }
 
             var bestPoint = default(RailPosition);
             var bestDistance = int.MaxValue;
+            var bestIsCenterForwardSide = true;
             Update(point);
 
             var reversed = point.DeepCopy();
@@ -231,6 +256,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             Update(reversed);
             orientedPoint = bestPoint;
             distanceToCenter = bestDistance;
+            isCenterForwardSide = bestIsCenterForwardSide;
             return bestPoint != null;
 
             #region Internal
@@ -241,31 +267,46 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 {
                     return;
                 }
-                var candidateDistance = FindDistanceToCenter(candidate, centerForwardPoint, centerBackwardPoint);
-                if (candidateDistance < 0 || candidateDistance >= bestDistance)
+                if (!TryFindDistanceToCenter(candidate, centerForwardPoint, centerBackwardPoint, out var candidateDistance, out var candidateIsCenterForwardSide))
+                {
+                    return;
+                }
+                if (candidateDistance >= bestDistance)
                 {
                     return;
                 }
                 bestPoint = candidate.DeepCopy();
                 bestDistance = candidateDistance;
+                bestIsCenterForwardSide = candidateIsCenterForwardSide;
             }
 
             #endregion
         }
 
-        private static int FindDistanceToCenter(RailPosition fromPoint, RailPosition centerForwardPoint, RailPosition centerBackwardPoint)
+        private static bool TryFindDistanceToCenter(
+            RailPosition fromPoint,
+            RailPosition centerForwardPoint,
+            RailPosition centerBackwardPoint,
+            out int distanceToCenter,
+            out bool isCenterForwardSide)
         {
+            distanceToCenter = int.MaxValue;
+            isCenterForwardSide = true;
             var forwardDistance = RailPositionRouteDistanceFinder.FindShortestDistance(fromPoint, centerForwardPoint);
             var backwardDistance = RailPositionRouteDistanceFinder.FindShortestDistance(fromPoint, centerBackwardPoint);
-            if (forwardDistance < 0)
+            if (forwardDistance < 0 && backwardDistance < 0)
             {
-                return backwardDistance;
+                return false;
             }
-            if (backwardDistance < 0)
+            if (backwardDistance < 0 || (forwardDistance >= 0 && forwardDistance <= backwardDistance))
             {
-                return forwardDistance;
+                distanceToCenter = forwardDistance;
+                isCenterForwardSide = true;
+                return true;
             }
-            return forwardDistance < backwardDistance ? forwardDistance : backwardDistance;
+            distanceToCenter = backwardDistance;
+            isCenterForwardSide = false;
+            return true;
         }
 
         #endregion
