@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.TrainRail;
+using Game.Block.Blocks.TrainRail.TransferComponents;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
@@ -9,6 +10,7 @@ using Game.Context;
 using Game.Train.RailGraph;
 using Game.Train.RailPositions;
 using Game.Train.Unit;
+using Game.Train.Unit.Containers;
 using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Tests.Module.TestMod;
@@ -32,9 +34,12 @@ namespace Tests.UnitTest.Game
 
             Assert.IsNotNull(stationBlock, "駅ブロックの設置に失敗しました。");
             Assert.IsNotNull(railComponents, "RailComponentの取得に失敗しました。");
-
-            var stationComponent = stationBlock.GetComponent<StationComponent>();
-            Assert.IsNotNull(stationComponent, "StationComponentの取得に失敗しました。");
+            
+            var trainPlatformItemTransferComponent = stationBlock.GetComponent<TrainPlatformItemTransferComponent>();
+            var trainPlatformDockingComponent = stationBlock.GetComponent<TrainPlatformDockingComponent>();
+            
+            Assert.IsNotNull(trainPlatformItemTransferComponent, "trainPlatformItemTransferComponentの取得に失敗しました。");
+            Assert.IsNotNull(trainPlatformDockingComponent, "trainPlatformDockingComponentの取得に失敗しました。");
 
             Assert.IsTrue(stationBlock.ComponentManager.TryGetComponent<IBlockInventory>(out var stationInventory), "駅ブロックのインベントリコンポーネントが見つかりません。");
 
@@ -53,7 +58,7 @@ namespace Tests.UnitTest.Game
             var railNodes = new List<IRailNode> { exitNode, entryNode };
             var railPosition = new RailPosition(railNodes, stationSegmentLength, 0);
 
-            var trainCar = TrainTestCarFactory.CreateTrainCar(0, 1000, 1, stationSegmentLength, true);
+            var (trainCar, itemContainer) = TrainTestCarFactory.CreateTrainCar(0, 1000, 1, stationSegmentLength, true);
             var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
 
             trainUnit.trainUnitStationDocking.TryDockWhenStopped();
@@ -65,15 +70,16 @@ namespace Tests.UnitTest.Game
             var transferTicks = GetStationTransferTicks();
             for (var i = 0; i < transferTicks; i++)
             {
-                stationComponent.Update();
+                trainPlatformDockingComponent.Update();
+                trainPlatformItemTransferComponent.Update();
             }
 
             var remainingStack = stationInventory.GetItem(0);
             Assert.AreEqual(ItemMaster.EmptyItemId, remainingStack.Id, "駅インベントリのスロットが移送後も空になっていません。");
-
-            var carStack = trainCar.GetItem(0);
-            Assert.AreEqual(ForUnitTestItemId.ItemId1, carStack.Id, "列車貨車が駅のアイテムを受け取っていません。");
-            Assert.AreEqual(maxStack, carStack.Count, "列車貨車が駅インベントリの全量を受け取っていません。");
+            
+            var carStack = itemContainer.InventoryItems[0];
+            Assert.AreEqual(ForUnitTestItemId.ItemId1, carStack.Stack.Id, "列車貨車が駅のアイテムを受け取っていません。");
+            Assert.AreEqual(maxStack, carStack.Stack.Count, "列車貨車が駅インベントリの全量を受け取っていません。");
 
             env.GetTrainDiagramManager().UnregisterDiagram(trainUnit.trainDiagram);
             env.GetTrainUpdateService().UnregisterTrain(trainUnit);
@@ -92,9 +98,12 @@ namespace Tests.UnitTest.Game
 
             Assert.IsNotNull(cargoPlatformBlock, "貨物プラットフォームブロックの設置に失敗しました。");
             Assert.IsNotNull(railComponents, "RailComponentの取得に失敗しました。");
-
-            var cargoPlatformComponent = cargoPlatformBlock.GetComponent<CargoplatformComponent>();
-            Assert.IsNotNull(cargoPlatformComponent, "CargoplatformComponentの取得に失敗しました。");
+            
+            var trainPlatformItemTransferComponent = cargoPlatformBlock.GetComponent<TrainPlatformItemTransferComponent>();
+            var trainPlatformDockingComponent = cargoPlatformBlock.GetComponent<TrainPlatformDockingComponent>();
+            
+            Assert.IsNotNull(trainPlatformItemTransferComponent, "trainPlatformItemTransferComponentの取得に失敗しました。");
+            Assert.IsNotNull(trainPlatformDockingComponent, "trainPlatformDockingComponentの取得に失敗しました。");
 
             Assert.IsTrue(cargoPlatformBlock.ComponentManager.TryGetComponent<IBlockInventory>(out var cargoInventory), "貨物プラットフォームのインベントリコンポーネントが見つかりません。");
 
@@ -113,7 +122,7 @@ namespace Tests.UnitTest.Game
             var railNodes = new List<IRailNode> { exitNode, entryNode };
             var railPosition = new RailPosition(railNodes, platformSegmentLength, 0);
 
-            var trainCar = TrainTestCarFactory.CreateTrainCar(0, 1000, 1, platformSegmentLength, true);
+            var (trainCar, itemContainer) = TrainTestCarFactory.CreateTrainCar(0, 1000, 1, platformSegmentLength, true);
             var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
 
             trainUnit.trainUnitStationDocking.TryDockWhenStopped();
@@ -126,15 +135,16 @@ namespace Tests.UnitTest.Game
             var transferTicks = GetCargoTransferTicks();
             for (var i = 0; i < transferTicks; i++)
             {
-                cargoPlatformComponent.Update();
+                trainPlatformItemTransferComponent.Update();
+                trainPlatformDockingComponent.Update();
             }
 
             var remainingStack = cargoInventory.GetItem(0);
             Assert.AreEqual(ItemMaster.EmptyItemId, remainingStack.Id, "貨物プラットフォームのインベントリスロットが移送後も空になっていません。");
 
-            var carStack = trainCar.GetItem(0);
-            Assert.AreEqual(ForUnitTestItemId.ItemId1, carStack.Id, "列車貨車が貨物プラットフォームのアイテムを受け取っていません。");
-            Assert.AreEqual(maxStack, carStack.Count, "列車貨車が貨物プラットフォームから全量を受け取っていません。");
+            var carStack = itemContainer.InventoryItems[0];
+            Assert.AreEqual(ForUnitTestItemId.ItemId1, carStack.Stack.Id, "列車貨車が貨物プラットフォームのアイテムを受け取っていません。");
+            Assert.AreEqual(maxStack, carStack.Stack.Count, "列車貨車が貨物プラットフォームから全量を受け取っていません。");
 
             env.GetTrainDiagramManager().UnregisterDiagram(trainUnit.trainDiagram);
             env.GetTrainUpdateService().UnregisterTrain(trainUnit);
