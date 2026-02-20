@@ -2,19 +2,19 @@
 
 ## 基本テンプレート
 
-最もシンプルなPlayModeテスト。ゲームを起動して何らかの検証を行う。
+最もシンプルなEditModeInPlayingTest。ゲームを起動して何らかの検証を行う。
 
 ```csharp
 using System.Collections;
-using Client.Tests.PlayModeTest.Util;
+using Client.Tests.EditModeInPlayingTest.Util;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
-using static Client.Tests.PlayModeTest.Util.PlayModeTestUtil;
+using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
 
-namespace Client.Tests.PlayModeTest
+namespace Client.Tests.EditModeInPlayingTest
 {
     /// <summary>
     /// テスト自体はEditModeで実行されるが、実行中にプレイモードに変更する

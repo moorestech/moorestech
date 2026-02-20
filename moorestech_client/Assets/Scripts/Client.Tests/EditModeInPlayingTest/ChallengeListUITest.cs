@@ -1,15 +1,15 @@
 using System.Collections;
 using Client.Game.InGame.UI.Challenge;
-using Client.Tests.PlayModeTest.Util;
+using Client.Tests.EditModeInPlayingTest.Util;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
-using static Client.Tests.PlayModeTest.Util.PlayModeTestUtil;
+using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
 
-namespace Client.Tests.PlayModeTest
+namespace Client.Tests.EditModeInPlayingTest
 {
     /// <summary>
     /// テスト自体はEditModeで実行されるが、実行中にプレイモードに変更する
@@ -42,7 +42,7 @@ namespace Client.Tests.PlayModeTest
             
             async UniTask Test()
             {
-                await PlayModeTestUtil.LoadMainGame();
+                await EditModeInPlayingTestUtil.LoadMainGame();
                 
                 var challengeListView = Object.FindFirstObjectByType<ChallengeListView>(FindObjectsInactive.Include);
                 var categoryParent = challengeListView.DebugCategoryListParent;
@@ -53,13 +53,13 @@ namespace Client.Tests.PlayModeTest
                 
                 // アイテムを付与してチャレンジ1を完了
                 // Grant an item and complete Challenge 1
-                await PlayModeTestUtil.GiveItem("小石", 1);
+                await EditModeInPlayingTestUtil.GiveItem("小石", 1);
                 
                 // カテゴリが増えていないことを確認
                 // Confirm that the category has not increased
                 Assert.AreEqual(1, GetCategoryCount(categoryParent));
                 
-                await PlayModeTestUtil.GiveItem("石器", 1);
+                await EditModeInPlayingTestUtil.GiveItem("石器", 1);
                 
                 // 上記のチャレンジクリアによってカテゴリが増えることを確認
                 // Confirm that the category increases due to the completion of the above challenge

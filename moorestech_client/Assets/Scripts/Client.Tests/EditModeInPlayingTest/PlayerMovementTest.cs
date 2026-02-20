@@ -1,14 +1,14 @@
 using System.Collections;
 using Client.Game.InGame.Player;
-using Client.Tests.PlayModeTest.Util;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
-using static Client.Tests.PlayModeTest.Util.PlayModeTestUtil;
+using Client.Tests.EditModeInPlayingTest.OsInput;
+using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
 
-namespace Client.Tests.PlayModeTest
+namespace Client.Tests.EditModeInPlayingTest
 {
     /// <summary>
     /// テスト自体はEditModeで実行されるが、実行中にプレイモードに変更する

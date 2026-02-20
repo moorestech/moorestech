@@ -1,6 +1,6 @@
-# PlayModeTestUtil ヘルパーAPI
+# EditModeInPlayingTestUtil ヘルパーAPI
 
-ソースファイル: `moorestech_client/Assets/Scripts/Client.Tests/PlayModeTest/Util/PlayModeTestUtil.cs`
+ソースファイル: `moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/Util/EditModeInPlayingTestUtil.cs`
 
 ## EnterPlayModeUtil
 
@@ -35,7 +35,7 @@ public static async UniTask LoadMainGame(string serverDirectory = null, string s
 
 ゲームを起動してメインシーンをロードする。
 
-- `serverDirectory`: サーバーデータディレクトリ。省略時は`PlayModeTestServerDirectoryPath`（`PlayModeTest/ServerData`）
+- `serverDirectory`: サーバーデータディレクトリ。省略時は`EditModeInPlayingTestServerDirectoryPath`（`EditModeInPlayingTest/ServerData`）
 - `saveFilePath`: セーブファイルパス。省略時は`dummy_play_mode_test_{GUID}.json`（既存セーブを読まない）
 
 内部処理:
@@ -88,12 +88,12 @@ public static IItemStack InsertItemToBlock(IBlock block, ItemId itemId, int coun
 - `count`: 挿入数
 - 戻り値: `IItemStack` - 挿入できなかった残り
 
-## PlayModeTestServerDirectoryPath
+## EditModeInPlayingTestServerDirectoryPath
 
 ```csharp
-public static string PlayModeTestServerDirectoryPath
+public static string EditModeInPlayingTestServerDirectoryPath
 ```
 
-PlayModeテスト用サーバーデータのパス: `moorestech_client/Assets/Scripts/Client.Tests/PlayModeTest/ServerData`
+EditModeInPlayingTest用サーバーデータのパス: `moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/ServerData`
 
 テスト用マスターデータ（blocks.json, items.json等）がここに配置されている。
