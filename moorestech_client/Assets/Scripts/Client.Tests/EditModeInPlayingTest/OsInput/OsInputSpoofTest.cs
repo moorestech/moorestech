@@ -12,11 +12,14 @@ namespace Client.Tests.EditModeInPlayingTest
     /// OsInputSpoof による入力合成を EditMode で検証するテスト
     /// EditMode test that verifies input injection via OsInputSpoof.
     ///
-    /// macOS Editor では InputSystem.QueueStateEvent を使用するため PlayMode 不要
-    /// On macOS Editor, uses InputSystem.QueueStateEvent so PlayMode is not required.
+    /// Editor (macOS/Windows) では InputSystem.QueueStateEvent を使用するため PlayMode 不要
+    /// On Editor (macOS/Windows), uses InputSystem.QueueStateEvent so PlayMode is not required.
     ///
     /// 前提（macOS Standalone）: システム設定 → プライバシーとセキュリティ → アクセシビリティ で Unity を許可すること
     /// Prerequisite (macOS Standalone): Grant Unity permission in System Settings → Privacy & Security → Accessibility.
+    ///
+    /// 前提（Windows Standalone）: UIPI 制約により管理者権限が必要な場合がある
+    /// Prerequisite (Windows Standalone): Administrator privileges may be required due to UIPI constraints.
     /// </summary>
     public class OsInputSpoofTest
     {
@@ -40,18 +43,21 @@ namespace Client.Tests.EditModeInPlayingTest
         }
 
         private const string AccessibilityIgnoreMessage =
-            "Accessibility permission is not granted. " +
-            "Grant permission and restart Unity, then rerun. See error log for details.";
+            "OS-level input injection is not available. " +
+            "Check platform-specific permissions and restart Unity, then rerun. See error log for details.";
 
-        private const string AccessibilityDialogTitle   = "Accessibility Permission Required";
+        private const string AccessibilityDialogTitle   = "OS Input Permission Required";
         private const string AccessibilityDialogMessage =
-            "OS レベルキー注入には macOS Accessibility 権限が必要です。\n" +
-            "OS-level key injection requires macOS Accessibility permission.\n\n" +
-            "設定場所 / Where to grant:\n" +
-            "  システム設定 → プライバシーとセキュリティ → アクセシビリティ\n" +
-            "  System Settings → Privacy & Security → Accessibility\n\n" +
-            "Unity Editor を追加してチェックを入れ、Unity を再起動してからテストを再実行してください。\n" +
-            "Add Unity Editor, enable the toggle, restart Unity, then rerun the tests.";
+            "OS レベルキー注入にはプラットフォーム固有の権限が必要です。\n" +
+            "OS-level key injection requires platform-specific permissions.\n\n" +
+            "[macOS]\n" +
+            "  システム設定 → プライバシーとセキュリティ → アクセシビリティ で Unity を許可\n" +
+            "  System Settings → Privacy & Security → Accessibility → Grant Unity permission\n\n" +
+            "[Windows]\n" +
+            "  UIPI 制約により管理者権限で Unity を実行する必要がある場合があります\n" +
+            "  You may need to run Unity as Administrator due to UIPI constraints\n\n" +
+            "権限を設定後、Unity を再起動してテストを再実行してください。\n" +
+            "After granting permissions, restart Unity and rerun the tests.";
 
         /// <summary>
         /// Space キーを注入し、Unity Input System が検知することを確認する
@@ -60,11 +66,11 @@ namespace Client.Tests.EditModeInPlayingTest
         [UnityTest]
         public IEnumerator OsKeyInjection_SpaceKey_IsDetectedByInputSystem()
         {
-            // Accessibility 権限チェック
-            // Check Accessibility permission
+            // OS 入力権限チェック
+            // Check OS input permission
             if (!OsInputSpoof.IsAvailable)
             {
-                NotifyAccessibilityRequired();
+                NotifyPermissionRequired();
                 Assert.Ignore(AccessibilityIgnoreMessage);
                 yield break;
             }
@@ -104,11 +110,11 @@ namespace Client.Tests.EditModeInPlayingTest
         [UnityTest]
         public IEnumerator OsKeyInjection_WASDKeys_AreDetectedByInputSystem()
         {
-            // Accessibility 権限チェック
-            // Check Accessibility permission
+            // OS 入力権限チェック
+            // Check OS input permission
             if (!OsInputSpoof.IsAvailable)
             {
-                NotifyAccessibilityRequired();
+                NotifyPermissionRequired();
                 Assert.Ignore(AccessibilityIgnoreMessage);
                 yield break;
             }
@@ -163,11 +169,11 @@ namespace Client.Tests.EditModeInPlayingTest
         [UnityTest]
         public IEnumerator OsMouseInjection_MouseMove_ChangesPosition()
         {
-            // Accessibility 権限チェック
-            // Check Accessibility permission
+            // OS 入力権限チェック
+            // Check OS input permission
             if (!OsInputSpoof.IsAvailable)
             {
-                NotifyAccessibilityRequired();
+                NotifyPermissionRequired();
                 Assert.Ignore(AccessibilityIgnoreMessage);
                 yield break;
             }
@@ -206,10 +212,10 @@ namespace Client.Tests.EditModeInPlayingTest
         }
 
         /// <summary>
-        /// Accessibility 権限が必要であることをコンソールエラーとモーダルで通知する
-        /// Notify that Accessibility permission is required via console error and modal dialog.
+        /// OS 入力権限が必要であることをコンソールエラーとモーダルで通知する
+        /// Notify that OS input permission is required via console error and modal dialog.
         /// </summary>
-        private static void NotifyAccessibilityRequired()
+        private static void NotifyPermissionRequired()
         {
             // macOS Standalone のみ: システムダイアログで権限を要求
             // macOS Standalone only: request via macOS system dialog
@@ -220,9 +226,10 @@ namespace Client.Tests.EditModeInPlayingTest
             // Unity コンソールにエラーログを出力
             // Output error log to Unity console
             Debug.LogError(
-                "[OsInputSpoofTest] Accessibility permission is required for OS-level key injection.\n" +
-                "Grant permission in: System Settings → Privacy & Security → Accessibility\n" +
-                "Add Unity Editor to the list, enable the toggle, restart Unity, then rerun the tests.");
+                "[OsInputSpoofTest] OS-level input injection is not available.\n" +
+                "[macOS] Grant permission in: System Settings → Privacy & Security → Accessibility\n" +
+                "[Windows] Run Unity as Administrator if UIPI blocks SendInput.\n" +
+                "After granting permissions, restart Unity and rerun the tests.");
 
             // Unity エディタのモーダルダイアログを表示
             // Show modal dialog in Unity Editor

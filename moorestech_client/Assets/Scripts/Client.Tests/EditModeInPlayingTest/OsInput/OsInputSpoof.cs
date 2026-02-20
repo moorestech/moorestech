@@ -2,7 +2,6 @@ using System;
 using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.LowLevel;
 
 namespace Client.Tests.EditModeInPlayingTest.OsInput
@@ -11,14 +10,14 @@ namespace Client.Tests.EditModeInPlayingTest.OsInput
     /// OS レベルでキー・マウス入力を合成イベントとして注入するユーティリティ
     /// Utility for injecting synthetic key/mouse events at the OS level.
     ///
-    /// macOS Editor: InputSystem.QueueStateEvent 経由で直接注入（フォーカス不要）
-    /// macOS Editor: inject directly via InputSystem.QueueStateEvent (no focus needed)
+    /// Editor (macOS/Windows): KeyboardState / MouseState + QueueStateEvent 経由で直接注入（フォーカス不要）
+    /// Editor (macOS/Windows): inject via KeyboardState / MouseState + QueueStateEvent (no focus needed)
     ///
     /// macOS Standalone: CGEvent kCGHIDEventTap 経由（要 Accessibility 許可）
     /// macOS Standalone: via CGEvent kCGHIDEventTap (Accessibility permission required)
     ///
-    /// Windows: user32.dll の SendInput を使用（UIPI 制約に注意）
-    /// Windows: via user32.dll SendInput (note UIPI constraints)
+    /// Windows Standalone: user32.dll の SendInput を使用（UIPI 制約に注意）
+    /// Windows Standalone: via user32.dll SendInput (note UIPI constraints)
     /// </summary>
     public static class OsInputSpoof
     {
@@ -43,11 +42,11 @@ namespace Client.Tests.EditModeInPlayingTest.OsInput
         {
             get
             {
-#if UNITY_EDITOR_OSX
+#if UNITY_EDITOR
                 // Editor では InputSystem.QueueStateEvent を使用するため常に true
                 // Editor uses InputSystem.QueueStateEvent, so always available
                 return true;
-#elif UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+#elif UNITY_STANDALONE_WIN
                 return true;
 #elif UNITY_STANDALONE_OSX
                 return MacIsAccessibilityTrusted();
@@ -72,58 +71,60 @@ namespace Client.Tests.EditModeInPlayingTest.OsInput
 
         public static void KeyDown(DebugKey key)
         {
-#if UNITY_EDITOR_OSX
+#if UNITY_EDITOR
             EditorInjectKey(key, true);
 #elif UNITY_STANDALONE_OSX
             OsInputMac_Key(MacKeyCode(key), true);
-#elif UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+#elif UNITY_STANDALONE_WIN
             WinSendKey(key, isDown: true);
 #endif
         }
 
         public static void KeyUp(DebugKey key)
         {
-#if UNITY_EDITOR_OSX
+#if UNITY_EDITOR
             EditorInjectKey(key, false);
 #elif UNITY_STANDALONE_OSX
             OsInputMac_Key(MacKeyCode(key), false);
-#elif UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+#elif UNITY_STANDALONE_WIN
             WinSendKey(key, isDown: false);
 #endif
         }
 
         public static void MouseMoveBy(int dx, int dy)
         {
-#if UNITY_EDITOR_OSX
+#if UNITY_EDITOR
             EditorInjectMouseMove(dx, dy);
 #elif UNITY_STANDALONE_OSX
             OsInputMac_MouseMoveBy(dx, dy);
-#elif UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+#elif UNITY_STANDALONE_WIN
             WinMouseMove(dx, dy);
 #endif
         }
 
         public static void MouseLeftClick()
         {
-#if UNITY_EDITOR_OSX
+#if UNITY_EDITOR
             EditorInjectMouseClick();
 #elif UNITY_STANDALONE_OSX
             OsInputMac_MouseLeftClick();
-#elif UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+#elif UNITY_STANDALONE_WIN
             WinMouseClick();
 #endif
         }
 
-#if UNITY_EDITOR_OSX
+#if UNITY_EDITOR
         // ----------------------------------------------------------------
-        // macOS Editor: InputSystem.QueueStateEvent 経由で直接注入
-        // macOS Editor: inject directly via InputSystem.QueueStateEvent
+        // Editor (macOS/Windows): KeyboardState / MouseState + QueueStateEvent 経由で注入
+        // Editor (macOS/Windows): inject via KeyboardState / MouseState + QueueStateEvent
         //
-        // CGEvent は Unity の IOHIDManager に届かず kCGHIDEventTap は
-        // フォーカスしたアプリへしか届かないため Editor では不使用。
-        // CGEvent doesn't reach Unity's IOHIDManager and kCGHIDEventTap
-        // only delivers to the focused app, so not used in Editor.
+        // StateEvent.From は Windows Editor で状態が反映されない問題があるため、
+        // 型付き状態構造体（KeyboardState / MouseState）を使用する。
+        // StateEvent.From has issues on Windows Editor where state is not applied,
+        // so we use typed state structs (KeyboardState / MouseState) instead.
         // ----------------------------------------------------------------
+
+        private static readonly System.Collections.Generic.HashSet<Key> EditorPressedKeys = new();
 
         private static void EditorInjectKey(DebugKey key, bool isDown)
         {
@@ -132,16 +133,15 @@ namespace Client.Tests.EditModeInPlayingTest.OsInput
             var keyboard = Keyboard.current;
             if (keyboard == null) return;
 
-            // キーに対応するコントロールを取得して状態イベントに書き込む
-            // Get the control for the key and write into a state event
-            var control = KeyToControl(keyboard, key);
-            if (control == null) return;
+            // 押下キーセットを更新して KeyboardState を送信
+            // Update pressed key set and send KeyboardState
+            var inputKey = DebugKeyToKey(key);
+            if (isDown) EditorPressedKeys.Add(inputKey);
+            else EditorPressedKeys.Remove(inputKey);
 
-            using (StateEvent.From(keyboard, out var eventPtr))
-            {
-                control.WriteValueIntoEvent(isDown ? 1f : 0f, eventPtr);
-                InputSystem.QueueEvent(eventPtr);
-            }
+            var keysArray = new Key[EditorPressedKeys.Count];
+            EditorPressedKeys.CopyTo(keysArray);
+            InputSystem.QueueStateEvent(keyboard, new KeyboardState(keysArray));
         }
 
         private static void EditorInjectMouseMove(int dx, int dy)
@@ -151,16 +151,14 @@ namespace Client.Tests.EditModeInPlayingTest.OsInput
             var mouse = Mouse.current;
             if (mouse == null) return;
 
+            // 現在位置にデルタを加算した MouseState を送信
+            // Send MouseState with delta added to current position
             var currentPos = mouse.position.ReadValue();
-
-            // 位置とデルタを同時に設定して注入
-            // Set position and delta simultaneously and inject
-            using (StateEvent.From(mouse, out var eventPtr))
+            InputSystem.QueueStateEvent(mouse, new MouseState
             {
-                mouse.position.WriteValueIntoEvent(currentPos + new Vector2(dx, dy), eventPtr);
-                mouse.delta.WriteValueIntoEvent(new Vector2(dx, dy), eventPtr);
-                InputSystem.QueueEvent(eventPtr);
-            }
+                position = currentPos + new Vector2(dx, dy),
+                delta = new Vector2(dx, dy),
+            });
         }
 
         private static void EditorInjectMouseClick()
@@ -168,38 +166,44 @@ namespace Client.Tests.EditModeInPlayingTest.OsInput
             var mouse = Mouse.current;
             if (mouse == null) return;
 
-            // ボタン押下 → 解放の順で注入
-            // Inject button down then up
-            using (StateEvent.From(mouse, out var eventPtr))
+            var currentPos = mouse.position.ReadValue();
+
+            // ボタン押下 → 解放の順で注入（buttons bit0 = 左ボタン）
+            // Inject button down then up (buttons bit0 = left button)
+            InputSystem.QueueStateEvent(mouse, new MouseState
             {
-                mouse.leftButton.WriteValueIntoEvent(1f, eventPtr);
-                InputSystem.QueueEvent(eventPtr);
-            }
-            using (StateEvent.From(mouse, out var eventPtr))
+                position = currentPos,
+                buttons = 1,
+            });
+            InputSystem.QueueStateEvent(mouse, new MouseState
             {
-                mouse.leftButton.WriteValueIntoEvent(0f, eventPtr);
-                InputSystem.QueueEvent(eventPtr);
-            }
+                position = currentPos,
+                buttons = 0,
+            });
         }
 
-        private static ButtonControl KeyToControl(Keyboard keyboard, DebugKey key) => key switch
+        /// <summary>
+        /// DebugKey → InputSystem.Key 変換
+        /// DebugKey to InputSystem.Key conversion
+        /// </summary>
+        private static Key DebugKeyToKey(DebugKey k) => k switch
         {
-            DebugKey.W         => keyboard.wKey,
-            DebugKey.A         => keyboard.aKey,
-            DebugKey.S         => keyboard.sKey,
-            DebugKey.D         => keyboard.dKey,
-            DebugKey.E         => keyboard.eKey,
-            DebugKey.Space     => keyboard.spaceKey,
-            DebugKey.Enter     => keyboard.enterKey,
-            DebugKey.Escape    => keyboard.escapeKey,
-            DebugKey.Tab       => keyboard.tabKey,
-            DebugKey.LeftShift => keyboard.leftShiftKey,
-            DebugKey.LeftCtrl  => keyboard.leftCtrlKey,
-            DebugKey.Up        => keyboard.upArrowKey,
-            DebugKey.Down      => keyboard.downArrowKey,
-            DebugKey.Left      => keyboard.leftArrowKey,
-            DebugKey.Right     => keyboard.rightArrowKey,
-            _                  => null,
+            DebugKey.W         => Key.W,
+            DebugKey.A         => Key.A,
+            DebugKey.S         => Key.S,
+            DebugKey.D         => Key.D,
+            DebugKey.E         => Key.E,
+            DebugKey.Space     => Key.Space,
+            DebugKey.Enter     => Key.Enter,
+            DebugKey.Escape    => Key.Escape,
+            DebugKey.Tab       => Key.Tab,
+            DebugKey.LeftShift => Key.LeftShift,
+            DebugKey.LeftCtrl  => Key.LeftCtrl,
+            DebugKey.Up        => Key.UpArrow,
+            DebugKey.Down      => Key.DownArrow,
+            DebugKey.Left      => Key.LeftArrow,
+            DebugKey.Right     => Key.RightArrow,
+            _                  => throw new ArgumentOutOfRangeException(nameof(k), k, null),
         };
 #endif
 
@@ -253,10 +257,10 @@ namespace Client.Tests.EditModeInPlayingTest.OsInput
         };
 #endif
 
-#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+#if UNITY_STANDALONE_WIN
         // ----------------------------------------------------------------
-        // Windows: user32.dll SendInput 経由
-        // Windows: via user32.dll SendInput
+        // Windows Standalone: user32.dll SendInput 経由
+        // Windows Standalone: via user32.dll SendInput
         // ----------------------------------------------------------------
 
         private const int  INPUT_KEYBOARD       = 1;
