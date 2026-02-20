@@ -101,6 +101,25 @@ namespace Client.Network.API
             return await _packetExchangeManager.GetPacketResponse<PlaceTrainCarOnRailProtocol.PlaceTrainOnRailResponseMessagePack>(request, ct);
         }
 
+        public async UniTask<AttachTrainCarToUnitProtocol.AttachTrainCarToUnitResponseMessagePack> AttachTrainCarToUnit(
+            TrainInstanceId targetTrainInstanceId,
+            RailPosition railPosition,
+            int hotBarSlot,
+            bool attachCarFacingForward,
+            CancellationToken ct)
+        {
+            // 既存編成連結のレスポンスを取得する
+            // Get response for attaching a car to an existing train unit
+            var railPositionSnapshot = new RailPositionSnapshotMessagePack(railPosition?.CreateSaveSnapshot());
+            var request = new AttachTrainCarToUnitProtocol.AttachTrainCarToUnitRequestMessagePack(
+                targetTrainInstanceId,
+                railPositionSnapshot,
+                hotBarSlot,
+                _playerConnectionSetting.PlayerId,
+                attachCarFacingForward);
+            return await _packetExchangeManager.GetPacketResponse<AttachTrainCarToUnitProtocol.AttachTrainCarToUnitResponseMessagePack>(request, ct);
+        }
+
         public async UniTask<PlayerInventoryResponse> GetMyPlayerInventory(CancellationToken ct)
         {
             return await GetPlayerInventory(_playerConnectionSetting.PlayerId, ct);

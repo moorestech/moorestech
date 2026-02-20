@@ -2,6 +2,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.Train.View.Object;
 using Client.Input;
 using Cysharp.Threading.Tasks;
+using Game.Train.Unit;
 using System.Threading;
 using UnityEngine;
 
@@ -79,10 +80,35 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             {
                 // レスポンスを待機して結果を検証する
                 // Await placement response and validate result
-                var response = await ClientContext.VanillaApi.Response.PlaceTrainOnRail(placementHit.RailPosition, hotBarSlot, CancellationToken.None);
-                if (response == null || !response.Success)
+                if (placementHit.PlacementMode == TrainCarPlacementMode.AttachToExistingTrainUnit)
                 {
-                    Debug.LogWarning($"[TrainCarPlaceSystem] PlaceTrain failed. reason={response?.FailureType}");
+                    if (placementHit.TargetTrainInstanceId == TrainInstanceId.Empty)
+                    {
+                        Debug.LogWarning("[TrainCarPlaceSystem] AttachTrainCar failed. reason=InvalidTargetTrainInstanceId");
+                        return;
+                    }
+
+                    // 既存編成への連結モードで設置を要求する
+                    // Request attach-mode placement to existing train unit
+                    var attachResponse = await ClientContext.VanillaApi.Response.AttachTrainCarToUnit(
+                        placementHit.TargetTrainInstanceId,
+                        placementHit.RailPosition,
+                        hotBarSlot,
+                        placementHit.AttachCarFacingForward,
+                        CancellationToken.None);
+                    if (attachResponse == null || !attachResponse.Success)
+                    {
+                        Debug.LogWarning($"[TrainCarPlaceSystem] AttachTrainCar failed. reason={attachResponse?.FailureType}");
+                    }
+                    return;
+                }
+
+                // 新規編成作成モードで設置を要求する
+                // Request placement in new-train creation mode
+                var placeResponse = await ClientContext.VanillaApi.Response.PlaceTrainOnRail(placementHit.RailPosition, hotBarSlot, CancellationToken.None);
+                if (placeResponse == null || !placeResponse.Success)
+                {
+                    Debug.LogWarning($"[TrainCarPlaceSystem] PlaceTrain failed. reason={placeResponse?.FailureType}");
                 }
             }
 
