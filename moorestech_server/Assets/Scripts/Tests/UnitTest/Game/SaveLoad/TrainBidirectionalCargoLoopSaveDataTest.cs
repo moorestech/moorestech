@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
 using Game.Block.Blocks.TrainRail;
+using Game.Block.Blocks.TrainRail.TransferComponents;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
@@ -70,11 +71,20 @@ namespace Tests.UnitTest.Game.SaveLoad
                 "Station A のインベントリ取得に失敗しました。");
             Assert.IsTrue(stationBBlock!.ComponentManager.TryGetComponent<IBlockInventory>(out var inventoryB),
                 "Station B のインベントリ取得に失敗しました。");
-
-            var cargoA = stationABlock.GetComponent<CargoplatformComponent>();
-            var cargoB = stationBBlock.GetComponent<CargoplatformComponent>();
-            Assert.IsNotNull(cargoA, "Station A の CargoplatformComponent が取得できません。");
-            Assert.IsNotNull(cargoB, "Station B の CargoplatformComponent が取得できません。");
+            
+            var trainPlatformItemTransferComponentStationA = stationABlock.GetComponent<TrainPlatformItemTransferComponent>();
+            var trainPlatformDockingComponentStationA = stationABlock.GetComponent<TrainPlatformDockingComponent>();
+            var trainPlatformTransferComponentStationA = stationABlock.GetComponent<TrainPlatformTransferComponent>();
+            var trainPlatformItemTransferComponentStationB = stationBBlock.GetComponent<TrainPlatformItemTransferComponent>();
+            var trainPlatformDockingComponentStationB = stationBBlock.GetComponent<TrainPlatformDockingComponent>();
+            var trainPlatformTransferComponentStationB = stationBBlock.GetComponent<TrainPlatformTransferComponent>();
+            
+            Assert.IsNotNull(trainPlatformItemTransferComponentStationA, "trainPlatformItemTransferComponentの取得に失敗しました。");
+            Assert.IsNotNull(trainPlatformDockingComponentStationA, "trainPlatformDockingComponentの取得に失敗しました。");
+            Assert.IsNotNull(trainPlatformTransferComponentStationA, "trainPlatformDockingComponentの取得に失敗しました。");
+            Assert.IsNotNull(trainPlatformItemTransferComponentStationB, "trainPlatformItemTransferComponentの取得に失敗しました。");
+            Assert.IsNotNull(trainPlatformDockingComponentStationB, "trainPlatformDockingComponentの取得に失敗しました。");
+            Assert.IsNotNull(trainPlatformTransferComponentStationB, "trainPlatformDockingComponentの取得に失敗しました。");
 
             var item1 = MasterHolder.ItemMaster.GetItemMaster(ForUnitTestItemId.ItemId1);
             var maxStack1 = item1.MaxStack;
@@ -129,11 +139,11 @@ namespace Tests.UnitTest.Game.SaveLoad
                 {
                     if (ReferenceEquals(train1Car.dockingblock, stationABlock))
                     {
-                        cargoA.SetTransferMode(CargoplatformComponent.CargoTransferMode.LoadToTrain);
+                        trainPlatformTransferComponentStationA.SetMode(TrainPlatformTransferComponent.TransferMode.LoadToTrain);
                     }
                     else if (ReferenceEquals(train1Car.dockingblock, stationBBlock))
                     {
-                        cargoB.SetTransferMode(CargoplatformComponent.CargoTransferMode.UnloadToPlatform);
+                        trainPlatformTransferComponentStationB.SetMode(TrainPlatformTransferComponent.TransferMode.UnloadToPlatform);
                     }
                 }
 
@@ -141,11 +151,11 @@ namespace Tests.UnitTest.Game.SaveLoad
                 {
                     if (ReferenceEquals(train2Car.dockingblock, stationBBlock))
                     {
-                        cargoB.SetTransferMode(CargoplatformComponent.CargoTransferMode.LoadToTrain);
+                        trainPlatformTransferComponentStationB.SetMode(TrainPlatformTransferComponent.TransferMode.LoadToTrain);
                     }
                     else if (ReferenceEquals(train2Car.dockingblock, stationABlock))
                     {
-                        cargoA.SetTransferMode(CargoplatformComponent.CargoTransferMode.UnloadToPlatform);
+                        trainPlatformTransferComponentStationA.SetMode(TrainPlatformTransferComponent.TransferMode.UnloadToPlatform);
                     }
                 }
             }
@@ -157,8 +167,10 @@ namespace Tests.UnitTest.Game.SaveLoad
                 train2.Update();
                 // 貨物アームのtickを進める
                 // Advance cargo platform arm ticks
-                cargoA.Update();
-                cargoB.Update();
+                trainPlatformDockingComponentStationA.Update();
+                trainPlatformItemTransferComponentStationA.Update();
+                trainPlatformDockingComponentStationB.Update();
+                trainPlatformItemTransferComponentStationB.Update();
 
                 if (!train1LoadedAtA && train1Car.IsInventoryFull() && ReferenceEquals(train1Car.dockingblock, stationABlock))
                 {
