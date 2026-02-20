@@ -23,6 +23,29 @@ namespace Client.Tests.EditModeInPlayingTest
     /// </summary>
     public class OsInputSpoofTest
     {
+        // バッチモード等でデバイスが存在しない場合に生成した仮想デバイスを保持
+        // Hold virtual devices created when no real device exists (e.g. batch mode in CI)
+        private Keyboard _virtualKeyboard;
+        private Mouse    _virtualMouse;
+
+        /// <summary>
+        /// バッチモード等でデバイスが存在しない場合に仮想デバイスを追加する
+        /// Add virtual devices when not available (e.g. in CI headless/batch mode).
+        /// </summary>
+        [SetUp]
+        public void SetUp()
+        {
+            // キーボードが存在しない場合は仮想デバイスを追加
+            // Add virtual keyboard when not present
+            if (Keyboard.current == null)
+                _virtualKeyboard = InputSystem.AddDevice<Keyboard>();
+
+            // マウスが存在しない場合は仮想デバイスを追加
+            // Add virtual mouse when not present
+            if (Mouse.current == null)
+                _virtualMouse = InputSystem.AddDevice<Mouse>();
+        }
+
         /// <summary>
         /// テストで使用する全キーを強制解放し、キー状態のリークを防止する
         /// Force-release all test keys to prevent key state leaks across tests.
@@ -40,6 +63,19 @@ namespace Client.Tests.EditModeInPlayingTest
                 OsInputSpoof.KeyUp(key);
             }
             InputSystem.Update();
+
+            // SetUp で生成した仮想デバイスを削除
+            // Remove virtual devices created in SetUp
+            if (_virtualKeyboard != null)
+            {
+                InputSystem.RemoveDevice(_virtualKeyboard);
+                _virtualKeyboard = null;
+            }
+            if (_virtualMouse != null)
+            {
+                InputSystem.RemoveDevice(_virtualMouse);
+                _virtualMouse = null;
+            }
         }
 
         private const string AccessibilityIgnoreMessage =
