@@ -1,7 +1,6 @@
 using System.Collections;
 using Client.Tests.EditModeInPlayingTest.OsInput;
 using NUnit.Framework;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.TestTools;
@@ -23,11 +22,6 @@ namespace Client.Tests.EditModeInPlayingTest
     /// </summary>
     public class OsInputSpoofTest
     {
-        // バッチモード等でデバイスが存在しない場合に生成した仮想デバイスを保持
-        // Hold virtual devices created when no real device exists (e.g. batch mode in CI)
-        private Keyboard _virtualKeyboard;
-        private Mouse    _virtualMouse;
-
         /// <summary>
         /// バッチモード等でデバイスが存在しない場合に仮想デバイスを追加する
         /// Add virtual devices when not available (e.g. in CI headless/batch mode).
@@ -35,15 +29,7 @@ namespace Client.Tests.EditModeInPlayingTest
         [SetUp]
         public void SetUp()
         {
-            // キーボードが存在しない場合は仮想デバイスを追加
-            // Add virtual keyboard when not present
-            if (Keyboard.current == null)
-                _virtualKeyboard = InputSystem.AddDevice<Keyboard>();
-
-            // マウスが存在しない場合は仮想デバイスを追加
-            // Add virtual mouse when not present
-            if (Mouse.current == null)
-                _virtualMouse = InputSystem.AddDevice<Mouse>();
+            OsInputSpoof.EnsureDevices();
         }
 
         /// <summary>
@@ -53,47 +39,9 @@ namespace Client.Tests.EditModeInPlayingTest
         [TearDown]
         public void TearDown()
         {
-            foreach (var key in new[]
-            {
-                OsInputSpoof.DebugKey.Space,
-                OsInputSpoof.DebugKey.W, OsInputSpoof.DebugKey.A,
-                OsInputSpoof.DebugKey.S, OsInputSpoof.DebugKey.D,
-            })
-            {
-                OsInputSpoof.KeyUp(key);
-            }
-            InputSystem.Update();
-
-            // SetUp で生成した仮想デバイスを削除
-            // Remove virtual devices created in SetUp
-            if (_virtualKeyboard != null)
-            {
-                InputSystem.RemoveDevice(_virtualKeyboard);
-                _virtualKeyboard = null;
-            }
-            if (_virtualMouse != null)
-            {
-                InputSystem.RemoveDevice(_virtualMouse);
-                _virtualMouse = null;
-            }
+            OsInputSpoof.ReleaseAllKeys();
+            OsInputSpoof.CleanupDevices();
         }
-
-        private const string AccessibilityIgnoreMessage =
-            "OS-level input injection is not available. " +
-            "Check platform-specific permissions and restart Unity, then rerun. See error log for details.";
-
-        private const string AccessibilityDialogTitle   = "OS Input Permission Required";
-        private const string AccessibilityDialogMessage =
-            "OS レベルキー注入にはプラットフォーム固有の権限が必要です。\n" +
-            "OS-level key injection requires platform-specific permissions.\n\n" +
-            "[macOS]\n" +
-            "  システム設定 → プライバシーとセキュリティ → アクセシビリティ で Unity を許可\n" +
-            "  System Settings → Privacy & Security → Accessibility → Grant Unity permission\n\n" +
-            "[Windows]\n" +
-            "  UIPI 制約により管理者権限で Unity を実行する必要がある場合があります\n" +
-            "  You may need to run Unity as Administrator due to UIPI constraints\n\n" +
-            "権限を設定後、Unity を再起動してテストを再実行してください。\n" +
-            "After granting permissions, restart Unity and rerun the tests.";
 
         /// <summary>
         /// Space キーを注入し、Unity Input System が検知することを確認する
@@ -102,14 +50,9 @@ namespace Client.Tests.EditModeInPlayingTest
         [UnityTest]
         public IEnumerator OsKeyInjection_SpaceKey_IsDetectedByInputSystem()
         {
-            // OS 入力権限チェック
-            // Check OS input permission
-            if (!OsInputSpoof.IsAvailable)
-            {
-                NotifyPermissionRequired();
-                Assert.Ignore(AccessibilityIgnoreMessage);
-                yield break;
-            }
+            // OS 入力権限チェック（使用不可なら Assert.Ignore でスキップ）
+            // Check OS input permission (skip with Assert.Ignore if unavailable)
+            OsInputSpoof.AssertAvailableOrSkip();
 
             // キーボードデバイスが存在することを確認
             // Verify keyboard device exists
@@ -146,14 +89,9 @@ namespace Client.Tests.EditModeInPlayingTest
         [UnityTest]
         public IEnumerator OsKeyInjection_WASDKeys_AreDetectedByInputSystem()
         {
-            // OS 入力権限チェック
-            // Check OS input permission
-            if (!OsInputSpoof.IsAvailable)
-            {
-                NotifyPermissionRequired();
-                Assert.Ignore(AccessibilityIgnoreMessage);
-                yield break;
-            }
+            // OS 入力権限チェック（使用不可なら Assert.Ignore でスキップ）
+            // Check OS input permission (skip with Assert.Ignore if unavailable)
+            OsInputSpoof.AssertAvailableOrSkip();
 
             Assert.IsNotNull(Keyboard.current, "No keyboard device found.");
 
@@ -205,14 +143,9 @@ namespace Client.Tests.EditModeInPlayingTest
         [UnityTest]
         public IEnumerator OsMouseInjection_MouseMove_ChangesPosition()
         {
-            // OS 入力権限チェック
-            // Check OS input permission
-            if (!OsInputSpoof.IsAvailable)
-            {
-                NotifyPermissionRequired();
-                Assert.Ignore(AccessibilityIgnoreMessage);
-                yield break;
-            }
+            // OS 入力権限チェック（使用不可なら Assert.Ignore でスキップ）
+            // Check OS input permission (skip with Assert.Ignore if unavailable)
+            OsInputSpoof.AssertAvailableOrSkip();
 
             Assert.IsNotNull(Mouse.current, "No mouse device found.");
 
@@ -245,31 +178,6 @@ namespace Client.Tests.EditModeInPlayingTest
             // Verify mouse moved
             Assert.IsTrue(moved,
                 $"Mouse did not move after injection. Before={positionBefore}.");
-        }
-
-        /// <summary>
-        /// OS 入力権限が必要であることをコンソールエラーとモーダルで通知する
-        /// Notify that OS input permission is required via console error and modal dialog.
-        /// </summary>
-        private static void NotifyPermissionRequired()
-        {
-            // macOS Standalone のみ: システムダイアログで権限を要求
-            // macOS Standalone only: request via macOS system dialog
-#if UNITY_STANDALONE_OSX
-            OsInputSpoof.RequestMacAccessibility();
-#endif
-
-            // Unity コンソールにエラーログを出力
-            // Output error log to Unity console
-            Debug.LogError(
-                "[OsInputSpoofTest] OS-level input injection is not available.\n" +
-                "[macOS] Grant permission in: System Settings → Privacy & Security → Accessibility\n" +
-                "[Windows] Run Unity as Administrator if UIPI blocks SendInput.\n" +
-                "After granting permissions, restart Unity and rerun the tests.");
-
-            // Unity エディタのモーダルダイアログを表示
-            // Show modal dialog in Unity Editor
-            EditorUtility.DisplayDialog(AccessibilityDialogTitle, AccessibilityDialogMessage, "OK");
         }
     }
 }

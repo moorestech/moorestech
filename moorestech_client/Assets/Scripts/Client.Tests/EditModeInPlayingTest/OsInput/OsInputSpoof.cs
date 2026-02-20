@@ -3,6 +3,10 @@ using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
+#if UNITY_EDITOR
+using NUnit.Framework;
+using UnityEditor;
+#endif
 
 namespace Client.Tests.EditModeInPlayingTest.OsInput
 {
@@ -62,7 +66,7 @@ namespace Client.Tests.EditModeInPlayingTest.OsInput
         /// </summary>
         public static void ActivateApp()
         {
-#if UNITY_STANDALONE_OSX
+#if UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
             OsInputMac_ActivateApp();
 #endif
             // macOS Editor / Windows では不要
@@ -205,12 +209,118 @@ namespace Client.Tests.EditModeInPlayingTest.OsInput
             DebugKey.Right     => Key.RightArrow,
             _                  => throw new ArgumentOutOfRangeException(nameof(k), k, null),
         };
+
+        // ================================================================
+        // Editor ユーティリティ: デバイス管理・キー状態リセット・権限チェック
+        // Editor utilities: device management, key state reset, availability check
+        // ================================================================
+
+        private static Keyboard _ensuredKeyboard;
+        private static Mouse    _ensuredMouse;
+
+        /// <summary>
+        /// デバイスが存在しない場合に仮想デバイスを追加する（CI バッチモード等向け）
+        /// Add virtual devices if not present (for CI batch mode, etc.).
+        /// </summary>
+        public static void EnsureDevices()
+        {
+            if (Keyboard.current == null)
+                _ensuredKeyboard = InputSystem.AddDevice<Keyboard>();
+            if (Mouse.current == null)
+                _ensuredMouse = InputSystem.AddDevice<Mouse>();
+        }
+
+        /// <summary>
+        /// EnsureDevices で追加した仮想デバイスを削除する
+        /// Remove virtual devices that were added by EnsureDevices.
+        /// </summary>
+        public static void CleanupDevices()
+        {
+            if (_ensuredKeyboard != null)
+            {
+                InputSystem.RemoveDevice(_ensuredKeyboard);
+                _ensuredKeyboard = null;
+            }
+            if (_ensuredMouse != null)
+            {
+                InputSystem.RemoveDevice(_ensuredMouse);
+                _ensuredMouse = null;
+            }
+        }
+
+        /// <summary>
+        /// 全押下キーを解放してキー状態リークを防止する
+        /// Release all pressed keys to prevent key state leaks.
+        /// </summary>
+        public static void ReleaseAllKeys()
+        {
+            var keyboard = Keyboard.current;
+            if (keyboard == null) return;
+
+            // 押下状態をクリアして空の KeyboardState を送信
+            // Clear pressed state and send blank KeyboardState
+            EditorPressedKeys.Clear();
+            InputSystem.QueueStateEvent(keyboard, new KeyboardState());
+            InputSystem.Update();
+        }
+
+        /// <summary>
+        /// OS 入力注入が使用不可の場合に Assert.Ignore でテストをスキップする
+        /// Skip the test via Assert.Ignore if OS input injection is not available.
+        /// </summary>
+        public static void AssertAvailableOrSkip()
+        {
+            if (!IsAvailable)
+            {
+                NotifyPermissionRequired();
+                Assert.Ignore(
+                    "OS-level input injection is not available. " +
+                    "Check platform-specific permissions and restart Unity, then rerun. See error log for details.");
+            }
+        }
+
+        /// <summary>
+        /// OS 入力権限が必要であることをコンソールエラーとモーダルで通知する
+        /// Notify that OS input permission is required via console error and modal dialog.
+        /// </summary>
+        private static void NotifyPermissionRequired()
+        {
+            // macOS Editor ビルドのみ: システムダイアログで権限を要求
+            // macOS Editor build only: request via macOS system dialog
+#if UNITY_EDITOR_OSX
+            RequestMacAccessibility();
 #endif
 
-#if UNITY_STANDALONE_OSX
+            // Unity コンソールにエラーログを出力
+            // Output error log to Unity console
+            Debug.LogError(
+                "[OsInputSpoof] OS-level input injection is not available.\n" +
+                "[macOS] Grant permission in: System Settings → Privacy & Security → Accessibility\n" +
+                "[Windows] Run Unity as Administrator if UIPI blocks SendInput.\n" +
+                "After granting permissions, restart Unity and rerun the tests.");
+
+            // Unity エディタのモーダルダイアログを表示
+            // Show modal dialog in Unity Editor
+            const string dialogTitle   = "OS Input Permission Required";
+            const string dialogMessage =
+                "OS レベルキー注入にはプラットフォーム固有の権限が必要です。\n" +
+                "OS-level key injection requires platform-specific permissions.\n\n" +
+                "[macOS]\n" +
+                "  システム設定 → プライバシーとセキュリティ → アクセシビリティ で Unity を許可\n" +
+                "  System Settings → Privacy & Security → Accessibility → Grant Unity permission\n\n" +
+                "[Windows]\n" +
+                "  UIPI 制約により管理者権限で Unity を実行する必要がある場合があります\n" +
+                "  You may need to run Unity as Administrator due to UIPI constraints\n\n" +
+                "権限を設定後、Unity を再起動してテストを再実行してください。\n" +
+                "After granting permissions, restart Unity and rerun the tests.";
+            EditorUtility.DisplayDialog(dialogTitle, dialogMessage, "OK");
+        }
+#endif
+
+#if UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
         // ----------------------------------------------------------------
-        // macOS Standalone: OsInputMac ネイティブプラグイン経由（CGEvent）
-        // macOS Standalone: via OsInputMac native plugin (CGEvent)
+        // macOS Standalone / Editor: OsInputMac ネイティブプラグイン経由（CGEvent）
+        // macOS Standalone / Editor: via OsInputMac native plugin (CGEvent)
         // ----------------------------------------------------------------
 
         [DllImport("OsInputMac")]
@@ -263,13 +373,14 @@ namespace Client.Tests.EditModeInPlayingTest.OsInput
         // Windows Standalone: via user32.dll SendInput
         // ----------------------------------------------------------------
 
-        private const int  INPUT_KEYBOARD       = 1;
-        private const int  INPUT_MOUSE          = 0;
-        private const uint KEYEVENTF_SCANCODE   = 0x0008;
-        private const uint KEYEVENTF_KEYUP      = 0x0002;
-        private const uint MOUSEEVENTF_MOVE     = 0x0001;
-        private const uint MOUSEEVENTF_LEFTDOWN = 0x0002;
-        private const uint MOUSEEVENTF_LEFTUP   = 0x0004;
+        private const int  INPUT_KEYBOARD        = 1;
+        private const int  INPUT_MOUSE           = 0;
+        private const uint KEYEVENTF_SCANCODE    = 0x0008;
+        private const uint KEYEVENTF_KEYUP       = 0x0002;
+        private const uint KEYEVENTF_EXTENDEDKEY = 0x0001;
+        private const uint MOUSEEVENTF_MOVE      = 0x0001;
+        private const uint MOUSEEVENTF_LEFTDOWN  = 0x0002;
+        private const uint MOUSEEVENTF_LEFTUP    = 0x0004;
 
         [StructLayout(LayoutKind.Sequential)]
         private struct INPUT
@@ -333,6 +444,13 @@ namespace Client.Tests.EditModeInPlayingTest.OsInput
 
         private static void WinSendKey(DebugKey key, bool isDown)
         {
+            // 矢印キーはテンキーと区別するため KEYEVENTF_EXTENDEDKEY フラグが必要
+            // Arrow keys need KEYEVENTF_EXTENDEDKEY to distinguish from numpad keys
+            var isArrowKey = key is DebugKey.Up or DebugKey.Down or DebugKey.Left or DebugKey.Right;
+            var flags      = KEYEVENTF_SCANCODE
+                           | (isDown     ? 0u : KEYEVENTF_KEYUP)
+                           | (isArrowKey ? KEYEVENTF_EXTENDEDKEY : 0u);
+
             var input = new INPUT
             {
                 type = INPUT_KEYBOARD,
@@ -342,7 +460,7 @@ namespace Client.Tests.EditModeInPlayingTest.OsInput
                     {
                         wVk     = 0,
                         wScan   = WinScanCode(key),
-                        dwFlags = KEYEVENTF_SCANCODE | (isDown ? 0u : KEYEVENTF_KEYUP),
+                        dwFlags = flags,
                     },
                 },
             };
