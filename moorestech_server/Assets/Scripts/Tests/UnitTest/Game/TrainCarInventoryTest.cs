@@ -14,7 +14,7 @@ namespace Tests.UnitTest.Game
         {
             TrainTestHelper.CreateEnvironment();
 
-            var trainCar = TrainTestCarFactory.CreateTrainCar(0, 0, 3, 10, true);
+            var trainCar = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 0, 3, 10, true);
 
             var filledStack = ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 2);
             var itemContainer = ItemTrainCarContainer.CreateWithEmptySlots(3);
@@ -33,7 +33,7 @@ namespace Tests.UnitTest.Game
         {
             TrainTestHelper.CreateEnvironment();
 
-            var (trainCar, itemContainer) = TrainTestCarFactory.CreateTrainCar(0, 0, 1, 10, true);
+            var (trainCar, itemContainer) = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 0, 1, 10, true);
 
             Assert.IsTrue(trainCar.IsInventoryEmpty(), "New train car inventory should start empty.");
             Assert.IsFalse(trainCar.IsInventoryFull(), "New train car inventory should not be full.");
