@@ -6,6 +6,7 @@ using Game.Train.RailCalc;
 using Game.Train.RailPositions;
 using Game.Train.Unit;
 using Mooresmaster.Model.TrainModule;
+using System.Collections.Generic;
 using UnityEngine;
 using static Client.Common.LayerConst;
 
@@ -13,14 +14,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 {
     public readonly struct TrainCarPlacementHit
     {
-        public TrainCarPlacementHit(bool isPlaceable, RailPositionSaveData railPosition)
+        public TrainCarPlacementHit(bool isPlaceable, RailPosition railPosition)
         {
             IsPlaceable = isPlaceable;
             RailPosition = railPosition;
         }
         
         public bool IsPlaceable { get; }
-        public RailPositionSaveData RailPosition { get; }
+        public RailPosition RailPosition { get; }
     }
     
     public interface ITrainCarPlacementDetector
@@ -92,9 +93,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
                 #region Internal
 
-                bool TryBuildRailPosition(Vector3 hitPosition, RailObjectIdCarrier carrier, int trainLength, out RailPositionSaveData railPositionSaveData)
+                bool TryBuildRailPosition(Vector3 hitPosition, RailObjectIdCarrier carrier, int trainLength, out RailPosition railPosition)
                 {
-                    railPositionSaveData = null;
+                    railPosition = null;
                     // 入力を検証し、対象レール区間（ノード）を解決する
                     // Validate inputs and resolve the rail segment
                     if (carrier == null || trainLength <= 0)
@@ -132,12 +133,28 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                         return false;
                     }
 
-                    railPositionSaveData = new RailPositionSaveData
+                    return TryBuildRailPositionFromTrace(trainLength, traceResult, out railPosition);
+                }
+
+                bool TryBuildRailPositionFromTrace(int trainLength, RailPathTraceResult traceResult, out RailPosition resolvedRailPosition)
+                {
+                    resolvedRailPosition = null;
+                    if (traceResult.NodeIds == null || traceResult.NodeIds.Count == 0)
                     {
-                        TrainLength = trainLength,
-                        DistanceToNextNode = traceResult.DistanceToNextNode,
-                        RailSnapshot = traceResult.RailSnapshot
-                    };
+                        return false;
+                    }
+
+                    var nodes = new List<IRailNode>(traceResult.NodeIds.Count);
+                    for (var i = 0; i < traceResult.NodeIds.Count; i++)
+                    {
+                        if (!_cache.TryGetNode(traceResult.NodeIds[i], out var node) || node == null)
+                        {
+                            return false;
+                        }
+                        nodes.Add(node);
+                    }
+
+                    resolvedRailPosition = new RailPosition(nodes, trainLength, traceResult.DistanceToNextNode);
                     return true;
                 }
 

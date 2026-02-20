@@ -13,16 +13,16 @@ namespace Server.Util.MessagePack
     {
         [Key(0)] public TrainSimulationSnapshotMessagePack Simulation { get; set; }
         [Key(1)] public RailPositionSnapshotMessagePack RailPosition { get; set; }
-
+        
         [Obsolete("Reserved for MessagePack serialization.")]
         public TrainUnitSnapshotBundleMessagePack() { }
-
+        
         public TrainUnitSnapshotBundleMessagePack(TrainUnitSnapshotBundle bundle)
         {
             Simulation = new TrainSimulationSnapshotMessagePack(bundle.Simulation);
             RailPosition = new RailPositionSnapshotMessagePack(bundle.RailPositionSnapshot);
         }
-
+        
         public TrainUnitSnapshotBundle ToModel()
         {
             return new TrainUnitSnapshotBundle(
@@ -30,11 +30,11 @@ namespace Server.Util.MessagePack
                 RailPosition.ToModel());
         }
     }
-
+    
     [MessagePackObject]
     public class TrainSimulationSnapshotMessagePack
     {
-        [Key(0)] public Guid TrainId { get; set; }
+        [Key(0)] public TrainInstanceId TrainInstanceId { get; set; }
         [Key(1)] public double CurrentSpeed { get; set; }
         [Key(2)] public double AccumulatedDistance { get; set; }
         [Key(3)] public int MasconLevel { get; set; }
@@ -45,7 +45,7 @@ namespace Server.Util.MessagePack
 
         public TrainSimulationSnapshotMessagePack(TrainSimulationSnapshot snapshot)
         {
-            TrainId = snapshot.TrainId;
+            TrainInstanceId = snapshot.TrainInstanceId;
             CurrentSpeed = snapshot.CurrentSpeed;
             AccumulatedDistance = snapshot.AccumulatedDistance;
             MasconLevel = snapshot.MasconLevel;
@@ -57,7 +57,7 @@ namespace Server.Util.MessagePack
         {
             var cars = Cars?.Select(car => car.ToModel()).ToArray() ?? Array.Empty<TrainCarSnapshot>();
             return new TrainSimulationSnapshot(
-                TrainId,
+                TrainInstanceId,
                 CurrentSpeed,
                 AccumulatedDistance,
                 MasconLevel,
