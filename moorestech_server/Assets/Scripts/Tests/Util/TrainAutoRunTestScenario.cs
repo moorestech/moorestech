@@ -95,10 +95,9 @@ namespace Tests.Util
             var initialDistance = startRunning ? stationNodes.SegmentLength - 1 : 0;
             var railPosition = new RailPosition(initialRailNodes, stationNodes.SegmentLength, initialDistance);
 
-            var trainCar = TrainTestCarFactory.CreateTrainCar(0, 1000, 1, stationNodes.BlockLength, true);
+            var (trainCar, _) = TrainTestCarFactory.CreateTrainCar(0, 1000, 1, stationNodes.BlockLength, true);
             var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, environment.GetTrainUpdateService(), environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
-            trainCar.SetContainer(ItemTrainCarContainer.CreateWithEmptySlots(1));
-
+            
             trainUnit.trainDiagram.AddEntry(stationNodes.ExitFront);
             trainUnit.trainDiagram.AddEntry(n1);
             trainUnit.trainDiagram.AddEntry(n2);

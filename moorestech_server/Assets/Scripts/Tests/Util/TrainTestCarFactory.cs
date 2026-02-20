@@ -1,5 +1,6 @@
 using System;
 using Game.Train.Unit;
+using Game.Train.Unit.Containers;
 using Mooresmaster.Model.TrainModule;
 
 namespace Tests.Util
@@ -10,7 +11,7 @@ namespace Tests.Util
     {
         // 任意値でTrainCarを生成する基本メソッド
         // Creates a train car from explicit parameters and optional GUIDs.
-        public static TrainCar CreateTrainCar(
+        public static (TrainCar trainCar, ItemTrainCarContainer itemContainer) CreateTrainCar(
             int masterId,
             Guid trainCarGuid,
             Guid itemGuid,
@@ -20,12 +21,16 @@ namespace Tests.Util
             bool isFacingForward)
         {
             var element = CreateMasterElement(masterId, trainCarGuid, itemGuid, tractionForce, inventorySlotCount, length);
-            return new TrainCar(element, isFacingForward);
+            var itemContainer = ItemTrainCarContainer.CreateWithEmptySlots(inventorySlotCount);
+            var trainCar = new TrainCar(element, isFacingForward);
+            trainCar.SetContainer(itemContainer);
+            
+            return (trainCar, itemContainer);
         }
 
         // GUIDを意識せずにTrainCarを生成する簡易メソッド
         // Convenience overload for callers that do not care about GUIDs.
-        public static TrainCar CreateTrainCar(
+        public static (TrainCar trainCar, ItemTrainCarContainer itemContainer) CreateTrainCar(
             int masterId,
             int tractionForce,
             int inventorySlotCount,
