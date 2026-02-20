@@ -17,17 +17,17 @@ namespace Client.Network.API
     public class PacketExchangeManager
     {
         private readonly PacketSender _packetSender;
-        
+
         private readonly Dictionary<int, ResponseWaiter> _responseWaiters = new();
-        
+
         private int _sequenceId;
-        
+
         public PacketExchangeManager(PacketSender packetSender)
         {
             _packetSender = packetSender;
             TimeOutUpdate().Forget();
         }
-        
+
         private async UniTask TimeOutUpdate()
         {
             while (true)
@@ -38,58 +38,58 @@ namespace Client.Network.API
                     var waiter = _responseWaiters[sequenceId];
                     var time = DateTime.Now - waiter.SendTime;
                     if (time.TotalSeconds < 10) continue;
-                    
+
                     _responseWaiters[sequenceId].WaitSubject.OnNext(null);
                     _responseWaiters.Remove(sequenceId);
                 }
-                
+
                 await UniTask.Delay(1000);
             }
         }
-        
-        public async UniTask ExchangeReceivedPacket(List<byte> data)
+
+        public async UniTask ExchangeReceivedPacket(byte[] data)
         {
-            var response = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(data.ToArray());
+            var response = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(data);
             var sequence = response.SequenceId;
-            
+
             await UniTask.SwitchToMainThread();
-            
+
             if (!_responseWaiters.ContainsKey(sequence)) return;
             _responseWaiters[sequence].WaitSubject.OnNext(data);
             _responseWaiters.Remove(sequence);
         }
-        
+
         [CanBeNull]
         public async UniTask<TResponse> GetPacketResponse<TResponse>(ProtocolMessagePackBase request, CancellationToken ct) where TResponse : ProtocolMessagePackBase
         {
             SendPacket();
-            
+
             return await WaitReceive();
-            
+
             #region Internal
-            
+
             void SendPacket()
             {
                 _sequenceId++;
                 request.SequenceId = _sequenceId;
                 _packetSender.Send(request);
             }
-            
+
             async UniTask<TResponse> WaitReceive()
             {
-                var responseWaiter = new ResponseWaiter(new Subject<List<byte>>());
+                var responseWaiter = new ResponseWaiter(new Subject<byte[]>());
                 _responseWaiters.Add(_sequenceId, responseWaiter);
-                
+
                 var receiveData = await responseWaiter.WaitSubject.ToUniTask(true, ct);
                 if (receiveData == null)
                 {
                     Debug.Log("Receive null");
                     return null;
                 }
-                
+
                 try
                 {
-                    return MessagePackSerializer.Deserialize<TResponse>(receiveData.ToArray());
+                    return MessagePackSerializer.Deserialize<TResponse>(receiveData);
                 }
                 catch (Exception e)
                 {
@@ -98,21 +98,21 @@ namespace Client.Network.API
                     return null;
                 }
             }
-            
+
             #endregion
         }
     }
-    
-    
+
+
     public class ResponseWaiter
     {
-        public ResponseWaiter(Subject<List<byte>> waitSubject)
+        public ResponseWaiter(Subject<byte[]> waitSubject)
         {
             WaitSubject = waitSubject;
             SendTime = DateTime.Now;
         }
-        
-        public Subject<List<byte>> WaitSubject { get; }
+
+        public Subject<byte[]> WaitSubject { get; }
         public DateTime SendTime { get; }
     }
 }

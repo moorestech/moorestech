@@ -2,6 +2,7 @@
     {
         Tags {*LIL_SUBSHADER_TAGS*}
         HLSLINCLUDE
+            *LIL_SHADER_SETTING_MULTI*
             #pragma target 3.5
             #pragma fragmentoption ARB_precision_hint_fastest
             #define LIL_GEM
@@ -18,6 +19,7 @@
             #define LIL_MULTI_INPUTS_AUDIOLINK
             #define LIL_MULTI_INPUTS_DISSOLVE
             #define LIL_MULTI_INPUTS_IDMASK
+            #define LIL_MULTI_INPUTS_UDIMDISCARD
 
             #pragma lil_skip_variants_shadows
             #pragma lil_skip_variants_decals
@@ -35,6 +37,7 @@
         Pass
         {
             Name "FORWARD_PRE"
+            Tags {"LightMode" = "*LIL_LIGHTMODE_FORWARD_0*"}
             Stencil
             {
                 Ref [_StencilRef]
@@ -146,6 +149,17 @@
         {
             Name "SHADOW_CASTER"
             Tags {"LightMode" = "ShadowCaster"}
+
+            Stencil
+            {
+                Ref [_StencilRef]
+                ReadMask [_StencilReadMask]
+                WriteMask [_StencilWriteMask]
+                Comp [_StencilComp]
+                Pass [_StencilPass]
+                Fail [_StencilFail]
+                ZFail [_StencilZFail]
+            }
             Offset 1, 1
             Cull [_Cull]
 

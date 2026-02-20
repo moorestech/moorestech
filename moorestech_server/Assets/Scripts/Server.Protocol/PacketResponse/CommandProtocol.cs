@@ -34,9 +34,9 @@ namespace Server.Protocol.PacketResponse
             _trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
         }
         
-        public ProtocolMessagePackBase GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload)
         {
-            var data = MessagePackSerializer.Deserialize<SendCommandProtocolMessagePack>(payload.ToArray());
+            var data = MessagePackSerializer.Deserialize<SendCommandProtocolMessagePack>(payload);
             
             var command = data.Command.Split(' '); //command text
             

@@ -23,6 +23,7 @@ namespace Server.Event.EventReceive
         private void OnConnectionInitialized(RailConnectionInitializationData data)
         {
             var tick = _trainUpdateService.GetCurrentTick();
+            var tickSequenceId = _trainUpdateService.NextTickSequenceId();
             // 辺追加差分とtickを1パケットに封入
             // Attach tick metadata to edge creation diff
             var payload = MessagePackSerializer.Serialize(new RailConnectionCreatedMessagePack(
@@ -33,7 +34,8 @@ namespace Server.Event.EventReceive
                 data.Distance,
                 tick,
                 data.RailTypeGuid,
-                data.IsDrawable));
+                data.IsDrawable,
+                tickSequenceId));
             _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
         }
     }

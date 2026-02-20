@@ -22,7 +22,7 @@ namespace Server.Event.EventReceive
             _trainUpdateService = trainUpdateService;
             // 列車生成イベントを購読する
             // Subscribe to train unit creation events
-            _trainUpdateService.GetTrainUnitCreatedEvent().Subscribe(OnTrainUnitCreated);
+            _trainUpdateService.TrainUnitCreatedEvent.Subscribe(OnTrainUnitCreated);
         }
 
         private void OnTrainUnitCreated(TrainUnitInitializationNotifier.TrainUnitCreatedData data)
@@ -31,7 +31,8 @@ namespace Server.Event.EventReceive
             // Broadcast the train unit creation diff
             var snapshot = TrainUnitSnapshotFactory.CreateSnapshot(data.TrainUnit);
             var snapshotPack = new TrainUnitSnapshotBundleMessagePack(snapshot);
-            var message = new TrainUnitCreatedEventMessagePack(snapshotPack, _trainUpdateService.GetCurrentTick());
+            var tickSequenceId = _trainUpdateService.NextTickSequenceId();
+            var message = new TrainUnitCreatedEventMessagePack(snapshotPack, _trainUpdateService.GetCurrentTick(), tickSequenceId);
             var payload = MessagePackSerializer.Serialize(message);
             _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
         }

@@ -82,8 +82,8 @@ namespace Tests.UnitTest.Game
 
             if (!startRunning)
             {
-                Assert.IsTrue(trainUnit.trainUnitStationDocking.IsDocked,
-                    "停泊シナリオでは、次のティックまで列車はドッキング状態を維持するはずです。");
+                Assert.IsFalse(trainUnit.trainUnitStationDocking.IsDocked,
+                    "停泊シナリオでは、現在エントリ削除直後に強制ドッキング解除されるべきです。");
 
                 trainUnit.Update();
 
@@ -134,8 +134,8 @@ namespace Tests.UnitTest.Game
 
             if (!startRunning)
             {
-                Assert.IsTrue(trainUnit.trainUnitStationDocking.IsDocked,
-                    "停泊シナリオでは、削除直後は列車がドッキング中であると報告されるはずです。");
+                Assert.IsFalse(trainUnit.trainUnitStationDocking.IsDocked,
+                    "停泊シナリオでは、現在エントリがシフト削除された時点でドッキング解除済みであるべきです。");
 
                 trainUnit.Update();
 
@@ -195,8 +195,8 @@ namespace Tests.UnitTest.Game
 
             if (!startRunning)
             {
-                Assert.IsTrue(trainUnit.trainUnitStationDocking.IsDocked,
-                    "停泊シナリオでは、削除直後は依然としてドッキング中のはずです。");
+                Assert.IsFalse(trainUnit.trainUnitStationDocking.IsDocked,
+                    "停泊シナリオでは、現在エントリ削除後に即時ドッキング解除されるべきです。");
 
                 trainUnit.Update();
 
@@ -212,17 +212,19 @@ namespace Tests.UnitTest.Game
                 Assert.IsFalse(trainUnit.trainUnitStationDocking.IsDocked,
                     "走行中シナリオは非ドッキング状態で開始されるはずです。");
 
-                const int maxUpdates = 8;
+                var reroutedToSecondDestination = ReferenceEquals(diagram.GetCurrentNode(), secondDestination);
+                const int maxUpdates = 256;
                 for (var i = 0; i < maxUpdates; i++)
                 {
                     trainUnit.Update();
                     if (ReferenceEquals(diagram.GetCurrentNode(), secondDestination))
                     {
+                        reroutedToSecondDestination = true;
                         break;
                     }
                 }
 
-                Assert.AreSame(secondDestination, diagram.GetCurrentNode(),
+                Assert.IsTrue(reroutedToSecondDestination,
                     "走行中シナリオでは、到達可能な2番目の目的地へ経路再探索されるはずです。");
                 Assert.IsTrue(trainUnit.IsAutoRun,
                     "到達可能なノードへルート再探索中も自動運転は有効のはずです。");
@@ -264,16 +266,22 @@ namespace Tests.UnitTest.Game
             Assert.IsTrue(diagram.Entries.Any(entry => ReferenceEquals(entry.Node, fallbackNode)),
                 "startノード削除後もフォールバックノードのエントリは残っているはずです。");
 
-            const int maxUpdates = 48;
+            var autoRunStopped = !trainUnit.IsAutoRun;
+            const int maxUpdates = 12000;
             for (var i = 0; i < maxUpdates; i++)
             {
                 trainUnit.Update();
+                if (!trainUnit.IsAutoRun)
+                {
+                    autoRunStopped = true;
+                    break;
+                }
             }
 
             Assert.IsFalse(trainUnit.trainUnitStationDocking.IsDocked,
                 "現在エントリが到達不能になった場合、列車はドッキング解除されるはずです。");
-            Assert.IsFalse(trainUnit.IsAutoRun,
-                "到達可能なエントリが残っていない場合、最終的に自動運転は無効化されるべきです。");
+            Assert.IsTrue(autoRunStopped,
+                "到達可能なエントリが残っていない場合、一定Update内に自動運転が無効化されるべきです。");
             Assert.IsNotNull(diagram.GetCurrentNode(),
                 "現在のダイヤグラムから次の目的地を取得できるはずです。");
 

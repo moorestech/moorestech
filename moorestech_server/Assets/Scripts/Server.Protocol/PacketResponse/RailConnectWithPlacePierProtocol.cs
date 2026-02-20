@@ -29,9 +29,9 @@ namespace Server.Protocol.PacketResponse
             _commandHandler = serviceProvider.GetService<RailConnectionCommandHandler>();
         }
         
-        public ProtocolMessagePackBase GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload)
         {
-            var request = MessagePackSerializer.Deserialize<RailConnectWithPlacePierRequest>(payload.ToArray());
+            var request = MessagePackSerializer.Deserialize<RailConnectWithPlacePierRequest>(payload);
             var inventoryData = _playerInventoryDataStore.GetInventoryData(request.PlayerId);
             
             // fromNodeの取得

@@ -30,10 +30,11 @@ namespace Server.Event.EventReceive
             // 削除された接続情報をMessagePack化
             // Serialize the removed connection payload
             var tick = _trainUpdateService.GetCurrentTick();
+            var tickSequenceId = _trainUpdateService.NextTickSequenceId();
             // 削除差分とtickをまとめてブロードキャスト
             // Broadcast removal diff paired with current tick
             var payload = MessagePackSerializer.Serialize(
-                new RailConnectionRemovedMessagePack(data.FromNodeId, data.FromGuid, data.ToNodeId, data.ToGuid, tick));
+                new RailConnectionRemovedMessagePack(data.FromNodeId, data.FromGuid, data.ToNodeId, data.ToGuid, tick, tickSequenceId));
             _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
         }
     }

@@ -66,18 +66,18 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.True(typedDisconnect.IsSuccess);
         }
 
-        private List<byte> Connect(Vector3Int posA, Vector3Int posB, int playerId, ItemId itemId)
+        private byte[] Connect(Vector3Int posA, Vector3Int posB, int playerId, ItemId itemId)
         {
             // 接続要求のメッセージパックを生成する
             // Build connect request message pack
-            return MessagePackSerializer.Serialize(GearChainConnectionEditProtocol.GearChainConnectionEditRequest.CreateConnectRequest(posA, posB, playerId, itemId)).ToList();
+            return MessagePackSerializer.Serialize(GearChainConnectionEditProtocol.GearChainConnectionEditRequest.CreateConnectRequest(posA, posB, playerId, itemId));
         }
 
-        private List<byte> Disconnect(Vector3Int posA, Vector3Int posB)
+        private byte[] Disconnect(Vector3Int posA, Vector3Int posB)
         {
             // 切断要求のメッセージパックを生成する
             // Build disconnect request message pack
-            return MessagePackSerializer.Serialize(GearChainConnectionEditProtocol.GearChainConnectionEditRequest.CreateDisconnectRequest(posA, posB, PlayerId)).ToList();
+            return MessagePackSerializer.Serialize(GearChainConnectionEditProtocol.GearChainConnectionEditRequest.CreateDisconnectRequest(posA, posB, PlayerId));
         }
     }
 }

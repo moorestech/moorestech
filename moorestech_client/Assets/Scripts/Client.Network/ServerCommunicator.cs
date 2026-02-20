@@ -108,11 +108,11 @@ namespace Client.Network
         public void Send(byte[] data)
         {
             //先頭にパケット長を設定して送信
-            var byteCount = ToByteList.Convert(data.Length);
-            var newData = new byte[byteCount.Count + data.Length];
-            
-            byteCount.CopyTo(newData, 0);
-            data.CopyTo(newData, byteCount.Count);
+            var header = ToByteArray.Convert(data.Length);
+            var newData = new byte[header.Length + data.Length];
+
+            header.CopyTo(newData, 0);
+            data.CopyTo(newData, header.Length);
             
             _socket.Send(newData);
         }

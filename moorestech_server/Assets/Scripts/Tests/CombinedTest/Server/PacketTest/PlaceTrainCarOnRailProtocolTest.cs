@@ -104,11 +104,10 @@ namespace Tests.CombinedTest.Server.PacketTest
             #endregion
         }
 
-        private List<byte> CreatePlaceTrainPacket(RailPositionSnapshotMessagePack railPosition, int hotBarSlot, int playerId)
+        private byte[] CreatePlaceTrainPacket(RailPositionSnapshotMessagePack railPosition, int hotBarSlot, int playerId)
         {
             return MessagePackSerializer
-                .Serialize(new PlaceTrainOnRailRequestMessagePack(railPosition, hotBarSlot, playerId))
-                .ToList();
+                .Serialize(new PlaceTrainOnRailRequestMessagePack(railPosition, hotBarSlot, playerId));
         }
     }
 }

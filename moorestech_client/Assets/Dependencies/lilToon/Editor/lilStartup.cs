@@ -18,17 +18,16 @@ namespace lilToon
         {
             //------------------------------------------------------------------------------------------------------------------------------
             // Variables
-            lilToonInspector.ApplyEditorSettingTemp();
-            lilLanguageManager.InitializeLanguage();
-
             AssetDatabase.importPackageStarted -= PackageVersionChecker;
             AssetDatabase.importPackageStarted += PackageVersionChecker;
+            EditorApplication.playModeStateChanged -= PlayModeStateChanged;
+            EditorApplication.playModeStateChanged += PlayModeStateChanged;
 
             //------------------------------------------------------------------------------------------------------------------------------
             // Create files
-            if(!File.Exists(lilDirectoryManager.startupTempPath))
+            if(!lilEditorParameters.instance.startupEnd)
             {
-                File.Create(lilDirectoryManager.startupTempPath);
+                lilEditorParameters.instance.startupEnd = true;
 
                 #if LILTOON_DISABLE_ASSET_MODIFICATION == false
                 #if !SYSTEM_DRAWING
@@ -70,20 +69,30 @@ namespace lilToon
 
             //------------------------------------------------------------------------------------------------------------------------------
             // Shader setting
+            lilToonSetting shaderSetting = null;
+            lilToonSetting.InitializeShaderSetting(ref shaderSetting);
             string currentRPPath = lilDirectoryManager.GetCurrentRPPath();
             if(File.Exists(currentRPPath))
             {
                 var srRP = new StreamReader(currentRPPath);
                 string shaderRP = srRP.ReadLine();
                 string shaderAPI = srRP.ReadLine();
+                string shaderLTCGI = srRP.ReadLine();
                 srRP.Close();
 
                 bool shouldRewrite = false;
                 string projectRP = lilRenderPipelineReader.GetRP().ToString();
                 string projectAPI = SystemInfo.graphicsDeviceType.ToString();
+                #if LILTOON_LTCGI
+                string projectLTCGI = "LTCGI";
+                #else
+                string projectLTCGI = "";
+                #endif
                 var swRP = new StreamWriter(currentRPPath,false);
                 swRP.WriteLine(projectRP);
                 swRP.WriteLine(projectAPI);
+                swRP.WriteLine(projectLTCGI);
+                swRP.Close();
 
                 if(shaderRP != projectRP)
                 {
@@ -97,11 +106,14 @@ namespace lilToon
                     shouldRewrite = true;
                 }
 
-                swRP.Close();
+                if(shaderLTCGI != projectLTCGI)
+                {
+                    Debug.Log("[lilToon] Switch LTCGI");
+                    shouldRewrite = true;
+                }
+
                 if(shouldRewrite)
                 {
-                    lilToonSetting shaderSetting = null;
-                    lilToonSetting.InitializeShaderSetting(ref shaderSetting);
                     if(shaderSetting.isDebugOptimize)
                     {
                         lilToonSetting.ApplyShaderSettingOptimized();
@@ -122,19 +134,19 @@ namespace lilToon
 
             //------------------------------------------------------------------------------------------------------------------------------
             // Version check
-            if(!File.Exists(lilDirectoryManager.versionInfoTempPath))
+            if(string.IsNullOrEmpty(lilEditorParameters.instance.versionInfo))
             {
                 CoroutineHandler.StartStaticCoroutine(GetLatestVersionInfo());
             }
 
             //------------------------------------------------------------------------------------------------------------------------------
             // Update
-            if(lilToonInspector.edSet.currentVersionValue != lilConstants.currentVersionValue)
+            if(shaderSetting.previousVersion != lilConstants.currentVersionValue)
             {
                 // Migrate Materials
-                MigrateMaterials();
-                lilToonInspector.edSet.currentVersionValue = lilConstants.currentVersionValue;
-                lilToonInspector.SaveEditorSettingTemp();
+                if(shaderSetting.isMigrateInStartUp) EditorApplication.delayCall += MigrateMaterials;
+                shaderSetting.previousVersion = lilConstants.currentVersionValue;
+                lilToonSetting.SaveShaderSetting(shaderSetting);
 
                 #if UNITY_2019_4_OR_NEWER
                     // Update custom shaders
@@ -161,10 +173,18 @@ namespace lilToon
 
             //------------------------------------------------------------------------------------------------------------------------------
             // Turn on all settings when auto
-            if(File.Exists(lilDirectoryManager.postBuildTempPath)) 
+            if(!string.IsNullOrEmpty(lilEditorParameters.instance.modifiedShaders)) 
             {
                 EditorApplication.delayCall -= lilToonSetting.SetShaderSettingAfterBuild;
                 EditorApplication.delayCall += lilToonSetting.SetShaderSettingAfterBuild;
+            }
+        }
+
+        private static void PlayModeStateChanged(PlayModeStateChange playModeStateChange)
+        {
+            if(playModeStateChange == PlayModeStateChange.EnteredEditMode)
+            {
+                lilToonSetting.SetShaderSettingAfterBuild();
             }
         }
 
@@ -179,15 +199,14 @@ namespace lilToon
                     if(!webRequest.isNetworkError)
                 #endif
                 {
-                    var sw = new StreamWriter(lilDirectoryManager.versionInfoTempPath,false);
-                    sw.Write(webRequest.downloadHandler.text);
-                    sw.Close();
+                    lilEditorParameters.instance.versionInfo = webRequest.downloadHandler.text;
                 }
             }
         }
 
-        private static void MigrateMaterials()
+        internal static void MigrateMaterials()
         {
+            EditorApplication.delayCall -= MigrateMaterials;
             foreach(var material in lilDirectoryManager.FindAssets<Material>("t:material"))
             {
                 MigrateMaterial(material);
@@ -196,14 +215,15 @@ namespace lilToon
             AssetDatabase.Refresh();
         }
 
-        private static void MigrateMaterial(Material material)
+        internal static void MigrateMaterial(Material material)
         {
             if(!lilMaterialUtils.CheckShaderIslilToon(material)) return;
+            var id = material.shader.GetPropertyNameId(material.shader.FindPropertyIndex("_lilToonVersion"));
             int version = 0;
-            if(material.HasProperty("_lilToonVersion")) version = (int)material.GetFloat("_lilToonVersion");
+            if(material.HasProperty(id)) version = (int)material.GetFloat(id);
             if(version >= lilConstants.currentVersionValue) return;
             Debug.Log("[lilToon]Run migration: " + material.name);
-            material.SetFloat("_lilToonVersion", lilConstants.currentVersionValue);
+            material.SetFloat(id, lilConstants.currentVersionValue);
 
             // 1.2.7 -> 1.2.8
             if(version < 21)

@@ -26,9 +26,9 @@ namespace Server.Protocol.PacketResponse
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
         }
         
-        public ProtocolMessagePackBase GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload)
         {
-            var data = MessagePackSerializer.Deserialize<SendPlaceHotBarBlockProtocolMessagePack>(payload.ToArray());
+            var data = MessagePackSerializer.Deserialize<SendPlaceHotBarBlockProtocolMessagePack>(payload);
             var inventoryData = _playerInventoryDataStore.GetInventoryData(data.PlayerId);
             
             foreach (var placeInfo in data.PlacePositions)

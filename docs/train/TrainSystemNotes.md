@@ -14,7 +14,7 @@
 
 ## ドッキングとハンドル参照
 - ドッキング挙動の検証では `ITrainDockHandle`（実装クラス: `TrainDockHandle`）といったハンドル参照を信頼ソースにします。`TrainUnit` のローカルキャッシュだけに依存しないことで、状態同期ずれを防ぎます。
-- `docs/train/TrainTickSimulation.md` の挙動保証と突き合わせ、Tick 駆動の処理やスケジューリングを変更する際はドキュメントを更新してください。
+- Tick 駆動の処理やスケジューリングを変更する際は、`.codex/skills/train-rail-event-implementation/SKILL.md` の位相ルール（pre/post-sim）と整合するように更新してください。
 
 ## TrainCar の向きと牽引力
 - `TrainCar` のコンストラクタは `isFacingForward` 引数を受け取り、未指定の場合は前向き (`true`) になります。後ろ向き (`false`) の車両は重量こそ保持しますが牽引力を発生しません。

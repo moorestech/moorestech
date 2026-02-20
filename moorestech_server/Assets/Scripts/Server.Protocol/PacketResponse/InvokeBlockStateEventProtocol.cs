@@ -20,9 +20,9 @@ namespace Server.Protocol.PacketResponse
             _changeBlockStateEventPacket = serviceProvider.GetService<ChangeBlockStateEventPacket>();
         }
         
-        public ProtocolMessagePackBase GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload)
         {
-            var request = MessagePackSerializer.Deserialize<RequestInvokeBlockStateProtocolMessagePack>(payload.ToArray());
+            var request = MessagePackSerializer.Deserialize<RequestInvokeBlockStateProtocolMessagePack>(payload);
             
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             Vector3Int position = request.Position;
