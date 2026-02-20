@@ -140,7 +140,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     // 要件1: N'+M'候補と既存TrainUnit全体の重複を抽出する
                     // Requirement 1: detect overlaps between N'+M' candidates and existing train units
                     var requirement1OverlapIndex = CreateRequirement1OverlapIndex(centerRailPosition, trainLength);
-                    overlapTrainInstanceIds = ResolveOverlapTrainUnitsForRequirement1(requirement1OverlapIndex);
+                    overlapTrainInstanceIds = ResolveOverlapTrainUnitsForRequirement1(centerRailPosition, requirement1OverlapIndex, trainLength);
 
                     // 要件1: 重複先TrainUnitへの自動スナップは次PRで実装する
                     // Requirement 1: auto-snap to overlapped train units will be implemented in a follow-up PR
@@ -209,11 +209,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     return TryCombineRoutes(frontRoutes[frontIndex], rearRoutesFromCenter[rearIndex], reverseSelected, out resolvedRailPosition);
                 }
 
-                IReadOnlyList<TrainInstanceId> ResolveOverlapTrainUnitsForRequirement1(RailPositionOverlapDetector.OverlapIndex requirement1OverlapIndex)
+                IReadOnlyList<TrainInstanceId> ResolveOverlapTrainUnitsForRequirement1(RailPosition centerRailPosition, RailPositionOverlapDetector.OverlapIndex requirement1OverlapIndex, int trainLength)
                 {
                     // listA(N'+M')候補と既存TrainUnit全体(listB)の多:多を先に一括判定する
                     // Run a many-to-many precheck between listA(N'+M') and all existing train units(listB)
-                    var overlapTrainIdsForRequirement1 = new List<TrainInstanceId>();
                     var allTrainUnitRailPositionsForRequirement1 = new List<RailPosition>();
 
                     foreach (var pair in _trainUnitCache.Units)
@@ -229,11 +228,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     var allTrainUnitOverlapIndex = RailPositionOverlapDetector.CreateIndex(allTrainUnitRailPositionsForRequirement1);
                     if (!RailPositionOverlapDetector.HasOverlap(requirement1OverlapIndex, allTrainUnitOverlapIndex))
                     {
-                        return overlapTrainIdsForRequirement1;
+                        return Array.Empty<TrainInstanceId>();
                     }
 
-                    // 一括判定でヒットした場合のみ、どのTrainUnitかを個別に再調査する
-                    // Only when precheck hits, rescan per TrainUnit to identify exact overlapped ids
+                    // 一括判定ヒット後に多:1で再調査し、中心点に最も近いTrainUnitを1件だけ選ぶ
+                    // After many-to-many precheck hit, rescan by many-to-one and pick only the closest train unit
+                    var centerForwardPoint = centerRailPosition.GetHeadRailPosition();
+                    var centerBackwardPoint = centerForwardPoint.DeepCopy();
+                    centerBackwardPoint.Reverse();
+                    var nearestTrainInstanceId = TrainInstanceId.Empty;
+                    var nearestDistance = int.MaxValue;
+                    var maxSnapDistance = trainLength / 2 + Requirement1AdditionalMarginLength;
+
                     foreach (var pair in _trainUnitCache.Units)
                     {
                         var trainInstanceId = pair.Key;
@@ -246,9 +252,71 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                         {
                             continue;
                         }
-                        overlapTrainIdsForRequirement1.Add(trainInstanceId);
+
+                        // 近傍距離は center(前後) -> unit端点(先端reverse/最後尾) の4通り最短を採用する
+                        // Use the minimum among 4 distances: center(forward/backward) -> unit endpoints(head-reversed/rear)
+                        var distance = CalculateNearestSnapDistance(centerForwardPoint, centerBackwardPoint, unit.RailPosition, maxSnapDistance);
+                        if (distance < 0)
+                        {
+                            continue;
+                        }
+                        if (distance >= nearestDistance)
+                        {
+                            continue;
+                        }
+                        nearestDistance = distance;
+                        nearestTrainInstanceId = trainInstanceId;
                     }
-                    return overlapTrainIdsForRequirement1;
+
+                    if (nearestTrainInstanceId == TrainInstanceId.Empty)
+                    {
+                        return Array.Empty<TrainInstanceId>();
+                    }
+                    return new[] { nearestTrainInstanceId };
+
+                    #region Internal
+
+                    int CalculateNearestSnapDistance(RailPosition centerForward, RailPosition centerBackward, RailPosition unitRailPosition, int maxCandidateDistance)
+                    {
+                        if (centerForward == null || centerBackward == null || unitRailPosition == null)
+                        {
+                            return -1;
+                        }
+
+                        // 先端側はreverseして「その端点から外側方向」へ伸ばす向きで評価する
+                        // For the head endpoint, reverse to evaluate outward direction from that endpoint
+                        var unitHeadReversed = unitRailPosition.GetHeadRailPosition();
+                        unitHeadReversed.Reverse();
+                        var unitRearPoint = unitRailPosition.GetRearRailPosition();
+
+                        var minDistance = int.MaxValue;
+                        UpdateMinDistance(centerForward, unitHeadReversed);
+                        UpdateMinDistance(centerForward, unitRearPoint);
+                        UpdateMinDistance(centerBackward, unitHeadReversed);
+                        UpdateMinDistance(centerBackward, unitRearPoint);
+                        return minDistance == int.MaxValue ? -1 : minDistance;
+
+                        #region Internal
+
+                        void UpdateMinDistance(RailPosition from, RailPosition to)
+                        {
+                            var distance = RailPositionRouteDistanceFinder.FindShortestDistance(from, to);
+                            // 要件1の探索半径(車両半長+マージン)を超える候補は除外する
+                            // Exclude candidates that are outside requirement-1 search radius (half length + margin)
+                            if (distance < 0 || distance > maxCandidateDistance)
+                            {
+                                return;
+                            }
+                            if (distance < minDistance)
+                            {
+                                minDistance = distance;
+                            }
+                        }
+
+                        #endregion
+                    }
+
+                    #endregion
                 }
 
                 RailPositionOverlapDetector.OverlapIndex CreateRequirement1OverlapIndex(RailPosition centerRailPosition, int trainLength)
