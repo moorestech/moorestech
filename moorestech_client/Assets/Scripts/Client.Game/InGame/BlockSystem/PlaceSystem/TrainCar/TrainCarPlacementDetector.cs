@@ -43,14 +43,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
         private readonly TrainCarCurveHitDistanceResolver _curveHitDistanceResolver;
         private readonly TrainCarCenterRailPositionResolver _centerRailPositionResolver;
         private readonly RailPathTracer _pathTracer;
-        private readonly List<RailPosition> _frontRoutes = new();
-        private readonly List<RailPosition> _rearRoutesFromCenter = new();
-        private readonly List<TrainInstanceId> _overlapTrainIdsForRequirement1 = new();
-        private readonly List<RailPosition> _allTrainUnitRailPositionsForRequirement1 = new();
-        private readonly List<RailPosition> _requirement1OverlapProbeRoutes = new();
-        private RailPositionOverlapDetector.OverlapIndex _requirement1OverlapIndex = RailPositionOverlapDetector.CreateIndex(Array.Empty<RailPosition>());
-        private long _routePairCount;
-        private long _selectionStep;
+        private int _routePairCount;
+        private int _selectionStep;
         
         public TrainCarPlacementDetector(Camera mainCamera, RailGraphClientCache cache, TrainUnitClientCache trainUnitCache)
         {
@@ -65,12 +59,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
         {
             // 候補総数に応じて次の状態へ進める
             // Advance to the next state within current candidate count
-            var totalStateCount = _routePairCount * 2;
+            var totalStateCount = (long)_routePairCount * 2;
             if (totalStateCount <= 0)
             {
                 return;
             }
-            _selectionStep = (_selectionStep + 1) % totalStateCount;
+            _selectionStep = (int)((_selectionStep + 1L) % totalStateCount);
         }
 
         public void ResetSelection()
@@ -79,12 +73,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             // Reset candidates and selection state
             _selectionStep = 0;
             _routePairCount = 0;
-            _frontRoutes.Clear();
-            _rearRoutesFromCenter.Clear();
-            _overlapTrainIdsForRequirement1.Clear();
-            _allTrainUnitRailPositionsForRequirement1.Clear();
-            _requirement1OverlapProbeRoutes.Clear();
-            _requirement1OverlapIndex = RailPositionOverlapDetector.CreateIndex(Array.Empty<RailPosition>());
         }
 
         public bool TryDetect(ItemId holdingItemId, out TrainCarPlacementHit hit)
@@ -151,15 +139,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
                     // 要件4候補（前輪側/後輪側）を毎フレーム再構築する
                     // Rebuild requirement-4 candidates (front/rear) every frame
-                    if (!TryRebuildSelectionCandidates(centerRailPosition, trainLength))
+                    _routePairCount = 0;
+                    if (!TryRebuildSelectionCandidates(centerRailPosition, trainLength, out var frontRoutes, out var rearRoutesFromCenter, out var routePairCount))
                     {
                         return false;
                     }
-                    RebuildRequirement1OverlapIndex(centerRailPosition, trainLength);
+                    _routePairCount = routePairCount;
+                    var requirement1OverlapIndex = CreateRequirement1OverlapIndex(centerRailPosition, trainLength, frontRoutes, rearRoutesFromCenter);
 
                     // 要件1: N'+M'候補と既存TrainUnit全体の重複を抽出する
                     // Requirement 1: detect overlaps between N'+M' candidates and existing train units
-                    overlapTrainInstanceIds = ResolveOverlapTrainUnitsForRequirement1();
+                    overlapTrainInstanceIds = ResolveOverlapTrainUnitsForRequirement1(requirement1OverlapIndex);
 
                     // 要件1: 重複先TrainUnitへの自動スナップは次PRで実装する
                     // Requirement 1: auto-snap to overlapped train units will be implemented in a follow-up PR
@@ -183,7 +173,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     // Requirement 4: use the currently indexed route
                     // 現在の選択状態(経路+反転)から最終RailPositionを構築する
                     // Build final RailPosition from current route/reverse selection
-                    if (TryBuildSelectedRailPosition(out railPosition))
+                    if (TryBuildSelectedRailPosition(frontRoutes, rearRoutesFromCenter, routePairCount, out railPosition))
                     {
                         return true;
                     }
@@ -191,15 +181,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     return false;
                 }
 
-                bool TryBuildSelectedRailPosition(out RailPosition resolvedRailPosition)
+                bool TryBuildSelectedRailPosition(IReadOnlyList<RailPosition> frontRoutes, IReadOnlyList<RailPosition> rearRoutesFromCenter, int routePairCount, out RailPosition resolvedRailPosition)
                 {
                     resolvedRailPosition = null;
-                    if (_routePairCount <= 0 || _frontRoutes.Count <= 0 || _rearRoutesFromCenter.Count <= 0)
+                    if (routePairCount <= 0 || frontRoutes.Count <= 0 || rearRoutesFromCenter.Count <= 0)
                     {
                         return false;
                     }
 
-                    var totalStateCount = _routePairCount * 2;
+                    var totalStateCount = (long)routePairCount * 2;
                     if (totalStateCount <= 0)
                     {
                         return false;
@@ -213,23 +203,23 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
                     var reverseSelected = (normalizedStep & 1) == 1;
                     var routePairIndex = normalizedStep / 2;
-                    var rearCount = _rearRoutesFromCenter.Count;
+                    var rearCount = rearRoutesFromCenter.Count;
                     var frontIndex = (int)(routePairIndex / rearCount);
                     var rearIndex = (int)(routePairIndex % rearCount);
-                    if (frontIndex < 0 || frontIndex >= _frontRoutes.Count || rearIndex < 0 || rearIndex >= _rearRoutesFromCenter.Count)
+                    if (frontIndex < 0 || frontIndex >= frontRoutes.Count || rearIndex < 0 || rearIndex >= rearRoutesFromCenter.Count)
                     {
                         return false;
                     }
 
-                    return TryCombineRoutes(_frontRoutes[frontIndex], _rearRoutesFromCenter[rearIndex], reverseSelected, out resolvedRailPosition);
+                    return TryCombineRoutes(frontRoutes[frontIndex], rearRoutesFromCenter[rearIndex], reverseSelected, out resolvedRailPosition);
                 }
 
-                IReadOnlyList<TrainInstanceId> ResolveOverlapTrainUnitsForRequirement1()
+                IReadOnlyList<TrainInstanceId> ResolveOverlapTrainUnitsForRequirement1(RailPositionOverlapDetector.OverlapIndex requirement1OverlapIndex)
                 {
                     // listA(N'+M')候補と既存TrainUnit全体(listB)の多:多を先に一括判定する
                     // Run a many-to-many precheck between listA(N'+M') and all existing train units(listB)
-                    _overlapTrainIdsForRequirement1.Clear();
-                    _allTrainUnitRailPositionsForRequirement1.Clear();
+                    var overlapTrainIdsForRequirement1 = new List<TrainInstanceId>();
+                    var allTrainUnitRailPositionsForRequirement1 = new List<RailPosition>();
 
                     foreach (var pair in _trainUnitCache.Units)
                     {
@@ -238,13 +228,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                         {
                             continue;
                         }
-                        _allTrainUnitRailPositionsForRequirement1.Add(unit.RailPosition);
+                        allTrainUnitRailPositionsForRequirement1.Add(unit.RailPosition);
                     }
 
-                    var allTrainUnitOverlapIndex = RailPositionOverlapDetector.CreateIndex(_allTrainUnitRailPositionsForRequirement1);
-                    if (!RailPositionOverlapDetector.HasOverlap(_requirement1OverlapIndex, allTrainUnitOverlapIndex))
+                    var allTrainUnitOverlapIndex = RailPositionOverlapDetector.CreateIndex(allTrainUnitRailPositionsForRequirement1);
+                    if (!RailPositionOverlapDetector.HasOverlap(requirement1OverlapIndex, allTrainUnitOverlapIndex))
                     {
-                        return _overlapTrainIdsForRequirement1;
+                        return overlapTrainIdsForRequirement1;
                     }
 
                     // 一括判定でヒットした場合のみ、どのTrainUnitかを個別に再調査する
@@ -257,20 +247,20 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                         {
                             continue;
                         }
-                        if (!RailPositionOverlapDetector.HasOverlap(unit.RailPosition, _requirement1OverlapIndex))
+                        if (!RailPositionOverlapDetector.HasOverlap(unit.RailPosition, requirement1OverlapIndex))
                         {
                             continue;
                         }
-                        _overlapTrainIdsForRequirement1.Add(trainInstanceId);
+                        overlapTrainIdsForRequirement1.Add(trainInstanceId);
                     }
-                    return _overlapTrainIdsForRequirement1;
+                    return overlapTrainIdsForRequirement1;
                 }
 
-                void RebuildRequirement1OverlapIndex(RailPosition centerRailPosition, int trainLength)
+                RailPositionOverlapDetector.OverlapIndex CreateRequirement1OverlapIndex(RailPosition centerRailPosition, int trainLength, IReadOnlyList<RailPosition> frontRoutes, IReadOnlyList<RailPosition> rearRoutesFromCenter)
                 {
                     // 要件1専用の前後マージン探索結果を再構築する
                     // Rebuild requirement-1 specific front/rear margin probe routes
-                    _requirement1OverlapProbeRoutes.Clear();
+                    var requirement1OverlapProbeRoutes = new List<RailPosition>();
 
                     var frontLengthWithMargin = (trainLength + 1) / 2 + Requirement1AdditionalMarginLength;
                     var rearLengthWithMargin = trainLength / 2 + Requirement1AdditionalMarginLength;
@@ -284,28 +274,28 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                         requirement1RearRoutes);
                     if (hasMarginRoute)
                     {
-                        _requirement1OverlapProbeRoutes.AddRange(requirement1FrontRoutes);
-                        _requirement1OverlapProbeRoutes.AddRange(requirement1RearRoutes);
+                        requirement1OverlapProbeRoutes.AddRange(requirement1FrontRoutes);
+                        requirement1OverlapProbeRoutes.AddRange(requirement1RearRoutes);
                     }
 
                     // マージン探索が成立しない場合は通常候補へフォールバックする
                     // Fallback to regular candidates when margin probing fails
                     if (!hasMarginRoute)
                     {
-                        _requirement1OverlapProbeRoutes.AddRange(_frontRoutes);
-                        _requirement1OverlapProbeRoutes.AddRange(_rearRoutesFromCenter);
+                        requirement1OverlapProbeRoutes.AddRange(frontRoutes);
+                        requirement1OverlapProbeRoutes.AddRange(rearRoutesFromCenter);
                     }
 
-                    _requirement1OverlapIndex = RailPositionOverlapDetector.CreateIndex(_requirement1OverlapProbeRoutes);
+                    return RailPositionOverlapDetector.CreateIndex(requirement1OverlapProbeRoutes);
                 }
 
-                bool TryRebuildSelectionCandidates(RailPosition centerRailPosition, int trainLength)
+                bool TryRebuildSelectionCandidates(RailPosition centerRailPosition, int trainLength, out List<RailPosition> frontRoutes, out List<RailPosition> rearRoutesFromCenter, out int routePairCount)
                 {
                     // 要件4の候補経路を毎フレーム再構築する
                     // Rebuild requirement-4 candidate routes every frame
-                    _frontRoutes.Clear();
-                    _rearRoutesFromCenter.Clear();
-                    _routePairCount = 0;
+                    frontRoutes = new List<RailPosition>();
+                    rearRoutesFromCenter = new List<RailPosition>();
+                    routePairCount = 0;
 
                     var frontLength = (trainLength + 1) / 2;
                     var rearLength = trainLength / 2;
@@ -313,14 +303,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                             centerRailPosition,
                             frontLength,
                             rearLength,
-                            _frontRoutes,
-                            _rearRoutesFromCenter))
+                            frontRoutes,
+                            rearRoutesFromCenter))
                     {
                         return false;
                     }
 
-                    _routePairCount = (long)_frontRoutes.Count * _rearRoutesFromCenter.Count;
-                    return _routePairCount > 0;
+                    var pairCount = (long)frontRoutes.Count * rearRoutesFromCenter.Count;
+                    routePairCount = pairCount > int.MaxValue ? int.MaxValue : (int)pairCount;
+                    return routePairCount > 0;
                 }
 
                 bool TryBuildFrontRearRoutes(RailPosition centerRailPosition, int frontLength, int rearLength, List<RailPosition> frontRoutes, List<RailPosition> rearRoutesFromCenter)
