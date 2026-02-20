@@ -60,10 +60,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             // 候補総数に応じて次の状態へ進める
             // Advance to the next state within current candidate count
             var totalStateCount = _routePairCount * 2;
-            if (totalStateCount <= 0)
-            {
+            if (totalStateCount == 0)
                 return;
-            }
             _selectionStep = (_selectionStep + 1) % totalStateCount;
         }
 
@@ -124,14 +122,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     out var overlapTrainInstanceIds,
                     out var placementMode,
                     out var targetTrainInstanceId,
-                    out var attachCarFacingForward);
+                    out var attachCarFacingForward,
+                    out var attachTargetEndpoint);
                 result = new TrainCarPlacementHit(
                     isPlaceable,
                     railPosition,
                     overlapTrainInstanceIds,
                     placementMode,
                     targetTrainInstanceId,
-                    attachCarFacingForward);
+                    attachCarFacingForward,
+                    attachTargetEndpoint);
                 return true;
 
                 #region Internal
@@ -144,13 +144,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     out IReadOnlyList<TrainInstanceId> overlapTrainInstanceIds,
                     out TrainCarPlacementMode placementMode,
                     out TrainInstanceId targetTrainInstanceId,
-                    out bool attachCarFacingForward)
+                    out bool attachCarFacingForward,
+                    out TrainCarAttachTargetEndpoint attachTargetEndpoint)
                 {
                     railPosition = null;
                     overlapTrainInstanceIds = Array.Empty<TrainInstanceId>();
                     placementMode = TrainCarPlacementMode.CreateNewTrainUnit;
                     targetTrainInstanceId = TrainInstanceId.Empty;
                     attachCarFacingForward = true;
+                    attachTargetEndpoint = TrainCarAttachTargetEndpoint.Head;
                     // 入力を検証し、ヒット点の中心RailPositionを解決する
                     // Validate inputs and resolve center RailPosition from hit point
                     if (carrier == null || trainLength <= 0)
@@ -161,6 +163,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     {
                         return false;
                     }
+                    // Rキー反転をここで適応
+                    // Apply R-key reversal at this stage to keep the same center point and flip the candidates instead
+                    if (_selectionStep % 2 == 1)
+                    {
+                        centerRailPosition.Reverse();
+                    }
+                    
 
                     // 要件1: N'+M'候補と既存TrainUnit全体の重複を抽出する
                     // Requirement 1: detect overlaps between N'+M' candidates and existing train units
@@ -171,7 +180,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                         trainLength,
                         out var requirement1SnapStartPoint,
                         out var requirement1TargetTrainInstanceId,
-                        out var requirement1AttachFacingForward);
+                        out var requirement1AttachFacingForward,
+                        out var requirement1AttachTargetEndpoint);
 
                     // 要件1: 最短TrainUnitの接続点からS候補を作り、2S(反転込み)で選択する
                     // Requirement 1: build S routes from nearest unit endpoint and select within 2S(with reverse)
@@ -181,13 +191,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                         if (TryRebuildRequirement1SnapCandidates(requirement1SnapStartPoint, trainLength, out var requirement1Routes, out var requirement1RouteCount))
                         {
                             _routePairCount = requirement1RouteCount;
-                            if (TryBuildSelectedSingleRoute(requirement1Routes, requirement1RouteCount, out railPosition, out var reverseSelected))
+                            if (TryBuildSelectedSingleRoute(requirement1Routes, requirement1RouteCount, out railPosition))
                             {
                                 placementMode = TrainCarPlacementMode.AttachToExistingTrainUnit;
                                 targetTrainInstanceId = requirement1TargetTrainInstanceId;
                                 // 最短候補で使ったcenter前後向きを基準にし、R反転時は向きも反転させる
                                 // Base facing uses nearest center direction and flips when R-reverse is selected
-                                attachCarFacingForward = reverseSelected ? !requirement1AttachFacingForward : requirement1AttachFacingForward;
+                                attachCarFacingForward = requirement1AttachFacingForward;
+                                attachTargetEndpoint = requirement1AttachTargetEndpoint;
                                 return true;
                             }
                         }
@@ -233,13 +244,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                         return false;
                     }
 
-                    var normalizedStep = _selectionStep % totalStateCount;
-                    if (normalizedStep < 0)
-                    {
-                        normalizedStep += totalStateCount;
-                    }
-
-                    var reverseSelected = (normalizedStep & 1) == 1;
+                    int normalizedStep = _selectionStep % totalStateCount;
                     var routePairIndex = normalizedStep / 2;
                     var rearCount = rearRoutesFromCenter.Count;
                     var frontIndex = routePairIndex / rearCount;
@@ -249,13 +254,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                         return false;
                     }
 
-                    return TryCombineRoutes(frontRoutes[frontIndex], rearRoutesFromCenter[rearIndex], reverseSelected, out resolvedRailPosition);
+                    return TryCombineRoutes(frontRoutes[frontIndex], rearRoutesFromCenter[rearIndex], out resolvedRailPosition);
                 }
-
-                bool TryBuildSelectedSingleRoute(IReadOnlyList<RailPosition> routes, int routeCount, out RailPosition resolvedRailPosition, out bool reverseSelected)
+                
+                // 要件1の単一ルート選択ビルド: S候補から選択された1本を最終RailPositionとして構築する
+                // Requirement-1 single route selection build: build the final RailPosition from the selected one among S candidates
+                bool TryBuildSelectedSingleRoute(IReadOnlyList<RailPosition> routes, int routeCount, out RailPosition resolvedRailPosition)
                 {
                     resolvedRailPosition = null;
-                    reverseSelected = false;
                     if (routes == null || routeCount <= 0 || routes.Count <= 0)
                     {
                         return false;
@@ -270,12 +276,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     // Rキーは「反転優先」で1ステップ進むため、奇数ステップを反転に割り当てる
                     // R-key advances by reverse-priority, so odd steps are mapped to reverse selection
                     var normalizedStep = _selectionStep % totalStateCount;
-                    if (normalizedStep < 0)
-                    {
-                        normalizedStep += totalStateCount;
-                    }
-
-                    reverseSelected = (normalizedStep & 1) == 1;
                     var routeIndex = normalizedStep / 2;
                     if (routeIndex < 0 || routeIndex >= routes.Count)
                     {
@@ -289,10 +289,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     {
                         return false;
                     }
-                    if (reverseSelected)
-                    {
+                    if (attachCarFacingForward)
                         selectedRoute.Reverse();
-                    }
                     resolvedRailPosition = selectedRoute;
                     return true;
                 }
@@ -303,11 +301,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     int trainLength,
                     out RailPosition requirement1SnapStartPoint,
                     out TrainInstanceId requirement1TargetTrainInstanceId,
-                    out bool requirement1AttachFacingForward)
+                    out bool requirement1AttachFacingForward,
+                    out TrainCarAttachTargetEndpoint requirement1AttachTargetEndpoint)
                 {
                     requirement1SnapStartPoint = null;
                     requirement1TargetTrainInstanceId = TrainInstanceId.Empty;
                     requirement1AttachFacingForward = true;
+                    requirement1AttachTargetEndpoint = TrainCarAttachTargetEndpoint.Head;
                     // listA(N'+M')候補と既存TrainUnit全体(listB)の多:多を先に一括判定する
                     // Run a many-to-many precheck between listA(N'+M') and all existing train units(listB)
                     var allTrainUnitRailPositionsForRequirement1 = new List<RailPosition>();
@@ -337,6 +337,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     var nearestDistance = int.MaxValue;
                     var nearestSnapStartPoint = default(RailPosition);
                     var nearestAttachFacingForward = true;
+                    var nearestAttachTargetEndpoint = TrainCarAttachTargetEndpoint.Head;
                     var maxSnapDistance = trainLength / 2 + Requirement1AdditionalMarginLength;
 
                     foreach (var pair in _trainUnitCache.Units)
@@ -360,7 +361,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                             unit.RailPosition,
                             maxSnapDistance,
                             out var snapStartPoint,
-                            out var attachFacingForward);
+                            out var attachFacingForward,
+                            out var attachTargetEndpoint);
                         if (distance < 0)
                         {
                             continue;
@@ -373,6 +375,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                         nearestTrainInstanceId = trainInstanceId;
                         nearestSnapStartPoint = snapStartPoint;
                         nearestAttachFacingForward = attachFacingForward;
+                        nearestAttachTargetEndpoint = attachTargetEndpoint;
                     }
 
                     if (nearestTrainInstanceId == TrainInstanceId.Empty)
@@ -382,6 +385,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     requirement1SnapStartPoint = nearestSnapStartPoint;
                     requirement1TargetTrainInstanceId = nearestTrainInstanceId;
                     requirement1AttachFacingForward = nearestAttachFacingForward;
+                    requirement1AttachTargetEndpoint = nearestAttachTargetEndpoint;
                     return new[] { nearestTrainInstanceId };
 
                     #region Internal
@@ -392,10 +396,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                         RailPosition unitRailPosition,
                         int maxCandidateDistance,
                         out RailPosition snapStartPoint,
-                        out bool attachFacingForward)
+                        out bool attachFacingForward,
+                        out TrainCarAttachTargetEndpoint attachTargetEndpoint)
                     {
                         snapStartPoint = null;
                         attachFacingForward = true;
+                        attachTargetEndpoint = TrainCarAttachTargetEndpoint.Head;
                         if (centerForward == null || centerBackward == null || unitRailPosition == null)
                         {
                             return -1;
@@ -410,21 +416,27 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                         var minDistance = int.MaxValue;
                         var minDistanceSnapStartPoint = default(RailPosition);
                         var minDistanceAttachFacingForward = true;
-                        UpdateMinDistance(centerForward, unitHeadReversed, true);
-                        UpdateMinDistance(centerForward, unitRearPoint, true);
-                        UpdateMinDistance(centerBackward, unitHeadReversed, false);
-                        UpdateMinDistance(centerBackward, unitRearPoint, false);
+                        var minDistanceAttachTargetEndpoint = TrainCarAttachTargetEndpoint.Head;
+                        UpdateMinDistance(centerForward, unitHeadReversed, true, TrainCarAttachTargetEndpoint.Head);
+                        UpdateMinDistance(centerForward, unitRearPoint, true, TrainCarAttachTargetEndpoint.Rear);
+                        UpdateMinDistance(centerBackward, unitHeadReversed, false, TrainCarAttachTargetEndpoint.Head);
+                        UpdateMinDistance(centerBackward, unitRearPoint, false, TrainCarAttachTargetEndpoint.Rear);
                         if (minDistance == int.MaxValue)
                         {
                             return -1;
                         }
                         snapStartPoint = minDistanceSnapStartPoint;
                         attachFacingForward = minDistanceAttachFacingForward;
+                        attachTargetEndpoint = minDistanceAttachTargetEndpoint;
                         return minDistance;
 
                         #region Internal
 
-                        void UpdateMinDistance(RailPosition from, RailPosition to, bool isCenterForwardSide)
+                        void UpdateMinDistance(
+                            RailPosition from,
+                            RailPosition to,
+                            bool isCenterForwardSide,
+                            TrainCarAttachTargetEndpoint candidateAttachTargetEndpoint)
                         {
                             var distance = RailPositionRouteDistanceFinder.FindShortestDistance(from, to);
                             // 要件1の探索半径(車両半長+マージン)を超える候補は除外する
@@ -438,6 +450,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                                 minDistance = distance;
                                 minDistanceSnapStartPoint = to.DeepCopy();
                                 minDistanceAttachFacingForward = isCenterForwardSide;
+                                minDistanceAttachTargetEndpoint = candidateAttachTargetEndpoint;
                             }
                         }
 
@@ -457,6 +470,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     {
                         return false;
                     }
+                    // 経路探索で使った方向と逆にみたいので
+                    // We want to look in the opposite direction from the one used for route tracing, so reverse the snap start point first
                     snapStartPoint.Reverse();
 
                     var traceStartPoint = snapStartPoint.GetHeadRailPosition();
@@ -496,7 +511,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
                     // マージン探索が成立しない場合は要件1不成立として扱う
                     // If margin probing fails, treat requirement 1 as not satisfied
-
                     return RailPositionOverlapDetector.CreateIndex(requirement1OverlapProbeRoutes);
                 }
 
@@ -521,7 +535,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     }
 
                     var pairCount = frontRoutes.Count * rearRoutesFromCenter.Count;
-                    routePairCount = pairCount > int.MaxValue ? int.MaxValue : (int)pairCount;
+                    routePairCount = pairCount > int.MaxValue ? int.MaxValue : pairCount;
                     return routePairCount > 0;
                 }
 
@@ -570,7 +584,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     return rearRoutesFromCenter.Count > 0;
                 }
 
-                bool TryCombineRoutes(RailPosition frontRoute, RailPosition rearRouteFromCenter, bool reverseSelected, out RailPosition combinedRoute)
+                bool TryCombineRoutes(RailPosition frontRoute, RailPosition rearRouteFromCenter, out RailPosition combinedRoute)
                 {
                     combinedRoute = null;
                     if (frontRoute == null || rearRouteFromCenter == null)
@@ -584,14 +598,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     {
                         return false;
                     }
-
-                    var mergedRoute = frontRoute.DeepCopy();
-                    mergedRoute.AppendRailPositionAtRear(rearRouteFromCenter.DeepCopy());
-                    if (reverseSelected)
-                    {
-                        mergedRoute.Reverse();
-                    }
-                    combinedRoute = mergedRoute;
+                    combinedRoute = frontRoute.DeepCopy();
+                    combinedRoute.AppendRailPositionAtRear(rearRouteFromCenter.DeepCopy());
                     return true;
                 }
 

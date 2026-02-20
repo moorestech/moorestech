@@ -11,6 +11,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
         AttachToExistingTrainUnit = 1
     }
 
+    public enum TrainCarAttachTargetEndpoint
+    {
+        Head = 0,
+        Rear = 1
+    }
+
     public readonly struct TrainCarPlacementHit
     {
         public TrainCarPlacementHit(
@@ -19,7 +25,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             IReadOnlyList<TrainInstanceId> overlapTrainInstanceIds,
             TrainCarPlacementMode placementMode,
             TrainInstanceId targetTrainInstanceId,
-            bool attachCarFacingForward)
+            bool attachCarFacingForward,
+            TrainCarAttachTargetEndpoint attachTargetEndpoint)
         {
             IsPlaceable = isPlaceable;
             RailPosition = railPosition;
@@ -27,6 +34,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             PlacementMode = placementMode;
             TargetTrainInstanceId = targetTrainInstanceId;
             AttachCarFacingForward = attachCarFacingForward;
+            AttachTargetEndpoint = attachTargetEndpoint;
         }
 
         public bool IsPlaceable { get; }
@@ -35,5 +43,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
         public TrainCarPlacementMode PlacementMode { get; }
         public TrainInstanceId TargetTrainInstanceId { get; }
         public bool AttachCarFacingForward { get; }
+        public TrainCarAttachTargetEndpoint AttachTargetEndpoint { get; }
     }
 }

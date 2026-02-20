@@ -106,6 +106,7 @@ namespace Client.Network.API
             RailPosition railPosition,
             int hotBarSlot,
             bool attachCarFacingForward,
+            bool attachToTargetTrainHead,
             CancellationToken ct)
         {
             // 既存編成連結のレスポンスを取得する
@@ -116,7 +117,8 @@ namespace Client.Network.API
                 railPositionSnapshot,
                 hotBarSlot,
                 _playerConnectionSetting.PlayerId,
-                attachCarFacingForward);
+                attachCarFacingForward,
+                attachToTargetTrainHead);
             return await _packetExchangeManager.GetPacketResponse<AttachTrainCarToUnitProtocol.AttachTrainCarToUnitResponseMessagePack>(request, ct);
         }
 
