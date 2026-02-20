@@ -9,6 +9,14 @@ description: Apply core train system invariants for rail graph topology, front/b
 
 Use this skill as a guardrail for train fundamentals and deterministic behavior.
 
+## Reuse-First Rule
+
+- Before adding new rail/train algorithm helpers, search existing implementations first.
+- Prefer `Game.Train` canonical logic (for example overlap detection) instead of client-local duplication.
+- If duplication is unavoidable, document `WHY_NEW_IMPLEMENTATION` in code/PR notes.
+- Recommended pre-check:
+  - `rg --line-number "RailPositionOverlapDetector|Overlap|CreateIndex|HasOverlap|RailPosition" moorestech_client/Assets/Scripts moorestech_server/Assets/Scripts`
+
 ## Core Invariants
 
 - Build train tests with deterministic setup (`TrainTestHelper.CreateEnvironment`) and reset singleton state between scenarios.
