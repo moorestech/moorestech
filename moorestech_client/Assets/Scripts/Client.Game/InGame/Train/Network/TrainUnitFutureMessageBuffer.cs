@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Train.Unit;
-using Server.Util.MessagePack;
 using System.Linq;
-using UnityEngine;
 
 namespace Client.Game.InGame.Train.Network
 {
@@ -11,9 +9,11 @@ namespace Client.Game.InGame.Train.Network
     // Buffer future train/rail events by phase and apply them when simulation reaches their tick.
     public sealed class TrainUnitFutureMessageBuffer
     {
+        public const uint DummyHash = uint.MaxValue;
+
         private readonly TrainUnitTickState _tickState;
         private readonly SortedDictionary<ulong, ITrainTickBufferedEvent> _futureEvents = new();
-        private readonly SortedDictionary<ulong, TrainUnitHashStateMessagePack> _futureHashStates = new();
+        private readonly SortedDictionary<ulong, (uint unitsHash, uint railGraphHash, uint serverTick, uint tickSequenceId)> _futureHashStates = new();
 
         public TrainUnitFutureMessageBuffer(TrainUnitTickState tickState)
         {
@@ -39,26 +39,22 @@ namespace Client.Game.InGame.Train.Network
 
         // ハッシュイベントをtick基準でキューへ積む。
         // Queue hash states by tick for tick-aligned verification.
-        public void EnqueueHash(TrainUnitHashStateMessagePack message)
+        public void EnqueueHash(uint unitsHash, uint railGraphHash, uint serverTick, uint tickSequenceId)
         {
-            if (message == null)
-            {
-                return;
-            }
-            var messageTickUnifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(message.ServerTick, message.TickSequenceId);
+            var messageTickUnifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(serverTick, tickSequenceId);
             if (messageTickUnifiedId <= _tickState.GetAppliedTickUnifiedId())
             {
                 // 適用済みの統合順序以下は捨てる。
                 // Drop hash states already covered.
                 return;
             }
-            _tickState.SetMaxBufferedTicks(message.ServerTick);
-            _futureHashStates[messageTickUnifiedId] = message;
+            _tickState.SetMaxBufferedTicks(serverTick);
+            _futureHashStates[messageTickUnifiedId] = (unitsHash, railGraphHash, serverTick, tickSequenceId);
         }
 
         // 指定tickのハッシュを取り出す。
         // Dequeue hash state at the specified tick.
-        public bool TryDequeueHashAtTickSequenceId(ulong tickUnifiedId, out TrainUnitHashStateMessagePack message)
+        public bool TryDequeueHashAtTickSequenceId(ulong tickUnifiedId, out (uint unitsHash, uint railGraphHash, uint serverTick, uint tickSequenceId) message)
         {
             return _futureHashStates.TryGetValue(tickUnifiedId, out message);
         }

@@ -26,9 +26,9 @@ namespace Game.Block.Factory.BlockTemplate
             
             var slopeType = beltParam.SlopeType switch
             {
-                ItemShooterBlockParam.SlopeTypeConst.Up => BeltConveyorSlopeType.Up,
-                ItemShooterBlockParam.SlopeTypeConst.Down => BeltConveyorSlopeType.Down,
-                ItemShooterBlockParam.SlopeTypeConst.Straight => BeltConveyorSlopeType.Straight
+                BeltConveyorBlockParam.SlopeTypeConst.Up => BeltConveyorSlopeType.Up,
+                BeltConveyorBlockParam.SlopeTypeConst.Down => BeltConveyorSlopeType.Down,
+                BeltConveyorBlockParam.SlopeTypeConst.Straight => BeltConveyorSlopeType.Straight
             };
             var connectorComponent = BlockTemplateUtil.CreateInventoryConnector(beltParam.InventoryConnectors, blockPositionInfo);
             var beltConveyorConnector = new VanillaBeltConveyorBlockInventoryInserter(blockInstanceId, connectorComponent);

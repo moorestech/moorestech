@@ -10,6 +10,7 @@ using Game.Context;
 using Game.CraftTree.Models;
 using Game.Research;
 using Game.Train.RailPositions;
+using Game.Train.Unit;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using Server.Util.MessagePack;
@@ -71,18 +72,31 @@ namespace Client.Network.API
         {
             var request = new GetTrainUnitSnapshotsProtocol.RequestMessagePack();
             var response = await _packetExchangeManager.GetPacketResponse<GetTrainUnitSnapshotsProtocol.ResponseMessagePack>(request, ct);
-            var snapshots = response?.Snapshots ?? new List<TrainUnitSnapshotBundleMessagePack>();
+            var snapshotPacks = response?.Snapshots;
+            var snapshots = new List<TrainUnitSnapshotBundle>(snapshotPacks?.Count ?? 0);
+            if (snapshotPacks != null)
+            {
+                for (var i = 0; i < snapshotPacks.Count; i++)
+                {
+                    var snapshotPack = snapshotPacks[i];
+                    if (snapshotPack == null)
+                    {
+                        continue;
+                    }
+                    snapshots.Add(snapshotPack.ToModel());
+                }
+            }
             var tick = response?.ServerTick ?? 0u;
             var unitsHash = response?.UnitsHash ?? 0u;
             var tickSequenceId = response?.TickSequenceId ?? 0u;
             return new TrainUnitSnapshotResponse(snapshots, tick, unitsHash, tickSequenceId);
         }
 
-        public async UniTask<PlaceTrainCarOnRailProtocol.PlaceTrainOnRailResponseMessagePack> PlaceTrainOnRail(RailPositionSaveData railPosition, int hotBarSlot, CancellationToken ct)
+        public async UniTask<PlaceTrainCarOnRailProtocol.PlaceTrainOnRailResponseMessagePack> PlaceTrainOnRail(RailPosition railPosition, int hotBarSlot, CancellationToken ct)
         {
             // 列車設置のレスポンスを取得する
             // Get response for train placement
-            var railPositionSnapshot = new RailPositionSnapshotMessagePack(railPosition);
+            var railPositionSnapshot = new RailPositionSnapshotMessagePack(railPosition?.CreateSaveSnapshot());
             var request = new PlaceTrainCarOnRailProtocol.PlaceTrainOnRailRequestMessagePack(railPositionSnapshot, hotBarSlot, _playerConnectionSetting.PlayerId);
             return await _packetExchangeManager.GetPacketResponse<PlaceTrainCarOnRailProtocol.PlaceTrainOnRailResponseMessagePack>(request, ct);
         }
