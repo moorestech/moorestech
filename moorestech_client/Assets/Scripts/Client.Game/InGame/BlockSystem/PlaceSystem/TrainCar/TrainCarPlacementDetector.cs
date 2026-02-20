@@ -137,18 +137,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                         return false;
                     }
 
-                    // 要件4候補（前輪側/後輪側）を毎フレーム再構築する
-                    // Rebuild requirement-4 candidates (front/rear) every frame
-                    _routePairCount = 0;
-                    if (!TryRebuildSelectionCandidates(centerRailPosition, trainLength, out var frontRoutes, out var rearRoutesFromCenter, out var routePairCount))
-                    {
-                        return false;
-                    }
-                    _routePairCount = routePairCount;
-                    var requirement1OverlapIndex = CreateRequirement1OverlapIndex(centerRailPosition, trainLength, frontRoutes, rearRoutesFromCenter);
-
                     // 要件1: N'+M'候補と既存TrainUnit全体の重複を抽出する
                     // Requirement 1: detect overlaps between N'+M' candidates and existing train units
+                    var requirement1OverlapIndex = CreateRequirement1OverlapIndex(centerRailPosition, trainLength);
                     overlapTrainInstanceIds = ResolveOverlapTrainUnitsForRequirement1(requirement1OverlapIndex);
 
                     // 要件1: 重複先TrainUnitへの自動スナップは次PRで実装する
@@ -169,16 +160,20 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     // TODO: 要件3の配置判定ロジックを実装する
                     // TODO: Implement requirement-3 placement logic
 
+                    // 要件4候補（前輪側/後輪側）を毎フレーム再構築する
+                    // Rebuild requirement-4 candidates (front/rear) every frame
+                    _routePairCount = 0;
+                    if (!TryRebuildSelectionCandidates(centerRailPosition, trainLength, out var frontRoutes, out var rearRoutesFromCenter, out var routePairCount))
+                    {
+                        return false;
+                    }
+                    _routePairCount = routePairCount;
+
                     // 要件4: 現在のインデックス選択経路を利用する
                     // Requirement 4: use the currently indexed route
                     // 現在の選択状態(経路+反転)から最終RailPositionを構築する
                     // Build final RailPosition from current route/reverse selection
-                    if (TryBuildSelectedRailPosition(frontRoutes, rearRoutesFromCenter, routePairCount, out railPosition))
-                    {
-                        return true;
-                    }
-
-                    return false;
+                    return TryBuildSelectedRailPosition(frontRoutes, rearRoutesFromCenter, routePairCount, out railPosition);
                 }
 
                 bool TryBuildSelectedRailPosition(IReadOnlyList<RailPosition> frontRoutes, IReadOnlyList<RailPosition> rearRoutesFromCenter, int routePairCount, out RailPosition resolvedRailPosition)
@@ -204,9 +199,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     var reverseSelected = (normalizedStep & 1) == 1;
                     var routePairIndex = normalizedStep / 2;
                     var rearCount = rearRoutesFromCenter.Count;
-                    var frontIndex = (int)(routePairIndex / rearCount);
-                    var rearIndex = (int)(routePairIndex % rearCount);
-                    if (frontIndex < 0 || frontIndex >= frontRoutes.Count || rearIndex < 0 || rearIndex >= rearRoutesFromCenter.Count)
+                    var frontIndex = routePairIndex / rearCount;
+                    var rearIndex = routePairIndex % rearCount;
+                    if (frontIndex >= frontRoutes.Count || rearIndex >= rearRoutesFromCenter.Count)
                     {
                         return false;
                     }
@@ -256,7 +251,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     return overlapTrainIdsForRequirement1;
                 }
 
-                RailPositionOverlapDetector.OverlapIndex CreateRequirement1OverlapIndex(RailPosition centerRailPosition, int trainLength, IReadOnlyList<RailPosition> frontRoutes, IReadOnlyList<RailPosition> rearRoutesFromCenter)
+                RailPositionOverlapDetector.OverlapIndex CreateRequirement1OverlapIndex(RailPosition centerRailPosition, int trainLength)
                 {
                     // 要件1専用の前後マージン探索結果を再構築する
                     // Rebuild requirement-1 specific front/rear margin probe routes
@@ -278,13 +273,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                         requirement1OverlapProbeRoutes.AddRange(requirement1RearRoutes);
                     }
 
-                    // マージン探索が成立しない場合は通常候補へフォールバックする
-                    // Fallback to regular candidates when margin probing fails
-                    if (!hasMarginRoute)
-                    {
-                        requirement1OverlapProbeRoutes.AddRange(frontRoutes);
-                        requirement1OverlapProbeRoutes.AddRange(rearRoutesFromCenter);
-                    }
+                    // マージン探索が成立しない場合は要件1不成立として扱う
+                    // If margin probing fails, treat requirement 1 as not satisfied
 
                     return RailPositionOverlapDetector.CreateIndex(requirement1OverlapProbeRoutes);
                 }
@@ -381,7 +371,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                         mergedRoute.Reverse();
                     }
                     combinedRoute = mergedRoute;
-                    return combinedRoute != null;
+                    return true;
                 }
 
                 #endregion
