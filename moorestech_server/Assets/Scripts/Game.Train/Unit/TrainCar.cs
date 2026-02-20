@@ -66,6 +66,11 @@ namespace Game.Train.Unit
         {
             IsFacingForward = !IsFacingForward;
         }
+        
+        public void SetContainer(ITrainCarContainer container)
+        {
+            Container = container;
+        }
 
         public TrainCarSaveData CreateTrainCarSaveData()
         {
