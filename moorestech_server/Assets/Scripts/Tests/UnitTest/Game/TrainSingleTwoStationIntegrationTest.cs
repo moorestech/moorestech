@@ -51,11 +51,11 @@ namespace Tests.UnitTest.Game
             var transitRailA = TrainTestHelper.PlaceRail(env, new Vector3Int(0, 0, 3), BlockDirection.North);
             var transitRailB = TrainTestHelper.PlaceRail(env, new Vector3Int(0, 0, 6), BlockDirection.North);
 
-            const int TransitSegmentLength = 2000;
-            ConnectFront(loadingExitComponent, transitRailA, TransitSegmentLength);
-            ConnectFront(transitRailA, transitRailB, TransitSegmentLength);
-            ConnectFront(transitRailB, unloadingEntryComponent, TransitSegmentLength);
-            ConnectFront(unloadingExitComponent, loadingEntryComponent, TransitSegmentLength);
+            const int transitSegmentLength = 2000;
+            ConnectFront(loadingExitComponent, transitRailA, transitSegmentLength);
+            ConnectFront(transitRailA, transitRailB, transitSegmentLength);
+            ConnectFront(transitRailB, unloadingEntryComponent, transitSegmentLength);
+            ConnectFront(unloadingExitComponent, loadingEntryComponent, transitSegmentLength);
 
             Assert.IsTrue(loadingBlock.ComponentManager.TryGetComponent<IBlockInventory>(out var loadingInventory),
                 "積込プラットフォームのインベントリコンポーネントが見つかりません。");
@@ -75,12 +75,10 @@ namespace Tests.UnitTest.Game
             loaderTrainPlatformTransfer.SetMode(TrainPlatformTransferComponent.TransferMode.LoadToTrain);
             unloaderTrainPlatformTransfer.SetMode(TrainPlatformTransferComponent.TransferMode.LoadToTrain);
 
-            // 貨物駅アームのtickを進める
-            // Advance cargo platform arm ticks
             Action tickCargoArms = () =>
             {
-                
-                cargoPlatformLoader.Update(); cargoPlatformUnloader.Update();
+                foreach (var updatableBlockComponent in loadingBlock.GetComponents<IUpdatableBlockComponent>()) updatableBlockComponent.Update();
+                foreach (var updatableBlockComponent in unloadingBlock.GetComponents<IUpdatableBlockComponent>()) updatableBlockComponent.Update();
             };
 
             var stationSegmentLength = loadingBlock!.BlockPositionInfo.BlockSize.z;
