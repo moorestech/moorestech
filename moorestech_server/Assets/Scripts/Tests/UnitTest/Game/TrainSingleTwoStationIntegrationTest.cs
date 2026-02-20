@@ -61,23 +61,27 @@ namespace Tests.UnitTest.Game
                 "積込プラットフォームのインベントリコンポーネントが見つかりません。");
             Assert.IsTrue(unloadingBlock.ComponentManager.TryGetComponent<IBlockInventory>(out var unloadingInventory),
                 "荷降ろしプラットフォームのインベントリコンポーネントが見つかりません。");
-
-            var cargoPlatformLoader = loadingBlock.GetComponent<CargoplatformComponent>();
-            var cargoPlatformUnloader = unloadingBlock.GetComponent<CargoplatformComponent>();
-            Assert.IsNotNull(cargoPlatformLoader, "積込プラットフォームのコンポーネント取得に失敗しました。");
-            Assert.IsNotNull(cargoPlatformUnloader, "荷降ろしプラットフォームのコンポーネント取得に失敗しました。");
+            
+            var loaderTrainPlatformTransfer = loadingBlock.GetComponent<TrainPlatformTransferComponent>();
+            var unloaderTrainPlatformTransfer = unloadingBlock.GetComponent<TrainPlatformTransferComponent>();
+            Assert.IsNotNull(loaderTrainPlatformTransfer, "積込プラットフォームのコンポーネント取得に失敗しました。");
+            Assert.IsNotNull(unloaderTrainPlatformTransfer, "荷降ろしプラットフォームのコンポーネント取得に失敗しました。");
 
             var itemMaster = MasterHolder.ItemMaster.GetItemMaster(ForUnitTestItemId.ItemId1);
             var maxStack = itemMaster.MaxStack;
             loadingInventory.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, maxStack));
             unloadingInventory.SetItem(0, ServerContext.ItemStackFactory.CreatEmpty());
 
-            cargoPlatformLoader.SetTransferMode(CargoplatformComponent.CargoTransferMode.LoadToTrain);
-            cargoPlatformUnloader.SetTransferMode(CargoplatformComponent.CargoTransferMode.UnloadToPlatform);
+            loaderTrainPlatformTransfer.SetMode(TrainPlatformTransferComponent.TransferMode.LoadToTrain);
+            unloaderTrainPlatformTransfer.SetMode(TrainPlatformTransferComponent.TransferMode.LoadToTrain);
 
             // 貨物駅アームのtickを進める
             // Advance cargo platform arm ticks
-            Action tickCargoArms = () => { cargoPlatformLoader.Update(); cargoPlatformUnloader.Update(); };
+            Action tickCargoArms = () =>
+            {
+                
+                cargoPlatformLoader.Update(); cargoPlatformUnloader.Update();
+            };
 
             var stationSegmentLength = loadingBlock!.BlockPositionInfo.BlockSize.z;
             Assert.Greater(stationSegmentLength, 0, "プラットフォーム間セグメントの長さが0以下になっています。");
