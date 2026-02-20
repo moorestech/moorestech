@@ -54,17 +54,6 @@ namespace Game.Train.Unit
             TrainUpdateService trainUpdateService,
             TrainRailPositionManager railPositionManager,
             TrainDiagramManager diagramManager
-        ) : this(initialPosition, cars, trainUpdateService, railPositionManager, diagramManager, true)
-        {
-        }
-
-        private TrainUnit(
-            RailPosition initialPosition,
-            List<TrainCar> cars,
-            TrainUpdateService trainUpdateService,
-            TrainRailPositionManager railPositionManager,
-            TrainDiagramManager diagramManager,
-            bool notifyOnRegister
         )
         {
             _railPosition = initialPosition;
@@ -82,22 +71,9 @@ namespace Game.Train.Unit
             trainUnitStationDocking = new TrainUnitStationDocking(this, this);
             trainDiagram = new TrainDiagram(_railGraphProvider, _diagramManager);
             trainDiagram.SetContext(this);
-            // 列車登録と生成通知の制御を行う
-            // Register the train and control creation notification
-            RegisterTrain(notifyOnRegister);
-            #region Internal
-            void RegisterTrain(bool notify)
-            {
-                // 通知あり/なしで登録先を切り替える
-                // Switch registration based on notification flag
-                if (notify)
-                {
-                    _trainUpdateService.RegisterTrain(this);
-                    return;
-                }
-                _trainUpdateService.RegisterTrainWithoutNotify(this);
-            }
-            #endregion
+            // 列車を更新サービスへ登録する
+            // Register the train to update service.
+            _trainUpdateService.RegisterTrain(this);
         }
 
         public void Reverse()
@@ -486,7 +462,7 @@ namespace Game.Train.Unit
             var railPositionManager = ServerContext.GetService<TrainRailPositionManager>();
             var diagramManager = ServerContext.GetService<TrainDiagramManager>();
 
-            var trainUnit = new TrainUnit(railPosition, cars, trainUpdateService, railPositionManager, diagramManager, false)
+            var trainUnit = new TrainUnit(railPosition, cars, trainUpdateService, railPositionManager, diagramManager)
             {
                 _isAutoRun = saveData.IsAutoRun,
                 _currentSpeed = restoredSpeed,
@@ -540,7 +516,7 @@ namespace Game.Train.Unit
                 newTrainLength += car.Length;
             _railPosition.SetTrainLength(newTrainLength);
             // 4) 新しいTrainUnitを作成
-            var splittedUnit = new TrainUnit(splittedRailPosition, detachedCars, _trainUpdateService, _railPositionManager, _diagramManager, false);
+            var splittedUnit = new TrainUnit(splittedRailPosition, detachedCars, _trainUpdateService, _railPositionManager, _diagramManager);
             // 5) 自分が0になっていたら
             if (_cars.Count == 0)
                 this.OnDestroy();
