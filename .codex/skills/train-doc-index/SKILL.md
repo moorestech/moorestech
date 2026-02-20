@@ -1,6 +1,6 @@
 ---
 name: train-doc-index
-description: Classify train-related requests and route execution to the correct train workflow immediately. Use when a request concerns train networking, tick-phase simulation, train save/load verification, rail graph behavior, or train test prioritization and you need to choose the right implementation/testing strategy.
+description: Classify train-related requests and route execution to the correct train workflow immediately. Use when a request concerns train networking, tick simulation ordering, TrainUnit/TrainCar snapshot-sync policy, train save/load verification, rail graph behavior, or train test prioritization and you need to choose the correct implementation/testing workflow.
 ---
 
 # Train Doc Index
@@ -8,6 +8,14 @@ description: Classify train-related requests and route execution to the correct 
 ## Overview
 
 Use this skill as an entry point to pick the right train workflow and avoid mixing unrelated concerns.
+
+## Current Operation (Must Assume)
+
+- TrainUnit/TrainCar structural sync is snapshot-first:
+  - per-unit event: `va:event:trainUnitSnapshot` (single TrainUnit upsert/delete)
+  - full resync API: `va:getTrainUnitSnapshots` (all TrainUnits)
+- Do not propose per-car incremental event packets for normal feature work.
+- Tick simulation trigger remains `va:event:trainUnitTickDiffBundle` (hash + diff bundle), separate from per-unit snapshot events.
 
 ## Reuse-First Rule
 
@@ -21,7 +29,8 @@ Use this skill as an entry point to pick the right train workflow and avoid mixi
 
 - Use `rail-network-sync` when changing protocol/event behavior for rail or train state synchronization.
 - Use `train-rail-event-implementation` when adding/modifying train/rail event packets, MessagePack payloads, or client handlers with unified tick ordering concerns.
-- Use `train-tick-simulation` when changing tick progression, hash gating, or pre-sim/post-sim application order.
+  - Any request like "new TrainUnit/TrainCar event" should first be treated as per-unit snapshot notification design.
+- Use `train-tick-simulation` when changing tick progression, hash gating, or simulation trigger ordering.
 - Use `train-rail-save-load` when changing save data, load restoration, docking restoration, or persistence tests.
 - Use `train-test-implementation-priorities` when deciding what train tests to implement next.
 - Use `train-system-notes` when changing rail graph semantics, front/back handling, rail position ordering, or deterministic distance behavior.
@@ -31,4 +40,5 @@ Use this skill as an entry point to pick the right train workflow and avoid mixi
 1. Classify the request into one primary category.
 2. Pick one primary skill and at most one secondary skill.
 3. State explicit invariants before editing code.
-4. Implement and verify against those invariants.
+4. For TrainUnit/TrainCar mutations, confirm snapshot-first policy before proposing packet changes.
+5. Implement and verify against those invariants.
