@@ -3,7 +3,6 @@ using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.Train.Unit;
 using Core.Master;
 using Game.Train.RailGraph;
-using Game.Train.RailCalc;
 using Game.Train.RailPositions;
 using Game.Train.Unit;
 using Mooresmaster.Model.TrainModule;
@@ -40,9 +39,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
     {
         private const int Requirement1AdditionalMarginLength = 256;
         private readonly Camera _mainCamera;
-        private readonly RailGraphClientCache _cache;
         private readonly TrainUnitClientCache _trainUnitCache;
         private readonly TrainCarCurveHitDistanceResolver _curveHitDistanceResolver;
+        private readonly TrainCarCenterRailPositionResolver _centerRailPositionResolver;
         private readonly RailPathTracer _pathTracer;
         private readonly List<RailPosition> _frontRoutes = new();
         private readonly List<RailPosition> _rearRoutesFromCenter = new();
@@ -56,10 +55,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
         public TrainCarPlacementDetector(Camera mainCamera, RailGraphClientCache cache, TrainUnitClientCache trainUnitCache)
         {
             _mainCamera = mainCamera;
-            _cache = cache;
             _trainUnitCache = trainUnitCache;
             _pathTracer = new RailPathTracer(cache);
             _curveHitDistanceResolver = new TrainCarCurveHitDistanceResolver();
+            _centerRailPositionResolver = new TrainCarCenterRailPositionResolver(cache, _curveHitDistanceResolver);
         }
 
         public void AdvanceSelection()
@@ -139,43 +138,24 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 {
                     railPosition = null;
                     overlapTrainInstanceIds = Array.Empty<TrainInstanceId>();
-                    // 入力を検証し、対象レール区間（ノード）を解決する
-                    // Validate inputs and resolve the rail segment
+                    // 入力を検証し、ヒット点の中心RailPositionを解決する
+                    // Validate inputs and resolve center RailPosition from hit point
                     if (carrier == null || trainLength <= 0)
                     {
                         return false;
                     }
-                    var railObjectId = carrier.GetRailObjectId();
-                    if (!TryResolveCanonicalNodes(railObjectId, out var canonicalFromNode, out var canonicalToNode))
+                    if (!_centerRailPositionResolver.TryResolveCenterRailPosition(hitPosition, carrier, out var centerRailPosition))
                     {
                         return false;
                     }
-
-                    // カーブ上の最近点を求め、始点からの距離（弧長）を算出する
-                    // Find the closest point on the curve and its distance
-                    if (!_curveHitDistanceResolver.TryFindDistanceFromStartOnCurve(canonicalFromNode, canonicalToNode, hitPosition, out var distanceFromStartWorld))
-                    {
-                        return false;
-                    }
-
-                    // 先頭側（進行方向）の区間距離と、次ノードまでのオフセットを算出する
-                    // Resolve the leading segment distance and offset
-                    var segmentDistance = canonicalFromNode.GetDistanceToNode(canonicalToNode);
-                    if (segmentDistance <= 0)
-                    {
-                        return false;
-                    }
-                    var distanceFromStartRail = Mathf.RoundToInt(distanceFromStartWorld * BezierUtility.RAIL_LENGTH_SCALE);
-                    distanceFromStartRail = Mathf.Clamp(distanceFromStartRail, 0, segmentDistance);
-                    var distanceToNext = segmentDistance - distanceFromStartRail;
 
                     // 要件4候補（前輪側/後輪側）を毎フレーム再構築する
                     // Rebuild requirement-4 candidates (front/rear) every frame
-                    if (!TryRebuildSelectionCandidates(canonicalFromNode, canonicalToNode, distanceToNext, trainLength))
+                    if (!TryRebuildSelectionCandidates(centerRailPosition, trainLength))
                     {
                         return false;
                     }
-                    RebuildRequirement1OverlapIndex(canonicalFromNode, canonicalToNode, distanceToNext, trainLength);
+                    RebuildRequirement1OverlapIndex(centerRailPosition, trainLength);
 
                     // 要件1: N'+M'候補と既存TrainUnit全体の重複を抽出する
                     // Requirement 1: detect overlaps between N'+M' candidates and existing train units
@@ -286,7 +266,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     return _overlapTrainIdsForRequirement1;
                 }
 
-                void RebuildRequirement1OverlapIndex(IRailNode canonicalFromNode, IRailNode canonicalToNode, int distanceToNext, int trainLength)
+                void RebuildRequirement1OverlapIndex(RailPosition centerRailPosition, int trainLength)
                 {
                     // 要件1専用の前後マージン探索結果を再構築する
                     // Rebuild requirement-1 specific front/rear margin probe routes
@@ -297,9 +277,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     var requirement1FrontRoutes = new List<RailPosition>();
                     var requirement1RearRoutes = new List<RailPosition>();
                     var hasMarginRoute = TryBuildFrontRearRoutes(
-                        canonicalFromNode,
-                        canonicalToNode,
-                        distanceToNext,
+                        centerRailPosition,
                         frontLengthWithMargin,
                         rearLengthWithMargin,
                         requirement1FrontRoutes,
@@ -321,7 +299,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     _requirement1OverlapIndex = RailPositionOverlapDetector.CreateIndex(_requirement1OverlapProbeRoutes);
                 }
 
-                bool TryRebuildSelectionCandidates(IRailNode canonicalFromNode, IRailNode canonicalToNode, int distanceToNext, int trainLength)
+                bool TryRebuildSelectionCandidates(RailPosition centerRailPosition, int trainLength)
                 {
                     // 要件4の候補経路を毎フレーム再構築する
                     // Rebuild requirement-4 candidate routes every frame
@@ -332,9 +310,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     var frontLength = (trainLength + 1) / 2;
                     var rearLength = trainLength / 2;
                     if (!TryBuildFrontRearRoutes(
-                            canonicalFromNode,
-                            canonicalToNode,
-                            distanceToNext,
+                            centerRailPosition,
                             frontLength,
                             rearLength,
                             _frontRoutes,
@@ -347,14 +323,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     return _routePairCount > 0;
                 }
 
-                bool TryBuildFrontRearRoutes(IRailNode canonicalFromNode, IRailNode canonicalToNode, int distanceToNext, int frontLength, int rearLength, List<RailPosition> frontRoutes, List<RailPosition> rearRoutesFromCenter)
+                bool TryBuildFrontRearRoutes(RailPosition centerRailPosition, int frontLength, int rearLength, List<RailPosition> frontRoutes, List<RailPosition> rearRoutesFromCenter)
                 {
                     // 共通DFS: 中心点から前後を探索し、front/rearの向きへ正規化する
                     // Shared DFS: trace both directions from center and normalize to front/rear orientation
                     frontRoutes.Clear();
                     rearRoutesFromCenter.Clear();
 
-                    var centerPoint = new RailPosition(new List<IRailNode> { canonicalToNode, canonicalFromNode }, 0, distanceToNext);
+                    if (centerRailPosition == null)
+                    {
+                        return false;
+                    }
+                    var centerPoint = centerRailPosition.DeepCopy();
                     if (!_pathTracer.TryTraceForwardRoutesByDfs(centerPoint, frontLength, out var tracedFrontRoutes) ||
                         tracedFrontRoutes == null ||
                         tracedFrontRoutes.Count <= 0)
@@ -411,23 +391,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     }
                     combinedRoute = mergedRoute;
                     return combinedRoute != null;
-                }
-
-                bool TryResolveCanonicalNodes(ulong railObjectId, out IRailNode canonicalFromNode, out IRailNode canonicalToNode)
-                {
-                    var canonicalFromId = (int)(railObjectId & 0xffffffff);
-                    var canonicalToId = (int)(railObjectId >> 32);
-                    canonicalFromNode = null;
-                    canonicalToNode = null;
-                    if (!_cache.TryGetNode(canonicalFromId, out canonicalFromNode))
-                    {
-                        return false;
-                    }
-                    if (!_cache.TryGetNode(canonicalToId, out canonicalToNode))
-                    {
-                        return false;
-                    }
-                    return true;
                 }
 
                 #endregion
