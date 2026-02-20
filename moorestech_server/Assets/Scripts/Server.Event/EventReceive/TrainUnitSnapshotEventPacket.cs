@@ -1,11 +1,13 @@
+using Game.Train.Event;
 using Game.Train.Unit;
 using MessagePack;
 using Server.Util.MessagePack;
+using UniRx;
 
 namespace Server.Event.EventReceive
 {
-    // TrainUnit単位の構造変化をスナップショットで通知する
-    // Broadcast per-train-unit structure updates as snapshots.
+    // Game層のTrainUnit通知をネットワークイベントへ変換する
+    // Convert game-layer train notifications into network events.
     public sealed class TrainUnitSnapshotEventPacket
     {
         public const string EventTag = "va:event:trainUnitSnapshot";
@@ -13,54 +15,57 @@ namespace Server.Event.EventReceive
         private readonly EventProtocolProvider _eventProtocolProvider;
         private readonly TrainUpdateService _trainUpdateService;
 
-        public TrainUnitSnapshotEventPacket(EventProtocolProvider eventProtocolProvider, TrainUpdateService trainUpdateService)
+        public TrainUnitSnapshotEventPacket(
+            EventProtocolProvider eventProtocolProvider,
+            TrainUpdateService trainUpdateService,
+            ITrainUnitSnapshotNotifyEvent trainUnitSnapshotNotifyEvent)
         {
             _eventProtocolProvider = eventProtocolProvider;
             _trainUpdateService = trainUpdateService;
-        }
-
-        public void BroadcastSnapshot(TrainUnit trainUnit)
-        {
-            if (trainUnit == null || trainUnit.TrainInstanceId == TrainInstanceId.Empty)
-            {
-                return;
-            }
-
-            // 現在状態を単機スナップショットへ変換して配信する
-            // Convert current state into a per-unit snapshot and broadcast it.
-            var snapshot = TrainUnitSnapshotFactory.CreateSnapshot(trainUnit);
-            var payload = new TrainUnitSnapshotEventMessagePack(
-                trainUnit.TrainInstanceId,
-                false,
-                new TrainUnitSnapshotBundleMessagePack(snapshot),
-                _trainUpdateService.GetCurrentTick(),
-                _trainUpdateService.NextTickSequenceId());
-            AddBroadcast(payload);
-        }
-
-        public void BroadcastDeleted(TrainInstanceId trainInstanceId)
-        {
-            if (trainInstanceId == TrainInstanceId.Empty)
-            {
-                return;
-            }
-
-            // 消滅した編成は tombstone として通知する
-            // Broadcast a tombstone for removed train units.
-            var payload = new TrainUnitSnapshotEventMessagePack(
-                trainInstanceId,
-                true,
-                null,
-                _trainUpdateService.GetCurrentTick(),
-                _trainUpdateService.NextTickSequenceId());
-            AddBroadcast(payload);
+            trainUnitSnapshotNotifyEvent.OnTrainUnitSnapshotNotified.Subscribe(OnNotified);
         }
 
         #region Internal
 
-        private void AddBroadcast(TrainUnitSnapshotEventMessagePack payload)
+        private void OnNotified(TrainUnitSnapshotNotifyEventData notifyEventData)
         {
-            var bytes = MessagePackSerializer.Serialize(payload);
+            if (notifyEventData.TrainInstanceId == TrainInstanceId.Empty)
+            {
+                return;
+            }
+
+            // 通知内容をイベントペイロードに変換して配信する
+            // Convert notification data into event payload and broadcast it.
+            var payload = CreatePayload(notifyEventData);
+            AddBroadcast(payload);
+        }
+
+        private TrainUnitSnapshotEventMessagePack CreatePayload(TrainUnitSnapshotNotifyEventData notifyEventData)
+        {
+            var tick = _trainUpdateService.GetCurrentTick();
+            var tickSequenceId = _trainUpdateService.NextTickSequenceId();
+            if (notifyEventData.IsDeleted)
+            {
+                return new TrainUnitSnapshotEventMessagePack(
+                    notifyEventData.TrainInstanceId,
+                    true,
+                    null,
+                    tick,
+                    tickSequenceId);
+            }
+
+            var snapshot = TrainUnitSnapshotFactory.CreateSnapshot(notifyEventData.TrainUnit);
+            return new TrainUnitSnapshotEventMessagePack(
+                notifyEventData.TrainInstanceId,
+                false,
+                new TrainUnitSnapshotBundleMessagePack(snapshot),
+                tick,
+                tickSequenceId);
+        }
+
+        private void AddBroadcast(TrainUnitSnapshotEventMessagePack messagePack)
+        {
+            var bytes = MessagePackSerializer.Serialize(messagePack);
             _eventProtocolProvider.AddBroadcastEvent(EventTag, bytes);
         }
 

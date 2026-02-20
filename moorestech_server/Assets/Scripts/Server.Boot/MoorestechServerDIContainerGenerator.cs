@@ -150,6 +150,7 @@ namespace Server.Boot
             services.AddSingleton<RailGraphSaveLoadService, RailGraphSaveLoadService>();
             services.AddSingleton<TrainDockingStateRestorer>();
             services.AddSingleton<ITrainUpdateEvent, TrainUpdateEvent>();
+            services.AddSingleton<ITrainUnitSnapshotNotifyEvent, TrainUnitSnapshotNotifyEvent>();
             services.AddSingleton<TrainUpdateService>();
 
             //JSONファイルのセーブシステムの読み込み

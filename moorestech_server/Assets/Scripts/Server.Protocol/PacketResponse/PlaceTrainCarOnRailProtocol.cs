@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using Core.Master;
 using Game.PlayerInventory.Interface;
 using Game.Train.Diagram;
+using Game.Train.Event;
 using Game.Train.RailPositions;
 using Game.Train.Unit;
 using Game.Train.RailGraph;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
-using Server.Event.EventReceive;
 using Server.Util.MessagePack;
 
 namespace Server.Protocol.PacketResponse
@@ -21,7 +21,7 @@ namespace Server.Protocol.PacketResponse
         private readonly TrainUpdateService _trainUpdateService;
         private readonly TrainRailPositionManager _railPositionManager;
         private readonly TrainDiagramManager _diagramManager;
-        private readonly TrainUnitSnapshotEventPacket _trainUnitSnapshotEventPacket;
+        private readonly ITrainUnitSnapshotNotifyEvent _trainUnitSnapshotNotifyEvent;
         
         public PlaceTrainCarOnRailProtocol(ServiceProvider serviceProvider)
         {
@@ -30,7 +30,7 @@ namespace Server.Protocol.PacketResponse
             _trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
             _railPositionManager = serviceProvider.GetService<TrainRailPositionManager>();
             _diagramManager = serviceProvider.GetService<TrainDiagramManager>();
-            _trainUnitSnapshotEventPacket = serviceProvider.GetService<TrainUnitSnapshotEventPacket>();
+            _trainUnitSnapshotNotifyEvent = serviceProvider.GetService<ITrainUnitSnapshotNotifyEvent>();
         }
         
         public ProtocolMessagePackBase GetResponse(byte[] payload)
@@ -75,7 +75,7 @@ namespace Server.Protocol.PacketResponse
 
                 // 新規編成の単機スナップショットを通知する
                 // Broadcast a per-unit snapshot for the newly created train.
-                _trainUnitSnapshotEventPacket.BroadcastSnapshot(createdTrain);
+                _trainUnitSnapshotNotifyEvent.NotifySnapshot(createdTrain);
                 
                 return PlaceTrainOnRailResponseMessagePack.CreateSuccess();
                 
