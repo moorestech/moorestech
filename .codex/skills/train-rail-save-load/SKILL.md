@@ -9,6 +9,14 @@ description: Implement and validate save/load for train and rail systems based o
 
 Use this skill for developers implementing train/rail save-load changes under the current architecture.
 
+## Reuse-First Rule
+
+- Before adding new save/load helper logic, search existing train/rail implementations first.
+- Prefer existing `Game.Train` save/load components over introducing parallel client/server variants.
+- If duplication is unavoidable, document `WHY_NEW_IMPLEMENTATION` in code/PR notes.
+- Recommended pre-check:
+  - `rg --line-number "SaveLoad|Restore|Snapshot|ConnectionDestination|RailPosition" moorestech_client/Assets/Scripts moorestech_server/Assets/Scripts`
+
 ## Current Architecture (Must Preserve)
 
 - Rail connectivity is persisted as `railSegments` and restored by `RailGraphSaveLoadService`.

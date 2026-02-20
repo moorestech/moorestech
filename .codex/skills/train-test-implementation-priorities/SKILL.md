@@ -9,6 +9,14 @@ description: Plan and prioritize train integration test implementation by risk a
 
 Use this skill to avoid random test additions and focus on highest-risk gaps first.
 
+## Reuse-First Rule
+
+- Before adding new test-only helper implementations, search existing train helpers first.
+- Prefer reusing production helpers from `Game.Train` where valid, instead of cloning logic into tests.
+- If a duplicate helper is unavoidable, document `WHY_NEW_IMPLEMENTATION` in test comments/PR notes.
+- Recommended pre-check:
+  - `rg --line-number "Overlap|CreateIndex|HasOverlap|TrainTestHelper|RailPosition" moorestech_client/Assets/Scripts moorestech_server/Assets/Scripts`
+
 ## Priority Order
 
 Priority 1:
