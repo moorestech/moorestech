@@ -5,7 +5,6 @@ using Client.Game.InGame.Train.Network;
 using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.Train.Unit;
 using Cysharp.Threading.Tasks;
-using Server.Util.MessagePack;
 using UnityEngine;
 
 namespace Client.Game.InGame.Train.View
@@ -91,8 +90,8 @@ namespace Client.Game.InGame.Train.View
                 // Compare local train/rail hashes on the same tick
                 var localTrainHash = _trainCache.ComputeCurrentHash();
                 var localRailGraphHash = _railGraphCache.ComputeCurrentHash();
-                var isTrainMismatch = localTrainHash != message.UnitsHash;
-                var isRailGraphMismatch = localRailGraphHash != message.RailGraphHash;
+                var isTrainMismatch = localTrainHash != message.unitsHash;
+                var isRailGraphMismatch = localRailGraphHash != message.railGraphHash;
                 if (!isTrainMismatch && !isRailGraphMismatch)
                 {
                     _tickState.RecordAppliedTickUnifiedId(currentTickUnifiedId);
@@ -100,9 +99,9 @@ namespace Client.Game.InGame.Train.View
                 }
                 Debug.LogWarning(
                     $"[TrainUnitHashVerifier] Hash mismatch detected. tick={_tickState.GetTick()}, " +
-                    $"train(client={localTrainHash}, server={message.UnitsHash}), " +
-                    $"rail(client={localRailGraphHash}, server={message.RailGraphHash}), " +
-                    $"tickSequenceId={message.TickSequenceId}. Requesting snapshot.");
+                    $"train(client={localTrainHash}, server={message.unitsHash}), " +
+                    $"rail(client={localRailGraphHash}, server={message.railGraphHash}), " +
+                    $"tickSequenceId={message.tickSequenceId}. Requesting snapshot.");
                 if (Interlocked.CompareExchange(ref _resyncInProgress, 1, 0) == 1)
                     return false;
                 RequestSnapshotAsync(isRailGraphMismatch).Forget();
@@ -178,10 +177,10 @@ namespace Client.Game.InGame.Train.View
                 }
             }
 
-            bool IsDummyHash(TrainUnitHashStateMessagePack hashState)
+            bool IsDummyHash((uint unitsHash, uint railGraphHash, uint serverTick, uint tickSequenceId) hashState)
             {
-                return hashState.UnitsHash == TrainUnitHashStateMessagePack.DummyHash &&
-                    hashState.RailGraphHash == TrainUnitHashStateMessagePack.DummyHash;
+                return hashState.unitsHash == TrainUnitFutureMessageBuffer.DummyHash &&
+                    hashState.railGraphHash == TrainUnitFutureMessageBuffer.DummyHash;
             }
 
             #endregion
