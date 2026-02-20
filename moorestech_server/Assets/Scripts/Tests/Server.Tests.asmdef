@@ -47,7 +47,6 @@
         "UniRx",
         "Core.Master",
         "Server.Tests.Module",
-        "Game.CraftChainer",
         "Game.UnlockState",
         "Game.Fluid",
         "Game.Action",

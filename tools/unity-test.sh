@@ -8,7 +8,7 @@
 #   isGui / -g / --gui        : GUIモードで起動（デフォルトはバッチモード）
 #   -t <seconds> / --timeout <seconds> : タイムアウト時間を秒数で指定
 
-UNITY="/Applications/Unity/Hub/Editor/6000.2.6f2/Unity.app/Contents/MacOS/Unity"
+UNITY="/Applications/Unity/Hub/Editor/6000.3.8f1/Unity.app/Contents/MacOS/Unity"
 
 ###############################################################################
 # 引数パース
@@ -58,14 +58,34 @@ if [ $IS_GUI -eq 1 ]; then
 fi
 
 ###############################################################################
+# 起動チェック関数
+# Check if Unity is running function
+###############################################################################
+check_unity_running() {
+  local project="$1"
+
+  # プロジェクトパスの絶対パスを取得
+  # Get absolute path of the project
+  local abs_project
+  abs_project=$(cd "$project" && pwd)
+
+  # Unityプロセスが該当プロジェクトで起動しているかチェック
+  # Check if Unity process is running with this project
+  if ps aux | grep "[U]nity.app" | grep -qF "$abs_project"; then
+    echo "❌ Another Unity instance is already running with this project"
+    echo "    Project: $project"
+    echo "    Please close the existing Unity instance first"
+    return 1
+  fi
+
+  return 0
+}
+
+###############################################################################
 # 重複起動チェック
 # Check for duplicate Unity instance
 ###############################################################################
-LOCKFILE="$PROJECT/Temp/UnityLockfile"
-if [ -f "$LOCKFILE" ]; then
-  echo "❌ Another Unity instance is already running with this project"
-  echo "    Project: $PROJECT"
-  echo "    Please close the existing Unity instance first"
+if ! check_unity_running "$PROJECT"; then
   exit 1
 fi
 
