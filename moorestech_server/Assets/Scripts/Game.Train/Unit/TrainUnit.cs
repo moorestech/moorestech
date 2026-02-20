@@ -23,8 +23,8 @@ namespace Game.Train.Unit
         private readonly TrainUpdateService _trainUpdateService;
         private readonly TrainRailPositionManager _railPositionManager;
         private readonly TrainDiagramManager _diagramManager;
-        private Guid _trainId;
-        public Guid TrainId => _trainId;
+        private TrainInstanceId _trainInstanceId;
+        public TrainInstanceId TrainInstanceId => _trainInstanceId;
         private int _remainingDistance;// 自動減速用
         private bool _isAutoRun;
         public bool IsAutoRun => _isAutoRun;
@@ -75,7 +75,7 @@ namespace Game.Train.Unit
             _railPositionManager = railPositionManager;
             _diagramManager = diagramManager;
             _railPositionManager.RegisterRailPosition(_railPosition);
-            _trainId = Guid.NewGuid();
+            _trainInstanceId = TrainInstanceId.Create();
             _cars = cars;
             _currentSpeed = 0.0; // 仮の初期速度
             _isAutoRun = false;
@@ -659,7 +659,7 @@ namespace Game.Train.Unit
             _railPosition = null;
             trainUnitStationDocking = null;
             _cars = null;
-            _trainId = Guid.Empty;
+            _trainInstanceId = TrainInstanceId.Empty;
         }
     }
 }
