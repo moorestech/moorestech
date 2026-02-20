@@ -16,11 +16,21 @@ namespace Client.Tests.EditModeInPlayingTest
     /// </summary>
     public class PlayerMovementTest
     {
+        /// <summary>
+        /// テスト終了時にキー状態リークを防止する（アサート失敗時も保証）
+        /// Prevent key state leaks on test end (guaranteed even on assertion failure).
+        /// </summary>
+        [TearDown]
+        public void TearDown()
+        {
+            OsInputSpoof.ReleaseAllKeys();
+        }
+
         [UnityTest]
         public IEnumerator WAndDKeys_MovePlayerForwardRightTest()
         {
             EnterPlayModeUtil();
-            
+
             // yield return new EnterPlayMode　は必ず[UnityTest]関数の直下で呼び出すこと。そうでないとなぜかわからないがプレイモードに入らない
             // Always call yield return new EnterPlayMode directly under the [UnityTest] function. Otherwise, for unknown reasons, it will not enter PlayMode.
             yield return new EnterPlayMode(expectDomainReload: true);
@@ -41,6 +51,10 @@ namespace Client.Tests.EditModeInPlayingTest
 
             async UniTask TestBody()
             {
+                // OS 入力注入が使用不可なら Assert.Ignore でスキップ
+                // Skip via Assert.Ignore if OS input injection is not available
+                OsInputSpoof.AssertAvailableOrSkip();
+
                 // ゲーム起動
                 // Start the game
                 await LoadMainGame();
