@@ -9,7 +9,7 @@ namespace Game.Train.Unit.Containers
     {
         private readonly IItemStack[] _inventoryItems;
 
-        public ItemTrainCarContainer(IItemStack[] inventoryItems)
+        public ItemTrainCarContainer(params IItemStack[] inventoryItems)
         {
             _inventoryItems = inventoryItems;
         }

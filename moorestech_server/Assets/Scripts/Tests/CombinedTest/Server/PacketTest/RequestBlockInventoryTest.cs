@@ -17,6 +17,7 @@ using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;
 using System;
+using Game.Train.Unit.Containers;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -88,8 +89,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             environment.GetTrainUpdateService().RegisterTrain(trainUnit);
 
             var itemFactory = ServerContext.ItemStackFactory;
-            trainCar.SetItem(0, itemFactory.Create(new ItemId(1), 7));
-            trainCar.SetItem(1, itemFactory.Create(new ItemId(2), 3));
+            var itemContainer = new ItemTrainCarContainer(itemFactory.Create(new ItemId(1), 7), itemFactory.Create(new ItemId(2), 3));
+            trainCar.SetContainer(itemContainer);
 
             var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestTrain(trainCar.TrainCarInstanceId))[0];
             var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(responseBytes.ToArray());
