@@ -11,7 +11,7 @@ namespace Tests.Util
     {
         // 任意値でTrainCarを生成する基本メソッド
         // Creates a train car from explicit parameters and optional GUIDs.
-        public static (TrainCar trainCar, ItemTrainCarContainer itemContainer) CreateTrainCar(
+        public static (TrainCar trainCar, ItemTrainCarContainer itemContainer) CreateTrainCarWithItemContainer(
             int masterId,
             Guid trainCarGuid,
             Guid itemGuid,
@@ -30,14 +30,14 @@ namespace Tests.Util
 
         // GUIDを意識せずにTrainCarを生成する簡易メソッド
         // Convenience overload for callers that do not care about GUIDs.
-        public static (TrainCar trainCar, ItemTrainCarContainer itemContainer) CreateTrainCar(
+        public static (TrainCar trainCar, ItemTrainCarContainer itemContainer) CreateTrainCarWithItemContainer(
             int masterId,
             int tractionForce,
             int inventorySlotCount,
             int length,
             bool isFacingForward)
         {
-            return CreateTrainCar(masterId, Guid.Empty, Guid.Empty, tractionForce, inventorySlotCount, length, isFacingForward);
+            return CreateTrainCarWithItemContainer(masterId, Guid.Empty, Guid.Empty, tractionForce, inventorySlotCount, length, isFacingForward);
         }
 
         // TrainCarMasterElementだけを取得するヘルパー
