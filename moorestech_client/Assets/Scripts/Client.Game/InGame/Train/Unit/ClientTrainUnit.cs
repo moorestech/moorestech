@@ -198,7 +198,7 @@ namespace Client.Game.InGame.Train.Unit
                     {
                         if (distanceToMove > 0)
                         {
-                            Debug.LogWarning("サーバーから停止の差分が届いてない可能性があります。次のhash検証でmismatchになる可能性あり");
+                            Debug.LogWarning("1st hashよりApplySnapshotTrainUnitのtickが前ならこれは想定内です。次のhash検証でmismatchになる可能性あり");
                             break;
                         }
                     }
