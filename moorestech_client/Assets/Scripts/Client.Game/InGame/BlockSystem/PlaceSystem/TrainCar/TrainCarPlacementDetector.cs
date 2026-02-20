@@ -34,7 +34,7 @@ using static Client.Common.LayerConst;
 /// centerRailPositionから前方後方にtrainCar.Length/2の距離 DFSする
 /// その全経路の中に駅nodeがある場合、一番centerRailPositionに近いnodeに自動スナップ
 /// なければ要件3へ
-/// スナップはDFSでもう片方の端点を全探索する
+/// スナップはDFS(centerRailPosition方向にのみ)でもう片方の端点を全探索する
 /// なければ要件3へ
 /// 見つかった経路をTとする
 /// これらTと既存のtrainunit全体のRailPositionの重複を検査(1:多)、Tからtrainunitと重複がある経路を除去してT`
@@ -46,7 +46,7 @@ using static Client.Common.LayerConst;
 /// そのDFSで経路長がtrainCar.Length/2より短くて検出できなかった経路のみをピックアップ
 /// なければ要件4へ
 /// 一番centerRailPositionに近い距離でreturnしてきた経路の先端部分(レールの端)にスナップ
-/// DFSでもう片方の端点を全探索する
+/// DFS(centerRailPosition方向にのみ)でもう片方の端点を全探索する
 /// なければ要件4へ
 /// 見つかった経路をUとする
 /// これらUと既存のtrainunit全体のRailPositionの重複を検査(1:多)、Uからtrainunitと重複がある経路を除去してU`
@@ -56,6 +56,7 @@ using static Client.Common.LayerConst;
 /// 要件4 新規モード
 /// centerRailPositionから前方後方にtrainCar.Length/2の距離 DFSする
 /// 見つかった経路をVとする
+/// なければ配置不可
 /// V -> _selectionStepで1つを選択した経路をv
 /// vと既存のtrainunit全体のRailPositionの重複を検査(1:多)
 /// 重複していたら配置不可、なければ配置可能
@@ -77,6 +78,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
         private readonly TrainUnitClientCache _trainUnitCache;
         private readonly TrainCarCurveHitDistanceResolver _curveHitDistanceResolver;
         private readonly TrainCarCenterRailPositionResolver _centerRailPositionResolver;
+        private readonly TrainCarPlacementSnapPointFinder _snapPointFinder;
         private readonly RailPathTracer _pathTracer;
         private int _routePairCount;
         private int _selectionStep;
@@ -88,6 +90,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             _pathTracer = new RailPathTracer(cache);
             _curveHitDistanceResolver = new TrainCarCurveHitDistanceResolver();
             _centerRailPositionResolver = new TrainCarCenterRailPositionResolver(cache, _curveHitDistanceResolver);
+            _snapPointFinder = new TrainCarPlacementSnapPointFinder();
         }
 
         public void AdvanceSelection()
@@ -212,66 +215,110 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     }
                     
 
+                    // 要件1-4共通: 既存TrainUnit全体の重複indexを1回だけ構築して使い回す
+                    // Requirement 1-4 shared: build all-train overlap index once and reuse it
+                    var allTrainUnitRailPositions = CreateAllTrainUnitRailPositions();
+                    var allTrainUnitOverlapIndex = RailPositionOverlapDetector.CreateIndex(allTrainUnitRailPositions);
+
                     // 要件1: N'+M'候補と既存TrainUnit全体の重複を抽出する
                     // Requirement 1: detect overlaps between N'+M' candidates and existing train units
                     var requirement1OverlapIndex = CreateRequirement1OverlapIndex(centerRailPosition, trainLength);
                     overlapTrainInstanceIds = ResolveOverlapTrainUnitsForRequirement1(
                         centerRailPosition,
                         requirement1OverlapIndex,
+                        allTrainUnitOverlapIndex,
                         trainLength,
                         out var requirement1SnapStartPoint,
                         out var requirement1TargetTrainInstanceId,
                         out var requirement1AttachFacingForward,
                         out var requirement1AttachTargetEndpoint);
 
-                    // 要件1: 最短TrainUnitの接続点からS候補を作り、2S(反転込み)で選択する
-                    // Requirement 1: build S routes from nearest unit endpoint and select within 2S(with reverse)
+                    // 要件1: 最短TrainUnitの接続点からS候補を作り、重複経路を除外したS'を選択する
+                    // Requirement 1: build S routes from nearest unit endpoint and pick from overlap-filtered S'
                     if (requirement1SnapStartPoint != null && requirement1TargetTrainInstanceId != TrainInstanceId.Empty)
                     {
                         _routePairCount = 0;
-                        if (TryRebuildRequirement1SnapCandidates(requirement1SnapStartPoint, trainLength, out var requirement1Routes, out var requirement1RouteCount))
+                        if (TryRebuildRequirement1SnapCandidates(requirement1SnapStartPoint, trainLength, out var requirement1Routes, out _))
                         {
-                            _routePairCount = requirement1RouteCount;
-                            if (TryBuildSelectedSingleRoute(requirement1Routes, requirement1RouteCount, requirement1AttachFacingForward, out railPosition))
+                            var requirement1FilteredRoutes = FilterRoutesWithoutOverlap(requirement1Routes, allTrainUnitOverlapIndex);
+                            var requirement1FilteredRouteCount = requirement1FilteredRoutes.Count;
+                            if (requirement1FilteredRouteCount > 0)
                             {
-                                placementMode = TrainCarPlacementMode.AttachToExistingTrainUnit;
-                                targetTrainInstanceId = requirement1TargetTrainInstanceId;
-                                // 最短候補で使ったcenter前後向きを基準にし、R反転時は向きも反転させる
-                                // Base facing uses nearest center direction and flips when R-reverse is selected
-                                attachCarFacingForward = requirement1AttachFacingForward;
-                                attachTargetEndpoint = requirement1AttachTargetEndpoint;
+                                _routePairCount = requirement1FilteredRouteCount;
+                                if (TryBuildRequirement1SelectedSingleRoute(requirement1FilteredRoutes, requirement1FilteredRouteCount, requirement1AttachFacingForward, out railPosition))
+                                {
+                                    placementMode = TrainCarPlacementMode.AttachToExistingTrainUnit;
+                                    targetTrainInstanceId = requirement1TargetTrainInstanceId;
+                                    // 最短候補で使ったcenter前後向きを基準にし、R反転時は向きも反転させる
+                                    // Base facing uses nearest center direction and flips when R-reverse is selected
+                                    attachCarFacingForward = requirement1AttachFacingForward;
+                                    attachTargetEndpoint = requirement1AttachTargetEndpoint;
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                    overlapTrainInstanceIds = Array.Empty<TrainInstanceId>();
+
+                    // 要件2: 駅nodeスナップ候補を作り、重複除外後のT'から選択する
+                    // Requirement 2: build station-snap candidates and pick from overlap-filtered T'
+                    _routePairCount = 0;
+                    if (TryResolveRequirement2Routes(centerRailPosition, trainLength, allTrainUnitOverlapIndex, out var requirement2Routes))
+                    {
+                        var requirement2RouteCount = requirement2Routes.Count;
+                        if (requirement2RouteCount > 0)
+                        {
+                            _routePairCount = requirement2RouteCount;
+                            if (TryBuildSelectedSingleCreateRoute(requirement2Routes, requirement2RouteCount, out railPosition))
+                            {
                                 return true;
                             }
                         }
                     }
 
-                    // 要件2: 未実装
-                    // Requirement 2: not implemented yet
-                    // TODO: 要件2の配置判定ロジックを実装する
-                    // TODO: Implement requirement-2 placement logic
-
-                    // 要件3: 未実装
-                    // Requirement 3: not implemented yet
-                    // TODO: 要件3の配置判定ロジックを実装する
-                    // TODO: Implement requirement-3 placement logic
+                    // 要件3: レール端スナップ候補を作り、重複除外後のU'から選択する
+                    // Requirement 3: build rail-end snap candidates and pick from overlap-filtered U'
+                    _routePairCount = 0;
+                    if (TryResolveRequirement3Routes(centerRailPosition, trainLength, allTrainUnitOverlapIndex, out var requirement3Routes))
+                    {
+                        var requirement3RouteCount = requirement3Routes.Count;
+                        if (requirement3RouteCount > 0)
+                        {
+                            _routePairCount = requirement3RouteCount;
+                            if (TryBuildSelectedSingleCreateRoute(requirement3Routes, requirement3RouteCount, out railPosition))
+                            {
+                                return true;
+                            }
+                        }
+                    }
 
                     // 要件4候補（前輪側/後輪側）を毎フレーム再構築する
                     // Rebuild requirement-4 candidates (front/rear) every frame
                     _routePairCount = 0;
-                    if (!TryRebuildSelectionCandidates(centerRailPosition, trainLength, out var frontRoutes, out var rearRoutesFromCenter, out var routePairCount))
+                    if (!TryRebuildRequirement4SelectionCandidates(centerRailPosition, trainLength, out var frontRoutes, out var rearRoutesFromCenter, out var routePairCount))
                     {
                         return false;
                     }
                     _routePairCount = routePairCount;
 
-                    // 要件4: 現在のインデックス選択経路を利用する
-                    // Requirement 4: use the currently indexed route
-                    // 現在の選択状態(経路+反転)から最終RailPositionを構築する
-                    // Build final RailPosition from current route/reverse selection
-                    return TryBuildSelectedRailPosition(frontRoutes, rearRoutesFromCenter, routePairCount, out railPosition);
+                    // 要件4: Vから選択したvと既存TrainUnit全体を重複検査する
+                    // Requirement 4: test overlap between selected v from V and all existing train units
+                    if (!TryBuildRequirement4SelectedRailPosition(frontRoutes, rearRoutesFromCenter, routePairCount, out railPosition))
+                    {
+                        return false;
+                    }
+                    if (railPosition == null)
+                    {
+                        return false;
+                    }
+                    if (RailPositionOverlapDetector.HasOverlap(railPosition, allTrainUnitOverlapIndex))
+                    {
+                        return false;
+                    }
+                    return true;
                 }
 
-                bool TryBuildSelectedRailPosition(IReadOnlyList<RailPosition> frontRoutes, IReadOnlyList<RailPosition> rearRoutesFromCenter, int routePairCount, out RailPosition resolvedRailPosition)
+                bool TryBuildRequirement4SelectedRailPosition(IReadOnlyList<RailPosition> frontRoutes, IReadOnlyList<RailPosition> rearRoutesFromCenter, int routePairCount, out RailPosition resolvedRailPosition)
                 {
                     resolvedRailPosition = null;
                     if (routePairCount <= 0 || frontRoutes.Count <= 0 || rearRoutesFromCenter.Count <= 0)
@@ -300,7 +347,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 
                 // 要件1の単一ルート選択ビルド: S候補から選択された1本を最終RailPositionとして構築する
                 // Requirement-1 single route selection build: build the final RailPosition from the selected one among S candidates
-                bool TryBuildSelectedSingleRoute(IReadOnlyList<RailPosition> routes, int routeCount, bool attachCarFacingForward, out RailPosition resolvedRailPosition)
+                bool TryBuildRequirement1SelectedSingleRoute(IReadOnlyList<RailPosition> routes, int routeCount, bool attachCarFacingForward, out RailPosition resolvedRailPosition)
                 {
                     resolvedRailPosition = null;
                     if (routes == null || routeCount <= 0 || routes.Count <= 0)
@@ -338,9 +385,201 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     return true;
                 }
 
+                // 要件2/3の単一ルート選択: Rキー偶奇の2状態を保持しつつ経路を1本選ぶ
+                // Requirement-2/3 single-route selection: pick one route while keeping 2-state parity for R key
+                bool TryBuildSelectedSingleCreateRoute(IReadOnlyList<RailPosition> routes, int routeCount, out RailPosition resolvedRailPosition)
+                {
+                    resolvedRailPosition = null;
+                    if (routes == null || routeCount <= 0 || routes.Count <= 0)
+                    {
+                        return false;
+                    }
+
+                    var totalStateCount = routeCount * 2;
+                    if (totalStateCount <= 0)
+                    {
+                        return false;
+                    }
+
+                    var normalizedStep = _selectionStep % totalStateCount;
+                    var routeIndex = normalizedStep / 2;
+                    if (routeIndex < 0 || routeIndex >= routes.Count)
+                    {
+                        return false;
+                    }
+
+                    resolvedRailPosition = routes[routeIndex]?.DeepCopy();
+                    return resolvedRailPosition != null;
+                }
+
+                // 要件1-4共通: 既存TrainUnitのRailPosition一覧を生成する
+                // Requirement 1-4 shared: build the list of all existing train-unit RailPositions
+                List<RailPosition> CreateAllTrainUnitRailPositions()
+                {
+                    var positions = new List<RailPosition>();
+                    foreach (var pair in _trainUnitCache.Units)
+                    {
+                        var unit = pair.Value;
+                        if (unit == null || unit.RailPosition == null)
+                        {
+                            continue;
+                        }
+                        positions.Add(unit.RailPosition);
+                    }
+                    return positions;
+                }
+
+                // 要件1-4共通: 候補経路から既存TrainUnitと重複する経路を除外する
+                // Requirement 1-4 shared: remove candidate routes that overlap existing train units
+                List<RailPosition> FilterRoutesWithoutOverlap(IReadOnlyList<RailPosition> candidateRoutes, RailPositionOverlapDetector.OverlapIndex allTrainUnitOverlapIndex)
+                {
+                    var filteredRoutes = new List<RailPosition>();
+                    if (candidateRoutes == null || candidateRoutes.Count <= 0)
+                    {
+                        return filteredRoutes;
+                    }
+
+                    for (var i = 0; i < candidateRoutes.Count; i++)
+                    {
+                        var candidate = candidateRoutes[i];
+                        if (candidate == null)
+                        {
+                            continue;
+                        }
+                        if (allTrainUnitOverlapIndex != null && RailPositionOverlapDetector.HasOverlap(candidate, allTrainUnitOverlapIndex))
+                        {
+                            continue;
+                        }
+                        filteredRoutes.Add(candidate);
+                    }
+                    return filteredRoutes;
+                }
+
+                // 要件2: 駅nodeスナップ候補T'を構築する
+                // Requirement 2: build overlap-filtered station snap candidates T'
+                bool TryResolveRequirement2Routes(
+                    RailPosition centerRailPosition,
+                    int trainLength,
+                    RailPositionOverlapDetector.OverlapIndex allTrainUnitOverlapIndex,
+                    out List<RailPosition> requirement2Routes)
+                {
+                    requirement2Routes = new List<RailPosition>();
+                    if (centerRailPosition == null || trainLength <= 0)
+                    {
+                        return false;
+                    }
+
+                    var frontLength = (trainLength + 1) / 2;
+                    var rearLength = trainLength / 2;
+                    var frontRoutes = new List<RailPosition>();
+                    var rearRoutesFromCenter = new List<RailPosition>();
+                    if (!TryBuildFrontRearRoutes(centerRailPosition, frontLength, rearLength, frontRoutes, rearRoutesFromCenter))
+                    {
+                        return false;
+                    }
+                    if (!_snapPointFinder.TryFindRequirement2NearestStationSnapPoint(
+                            centerRailPosition,
+                            frontRoutes,
+                            rearRoutesFromCenter,
+                            frontLength,
+                            rearLength,
+                            out var snapStartPoint))
+                    {
+                        return false;
+                    }
+                    if (!TryBuildSnapRoutesFromPoint(snapStartPoint, trainLength, out var tracedRoutes))
+                    {
+                        return false;
+                    }
+
+                    var filteredRoutes = FilterRoutesWithoutOverlap(tracedRoutes, allTrainUnitOverlapIndex);
+                    if (filteredRoutes.Count <= 0)
+                    {
+                        return false;
+                    }
+                    requirement2Routes.AddRange(filteredRoutes);
+                    return true;
+                }
+
+                // 要件3: レール端スナップ候補U'を構築する
+                // Requirement 3: build overlap-filtered rail-end snap candidates U'
+                bool TryResolveRequirement3Routes(
+                    RailPosition centerRailPosition,
+                    int trainLength,
+                    RailPositionOverlapDetector.OverlapIndex allTrainUnitOverlapIndex,
+                    out List<RailPosition> requirement3Routes)
+                {
+                    requirement3Routes = new List<RailPosition>();
+                    if (centerRailPosition == null || trainLength <= 0)
+                    {
+                        return false;
+                    }
+
+                    var frontLength = (trainLength + 1) / 2;
+                    var rearLength = trainLength / 2;
+                    var frontUnreachedRoutes = new List<RailPathTracer.UnreachedRoute>();
+                    var rearUnreachedRoutes = new List<RailPathTracer.UnreachedRoute>();
+                    var centerForwardPoint = centerRailPosition.DeepCopy();
+                    if (_pathTracer.TryTraceForwardUnreachedRoutesByDfs(centerForwardPoint, frontLength, out var tracedFrontUnreached) &&
+                        tracedFrontUnreached != null &&
+                        tracedFrontUnreached.Count > 0)
+                    {
+                        frontUnreachedRoutes.AddRange(tracedFrontUnreached);
+                    }
+
+                    var centerBackwardPoint = centerRailPosition.DeepCopy();
+                    centerBackwardPoint.Reverse();
+                    if (_pathTracer.TryTraceForwardUnreachedRoutesByDfs(centerBackwardPoint, rearLength, out var tracedRearUnreached) &&
+                        tracedRearUnreached != null &&
+                        tracedRearUnreached.Count > 0)
+                    {
+                        rearUnreachedRoutes.AddRange(tracedRearUnreached);
+                    }
+
+                    if (!_snapPointFinder.TryFindRequirement3NearestRailEndSnapPoint(centerRailPosition, frontUnreachedRoutes, rearUnreachedRoutes, out var snapStartPoint))
+                    {
+                        return false;
+                    }
+                    if (!TryBuildSnapRoutesFromPoint(snapStartPoint, trainLength, out var tracedRoutes))
+                    {
+                        return false;
+                    }
+
+                    var filteredRoutes = FilterRoutesWithoutOverlap(tracedRoutes, allTrainUnitOverlapIndex);
+                    if (filteredRoutes.Count <= 0)
+                    {
+                        return false;
+                    }
+                    requirement3Routes.AddRange(filteredRoutes);
+                    return true;
+                }
+
+                // 要件1-3共通: スナップ開始点から車両長ぶんの全経路を列挙する
+                // Requirement 1-3 shared: enumerate all train-length routes from a snap start point
+                bool TryBuildSnapRoutesFromPoint(RailPosition snapStartPoint, int trainLength, out List<RailPosition> routes)
+                {
+                    routes = new List<RailPosition>();
+                    if (snapStartPoint == null || trainLength <= 0)
+                    {
+                        return false;
+                    }
+
+                    var traceStartPoint = snapStartPoint.GetHeadRailPosition();
+                    if (!_pathTracer.TryTraceForwardRoutesByDfs(traceStartPoint, trainLength, out var tracedRoutes) ||
+                        tracedRoutes == null ||
+                        tracedRoutes.Count <= 0)
+                    {
+                        return false;
+                    }
+
+                    routes.AddRange(tracedRoutes);
+                    return routes.Count > 0;
+                }
+
                 IReadOnlyList<TrainInstanceId> ResolveOverlapTrainUnitsForRequirement1(
                     RailPosition centerRailPosition,
                     RailPositionOverlapDetector.OverlapIndex requirement1OverlapIndex,
+                    RailPositionOverlapDetector.OverlapIndex allTrainUnitOverlapIndex,
                     int trainLength,
                     out RailPosition requirement1SnapStartPoint,
                     out TrainInstanceId requirement1TargetTrainInstanceId,
@@ -353,19 +592,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     requirement1AttachTargetEndpoint = TrainCarAttachTargetEndpoint.Head;
                     // listA(N'+M')候補と既存TrainUnit全体(listB)の多:多を先に一括判定する
                     // Run a many-to-many precheck between listA(N'+M') and all existing train units(listB)
-                    var allTrainUnitRailPositionsForRequirement1 = new List<RailPosition>();
-
-                    foreach (var pair in _trainUnitCache.Units)
-                    {
-                        var unit = pair.Value;
-                        if (unit == null || unit.RailPosition == null)
-                        {
-                            continue;
-                        }
-                        allTrainUnitRailPositionsForRequirement1.Add(unit.RailPosition);
-                    }
-
-                    var allTrainUnitOverlapIndex = RailPositionOverlapDetector.CreateIndex(allTrainUnitRailPositionsForRequirement1);
                     if (!RailPositionOverlapDetector.HasOverlap(requirement1OverlapIndex, allTrainUnitOverlapIndex))
                     {
                         return Array.Empty<TrainInstanceId>();
@@ -557,7 +783,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     return RailPositionOverlapDetector.CreateIndex(requirement1OverlapProbeRoutes);
                 }
 
-                bool TryRebuildSelectionCandidates(RailPosition centerRailPosition, int trainLength, out List<RailPosition> frontRoutes, out List<RailPosition> rearRoutesFromCenter, out int routePairCount)
+                bool TryRebuildRequirement4SelectionCandidates(RailPosition centerRailPosition, int trainLength, out List<RailPosition> frontRoutes, out List<RailPosition> rearRoutesFromCenter, out int routePairCount)
                 {
                     // 要件4の候補経路を毎フレーム再構築する
                     // Rebuild requirement-4 candidate routes every frame
