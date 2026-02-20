@@ -59,12 +59,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
         {
             // 候補総数に応じて次の状態へ進める
             // Advance to the next state within current candidate count
-            var totalStateCount = (long)_routePairCount * 2;
+            var totalStateCount = _routePairCount * 2;
             if (totalStateCount <= 0)
             {
                 return;
             }
-            _selectionStep = (int)((_selectionStep + 1L) % totalStateCount);
+            _selectionStep = (_selectionStep + 1) % totalStateCount;
         }
 
         public void ResetSelection()
@@ -189,7 +189,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                         return false;
                     }
 
-                    var totalStateCount = (long)routePairCount * 2;
+                    var totalStateCount = routePairCount * 2;
                     if (totalStateCount <= 0)
                     {
                         return false;
@@ -309,7 +309,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                         return false;
                     }
 
-                    var pairCount = (long)frontRoutes.Count * rearRoutesFromCenter.Count;
+                    var pairCount = frontRoutes.Count * rearRoutesFromCenter.Count;
                     routePairCount = pairCount > int.MaxValue ? int.MaxValue : (int)pairCount;
                     return routePairCount > 0;
                 }
