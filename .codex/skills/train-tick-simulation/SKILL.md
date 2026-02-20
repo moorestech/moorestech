@@ -9,6 +9,14 @@ description: Define and enforce deterministic train tick-phase behavior between 
 
 Use this skill to keep server/client simulation aligned by unified chronological ordering.
 
+## Reuse-First Rule
+
+- Before adding tick/event helper logic, search existing train implementations first.
+- Prefer shared `Game.Train` logic over per-handler duplicate implementations.
+- If duplication is unavoidable, document `WHY_NEW_IMPLEMENTATION` in code/PR notes.
+- Recommended pre-check:
+  - `rg --line-number "TickUnifiedId|TickSequenceId|Overlap|CreateIndex|HasOverlap" moorestech_client/Assets/Scripts moorestech_server/Assets/Scripts`
+
 ## Target Tick Flow (Current)
 
 Server order:
