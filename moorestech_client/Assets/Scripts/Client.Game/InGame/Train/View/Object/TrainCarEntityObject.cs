@@ -99,6 +99,7 @@ namespace Client.Game.InGame.Train.View.Object
             Resources.UnloadAsset(placePreviewMaterial);
         }
 
+        // 事実上、新規でTrainCarを設置しようとしたときに連結できますよを視覚的に知らせるための表示のみ用
         public void SetPlacementOverlapPreviewing()
         {
             // 設置候補重複ハイライトは設置可能色(青)で表示する
