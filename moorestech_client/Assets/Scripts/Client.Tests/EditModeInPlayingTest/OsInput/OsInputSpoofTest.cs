@@ -1,12 +1,12 @@
 using System.Collections;
-using Client.Tests.PlayModeTest.Util;
+using Client.Tests.EditModeInPlayingTest.OsInput;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.TestTools;
 
-namespace Client.Tests.PlayModeTest
+namespace Client.Tests.EditModeInPlayingTest
 {
     /// <summary>
     /// OsInputSpoof による入力合成を EditMode で検証するテスト

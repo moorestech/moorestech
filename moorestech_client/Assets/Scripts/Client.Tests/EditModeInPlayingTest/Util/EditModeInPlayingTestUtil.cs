@@ -22,11 +22,11 @@ using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
 
-namespace Client.Tests.PlayModeTest.Util
+namespace Client.Tests.EditModeInPlayingTest.Util
 {
-    public class PlayModeTestUtil
+    public class EditModeInPlayingTestUtil
     {
-        public static string PlayModeTestServerDirectoryPath => Path.Combine(Environment.CurrentDirectory, "../", "moorestech_client", "Assets/Scripts/Client.Tests/PlayModeTest/ServerData");
+        public static string EditModeInPlayingTestServerDirectoryPath => Path.Combine(Environment.CurrentDirectory, "../", "moorestech_client", "Assets/Scripts/Client.Tests/EditModeInPlayingTest/ServerData");
         
         public static void EnterPlayModeUtil()
         {
@@ -40,7 +40,7 @@ namespace Client.Tests.PlayModeTest.Util
         public static async UniTask LoadMainGame(string serverDirectory = null, string saveFilePath = null)
         {
             saveFilePath ??= $"dummy_play_mode_test_{Guid.NewGuid()}.json";
-            serverDirectory ??= PlayModeTestServerDirectoryPath;
+            serverDirectory ??= EditModeInPlayingTestServerDirectoryPath;
             
             // 初期化シーンをロード
             // Load the initialization scene

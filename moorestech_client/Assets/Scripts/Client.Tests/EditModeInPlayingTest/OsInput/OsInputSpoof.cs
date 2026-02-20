@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.LowLevel;
 
-namespace Client.Tests.PlayModeTest.Util
+namespace Client.Tests.EditModeInPlayingTest.OsInput
 {
     /// <summary>
     /// OS レベルでキー・マウス入力を合成イベントとして注入するユーティリティ

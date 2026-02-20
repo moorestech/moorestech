@@ -9,6 +9,7 @@ const STATE_FILE = path.join(os.homedir(), '.claude', 'statusline_state.json');
 const BAR_WIDTH = 20;
 const SPARK_CHARS = '▁▂▃▄▅▆▇█';
 const SESSION_HOURS = 5;
+const AUTOCOMPACT_BUFFER_RATIO = 0.165; // ⛝ Autocompact buffer (~16.5% of context window)
 
 // Read JSON from stdin
 let input = '';
@@ -311,9 +312,11 @@ function buildStatusLine(data) {
     const totalInputCtx = compactInput + effCacheRead + effCacheWrite;
     const cacheHitRate  = totalInputCtx > 0 ? Math.round(effCacheRead / totalInputCtx * 100) : 0;
 
-    const contextRatio  = Math.min(compactTokens / contextMax, 1);
-    // Prefer API pre-calculated percentage; fallback to manual ratio
-    const pct2          = apiUsedPct !== null ? Math.min(100, Math.round(apiUsedPct)) : Math.round(contextRatio * 100);
+    // Subtract autocompact buffer to show effective context usage (⛝ ~16.5% reserved before compact triggers)
+    const effectiveContextMax = Math.round(contextMax * (1 - AUTOCOMPACT_BUFFER_RATIO));
+    const contextRatio  = Math.min(compactTokens / effectiveContextMax, 1);
+    // Prefer API pre-calculated percentage; rescale to effective context (100% = autocompact threshold)
+    const pct2          = apiUsedPct !== null ? Math.min(100, Math.round(apiUsedPct / (1 - AUTOCOMPACT_BUFFER_RATIO))) : Math.round(contextRatio * 100);
 
     // Total tokens for sparkline (use JSONL-based compact tokens)
     const totalTokens = compactTokens;
@@ -357,7 +360,7 @@ function buildStatusLine(data) {
 
     // Line 2: Compact: [bar] [58%] 91.8K/200.0K ♻️ 99% cached
     const cacheStr = cacheHitRate >= 1 ? ` ♻️  ${cacheHitRate}% cached` : '';
-    const line2 = `Compact: ${makeBar(contextRatio, BAR_WIDTH)} [${pct2}%] ${formatK(compactTokens)}/${formatK(contextMax)}${cacheStr}`;
+    const line2 = `Compact: ${makeBar(contextRatio, BAR_WIDTH)} [${pct2}%] ${formatK(compactTokens)}/${formatK(effectiveContextMax)}${cacheStr}`;
 
     // Line 3: Session: [bar] [25%] 1h15m/5h 09:15 (08:00 to 13:00)
     const pct3 = Math.round(sessionRatio * 100);
