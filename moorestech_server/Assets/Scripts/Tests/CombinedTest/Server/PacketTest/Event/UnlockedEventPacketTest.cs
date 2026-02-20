@@ -32,7 +32,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             // イベントがないことを確認する
             // Make sure there are no events
             var response = packet.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId));
-            var eventMessagePack = MessagePackSerializer.Deserialize<EventProtocol.ResponseEventProtocolMessagePack>(response[0].ToArray());
+            var eventMessagePack = MessagePackSerializer.Deserialize<EventProtocol.ResponseEventProtocolMessagePack>(response[0]);
             Assert.AreEqual(0, eventMessagePack.Events.Count);
             
             // レシピのアンロック状態を変更
@@ -47,7 +47,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             // イベントを受け取り、テストする
             // Receive and test the event
             response = packet.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId));
-            eventMessagePack = MessagePackSerializer.Deserialize<EventProtocol.ResponseEventProtocolMessagePack>(response[0].ToArray());
+            eventMessagePack = MessagePackSerializer.Deserialize<EventProtocol.ResponseEventProtocolMessagePack>(response[0]);
             
             // イベントがあることを確認する
             // Make sure there are events
@@ -94,7 +94,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             // イベントを受け取り、テストする
             // Receive and test the event
             var response = packet.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId));
-            var eventMessagePack = MessagePackSerializer.Deserialize<EventProtocol.ResponseEventProtocolMessagePack>(response[0].ToArray());
+            var eventMessagePack = MessagePackSerializer.Deserialize<EventProtocol.ResponseEventProtocolMessagePack>(response[0]);
             
             // レシピアンロックのイベントを取得
             // Get the recipe unlock event

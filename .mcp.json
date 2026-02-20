@@ -1,13 +1,5 @@
 {
   "mcpServers": {
-    "moorestech_server": {
-      "type": "http",
-      "url": "http://localhost:56901/mcp"
-    },
-    "moorestech_client": {
-      "type": "http",
-      "url": "http://localhost:56902/mcp"
-    },
     "serena": {
       "type": "stdio",
       "command": "uvx",
@@ -19,7 +11,7 @@
         "ide-assistant",
         "--project",
         "/Users/sato-katsumi/moorestech",
-        "--enable-web-dashboard", 
+        "--enable-web-dashboard",
         "False"
       ],
       "env": {}

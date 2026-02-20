@@ -5,6 +5,7 @@ using System.Linq;
 using lilToon;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class lilToonPreset : ScriptableObject
 {
@@ -67,17 +68,18 @@ public class lilToonPreset : ScriptableObject
             material.SetFloat(f.name, f.value);
         }
         if(preset.shader != null) material.shader = preset.shader;
-        bool isoutl         = preset.outline == -1 ? material.shader.name.Contains("Outline") : (preset.outline == 1);
-        bool istess         = preset.tessellation == -1 ? material.shader.name.Contains("Tessellation") : (preset.tessellation == 1);
+        var shaderName = material.shader.name;
+        bool isoutl         = preset.outline == -1 ? lilShaderUtils.IsOutlineShaderName(shaderName) : (preset.outline == 1);
+        bool istess         = preset.tessellation == -1 ? lilShaderUtils.IsTessellationShaderName(shaderName) : (preset.tessellation == 1);
 
-        bool islite         = material.shader.name.Contains("Lite");
-        bool iscutout       = material.shader.name.Contains("Cutout");
-        bool istransparent  = material.shader.name.Contains("Transparent");
-        bool isrefr         = material.shader.name.Contains("Refraction");
-        bool isblur         = material.shader.name.Contains("Blur");
-        bool isfur          = material.shader.name.Contains("Fur");
-        bool isonepass      = material.shader.name.Contains("OnePass");
-        bool istwopass      = material.shader.name.Contains("TwoPass");
+        bool islite         = lilShaderUtils.IsLiteShaderName(shaderName);
+        bool iscutout       = lilShaderUtils.IsCutoutShaderName(shaderName);
+        bool istransparent  = lilShaderUtils.IsTransparentShaderName(shaderName);
+        bool isrefr         = lilShaderUtils.IsRefractionShaderName(shaderName);
+        bool isblur         = lilShaderUtils.IsBlurShaderName(shaderName);
+        bool isfur          = lilShaderUtils.IsFurShaderName(shaderName);
+        bool isonepass      = lilShaderUtils.IsOnePassShaderName(shaderName);
+        bool istwopass      = lilShaderUtils.IsTwoPassShaderName(shaderName);
 
         var renderingMode = RenderingMode.Opaque;
 
@@ -147,6 +149,7 @@ public class lilToonPreset : ScriptableObject
         private bool shouldSaveNormalMap = true;
         private bool shouldSaveNormalMap2nd = true;
         private bool shouldSaveAnisotropy = true;
+        private bool shouldSaveRimShade = true;
         private bool shouldSaveBacklight = true;
         private bool shouldSaveReflection = true;
         private bool shouldSaveMatCap = true;
@@ -179,6 +182,7 @@ public class lilToonPreset : ScriptableObject
         private bool isShowFeatures = false;
         private bool isShowTextures = false;
 
+        #pragma warning disable CS0612
         private void OnGUI()
         {
             if(!(Selection.activeObject is Material)){
@@ -208,19 +212,20 @@ public class lilToonPreset : ScriptableObject
             Array.Resize(ref preset.vectors, 0);
             Array.Resize(ref preset.floats, 0);
             Array.Resize(ref preset.textures, 0);
-            if(material.shader != null && !string.IsNullOrEmpty(material.shader.name))
+            string shaderName;
+            if(material.shader != null && !string.IsNullOrEmpty(shaderName = material.shader.name))
             {
-                isOutl        = material.shader.name.Contains("Outline");
-                isTess        = material.shader.name.Contains("Tessellation");
+                isOutl        = lilShaderUtils.IsOutlineShaderName(shaderName);
+                isTess        = lilShaderUtils.IsTessellationShaderName(shaderName);
                 renderingMode = RenderingMode.Opaque;
-                if(material.shader.name.Contains("Cutout"))         renderingMode = RenderingMode.Cutout;
-                if(material.shader.name.Contains("Transparent"))    renderingMode = RenderingMode.Transparent;
-                if(material.shader.name.Contains("Refraction"))     renderingMode = RenderingMode.Refraction;
-                if(material.shader.name.Contains("RefractionBlur")) renderingMode = RenderingMode.RefractionBlur;
-                if(material.shader.name.Contains("Fur"))            renderingMode = RenderingMode.Fur;
-                if(material.shader.name.Contains("FurCutout"))      renderingMode = RenderingMode.FurCutout;
-                if(material.shader.name.Contains("FurTwoPass"))     renderingMode = RenderingMode.FurTwoPass;
-                if(material.shader.name.Contains("Gem"))            renderingMode = RenderingMode.Gem;
+                if(lilShaderUtils.IsCutoutShaderName(shaderName))         renderingMode = RenderingMode.Cutout;
+                if(lilShaderUtils.IsTransparentShaderName(shaderName))    renderingMode = RenderingMode.Transparent;
+                if(lilShaderUtils.IsRefractionShaderName(shaderName))     renderingMode = RenderingMode.Refraction;
+                if(lilShaderUtils.IsRefractionBlurShaderName(shaderName)) renderingMode = RenderingMode.RefractionBlur;
+                if(lilShaderUtils.IsFurShaderName(shaderName))            renderingMode = RenderingMode.Fur;
+                if(lilShaderUtils.IsFurCutoutShaderName(shaderName))      renderingMode = RenderingMode.FurCutout;
+                if(lilShaderUtils.IsFurTwoPassShaderName(shaderName))     renderingMode = RenderingMode.FurTwoPass;
+                if(lilShaderUtils.IsGemShaderName(shaderName))            renderingMode = RenderingMode.Gem;
             }
             else
             {
@@ -277,6 +282,7 @@ public class lilToonPreset : ScriptableObject
                 shouldSaveNormalMap                 = EditorGUILayout.ToggleLeft(GetLoc("sNormalMap"), shouldSaveNormalMap);
                 shouldSaveNormalMap2nd              = EditorGUILayout.ToggleLeft(GetLoc("sNormalMap2nd"), shouldSaveNormalMap2nd);
                 shouldSaveAnisotropy                = EditorGUILayout.ToggleLeft(GetLoc("sAnisotropy"), shouldSaveAnisotropy);
+                shouldSaveRimShade                  = EditorGUILayout.ToggleLeft(GetLoc("sRimShade"), shouldSaveRimShade);
                 shouldSaveBacklight                 = EditorGUILayout.ToggleLeft(GetLoc("sBacklight"), shouldSaveBacklight);
                 shouldSaveReflection                = EditorGUILayout.ToggleLeft(GetLoc("sReflection"), shouldSaveReflection);
                 shouldSaveMatCap                    = EditorGUILayout.ToggleLeft(GetLoc("sMatCap"), shouldSaveMatCap);
@@ -327,13 +333,13 @@ public class lilToonPreset : ScriptableObject
                 if(GUILayout.Button("Deselect All")) ToggleAllTextures(material, false);
                 EditorGUILayout.EndHorizontal();
 
-                int propCount = ShaderUtil.GetPropertyCount(material.shader);
+                int propCount = material.shader.GetPropertyCount();
                 for(int i = 0; i < propCount; i++)
                 {
-                    var propType = ShaderUtil.GetPropertyType(material.shader, i);
-                    if(propType != ShaderUtil.ShaderPropertyType.TexEnv) continue;
+                    var propType = material.shader.GetPropertyType(i);
+                    if(propType != ShaderPropertyType.Texture) continue;
 
-                    string propName = ShaderUtil.GetPropertyName(material.shader, i);
+                    string propName = material.shader.GetPropertyName(i);
                     bool shouldSave = shouldSaveTexs.Contains(propName);
                     EditorGUI.BeginChangeCheck();
                     shouldSave = EditorGUILayout.ToggleLeft(propName, shouldSave);
@@ -388,13 +394,14 @@ public class lilToonPreset : ScriptableObject
 
             EditorGUILayout.EndScrollView();
         }
+        #pragma warning restore CS0612
 
         private void CopyPropertiesToPreset(Material material)
         {
-            int propCount = ShaderUtil.GetPropertyCount(material.shader);
+            int propCount = material.shader.GetPropertyCount();
             for(int i = 0; i < propCount; i++)
             {
-                string propName = ShaderUtil.GetPropertyName(material.shader, i);
+                string propName = material.shader.GetPropertyName(i);
 
                 if(!(
                     shouldSaveBase && lilPropertyNameChecker.IsBaseProperty(propName) ||
@@ -410,6 +417,7 @@ public class lilToonPreset : ScriptableObject
                     shouldSaveNormalMap && lilPropertyNameChecker.IsNormalMapProperty(propName) ||
                     shouldSaveNormalMap2nd && lilPropertyNameChecker.IsNormalMap2ndProperty(propName) ||
                     shouldSaveAnisotropy && lilPropertyNameChecker.IsAnisotropyProperty(propName) ||
+                    shouldSaveRimShade && lilPropertyNameChecker.IsRimShadeProperty(propName) ||
                     shouldSaveBacklight && lilPropertyNameChecker.IsBacklightProperty(propName) ||
                     shouldSaveReflection && lilPropertyNameChecker.IsReflectionProperty(propName) ||
                     shouldSaveMatCap && lilPropertyNameChecker.IsMatCapProperty(propName) ||
@@ -431,20 +439,20 @@ public class lilToonPreset : ScriptableObject
                     shouldSaveFurRendering && lilPropertyNameChecker.IsFurRenderingProperty(propName)
                 )) continue;
 
-                var propType = ShaderUtil.GetPropertyType(material.shader, i);
-                if(propType == ShaderUtil.ShaderPropertyType.Color)
+                var propType = material.shader.GetPropertyType(i);
+                if(propType == ShaderPropertyType.Color)
                 {
                     Array.Resize(ref preset.colors, preset.colors.Length + 1);
                     preset.colors[preset.colors.Length-1].name = propName;
                     preset.colors[preset.colors.Length-1].value = material.GetColor(propName);
                 }
-                if(propType == ShaderUtil.ShaderPropertyType.Vector)
+                if(propType == ShaderPropertyType.Vector)
                 {
                     Array.Resize(ref preset.vectors, preset.vectors.Length + 1);
                     preset.vectors[preset.vectors.Length-1].name = propName;
                     preset.vectors[preset.vectors.Length-1].value = material.GetVector(propName);
                 }
-                if(propType == ShaderUtil.ShaderPropertyType.Float || propType == ShaderUtil.ShaderPropertyType.Range)
+                if(propType == ShaderPropertyType.Float || propType == ShaderPropertyType.Range)
                 {
                     if(!(!shouldSaveStencil && propName == "_StencilRef" && propName == "_StencilComp" && propName == "_StencilPass" && propName == "_StencilFail" && propName == "_StencilZFail"))
                     {
@@ -489,6 +497,7 @@ public class lilToonPreset : ScriptableObject
             shouldSaveNormalMap = val;
             shouldSaveNormalMap2nd = val;
             shouldSaveAnisotropy = val;
+            shouldSaveRimShade = val;
             shouldSaveBacklight = val;
             shouldSaveReflection = val;
             shouldSaveMatCap = val;
@@ -512,19 +521,19 @@ public class lilToonPreset : ScriptableObject
 
         private void ToggleAllTextures(Material material, bool val)
         {
-            int propCount = ShaderUtil.GetPropertyCount(material.shader);
+            int propCount = material.shader.GetPropertyCount();
             for(int i = 0; i < propCount; i++)
             {
-                var propType = ShaderUtil.GetPropertyType(material.shader, i);
-                if(propType != ShaderUtil.ShaderPropertyType.TexEnv) continue;
+                var propType = material.shader.GetPropertyType(i);
+                if(propType != ShaderPropertyType.Texture) continue;
 
-                string propName = ShaderUtil.GetPropertyName(material.shader, i);
+                string propName = material.shader.GetPropertyName(i);
                 if(val && !shouldSaveTexs.Contains(propName)) shouldSaveTexs.Add(propName);
                 if(!val && shouldSaveTexs.Contains(propName)) shouldSaveTexs.Remove(propName);
             }
         }
 
-        public static string GetLoc(string value) { return lilLanguageManager.GetLoc(value); }
+        private static string GetLoc(string value) { return lilLanguageManager.GetLoc(value); }
     }
     #endregion
 }

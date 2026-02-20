@@ -17,6 +17,7 @@ namespace lilToon
     {
         internal static void SetupMaterialWithRenderingMode(Material material, RenderingMode renderingMode, TransparentMode transparentMode, bool isoutl, bool islite, bool istess, bool ismulti)
         {
+            Undo.RecordObject(material, null);
             int renderQueue = GetTrueRenderQueue(material);
             RenderingMode rend = renderingMode;
             lilRenderPipeline RP = lilRenderPipelineReader.GetRP();
@@ -354,6 +355,7 @@ namespace lilToon
             int tpmode = 0;
             if(material.HasProperty("_TransparentMode")) tpmode = (int)material.GetFloat("_TransparentMode");
             bool useShadow = IsFeatureOnFloat(material, "_UseShadow");
+            bool useRimShade = IsFeatureOnFloat(material, "_UseRimShade");
             bool useDistanceFade = IsFeatureOnVectorZ(material, "_DistanceFade");
             bool useEmission = IsFeatureOnFloat(material, "_UseEmission");
             bool useEmission2nd = IsFeatureOnFloat(material, "_UseEmission2nd");
@@ -386,10 +388,11 @@ namespace lilToon
             bool useEmissionBlendMask = IsFeatureOnTexture(material, "_EmissionBlendMask");
             bool useEmission2ndBlendMask = IsFeatureOnTexture(material, "_Emission2ndBlendMask");
 
-            bool isOutl = material.shader.name.Contains("Outline");
-            bool isRefr = material.shader.name.Contains("Refraction");
-            bool isFur = material.shader.name.Contains("Fur");
-            bool isGem = material.shader.name.Contains("Gem");
+            var shaderName = material.shader.name;
+            bool isOutl = lilShaderUtils.IsOutlineShaderName(shaderName);
+            bool isRefr = lilShaderUtils.IsRefractionShaderName(shaderName);
+            bool isFur = lilShaderUtils.IsFurShaderName(shaderName);
+            bool isGem = lilShaderUtils.IsGemShaderName(shaderName);
 
             SetShaderKeywords(material, "UNITY_UI_ALPHACLIP",                   tpmode == 1);
             SetShaderKeywords(material, "UNITY_UI_CLIP_RECT",                   tpmode == 2 || tpmode == 4);
@@ -403,11 +406,13 @@ namespace lilToon
             if(isGem)
             {
                 SetShaderKeywords(material, "_REQUIRE_UV2",                         false);
+                SetShaderKeywords(material, "AUTO_KEY_VALUE",                       false);
                 SetShaderKeywords(material, "_FADING_ON",                           false);
             }
             else
             {
                 SetShaderKeywords(material, "_REQUIRE_UV2",                         useShadow);
+                SetShaderKeywords(material, "AUTO_KEY_VALUE",                       useRimShade);
                 SetShaderKeywords(material, "_FADING_ON",                           useDistanceFade);
             }
 
@@ -468,6 +473,30 @@ namespace lilToon
             SetShaderKeywords(material, "BILLBOARD_FACE_CAMERA_POS",            false);
         }
 
+        public static void SetupMultiMaterial(Material[] materials, AnimationClip[] clips)
+        {
+            var ms = materials.Where(m => lilShaderUtils.IsMultiShaderName(m.shader.name)).ToArray();
+            foreach(var binding in clips.SelectMany(c => AnimationUtility.GetCurveBindings(c)).ToArray())
+            {
+                string propname = binding.propertyName;
+                if(string.IsNullOrEmpty(propname) || !propname.Contains("material.")) continue;
+
+                void Set(string name, string keyword)
+                {
+                    if(propname.Contains(name))
+                        foreach(var m in ms)
+                        {
+                            m.EnableKeyword(keyword);
+                            EditorUtility.SetDirty(m);
+                        }
+                }
+                Set("_RimDirStrength", "GEOM_TYPE_LEAF");
+                Set("_MainTexHSVG", "EFFECT_HUE_VARIATION");
+                Set("_MainGradationStrength", "EFFECT_HUE_VARIATION");
+            }
+            AssetDatabase.SaveAssets();
+        }
+
         private static bool IsFeatureOnFloat(Material material, string propname)
         {
             if(material.HasProperty(propname)) return material.GetFloat(propname) != 0.0f;
@@ -510,49 +539,55 @@ namespace lilToon
             else        material.DisableKeyword(keyword);
         }
 
-        public static void RemoveUnusedTexture(Material material)
+        public static void RemoveUnusedTexture(Material material, params string[] animatedProps)
         {
-            if(!material.shader.name.Contains("lilToon")) return;
-            RemoveUnusedTexture(material, material.shader.name.Contains("Lite"));
+            var shaderName = material.shader.name;
+            if(!shaderName.Contains("lilToon")) return;
+            RemoveUnusedTexture(material, lilShaderUtils.IsLiteShaderName(shaderName), animatedProps);
         }
 
-        public static void RemoveUnusedTexture(Material material, bool islite)
+        public static void RemoveUnusedTexture(Material material, bool islite, params string[] animatedProps)
         {
             RemoveUnusedProperties(material);
+            RemoveUnusedTextureOnly(material, islite, animatedProps);
+        }
+
+        public static void RemoveUnusedTextureOnly(Material material, bool islite, params string[] animatedProps)
+        {
             if(islite)
             {
-                if(material.GetFloat("_UseShadow") == 0.0f)
+                if(IsPropZero(material, "_UseShadow", animatedProps))
                 {
                     material.SetTexture("_ShadowColorTex", null);
                     material.SetTexture("_Shadow2ndColorTex", null);
                 }
-                if(material.GetFloat("_UseEmission") == 0.0f)
+                if(IsPropZero(material, "_UseEmission", animatedProps))
                 {
                     material.SetTexture("_EmissionMap", null);
                 }
-                if(material.GetFloat("_UseMatCap") == 0.0f)
+                if(IsPropZero(material, "_UseMatCap", animatedProps))
                 {
                     material.SetTexture("_MatCapTex", null);
                 }
             }
             else
             {
-                if(material.GetFloat("_MainGradationStrength") == 0.0f) material.SetTexture("_MainGradationTex", null);
-                if(material.GetFloat("_UseMain2ndTex") == 0.0f)
+                if(IsPropZero(material, "_MainGradationStrength", animatedProps)) material.SetTexture("_MainGradationTex", null);
+                if(IsPropZero(material, "_UseMain2ndTex", animatedProps))
                 {
                     material.SetTexture("_Main2ndTex", null);
                     material.SetTexture("_Main2ndBlendMask", null);
                     material.SetTexture("_Main2ndDissolveMask", null);
                     material.SetTexture("_Main2ndDissolveNoiseMask", null);
                 }
-                if(material.GetFloat("_UseMain3rdTex") == 0.0f)
+                if(IsPropZero(material, "_UseMain3rdTex", animatedProps))
                 {
                     material.SetTexture("_Main3rdTex", null);
                     material.SetTexture("_Main3rdBlendMask", null);
                     material.SetTexture("_Main3rdDissolveMask", null);
                     material.SetTexture("_Main3rdDissolveNoiseMask", null);
                 }
-                if(material.GetFloat("_UseShadow") == 0.0f)
+                if(IsPropZero(material, "_UseShadow", animatedProps))
                 {
                     material.SetTexture("_ShadowBlurMask", null);
                     material.SetTexture("_ShadowBorderMask", null);
@@ -561,52 +596,78 @@ namespace lilToon
                     material.SetTexture("_Shadow2ndColorTex", null);
                     material.SetTexture("_Shadow3rdColorTex", null);
                 }
-                if(material.GetFloat("_UseEmission") == 0.0f)
+                if(IsPropZero(material, "_UseRimShade", animatedProps))
+                {
+                    material.SetTexture("_RimShadeMask", null);
+                }
+                if(IsPropZero(material, "_UseEmission", animatedProps))
                 {
                     material.SetTexture("_EmissionMap", null);
                     material.SetTexture("_EmissionBlendMask", null);
                     material.SetTexture("_EmissionGradTex", null);
                 }
-                if(material.GetFloat("_UseEmission2nd") == 0.0f)
+                if(IsPropZero(material, "_UseEmission2nd", animatedProps))
                 {
                     material.SetTexture("_Emission2ndMap", null);
                     material.SetTexture("_Emission2ndBlendMask", null);
                     material.SetTexture("_Emission2ndGradTex", null);
                 }
-                if(material.GetFloat("_UseBumpMap") == 0.0f) material.SetTexture("_BumpMap", null);
-                if(material.GetFloat("_UseBump2ndMap") == 0.0f)
+                if(IsPropZero(material, "_UseBumpMap", animatedProps)) material.SetTexture("_BumpMap", null);
+                if(IsPropZero(material, "_UseBump2ndMap", animatedProps))
                 {
                     material.SetTexture("_Bump2ndMap", null);
                     material.SetTexture("_Bump2ndScaleMask", null);
                 }
-                if(material.GetFloat("_UseAnisotropy") == 0.0f)
+                if(IsPropZero(material, "_UseAnisotropy", animatedProps))
                 {
                     material.SetTexture("_AnisotropyTangentMap", null);
                     material.SetTexture("_AnisotropyScaleMask", null);
                     material.SetTexture("_AnisotropyShiftNoiseMask", null);
                 }
-                if(material.GetFloat("_UseReflection") == 0.0f)
+                if(IsPropZero(material, "_UseReflection", animatedProps))
                 {
                     material.SetTexture("_SmoothnessTex", null);
                     material.SetTexture("_MetallicGlossMap", null);
                     material.SetTexture("_ReflectionColorTex", null);
+                    material.SetTexture("_ReflectionCubeTex", null);
                 }
-                if(material.GetFloat("_UseMatCap") == 0.0f)
+                if(IsPropZero(material, "_UseMatCap", animatedProps))
                 {
                     material.SetTexture("_MatCapTex", null);
                     material.SetTexture("_MatCapBlendMask", null);
+                    material.SetTexture("_MatCapBumpMap", null);
                 }
-                if(material.GetFloat("_UseMatCap2nd") == 0.0f)
+                if(IsPropZero(material, "_UseMatCap2nd", animatedProps))
                 {
                     material.SetTexture("_MatCap2ndTex", null);
                     material.SetTexture("_MatCap2ndBlendMask", null);
+                    material.SetTexture("_MatCap2ndBumpMap", null);
                 }
-                if(material.GetFloat("_UseRim") == 0.0f) material.SetTexture("_RimColorTex", null);
-                if(material.GetFloat("_UseGlitter") == 0.0f) material.SetTexture("_GlitterColorTex", null);
-                if(material.GetFloat("_UseParallax") == 0.0f) material.SetTexture("_ParallaxMap", null);
-                if(material.GetFloat("_UseAudioLink") == 0.0f || material.GetFloat("_AudioLinkUVMode") != 3.0f) material.SetTexture("_AudioLinkMask", null);
-                if(material.GetFloat("_UseAudioLink") == 0.0f || material.GetFloat("_AudioLinkAsLocal") == 0.0f) material.SetTexture("_AudioLinkLocalMap", null);
+                var shaderName = material.shader.name;
+                if(!lilShaderUtils.IsOutlineShaderName(shaderName))
+                {
+                    material.SetTexture("_OutlineTex", null);
+                    material.SetTexture("_OutlineWidthMask", null);
+                    material.SetTexture("_OutlineVectorTex", null);
+                }
+                if(!lilShaderUtils.IsFurShaderName(shaderName))
+                {
+                    material.SetTexture("_FurVectorTex", null);
+                    material.SetTexture("_FurLengthMask", null);
+                    material.SetTexture("_FurNoiseMask", null);
+                    material.SetTexture("_FurMask", null);
+                }
+                if(IsPropZero(material, "_UseRim", animatedProps)) material.SetTexture("_RimColorTex", null);
+                if(IsPropZero(material, "_UseGlitter", animatedProps)) material.SetTexture("_GlitterColorTex", null);
+                if(IsPropZero(material, "_UseParallax", animatedProps)) material.SetTexture("_ParallaxMap", null);
+                if(IsPropZero(material, "_UseAudioLink", animatedProps) || material.GetFloat("_AudioLinkUVMode") != 3.0f || animatedProps.Contains("_AudioLinkUVMode")) material.SetTexture("_AudioLinkMask", null);
+                if(IsPropZero(material, "_UseAudioLink", animatedProps) || IsPropZero(material, "_AudioLinkAsLocal", animatedProps)) material.SetTexture("_AudioLinkLocalMap", null);
             }
+        }
+
+        private static bool IsPropZero(Material material, string name, string[] animatedProps)
+        {
+            return !material.HasProperty(name) || material.GetFloat(name) == 0.0f && !animatedProps.Contains(name);
         }
 
         public static void RemoveShaderKeywords(Material material)

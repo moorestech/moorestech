@@ -313,9 +313,9 @@ namespace Tests.UnitTest.Game.Chain
             return total;
         }
 
-        private static List<byte> CreateRemoveBlockPacket(Vector3Int pos, int playerId)
+        private static byte[] CreateRemoveBlockPacket(Vector3Int pos, int playerId)
         {
-            return MessagePackSerializer.Serialize(new RemoveBlockProtocolMessagePack(playerId, pos)).ToList();
+            return MessagePackSerializer.Serialize(new RemoveBlockProtocolMessagePack(playerId, pos));
         }
     }
 }

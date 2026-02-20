@@ -22,10 +22,10 @@ namespace Server.Protocol.PacketResponse
             _trainUpdateService = trainUpdateService;
         }
 
-        public ProtocolMessagePackBase GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload)
         {
             var snapshot = _railGraphDatastore.CaptureSnapshot(_trainUpdateService.GetCurrentTick());
-            var message = new RailGraphSnapshotMessagePack(snapshot);
+            var message = new RailGraphSnapshotMessagePack(snapshot, _trainUpdateService.NextTickSequenceId());
             return new ResponseMessagePack(message);
         }
 

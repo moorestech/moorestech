@@ -191,7 +191,7 @@ namespace lilToon
         private static void RewriteInputHLSL(Dictionary<string, TexProp> dicT, Dictionary<string, STProp> dicD, Dictionary<string, FloatProp> dicF, Dictionary<string, ColorProp> dicC)
         {
             string optHLSL = RewriteInputHLSLText(dicT, dicD, dicF, dicC);
-            string pathOpt = AssetDatabase.GUIDToAssetPath("571051a232e4af44a98389bda858df27");
+            string pathOpt = AssetDatabase.GUIDToAssetPath("c24086469a8564e70952518cab5ee718");
             var sw = new StreamWriter(pathOpt, false);
             sw.Write(optHLSL);
             sw.Close();
@@ -200,17 +200,17 @@ namespace lilToon
         private static string RewriteInputHLSLText(Dictionary<string, TexProp> dicT, Dictionary<string, STProp> dicD, Dictionary<string, FloatProp> dicF, Dictionary<string, ColorProp> dicC)
         {
             if(dicT.Count == 0 && dicD.Count == 0 && dicF.Count == 0 && dicC.Count == 0) return null;
-            string pathBase = AssetDatabase.GUIDToAssetPath("8ff7f7d9c86e1154fb3aac5a8a8681bb");
-            string pathOpt = AssetDatabase.GUIDToAssetPath("571051a232e4af44a98389bda858df27");
+            string pathBase = AssetDatabase.GUIDToAssetPath("42a75ad834eb1428c96e376a3543476d");
+            string pathOpt = AssetDatabase.GUIDToAssetPath("c24086469a8564e70952518cab5ee718");
             if(string.IsNullOrEmpty(pathBase) || string.IsNullOrEmpty(pathOpt) || !File.Exists(pathBase) || !File.Exists(pathOpt)) return null;
             var shader = Shader.Find("Hidden/ltspass_proponly");
             var sb = new StringBuilder();
             var sr = new StreamReader(pathBase);
             string line;
-            while((line = sr.ReadLine()) != null)
+            while ((line = sr.ReadLine()) != null)
             {
                 int indEND = line.IndexOf(";");
-                if(indEND <= 0)
+                if (indEND <= 0)
                 {
                     sb.AppendLine(line);
                     continue;
@@ -221,35 +221,37 @@ namespace lilToon
                 int indF = line.IndexOf("float   ");
                 int indI = line.IndexOf("uint    ");
                 int indB = line.IndexOf("lilBool ");
-                if(indF4 >= 0)
+                if (indF4 >= 0)
                 {
                     indF4 += TYPE_OFFSET;
                     string name = line.Substring(indF4, indEND - indF4);
-                    if(indST >= 0)
+                    if (indST >= 0)
                     {
                         // Texture
-                        string texname = name.Substring(0,name.Length - 3);
-                        if(dicD.ContainsKey(texname) && !dicD[texname].isVariable)
+                        string texname = name.Substring(0, name.Length - 3);
+                        if (dicD.ContainsKey(texname) && !dicD[texname].isVariable)
                         {
                             var v = dicD[texname];
                             sb.AppendLine(GetIndent(indF4 - 8) + "#define " + name + " float4(" + LilF2S(v.s.x) + "," + LilF2S(v.s.y) + "," + LilF2S(v.o.x) + "," + LilF2S(v.o.y) + ")");
                             continue;
                         }
                     }
-                    else if(dicC.ContainsKey(name) && !dicC[name].isVariable)
+                    else if (dicC.ContainsKey(name) && !dicC[name].isVariable)
                     {
                         var v = dicC[name];
                         Color c = ShouldLinear(shader, name) ? v.c.linear : v.c;
                         sb.AppendLine(GetIndent(indF4 - 8) + "#define " + name + " float4(" + LilF2S(c.r) + "," + LilF2S(c.g) + "," + LilF2S(c.b) + "," + LilF2S(c.a) + ")");
+
+                        if (name == "_Color" && (v.c.r + v.c.g + v.c.b <= 0.001f)) sb.AppendLine(GetIndent(indF4 - 8) + "#define sampler_MainTex lil_sampler_linear_repeat_");
                         continue;
                     }
                 }
-                else if(indF >= 0)
+                else if (indF >= 0)
                 {
                     // Float
                     indF += TYPE_OFFSET;
                     string name = line.Substring(indF, indEND - indF);
-                    if(dicF.ContainsKey(name) && !dicF[name].isVariable)
+                    if (dicF.ContainsKey(name) && !dicF[name].isVariable && name != "_LightMinLimit" && name != "_LightMaxLimit" && name != "_MonochromeLighting" && name != "_AsUnlit")
                     {
                         float f = dicF[name].f;
                         f = ShouldLinear(shader, name) ? Mathf.GammaToLinearSpace(f) : f;
@@ -257,23 +259,23 @@ namespace lilToon
                         continue;
                     }
                 }
-                else if(indI >= 0)
+                else if (indI >= 0)
                 {
                     // Int
                     indI += TYPE_OFFSET;
                     string name = line.Substring(indI, indEND - indI);
-                    if(dicF.ContainsKey(name) && !dicF[name].isVariable && name != "_AlphaMaskMode")
+                    if (dicF.ContainsKey(name) && !dicF[name].isVariable && name != "_AlphaMaskMode")
                     {
                         sb.AppendLine(GetIndent(indI - 8) + "#define " + name + " (" + (uint)dicF[name].f + ")");
                         continue;
                     }
                 }
-                else if(indB >= 0)
+                else if (indB >= 0)
                 {
                     // Bool
                     indB += TYPE_OFFSET;
                     string name = line.Substring(indB, indEND - indB);
-                    if(dicF.ContainsKey(name) && !dicF[name].isVariable)
+                    if (dicF.ContainsKey(name) && !dicF[name].isVariable)
                     {
                         sb.AppendLine(GetIndent(indB - 8) + "#define " + name + " (" + (uint)dicF[name].f + ")");
                         continue;
@@ -310,8 +312,8 @@ namespace lilToon
 
         internal static void ResetInputHLSL()
         {
-            string pathBase = AssetDatabase.GUIDToAssetPath("8ff7f7d9c86e1154fb3aac5a8a8681bb");
-            string pathOpt = AssetDatabase.GUIDToAssetPath("571051a232e4af44a98389bda858df27");
+            string pathBase = AssetDatabase.GUIDToAssetPath("42a75ad834eb1428c96e376a3543476d");
+            string pathOpt = AssetDatabase.GUIDToAssetPath("c24086469a8564e70952518cab5ee718");
             if(string.IsNullOrEmpty(pathBase) || string.IsNullOrEmpty(pathOpt) || !File.Exists(pathBase) || !File.Exists(pathOpt)) return;
             var sw = new StreamWriter(pathOpt, false);
             var sr = new StreamReader(pathBase);

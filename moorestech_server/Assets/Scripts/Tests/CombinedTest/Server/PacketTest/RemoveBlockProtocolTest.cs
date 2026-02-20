@@ -145,9 +145,9 @@ namespace Tests.CombinedTest.Server.PacketTest
         }
         
         
-        private List<byte> RemoveBlock(Vector3Int pos, int playerId)
+        private byte[] RemoveBlock(Vector3Int pos, int playerId)
         {
-            return MessagePackSerializer.Serialize(new RemoveBlockProtocolMessagePack(playerId, pos)).ToList();
+            return MessagePackSerializer.Serialize(new RemoveBlockProtocolMessagePack(playerId, pos));
         }
     }
 }

@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using Client.Common;
 using Client.Game.InGame.Context;
@@ -14,8 +16,10 @@ using NUnit.Framework;
 using Server.Boot;
 using Server.Boot.Args;
 using Server.Protocol.PacketResponse;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
 
 namespace Client.Tests.PlayModeTest.Util
@@ -23,6 +27,17 @@ namespace Client.Tests.PlayModeTest.Util
     public class PlayModeTestUtil
     {
         public static string PlayModeTestServerDirectoryPath => Path.Combine(Environment.CurrentDirectory, "../", "moorestech_client", "Assets/Scripts/Client.Tests/PlayModeTest/ServerData");
+        
+        public static IEnumerator EnterPlayModeUtil()
+        {
+            // テスト中はデバッグオブジェクトの生成を無効化（ドメインリロード後も保持される）
+            // Disable debug object creation during test (persists across domain reload).
+            SessionState.SetBool("DebugObjectsBootstrap_Disabled", true);
+            
+            AssetBundle.UnloadAllAssetBundles(true);
+            
+            yield return new EnterPlayMode(expectDomainReload: true);
+        }
         
         public static async UniTask LoadMainGame(string serverDirectory = null, string saveFilePath = null)
         {

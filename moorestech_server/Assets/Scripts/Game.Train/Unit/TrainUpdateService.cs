@@ -12,14 +12,17 @@ namespace Game.Train.Unit
         private readonly TrainDiagramManager _diagramManager;
         private readonly IRailGraphDatastore _railGraphDatastore;
 
-        // Trainはサーバーのゲームtickに同期し、1tick = 1/20秒で進める
-        // Train tick is aligned with the server game tick (1 tick = 1/20 second).
-        private const int Interval = GameUpdater.TicksPerSecond;
-        public const double HashBroadcastIntervalSeconds = 1d;
+        // Trainはサーバーのゲームtickに同期して進める
+        // Train tick is aligned with the server game tick interval.
+        private const double TickSeconds = GameUpdater.SecondsPerTick;
+        public const double HashBroadcastIntervalSeconds = TickSeconds;
+        private static readonly uint TrainUnitHashBroadcastIntervalTicks = Math.Max(4u, (uint)Math.Ceiling(HashBroadcastIntervalSeconds / TickSeconds));
         private readonly List<TrainUnit> _trainUnits = new();
-        private long _executedTick;
+        private uint _executedTick;
+        private uint _tickSequenceId;
 
-        private readonly Subject<long> _onHashEvent = new();
+        private readonly Subject<HashStateEventData> _onHashEvent = new();
+        private readonly Subject<(uint, IReadOnlyList<TrainTickDiffData>)> _onPreSimulationDiffEvent = new();
         private readonly TrainUnitInitializationNotifier _trainUnitInitializationNotifier;
         private bool _trainAutoRunDebugEnabled;
 
@@ -35,38 +38,89 @@ namespace Game.Train.Unit
             GameUpdater.UpdateObservable.Subscribe(_ => UpdateTrains());
         }
 
-        public long GetCurrentTick() => _executedTick;
-        public IObservable<long> GetOnHashEvent() => _onHashEvent;
+        public uint GetCurrentTick() => _executedTick;
+        public uint NextTickSequenceId()
+        {
+            // train/railイベント順序を表す単調IDを採番する
+            // Issue a monotonic id that represents train/rail event order.
+            _tickSequenceId++;
+            return _tickSequenceId;
+        }
+        public IObservable<HashStateEventData> OnHashEvent => _onHashEvent;
+        public IObservable<(uint, IReadOnlyList<TrainTickDiffData>)> OnPreSimulationDiffEvent => _onPreSimulationDiffEvent;
         // 列車生成イベントの購読口を返す
         // Provide the train unit creation event stream
-        public IObservable<TrainUnitInitializationNotifier.TrainUnitCreatedData> GetTrainUnitCreatedEvent() => _trainUnitInitializationNotifier.TrainUnitInitializedEvent;
+        public IObservable<TrainUnitInitializationNotifier.TrainUnitCreatedData> TrainUnitCreatedEvent => _trainUnitInitializationNotifier.TrainUnitInitializedEvent;
         public bool IsTrainAutoRunDebugEnabled() => _trainAutoRunDebugEnabled;
 
         private void UpdateTrains()
         {
-            //TODO
-            //ここに操作コマンド系
-            //
-            
-            //HashVerifier用ブロードキャスト
-            if (_executedTick % Interval == 0)
-            {
-                _onHashEvent.OnNext(_executedTick);
-            }
-            
+            // hash計算タイミングはTrainUpdateService側で管理し、間引き時はdummyを送る
+            // TrainUpdateService owns hash timing and emits dummy on skipped ticks.
+            var hashState = BuildHashStateEventData(_executedTick);
+            _onHashEvent.OnNext(hashState);
+
+            _executedTick++;
+            // tickが進んだら同tick内順序のカウンタを初期化する
+            // Reset per-tick ordering counter when tick advances.
+            _tickSequenceId = 0;
+
             //simulation
             foreach (var trainUnit in _trainUnits)
             {
                 trainUnit.Update();
             }
-            
-            //ここにdiagram限定コマンド系(サーバーがブロードキャスト)
-            //
-            
-            //_executedTick++;
-            _executedTick++;
+
+            NotifyPreSimulationDiff(_executedTick);
+
+            //↓これ以降にクライアントからの操作コマンド系適応がはいる、hashmismatchなどによるブロードキャストもはいる
+            //snapshot,生成イベント系
+            return;
+
+            #region Internal
+            HashStateEventData BuildHashStateEventData(uint hashTick)
+            {
+                if (hashTick % TrainUnitHashBroadcastIntervalTicks != 0)
+                {
+                    return new HashStateEventData(hashTick, uint.MaxValue, uint.MaxValue);
+                }
+
+                var bundles = new List<TrainUnitSnapshotBundle>();
+                foreach (var train in _trainUnits)
+                {
+                    bundles.Add(TrainUnitSnapshotFactory.CreateSnapshot(train));
+                }
+                var unitsHash = TrainUnitSnapshotHashCalculator.Compute(bundles);
+                var railGraphHash = _railGraphDatastore.GetConnectNodesHash();
+                return new HashStateEventData(hashTick, unitsHash, railGraphHash);
+            }
+
+            // 全TrainUnitの差分を集約し、差分があるユニットのみ通知する
+            // Aggregate per-unit diffs and publish only changed units.
+            void NotifyPreSimulationDiff(uint tick)
+            {
+                var diffs = new List<TrainTickDiffData>();
+                foreach (var trainUnit in _trainUnits)
+                {
+                    var (masconLevelDiff, isNowDockingSpeedZero, approachingNodeIdDiff) = trainUnit.GetTickDiff();
+                    if (!HasDiff(masconLevelDiff, isNowDockingSpeedZero, approachingNodeIdDiff))
+                    {
+                        continue;
+                    }
+                    diffs.Add(new TrainTickDiffData(trainUnit.TrainId, masconLevelDiff, isNowDockingSpeedZero, approachingNodeIdDiff));
+                }
+                // 差分0件でもsim実行トリガとして同tickイベントを送る。
+                // Emit the same-tick event even when diffs are empty as a simulation trigger.
+                _onPreSimulationDiffEvent.OnNext((tick, diffs));
+                
+                bool HasDiff(int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeIdDiff)
+                {
+                    return masconLevelDiff != 0 || isNowDockingSpeedZero || approachingNodeIdDiff != -1;
+                }
+            }
+            #endregion
         }
-        
+
         public void RegisterTrain(TrainUnit trainUnit)
         {
             // 列車を登録して生成通知を送る
@@ -88,6 +142,7 @@ namespace Game.Train.Unit
         {
             _trainUnits.Clear();
             _executedTick = 0;
+            _tickSequenceId = 0;
         }
 
         // TODO デバッグトグルスイッチ関連なので最終的に消すのを忘れずに
@@ -122,28 +177,62 @@ namespace Game.Train.Unit
 
             // on/off以外が来た場合はなにもしない
             return;
-        }
 
-        // トグルスイッチを切り替えたときに全列車・全ダイアグラムを更新する。
-        // 既に存在する駅のfront exitノードを全てのダイアグラムに追加するだけ。
-        private void AutoDiagramNodeAdditionExample()
-        {
-            // 自動運転の対象駅ノードを抽出する
-            // Collect station nodes for auto-run
-            var railNodes = _railGraphDatastore.GetRailNodes();
-            var stationNodes = new List<RailNode>();
-            for (int i = 0; i < railNodes.Count; i++)
+            #region Internal
+
+            // トグルスイッチを切り替えたときに全列車・全ダイアグラムを更新する。
+            // 既に存在する駅のfront exitノードを全てのダイアグラムに追加するだけ。
+            void AutoDiagramNodeAdditionExample()
             {
-                if (railNodes[i] != null)
+                // 自動運転の対象駅ノードを抽出する
+                // Collect station nodes for auto-run
+                var railNodes = _railGraphDatastore.GetRailNodes();
+                var stationNodes = new List<RailNode>();
+                for (int i = 0; i < railNodes.Count; i++)
                 {
-                    // 駅ノードならfront exitノードを全てのダイアグラムに追加
-                    if ((railNodes[i].StationRef.NodeSide == StationNodeSide.Back) && (railNodes[i].StationRef.NodeRole == StationNodeRole.Exit))
+                    if (railNodes[i] != null)
                     {
-                        stationNodes.Add(railNodes[i]);
+                        // 駅ノードならfront exitノードを全てのダイアグラムに追加
+                        if ((railNodes[i].StationRef.NodeSide == StationNodeSide.Back) && (railNodes[i].StationRef.NodeRole == StationNodeRole.Exit))
+                        {
+                            stationNodes.Add(railNodes[i]);
+                        }
                     }
                 }
+                _diagramManager.ResetAndNotifyNodeAddition(stationNodes);
             }
-            _diagramManager.ResetAndNotifyNodeAddition(stationNodes);
+
+            #endregion
+        }
+
+        public readonly struct TrainTickDiffData
+        {
+            public Guid TrainId { get; }
+            public int MasconLevelDiff { get; }
+            public bool IsNowDockingSpeedZero { get; }
+            public int ApproachingNodeIdDiff { get; }
+
+            public TrainTickDiffData(Guid trainId, int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeIdDiff)
+            {
+                TrainId = trainId;
+                MasconLevelDiff = masconLevelDiff;
+                IsNowDockingSpeedZero = isNowDockingSpeedZero;
+                ApproachingNodeIdDiff = approachingNodeIdDiff;
+            }
+        }
+
+        public readonly struct HashStateEventData
+        {
+            public uint Tick { get; }
+            public uint UnitsHash { get; }
+            public uint RailGraphHash { get; }
+
+            public HashStateEventData(uint tick, uint unitsHash, uint railGraphHash)
+            {
+                Tick = tick;
+                UnitsHash = unitsHash;
+                RailGraphHash = railGraphHash;
+            }
         }
     }
 }

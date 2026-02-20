@@ -16,9 +16,9 @@ namespace Server.Protocol.PacketResponse
         public const string ProtocolTag = "va:setChainerRecipe";
         
         public SetCraftChainerCrafterRecipeProtocol(ServiceProvider serviceProvider) { }
-        public ProtocolMessagePackBase GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload)
         {
-            var data = MessagePackSerializer.Deserialize<SetCraftChainerCrafterRecipeProtocolMessagePack>(payload.ToArray());
+            var data = MessagePackSerializer.Deserialize<SetCraftChainerCrafterRecipeProtocolMessagePack>(payload);
             
             var blockPos = data.BlockPos.Vector3Int;
             

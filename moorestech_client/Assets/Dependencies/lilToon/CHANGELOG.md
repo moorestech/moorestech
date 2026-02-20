@@ -4,6 +4,269 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.2] - 2025-10-29
+### Changed
+- Update language files
+
+### Fixed
+- Error in 6000.0
+
+## [2.3.1] - 2025-10-09
+### Fixed
+- Get light direction from Adaptive Probe Volumes 
+
+## [2.3.0] - 2025-10-06
+### Added
+- Adaptive Probe Volumes
+
+### Fixed
+- AudioLinkMask does not work in the vertex shader
+- Custom shader inspector errors
+- Backlight alpha has no effect
+- Outline does not work on lite shaders on URP
+- Animated decal not properly baked
+- Inspector does not display on macOS with exFAT
+- Warnings in Unity 6
+
+## [2.2.1] - 2025-08-29
+### Fixed
+- Shader error
+
+## [2.2.0] - 2025-08-29
+### Added
+- Added `_UdonForceSceneLighting` to turn off avatar brightness adjustment from the world side
+
+### Fixed
+- Compile error in HDRP
+- Inspector error on first import
+- Outline highlighting not working
+
+## [2.1.10] - 2025-08-17
+### Changed
+- Changed the default value of Border for VRCLV Rim Light to 3
+
+### Fixed
+- Light color adjustments are not reflected in VRCLV rim light
+
+## [2.1.9] - 2025-08-15
+### Fixed
+- VRCLV Rim Light Border 1 or more is not working properly
+- Fallback settings cannot be opened for some shaders
+
+## [2.1.8] - 2025-08-11
+### Fixed
+- Light direction may be incorrect
+- Editor errors may occur when using some file systems on macOS
+
+## [2.1.7] - 2025-08-05
+### Fixed
+- Rim light for VRCLV does not work
+
+## [2.1.6] - 2025-08-05
+### Changed
+- VRCLV optimization
+- Compatible with VRCLV 1.0.0
+- Increased the upper limit of the VRCLV rim light range to 3
+
+## [2.1.5] - 2025-08-04
+### Changed
+- Fur shader VRCLV calculation now performed in pixel shader
+- Shader optimization
+
+### Fixed
+- Shader error occurs when using AudioLink and LTCGI together in a world project
+
+## [2.1.4] - 2025-07-27
+### Fixed
+- Shader error occurs under certain conditions
+
+## [2.1.3] - 2025-07-27
+### Fixed
+- Shader error occurs under certain conditions
+
+## [2.1.2] - 2025-07-25
+### Fixed
+- Shaders cannot be loaded when using LTCGI with older GPUs
+
+## [2.1.1] - 2025-07-25
+### Fixed
+- Shader error occurs under certain conditions
+- VRCLV rim light settings may not be displayed
+
+## [2.1.0] - 2025-07-25
+### Added
+- Properties to adjust the rim light of VRCLV
+- API to consolidate shader compilations into one when building multiple avatars
+
+### Changed
+- Changed VRC Light Volumes to be calculated per pixel (excluding fur shader due to load considerations)
+
+### Fixed
+- Shadows are not cast if the Skybox is invalid
+- MatCap is not displayed correctly when using StaticBatching
+- When noise is unassigned in Dissolve, the appearance changes before and after optimization
+
+## [2.0.0] - 2025-07-23
+### Added
+- Setting ToonStandard Ramp in VRChat Shader Fallback
+
+### Changed
+- Updated included VRC Light Volumes to 2.0.0
+- VRC Light Volumes now respect direction
+- Turn off Auto Referenced in asmdef to speed up script compilation
+
+### Removed
+- Removed Shrink mode for fur and unified it to Subdivision mode
+- Removed mesh encryption feature
+
+## [1.10.3] - 2025-05-20
+### Fixed
+- VRC Light Volumes not working on lilToonMulti
+- Interpolation of VRC Light Volumes in Fur Materials
+
+## [1.10.2] - 2025-05-19
+### Fixed
+- Error in GPU Instancing
+
+## [1.10.1] - 2025-05-19
+### Changed
+- VRC Light Volumes can now be used without the package
+
+## [1.10.0] - 2025-05-18
+### Added
+- Supports VRC Light Volumes
+- Added toonstandard and toonstandardoutline as fallbacks
+- Bake the ramp
+
+### Changed
+- Delete simple settings
+
+### Fixed
+- Error in Unity 2019
+- NaN could occur when converting to MToon
+- Gem material editor showing distance fade settings
+
+## [1.9.0] - 2025-04-11
+### Added
+- Shadow SDF mode now uses the B channel as a blend with normal shadows and the A channel as the shadow strength
+
+### Changed
+- Significantly faster inspector
+- Distance clipping canceller is no longer applied in mirrors
+- Using AudioLink.cginc in a custom shader no longer causes an error
+
+### Fixed
+- Some textures remain after "Remove unused textures"
+- Shadows are displayed in areas hidden by stencils
+- FakeShadow's parallax in VR
+- An error occurs in FakeShadow when calling the material optimization method from an external tool
+- ChilloutVR build gives error when animation or material slot is empty
+
+## [1.8.5] - 2024-12-20
+### Changed
+- Reverted the unaffected parts of the 1.8.4 changes to verify bugs
+
+## [1.8.4] - 2024-12-12
+### Added
+- Shader optimization can now be skipped in NDMF's `Apply on Play`
+
+### Changed
+- Apply rim shade on fur
+
+### Fixed
+- Fur rim light calculations may be incorrect after optimization
+- UV Tile Discard not working properly
+- Attenuation of LTCGI
+- LTCGI does not work under certain conditions
+- Some modes of AudioLink do not work properly
+
+## [1.8.3] - 2024-10-16
+### Fixed
+- Error in some custom shaders
+
+## [1.8.2] - 2024-10-12
+### Fixed
+- Build fails only when used with VRChat World SDK
+
+## [1.8.1] - 2024-10-09
+### Fixed
+- SDF Face Shadow direction
+
+## [1.8.0] - 2024-10-09
+### Added
+- Property animations can now be taken into account when optimizing materials from external tools
+- SDF Face Shadow
+- LTCGI
+- Rim light for fur
+
+### Fixed
+- Fixed to search all scenes when building
+- UV Discard not working with ShadowCaster
+
+## [1.7.3] - 2024-04-08
+### Fixed
+- ShadowCaster disappears when the outline is deleted
+- Some textures are not deleted in `Remove Unused Texture`
+- Optimization breaks IDMaskPrior function
+- Shader error when set color to black
+- RimShade mask now working
+- Saving RimShade presets
+- Set keywords on build
+
+## [1.7.2] - 2024-01-18
+### Fixed
+- Toggle doesn't work well in Unity 2019
+
+## [1.7.1] - 2024-01-17
+### Fixed
+- UI Error
+
+## [1.7.0] - 2024-01-17
+### Added
+- UV Tile Discard feature
+
+### Fixed
+- Incorrect material versioning
+- Add shader code text asset to lilcontainer
+
+## [1.6.0] - 2023-12-31
+### Added
+- RimShade feature
+
+### Fixed
+- AssetPostprocessor not working properly
+- Avoid problems caused by incompatibility of shader keywords
+
+## [1.5.2] - 2023-12-30
+### Fixed
+- Fixed an issue where necessary vertex data might be deleted when building AssetBundle
+
+## [1.5.1] - 2023-12-27
+### Fixed
+- Avoid crashes in certain Unity versions
+- Support for material variants
+- Reduced the frequency of material migration
+
+## [1.5.0] - 2023-12-10
+### Added
+- Enabled to see property name with alt key
+- Mode that treats IDMask as bitmap and Dissolve support
+- `LILTOON_DISABLE_OPTIMIZATION` symbol that allows you to force disable optimization
+- `Assets/lilToon/[Material] Run migration`
+
+### Changed
+- Temporary files are no longer generated under the Temp folder
+
+### Fixed
+- Wrong label in transparent mode
+- MotionVector not being output correctly in URP
+- Avoid Unity removing too many UV channels
+- Problems when editing multiple materials
+- Baking color correction does not work correctly
+
+### Removed
+- Optimization by `IPreprocessShaders`
+
 ## [1.4.1] - 2023-09-04
 ### Fixed
 - `Fix Lighting` does not work properly when bones are missing

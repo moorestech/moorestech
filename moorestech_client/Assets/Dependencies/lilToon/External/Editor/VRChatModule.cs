@@ -6,12 +6,11 @@
     #endif
 #endif
 #if UNITY_EDITOR && (LILTOON_VRCSDK3_AVATARS || LILTOON_VRCSDK3_WORLDS || VRC_SDK_VRCSDK2)
-using UnityEditor;
-using UnityEngine;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
+using UnityEditor;
+using UnityEngine;
 using VRC.SDKBase.Editor.BuildPipeline;
 
 namespace lilToon.External
@@ -28,13 +27,13 @@ namespace lilToon.External
             {
                 if(requestedBuildType == VRCSDKRequestedBuildType.Avatar)
                 {
-                    ForceOptimization();
+                    lilEditorParameters.instance.forceOptimize = true;
                 }
                 else
                 {
-                    SetShaderSettingBeforeBuild();
-                    EditorApplication.delayCall -= SetShaderSettingAfterBuild;
-                    EditorApplication.delayCall += SetShaderSettingAfterBuild;
+                    lilToonSetting.SetShaderSettingBeforeBuild(false);
+                    EditorApplication.delayCall -= lilToonSetting.SetShaderSettingAfterBuild;
+                    EditorApplication.delayCall += lilToonSetting.SetShaderSettingAfterBuild;
                 }
             }
             catch(Exception e)
@@ -47,23 +46,57 @@ namespace lilToon.External
 
         public bool OnPreprocessAvatar(GameObject avatarGameObject)
         {
+            lilToonSetting.isOptimize = true;
             try
             {
+                lilToonSetting shaderSetting = null;
+                lilToonSetting.InitializeShaderSetting(ref shaderSetting);
+                var caller = new System.Diagnostics.StackFrame(2, false);
+                var callerMethod = caller.GetMethod();
+                if(!shaderSetting.isOptimizeInNDMF && callerMethod.DeclaringType.FullName == "nadena.dev.ndmf.ApplyOnPlay") return true;
+
                 var materials = GetMaterialsFromGameObject(avatarGameObject);
                 var clips = GetAnimationClipsFromGameObject(avatarGameObject);
-                SetShaderSettingBeforeBuild(materials, clips);
+                lilToonSetting.SetShaderSettingBeforeBuild(materials, clips);
+                lilMaterialUtils.SetupMultiMaterial(materials, clips);
             }
             catch(Exception e)
             {
                 Debug.LogException(e);
                 Debug.Log("[lilToon] OnPreprocessAvatar() failed");
             }
+            lilToonSetting.isOptimize = false;
+            return true;
+        }
+
+        public bool OnPreprocessAvatars(GameObject[] avatarGameObjects)
+        {
+            lilToonSetting.isOptimize = true;
+            try
+            {
+                lilToonSetting shaderSetting = null;
+                lilToonSetting.InitializeShaderSetting(ref shaderSetting);
+                var caller = new System.Diagnostics.StackFrame(2, false);
+                var callerMethod = caller.GetMethod();
+                if(!shaderSetting.isOptimizeInNDMF && callerMethod.DeclaringType.FullName == "nadena.dev.ndmf.ApplyOnPlay") return true;
+
+                var materials = avatarGameObjects.SelectMany(a => GetMaterialsFromGameObject(a)).ToArray();
+                var clips = avatarGameObjects.SelectMany(a => GetAnimationClipsFromGameObject(a)).ToArray();
+                lilToonSetting.SetShaderSettingBeforeBuild(materials, clips);
+                lilMaterialUtils.SetupMultiMaterial(materials, clips);
+            }
+            catch(Exception e)
+            {
+                Debug.LogException(e);
+                Debug.Log("[lilToon] OnPreprocessAvatars() failed");
+            }
+            lilToonSetting.isOptimize = false;
             return true;
         }
 
         public void OnPostprocessAvatar()
         {
-            SetShaderSettingAfterBuild();
+            lilToonSetting.SetShaderSettingAfterBuild();
         }
 
         private static Material[] GetMaterialsFromGameObject(GameObject gameObject)
@@ -73,7 +106,8 @@ namespace lilToon.External
             {
                 materials.AddRange(renderer.sharedMaterials);
             }
-            return materials.ToArray();
+            // sharedMaterials may a Material[null] on Unity 2022.3.22f1 if there is no material on a renderer.
+            return materials.Where(m => m != null).ToArray();
         }
 
         private static AnimationClip[] GetAnimationClipsFromGameObject(GameObject gameObject)
@@ -123,58 +157,6 @@ namespace lilToon.External
             return clips.ToArray();
         }
 
-        private static void SetShaderSettingBeforeBuild(Material[] materials, AnimationClip[] clips)
-        {
-            Type type = typeof(lilToonSetting);
-            var methods = type.GetMethods(BindingFlags.Static | BindingFlags.NonPublic);
-            foreach(var method in methods)
-            {
-                var methodParams = method.GetParameters();
-                if(method.Name != "SetShaderSettingBeforeBuild" || methodParams.Length != 2 || methodParams[0].ParameterType != typeof(Material[])) continue;
-                method.Invoke(null, new object[]{materials,clips});
-                break;
-            }
-        }
-
-        private static void SetShaderSettingBeforeBuild()
-        {
-            Type type = typeof(lilToonSetting);
-            var methods = type.GetMethods(BindingFlags.Static | BindingFlags.NonPublic);
-            foreach(var method in methods)
-            {
-                var methodParams = method.GetParameters();
-                if(method.Name != "SetShaderSettingBeforeBuild" || methodParams.Length != 0) continue;
-                method.Invoke(null, null);
-                break;
-            }
-        }
-
-        private static void SetShaderSettingAfterBuild()
-        {
-            Type type = typeof(lilToonSetting);
-            var methods = type.GetMethods(BindingFlags.Static | BindingFlags.NonPublic);
-            foreach(var method in methods)
-            {
-                var methodParams = method.GetParameters();
-                if(method.Name != "SetShaderSettingAfterBuild" || methodParams.Length != 0) continue;
-                method.Invoke(null, null);
-                break;
-            }
-        }
-
-        private static void ForceOptimization()
-        {
-            Type type = typeof(lilToonSetting);
-            var methods = type.GetMethods(BindingFlags.Static | BindingFlags.NonPublic);
-            foreach(var method in methods)
-            {
-                var methodParams = method.GetParameters();
-                if(method.Name != "ForceOptimization" || methodParams.Length != 0) continue;
-                method.Invoke(null, null);
-                break;
-            }
-        }
-
         // Debug
         #if LILTOON_VRCSDK3_AVATARS || VRC_SDK_VRCSDK2
             [MenuItem("GameObject/lilToon/[Debug] Generate bug report (VRChat Avatar)", false, 23)]
@@ -216,19 +198,8 @@ namespace lilToon.External
                     }
                 #endif
 
-                Type type = typeof(lilToonEditorUtils);
-                var methods = type.GetMethods(BindingFlags.Static | BindingFlags.NonPublic);
-                foreach(var method in methods)
-                {
-                    var methodParams = method.GetParameters();
-                    if(method.Name != "GenerateBugReport" || methodParams.Length != 3) continue;
-                    method.Invoke(null, new object[]{null, clips, "# VRChat Avatar Debug"});
-                    return;
-                }
-                #pragma warning disable 0162
-                if(lilConstants.currentVersionValue < 31) EditorUtility.DisplayDialog("[Debug] Generate bug report (VRChat Avatar)","This version does not support bug reports. Prease import lilToon 1.3.5 or newer.","OK");
-                else                                      EditorUtility.DisplayDialog("[Debug] Generate bug report (VRChat Avatar)","Failed to generate bug report.","OK");
-                #pragma warning restore 0162
+                lilToonEditorUtils.GenerateBugReport(null, clips, "# VRChat Avatar Debug");
+                EditorUtility.DisplayDialog("[Debug] Generate bug report (VRChat Avatar)","Failed to generate bug report.","OK");
             }
 
             [MenuItem("GameObject/lilToon/[Debug] Generate bug report (VRChat Avatar)", true, 23)]

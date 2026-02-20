@@ -1,39 +1,37 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System;
 using System.Text;
 
 namespace Server.Util
 {
-    public static class ToByteList
+    public static class ToByteArray
     {
-        public static List<byte> Convert(int sendData)
+        public static byte[] Convert(int sendData)
         {
             var result = BitConverter.GetBytes(sendData);
             if (BitConverter.IsLittleEndian)
                 Array.Reverse(result);
-            return result.ToList();
+            return result;
         }
-        
-        public static List<byte> Convert(short sendData)
+
+        public static byte[] Convert(short sendData)
         {
             var result = BitConverter.GetBytes(sendData);
             if (BitConverter.IsLittleEndian)
                 Array.Reverse(result);
-            return result.ToList();
+            return result;
         }
-        
-        public static List<byte> Convert(float sendData)
+
+        public static byte[] Convert(float sendData)
         {
             var result = BitConverter.GetBytes(sendData);
             if (BitConverter.IsLittleEndian)
                 Array.Reverse(result);
-            return result.ToList();
+            return result;
         }
-        
-        public static List<byte> Convert(string sendData)
+
+        public static byte[] Convert(string sendData)
         {
-            return Encoding.UTF8.GetBytes(sendData).ToList();
+            return Encoding.UTF8.GetBytes(sendData);
         }
     }
 }

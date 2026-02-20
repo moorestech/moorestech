@@ -21,9 +21,9 @@ namespace Server.Protocol.PacketResponse
         {
         }
         
-        public ProtocolMessagePackBase GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload)
         {
-            var data = MessagePackSerializer.Deserialize<CompleteBaseCampProtocolMessagePack>(payload.ToArray());
+            var data = MessagePackSerializer.Deserialize<CompleteBaseCampProtocolMessagePack>(payload);
             
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             

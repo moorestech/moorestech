@@ -2,6 +2,13 @@
 // Alpha in PS
 // This is included in the subpass fragment shader
 #define LIL_ALPHA_PS
+
+//------------------------------------------------------------------------------------------------------------------------------
+// UDIM Discard
+#if defined(LIL_FEATURE_UDIMDISCARD)
+    OVERRIDE_UDIMDISCARD
+#endif
+
 #if LIL_RENDER > 0
     #if defined(LIL_V2F_POSITION_WS)
         LIL_GET_POSITION_WS_DATA(input,fd);
@@ -58,7 +65,19 @@
     BEFORE_DISSOLVE
     #if !defined(LIL_LITE) && defined(LIL_FEATURE_DISSOLVE)
         float dissolveAlpha = 0.0;
-        OVERRIDE_DISSOLVE
+        if (fd.dissolveActive)
+        {
+            float priorAlpha = fd.col.a;
+            fd.col.a = 1.0f;
+            OVERRIDE_DISSOLVE
+            if (fd.dissolveInvert)
+            {
+                fd.col.a = 1.0f - fd.col.a;
+                dissolveAlpha = 1.0f - dissolveAlpha;
+            }
+                        
+            fd.col.a *= priorAlpha;
+        }
     #endif
 
     //------------------------------------------------------------------------------------------------------------------------------

@@ -35,9 +35,9 @@ namespace Tests.CombinedTest.Server.PacketTest
         }
         
         // Packet
-        private List<byte> MapObjectDestructionInformationProtocol()
+        private byte[] MapObjectDestructionInformationProtocol()
         {
-            return MessagePackSerializer.Serialize(new RequestMapObjectInfosMessagePack()).ToList();
+            return MessagePackSerializer.Serialize(new RequestMapObjectInfosMessagePack());
         }
     }
 }

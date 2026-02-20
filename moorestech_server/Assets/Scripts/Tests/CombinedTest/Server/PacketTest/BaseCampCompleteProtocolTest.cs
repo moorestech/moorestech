@@ -45,7 +45,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.IsTrue(baseCampComponent.IsCompleted());
             
             // 納品完了プロトコルを送信
-            var completeRequest = MessagePackSerializer.Serialize(new CompleteBaseCampProtocol.CompleteBaseCampProtocolMessagePack(1, position)).ToList();
+            var completeRequest = MessagePackSerializer.Serialize(new CompleteBaseCampProtocol.CompleteBaseCampProtocolMessagePack(1, position));
             packetResponse.GetPacketResponse(completeRequest);
             
             // ブロックが変換されたことを確認

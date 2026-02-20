@@ -18,9 +18,9 @@ namespace Server.Protocol.PacketResponse
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
         }
         
-        public ProtocolMessagePackBase GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload)
         {
-            var data = MessagePackSerializer.Deserialize<PlayerInventoryResponseProtocolMessagePack>(payload.ToArray());
+            var data = MessagePackSerializer.Deserialize<PlayerInventoryResponseProtocolMessagePack>(payload);
             
             var playerInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId);
             

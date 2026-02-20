@@ -1,9 +1,9 @@
+using Cysharp.Threading.Tasks;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEditor.Toolbars;
 using UnityEngine;
 using UnityEngine.UIElements;
-using YujiAp.UnityToolbarExtension.Editor;
 
 namespace Client.Editor.Toolbar
 {
@@ -12,7 +12,7 @@ namespace Client.Editor.Toolbar
     /// Editor extension to add a home button to the toolbar
     /// </summary>
     [InitializeOnLoad]
-    public class HomeButtonToolbarElement : IToolbarElement
+    public class HomeButtonToolbarElement
     {
         // ホームシーンのパス
         // Path to the home scene
@@ -22,7 +22,6 @@ namespace Client.Editor.Toolbar
         // Icon path
         private const string IconPath = "Assets/Scripts/Editor/Toolbar/HomeIcon.png";
 
-        public ToolbarElementLayoutType DefaultLayoutType => ToolbarElementLayoutType.LeftSideRightAlign;
 
         public VisualElement CreateElement()
         {

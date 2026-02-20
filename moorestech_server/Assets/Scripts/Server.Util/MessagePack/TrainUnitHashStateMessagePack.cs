@@ -4,22 +4,28 @@ using MessagePack;
 namespace Server.Util.MessagePack
 {
     // TrainUnit状態ハッシュの通知用メッセージ
-    // Message payload for broadcasting TrainUnit hash/tick state
+    // Message payload for broadcasting train and rail hash/tick state
     [MessagePackObject]
     public class TrainUnitHashStateMessagePack
     {
+        public const uint DummyHash = uint.MaxValue;
+
         [Key(0)] public uint UnitsHash { get; set; }
-        [Key(1)] public long TrainTick { get; set; }
+        [Key(1)] public uint RailGraphHash { get; set; }
+        [Key(2)] public uint ServerTick { get; set; }
+        [Key(3)] public uint TickSequenceId { get; set; }
 
         [Obsolete("Reserved for MessagePack serialization.")]
         public TrainUnitHashStateMessagePack()
         {
         }
 
-        public TrainUnitHashStateMessagePack(uint unitsHash, long trainTick)
+        public TrainUnitHashStateMessagePack(uint unitsHash, uint railGraphHash, uint serverTick, uint tickSequenceId)
         {
             UnitsHash = unitsHash;
-            TrainTick = trainTick;
+            RailGraphHash = railGraphHash;
+            ServerTick = serverTick;
+            TickSequenceId = tickSequenceId;
         }
     }
 }

@@ -35,7 +35,7 @@ namespace Tests.UnitTest.Server
             
             var result = parser.Parse(sendBytes.ToArray(), sendBytes.Count);
             //結果のデータの二番目が正しくパースできていることを確認する
-            Assert.AreEqual("t", MessagePackSerializer.Deserialize<PasserTestMessagePack>(result[1].ToArray()).t);
+            Assert.AreEqual("t", MessagePackSerializer.Deserialize<PasserTestMessagePack>(result[1]).t);
             
             
             //ヘッダーが1バイトオーバーフローしているパターン
@@ -57,7 +57,7 @@ namespace Tests.UnitTest.Server
             sendBytes.AddRange(testMessageBytes); //5Bのメインデータ
             //2回目パース
             result = parser.Parse(sendBytes.ToArray(), sendBytes.Count);
-            Assert.AreEqual("t", MessagePackSerializer.Deserialize<PasserTestMessagePack>(result[0].ToArray()).t);
+            Assert.AreEqual("t", MessagePackSerializer.Deserialize<PasserTestMessagePack>(result[0]).t);
             
             
             PacketBufferPasserNoOverflowTestSendOnly(1);
@@ -90,7 +90,7 @@ namespace Tests.UnitTest.Server
             sendBytes.AddRange(testMessageBytes); //5Bのメインデータ
             //2回目パース
             result = parser.Parse(sendBytes.ToArray(), sendBytes.Count);
-            Assert.AreEqual("t", MessagePackSerializer.Deserialize<PasserTestMessagePack>(result[0].ToArray()).t);
+            Assert.AreEqual("t", MessagePackSerializer.Deserialize<PasserTestMessagePack>(result[0]).t);
         }
     }
     

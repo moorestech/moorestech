@@ -26,9 +26,9 @@ namespace Server.Protocol.PacketResponse
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
         }
         
-        public ProtocolMessagePackBase GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload)
         {
-            var data = MessagePackSerializer.Deserialize<RemoveBlockProtocolMessagePack>(payload.ToArray());
+            var data = MessagePackSerializer.Deserialize<RemoveBlockProtocolMessagePack>(payload);
             
             var block = ServerContext.WorldBlockDatastore.GetBlock(data.Pos);
             if (block == null) return null;

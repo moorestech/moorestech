@@ -36,7 +36,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             // Act
             var request = new RequestInvokeBlockStateProtocolMessagePack(blockPosition);
-            var payload = MessagePackSerializer.Serialize(request).ToList();
+            var payload = MessagePackSerializer.Serialize(request);
             var response = packet.GetPacketResponse(payload);
             
             // Assert
@@ -68,7 +68,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             // Act
             var request = new RequestInvokeBlockStateProtocolMessagePack(blockPosition);
-            var payload = MessagePackSerializer.Serialize(request).ToList();
+            var payload = MessagePackSerializer.Serialize(request);
             var response = packet.GetPacketResponse(payload);
             
             // Assert

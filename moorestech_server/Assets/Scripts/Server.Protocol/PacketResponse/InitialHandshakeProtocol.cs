@@ -24,9 +24,9 @@ namespace Server.Protocol.PacketResponse
             _worldSettingsDatastore = serviceProvider.GetService<IWorldSettingsDatastore>();
         }
         
-        public ProtocolMessagePackBase GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload)
         {
-            var data = MessagePackSerializer.Deserialize<RequestInitialHandshakeMessagePack>(payload.ToArray());
+            var data = MessagePackSerializer.Deserialize<RequestInitialHandshakeMessagePack>(payload);
             
             var response = new ResponseInitialHandshakeMessagePack(GetPlayerPosition(new EntityInstanceId(data.PlayerId)));
             

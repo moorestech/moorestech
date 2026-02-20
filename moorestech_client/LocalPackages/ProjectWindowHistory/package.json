@@ -1,0 +1,20 @@
+{
+    "name": "com.yujiap.project-window-history",
+    "displayName": "ProjectWindowHistory", 
+    "version": "1.0.1",               
+    "unity": "2021.3",
+    "description": "ProjectWindow display history can be saved and restored using the Undo/Redo button.",
+    "author": {
+        "name": "yuji_ap",
+        "url": "https://twitter.com/yuji_ap"
+    },
+
+    "keywords": [
+        "editor",
+        "projectwindow",
+        "history"
+    ],
+
+    "dependencies": {
+    }
+}

@@ -53,8 +53,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 現在のチャレンジ情報をリクエスト
             // Request current challenge information
             var messagePack = new RequestChallengeMessagePack();
-            var response = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack).ToList())[0];
-            var challengeInfo = MessagePackSerializer.Deserialize<ResponseChallengeInfoMessagePack>(response.ToArray());
+            var response = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack))[0];
+            var challengeInfo = MessagePackSerializer.Deserialize<ResponseChallengeInfoMessagePack>(response);
             
             // 検証
             // Verification
@@ -94,8 +94,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 現在のチャレンジ情報をリクエスト
             // Request current challenge information
             messagePack = new RequestChallengeMessagePack();
-            response = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack).ToList())[0];
-            challengeInfo = MessagePackSerializer.Deserialize<ResponseChallengeInfoMessagePack>(response.ToArray());
+            response = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack))[0];
+            challengeInfo = MessagePackSerializer.Deserialize<ResponseChallengeInfoMessagePack>(response);
             
             // 検証
             // Verification
@@ -131,8 +131,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             // 最初はCategory2のチャレンジは開始されていないことを確認
             var messagePack = new RequestChallengeMessagePack();
-            var response = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack).ToList())[0];
-            var challengeInfo = MessagePackSerializer.Deserialize<ResponseChallengeInfoMessagePack>(response.ToArray());
+            var response = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack))[0];
+            var challengeInfo = MessagePackSerializer.Deserialize<ResponseChallengeInfoMessagePack>(response);
             
             // Category2のチャレンジが開始されていないことを確認
             var category2CurrentChallenges = challengeInfo.Categories
@@ -164,8 +164,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             // Challenge5が開始されていることを確認
             messagePack = new RequestChallengeMessagePack();
-            response = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack).ToList())[0];
-            challengeInfo = MessagePackSerializer.Deserialize<ResponseChallengeInfoMessagePack>(response.ToArray());
+            response = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack))[0];
+            challengeInfo = MessagePackSerializer.Deserialize<ResponseChallengeInfoMessagePack>(response);
             
             var allCurrentChallenges = challengeInfo.Categories.SelectMany(c => c.CurrentChallengeGuids).ToList();
             Assert.IsTrue(allCurrentChallenges.Contains(Guid.Parse(Challenge5Guid)), "Challenge5 should be started");
@@ -182,8 +182,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             // 最新のチャレンジ情報を取得
             messagePack = new RequestChallengeMessagePack();
-            response = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack).ToList())[0];
-            challengeInfo = MessagePackSerializer.Deserialize<ResponseChallengeInfoMessagePack>(response.ToArray());
+            response = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack))[0];
+            challengeInfo = MessagePackSerializer.Deserialize<ResponseChallengeInfoMessagePack>(response);
             
             // Category2がアンロックされていることを確認
             category2Info = challengeInfo.Categories.FirstOrDefault(c => c.ChallengeCategoryGuid == Guid.Parse(Category2Guid));

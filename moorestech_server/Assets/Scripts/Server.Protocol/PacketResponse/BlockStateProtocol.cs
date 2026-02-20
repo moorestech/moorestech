@@ -17,9 +17,9 @@ namespace Server.Protocol.PacketResponse
         {
         }
         
-        public ProtocolMessagePackBase GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload)
         {
-            var data = MessagePackSerializer.Deserialize<RequestBlockStateProtocolMessagePack>(payload.ToArray());
+            var data = MessagePackSerializer.Deserialize<RequestBlockStateProtocolMessagePack>(payload);
             
             var block = ServerContext.WorldBlockDatastore.GetBlock(data.Position.Vector3Int);
             if (block == null)

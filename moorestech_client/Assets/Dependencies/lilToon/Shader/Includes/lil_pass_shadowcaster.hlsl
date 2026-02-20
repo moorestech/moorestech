@@ -10,7 +10,7 @@
     #define LIL_CUSTOM_V2F_MEMBER(id0,id1,id2,id3,id4,id5,id6,id7)
 #endif
 
-#if defined(LIL_V2F_FORCE_TEXCOORD0) || (LIL_RENDER > 0)
+#if defined(LIL_V2F_FORCE_TEXCOORD0) || (LIL_RENDER > 0) || defined(LIL_FEATURE_UDIMDISCARD)
     #if defined(LIL_FUR)
         #define LIL_V2F_TEXCOORD0
     #else
@@ -39,7 +39,7 @@ struct v2f
         float4 uv23         : TEXCOORD2;
     #endif
     #if defined(LIL_V2F_POSITION_OS)
-        float3 positionOS   : TEXCOORD3;
+        float4 positionOSdissolve   : TEXCOORD3;
     #endif
     #if defined(LIL_V2F_POSITION_WS)
         float3 positionWS   : TEXCOORD4;

@@ -17,9 +17,9 @@ namespace Server.Protocol.PacketResponse
         public const string ProtocolTag = "va:setReuqestComputer";
         
         public SetCraftChainerMainComputerRequestItemProtocol(ServiceProvider serviceProvider) { }
-        public ProtocolMessagePackBase GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload)
         {
-            var data = MessagePackSerializer.Deserialize<SetCraftChainerMainComputerRequestItemProtocolMessagePack>(payload.ToArray());
+            var data = MessagePackSerializer.Deserialize<SetCraftChainerMainComputerRequestItemProtocolMessagePack>(payload);
             
             var blockPos = data.BlockPos.Vector3Int;
             

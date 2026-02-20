@@ -53,8 +53,9 @@ namespace Client.DebugSystem
                     Connections = new List<RailGraphConnectionSnapshotMessagePack>(),
                     GraphHash = 0u,
                     GraphTick = 0,
+                    GraphTickSequenceId = 0,
                 };
-                var trainUnitSnapshots = new TrainUnitSnapshotResponse(new List<TrainUnitSnapshotBundleMessagePack>(), 0, 0u);
+                var trainUnitSnapshots = new TrainUnitSnapshotResponse(new List<TrainUnitSnapshotBundleMessagePack>(), 0, 0u, 0);
                 
                 var responses = (
                     mapObjects,

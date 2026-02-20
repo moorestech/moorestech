@@ -55,8 +55,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             
             //ステートが実行中になっているかをチェック
-            List<List<byte>> response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(0));
-            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0].ToArray());
+            List<byte[]> response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(0));
+            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             // ブロックステート変更イベントを明示的に選択する
             // Select the change block state event explicitly
             var expectedTag = ChangeBlockStateEventPacket.CreateSpecifiedBlockEventTag(machine.BlockPositionInfo);

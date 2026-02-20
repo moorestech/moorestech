@@ -20,9 +20,9 @@ namespace Server.Protocol.PacketResponse
             _eventProtocolProvider = serviceProvider.GetService<EventProtocolProvider>();
         }
         
-        public ProtocolMessagePackBase GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload)
         {
-            var data = MessagePackSerializer.Deserialize<RegisterPlayedSkitMessagePack>(payload.ToArray());
+            var data = MessagePackSerializer.Deserialize<RegisterPlayedSkitMessagePack>(payload);
             var info = _challengeDatastore.CurrentChallengeInfo;
             
             // 既に登録されている場合は重複登録しない

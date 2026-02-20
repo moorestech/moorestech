@@ -95,11 +95,11 @@ namespace Tests.CombinedTest.Server.PacketTest
         }
         
         
-        private List<byte> GetPacket(int count, ItemMoveInventoryInfo from, int fromSlot, ItemMoveInventoryInfo to, int toSlot,
+        private byte[] GetPacket(int count, ItemMoveInventoryInfo from, int fromSlot, ItemMoveInventoryInfo to, int toSlot,
             ItemMoveType itemMoveType = ItemMoveType.SwapSlot)
         {
             return MessagePackSerializer.Serialize(
-                new InventoryItemMoveProtocolMessagePack(PlayerId, count, itemMoveType, from, fromSlot, to, toSlot)).ToList();
+                new InventoryItemMoveProtocolMessagePack(PlayerId, count, itemMoveType, from, fromSlot, to, toSlot));
         }
     }
 }

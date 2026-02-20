@@ -32,11 +32,11 @@ namespace Server.Protocol.PacketResponse
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
         }
 
-        public ProtocolMessagePackBase GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload)
         {
             // 要求データをデシリアライズする
             // Deserialize request payload
-            var request = MessagePackSerializer.Deserialize<RailConnectionEditRequest>(payload.ToArray());
+            var request = MessagePackSerializer.Deserialize<RailConnectionEditRequest>(payload);
 
             // 編集処理を実行
             // Execute edit operation

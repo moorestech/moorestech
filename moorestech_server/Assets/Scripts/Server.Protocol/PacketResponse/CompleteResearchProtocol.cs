@@ -18,9 +18,9 @@ namespace Server.Protocol.PacketResponse
             _researchDataStore = serviceProvider.GetService<IResearchDataStore>();
         }
 
-        public ProtocolMessagePackBase GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload)
         {
-            var request = MessagePackSerializer.Deserialize<RequestCompleteResearchMessagePack>(payload.ToArray());
+            var request = MessagePackSerializer.Deserialize<RequestCompleteResearchMessagePack>(payload);
 
             // 研究完了を試みる
             var isSuccess = _researchDataStore.CompleteResearch(request.ResearchGuid, request.PlayerId);

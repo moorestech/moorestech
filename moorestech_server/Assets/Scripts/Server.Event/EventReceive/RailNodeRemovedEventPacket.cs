@@ -30,9 +30,10 @@ namespace Server.Event.EventReceive
             // ノード削除メッセージをシリアライズ
             // Serialize node removal payload
             var tick = _trainUpdateService.GetCurrentTick();
+            var tickSequenceId = _trainUpdateService.NextTickSequenceId();
             // 削除差分とTickを束ねて配信
             // Broadcast removal diff together with tick
-            var payload = MessagePackSerializer.Serialize(new RailNodeRemovedMessagePack(data.NodeId, data.NodeGuid, tick));
+            var payload = MessagePackSerializer.Serialize(new RailNodeRemovedMessagePack(data.NodeId, data.NodeGuid, tick, tickSequenceId));
             _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
         }
     }

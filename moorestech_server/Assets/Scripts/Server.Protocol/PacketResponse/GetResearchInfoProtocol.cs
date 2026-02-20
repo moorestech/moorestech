@@ -18,9 +18,9 @@ namespace Server.Protocol.PacketResponse
             _researchDataStore = serviceProvider.GetService<IResearchDataStore>();
         }
         
-        public ProtocolMessagePackBase GetResponse(List<byte> payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload)
         {
-            var request = MessagePackSerializer.Deserialize<RequestResearchInfoMessagePack>(payload.ToArray());
+            var request = MessagePackSerializer.Deserialize<RequestResearchInfoMessagePack>(payload);
 
             var nodeStates = _researchDataStore.GetResearchNodeStates(request.PlayerId);
             return new ResponseResearchInfoMessagePack(nodeStates);
