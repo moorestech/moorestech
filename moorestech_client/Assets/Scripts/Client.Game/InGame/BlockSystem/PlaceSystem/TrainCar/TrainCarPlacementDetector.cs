@@ -18,12 +18,47 @@ using static Client.Common.LayerConst;
 /// 要件4,通常のレール上に設置する機能
 /// 
 /// 詳細
-/// 要件1
-/// レイキャストのrailpositionから前方後方にDFSをする。距離はtrainCar.Length/2にマージンを足した距離(ちょっと先でもスナップするように)
+/// 要件1 連結モード
+/// レイキャストのrailposition=centerRailPositionから前方後方にDFSをする。距離はtrainCar.Length/2にマージンを足した距離(ちょっと先でもスナップするように)
 /// 前方N`個、後方M`個のrailposition候補ができる。これら(N`+M`)と既存のtrainunit全体のRailPositionの重複を検査
 /// 1つでも重複していたらどのTrainUnitか再調査、してなければ要件2へ
-/// 重複している中で一番近いTrainUnitを1つ抽出。その点にスナップする
-
+/// 重複している中で一番近いTrainUnitを1つ抽出。その点にスナップする。
+/// スナップはDFSでもう片方の端点を全探索する
+/// 見つかった経路をSとする
+/// なければ要件2へ
+/// これらSと既存のtrainunit全体のRailPositionの重複を検査(1:多)、Sからtrainunitと重複がある経路を除去してS`
+/// なければ要件2へ
+/// S` -> _selectionStepで1つを選択
+/// 
+/// 要件2 新規モード
+/// centerRailPositionから前方後方にtrainCar.Length/2の距離 DFSする
+/// その全経路の中に駅nodeがある場合、一番centerRailPositionに近いnodeに自動スナップ
+/// なければ要件3へ
+/// スナップはDFSでもう片方の端点を全探索する
+/// なければ要件3へ
+/// 見つかった経路をTとする
+/// これらTと既存のtrainunit全体のRailPositionの重複を検査(1:多)、Tからtrainunitと重複がある経路を除去してT`
+/// なければ要件3へ
+/// T` -> _selectionStepで1つを選択
+///
+/// 要件3 新規モード
+/// centerRailPositionから前方後方にtrainCar.Length/2の距離 DFSする
+/// そのDFSで経路長がtrainCar.Length/2より短くて検出できなかった経路のみをピックアップ
+/// なければ要件4へ
+/// 一番centerRailPositionに近い距離でreturnしてきた経路の先端部分(レールの端)にスナップ
+/// DFSでもう片方の端点を全探索する
+/// なければ要件4へ
+/// 見つかった経路をUとする
+/// これらUと既存のtrainunit全体のRailPositionの重複を検査(1:多)、Uからtrainunitと重複がある経路を除去してU`
+/// なければ要件4へ
+/// U` -> _selectionStepで1つを選択
+/// 
+/// 要件4 新規モード
+/// centerRailPositionから前方後方にtrainCar.Length/2の距離 DFSする
+/// 見つかった経路をVとする
+/// V -> _selectionStepで1つを選択した経路をv
+/// vと既存のtrainunit全体のRailPositionの重複を検査(1:多)
+/// 重複していたら配置不可、なければ配置可能
 
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
