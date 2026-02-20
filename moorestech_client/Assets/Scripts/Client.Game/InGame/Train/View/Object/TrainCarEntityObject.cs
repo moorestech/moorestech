@@ -99,6 +99,16 @@ namespace Client.Game.InGame.Train.View.Object
             Resources.UnloadAsset(placePreviewMaterial);
         }
 
+        public void SetPlacementOverlapPreviewing()
+        {
+            // 設置候補重複ハイライトは設置可能色(青)で表示する
+            // Show placement-overlap highlight in placeable color (blue)
+            var placePreviewMaterial = Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial);
+            _rendererMaterialReplacerController.CopyAndSetMaterial(placePreviewMaterial);
+            _rendererMaterialReplacerController.SetColor(MaterialConst.PreviewColorPropertyName, MaterialConst.PlaceableColor);
+            Resources.UnloadAsset(placePreviewMaterial);
+        }
+
         public void ResetMaterial()
         {
             _rendererMaterialReplacerController.ResetMaterial();
