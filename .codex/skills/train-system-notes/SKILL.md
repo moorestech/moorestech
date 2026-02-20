@@ -67,6 +67,7 @@ Use this skill as a guardrail for train fundamentals and deterministic behavior.
 - Because of this, a naively "travel-order" list can be reversed for distance calculation and return `-1`.
 - Validate adjacency explicitly before building position paths, especially for round-trip and loop scenarios.
 - Validate all adjacent pairs with `next.GetDistanceToNode(current) >= 0` before creating `RailPosition`.
+- Do not split helper methods unless input contract or behavior truly differs; prefer one minimal path-building helper over semantic-only wrappers.
 - Add assertions that catch incorrect node order early for both forward and return direction checks.
 - For runtime movement expectations, also verify forward reachability separately with `current.GetDistanceToNode(next) > 0`.
 - For docking-oriented initial placement, keep the departure station exit-side node first and paired entry-side node next.
