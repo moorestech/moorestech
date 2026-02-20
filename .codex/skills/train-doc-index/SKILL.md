@@ -12,6 +12,7 @@ Use this skill as an entry point to pick the right train workflow and avoid mixi
 ## Routing Rules
 
 - Use `rail-network-sync` when changing protocol/event behavior for rail or train state synchronization.
+- Use `train-rail-event-implementation` when adding/modifying train/rail event packets, MessagePack payloads, or client handlers with unified tick ordering concerns.
 - Use `train-tick-simulation` when changing tick progression, hash gating, or pre-sim/post-sim application order.
 - Use `train-rail-save-load` when changing save data, load restoration, docking restoration, or persistence tests.
 - Use `train-test-implementation-priorities` when deciding what train tests to implement next.

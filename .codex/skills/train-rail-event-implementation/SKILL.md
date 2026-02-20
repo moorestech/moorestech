@@ -54,8 +54,8 @@ The client-side `TrainUnitClientSimulator.Tick()` follows this logic:
 
 - `va:event:trainUnitTickDiffBundle`
     - Apply Logic: Updates `MasconLevel` etc. for affected trains, then calls `unit.Update()` for **all** trains.
-- `va:event:trainUnitCreated`
-    - Apply Logic: Adds a new train to the `TrainUnitClientCache` and updates views.
+- `va:event:trainUnitSnapshot`
+    - Apply Logic: Applies per-train-unit snapshot upsert/delete through the future buffer at the specified tick.
 
 ## Implementation Checklist
 
@@ -70,7 +70,7 @@ The client-side `TrainUnitClientSimulator.Tick()` follows this logic:
     *   Call `_futureMessageBuffer.EnqueueEvent(...)` with a `TrainTickBufferedEvent`.
 4.  **Verification**:
     *   Ensure the event happens at the correct logical time relative to the simulation.
-    *   Check that `NextTickSequenceId()` is called exactly once per emitted payload.
+    *   Check that `NextTickSequenceId()` usage preserves strict in-tick chronological continuity.
 
 ## Key Files
 
