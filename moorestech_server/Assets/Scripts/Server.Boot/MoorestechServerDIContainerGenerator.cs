@@ -11,7 +11,7 @@ using Game.Block.Interface.Event;
 using Game.Action;
 using Game.Challenge;
 using Game.Context;
-using Game.CraftChainer;
+
 using Game.Crafting.Interface;
 using Game.CraftTree;
 using Game.EnergySystem;
@@ -220,9 +220,6 @@ namespace Server.Boot
             serviceProvider.GetService<RailConnectionRemovedEventPacket>();
             
             serverContext.SetMainServiceProvider(serviceProvider);
-
-            // CraftChainerの初期化
-            CraftChainerEntryPoint.Entry();
 
             return (packetResponse, serviceProvider);
         }

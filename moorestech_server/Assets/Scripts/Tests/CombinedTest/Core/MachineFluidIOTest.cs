@@ -168,7 +168,7 @@ namespace Tests.CombinedTest.Core
             var blockFactory = ServerContext.BlockFactory;
             var itemStackFactory = ServerContext.ItemStackFactory;
             
-            var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data[9]; // L:229
+            var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data[7];
 
             // マシンブロックの配置
             // Place the machine block
