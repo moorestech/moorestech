@@ -31,9 +31,11 @@ namespace Game.Train.Unit.Containers
         
         public bool CanInsert(ItemTrainCarContainer other)
         {
+            if (other._inventoryItems.All(stack => stack.Id == ItemMaster.EmptyItemId)) return false;
+
             var itemStackMap = new NativeHashMap<ItemId, NativeList<int>>(other._inventoryItems.Length, Allocator.Temp);
             
-            for (int i = _inventoryItems.Length - 1; i >= 0; i--)
+            for (var i = _inventoryItems.Length - 1; i >= 0; i--)
             {
                 var inventoryItemStack = _inventoryItems[i];
                 if (itemStackMap.TryGetValue(inventoryItemStack.Id, out NativeList<int> stack))
@@ -47,25 +49,25 @@ namespace Game.Train.Unit.Containers
                     itemStackMap.Add(inventoryItemStack.Id, list);
                 }
             }
-            
+
             if (itemStackMap.ContainsKey(ItemMaster.EmptyItemId))
             {
                 foreach (KVPair<ItemId, NativeList<int>> kvp in itemStackMap) kvp.Value.Dispose();
                 itemStackMap.Dispose();
                 return true;
             }
-            
+
             for (var i = 0; i < other._inventoryItems.Length; i++)
             {
                 var otherInventoryItem = other._inventoryItems[i];
                 if (otherInventoryItem.Id == ItemMaster.EmptyItemId) continue;
-                
-                var addingItemStack = otherInventoryItem;
+
                 if (itemStackMap.TryGetValue(otherInventoryItem.Id, out NativeList<int> itemStackIndices))
                 {
                     for (int j = 0; j < itemStackIndices.Length; j++)
                     {
-                        if (_inventoryItems[itemStackIndices[j]].IsAllowedToAddWithRemain(addingItemStack))
+                        var slot = _inventoryItems[itemStackIndices[j]];
+                        if (slot.Count < MasterHolder.ItemMaster.GetItemMaster(slot.Id).MaxStack)
                         {
                             foreach (KVPair<ItemId, NativeList<int>> kvp in itemStackMap) kvp.Value.Dispose();
                             itemStackMap.Dispose();
@@ -73,10 +75,8 @@ namespace Game.Train.Unit.Containers
                         }
                     }
                 }
-                
-                other._inventoryItems[i] = addingItemStack;
             }
-            
+
             foreach (KVPair<ItemId, NativeList<int>> kvp in itemStackMap) kvp.Value.Dispose();
             itemStackMap.Dispose();
             return false;
@@ -122,8 +122,6 @@ namespace Game.Train.Unit.Containers
                     }
                 }
 
-                // 余りがあれば空スロットに入れる
-                // Put remainder into empty slots
                 if (addingItemStack.Id != ItemMaster.EmptyItemId && itemStackMap.TryGetValue(ItemMaster.EmptyItemId, out NativeList<int> emptySlotIndices))
                 {
                     while (addingItemStack.Id != ItemMaster.EmptyItemId && emptySlotIndices.Length > 0)
@@ -133,8 +131,6 @@ namespace Game.Train.Unit.Containers
                         _inventoryItems[emptyIndex] = result.ProcessResultItemStack;
                         addingItemStack = result.RemainderItemStack;
 
-                        // 空スロットを使用済みとして削除し、アイテムIDのマップに追加
-                        // Remove used empty slot and add to item ID map
                         emptySlotIndices.RemoveAt(emptySlotIndices.Length - 1);
                         if (itemStackMap.TryGetValue(result.ProcessResultItemStack.Id, out NativeList<int> existingIndices))
                         {
