@@ -114,16 +114,22 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 // 列車長とレール位置スナップショットを組み立てる
                 // Compose train length and rail position snapshot
                 var trainLength = TrainLengthConverter.ToRailUnits(trainCarMasterElement.Length);
+                var railPosition = default(RailPosition);
+                var overlapTrainInstanceIds = default(IReadOnlyList<TrainInstanceId>);
+                var placementMode = TrainCarPlacementMode.CreateNewTrainUnit;
+                var targetTrainInstanceId = TrainInstanceId.Empty;
+                var attachCarFacingForward = true;
+                var attachTargetEndpoint = TrainCarAttachTargetEndpoint.Head;
                 var isPlaceable = TryBuildRailPosition(
                     hitPos,
                     railCarrier,
                     trainLength,
-                    out var railPosition,
-                    out var overlapTrainInstanceIds,
-                    out var placementMode,
-                    out var targetTrainInstanceId,
-                    out var attachCarFacingForward,
-                    out var attachTargetEndpoint);
+                    out railPosition,
+                    out overlapTrainInstanceIds,
+                    out placementMode,
+                    out targetTrainInstanceId,
+                    out attachCarFacingForward,
+                    out attachTargetEndpoint);
                 result = new TrainCarPlacementHit(
                     isPlaceable,
                     railPosition,
@@ -191,7 +197,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                         if (TryRebuildRequirement1SnapCandidates(requirement1SnapStartPoint, trainLength, out var requirement1Routes, out var requirement1RouteCount))
                         {
                             _routePairCount = requirement1RouteCount;
-                            if (TryBuildSelectedSingleRoute(requirement1Routes, requirement1RouteCount, out railPosition))
+                            if (TryBuildSelectedSingleRoute(requirement1Routes, requirement1RouteCount, requirement1AttachFacingForward, out railPosition))
                             {
                                 placementMode = TrainCarPlacementMode.AttachToExistingTrainUnit;
                                 targetTrainInstanceId = requirement1TargetTrainInstanceId;
@@ -259,7 +265,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 
                 // 要件1の単一ルート選択ビルド: S候補から選択された1本を最終RailPositionとして構築する
                 // Requirement-1 single route selection build: build the final RailPosition from the selected one among S candidates
-                bool TryBuildSelectedSingleRoute(IReadOnlyList<RailPosition> routes, int routeCount, out RailPosition resolvedRailPosition)
+                bool TryBuildSelectedSingleRoute(IReadOnlyList<RailPosition> routes, int routeCount, bool attachCarFacingForward, out RailPosition resolvedRailPosition)
                 {
                     resolvedRailPosition = null;
                     if (routes == null || routeCount <= 0 || routes.Count <= 0)
@@ -290,7 +296,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                         return false;
                     }
                     if (attachCarFacingForward)
+                    {
                         selectedRoute.Reverse();
+                    }
                     resolvedRailPosition = selectedRoute;
                     return true;
                 }
