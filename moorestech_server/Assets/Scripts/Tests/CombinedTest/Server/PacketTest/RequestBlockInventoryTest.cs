@@ -89,7 +89,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             environment.GetTrainUpdateService().RegisterTrain(trainUnit);
 
             var itemFactory = ServerContext.ItemStackFactory;
-            var itemContainer = new ItemTrainCarContainer(itemFactory.Create(new ItemId(1), 7), itemFactory.Create(new ItemId(2), 3));
+            var itemContainer = ItemTrainCarContainer.CreateWithInventoryItems(itemFactory.Create(new ItemId(1), 7), itemFactory.Create(new ItemId(2), 3));
             trainCar.SetContainer(itemContainer);
 
             var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestTrain(trainCar.TrainCarInstanceId))[0];
