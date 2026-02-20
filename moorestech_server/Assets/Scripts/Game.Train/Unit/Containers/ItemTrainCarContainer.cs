@@ -1,17 +1,19 @@
+using System;
 using System.Linq;
 using Core.Item.Interface;
 using Core.Master;
+using Game.Context;
 using Unity.Collections;
 
 namespace Game.Train.Unit.Containers
 {
     public class ItemTrainCarContainer : ITrainCarContainer
     {
-        private readonly IItemStack[] _inventoryItems;
-
-        public ItemTrainCarContainer(params IItemStack[] inventoryItems)
+        private readonly ItemTrainCarContainerSlot[] _inventoryItems;
+        
+        private ItemTrainCarContainer(params IItemStack[] inventoryItems)
         {
-            _inventoryItems = inventoryItems;
+            _inventoryItems = inventoryItems.Select((stack, i) => new ItemTrainCarContainerSlot { Index = i, Stack = stack }).ToArray();
         }
         
         public int GetWeight()
@@ -21,24 +23,31 @@ namespace Game.Train.Unit.Containers
 
         public bool IsFull()
         {
-            return _inventoryItems.All(stack => stack.Id != ItemMaster.EmptyItemId && stack.Count >= MasterHolder.ItemMaster.GetItemMaster(stack.Id).MaxStack);
+            return _inventoryItems.All(slot => slot.Stack.Id != ItemMaster.EmptyItemId && slot.Stack.Count >= MasterHolder.ItemMaster.GetItemMaster(slot.Stack.Id).MaxStack);
         }
         
         public bool IsEmpty()
         {
-            return _inventoryItems.All(stack => stack.Id == ItemMaster.EmptyItemId || stack.Count == 0);
+            return _inventoryItems.All(stack => stack.Stack.Id == ItemMaster.EmptyItemId || stack.Stack.Count == 0);
+        }
+        
+        public ItemTrainCarContainerSlot SetItem(int index, IItemStack stack)
+        {
+            var original = _inventoryItems[index];
+            _inventoryItems[index].Stack = stack;
+            return original;
         }
         
         public bool CanInsert(ItemTrainCarContainer other)
         {
-            if (other._inventoryItems.All(stack => stack.Id == ItemMaster.EmptyItemId)) return false;
+            if (other._inventoryItems.All(slot => slot.Stack.Id == ItemMaster.EmptyItemId)) return false;
 
             var itemStackMap = new NativeHashMap<ItemId, NativeList<int>>(other._inventoryItems.Length, Allocator.Temp);
             
             for (var i = _inventoryItems.Length - 1; i >= 0; i--)
             {
-                var inventoryItemStack = _inventoryItems[i];
-                if (itemStackMap.TryGetValue(inventoryItemStack.Id, out NativeList<int> stack))
+                var slotId = _inventoryItems[i].Stack.Id;
+                if (itemStackMap.TryGetValue(slotId, out NativeList<int> stack))
                 {
                     stack.Add(i);
                 }
@@ -46,7 +55,7 @@ namespace Game.Train.Unit.Containers
                 {
                     var list = new NativeList<int>(Allocator.Temp);
                     list.Add(i);
-                    itemStackMap.Add(inventoryItemStack.Id, list);
+                    itemStackMap.Add(slotId, list);
                 }
             }
 
@@ -59,15 +68,15 @@ namespace Game.Train.Unit.Containers
 
             for (var i = 0; i < other._inventoryItems.Length; i++)
             {
-                var otherInventoryItem = other._inventoryItems[i];
-                if (otherInventoryItem.Id == ItemMaster.EmptyItemId) continue;
+                var otherItemId = other._inventoryItems[i].Stack.Id;
+                if (otherItemId == ItemMaster.EmptyItemId) continue;
 
-                if (itemStackMap.TryGetValue(otherInventoryItem.Id, out NativeList<int> itemStackIndices))
+                if (itemStackMap.TryGetValue(otherItemId, out NativeList<int> itemStackIndices))
                 {
                     for (int j = 0; j < itemStackIndices.Length; j++)
                     {
-                        var slot = _inventoryItems[itemStackIndices[j]];
-                        if (slot.Count < MasterHolder.ItemMaster.GetItemMaster(slot.Id).MaxStack)
+                        var slotStack = _inventoryItems[itemStackIndices[j]].Stack;
+                        if (slotStack.Count < MasterHolder.ItemMaster.GetItemMaster(slotStack.Id).MaxStack)
                         {
                             foreach (KVPair<ItemId, NativeList<int>> kvp in itemStackMap) kvp.Value.Dispose();
                             itemStackMap.Dispose();
@@ -88,8 +97,8 @@ namespace Game.Train.Unit.Containers
             
             for (int i = _inventoryItems.Length - 1; i >= 0; i--)
             {
-                var inventoryItemStack = _inventoryItems[i];
-                if (itemStackMap.TryGetValue(inventoryItemStack.Id, out NativeList<int> stack))
+                var slotId = _inventoryItems[i].Stack.Id;
+                if (itemStackMap.TryGetValue(slotId, out NativeList<int> stack))
                 {
                     stack.Add(i);
                 }
@@ -97,25 +106,25 @@ namespace Game.Train.Unit.Containers
                 {
                     var list = new NativeList<int>(Allocator.Temp);
                     list.Add(i);
-                    itemStackMap.Add(inventoryItemStack.Id, list);
-                }   
+                    itemStackMap.Add(slotId, list);
+                }
             }
             
             for (var i = 0; i < other._inventoryItems.Length; i++)
             {
-                var otherInventoryItem = other._inventoryItems[i];
-                if (otherInventoryItem.Id == ItemMaster.EmptyItemId) continue;
-                
-                var addingItemStack = otherInventoryItem;
-                if (itemStackMap.TryGetValue(otherInventoryItem.Id, out NativeList<int> itemStackIndices))
+                if (other._inventoryItems[i].Stack.Id == ItemMaster.EmptyItemId) continue;
+
+                var addingItemStack = other._inventoryItems[i].Stack;
+                if (itemStackMap.TryGetValue(addingItemStack.Id, out NativeList<int> itemStackIndices))
                 {
                     for (int j = itemStackIndices.Length - 1; j >= 0; j--)
                     {
-                        var result = _inventoryItems[itemStackIndices[j]].AddItem(addingItemStack);
-                        _inventoryItems[itemStackIndices[j]] = result.ProcessResultItemStack;
+                        var result = _inventoryItems[itemStackIndices[j]].Stack.AddItem(addingItemStack);
+                        _inventoryItems[itemStackIndices[j]].Stack = result.ProcessResultItemStack;
                         addingItemStack = result.RemainderItemStack;
-                        
-                        if (MasterHolder.ItemMaster.GetItemMaster(_inventoryItems[itemStackIndices[j]].Id).MaxStack <= _inventoryItems[itemStackIndices[j]].Count)
+
+                        var updatedStack = _inventoryItems[itemStackIndices[j]].Stack;
+                        if (MasterHolder.ItemMaster.GetItemMaster(updatedStack.Id).MaxStack <= updatedStack.Count)
                         {
                             itemStackIndices.RemoveAt(j);
                         }
@@ -127,8 +136,8 @@ namespace Game.Train.Unit.Containers
                     while (addingItemStack.Id != ItemMaster.EmptyItemId && emptySlotIndices.Length > 0)
                     {
                         var emptyIndex = emptySlotIndices[emptySlotIndices.Length - 1];
-                        var result = _inventoryItems[emptyIndex].AddItem(addingItemStack);
-                        _inventoryItems[emptyIndex] = result.ProcessResultItemStack;
+                        var result = _inventoryItems[emptyIndex].Stack.AddItem(addingItemStack);
+                        _inventoryItems[emptyIndex].Stack = result.ProcessResultItemStack;
                         addingItemStack = result.RemainderItemStack;
 
                         emptySlotIndices.RemoveAt(emptySlotIndices.Length - 1);
@@ -144,12 +153,30 @@ namespace Game.Train.Unit.Containers
                         }
                     }
                 }
-                
-                other._inventoryItems[i] = addingItemStack;
+
+                other._inventoryItems[i].Stack = addingItemStack;
             }
             
             foreach (KVPair<ItemId, NativeList<int>> kvp in itemStackMap) kvp.Value.Dispose();
             itemStackMap.Dispose();
         }
+        
+        public ReadOnlySpan<ItemTrainCarContainerSlot> InventoryItems => _inventoryItems;
+        
+        public static ItemTrainCarContainer CreateWithEmptySlots(int size)
+        {
+            return new ItemTrainCarContainer(Enumerable.Range(0, size).Select(i => ServerContext.ItemStackFactory.CreatEmpty()).ToArray());
+        }
+        
+        public static ItemTrainCarContainer CreateWithInventoryItems(params IItemStack[] inventoryItems)
+        {
+            return new ItemTrainCarContainer(inventoryItems);
+        }
+    }
+    
+    public struct ItemTrainCarContainerSlot
+    {
+        public int Index;
+        public IItemStack Stack;
     }
 }
