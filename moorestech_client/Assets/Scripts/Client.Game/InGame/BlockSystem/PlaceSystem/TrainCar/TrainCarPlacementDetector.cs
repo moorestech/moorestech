@@ -47,6 +47,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
         private readonly List<RailPosition> _frontRoutes = new();
         private readonly List<RailPosition> _rearRoutesFromCenter = new();
         private readonly List<TrainInstanceId> _overlapTrainIdsForRequirement1 = new();
+        private readonly List<RailPosition> _allTrainUnitRailPositionsForRequirement1 = new();
         private readonly List<RailPosition> _requirement1OverlapProbeRoutes = new();
         private RailPositionOverlapDetector.OverlapIndex _requirement1OverlapIndex = RailPositionOverlapDetector.CreateIndex(Array.Empty<RailPosition>());
         private long _routePairCount;
@@ -82,6 +83,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             _frontRoutes.Clear();
             _rearRoutesFromCenter.Clear();
             _overlapTrainIdsForRequirement1.Clear();
+            _allTrainUnitRailPositionsForRequirement1.Clear();
             _requirement1OverlapProbeRoutes.Clear();
             _requirement1OverlapIndex = RailPositionOverlapDetector.CreateIndex(Array.Empty<RailPosition>());
         }
@@ -244,10 +246,29 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
                 IReadOnlyList<TrainInstanceId> ResolveOverlapTrainUnitsForRequirement1()
                 {
-                    // listA候補と既存TrainUnit(listB)を比較し、重複したTrainUnitを収集する
-                    // Compare listA candidates against existing train units (listB) and collect overlapped units
+                    // listA(N'+M')候補と既存TrainUnit全体(listB)の多:多を先に一括判定する
+                    // Run a many-to-many precheck between listA(N'+M') and all existing train units(listB)
                     _overlapTrainIdsForRequirement1.Clear();
+                    _allTrainUnitRailPositionsForRequirement1.Clear();
 
+                    foreach (var pair in _trainUnitCache.Units)
+                    {
+                        var unit = pair.Value;
+                        if (unit == null || unit.RailPosition == null)
+                        {
+                            continue;
+                        }
+                        _allTrainUnitRailPositionsForRequirement1.Add(unit.RailPosition);
+                    }
+
+                    var allTrainUnitOverlapIndex = RailPositionOverlapDetector.CreateIndex(_allTrainUnitRailPositionsForRequirement1);
+                    if (!RailPositionOverlapDetector.HasOverlap(_requirement1OverlapIndex, allTrainUnitOverlapIndex))
+                    {
+                        return _overlapTrainIdsForRequirement1;
+                    }
+
+                    // 一括判定でヒットした場合のみ、どのTrainUnitかを個別に再調査する
+                    // Only when precheck hits, rescan per TrainUnit to identify exact overlapped ids
                     foreach (var pair in _trainUnitCache.Units)
                     {
                         var trainInstanceId = pair.Key;
