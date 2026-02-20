@@ -1,6 +1,6 @@
 ---
 name: train-system-notes
-description: Apply core train system invariants for rail graph topology, front/back node semantics, rail position ordering, docking references, train reverse behavior, and deterministic distance handling. Use when implementing or debugging fundamental train movement and topology logic.
+description: Apply core train system invariants for rail graph topology, front/back node semantics, rail position ordering, docking references, train reverse behavior, deterministic distance handling, and TrainUnit snapshot-based synchronization boundaries. Use when implementing or debugging fundamental train movement, topology, or train state consistency logic.
 ---
 
 # Train System Notes
@@ -23,6 +23,13 @@ Use this skill as a guardrail for train fundamentals and deterministic behavior.
 - Trust docking handles (`ITrainDockHandle`) as source of truth for docking state, not local cache alone.
 - Reverse train direction with `TrainUnit.Reverse()`. Do not reverse only `RailPosition`, because car orientation and traction consistency break.
 - Keep rail-node distance as fixed integer values. Avoid float persistence for node distance because save/load reproducibility degrades.
+
+## Train Sync Invariants
+
+- Treat a TrainUnit as the network synchronization boundary for train composition/state.
+- TrainUnit/TrainCar structural changes must be propagated via per-unit snapshot notify path (`NotifySnapshot` / `NotifyDeleted`), not ad-hoc per-car event diffs.
+- Deletion uses tombstone semantics (`IsDeleted`) and must clear cache + TrainCar visuals on the same buffered tick.
+- Full snapshot API (`GetTrainUnitSnapshots`) is the canonical recovery path on hash mismatch/resync.
 
 ## Test Setup Rules
 
@@ -47,6 +54,7 @@ Use this skill as a guardrail for train fundamentals and deterministic behavior.
 - Persist direction through `TrainCarSaveData.IsFacingForward`.
 - Current restore path reads `IsFacingForward` directly; no legacy-missing fallback is applied.
 - If save-data schema migration is needed, add explicit migration logic instead of relying on implicit defaults.
+- Snapshot serialization must preserve `TrainCarMasterId`, `IsFacingForward`, inventory slot count, and traction-related fields consistently with runtime behavior.
 
 ## Rail Graph Model
 
