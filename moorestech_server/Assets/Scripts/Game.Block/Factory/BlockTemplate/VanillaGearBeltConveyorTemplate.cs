@@ -35,9 +35,9 @@ namespace Game.Block.Factory.BlockTemplate
             
             var slopeType = gearBeltParam.SlopeType switch
             {
-                ItemShooterBlockParam.SlopeTypeConst.Up => BeltConveyorSlopeType.Up,
-                ItemShooterBlockParam.SlopeTypeConst.Down => BeltConveyorSlopeType.Down,
-                ItemShooterBlockParam.SlopeTypeConst.Straight => BeltConveyorSlopeType.Straight
+                GearBeltConveyorBlockParam.SlopeTypeConst.Up => BeltConveyorSlopeType.Up,
+                GearBeltConveyorBlockParam.SlopeTypeConst.Down => BeltConveyorSlopeType.Down,
+                GearBeltConveyorBlockParam.SlopeTypeConst.Straight => BeltConveyorSlopeType.Straight
             };
             var itemCount = gearBeltParam.BeltConveyorItemCount;
             
