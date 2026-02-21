@@ -99,6 +99,17 @@ namespace Client.Game.InGame.Train.View.Object
             Resources.UnloadAsset(placePreviewMaterial);
         }
 
+        // 事実上、新規でTrainCarを設置しようとしたときに連結できますよを視覚的に知らせるための表示のみ用
+        public void SetPlacementOverlapPreviewing()
+        {
+            // 設置候補重複ハイライトは設置可能色(青)で表示する
+            // Show placement-overlap highlight in placeable color (blue)
+            var placePreviewMaterial = Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial);
+            _rendererMaterialReplacerController.CopyAndSetMaterial(placePreviewMaterial);
+            _rendererMaterialReplacerController.SetColor(MaterialConst.PreviewColorPropertyName, MaterialConst.PlaceableColor);
+            Resources.UnloadAsset(placePreviewMaterial);
+        }
+
         public void ResetMaterial()
         {
             _rendererMaterialReplacerController.ResetMaterial();
