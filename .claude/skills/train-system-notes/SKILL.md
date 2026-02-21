@@ -37,13 +37,15 @@ Use this skill as a guardrail for train fundamentals and deterministic behavior.
 
 - Backward-facing cars keep weight but do not generate traction.
 - Persist direction through `TrainCarSaveData.IsFacingForward`.
-- Treat missing legacy direction value as default forward (`true`) on load.
+- Current restore path reads `IsFacingForward` directly; no legacy-missing fallback is applied.
+- If save-data schema migration is needed, add explicit migration logic instead of relying on implicit defaults.
 
 ## Rail Graph Model
 
 - Each `RailComponent` owns `FrontNode` and `BackNode` as opposite pairs.
 - Treat `FrontNode` and `BackNode` as paired directional endpoints (`OppositeNode`) inside one component.
-- A simple rail block commonly has 2 rail components, so minimum topology is 4 directional nodes.
+- A simple rail block (`VanillaTrainRailTemplate`) has 1 rail component (2 directional nodes).
+- Station/Cargo blocks (`VanillaTrainStationTemplate` / `VanillaTrainCargoTemplate`) have 2 rail components (4 directional nodes).
 - The graph is directional at node level.
 - Connection APIs use the selected source node (`FrontNode` or `BackNode`) as directed-edge start.
 - A connection like `front(A) -> front(B)` implies reverse-path mapping through opposite nodes (`back(B) -> back(A)`), not a duplicated manual bidirectional edge.
