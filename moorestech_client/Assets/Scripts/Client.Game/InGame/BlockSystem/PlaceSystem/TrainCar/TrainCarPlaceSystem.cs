@@ -19,11 +19,27 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
         public void Enable()
         {
+            _detector.ResetSelection();
             _previewController.SetActive(true);
         }
 
         public void ManualUpdate(PlaceSystemUpdateContext context)
         {
+            // スロット変更時は候補選択を初期化する
+            // Reset route selection when slot selection changes
+            if (context.IsSelectSlotChanged)
+            {
+                _detector.ResetSelection();
+            }
+
+            // Rキーで「反転優先」の順序で次候補へ進める
+            // Advance to the next candidate in reverse-priority order on R key
+            // TODO InputManager整備
+            if (InputManager.Playable.BlockPlaceRotation.GetKeyDown)
+            {
+                _detector.AdvanceSelection();
+            }
+
             // レール上の設置候補を検出する
             // Detect placement candidate on the rail
             if (!_detector.TryDetect(context.HoldingItemId, out var hit))
@@ -67,6 +83,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
         public void Disable()
         {
+            _detector.ResetSelection();
             _previewController.SetActive(false);
         }
     }
