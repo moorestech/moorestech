@@ -85,9 +85,7 @@ crashlytics-build.properties
 /moorestech_client/Assets/Dependencies/lilToon/Editor/CurrentRP.txt.meta
 
 # Github Actionsのアウトプット
-/moorestech_*/Output_StandaloneWindows64/
-/moorestech_*/Output_StandaloneOSX/
-/moorestech_*/Output_StandaloneLinux64/
+/moorestech_*/Output_*
 moorestech_client/.vscode/settings.json
 
 # Core.Master recompile

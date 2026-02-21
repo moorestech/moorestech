@@ -1,0 +1,111 @@
+name: Server Build
+
+on:
+  pull_request:
+
+  # 手動実行デバッグ用
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    name: Server Build
+    runs-on: ${{ matrix.platform.runner }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          # GUI版ビルド
+          - name: StandaloneWindows64
+            buildMethod: BuildPipeline.WindowsBuildFromGithubAction
+            runner: windows-latest
+            isDedicatedServer: false
+          - name: StandaloneOSX
+            buildMethod: BuildPipeline.MacOsBuildFromGithubAction
+            runner: macos-latest
+            isDedicatedServer: false
+          # Dedicated Serverビルド
+          - name: StandaloneWindows64
+            buildMethod: BuildPipeline.WindowsDedicatedServerFromGithubAction
+            runner: windows-latest
+            isDedicatedServer: true
+          - name: StandaloneLinux64
+            buildMethod: BuildPipeline.LinuxDedicatedServerFromGithubAction
+            runner: windows-latest
+            isDedicatedServer: true
+
+    steps:
+      # Checkout
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+      - name: Update submodules
+        run: |
+          git submodule sync --recursive
+          git submodule update --init --recursive
+      - name: Run git status
+        id: status
+        run: echo "::set-output name=status::$(git status -s)"
+
+      # 年月日を取得　キャッシュのkeyに利用
+      - name: Set current datetime as env variable
+        env:
+          TZ: 'Asia/Tokyo'
+        run: echo "CURRENT_DATETIME=$(date +'%Y-%m')" >> $GITHUB_ENV
+
+      # キャッシュ keyを月跨ぎで更新することで定期的にキャッシュ自体の更新を行う
+      - uses: actions/cache@v3
+        with:
+          path: moorestech_server/Library
+          key: "Server_Library_${{ env.CURRENT_DATETIME }}"
+
+      # アーティファクト名を設定（GUI版とDedicated Serverで区別）
+      - name: Set artifact name
+        id: artifact
+        shell: bash
+        run: |
+          if [ "${{ matrix.platform.isDedicatedServer }}" = "true" ]; then
+            echo "name=Server_Output_DedicatedServer_${{ matrix.platform.name }}" >> $GITHUB_OUTPUT
+            echo "path=moorestech_server/Output_DedicatedServer_${{ matrix.platform.name }}" >> $GITHUB_OUTPUT
+          else
+            echo "name=Server_Output_${{ matrix.platform.name }}" >> $GITHUB_OUTPUT
+            echo "path=moorestech_server/Output_${{ matrix.platform.name }}" >> $GITHUB_OUTPUT
+          fi
+
+      # Build
+      - name: ${{ steps.artifact.outputs.name }} Build project
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          unityVersion: 6000.3.8f1
+          buildMethod: ${{ matrix.platform.buildMethod }}
+          targetPlatform: ${{ matrix.platform.name }}
+          allowDirtyBuild: true
+          projectPath: moorestech_server/
+
+      # Upload Build (Windows, Mac)
+      - name: ${{ steps.artifact.outputs.name }} Upload
+        if: matrix.platform.name != 'StandaloneLinux64'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.artifact.outputs.name }}
+          path: ${{ steps.artifact.outputs.path }}
+
+      # Archive for Linux
+      - name: Archive for Linux
+        if: matrix.platform.name == 'StandaloneLinux64'
+        run: |
+          tar -czvf output.tar.gz ${{ steps.artifact.outputs.path }}
+
+      # Upload Archival for Linux
+      - name: Upload Archival for Linux
+        if: matrix.platform.name == 'StandaloneLinux64'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.artifact.outputs.name }}
+          path: ./output.tar.gz
