@@ -17,13 +17,24 @@ namespace Client.Tests.EditModeInPlayingTest
     public class PlayerMovementTest
     {
         /// <summary>
-        /// テスト終了時にキー状態リークを防止する（アサート失敗時も保証）
-        /// Prevent key state leaks on test end (guaranteed even on assertion failure).
+        /// CI/バッチ環境で仮想デバイスを確保する
+        /// Ensure virtual input devices exist in CI/batch environments.
+        /// </summary>
+        [SetUp]
+        public void SetUp()
+        {
+            OsInputSpoof.EnsureDevices();
+        }
+
+        /// <summary>
+        /// テスト終了時にキー状態リークを防止し仮想デバイスを破棄する
+        /// Prevent key state leaks and clean up virtual devices on test end.
         /// </summary>
         [TearDown]
         public void TearDown()
         {
             OsInputSpoof.ReleaseAllKeys();
+            OsInputSpoof.CleanupDevices();
         }
 
         [UnityTest]
