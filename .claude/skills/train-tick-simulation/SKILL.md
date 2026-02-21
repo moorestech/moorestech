@@ -7,37 +7,62 @@ description: Define and enforce deterministic train tick-phase behavior between 
 
 ## Overview
 
-Use this skill to keep server/client simulation aligned by tick and phase.
+Use this skill to keep server/client simulation aligned by unified chronological ordering.
 
-## Target Tick Flow
+## Reuse-First Rule
+
+- Before adding tick/event helper logic, search existing train implementations first.
+- Prefer shared `Game.Train` logic over per-handler duplicate implementations.
+- If duplication is unavoidable, document `WHY_NEW_IMPLEMENTATION` in code/PR notes.
+- Recommended pre-check:
+  - `rg --line-number "TickUnifiedId|TickSequenceId|Overlap|CreateIndex|HasOverlap" moorestech_client/Assets/Scripts moorestech_server/Assets/Scripts`
+
+## Target Tick Flow (Current)
 
 Server order:
 1. Emit hash event first.
 2. Increment server tick.
 3. Run per-train simulation.
-4. Emit tick-bound diffs only for changed trains.
+4. Emit tick-bound diff bundle event (even when per-train diffs are empty).
 
 Client order:
-1. Apply pre-sim events for the tick.
-2. Pass hash gate for that tick.
-3. Simulate local train state.
-4. Apply post-sim events for the tick.
+1. Flush queued events in strict `TickUnifiedId` order (`id + 1`).
+2. Apply tick-diff bundle event for the target tick:
+   - apply per-train input diffs
+   - run local train simulation (`unit.Update()`)
+3. Run hash gate on the same unified id and decide whether tick can advance.
 
-## Mascon Diff Event Contract
+## Unified Ordering Contract
 
-- Event payload contains:
-  - `Tick`
-  - `Changes[]` with (`TrainId`, `MasconLevel`)
-- Emit exactly one batch per tick when there is at least one change.
-- Emit no event when there are no changes.
-- Treat mascon diff as pre-sim input.
+- `TickUnifiedId = ((ulong)ServerTick << 32) | TickSequenceId`.
+- All train/rail events must carry `ServerTick` and `TickSequenceId`.
+- The client must enqueue network events; do not apply immediately in handlers.
+
+## TickDiffBundle Contract
+
+- Event tag: `va:event:trainUnitTickDiffBundle`.
+- Bundle payload includes:
+  - `ServerTick`
+  - `HashTickSequenceId`
+  - `DiffTickSequenceId`
+  - `UnitsHash`
+  - `RailGraphHash`
+  - `Diffs[]`
+- `Diffs[]` item includes:
+  - `TrainInstanceId`
+  - `MasconLevelDiff`
+  - `IsNowDockingSpeedZero`
+  - `ApproachingNodeIdDiff`
+- The server emits bundle events each tick as simulation trigger; `Diffs[]` may be empty.
+- Hash may be dummy (`uint.MaxValue`) on non-broadcast hash ticks; client treats dummy as pass.
 
 ## Workflow
 
-1. Classify incoming behavior as pre-sim or post-sim.
-2. Verify server phase order and client phase order both match this skill.
-3. Ensure every added train event/protocol includes tick.
-4. Add tests for:
+1. Verify server order: `hash -> tick increment -> simulation -> diff bundle`.
+2. Ensure every added train/rail event payload has `ServerTick` and `TickSequenceId`.
+3. Ensure client handlers only enqueue to `TrainUnitFutureMessageBuffer`.
+4. Verify `TickSequenceId` continuity from server emission points.
+5. Add tests for:
+   - unified id monotonic progression
    - hash gate progression
-   - pre-sim-before-sim enforcement
-   - no-change suppression of mascon diff emission
+   - empty-diff bundle still triggers simulation

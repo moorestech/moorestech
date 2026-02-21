@@ -9,6 +9,14 @@ description: Implement new train/rail network events with unified chronological 
 
 In the current architecture, the distinction between `pre-sim` and `post-sim` queues has been **unified** into a single chronological event stream. All events (including the simulation trigger itself) are ordered by a 64-bit `TickUnifiedId`.
 
+## Reuse-First Rule
+
+- Before creating new event-side helper logic, search existing train/rail implementations first.
+- Prefer reusing `Game.Train` domain logic rather than re-implementing similar logic in event handlers.
+- If a new duplicate helper is unavoidable, document `WHY_NEW_IMPLEMENTATION` in code/PR notes.
+- Recommended pre-check:
+  - `rg --line-number "TickUnifiedId|NextTickSequenceId|Overlap|CreateIndex|HasOverlap" moorestech_client/Assets/Scripts moorestech_server/Assets/Scripts`
+
 ## Core Concepts
 
 ### 1. TickUnifiedId
@@ -54,8 +62,8 @@ The client-side `TrainUnitClientSimulator.Tick()` follows this logic:
 
 - `va:event:trainUnitTickDiffBundle`
     - Apply Logic: Updates `MasconLevel` etc. for affected trains, then calls `unit.Update()` for **all** trains.
-- `va:event:trainUnitCreated`
-    - Apply Logic: Adds a new train to the `TrainUnitClientCache` and updates views.
+- `va:event:trainUnitSnapshot`
+    - Apply Logic: Applies per-train-unit snapshot upsert/delete through the future buffer at the specified tick.
 
 ## Implementation Checklist
 
@@ -70,7 +78,7 @@ The client-side `TrainUnitClientSimulator.Tick()` follows this logic:
     *   Call `_futureMessageBuffer.EnqueueEvent(...)` with a `TrainTickBufferedEvent`.
 4.  **Verification**:
     *   Ensure the event happens at the correct logical time relative to the simulation.
-    *   Check that `NextTickSequenceId()` is called exactly once per emitted payload.
+    *   Check that `NextTickSequenceId()` usage preserves strict in-tick chronological continuity.
 
 ## Key Files
 

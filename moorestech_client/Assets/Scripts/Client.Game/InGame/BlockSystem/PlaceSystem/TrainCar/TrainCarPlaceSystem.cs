@@ -39,6 +39,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
             // Rキーで「反転優先」の順序で次候補へ進める
             // Advance to the next candidate in reverse-priority order on R key
+            // TODO InputManager整備
             if (InputManager.Playable.BlockPlaceRotation.GetKeyDown)
             {
                 _detector.AdvanceSelection();

@@ -9,6 +9,14 @@ description: Apply core train system invariants for rail graph topology, front/b
 
 Use this skill as a guardrail for train fundamentals and deterministic behavior.
 
+## Reuse-First Rule
+
+- Before adding new rail/train algorithm helpers, search existing implementations first.
+- Prefer `Game.Train` canonical logic (for example overlap detection) instead of client-local duplication.
+- If duplication is unavoidable, document `WHY_NEW_IMPLEMENTATION` in code/PR notes.
+- Recommended pre-check:
+  - `rg --line-number "RailPositionOverlapDetector|Overlap|CreateIndex|HasOverlap|RailPosition" moorestech_client/Assets/Scripts moorestech_server/Assets/Scripts`
+
 ## Core Invariants
 
 - Build train tests with deterministic setup (`TrainTestHelper.CreateEnvironment`) and reset singleton state between scenarios.
@@ -37,13 +45,15 @@ Use this skill as a guardrail for train fundamentals and deterministic behavior.
 
 - Backward-facing cars keep weight but do not generate traction.
 - Persist direction through `TrainCarSaveData.IsFacingForward`.
-- Treat missing legacy direction value as default forward (`true`) on load.
+- Current restore path reads `IsFacingForward` directly; no legacy-missing fallback is applied.
+- If save-data schema migration is needed, add explicit migration logic instead of relying on implicit defaults.
 
 ## Rail Graph Model
 
 - Each `RailComponent` owns `FrontNode` and `BackNode` as opposite pairs.
 - Treat `FrontNode` and `BackNode` as paired directional endpoints (`OppositeNode`) inside one component.
-- A simple rail block commonly has 2 rail components, so minimum topology is 4 directional nodes.
+- A simple rail block (`VanillaTrainRailTemplate`) has 1 rail component (2 directional nodes).
+- Station/Cargo blocks (`VanillaTrainStationTemplate` / `VanillaTrainCargoTemplate`) have 2 rail components (4 directional nodes).
 - The graph is directional at node level.
 - Connection APIs use the selected source node (`FrontNode` or `BackNode`) as directed-edge start.
 - A connection like `front(A) -> front(B)` implies reverse-path mapping through opposite nodes (`back(B) -> back(A)`), not a duplicated manual bidirectional edge.
@@ -67,6 +77,7 @@ Use this skill as a guardrail for train fundamentals and deterministic behavior.
 - Because of this, a naively "travel-order" list can be reversed for distance calculation and return `-1`.
 - Validate adjacency explicitly before building position paths, especially for round-trip and loop scenarios.
 - Validate all adjacent pairs with `next.GetDistanceToNode(current) >= 0` before creating `RailPosition`.
+- Do not split helper methods unless input contract or behavior truly differs; prefer one minimal path-building helper over semantic-only wrappers.
 - Add assertions that catch incorrect node order early for both forward and return direction checks.
 - For runtime movement expectations, also verify forward reachability separately with `current.GetDistanceToNode(next) > 0`.
 - For docking-oriented initial placement, keep the departure station exit-side node first and paired entry-side node next.

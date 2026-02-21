@@ -54,7 +54,10 @@ namespace Client.Game.InGame.UI.Inventory
             {
                 UpdateSelectedView(SelectIndex, nextSelectIndex);
                 UpdateHoldItemAsync(nextSelectIndex).Forget(); //アイテムの再生成があるので変化を検知して変更する
-                
+
+                // 選択が実際に変わった時だけイベントを発火する
+                // Only fire the event when the selection actually changes
+                OnSelectHotBar?.Invoke(nextSelectIndex);
                 SelectIndex = nextSelectIndex;
             }
             
@@ -93,7 +96,6 @@ namespace Client.Game.InGame.UI.Inventory
                     _switchHotBarDeltaTotal -= s;
                     var selected = SelectIndex + s;
                     selected = (selected + hotBarItems.Count) % hotBarItems.Count;
-                    OnSelectHotBar?.Invoke(selected);
                     return selected;
                 }
                 if (_switchHotBarDeltaTotal < -1)
@@ -102,19 +104,16 @@ namespace Client.Game.InGame.UI.Inventory
                     _switchHotBarDeltaTotal -= s;
                     var selected = SelectIndex + s;
                     selected = (selected + hotBarItems.Count) % hotBarItems.Count;
-                    OnSelectHotBar?.Invoke(selected);
                     return selected;
                 }
-                
-                
+
+
                 //キーボード入力で選択
                 if (InputManager.UI.HotBar.ReadValue<int>() == 0) return -1;
-                
+
                 {
                     //キー入力で得られる値は1〜9なので-1する
                     var selected = InputManager.UI.HotBar.ReadValue<int>() - 1;
-                    
-                    OnSelectHotBar?.Invoke(selected);
                     return selected;
                 }
             }
