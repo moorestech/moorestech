@@ -25,18 +25,8 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 031794dff1b4e4024a61e9c8c4e64e15
-    m_Address: Vanilla/UI/Block/CraftChainerCrafterInventory
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 04086b712784245edabb8cc70b56f27a
     m_Address: Vanilla/UI/Block/MinerBlockInventory
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 04a0e8da3bd0f4c9d874fdba9cd907f0
-    m_Address: Vanilla/Block/Old/CraftChainerProviderChest
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -490,11 +480,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 7b4696d31466c1c44a6d4a34d4c0c5ec
-    m_Address: Vanilla/Block/Old/CraftChainerMainComputer
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 7d2d6647768134bdd8bed5cd77d70333
     m_Address: Vanilla/Block/Chainer_Fast_BeltConveyor_Straight
     m_ReadOnly: 0
@@ -517,11 +502,6 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 85fb7a241b50442c68029a0d9748bf56
     m_Address: Vanilla/Game/DefaultTrain
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 86e61f81bcc934fea864ebdccb57122f
-    m_Address: Vanilla/UI/Block/CraftChainerMainComputerInventory
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -722,11 +702,6 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: b0c6385732c7e5b439e621f7eb8b69f5
     m_Address: Vanilla/Block/Fuel_powered_windmill
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: b112ff9fe273445dea888761fe3e6b15
-    m_Address: Vanilla/Block/Old/CraftChainerCrafter
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
