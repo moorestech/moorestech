@@ -36,24 +36,11 @@ namespace Tests.Module.TestMod
         public static BlockId GearBeltConveyor => GetBlock("00000000-0000-0000-0000-000000000015");
         public static BlockId GearBeltConveyorSplitter => GetBlock("eccb9f59-4439-4caf-9ae8-67da50549040");
         
-        public static BlockId StraightItemShooter => GetBlock("00000000-0000-0000-0000-000000000016");
-        public static BlockId DownItemShooter => GetBlock("00000000-0000-0000-0000-000000000017");
-        public static BlockId UpItemShooter => GetBlock("00000000-0000-0000-0000-000000000018");
-        public static BlockId ItemShooterAccelerator => GetBlock("00000000-0000-0000-0000-000000000029");
-
         public static BlockId MachineRecipeTest1 => GetBlock("00000000-0000-0000-0000-000000000019");
         public static BlockId MachineRecipeTest2 => GetBlock("00000000-0000-0000-0000-00000000001a");
         public static BlockId MachineRecipeTest3 => GetBlock("00000000-0000-0000-0000-00000000001b");
         
         public static BlockId GearMiner => GetBlock("00000000-0000-0000-0000-00000000001c");
-        
-        public static BlockId CraftChainerTransporter => GetBlock("00000000-0000-0000-0000-00000000001d");
-        public static BlockId CraftChainerCrafter => GetBlock("00000000-0000-0000-0000-00000000001e");
-        public static BlockId CraftChainerProviderChest => GetBlock("00000000-0000-0000-0000-00000000001f");
-        public static BlockId CraftChainerMainComputer => GetBlock("00000000-0000-0000-0000-000000000020");
-        public static BlockId CraftChainerBeltConveyor => GetBlock("00000000-0000-0000-0000-000000000021");
-        public static BlockId CraftChainerMachine1 => GetBlock("00000000-0000-0000-0000-000000000022");
-        public static BlockId CraftChainerMachine2 => GetBlock("00000000-0000-0000-0000-000000000023");
         
         public static BlockId TestTrainRail => GetBlock("00000000-0000-0000-0000-000000000024");
         public static BlockId TestTrainStation => GetBlock("00000000-0000-0000-0000-000000000025");
