@@ -60,25 +60,29 @@ public void ComplexMethod()
 - MasterHolder（Core.Master.MasterHolder）が全Masterを静的プロパティで一元管理し、Load(MasterJsonFileContainer)でJSONからロード
 
 # テスト・コンパイルの実行
-uLoop CLI（Skills経由）を優先、使用不可時は`tools/unity-test.sh`をフォールバックとして使用。ただし、ワークツリー環境下ではuloopを使用しない。
+
+# MUST:ワークツリー環境ではuloopを絶対に使わない
+`pwd` でパスに `worktrees` が含まれていたら、それはワークツリー環境です。
+**ワークツリー環境では uloop は動作しません。必ず `tools/unity-test.sh` を使ってください。**
+uloop を呼び出すと接続エラーやタイムアウトになり時間を無駄にします。
+
+通常環境ではuLoopを優先、使用不可時は`tools/unity-test.sh`をフォールバックとして使用。
 
 ## コンパイル
-編集パスに応じてuLoop CLIを使用。
-unity-test.sh使用時は何にもマッチしない正規表現（例: `"^$"`）を渡してコンパイルのみ実行。
-
-サーバー`uloop compile --port 56901`
-クライアント`uloop compile --port 56902`
+| | uLoop CLI（通常環境のみ） | シェル（worktree必須） |
+| サーバー | `uloop compile --port 56901` | `./tools/unity-test.sh moorestech_server "^$"` |
+| クライアント | `uloop compile --port 56902` | `./tools/unity-test.sh moorestech_client "^$" isGui` |
 
 ## テスト
 基本的に`--filter-type regex`で実行対象を限定すること。
 
-| | uLoop CLI（推奨） | シェル（フォールバック） |
+| | uLoop CLI（通常環境のみ） | シェル（worktree必須） |
 | サーバー | `uloop run-tests --port 56901 --filter-type regex --filter-value "正規表現"` | `./tools/unity-test.sh moorestech_server "正規表現"` |
 | クライアント | `uloop run-tests --port 56902 --filter-type regex --filter-value "正規表現"` | `./tools/unity-test.sh moorestech_client "正規表現" isGui` |
 
 - クライアント側シェル実行時は`isGui`オプション必須（バッチモードでは不安定）
 
-## ログ確認
+## ログ確認（通常環境のみ）
 | | コマンド |
 | サーバー | `uloop get-logs --port 56901 --log-type Error` |
 | クライアント | `uloop get-logs --port 56902 --log-type Error` |
