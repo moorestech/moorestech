@@ -1,4 +1,5 @@
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Train.View.Object;
 using Client.Input;
 using Cysharp.Threading.Tasks;
 using System.Threading;
@@ -10,17 +11,20 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
     {
         private readonly ITrainCarPlacementDetector _detector;
         private readonly TrainCarPreviewController _previewController;
+        private readonly TrainCarObjectDatastore _trainCarObjectDatastore;
 
-        public TrainCarPlaceSystem(ITrainCarPlacementDetector detector, TrainCarPreviewController previewController)
+        public TrainCarPlaceSystem(ITrainCarPlacementDetector detector, TrainCarPreviewController previewController, TrainCarObjectDatastore trainCarObjectDatastore)
         {
             _detector = detector;
             _previewController = previewController;
+            _trainCarObjectDatastore = trainCarObjectDatastore;
         }
 
         public void Enable()
         {
             _detector.ResetSelection();
             _previewController.SetActive(true);
+            _trainCarObjectDatastore.ClearPlacementOverlapHighlight();
         }
 
         public void ManualUpdate(PlaceSystemUpdateContext context)
@@ -44,9 +48,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             // Detect placement candidate on the rail
             if (!_detector.TryDetect(context.HoldingItemId, out var hit))
             {
+                _trainCarObjectDatastore.ClearPlacementOverlapHighlight();
                 _previewController.SetActive(false);
                 return;
             }
+
+            // 要件1の重複対象TrainUnitを描画ハイライトする
+            // Highlight overlapped train units resolved by requirement-1 overlap detection
+            _trainCarObjectDatastore.SetPlacementOverlapHighlight(hit.OverlapTrainInstanceIds);
 
             // プレビュー表示可否と描画状態を更新する
             // Update preview visibility and rendering
@@ -84,6 +93,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
         public void Disable()
         {
             _detector.ResetSelection();
+            _trainCarObjectDatastore.ClearPlacementOverlapHighlight();
             _previewController.SetActive(false);
         }
     }

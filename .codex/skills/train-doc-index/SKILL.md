@@ -9,6 +9,14 @@ description: Classify train-related requests and route execution to the correct 
 
 Use this skill as an entry point to pick the right train workflow and avoid mixing unrelated concerns.
 
+## Reuse-First Rule
+
+- Before adding a new helper/algorithm, search existing train code across both client and server.
+- Prefer reusing `Game.Train` implementations instead of duplicating logic in client-local helpers.
+- If a duplicate implementation is unavoidable, write a short `WHY_NEW_IMPLEMENTATION` reason in code/PR notes.
+- Recommended pre-check:
+  - `rg --line-number "Overlap|CreateIndex|HasOverlap|RailPosition" moorestech_client/Assets/Scripts moorestech_server/Assets/Scripts`
+
 ## Routing Rules
 
 - Use `rail-network-sync` when changing protocol/event behavior for rail or train state synchronization.
