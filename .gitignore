@@ -11,6 +11,9 @@
 /moorestech_*/[Uu]ser[Ss]ettings/*
 !/moorestech_*/[Uu]ser[Ss]ettings/UnityMcpSettings.json
 
+# Addresabble
+/moorestech_*/[Aa]ssets/AddressableAssetsData/link.xml*
+/moorestech_*/[Aa]ssets/Addressables_Temp*
 
 # MemoryCaptures can get excessive in size.
 # They also could contain extremely sensitive data
