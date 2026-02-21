@@ -25,10 +25,11 @@ jobs:
             runner: macos-latest
             isDedicatedServer: false
           # Dedicated Serverビルド
-          - name: StandaloneWindows64
-            buildMethod: BuildPipeline.WindowsDedicatedServerFromGithubAction
-            runner: windows-latest
-            isDedicatedServer: true
+          # Windows Dedicated ServerはgameCIのDockerイメージにwindows-serverモジュールが含まれないため除外
+          # - name: StandaloneWindows64
+          #   buildMethod: BuildPipeline.WindowsDedicatedServerFromGithubAction
+          #   runner: windows-latest
+          #   isDedicatedServer: true
           - name: StandaloneLinux64
             buildMethod: BuildPipeline.LinuxDedicatedServerFromGithubAction
             runner: ubuntu-latest
