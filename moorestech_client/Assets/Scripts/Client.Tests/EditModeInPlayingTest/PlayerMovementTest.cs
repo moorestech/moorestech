@@ -14,6 +14,7 @@ namespace Client.Tests.EditModeInPlayingTest
     /// テスト自体はEditModeで実行されるが、実行中にプレイモードに変更する
     /// This test is executed in EditMode, but it switches to PlayMode during execution.
     /// </summary>
+    [Category("IgnoreCI")]
     public class PlayerMovementTest
     {
         /// <summary>
