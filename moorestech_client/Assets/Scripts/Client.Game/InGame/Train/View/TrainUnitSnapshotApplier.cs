@@ -42,6 +42,8 @@ namespace Client.Game.InGame.Train.View
         {
             if (response == null) return;
             var snapshotTickUnifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(response.ServerTick, response.TickSequenceId);
+            Debug.Log("ApplySnapshotTrainUnit: " + response.ServerTick + "_" + response.TickSequenceId);
+            
             if (snapshotTickUnifiedId < _tickState.GetAppliedTickUnifiedId())
             {
                 // 遅延して届いた古いsnapshotは適用せず破棄する。
