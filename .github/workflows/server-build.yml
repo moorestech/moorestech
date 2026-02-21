@@ -31,7 +31,7 @@ jobs:
             isDedicatedServer: true
           - name: StandaloneLinux64
             buildMethod: BuildPipeline.LinuxDedicatedServerFromGithubAction
-            runner: windows-latest
+            runner: ubuntu-latest
             isDedicatedServer: true
 
     steps:
