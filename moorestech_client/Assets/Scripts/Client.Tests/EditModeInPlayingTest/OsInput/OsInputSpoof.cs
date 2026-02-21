@@ -132,8 +132,9 @@ namespace Client.Tests.EditModeInPlayingTest.OsInput
 
         private static void EditorInjectKey(DebugKey key, bool isDown)
         {
-            // キーボードデバイスが存在しない場合は何もしない
-            // Do nothing if keyboard device is absent
+            // デバイス未確保ならここで自動確保（ドメインリロード後でも安全）
+            // Auto-ensure devices if absent (safe even after domain reload)
+            EnsureDevices();
             var keyboard = Keyboard.current;
             if (keyboard == null) return;
 
@@ -146,16 +147,14 @@ namespace Client.Tests.EditModeInPlayingTest.OsInput
             var keysArray = new Key[EditorPressedKeys.Count];
             EditorPressedKeys.CopyTo(keysArray);
             InputSystem.QueueStateEvent(keyboard, new KeyboardState(keysArray));
-
-            // バッチモードではInputSystemの自動更新が発火しないため手動更新
-            // Force event processing (batch mode skips automatic InputSystem updates)
-            InputSystem.Update();
+            FlushInputEvents();
         }
 
         private static void EditorInjectMouseMove(int dx, int dy)
         {
-            // マウスデバイスが存在しない場合は何もしない
-            // Do nothing if mouse device is absent
+            // デバイス未確保ならここで自動確保
+            // Auto-ensure devices if absent
+            EnsureDevices();
             var mouse = Mouse.current;
             if (mouse == null) return;
 
@@ -167,14 +166,14 @@ namespace Client.Tests.EditModeInPlayingTest.OsInput
                 position = currentPos + new Vector2(dx, dy),
                 delta = new Vector2(dx, dy),
             });
-
-            // バッチモードではInputSystemの自動更新が発火しないため手動更新
-            // Force event processing (batch mode skips automatic InputSystem updates)
-            InputSystem.Update();
+            FlushInputEvents();
         }
 
         private static void EditorInjectMouseClick()
         {
+            // デバイス未確保ならここで自動確保
+            // Auto-ensure devices if absent
+            EnsureDevices();
             var mouse = Mouse.current;
             if (mouse == null) return;
 
@@ -192,9 +191,15 @@ namespace Client.Tests.EditModeInPlayingTest.OsInput
                 position = currentPos,
                 buttons = 0,
             });
+            FlushInputEvents();
+        }
 
-            // バッチモードではInputSystemの自動更新が発火しないため手動更新
-            // Force event processing (batch mode skips automatic InputSystem updates)
+        /// <summary>
+        /// バッチモードではInputSystemの自動更新が発火しないため手動更新
+        /// Force event processing (batch mode skips automatic InputSystem updates)
+        /// </summary>
+        private static void FlushInputEvents()
+        {
             InputSystem.Update();
         }
 
