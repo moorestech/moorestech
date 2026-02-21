@@ -54,6 +54,7 @@ jobs:
           githubToken: ${{ steps.generate_token.outputs.token }}
           unityVersion: 6000.3.8f1
           testMode: editmode
+          customParameters: '-testCategory "!IgnoreCI"'
 
       # テストの実行結果をアーティファクトにアップロードしてダウンロードして参照できるようにする
       - uses: actions/upload-artifact@v4
