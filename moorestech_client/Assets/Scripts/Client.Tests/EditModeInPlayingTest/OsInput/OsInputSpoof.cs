@@ -146,6 +146,10 @@ namespace Client.Tests.EditModeInPlayingTest.OsInput
             var keysArray = new Key[EditorPressedKeys.Count];
             EditorPressedKeys.CopyTo(keysArray);
             InputSystem.QueueStateEvent(keyboard, new KeyboardState(keysArray));
+
+            // バッチモードではInputSystemの自動更新が発火しないため手動更新
+            // Force event processing (batch mode skips automatic InputSystem updates)
+            InputSystem.Update();
         }
 
         private static void EditorInjectMouseMove(int dx, int dy)
@@ -163,6 +167,10 @@ namespace Client.Tests.EditModeInPlayingTest.OsInput
                 position = currentPos + new Vector2(dx, dy),
                 delta = new Vector2(dx, dy),
             });
+
+            // バッチモードではInputSystemの自動更新が発火しないため手動更新
+            // Force event processing (batch mode skips automatic InputSystem updates)
+            InputSystem.Update();
         }
 
         private static void EditorInjectMouseClick()
@@ -184,6 +192,10 @@ namespace Client.Tests.EditModeInPlayingTest.OsInput
                 position = currentPos,
                 buttons = 0,
             });
+
+            // バッチモードではInputSystemの自動更新が発火しないため手動更新
+            // Force event processing (batch mode skips automatic InputSystem updates)
+            InputSystem.Update();
         }
 
         /// <summary>
