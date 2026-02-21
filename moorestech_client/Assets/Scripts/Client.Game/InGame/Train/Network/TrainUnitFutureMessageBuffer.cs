@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Train.Unit;
 using System.Linq;
+using UnityEngine;
 
 namespace Client.Game.InGame.Train.Network
 {
@@ -10,6 +11,7 @@ namespace Client.Game.InGame.Train.Network
     public sealed class TrainUnitFutureMessageBuffer
     {
         public const uint DummyHash = uint.MaxValue;
+        private bool isGetFirstHash = false;
 
         private readonly TrainUnitTickState _tickState;
         private readonly SortedDictionary<ulong, ITrainTickBufferedEvent> _futureEvents = new();
@@ -41,6 +43,12 @@ namespace Client.Game.InGame.Train.Network
         // Queue hash states by tick for tick-aligned verification.
         public void EnqueueHash(uint unitsHash, uint railGraphHash, uint serverTick, uint tickSequenceId)
         {
+            if (isGetFirstHash == false)
+            {
+                Debug.Log($"1stHash: serverTick={serverTick}, tickSequenceId={tickSequenceId}, ");
+                isGetFirstHash = true;
+            }
+            
             var messageTickUnifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(serverTick, tickSequenceId);
             if (messageTickUnifiedId <= _tickState.GetAppliedTickUnifiedId())
             {
