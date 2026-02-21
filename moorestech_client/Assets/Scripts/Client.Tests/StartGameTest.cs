@@ -5,7 +5,7 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
-using static Client.Tests.PlayModeTest.Util.PlayModeTestUtil;
+using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
 
 namespace Client.Tests
 {
