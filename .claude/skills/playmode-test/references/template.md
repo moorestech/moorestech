@@ -2,19 +2,19 @@
 
 ## 基本テンプレート
 
-最もシンプルなEditModeInPlayingTest。ゲームを起動して何らかの検証を行う。
+最もシンプルなPlayModeテスト。ゲームを起動して何らかの検証を行う。
 
 ```csharp
 using System.Collections;
-using Client.Tests.EditModeInPlayingTest.Util;
+using Client.Tests.PlayModeTest.Util;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
-using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
+using static Client.Tests.PlayModeTest.Util.PlayModeTestUtil;
 
-namespace Client.Tests.EditModeInPlayingTest
+namespace Client.Tests.PlayModeTest
 {
     /// <summary>
     /// テスト自体はEditModeで実行されるが、実行中にプレイモードに変更する
@@ -25,11 +25,7 @@ namespace Client.Tests.EditModeInPlayingTest
         [UnityTest]
         public IEnumerator {テスト名}Test()
         {
-            EnterPlayModeUtil();
-
-            // yield return new EnterPlayMode　は必ず[UnityTest]関数の直下で呼び出すこと。そうでないとなぜかわからないがプレイモードに入らない
-            // Always call yield return new EnterPlayMode directly under the [UnityTest] function. Otherwise, for unknown reasons, it will not enter PlayMode.
-            yield return new EnterPlayMode(expectDomainReload: true);
+            yield return EnterPlayModeUtil();
 
             // EnterPlayMode時のテストフレームワーク内部エラーでテストが失敗するのを防ぐ
             // Prevent test failure from test framework internal errors during EnterPlayMode.
@@ -72,8 +68,7 @@ using Object = UnityEngine.Object;
 [UnityTest]
 public IEnumerator {UI名}DisplayTest()
 {
-    EnterPlayModeUtil();
-    yield return new EnterPlayMode(expectDomainReload: true);
+    yield return EnterPlayModeUtil();
     LogAssert.ignoreFailingMessages = true;
 
     yield return TestBody().ToCoroutine();
@@ -109,8 +104,7 @@ public IEnumerator {UI名}DisplayTest()
 [UnityTest]
 public IEnumerator {Feature}BehaviorTest()
 {
-    EnterPlayModeUtil();
-    yield return new EnterPlayMode(expectDomainReload: true);
+    yield return EnterPlayModeUtil();
     LogAssert.ignoreFailingMessages = true;
 
     yield return TestBody().ToCoroutine();
@@ -158,8 +152,7 @@ public IEnumerator {Feature}BehaviorTest()
 [UnityTest]
 public IEnumerator StartupWithTimeoutTest()
 {
-    EnterPlayModeUtil();
-    yield return new EnterPlayMode(expectDomainReload: true);
+    yield return EnterPlayModeUtil();
     LogAssert.ignoreFailingMessages = true;
 
     yield return TestBody().ToCoroutine();

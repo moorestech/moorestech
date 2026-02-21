@@ -1,31 +1,17 @@
-# EditModeInPlayingTestUtil ヘルパーAPI
+# PlayModeTestUtil ヘルパーAPI
 
-ソースファイル: `moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/Util/EditModeInPlayingTestUtil.cs`
+ソースファイル: `moorestech_client/Assets/Scripts/Client.Tests/PlayModeTest/Util/PlayModeTestUtil.cs`
 
 ## EnterPlayModeUtil
 
 ```csharp
-public static void EnterPlayModeUtil()
+public static IEnumerator EnterPlayModeUtil()
 ```
 
-PlayMode遷移の**準備のみ**を行う（PlayMode遷移自体は行わない）。以下を内部で実行:
+PlayMode遷移の準備と実行を行う。以下を内部で実行:
 1. `SessionState.SetBool("DebugObjectsBootstrap_Disabled", true)` - デバッグオブジェクト無効化
 2. `AssetBundle.UnloadAllAssetBundles(true)` - 前回の残留AssetBundleクリーンアップ
-
-**重要**: このメソッド呼び出し後、`[UnityTest]`メソッド直下で `yield return new EnterPlayMode(expectDomainReload: true);` を呼ぶ必要がある。
-ヘルパーメソッド内から `EnterPlayMode` をyield returnしてもPlayModeに遷移しない（原因不明）。
-
-```csharp
-// 正しい使い方
-// Correct usage
-[UnityTest]
-public IEnumerator MyTest()
-{
-    EnterPlayModeUtil();
-    yield return new EnterPlayMode(expectDomainReload: true);
-    // ...
-}
-```
+3. `new EnterPlayMode(expectDomainReload: true)` をyield return
 
 ## LoadMainGame
 
@@ -35,7 +21,7 @@ public static async UniTask LoadMainGame(string serverDirectory = null, string s
 
 ゲームを起動してメインシーンをロードする。
 
-- `serverDirectory`: サーバーデータディレクトリ。省略時は`EditModeInPlayingTestServerDirectoryPath`（`EditModeInPlayingTest/ServerData`）
+- `serverDirectory`: サーバーデータディレクトリ。省略時は`PlayModeTestServerDirectoryPath`（`PlayModeTest/ServerData`）
 - `saveFilePath`: セーブファイルパス。省略時は`dummy_play_mode_test_{GUID}.json`（既存セーブを読まない）
 
 内部処理:
@@ -88,12 +74,12 @@ public static IItemStack InsertItemToBlock(IBlock block, ItemId itemId, int coun
 - `count`: 挿入数
 - 戻り値: `IItemStack` - 挿入できなかった残り
 
-## EditModeInPlayingTestServerDirectoryPath
+## PlayModeTestServerDirectoryPath
 
 ```csharp
-public static string EditModeInPlayingTestServerDirectoryPath
+public static string PlayModeTestServerDirectoryPath
 ```
 
-EditModeInPlayingTest用サーバーデータのパス: `moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/ServerData`
+PlayModeテスト用サーバーデータのパス: `moorestech_client/Assets/Scripts/Client.Tests/PlayModeTest/ServerData`
 
 テスト用マスターデータ（blocks.json, items.json等）がここに配置されている。
