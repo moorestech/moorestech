@@ -4,50 +4,18 @@
 
 ### unity-test.sh（CliTestRunner）では実行不可
 
-EditModeInPlayingTestは`EnterPlayMode`によるドメインリロードを含む。
+PlayModeテストは`EnterPlayMode`によるドメインリロードを含む。
 `CliTestRunner`は`runSynchronously = true`で動作するため、ドメインリロード時に
 `ResultCallbacks`インスタンスが破棄され、テスト結果が0件（passed: 0, failed: 0）として報告される。
 
 **実行方法**:
-- uLoop CLI: `uloop run-tests --port 56902 --filter-type regex --filter-value "Client\\.Tests\\.EditModeInPlayingTest\\.{ClassName}"`
+- uLoop CLI: `uloop run-tests --port 56902 --filter-type regex --filter-value "Client\\.Tests\\.PlayModeTest\\.{ClassName}"`
 - Unity Test Runnerウィンドウ: `Window > General > Test Runner` から手動実行
 
 ### worktree環境での制限
 
-git worktree環境ではuLoopが使用できないため、EditModeInPlayingTestはworktree環境では実行不可。
+git worktree環境ではuLoopが使用できないため、PlayModeテストはworktree環境では実行不可。
 メインのワーキングツリーで実行すること。
-
-## EnterPlayModeの呼び出し位置制約
-
-### `yield return new EnterPlayMode(...)` は `[UnityTest]` メソッド直下で呼ぶこと
-
-`EnterPlayMode` はヘルパーメソッド内からyield returnしてもPlayModeに遷移しない（原因不明）。
-必ず `[UnityTest]` 属性のついたIEnumeratorメソッドの直下で呼び出すこと。
-
-```csharp
-// 正しいパターン
-// Correct pattern
-[UnityTest]
-public IEnumerator MyTest()
-{
-    EnterPlayModeUtil();  // 準備のみ（void）
-    yield return new EnterPlayMode(expectDomainReload: true);  // [UnityTest]直下で呼ぶ
-    // ...
-}
-
-// 間違ったパターン（PlayModeに遷移しない）
-// Wrong pattern (will NOT enter PlayMode)
-[UnityTest]
-public IEnumerator MyTest()
-{
-    yield return SomeHelper();  // ヘルパー内でEnterPlayModeをyield returnしても動かない
-}
-
-IEnumerator SomeHelper()
-{
-    yield return new EnterPlayMode(expectDomainReload: true);  // ここからでは遷移しない
-}
-```
 
 ## ドメインリロード関連
 
@@ -92,9 +60,9 @@ LogAssert.ignoreFailingMessages = true;
 
 ## サーバーデータ
 
-### EditModeInPlayingTestMod
+### PlayModeTestMod
 
-EditModeInPlayingTest用のマスターデータは `EditModeInPlayingTest/ServerData/mods/EditModeInPlayingTestMod/master/` に配置。
+PlayModeテスト用のマスターデータは `PlayModeTest/ServerData/mods/PlayModeTestMod/master/` に配置。
 本番のVanillaModとは別のデータセットを使用する。
 
 テストで新しいブロックやアイテムが必要な場合は、このディレクトリ内のJSONファイルを編集する。
