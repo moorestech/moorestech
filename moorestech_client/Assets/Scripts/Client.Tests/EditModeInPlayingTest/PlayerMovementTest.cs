@@ -62,10 +62,6 @@ namespace Client.Tests.EditModeInPlayingTest
 
             async UniTask TestBody()
             {
-                // ドメインリロード後に仮想デバイスを再確保（CI/バッチ環境で必須）
-                // Re-ensure virtual devices after domain reload (required for CI/batch)
-                OsInputSpoof.EnsureDevices();
-
                 // OS 入力注入が使用不可なら Assert.Ignore でスキップ
                 // Skip via Assert.Ignore if OS input injection is not available
                 OsInputSpoof.AssertAvailableOrSkip();
