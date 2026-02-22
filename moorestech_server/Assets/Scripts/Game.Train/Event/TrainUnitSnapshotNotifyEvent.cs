@@ -18,7 +18,7 @@ namespace Game.Train.Event
             {
                 return;
             }
-
+            trainUnit.ResetDiff();
             // 単機スナップショットの更新を通知する
             // Notify that a single train unit snapshot should be updated.
             _subject.OnNext(new TrainUnitSnapshotNotifyEventData(trainUnit.TrainInstanceId, false, trainUnit));

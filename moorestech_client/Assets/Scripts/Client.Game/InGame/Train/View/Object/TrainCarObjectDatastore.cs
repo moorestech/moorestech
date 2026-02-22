@@ -14,6 +14,8 @@ namespace Client.Game.InGame.Train.View.Object
         private TrainUnitClientCache _trainUnitClientCache;
         private readonly Dictionary<TrainCarInstanceId, TrainCarEntityObject> _entities = new();
         private readonly HashSet<TrainCarInstanceId> _highlightedTrainCars = new();
+        private readonly HashSet<TrainCarInstanceId> _activeTrainCars = new();
+        private readonly HashSet<TrainCarInstanceId> _pendingCreation = new();
 
         [Inject]
         public void Construct(TrainUnitClientCache trainUnitClientCache)
@@ -28,7 +30,9 @@ namespace Client.Game.InGame.Train.View.Object
             // Apply create/update for train entities
             for (var i = 0; i < carSnapshots.Count; i++)
             {
-                CreateTrainEntityIfMissing(carSnapshots[i]);
+                var carSnapshot = carSnapshots[i];
+                _activeTrainCars.Add(carSnapshot.TrainCarInstanceId);
+                CreateTrainEntityIfMissing(carSnapshot);
             }
         }
 
@@ -37,6 +41,11 @@ namespace Client.Game.InGame.Train.View.Object
             // スナップショットに存在しない列車エンティティを削除する
             // Remove train entities that are missing from the snapshot
             var activeIdSet = new HashSet<TrainCarInstanceId>(activeTrainCarInstanceIds);
+            _activeTrainCars.Clear();
+            foreach (var activeId in activeIdSet)
+            {
+                _activeTrainCars.Add(activeId);
+            }
             var removeIds = CollectMissingEntityIds(activeIdSet);
             RemoveEntities(removeIds);
         }
@@ -47,6 +56,7 @@ namespace Client.Game.InGame.Train.View.Object
         {
             if (!_entities.TryGetValue(trainCarInstanceId, out var entity))
             {
+                _activeTrainCars.Remove(trainCarInstanceId);
                 return false;
             }
 
@@ -99,19 +109,53 @@ namespace Client.Game.InGame.Train.View.Object
 
         private void CreateTrainEntityIfMissing(TrainCarSnapshot carSnapshot)
         {
-            if (_entities.ContainsKey(carSnapshot.TrainCarInstanceId))
+            var trainCarInstanceId = carSnapshot.TrainCarInstanceId;
+            if (_entities.ContainsKey(trainCarInstanceId) || _pendingCreation.Contains(trainCarInstanceId))
             {
                 return;
             }
 
-            // 新規車両のオブジェクトを生成する
-            // Create object for new train car
-            _carObjectFactory.CreateTrainCarObject(transform, carSnapshot).ContinueWith(entityObject =>
+            // 新規車両の生成処理を予約する
+            // Reserve async creation for a new train car
+            _pendingCreation.Add(trainCarInstanceId);
+            CreateAndRegisterAsync(trainCarInstanceId, carSnapshot).Forget();
+
+            #region Internal
+
+            // 生成完了後にエンティティを登録する
+            // Register entity after async creation completes
+            async UniTaskVoid CreateAndRegisterAsync(TrainCarInstanceId targetId, TrainCarSnapshot snapshot)
             {
-                entityObject.Initialize();
-                _entities[carSnapshot.TrainCarInstanceId] = entityObject;
-                return entityObject;
-            });
+                try
+                {
+                    var entityObject = await _carObjectFactory.CreateTrainCarObject(transform, snapshot);
+
+                    // 生成対象が最新スナップショットで無効なら登録しない
+                    // Skip registration when the target car is no longer active
+                    if (!_activeTrainCars.Contains(targetId))
+                    {
+                        entityObject.Destroy();
+                        return;
+                    }
+
+                    // 先に登録済みなら重複オブジェクトを破棄する
+                    // Destroy duplicate object if another registration already exists
+                    if (_entities.ContainsKey(targetId))
+                    {
+                        entityObject.Destroy();
+                        return;
+                    }
+
+                    entityObject.Initialize();
+                    _entities[targetId] = entityObject;
+                }
+                finally
+                {
+                    _pendingCreation.Remove(targetId);
+                }
+            }
+
+            #endregion
         }
 
         private List<TrainCarInstanceId> CollectMissingEntityIds(ISet<TrainCarInstanceId> activeIdSet)
@@ -152,6 +196,7 @@ namespace Client.Game.InGame.Train.View.Object
             }
             _entities.Remove(trainCarInstanceId);
             _highlightedTrainCars.Remove(trainCarInstanceId);
+            _activeTrainCars.Remove(trainCarInstanceId);
         }
 
         private HashSet<TrainCarInstanceId> CollectOverlapCarIds(ISet<TrainInstanceId> overlapTrainIds)
