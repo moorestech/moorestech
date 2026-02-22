@@ -43,10 +43,9 @@ namespace Game.Train.Unit
         //キー関連、差分通知関連
         //マスコンレベル 0がニュートラル、1が前進1段階、-1が後退1段階.キー入力やテスト、外部から直接制御できる。min maxは±16777216とする(暫定)
         public int masconLevel = 0;
-        private int _previousMasconLevel = 0;
-        private bool _isDockingSpeedForcedToZero = false;//ドッキングした瞬間強制速度0になるのでmasconlevel差分通知ではズレが生じる
-        private int _pendingApproachingNodeId = -1;
-        
+        private int _previousMasconLevel;
+        private bool _isDockingSpeedForcedToZero;//ドッキングした瞬間強制速度0になるのでmasconlevel差分通知ではズレが生じる
+        private int _pendingApproachingNodeId;
         private int tickCounter = 0;// TODO デバッグトグル関係　そのうち消す
         public TrainUnit(
             RailPosition initialPosition,
@@ -71,6 +70,7 @@ namespace Game.Train.Unit
             trainUnitStationDocking = new TrainUnitStationDocking(this, this);
             trainDiagram = new TrainDiagram(_railGraphProvider, _diagramManager);
             trainDiagram.SetContext(this);
+            ResetDiff();
             // 列車を更新サービスへ登録する
             // Register the train to update service.
             _trainUpdateService.RegisterTrain(this);
@@ -87,7 +87,13 @@ namespace Game.Train.Unit
                 car.Reverse();
             }
         }
-
+        public void ResetDiff()
+        {
+            _previousMasconLevel = masconLevel;
+            _isDockingSpeedForcedToZero = false;
+            _pendingApproachingNodeId = -1;
+        }
+        
         //1tickごとに呼ばれる.進んだ距離を返す?
         public int Update()
         {
