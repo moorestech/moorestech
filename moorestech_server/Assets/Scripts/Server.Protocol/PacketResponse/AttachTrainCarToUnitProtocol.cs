@@ -132,7 +132,7 @@ namespace Server.Protocol.PacketResponse
                 attachingCar = new TrainCar(trainCarMaster, request.AttachCarFacingForward ^ request.AttachToTargetTrainHead);
                 
                 // attachingRailPositionは接続先編成からみた方向に正規化する
-                // 
+                // Normalize attachingRailPosition so that its direction matches the connecting train unit. When the car is not facing forward relative to the unit, the physical front of the car lies on the opposite side, so we reverse the rail position to keep "head" and "rear" consistent with the target train's travel direction.
                 if (!attachingCar.IsFacingForward)
                     attachingRailPosition.Reverse();
                 return true;
