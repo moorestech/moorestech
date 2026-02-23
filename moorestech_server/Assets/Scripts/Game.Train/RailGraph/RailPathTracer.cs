@@ -226,8 +226,8 @@ namespace Game.Train.RailGraph
             #endregion
         }
 
-        // JP: 要件3専用。指定距離まで届かなかった経路のみを列挙する。
-        // EN: Requirement-3 specific API that enumerates only routes that cannot reach the target distance.
+        // JP: 未到達経路専用。指定距離まで届かなかった経路のみを列挙する。
+        // EN: Unreached-route API that enumerates only routes that cannot reach the target distance.
         public bool TryTraceForwardUnreachedRoutesByDfs(RailPosition startPoint, int distance, out List<UnreachedRoute> routes)
         {
             routes = new List<UnreachedRoute>();

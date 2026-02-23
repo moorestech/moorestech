@@ -258,8 +258,8 @@ namespace Tests.UnitTest.Game
         [Test]
         public void TryTraceForwardUnreachedRoutesByDfs_WhenDeadEndBeforeTargetDistance_ReturnsDeadEndRoute()
         {
-            // 日本語: 要件3専用APIは、指定距離に届かない分岐だけを返す。
-            // English: Requirement-3 API should return only branches that cannot reach target distance.
+            // 日本語: 未到達経路専用APIは、指定距離に届かない分岐だけを返す。
+            // English: Unreached-route API should return only branches that cannot reach target distance.
             var provider = BuildProviderWithLinearStartSegment(10);
             var tracer = new RailPathTracer(provider);
             var start = CreateStartPoint(provider, 0, 1, 3, 0);

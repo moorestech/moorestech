@@ -7,37 +7,27 @@ using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 {
-    internal sealed class TrainCarCenterRailPositionResolver
+    internal static class TrainCarCenterRailPositionResolver
     {
-        private readonly RailGraphClientCache _cache;
-        private readonly TrainCarCurveHitDistanceResolver _curveHitDistanceResolver;
-
-        internal TrainCarCenterRailPositionResolver(RailGraphClientCache cache, TrainCarCurveHitDistanceResolver curveHitDistanceResolver)
-        {
-            _cache = cache;
-            _curveHitDistanceResolver = curveHitDistanceResolver;
-        }
-
-        internal bool TryResolveCenterRailPosition(Vector3 hitPosition, RailObjectIdCarrier carrier, out RailPosition centerRailPosition)
+        // 日本語: レイヒット位置から中心RailPositionを作る
+        // English: Resolve center RailPosition from raycast hit on rail segment.
+        internal static bool TryResolveCenterRailPosition(
+            Vector3 hitPosition,
+            RailObjectIdCarrier carrier,
+            RailGraphClientCache cache,
+            out RailPosition centerRailPosition)
         {
             centerRailPosition = null;
 
-            // 入力から対象セグメントの正規ノードを解決する
-            // Resolve canonical segment nodes from the hit input
-            if (carrier == null || !TryResolveCanonicalNodes(carrier.GetRailObjectId(), out var canonicalFromNode, out var canonicalToNode))
+            if (cache == null || carrier == null || !TryResolveCanonicalNodes(cache, carrier.GetRailObjectId(), out var canonicalFromNode, out var canonicalToNode))
+            {
+                return false;
+            }
+            if (!TrainCarCurveHitDistanceResolver.TryFindDistanceFromStartOnCurve(canonicalFromNode, canonicalToNode, hitPosition, out var distanceFromStartWorld))
             {
                 return false;
             }
 
-            // カーブ最近点から始点基準の弧長距離を求める
-            // Calculate arc-length distance from segment start via nearest point on curve
-            if (!_curveHitDistanceResolver.TryFindDistanceFromStartOnCurve(canonicalFromNode, canonicalToNode, hitPosition, out var distanceFromStartWorld))
-            {
-                return false;
-            }
-
-            // セグメント距離をrail単位へ変換して中心RailPositionを組み立てる
-            // Convert into rail units and compose center RailPosition
             var segmentDistance = canonicalFromNode.GetDistanceToNode(canonicalToNode);
             if (segmentDistance <= 0)
             {
@@ -52,17 +42,21 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
         #region Internal
 
-        private bool TryResolveCanonicalNodes(ulong railObjectId, out IRailNode canonicalFromNode, out IRailNode canonicalToNode)
+        private static bool TryResolveCanonicalNodes(
+            RailGraphClientCache cache,
+            ulong railObjectId,
+            out IRailNode canonicalFromNode,
+            out IRailNode canonicalToNode)
         {
             var canonicalFromId = (int)(railObjectId & 0xffffffff);
             var canonicalToId = (int)(railObjectId >> 32);
             canonicalFromNode = null;
             canonicalToNode = null;
-            if (!_cache.TryGetNode(canonicalFromId, out canonicalFromNode))
+            if (!cache.TryGetNode(canonicalFromId, out canonicalFromNode))
             {
                 return false;
             }
-            if (!_cache.TryGetNode(canonicalToId, out canonicalToNode))
+            if (!cache.TryGetNode(canonicalToId, out canonicalToNode))
             {
                 return false;
             }
