@@ -238,7 +238,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     if (attachSnapStartPoint != null && attachTargetTrainInstanceId != TrainInstanceId.Empty)
                     {
                         _routePairCount = 0;
-                        if (TrainCarPlacementRouteService.TryBuildAttachSnapCandidates(attachSnapStartPoint, trainLength, _pathTracer, out var attachSnapRoutes, out _))
+                        if (TrainCarPlacementRouteService.TryBuildAttachSnapCandidates(attachSnapStartPoint, trainLength, _pathTracer, out var attachSnapRoutes))
                         {
                             var attachSnapFilteredRoutes = TrainCarPlacementRouteService.FilterRoutesWithoutOverlap(attachSnapRoutes, allTrainUnitOverlapIndex);
                             var attachSnapFilteredRouteCount = attachSnapFilteredRoutes.Count;
