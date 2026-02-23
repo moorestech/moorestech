@@ -254,6 +254,64 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(4, routes[1].GetNodeApproaching().NodeId);
             Assert.AreEqual(5, routes[2].GetNodeApproaching().NodeId);
         }
+
+        [Test]
+        public void TryTraceForwardUnreachedRoutesByDfs_WhenDeadEndBeforeTargetDistance_ReturnsDeadEndRoute()
+        {
+            // 日本語: 要件3専用APIは、指定距離に届かない分岐だけを返す。
+            // English: Requirement-3 API should return only branches that cannot reach target distance.
+            var provider = BuildProviderWithLinearStartSegment(10);
+            var tracer = new RailPathTracer(provider);
+            var start = CreateStartPoint(provider, 0, 1, 3, 0);
+
+            var success = tracer.TryTraceForwardUnreachedRoutesByDfs(start, 8, out var routes);
+
+            Assert.IsTrue(success);
+            Assert.AreEqual(1, routes.Count);
+            Assert.AreEqual(3, routes[0].ReachedDistance);
+            Assert.AreEqual(3, routes[0].Route.TrainLength);
+            Assert.AreEqual(0, routes[0].Route.GetNodeApproaching().NodeId);
+            CollectionAssert.AreEqual(new[] { 0, 1 }, GetNodeIds(routes[0].Route));
+        }
+
+        [Test]
+        public void TryTraceForwardUnreachedRoutesByDfs_WhenMixedReachableAndDeadEndBranches_ReturnsOnlyDeadEndBranch()
+        {
+            // 日本語: 到達可能な分岐は除外し、未到達分岐のみを列挙する。
+            // English: Reachable branches are ignored and only unreached branches are listed.
+            var provider = BuildProviderWithLinearStartSegment(2);
+            provider.AddNode(2);
+            provider.AddNode(3);
+            provider.AddEdge(0, 2, 5);
+            provider.AddEdge(0, 3, 1);
+
+            var tracer = new RailPathTracer(provider);
+            var start = CreateStartPoint(provider, 0, 1, 2, 0);
+
+            var success = tracer.TryTraceForwardUnreachedRoutesByDfs(start, 6, out var routes);
+
+            Assert.IsTrue(success);
+            Assert.AreEqual(1, routes.Count);
+            Assert.AreEqual(3, routes[0].ReachedDistance);
+            Assert.AreEqual(3, routes[0].Route.TrainLength);
+            Assert.AreEqual(3, routes[0].Route.GetNodeApproaching().NodeId);
+            CollectionAssert.AreEqual(new[] { 3, 0, 1 }, GetNodeIds(routes[0].Route));
+        }
+
+        [Test]
+        public void TryTraceForwardUnreachedRoutesByDfs_WhenDistanceReachableWithinStartSegment_ReturnsFalse()
+        {
+            // 日本語: 開始セグメント内で到達できる距離は未到達経路を返さない。
+            // English: Distances reachable within start segment should not produce unreached routes.
+            var provider = BuildProviderWithLinearStartSegment(10);
+            var tracer = new RailPathTracer(provider);
+            var start = CreateStartPoint(provider, 0, 1, 7, 0);
+
+            var success = tracer.TryTraceForwardUnreachedRoutesByDfs(start, 4, out var routes);
+
+            Assert.IsFalse(success);
+            Assert.AreEqual(0, routes.Count);
+        }
         
         [Test]
         public void TryTraceForwardRoutesByDfs_Manual1()
