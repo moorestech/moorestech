@@ -73,14 +73,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
     
     public class TrainCarPlacementDetector : ITrainCarPlacementDetector
     {
-        private const int Requirement1AdditionalMarginLength = 256;
+        private const int AttachSnapAdditionalMarginLength = 256;
         private readonly Camera _mainCamera;
         private readonly TrainUnitClientCache _trainUnitCache;
-        private readonly TrainCarCenterRailPositionResolver _centerRailPositionResolver;
-        private readonly TrainCarPlacementRouteService _routeService;
-        private readonly TrainCarPlacementSelectionResolver _selectionResolver;
-        private readonly TrainCarPlacementRequirement2Resolver _requirement2Resolver;
-        private readonly TrainCarPlacementRequirement3Resolver _requirement3Resolver;
+        private readonly RailGraphClientCache _railGraphCache;
+        private readonly RailPathTracer _pathTracer;
         private int _routePairCount;
         private int _selectionStep;
         
@@ -88,13 +85,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
         {
             _mainCamera = mainCamera;
             _trainUnitCache = trainUnitCache;
-            var pathTracer = new RailPathTracer(cache);
-            var snapPointFinder = new TrainCarPlacementSnapPointFinder();
-            _routeService = new TrainCarPlacementRouteService(pathTracer);
-            _selectionResolver = new TrainCarPlacementSelectionResolver();
-            _requirement2Resolver = new TrainCarPlacementRequirement2Resolver(_routeService, snapPointFinder);
-            _requirement3Resolver = new TrainCarPlacementRequirement3Resolver(_routeService, snapPointFinder);
-            _centerRailPositionResolver = new TrainCarCenterRailPositionResolver(cache, new TrainCarCurveHitDistanceResolver());
+            _railGraphCache = cache;
+            _pathTracer = new RailPathTracer(cache);
         }
 
         public void AdvanceSelection()
@@ -207,7 +199,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     {
                         return false;
                     }
-                    if (!_centerRailPositionResolver.TryResolveCenterRailPosition(hitPosition, carrier, out var centerRailPosition))
+                    if (!TrainCarCenterRailPositionResolver.TryResolveCenterRailPosition(hitPosition, carrier, _railGraphCache, out var centerRailPosition))
                     {
                         return false;
                     }
@@ -226,46 +218,46 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
                     // 要件1: N'+M'候補と既存TrainUnit全体の重複を抽出する
                     // Requirement 1: detect overlaps between N'+M' candidates and existing train units
-                    var requirement1OverlapIndex = _routeService.CreateRequirement1OverlapIndex(centerRailPosition, trainLength, Requirement1AdditionalMarginLength);
-                    RailPosition requirement1SnapStartPoint;
-                    TrainInstanceId requirement1TargetTrainInstanceId;
-                    bool requirement1AttachFacingForward;
-                    TrainCarAttachTargetEndpoint requirement1AttachTargetEndpoint;
-                    overlapTrainInstanceIds = ResolveOverlapTrainUnitsForRequirement1(
+                    var attachProbeOverlapIndex = TrainCarPlacementRouteService.CreateAttachProbeOverlapIndex(centerRailPosition, trainLength, AttachSnapAdditionalMarginLength, _pathTracer);
+                    RailPosition attachSnapStartPoint;
+                    TrainInstanceId attachTargetTrainInstanceId;
+                    bool attachSnapFacingForward;
+                    TrainCarAttachTargetEndpoint attachSnapTargetEndpoint;
+                    overlapTrainInstanceIds = ResolveOverlapTrainUnitsForAttachSnap(
                         centerRailPosition,
-                        requirement1OverlapIndex,
+                        attachProbeOverlapIndex,
                         allTrainUnitOverlapIndex,
                         trainLength,
-                        out requirement1SnapStartPoint,
-                        out requirement1TargetTrainInstanceId,
-                        out requirement1AttachFacingForward,
-                        out requirement1AttachTargetEndpoint);
+                        out attachSnapStartPoint,
+                        out attachTargetTrainInstanceId,
+                        out attachSnapFacingForward,
+                        out attachSnapTargetEndpoint);
 
                     // 要件1: 最短TrainUnitの接続点からS候補を作り、重複経路を除外したS'を選択する
                     // Requirement 1: build S routes from nearest unit endpoint and pick from overlap-filtered S'
-                    if (requirement1SnapStartPoint != null && requirement1TargetTrainInstanceId != TrainInstanceId.Empty)
+                    if (attachSnapStartPoint != null && attachTargetTrainInstanceId != TrainInstanceId.Empty)
                     {
                         _routePairCount = 0;
-                        if (_routeService.TryRebuildRequirement1SnapCandidates(requirement1SnapStartPoint, trainLength, out var requirement1Routes, out _))
+                        if (TrainCarPlacementRouteService.TryBuildAttachSnapCandidates(attachSnapStartPoint, trainLength, _pathTracer, out var attachSnapRoutes, out _))
                         {
-                            var requirement1FilteredRoutes = _routeService.FilterRoutesWithoutOverlap(requirement1Routes, allTrainUnitOverlapIndex);
-                            var requirement1FilteredRouteCount = requirement1FilteredRoutes.Count;
-                            if (requirement1FilteredRouteCount > 0)
+                            var attachSnapFilteredRoutes = TrainCarPlacementRouteService.FilterRoutesWithoutOverlap(attachSnapRoutes, allTrainUnitOverlapIndex);
+                            var attachSnapFilteredRouteCount = attachSnapFilteredRoutes.Count;
+                            if (attachSnapFilteredRouteCount > 0)
                             {
-                                _routePairCount = requirement1FilteredRouteCount;
-                                if (_selectionResolver.TryBuildRequirement1SelectedSingleRoute(
-                                        requirement1FilteredRoutes,
-                                        requirement1FilteredRouteCount,
+                                _routePairCount = attachSnapFilteredRouteCount;
+                                if (TrainCarPlacementSelectionResolver.TryBuildSelectedAttachSnapRoute(
+                                        attachSnapFilteredRoutes,
+                                        attachSnapFilteredRouteCount,
                                         _selectionStep,
-                                        requirement1AttachFacingForward,
+                                        attachSnapFacingForward,
                                         out railPosition))
                                 {
                                     placementMode = TrainCarPlacementMode.AttachToExistingTrainUnit;
-                                    targetTrainInstanceId = requirement1TargetTrainInstanceId;
+                                    targetTrainInstanceId = attachTargetTrainInstanceId;
                                     // 最短候補で使ったcenter前後向きを基準にし、R反転時は向きも反転させる
                                     // Base facing uses nearest center direction and flips when R-reverse is selected
-                                    attachCarFacingForward = requirement1AttachFacingForward;
-                                    attachTargetEndpoint = requirement1AttachTargetEndpoint;
+                                    attachCarFacingForward = attachSnapFacingForward;
+                                    attachTargetEndpoint = attachSnapTargetEndpoint;
                                     return true;
                                 }
                             }
@@ -276,22 +268,23 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     // 要件2: 駅nodeスナップ候補を作り、重複除外後のT'から選択する
                     // Requirement 2: build station-snap candidates and pick from overlap-filtered T'
                     _routePairCount = 0;
-                    if (_requirement2Resolver.TryResolve(
+                    if (TrainCarPlacementStationSnapResolver.TryResolveStationSnapRoutes(
                             centerRailPosition,
                             trainLength,
+                            _pathTracer,
                             allTrainUnitOverlapIndex,
-                            out var requirement2Routes,
-                            out var requirement2SnapFromCenterForward))
+                            out var stationSnapRoutes,
+                            out var stationSnapFromCenterForward))
                     {
-                        var requirement2RouteCount = requirement2Routes.Count;
-                        if (requirement2RouteCount > 0)
+                        var stationSnapRouteCount = stationSnapRoutes.Count;
+                        if (stationSnapRouteCount > 0)
                         {
-                            _routePairCount = requirement2RouteCount;
-                            if (_selectionResolver.TryBuildCreateModeSelectedSingleRoute(
-                                    requirement2Routes,
-                                    requirement2RouteCount,
+                            _routePairCount = stationSnapRouteCount;
+                            if (TrainCarPlacementSelectionResolver.TryBuildCreateModeSelectedSingleRoute(
+                                    stationSnapRoutes,
+                                    stationSnapRouteCount,
                                     _selectionStep,
-                                    requirement2SnapFromCenterForward,
+                                    stationSnapFromCenterForward,
                                     out railPosition))
                             {
                                 return true;
@@ -302,22 +295,23 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     // 要件3: レール端スナップ候補を作り、重複除外後のU'から選択する
                     // Requirement 3: build rail-end snap candidates and pick from overlap-filtered U'
                     _routePairCount = 0;
-                    if (_requirement3Resolver.TryResolve(
+                    if (TrainCarPlacementRailEndSnapResolver.TryResolveRailEndSnapRoutes(
                             centerRailPosition,
                             trainLength,
+                            _pathTracer,
                             allTrainUnitOverlapIndex,
-                            out var requirement3Routes,
-                            out var requirement3SnapFromCenterForward))
+                            out var railEndSnapRoutes,
+                            out var railEndSnapFromCenterForward))
                     {
-                        var requirement3RouteCount = requirement3Routes.Count;
-                        if (requirement3RouteCount > 0)
+                        var railEndSnapRouteCount = railEndSnapRoutes.Count;
+                        if (railEndSnapRouteCount > 0)
                         {
-                            _routePairCount = requirement3RouteCount;
-                            if (_selectionResolver.TryBuildCreateModeSelectedSingleRoute(
-                                    requirement3Routes,
-                                    requirement3RouteCount,
+                            _routePairCount = railEndSnapRouteCount;
+                            if (TrainCarPlacementSelectionResolver.TryBuildCreateModeSelectedSingleRoute(
+                                    railEndSnapRoutes,
+                                    railEndSnapRouteCount,
                                     _selectionStep,
-                                    requirement3SnapFromCenterForward,
+                                    railEndSnapFromCenterForward,
                                     out railPosition))
                             {
                                 return true;
@@ -328,7 +322,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     // 要件4候補（前輪側/後輪側）を毎フレーム再構築する
                     // Rebuild requirement-4 candidates (front/rear) every frame
                     _routePairCount = 0;
-                    if (!_routeService.TryRebuildRequirement4SelectionCandidates(centerRailPosition, trainLength, out var frontRoutes, out var rearRoutesFromCenter, out var routePairCount))
+                    if (!TrainCarPlacementRouteService.TryBuildCarPlacementSelectionCandidates(centerRailPosition, trainLength, _pathTracer, out var frontRoutes, out var rearRoutesFromCenter, out var routePairCount))
                     {
                         return false;
                     }
@@ -336,7 +330,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
                     // 要件4: Vから選択したvと既存TrainUnit全体を重複検査する
                     // Requirement 4: test overlap between selected v from V and all existing train units
-                    if (!_routeService.TryBuildRequirement4SelectedRailPosition(frontRoutes, rearRoutesFromCenter, routePairCount, _selectionStep, out railPosition))
+                    if (!TrainCarPlacementRouteService.TryBuildSelectedCarPlacement(frontRoutes, rearRoutesFromCenter, routePairCount, _selectionStep, out railPosition))
                     {
                         return false;
                     }
@@ -368,23 +362,23 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     return positions;
                 }
 
-                IReadOnlyList<TrainInstanceId> ResolveOverlapTrainUnitsForRequirement1(
+                IReadOnlyList<TrainInstanceId> ResolveOverlapTrainUnitsForAttachSnap(
                     RailPosition centerRailPosition,
-                    RailPositionOverlapDetector.OverlapIndex requirement1OverlapIndex,
+                    RailPositionOverlapDetector.OverlapIndex attachProbeOverlapIndex,
                     RailPositionOverlapDetector.OverlapIndex allTrainUnitOverlapIndex,
                     int trainLength,
-                    out RailPosition requirement1SnapStartPoint,
-                    out TrainInstanceId requirement1TargetTrainInstanceId,
-                    out bool requirement1AttachFacingForward,
-                    out TrainCarAttachTargetEndpoint requirement1AttachTargetEndpoint)
+                    out RailPosition attachSnapStartPoint,
+                    out TrainInstanceId attachTargetTrainInstanceId,
+                    out bool attachSnapFacingForward,
+                    out TrainCarAttachTargetEndpoint attachSnapTargetEndpoint)
                 {
-                    requirement1SnapStartPoint = null;
-                    requirement1TargetTrainInstanceId = TrainInstanceId.Empty;
-                    requirement1AttachFacingForward = true;
-                    requirement1AttachTargetEndpoint = TrainCarAttachTargetEndpoint.Head;
+                    attachSnapStartPoint = null;
+                    attachTargetTrainInstanceId = TrainInstanceId.Empty;
+                    attachSnapFacingForward = true;
+                    attachSnapTargetEndpoint = TrainCarAttachTargetEndpoint.Head;
                     // listA(N'+M')候補と既存TrainUnit全体(listB)の多:多を先に一括判定する
                     // Run a many-to-many precheck between listA(N'+M') and all existing train units(listB)
-                    if (!RailPositionOverlapDetector.HasOverlap(requirement1OverlapIndex, allTrainUnitOverlapIndex))
+                    if (!RailPositionOverlapDetector.HasOverlap(attachProbeOverlapIndex, allTrainUnitOverlapIndex))
                     {
                         return Array.Empty<TrainInstanceId>();
                     }
@@ -399,7 +393,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     var nearestSnapStartPoint = default(RailPosition);
                     var nearestAttachFacingForward = true;
                     var nearestAttachTargetEndpoint = TrainCarAttachTargetEndpoint.Head;
-                    var maxSnapDistance = trainLength / 2 + Requirement1AdditionalMarginLength;
+                    var maxSnapDistance = trainLength / 2 + AttachSnapAdditionalMarginLength;
 
                     foreach (var pair in _trainUnitCache.Units)
                     {
@@ -409,7 +403,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                         {
                             continue;
                         }
-                        if (!RailPositionOverlapDetector.HasOverlap(unit.RailPosition, requirement1OverlapIndex))
+                        if (!RailPositionOverlapDetector.HasOverlap(unit.RailPosition, attachProbeOverlapIndex))
                         {
                             continue;
                         }
@@ -443,10 +437,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     {
                         return Array.Empty<TrainInstanceId>();
                     }
-                    requirement1SnapStartPoint = nearestSnapStartPoint;
-                    requirement1TargetTrainInstanceId = nearestTrainInstanceId;
-                    requirement1AttachFacingForward = nearestAttachFacingForward;
-                    requirement1AttachTargetEndpoint = nearestAttachTargetEndpoint;
+                    attachSnapStartPoint = nearestSnapStartPoint;
+                    attachTargetTrainInstanceId = nearestTrainInstanceId;
+                    attachSnapFacingForward = nearestAttachFacingForward;
+                    attachSnapTargetEndpoint = nearestAttachTargetEndpoint;
                     return new[] { nearestTrainInstanceId };
 
                     #region Internal

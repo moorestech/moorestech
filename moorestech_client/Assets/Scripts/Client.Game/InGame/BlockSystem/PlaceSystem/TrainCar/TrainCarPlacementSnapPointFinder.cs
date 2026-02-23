@@ -4,11 +4,11 @@ using System.Collections.Generic;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 {
-    internal sealed class TrainCarPlacementSnapPointFinder
+    internal static class TrainCarPlacementSnapPointFinder
     {
-        // 日本語: 要件2。中心点から最も近い駅ノードをスナップ開始点として求める。
-        // English: Requirement-2 finder that resolves the nearest station node as snap start point.
-        internal bool TryFindRequirement2NearestStationSnapPoint(
+        // 日本語: 中心点から最も近い駅ノードをスナップ開始点として求める。
+        // English: Resolve the nearest station node from center as the snap start point.
+        internal static bool TryFindNearestStationSnapPoint(
             RailPosition centerRailPosition,
             IReadOnlyList<RailPosition> frontRoutes,
             IReadOnlyList<RailPosition> rearRoutes,
@@ -66,7 +66,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                         {
                             continue;
                         }
-                        if (!TryCreateRequirement2PointAtRouteNode(route, nodeIndex, out var stationPoint))
+                        if (!TryCreateStationSnapPointAtRouteNode(route, nodeIndex, out var stationPoint))
                         {
                             continue;
                         }
@@ -80,8 +80,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                         {
                             continue;
                         }
-                        // 中心点からの距離が探索半径外なら要件2候補にしない
-                        // Exclude nodes outside the requirement-2 search radius from center
+                        // 中心点からの距離が探索半径外なら駅スナップ候補にしない
+                        // Exclude nodes outside station-snap search radius from center
                         if (distanceToCenter > maxDistance)
                         {
                             continue;
@@ -100,9 +100,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             #endregion
         }
 
-        // 日本語: 要件3。未到達経路のうち中心点に最も近いレール端をスナップ開始点として求める。
-        // English: Requirement-3 finder that resolves the nearest unreached rail-end as snap start point.
-        internal bool TryFindRequirement3NearestRailEndSnapPoint(
+        // 日本語: 未到達経路のうち中心点に最も近いレール端をスナップ開始点として求める。
+        // English: Resolve the nearest rail-end from unreached routes as the snap start point.
+        internal static bool TryFindNearestRailEndSnapPoint(
             RailPosition centerRailPosition,
             IReadOnlyList<RailPathTracer.UnreachedRoute> frontUnreachedRoutes,
             IReadOnlyList<RailPathTracer.UnreachedRoute> rearUnreachedRoutes,
@@ -176,7 +176,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
         #region Internal
 
-        private static bool TryCreateRequirement2PointAtRouteNode(RailPosition route, int nodeIndex, out RailPosition point)
+        private static bool TryCreateStationSnapPointAtRouteNode(RailPosition route, int nodeIndex, out RailPosition point)
         {
             point = null;
             if (route == null)

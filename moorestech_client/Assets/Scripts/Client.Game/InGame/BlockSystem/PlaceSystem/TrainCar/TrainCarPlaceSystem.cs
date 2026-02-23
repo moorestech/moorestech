@@ -54,8 +54,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 return;
             }
 
-            // 要件1の重複対象TrainUnitを描画ハイライトする
-            // Highlight overlapped train units resolved by requirement-1 overlap detection
+            // 接続スナップ判定で抽出された重複対象TrainUnitを描画ハイライトする
+            // Highlight overlapped train units resolved by attach-snap overlap detection
             _trainCarObjectDatastore.SetPlacementOverlapHighlight(hit.OverlapTrainInstanceIds);
 
             // プレビュー表示可否と描画状態を更新する
