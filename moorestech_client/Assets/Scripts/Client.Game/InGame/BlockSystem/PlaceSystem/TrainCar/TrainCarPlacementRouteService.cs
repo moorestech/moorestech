@@ -41,11 +41,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             RailPosition snapStartPoint,
             int trainLength,
             RailPathTracer pathTracer,
-            out List<RailPosition> routes,
-            out int routeCount)
+            out List<RailPosition> routes)
         {
             routes = new List<RailPosition>();
-            routeCount = 0;
             if (snapStartPoint == null || trainLength <= 0 || pathTracer == null)
             {
                 return false;
@@ -62,8 +60,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             }
 
             routes.AddRange(tracedRoutes);
-            routeCount = routes.Count;
-            return routeCount > 0;
+            return routes.Count > 0;
         }
 
         // 日本語: 駅/レール端スナップ用に、開始点から trainLength 分の候補を前方DFSで列挙する。

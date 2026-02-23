@@ -15,7 +15,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             out RailPosition resolvedRailPosition)
         {
             resolvedRailPosition = null;
-            if (!TryResolveRouteIndex(routes, routeCount, selectionStep, out var routeIndex, out _))
+            if (!TryResolveRouteIndex(routes, routeCount, selectionStep, out var routeIndex))
             {
                 return false;
             }
@@ -44,7 +44,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             out RailPosition resolvedRailPosition)
         {
             resolvedRailPosition = null;
-            if (!TryResolveRouteIndex(routes, routeCount, selectionStep, out var routeIndex, out _))
+            if (!TryResolveRouteIndex(routes, routeCount, selectionStep, out var routeIndex))
             {
                 return false;
             }
@@ -75,11 +75,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             IReadOnlyList<RailPosition> routes,
             int routeCount,
             int selectionStep,
-            out int routeIndex,
-            out int normalizedStep)
+            out int routeIndex)
         {
             routeIndex = 0;
-            normalizedStep = 0;
             if (routes == null || routeCount <= 0 || routes.Count <= 0)
             {
                 return false;
@@ -91,8 +89,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 return false;
             }
 
-            normalizedStep = selectionStep % totalStateCount;
-            routeIndex = normalizedStep / 2;
+            routeIndex = (selectionStep % totalStateCount) / 2;
             return routeIndex >= 0 && routeIndex < routes.Count;
         }
 
