@@ -63,6 +63,7 @@ namespace Client.Editor.Toolbar
             Overlay playMode = null;
             Overlay timeScale = null;
             Overlay sceneReload = null;
+            Overlay home = null;
 
             foreach (var o in overlayList)
             {
@@ -70,16 +71,18 @@ namespace Client.Editor.Toolbar
                 if (id.Contains("Play Mode")) playMode = o;
                 if (id.Contains("TimeScale")) timeScale = o;
                 if (id.Contains("Scene Reload")) sceneReload = o;
+                if (id.Contains("moorestech/Home")) home = o;
             }
 
-            if (playMode == null || timeScale == null || sceneReload == null) return;
+            if (playMode == null || timeScale == null || sceneReload == null || home == null) return;
 
-            // SceneReloadをPlayModeの直前、TimeScaleを直後に配置
-            // Place SceneReload right before PlayMode, TimeScale right after
             var dockBefore = typeof(Overlay).GetMethod("DockBefore", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             var dockAfter = typeof(Overlay).GetMethod("DockAfter", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
+            // 配置順: SceneReload → Home → PlayMode → TimeScale
+            // Order: SceneReload → Home → PlayMode → TimeScale
             dockBefore?.Invoke(sceneReload, new object[] { playMode });
+            dockBefore?.Invoke(home, new object[] { playMode });
             dockAfter?.Invoke(timeScale, new object[] { playMode });
 
             _positioned = true;
