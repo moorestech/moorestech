@@ -5,6 +5,7 @@ using Game.Context;
 using Game.Train.Diagram;
 using Game.Train.RailGraph;
 using Game.Train.Unit;
+using Game.Train.Unit.Containers;
 using NUnit.Framework;
 using Tests.Module.TestMod;
 using Tests.Util;
@@ -19,8 +20,8 @@ namespace Tests.UnitTest.Game.SaveLoad
         {
             using var scenario = TrainStationDockingScenario.Create();
 
-            var firstTrain = scenario.CreateForwardDockingTrain(out var firstCar);
-            var secondTrain = scenario.CreateForwardDockingTrain(out var secondCar);
+            var firstTrain = scenario.CreateForwardDockingTrain(out var firstCar, out _);
+            var secondTrain = scenario.CreateForwardDockingTrain(out var secondCar, out _);
 
             firstTrain.trainUnitStationDocking.TryDockWhenStopped();
             Assert.IsTrue(firstCar.IsDocked, "先頭列車が駅にドッキングできていません。");
@@ -39,12 +40,12 @@ namespace Tests.UnitTest.Game.SaveLoad
         {
             using var scenario = TrainStationDockingScenario.Create();
 
-            var train = scenario.CreateForwardDockingTrain(out var car);
+            var train = scenario.CreateForwardDockingTrain(out var car, out var container);
             train.trainUnitStationDocking.TryDockWhenStopped();
             Assert.IsTrue(car.IsDocked, "列車が駅にドッキングしていません。");
 
             var expectedItem = ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 7);
-            car.SetItem(0, expectedItem);
+            container.SetItem(0, expectedItem);
 
             var saveJson = SaveLoadJsonTestHelper.AssembleSaveJson(scenario.Environment.ServiceProvider);
 
@@ -65,9 +66,9 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.AreEqual(scenario.StationBlockPosition, loadedCar.dockingblock.BlockPositionInfo.OriginalPos,
                 "ロード後のドッキング先ブロック位置が一致しません。");
 
-            var loadedStack = loadedCar.GetItem(0);
-            Assert.AreEqual(expectedItem.Id, loadedStack.Id, "ロード後の貨車インベントリIDが一致しません。");
-            Assert.AreEqual(expectedItem.Count, loadedStack.Count, "ロード後の貨車インベントリ個数が一致しません。");
+            var loadedStack = container.InventoryItems[0];
+            Assert.AreEqual(expectedItem.Id, loadedStack.Stack.Id, "ロード後の貨車インベントリIDが一致しません。");
+            Assert.AreEqual(expectedItem.Count, loadedStack.Stack.Count, "ロード後の貨車インベントリ個数が一致しません。");
 
             CleanupTrains(loadEnv, loadedTrains);
         }
@@ -79,7 +80,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             using var scenario = TrainStationDockingScenario.Create();
 
-            var train = scenario.CreateForwardDockingTrain(out _);
+            var train = scenario.CreateForwardDockingTrain(out _, out _);
             train.trainUnitStationDocking.TryDockWhenStopped();
 
             var railSnapshotCount = train.RailPosition.CreateSaveSnapshot().RailSnapshot.Count;
@@ -115,11 +116,11 @@ namespace Tests.UnitTest.Game.SaveLoad
         {
             using var scenario = TrainStationDockingScenario.Create();
 
-            var dockedTrain = scenario.CreateForwardDockingTrain(out var dockedCar);
-            var runningTrain = scenario.CreateOpposingDockingTrain(out var runningCar, 4);
+            var dockedTrain = scenario.CreateForwardDockingTrain(out var dockedCar, out var dockedContainer);
+            var runningTrain = scenario.CreateOpposingDockingTrain(out var runningCar, out var runningContainer, 4);
 
-            var dockedSnapshot = ConfigureDockedTrain(dockedTrain, dockedCar, scenario);
-            var runningSnapshot = ConfigureRunningTrain(runningTrain, runningCar, scenario);
+            var dockedSnapshot = ConfigureDockedTrain(dockedTrain, dockedCar, dockedContainer, scenario);
+            var runningSnapshot = ConfigureRunningTrain(runningTrain, runningCar, runningContainer, scenario);
 
             var registeredCount = scenario.Environment.GetTrainUpdateService().GetRegisteredTrains().Count();
             Assert.AreEqual(2, registeredCount, "セーブ前の登録列車数が想定と異なります。");
@@ -143,7 +144,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             CleanupTrains(loadEnv, loadedTrains);
         }
 
-        private static TrainStateSnapshot ConfigureDockedTrain(TrainUnit train, TrainCar car, TrainStationDockingScenario scenario)
+        private static TrainStateSnapshot ConfigureDockedTrain(TrainUnit train, TrainCar car, ItemTrainCarContainer container, TrainStationDockingScenario scenario)
         {
             var stationExit = scenario.StationExitFront;
             var stationEntry = scenario.StationEntryFront;
@@ -161,16 +162,16 @@ namespace Tests.UnitTest.Game.SaveLoad
             waitEntry.SetDepartureWaitTicks(5);
 
             var expectedItem = ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 11);
-            car.SetItem(0, expectedItem);
+            container.SetItem(0, expectedItem);
 
             train.TurnOnAutoRun();
             train.Update();
             train.Update();
 
-            return TrainStateSnapshot.Create(train, car, waitEntry, scenario.StationBlockPosition);
+            return TrainStateSnapshot.Create(train, car, container, waitEntry, scenario.StationBlockPosition);
         }
 
-        private static TrainStateSnapshot ConfigureRunningTrain(TrainUnit train, TrainCar car, TrainStationDockingScenario scenario)
+        private static TrainStateSnapshot ConfigureRunningTrain(TrainUnit train, TrainCar car, ItemTrainCarContainer container, TrainStationDockingScenario scenario)
         {
             var exitBack = scenario.StationExitBack;
             var entryBack = scenario.StationEntryBack;
@@ -181,7 +182,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             train.trainDiagram.AddEntry(exitFront);
 
             var expectedItem = ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId2, 3);
-            car.SetItem(0, expectedItem);
+            container.SetItem(0, expectedItem);
 
             train.TurnOnAutoRun();
             for (var i = 0; i < 8; i++)
@@ -189,7 +190,7 @@ namespace Tests.UnitTest.Game.SaveLoad
                 train.Update();
             }
 
-            return TrainStateSnapshot.Create(train, car, null, null);
+            return TrainStateSnapshot.Create(train, car, container, null, null);
         }
 
         private static void AssertTrainStateMatches(TrainUnit train, TrainStateSnapshot expected)
@@ -219,9 +220,9 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.AreEqual(expected.FirstEntryNodeSide, activeEntry.Node.StationRef.NodeSide, "先頭エントリのノード方向が一致しません。");
 
             var loadedCar = train.Cars[0];
-            var loadedStack = loadedCar.GetItem(0);
-            Assert.AreEqual(expected.InventoryItemId, loadedStack.Id, "貨車インベントリIDが一致しません。");
-            Assert.AreEqual(expected.InventoryCount, loadedStack.Count, "貨車インベントリ個数が一致しません。");
+            var loadedStack = (loadedCar.Container as ItemTrainCarContainer)!.InventoryItems[0];
+            Assert.AreEqual(expected.InventoryItemId, loadedStack.Stack.Id, "貨車インベントリIDが一致しません。");
+            Assert.AreEqual(expected.InventoryCount, loadedStack.Stack.Count, "貨車インベントリ個数が一致しません。");
 
             Assert.AreEqual(expected.IsDocked, train.trainUnitStationDocking.IsDocked, "ドッキング状態が一致しません。");
 
@@ -299,14 +300,14 @@ namespace Tests.UnitTest.Game.SaveLoad
             public bool IsDocked { get; }
             public Vector3Int? DockingBlockPosition { get; }
 
-            public static TrainStateSnapshot Create(TrainUnit train, TrainCar car, TrainDiagramEntry? waitEntry, Vector3Int? dockingBlockPosition)
+            public static TrainStateSnapshot Create(TrainUnit train, TrainCar car, ItemTrainCarContainer container, TrainDiagramEntry? waitEntry, Vector3Int? dockingBlockPosition)
             {
                 var currentIndex = Mathf.Clamp(train.trainDiagram.CurrentIndex, 0, train.trainDiagram.Entries.Count - 1);
                 var activeEntry = train.trainDiagram.Entries[currentIndex];
                 int? waitInitial = waitEntry?.GetWaitForTicksInitialTicks();
                 int? waitRemaining = waitEntry?.GetWaitForTicksRemainingTicks();
 
-                var stack = car.GetItem(0);
+                var stack = container.InventoryItems[0];
 
                 return new TrainStateSnapshot(
                     train.Cars.Count,
@@ -320,8 +321,8 @@ namespace Tests.UnitTest.Game.SaveLoad
                     waitRemaining,
                     activeEntry.Node.StationRef.NodeRole,
                     activeEntry.Node.StationRef.NodeSide,
-                    stack.Id,
-                    stack.Count,
+                    stack.Stack.Id,
+                    stack.Stack.Count,
                     train.trainUnitStationDocking.IsDocked,
                     dockingBlockPosition);
             }
