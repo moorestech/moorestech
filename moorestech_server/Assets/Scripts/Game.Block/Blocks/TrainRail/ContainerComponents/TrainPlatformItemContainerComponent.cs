@@ -1,32 +1,32 @@
 using System;
 using Game.Block.Interface.Component;
 using Game.Train.Unit.Containers;
+using JetBrains.Annotations;
 
-namespace Game.Block.Blocks.TrainRail.TransferComponents
+namespace Game.Block.Blocks.TrainRail.ContainerComponents
 {
-    public class TrainPlatformItemTransferComponent : IUpdatableBlockComponent
+    public class TrainPlatformItemContainerComponent : IUpdatableBlockComponent
     {
         public bool IsDestroy { get; private set; }
+        public ItemTrainCarContainer Container { get; private set; }
         private readonly TrainPlatformDockingComponent _dockingComponent;
-        private readonly TrainPlatformContainerComponent _containerComponent;
         private readonly TrainPlatformTransferComponent _transferComponent;
         
-        public TrainPlatformItemTransferComponent(TrainPlatformDockingComponent dockingComponent, TrainPlatformContainerComponent containerComponent, TrainPlatformTransferComponent transferComponent)
+        public TrainPlatformItemContainerComponent(TrainPlatformDockingComponent dockingComponent, TrainPlatformTransferComponent transferComponent)
         {
             _dockingComponent = dockingComponent;
-            _containerComponent = containerComponent;
             _transferComponent = transferComponent;
         }
         
         public void Update()
         {
-            if (!IsTargetContainer(out var targetContainer, out var container)) return;
+            if (!IsTargetContainer(out var targetContainer)) return;
             
             switch (_transferComponent.Mode)
             {
                 case TrainPlatformTransferComponent.TransferMode.LoadToTrain:
                     {
-                        if (!CanTransfer(container, targetContainer))
+                        if (!CanTransfer(Container, targetContainer))
                         {
                             _dockingComponent.StartRetracting();
                             return;
@@ -36,14 +36,14 @@ namespace Game.Block.Blocks.TrainRail.TransferComponents
                         
                         if (_dockingComponent.ArmState != ArmState.Extended) return;
                         
-                        targetContainer.MergeFrom(container);
+                        targetContainer.MergeFrom(Container);
                         
                         _dockingComponent.StartRetracting();
                         break;
                     }
                 case TrainPlatformTransferComponent.TransferMode.UnloadToPlatform:
                     {
-                        if (!CanTransfer(targetContainer, container))
+                        if (!CanTransfer(targetContainer, Container))
                         {
                             _dockingComponent.StartRetracting();
                             return;
@@ -53,7 +53,7 @@ namespace Game.Block.Blocks.TrainRail.TransferComponents
                         
                         if (_dockingComponent.ArmState != ArmState.Extended) return;
                         
-                        container.MergeFrom(targetContainer);
+                        Container.MergeFrom(targetContainer);
                         
                         _dockingComponent.StartRetracting();
                         break;
@@ -63,18 +63,22 @@ namespace Game.Block.Blocks.TrainRail.TransferComponents
             }
         }
         
-        private bool IsTargetContainer(out ItemTrainCarContainer trainCarContainer, out ItemTrainCarContainer stationContainer)
+        private bool IsTargetContainer([CanBeNull] out ItemTrainCarContainer trainCarContainer)
         {
-            if (_dockingComponent.DockedTrainCar?.Container is ItemTrainCarContainer itemTrainCarContainer
-                && _containerComponent.Container is ItemTrainCarContainer itemStationContainer)
+            var trainContainer = _dockingComponent.DockedTrainCar?.Container; 
+            if (trainContainer is ItemTrainCarContainer itemTrainCarContainer)
             {
                 trainCarContainer = itemTrainCarContainer;
-                stationContainer = itemStationContainer;
+                return true;
+            }
+            
+            if (trainContainer == null)
+            {
+                trainCarContainer = null;
                 return true;
             }
             
             trainCarContainer = null;
-            stationContainer = null;
             return false;
         }
         

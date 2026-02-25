@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.TrainRail;
-using Game.Block.Blocks.TrainRail.TransferComponents;
+using Game.Block.Blocks.TrainRail.ContainerComponents;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
@@ -35,7 +35,7 @@ namespace Tests.UnitTest.Game
             Assert.IsNotNull(stationBlock, "駅ブロックの設置に失敗しました。");
             Assert.IsNotNull(railComponents, "RailComponentの取得に失敗しました。");
             
-            var trainPlatformItemTransferComponent = stationBlock.GetComponent<TrainPlatformItemTransferComponent>();
+            var trainPlatformItemTransferComponent = stationBlock.GetComponent<TrainPlatformItemContainerComponent>();
             var trainPlatformDockingComponent = stationBlock.GetComponent<TrainPlatformDockingComponent>();
             
             Assert.IsNotNull(trainPlatformItemTransferComponent, "trainPlatformItemTransferComponentの取得に失敗しました。");
@@ -99,7 +99,7 @@ namespace Tests.UnitTest.Game
             Assert.IsNotNull(cargoPlatformBlock, "貨物プラットフォームブロックの設置に失敗しました。");
             Assert.IsNotNull(railComponents, "RailComponentの取得に失敗しました。");
             
-            var trainPlatformItemTransferComponent = cargoPlatformBlock.GetComponent<TrainPlatformItemTransferComponent>();
+            var trainPlatformItemTransferComponent = cargoPlatformBlock.GetComponent<TrainPlatformItemContainerComponent>();
             var trainPlatformDockingComponent = cargoPlatformBlock.GetComponent<TrainPlatformDockingComponent>();
             
             Assert.IsNotNull(trainPlatformItemTransferComponent, "trainPlatformItemTransferComponentの取得に失敗しました。");
@@ -164,7 +164,7 @@ namespace Tests.UnitTest.Game
             Assert.IsNotNull(cargoPlatformBlock, "貨物プラットフォームブロックの設置に失敗しました。");
             Assert.IsNotNull(railComponents, "RailComponentの取得に失敗しました。");
             
-            var trainPlatformItemTransferComponentStation = cargoPlatformBlock.GetComponent<TrainPlatformItemTransferComponent>();
+            var trainPlatformItemTransferComponentStation = cargoPlatformBlock.GetComponent<TrainPlatformItemContainerComponent>();
             var trainPlatformDockingComponentStation = cargoPlatformBlock.GetComponent<TrainPlatformDockingComponent>();
             var trainPlatformTransferComponentStation = cargoPlatformBlock.GetComponent<TrainPlatformTransferComponent>();
             
@@ -235,7 +235,7 @@ namespace Tests.UnitTest.Game
             Assert.IsNotNull(stationBlock, "駅ブロックの設置に失敗しました。");
             Assert.IsNotNull(railComponents, "RailComponentの取得に失敗しました。");
             
-            var trainPlatformItemTransferComponentStation = stationBlock.GetComponent<TrainPlatformItemTransferComponent>();
+            var trainPlatformItemTransferComponentStation = stationBlock.GetComponent<TrainPlatformItemContainerComponent>();
             var trainPlatformDockingComponentStation = stationBlock.GetComponent<TrainPlatformDockingComponent>();
             var trainPlatformTransferComponentStation = stationBlock.GetComponent<TrainPlatformTransferComponent>();
             
