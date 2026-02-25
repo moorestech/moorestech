@@ -14,12 +14,12 @@ namespace Tests.UnitTest.Game
         {
             TrainTestHelper.CreateEnvironment();
 
-            var trainCar = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 0, 3, 10, true);
+            var (_, container) = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 0, 3, 10, true);
 
             var filledStack = ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 2);
-            var itemContainer = ItemTrainCarContainer.CreateWithEmptySlots(3);
+            container.SetItem(1, filledStack);
             
-            var inventorySnapshot = itemContainer.InventoryItems;
+            var inventorySnapshot = container.InventoryItems;
 
             Assert.AreEqual(3, inventorySnapshot.Length, "Expected EnumerateInventory to return all inventory slots.");
             Assert.AreEqual(0, inventorySnapshot[0].Index, "First slot index should be 0.");
