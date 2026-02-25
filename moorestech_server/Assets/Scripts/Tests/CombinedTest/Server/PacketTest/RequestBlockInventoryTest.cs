@@ -81,17 +81,13 @@ namespace Tests.CombinedTest.Server.PacketTest
             var backNode = railA.FrontNode;
             var distance = Mathf.Max(1, frontNode.GetDistanceToNode(backNode));
             var railPosition = new RailPosition(new List<IRailNode> { frontNode, backNode }, distance, 0);
-            var trainCar = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 1000, 3, distance, true);
+            var trainCar = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 1000, 3, distance, true).trainCar;
             var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, environment.GetTrainUpdateService(), environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
 
             // 列車をTrainUpdateServiceに登録
             // Register the train to TrainUpdateService
             environment.GetTrainUpdateService().RegisterTrain(trainUnit);
-
-            var itemFactory = ServerContext.ItemStackFactory;
-            var itemContainer = ItemTrainCarContainer.CreateWithInventoryItems(itemFactory.Create(new ItemId(1), 7), itemFactory.Create(new ItemId(2), 3));
-            trainCar.SetContainer(itemContainer);
-
+            
             var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestTrain(trainCar.TrainCarInstanceId))[0];
             var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(responseBytes);
 
