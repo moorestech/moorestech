@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Game.Train.Event;
 using Game.Train.RailGraph;
 using Game.Train.Unit;
 using MessagePack;
@@ -20,6 +21,7 @@ namespace Server.Protocol
             // パケット生成に必要な列車系サービスを取得
             // Acquire train-related services required for packet creation
             var trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
+            var trainUnitSnapshotNotifyEvent = serviceProvider.GetService<ITrainUnitSnapshotNotifyEvent>();
             var railGraphDatastore = serviceProvider.GetService<IRailGraphDatastore>();
             _packetResponseDictionary.Add(InitialHandshakeProtocol.ProtocolTag, new InitialHandshakeProtocol(serviceProvider));
             _packetResponseDictionary.Add(RequestWorldDataProtocol.ProtocolTag, new RequestWorldDataProtocol(serviceProvider));
@@ -44,8 +46,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(BlockStateProtocol.ProtocolTag, new BlockStateProtocol(serviceProvider));
             _packetResponseDictionary.Add(InvokeBlockStateEventProtocol.ProtocolTag, new InvokeBlockStateEventProtocol(serviceProvider));
             _packetResponseDictionary.Add(DebugBlockInfoRequestProtocol.ProtocolTag, new DebugBlockInfoRequestProtocol(serviceProvider));
-            _packetResponseDictionary.Add(SetCraftChainerCrafterRecipeProtocol.ProtocolTag, new SetCraftChainerCrafterRecipeProtocol(serviceProvider));
-            _packetResponseDictionary.Add(SetCraftChainerMainComputerRequestItemProtocol.ProtocolTag, new SetCraftChainerMainComputerRequestItemProtocol(serviceProvider));
+
             _packetResponseDictionary.Add(ApplyCraftTreeProtocol.ProtocolTag, new ApplyCraftTreeProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetCraftTreeProtocol.ProtocolTag, new GetCraftTreeProtocol(serviceProvider));
             _packetResponseDictionary.Add(RegisterPlayedSkitProtocol.ProtocolTag, new RegisterPlayedSkitProtocol(serviceProvider));
@@ -58,7 +59,8 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(GetRailGraphSnapshotProtocol.ProtocolTag, new GetRailGraphSnapshotProtocol(railGraphDatastore, trainUpdateService));
             _packetResponseDictionary.Add(GetTrainUnitSnapshotsProtocol.ProtocolTag, new GetTrainUnitSnapshotsProtocol(trainUpdateService));
             _packetResponseDictionary.Add(PlaceTrainCarOnRailProtocol.ProtocolTag, new PlaceTrainCarOnRailProtocol(serviceProvider));
-            _packetResponseDictionary.Add(RemoveTrainCarProtocol.ProtocolTag, new RemoveTrainCarProtocol(trainUpdateService));
+            _packetResponseDictionary.Add(AttachTrainCarToUnitProtocol.ProtocolTag, new AttachTrainCarToUnitProtocol(serviceProvider));
+            _packetResponseDictionary.Add(RemoveTrainCarProtocol.ProtocolTag, new RemoveTrainCarProtocol(trainUpdateService, trainUnitSnapshotNotifyEvent));
         }
         
         public List<byte[]> GetPacketResponse(byte[] payload)

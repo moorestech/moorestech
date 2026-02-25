@@ -1,10 +1,10 @@
-using System;
+using Game.Train.Unit;
 
 namespace Game.Block.Interface.Component
 {
     public interface ITrainDockHandle
     {
-        Guid TrainId { get; }
+        TrainInstanceId TrainInstanceId { get; }
         long TrainCarInstanceId { get; }
         int CarIndex { get; }
     }

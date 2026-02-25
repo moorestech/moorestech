@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Network.Settings;
 using Core.Master;
-using Game.CraftChainer.CraftChain;
+
 using Game.CraftTree.Models;
 using Game.Train.RailPositions;
 using Game.Train.Unit;
@@ -73,18 +73,6 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
         
-        public void SetCraftChainerCrafterRecipe(Vector3Int block ,List<CraftingSolverItem> inputs, List<CraftingSolverItem> outputs)
-        {
-            var request = new SetCraftChainerCrafterRecipeProtocol.SetCraftChainerCrafterRecipeProtocolMessagePack(block, inputs, outputs);
-            _packetSender.Send(request);
-        }
-        
-        public void SetCraftChainerMainComputerRequestItem(Vector3Int block, ItemId itemId, int count)
-        {
-            var request = new SetCraftChainerMainComputerRequestItemProtocol.SetCraftChainerMainComputerRequestItemProtocolMessagePack(block, itemId, count);
-            _packetSender.Send(request);
-        }
-        
         public void SendCommand(string command)
         {
             var request = new SendCommandProtocol.SendCommandProtocolMessagePack(command);
@@ -139,9 +127,9 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
         
-        public void PlaceTrainOnRail(RailPositionSaveData railPosition, int hotBarSlot)
+        public void PlaceTrainOnRail(RailPosition railPosition, int hotBarSlot)
         {
-            var railPositionSnapshot = new RailPositionSnapshotMessagePack(railPosition);
+            var railPositionSnapshot = new RailPositionSnapshotMessagePack(railPosition?.CreateSaveSnapshot());
             var request = new PlaceTrainOnRailRequestMessagePack(railPositionSnapshot, hotBarSlot, _playerId);
             _packetSender.Send(request);
         }

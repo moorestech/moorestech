@@ -23,7 +23,6 @@ namespace Game.Train.Unit
 
         private readonly Subject<HashStateEventData> _onHashEvent = new();
         private readonly Subject<(uint, IReadOnlyList<TrainTickDiffData>)> _onPreSimulationDiffEvent = new();
-        private readonly TrainUnitInitializationNotifier _trainUnitInitializationNotifier;
         private bool _trainAutoRunDebugEnabled;
 
         // 依存サービスを受け取り、更新ループに接続する
@@ -32,9 +31,6 @@ namespace Game.Train.Unit
         {
             _diagramManager = diagramManager;
             _railGraphDatastore = railGraphDatastore;
-            // 列車生成通知のハブを初期化する
-            // Initialize the train unit creation notifier
-            _trainUnitInitializationNotifier = new TrainUnitInitializationNotifier();
             GameUpdater.UpdateObservable.Subscribe(_ => UpdateTrains());
         }
 
@@ -48,9 +44,6 @@ namespace Game.Train.Unit
         }
         public IObservable<HashStateEventData> OnHashEvent => _onHashEvent;
         public IObservable<(uint, IReadOnlyList<TrainTickDiffData>)> OnPreSimulationDiffEvent => _onPreSimulationDiffEvent;
-        // 列車生成イベントの購読口を返す
-        // Provide the train unit creation event stream
-        public IObservable<TrainUnitInitializationNotifier.TrainUnitCreatedData> TrainUnitCreatedEvent => _trainUnitInitializationNotifier.TrainUnitInitializedEvent;
         public bool IsTrainAutoRunDebugEnabled() => _trainAutoRunDebugEnabled;
 
         private void UpdateTrains()
@@ -107,7 +100,7 @@ namespace Game.Train.Unit
                     {
                         continue;
                     }
-                    diffs.Add(new TrainTickDiffData(trainUnit.TrainId, masconLevelDiff, isNowDockingSpeedZero, approachingNodeIdDiff));
+                    diffs.Add(new TrainTickDiffData(trainUnit.TrainInstanceId, masconLevelDiff, isNowDockingSpeedZero, approachingNodeIdDiff));
                 }
                 // 差分0件でもsim実行トリガとして同tickイベントを送る。
                 // Emit the same-tick event even when diffs are empty as a simulation trigger.
@@ -123,16 +116,8 @@ namespace Game.Train.Unit
 
         public void RegisterTrain(TrainUnit trainUnit)
         {
-            // 列車を登録して生成通知を送る
-            // Register train and emit creation notification
-            _trainUnits.Add(trainUnit);
-            _trainUnitInitializationNotifier.Notify(trainUnit);
-        }
-
-        public void RegisterTrainWithoutNotify(TrainUnit trainUnit)
-        {
-            // 列車を通知なしで登録する
-            // Register train without notification
+            // 列車を登録する
+            // Register train unit.
             _trainUnits.Add(trainUnit);
         }
         public void UnregisterTrain(TrainUnit trainUnit) => _trainUnits.Remove(trainUnit);
@@ -207,14 +192,14 @@ namespace Game.Train.Unit
 
         public readonly struct TrainTickDiffData
         {
-            public Guid TrainId { get; }
+            public TrainInstanceId TrainInstanceId { get; }
             public int MasconLevelDiff { get; }
             public bool IsNowDockingSpeedZero { get; }
             public int ApproachingNodeIdDiff { get; }
 
-            public TrainTickDiffData(Guid trainId, int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeIdDiff)
+            public TrainTickDiffData(TrainInstanceId trainInstanceId, int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeIdDiff)
             {
-                TrainId = trainId;
+                TrainInstanceId = trainInstanceId;
                 MasconLevelDiff = masconLevelDiff;
                 IsNowDockingSpeedZero = isNowDockingSpeedZero;
                 ApproachingNodeIdDiff = approachingNodeIdDiff;

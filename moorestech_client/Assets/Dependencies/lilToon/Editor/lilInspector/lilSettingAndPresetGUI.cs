@@ -181,11 +181,18 @@ namespace lilToon
                                     GetLoc("sPresetCategoryInorganic"),
                                     GetLoc("sPresetCategoryEffect"),
                                     GetLoc("sPresetCategoryOther") };
+
+            // カルチャコード(例: "ja-JP")からCultureInfoの英語名(例: "Japanese (Japan)")を取得
+            // Get CultureInfo English name from culture code for matching old-style language names in presets
+            var currentLangCode = lilLanguageManager.langSet.languageName;
+            var cultureEnglishName = new System.Globalization.CultureInfo(currentLangCode).EnglishName;
+
             for(int i=0; i<(int)lilPresetCategory.Other+1; i++)
             {
                 edSet.isShowCategorys[i] = lilEditorGUI.Foldout(sCategorys[i], edSet.isShowCategorys[i]);
                 if(edSet.isShowCategorys[i])
                 {
+                    EditorGUILayout.BeginVertical(customBox);
                     for(int j=0; j<presets.Length; j++)
                     {
                         if(i == (int)presets[j].category)
@@ -197,7 +204,11 @@ namespace lilToon
                                 {
                                     showName = presets[j].bases[k].name;
                                 }
-                                if(presets[j].bases[k].language == lilLanguageManager.langSet.languageName)
+
+                                // カルチャコード直接一致、または旧形式の言語名(例: "Japanese")との前方一致で比較
+                                // Match by culture code directly, or by prefix match with old-style language name
+                                var baseLang = presets[j].bases[k].language;
+                                if(baseLang == currentLangCode || cultureEnglishName.StartsWith(baseLang))
                                 {
                                     showName = presets[j].bases[k].name;
                                     k = 256;
@@ -213,6 +224,7 @@ namespace lilToon
                             }
                         }
                     }
+                    EditorGUILayout.EndVertical();
                 }
             }
         }
