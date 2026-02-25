@@ -1,6 +1,6 @@
 ---
 name: train-tick-simulation
-description: Define and enforce deterministic train tick behavior under unified TickUnifiedId ordering, hash gating, diff-bundle simulation triggers, and coexistence with per-unit TrainUnit snapshot events.
+description: Define and enforce deterministic train tick behavior under unified TickUnifiedId ordering, hash gating, diff-bundle simulation triggers, and coexistence with per-unit TrainUnit snapshot events. Use when changing tick progression, hash verification flow, bundle timing, or gate/advance behavior.
 ---
 
 # Train Tick Simulation
