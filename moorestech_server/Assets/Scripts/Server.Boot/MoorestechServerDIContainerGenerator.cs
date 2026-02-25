@@ -11,7 +11,7 @@ using Game.Block.Interface.Event;
 using Game.Action;
 using Game.Challenge;
 using Game.Context;
-using Game.CraftChainer;
+
 using Game.Crafting.Interface;
 using Game.CraftTree;
 using Game.EnergySystem;
@@ -150,6 +150,7 @@ namespace Server.Boot
             services.AddSingleton<RailGraphSaveLoadService, RailGraphSaveLoadService>();
             services.AddSingleton<TrainDockingStateRestorer>();
             services.AddSingleton<ITrainUpdateEvent, TrainUpdateEvent>();
+            services.AddSingleton<ITrainUnitSnapshotNotifyEvent, TrainUnitSnapshotNotifyEvent>();
             services.AddSingleton<TrainUpdateService>();
 
             //JSONファイルのセーブシステムの読み込み
@@ -180,8 +181,7 @@ namespace Server.Boot
             services.AddSingleton<RailNodeCreatedEventPacket>();
             services.AddSingleton<RailConnectionCreatedEventPacket>();
             services.AddSingleton<TrainUnitTickDiffBundleEventPacket>();
-            services.AddSingleton<TrainUnitCreatedEventPacket>();
-            services.AddSingleton<TrainCarRemovedEventPacket>();
+            services.AddSingleton<TrainUnitSnapshotEventPacket>();
             services.AddSingleton<RailNodeRemovedEventPacket>();
             services.AddSingleton<RailConnectionRemovedEventPacket>();
             
@@ -214,15 +214,11 @@ namespace Server.Boot
             serviceProvider.GetService<RailNodeCreatedEventPacket>();
             serviceProvider.GetService<RailConnectionCreatedEventPacket>();
             serviceProvider.GetService<TrainUnitTickDiffBundleEventPacket>();
-            serviceProvider.GetService<TrainUnitCreatedEventPacket>();
-            serviceProvider.GetService<TrainCarRemovedEventPacket>();
+            serviceProvider.GetService<TrainUnitSnapshotEventPacket>();
             serviceProvider.GetService<RailNodeRemovedEventPacket>();
             serviceProvider.GetService<RailConnectionRemovedEventPacket>();
             
             serverContext.SetMainServiceProvider(serviceProvider);
-
-            // CraftChainerの初期化
-            CraftChainerEntryPoint.Entry();
 
             return (packetResponse, serviceProvider);
         }

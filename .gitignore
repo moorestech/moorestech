@@ -11,6 +11,9 @@
 /moorestech_*/[Uu]ser[Ss]ettings/*
 !/moorestech_*/[Uu]ser[Ss]ettings/UnityMcpSettings.json
 
+# Addresabble
+/moorestech_*/[Aa]ssets/AddressableAssetsData/link.xml*
+/moorestech_*/[Aa]ssets/Addressables_Temp*
 
 # MemoryCaptures can get excessive in size.
 # They also could contain extremely sensitive data
@@ -85,9 +88,7 @@ crashlytics-build.properties
 /moorestech_client/Assets/Dependencies/lilToon/Editor/CurrentRP.txt.meta
 
 # Github Actionsのアウトプット
-/moorestech_*/Output_StandaloneWindows64/
-/moorestech_*/Output_StandaloneOSX/
-/moorestech_*/Output_StandaloneLinux64/
+/moorestech_*/Output_*
 moorestech_client/.vscode/settings.json
 
 # Core.Master recompile

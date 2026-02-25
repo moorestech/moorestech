@@ -1,5 +1,5 @@
-using System;
 using System.Collections.Generic;
+using Game.Train.Unit;
 
 namespace Game.Train.Diagram
 {
@@ -11,7 +11,7 @@ namespace Game.Train.Diagram
 
     public interface ITrainDiagramContext
     {
-        Guid TrainId { get; }
+        TrainInstanceId TrainInstanceId { get; }
         IReadOnlyList<ITrainDiagramCar> Cars { get; }
         bool IsAutoRun { get; }
         bool IsDocked { get; }

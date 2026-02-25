@@ -9,6 +9,14 @@ description: Implement and review rail/train network synchronization flows acros
 
 Use this skill to keep server and client train/rail state transitions aligned.
 
+## Reuse-First Rule
+
+- Before adding a new sync helper or detector, search existing train/rail implementations first.
+- Prefer shared logic in `Game.Train` over client-only/server-only duplicate implementations.
+- If duplication is unavoidable, document a short `WHY_NEW_IMPLEMENTATION` reason in code/PR notes.
+- Recommended pre-check:
+  - `rg --line-number "Overlap|CreateIndex|HasOverlap|Snapshot|Diff|RailPosition" moorestech_client/Assets/Scripts moorestech_server/Assets/Scripts`
+
 ## Sync Contracts
 
 - Initial train bootstrap relies on train/rail snapshots and local appliers.

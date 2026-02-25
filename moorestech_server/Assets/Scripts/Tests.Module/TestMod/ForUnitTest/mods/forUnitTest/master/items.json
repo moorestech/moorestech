@@ -200,42 +200,6 @@
     },
     {
       "maxStack": 100,
-      "name": "StraightTestItemShooter",
-      "itemGuid": "11500000-0000-0000-0000-000000000000",
-      "imagePath": "Test1",
-      "sortPriority": 100,
-      "recipeViewType": "ForceView",
-      "initialUnlocked": false
-    },
-    {
-      "maxStack": 100,
-      "name": "DownTestItemShooter",
-      "itemGuid": "11600000-0000-0000-0000-000000000000",
-      "imagePath": "Test1",
-      "sortPriority": 100,
-      "recipeViewType": "ForceView",
-      "initialUnlocked": false
-    },
-    {
-      "maxStack": 100,
-      "name": "UpTestItemShooter",
-      "itemGuid": "11700000-0000-0000-0000-000000000000",
-      "imagePath": "Test1",
-      "sortPriority": 100,
-      "recipeViewType": "ForceView",
-      "initialUnlocked": false
-    },
-    {
-      "maxStack": 100,
-      "name": "TestItemShooterAccelerator",
-      "itemGuid": "12200000-0000-0000-0000-000000000000",
-      "imagePath": "Test1",
-      "sortPriority": 100,
-      "recipeViewType": "ForceView",
-      "initialUnlocked": false
-    },
-    {
-      "maxStack": 100,
       "name": "GearBeltConveyor",
       "itemGuid": "11800000-0000-0000-0000-000000000000",
       "imagePath": "Test1",
@@ -275,62 +239,6 @@
       "name": "GearMiner",
       "imagePath": "Test1",
       "itemGuid": "ca6225bf-41ea-466d-89ef-98334f8c628f",
-      "sortPriority": 100,
-      "recipeViewType": "ForceView",
-      "initialUnlocked": false
-    },
-    {
-      "maxStack": 100,
-      "name": "CraftChainerTransporter",
-      "itemGuid": "db52f4b0-c28c-4f18-a6c8-0b054e460006",
-      "sortPriority": 100,
-      "recipeViewType": "ForceView",
-      "initialUnlocked": false
-    },
-    {
-      "maxStack": 100,
-      "name": "CraftChainerCrafter",
-      "itemGuid": "b76d00ed-72c9-436d-af80-11739a4f3e14",
-      "sortPriority": 100,
-      "recipeViewType": "ForceView",
-      "initialUnlocked": false
-    },
-    {
-      "maxStack": 100,
-      "name": "CraftChainerProviderChest",
-      "itemGuid": "35be2026-4730-46d3-9821-5d5f88ac3326",
-      "sortPriority": 100,
-      "recipeViewType": "ForceView",
-      "initialUnlocked": false
-    },
-    {
-      "maxStack": 100,
-      "name": "CraftChainerMainComputer",
-      "itemGuid": "59ca039e-7b91-41d9-b387-9bbfa73b74e5",
-      "sortPriority": 100,
-      "recipeViewType": "ForceView",
-      "initialUnlocked": false
-    },
-    {
-      "maxStack": 100,
-      "name": "CraftChainerBeltConveyor",
-      "itemGuid": "9ba04edc-1fe0-4528-91a8-80155a51bfe0",
-      "sortPriority": 100,
-      "recipeViewType": "ForceView",
-      "initialUnlocked": false
-    },
-    {
-      "maxStack": 100,
-      "name": "CraftChainerMachine1",
-      "itemGuid": "0b9e2f8f-b53f-440f-8913-0664f51e6856",
-      "sortPriority": 100,
-      "recipeViewType": "ForceView",
-      "initialUnlocked": false
-    },
-    {
-      "maxStack": 100,
-      "name": "CraftChainerMachine2",
-      "itemGuid": "7dd72da1-e030-494e-a650-a651f7826648",
       "sortPriority": 100,
       "recipeViewType": "ForceView",
       "initialUnlocked": false

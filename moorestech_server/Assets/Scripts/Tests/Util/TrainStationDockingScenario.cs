@@ -168,7 +168,7 @@ namespace Tests.Util
 
             foreach (var train in _spawnedTrains)
             {
-                if (train.TrainId == Guid.Empty) continue;
+                if (train.TrainInstanceId == TrainInstanceId.Empty) continue;
                 if (train.trainUnitStationDocking.IsDocked)
                 {
                     train.trainUnitStationDocking.UndockFromStation();
