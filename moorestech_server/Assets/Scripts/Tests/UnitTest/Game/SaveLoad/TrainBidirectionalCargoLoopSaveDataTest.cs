@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
 using Game.Block.Blocks.TrainRail;
-using Game.Block.Blocks.TrainRail.TransferComponents;
+using Game.Block.Blocks.TrainRail.ContainerComponents;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
@@ -72,10 +72,10 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.IsTrue(stationBBlock!.ComponentManager.TryGetComponent<IBlockInventory>(out var inventoryB),
                 "Station B のインベントリ取得に失敗しました。");
             
-            var trainPlatformItemTransferComponentStationA = stationABlock.GetComponent<TrainPlatformItemTransferComponent>();
+            var trainPlatformItemTransferComponentStationA = stationABlock.GetComponent<TrainPlatformItemContainerComponent>();
             var trainPlatformDockingComponentStationA = stationABlock.GetComponent<TrainPlatformDockingComponent>();
             var trainPlatformTransferComponentStationA = stationABlock.GetComponent<TrainPlatformTransferComponent>();
-            var trainPlatformItemTransferComponentStationB = stationBBlock.GetComponent<TrainPlatformItemTransferComponent>();
+            var trainPlatformItemTransferComponentStationB = stationBBlock.GetComponent<TrainPlatformItemContainerComponent>();
             var trainPlatformDockingComponentStationB = stationBBlock.GetComponent<TrainPlatformDockingComponent>();
             var trainPlatformTransferComponentStationB = stationBBlock.GetComponent<TrainPlatformTransferComponent>();
             

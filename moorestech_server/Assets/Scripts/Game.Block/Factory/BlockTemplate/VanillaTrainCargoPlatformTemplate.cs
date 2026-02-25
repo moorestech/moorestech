@@ -3,7 +3,7 @@ using Game.Block.Blocks;
 using Game.Block.Blocks.Chest;
 using Game.Block.Blocks.Service;
 using Game.Block.Blocks.TrainRail;
-using Game.Block.Blocks.TrainRail.TransferComponents;
+using Game.Block.Blocks.TrainRail.ContainerComponents;
 using Game.Block.Factory.BlockTemplate.Utility;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -36,7 +36,7 @@ namespace Game.Block.Factory.BlockTemplate
             var trainPlatformDockingComponent = new TrainPlatformDockingComponent(stationParam.LoadingAnimeSpeed);
             var trainPlatformContainerComponent = new TrainPlatformContainerComponent(container: null);
             var trainPlatformTransferComponent = new TrainPlatformTransferComponent(TrainPlatformTransferComponent.TransferMode.LoadToTrain);
-            var trainPlatformItemTransferComponent = new TrainPlatformItemTransferComponent(trainPlatformDockingComponent, trainPlatformContainerComponent, trainPlatformTransferComponent);
+            var trainPlatformItemTransferComponent = new TrainPlatformItemContainerComponent(trainPlatformDockingComponent, trainPlatformContainerComponent, trainPlatformTransferComponent);
             
             // 生成したコンポーネントをブロックに登録する
             var blockComponents = new List<IBlockComponent>();
@@ -72,7 +72,7 @@ namespace Game.Block.Factory.BlockTemplate
             var trainPlatformDockingComponent = new TrainPlatformDockingComponent(componentStates, stationParam.LoadingAnimeSpeed);
             var trainPlatformContainerComponent = new TrainPlatformContainerComponent(componentStates);
             var trainPlatformTransferComponent = new TrainPlatformTransferComponent(componentStates);
-            var trainPlatformItemTransferComponent = new TrainPlatformItemTransferComponent(trainPlatformDockingComponent, trainPlatformContainerComponent, trainPlatformTransferComponent);
+            var trainPlatformItemTransferComponent = new TrainPlatformItemContainerComponent(trainPlatformDockingComponent, trainPlatformContainerComponent, trainPlatformTransferComponent);
             
             // 復元したコンポーネントをブロックに登録する
             var blockComponents = new List<IBlockComponent>();
