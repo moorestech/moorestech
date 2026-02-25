@@ -13,7 +13,7 @@ namespace Tests.UnitTest.Game
         {
             using var scenario = TrainStationDockingScenario.Create();
 
-            var train = scenario.CreateForwardDockingTrain(out var car);
+            var train = scenario.CreateForwardDockingTrain(out var car, out _);
 
             Assert.IsFalse(car.IsDocked, "初期状態で車両がドッキング済みになっています。");
             Assert.IsFalse(train.trainUnitStationDocking.IsDocked, "初期状態で列車全体がドッキング済みになっています。");
@@ -29,8 +29,8 @@ namespace Tests.UnitTest.Game
         {
             using var scenario = TrainStationDockingScenario.Create();
 
-            var firstTrain = scenario.CreateForwardDockingTrain(out var firstCar);
-            var secondTrain = scenario.CreateForwardDockingTrain(out var secondCar);
+            var firstTrain = scenario.CreateForwardDockingTrain(out var firstCar, out _);
+            var secondTrain = scenario.CreateForwardDockingTrain(out var secondCar, out _);
 
             firstTrain.trainUnitStationDocking.TryDockWhenStopped();
             Assert.IsTrue(firstCar.IsDocked, "先行列車が駅にドッキングできていません。");
@@ -51,8 +51,8 @@ namespace Tests.UnitTest.Game
         {
             using var scenario = TrainStationDockingScenario.Create();
 
-            var frontTrain = scenario.CreateForwardDockingTrain(out var frontCar);
-            var opposingTrain = scenario.CreateOpposingDockingTrain(out var opposingCar);
+            var frontTrain = scenario.CreateForwardDockingTrain(out var frontCar, out _);
+            var opposingTrain = scenario.CreateOpposingDockingTrain(out var opposingCar, out _);
 
             frontTrain.trainUnitStationDocking.TryDockWhenStopped();
             Assert.IsTrue(frontCar.IsDocked, "正面側から到着した列車が駅にドッキングできていません。");
