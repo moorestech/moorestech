@@ -1,12 +1,12 @@
 ---
 name: train-system-notes
-description: Apply core train invariants for rail graph topology, front/back node semantics, rail position ordering, docking references, reverse behavior, deterministic distance handling, and TrainUnit snapshot boundaries.
+description: Apply core train invariants for rail graph topology, front/back node semantics, rail position ordering, docking references, reverse behavior, deterministic distance handling, and TrainUnit snapshot boundaries. Use when implementing or debugging train movement/topology consistency and directional rail semantics.
 ---
 
 # Train System Notes
 
 ## Overview
-Use this skill as guardrails for train fundamentals and deterministic behavior.
+Use this skill as a guardrail for train fundamentals and deterministic behavior.
 
 ## Reuse-First Rule
 - Before adding rail/train algorithm helpers, search existing implementations first.

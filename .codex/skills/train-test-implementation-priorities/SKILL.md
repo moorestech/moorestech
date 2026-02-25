@@ -1,6 +1,6 @@
 ---
 name: train-test-implementation-priorities
-description: Plan and prioritize train test implementation by risk and coverage gaps under unified tick ordering and per-unit snapshot synchronization architecture.
+description: Plan and prioritize train test implementation by risk and coverage gaps under unified tick ordering and per-unit snapshot synchronization architecture. Use when selecting train regression tests after changes to ordering, hash gates, snapshot sync, topology, or persistence behavior.
 ---
 
 # Train Test Implementation Priorities
