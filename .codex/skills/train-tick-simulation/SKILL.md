@@ -1,84 +1,54 @@
 ---
 name: train-tick-simulation
-description: Define and enforce deterministic train tick behavior between server and client under unified TickUnifiedId ordering, including hash gating, diff-bundle simulation triggers, and coexistence with per-unit TrainUnit snapshot events. Use when implementing or reviewing train tick order, hash checks, or tick-aligned train/rail protocol payloads.
+description: Define and enforce deterministic train tick behavior under unified TickUnifiedId ordering, hash gating, diff-bundle simulation triggers, and coexistence with per-unit TrainUnit snapshot events.
 ---
 
 # Train Tick Simulation
 
 ## Overview
-
-Use this skill to keep server/client simulation aligned by unified chronological ordering and the current snapshot-sync policy.
+Use this skill to keep server/client train simulation aligned under unified chronological ordering.
 
 ## Reuse-First Rule
-
 - Before adding tick/event helper logic, search existing train implementations first.
-- Prefer shared `Game.Train` logic over per-handler duplicate implementations.
-- If duplication is unavoidable, document `WHY_NEW_IMPLEMENTATION` in code/PR notes.
+- Prefer shared `Game.Train` logic over duplicate per-handler implementations.
+- If duplication is unavoidable, record `WHY_NEW_IMPLEMENTATION` in code/PR notes.
 - Recommended pre-check:
-  - `rg --line-number "TickUnifiedId|TickSequenceId|Overlap|CreateIndex|HasOverlap" moorestech_client/Assets/Scripts moorestech_server/Assets/Scripts`
+  - `rg --line-number "TickUnifiedId|TickSequenceId|TrainUpdateService|HashVerifier|TickDiffBundle" moorestech_client/Assets/Scripts moorestech_server/Assets/Scripts`
 
 ## Target Tick Flow (Current)
-
 Server order:
 1. Build and emit hash state for tick `n`.
-2. Increment server tick to `n+1` and reset per-tick sequence counter.
-3. Run per-train simulation (`TrainUnit.Update()`).
-4. Emit tick-diff trigger for tick `n+1` (even when per-train diffs are empty).
-5. `TrainUnitTickDiffBundleEventPacket` bundles hash(`n`) + diff(`n+1`) and broadcasts one event.
-
-Server structural-train updates:
-- TrainUnit/TrainCar composition changes are sent separately as `va:event:trainUnitSnapshot` per-unit upsert/delete events.
-- These events share the same unified ordering keys (`ServerTick`, `TickSequenceId`).
+2. Increment tick to `n+1` and reset per-tick sequence counter.
+3. Run server train simulation (`TrainUnit.Update()`).
+4. Emit pre-simulation diff trigger for tick `n+1` (even when diffs are empty).
+5. Broadcast `trainUnitTickDiffBundle` carrying hash(`n`) + diff(`n+1`).
 
 Client order:
-1. Flush queued events in strict `TickUnifiedId` order (`id + 1`).
-2. Apply tick-diff bundle event at its buffered id:
-   - apply per-train input diffs
-   - run local train simulation (`unit.Update()`)
-3. Run hash gate on the requested id and decide whether tick can advance.
-4. If no hash exists at current id but future hash exists, allow tick advance to avoid deadlock on missing intermediate ids.
+1. Flush buffered events by increasing unified id.
+2. Apply diff bundle event at its buffered id.
+3. Evaluate hash gate for next unified id.
+4. Advance tick when gate permits; allow deadlock-avoidance behavior when only future hashes exist.
 
 ## Unified Ordering Contract
-
 - `TickUnifiedId = ((ulong)ServerTick << 32) | TickSequenceId`.
-- All train/rail events must carry `ServerTick` and `TickSequenceId`.
-- The client must enqueue network events; do not apply immediately in handlers.
-- `TickSequenceId` must be allocated only by `TrainUpdateService.NextTickSequenceId()`.
+- Train/rail events must carry `ServerTick` and sequence ID.
+- Client network handlers enqueue events; no immediate side-effect apply in handlers.
+- Sequence IDs are allocated only via `TrainUpdateService.NextTickSequenceId()`.
 
 ## TickDiffBundle Contract
-
 - Event tag: `va:event:trainUnitTickDiffBundle`.
-- Bundle payload includes:
-  - `ServerTick`
-  - `HashTickSequenceId`
-  - `DiffTickSequenceId`
-  - `UnitsHash`
-  - `RailGraphHash`
-  - `Diffs[]`
-- `Diffs[]` item includes:
-  - `TrainInstanceId`
-  - `MasconLevelDiff`
-  - `IsNowDockingSpeedZero`
-  - `ApproachingNodeIdDiff`
-- The server emits bundle events each tick as simulation trigger; `Diffs[]` may be empty.
-- Hash may be dummy (`uint.MaxValue`) on non-broadcast hash ticks; client treats dummy as pass.
-- `Diffs[]` is not a TrainCar composition transport. TrainUnit/TrainCar structure sync remains snapshot-based.
+- Bundle includes hash + diff payload with independent sequence IDs.
+- `Diffs[]` may be empty and still acts as simulation trigger.
+- Dummy hash (`uint.MaxValue`) must be treated as pass sentinel under current gate behavior.
 
 ## Snapshot Event Coexistence Contract
-
-- Event tag: `va:event:trainUnitSnapshot`.
-- Payload is one TrainUnit upsert or deletion tombstone.
-- Use this for place/attach/remove/split/merge/delete effects.
-- Do not add new train-car-only incremental events unless architecture policy is explicitly changed.
+- Structural TrainUnit/TrainCar sync remains per-unit snapshot event (`va:event:trainUnitSnapshot`).
+- Tick diff bundle does not replace snapshot-based structural synchronization.
+- Hash mismatch recovery still uses snapshot retrieval path.
 
 ## Workflow
-
-1. Verify server order: `hash -> tick increment -> simulation -> diff bundle`.
-2. Ensure every added train/rail event payload has `ServerTick` and `TickSequenceId`.
-3. Ensure client handlers only enqueue to `TrainUnitFutureMessageBuffer`.
-4. Verify `TickSequenceId` continuity from server emission points.
-5. Add tests for:
-   - unified id monotonic progression
-   - hash gate progression
-   - empty-diff bundle still triggers simulation
-   - per-unit snapshot events coexisting correctly with tick-diff bundle ordering
+1. Verify server order: hash -> tick increment/reset -> sim -> diff trigger.
+2. Verify all affected payloads keep ordering fields.
+3. Verify client handlers enqueue, then buffered apply preserves unified ordering.
+4. Verify gate behavior for dummy hash, stale hash discard, and future-hash progression.
+5. Add/update tests for ordering, gate, empty-diff trigger, and snapshot coexistence.
