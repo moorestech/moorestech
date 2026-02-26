@@ -78,7 +78,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
         private readonly TrainUnitClientCache _trainUnitCache;
         private readonly RailGraphClientCache _railGraphCache;
         private readonly RailPathTracer _pathTracer;
-        private int _routePairCount;
         private int _selectionStep;
         
         public TrainCarPlacementDetector(Camera mainCamera, RailGraphClientCache cache, TrainUnitClientCache trainUnitCache)
@@ -93,10 +92,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
         {
             // 候補総数に応じて次の状態へ進める
             // Advance to the next state within current candidate count
-            var totalStateCount = _routePairCount * 2;
-            if (totalStateCount == 0)
-                return;
-            _selectionStep = (_selectionStep + 1) % totalStateCount;
+            _selectionStep++;
         }
 
         public void ResetSelection()
@@ -104,7 +100,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             // 候補と選択状態を初期化する
             // Reset candidates and selection state
             _selectionStep = 0;
-            _routePairCount = 0;
         }
 
         public bool TryDetect(ItemId holdingItemId, out TrainCarPlacementHit hit)
@@ -124,6 +119,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 return false;
             }
             
+            // レイキャストからrailpositionを解決する
+            // Resolve the rail position from the raycast hit
             if (!TrainCarCenterRailPositionResolver.TryResolveCenterRailPosition(hitPosition, railCarrier, _railGraphCache, out var hitRailPosition))
             {
                 return false;
@@ -240,7 +237,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                             var attachSnapFilteredRoutes = TrainCarPlacementRouteService.FilterRoutesWithoutOverlap(attachSnapRoutes, allTrainUnitOverlapIndex);
                             if (attachSnapFilteredRoutes.Count > 0)
                             {
-                                if (TrainCarPlacementSelectionResolver.TryBuildSelectedAttachSnapRoute(
+                                if (TrainCarPlacementSelectionResolver.TrySelectSingleRoute(
                                         attachSnapFilteredRoutes,
                                         _selectionStep,
                                         attachSnapFacingForward,
@@ -261,7 +258,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
                     // 要件2: 駅nodeスナップ候補を作り、重複除外後のT'から選択する
                     // Requirement 2: build station-snap candidates and pick from overlap-filtered T'
-                    _routePairCount = 0;
                     if (TrainCarPlacementStationSnapResolver.TryResolveStationSnapRoutes(
                             centerRailPosition,
                             trainLength,
@@ -270,13 +266,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                             out var stationSnapRoutes,
                             out var stationSnapFromCenterForward))
                     {
-                        var stationSnapRouteCount = stationSnapRoutes.Count;
-                        if (stationSnapRouteCount > 0)
+                        if (stationSnapRoutes.Count > 0)
                         {
-                            _routePairCount = stationSnapRouteCount;
-                            if (TrainCarPlacementSelectionResolver.TryBuildCreateModeSelectedSingleRoute(
+                            if (TrainCarPlacementSelectionResolver.TrySelectSingleRoute(
                                     stationSnapRoutes,
-                                    stationSnapRouteCount,
                                     _selectionStep,
                                     stationSnapFromCenterForward,
                                     out railPosition))
@@ -288,7 +281,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
                     // 要件3: レール端スナップ候補を作り、重複除外後のU'から選択する
                     // Requirement 3: build rail-end snap candidates and pick from overlap-filtered U'
-                    _routePairCount = 0;
                     if (TrainCarPlacementRailEndSnapResolver.TryResolveRailEndSnapRoutes(
                             centerRailPosition,
                             trainLength,
@@ -297,13 +289,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                             out var railEndSnapRoutes,
                             out var railEndSnapFromCenterForward))
                     {
-                        var railEndSnapRouteCount = railEndSnapRoutes.Count;
-                        if (railEndSnapRouteCount > 0)
+                        if (railEndSnapRoutes.Count > 0)
                         {
-                            _routePairCount = railEndSnapRouteCount;
-                            if (TrainCarPlacementSelectionResolver.TryBuildCreateModeSelectedSingleRoute(
+                            if (TrainCarPlacementSelectionResolver.TrySelectSingleRoute(
                                     railEndSnapRoutes,
-                                    railEndSnapRouteCount,
                                     _selectionStep,
                                     railEndSnapFromCenterForward,
                                     out railPosition))
@@ -315,12 +304,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
                     // 要件4候補（前輪側/後輪側）を毎フレーム再構築する
                     // Rebuild requirement-4 candidates (front/rear) every frame
-                    _routePairCount = 0;
                     if (!TrainCarPlacementRouteService.TryBuildCarPlacementSelectionCandidates(centerRailPosition, trainLength, _pathTracer, out var frontRoutes, out var rearRoutesFromCenter, out var routePairCount))
                     {
                         return false;
                     }
-                    _routePairCount = routePairCount;
 
                     // 要件4: Vから選択したvと既存TrainUnit全体を重複検査する
                     // Requirement 4: test overlap between selected v from V and all existing train units
