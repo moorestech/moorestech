@@ -48,7 +48,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             {
                 return false;
             }
-            if (!TrainCarPlacementRouteService.TryBuildSnapRoutesFromPoint(snapStartPoint, trainLength, pathTracer, out var tracedRoutes))
+            
+            if (!pathTracer.TryTraceForwardRoutesByDfs(snapStartPoint, trainLength, out var tracedRoutes))
             {
                 return false;
             }
