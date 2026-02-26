@@ -1,6 +1,4 @@
-using System;
 using Game.Train.RailCalc;
-using Game.Train.RailGraph;
 
 namespace Game.Train.RailPositions
 {
@@ -13,124 +11,62 @@ namespace Game.Train.RailPositions
         public static int FindShortestDistance(RailPosition start, RailPosition end)
         {
             if (start == null || end == null) return -1;
-
             // 日本語: 列車長の影響を除外し、先頭点同士の距離計算に正規化する。
             // English: Normalize both inputs to head points to ignore train length effects.
             var startHead = start.GetHeadRailPosition();
             var endHead = end.GetHeadRailPosition();
-            if (startHead.IsSamePositionAllowNodeOverlap(endHead))
+            
+            // 日本語: 経路探索用にnodeを割り出す
+            // English: Derive nodes for pathfinding.
+            var startNode = startHead.GetNodeApproaching();
+            var endNode = endHead.GetDistanceToNextNode() != 0 ? endHead.GetNodeJustPassed() : endHead.GetNodeApproaching();
+            if (startNode == null || endNode == null) return -1;
+            
+            // 例外として、startとendがセグメント上かつ点に接してない場合。startHeadが点上(かつendHeadが任意位置)なら上記処理で解決できる。startNodeが点上でなくてもendHeadが点上なら上記処理で解決できる。なのでやるべきはstartHeadが点上でないかつendHeadも点上でない場合の、同一セグメント上で前方向にendHeadへ到達できるかの判定だけ。
+            // Exception case: when start and end are on the same segment and not touching nodes. This is handled by above logic as long as startNode is on a point (and endNode can be anywhere).
+            if (startHead.GetDistanceToNextNode() > 0 && endHead.GetDistanceToNextNode() > 0)
             {
-                return 0;
-            }
-
-            if (!TryCreatePoint(startHead, out var startPoint)) return -1;
-            if (!TryCreatePoint(endHead, out var endPoint)) return -1;
-
-            var minDistance = int.MaxValue;
-
-            // 日本語: 始点はapproaching側へ前進し、終点はjustPassed側から進入して到達する経路を評価する。
-            // English: Evaluate routed movement from start approaching side to end entry side.
-            var endEntryNode = endPoint.HasSegment ? endPoint.JustPassedNode : endPoint.ApproachingNode;
-            var endTailDistance = endPoint.HasSegment ? endPoint.DistanceFromJustPassed : 0;
-            if (TryCalculateNodePathDistance(startPoint.ApproachingNode, endEntryNode, out var nodePathDistance))
-            {
-                var routedDistanceLong = (long)startPoint.DistanceToApproaching + nodePathDistance + endTailDistance;
-                if (routedDistanceLong <= int.MaxValue)
+                var startNextNode = startHead.GetNodeApproaching();
+                var startPrevNode = startHead.GetNodeJustPassed();
+                
+                var endNextNode   = endHead.GetNodeApproaching();
+                var endPrevNode   = endHead.GetNodeJustPassed();
+                
+                if (startNextNode == null || startPrevNode == null || endNextNode == null || endPrevNode == null) return -1;
+                
+                if (startNextNode == endNextNode && startPrevNode == endPrevNode)
                 {
-                    minDistance = (int)Math.Min(minDistance, routedDistanceLong);
+                    var startDistToNext = startHead.GetDistanceToNextNode();
+                    var endDistToNext   = endHead.GetDistanceToNextNode();
+                    
+                    var delta = startDistToNext - endDistToNext;
+                    if (delta >= 0)
+                    {
+                        return delta;
+                    }
+                    // endがstartより手前方向にあるので普通に経路探索
+                    // English: end is before start, so do normal pathfinding.
                 }
             }
-
-            // 日本語: 同一セグメント上で前方向に終点へ到達できる場合は、ノードを経由しない直進距離を候補に含める。
-            // English: Add direct same-segment forward distance when reachable without touching nodes.
-            if (TryCalculateDirectSameSegmentDistance(startPoint, endPoint, out var directDistance))
+            
+            int distance = 0;
+            // 日本語: 例外ケース：startとendが同一node上にある場合は経路探索しない
+            // English: Exception case: when start and end are on the same node, do not pathfind.
+            if (startNode.NodeGuid != endNode.NodeGuid)
             {
-                minDistance = Math.Min(minDistance, directDistance);
+                var path = startNode.GraphProvider.FindShortestPath(startNode, endNode);
+                if (path == null || path.Count == 0) return -1;
+                distance = RailNodeCalculate.CalculateTotalDistanceF(path);                
             }
-
-            return minDistance == int.MaxValue ? -1 : minDistance;
-        }
-
-        private static bool TryCreatePoint(RailPosition position, out RailPoint point)
-        {
-            point = default;
-            if (position == null) return false;
-
-            var approachingNode = position.GetNodeApproaching();
-            if (approachingNode == null) return false;
-
-            var distanceToApproaching = position.GetDistanceToNextNode();
-            if (distanceToApproaching < 0) return false;
-
-            var justPassedNode = position.GetNodeJustPassed();
-            if (justPassedNode == null)
+            
+            distance += startHead.GetDistanceToNextNode();
+            if (endHead.GetDistanceToNextNode() != 0)
             {
-                if (distanceToApproaching != 0) return false;
-                point = new RailPoint(approachingNode, null, 0, 0, false);
-                return true;
+                // endHead.GetNodeJustPassed()からendHead.GetNodeApproaching()まではかってから引く
+                // measure from endHead.GetNodeJustPassed() to endHead.GetNodeApproaching() and then subtract endHead.GetDistanceToNextNode().
+                distance += endHead.GetNodeJustPassed().GetDistanceToNode(endHead.GetNodeApproaching()) - endHead.GetDistanceToNextNode();
             }
-
-            var segmentLength = justPassedNode.GetDistanceToNode(approachingNode);
-            if (segmentLength < 0) return false;
-            if (distanceToApproaching > segmentLength) return false;
-
-            var distanceFromJustPassed = segmentLength - distanceToApproaching;
-            point = new RailPoint(approachingNode, justPassedNode, distanceToApproaching, distanceFromJustPassed, true);
-            return true;
-        }
-
-        private static bool TryCalculateNodePathDistance(IRailNode startNode, IRailNode endNode, out int distance)
-        {
-            distance = -1;
-            if (startNode == null || endNode == null) return false;
-
-            var path = startNode.GraphProvider.FindShortestPath(startNode, endNode);
-            if (path == null || path.Count == 0) return false;
-            if (path[0] != startNode) return false;
-            if (path[path.Count - 1] != endNode) return false;
-
-            for (var i = 0; i < path.Count; i++)
-            {
-                if (path[i] == null) return false;
-            }
-
-            distance = RailNodeCalculate.CalculateTotalDistanceF(path);
-            return true;
-        }
-
-        private static bool TryCalculateDirectSameSegmentDistance(RailPoint startPoint, RailPoint endPoint, out int distance)
-        {
-            distance = -1;
-            if (!startPoint.HasSegment || !endPoint.HasSegment) return false;
-            if (startPoint.ApproachingNode != endPoint.ApproachingNode) return false;
-            if (startPoint.JustPassedNode != endPoint.JustPassedNode) return false;
-            if (startPoint.DistanceToApproaching < endPoint.DistanceToApproaching) return false;
-
-            distance = startPoint.DistanceToApproaching - endPoint.DistanceToApproaching;
-            return true;
-        }
-
-        private readonly struct RailPoint
-        {
-            public readonly IRailNode ApproachingNode;
-            public readonly IRailNode JustPassedNode;
-            public readonly int DistanceToApproaching;
-            public readonly int DistanceFromJustPassed;
-            public readonly bool HasSegment;
-
-            public RailPoint(
-                IRailNode approachingNode,
-                IRailNode justPassedNode,
-                int distanceToApproaching,
-                int distanceFromJustPassed,
-                bool hasSegment)
-            {
-                ApproachingNode = approachingNode;
-                JustPassedNode = justPassedNode;
-                DistanceToApproaching = distanceToApproaching;
-                DistanceFromJustPassed = distanceFromJustPassed;
-                HasSegment = hasSegment;
-            }
+            return distance;
         }
     }
 }

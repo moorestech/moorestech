@@ -10,16 +10,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
         // English: builds overlap index from margin-probe routes N'+M'.
         internal static RailPositionOverlapDetector.OverlapIndex CreateAttachProbeOverlapIndex(
             RailPosition centerRailPosition,
-            int trainLength,
-            int additionalMarginLength,
+            int length,
             RailPathTracer pathTracer)
         {
             var attachProbeRoutes = new List<RailPosition>();
-            var frontLengthWithMargin = (trainLength + 1) / 2 + additionalMarginLength;
-            var rearLengthWithMargin = trainLength / 2 + additionalMarginLength;
+            var frontLengthWithMargin = (length + 1) / 2;
+            var rearLengthWithMargin = length / 2;
             var frontProbeRoutes = new List<RailPosition>();
             var rearProbeRoutes = new List<RailPosition>();
-            var hasMarginRoute = TryBuildFrontRearRoutes(
+            var hasMarginRoute = TryBuildFrontRearReverseRoutes(
                 centerRailPosition,
                 frontLengthWithMargin,
                 rearLengthWithMargin,
@@ -43,24 +42,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             RailPathTracer pathTracer,
             out List<RailPosition> routes)
         {
-            routes = new List<RailPosition>();
             if (snapStartPoint == null || trainLength <= 0 || pathTracer == null)
             {
+                routes = new List<RailPosition>();
                 return false;
             }
 
             var tracePoint = snapStartPoint.DeepCopy();
             tracePoint.Reverse();
             var traceStartPoint = tracePoint.GetHeadRailPosition();
-            if (!pathTracer.TryTraceForwardRoutesByDfs(traceStartPoint, trainLength, out var tracedRoutes) ||
-                tracedRoutes == null ||
-                tracedRoutes.Count <= 0)
-            {
-                return false;
-            }
-
-            routes.AddRange(tracedRoutes);
-            return routes.Count > 0;
+            return TryTraceForwardRoutes(traceStartPoint, trainLength, pathTracer, out routes);
         }
 
         // 日本語: 駅/レール端スナップ用に、開始点から trainLength 分の候補を前方DFSで列挙する。
@@ -71,22 +62,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             RailPathTracer pathTracer,
             out List<RailPosition> routes)
         {
-            routes = new List<RailPosition>();
             if (snapStartPoint == null || trainLength <= 0 || pathTracer == null)
             {
+                routes = new List<RailPosition>();
                 return false;
             }
 
             var traceStartPoint = snapStartPoint.GetHeadRailPosition();
-            if (!pathTracer.TryTraceForwardRoutesByDfs(traceStartPoint, trainLength, out var tracedRoutes) ||
-                tracedRoutes == null ||
-                tracedRoutes.Count <= 0)
-            {
-                return false;
-            }
-
-            routes.AddRange(tracedRoutes);
-            return routes.Count > 0;
+            return TryTraceForwardRoutes(traceStartPoint, trainLength, pathTracer, out routes);
         }
 
         // 日本語: レール端スナップ用に、centerから前後方向の未到達経路のみを収集する。
@@ -140,7 +123,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
             var frontLength = (trainLength + 1) / 2;
             var rearLength = trainLength / 2;
-            if (!TryBuildFrontRearRoutes(centerRailPosition, frontLength, rearLength, pathTracer, frontRoutes, rearRoutesFromCenter))
+            if (!TryBuildFrontRearReverseRoutes(centerRailPosition, frontLength, rearLength, pathTracer, frontRoutes, rearRoutesFromCenter))
             {
                 return false;
             }
@@ -148,21 +131,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             var pairCount = frontRoutes.Count * rearRoutesFromCenter.Count;
             routePairCount = pairCount > int.MaxValue ? int.MaxValue : pairCount;
             return routePairCount > 0;
-        }
-
-        // 日本語: 中心点から前後距離指定で候補経路を再構築する共通API。
-        // English: Shared API that rebuilds front/rear candidate routes from center with explicit distances.
-        internal static bool TryBuildFrontRearRoutesFromCenter(
-            RailPosition centerRailPosition,
-            int frontLength,
-            int rearLength,
-            RailPathTracer pathTracer,
-            out List<RailPosition> frontRoutes,
-            out List<RailPosition> rearRoutesFromCenter)
-        {
-            frontRoutes = new List<RailPosition>();
-            rearRoutesFromCenter = new List<RailPosition>();
-            return TryBuildFrontRearRoutes(centerRailPosition, frontLength, rearLength, pathTracer, frontRoutes, rearRoutesFromCenter);
         }
 
         // 日本語: 通常配置用に、selectionStepに応じた (front,rear) ペアを選択して1本に結合する。
@@ -230,7 +198,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
         #region Internal
 
-        private static bool TryBuildFrontRearRoutes(
+        // 日本語: 中心点から前後距離指定で候補経路を再構築する共通API。rearはreverseしてる
+        // English: Shared API that rebuilds front/rear candidate routes from center with explicit distances.
+        internal static bool TryBuildFrontRearReverseRoutes(
             RailPosition centerRailPosition,
             int frontLength,
             int rearLength,
@@ -275,6 +245,68 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             }
 
             return rearRoutesFromCenter.Count > 0;
+        }
+        
+        // 日本語: 中心点から前後距離指定で候補経路を再構築する共通API。
+        // English: Shared API that rebuilds front/rear candidate routes from center with explicit distances.
+        internal static bool TryBuildFrontRearRoutes(
+            RailPosition centerRailPosition,
+            int frontLength,
+            int rearLength,
+            RailPathTracer pathTracer,
+            List<RailPosition> frontRoutes,
+            List<RailPosition> rearRoutes)
+        {
+            frontRoutes.Clear();
+            rearRoutes.Clear();
+            if (centerRailPosition == null || pathTracer == null)
+            {
+                return false;
+            }
+            
+            var centerPoint = centerRailPosition.DeepCopy();
+            if (!pathTracer.TryTraceForwardRoutesByDfs(centerPoint, frontLength, out var tracedFrontRoutes) ||
+                tracedFrontRoutes == null ||
+                tracedFrontRoutes.Count <= 0)
+            {
+                return false;
+            }
+            frontRoutes.AddRange(tracedFrontRoutes);
+            
+            var reversedCenterPoint = centerPoint.DeepCopy();
+            reversedCenterPoint.Reverse();
+            if (!pathTracer.TryTraceForwardRoutesByDfs(reversedCenterPoint, rearLength, out var tracedRearRoutes) ||
+                tracedRearRoutes == null ||
+                tracedRearRoutes.Count <= 0)
+            {
+                return false;
+            }
+            rearRoutes.AddRange(tracedRearRoutes);
+            return rearRoutes.Count > 0;
+        }
+
+        // 日本語: 指定開始点から前方DFSを実行し、候補経路生成を共通化する。
+        // English: Run forward DFS from a start point and share route-candidate generation.
+        private static bool TryTraceForwardRoutes(
+            RailPosition traceStartPoint,
+            int trainLength,
+            RailPathTracer pathTracer,
+            out List<RailPosition> routes)
+        {
+            routes = new List<RailPosition>();
+            if (traceStartPoint == null || trainLength <= 0 || pathTracer == null)
+            {
+                return false;
+            }
+            if (!pathTracer.TryTraceForwardRoutesByDfs(traceStartPoint, trainLength, out var tracedRoutes) ||
+                tracedRoutes == null ||
+                tracedRoutes.Count <= 0)
+            {
+                return false;
+            }
+
+            routes.AddRange(tracedRoutes);
+            return routes.Count > 0;
         }
 
         private static bool TryCombineRoutes(RailPosition frontRoute, RailPosition rearRouteFromCenter, out RailPosition combinedRoute)
