@@ -304,18 +304,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
                     // 要件4候補（前輪側/後輪側）を毎フレーム再構築する
                     // Rebuild requirement-4 candidates (front/rear) every frame
-                    if (!TrainCarPlacementRouteService.TryBuildCarPlacementSelectionCandidates(centerRailPosition, trainLength, _pathTracer, out var frontRoutes, out var rearRoutesFromCenter, out var routePairCount))
+                    if (!TrainCarPlacementRouteService.TryBuildCarPlacementSelectionCandidates(centerRailPosition, trainLength, _pathTracer, out var frontRoutes, out var rearRoutes))
                     {
                         return false;
                     }
 
                     // 要件4: Vから選択したvと既存TrainUnit全体を重複検査する
                     // Requirement 4: test overlap between selected v from V and all existing train units
-                    if (!TrainCarPlacementRouteService.TryBuildSelectedCarPlacement(frontRoutes, rearRoutesFromCenter, routePairCount, _selectionStep, out railPosition))
-                    {
-                        return false;
-                    }
-                    if (railPosition == null)
+                    if (!TrainCarPlacementRouteService.TryBuildSelectedCarPlacement(frontRoutes, rearRoutes, _selectionStep, out railPosition))
                     {
                         return false;
                     }
