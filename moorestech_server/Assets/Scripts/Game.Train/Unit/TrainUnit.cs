@@ -558,33 +558,31 @@ namespace Game.Train.Unit
             }
             #endregion
         }
-
+        
         /// <summary>
         /// 指定 GUID or indexの列車両を安全に削除する
         /// Removes the train car that matches the given GUID.
         /// </summary>
-        public List<TrainInstanceId> RemoveCar(int targetIndex)
+        public (TrainUnit, TrainInstanceId) RemoveCar(int targetIndex)
         {
-            // [0]は新規、[1]がdel
-            var updatedTrainInstanceIds = new List<TrainInstanceId>();
             if (targetIndex < 0 || targetIndex >= _cars.Count)
             {
                 UnityEngine.Debug.LogWarning($"RemoveCar: carIndex {targetIndex} is not found.");
-                return null;
+                return (null, TrainInstanceId.Empty);
             }
             var carsBehind = _cars.Count - targetIndex - 1;
             var (newRearUnit, deletedTrainInstanceId) = SplitTrain(carsBehind);
             var (removeUnit, deletedTrainInstanceIdSecond) = SplitTrain(1);
             removeUnit?.OnDestroy();
-            updatedTrainInstanceIds.Add(newRearUnit != null ? newRearUnit.TrainInstanceId : TrainInstanceId.Empty);
-            updatedTrainInstanceIds.Add(deletedTrainInstanceId == TrainInstanceId.Empty ? deletedTrainInstanceIdSecond : deletedTrainInstanceId);
-            return updatedTrainInstanceIds;
+            var delTrainUnitInstanceId = deletedTrainInstanceId == TrainInstanceId.Empty ? deletedTrainInstanceIdSecond : deletedTrainInstanceId;
+            return (newRearUnit, delTrainUnitInstanceId);
         }
-        public List<TrainInstanceId> RemoveCar(TrainCarInstanceId trainCarInstanceId)
+        public (TrainUnit, TrainInstanceId) RemoveCar(TrainCarInstanceId trainCarInstanceId)
         {
             var targetIndex = _cars.FindIndex(car => car.TrainCarInstanceId == trainCarInstanceId);
             return RemoveCar(targetIndex);
         }
+
 
         /// <summary>
         /// 列車編成の先頭or最後尾に1両連結する

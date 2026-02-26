@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Game.Train.Unit;
 using UniRx;
 using UnityEngine;
@@ -13,16 +12,6 @@ namespace Game.Train.Event
         private readonly Subject<TrainUnitSnapshotNotifyEventData> _subject = new();
         public IObservable<TrainUnitSnapshotNotifyEventData> OnTrainUnitSnapshotNotified => _subject;
         
-        
-        public void NotifySnapshot(TrainInstanceId trainInstanceId)
-        {
-            if (trainInstanceId == TrainInstanceId.Empty)
-            {
-                return;
-            }
-            //////このぶぶん
-            NotifySnapshot(TrainUnit trainUnit);
-        }
         public void NotifySnapshot(TrainUnit trainUnit)
         {
             if (trainUnit == null || trainUnit.TrainInstanceId == TrainInstanceId.Empty)
