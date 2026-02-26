@@ -19,7 +19,6 @@ namespace Game.Train.Event
                 return;
             }
             trainUnit.ResetDiff();
-            Debug.Log("aaaa");
             // 単機スナップショットの更新を通知する
             // Notify that a single train unit snapshot should be updated.
             _subject.OnNext(new TrainUnitSnapshotNotifyEventData(trainUnit.TrainInstanceId, false, trainUnit));
@@ -31,7 +30,6 @@ namespace Game.Train.Event
             {
                 return;
             }
-            Debug.Log("bbb");
 
             // 編成削除通知を発行する
             // Notify that a train unit has been deleted.
