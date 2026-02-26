@@ -27,48 +27,44 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             var centerForwardPoint = centerRailPosition.GetHeadRailPosition();
             var centerBackwardPoint = centerForwardPoint.DeepCopy();
             centerBackwardPoint.Reverse();
-
-            var hasFrontCandidate = EvaluateRouteList(
+            
+            RailPosition nearestPoint = null;
+            int nearestDistance = frontMaxDistance;
+            var hasFrontCandidateFront = EvaluateRouteList(
                 frontRoutes,
-                frontMaxDistance,
                 centerForwardPoint,
-                out var frontNearestPoint,
-                out var frontNearestDistance);
-            var hasRearCandidate = EvaluateRouteList(
+                ref nearestPoint,
+                ref nearestDistance);
+            if (!hasFrontCandidateFront)
+            {
+                nearestDistance = rearMaxDistance;
+            }
+            var hasFrontCandidateBack = EvaluateRouteList(
                 rearRoutes,
-                rearMaxDistance,
                 centerBackwardPoint,
-                out var rearNearestPoint,
-                out var rearNearestDistance);
-            if (!hasFrontCandidate && !hasRearCandidate)
+                ref nearestPoint,
+                ref nearestDistance);
+            if (hasFrontCandidateBack)
             {
-                return false;
+                snapFromCenterForward = false;
             }
-            if (hasFrontCandidate && (!hasRearCandidate || frontNearestDistance <= rearNearestDistance))
-            {
-                snapStartPoint = frontNearestPoint;
-                snapFromCenterForward = true;
-                return true;
-            }
-            snapStartPoint = rearNearestPoint;
-            snapFromCenterForward = false;
-            return true;
+            
+            snapStartPoint = nearestPoint;
+            return hasFrontCandidateFront || hasFrontCandidateBack;
 
             #region Internal
 
             bool EvaluateRouteList(
                 IReadOnlyList<RailPosition> routes,
-                int maxDistance,
                 RailPosition centerPoint,
-                out RailPosition nearestPoint,
-                out int nearestDistance)
+                ref RailPosition nearestPoint,
+                ref int nearestDistance)
             {
-                nearestPoint = null;
-                nearestDistance = int.MaxValue;
-                if (routes == null || centerPoint == null || maxDistance < 0)
+                if (routes == null || centerPoint == null)
                 {
                     return false;
                 }
+                bool hasCandidate = false;
 
                 for (var routeIndex = 0; routeIndex < routes.Count; routeIndex++)
                 {
@@ -90,31 +86,20 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                         {
                             continue;
                         }
-                        if (!TryCreateStationSnapPointAtRouteNode(route, nodeIndex, out var stationPoint))
-                        {
-                            continue;
-                        }
+                        var stationPoint = new RailPosition(new List<IRailNode> { node }, 0, 0);
                         var distanceToCenter = RailPositionRouteDistanceFinder.FindShortestDistance(centerPoint, stationPoint);
-                        if (distanceToCenter < 0)
-                        {
-                            continue;
-                        }
                         // 中心点からの距離が探索半径外なら駅スナップ候補にしない
                         // Exclude nodes outside station-snap search radius from center
-                        if (distanceToCenter > maxDistance)
-                        {
-                            continue;
-                        }
-                        if (distanceToCenter >= nearestDistance)
+                        if (distanceToCenter < 0 || distanceToCenter >= nearestDistance)
                         {
                             continue;
                         }
                         nearestDistance = distanceToCenter;
                         nearestPoint = stationPoint;
+                        hasCandidate = true;
                     }
                 }
-
-                return nearestPoint != null;
+                return hasCandidate;
             }
 
             #endregion
@@ -195,60 +180,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
         }
 
         #region Internal
-
-        private static bool TryCreateStationSnapPointAtRouteNode(RailPosition route, int nodeIndex, out RailPosition point)
-        {
-            point = null;
-            if (route == null)
-            {
-                return false;
-            }
-
-            var nodes = route.GetRailNodes();
-            if (nodes == null || nodeIndex < 0 || nodeIndex >= nodes.Count)
-            {
-                return false;
-            }
-            if (nodes[nodeIndex] == null)
-            {
-                return false;
-            }
-            if (nodes.Count == 1)
-            {
-                point = new RailPosition(new List<IRailNode> { nodes[0] }, 0, 0);
-                return true;
-            }
-
-            if (nodeIndex < nodes.Count - 1)
-            {
-                if (nodes[nodeIndex + 1] == null)
-                {
-                    return false;
-                }
-                var nextToCurrentDistance = nodes[nodeIndex + 1].GetDistanceToNode(nodes[nodeIndex]);
-                if (nextToCurrentDistance < 0)
-                {
-                    return false;
-                }
-                point = new RailPosition(new List<IRailNode> { nodes[nodeIndex], nodes[nodeIndex + 1] }, 0, 0);
-                return true;
-            }
-
-            if (nodes[nodeIndex - 1] == null)
-            {
-                return false;
-            }
-            var currentToPrevDistance = nodes[nodeIndex].GetDistanceToNode(nodes[nodeIndex - 1]);
-            if (currentToPrevDistance < 0)
-            {
-                return false;
-            }
-
-            // 最後尾ノードを点として表すには、ひとつ前の辺長をdistanceToNextへ入れて正規化させる
-            // To represent the tail node as a point, use previous edge length as distanceToNext then normalize
-            point = new RailPosition(new List<IRailNode> { nodes[nodeIndex - 1], nodes[nodeIndex] }, 0, currentToPrevDistance);
-            return true;
-        }
 
         private static bool TryOrientPointTowardCenter(
             RailPosition point,
