@@ -49,6 +49,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 return false;
             }
             
+            snapStartPoint.Reverse();
             if (!pathTracer.TryTraceForwardRoutesByDfs(snapStartPoint, trainLength, out var tracedRoutes))
             {
                 return false;
