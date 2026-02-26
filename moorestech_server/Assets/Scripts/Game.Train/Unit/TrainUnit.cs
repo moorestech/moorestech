@@ -495,16 +495,17 @@ namespace Game.Train.Unit
         ///  新しいTrainUnitのtrainDiagramは空になる
         ///  新しいTrainUnitのドッキング状態はcarに情報があるためそのまま保存される
         /// </summary>
-
-        public TrainUnit SplitTrain(int numberOfCarsToDetach)
+        
+        public (TrainUnit, TrainInstanceId) SplitTrain(int numberOfCarsToDetach)
         {
+            var deletedTrainInstanceId = TrainInstanceId.Empty;
             // 例：10両 → 5両 + 5両など
             // 後ろから 5両を抜き取るケースを想定
             if (numberOfCarsToDetach <= 0 || numberOfCarsToDetach > _cars.Count)
             {
                 if (numberOfCarsToDetach != 0)
                     UnityEngine.Debug.LogWarning("SplitTrain: 指定両数が不正です。");
-                return null;
+                return (null, deletedTrainInstanceId);
             }
             TurnOffAutoRun();
             // 1) 切り離す車両リストを作成
@@ -525,9 +526,12 @@ namespace Game.Train.Unit
             var splittedUnit = new TrainUnit(splittedRailPosition, detachedCars, _trainUpdateService, _railPositionManager, _diagramManager);
             // 5) 自分が0になっていたら
             if (_cars.Count == 0)
+            {
+                deletedTrainInstanceId = this.TrainInstanceId;
                 this.OnDestroy();
+            }
             // 6) 新しいTrainUnitを返す
-            return splittedUnit;
+            return (splittedUnit, deletedTrainInstanceId);
 
             #region Internal
             /// <summary>
@@ -557,27 +561,29 @@ namespace Game.Train.Unit
 
         /// <summary>
         /// 指定 GUID or indexの列車両を安全に削除する
-        /// 削除後分割された新編成は返さない(必要があれば返すこともできる)
         /// Removes the train car that matches the given GUID.
-        /// The newly split configuration after deletion will not be returned (it can be returned if necessary).
         /// </summary>
-        /// 
-        public void RemoveCar(int targetIndex)
+        public List<TrainInstanceId> RemoveCar(int targetIndex)
         {
-            if ((targetIndex < 0) || (targetIndex >= _cars.Count))
+            // [0]は新規、[1]がdel
+            var updatedTrainInstanceIds = new List<TrainInstanceId>();
+            if (targetIndex < 0 || targetIndex >= _cars.Count)
             {
                 UnityEngine.Debug.LogWarning($"RemoveCar: carIndex {targetIndex} is not found.");
-                return;
+                return null;
             }
             var carsBehind = _cars.Count - targetIndex - 1;
-            SplitTrain(carsBehind);
-            var removeCar = SplitTrain(1);
-            removeCar?.OnDestroy();
+            var (newRearUnit, deletedTrainInstanceId) = SplitTrain(carsBehind);
+            var (removeUnit, deletedTrainInstanceIdSecond) = SplitTrain(1);
+            removeUnit?.OnDestroy();
+            updatedTrainInstanceIds.Add(newRearUnit != null ? newRearUnit.TrainInstanceId : TrainInstanceId.Empty);
+            updatedTrainInstanceIds.Add(deletedTrainInstanceId == TrainInstanceId.Empty ? deletedTrainInstanceIdSecond : deletedTrainInstanceId);
+            return updatedTrainInstanceIds;
         }
-        public void RemoveCar(TrainCarInstanceId trainCarInstanceId)
+        public List<TrainInstanceId> RemoveCar(TrainCarInstanceId trainCarInstanceId)
         {
             var targetIndex = _cars.FindIndex(car => car.TrainCarInstanceId == trainCarInstanceId);
-            RemoveCar(targetIndex);
+            return RemoveCar(targetIndex);
         }
 
         /// <summary>

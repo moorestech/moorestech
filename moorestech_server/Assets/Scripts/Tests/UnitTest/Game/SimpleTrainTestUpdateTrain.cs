@@ -669,7 +669,7 @@ namespace Tests.UnitTest.Game
 
             // --- 5. SplitTrain(...) で後ろから 2 両切り離す ---
             //   5両 → (前3両) + (後ろ2両) に分割
-            var splittedUnit = trainUnit.SplitTrain(2);
+            var (splittedUnit, _) = trainUnit.SplitTrain(2);
 
             // --- 6. 結果の検証 ---
             // 6-1) 戻り値（splittedUnit）は null ではない
