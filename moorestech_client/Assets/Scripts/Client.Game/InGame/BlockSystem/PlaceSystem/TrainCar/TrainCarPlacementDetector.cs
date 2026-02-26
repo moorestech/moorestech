@@ -234,7 +234,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     // Requirement 1: build S routes from nearest unit endpoint and pick from overlap-filtered S'
                     if (attachSnapStartPoint != null && attachTargetTrainInstanceId != TrainInstanceId.Empty)
                     {
-                        if (TrainCarPlacementRouteService.TryBuildAttachSnapCandidates(attachSnapStartPoint, trainLength, _pathTracer, out var attachSnapRoutes))
+                        attachSnapStartPoint.Reverse();
+                        if (_pathTracer.TryTraceForwardRoutesByDfs(attachSnapStartPoint, trainLength, out var attachSnapRoutes))
                         {
                             var attachSnapFilteredRoutes = TrainCarPlacementRouteService.FilterRoutesWithoutOverlap(attachSnapRoutes, allTrainUnitOverlapIndex);
                             if (attachSnapFilteredRoutes.Count > 0)

@@ -34,44 +34,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             return RailPositionOverlapDetector.CreateIndex(attachProbeRoutes);
         }
 
-        // 日本語: 既存編成接続スナップ用に、接続点から trainLength 分の候補を前方DFSで再構築する。
-        // English: Rebuild attach-snap candidates from the attach point by forward DFS with trainLength.
-        internal static bool TryBuildAttachSnapCandidates(
-            RailPosition snapStartPoint,
-            int trainLength,
-            RailPathTracer pathTracer,
-            out List<RailPosition> routes)
-        {
-            if (snapStartPoint == null || trainLength <= 0 || pathTracer == null)
-            {
-                routes = new List<RailPosition>();
-                return false;
-            }
-
-            var tracePoint = snapStartPoint.DeepCopy();
-            tracePoint.Reverse();
-            var traceStartPoint = tracePoint.GetHeadRailPosition();
-            return TryTraceForwardRoutes(traceStartPoint, trainLength, pathTracer, out routes);
-        }
-
-        // 日本語: 駅/レール端スナップ用に、開始点から trainLength 分の候補を前方DFSで列挙する。
-        // English: Enumerate station/rail-end snap routes from snap start by forward DFS with trainLength.
-        internal static bool TryBuildSnapRoutesFromPoint(
-            RailPosition snapStartPoint,
-            int trainLength,
-            RailPathTracer pathTracer,
-            out List<RailPosition> routes)
-        {
-            if (snapStartPoint == null || trainLength <= 0 || pathTracer == null)
-            {
-                routes = new List<RailPosition>();
-                return false;
-            }
-
-            var traceStartPoint = snapStartPoint.GetHeadRailPosition();
-            return TryTraceForwardRoutes(traceStartPoint, trainLength, pathTracer, out routes);
-        }
-
         // 日本語: レール端スナップ用に、centerから前後方向の未到達経路のみを収集する。
         // English: Collect unreached routes in both directions from center for rail-end snap.
         internal static void CollectRailEndSnapUnreachedRoutes(
@@ -283,30 +245,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             }
             rearRoutes.AddRange(tracedRearRoutes);
             return rearRoutes.Count > 0;
-        }
-
-        // 日本語: 指定開始点から前方DFSを実行し、候補経路生成を共通化する。
-        // English: Run forward DFS from a start point and share route-candidate generation.
-        private static bool TryTraceForwardRoutes(
-            RailPosition traceStartPoint,
-            int trainLength,
-            RailPathTracer pathTracer,
-            out List<RailPosition> routes)
-        {
-            routes = new List<RailPosition>();
-            if (traceStartPoint == null || trainLength <= 0 || pathTracer == null)
-            {
-                return false;
-            }
-            if (!pathTracer.TryTraceForwardRoutesByDfs(traceStartPoint, trainLength, out var tracedRoutes) ||
-                tracedRoutes == null ||
-                tracedRoutes.Count <= 0)
-            {
-                return false;
-            }
-
-            routes.AddRange(tracedRoutes);
-            return routes.Count > 0;
         }
 
         private static bool TryCombineRoutes(RailPosition frontRoute, RailPosition rearRouteFromCenter, out RailPosition combinedRoute)
