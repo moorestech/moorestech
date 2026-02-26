@@ -28,24 +28,48 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             var centerBackwardPoint = centerForwardPoint.DeepCopy();
             centerBackwardPoint.Reverse();
 
-            var nearestDistance = int.MaxValue;
-            var nearestPoint = default(RailPosition);
-            var nearestFromCenterForward = true;
-            EvaluateRouteList(frontRoutes, frontMaxDistance);
-            EvaluateRouteList(rearRoutes, rearMaxDistance);
-            if (nearestPoint == null)
+            var hasFrontCandidate = EvaluateRouteList(
+                frontRoutes,
+                frontMaxDistance,
+                centerForwardPoint,
+                out var frontNearestPoint,
+                out var frontNearestDistance);
+            var hasRearCandidate = EvaluateRouteList(
+                rearRoutes,
+                rearMaxDistance,
+                centerBackwardPoint,
+                out var rearNearestPoint,
+                out var rearNearestDistance);
+            if (!hasFrontCandidate && !hasRearCandidate)
             {
                 return false;
             }
-
-            snapStartPoint = nearestPoint;
-            snapFromCenterForward = nearestFromCenterForward;
+            if (hasFrontCandidate && (!hasRearCandidate || frontNearestDistance <= rearNearestDistance))
+            {
+                snapStartPoint = frontNearestPoint;
+                snapFromCenterForward = true;
+                return true;
+            }
+            snapStartPoint = rearNearestPoint;
+            snapFromCenterForward = false;
             return true;
 
             #region Internal
 
-            void EvaluateRouteList(IReadOnlyList<RailPosition> routes, int maxDistance)
+            bool EvaluateRouteList(
+                IReadOnlyList<RailPosition> routes,
+                int maxDistance,
+                RailPosition centerPoint,
+                out RailPosition nearestPoint,
+                out int nearestDistance)
             {
+                nearestPoint = null;
+                nearestDistance = int.MaxValue;
+                if (routes == null || centerPoint == null || maxDistance < 0)
+                {
+                    return false;
+                }
+
                 for (var routeIndex = 0; routeIndex < routes.Count; routeIndex++)
                 {
                     var route = routes[routeIndex];
@@ -70,13 +94,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                         {
                             continue;
                         }
-                        if (!TryOrientPointTowardCenter(
-                                stationPoint,
-                                centerForwardPoint,
-                                centerBackwardPoint,
-                                out var orientedPoint,
-                                out var distanceToCenter,
-                                out var isCenterForwardSide))
+                        var distanceToCenter = RailPositionRouteDistanceFinder.FindShortestDistance(centerPoint, stationPoint);
+                        if (distanceToCenter < 0)
                         {
                             continue;
                         }
@@ -91,10 +110,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                             continue;
                         }
                         nearestDistance = distanceToCenter;
-                        nearestPoint = orientedPoint;
-                        nearestFromCenterForward = isCenterForwardSide;
+                        nearestPoint = stationPoint;
                     }
                 }
+
+                return nearestPoint != null;
             }
 
             #endregion

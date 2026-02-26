@@ -9,13 +9,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
         // English: Select one route from attach-snap candidates by selectionStep.
         internal static bool TryBuildSelectedAttachSnapRoute(
             IReadOnlyList<RailPosition> routes,
-            int routeCount,
             int selectionStep,
             bool attachCarFacingForward,
             out RailPosition resolvedRailPosition)
         {
             resolvedRailPosition = null;
-            if (!TryResolveRouteIndex(routes, routeCount, selectionStep, out var routeIndex))
+            if (!TryResolveRouteIndex(routes, routes?.Count ?? 0, selectionStep, out var routeIndex))
             {
                 return false;
             }
@@ -82,7 +81,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             {
                 return false;
             }
-
             var totalStateCount = routeCount * 2;
             if (totalStateCount <= 0)
             {
