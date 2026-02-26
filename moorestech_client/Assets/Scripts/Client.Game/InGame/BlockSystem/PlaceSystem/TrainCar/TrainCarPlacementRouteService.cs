@@ -18,7 +18,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             var rearLengthWithMargin = length / 2;
             var frontProbeRoutes = new List<RailPosition>();
             var rearProbeRoutes = new List<RailPosition>();
-            var hasMarginRoute = TryBuildFrontRearReverseRoutes(
+            var hasMarginRoute = TryBuildFrontRearRoutes(
                 centerRailPosition,
                 frontLengthWithMargin,
                 rearLengthWithMargin,
@@ -76,41 +76,37 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             int trainLength,
             RailPathTracer pathTracer,
             out List<RailPosition> frontRoutes,
-            out List<RailPosition> rearRoutesFromCenter,
-            out int routePairCount)
+            out List<RailPosition> rearRoutes
+            )
         {
             frontRoutes = new List<RailPosition>();
-            rearRoutesFromCenter = new List<RailPosition>();
-            routePairCount = 0;
+            rearRoutes = new List<RailPosition>();
 
             var frontLength = (trainLength + 1) / 2;
             var rearLength = trainLength / 2;
-            if (!TryBuildFrontRearReverseRoutes(centerRailPosition, frontLength, rearLength, pathTracer, frontRoutes, rearRoutesFromCenter))
+            if (!TryBuildFrontRearRoutes(centerRailPosition, frontLength, rearLength, pathTracer, frontRoutes, rearRoutes))
             {
                 return false;
             }
 
-            var pairCount = frontRoutes.Count * rearRoutesFromCenter.Count;
-            routePairCount = pairCount > int.MaxValue ? int.MaxValue : pairCount;
-            return routePairCount > 0;
+            var pairCount = frontRoutes.Count * rearRoutes.Count;
+            return pairCount > 0;
         }
 
         // 日本語: 通常配置用に、selectionStepに応じた (front,rear) ペアを選択して1本に結合する。
         // English: Pick a (front,rear) pair for normal placement by selectionStep and combine into one route.
         internal static bool TryBuildSelectedCarPlacement(
             IReadOnlyList<RailPosition> frontRoutes,
-            IReadOnlyList<RailPosition> rearRoutesFromCenter,
-            int routePairCount,
+            IReadOnlyList<RailPosition> rearRoutes,
             int selectionStep,
             out RailPosition resolvedRailPosition)
         {
             resolvedRailPosition = null;
-            if (routePairCount <= 0 || frontRoutes.Count <= 0 || rearRoutesFromCenter.Count <= 0)
+            if (frontRoutes.Count <= 0 || rearRoutes.Count <= 0)
             {
                 return false;
             }
-
-            var totalStateCount = routePairCount * 2;
+            var totalStateCount = frontRoutes.Count * rearRoutes.Count * 2;
             if (totalStateCount <= 0)
             {
                 return false;
@@ -118,15 +114,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
             var normalizedStep = selectionStep % totalStateCount;
             var routePairIndex = normalizedStep / 2;
-            var rearCount = rearRoutesFromCenter.Count;
+            var rearCount = rearRoutes.Count;
             var frontIndex = routePairIndex / rearCount;
             var rearIndex = routePairIndex % rearCount;
-            if (frontIndex >= frontRoutes.Count || rearIndex >= rearRoutesFromCenter.Count)
+            if (frontIndex >= frontRoutes.Count || rearIndex >= rearRoutes.Count)
             {
                 return false;
             }
 
-            return TryCombineRoutes(frontRoutes[frontIndex], rearRoutesFromCenter[rearIndex], out resolvedRailPosition);
+            return TryCombineRoutes(frontRoutes[frontIndex], rearRoutes[rearIndex], out resolvedRailPosition);
         }
 
         // 日本語: 全配置モード共通で、候補経路から既存TrainUnit重複を除外する。
@@ -159,55 +155,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
         }
 
         #region Internal
-
-        // 日本語: 中心点から前後距離指定で候補経路を再構築する共通API。rearはreverseしてる
-        // English: Shared API that rebuilds front/rear candidate routes from center with explicit distances.
-        internal static bool TryBuildFrontRearReverseRoutes(
-            RailPosition centerRailPosition,
-            int frontLength,
-            int rearLength,
-            RailPathTracer pathTracer,
-            List<RailPosition> frontRoutes,
-            List<RailPosition> rearRoutesFromCenter)
-        {
-            frontRoutes.Clear();
-            rearRoutesFromCenter.Clear();
-            if (centerRailPosition == null || pathTracer == null)
-            {
-                return false;
-            }
-
-            var centerPoint = centerRailPosition.DeepCopy();
-            if (!pathTracer.TryTraceForwardRoutesByDfs(centerPoint, frontLength, out var tracedFrontRoutes) ||
-                tracedFrontRoutes == null ||
-                tracedFrontRoutes.Count <= 0)
-            {
-                return false;
-            }
-            frontRoutes.AddRange(tracedFrontRoutes);
-
-            var reversedCenterPoint = centerPoint.DeepCopy();
-            reversedCenterPoint.Reverse();
-            if (!pathTracer.TryTraceForwardRoutesByDfs(reversedCenterPoint, rearLength, out var tracedRearRoutesReversed) ||
-                tracedRearRoutesReversed == null ||
-                tracedRearRoutesReversed.Count <= 0)
-            {
-                return false;
-            }
-
-            for (var i = 0; i < tracedRearRoutesReversed.Count; i++)
-            {
-                var route = tracedRearRoutesReversed[i]?.DeepCopy();
-                if (route == null)
-                {
-                    continue;
-                }
-                route.Reverse();
-                rearRoutesFromCenter.Add(route);
-            }
-
-            return rearRoutesFromCenter.Count > 0;
-        }
         
         // 日本語: 中心点から前後距離指定で候補経路を再構築する共通API。
         // English: Shared API that rebuilds front/rear candidate routes from center with explicit distances.
@@ -246,24 +193,28 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             rearRoutes.AddRange(tracedRearRoutes);
             return rearRoutes.Count > 0;
         }
-
-        private static bool TryCombineRoutes(RailPosition frontRoute, RailPosition rearRouteFromCenter, out RailPosition combinedRoute)
+        
+        // centerから前方向、後ろ方向に伸ばしたrailpositionをくっつけて方向を前向きにしてoutする(入力のfrontとrearは反対向きの状態で入ってくる想定)
+        // Combine front/rear routes extended from center into one forward-facing route.
+        private static bool TryCombineRoutes(RailPosition frontRoute, RailPosition rearRoute, out RailPosition combinedRoute)
         {
             combinedRoute = null;
-            if (frontRoute == null || rearRouteFromCenter == null)
+            if (frontRoute == null || rearRoute == null)
             {
                 return false;
             }
-
+            
+            var rearRouteReversed = rearRoute.DeepCopy();
+            rearRouteReversed.Reverse();
             var frontRearPoint = frontRoute.GetRearRailPosition();
-            var rearHeadPoint = rearRouteFromCenter.GetHeadRailPosition();
+            var rearHeadPoint = rearRouteReversed.GetHeadRailPosition();
             if (!frontRearPoint.IsSamePositionAllowNodeOverlap(rearHeadPoint))
             {
                 return false;
             }
-
+            
             combinedRoute = frontRoute.DeepCopy();
-            combinedRoute.AppendRailPositionAtRear(rearRouteFromCenter.DeepCopy());
+            combinedRoute.AppendRailPositionAtRear(rearRouteReversed);
             return true;
         }
 
