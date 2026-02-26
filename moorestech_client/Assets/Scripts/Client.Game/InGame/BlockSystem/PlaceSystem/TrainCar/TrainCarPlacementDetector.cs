@@ -218,11 +218,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     TrainInstanceId attachTargetTrainInstanceId;
                     bool attachSnapFacingForward;
                     TrainCarAttachTargetEndpoint attachSnapTargetEndpoint;
-                    overlapTrainInstanceIds = ResolveOverlapTrainUnitsForAttachSnap(
+                    overlapTrainInstanceIds = TrainCarPlacementAttachSnapResolver.ResolveOverlapTrainUnitsForAttachSnap(
+                        _trainUnitCache,
                         centerRailPosition,
                         attachProbeOverlapIndex,
                         allTrainUnitOverlapIndex,
                         trainLength,
+                        AttachSnapAdditionalMarginLength,
                         out attachSnapStartPoint,
                         out attachTargetTrainInstanceId,
                         out attachSnapFacingForward,
@@ -353,158 +355,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     return positions;
                 }
 
-                IReadOnlyList<TrainInstanceId> ResolveOverlapTrainUnitsForAttachSnap(
-                    RailPosition centerRailPosition,
-                    RailPositionOverlapDetector.OverlapIndex attachProbeOverlapIndex,
-                    RailPositionOverlapDetector.OverlapIndex allTrainUnitOverlapIndex,
-                    int trainLength,
-                    out RailPosition attachSnapStartPoint,
-                    out TrainInstanceId attachTargetTrainInstanceId,
-                    out bool attachSnapFacingForward,
-                    out TrainCarAttachTargetEndpoint attachSnapTargetEndpoint)
-                {
-                    attachSnapStartPoint = null;
-                    attachTargetTrainInstanceId = TrainInstanceId.Empty;
-                    attachSnapFacingForward = true;
-                    attachSnapTargetEndpoint = TrainCarAttachTargetEndpoint.Head;
-                    // listA(N'+M')候補と既存TrainUnit全体(listB)の多:多を先に一括判定する
-                    // Run a many-to-many precheck between listA(N'+M') and all existing train units(listB)
-                    if (!RailPositionOverlapDetector.HasOverlap(attachProbeOverlapIndex, allTrainUnitOverlapIndex))
-                    {
-                        return Array.Empty<TrainInstanceId>();
-                    }
-
-                    // 一括判定ヒット後に多:1で再調査し、中心点に最も近いTrainUnitを1件だけ選ぶ
-                    // After many-to-many precheck hit, rescan by many-to-one and pick only the closest train unit
-                    var centerForwardPoint = centerRailPosition.GetHeadRailPosition();
-                    var centerBackwardPoint = centerForwardPoint.DeepCopy();
-                    centerBackwardPoint.Reverse();
-                    var nearestTrainInstanceId = TrainInstanceId.Empty;
-                    var nearestDistance = int.MaxValue;
-                    var nearestSnapStartPoint = default(RailPosition);
-                    var nearestAttachFacingForward = true;
-                    var nearestAttachTargetEndpoint = TrainCarAttachTargetEndpoint.Head;
-                    var maxSnapDistance = trainLength / 2 + AttachSnapAdditionalMarginLength;
-
-                    foreach (var pair in _trainUnitCache.Units)
-                    {
-                        var trainInstanceId = pair.Key;
-                        var unit = pair.Value;
-                        if (unit == null || unit.RailPosition == null)
-                        {
-                            continue;
-                        }
-                        if (!RailPositionOverlapDetector.HasOverlap(unit.RailPosition, attachProbeOverlapIndex))
-                        {
-                            continue;
-                        }
-
-                        // 近傍距離は center(前後) -> unit端点(先端reverse/最後尾) の4通り最短を採用する
-                        // Use the minimum among 4 distances: center(forward/backward) -> unit endpoints(head-reversed/rear)
-                        var distance = CalculateNearestSnapDistance(
-                            centerForwardPoint,
-                            centerBackwardPoint,
-                            unit.RailPosition,
-                            maxSnapDistance,
-                            out var snapStartPoint,
-                            out var attachFacingForward,
-                            out var attachTargetEndpoint);
-                        if (distance < 0)
-                        {
-                            continue;
-                        }
-                        if (distance >= nearestDistance)
-                        {
-                            continue;
-                        }
-                        nearestDistance = distance;
-                        nearestTrainInstanceId = trainInstanceId;
-                        nearestSnapStartPoint = snapStartPoint;
-                        nearestAttachFacingForward = attachFacingForward;
-                        nearestAttachTargetEndpoint = attachTargetEndpoint;
-                    }
-
-                    if (nearestTrainInstanceId == TrainInstanceId.Empty)
-                    {
-                        return Array.Empty<TrainInstanceId>();
-                    }
-                    attachSnapStartPoint = nearestSnapStartPoint;
-                    attachTargetTrainInstanceId = nearestTrainInstanceId;
-                    attachSnapFacingForward = nearestAttachFacingForward;
-                    attachSnapTargetEndpoint = nearestAttachTargetEndpoint;
-                    return new[] { nearestTrainInstanceId };
-
-                    #region Internal
-
-                    int CalculateNearestSnapDistance(
-                        RailPosition centerForward,
-                        RailPosition centerBackward,
-                        RailPosition unitRailPosition,
-                        int maxCandidateDistance,
-                        out RailPosition snapStartPoint,
-                        out bool attachFacingForward,
-                        out TrainCarAttachTargetEndpoint attachTargetEndpoint)
-                    {
-                        snapStartPoint = null;
-                        attachFacingForward = true;
-                        attachTargetEndpoint = TrainCarAttachTargetEndpoint.Head;
-                        if (centerForward == null || centerBackward == null || unitRailPosition == null)
-                        {
-                            return -1;
-                        }
-
-                        // 先端側はreverseして「その端点から外側方向」へ伸ばす向きで評価する
-                        // For the head endpoint, reverse to evaluate outward direction from that endpoint
-                        var unitHeadReversed = unitRailPosition.GetHeadRailPosition();
-                        unitHeadReversed.Reverse();
-                        var unitRearPoint = unitRailPosition.GetRearRailPosition();
-
-                        var minDistance = int.MaxValue;
-                        var minDistanceSnapStartPoint = default(RailPosition);
-                        var minDistanceAttachFacingForward = true;
-                        var minDistanceAttachTargetEndpoint = TrainCarAttachTargetEndpoint.Head;
-                        UpdateMinDistance(centerForward, unitHeadReversed, true, TrainCarAttachTargetEndpoint.Head);
-                        UpdateMinDistance(centerForward, unitRearPoint, true, TrainCarAttachTargetEndpoint.Rear);
-                        UpdateMinDistance(centerBackward, unitHeadReversed, false, TrainCarAttachTargetEndpoint.Head);
-                        UpdateMinDistance(centerBackward, unitRearPoint, false, TrainCarAttachTargetEndpoint.Rear);
-                        if (minDistance == int.MaxValue)
-                        {
-                            return -1;
-                        }
-                        snapStartPoint = minDistanceSnapStartPoint;
-                        attachFacingForward = minDistanceAttachFacingForward;
-                        attachTargetEndpoint = minDistanceAttachTargetEndpoint;
-                        return minDistance;
-
-                        #region Internal
-
-                        void UpdateMinDistance(
-                            RailPosition from,
-                            RailPosition to,
-                            bool isCenterForwardSide,
-                            TrainCarAttachTargetEndpoint candidateAttachTargetEndpoint)
-                        {
-                            var distance = RailPositionRouteDistanceFinder.FindShortestDistance(from, to);
-                            // 要件1の探索半径(車両半長+マージン)を超える候補は除外する
-                            // Exclude candidates that are outside requirement-1 search radius (half length + margin)
-                            if (distance < 0 || distance > maxCandidateDistance)
-                            {
-                                return;
-                            }
-                            if (distance < minDistance)
-                            {
-                                minDistance = distance;
-                                minDistanceSnapStartPoint = to.DeepCopy();
-                                minDistanceAttachFacingForward = isCenterForwardSide;
-                                minDistanceAttachTargetEndpoint = candidateAttachTargetEndpoint;
-                            }
-                        }
-
-                        #endregion
-                    }
-
-                    #endregion
-                }
 
                 #endregion
             }
