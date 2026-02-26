@@ -39,19 +39,25 @@ namespace Server.Protocol.PacketResponse
 
             // 削除の実行
             // Apply removal
-            var updatedTrainInstanceIds = targetPair.Train.RemoveCar(trainCarInstanceId);
+            var (createdTrainUnit, delTrainInstanceId) = targetPair.Train.RemoveCar(trainCarInstanceId);
             
-            if (updatedTrainInstanceIds == null) return null;
-            if (updatedTrainInstanceIds.Count <= 1) return null;
             // TrainUnitまるごと通知
             // Notify train unit snapshot updates
-            if (updatedTrainInstanceIds[0] != TrainInstanceId.Empty)
-                _trainUnitSnapshotNotifyEvent.NotifySnapshot(updatedTrainInstanceIds[0]);
-            if (updatedTrainInstanceIds[1] != TrainInstanceId.Empty)
-                _trainUnitSnapshotNotifyEvent.NotifyDeleted(updatedTrainInstanceIds[1]);
+            if (delTrainInstanceId != TrainInstanceId.Empty)
+            {
+                _trainUnitSnapshotNotifyEvent.NotifyDeleted(delTrainInstanceId);
+            }
+            else
+            {
+                _trainUnitSnapshotNotifyEvent.NotifySnapshot(targetPair.Train);
+            }
+            
+            if (createdTrainUnit != null)
+                _trainUnitSnapshotNotifyEvent.NotifySnapshot(createdTrainUnit);
+            
             return null;
         }
-
+        
         [MessagePackObject]
         public class RemoveTrainCarRequestMessagePack : ProtocolMessagePackBase
         {
