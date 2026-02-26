@@ -34,16 +34,41 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 pathTracer,
                 frontUnreachedRoutes,
                 rearUnreachedRoutes);
-
-            if (!TrainCarPlacementSnapPointFinder.TryFindNearestRailEndSnapPoint(
-                    centerRailPosition,
-                    frontUnreachedRoutes,
-                    rearUnreachedRoutes,
-                    out var snapStartPoint,
-                    out var railEndSnapFromCenterForward))
+            
+            
+            // 日本語: 未到達経路のうち中心点に最も近いレール端をスナップ開始点として求める。
+            // English: Resolve the nearest rail-end from unreached routes as the snap start point.
+            // frontUnreachedRoutesの中で一番距離が短いものを抽出
+            // If there are unreached routes, extract the one with the shortest distance in frontUnreachedRoutes.
+            int minDistance = int.MaxValue;
+            RailPosition snapStartPoint = null;
+            foreach (var route in frontUnreachedRoutes)
+            {
+                if (route.ReachedDistance < minDistance)
+                {
+                    minDistance = route.ReachedDistance;
+                    snapStartPoint = route.Route;
+                    snapFromCenterForward = true;
+                }
+            }
+            foreach (var route in rearUnreachedRoutes)
+            {
+                if (route.ReachedDistance < minDistance)
+                {
+                    minDistance = route.ReachedDistance;
+                    snapStartPoint = route.Route;
+                    snapFromCenterForward = false;
+                }
+            }
+            
+            if (snapStartPoint == null)
             {
                 return false;
             }
+            
+            snapStartPoint = snapStartPoint.GetHeadRailPosition();
+            snapStartPoint.Reverse();
+            
             if (!pathTracer.TryTraceForwardRoutesByDfs(snapStartPoint, trainLength, out var tracedRoutes))
             {
                 return false;
@@ -56,7 +81,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             }
 
             railEndSnapRoutes.AddRange(filteredRoutes);
-            snapFromCenterForward = railEndSnapFromCenterForward;
             return true;
         }
     }
