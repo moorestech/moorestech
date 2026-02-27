@@ -350,9 +350,13 @@ function buildStatusLine(data) {
     const windowStart = blockStartMs + Math.floor(totalElapsed / sessionMs) * sessionMs;
     const windowEnd   = windowStart + sessionMs;
 
-    // Line 1: [🤖Model] | 🌿 branch M1 +2 | 📁 /full/path | 🗣 first msg
+    // Line 1: Color-coded context % (left) + model/git/path/msg (right)
+    const pctColor = pct2 < 40 ? '\x1b[32m'   // green
+                   : pct2 < 60 ? '\x1b[33m'   // yellow
+                   : pct2 < 80 ? '\x1b[38;5;208m' // orange (256-color)
+                   :              '\x1b[31m';  // red
     const gitInfo = getGitInfo(cwd);
-    const parts = [`[🤖${formatModel(model)}]`];
+    const parts = [`[🤖${formatModel(model)} ${pctColor}${pct2}%\x1b[0m]`];
     if (gitInfo) parts.push(gitInfo);
     parts.push(`📁 ${cwd}`);
     if (firstUserMessage) parts.push(`🗣 ${truncate(firstUserMessage, 40)}`);
