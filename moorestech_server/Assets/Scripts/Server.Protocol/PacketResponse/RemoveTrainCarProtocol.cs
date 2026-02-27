@@ -39,14 +39,25 @@ namespace Server.Protocol.PacketResponse
 
             // 削除の実行
             // Apply removal
-            targetPair.Train.RemoveCar(trainCarInstanceId);
-            var afterTrains = _trainUpdateService.GetRegisteredTrains().ToList();
-            // 参照ではなく値スナップショット差分で通知対象を決める
-            // Resolve changed trains from value snapshots (not mutable references).
-            _trainUnitSnapshotNotifyEvent.NotifyChangedByBeforeAfter(trainsBeforeRemoval, afterTrains);
+            var (createdTrainUnit, delTrainInstanceId) = targetPair.Train.RemoveCar(trainCarInstanceId);
+            
+            // TrainUnitまるごと通知
+            // Notify train unit snapshot updates
+            if (delTrainInstanceId != TrainInstanceId.Empty)
+            {
+                _trainUnitSnapshotNotifyEvent.NotifyDeleted(delTrainInstanceId);
+            }
+            else
+            {
+                _trainUnitSnapshotNotifyEvent.NotifySnapshot(targetPair.Train);
+            }
+            
+            if (createdTrainUnit != null)
+                _trainUnitSnapshotNotifyEvent.NotifySnapshot(createdTrainUnit);
+            
             return null;
         }
-
+        
         [MessagePackObject]
         public class RemoveTrainCarRequestMessagePack : ProtocolMessagePackBase
         {
