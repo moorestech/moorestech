@@ -1,6 +1,5 @@
 using Game.Train.RailPositions;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 {
