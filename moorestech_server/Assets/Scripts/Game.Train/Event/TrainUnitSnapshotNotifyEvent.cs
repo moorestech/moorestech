@@ -1,7 +1,6 @@
 using System;
 using Game.Train.Unit;
 using UniRx;
-using UnityEngine;
 
 namespace Game.Train.Event
 {
