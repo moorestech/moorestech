@@ -1,81 +1,69 @@
 ---
 name: rail-network-sync
-description: Implement and review rail/train network synchronization flows across client and server, including snapshots, event diffs, and hash-based recovery. Use when changing rail node/connection events, block place/remove networking, train create/remove sync, or related protocol handlers.
+description: Implement and review rail/train network synchronization flows across client and server while preserving unified TickUnifiedId ordering and per-TrainUnit snapshot boundaries. Use when changing rail/train sync behavior, event apply order, or recovery-related synchronization paths.
 ---
 
 # Rail Network Sync
 
 ## Overview
-
-Use this skill to keep server and client train/rail state transitions aligned.
+Use this skill to keep server/client train and rail synchronization aligned under unified ordering.
 
 ## Reuse-First Rule
-
-- Before adding a new sync helper or detector, search existing train/rail implementations first.
+- Before adding new sync helpers, search existing train/rail implementations first.
 - Prefer shared logic in `Game.Train` over client-only/server-only duplicate implementations.
-- If duplication is unavoidable, document a short `WHY_NEW_IMPLEMENTATION` reason in code/PR notes.
+- If duplication is unavoidable, record a short `WHY_NEW_IMPLEMENTATION` reason in code/PR notes.
 - Recommended pre-check:
-  - `rg --line-number "Overlap|CreateIndex|HasOverlap|Snapshot|Diff|RailPosition" moorestech_client/Assets/Scripts moorestech_server/Assets/Scripts`
+  - `rg --line-number "TickUnifiedId|TickSequenceId|Snapshot|FutureMessageBuffer|RailGraph" moorestech_client/Assets/Scripts moorestech_server/Assets/Scripts`
 
-## Sync Contracts
+## Architecture Baseline
+- Unified ordering key: `TickUnifiedId = ((ulong)ServerTick << 32) | TickSequenceId`.
+- Server sequence allocation is per tick (`TrainUpdateService.NextTickSequenceId()`), reset when tick advances.
+- Tick simulation trigger event remains `va:event:trainUnitTickDiffBundle` and is emitted even when per-unit diffs are empty.
+- Structural train sync boundary remains per-TrainUnit snapshot event (`va:event:trainUnitSnapshot`, upsert/delete).
+- Rail node/connection diffs are buffered and applied under the same unified ordering discipline.
 
-- Initial train bootstrap relies on train/rail snapshots and local appliers.
-- Train bootstrap is snapshot-based (`GetTrainUnitSnapshots`); train entities are not sourced from `RequestWorldData`.
-- Event stream applies state diffs for rail nodes/connections and block updates.
-- Hash-state events drive mismatch detection and snapshot re-fetch only when needed.
-- Train-car deletion has a dedicated event (`va:event:trainCarRemoved`) and is applied on the post-simulation tick queue.
-- Hash-state + snapshot reconciliation remains the recovery path for any divergence.
-- Event polling may deliver multiple ticks in one response; apply by tick semantics, not arrival order.
+## Responsibilities of This Skill
+1. Verify end-to-end sync flow: server emit -> client enqueue -> tick-aligned apply.
+2. Preserve ordering consistency across tick-diff bundle, TrainUnit snapshot events, and rail graph events.
+3. Validate stale-event protection in apply paths (for example endpoint guid/node checks on destructive rail operations).
+4. Confirm buffering and dummy-hash interactions do not regress ordering behavior.
 
-## Operation Flows
+## Not Responsible For
+- MessagePack schema/tag design (`train-rail-event-implementation`).
+- Tick/hash algorithm semantics (`train-tick-simulation`).
+- Save/load schema and restore order (`train-rail-save-load`).
 
-Bridge placement flow:
-1. Client sends place request with rail component state.
-2. Server places block and registers rail node(s).
-3. Server broadcasts block-place + rail-node-created events.
-4. Client applies block and rail cache updates.
+## Canonical Flow Patterns
 
-Station placement flow:
-1. Client sends normal block place request.
-2. Server creates station components and auto-connections.
-3. Server broadcasts block-place + node/connection-created events.
-4. Client applies world state, graph cache, and station references.
+### Train tick: hash + diff + sim
+Server:
+1. Emit hash state for current tick.
+2. Emit tick diff bundle with sequence IDs (`HashTickSequenceId`, `DiffTickSequenceId`) and `ServerTick`.
 
-Manual rail connect flow:
-1. Client resolves node ids and sends connect request.
-2. Server validates and connects nodes.
-3. Server broadcasts connection-created event.
-4. Client upserts connection cache.
+Client:
+1. Expand bundle into buffered hash + buffered diff apply events.
+2. Apply pre-sim diffs and run local simulation when unified id becomes flushable.
 
-Rail deletion flow:
-1. Client sends block remove request.
-2. Server removes block and related rail nodes/connections.
-3. Server broadcasts remove-block + node/connection-removed events.
-4. Client removes world object and graph cache entries.
+### TrainUnit structural sync
+Server:
+1. Raise per-unit snapshot notify (`NotifySnapshot` / `NotifyDeleted`).
+2. Broadcast `va:event:trainUnitSnapshot` with ordering keys.
 
-Rail disconnect flow:
-1. Client sends disconnect request.
-2. Server validates edge removal safety and disconnects.
-3. Server broadcasts connection-removed event.
-4. Client removes connection cache.
+Client:
+1. Buffer snapshot event.
+2. Apply upsert/delete on target unified id and reconcile cache/visual state.
 
-Train placement flow:
-1. Client sends place-train request with rail position data.
-2. Server validates, creates train unit, registers update loop.
-3. Server broadcasts train-created event with snapshot payload.
-4. Client upserts train cache and entity state.
+### Rail node/connection sync
+Server:
+- Broadcast node/connection create/remove events with `ServerTick` + `TickSequenceId`.
 
-Train removal flow:
-1. Client sends remove-train request.
-2. Server removes cars and may destroy/unregister train unit.
-3. Server broadcasts `va:event:trainCarRemoved` with `trainCarInstanceId` and `serverTick`.
-4. Client enqueues the event into post-simulation tick processing and removes car from cache/object datastore.
-5. Hash-state verification still runs and requests snapshots only when mismatch is detected.
+Client:
+- Buffer then apply on target unified id.
+- Keep endpoint validation guards for destructive operations.
 
 ## Workflow
-
-1. Identify the exact operation flow affected by the change.
-2. Trace `client request -> server mutation -> broadcast -> client apply`.
-3. Preserve hash verification and snapshot recovery semantics.
-4. Keep event/protocol tag compatibility across both sides.
-5. Add or update tests for changed flow boundaries.
+1. Identify which sync flow changed (tick bundle, snapshot, rail diff, or combination).
+2. Trace full path across server emit and client apply.
+3. Verify ordering keys and buffer semantics for all affected events.
+4. Verify stale payload guards and deletion/upsert behavior.
+5. Add/update integration tests at changed boundaries.
