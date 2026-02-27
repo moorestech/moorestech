@@ -1,44 +1,39 @@
 ---
 name: train-doc-index
-description: Classify train-related requests and route execution to the correct train workflow immediately. Use when a request concerns train networking, tick simulation ordering, TrainUnit/TrainCar snapshot-sync policy, train save/load verification, rail graph behavior, or train test prioritization and you need to choose the correct implementation/testing workflow.
+description: Classify train/rail requests and route to the correct specialized skill quickly. Use when a request touches train networking, tick simulation ordering, snapshot-sync policy, save/load verification, rail graph behavior, or test prioritization.
 ---
 
 # Train Doc Index
 
 ## Overview
-
-Use this skill as an entry point to pick the right train workflow and avoid mixing unrelated concerns.
-
-## Current Operation (Must Assume)
-
-- TrainUnit/TrainCar structural sync is snapshot-first:
-  - per-unit event: `va:event:trainUnitSnapshot` (single TrainUnit upsert/delete)
-  - full resync API: `va:getTrainUnitSnapshots` (all TrainUnits)
-- Do not propose per-car incremental event packets for normal feature work.
-- Tick simulation trigger remains `va:event:trainUnitTickDiffBundle` (hash + diff bundle), separate from per-unit snapshot events.
+Use this skill as the entry point to pick the right train workflow and avoid mixing unrelated concerns.
 
 ## Reuse-First Rule
-
-- Before adding a new helper/algorithm, search existing train code across both client and server.
-- Prefer reusing `Game.Train` implementations instead of duplicating logic in client-local helpers.
-- If a duplicate implementation is unavoidable, write a short `WHY_NEW_IMPLEMENTATION` reason in code/PR notes.
+- Before introducing new helper logic, search existing train/rail code first.
+- Prefer established `Game.Train` logic over ad-hoc duplicate implementations.
+- If duplication is unavoidable, record `WHY_NEW_IMPLEMENTATION` in code/PR notes.
 - Recommended pre-check:
-  - `rg --line-number "Overlap|CreateIndex|HasOverlap|RailPosition" moorestech_client/Assets/Scripts moorestech_server/Assets/Scripts`
+  - `rg --line-number "TickUnifiedId|TickSequenceId|RailPosition|Snapshot|SaveLoad" moorestech_client/Assets/Scripts moorestech_server/Assets/Scripts`
+
+## Current Operation (Must Assume)
+- Train structural sync is snapshot-first:
+  - per-unit event: `va:event:trainUnitSnapshot`
+  - full resync API: `va:getTrainUnitSnapshots`
+- Tick simulation trigger remains `va:event:trainUnitTickDiffBundle`.
+- Ordering key remains `TickUnifiedId = ((ulong)ServerTick << 32) | TickSequenceId`.
+- `TickSequenceId` is server-managed and reset per tick.
 
 ## Routing Rules
-
-- Use `rail-network-sync` when changing protocol/event behavior for rail or train state synchronization.
-- Use `train-rail-event-implementation` when adding/modifying train/rail event packets, MessagePack payloads, or client handlers with unified tick ordering concerns.
-  - Any request like "new TrainUnit/TrainCar event" should first be treated as per-unit snapshot notification design.
-- Use `train-tick-simulation` when changing tick progression, hash gating, or simulation trigger ordering.
-- Use `train-rail-save-load` when changing save data, load restoration, docking restoration, or persistence tests.
-- Use `train-test-implementation-priorities` when deciding what train tests to implement next.
-- Use `train-system-notes` when changing rail graph semantics, front/back handling, rail position ordering, or deterministic distance behavior.
+- Use `rail-network-sync` for end-to-end train/rail synchronization flow ownership.
+- Use `train-rail-event-implementation` for event tags, payload schema, and client/server handler changes.
+- Use `train-tick-simulation` for tick/hash progression and gate/order behavior.
+- Use `train-rail-save-load` for persistence schema, load order, restore correctness.
+- Use `train-system-notes` for rail topology, front/back semantics, RailPosition invariants.
+- Use `train-test-implementation-priorities` for risk-based test planning.
 
 ## Workflow
-
 1. Classify the request into one primary category.
 2. Pick one primary skill and at most one secondary skill.
-3. State explicit invariants before editing code.
+3. State explicit invariants before edits.
 4. For TrainUnit/TrainCar mutations, confirm snapshot-first policy before proposing packet changes.
-5. Implement and verify against those invariants.
+5. Implement and verify against chosen invariants.

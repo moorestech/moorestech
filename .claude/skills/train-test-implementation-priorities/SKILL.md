@@ -1,56 +1,52 @@
 ---
 name: train-test-implementation-priorities
-description: Plan and prioritize train integration test implementation by risk and current coverage gaps under the current unified tick + per-unit snapshot sync architecture. Use when selecting next train tests, assessing coverage quality, identifying high-risk scenarios, or choosing regression investment after train/rail code changes.
+description: Plan and prioritize train test implementation by risk and coverage gaps under unified tick ordering and per-unit snapshot synchronization architecture. Use when selecting train regression tests after changes to ordering, hash gates, snapshot sync, topology, or persistence behavior.
 ---
 
 # Train Test Implementation Priorities
 
 ## Overview
-
-Use this skill to avoid random test additions and focus on highest-risk gaps first.
+Use this skill to prioritize high-risk coverage gaps instead of adding tests randomly.
 
 ## Reuse-First Rule
-
-- Before adding new test-only helper implementations, search existing train helpers first.
-- Prefer reusing production helpers from `Game.Train` where valid, instead of cloning logic into tests.
-- If a duplicate helper is unavoidable, document `WHY_NEW_IMPLEMENTATION` in test comments/PR notes.
+- Before creating test-only helpers, search existing train test utilities first.
+- Prefer reusable helpers from production/test infrastructure over duplicated logic.
+- If duplication is unavoidable, record `WHY_NEW_IMPLEMENTATION` in test comments/PR notes.
 - Recommended pre-check:
-  - `rg --line-number "Overlap|CreateIndex|HasOverlap|TrainTestHelper|RailPosition" moorestech_client/Assets/Scripts moorestech_server/Assets/Scripts`
+  - `rg --line-number "TrainTestHelper|RailPosition|TickUnifiedId|Snapshot|Dock" moorestech_client/Assets/Scripts moorestech_server/Assets/Scripts`
 
 ## Priority Order
 
 Priority 1:
-- Strengthen TrainUnit/TrainCar snapshot-sync regression coverage:
-  - place/attach/remove operations emit expected per-unit snapshot updates
-  - deletion tombstone path removes client cache + TrainCar visuals
-  - changed train composition does not require per-car event packets
-- Add deterministic checks around `TrainUnitSnapshotEventPacket` + `TrainUnitSnapshotEventNetworkHandler` apply timing.
+- Tick ordering + client buffering regressions:
+  - unified id monotonicity / no rollback
+  - stale drop + exact flush behavior in future buffer
 
 Priority 2:
-- Strengthen tick/hash behavior:
-  - `TrainUnitTickDiffBundle` empty diff still triggers simulation
+- Tick simulation and hash gate behavior:
+  - empty-diff tick bundle still triggers simulation
   - hash gate progression and stale-hash discard behavior
-  - mismatch recovery (`GetTrainUnitSnapshots`, and rail+train combined resync path)
+  - dummy-hash handling consistency (`uint.MaxValue`)
 
 Priority 3:
-- Strengthen persistence and topology long-run checks:
-  - save/load with moving/docking/auto-run states
-  - rail segment restore consistency with train restore order
-  - runtime edge cases (reverse during operation, large topology variants)
+- Snapshot-sync and structural train changes:
+  - per-unit snapshot upsert/delete regression coverage
+  - deletion cleanup behavior across cache/view state
+
+Priority 4:
+- Long-run movement/topology/persistence:
+  - reverse + traction consistency
+  - RailPosition traversal edge cases
+  - docking concurrency and save/load long-run stability
 
 ## Coverage Expectations
-
-- Keep a balanced layer mix:
-  - unit-level algorithm checks
-  - integration-level state consistency checks
-  - scenario-level long-run behavior checks
-- Include both server and client-side assertions for networked behaviors (event payload + buffered apply + cache/view effects).
-- Prefer deterministic scenarios over random-only validation for regression stability.
+- Balance unit-level, integration-level, and scenario-level tests.
+- For networked behaviors, assert server emit + buffered apply + resulting state.
+- Prefer deterministic scenarios over random-only checks.
 
 ## Workflow
-
-1. Classify the request into implementation, refactor, or coverage review.
-2. Select scenarios from highest uncovered priority first.
-3. Define concrete failure signals for each new test.
-4. For TrainUnit/TrainCar changes, always include at least one snapshot-sync regression test.
-5. Implement tests with reusable train test utilities whenever possible.
+1. Classify change type (ordering, hash/gate, snapshot, topology, persistence).
+2. Select uncovered highest-priority scenarios first.
+3. Define explicit failure signals for each test.
+4. Add at least one snapshot-sync regression test for TrainUnit/TrainCar structural changes.
+5. Implement tests using reusable utilities when possible.
