@@ -58,9 +58,29 @@ if [ $IS_GUI -eq 1 ]; then
 fi
 
 ###############################################################################
-# 起動チェック関数
-# Check if Unity is running function
+# ユーティリティ関数
+# Utility functions
 ###############################################################################
+
+# コンパイルエラー検出：ログファイルと終了コードからコンパイルエラーを判定・表示
+# Detect compile errors from log file and exit code, print details
+check_compile_errors() {
+  local logfile="$1"
+  local exit_code="$2"
+
+  if [ "$exit_code" -eq 2 ] || \
+     grep -q "Scripts have compiler errors" "$logfile" || \
+     grep -qE "error CS[0-9]{4}:" "$logfile" || \
+     grep -q "Safe Mode" "$logfile"
+  then
+    echo "❌ Compile errors detected"
+    grep -E "error CS[0-9]{4}:" "$logfile" | sed 's/^/    /'
+    echo "❌ Compilation failed — tests were not executed"
+    return 1
+  fi
+  return 0
+}
+
 check_unity_running() {
   local project="$1"
 
@@ -90,9 +110,34 @@ if ! check_unity_running "$PROJECT"; then
 fi
 
 ###############################################################################
+# GUIモード事前コンパイルチェック（Safe Modeモーダル防止）
+# Pre-flight compile check in batch mode for GUI mode (prevent Safe Mode modal)
+###############################################################################
+if [ $IS_GUI -eq 1 ]; then
+  echo "🔍 Pre-flight compile check (batch mode)..."
+  PREFLIGHT_LOG="$(mktemp -t unity_preflight_XXXX.log)"
+  "$UNITY" \
+    -batchmode \
+    -projectPath "$PROJECT" \
+    -executeMethod CliTestRunner.Run \
+    -testRegex "^$" \
+    -isFromShellScript \
+    -logFile "$PREFLIGHT_LOG" \
+    -ignorecompilererrors
+  PREFLIGHT_RET=$?
+
+  if ! check_compile_errors "$PREFLIGHT_LOG" "$PREFLIGHT_RET"; then
+    rm -f "$PREFLIGHT_LOG"
+    exit 1
+  fi
+  rm -f "$PREFLIGHT_LOG"
+  echo "✅ Compilation OK — launching GUI mode..."
+fi
+
+###############################################################################
 # Unity 実行
 ###############################################################################
-LOGFILE="$(mktemp -t unity_cli_XXXX).log"
+LOGFILE="$(mktemp -t unity_cli_XXXX.log)"
 
 # タイムアウトコマンドの確認と選択
 # Check and select timeout command
@@ -134,17 +179,8 @@ fi
 if grep -q "Unhandled log message: '\[Assert\] Calling EndWrite before BeginWrite'" "$LOGFILE"; then
   echo "不明なエラーが発生したため、テスト結果が出力できませんでした。テストを再実行してください。"
   RET=1
-elif [ $RET -eq 2 ] || \
-     grep -q "Scripts have compiler errors" "$LOGFILE" || \
-     grep -qE "error CS[0-9]{4}:" "$LOGFILE" || \
-     grep -q "Safe Mode" "$LOGFILE"
-then
-  # --- ❶ コンパイルエラー行を抽出 ------------------------------------------
-  echo "❌ Compile errors detected"
-  #   Unity が出力する例: Assets/Scripts/Foo.cs(12,18): error CS1002: ; expected
-  #   error CSxxxx を取得
-  grep -E "error CS[0-9]{4}:" "$LOGFILE" | sed 's/^/    /'
-  echo "❌ Compilation failed — tests were not executed"
+elif ! check_compile_errors "$LOGFILE" "$RET"; then
+  # --- ❶ コンパイルエラー（check_compile_errorsが表示済み） -------------------
   RET=1        # CI で失敗扱いにしたいので必ず 1
 elif ! grep -q '\[CliTest\]' "$LOGFILE"; then
   # --- ❸ テスト結果が出力されていない場合（重複起動等） --------------------
