@@ -90,4 +90,5 @@ jobs:
         if: steps.create-pr.outputs.pull-request-number
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh pr merge "${{ steps.create-pr.outputs.pull-request-number }}" --merge
+        run: |
+          gh pr merge "${{ steps.create-pr.outputs.pull-request-number }}" --merge --delete-branch
