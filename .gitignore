@@ -104,5 +104,7 @@ moorestech_client/.vscode/settings.json
 **/__pycache__/
 *.pyc
 
-
+# OneJS
+**/node_modules/
+**/package-lock.json
 

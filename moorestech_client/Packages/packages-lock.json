@@ -78,6 +78,13 @@
       "dependencies": {},
       "hash": "6baeccf6c544c155497164327cca72f28163a578"
     },
+    "com.singtaa.onejs": {
+      "version": "https://github.com/Singtaa/OneJS.git#onejs-v3",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "d16ed851ec346d391737187e440dd0751de525c9"
+    },
     "com.tayx.graphy": {
       "version": "https://github.com/Tayx94/graphy.git",
       "depth": 0,
