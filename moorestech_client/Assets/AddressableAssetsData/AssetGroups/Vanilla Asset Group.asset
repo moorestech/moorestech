@@ -440,6 +440,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 70c49cd34505a4bc18005cb7c0f879cd
+    m_Address: Vanilla/Block/Wood_Processing_Machine
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 72352428f6acae54387a54854c44d701
     m_Address: Vanilla/Block/Ore_Crusher
     m_ReadOnly: 0
