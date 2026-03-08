@@ -11,7 +11,7 @@ jobs:
     # mooresmasterを入れてからちゃんと動かなくなった。
     # なんかdll参照とLinuxの相性が悪いのか、linuxだとうまく動かなかった。windowsだとうまくいったので、とりあえずこれでなんとかする。
     # https://qiita.com/CdecPGL/items/a8c1c1be0fc30de9b2dd
-    runs-on: windows-latest
+    runs-on: windows-2022
     steps:
       # 使用するGithub Tokenを動的に生成する
       # 利用は ${{ steps.generate_token.outputs.token }}
