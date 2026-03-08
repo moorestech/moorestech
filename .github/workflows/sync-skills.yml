@@ -5,6 +5,7 @@ on:
     branches:
       - master
     paths:
+      - '.agents/skills/**'
       - '.claude/skills/**'
       - '.codex/skills/**'
 
@@ -29,8 +30,13 @@ jobs:
           changed_files=$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}")
           echo "Changed files:"$'\n'"${changed_files}"
 
+          agents_changed=false
           claude_changed=false
           codex_changed=false
+
+          if echo "${changed_files}" | grep -q '^\.agents/skills/'; then
+            agents_changed=true
+          fi
 
           if echo "${changed_files}" | grep -q '^\.claude/skills/'; then
             claude_changed=true
@@ -40,22 +46,70 @@ jobs:
             codex_changed=true
           fi
 
-          if ${claude_changed} && ${codex_changed}; then
-            echo "Both directories changed; skipping sync."
+          changed_count=0
+
+          if ${agents_changed}; then
+            changed_count=$((changed_count + 1))
+          fi
+
+          if ${claude_changed}; then
+            changed_count=$((changed_count + 1))
+          fi
+
+          if ${codex_changed}; then
+            changed_count=$((changed_count + 1))
+          fi
+
+          if [[ ${changed_count} -gt 1 ]]; then
+            echo "Multiple skill directories changed; skipping sync."
             echo "skip=true" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          if ${agents_changed}; then
+            echo "source=.agents/skills" >> "${GITHUB_OUTPUT}"
+            {
+              echo "targets<<EOF"
+              echo ".claude/skills"
+              echo ".codex/skills"
+              echo "EOF"
+              echo "targets_markdown<<EOF"
+              echo "- \`.claude/skills\`"
+              echo "- \`.codex/skills\`"
+              echo "EOF"
+            } >> "${GITHUB_OUTPUT}"
+            echo "skip=false" >> "${GITHUB_OUTPUT}"
             exit 0
           fi
 
           if ${claude_changed}; then
             echo "source=.claude/skills" >> "${GITHUB_OUTPUT}"
-            echo "target=.codex/skills" >> "${GITHUB_OUTPUT}"
+            {
+              echo "targets<<EOF"
+              echo ".agents/skills"
+              echo ".codex/skills"
+              echo "EOF"
+              echo "targets_markdown<<EOF"
+              echo "- \`.agents/skills\`"
+              echo "- \`.codex/skills\`"
+              echo "EOF"
+            } >> "${GITHUB_OUTPUT}"
             echo "skip=false" >> "${GITHUB_OUTPUT}"
             exit 0
           fi
 
           if ${codex_changed}; then
             echo "source=.codex/skills" >> "${GITHUB_OUTPUT}"
-            echo "target=.claude/skills" >> "${GITHUB_OUTPUT}"
+            {
+              echo "targets<<EOF"
+              echo ".agents/skills"
+              echo ".claude/skills"
+              echo "EOF"
+              echo "targets_markdown<<EOF"
+              echo "- \`.agents/skills\`"
+              echo "- \`.claude/skills\`"
+              echo "EOF"
+            } >> "${GITHUB_OUTPUT}"
             echo "skip=false" >> "${GITHUB_OUTPUT}"
             exit 0
           fi
@@ -69,9 +123,10 @@ jobs:
         run: |
           set -euo pipefail
           source_dir="${{ steps.source.outputs.source }}"
-          target_dir="${{ steps.source.outputs.target }}"
-          mkdir -p "${target_dir}"
-          rsync -a --delete "${source_dir}/" "${target_dir}/"
+          while IFS= read -r target_dir; do
+            mkdir -p "${target_dir}"
+            rsync -a --delete "${source_dir}/" "${target_dir}/"
+          done <<< "${{ steps.source.outputs.targets }}"
 
       - name: Create pull request
         id: create-pr
@@ -82,7 +137,8 @@ jobs:
           title: "Sync skills directory"
           body: |
             ## Summary
-            - Sync skills directory changes from `${{ steps.source.outputs.source }}` to `${{ steps.source.outputs.target }}`.
+            - Sync skills directory changes from `${{ steps.source.outputs.source }}` to:
+            ${{ steps.source.outputs.targets_markdown }}
           branch: "sync-skills-${{ github.run_id }}"
           delete-branch: true
 

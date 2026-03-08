@@ -5,6 +5,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.SoundEffect;
+using Client.Game.InGame.UI.Inventory.Main;
 using Client.Input;
 using Common.Debug;
 using Core.Master;
@@ -24,21 +25,23 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
     {
         private const float PlaceableMaxDistance = 100f;
         private readonly IPlacementPreviewBlockGameObjectController _previewBlockController;
+        private readonly ILocalPlayerInventory _localPlayerInventory;
         private readonly Camera _mainCamera;
         private readonly CommonBlockPlacePointCalculator _blockPlacePointCalculator;
-        
+
         private BlockDirection _currentBlockDirection = BlockDirection.North;
         private Vector3Int? _clickStartPosition;
         private int _clickStartHeightOffset;
         private bool? _isStartZDirection;
         private List<PlaceInfo> _currentPlaceInfos = new();
-        
+
         private int _heightOffset;
-        
-        public CommonBlockPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore)
+
+        public CommonBlockPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory)
         {
             _mainCamera = mainCamera;
             _previewBlockController = previewBlockController;
+            _localPlayerInventory = localPlayerInventory;
             _blockPlacePointCalculator = new CommonBlockPlacePointCalculator(blockGameObjectDataStore);
         }
         
@@ -121,10 +124,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             //プレビュー表示と地面との接触を取得する
             //display preview and get collision with ground
             SetCurrentPlaceInfo();
+
             var blockGroundOverlapList = _previewBlockController.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockMaster);
-            
-            // Placeableの更新
-            // update placeable
+
+            // 地面との接触でPlaceableを更新
+            // Update placeable based on ground collision
             for (var i = 0; i < blockGroundOverlapList.Count; i++)
             {
                 // 地面と接触していたら設置不可
@@ -134,6 +138,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                     _currentPlaceInfos[i].Placeable = false;
                 }
             }
+
+            // 地面フィルタ後にアイテム数チェック（地面に埋まったブロックがアイテム枠を消費しないようにする）
+            // Check item count after ground filtering (so ground-blocked cells don't consume item quota)
+            MarkInsufficientItemPreviewsAsNotPlaceable();
+
+            // 最終的なPlaceable状態でプレビュー色を更新
+            // Update preview colors based on the final Placeable state
+            _previewBlockController.UpdatePlaceableColors(_currentPlaceInfos);
             
             // 設置するブロックをサーバーに送信
             // send block place info to server
@@ -183,7 +195,28 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 _clickStartPosition = null;
                 SendPlaceProtocol(_currentPlaceInfos, context);
             }
-            
+
+            void MarkInsufficientItemPreviewsAsNotPlaceable()
+            {
+                // インベントリ内の所持数を取得
+                // Get the total count of the holding item in inventory
+                var availableCount = _localPlayerInventory.GetMainInventoryItemCount(context.HoldingItemId);
+
+                // 設置可能なブロック数をカウントし、所持数を超えたら設置不可にする
+                // Count placeable blocks and mark as not placeable when exceeding available count
+                var placeableCount = 0;
+                for (var i = 0; i < _currentPlaceInfos.Count; i++)
+                {
+                    if (!_currentPlaceInfos[i].Placeable) continue;
+
+                    placeableCount++;
+                    if (placeableCount > availableCount)
+                    {
+                        _currentPlaceInfos[i].Placeable = false;
+                    }
+                }
+            }
+
             #endregion
         }
     }
