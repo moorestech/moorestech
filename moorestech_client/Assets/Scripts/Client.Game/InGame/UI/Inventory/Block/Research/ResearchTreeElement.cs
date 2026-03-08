@@ -4,15 +4,14 @@ using System.Linq;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Challenge;
 using Client.Game.InGame.UI.Inventory.Common;
+using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Tooltip;
 using Core.Master;
-using Cysharp.Threading.Tasks;
 using Game.Research;
 using Mooresmaster.Model.GameActionModule;
 using TMPro;
 using UniRx;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace Client.Game.InGame.UI.Inventory.Block.Research
@@ -45,6 +44,7 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
         
         // 生成された接続線のリスト
         private readonly List<RectTransform> _connectLines = new();
+        private readonly List<(ItemId itemId, int requiredCount, ItemSlotView slot)> _consumeItemSlots = new();
         
         private void Awake()
         {
@@ -57,7 +57,7 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
             });
         }
         
-        public void SetResearchNode(ResearchNodeData node)
+        public void SetResearchNode(ResearchNodeData node, ILocalPlayerInventory localPlayerInventory)
         {
             Node = node;
             
@@ -85,6 +85,8 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
                 CreateConsumeItemIcons();
                 _isInitialized = true;
             }
+
+            RefreshConsumeItemHighlight(localPlayerInventory);
             
             #region Internal
             
@@ -145,10 +147,29 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
                     
                     var icon = Instantiate(ItemSlotView.Prefab, consumeItemIcons);
                     icon.SetItem(itemView, consumeItem.ItemCount);
+                    _consumeItemSlots.Add((itemId, consumeItem.ItemCount, icon));
                 }
             }
-            
+
             #endregion
+        }
+
+        public void RefreshConsumeItemHighlight(ILocalPlayerInventory localPlayerInventory)
+        {
+            if (!_isInitialized)
+            {
+                return;
+            }
+            
+            foreach (var consumeItemSlot in _consumeItemSlots)
+            {
+                var itemView = ClientContext.ItemImageContainer.GetItemView(consumeItemSlot.itemId);
+                var ownedCount = localPlayerInventory.GetMainInventoryItemCount(consumeItemSlot.itemId);
+                var isEnough = Node.State != ResearchNodeState.Completed && ownedCount >= consumeItemSlot.requiredCount;
+
+                consumeItemSlot.slot.SetItem(itemView, consumeItemSlot.requiredCount);
+                consumeItemSlot.slot.SetHotBarSelected(isEnough);
+            }
         }
 
         public void CreateConnect(Transform lineParent, Dictionary<Guid, ResearchTreeElement> nodeElements)
