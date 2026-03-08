@@ -160,7 +160,10 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
             {
                 return;
             }
-            
+
+            // 消費アイテムスロットのハイライト更新
+            // Update consume item slot highlights
+            var allItemsSufficient = true;
             foreach (var consumeItemSlot in _consumeItemSlots)
             {
                 var itemView = ClientContext.ItemImageContainer.GetItemView(consumeItemSlot.itemId);
@@ -169,7 +172,40 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
 
                 consumeItemSlot.slot.SetItem(itemView, consumeItemSlot.requiredCount);
                 consumeItemSlot.slot.SetHotBarSelected(isEnough);
+
+                if (!isEnough) allItemsSufficient = false;
             }
+
+            // ノードの研究可能状態・ボタン・ツールチップも更新
+            // Also update node availability, button, and tooltip
+            RefreshNodeAvailability(allItemsSufficient);
+        }
+
+        private void RefreshNodeAvailability(bool allItemsSufficient)
+        {
+            if (Node.State == ResearchNodeState.Completed) return;
+
+            // 元のstateから前提研究の充足状態を推定
+            // Infer pre-node condition from original server state
+            var preNodeMet = Node.State == ResearchNodeState.UnresearchableNotEnoughItem
+                          || Node.State == ResearchNodeState.Researchable;
+
+            var effectivelyResearchable = preNodeMet && allItemsSufficient;
+            if (researchButton != null)
+            {
+                researchButton.interactable = effectivelyResearchable;
+            }
+
+            // ツールチップテキストを更新
+            // Update tooltip text
+            var text = (preNodeMet, allItemsSufficient) switch
+            {
+                (true, true) => "クリックして研究",
+                (true, false) => "研究アイテムが足りません。",
+                (false, true) => "前提研究が完了していません。",
+                (false, false) => "研究アイテムが足りません。\n前提研究が完了していません。",
+            };
+            researchButtonTooltipTarget.SetText(text, false);
         }
 
         public void CreateConnect(Transform lineParent, Dictionary<Guid, ResearchTreeElement> nodeElements)
