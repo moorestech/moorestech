@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.UI.Inventory.Main;
 using Client.Network.API;
 using Core.Master;
 using Cysharp.Threading.Tasks;
@@ -16,6 +17,8 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
     {
         [SerializeField] private ResearchTreeView researchTreeView;
         
+        [Inject] private ILocalPlayerInventory _localPlayerInventory;
+        
         private CancellationToken _ct;
 
         [Inject]
@@ -26,11 +29,15 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
             // 初期の研究ノード状態をUIへ反映
             // Apply the initial research node states to the UI
             var initialNodes = CreateNodeData(initial.ResearchNodeStates);
-            researchTreeView.SetResearchNodes(initialNodes);
+            researchTreeView.SetResearchNodes(initialNodes, _localPlayerInventory);
             
             // 研究完了ボタン押下時の処理登録
             // Register the process when the research complete button is clicked
             researchTreeView.OnClickResearchButton.Subscribe(node => CompleteResearchAsync(node).Forget()).AddTo(this);
+            
+            _localPlayerInventory.OnItemChange
+                .Subscribe(_ => researchTreeView.RefreshConsumeItemHighlights(_localPlayerInventory))
+                .AddTo(this);
             
             #region Internal
             
@@ -40,7 +47,7 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
                 var response = await ClientContext.VanillaApi.Response.CompleteResearch(guid, _ct);
                 var nodes = CreateNodeData(response.NodeState.ToDictionary());
                 
-                researchTreeView.SetResearchNodes(nodes);
+                researchTreeView.SetResearchNodes(nodes, _localPlayerInventory);
             }
             
             #endregion
@@ -53,7 +60,7 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
             var nodeStates = await ClientContext.VanillaApi.Response.GetResearchNodeStates(_ct);
             var nodes = CreateNodeData(nodeStates);
 
-            researchTreeView.SetResearchNodes(nodes);
+            researchTreeView.SetResearchNodes(nodes, _localPlayerInventory);
         }
 
         

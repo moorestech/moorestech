@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.UI.Challenge;
+using Client.Game.InGame.UI.Inventory.Main;
 using UniRx;
 using UnityEngine;
 
@@ -22,7 +23,7 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
 
         private Dictionary<Guid, ResearchTreeElement> _nodeElements;
 
-        public void SetResearchNodes(List<ResearchNodeData> nodes)
+        public void SetResearchNodes(List<ResearchNodeData> nodes, ILocalPlayerInventory localPlayerInventory)
         {
             if (_nodeElements == null)
             {
@@ -45,7 +46,7 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
                     _nodeElements.Add(node.MasterElement.ResearchNodeGuid, nodeElement);
                     nodeElement.OnClickResearchButton.Subscribe(n => _onClickResearchButton.OnNext(n)).AddTo(this);
                     
-                    nodeElement.SetResearchNode(node);
+                    nodeElement.SetResearchNode(node, localPlayerInventory);
                 }
                 
                 // 接続線を作成
@@ -65,12 +66,25 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
                 {
                     if (_nodeElements.TryGetValue(node.MasterElement.ResearchNodeGuid, out var element))
                     {
-                        element.SetResearchNode(node);
+                        element.SetResearchNode(node, localPlayerInventory);
                     }
                 }
             }
             
             #endregion
+        }
+
+        public void RefreshConsumeItemHighlights(ILocalPlayerInventory localPlayerInventory)
+        {
+            if (_nodeElements == null)
+            {
+                return;
+            }
+
+            foreach (var nodeElement in _nodeElements.Values)
+            {
+                nodeElement.RefreshConsumeItemHighlight(localPlayerInventory);
+            }
         }
     }
 }
