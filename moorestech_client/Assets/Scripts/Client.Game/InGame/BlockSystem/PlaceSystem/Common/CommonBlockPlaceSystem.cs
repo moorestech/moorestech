@@ -125,14 +125,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             //display preview and get collision with ground
             SetCurrentPlaceInfo();
 
-            // アイテム数が足りないプレビューを設置不可にする（プレビュー色反映のためSetPreviewの前に実行）
-            // Mark preview blocks as not placeable when insufficient items (before SetPreview to reflect color)
-            MarkInsufficientItemPreviewsAsNotPlaceable();
-
             var blockGroundOverlapList = _previewBlockController.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockMaster);
 
-            // Placeableの更新
-            // update placeable
+            // 地面との接触でPlaceableを更新
+            // Update placeable based on ground collision
             for (var i = 0; i < blockGroundOverlapList.Count; i++)
             {
                 // 地面と接触していたら設置不可
@@ -142,6 +138,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                     _currentPlaceInfos[i].Placeable = false;
                 }
             }
+
+            // 地面フィルタ後にアイテム数チェック（地面に埋まったブロックがアイテム枠を消費しないようにする）
+            // Check item count after ground filtering (so ground-blocked cells don't consume item quota)
+            MarkInsufficientItemPreviewsAsNotPlaceable();
+
+            // 最終的なPlaceable状態でプレビュー色を更新
+            // Update preview colors based on the final Placeable state
+            _previewBlockController.UpdatePlaceableColors(_currentPlaceInfos);
             
             // 設置するブロックをサーバーに送信
             // send block place info to server
