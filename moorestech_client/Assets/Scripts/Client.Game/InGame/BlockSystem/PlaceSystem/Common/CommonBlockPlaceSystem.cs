@@ -5,6 +5,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.SoundEffect;
+using Client.Game.InGame.UI.Inventory.Main;
 using Client.Input;
 using Common.Debug;
 using Core.Master;
@@ -24,21 +25,23 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
     {
         private const float PlaceableMaxDistance = 100f;
         private readonly IPlacementPreviewBlockGameObjectController _previewBlockController;
+        private readonly ILocalPlayerInventory _localPlayerInventory;
         private readonly Camera _mainCamera;
         private readonly CommonBlockPlacePointCalculator _blockPlacePointCalculator;
-        
+
         private BlockDirection _currentBlockDirection = BlockDirection.North;
         private Vector3Int? _clickStartPosition;
         private int _clickStartHeightOffset;
         private bool? _isStartZDirection;
         private List<PlaceInfo> _currentPlaceInfos = new();
-        
+
         private int _heightOffset;
-        
-        public CommonBlockPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore)
+
+        public CommonBlockPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory)
         {
             _mainCamera = mainCamera;
             _previewBlockController = previewBlockController;
+            _localPlayerInventory = localPlayerInventory;
             _blockPlacePointCalculator = new CommonBlockPlacePointCalculator(blockGameObjectDataStore);
         }
         
@@ -121,8 +124,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             //プレビュー表示と地面との接触を取得する
             //display preview and get collision with ground
             SetCurrentPlaceInfo();
+
+            // アイテム数が足りないプレビューを設置不可にする（プレビュー色反映のためSetPreviewの前に実行）
+            // Mark preview blocks as not placeable when insufficient items (before SetPreview to reflect color)
+            MarkInsufficientItemPreviewsAsNotPlaceable();
+
             var blockGroundOverlapList = _previewBlockController.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockMaster);
-            
+
             // Placeableの更新
             // update placeable
             for (var i = 0; i < blockGroundOverlapList.Count; i++)
@@ -183,7 +191,28 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 _clickStartPosition = null;
                 SendPlaceProtocol(_currentPlaceInfos, context);
             }
-            
+
+            void MarkInsufficientItemPreviewsAsNotPlaceable()
+            {
+                // インベントリ内の所持数を取得
+                // Get the total count of the holding item in inventory
+                var availableCount = _localPlayerInventory.GetMainInventoryItemCount(context.HoldingItemId);
+
+                // 設置可能なブロック数をカウントし、所持数を超えたら設置不可にする
+                // Count placeable blocks and mark as not placeable when exceeding available count
+                var placeableCount = 0;
+                for (var i = 0; i < _currentPlaceInfos.Count; i++)
+                {
+                    if (!_currentPlaceInfos[i].Placeable) continue;
+
+                    placeableCount++;
+                    if (placeableCount > availableCount)
+                    {
+                        _currentPlaceInfos[i].Placeable = false;
+                    }
+                }
+            }
+
             #endregion
         }
     }
