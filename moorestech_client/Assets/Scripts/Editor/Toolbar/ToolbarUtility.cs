@@ -32,6 +32,9 @@ namespace Client.Editor.Toolbar
     [InitializeOnLoad]
     internal static class ToolbarOverlayPositioner
     {
+        private const string OverlayInitVersionKey = "moorestech_ToolbarOverlayInitVersion";
+        private const int CurrentOverlayInitVersion = 1;
+
         private static bool _positioned;
 
         static ToolbarOverlayPositioner()
@@ -60,6 +63,10 @@ namespace Client.Editor.Toolbar
             var overlayList = (overlaysProp?.GetValue(canvas) as System.Collections.IEnumerable)?.Cast<Overlay>().ToList();
             if (overlayList == null) return;
 
+            // 初回起動時にmoorestechオーバーレイを自動表示する
+            // Auto-show moorestech overlays on first launch
+            AutoShowOverlaysIfNeeded(overlayList);
+
             Overlay playMode = null;
             Overlay timeScale = null;
             Overlay sceneReload = null;
@@ -87,6 +94,34 @@ namespace Client.Editor.Toolbar
 
             _positioned = true;
             EditorApplication.update -= TryPosition;
+        }
+
+        private static void AutoShowOverlaysIfNeeded(System.Collections.Generic.List<Overlay> overlayList)
+        {
+            // バージョンが一致する場合は初期化済みなのでスキップ
+            // Skip if already initialized at current version
+            if (EditorPrefs.GetInt(OverlayInitVersionKey, 0) >= CurrentOverlayInitVersion) return;
+
+            var displayedProp = typeof(Overlay).GetProperty("displayed", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (displayedProp == null) return;
+
+            // moorestech/プレフィックスを持つ全オーバーレイを表示する
+            // Show all overlays with moorestech/ prefix
+            foreach (var overlay in overlayList)
+            {
+                var id = overlay.GetType().GetProperty("id", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)?.GetValue(overlay)?.ToString() ?? "";
+                if (!id.StartsWith("moorestech/")) continue;
+
+                var currentDisplayed = (bool)(displayedProp.GetValue(overlay) ?? false);
+                if (!currentDisplayed)
+                {
+                    displayedProp.SetValue(overlay, true);
+                }
+            }
+
+            // 初期化バージョンを保存（次回以降はスキップ）
+            // Save init version so subsequent launches skip auto-show
+            EditorPrefs.SetInt(OverlayInitVersionKey, CurrentOverlayInitVersion);
         }
     }
 }
