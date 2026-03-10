@@ -2,14 +2,10 @@
 
 const { execSync } = require('child_process');
 const fs = require('fs');
-const path = require('path');
-const os = require('os');
 
-const STATE_FILE = path.join(os.homedir(), '.claude', 'statusline_state.json');
 const USAGE_CACHE_FILE = '/tmp/claude-usage-cache.json';
 const USAGE_CACHE_TTL = 360; // seconds
 const BAR_WIDTH = 20;
-const SPARK_CHARS = '▁▂▃▄▅▆▇█';
 const SESSION_HOURS = 5;
 const AUTOCOMPACT_BUFFER_RATIO = 0.165; // ⛝ Autocompact buffer (~16.5% of context window)
 
@@ -234,67 +230,11 @@ function makeBar(ratio, width) {
     return '█'.repeat(filled) + '▒'.repeat(width - filled);
 }
 
-function loadState() {
-    try {
-        return JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
-    } catch {
-        return {};
-    }
-}
-
-function saveState(state) {
-    try {
-        fs.writeFileSync(STATE_FILE, JSON.stringify(state), 'utf8');
-    } catch {}
-}
-
-// Update per-session state (startTime + token history for sparkline)
-function updateSession(state, sessionId, now, totalTokens) {
-    if (!state.sessions) state.sessions = {};
-
-    const cutoff = now - 24 * 3600000;
-    for (const id of Object.keys(state.sessions)) {
-        if (state.sessions[id].startTime < cutoff) delete state.sessions[id];
-    }
-
-    if (!state.sessions[sessionId]) {
-        state.sessions[sessionId] = { startTime: now, history: [] };
-    }
-
-    const sess = state.sessions[sessionId];
-    const hist = sess.history;
-    if (hist.length === 0 || now - hist[hist.length - 1].t >= 60000) {
-        hist.push({ t: now, tokens: totalTokens });
-        if (hist.length > 20) sess.history = hist.slice(-20);
-    }
-
-    return sess;
-}
-
-// Build sparkline from token-per-minute history
-function makeSparkline(history, width) {
-    if (!history || history.length < 2) return '▁'.repeat(width);
-
-    const rates = [];
-    for (let i = 1; i < history.length; i++) {
-        const dt = (history[i].t - history[i - 1].t) / 60000;
-        const dn = Math.max(0, history[i].tokens - history[i - 1].tokens);
-        rates.push(dt > 0 ? dn / dt : 0);
-    }
-
-    const maxRate = Math.max(...rates, 1);
-    while (rates.length < width) rates.unshift(0);
-    return rates.slice(-width)
-        .map(r => SPARK_CHARS[Math.min(SPARK_CHARS.length - 1, Math.floor((r / maxRate) * SPARK_CHARS.length))])
-        .join('');
-}
-
 function buildStatusLine(data) {
     const now = Date.now();
 
     const model = data.model || {};
     const cwd = data.cwd || process.cwd();
-    const sessionId = data.session_id || 'default';
 
     const ctxWin = data.context_window || {};
     const contextMax = ctxWin.context_window_size || 200000;
@@ -320,34 +260,27 @@ function buildStatusLine(data) {
     const contextRatio  = Math.min(compactTokens / effectiveContextMax, 1);
     const pct2          = apiUsedPct !== null ? Math.min(100, Math.round(apiUsedPct / (1 - AUTOCOMPACT_BUFFER_RATIO))) : Math.round(contextRatio * 100);
 
-    const totalTokens = compactTokens;
+    const rst = '\x1b[0m';
 
-    // スパークライン用セッション追跡
-    // Session tracking for sparkline
-    const state = loadState();
-    const session = updateSession(state, sessionId, now, totalTokens);
-    saveState(state);
+    // 使用率に応じた色付け関数
+    // Color by utilization percentage
+    const colorPct = (pct) => {
+        const c = pct < 40 ? '\x1b[32m' : pct < 60 ? '\x1b[33m' : pct < 80 ? '\x1b[38;5;208m' : '\x1b[31m';
+        return `${c}${pct}%${rst}`;
+    };
 
-    // Line 1: モデル・コンテキスト%・Git・パス・最初のメッセージ
-    // Line 1: Model, context %, git, path, first message
-    const pctColor = pct2 < 40 ? '\x1b[32m'
-                   : pct2 < 60 ? '\x1b[33m'
-                   : pct2 < 80 ? '\x1b[38;5;208m'
-                   :              '\x1b[31m';
     const gitInfo = getGitInfo(cwd);
-    const parts = [`[🤖${formatModel(model)} ${pctColor}${pct2}%\x1b[0m]`];
+    const parts = [`[🤖${formatModel(model)} ${colorPct(pct2)}]`];
     if (gitInfo) parts.push(gitInfo);
     parts.push(`📁 ${cwd}`);
-    if (firstUserMessage) parts.push(`🗣 ${truncate(firstUserMessage, 40)}`);
     const line1 = parts.join(' | ');
 
     // Line 2: コンテキストウィンドウ使用量バー
     // Line 2: Context window usage bar
-    const cacheStr = cacheHitRate >= 1 ? ` ♻️  ${cacheHitRate}% cached` : '';
-    const line2 = `Compact: ${makeBar(contextRatio, BAR_WIDTH)} [${pct2}%] ${formatK(compactTokens)}/${formatK(effectiveContextMax)}${cacheStr}`;
+    const line2 = `Compact: ${makeBar(contextRatio, BAR_WIDTH)} [${colorPct(pct2)}] ${formatK(compactTokens)}/${formatK(effectiveContextMax)}`;
 
     // Line 3: 5hセッション使用率（Anthropic OAuth Usage APIベース）
-    // Line 3: 5h session usage from Anthropic OAuth Usage API, displayed in old Session: format
+    // Line 3: 5h session usage from Anthropic OAuth Usage API
     const sessionMs = SESSION_HOURS * 3600000;
     let line3 = 'Session: fetching...';
     const usage = fetchUsage();
@@ -364,14 +297,15 @@ function buildStatusLine(data) {
 
         const sevenUtil = Math.round(usage.seven_day?.utilization ?? 0);
         const sevenReset = formatResetTime(usage.seven_day?.resets_at);
-        const pct3 = fiveUtil;
-        const sevenStr = sevenReset ? `7d: ${sevenUtil}% (🔄 ${sevenReset})` : `7d: ${sevenUtil}%`;
-        line3 = `Session: ${makeBar(sessionRatio, BAR_WIDTH)} [${pct3}%] ${formatDuration(windowElapsed)}/${SESSION_HOURS}h ${formatHHMM(now)} (${formatHHMM(windowStart)} to ${formatHHMM(windowEnd)}) | ${sevenStr}`;
+        const sevenStr = sevenReset ? `7d: ${colorPct(sevenUtil)} (🔄 ${sevenReset})` : `7d: ${colorPct(sevenUtil)}`;
+        line3 = `Session: ${makeBar(sessionRatio, BAR_WIDTH)} [${colorPct(fiveUtil)}] ${formatDuration(windowElapsed)}/${SESSION_HOURS}h ${formatHHMM(now)} (${formatHHMM(windowStart)} to ${formatHHMM(windowEnd)}) | ${sevenStr}`;
     }
 
-    // Line 4: トークン消費スパークライン
-    // Line 4: Token burn sparkline
-    const line4 = `Burn:    ${makeSparkline(session.history, BAR_WIDTH)} ${formatK(totalTokens)} tokens`;
+    // Line 4: 最初のユーザーメッセージ
+    // Line 4: First user message
+    const line4 = firstUserMessage ? `🗣 ${truncate(firstUserMessage, 40)}` : '';
 
-    return [line1, line2, line3, line4].join('\n');
+    const lines = [line1, line2, line3];
+    if (line4) lines.push(line4);
+    return lines.join('\n');
 }
