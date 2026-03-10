@@ -322,7 +322,7 @@
       "dependencies": {
         "com.unity.nuget.newtonsoft-json": "3.2.1"
       },
-      "hash": "f3cbd89e8e9f27f71f2b3fa05a8e6cc5877d0328"
+      "hash": "7997587a268c382061f93d21fcee5bbe4d221d73"
     },
     "org.nuget.microsoft.codeanalysis.analyzers": {
       "version": "3.11.0",

@@ -461,7 +461,7 @@
       "dependencies": {
         "com.unity.nuget.newtonsoft-json": "3.2.1"
       },
-      "hash": "ac5c3e34848ede292ff463ddf2dba0f795d779f5"
+      "hash": "7997587a268c382061f93d21fcee5bbe4d221d73"
     },
     "jp.co.cyberagent.smartaddresser": {
       "version": "https://github.com/CyberAgentGameEntertainment/SmartAddresser.git?path=/Assets/SmartAddresser",

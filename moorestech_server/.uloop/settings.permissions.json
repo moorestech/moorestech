@@ -1,0 +1,6 @@
+{
+    "enableTestsExecution": true,
+    "allowMenuItemExecution": true,
+    "allowThirdPartyTools": true,
+    "dynamicCodeSecurityLevel": 2
+}
