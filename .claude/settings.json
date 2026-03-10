@@ -1,3 +1,7 @@
 {
-  "enabledPlugins": {}
+  "enabledPlugins": {},
+  "statusLine": {
+    "type": "command",
+    "command": "node .claude/statusline.jsc"
+  }
 }

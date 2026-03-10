@@ -77,22 +77,22 @@ EditModeInPlayingTest等のPlayMode遷移テストはドメインリロードを
 
 ## コンパイル
 | | uLoop CLI（通常環境のみ） | シェル（worktree必須） |
-| サーバー | `uloop compile --port 56901` | `./tools/unity-test.sh moorestech_server "^$"` |
-| クライアント | `uloop compile --port 56902` | `./tools/unity-test.sh moorestech_client "^$" isGui` |
+| サーバー | `uloop compile --project-path ./moorestech_server` | `./tools/unity-test.sh moorestech_server "^$"` |
+| クライアント | `uloop compile --project-path ./moorestech_client` | `./tools/unity-test.sh moorestech_client "^$" isGui` |
 
 ## テスト
 基本的に`--filter-type regex`で実行対象を限定すること。
 
 | | uLoop CLI（通常環境のみ） | シェル（worktree必須） |
-| サーバー | `uloop run-tests --port 56901 --filter-type regex --filter-value "正規表現"` | `./tools/unity-test.sh moorestech_server "正規表現"` |
-| クライアント | `uloop run-tests --port 56902 --filter-type regex --filter-value "正規表現"` | `./tools/unity-test.sh moorestech_client "正規表現" isGui` |
+| サーバー | `uloop run-tests --project-path ./moorestech_server --filter-type regex --filter-value "正規表現"` | `./tools/unity-test.sh moorestech_server "正規表現"` |
+| クライアント | `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "正規表現"` | `./tools/unity-test.sh moorestech_client "正規表現" isGui` |
 
 - クライアント側シェル実行時は`isGui`オプション必須（バッチモードでは不安定）
 
 ## ログ確認（通常環境のみ）
 | | コマンド |
-| サーバー | `uloop get-logs --port 56901 --log-type Error` |
-| クライアント | `uloop get-logs --port 56902 --log-type Error` |
+| サーバー | `uloop get-logs --project-path ./moorestech_server --log-type Error` |
+| クライアント | `uloop get-logs --project-path ./moorestech_client --log-type Error` |
 
 # Objectシングルトンパターン
 GameObjectはシーン/Prefabに事前配置前提とし、Awakeで_instanceを設定。Instanceプロパティでの動的生成は禁止

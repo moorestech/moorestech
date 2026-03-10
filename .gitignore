@@ -9,7 +9,6 @@
 /moorestech_*/[Bb]uilds/
 /moorestech_*/[Ll]ogs/
 /moorestech_*/[Uu]ser[Ss]ettings/*
-!/moorestech_*/[Uu]ser[Ss]ettings/UnityMcpSettings.json
 
 # Addresabble
 /moorestech_*/[Aa]ssets/AddressableAssetsData/link.xml*
@@ -108,3 +107,5 @@ moorestech_client/.vscode/settings.json
 **/node_modules/
 **/package-lock.json
 
+moorestech_client/UserSettings/UnityMcpSettings.json
+moorestech_server/UserSettings/UnityMcpSettings.json
