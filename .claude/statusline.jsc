@@ -60,7 +60,6 @@ function getGitInfo(cwd) {
         }
 
         let s = `🌿 ${branch}`;
-        if (modified > 0) s += ` M${modified}`;
         if (untracked > 0) s += ` +${untracked}`;
         return s;
     } catch {
@@ -284,9 +283,9 @@ function buildStatusLine(data) {
         const windowElapsed = Math.max(0, Math.min(now - windowStart, sessionMs));
 
         const sevenUtil = Math.round(usage.seven_day?.utilization ?? 0);
-        const sevenReset = formatResetTime(usage.seven_day?.resets_at);
-        const sevenStr = sevenReset ? `7d: ${colorPct(sevenUtil)} (🔄 ${sevenReset})` : `7d: ${colorPct(sevenUtil)}`;
-        line3 = `Session: ${makeBar(sessionRatio, BAR_WIDTH)} [${colorPct(fiveUtil)}] ${formatDuration(windowElapsed)}/${SESSION_HOURS}h ${formatHHMM(now)} (${formatHHMM(windowStart)} to ${formatHHMM(windowEnd)}) | ${sevenStr}`;
+        const sevenResetsAt = usage.seven_day?.resets_at ? new Date(usage.seven_day.resets_at) : null;
+        const sevenDaysElapsed = sevenResetsAt ? Math.max(0, Math.min(7, Math.ceil(7 - (sevenResetsAt.getTime() - now) / 86400000))) : '?';
+        line3 = `Session: ${makeBar(sessionRatio, BAR_WIDTH)} [${colorPct(fiveUtil)}] ${formatDuration(windowElapsed)}/${SESSION_HOURS}h | [${colorPct(sevenUtil)}] ${sevenDaysElapsed}/7d`;
     }
 
     // Line 4: 最初のユーザーメッセージ
