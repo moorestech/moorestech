@@ -46,7 +46,7 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
                             return;
                         }
                         
-                        if (!CanTransfer(Container, targetContainer))
+                        if (!CanTransfer(targetContainer, Container))
                         {
                             _dockingComponent.StartRetracting();
                             return;
@@ -75,8 +75,8 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
                             _dockingComponent.StartRetracting();
                             return;
                         }
-                        
-                        if (!CanTransfer(targetContainer, Container))
+
+                        if (!CanTransfer(Container, targetContainer))
                         {
                             _dockingComponent.StartRetracting();
                             return;
