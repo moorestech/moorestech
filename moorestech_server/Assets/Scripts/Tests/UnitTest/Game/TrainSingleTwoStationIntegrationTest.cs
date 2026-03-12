@@ -63,11 +63,9 @@ namespace Tests.UnitTest.Game
                 "積込プラットフォームのインベントリコンポーネントが見つかりません。");
             Assert.IsTrue(unloadingBlock.ComponentManager.TryGetComponent<TrainPlatformItemContainerComponent>(out var unloadingContainer),
                 "荷降ろしプラットフォームのインベントリコンポーネントが見つかりません。");
-            var loadingItemContainer = loadingContainer.Container;
-            var unloadingItemContainer = unloadingContainer.Container;
             
-            Assert.IsNotNull(loadingItemContainer);
-            Assert.IsNotNull(unloadingItemContainer);
+            Assert.IsNull(loadingContainer.Container);
+            Assert.IsNull(unloadingContainer.Container);
             
             var loaderTrainPlatformTransfer = loadingBlock.GetComponent<TrainPlatformTransferComponent>();
             var unloaderTrainPlatformTransfer = unloadingBlock.GetComponent<TrainPlatformTransferComponent>();
@@ -76,8 +74,8 @@ namespace Tests.UnitTest.Game
 
             var itemMaster = MasterHolder.ItemMaster.GetItemMaster(ForUnitTestItemId.ItemId1);
             var maxStack = itemMaster.MaxStack;
-            loadingItemContainer.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, maxStack));
-            unloadingItemContainer.SetItem(0, ServerContext.ItemStackFactory.CreatEmpty());
+            loadingContainer.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, maxStack));
+            unloadingContainer.SetItem(0, ServerContext.ItemStackFactory.CreatEmpty());
 
             loaderTrainPlatformTransfer.SetMode(TrainPlatformTransferComponent.TransferMode.LoadToTrain);
             unloaderTrainPlatformTransfer.SetMode(TrainPlatformTransferComponent.TransferMode.LoadToTrain);
@@ -117,7 +115,7 @@ namespace Tests.UnitTest.Game
             AdvanceUntil(trainUnit, tickCargoArms, () => trainCar.IsInventoryFull(), maxIterations: maxStack * 4,
                 "積込プラットフォームにドッキング中に列車インベントリが満杯になりませんでした");
 
-            var depletedStack = loadingItemContainer.InventoryItems[0];
+            var depletedStack = loadingContainer.Container!.InventoryItems[0];
             Assert.AreEqual(ItemMaster.EmptyItemId, depletedStack.Stack.Id, "積込プラットフォームが列車へ全量を移送できていません。");
 
             AdvanceUntil(trainUnit, tickCargoArms, () => !trainUnit.trainUnitStationDocking.IsDocked, maxIterations: 120,
@@ -131,7 +129,7 @@ namespace Tests.UnitTest.Game
             AdvanceUntil(trainUnit, tickCargoArms, () => trainCar.IsInventoryEmpty(), maxIterations: maxStack * 4,
                 "荷降ろしプラットフォームにドッキング中に列車インベントリが空になりませんでした");
 
-            var receivedStack = unloadingItemContainer.InventoryItems[0];
+            var receivedStack = unloadingContainer.Container!.InventoryItems[0];
             Assert.AreEqual(ForUnitTestItemId.ItemId1, receivedStack.Stack.Id, "荷降ろしプラットフォームが輸送アイテムを受け取っていません。");
             Assert.AreEqual(maxStack, receivedStack.Stack.Count,
                 "荷降ろしプラットフォームが列車から全量を受け取っていません。");

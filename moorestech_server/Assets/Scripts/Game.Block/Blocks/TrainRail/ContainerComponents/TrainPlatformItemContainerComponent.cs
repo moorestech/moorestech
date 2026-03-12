@@ -1,4 +1,5 @@
 using System;
+using Core.Item.Interface;
 using Game.Block.Interface.Component;
 using Game.Train.Unit.Containers;
 using JetBrains.Annotations;
@@ -94,6 +95,13 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
                     throw new ArgumentOutOfRangeException();
             }
         }
+        
+        public void SetItem(int slot, IItemStack stack)
+        {
+            if (Container == null) Container = ItemTrainCarContainer.CreateWithEmptySlots(_slotsCount);
+            
+            Container!.SetItem(slot, stack);
+        } 
         
         private bool IsTargetContainer(out ItemTrainCarContainer trainCarContainer)
         {
