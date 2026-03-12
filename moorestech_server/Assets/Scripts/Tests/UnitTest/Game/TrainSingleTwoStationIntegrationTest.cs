@@ -78,7 +78,7 @@ namespace Tests.UnitTest.Game
             unloadingContainer.SetItem(0, ServerContext.ItemStackFactory.CreatEmpty());
 
             loaderTrainPlatformTransfer.SetMode(TrainPlatformTransferComponent.TransferMode.LoadToTrain);
-            unloaderTrainPlatformTransfer.SetMode(TrainPlatformTransferComponent.TransferMode.LoadToTrain);
+            unloaderTrainPlatformTransfer.SetMode(TrainPlatformTransferComponent.TransferMode.UnloadToPlatform);
 
             Action tickCargoArms = () =>
             {
