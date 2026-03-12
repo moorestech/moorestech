@@ -1,112 +1,69 @@
 ---
 name: train-rail-event-implementation
-description: Implement and modify train/rail network events with unified chronological ordering and current snapshot-sync policy. Use when adding or changing server/client event packets, MessagePack payloads, or handlers for train and rail systems, including TrainUnit/TrainCar updates that must follow per-unit snapshot notification.
+description: Implement and modify train/rail event tags, payload schemas, server emit paths, and client handlers under unified TickUnifiedId ordering and per-TrainUnit snapshot boundaries. Use when adding or changing `va:event:*` behavior.
 ---
 
 # Train/Rail Event Implementation (Unified Tick + Snapshot Policy)
 
 ## Overview
-
-The current architecture uses one unified chronological stream keyed by `TickUnifiedId`:
-
-- Tick simulation trigger: `va:event:trainUnitTickDiffBundle`
-- TrainUnit/TrainCar structure sync: `va:event:trainUnitSnapshot` (single unit upsert/delete)
-- Rail graph diffs: node/connection created/removed events
-
-Do not introduce new TrainCar-only event packets for normal feature work. Train composition changes are synchronized by per-unit snapshot events.
+Use this skill when changing train/rail event contracts and handler wiring under unified ordering.
 
 ## Reuse-First Rule
-
-- Before creating new event-side helper logic, search existing train/rail implementations first.
-- Prefer reusing `Game.Train` domain logic rather than re-implementing similar logic in event handlers.
-- If a new duplicate helper is unavoidable, document `WHY_NEW_IMPLEMENTATION` in code/PR notes.
+- Before adding new event-side helpers, search existing train/rail event implementations first.
+- Prefer reusing domain logic in `Game.Train` over re-implementing logic in handlers.
+- If duplication is unavoidable, record `WHY_NEW_IMPLEMENTATION` in code/PR notes.
 - Recommended pre-check:
-  - `rg --line-number "TickUnifiedId|NextTickSequenceId|Overlap|CreateIndex|HasOverlap" moorestech_client/Assets/Scripts moorestech_server/Assets/Scripts`
+  - `rg --line-number "TickUnifiedId|NextTickSequenceId|TrainUnitSnapshot|TickDiffBundle" moorestech_client/Assets/Scripts moorestech_server/Assets/Scripts`
 
 ## Core Concepts
 
-### 1. TickUnifiedId
-- A 64-bit value: `((ulong)ServerTick << 32) | TickSequenceId`.
-- `ServerTick`: The cumulative game tick count (20Hz).
-- `TickSequenceId`: A monotonic, continuous sequence number within a tick, allocated via `_trainUpdateService.NextTickSequenceId()`.
+### 1) Unified ordering key
+- `TickUnifiedId = ((ulong)ServerTick << 32) | TickSequenceId`.
+- `TickSequenceId` is server-allocated and per-tick monotonic.
 
-### 2. Unified Event Queue
-- All events are enqueued into `TrainUnitFutureMessageBuffer` via `EnqueueEvent`.
-- Events are wrapped in `ITrainTickBufferedEvent` which has a single `Apply()` method.
-- The client simulator flushes in order and advances tick through hash gating when no next event is present.
+### 2) Unified event queue
+- Client handlers enqueue events into `TrainUnitFutureMessageBuffer`.
+- Buffered events apply by unified id order.
 
-### 3. Snapshot-First Train Sync
-- Server-side TrainUnit/TrainCar structural changes (place/attach/remove/split/merge/delete) are synchronized through `ITrainUnitSnapshotNotifyEvent`.
-- `TrainUnitSnapshotEventPacket` converts notify data into `TrainUnitSnapshotEventMessagePack` and broadcasts `va:event:trainUnitSnapshot`.
-- The payload always represents one TrainUnit (`IsDeleted` tombstone or full bundle snapshot).
-- Full all-unit snapshots are fetched via `GetTrainUnitSnapshotsProtocol` for handshake/resync.
+### 3) Snapshot-first train sync
+- Structural TrainUnit/TrainCar changes use `va:event:trainUnitSnapshot` (upsert/delete).
+- Full-unit resync uses `va:getTrainUnitSnapshots`.
 
-### 4. TickDiffBundle Role
-- `va:event:trainUnitTickDiffBundle` carries hash and per-tick diffs.
-- Client apply behavior:
-  - apply per-train pre-sim diffs (`MasconLevelDiff`, docking zero flag, approaching node diff)
-  - run `Update()` for all client train units
-- `Diffs[]` can be empty; event still acts as simulation trigger.
+### 4) TickDiffBundle role
+- `va:event:trainUnitTickDiffBundle` transports hash + per-tick diffs and drives simulation timing.
+- `Diffs[]` can be empty and still acts as simulation trigger.
 
-## Emission Patterns (Current)
+## Emission Patterns
 
 ### A. Tick simulation path
-1. `TrainUpdateService` emits hash state for tick `n`.
-2. Service increments tick to `n+1`, resets per-tick sequence counter, runs server simulation.
-3. Service emits pre-simulation diff event for tick `n+1`.
-4. `TrainUnitTickDiffBundleEventPacket` combines hash(`n`) + diff(`n+1`) and broadcasts bundle.
+1. Server emits hash state.
+2. Server advances tick, resets sequence, runs simulation.
+3. Server emits pre-sim diff signal.
+4. Tick diff bundle packet broadcasts ordered hash/diff payload.
 
 ### B. Train structure change path
-1. Domain/protocol mutates trains (e.g., place/attach/remove car).
-2. Call `NotifySnapshot(train)` or `NotifyDeleted(trainId)` on `ITrainUnitSnapshotNotifyEvent`.
-3. `TrainUnitSnapshotEventPacket` allocates `TickSequenceId` and broadcasts one-unit snapshot event.
+1. Domain/protocol mutates train state.
+2. Server emits per-unit snapshot notify (`NotifySnapshot`/`NotifyDeleted`).
+3. Snapshot packet broadcasts `va:event:trainUnitSnapshot`.
 
 ### C. Rail graph change path
-- Rail node/connection packets allocate `TickSequenceId` and broadcast diff events.
+- Rail node/connection packets allocate `TickSequenceId` and broadcast ordered diff events.
 
 ## Implementation Rules
 
 ### Server-side
-1. Allocate sequence IDs only through `_trainUpdateService.NextTickSequenceId()`.
-2. Every train/rail broadcast event must carry `ServerTick` and `TickSequenceId`.
-3. For TrainUnit/TrainCar structural sync, prefer `NotifySnapshot`/`NotifyDeleted` instead of defining new event tags.
-4. When adding new sync fields to TrainUnit/TrainCar state, update snapshot factory and message packs, not only diff bundle.
+1. Allocate sequence IDs only via `TrainUpdateService.NextTickSequenceId()`.
+2. Every train/rail event carries `ServerTick` and sequence ID.
+3. Train composition changes should prefer snapshot notify path over new ad-hoc car events.
 
 ### Client-side
-1. Enqueue all event payloads to `TrainUnitFutureMessageBuffer`; do not apply immediately in handlers.
-2. Snapshot event handlers must apply upsert/delete at buffered tick and reconcile train-car visuals.
-3. TickDiffBundle handlers must keep current semantics (pre-sim diff apply + full unit update).
-
-## Existing Event Types (Reference)
-
-- `va:event:trainUnitTickDiffBundle`
-  - Purpose: hash gate input + simulation trigger.
-  - Apply: per-unit diff apply, then `Update()` all local units.
-- `va:event:trainUnitSnapshot`
-  - Purpose: TrainUnit/TrainCar structural synchronization.
-  - Apply: per-unit upsert/delete in cache + TrainCar object reconciliation.
+1. Handlers enqueue events, do not apply immediately.
+2. Snapshot handlers apply upsert/delete at buffered tick and reconcile train/car visuals.
+3. TickDiffBundle handler preserves current semantics: pre-sim diff apply + local simulation update.
 
 ## Implementation Checklist
-
-1. Decide path:
-   - TrainUnit/TrainCar structure change -> snapshot notify path.
-   - Tick inputs/hash/simulation trigger -> tick diff bundle path.
-   - Rail topology diff -> rail node/connection path.
-2. Ensure payload has `ServerTick` + `TickSequenceId`.
-3. Ensure client handler only enqueues buffered events.
-4. If TrainUnit/TrainCar data shape changed:
-   - update `TrainUnitSnapshotFactory`
-   - update `TrainUnitSnapshotMessagePack` model mapping
-   - update client cache/snapshot application and hash consistency checks
-5. Verify ordering with `TickUnifiedId`.
-
-## Key Files
-
-- `moorestech_server/Assets/Scripts/Game.Train/Unit/TrainUpdateService.cs`
-- `moorestech_server/Assets/Scripts/Game.Train/Event/TrainUnitSnapshotNotifyEvent.cs`
-- `moorestech_server/Assets/Scripts/Server.Event/EventReceive/TrainUnitTickDiffBundleEventPacket.cs`
-- `moorestech_server/Assets/Scripts/Server.Event/EventReceive/TrainUnitSnapshotEventPacket.cs`
-- `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Network/TrainUnitFutureMessageBuffer.cs`
-- `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Unit/TrainUnitClientSimulator.cs`
-- `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Network/TrainUnitTickDiffBundleEventNetworkHandler.cs`
-- `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Network/TrainUnitSnapshotEventNetworkHandler.cs`
+1. Choose correct path (tick bundle, snapshot, rail diff).
+2. Keep ordering fields in payload and on apply path.
+3. Keep stale-event protection for destructive operations.
+4. If state shape changes, update packet mapping + client apply + tests.
+5. Verify unified-id ordering behavior with relevant tests.

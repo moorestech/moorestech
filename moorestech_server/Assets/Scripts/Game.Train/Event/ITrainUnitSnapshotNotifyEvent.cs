@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Game.Train.Unit;
 
 namespace Game.Train.Event
@@ -12,6 +11,5 @@ namespace Game.Train.Event
 
         void NotifySnapshot(TrainUnit trainUnit);
         void NotifyDeleted(TrainInstanceId trainInstanceId);
-        void NotifyChangedByBeforeAfter(IReadOnlyList<TrainUnit> beforeTrains, IReadOnlyList<TrainUnit> afterTrains);
     }
 }

@@ -1,106 +1,54 @@
 ---
 name: train-system-notes
-description: Apply core train system invariants for rail graph topology, front/back node semantics, rail position ordering, docking references, train reverse behavior, deterministic distance handling, and TrainUnit snapshot-based synchronization boundaries. Use when implementing or debugging fundamental train movement, topology, or train state consistency logic.
+description: Apply core train invariants for rail graph topology, front/back node semantics, rail position ordering, docking references, reverse behavior, deterministic distance handling, and TrainUnit snapshot boundaries. Use when implementing or debugging train movement/topology consistency and directional rail semantics.
 ---
 
 # Train System Notes
 
 ## Overview
-
 Use this skill as a guardrail for train fundamentals and deterministic behavior.
 
 ## Reuse-First Rule
-
-- Before adding new rail/train algorithm helpers, search existing implementations first.
-- Prefer `Game.Train` canonical logic (for example overlap detection) instead of client-local duplication.
-- If duplication is unavoidable, document `WHY_NEW_IMPLEMENTATION` in code/PR notes.
+- Before adding rail/train algorithm helpers, search existing implementations first.
+- Prefer canonical `Game.Train` logic over client-local duplication.
+- If duplication is unavoidable, record `WHY_NEW_IMPLEMENTATION` in code/PR notes.
 - Recommended pre-check:
-  - `rg --line-number "RailPositionOverlapDetector|Overlap|CreateIndex|HasOverlap|RailPosition" moorestech_client/Assets/Scripts moorestech_server/Assets/Scripts`
+  - `rg --line-number "RailPosition|OppositeNode|TrainUnit\.Reverse|Dock|Overlap" moorestech_client/Assets/Scripts moorestech_server/Assets/Scripts`
 
 ## Core Invariants
-
-- Build train tests with deterministic setup (`TrainTestHelper.CreateEnvironment`) and reset singleton state between scenarios.
-- Trust docking handles (`ITrainDockHandle`) as source of truth for docking state, not local cache alone.
-- Reverse train direction with `TrainUnit.Reverse()`. Do not reverse only `RailPosition`, because car orientation and traction consistency break.
-- Keep rail-node distance as fixed integer values. Avoid float persistence for node distance because save/load reproducibility degrades.
+- Treat `TrainUnit` as composition and synchronization boundary.
+- Reverse train direction with `TrainUnit.Reverse()`, not by mutating only `RailPosition`.
+- Keep deterministic distance handling (integer-based persisted distances).
+- Treat docking handles as source of truth for docking state.
 
 ## Train Sync Invariants
+- Structural TrainUnit/TrainCar changes should flow through per-unit snapshot notify path.
+- Deletion should clear both cache state and visual/car representation on apply.
+- Full snapshot API remains canonical recovery path on mismatch/resync.
 
-- Treat a TrainUnit as the network synchronization boundary for train composition/state.
-- TrainUnit/TrainCar structural changes must be propagated via per-unit snapshot notify path (`NotifySnapshot` / `NotifyDeleted`), not ad-hoc per-car event diffs.
-- Deletion uses tombstone semantics (`IsDeleted`) and must clear cache + TrainCar visuals on the same buffered tick.
-- Full snapshot API (`GetTrainUnitSnapshots`) is the canonical recovery path on hash mismatch/resync.
-
-## Test Setup Rules
-
-- Build deterministic test worlds via `TrainTestHelper.CreateEnvironment()`.
-- Place rails/stations with test helpers and `ForUnitTestModBlockId` identifiers.
-- Advance simulation by explicit tick loops and keep loop guards to prevent infinite test hangs.
-- Before cross-scenario save/load checks, clear singleton state (`RailGraphDatastore` and related global stores) to avoid leaked state.
-
-## Debug Visualization
-
-- For editor/dev diagnostics, snapshot current graph structure via `IRailGraphDatastore.CaptureSnapshot(...)`.
-- Serialize snapshots and inspect node/edge payloads (`nodes` / `edges`) when validating topology mutations.
-
-## Docking and Handle Rules
-
-- Validate docking behavior through docking handles (`ITrainDockHandle`) rather than only local train caches.
-- Keep docking/tick behavior consistent with the event phase rules in `train-rail-event-implementation`.
-
-## TrainCar Direction and Traction
-
-- Backward-facing cars keep weight but do not generate traction.
-- Persist direction through `TrainCarSaveData.IsFacingForward`.
-- Current restore path reads `IsFacingForward` directly; no legacy-missing fallback is applied.
-- If save-data schema migration is needed, add explicit migration logic instead of relying on implicit defaults.
-- Snapshot serialization must preserve `TrainCarMasterId`, `IsFacingForward`, inventory slot count, and traction-related fields consistently with runtime behavior.
-
-## Rail Graph Model
-
-- Each `RailComponent` owns `FrontNode` and `BackNode` as opposite pairs.
-- Treat `FrontNode` and `BackNode` as paired directional endpoints (`OppositeNode`) inside one component.
-- A simple rail block (`VanillaTrainRailTemplate`) has 1 rail component (2 directional nodes).
-- Station/Cargo blocks (`VanillaTrainStationTemplate` / `VanillaTrainCargoTemplate`) have 2 rail components (4 directional nodes).
-- The graph is directional at node level.
-- Connection APIs use the selected source node (`FrontNode` or `BackNode`) as directed-edge start.
-- A connection like `front(A) -> front(B)` implies reverse-path mapping through opposite nodes (`back(B) -> back(A)`), not a duplicated manual bidirectional edge.
-- Avoid forcing symmetric edge wiring by manual duplicate connect calls; it breaks front/back correspondence and station path semantics.
-- Disconnection/distance helpers are also front/back-sensitive; wrong side selection leaves stale reverse edges.
-
-## Station and Loop Cautions
-
-- Station/cargo components auto-generate entry/exit directed edges on placement.
-- Station-like components should be modeled as `front/back x entry/exit` node pairs.
-- Standard station-side pairing is directional: front side handles `Entry -> Exit`, back side handles reverse route pairing.
-- Do not manually duplicate station entry/exit edge wiring in tests; it can double-count distances.
-- Loop routes require explicit return connection wiring; otherwise forward/backward paths become disconnected.
-- Diagram entries for station operations should use station exit-side nodes consistently.
+## Rail Graph Model Invariants
+- Each rail component has directional endpoints (`FrontNode`/`BackNode`) as opposite pairs.
+- Front/back semantics are directional graph semantics, not cosmetic naming.
+- Avoid ad-hoc symmetric edge duplication that breaks opposite-node meaning.
 
 ## Rail Position Rules
+- Node ordering is semantic and must match traversal assumptions.
+- Validate adjacency in direction-aware way before constructing paths.
+- Add assertions/tests that catch invalid order early.
+- Verify forward and reverse reachability in deterministic scenarios.
 
-- `RailPosition` ordering is not arbitrary: lower index means closer to train-front side in this model.
-- `RailPosition` node list ordering must satisfy distance traversal expectations in `RailNodeCalculate`.
-- `RailNodeCalculate.CalculateTotalDistance` evaluates adjacency as `railNodes[i + 1].GetDistanceToNode(railNodes[i])`.
-- Because of this, a naively "travel-order" list can be reversed for distance calculation and return `-1`.
-- Validate adjacency explicitly before building position paths, especially for round-trip and loop scenarios.
-- Validate all adjacent pairs with `next.GetDistanceToNode(current) >= 0` before creating `RailPosition`.
-- Do not split helper methods unless input contract or behavior truly differs; prefer one minimal path-building helper over semantic-only wrappers.
-- Add assertions that catch incorrect node order early for both forward and return direction checks.
-- For runtime movement expectations, also verify forward reachability separately with `current.GetDistanceToNode(next) > 0`.
-- For docking-oriented initial placement, keep the departure station exit-side node first and paired entry-side node next.
-- Verify segment reachability with direction-aware checks such as `next.GetDistanceToNode(current)` where needed.
+## Station and Docking Notes
+- Keep station/cargo node pairing consistent with directional routing semantics.
+- Avoid duplicate manual station edge wiring in tests.
+- Restore docking links after train registration in save/load flow.
 
-## Terminology
-
-- `Front` / `Back`: directional graph semantics, not merely world-geometry front/back.
-- `OppositeNode`: paired reverse-direction node inside the same rail component.
-- `ConnectionDestination`: serializable endpoint identity (`blockPosition`, `componentIndex`, `isFront`) that maps 1:1 to a concrete `IRailNode` in the restored rail graph.
-- Treat `ConnectionDestination` as the canonical node key in save/load boundaries. Avoid ad-hoc node identity reconstruction outside this mapping contract.
+## TrainCar Direction and Traction
+- Backward-facing cars keep weight but do not produce traction.
+- Preserve orientation via `IsFacingForward` through save/load and snapshot paths.
+- If schema migration is needed, implement explicit migration logic.
 
 ## Workflow
-
-1. Extract applicable invariants from this skill before coding.
-2. Encode those invariants as tests or assertions.
-3. Implement the change.
-4. Re-run related train tests and verify determinism.
+1. Extract applicable invariants before editing.
+2. Encode invariants as tests/assertions.
+3. Implement change.
+4. Re-run relevant deterministic train tests.

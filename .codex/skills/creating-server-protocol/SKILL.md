@@ -188,3 +188,4 @@ MCPツールまたは`unity-test.sh`でコンパイルを確認。
 - `[Obsolete]`付き引数なしコンストラクタは省略不可
 - イベント購読はUniRxの`.Subscribe()`を使用（`/csharp-event-pattern`参照）
 - コードのコメントは日本語・英語の2行セット
+
