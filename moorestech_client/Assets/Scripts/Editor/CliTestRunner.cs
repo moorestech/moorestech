@@ -119,6 +119,7 @@ public static class CliTestRunner
                 api.Execute(new ExecutionSettings
                 {
                     filters          = new[] { execFilter },
+                    runSynchronously = true,
                 });
             });
     }

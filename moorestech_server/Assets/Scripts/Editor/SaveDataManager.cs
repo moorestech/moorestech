@@ -13,16 +13,18 @@ public class SaveDataManager : EditorWindow
         private Label previewLabel;
         private int fileCount;
         private string dateString;
+        private bool deleteAfterBackup;
 
         public string Result { get; private set; }
         public bool Confirmed { get; private set; }
 
-        public static BackupNameDialog ShowDialog(int fileCount)
+        public static BackupNameDialog ShowDialog(int fileCount, bool deleteAfterBackup)
         {
             var window = CreateInstance<BackupNameDialog>();
             window.fileCount = fileCount;
             window.dateString = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-            window.titleContent = new GUIContent("Backup & Delete");
+            window.deleteAfterBackup = deleteAfterBackup;
+            window.titleContent = new GUIContent(deleteAfterBackup ? "Backup & Delete" : "Backup");
             window.minSize = new Vector2(450, 220);
             window.maxSize = new Vector2(450, 220);
             window.ShowModalUtility();
@@ -36,7 +38,8 @@ public class SaveDataManager : EditorWindow
             rootVisualElement.style.paddingLeft = 15;
             rootVisualElement.style.paddingRight = 15;
 
-            var message = new Label($"Backup and delete {fileCount} save file(s)?");
+            var actionText = deleteAfterBackup ? "Backup and delete" : "Backup";
+            var message = new Label($"{actionText} {fileCount} save file(s)?");
             message.style.marginBottom = 15;
             message.style.whiteSpace = WhiteSpace.Normal;
             rootVisualElement.Add(message);
@@ -71,15 +74,18 @@ public class SaveDataManager : EditorWindow
             cancelButton.style.height = 30;
             cancelButton.style.marginRight = 5;
 
+            var okButtonText = deleteAfterBackup ? "Backup & Delete" : "Backup";
             var okButton = new Button(() => {
                 Confirmed = true;
                 var description = descriptionField.value;
                 Result = string.IsNullOrEmpty(description) ? dateString : $"{dateString}_{description}";
                 Close();
-            }) { text = "Backup & Delete" };
+            }) { text = okButtonText };
             okButton.style.width = 130;
             okButton.style.height = 30;
-            okButton.style.backgroundColor = new Color(1.0f, 0.6f, 0.0f);
+            okButton.style.backgroundColor = deleteAfterBackup
+                ? new Color(1.0f, 0.6f, 0.0f)
+                : new Color(0.2f, 0.6f, 0.9f);
 
             buttonContainer.Add(cancelButton);
             buttonContainer.Add(okButton);
@@ -135,12 +141,15 @@ public class SaveDataManager : EditorWindow
         buttonContainer.style.marginBottom = 10;
 
         var openFolderButton = CreateButton("Open Save Folder", OpenSaveFolder);
+        var backupOnlyButton = CreateButton("Backup Save Data", BackupSaveData);
+        backupOnlyButton.style.backgroundColor = new Color(0.2f, 0.6f, 0.9f);
         var backupAndDeleteButton = CreateButton("Backup & Delete Save Data", BackupAndDeleteSaveData);
         backupAndDeleteButton.style.backgroundColor = new Color(1.0f, 0.6f, 0.0f);
         var deleteButton = CreateButton("Delete Save Data", DeleteSaveData);
         deleteButton.style.backgroundColor = new Color(0.8f, 0.2f, 0.2f);
 
         buttonContainer.Add(openFolderButton);
+        buttonContainer.Add(backupOnlyButton);
         buttonContainer.Add(backupAndDeleteButton);
         buttonContainer.Add(deleteButton);
 
@@ -212,12 +221,54 @@ public class SaveDataManager : EditorWindow
             return;
         }
 
-        var dialog = BackupNameDialog.ShowDialog(files.Length);
+        var dialog = BackupNameDialog.ShowDialog(files.Length, true);
         if (!dialog.Confirmed) return;
 
         var backupFolderName = $"Backup_{dialog.Result}";
         var backupPath = Path.Combine(saveDirectory, backupFolderName);
 
+        CopyFilesToBackup(files, backupPath);
+        DeleteAllFiles(saveDirectory);
+
+        EditorUtility.DisplayDialog(
+            "Success",
+            $"Backed up and deleted {files.Length} file(s).\n\nBackup location:\n{backupFolderName}",
+            "OK");
+    }
+
+    private void BackupSaveData()
+    {
+        var saveDirectory = GameSystemPaths.SaveFileDirectory;
+
+        if (!Directory.Exists(saveDirectory))
+        {
+            EditorUtility.DisplayDialog("Info", "Save directory does not exist.", "OK");
+            return;
+        }
+
+        var files = Directory.GetFiles(saveDirectory);
+        if (files.Length == 0)
+        {
+            EditorUtility.DisplayDialog("Info", "No save data found.", "OK");
+            return;
+        }
+
+        var dialog = BackupNameDialog.ShowDialog(files.Length, false);
+        if (!dialog.Confirmed) return;
+
+        var backupFolderName = $"Backup_{dialog.Result}";
+        var backupPath = Path.Combine(saveDirectory, backupFolderName);
+
+        CopyFilesToBackup(files, backupPath);
+
+        EditorUtility.DisplayDialog(
+            "Success",
+            $"Backed up {files.Length} file(s).\n\nBackup location:\n{backupFolderName}",
+            "OK");
+    }
+
+    private void CopyFilesToBackup(string[] files, string backupPath)
+    {
         Directory.CreateDirectory(backupPath);
 
         foreach (var file in files)
@@ -226,13 +277,6 @@ public class SaveDataManager : EditorWindow
             var destPath = Path.Combine(backupPath, fileName);
             File.Copy(file, destPath);
         }
-
-        DeleteAllFiles(saveDirectory);
-
-        EditorUtility.DisplayDialog(
-            "Success",
-            $"Backed up and deleted {files.Length} file(s).\n\nBackup location:\n{backupFolderName}",
-            "OK");
     }
 
     private void OpenSaveFolder()

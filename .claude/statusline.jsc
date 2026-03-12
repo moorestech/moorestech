@@ -2,12 +2,10 @@
 
 const { execSync } = require('child_process');
 const fs = require('fs');
-const path = require('path');
-const os = require('os');
 
-const STATE_FILE = path.join(os.homedir(), '.claude', 'statusline_state.json');
+const USAGE_CACHE_FILE = '/tmp/claude-usage-cache.json';
+const USAGE_CACHE_TTL = 360; // seconds
 const BAR_WIDTH = 20;
-const SPARK_CHARS = '▁▂▃▄▅▆▇█';
 const SESSION_HOURS = 5;
 const AUTOCOMPACT_BUFFER_RATIO = 0.165; // ⛝ Autocompact buffer (~16.5% of context window)
 
@@ -62,7 +60,6 @@ function getGitInfo(cwd) {
         }
 
         let s = `🌿 ${branch}`;
-        if (modified > 0) s += ` M${modified}`;
         if (untracked > 0) s += ` +${untracked}`;
         return s;
     } catch {
@@ -70,29 +67,114 @@ function getGitInfo(cwd) {
     }
 }
 
-// Parse transcript JSONL: returns { turnCount, firstUserMessage, lastUsage, firstTimestamp }
-// lastUsage      = last non-zero assistant message usage (cumulative context window snapshot)
-// firstTimestamp = Unix ms of the first entry with a timestamp field
+// Fetch 5h/7d usage from Anthropic OAuth API (with caching)
+// Returns { five_hour: { utilization, resets_at }, seven_day: { utilization, resets_at } } or null
+function fetchUsage() {
+    // キャッシュ確認
+    // Check cache
+    try {
+        if (fs.existsSync(USAGE_CACHE_FILE)) {
+            const stat = fs.statSync(USAGE_CACHE_FILE);
+            const ageSec = (Date.now() - stat.mtimeMs) / 1000;
+            if (ageSec < USAGE_CACHE_TTL) {
+                return JSON.parse(fs.readFileSync(USAGE_CACHE_FILE, 'utf8'));
+            }
+        }
+    } catch {}
+
+    // Keychainからトークン取得
+    // Get token from macOS Keychain
+    let accessToken = null;
+    try {
+        const credsJson = execSync(
+            'security find-generic-password -s "Claude Code-credentials" -w',
+            { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }
+        ).trim();
+        const creds = JSON.parse(credsJson);
+        accessToken = creds?.claudeAiOauth?.accessToken;
+    } catch {}
+
+    if (!accessToken) {
+        // トークン取れなくても古いキャッシュがあればそれを返す
+        // Fall back to stale cache if token unavailable
+        try { return JSON.parse(fs.readFileSync(USAGE_CACHE_FILE, 'utf8')); } catch {}
+        return null;
+    }
+
+    // API呼び出し
+    // Call Anthropic usage API
+    try {
+        const response = execSync(
+            `curl -sf --max-time 5 -H "Authorization: Bearer ${accessToken}" -H "anthropic-beta: oauth-2025-04-20" "https://api.anthropic.com/api/oauth/usage"`,
+            { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }
+        ).trim();
+        if (response) {
+            const data = JSON.parse(response);
+            fs.writeFileSync(USAGE_CACHE_FILE, JSON.stringify(data), 'utf8');
+            return data;
+        }
+    } catch {}
+
+    // API失敗時は古いキャッシュにフォールバック
+    // Fall back to stale cache on API failure
+    try { return JSON.parse(fs.readFileSync(USAGE_CACHE_FILE, 'utf8')); } catch {}
+    return null;
+}
+
+// リセット時刻をAsia/Tokyoで "3pm" or "3/16 7am" 形式にフォーマット
+// Format resets_at to Asia/Tokyo as "3pm" or "3/16 7am"
+function formatResetTime(isoStr) {
+    if (!isoStr) return '';
+    const resetDate = new Date(isoStr);
+    if (isNaN(resetDate.getTime())) return '';
+
+    const nowTokyo = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
+    const resetTokyo = new Date(resetDate.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
+
+    const hour = resetTokyo.getHours();
+    const min = resetTokyo.getMinutes();
+    const ampm = hour < 12 ? 'am' : 'pm';
+    const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    const timeStr = min === 0 ? `${hour12}${ampm}` : `${hour12}:${String(min).padStart(2, '0')}${ampm}`;
+
+    // 同日ならば時刻のみ、それ以外は月/日+時刻
+    // Same day: time only, otherwise month/day + time
+    const sameDay = resetTokyo.getFullYear() === nowTokyo.getFullYear() &&
+                    resetTokyo.getMonth() === nowTokyo.getMonth() &&
+                    resetTokyo.getDate() === nowTokyo.getDate();
+    if (sameDay) return timeStr;
+    return `${resetTokyo.getMonth() + 1}/${resetTokyo.getDate()} ${timeStr}`;
+}
+
+// Format milliseconds as "1h15m" or "45m"
+function formatDuration(ms) {
+    const h = Math.floor(ms / 3600000);
+    const m = Math.floor((ms % 3600000) / 60000);
+    if (h > 0) return m > 0 ? `${h}h${m}m` : `${h}h`;
+    return `${m}m`;
+}
+
+// Format timestamp as "09:15"
+function formatHHMM(ts) {
+    const d = new Date(ts);
+    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+// トランスクリプトJSONLから最初のユーザーメッセージと最新のトークン使用量を取得
+// Parse transcript JSONL for first user message and last cumulative token usage
 function analyzeTranscript(transcriptPath) {
     try {
-        if (!transcriptPath || !fs.existsSync(transcriptPath)) return { turnCount: 0, firstUserMessage: '', lastUsage: null, firstTimestamp: null };
+        if (!transcriptPath || !fs.existsSync(transcriptPath)) return { firstUserMessage: '', lastUsage: null };
         const lines = fs.readFileSync(transcriptPath, 'utf8').split('\n').filter(l => l.trim());
         let firstUserMessage = '';
         let lastUsage = null;
-        let firstTimestamp = null;
         for (const line of lines) {
             try {
                 const entry = JSON.parse(line);
                 if (entry.isSidechain || entry.isApiErrorMessage) continue;
-                // Capture first timestamp (any entry)
-                if (!firstTimestamp && entry.timestamp) {
-                    const ts = new Date(entry.timestamp).getTime();
-                    if (!isNaN(ts)) firstTimestamp = ts;
-                }
                 if (!firstUserMessage && entry.type === 'user') {
                     firstUserMessage = extractMessageText(entry);
                 }
-                // Track last non-zero assistant usage (cumulative context window state)
                 if (entry.type === 'assistant' && entry.message && entry.message.usage) {
                     const u = entry.message.usage;
                     const total = (u.input_tokens || 0) + (u.output_tokens || 0) +
@@ -101,9 +183,9 @@ function analyzeTranscript(transcriptPath) {
                 }
             } catch {}
         }
-        return { turnCount: lines.length, firstUserMessage, lastUsage, firstTimestamp };
+        return { firstUserMessage, lastUsage };
     } catch {
-        return { turnCount: 0, firstUserMessage: '', lastUsage: null, firstTimestamp: null };
+        return { firstUserMessage: '', lastUsage: null };
     }
 }
 
@@ -120,67 +202,6 @@ function extractMessageText(entry) {
             .join('');
     }
     return '';
-}
-
-// Convert absolute path to file:// URL
-function toFileUrl(p) {
-    const abs = path.resolve(p);
-    const encoded = abs.split('/').map(encodeURIComponent).join('/');
-    return `file://${encoded}`;
-}
-
-// Find the current 5-hour block start across ALL projects (account-wide)
-// Reads first timestamp from each recently-modified JSONL, detects block boundaries.
-// This matches Python's detect_five_hour_blocks / load_all_messages_chronologically.
-function findGlobalBlockStart(sessionMs) {
-    const projectsDir = path.join(os.homedir(), '.claude', 'projects');
-    const now = Date.now();
-    const fileCutoff = now - (SESSION_HOURS + 1) * 3600000; // files modified within SESSION_HOURS+1h
-
-    // Collect first valid timestamp from each recently-modified JSONL
-    const timestamps = [];
-    try {
-        if (!fs.existsSync(projectsDir)) return null;
-        for (const projectDir of fs.readdirSync(projectsDir)) {
-            const projectPath = path.join(projectsDir, projectDir);
-            try { if (!fs.statSync(projectPath).isDirectory()) continue; } catch { continue; }
-            for (const file of fs.readdirSync(projectPath)) {
-                if (!file.endsWith('.jsonl')) continue;
-                const filePath = path.join(projectPath, file);
-                try { if (fs.statSync(filePath).mtimeMs < fileCutoff) continue; } catch { continue; }
-                // Read only until the first entry with a timestamp (fast)
-                try {
-                    const content = fs.readFileSync(filePath, 'utf8');
-                    for (const line of content.split('\n')) {
-                        if (!line.trim()) continue;
-                        try {
-                            const entry = JSON.parse(line);
-                            if (entry.timestamp) {
-                                const ts = new Date(entry.timestamp).getTime();
-                                if (!isNaN(ts)) { timestamps.push(ts); break; }
-                            }
-                        } catch {}
-                    }
-                } catch {}
-            }
-        }
-    } catch {}
-
-    if (timestamps.length === 0) return null;
-
-    // Sort and detect 5-hour blocks (new block if gap > sessionMs between consecutive files)
-    timestamps.sort((a, b) => a - b);
-    let blockStart = timestamps[0];
-    for (let i = 1; i < timestamps.length; i++) {
-        if (timestamps[i] - timestamps[i - 1] > sessionMs) {
-            blockStart = timestamps[i]; // gap exceeds 5h → new block
-        }
-    }
-
-    // Floor to hour boundary (Python: floor_to_hour)
-    const d = new Date(blockStart);
-    d.setMinutes(0, 0, 0);
-    return d.getTime();
 }
 
 // Collapse whitespace and truncate with ellipsis
@@ -202,172 +223,76 @@ function makeBar(ratio, width) {
     return '█'.repeat(filled) + '▒'.repeat(width - filled);
 }
 
-// Format milliseconds as "1h15m" or "45m"
-function formatDuration(ms) {
-    const h = Math.floor(ms / 3600000);
-    const m = Math.floor((ms % 3600000) / 60000);
-    if (h > 0) return m > 0 ? `${h}h${m}m` : `${h}h`;
-    return `${m}m`;
-}
-
-// Format timestamp as "09:15"
-function formatHHMM(ts) {
-    const d = new Date(ts);
-    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-}
-
-function loadState() {
-    try {
-        return JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
-    } catch {
-        return {};
-    }
-}
-
-function saveState(state) {
-    try {
-        fs.writeFileSync(STATE_FILE, JSON.stringify(state), 'utf8');
-    } catch {}
-}
-
-// Update per-session state (startTime + token history for sparkline)
-function updateSession(state, sessionId, now, totalTokens) {
-    if (!state.sessions) state.sessions = {};
-
-    // Remove sessions older than 24 hours
-    const cutoff = now - 24 * 3600000;
-    for (const id of Object.keys(state.sessions)) {
-        if (state.sessions[id].startTime < cutoff) delete state.sessions[id];
-    }
-
-    if (!state.sessions[sessionId]) {
-        state.sessions[sessionId] = { startTime: now, history: [] };
-    }
-
-    const sess = state.sessions[sessionId];
-    const hist = sess.history;
-    // Snapshot at most once per minute
-    if (hist.length === 0 || now - hist[hist.length - 1].t >= 60000) {
-        hist.push({ t: now, tokens: totalTokens });
-        if (hist.length > 20) sess.history = hist.slice(-20);
-    }
-
-    return sess;
-}
-
-// Build sparkline from token-per-minute history
-function makeSparkline(history, width) {
-    if (!history || history.length < 2) return '▁'.repeat(width);
-
-    const rates = [];
-    for (let i = 1; i < history.length; i++) {
-        const dt = (history[i].t - history[i - 1].t) / 60000;
-        const dn = Math.max(0, history[i].tokens - history[i - 1].tokens);
-        rates.push(dt > 0 ? dn / dt : 0);
-    }
-
-    const maxRate = Math.max(...rates, 1);
-    while (rates.length < width) rates.unshift(0);
-    return rates.slice(-width)
-        .map(r => SPARK_CHARS[Math.min(SPARK_CHARS.length - 1, Math.floor((r / maxRate) * SPARK_CHARS.length))])
-        .join('');
-}
-
 function buildStatusLine(data) {
     const now = Date.now();
 
-    // data.model is {id, display_name}
     const model = data.model || {};
     const cwd = data.cwd || process.cwd();
-    const sessionId = data.session_id || 'default';
 
-    // data.cost is {total_cost_usd, total_duration_ms, ...}
-    const costObj = data.cost || {};
-    const cost = costObj.total_cost_usd || 0;
-
-    // data.context_window is {total_input_tokens, total_output_tokens, context_window_size, current_usage, used_percentage}
     const ctxWin = data.context_window || {};
     const contextMax = ctxWin.context_window_size || 200000;
-    // used_percentage is pre-calculated by Claude Code (v2.1.6+), more accurate than manual calculation
     const apiUsedPct = typeof ctxWin.used_percentage === 'number' ? ctxWin.used_percentage : null;
 
-    // Turn count, first user message, and last cumulative usage from transcript JSONL
-    // NOTE: API total_input/output_tokens are session totals, NOT current context window usage.
-    //       Must use last assistant message's usage from JSONL for accurate compact display.
-    const { turnCount: numTurns, firstUserMessage, lastUsage, firstTimestamp } = analyzeTranscript(data.transcript_path);
+    const { firstUserMessage, lastUsage } = analyzeTranscript(data.transcript_path);
 
-    // Compact tokens from last cumulative JSONL usage (current context window state)
+    // コンテキストウィンドウ使用量（JSONLベース）
+    // Context window usage from JSONL
     const compactInput      = lastUsage ? (lastUsage.input_tokens || 0) : 0;
     const compactOutput     = lastUsage ? (lastUsage.output_tokens || 0) : 0;
     const compactCacheWrite = lastUsage ? (lastUsage.cache_creation_input_tokens || 0) : 0;
     const compactCacheRead  = lastUsage ? (lastUsage.cache_read_input_tokens || 0) : 0;
     const compactTokens     = compactInput + compactOutput + compactCacheWrite + compactCacheRead;
 
-    // Cache hit rate: fraction of total input context served from cache
-    // = cache_read / (input + cache_read + cache_creation)
-    // Fallback to context_window.current_usage object when JSONL has no data yet
-    const currentUsageObj = (ctxWin.current_usage && typeof ctxWin.current_usage === 'object') ? ctxWin.current_usage : {};
-    const effCacheRead  = compactCacheRead  || (currentUsageObj.cache_read_input_tokens || 0);
-    const effCacheWrite = compactCacheWrite || (currentUsageObj.cache_creation_input_tokens || 0);
-    const totalInputCtx = compactInput + effCacheRead + effCacheWrite;
-    const cacheHitRate  = totalInputCtx > 0 ? Math.round(effCacheRead / totalInputCtx * 100) : 0;
-
-    // Subtract autocompact buffer to show effective context usage (⛝ ~16.5% reserved before compact triggers)
     const effectiveContextMax = Math.round(contextMax * (1 - AUTOCOMPACT_BUFFER_RATIO));
     const contextRatio  = Math.min(compactTokens / effectiveContextMax, 1);
-    // Prefer API pre-calculated percentage; rescale to effective context (100% = autocompact threshold)
     const pct2          = apiUsedPct !== null ? Math.min(100, Math.round(apiUsedPct / (1 - AUTOCOMPACT_BUFFER_RATIO))) : Math.round(contextRatio * 100);
 
-    // Total tokens for sparkline (use JSONL-based compact tokens)
-    const totalTokens = compactTokens;
+    const rst = '\x1b[0m';
 
-    // Session tracking (persisted across turns — used for sparkline history)
-    const state = loadState();
-    const session = updateSession(state, sessionId, now, totalTokens);
-    saveState(state);
+    // 使用率に応じた色付け関数
+    // Color by utilization percentage
+    const colorPct = (pct) => {
+        const c = pct < 40 ? '\x1b[32m' : pct < 60 ? '\x1b[33m' : pct < 80 ? '\x1b[38;5;208m' : '\x1b[31m';
+        return `${c}${pct}%${rst}`;
+    };
 
-    const sessionMs = SESSION_HOURS * 3600000;
-
-    // Block start: earliest timestamp across ALL projects in the last SESSION_HOURS+1h window
-    // (account-wide, matching Python's detect_five_hour_blocks across all transcripts)
-    // Fallback chain: global scan → current transcript → STATE_FILE
-    let blockStartMs = session.startTime;
-    const globalBlockStart = findGlobalBlockStart(sessionMs);
-    if (globalBlockStart !== null) {
-        blockStartMs = globalBlockStart;
-    } else if (firstTimestamp) {
-        const d = new Date(firstTimestamp);
-        d.setMinutes(0, 0, 0);
-        blockStartMs = d.getTime();
-    }
-
-    // Total elapsed from block start; modular wrap every 5h (Python: hours_elapsed % 5)
-    const totalElapsed = now - blockStartMs;
-    const windowElapsed = totalElapsed % sessionMs;          // position within current window
-    const sessionRatio = windowElapsed / sessionMs;
-
-    // Current 5-hour window start/end (shifts forward after each 5h period)
-    const windowStart = blockStartMs + Math.floor(totalElapsed / sessionMs) * sessionMs;
-    const windowEnd   = windowStart + sessionMs;
-
-    // Line 1: [🤖Model] | 🌿 branch M1 +2 | 📁 /full/path | 🗣 first msg
     const gitInfo = getGitInfo(cwd);
-    const parts = [`[🤖${formatModel(model)}]`];
+    const parts = [`[🤖${formatModel(model)} ${colorPct(pct2)}]`];
     if (gitInfo) parts.push(gitInfo);
     parts.push(`📁 ${cwd}`);
-    if (firstUserMessage) parts.push(`🗣 ${truncate(firstUserMessage, 40)}`);
     const line1 = parts.join(' | ');
 
-    // Line 2: Compact: [bar] [58%] 91.8K/200.0K ♻️ 99% cached
-    const cacheStr = cacheHitRate >= 1 ? ` ♻️  ${cacheHitRate}% cached` : '';
-    const line2 = `Compact: ${makeBar(contextRatio, BAR_WIDTH)} [${pct2}%] ${formatK(compactTokens)}/${formatK(effectiveContextMax)}${cacheStr}`;
+    // Line 2: コンテキストウィンドウ使用量バー
+    // Line 2: Context window usage bar
+    const line2 = `Compact: ${makeBar(contextRatio, BAR_WIDTH)} [${colorPct(pct2)}] ${formatK(compactTokens)}/${formatK(effectiveContextMax)}`;
 
-    // Line 3: Session: [bar] [25%] 1h15m/5h 09:15 (08:00 to 13:00)
-    const pct3 = Math.round(sessionRatio * 100);
-    const line3 = `Session: ${makeBar(sessionRatio, BAR_WIDTH)} [${pct3}%] ${formatDuration(windowElapsed)}/${SESSION_HOURS}h ${formatHHMM(now)} (${formatHHMM(windowStart)} to ${formatHHMM(windowEnd)})`;
+    // Line 3: 5hセッション使用率（Anthropic OAuth Usage APIベース）
+    // Line 3: 5h session usage from Anthropic OAuth Usage API
+    const sessionMs = SESSION_HOURS * 3600000;
+    let line3 = 'Session: fetching...';
+    const usage = fetchUsage();
+    if (usage && usage.five_hour) {
+        const fiveUtil = Math.round(usage.five_hour.utilization ?? 0);
+        const sessionRatio = fiveUtil / 100;
+        const resetsAt = usage.five_hour.resets_at ? new Date(usage.five_hour.resets_at) : null;
 
-    // Line 4: Burn:    [sparkline] 14.0M tokens
-    const line4 = `Burn:    ${makeSparkline(session.history, BAR_WIDTH)} ${formatK(totalTokens)} tokens`;
+        // リセット時刻からウィンドウ開始・終了・経過を逆算
+        // Derive window start/end/elapsed from resets_at
+        let windowEnd = resetsAt ? resetsAt.getTime() : now + sessionMs;
+        let windowStart = windowEnd - sessionMs;
+        const windowElapsed = Math.max(0, Math.min(now - windowStart, sessionMs));
 
-    return [line1, line2, line3, line4].join('\n');
+        const sevenUtil = Math.round(usage.seven_day?.utilization ?? 0);
+        const sevenResetsAt = usage.seven_day?.resets_at ? new Date(usage.seven_day.resets_at) : null;
+        const sevenDaysElapsed = sevenResetsAt ? Math.max(0, Math.min(7, Math.ceil(7 - (sevenResetsAt.getTime() - now) / 86400000))) : '?';
+        line3 = `Session: ${makeBar(sessionRatio, BAR_WIDTH)} [${colorPct(fiveUtil)}] ${formatDuration(windowElapsed)}/${SESSION_HOURS}h | [${colorPct(sevenUtil)}] ${sevenDaysElapsed}/7d`;
+    }
+
+    // Line 4: 最初のユーザーメッセージ
+    // Line 4: First user message
+    const line4 = firstUserMessage ? `🗣 ${truncate(firstUserMessage, 40)}` : '';
+
+    const lines = [line1, line2, line3];
+    if (line4) lines.push(line4);
+    return lines.join('\n');
 }

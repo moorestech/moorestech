@@ -11,6 +11,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
     {
         private BlockMasterElement _previewBlockMasterElement;
         private BlockPlacePreviewObjectPool _blockPlacePreviewObjectPool;
+        private readonly List<BlockPreviewObject> _activePreviewBlocks = new();
         
         public bool IsActive => gameObject.activeSelf;
         
@@ -31,28 +32,39 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
             }
             
             _blockPlacePreviewObjectPool.AllUnUse();
-            
+            _activePreviewBlocks.Clear();
+
             // プレビューブロックの位置を設定
+            // Set preview block positions
             var isGroundDetectedList = new List<bool>();
             foreach (var placeInfo in placePointInfos)
             {
                 var blockId = holdingBlockMaster.BlockGuid.GetVerticalOverrideBlockId(placeInfo.VerticalDirection);
-                
+
                 var pos = SlopeBlockPlaceSystem.GetBlockPositionToPlacePosition(placeInfo.Position, placeInfo.Direction, blockId);
                 var rot = placeInfo.Direction.GetRotation();
-                
+
                 var previewBlock = _blockPlacePreviewObjectPool.GetObject(blockId);
+                _activePreviewBlocks.Add(previewBlock);
                 previewBlock.SetTransform(pos,rot);
                 var isGroundDetected = previewBlock.IsCollisionGround;
                 isGroundDetectedList.Add(isGroundDetected);
-                
+
                 previewBlock.SetPlaceableColor(!isGroundDetected && placeInfo.Placeable);
                 previewBlock.SetPreviewStateDetail(placeInfo);
             }
-            
+
             return isGroundDetectedList;
         }
         
+        public void UpdatePlaceableColors(List<PlaceInfo> placeInfos)
+        {
+            for (var i = 0; i < _activePreviewBlocks.Count && i < placeInfos.Count; i++)
+            {
+                _activePreviewBlocks[i].SetPlaceableColor(placeInfos[i].Placeable);
+            }
+        }
+
         public void SetActive(bool active)
         {
             gameObject.SetActive(active);

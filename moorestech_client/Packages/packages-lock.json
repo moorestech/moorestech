@@ -78,6 +78,13 @@
       "dependencies": {},
       "hash": "6baeccf6c544c155497164327cca72f28163a578"
     },
+    "com.singtaa.onejs": {
+      "version": "https://github.com/Singtaa/OneJS.git#onejs-v3",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "d16ed851ec346d391737187e440dd0751de525c9"
+    },
     "com.tayx.graphy": {
       "version": "https://github.com/Tayx94/graphy.git",
       "depth": 0,
@@ -454,7 +461,7 @@
       "dependencies": {
         "com.unity.nuget.newtonsoft-json": "3.2.1"
       },
-      "hash": "ac5c3e34848ede292ff463ddf2dba0f795d779f5"
+      "hash": "7997587a268c382061f93d21fcee5bbe4d221d73"
     },
     "jp.co.cyberagent.smartaddresser": {
       "version": "https://github.com/CyberAgentGameEntertainment/SmartAddresser.git?path=/Assets/SmartAddresser",

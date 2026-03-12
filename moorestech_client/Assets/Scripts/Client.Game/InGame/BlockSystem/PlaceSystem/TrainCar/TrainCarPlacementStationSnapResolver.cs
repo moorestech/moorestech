@@ -25,20 +25,22 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
             var frontLength = (trainLength + 1) / 2;
             var rearLength = trainLength / 2;
-            if (!TrainCarPlacementRouteService.TryBuildFrontRearRoutesFromCenter(
+            var frontRoutes = new List<RailPosition>();
+            var rearRoutes = new List<RailPosition>();
+            if (!TrainCarPlacementRouteService.TryBuildFrontRearRoutes(
                     centerRailPosition,
                     frontLength,
                     rearLength,
                     pathTracer,
-                    out var frontRoutes,
-                    out var rearRoutesFromCenter))
+                    frontRoutes,
+                    rearRoutes))
             {
                 return false;
             }
             if (!TrainCarPlacementSnapPointFinder.TryFindNearestStationSnapPoint(
                     centerRailPosition,
                     frontRoutes,
-                    rearRoutesFromCenter,
+                    rearRoutes,
                     frontLength,
                     rearLength,
                     out var snapStartPoint,
@@ -46,7 +48,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             {
                 return false;
             }
-            if (!TrainCarPlacementRouteService.TryBuildSnapRoutesFromPoint(snapStartPoint, trainLength, pathTracer, out var tracedRoutes))
+            
+            snapStartPoint.Reverse();
+            if (!pathTracer.TryTraceForwardRoutesByDfs(snapStartPoint, trainLength, out var tracedRoutes))
             {
                 return false;
             }

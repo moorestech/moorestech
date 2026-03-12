@@ -4,15 +4,14 @@ using System.Linq;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Challenge;
 using Client.Game.InGame.UI.Inventory.Common;
+using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Tooltip;
 using Core.Master;
-using Cysharp.Threading.Tasks;
 using Game.Research;
 using Mooresmaster.Model.GameActionModule;
 using TMPro;
 using UniRx;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace Client.Game.InGame.UI.Inventory.Block.Research
@@ -45,6 +44,7 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
         
         // 生成された接続線のリスト
         private readonly List<RectTransform> _connectLines = new();
+        private readonly List<(ItemId itemId, int requiredCount, ItemSlotView slot)> _consumeItemSlots = new();
         
         private void Awake()
         {
@@ -57,7 +57,7 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
             });
         }
         
-        public void SetResearchNode(ResearchNodeData node)
+        public void SetResearchNode(ResearchNodeData node, ILocalPlayerInventory localPlayerInventory)
         {
             Node = node;
             
@@ -85,6 +85,8 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
                 CreateConsumeItemIcons();
                 _isInitialized = true;
             }
+
+            RefreshConsumeItemHighlight(localPlayerInventory);
             
             #region Internal
             
@@ -145,10 +147,65 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
                     
                     var icon = Instantiate(ItemSlotView.Prefab, consumeItemIcons);
                     icon.SetItem(itemView, consumeItem.ItemCount);
+                    _consumeItemSlots.Add((itemId, consumeItem.ItemCount, icon));
                 }
             }
-            
+
             #endregion
+        }
+
+        public void RefreshConsumeItemHighlight(ILocalPlayerInventory localPlayerInventory)
+        {
+            if (!_isInitialized)
+            {
+                return;
+            }
+
+            // 消費アイテムスロットのハイライト更新
+            // Update consume item slot highlights
+            var allItemsSufficient = true;
+            foreach (var consumeItemSlot in _consumeItemSlots)
+            {
+                var itemView = ClientContext.ItemImageContainer.GetItemView(consumeItemSlot.itemId);
+                var ownedCount = localPlayerInventory.GetMainInventoryItemCount(consumeItemSlot.itemId);
+                var isEnough = Node.State != ResearchNodeState.Completed && ownedCount >= consumeItemSlot.requiredCount;
+
+                consumeItemSlot.slot.SetItem(itemView, consumeItemSlot.requiredCount);
+                consumeItemSlot.slot.SetHotBarSelected(isEnough);
+
+                if (!isEnough) allItemsSufficient = false;
+            }
+
+            // ノードの研究可能状態・ボタン・ツールチップも更新
+            // Also update node availability, button, and tooltip
+            RefreshNodeAvailability(allItemsSufficient);
+        }
+
+        private void RefreshNodeAvailability(bool allItemsSufficient)
+        {
+            if (Node.State == ResearchNodeState.Completed) return;
+
+            // 元のstateから前提研究の充足状態を推定
+            // Infer pre-node condition from original server state
+            var preNodeMet = Node.State == ResearchNodeState.UnresearchableNotEnoughItem
+                          || Node.State == ResearchNodeState.Researchable;
+
+            var effectivelyResearchable = preNodeMet && allItemsSufficient;
+            if (researchButton != null)
+            {
+                researchButton.interactable = effectivelyResearchable;
+            }
+
+            // ツールチップテキストを更新
+            // Update tooltip text
+            var text = (preNodeMet, allItemsSufficient) switch
+            {
+                (true, true) => "クリックして研究",
+                (true, false) => "研究アイテムが足りません。",
+                (false, true) => "前提研究が完了していません。",
+                (false, false) => "研究アイテムが足りません。\n前提研究が完了していません。",
+            };
+            researchButtonTooltipTarget.SetText(text, false);
         }
 
         public void CreateConnect(Transform lineParent, Dictionary<Guid, ResearchTreeElement> nodeElements)
