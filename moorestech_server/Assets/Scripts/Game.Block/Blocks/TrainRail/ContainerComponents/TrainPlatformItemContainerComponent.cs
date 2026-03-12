@@ -1,12 +1,15 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Core.Item.Interface;
 using Game.Block.Interface.Component;
+using Game.Context;
 using Game.Train.Unit.Containers;
 using JetBrains.Annotations;
 
 namespace Game.Block.Blocks.TrainRail.ContainerComponents
 {
-    public class TrainPlatformItemContainerComponent : IUpdatableBlockComponent
+    public class TrainPlatformItemContainerComponent : IUpdatableBlockComponent, IBlockInventory
     {
         public bool IsDestroy { get; private set; }
         [CanBeNull] public ItemTrainCarContainer Container { get; private set; }
@@ -96,12 +99,70 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
             }
         }
         
+        public IItemStack InsertItem(IItemStack itemStack, InsertItemContext context)
+        {
+            if (Container == null) Container = ItemTrainCarContainer.CreateWithEmptySlots(_slotsCount);
+
+            var remaining = itemStack;
+            var slots = Container!.InventoryItems;
+            for (var i = 0; i < slots.Length; i++)
+            {
+                var slot = slots[i].Stack;
+                if (!slot.IsAllowedToAddWithRemain(remaining)) continue;
+
+                var result = slot.AddItem(remaining);
+                Container.SetItem(i, result.ProcessResultItemStack);
+                remaining = result.RemainderItemStack;
+
+                if (remaining.Count == 0) return remaining;
+            }
+
+            return remaining;
+        }
+
+        public bool InsertionCheck(List<IItemStack> itemStacks)
+        {
+            if (Container == null) return true;
+
+            var slotsCopy = Container.InventoryItems.ToArray().Select(s => s.Stack).ToList();
+            foreach (var itemStack in itemStacks)
+            {
+                var remaining = itemStack;
+                for (var i = 0; i < slotsCopy.Count; i++)
+                {
+                    if (!slotsCopy[i].IsAllowedToAddWithRemain(remaining)) continue;
+
+                    var result = slotsCopy[i].AddItem(remaining);
+                    slotsCopy[i] = result.ProcessResultItemStack;
+                    remaining = result.RemainderItemStack;
+
+                    if (remaining.Count == 0) break;
+                }
+
+                if (remaining.Count > 0) return false;
+            }
+
+            return true;
+        }
+
+        public IItemStack GetItem(int slot)
+        {
+            if (Container == null) return ServerContext.ItemStackFactory.CreatEmpty();
+
+            return Container.InventoryItems[slot].Stack;
+        }
+
         public void SetItem(int slot, IItemStack stack)
         {
             if (Container == null) Container = ItemTrainCarContainer.CreateWithEmptySlots(_slotsCount);
-            
-            Container!.SetItem(slot, stack);
-        } 
+
+            Container.SetItem(slot, stack);
+        }
+
+        public int GetSlotSize()
+        {
+            return _slotsCount;
+        }
         
         private bool IsTargetContainer(out ItemTrainCarContainer trainCarContainer)
         {
