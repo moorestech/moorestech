@@ -36,7 +36,7 @@ namespace Game.Block.Factory.BlockTemplate
             var station = new TrainStationComponent("test");
             var trainPlatformDockingComponent = new TrainPlatformDockingComponent(stationParam.LoadingAnimeSpeed);
             var trainPlatformTransferComponent = new TrainPlatformTransferComponent(TrainPlatformTransferComponent.TransferMode.LoadToTrain);
-            var trainPlatformItemTransferComponent = new TrainPlatformItemContainerComponent(trainPlatformDockingComponent, trainPlatformTransferComponent);
+            var trainPlatformItemTransferComponent = new TrainPlatformItemContainerComponent(trainPlatformDockingComponent, trainPlatformTransferComponent, stationParam.ItemSlotCount);
            
             // 生成したコンポーネントをブロックに登録する
             var blockComponents = new List<IBlockComponent>();
@@ -72,7 +72,7 @@ namespace Game.Block.Factory.BlockTemplate
             var station = new TrainStationComponent(componentStates);
             var trainPlatformDockingComponent = new TrainPlatformDockingComponent(componentStates, stationParam.LoadingAnimeSpeed);
             var trainPlatformTransferComponent = new TrainPlatformTransferComponent(componentStates);
-            var trainPlatformItemTransferComponent = new TrainPlatformItemContainerComponent(trainPlatformDockingComponent, trainPlatformTransferComponent);
+            var trainPlatformItemTransferComponent = new TrainPlatformItemContainerComponent(trainPlatformDockingComponent, trainPlatformTransferComponent, stationParam.ItemSlotCount);
 
             // 復元したコンポーネントをブロックに登録する
             var blockComponents = new List<IBlockComponent>();
