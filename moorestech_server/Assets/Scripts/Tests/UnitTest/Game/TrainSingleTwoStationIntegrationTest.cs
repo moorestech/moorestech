@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Blocks.TrainRail;
+using Game.Block.Blocks.TrainRail.ContainerComponents;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Train.Diagram;
@@ -58,12 +59,12 @@ namespace Tests.UnitTest.Game
             ConnectFront(transitRailB, unloadingEntryComponent, transitSegmentLength);
             ConnectFront(unloadingExitComponent, loadingEntryComponent, transitSegmentLength);
 
-            Assert.IsTrue(loadingBlock.ComponentManager.TryGetComponent<TrainPlatformContainerComponent>(out var loadingContainer),
+            Assert.IsTrue(loadingBlock.ComponentManager.TryGetComponent<TrainPlatformItemContainerComponent>(out var loadingContainer),
                 "積込プラットフォームのインベントリコンポーネントが見つかりません。");
-            Assert.IsTrue(unloadingBlock.ComponentManager.TryGetComponent<TrainPlatformContainerComponent>(out var unloadingContainer),
+            Assert.IsTrue(unloadingBlock.ComponentManager.TryGetComponent<TrainPlatformItemContainerComponent>(out var unloadingContainer),
                 "荷降ろしプラットフォームのインベントリコンポーネントが見つかりません。");
-            var loadingItemContainer = loadingContainer.Container as ItemTrainCarContainer;
-            var unloadingItemContainer = unloadingContainer.Container as ItemTrainCarContainer;
+            var loadingItemContainer = loadingContainer.Container;
+            var unloadingItemContainer = unloadingContainer.Container;
             
             Assert.IsNotNull(loadingItemContainer);
             Assert.IsNotNull(unloadingItemContainer);
