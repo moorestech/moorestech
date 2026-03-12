@@ -3,6 +3,7 @@ using System.Linq;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.TrainRail;
+using Game.Block.Blocks.TrainRail.ContainerComponents;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
@@ -34,12 +35,12 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.IsNotNull(cargoBlock, "貨物プラットフォームの生成に失敗しました。");
             Assert.IsNotNull(railComponents, "貨物プラットフォームのRailComponent取得に失敗しました。");
             
-            var cargoContainerComponent = cargoBlock.GetComponent<TrainPlatformContainerComponent>();
-            Assert.IsNotNull(cargoContainerComponent, "cargoContainerComponentの取得に失敗しました。");
+            var itemContainerComponent = cargoBlock.GetComponent<TrainPlatformItemContainerComponent>();
+            Assert.IsNotNull(itemContainerComponent, "cargoContainerComponentの取得に失敗しました。");
 
             var cargoParam = (TrainCargoPlatformBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainCargoPlatform).BlockParam;
             var maxStack = MasterHolder.ItemMaster.GetItemMaster(ForUnitTestItemId.ItemId1).MaxStack;
-            (cargoContainerComponent.Container as ItemTrainCarContainer)!.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, maxStack));
+            itemContainerComponent.Container!.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, maxStack));
 
             var entryNode = railComponents[0].FrontNode;
             var exitNode = railComponents[1].FrontNode;

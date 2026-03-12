@@ -35,16 +35,14 @@ namespace Game.Block.Factory.BlockTemplate
             RailComponentUtility.RegisterAndConnetStationBlocks(railComponents, _railGraphDatastore);//②接続処理
             var station = new TrainStationComponent("test");
             var trainPlatformDockingComponent = new TrainPlatformDockingComponent(stationParam.LoadingAnimeSpeed);
-            var trainPlatformContainerComponent = new TrainPlatformContainerComponent(container: null);
             var trainPlatformTransferComponent = new TrainPlatformTransferComponent(TrainPlatformTransferComponent.TransferMode.LoadToTrain);
-            var trainPlatformItemTransferComponent = new TrainPlatformItemContainerComponent(trainPlatformDockingComponent, trainPlatformContainerComponent, trainPlatformTransferComponent);
+            var trainPlatformItemTransferComponent = new TrainPlatformItemContainerComponent(trainPlatformDockingComponent, trainPlatformTransferComponent);
            
             // 生成したコンポーネントをブロックに登録する
             var blockComponents = new List<IBlockComponent>();
             blockComponents.AddRange(railComponents);
             blockComponents.Add(station);
             blockComponents.Add(trainPlatformDockingComponent);
-            blockComponents.Add(trainPlatformContainerComponent);
             blockComponents.Add(trainPlatformTransferComponent);
             blockComponents.Add(trainPlatformItemTransferComponent);
 
@@ -73,16 +71,14 @@ namespace Game.Block.Factory.BlockTemplate
             RailComponentUtility.RegisterStationBlocks(railComponents, _railGraphDatastore);//②登録のみ
             var station = new TrainStationComponent(componentStates);
             var trainPlatformDockingComponent = new TrainPlatformDockingComponent(componentStates, stationParam.LoadingAnimeSpeed);
-            var trainPlatformContainerComponent = new TrainPlatformContainerComponent(componentStates);
             var trainPlatformTransferComponent = new TrainPlatformTransferComponent(componentStates);
-            var trainPlatformItemTransferComponent = new TrainPlatformItemContainerComponent(trainPlatformDockingComponent, trainPlatformContainerComponent, trainPlatformTransferComponent);
+            var trainPlatformItemTransferComponent = new TrainPlatformItemContainerComponent(trainPlatformDockingComponent, trainPlatformTransferComponent);
 
             // 復元したコンポーネントをブロックに登録する
             var blockComponents = new List<IBlockComponent>();
             blockComponents.AddRange(railComponents);
             blockComponents.Add(station);
             blockComponents.Add(trainPlatformDockingComponent);
-            blockComponents.Add(trainPlatformContainerComponent);
             blockComponents.Add(trainPlatformTransferComponent);
             blockComponents.Add(trainPlatformItemTransferComponent);
 
