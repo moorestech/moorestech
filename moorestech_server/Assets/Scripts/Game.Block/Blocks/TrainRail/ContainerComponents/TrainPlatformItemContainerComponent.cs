@@ -8,7 +8,6 @@ using Game.Context;
 using Game.Train.Unit.Containers;
 using JetBrains.Annotations;
 using MessagePack;
-using Newtonsoft.Json;
 
 namespace Game.Block.Blocks.TrainRail.ContainerComponents
 {
