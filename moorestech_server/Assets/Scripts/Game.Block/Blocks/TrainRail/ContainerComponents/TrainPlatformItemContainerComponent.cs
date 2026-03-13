@@ -6,22 +6,38 @@ using Game.Block.Interface.Component;
 using Game.Context;
 using Game.Train.Unit.Containers;
 using JetBrains.Annotations;
+using MessagePack;
+using Newtonsoft.Json;
 
 namespace Game.Block.Blocks.TrainRail.ContainerComponents
 {
-    public class TrainPlatformItemContainerComponent : IUpdatableBlockComponent, IBlockInventory
+    public class TrainPlatformItemContainerComponent : IUpdatableBlockComponent, IBlockInventory, IBlockSaveState
     {
         public bool IsDestroy { get; private set; }
         [CanBeNull] public ItemTrainCarContainer Container { get; private set; }
         private readonly TrainPlatformDockingComponent _dockingComponent;
         private readonly TrainPlatformTransferComponent _transferComponent;
-        private int _slotsCount;
+        private readonly int _slotsCount;
         
         public TrainPlatformItemContainerComponent(TrainPlatformDockingComponent dockingComponent, TrainPlatformTransferComponent transferComponent, int slotsCount)
         {
             _dockingComponent = dockingComponent;
             _transferComponent = transferComponent;
             _slotsCount = slotsCount;
+        }
+        
+        public TrainPlatformItemContainerComponent(TrainPlatformDockingComponent dockingComponent, TrainPlatformTransferComponent transferComponent, int slotsCount, Dictionary<string, string> componentStates)
+        {
+            _dockingComponent = dockingComponent;
+            _transferComponent = transferComponent;
+            _slotsCount = slotsCount;
+            
+            var serialized = componentStates[SaveKey];
+            var serializedBytes = MessagePackSerializer.ConvertFromJson(serialized);
+            var saveData = MessagePackSerializer.Deserialize<TrainPlatformItemContainerComponentSaveData>(serializedBytes);
+            if (saveData == null) return;
+            
+            Container = saveData.Container;
         }
         
         public void Update()
@@ -186,6 +202,23 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
         public void Destroy()
         {
             IsDestroy = true;
+        }
+        public string SaveKey { get; } = typeof(TrainPlatformItemContainerComponent).FullName;
+        
+        public string GetSaveState()
+        {
+            return JsonConvert.SerializeObject(new TrainPlatformItemContainerComponentSaveData(Container));
+        }
+        
+        [MessagePackObject]
+        public class TrainPlatformItemContainerComponentSaveData
+        {
+            [Key(0)] public ItemTrainCarContainer Container;
+            
+            public TrainPlatformItemContainerComponentSaveData(ItemTrainCarContainer container)
+            {
+                Container = container;
+            }
         }
     }
 }
