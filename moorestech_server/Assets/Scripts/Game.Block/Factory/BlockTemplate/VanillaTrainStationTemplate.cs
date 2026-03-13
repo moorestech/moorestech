@@ -36,9 +36,10 @@ namespace Game.Block.Factory.BlockTemplate
             var station = new TrainStationComponent("test");
             var trainPlatformDockingComponent = new TrainPlatformDockingComponent(stationParam.LoadingAnimeSpeed);
             var trainPlatformTransferComponent = new TrainPlatformTransferComponent(TrainPlatformTransferComponent.TransferMode.LoadToTrain);
-            var trainPlatformItemTransferComponent = new TrainPlatformItemContainerComponent(trainPlatformDockingComponent, trainPlatformTransferComponent, stationParam.ItemSlotCount);
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(stationParam.InventoryConnectors, positionInfo);
-           
+            var inserter = new ConnectingInventoryListPriorityInsertItemService(instanceId, inputConnectorComponent);
+            var trainPlatformItemTransferComponent = new TrainPlatformItemContainerComponent(trainPlatformDockingComponent, trainPlatformTransferComponent, stationParam.ItemSlotCount, inserter);
+
             // 生成したコンポーネントをブロックに登録する
             var blockComponents = new List<IBlockComponent>();
             blockComponents.AddRange(railComponents);
@@ -74,8 +75,9 @@ namespace Game.Block.Factory.BlockTemplate
             var station = new TrainStationComponent(componentStates);
             var trainPlatformDockingComponent = new TrainPlatformDockingComponent(componentStates, stationParam.LoadingAnimeSpeed);
             var trainPlatformTransferComponent = new TrainPlatformTransferComponent(componentStates);
-            var trainPlatformItemTransferComponent = new TrainPlatformItemContainerComponent(trainPlatformDockingComponent, trainPlatformTransferComponent, stationParam.ItemSlotCount, componentStates);
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(stationParam.InventoryConnectors, positionInfo);
+            var inserter = new ConnectingInventoryListPriorityInsertItemService(instanceId, inputConnectorComponent);
+            var trainPlatformItemTransferComponent = new TrainPlatformItemContainerComponent(trainPlatformDockingComponent, trainPlatformTransferComponent, stationParam.ItemSlotCount, inserter, componentStates);
 
             // 復元したコンポーネントをブロックに登録する
             var blockComponents = new List<IBlockComponent>();
