@@ -69,7 +69,7 @@ namespace Game.Block.Factory.BlockTemplate
             RailComponentUtility.RegisterStationBlocks(railComponents, _railGraphDatastore);//②登録のみ
             var trainPlatformDockingComponent = new TrainPlatformDockingComponent(componentStates, stationParam.LoadingAnimeSpeed);
             var trainPlatformTransferComponent = new TrainPlatformTransferComponent(componentStates);
-            var trainPlatformItemTransferComponent = new TrainPlatformItemContainerComponent(trainPlatformDockingComponent, trainPlatformTransferComponent, stationParam.ItemSlotCount);
+            var trainPlatformItemTransferComponent = new TrainPlatformItemContainerComponent(trainPlatformDockingComponent, trainPlatformTransferComponent, stationParam.ItemSlotCount, componentStates);
             
             // 復元したコンポーネントをブロックに登録する
             var blockComponents = new List<IBlockComponent>();
