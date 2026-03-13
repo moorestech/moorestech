@@ -1,6 +1,7 @@
 using System;
 using MessagePack;
 using MessagePack.Formatters;
+using UnityEngine;
 
 namespace Game.Train.Unit
 {
