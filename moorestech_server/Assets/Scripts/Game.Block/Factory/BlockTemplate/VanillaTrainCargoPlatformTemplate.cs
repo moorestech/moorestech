@@ -36,6 +36,7 @@ namespace Game.Block.Factory.BlockTemplate
             var trainPlatformDockingComponent = new TrainPlatformDockingComponent(stationParam.LoadingAnimeSpeed);
             var trainPlatformTransferComponent = new TrainPlatformTransferComponent(TrainPlatformTransferComponent.TransferMode.LoadToTrain);
             var trainPlatformItemTransferComponent = new TrainPlatformItemContainerComponent(trainPlatformDockingComponent, trainPlatformTransferComponent, stationParam.ItemSlotCount);
+            var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(stationParam.InventoryConnectors, positionInfo);
             
             // 生成したコンポーネントをブロックに登録する
             var blockComponents = new List<IBlockComponent>();
@@ -43,6 +44,7 @@ namespace Game.Block.Factory.BlockTemplate
             blockComponents.Add(trainPlatformDockingComponent);
             blockComponents.Add(trainPlatformTransferComponent);
             blockComponents.Add(trainPlatformItemTransferComponent);
+            blockComponents.Add(inputConnectorComponent);
             
             // ここで各RailNodeにStationReferenceを設定  
             var createdBlock = new BlockSystem(instanceId, masterElement.BlockGuid, blockComponents, positionInfo);
@@ -70,6 +72,7 @@ namespace Game.Block.Factory.BlockTemplate
             var trainPlatformDockingComponent = new TrainPlatformDockingComponent(componentStates, stationParam.LoadingAnimeSpeed);
             var trainPlatformTransferComponent = new TrainPlatformTransferComponent(componentStates);
             var trainPlatformItemTransferComponent = new TrainPlatformItemContainerComponent(trainPlatformDockingComponent, trainPlatformTransferComponent, stationParam.ItemSlotCount, componentStates);
+            var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(stationParam.InventoryConnectors, positionInfo);
             
             // 復元したコンポーネントをブロックに登録する
             var blockComponents = new List<IBlockComponent>();
@@ -77,6 +80,7 @@ namespace Game.Block.Factory.BlockTemplate
             blockComponents.Add(trainPlatformDockingComponent);
             blockComponents.Add(trainPlatformTransferComponent);
             blockComponents.Add(trainPlatformItemTransferComponent);
+            blockComponents.Add(inputConnectorComponent);
 
             // ここで各RailNodeにStationReferenceを設定  
             var createdBlock = new BlockSystem(instanceId, masterElement.BlockGuid, blockComponents, positionInfo);
@@ -87,26 +91,8 @@ namespace Game.Block.Factory.BlockTemplate
             railComponents[0].BackNode.StationRef.SetStationReference(createdBlock, StationNodeRole.Exit, StationNodeSide.Back);
             return createdBlock;
         }
-
-        /// <summary>
-        /// インベントリ関連のコンポーネントを作成する
-        /// </summary>
-        private List<IBlockComponent> CreateInventoryComponents(Dictionary<string, string> componentStates, BlockInstanceId instanceId, TrainCargoPlatformBlockParam param, BlockPositionInfo blockPositionInfo)
-        {
-            var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(param.InventoryConnectors, blockPositionInfo);
-            var inserter = new ConnectingInventoryListPriorityInsertItemService(instanceId, inputConnectorComponent);
-
-            var chestComponent = componentStates == null ?
-                new VanillaChestComponent(instanceId, param.ItemSlotCount, inserter) :
-                new VanillaChestComponent(componentStates, instanceId, param.ItemSlotCount, inserter);
-
-            return new List<IBlockComponent>
-            {
-                chestComponent,
-                inputConnectorComponent,
-            };
-        }
     }
 }
 
 
+    
