@@ -51,20 +51,6 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
             {
                 case TrainPlatformTransferComponent.TransferMode.LoadToTrain:
                     {
-                        if (Container == null)
-                        {
-                            _dockingComponent.StartRetracting();
-                            return;
-                        }
-                        
-                        if (dockedCar.Container == null)
-                        {
-                            dockedCar.SetContainer(Container);
-                            Container = null;
-                            _dockingComponent.StartRetracting();
-                            return;
-                        }
-                        
                         if (!CanTransfer(targetContainer, Container))
                         {
                             _dockingComponent.StartRetracting();
@@ -75,6 +61,20 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
                         
                         if (_dockingComponent.ArmState != ArmState.Extended) return;
                         
+                        if (Container == null)
+                        {
+                            _dockingComponent.StartRetracting();
+                            return;
+                        }
+                        
+                        if (targetContainer == null)
+                        {
+                            dockedCar.SetContainer(Container);
+                            Container = null;
+                            _dockingComponent.StartRetracting();
+                            return;
+                        }
+                        
                         targetContainer.MergeFrom(Container);
                         
                         _dockingComponent.StartRetracting();
@@ -82,6 +82,16 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
                     }
                 case TrainPlatformTransferComponent.TransferMode.UnloadToPlatform:
                     {
+                        if (!CanTransfer(Container, targetContainer))
+                        {
+                            _dockingComponent.StartRetracting();
+                            return;
+                        }
+                        
+                        _dockingComponent.StartExtending();
+                        
+                        if (_dockingComponent.ArmState != ArmState.Extended) return;
+                        
                         if (dockedCar.Container == null)
                         {
                             _dockingComponent.StartRetracting();
@@ -94,16 +104,6 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
                             _dockingComponent.StartRetracting();
                             return;
                         }
-
-                        if (!CanTransfer(Container, targetContainer))
-                        {
-                            _dockingComponent.StartRetracting();
-                            return;
-                        }
-                        
-                        _dockingComponent.StartExtending();
-                        
-                        if (_dockingComponent.ArmState != ArmState.Extended) return;
                         
                         Container.MergeFrom(targetContainer);
                         
@@ -180,12 +180,18 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
             return _slotsCount;
         }
         
-        private bool IsTargetContainer(out ItemTrainCarContainer trainCarContainer)
+        private bool IsTargetContainer([CanBeNull] out ItemTrainCarContainer trainCarContainer)
         {
             var trainContainer = _dockingComponent.DockedTrainCar?.Container;
             if (trainContainer is ItemTrainCarContainer itemTrainCarContainer)
             {
                 trainCarContainer = itemTrainCarContainer;
+                return true;
+            }
+            
+            if (trainContainer is null)
+            {
+                trainCarContainer = null;
                 return true;
             }
 
@@ -195,6 +201,8 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
         
         private bool CanTransfer(ItemTrainCarContainer to, ItemTrainCarContainer from)
         {
+            if (to is null) return true;
+            if (from is null) return false;
             if (!to.CanInsert(from)) return false;
             return true;
         }

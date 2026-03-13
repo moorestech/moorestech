@@ -24,8 +24,7 @@ namespace Game.Train.Unit
         public Guid TrainCarMasterId { get; set; }
         public bool IsFacingForward { get; set; }
         public SerializableVector3Int? DockingBlockPosition { get; set; }
-        public List<ItemStackSaveJsonObject> InventoryItems { get; set; }
-        public List<ItemStackSaveJsonObject> FuelItems { get; set; }
+        public string ContainerSaveData { get; set; }
     }
 
     [Serializable]

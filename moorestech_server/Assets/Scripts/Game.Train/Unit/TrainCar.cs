@@ -8,6 +8,7 @@ using Game.Train.Diagram;
 using Game.Train.Event;
 using Game.Train.SaveLoad;
 using JetBrains.Annotations;
+using MessagePack;
 using Mooresmaster.Model.TrainModule;
 using UnityEngine;
 
@@ -86,8 +87,7 @@ namespace Game.Train.Unit
                 TrainCarMasterId = this.TrainCarMasterElement.TrainCarGuid,
                 IsFacingForward = this.IsFacingForward,
                 DockingBlockPosition = dockingPosition,
-                InventoryItems = new List<ItemStackSaveJsonObject>(),
-                FuelItems = new List<ItemStackSaveJsonObject>(),
+                ContainerSaveData = MessagePackSerializer.ConvertToJson(MessagePackSerializer.Serialize(Container))
             };
         }
 
@@ -109,6 +109,9 @@ namespace Game.Train.Unit
                     car.dockingblock = block;
                 }
             }
+            
+            car.Container = MessagePackSerializer.Deserialize<ITrainCarContainer>(MessagePackSerializer.ConvertFromJson(data.ContainerSaveData));
+            
             return car;
         }
 

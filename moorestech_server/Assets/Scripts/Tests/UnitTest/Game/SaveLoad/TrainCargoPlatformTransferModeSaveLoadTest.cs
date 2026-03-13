@@ -58,7 +58,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             for (var i = 0; i < elapsedTicks; i++)
                 foreach (var updatableBlockComponent in updatableComponents) 
                     updatableBlockComponent.Update();
-            Assert.IsTrue(trainCar.IsInventoryEmpty(), "セーブ前に一括移送が発生しています。");
+            Assert.IsTrue(trainCar.Container == null || trainCar.IsInventoryEmpty(), "セーブ前に一括移送が発生しています。");
 
             var saveJson = SaveLoadJsonTestHelper.AssembleSaveJson(environment.ServiceProvider);
             var loadEnvironment = TrainTestHelper.CreateEnvironment();
