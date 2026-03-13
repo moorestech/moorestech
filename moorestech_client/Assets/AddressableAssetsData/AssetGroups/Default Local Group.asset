@@ -14,7 +14,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_GroupName: Default Local Group
   m_GUID: 00ca334169f2ed44480534a893fe0840
-  m_SerializeEntries: []
+  m_SerializeEntries:
+  - m_GUID: 1c6138f410ee74af6988f397d9e29c8e
+    m_Address: Assets/Asset/Train/Locomotive.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f22c62a7f76b83849a8bf224f51e8eae
+    m_Address: Assets/Asset/Block/Effect/Prefabs/FX_Smoke_Black.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: be510649df329a24cabdde2725dd7579, type: 2}
   m_SchemaSet:

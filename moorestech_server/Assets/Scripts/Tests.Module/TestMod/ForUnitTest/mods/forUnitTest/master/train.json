@@ -5,7 +5,7 @@
       "inventorySlots": 10,
       "length": 8,
       "itemGuid": "20000000-0000-0000-0000-000000000000",
-      "addressablePath": "",
+      "addressablePath": "Assets/Asset/Train/Locomotive.prefab",
       "trainCarGuid": "dc82cf3f-709d-49eb-bdb2-67ffcaff561b"
     }
   ],
