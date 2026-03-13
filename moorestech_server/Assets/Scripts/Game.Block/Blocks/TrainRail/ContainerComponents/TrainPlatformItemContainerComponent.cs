@@ -207,7 +207,7 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
         
         public string GetSaveState()
         {
-            return JsonConvert.SerializeObject(new TrainPlatformItemContainerComponentSaveData(Container));
+            return MessagePackSerializer.ConvertToJson(MessagePackSerializer.Serialize(new TrainPlatformItemContainerComponentSaveData(Container)));
         }
         
         [MessagePackObject]
