@@ -11,7 +11,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 {
     public class TrainCarPreviewController : MonoBehaviour
     {
-        private const string DefaultTrainAddressablePath = "Vanilla/Game/DefaultTrain";
         private const float ModelYawOffsetDegrees = -90f;
 
         private GameObject _previewObject;
@@ -26,21 +25,21 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
         public bool ShowPreview(ItemId itemId, RailPosition railPosition, bool isPlaceable)
         {
-            // プレビュー用の車両モデルを準備する
+            // プレビュー用の列車モデルを準備する
             // Prepare the preview train model
             if (!TryPreparePreviewObject(itemId, out _))
             {
                 return false;
             }
 
-            // レール位置から姿勢を算出する
+            // レール位置から姿勢を計算する
             // Compute pose from rail position
             if (!TryResolvePreviewPose(railPosition, out var position, out var rotation))
             {
                 return false;
             }
 
-            // プレビューのTransformと色を更新する
+            // プレビューの Transform と色を更新する
             // Update preview transform and tint
             _previewObject.transform.SetPositionAndRotation(position, rotation);
             SetPlaceableColor(isPlaceable);
@@ -50,7 +49,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
             bool TryPreparePreviewObject(ItemId targetItemId, out TrainCarMasterElement trainCarMasterElement)
             {
-                // 車両マスターを解決する
+                // 列車マスターを解決する
                 // Resolve the train car master
                 trainCarMasterElement = null;
                 if (!MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(targetItemId, out trainCarMasterElement))
@@ -58,14 +57,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     return false;
                 }
 
-                // 同一アイテムなら既存プレビューを再利用する
+                // 同じアイテムなら既存プレビューを再利用する
                 // Reuse the existing preview when the item is unchanged
                 if (_previewObject != null && targetItemId.Equals(_currentItemId))
                 {
                     return true;
                 }
 
-                // 既存プレビューを破棄して再生成する
+                // 既存プレビューを破棄して作り直す
                 // Recreate the preview object
                 if (_previewObject != null)
                 {
@@ -82,7 +81,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 _modelForwardCenterOffset = ResolveModelForwardCenterOffset(_previewObject.transform);
                 _currentItemId = targetItemId;
 
-                // プレビュー素材と衝突を初期化する
+                // プレビュー材質と衝突設定を初期化する
                 // Initialize preview material and collisions
                 if (!TryApplyPreviewMaterial())
                 {
@@ -94,20 +93,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
             bool TryResolvePreviewPrefab(TrainCarMasterElement masterElement, out GameObject prefab)
             {
-                // アドレス指定のプレハブを取得する
-                // Load the specified prefab
-                prefab = null;
-                var address = string.IsNullOrEmpty(masterElement.AddressablePath) ? DefaultTrainAddressablePath : masterElement.AddressablePath;
-                prefab = AddressableLoader.LoadDefault<GameObject>(address);
-                if (prefab != null)
+                // 指定された prefab をそのまま読む
+                // Load the specified prefab directly
+                prefab = AddressableLoader.LoadDefault<GameObject>(masterElement.AddressablePath);
+                if (prefab == null)
                 {
-                    return true;
+                    throw new System.InvalidOperationException($"Train preview prefab load failed. AddressablePath:{masterElement.AddressablePath}");
                 }
-
-                // フォールバックでデフォルトを使う
-                // Fallback to default prefab
-                prefab = AddressableLoader.LoadDefault<GameObject>(DefaultTrainAddressablePath);
-                return prefab != null;
+                return true;
             }
 
             bool TryApplyPreviewMaterial()
@@ -125,7 +118,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
             void SetPlaceableColor(bool placeable)
             {
-                // 配置可否に応じて色を切り替える
+                // 設置可否に応じて色を切り替える
                 // Switch color based on placeability
                 if (_materialReplacerController == null)
                 {
@@ -149,7 +142,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     return false;
                 }
 
-                // 前後輪から中心姿勢を算出する
+                // 前後位置から中央姿勢を計算する
                 // Compute center pose from front and rear positions
                 if (!TrainCarPoseCalculator.TryGetPose(targetRailPosition, 0, out var frontPosition, out var frontForward))
                 {
@@ -164,7 +157,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 var forward = delta.sqrMagnitude > 1e-6f ? delta.normalized : (frontForward.sqrMagnitude > 1e-6f ? frontForward.normalized : Vector3.forward);
                 rotation = BuildRotation(forward);
 
-                // モデルの前後補正を適用する
+                // モデル中心補正を適用する
                 // Apply model forward offset correction
                 var localForwardAxis = Quaternion.Euler(0f, -ModelYawOffsetDegrees, 0f) * Vector3.forward;
                 var modelForward = rotation * localForwardAxis;
@@ -174,7 +167,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
             Quaternion BuildRotation(Vector3 forward)
             {
-                // 向きから回転を構成する
+                // 前方ベクトルから回転を構築する
                 // Build rotation from forward vector
                 var safeForward = forward.sqrMagnitude > 1e-6f ? forward.normalized : Vector3.forward;
                 var rotation = Quaternion.LookRotation(safeForward, Vector3.up);
@@ -183,7 +176,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
             float ResolveModelForwardCenterOffset(Transform targetTransform)
             {
-                // レンダラの重心から前後オフセットを算出する
+                // renderer bounds から前方中心オフセットを計算する
                 // Compute forward offset from renderer bounds
                 var renderers = targetTransform.GetComponentsInChildren<Renderer>(true);
                 if (renderers == null || renderers.Length == 0)
@@ -202,7 +195,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
             void DisableColliders(GameObject targetObject)
             {
-                // レイキャスト干渉を防ぐためコライダーを無効化する
+                // レイキャスト干渉を避けるため collider を無効化する
                 // Disable colliders to avoid raycast interference
                 var colliders = targetObject.GetComponentsInChildren<Collider>(true);
                 for (var i = 0; i < colliders.Length; i++)
