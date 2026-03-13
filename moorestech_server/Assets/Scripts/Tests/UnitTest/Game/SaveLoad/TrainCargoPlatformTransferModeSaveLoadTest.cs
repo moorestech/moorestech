@@ -72,7 +72,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var loadedCar = loadedTrain.Cars[0];
             Assert.IsTrue(loadedCar.IsDocked, "ロード後に列車ドッキング状態が復元されていません。");
             
-            List<IUpdatableBlockComponent> loadedUpdatableComponents = cargoBlock.GetComponents<IUpdatableBlockComponent>();
+            List<IUpdatableBlockComponent> loadedUpdatableComponents = loadedBlock.GetComponents<IUpdatableBlockComponent>();
             var remainingTicks = totalTicks + 1 - elapsedTicks;
             for (var i = 0; i < remainingTicks; i++)
                 foreach (var updatableBlockComponent in loadedUpdatableComponents)
