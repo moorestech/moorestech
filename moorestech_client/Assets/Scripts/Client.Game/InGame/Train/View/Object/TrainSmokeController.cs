@@ -174,7 +174,7 @@ namespace Client.Game.InGame.Train.View.Object
 
     internal static class TrainSmokeProfile
     {
-        private static readonly Vector3 SmokeAnchorLocalPosition = new(1.0f, 2.0f, 0.0f);
+        private static readonly Vector3 SmokeAnchorLocalPosition = new(1.80f, 1.01f, 0.0f);
 
         public static Vector3 GetAnchorLocalPosition()
         {
