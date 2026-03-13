@@ -18,7 +18,8 @@
         "Unity.Addressables",
         "VContainer",
         "Unity.TextMeshPro",
-        "Unity.ResourceManager"
+        "Unity.ResourceManager",
+        "Server.Util"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

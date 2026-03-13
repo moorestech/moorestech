@@ -1,4 +1,9 @@
+using System.Collections.Generic;
+using System.Linq;
+using Core.Master;
+using Core.Update;
 using Game.Block.Blocks.TrainRail;
+using Game.Block.Blocks.TrainRail.ContainerComponents;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
@@ -6,12 +11,9 @@ using Game.Context;
 using Game.Train.RailGraph;
 using Game.Train.RailPositions;
 using Game.Train.Unit;
+using Game.Train.Unit.Containers;
 using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
-using System.Collections.Generic;
-using System.Linq;
-using Core.Master;
-using Core.Update;
 using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;
@@ -32,14 +34,13 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             Assert.IsNotNull(cargoBlock, "貨物プラットフォームの生成に失敗しました。");
             Assert.IsNotNull(railComponents, "貨物プラットフォームのRailComponent取得に失敗しました。");
-
-            var cargoPlatformComponent = cargoBlock.GetComponent<CargoplatformComponent>();
-            Assert.IsNotNull(cargoPlatformComponent, "CargoplatformComponentの取得に失敗しました。");
-            Assert.IsTrue(cargoBlock.ComponentManager.TryGetComponent<IBlockInventory>(out var cargoInventory), "貨物プラットフォームのインベントリ取得に失敗しました。");
+            
+            var itemContainerComponent = cargoBlock.GetComponent<TrainPlatformItemContainerComponent>();
+            Assert.IsNotNull(itemContainerComponent, "cargoContainerComponentの取得に失敗しました。");
 
             var cargoParam = (TrainCargoPlatformBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainCargoPlatform).BlockParam;
             var maxStack = MasterHolder.ItemMaster.GetItemMaster(ForUnitTestItemId.ItemId1).MaxStack;
-            cargoInventory.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, maxStack));
+            itemContainerComponent.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, maxStack));
 
             var entryNode = railComponents[0].FrontNode;
             var exitNode = railComponents[1].FrontNode;
@@ -50,11 +51,14 @@ namespace Tests.UnitTest.Game.SaveLoad
             var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, environment.GetTrainUpdateService(), environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
             trainUnit.trainUnitStationDocking.TryDockWhenStopped();
             Assert.IsTrue(trainCar.IsDocked, "列車が貨物プラットフォームにドッキングしていません。");
-
+            
+            List<IUpdatableBlockComponent> updatableComponents = cargoBlock.GetComponents<IUpdatableBlockComponent>();
             var totalTicks = GetArmAnimationTicks(cargoParam.LoadingAnimeSpeed);
             var elapsedTicks = totalTicks / 2;
-            for (var i = 0; i < elapsedTicks; i++) cargoPlatformComponent.Update();
-            Assert.IsTrue(trainCar.IsInventoryEmpty(), "セーブ前に一括移送が発生しています。");
+            for (var i = 0; i < elapsedTicks; i++)
+                foreach (var updatableBlockComponent in updatableComponents) 
+                    updatableBlockComponent.Update();
+            Assert.IsTrue(trainCar.Container == null || trainCar.IsInventoryEmpty(), "セーブ前に一括移送が発生しています。");
 
             var saveJson = SaveLoadJsonTestHelper.AssembleSaveJson(environment.ServiceProvider);
             var loadEnvironment = TrainTestHelper.CreateEnvironment();
@@ -62,22 +66,23 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             var loadedBlock = loadEnvironment.WorldBlockDatastore.GetBlock(Vector3Int.zero);
             Assert.IsNotNull(loadedBlock, "ロード後に貨物プラットフォームが見つかりません。");
-            var loadedComponent = loadedBlock.GetComponent<CargoplatformComponent>();
-            Assert.IsNotNull(loadedComponent, "ロード後にCargoplatformComponentが見つかりません。");
             Assert.IsTrue(loadedBlock.ComponentManager.TryGetComponent<IBlockInventory>(out var loadedInventory), "ロード後の貨物インベントリ取得に失敗しました。");
 
             var loadedTrain = loadEnvironment.GetTrainUpdateService().GetRegisteredTrains().Single();
             var loadedCar = loadedTrain.Cars[0];
             Assert.IsTrue(loadedCar.IsDocked, "ロード後に列車ドッキング状態が復元されていません。");
-
+            
+            List<IUpdatableBlockComponent> loadedUpdatableComponents = loadedBlock.GetComponents<IUpdatableBlockComponent>();
             var remainingTicks = totalTicks + 1 - elapsedTicks;
-            for (var i = 0; i < remainingTicks; i++) loadedComponent.Update();
+            for (var i = 0; i < remainingTicks; i++)
+                foreach (var updatableBlockComponent in loadedUpdatableComponents)
+                    updatableBlockComponent.Update();
 
             var platformStack = loadedInventory.GetItem(0);
             Assert.AreEqual(ItemMaster.EmptyItemId, platformStack.Id, "ロード後にアニメーション進捗が復元されず、予定tickで一括移送されませんでした。");
-            var carStack = loadedCar.GetItem(0);
-            Assert.AreEqual(ForUnitTestItemId.ItemId1, carStack.Id, "ロード後に列車側へアイテムが移送されていません。");
-            Assert.AreEqual(maxStack, carStack.Count, "ロード後に列車側へ全量移送されていません。");
+            var carStack = (loadedCar.Container as ItemTrainCarContainer)!.InventoryItems[0];
+            Assert.AreEqual(ForUnitTestItemId.ItemId1, carStack.Stack.Id, "ロード後に列車側へアイテムが移送されていません。");
+            Assert.AreEqual(maxStack, carStack.Stack.Count, "ロード後に列車側へ全量移送されていません。");
 
             loadedTrain.trainUnitStationDocking.UndockFromStation();
             loadEnvironment.GetTrainDiagramManager().UnregisterDiagram(loadedTrain.trainDiagram);
@@ -99,14 +104,14 @@ namespace Tests.UnitTest.Game.SaveLoad
             var unloadBlock = TrainTestHelper.PlaceBlock(environment, ForUnitTestModBlockId.TestTrainCargoPlatform, unloadPosition, BlockDirection.North);
             Assert.IsNotNull(unloadBlock, "Unloadモード側の貨物プラットフォーム生成に失敗しました。");
 
-            var loadCargo = loadBlock.GetComponent<CargoplatformComponent>();
-            Assert.IsNotNull(loadCargo, "Loadモード側のCargoplatformComponent取得に失敗しました。");
+            var loadCargo = loadBlock.GetComponent<TrainPlatformTransferComponent>();
+            Assert.IsNotNull(loadCargo, "Loadモード側のTrainPlatformTransferComponent取得に失敗しました。");
 
-            var unloadCargo = unloadBlock.GetComponent<CargoplatformComponent>();
-            Assert.IsNotNull(unloadCargo, "Unloadモード側のCargoplatformComponent取得に失敗しました。");
+            var unloadCargo = unloadBlock.GetComponent<TrainPlatformTransferComponent>();
+            Assert.IsNotNull(unloadCargo, "Unloadモード側のTrainPlatformTransferComponent取得に失敗しました。");
 
-            loadCargo!.SetTransferMode(CargoplatformComponent.CargoTransferMode.LoadToTrain);
-            unloadCargo!.SetTransferMode(CargoplatformComponent.CargoTransferMode.UnloadToPlatform);
+            loadCargo!.SetMode(TrainPlatformTransferComponent.TransferMode.LoadToTrain);
+            unloadCargo!.SetMode(TrainPlatformTransferComponent.TransferMode.UnloadToPlatform);
 
             // セーブデータを生成して環境を解体する
             // Build the save data and tear down the environment
@@ -125,16 +130,16 @@ namespace Tests.UnitTest.Game.SaveLoad
             var loadedUnloadBlock = loadEnvironment.WorldBlockDatastore.GetBlock(unloadPosition);
             Assert.IsNotNull(loadedUnloadBlock, "ロード後にUnloadモード側の貨物プラットフォームが見つかりません。");
 
-            var loadedLoadCargo = loadedLoadBlock.GetComponent<CargoplatformComponent>();
-            Assert.IsNotNull(loadedLoadCargo, "ロード後にLoadモード側のCargoplatformComponentが見つかりません。");
+            var loadedLoadCargo = loadedLoadBlock.GetComponent<TrainPlatformTransferComponent>();
+            Assert.IsNotNull(loadedLoadCargo, "ロード後にLoadモード側のTrainPlatformTransferComponentが見つかりません。");
 
-            var loadedUnloadCargo = loadedUnloadBlock.GetComponent<CargoplatformComponent>();
-            Assert.IsNotNull(loadedUnloadCargo, "ロード後にUnloadモード側のCargoplatformComponentが見つかりません。");
+            var loadedUnloadCargo = loadedUnloadBlock.GetComponent<TrainPlatformTransferComponent>();
+            Assert.IsNotNull(loadedUnloadCargo, "ロード後にUnloadモード側のTrainPlatformTransferComponentが見つかりません。");
 
-            Assert.AreEqual(CargoplatformComponent.CargoTransferMode.LoadToTrain, loadedLoadCargo!.TransferMode,
+            Assert.AreEqual(TrainPlatformTransferComponent.TransferMode.LoadToTrain, loadedLoadCargo!.Mode,
                 "Loadモード側の貨物プラットフォームの転送モードが復元されていません。");
 
-            Assert.AreEqual(CargoplatformComponent.CargoTransferMode.UnloadToPlatform, loadedUnloadCargo!.TransferMode,
+            Assert.AreEqual(TrainPlatformTransferComponent.TransferMode.UnloadToPlatform, loadedUnloadCargo!.Mode,
                 "Unloadモード側の貨物プラットフォームの転送モードが復元されていません。");
         }
 

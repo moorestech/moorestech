@@ -1,17 +1,15 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using Core.Item;
 using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
+using Game.Action;
 using Game.Block.Event;
 using Game.Block.Factory;
 using Game.Block.Interface;
 using Game.Block.Interface.Event;
-using Game.Action;
 using Game.Challenge;
 using Game.Context;
-
 using Game.Crafting.Interface;
 using Game.CraftTree;
 using Game.EnergySystem;
@@ -23,20 +21,21 @@ using Game.Map.Interface.Json;
 using Game.Map.Interface.MapObject;
 using Game.Map.Interface.Vein;
 using Game.Paths;
-using Game.Research;
 using Game.PlayerInventory;
 using Game.PlayerInventory.Event;
 using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Event;
 using Game.PlayerInventory.Interface.Subscription;
+using Game.Research;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using Game.Train.Diagram;
+using Game.Train.Event;
+using Game.Train.RailGraph;
 using Game.Train.RailPositions;
 using Game.Train.SaveLoad;
 using Game.Train.Unit;
-using Game.Train.Event;
-using Game.Train.RailGraph;
+using Game.Train.Unit.Containers;
 using Game.UnlockState;
 using Game.World;
 using Game.World.DataStore;
@@ -44,6 +43,8 @@ using Game.World.DataStore.WorldSettings;
 using Game.World.EventHandler.EnergyEvent;
 using Game.World.EventHandler.EnergyEvent.EnergyService;
 using Game.World.Interface.DataStore;
+using MessagePack;
+using MessagePack.Resolvers;
 using Microsoft.Extensions.DependencyInjection;
 using Mod.Config;
 using Mod.Loader;
@@ -52,7 +53,7 @@ using Server.Event;
 using Server.Event.EventReceive;
 using Server.Event.EventReceive.UnifiedInventoryEvent;
 using Server.Protocol;
-using Server.Protocol.PacketResponse;
+using Server.Util.MessagePack;
 
 namespace Server.Boot
 {
@@ -219,6 +220,9 @@ namespace Server.Boot
             serviceProvider.GetService<RailConnectionRemovedEventPacket>();
             
             serverContext.SetMainServiceProvider(serviceProvider);
+            
+            // MessagePackResolverを登録
+            MessagePackInitializer.Initialize();
 
             return (packetResponse, serviceProvider);
         }

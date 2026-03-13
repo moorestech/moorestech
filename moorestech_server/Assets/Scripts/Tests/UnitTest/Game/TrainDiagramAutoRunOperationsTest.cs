@@ -2,7 +2,6 @@ using Core.Master;
 using Game.Context;
 using Game.Train.Diagram;
 using Game.Train.RailGraph;
-using Game.Train.Unit;
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
@@ -380,7 +379,6 @@ namespace Tests.UnitTest.Game
                 "単一エントリ・ループのテストでは、ダイヤグラムはちょうど1つのエントリのみを含むべきです。");
 
             var startEntry = diagram.Entries[0];
-            var trainCar = scenario.TrainCar;
 
             if (startRunning)
             {
@@ -395,7 +393,7 @@ namespace Tests.UnitTest.Game
             {
                 startEntry.SetDepartureCondition(TrainDiagram.DepartureConditionType.TrainInventoryFull);
                 var maxStack = MasterHolder.ItemMaster.GetItemMaster(ForUnitTestItemId.ItemId1).MaxStack;
-                trainCar.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, maxStack));
+                scenario.ItemContainer.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, maxStack));
             }
 
             Assert.IsTrue(trainUnit.trainUnitStationDocking.IsDocked,
