@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Item.Interface;
+using Game.Block.Blocks.Connector;
 using Game.Block.Interface.Component;
 using Game.Context;
 using Game.Train.Unit.Containers;
@@ -17,36 +18,41 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
         [CanBeNull] public ItemTrainCarContainer Container { get; private set; }
         private readonly TrainPlatformDockingComponent _dockingComponent;
         private readonly TrainPlatformTransferComponent _transferComponent;
+        private readonly IBlockInventoryInserter _blockInventoryInserter;
         private readonly int _slotsCount;
-        
-        public TrainPlatformItemContainerComponent(TrainPlatformDockingComponent dockingComponent, TrainPlatformTransferComponent transferComponent, int slotsCount)
+
+        public TrainPlatformItemContainerComponent(TrainPlatformDockingComponent dockingComponent, TrainPlatformTransferComponent transferComponent, int slotsCount, IBlockInventoryInserter blockInventoryInserter)
         {
             _dockingComponent = dockingComponent;
             _transferComponent = transferComponent;
             _slotsCount = slotsCount;
+            _blockInventoryInserter = blockInventoryInserter;
         }
-        
-        public TrainPlatformItemContainerComponent(TrainPlatformDockingComponent dockingComponent, TrainPlatformTransferComponent transferComponent, int slotsCount, Dictionary<string, string> componentStates)
+
+        public TrainPlatformItemContainerComponent(TrainPlatformDockingComponent dockingComponent, TrainPlatformTransferComponent transferComponent, int slotsCount, IBlockInventoryInserter blockInventoryInserter, Dictionary<string, string> componentStates)
         {
             _dockingComponent = dockingComponent;
             _transferComponent = transferComponent;
             _slotsCount = slotsCount;
-            
+            _blockInventoryInserter = blockInventoryInserter;
+
             var serialized = componentStates[SaveKey];
             var serializedBytes = MessagePackSerializer.ConvertFromJson(serialized);
             var saveData = MessagePackSerializer.Deserialize<TrainPlatformItemContainerComponentSaveData>(serializedBytes);
             if (saveData == null) return;
-            
+
             Container = saveData.Container;
         }
         
         public void Update()
         {
+            PushItemsToAdjacentBlocks();
+
             var dockedCar = _dockingComponent.DockedTrainCar;
             if (dockedCar == null) return;
 
             if (!IsTargetContainer(out var targetContainer)) return;
-            
+
             switch (_transferComponent.Mode)
             {
                 case TrainPlatformTransferComponent.TransferMode.LoadToTrain:
@@ -207,6 +213,18 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
             return true;
         }
         
+        private void PushItemsToAdjacentBlocks()
+        {
+            if (Container == null) return;
+
+            var slots = Container.InventoryItems;
+            for (var i = 0; i < slots.Length; i++)
+            {
+                var setItem = _blockInventoryInserter.InsertItem(slots[i].Stack);
+                Container.SetItem(i, setItem);
+            }
+        }
+
         public void Destroy()
         {
             IsDestroy = true;
