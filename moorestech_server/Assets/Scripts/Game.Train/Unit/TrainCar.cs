@@ -56,7 +56,7 @@ namespace Game.Train.Unit
         //重さ、推進力を得る
         public (int,int) GetWeightAndTraction()
         {
-            return (TrainMotionParameters.DEFAULT_WEIGHT + Container?.GetWeight() ?? 0, IsFacingForward ? TractionForce * TrainMotionParameters.DEFAULT_TRACTION : 0);
+            return (TrainMotionParameters.DEFAULT_WEIGHT + (Container?.GetWeight() ?? 0), IsFacingForward ? TractionForce * TrainMotionParameters.DEFAULT_TRACTION : 0);
         }
 
         public void SetFacingForward(bool isFacingForward)
