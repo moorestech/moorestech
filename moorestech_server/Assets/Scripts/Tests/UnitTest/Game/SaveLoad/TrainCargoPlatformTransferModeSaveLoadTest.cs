@@ -111,7 +111,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.IsNotNull(unloadCargo, "Unloadモード側のTrainPlatformTransferComponent取得に失敗しました。");
 
             loadCargo!.SetMode(TrainPlatformTransferComponent.TransferMode.LoadToTrain);
-            unloadCargo!.SetMode(TrainPlatformTransferComponent.TransferMode.LoadToTrain);
+            unloadCargo!.SetMode(TrainPlatformTransferComponent.TransferMode.UnloadToPlatform);
 
             // セーブデータを生成して環境を解体する
             // Build the save data and tear down the environment
