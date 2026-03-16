@@ -54,7 +54,7 @@ gh pr create --title "the pr title" --body "$(cat <<'EOF'
 ## Test plan
 [Bulleted markdown checklist of TODOs for testing the pull request...]
 
-Generated with [Codex](https://Codex.com/Codex)
+Generated with [Claude Code](https://claude.com/claude-code)
 EOF
 )"
 ```
