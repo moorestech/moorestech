@@ -59,28 +59,39 @@ find <directory> -type f -size +100M
 
 `du -sm` でディレクトリサイズを確認し、1.5GB以下の塊に分ける。
 
-### Step 4: コミット＆push（繰り返し）
+### Step 4: コミット＆push（1つずつ順番に）
 
-各グループごとにコミットとpushを交互に行う:
+**必ず「1コミット → pushの完了を待つ → 次のコミット」の順で行う。** 複数コミットを先にまとめて作ってからpushしてはいけない。packサイズが合算されて2GB制限に引っかかる。
 
 ```bash
+# グループ1（初回は -u でトラッキング設定）
+git add <files>
+git commit -m "説明"
+git push -u origin <branch>
+# ← push完了を確認してから次へ
+
+# グループ2以降
 git add <files>
 git commit -m "説明"
 git push origin <branch>
+# ← push完了を確認してから次へ
+# ... 繰り返し
 ```
 
-**重要**: 必ず1コミットごとにpushする。複数コミットをまとめてpushすると、packサイズが合算されて2GB制限に引っかかる。
+**注意**: 初回pushでは必ず `-u` フラグを付ける。これがないとローカルのリモートトラッキングが設定されず、`git log origin/<branch>..HEAD` が `ambiguous argument` エラーになる。
+
+pushはバックグラウンド実行せず、完了を待ってから次のコミットに進む。
 
 push成功後、未pushコミットが残っていないか確認:
 ```bash
-git log origin/<branch>..HEAD --oneline
+git fetch origin && git log FETCH_HEAD..HEAD --oneline
 ```
 
 ### Step 5: push失敗時の対処
 
 `pack exceeds maximum allowed size` エラーが出た場合:
 
-1. 未pushコミットを `git log origin/<branch>..HEAD` で確認
+1. 未pushコミットを `git fetch origin && git log FETCH_HEAD..HEAD` で確認（`origin/<branch>..HEAD` はトラッキング未設定時にエラーになるため `FETCH_HEAD` を使う）
 2. 1コミットずつ個別にpush:
    ```bash
    git push origin <commit-hash>:<remote-branch>
@@ -91,5 +102,5 @@ git log origin/<branch>..HEAD --oneline
 
 - `git push origin <hash>:<branch>` で特定コミットまでpush可能
 - バイナリファイル（PNG, EXR, asset等）はgit packの圧縮効率が悪いため、実ファイルサイズより大きくなることがある
-- pushに時間がかかる場合はバックグラウンド実行を検討
+- pushは必ずフォアグラウンドで実行し、完了を待ってから次のコミットに進む
 - `.DS_Store` 等のOS生成ファイルは除外する
