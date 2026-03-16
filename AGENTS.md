@@ -59,8 +59,9 @@ public void ComplexMethod()
 - Mooresmaster.Model.*Module（BlocksModule, ItemsModule, FluidsModule等）は全て自動生成、手動作成禁止
 - MasterHolder（Core.Master.MasterHolder）が全Masterを静的プロパティで一元管理し、Load(MasterJsonFileContainer)でJSONからロード
 
-# テストプレイ用Mod
-実際のゲームテストプレイでは`../moorestech_master/server_v8/mods`等の外部Modをロードして実行。場所は`../moorestech_master`で固定。ユーザーからの不具合対応に応じて、都度チェックすること。
+# 関連リポジトリ
+- `../moorestech_master` — マスターデータ（JSON）とアセット画像のリポジトリ。テストプレイ用Modは`../moorestech_master/server_v8/mods`からロード
+- `./moorestech_client/Assets/PersonalAssets/moorestech-client-private` — クライアント側の非公開アセット（有料アセット等）
 
 # テスト・コンパイルの実行
 
