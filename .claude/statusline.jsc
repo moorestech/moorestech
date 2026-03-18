@@ -130,7 +130,7 @@ function colorPct(pct) {
 function formatModel(model) {
     if (!model) return 'Unknown';
     if (typeof model === 'object') {
-        if (model.display_name) return model.display_name;
+        if (model.display_name) return model.display_name.replace(/\s*\(1M context\)/, ':1M');
         model = model.id || '';
     }
     const m = model.match(/claude-(\w+)-(\d+)-(\d+)/i);
