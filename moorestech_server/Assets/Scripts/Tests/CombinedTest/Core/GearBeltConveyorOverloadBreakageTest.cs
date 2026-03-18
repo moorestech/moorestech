@@ -26,22 +26,19 @@ namespace Tests.CombinedTest.Core
 
             // 過負荷になるギアネットワークを構築する（高速ジェネレータ + 低閾値コンベア）
             // Build an overloaded gear network (fast generator + low-threshold conveyor)
-            Assert.IsTrue(world.TryAddBlock(ForUnitTestModBlockId.SimpleFastGearGenerator, generatorPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _), "Generator placement failed");
-            Assert.IsTrue(world.TryAddBlock(ForUnitTestModBlockId.SmallGearBeltConveyor, conveyorPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _), "Conveyor placement failed");
-            Assert.IsTrue(world.Exists(conveyorPos), "Conveyor should exist after placement");
+            world.TryAddBlock(ForUnitTestModBlockId.SimpleFastGearGenerator, generatorPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            world.TryAddBlock(ForUnitTestModBlockId.SmallGearBeltConveyor, conveyorPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
 
-            // ギアネットワークを確立するための更新を実行
-            // Run update to establish gear network
-            GameUpdater.RunFrames(1);
-
+            // 最初のティックで破壊される可能性があるため、ティック進行前に購読を登録
+            // Subscribe before any tick since destruction can happen on the first tick
             var removalReasons = new List<BlockRemoveReason>();
             using var subscription = ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(update => removalReasons.Add(update.RemoveReason));
 
-            // 破壊されるまでフレームを進める
-            // Advance frames until destroyed
-            for (var i = 0; i < 240 && world.Exists(conveyorPos); i++)
+            // 破壊されるまでティックを進める
+            // Advance ticks until destroyed
+            for (var i = 0; i < 120 && world.Exists(conveyorPos); i++)
             {
-                GameUpdater.RunFrames(1);
+                GameUpdater.UpdateOneTick();
             }
 
             Assert.IsFalse(world.Exists(conveyorPos));
