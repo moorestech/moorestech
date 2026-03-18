@@ -480,6 +480,7 @@ properties:
         implementationInterface:
         - IInventoryConnectors
         - IGearConnectors
+        - IGearOverloadParam
         properties:
         - key: beltConveyorItemCount
           type: integer
@@ -496,6 +497,18 @@ properties:
           - Straight
           - Up
           - Down
+        - key: overloadMaxRpm
+          type: number
+          default: 0
+        - key: overloadMaxTorque
+          type: number
+          default: 0
+        - key: destructionCheckInterval
+          type: number
+          default: 1
+        - key: baseDestructionProbability
+          type: number
+          default: 0
         - key: inventoryConnectors
           ref: inventoryConnects
         - key: gear
