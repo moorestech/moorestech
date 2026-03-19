@@ -22,7 +22,11 @@
         }
       ],
       "outputFluids": [],
-      "machineRecipeGuid": "bd3d4d7d-9c3b-4ae1-875b-950327eedd9d"
+      "machineRecipeGuid": "bd3d4d7d-9c3b-4ae1-875b-950327eedd9d",
+      "energyOverrideType": "Electric",
+      "energyOverride": {
+        "requiredPower": 50
+      }
     },
     {
       "time": 1.5,
@@ -98,7 +102,12 @@
         }
       ],
       "outputFluids": [],
-      "machineRecipeGuid": "bd3d4d7d-9c3b-4ae1-875b-950327eedd9d"
+      "machineRecipeGuid": "bd3d4d7d-9c3b-4ae1-875b-950327eedd9d",
+      "energyOverrideType": "Gear",
+      "energyOverride": {
+        "requireTorque": 3,
+        "requiredRpm": 10
+      }
     },
     {
       "time": 1.5,
