@@ -4,6 +4,7 @@ using System.Linq;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Common;
 using Core.Master;
+using Mooresmaster.Model.MachineRecipesModule;
 using TMPro;
 using UniRx;
 using UnityEngine;
@@ -33,7 +34,7 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
         
         private int MachineRecipeCount => _currentUnlockedMachineRecipes[_currentBlockId].Count;
         private RecipeViewerItemRecipes _currentItemRecipes;
-        private Dictionary<BlockId, List<Mooresmaster.Model.MachineRecipesModule.MachineRecipeMasterElement>> _currentUnlockedMachineRecipes = new();
+        private Dictionary<BlockId, List<MachineRecipeMasterElement>> _currentUnlockedMachineRecipes = new();
         private BlockId _currentBlockId;
         private int _currentIndex;
         
@@ -58,10 +59,10 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
             });
         }
         
-        public void SetRecipes(RecipeViewerItemRecipes recipeViewerItemRecipes)
+        public void SetRecipes(RecipeViewerItemRecipes recipeViewerItemRecipes, Dictionary<BlockId, List<MachineRecipeMasterElement>> unlockedMachineRecipes)
         {
             _currentItemRecipes = recipeViewerItemRecipes;
-            _currentUnlockedMachineRecipes = recipeViewerItemRecipes.UnlockedMachineRecipes();
+            _currentUnlockedMachineRecipes = unlockedMachineRecipes;
             _currentIndex = 0;
             if (_currentUnlockedMachineRecipes.Count != 0)
             {

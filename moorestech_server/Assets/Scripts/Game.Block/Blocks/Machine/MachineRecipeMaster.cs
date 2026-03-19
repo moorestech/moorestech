@@ -10,6 +10,8 @@ namespace Core.Master
 {
     public static class MachineRecipeMasterUtil
     {
+        private static IGameUnlockStateDataController _cachedUnlockState;
+
         public static bool TryGetRecipeElement(
             BlockId blockId,
             IReadOnlyList<IItemStack> inputSlot,
@@ -34,11 +36,11 @@ namespace Core.Master
 
             // アンロックされていないレシピは使用不可
             // Locked recipes cannot be used
-            if (found && ServerContext.IsInitialized)
+            if (found)
             {
-                var unlockState = ServerContext.GetService<IGameUnlockStateDataController>();
-                if (unlockState != null &&
-                    unlockState.MachineRecipeUnlockStateInfos.TryGetValue(recipe.MachineRecipeGuid, out var info) &&
+                _cachedUnlockState ??= ServerContext.IsInitialized ? ServerContext.GetService<IGameUnlockStateDataController>() : null;
+                if (_cachedUnlockState != null &&
+                    _cachedUnlockState.MachineRecipeUnlockStateInfos.TryGetValue(recipe.MachineRecipeGuid, out var info) &&
                     !info.IsUnlocked)
                 {
                     recipe = null;
