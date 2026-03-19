@@ -31,8 +31,9 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
         private readonly List<ItemSlotView> _outputSlotList = new();
         [Inject] private ItemRecipeViewerDataContainer _itemRecipeViewerDataContainer;
         
-        private int MachineRecipeCount => _currentItemRecipes.MachineRecipes[_currentBlockId].Count;
+        private int MachineRecipeCount => _currentUnlockedMachineRecipes[_currentBlockId].Count;
         private RecipeViewerItemRecipes _currentItemRecipes;
+        private Dictionary<BlockId, List<Mooresmaster.Model.MachineRecipesModule.MachineRecipeMasterElement>> _currentUnlockedMachineRecipes = new();
         private BlockId _currentBlockId;
         private int _currentIndex;
         
@@ -60,10 +61,11 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
         public void SetRecipes(RecipeViewerItemRecipes recipeViewerItemRecipes)
         {
             _currentItemRecipes = recipeViewerItemRecipes;
+            _currentUnlockedMachineRecipes = recipeViewerItemRecipes.UnlockedMachineRecipes();
             _currentIndex = 0;
-            if (recipeViewerItemRecipes.MachineRecipes.Count != 0)
+            if (_currentUnlockedMachineRecipes.Count != 0)
             {
-                _currentBlockId = recipeViewerItemRecipes.MachineRecipes.First().Key;
+                _currentBlockId = _currentUnlockedMachineRecipes.First().Key;
             }
         }
         
@@ -76,7 +78,7 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
         
         public void DisplayRecipe(int index)
         {
-            var machineRecipes = _currentItemRecipes.MachineRecipes[_currentBlockId][index];
+            var machineRecipes = _currentUnlockedMachineRecipes[_currentBlockId][index];
             
             ClearSlotObject();
             

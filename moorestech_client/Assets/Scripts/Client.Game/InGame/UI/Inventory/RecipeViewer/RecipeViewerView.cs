@@ -59,7 +59,9 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
             
             // SetRecipesの中で最初のレシピが自動選択されるようになったので
             // DisplayRecipe(0)の呼び出しは不要
-            if (!isFirstCraft && recipeViewerItemRecipes.MachineRecipes.Count != 0)
+            // アンロック済み機械レシピがあれば表示
+            // Show unlocked machine recipes if available
+            if (!isFirstCraft && recipeViewerItemRecipes.UnlockedMachineRecipes().Count != 0)
             {
                 machineRecipeView.DisplayRecipe(0);
             }

@@ -106,11 +106,34 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
         
         /// <summary>
         /// アンロック済みのクラフトレシピを取得
+        /// Get unlocked craft recipes
         /// </summary>
         public List<CraftRecipeMasterElement> UnlockedCraftRecipes()
         {
             var infos = _gameUnlockStateData.CraftRecipeUnlockStateInfos;
             return AllCraftRecipes.Where(c => infos[c.CraftRecipeGuid].IsUnlocked).ToList();
+        }
+
+        /// <summary>
+        /// アンロック済みの機械レシピを機械ごとに取得
+        /// Get unlocked machine recipes grouped by block
+        /// </summary>
+        public Dictionary<BlockId, List<MachineRecipeMasterElement>> UnlockedMachineRecipes()
+        {
+            var infos = _gameUnlockStateData.MachineRecipeUnlockStateInfos;
+            var result = new Dictionary<BlockId, List<MachineRecipeMasterElement>>();
+            foreach (var kv in MachineRecipes)
+            {
+                var blockId = kv.Key;
+                var unlockedRecipes = kv.Value
+                    .Where(m => !infos.TryGetValue(m.MachineRecipeGuid, out var info) || info.IsUnlocked)
+                    .ToList();
+                if (unlockedRecipes.Count > 0)
+                {
+                    result.Add(blockId, unlockedRecipes);
+                }
+            }
+            return result;
         }
     }
 }
