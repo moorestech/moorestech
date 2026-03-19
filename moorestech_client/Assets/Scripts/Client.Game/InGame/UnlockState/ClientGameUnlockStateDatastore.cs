@@ -15,11 +15,13 @@ namespace Client.Game.InGame.UnlockState
         public IReadOnlyDictionary<Guid, CraftRecipeUnlockStateInfo> CraftRecipeUnlockStateInfos => _recipeUnlockStateInfos;
         public IReadOnlyDictionary<ItemId, ItemUnlockStateInfo> ItemUnlockStateInfos => _itemUnlockStateInfos;
         public IReadOnlyDictionary<Guid, ChallengeCategoryUnlockStateInfo> ChallengeCategoryUnlockStateInfos => _challengeCategoryUnlockStateInfos;
-        
-        
+        public IReadOnlyDictionary<Guid, MachineRecipeUnlockStateInfo> MachineRecipeUnlockStateInfos => _machineRecipeUnlockStateInfos;
+
+
         private readonly Dictionary<Guid, CraftRecipeUnlockStateInfo> _recipeUnlockStateInfos = new();
         private readonly Dictionary<ItemId, ItemUnlockStateInfo> _itemUnlockStateInfos = new();
         private readonly Dictionary<Guid, ChallengeCategoryUnlockStateInfo> _challengeCategoryUnlockStateInfos = new();
+        private readonly Dictionary<Guid, MachineRecipeUnlockStateInfo> _machineRecipeUnlockStateInfos = new();
         
         public ClientGameUnlockStateData(InitialHandshakeResponse initialHandshakeResponse)
         {
@@ -50,7 +52,18 @@ namespace Client.Game.InGame.UnlockState
             {
                 _challengeCategoryUnlockStateInfos[unlockedChallengeId] = new ChallengeCategoryUnlockStateInfo(unlockedChallengeId, true);
             }
-            
+
+            // 機械レシピのアンロック状態を初期化
+            // Initialize machine recipe unlock states
+            foreach (var lockedGuid in unlockState.LockedMachineRecipeGuids)
+            {
+                _machineRecipeUnlockStateInfos[lockedGuid] = new MachineRecipeUnlockStateInfo(lockedGuid, false);
+            }
+            foreach (var unlockedGuid in unlockState.UnlockedMachineRecipeGuids)
+            {
+                _machineRecipeUnlockStateInfos[unlockedGuid] = new MachineRecipeUnlockStateInfo(unlockedGuid, true);
+            }
+
             ClientContext.VanillaApi.Event.SubscribeEventResponse(UnlockedEventPacket.EventTag, OnUpdateUnlock);
         }
         
@@ -71,6 +84,10 @@ namespace Client.Game.InGame.UnlockState
                  case UnlockEventType.ChallengeCategory:
                      var challengeId = message.UnlockedChallengeCategoryGuid;
                      _challengeCategoryUnlockStateInfos[challengeId] = new ChallengeCategoryUnlockStateInfo(challengeId, true);
+                     break;
+                 case UnlockEventType.MachineRecipe:
+                     var machineRecipeGuid = message.UnlockedMachineRecipeGuid;
+                     _machineRecipeUnlockStateInfos[machineRecipeGuid] = new MachineRecipeUnlockStateInfo(machineRecipeGuid, true);
                      break;
                  default:
                      throw new ArgumentOutOfRangeException();

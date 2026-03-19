@@ -39,7 +39,7 @@ namespace Client.DebugSystem
                 var handshake = new InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack(new Vector3MessagePack(playerPos));
                 var worldData = new WorldDataResponse(new List<BlockInfo>(), new List<EntityResponse>());
                 var inventory = new PlayerInventoryResponse(new List<IItemStack>(), null);
-                var unlockState = new UnlockStateResponse(new List<Guid>(), new List<Guid>(), new List<ItemId>(), new List<ItemId>(), new List<Guid>(), new List<Guid>());
+                var unlockState = new UnlockStateResponse(new List<Guid>(), new List<Guid>(), new List<ItemId>(), new List<ItemId>(), new List<Guid>(), new List<Guid>(), new List<Guid>(), new List<Guid>());
                 var craftTree = new CraftTreeResponse(new List<CraftTreeNode>(), Guid.Empty);
                 
                 // テストプレイ用の空レスポンスを構築

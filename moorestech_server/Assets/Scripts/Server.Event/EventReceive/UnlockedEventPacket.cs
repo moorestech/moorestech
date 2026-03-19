@@ -22,9 +22,10 @@ namespace Server.Event.EventReceive
         {
             _eventProtocolProvider = eventProtocolProvider;
             
-            unlockState.OnUnlockCraftRecipe.Subscribe(c => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.CraftRecipe ,c)));
+            unlockState.OnUnlockCraftRecipe.Subscribe(c => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.CraftRecipe, c)));
             unlockState.OnUnlockItem.Subscribe(i => AddBroadcastEvent(new UnlockEventMessagePack(i)));
-            unlockState.OnUnlockChallengeCategory.Subscribe(c => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.ChallengeCategory ,c)));
+            unlockState.OnUnlockChallengeCategory.Subscribe(c => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.ChallengeCategory, c)));
+            unlockState.OnUnlockMachineRecipe.Subscribe(m => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.MachineRecipe, m)));
         }
         
         private void AddBroadcastEvent(UnlockEventMessagePack unlockEventMessagePack)
@@ -42,11 +43,13 @@ namespace Server.Event.EventReceive
         [IgnoreMember] public Guid UnlockedCraftRecipeGuid => Guid.Parse(UnlockedCraftRecipeGuidStr);
         [IgnoreMember] public ItemId UnlockedItemId => new(UnlockedItemIdInt);
         [IgnoreMember] public Guid UnlockedChallengeCategoryGuid => Guid.Parse(UnlockedChallengeCategoryGuidStr);
-        
+        [IgnoreMember] public Guid UnlockedMachineRecipeGuid => Guid.Parse(UnlockedMachineRecipeGuidStr);
+
         [Key(0)] public int UnlockEventTypeInt { get; set; }
         [Key(1)] public string UnlockedCraftRecipeGuidStr { get; set; }
-        [Key(2)] public int UnlockedItemIdInt { get; set; } 
+        [Key(2)] public int UnlockedItemIdInt { get; set; }
         [Key(3)] public string UnlockedChallengeCategoryGuidStr { get; set; }
+        [Key(4)] public string UnlockedMachineRecipeGuidStr { get; set; }
         
         
         
@@ -70,14 +73,18 @@ namespace Server.Event.EventReceive
                 case UnlockEventType.CraftRecipe:
                     UnlockedCraftRecipeGuidStr = unlockedChallengeCategoryGuid.ToString();
                     break;
+                case UnlockEventType.MachineRecipe:
+                    UnlockedMachineRecipeGuidStr = unlockedChallengeCategoryGuid.ToString();
+                    break;
             }
         }
     }
-    
+
     public enum UnlockEventType
     {
         CraftRecipe,
         Item,
-        ChallengeCategory
+        ChallengeCategory,
+        MachineRecipe,
     }
 }

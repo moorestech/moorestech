@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using Core.Item.Interface;
+using Game.Context;
 using Game.Fluid;
+using Game.UnlockState;
 using Mooresmaster.Model.MachineRecipesModule;
 
 namespace Core.Master
@@ -28,7 +30,23 @@ namespace Core.Master
                 fluidIds.Add(fluidContainer.FluidId);
             }
             
-            return MasterHolder.MachineRecipesMaster.TryGetRecipeElement(blockId, itemIds, fluidIds,out recipe);
+            var found = MasterHolder.MachineRecipesMaster.TryGetRecipeElement(blockId, itemIds, fluidIds, out recipe);
+
+            // アンロックされていないレシピは使用不可
+            // Locked recipes cannot be used
+            if (found && ServerContext.IsInitialized)
+            {
+                var unlockState = ServerContext.GetService<IGameUnlockStateDataController>();
+                if (unlockState != null &&
+                    unlockState.MachineRecipeUnlockStateInfos.TryGetValue(recipe.MachineRecipeGuid, out var info) &&
+                    !info.IsUnlocked)
+                {
+                    recipe = null;
+                    return false;
+                }
+            }
+
+            return found;
         }
         
         public static bool RecipeConfirmation(

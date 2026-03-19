@@ -44,6 +44,17 @@ namespace Game.UnlockState
                     _challengeCategoryUnlockStateInfos.Add(guid, new ChallengeCategoryUnlockStateInfo(guid, challenge.InitialUnlocked));
                 }
             }
+
+            // 機械レシピのアンロック状態を初期化
+            // Initialize machine recipe unlock states
+            foreach (var machineRecipe in MasterHolder.MachineRecipesMaster.MachineRecipes.Data)
+            {
+                var guid = machineRecipe.MachineRecipeGuid;
+                if (!MachineRecipeUnlockStateInfos.ContainsKey(guid))
+                {
+                    _machineRecipeUnlockStateInfos.Add(guid, new MachineRecipeUnlockStateInfo(guid, machineRecipe.InitialUnlocked));
+                }
+            }
         }
         
         
@@ -86,8 +97,25 @@ namespace Game.UnlockState
             ChallengeCategoryUnlockStateInfos[categoryGuid].Unlock();
             _onUnlockChallengeCategory.OnNext(categoryGuid);
         }
-        
-        
+
+
+        public IObservable<Guid> OnUnlockMachineRecipe => _onUnlockMachineRecipe;
+        public IReadOnlyDictionary<Guid, MachineRecipeUnlockStateInfo> MachineRecipeUnlockStateInfos => _machineRecipeUnlockStateInfos;
+
+        private readonly Subject<Guid> _onUnlockMachineRecipe = new();
+        private readonly Dictionary<Guid, MachineRecipeUnlockStateInfo> _machineRecipeUnlockStateInfos = new();
+        public void UnlockMachineRecipe(Guid machineRecipeGuid)
+        {
+            if (!MachineRecipeUnlockStateInfos.ContainsKey(machineRecipeGuid))
+            {
+                Debug.LogError($"[UnlockMachineRecipe] Machine recipe not found: {machineRecipeGuid}");
+                return;
+            }
+            MachineRecipeUnlockStateInfos[machineRecipeGuid].Unlock();
+            _onUnlockMachineRecipe.OnNext(machineRecipeGuid);
+        }
+
+
         #region SaveLoad
         
         public void LoadUnlockState(GameUnlockStateJsonObject stateJsonObject)
@@ -95,9 +123,10 @@ namespace Game.UnlockState
             LoadRecipeUnlockStateInfos();
             LoadItemUnlockStateInfos();
             LoadChallengeCategoryUnlockStateInfos();
-            
+            LoadMachineRecipeUnlockStateInfos();
+
             #region Internal
-            
+
             void LoadRecipeUnlockStateInfos()
             {
                 foreach (var recipeUnlockStateInfo in stateJsonObject.CraftRecipeUnlockStateInfos)
@@ -106,14 +135,15 @@ namespace Game.UnlockState
                     _recipeUnlockStateInfos[recipeGuid] = new CraftRecipeUnlockStateInfo(recipeUnlockStateInfo);
                 }
             }
-            
+
             void LoadItemUnlockStateInfos()
             {
                 foreach (var itemUnlockStateInfo in stateJsonObject.ItemUnlockStateInfos)
                 {
                     // マスタに存在しないアイテムはスキップ
+                    // Skip items that don't exist in master
                     if (!MasterHolder.ItemMaster.ExistItemId(Guid.Parse(itemUnlockStateInfo.ItemGuid))) continue;
-                    
+
                     var state = new ItemUnlockStateInfo(itemUnlockStateInfo);
                     _itemUnlockStateInfos[state.ItemId] = state;
                 }
@@ -127,7 +157,17 @@ namespace Game.UnlockState
                     _challengeCategoryUnlockStateInfos[state.ChallengeCategoryGuid] = state;
                 }
             }
-            
+
+            void LoadMachineRecipeUnlockStateInfos()
+            {
+                if (stateJsonObject.MachineRecipeUnlockStateInfos == null) return;
+                foreach (var machineRecipeUnlockStateInfo in stateJsonObject.MachineRecipeUnlockStateInfos)
+                {
+                    var state = new MachineRecipeUnlockStateInfo(machineRecipeUnlockStateInfo);
+                    _machineRecipeUnlockStateInfos[state.MachineRecipeGuid] = state;
+                }
+            }
+
             #endregion
         }
         
@@ -136,11 +176,13 @@ namespace Game.UnlockState
             var recipeUnlockStateInfos = CraftRecipeUnlockStateInfos.Values.Select(r => new CraftRecipeUnlockStateInfoJsonObject(r)).ToList();
             var itemUnlockStateInfos = ItemUnlockStateInfos.Values.Select(i => new ItemUnlockStateInfoJsonObject(i)).ToList();
             var challengeUnlockStateInfos = ChallengeCategoryUnlockStateInfos.Values.Select(c => new ChallengeUnlockStateInfoJsonObject(c)).ToList();
+            var machineRecipeUnlockStateInfos = MachineRecipeUnlockStateInfos.Values.Select(m => new MachineRecipeUnlockStateInfoJsonObject(m)).ToList();
             return new GameUnlockStateJsonObject
             {
                 CraftRecipeUnlockStateInfos = recipeUnlockStateInfos,
                 ItemUnlockStateInfos = itemUnlockStateInfos,
-                ChallengeCategoryUnlockStateInfos = challengeUnlockStateInfos, // Added for challenge unlock
+                ChallengeCategoryUnlockStateInfos = challengeUnlockStateInfos,
+                MachineRecipeUnlockStateInfos = machineRecipeUnlockStateInfos,
             };
         }
         
@@ -152,5 +194,6 @@ namespace Game.UnlockState
         [JsonProperty("craftRecipeUnlockStateInfos")] public List<CraftRecipeUnlockStateInfoJsonObject> CraftRecipeUnlockStateInfos;
         [JsonProperty("itemUnlockStateInfos")] public List<ItemUnlockStateInfoJsonObject> ItemUnlockStateInfos;
         [JsonProperty("challengeCategoryUnlockStateInfos")] public List<ChallengeUnlockStateInfoJsonObject> ChallengeCategoryUnlockStateInfos;
+        [JsonProperty("machineRecipeUnlockStateInfos")] public List<MachineRecipeUnlockStateInfoJsonObject> MachineRecipeUnlockStateInfos;
     }
 }

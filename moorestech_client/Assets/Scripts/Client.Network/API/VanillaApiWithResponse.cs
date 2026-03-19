@@ -202,7 +202,8 @@ namespace Client.Network.API
             return new UnlockStateResponse(
                 response.LockedCraftRecipeGuids, response.UnlockedCraftRecipeGuids,
                 response.LockedItemIds, response.UnlockedItemIds,
-                response.LockedCategoryChallengeGuids, response.UnlockedCategoryChallengeGuids);
+                response.LockedCategoryChallengeGuids, response.UnlockedCategoryChallengeGuids,
+                response.LockedMachineRecipeGuids, response.UnlockedMachineRecipeGuids);
         }
 
         public async UniTask<Dictionary<Guid, ResearchNodeState>> GetResearchNodeStates(CancellationToken ct)

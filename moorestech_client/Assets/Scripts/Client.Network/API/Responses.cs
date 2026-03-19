@@ -142,11 +142,15 @@ namespace Client.Network.API
 
         public readonly List<Guid> LockedChallengeCategoryGuids;
         public readonly List<Guid> UnlockedChallengeCategoryGuids;
-        
+
+        public readonly List<Guid> LockedMachineRecipeGuids;
+        public readonly List<Guid> UnlockedMachineRecipeGuids;
+
         public UnlockStateResponse(
             List<Guid> lockedCraftRecipeGuids, List<Guid> unlockedCraftRecipeGuids,
             List<ItemId> lockedItemIds, List<ItemId> unlockedItemIds,
-            List<Guid> lockedChallengeCategoryGuids, List<Guid> unlockedChallengeCategoryGuids)
+            List<Guid> lockedChallengeCategoryGuids, List<Guid> unlockedChallengeCategoryGuids,
+            List<Guid> lockedMachineRecipeGuids, List<Guid> unlockedMachineRecipeGuids)
         {
             LockedCraftRecipeGuids = lockedCraftRecipeGuids;
             UnlockedCraftRecipeGuids = unlockedCraftRecipeGuids;
@@ -154,6 +158,8 @@ namespace Client.Network.API
             UnlockedItemIds = unlockedItemIds;
             LockedChallengeCategoryGuids = lockedChallengeCategoryGuids;
             UnlockedChallengeCategoryGuids = unlockedChallengeCategoryGuids;
+            LockedMachineRecipeGuids = lockedMachineRecipeGuids;
+            UnlockedMachineRecipeGuids = unlockedMachineRecipeGuids;
         }
     }
     

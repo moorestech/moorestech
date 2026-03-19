@@ -14,6 +14,7 @@ items:
     - unlockCraftRecipe
     - unlockItemRecipeView
     - unlockChallengeCategory
+    - unlockMachineRecipe
     - playSkit
     - playBackgroundSkit
   - key: gameActionParam
@@ -47,6 +48,18 @@ items:
             schemaId: items
             foreignKeyIdPath: /data/[*]/itemGuid
             displayElementPath: /data/[*]/name
+    - when: unlockMachineRecipe
+      type: object
+      isDefaultOpen: true
+      properties:
+      - key: unlockMachineRecipeGuids
+        type: array
+        items:
+          type: uuid
+          foreignKey:
+            schemaId: machineRecipes
+            foreignKeyIdPath: /data/[*]/machineRecipeGuid
+            displayElementPath: /data/[*]/machineRecipeGuid
     - when: unlockChallengeCategory
       type: object
       isDefaultOpen: true

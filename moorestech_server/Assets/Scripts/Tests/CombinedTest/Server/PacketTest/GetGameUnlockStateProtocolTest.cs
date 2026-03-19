@@ -9,6 +9,7 @@ using Tests.Module.TestMod;
 using static Server.Protocol.PacketResponse.GetGameUnlockStateProtocol;
 using static Tests.Module.TestMod.ForUnitTestCraftRecipeId;
 using static Tests.Module.TestMod.ForUnitTestItemId;
+using static Tests.Module.TestMod.ForUnitTestMachineRecipeId;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -51,13 +52,22 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.True(response.UnlockedItemIds.Contains(ItemId2));
             Assert.True(response.LockedItemIds.Contains(ItemId3));
             Assert.True(response.LockedItemIds.Contains(ItemId4));
-            
-            
-            
+
+            // 機械レシピのアンロック状態を確認
+            // Verify machine recipe unlock state
+            var machineRecipeInfos = unlockStateDatastore.MachineRecipeUnlockStateInfos;
+            Assert.True(machineRecipeInfos[UnlockedMachineRecipe].IsUnlocked);
+            Assert.False(machineRecipeInfos[LockedMachineRecipe].IsUnlocked);
+
+            Assert.True(response.UnlockedMachineRecipeGuids.Contains(UnlockedMachineRecipe));
+            Assert.True(response.LockedMachineRecipeGuids.Contains(LockedMachineRecipe));
+
+
             // アンロック状態を変更
             // Change the unlock state
             unlockStateDatastore.UnlockCraftRecipe(Craft3);
             unlockStateDatastore.UnlockItem(ItemId3);
+            unlockStateDatastore.UnlockMachineRecipe(LockedMachineRecipe);
             
             // 再びサーバーからアンロック状態を取得
             // Get the unlock state from the server again
@@ -73,6 +83,11 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.True(response.UnlockedItemIds.Contains(ItemId2));
             Assert.True(response.UnlockedItemIds.Contains(ItemId3));
             Assert.True(response.LockedItemIds.Contains(ItemId4));
+
+            // 機械レシピのアンロック後の状態を確認
+            // Verify machine recipe unlock state after unlock
+            Assert.True(response.UnlockedMachineRecipeGuids.Contains(UnlockedMachineRecipe));
+            Assert.True(response.UnlockedMachineRecipeGuids.Contains(LockedMachineRecipe));
         }
     }
 }
