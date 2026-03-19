@@ -87,3 +87,31 @@ properties:
             displayElementPath: /data/[*]/name
         - key: amount
           type: number
+    - key: energyOverrideType
+      type: enum
+      options:
+        - None
+        - Electric
+        - Gear
+      default: None
+    - key: energyOverride
+      switch: ./energyOverrideType
+      cases:
+        - when: None
+          type: object
+          optional: true
+          properties: []
+        - when: Electric
+          type: object
+          properties:
+            - key: requiredPower
+              type: number
+        - when: Gear
+          type: object
+          properties:
+            - key: requireTorque
+              type: number
+              optional: true
+            - key: requiredRpm
+              type: number
+              optional: true
