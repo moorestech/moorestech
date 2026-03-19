@@ -23,10 +23,7 @@
       ],
       "outputFluids": [],
       "machineRecipeGuid": "bd3d4d7d-9c3b-4ae1-875b-950327eedd9d",
-      "energyOverrideType": "Electric",
-      "energyOverride": {
-        "requiredPower": 50
-      }
+      "energyOverrideType": "None"
     },
     {
       "time": 1.5,
@@ -50,7 +47,8 @@
         }
       ],
       "outputFluids": [],
-      "machineRecipeGuid": "bd3d4d7d-9c3b-4ae1-875b-950327eedd9d"
+      "machineRecipeGuid": "bd3d4d7d-9c3b-4ae1-875b-950327eedd9d",
+      "energyOverrideType": "None"
     },
     {
       "time": 1.5,
@@ -78,7 +76,8 @@
         }
       ],
       "outputFluids": [],
-      "machineRecipeGuid": "bd3d4d7d-9c3b-4ae1-875b-950327eedd9d"
+      "machineRecipeGuid": "bd3d4d7d-9c3b-4ae1-875b-950327eedd9d",
+      "energyOverrideType": "None"
     },
     {
       "time": 1.5,
@@ -103,11 +102,7 @@
       ],
       "outputFluids": [],
       "machineRecipeGuid": "bd3d4d7d-9c3b-4ae1-875b-950327eedd9d",
-      "energyOverrideType": "Gear",
-      "energyOverride": {
-        "requireTorque": 3,
-        "requiredRpm": 10
-      }
+      "energyOverrideType": "None"
     },
     {
       "time": 1.5,
@@ -131,7 +126,8 @@
         }
       ],
       "outputFluids": [],
-      "machineRecipeGuid": "bd3d4d7d-9c3b-4ae1-875b-950327eedd9d"
+      "machineRecipeGuid": "bd3d4d7d-9c3b-4ae1-875b-950327eedd9d",
+      "energyOverrideType": "None"
     },
     {
       "time": 1.5,
@@ -155,7 +151,8 @@
         }
       ],
       "outputFluids": [],
-      "machineRecipeGuid": "bd3d4d7d-9c3b-4ae1-875b-950327eedd9d"
+      "machineRecipeGuid": "bd3d4d7d-9c3b-4ae1-875b-950327eedd9d",
+      "energyOverrideType": "None"
     },
     {
       "time": 1.5,
@@ -188,7 +185,8 @@
         }
       ],
       "outputFluids": [],
-      "machineRecipeGuid": "bd3d4d7d-9c3b-4ae1-875b-950327eedd9d"
+      "machineRecipeGuid": "bd3d4d7d-9c3b-4ae1-875b-950327eedd9d",
+      "energyOverrideType": "None"
     },
     {
       "time": 1,
@@ -213,7 +211,8 @@
         }
       ],
       "outputFluids": [],
-      "machineRecipeGuid": "f79c7ee0-1ebe-4fcc-b1ec-5bcb296d9c1a"
+      "machineRecipeGuid": "f79c7ee0-1ebe-4fcc-b1ec-5bcb296d9c1a",
+      "energyOverrideType": "None"
     },
     {
       "machineRecipeGuid": "38dfacce-1234-4612-8c7c-29112c12409a",
@@ -247,7 +246,57 @@
           "fluidGuid": "00000000-0000-0000-1234-000000000003",
           "amount": 4
         }
-      ]
+      ],
+      "energyOverrideType": "None"
+    },
+    {
+      "time": 1.5,
+      "blockGuid": "00000000-0000-0000-0000-000000000001",
+      "inputItems": [
+        {
+          "count": 2,
+          "itemGuid": "00000000-0000-0000-1234-000000000003"
+        }
+      ],
+      "inputFluids": [],
+      "outputItems": [
+        {
+          "percent": 1,
+          "count": 1,
+          "itemGuid": "00000000-0000-0000-1234-000000000005"
+        }
+      ],
+      "outputFluids": [],
+      "machineRecipeGuid": "a1b2c3d4-0001-0000-0000-000000000001",
+      "energyOverrideType": "Electric",
+      "energyOverride": {
+        "requiredPower": 50
+      }
+    },
+    {
+      "time": 1.5,
+      "blockGuid": "00000000-0000-0000-0000-00000000000f",
+      "inputItems": [
+        {
+          "count": 2,
+          "itemGuid": "00000000-0000-0000-1234-000000000003"
+        }
+      ],
+      "inputFluids": [],
+      "outputItems": [
+        {
+          "percent": 1,
+          "count": 1,
+          "itemGuid": "00000000-0000-0000-1234-000000000005"
+        }
+      ],
+      "outputFluids": [],
+      "machineRecipeGuid": "a1b2c3d4-0002-0000-0000-000000000001",
+      "energyOverrideType": "Gear",
+      "energyOverride": {
+        "requireTorque": 3,
+        "requiredRpm": 10
+      }
     }
   ]
 }

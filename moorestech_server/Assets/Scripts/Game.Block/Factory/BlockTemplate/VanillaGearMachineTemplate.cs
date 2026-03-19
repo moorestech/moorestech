@@ -51,7 +51,20 @@ namespace Game.Block.Factory.BlockTemplate
             // パラメーターをロードするか、新規作成する
             // Load the parameters or create new ones
             var processor = componentStates == null ? new VanillaMachineProcessorComponent(input, output, null, requirePower) : BlockTemplateUtil.MachineLoadState(componentStates, input, output, requirePower, blockMasterElement);
-            
+
+            // レシピエネルギーオーバーライドのリゾルバーを設定
+            // Set recipe energy override resolver
+            var defaultTorque = machineParam.RequireTorque;
+            var defaultRpm = machineParam.RequiredRpm;
+            processor.SetResolveOverridePower(recipe => RecipeEnergyOverrideResolver.ResolveGearPower(recipe, defaultTorque, defaultRpm));
+
+            // ロード時にProcessing中のレシピがあればオーバーライドを適用
+            // Apply override for in-progress recipe on load
+            if (componentStates != null && processor.CurrentState == ProcessState.Processing && processor.CurrentRecipe != null)
+            {
+                processor.ForceUpdateRequestPower();
+            }
+
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output);
             var machineSave = new VanillaMachineSaveComponent(input, output, processor);
             

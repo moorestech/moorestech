@@ -33,7 +33,12 @@ namespace Game.Block.Factory.BlockTemplate
             var (input, output) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inputConnectorComponent, _blockInventoryUpdateEvent);
             
             var processor = new VanillaMachineProcessorComponent(input, output, null, new ElectricPower(machineParam.RequiredPower));
-            
+
+            // レシピエネルギーオーバーライドのリゾルバーを設定
+            // Set recipe energy override resolver
+            var defaultPower = new ElectricPower(machineParam.RequiredPower);
+            processor.SetResolveOverridePower(recipe => RecipeEnergyOverrideResolver.ResolveElectricPower(recipe, defaultPower));
+
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output);
             var machineSave = new VanillaMachineSaveComponent(input, output, processor);
             var machineComponent = new VanillaElectricMachineComponent(blockInstanceId, processor);
@@ -73,7 +78,19 @@ namespace Game.Block.Factory.BlockTemplate
             var (input, output) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inputConnectorComponent, _blockInventoryUpdateEvent);
             
             var processor = BlockTemplateUtil.MachineLoadState(componentStates, input, output, new ElectricPower(machineParam.RequiredPower), blockMasterElement);
-            
+
+            // レシピエネルギーオーバーライドのリゾルバーを設定
+            // Set recipe energy override resolver
+            var defaultPower = new ElectricPower(machineParam.RequiredPower);
+            processor.SetResolveOverridePower(recipe => RecipeEnergyOverrideResolver.ResolveElectricPower(recipe, defaultPower));
+
+            // ロード時にProcessing中のレシピがあればオーバーライドを適用
+            // Apply override for in-progress recipe on load
+            if (processor.CurrentState == ProcessState.Processing && processor.CurrentRecipe != null)
+            {
+                processor.ForceUpdateRequestPower();
+            }
+
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output);
             var machineSave = new VanillaMachineSaveComponent(input, output, processor);
             var machineComponent = new VanillaElectricMachineComponent(blockInstanceId, processor);
