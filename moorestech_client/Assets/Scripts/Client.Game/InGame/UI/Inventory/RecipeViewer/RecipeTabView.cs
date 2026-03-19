@@ -45,8 +45,11 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
                 isFirstCraft = true;
             }
             
+            // アンロック済みの機械レシピのみタブに表示
+            // Only show unlocked machine recipes in tabs
+            var unlockedMachineRecipes = recipes.UnlockedMachineRecipes();
             var isFirst = true;
-            foreach (var machineRecipe in recipes.MachineRecipes)
+            foreach (var machineRecipe in unlockedMachineRecipes)
             {
                 var blockId = machineRecipe.Key;
                 var itemId = MasterHolder.BlockMaster.GetItemId(blockId);

@@ -92,16 +92,17 @@ namespace Client.Game.InGame.UI.Inventory.Craft
                 
                 if (itemMaster.RecipeViewType is ItemMasterElement.RecipeViewTypeConst.Default)
                 {
-                    // デフォルトはアンロックされていてレシピがあれば表示する
-                    // Default is to display if unlocked and has a recipe
+                    // デフォルトはアンロックされていてレシピがあれば表示する（クラフトまたは機械レシピ）
+                    // Default is to display if unlocked and has a recipe (craft or machine)
                     var state = _gameUnlockStateData.ItemUnlockStateInfos[itemId];
                     var isItemUnlocked = state.IsUnlocked;
-                    
+
                     var itemRecipes = _itemRecipeViewerDataContainer.GetItem(itemId);
-                    var unlockRecipes = itemRecipes.UnlockedCraftRecipes();
-                    var isRecipeItemUnlocked = unlockRecipes.Count != 0;
-                    
-                    return isItemUnlocked && isRecipeItemUnlocked;
+                    var hasUnlockedCraftRecipe = itemRecipes.UnlockedCraftRecipes().Count != 0;
+                    var hasUnlockedMachineRecipe = itemRecipes.UnlockedMachineRecipes().Count != 0;
+                    var hasAnyUnlockedRecipe = hasUnlockedCraftRecipe || hasUnlockedMachineRecipe;
+
+                    return isItemUnlocked && hasAnyUnlockedRecipe;
                 }
 
                 if (itemMaster.RecipeViewType is ItemMasterElement.RecipeViewTypeConst.IsUnlocked)

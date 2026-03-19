@@ -3,6 +3,7 @@
     {
       "time": 1.5,
       "blockGuid": "00000000-0000-0000-0000-000000000001",
+      "initialUnlocked": true,
       "inputItems": [
         {
           "count": 3,
@@ -27,6 +28,7 @@
     {
       "time": 1.5,
       "blockGuid": "00000000-0000-0000-0000-000000000002",
+      "initialUnlocked": true,
       "inputItems": [
         {
           "count": 3,
@@ -51,6 +53,7 @@
     {
       "time": 1.5,
       "blockGuid": "00000000-0000-0000-0000-000000000003",
+      "initialUnlocked": true,
       "inputItems": [
         {
           "count": 2,
@@ -79,6 +82,7 @@
     {
       "time": 1.5,
       "blockGuid": "00000000-0000-0000-0000-00000000000f",
+      "initialUnlocked": true,
       "inputItems": [
         {
           "count": 3,
@@ -103,6 +107,7 @@
     {
       "time": 1.5,
       "blockGuid": "00000000-0000-0000-0000-000000000019",
+      "initialUnlocked": true,
       "inputItems": [
         {
           "count": 3,
@@ -127,6 +132,7 @@
     {
       "time": 1.5,
       "blockGuid": "00000000-0000-0000-0000-00000000001a",
+      "initialUnlocked": true,
       "inputItems": [
         {
           "count": 3,
@@ -151,6 +157,7 @@
     {
       "time": 1.5,
       "blockGuid": "00000000-0000-0000-0000-00000000001b",
+      "initialUnlocked": true,
       "inputItems": [
         {
           "count": 2,
@@ -184,6 +191,7 @@
     {
       "time": 1,
       "blockGuid": "00000000-0000-0000-0000-000000000019",
+      "initialUnlocked": true,
       "inputItems": [
         {
           "count": 2,
@@ -208,6 +216,7 @@
     },
     {
       "machineRecipeGuid": "38dfacce-1234-4612-8c7c-29112c12409a",
+      "initialUnlocked": false,
       "time": 1,
       "inputItems": [
         {
