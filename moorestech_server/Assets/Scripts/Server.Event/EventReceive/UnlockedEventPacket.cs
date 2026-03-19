@@ -62,19 +62,19 @@ namespace Server.Event.EventReceive
             UnlockedItemIdInt = (int)itemId;
         }
         
-        public UnlockEventMessagePack(UnlockEventType unlockEventType,Guid unlockedChallengeCategoryGuid)
+        public UnlockEventMessagePack(UnlockEventType unlockEventType, Guid guid)
         {
             UnlockEventTypeInt = (int)unlockEventType;
             switch (unlockEventType)
             {
                 case UnlockEventType.ChallengeCategory:
-                    UnlockedChallengeCategoryGuidStr = unlockedChallengeCategoryGuid.ToString();
+                    UnlockedChallengeCategoryGuidStr = guid.ToString();
                     break;
                 case UnlockEventType.CraftRecipe:
-                    UnlockedCraftRecipeGuidStr = unlockedChallengeCategoryGuid.ToString();
+                    UnlockedCraftRecipeGuidStr = guid.ToString();
                     break;
                 case UnlockEventType.MachineRecipe:
-                    UnlockedMachineRecipeGuidStr = unlockedChallengeCategoryGuid.ToString();
+                    UnlockedMachineRecipeGuidStr = guid.ToString();
                     break;
             }
         }

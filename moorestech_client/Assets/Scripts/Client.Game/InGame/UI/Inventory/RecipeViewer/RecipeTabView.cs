@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UnlockState;
 using Core.Master;
+using Mooresmaster.Model.MachineRecipesModule;
 using UniRx;
 using UnityEngine;
 using UnityEngine.UI;
@@ -21,16 +22,16 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
         
         private readonly List<RecipeViewerTabElement> _currentTabs = new();
         
-        public void SetRecipeTabView(RecipeViewerItemRecipes recipes)
+        public void SetRecipeTabView(RecipeViewerItemRecipes recipes, Dictionary<BlockId, List<MachineRecipeMasterElement>> unlockedMachineRecipes)
         {
             foreach (var tab in _currentTabs)
             {
                 Destroy(tab.gameObject);
             }
-            
+
             _currentTabs.Clear();
-            
-            // クラフトタブがあればそれを優先的異選択
+
+            // クラフトタブがあればそれを優先的に選択
             // If there is a craft tab, select it preferentially
             var isFirstCraft = false;
             var unlockedRecipe = recipes.UnlockedCraftRecipes();
@@ -44,10 +45,9 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
                 _currentTabs.Add(tabElement);
                 isFirstCraft = true;
             }
-            
+
             // アンロック済みの機械レシピのみタブに表示
             // Only show unlocked machine recipes in tabs
-            var unlockedMachineRecipes = recipes.UnlockedMachineRecipes();
             var isFirst = true;
             foreach (var machineRecipe in unlockedMachineRecipes)
             {
