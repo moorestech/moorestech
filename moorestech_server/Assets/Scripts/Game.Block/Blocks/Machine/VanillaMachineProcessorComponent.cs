@@ -25,17 +25,35 @@ namespace Game.Block.Blocks.Machine
         private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
         private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
 
-        public readonly ElectricPower RequestPower;
+        public ElectricPower RequestPower { get; private set; }
 
         // 次のエネルギー供給かアップデートがあるまでは_currentPowerを維持しておきたいのでこのフラグを使う
         // Use this flag because you want to keep _currentPower until the next energy supply or update
         private bool _usedPower;
         private ElectricPower _currentPower;
         private ProcessState _lastState = ProcessState.Idle;
+        private readonly ElectricPower _blockDefaultPower;
+        private Func<MachineRecipeMasterElement, ElectricPower> _resolveOverridePower;
         private MachineRecipeMasterElement _processingRecipe;
         private uint _processingRecipeTicks;
-        
-        
+
+        public MachineRecipeMasterElement CurrentRecipe => _processingRecipe;
+
+        public void SetResolveOverridePower(Func<MachineRecipeMasterElement, ElectricPower> resolver)
+        {
+            _resolveOverridePower = resolver;
+        }
+
+        /// <summary>
+        ///     ロード時に処理中レシピのオーバーライドを強制適用する
+        ///     Force apply override for in-progress recipe on load
+        /// </summary>
+        public void ForceUpdateRequestPower()
+        {
+            RequestPower = _resolveOverridePower?.Invoke(_processingRecipe) ?? _blockDefaultPower;
+        }
+
+
         public VanillaMachineProcessorComponent(
             VanillaMachineInputInventory vanillaMachineInputInventory,
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
@@ -44,6 +62,7 @@ namespace Game.Block.Blocks.Machine
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
             _processingRecipe = machineRecipe;
+            _blockDefaultPower = requestPower;
             RequestPower = requestPower;
         }
         
@@ -58,6 +77,7 @@ namespace Game.Block.Blocks.Machine
 
             _processingRecipe = processingRecipe;
             _processingRecipeTicks = processingRecipe != null ? GameUpdater.SecondsToTicks(processingRecipe.Time) : 0;
+            _blockDefaultPower = requestPower;
             RequestPower = requestPower;
             RemainingTicks = remainingTicks;
 
@@ -136,6 +156,10 @@ namespace Game.Block.Blocks.Machine
                 _processingRecipeTicks = GameUpdater.SecondsToTicks(_processingRecipe.Time);
                 _vanillaMachineInputInventory.ReduceInputSlot(_processingRecipe);
                 RemainingTicks = _processingRecipeTicks;
+
+                // レシピのエネルギーオーバーライドを適用
+                // Apply recipe energy override
+                RequestPower = _resolveOverridePower?.Invoke(_processingRecipe) ?? _blockDefaultPower;
             }
         }
 
@@ -147,6 +171,10 @@ namespace Game.Block.Blocks.Machine
                 RemainingTicks = 0;
                 CurrentState = ProcessState.Idle;
                 _vanillaMachineOutputInventory.InsertOutputSlot(_processingRecipe);
+
+                // レシピ完了時にブロックデフォルトに戻す
+                // Reset to block default when recipe completes
+                RequestPower = _blockDefaultPower;
             }
             else
             {
