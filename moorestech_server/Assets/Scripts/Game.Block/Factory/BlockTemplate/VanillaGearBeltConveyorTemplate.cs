@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Game.Block.Blocks;
 using Game.Block.Blocks.BeltConveyor;
+using Game.Block.Blocks.Gear;
 using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -51,12 +52,18 @@ namespace Game.Block.Factory.BlockTemplate
             
             var gearBeltConveyorComponent = new GearBeltConveyorComponent(vanillaBeltConveyorComponent, blockInstanceId, gearBeltParam.BeltConveyorSpeed, (Torque)gearBeltParam.RequireTorque, gearEnergyTransformerConnector);
             
+            // 過負荷破壊コンポーネントを追加
+            // Add overload breakage component
+            var overloadParam = gearBeltParam as IGearOverloadParam;
+            var overloadBreakageComponent = new GearOverloadBreakageComponent(blockInstanceId, gearBeltConveyorComponent, overloadParam);
+
             var blockComponents = new List<IBlockComponent>
             {
                 gearBeltConveyorComponent,
                 vanillaBeltConveyorComponent,
                 gearEnergyTransformerConnector,
-                inventoryConnector
+                inventoryConnector,
+                overloadBreakageComponent
             };
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, blockComponents, blockPositionInfo);
         }
