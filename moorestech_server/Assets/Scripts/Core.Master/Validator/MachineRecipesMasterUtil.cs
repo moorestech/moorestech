@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.MachineRecipesModule;
 
 namespace Core.Master.Validator
@@ -90,6 +91,24 @@ namespace Core.Master.Validator
                     else if (hasNoOutput)
                     {
                         logs += $"[MachineRecipesMaster] Recipe[{recipeIndex}] GUID:{recipe.MachineRecipeGuid} has no outputs (outputItems and outputFluids are both empty)\n";
+                    }
+
+                    // エネルギーオーバーライドタイプとブロックタイプの整合性チェック
+                    // Validate energy override type matches block energy type
+                    if (blockId != null)
+                    {
+                        var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(recipe.BlockGuid);
+                        var blockType = blockMaster.BlockType;
+                        var overrideType = recipe.EnergyOverrideType;
+
+                        if (overrideType == MachineRecipeMasterElement.EnergyOverrideTypeConst.Electric && blockType != BlockMasterElement.BlockTypeConst.ElectricMachine)
+                        {
+                            logs += $"[MachineRecipesMaster] Recipe[{recipeIndex}] GUID:{recipe.MachineRecipeGuid} has Electric energy override but block '{blockMaster.Name}' is {blockType}, not ElectricMachine\n";
+                        }
+                        if (overrideType == MachineRecipeMasterElement.EnergyOverrideTypeConst.Gear && blockType != BlockMasterElement.BlockTypeConst.GearMachine)
+                        {
+                            logs += $"[MachineRecipesMaster] Recipe[{recipeIndex}] GUID:{recipe.MachineRecipeGuid} has Gear energy override but block '{blockMaster.Name}' is {blockType}, not GearMachine\n";
+                        }
                     }
                 }
 
