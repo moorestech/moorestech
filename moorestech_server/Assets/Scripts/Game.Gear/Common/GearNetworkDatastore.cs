@@ -147,5 +147,10 @@ namespace Game.Gear.Common
         {
             return _instance._blockEntityToGearNetwork[blockInstanceId];
         }
+
+        public static IReadOnlyDictionary<GearNetworkId, GearNetwork> GetAllGearNetworks()
+        {
+            return _instance._gearNetworks;
+        }
     }
 }
