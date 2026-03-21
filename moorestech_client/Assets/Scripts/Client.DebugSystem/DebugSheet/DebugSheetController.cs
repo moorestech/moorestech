@@ -50,10 +50,6 @@ namespace Client.DebugSystem
             {
                 ClientContext.VanillaApi.SendOnly.SendCommand(SendCommandProtocol.GetPlayTimeCommand);
             });
-            rootPage.AddButton("Gear Network Info", clicked: () =>
-            {
-                ClientContext.VanillaApi.SendOnly.SendCommand(SendCommandProtocol.GearNetworkInfoCommand);
-            });
             
             rootPage.AddEnumPickerWithSave(DebugEnvironmentType.Debug, "Select Environment", "DebugEnvironmentTypeKey", DebugEnvironmentController.SetEnvironment);
             rootPage.AddEnumPickerWithSave(DebugFpsLimit.Fps60, FpsLimitLabel, FpsLimitKey, fps => Application.targetFrameRate = (int)fps);
