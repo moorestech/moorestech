@@ -40,6 +40,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 074122ef0fe264b54bfa5cc04a18dca8
+    m_Address: Vanilla/Skit/Animations/anim_think01
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 077f516b067a242fead900bf0680250a
     m_Address: Vanilla/Item/IronOre
     m_ReadOnly: 0
@@ -417,6 +422,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 679918cdb2be9a74b90e1396abee2ff3
     m_Address: Vanilla/Block/BeltConveyor_T
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 69ab4ea6e4ac2471195dc1329cf399c5
+    m_Address: Vanilla/Skit/Animations/anim_think01
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
