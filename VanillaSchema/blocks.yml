@@ -488,7 +488,7 @@ properties:
         - key: beltConveyorSpeed
           type: number
           default: 2
-        - key: requireTorque
+        - key: requireTorquePerRpm
           type: number
           default: 2
         - key: slopeType
