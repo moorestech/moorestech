@@ -80,6 +80,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 128b54dbcc554431eb290f8f50d59f35
+    m_Address: Vanilla/Block/metal_gear belt conveyor down
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 13592f052c9445a4c812036b49af1929
     m_Address: Vanilla/Block/Old/generator
     m_ReadOnly: 0
@@ -560,6 +565,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 90fa6bab9c5f14e0291c1e59824a6120
+    m_Address: Vanilla/Block/metal_gear belt conveyor up
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 91113de485c1847d3abc5f0fa061b0b0
     m_Address: Vanilla/UI/Modal/CommonModalBase
     m_ReadOnly: 0
@@ -740,6 +750,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b9cb24850a2e54af69d5c217423be028
+    m_Address: Vanilla/Block/Metal_conveyor_chest
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: b9fc9c8c6497a0a44b484f64d01458d4
     m_Address: Vanilla/Block/Spinning_machine
     m_ReadOnly: 0
@@ -835,6 +850,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d46b688521ba3496f9859d5df798b011
+    m_Address: Vanilla/Block/metal_gear belt conveyor
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: d53243d74377b724f9ad131c7510fa39
     m_Address: Vanilla/Block/gear belt conveyor up
     m_ReadOnly: 0
@@ -902,6 +922,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: e039e23dd6ec87742ac59a0964a66fa0
     m_Address: Vanilla/Block/iron furnace with bellows
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e1d4383d08f6c4eaf95ed4d339081d3f
+    m_Address: Vanilla/Block/metal_gear belt conveyor splitter
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
