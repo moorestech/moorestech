@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Core.Master;
-using Game.Block.Blocks.BeltConveyor;
 using Game.Context;
-using Game.Gear.Common;
 using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using Game.World.Interface.DataStore;
@@ -24,7 +22,6 @@ namespace Server.Protocol.PacketResponse
         public const string TrainAutoRunOnArgument = "on";
         public const string TrainAutoRunOffArgument = "off";
         public const string GetPlayTimeCommand = "getPlayTime";
-        public const string GearNetworkInfoCommand = "gearNetworkInfo";
 
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly IWorldSettingsDatastore _worldSettingsDatastore;
@@ -75,61 +72,8 @@ namespace Server.Protocol.PacketResponse
                 var playTime = _worldSettingsDatastore.GetCurrentPlayTime();
                 Debug.Log($"[PlayTime] Total: {playTime.TotalHours:F2} hours ({playTime})");
             }
-            else if (command[0] == GearNetworkInfoCommand)
-            {
-                // 全歯車ネットワークの情報をログ出力
-                // Log all gear network info with belt conveyor power ratio
-                LogGearNetworkInfo();
-            }
 
             return null;
-        }
-
-        private void LogGearNetworkInfo()
-        {
-            var networks = GearNetworkDatastore.GetAllGearNetworks();
-            var totalPowerAll = 0f;
-            var totalBeltPowerAll = 0f;
-            var totalBeltCountAll = 0;
-            var networkIndex = 0;
-
-            foreach (var (networkId, network) in networks)
-            {
-                var info = network.CurrentGearNetworkInfo;
-
-                // CheckedGearComponentsからベルトコンベアの消費電力を集計（停止中NWでも正確）
-                // Aggregate belt conveyor power from CheckedGearComponents (accurate even for stopped networks)
-                var beltPower = 0f;
-                var beltCount = 0;
-                foreach (var (blockId, rotationInfo) in network.CheckedGearComponents)
-                {
-                    if (rotationInfo.EnergyTransformer is GearBeltConveyorComponent)
-                    {
-                        beltPower += rotationInfo.RequiredTorque.AsPrimitive() * rotationInfo.Rpm.AsPrimitive();
-                        beltCount++;
-                    }
-                }
-
-                var beltRatio = info.TotalRequiredGearPower > 0 ? beltPower / info.TotalRequiredGearPower * 100f : 0f;
-
-                Debug.Log($"[GearNetwork #{networkIndex}] " +
-                          $"Generators:{network.GearGenerators.Count} Transformers:{network.GearTransformers.Count} " +
-                          $"Required:{info.TotalRequiredGearPower:F1}GP Generate:{info.TotalGenerateGearPower:F1}GP " +
-                          $"OpRate:{info.OperatingRate:P0} Stop:{info.StopReason} " +
-                          $"BeltConveyors:{beltCount} BeltPower:{beltPower:F1}GP ({beltRatio:F1}%)");
-
-                totalPowerAll += info.TotalRequiredGearPower;
-                totalBeltPowerAll += beltPower;
-                totalBeltCountAll += beltCount;
-                networkIndex++;
-            }
-
-            // 全ネットワークのサマリーをログ出力
-            // Log summary across all networks
-            var totalBeltRatio = totalPowerAll > 0 ? totalBeltPowerAll / totalPowerAll * 100f : 0f;
-            Debug.Log($"[GearNetwork Summary] Networks:{networks.Count} " +
-                      $"BeltConveyors:{totalBeltCountAll} " +
-                      $"BeltPower:{totalBeltPowerAll:F1}/{totalPowerAll:F1}GP ({totalBeltRatio:F1}%)");
         }
 
         [MessagePackObject]

@@ -11,8 +11,7 @@ namespace Game.Gear.Common
         public IReadOnlyList<IGearGenerator> GearGenerators => _gearGenerators;
         
         public GearNetworkInfo CurrentGearNetworkInfo { get; private set; }
-        public IReadOnlyDictionary<BlockInstanceId, GearRotationInfo> CheckedGearComponents => _checkedGearComponents;
-
+        
         private readonly Dictionary<BlockInstanceId, GearRotationInfo> _checkedGearComponents = new();
         private readonly List<IGearGenerator> _gearGenerators = new();
         private readonly List<IGearEnergyTransformer> _gearTransformers = new();
