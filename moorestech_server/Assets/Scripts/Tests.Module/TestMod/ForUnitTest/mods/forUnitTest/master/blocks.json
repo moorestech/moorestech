@@ -1968,7 +1968,7 @@
       "blockParam": {
         "beltConveyorItemCount": 4,
         "beltConveyorSpeed": 0.25,
-        "requireTorque": 0.02,
+        "requireTorquePerRpm": 0.002,
         "overloadMaxRpm": 10,
         "overloadMaxTorque": 10,
         "destructionCheckInterval": 0.01,
@@ -2021,7 +2021,7 @@
       "blockParam": {
         "beltConveyorItemCount": 4,
         "beltConveyorSpeed": 0.25,
-        "requireTorque": 0.02,
+        "requireTorquePerRpm": 0.002,
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
@@ -3674,7 +3674,7 @@
       "name": "GearBeltConveyorSplitter",
       "blockType": "GearBeltConveyor",
       "blockParam": {
-        "requireTorque": 1,
+        "requireTorquePerRpm": 0.1,
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
