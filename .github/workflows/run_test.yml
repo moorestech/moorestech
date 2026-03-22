@@ -1,6 +1,8 @@
 name: Run Unity Test
 on:
   pull_request:
+    paths-ignore:
+      - '**/*.md'
 
   # 手動実行デバッグ用
   workflow_dispatch: {}
