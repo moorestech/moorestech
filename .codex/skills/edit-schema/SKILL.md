@@ -91,6 +91,26 @@ implementationInterface:
 - 手動で `Mooresmaster.Model.*` クラスを作成しない
 - スキーマ変更後は必ず `_CompileRequester.cs` を更新してコミット
 
+## プロパティのリネーム・削除時のJSONデータ更新（CRITICAL）
+
+スキーマのプロパティ名を変更・削除した場合、**すべてのJSONデータを漏れなく更新すること**。
+更新漏れがあるとCIでMooresmasterLoaderExceptionが発生する。
+
+**更新対象のJSONデータ配置先（すべて更新すること）：**
+- `moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/`
+- `moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/ServerData/mods/`
+- `../moorestech_master/` 配下全体
+- `mooresmaster/mooresmaster.SandBox/`
+
+**必ずgrepで旧プロパティ名の残存がないことを確認する：**
+```bash
+grep -r '"旧プロパティ名"' --include='*.json' . ../moorestech_master/ | grep -v '.claude/worktrees'
+```
+
+## スキーマ変更後の最終検証（CRITICAL）
+
+スキーマ変更に伴うすべてのタスク（コード修正・JSON更新・テスト修正）が完了したら、**クライアントプロジェクトの全テストを実行すること**。CIはクライアントプロジェクトからEditModeテストを実行するため、サーバー側テストだけでは検証が不十分。
+
 ## Validation for foreignKey (CRITICAL)
 
 **MUST**: foreignKeyを持つプロパティを追加した場合、**必ず `/validate-schema` スキルを実行**してC#バリデーションを追加すること。
