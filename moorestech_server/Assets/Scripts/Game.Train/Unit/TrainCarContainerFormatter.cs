@@ -26,7 +26,7 @@ namespace Game.Train.Unit
             if (reader.TryReadNil()) return null;
             
             var arrayLength = reader.ReadArrayHeader();
-            if (reader.ReadArrayHeader() != 2) throw new MessagePackSerializationException($"Invalid array length for ITrainCarContainer: expected 2, got {arrayLength}");
+            if (arrayLength != 2) throw new MessagePackSerializationException($"Invalid array length for ITrainCarContainer: expected 2, got {arrayLength}");
             
             var typeName = reader.ReadString();
             var type = Type.GetType(typeName!, true);
