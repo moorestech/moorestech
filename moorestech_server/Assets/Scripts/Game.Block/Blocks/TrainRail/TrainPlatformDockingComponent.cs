@@ -118,7 +118,7 @@ namespace Game.Block.Blocks.TrainRail
         public void ForceUndock()
         {
             ClearDockedReferences();
-            if (ArmState == ArmState.Extending) StartRetracting();
+            if (ArmState is ArmState.Extending or ArmState.Extended) StartRetracting();
         }
         
         public void OnTrainDocked(ITrainDockHandle handle)
