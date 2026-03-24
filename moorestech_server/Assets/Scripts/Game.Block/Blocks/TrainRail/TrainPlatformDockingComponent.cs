@@ -147,7 +147,7 @@ namespace Game.Block.Blocks.TrainRail
             if (DockedTrainId == handle.TrainInstanceId && _dockedTrainCarInstanceId == handle.TrainCarInstanceId)
             {
                 ClearDockedReferences();
-                if (ArmState == ArmState.Extending) StartRetracting();
+                if (ArmState is ArmState.Extending or ArmState.Extended) StartRetracting();
             }
         }
         
