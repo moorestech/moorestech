@@ -77,6 +77,7 @@ namespace Game.Block.Blocks.TrainRail
                     
                     break;
                 case ArmState.Extended:
+                    if (!isDocked) StartRetracting();
                     break;
                 case ArmState.Retracting:
                     if (_armProgressTicks > 0)
