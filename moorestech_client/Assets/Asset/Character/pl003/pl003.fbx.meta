@@ -1,29 +1,9 @@
 fileFormatVersion: 2
-guid: 91652a9d82640461c8301957b61d44e7
+guid: 2db0dc7e568a7bd40aea82ac4095bb50
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects:
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Body
-    second: {fileID: 2100000, guid: 260fb5fc4f8db470caa0e1a20114ec18, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: "\u30A2\u30AF\u30BB\u30B5\u30EA"
-    second: {fileID: 2100000, guid: 67d0a493ec00d419f880c55d4ce25ab2, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: "\u8863\u88C5"
-    second: {fileID: 2100000, guid: 97cb675fb64804323a82c899927d7421, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: "\u9AEA"
-    second: {fileID: 2100000, guid: 2f192c234f6764849873c2e035743acf, type: 2}
+  externalObjects: {}
   materials:
     materialImportMode: 2
     materialName: 0
@@ -36,6 +16,8 @@ ModelImporter:
     optimizeGameObjects: 0
     removeConstantScaleCurves: 0
     motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
     animationImportErrors: 
     animationImportWarnings: 
     animationRetargetingWarnings: 
