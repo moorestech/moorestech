@@ -15,7 +15,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         {
             using var scenario = TrainStationDockingScenario.Create();
 
-            var train = scenario.CreateForwardDockingTrain(out var car);
+            var train = scenario.CreateForwardDockingTrain(out _, out _);
             //train.の_currentSpeedを349431.247に設定    
             //リフレクションでprivateフィールドにアクセス
             const double expectedSpeed = 349431.247;

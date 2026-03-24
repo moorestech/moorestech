@@ -18,6 +18,7 @@ using Core.Master;
 using Core.Update;
 using System.Collections.Generic;
 using System.Linq;
+using Game.Train.Unit.Containers;
 
 namespace Tests.UnitTest.Game.SaveLoad
 {
@@ -167,13 +168,12 @@ namespace Tests.UnitTest.Game.SaveLoad
             var saveJsonAssembler = env.ServiceProvider.GetService<AssembleSaveJsonText>();
 
             var stationPos = new Vector3Int(0, 0, 0);
-            var (stationBlock, stationComponent) = TrainTestHelper.PlaceBlockWithComponent<StationComponent>(
+            var stationBlock = TrainTestHelper.PlaceBlock(
                 env,
                 ForUnitTestModBlockId.TestTrainStation,
                 stationPos,
                 BlockDirection.North);
             Assert.IsNotNull(stationBlock, "駅ブロックの設置に失敗しました");
-            Assert.IsNotNull(stationComponent, "StationComponentが見つかりません");
 
             var inputChestPos = new Vector3Int(-1, 0, 2);
             var (_, inputInventory) = TrainTestHelper.PlaceBlockWithComponent<IBlockInventory>(
@@ -216,7 +216,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var loadedStationBlock = blockStore.GetBlock(stationPos);
             Assert.IsNotNull(loadedStationBlock, "ロード後にStationブロックが見つかりません");
 
-            var loadedStationComponent = loadedStationBlock.GetComponent<StationComponent>();
+            var loadedStationComponent = loadedStationBlock.GetComponent<TrainStationComponent>();
             Assert.IsNotNull(loadedStationComponent, "ロード後のStationComponentが見つかりません");
 
             var loadedStationInventory = loadedStationBlock.GetComponent<IBlockInventory>();
@@ -253,7 +253,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.IsNotNull(stationBlock, "駅ブロックの生成に失敗しました。");
             Assert.IsNotNull(railComponents, "駅ブロックのRailComponent取得に失敗しました。");
 
-            var stationComponent = stationBlock.GetComponent<StationComponent>();
+            var stationComponent = stationBlock.GetComponent<TrainStationComponent>();
             Assert.IsNotNull(stationComponent, "StationComponentの取得に失敗しました。");
             Assert.IsTrue(stationBlock.ComponentManager.TryGetComponent<IBlockInventory>(out var stationInventory), "駅インベントリの取得に失敗しました。");
 
@@ -270,10 +270,13 @@ namespace Tests.UnitTest.Game.SaveLoad
             var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, environment.GetTrainUpdateService(), environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
             trainUnit.trainUnitStationDocking.TryDockWhenStopped();
             Assert.IsTrue(trainCar.IsDocked, "列車が駅にドッキングしていません。");
-
+            
+            var updatableComponents = stationBlock.GetComponents<IUpdatableBlockComponent>();
             var totalTicks = GetArmAnimationTicks(stationParam.LoadingAnimeSpeed);
             var elapsedTicks = totalTicks / 2;
-            for (var i = 0; i < elapsedTicks; i++) stationComponent.Update();
+            for (var i = 0; i < elapsedTicks; i++)
+                foreach (var updatableBlockComponent in updatableComponents)
+                    updatableBlockComponent.Update();
             Assert.IsTrue(trainCar.IsInventoryEmpty(), "セーブ前に一括移送が発生しています。");
 
             var saveJson = SaveLoadJsonTestHelper.AssembleSaveJson(environment.ServiceProvider);
@@ -282,22 +285,23 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             var loadedBlock = loadEnvironment.WorldBlockDatastore.GetBlock(Vector3Int.zero);
             Assert.IsNotNull(loadedBlock, "ロード後に駅ブロックが見つかりません。");
-            var loadedStation = loadedBlock.GetComponent<StationComponent>();
-            Assert.IsNotNull(loadedStation, "ロード後にStationComponentが見つかりません。");
             Assert.IsTrue(loadedBlock.ComponentManager.TryGetComponent<IBlockInventory>(out var loadedInventory), "ロード後の駅インベントリ取得に失敗しました。");
 
             var loadedTrain = loadEnvironment.GetTrainUpdateService().GetRegisteredTrains().Single();
             var loadedCar = loadedTrain.Cars[0];
             Assert.IsTrue(loadedCar.IsDocked, "ロード後に列車ドッキング状態が復元されていません。");
-
+            
+            var loadedUpdatableComponents = loadedBlock.GetComponents<IUpdatableBlockComponent>();
             var remainingTicks = totalTicks + 1 - elapsedTicks;
-            for (var i = 0; i < remainingTicks; i++) loadedStation.Update();
+            for (var i = 0; i < remainingTicks; i++) 
+                foreach (var updatableBlockComponent in loadedUpdatableComponents)
+                    updatableBlockComponent.Update();
 
             var platformStack = loadedInventory.GetItem(0);
             Assert.AreEqual(ItemMaster.EmptyItemId, platformStack.Id, "ロード後に駅アニメーション進捗が復元されていません。");
-            var carStack = loadedCar.GetItem(0);
-            Assert.AreEqual(ForUnitTestItemId.ItemId1, carStack.Id, "ロード後に列車側へアイテムが移送されていません。");
-            Assert.AreEqual(maxStack, carStack.Count, "ロード後に列車側へ全量移送されていません。");
+            var carStack = (loadedCar.Container as ItemTrainCarContainer)!.InventoryItems[0];
+            Assert.AreEqual(ForUnitTestItemId.ItemId1, carStack.Stack.Id, "ロード後に列車側へアイテムが移送されていません。");
+            Assert.AreEqual(maxStack, carStack.Stack.Count, "ロード後に列車側へ全量移送されていません。");
 
             loadedTrain.trainUnitStationDocking.UndockFromStation();
             loadEnvironment.GetTrainDiagramManager().UnregisterDiagram(loadedTrain.trainDiagram);

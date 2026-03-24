@@ -20,6 +20,7 @@ using Cysharp.Threading.Tasks;
 using Game.Context;
 using Server.Boot;
 using Server.Boot.Args;
+using Server.Util.MessagePack;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -144,6 +145,9 @@ namespace Client.Starter
                 SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
                 return;
             }
+            
+            //messagepackformatterの初期化
+            MessagePackInitializer.Initialize();
             
             //staticアクセスできるコンテキストの作成
             new ClientContext(blockGameObjectPrefabContainer, itemImageContainer, fluidImageContainer , playerConnectionSetting, vanillaApi, modalManager);
