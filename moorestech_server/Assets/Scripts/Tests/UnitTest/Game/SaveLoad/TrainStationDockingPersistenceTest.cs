@@ -65,8 +65,10 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.IsNotNull(loadedCar.dockingblock, "ロード後にドッキングブロックが割り当てられていません。");
             Assert.AreEqual(scenario.StationBlockPosition, loadedCar.dockingblock.BlockPositionInfo.OriginalPos,
                 "ロード後のドッキング先ブロック位置が一致しません。");
-
-            var loadedStack = container.InventoryItems[0];
+            
+            var loadedContainer = loadedCar.Container as ItemTrainCarContainer;
+            Assert.IsNotNull(loadedContainer, "ロード後のコンテナが存在しないか、ItemTrainCarContainerにキャストできません。");
+            var loadedStack = loadedContainer.InventoryItems[0];
             Assert.AreEqual(expectedItem.Id, loadedStack.Stack.Id, "ロード後の貨車インベントリIDが一致しません。");
             Assert.AreEqual(expectedItem.Count, loadedStack.Stack.Count, "ロード後の貨車インベントリ個数が一致しません。");
 
