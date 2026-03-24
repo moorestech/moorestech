@@ -37,12 +37,17 @@ Draft a PR title and summary:
 - Keep title under 70 characters
 - Use description/body for details
 
-### 3. Create Pull Request
+### 3. Prepare Branch and Commit
+ステップ1の結果を元に、ブランチやコミットがない場合は自動で作成する。ユーザーに確認せず実行すること。
+
+- **masterブランチにいる場合**: 変更内容に基づいて適切なブランチ名で `git checkout -b feature/xxx` を実行
+- **未コミットの変更がある場合**: 差分を分析し、PR対象の変更をコミットする
+  - コミットメッセージは変更内容を端的に表す日本語で作成
+- **既にコミット済みの場合**: そのまま次のステップへ進む
+
+### 4. Create Pull Request
 
 ```bash
-# Create new branch if needed
-git checkout -b feature/branch-name
-
 # Push to remote with tracking
 git push -u origin HEAD
 
@@ -54,7 +59,7 @@ gh pr create --title "the pr title" --body "$(cat <<'EOF'
 ## Test plan
 [Bulleted markdown checklist of TODOs for testing the pull request...]
 
-Generated with [Codex](https://Codex.com/Codex)
+Generated with [Claude Code](https://claude.com/claude-code)
 EOF
 )"
 ```
@@ -62,6 +67,5 @@ EOF
 ## Important Notes
 
 - Return the PR URL when done so the user can see it
-- Do not push to remote unless explicitly asked
 - Never use destructive git commands without explicit permission
-- If there are uncommitted changes, ask user if they should be committed first
+- 未コミットの変更やブランチ未作成の状態でも、確認せず差分を分析して自動的にブランチ作成・コミット・PR作成まで一貫して実行する

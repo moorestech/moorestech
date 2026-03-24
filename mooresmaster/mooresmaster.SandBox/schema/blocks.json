@@ -563,7 +563,7 @@
                       "type": "number",
                       "default": 2
                     },
-                    "requireTorque": {
+                    "requireTorquePerRpm": {
                       "type": "number",
                       "default": 2
                     },

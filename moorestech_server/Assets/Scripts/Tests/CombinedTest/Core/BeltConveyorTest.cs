@@ -222,7 +222,7 @@ namespace Tests.CombinedTest.Core
             {
                 // スプリッターに歯車エネルギーを供給する
                 // Supply gear energy to splitter
-                gearBeltConveyorComponent.SupplyPower(new RPM(20), new Torque(splitterParam.RequireTorque), true);
+                gearBeltConveyorComponent.SupplyPower(new RPM(20), new Torque(20 * splitterParam.RequireTorquePerRpm), true);
                 GameUpdater.UpdateOneTick();
             }
             
