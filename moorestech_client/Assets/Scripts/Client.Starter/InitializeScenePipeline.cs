@@ -146,11 +146,11 @@ namespace Client.Starter
                 return;
             }
             
-            //staticアクセスできるコンテキストの作成
-            new ClientContext(blockGameObjectPrefabContainer, itemImageContainer, fluidImageContainer , playerConnectionSetting, vanillaApi, modalManager);
-            
             //messagepackformatterの初期化
             MessagePackInitializer.Initialize();
+            
+            //staticアクセスできるコンテキストの作成
+            new ClientContext(blockGameObjectPrefabContainer, itemImageContainer, fluidImageContainer , playerConnectionSetting, vanillaApi, modalManager);
             
             //シーンに遷移し、初期データを渡す
             SceneManager.sceneLoaded += MainGameSceneLoaded;
