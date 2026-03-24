@@ -18,8 +18,7 @@ namespace Game.Block.Blocks.TrainRail
         public ArmState ArmState { get; private set; } = ArmState.Idle;
         private int _armProgressTicks;
         private readonly int _armAnimationTicks;
-        private bool _shouldStartOnDock;
-        
+
         public string SaveKey { get; } = typeof(TrainPlatformDockingComponent).FullName;
         public bool IsDestroy { get; private set; }
         
@@ -37,13 +36,12 @@ namespace Game.Block.Blocks.TrainRail
             
             ArmState = (ArmState)saveData.armState;
             _armProgressTicks = saveData.armProgressTicks;
-            _shouldStartOnDock = saveData.shouldStartOnDock;
         }
         
         
         public string GetSaveState()
         {
-            return JsonConvert.SerializeObject(new TrainPlatformDockingComponentSaveData(ArmState, _armProgressTicks, _shouldStartOnDock));
+            return JsonConvert.SerializeObject(new TrainPlatformDockingComponentSaveData(ArmState, _armProgressTicks));
         }
         
         public void Destroy()
@@ -128,7 +126,6 @@ namespace Game.Block.Blocks.TrainRail
             DockedTrainId = handle.TrainInstanceId;
             _dockedTrainCarInstanceId = handle.TrainCarInstanceId;
             _dockedHandle = handle as TrainDockHandle;
-            if (ArmState == ArmState.Idle && _armProgressTicks == 0) _shouldStartOnDock = true;
             UpdateDockedReferences(handle);
         }
         
@@ -168,7 +165,6 @@ namespace Game.Block.Blocks.TrainRail
             DockedTrainId = null;
             _dockedTrainCarInstanceId = null;
             _dockedHandle = null;
-            _shouldStartOnDock = false;
             DockedTrainCar = null;
         }
         
@@ -182,13 +178,11 @@ namespace Game.Block.Blocks.TrainRail
         {
             public int armState;
             public int armProgressTicks;
-            public bool shouldStartOnDock;
-            
-            public TrainPlatformDockingComponentSaveData(ArmState armState, int armProgressTicks, bool shouldStartOnDock)
+
+            public TrainPlatformDockingComponentSaveData(ArmState armState, int armProgressTicks)
             {
                 this.armState = (int)armState;
                 this.armProgressTicks = armProgressTicks;
-                this.shouldStartOnDock = shouldStartOnDock;
             }
         }
     }
