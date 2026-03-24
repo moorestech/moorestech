@@ -25,13 +25,16 @@ namespace Game.Train.Unit
         {
             if (reader.TryReadNil()) return null;
             
-            reader.ReadArrayHeader();
+            var arrayLength = reader.ReadArrayHeader();
+            if (reader.ReadArrayHeader() != 2) throw new MessagePackSerializationException($"Invalid array length for ITrainCarContainer: expected 2, got {arrayLength}");
             
             var typeName = reader.ReadString();
             var type = Type.GetType(typeName!, true);
             
+            if (!typeof(ITrainCarContainer).IsAssignableFrom(type)) throw new MessagePackSerializationException($"Type {typeName} does not implement ITrainCarContainer");
+            
             var obj = MessagePackSerializer.Deserialize(type, ref reader, options);
-            return obj as ITrainCarContainer;
+            return (ITrainCarContainer)obj;
         }
     }
     
