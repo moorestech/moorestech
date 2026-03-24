@@ -63,6 +63,7 @@ namespace Game.Train.Unit
         public TrainCarInstanceId TrainCarInstanceId { get; }
         public Guid TrainCarMasterId { get; }
         public bool IsFacingForward { get; }
+        //TODO: インベントリがアイテムコンテナ以外の場合についても考慮するようにする
         public int InventorySlotsCount { get; }
         public int TractionForce { get; }
     }
