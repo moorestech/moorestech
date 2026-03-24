@@ -99,7 +99,7 @@ namespace Game.Train.Unit.Containers
         
         public void MergeFrom(ItemTrainCarContainer other)
         {
-            var itemStackMap = new NativeHashMap<ItemId, NativeList<int>>(other.InventoryItems.Length, Allocator.Temp);
+            var itemStackMap = new NativeHashMap<ItemId, NativeList<int>>(InventoryItems.Length, Allocator.Temp);
             
             for (var i = InventoryItems.Length - 1; i >= 0; i--)
             {
