@@ -7,10 +7,15 @@ namespace Game.Train.Unit.Containers
     [MessagePackObject]
     public class FluidTrainCarContainer : ITrainCarContainer
     {
-        [Key(0)] public FluidContainer Container;
+        [Key(0)] public readonly FluidContainer Container;
         
         [Obsolete]
         public FluidTrainCarContainer() { }
+
+        public FluidTrainCarContainer(FluidContainer container)
+        {
+            Container = container;
+        }
 
         public int GetWeight()
         {

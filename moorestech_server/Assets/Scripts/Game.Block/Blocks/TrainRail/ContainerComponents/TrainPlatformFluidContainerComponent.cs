@@ -120,8 +120,7 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
 
             if (trainContainer == null)
             {
-                var newContainer = new FluidTrainCarContainer();
-                newContainer.Container = new FluidContainer(_fluidContainer.Capacity);
+                var newContainer = new FluidTrainCarContainer(new FluidContainer(_fluidContainer.Capacity));
                 TransferFluid(_fluidContainer, newContainer.Container);
                 dockedCar.SetContainer(newContainer);
                 Container = newContainer;
