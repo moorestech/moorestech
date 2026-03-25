@@ -50,9 +50,8 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
             {
                 var serializedBytes = MessagePackSerializer.ConvertFromJson(serialized);
                 var saveData = MessagePackSerializer.Deserialize<TrainPlatformFluidContainerSaveData>(serializedBytes);
-                _fluidContainer.FluidId = saveData.FluidId;
-                _fluidContainer.Amount = saveData.Amount;
-                Container = saveData.Container;
+                _fluidContainer.FluidId = saveData.FluidContainer.FluidId;
+                _fluidContainer.Amount = saveData.FluidContainer.Amount;
             }
         }
 
@@ -103,7 +102,7 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
 
         public string GetSaveState()
         {
-            var saveData = new TrainPlatformFluidContainerSaveData(_fluidContainer.FluidId, _fluidContainer.Amount, Container);
+            var saveData = new TrainPlatformFluidContainerSaveData(_fluidContainer);
             return MessagePackSerializer.ConvertToJson(MessagePackSerializer.Serialize(saveData));
         }
 
@@ -214,18 +213,14 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
         [MessagePackObject]
         public class TrainPlatformFluidContainerSaveData
         {
-            [Key(0)] public FluidId FluidId;
-            [Key(1)] public double Amount;
-            [Key(2)] public FluidTrainCarContainer Container;
+            [Key(0)] public FluidContainer FluidContainer;
 
             [Obsolete]
             public TrainPlatformFluidContainerSaveData() { }
 
-            public TrainPlatformFluidContainerSaveData(FluidId fluidId, double amount, FluidTrainCarContainer container)
+            public TrainPlatformFluidContainerSaveData(FluidContainer fluidContainer)
             {
-                FluidId = fluidId;
-                Amount = amount;
-                Container = container;
+                FluidContainer = fluidContainer;
             }
         }
     }
