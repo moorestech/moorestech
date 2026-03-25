@@ -20,38 +20,32 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
         private readonly TrainPlatformDockingComponent _dockingComponent;
         private readonly TrainPlatformTransferComponent _transferComponent;
         private readonly BlockConnectorComponent<IFluidInventory> _fluidConnector;
-        private readonly FluidContainer _fluidContainer;
 
         public TrainPlatformFluidContainerComponent(
             TrainPlatformDockingComponent dockingComponent,
             TrainPlatformTransferComponent transferComponent,
-            double capacity,
             BlockConnectorComponent<IFluidInventory> fluidConnector)
         {
             _dockingComponent = dockingComponent;
             _transferComponent = transferComponent;
             _fluidConnector = fluidConnector;
-            _fluidContainer = new FluidContainer(capacity);
         }
 
         public TrainPlatformFluidContainerComponent(
             TrainPlatformDockingComponent dockingComponent,
             TrainPlatformTransferComponent transferComponent,
-            double capacity,
             BlockConnectorComponent<IFluidInventory> fluidConnector,
             Dictionary<string, string> componentStates)
         {
             _dockingComponent = dockingComponent;
             _transferComponent = transferComponent;
             _fluidConnector = fluidConnector;
-            _fluidContainer = new FluidContainer(capacity);
 
             if (componentStates.TryGetValue(SaveKey, out var serialized))
             {
                 var serializedBytes = MessagePackSerializer.ConvertFromJson(serialized);
                 var saveData = MessagePackSerializer.Deserialize<TrainPlatformFluidContainerSaveData>(serializedBytes);
-                _fluidContainer.FluidId = saveData.FluidContainer.FluidId;
-                _fluidContainer.Amount = saveData.FluidContainer.Amount;
+                Container = saveData.Container;
             }
         }
 
@@ -75,22 +69,26 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-
         }
 
         public List<FluidStack> GetFluidInventory()
         {
+            if (Container == null) return new List<FluidStack>();
+            
+            var fluidContainer = Container.Container;
             var result = new List<FluidStack>();
-            if (_fluidContainer.Amount > 0)
+            if (fluidContainer.Amount > 0)
             {
-                result.Add(new FluidStack(_fluidContainer.Amount, _fluidContainer.FluidId));
+                result.Add(new FluidStack(fluidContainer.Amount, fluidContainer.FluidId));
             }
             return result;
         }
 
         public FluidStack AddLiquid(FluidStack fluidStack, FluidContainer source)
         {
-            return _fluidContainer.AddLiquid(fluidStack, source);
+            if (Container == null) return fluidStack;
+
+            return Container.Container.AddLiquid(fluidStack, source);
         }
 
         public void Destroy()
@@ -102,13 +100,13 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
 
         public string GetSaveState()
         {
-            var saveData = new TrainPlatformFluidContainerSaveData(_fluidContainer);
+            var saveData = new TrainPlatformFluidContainerSaveData(Container);
             return MessagePackSerializer.ConvertToJson(MessagePackSerializer.Serialize(saveData));
         }
 
         private void LoadFluidToTrain(TrainCar dockedCar, FluidTrainCarContainer trainContainer)
         {
-            if (_fluidContainer.Amount < double.Epsilon)
+            if (Container == null || Container.Container.Amount < double.Epsilon)
             {
                 _dockingComponent.StartRetracting();
                 return;
@@ -119,15 +117,13 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
 
             if (trainContainer == null)
             {
-                var newContainer = new FluidTrainCarContainer(new FluidContainer(_fluidContainer.Capacity));
-                TransferFluid(_fluidContainer, newContainer.Container);
-                dockedCar.SetContainer(newContainer);
-                Container = newContainer;
+                dockedCar.SetContainer(Container);
+                Container = null;
                 _dockingComponent.StartRetracting();
                 return;
             }
-
-            TransferFluid(_fluidContainer, trainContainer.Container);
+            
+            TransferFluid(Container.Container, trainContainer.Container);
             _dockingComponent.StartRetracting();
         }
 
@@ -141,8 +137,16 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
 
             _dockingComponent.StartExtending();
             if (_dockingComponent.ArmState != ArmState.Extended) return;
-
-            TransferFluid(trainContainer.Container, _fluidContainer);
+            
+            if (Container == null)
+            {
+                Container = trainContainer;
+                dockedCar.SetContainer(null);
+                _dockingComponent.StartRetracting();
+                return;
+            }
+            
+            TransferFluid(trainContainer.Container, Container.Container);
             _dockingComponent.StartRetracting();
         }
 
@@ -174,14 +178,12 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
             if (trainContainer is FluidTrainCarContainer f)
             {
                 fluidContainer = f;
-                Container = f;
                 return true;
             }
 
             if (trainContainer is null)
             {
                 fluidContainer = null;
-                Container = null;
                 return true;
             }
 
@@ -191,36 +193,39 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
 
         private void PushFluidToAdjacentBlocks()
         {
-            if (_fluidContainer.Amount < double.Epsilon) return;
+            if (Container == null) return;
+            
+            var fluidContainer = Container.Container;
+            if (fluidContainer.Amount < double.Epsilon) return;
 
             foreach (var kvp in _fluidConnector.ConnectedTargets)
             {
-                if (_fluidContainer.Amount < double.Epsilon) break;
-
-                var fluidStack = new FluidStack(_fluidContainer.Amount, _fluidContainer.FluidId);
-                var remain = kvp.Key.AddLiquid(fluidStack, _fluidContainer);
-                _fluidContainer.Amount -= (fluidStack.Amount - remain.Amount);
+                if (fluidContainer.Amount < double.Epsilon) break;
+                
+                var fluidStack = new FluidStack(fluidContainer.Amount, fluidContainer.FluidId);
+                var remain = kvp.Key.AddLiquid(fluidStack, fluidContainer);
+                fluidContainer.Amount -= fluidStack.Amount - remain.Amount;
             }
-
-            if (_fluidContainer.Amount < double.Epsilon)
+            
+            if (fluidContainer.Amount < double.Epsilon)
             {
-                _fluidContainer.FluidId = FluidMaster.EmptyFluidId;
+                fluidContainer.FluidId = FluidMaster.EmptyFluidId;
             }
-
-            _fluidContainer.PreviousSourceFluidContainers.Clear();
+            
+            fluidContainer.PreviousSourceFluidContainers.Clear();
         }
 
         [MessagePackObject]
         public class TrainPlatformFluidContainerSaveData
         {
-            [Key(0)] public FluidContainer FluidContainer;
+            [Key(0)] public FluidTrainCarContainer Container;
 
             [Obsolete]
             public TrainPlatformFluidContainerSaveData() { }
-
-            public TrainPlatformFluidContainerSaveData(FluidContainer fluidContainer)
+            
+            public TrainPlatformFluidContainerSaveData(FluidTrainCarContainer container)
             {
-                FluidContainer = fluidContainer;
+                Container = container;
             }
         }
     }
