@@ -84,7 +84,7 @@ namespace Client.Game.InGame.Train.RailGraph
             // 駅系ブロックのみ参照を登録する
             // Register references only for station-type blocks.
             var blockParam = block.BlockMasterElement.BlockParam;
-            if (blockParam is not TrainStationBlockParam && blockParam is not TrainCargoPlatformBlockParam) return false;
+            if (blockParam is not TrainStationBlockParam && blockParam is not TrainItemPlatformBlockParam) return false;
             RegisterStationReferences(block.BlockInstanceId, block.BlockPosInfo.OriginalPos);
             return true;
         }
