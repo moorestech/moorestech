@@ -3,8 +3,6 @@
 const { execSync } = require('child_process');
 const fs = require('fs');
 
-const USAGE_CACHE_FILE = '/tmp/claude-usage-cache.json';
-const USAGE_CACHE_TTL = 360; // seconds
 const BAR_WIDTH = 20;
 const SESSION_HOURS = 5;
 const AUTOCOMPACT_BUFFER_RATIO = 0.165; // Autocompact buffer (~16.5% of context window)
@@ -35,9 +33,11 @@ function buildStatusLine(data) {
     const ctxWin = data.context_window || {};
     const { firstUserMessage, lastUsage } = analyzeTranscript(data.transcript_path);
 
+    const rateLimits = data.rate_limits || {};
+
     const line1 = buildHeaderLine(model, cwd, ctxWin, lastUsage);
     const line2 = buildContextBar(ctxWin, lastUsage);
-    const line3 = buildSessionLine(now);
+    const line3 = buildSessionLine(now, rateLimits);
     const line4 = firstUserMessage ? `🗣 ${truncate(firstUserMessage, 40)}` : '';
 
     const lines = [line1, line2, line3];
@@ -69,25 +69,26 @@ function buildStatusLine(data) {
         return `Compact: ${makeBar(ratio, BAR_WIDTH)} [${colorPct(pct)}] ${formatK(tokens)}/${formatK(effectiveMax)}`;
     }
 
-    // セッション使用率行（5h/7d）
-    // Session usage line (5h/7d)
-    function buildSessionLine(now) {
-        const usage = fetchUsage();
-        if (!usage?.five_hour) return 'Session: fetching...';
+    // セッション使用率行（5h/7d）— stdin の rate_limits から取得
+    // Session usage line (5h/7d) — from stdin rate_limits
+    function buildSessionLine(now, rateLimits) {
+        if (!rateLimits?.five_hour) return 'Session: waiting for data...';
 
         const sessionMs = SESSION_HOURS * 3600000;
-        const fiveUtil = Math.round(usage.five_hour.utilization ?? 0);
-        const resetsAt = usage.five_hour.resets_at ? new Date(usage.five_hour.resets_at) : null;
+        const fiveUtil = Math.round(rateLimits.five_hour.used_percentage ?? 0);
+        // resets_at は Unix epoch 秒
+        // resets_at is Unix epoch seconds
+        const resetsAtMs = rateLimits.five_hour.resets_at ? rateLimits.five_hour.resets_at * 1000 : null;
 
         // リセット時刻からウィンドウ経過時間を逆算
         // Derive window elapsed from resets_at
-        const windowEnd = resetsAt ? resetsAt.getTime() : now + sessionMs;
+        const windowEnd = resetsAtMs ?? now + sessionMs;
         const windowElapsed = Math.max(0, Math.min(now - (windowEnd - sessionMs), sessionMs));
 
-        const sevenUtil = Math.round(usage.seven_day?.utilization ?? 0);
-        const sevenResetsAt = usage.seven_day?.resets_at ? new Date(usage.seven_day.resets_at) : null;
-        const sevenDaysElapsed = sevenResetsAt
-            ? Math.max(0, Math.min(7, Math.ceil(7 - (sevenResetsAt.getTime() - now) / 86400000)))
+        const sevenUtil = Math.round(rateLimits.seven_day?.used_percentage ?? 0);
+        const sevenResetsAtMs = rateLimits.seven_day?.resets_at ? rateLimits.seven_day.resets_at * 1000 : null;
+        const sevenDaysElapsed = sevenResetsAtMs
+            ? Math.max(0, Math.min(7, Math.ceil(7 - (sevenResetsAtMs - now) / 86400000)))
             : '?';
 
         return `Session: ${makeBar(fiveUtil / 100, BAR_WIDTH)} [${colorPct(fiveUtil)}] ${formatDuration(windowElapsed)}/${SESSION_HOURS}h | [${colorPct(sevenUtil)}] ${sevenDaysElapsed}/7d`;
@@ -188,62 +189,6 @@ function getGitInfo(cwd) {
     } catch {
         return null;
     }
-}
-
-// ── Usage API（キャッシュ付き） ──
-// ── Usage API (with cache) ──
-function fetchUsage() {
-    // キャッシュが新鮮ならそのまま返す
-    // Return fresh cache if available
-    const cached = readCache();
-    if (cached.fresh) return cached.data;
-
-    // Keychainからトークン取得
-    // Get token from macOS Keychain
-    const accessToken = getKeychainToken();
-    if (!accessToken) return cached.data;
-
-    // API呼び出し、失敗時は古いキャッシュにフォールバック
-    // Call API, fall back to stale cache on failure
-    try {
-        const response = execSync(
-            `curl -sf --max-time 5 -H "Authorization: Bearer ${accessToken}" -H "anthropic-beta: oauth-2025-04-20" "https://api.anthropic.com/api/oauth/usage"`,
-            EXEC_OPTS
-        ).trim();
-        if (response) {
-            const data = JSON.parse(response);
-            fs.writeFileSync(USAGE_CACHE_FILE, JSON.stringify(data), 'utf8');
-            return data;
-        }
-    } catch {}
-
-    return cached.data;
-
-    // --- Internal ---
-
-    function readCache() {
-        try {
-            if (fs.existsSync(USAGE_CACHE_FILE)) {
-                const ageSec = (Date.now() - fs.statSync(USAGE_CACHE_FILE).mtimeMs) / 1000;
-                const data = JSON.parse(fs.readFileSync(USAGE_CACHE_FILE, 'utf8'));
-                return { data, fresh: ageSec < USAGE_CACHE_TTL };
-            }
-        } catch {}
-        return { data: null, fresh: false };
-    }
-
-    function getKeychainToken() {
-        try {
-            const credsJson = execSync(
-                'security find-generic-password -s "Claude Code-credentials" -w',
-                EXEC_OPTS
-            ).trim();
-            return JSON.parse(credsJson)?.claudeAiOauth?.accessToken ?? null;
-        } catch {
-            return null;
-        }
-    }
-
 }
 
 // ── トランスクリプト解析 ──
