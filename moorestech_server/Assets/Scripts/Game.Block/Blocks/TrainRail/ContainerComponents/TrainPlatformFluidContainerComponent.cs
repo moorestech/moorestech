@@ -3,16 +3,15 @@ using Game.Block.Blocks.Fluid;
 using Game.Block.Component;
 using Game.Block.Interface.Component;
 using Game.Fluid;
+using Game.Train.Unit.Containers;
+using JetBrains.Annotations;
 
 namespace Game.Block.Blocks.TrainRail.ContainerComponents
 {
-    /// <summary>
-    /// 液体貨物プラットフォームのコンテナコンポーネント（スタブ）
-    /// Fluid cargo platform container component (stub)
-    /// </summary>
     public class TrainPlatformFluidContainerComponent : IBlockComponent, IFluidInventory
     {
         public bool IsDestroy { get; private set; }
+        [CanBeNull] public FluidTrainCarContainer Container;
         private readonly TrainPlatformDockingComponent _dockingComponent;
         private readonly TrainPlatformTransferComponent _transferComponent;
         private readonly BlockConnectorComponent<IFluidInventory> _fluidConnector;
