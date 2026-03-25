@@ -33,7 +33,7 @@ namespace Game.Block.Factory.BlockTemplate
             var trainPlatformTransferComponent = new TrainPlatformTransferComponent(TrainPlatformTransferComponent.TransferMode.LoadToTrain);
 
             var fluidConnector = IFluidInventory.CreateFluidInventoryConnector(param.FluidInventoryConnectors, positionInfo);
-            var trainPlatformFluidContainer = new TrainPlatformFluidContainerComponent(trainPlatformDockingComponent, trainPlatformTransferComponent, fluidConnector);
+            var trainPlatformFluidContainer = new TrainPlatformFluidContainerComponent(trainPlatformDockingComponent, trainPlatformTransferComponent, param.Capacity, fluidConnector);
 
             var blockComponents = new List<IBlockComponent>();
             blockComponents.AddRange(railComponents);
@@ -65,7 +65,7 @@ namespace Game.Block.Factory.BlockTemplate
             var trainPlatformTransferComponent = new TrainPlatformTransferComponent(componentStates);
 
             var fluidConnector = IFluidInventory.CreateFluidInventoryConnector(param.FluidInventoryConnectors, positionInfo);
-            var trainPlatformFluidContainer = new TrainPlatformFluidContainerComponent(trainPlatformDockingComponent, trainPlatformTransferComponent, fluidConnector, componentStates);
+            var trainPlatformFluidContainer = new TrainPlatformFluidContainerComponent(trainPlatformDockingComponent, trainPlatformTransferComponent, param.Capacity, fluidConnector, componentStates);
 
             var blockComponents = new List<IBlockComponent>();
             blockComponents.AddRange(railComponents);
