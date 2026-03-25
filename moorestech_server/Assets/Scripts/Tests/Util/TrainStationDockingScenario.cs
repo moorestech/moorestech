@@ -59,7 +59,7 @@ namespace Tests.Util
             var n1Component = TrainTestHelper.PlaceRail(environment, new Vector3Int(5, 0, 0), BlockDirection.North);
             var (stationBlock, stationComponents) = TrainTestHelper.PlaceBlockWithRailComponents(
                 environment,
-                ForUnitTestModBlockId.TestTrainCargoPlatform,
+                ForUnitTestModBlockId.TestTrainItemPlatform,
                 new Vector3Int(10, 20, 0),
                 BlockDirection.North);
             var n2Component = TrainTestHelper.PlaceRail(environment, new Vector3Int(15, 0, 0), BlockDirection.North);
@@ -96,7 +96,7 @@ namespace Tests.Util
             var n3Component = TrainTestHelper.PlaceRail(environment, new Vector3Int(20, 0, 0), BlockDirection.North);
             var (stationBlock, stationComponents) = TrainTestHelper.PlaceBlockWithRailComponents(
                 environment,
-                ForUnitTestModBlockId.TestTrainCargoPlatform,
+                ForUnitTestModBlockId.TestTrainItemPlatform,
                 new Vector3Int(10, 100, 0),
                 BlockDirection.North);
 

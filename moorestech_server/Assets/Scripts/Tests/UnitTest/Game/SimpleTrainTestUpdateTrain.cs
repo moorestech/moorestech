@@ -289,7 +289,7 @@ namespace Tests.UnitTest.Game
                 var worldBlockDatastore = env.WorldBlockDatastore;
 
                 Vector3Int stationBlockSize = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainStation).BlockSize;
-                Vector3Int cargoBBlockSize = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainCargoPlatform).BlockSize;
+                Vector3Int cargoBBlockSize = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainItemPlatform).BlockSize;
                 Assert.AreNotEqual(0, stationBlockSize.x, "ブロックサイズが0");
                 Assert.AreNotEqual(0, stationBlockSize.y, "ブロックサイズが0");
                 Assert.AreNotEqual(0, stationBlockSize.z, "ブロックサイズが0");
@@ -302,7 +302,7 @@ namespace Tests.UnitTest.Game
                 Vector3Int[] dirarray = new Vector3Int[] { new Vector3Int(0, 0, 1), new Vector3Int(1, 0, 0), new Vector3Int(0, 0, -1), new Vector3Int(-1, 0, 0) };
 
                 // 1) 駅を4つつくってrailcomponentの座標を確認
-                // 駅の列:TestTrainStation+TestTrainCargoPlatform+TestTrainCargoPlatform+TestTrainCargoPlatform+TestTrainCargoPlatform+TestTrainStation
+                // 駅の列:TestTrainStation+TestTrainItemPlatform+TestTrainItemPlatform+TestTrainItemPlatform+TestTrainItemPlatform+TestTrainStation
                 // 22+11+11+11+11+22の構成(旧)
                 // 8+8+8+8+8+8の構成(新)
                 int rand = UnityEngine.Random.Range(1000, 12000);
@@ -326,7 +326,7 @@ namespace Tests.UnitTest.Game
                         var offset11or22 = stationBlockSize.z;
                         if (blockDirections[i] == BlockDirection.West) offset11or22 = cargoBBlockSize.z;
                         if (blockDirections[i] == BlockDirection.South) offset11or22 = cargoBBlockSize.z;
-                        worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainCargoPlatform, position + dirarray[i] * (offset11or22 + cargoBBlockSize.z * j), blockDirections[i], Array.Empty<BlockCreateParam>(), out var cargoblock);
+                        worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainItemPlatform, position + dirarray[i] * (offset11or22 + cargoBBlockSize.z * j), blockDirections[i], Array.Empty<BlockCreateParam>(), out var cargoblock);
                     }
                     Assert.AreEqual(2, railcomposA.Count, "駅Aに付随するRailComponent数が2本ではありません。");
                     Assert.AreEqual(2, railcomposB.Count, "駅Bに付随するRailComponent数が2本ではありません。");

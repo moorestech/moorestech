@@ -39,13 +39,13 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             var (stationABlock, stationAComponents) = TrainTestHelper.PlaceBlockWithRailComponents(
                 environment,
-                ForUnitTestModBlockId.TestTrainCargoPlatform,
+                ForUnitTestModBlockId.TestTrainItemPlatform,
                 new Vector3Int(1, 0, 0),
                 BlockDirection.North);
 
             var (stationBBlock, stationBComponents) = TrainTestHelper.PlaceBlockWithRailComponents(
                 environment,
-                ForUnitTestModBlockId.TestTrainCargoPlatform,
+                ForUnitTestModBlockId.TestTrainItemPlatform,
                 new Vector3Int(0, 0, 24),
                 BlockDirection.North);
 

@@ -53,7 +53,7 @@ namespace Tests.Util
 
             var (stationBlock, stationComponents) = TrainTestHelper.PlaceBlockWithRailComponents(
                 environment,
-                ForUnitTestModBlockId.TestTrainCargoPlatform,
+                ForUnitTestModBlockId.TestTrainItemPlatform,
                 Vector3Int.zero,
                 BlockDirection.North);
             var (_, r0Component) = TrainTestHelper.PlaceBlockWithComponent<RailComponent>(

@@ -294,7 +294,7 @@
     },
     {
       "maxStack": 100,
-      "name": "TestTrainCargoPlatform",
+      "name": "TestTrainItemPlatform",
       "itemGuid": "4a2cd701-ecd0-45f1-ae00-1e43adcadd84",
       "sortPriority": 100,
       "recipeViewType": "ForceView",

@@ -20,7 +20,7 @@ using UnityEngine;
 
 namespace Tests.UnitTest.Game.SaveLoad
 {
-    public class TrainCargoPlatformTransferModeSaveLoadTest
+    public class TrainItemPlatformTransferModeSaveLoadTest
     {
         [Test]
         public void CargoPlatformAnimationProgressPersistsAcrossSaveLoad()
@@ -28,7 +28,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var environment = TrainTestHelper.CreateEnvironment();
             var (cargoBlock, railComponents) = TrainTestHelper.PlaceBlockWithRailComponents(
                 environment,
-                ForUnitTestModBlockId.TestTrainCargoPlatform,
+                ForUnitTestModBlockId.TestTrainItemPlatform,
                 Vector3Int.zero,
                 BlockDirection.North);
 
@@ -38,7 +38,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var itemContainerComponent = cargoBlock.GetComponent<TrainPlatformItemContainerComponent>();
             Assert.IsNotNull(itemContainerComponent, "cargoContainerComponentの取得に失敗しました。");
 
-            var cargoParam = (TrainCargoPlatformBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainCargoPlatform).BlockParam;
+            var cargoParam = (TrainItemPlatformBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainItemPlatform).BlockParam;
             var maxStack = MasterHolder.ItemMaster.GetItemMaster(ForUnitTestItemId.ItemId1).MaxStack;
             itemContainerComponent.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, maxStack));
 
@@ -98,10 +98,10 @@ namespace Tests.UnitTest.Game.SaveLoad
             var loadPosition = new Vector3Int(12, 0, 0);
             var unloadPosition = new Vector3Int(28, 0, 0);
 
-            var loadBlock = TrainTestHelper.PlaceBlock(environment, ForUnitTestModBlockId.TestTrainCargoPlatform, loadPosition, BlockDirection.North);
+            var loadBlock = TrainTestHelper.PlaceBlock(environment, ForUnitTestModBlockId.TestTrainItemPlatform, loadPosition, BlockDirection.North);
             Assert.IsNotNull(loadBlock, "Loadモード側の貨物プラットフォーム生成に失敗しました。");
 
-            var unloadBlock = TrainTestHelper.PlaceBlock(environment, ForUnitTestModBlockId.TestTrainCargoPlatform, unloadPosition, BlockDirection.North);
+            var unloadBlock = TrainTestHelper.PlaceBlock(environment, ForUnitTestModBlockId.TestTrainItemPlatform, unloadPosition, BlockDirection.North);
             Assert.IsNotNull(unloadBlock, "Unloadモード側の貨物プラットフォーム生成に失敗しました。");
 
             var loadCargo = loadBlock.GetComponent<TrainPlatformTransferComponent>();

@@ -2722,7 +2722,7 @@
         8
       ],
       "itemGuid": "4a2cd701-ecd0-45f1-ae00-1e43adcadd84",
-      "blockType": "TrainCargoPlatform",
+      "blockType": "TrainItemPlatform",
       "blockParam": {
         "inventoryConnectors": {
           "inputConnects": [
@@ -2783,7 +2783,7 @@
         "itemSlotCount": 10,
         "loadingAnimeSpeed": 1
       },
-      "name": "TestTrainCargoPlatform",
+      "name": "TestTrainItemPlatform",
       "blockGuid": "00000000-0000-0000-0000-000000000026",
       "overrideVerticalBlock": {}
     },

@@ -45,7 +45,7 @@ namespace Tests.Module.TestMod
         
         public static BlockId TestTrainRail => GetBlock("00000000-0000-0000-0000-000000000024");
         public static BlockId TestTrainStation => GetBlock("00000000-0000-0000-0000-000000000025");
-        public static BlockId TestTrainCargoPlatform => GetBlock("00000000-0000-0000-0000-000000000026");
+        public static BlockId TestTrainItemPlatform => GetBlock("00000000-0000-0000-0000-000000000026");
         
         public static BlockId GearMapObjectMiner => GetBlock("00000000-0000-0000-0000-000000000027");
         
