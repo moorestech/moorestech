@@ -20,26 +20,31 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
         private readonly TrainPlatformDockingComponent _dockingComponent;
         private readonly TrainPlatformTransferComponent _transferComponent;
         private readonly BlockConnectorComponent<IFluidInventory> _fluidConnector;
+        private readonly double _capacity;
 
         public TrainPlatformFluidContainerComponent(
             TrainPlatformDockingComponent dockingComponent,
             TrainPlatformTransferComponent transferComponent,
+            double capacity,
             BlockConnectorComponent<IFluidInventory> fluidConnector)
         {
             _dockingComponent = dockingComponent;
             _transferComponent = transferComponent;
             _fluidConnector = fluidConnector;
+            _capacity = capacity;
         }
 
         public TrainPlatformFluidContainerComponent(
             TrainPlatformDockingComponent dockingComponent,
             TrainPlatformTransferComponent transferComponent,
+            double capacity,
             BlockConnectorComponent<IFluidInventory> fluidConnector,
             Dictionary<string, string> componentStates)
         {
             _dockingComponent = dockingComponent;
             _transferComponent = transferComponent;
             _fluidConnector = fluidConnector;
+            _capacity = capacity;
 
             if (componentStates.TryGetValue(SaveKey, out var serialized))
             {
@@ -86,7 +91,7 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
 
         public FluidStack AddLiquid(FluidStack fluidStack, FluidContainer source)
         {
-            if (Container == null) return fluidStack;
+            if (Container == null) Container = new FluidTrainCarContainer(new FluidContainer(_capacity));
 
             return Container.Container.AddLiquid(fluidStack, source);
         }
