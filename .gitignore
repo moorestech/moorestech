@@ -109,3 +109,11 @@ moorestech_client/.vscode/settings.json
 
 moorestech_client/UserSettings/UnityMcpSettings.json
 moorestech_server/UserSettings/UnityMcpSettings.json
+
+# Terraform
+**/terraform/.terraform/
+**/terraform/*.tfstate
+**/terraform/*.tfstate.backup
+**/terraform/*.pem
+**/terraform/build.log
+**/terraform/.terraform.lock.hcl
