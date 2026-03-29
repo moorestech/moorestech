@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using Core.Master;
+using Core.Update;
 using Game.Block.Blocks.Fluid;
 using Game.Block.Component;
 using Game.Block.Interface.Component;
 using Game.Fluid;
+using Mooresmaster.Model.BlockConnectInfoModule;
 using Game.Train.Unit;
 using Game.Train.Unit.Containers;
 using JetBrains.Annotations;
@@ -199,25 +201,42 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
         private void PushFluidToAdjacentBlocks()
         {
             if (Container == null) return;
-            
+
             var fluidContainer = Container.Container;
             if (fluidContainer.Amount < double.Epsilon) return;
 
-            foreach (var kvp in _fluidConnector.ConnectedTargets)
+            foreach (var (inventory, info) in _fluidConnector.ConnectedTargets)
             {
                 if (fluidContainer.Amount < double.Epsilon) break;
-                
-                var fluidStack = new FluidStack(fluidContainer.Amount, fluidContainer.FluidId);
-                var remain = kvp.Key.AddLiquid(fluidStack, fluidContainer);
-                fluidContainer.Amount -= fluidStack.Amount - remain.Amount;
+
+                var flowRate = GetFlowRate(info);
+                var transferAmount = Math.Min(fluidContainer.Amount, flowRate * GameUpdater.SecondsPerTick);
+                if (transferAmount < double.Epsilon) continue;
+
+                var fluidStack = new FluidStack(transferAmount, fluidContainer.FluidId);
+                var remain = inventory.AddLiquid(fluidStack, fluidContainer);
+                var transferred = transferAmount - remain.Amount;
+                if (transferred > 0)
+                {
+                    fluidContainer.Amount -= transferred;
+                }
             }
-            
+
             if (fluidContainer.Amount < double.Epsilon)
             {
                 fluidContainer.FluidId = FluidMaster.EmptyFluidId;
             }
-            
+
             fluidContainer.PreviousSourceFluidContainers.Clear();
+        }
+
+        private static double GetFlowRate(ConnectedInfo info)
+        {
+            if (info.SelfConnector?.ConnectOption is FluidConnectOption fluidOption)
+            {
+                return fluidOption.FlowCapacity;
+            }
+            throw new ArgumentException("FluidConnectOption is not set on connector");
         }
 
         [MessagePackObject]
