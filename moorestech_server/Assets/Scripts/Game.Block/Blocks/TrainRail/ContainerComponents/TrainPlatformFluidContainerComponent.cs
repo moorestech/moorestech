@@ -177,6 +177,13 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
             var trainContainer = _dockingComponent.DockedTrainCar?.Container;
             if (trainContainer is FluidTrainCarContainer f)
             {
+                // 異液体の場合はアーム展開前に弾く
+                // Reject before arm extension when fluids are incompatible
+                if (HasIncompatibleFluids(f))
+                {
+                    fluidContainer = null;
+                    return false;
+                }
                 fluidContainer = f;
                 return true;
             }
@@ -189,6 +196,18 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
 
             fluidContainer = null;
             return false;
+        }
+
+        private bool HasIncompatibleFluids(FluidTrainCarContainer trainFluidContainer)
+        {
+            if (Container == null) return false;
+
+            var platformFluid = Container.Container;
+            var trainFluid = trainFluidContainer.Container;
+
+            if (platformFluid.Amount < double.Epsilon || trainFluid.Amount < double.Epsilon) return false;
+
+            return platformFluid.FluidId != trainFluid.FluidId;
         }
 
         private void PushFluidToAdjacentBlocks()

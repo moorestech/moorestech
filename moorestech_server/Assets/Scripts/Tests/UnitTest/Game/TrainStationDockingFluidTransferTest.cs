@@ -334,6 +334,136 @@ namespace Tests.UnitTest.Game
             env.GetTrainUpdateService().UnregisterTrain(trainUnit);
         }
 
+        [Test]
+        public void FluidPlatformLoadPartialWhenTrainCapacityExceeded()
+        {
+            var env = TrainTestHelper.CreateEnvironment();
+
+            var (platformBlock, railComponents) = TrainTestHelper.PlaceBlockWithRailComponents(
+                env,
+                ForUnitTestModBlockId.TestTrainFluidPlatform,
+                Vector3Int.zero,
+                BlockDirection.North);
+
+            var fluidContainerComponent = platformBlock.GetComponent<TrainPlatformFluidContainerComponent>();
+            var dockingComponent = platformBlock.GetComponent<TrainPlatformDockingComponent>();
+
+            var waterFluidId = MasterHolder.FluidMaster.GetFluidId(WaterGuid);
+
+            // プラットフォームに液体を注入
+            // Inject fluid into the platform
+            var platformAmount = 700.0;
+            fluidContainerComponent.AddLiquid(new FluidStack(platformAmount, waterFluidId), FluidContainer.Empty);
+
+            // 容量制限のある列車カーを生成（既に液体が入っている）
+            // Create train car with limited remaining capacity
+            var trainCapacity = 500.0;
+            var trainExistingAmount = 300.0;
+            var entryNode = railComponents[0].FrontNode;
+            var exitNode = railComponents[1].FrontNode;
+            var segmentLength = platformBlock.BlockPositionInfo.BlockSize.z;
+
+            var railNodes = new List<IRailNode> { exitNode, entryNode };
+            var railPosition = new RailPosition(railNodes, segmentLength, 0);
+
+            var (trainCar, fluidContainer) = TrainTestCarFactory.CreateTrainCarWithFluidContainer(0, 1000, trainCapacity, segmentLength, true);
+            fluidContainer.Container.FluidId = waterFluidId;
+            fluidContainer.Container.Amount = trainExistingAmount;
+
+            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
+
+            trainUnit.trainUnitStationDocking.TryDockWhenStopped();
+
+            Assert.IsTrue(trainCar.IsDocked);
+
+            // アーム伸長 + 転送完了まで Update
+            // Update until arm extends and transfer completes
+            var transferTicks = GetFluidPlatformTransferTicks();
+            for (var i = 0; i < transferTicks; i++)
+            {
+                dockingComponent.Update();
+                fluidContainerComponent.Update();
+            }
+
+            // 列車が満杯、残りはプラットフォームに留まる
+            // Train is full, remainder stays on platform
+            var trainRemainingCapacity = trainCapacity - trainExistingAmount;
+            Assert.AreEqual(trainCapacity, fluidContainer.Container.Amount, 0.001);
+            Assert.AreEqual(platformAmount - trainRemainingCapacity, fluidContainerComponent.Container.Container.Amount, 0.001);
+            Assert.AreEqual(waterFluidId, fluidContainer.Container.FluidId);
+            Assert.AreEqual(waterFluidId, fluidContainerComponent.Container.Container.FluidId);
+
+            env.GetTrainDiagramManager().UnregisterDiagram(trainUnit.trainDiagram);
+            env.GetTrainUpdateService().UnregisterTrain(trainUnit);
+        }
+
+        [Test]
+        public void FluidPlatformUnloadPartialWhenPlatformCapacityExceeded()
+        {
+            var env = TrainTestHelper.CreateEnvironment();
+
+            var (platformBlock, railComponents) = TrainTestHelper.PlaceBlockWithRailComponents(
+                env,
+                ForUnitTestModBlockId.TestTrainFluidPlatform,
+                Vector3Int.zero,
+                BlockDirection.North);
+
+            var fluidContainerComponent = platformBlock.GetComponent<TrainPlatformFluidContainerComponent>();
+            var dockingComponent = platformBlock.GetComponent<TrainPlatformDockingComponent>();
+            var transferComponent = platformBlock.GetComponent<TrainPlatformTransferComponent>();
+
+            // Unloadモードに設定
+            // Set to unload mode
+            transferComponent.SetMode(TrainPlatformTransferComponent.TransferMode.UnloadToPlatform);
+
+            var waterFluidId = MasterHolder.FluidMaster.GetFluidId(WaterGuid);
+
+            // プラットフォームに既存の液体を注入（容量1000のうち800）
+            // Inject existing fluid into platform (800 of 1000 capacity)
+            var platformExistingAmount = 800.0;
+            fluidContainerComponent.AddLiquid(new FluidStack(platformExistingAmount, waterFluidId), FluidContainer.Empty);
+
+            // 列車カーに液体を設定
+            // Set fluid on train car
+            var trainAmount = 500.0;
+            var entryNode = railComponents[0].FrontNode;
+            var exitNode = railComponents[1].FrontNode;
+            var segmentLength = platformBlock.BlockPositionInfo.BlockSize.z;
+
+            var railNodes = new List<IRailNode> { exitNode, entryNode };
+            var railPosition = new RailPosition(railNodes, segmentLength, 0);
+
+            var (trainCar, fluidContainer) = TrainTestCarFactory.CreateTrainCarWithFluidContainer(0, 1000, 1000, segmentLength, true);
+            fluidContainer.Container.FluidId = waterFluidId;
+            fluidContainer.Container.Amount = trainAmount;
+
+            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
+
+            trainUnit.trainUnitStationDocking.TryDockWhenStopped();
+
+            Assert.IsTrue(trainCar.IsDocked);
+
+            // アーム伸長 + 転送完了まで Update
+            // Update until arm extends and transfer completes
+            var transferTicks = GetFluidPlatformTransferTicks();
+            for (var i = 0; i < transferTicks; i++)
+            {
+                dockingComponent.Update();
+                fluidContainerComponent.Update();
+            }
+
+            // プラットフォームが満杯、残りは列車に留まる
+            // Platform is full, remainder stays on train
+            var platformRemainingCapacity = 1000.0 - platformExistingAmount;
+            Assert.AreEqual(1000.0, fluidContainerComponent.Container.Container.Amount, 0.001);
+            Assert.AreEqual(trainAmount - platformRemainingCapacity, fluidContainer.Container.Amount, 0.001);
+            Assert.AreEqual(waterFluidId, fluidContainerComponent.Container.Container.FluidId);
+            Assert.AreEqual(waterFluidId, fluidContainer.Container.FluidId);
+
+            env.GetTrainDiagramManager().UnregisterDiagram(trainUnit.trainDiagram);
+            env.GetTrainUpdateService().UnregisterTrain(trainUnit);
+        }
+
         #region Internal
 
         private static int GetFluidPlatformTransferTicks()
