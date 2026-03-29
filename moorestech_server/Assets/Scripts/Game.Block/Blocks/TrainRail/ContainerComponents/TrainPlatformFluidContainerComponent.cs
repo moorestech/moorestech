@@ -144,7 +144,7 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
 
             _dockingComponent.StartExtending();
             if (_dockingComponent.ArmState != ArmState.Extended) return;
-            
+
             if (Container == null)
             {
                 Container = trainContainer;
@@ -152,7 +152,7 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
                 _dockingComponent.StartRetracting();
                 return;
             }
-            
+
             TransferFluid(trainContainer.Container, Container.Container);
             _dockingComponent.StartRetracting();
         }
@@ -160,18 +160,11 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
         private static void TransferFluid(FluidContainer from, FluidContainer to)
         {
             if (from.Amount < double.Epsilon) return;
-            if (to.FluidId != FluidMaster.EmptyFluidId && to.FluidId != from.FluidId) return;
 
-            var transferAmount = Math.Min(from.Amount, to.Capacity - to.Amount);
-            if (transferAmount < double.Epsilon) return;
-
-            if (to.FluidId == FluidMaster.EmptyFluidId)
-            {
-                to.FluidId = from.FluidId;
-            }
-
-            to.Amount += transferAmount;
-            from.Amount -= transferAmount;
+            var fluidStack = new FluidStack(from.Amount, from.FluidId);
+            var remain = to.AddLiquid(fluidStack, from);
+            var transferred = from.Amount - remain.Amount;
+            from.Amount -= transferred;
 
             if (from.Amount < double.Epsilon)
             {
