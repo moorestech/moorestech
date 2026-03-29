@@ -258,8 +258,8 @@ namespace Tests.UnitTest.Game
 
             Assert.IsTrue(trainCar.IsDocked);
 
-            // アーム伸長 + 転送完了まで Update
-            // Update until arm extends and transfer completes
+            // 異液体なのでIsTargetContainerで弾かれ、アームが伸長しない
+            // Incompatible fluids rejected by IsTargetContainer, arm stays idle
             var transferTicks = GetFluidPlatformTransferTicks();
             for (var i = 0; i < transferTicks; i++)
             {
@@ -267,8 +267,7 @@ namespace Tests.UnitTest.Game
                 fluidContainerComponent.Update();
             }
 
-            // 異液体なので転送されない
-            // Different fluids should not mix
+            Assert.AreEqual(ArmState.Idle, dockingComponent.ArmState);
             Assert.AreEqual(platformAmount, fluidContainerComponent.Container.Container.Amount, 0.001);
             Assert.AreEqual(waterFluidId, fluidContainerComponent.Container.Container.FluidId);
             Assert.AreEqual(trainSteamAmount, fluidContainer.Container.Amount, 0.001);
