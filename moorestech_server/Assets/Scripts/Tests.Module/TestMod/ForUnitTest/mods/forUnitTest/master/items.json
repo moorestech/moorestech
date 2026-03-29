@@ -453,6 +453,19 @@
         "handGrabModel": "",
         "entityModel": ""
       }
+    },
+    {
+      "itemGuid": "d7a1e3b2-5c4f-4a9e-8b6d-1f2e3a4b5c6d",
+      "imagePath": "",
+      "name": "TestTrainFluidPlatform",
+      "maxStack": 100,
+      "sortPriority": 830,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "addressablePaths": {
+        "handGrabModel": "",
+        "entityModel": ""
+      }
     }
   ]
 }
