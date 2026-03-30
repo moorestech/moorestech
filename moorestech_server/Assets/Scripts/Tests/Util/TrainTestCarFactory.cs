@@ -61,7 +61,7 @@ namespace Tests.Util
             int inventorySlotCount,
             int length)
         {
-            return new TrainCarMasterElement(masterId, trainCarGuid, itemGuid, null, tractionForce, inventorySlotCount, length);
+            return new TrainCarMasterElement(masterId, trainCarGuid, itemGuid, null, tractionForce, inventorySlotCount, length, null, null);
         }
 
         // ランダム値でのTrainCarMasterElement生成をサポート
