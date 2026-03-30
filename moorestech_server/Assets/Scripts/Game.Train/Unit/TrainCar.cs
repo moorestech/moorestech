@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Context;
@@ -54,9 +52,11 @@ namespace Game.Train.Unit
         }
 
         //重さ、推進力を得る
-        public (int,int) GetWeightAndTraction()
+        public (int weight, int tractionForce) GetWeightAndTraction()
         {
-            return (TrainMotionParameters.DEFAULT_WEIGHT + (Container?.GetWeight() ?? 0), IsFacingForward ? TractionForce * TrainMotionParameters.DEFAULT_TRACTION : 0);
+            var weight = TrainMotionParameters.DEFAULT_WEIGHT + (Container?.GetWeight() ?? 0);
+            var tractionForce = IsFacingForward ? TractionForce * TrainMotionParameters.DEFAULT_TRACTION : 0;
+            return (weight, tractionForce);
         }
 
         public void SetFacingForward(bool isFacingForward)
