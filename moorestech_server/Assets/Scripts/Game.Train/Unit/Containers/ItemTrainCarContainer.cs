@@ -5,12 +5,13 @@ using Core.Master;
 using Game.Context;
 using MessagePack;
 using MessagePack.Formatters;
+using Mooresmaster.Model.TrainModule;
 using Unity.Collections;
 
 namespace Game.Train.Unit.Containers
 {
     [MessagePackObject]
-    public class ItemTrainCarContainer : ITrainCarContainer
+    public class ItemTrainCarContainer : ITrainCarContainer, IFuelProviderTrainCarContainer
     {
         [Key(0)] public ItemTrainCarContainerSlot[] InventoryItems;
         
@@ -35,6 +36,23 @@ namespace Game.Train.Unit.Containers
         public bool IsEmpty()
         {
             return InventoryItems.All(stack => stack.Stack.Id == ItemMaster.EmptyItemId || stack.Stack.Count == 0);
+        }
+        public float ConsumeFuel(TrainCar trainCar)
+        {
+            for (var i = 0; i < InventoryItems.Length; i++)
+            {
+                foreach (var trainFuelItemsElement in trainCar.TrainCarMasterElement.TrainFuelItems ?? Array.Empty<TrainFuelItemsElement>())
+                {
+                    var fuelItemId = MasterHolder.ItemMaster.GetItemId(trainFuelItemsElement.ItemGuid);
+                    if (InventoryItems[i].Stack.Id == fuelItemId && InventoryItems[i].Stack.Count > 0)
+                    {
+                        InventoryItems[i].Stack = InventoryItems[i].Stack.SubItem(1);
+                        return trainFuelItemsElement.FuelDurationPerItem;
+                    }
+                }
+            }
+            
+            return 0;
         }
         
         public ItemTrainCarContainerSlot SetItem(int index, IItemStack stack)
