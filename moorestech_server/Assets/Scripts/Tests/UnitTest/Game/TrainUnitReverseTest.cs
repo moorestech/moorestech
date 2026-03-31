@@ -45,7 +45,7 @@ namespace Tests.UnitTest.Game
                 int totalTraction = 0;
                 foreach (var car in targetCars)
                 {
-                    var (weight, traction) = car.GetWeightAndTraction();
+                    var (weight, traction) = car.GetWeightAndTraction(16777216);
                     totalWeight += weight;
                     totalTraction += traction;
                 }

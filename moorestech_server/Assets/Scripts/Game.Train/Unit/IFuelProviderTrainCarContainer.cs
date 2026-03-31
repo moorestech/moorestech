@@ -10,6 +10,6 @@ namespace Game.Train.Unit
         ///     消費にかかる時間
         ///     Time required for consumption
         /// </returns>
-        float ConsumeFuel(TrainCar trainCar);
+        double ConsumeFuel(TrainCar trainCar);
     }
 }

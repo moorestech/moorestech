@@ -38,7 +38,7 @@ namespace Game.Train.Unit.Containers
             return InventoryItems.All(stack => stack.Stack.Id == ItemMaster.EmptyItemId || stack.Stack.Count == 0);
         }
         
-        public float ConsumeFuel(TrainCar trainCar)
+        public double ConsumeFuel(TrainCar trainCar)
         {
             for (var i = 0; i < InventoryItems.Length; i++)
             {
