@@ -35,6 +35,7 @@ namespace Game.Train.Unit
         public TrainCarInstanceId TrainCarInstanceId => _trainCarInstanceId;
         public IBlock dockingblock { get; set; }// このTrainCarがcargoやstation駅blockでドッキングしているときにのみ非nullになる。前輪を登録
         public bool IsFacingForward { get; private set; }
+        public double RemainFuelTime { get; private set; }
         
         private readonly TrainUpdateEvent _trainUpdateEvent;
 
@@ -50,11 +51,23 @@ namespace Game.Train.Unit
             
             _trainUpdateEvent = (TrainUpdateEvent)ServerContext.GetService<ITrainUpdateEvent>();
         }
+        
+        public void ConsumeFuel(double time, int masconLevel)
+        {
+            var normalizedMasconLevel = masconLevel / (double)TrainMotionParameters.MasconLevelMaximum;
+            RemainFuelTime -= time * Math.Abs(normalizedMasconLevel);
+        }
 
         //重さ、推進力を得る
-        public (int weight, int tractionForce) GetWeightAndTraction()
+        public (int weight, int tractionForce) GetWeightAndTraction(int masconLevel)
         {
             var weight = TrainMotionParameters.DEFAULT_WEIGHT + (Container?.GetWeight() ?? 0);
+            if (RemainFuelTime <= 0)
+            {
+                if (masconLevel != 0 && Container is IFuelProviderTrainCarContainer fuelProviderTrainCarContainer) RemainFuelTime += fuelProviderTrainCarContainer.ConsumeFuel(this);
+                if (RemainFuelTime <= 0) return (weight, 0);
+            }
+            
             var tractionForce = IsFacingForward ? TractionForce * TrainMotionParameters.DEFAULT_TRACTION : 0;
             return (weight, tractionForce);
         }
