@@ -3,12 +3,12 @@ using Cysharp.Threading.Tasks;
 
 namespace CommandForgeGenerator.Command
 {
-    public interface IEnvironmentRoot
+    public interface ISkitEnvironmentRoot
     {
         void SetActive(bool enable);
     }
     
-    public interface IBlockObjectControl
+    public interface ISkitBlockObjectControl
     {
         void SetActive(bool enable);
     }
@@ -17,8 +17,8 @@ namespace CommandForgeGenerator.Command
     {
         public async UniTask<CommandResultContext> ExecuteAsync(StoryContext storyContext)
         {
-            storyContext.GetService<IEnvironmentRoot>().SetActive(BackgroundEnable);
-            storyContext.GetService<IBlockObjectControl>().SetActive(BlockEnable);
+            storyContext.GetService<ISkitEnvironmentRoot>().SetActive(BackgroundEnable);
+            storyContext.GetService<ISkitBlockObjectControl>().SetActive(BlockEnable);
             return null;
         }
     }
