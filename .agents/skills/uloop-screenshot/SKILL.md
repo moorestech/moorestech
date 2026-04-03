@@ -1,16 +1,16 @@
 ---
 name: uloop-screenshot
-description: "Take a screenshot of Unity Editor windows and save as PNG image. Use when you need to: (1) Screenshot the Game View, Scene View, Console, Inspector, or other windows, (2) Capture current visual state for debugging or documentation, (3) Save what the Editor looks like as an image file."
+description: "Capture screenshots of Unity Editor windows as PNG files. Use when you need to: (1) Screenshot Game View, Scene View, Console, Inspector, or other windows, (2) Capture current visual state for debugging or documentation, (3) Save editor window appearance as image files."
 ---
 
-# uloop capture-window
+# uloop screenshot
 
-Capture any Unity EditorWindow by name and save as PNG.
+Take a screenshot of any Unity EditorWindow by name and save as PNG.
 
 ## Usage
 
 ```bash
-uloop capture-window [--window-name <name>] [--resolution-scale <scale>] [--match-mode <mode>]
+uloop screenshot [--window-name <name>] [--resolution-scale <scale>] [--match-mode <mode>] [--output-directory <path>]
 ```
 
 ## Parameters
@@ -20,6 +20,7 @@ uloop capture-window [--window-name <name>] [--resolution-scale <scale>] [--matc
 | `--window-name` | string | `Game` | Window name to capture (e.g., "Game", "Scene", "Console", "Inspector", "Project", "Hierarchy", or any EditorWindow title) |
 | `--resolution-scale` | number | `1.0` | Resolution scale (0.1 to 1.0) |
 | `--match-mode` | enum | `exact` | Window name matching mode: `exact`, `prefix`, or `contains`. All modes are case-insensitive. |
+| `--output-directory` | string | `""` | Output directory path for saving screenshots. When empty, uses default path (.uloop/outputs/Screenshots/). Accepts absolute paths. |
 
 ## Match Modes
 
@@ -31,54 +32,39 @@ uloop capture-window [--window-name <name>] [--resolution-scale <scale>] [--matc
 
 ## Window Name
 
-The window name is the text displayed in the window's title bar (tab). The user (human) will tell you which window to capture. Common window names include:
+The window name is the text displayed in the window's title bar (tab). Common names: Game, Scene, Console, Inspector, Project, Hierarchy, Animation, Animator, Profiler. Custom EditorWindow titles are also supported.
 
-- **Game**: Game View window
-- **Scene**: Scene View window
-- **Console**: Console window
-- **Inspector**: Inspector window
-- **Project**: Project browser window
-- **Hierarchy**: Hierarchy window
-- **Animation**: Animation window
-- **Animator**: Animator window
-- **Profiler**: Profiler window
-- **Audio Mixer**: Audio Mixer window
+## Global Options
 
-You can also specify custom EditorWindow titles (e.g., "EditorWindow Capture Test").
+| Option | Description |
+|--------|-------------|
+| `--project-path <path>` | Target a specific Unity project (mutually exclusive with `--port`) |
+| `-p, --port <port>` | Specify Unity TCP port directly (mutually exclusive with `--project-path`) |
 
 ## Examples
 
 ```bash
-# Capture Game View at full resolution
-uloop capture-window
+# Take a screenshot of Game View (default)
+uloop screenshot
 
-# Capture Game View at half resolution
-uloop capture-window --window-name Game --resolution-scale 0.5
-
-# Capture Scene View
-uloop capture-window --window-name Scene
-
-# Capture Console window
-uloop capture-window --window-name Console
-
-# Capture Inspector window
-uloop capture-window --window-name Inspector
-
-# Capture Project browser (exact match - won't match "Project Settings")
-uloop capture-window --window-name Project
+# Take a screenshot of Scene View
+uloop screenshot --window-name Scene
 
 # Capture all windows starting with "Project" (prefix match)
-uloop capture-window --window-name Project --match-mode prefix
+uloop screenshot --window-name Project --match-mode prefix
 
-# Capture custom EditorWindow by title
-uloop capture-window --window-name "My Custom Window"
+# Save screenshot to a specific directory
+uloop screenshot --output-directory /tmp/screenshots
+
+# Combine options
+uloop screenshot --window-name Scene --resolution-scale 0.5 --output-directory /tmp/screenshots
 ```
 
 ## Output
 
 Returns JSON with:
-- `CapturedCount`: Number of windows captured
-- `CapturedWindows`: Array of captured window info, each containing:
+- `ScreenshotCount`: Number of windows captured
+- `Screenshots`: Array of screenshot info, each containing:
   - `ImagePath`: Absolute path to the saved PNG file
   - `FileSizeBytes`: Size of the saved file in bytes
   - `Width`: Captured image width in pixels
