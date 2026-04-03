@@ -65,32 +65,23 @@ public void ComplexMethod()
 
 # テスト・コンパイルの実行
 
-# MUST:ワークツリー環境ではuloopを絶対に使わない
-`pwd` でパスに `worktrees` が含まれていたら、それはワークツリー環境です。
-**ワークツリー環境では uloop は動作しません。必ず `tools/unity-test.sh` を使ってください。**
-uloop を呼び出すと接続エラーやタイムアウトになり時間を無駄にします。
-
-通常環境ではuLoopを優先、使用不可時は`tools/unity-test.sh`をフォールバックとして使用。
-
 ## ドメインリロード中の待機
 uloopで「Unity is reloading (Domain Reload in progress)」エラーが出た場合は、45秒待機してからリトライすること。
 EditModeInPlayingTest等のPlayMode遷移テストはドメインリロードを引き起こすため、テスト実行後にこのエラーが頻発する。
 
 ## コンパイル
-| | uLoop CLI（通常環境のみ） | シェル（worktree必須） |
-| サーバー | `uloop compile --project-path ./moorestech_server` | `./tools/unity-test.sh moorestech_server "^$"` |
-| クライアント | `uloop compile --project-path ./moorestech_client` | `./tools/unity-test.sh moorestech_client "^$" isGui` |
+| | コマンド |
+| サーバー | `uloop compile --project-path ./moorestech_server` |
+| クライアント | `uloop compile --project-path ./moorestech_client` |
 
 ## テスト
 基本的に`--filter-type regex`で実行対象を限定すること。
 
-| | uLoop CLI（通常環境のみ） | シェル（worktree必須） |
-| サーバー | `uloop run-tests --project-path ./moorestech_server --filter-type regex --filter-value "正規表現"` | `./tools/unity-test.sh moorestech_server "正規表現"` |
-| クライアント | `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "正規表現"` | `./tools/unity-test.sh moorestech_client "正規表現" isGui` |
+| | コマンド |
+| サーバー | `uloop run-tests --project-path ./moorestech_server --filter-type regex --filter-value "正規表現"` |
+| クライアント | `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "正規表現"` |
 
-- クライアント側シェル実行時は`isGui`オプション必須（バッチモードでは不安定）
-
-## ログ確認（通常環境のみ）
+## ログ確認
 | | コマンド |
 | サーバー | `uloop get-logs --project-path ./moorestech_server --log-type Error` |
 | クライアント | `uloop get-logs --project-path ./moorestech_client --log-type Error` |
@@ -114,4 +105,4 @@ public class MySingleton : MonoBehaviour
 Prefab・シーン・ScriptableObject等のUnity固有ファイル（YAML形式）は直接編集禁止。ユーザーに編集を指示すること。
 Library/ディレクトリは絶対に削除禁止。再インポートに膨大な時間がかかるため
 try-catchは基本的に使用禁止。エラーハンドリングが必要な場合は、適切な条件分岐やnullチェックで対応
-git worktree頻用のため、最初に必ず`pwd`で現在ディレクトリを確認すること。worktree環境ではuloopを使わず`unity-test.sh`でテスト・コンパイル確認し、タスク終了前に必ず全作業をコミットすること。作業消失防止
+git worktree頻用のため、最初に必ず`pwd`で現在ディレクトリを確認すること。タスク終了前に必ず全作業をコミットすること。作業消失防止
