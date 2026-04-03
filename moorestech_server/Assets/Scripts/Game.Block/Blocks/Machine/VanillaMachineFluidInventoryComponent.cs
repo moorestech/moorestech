@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Core.Master;
+using Core.Update;
 using Game.Block.Blocks.Fluid;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Service;
@@ -94,7 +95,7 @@ namespace Game.Block.Blocks.Machine
                 
                 // 流量制限を考慮
                 var flowRate = GetFlowRate(info);
-                var transferAmount = System.Math.Min(container.Amount, flowRate * 1.0); // TODO: 適切なDeltaTime実装
+                var transferAmount = Math.Min(container.Amount, flowRate * GameUpdater.SecondsPerTick);
                 
                 var fluidStack = new FluidStack(transferAmount, container.FluidId);
                 var remaining = fluidInventory.AddLiquid(fluidStack, container);
@@ -116,13 +117,11 @@ namespace Game.Block.Blocks.Machine
         
         private double GetFlowRate(ConnectedInfo info)
         {
-            // 接続情報から流量を取得
-            // Get flow rate from connection info
             if (info.SelfConnector?.ConnectOption is FluidConnectOption fluidOption)
             {
                 return fluidOption.FlowCapacity;
             }
-            return 10.0; // デフォルト流量
+            throw new ArgumentException("FluidConnectOption is not set on connector");
         }
         
         public FluidStack AddLiquid(FluidStack fluidStack, FluidContainer source)

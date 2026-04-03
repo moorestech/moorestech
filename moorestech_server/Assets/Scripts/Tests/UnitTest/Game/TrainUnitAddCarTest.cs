@@ -295,13 +295,13 @@ namespace Tests.UnitTest.Game
 
             var (block, stationComponents1) = TrainTestHelper.PlaceBlockWithRailComponents(
                 environment,
-                ForUnitTestModBlockId.TestTrainCargoPlatform,
+                ForUnitTestModBlockId.TestTrainItemPlatform,
                 new Vector3Int(-10, 1, -11),
                 BlockDirection.North);
             var stationnodes1 = ExtractStationNodes(block!, stationComponents1);
             var (block2, stationComponents2) = TrainTestHelper.PlaceBlockWithRailComponents(
                 environment,
-                ForUnitTestModBlockId.TestTrainCargoPlatform,
+                ForUnitTestModBlockId.TestTrainItemPlatform,
                 new Vector3Int(-10, 1, -11 - block.BlockPositionInfo.BlockSize.z),
                 BlockDirection.North);
             var stationnodes2 = ExtractStationNodes(block2!, stationComponents2);
@@ -342,13 +342,13 @@ namespace Tests.UnitTest.Game
 
             var (block, stationComponents1) = TrainTestHelper.PlaceBlockWithRailComponents(
                 environment,
-                ForUnitTestModBlockId.TestTrainCargoPlatform,
+                ForUnitTestModBlockId.TestTrainItemPlatform,
                 new Vector3Int(-10, 1, -11),
                 BlockDirection.North);
             var stationnodes1 = ExtractStationNodes(block!, stationComponents1);
             var (block2, stationComponents2) = TrainTestHelper.PlaceBlockWithRailComponents(
                 environment,
-                ForUnitTestModBlockId.TestTrainCargoPlatform,
+                ForUnitTestModBlockId.TestTrainItemPlatform,
                 new Vector3Int(-10, 1, -11 + block.BlockPositionInfo.BlockSize.z),
                 BlockDirection.North);
             var stationnodes2 = ExtractStationNodes(block2!, stationComponents2);

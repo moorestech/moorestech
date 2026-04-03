@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Core.Master;
+using Core.Update;
 using Game.Block.Blocks.Fluid;
 using Game.Block.Component;
 using Game.Block.Interface;
@@ -50,7 +51,7 @@ namespace Game.Block.Blocks.Pump
                 if (_tank.Amount <= 0) break;
 
                 var flowRate = GetFlowRate(info);
-                var transferAmount = Math.Min(_tank.Amount, flowRate * 1.0); // simple per-tick flow
+                var transferAmount = Math.Min(_tank.Amount, flowRate * GameUpdater.SecondsPerTick);
                 if (transferAmount <= 0) continue;
 
                 var stack = new FluidStack(transferAmount, _tank.FluidId);
@@ -81,7 +82,7 @@ namespace Game.Block.Blocks.Pump
             {
                 return option.FlowCapacity;
             }
-            return 10.0;
+            throw new ArgumentException("FluidConnectOption is not set on connector");
         }
         
         public void EnqueueGeneratedFluid(FluidStack fluidStack)
