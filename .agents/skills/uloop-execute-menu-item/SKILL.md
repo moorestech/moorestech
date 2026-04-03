@@ -1,6 +1,6 @@
 ---
 name: uloop-execute-menu-item
-description: "Execute Unity MenuItem via uloop CLI. Use when you need to: (1) Trigger menu commands programmatically, (2) Automate editor actions (save, build, refresh), (3) Run custom menu items defined in scripts."
+description: "Execute Unity Editor menu commands programmatically. Use when you need to: (1) Trigger menu commands like save, build, or refresh, (2) Automate editor actions via menu paths, (3) Run custom menu items defined in project scripts."
 ---
 
 # uloop execute-menu-item
@@ -19,6 +19,13 @@ uloop execute-menu-item --menu-item-path "<path>"
 |-----------|------|---------|-------------|
 | `--menu-item-path` | string | - | Menu item path (e.g., "GameObject/Create Empty") |
 | `--use-reflection-fallback` | boolean | `true` | Use reflection fallback |
+
+## Global Options
+
+| Option | Description |
+|--------|-------------|
+| `--project-path <path>` | Target a specific Unity project (mutually exclusive with `--port`) |
+| `-p, --port <port>` | Specify Unity TCP port directly (mutually exclusive with `--project-path`) |
 
 ## Examples
 
