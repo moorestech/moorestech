@@ -2722,7 +2722,7 @@
         8
       ],
       "itemGuid": "4a2cd701-ecd0-45f1-ae00-1e43adcadd84",
-      "blockType": "TrainCargoPlatform",
+      "blockType": "TrainItemPlatform",
       "blockParam": {
         "inventoryConnectors": {
           "inputConnects": [
@@ -2783,7 +2783,7 @@
         "itemSlotCount": 10,
         "loadingAnimeSpeed": 1
       },
-      "name": "TestTrainCargoPlatform",
+      "name": "TestTrainItemPlatform",
       "blockGuid": "00000000-0000-0000-0000-000000000026",
       "overrideVerticalBlock": {}
     },
@@ -3819,6 +3819,80 @@
       },
       "itemGuid": "fa9df7cd-b3ba-4df0-9f86-f477e1a8a30e",
       "blockGuid": "eccb9f59-4439-4caf-9ae8-67da50549040",
+      "overrideVerticalBlock": {}
+    },
+    {
+      "blockSize": [
+        3,
+        1,
+        8
+      ],
+      "itemGuid": "d7a1e3b2-5c4f-4a9e-8b6d-1f2e3a4b5c6d",
+      "blockType": "TrainFluidPlatform",
+      "blockParam": {
+        "fluidInventoryConnectors": {
+          "inflowConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                2
+              ],
+              "connectType": "Fluid",
+              "directions": [
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 10,
+                "connectTankIndex": 0
+              },
+              "connectorGuid": "a1b2c3d4-e5f6-7890-abcd-000000000001"
+            }
+          ],
+          "outflowConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                5
+              ],
+              "connectType": "Fluid",
+              "directions": [
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ],
+              "connectOption": {
+                "flowCapacity": 10,
+                "connectTankIndex": 0
+              },
+              "connectorGuid": "a1b2c3d4-e5f6-7890-abcd-000000000002"
+            }
+          ]
+        },
+        "frontControlPointLength": 0.5,
+        "backControlPointLength": 0.5,
+        "entryRailPosition": [
+          1.5,
+          0.5,
+          0
+        ],
+        "exitRailPosition": [
+          1.5,
+          0.5,
+          8
+        ],
+        "capacity": 1000,
+        "loadingAnimeSpeed": 1
+      },
+      "name": "TestTrainFluidPlatform",
+      "blockGuid": "00000000-0000-0000-0000-000000000029",
       "overrideVerticalBlock": {}
     }
   ],

@@ -1,4 +1,5 @@
 using System;
+using Game.Fluid;
 using Game.Train.Unit;
 using Game.Train.Unit.Containers;
 using Mooresmaster.Model.TrainModule;
@@ -62,6 +63,21 @@ namespace Tests.Util
             int length)
         {
             return new TrainCarMasterElement(masterId, trainCarGuid, itemGuid, null, tractionForce, inventorySlotCount, length);
+        }
+
+        public static (TrainCar trainCar, FluidTrainCarContainer fluidContainer) CreateTrainCarWithFluidContainer(
+            int masterId,
+            int tractionForce,
+            double fluidCapacity,
+            int length,
+            bool isFacingForward)
+        {
+            var element = CreateMasterElement(masterId, Guid.Empty, Guid.Empty, tractionForce, 0, length);
+            var fluidContainer = new FluidTrainCarContainer(new FluidContainer(fluidCapacity));
+            var trainCar = new TrainCar(element, isFacingForward);
+            trainCar.SetContainer(fluidContainer);
+
+            return (trainCar, fluidContainer);
         }
 
         // ランダム値でのTrainCarMasterElement生成をサポート

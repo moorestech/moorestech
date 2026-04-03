@@ -9,7 +9,8 @@
     "Game.Base",
     "Core.Master",
     "Game.Block.Interface",
-    "Game.Train"
+    "Game.Train",
+    "Game.Fluid"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

@@ -1,3 +1,4 @@
+using Game.Fluid;
 using Game.Train.Unit;
 using Game.Train.Unit.Containers;
 using MessagePack;
@@ -17,6 +18,7 @@ namespace Server.Util.MessagePack
                 },
                 new IFormatterResolver[]
                 {
+                    new FluidContainerResolver(),
                     new TrainCarContainerResolver(),
                     StandardResolver.Instance
                 }
