@@ -85,3 +85,24 @@ properties:
   properties:
   - key: weight
     type: integer
+- key: motionParameters
+  type: object
+  properties:
+  - key: friction
+    type: number
+  - key: airResistance
+    type: number
+  - key: speedWeight
+    type: number
+  - key: autoRunMaxSpeedDistanceCoefficient
+    type: number
+  - key: autoRunMaxSpeedOffset
+    type: number
+  - key: autoRunSpeedBufferMargin
+    type: number
+  - key: tractionForceAccelerationRate
+    type: number
+  - key: manualControlDecelerationFactor
+    type: number
+  - key: masconLevelMaximum
+    type: number
