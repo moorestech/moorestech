@@ -74,6 +74,11 @@ namespace Game.Train.Unit
             return (weight, tractionForce);
         }
 
+        public void SetRemainFuelTime(double value)
+        {
+            RemainFuelTime = value;
+        }
+
         public void SetFacingForward(bool isFacingForward)
         {
             IsFacingForward = isFacingForward;
