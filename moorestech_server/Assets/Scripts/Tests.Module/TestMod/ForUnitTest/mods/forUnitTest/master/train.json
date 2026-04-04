@@ -6,7 +6,13 @@
       "length": 8,
       "itemGuid": "20000000-0000-0000-0000-000000000000",
       "addressablePath": "",
-      "trainCarGuid": "dc82cf3f-709d-49eb-bdb2-67ffcaff561b"
+      "trainCarGuid": "dc82cf3f-709d-49eb-bdb2-67ffcaff561b",
+      "trainFuelItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000001",
+          "fuelDurationPerItem": 999999
+        }
+      ]
     }
   ],
   "railItems": [
