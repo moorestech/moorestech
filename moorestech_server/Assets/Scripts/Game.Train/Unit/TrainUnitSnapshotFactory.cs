@@ -18,7 +18,7 @@ namespace Game.Train.Unit
             var carSnapshots = new List<TrainCarSnapshot>(train.Cars.Count);
             foreach (var car in train.Cars)
             {
-                carSnapshots.Add(new TrainCarSnapshot(car.TrainCarInstanceId, car.TrainCarMasterElement.TrainCarGuid, car.IsFacingForward));
+                carSnapshots.Add(new TrainCarSnapshot(car.TrainCarInstanceId, car.TrainCarMasterElement.TrainCarGuid, car.IsFacingForward, car.RemainFuelTime > 0));
             }
 
             return new TrainSimulationSnapshot(

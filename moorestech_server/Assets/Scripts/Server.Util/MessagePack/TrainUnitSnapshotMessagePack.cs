@@ -71,6 +71,7 @@ namespace Server.Util.MessagePack
         [Key(0)] public long TrainCarInstanceId { get; set; }
         [Key(3)] public bool IsFacingForward { get; set; }
         [Key(4)] public Guid TrainCarMasterId { get; set; }
+        [Key(5)] public bool HasFuel { get; set; }
 
         [Obsolete("Reserved for MessagePack serialization.")]
         public TrainCarSnapshotMessagePack() { }
@@ -80,11 +81,12 @@ namespace Server.Util.MessagePack
             TrainCarInstanceId = snapshot.TrainCarInstanceId.AsPrimitive();
             IsFacingForward = snapshot.IsFacingForward;
             TrainCarMasterId = snapshot.TrainCarMasterId;
+            HasFuel = snapshot.HasFuel;
         }
 
         public TrainCarSnapshot ToModel()
         {
-            return new TrainCarSnapshot(new TrainCarInstanceId(TrainCarInstanceId), TrainCarMasterId, IsFacingForward);
+            return new TrainCarSnapshot(new TrainCarInstanceId(TrainCarInstanceId), TrainCarMasterId, IsFacingForward, HasFuel);
         }
     }
 
