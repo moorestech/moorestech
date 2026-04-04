@@ -54,6 +54,8 @@ namespace Game.Train.Unit
         
         public void ConsumeFuel(double time, int masconLevel)
         {
+            if (RemainFuelTime <= 0) return;
+
             var normalizedMasconLevel = masconLevel / (double)TrainMotionParameters.MasconLevelMaximum;
             RemainFuelTime -= time * Math.Abs(normalizedMasconLevel);
         }
