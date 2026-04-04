@@ -22,6 +22,8 @@ properties:
       type: string
       optional: true
       default: ""
+    - key: weight
+      type: integer
     - key: tractionForce
       type: integer
     - key: inventorySlots
@@ -73,3 +75,13 @@ properties:
         displayElementPath: /data/[*]/name
     - key: consumptionPerUnitLength
       type: integer
+- key: itemContainer
+  type: object
+  properties:
+  - key: weight
+    type: integer
+- key: fluidContainer
+  type: object
+  properties:
+  - key: weight
+    type: integer
