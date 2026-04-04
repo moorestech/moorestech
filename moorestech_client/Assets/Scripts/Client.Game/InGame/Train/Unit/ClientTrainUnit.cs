@@ -170,9 +170,9 @@ namespace Client.Game.InGame.Train.Unit
                         MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(trainCarSnapshot.TrainCarMasterId, out var trainElement);
                         if (!trainCarSnapshot.HasFuel)
                         {
-                            return (TrainMotionParameters.DEFAULT_WEIGHT, 0);
+                            return (trainCarSnapshot.Weight, 0);
                         }
-                        return (TrainMotionParameters.DEFAULT_WEIGHT, trainCarSnapshot.IsFacingForward ? trainElement.TractionForce * TrainMotionParameters.DEFAULT_TRACTION : 0);
+                        return (trainCarSnapshot.Weight, trainCarSnapshot.IsFacingForward ? trainElement.TractionForce * trainElement.TractionForce : 0);
                     }
                 }
             }
