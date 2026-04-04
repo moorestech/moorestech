@@ -85,7 +85,7 @@
               "GearMapObjectMiner",
               "TrainRail",
               "TrainStation",
-              "TrainCargoPlatform",
+              "TrainItemPlatform",
               "FluidPipe"
             ]
           },
@@ -724,7 +724,7 @@
                 "if": {
                   "properties": {
                     "blockType": {
-                      "const": "TrainCargoPlatform"
+                      "const": "TrainItemPlatform"
                     }
                   }
                 },

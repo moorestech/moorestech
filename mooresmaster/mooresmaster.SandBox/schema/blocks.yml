@@ -63,7 +63,7 @@ properties:
             - GearMapObjectMiner
             - TrainRail
             - TrainStation
-            - TrainCargoPlatform
+            - TrainItemPlatform
             - FluidPipe
         - key: itemGuid
           type: uuid
@@ -404,7 +404,7 @@ properties:
                   type: integer
                 - key: inventoryConnectors
                   ref: inventoryConnects
-            - when: TrainCargoPlatform
+            - when: TrainItemPlatform
               type: object
               properties:
                 - key: platformDistance
