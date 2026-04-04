@@ -3,6 +3,7 @@ using Game.Fluid;
 using Game.Train.Unit;
 using Game.Train.Unit.Containers;
 using Mooresmaster.Model.TrainModule;
+using FluidContainer = Game.Fluid.FluidContainer;
 
 namespace Tests.Util
 {
@@ -62,7 +63,7 @@ namespace Tests.Util
             int inventorySlotCount,
             int length)
         {
-            return new TrainCarMasterElement(masterId, trainCarGuid, itemGuid, null, tractionForce, inventorySlotCount, length, null, null);
+            return new TrainCarMasterElement(masterId, trainCarGuid, itemGuid, null, 100, tractionForce, inventorySlotCount, length, null, null);
         }
 
         public static (TrainCar trainCar, FluidTrainCarContainer fluidContainer) CreateTrainCarWithFluidContainer(

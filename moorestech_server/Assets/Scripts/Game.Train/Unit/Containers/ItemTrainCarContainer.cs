@@ -25,7 +25,7 @@ namespace Game.Train.Unit.Containers
         
         public int GetWeight()
         {
-            return TrainMotionParameters.WEIGHT_PER_SLOT * InventoryItems.Length;
+            return MasterHolder.TrainUnitMaster.Train.ItemContainer.Weight;
         }
 
         public bool IsFull()
