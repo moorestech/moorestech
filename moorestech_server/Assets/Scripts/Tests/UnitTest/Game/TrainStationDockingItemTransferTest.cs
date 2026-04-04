@@ -92,7 +92,7 @@ namespace Tests.UnitTest.Game
 
             var (cargoPlatformBlock, railComponents) = TrainTestHelper.PlaceBlockWithRailComponents(
                 env,
-                ForUnitTestModBlockId.TestTrainCargoPlatform,
+                ForUnitTestModBlockId.TestTrainItemPlatform,
                 Vector3Int.zero,
                 BlockDirection.North);
 
@@ -157,7 +157,7 @@ namespace Tests.UnitTest.Game
 
             var (cargoPlatformBlock, railComponents) = TrainTestHelper.PlaceBlockWithRailComponents(
                 env,
-                ForUnitTestModBlockId.TestTrainCargoPlatform,
+                ForUnitTestModBlockId.TestTrainItemPlatform,
                 Vector3Int.zero,
                 BlockDirection.North);
 
@@ -313,7 +313,7 @@ namespace Tests.UnitTest.Game
 
         private static int GetCargoTransferTicks()
         {
-            var cargoParam = (TrainCargoPlatformBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainCargoPlatform).BlockParam;
+            var cargoParam = (TrainItemPlatformBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainItemPlatform).BlockParam;
             return GetTransferTicks(cargoParam.LoadingAnimeSpeed) + 1;
         }
 

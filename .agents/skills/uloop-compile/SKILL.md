@@ -1,6 +1,6 @@
 ---
 name: uloop-compile
-description: "Compile Unity project. Use when: verifying code compiles after edits, checking for compile errors, or when user asks to compile. Returns error/warning counts."
+description: "Compile Unity project and report errors/warnings. Use when you need to: (1) Verify code compiles after C# file edits, (2) Check for compile errors before testing, (3) Force full recompilation with Domain Reload. Returns error and warning counts."
 ---
 
 # uloop compile
@@ -10,14 +10,22 @@ Execute Unity project compilation.
 ## Usage
 
 ```bash
-uloop compile [--force-recompile]
+uloop compile [--force-recompile] [--wait-for-domain-reload]
 ```
 
 ## Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `--force-recompile` | boolean | Force full recompilation (triggers Domain Reload) |
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `--force-recompile` | boolean | `false` | Force full recompilation (triggers Domain Reload) |
+| `--wait-for-domain-reload` | boolean | `false` | Wait until Domain Reload completes before returning |
+
+## Global Options
+
+| Option | Description |
+|--------|-------------|
+| `--project-path <path>` | Target a specific Unity project (mutually exclusive with `--port`) |
+| `-p, --port <port>` | Specify Unity TCP port directly (mutually exclusive with `--project-path`) |
 
 ## Examples
 
@@ -27,6 +35,12 @@ uloop compile
 
 # Force full recompilation
 uloop compile --force-recompile
+
+# Force recompilation and wait for Domain Reload completion
+uloop compile --force-recompile true --wait-for-domain-reload true
+
+# Wait for Domain Reload completion even without force recompilation
+uloop compile --force-recompile false --wait-for-domain-reload true
 ```
 
 ## Output

@@ -13,7 +13,8 @@
         "MessagePack.Annotations",
         "ClassLibrary",
         "Game.Entity.Interface",
-        "Unity.Collections"
+        "Unity.Collections",
+        "Game.Fluid"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

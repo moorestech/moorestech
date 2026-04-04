@@ -30,13 +30,13 @@ namespace Tests.UnitTest.Game
 
             var (loadingBlock, loadingComponents) = TrainTestHelper.PlaceBlockWithRailComponents(
                 env,
-                ForUnitTestModBlockId.TestTrainCargoPlatform,
+                ForUnitTestModBlockId.TestTrainItemPlatform,
                 new Vector3Int(0, 0, 0),
                 BlockDirection.North);
 
             var (unloadingBlock, unloadingComponents) = TrainTestHelper.PlaceBlockWithRailComponents(
                 env,
-                ForUnitTestModBlockId.TestTrainCargoPlatform,
+                ForUnitTestModBlockId.TestTrainItemPlatform,
                 new Vector3Int(0, 0, 10),
                 BlockDirection.North);
 

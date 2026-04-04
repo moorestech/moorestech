@@ -294,7 +294,7 @@
     },
     {
       "maxStack": 100,
-      "name": "TestTrainCargoPlatform",
+      "name": "TestTrainItemPlatform",
       "itemGuid": "4a2cd701-ecd0-45f1-ae00-1e43adcadd84",
       "sortPriority": 100,
       "recipeViewType": "ForceView",
@@ -447,6 +447,19 @@
       "name": "GearBeltConveyorSplitter",
       "maxStack": 100,
       "sortPriority": 820,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "addressablePaths": {
+        "handGrabModel": "",
+        "entityModel": ""
+      }
+    },
+    {
+      "itemGuid": "d7a1e3b2-5c4f-4a9e-8b6d-1f2e3a4b5c6d",
+      "imagePath": "",
+      "name": "TestTrainFluidPlatform",
+      "maxStack": 100,
+      "sortPriority": 830,
       "initialUnlocked": false,
       "recipeViewType": "IsUnlocked",
       "addressablePaths": {
