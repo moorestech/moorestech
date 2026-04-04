@@ -168,6 +168,10 @@ namespace Client.Game.InGame.Train.Unit
                     (int, int) GetWeightAndTraction(TrainCarSnapshot trainCarSnapshot)
                     {
                         MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(trainCarSnapshot.TrainCarMasterId, out var trainElement);
+                        if (!trainCarSnapshot.HasFuel)
+                        {
+                            return (TrainMotionParameters.DEFAULT_WEIGHT, 0);
+                        }
                         return (TrainMotionParameters.DEFAULT_WEIGHT, trainCarSnapshot.IsFacingForward ? trainElement.TractionForce * TrainMotionParameters.DEFAULT_TRACTION : 0);
                     }
                 }

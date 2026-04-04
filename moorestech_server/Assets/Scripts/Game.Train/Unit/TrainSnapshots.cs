@@ -51,16 +51,18 @@ namespace Game.Train.Unit
     // -----------------クライアント関連-----------------
     public readonly struct TrainCarSnapshot
     {
-        public TrainCarSnapshot(TrainCarInstanceId trainCarInstanceId, Guid trainCarMasterId, bool isFacingForward)
+        public TrainCarSnapshot(TrainCarInstanceId trainCarInstanceId, Guid trainCarMasterId, bool isFacingForward, bool hasFuel)
         {
             TrainCarInstanceId = trainCarInstanceId;
             TrainCarMasterId = trainCarMasterId;
             IsFacingForward = isFacingForward;
+            HasFuel = hasFuel;
         }
 
         public TrainCarInstanceId TrainCarInstanceId { get; }
         public Guid TrainCarMasterId { get; }
         public bool IsFacingForward { get; }
+        public bool HasFuel { get; }
     }
 
     // 列車のシミュレーション状態をクライアントにおくる構造体
