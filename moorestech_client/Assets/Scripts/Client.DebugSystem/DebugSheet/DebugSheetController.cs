@@ -69,6 +69,10 @@ namespace Client.DebugSystem
                 var playerObjectController = PlayerSystemContainer.Instance.PlayerObjectController;
                 playerObjectController.SetPlayerPosition(targetPosition.transform.position);
             });
+            rootPage.AddButton("Add fuel to all train cars", clicked: () =>
+            {
+                ClientContext.VanillaApi.SendOnly.SendCommand(SendCommandProtocol.AddFuelToAllTrainCarsCommand);
+            });
             
             rootPage.AddBoolWithSave(false, IsItemListViewForceShowLabel, IsItemListViewForceShowKey);
             rootPage.AddBoolWithSave(false, SkitPlaySettingsLabel, SkitPlaySettingsKey);

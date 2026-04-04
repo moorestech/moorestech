@@ -174,7 +174,8 @@ function truncate(s, maxLen) {
 function getGitInfo(cwd) {
     try {
         const branch = execSync('git rev-parse --abbrev-ref HEAD', { cwd, ...EXEC_OPTS }).trim();
-        const status = execSync('git status --porcelain', { cwd, ...EXEC_OPTS }).trim();
+        const gitEnv = { ...process.env, GIT_OPTIONAL_LOCKS: "0" };
+        const status = execSync('git status --porcelain', { cwd, ...EXEC_OPTS, env: gitEnv }).trim();
 
         let untracked = 0;
         if (status) {
