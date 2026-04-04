@@ -51,21 +51,16 @@ namespace Game.Train.Unit
     // -----------------クライアント関連-----------------
     public readonly struct TrainCarSnapshot
     {
-        public TrainCarSnapshot(TrainCarInstanceId trainCarInstanceId, Guid trainCarMasterId, int inventorySlotsCount, int tractionForce, bool isFacingForward)
+        public TrainCarSnapshot(TrainCarInstanceId trainCarInstanceId, Guid trainCarMasterId, bool isFacingForward)
         {
             TrainCarInstanceId = trainCarInstanceId;
             TrainCarMasterId = trainCarMasterId;
             IsFacingForward = isFacingForward;
-            InventorySlotsCount = inventorySlotsCount;
-            TractionForce = tractionForce;
         }
 
         public TrainCarInstanceId TrainCarInstanceId { get; }
         public Guid TrainCarMasterId { get; }
         public bool IsFacingForward { get; }
-        //TODO: インベントリがアイテムコンテナ以外の場合についても考慮するようにする
-        public int InventorySlotsCount { get; }
-        public int TractionForce { get; }
     }
 
     // 列車のシミュレーション状態をクライアントにおくる構造体

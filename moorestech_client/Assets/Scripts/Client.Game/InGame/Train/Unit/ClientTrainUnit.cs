@@ -4,6 +4,7 @@ using Game.Train.Unit;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Core.Master;
 using UnityEngine;
 
 namespace Client.Game.InGame.Train.Unit
@@ -166,7 +167,8 @@ namespace Client.Game.InGame.Train.Unit
                     return (double)totalTraction / totalWeight * masconLevel / TrainMotionParameters.MasconLevelMaximum;
                     (int, int) GetWeightAndTraction(TrainCarSnapshot trainCarSnapshot)
                     {
-                        return (TrainMotionParameters.DEFAULT_WEIGHT + trainCarSnapshot.InventorySlotsCount * TrainMotionParameters.WEIGHT_PER_SLOT, trainCarSnapshot.IsFacingForward ? trainCarSnapshot.TractionForce * TrainMotionParameters.DEFAULT_TRACTION : 0);
+                        MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(trainCarSnapshot.TrainCarMasterId, out var trainElement);
+                        return (TrainMotionParameters.DEFAULT_WEIGHT, trainCarSnapshot.IsFacingForward ? trainElement.TractionForce * TrainMotionParameters.DEFAULT_TRACTION : 0);
                     }
                 }
             }
