@@ -18,10 +18,6 @@ namespace Game.Train.Unit
         public const double TractionForceAccelerationRate = 0.1;
         public const double ManualControlDecelerationFactor = 1.0;
         public const int MasconLevelMaximum = 16777216;
-        public const int WEIGHT_PER_SLOT = 40;
-        public const int WeightPerFluidAmount = 100;
-        public const int DEFAULT_WEIGHT = 320;
-        public const int DEFAULT_TRACTION = 400;
     }
 
     public readonly struct AutoRunMasconInput
