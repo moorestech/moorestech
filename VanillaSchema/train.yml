@@ -88,10 +88,12 @@ properties:
 - key: motionParameters
   type: object
   properties:
+  # Divided by 10000000
   - key: friction
-    type: number
+    type: integer
+  # Divided by 10000000
   - key: airResistance
-    type: number
+    type: integer
   - key: speedWeight
     type: number
   - key: autoRunMaxSpeedDistanceCoefficient
@@ -105,4 +107,4 @@ properties:
   - key: manualControlDecelerationFactor
     type: number
   - key: masconLevelMaximum
-    type: number
+    type: integer
