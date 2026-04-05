@@ -32,7 +32,7 @@ namespace Tests.UnitTest.Game
 
             var cars = new List<TrainCar>
             {
-                TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 1000, 0, 0, true).trainCar
+                TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 400000, 0, 0, true).trainCar
             };
 
             var railNodes = new List<IRailNode> { startNode };

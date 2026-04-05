@@ -71,7 +71,7 @@ namespace Tests.Util
             var fuelItems = tractionForce > 0
                 ? new[] { new TrainFuelItemsElement(0, TestFuelItemGuid, (float)TestFuelDuration) }
                 : null;
-            return new TrainCarMasterElement(masterId, trainCarGuid, itemGuid, null, 100, tractionForce, inventorySlotCount, length, fuelItems, null);
+            return new TrainCarMasterElement(masterId, trainCarGuid, itemGuid, null, 320, tractionForce, inventorySlotCount, length, fuelItems, null);
         }
 
         public static (TrainCar trainCar, FluidTrainCarContainer fluidContainer) CreateTrainCarWithFluidContainer(
