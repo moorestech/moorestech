@@ -1,4 +1,21 @@
 {
   "trainCars": [],
-  "railItems": []
+  "railItems": [],
+  "itemContainer": {
+    "weight": 40
+  },
+  "fluidContainer": {
+    "weight": 40
+  },
+  "motionParameters": {
+    "friction": 35300,
+    "airResistance": 117,
+    "speedWeight": 0.09,
+    "autoRunMaxSpeedDistanceCoefficient": 10000.0,
+    "autoRunMaxSpeedOffset": 10.0,
+    "autoRunSpeedBufferMargin": 0.02,
+    "tractionForceAccelerationRate": 0.1,
+    "manualControlDecelerationFactor": 1.0,
+    "masconLevelMaximum": 16777216
+  }
 }
