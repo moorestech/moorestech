@@ -164,7 +164,7 @@ namespace Client.Game.InGame.Train.Unit
                         totalTraction += traction;
                     }
                     if (totalWeight == 0) return 0;
-                    return (double)totalTraction / totalWeight * masconLevel / TrainMotionParameters.MasconLevelMaximum;
+                    return (double)totalTraction / totalWeight * masconLevel / MasterHolder.TrainUnitMaster.MasconLevelMaximum;
                     (int, int) GetWeightAndTraction(TrainCarSnapshot trainCarSnapshot)
                     {
                         MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(trainCarSnapshot.TrainCarMasterId, out var trainElement);
@@ -172,7 +172,7 @@ namespace Client.Game.InGame.Train.Unit
                         {
                             return (trainCarSnapshot.Weight, 0);
                         }
-                        return (trainCarSnapshot.Weight, trainCarSnapshot.IsFacingForward ? trainElement.TractionForce * trainElement.TractionForce : 0);
+                        return (trainCarSnapshot.Weight, trainCarSnapshot.IsFacingForward ? trainElement.TractionForce : 0);
                     }
                 }
             }
