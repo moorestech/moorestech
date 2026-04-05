@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Context;
@@ -37,6 +35,7 @@ namespace Game.Train.Unit
         public TrainCarInstanceId TrainCarInstanceId => _trainCarInstanceId;
         public IBlock dockingblock { get; set; }// このTrainCarがcargoやstation駅blockでドッキングしているときにのみ非nullになる。前輪を登録
         public bool IsFacingForward { get; private set; }
+        public double RemainFuelTime { get; private set; }
         
         private readonly TrainUpdateEvent _trainUpdateEvent;
 
@@ -52,11 +51,32 @@ namespace Game.Train.Unit
             
             _trainUpdateEvent = (TrainUpdateEvent)ServerContext.GetService<ITrainUpdateEvent>();
         }
+        
+        public void ConsumeFuel(double time, int masconLevel)
+        {
+            if (RemainFuelTime <= 0) return;
+
+            var normalizedMasconLevel = masconLevel / (double)TrainMotionParameters.MasconLevelMaximum;
+            RemainFuelTime -= time * Math.Abs(normalizedMasconLevel);
+        }
 
         //重さ、推進力を得る
-        public (int,int) GetWeightAndTraction()
+        public (int weight, int tractionForce) GetWeightAndTraction(int masconLevel)
         {
-            return (TrainMotionParameters.DEFAULT_WEIGHT + (Container?.GetWeight() ?? 0), IsFacingForward ? TractionForce * TrainMotionParameters.DEFAULT_TRACTION : 0);
+            var weight = TrainMotionParameters.DEFAULT_WEIGHT + (Container?.GetWeight() ?? 0);
+            if (RemainFuelTime <= 0)
+            {
+                if (masconLevel != 0 && Container is IFuelProviderTrainCarContainer fuelProviderTrainCarContainer) RemainFuelTime += fuelProviderTrainCarContainer.ConsumeFuel(this);
+                if (RemainFuelTime <= 0) return (weight, 0);
+            }
+            
+            var tractionForce = IsFacingForward ? TractionForce * TrainMotionParameters.DEFAULT_TRACTION : 0;
+            return (weight, tractionForce);
+        }
+
+        public void SetRemainFuelTime(double value)
+        {
+            RemainFuelTime = value;
         }
 
         public void SetFacingForward(bool isFacingForward)
@@ -87,7 +107,8 @@ namespace Game.Train.Unit
                 TrainCarMasterId = this.TrainCarMasterElement.TrainCarGuid,
                 IsFacingForward = this.IsFacingForward,
                 DockingBlockPosition = dockingPosition,
-                ContainerSaveData = MessagePackSerializer.ConvertToJson(MessagePackSerializer.Serialize(Container))
+                ContainerSaveData = MessagePackSerializer.ConvertToJson(MessagePackSerializer.Serialize(Container)),
+                RemainFuelTime = this.RemainFuelTime
             };
         }
 
@@ -111,6 +132,8 @@ namespace Game.Train.Unit
             }
             
             car.Container = MessagePackSerializer.Deserialize<ITrainCarContainer>(MessagePackSerializer.ConvertFromJson(data.ContainerSaveData));
+
+            car.RemainFuelTime = data.RemainFuelTime;
             
             return car;
         }

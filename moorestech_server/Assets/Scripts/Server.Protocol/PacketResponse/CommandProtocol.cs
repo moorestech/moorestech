@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using Core.Master;
 using Game.Context;
 using Game.PlayerInventory.Interface;
-using Game.World.Interface.DataStore;
-using Game.World.Interface.DataStore;
 using Game.Train.Unit;
+using Game.Train.Unit.Containers;
+using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using UnityEngine;
@@ -22,6 +22,7 @@ namespace Server.Protocol.PacketResponse
         public const string TrainAutoRunOnArgument = "on";
         public const string TrainAutoRunOffArgument = "off";
         public const string GetPlayTimeCommand = "getPlayTime";
+        public const string AddFuelToAllTrainCarsCommand = "addFuelToAllTrainCarsCommand";
 
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly IWorldSettingsDatastore _worldSettingsDatastore;
@@ -71,6 +72,36 @@ namespace Server.Protocol.PacketResponse
                 // Get total play time and output to log
                 var playTime = _worldSettingsDatastore.GetCurrentPlayTime();
                 Debug.Log($"[PlayTime] Total: {playTime.TotalHours:F2} hours ({playTime})");
+            }
+            else if (command[0] == AddFuelToAllTrainCarsCommand)
+            {
+                IEnumerable<TrainUnit> trainUnits = _trainUpdateService.GetRegisteredTrains();
+                foreach (var trainUnit in trainUnits)
+                {
+                    foreach (var trainCar in trainUnit.Cars)
+                    {
+                        if (trainCar.TractionForce <= 0) continue;
+                        if (trainCar.Container == null) trainCar.SetContainer(ItemTrainCarContainer.CreateWithEmptySlots(trainCar.TrainCarMasterElement.InventorySlots));
+                        if (trainCar.Container is not ItemTrainCarContainer itemTrainCarContainer) continue;
+                        
+                        var emptySlotIndex = -1;
+                        if (trainCar.TrainCarMasterElement.TrainFuelItems == null || trainCar.TrainCarMasterElement.TrainFuelItems.Length == 0) continue;
+                        
+                        var fuel = trainCar.TrainCarMasterElement.TrainFuelItems[0];
+                        
+                        for (var j = 0; j < itemTrainCarContainer.InventoryItems.Length; j++)
+                        {
+                            var stack = itemTrainCarContainer.InventoryItems[j].Stack;
+                            if (stack.Id == ItemMaster.EmptyItemId) emptySlotIndex = j;
+                        }
+                        
+                        if (emptySlotIndex == -1) continue;
+                        
+                        var item = ServerContext.ItemStackFactory.Create(fuel.ItemGuid, 10);
+                        itemTrainCarContainer.SetItem(emptySlotIndex, item);
+                        Debug.Log($"add fuel to train car {MasterHolder.ItemMaster.GetItemMaster(fuel.ItemGuid).Name} x 10");
+                    }
+                }
             }
 
             return null;
