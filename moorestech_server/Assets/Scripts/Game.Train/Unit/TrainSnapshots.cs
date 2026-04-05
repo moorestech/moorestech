@@ -25,6 +25,7 @@ namespace Game.Train.Unit
         public bool IsFacingForward { get; set; }
         public SerializableVector3Int? DockingBlockPosition { get; set; }
         public string ContainerSaveData { get; set; }
+        public double RemainFuelTime { get; set; }
     }
 
     [Serializable]
