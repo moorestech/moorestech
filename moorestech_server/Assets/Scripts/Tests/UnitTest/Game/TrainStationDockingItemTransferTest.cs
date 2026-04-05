@@ -58,7 +58,7 @@ namespace Tests.UnitTest.Game
             var railNodes = new List<IRailNode> { exitNode, entryNode };
             var railPosition = new RailPosition(railNodes, stationSegmentLength, 0);
 
-            var (trainCar, itemContainer) = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 1000, 1, stationSegmentLength, true);
+            var (trainCar, itemContainer) = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 400000, 1, stationSegmentLength, true);
             var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
 
             trainUnit.trainUnitStationDocking.TryDockWhenStopped();
@@ -122,7 +122,7 @@ namespace Tests.UnitTest.Game
             var railNodes = new List<IRailNode> { exitNode, entryNode };
             var railPosition = new RailPosition(railNodes, platformSegmentLength, 0);
 
-            var (trainCar, itemContainer) = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 1000, 1, platformSegmentLength, true);
+            var (trainCar, itemContainer) = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 400000, 1, platformSegmentLength, true);
             var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
 
             trainUnit.trainUnitStationDocking.TryDockWhenStopped();
@@ -190,7 +190,7 @@ namespace Tests.UnitTest.Game
             var railNodes = new List<IRailNode> { exitNode, entryNode };
             var railPosition = new RailPosition(railNodes, platformSegmentLength, 0);
 
-            var (trainCar, itemContainer) = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 1000, 1, platformSegmentLength, true);
+            var (trainCar, itemContainer) = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 400000, 1, platformSegmentLength, true);
             itemContainer.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, maxStack));
 
             var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
@@ -262,7 +262,7 @@ namespace Tests.UnitTest.Game
             {
                 var railNodes = new List<IRailNode> { exitNode, entryNode };
                 var railPosition = new RailPosition(railNodes, stationSegmentLength, 0);
-                car = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 1000, 1, stationSegmentLength, true).trainCar;
+                car = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 400000, 1, stationSegmentLength, true).trainCar;
                 itemContainer = car.Container as ItemTrainCarContainer;
                 return new TrainUnit(railPosition, new List<TrainCar> { car }, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
             }
