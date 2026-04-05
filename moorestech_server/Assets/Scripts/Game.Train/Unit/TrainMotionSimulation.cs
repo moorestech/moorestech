@@ -2,24 +2,6 @@ using System;
 
 namespace Game.Train.Unit
 {
-    /// <summary>
-    /// 自動運転用マスコン計算の入力値
-    /// Input payload for auto-run mascon calculation
-    /// </summary>
-    public static class TrainMotionParameters
-    {
-        public const double Friction = 0.00353;
-        public const double AirResistance = 0.0000117;
-        public const double SpeedWeight = 0.09;
-        public const double AutoRunMaxSpeedDistanceCoefficient = 10000.0;
-        public const double AutoRunMaxSpeedOffset = 10.0;
-        public const double AutoRunSpeedBufferMargin = 0.02;
-        public const double AutoRunSpeedBufferRate = 1.0 - AutoRunSpeedBufferMargin;
-        public const double TractionForceAccelerationRate = 0.1;
-        public const double ManualControlDecelerationFactor = 1.0;
-        public const int MasconLevelMaximum = 16777216;
-    }
-
     public readonly struct AutoRunMasconInput
     {
         public AutoRunMasconInput(
