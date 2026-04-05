@@ -107,7 +107,8 @@ namespace Game.Train.Unit
                 TrainCarMasterId = this.TrainCarMasterElement.TrainCarGuid,
                 IsFacingForward = this.IsFacingForward,
                 DockingBlockPosition = dockingPosition,
-                ContainerSaveData = MessagePackSerializer.ConvertToJson(MessagePackSerializer.Serialize(Container))
+                ContainerSaveData = MessagePackSerializer.ConvertToJson(MessagePackSerializer.Serialize(Container)),
+                RemainFuelTime = this.RemainFuelTime
             };
         }
 
@@ -131,6 +132,8 @@ namespace Game.Train.Unit
             }
             
             car.Container = MessagePackSerializer.Deserialize<ITrainCarContainer>(MessagePackSerializer.ConvertFromJson(data.ContainerSaveData));
+
+            car.RemainFuelTime = data.RemainFuelTime;
             
             return car;
         }
