@@ -56,7 +56,7 @@ namespace Game.Train.Unit
         {
             if (RemainFuelTime <= 0) return;
 
-            var normalizedMasconLevel = masconLevel / (double)TrainMotionParameters.MasconLevelMaximum;
+            var normalizedMasconLevel = masconLevel / (double)MasterHolder.TrainUnitMaster.MasconLevelMaximum;
             RemainFuelTime -= time * Math.Abs(normalizedMasconLevel);
         }
 
@@ -70,7 +70,7 @@ namespace Game.Train.Unit
                 if (RemainFuelTime <= 0) return (weight, 0);
             }
             
-            var tractionForce = IsFacingForward ? TractionForce * TrainCarMasterElement.TractionForce : 0;
+            var tractionForce = IsFacingForward ? TractionForce : 0;
             return (weight, tractionForce);
         }
 

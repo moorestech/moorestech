@@ -1,6 +1,7 @@
 {
   "trainCars": [
     {
+      "weight": 320,
       "tractionForce": 556001,
       "inventorySlots": 10,
       "length": 8,
@@ -20,5 +21,22 @@
       "itemGuid": "1b72541e-0896-43bb-91fa-0b3fef137dcf",
       "consumptionPerUnitLength": 1
     }
-  ]
+  ],
+  "itemContainer": {
+    "weight": 40
+  },
+  "fluidContainer": {
+    "weight": 40
+  },
+  "motionParameters": {
+    "friction": 35300,
+    "airResistance": 117,
+    "speedWeight": 0.09,
+    "autoRunMaxSpeedDistanceCoefficient": 10000.0,
+    "autoRunMaxSpeedOffset": 10.0,
+    "autoRunSpeedBufferMargin": 0.02,
+    "tractionForceAccelerationRate": 0.1,
+    "manualControlDecelerationFactor": 1.0,
+    "masconLevelMaximum": 16777216
+  }
 }
