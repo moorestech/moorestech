@@ -10,6 +10,9 @@ namespace Tests.Util
     // Centralizes train-car creation helpers for reuse across tests.
     public static class TrainTestCarFactory
     {
+        public static readonly Guid TestFuelItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
+        public const double TestFuelDuration = 999999;
+
         // 任意値でTrainCarを生成する基本メソッド
         // Creates a train car from explicit parameters and optional GUIDs.
         public static (TrainCar trainCar, ItemTrainCarContainer itemContainer) CreateTrainCarWithItemContainer(
@@ -25,7 +28,9 @@ namespace Tests.Util
             var itemContainer = ItemTrainCarContainer.CreateWithEmptySlots(inventorySlotCount);
             var trainCar = new TrainCar(element, isFacingForward);
             trainCar.SetContainer(itemContainer);
-            
+
+            if (tractionForce > 0) trainCar.SetRemainFuelTime(TestFuelDuration);
+
             return (trainCar, itemContainer);
         }
 
@@ -62,7 +67,10 @@ namespace Tests.Util
             int inventorySlotCount,
             int length)
         {
-            return new TrainCarMasterElement(masterId, trainCarGuid, itemGuid, null, tractionForce, inventorySlotCount, length);
+            var fuelItems = tractionForce > 0
+                ? new[] { new TrainFuelItemsElement(0, TestFuelItemGuid, (float)TestFuelDuration) }
+                : null;
+            return new TrainCarMasterElement(masterId, trainCarGuid, itemGuid, null, tractionForce, inventorySlotCount, length, fuelItems, null);
         }
 
         public static (TrainCar trainCar, FluidTrainCarContainer fluidContainer) CreateTrainCarWithFluidContainer(
@@ -76,6 +84,8 @@ namespace Tests.Util
             var fluidContainer = new FluidTrainCarContainer(new FluidContainer(fluidCapacity));
             var trainCar = new TrainCar(element, isFacingForward);
             trainCar.SetContainer(fluidContainer);
+
+            if (tractionForce > 0) trainCar.SetRemainFuelTime(TestFuelDuration);
 
             return (trainCar, fluidContainer);
         }
