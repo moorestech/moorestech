@@ -101,7 +101,7 @@ namespace Tests.UnitTest.Game.SaveLoad
                 stationA.ExitFront,
                 stationA.EntryFront
             };
-            var train1Car = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 20000, 2, stationSegmentLength, true).trainCar;
+            var train1Car = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 8000000, 2, stationSegmentLength, true).trainCar;
             var train1 = new TrainUnit(new RailPosition(train1Nodes, train1Car.Length, 0), new List<TrainCar> { train1Car }, environment.GetTrainUpdateService(), environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
 
             var train2Nodes = new List<IRailNode>
@@ -109,7 +109,7 @@ namespace Tests.UnitTest.Game.SaveLoad
                 stationB.ExitFront,
                 stationB.EntryFront
             };
-            var train2Car = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 1000, 2, stationSegmentLength, false).trainCar;
+            var train2Car = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 400000, 2, stationSegmentLength, false).trainCar;
             var train2 = new TrainUnit(new RailPosition(train2Nodes, train2Car.Length, 0), new List<TrainCar> { train2Car }, environment.GetTrainUpdateService(), environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
             train2.Reverse();
             //train1.trainUnitStationDocking.TryDockWhenStopped();

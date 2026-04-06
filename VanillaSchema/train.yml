@@ -22,6 +22,8 @@ properties:
       type: string
       optional: true
       default: ""
+    - key: weight
+      type: integer
     - key: tractionForce
       type: integer
     - key: inventorySlots
@@ -73,3 +75,36 @@ properties:
         displayElementPath: /data/[*]/name
     - key: consumptionPerUnitLength
       type: integer
+- key: itemContainer
+  type: object
+  properties:
+  - key: weight
+    type: integer
+- key: fluidContainer
+  type: object
+  properties:
+  - key: weight
+    type: integer
+- key: motionParameters
+  type: object
+  properties:
+  # Divided by 10000000
+  - key: friction
+    type: integer
+  # Divided by 10000000
+  - key: airResistance
+    type: integer
+  - key: speedWeight
+    type: number
+  - key: autoRunMaxSpeedDistanceCoefficient
+    type: number
+  - key: autoRunMaxSpeedOffset
+    type: number
+  - key: autoRunSpeedBufferMargin
+    type: number
+  - key: tractionForceAccelerationRate
+    type: number
+  - key: manualControlDecelerationFactor
+    type: number
+  - key: masconLevelMaximum
+    type: integer

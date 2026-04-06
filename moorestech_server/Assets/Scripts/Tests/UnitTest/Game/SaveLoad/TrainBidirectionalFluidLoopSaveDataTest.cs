@@ -89,7 +89,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             // 列車を2編成生成（液体コンテナ付き）
             // Create two trains with fluid containers
-            var (train1Car, _) = TrainTestCarFactory.CreateTrainCarWithFluidContainer(0, 20000, 1000, stationSegmentLength, true);
+            var (train1Car, _) = TrainTestCarFactory.CreateTrainCarWithFluidContainer(0, 8000000, 1000, stationSegmentLength, true);
             var train1Nodes = new List<IRailNode> { stationA.ExitFront, stationA.EntryFront };
             var train1 = new TrainUnit(
                 new RailPosition(train1Nodes, train1Car.Length, 0),
@@ -98,7 +98,7 @@ namespace Tests.UnitTest.Game.SaveLoad
                 environment.GetTrainRailPositionManager(),
                 environment.GetTrainDiagramManager());
 
-            var (train2Car, _) = TrainTestCarFactory.CreateTrainCarWithFluidContainer(0, 20000, 1000, stationSegmentLength, false);
+            var (train2Car, _) = TrainTestCarFactory.CreateTrainCarWithFluidContainer(0, 8000000, 1000, stationSegmentLength, false);
             var train2Nodes = new List<IRailNode> { stationB.ExitFront, stationB.EntryFront };
             var train2 = new TrainUnit(
                 new RailPosition(train2Nodes, train2Car.Length, 0),

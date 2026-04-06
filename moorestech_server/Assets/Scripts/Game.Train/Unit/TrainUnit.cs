@@ -7,6 +7,7 @@ using Game.Train.Diagram;
 using Game.Train.RailCalc;
 using Game.Train.RailGraph;
 using Game.Train.RailPositions;
+using Core.Master;
 using UnityEngine;
 
 namespace Game.Train.Unit
@@ -303,7 +304,7 @@ namespace Game.Train.Unit
                 totalWeight += weight;
                 totalTraction += traction;
             }
-            return (double)totalTraction / totalWeight * masconLevel / TrainMotionParameters.MasconLevelMaximum;
+            return (double)totalTraction / totalWeight * masconLevel / MasterHolder.TrainUnitMaster.MasconLevelMaximum;
         }
 
         //diagramのindexが見ている目的地にちょうど0距離で到達したか

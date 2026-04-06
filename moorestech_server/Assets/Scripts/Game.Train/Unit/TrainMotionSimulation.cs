@@ -1,29 +1,8 @@
 using System;
+using Core.Master;
 
 namespace Game.Train.Unit
 {
-    /// <summary>
-    /// 自動運転用マスコン計算の入力値
-    /// Input payload for auto-run mascon calculation
-    /// </summary>
-    public static class TrainMotionParameters
-    {
-        public const double Friction = 0.00353;
-        public const double AirResistance = 0.0000117;
-        public const double SpeedWeight = 0.09;
-        public const double AutoRunMaxSpeedDistanceCoefficient = 10000.0;
-        public const double AutoRunMaxSpeedOffset = 10.0;
-        public const double AutoRunSpeedBufferMargin = 0.02;
-        public const double AutoRunSpeedBufferRate = 1.0 - AutoRunSpeedBufferMargin;
-        public const double TractionForceAccelerationRate = 0.1;
-        public const double ManualControlDecelerationFactor = 1.0;
-        public const int MasconLevelMaximum = 16777216;
-        public const int WEIGHT_PER_SLOT = 40;
-        public const int WeightPerFluidAmount = 100;
-        public const int DEFAULT_WEIGHT = 320;
-        public const int DEFAULT_TRACTION = 400;
-    }
-
     public readonly struct AutoRunMasconInput
     {
         public AutoRunMasconInput(
@@ -48,17 +27,17 @@ namespace Game.Train.Unit
         {
             var mascon = 0;
             var remaining = Math.Max(0, input.RemainingDistance);
-            var maxSpeed = Math.Sqrt(remaining * TrainMotionParameters.AutoRunMaxSpeedDistanceCoefficient) + TrainMotionParameters.AutoRunMaxSpeedOffset;
+            var maxSpeed = Math.Sqrt(remaining * MasterHolder.TrainUnitMaster.AutoRunMaxSpeedDistanceCoefficient) + MasterHolder.TrainUnitMaster.AutoRunMaxSpeedOffset;
             if (maxSpeed > input.CurrentSpeed)
             {
-                mascon = TrainMotionParameters.MasconLevelMaximum;
+                mascon = MasterHolder.TrainUnitMaster.MasconLevelMaximum;
             }
 
-            var bufferedSpeed = input.CurrentSpeed * TrainMotionParameters.AutoRunSpeedBufferRate;
+            var bufferedSpeed = input.CurrentSpeed * MasterHolder.TrainUnitMaster.AutoRunSpeedBufferRate;
             if (maxSpeed < bufferedSpeed)
             {
                 var subspeed = maxSpeed - bufferedSpeed;
-                mascon = Math.Max((int)subspeed, -TrainMotionParameters.MasconLevelMaximum);
+                mascon = Math.Max((int)subspeed, -MasterHolder.TrainUnitMaster.MasconLevelMaximum);
             }
 
             return mascon;
@@ -118,12 +97,12 @@ namespace Game.Train.Unit
             var speed = input.CurrentSpeed;
             if (input.MasconLevel > 0)
             {
-                speed += input.TractionForce * TrainMotionParameters.TractionForceAccelerationRate;
+                speed += input.TractionForce * MasterHolder.TrainUnitMaster.TractionForceAccelerationRate;
             }
             else
             {
                 var sign = Math.Sign(speed);
-                speed += sign * input.MasconLevel * TrainMotionParameters.ManualControlDecelerationFactor;
+                speed += sign * input.MasconLevel * MasterHolder.TrainUnitMaster.ManualControlDecelerationFactor;
                 var updatedSign = Math.Sign(speed);
                 if (sign != updatedSign)
                 {
@@ -131,8 +110,8 @@ namespace Game.Train.Unit
                 }
             }
 
-            var resistForce = Math.Abs(speed) * TrainMotionParameters.SpeedWeight * TrainMotionParameters.Friction +
-                              speed * speed * TrainMotionParameters.SpeedWeight * TrainMotionParameters.AirResistance;
+            var resistForce = Math.Abs(speed) * MasterHolder.TrainUnitMaster.SpeedWeight * MasterHolder.TrainUnitMaster.Friction +
+                              speed * speed * MasterHolder.TrainUnitMaster.SpeedWeight * MasterHolder.TrainUnitMaster.AirResistance;
             var resistSign = Math.Sign(speed);
             speed -= resistSign * resistForce;
             var postResistSign = Math.Sign(speed);
@@ -141,7 +120,7 @@ namespace Game.Train.Unit
                 speed = 0;
             }
 
-            var floatDistance = speed * TrainMotionParameters.SpeedWeight;
+            var floatDistance = speed * MasterHolder.TrainUnitMaster.SpeedWeight;
             var accumulated = input.AccumulatedDistance + floatDistance;
             var distance = (int)Math.Truncate(accumulated);
             accumulated -= distance;

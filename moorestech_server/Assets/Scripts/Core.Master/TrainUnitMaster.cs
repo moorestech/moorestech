@@ -15,6 +15,17 @@ namespace Core.Master
         private Dictionary<Guid, TrainCarMasterElement> _trainCarMastersByGuid;
         private RailItemMasterElement[] _railItems;
         private Dictionary<ItemId, RailItemMasterElement> _railItemsByItemId;
+        
+        public double Friction => Train.MotionParameters.Friction / (double)10000000;
+        public double AirResistance => Train.MotionParameters.AirResistance / (double)10000000;
+        public double SpeedWeight => Train.MotionParameters.SpeedWeight;
+        public double AutoRunMaxSpeedDistanceCoefficient => Train.MotionParameters.AutoRunMaxSpeedDistanceCoefficient;
+        public double AutoRunMaxSpeedOffset => Train.MotionParameters.AutoRunMaxSpeedOffset;
+        public double AutoRunSpeedBufferMargin => Train.MotionParameters.AutoRunSpeedBufferMargin;
+        public double AutoRunSpeedBufferRate => 1.0 - Train.MotionParameters.AutoRunSpeedBufferMargin;
+        public double TractionForceAccelerationRate => Train.MotionParameters.TractionForceAccelerationRate;
+        public double ManualControlDecelerationFactor => Train.MotionParameters.ManualControlDecelerationFactor;
+        public int MasconLevelMaximum => Train.MotionParameters.MasconLevelMaximum;
 
         public TrainUnitMaster(JToken jToken)
         {
