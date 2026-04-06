@@ -62,7 +62,7 @@ namespace Tests.UnitTest.Game
             var railNodes = new List<IRailNode> { exitNode, entryNode };
             var railPosition = new RailPosition(railNodes, segmentLength, 0);
 
-            var (trainCar, fluidContainer) = TrainTestCarFactory.CreateTrainCarWithFluidContainer(0, 1000, 1000, segmentLength, true);
+            var (trainCar, fluidContainer) = TrainTestCarFactory.CreateTrainCarWithFluidContainer(0, 400000, 1000, segmentLength, true);
             var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
 
             trainUnit.trainUnitStationDocking.TryDockWhenStopped();
@@ -126,7 +126,7 @@ namespace Tests.UnitTest.Game
             var railNodes = new List<IRailNode> { exitNode, entryNode };
             var railPosition = new RailPosition(railNodes, segmentLength, 0);
 
-            var (trainCar, fluidContainer) = TrainTestCarFactory.CreateTrainCarWithFluidContainer(0, 1000, 1000, segmentLength, true);
+            var (trainCar, fluidContainer) = TrainTestCarFactory.CreateTrainCarWithFluidContainer(0, 400000, 1000, segmentLength, true);
             fluidContainer.Container.FluidId = waterFluidId;
             fluidContainer.Container.Amount = fluidAmount;
 
@@ -187,7 +187,7 @@ namespace Tests.UnitTest.Game
             var railNodes = new List<IRailNode> { exitNode, entryNode };
             var railPosition = new RailPosition(railNodes, segmentLength, 0);
 
-            var (trainCar, fluidContainer) = TrainTestCarFactory.CreateTrainCarWithFluidContainer(0, 1000, 1000, segmentLength, true);
+            var (trainCar, fluidContainer) = TrainTestCarFactory.CreateTrainCarWithFluidContainer(0, 400000, 1000, segmentLength, true);
             fluidContainer.Container.FluidId = waterFluidId;
             fluidContainer.Container.Amount = trainExistingAmount;
 
@@ -248,7 +248,7 @@ namespace Tests.UnitTest.Game
             var railNodes = new List<IRailNode> { exitNode, entryNode };
             var railPosition = new RailPosition(railNodes, segmentLength, 0);
 
-            var (trainCar, fluidContainer) = TrainTestCarFactory.CreateTrainCarWithFluidContainer(0, 1000, 1000, segmentLength, true);
+            var (trainCar, fluidContainer) = TrainTestCarFactory.CreateTrainCarWithFluidContainer(0, 400000, 1000, segmentLength, true);
             fluidContainer.Container.FluidId = steamFluidId;
             fluidContainer.Container.Amount = trainSteamAmount;
 
@@ -304,7 +304,7 @@ namespace Tests.UnitTest.Game
 
             // コンテナなしの列車カーを生成
             // Create train car without container
-            var element = TrainTestCarFactory.CreateMasterElement(0, 1000, 0, segmentLength);
+            var element = TrainTestCarFactory.CreateMasterElement(0, 400000, 0, segmentLength);
             var trainCar = new TrainCar(element, true);
             var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
 
@@ -365,7 +365,7 @@ namespace Tests.UnitTest.Game
             var railNodes = new List<IRailNode> { exitNode, entryNode };
             var railPosition = new RailPosition(railNodes, segmentLength, 0);
 
-            var (trainCar, fluidContainer) = TrainTestCarFactory.CreateTrainCarWithFluidContainer(0, 1000, trainCapacity, segmentLength, true);
+            var (trainCar, fluidContainer) = TrainTestCarFactory.CreateTrainCarWithFluidContainer(0, 400000, trainCapacity, segmentLength, true);
             fluidContainer.Container.FluidId = waterFluidId;
             fluidContainer.Container.Amount = trainExistingAmount;
 
@@ -432,7 +432,7 @@ namespace Tests.UnitTest.Game
             var railNodes = new List<IRailNode> { exitNode, entryNode };
             var railPosition = new RailPosition(railNodes, segmentLength, 0);
 
-            var (trainCar, fluidContainer) = TrainTestCarFactory.CreateTrainCarWithFluidContainer(0, 1000, 1000, segmentLength, true);
+            var (trainCar, fluidContainer) = TrainTestCarFactory.CreateTrainCarWithFluidContainer(0, 400000, 1000, segmentLength, true);
             fluidContainer.Container.FluidId = waterFluidId;
             fluidContainer.Container.Amount = trainAmount;
 

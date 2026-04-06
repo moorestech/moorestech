@@ -96,7 +96,7 @@ namespace Tests.UnitTest.Game
                 // --- 4. TrainUnit を生成 ---
                 var cars = new List<TrainCar>
                 {
-                    TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 600000, 0, trainLength, true).trainCar,  // 仮: 動力車
+                    TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 240000000, 0, trainLength, true).trainCar,  // 仮: 動力車
                 };
 
                 // ここで Length を強制上書き（このテストだけ直書き）
@@ -173,7 +173,7 @@ namespace Tests.UnitTest.Game
             // 例：5両編成で各車両の長さは 10, 20, 5, 5, 10 (トータル 50)
             var cars = new List<TrainCar>
             {
-                TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 600000, 0, 80, true).trainCar,  // 仮: 動力車
+                TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 240000000, 0, 80, true).trainCar,  // 仮: 動力車
                 TrainTestCarFactory.CreateTrainCarWithItemContainer(1, 0, 10, 60, true).trainCar,   // 貨車
                 TrainTestCarFactory.CreateTrainCarWithItemContainer(2, 0, 10, 65, true).trainCar,
                 TrainTestCarFactory.CreateTrainCarWithItemContainer(3, 0, 10, 65, true).trainCar,
@@ -387,8 +387,8 @@ namespace Tests.UnitTest.Game
                 var destination = railComponentsData[7].FrontNode;//目的地をセット
                 var cars = new List<TrainCar>
                 {
-                    TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 960000, 0, trainLength, true).trainCar,  // 仮: 動力車まえ
-                    TrainTestCarFactory.CreateTrainCarWithItemContainer(1, 960000, 0, 0, false).trainCar,  // 仮: 動力車うしろ
+                    TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 384000000, 0, trainLength, true).trainCar,  // 仮: 動力車まえ
+                    TrainTestCarFactory.CreateTrainCarWithItemContainer(1, 384000000, 0, 0, false).trainCar,  // 仮: 動力車うしろ
                 };
                 var trainUnit = new TrainUnit(railPosition, cars, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
                 trainUnit.trainDiagram.AddEntry(destination);
@@ -556,7 +556,7 @@ namespace Tests.UnitTest.Game
                 // --- TrainUnit を生成 ---
                 var cars = new List<TrainCar>
                 {
-                    TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 600000, 0, trainLength, true).trainCar,  // 仮: 動力車
+                    TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 240000000, 0, trainLength, true).trainCar,  // 仮: 動力車
                 };
                 var trainUnit = new TrainUnit(railPosition, cars, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
 
@@ -645,7 +645,7 @@ namespace Tests.UnitTest.Game
             // 例として5両編成でそれぞれの長さを 10, 20, 5, 5, 10 (トータル 50)
             var cars = new List<TrainCar>
             {
-                ForceLegacyLength(TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 1000, 0, 10, true).trainCar, 10),  // 仮: 動力車
+                ForceLegacyLength(TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 400000, 0, 10, true).trainCar, 10),  // 仮: 動力車
                 ForceLegacyLength(TrainTestCarFactory.CreateTrainCarWithItemContainer(1, 0, 10, 20, true).trainCar, 20),   // 貨車
                 ForceLegacyLength(TrainTestCarFactory.CreateTrainCarWithItemContainer(2, 0, 10, 5, true).trainCar, 5),
                 ForceLegacyLength(TrainTestCarFactory.CreateTrainCarWithItemContainer(3, 0, 10, 5, true).trainCar, 5),

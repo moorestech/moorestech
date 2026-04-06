@@ -56,21 +56,21 @@ namespace Game.Train.Unit
         {
             if (RemainFuelTime <= 0) return;
 
-            var normalizedMasconLevel = masconLevel / (double)TrainMotionParameters.MasconLevelMaximum;
+            var normalizedMasconLevel = masconLevel / (double)MasterHolder.TrainUnitMaster.MasconLevelMaximum;
             RemainFuelTime -= time * Math.Abs(normalizedMasconLevel);
         }
 
         //重さ、推進力を得る
         public (int weight, int tractionForce) GetWeightAndTraction(int masconLevel)
         {
-            var weight = TrainMotionParameters.DEFAULT_WEIGHT + (Container?.GetWeight() ?? 0);
+            var weight = TrainCarMasterElement.Weight + (Container?.GetWeight() ?? 0);
             if (RemainFuelTime <= 0)
             {
                 if (masconLevel != 0 && Container is IFuelProviderTrainCarContainer fuelProviderTrainCarContainer) RemainFuelTime += fuelProviderTrainCarContainer.ConsumeFuel(this);
                 if (RemainFuelTime <= 0) return (weight, 0);
             }
             
-            var tractionForce = IsFacingForward ? TractionForce * TrainMotionParameters.DEFAULT_TRACTION : 0;
+            var tractionForce = IsFacingForward ? TractionForce : 0;
             return (weight, tractionForce);
         }
 

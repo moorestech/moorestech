@@ -147,7 +147,7 @@ namespace Tests.Util
             var trainCars = new List<TrainCar>(carCount);
             for (var i = 0; i < carCount; i++)
             {
-                var (trainCar, _) = TrainTestCarFactory.CreateTrainCarWithItemContainer(i, 1000, 1, _station.BlockLength, true);
+                var (trainCar, _) = TrainTestCarFactory.CreateTrainCarWithItemContainer(i, 400000, 1, _station.BlockLength, true);
                 trainCars.Add(trainCar);
                 requiredLength += trainCars[i].Length;
             }

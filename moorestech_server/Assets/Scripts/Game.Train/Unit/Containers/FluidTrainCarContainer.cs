@@ -1,4 +1,5 @@
 using System;
+using Core.Master;
 using Game.Fluid;
 using MessagePack;
 
@@ -19,7 +20,7 @@ namespace Game.Train.Unit.Containers
 
         public int GetWeight()
         {
-            return (int)(Container.Amount * TrainMotionParameters.WeightPerFluidAmount);
+            return MasterHolder.TrainUnitMaster.Train.FluidContainer.Weight;
         }
         
         public bool IsFull()
