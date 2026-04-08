@@ -98,7 +98,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 prefab = AddressableLoader.LoadDefault<GameObject>(masterElement.AddressablePath);
                 if (prefab == null)
                 {
-                    throw new System.InvalidOperationException($"Train preview prefab load failed. AddressablePath:{masterElement.AddressablePath}");
+                    Debug.LogError($"Train preview prefab load failed. AddressablePath:{masterElement.AddressablePath}");
+                    return false;
                 }
                 return true;
             }
@@ -130,7 +131,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
             bool TryResolvePreviewPose(RailPosition targetRailPosition, out Vector3 position, out Quaternion rotation)
             {
-                // 出力を初期化する
+                // 出力値を先に初期化する
                 // Initialize outputs
                 position = default;
                 rotation = Quaternion.identity;
