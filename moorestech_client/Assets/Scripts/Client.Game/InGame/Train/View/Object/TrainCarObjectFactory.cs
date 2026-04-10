@@ -1,5 +1,4 @@
 using System;
-using Client.Common;
 using Client.Common.Asset;
 using Client.Game.InGame.Entity.Object;
 using Client.Game.InGame.Train.Unit;
@@ -50,7 +49,6 @@ namespace Client.Game.InGame.Train.View.Object
             TrainCarEntityObject CreateTrainEntity(GameObject prefab)
             {
                 var trainObject = GameObject.Instantiate(prefab, Vector3.zero, Quaternion.identity, parent);
-                SetBlockLayerRecursively(trainObject);
 
                 var trainEntityObject = trainObject.AddComponent<TrainCarEntityObject>();
                 trainEntityObject.SetTrain(carSnapshot.TrainCarInstanceId, trainCarMasterElement);
@@ -80,16 +78,6 @@ namespace Client.Game.InGame.Train.View.Object
                 }
 
                 return trainEntityObject;
-            }
-
-            void SetBlockLayerRecursively(GameObject targetTrainObject)
-            {
-                // 削除レイ判定が命中するよう列車全体をBlockレイヤーへそろえる
-                // Normalize the entire train hierarchy to the Block layer for delete raycasts
-                foreach (var childTransform in targetTrainObject.GetComponentsInChildren<Transform>(true))
-                {
-                    childTransform.gameObject.layer = LayerConst.BlockLayer;
-                }
             }
 
             void AttachAnimationProcessorIfNeeded(GameObject targetTrainObject)
