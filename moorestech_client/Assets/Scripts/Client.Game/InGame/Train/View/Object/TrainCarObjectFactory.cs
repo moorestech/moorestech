@@ -59,7 +59,7 @@ namespace Client.Game.InGame.Train.View.Object
 
                 // Prefab内にある煙制御コンポーネントを初期化する
                 // Initialize smoke controllers already embedded in the prefab
-                foreach (var smokeController in trainObject.GetComponentsInChildren<TrainSmokeController>(true))
+                foreach (var smokeController in trainObject.GetComponentsInChildren<TrainSmokeVfxProcessor>(true))
                 {
                     smokeController.Initialize(trainEntityObject, _trainCache);
                 }
