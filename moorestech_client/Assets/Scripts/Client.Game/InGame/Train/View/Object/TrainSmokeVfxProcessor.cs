@@ -4,7 +4,7 @@ using UnityEngine.VFX;
 
 namespace Client.Game.InGame.Train.View.Object
 {
-    public sealed class TrainSmokeController : MonoBehaviour
+    public sealed class TrainSmokeVfxProcessor : MonoBehaviour
     {
         [SerializeField] private VisualEffect smokeEffect;
 
