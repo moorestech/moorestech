@@ -32,7 +32,7 @@ namespace Tests.UnitTest.Game
 
             var cars = new List<TrainCar>
             {
-                TrainTestCarFactory.CreateTrainCar(0, 1000, 0, 0, true)
+                TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 400000, 0, 0, true).trainCar
             };
 
             var railNodes = new List<IRailNode> { startNode };
@@ -64,7 +64,7 @@ namespace Tests.UnitTest.Game
 
             var trainUnit = scenario.Train;
             var trainCar = scenario.TrainCar;
-            trainCar.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 1));
+            scenario.ItemContainer.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 1));
 
             Assert.IsTrue(trainCar.IsDocked, "列車貨車が貨物プラットフォームにドッキングしていません。");
 
@@ -73,7 +73,7 @@ namespace Tests.UnitTest.Game
 
             Assert.IsFalse(entry.CanDepart(trainUnit), "インベントリが空になるまで列車が待機していません。");
 
-            trainCar.SetItem(0, ServerContext.ItemStackFactory.CreatEmpty());
+            scenario.ItemContainer.SetItem(0, ServerContext.ItemStackFactory.CreatEmpty());
 
             Assert.IsTrue(entry.CanDepart(trainUnit), "インベントリが空でも列車が出発可能になっていません。");
         }
@@ -85,7 +85,7 @@ namespace Tests.UnitTest.Game
 
             var trainUnit = scenario.Train;
             var trainCar = scenario.TrainCar;
-            trainCar.SetItem(0, ServerContext.ItemStackFactory.CreatEmpty());
+            scenario.ItemContainer.SetItem(0, ServerContext.ItemStackFactory.CreatEmpty());
 
             Assert.IsTrue(trainCar.IsDocked, "列車貨車が貨物プラットフォームにドッキングしていません。");
 
@@ -113,7 +113,7 @@ namespace Tests.UnitTest.Game
             Assert.IsFalse(entry.CanDepart(trainUnit), "条件競合時に列車が出発不可になっていません。");
 
             var maxStack = MasterHolder.ItemMaster.GetItemMaster(ForUnitTestItemId.ItemId1).MaxStack;
-            trainCar.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, maxStack));
+            scenario.ItemContainer.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, maxStack));
 
             Assert.IsFalse(entry.CanDepart(trainUnit), "両条件が成立中にもかかわらず列車が出発可能になっています。");
 

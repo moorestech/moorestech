@@ -40,6 +40,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 074122ef0fe264b54bfa5cc04a18dca8
+    m_Address: Vanilla/Skit/Animations/anim_think01
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 077f516b067a242fead900bf0680250a
     m_Address: Vanilla/Item/IronOre
     m_ReadOnly: 0
@@ -72,6 +77,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 107503fe8cad07c4994e7e2c837e8bb0
     m_Address: Vanilla/Block/Fast_BeltConveyor_T
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 128b54dbcc554431eb290f8f50d59f35
+    m_Address: Vanilla/Block/metal_gear belt conveyor down
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -420,6 +430,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 69ab4ea6e4ac2471195dc1329cf399c5
+    m_Address: Vanilla/Skit/Animations/anim_think01
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 6afff40c7cd46ae498e7793e39b21c8a
     m_Address: Vanilla/UI/ItemSlotView
     m_ReadOnly: 0
@@ -547,6 +562,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 90e31bd775ec74542975d914c3ae3336
     m_Address: Vanilla/Skit/skits/100_start_game
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 90fa6bab9c5f14e0291c1e59824a6120
+    m_Address: Vanilla/Block/metal_gear belt conveyor up
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -730,6 +750,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b9cb24850a2e54af69d5c217423be028
+    m_Address: Vanilla/Block/Metal_conveyor_chest
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: b9fc9c8c6497a0a44b484f64d01458d4
     m_Address: Vanilla/Block/Spinning_machine
     m_ReadOnly: 0
@@ -825,6 +850,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d46b688521ba3496f9859d5df798b011
+    m_Address: Vanilla/Block/metal_gear belt conveyor
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: d53243d74377b724f9ad131c7510fa39
     m_Address: Vanilla/Block/gear belt conveyor up
     m_ReadOnly: 0
@@ -892,6 +922,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: e039e23dd6ec87742ac59a0964a66fa0
     m_Address: Vanilla/Block/iron furnace with bellows
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e1d4383d08f6c4eaf95ed4d339081d3f
+    m_Address: Vanilla/Block/metal_gear belt conveyor splitter
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

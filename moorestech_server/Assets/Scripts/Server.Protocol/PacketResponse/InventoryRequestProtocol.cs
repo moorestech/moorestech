@@ -5,7 +5,7 @@ using Core.Item.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
 using Game.Train.Unit;
-
+using Game.Train.Unit.Containers;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Util.MessagePack;
@@ -84,8 +84,8 @@ namespace Server.Protocol.PacketResponse
                 
                 // 列車カーのインベントリを生成
                 // Build the train car inventory
-                var items = trainCar.EnumerateInventory().Select(slot => new ItemMessagePack(slot.item)).ToArray();
-                return new ResponseInventoryRequestProtocolMessagePack(InventoryType.Train, identifier, items);
+                if (trainCar.Container is ItemTrainCarContainer container)                     return new ResponseInventoryRequestProtocolMessagePack(InventoryType.Train, identifier, container.InventoryItems.Select(stack => stack.Stack).ToArray());
+                return new ResponseInventoryRequestProtocolMessagePack(InventoryType.Train, identifier, Array.Empty<IItemStack>());
             }
             
             #endregion

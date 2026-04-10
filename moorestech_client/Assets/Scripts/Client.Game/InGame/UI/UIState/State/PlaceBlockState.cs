@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState.Input;
@@ -15,7 +14,6 @@ namespace Client.Game.InGame.UI.UIState.State
 {
     public class PlaceBlockState : IUIState
     {
-        private readonly IPlacementPreviewBlockGameObjectController _previewBlockController;
         private readonly ScreenClickableCameraController _screenClickableCameraController;
         private readonly SkitManager _skitManager;
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
@@ -25,13 +23,12 @@ namespace Client.Game.InGame.UI.UIState.State
         
         private bool _isChangeCameraAngle;
         
-        public PlaceBlockState(IPlacementPreviewBlockGameObjectController previewBlockController, SkitManager skitManager, InGameCameraController inGameCameraController, BlockGameObjectDataStore blockGameObjectDataStore, PlaceSystemStateController placeSystemStateController)
+        public PlaceBlockState(SkitManager skitManager, InGameCameraController inGameCameraController, BlockGameObjectDataStore blockGameObjectDataStore, PlaceSystemStateController placeSystemStateController)
         {
             _skitManager = skitManager;
             _inGameCameraController = inGameCameraController;
             _blockGameObjectDataStore = blockGameObjectDataStore;
             _placeSystemStateController = placeSystemStateController;
-            _previewBlockController = previewBlockController;
             _screenClickableCameraController = new ScreenClickableCameraController(inGameCameraController);
         }
         

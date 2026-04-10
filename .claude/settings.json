@@ -1,7 +1,9 @@
 {
-  "enabledPlugins": {},
   "statusLine": {
     "type": "command",
     "command": "node .claude/statusline.jsc"
+  },
+  "enabledPlugins": {
+    "superpowers@superpowers-marketplace": true
   }
 }

@@ -63,7 +63,7 @@ properties:
             - GearMapObjectMiner
             - TrainRail
             - TrainStation
-            - TrainCargoPlatform
+            - TrainItemPlatform
             - FluidPipe
         - key: itemGuid
           type: uuid
@@ -327,7 +327,7 @@ properties:
                 - key: beltConveyorSpeed
                   type: number
                   default: 2
-                - key: requireTorque
+                - key: requireTorquePerRpm
                   type: number
                   default: 2
                 - key: slopeType
@@ -404,7 +404,7 @@ properties:
                   type: integer
                 - key: inventoryConnectors
                   ref: inventoryConnects
-            - when: TrainCargoPlatform
+            - when: TrainItemPlatform
               type: object
               properties:
                 - key: platformDistance

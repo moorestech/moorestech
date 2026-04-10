@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace Client.Game.InGame.Block
 {
-    public class BlockGameObjectDataStore : MonoBehaviour, IBlockObjectControl
+    public class BlockGameObjectDataStore : MonoBehaviour, ISkitBlockObjectControl
     {
         public IReadOnlyDictionary<Vector3Int, BlockGameObject> BlockGameObjectDictionary => _blockObjectsDictionary;
         private readonly Dictionary<Vector3Int, BlockGameObject> _blockObjectsDictionary = new();

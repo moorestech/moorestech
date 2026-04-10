@@ -131,8 +131,8 @@ namespace Client.Game.Skit
                 builder.RegisterInstance<ISkitCamera>(skitCamera);
                 builder.RegisterInstance(voiceDefine);
                 builder.RegisterInstance(new CharacterObjectContainer(characters));
-                builder.RegisterInstance<IEnvironmentRoot>(environmentRoot);
-                builder.RegisterInstance<IBlockObjectControl>(blockGameObjectDataStore);
+                builder.RegisterInstance<ISkitEnvironmentRoot>(environmentRoot);
+                builder.RegisterInstance<ISkitBlockObjectControl>(blockGameObjectDataStore);
                 builder.RegisterInstance<ISkitEnvironmentManager>(new SkitEnvironmentManager(transform));
                 builder.RegisterInstance(_skitActionContext);
                 

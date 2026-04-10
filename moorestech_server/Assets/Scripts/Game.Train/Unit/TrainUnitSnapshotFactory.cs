@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Game.Train.Unit.Containers;
 
 namespace Game.Train.Unit
 {
@@ -17,7 +18,8 @@ namespace Game.Train.Unit
             var carSnapshots = new List<TrainCarSnapshot>(train.Cars.Count);
             foreach (var car in train.Cars)
             {
-                carSnapshots.Add(new TrainCarSnapshot(car.TrainCarInstanceId, car.TrainCarMasterElement.TrainCarGuid, car.InventorySlots, car.TractionForce, car.IsFacingForward));
+                var weight = car.TrainCarMasterElement.Weight + (car.Container?.GetWeight() ?? 0);
+                carSnapshots.Add(new TrainCarSnapshot(car.TrainCarInstanceId, car.TrainCarMasterElement.TrainCarGuid, car.IsFacingForward, car.RemainFuelTime > 0, weight));
             }
 
             return new TrainSimulationSnapshot(

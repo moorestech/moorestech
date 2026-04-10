@@ -1,7 +1,8 @@
 {
   "trainCars": [
     {
-      "tractionForce": 556001,
+      "weight": 320,
+      "tractionForce": 222400400,
       "inventorySlots": 10,
       "length": 8,
       "itemGuid": "20000000-0000-0000-0000-000000000000",
