@@ -43,6 +43,70 @@ namespace Client.Game.InGame.Train.Network
             ClientContext.VanillaApi.Event.SubscribeEventResponse(
                 RailNodeRemovedEventPacket.EventTag,
                 OnRailNodeRemoved).AddTo(_subscriptions);
+            
+        #region Internal
+
+            void OnRailNodeCreated(byte[] payload)
+            {
+                // 受信差分を復号し、post-simキューへ積む
+                // Deserialize incoming diff and enqueue into post-sim buffer
+                var message = MessagePackSerializer.Deserialize<RailNodeCreatedMessagePack>(payload);
+                if (message == null)
+                {
+                    return;
+                }
+                _futureMessageBuffer.EnqueueEvent(message.ServerTick, message.TickSequenceId, CreateBufferedEvent(message));
+                return;
+
+                ITrainTickBufferedEvent CreateBufferedEvent(RailNodeCreatedMessagePack messagePack)
+                {
+                    return TrainTickBufferedEvent.Create(ApplyCreatedNode);
+
+                    void ApplyCreatedNode()
+                    {
+                        // ノード追加と駅参照更新を同一tickで反映する
+                        // Apply node insertion and station reference update on the same tick
+                        var destination = messagePack.ConnectionDestination?.ToConnectionDestination() ?? ConnectionDestination.Default;
+                        _cache.UpsertNode(
+                            messagePack.NodeId,
+                            messagePack.NodeGuid,
+                            messagePack.OriginPoint.ToUnityVector(),
+                            destination,
+                            messagePack.FrontControlPoint.ToUnityVector(),
+                            messagePack.BackControlPoint.ToUnityVector());
+                        _stationReferenceRegistry.ApplyStationReference(destination);
+                    }
+                }
+            }
+
+            void OnRailNodeRemoved(byte[] payload)
+            {
+                // 削除差分を復号し、post-simキューへ積む
+                // Deserialize removal diff and enqueue into post-sim buffer
+                var message = MessagePackSerializer.Deserialize<RailNodeRemovedMessagePack>(payload);
+                if (message == null)
+                {
+                    return;
+                }
+                _futureMessageBuffer.EnqueueEvent(message.ServerTick, message.TickSequenceId, CreateBufferedEvent(message));
+
+                ITrainTickBufferedEvent CreateBufferedEvent(RailNodeRemovedMessagePack messagePack)
+                {
+                    return TrainTickBufferedEvent.Create(ApplyRemovedNode);
+
+                    void ApplyRemovedNode()
+                    {
+                        // Guid一致時のみノード削除を適用する
+                        // Remove node only when guid still matches at apply time
+                        if (_cache.TryValidateEndpoint(messagePack.NodeId, messagePack.NodeGuid))
+                        {
+                            _cache.RemoveNode(messagePack.NodeId);
+                        }
+                    }
+                }
+            }
+
+        #endregion
         }
 
         public void Dispose()
@@ -50,75 +114,5 @@ namespace Client.Game.InGame.Train.Network
             _subscriptions.Dispose();
         }
 
-        #region Internal
-
-        private void OnRailNodeCreated(byte[] payload)
-        {
-            // 受信差分を復号し、post-simキューへ積む
-            // Deserialize incoming diff and enqueue into post-sim buffer
-            var message = MessagePackSerializer.Deserialize<RailNodeCreatedMessagePack>(payload);
-            if (message == null)
-            {
-                return;
-            }
-            _futureMessageBuffer.EnqueueEvent(message.ServerTick, message.TickSequenceId, CreateBufferedEvent(message));
-
-            #region Internal
-
-            ITrainTickBufferedEvent CreateBufferedEvent(RailNodeCreatedMessagePack messagePack)
-            {
-                return TrainTickBufferedEvent.Create(ApplyCreatedNode);
-
-                void ApplyCreatedNode()
-                {
-                    // ノード追加と駅参照更新を同一tickで反映する
-                    // Apply node insertion and station reference update on the same tick
-                    var destination = messagePack.ConnectionDestination?.ToConnectionDestination() ?? ConnectionDestination.Default;
-                    _cache.UpsertNode(
-                        messagePack.NodeId,
-                        messagePack.NodeGuid,
-                        messagePack.OriginPoint.ToUnityVector(),
-                        destination,
-                        messagePack.FrontControlPoint.ToUnityVector(),
-                        messagePack.BackControlPoint.ToUnityVector());
-                    _stationReferenceRegistry.ApplyStationReference(destination);
-                }
-            }
-
-            #endregion
-        }
-
-        private void OnRailNodeRemoved(byte[] payload)
-        {
-            // 削除差分を復号し、post-simキューへ積む
-            // Deserialize removal diff and enqueue into post-sim buffer
-            var message = MessagePackSerializer.Deserialize<RailNodeRemovedMessagePack>(payload);
-            if (message == null)
-            {
-                return;
-            }
-            _futureMessageBuffer.EnqueueEvent(message.ServerTick, message.TickSequenceId, CreateBufferedEvent(message));
-
-            #region Internal
-
-            ITrainTickBufferedEvent CreateBufferedEvent(RailNodeRemovedMessagePack messagePack)
-            {
-                return TrainTickBufferedEvent.Create(ApplyRemovedNode);
-
-                void ApplyRemovedNode()
-                {
-                    // Guid一致時のみノード削除を適用する
-                    // Remove node only when guid still matches at apply time
-                    if (_cache.TryValidateEndpoint(messagePack.NodeId, messagePack.NodeGuid))
-                    {
-                        _cache.RemoveNode(messagePack.NodeId);
-                    }
-                }
-            }
-
-            #endregion
-        }
-
-        #endregion
     }
 }

@@ -78,7 +78,7 @@ namespace Client.Game.InGame.Train.Network
             _stationReferenceRegistry.ApplyStationReferences();
             _tickState.RecordAppliedTickUnifiedId(unifiedId);
 
-            #region 
+            #region Internal
             int ResolveMaxNodeId(RailGraphSnapshotMessagePack targetSnapshot)
             {
                 // ノードから最大IDを探索

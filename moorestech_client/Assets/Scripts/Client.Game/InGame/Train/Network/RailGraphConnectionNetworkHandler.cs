@@ -35,56 +35,53 @@ namespace Client.Game.InGame.Train.Network
             ClientContext.VanillaApi.Event.SubscribeEventResponse(
                 RailConnectionRemovedEventPacket.EventTag,
                 OnConnectionRemoved).AddTo(_subscriptions);
+            
+        #region Internal
+            void OnConnectionCreated(byte[] payload)
+            {
+                // 生成差分を復号し、post-simキューへ積む
+                // Deserialize creation diff and enqueue into post-sim buffer
+                var message = MessagePackSerializer.Deserialize<RailConnectionCreatedMessagePack>(payload);
+                if (message == null)
+                {
+                    return;
+                }
+                _futureMessageBuffer.EnqueueEvent(message.ServerTick, message.TickSequenceId, CreateBufferedEvent(message));
+                
+                
+                ITrainTickBufferedEvent CreateBufferedEvent(RailConnectionCreatedMessagePack messagePack)
+                {
+                    return TrainTickBufferedEvent.Create(ApplyCreatedConnection);
+                    
+                    void ApplyCreatedConnection()
+                    {
+                        // 適用時点でGuid整合性を再確認してから接続を反映する
+                        // Recheck guid consistency at apply time before upserting connection
+                        if (!_cache.TryValidateEndpoint(messagePack.FromNodeId, messagePack.FromGuid))
+                        {
+                            return;
+                        }
+                        if (!_cache.TryValidateEndpoint(messagePack.ToNodeId, messagePack.ToGuid))
+                        {
+                            return;
+                        }
+                        _cache.UpsertConnection(
+                            messagePack.FromNodeId,
+                            messagePack.ToNodeId,
+                            messagePack.Distance,
+                            messagePack.RailTypeGuid,
+                            messagePack.IsDrawable);
+                    }
+                }
+            }
+            #endregion
         }
 
         public void Dispose()
         {
             _subscriptions.Dispose();
         }
-
-        #region Internal
-
-        private void OnConnectionCreated(byte[] payload)
-        {
-            // 生成差分を復号し、post-simキューへ積む
-            // Deserialize creation diff and enqueue into post-sim buffer
-            var message = MessagePackSerializer.Deserialize<RailConnectionCreatedMessagePack>(payload);
-            if (message == null)
-            {
-                return;
-            }
-            _futureMessageBuffer.EnqueueEvent(message.ServerTick, message.TickSequenceId, CreateBufferedEvent(message));
-
-            #region Internal
-
-            ITrainTickBufferedEvent CreateBufferedEvent(RailConnectionCreatedMessagePack messagePack)
-            {
-                return TrainTickBufferedEvent.Create(ApplyCreatedConnection);
-
-                void ApplyCreatedConnection()
-                {
-                    // 適用時点でGuid整合性を再確認してから接続を反映する
-                    // Recheck guid consistency at apply time before upserting connection
-                    if (!_cache.TryValidateEndpoint(messagePack.FromNodeId, messagePack.FromGuid))
-                    {
-                        return;
-                    }
-                    if (!_cache.TryValidateEndpoint(messagePack.ToNodeId, messagePack.ToGuid))
-                    {
-                        return;
-                    }
-                    _cache.UpsertConnection(
-                        messagePack.FromNodeId,
-                        messagePack.ToNodeId,
-                        messagePack.Distance,
-                        messagePack.RailTypeGuid,
-                        messagePack.IsDrawable);
-                }
-            }
-
-            #endregion
-        }
-
+        
         private void OnConnectionRemoved(byte[] payload)
         {
             // 削除差分を復号し、post-simキューへ積む
@@ -96,8 +93,7 @@ namespace Client.Game.InGame.Train.Network
             }
             _futureMessageBuffer.EnqueueEvent(message.ServerTick, message.TickSequenceId, CreateBufferedEvent(message));
 
-            #region Internal
-
+        #region Internal
             ITrainTickBufferedEvent CreateBufferedEvent(RailConnectionRemovedMessagePack messagePack)
             {
                 return TrainTickBufferedEvent.Create(ApplyRemovedConnection);
@@ -117,10 +113,7 @@ namespace Client.Game.InGame.Train.Network
                     _cache.RemoveConnection(messagePack.FromNodeId, messagePack.ToNodeId);
                 }
             }
-
-            #endregion
-        }
-
         #endregion
+        }
     }
 }

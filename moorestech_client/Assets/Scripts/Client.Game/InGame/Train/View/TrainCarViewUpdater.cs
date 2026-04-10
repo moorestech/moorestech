@@ -74,8 +74,6 @@ namespace Client.Game.InGame.Train.View
             DispatchProcessors(CreateContext(outputSnapshot));
         }
 
-        #region Internal
-
         private void UpdateCurrentRenderSnapshot()
         {
             // 最新 snapshot を読めた時だけ current を更新する
@@ -248,7 +246,5 @@ namespace Client.Game.InGame.Train.View
 
             return rotation;
         }
-
-        #endregion
     }
 }

@@ -1,5 +1,4 @@
 using System;
-using Client.Game.InGame.Train.View;
 using UnityEngine;
 
 namespace Client.Game.InGame.Train.View.Object
@@ -34,46 +33,47 @@ namespace Client.Game.InGame.Train.View.Object
             // Use zero playback when snapshot is unavailable
             var currentSpeed = context.HasSnapshot ? context.CurrentSpeed : 0.0;
             ApplyAnimationSpeed(currentSpeed);
+            
+            #region Internal
+            
+            void ApplyAnimationSpeed(double currentSpeed)
+            {
+                // 走行速度に応じた再生速度を Animator に適用する
+                // Apply playback speed synchronized to train movement
+                var playbackSpeed = (float)(Math.Abs(currentSpeed) * AnimationSpeed);
+                for (var i = 0; i < _animators.Length; i++)
+                {
+                    var animator = _animators[i];
+                    var baseSpeed = ResolveAnimatorBaseSpeed(i, animator);
+                    animator.speed = playbackSpeed / baseSpeed;
+                }
+            }
+            
+            float ResolveAnimatorBaseSpeed(int index, Animator animator)
+            {
+                // 一度求めた基準速度は再利用する
+                // Reuse the resolved authored speed once captured
+                if (_animatorBaseSpeeds[index] > 0f)
+                {
+                    return _animatorBaseSpeeds[index];
+                }
+                
+                // Animator.speed を除いた state 側の速度を復元する
+                // Strip Animator.speed to recover controller-authored speed
+                var currentAnimatorSpeed = Mathf.Abs(animator.speed);
+                if (currentAnimatorSpeed <= Mathf.Epsilon)
+                {
+                    currentAnimatorSpeed = 1f;
+                }
+                
+                var stateSpeed = animator.GetCurrentAnimatorStateInfo(0).speed;
+                var resolvedBaseSpeed = stateSpeed > 0f ? stateSpeed / currentAnimatorSpeed : 1f;
+                _animatorBaseSpeeds[index] = resolvedBaseSpeed;
+                return resolvedBaseSpeed;
+            }
+        
+            #endregion
         }
 
-        #region Internal
-
-        private void ApplyAnimationSpeed(double currentSpeed)
-        {
-            // 走行速度に応じた再生速度を Animator に適用する
-            // Apply playback speed synchronized to train movement
-            var playbackSpeed = (float)(Math.Abs(currentSpeed) * AnimationSpeed);
-            for (var i = 0; i < _animators.Length; i++)
-            {
-                var animator = _animators[i];
-                var baseSpeed = ResolveAnimatorBaseSpeed(i, animator);
-                animator.speed = playbackSpeed / baseSpeed;
-            }
-        }
-
-        private float ResolveAnimatorBaseSpeed(int index, Animator animator)
-        {
-            // 一度求めた基準速度は再利用する
-            // Reuse the resolved authored speed once captured
-            if (_animatorBaseSpeeds[index] > 0f)
-            {
-                return _animatorBaseSpeeds[index];
-            }
-
-            // Animator.speed を除いた state 側の速度を復元する
-            // Strip Animator.speed to recover controller-authored speed
-            var currentAnimatorSpeed = Mathf.Abs(animator.speed);
-            if (currentAnimatorSpeed <= Mathf.Epsilon)
-            {
-                currentAnimatorSpeed = 1f;
-            }
-
-            var stateSpeed = animator.GetCurrentAnimatorStateInfo(0).speed;
-            var resolvedBaseSpeed = stateSpeed > 0f ? stateSpeed / currentAnimatorSpeed : 1f;
-            _animatorBaseSpeeds[index] = resolvedBaseSpeed;
-            return resolvedBaseSpeed;
-        }
-
-        #endregion
     }
 }
