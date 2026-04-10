@@ -4,8 +4,6 @@ namespace Client.Game.InGame.Train.RailGraph
 {
     internal static class BezierRailMeshCpu
     {
-        #region Internal
-
         // CPU変形を実行する
         // Deform with CPU
         internal static void Deform(BezierRailMesh mesh)
@@ -84,7 +82,5 @@ namespace Client.Game.InGame.Train.RailGraph
             var pitchAngle = Mathf.Atan2(localForward.y, Mathf.Max(1e-6f, localForward.z)) * Mathf.Rad2Deg;
             return yawRotation * Quaternion.AngleAxis(pitchAngle, Vector3.right);
         }
-
-        #endregion
     }
 }

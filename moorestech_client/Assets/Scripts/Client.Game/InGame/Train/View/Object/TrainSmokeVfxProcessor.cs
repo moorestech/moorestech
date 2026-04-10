@@ -1,4 +1,3 @@
-using Client.Game.InGame.Train.View;
 using UnityEngine;
 using UnityEngine.VFX;
 
@@ -31,17 +30,13 @@ namespace Client.Game.InGame.Train.View.Object
             // Drive smoke intensity only from the shared context
             ApplySmokeParameters(context.HasSnapshot ? context.MasconLevel : 0);
         }
-
-        #region Internal
-
+        
         private void ApplySmokeParameters(int masconLevel)
         {
             // 黒煙VFXは Intensity だけを制御する
             // Control only the Intensity property for black smoke
             smokeEffect.SetFloat(TrainSmokeProperty.Intensity, TrainSmokeLogic.ResolveIntensity(masconLevel));
         }
-
-        #endregion
     }
 
     public static class TrainSmokeLogic

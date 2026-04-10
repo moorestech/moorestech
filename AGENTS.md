@@ -11,6 +11,8 @@
 
 複雑なメソッドでは#regionとローカル関数を活用してください。これにより主要フローが一目で把握でき、詳細実装はローカル関数に隠蔽され、コードの意図が明確になり保守性が向上します。#endregionの下にはコードを書かず、すべて#regionブロックの上部か内部に記述してください。
 
+**重要**: `#region Internal` は「メソッド内のローカル関数をまとめる用途」に限定してください。クラス直下でprivateメソッド群を囲うために `#region Internal` を使うのは禁止です。クラス直下のprivateメソッドは通常どおりそのまま並べるか、必要なら別の責務分割で解決してください。
+
 例：
 ```csharp
 public void ComplexMethod()
@@ -31,6 +33,25 @@ public void ComplexMethod()
         // 計算ロジック
     }
     
+    #endregion
+}
+```
+
+禁止例：
+```csharp
+public class BadExample
+{
+    public void UpdateView()
+    {
+        Execute();
+    }
+
+    #region Internal
+
+    private void Execute()
+    {
+    }
+
     #endregion
 }
 ```
