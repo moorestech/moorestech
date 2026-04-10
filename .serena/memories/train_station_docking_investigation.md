@@ -141,7 +141,7 @@ StationComponent
 - 列車の配置と駅への接近
 - ドッキング検証
 
-テスト用ブロック: `ForUnitTestModBlockId.TestTrainCargoPlatform`
+テスト用ブロック: `ForUnitTestModBlockId.TestTrainItemPlatform`
 
 ## 7. クライアント側のビジュアル表現
 

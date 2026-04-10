@@ -96,7 +96,7 @@ namespace Tests.UnitTest.Game
                 // --- 4. TrainUnit を生成 ---
                 var cars = new List<TrainCar>
                 {
-                    TrainTestCarFactory.CreateTrainCar(0, 600000, 0, trainLength, true),  // 仮: 動力車
+                    TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 240000000, 0, trainLength, true).trainCar,  // 仮: 動力車
                 };
 
                 // ここで Length を強制上書き（このテストだけ直書き）
@@ -173,11 +173,11 @@ namespace Tests.UnitTest.Game
             // 例：5両編成で各車両の長さは 10, 20, 5, 5, 10 (トータル 50)
             var cars = new List<TrainCar>
             {
-                TrainTestCarFactory.CreateTrainCar(0, 600000, 0, 80, true),  // 仮: 動力車
-                TrainTestCarFactory.CreateTrainCar(1, 0, 10, 60, true),   // 貨車
-                TrainTestCarFactory.CreateTrainCar(2, 0, 10, 65, true),
-                TrainTestCarFactory.CreateTrainCar(3, 0, 10, 65, true),
-                TrainTestCarFactory.CreateTrainCar(4, 0, 10, 60, true),
+                TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 240000000, 0, 80, true).trainCar,  // 仮: 動力車
+                TrainTestCarFactory.CreateTrainCarWithItemContainer(1, 0, 10, 60, true).trainCar,   // 貨車
+                TrainTestCarFactory.CreateTrainCarWithItemContainer(2, 0, 10, 65, true).trainCar,
+                TrainTestCarFactory.CreateTrainCarWithItemContainer(3, 0, 10, 65, true).trainCar,
+                TrainTestCarFactory.CreateTrainCarWithItemContainer(4, 0, 10, 60, true).trainCar,
             };
             var railNodes = new List<IRailNode> { nodeC, nodeD };
             int totalTrainLength = cars.Sum(car => car.Length);  // 10+20+5+5+10 = 50
@@ -289,7 +289,7 @@ namespace Tests.UnitTest.Game
                 var worldBlockDatastore = env.WorldBlockDatastore;
 
                 Vector3Int stationBlockSize = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainStation).BlockSize;
-                Vector3Int cargoBBlockSize = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainCargoPlatform).BlockSize;
+                Vector3Int cargoBBlockSize = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainItemPlatform).BlockSize;
                 Assert.AreNotEqual(0, stationBlockSize.x, "ブロックサイズが0");
                 Assert.AreNotEqual(0, stationBlockSize.y, "ブロックサイズが0");
                 Assert.AreNotEqual(0, stationBlockSize.z, "ブロックサイズが0");
@@ -302,7 +302,7 @@ namespace Tests.UnitTest.Game
                 Vector3Int[] dirarray = new Vector3Int[] { new Vector3Int(0, 0, 1), new Vector3Int(1, 0, 0), new Vector3Int(0, 0, -1), new Vector3Int(-1, 0, 0) };
 
                 // 1) 駅を4つつくってrailcomponentの座標を確認
-                // 駅の列:TestTrainStation+TestTrainCargoPlatform+TestTrainCargoPlatform+TestTrainCargoPlatform+TestTrainCargoPlatform+TestTrainStation
+                // 駅の列:TestTrainStation+TestTrainItemPlatform+TestTrainItemPlatform+TestTrainItemPlatform+TestTrainItemPlatform+TestTrainStation
                 // 22+11+11+11+11+22の構成(旧)
                 // 8+8+8+8+8+8の構成(新)
                 int rand = UnityEngine.Random.Range(1000, 12000);
@@ -326,7 +326,7 @@ namespace Tests.UnitTest.Game
                         var offset11or22 = stationBlockSize.z;
                         if (blockDirections[i] == BlockDirection.West) offset11or22 = cargoBBlockSize.z;
                         if (blockDirections[i] == BlockDirection.South) offset11or22 = cargoBBlockSize.z;
-                        worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainCargoPlatform, position + dirarray[i] * (offset11or22 + cargoBBlockSize.z * j), blockDirections[i], Array.Empty<BlockCreateParam>(), out var cargoblock);
+                        worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestTrainItemPlatform, position + dirarray[i] * (offset11or22 + cargoBBlockSize.z * j), blockDirections[i], Array.Empty<BlockCreateParam>(), out var cargoblock);
                     }
                     Assert.AreEqual(2, railcomposA.Count, "駅Aに付随するRailComponent数が2本ではありません。");
                     Assert.AreEqual(2, railcomposB.Count, "駅Bに付随するRailComponent数が2本ではありません。");
@@ -387,8 +387,8 @@ namespace Tests.UnitTest.Game
                 var destination = railComponentsData[7].FrontNode;//目的地をセット
                 var cars = new List<TrainCar>
                 {
-                    TrainTestCarFactory.CreateTrainCar(0, 960000, 0, trainLength, true),  // 仮: 動力車まえ
-                    TrainTestCarFactory.CreateTrainCar(1, 960000, 0, 0, false),  // 仮: 動力車うしろ
+                    TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 384000000, 0, trainLength, true).trainCar,  // 仮: 動力車まえ
+                    TrainTestCarFactory.CreateTrainCarWithItemContainer(1, 384000000, 0, 0, false).trainCar,  // 仮: 動力車うしろ
                 };
                 var trainUnit = new TrainUnit(railPosition, cars, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
                 trainUnit.trainDiagram.AddEntry(destination);
@@ -556,7 +556,7 @@ namespace Tests.UnitTest.Game
                 // --- TrainUnit を生成 ---
                 var cars = new List<TrainCar>
                 {
-                    TrainTestCarFactory.CreateTrainCar(0, 600000, 0, trainLength, true),  // 仮: 動力車
+                    TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 240000000, 0, trainLength, true).trainCar,  // 仮: 動力車
                 };
                 var trainUnit = new TrainUnit(railPosition, cars, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
 
@@ -645,11 +645,11 @@ namespace Tests.UnitTest.Game
             // 例として5両編成でそれぞれの長さを 10, 20, 5, 5, 10 (トータル 50)
             var cars = new List<TrainCar>
             {
-                ForceLegacyLength(TrainTestCarFactory.CreateTrainCar(0, 1000, 0, 10, true), 10),  // 仮: 動力車
-                ForceLegacyLength(TrainTestCarFactory.CreateTrainCar(1, 0, 10, 20, true), 20),   // 貨車
-                ForceLegacyLength(TrainTestCarFactory.CreateTrainCar(2, 0, 10, 5, true), 5),
-                ForceLegacyLength(TrainTestCarFactory.CreateTrainCar(3, 0, 10, 5, true), 5),
-                ForceLegacyLength(TrainTestCarFactory.CreateTrainCar(4, 0, 10, 10, true), 10),
+                ForceLegacyLength(TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 400000, 0, 10, true).trainCar, 10),  // 仮: 動力車
+                ForceLegacyLength(TrainTestCarFactory.CreateTrainCarWithItemContainer(1, 0, 10, 20, true).trainCar, 20),   // 貨車
+                ForceLegacyLength(TrainTestCarFactory.CreateTrainCarWithItemContainer(2, 0, 10, 5, true).trainCar, 5),
+                ForceLegacyLength(TrainTestCarFactory.CreateTrainCarWithItemContainer(3, 0, 10, 5, true).trainCar, 5),
+                ForceLegacyLength(TrainTestCarFactory.CreateTrainCarWithItemContainer(4, 0, 10, 10, true).trainCar, 10),
             };
 
             int totalTrainLength = cars.Sum(car => car.Length);  // 10+20+5+5+10 = 50

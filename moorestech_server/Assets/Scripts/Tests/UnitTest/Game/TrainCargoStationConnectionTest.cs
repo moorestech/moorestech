@@ -37,7 +37,7 @@ namespace Tests.UnitTest.Game
             // Place cargo platform block and obtain its RailComponent component
             var (_, cargoComponents) = TrainTestHelper.PlaceBlockWithRailComponents(
                 environment,
-                ForUnitTestModBlockId.TestTrainCargoPlatform,
+                ForUnitTestModBlockId.TestTrainItemPlatform,
                 cargoPosition,
                 cargoDirection);
             Assert.IsNotNull(cargoComponents, "貨物駅のRailComponentを取得できませんでした。");
@@ -62,7 +62,7 @@ namespace Tests.UnitTest.Game
                 // マスターデータからブロックサイズを取得する
                 // Fetch block sizes from the master data set
                 var blockMaster = MasterHolder.BlockMaster;
-                var cargoSize = blockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainCargoPlatform).BlockSize;
+                var cargoSize = blockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainItemPlatform).BlockSize;
                 var stationSize = blockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainStation).BlockSize;
 
                 // 対象方向が水平方向かつ同一軸であることを検証する

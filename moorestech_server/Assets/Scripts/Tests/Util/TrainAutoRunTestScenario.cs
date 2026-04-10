@@ -7,6 +7,7 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Game.Train.Unit.Containers;
 using Tests.Module.TestMod;
 using UnityEngine;
 
@@ -29,6 +30,7 @@ namespace Tests.Util
 
         public TrainUnit Train { get; }
         public TrainCar TrainCar => _trainCar;
+        public ItemTrainCarContainer ItemContainer => _trainCar.Container as ItemTrainCarContainer;
         public RailNode StationExitFront => _stationNodes.ExitFront;
         public RailNode StationEntryFront => _stationNodes.EntryFront;
         public RailNode StationExitBack => _stationNodes.ExitBack;
@@ -51,7 +53,7 @@ namespace Tests.Util
 
             var (stationBlock, stationComponents) = TrainTestHelper.PlaceBlockWithRailComponents(
                 environment,
-                ForUnitTestModBlockId.TestTrainCargoPlatform,
+                ForUnitTestModBlockId.TestTrainItemPlatform,
                 Vector3Int.zero,
                 BlockDirection.North);
             var (_, r0Component) = TrainTestHelper.PlaceBlockWithComponent<RailComponent>(
@@ -93,9 +95,9 @@ namespace Tests.Util
             var initialDistance = startRunning ? stationNodes.SegmentLength - 1 : 0;
             var railPosition = new RailPosition(initialRailNodes, stationNodes.SegmentLength, initialDistance);
 
-            var trainCar = TrainTestCarFactory.CreateTrainCar(0, 1000, 1, stationNodes.BlockLength, true);
+            var (trainCar, _) = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 400000, 1, stationNodes.BlockLength, true);
             var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, environment.GetTrainUpdateService(), environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
-
+            
             trainUnit.trainDiagram.AddEntry(stationNodes.ExitFront);
             trainUnit.trainDiagram.AddEntry(n1);
             trainUnit.trainDiagram.AddEntry(n2);

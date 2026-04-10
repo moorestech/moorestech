@@ -8,6 +8,7 @@ using Game.Train.RailCalc;
 using Game.Train.RailGraph;
 using Game.Train.RailPositions;
 using Game.Train.Unit;
+using Game.Train.Unit.Containers;
 using NUnit.Framework;
 using Tests.Module.TestMod;
 using UnityEngine;
@@ -58,7 +59,7 @@ namespace Tests.Util
             var n1Component = TrainTestHelper.PlaceRail(environment, new Vector3Int(5, 0, 0), BlockDirection.North);
             var (stationBlock, stationComponents) = TrainTestHelper.PlaceBlockWithRailComponents(
                 environment,
-                ForUnitTestModBlockId.TestTrainCargoPlatform,
+                ForUnitTestModBlockId.TestTrainItemPlatform,
                 new Vector3Int(10, 20, 0),
                 BlockDirection.North);
             var n2Component = TrainTestHelper.PlaceRail(environment, new Vector3Int(15, 0, 0), BlockDirection.North);
@@ -95,7 +96,7 @@ namespace Tests.Util
             var n3Component = TrainTestHelper.PlaceRail(environment, new Vector3Int(20, 0, 0), BlockDirection.North);
             var (stationBlock, stationComponents) = TrainTestHelper.PlaceBlockWithRailComponents(
                 environment,
-                ForUnitTestModBlockId.TestTrainCargoPlatform,
+                ForUnitTestModBlockId.TestTrainItemPlatform,
                 new Vector3Int(10, 100, 0),
                 BlockDirection.North);
 
@@ -112,7 +113,7 @@ namespace Tests.Util
             return new TrainStationDockingScenario(environment, n0Component, n1Component, station, n2Component, n3Component);
         }
 
-        public TrainUnit CreateForwardDockingTrain(out TrainCar car, int initialDistanceToExit = 0)
+        public TrainUnit CreateForwardDockingTrain(out TrainCar car, out ItemTrainCarContainer container, int initialDistanceToExit = 0)
         {
             var nodes = new List<IRailNode>
             {
@@ -122,10 +123,10 @@ namespace Tests.Util
                 _n0Component.FrontNode
             };
 
-            return CreateTrain(nodes, initialDistanceToExit, out car);
+            return CreateTrain(nodes, initialDistanceToExit, out car, out container);
         }
 
-        public TrainUnit CreateOpposingDockingTrain(out TrainCar car, int initialDistanceToExit = 0)
+        public TrainUnit CreateOpposingDockingTrain(out TrainCar car, out ItemTrainCarContainer container, int initialDistanceToExit = 0)
         {
             var nodes = new List<IRailNode>
             {
@@ -135,7 +136,7 @@ namespace Tests.Util
                 _n3Component.BackNode
             };
 
-            return CreateTrain(nodes, initialDistanceToExit, out car, false);
+            return CreateTrain(nodes, initialDistanceToExit, out car, out container, false);
         }
 
         public TrainUnit CreateLoopDockingTrain(int carCount, out IReadOnlyList<TrainCar> cars)
@@ -146,7 +147,8 @@ namespace Tests.Util
             var trainCars = new List<TrainCar>(carCount);
             for (var i = 0; i < carCount; i++)
             {
-                trainCars.Add(TrainTestCarFactory.CreateTrainCar(i, 1000, 1, _station.BlockLength, true));
+                var (trainCar, _) = TrainTestCarFactory.CreateTrainCarWithItemContainer(i, 400000, 1, _station.BlockLength, true);
+                trainCars.Add(trainCar);
                 requiredLength += trainCars[i].Length;
             }
 
@@ -179,7 +181,7 @@ namespace Tests.Util
             _disposed = true;
         }
 
-        private TrainUnit CreateTrain(List<IRailNode> nodes, int initialDistanceToNextNode, out TrainCar car, bool isFacingFront = true)
+        private TrainUnit CreateTrain(List<IRailNode> nodes, int initialDistanceToNextNode, out TrainCar car, out ItemTrainCarContainer container, bool isFacingFront = true)
         {
             var firstTrain = MasterHolder.TrainUnitMaster.Train.TrainCars.First();
 
@@ -189,6 +191,8 @@ namespace Tests.Util
             };
 
             car = cars[0];
+            container = ItemTrainCarContainer.CreateWithEmptySlots(firstTrain.InventorySlots);
+            car.SetContainer(container);
             return CreateTrain(nodes, cars, initialDistanceToNextNode);
         }
 
@@ -210,7 +214,7 @@ namespace Tests.Util
 
         private List<IRailNode> BuildLoopRailNodes(int requiredLength)
         {
-            var nodes = new List<IRailNode> { };
+            var nodes = new List<IRailNode>();
             var loopSequence = new[]
             {
                 _station.ExitFront,

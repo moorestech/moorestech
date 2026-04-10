@@ -1,11 +1,14 @@
-﻿using Game.Context;
-using Game.Train.Diagram;
-using Game.Train.RailGraph;
-using Game.Train.RailCalc;
-using Game.Train.RailPositions;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Core.Update;
+using Game.Context;
+using Game.Train.Diagram;
+using Game.Train.RailCalc;
+using Game.Train.RailGraph;
+using Game.Train.RailPositions;
+using Core.Master;
+using UnityEngine;
 
 namespace Game.Train.Unit
 {
@@ -101,7 +104,7 @@ namespace Game.Train.Unit
             tickCounter++;
             if (_trainUpdateService.IsTrainAutoRunDebugEnabled() && tickCounter % 20 == 0)
             {
-                UnityEngine.Debug.Log("spd=" + _currentSpeed + "_Auto=" + IsAutoRun + "_DiagramCount" + trainDiagram.Entries.Count + "" + IsDocked);// TODO デバッグトグル関係　そのうち消す
+                Debug.Log("spd=" + _currentSpeed + "_Auto=" + IsAutoRun + "_DiagramCount" + trainDiagram.Entries.Count + "" + IsDocked); // TODO デバッグトグル関係　そのうち消す
             }
 
             if (IsAutoRun)
@@ -120,7 +123,7 @@ namespace Game.Train.Unit
                     _currentSpeed = 0;
                     masconLevel = 0;
                     if (_trainUpdateService.IsTrainAutoRunDebugEnabled() && tickCounter % 20 == 0)
-                        UnityEngine.Debug.Log("ドッキング中");// TODO デバッグトグル関係　そのうち消す
+                        Debug.Log("ドッキング中"); // TODO デバッグトグル関係　そのうち消す
                     trainUnitStationDocking.TickDockedStations();
                     // もしtrainDiagramの出発条件を満たしていたら、trainDiagramは次の目的地をセット。次のtickでドッキングを解除、バリデーションが行われる
                     trainDiagram.Update();
@@ -256,7 +259,7 @@ namespace Game.Train.Unit
                     var (found, newPath) = CheckAllDiagramPath(approaching);
                     if (!found)//全部の経路がなくなった
                     {
-                        UnityEngine.Debug.Log("diagramの登録nodeに対する経路が全てなくなった。自動運転off");
+                        Debug.Log("diagramの登録nodeに対する経路が全てなくなった。自動運転off");
                         TurnOffAutoRun();
                         break;
                     }
@@ -296,11 +299,12 @@ namespace Game.Train.Unit
             int totalTraction = 0;
             foreach (var car in _cars)
             {
-                var (weight, traction) = car.GetWeightAndTraction();//forceに応じて燃料が消費される:未実装
+                car.ConsumeFuel(GameUpdater.SecondsPerTick, masconLevel);
+                var (weight, traction) = car.GetWeightAndTraction(masconLevel); //forceに応じて燃料が消費される:未実装
                 totalWeight += weight;
                 totalTraction += traction;
             }
-            return (double)totalTraction / totalWeight * masconLevel / TrainMotionParameters.MasconLevelMaximum;
+            return (double)totalTraction / totalWeight * masconLevel / MasterHolder.TrainUnitMaster.MasconLevelMaximum;
         }
 
         //diagramのindexが見ている目的地にちょうど0距離で到達したか
@@ -353,7 +357,7 @@ namespace Game.Train.Unit
             var (found, newPath) = CheckAllDiagramPath(approaching);
             if (!found)//全部の経路がなくなった
             {
-                UnityEngine.Debug.Log("diagramの登録nodeに対する経路が全てない。自動運転off");
+                Debug.Log("diagramの登録nodeに対する経路が全てない。自動運転off");
                 TurnOffAutoRun();
                 return;
             }
@@ -504,7 +508,7 @@ namespace Game.Train.Unit
             if (numberOfCarsToDetach <= 0 || numberOfCarsToDetach > _cars.Count)
             {
                 if (numberOfCarsToDetach != 0)
-                    UnityEngine.Debug.LogWarning("SplitTrain: 指定両数が不正です。");
+                    Debug.LogWarning("SplitTrain: 指定両数が不正です。");
                 return (null, deletedTrainInstanceId);
             }
             TurnOffAutoRun();
@@ -567,7 +571,7 @@ namespace Game.Train.Unit
         {
             if (targetIndex < 0 || targetIndex >= _cars.Count)
             {
-                UnityEngine.Debug.LogWarning($"RemoveCar: carIndex {targetIndex} is not found.");
+                Debug.LogWarning($"RemoveCar: carIndex {targetIndex} is not found.");
                 return (null, TrainInstanceId.Empty);
             }
             var carsBehind = _cars.Count - targetIndex - 1;

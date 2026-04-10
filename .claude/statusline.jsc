@@ -3,19 +3,20 @@
 const { execSync } = require('child_process');
 const fs = require('fs');
 
-const USAGE_CACHE_FILE = '/tmp/claude-usage-cache.json';
-const USAGE_CACHE_TTL = 360; // seconds
 const BAR_WIDTH = 20;
 const SESSION_HOURS = 5;
-const AUTOCOMPACT_BUFFER_RATIO = 0.165; // ⛝ Autocompact buffer (~16.5% of context window)
+const AUTOCOMPACT_BUFFER_RATIO = 0.165; // Autocompact buffer (~16.5% of context window)
 
-// Read JSON from stdin
+const RST = '\x1b[0m';
+const EXEC_OPTS = { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] };
+
+// ── エントリポイント ──
+// ── Entry point ──
 let input = '';
 process.stdin.on('data', chunk => input += chunk);
 process.stdin.on('end', () => {
     try {
-        const data = JSON.parse(input || '{}');
-        console.log(buildStatusLine(data));
+        console.log(buildStatusLine(JSON.parse(input || '{}')));
     } catch (error) {
         console.log(`[Error] ${error.message}`);
         console.log(`Stack: ${error.stack}`);
@@ -23,39 +24,163 @@ process.stdin.on('end', () => {
     }
 });
 
-// claude-sonnet-4-6 -> Sonnet 4.6  (model can be string or {id, display_name})
+// ── ステータスライン構築 ──
+// ── Build status line ──
+function buildStatusLine(data) {
+    const now = Date.now();
+    const model = data.model || {};
+    const cwd = data.cwd || process.cwd();
+    const ctxWin = data.context_window || {};
+    const { firstUserMessage, lastUsage } = analyzeTranscript(data.transcript_path);
+
+    const rateLimits = data.rate_limits || {};
+
+    const line1 = buildHeaderLine(model, cwd, ctxWin, lastUsage);
+    const line2 = buildContextBar(ctxWin, lastUsage);
+    const line3 = buildSessionLine(now, rateLimits);
+    const line4 = firstUserMessage ? `🗣 ${truncate(firstUserMessage, 40)}` : '';
+
+    const lines = [line1, line2, line3];
+    if (line4) lines.push(line4);
+    return lines.join('\n');
+
+    // --- Internal ---
+
+    // ヘッダー行: モデル名、コンテキスト%、git、cwd
+    // Header line: model name, context %, git, cwd
+    function buildHeaderLine(model, cwd, ctxWin, lastUsage) {
+        const pct = calcContextPct(ctxWin, lastUsage);
+        const gitInfo = getGitInfo(cwd);
+
+        const parts = [`[🤖${formatModel(model)} ${colorPct(pct)}]`];
+        if (gitInfo) parts.push(gitInfo);
+        parts.push(`📁 ${cwd}`);
+        return parts.join(' | ');
+    }
+
+    // コンテキストバー行
+    // Context bar line
+    function buildContextBar(ctxWin, lastUsage) {
+        const contextMax = ctxWin.context_window_size || 200000;
+        const effectiveMax = Math.round(contextMax * (1 - AUTOCOMPACT_BUFFER_RATIO));
+        const tokens = sumTokens(lastUsage);
+        const ratio = Math.min(tokens / effectiveMax, 1);
+        const pct = calcContextPct(ctxWin, lastUsage);
+        return `Compact: ${makeBar(ratio, BAR_WIDTH)} [${colorPct(pct)}] ${formatK(tokens)}/${formatK(effectiveMax)}`;
+    }
+
+    // セッション使用率行（5h/7d）— stdin の rate_limits から取得
+    // Session usage line (5h/7d) — from stdin rate_limits
+    function buildSessionLine(now, rateLimits) {
+        if (!rateLimits?.five_hour) return 'Session: waiting for data...';
+
+        const sessionMs = SESSION_HOURS * 3600000;
+        const fiveUtil = Math.round(rateLimits.five_hour.used_percentage ?? 0);
+        // resets_at は Unix epoch 秒
+        // resets_at is Unix epoch seconds
+        const resetsAtMs = rateLimits.five_hour.resets_at ? rateLimits.five_hour.resets_at * 1000 : null;
+
+        // リセット時刻からウィンドウ経過時間を逆算
+        // Derive window elapsed from resets_at
+        const windowEnd = resetsAtMs ?? now + sessionMs;
+        const windowElapsed = Math.max(0, Math.min(now - (windowEnd - sessionMs), sessionMs));
+
+        const sevenUtil = Math.round(rateLimits.seven_day?.used_percentage ?? 0);
+        const sevenResetsAtMs = rateLimits.seven_day?.resets_at ? rateLimits.seven_day.resets_at * 1000 : null;
+        const sevenDaysElapsed = sevenResetsAtMs
+            ? Math.max(0, Math.min(7, Math.ceil(7 - (sevenResetsAtMs - now) / 86400000)))
+            : '?';
+
+        return `Session: ${makeBar(fiveUtil / 100, BAR_WIDTH)} [${colorPct(fiveUtil)}] ${formatDuration(windowElapsed)}/${SESSION_HOURS}h | [${colorPct(sevenUtil)}] ${sevenDaysElapsed}/7d`;
+    }
+
+}
+
+// ── コンテキスト計算 ──
+// ── Context calculation ──
+
+function sumTokens(usage) {
+    if (!usage) return 0;
+    return (usage.input_tokens || 0) + (usage.output_tokens || 0) +
+           (usage.cache_creation_input_tokens || 0) + (usage.cache_read_input_tokens || 0);
+}
+
+function calcContextPct(ctxWin, lastUsage) {
+    const contextMax = ctxWin.context_window_size || 200000;
+    const effectiveMax = Math.round(contextMax * (1 - AUTOCOMPACT_BUFFER_RATIO));
+    const apiUsedPct = typeof ctxWin.used_percentage === 'number' ? ctxWin.used_percentage : null;
+
+    if (apiUsedPct !== null) {
+        return Math.min(100, Math.round(apiUsedPct / (1 - AUTOCOMPACT_BUFFER_RATIO)));
+    }
+    const tokens = sumTokens(lastUsage);
+    return Math.round(Math.min(tokens / effectiveMax, 1) * 100);
+}
+
+// ── フォーマッタ ──
+// ── Formatters ──
+
+// 使用率に応じた色付け
+// Color by utilization percentage
+function colorPct(pct) {
+    const c = pct < 40 ? '\x1b[32m' : pct < 60 ? '\x1b[33m' : pct < 80 ? '\x1b[38;5;208m' : '\x1b[31m';
+    return `${c}${pct}%${RST}`;
+}
+
+// claude-sonnet-4-6 -> Sonnet 4.6
 function formatModel(model) {
     if (!model) return 'Unknown';
     if (typeof model === 'object') {
-        if (model.display_name) return model.display_name;
+        if (model.display_name) return model.display_name.replace(/\s*\(1M context\)/, ':1M');
         model = model.id || '';
     }
     const m = model.match(/claude-(\w+)-(\d+)-(\d+)/i);
-    if (m) {
-        const name = m[1][0].toUpperCase() + m[1].slice(1);
-        return `${name} ${m[2]}.${m[3]}`;
-    }
+    if (m) return `${m[1][0].toUpperCase() + m[1].slice(1)} ${m[2]}.${m[3]}`;
     return model.replace(/^claude-/i, '');
 }
 
-// Run git commands to get branch and status
+// 91800 -> "91.8K", 14000000 -> "14.0M"
+function formatK(n) {
+    if (n >= 1e6) return `${(n / 1e6).toFixed(1)}M`;
+    if (n >= 1e3) return `${(n / 1e3).toFixed(1)}K`;
+    return `${n}`;
+}
+
+// ミリ秒 -> "1h15m" or "45m"
+// Milliseconds -> "1h15m" or "45m"
+function formatDuration(ms) {
+    const h = Math.floor(ms / 3600000);
+    const m = Math.floor((ms % 3600000) / 60000);
+    if (h > 0) return m > 0 ? `${h}h${m}m` : `${h}h`;
+    return `${m}m`;
+}
+
+// プログレスバー: ratio=0.58, width=20 -> "████████████▒▒▒▒▒▒▒▒"
+// Progress bar: ratio=0.58, width=20 -> "████████████▒▒▒▒▒▒▒▒"
+function makeBar(ratio, width) {
+    const filled = Math.max(0, Math.min(width, Math.round(ratio * width)));
+    return '█'.repeat(filled) + '▒'.repeat(width - filled);
+}
+
+// 空白を潰して省略
+// Collapse whitespace and truncate
+function truncate(s, maxLen) {
+    const oneline = String(s || '').replace(/\s+/g, ' ').trim();
+    return oneline.length <= maxLen ? oneline : oneline.slice(0, maxLen - 1) + '…';
+}
+
+// ── Git情報取得 ──
+// ── Git info ──
 function getGitInfo(cwd) {
     try {
-        const branch = execSync('git rev-parse --abbrev-ref HEAD', {
-            cwd, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe']
-        }).trim();
+        const branch = execSync('git rev-parse --abbrev-ref HEAD', { cwd, ...EXEC_OPTS }).trim();
+        const gitEnv = { ...process.env, GIT_OPTIONAL_LOCKS: "0" };
+        const status = execSync('git status --porcelain', { cwd, ...EXEC_OPTS, env: gitEnv }).trim();
 
-        const status = execSync('git status --porcelain', {
-            cwd, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe']
-        }).trim();
-
-        let modified = 0, untracked = 0;
+        let untracked = 0;
         if (status) {
             for (const line of status.split('\n')) {
-                if (line.trim()) {
-                    if (line.startsWith('??')) untracked++;
-                    else modified++;
-                }
+                if (line.trim() && line.startsWith('??')) untracked++;
             }
         }
 
@@ -67,129 +192,43 @@ function getGitInfo(cwd) {
     }
 }
 
-// Fetch 5h/7d usage from Anthropic OAuth API (with caching)
-// Returns { five_hour: { utilization, resets_at }, seven_day: { utilization, resets_at } } or null
-function fetchUsage() {
-    // キャッシュ確認
-    // Check cache
-    try {
-        if (fs.existsSync(USAGE_CACHE_FILE)) {
-            const stat = fs.statSync(USAGE_CACHE_FILE);
-            const ageSec = (Date.now() - stat.mtimeMs) / 1000;
-            if (ageSec < USAGE_CACHE_TTL) {
-                return JSON.parse(fs.readFileSync(USAGE_CACHE_FILE, 'utf8'));
-            }
-        }
-    } catch {}
-
-    // Keychainからトークン取得
-    // Get token from macOS Keychain
-    let accessToken = null;
-    try {
-        const credsJson = execSync(
-            'security find-generic-password -s "Claude Code-credentials" -w',
-            { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }
-        ).trim();
-        const creds = JSON.parse(credsJson);
-        accessToken = creds?.claudeAiOauth?.accessToken;
-    } catch {}
-
-    if (!accessToken) {
-        // トークン取れなくても古いキャッシュがあればそれを返す
-        // Fall back to stale cache if token unavailable
-        try { return JSON.parse(fs.readFileSync(USAGE_CACHE_FILE, 'utf8')); } catch {}
-        return null;
-    }
-
-    // API呼び出し
-    // Call Anthropic usage API
-    try {
-        const response = execSync(
-            `curl -sf --max-time 5 -H "Authorization: Bearer ${accessToken}" -H "anthropic-beta: oauth-2025-04-20" "https://api.anthropic.com/api/oauth/usage"`,
-            { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }
-        ).trim();
-        if (response) {
-            const data = JSON.parse(response);
-            fs.writeFileSync(USAGE_CACHE_FILE, JSON.stringify(data), 'utf8');
-            return data;
-        }
-    } catch {}
-
-    // API失敗時は古いキャッシュにフォールバック
-    // Fall back to stale cache on API failure
-    try { return JSON.parse(fs.readFileSync(USAGE_CACHE_FILE, 'utf8')); } catch {}
-    return null;
-}
-
-// リセット時刻をAsia/Tokyoで "3pm" or "3/16 7am" 形式にフォーマット
-// Format resets_at to Asia/Tokyo as "3pm" or "3/16 7am"
-function formatResetTime(isoStr) {
-    if (!isoStr) return '';
-    const resetDate = new Date(isoStr);
-    if (isNaN(resetDate.getTime())) return '';
-
-    const nowTokyo = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
-    const resetTokyo = new Date(resetDate.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
-
-    const hour = resetTokyo.getHours();
-    const min = resetTokyo.getMinutes();
-    const ampm = hour < 12 ? 'am' : 'pm';
-    const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-    const timeStr = min === 0 ? `${hour12}${ampm}` : `${hour12}:${String(min).padStart(2, '0')}${ampm}`;
-
-    // 同日ならば時刻のみ、それ以外は月/日+時刻
-    // Same day: time only, otherwise month/day + time
-    const sameDay = resetTokyo.getFullYear() === nowTokyo.getFullYear() &&
-                    resetTokyo.getMonth() === nowTokyo.getMonth() &&
-                    resetTokyo.getDate() === nowTokyo.getDate();
-    if (sameDay) return timeStr;
-    return `${resetTokyo.getMonth() + 1}/${resetTokyo.getDate()} ${timeStr}`;
-}
-
-// Format milliseconds as "1h15m" or "45m"
-function formatDuration(ms) {
-    const h = Math.floor(ms / 3600000);
-    const m = Math.floor((ms % 3600000) / 60000);
-    if (h > 0) return m > 0 ? `${h}h${m}m` : `${h}h`;
-    return `${m}m`;
-}
-
-// Format timestamp as "09:15"
-function formatHHMM(ts) {
-    const d = new Date(ts);
-    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-}
-
-// トランスクリプトJSONLから最初のユーザーメッセージと最新のトークン使用量を取得
-// Parse transcript JSONL for first user message and last cumulative token usage
+// ── トランスクリプト解析 ──
+// ── Transcript analysis ──
 function analyzeTranscript(transcriptPath) {
+    const empty = { firstUserMessage: '', lastUsage: null };
     try {
-        if (!transcriptPath || !fs.existsSync(transcriptPath)) return { firstUserMessage: '', lastUsage: null };
+        if (!transcriptPath || !fs.existsSync(transcriptPath)) return empty;
+
         const lines = fs.readFileSync(transcriptPath, 'utf8').split('\n').filter(l => l.trim());
         let firstUserMessage = '';
         let lastUsage = null;
+
         for (const line of lines) {
             try {
                 const entry = JSON.parse(line);
                 if (entry.isSidechain || entry.isApiErrorMessage) continue;
+
+                // 最初のユーザーメッセージを取得
+                // Capture first user message
                 if (!firstUserMessage && entry.type === 'user') {
                     firstUserMessage = extractMessageText(entry);
                 }
-                if (entry.type === 'assistant' && entry.message && entry.message.usage) {
-                    const u = entry.message.usage;
-                    const total = (u.input_tokens || 0) + (u.output_tokens || 0) +
-                                  (u.cache_creation_input_tokens || 0) + (u.cache_read_input_tokens || 0);
-                    if (total > 0) lastUsage = u;
+
+                // 最新のトークン使用量を更新
+                // Update latest token usage
+                if (entry.type === 'assistant' && entry.message?.usage) {
+                    if (sumTokens(entry.message.usage) > 0) {
+                        lastUsage = entry.message.usage;
+                    }
                 }
             } catch {}
         }
         return { firstUserMessage, lastUsage };
     } catch {
-        return { firstUserMessage: '', lastUsage: null };
+        return empty;
     }
 }
 
-// Extract plain text from a transcript entry's message content
 function extractMessageText(entry) {
     const msg = entry?.message;
     if (!msg) return '';
@@ -198,101 +237,8 @@ function extractMessageText(entry) {
     if (typeof content === 'string') return content;
     if (Array.isArray(content)) {
         return content
-            .map(b => (b && b.type === 'text' && typeof b.text === 'string') ? b.text : (typeof b === 'string' ? b : ''))
+            .map(b => (b?.type === 'text' && typeof b.text === 'string') ? b.text : (typeof b === 'string' ? b : ''))
             .join('');
     }
     return '';
-}
-
-// Collapse whitespace and truncate with ellipsis
-function truncate(s, maxLen) {
-    const oneline = String(s || '').replace(/\s+/g, ' ').trim();
-    return oneline.length <= maxLen ? oneline : oneline.slice(0, maxLen - 1) + '…';
-}
-
-// Format large numbers: 91800 -> "91.8K", 14000000 -> "14.0M"
-function formatK(n) {
-    if (n >= 1e6) return `${(n / 1e6).toFixed(1)}M`;
-    if (n >= 1e3) return `${(n / 1e3).toFixed(1)}K`;
-    return `${n}`;
-}
-
-// Build a progress bar: ratio=0.58, width=20 -> "████████████▒▒▒▒▒▒▒▒"
-function makeBar(ratio, width) {
-    const filled = Math.max(0, Math.min(width, Math.round(ratio * width)));
-    return '█'.repeat(filled) + '▒'.repeat(width - filled);
-}
-
-function buildStatusLine(data) {
-    const now = Date.now();
-
-    const model = data.model || {};
-    const cwd = data.cwd || process.cwd();
-
-    const ctxWin = data.context_window || {};
-    const contextMax = ctxWin.context_window_size || 200000;
-    const apiUsedPct = typeof ctxWin.used_percentage === 'number' ? ctxWin.used_percentage : null;
-
-    const { firstUserMessage, lastUsage } = analyzeTranscript(data.transcript_path);
-
-    // コンテキストウィンドウ使用量（JSONLベース）
-    // Context window usage from JSONL
-    const compactInput      = lastUsage ? (lastUsage.input_tokens || 0) : 0;
-    const compactOutput     = lastUsage ? (lastUsage.output_tokens || 0) : 0;
-    const compactCacheWrite = lastUsage ? (lastUsage.cache_creation_input_tokens || 0) : 0;
-    const compactCacheRead  = lastUsage ? (lastUsage.cache_read_input_tokens || 0) : 0;
-    const compactTokens     = compactInput + compactOutput + compactCacheWrite + compactCacheRead;
-
-    const effectiveContextMax = Math.round(contextMax * (1 - AUTOCOMPACT_BUFFER_RATIO));
-    const contextRatio  = Math.min(compactTokens / effectiveContextMax, 1);
-    const pct2          = apiUsedPct !== null ? Math.min(100, Math.round(apiUsedPct / (1 - AUTOCOMPACT_BUFFER_RATIO))) : Math.round(contextRatio * 100);
-
-    const rst = '\x1b[0m';
-
-    // 使用率に応じた色付け関数
-    // Color by utilization percentage
-    const colorPct = (pct) => {
-        const c = pct < 40 ? '\x1b[32m' : pct < 60 ? '\x1b[33m' : pct < 80 ? '\x1b[38;5;208m' : '\x1b[31m';
-        return `${c}${pct}%${rst}`;
-    };
-
-    const gitInfo = getGitInfo(cwd);
-    const parts = [`[🤖${formatModel(model)} ${colorPct(pct2)}]`];
-    if (gitInfo) parts.push(gitInfo);
-    parts.push(`📁 ${cwd}`);
-    const line1 = parts.join(' | ');
-
-    // Line 2: コンテキストウィンドウ使用量バー
-    // Line 2: Context window usage bar
-    const line2 = `Compact: ${makeBar(contextRatio, BAR_WIDTH)} [${colorPct(pct2)}] ${formatK(compactTokens)}/${formatK(effectiveContextMax)}`;
-
-    // Line 3: 5hセッション使用率（Anthropic OAuth Usage APIベース）
-    // Line 3: 5h session usage from Anthropic OAuth Usage API
-    const sessionMs = SESSION_HOURS * 3600000;
-    let line3 = 'Session: fetching...';
-    const usage = fetchUsage();
-    if (usage && usage.five_hour) {
-        const fiveUtil = Math.round(usage.five_hour.utilization ?? 0);
-        const sessionRatio = fiveUtil / 100;
-        const resetsAt = usage.five_hour.resets_at ? new Date(usage.five_hour.resets_at) : null;
-
-        // リセット時刻からウィンドウ開始・終了・経過を逆算
-        // Derive window start/end/elapsed from resets_at
-        let windowEnd = resetsAt ? resetsAt.getTime() : now + sessionMs;
-        let windowStart = windowEnd - sessionMs;
-        const windowElapsed = Math.max(0, Math.min(now - windowStart, sessionMs));
-
-        const sevenUtil = Math.round(usage.seven_day?.utilization ?? 0);
-        const sevenResetsAt = usage.seven_day?.resets_at ? new Date(usage.seven_day.resets_at) : null;
-        const sevenDaysElapsed = sevenResetsAt ? Math.max(0, Math.min(7, Math.ceil(7 - (sevenResetsAt.getTime() - now) / 86400000))) : '?';
-        line3 = `Session: ${makeBar(sessionRatio, BAR_WIDTH)} [${colorPct(fiveUtil)}] ${formatDuration(windowElapsed)}/${SESSION_HOURS}h | [${colorPct(sevenUtil)}] ${sevenDaysElapsed}/7d`;
-    }
-
-    // Line 4: 最初のユーザーメッセージ
-    // Line 4: First user message
-    const line4 = firstUserMessage ? `🗣 ${truncate(firstUserMessage, 40)}` : '';
-
-    const lines = [line1, line2, line3];
-    if (line4) lines.push(line4);
-    return lines.join('\n');
 }

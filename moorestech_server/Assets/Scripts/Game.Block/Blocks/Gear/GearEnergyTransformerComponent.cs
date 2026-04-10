@@ -43,7 +43,7 @@ namespace Game.Block.Blocks.Gear
             return new []{ _simpleGearService.GetBlockStateDetail() };
         }
         
-        public Torque GetRequiredTorque(RPM rpm, bool isClockwise)
+        public virtual Torque GetRequiredTorque(RPM rpm, bool isClockwise)
         {
             return RequiredTorque;
         }

@@ -24,8 +24,8 @@ namespace Game.Train.Unit
         public Guid TrainCarMasterId { get; set; }
         public bool IsFacingForward { get; set; }
         public SerializableVector3Int? DockingBlockPosition { get; set; }
-        public List<ItemStackSaveJsonObject> InventoryItems { get; set; }
-        public List<ItemStackSaveJsonObject> FuelItems { get; set; }
+        public string ContainerSaveData { get; set; }
+        public double RemainFuelTime { get; set; }
     }
 
     [Serializable]
@@ -52,20 +52,20 @@ namespace Game.Train.Unit
     // -----------------クライアント関連-----------------
     public readonly struct TrainCarSnapshot
     {
-        public TrainCarSnapshot(TrainCarInstanceId trainCarInstanceId, Guid trainCarMasterId, int inventorySlotsCount, int tractionForce, bool isFacingForward)
+        public TrainCarSnapshot(TrainCarInstanceId trainCarInstanceId, Guid trainCarMasterId, bool isFacingForward, bool hasFuel, int weight)
         {
             TrainCarInstanceId = trainCarInstanceId;
             TrainCarMasterId = trainCarMasterId;
             IsFacingForward = isFacingForward;
-            InventorySlotsCount = inventorySlotsCount;
-            TractionForce = tractionForce;
+            HasFuel = hasFuel;
+            Weight = weight;
         }
 
         public TrainCarInstanceId TrainCarInstanceId { get; }
         public Guid TrainCarMasterId { get; }
         public bool IsFacingForward { get; }
-        public int InventorySlotsCount { get; }
-        public int TractionForce { get; }
+        public bool HasFuel { get; }
+        public int Weight { get; }
     }
 
     // 列車のシミュレーション状態をクライアントにおくる構造体

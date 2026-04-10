@@ -85,7 +85,7 @@
               "GearMapObjectMiner",
               "TrainRail",
               "TrainStation",
-              "TrainCargoPlatform",
+              "TrainItemPlatform",
               "FluidPipe"
             ]
           },
@@ -563,7 +563,7 @@
                       "type": "number",
                       "default": 2
                     },
-                    "requireTorque": {
+                    "requireTorquePerRpm": {
                       "type": "number",
                       "default": 2
                     },
@@ -724,7 +724,7 @@
                 "if": {
                   "properties": {
                     "blockType": {
-                      "const": "TrainCargoPlatform"
+                      "const": "TrainItemPlatform"
                     }
                   }
                 },

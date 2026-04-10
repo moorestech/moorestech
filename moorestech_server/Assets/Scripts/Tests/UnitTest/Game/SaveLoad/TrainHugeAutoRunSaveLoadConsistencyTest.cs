@@ -359,7 +359,7 @@ namespace Tests.UnitTest.Game.SaveLoad
                     itemGuidBytes[i] = (byte)UnityEngine.Random.Range(0, 256);
                 }
 
-                return new TrainCarMasterElement(index, new Guid(trainCarGuidBytes), new Guid(itemGuidBytes), null, tractionForce, 0, length);
+                return new TrainCarMasterElement(index, new Guid(trainCarGuidBytes), new Guid(itemGuidBytes), null, 320, tractionForce, 0, length, null, null);
             }).ToArray());
         }
         

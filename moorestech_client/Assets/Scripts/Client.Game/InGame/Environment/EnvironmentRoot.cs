@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Client.Game.InGame.Environment
 {
-    public class EnvironmentRoot : MonoBehaviour, IEnvironmentRoot
+    public class EnvironmentRoot : MonoBehaviour, ISkitEnvironmentRoot
     {
         public void SetActive(bool isActive)
         {

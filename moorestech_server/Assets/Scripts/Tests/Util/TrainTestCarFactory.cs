@@ -1,6 +1,9 @@
 using System;
+using Game.Fluid;
 using Game.Train.Unit;
+using Game.Train.Unit.Containers;
 using Mooresmaster.Model.TrainModule;
+using FluidContainer = Game.Fluid.FluidContainer;
 
 namespace Tests.Util
 {
@@ -8,9 +11,12 @@ namespace Tests.Util
     // Centralizes train-car creation helpers for reuse across tests.
     public static class TrainTestCarFactory
     {
+        public static readonly Guid TestFuelItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
+        public const double TestFuelDuration = 999999;
+
         // 任意値でTrainCarを生成する基本メソッド
         // Creates a train car from explicit parameters and optional GUIDs.
-        public static TrainCar CreateTrainCar(
+        public static (TrainCar trainCar, ItemTrainCarContainer itemContainer) CreateTrainCarWithItemContainer(
             int masterId,
             Guid trainCarGuid,
             Guid itemGuid,
@@ -20,19 +26,25 @@ namespace Tests.Util
             bool isFacingForward)
         {
             var element = CreateMasterElement(masterId, trainCarGuid, itemGuid, tractionForce, inventorySlotCount, length);
-            return new TrainCar(element, isFacingForward);
+            var itemContainer = ItemTrainCarContainer.CreateWithEmptySlots(inventorySlotCount);
+            var trainCar = new TrainCar(element, isFacingForward);
+            trainCar.SetContainer(itemContainer);
+
+            if (tractionForce > 0) trainCar.SetRemainFuelTime(TestFuelDuration);
+
+            return (trainCar, itemContainer);
         }
 
         // GUIDを意識せずにTrainCarを生成する簡易メソッド
         // Convenience overload for callers that do not care about GUIDs.
-        public static TrainCar CreateTrainCar(
+        public static (TrainCar trainCar, ItemTrainCarContainer itemContainer) CreateTrainCarWithItemContainer(
             int masterId,
             int tractionForce,
             int inventorySlotCount,
             int length,
             bool isFacingForward)
         {
-            return CreateTrainCar(masterId, Guid.Empty, Guid.Empty, tractionForce, inventorySlotCount, length, isFacingForward);
+            return CreateTrainCarWithItemContainer(masterId, Guid.Empty, Guid.Empty, tractionForce, inventorySlotCount, length, isFacingForward);
         }
 
         // TrainCarMasterElementだけを取得するヘルパー
@@ -56,7 +68,27 @@ namespace Tests.Util
             int inventorySlotCount,
             int length)
         {
-            return new TrainCarMasterElement(masterId, trainCarGuid, itemGuid, null, tractionForce, inventorySlotCount, length);
+            var fuelItems = tractionForce > 0
+                ? new[] { new TrainFuelItemsElement(0, TestFuelItemGuid, (float)TestFuelDuration) }
+                : null;
+            return new TrainCarMasterElement(masterId, trainCarGuid, itemGuid, null, 320, tractionForce, inventorySlotCount, length, fuelItems, null);
+        }
+
+        public static (TrainCar trainCar, FluidTrainCarContainer fluidContainer) CreateTrainCarWithFluidContainer(
+            int masterId,
+            int tractionForce,
+            double fluidCapacity,
+            int length,
+            bool isFacingForward)
+        {
+            var element = CreateMasterElement(masterId, Guid.Empty, Guid.Empty, tractionForce, 0, length);
+            var fluidContainer = new FluidTrainCarContainer(new FluidContainer(fluidCapacity));
+            var trainCar = new TrainCar(element, isFacingForward);
+            trainCar.SetContainer(fluidContainer);
+
+            if (tractionForce > 0) trainCar.SetRemainFuelTime(TestFuelDuration);
+
+            return (trainCar, fluidContainer);
         }
 
         // ランダム値でのTrainCarMasterElement生成をサポート

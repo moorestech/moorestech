@@ -34,6 +34,7 @@ namespace Tests.Module.TestMod
         public static BlockId Teeth20RequireTorqueTestGear => GetBlock("00000000-0000-0000-0000-000000000013");
         public static BlockId InfinityTorqueSimpleGearGenerator => GetBlock("00000000-0000-0000-0000-000000000014");
         public static BlockId GearBeltConveyor => GetBlock("00000000-0000-0000-0000-000000000015");
+        public static BlockId SmallGearBeltConveyor => GetBlock("00000000-0000-0000-0000-000000000030");
         public static BlockId GearBeltConveyorSplitter => GetBlock("eccb9f59-4439-4caf-9ae8-67da50549040");
         
         public static BlockId MachineRecipeTest1 => GetBlock("00000000-0000-0000-0000-000000000019");
@@ -44,7 +45,7 @@ namespace Tests.Module.TestMod
         
         public static BlockId TestTrainRail => GetBlock("00000000-0000-0000-0000-000000000024");
         public static BlockId TestTrainStation => GetBlock("00000000-0000-0000-0000-000000000025");
-        public static BlockId TestTrainCargoPlatform => GetBlock("00000000-0000-0000-0000-000000000026");
+        public static BlockId TestTrainItemPlatform => GetBlock("00000000-0000-0000-0000-000000000026");
         
         public static BlockId GearMapObjectMiner => GetBlock("00000000-0000-0000-0000-000000000027");
         
@@ -61,5 +62,6 @@ namespace Tests.Module.TestMod
         public static BlockId TestGearElectricGenerator => GetBlock("00000000-0000-0000-0000-000000000028");
         public static BlockId ElectricPump => GetBlock("3829088a-5a78-43d7-8c3c-d3e4bb91b90a");
         public static BlockId GearChainPole => GetBlock("00000000-0000-0000-0000-00000000002c");
+        public static BlockId TestTrainFluidPlatform => GetBlock("00000000-0000-0000-0000-000000000029");
     }
 }

@@ -101,7 +101,8 @@ properties:
       - GearMapObjectMiner
       - TrainRail
       - TrainStation
-      - TrainCargoPlatform
+      - TrainItemPlatform
+      - TrainFluidPlatform
       - FluidPipe
       - BaseCamp
       - GearPump
@@ -480,6 +481,7 @@ properties:
         implementationInterface:
         - IInventoryConnectors
         - IGearConnectors
+        - IGearOverloadParam
         properties:
         - key: beltConveyorItemCount
           type: integer
@@ -487,7 +489,7 @@ properties:
         - key: beltConveyorSpeed
           type: number
           default: 2
-        - key: requireTorque
+        - key: requireTorquePerRpm
           type: number
           default: 2
         - key: slopeType
@@ -496,6 +498,18 @@ properties:
           - Straight
           - Up
           - Down
+        - key: overloadMaxRpm
+          type: number
+          default: 0
+        - key: overloadMaxTorque
+          type: number
+          default: 0
+        - key: destructionCheckInterval
+          type: number
+          default: 1
+        - key: baseDestructionProbability
+          type: number
+          default: 0
         - key: inventoryConnectors
           ref: inventoryConnects
         - key: gear
@@ -598,7 +612,7 @@ properties:
           default: 1
         - key: inventoryConnectors
           ref: inventoryConnects
-      - when: TrainCargoPlatform
+      - when: TrainItemPlatform
         type: object
         implementationInterface:
         - IInventoryConnectors
@@ -629,6 +643,35 @@ properties:
           default: 1
         - key: inventoryConnectors
           ref: inventoryConnects
+      - when: TrainFluidPlatform
+        type: object
+        properties:
+        - key: entryRailPosition
+          type: vector3
+          default:
+          - 1.0
+          - 1.0
+          - 1.0
+        - key: exitRailPosition
+          type: vector3
+          default:
+          - 1.0
+          - 1.0
+          - 1.0
+        - key: frontControlPointLength
+          type: number
+          default: 0.5
+        - key: backControlPointLength
+          type: number
+          default: 0.5
+        - key: loadingAnimeSpeed
+          type: number
+          default: 1
+        - key: capacity
+          type: number
+          default: 100
+        - key: fluidInventoryConnectors
+          ref: fluidInventoryConnects
       - when: FluidPipe
         type: object
         properties:
