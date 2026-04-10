@@ -61,7 +61,7 @@ namespace Client.Game.InGame.Train.View.Object
                 // Initialize smoke controllers already embedded in the prefab
                 foreach (var smokeController in trainObject.GetComponentsInChildren<TrainSmokeController>(true))
                 {
-                    smokeController.SetDependencies(trainEntityObject, _trainCache);
+                    smokeController.Initialize(trainEntityObject, _trainCache);
                 }
 
                 // 子rendererに削除対象とcolliderを追加する

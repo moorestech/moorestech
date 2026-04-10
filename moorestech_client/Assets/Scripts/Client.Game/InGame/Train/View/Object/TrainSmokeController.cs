@@ -12,7 +12,7 @@ namespace Client.Game.InGame.Train.View.Object
         private TrainUnitClientCache _trainCache;
         private bool _isReady;
 
-        public void SetDependencies(TrainCarEntityObject trainCarEntity, TrainUnitClientCache trainCache)
+        public void Initialize(TrainCarEntityObject trainCarEntity, TrainUnitClientCache trainCache)
         {
             // 依存参照を保持し、Prefab設定済みVFXを使う
             // Store dependencies and use the prefab-assigned VFX
