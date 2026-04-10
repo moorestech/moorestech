@@ -15,15 +15,23 @@ namespace Client.Game.InGame.Train.View
         private TrainUnitClientCache _trainCache;
         private TrainCarEntityObject _trainCarEntity;
         private ITrainCarObjectProcessor[] _processors;
+        private TrainCarRenderSnapshot _currentRenderSnapshot;
+        private TrainCarRenderSnapshot _previousRenderSnapshot;
+        private bool _hasCurrentRenderSnapshot;
+        private bool _hasPreviousRenderSnapshot;
         private bool _isReady;
 
-        public void SetDependencies(TrainCarEntityObject trainCarEntity, TrainUnitClientCache trainCache)
+        public void Initialize(TrainCarEntityObject trainCarEntity, TrainUnitClientCache trainCache)
         {
             // 依存参照と表示 processor 一覧を初期化時に保持する
             // Store dependency references and view processors during initialization
             _trainCarEntity = trainCarEntity;
             _trainCache = trainCache;
             _processors = ResolveProcessors();
+            _currentRenderSnapshot = default;
+            _previousRenderSnapshot = default;
+            _hasCurrentRenderSnapshot = false;
+            _hasPreviousRenderSnapshot = false;
             for (var i = 0; i < _processors.Length; i++)
             {
                 _processors[i].Initialize(trainCarEntity);
@@ -40,9 +48,21 @@ namespace Client.Game.InGame.Train.View
                 return;
             }
 
-            // cache から姿勢と processor 向け context をまとめて解決する
-            // Resolve pose and processor context from the client cache
-            if (!TryResolveUnitState(out var position, out var rotation, out var context))
+            // cache から今回の render snapshot を更新する
+            // Refresh the current render snapshot from the cache
+            UpdateCurrentRenderSnapshot();
+
+            // 今回の出力 snapshot を解決して姿勢と context を組み立てる
+            // Resolve the output snapshot and build pose plus context
+            if (!TryResolveCurrentOutputSnapshot(out var outputSnapshot))
+            {
+                DispatchProcessors(TrainCarContext.CreateUnavailable());
+                return;
+            }
+
+            // render snapshot から列車姿勢を計算する
+            // Compute the car pose from the render snapshot
+            if (!TryResolveRenderPose(outputSnapshot, out var position, out var rotation))
             {
                 DispatchProcessors(TrainCarContext.CreateUnavailable());
                 return;
@@ -51,46 +71,76 @@ namespace Client.Game.InGame.Train.View
             // レール由来の姿勢を GameObject に反映する
             // Apply the rail-derived pose to the GameObject
             _trainCarEntity.SetDirectPose(position, rotation);
-            DispatchProcessors(context);
+            DispatchProcessors(CreateContext(outputSnapshot));
         }
 
         #region Internal
 
-        private bool TryResolveUnitState(out Vector3 position, out Quaternion rotation, out TrainCarContext context)
+        private void UpdateCurrentRenderSnapshot()
+        {
+            // 最新 snapshot を読めた時だけ current を更新する
+            // Update the current snapshot only when the cache lookup succeeds
+            if (!TryResolveLatestRenderSnapshot(out var latestRenderSnapshot))
+            {
+                return;
+            }
+
+            // 将来の補間用に current を previous へ退避する
+            // Preserve the last current snapshot for future interpolation
+            if (_hasCurrentRenderSnapshot)
+            {
+                _previousRenderSnapshot = _currentRenderSnapshot;
+                _hasPreviousRenderSnapshot = true;
+            }
+
+            // 今回の表示基準となる current snapshot を差し替える
+            // Replace the current snapshot used for rendering
+            _currentRenderSnapshot = latestRenderSnapshot;
+            _hasCurrentRenderSnapshot = true;
+        }
+
+        private bool TryResolveCurrentOutputSnapshot(out TrainCarRenderSnapshot outputSnapshot)
+        {
+            // 補間導入前は current snapshot をそのまま出力する
+            // Before interpolation, output the current snapshot as-is
+            outputSnapshot = default;
+            if (!_hasCurrentRenderSnapshot)
+            {
+                return false;
+            }
+
+            outputSnapshot = _currentRenderSnapshot;
+            return true;
+        }
+
+        private bool TryResolveRenderPose(TrainCarRenderSnapshot renderSnapshot, out Vector3 position, out Quaternion rotation)
         {
             // 出力値を先に初期化する
             // Initialize output values first
             position = default;
             rotation = Quaternion.identity;
-            context = TrainCarContext.CreateUnavailable();
-
-            // 車両 index から現在 snapshot を解決する
-            // Resolve the current snapshot from the car index
-            if (!TryResolveCarSnapshot(out var unit, out var snapshot, out var frontOffset, out var rearOffset))
-            {
-                return false;
-            }
 
             // レール上の前後位置から車両姿勢を計算する
             // Compute rail pose from front and rear wheel positions
-            var railPosition = unit.RailPosition;
-            if (railPosition == null)
-            {
-                return false;
-            }
-            if (!TryResolveCarPose(railPosition, frontOffset, rearOffset, out position, out var forward))
+            if (!TryResolveCarPose(renderSnapshot.RailPosition, renderSnapshot.FrontOffset, renderSnapshot.RearOffset, out position, out var forward))
             {
                 return false;
             }
 
             // モデル補正込みで最終姿勢を構成する
             // Finalize rotation and forward offset with model correction
-            rotation = BuildRotation(forward, snapshot.IsFacingForward);
+            rotation = BuildRotation(forward, renderSnapshot.IsFacingForward);
             var localForwardAxis = Quaternion.Euler(0f, -ModelYawOffsetDegrees, 0f) * Vector3.forward;
             var modelForward = rotation * localForwardAxis;
             position -= modelForward * _trainCarEntity.ModelForwardCenterOffset;
-            context = TrainCarContext.CreateAvailable(unit.CurrentSpeed, unit.MasconLevel);
             return true;
+        }
+
+        private TrainCarContext CreateContext(TrainCarRenderSnapshot renderSnapshot)
+        {
+            // render 用 snapshot から processor 共通 context を作る
+            // Build the shared processor context from the render snapshot
+            return TrainCarContext.CreateAvailable(renderSnapshot.CurrentSpeed, renderSnapshot.MasconLevel);
         }
 
         private void DispatchProcessors(TrainCarContext context)
@@ -135,18 +185,29 @@ namespace Client.Game.InGame.Train.View
             return processors;
         }
 
-        private bool TryResolveCarSnapshot(out ClientTrainUnit unit, out TrainCarSnapshot snapshot, out int frontOffset, out int rearOffset)
+        private bool TryResolveLatestRenderSnapshot(out TrainCarRenderSnapshot renderSnapshot)
         {
             // 出力値を先に初期化する
             // Initialize output values first
-            unit = null;
-            snapshot = default;
-            frontOffset = 0;
-            rearOffset = 0;
+            renderSnapshot = default;
 
             // 車両 instance から対象 snapshot を解決する
             // Resolve the target snapshot from the car instance
-            return _trainCache.TryGetCarSnapshot(_trainCarEntity.TrainCarInstanceId, out unit, out snapshot, out frontOffset, out rearOffset);
+            if (!_trainCache.TryGetCarSnapshot(_trainCarEntity.TrainCarInstanceId, out ClientTrainUnit unit, out TrainCarSnapshot snapshot, out var frontOffset, out var rearOffset))
+            {
+                return false;
+            }
+
+            // render 用 state に必要な値だけへ詰め替える
+            // Convert the cache result into the render-facing snapshot
+            var railPosition = unit.RailPosition;
+            if (railPosition == null)
+            {
+                return false;
+            }
+
+            renderSnapshot = TrainCarRenderSnapshot.Create(railPosition, frontOffset, rearOffset, snapshot.IsFacingForward, unit.CurrentSpeed, unit.MasconLevel);
+            return true;
         }
 
         private bool TryResolveCarPose(RailPosition railPosition, int frontOffset, int rearOffset, out Vector3 position, out Vector3 forward)

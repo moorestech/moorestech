@@ -60,7 +60,7 @@ namespace Client.Game.InGame.Train.View.Object
                 // 車両姿勢更新コンポーネントを関連付ける
                 // Attach pose update component for this car
                 var poseUpdater = trainObject.AddComponent<TrainCarViewUpdater>();
-                poseUpdater.SetDependencies(trainEntityObject, _trainCache);
+                poseUpdater.Initialize(trainEntityObject, _trainCache);
 
                 // 子 renderer に削除対象と collider を追加する
                 // Add delete targets and colliders to child renderers
