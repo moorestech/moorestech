@@ -33,7 +33,7 @@ namespace Client.Game.InGame.Train.View.Object
                 throw new InvalidOperationException($"TrainCar master not found. TrainCarMasterId:{carSnapshot.TrainCarMasterId}");
             }
 
-            // 指定 Addressable をそのまま読み、失敗時は例外にする
+            // 指定Addressableをそのまま読み、失敗時は例外にする
             // Load the requested Addressable directly and fail hard when it is missing
             var loadedPrefab = await AddressableLoader.LoadAsyncDefault<GameObject>(trainCarMasterElement.AddressablePath);
             if (loadedPrefab == null)
@@ -57,15 +57,14 @@ namespace Client.Game.InGame.Train.View.Object
                 var poseUpdater = trainObject.AddComponent<TrainCarEntityPoseUpdater>();
                 poseUpdater.SetDependencies(trainEntityObject, _trainCache);
 
-                // 動力車にだけ黒煙制御を追加する
-                // Attach black smoke control only to powered cars
-                if (carSnapshot.TractionForce > 0)
+                // Prefab内にある煙制御コンポーネントを初期化する
+                // Initialize smoke controllers already embedded in the prefab
+                foreach (var smokeController in trainObject.GetComponentsInChildren<TrainSmokeController>(true))
                 {
-                    var smokeController = trainObject.AddComponent<TrainSmokeController>();
-                    smokeController.SetDependencies(trainEntityObject, _trainCache, carSnapshot.TractionForce);
+                    smokeController.SetDependencies(trainEntityObject, _trainCache);
                 }
 
-                // 子 renderer に削除対象と collider を追加する
+                // 子rendererに削除対象とcolliderを追加する
                 // Add delete targets and colliders to child renderers
                 foreach (var mesh in trainEntityObject.GetComponentsInChildren<MeshRenderer>())
                 {
