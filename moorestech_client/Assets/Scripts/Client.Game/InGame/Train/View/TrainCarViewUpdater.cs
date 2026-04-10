@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Client.Game.InGame.Train.View
 {
-    public sealed class TrainCarEntityPoseUpdater : MonoBehaviour
+    public sealed class TrainCarViewUpdater : MonoBehaviour
     {
         // 列車モデルの前方軸補正をレール進行方向に合わせる
         // Model forward axis correction to match rail direction
