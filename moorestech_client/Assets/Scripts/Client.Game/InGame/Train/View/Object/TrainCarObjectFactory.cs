@@ -2,6 +2,7 @@ using System;
 using Client.Common.Asset;
 using Client.Game.InGame.Entity.Object;
 using Client.Game.InGame.Train.Unit;
+using Client.Game.InGame.Train.View;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Train.Unit;
@@ -33,7 +34,7 @@ namespace Client.Game.InGame.Train.View.Object
                 throw new InvalidOperationException($"TrainCar master not found. TrainCarMasterId:{carSnapshot.TrainCarMasterId}");
             }
 
-            // 指定Addressableをそのまま読み、失敗時は例外にする
+            // 指定 Addressable をそのまま読み、失敗時は例外にする
             // Load the requested Addressable directly and fail hard when it is missing
             var loadedPrefab = await AddressableLoader.LoadAsyncDefault<GameObject>(trainCarMasterElement.AddressablePath);
             if (loadedPrefab == null)
@@ -52,19 +53,16 @@ namespace Client.Game.InGame.Train.View.Object
                 var trainEntityObject = trainObject.AddComponent<TrainCarEntityObject>();
                 trainEntityObject.SetTrain(carSnapshot.TrainCarInstanceId, trainCarMasterElement);
 
+                // Animator を持つ車両には animation processor を補う
+                // Ensure animated cars have a dedicated animation processor
+                AttachAnimationProcessorIfNeeded(trainObject);
+
                 // 車両姿勢更新コンポーネントを関連付ける
                 // Attach pose update component for this car
                 var poseUpdater = trainObject.AddComponent<TrainCarEntityPoseUpdater>();
                 poseUpdater.SetDependencies(trainEntityObject, _trainCache);
 
-                // Prefab内にある煙制御コンポーネントを初期化する
-                // Initialize smoke controllers already embedded in the prefab
-                foreach (var smokeController in trainObject.GetComponentsInChildren<TrainSmokeVfxProcessor>(true))
-                {
-                    smokeController.Initialize(trainEntityObject, _trainCache);
-                }
-
-                // 子rendererに削除対象とcolliderを追加する
+                // 子 renderer に削除対象と collider を追加する
                 // Add delete targets and colliders to child renderers
                 foreach (var mesh in trainEntityObject.GetComponentsInChildren<MeshRenderer>())
                 {
@@ -80,6 +78,20 @@ namespace Client.Game.InGame.Train.View.Object
                 }
 
                 return trainEntityObject;
+            }
+
+            void AttachAnimationProcessorIfNeeded(GameObject targetTrainObject)
+            {
+                if (targetTrainObject.GetComponentInChildren<TrainAnimationProcessor>(true) != null)
+                {
+                    return;
+                }
+                if (targetTrainObject.GetComponentsInChildren<Animator>(true).Length == 0)
+                {
+                    return;
+                }
+
+                targetTrainObject.AddComponent<TrainAnimationProcessor>();
             }
 
             #endregion
