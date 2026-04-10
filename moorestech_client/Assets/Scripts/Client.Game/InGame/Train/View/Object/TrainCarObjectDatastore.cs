@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Client.Game.InGame.Entity.Factory;
 using Client.Game.InGame.Train.Unit;
 using Cysharp.Threading.Tasks;
 using Game.Train.Unit;
