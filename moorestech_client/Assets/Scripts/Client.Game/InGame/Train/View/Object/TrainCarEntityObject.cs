@@ -34,6 +34,20 @@ namespace Client.Game.InGame.Train.View.Object
             // モデル中心の前後オフセットをキャッシュする
             // Cache the model forward center offset
             ModelForwardCenterOffset = ResolveModelForwardCenterOffset();
+            
+            #region Internal
+            float ResolveModelForwardCenterOffset()
+            {
+                // レンダラの境界中心から前後オフセットを算出する
+                // Compute forward offset from renderer bounds center
+                var renderers = GetComponentsInChildren<Renderer>(true);
+                var combined = renderers[0].bounds;
+                for (var i = 1; i < renderers.Length; i++) combined.Encapsulate(renderers[i].bounds);
+                var localForwardAxis = Quaternion.Euler(0f, -ModelYawOffsetDegrees, 0f) * Vector3.forward;
+                var localCenter = transform.InverseTransformPoint(combined.center);
+                return Vector3.Dot(localCenter, localForwardAxis);
+            }
+            #endregion
         }
 
         public void SetTrain(TrainCarInstanceId trainCarInstanceId, TrainCarMasterElement trainCarMasterElement)
@@ -114,21 +128,5 @@ namespace Client.Game.InGame.Train.View.Object
         {
             _rendererMaterialReplacerController.ResetMaterial();
         }
-
-        #region Internal
-
-        private float ResolveModelForwardCenterOffset()
-        {
-            // レンダラの境界中心から前後オフセットを算出する
-            // Compute forward offset from renderer bounds center
-            var renderers = GetComponentsInChildren<Renderer>(true);
-            var combined = renderers[0].bounds;
-            for (var i = 1; i < renderers.Length; i++) combined.Encapsulate(renderers[i].bounds);
-            var localForwardAxis = Quaternion.Euler(0f, -ModelYawOffsetDegrees, 0f) * Vector3.forward;
-            var localCenter = transform.InverseTransformPoint(combined.center);
-            return Vector3.Dot(localCenter, localForwardAxis);
-        }
-
-        #endregion
     }
 }

@@ -4,8 +4,6 @@ namespace Client.Game.InGame.Train.RailGraph
 {
     internal static class BezierRailMeshGpu
     {
-        #region Internal
-
         // GPU変形を実行する
         // Deform with GPU
         internal static void Deform(BezierRailMesh mesh)
@@ -105,7 +103,5 @@ namespace Client.Game.InGame.Train.RailGraph
             bounds.SetMinMax(min - Vector3.one * padding, max + Vector3.one * padding);
             mesh._meshRenderer.localBounds = bounds;
         }
-
-        #endregion
     }
 }

@@ -5,8 +5,6 @@ namespace Client.Game.InGame.Train.RailGraph
 {
     internal static class BezierRailMeshData
     {
-        #region Internal
-
         // メッシュ関連情報を準備する
         // Prepare mesh data
         internal static bool EnsureMeshData(BezierRailMesh mesh)
@@ -154,7 +152,5 @@ namespace Client.Game.InGame.Train.RailGraph
             mesh._deformedMesh = null;
             if (mesh._meshFilter != null && mesh._sourceMesh != null) mesh._meshFilter.sharedMesh = mesh._sourceMesh;
         }
-
-        #endregion
     }
 }

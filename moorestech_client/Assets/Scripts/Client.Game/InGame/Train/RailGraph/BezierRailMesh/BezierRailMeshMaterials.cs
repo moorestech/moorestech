@@ -5,8 +5,6 @@ namespace Client.Game.InGame.Train.RailGraph
 {
     internal static class BezierRailMeshMaterials
     {
-        #region Internal
-
         // GPU用シェーダーを準備する
         // Prepare deformation shader
         internal static bool EnsureMaterial(BezierRailMesh mesh)
@@ -127,7 +125,5 @@ namespace Client.Game.InGame.Train.RailGraph
             }
             if (runtime.HasProperty(BezierRailMesh.ColorId)) runtime.SetColor(BezierRailMesh.ColorId, source.color);
         }
-
-        #endregion
     }
 }

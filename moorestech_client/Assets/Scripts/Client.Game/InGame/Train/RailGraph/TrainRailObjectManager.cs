@@ -43,6 +43,36 @@ namespace Client.Game.InGame.Train.RailGraph
         {
             _cache = cache;
             RebuildExistingConnections();
+            
+        #region Internal
+            
+            void RebuildExistingConnections()
+            {
+                foreach (var gobj in _railObjs.Values)
+                {
+                    if (gobj != null)
+                    {
+                        Destroy(gobj);
+                    }
+                }
+                _railObjs.Clear();
+                
+                var adjacency = _cache.ConnectNodes;
+                for (var fromId = 0; fromId < adjacency.Count; fromId++)
+                {
+                    var edges = adjacency[fromId];
+                    if (edges == null || edges.Count == 0)
+                    {
+                        continue;
+                    }
+                    
+                    foreach (var (targetId, _) in edges)
+                    {
+                        TryActivateLine(fromId, targetId);
+                    }
+                }
+            }
+        #endregion
         }
 
         internal void OnConnectionUpserted(int fromNodeId, int toNodeId, RailGraphClientCache cache)
@@ -55,36 +85,30 @@ namespace Client.Game.InGame.Train.RailGraph
         {
             _cache = cache;
             RemoveLine(fromNodeId, toNodeId);
+            #region Internal
+                void RemoveLine(int fromNodeId, int toNodeId)
+                {
+                    var (canonicalFrom, canonicalTo) = SelectCanonicalPair(fromNodeId, toNodeId);
+                    var railObjectId = ComputeRailObjectId(canonicalFrom, canonicalTo);
+                    if (!_railObjs.TryGetValue(railObjectId, out var gobj))
+                    {
+                        return;
+                    }
+                    
+                    _railObjs.Remove(railObjectId);
+                    if (gobj != null)
+                    {
+                        UniTask.Create(async () =>
+                        {
+                            var bezierRailChain = gobj.GetComponent<BezierRailChain>();
+                            await bezierRailChain.RemoveAnimation();
+                            Destroy(gobj);
+                        }).Forget();
+                    }
+                }
+            #endregion
         }
 
-        #region Internal
-
-        private void RebuildExistingConnections()
-        {
-            foreach (var gobj in _railObjs.Values)
-            {
-                if (gobj != null)
-                {
-                    Destroy(gobj);
-                }
-            }
-            _railObjs.Clear();
-
-            var adjacency = _cache.ConnectNodes;
-            for (var fromId = 0; fromId < adjacency.Count; fromId++)
-            {
-                var edges = adjacency[fromId];
-                if (edges == null || edges.Count == 0)
-                {
-                    continue;
-                }
-
-                foreach (var (targetId, _) in edges)
-                {
-                    TryActivateLine(fromId, targetId);
-                }
-            }
-        }
 
         private void TryActivateLine(int fromNodeId, int toNodeId)
         {
@@ -106,60 +130,62 @@ namespace Client.Game.InGame.Train.RailGraph
             ApplyRailObjectId(lineObject, railObjectId);
             lineObject.transform.SetParent(transform, false);
             _railObjs[railObjectId] = lineObject;
-        }
-
-        private void RemoveLine(int fromNodeId, int toNodeId)
-        {
-            var (canonicalFrom, canonicalTo) = SelectCanonicalPair(fromNodeId, toNodeId);
-            var railObjectId = ComputeRailObjectId(canonicalFrom, canonicalTo);
-            if (!_railObjs.TryGetValue(railObjectId, out var gobj))
+            
+            #region  Internal
+            bool HasPairedConnection(int fromNodeId, int toNodeId)
             {
-                return;
+                if (_cache == null)
+                    return false;
+                
+                // 双方向の接続と描画フラグを確認する
+                // Check paired connection and drawable flags
+                if (!_cache.TryGetRailSegment(fromNodeId, toNodeId, out var directSegment))
+                    return false;
+                if (!directSegment.IsDrawable)
+                    return false;
+                
+                var oppositeSource = toNodeId ^ 1;
+                var oppositeTarget = fromNodeId ^ 1;
+                if (!_cache.TryGetRailSegment(oppositeSource, oppositeTarget, out var oppositeSegment))
+                    return false;
+                return oppositeSegment.IsDrawable;
             }
-
-            _railObjs.Remove(railObjectId);
-            if (gobj != null)
+            
+            GameObject SpawnRail(string name, IRailNode startNode, IRailNode endNode)
             {
-                UniTask.Create(async () =>
+                var instance = Instantiate(_railPrefab, transform);
+                // 描画用の制御点を生成
+                // Build render control points
+                BezierUtility.BuildRenderControlPoints(startNode.FrontControlPoint, endNode.BackControlPoint, out var p0, out var p1, out var p2, out var p3);
+                instance.SetControlPoints(p0, p1, p2, p3);
+                instance.SetRailGraphCache(_cache);
+                instance.Rebuild();
+                instance.PlaceAnimation().Forget();
+                instance.name = name;
+                return instance.gameObject;
+            }
+            
+            static void ApplyRailObjectId(GameObject lineObject, ulong railObjectId)
+            {
+                if (lineObject == null)
+                    return;
+                
+                // レール用コライダーにIDを埋め込む
+                // Embed the rail object id into colliders for raycast lookup
+                var colliders = lineObject.GetComponentsInChildren<Collider>(true);
+                for (var i = 0; i < colliders.Length; i++)
                 {
-                    var bezierRailChain = gobj.GetComponent<BezierRailChain>();
-                    await bezierRailChain.RemoveAnimation();
-                    Destroy(gobj);
-                }).Forget();
+                    var collider = colliders[i];
+                    if (collider == null)
+                        continue;
+                    
+                    var carrier = collider.GetComponent<RailObjectIdCarrier>();
+                    if (carrier == null)
+                        carrier = collider.gameObject.AddComponent<RailObjectIdCarrier>();
+                    carrier.SetRailObjectId(railObjectId);
+                }
             }
-        }
-
-        private bool HasPairedConnection(int fromNodeId, int toNodeId)
-        {
-            if (_cache == null)
-                return false;
-
-            // 双方向の接続と描画フラグを確認する
-            // Check paired connection and drawable flags
-            if (!_cache.TryGetRailSegment(fromNodeId, toNodeId, out var directSegment))
-                return false;
-            if (!directSegment.IsDrawable)
-                return false;
-
-            var oppositeSource = toNodeId ^ 1;
-            var oppositeTarget = fromNodeId ^ 1;
-            if (!_cache.TryGetRailSegment(oppositeSource, oppositeTarget, out var oppositeSegment))
-                return false;
-            return oppositeSegment.IsDrawable;
-        }
-
-        private GameObject SpawnRail(string name, IRailNode startNode, IRailNode endNode)
-        {
-            var instance = Instantiate(_railPrefab, transform);
-            // 描画用の制御点を生成
-            // Build render control points
-            BezierUtility.BuildRenderControlPoints(startNode.FrontControlPoint, endNode.BackControlPoint, out var p0, out var p1, out var p2, out var p3);
-            instance.SetControlPoints(p0, p1, p2, p3);
-            instance.SetRailGraphCache(_cache);
-            instance.Rebuild();
-            instance.PlaceAnimation().Forget();
-            instance.name = name;
-            return instance.gameObject;
+            #endregion
         }
 
         private static (int canonicalFrom, int canonicalTo) SelectCanonicalPair(int fromNodeId, int toNodeId)
@@ -173,33 +199,5 @@ namespace Client.Game.InGame.Train.RailGraph
         {
             return (ulong)canonicalFrom + ((ulong)canonicalTo << 32);
         }
-
-        private static bool IsValidIndex(IReadOnlyList<IReadOnlyList<(int targetId, int distance)>> adjacency, int index)
-        {
-            return index >= 0 && index < adjacency.Count;
-        }
-
-        private static void ApplyRailObjectId(GameObject lineObject, ulong railObjectId)
-        {
-            if (lineObject == null)
-                return;
-
-            // レール用コライダーにIDを埋め込む
-            // Embed the rail object id into colliders for raycast lookup
-            var colliders = lineObject.GetComponentsInChildren<Collider>(true);
-            for (var i = 0; i < colliders.Length; i++)
-            {
-                var collider = colliders[i];
-                if (collider == null)
-                    continue;
-
-                var carrier = collider.GetComponent<RailObjectIdCarrier>();
-                if (carrier == null)
-                    carrier = collider.gameObject.AddComponent<RailObjectIdCarrier>();
-                carrier.SetRailObjectId(railObjectId);
-            }
-        }
-
-        #endregion
     }
 }
