@@ -106,6 +106,12 @@ namespace Client.Game.InGame.Train.View
                     return false;
                 RequestSnapshotAsync(isRailGraphMismatch).Forget();
                 return false;
+                
+                bool IsDummyHash((uint unitsHash, uint railGraphHash, uint serverTick, uint tickSequenceId) hashState)
+                {
+                    return hashState.unitsHash == TrainUnitFutureMessageBuffer.DummyHash &&
+                           hashState.railGraphHash == TrainUnitFutureMessageBuffer.DummyHash;
+                }
             }
 
             async UniTask RequestSnapshotAsync(bool includeRailGraphSnapshot)
@@ -176,13 +182,6 @@ namespace Client.Game.InGame.Train.View
                     Interlocked.Exchange(ref _resyncInProgress, 0);
                 }
             }
-
-            bool IsDummyHash((uint unitsHash, uint railGraphHash, uint serverTick, uint tickSequenceId) hashState)
-            {
-                return hashState.unitsHash == TrainUnitFutureMessageBuffer.DummyHash &&
-                    hashState.railGraphHash == TrainUnitFutureMessageBuffer.DummyHash;
-            }
-
             #endregion
         }
     }

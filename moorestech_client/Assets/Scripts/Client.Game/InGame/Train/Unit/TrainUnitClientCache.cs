@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Train.RailGraph;
 using Core.Master;
@@ -143,7 +142,6 @@ namespace Client.Game.InGame.Train.Unit
             buffer.AddRange(_units.Values);
         }
 
-        #region Internal
 
         private void BuildCarIndexForUnit(ClientTrainUnit unit)
         {
@@ -191,14 +189,14 @@ namespace Client.Game.InGame.Train.Unit
             for (var i = 0; i < carIds.Count; i++) _carIndex.Remove(carIds[i]);
             _carIdsByTrain.Remove(trainInstanceId);
         }
-
+        
         private readonly struct TrainCarCacheEntry
         {
             public readonly ClientTrainUnit Unit;
             public readonly TrainCarSnapshot Snapshot;
             public readonly int FrontOffset;
             public readonly int RearOffset;
-
+            
             public TrainCarCacheEntry(ClientTrainUnit unit, TrainCarSnapshot snapshot, int frontOffset, int rearOffset)
             {
                 // 索引の内容を初期化する
@@ -209,7 +207,5 @@ namespace Client.Game.InGame.Train.Unit
                 RearOffset = rearOffset;
             }
         }
-
-        #endregion
     }
 }
