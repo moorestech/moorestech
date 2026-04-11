@@ -80,31 +80,42 @@ properties:
   properties:
   - key: weight
     type: integer
+    default: 40
 - key: fluidContainer
   type: object
   properties:
   - key: weight
     type: integer
+    default: 40
 - key: motionParameters
   type: object
   properties:
   # Divided by 10000000
   - key: friction
     type: integer
+    default: 35300
   # Divided by 10000000
   - key: airResistance
     type: integer
+    default: 117
   - key: speedWeight
     type: number
+    default: 0.09
   - key: autoRunMaxSpeedDistanceCoefficient
     type: number
+    default: 10000.0
   - key: autoRunMaxSpeedOffset
     type: number
+    default: 10.0
   - key: autoRunSpeedBufferMargin
     type: number
+    default: 0.02
   - key: tractionForceAccelerationRate
     type: number
+    default: 0.1
   - key: manualControlDecelerationFactor
     type: number
+    default: 1.0
   - key: masconLevelMaximum
     type: integer
+    default: 16777216
