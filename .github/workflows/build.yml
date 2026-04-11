@@ -9,8 +9,12 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  build:
-    name: Build - ${{ matrix.platform.name }}
+  # ===== サーバービルド =====
+  # game-ci/unity-builder はmacOSでネイティブ実行のため、
+  # 同一ジョブ内で2回呼ぶとライセンス認証が競合する。
+  # そのためサーバーとクライアントを別ジョブに分割している。
+  server-build:
+    name: Server Build - ${{ matrix.platform.name }}
     runs-on: ${{ matrix.platform.runner }}
 
     strategy:
@@ -19,30 +23,19 @@ jobs:
       matrix:
         platform:
           # ==========================================
-          # buildServer / buildClient を true/false に変更するだけで
-          # 各プラットフォームのビルド対象を切り替え可能
-          # 1PFあたり サーバービルド → クライアントビルド の順に直列実行
+          # プラットフォームの追加/削除でビルド対象を切り替え可能
           # ==========================================
           - name: StandaloneWindows64
+            buildMethod: BuildPipeline.WindowsBuildFromGithubAction
             runner: windows-latest
-            buildServer: true
-            buildClient: true
-            serverBuildMethod: BuildPipeline.WindowsBuildFromGithubAction
-            clientBuildMethod: BuildPipeline.WindowsBuildFromGithubAction
             isDedicatedServer: false
           - name: StandaloneOSX
+            buildMethod: BuildPipeline.MacOsBuildFromGithubAction
             runner: macos-latest
-            buildServer: true
-            buildClient: true
-            serverBuildMethod: BuildPipeline.MacOsBuildFromGithubAction
-            clientBuildMethod: BuildPipeline.MacOsBuildFromGithubAction
             isDedicatedServer: false
           - name: StandaloneLinux64
+            buildMethod: BuildPipeline.LinuxDedicatedServerFromGithubAction
             runner: ubuntu-latest
-            buildServer: true
-            buildClient: false # ランナーの容量が足りないためクライアントビルドは無効
-            serverBuildMethod: BuildPipeline.LinuxDedicatedServerFromGithubAction
-            clientBuildMethod: ''
             isDedicatedServer: true
 
     steps:
@@ -63,26 +56,15 @@ jobs:
           TZ: 'Asia/Tokyo'
         run: echo "CURRENT_DATETIME=$(date +'%Y-%m')" >> $GITHUB_ENV
 
-      # サーバーLibraryキャッシュ
-      - name: Cache Server Library
-        if: ${{ matrix.platform.buildServer }}
-        uses: actions/cache@v3
+      # キャッシュ keyを月跨ぎで更新することで定期的にキャッシュ自体の更新を行う
+      - uses: actions/cache@v3
         with:
           path: moorestech_server/Library
           key: "Server_Library_${{ env.CURRENT_DATETIME }}"
 
-      # クライアントLibraryキャッシュ
-      - name: Cache Client Library
-        if: ${{ matrix.platform.buildClient }}
-        uses: actions/cache@v3
-        with:
-          path: moorestech_client/Library
-          key: "Library_${{ env.CURRENT_DATETIME }}"
-
-      # サーバーアーティファクト名を設定（GUI版とDedicated Serverで区別）
-      - name: Set server artifact name
-        if: ${{ matrix.platform.buildServer }}
-        id: server-artifact
+      # アーティファクト名を設定（GUI版とDedicated Serverで区別）
+      - name: Set artifact name
+        id: artifact
         shell: bash
         run: |
           if [ "${{ matrix.platform.isDedicatedServer }}" = "true" ]; then
@@ -93,9 +75,8 @@ jobs:
             echo "path=moorestech_server/Output_${{ matrix.platform.name }}" >> $GITHUB_OUTPUT
           fi
 
-      # ===== Server Build =====
+      # Build
       - name: Server Build - ${{ matrix.platform.name }}
-        if: ${{ matrix.platform.buildServer }}
         uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -103,35 +84,81 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           unityVersion: 6000.3.8f1
-          buildMethod: ${{ matrix.platform.serverBuildMethod }}
+          buildMethod: ${{ matrix.platform.buildMethod }}
           targetPlatform: ${{ matrix.platform.name }}
           allowDirtyBuild: true
           projectPath: moorestech_server/
 
-      # サーバービルド成果物アップロード（Windows, Mac）
+      # Upload Build (Windows, Mac)
       - name: Upload Server Build
-        if: ${{ matrix.platform.buildServer && matrix.platform.name != 'StandaloneLinux64' }}
+        if: matrix.platform.name != 'StandaloneLinux64'
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.server-artifact.outputs.name }}
-          path: ${{ steps.server-artifact.outputs.path }}
+          name: ${{ steps.artifact.outputs.name }}
+          path: ${{ steps.artifact.outputs.path }}
 
-      # サーバービルド成果物アーカイブ（Linux）
+      # Archive for Linux
       - name: Archive Server Build for Linux
-        if: ${{ matrix.platform.buildServer && matrix.platform.name == 'StandaloneLinux64' }}
+        if: matrix.platform.name == 'StandaloneLinux64'
         run: |
-          tar -czvf server_output.tar.gz ${{ steps.server-artifact.outputs.path }}
+          tar -czvf server_output.tar.gz ${{ steps.artifact.outputs.path }}
 
       - name: Upload Server Build for Linux
-        if: ${{ matrix.platform.buildServer && matrix.platform.name == 'StandaloneLinux64' }}
+        if: matrix.platform.name == 'StandaloneLinux64'
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.server-artifact.outputs.name }}
+          name: ${{ steps.artifact.outputs.name }}
           path: ./server_output.tar.gz
 
-      # ===== Client Build =====
+  # ===== クライアントビルド =====
+  # サーバービルド完了後に実行される
+  client-build:
+    name: Client Build - ${{ matrix.platform.name }}
+    needs: server-build
+    runs-on: ${{ matrix.platform.runner }}
+
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        platform:
+          # ==========================================
+          # プラットフォームの追加/削除でビルド対象を切り替え可能
+          # Linux はランナーの容量が足りないためクライアントビルドは除外
+          # ==========================================
+          - name: StandaloneWindows64
+            buildMethod: BuildPipeline.WindowsBuildFromGithubAction
+            runner: windows-latest
+          - name: StandaloneOSX
+            buildMethod: BuildPipeline.MacOsBuildFromGithubAction
+            runner: macos-latest
+
+    steps:
+      # Checkout
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+      - name: Update submodules
+        run: |
+          git submodule sync --recursive
+          git submodule update --init --recursive
+
+      # 年月日を取得　キャッシュのkeyに利用
+      - name: Set current datetime as env variable
+        env:
+          TZ: 'Asia/Tokyo'
+        run: echo "CURRENT_DATETIME=$(date +'%Y-%m')" >> $GITHUB_ENV
+
+      # キャッシュ keyを月跨ぎで更新することで定期的にキャッシュ自体の更新を行う
+      - uses: actions/cache@v3
+        with:
+          path: moorestech_client/Library
+          key: "Library_${{ env.CURRENT_DATETIME }}"
+
+      # Build
       - name: Client Build - ${{ matrix.platform.name }}
-        if: ${{ matrix.platform.buildClient }}
         uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -139,27 +166,27 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           unityVersion: 6000.3.8f1
-          buildMethod: ${{ matrix.platform.clientBuildMethod }}
+          buildMethod: ${{ matrix.platform.buildMethod }}
           targetPlatform: ${{ matrix.platform.name }}
           allowDirtyBuild: true
           projectPath: moorestech_client/
 
-      # クライアントビルド成果物アップロード（Windows, Mac）
+      # Upload Build (Windows, Mac)
       - name: Upload Client Build
-        if: ${{ matrix.platform.buildClient && matrix.platform.name != 'StandaloneLinux64' }}
+        if: matrix.platform.name != 'StandaloneLinux64'
         uses: actions/upload-artifact@v4
         with:
           name: Client_Output_${{ matrix.platform.name }}
           path: moorestech_client/Output_${{ matrix.platform.name }}
 
-      # クライアントビルド成果物アーカイブ（Linux）
+      # Archive for Linux
       - name: Archive Client Build for Linux
-        if: ${{ matrix.platform.buildClient && matrix.platform.name == 'StandaloneLinux64' }}
+        if: matrix.platform.name == 'StandaloneLinux64'
         run: |
           tar -czvf client_output.tar.gz moorestech_client/Output_${{ matrix.platform.name }}
 
       - name: Upload Client Build for Linux
-        if: ${{ matrix.platform.buildClient && matrix.platform.name == 'StandaloneLinux64' }}
+        if: matrix.platform.name == 'StandaloneLinux64'
         uses: actions/upload-artifact@v4
         with:
           name: Client_Output_${{ matrix.platform.name }}
