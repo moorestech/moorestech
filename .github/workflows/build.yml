@@ -10,53 +10,92 @@ on:
 
 jobs:
   build:
-    name: Build
+    name: Build - ${{ matrix.platform.name }}
     runs-on: ${{ matrix.platform.runner }}
-    
+
     strategy:
       fail-fast: false
       max-parallel: 1
       matrix:
         platform:
+          # ==========================================
+          # buildServer / buildClient を true/false に変更するだけで
+          # 各プラットフォームのビルド対象を切り替え可能
+          # 1PFあたり サーバービルド → クライアントビルド の順に直列実行
+          # ==========================================
           - name: StandaloneWindows64
-            buildMethod: BuildPipeline.WindowsBuildFromGithubAction
             runner: windows-latest
+            buildServer: true
+            buildClient: true
+            serverBuildMethod: BuildPipeline.WindowsBuildFromGithubAction
+            clientBuildMethod: BuildPipeline.WindowsBuildFromGithubAction
+            isDedicatedServer: false
           - name: StandaloneOSX
-            buildMethod: BuildPipeline.MacOsBuildFromGithubAction
             runner: macos-latest
-          # - name: StandaloneLinux64 Linux側はランナーの容量が足りなくて落ちるのでコメントアウト
-            # buildMethod: BuildPipeline.LinuxBuildFromGithubAction
-            # runner: windows-latest
-    
+            buildServer: true
+            buildClient: true
+            serverBuildMethod: BuildPipeline.MacOsBuildFromGithubAction
+            clientBuildMethod: BuildPipeline.MacOsBuildFromGithubAction
+            isDedicatedServer: false
+          - name: StandaloneLinux64
+            runner: ubuntu-latest
+            buildServer: true
+            buildClient: false # ランナーの容量が足りないためクライアントビルドは無効
+            serverBuildMethod: BuildPipeline.LinuxDedicatedServerFromGithubAction
+            clientBuildMethod: ''
+            isDedicatedServer: true
+
     steps:
       # Checkout
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # submodule の履歴も取得できるように
+          fetch-depth: 0
           submodules: recursive
       - name: Update submodules
         run: |
-          git submodule sync --recursive # URL 変更を反映
-          git submodule update --init --recursive # 参照先コミットへ更新
-      - name: Run git status
-        id: status
-        run: echo "::set-output name=status::$(git status -s)"
+          git submodule sync --recursive
+          git submodule update --init --recursive
 
       # 年月日を取得　キャッシュのkeyに利用
       - name: Set current datetime as env variable
         env:
-          TZ: 'Asia/Tokyo' # タイムゾーン指定
+          TZ: 'Asia/Tokyo'
         run: echo "CURRENT_DATETIME=$(date +'%Y-%m')" >> $GITHUB_ENV
-      
-      # キャッシュ keyを月跨ぎで更新することで定期的にキャッシュ自体の更新を行う
-      - uses: actions/cache@v3
+
+      # サーバーLibraryキャッシュ
+      - name: Cache Server Library
+        if: ${{ matrix.platform.buildServer }}
+        uses: actions/cache@v3
+        with:
+          path: moorestech_server/Library
+          key: "Server_Library_${{ env.CURRENT_DATETIME }}"
+
+      # クライアントLibraryキャッシュ
+      - name: Cache Client Library
+        if: ${{ matrix.platform.buildClient }}
+        uses: actions/cache@v3
         with:
           path: moorestech_client/Library
           key: "Library_${{ env.CURRENT_DATETIME }}"
-      
-      # Build
-      - name: ${{ matrix.platform.name }} Build project
+
+      # サーバーアーティファクト名を設定（GUI版とDedicated Serverで区別）
+      - name: Set server artifact name
+        if: ${{ matrix.platform.buildServer }}
+        id: server-artifact
+        shell: bash
+        run: |
+          if [ "${{ matrix.platform.isDedicatedServer }}" = "true" ]; then
+            echo "name=Server_Output_DedicatedServer_${{ matrix.platform.name }}" >> $GITHUB_OUTPUT
+            echo "path=moorestech_server/Output_DedicatedServer_${{ matrix.platform.name }}" >> $GITHUB_OUTPUT
+          else
+            echo "name=Server_Output_${{ matrix.platform.name }}" >> $GITHUB_OUTPUT
+            echo "path=moorestech_server/Output_${{ matrix.platform.name }}" >> $GITHUB_OUTPUT
+          fi
+
+      # ===== Server Build =====
+      - name: Server Build - ${{ matrix.platform.name }}
+        if: ${{ matrix.platform.buildServer }}
         uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -64,170 +103,64 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           unityVersion: 6000.3.8f1
-          buildMethod: ${{ matrix.platform.buildMethod }}
+          buildMethod: ${{ matrix.platform.serverBuildMethod }}
+          targetPlatform: ${{ matrix.platform.name }}
+          allowDirtyBuild: true
+          projectPath: moorestech_server/
+
+      # サーバービルド成果物アップロード（Windows, Mac）
+      - name: Upload Server Build
+        if: ${{ matrix.platform.buildServer && matrix.platform.name != 'StandaloneLinux64' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.server-artifact.outputs.name }}
+          path: ${{ steps.server-artifact.outputs.path }}
+
+      # サーバービルド成果物アーカイブ（Linux）
+      - name: Archive Server Build for Linux
+        if: ${{ matrix.platform.buildServer && matrix.platform.name == 'StandaloneLinux64' }}
+        run: |
+          tar -czvf server_output.tar.gz ${{ steps.server-artifact.outputs.path }}
+
+      - name: Upload Server Build for Linux
+        if: ${{ matrix.platform.buildServer && matrix.platform.name == 'StandaloneLinux64' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.server-artifact.outputs.name }}
+          path: ./server_output.tar.gz
+
+      # ===== Client Build =====
+      - name: Client Build - ${{ matrix.platform.name }}
+        if: ${{ matrix.platform.buildClient }}
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          unityVersion: 6000.3.8f1
+          buildMethod: ${{ matrix.platform.clientBuildMethod }}
           targetPlatform: ${{ matrix.platform.name }}
           allowDirtyBuild: true
           projectPath: moorestech_client/
-      
-      # Upload Build for Windows, Mac
-      - name: ${{ matrix.platform.name }} Upload
-        if: matrix.platform.name != 'StandaloneLinux64'
+
+      # クライアントビルド成果物アップロード（Windows, Mac）
+      - name: Upload Client Build
+        if: ${{ matrix.platform.buildClient && matrix.platform.name != 'StandaloneLinux64' }}
         uses: actions/upload-artifact@v4
         with:
-          name: Output_${{ matrix.platform.name }}
+          name: Client_Output_${{ matrix.platform.name }}
           path: moorestech_client/Output_${{ matrix.platform.name }}
-      
-      # Archive for Linux
-      - name: Archive for Linux
-        if: matrix.platform.name == 'StandaloneLinux64'
+
+      # クライアントビルド成果物アーカイブ（Linux）
+      - name: Archive Client Build for Linux
+        if: ${{ matrix.platform.buildClient && matrix.platform.name == 'StandaloneLinux64' }}
         run: |
-          tar -czvf output.tar.gz moorestech_client/Output_${{ matrix.platform.name }}
-      
-      # Upload Archival for Linux
-      - name: Upload Archival for Linux
-        if: matrix.platform.name == 'StandaloneLinux64'
+          tar -czvf client_output.tar.gz moorestech_client/Output_${{ matrix.platform.name }}
+
+      - name: Upload Client Build for Linux
+        if: ${{ matrix.platform.buildClient && matrix.platform.name == 'StandaloneLinux64' }}
         uses: actions/upload-artifact@v4
         with:
-          name: Output_${{ matrix.platform.name }}
-          path: ./output.tar.gz
-
-
-  # TODO デプロイはまた後で対応する
-
-  # itch.ioへのデプロイ
-#  idchDeploy:
-#    name: itch.io Deploy
-#    needs: build
-#    runs-on: ubuntu-latest
-#    
-#    strategy:
-#      matrix:
-#        platform:
-#          - name: StandaloneWindows64
-#            itchioChannel: windows
-#          - name: StandaloneOSX
-#            itchioChannel: osx 
-#          - name: StandaloneLinux64
-#            itchioChannel: linux
-#    
-#    steps:
-#      # ビルドしたデータをダウンロード
-#      - name: Download artifact
-#        uses: actions/download-artifact@v3
-#        with:
-#          name: Output_${{ matrix.platform.name }}
-#          path: Output_${{ matrix.platform.name }}
-#      # itch ioにデプロイ
-#      - uses: manleydev/butler-publish-itchio-action@master
-#        env:
-#          BUTLER_CREDENTIALS: ${{ secrets.ITCH_IO_APY_KEY }}
-#          CHANNEL: ${{ matrix.platform.itchioChannel }}
-#          ITCH_GAME: ${{ secrets.ITCH_IO_GAME_NAME }}
-#          ITCH_USER: ${{ secrets.ITCH_IO_USER_NAME }}
-#          PACKAGE: Output_${{ matrix.platform.name }}
-#  
-#  
-#    
-#  # Steamへのデプロイ
-#  steamDeploy:
-#    name: Steam Deploy
-#    needs: build
-#    runs-on: ubuntu-latest
-#    steps:
-#      # 各プラットフォーム向けにビルドしたデータをダウンロード
-#      - name: Download windows artifact
-#        uses: actions/download-artifact@v3
-#        with:
-#          name: Output_StandaloneWindows64
-#          path: build/StandaloneWindows64
-#      - name: Download osx artifact
-#        uses: actions/download-artifact@v3
-#        with:
-#          name: Output_StandaloneOSX
-#          path: build/StandaloneOSX
-#      - name: Download linux artifact
-#        uses: actions/download-artifact@v3
-#        with:
-#          name: Output_StandaloneLinux64
-#          path: build/StandaloneLinux64
-#          
-#      - uses: game-ci/steam-deploy@v3
-#        with:
-#          username: ${{ secrets.STEAM_USERNAME }}
-#          configVdf: ${{ secrets.STEAM_CONFIG_VDF}}
-#          appId: 1958160
-#          buildDescription: upload from github action
-#          rootPath: build
-#          depot1Path: StandaloneWindows64
-#          depot2Path: StandaloneOSX
-#          depot3Path: StandaloneLinux64
-#          releaseBranch: github-action
-#  
-#  
-#  # Github Releaseへのデプロイ
-#  createRelease:
-#    name: Create Release
-#    needs: build
-#    runs-on: ubuntu-latest
-#    steps:
-#      # 各プラットフォーム向けにビルドしたデータをダウンロード
-#      - name: Download windows artifact
-#        uses: actions/download-artifact@v3
-#        with:
-#          name: Output_StandaloneWindows64
-#          path: build/StandaloneWindows64
-#      - name: Download osx artifact
-#        uses: actions/download-artifact@v3
-#        with:
-#          name: Output_StandaloneOSX
-#          path: build/StandaloneOSX
-#      - name: Download linux artifact
-#        uses: actions/download-artifact@v3
-#        with:
-#          name: Output_StandaloneLinux64
-#          path: build/StandaloneLinux64
-#          
-#      - name: Create release
-#        id: create_release
-#        uses: actions/create-release@v1.0.0
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-#        with:
-#          tag_name: ${{ github.ref }}
-#          release_name: Release ${{ github.ref }}
-#          body: |
-#            Changes in this Release
-#            - First Change
-#            - Second Change
-#          draft: false
-#          prerelease: false
-#
-#        # Upload Release Asset
-#      - name: Upload Release Asset
-#        uses: actions/upload-release-asset@v1.0.2
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-#        with:
-#          upload_url: ${{ steps.create_release.outputs.upload_url }}
-#          asset_path: build/StandaloneWindows64
-#          asset_name: StandaloneWindows64
-#          asset_content_type: application/zip
-#      - name: Upload Release Asset
-#        uses: actions/upload-release-asset@v1.0.2
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-#        with:
-#          upload_url: ${{ steps.create_release.outputs.upload_url }}
-#          asset_path: build/StandaloneOSX
-#          asset_name: StandaloneOSX
-#          asset_content_type: application/zip
-#      - name: Upload Release Asset
-#        uses: actions/upload-release-asset@v1.0.2
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-#        with:
-#          upload_url: ${{ steps.create_release.outputs.upload_url }}
-#          asset_path: build/StandaloneLinux64
-#          asset_name: StandaloneLinux64
-#          asset_content_type: application/zip
-#
+          name: Client_Output_${{ matrix.platform.name }}
+          path: ./client_output.tar.gz
