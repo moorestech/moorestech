@@ -27,11 +27,11 @@ namespace Client.Game.InGame.Train.View
             // Store dependency references and view processors during initialization
             _trainCarEntity = trainCarEntity;
             _trainCache = trainCache;
-            _processors = ResolveProcessors();
             _currentRenderSnapshot = default;
             _previousRenderSnapshot = default;
             _hasCurrentRenderSnapshot = false;
             _hasPreviousRenderSnapshot = false;
+            _processors = GetComponentsInChildren<ITrainCarObjectProcessor>();
             for (var i = 0; i < _processors.Length; i++)
             {
                 _processors[i].Initialize(trainCarEntity);
@@ -149,38 +149,6 @@ namespace Client.Game.InGame.Train.View
             {
                 _processors[i].Update(context);
             }
-        }
-
-        private ITrainCarObjectProcessor[] ResolveProcessors()
-        {
-            // 子 MonoBehaviour から processor 実装だけを集める
-            // Collect only processor implementations from child MonoBehaviours
-            var behaviours = GetComponentsInChildren<MonoBehaviour>(true);
-            var processorCount = 0;
-            for (var i = 0; i < behaviours.Length; i++)
-            {
-                if (behaviours[i] is ITrainCarObjectProcessor)
-                {
-                    processorCount++;
-                }
-            }
-
-            // 見つけた順序を保って processor 配列を構成する
-            // Preserve discovery order when building processor array
-            var processors = new ITrainCarObjectProcessor[processorCount];
-            var processorIndex = 0;
-            for (var i = 0; i < behaviours.Length; i++)
-            {
-                if (behaviours[i] is not ITrainCarObjectProcessor processor)
-                {
-                    continue;
-                }
-
-                processors[processorIndex] = processor;
-                processorIndex++;
-            }
-
-            return processors;
         }
 
         private bool TryResolveLatestRenderSnapshot(out TrainCarRenderSnapshot renderSnapshot)
