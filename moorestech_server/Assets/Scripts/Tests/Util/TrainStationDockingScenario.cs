@@ -208,6 +208,7 @@ namespace Tests.Util
             var trainLength = cars.Sum(trainCar => trainCar.Length);
             var railPosition = new RailPosition(nodes, trainLength, initialDistanceToNextNode);
             var train = new TrainUnit(railPosition, cars, _environment.GetTrainRailPositionManager(), _environment.GetTrainDiagramManager());
+            _environment.GetITrainUnitMutationDatastore().RegisterTrain(train);
             _spawnedTrains.Add(train);
             return train;
         }
