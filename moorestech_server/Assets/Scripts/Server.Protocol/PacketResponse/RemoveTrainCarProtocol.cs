@@ -9,14 +9,16 @@ namespace Server.Protocol.PacketResponse
 {
     public class RemoveTrainCarProtocol : IPacketResponse
     {
-        private readonly TrainUpdateService _trainUpdateService;
         private readonly ITrainUnitSnapshotNotifyEvent _trainUnitSnapshotNotifyEvent;
+        private readonly ITrainUnitLookupDatastore _trainUnitLookupDatastore;
+        private readonly ITrainUnitMutationDatastore _trainUnitMutationDatastore;
         public const string ProtocolTag = "va:removeTrainCar";
 
-        public RemoveTrainCarProtocol(TrainUpdateService trainUpdateService, ITrainUnitSnapshotNotifyEvent trainUnitSnapshotNotifyEvent)
+        public RemoveTrainCarProtocol(ITrainUnitSnapshotNotifyEvent trainUnitSnapshotNotifyEvent, ITrainUnitLookupDatastore trainUnitLookupDatastore, ITrainUnitMutationDatastore trainUnitMutationDatastore)
         {
-            _trainUpdateService = trainUpdateService;
             _trainUnitSnapshotNotifyEvent = trainUnitSnapshotNotifyEvent;
+            _trainUnitLookupDatastore = trainUnitLookupDatastore;
+            _trainUnitMutationDatastore = trainUnitMutationDatastore;
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload)
@@ -24,14 +26,9 @@ namespace Server.Protocol.PacketResponse
             // リクエストの復元
             // Deserialize request payload
             var request = MessagePackSerializer.Deserialize<RemoveTrainCarRequestMessagePack>(payload);
-            var trainsBeforeRemoval = _trainUpdateService.GetRegisteredTrains().ToList();
-
-            // 対象列車の探索
-            // Resolve target train and car
-            var trainCarPairs = trainsBeforeRemoval.SelectMany(t => t.Cars.Select(c => (Train: t, Car: c)));
             var trainCarInstanceId = new TrainCarInstanceId(request.TrainCarInstanceId);
-            var targetPair = trainCarPairs.FirstOrDefault(c => c.Car.TrainCarInstanceId == trainCarInstanceId);
-            if (targetPair.Car == null)
+            
+            if (!_trainUnitLookupDatastore.TryGetTrainUnitByCar(trainCarInstanceId, out var requestTrainUnit))
             {
                 Debug.LogWarning($"Remove train car failed. Train not found. \ncarId: {trainCarInstanceId}");
                 return null;
@@ -39,21 +36,38 @@ namespace Server.Protocol.PacketResponse
 
             // 削除の実行
             // Apply removal
-            var (createdTrainUnit, delTrainInstanceId) = targetPair.Train.RemoveCar(trainCarInstanceId);
+            var createdTrainUnit = requestTrainUnit.RemoveCar(trainCarInstanceId);
             
-            // TrainUnitまるごと通知
-            // Notify train unit snapshot updates
-            if (delTrainInstanceId != TrainInstanceId.Empty)
+            // 実在するか
+            // is exist?
+            if (createdTrainUnit.Cars.Count == 0)
             {
-                _trainUnitSnapshotNotifyEvent.NotifyDeleted(delTrainInstanceId);
+                createdTrainUnit.OnDestroy();
+                createdTrainUnit = null;
             }
             else
             {
-                _trainUnitSnapshotNotifyEvent.NotifySnapshot(targetPair.Train);
-            }
-            
-            if (createdTrainUnit != null)
+                // datastore更新
+                _trainUnitMutationDatastore.RegisterTrain(createdTrainUnit);
                 _trainUnitSnapshotNotifyEvent.NotifySnapshot(createdTrainUnit);
+            }
+            // requestTrainUnitの中身が変更されて実在しているか
+            if (requestTrainUnit.Cars.Count == 0)
+            {
+                // TrainUnitまるごと通知
+                // Notify train unit snapshot updates
+                // datastore更新上書き
+                _trainUnitMutationDatastore.UnregisterTrain(requestTrainUnit);
+                _trainUnitSnapshotNotifyEvent.NotifyDeleted(requestTrainUnit.TrainInstanceId);
+                requestTrainUnit.OnDestroy();
+                requestTrainUnit = null;
+            }
+            else
+            {
+                // datastore更新上書き
+                _trainUnitMutationDatastore.RegisterTrain(requestTrainUnit);
+                _trainUnitSnapshotNotifyEvent.NotifySnapshot(requestTrainUnit);
+            }
             
             return null;
         }
