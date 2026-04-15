@@ -27,6 +27,7 @@ namespace Server.Protocol.PacketResponse
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
             _railGraphDatastore = serviceProvider.GetService<IRailGraphDatastore>();
+            _trainUnitMutationDatastore = serviceProvider.GetService<ITrainUnitMutationDatastore>();
             _railPositionManager = serviceProvider.GetService<TrainRailPositionManager>();
             _diagramManager = serviceProvider.GetService<TrainDiagramManager>();
             _trainUnitSnapshotNotifyEvent = serviceProvider.GetService<ITrainUnitSnapshotNotifyEvent>();
