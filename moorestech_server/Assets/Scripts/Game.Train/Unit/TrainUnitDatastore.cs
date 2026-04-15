@@ -6,6 +6,7 @@ namespace Game.Train.Unit
     {
         private readonly Dictionary<TrainInstanceId, TrainUnit> _trainUnitsById = new();
         private readonly Dictionary<TrainCarInstanceId, TrainUnit> _trainUnitsByCarId = new();
+        private readonly Dictionary<TrainCarInstanceId, TrainCar> _trainCarsById = new();
 
         public IReadOnlyCollection<TrainUnit> GetRegisteredTrains() => _trainUnitsById.Values;
 
@@ -45,9 +46,15 @@ namespace Game.Train.Unit
             return _trainUnitsByCarId.TryGetValue(id, out trainUnit);
         }
 
+        public bool TryGetTrainCar(TrainCarInstanceId id, out TrainCar trainCar)
+        {
+            return _trainCarsById.TryGetValue(id, out trainCar);
+        }
+
         public void RebuildCarToUnitIndex()
         {
             _trainUnitsByCarId.Clear();
+            _trainCarsById.Clear();
 
             // TrainUnit -> Cars を正本として、逆引き index を全再構築する
             // Rebuild the reverse lookup from the authoritative TrainUnit -> Cars state.
@@ -65,7 +72,10 @@ namespace Game.Train.Unit
                         continue;
                     }
 
+                    // 車両参照と所属TrainUnit参照を同時に更新する
+                    // Rebuild direct car lookup and owning TrainUnit lookup together.
                     _trainUnitsByCarId[car.TrainCarInstanceId] = trainUnit;
+                    _trainCarsById[car.TrainCarInstanceId] = car;
                 }
             }
         }
@@ -74,6 +84,7 @@ namespace Game.Train.Unit
         {
             _trainUnitsById.Clear();
             _trainUnitsByCarId.Clear();
+            _trainCarsById.Clear();
         }
     }
 }

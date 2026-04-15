@@ -7,5 +7,6 @@ namespace Game.Train.Unit
         IReadOnlyCollection<TrainUnit> GetRegisteredTrains();
         bool TryGetTrainUnit(TrainInstanceId id, out TrainUnit trainUnit);
         bool TryGetTrainUnitByCar(TrainCarInstanceId id, out TrainUnit trainUnit);
+        bool TryGetTrainCar(TrainCarInstanceId id, out TrainCar trainCar);
     }
 }
