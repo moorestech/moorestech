@@ -37,14 +37,16 @@ namespace Game.Train.SaveLoad
                 return;
             }
 
+            // 復元したTrainUnitをDatastoreへ戻して、以後の参照系が通常どおり動くようにする。
+            // Register restored TrainUnits so lookup and save flows can see them again.
             foreach (var data in saveData)
             {
                 if (data == null)
-                {
                     continue;
-                }
-
-                TrainUnit.RestoreFromSaveData(data);
+                var trainUnit = TrainUnit.RestoreFromSaveData(data);
+                if (trainUnit == null)
+                    continue;
+                _trainUnitDatastore.RegisterTrain(trainUnit);
             }
         }
     }
