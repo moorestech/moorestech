@@ -18,7 +18,7 @@ namespace Server.Protocol.PacketResponse
         public const string ProtocolTag = "va:placeTrainCar";
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly IRailGraphDatastore _railGraphDatastore;
-        private readonly TrainUpdateService _trainUpdateService;
+        private readonly ITrainUnitMutationDatastore _trainUnitMutationDatastore;
         private readonly TrainRailPositionManager _railPositionManager;
         private readonly TrainDiagramManager _diagramManager;
         private readonly ITrainUnitSnapshotNotifyEvent _trainUnitSnapshotNotifyEvent;
@@ -27,7 +27,6 @@ namespace Server.Protocol.PacketResponse
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
             _railGraphDatastore = serviceProvider.GetService<IRailGraphDatastore>();
-            _trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
             _railPositionManager = serviceProvider.GetService<TrainRailPositionManager>();
             _diagramManager = serviceProvider.GetService<TrainDiagramManager>();
             _trainUnitSnapshotNotifyEvent = serviceProvider.GetService<ITrainUnitSnapshotNotifyEvent>();
@@ -75,6 +74,7 @@ namespace Server.Protocol.PacketResponse
 
                 // 新規編成の単機スナップショットを通知する
                 // Broadcast a per-unit snapshot for the newly created train.
+                _trainUnitMutationDatastore.RegisterTrain(createdTrain);
                 _trainUnitSnapshotNotifyEvent.NotifySnapshot(createdTrain);
                 
                 return PlaceTrainOnRailResponseMessagePack.CreateSuccess();
@@ -101,7 +101,7 @@ namespace Server.Protocol.PacketResponse
                     // 単一車両の列車編成を生成する
                     // Create a single-car train unit
                     var trainCar = new TrainCar(trainCarMaster, true);
-                    trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, _trainUpdateService, _railPositionManager, _diagramManager);
+                    trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, _railPositionManager, _diagramManager);
                     return true;
                 }
                 

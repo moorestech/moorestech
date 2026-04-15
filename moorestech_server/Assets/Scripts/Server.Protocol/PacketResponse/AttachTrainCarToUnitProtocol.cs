@@ -18,6 +18,7 @@ namespace Server.Protocol.PacketResponse
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly IRailGraphDatastore _railGraphDatastore;
         private readonly ITrainUnitLookupDatastore _trainUnitLookupDatastore;
+        private readonly ITrainUnitMutationDatastore _trainUnitMutationDatastore;
         private readonly ITrainUnitSnapshotNotifyEvent _trainUnitSnapshotNotifyEvent;
 
         public AttachTrainCarToUnitProtocol(ServiceProvider serviceProvider)
@@ -26,6 +27,7 @@ namespace Server.Protocol.PacketResponse
             _railGraphDatastore = serviceProvider.GetService<IRailGraphDatastore>();
             _trainUnitLookupDatastore = serviceProvider.GetService<ITrainUnitLookupDatastore>();
             _trainUnitSnapshotNotifyEvent = serviceProvider.GetService<ITrainUnitSnapshotNotifyEvent>();
+            _trainUnitMutationDatastore = serviceProvider.GetService<ITrainUnitMutationDatastore>();
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload)
@@ -75,11 +77,11 @@ namespace Server.Protocol.PacketResponse
                     return AttachTrainCarToUnitResponseMessagePack.CreateFailure(AttachTrainCarFailureType.InvalidRailPosition);
                 }
 
-                // 在庫消費と単機スナップショット通知を行う
+                // 在庫消費と単機スナップショット通知を行う、サーバー側datastoreも更新
                 // Consume inventory and notify per-unit snapshot
                 mainInventory.SetItem(data.InventorySlot, item.Id, item.Count - 1);
+                _trainUnitMutationDatastore.RegisterTrain(targetTrain);
                 _trainUnitSnapshotNotifyEvent.NotifySnapshot(targetTrain);
-
                 return AttachTrainCarToUnitResponseMessagePack.CreateSuccess();
             }
 

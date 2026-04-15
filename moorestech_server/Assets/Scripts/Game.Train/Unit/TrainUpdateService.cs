@@ -126,14 +126,12 @@ namespace Game.Train.Unit
         //public void UnregisterTrain(TrainUnit trainUnit) => _trainUnits.Remove(trainUnit);
         //public IEnumerable<TrainUnit> GetRegisteredTrains() => _trainUnits.ToArray();
 
-        /*
-        public void ResetTrains()
+        
+        public void ResetTick()
         {
-            _trainUnits.Clear();
             _executedTick = 0;
             _tickSequenceId = 0;
         }
-        */
 
         // TODO デバッグトグルスイッチ関連なので最終的に消すのを忘れずに
         private const string TrainAutoRunOnArgument = "on";
