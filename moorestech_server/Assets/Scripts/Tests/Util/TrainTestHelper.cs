@@ -40,8 +40,8 @@ namespace Tests.Util
 
         public TrainUpdateService GetTrainUpdateService() => ServiceProvider.GetService<TrainUpdateService>();
         public TrainUnitDatastore GetTrainUnitDatastore() => ServiceProvider.GetService<TrainUnitDatastore>();
-        public ITrainUnitLookupDatastore GetITrainLookupDatastore() => ServiceProvider.GetService<TrainUnitDatastore>();
-        public ITrainUnitMutationDatastore GetITrainUnitMutationDatastore() => ServiceProvider.GetService<TrainUnitDatastore>();
+        public ITrainUnitLookupDatastore GetITrainLookupDatastore() => ServiceProvider.GetService<ITrainUnitLookupDatastore>();
+        public ITrainUnitMutationDatastore GetITrainUnitMutationDatastore() => ServiceProvider.GetService<ITrainUnitMutationDatastore>();
         
 
         public TrainDiagramManager GetTrainDiagramManager() => ServiceProvider.GetService<TrainDiagramManager>();
