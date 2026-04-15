@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Game.Train.Event;
 using Game.Train.Unit;
@@ -37,6 +38,27 @@ namespace Server.Protocol.PacketResponse
             // 削除の実行
             // Apply removal
             var createdTrainUnit = requestTrainUnit.RemoveCar(trainCarInstanceId);
+            
+            TrainInstanceId delid = requestTrainUnit.TrainInstanceId;//削除するもの
+            List<TrainUnit> createList = new List<TrainUnit>();//新規生成か更新するもの
+            
+            // requestTrainUnitの中身が変更されて実在しているか
+            if (requestTrainUnit.Cars.Count == 0)
+            {
+                // TrainUnitまるごと通知
+                // Notify train unit snapshot updates
+                // datastore更新上書き
+                _trainUnitMutationDatastore.UnregisterTrain(requestTrainUnit);
+                requestTrainUnit.OnDestroy();
+                requestTrainUnit = null;
+            }
+            else
+            {
+                // datastore更新上書き
+                _trainUnitMutationDatastore.RegisterTrain(requestTrainUnit);
+                createList.Add(requestTrainUnit);
+            }
+            
             if (createdTrainUnit != null)
             {
                 // 実在するか
@@ -50,28 +72,17 @@ namespace Server.Protocol.PacketResponse
                 {
                     // datastore更新
                     _trainUnitMutationDatastore.RegisterTrain(createdTrainUnit);
-                    _trainUnitSnapshotNotifyEvent.NotifySnapshot(createdTrainUnit);
+                    createList.Add(createdTrainUnit);
                 }                
             }
-            // requestTrainUnitの中身が変更されて実在しているか
-            if (requestTrainUnit.Cars.Count == 0)
-            {
-                // TrainUnitまるごと通知
-                // Notify train unit snapshot updates
-                // datastore更新上書き
-                _trainUnitMutationDatastore.UnregisterTrain(requestTrainUnit);
-                Debug.Log("111");
-                _trainUnitSnapshotNotifyEvent.NotifyDeleted(requestTrainUnit.TrainInstanceId);
-                requestTrainUnit.OnDestroy();
-                requestTrainUnit = null;
-            }
-            else
-            {
-                // datastore更新上書き
-                _trainUnitMutationDatastore.RegisterTrain(requestTrainUnit);
-                _trainUnitSnapshotNotifyEvent.NotifySnapshot(requestTrainUnit);
-            }
             
+            // 先に削除をクライアントに送信
+            // 1st del
+            _trainUnitSnapshotNotifyEvent.NotifyDeleted(delid);
+            // 
+            // 2nd create
+            foreach (var trainUnit in createList)
+                _trainUnitSnapshotNotifyEvent.NotifySnapshot(trainUnit);
             return null;
         }
         
