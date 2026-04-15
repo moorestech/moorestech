@@ -107,7 +107,7 @@ namespace Tests.UnitTest.Game
                     f.SetValue(cars[0], trainLength);
                 }
 
-                var trainUnit = new TrainUnit(railPosition, cars, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
+                var trainUnit = new TrainUnit(railPosition, cars, env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
 
                 // 5) 進めるtotal距離をランダムにきめる
                 int totalrunDist = UnityEngine.Random.Range(1, 30000000);
@@ -189,7 +189,7 @@ namespace Tests.UnitTest.Game
 
             // --- 4. TrainUnit を生成 ---
             var destination = nodeA;   // 目的地を A にしておく
-            var trainUnit = new TrainUnit(initialRailPosition, cars, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
+            var trainUnit = new TrainUnit(initialRailPosition, cars, env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
             trainUnit.trainDiagram.AddEntry(destination);
             trainUnit.TurnOnAutoRun();
             int totaldist = 0;
@@ -390,7 +390,7 @@ namespace Tests.UnitTest.Game
                     TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 384000000, 0, trainLength, true).trainCar,  // 仮: 動力車まえ
                     TrainTestCarFactory.CreateTrainCarWithItemContainer(1, 384000000, 0, 0, false).trainCar,  // 仮: 動力車うしろ
                 };
-                var trainUnit = new TrainUnit(railPosition, cars, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
+                var trainUnit = new TrainUnit(railPosition, cars, env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
                 trainUnit.trainDiagram.AddEntry(destination);
                 //走行スタート 現在地→駅3の終点
                 RunTrain(trainUnit);
@@ -558,7 +558,7 @@ namespace Tests.UnitTest.Game
                 {
                     TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 240000000, 0, trainLength, true).trainCar,  // 仮: 動力車
                 };
-                var trainUnit = new TrainUnit(railPosition, cars, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
+                var trainUnit = new TrainUnit(railPosition, cars, env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
 
                 //進んで目的地についたら次の目的地をランダムにセット。100回繰り返し終了
                 RailNode destination = null;
@@ -665,11 +665,11 @@ namespace Tests.UnitTest.Game
             );
 
             // --- 4. TrainUnit を生成 ---
-            var trainUnit = new TrainUnit(initialRailPosition, cars, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
+            var trainUnit = new TrainUnit(initialRailPosition, cars, env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
 
             // --- 5. SplitTrain(...) で後ろから 2 両切り離す ---
             //   5両 → (前3両) + (後ろ2両) に分割
-            var (splittedUnit, _) = trainUnit.SplitTrain(2);
+            var splittedUnit = trainUnit.SplitTrain(2);
 
             // --- 6. 結果の検証 ---
             // 6-1) 戻り値（splittedUnit）は null ではない

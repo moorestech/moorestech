@@ -63,8 +63,9 @@ namespace Tests.UnitTest.Game
             var railPosition = new RailPosition(railNodes, segmentLength, 0);
 
             var (trainCar, fluidContainer) = TrainTestCarFactory.CreateTrainCarWithFluidContainer(0, 400000, 1000, segmentLength, true);
-            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
-
+            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
+            env.GetITrainUnitMutationDatastore().RegisterTrain(trainUnit);
+            
             trainUnit.trainUnitStationDocking.TryDockWhenStopped();
 
             Assert.IsTrue(trainCar.IsDocked);
@@ -85,7 +86,7 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(waterFluidId, fluidContainer.Container.FluidId);
 
             env.GetTrainDiagramManager().UnregisterDiagram(trainUnit.trainDiagram);
-            env.GetTrainUpdateService().UnregisterTrain(trainUnit);
+            env.GetITrainUnitMutationDatastore().UnregisterTrain(trainUnit);
         }
 
         [Test]
@@ -130,7 +131,7 @@ namespace Tests.UnitTest.Game
             fluidContainer.Container.FluidId = waterFluidId;
             fluidContainer.Container.Amount = fluidAmount;
 
-            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
+            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
 
             trainUnit.trainUnitStationDocking.TryDockWhenStopped();
 
@@ -151,9 +152,6 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(fluidAmount, fluidContainerComponent.Container.Container.Amount, 0.001);
             Assert.AreEqual(waterFluidId, fluidContainerComponent.Container.Container.FluidId);
             Assert.AreSame(fluidContainer, fluidContainerComponent.Container);
-
-            env.GetTrainDiagramManager().UnregisterDiagram(trainUnit.trainDiagram);
-            env.GetTrainUpdateService().UnregisterTrain(trainUnit);
         }
 
         [Test]
@@ -191,7 +189,7 @@ namespace Tests.UnitTest.Game
             fluidContainer.Container.FluidId = waterFluidId;
             fluidContainer.Container.Amount = trainExistingAmount;
 
-            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
+            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
 
             trainUnit.trainUnitStationDocking.TryDockWhenStopped();
 
@@ -210,9 +208,6 @@ namespace Tests.UnitTest.Game
             // Total amount transferred to train
             var expectedTotal = platformAmount + trainExistingAmount;
             Assert.AreEqual(expectedTotal, fluidContainer.Container.Amount, 0.001);
-
-            env.GetTrainDiagramManager().UnregisterDiagram(trainUnit.trainDiagram);
-            env.GetTrainUpdateService().UnregisterTrain(trainUnit);
         }
 
         [Test]
@@ -252,7 +247,7 @@ namespace Tests.UnitTest.Game
             fluidContainer.Container.FluidId = steamFluidId;
             fluidContainer.Container.Amount = trainSteamAmount;
 
-            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
+            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
 
             trainUnit.trainUnitStationDocking.TryDockWhenStopped();
 
@@ -272,9 +267,6 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(waterFluidId, fluidContainerComponent.Container.Container.FluidId);
             Assert.AreEqual(trainSteamAmount, fluidContainer.Container.Amount, 0.001);
             Assert.AreEqual(steamFluidId, fluidContainer.Container.FluidId);
-
-            env.GetTrainDiagramManager().UnregisterDiagram(trainUnit.trainDiagram);
-            env.GetTrainUpdateService().UnregisterTrain(trainUnit);
         }
 
         [Test]
@@ -306,8 +298,9 @@ namespace Tests.UnitTest.Game
             // Create train car without container
             var element = TrainTestCarFactory.CreateMasterElement(0, 400000, 0, segmentLength);
             var trainCar = new TrainCar(element, true);
-            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
-
+            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
+            env.GetITrainUnitMutationDatastore().RegisterTrain(trainUnit);          
+            
             trainUnit.trainUnitStationDocking.TryDockWhenStopped();
 
             Assert.IsTrue(trainCar.IsDocked);
@@ -330,7 +323,7 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(waterFluidId, trainFluidContainer.Container.FluidId);
 
             env.GetTrainDiagramManager().UnregisterDiagram(trainUnit.trainDiagram);
-            env.GetTrainUpdateService().UnregisterTrain(trainUnit);
+            env.GetITrainUnitMutationDatastore().UnregisterTrain(trainUnit);
         }
 
         [Test]
@@ -369,8 +362,8 @@ namespace Tests.UnitTest.Game
             fluidContainer.Container.FluidId = waterFluidId;
             fluidContainer.Container.Amount = trainExistingAmount;
 
-            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
-
+            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
+            
             trainUnit.trainUnitStationDocking.TryDockWhenStopped();
 
             Assert.IsTrue(trainCar.IsDocked);
@@ -391,9 +384,6 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(platformAmount - trainRemainingCapacity, fluidContainerComponent.Container.Container.Amount, 0.001);
             Assert.AreEqual(waterFluidId, fluidContainer.Container.FluidId);
             Assert.AreEqual(waterFluidId, fluidContainerComponent.Container.Container.FluidId);
-
-            env.GetTrainDiagramManager().UnregisterDiagram(trainUnit.trainDiagram);
-            env.GetTrainUpdateService().UnregisterTrain(trainUnit);
         }
 
         [Test]
@@ -436,7 +426,7 @@ namespace Tests.UnitTest.Game
             fluidContainer.Container.FluidId = waterFluidId;
             fluidContainer.Container.Amount = trainAmount;
 
-            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
+            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
 
             trainUnit.trainUnitStationDocking.TryDockWhenStopped();
 
@@ -458,9 +448,6 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(trainAmount - platformRemainingCapacity, fluidContainer.Container.Amount, 0.001);
             Assert.AreEqual(waterFluidId, fluidContainerComponent.Container.Container.FluidId);
             Assert.AreEqual(waterFluidId, fluidContainer.Container.FluidId);
-
-            env.GetTrainDiagramManager().UnregisterDiagram(trainUnit.trainDiagram);
-            env.GetTrainUpdateService().UnregisterTrain(trainUnit);
         }
 
         #region Internal

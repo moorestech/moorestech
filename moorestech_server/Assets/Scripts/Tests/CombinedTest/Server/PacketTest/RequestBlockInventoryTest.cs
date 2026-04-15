@@ -82,11 +82,11 @@ namespace Tests.CombinedTest.Server.PacketTest
             var distance = Mathf.Max(1, frontNode.GetDistanceToNode(backNode));
             var railPosition = new RailPosition(new List<IRailNode> { frontNode, backNode }, distance, 0);
             var (trainCar, itemContainer) = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 400000, 3, distance, true);
-            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, environment.GetTrainUpdateService(), environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
+            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
 
             // 列車をTrainUpdateServiceに登録
             // Register the train to TrainUpdateService
-            environment.GetTrainUpdateService().RegisterTrain(trainUnit);
+            environment.GetITrainUnitMutationDatastore().RegisterTrain(trainUnit);
 
             // インベントリにアイテムをセット
             // Set items in the inventory

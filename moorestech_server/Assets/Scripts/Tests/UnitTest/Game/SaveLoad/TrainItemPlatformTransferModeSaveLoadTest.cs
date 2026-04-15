@@ -48,7 +48,9 @@ namespace Tests.UnitTest.Game.SaveLoad
             var railPosition = new RailPosition(new List<IRailNode> { exitNode, entryNode }, segmentLength, 0);
             var firstTrainCarMaster = MasterHolder.TrainUnitMaster.Train.TrainCars.First();
             var trainCar = new TrainCar(firstTrainCarMaster, true);
-            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, environment.GetTrainUpdateService(), environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
+            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
+            environment.GetITrainUnitMutationDatastore().RegisterTrain(trainUnit);
+            
             trainUnit.trainUnitStationDocking.TryDockWhenStopped();
             Assert.IsTrue(trainCar.IsDocked, "列車が貨物プラットフォームにドッキングしていません。");
             
@@ -67,8 +69,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             var loadedBlock = loadEnvironment.WorldBlockDatastore.GetBlock(Vector3Int.zero);
             Assert.IsNotNull(loadedBlock, "ロード後に貨物プラットフォームが見つかりません。");
             Assert.IsTrue(loadedBlock.ComponentManager.TryGetComponent<IBlockInventory>(out var loadedInventory), "ロード後の貨物インベントリ取得に失敗しました。");
-
-            var loadedTrain = loadEnvironment.GetTrainUpdateService().GetRegisteredTrains().Single();
+            
+            var loadedTrain = loadEnvironment.GetITrainLookupDatastore().GetRegisteredTrains().Single();
             var loadedCar = loadedTrain.Cars[0];
             Assert.IsTrue(loadedCar.IsDocked, "ロード後に列車ドッキング状態が復元されていません。");
             
@@ -86,7 +88,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             loadedTrain.trainUnitStationDocking.UndockFromStation();
             loadEnvironment.GetTrainDiagramManager().UnregisterDiagram(loadedTrain.trainDiagram);
-            loadEnvironment.GetTrainUpdateService().UnregisterTrain(loadedTrain);
+            loadEnvironment.GetITrainUnitMutationDatastore().UnregisterTrain(loadedTrain);
         }
 
         [Test]

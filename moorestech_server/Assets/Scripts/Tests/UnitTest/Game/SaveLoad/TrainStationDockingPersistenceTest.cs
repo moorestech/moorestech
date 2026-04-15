@@ -53,8 +53,8 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             var loadEnv = TrainTestHelper.CreateEnvironment();
             SaveLoadJsonTestHelper.LoadFromJson(loadEnv.ServiceProvider, saveJson);
-
-            var loadedTrains = loadEnv.GetTrainUpdateService().GetRegisteredTrains().ToList();
+            
+            var loadedTrains = loadEnv.GetITrainLookupDatastore().GetRegisteredTrains().ToList();
             Assert.AreEqual(1, loadedTrains.Count, "ロード後の登録列車数が一致しません。");
 
             var loadedTrain = loadedTrains[0];
@@ -97,7 +97,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             mutation.Load(loadEnv.ServiceProvider);
 
-            var loadedTrains = loadEnv.GetTrainUpdateService().GetRegisteredTrains().ToList();
+            var loadedTrains = loadEnv.GetITrainLookupDatastore().GetRegisteredTrains().ToList();
             Assert.AreEqual(1, loadedTrains.Count, "破損JSONロード後の登録列車数が一致しません。");
 
             var loadedTrain = loadedTrains[0];
@@ -123,8 +123,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             var dockedSnapshot = ConfigureDockedTrain(dockedTrain, dockedCar, dockedContainer, scenario);
             var runningSnapshot = ConfigureRunningTrain(runningTrain, runningCar, runningContainer, scenario);
-
-            var registeredCount = scenario.Environment.GetTrainUpdateService().GetRegisteredTrains().Count();
+            var registeredCount = scenario.Environment.GetITrainLookupDatastore().GetRegisteredTrains().Count;
             Assert.AreEqual(2, registeredCount, "セーブ前の登録列車数が想定と異なります。");
 
             var saveJson = SaveLoadJsonTestHelper.AssembleSaveJson(scenario.Environment.ServiceProvider);
@@ -134,7 +133,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var loadEnv = TrainTestHelper.CreateEnvironment();
             SaveLoadJsonTestHelper.LoadFromJson(loadEnv.ServiceProvider, saveJson);
 
-            var loadedTrains = loadEnv.GetTrainUpdateService().GetRegisteredTrains().ToList();
+            var loadedTrains = loadEnv.GetITrainLookupDatastore().GetRegisteredTrains().ToList();
             Assert.AreEqual(2, loadedTrains.Count, "ロード後の登録列車数が一致しません。");
 
             var loadedDockedTrain = loadedTrains.Single(train => train.trainUnitStationDocking.IsDocked);
@@ -246,7 +245,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             {
                 train.trainUnitStationDocking.UndockFromStation();
                 environment.GetTrainDiagramManager().UnregisterDiagram(train.trainDiagram);
-                environment.GetTrainUpdateService().UnregisterTrain(train);
+                environment.GetITrainUnitMutationDatastore().UnregisterTrain(train);
             }
         }
 
