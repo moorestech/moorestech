@@ -92,7 +92,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             {
                 // 列車生成とアイテム消費を検証
                 // Validate train creation and item consumption
-                Assert.AreEqual(1, environment.GetITrainLookupDatastore().GetRegisteredTrains().Count(), "列車が1つ生成されるべき / One train should be created");
+                Assert.AreEqual(1, environment.GetITrainLookupDatastore().GetRegisteredTrains().Count, "列車が1つ生成されるべき / One train should be created");
                 
                 var inventory = environment.ServiceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
                 Assert.AreEqual(0, inventory.MainOpenableInventory.GetItem(InventorySlot).Count, "列車アイテムが消費されるべき / Train item should be consumed");
