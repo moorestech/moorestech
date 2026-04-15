@@ -476,22 +476,20 @@ namespace Game.Train.Unit
         //============================================================
         /// <summary>
         ///  分割
-        ///  列車を「後ろから numberOfCarsToDetach 両」切り離して、後ろの部分を新しいTrainUnitとして返す
+        ///  列車を「後ろから numberOfCarsToDetach 両」切り離して、後ろを新しいTrainUnitに。後半部分の部分を新しいTrainUnitとして返す 0両でも返す
         ///  新しいTrainUnitのrailpositionは、切り離した車両の長さに応じて調整される
         ///  新しいTrainUnitのtrainDiagramは空になる
         ///  新しいTrainUnitのドッキング状態はcarに情報があるためそのまま保存される
         /// </summary>
         
-        public (TrainUnit, TrainInstanceId) SplitTrain(int numberOfCarsToDetach)
+        public TrainUnit SplitTrain(int numberOfCarsToDetach)
         {
-            var deletedTrainInstanceId = TrainInstanceId.Empty;
             // 例：10両 → 5両 + 5両など
-            // 後ろから 5両を抜き取るケースを想定
             if (numberOfCarsToDetach <= 0 || numberOfCarsToDetach > _cars.Count)
             {
                 if (numberOfCarsToDetach != 0)
                     Debug.LogWarning("SplitTrain: 指定両数が不正です。");
-                return (null, deletedTrainInstanceId);
+                return null;
             }
             TurnOffAutoRun();
             // 1) 切り離す車両リストを作成
@@ -510,14 +508,8 @@ namespace Game.Train.Unit
             _railPosition.SetTrainLength(newTrainLength);
             // 4) 新しいTrainUnitを作成
             var splittedUnit = new TrainUnit(splittedRailPosition, detachedCars, _railPositionManager, _diagramManager);
-            // 5) 自分が0になっていたら
-            if (_cars.Count == 0)
-            {
-                deletedTrainInstanceId = this.TrainInstanceId;
-                this.OnDestroy();
-            }
             // 6) 新しいTrainUnitを返す
-            return (splittedUnit, deletedTrainInstanceId);
+            return splittedUnit;
 
             #region Internal
             /// <summary>
@@ -548,22 +540,23 @@ namespace Game.Train.Unit
         /// <summary>
         /// 指定 GUID or indexの列車両を安全に削除する
         /// Removes the train car that matches the given GUID.
+        /// s=x+1+y両のtrainunitから1を削除しx,yのうちyのTrainUnitを返す関数。xはthis
+        /// x,yは0以上
         /// </summary>
-        public (TrainUnit, TrainInstanceId) RemoveCar(int targetIndex)
+        public TrainUnit RemoveCar(int targetIndex)
         {
             if (targetIndex < 0 || targetIndex >= _cars.Count)
             {
                 Debug.LogWarning($"RemoveCar: carIndex {targetIndex} is not found.");
-                return (null, TrainInstanceId.Empty);
+                return null;
             }
             var carsBehind = _cars.Count - targetIndex - 1;
-            var (newRearUnit, deletedTrainInstanceId) = SplitTrain(carsBehind);
-            var (removeUnit, deletedTrainInstanceIdSecond) = SplitTrain(1);
-            removeUnit?.OnDestroy();
-            var delTrainUnitInstanceId = deletedTrainInstanceId == TrainInstanceId.Empty ? deletedTrainInstanceIdSecond : deletedTrainInstanceId;
-            return (newRearUnit, delTrainUnitInstanceId);
+            var SplitedTrainFirst = SplitTrain(carsBehind);
+            var SplitedTrainSecond = SplitTrain(1);
+            SplitedTrainSecond?.OnDestroy();
+            return SplitedTrainFirst;
         }
-        public (TrainUnit, TrainInstanceId) RemoveCar(TrainCarInstanceId trainCarInstanceId)
+        public TrainUnit RemoveCar(TrainCarInstanceId trainCarInstanceId)
         {
             var targetIndex = _cars.FindIndex(car => car.TrainCarInstanceId == trainCarInstanceId);
             return RemoveCar(targetIndex);
