@@ -282,6 +282,9 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.IsTrue(trainCar.IsInventoryEmpty(), "セーブ前に一括移送が発生しています。");
 
             var saveJson = SaveLoadJsonTestHelper.AssembleSaveJson(environment.ServiceProvider);
+            environment.GetTrainDiagramManager().UnregisterDiagram(trainUnit.trainDiagram);
+            environment.GetITrainUnitMutationDatastore().UnregisterTrain(trainUnit);
+            
             var loadEnvironment = TrainTestHelper.CreateEnvironment();
             SaveLoadJsonTestHelper.LoadFromJson(loadEnvironment.ServiceProvider, saveJson);
 

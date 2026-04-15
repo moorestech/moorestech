@@ -97,8 +97,7 @@ namespace Tests.Util
 
             var (trainCar, _) = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 400000, 1, stationNodes.BlockLength, true);
             var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
-            //environment.GetITrainUnitMutationDatastore().RegisterTrain(trainUnit);
-            
+            environment.GetITrainUnitMutationDatastore().RegisterTrain(trainUnit);
             
             trainUnit.trainDiagram.AddEntry(stationNodes.ExitFront);
             trainUnit.trainDiagram.AddEntry(n1);
@@ -163,7 +162,7 @@ namespace Tests.Util
 
             Train.trainUnitStationDocking.UndockFromStation();
             _environment.GetTrainDiagramManager().UnregisterDiagram(Train.trainDiagram);
-            _environment.GetITrainUnitMutationDatastore().RegisterTrain(Train);
+            _environment.GetITrainUnitMutationDatastore().UnregisterTrain(Train);
             _disposed = true;
         }
 
