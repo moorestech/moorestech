@@ -17,14 +17,14 @@ namespace Server.Protocol.PacketResponse
         public const string ProtocolTag = "va:attachTrainCarToUnit";
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly IRailGraphDatastore _railGraphDatastore;
-        private readonly TrainUpdateService _trainUpdateService;
+        private readonly ITrainUnitLookupDatastore _trainUnitLookupDatastore;
         private readonly ITrainUnitSnapshotNotifyEvent _trainUnitSnapshotNotifyEvent;
 
         public AttachTrainCarToUnitProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
             _railGraphDatastore = serviceProvider.GetService<IRailGraphDatastore>();
-            _trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
+            _trainUnitLookupDatastore = serviceProvider.GetService<ITrainUnitLookupDatastore>();
             _trainUnitSnapshotNotifyEvent = serviceProvider.GetService<ITrainUnitSnapshotNotifyEvent>();
         }
 
@@ -56,7 +56,7 @@ namespace Server.Protocol.PacketResponse
 
                 // 連結先編成を解決する
                 // Resolve target train unit
-                if (!TryResolveTargetTrain(data.TargetTrainInstanceId, out var targetTrain))
+                if (!_trainUnitLookupDatastore.TryGetTrainUnit(data.TargetTrainInstanceId, out var targetTrain))
                 {
                     return AttachTrainCarToUnitResponseMessagePack.CreateFailure(AttachTrainCarFailureType.TrainNotFound);
                 }
@@ -81,23 +81,6 @@ namespace Server.Protocol.PacketResponse
                 _trainUnitSnapshotNotifyEvent.NotifySnapshot(targetTrain);
 
                 return AttachTrainCarToUnitResponseMessagePack.CreateSuccess();
-            }
-
-            bool TryResolveTargetTrain(TrainInstanceId trainInstanceId, out TrainUnit targetTrain)
-            {
-                // 登録済み編成から一致IDを探索する
-                // Find target by id from registered train units
-                targetTrain = null;
-                foreach (var train in _trainUpdateService.GetRegisteredTrains())
-                {
-                    if (train == null || train.TrainInstanceId != trainInstanceId)
-                    {
-                        continue;
-                    }
-                    targetTrain = train;
-                    return true;
-                }
-                return false;
             }
 
             bool TryCreateCarAndRailPosition(
