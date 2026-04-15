@@ -115,18 +115,6 @@ namespace Game.Train.Unit
             #endregion
         }
 
-        /*
-        public void RegisterTrain(TrainUnit trainUnit)
-        {
-            // 列車を登録する
-            // Register train unit.
-            _trainUnits.Add(trainUnit);
-        }
-        */
-        //public void UnregisterTrain(TrainUnit trainUnit) => _trainUnits.Remove(trainUnit);
-        //public IEnumerable<TrainUnit> GetRegisteredTrains() => _trainUnits.ToArray();
-
-        
         public void ResetTick()
         {
             _executedTick = 0;
