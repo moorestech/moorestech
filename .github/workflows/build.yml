@@ -24,7 +24,6 @@ jobs:
         platform:
           # ==========================================
           # プラットフォームの追加/削除でビルド対象を切り替え可能
-          # Linux ビルドは一時的に無効化
           # ==========================================
           - name: StandaloneWindows64
             buildMethod: BuildPipeline.WindowsBuildFromGithubAction
@@ -34,6 +33,10 @@ jobs:
             buildMethod: BuildPipeline.MacOsBuildFromGithubAction
             runner: macos-latest
             isDedicatedServer: false
+          - name: StandaloneLinux64
+            buildMethod: BuildPipeline.LinuxDedicatedServerFromGithubAction
+            runner: ubuntu-latest
+            isDedicatedServer: true
 
     steps:
       # Checkout
@@ -86,12 +89,26 @@ jobs:
           allowDirtyBuild: true
           projectPath: moorestech_server/
 
-      # Upload Build
+      # Upload Build (Windows, Mac)
       - name: Upload Server Build
+        if: matrix.platform.name != 'StandaloneLinux64'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.artifact.outputs.name }}
           path: ${{ steps.artifact.outputs.path }}
+
+      # Archive for Linux
+      - name: Archive Server Build for Linux
+        if: matrix.platform.name == 'StandaloneLinux64'
+        run: |
+          tar -czvf server_output.tar.gz ${{ steps.artifact.outputs.path }}
+
+      - name: Upload Server Build for Linux
+        if: matrix.platform.name == 'StandaloneLinux64'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.artifact.outputs.name }}
+          path: ./server_output.tar.gz
 
   # ===== クライアントビルド =====
   # サーバービルド完了後に実行される
@@ -154,9 +171,23 @@ jobs:
           allowDirtyBuild: true
           projectPath: moorestech_client/
 
-      # Upload Build
+      # Upload Build (Windows, Mac)
       - name: Upload Client Build
+        if: matrix.platform.name != 'StandaloneLinux64'
         uses: actions/upload-artifact@v4
         with:
           name: Client_Output_${{ matrix.platform.name }}
           path: moorestech_client/Output_${{ matrix.platform.name }}
+
+      # Archive for Linux
+      - name: Archive Client Build for Linux
+        if: matrix.platform.name == 'StandaloneLinux64'
+        run: |
+          tar -czvf client_output.tar.gz moorestech_client/Output_${{ matrix.platform.name }}
+
+      - name: Upload Client Build for Linux
+        if: matrix.platform.name == 'StandaloneLinux64'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Client_Output_${{ matrix.platform.name }}
+          path: ./client_output.tar.gz
