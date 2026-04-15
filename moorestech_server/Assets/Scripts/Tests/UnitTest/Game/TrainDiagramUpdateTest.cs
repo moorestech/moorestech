@@ -38,7 +38,7 @@ namespace Tests.UnitTest.Game
             var railNodes = new List<IRailNode> { startNode };
             var railPosition = new RailPosition(railNodes, 0, 0);
 
-            var trainUnit = new TrainUnit(railPosition, cars, env.GetTrainUpdateService(), env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
+            var trainUnit = new TrainUnit(railPosition, cars, env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
             trainUnit.trainDiagram.AddEntry(removedNode);
             trainUnit.trainDiagram.AddEntry(nextNode);
 

@@ -94,7 +94,6 @@ namespace Tests.UnitTest.Game.SaveLoad
             var train1 = new TrainUnit(
                 new RailPosition(train1Nodes, train1Car.Length, 0),
                 new List<TrainCar> { train1Car },
-                environment.GetTrainUpdateService(),
                 environment.GetTrainRailPositionManager(),
                 environment.GetTrainDiagramManager());
 
@@ -103,7 +102,6 @@ namespace Tests.UnitTest.Game.SaveLoad
             var train2 = new TrainUnit(
                 new RailPosition(train2Nodes, train2Car.Length, 0),
                 new List<TrainCar> { train2Car },
-                environment.GetTrainUpdateService(),
                 environment.GetTrainRailPositionManager(),
                 environment.GetTrainDiagramManager());
             train2.Reverse();
@@ -172,8 +170,6 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             var saveJson = SaveLoadJsonTestHelper.AssembleSaveJson(environment.ServiceProvider);
             Assert.IsTrue(saveJson.Contains("trainUnits"));
-
-            environment.GetTrainUpdateService().ResetTrains();
 
             #region Internal
 

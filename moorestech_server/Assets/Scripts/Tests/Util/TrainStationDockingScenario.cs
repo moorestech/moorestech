@@ -174,7 +174,7 @@ namespace Tests.Util
                     train.trainUnitStationDocking.UndockFromStation();
                 }
                 _environment.GetTrainDiagramManager().UnregisterDiagram(train.trainDiagram);
-                _environment.GetTrainUpdateService().UnregisterTrain(train);
+                _environment.GetITrainUnitMutationDatastore().UnregisterTrain(train);
             }
 
             _spawnedTrains.Clear();
@@ -207,7 +207,7 @@ namespace Tests.Util
 
             var trainLength = cars.Sum(trainCar => trainCar.Length);
             var railPosition = new RailPosition(nodes, trainLength, initialDistanceToNextNode);
-            var train = new TrainUnit(railPosition, cars, _environment.GetTrainUpdateService(), _environment.GetTrainRailPositionManager(), _environment.GetTrainDiagramManager());
+            var train = new TrainUnit(railPosition, cars, _environment.GetTrainRailPositionManager(), _environment.GetTrainDiagramManager());
             _spawnedTrains.Add(train);
             return train;
         }

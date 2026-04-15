@@ -80,7 +80,7 @@ namespace Game.Train.Unit
             }
         }
 
-        public void Clear()
+        public void Reset()
         {
             _trainUnitsById.Clear();
             _trainUnitsByCarId.Clear();

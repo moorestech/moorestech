@@ -30,7 +30,7 @@ namespace Game.Train.SaveLoad
         {
             // Save/Loadサイクルのたびに登録済み列車を初期化して、
             // 既存状態が残ったまま復元処理が走るのを防ぐ。
-            _trainUnitDatastore.Clear();
+            _trainUnitDatastore.Reset();
 
             if (saveData == null)
             {

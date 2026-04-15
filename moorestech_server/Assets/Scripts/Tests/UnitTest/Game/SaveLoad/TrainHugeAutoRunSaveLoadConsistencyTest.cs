@@ -85,13 +85,15 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             var saveJson = SaveLoadJsonTestHelper.AssembleSaveJson(scenario.Environment.ServiceProvider);
             
-            var preSaveTrains = trainUpdateService.GetRegisteredTrains().ToList();
+            var preSaveTrains = scenario.Environment.GetITrainLookupDatastore().GetRegisteredTrains().ToList();
             
             foreach (var train in preSaveTrains)
             {
                 train.OnDestroy();
             }
-            trainUpdateService.ResetTrains();
+            scenario.Environment.GetTrainUnitDatastore().Reset();
+            trainUpdateService.ResetTick();
+            
             CleanupWorld(scenario.Environment);
             scenario.Environment.GetRailGraphDatastore().Reset();
 
@@ -140,7 +142,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             UnityEngine.Random.InitState(seed);
             var environment = TrainTestHelper.CreateEnvironment();
             SetupRandomLengthTrainCarMasters(seed, TrainCount, 600000);
-            environment.GetTrainUpdateService().ResetTrains();
+            environment.GetTrainUpdateService().ResetTick();
+            environment.GetTrainUnitDatastore().Reset();
 
             var components = BuildRailNetwork(environment, RailComponentCount, seed);
 
@@ -259,8 +262,8 @@ namespace Tests.UnitTest.Game.SaveLoad
                     new TrainCar(trainCarMaster)
                 };
 
-                var train = new TrainUnit(railPosition, cars, environment.GetTrainUpdateService(), environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
-
+                var train = new TrainUnit(railPosition, cars, environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
+                environment.GetITrainUnitMutationDatastore().RegisterTrain(train);
                 var entryCount = UnityEngine.Random.Range(MinDiagramEntries, MaxDiagramEntries + 1);
                 for (var j = 0; j < entryCount; j++)
                 {
@@ -380,7 +383,8 @@ namespace Tests.UnitTest.Game.SaveLoad
         private static Dictionary<int, TrainSimulationSnapshot> CaptureSnapshots(TrainTestEnvironment environment)
         {
             var snapshots = new Dictionary<int, TrainSimulationSnapshot>();
-            foreach (var train in environment.GetTrainUpdateService().GetRegisteredTrains())
+
+            foreach (var train in environment.GetITrainLookupDatastore().GetRegisteredTrains())
             {
                 var snapshot = TrainSimulationSnapshot.Create(train);
                 snapshots.Add(snapshot.TrainLength, snapshot);
@@ -390,12 +394,13 @@ namespace Tests.UnitTest.Game.SaveLoad
 
         private static void CleanupTrains(TrainTestEnvironment environment)
         {
-            var trains = environment.GetTrainUpdateService().GetRegisteredTrains().ToList();
+            var trains = environment.GetITrainLookupDatastore().GetRegisteredTrains().ToList();
             foreach (var train in trains)
             {
                 train.OnDestroy();
             }
-            environment.GetTrainUpdateService().ResetTrains();
+            environment.GetTrainUpdateService().ResetTick();
+            environment.GetTrainUnitDatastore().Reset();
         }
 
         private static void CleanupWorld(TrainTestEnvironment environment)
