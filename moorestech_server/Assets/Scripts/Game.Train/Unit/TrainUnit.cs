@@ -551,10 +551,10 @@ namespace Game.Train.Unit
                 return null;
             }
             var carsBehind = _cars.Count - targetIndex - 1;
-            var SplitedTrainFirst = SplitTrain(carsBehind);
-            var SplitedTrainSecond = SplitTrain(1);
-            SplitedTrainSecond?.OnDestroy();
-            return SplitedTrainFirst;
+            var splitedTrainFirst = SplitTrain(carsBehind);
+            var splitedTrainSecond = SplitTrain(1);
+            splitedTrainSecond?.OnDestroy();
+            return splitedTrainFirst;
         }
         public TrainUnit RemoveCar(TrainCarInstanceId trainCarInstanceId)
         {

@@ -37,19 +37,21 @@ namespace Server.Protocol.PacketResponse
             // 削除の実行
             // Apply removal
             var createdTrainUnit = requestTrainUnit.RemoveCar(trainCarInstanceId);
-            
-            // 実在するか
-            // is exist?
-            if (createdTrainUnit.Cars.Count == 0)
+            if (createdTrainUnit != null)
             {
-                createdTrainUnit.OnDestroy();
-                createdTrainUnit = null;
-            }
-            else
-            {
-                // datastore更新
-                _trainUnitMutationDatastore.RegisterTrain(createdTrainUnit);
-                _trainUnitSnapshotNotifyEvent.NotifySnapshot(createdTrainUnit);
+                // 実在するか
+                // is exist?
+                if (createdTrainUnit.Cars.Count == 0)
+                {
+                    createdTrainUnit.OnDestroy();
+                    createdTrainUnit = null;
+                }
+                else
+                {
+                    // datastore更新
+                    _trainUnitMutationDatastore.RegisterTrain(createdTrainUnit);
+                    _trainUnitSnapshotNotifyEvent.NotifySnapshot(createdTrainUnit);
+                }                
             }
             // requestTrainUnitの中身が変更されて実在しているか
             if (requestTrainUnit.Cars.Count == 0)
@@ -58,6 +60,7 @@ namespace Server.Protocol.PacketResponse
                 // Notify train unit snapshot updates
                 // datastore更新上書き
                 _trainUnitMutationDatastore.UnregisterTrain(requestTrainUnit);
+                Debug.Log("111");
                 _trainUnitSnapshotNotifyEvent.NotifyDeleted(requestTrainUnit.TrainInstanceId);
                 requestTrainUnit.OnDestroy();
                 requestTrainUnit = null;
