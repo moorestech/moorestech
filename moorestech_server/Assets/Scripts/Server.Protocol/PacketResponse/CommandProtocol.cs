@@ -27,12 +27,14 @@ namespace Server.Protocol.PacketResponse
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly IWorldSettingsDatastore _worldSettingsDatastore;
         private readonly TrainUpdateService _trainUpdateService;
+        private readonly ITrainUnitLookupDatastore _trainUnitLookupDatastore;
         
         public SendCommandProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
             _worldSettingsDatastore = serviceProvider.GetService<IWorldSettingsDatastore>();
             _trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
+            _trainUnitLookupDatastore = serviceProvider.GetService<ITrainUnitLookupDatastore>();
         }
         
         public ProtocolMessagePackBase GetResponse(byte[] payload)
@@ -75,7 +77,7 @@ namespace Server.Protocol.PacketResponse
             }
             else if (command[0] == AddFuelToAllTrainCarsCommand)
             {
-                IEnumerable<TrainUnit> trainUnits = _trainUpdateService.GetRegisteredTrains();
+                IEnumerable<TrainUnit> trainUnits = _trainUnitLookupDatastore.GetRegisteredTrains();
                 foreach (var trainUnit in trainUnits)
                 {
                     foreach (var trainCar in trainUnit.Cars)
