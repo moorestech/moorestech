@@ -139,6 +139,20 @@ namespace Client.Network.API
             var request = new RemoveTrainCarProtocol.RemoveTrainCarRequestMessagePack(trainCarInstanceId.AsPrimitive());
             _packetSender.Send(request);
         }
+
+        public void SendTrainManualInput(TrainInstanceId trainInstanceId, TrainManualRawInputState input)
+        {
+            // 列車IDと生入力だけを送りサーバー側で解決させる
+            // Send only train id and raw input so the server can resolve it
+            var request = new TrainManualInputProtocol.TrainManualInputRequestMessagePack(
+                _playerId,
+                trainInstanceId,
+                input.Forward,
+                input.Backward,
+                input.Left,
+                input.Right);
+            _packetSender.Send(request);
+        }
         
         /// <summary>
         /// インベントリをサブスクライブ/アンサブスクライブ
