@@ -54,6 +54,12 @@ namespace Client.Network.API
             var request = new SetPlayerCoordinateProtocol.PlayerCoordinateSendProtocolMessagePack(_playerId, pos);
             _packetSender.Send(request);
         }
+
+        public void SendTrainManualInput(long trainCarInstanceId, int rawInputMask)
+        {
+            var request = new TrainManualInputProtocol.TrainManualInputRequestMessagePack(_playerId, trainCarInstanceId, rawInputMask);
+            _packetSender.Send(request);
+        }
         
         public void Craft(Guid craftRecipeId)
         {

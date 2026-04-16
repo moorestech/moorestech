@@ -15,7 +15,7 @@ namespace Server.Protocol
     {
         private readonly Dictionary<string, IPacketResponse> _packetResponseDictionary = new();
         
-        //TODO この辺もDIコンテナに載せる?こういうパケット周りめっちゃなんとかしたい
+        // TODO Move packet handler construction into DI.
         public PacketResponseCreator(ServiceProvider serviceProvider)
         {
             // パケット生成に必要な列車系サービスを取得
@@ -63,6 +63,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(PlaceTrainCarOnRailProtocol.ProtocolTag, new PlaceTrainCarOnRailProtocol(serviceProvider));
             _packetResponseDictionary.Add(AttachTrainCarToUnitProtocol.ProtocolTag, new AttachTrainCarToUnitProtocol(serviceProvider));
             _packetResponseDictionary.Add(RemoveTrainCarProtocol.ProtocolTag, new RemoveTrainCarProtocol(trainUnitSnapshotNotifyEvent, trainUnitLookupDatastore, trainUnitMutationDatastore));
+            _packetResponseDictionary.Add(TrainManualInputProtocol.ProtocolTag, new TrainManualInputProtocol(serviceProvider));
         }
         
         public List<byte[]> GetPacketResponse(byte[] payload)
@@ -76,7 +77,7 @@ namespace Server.Protocol
             }
             catch (Exception e)
             {
-                // TODO ログ基盤
+                // TODO Route this through the shared logging pipeline.
                 Debug.LogError($"PacketResponseCreator Error:{e.Message}\n{e.StackTrace}");
             }
 

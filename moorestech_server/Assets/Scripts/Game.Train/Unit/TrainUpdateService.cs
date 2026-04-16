@@ -12,8 +12,8 @@ namespace Game.Train.Unit
         private readonly TrainDiagramManager _diagramManager;
         private readonly IRailGraphDatastore _railGraphDatastore;
         private readonly ITrainUnitLookupDatastore _trainUnitLookupDatastore;
+        private readonly TrainManualControlService _trainManualControlService;
 
-        // Trainはサーバーのゲームtickに同期して進める
         // Train tick is aligned with the server game tick interval.
         private const double TickSeconds = GameUpdater.SecondsPerTick;
         public const double HashBroadcastIntervalSeconds = TickSeconds;
@@ -25,20 +25,23 @@ namespace Game.Train.Unit
         private readonly Subject<(uint, IReadOnlyList<TrainTickDiffData>)> _onPreSimulationDiffEvent = new();
         private bool _trainAutoRunDebugEnabled;
 
-        // 依存サービスを受け取り、更新ループに接続する
-        // Bind to required services and subscribe to update loop
-        public TrainUpdateService(TrainDiagramManager diagramManager, IRailGraphDatastore railGraphDatastore,ITrainUnitLookupDatastore trainUnitLookupDatastore)
+        // Bind to required services and subscribe to update loop.
+        public TrainUpdateService(
+            TrainDiagramManager diagramManager,
+            IRailGraphDatastore railGraphDatastore,
+            ITrainUnitLookupDatastore trainUnitLookupDatastore,
+            TrainManualControlService trainManualControlService)
         {
             _diagramManager = diagramManager;
             _railGraphDatastore = railGraphDatastore;
             _trainUnitLookupDatastore = trainUnitLookupDatastore;
+            _trainManualControlService = trainManualControlService;
             GameUpdater.UpdateObservable.Subscribe(_ => UpdateTrains());
         }
 
         public uint GetCurrentTick() => _executedTick;
         public uint NextTickSequenceId()
         {
-            // train/railイベント順序を表す単調IDを採番する
             // Issue a monotonic id that represents train/rail event order.
             _tickSequenceId++;
             return _tickSequenceId;
@@ -49,15 +52,14 @@ namespace Game.Train.Unit
 
         private void UpdateTrains()
         {
-            // hash計算タイミングはTrainUpdateService側で管理し、間引き時はdummyを送る
             // TrainUpdateService owns hash timing and emits dummy on skipped ticks.
             var hashState = BuildHashStateEventData(_executedTick);
             _onHashEvent.OnNext(hashState);
 
             _executedTick++;
-            // tickが進んだら同tick内順序のカウンタを初期化する
             // Reset per-tick ordering counter when tick advances.
             _tickSequenceId = 0;
+            _trainManualControlService.PrepareTrainsForTick(_executedTick);
 
             //simulation
             foreach (var trainUnit in _trainUnitLookupDatastore.GetRegisteredTrains())
@@ -67,8 +69,7 @@ namespace Game.Train.Unit
 
             NotifyPreSimulationDiff(_executedTick);
 
-            //↓これ以降にクライアントからの操作コマンド系適応がはいる、hashmismatchなどによるブロードキャストもはいる
-            //snapshot,生成イベント系
+            // Snapshot creation is intentionally disabled here for now.
             return;
 
             #region Internal
@@ -89,7 +90,6 @@ namespace Game.Train.Unit
                 return new HashStateEventData(hashTick, unitsHash, railGraphHash);
             }
 
-            // 全TrainUnitの差分を集約し、差分があるユニットのみ通知する
             // Aggregate per-unit diffs and publish only changed units.
             void NotifyPreSimulationDiff(uint tick)
             {
@@ -103,7 +103,6 @@ namespace Game.Train.Unit
                     }
                     diffs.Add(new TrainTickDiffData(trainUnit.TrainInstanceId, masconLevelDiff, isNowDockingSpeedZero, approachingNodeIdDiff));
                 }
-                // 差分0件でもsim実行トリガとして同tickイベントを送る。
                 // Emit the same-tick event even when diffs are empty as a simulation trigger.
                 _onPreSimulationDiffEvent.OnNext((tick, diffs));
                 
@@ -121,12 +120,11 @@ namespace Game.Train.Unit
             _tickSequenceId = 0;
         }
 
-        // TODO デバッグトグルスイッチ関連なので最終的に消すのを忘れずに
+        // TODO Remove this debug toggle after train auto-run setup is finalized.
         private const string TrainAutoRunOnArgument = "on";
         private const string TrainAutoRunOffArgument = "off";
 
-        // デバッグ用の自動運転切替
-        // Toggle auto-run for debugging
+        // Toggle auto-run for debugging.
         public void TurnOnorOffTrainAutoRun(IReadOnlyList<string> commandParts)
         {
             var mode = commandParts[1];
@@ -152,24 +150,22 @@ namespace Game.Train.Unit
                 }
             }
 
-            // on/off以外が来た場合はなにもしない
+            // Ignore unknown toggle arguments.
             return;
 
             #region Internal
 
-            // トグルスイッチを切り替えたときに全列車・全ダイアグラムを更新する。
-            // 既に存在する駅のfront exitノードを全てのダイアグラムに追加するだけ。
+            // Example helper that loads station exit nodes into every diagram.
             void AutoDiagramNodeAdditionExample()
             {
-                // 自動運転の対象駅ノードを抽出する
-                // Collect station nodes for auto-run
+                // Collect station nodes for auto-run.
                 var railNodes = _railGraphDatastore.GetRailNodes();
                 var stationNodes = new List<RailNode>();
                 for (int i = 0; i < railNodes.Count; i++)
                 {
                     if (railNodes[i] != null)
                     {
-                        // 駅ノードならfront exitノードを全てのダイアグラムに追加
+                        // Add front exit station nodes to every train diagram.
                         if ((railNodes[i].StationRef.NodeSide == StationNodeSide.Back) && (railNodes[i].StationRef.NodeRole == StationNodeRole.Exit))
                         {
                             stationNodes.Add(railNodes[i]);

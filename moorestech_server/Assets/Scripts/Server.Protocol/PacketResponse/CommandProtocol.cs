@@ -23,11 +23,14 @@ namespace Server.Protocol.PacketResponse
         public const string TrainAutoRunOffArgument = "off";
         public const string GetPlayTimeCommand = "getPlayTime";
         public const string AddFuelToAllTrainCarsCommand = "addFuelToAllTrainCarsCommand";
+        public const string TrainManualSelectCarCommand = "trainManualSelectCar";
+        public const string TrainManualClearCarCommand = "trainManualClearCar";
 
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly IWorldSettingsDatastore _worldSettingsDatastore;
         private readonly TrainUpdateService _trainUpdateService;
         private readonly ITrainUnitLookupDatastore _trainUnitLookupDatastore;
+        private readonly TrainManualControlService _trainManualControlService;
         
         public SendCommandProtocol(ServiceProvider serviceProvider)
         {
@@ -35,6 +38,7 @@ namespace Server.Protocol.PacketResponse
             _worldSettingsDatastore = serviceProvider.GetService<IWorldSettingsDatastore>();
             _trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
             _trainUnitLookupDatastore = serviceProvider.GetService<ITrainUnitLookupDatastore>();
+            _trainManualControlService = serviceProvider.GetService<TrainManualControlService>();
         }
         
         public ProtocolMessagePackBase GetResponse(byte[] payload)
@@ -43,7 +47,7 @@ namespace Server.Protocol.PacketResponse
             
             var command = data.Command.Split(' '); //command text
             
-            //他のコマンドを実装する場合、この実装方法をやめる
+            // Replace this branch chain if command count grows further.
             if (command[0] == GiveCommand)
             {
                 var inventory = _playerInventoryDataStore.GetInventoryData(int.Parse(command[1]));
@@ -103,6 +107,22 @@ namespace Server.Protocol.PacketResponse
                         itemTrainCarContainer.SetItem(emptySlotIndex, item);
                         Debug.Log($"add fuel to train car {MasterHolder.ItemMaster.GetItemMaster(fuel.ItemGuid).Name} x 10");
                     }
+                }
+            }
+            else if (command[0] == TrainManualSelectCarCommand)
+            {
+                if (command.Length >= 3 &&
+                    int.TryParse(command[1], out var playerId) &&
+                    long.TryParse(command[2], out var trainCarInstanceId))
+                {
+                    _trainManualControlService.TrySelectCar(playerId, trainCarInstanceId);
+                }
+            }
+            else if (command[0] == TrainManualClearCarCommand)
+            {
+                if (command.Length >= 2 && int.TryParse(command[1], out var playerId))
+                {
+                    _trainManualControlService.ClearPlayerSelection(playerId);
                 }
             }
 

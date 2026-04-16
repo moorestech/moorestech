@@ -35,6 +35,7 @@ using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Game.InGame.UnlockState;
 using Client.Game.InGame.World;
 using Client.Game.InGame.Train.Network;
+using Client.Game.InGame.Train.Control;
 using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Train.View;
@@ -59,8 +60,7 @@ namespace Client.Starter
     /// </summary>
     public class MainGameStarter : LifetimeScope
     {
-        // Hierarchy上にある依存解決が必要なものをまとめたところ
-        //TODO regionでちゃんと分類分けしたい
+        // Components resolved from the scene hierarchy.
         
         [Header("InHierarchy")] [SerializeField]
         private Camera mainCamera;
@@ -131,6 +131,7 @@ namespace Client.Starter
         
         public IObjectResolver StartGame(InitialHandshakeResponse initialHandshakeResponse)
         {
+            Client.DebugSystem.TrainManualDebugState.ClearSelection();
             var builder = new ContainerBuilder();
 
             CameraManager.Initialize();
@@ -152,6 +153,7 @@ namespace Client.Starter
             builder.RegisterEntryPoint<CommonMachineBlockStateChangeProcessor>();
             builder.RegisterEntryPoint<WorldDataHandler>();
             builder.RegisterEntryPoint<PlayerPositionSender>();
+            builder.RegisterEntryPoint<TrainManualInputSender>();
             builder.RegisterEntryPoint<SkitFireManager>();
             builder.RegisterEntryPoint<RailGraphCacheNetworkHandler>();
             builder.RegisterEntryPoint<RailGraphConnectionNetworkHandler>();
