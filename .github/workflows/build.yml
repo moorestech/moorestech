@@ -19,11 +19,12 @@ jobs:
 
     strategy:
       fail-fast: false
-      max-parallel: 2
+      max-parallel: 1
       matrix:
         platform:
           # ==========================================
           # プラットフォームの追加/削除でビルド対象を切り替え可能
+          # Linux ビルドは一時的に無効化
           # ==========================================
           - name: StandaloneWindows64
             buildMethod: BuildPipeline.WindowsBuildFromGithubAction
@@ -33,10 +34,10 @@ jobs:
             buildMethod: BuildPipeline.MacOsBuildFromGithubAction
             runner: macos-latest
             isDedicatedServer: false
-          - name: StandaloneLinux64
-            buildMethod: BuildPipeline.LinuxDedicatedServerFromGithubAction
-            runner: ubuntu-latest
-            isDedicatedServer: true
+          # - name: StandaloneLinux64
+          #   buildMethod: BuildPipeline.LinuxDedicatedServerFromGithubAction
+          #   runner: ubuntu-latest
+          #   isDedicatedServer: true
 
     steps:
       # Checkout
@@ -119,7 +120,7 @@ jobs:
 
     strategy:
       fail-fast: false
-      max-parallel: 2
+      max-parallel: 1
       matrix:
         platform:
           # ==========================================
