@@ -60,7 +60,9 @@ namespace Client.Starter
     public class MainGameStarter : LifetimeScope
     {
         // Hierarchy上にある依存解決が必要なものをまとめたところ
+        // Group the hierarchy-side dependency registrations here
         //TODO regionでちゃんと分類分けしたい
+        // TODO group these regions properly
         
         [Header("InHierarchy")] [SerializeField]
         private Camera mainCamera;
@@ -145,6 +147,7 @@ namespace Client.Starter
             // register inventory UI control
             builder.Register<LocalPlayerInventoryController>(Lifetime.Singleton);
             builder.Register<ILocalPlayerInventory, LocalPlayerInventory>(Lifetime.Singleton);
+            builder.Register<TrainManualOperationState>(Lifetime.Singleton);
             builder.RegisterEntryPoint<NetworkEventInventoryUpdater>();
             
             //プレゼンターアセンブリ
@@ -152,6 +155,7 @@ namespace Client.Starter
             builder.RegisterEntryPoint<CommonMachineBlockStateChangeProcessor>();
             builder.RegisterEntryPoint<WorldDataHandler>();
             builder.RegisterEntryPoint<PlayerPositionSender>();
+            builder.RegisterEntryPoint<TrainManualOperationSender>();
             builder.RegisterEntryPoint<SkitFireManager>();
             builder.RegisterEntryPoint<RailGraphCacheNetworkHandler>();
             builder.RegisterEntryPoint<RailGraphConnectionNetworkHandler>();
