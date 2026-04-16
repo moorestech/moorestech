@@ -60,6 +60,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(RailConnectWithPlacePierProtocol.Tag, new RailConnectWithPlacePierProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetRailGraphSnapshotProtocol.ProtocolTag, new GetRailGraphSnapshotProtocol(railGraphDatastore, trainUpdateService));
             _packetResponseDictionary.Add(GetTrainUnitSnapshotsProtocol.ProtocolTag, new GetTrainUnitSnapshotsProtocol(trainUnitLookupDatastore, trainUpdateService));
+            _packetResponseDictionary.Add(TrainManualInputProtocol.ProtocolTag, new TrainManualInputProtocol(serviceProvider));
             _packetResponseDictionary.Add(PlaceTrainCarOnRailProtocol.ProtocolTag, new PlaceTrainCarOnRailProtocol(serviceProvider));
             _packetResponseDictionary.Add(AttachTrainCarToUnitProtocol.ProtocolTag, new AttachTrainCarToUnitProtocol(serviceProvider));
             _packetResponseDictionary.Add(RemoveTrainCarProtocol.ProtocolTag, new RemoveTrainCarProtocol(trainUnitSnapshotNotifyEvent, trainUnitLookupDatastore, trainUnitMutationDatastore));
