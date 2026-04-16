@@ -33,6 +33,7 @@ namespace Game.Train.Unit
         public double CurrentSpeed => _currentSpeed;
         private double _accumulatedDistance; // 累積距離、距離の小数点以下を保持するために使用
         internal double AccumulatedDistance => _accumulatedDistance;
+        private TrainManualCommand _pendingManualCommand;
 
         private List<TrainCar> _cars;
         public IReadOnlyList<TrainCar> Cars => _cars;
@@ -65,6 +66,7 @@ namespace Game.Train.Unit
             _cars = cars;
             _currentSpeed = 0.0; // 仮の初期速度
             _isAutoRun = false;
+            _pendingManualCommand = TrainManualCommand.Neutral;
             trainUnitStationDocking = new TrainUnitStationDocking(this, this);
             trainDiagram = new TrainDiagram(_railGraphProvider, _diagramManager);
             trainDiagram.SetContext(this);
@@ -87,6 +89,11 @@ namespace Game.Train.Unit
             _previousMasconLevel = masconLevel;
             _isDockingSpeedForcedToZero = false;
             _pendingApproachingNodeId = -1;
+        }
+
+        public void SetManualCommand(TrainManualCommand command)
+        {
+            _pendingManualCommand = command;
         }
         
         //1tickごとに呼ばれる.進んだ距離を返す?
@@ -134,8 +141,9 @@ namespace Game.Train.Unit
                 }
                 else
                 {
-                    // ドッキング中でなければキー操作で目的地 or nullに向かって進む
-                    KeyInput();
+                    // manual 運転時は tick 前に渡された command だけを適用する
+                    // Apply only the manual command that was resolved before this tick
+                    ApplyPendingManualCommand();
                 }
             }
 
@@ -146,12 +154,16 @@ namespace Game.Train.Unit
             return UpdateTrainByDistance(distanceToMove);
         }
 
-        //キー操作系
-        public void KeyInput() 
+        private void ApplyPendingManualCommand()
         {
-            masconLevel = 0;
-            //wキーでmasconLevel=16777216
-            //sキーでmasconLevel=-16777216
+            // 逆方向発進は停車中だけ reverse し、その後に mascon を反映する
+            // Reverse only while stopped, then apply the resolved mascon command
+            if (_pendingManualCommand.ShouldReverseUnit && _currentSpeed == 0)
+            {
+                Reverse();
+            }
+
+            masconLevel = _pendingManualCommand.MasconLevel;
         }
 
         private void DepartFromCurrentEntry()
@@ -454,12 +466,10 @@ namespace Game.Train.Unit
             var railPositionManager = ServerContext.GetService<TrainRailPositionManager>();
             var diagramManager = ServerContext.GetService<TrainDiagramManager>();
 
-            var trainUnit = new TrainUnit(railPosition, cars, railPositionManager, diagramManager)
-            {
-                _isAutoRun = saveData.IsAutoRun,
-                _currentSpeed = restoredSpeed,
-                _accumulatedDistance = restoredAccumulatedDistance
-            };
+            var trainUnit = new TrainUnit(railPosition, cars, railPositionManager, diagramManager);
+            trainUnit._isAutoRun = saveData.IsAutoRun;
+            trainUnit._currentSpeed = restoredSpeed;
+            trainUnit._accumulatedDistance = restoredAccumulatedDistance;
 
             trainUnit._remainingDistance = trainUnit._railPosition.GetDistanceToNextNode();
             trainUnit.trainDiagram.RestoreState(saveData.Diagram);
