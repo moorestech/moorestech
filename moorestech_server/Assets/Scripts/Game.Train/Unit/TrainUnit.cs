@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Update;
@@ -13,13 +13,12 @@ using UnityEngine;
 namespace Game.Train.Unit
 {
     /// <summary>
-    /// 複数車両からなる列車編成全体を表すクラス
     /// Represents an entire train formation composed of multiple cars.
     /// </summary>
     public class TrainUnit : ITrainDiagramContext, ITrainUnitStationDockingListener
     {
         private const int InfiniteLoopGuardThreshold = 1_000_000;
-        
+
         private RailPosition _railPosition;
         private readonly IRailGraphProvider _railGraphProvider;
         private readonly TrainRailPositionManager _railPositionManager;
@@ -41,12 +40,12 @@ namespace Game.Train.Unit
         public TrainUnitStationDocking trainUnitStationDocking { get; private set; } // 列車の駅ドッキング用のクラス
         public TrainDiagram trainDiagram { get; private set; } // 列車のダイアグラム
         public bool IsDocked => trainUnitStationDocking?.IsDocked ?? false;
-        //キー関連、差分通知関連
-        //マスコンレベル 0がニュートラル、1が前進1段階、-1が後退1段階.キー入力やテスト、外部から直接制御できる。min maxは±16777216とする(暫定)
         public int masconLevel = 0;
         private int _previousMasconLevel;
         private bool _isDockingSpeedForcedToZero;//ドッキングした瞬間強制速度0になるのでmasconlevel差分通知ではズレが生じる
         private int _pendingApproachingNodeId;
+        private bool _hasManualControl;
+        private TrainManualCommand _manualControlCommand;
         public TrainUnit(
             RailPosition initialPosition,
             List<TrainCar> cars,
@@ -55,7 +54,6 @@ namespace Game.Train.Unit
         )
         {
             _railPosition = initialPosition;
-            // 先頭ノードからグラフプロバイダを取得する
             // Resolve the graph provider from the head node
             _railGraphProvider = initialPosition.GetNodeApproaching().GraphProvider;
             _railPositionManager = railPositionManager;
@@ -68,6 +66,7 @@ namespace Game.Train.Unit
             trainUnitStationDocking = new TrainUnitStationDocking(this, this);
             trainDiagram = new TrainDiagram(_railGraphProvider, _diagramManager);
             trainDiagram.SetContext(this);
+            ClearManualControl();
             ResetDiff();
         }
 
@@ -88,70 +87,84 @@ namespace Game.Train.Unit
             _isDockingSpeedForcedToZero = false;
             _pendingApproachingNodeId = -1;
         }
-        
-        //1tickごとに呼ばれる.進んだ距離を返す?
+
         public int Update()
         {
             if (IsAutoRun)
             {
-                //まずdiagramの変更有無を確認する
-                // 自動運転中に手動でダイアグラムをいじって目的地がnullになった場合は自動運転を解除する
                 if (trainDiagram.GetCurrentNode() == null)
                 {
                     TurnOffAutoRun();
                     _currentSpeed = 0;
                     return 0;
                 }
-                // 自動運転中はドッキング中なら進まない、ドッキング中じゃないなら目的地に向かって加速
                 if (trainUnitStationDocking.IsDocked)
                 {
                     _currentSpeed = 0;
                     masconLevel = 0;
                     trainUnitStationDocking.TickDockedStations();
-                    // もしtrainDiagramの出発条件を満たしていたら、trainDiagramは次の目的地をセット。次のtickでドッキングを解除、バリデーションが行われる
                     trainDiagram.Update();
                     if (trainDiagram.CanCurrentEntryDepart())
                     {
-                        // 次の目的地をセット
                         DepartFromCurrentEntry();
                     }
                     return 0;
                 }
                 else
                 {
-                    // ドッキング中でなければ目的地に向かって進む
                     UpdateMasconLevel();
                 }
             }
-            else 
+            else if (_hasManualControl)
             {
-                // もしドッキング中なら
                 if (trainUnitStationDocking.IsDocked)
                 {
-                    // 強制ドッキング解除
+                    if (!_manualControlCommand.HasThrottle)
+                    {
+                        _currentSpeed = 0;
+                        masconLevel = 0;
+                        trainUnitStationDocking.TickDockedStations();
+                        return 0;
+                    }
+
+                    trainUnitStationDocking.UndockFromStation();
+                }
+
+                KeyInput(_manualControlCommand);
+            }
+            else
+            {
+                if (trainUnitStationDocking.IsDocked)
+                {
                     trainUnitStationDocking.UndockFromStation();
                     return 0;
                 }
                 else
                 {
-                    // ドッキング中でなければキー操作で目的地 or nullに向かって進む
-                    KeyInput();
+                    KeyInput(TrainManualCommand.Inactive);
                 }
             }
 
-            // マスコンレベルから燃料を消費しつつ速度を計算する
-            // マスコン確定後に進む距離を算出
             // Calculate distance to travel after mascon decision
             var distanceToMove = SimulateMotionStep();
             return UpdateTrainByDistance(distanceToMove);
         }
 
-        //キー操作系
-        public void KeyInput() 
+        public void KeyInput(TrainManualCommand command)
         {
+            if (command.ThrottleNotch > 0)
+            {
+                masconLevel = MasterHolder.TrainUnitMaster.MasconLevelMaximum;
+                return;
+            }
+
+            if (command.ThrottleNotch < 0)
+            {
+                masconLevel = -MasterHolder.TrainUnitMaster.MasconLevelMaximum;
+                return;
+            }
+
             masconLevel = 0;
-            //wキーでmasconLevel=16777216
-            //sキーでmasconLevel=-16777216
         }
 
         private void DepartFromCurrentEntry()
@@ -163,7 +176,6 @@ namespace Game.Train.Unit
             trainDiagram.NextEntryAndDepartureReset();
         }
 
-        // 自動運転時のマスコン制御を共通ロジックで更新
         // Update mascon level via shared auto-run calculation
         public void UpdateMasconLevel()
         {
@@ -173,7 +185,6 @@ namespace Game.Train.Unit
             masconLevel = TrainAutoRunMasconCalculator.Calculate(input);
         }
 
-        // 速度と距離のステップ計算
         // Simulate velocity and distance per tick
         private int SimulateMotionStep()
         {
@@ -188,15 +199,10 @@ namespace Game.Train.Unit
             _accumulatedDistance = stepResult.NewAccumulatedDistance;
             return stepResult.DistanceToMove;
         }
-        
-        // Updateの距離int版
-        // distanceToMoveの距離絶対進む。進んだ距離を返す
-        // 目的地は常にtrainDiagram.GetNextDestination()を見るので最新のtrainDiagramが適応される。もし目的地がnullなら_isAutoRun = false;は上記ループで行われる(なぜなら1フレーム対応が遅れるので)
-        public int UpdateTrainByDistance(int distanceToMove) 
+
+        public int UpdateTrainByDistance(int distanceToMove)
         {
-            //進行メインループ
             int totalMoved = 0;
-            //何かが原因で無限ループになることがあるので、一定回数で強制終了する
             int loopCount = 0;
             while (true)
             {
@@ -204,7 +210,6 @@ namespace Game.Train.Unit
                 distanceToMove -= moveLength;
                 totalMoved += moveLength;
                 _remainingDistance -= moveLength;
-                //自動運転で目的地に到着してたらドッキング判定を行う必要がある
                 if (_railPosition.DistanceToNextNode == 0)
                 {
                     if (IsArrivedDestination() && _isAutoRun)
@@ -213,14 +218,12 @@ namespace Game.Train.Unit
                         _accumulatedDistance = 0;
                         _isDockingSpeedForcedToZero = true;
                         _pendingApproachingNodeId = _railPosition.GetNodeApproaching()?.NodeId ?? -1;
-                        //diagramが駅を見ている場合
                         if (trainDiagram.GetCurrentNode().StationRef.StationBlock != null)
                         {
                             trainUnitStationDocking.TryDockWhenStopped();
                         }
-                        else//diagramが非駅を見ている場合 
+                        else//diagramが非駅を見ている場合
                         {
-                            // 次の目的地をセット
                             trainDiagram.NextEntryAndDepartureReset();
                         }
                         break;
@@ -228,9 +231,8 @@ namespace Game.Train.Unit
                 }
                 if (distanceToMove == 0) break;
                 //----------------------------------------------------------------------------------------
-                //この時点でdistanceToMoveが0以外かつ分岐地点または行き止まりについてる状況
                 var approaching = _railPosition.GetNodeApproaching();
-                if (approaching == null) 
+                if (approaching == null)
                 {
                     TurnOffAutoRun();
                     _currentSpeed = 0;
@@ -246,22 +248,19 @@ namespace Game.Train.Unit
                         TurnOffAutoRun();
                         break;
                     }
-                    //見つかったので一番いいルートを自動選択
                     _railPosition.AddNodeToHead(newPath[1]);//newPath[0]はapproachingがはいってる
                     _pendingApproachingNodeId = newPath[1].NodeId;
-                    //残りの距離を再更新
                     _remainingDistance = RailNodeCalculate.CalculateTotalDistanceF(newPath);//計算量NlogN(logはnodeからintの辞書アクセス)
                 }
                 else
                 {
-                    //approachingから次のノードをリストの若い順に取得して_railPosition.AddNodeToHead
                     var nextNodelist = approaching.ConnectedNodes.ToList();
                     if (nextNodelist.Count == 0)
                     {
                         _currentSpeed = 0;
                         break;//もう進めない
                     }
-                    var nextNode = nextNodelist[0];
+                    var nextNode = ResolveManualNextNode(nextNodelist);
                     _railPosition.AddNodeToHead(nextNode);
                     _pendingApproachingNodeId = nextNode.NodeId;
                 }
@@ -275,7 +274,26 @@ namespace Game.Train.Unit
             return totalMoved;
         }
 
-        //毎フレーム燃料の在庫を確認しながら加速力を計算する
+        private IRailNode ResolveManualNextNode(IReadOnlyList<IRailNode> nextNodes)
+        {
+            if (nextNodes == null || nextNodes.Count == 0)
+            {
+                return null;
+            }
+
+            if (_manualControlCommand.SteeringDirection < 0)
+            {
+                return nextNodes[0];
+            }
+
+            if (_manualControlCommand.SteeringDirection > 0)
+            {
+                return nextNodes[nextNodes.Count - 1];
+            }
+
+            return nextNodes[0];
+        }
+
         public double UpdateTractionForce(int masconLevel)
         {
             int totalWeight = 0;
@@ -290,7 +308,6 @@ namespace Game.Train.Unit
             return (double)totalTraction / totalWeight * masconLevel / MasterHolder.TrainUnitMaster.MasconLevelMaximum;
         }
 
-        //diagramのindexが見ている目的地にちょうど0距離で到達したか
         private bool IsArrivedDestination()
         {
             var node = _railPosition.GetNodeApproaching();
@@ -305,12 +322,27 @@ namespace Game.Train.Unit
 
         public void TurnOnAutoRun()
         {
-            //バリデーションでoff条件をあらいだし
             _isAutoRun = true;
             DiagramValidation();
         }
-        
-        // masconlevelなどの差分を抽出
+
+        public void SetManualControl(in TrainManualCommand command)
+        {
+            _hasManualControl = command.IsActive;
+            _manualControlCommand = command;
+
+            if (_hasManualControl && _isAutoRun)
+            {
+                DisableAutoRunForManualControl();
+            }
+        }
+
+        public void ClearManualControl()
+        {
+            _hasManualControl = false;
+            _manualControlCommand = TrainManualCommand.Inactive;
+        }
+
         public (int,bool,int) GetTickDiff()
         {
             var ret1 = masconLevel - _previousMasconLevel;
@@ -322,7 +354,7 @@ namespace Game.Train.Unit
             return (ret1, ret2, ret3);
         }
 
-        public void DiagramValidation() 
+        public void DiagramValidation()
         {
             var destinationNode = trainDiagram.GetCurrentNode();
             var approaching = _railPosition.GetNodeApproaching();
@@ -331,7 +363,6 @@ namespace Game.Train.Unit
                 TurnOffAutoRun();
                 return;
             }
-            //目的地にすでに到達している場合、remainingdistanceを更新
             if (approaching == destinationNode)
             {
                 _remainingDistance = _railPosition.GetDistanceToNextNode();
@@ -344,7 +375,6 @@ namespace Game.Train.Unit
                 TurnOffAutoRun();
                 return;
             }
-            //_remainingDistance更新
             _remainingDistance = _railPosition.GetDistanceToNextNode() + RailNodeCalculate.CalculateTotalDistanceF(newPath);
         }
 
@@ -354,19 +384,23 @@ namespace Game.Train.Unit
             _remainingDistance = int.MaxValue;
             masconLevel = 0;
             _accumulatedDistance = 0;
-            //ドッキングしていたら解除する
             if (trainUnitStationDocking.IsDocked)
             {
                 trainUnitStationDocking.UndockFromStation();
             }
         }
 
-        //現在のdiagramのcurrentから順にすべてのエントリーを順番にみていって、approachingからエントリーnodeへpathが繋がっていればtrueを返す
-        public (bool, List<IRailNode>) CheckAllDiagramPath(IRailNode approaching) 
+        private void DisableAutoRunForManualControl()
+        {
+            _isAutoRun = false;
+            _remainingDistance = int.MaxValue;
+            masconLevel = 0;
+        }
+
+        public (bool, List<IRailNode>) CheckAllDiagramPath(IRailNode approaching)
         {
             IRailNode destinationNode = null;
             List<IRailNode> newPath = null;
-            //ダイアグラム上、次に目的地に変更していく。全部の経路がなくなった場合は自動運転を解除する
             bool found = false;
             for (int i = 0; i < trainDiagram.Entries.Count; i++)
             {
@@ -380,19 +414,17 @@ namespace Game.Train.Unit
                     trainDiagram.MoveToNextEntry();
                     continue;
                 }
-                //見つかったのでループを抜ける
                 found = true;
                 break;
             }
             return (found, newPath);
         }
 
-        //列車編成を保存する。ブロックとは違うことに注意
         public TrainUnitSaveData CreateSaveData()
         {
             var railpositionSnapshot = _railPosition.CreateSaveSnapshot();
 
-            var carStates = new List<TrainCarSaveData>(); 
+            var carStates = new List<TrainCarSaveData>();
             foreach (var car in _cars)
             {
                 var carData = car.CreateTrainCarSaveData();
@@ -436,7 +468,6 @@ namespace Game.Train.Unit
                 return null;
 
             var railPosData = saveData.railPositionSaveData;
-            // サーバー側プロバイダでRailPositionを復元する
             // Restore RailPosition via the server-side provider
             var railGraphProvider = ServerContext.GetService<IRailGraphProvider>();
             var railPosition = RailPositionFactory.Restore(railPosData, railGraphProvider);
@@ -454,12 +485,10 @@ namespace Game.Train.Unit
             var railPositionManager = ServerContext.GetService<TrainRailPositionManager>();
             var diagramManager = ServerContext.GetService<TrainDiagramManager>();
 
-            var trainUnit = new TrainUnit(railPosition, cars, railPositionManager, diagramManager)
-            {
-                _isAutoRun = saveData.IsAutoRun,
-                _currentSpeed = restoredSpeed,
-                _accumulatedDistance = restoredAccumulatedDistance
-            };
+            var trainUnit = new TrainUnit(railPosition, cars, railPositionManager, diagramManager);
+            trainUnit._isAutoRun = saveData.IsAutoRun;
+            trainUnit._currentSpeed = restoredSpeed;
+            trainUnit._accumulatedDistance = restoredAccumulatedDistance;
 
             trainUnit._remainingDistance = trainUnit._railPosition.GetDistanceToNextNode();
             trainUnit.trainDiagram.RestoreState(saveData.Diagram);
@@ -472,19 +501,12 @@ namespace Game.Train.Unit
         }
 
         //============================================================
-        // ▼ ここからが「編成を分割連結する」ための処理例
         //============================================================
         /// <summary>
-        ///  分割
-        ///  列車を「後ろから numberOfCarsToDetach 両」切り離して、後ろを新しいTrainUnitに。後半部分の部分を新しいTrainUnitとして返す 0両でも返す
-        ///  新しいTrainUnitのrailpositionは、切り離した車両の長さに応じて調整される
-        ///  新しいTrainUnitのtrainDiagramは空になる
-        ///  新しいTrainUnitのドッキング状態はcarに情報があるためそのまま保存される
         /// </summary>
-        
+
         public TrainUnit SplitTrain(int numberOfCarsToDetach)
         {
-            // 例：10両 → 5両 + 5両など
             if (numberOfCarsToDetach <= 0 || numberOfCarsToDetach > _cars.Count)
             {
                 if (numberOfCarsToDetach != 0)
@@ -492,56 +514,39 @@ namespace Game.Train.Unit
                 return null;
             }
             TurnOffAutoRun();
-            // 1) 切り離す車両リストを作成
-            //    後ろ側から numberOfCarsToDetach 両を取得
             var detachedCars = _cars
                 .Skip(_cars.Count - numberOfCarsToDetach)
                 .ToList();
-            // 3) 新しく後ろのTrainUnitを作る
             var splittedRailPosition = CreateSplittedRailPosition(detachedCars);
-            // 2) 既存のTrainUnitからは そのぶん削除
             _cars.RemoveRange(_cars.Count - numberOfCarsToDetach, numberOfCarsToDetach);
-            // _carsの両数に応じて、列車長を算出する
             int newTrainLength = 0;
             foreach (var car in _cars)
                 newTrainLength += car.Length;
             _railPosition.SetTrainLength(newTrainLength);
-            // 4) 新しいTrainUnitを作成
             var splittedUnit = new TrainUnit(splittedRailPosition, detachedCars, _railPositionManager, _diagramManager);
-            // 6) 新しいTrainUnitを返す
             return splittedUnit;
 
             #region Internal
             /// <summary>
-            /// 後続列車のために、新しいRailPositionを生成し返す。
-            /// ここでは単純に列車の先頭からRailNodeの距離を調整するだけ
             /// </summary>
             RailPosition CreateSplittedRailPosition(List<TrainCar> splittedCars)
             {
-                // _railPositionのdeepコピー
                 var newNodes = _railPosition.DeepCopy();
-                // splittedCarsの両数に応じて、列車長を算出する
                 int splittedTrainLength = 0;
                 foreach (var car in splittedCars)
                     splittedTrainLength += car.Length;
-                // 切り離した長さが列車の全長と一致した時点で、現状のまま戻す
                 // Return as-is when the detached length matches the full train length
                 if (splittedTrainLength == newNodes.TrainLength) return newNodes;
-                //newNodesを反転して、新しい列車長を設定
                 newNodes.Reverse();
                 newNodes.SetTrainLength(splittedTrainLength);
-                //また反転すればちゃんと後ろの列車になる
                 newNodes.Reverse();
                 return newNodes;
             }
             #endregion
         }
-        
+
         /// <summary>
-        /// 指定 GUID or indexの列車両を安全に削除する
         /// Removes the train car that matches the given GUID.
-        /// s=x+1+y両のtrainunitから1を削除しx,yのうちyのTrainUnitを返す関数。xはthis
-        /// x,yは0以上
         /// </summary>
         public TrainUnit RemoveCar(int targetIndex)
         {
@@ -564,13 +569,9 @@ namespace Game.Train.Unit
 
 
         /// <summary>
-        /// 列車編成の先頭or最後尾に1両連結する
-        /// 現時点での実装は、RailPosition railPositionはこの追加Carの前輪～後輪までの範囲をもったrailPositionが必要かつ
-        /// そのどちらかは現時点のTrainUnitの先頭or最後尾に接続されている必要がある
         /// </summary>
         public void AttachCarToHead(TrainCar car, RailPosition railPosition)
         {
-            //trainUnitの先頭にcarが連結するのでcarのrailPositionはcarの前輪～trainUnitの先頭前輪までを指してないといけない
             if (!_railPosition.GetHeadRailPosition().IsSamePositionAllowNodeOverlap(railPosition.GetRearRailPosition()))
                 throw new InvalidOperationException("trainUnitの先頭にcarが連結するのでcarのrailPositionはcarの前輪～trainUnitの先頭前輪までを指してないといけない");
             Reverse();
@@ -585,7 +586,6 @@ namespace Game.Train.Unit
             if (!railPosition.GetHeadRailPosition().IsSamePositionAllowNodeOverlap(_railPosition.GetRearRailPosition()))
                 throw new InvalidOperationException("trainUnitの最後尾にcarが連結するのでcarのrailPositionはtrainunitの最後尾～carの後輪までを指してないといけない");
             _cars.Add(car);
-            // RailPositionを更新(内部で自動で追加する車両分の距離を伸ばす)
             _railPosition.AppendRailPositionAtRear(railPosition);
         }
 
@@ -617,7 +617,7 @@ namespace Game.Train.Unit
                 car.Destroy();
             }
             _cars.Clear();
-            
+
             trainDiagram = null;
             _railPosition = null;
             trainUnitStationDocking = null;
@@ -626,5 +626,4 @@ namespace Game.Train.Unit
         }
     }
 }
-
 

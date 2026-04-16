@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Game.Train.Event;
 using Game.Train.RailGraph;
@@ -14,11 +14,9 @@ namespace Server.Protocol
     public class PacketResponseCreator
     {
         private readonly Dictionary<string, IPacketResponse> _packetResponseDictionary = new();
-        
-        //TODO この辺もDIコンテナに載せる?こういうパケット周りめっちゃなんとかしたい
+
         public PacketResponseCreator(ServiceProvider serviceProvider)
         {
-            // パケット生成に必要な列車系サービスを取得
             // Acquire train-related services required for packet creation
             var trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
             var trainUnitSnapshotNotifyEvent = serviceProvider.GetService<ITrainUnitSnapshotNotifyEvent>();
@@ -63,8 +61,9 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(PlaceTrainCarOnRailProtocol.ProtocolTag, new PlaceTrainCarOnRailProtocol(serviceProvider));
             _packetResponseDictionary.Add(AttachTrainCarToUnitProtocol.ProtocolTag, new AttachTrainCarToUnitProtocol(serviceProvider));
             _packetResponseDictionary.Add(RemoveTrainCarProtocol.ProtocolTag, new RemoveTrainCarProtocol(trainUnitSnapshotNotifyEvent, trainUnitLookupDatastore, trainUnitMutationDatastore));
+            _packetResponseDictionary.Add(TrainManualInputProtocol.ProtocolTag, new TrainManualInputProtocol(serviceProvider));
         }
-        
+
         public List<byte[]> GetPacketResponse(byte[] payload)
         {
             ProtocolMessagePackBase request = null;
@@ -76,7 +75,6 @@ namespace Server.Protocol
             }
             catch (Exception e)
             {
-                // TODO ログ基盤
                 Debug.LogError($"PacketResponseCreator Error:{e.Message}\n{e.StackTrace}");
             }
 

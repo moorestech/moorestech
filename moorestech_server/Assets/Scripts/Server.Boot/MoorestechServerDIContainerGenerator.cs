@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using Core.Item;
 using Core.Item.Interface;
 using Core.Master;
@@ -60,33 +60,29 @@ namespace Server.Boot
     public class MoorestechServerDIContainerOptions
     {
         public readonly string ServerDataDirectory;
-        
-        public static readonly string DefaultSaveJsonFilePath = GameSystemPaths.GetSaveFilePath("save_1.json"); 
+
+        public static readonly string DefaultSaveJsonFilePath = GameSystemPaths.GetSaveFilePath("save_1.json");
         public SaveJsonFilePath saveJsonFilePath { get; set; } = new(DefaultSaveJsonFilePath);
-        
+
         public MoorestechServerDIContainerOptions(string serverDataDirectory)
         {
             ServerDataDirectory = serverDataDirectory;
         }
     }
-    
-    
+
+
     public class MoorestechServerDIContainerGenerator
     {
-        //TODO セーブファイルのディレクトリもここで指定できるようにする
         public (PacketResponseCreator, ServiceProvider) Create(MoorestechServerDIContainerOptions options)
         {
             GameUpdater.ResetUpdate();
 
-            //必要な各種インスタンスを手動で作成
             var modDirectory = Path.Combine(options.ServerDataDirectory, "mods");
 
-            // マスターをロード
             var modResource = new ModsResource(modDirectory);
             var masterJsonFileContainer = new MasterJsonFileContainer(ModJsonStringLoader.GetMasterString(modResource));
             MasterHolder.Load(masterJsonFileContainer);
 
-            // ServerContext用のインスタンスを登録
             var initializerCollection = new ServiceCollection();
             initializerCollection.AddSingleton(masterJsonFileContainer);
             initializerCollection.AddSingleton<IItemStackFactory, ItemStackFactory>();
@@ -117,10 +113,8 @@ namespace Server.Boot
             var serverContext = new ServerContext(initializerProvider);
 
 
-            //コンフィグ、ファクトリーのインスタンスを登録
             var services = new ServiceCollection();
 
-            //ゲームプレイに必要なクラスのインスタンスを生成
             services.AddSingleton<EventProtocolProvider, EventProtocolProvider>();
             services.AddSingleton<IWorldSettingsDatastore, WorldSettingsDatastore>();
             services.AddSingleton<IPlayerInventoryDataStore, PlayerInventoryDataStore>();
@@ -149,7 +143,7 @@ namespace Server.Boot
             services.AddSingleton<IGameActionExecutor, GameActionExecutor>();
             services.AddSingleton<IResearchDataStore, ResearchDataStore>();
             services.AddSingleton<ResearchEvent>();
-            
+
             services.AddSingleton(initializerProvider.GetService<MapInfoJson>());
             services.AddSingleton(masterJsonFileContainer);
             services.AddSingleton<ChallengeDatastore, ChallengeDatastore>();
@@ -159,20 +153,18 @@ namespace Server.Boot
             services.AddSingleton<TrainDockingStateRestorer>();
             services.AddSingleton<ITrainUpdateEvent, TrainUpdateEvent>();
             services.AddSingleton<ITrainUnitSnapshotNotifyEvent, TrainUnitSnapshotNotifyEvent>();
+            services.AddSingleton<TrainManualControlService>();
             services.AddSingleton<TrainUpdateService>();
 
-            //JSONファイルのセーブシステムの読み込み
             services.AddSingleton(modResource);
             services.AddSingleton<IWorldSaveDataSaver, WorldSaverForJson>();
             services.AddSingleton<IWorldSaveDataLoader, WorldLoaderFromJson>();
             services.AddSingleton(options.saveJsonFilePath);
 
-            //イベントを登録
             services.AddSingleton<IMainInventoryUpdateEvent, MainInventoryUpdateEvent>();
             services.AddSingleton<IGrabInventoryUpdateEvent, GrabInventoryUpdateEvent>();
             services.AddSingleton<CraftEvent, CraftEvent>();
 
-            //イベントレシーバーを登録
             services.AddSingleton<ChangeBlockStateEventPacket>();
             services.AddSingleton<MainInventoryUpdateEventPacket>();
             services.AddSingleton<UnifiedInventoryEventPacket>();
@@ -192,16 +184,13 @@ namespace Server.Boot
             services.AddSingleton<TrainUnitSnapshotEventPacket>();
             services.AddSingleton<RailNodeRemovedEventPacket>();
             services.AddSingleton<RailConnectionRemovedEventPacket>();
-            
-            //データのセーブシステム
+
             services.AddSingleton<AssembleSaveJsonText, AssembleSaveJsonText>();
 
 
             var serviceProvider = services.BuildServiceProvider();
             var packetResponse = new PacketResponseCreator(serviceProvider);
 
-            //イベントレシーバーをインスタンス化する
-            //TODO この辺を解決するDIコンテナを探す VContinerのRegisterEntryPoint的な
             serviceProvider.GetService<MainInventoryUpdateEventPacket>();
             serviceProvider.GetService<UnifiedInventoryEventPacket>();
             serviceProvider.GetService<GrabInventoryUpdateEventPacket>();
@@ -225,10 +214,9 @@ namespace Server.Boot
             serviceProvider.GetService<TrainUnitSnapshotEventPacket>();
             serviceProvider.GetService<RailNodeRemovedEventPacket>();
             serviceProvider.GetService<RailConnectionRemovedEventPacket>();
-            
+
             serverContext.SetMainServiceProvider(serviceProvider);
-            
-            // MessagePackResolverを登録
+
             MessagePackInitializer.Initialize();
 
             return (packetResponse, serviceProvider);

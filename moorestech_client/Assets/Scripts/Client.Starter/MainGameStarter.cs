@@ -54,29 +54,25 @@ using VContainer.Unity;
 namespace Client.Starter
 {
     /// <summary>
-    ///     ゲームの起動と依存解決を行うクラス
-    ///     誰かこの最初に全部依存を解決する方法じゃない方法で、いい感じに依存解決できる方法あったら教えてください
     /// </summary>
     public class MainGameStarter : LifetimeScope
     {
-        // Hierarchy上にある依存解決が必要なものをまとめたところ
-        //TODO regionでちゃんと分類分けしたい
-        
+
         [Header("InHierarchy")] [SerializeField]
         private Camera mainCamera;
-        
+
         [SerializeField] private GameStateController gameStateController;
         [SerializeField] private BlockGameObjectDataStore blockGameObjectDataStore;
         [SerializeField] private MapObjectGameObjectDatastore mapObjectGameObjectDatastore;
         [SerializeField] private EnvironmentRoot environmentRoot;
-        
+
         [SerializeField] private HotBarView hotBarView;
         [SerializeField] private MapObjectMiningController mapObjectMiningController;
         [SerializeField] private PlayerSystemContainer playerSystemContainer;
-        
+
         [SerializeField] private EntityObjectDatastore entityObjectDatastore;
         [SerializeField] private TrainCarObjectDatastore trainCarObjectDatastore;
-        
+
         [SerializeField] private UIStateControl uIStateControl;
         [SerializeField] private PauseMenuObject pauseMenuObject;
         [SerializeField] private DeleteBarObject deleteBarObject;
@@ -95,70 +91,67 @@ namespace Client.Starter
         [SerializeField] private KeyControlTutorialManager keyControlTutorialManager;
         [SerializeField] private ItemViewHighLightTutorialManager itemViewHighLightTutorialManager;
         [SerializeField] private BlockPlacePreviewTutorialManager blockPlacePreviewTutorialManager;
-        
+
         [SerializeField] private PlacementPreviewBlockGameObjectController previewBlockController;
         [SerializeField] private RailConnectPreviewObject railConnectPreviewObject;
         [SerializeField] private SaveButton saveButton;
         [SerializeField] private BackToMainMenu backToMainMenu;
         [SerializeField] private NetworkDisconnectPresenter networkDisconnectPresenter;
         [SerializeField] private ChallengeManager challengeManager;
-        
+
         [SerializeField] private TrainRailObjectManager trainRailObjectManager;
         [SerializeField] private TrainCarPreviewController trainCarObjectPreviewController;
-        
+
         [SerializeField] private SkitManager skitManager;
         [SerializeField] private SkitUI skitUI;
         [SerializeField] private BackgroundSkitManager backgroundSkitManager;
-        
+
         [SerializeField] private DisplayEnergizedRange displayEnergizedRange;
-        
+
         [SerializeField] private InGameCameraController inGameCameraController;
-        
-        
+
+
         private IObjectResolver _resolver;
         private string IPAddress = ServerConst.LocalServerIp;
-        
+
         private bool isLocal;
         private Process localServerProcess;
-        
+
         private int PlayerId = ServerConst.DefaultPlayerId;
         private int Port = ServerConst.LocalServerPort;
-        
+
         protected override void OnDestroy()
         {
             _resolver?.Dispose();
         }
-        
+
         public IObjectResolver StartGame(InitialHandshakeResponse initialHandshakeResponse)
         {
             var builder = new ContainerBuilder();
 
             CameraManager.Initialize();
-            
-            // PureC#のインスタンスを登録
+
             // Register pure C# instances
-            // 最初に取得したデータを登録
             // register initial data
             builder.RegisterInstance(initialHandshakeResponse);
-            
-            //インベントリのUIコントロール
+
             // register inventory UI control
             builder.Register<LocalPlayerInventoryController>(Lifetime.Singleton);
             builder.Register<ILocalPlayerInventory, LocalPlayerInventory>(Lifetime.Singleton);
             builder.RegisterEntryPoint<NetworkEventInventoryUpdater>();
-            
-            //プレゼンターアセンブリ
+
             // register presenter assembly
             builder.RegisterEntryPoint<CommonMachineBlockStateChangeProcessor>();
             builder.RegisterEntryPoint<WorldDataHandler>();
             builder.RegisterEntryPoint<PlayerPositionSender>();
+            builder.Register<TrainManualOperationState>(Lifetime.Singleton);
+            builder.Register<TrainManualOperationSender>(Lifetime.Singleton).As<ITickable>().As<IDisposable>();
             builder.RegisterEntryPoint<SkitFireManager>();
             builder.RegisterEntryPoint<RailGraphCacheNetworkHandler>();
             builder.RegisterEntryPoint<RailGraphConnectionNetworkHandler>();
             builder.RegisterEntryPoint<TrainUnitSnapshotEventNetworkHandler>();
             builder.RegisterEntryPoint<TrainUnitTickDiffBundleEventNetworkHandler>();
-            
-            // 設置システム
+
             // register placement system
             builder.Register<CommonBlockPlaceSystem>(Lifetime.Singleton);
             builder.Register<ITrainCarPlacementDetector, TrainCarPlacementDetector>(Lifetime.Singleton);
@@ -168,9 +161,8 @@ namespace Client.Starter
             builder.Register<GearChainPoleConnectSystem>(Lifetime.Singleton);
             builder.Register<PlaceSystemStateController>(Lifetime.Singleton);
             builder.Register<PlaceSystemSelector>(Lifetime.Singleton);
-            
-            
-            //UIコントロール
+
+
             // register UI control
             builder.Register<UIStateDictionary>(Lifetime.Singleton);
             builder.Register<SubInventoryState>(Lifetime.Singleton);
@@ -184,14 +176,12 @@ namespace Client.Starter
             builder.Register<ResearchTreeState>(Lifetime.Singleton);
             builder.Register<ItemRecipeViewerDataContainer>(Lifetime.Singleton);
             builder.Register<GameScreenSubInventoryInteractService>(Lifetime.Singleton);
-            
-            // スキット関連
+
             // register skit related
             var skitActionContext = new SkitActionContext();
             builder.RegisterInstance<ISkitActionContext>(skitActionContext);
             builder.RegisterInstance<ISkitActionController>(skitActionContext);
-            
-            // その他インスタンス
+
             // register other instance
             builder.Register<TutorialManager>(Lifetime.Singleton);
             builder.Register<IGameUnlockStateData, ClientGameUnlockStateData>(Lifetime.Singleton);
@@ -204,18 +194,17 @@ namespace Client.Starter
             builder.Register<TrainUnitSnapshotApplier>(Lifetime.Singleton).AsSelf().As<IInitializable>();
             builder.Register<TrainUnitClientSimulator>(Lifetime.Singleton).As<ITickable>();
             builder.Register<TrainUnitHashVerifier>(Lifetime.Singleton).As<ITrainUnitHashTickGate>().As<IDisposable>();
-            
-            
-            //Hierarchy上にあるcomponent
+
+
             // register component on hierarchy
             builder.RegisterComponent(gameStateController);
             builder.RegisterComponent(blockGameObjectDataStore);
             builder.RegisterComponent(mapObjectGameObjectDatastore);
             builder.RegisterComponent(environmentRoot);
-            
+
             builder.RegisterComponent(mainCamera);
             builder.RegisterComponent(hotBarView);
-            
+
             builder.RegisterComponent(uIStateControl);
             builder.RegisterComponent(pauseMenuObject);
             builder.RegisterComponent(deleteBarObject);
@@ -223,7 +212,7 @@ namespace Client.Starter
             builder.RegisterComponent(backToMainMenu);
             builder.RegisterComponent(networkDisconnectPresenter);
             builder.RegisterComponent(mapObjectMiningController);
-            
+
             builder.RegisterComponent(displayEnergizedRange);
             builder.RegisterComponent(entityObjectDatastore);
             builder.RegisterComponent(trainCarObjectDatastore);
@@ -243,22 +232,21 @@ namespace Client.Starter
             builder.RegisterComponent(keyControlTutorialManager);
             builder.RegisterComponent(itemViewHighLightTutorialManager);
             builder.RegisterComponent(blockPlacePreviewTutorialManager);
-            
+
             builder.RegisterComponent(playerSystemContainer);
             builder.RegisterComponent(skitManager).As<IInitializable>();
             builder.RegisterComponent(skitUI);
             builder.RegisterComponent(backgroundSkitManager);
-            
+
             builder.RegisterComponent(inGameCameraController).As<IInitializable>();
-            
+
             builder.RegisterComponent<IPlacementPreviewBlockGameObjectController>(previewBlockController);
             builder.RegisterComponent(railConnectPreviewObject);
             builder.RegisterComponent(trainRailObjectManager);
             builder.RegisterComponent(trainCarObjectPreviewController);
-            
+
             builder.RegisterBuildCallback(objectResolver => { });
-            
-            //依存関係を解決
+
             // resolve dependency
             _resolver = builder.Build();
             _resolver.Resolve<BlockGameObjectDataStore>();
@@ -269,7 +257,7 @@ namespace Client.Starter
             _resolver.Resolve<ChallengeManager>();
             _resolver.Resolve<PlayerSystemContainer>();
             _resolver.Resolve<SkitUI>();
-            
+
             return _resolver;
         }
     }
