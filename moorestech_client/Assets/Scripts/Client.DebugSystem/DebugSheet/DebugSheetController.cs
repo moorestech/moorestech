@@ -37,6 +37,7 @@ namespace Client.DebugSystem
             
             rootPage.AddPageLinkButton<ItemGetDebugSheet>("Get Item");
             rootPage.AddPageLinkButton<SkitDebugSheet>("Skit Player");
+            rootPage.AddPageLinkButton<TrainManualOperationDebugSheet>("Train Manual Operation");
             rootPage.AddPageLinkButton<CinematicCameraDebugSheet>("Cinematic Camera");
             rootPage.AddPageLinkButton<IngameDebugConsoleDebugPage>("In-Game Debug Console", onLoad: x => x.page.Setup(DebugLogManager.Instance));
             rootPage.AddPageLinkButton<GraphyDebugPage>("Graphy", onLoad: x => x.page.Setup(GraphyManager.Instance));
@@ -84,6 +85,7 @@ namespace Client.DebugSystem
         public static void CloseDebugSheet()
         {
             // OnCloseButtonClickedをリフレクションで実行
+            // Invoke OnCloseButtonClicked via reflection
             var onCloseButtonClicked = typeof(DebugSheet).GetMethod("OnCloseButtonClicked", BindingFlags.NonPublic | BindingFlags.Instance);  
             onCloseButtonClicked.Invoke(_staticDebugSheet, null);
         }
