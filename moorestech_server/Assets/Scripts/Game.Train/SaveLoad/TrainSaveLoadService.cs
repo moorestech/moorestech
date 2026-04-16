@@ -29,7 +29,9 @@ namespace Game.Train.SaveLoad
         public void RestoreTrainStates(IEnumerable<TrainUnitSaveData> saveData)
         {
             // Save/Loadサイクルのたびに登録済み列車を初期化して、
+            // Reset registered trains for each save/load cycle.
             // 既存状態が残ったまま復元処理が走るのを防ぐ。
+            // Prevent stale train state from surviving into restore.
             _trainUnitDatastore.Reset();
 
             if (saveData == null)
@@ -45,6 +47,8 @@ namespace Game.Train.SaveLoad
                     continue;
                 var trainUnit = TrainUnit.RestoreFromSaveData(data);
                 if (trainUnit == null)
+                    continue;
+                if (trainUnit.Cars == null || trainUnit.Cars.Count == 0)
                     continue;
                 _trainUnitDatastore.RegisterTrain(trainUnit);
             }
