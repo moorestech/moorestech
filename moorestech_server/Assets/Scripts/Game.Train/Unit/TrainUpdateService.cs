@@ -11,13 +11,13 @@ namespace Game.Train.Unit
     {
         private readonly TrainDiagramManager _diagramManager;
         private readonly IRailGraphDatastore _railGraphDatastore;
+        private readonly ITrainUnitLookupDatastore _trainUnitLookupDatastore;
 
         // Trainはサーバーのゲームtickに同期して進める
         // Train tick is aligned with the server game tick interval.
         private const double TickSeconds = GameUpdater.SecondsPerTick;
         public const double HashBroadcastIntervalSeconds = TickSeconds;
         private static readonly uint TrainUnitHashBroadcastIntervalTicks = Math.Max(4u, (uint)Math.Ceiling(HashBroadcastIntervalSeconds / TickSeconds));
-        private readonly List<TrainUnit> _trainUnits = new();
         private uint _executedTick;
         private uint _tickSequenceId;
 
@@ -27,10 +27,11 @@ namespace Game.Train.Unit
 
         // 依存サービスを受け取り、更新ループに接続する
         // Bind to required services and subscribe to update loop
-        public TrainUpdateService(TrainDiagramManager diagramManager, IRailGraphDatastore railGraphDatastore)
+        public TrainUpdateService(TrainDiagramManager diagramManager, IRailGraphDatastore railGraphDatastore,ITrainUnitLookupDatastore trainUnitLookupDatastore)
         {
             _diagramManager = diagramManager;
             _railGraphDatastore = railGraphDatastore;
+            _trainUnitLookupDatastore = trainUnitLookupDatastore;
             GameUpdater.UpdateObservable.Subscribe(_ => UpdateTrains());
         }
 
@@ -59,7 +60,7 @@ namespace Game.Train.Unit
             _tickSequenceId = 0;
 
             //simulation
-            foreach (var trainUnit in _trainUnits)
+            foreach (var trainUnit in _trainUnitLookupDatastore.GetRegisteredTrains())
             {
                 trainUnit.Update();
             }
@@ -79,7 +80,7 @@ namespace Game.Train.Unit
                 }
 
                 var bundles = new List<TrainUnitSnapshotBundle>();
-                foreach (var train in _trainUnits)
+                foreach (var train in _trainUnitLookupDatastore.GetRegisteredTrains())
                 {
                     bundles.Add(TrainUnitSnapshotFactory.CreateSnapshot(train));
                 }
@@ -93,7 +94,7 @@ namespace Game.Train.Unit
             void NotifyPreSimulationDiff(uint tick)
             {
                 var diffs = new List<TrainTickDiffData>();
-                foreach (var trainUnit in _trainUnits)
+                foreach (var trainUnit in _trainUnitLookupDatastore.GetRegisteredTrains())
                 {
                     var (masconLevelDiff, isNowDockingSpeedZero, approachingNodeIdDiff) = trainUnit.GetTickDiff();
                     if (!HasDiff(masconLevelDiff, isNowDockingSpeedZero, approachingNodeIdDiff))
@@ -114,18 +115,8 @@ namespace Game.Train.Unit
             #endregion
         }
 
-        public void RegisterTrain(TrainUnit trainUnit)
+        public void ResetTick()
         {
-            // 列車を登録する
-            // Register train unit.
-            _trainUnits.Add(trainUnit);
-        }
-        public void UnregisterTrain(TrainUnit trainUnit) => _trainUnits.Remove(trainUnit);
-        public IEnumerable<TrainUnit> GetRegisteredTrains() => _trainUnits.ToArray();
-
-        public void ResetTrains()
-        {
-            _trainUnits.Clear();
             _executedTick = 0;
             _tickSequenceId = 0;
         }
@@ -144,7 +135,8 @@ namespace Game.Train.Unit
                 _trainAutoRunDebugEnabled = true;
                 UnityEngine.Debug.Log("トグルスイッチ: Turning on auto-run for all trains.");
                 AutoDiagramNodeAdditionExample();
-                foreach (var train in GetRegisteredTrains())
+                
+                foreach (var train in _trainUnitLookupDatastore.GetRegisteredTrains())
                 {
                     train.TurnOnAutoRun();
                 }
@@ -154,7 +146,7 @@ namespace Game.Train.Unit
             {
                 _trainAutoRunDebugEnabled = false;
                 UnityEngine.Debug.Log("トグルスイッチ: Turning off auto-run for all trains.");
-                foreach (var train in GetRegisteredTrains())
+                foreach (var train in _trainUnitLookupDatastore.GetRegisteredTrains())
                 {
                     train.TurnOffAutoRun();
                 }

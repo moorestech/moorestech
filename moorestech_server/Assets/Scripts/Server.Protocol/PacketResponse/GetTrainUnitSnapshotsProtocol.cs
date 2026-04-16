@@ -12,21 +12,22 @@ namespace Server.Protocol.PacketResponse
     /// </summary>
     public sealed class GetTrainUnitSnapshotsProtocol : IPacketResponse
     {
+        private readonly ITrainUnitLookupDatastore _trainUnitLookupDatastore;
         private readonly TrainUpdateService _trainUpdateService;
         public const string ProtocolTag = "va:getTrainUnitSnapshots";
-
-        public GetTrainUnitSnapshotsProtocol(TrainUpdateService trainUpdateService)
+        public GetTrainUnitSnapshotsProtocol(ITrainUnitLookupDatastore trainUnitLookupDatastore, TrainUpdateService trainUpdateService)
         {
+            _trainUnitLookupDatastore = trainUnitLookupDatastore;
             _trainUpdateService = trainUpdateService;
         }
-
+        
         public ProtocolMessagePackBase GetResponse(byte[] payload)
         {
             // 全TrainUnitのスナップショットとハッシュを生成する
             // Build snapshots and hash for every registered train unit
             var bundles = new List<TrainUnitSnapshotBundle>();
             var snapshots = new List<TrainUnitSnapshotBundleMessagePack>();
-            foreach (var train in _trainUpdateService.GetRegisteredTrains())
+            foreach (var train in _trainUnitLookupDatastore.GetRegisteredTrains())
             {
                 var bundle = TrainUnitSnapshotFactory.CreateSnapshot(train);
                 bundles.Add(bundle);

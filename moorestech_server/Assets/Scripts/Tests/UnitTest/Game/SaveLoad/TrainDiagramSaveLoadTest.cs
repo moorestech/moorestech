@@ -31,7 +31,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var loadEnv = TrainTestHelper.CreateEnvironment();
             SaveLoadJsonTestHelper.LoadFromJson(loadEnv.ServiceProvider, saveJson);
 
-            var loadedTrains = loadEnv.GetTrainUpdateService().GetRegisteredTrains().ToList();
+            var loadedTrains = loadEnv.GetITrainLookupDatastore().GetRegisteredTrains().ToList();
             Assert.AreEqual(1, loadedTrains.Count, "ロード後の列車数が一致しません。");
 
             var loadedTrain = loadedTrains[0];
@@ -77,8 +77,8 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             var loadEnv = TrainTestHelper.CreateEnvironment();
             SaveLoadJsonTestHelper.LoadFromJson(loadEnv.ServiceProvider, corruptedJson);
-
-            var loadedTrains = loadEnv.GetTrainUpdateService().GetRegisteredTrains().ToList();
+            
+            var loadedTrains = loadEnv.GetITrainLookupDatastore().GetRegisteredTrains().ToList();
             Assert.AreEqual(1, loadedTrains.Count, "破損データロード後の列車数が一致しません。");
 
             var loadedTrain = loadedTrains[0];
@@ -166,8 +166,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             {
                 TrainTestCarFactory.CreateTrainCarWithItemContainer(0, firstTrain.TrainCarGuid, firstTrain.ItemGuid, 400000, 1, trainLength, true).trainCar
             };
-            var train = new TrainUnit(railPosition, cars, environment.GetTrainUpdateService(), environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
-
+            var train = new TrainUnit(railPosition, cars, environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
+            environment.GetITrainUnitMutationDatastore().RegisterTrain(train);
             foreach (var component in components)
             {
                 train.trainDiagram.AddEntry(component.FrontNode);
@@ -207,8 +207,9 @@ namespace Tests.UnitTest.Game.SaveLoad
             {
                 context.Environment.WorldBlockDatastore.RemoveBlock(position, BlockRemoveReason.ManualRemove);
             }
-
-            context.Environment.GetTrainUpdateService().ResetTrains();
+            
+            context.Environment.GetTrainUpdateService().ResetTick();
+            context.Environment.GetTrainUnitDatastore().Reset();
             context.Environment.GetRailGraphDatastore().Reset();
         }
 
@@ -219,8 +220,9 @@ namespace Tests.UnitTest.Game.SaveLoad
             {
                 environment.WorldBlockDatastore.RemoveBlock(position, BlockRemoveReason.ManualRemove);
             }
-
-            environment.GetTrainUpdateService().ResetTrains();
+            
+            environment.GetTrainUpdateService().ResetTick();
+            environment.GetTrainUnitDatastore().Reset();
             environment.GetRailGraphDatastore().Reset();
         }
 

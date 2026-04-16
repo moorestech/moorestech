@@ -5,14 +5,12 @@ using Core.Master;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Blocks.TrainRail.ContainerComponents;
 using Game.Block.Interface;
-using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Fluid;
 using Game.Train.Diagram;
 using Game.Train.RailGraph;
 using Game.Train.RailPositions;
 using Game.Train.Unit;
-using Game.Train.Unit.Containers;
 using NUnit.Framework;
 using Tests.Module.TestMod;
 using Tests.Util;
@@ -94,18 +92,18 @@ namespace Tests.UnitTest.Game.SaveLoad
             var train1 = new TrainUnit(
                 new RailPosition(train1Nodes, train1Car.Length, 0),
                 new List<TrainCar> { train1Car },
-                environment.GetTrainUpdateService(),
                 environment.GetTrainRailPositionManager(),
                 environment.GetTrainDiagramManager());
+            environment.GetITrainUnitMutationDatastore().RegisterTrain(train1);
 
             var (train2Car, _) = TrainTestCarFactory.CreateTrainCarWithFluidContainer(0, 8000000, 1000, stationSegmentLength, false);
             var train2Nodes = new List<IRailNode> { stationB.ExitFront, stationB.EntryFront };
             var train2 = new TrainUnit(
                 new RailPosition(train2Nodes, train2Car.Length, 0),
                 new List<TrainCar> { train2Car },
-                environment.GetTrainUpdateService(),
                 environment.GetTrainRailPositionManager(),
                 environment.GetTrainDiagramManager());
+            environment.GetITrainUnitMutationDatastore().RegisterTrain(train2);
             train2.Reverse();
 
             // ダイアグラムを設定
@@ -172,8 +170,6 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             var saveJson = SaveLoadJsonTestHelper.AssembleSaveJson(environment.ServiceProvider);
             Assert.IsTrue(saveJson.Contains("trainUnits"));
-
-            environment.GetTrainUpdateService().ResetTrains();
 
             #region Internal
 
