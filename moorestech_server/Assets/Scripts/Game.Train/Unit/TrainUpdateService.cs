@@ -10,6 +10,7 @@ namespace Game.Train.Unit
     public class TrainUpdateService
     {
         private readonly TrainDiagramManager _diagramManager;
+        private readonly TrainManualControlService _trainManualControlService;
         private readonly IRailGraphDatastore _railGraphDatastore;
         private readonly ITrainUnitLookupDatastore _trainUnitLookupDatastore;
 
@@ -27,9 +28,14 @@ namespace Game.Train.Unit
 
         // 依存サービスを受け取り、更新ループに接続する
         // Bind to required services and subscribe to update loop
-        public TrainUpdateService(TrainDiagramManager diagramManager, IRailGraphDatastore railGraphDatastore,ITrainUnitLookupDatastore trainUnitLookupDatastore)
+        public TrainUpdateService(
+            TrainDiagramManager diagramManager,
+            TrainManualControlService trainManualControlService,
+            IRailGraphDatastore railGraphDatastore,
+            ITrainUnitLookupDatastore trainUnitLookupDatastore)
         {
             _diagramManager = diagramManager;
+            _trainManualControlService = trainManualControlService;
             _railGraphDatastore = railGraphDatastore;
             _trainUnitLookupDatastore = trainUnitLookupDatastore;
             GameUpdater.UpdateObservable.Subscribe(_ => UpdateTrains());
@@ -62,6 +68,12 @@ namespace Game.Train.Unit
             //simulation
             foreach (var trainUnit in _trainUnitLookupDatastore.GetRegisteredTrains())
             {
+                // 各 tick の manual command を解決してから TrainUnit.Update を呼ぶ
+                // Resolve the per-tick manual command before invoking TrainUnit.Update
+                var manualCommand = _trainManualControlService.TryBuildManualCommand(trainUnit, out var builtCommand)
+                    ? builtCommand
+                    : TrainManualCommand.Neutral;
+                trainUnit.SetManualCommand(manualCommand);
                 trainUnit.Update();
             }
 

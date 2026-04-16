@@ -112,7 +112,7 @@ properties:
     default: 0.02
   - key: tractionForceAccelerationRate
     type: number
-    default: 0.1
+    default: 1.0
   - key: manualControlDecelerationFactor
     type: number
     default: 1.0
