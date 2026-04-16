@@ -21,11 +21,11 @@ namespace Server.Protocol.PacketResponse
     {
         public const string ProtocolTag = "va:invReq";
         
-        private readonly TrainUpdateService _trainUpdateService;
+        private readonly ITrainUnitLookupDatastore _trainUnitLookupDatastore;
         
         public InventoryRequestProtocol(ServiceProvider serviceProvider)
         {
-            _trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
+            _trainUnitLookupDatastore = serviceProvider.GetService<ITrainUnitLookupDatastore>();
         }
         
         public ProtocolMessagePackBase GetResponse(byte[] payload)
@@ -69,22 +69,13 @@ namespace Server.Protocol.PacketResponse
                 // 列車カーを探索
                 // Find the target train car
                 var trainCarInstanceId = new TrainCarInstanceId(long.Parse(identifier.TrainCarInstanceId));
-                TrainCar trainCar = null;
-                foreach (var registeredTrain in _trainUpdateService.GetRegisteredTrains())
-                {
-                    foreach (var car in registeredTrain.Cars)
-                    {
-                        if (car.TrainCarInstanceId != trainCarInstanceId) continue;
-                        trainCar = car;
-                        break;
-                    }
-                }
-                
-                if (trainCar == null) return new ResponseInventoryRequestProtocolMessagePack(InventoryType.Train, identifier, Array.Empty<IItemStack>());
+                if (!_trainUnitLookupDatastore.TryGetTrainCar(trainCarInstanceId, out var trainCar))
+                    return new ResponseInventoryRequestProtocolMessagePack(InventoryType.Train, identifier, Array.Empty<IItemStack>());
                 
                 // 列車カーのインベントリを生成
                 // Build the train car inventory
-                if (trainCar.Container is ItemTrainCarContainer container)                     return new ResponseInventoryRequestProtocolMessagePack(InventoryType.Train, identifier, container.InventoryItems.Select(stack => stack.Stack).ToArray());
+                if (trainCar.Container is ItemTrainCarContainer container) 
+                    return new ResponseInventoryRequestProtocolMessagePack(InventoryType.Train, identifier, container.InventoryItems.Select(stack => stack.Stack).ToArray());
                 return new ResponseInventoryRequestProtocolMessagePack(InventoryType.Train, identifier, Array.Empty<IItemStack>());
             }
             

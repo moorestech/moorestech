@@ -102,18 +102,17 @@ namespace Tests.UnitTest.Game.SaveLoad
                 stationA.EntryFront
             };
             var train1Car = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 8000000, 2, stationSegmentLength, true).trainCar;
-            var train1 = new TrainUnit(new RailPosition(train1Nodes, train1Car.Length, 0), new List<TrainCar> { train1Car }, environment.GetTrainUpdateService(), environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
-
+            var train1 = new TrainUnit(new RailPosition(train1Nodes, train1Car.Length, 0), new List<TrainCar> { train1Car }, environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
+            environment.GetITrainUnitMutationDatastore().RegisterTrain(train1);
             var train2Nodes = new List<IRailNode>
             {
                 stationB.ExitFront,
                 stationB.EntryFront
             };
             var train2Car = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 400000, 2, stationSegmentLength, false).trainCar;
-            var train2 = new TrainUnit(new RailPosition(train2Nodes, train2Car.Length, 0), new List<TrainCar> { train2Car }, environment.GetTrainUpdateService(), environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
+            var train2 = new TrainUnit(new RailPosition(train2Nodes, train2Car.Length, 0), new List<TrainCar> { train2Car }, environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
+            environment.GetITrainUnitMutationDatastore().RegisterTrain(train2);
             train2.Reverse();
-            //train1.trainUnitStationDocking.TryDockWhenStopped();
-            //train2.trainUnitStationDocking.TryDockWhenStopped();
 
             var aDeparture = train1.trainDiagram.AddEntry(stationA.ExitFront);
             aDeparture.SetDepartureCondition(TrainDiagram.DepartureConditionType.TrainInventoryFull);
@@ -228,7 +227,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             var saveJson = SaveLoadJsonTestHelper.AssembleSaveJson(environment.ServiceProvider);
             Assert.IsTrue(saveJson.Contains("trainUnits"), "セーブデータに trainUnits セクションが含まれていません。");
             Debug.Log(saveJson);
-            environment.GetTrainUpdateService().ResetTrains();
+            environment.GetTrainUpdateService().ResetTick();
+            environment.GetTrainUnitDatastore().Reset();
         }
 
         private static StationEndpoints ExtractStationEndpoints(IReadOnlyList<RailComponent> components)

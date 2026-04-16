@@ -39,6 +39,10 @@ namespace Tests.Util
         }
 
         public TrainUpdateService GetTrainUpdateService() => ServiceProvider.GetService<TrainUpdateService>();
+        public TrainUnitDatastore GetTrainUnitDatastore() => ServiceProvider.GetService<TrainUnitDatastore>();
+        public ITrainUnitLookupDatastore GetITrainLookupDatastore() => ServiceProvider.GetService<ITrainUnitLookupDatastore>();
+        public ITrainUnitMutationDatastore GetITrainUnitMutationDatastore() => ServiceProvider.GetService<ITrainUnitMutationDatastore>();
+        
 
         public TrainDiagramManager GetTrainDiagramManager() => ServiceProvider.GetService<TrainDiagramManager>();
 
@@ -54,10 +58,12 @@ namespace Tests.Util
             var trainRailPositionManager = serviceProvider.GetService<TrainRailPositionManager>();
             var trainDiagramManager = serviceProvider.GetService<TrainDiagramManager>();
             var trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
+            var trainUnitDatastore = serviceProvider.GetService<TrainUnitDatastore>();
             var railGraphDatastore = serviceProvider.GetService<IRailGraphDatastore>();
             trainRailPositionManager.Reset();
             trainDiagramManager.Reset();
-            trainUpdateService.ResetTrains();
+            trainUpdateService.ResetTick();
+            trainUnitDatastore.Reset();
             railGraphDatastore.Reset();
             return environment;
         }

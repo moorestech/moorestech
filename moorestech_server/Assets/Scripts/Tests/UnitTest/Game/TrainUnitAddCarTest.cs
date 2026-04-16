@@ -79,7 +79,7 @@ namespace Tests.UnitTest.Game
             };
 
             var railPosition = new RailPosition(new List<IRailNode> { railA.FrontNode, railB.FrontNode }, firstTrain.Length * 4, firstTrain.Length * 3 / 2);
-            var trainUnit = new TrainUnit(railPosition, cars, environment.GetTrainUpdateService(), environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
+            var trainUnit = new TrainUnit(railPosition, cars, environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
 
             //aproachingがrailA.FrontNode方向
             Assert.AreEqual(trainUnit.RailPosition.GetNodeApproaching(), railA.FrontNode, "approachingが不正");
@@ -131,8 +131,8 @@ namespace Tests.UnitTest.Game
             };
 
             var railPosition = new RailPosition(new List<IRailNode> { railA.FrontNode, railB.FrontNode }, firstTrain.Length * 4, firstTrain.Length * 3 / 2);
-            var trainUnit = new TrainUnit(railPosition, cars, environment.GetTrainUpdateService(), environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
-
+            var trainUnit = new TrainUnit(railPosition, cars, environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
+            
             Assert.AreEqual(trainUnit.RailPosition.GetNodeApproaching(), railA.FrontNode, "approachingが不正");
             Assert.AreEqual(trainUnit.RailPosition.GetDistanceToNextNode(), firstTrain.Length * 3 / 2, "distanceToNextNodeが不正");
             Assert.AreEqual(trainUnit.Cars.Count, 4, "4両でない");
@@ -185,7 +185,7 @@ namespace Tests.UnitTest.Game
             };
 
             var railPosition = new RailPosition(new List<IRailNode> { railA.FrontNode, railB.FrontNode }, firstTrain.Length * 4, ablength - firstTrain.Length * 4);
-            var trainUnit = new TrainUnit(railPosition, cars, environment.GetTrainUpdateService(), environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
+            var trainUnit = new TrainUnit(railPosition, cars, environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
 
             //aproachingがrailA.FrontNode方向
             Assert.AreEqual(trainUnit.RailPosition.GetNodeApproaching(), railA.FrontNode, "approachingが不正");
@@ -249,7 +249,7 @@ namespace Tests.UnitTest.Game
             };
 
             var railPosition = new RailPosition(new List<IRailNode> { railB.FrontNode, railC.FrontNode }, firstTrain.Length * 4, 0);
-            var trainUnit = new TrainUnit(railPosition, cars, environment.GetTrainUpdateService(), environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
+            var trainUnit = new TrainUnit(railPosition, cars, environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
 
             Assert.AreEqual(trainUnit.RailPosition.GetNodeApproaching(), railB.FrontNode, "approachingが不正");
             Assert.AreEqual(trainUnit.RailPosition.GetDistanceToNextNode(), 0, "distanceToNextNodeが不正");
@@ -314,7 +314,7 @@ namespace Tests.UnitTest.Game
             };
 
             var railPosition = new RailPosition(new List<IRailNode> { stationnodes1.ExitFront, stationnodes1.EntryFront }, cars[0].Length, 0);
-            var trainUnit = new TrainUnit(railPosition, cars, environment.GetTrainUpdateService(), environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
+            var trainUnit = new TrainUnit(railPosition, cars, environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
 
             var newCar = new TrainCar(firstTrain, true);
             var railPosition2 = new RailPosition(new List<IRailNode> { stationnodes2.ExitFront, stationnodes2.EntryFront }, newCar.Length, 0);
@@ -361,7 +361,7 @@ namespace Tests.UnitTest.Game
             };
 
             var railPosition = new RailPosition(new List<IRailNode> { stationnodes1.ExitFront, stationnodes1.EntryFront }, cars[0].Length, 0);
-            var trainUnit = new TrainUnit(railPosition, cars, environment.GetTrainUpdateService(), environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
+            var trainUnit = new TrainUnit(railPosition, cars, environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
 
             var newCar = new TrainCar(firstTrain, true);
             var railPosition2 = new RailPosition(new List<IRailNode> { stationnodes2.ExitFront, stationnodes2.EntryFront }, newCar.Length, 0);

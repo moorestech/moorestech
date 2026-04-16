@@ -5,16 +5,16 @@ namespace Game.Train.SaveLoad
 {
     public class TrainSaveLoadService
     {
-        private readonly TrainUpdateService _trainUpdateService;
+        private readonly TrainUnitDatastore _trainUnitDatastore;
 
-        public TrainSaveLoadService(TrainUpdateService trainUpdateService)
+        public TrainSaveLoadService(TrainUnitDatastore trainUnitDatastore)
         {
-            _trainUpdateService = trainUpdateService;
+            _trainUnitDatastore = trainUnitDatastore;
         }
         public List<TrainUnitSaveData> GetSaveJsonObject()
         {
             var saveData = new List<TrainUnitSaveData>();
-            foreach (var train in _trainUpdateService.GetRegisteredTrains())
+            foreach (var train in _trainUnitDatastore.GetRegisteredTrains())
             {
                 if (train == null)
                 {
@@ -30,21 +30,23 @@ namespace Game.Train.SaveLoad
         {
             // Save/Loadサイクルのたびに登録済み列車を初期化して、
             // 既存状態が残ったまま復元処理が走るのを防ぐ。
-            _trainUpdateService.ResetTrains();
+            _trainUnitDatastore.Reset();
 
             if (saveData == null)
             {
                 return;
             }
 
+            // 復元したTrainUnitをDatastoreへ戻して、以後の参照系が通常どおり動くようにする。
+            // Register restored TrainUnits so lookup and save flows can see them again.
             foreach (var data in saveData)
             {
                 if (data == null)
-                {
                     continue;
-                }
-
-                TrainUnit.RestoreFromSaveData(data);
+                var trainUnit = TrainUnit.RestoreFromSaveData(data);
+                if (trainUnit == null)
+                    continue;
+                _trainUnitDatastore.RegisterTrain(trainUnit);
             }
         }
     }

@@ -1,21 +1,17 @@
-using System.Linq;
-
 namespace Game.Train.Unit
 {
     //事実上ゲーム起動時に一度だけ呼ばれる
     public class TrainDockingStateRestorer
     {
-        private readonly TrainUpdateService _trainUpdateService;
-
-        public TrainDockingStateRestorer(TrainUpdateService trainUpdateService)
+        private ITrainUnitLookupDatastore _trainUnitLookupDatastore;
+        public TrainDockingStateRestorer(ITrainUnitLookupDatastore trainUnitLookupDatastore)
         {
-            _trainUpdateService = trainUpdateService;
+            _trainUnitLookupDatastore = trainUnitLookupDatastore;
         }
 
         public void RestoreDockingState()
         {
-            var trains = _trainUpdateService.GetRegisteredTrains().ToArray();
-            
+            var trains = _trainUnitLookupDatastore.GetRegisteredTrains(); 
             foreach (var train in trains)
             {
                 train.trainUnitStationDocking.ClearDockingReceivers();

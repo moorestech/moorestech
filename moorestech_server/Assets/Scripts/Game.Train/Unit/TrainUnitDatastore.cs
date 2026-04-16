@@ -1,0 +1,90 @@
+using System.Collections.Generic;
+
+namespace Game.Train.Unit
+{
+    public class TrainUnitDatastore : ITrainUnitMutationDatastore, ITrainUnitLookupDatastore
+    {
+        private readonly Dictionary<TrainInstanceId, TrainUnit> _trainUnitsById = new();
+        private readonly Dictionary<TrainCarInstanceId, TrainUnit> _trainUnitsByCarId = new();
+        private readonly Dictionary<TrainCarInstanceId, TrainCar> _trainCarsById = new();
+
+        public IReadOnlyCollection<TrainUnit> GetRegisteredTrains() => _trainUnitsById.Values;
+
+        public void RegisterTrain(TrainUnit trainUnit)
+        {
+            if (trainUnit == null || trainUnit.TrainInstanceId == TrainInstanceId.Empty)
+            {
+                return;
+            }
+
+            // 列車本体の正本を登録し、派生 index を張り直す
+            // Register the source-of-truth train unit and rebuild derived indexes.
+            _trainUnitsById[trainUnit.TrainInstanceId] = trainUnit;
+            RebuildCarToUnitIndex();
+        }
+
+        public void UnregisterTrain(TrainUnit trainUnit)
+        {
+            if (trainUnit == null)
+            {
+                return;
+            }
+
+            // 列車登録を外したら car -> unit も必ず再計算する
+            // Recompute car -> unit after removing a registered train.
+            _trainUnitsById.Remove(trainUnit.TrainInstanceId);
+            RebuildCarToUnitIndex();
+        }
+
+        public bool TryGetTrainUnit(TrainInstanceId id, out TrainUnit trainUnit)
+        {
+            return _trainUnitsById.TryGetValue(id, out trainUnit);
+        }
+
+        public bool TryGetTrainUnitByCar(TrainCarInstanceId id, out TrainUnit trainUnit)
+        {
+            return _trainUnitsByCarId.TryGetValue(id, out trainUnit);
+        }
+
+        public bool TryGetTrainCar(TrainCarInstanceId id, out TrainCar trainCar)
+        {
+            return _trainCarsById.TryGetValue(id, out trainCar);
+        }
+
+        public void RebuildCarToUnitIndex()
+        {
+            _trainUnitsByCarId.Clear();
+            _trainCarsById.Clear();
+
+            // TrainUnit -> Cars を正本として、逆引き index を全再構築する
+            // Rebuild the reverse lookup from the authoritative TrainUnit -> Cars state.
+            foreach (var trainUnit in _trainUnitsById.Values)
+            {
+                if (trainUnit?.Cars == null)
+                {
+                    continue;
+                }
+
+                foreach (var car in trainUnit.Cars)
+                {
+                    if (car == null)
+                    {
+                        continue;
+                    }
+
+                    // 車両参照と所属TrainUnit参照を同時に更新する
+                    // Rebuild direct car lookup and owning TrainUnit lookup together.
+                    _trainUnitsByCarId[car.TrainCarInstanceId] = trainUnit;
+                    _trainCarsById[car.TrainCarInstanceId] = car;
+                }
+            }
+        }
+
+        public void Reset()
+        {
+            _trainUnitsById.Clear();
+            _trainUnitsByCarId.Clear();
+            _trainCarsById.Clear();
+        }
+    }
+}
