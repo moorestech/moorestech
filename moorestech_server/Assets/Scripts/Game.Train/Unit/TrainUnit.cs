@@ -42,7 +42,6 @@ namespace Game.Train.Unit
         public TrainDiagram trainDiagram { get; private set; } // 列車のダイアグラム
         public bool IsDocked => trainUnitStationDocking?.IsDocked ?? false;
         public int masconLevel = 0;
-        private TrainUnitManualCommand _manualCommand;
         private int _previousMasconLevel = 0;// キー入力と差分通知関連
         private bool _isDockingSpeedForcedToZero;//ドッキングした瞬間強制速度0になるのでmasconlevel差分通知ではズレが生じる
         private int _pendingApproachingNodeId;
@@ -87,15 +86,15 @@ namespace Game.Train.Unit
             _isDockingSpeedForcedToZero = false;
             _pendingApproachingNodeId = -1;
         }
-
-        public void SetManualCommand(TrainUnitManualCommand manualCommand)
+        
+        public int Update()
         {
-            _manualCommand = manualCommand;
+            return Update(TrainUnitManualCommand.Default);
         }
         
         // 1 tick ごとに呼ばれ、進んだ距離を返す。
         // Called once per tick and returns the traveled distance.
-        public int Update()
+        public int Update(TrainUnitManualCommand manualCommand)
         {
             if (IsAutoRun)
             {
@@ -149,7 +148,7 @@ namespace Game.Train.Unit
                 {
                     // ドッキング中でなければ manual command を適用する。
                     // Apply the manual command when not docked.
-                    KeyInput();
+                    ManualInput(manualCommand);
                 }
             }
 
@@ -163,13 +162,13 @@ namespace Game.Train.Unit
 
         // キー操作系。
         // Manual input handling.
-        public void KeyInput() 
+        public void ManualInput(TrainUnitManualCommand manualCommand) 
         {
-            if (_manualCommand.ReverseRequested && _currentSpeed == 0)
+            if (manualCommand.ReverseRequested && _currentSpeed == 0)
             {
                 Reverse();
             }
-            masconLevel = ConvertManualMasconCommandToMasconLevel(_manualCommand.MasconCommand);
+            masconLevel = ConvertManualMasconCommandToMasconLevel(manualCommand.MasconCommand);
         }
 
         private static int ConvertManualMasconCommandToMasconLevel(int masconCommand)
