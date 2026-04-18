@@ -202,6 +202,7 @@ namespace Client.Starter
             builder.Register<ClientStationReferenceRegistry>(Lifetime.Singleton).AsSelf().As<IInitializable>().As<IDisposable>();
             builder.Register<RailGraphSnapshotApplier>(Lifetime.Singleton).AsSelf().As<IInitializable>();
             builder.Register<TrainCarRidingState>(Lifetime.Singleton);
+            builder.Register<TrainCarRidingPlayerController>(Lifetime.Singleton).AsSelf().As<ITickable>().As<IInitializable>().As<IDisposable>();
             builder.Register<TrainUnitClientCache>(Lifetime.Singleton);
             builder.Register<TrainUnitTickState>(Lifetime.Singleton);
             builder.Register<TrainUnitFutureMessageBuffer>(Lifetime.Singleton);
