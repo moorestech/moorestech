@@ -2,7 +2,6 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.Train.Unit;
 using Core.Update;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using VContainer.Unity;
 
 namespace Client.Game.InGame.Train.Network
@@ -47,13 +46,12 @@ namespace Client.Game.InGame.Train.Network
                 return;
             }
 
-            var keyboard = Keyboard.current;
             ClientContext.VanillaApi.SendOnly.SendTrainCarRidingInput(
                 ridingTrainCarInstanceId.Value,
-                keyboard?.wKey.isPressed ?? false,
-                keyboard?.aKey.isPressed ?? false,
-                keyboard?.sKey.isPressed ?? false,
-                keyboard?.dKey.isPressed ?? false);
+                UnityEngine.Input.GetKey(KeyCode.W),
+                UnityEngine.Input.GetKey(KeyCode.A),
+                UnityEngine.Input.GetKey(KeyCode.S),
+                UnityEngine.Input.GetKey(KeyCode.D));
         }
     }
 }
