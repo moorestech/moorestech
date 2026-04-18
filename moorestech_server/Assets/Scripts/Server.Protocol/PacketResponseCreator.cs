@@ -16,6 +16,7 @@ namespace Server.Protocol
         private readonly Dictionary<string, IPacketResponse> _packetResponseDictionary = new();
         
         //TODO この辺もDIコンテナに載せる?こういうパケット周りめっちゃなんとかしたい
+        // TODO should packet registration also be moved into the DI container?
         public PacketResponseCreator(ServiceProvider serviceProvider)
         {
             // パケット生成に必要な列車系サービスを取得
@@ -62,6 +63,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(GetTrainUnitSnapshotsProtocol.ProtocolTag, new GetTrainUnitSnapshotsProtocol(trainUnitLookupDatastore, trainUpdateService));
             _packetResponseDictionary.Add(PlaceTrainCarOnRailProtocol.ProtocolTag, new PlaceTrainCarOnRailProtocol(serviceProvider));
             _packetResponseDictionary.Add(AttachTrainCarToUnitProtocol.ProtocolTag, new AttachTrainCarToUnitProtocol(serviceProvider));
+            _packetResponseDictionary.Add(TrainCarRidingInputProtocol.ProtocolTag, new TrainCarRidingInputProtocol());
             _packetResponseDictionary.Add(RemoveTrainCarProtocol.ProtocolTag, new RemoveTrainCarProtocol(trainUnitSnapshotNotifyEvent, trainUnitLookupDatastore, trainUnitMutationDatastore));
         }
         
@@ -77,6 +79,7 @@ namespace Server.Protocol
             catch (Exception e)
             {
                 // TODO ログ基盤
+                // TODO logging infrastructure
                 Debug.LogError($"PacketResponseCreator Error:{e.Message}\n{e.StackTrace}");
             }
 
