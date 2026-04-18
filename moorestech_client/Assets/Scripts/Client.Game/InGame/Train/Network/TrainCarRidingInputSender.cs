@@ -38,6 +38,9 @@ namespace Client.Game.InGame.Train.Network
             {
                 return;
             }
+
+            // 対象車両が cache から消えたら強制降車する。
+            // Force dismount if the target car disappeared from the cache.
             if (!_trainUnitClientCache.TryGetCarSnapshot(ridingTrainCarInstanceId.Value, out _, out _, out _, out _))
             {
                 _trainCarRidingState.ClearRidingTrainCar();
