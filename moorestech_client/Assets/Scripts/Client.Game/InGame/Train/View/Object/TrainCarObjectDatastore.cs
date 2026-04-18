@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Train.Unit;
 using Cysharp.Threading.Tasks;
@@ -9,12 +10,26 @@ namespace Client.Game.InGame.Train.View.Object
 {
     public class TrainCarObjectDatastore : MonoBehaviour
     {
+        // TrainCar 表示オブジェクトの生成を担当する
+        // Creates TrainCar view objects
         private TrainCarObjectFactory _carObjectFactory;
+        // 車両と列車の最新 cache を参照する
+        // References the latest train/car cache
         private TrainUnitClientCache _trainUnitClientCache;
+        // 現在 scene 上に存在する車両 entity 一覧
+        // Maps active scene entities by car id
         private readonly Dictionary<TrainCarInstanceId, TrainCarEntityObject> _entities = new();
+        // ハイライト中の車両 id を保持する
+        // Stores car ids with active highlight state
         private readonly HashSet<TrainCarInstanceId> _highlightedTrainCars = new();
+        // 最新スナップショットで存続中の車両 id を保持する
+        // Tracks car ids that still exist in the latest snapshot
         private readonly HashSet<TrainCarInstanceId> _activeTrainCars = new();
+        // 非同期生成中で重複生成を防ぎたい車両 id を保持する
+        // Tracks car ids currently being created asynchronously
         private readonly HashSet<TrainCarInstanceId> _pendingCreation = new();
+
+        public event Action<TrainCarInstanceId> TrainCarEntityRemoving;
 
         [Inject]
         public void Construct(TrainUnitClientCache trainUnitClientCache)
@@ -61,6 +76,17 @@ namespace Client.Game.InGame.Train.View.Object
 
             RemoveEntity(trainCarInstanceId, entity);
             return true;
+        }
+
+        public bool TryGetEntity(TrainCarInstanceId id, out TrainCarEntityObject entity)
+        {
+            if (!_entities.TryGetValue(id, out entity))
+            {
+                entity = null;
+                return false;
+            }
+
+            return entity != null;
         }
 
         // 設置候補と重なったTrainUnitを可視化する
@@ -189,6 +215,7 @@ namespace Client.Game.InGame.Train.View.Object
 
         private void RemoveEntity(TrainCarInstanceId trainCarInstanceId, TrainCarEntityObject entity)
         {
+            TrainCarEntityRemoving?.Invoke(trainCarInstanceId);
             if (entity != null)
             {
                 entity.Destroy();
