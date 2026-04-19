@@ -13,10 +13,21 @@ public class BeltConveyorItemPathInspector : Editor
     private string _newStartGuid = "";
     private string _newGoalGuid = "";
 
+    // パス編集モード（選択モード） / 非選択モード切替。非選択モードではTransformギズモが出る
+    // Toggle between path-edit (selection) mode and non-selection mode. Non-selection shows default Transform gizmo.
+    private bool _pathEditMode = false;
+
     private static readonly Color DefaultPathColor = Color.cyan;
     private static readonly Color SelectedPathColor = Color.yellow;
     private static readonly Color ControlPointColor = Color.red;
     private static readonly Color ControlLineColor = new Color(1f, 0.5f, 0f, 0.7f);
+
+    private void OnDisable()
+    {
+        // 他オブジェクトに切り替えた際に Transform ギズモを必ず元に戻す
+        // Restore Transform gizmo when switching away from this inspector
+        Tools.hidden = false;
+    }
 
     public override void OnInspectorGUI()
     {
@@ -25,6 +36,8 @@ public class BeltConveyorItemPathInspector : Editor
         GUILayout.BeginVertical("Belt Conveyor Item Path Editor", "window");
         GUILayout.Space(10);
 
+        DrawModeToggle();
+        GUILayout.Space(10);
         DrawDefaultPathSection(pathComponent);
         GUILayout.Space(10);
         DrawPathListSection(pathComponent);
@@ -37,6 +50,22 @@ public class BeltConveyorItemPathInspector : Editor
         base.OnInspectorGUI();
 
         #region Internal
+
+        void DrawModeToggle()
+        {
+            // モード切替ボタン。選択モードではパス編集ハンドルが出て Transform が隠れる
+            // Mode toggle. Selection mode shows path handles and hides Transform gizmo.
+            var label = _pathEditMode
+                ? "[Selection Mode] Click to exit (show Transform)"
+                : "[Non-Selection Mode] Click to edit paths";
+            GUI.backgroundColor = _pathEditMode ? new Color(1f, 0.85f, 0.4f) : Color.white;
+            if (GUILayout.Button(label, GUILayout.Height(26)))
+            {
+                _pathEditMode = !_pathEditMode;
+                SceneView.RepaintAll();
+            }
+            GUI.backgroundColor = Color.white;
+        }
 
         void DrawDefaultPathSection(BeltConveyorItemPath component)
         {
@@ -134,13 +163,17 @@ public class BeltConveyorItemPathInspector : Editor
 
     private void OnSceneGUI()
     {
-        // GameObjectのデフォルトギズモを非表示
-        // Hide default GameObject gizmo
-        Tools.hidden = true;
+        // 選択モードのときだけ Transform ギズモを隠してパス編集ハンドルを出す
+        // Hide Transform gizmo only while in selection (path edit) mode
+        Tools.hidden = _pathEditMode;
 
         var pathComponent = target as BeltConveyorItemPath;
 
         DrawAllPaths(pathComponent);
+
+        // 非選択モードではパス編集ハンドルを出さない（Transform移動を優先）
+        // In non-selection mode, skip path edit handles so Transform move is usable
+        if (!_pathEditMode) return;
 
         // 選択されたパスを編集可能にする
         // Make selected path editable
