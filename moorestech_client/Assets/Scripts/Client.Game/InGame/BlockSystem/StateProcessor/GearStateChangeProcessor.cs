@@ -60,6 +60,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
     }
 
     [Serializable]
+    [SubclassSelectorName("Transform Rotate")]
     public class TransformRotationInfo : RotationInfo
     {
         [SerializeField] private RotationAxis rotationAxis;
@@ -93,6 +94,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
     }
 
     [Serializable]
+    [SubclassSelectorName("Animator")]
     public class AnimatorRotationInfo : RotationInfo
     {
         [SerializeField] private Animator animator;
