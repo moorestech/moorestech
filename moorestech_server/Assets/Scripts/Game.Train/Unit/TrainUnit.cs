@@ -171,22 +171,20 @@ namespace Game.Train.Unit
             masconLevel = ConvertManualMasconCommandToMasconLevel(manualCommand.MasconCommand);
         }
 
-        private static int ConvertManualMasconCommandToMasconLevel(int masconCommand)
+        private static int ConvertManualMasconCommandToMasconLevel(TrainUnitMasconCommand masconCommand)
         {
             // TrainUnit ローカル manual command を既存の masconLevel に変換する。
             // Convert TrainUnit-local manual commands into the legacy masconLevel scale.
-            // +1 は traction の +16777216、0 は neutral の 0、-1 は brake の -16777216 を意味する。
-            // +1 maps to traction +16777216, 0 to neutral 0, and -1 to brake -16777216.
             switch (masconCommand)
             {
-                case -1:
+                case TrainUnitMasconCommand.Brake:
                     return -MasterHolder.TrainUnitMaster.MasconLevelMaximum;
-                case 0:
+                case TrainUnitMasconCommand.Neutral:
                     return 0;
-                case 1:
+                case TrainUnitMasconCommand.Accelerate:
                     return MasterHolder.TrainUnitMaster.MasconLevelMaximum;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(masconCommand), masconCommand, "Manual mascon command must be -1, 0, or 1.");
+                    throw new ArgumentOutOfRangeException(nameof(masconCommand), masconCommand, "Manual mascon command must be Brake, Neutral, or Accelerate.");
             }
         }
 
