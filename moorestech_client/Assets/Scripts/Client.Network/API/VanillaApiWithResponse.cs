@@ -149,8 +149,11 @@ namespace Client.Network.API
         public async UniTask<WorldDataResponse> GetWorldData(CancellationToken ct)
         {
             var request = new RequestWorldDataProtocol.RequestWorldDataMessagePack(_playerConnectionSetting.PlayerId);
-            var response = await _packetExchangeManager.GetPacketResponse<RequestWorldDataProtocol.ResponseWorldDataMessagePack>(request, ct);
-            
+            var (response, reason) = await _packetExchangeManager.GetPacketResponseWithReason<RequestWorldDataProtocol.ResponseWorldDataMessagePack>(request, ct);
+            // 正常終了以外（タイムアウト等）はスキップし、呼び出し側 (WorldDataHandler) の null ガードに委ねる
+            // Return null unless the exchange completed successfully so the caller (WorldDataHandler) can skip this update cycle
+            if (reason != PacketWaitCompletionReason.Received) return null;
+
             return ParseWorldResponse(response);
             
             #region Internal
