@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using JetBrains.Annotations;
@@ -32,15 +31,19 @@ namespace Client.Network.API
         {
             while (true)
             {
-                for (var i = _responseWaiters.Count - 1; i >= 0; i--)
+                // タイムアウト済みの sequenceId を先にスナップショットする
+                // Snapshot expired sequenceIds first so we don't mutate while iterating
+                var expired = new List<int>();
+                foreach (var kv in _responseWaiters)
                 {
-                    var sequenceId = _responseWaiters.Keys.ElementAt(i);
-                    var waiter = _responseWaiters[sequenceId];
-                    var time = DateTime.Now - waiter.SendTime;
-                    if (time.TotalSeconds < 10) continue;
+                    if ((DateTime.Now - kv.Value.SendTime).TotalSeconds >= 10)
+                        expired.Add(kv.Key);
+                }
 
-                    // タイムアウトを明示的に通知する
-                    // Explicitly notify waiter that the packet timed out
+                // タイムアウトを明示的に通知して削除する
+                // Notify waiters that the packet timed out and remove them
+                foreach (var sequenceId in expired)
+                {
                     _responseWaiters[sequenceId].WaitSubject.OnNext((null, PacketWaitCompletionReason.Timeout));
                     _responseWaiters.Remove(sequenceId);
                 }
