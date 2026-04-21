@@ -89,6 +89,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!64 &2593102954513089642
 MeshCollider:
@@ -310,6 +311,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &2608808872943570715
 BoxCollider:
@@ -421,6 +423,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &8051666484586834875
 BoxCollider:
@@ -571,6 +574,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &4006169528934327245
 BoxCollider:
@@ -682,6 +686,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &8485574458686482519
 BoxCollider:
@@ -793,6 +798,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &9096223091528611759
 BoxCollider:
@@ -936,6 +942,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &7594734582770096691
 BoxCollider:
@@ -1047,6 +1054,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &4674646495388232180
 BoxCollider:
@@ -1158,6 +1166,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &9197067064779355537
 BoxCollider:
@@ -1269,6 +1278,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &8458734770107318021
 BoxCollider:
@@ -1380,6 +1390,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!136 &2663839899441657879
 CapsuleCollider:
@@ -1493,6 +1504,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &8505912992045525516
 BoxCollider:
@@ -1604,6 +1616,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &3975361315459647193
 BoxCollider:
@@ -1715,6 +1728,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &6794595897617526393
 BoxCollider:
@@ -1826,6 +1840,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &1246140750752571428
 BoxCollider:
@@ -1937,6 +1952,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &5204211243270523674
 BoxCollider:
@@ -2048,6 +2064,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &3204567122418257728
 BoxCollider:
@@ -2223,6 +2240,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &2945200413031091400
 BoxCollider:
@@ -2366,6 +2384,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &5445758718548429902
 BoxCollider:
@@ -2542,6 +2561,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &3575201440562518858
 BoxCollider:
@@ -2685,6 +2705,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &7816731390773294008
 BoxCollider:
@@ -2863,6 +2884,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &4259059001889254646
 BoxCollider:
@@ -3038,6 +3060,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &1788479039863501611
 BoxCollider:
@@ -3149,6 +3172,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!136 &17117678525913272
 CapsuleCollider:
@@ -3294,6 +3318,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &5916677394740213449
 BoxCollider:
@@ -3405,6 +3430,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!136 &8445015738249197541
 CapsuleCollider:
@@ -3518,6 +3544,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!136 &355148795666710591
 CapsuleCollider:
@@ -3595,34 +3622,41 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.StateProcessor.GearStateChangeProcessor
   rotationInfos:
-  - rotationMode: 0
-    rotationAxis: 0
-    rotationTransform: {fileID: 7581798578376413590}
-    isReverse: 0
-    rotationSpeed: 1
-    animator: {fileID: 0}
-    rpm60Speed: 0
-  - rotationMode: 0
-    rotationAxis: 1
-    rotationTransform: {fileID: 7781852951989586431}
-    isReverse: 0
-    rotationSpeed: 1
-    animator: {fileID: 0}
-    rpm60Speed: 0
-  - rotationMode: 0
-    rotationAxis: 1
-    rotationTransform: {fileID: 5741778233370143903}
-    isReverse: 0
-    rotationSpeed: 1
-    animator: {fileID: 0}
-    rpm60Speed: 0
-  - rotationMode: 0
-    rotationAxis: 1
-    rotationTransform: {fileID: 6792714997188756603}
-    isReverse: 0
-    rotationSpeed: 1
-    animator: {fileID: 0}
-    rpm60Speed: 0
+  - rid: 3331677946101629068
+  - rid: 3331677946101629069
+  - rid: 3331677946101629070
+  - rid: 3331677946101629071
+  references:
+    version: 2
+    RefIds:
+    - rid: 3331677946101629068
+      type: {class: TransformRotationInfo, ns: Client.Game.InGame.BlockSystem.StateProcessor, asm: Client.Game}
+      data:
+        isReverse: 0
+        rotationAxis: 0
+        rotationTransform: {fileID: 7581798578376413590}
+        rotationSpeed: 1
+    - rid: 3331677946101629069
+      type: {class: TransformRotationInfo, ns: Client.Game.InGame.BlockSystem.StateProcessor, asm: Client.Game}
+      data:
+        isReverse: 0
+        rotationAxis: 1
+        rotationTransform: {fileID: 7781852951989586431}
+        rotationSpeed: 1
+    - rid: 3331677946101629070
+      type: {class: TransformRotationInfo, ns: Client.Game.InGame.BlockSystem.StateProcessor, asm: Client.Game}
+      data:
+        isReverse: 0
+        rotationAxis: 1
+        rotationTransform: {fileID: 5741778233370143903}
+        rotationSpeed: 1
+    - rid: 3331677946101629071
+      type: {class: TransformRotationInfo, ns: Client.Game.InGame.BlockSystem.StateProcessor, asm: Client.Game}
+      data:
+        isReverse: 0
+        rotationAxis: 1
+        rotationTransform: {fileID: 6792714997188756603}
+        rotationSpeed: 1
 --- !u!114 &2537138480116240339
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3925,6 +3959,22 @@ PrefabInstance:
     - target: {fileID: 1069051896562662691, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
       propertyPath: m_Name
       value: gear belt conveyor
+      objectReference: {fileID: 0}
+    - target: {fileID: 1920843585219452797, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
+      propertyPath: 'managedReferences[-2]'
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 1920843585219452797, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
+      propertyPath: 'rotationInfos.Array.data[0]'
+      value: -2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1920843585219452797, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
+      propertyPath: 'rotationInfos.Array.data[1]'
+      value: -2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1920843585219452797, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
+      propertyPath: 'rotationInfos.Array.data[2]'
+      value: -2
       objectReference: {fileID: 0}
     - target: {fileID: 2750780202867129520, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
       propertyPath: m_LocalPosition.x

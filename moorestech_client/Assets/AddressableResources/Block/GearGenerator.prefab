@@ -88,6 +88,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &5148459928240279573
 GameObject:
@@ -177,6 +178,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &6360553927929529955
 GameObject:
@@ -221,6 +223,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5658812533324408500}
   - component: {fileID: 1413506487705312501}
+  - component: {fileID: 6090445013276123468}
   m_Layer: 7
   m_Name: GearGenerator
   m_TagString: Untagged
@@ -257,10 +260,30 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rotationInfos:
-  - rotationMode: 0
-    rotationAxis: 1
-    rotationTransform: {fileID: 425294154870311790}
-    animator: {fileID: 0}
-    rpm60Speed: 1
-    isReverse: 0
-    rotationSpeed: 1
+  - rid: 3331677946101629086
+  references:
+    version: 2
+    RefIds:
+    - rid: 3331677946101629086
+      type: {class: TransformRotationInfo, ns: Client.Game.InGame.BlockSystem.StateProcessor, asm: Client.Game}
+      data:
+        isReverse: 0
+        rotationAxis: 1
+        rotationTransform: {fileID: 425294154870311790}
+        rotationSpeed: 1
+--- !u!114 &6090445013276123468
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8602712561740545474}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4bb7f8f1958ea4c37b753af86394eb8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.StateProcessor.GearStateChangeProcessorSimulator
+  targetProcessor: {fileID: 1413506487705312501}
+  isSimulating: 0
+  simulateRpm: 60
+  simulateIsClockwise: 1

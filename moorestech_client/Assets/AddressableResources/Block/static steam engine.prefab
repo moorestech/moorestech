@@ -6628,27 +6628,32 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rotationInfos:
-  - rotationMode: 1
-    rotationAxis: 0
-    rotationTransform: {fileID: 7420816610305347764}
-    isReverse: 0
-    rotationSpeed: 1
-    animator: {fileID: 637293004719037227}
-    rpm60Speed: 10
-  - rotationMode: 0
-    rotationAxis: 2
-    rotationTransform: {fileID: 1090121464604511345}
-    isReverse: 0
-    rotationSpeed: 3
-    animator: {fileID: 637293004719037227}
-    rpm60Speed: 2.5
-  - rotationMode: 0
-    rotationAxis: 2
-    rotationTransform: {fileID: 2898157000496097117}
-    isReverse: 0
-    rotationSpeed: 1
-    animator: {fileID: 637293004719037227}
-    rpm60Speed: 1
+  - rid: 3331677946101629133
+  - rid: 3331677946101629134
+  - rid: 3331677946101629135
+  references:
+    version: 2
+    RefIds:
+    - rid: 3331677946101629133
+      type: {class: AnimatorRotationInfo, ns: Client.Game.InGame.BlockSystem.StateProcessor, asm: Client.Game}
+      data:
+        isReverse: 0
+        animator: {fileID: 637293004719037227}
+        rpm60Speed: 10
+    - rid: 3331677946101629134
+      type: {class: TransformRotationInfo, ns: Client.Game.InGame.BlockSystem.StateProcessor, asm: Client.Game}
+      data:
+        isReverse: 0
+        rotationAxis: 2
+        rotationTransform: {fileID: 1090121464604511345}
+        rotationSpeed: 3
+    - rid: 3331677946101629135
+      type: {class: TransformRotationInfo, ns: Client.Game.InGame.BlockSystem.StateProcessor, asm: Client.Game}
+      data:
+        isReverse: 0
+        rotationAxis: 2
+        rotationTransform: {fileID: 2898157000496097117}
+        rotationSpeed: 1
 --- !u!114 &732146308378326896
 MonoBehaviour:
   m_ObjectHideFlags: 0
