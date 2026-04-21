@@ -88,6 +88,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &6111979808977259825
 GameObject:
@@ -178,6 +179,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &6850029173131796601
 BoxCollider:
@@ -290,6 +292,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!64 &4327618837499139749
 MeshCollider:
@@ -413,6 +416,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &7588150132072967899
 GameObject:
@@ -468,20 +472,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.StateProcessor.GearStateChangeProcessor
   rotationInfos:
-  - rotationMode: 0
-    rotationAxis: 1
-    rotationTransform: {fileID: 1525459309663098135}
-    isReverse: 0
-    rotationSpeed: 1
-    animator: {fileID: 0}
-    rpm60Speed: 0
-  - rotationMode: 0
-    rotationAxis: 1
-    rotationTransform: {fileID: 3132322806867691930}
-    isReverse: 0
-    rotationSpeed: 1
-    animator: {fileID: 0}
-    rpm60Speed: 0
+  - rid: 3331677946101629084
+  - rid: 3331677946101629085
+  references:
+    version: 2
+    RefIds:
+    - rid: 3331677946101629084
+      type: {class: TransformRotationInfo, ns: Client.Game.InGame.BlockSystem.StateProcessor, asm: Client.Game}
+      data:
+        isReverse: 0
+        rotationAxis: 1
+        rotationTransform: {fileID: 1525459309663098135}
+        rotationSpeed: 1
+    - rid: 3331677946101629085
+      type: {class: TransformRotationInfo, ns: Client.Game.InGame.BlockSystem.StateProcessor, asm: Client.Game}
+      data:
+        isReverse: 0
+        rotationAxis: 1
+        rotationTransform: {fileID: 3132322806867691930}
+        rotationSpeed: 1
 --- !u!114 &4833313802552299297
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -612,6 +621,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &2850107204138790801
 BoxCollider:

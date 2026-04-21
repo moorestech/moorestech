@@ -88,6 +88,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &4622773655420902686
 GameObject:
@@ -184,10 +185,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rotationInfos:
-  - rotationMode: 0
-    rotationAxis: 2
-    rotationTransform: {fileID: 5786499207534134854}
-    isReverse: 0
-    rotationSpeed: 1
-    animator: {fileID: 0}
-    rpm60Speed: 1
+  - rid: 3331677946101629143
+  references:
+    version: 2
+    RefIds:
+    - rid: 3331677946101629143
+      type: {class: TransformRotationInfo, ns: Client.Game.InGame.BlockSystem.StateProcessor, asm: Client.Game}
+      data:
+        isReverse: 0
+        rotationAxis: 2
+        rotationTransform: {fileID: 5786499207534134854}
+        rotationSpeed: 1

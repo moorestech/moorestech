@@ -88,6 +88,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &843800603537561650
 GameObject:
@@ -178,6 +179,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &482884245671668276
 BoxCollider:
@@ -210,6 +212,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7782724675987526266}
   - component: {fileID: 7461901296845201302}
+  - component: {fileID: 7771852933238812760}
   m_Layer: 7
   m_Name: Wood_Assembly_Machine
   m_TagString: Untagged
@@ -263,20 +266,41 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.StateProcessor.GearStateChangeProcessor
   rotationInfos:
-  - rotationMode: 0
-    rotationAxis: 0
-    rotationTransform: {fileID: 3697350091011299585}
-    animator: {fileID: 0}
-    rpm60Speed: 0
-    isReverse: 0
-    rotationSpeed: 1
-  - rotationMode: 0
-    rotationAxis: 0
-    rotationTransform: {fileID: 2224114636043452918}
-    animator: {fileID: 0}
-    rpm60Speed: 0
-    isReverse: 1
-    rotationSpeed: 1
+  - rid: 3331677946101629136
+  - rid: 3331677946101629137
+  references:
+    version: 2
+    RefIds:
+    - rid: 3331677946101629136
+      type: {class: TransformRotationInfo, ns: Client.Game.InGame.BlockSystem.StateProcessor, asm: Client.Game}
+      data:
+        isReverse: 0
+        rotationAxis: 0
+        rotationTransform: {fileID: 3697350091011299585}
+        rotationSpeed: 1
+    - rid: 3331677946101629137
+      type: {class: TransformRotationInfo, ns: Client.Game.InGame.BlockSystem.StateProcessor, asm: Client.Game}
+      data:
+        isReverse: 1
+        rotationAxis: 0
+        rotationTransform: {fileID: 2224114636043452918}
+        rotationSpeed: 1
+--- !u!114 &7771852933238812760
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 849929986324189567}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4bb7f8f1958ea4c37b753af86394eb8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.StateProcessor.GearStateChangeProcessorSimulator
+  targetProcessor: {fileID: 7461901296845201302}
+  isSimulating: 0
+  simulateRpm: 60
+  simulateIsClockwise: 1
 --- !u!1 &1760750256291729057
 GameObject:
   m_ObjectHideFlags: 0
@@ -365,6 +389,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &1912029307972232574
 GameObject:
@@ -488,6 +513,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &5418065250353866793
 BoxCollider:
@@ -599,6 +625,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &4705993354591637680
 BoxCollider:
@@ -743,6 +770,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &2919004352440484251
 BoxCollider:
@@ -853,6 +881,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &4643974476213827873
 GameObject:
@@ -943,6 +972,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &374236305869674880
 BoxCollider:
@@ -1054,6 +1084,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &6180663712605043261
 BoxCollider:
@@ -1165,6 +1196,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &9074737826174880443
 BoxCollider:
@@ -1276,6 +1308,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &2787508885553479713
 BoxCollider:
@@ -1387,6 +1420,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &4043033324254614257
 BoxCollider:
@@ -1498,6 +1532,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &2720425215183584458
 BoxCollider:
@@ -1609,6 +1644,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &5640693849236505851
 BoxCollider:
@@ -1720,6 +1756,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &7789650179893433705
 BoxCollider:
@@ -1831,6 +1868,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &852733506981487624
 BoxCollider:
@@ -1941,6 +1979,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1001 &884721006191668907
 PrefabInstance:

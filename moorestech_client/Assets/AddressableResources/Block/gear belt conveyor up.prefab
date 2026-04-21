@@ -88,6 +88,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &3431729297357695143
 GameObject:
@@ -178,6 +179,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &3606633545684795409
 GameObject:
@@ -267,6 +269,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &3661652225155609364
 GameObject:
@@ -318,27 +321,33 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rotationInfos:
-  - rotationMode: 0
-    rotationAxis: 1
-    rotationTransform: {fileID: 2637895851318216672}
-    isReverse: 0
-    rotationSpeed: 1
-    animator: {fileID: 0}
-    rpm60Speed: 1
-  - rotationMode: 0
-    rotationAxis: 1
-    rotationTransform: {fileID: 4986544531191271322}
-    isReverse: 0
-    rotationSpeed: 1
-    animator: {fileID: 0}
-    rpm60Speed: 1
-  - rotationMode: 0
-    rotationAxis: 1
-    rotationTransform: {fileID: 1912839138483461826}
-    isReverse: 1
-    rotationSpeed: 2
-    animator: {fileID: 0}
-    rpm60Speed: 1
+  - rid: 3331677946101629075
+  - rid: 3331677946101629076
+  - rid: 3331677946101629077
+  references:
+    version: 2
+    RefIds:
+    - rid: 3331677946101629075
+      type: {class: TransformRotationInfo, ns: Client.Game.InGame.BlockSystem.StateProcessor, asm: Client.Game}
+      data:
+        isReverse: 0
+        rotationAxis: 1
+        rotationTransform: {fileID: 2637895851318216672}
+        rotationSpeed: 1
+    - rid: 3331677946101629076
+      type: {class: TransformRotationInfo, ns: Client.Game.InGame.BlockSystem.StateProcessor, asm: Client.Game}
+      data:
+        isReverse: 0
+        rotationAxis: 1
+        rotationTransform: {fileID: 4986544531191271322}
+        rotationSpeed: 1
+    - rid: 3331677946101629077
+      type: {class: TransformRotationInfo, ns: Client.Game.InGame.BlockSystem.StateProcessor, asm: Client.Game}
+      data:
+        isReverse: 1
+        rotationAxis: 1
+        rotationTransform: {fileID: 1912839138483461826}
+        rotationSpeed: 2
 --- !u!114 &4599936828064805141
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -476,6 +485,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &5396840770809954993
 GameObject:
@@ -565,6 +575,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &6350559978255813061
 GameObject:
@@ -655,6 +666,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &6618156764846002076
 GameObject:
@@ -744,6 +756,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &6741941487171357498
 GameObject:
@@ -872,6 +885,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1001 &6434862057143140667
 PrefabInstance:

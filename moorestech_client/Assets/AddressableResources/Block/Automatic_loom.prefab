@@ -89,6 +89,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &5546303415493633367
 BoxCollider:
@@ -199,6 +200,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &1142985264030112830
 GameObject:
@@ -288,6 +290,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &1462928483321019174
 GameObject:
@@ -378,6 +381,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &2986518112350196981
 BoxCollider:
@@ -489,6 +493,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &3539226310113827785
 BoxCollider:
@@ -600,6 +605,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &635358536984230746
 BoxCollider:
@@ -711,6 +717,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &8670134019340065158
 BoxCollider:
@@ -855,6 +862,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &4067415329992146776
 BoxCollider:
@@ -965,6 +973,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &4454558837963271978
 GameObject:
@@ -1088,6 +1097,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &3361649960993183662
 BoxCollider:
@@ -1120,6 +1130,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2563693994293955104}
   - component: {fileID: 4117102931534652962}
+  - component: {fileID: 7756702631296846981}
   m_Layer: 7
   m_Name: Automatic_loom
   m_TagString: Untagged
@@ -1170,20 +1181,41 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.StateProcessor.GearStateChangeProcessor
   rotationInfos:
-  - rotationMode: 0
-    rotationAxis: 0
-    rotationTransform: {fileID: 2160269865489261940}
-    animator: {fileID: 0}
-    rpm60Speed: 0
-    isReverse: 0
-    rotationSpeed: 1
-  - rotationMode: 0
-    rotationAxis: 0
-    rotationTransform: {fileID: 4090871014590697041}
-    animator: {fileID: 0}
-    rpm60Speed: 0
-    isReverse: 1
-    rotationSpeed: 1
+  - rid: 3331677946101629061
+  - rid: 3331677946101629062
+  references:
+    version: 2
+    RefIds:
+    - rid: 3331677946101629061
+      type: {class: TransformRotationInfo, ns: Client.Game.InGame.BlockSystem.StateProcessor, asm: Client.Game}
+      data:
+        isReverse: 0
+        rotationAxis: 0
+        rotationTransform: {fileID: 2160269865489261940}
+        rotationSpeed: 1
+    - rid: 3331677946101629062
+      type: {class: TransformRotationInfo, ns: Client.Game.InGame.BlockSystem.StateProcessor, asm: Client.Game}
+      data:
+        isReverse: 1
+        rotationAxis: 0
+        rotationTransform: {fileID: 4090871014590697041}
+        rotationSpeed: 1
+--- !u!114 &7756702631296846981
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4874315026191316956}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4bb7f8f1958ea4c37b753af86394eb8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.StateProcessor.GearStateChangeProcessorSimulator
+  targetProcessor: {fileID: 4117102931534652962}
+  isSimulating: 0
+  simulateRpm: 60
+  simulateIsClockwise: 1
 --- !u!1 &5896368500484640645
 GameObject:
   m_ObjectHideFlags: 0
@@ -1273,6 +1305,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &2432618817358263352
 BoxCollider:
@@ -1384,6 +1417,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &1520905283671736916
 BoxCollider:
@@ -1495,6 +1529,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &4074268446523849736
 BoxCollider:
@@ -1606,6 +1641,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &4851706637265958983
 BoxCollider:
@@ -1716,6 +1752,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1001 &900457482418849201
 PrefabInstance:
