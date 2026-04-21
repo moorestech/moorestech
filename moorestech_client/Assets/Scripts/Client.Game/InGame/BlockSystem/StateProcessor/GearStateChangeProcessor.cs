@@ -11,7 +11,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
     public class GearStateChangeProcessor : MonoBehaviour, IBlockStateChangeProcessor
     {
         public IReadOnlyList<RotationInfo> RotationInfos => rotationInfos;
-        [SerializeReference, SubclassSelector] private List<RotationInfo> rotationInfos;
+        [SerializeReference, SubclassSelector] private List<RotationInfo> rotationInfos = new();
 
         private GearStateDetail _currentGearState;
 
@@ -31,8 +31,6 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
 
         public void Rotate(GearStateDetail gearStateDetail)
         {
-            if (rotationInfos == null) return;
-
             foreach (var rotationInfo in rotationInfos)
             {
                 if (rotationInfo == null) continue;

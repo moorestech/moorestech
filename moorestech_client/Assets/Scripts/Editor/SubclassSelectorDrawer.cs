@@ -11,7 +11,11 @@ using UnityEngine;
 [CustomPropertyDrawer(typeof(SubclassSelectorAttribute))]
 public class SubclassSelectorDrawer : PropertyDrawer
 {
-    bool initialized = false;
+    // PropertyDrawerインスタンスはリスト要素間で使い回されるため、
+    // 型配列はベース型をキーにしてキャッシュし、現在インデックスは毎OnGUIで再計算する
+    // PropertyDrawer instances are reused across list elements, so cache type
+    // arrays keyed by base type and recompute the current index every OnGUI
+    Type cachedBaseType;
     Type[] inheritedTypes;
     string[] typePopupNameArray;
     string[] typeFullNameArray;
@@ -20,12 +24,16 @@ public class SubclassSelectorDrawer : PropertyDrawer
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
         if (property.propertyType != SerializedPropertyType.ManagedReference) return;
-        if (!initialized)
+
+        var baseType = GetType(property);
+        if (cachedBaseType != baseType)
         {
-            Initialize(property);
-            GetCurrentTypeIndex(property.managedReferenceFullTypename);
-            initialized = true;
+            GetAllInheritedTypes(baseType);
+            GetInheritedTypeNameArrays();
+            cachedBaseType = baseType;
         }
+        GetCurrentTypeIndex(property.managedReferenceFullTypename);
+
         int selectedTypeIndex = EditorGUI.Popup(GetPopupPosition(position), currentTypeIndex, typePopupNameArray);
         UpdatePropertyToSelectedTypeIndex(property, selectedTypeIndex);
         EditorGUI.PropertyField(position, property, label, true);
@@ -36,24 +44,19 @@ public class SubclassSelectorDrawer : PropertyDrawer
         return EditorGUI.GetPropertyHeight(property, true);
     }
 
-    private void Initialize(SerializedProperty property)
-    {
-        SubclassSelectorAttribute utility = (SubclassSelectorAttribute)attribute;
-        GetAllInheritedTypes(GetType(property), utility.IsIncludeMono());
-        GetInheritedTypeNameArrays();
-    }
-
     private void GetCurrentTypeIndex(string typeFullName)
     {
         currentTypeIndex = Array.IndexOf(typeFullNameArray, typeFullName);
     }
 
-    void GetAllInheritedTypes(Type baseType, bool includeMono)
+    // SerializeReferenceはUnityEngine.Object派生型を格納できない
+    // SerializeReference cannot store UnityEngine.Object-derived instances
+    void GetAllInheritedTypes(Type baseType)
     {
-        Type monoType = typeof(MonoBehaviour);
+        Type unityObjectType = typeof(UnityEngine.Object);
         inheritedTypes = AppDomain.CurrentDomain.GetAssemblies()
             .SelectMany(s => s.GetTypes())
-            .Where(p => baseType.IsAssignableFrom(p) && p.IsClass && !p.IsAbstract && (!monoType.IsAssignableFrom(p) || includeMono))
+            .Where(p => baseType.IsAssignableFrom(p) && p.IsClass && !p.IsAbstract && !unityObjectType.IsAssignableFrom(p))
             .Prepend(null)
             .ToArray();
     }
