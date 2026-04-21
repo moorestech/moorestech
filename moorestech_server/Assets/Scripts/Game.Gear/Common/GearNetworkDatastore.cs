@@ -98,12 +98,10 @@ namespace Game.Gear.Common
                 newNetwork.AddGear(gear);
                 _blockEntityToGearNetwork[gear.BlockInstanceId] = newNetwork;
                 
-                // マージしたNWに所属する歯車のNWを更新
-                for (var i = 0; i < _blockEntityToGearNetwork.Keys.Count; i++)
-                {
-                    var pair = _blockEntityToGearNetwork.ElementAt(i);
-                    if (connectedNetworkIds.Contains(pair.Value.NetworkId)) _blockEntityToGearNetwork[pair.Key] = newNetwork;
-                }
+                // マージした旧NWに属していた歯車のNW参照を新NWに張り替える
+                // Re-point every gear that belonged to a merged old network to the new network
+                foreach (var t in transformers) _blockEntityToGearNetwork[t.BlockInstanceId] = newNetwork;
+                foreach (var g in generators) _blockEntityToGearNetwork[g.BlockInstanceId] = newNetwork;
                 
                 _gearNetworks.Add(newNetworkId, newNetwork);
                 foreach (var removeNetworkId in connectedNetworkIds) _gearNetworks.Remove(removeNetworkId);
