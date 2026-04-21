@@ -20,7 +20,7 @@ namespace Tests.UnitTest.Game
         public void ManualTraction_AcceleratesForward()
         {
             var fixture = CreateSingleCarFixture();
-            RunTicks(fixture.TrainUnit, 8, new TrainUnitManualCommand(false, 1));
+            RunTicks(fixture.TrainUnit, 8, new TrainUnitManualCommand(false, TrainUnitMasconCommand.Accelerate));
             Assert.AreEqual(TractionMasconLevel, fixture.TrainUnit.masconLevel, "manual traction が masconLevel=+16777216 に変換されていません。");
             Assert.Greater(fixture.TrainUnit.CurrentSpeed, 0d, "manual traction で前進加速を開始できていません。");
         }
@@ -29,9 +29,9 @@ namespace Tests.UnitTest.Game
         public void ManualBrake_ReducesSpeed()
         {
             var fixture = CreateSingleCarFixture();
-            RunTicks(fixture.TrainUnit, 8, new TrainUnitManualCommand(false, 1));
+            RunTicks(fixture.TrainUnit, 8, new TrainUnitManualCommand(false, TrainUnitMasconCommand.Accelerate));
             var speedBeforeBrake = fixture.TrainUnit.CurrentSpeed;
-            RunTicks(fixture.TrainUnit, 4, new TrainUnitManualCommand(false, -1));
+            RunTicks(fixture.TrainUnit, 4, new TrainUnitManualCommand(false, TrainUnitMasconCommand.Brake));
             Assert.AreEqual(BrakeMasconLevel, fixture.TrainUnit.masconLevel, "manual brake が masconLevel=-16777216 に変換されていません。");
             Assert.Less(fixture.TrainUnit.CurrentSpeed, speedBeforeBrake, "manual brake で速度が低下していません。");
         }
@@ -40,7 +40,7 @@ namespace Tests.UnitTest.Game
         public void ManualReverseWithTraction_ReversesAndAcceleratesOnSameTick()
         {
             var fixture = CreateTwoCarFixture();
-            fixture.TrainUnit.Update(new TrainUnitManualCommand(true, 1));
+            fixture.TrainUnit.Update(new TrainUnitManualCommand(true, TrainUnitMasconCommand.Accelerate));
             Assert.AreSame(fixture.RearCar, fixture.TrainUnit.Cars[0], "停止中 reverse 後に編成順序が反転していません。");
             Assert.IsTrue(fixture.RearCar.IsFacingForward, "停止中 reverse 後に新しい先頭車両の向きが前向きになっていません。");
             Assert.IsFalse(fixture.FrontCar.IsFacingForward, "停止中 reverse 後に元の先頭車両の向きが反転していません。");
@@ -52,10 +52,10 @@ namespace Tests.UnitTest.Game
         public void ManualReverseWhileMoving_IsIgnored()
         {
             var fixture = CreateTwoCarFixture();
-            RunTicks(fixture.TrainUnit, 8,new TrainUnitManualCommand(false, 1));
+            RunTicks(fixture.TrainUnit, 8,new TrainUnitManualCommand(false, TrainUnitMasconCommand.Accelerate));
             Assert.Greater(fixture.TrainUnit.CurrentSpeed, 0d, "reverse 無視テストの前提となる前進加速ができていません。");
 
-            fixture.TrainUnit.Update(new TrainUnitManualCommand(true, 1));
+            fixture.TrainUnit.Update(new TrainUnitManualCommand(true, TrainUnitMasconCommand.Accelerate));
 
             Assert.AreSame(fixture.FrontCar, fixture.TrainUnit.Cars[0], "走行中 reverse request が無視されず編成順序が反転しています。");
             Assert.IsTrue(fixture.FrontCar.IsFacingForward, "走行中 reverse request が無視されず車両向きが変わっています。");
@@ -65,7 +65,7 @@ namespace Tests.UnitTest.Game
         public void ManualReverseWithNeutral_ReversesWithoutAcceleration()
         {
             var fixture = CreateTwoCarFixture();
-            fixture.TrainUnit.Update(new TrainUnitManualCommand(true, 0));
+            fixture.TrainUnit.Update(new TrainUnitManualCommand(true, TrainUnitMasconCommand.Neutral));
             Assert.AreSame(fixture.RearCar, fixture.TrainUnit.Cars[0], "neutral 付き reverse で編成順序が反転していません。");
             Assert.AreEqual(NeutralMasconLevel, fixture.TrainUnit.masconLevel, "manual neutral が masconLevel=0 に変換されていません。");
             Assert.AreEqual(0d, fixture.TrainUnit.CurrentSpeed, "neutral 付き reverse で加速してしまっています。");
@@ -78,7 +78,7 @@ namespace Tests.UnitTest.Game
 
             fixture.TrainUnit.trainDiagram.AddEntry(fixture.DestinationNode);
             fixture.TrainUnit.TurnOnAutoRun();
-            fixture.TrainUnit.Update(new TrainUnitManualCommand(true, -1));
+            fixture.TrainUnit.Update(new TrainUnitManualCommand(true, TrainUnitMasconCommand.Brake));
 
             Assert.IsTrue(fixture.TrainUnit.IsAutoRun, "auto-run が意図せず解除されています。");
             Assert.AreSame(fixture.FrontCar, fixture.TrainUnit.Cars[0], "auto-run 中に manual reverse が適用されています。");
@@ -90,7 +90,7 @@ namespace Tests.UnitTest.Game
         public void ManualReverseWithBrake_AtStopReversesAndAppliesBrakeMascon()
         {
             var fixture = CreateTwoCarFixture();
-            fixture.TrainUnit.Update(new TrainUnitManualCommand(true, -1));
+            fixture.TrainUnit.Update(new TrainUnitManualCommand(true, TrainUnitMasconCommand.Brake));
             Assert.AreSame(fixture.RearCar, fixture.TrainUnit.Cars[0], "停止中 reverse+brake で reverse が実行されていません。");
             Assert.AreEqual(BrakeMasconLevel, fixture.TrainUnit.masconLevel, "reverse+brake が masconLevel=-16777216 を適用していません。");
             Assert.AreEqual(0d, fixture.TrainUnit.CurrentSpeed, "停止中 reverse+brake で速度が 0 のままになっていません。");
@@ -100,9 +100,9 @@ namespace Tests.UnitTest.Game
         public void ManualReverseRequest_ReversesEveryTickWhenReissuedAtStop()
         {
             var fixture = CreateTwoCarFixture();
-            fixture.TrainUnit.Update(new TrainUnitManualCommand(true, 0));
+            fixture.TrainUnit.Update(new TrainUnitManualCommand(true, TrainUnitMasconCommand.Neutral));
             Assert.AreSame(fixture.RearCar, fixture.TrainUnit.Cars[0], "1 回目の reverse request で編成が反転していません。");
-            fixture.TrainUnit.Update(new TrainUnitManualCommand(true, 0));
+            fixture.TrainUnit.Update(new TrainUnitManualCommand(true, TrainUnitMasconCommand.Neutral));
             Assert.AreSame(fixture.FrontCar, fixture.TrainUnit.Cars[0], "停止中に再送した reverse request が 2 回目に適用されていません。");
             Assert.AreEqual(0d, fixture.TrainUnit.CurrentSpeed, "停止中の連続 reverse request で速度が変化しています。");
         }
@@ -111,7 +111,7 @@ namespace Tests.UnitTest.Game
         public void ManualReverse_PreservesFormationAndTractionCalculation()
         {
             var fixture = CreateTwoCarFixture();
-            fixture.TrainUnit.Update(new TrainUnitManualCommand(true, 0));
+            fixture.TrainUnit.Update(new TrainUnitManualCommand(true, TrainUnitMasconCommand.Neutral));
             Assert.AreSame(fixture.RearCar, fixture.TrainUnit.Cars[0], "manual reverse 後に先頭車両が更新されていません。");
             Assert.IsTrue(fixture.RearCar.IsFacingForward, "manual reverse 後に新しい先頭車両の向きが前向きになっていません。");
             Assert.IsFalse(fixture.FrontCar.IsFacingForward, "manual reverse 後に元の先頭車両の向きが反転していません。");
