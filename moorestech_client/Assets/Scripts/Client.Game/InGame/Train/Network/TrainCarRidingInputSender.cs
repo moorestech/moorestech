@@ -12,7 +12,6 @@ namespace Client.Game.InGame.Train.Network
 
         private readonly TrainCarRidingState _trainCarRidingState;
         private readonly TrainUnitClientCache _trainUnitClientCache;
-        private double _elapsedSeconds;
 
         public TrainCarRidingInputSender(TrainCarRidingState trainCarRidingState, TrainUnitClientCache trainUnitClientCache)
         {
@@ -22,12 +21,7 @@ namespace Client.Game.InGame.Train.Network
 
         public void Tick()
         {
-            _elapsedSeconds += Time.deltaTime;
-            while (_elapsedSeconds >= TickSeconds)
-            {
-                _elapsedSeconds -= TickSeconds;
-                SendIfRiding();
-            }
+            SendIfRiding();
         }
 
         private void SendIfRiding()
