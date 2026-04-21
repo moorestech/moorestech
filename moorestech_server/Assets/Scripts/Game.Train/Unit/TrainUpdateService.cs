@@ -12,6 +12,7 @@ namespace Game.Train.Unit
         private readonly TrainDiagramManager _diagramManager;
         private readonly IRailGraphDatastore _railGraphDatastore;
         private readonly ITrainUnitLookupDatastore _trainUnitLookupDatastore;
+        private readonly TrainCarRidingManualCommandResolver _trainCarRidingManualCommandResolver;
 
         // Trainはサーバーのゲームtickに同期して進める
         // Train tick is aligned with the server game tick interval.
@@ -27,11 +28,16 @@ namespace Game.Train.Unit
 
         // 依存サービスを受け取り、更新ループに接続する
         // Bind to required services and subscribe to update loop
-        public TrainUpdateService(TrainDiagramManager diagramManager, IRailGraphDatastore railGraphDatastore,ITrainUnitLookupDatastore trainUnitLookupDatastore)
+        public TrainUpdateService(
+            TrainDiagramManager diagramManager,
+            IRailGraphDatastore railGraphDatastore,
+            ITrainUnitLookupDatastore trainUnitLookupDatastore,
+            TrainCarRidingManualCommandResolver trainCarRidingManualCommandResolver)
         {
             _diagramManager = diagramManager;
             _railGraphDatastore = railGraphDatastore;
             _trainUnitLookupDatastore = trainUnitLookupDatastore;
+            _trainCarRidingManualCommandResolver = trainCarRidingManualCommandResolver;
             GameUpdater.UpdateObservable.Subscribe(_ => UpdateTrains());
         }
 
@@ -62,13 +68,16 @@ namespace Game.Train.Unit
             //simulation
             foreach (var trainUnit in _trainUnitLookupDatastore.GetRegisteredTrains())
             {
-                trainUnit.Update();
+                var manualCommand = _trainCarRidingManualCommandResolver.Resolve(trainUnit);
+                trainUnit.Update(manualCommand);
             }
 
             NotifyPreSimulationDiff(_executedTick);
 
             //↓これ以降にクライアントからの操作コマンド系適応がはいる、hashmismatchなどによるブロードキャストもはいる
+            // Client command application and hash-mismatch broadcasting continue after this point.
             //snapshot,生成イベント系
+            // Snapshot generation and creation events also continue after this point.
             return;
 
             #region Internal
@@ -122,6 +131,7 @@ namespace Game.Train.Unit
         }
 
         // TODO デバッグトグルスイッチ関連なので最終的に消すのを忘れずに
+        // TODO remove this once the debug toggle switch flow is gone.
         private const string TrainAutoRunOnArgument = "on";
         private const string TrainAutoRunOffArgument = "off";
 
@@ -153,12 +163,15 @@ namespace Game.Train.Unit
             }
 
             // on/off以外が来た場合はなにもしない
+            // Ignore unsupported arguments.
             return;
 
             #region Internal
 
             // トグルスイッチを切り替えたときに全列車・全ダイアグラムを更新する。
+            // Refresh every train and diagram when the toggle switch changes.
             // 既に存在する駅のfront exitノードを全てのダイアグラムに追加するだけ。
+            // This currently just appends existing station front-exit nodes to every diagram.
             void AutoDiagramNodeAdditionExample()
             {
                 // 自動運転の対象駅ノードを抽出する
@@ -170,6 +183,7 @@ namespace Game.Train.Unit
                     if (railNodes[i] != null)
                     {
                         // 駅ノードならfront exitノードを全てのダイアグラムに追加
+                        // Add front-exit nodes from station nodes to every diagram.
                         if ((railNodes[i].StationRef.NodeSide == StationNodeSide.Back) && (railNodes[i].StationRef.NodeRole == StationNodeRole.Exit))
                         {
                             stationNodes.Add(railNodes[i]);
