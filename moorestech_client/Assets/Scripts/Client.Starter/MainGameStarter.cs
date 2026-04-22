@@ -182,6 +182,7 @@ namespace Client.Starter
             builder.Register<PlaceBlockState>(Lifetime.Singleton);
             builder.Register<ChallengeListState>(Lifetime.Singleton);
             builder.Register<ResearchTreeState>(Lifetime.Singleton);
+            builder.Register<DebugBlockInfoState>(Lifetime.Singleton);
             builder.Register<ItemRecipeViewerDataContainer>(Lifetime.Singleton);
             builder.Register<GameScreenSubInventoryInteractService>(Lifetime.Singleton);
             

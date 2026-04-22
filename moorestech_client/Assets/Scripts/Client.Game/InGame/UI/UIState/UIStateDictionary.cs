@@ -16,7 +16,8 @@ namespace Client.Game.InGame.UI.UIState
             SkitState skitState,
             PlaceBlockState placeBlockState,
             ChallengeListState challengeListState,
-            ResearchTreeState researchTreeState)
+            ResearchTreeState researchTreeState,
+            DebugBlockInfoState debugBlockInfoState)
         {
             _stateDictionary.Add(UIStateEnum.GameScreen, gameScreenState);
             _stateDictionary.Add(UIStateEnum.PlayerInventory, playerInventoryState);
@@ -27,6 +28,7 @@ namespace Client.Game.InGame.UI.UIState
             _stateDictionary.Add(UIStateEnum.PlaceBlock, placeBlockState);
             _stateDictionary.Add(UIStateEnum.ChallengeList, challengeListState);
             _stateDictionary.Add(UIStateEnum.ResearchTree, researchTreeState);
+            _stateDictionary.Add(UIStateEnum.Debug, debugBlockInfoState);
         }
         
         public IUIState GetState(UIStateEnum state)

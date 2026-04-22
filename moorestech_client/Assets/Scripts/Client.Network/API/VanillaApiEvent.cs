@@ -47,8 +47,11 @@ namespace Client.Network.API
             {
                 var request = new EventProtocolMessagePack(_playerConnectionSetting.PlayerId);
                 
-                var response = await _packetExchangeManager.GetPacketResponse<ResponseEventProtocolMessagePack>(request, ct);
-                
+                var (response, reason) = await _packetExchangeManager.GetPacketResponseWithReason<ResponseEventProtocolMessagePack>(request, ct);
+                // 正常終了以外（タイムアウト等）は今回のポーリングをスキップする
+                // Skip this polling cycle unless the exchange completed successfully
+                if (reason != PacketWaitCompletionReason.Received) return;
+
                 foreach (var eventMessagePack in response.Events)
                 {
                     if (!_eventResponseSubjects.TryGetValue(eventMessagePack.Tag, out var subjects)) continue;

@@ -10,27 +10,22 @@ namespace Game.Block.Blocks.GearElectric
     public class GearElectricGeneratorBlockStateDetail : GearStateDetail
     {
         public const string GearGeneratorBlockStateDetailKey = "GearElectricGenerator";
-        
+
         [Key(7)] public float EnergyFulfillmentRate { get; set; }
         [Key(8)] public float GeneratedElectricPower { get; set; }
-        [Key(9)] public float InputRpm { get; set; }
-        [Key(10)] public float InputTorque { get; set; }
-        
+
         public GearElectricGeneratorBlockStateDetail(
             bool isClockwise,
             RPM currentRpm,
             Torque currentTorque,
-            GearNetworkInfo gearNetworkInfo,
             float energyFulfillmentRate,
             ElectricPower generatedPower) :
-            base(isClockwise, currentRpm.AsPrimitive(), currentTorque.AsPrimitive(), gearNetworkInfo)
+            base(isClockwise, currentRpm.AsPrimitive(), currentTorque.AsPrimitive())
         {
             EnergyFulfillmentRate = energyFulfillmentRate;
             GeneratedElectricPower = generatedPower.AsPrimitive();
-            InputRpm = currentRpm.AsPrimitive();
-            InputTorque = currentTorque.AsPrimitive();
         }
-        
+
         [Obsolete("Deserialize only")]
         public GearElectricGeneratorBlockStateDetail()
         {
