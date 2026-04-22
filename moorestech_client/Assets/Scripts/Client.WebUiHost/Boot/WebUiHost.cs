@@ -16,21 +16,32 @@ namespace Client.WebUiHost.Boot
         public static WebSocketHub Hub => _hub;
 
 #if UNITY_EDITOR
-        // ドメインリロード前に Kestrel + Vite + WS を停止してリソースリークを防ぐ
-        // Stop Kestrel + Vite + WS before domain reload to prevent resource leaks
+        // Play mode 終了・ドメインリロード・エディタ終了のいずれでも確実にクリーンアップ
+        // Clean up on Play mode exit, domain reload, or editor quit — whichever fires first
         [UnityEditor.InitializeOnLoadMethod]
         private static void RegisterDomainReloadHook()
         {
-            UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += () =>
-            {
-                // 通常経路: Stop() が呼ばれていなければここで止める
-                // Normal path: stop if not already stopped
-                Stop();
+            UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += CleanupAll;
+            UnityEditor.EditorApplication.quitting += CleanupAll;
+            UnityEditor.EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+        }
 
-                // セーフティネット: Stop 経路で取りこぼした Vite プロセスを最終的に掃除
-                // Safety net: sweep any leftover Vite processes missed by Stop path
-                ViteProcess.KillAnyLingering();
-            };
+        private static void OnPlayModeStateChanged(UnityEditor.PlayModeStateChange state)
+        {
+            // Play mode 終了直前に Vite を止める（BackToMainMenu.OnDestroy より確実）
+            // Stop Vite just before exiting play mode (more reliable than BackToMainMenu.OnDestroy)
+            if (state == UnityEditor.PlayModeStateChange.ExitingPlayMode)
+            {
+                CleanupAll();
+            }
+        }
+
+        private static void CleanupAll()
+        {
+            Stop();
+            // セーフティネット: 何らかの理由で _vite が null でも Vite が残っている可能性に対処
+            // Safety net: kill any lingering Vite process even if _vite was null
+            ViteProcess.KillAnyLingering();
         }
 #endif
 
