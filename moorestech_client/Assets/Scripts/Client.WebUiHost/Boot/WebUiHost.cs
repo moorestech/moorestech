@@ -15,6 +15,20 @@ namespace Client.WebUiHost.Boot
 
         public static WebSocketHub Hub => _hub;
 
+#if UNITY_EDITOR
+        // ドメインリロード前に Vite を kill してプロセスリークを防ぐ
+        // Kill Vite before domain reload to prevent process leak
+        [UnityEditor.InitializeOnLoadMethod]
+        private static void RegisterDomainReloadHook()
+        {
+            UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += () =>
+            {
+                _vite?.Kill();
+                _vite = null;
+            };
+        }
+#endif
+
         public static async UniTask StartAsync()
         {
             // 二重起動防止

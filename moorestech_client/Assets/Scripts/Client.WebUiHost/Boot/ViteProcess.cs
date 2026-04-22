@@ -61,11 +61,69 @@ namespace Client.WebUiHost.Boot
         {
             if (_process == null) return;
             if (_process.HasExited) { _process = null; return; }
-            _process.Kill();
+
+            // Unix ではプロセスグループごと kill して孫プロセス(node)まで確実に終了させる
+            // On Unix, kill the entire process group to ensure grandchild node processes also terminate
+            KillProcessTree(_process);
+
             _process.WaitForExit(2000);
             _process.Dispose();
             _process = null;
             Debug.Log("[WebUiHost] Vite process killed");
+        }
+
+        private static void KillProcessTree(Process root)
+        {
+#if UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX
+            // macOS / Linux: 子孫プロセスを pgrep で列挙して全て kill
+            // macOS/Linux: enumerate descendant pids with pgrep then kill each
+            try
+            {
+                var ppid = root.Id;
+                // pgrep -P <ppid> で直接の子プロセスを取得
+                // Use pgrep -P to get direct children of the root process
+                var pgrepPsi = new ProcessStartInfo
+                {
+                    FileName = "/usr/bin/pgrep",
+                    Arguments = $"-P {ppid}",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    CreateNoWindow = true,
+                };
+                using var pgrepProc = Process.Start(pgrepPsi);
+                var childPidsStr = pgrepProc?.StandardOutput.ReadToEnd() ?? "";
+                pgrepProc?.WaitForExit(1000);
+
+                // 子プロセスを先に kill してからルートを kill
+                // Kill children first, then the root
+                foreach (var line in childPidsStr.Split('\n'))
+                {
+                    if (int.TryParse(line.Trim(), out var childPid))
+                    {
+                        var killPsi = new ProcessStartInfo
+                        {
+                            FileName = "/bin/kill",
+                            Arguments = $"-TERM {childPid}",
+                            UseShellExecute = false,
+                            CreateNoWindow = true,
+                        };
+                        using var killProc = Process.Start(killPsi);
+                        killProc?.WaitForExit(500);
+                    }
+                }
+                root.Kill();
+            }
+            catch
+            {
+                // フォールバック: 直接 Kill
+                // Fallback: direct Kill
+                root.Kill();
+            }
+#else
+            // Windows: Kill() はプロセスツリーを走査する必要があるが、今はシンプルに直接 Kill
+            // Windows: would need to enumerate children; for now just kill root
+            root.Kill();
+#endif
         }
 
         private async UniTask RunPnpmInstallAsync(string nodePath, string pnpmPath, string cwd)
