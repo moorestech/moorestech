@@ -112,27 +112,124 @@ namespace Game.Gear.Common
         
         public static void RemoveGear(IGearEnergyTransformer gear)
         {
-            // 自身をnetworkから削除
-            var network = _instance._blockEntityToGearNetwork[gear.BlockInstanceId];
+            _instance.RemoveGearInternal(gear);
+        }
+
+        private void RemoveGearInternal(IGearEnergyTransformer gear)
+        {
+            // 所属ネットワークを引き、自身を除去
+            // Look up owning network and remove the gear itself
+            if (!_blockEntityToGearNetwork.TryGetValue(gear.BlockInstanceId, out var network)) return;
+            _blockEntityToGearNetwork.Remove(gear.BlockInstanceId);
             network.RemoveGear(gear);
-            _instance._blockEntityToGearNetwork.Remove(gear.BlockInstanceId);
-            
-            //削除する歯車以外の元々接続していたブロックをすべて取得
-            var transformers = new List<IGearEnergyTransformer>();
-            transformers.AddRange(network.GearTransformers);
-            transformers.AddRange(network.GearGenerators);
-            
-            //接続していた歯車ネットワークをデータベースから破棄
-            _instance._gearNetworks.Remove(network.NetworkId);
-            
-            //gearに接続されている全てのgearをblockEntityToGearNetworkから削除
-            foreach (var transformer in transformers)
+
+            // 残存ギア集合の総数。削除対象は既に除外済み
+            // Total count of remaining gears; the removed one is already excluded
+            var totalCount = network.GearTransformers.Count + network.GearGenerators.Count;
+
+            if (totalCount == 0)
             {
-                _instance._blockEntityToGearNetwork.Remove(transformer.BlockInstanceId);
+                _gearNetworks.Remove(network.NetworkId);
+                return;
             }
-            
-            // 歯車を再追加する。重くなったらアルゴリズムを変える。
-            foreach (var transformer in transformers) AddGear(transformer);
+
+            // 残存ギアの配列と id→index マップを1パスで構築する。後続BFSは配列への null 書き込みを visited マーク代わりに使う
+            // Build the remaining gear array and the id→index map in a single pass; BFS below uses null-assignment into this array as its visited marker
+            var remaining = new IGearEnergyTransformer[totalCount];
+            var idToIdx = new Dictionary<BlockInstanceId, int>(totalCount);
+            var fillIndex = 0;
+            foreach (var g in network.GearTransformers)
+            {
+                remaining[fillIndex] = g;
+                idToIdx[g.BlockInstanceId] = fillIndex;
+                fillIndex++;
+            }
+            foreach (var g in network.GearGenerators)
+            {
+                remaining[fillIndex] = g;
+                idToIdx[g.BlockInstanceId] = fillIndex;
+                fillIndex++;
+            }
+
+            var components = FindComponents(remaining, idToIdx);
+
+            // 分断なし → 既存ネットワークをそのまま維持（mapping 更新も不要）
+            // No split: keep the existing network as-is; no mapping updates needed
+            if (components.Count == 1) return;
+
+            // 複数成分へ分断 → 既存ネットを破棄し、成分ごとに新ネットワークを生成
+            // Split into multiple components: discard the old network and create a new network per component
+            _gearNetworks.Remove(network.NetworkId);
+            foreach (var component in components)
+            {
+                var newNetworkId = GearNetworkId.CreateNetworkId();
+                var newNetwork = new GearNetwork(newNetworkId);
+                foreach (var g in component)
+                {
+                    newNetwork.AddGear(g);
+                    _blockEntityToGearNetwork[g.BlockInstanceId] = newNetwork;
+                }
+                _gearNetworks.Add(newNetworkId, newNetwork);
+            }
+
+            #region Internal
+
+            static List<List<IGearEnergyTransformer>> FindComponents(IGearEnergyTransformer[] remaining, Dictionary<BlockInstanceId, int> idToIdx)
+            {
+                // 発見した連結成分を格納するリストと、BFSで使い回すキューを用意する。visited は remaining[idx] の null 化で表現するため別集合は持たない
+                // Prepare the result list of components and a reusable queue; visited state is encoded by null-ing out remaining[idx], so no separate set is needed
+                var components = new List<List<IGearEnergyTransformer>>();
+                var queue = new Queue<IGearEnergyTransformer>();
+
+                // 全スロットを昇順に走査し、まだ null 化されていないギアを新しい連結成分の起点として採用する
+                // Walk every slot in ascending order; any gear not yet nulled out becomes the seed of a new connected component
+                for (var i = 0; i < remaining.Length; i++)
+                {
+                    // null 化済み = 既に前の成分に回収済みなのでスキップ。配列の連続読み込みなのでキャッシュヒット率が高い
+                    // A null slot means the gear was already consumed by an earlier component; array reads are contiguous and cache-friendly
+                    var start = remaining[i];
+                    if (start == null) continue;
+
+                    // 起点を成分に加える前に先に null 化し、queue 経由で重複登録されるのを防ぐ
+                    // Null out the seed before enqueueing so it cannot be queued twice via some cycle
+                    remaining[i] = null;
+                    var component = new List<IGearEnergyTransformer>();
+                    queue.Clear();
+                    queue.Enqueue(start);
+
+                    // キューが空になるまでBFSを続け、起点から到達可能なギアを全てこの成分に集める
+                    // Keep BFS running until the queue drains, collecting every gear reachable from the seed into this component
+                    while (queue.Count > 0)
+                    {
+                        // 現在処理中のギアをキューから取り出し、成分メンバーとして確定する
+                        // Pop the current gear from the queue and commit it as a member of the component
+                        var current = queue.Dequeue();
+                        component.Add(current);
+
+                        // 現在ギアの全接続先を辿り、同じ成分に属するかを1件ずつ判定する
+                        // Walk every connection of the current gear and classify each neighbor individually
+                        foreach (var connect in current.GetGearConnects())
+                        {
+                            // idToIdx に無い = この残存ネットワークの外（削除ギア・別ネット・破棄済み）なので辺ごと遮断する
+                            // Missing from idToIdx means the neighbor lies outside the surviving set (removed gear, another network, or stale); cut such edges entirely
+                            if (!idToIdx.TryGetValue(connect.Transformer.BlockInstanceId, out var idx)) continue;
+                            // remaining[idx] が null なら既に他経路から訪問済み。null で無ければここで null 化と同時にキューへ積む
+                            // A null slot means already visited via another path; otherwise null it out and enqueue atomically
+                            if (remaining[idx] == null) continue;
+                            remaining[idx] = null;
+                            queue.Enqueue(connect.Transformer);
+                        }
+                    }
+
+                    // 起点から到達できた全ギアで1つの連結成分が確定したので結果に追加する
+                    // All gears reachable from this seed form one finalized connected component, so record it
+                    components.Add(component);
+                }
+
+                return components;
+            }
+
+            #endregion
         }
         
         private void Update()
