@@ -26,7 +26,6 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using UniRx;
 using Debug = UnityEngine.Debug;
 
 namespace Client.Starter
@@ -62,13 +61,10 @@ namespace Client.Starter
         private async UniTask Initialize()
         {
             // ---- Web UI サーバーの起動（最序盤）----
-            // シーン再遷移のたびに本パイプラインが再生成されるため、購読は this.OnDestroy で自動破棄する
+            // GameShutdownEvent の購読は WebUiHost 側で 1 度だけ張られる
             // ---- Web UI server bootstrap (earliest phase) ----
-            // This pipeline is re-created on every scene transition, so bind the subscription to this GameObject's lifetime
+            // The GameShutdownEvent subscription is installed once inside WebUiHost itself
             await Client.WebUiHost.Boot.WebUiHost.StartAsync();
-            GameShutdownEvent.OnGameShutdown
-                .Subscribe(_ => Client.WebUiHost.Boot.WebUiHost.Stop())
-                .AddTo(this);
 
             var args = CliConvert.Parse<StartServerSettings>(_proprieties.CreateLocalServerArgs);
             var serverDirectory = args.ServerDataDirectory;
