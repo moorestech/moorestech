@@ -122,6 +122,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &5637992315124539630
 GameObject:
@@ -211,6 +212,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &6713531220963643454
 GameObject:
@@ -300,6 +302,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &8150190987432831577
 GameObject:
@@ -351,27 +354,33 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.StateProcessor.GearStateChangeProcessor
   rotationInfos:
-  - rotationMode: 0
-    rotationAxis: 1
-    rotationTransform: {fileID: 5598601185852058203}
-    isReverse: 0
-    rotationSpeed: 1
-    animator: {fileID: 0}
-    rpm60Speed: 1
-  - rotationMode: 0
-    rotationAxis: 1
-    rotationTransform: {fileID: 7430110277937470655}
-    isReverse: 1
-    rotationSpeed: 1
-    animator: {fileID: 0}
-    rpm60Speed: 1
-  - rotationMode: 0
-    rotationAxis: 1
-    rotationTransform: {fileID: 3123064065566498143}
-    isReverse: 0
-    rotationSpeed: 1
-    animator: {fileID: 0}
-    rpm60Speed: 1
+  - rid: 3331677946101629091
+  - rid: 3331677946101629092
+  - rid: 3331677946101629093
+  references:
+    version: 2
+    RefIds:
+    - rid: 3331677946101629091
+      type: {class: TransformRotationInfo, ns: Client.Game.InGame.BlockSystem.StateProcessor, asm: Client.Game}
+      data:
+        isReverse: 0
+        rotationAxis: 1
+        rotationTransform: {fileID: 5598601185852058203}
+        rotationSpeed: 1
+    - rid: 3331677946101629092
+      type: {class: TransformRotationInfo, ns: Client.Game.InGame.BlockSystem.StateProcessor, asm: Client.Game}
+      data:
+        isReverse: 1
+        rotationAxis: 1
+        rotationTransform: {fileID: 7430110277937470655}
+        rotationSpeed: 1
+    - rid: 3331677946101629093
+      type: {class: TransformRotationInfo, ns: Client.Game.InGame.BlockSystem.StateProcessor, asm: Client.Game}
+      data:
+        isReverse: 0
+        rotationAxis: 1
+        rotationTransform: {fileID: 3123064065566498143}
+        rotationSpeed: 1
 --- !u!114 &6695819620671512670
 MonoBehaviour:
   m_ObjectHideFlags: 0

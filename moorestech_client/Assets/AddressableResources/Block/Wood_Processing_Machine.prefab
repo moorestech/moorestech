@@ -261,20 +261,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.StateProcessor.GearStateChangeProcessor
   rotationInfos:
-  - rotationMode: 0
-    rotationAxis: 0
-    rotationTransform: {fileID: 3697350091011299585}
-    isReverse: 0
-    rotationSpeed: 1
-    animator: {fileID: 0}
-    rpm60Speed: 0
-  - rotationMode: 0
-    rotationAxis: 0
-    rotationTransform: {fileID: 2224114636043452918}
-    isReverse: 1
-    rotationSpeed: 1
-    animator: {fileID: 0}
-    rpm60Speed: 0
+  - rid: 3331677946101629141
+  - rid: 3331677946101629142
+  references:
+    version: 2
+    RefIds:
+    - rid: 3331677946101629141
+      type: {class: TransformRotationInfo, ns: Client.Game.InGame.BlockSystem.StateProcessor, asm: Client.Game}
+      data:
+        isReverse: 0
+        rotationAxis: 0
+        rotationTransform: {fileID: 3697350091011299585}
+        rotationSpeed: 1
+    - rid: 3331677946101629142
+      type: {class: TransformRotationInfo, ns: Client.Game.InGame.BlockSystem.StateProcessor, asm: Client.Game}
+      data:
+        isReverse: 1
+        rotationAxis: 0
+        rotationTransform: {fileID: 2224114636043452918}
+        rotationSpeed: 1
 --- !u!114 &7771852933238812760
 MonoBehaviour:
   m_ObjectHideFlags: 0
