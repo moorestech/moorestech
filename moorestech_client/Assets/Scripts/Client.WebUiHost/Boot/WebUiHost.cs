@@ -1,4 +1,6 @@
+using Client.Game.Common;
 using Cysharp.Threading.Tasks;
+using UniRx;
 using UnityEngine;
 
 namespace Client.WebUiHost.Boot
@@ -12,6 +14,7 @@ namespace Client.WebUiHost.Boot
         private static KestrelServer _kestrel;
         private static ViteProcess _vite;
         private static WebSocketHub _hub;
+        private static bool _shutdownSubscribed;
 
         public static WebSocketHub Hub => _hub;
 
@@ -21,9 +24,6 @@ namespace Client.WebUiHost.Boot
         //   - ExitingPlayMode: Reload Domain = off の場合に beforeAssemblyReload が来ない穴を埋める
         //   - beforeAssemblyReload: Reload Domain = on の通常経路
         //   - quitting: Play mode に入らずにエディタを閉じた場合
-        //   - ExitingPlayMode: covers the Reload-Domain=off case where beforeAssemblyReload never fires
-        //   - beforeAssemblyReload: normal path when Reload Domain = on
-        //   - quitting: editor closed without ever entering Play mode
         [UnityEditor.InitializeOnLoadMethod]
         private static void RegisterDomainReloadHook()
         {
@@ -58,6 +58,14 @@ namespace Client.WebUiHost.Boot
             // 二重起動防止
             // Prevent double-start
             if (_kestrel != null) return;
+
+            // GameShutdownEvent 購読はドメイン生存期間に 1 度だけ張る。Stop は idempotent なので複数回起動されても安全
+            // Install the GameShutdownEvent subscription exactly once per domain lifetime. Stop is idempotent across cycles
+            if (!_shutdownSubscribed)
+            {
+                GameShutdownEvent.OnGameShutdown.Subscribe(_ => Stop());
+                _shutdownSubscribed = true;
+            }
 
             _hub = new WebSocketHub();
 
@@ -122,20 +130,30 @@ namespace Client.WebUiHost.Boot
             _hub = null;
             _kestrel = null;
 
-            if (hub != null || kestrel != null)
+            if (hub == null && kestrel == null) return;
+
+            // 停止タスクを起動し、WhenAny + Delay で timeout/fault を受け止める（Wait だと再スロー）
+            // Run stop task and guard with WhenAny+Delay so timeout/fault don't re-throw (Wait would)
+            var stopTask = System.Threading.Tasks.Task.Run(async () =>
             {
-                // Editor hook は main thread のブロックを許容。最大 4 秒で諦める
-                // Editor hooks tolerate main-thread block; give up after 4s as safety
-                var task = System.Threading.Tasks.Task.Run(async () =>
+                if (hub != null)
                 {
-                    if (hub != null)
-                    {
-                        hub.ClearTopics();
-                        await hub.CloseAllAsync();
-                    }
-                    if (kestrel != null) await kestrel.StopAsync();
-                });
-                task.Wait(System.TimeSpan.FromSeconds(4));
+                    hub.ClearTopics();
+                    await hub.CloseAllAsync();
+                }
+                if (kestrel != null) await kestrel.StopAsync();
+            });
+            var timeoutTask = System.Threading.Tasks.Task.Delay(System.TimeSpan.FromSeconds(4));
+            System.Threading.Tasks.Task.WhenAny(stopTask, timeoutTask).GetAwaiter().GetResult();
+
+            // 例外を「観測済み」にして unobservedTaskException を抑制
+            // Observe any fault so it does not surface as UnobservedTaskException
+            if (stopTask.IsFaulted)
+            {
+                Debug.LogWarning($"[WebUiHost] stop faulted: {stopTask.Exception?.GetBaseException().Message}");
+            }
+            else
+            {
                 Debug.Log("[WebUiHost] stopped (sync)");
             }
         }
