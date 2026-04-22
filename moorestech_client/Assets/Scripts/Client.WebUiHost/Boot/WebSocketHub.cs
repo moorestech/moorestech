@@ -37,6 +37,22 @@ namespace Client.WebUiHost.Boot
             _handlers[topic] = handler;
         }
 
+        // 固定 JSON スナップショットでトピックを登録（テスト・デバッグ用）
+        // Register a topic with a fixed JSON snapshot (for testing/debugging)
+        public void RegisterStaticTopic(string topic, string snapshotJson)
+        {
+            _handlers[topic] = new StaticTopicHandler(snapshotJson);
+        }
+
+        // 固定 JSON を返す最小トピックハンドラ
+        // Minimal topic handler that returns a fixed JSON string
+        private sealed class StaticTopicHandler : ITopicHandler
+        {
+            private readonly string _json;
+            public StaticTopicHandler(string json) { _json = json; }
+            public UniTask<string> GetSnapshotJsonAsync() => UniTask.FromResult(_json);
+        }
+
         // 全接続のうち指定トピックを購読している接続に event を配信
         // Broadcast an event payload to all connections subscribed to the topic
         public void Publish(string topic, string dataJson)
