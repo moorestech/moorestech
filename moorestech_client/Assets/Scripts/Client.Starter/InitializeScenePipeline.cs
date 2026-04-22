@@ -62,9 +62,13 @@ namespace Client.Starter
         private async UniTask Initialize()
         {
             // ---- Web UI サーバーの起動（最序盤）----
+            // シーン再遷移のたびに本パイプラインが再生成されるため、購読は this.OnDestroy で自動破棄する
             // ---- Web UI server bootstrap (earliest phase) ----
+            // This pipeline is re-created on every scene transition, so bind the subscription to this GameObject's lifetime
             await Client.WebUiHost.Boot.WebUiHost.StartAsync();
-            GameShutdownEvent.OnGameShutdown.Subscribe(_ => Client.WebUiHost.Boot.WebUiHost.Stop());
+            GameShutdownEvent.OnGameShutdown
+                .Subscribe(_ => Client.WebUiHost.Boot.WebUiHost.Stop())
+                .AddTo(this);
 
             var args = CliConvert.Parse<StartServerSettings>(_proprieties.CreateLocalServerArgs);
             var serverDirectory = args.ServerDataDirectory;

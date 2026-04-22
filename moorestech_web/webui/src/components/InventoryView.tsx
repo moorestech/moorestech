@@ -1,8 +1,7 @@
 import { useTopic } from "../bridge/useTopic";
 
 type InventoryData = {
-  mainSlots: Array<{ itemId: number; count: number }>;
-  hotBarSlots: Array<{ itemId: number; count: number }>;
+  slots: Array<{ itemId: number; count: number }>;
 };
 
 // ローカルプレイヤーのインベントリを WS 購読して表示
@@ -16,9 +15,9 @@ export default function InventoryView() {
 
   return (
     <div>
-      <h2 className="text-lg font-semibold mb-2">Main Inventory</h2>
+      <h2 className="text-lg font-semibold mb-2">Inventory</h2>
       <div className="grid grid-cols-9 gap-1">
-        {inventory.mainSlots.map((s, i) => (
+        {inventory.slots.map((s, i) => (
           <div
             key={i}
             className="border border-gray-700 rounded p-2 min-h-[48px] text-xs flex flex-col justify-between bg-gray-900"

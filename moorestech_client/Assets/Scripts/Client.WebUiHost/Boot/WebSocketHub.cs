@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
-using UnityEngine;
 
 namespace Client.WebUiHost.Boot
 {
@@ -37,20 +36,15 @@ namespace Client.WebUiHost.Boot
             _handlers[topic] = handler;
         }
 
-        // 固定 JSON スナップショットでトピックを登録（テスト・デバッグ用）
-        // Register a topic with a fixed JSON snapshot (for testing/debugging)
-        public void RegisterStaticTopic(string topic, string snapshotJson)
+        // 登録済みトピックを全て解除。IDisposable なものは dispose する
+        // Clear all registered topics; dispose IDisposable handlers
+        public void ClearTopics()
         {
-            _handlers[topic] = new StaticTopicHandler(snapshotJson);
-        }
-
-        // 固定 JSON を返す最小トピックハンドラ
-        // Minimal topic handler that returns a fixed JSON string
-        private sealed class StaticTopicHandler : ITopicHandler
-        {
-            private readonly string _json;
-            public StaticTopicHandler(string json) { _json = json; }
-            public UniTask<string> GetSnapshotJsonAsync() => UniTask.FromResult(_json);
+            foreach (var kv in _handlers)
+            {
+                (kv.Value as IDisposable)?.Dispose();
+            }
+            _handlers.Clear();
         }
 
         // 全接続のうち指定トピックを購読している接続に event を配信
@@ -72,7 +66,7 @@ namespace Client.WebUiHost.Boot
         public async Task HandleConnectionAsync(WebSocket webSocket, CancellationToken ct)
         {
             var id = Guid.NewGuid();
-            var conn = new Connection(id, webSocket);
+            var conn = new Connection(webSocket);
             _connections[id] = conn;
 
             // 送信ループと受信ループを同時実行
@@ -104,10 +98,7 @@ namespace Client.WebUiHost.Boot
             var buffer = new byte[8192];
             while (conn.WebSocket.State == WebSocketState.Open && !ct.IsCancellationRequested)
             {
-                WebSocketReceiveResult result;
-                // クライアント切断例外を捕捉してループを安全に終了
-                // Catch WebSocket exceptions on abrupt client disconnect and exit safely
-                result = await conn.WebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), ct);
+                var result = await conn.WebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), ct);
                 if (result.MessageType == WebSocketMessageType.Close)
                 {
                     using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
@@ -122,7 +113,9 @@ namespace Client.WebUiHost.Boot
         private async Task HandleClientMessage(Connection conn, string json)
         {
             // 超軽量 JSON パース: op / topics / topic を小さく取り出すだけ
+            // 既知キー("op"/"topic"/"topics") の衝突を避けるため、値側には引用符付き予約語を入れない前提
             // Minimal JSON parse: extract only op / topics / topic
+            // Assumes values do not contain the reserved quoted keywords above
             var op = ExtractJsonString(json, "\"op\"");
             if (op == "subscribe")
             {
@@ -160,7 +153,6 @@ namespace Client.WebUiHost.Boot
             while (conn.WebSocket.State == WebSocketState.Open && !ct.IsCancellationRequested)
             {
                 var msg = await conn.DequeueSendAsync(ct);
-                if (msg == null) continue;
                 var bytes = Encoding.UTF8.GetBytes(msg);
                 await conn.WebSocket.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, ct);
             }
@@ -214,14 +206,12 @@ namespace Client.WebUiHost.Boot
         /// </summary>
         private sealed class Connection
         {
-            public Guid Id { get; }
             public WebSocket WebSocket { get; }
             public HashSet<string> Topics { get; } = new();
             private readonly System.Threading.Channels.Channel<string> _sendChannel = System.Threading.Channels.Channel.CreateUnbounded<string>();
 
-            public Connection(Guid id, WebSocket webSocket)
+            public Connection(WebSocket webSocket)
             {
-                Id = id;
                 WebSocket = webSocket;
             }
 

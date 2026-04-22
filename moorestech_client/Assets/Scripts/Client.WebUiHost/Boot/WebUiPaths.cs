@@ -12,14 +12,12 @@ namespace Client.WebUiHost.Boot
     {
         // エディタ実行時: moorestech_client/Assets の2階層上 = リポジトリルート
         // At editor time: two levels up from moorestech_client/Assets == repo root
-        // Application.dataPath は moorestech_client/Assets を指すので、
-        // その親（moorestech_client）の親がリポジトリルート。
         // Application.dataPath points at moorestech_client/Assets,
         // so its parent's parent is the repo root.
-        public static string RepoRoot =>
+        private static string RepoRoot =>
             Path.GetFullPath(Path.Combine(Application.dataPath, "..", ".."));
 
-        public static string WebRoot =>
+        private static string WebRoot =>
             Path.Combine(RepoRoot, "moorestech_web");
 
         public static string WebuiRoot =>
@@ -51,7 +49,7 @@ namespace Client.WebUiHost.Boot
 
         // プラットフォーム別ディレクトリ名（setup.sh / setup.ps1 と一致）
         // Per-platform directory name (matches setup.sh / setup.ps1)
-        public static string GetPlatformDir()
+        private static string GetPlatformDir()
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
