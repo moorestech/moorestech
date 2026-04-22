@@ -89,6 +89,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &2113805635147444441
 BoxCollider:
@@ -200,6 +201,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!64 &4345664292913582027
 MeshCollider:
@@ -312,6 +314,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &7823243862517226935
 BoxCollider:
@@ -423,6 +426,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &2626167318218223539
 BoxCollider:
@@ -534,6 +538,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!64 &8660761407999225088
 MeshCollider:
@@ -645,6 +650,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &6697832017047719167
 GameObject:
@@ -713,13 +719,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rotationInfos:
-  - rotationMode: 0
-    rotationAxis: 2
-    rotationTransform: {fileID: 3253118763272804755}
-    isReverse: 0
-    rotationSpeed: 1
-    animator: {fileID: 0}
-    rpm60Speed: 1
+  - rid: 3331677946101629126
+  references:
+    version: 2
+    RefIds:
+    - rid: 3331677946101629126
+      type: {class: TransformRotationInfo, ns: Client.Game.InGame.BlockSystem.StateProcessor, asm: Client.Game}
+      data:
+        isReverse: 0
+        rotationAxis: 2
+        rotationTransform: {fileID: 3253118763272804755}
+        rotationSpeed: 1
 --- !u!1 &7397736660562999078
 GameObject:
   m_ObjectHideFlags: 0
@@ -843,6 +853,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &6310098919642952362
 BoxCollider:

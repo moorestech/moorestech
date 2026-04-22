@@ -1,7 +1,7 @@
 {
-  "version": "1.6.3",
-  "serverVersion": "0.69.6",
-  "updatedAt": "2026-04-03T07:30:56.030Z",
+  "version": "1.7.3",
+  "serverVersion": "1.6.3",
+  "updatedAt": "2026-04-19T06:08:49.102Z",
   "tools": [
     {
       "name": "clear-console",
@@ -255,35 +255,74 @@
       }
     },
     {
-      "name": "get-menu-items",
-      "description": "Retrieve Unity MenuItems with detailed metadata for programmatic execution. Unlike Unity Search menu provider, this provides implementation details (method names, assemblies, execution compatibility) needed for automation and debugging.",
+      "name": "record-input",
+      "description": "Record keyboard and mouse input during PlayMode. Captures key presses, mouse movement, clicks, and scroll events frame-by-frame into a JSON file for later replay.",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "FilterText": {
+          "Action": {
             "type": "string",
-            "description": "Text to filter MenuItem paths (empty for all items)",
-            "default": ""
-          },
-          "FilterType": {
-            "type": "string",
-            "description": "Type of filter to apply (contains(0), exact(1), startswith(2))",
+            "description": "Recording action: Start(0) - begin recording input, Stop(1) - stop recording and save to file",
             "default": 0,
             "enum": [
-              "contains",
-              "exact",
-              "startswith"
+              "Start",
+              "Stop"
             ]
           },
-          "IncludeValidation": {
-            "type": "boolean",
-            "description": "Include validation functions in the results",
-            "default": false
+          "OutputPath": {
+            "type": "string",
+            "description": "Output file path for the recording JSON. If empty, auto-generates under .uloop/outputs/InputRecordings/",
+            "default": ""
           },
-          "MaxCount": {
+          "Keys": {
+            "type": "string",
+            "description": "Comma-separated key filter. Only record specified keys (e.g. 'W,A,S,D,Space'). Empty means record all common game keys.",
+            "default": ""
+          },
+          "DelaySeconds": {
             "type": "number",
-            "description": "Maximum number of menu items to retrieve",
-            "default": 200
+            "description": "Countdown delay in seconds before recording starts (0-10). Gives time to switch focus to Game View.",
+            "default": 3
+          },
+          "ShowOverlay": {
+            "type": "boolean",
+            "description": "Show recording overlay (countdown + REC indicator)",
+            "default": true
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "replay-input",
+      "description": "Replay recorded input during PlayMode. Loads a JSON recording and injects keyboard/mouse input frame-by-frame with zero CLI overhead.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "Action": {
+            "type": "string",
+            "description": "Replay action: Start(0) - begin replaying, Stop(1) - stop mid-way, Status(2) - check progress",
+            "default": 0,
+            "enum": [
+              "Start",
+              "Stop",
+              "Status"
+            ]
+          },
+          "InputPath": {
+            "type": "string",
+            "description": "Path to recording JSON file. If empty, auto-detects the latest recording in .uloop/outputs/InputRecordings/",
+            "default": ""
+          },
+          "ShowOverlay": {
+            "type": "boolean",
+            "description": "Show visualization overlay during replay",
+            "default": true
+          },
+          "Loop": {
+            "type": "boolean",
+            "description": "Loop replay continuously",
+            "default": false
           }
         },
         "required": []
@@ -332,7 +371,7 @@
         "properties": {
           "WindowName": {
             "type": "string",
-            "description": "Window name to capture (e.g., 'Game', 'Scene', 'Console', 'Inspector', 'Project', 'Hierarchy', or any EditorWindow title)",
+            "description": "Window name to capture (e.g., 'Game', 'Scene', 'Console', 'Inspector', 'Project', 'Hierarchy', or any EditorWindow title). Ignored when CaptureMode is rendering.",
             "default": "Game"
           },
           "ResolutionScale": {
@@ -342,7 +381,7 @@
           },
           "MatchMode": {
             "type": "string",
-            "description": "Window name matching mode: exact(0)=exact match, prefix(1)=starts with, contains(2)=partial match. All modes are case-insensitive.",
+            "description": "Window name matching mode: exact(0)=exact match, prefix(1)=starts with, contains(2)=partial match. All modes are case-insensitive. Ignored when CaptureMode is rendering.",
             "default": 0,
             "enum": [
               "exact",
@@ -354,118 +393,185 @@
             "type": "string",
             "description": "Output directory path for saving screenshots. When empty, uses default path (.uloop/outputs/Screenshots/). Accepts absolute paths.",
             "default": ""
+          },
+          "CaptureMode": {
+            "type": "string",
+            "description": "Capture mode: window(0)=capture EditorWindow including toolbar, rendering(1)=capture game rendering only (PlayMode required, coordinates match simulate-mouse)",
+            "default": 0,
+            "enum": [
+              "window",
+              "rendering"
+            ]
+          },
+          "AnnotateElements": {
+            "type": "boolean",
+            "description": "Annotate interactive UI elements with names and simulate-mouse coordinates on the screenshot. Only works with CaptureMode=rendering in PlayMode.",
+            "default": false
+          },
+          "ElementsOnly": {
+            "type": "boolean",
+            "description": "Return only annotated element JSON without capturing a screenshot image. Requires AnnotateElements=true and CaptureMode=rendering in PlayMode.",
+            "default": false
           }
         },
         "required": []
       }
     },
     {
-      "name": "unity-search",
-      "description": "Search Unity project using Unity Search API with comprehensive filtering and export options",
+      "name": "simulate-keyboard",
+      "description": "Simulate keyboard key input in PlayMode via Input System. Supports one-shot press, key-down hold, and key-up release for game controls (WASD, Space, etc.). Requires the Input System package (com.unity.inputsystem).",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "SearchQuery": {
+          "Action": {
             "type": "string",
-            "description": "Search query string (supports Unity Search syntax). Examples: '*.cs', 't:Texture2D', 'ref:MyScript', 'p:MyPackage'. For detailed Unity Search documentation see: https://docs.unity3d.com/6000.1/Documentation/Manual/search-expressions.html and https://docs.unity3d.com/6000.0/Documentation/Manual/search-query-operators.html. Common queries: '*.cs' (all C# files), 't:Texture2D' (Texture2D assets), 'ref:MyScript' (assets referencing MyScript), 'p:MyPackage' (search in package), 't:MonoScript *.cs' (C# scripts only), 'Assets/Scripts/*.cs' (C# files in specific folder). Japanese guide: https://light11.hatenadiary.com/entry/2022/12/12/193119",
-            "default": ""
-          },
-          "Providers": {
-            "type": "array",
-            "description": "(Optional) Specific search providers to use (empty = all active providers). Common providers: 'asset', 'scene', 'menu', 'settings', 'packages'",
-            "default": []
-          },
-          "MaxResults": {
-            "type": "number",
-            "description": "(Optional) Maximum number of search results to return (default: 50)",
-            "default": 50
-          },
-          "IncludeDescription": {
-            "type": "boolean",
-            "description": "(Optional) Whether to include detailed descriptions in results (default: true)",
-            "default": true
-          },
-          "IncludeMetadata": {
-            "type": "boolean",
-            "description": "(Optional) Whether to include file metadata like file size and last modified date (default: false)",
-            "default": false
-          },
-          "SearchFlags": {
-            "type": "string",
-            "description": "(Optional) Search flags for controlling Unity Search behavior (default: Default(0), Synchronous(1), WantsMore(2), Packages(4), Sorted(8))",
+            "description": "Keyboard action: Press(0) - one-shot key tap (Down then Up), KeyDown(1) - hold key down, KeyUp(2) - release held key",
             "default": 0,
             "enum": [
-              "Default",
-              "Synchronous",
-              "WantsMore",
-              "Packages",
-              "Sorted"
+              "Press",
+              "KeyDown",
+              "KeyUp"
             ]
           },
-          "SaveToFile": {
-            "type": "boolean",
-            "description": "(Optional) Whether to save search results to external file to avoid massive token consumption when dealing with large result sets. Results are saved as JSON/CSV files for external reading (default: false)",
-            "default": false
-          },
-          "OutputFormat": {
+          "Key": {
             "type": "string",
-            "description": "(Optional) Output file format when SaveToFile is enabled (default: JSON(0), CSV(1), TSV(2))",
-            "default": 0,
-            "enum": [
-              "JSON",
-              "CSV",
-              "TSV"
-            ]
-          },
-          "AutoSaveThreshold": {
-            "type": "number",
-            "description": "(Optional) Threshold for automatic file saving (if result count exceeds this, automatically save to file). Set to 0 to disable automatic file saving (default: 100)",
-            "default": 100
-          },
-          "FileExtensions": {
-            "type": "array",
-            "description": "(Optional) Filter results by file extension (e.g., 'cs', 'prefab', 'mat')",
-            "default": []
-          },
-          "AssetTypes": {
-            "type": "array",
-            "description": "(Optional) Filter results by asset type (e.g., 'Texture2D', 'GameObject', 'MonoScript')",
-            "default": []
-          },
-          "PathFilter": {
-            "type": "string",
-            "description": "(Optional) Filter results by path pattern (supports wildcards)",
+            "description": "Key name matching the Input System Key enum (e.g. \"W\", \"Space\", \"LeftShift\", \"A\", \"Enter\"). Case-insensitive.",
             "default": ""
+          },
+          "Duration": {
+            "type": "number",
+            "description": "Hold duration in seconds for Press action (default: 0 = one-shot tap). Ignored by KeyDown/KeyUp.",
+            "default": 0
           }
         },
         "required": []
       }
     },
     {
-      "name": "get-unity-search-providers",
-      "description": "Get detailed information about Unity Search providers including display names, descriptions, active status, and capabilities",
+      "name": "simulate-mouse-input",
+      "description": "Simulate mouse input in PlayMode via Input System. Injects button clicks, mouse delta, and scroll wheel directly into Mouse.current for game logic that reads Input System (e.g. WasPressedThisFrame). Requires the Input System package.",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "ProviderId": {
+          "Action": {
             "type": "string",
-            "description": "Specific provider ID to get details for (empty = all providers). Examples: 'asset', 'scene', 'menu', 'settings'",
-            "default": ""
+            "description": "Mouse input action: Click(0) - inject left/right/middle button press+release, LongPress(1) - inject button hold for Duration seconds, MoveDelta(2) - inject mouse delta for camera/look (one-shot), Scroll(3) - inject scroll wheel, SmoothDelta(4) - inject mouse delta smoothly over Duration seconds",
+            "default": 0,
+            "enum": [
+              "Click",
+              "LongPress",
+              "MoveDelta",
+              "Scroll",
+              "SmoothDelta"
+            ]
           },
-          "ActiveOnly": {
-            "type": "boolean",
-            "description": "Whether to include only active providers",
-            "default": false
+          "X": {
+            "type": "number",
+            "description": "Target X position in screen pixels (origin: top-left). Used by Click and LongPress to set Mouse.current.position.",
+            "default": 0
           },
-          "SortByPriority": {
-            "type": "boolean",
-            "description": "Sort providers by priority (lower number = higher priority)",
-            "default": true
+          "Y": {
+            "type": "number",
+            "description": "Target Y position in screen pixels (origin: top-left). Used by Click and LongPress to set Mouse.current.position.",
+            "default": 0
           },
-          "IncludeDescriptions": {
-            "type": "boolean",
-            "description": "Include detailed descriptions for each provider",
-            "default": true
+          "Button": {
+            "type": "string",
+            "description": "Mouse button: Left(0, default), Right(1), Middle(2). Used by Click and LongPress.",
+            "default": 0,
+            "enum": [
+              "Left",
+              "Right",
+              "Middle"
+            ]
+          },
+          "Duration": {
+            "type": "number",
+            "description": "Hold duration in seconds for LongPress, or minimum hold time for Click (0 = one-shot tap). Also used as total duration for SmoothDelta.",
+            "default": 0
+          },
+          "DeltaX": {
+            "type": "number",
+            "description": "Delta X in pixels for MoveDelta/SmoothDelta action. Positive = right.",
+            "default": 0
+          },
+          "DeltaY": {
+            "type": "number",
+            "description": "Delta Y in pixels for MoveDelta/SmoothDelta action. Positive = up (Unity screen space).",
+            "default": 0
+          },
+          "ScrollX": {
+            "type": "number",
+            "description": "Horizontal scroll delta for Scroll action (default: 0).",
+            "default": 0
+          },
+          "ScrollY": {
+            "type": "number",
+            "description": "Vertical scroll delta for Scroll action. Positive = up, negative = down. Typically 120 per notch.",
+            "default": 0
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "simulate-mouse-ui",
+      "description": "Simulate mouse click, long-press, and drag on PlayMode UI elements via EventSystem screen coordinates",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "Action": {
+            "type": "string",
+            "description": "Mouse action: Click(0) - click with selected Button, Drag(1) - one-shot drag, DragStart(2) - begin drag and hold, DragMove(3) - move while holding drag, DragEnd(4) - release drag, LongPress(5) - press and hold for Duration seconds",
+            "default": 0,
+            "enum": [
+              "Click",
+              "Drag",
+              "DragStart",
+              "DragMove",
+              "DragEnd",
+              "LongPress"
+            ]
+          },
+          "X": {
+            "type": "number",
+            "description": "Target X position in screen pixels (origin: top-left). For Drag action, this is the destination.",
+            "default": 0
+          },
+          "Y": {
+            "type": "number",
+            "description": "Target Y position in screen pixels (origin: top-left). For Drag action, this is the destination.",
+            "default": 0
+          },
+          "FromX": {
+            "type": "number",
+            "description": "Start X position in screen pixels for Drag action (origin: top-left). Drag starts here and moves to X,Y.",
+            "default": 0
+          },
+          "FromY": {
+            "type": "number",
+            "description": "Start Y position in screen pixels for Drag action (origin: top-left). Drag starts here and moves to X,Y.",
+            "default": 0
+          },
+          "DragSpeed": {
+            "type": "number",
+            "description": "Drag speed in pixels per second (0 for instant). Applies to Drag, DragMove, and DragEnd actions.",
+            "default": 2000
+          },
+          "Duration": {
+            "type": "number",
+            "description": "Hold duration in seconds for LongPress action (default: 0.5).",
+            "default": 0.5
+          },
+          "Button": {
+            "type": "string",
+            "description": "Mouse button: Left(0, default), Right(1), Middle(2).",
+            "default": 0,
+            "enum": [
+              "Left",
+              "Right",
+              "Middle"
+            ]
           }
         },
         "required": []
