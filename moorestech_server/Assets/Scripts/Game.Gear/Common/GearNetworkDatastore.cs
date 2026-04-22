@@ -32,31 +32,34 @@ namespace Game.Gear.Common
         
         private void AddGearInternal(IGearEnergyTransformer gear)
         {
-            var connectedNetworkIds = new HashSet<GearNetworkId>();
+            // 接続先ギアの所属NWを重複なく集める。TryGetValueで1回引きに統一してルックアップを半減
+            // Collect owning networks of neighbors without duplicates; use a single TryGetValue lookup instead of ContainsKey + indexer
+            var connectedNetworks = new HashSet<GearNetwork>();
             foreach (var connectedGear in gear.GetGearConnects())
-                //新しく設置された歯車に接続している歯車は、すべて既存のNWに接続している前提
-                if (_blockEntityToGearNetwork.ContainsKey(connectedGear.Transformer.BlockInstanceId))
-                {
-                    var networkId = _blockEntityToGearNetwork[connectedGear.Transformer.BlockInstanceId].NetworkId;
-                    connectedNetworkIds.Add(networkId);
-                }
-            
-            //接続しているNWが1つもない場合は新規NWを作成
-            switch (connectedNetworkIds.Count)
+                if (_blockEntityToGearNetwork.TryGetValue(connectedGear.Transformer.BlockInstanceId, out var n))
+                    connectedNetworks.Add(n);
+
+            switch (connectedNetworks.Count)
             {
+                // 接続しているNWが1つもない場合は新規NWを作成
+                // No connected network means we need to create a new one
                 case 0:
                     CreateNetwork();
                     break;
+                // 1つだけの場合はそこに所属させる
+                // A single connected network means we can just join it
                 case 1:
                     ConnectNetwork();
                     break;
+                // 2つ以上なのでマージする
+                // Multiple connected networks means we need to merge them
                 default:
                     MergeNetworks();
                     break;
             }
-            
+
             #region Internal
-            
+
             void CreateNetwork()
             {
                 var networkId = GearNetworkId.CreateNetworkId();
@@ -65,48 +68,54 @@ namespace Game.Gear.Common
                 _blockEntityToGearNetwork.Add(gear.BlockInstanceId, network);
                 _gearNetworks.Add(networkId, network);
             }
-            
+
             void ConnectNetwork()
             {
-                var networkId = connectedNetworkIds.First();
-                var network = _gearNetworks[networkId];
+                var network = connectedNetworks.First();
                 network.AddGear(gear);
                 _blockEntityToGearNetwork.Add(gear.BlockInstanceId, network);
             }
-            
+
             void MergeNetworks()
             {
-                // マージのために歯車を取得
-                var transformers = new List<IGearEnergyTransformer>();
-                var generators = new List<IGearGenerator>();
-                
-                foreach (var networkId in connectedNetworkIds.ToList())
+                // Union-by-size: 最大NWを吸収側として選び、残りの全ギアを流し込む。マッピング更新コストを O(N_total - N_largest) に抑える
+                // Union-by-size: pick the largest network as the sink and fold the rest into it; mapping updates cost only O(N_total - N_largest)
+                GearNetwork largest = null;
+                var largestSize = 0;
+                foreach (var n in connectedNetworks)
                 {
-                    var network = _gearNetworks[networkId];
-                    transformers.AddRange(network.GearTransformers);
-                    generators.AddRange(network.GearGenerators);
-                    _gearNetworks.Remove(networkId);
+                    var size = n.GearTransformers.Count + n.GearGenerators.Count;
+                    if (largest == null || size > largestSize)
+                    {
+                        largestSize = size;
+                        largest = n;
+                    }
                 }
-                
-                var newNetworkId = GearNetworkId.CreateNetworkId();
-                var newNetwork = new GearNetwork(newNetworkId);
-                
-                foreach (var transformer in transformers) newNetwork.AddGear(transformer);
-                foreach (var generator in generators) newNetwork.AddGear(generator);
-                
-                transformers.Add(gear);
-                newNetwork.AddGear(gear);
-                _blockEntityToGearNetwork[gear.BlockInstanceId] = newNetwork;
-                
-                // マージした旧NWに属していた歯車のNW参照を新NWに張り替える
-                // Re-point every gear that belonged to a merged old network to the new network
-                foreach (var t in transformers) _blockEntityToGearNetwork[t.BlockInstanceId] = newNetwork;
-                foreach (var g in generators) _blockEntityToGearNetwork[g.BlockInstanceId] = newNetwork;
-                
-                _gearNetworks.Add(newNetworkId, newNetwork);
-                foreach (var removeNetworkId in connectedNetworkIds) _gearNetworks.Remove(removeNetworkId);
+
+                // 非最大NWの全ギアを最大NWへ移し、参照マップも張り替える。最大NW側の既存ギアは触らないので無駄な書き換えが発生しない
+                // Move every gear from the non-largest networks into the largest one and repoint the owner map; gears already in the largest network are untouched
+                foreach (var n in connectedNetworks)
+                {
+                    if (n == largest) continue;
+                    foreach (var t in n.GearTransformers)
+                    {
+                        largest.AddGear(t);
+                        _blockEntityToGearNetwork[t.BlockInstanceId] = largest;
+                    }
+                    foreach (var g in n.GearGenerators)
+                    {
+                        largest.AddGear(g);
+                        _blockEntityToGearNetwork[g.BlockInstanceId] = largest;
+                    }
+                    _gearNetworks.Remove(n.NetworkId);
+                }
+
+                // 新規ギア自体も最大NWに追加
+                // Finally add the newly placed gear into the surviving network
+                largest.AddGear(gear);
+                _blockEntityToGearNetwork[gear.BlockInstanceId] = largest;
             }
-            
+
             #endregion
         }
         
