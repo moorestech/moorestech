@@ -11,7 +11,8 @@
         "Game.PlayerInventory.Interface",
         "Nuget",
         "UniRx",
-        "UniTask"
+        "UniTask",
+        "VContainer"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
