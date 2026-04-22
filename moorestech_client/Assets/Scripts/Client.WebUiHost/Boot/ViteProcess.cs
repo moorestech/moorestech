@@ -61,8 +61,8 @@ namespace Client.WebUiHost.Boot
             if (_process == null) return;
             if (_process.HasExited) { _process = null; return; }
 
-            // Unix ではプロセスグループごと kill して孫プロセス(node)まで確実に終了させる
-            // On Unix, kill the entire process group to ensure grandchild node processes also terminate
+            // Unix では pkill -P と vite 名前マッチの 2 経路で node の取りこぼしを潰す
+            // On Unix, use pkill -P plus a vite-name pattern sweep to catch stray node children
             KillProcessTree(_process);
 
             _process.WaitForExit(2000);
