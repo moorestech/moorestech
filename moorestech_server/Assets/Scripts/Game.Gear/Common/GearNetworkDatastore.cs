@@ -242,5 +242,12 @@ namespace Game.Gear.Common
         {
             return _instance._blockEntityToGearNetwork[blockInstanceId];
         }
+
+        // 未登録IDに対して例外を投げずに失敗を返す。プロトコル呼び出し側は存在しないブロックIDを送ってくる可能性があるため
+        // Return a failure instead of throwing when the id is not registered; callers such as protocol handlers may receive ids for blocks that no longer exist
+        public static bool TryGetGearNetwork(BlockInstanceId blockInstanceId, out GearNetwork network)
+        {
+            return _instance._blockEntityToGearNetwork.TryGetValue(blockInstanceId, out network);
+        }
     }
 }

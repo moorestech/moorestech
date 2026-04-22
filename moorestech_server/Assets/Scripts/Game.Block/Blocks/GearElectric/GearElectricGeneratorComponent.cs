@@ -81,12 +81,10 @@ namespace Game.Block.Blocks.GearElectric
             
             BlockStateDetail CreateDetail()
             {
-                var network = GearNetworkDatastore.GetGearNetwork(BlockInstanceId);
                 var detail = new GearElectricGeneratorBlockStateDetail(
                     IsCurrentClockwise,
                     CurrentRpm,
                     CurrentTorque,
-                    network.CurrentGearNetworkInfo,
                     EnergyFulfillmentRate,
                     _currentGeneratedPower);
                 var serialized = MessagePackSerializer.Serialize(detail);

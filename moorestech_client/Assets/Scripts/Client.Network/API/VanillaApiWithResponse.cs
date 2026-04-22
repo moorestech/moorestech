@@ -11,6 +11,8 @@ using Game.CraftTree.Models;
 using Game.Research;
 using Game.Train.RailPositions;
 using Game.Train.Unit;
+using Game.Block.Interface;
+using Game.Gear.Common;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using Server.Util.MessagePack;
@@ -254,6 +256,14 @@ namespace Client.Network.API
             return CreateStacks(response.Items);
         }
 
+        // 指定ブロックが属するギアネットワークの現時点の集約値を取得する
+        // Fetch current aggregate info of the gear network that the given block belongs to
+        public async UniTask<GetGearNetworkInfoProtocol.ResponseGetGearNetworkInfoMessagePack> GetGearNetworkInfo(BlockInstanceId blockInstanceId, CancellationToken ct)
+        {
+            var request = new GetGearNetworkInfoProtocol.RequestGetGearNetworkInfoMessagePack(blockInstanceId);
+            return await _packetExchangeManager.GetPacketResponse<GetGearNetworkInfoProtocol.ResponseGetGearNetworkInfoMessagePack>(request, ct);
+        }
+
         public async UniTask<RailConnectionEditProtocol.ResponseRailConnectionEditMessagePack> DisconnectRailAsync(
             int playerId,
             int fromNodeId,
@@ -278,8 +288,6 @@ namespace Client.Network.API
             return await _packetExchangeManager.GetPacketResponse<RailConnectWithPlacePierProtocol.RailConnectWithPlacePierResponse>(request, ct);
         }
         
-        #region Internal
-        
         private List<IItemStack> CreateStacks(ItemMessagePack[] items)
         {
             // メッセージパックからアイテムスタックを生成
@@ -293,7 +301,5 @@ namespace Client.Network.API
             }
             return stacks;
         }
-        
-        #endregion
     }
 }

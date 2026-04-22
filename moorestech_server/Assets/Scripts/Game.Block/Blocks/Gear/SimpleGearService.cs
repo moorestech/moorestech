@@ -1,5 +1,4 @@
 using System;
-using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
 using Game.Gear.Common;
@@ -13,20 +12,14 @@ namespace Game.Block.Blocks.Gear
         public RPM CurrentRpm { get; private set; }
         public Torque CurrentTorque { get; private set; }
         public bool IsCurrentClockwise { get; private set; }
-        
+
         public IObservable<Unit> BlockStateChange => _onBlockStateChange;
         private readonly Subject<Unit> _onBlockStateChange = new();
-        
+
         public IObservable<GearUpdateType> OnGearUpdate => _onGearUpdate;
         private readonly Subject<GearUpdateType> _onGearUpdate = new();
-        private readonly BlockInstanceId _blockInstanceId;
-        
+
         private string _currentState = IGearEnergyTransformer.WorkingStateName;
-        
-        public SimpleGearService(BlockInstanceId blockInstanceId)
-        {
-            _blockInstanceId = blockInstanceId;
-        }
         
         public void StopNetwork()
         {
@@ -40,10 +33,7 @@ namespace Game.Block.Blocks.Gear
         
         public BlockStateDetail GetBlockStateDetail()
         {
-            var network = GearNetworkDatastore.GetGearNetwork(_blockInstanceId);
-            var info = network.CurrentGearNetworkInfo;
-            var stateDetail = new GearStateDetail(IsCurrentClockwise, CurrentRpm.AsPrimitive(), CurrentTorque.AsPrimitive(), info);
-
+            var stateDetail = new GearStateDetail(IsCurrentClockwise, CurrentRpm.AsPrimitive(), CurrentTorque.AsPrimitive());
             return new BlockStateDetail(GearStateDetail.BlockStateDetailKey, MessagePackSerializer.Serialize(stateDetail));
         }
         

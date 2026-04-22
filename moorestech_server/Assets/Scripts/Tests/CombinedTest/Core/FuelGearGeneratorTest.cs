@@ -289,7 +289,7 @@ namespace Tests.CombinedTest.Core
             {
                 // 初期状態のBlockStateDetailsを確認
                 var initialDetails = stateObservable.GetBlockStateDetails();
-                ValidateBlockStateDetails(initialDetails, "Idle", 0f, 0f, 0f, 0d, FluidMaster.EmptyFluidId.AsPrimitive());
+                ValidateBlockStateDetails(initialDetails, FuelGearGeneratorState.Idle, 0f, 0f, 0f, 0d, FluidMaster.EmptyFluidId.AsPrimitive());
                 
                 // 蒸気を供給して起動
                 Debug.Log("Starting steam supply...");
@@ -307,7 +307,7 @@ namespace Tests.CombinedTest.Core
                     Debug.Log($"Fill Update {i}: Amount={steamTank.Amount}, State={currentState}, StateChanges={stateChangeCount}");
                     
                     // タンクがほぼ満タンになったらループを抜ける（容量100）
-                    if (steamTank.Amount >= 10.0 && currentState == "Accelerating")
+                    if (steamTank.Amount >= 10.0 && currentState == FuelGearGeneratorState.Accelerating)
                     {
                         Debug.Log($"Tank has enough steam and accelerating: {steamTank.Amount}");
                         break;
@@ -328,7 +328,7 @@ namespace Tests.CombinedTest.Core
                     Debug.Log($"Generator start Update {i}: RPM={steamGeneratorComponent.GenerateRpm.AsPrimitive()}, " +
                              $"Steam Amount={steamTank.Amount}, State={currentState}, State changes={stateChangeCount}");
                     
-                    if (currentState == "Accelerating")
+                    if (currentState == FuelGearGeneratorState.Accelerating)
                     {
                         Debug.Log("Generator started accelerating!");
                         break;
@@ -351,7 +351,7 @@ namespace Tests.CombinedTest.Core
                     
                     Debug.Log($"Acceleration Update {i}: State={currentState}, RPM={currentRpm}");
                     
-                    if (currentRpm > 0f && currentState == "Accelerating")
+                    if (currentRpm > 0f && currentState == FuelGearGeneratorState.Accelerating)
                     {
                         break;
                     }
@@ -360,7 +360,7 @@ namespace Tests.CombinedTest.Core
                 // 加速中の状態を確認
                 var acceleratingDetails = stateObservable.GetBlockStateDetails();
                 var (state, rpm, torque, rate, steamAmount, steamFluidId) = ExtractDetails(acceleratingDetails);
-                Assert.AreEqual("Accelerating", state, "加速状態になっていません");
+                Assert.AreEqual(FuelGearGeneratorState.Accelerating, state, "加速状態になっていません");
                 Assert.Greater(rpm, 0f, "RPMが0より大きくありません");
                 Assert.Greater(torque, 0f, "トルクが0より大きくありません");
                 Assert.Greater(rate, 0f, "消費率が0より大きくありません");
@@ -376,7 +376,7 @@ namespace Tests.CombinedTest.Core
                     var details = stateObservable.GetBlockStateDetails();
                     var (currentState, _, _, _, _, _) = ExtractDetails(details);
                     
-                    if (currentState == "Running")
+                    if (currentState == FuelGearGeneratorState.Running)
                     {
                         Debug.Log($"Reached Running state after {i+1} updates");
                         break;
@@ -403,7 +403,7 @@ namespace Tests.CombinedTest.Core
                     var (currentState, _, _, _, _, _) = ExtractDetails(details);
                     Debug.Log($"After pipe removal Update {i}: State={currentState}, IsPipeDisconnected={fluidComponent.IsPipeDisconnected}");
                     
-                    if (currentState == "Decelerating")
+                    if (currentState == FuelGearGeneratorState.Decelerating)
                     {
                         Debug.Log($"Started decelerating after {i+1} updates");
                         break;
@@ -415,7 +415,7 @@ namespace Tests.CombinedTest.Core
                 var (decState, decRpm, decTorque, decRate, decSteamAmount, decSteamFluidId) = ExtractDetails(deceleratingDetails);
                 
                 // パイプが削除されたので、Decelerating状態になっているはず
-                Assert.AreEqual("Decelerating", decState, $"Decelerating状態ではありません: {decState}");
+                Assert.AreEqual(FuelGearGeneratorState.Decelerating, decState, $"Decelerating状態ではありません: {decState}");
                 
                 // さらに状態変化があったことを確認
                 Assert.Greater(stateChangeCount, previousCount, "パイプ削除後のOnChangeBlockStateが発火していません");
@@ -434,7 +434,7 @@ namespace Tests.CombinedTest.Core
                         Debug.Log($"Stop wait {i}: State={currentState}, RPM={currentRpm}");
                     }
                     
-                    if (currentState == "Idle" && currentRpm == 0f)
+                    if (currentState == FuelGearGeneratorState.Idle && currentRpm == 0f)
                     {
                         Debug.Log($"Generator stopped after {i+1} updates");
                         break;
@@ -446,7 +446,7 @@ namespace Tests.CombinedTest.Core
                 var (finalState, finalRpm, _, _, finalSteamAmount, _) = ExtractDetails(finalDetails);
                 
                 // 減速中でもRPMが十分低ければOKとする（完全停止には時間がかかるため）
-                if (finalState == "Idle" || (finalState == "Decelerating" && finalRpm < 1f))
+                if (finalState == FuelGearGeneratorState.Idle || (finalState == FuelGearGeneratorState.Decelerating && finalRpm < 1f))
                 {
                     Debug.Log($"Test passed: State={finalState}, RPM={finalRpm}, SteamAmount={finalSteamAmount}");
                 }
@@ -472,7 +472,7 @@ namespace Tests.CombinedTest.Core
                 }
             }
             
-            void ValidateBlockStateDetails(BlockStateDetail[] details, string expectedState, float expectedRpm, 
+            void ValidateBlockStateDetails(BlockStateDetail[] details, FuelGearGeneratorState expectedState, float expectedRpm,
                 float expectedTorque, float expectedRate, double expectedSteamAmount, int expectedFluidId)
             {
                 Assert.AreEqual(3, details.Length);
@@ -491,7 +491,7 @@ namespace Tests.CombinedTest.Core
                 Assert.AreEqual(expectedFluidId, stateData.SteamFluidId, "流体IDが期待値と一致しません");
             }
             
-            (string state, float rpm, float torque, float rate, double steamAmount, int fluidId) ExtractDetails(BlockStateDetail[] details)
+            (FuelGearGeneratorState state, float rpm, float torque, float rate, double steamAmount, int fluidId) ExtractDetails(BlockStateDetail[] details)
             {
                 var detail = details.FirstOrDefault(d => d.Key == FuelGearGeneratorBlockStateDetail.FuelGearGeneratorBlockStateDetailKey);
                 Assert.IsNotNull(detail, "FuelGearGeneratorBlockStateDetailが含まれていません");
