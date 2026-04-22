@@ -5,5 +5,5 @@ public class CompileRequester
 {
 // スキーマを更新したら、こちらの更新もコミットしてください。
 // If you update the schema, please also commit this update.
-    private const string dummyText = "2026/04/11 train-default-values";
+    private const string dummyText = "2026/04/22 12:33:05";
 }

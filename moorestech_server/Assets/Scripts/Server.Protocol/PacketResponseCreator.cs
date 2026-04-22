@@ -48,6 +48,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(BlockStateProtocol.ProtocolTag, new BlockStateProtocol(serviceProvider));
             _packetResponseDictionary.Add(InvokeBlockStateEventProtocol.ProtocolTag, new InvokeBlockStateEventProtocol(serviceProvider));
             _packetResponseDictionary.Add(DebugBlockInfoRequestProtocol.ProtocolTag, new DebugBlockInfoRequestProtocol(serviceProvider));
+            _packetResponseDictionary.Add(GetGearNetworkInfoProtocol.ProtocolTag, new GetGearNetworkInfoProtocol(serviceProvider));
 
             _packetResponseDictionary.Add(ApplyCraftTreeProtocol.ProtocolTag, new ApplyCraftTreeProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetCraftTreeProtocol.ProtocolTag, new GetCraftTreeProtocol(serviceProvider));

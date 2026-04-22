@@ -43,7 +43,8 @@
     "Core.Master",
     "Game.CraftTree",
     "Game.Research",
-    "Game.Train"
+    "Game.Train",
+    "Game.Gear"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
