@@ -15,16 +15,16 @@ $PnpmUrl = "https://github.com/pnpm/pnpm/releases/download/v$PnpmVersion/pnpm-wi
 
 Write-Host "[setup] downloading node from $NodeUrl"
 $NodeZip = Join-Path $env:TEMP "node.zip"
-Invoke-WebRequest -Uri $NodeUrl -OutFile $NodeZip
+Invoke-WebRequest -Uri $NodeUrl -OutFile $NodeZip -UseBasicParsing
 Expand-Archive -Path $NodeZip -DestinationPath $TargetDir -Force
 # zip 内は node-v20.18.1-win-x64/ 配下なので 1階層下げる
 # The zip contains a top-level node-v20.18.1-win-x64/ dir, flatten it
 $Inner = Get-ChildItem -Path $TargetDir -Directory | Select-Object -First 1
-Move-Item -Path (Join-Path $Inner.FullName "*") -Destination $TargetDir
+Move-Item -Path (Join-Path $Inner.FullName "*") -Destination $TargetDir -Force
 Remove-Item -Path $Inner.FullName -Recurse -Force
 Remove-Item $NodeZip
 
 Write-Host "[setup] downloading pnpm from $PnpmUrl"
-Invoke-WebRequest -Uri $PnpmUrl -OutFile (Join-Path $TargetDir "pnpm.exe")
+Invoke-WebRequest -Uri $PnpmUrl -OutFile (Join-Path $TargetDir "pnpm.exe") -UseBasicParsing
 
 Write-Host "[setup] done. node: $TargetDir\node.exe, pnpm: $TargetDir\pnpm.exe"
