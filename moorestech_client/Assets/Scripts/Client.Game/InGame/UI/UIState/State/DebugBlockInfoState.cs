@@ -87,15 +87,12 @@ namespace Client.Game.InGame.UI.UIState.State
         {
             // ホバー中のバウンディングボックスを消してから終了
             // Hide the hovered bounding box before exiting
-            ClearHoverPreview();
+            if (_hoveredBlock != null)
+            {
+                _hoveredBlock.EnablePreviewOnlyObjects(false, false);
+                _hoveredBlock = null;
+            }
             _screenClickableCameraController.OnExit();
-        }
-
-        private void ClearHoverPreview()
-        {
-            if (_hoveredBlock == null) return;
-            _hoveredBlock.EnablePreviewOnlyObjects(false, false);
-            _hoveredBlock = null;
         }
     }
 }
