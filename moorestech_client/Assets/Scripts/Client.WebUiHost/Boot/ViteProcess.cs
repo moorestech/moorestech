@@ -74,56 +74,55 @@ namespace Client.WebUiHost.Boot
 
         private static void KillProcessTree(Process root)
         {
+            var pid = root.Id;
 #if UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX
-            // macOS / Linux: 子孫プロセスを pgrep で列挙して全て kill
-            // macOS/Linux: enumerate descendant pids with pgrep then kill each
-            try
-            {
-                var ppid = root.Id;
-                // pgrep -P <ppid> で直接の子プロセスを取得
-                // Use pgrep -P to get direct children of the root process
-                var pgrepPsi = new ProcessStartInfo
-                {
-                    FileName = "/usr/bin/pgrep",
-                    Arguments = $"-P {ppid}",
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    CreateNoWindow = true,
-                };
-                using var pgrepProc = Process.Start(pgrepPsi);
-                var childPidsStr = pgrepProc?.StandardOutput.ReadToEnd() ?? "";
-                pgrepProc?.WaitForExit(1000);
-
-                // 子プロセスを先に kill してからルートを kill
-                // Kill children first, then the root
-                foreach (var line in childPidsStr.Split('\n'))
-                {
-                    if (int.TryParse(line.Trim(), out var childPid))
-                    {
-                        var killPsi = new ProcessStartInfo
-                        {
-                            FileName = "/bin/kill",
-                            Arguments = $"-TERM {childPid}",
-                            UseShellExecute = false,
-                            CreateNoWindow = true,
-                        };
-                        using var killProc = Process.Start(killPsi);
-                        killProc?.WaitForExit(500);
-                    }
-                }
-                root.Kill();
-            }
-            catch
-            {
-                // フォールバック: 直接 Kill
-                // Fallback: direct Kill
-                root.Kill();
-            }
-#else
-            // Windows: Kill() はプロセスツリーを走査する必要があるが、今はシンプルに直接 Kill
-            // Windows: would need to enumerate children; for now just kill root
-            root.Kill();
+            // 子プロセスを親 pid 指定で一括 kill
+            // Kill all descendants by parent pid
+            RunDetached("/usr/bin/pkill", $"-P {pid}");
+            // 保険: コマンドライン文字列マッチで vite サーバーを kill
+            // Safety net: pattern-match vite server by command line
+            RunDetached("/usr/bin/pkill", "-f \"vite --port 5173\"");
+#elif UNITY_EDITOR_WIN
+            RunDetached(@"C:\Windows\System32\taskkill.exe", $"/F /T /PID {pid}");
 #endif
+            // 親プロセスを Kill()（既に死んでいれば HasExited で回避）
+            // Kill the root process; guard with HasExited since Kill on an exited process throws
+            if (!root.HasExited)
+            {
+                root.Kill();
+            }
+        }
+
+        // インスタンス生存を問わず、5173 を使う Vite プロセスを外部コマンドで強制掃除する
+        // Sweep any Vite process bound to 5173 regardless of instance state
+        public static void KillAnyLingering()
+        {
+#if UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX
+            RunDetached("/usr/bin/pkill", "-f \"vite --port 5173\"");
+#elif UNITY_EDITOR_WIN
+            RunDetached(@"C:\Windows\System32\wmic.exe",
+                "process where \"CommandLine like '%vite --port 5173%'\" delete");
+#endif
+        }
+
+        // 外部コマンドを fire-and-forget で実行。戻り値・例外は無視。
+        // Run an external command fire-and-forget. Return value and exit status are ignored.
+        private static void RunDetached(string fileName, string arguments)
+        {
+            if (!File.Exists(fileName)) return;
+            var psi = new ProcessStartInfo
+            {
+                FileName = fileName,
+                Arguments = arguments,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true,
+            };
+            var p = Process.Start(psi);
+            if (p == null) return;
+            p.WaitForExit(1500);
+            p.Dispose();
         }
 
         private async UniTask RunPnpmInstallAsync(string nodePath, string pnpmPath, string cwd)

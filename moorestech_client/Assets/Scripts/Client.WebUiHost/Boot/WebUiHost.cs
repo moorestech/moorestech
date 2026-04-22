@@ -23,31 +23,13 @@ namespace Client.WebUiHost.Boot
         {
             UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += () =>
             {
-                // スナップショット → 先にフィールドクリア
-                // Snapshot refs first, clear fields
-                var hub = _hub;
-                var kestrel = _kestrel;
-                var vite = _vite;
-                _hub = null;
-                _kestrel = null;
-                _vite = null;
+                // 通常経路: Stop() が呼ばれていなければここで止める
+                // Normal path: stop if not already stopped
+                Stop();
 
-                // Vite を即 kill
-                // Kill Vite immediately
-                vite?.Kill();
-
-                // Kestrel と WS の停止を待つ（最大 4 秒）
-                // Wait for Kestrel/WS to stop (cap 4 seconds total)
-                // CloseAsync / StopAsync それぞれ 2 秒タイムアウト付きなのでブロックしても安全
-                // Both CloseAsync and StopAsync have 2-second timeouts, so blocking is safe
-                if (hub != null || kestrel != null)
-                {
-                    System.Threading.Tasks.Task.Run(async () =>
-                    {
-                        if (hub != null) await hub.CloseAllAsync();
-                        if (kestrel != null) await kestrel.StopAsync();
-                    }).GetAwaiter().GetResult();
-                }
+                // セーフティネット: Stop 経路で取りこぼした Vite プロセスを最終的に掃除
+                // Safety net: sweep any leftover Vite processes missed by Stop path
+                ViteProcess.KillAnyLingering();
             };
         }
 #endif
@@ -71,29 +53,32 @@ namespace Client.WebUiHost.Boot
 
         public static void Stop()
         {
-            if (_kestrel == null) return;
+            if (_kestrel == null && _vite == null && _hub == null) return;
 
-            // スナップショットを取ってから先にフィールドをクリア（再帰防止）
-            // Snapshot refs first, clear fields to prevent re-entry
-            var hub = _hub;
-            var kestrel = _kestrel;
+            // 先に Vite を kill（同期）。このあと _vite を null クリア。
+            // Kill Vite first (synchronous). Only then null the field.
             var vite = _vite;
-            _hub = null;
-            _kestrel = null;
+            vite?.Kill();
             _vite = null;
 
-            // Vite を即 kill（非同期不要）
-            // Kill Vite immediately (no async needed)
-            vite?.Kill();
+            // hub / kestrel をスナップショット → フィールドクリア → バックグラウンド停止
+            // Snapshot hub/kestrel, clear fields, run stop in background
+            var hub = _hub;
+            var kestrel = _kestrel;
+            _hub = null;
+            _kestrel = null;
 
             // Kestrel・WS 停止はバックグラウンドスレッドで実行（メインスレッドをブロックしない）
             // Stop Kestrel/WS on a background thread (fire-and-forget; don't block Unity main thread)
-            System.Threading.Tasks.Task.Run(async () =>
+            if (hub != null || kestrel != null)
             {
-                if (hub != null) await hub.CloseAllAsync();
-                if (kestrel != null) await kestrel.StopAsync();
-                Debug.Log("[WebUiHost] stopped");
-            });
+                System.Threading.Tasks.Task.Run(async () =>
+                {
+                    if (hub != null) await hub.CloseAllAsync();
+                    if (kestrel != null) await kestrel.StopAsync();
+                    Debug.Log("[WebUiHost] stopped");
+                });
+            }
         }
     }
 }
