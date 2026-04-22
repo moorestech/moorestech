@@ -1,0 +1,25 @@
+{
+    "name": "Client.WebUiHost",
+    "rootNamespace": "Client.WebUiHost",
+    "references": [
+        "Client.Common",
+        "Client.Game",
+        "Client.Network",
+        "Core.Item.Interface",
+        "Core.Master",
+        "Game.Context",
+        "Game.PlayerInventory.Interface",
+        "Nuget",
+        "UniRx",
+        "UniTask"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
