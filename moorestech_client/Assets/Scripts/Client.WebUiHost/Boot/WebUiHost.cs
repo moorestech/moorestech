@@ -36,15 +36,27 @@ namespace Client.WebUiHost.Boot
         {
             if (_kestrel == null) return;
 
-            // 先に WS を閉じてから HTTP を止め、最後に Vite を kill
-            // Close WS first, stop HTTP, then kill Vite
-            _hub?.CloseAllAsync().GetAwaiter().GetResult();
-            _kestrel.StopAsync().GetAwaiter().GetResult();
-            _vite?.Kill();
-
+            // スナップショットを取ってから先にフィールドをクリア（再帰防止）
+            // Snapshot refs first, clear fields to prevent re-entry
+            var hub = _hub;
+            var kestrel = _kestrel;
+            var vite = _vite;
             _hub = null;
             _kestrel = null;
             _vite = null;
+
+            // Vite を即 kill（非同期不要）
+            // Kill Vite immediately (no async needed)
+            vite?.Kill();
+
+            // Kestrel・WS 停止はバックグラウンドスレッドで実行（メインスレッドをブロックしない）
+            // Stop Kestrel/WS on a background thread (fire-and-forget; don't block Unity main thread)
+            System.Threading.Tasks.Task.Run(async () =>
+            {
+                if (hub != null) await hub.CloseAllAsync();
+                if (kestrel != null) await kestrel.StopAsync();
+                Debug.Log("[WebUiHost] stopped");
+            });
         }
     }
 }

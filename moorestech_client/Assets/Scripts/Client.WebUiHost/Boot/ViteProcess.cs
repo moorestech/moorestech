@@ -71,16 +71,20 @@ namespace Client.WebUiHost.Boot
         private async UniTask RunPnpmInstallAsync(string nodePath, string pnpmPath, string cwd)
         {
             Debug.Log("[WebUiHost] running pnpm install...");
+            // pnpm はネイティブバイナリなので直接 FileName に指定し、node bin を PATH に追加
+            // pnpm is a native binary; set it as FileName and prepend node bin dir to PATH
             var psi = new ProcessStartInfo
             {
-                FileName = nodePath,
-                Arguments = $"\"{pnpmPath}\" install",
+                FileName = pnpmPath,
+                Arguments = "install",
                 WorkingDirectory = cwd,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 CreateNoWindow = true,
             };
+            var nodeBinDir = Path.GetDirectoryName(nodePath);
+            psi.Environment["PATH"] = $"{nodeBinDir}{Path.PathSeparator}{System.Environment.GetEnvironmentVariable("PATH")}";
             using var p = Process.Start(psi);
             if (p == null)
             {
@@ -100,19 +104,22 @@ namespace Client.WebUiHost.Boot
 
         private Process SpawnViteDev(string nodePath, string pnpmPath, string cwd)
         {
-            // node <pnpm> exec vite --port 5173 --strictPort --host 127.0.0.1
-            // pnpm exec を通すと webui/node_modules 内の vite を使ってくれる
-            // Using pnpm exec routes to the vite installed in webui/node_modules
+            // pnpm を直接 FileName に指定。pnpm exec が webui/node_modules 内の vite を起動する
+            // Use pnpm directly as FileName; pnpm exec finds vite inside webui/node_modules
             var psi = new ProcessStartInfo
             {
-                FileName = nodePath,
-                Arguments = $"\"{pnpmPath}\" exec vite --port 5173 --strictPort --host 127.0.0.1",
+                FileName = pnpmPath,
+                Arguments = "exec vite --port 5173 --strictPort --host 127.0.0.1",
                 WorkingDirectory = cwd,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 CreateNoWindow = true,
             };
+            // バンドル済み node を PATH 先頭に追加して pnpm が正しい node を使うよう保証
+            // Prepend bundled node bin dir to PATH so pnpm uses our bundled node
+            var nodeBinDir = Path.GetDirectoryName(nodePath);
+            psi.Environment["PATH"] = $"{nodeBinDir}{Path.PathSeparator}{System.Environment.GetEnvironmentVariable("PATH")}";
             var p = new Process { StartInfo = psi, EnableRaisingEvents = true };
             p.OutputDataReceived += OnViteStdout;
             p.ErrorDataReceived += (_, e) => { if (!string.IsNullOrEmpty(e.Data)) Debug.LogWarning($"[Vite] {e.Data}"); };

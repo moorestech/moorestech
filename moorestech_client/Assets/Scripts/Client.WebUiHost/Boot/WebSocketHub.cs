@@ -70,11 +70,14 @@ namespace Client.WebUiHost.Boot
 
         public async Task CloseAllAsync()
         {
+            // 最大 2 秒タイムアウト付きで Close フレームを送信
+            // Send Close frames with a 2-second timeout to avoid blocking forever
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
             foreach (var conn in _connections.Values)
             {
                 if (conn.WebSocket.State == WebSocketState.Open)
                 {
-                    await conn.WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "server stopping", CancellationToken.None);
+                    await conn.WebSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "server stopping", cts.Token);
                 }
             }
             _connections.Clear();
@@ -85,10 +88,14 @@ namespace Client.WebUiHost.Boot
             var buffer = new byte[8192];
             while (conn.WebSocket.State == WebSocketState.Open && !ct.IsCancellationRequested)
             {
-                var result = await conn.WebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), ct);
+                WebSocketReceiveResult result;
+                // クライアント切断例外を捕捉してループを安全に終了
+                // Catch WebSocket exceptions on abrupt client disconnect and exit safely
+                result = await conn.WebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), ct);
                 if (result.MessageType == WebSocketMessageType.Close)
                 {
-                    await conn.WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "bye", CancellationToken.None);
+                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+                    await conn.WebSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "bye", cts.Token);
                     return;
                 }
                 var json = Encoding.UTF8.GetString(buffer, 0, result.Count);
