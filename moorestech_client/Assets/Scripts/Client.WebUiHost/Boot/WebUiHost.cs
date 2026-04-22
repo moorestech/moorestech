@@ -16,15 +16,38 @@ namespace Client.WebUiHost.Boot
         public static WebSocketHub Hub => _hub;
 
 #if UNITY_EDITOR
-        // ドメインリロード前に Vite を kill してプロセスリークを防ぐ
-        // Kill Vite before domain reload to prevent process leak
+        // ドメインリロード前に Kestrel + Vite + WS を停止してリソースリークを防ぐ
+        // Stop Kestrel + Vite + WS before domain reload to prevent resource leaks
         [UnityEditor.InitializeOnLoadMethod]
         private static void RegisterDomainReloadHook()
         {
             UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += () =>
             {
-                _vite?.Kill();
+                // スナップショット → 先にフィールドクリア
+                // Snapshot refs first, clear fields
+                var hub = _hub;
+                var kestrel = _kestrel;
+                var vite = _vite;
+                _hub = null;
+                _kestrel = null;
                 _vite = null;
+
+                // Vite を即 kill
+                // Kill Vite immediately
+                vite?.Kill();
+
+                // Kestrel と WS の停止を待つ（最大 4 秒）
+                // Wait for Kestrel/WS to stop (cap 4 seconds total)
+                // CloseAsync / StopAsync それぞれ 2 秒タイムアウト付きなのでブロックしても安全
+                // Both CloseAsync and StopAsync have 2-second timeouts, so blocking is safe
+                if (hub != null || kestrel != null)
+                {
+                    System.Threading.Tasks.Task.Run(async () =>
+                    {
+                        if (hub != null) await hub.CloseAllAsync();
+                        if (kestrel != null) await kestrel.StopAsync();
+                    }).GetAwaiter().GetResult();
+                }
             };
         }
 #endif
