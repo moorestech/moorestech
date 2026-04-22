@@ -47,7 +47,7 @@ namespace Game.Block.Blocks.GearChainPole
             _param = param;
             BlockInstanceId = blockInstanceId;
             _connectorComponent = connectorComponent;
-            _gearService = new SimpleGearService(blockInstanceId);
+            _gearService = new SimpleGearService();
             _gearService.OnGearUpdate.Subscribe(_ => _onChangeBlockState.OnNext(Unit.Default));
             
             _componentStates = componentStates;

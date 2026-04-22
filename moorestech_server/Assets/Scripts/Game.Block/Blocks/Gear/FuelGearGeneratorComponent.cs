@@ -115,7 +115,7 @@ namespace Game.Block.Blocks.Gear
             
             BlockStateDetail CreateFuelGearGeneratorStateDetail()
             {
-                var gearGenerator = new FuelGearGeneratorBlockStateDetail(_stateService, _fluidComponent, network.CurrentGearNetworkInfo, GenerateIsClockwise);
+                var gearGenerator = new FuelGearGeneratorBlockStateDetail(_stateService, _fluidComponent, GenerateIsClockwise);
                 return new BlockStateDetail(FuelGearGeneratorBlockStateDetail.FuelGearGeneratorBlockStateDetailKey, MessagePackSerializer.Serialize(gearGenerator));
             }
             

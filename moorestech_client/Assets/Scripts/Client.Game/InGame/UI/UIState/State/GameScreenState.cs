@@ -35,7 +35,8 @@ namespace Client.Game.InGame.UI.UIState.State
             if (UnityEngine.Input.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.PlaceBlock);
             if (UnityEngine.Input.GetKeyDown(KeyCode.T)) return new UITransitContext(UIStateEnum.ChallengeList);
             if (UnityEngine.Input.GetKeyDown(KeyCode.R)) return new UITransitContext(UIStateEnum.ResearchTree);
-            
+            if (UnityEngine.Input.GetKeyDown(KeyCode.F3)) return new UITransitContext(UIStateEnum.Debug);
+
             return null;
         }
 
@@ -44,7 +45,7 @@ namespace Client.Game.InGame.UI.UIState.State
             InputManager.MouseCursorVisible(false);
             _inGameCameraController.SetControllable(true);
 
-            KeyControlDescription.Instance.SetText("Tab: インベントリ\n1~9: アイテム持ち替え\nB: ブロック配置\nG:ブロック削除\nT: チャレンジ一覧\nR: リサーチツリー\n");
+            KeyControlDescription.Instance.SetText("Tab: インベントリ\n1~9: アイテム持ち替え\nB: ブロック配置\nG:ブロック削除\nT: チャレンジ一覧\nR: リサーチツリー\nF3: デバッグモード\n");
         }
         
         public void OnExit()
