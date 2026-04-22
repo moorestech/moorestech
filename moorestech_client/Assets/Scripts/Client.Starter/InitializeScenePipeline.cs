@@ -26,6 +26,7 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UniRx;
 using Debug = UnityEngine.Debug;
 
 namespace Client.Starter
@@ -60,6 +61,11 @@ namespace Client.Starter
         
         private async UniTask Initialize()
         {
+            // ---- Web UI サーバーの起動（最序盤）----
+            // ---- Web UI server bootstrap (earliest phase) ----
+            await Client.WebUiHost.Boot.WebUiHost.StartAsync();
+            GameShutdownEvent.OnGameShutdown.Subscribe(_ => Client.WebUiHost.Boot.WebUiHost.Stop());
+
             var args = CliConvert.Parse<StartServerSettings>(_proprieties.CreateLocalServerArgs);
             var serverDirectory = args.ServerDataDirectory;
             
@@ -166,6 +172,10 @@ namespace Client.Starter
                 var starter = FindObjectOfType<MainGameStarter>();
                 var resolver = starter.StartGame(handshakeResponse);
                 new ClientDIContext(new DIContainer(resolver));
+
+                // Web UI ゲーム系トピックを Hub にバインド
+                // Bind game-side Web UI topics to the hub
+                Client.WebUiHost.Game.WebUiGameBinder.BindTopics();
 
                 // ゲーム初期化完了イベントを発火
                 // Fire game initialization complete event
