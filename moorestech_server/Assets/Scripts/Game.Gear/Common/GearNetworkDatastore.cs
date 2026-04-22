@@ -133,6 +133,10 @@ namespace Game.Gear.Common
                 return;
             }
 
+            // 高速パス: 削除ギアの次数が1以下ならグラフ理論上cut vertexになり得ないので、残存網は絶対に分裂しない。BFSごと省略できる
+            // Fast path: if the removed gear has degree ≤ 1 it can never be a cut vertex, so the surviving network is guaranteed to stay connected; skip the whole BFS
+            if (gear.GetGearConnects().Count <= 1) return;
+
             // 残存ギアの配列と id→index マップを1パスで構築する。後続BFSは配列への null 書き込みを visited マーク代わりに使う
             // Build the remaining gear array and the id→index map in a single pass; BFS below uses null-assignment into this array as its visited marker
             var remaining = new IGearEnergyTransformer[totalCount];
