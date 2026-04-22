@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using UnityEngine;
 using Debug = UnityEngine.Debug;
 
 namespace Client.WebUiHost.Boot
@@ -76,11 +75,11 @@ namespace Client.WebUiHost.Boot
         {
             var pid = root.Id;
 #if UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX
-            // 子プロセスを親 pid 指定で一括 kill
-            // Kill all descendants by parent pid
+            // 親 pid 直下の子プロセス（pnpm 経由の node）を kill
+            // Kill direct children of the parent pid (node spawned via pnpm)
             RunDetached("/usr/bin/pkill", $"-P {pid}");
-            // 保険: コマンドライン文字列マッチで vite サーバーを kill
-            // Safety net: pattern-match vite server by command line
+            // 孫以降の node や、pid ベースで取りこぼした子を補足する保険
+            // Pattern-match safety net: catches grandchildren and anything missed by -P
             RunDetached("/usr/bin/pkill", "-f \"vite --port 5173\"");
 #elif UNITY_EDITOR_WIN
             RunDetached(@"C:\Windows\System32\taskkill.exe", $"/F /T /PID {pid}");

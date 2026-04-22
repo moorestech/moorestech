@@ -18,27 +18,35 @@ namespace Client.WebUiHost.Boot
 #if UNITY_EDITOR
         // Play mode 終了・ドメインリロード・エディタ終了のいずれでも確実にクリーンアップ
         // Clean up on Play mode exit, domain reload, or editor quit — whichever fires first
+        //   - ExitingPlayMode: Reload Domain = off の場合に beforeAssemblyReload が来ない穴を埋める
+        //   - beforeAssemblyReload: Reload Domain = on の通常経路
+        //   - quitting: Play mode に入らずにエディタを閉じた場合
+        //   - ExitingPlayMode: covers the Reload-Domain=off case where beforeAssemblyReload never fires
+        //   - beforeAssemblyReload: normal path when Reload Domain = on
+        //   - quitting: editor closed without ever entering Play mode
         [UnityEditor.InitializeOnLoadMethod]
         private static void RegisterDomainReloadHook()
         {
-            UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += CleanupAll;
-            UnityEditor.EditorApplication.quitting += CleanupAll;
+            UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += CleanupAllSync;
+            UnityEditor.EditorApplication.quitting += CleanupAllSync;
             UnityEditor.EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
         }
 
         private static void OnPlayModeStateChanged(UnityEditor.PlayModeStateChange state)
         {
-            // Play mode 終了直前に Vite を止める（BackToMainMenu.OnDestroy より確実）
-            // Stop Vite just before exiting play mode (more reliable than BackToMainMenu.OnDestroy)
+            // Play mode 終了直前にクリーンアップ。Domain Reload が走る前にポート解放を完了させる
+            // Clean up just before exiting play mode so ports are released before Domain Reload
             if (state == UnityEditor.PlayModeStateChange.ExitingPlayMode)
             {
-                CleanupAll();
+                CleanupAllSync();
             }
         }
 
-        private static void CleanupAll()
+        // Editor 経路からの同期クリーンアップ: Kestrel/WS の停止完了を待ってから帰る
+        // Synchronous cleanup for editor hooks: waits for Kestrel/WS stop to complete before returning
+        private static void CleanupAllSync()
         {
-            Stop();
+            StopSync();
             // セーフティネット: 何らかの理由で _vite が null でも Vite が残っている可能性に対処
             // Safety net: kill any lingering Vite process even if _vite was null
             ViteProcess.KillAnyLingering();
@@ -62,6 +70,8 @@ namespace Client.WebUiHost.Boot
             Debug.Log("[WebUiHost] ready. Open http://localhost:5173/");
         }
 
+        // 通常経路（GameShutdownEvent 経由）の停止。Kestrel/WS 停止はバックグラウンドに逃がす
+        // Normal path (via GameShutdownEvent). Kestrel/WS stop runs on a background thread.
         public static void Stop()
         {
             if (_kestrel == null && _vite == null && _hub == null) return;
@@ -85,11 +95,50 @@ namespace Client.WebUiHost.Boot
             {
                 System.Threading.Tasks.Task.Run(async () =>
                 {
-                    if (hub != null) await hub.CloseAllAsync();
+                    if (hub != null)
+                    {
+                        hub.ClearTopics();
+                        await hub.CloseAllAsync();
+                    }
                     if (kestrel != null) await kestrel.StopAsync();
                     Debug.Log("[WebUiHost] stopped");
                 });
             }
         }
+
+#if UNITY_EDITOR
+        // Editor 経路用の同期停止。Domain Reload 前にポート解放を確実にする
+        // Editor-only synchronous stop: guarantees the port is released before Domain Reload
+        private static void StopSync()
+        {
+            if (_kestrel == null && _vite == null && _hub == null) return;
+
+            var vite = _vite;
+            vite?.Kill();
+            _vite = null;
+
+            var hub = _hub;
+            var kestrel = _kestrel;
+            _hub = null;
+            _kestrel = null;
+
+            if (hub != null || kestrel != null)
+            {
+                // Editor hook は main thread のブロックを許容。最大 4 秒で諦める
+                // Editor hooks tolerate main-thread block; give up after 4s as safety
+                var task = System.Threading.Tasks.Task.Run(async () =>
+                {
+                    if (hub != null)
+                    {
+                        hub.ClearTopics();
+                        await hub.CloseAllAsync();
+                    }
+                    if (kestrel != null) await kestrel.StopAsync();
+                });
+                task.Wait(System.TimeSpan.FromSeconds(4));
+                Debug.Log("[WebUiHost] stopped (sync)");
+            }
+        }
+#endif
     }
 }

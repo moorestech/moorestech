@@ -1,14 +1,13 @@
 // Unity 側 Web UI ホストと通信する WebSocket クライアント。
 // 購読モデル: subscribe / unsubscribe / snapshot の 3 種類を送り、
-// snapshot / event / error の 3 種類を受ける。
+// snapshot / event の 2 種類を受ける。
 // WebSocket client that talks to the Unity-side Web UI host.
 // Subscribe-model protocol: sends subscribe / unsubscribe / snapshot,
-// receives snapshot / event / error.
+// receives snapshot / event.
 
 export type ServerMsg =
   | { op: "snapshot"; topic: string; data: unknown }
-  | { op: "event"; topic: string; data: unknown }
-  | { op: "error"; message: string };
+  | { op: "event"; topic: string; data: unknown };
 
 type Listener = (data: unknown) => void;
 
@@ -90,8 +89,6 @@ class WebSocketClient {
       if (msg.op === "snapshot" || msg.op === "event") {
         const set = this.listeners.get(msg.topic);
         if (set) set.forEach((l) => l(msg.data));
-      } else if (msg.op === "error") {
-        console.error("[ws] server error:", msg.message);
       }
     };
 
