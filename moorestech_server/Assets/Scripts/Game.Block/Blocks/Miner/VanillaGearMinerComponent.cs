@@ -1,9 +1,8 @@
 using Game.Block.Blocks.Gear;
 using Game.Block.Interface.Component;
-using Game.Gear.Common;
+using Game.EnergySystem;
 using Mooresmaster.Model.BlocksModule;
 using UniRx;
-using UnityEngine;
 
 namespace Game.Block.Blocks.Miner
 {
@@ -12,7 +11,7 @@ namespace Game.Block.Blocks.Miner
         private readonly GearEnergyTransformer _gearEnergyTransformer;
         private readonly VanillaMinerProcessorComponent _vanillaMinerProcessorComponent;
         private readonly GearMinerBlockParam _gearMinerBlockParam;
-        
+
         public VanillaGearMinerComponent(VanillaMinerProcessorComponent vanillaMinerProcessorComponent, GearEnergyTransformer gearEnergyTransformer, GearMinerBlockParam gearMinerBlockParam)
         {
             _gearMinerBlockParam = gearMinerBlockParam;
@@ -20,16 +19,18 @@ namespace Game.Block.Blocks.Miner
             _gearEnergyTransformer = gearEnergyTransformer;
             _gearEnergyTransformer.OnGearUpdate.Subscribe(OnGearUpdate);
         }
-        
+
         private void OnGearUpdate(GearUpdateType gearUpdateType)
         {
-            var requiredRpm = new RPM(_gearMinerBlockParam.RequiredRpm);
-            var requireTorque = new Torque(_gearMinerBlockParam.RequireTorque);
-            
-            var currentElectricPower = _gearEnergyTransformer.CalcMachineSupplyPower(requiredRpm, requireTorque);
+            // 基準電力 = baseTorque × baseRpm。稼働率をこれに乗じて採掘プロセッサへ供給
+            // Base power = baseTorque × baseRpm. Supply basePower × operatingRate to the miner processor
+            var consumption = _gearMinerBlockParam.GearConsumption;
+            var basePower = (float)(consumption.BaseTorque * consumption.BaseRpm);
+            var operatingRate = _gearEnergyTransformer.CurrentOperatingRate;
+            var currentElectricPower = new ElectricPower(basePower * operatingRate);
             _vanillaMinerProcessorComponent.SupplyPower(currentElectricPower);
         }
-        
+
         public bool IsDestroy { get; private set; }
         public void Destroy()
         {
