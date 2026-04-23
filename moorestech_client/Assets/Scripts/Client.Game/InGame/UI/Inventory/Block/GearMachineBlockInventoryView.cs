@@ -4,6 +4,7 @@ using Client.Game.InGame.Context;
 using Cysharp.Threading.Tasks;
 using Game.Gear.Common;
 using Mooresmaster.Model.BlocksModule;
+using Mooresmaster.Model.GearConsumptionModule;
 using Server.Protocol.PacketResponse;
 using TMPro;
 using UnityEngine;

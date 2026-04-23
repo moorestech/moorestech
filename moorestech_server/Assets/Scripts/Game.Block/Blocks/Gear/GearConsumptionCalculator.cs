@@ -1,5 +1,5 @@
 using Game.Gear.Common;
-using Mooresmaster.Model.BlocksModule;
+using Mooresmaster.Model.GearConsumptionModule;
 using UnityEngine;
 
 namespace Game.Block.Blocks.Gear

@@ -1,5 +1,6 @@
 using Game.Block.Blocks.Gear;
 using Game.Block.Interface;
+using Game.Block.Interface.Component;
 using Game.EnergySystem;
 using Mooresmaster.Model.BlocksModule;
 using UniRx;
