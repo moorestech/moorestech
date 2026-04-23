@@ -1091,7 +1091,11 @@
           ]
         },
         "gearConsumption": {
-          "baseTorque": 0
+          "baseTorque": 0,
+          "baseRpm": 5,
+          "minimumRpm": 5,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
         }
       },
       "itemGuid": "00000000-0000-0000-1234-000000000014",
@@ -1234,7 +1238,11 @@
         "destructionCheckInterval": 1,
         "baseDestructionProbability": 0,
         "gearConsumption": {
-          "baseTorque": 0
+          "baseTorque": 0,
+          "baseRpm": 5,
+          "minimumRpm": 5,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
         }
       },
       "itemGuid": "16000000-0000-0000-0000-000000000000",
@@ -1300,7 +1308,11 @@
         "destructionCheckInterval": 1,
         "baseDestructionProbability": 0,
         "gearConsumption": {
-          "baseTorque": 0.1
+          "baseTorque": 0.1,
+          "baseRpm": 5,
+          "minimumRpm": 5,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
         }
       },
       "itemGuid": "17000000-0000-0000-0000-000000000000",
@@ -1374,7 +1386,11 @@
           ]
         },
         "gearConsumption": {
-          "baseTorque": 0
+          "baseTorque": 0,
+          "baseRpm": 5,
+          "minimumRpm": 5,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
         }
       },
       "itemGuid": "7f2b0f6c-1d8a-4e37-9c3a-b9da1abbe7b7",
@@ -1531,7 +1547,9 @@
         "gearConsumption": {
           "baseRpm": 10,
           "minimumRpm": 10,
-          "baseTorque": 0.1
+          "baseTorque": 0.1,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
         }
       },
       "itemGuid": "18000000-0000-0000-0000-000000000000",
@@ -1788,7 +1806,11 @@
         "destructionCheckInterval": 1,
         "baseDestructionProbability": 0,
         "gearConsumption": {
-          "baseTorque": 1
+          "baseTorque": 1,
+          "baseRpm": 5,
+          "minimumRpm": 5,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
         }
       },
       "name": "Teeth10RequireTorqueTestGear",
@@ -1890,7 +1912,11 @@
         "destructionCheckInterval": 1,
         "baseDestructionProbability": 0,
         "gearConsumption": {
-          "baseTorque": 1
+          "baseTorque": 1,
+          "baseRpm": 5,
+          "minimumRpm": 5,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
         }
       },
       "blockGuid": "00000000-0000-0000-0000-000000000013",
@@ -2074,7 +2100,9 @@
         "gearConsumption": {
           "baseRpm": 500,
           "minimumRpm": 500,
-          "baseTorque": 1
+          "baseTorque": 1,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
         }
       },
       "itemGuid": "30000000-0000-0000-0000-000000000000",
@@ -2232,7 +2260,9 @@
         "gearConsumption": {
           "baseRpm": 500,
           "minimumRpm": 500,
-          "baseTorque": 1
+          "baseTorque": 1,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
         }
       },
       "itemGuid": "11800000-0000-0000-0000-000000000000",
@@ -2689,7 +2719,9 @@
         "gearConsumption": {
           "baseRpm": 10,
           "minimumRpm": 10,
-          "baseTorque": 1
+          "baseTorque": 1,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
         }
       },
       "blockSize": [
@@ -2944,7 +2976,9 @@
         "gearConsumption": {
           "baseRpm": 5,
           "minimumRpm": 5,
-          "baseTorque": 1
+          "baseTorque": 1,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
         }
       },
       "name": "TestGearMapObjectMiner",
@@ -3613,7 +3647,9 @@
         "gearConsumption": {
           "baseRpm": 10,
           "minimumRpm": 10,
-          "baseTorque": 5
+          "baseTorque": 5,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
         }
       }
     },
@@ -3747,7 +3783,9 @@
         "gearConsumption": {
           "baseRpm": 120,
           "minimumRpm": 120,
-          "baseTorque": 100
+          "baseTorque": 100,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
         }
       },
       "overrideVerticalBlock": {}
@@ -3901,7 +3939,9 @@
         "gearConsumption": {
           "baseRpm": 500,
           "minimumRpm": 500,
-          "baseTorque": 1
+          "baseTorque": 1,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
         }
       },
       "itemGuid": "fa9df7cd-b3ba-4df0-9f86-f477e1a8a30e",
