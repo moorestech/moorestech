@@ -29,31 +29,41 @@ namespace Tests.CombinedTest.Core
         public void OutputTestWhenTorqueSuppliedRateIs100()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            
+
             var itemStackFactory = ServerContext.ItemStackFactory;
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            
+
             const int id = 2;
             const int count = 3;
             var item = itemStackFactory.Create(new ItemId(id), count);
             var dummy = new DummyBlockInventory();
-            
-            
+
+
             // gearBeltConveyorブロックを生成
             var gearBeltConveyorPosition = new Vector3Int(0, 0, 0);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearBeltConveyor, gearBeltConveyorPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var gearBeltConveyor);
             var beltConveyorComponent = gearBeltConveyor.GetComponent<VanillaBeltConveyorComponent>();
             var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)gearBeltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
             connectInventory.Add(dummy, new ConnectedInfo());
-            
-            // generatorブロックを作成
+
+            // generatorブロックを作成（baseRpmに合わせたrpmを設定してoperatingRate=1にする）
+            // Create generator with rpm matching baseRpm so operatingRate = 1
             var generatorPosition = new Vector3Int(1, 0, 0);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.InfinityTorqueSimpleGearGenerator, generatorPosition, BlockDirection.East, Array.Empty<BlockCreateParam>(), out var generator);
-            
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.East, Array.Empty<BlockCreateParam>(), out var generatorBlock);
+            var generatorComponent = generatorBlock.GetComponent<global::Game.Block.Blocks.Gear.SimpleGearGeneratorComponent>();
+
+            var gearBeltConveyorBlockParam = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearBeltConveyor).BlockParam as GearBeltConveyorBlockParam;
+            var gearConsumption = gearBeltConveyorBlockParam.GearConsumption;
+            // baseRpmでジェネレーターを動かすことでoperatingRate=1を保証する
+            // Run generator at baseRpm to guarantee operatingRate = 1
+            var generatorRpm = (float)gearConsumption.BaseRpm;
+            generatorComponent.SetGenerateRpm(generatorRpm);
+            generatorComponent.SetGenerateTorque(1f);
+
             // testGearブロックを作成
             var testGearPosition = new Vector3Int(2, 0, 0);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, testGearPosition, BlockDirection.East, Array.Empty<BlockCreateParam>(), out var testGear);
-            
+
             var gearNetworkDatastore = serviceProvider.GetService<GearNetworkDatastore>();
             IReadOnlyDictionary<GearNetworkId, GearNetwork> gearNetwork = gearNetworkDatastore.GearNetworks;
 
@@ -61,10 +71,12 @@ namespace Tests.CombinedTest.Core
             // Run update cycle to establish gear network
             GameUpdater.RunFrames(1);
 
-            const int torqueRate = 1;
-            const int generatorRpm = 10;
-            var gearBeltConveyorBlockParam = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearBeltConveyor).BlockParam as GearBeltConveyorBlockParam;
-            var duration = 1f / (generatorRpm * torqueRate * gearBeltConveyorBlockParam.BeltConveyorSpeed);
+            // 新formula: speed = (rpm/baseRpm) * torqueRate * beltConveyorSpeed
+            // New formula: speed = (rpm/baseRpm) * torqueRate * beltConveyorSpeed
+            const float torqueRate = 1f;
+            var rpmRatio = generatorRpm / (float)gearConsumption.BaseRpm; // = 1 (baseRpmで動作)
+            var operatingRate = rpmRatio * torqueRate;
+            var duration = 1f / (operatingRate * (float)gearBeltConveyorBlockParam.BeltConveyorSpeed);
 
             // 期待されるtick数を計算
             // Calculate expected tick count
@@ -170,12 +182,14 @@ namespace Tests.CombinedTest.Core
             var beltConveyorComponent = gearBeltConveyor.GetComponent<VanillaBeltConveyorComponent>();
             var gearBeltConveyorComponent = gearBeltConveyor.GetComponent<GearBeltConveyorComponent>();
 
-            // 歯車ジェネレーターを配置し、一度稼働させてから停止する
-            // Place a gear generator, run once, then stop
+            // 歯車ジェネレーターを配置し、一度稼働させてから停止する（baseRpmに合わせてoperatingRate=1）
+            // Place a gear generator, run once, then stop (set to baseRpm so operatingRate = 1)
             var generatorPosition = new Vector3Int(1, 0, 0);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.East, Array.Empty<BlockCreateParam>(), out var generatorBlock);
             var generator = generatorBlock.GetComponent<global::Game.Block.Blocks.Gear.SimpleGearGeneratorComponent>();
-            generator.SetGenerateRpm(10f);
+            var beltParamForSetup = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearBeltConveyor).BlockParam as GearBeltConveyorBlockParam;
+            var baseRpm = (float)beltParamForSetup.GearConsumption.BaseRpm;
+            generator.SetGenerateRpm(baseRpm);
             generator.SetGenerateTorque(1f);
             GameUpdater.RunFrames(GameUpdater.SecondsToTicks(0.1));
 
@@ -206,8 +220,11 @@ namespace Tests.CombinedTest.Core
 
             // アイテムが搬送されるまで十分な時間待機する（1tickずつ進める）
             // Wait enough time for the item to be transported (advance 1 tick at a time)
+            // 新formula: speed = (rpm/baseRpm) * torqueRate * beltConveyorSpeed
+            // New formula: speed = (rpm/baseRpm) * torqueRate * beltConveyorSpeed
             var gearBeltParam = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearBeltConveyor).BlockParam as GearBeltConveyorBlockParam;
-            var speed = 10f * 1f * gearBeltParam.BeltConveyorSpeed;
+            var rpmRatio = baseRpm / (float)gearBeltParam.GearConsumption.BaseRpm; // = 1 (baseRpmで動作)
+            var speed = rpmRatio * 1f * (float)gearBeltParam.BeltConveyorSpeed;
             var timeOfItemEnterToExit = 1f / speed;
             var waitTicks = GameUpdater.SecondsToTicks(timeOfItemEnterToExit * 2); // 2倍の時間待つ
             for (uint i = 0; i < waitTicks; i++)
