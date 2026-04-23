@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
-# moorestech_web セットアップ: Node.js LTS と pnpm スタンドアロンバイナリを
-# moorestech_web/node/<platform>/ にダウンロードする。
-# Setup for moorestech_web: downloads Node.js LTS and pnpm standalone
-# binaries into moorestech_web/node/<platform>/.
+# moorestech_web セットアップ: Node.js LTS と pnpm を moorestech_web/node/<platform>/ にダウンロードする。
+# Setup for moorestech_web: downloads Node.js LTS and pnpm into moorestech_web/node/<platform>/.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

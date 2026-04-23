@@ -1,7 +1,5 @@
-# moorestech_web セットアップ: Node.js LTS と pnpm スタンドアロンバイナリを
-# moorestech_web/node/win-x64/ にダウンロードする。
-# Setup for moorestech_web: downloads Node.js LTS and pnpm standalone
-# binaries into moorestech_web/node/win-x64/.
+# moorestech_web セットアップ: Node.js LTS と pnpm を moorestech_web/node/win-x64/ にダウンロードする。
+# Setup for moorestech_web: downloads Node.js LTS and pnpm into moorestech_web/node/win-x64/.
 $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
 $NodeVersion = "20.18.1"
