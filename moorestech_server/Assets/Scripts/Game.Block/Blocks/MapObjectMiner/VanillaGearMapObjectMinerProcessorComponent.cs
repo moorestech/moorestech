@@ -29,7 +29,7 @@ namespace Game.Block.Blocks.MapObjectMiner
         
         public VanillaGearMapObjectMinerProcessorComponent(BlockPositionInfo blockPositionInfo, GearMapObjectMinerBlockParam blockParam, VanillaChestComponent vanillaChestComponent)
         {
-            _requestEnergy = new ElectricPower(blockParam.RequireTorque * blockParam.RequiredRpm);
+            _requestEnergy = new ElectricPower((float)(blockParam.GearConsumption.BaseTorque * blockParam.GearConsumption.BaseRpm));
             _vanillaChestComponent = vanillaChestComponent;
             
             var minPos = blockPositionInfo.MinPos - blockParam.MiningAreaRange;
