@@ -196,7 +196,7 @@ namespace Game.Block.Blocks.GearChainPole
         {
             // マスタ設定のgearConsumptionに従って必要トルクを算出（baseTorque=0で消費ゼロ維持可能）
             // Calculate required torque from gearConsumption master (baseTorque=0 keeps zero consumption)
-            return Game.Block.Blocks.Gear.GearConsumptionCalculator.CalcRequiredTorque(_param.GearConsumption, rpm);
+            return GearConsumptionCalculator.CalcRequiredTorque(_param.GearConsumption, rpm);
         }
 
         public BlockInstanceId BlockInstanceId { get; }

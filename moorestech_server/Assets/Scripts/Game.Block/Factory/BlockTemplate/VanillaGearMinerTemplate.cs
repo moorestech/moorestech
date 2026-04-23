@@ -47,7 +47,7 @@ namespace Game.Block.Factory.BlockTemplate
                 new VanillaMinerProcessorComponent(blockInstanceId, requestPower, outputSlot, _blockOpenableInventoryUpdateEvent, inventoryConnectorComponent, blockPositionInfo, miningSettings) : 
                 new VanillaMinerProcessorComponent(componentStates, blockInstanceId, requestPower, outputSlot, _blockOpenableInventoryUpdateEvent, inventoryConnectorComponent, blockPositionInfo, miningSettings);
                 
-            var gearMinerComponent = new VanillaGearMinerComponent(minerProcessorComponent, gearEnergyTransformer, minerParam);
+            var gearMinerComponent = new VanillaGearMinerComponent(minerProcessorComponent, gearEnergyTransformer);
             
             var components = new List<IBlockComponent>
             {

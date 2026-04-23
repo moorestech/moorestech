@@ -55,7 +55,7 @@ namespace Game.Block.Factory.BlockTemplate
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output);
             var machineSave = new VanillaMachineSaveComponent(input, output, processor);
             
-            var machineComponent = new VanillaGearMachineComponent(processor, gearEnergyTransformer, machineParam);
+            var machineComponent = new VanillaGearMachineComponent(processor, gearEnergyTransformer);
             
             var components = new List<IBlockComponent>
             {

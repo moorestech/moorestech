@@ -39,7 +39,7 @@ namespace Game.Block.Blocks.BeltConveyor
 
             // 稼働率（RPM比 × torqueRate、下限未満で0）を速度に乗じる
             // Apply operating rate (rpmRatio × torqueRate, zero below minimum) to base speed
-            var operatingRate = CurrentOperatingRate;
+            var operatingRate = GetCurrentOperatingRate();
             if (operatingRate <= 0f)
             {
                 _beltConveyorComponent.SetTicksOfItemEnterToExit(uint.MaxValue);

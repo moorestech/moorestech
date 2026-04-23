@@ -40,7 +40,7 @@ namespace Game.Block.Blocks.GearElectric
         {
             // 稼働率（RPM比 × torqueRate）をそのまま発電充足率として用いる。1超もOK（高RPMで発電増加）
             // Use operating rate (rpmRatio × torqueRate) directly as fulfillment. >1 is allowed for high-RPM overdrive
-            var fulfillment = CurrentOperatingRate;
+            var fulfillment = GetCurrentOperatingRate();
             if (fulfillment <= 0f)
             {
                 SetState(0f, 0f);
