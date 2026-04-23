@@ -2,7 +2,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
-namespace Client.WebUiHost.Boot
+namespace Client.WebUiHost.Common
 {
     /// <summary>
     /// moorestech_web/ 配下の絶対パスを解決するユーティリティ
@@ -10,18 +10,13 @@ namespace Client.WebUiHost.Boot
     /// </summary>
     public static class WebUiPaths
     {
-        // エディタ実行時: moorestech_client/Assets の2階層上 = リポジトリルート
-        // At editor time: two levels up from moorestech_client/Assets == repo root
-        // Application.dataPath points at moorestech_client/Assets,
-        // so its parent's parent is the repo root.
-        private static string RepoRoot =>
-            Path.GetFullPath(Path.Combine(Application.dataPath, "..", ".."));
+        // エディタ実行時: Application.dataPath (moorestech_client/Assets) の 2 階層上がリポジトリルート
+        // At editor time: two levels up from Application.dataPath is the repo root
+        private static string RepoRoot => Path.GetFullPath(Path.Combine(Application.dataPath, "..", ".."));
 
-        private static string WebRoot =>
-            Path.Combine(RepoRoot, "moorestech_web");
+        private static string WebRoot => Path.Combine(RepoRoot, "moorestech_web");
 
-        public static string WebuiRoot =>
-            Path.Combine(WebRoot, "webui");
+        public static string WebuiRoot => Path.Combine(WebRoot, "webui");
 
         public static string NodeBinary
         {
@@ -29,7 +24,7 @@ namespace Client.WebUiHost.Boot
             {
                 var platform = GetPlatformDir();
                 // Windows は node.exe、それ以外は bin/node
-                // Windows: node.exe, others: bin/node
+                // Windows: node.exe; other platforms: bin/node
                 var rel = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
                     ? "node.exe"
                     : Path.Combine("bin", "node");
