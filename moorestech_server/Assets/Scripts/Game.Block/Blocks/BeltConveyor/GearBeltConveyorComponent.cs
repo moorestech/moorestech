@@ -4,7 +4,7 @@ using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Gear.Common;
-using Mooresmaster.Model.BlocksModule;
+using Mooresmaster.Model.GearConsumptionModule;
 
 namespace Game.Block.Blocks.BeltConveyor
 {

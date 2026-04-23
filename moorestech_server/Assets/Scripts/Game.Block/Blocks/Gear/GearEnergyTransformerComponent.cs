@@ -4,7 +4,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Gear.Common;
 using Mooresmaster.Model.BlockConnectInfoModule;
-using Mooresmaster.Model.BlocksModule;
+using Mooresmaster.Model.GearConsumptionModule;
 using UniRx;
 
 namespace Game.Block.Blocks.Gear
@@ -43,13 +43,16 @@ namespace Game.Block.Blocks.Gear
 
         public Torque GetRequiredTorque(RPM rpm, bool isClockwise)
         {
+            // 生成側（Generator）はConsumption=nullで常にトルク消費0
+            // Generators pass null Consumption and always consume zero torque
+            if (Consumption == null) return new Torque(0);
             return GearConsumptionCalculator.CalcRequiredTorque(Consumption, rpm);
         }
 
         // 現在のRPM/トルクに対する出力倍率。出力系コンポーネント（Machine/Miner/Pump/Conveyor/ElectricGen）から参照される
         // Output scaling rate for the current RPM/torque. Referenced by output-side components.
         public float CurrentOperatingRate =>
-            GearConsumptionCalculator.CalcOperatingRate(Consumption, CurrentRpm, CurrentTorque);
+            Consumption == null ? 0f : GearConsumptionCalculator.CalcOperatingRate(Consumption, CurrentRpm, CurrentTorque);
 
         public virtual void StopNetwork()
         {
