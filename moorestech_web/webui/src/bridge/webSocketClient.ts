@@ -1,13 +1,14 @@
-// Unity 側 Web UI ホストと通信する WebSocket クライアント。
-// 購読モデル: subscribe / unsubscribe / snapshot の 3 種類を送り、
-// snapshot / event の 2 種類を受ける。
-// WebSocket client that talks to the Unity-side Web UI host.
-// Subscribe-model protocol: sends subscribe / unsubscribe / snapshot,
-// receives snapshot / event.
+// Unity 側 Web UI ホストと通信する WebSocket クライアント（subscribe/unsubscribe/snapshot 送信、snapshot/event 受信）。
+// WebSocket client for the Unity-side Web UI host; sends subscribe/unsubscribe/snapshot, receives snapshot/event.
 
-export type ServerMsg =
+type ServerMsg =
   | { op: "snapshot"; topic: string; data: unknown }
   | { op: "event"; topic: string; data: unknown };
+
+type ClientMsg =
+  | { op: "subscribe"; topics: string[] }
+  | { op: "unsubscribe"; topics: string[] }
+  | { op: "snapshot"; topics: string[] };
 
 type Listener = (data: unknown) => void;
 
@@ -17,21 +18,10 @@ class WebSocketClient {
   private readonly listeners = new Map<string, Set<Listener>>();
   private readonly pendingSubscribes = new Set<string>();
   private reconnectDelayMs = 100;
-  private closedByUs = false;
 
   constructor(url: string) {
     this.url = url;
-  }
-
-  connect() {
-    this.closedByUs = false;
     this.openSocket();
-  }
-
-  close() {
-    this.closedByUs = true;
-    this.ws?.close();
-    this.ws = null;
   }
 
   subscribe(topic: string, listener: Listener): () => void {
@@ -61,9 +51,9 @@ class WebSocketClient {
     }
   }
 
-  private sendRaw(obj: unknown) {
+  private sendRaw(msg: ClientMsg) {
     if (this.ws?.readyState === WebSocket.OPEN) {
-      this.ws.send(JSON.stringify(obj));
+      this.ws.send(JSON.stringify(msg));
     }
   }
 
@@ -85,11 +75,14 @@ class WebSocketClient {
     };
 
     ws.onmessage = (ev) => {
-      const msg = JSON.parse(String(ev.data)) as ServerMsg;
-      if (msg.op === "snapshot" || msg.op === "event") {
-        const set = this.listeners.get(msg.topic);
-        if (set) set.forEach((l) => l(msg.data));
-      }
+      // バイナリ等の文字列以外のフレームは捨てる
+      // Drop non-text frames
+      if (typeof ev.data !== "string") return;
+      const msg = JSON.parse(ev.data) as Partial<ServerMsg>;
+      if (msg.op !== "snapshot" && msg.op !== "event") return;
+      if (typeof msg.topic !== "string") return;
+      const set = this.listeners.get(msg.topic);
+      if (set) set.forEach((l) => l(msg.data));
     };
 
     ws.onerror = () => {
@@ -99,7 +92,6 @@ class WebSocketClient {
 
     ws.onclose = () => {
       this.ws = null;
-      if (this.closedByUs) return;
       // 指数バックオフで再接続（上限 5 秒）
       // Exponential backoff reconnect (capped at 5s)
       const delay = Math.min(this.reconnectDelayMs, 5000);
@@ -112,7 +104,6 @@ class WebSocketClient {
 // モジュール内シングルトンで接続を保持
 // Keep the connection as a module-level singleton
 const client = new WebSocketClient(`ws://${location.host}/ws`);
-client.connect();
 
 export function subscribeTopic<T>(topic: string, listener: (data: T) => void) {
   return client.subscribe(topic, (d) => listener(d as T));

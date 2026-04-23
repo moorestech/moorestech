@@ -6,6 +6,9 @@ type InventoryData = {
 
 // ローカルプレイヤーのインベントリを WS 購読して表示
 // Subscribe to the local player's inventory over WS and render it
+
+// TODO Web側の設計は基本的に「データ層」「webscokect層」を分離して、描画側はwebscokectの存在を知らないようにしたい。とりあえず今はこれで妥協
+
 export default function InventoryView() {
   const inventory = useTopic<InventoryData>("local_player.inventory");
 
