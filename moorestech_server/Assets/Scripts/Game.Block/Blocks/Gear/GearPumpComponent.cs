@@ -1,13 +1,7 @@
-using System;
-using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Blocks.Pump;
-using Game.EnergySystem;
-using Game.Fluid;
-using Game.Gear.Common;
 using Mooresmaster.Model.BlocksModule;
-using UnityEngine;
 
 namespace Game.Block.Blocks.Gear
 {
@@ -31,17 +25,13 @@ namespace Game.Block.Blocks.Gear
         {
             BlockException.CheckDestroy(this);
 
-            // Calculate power rate based on current RPM and Torque vs requirements
-            var requiredRpm = Mathf.Max(0.0001f, _param.RequiredRpm);
-            var requiredTorque = Mathf.Max(0.0001f, _param.RequireTorque);
-            var supplied = _gearEnergyTransformer.CalcMachineSupplyPower(new RPM(requiredRpm), new Torque(requiredTorque));
-            var powerRate = supplied.AsPrimitive() / (requiredRpm * requiredTorque);
-            powerRate = Mathf.Clamp01(powerRate);
+            // 稼働率（RPM比 × torqueRate、下限未満で0）を排出量に乗じる
+            // Apply operating rate (rpmRatio × torqueRate, zero below minimum) to fluid generation
+            var operatingRate = _gearEnergyTransformer.CurrentOperatingRate;
 
-            // Generate fluids scaled by powerRate
             PumpFluidGenerationUtility.GenerateFluids(
                 _param.GenerateFluid.items,
-                powerRate,
+                operatingRate,
                 _output);
         }
 
