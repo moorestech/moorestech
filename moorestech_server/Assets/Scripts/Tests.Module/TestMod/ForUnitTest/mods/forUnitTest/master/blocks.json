@@ -1093,7 +1093,7 @@
         "gearConsumption": {
           "baseTorque": 0,
           "baseRpm": 5,
-          "minimumRpm": 5,
+          "minimumRpm": 0,
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585
         }
@@ -1240,7 +1240,7 @@
         "gearConsumption": {
           "baseTorque": 0,
           "baseRpm": 5,
-          "minimumRpm": 5,
+          "minimumRpm": 0,
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585
         }
@@ -1310,7 +1310,7 @@
         "gearConsumption": {
           "baseTorque": 0.1,
           "baseRpm": 5,
-          "minimumRpm": 5,
+          "minimumRpm": 0,
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585
         }
@@ -1388,7 +1388,7 @@
         "gearConsumption": {
           "baseTorque": 0,
           "baseRpm": 5,
-          "minimumRpm": 5,
+          "minimumRpm": 0,
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585
         }
@@ -1546,7 +1546,7 @@
         "baseDestructionProbability": 0,
         "gearConsumption": {
           "baseRpm": 10,
-          "minimumRpm": 10,
+          "minimumRpm": 0,
           "baseTorque": 0.1,
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585
@@ -1808,7 +1808,7 @@
         "gearConsumption": {
           "baseTorque": 1,
           "baseRpm": 5,
-          "minimumRpm": 5,
+          "minimumRpm": 0,
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585
         }
@@ -1914,7 +1914,7 @@
         "gearConsumption": {
           "baseTorque": 1,
           "baseRpm": 5,
-          "minimumRpm": 5,
+          "minimumRpm": 0,
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585
         }
@@ -2099,7 +2099,7 @@
         },
         "gearConsumption": {
           "baseRpm": 500,
-          "minimumRpm": 500,
+          "minimumRpm": 0,
           "baseTorque": 1,
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585
@@ -2259,7 +2259,7 @@
         },
         "gearConsumption": {
           "baseRpm": 500,
-          "minimumRpm": 500,
+          "minimumRpm": 0,
           "baseTorque": 1,
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585
@@ -2718,7 +2718,7 @@
         "baseDestructionProbability": 0,
         "gearConsumption": {
           "baseRpm": 10,
-          "minimumRpm": 10,
+          "minimumRpm": 0,
           "baseTorque": 1,
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585
@@ -2975,7 +2975,7 @@
         "baseDestructionProbability": 0,
         "gearConsumption": {
           "baseRpm": 5,
-          "minimumRpm": 5,
+          "minimumRpm": 0,
           "baseTorque": 1,
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585
@@ -3646,7 +3646,7 @@
         "baseDestructionProbability": 0,
         "gearConsumption": {
           "baseRpm": 10,
-          "minimumRpm": 10,
+          "minimumRpm": 0,
           "baseTorque": 5,
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585
@@ -3782,7 +3782,7 @@
         "baseDestructionProbability": 0,
         "gearConsumption": {
           "baseRpm": 120,
-          "minimumRpm": 120,
+          "minimumRpm": 0,
           "baseTorque": 100,
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585
@@ -3938,7 +3938,7 @@
         "slopeType": "Straight",
         "gearConsumption": {
           "baseRpm": 500,
-          "minimumRpm": 500,
+          "minimumRpm": 0,
           "baseTorque": 1,
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585
