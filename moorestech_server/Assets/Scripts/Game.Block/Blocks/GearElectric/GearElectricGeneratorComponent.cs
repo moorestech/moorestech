@@ -6,7 +6,6 @@ using Game.EnergySystem;
 using Game.Gear.Common;
 using MessagePack;
 using Mooresmaster.Model.BlocksModule;
-using UnityEngine;
 
 namespace Game.Block.Blocks.GearElectric
 {
@@ -14,71 +13,65 @@ namespace Game.Block.Blocks.GearElectric
     {
         public int TeethCount => _param.TeethCount;
         public float EnergyFulfillmentRate { get; private set; }
-        
-        
+
+
         private readonly GearElectricGeneratorBlockParam _param;
         private ElectricPower _currentGeneratedPower;
-        
+
         public GearElectricGeneratorComponent(
             GearElectricGeneratorBlockParam param,
             BlockInstanceId blockInstanceId,
             IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent) :
-            base(new Torque(param.RequiredTorque), blockInstanceId, connectorComponent)
+            base(param.GearConsumption, blockInstanceId, connectorComponent)
         {
             _param = param;
             _currentGeneratedPower = new ElectricPower(0);
             EnergyFulfillmentRate = 0f;
         }
-        
+
         public void Update()
         {
             BlockException.CheckDestroy(this);
-            
+
             UpdateGeneratedPower();
         }
-        
+
         private void UpdateGeneratedPower()
         {
-            var requiredRpm = _param.RequiredRpm;
-            var requiredTorque = RequiredTorque.AsPrimitive();
-            var currentRpm = CurrentRpm.AsPrimitive();
-            var currentTorque = CurrentTorque.AsPrimitive();
-            
-            if (requiredRpm <= 0f || requiredTorque <= 0f || currentRpm <= 0f || currentTorque <= 0f)
+            // 稼働率（RPM比 × torqueRate）をそのまま発電充足率として用いる。1超もOK（高RPMで発電増加）
+            // Use operating rate (rpmRatio × torqueRate) directly as fulfillment. >1 is allowed for high-RPM overdrive
+            var fulfillment = CurrentOperatingRate;
+            if (fulfillment <= 0f)
             {
                 SetState(0f, 0f);
                 return;
             }
-            
-            var rpmRate = Mathf.Min(currentRpm / requiredRpm, 1f);
-            var torqueRate = Mathf.Min(currentTorque / requiredTorque, 1f);
-            var fulfillment = Mathf.Clamp01(Mathf.Min(rpmRate, torqueRate));
-            
-            SetState(_param.MaxGeneratedPower * fulfillment, fulfillment);
-            
+
+            SetState((float)_param.MaxGeneratedPower * fulfillment, fulfillment);
+
             #region Internal
-            
+
             void SetState(float generatedPower, float fulfillmentRate)
             {
                 _currentGeneratedPower = new ElectricPower(generatedPower);
                 EnergyFulfillmentRate = fulfillmentRate;
             }
-            
+
             #endregion
         }
-        
+
         public new BlockStateDetail[] GetBlockStateDetails()
         {
             BlockException.CheckDestroy(this);
-            
+
             var baseDetails = base.GetBlockStateDetails();
             var result = new BlockStateDetail[baseDetails.Length + 1];
             result[0] = CreateDetail();
             Array.Copy(baseDetails, 0, result, 1, baseDetails.Length);
             return result;
-            
+
             #region Internal
-            
+
             BlockStateDetail CreateDetail()
             {
                 var detail = new GearElectricGeneratorBlockStateDetail(
@@ -90,11 +83,11 @@ namespace Game.Block.Blocks.GearElectric
                 var serialized = MessagePackSerializer.Serialize(detail);
                 return new BlockStateDetail(GearElectricGeneratorBlockStateDetail.GearGeneratorBlockStateDetailKey, serialized);
             }
-            
+
             #endregion
         }
-        
-        
+
+
         public ElectricPower OutputEnergy()
         {
             BlockException.CheckDestroy(this);
