@@ -27,11 +27,9 @@ namespace Game.Block.Blocks.Gear
 
             // 稼働率（RPM比 × torqueRate、下限未満で0）を排出量に乗じる
             // Apply operating rate (rpmRatio × torqueRate, zero below minimum) to fluid generation
-            var operatingRate = _gearEnergyTransformer.CurrentOperatingRate;
-
             PumpFluidGenerationUtility.GenerateFluids(
                 _param.GenerateFluid.items,
-                operatingRate,
+                _gearEnergyTransformer.GetCurrentOperatingRate(),
                 _output);
         }
 
