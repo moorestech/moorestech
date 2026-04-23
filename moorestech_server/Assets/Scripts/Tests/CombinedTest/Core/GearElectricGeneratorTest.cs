@@ -33,24 +33,24 @@ namespace Tests.CombinedTest.Core
 
             // フル出力
             // Full output
-            driveComponent.SetGenerateRpm(param.RequiredRpm);
-            driveComponent.SetGenerateTorque(param.RequiredTorque);
+            driveComponent.SetGenerateRpm((float)param.GearConsumption.BaseRpm);
+            driveComponent.SetGenerateTorque((float)param.GearConsumption.BaseTorque);
             AdvanceTime(0.5f);
             Assert.AreEqual(param.MaxGeneratedPower, generatorComponent.OutputEnergy().AsPrimitive(),  0.1f);
             Assert.AreEqual(1f, generatorComponent.EnergyFulfillmentRate, 0.05f);
 
             // 半分のRPM -> 半分の出力
             // Half RPM -> Half output
-            driveComponent.SetGenerateRpm(param.RequiredRpm * 0.5f);
-            driveComponent.SetGenerateTorque(param.RequiredTorque);
+            driveComponent.SetGenerateRpm((float)param.GearConsumption.BaseRpm * 0.5f);
+            driveComponent.SetGenerateTorque((float)param.GearConsumption.BaseTorque);
             AdvanceTime(0.5f);
             Assert.AreEqual(param.MaxGeneratedPower * 0.5f, generatorComponent.OutputEnergy().AsPrimitive(), 0.1f);
             Assert.AreEqual(0.5f, generatorComponent.EnergyFulfillmentRate, 0.05f);
 
             // 半分のトルク -> ネットワークが停止し出力は0
             // Half torque -> Network stops due to power shortage, output becomes 0
-            driveComponent.SetGenerateRpm(param.RequiredRpm);
-            driveComponent.SetGenerateTorque(param.RequiredTorque * 0.5f);
+            driveComponent.SetGenerateRpm((float)param.GearConsumption.BaseRpm);
+            driveComponent.SetGenerateTorque((float)param.GearConsumption.BaseTorque * 0.5f);
             AdvanceTime(0.5f);
             var gearNetwork = GearNetworkDatastore.GetGearNetwork(generatorComponent.BlockInstanceId);
             Assert.AreEqual(GearNetworkStopReason.OverRequirePower, gearNetwork.CurrentGearNetworkInfo.StopReason);
