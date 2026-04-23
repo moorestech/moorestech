@@ -45,15 +45,15 @@ namespace Client.Game.InGame.UI.Inventory.Block
             }
 
             var masterParam = (GearMachineBlockParam)BlockGameObject.BlockMasterElement.BlockParam;
-            SetGearText(masterParam, state, _cachedNetworkInfo, torque, rpm, networkInfo);
+            SetGearText(masterParam.GearConsumption, state, _cachedNetworkInfo, torque, rpm, networkInfo);
         }
 
         // 歯車系UIで共通して使う表示更新ヘルパー
         // Shared display helper reused across gear-based UIs
-        public static void SetGearText(IGearMachineParam param, GearStateDetail state, GetGearNetworkInfoProtocol.ResponseGetGearNetworkInfoMessagePack networkInfoResponse, TMP_Text torqueText, TMP_Text rpmText, TMP_Text networkInfoText)
+        public static void SetGearText(GearConsumption consumption, GearStateDetail state, GetGearNetworkInfoProtocol.ResponseGetGearNetworkInfoMessagePack networkInfoResponse, TMP_Text torqueText, TMP_Text rpmText, TMP_Text networkInfoText)
         {
-            var requireTorque = param.RequireTorque;
-            var requireRpm = param.RequiredRpm;
+            var requireTorque = (float)consumption.BaseTorque;
+            var requireRpm = (float)consumption.BaseRpm;
 
             var currentTorque = state.CurrentTorque;
             var currentRpm = state.CurrentRpm;

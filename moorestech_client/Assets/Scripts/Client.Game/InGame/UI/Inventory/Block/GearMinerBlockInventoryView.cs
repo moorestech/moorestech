@@ -42,8 +42,8 @@ namespace Client.Game.InGame.UI.Inventory.Block
                 return;
             }
 
-            var masterParam = (IGearMachineParam)BlockGameObject.BlockMasterElement.BlockParam;
-            GearMachineBlockInventoryView.SetGearText(masterParam, state, _cachedNetworkInfo, torque, rpm, networkInfo);
+            var masterParam = (GearMinerBlockParam)BlockGameObject.BlockMasterElement.BlockParam;
+            GearMachineBlockInventoryView.SetGearText(masterParam.GearConsumption, state, _cachedNetworkInfo, torque, rpm, networkInfo);
         }
     }
 }
