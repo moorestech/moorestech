@@ -64,7 +64,7 @@ namespace Client.Network.API
         
         public void Save()
         {
-            var request = new SaveProtocol.SaveProtocolMessagePack();
+            var request = new SaveProtocol.SaveRequestMessagePack();
             _packetSender.Send(request);
         }
         

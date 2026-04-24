@@ -27,9 +27,9 @@ namespace Server.Protocol.PacketResponse
         }
 
         [MessagePackObject]
-        public class SaveProtocolMessagePack : ProtocolMessagePackBase
+        public class SaveRequestMessagePack : ProtocolMessagePackBase
         {
-            public SaveProtocolMessagePack()
+            public SaveRequestMessagePack()
             {
                 Tag = ProtocolTag;
             }
