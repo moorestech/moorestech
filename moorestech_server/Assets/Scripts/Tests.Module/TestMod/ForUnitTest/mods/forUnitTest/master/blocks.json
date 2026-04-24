@@ -1092,7 +1092,7 @@
         },
         "gearConsumption": {
           "baseTorque": 0,
-          "baseRpm": 5,
+          "baseRpm": 10,
           "minimumRpm": 0,
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585
@@ -1239,7 +1239,7 @@
         "baseDestructionProbability": 0,
         "gearConsumption": {
           "baseTorque": 0,
-          "baseRpm": 5,
+          "baseRpm": 10,
           "minimumRpm": 0,
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585
@@ -1309,7 +1309,7 @@
         "baseDestructionProbability": 0,
         "gearConsumption": {
           "baseTorque": 0.1,
-          "baseRpm": 5,
+          "baseRpm": 10,
           "minimumRpm": 0,
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585
