@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>CSparse</id>
+    <version>4.3.0</version>
+    <authors>Christian Woltering</authors>
+    <license type="expression">LGPL-2.1-only</license>
+    <licenseUrl>https://licenses.nuget.org/LGPL-2.1-only</licenseUrl>
+    <projectUrl>https://github.com/wo80/CSparse.NET</projectUrl>
+    <description>CSparse.NET provides numerical methods for sparse LU, Cholesky and QR decomposition of real and complex linear systems.</description>
+    <releaseNotes>Version 4.3.0
+
+* Add net10.0 and remove net6.0 target framework.
+* Minor optimizations for matrix-vector multiplication.
+* Minor optimizations checking empty Span.
+
+Version 4.2.0
+
+* Make SymbolicColumnStorage class public and update StronglyConnectedComponents and DulmageMendelsohn decomposition accordingly.
+
+Version 4.1.0
+
+* Add overload for creating a sparse matrix from an enumerable of ValueTuple.
+* Add matrix EnumerateIndexedAsValueTuples() to enumerate entries as ValueTuple.
+
+Version 4.0.0
+
+The major version change is due to the removal of obsolete methods in the Converter class. Visibility of that class was changed from public to internal. In case those obsolete methods were still used, please switch to the static conversion methods provided by the SparseMatrix class.
+
+Other changes in this version:
+
+* Addition of helper method Helper.ValidateStorage(...) to validate the structure of a sparse matrix.
+* Update to GetHashCode() method of CompressedColumnStorage class.
+* Improvements to documentation.</releaseNotes>
+    <copyright>Copyright Christian Woltering © 2012-2025</copyright>
+    <tags>math sparse matrix lu cholesky qr decomposition factorization</tags>
+    <repository type="git" url="https://github.com/wo80/CSparse.NET.git" commit="5c1fce8143cea9b50594f97d26d107877b2177ef" />
+    <dependencies>
+      <group targetFramework="net8.0" />
+      <group targetFramework="net10.0" />
+      <group targetFramework=".NETStandard2.0">
+        <dependency id="System.Memory" version="4.6.3" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>
