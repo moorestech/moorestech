@@ -1,0 +1,9 @@
+# Node.js / pnpm standalone binaries (download via setup.sh / setup.ps1)
+node/
+
+# Dependencies
+webui/node_modules/
+
+# Vite output
+webui/dist/
+webui/.vite/

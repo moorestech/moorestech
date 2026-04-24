@@ -19,7 +19,9 @@
         "VContainer",
         "Unity.TextMeshPro",
         "Unity.ResourceManager",
-        "Server.Util"
+        "Server.Util",
+        "Client.WebUiHost",
+        "UniRx"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

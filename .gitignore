@@ -98,7 +98,7 @@ moorestech_client/.vscode/settings.json
 /cache
 
 # MCPのアウトプット
-/moorestech_*/.uloop/outputs/TestResults/*
+/moorestech_*/.uloop/outputs/
 
 **/__pycache__/
 *.pyc
