@@ -62,7 +62,7 @@ namespace Tests.CombinedTest.Core
             var transformer = block.GetComponent<GearEnergyTransformer>();
             for (var i = 0; i < 160; i++)
             {
-                transformer.SupplyPower(new RPM(5), new Torque(5), true);
+                transformer.SupplyPower(new RPM(5), new Torque(5), true, new Torque(0));
                 GameUpdater.UpdateOneTick();
             }
 

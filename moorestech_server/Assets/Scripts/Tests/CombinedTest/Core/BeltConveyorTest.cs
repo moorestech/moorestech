@@ -225,7 +225,7 @@ namespace Tests.CombinedTest.Core
                 // Supply gear energy to splitter
                 var consumption = splitterParam.GearConsumption;
                 var requiredTorqueAt20 = GearConsumptionCalculator.CalcRequiredTorque(consumption, new RPM(20));
-                gearBeltConveyorComponent.SupplyPower(new RPM(20), requiredTorqueAt20, true);
+                gearBeltConveyorComponent.SupplyPower(new RPM(20), requiredTorqueAt20, true, new Torque(0));
                 GameUpdater.UpdateOneTick();
             }
             

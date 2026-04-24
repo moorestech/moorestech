@@ -3,10 +3,10 @@ using Game.Block.Interface;
 
 namespace Game.Gear.Common
 {
-    // 歯車ネットワーク上の各ブロックを通過するトルクを Laplacian + 疎コレスキー解で計算し、
-    // 結果を各 IGearEnergyTransformer に CurrentLoadTorque として書き戻す静的ユーティリティ
-    // Static utility that solves per-edge torque flow via Laplacian + sparse Cholesky and
-    // writes the max-adjacent value back to each IGearEnergyTransformer.CurrentLoadTorque
+    // 歯車ネットワーク上の各ブロックを通過する負荷トルクを Laplacian + 疎コレスキー解で計算する静的ユーティリティ
+    // 結果は State.NodeLoadByBlockInstance に格納され、呼び出し側が BlockInstanceId で引いて SupplyPower に渡す
+    // Static utility that solves per-edge torque flow via Laplacian + sparse Cholesky
+    // Results are stored in State.NodeLoadByBlockInstance; callers look up per BlockInstanceId and feed SupplyPower
     internal static class GearLoadCalculator
     {
         // ネットワーク単位の計算状態。トポロジ未変更ならソルバを使い回す
@@ -19,19 +19,30 @@ namespace Game.Gear.Common
             public double[] B;
             public double[] Torque;
             public double[] NodeMax;
+            public readonly Dictionary<BlockInstanceId, Torque> NodeLoadByBlockInstance = new();
+
+            public Torque GetLoad(BlockInstanceId id)
+            {
+                return NodeLoadByBlockInstance.TryGetValue(id, out var v) ? v : new Torque(0);
+            }
         }
 
-        // ネットワーク全ノードに対して負荷を計算し、CurrentLoadTorque に書き戻す
-        // Compute load for every node in the network and push it to each transformer's CurrentLoadTorque
-        public static void ComputeAndDistribute(
+        // ネットワーク全ノードに対して負荷を計算し、State.NodeLoadByBlockInstance に格納する
+        // Compute load for every node in the network and store the result in State.NodeLoadByBlockInstance
+        public static void ComputeNodeLoads(
             IReadOnlyList<IGearGenerator> generators,
             IReadOnlyList<IGearEnergyTransformer> nonGenerators,
+            IReadOnlyDictionary<BlockInstanceId, GearRotationInfo> rotationInfo,
             State state)
         {
+            state.NodeLoadByBlockInstance.Clear();
+
             var nodes = CollectNodes(generators, nonGenerators);
             if (nodes.Count < 2)
             {
-                ResetToZero(state, nodes, signature: 0L);
+                state.OrderedNodes = nodes;
+                state.Solver = null;
+                state.Version = 0L;
                 return;
             }
 
@@ -41,7 +52,9 @@ namespace Game.Gear.Common
             // Guard up-front: CSparse leaves internal arrays null when nnz=0 which would crash Cholesky.Create
             if (edges.Count == 0)
             {
-                ResetToZero(state, nodes, signature);
+                state.OrderedNodes = nodes;
+                state.Solver = null;
+                state.Version = signature;
                 return;
             }
 
@@ -49,15 +62,21 @@ namespace Game.Gear.Common
             // Guard non-connected transient state which would yield a non-SPD reduced Laplacian and fail Cholesky
             if (!IsConnected(nodes.Count, edges))
             {
-                ResetToZero(state, nodes, signature);
+                state.OrderedNodes = nodes;
+                state.Solver = null;
+                state.Version = signature;
                 return;
             }
 
-            EnsureSolverReady(state, nodes, edges, idToIndex, signature);
-            FillBVector(state);
+            EnsureSolverReady(state, nodes, edges, signature);
+            FillBVector(state, rotationInfo);
             state.Solver.Solve(state.B, state.Torque);
             state.Solver.AggregateNodeMaxAdjacent(state.Torque, state.NodeMax);
-            Distribute(state);
+
+            for (var i = 0; i < nodes.Count; i++)
+            {
+                state.NodeLoadByBlockInstance[nodes[i].BlockInstanceId] = new Torque((float)state.NodeMax[i]);
+            }
         }
 
         private static List<IGearEnergyTransformer> CollectNodes(
@@ -100,17 +119,14 @@ namespace Game.Gear.Common
             State state,
             List<IGearEnergyTransformer> nodes,
             List<(int i, int j)> edges,
-            Dictionary<BlockInstanceId, int> idToIndex,
             long signature)
         {
             if (state.Version == signature && state.Solver != null)
             {
-                ClearLoadOnLeftNodes(state, idToIndex);
                 state.OrderedNodes = nodes;
                 return;
             }
 
-            ClearLoadOnLeftNodes(state, idToIndex);
             state.Solver = new TorqueLoadSolver();
             state.Solver.Prepare(nodes.Count, edges);
             state.B = new double[nodes.Count];
@@ -120,62 +136,22 @@ namespace Game.Gear.Common
             state.Version = signature;
         }
 
-        private static void ClearLoadOnLeftNodes(State state, Dictionary<BlockInstanceId, int> newIdToIndex)
+        private static void FillBVector(State state, IReadOnlyDictionary<BlockInstanceId, GearRotationInfo> rotationInfo)
         {
-            // 前tickに居て今tickに居ないブロックの負荷をゼロクリアする
-            // Zero out CurrentLoadTorque on blocks that left this network since the previous tick
-            if (state.OrderedNodes == null) return;
-            foreach (var old in state.OrderedNodes)
-            {
-                if (newIdToIndex.ContainsKey(old.BlockInstanceId)) continue;
-                old.SetCurrentLoadTorque(new Torque(0));
-            }
-        }
-
-        private static void FillBVector(State state)
-        {
-            // b[v] = ジェネレータの生成トルク - 当該RPMでの要求トルク。中継ブロックは要求トルク=0なのでb=0
-            // b[v] = generator output minus required torque at current rpm. Pure transmission has zero required torque so b=0
+            // b[v] = ジェネレータの生成トルク - 当該ノードの要求トルク（当フレームのDFS結果から取得）。中継ブロックは0
+            // b[v] = generator output minus required torque (from this frame's DFS result). Pure transmission = 0
+            // SupplyPower前に呼ばれるためCurrentRpmはまだ更新されていないので、rotationInfoの計算済みrpm由来のRequiredTorqueを使う
+            // Called before SupplyPower so CurrentRpm is stale; use RequiredTorque derived from the freshly computed rpm in rotationInfo
             // 注: ソルバはノード0をφ=0で固定し縮約後にSolveするため、全体の需給差分は暗黙的にノード0で吸収される
             // Note: solver anchors node 0 at φ=0 and solves the reduced system, so Σb imbalance is absorbed at node 0 implicitly
             var b = state.B;
             for (var i = 0; i < state.OrderedNodes.Count; i++)
             {
                 var t = state.OrderedNodes[i];
-                var rpm = t.CurrentRpm;
-                var clockwise = t.IsCurrentClockwise;
-                var required = t.GetRequiredTorque(rpm, clockwise).AsPrimitive();
+                var required = rotationInfo.TryGetValue(t.BlockInstanceId, out var info) ? info.RequiredTorque.AsPrimitive() : 0.0;
                 var generated = t is IGearGenerator gen ? gen.GenerateTorque.AsPrimitive() : 0.0;
                 b[i] = generated - required;
             }
-        }
-
-        private static void Distribute(State state)
-        {
-            for (var i = 0; i < state.OrderedNodes.Count; i++)
-            {
-                state.OrderedNodes[i].SetCurrentLoadTorque(new Torque((float)state.NodeMax[i]));
-            }
-        }
-
-        private static void ResetToZero(State state, List<IGearEnergyTransformer> nodes, long signature)
-        {
-            // 旧ノードのうち、新ノード集合に居ないものは CurrentLoadTorque を 0 にリセットする
-            // Reset CurrentLoadTorque to 0 for old nodes not present in the new node set
-            if (state.OrderedNodes != null)
-            {
-                var newIds = new HashSet<BlockInstanceId>();
-                foreach (var n in nodes) newIds.Add(n.BlockInstanceId);
-                foreach (var old in state.OrderedNodes)
-                {
-                    if (newIds.Contains(old.BlockInstanceId)) continue;
-                    old.SetCurrentLoadTorque(new Torque(0));
-                }
-            }
-            foreach (var n in nodes) n.SetCurrentLoadTorque(new Torque(0));
-            state.OrderedNodes = nodes;
-            state.Solver = null;
-            state.Version = signature;
         }
 
         private static bool IsConnected(int nodeCount, List<(int i, int j)> edges)

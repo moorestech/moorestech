@@ -24,8 +24,7 @@ namespace Game.Gear.Common
         public Torque GetRequiredTorque(RPM rpm, bool isClockwise);
 
         public void StopNetwork();
-        public void SupplyPower(RPM rpm, Torque torque, bool isClockwise);
-        public void SetCurrentLoadTorque(Torque loadTorque);
+        public void SupplyPower(RPM rpm, Torque torque, bool isClockwise, Torque loadTorque);
 
         public List<GearConnect> GetGearConnects();
     }

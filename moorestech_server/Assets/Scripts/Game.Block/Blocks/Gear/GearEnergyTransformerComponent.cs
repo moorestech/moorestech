@@ -18,8 +18,8 @@ namespace Game.Block.Blocks.Gear
         public BlockInstanceId BlockInstanceId { get; }
         public RPM CurrentRpm => _simpleGearService.CurrentRpm;
         public Torque CurrentTorque => _simpleGearService.CurrentTorque;
+        public Torque CurrentLoadTorque => _simpleGearService.CurrentLoadTorque;
         public bool IsCurrentClockwise => _simpleGearService.IsCurrentClockwise;
-        public Torque CurrentLoadTorque { get; private set; }
 
         public bool IsDestroy { get; private set; }
 
@@ -70,14 +70,9 @@ namespace Game.Block.Blocks.Gear
             _simpleGearService.StopNetwork();
         }
 
-        public virtual void SupplyPower(RPM rpm, Torque torque, bool isClockwise)
+        public virtual void SupplyPower(RPM rpm, Torque torque, bool isClockwise, Torque loadTorque)
         {
-            _simpleGearService.SupplyPower(rpm, torque, isClockwise);
-        }
-
-        public void SetCurrentLoadTorque(Torque loadTorque)
-        {
-            CurrentLoadTorque = loadTorque;
+            _simpleGearService.SupplyPower(rpm, torque, isClockwise, loadTorque);
         }
 
         public List<GearConnect> GetGearConnects()

@@ -33,9 +33,9 @@ namespace Game.Block.Blocks.BeltConveyor
             _beltConveyorComponent.SetTicksOfItemEnterToExit(uint.MaxValue);
         }
 
-        public override void SupplyPower(RPM rpm, Torque torque, bool isClockwise)
+        public override void SupplyPower(RPM rpm, Torque torque, bool isClockwise, Torque loadTorque)
         {
-            base.SupplyPower(rpm, torque, isClockwise);
+            base.SupplyPower(rpm, torque, isClockwise, loadTorque);
 
             // 稼働率（RPM比 × torqueRate、下限未満で0）を速度に乗じる
             // Apply operating rate (rpmRatio × torqueRate, zero below minimum) to base speed
