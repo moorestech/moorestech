@@ -60,8 +60,6 @@ namespace Game.Gear.Common
             Distribute(state);
         }
 
-        #region Internal
-
         private static List<IGearEnergyTransformer> CollectNodes(
             IReadOnlyList<IGearGenerator> generators,
             IReadOnlyList<IGearEnergyTransformer> nonGenerators)
@@ -214,8 +212,5 @@ namespace Game.Gear.Common
             }
             return reached == nodeCount;
         }
-
-        #endregion
-
     }
 }
