@@ -126,14 +126,16 @@ namespace Client.Starter
         private int PlayerId = ServerConst.DefaultPlayerId;
         private int Port = ServerConst.LocalServerPort;
         
-        protected override void OnDestroy()
-        {
-            _resolver?.Dispose();
-        }
-        
         public IObjectResolver StartGame(InitialHandshakeResponse initialHandshakeResponse)
         {
             var builder = new ContainerBuilder();
+
+            // VContainer scope の破棄を終了パイプライン末尾に登録
+            // Register VContainer scope disposal at the end of the shutdown pipeline
+            Client.Common.Shutdown.ShutdownCoordinator.Register(
+                Client.Common.Shutdown.ShutdownPhase.DisposeSubsystems,
+                "MainGameStarter.DisposeResolver",
+                () => { _resolver?.Dispose(); return Cysharp.Threading.Tasks.UniTask.CompletedTask; });
 
             CameraManager.Initialize();
             
