@@ -26,13 +26,13 @@ namespace Game.Block.Blocks.Machine
         
         #region IBlockElectric implementation
         
-        public ElectricPower RequestEnergy => _vanillaMachineProcessorComponent.RequestPower;
-        
+        public ElectricPower RequestEnergy => new ElectricPower(_vanillaMachineProcessorComponent.RequestPower);
+
         public void SupplyEnergy(ElectricPower power)
         {
             BlockException.CheckDestroy(this);
-            
-            _vanillaMachineProcessorComponent.SupplyPower(power);
+
+            _vanillaMachineProcessorComponent.SupplyPower(power.AsPrimitive());
         }
         
         #endregion
