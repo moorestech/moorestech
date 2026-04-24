@@ -45,6 +45,7 @@
         "Game.Challenge",
         "Game.Challenge.Interface",
         "UniRx",
+        "UniTask",
         "Core.Master",
         "Server.Tests.Module",
         "Game.UnlockState",
