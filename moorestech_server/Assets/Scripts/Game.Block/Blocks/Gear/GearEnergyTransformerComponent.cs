@@ -19,6 +19,7 @@ namespace Game.Block.Blocks.Gear
         public RPM CurrentRpm => _simpleGearService.CurrentRpm;
         public Torque CurrentTorque => _simpleGearService.CurrentTorque;
         public bool IsCurrentClockwise => _simpleGearService.IsCurrentClockwise;
+        public Torque CurrentLoadTorque { get; private set; }
 
         public bool IsDestroy { get; private set; }
 
@@ -72,6 +73,11 @@ namespace Game.Block.Blocks.Gear
         public virtual void SupplyPower(RPM rpm, Torque torque, bool isClockwise)
         {
             _simpleGearService.SupplyPower(rpm, torque, isClockwise);
+        }
+
+        public void SetCurrentLoadTorque(Torque loadTorque)
+        {
+            CurrentLoadTorque = loadTorque;
         }
 
         public List<GearConnect> GetGearConnects()

@@ -15,6 +15,7 @@ namespace Game.Gear.Common
         private readonly Dictionary<BlockInstanceId, GearRotationInfo> _checkedGearComponents = new();
         private readonly List<IGearGenerator> _gearGenerators = new();
         private readonly List<IGearEnergyTransformer> _gearTransformers = new();
+        private readonly GearLoadCalculator.State _loadState = new();
         public readonly GearNetworkId NetworkId;
         
         public GearNetwork(GearNetworkId networkId)
@@ -49,6 +50,14 @@ namespace Game.Gear.Common
         }
         
         public void ManualUpdate()
+        {
+            UpdateRpmAndTorque();
+            // 既存物理計算の結果を踏まえて、各ブロックを通過する負荷トルクをLaplacianベースで計算し書き戻す
+            // After the existing RPM/Torque physics runs, compute per-block load torque via Laplacian and push it back to transformers
+            GearLoadCalculator.ComputeAndDistribute(_gearGenerators, _gearTransformers, _loadState);
+        }
+
+        private void UpdateRpmAndTorque()
         {
             //もっとも早いジェネレーターを選定し、そのジェネレーターを起点として、各歯車コンポーネントのRPMと回転方向を計算していく
             IGearGenerator fastestOriginGenerator = null;

@@ -56,12 +56,20 @@ namespace Game.Block.Blocks.Gear
             {
                 var rpmRatio = _overloadParam.OverloadMaxRpm > 0 ? _gearEnergyTransformer.CurrentRpm.AsPrimitive() / (float)_overloadParam.OverloadMaxRpm : 0f;
                 var torqueRatio = _overloadParam.OverloadMaxTorque > 0 ? _gearEnergyTransformer.CurrentTorque.AsPrimitive() / (float)_overloadParam.OverloadMaxTorque : 0f;
+
+                // 「ブロックを通過する最大トルク」（GearNetworkがLaplacianで計算してtransformerに書き戻す）を OverloadMaxTorque と比較
+                // Compare "max torque flowing adjacent to this block" (pushed into transformer by GearNetwork) against OverloadMaxTorque
+                var loadRatio = _overloadParam.OverloadMaxTorque > 0 ? _gearEnergyTransformer.CurrentLoadTorque.AsPrimitive() / (float)_overloadParam.OverloadMaxTorque : 0f;
+
                 var rpmExcess = rpmRatio > 1f ? rpmRatio : 0f;
                 var torqueExcess = torqueRatio > 1f ? torqueRatio : 0f;
-                if (rpmExcess <= 0f && torqueExcess <= 0f) return 0f;
+                var loadExcess = loadRatio > 1f ? loadRatio : 0f;
+                if (rpmExcess <= 0f && torqueExcess <= 0f && loadExcess <= 0f) return 0f;
 
-                var multiplier = rpmExcess > 0f && torqueExcess > 0f ? rpmExcess * torqueExcess : Math.Max(rpmExcess, torqueExcess);
-                var probability = (float)(_overloadParam.BaseDestructionProbability * multiplier);
+                // 過剰量の最大値で確率を算出（複数指標がある場合は最も厳しいもの）
+                // Probability driven by the most severe excess metric
+                var maxExcess = Math.Max(loadExcess, Math.Max(rpmExcess, torqueExcess));
+                var probability = (float)(_overloadParam.BaseDestructionProbability * maxExcess);
                 return Mathf.Clamp01(probability);
             }
 

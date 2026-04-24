@@ -17,11 +17,16 @@ namespace Game.Gear.Common
         public Torque CurrentTorque { get; }
         public bool IsCurrentClockwise { get; }
 
+        // 隣接エッジを通過するトルクの最大値（Laplacian解から算出）。過負荷破壊判定用
+        // Max torque flowing across adjacent edges (from Laplacian solve). Used for overload breakage
+        public Torque CurrentLoadTorque { get; }
+
         public Torque GetRequiredTorque(RPM rpm, bool isClockwise);
 
         public void StopNetwork();
         public void SupplyPower(RPM rpm, Torque torque, bool isClockwise);
-        
+        public void SetCurrentLoadTorque(Torque loadTorque);
+
         public List<GearConnect> GetGearConnects();
     }
     

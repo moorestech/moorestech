@@ -203,6 +203,7 @@ namespace Game.Block.Blocks.GearChainPole
         public RPM CurrentRpm => _gearService.CurrentRpm;
         public Torque CurrentTorque => _gearService.CurrentTorque;
         public bool IsCurrentClockwise => _gearService.IsCurrentClockwise;
+        public Torque CurrentLoadTorque { get; private set; }
 
 
         public void StopNetwork()
@@ -217,6 +218,11 @@ namespace Game.Block.Blocks.GearChainPole
             // 入力された回転をサービスへ転送する
             // Forward supplied rotation to service
             _gearService.SupplyPower(rpm, torque, isClockwise);
+        }
+
+        public void SetCurrentLoadTorque(Torque loadTorque)
+        {
+            CurrentLoadTorque = loadTorque;
         }
 
         #endregion
