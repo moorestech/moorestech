@@ -65,17 +65,19 @@ namespace Server.Event.EventReceive
 
             void PruneStaleHashes(uint targetHashTick)
             {
-                var staleTicks = new List<uint>();
-                foreach (var kv in _hashStatesByTick)
+                // キーをスナップショットしてから enumerate / remove する。
+                // Dictionary のバージョンカウンタが enumerate 中に更新されても例外にしない
+                // Snapshot the keys before enumerating / removing, so version bumps
+                // during iteration don't throw "Collection was modified"
+                var snapshot = new uint[_hashStatesByTick.Count];
+                _hashStatesByTick.Keys.CopyTo(snapshot, 0);
+                for (var i = 0; i < snapshot.Length; i++)
                 {
-                    if (kv.Key < targetHashTick)
+                    var key = snapshot[i];
+                    if (key < targetHashTick)
                     {
-                        staleTicks.Add(kv.Key);
+                        _hashStatesByTick.Remove(key);
                     }
-                }
-                for (var i = 0; i < staleTicks.Count; i++)
-                {
-                    _hashStatesByTick.Remove(staleTicks[i]);
                 }
             }
 
