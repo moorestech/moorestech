@@ -6,7 +6,6 @@ using Game.Block.Component;
 using Game.Block.Event;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
-using Game.EnergySystem;
 using Game.Gear.Common;
 using Mooresmaster.Model.BlocksModule;
 
@@ -40,7 +39,7 @@ namespace Game.Block.Factory.BlockTemplate
             var gearConsumption = minerParam.GearConsumption;
             var gearEnergyTransformer = new GearEnergyTransformer(gearConsumption, blockInstanceId, gearConnector);
 
-            var requestPower = new ElectricPower((float)(gearConsumption.BaseTorque * gearConsumption.BaseRpm));
+            var requestPower = (float)(gearConsumption.BaseTorque * gearConsumption.BaseRpm);
             var outputSlot = minerParam.OutputItemSlotCount;
             var inventoryConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(minerParam.InventoryConnectors, blockPositionInfo);
             var minerProcessorComponent = componentStates == null ? 

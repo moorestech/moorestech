@@ -9,7 +9,6 @@ using Game.Block.Component;
 using Game.Block.Event;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
-using Game.EnergySystem;
 using Mooresmaster.Model.BlocksModule;
 
 namespace Game.Block.Factory.BlockTemplate
@@ -32,7 +31,7 @@ namespace Game.Block.Factory.BlockTemplate
             var blockId = MasterHolder.BlockMaster.GetBlockId(blockMasterElement.BlockGuid);
             var (input, output) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inputConnectorComponent, _blockInventoryUpdateEvent);
             
-            var processor = new VanillaMachineProcessorComponent(input, output, null, new ElectricPower(machineParam.RequiredPower));
+            var processor = new VanillaMachineProcessorComponent(input, output, null, machineParam.RequiredPower);
             
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output);
             var machineSave = new VanillaMachineSaveComponent(input, output, processor);
@@ -72,7 +71,7 @@ namespace Game.Block.Factory.BlockTemplate
             var blockId = MasterHolder.BlockMaster.GetBlockId(blockMasterElement.BlockGuid);
             var (input, output) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inputConnectorComponent, _blockInventoryUpdateEvent);
             
-            var processor = BlockTemplateUtil.MachineLoadState(componentStates, input, output, new ElectricPower(machineParam.RequiredPower), blockMasterElement);
+            var processor = BlockTemplateUtil.MachineLoadState(componentStates, input, output, machineParam.RequiredPower, blockMasterElement);
             
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output);
             var machineSave = new VanillaMachineSaveComponent(input, output, processor);
