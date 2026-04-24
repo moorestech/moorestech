@@ -44,7 +44,8 @@
 
 ### 2.1 前提
 
-- 「メインメニューに戻る」機能は削除する。セッション終了 = アプリ終了の 1 種類のみを扱う
+- ポーズメニューの「メインメニューに戻る」機能（`BackToMainMenu`）は削除する。セッション終了 = アプリ終了の 1 種類のみを扱う
+- ただしロード画面中断ボタン・接続失敗時の自動遷移・切断ダイアログの戻るボタンなど、**エラー復帰 UI として MainMenu シーンへ戻る経路は残す**（`InitializeScenePipeline.backToMainMenuButton`、`NetworkDisconnectPresenter.goToMainMenuButton`、接続失敗時の `SceneManager.LoadScene(MainMenu)`）。これらは本 spec のスコープ外とし、将来別タスクで Coordinator 主導の終了 UI に差し替える
 - クライアントが閉じる ⇒ クライアントが起動したローカルサーバープロセスも一緒に落ちる
 - 後方互換性は考慮不要
 
@@ -257,3 +258,10 @@ public enum ShutdownPhase
 ## 9. 未決事項
 
 なし（§1〜§4 で全て合意済み）。
+
+## 10. フォローアップ（別タスク）
+
+- `NetworkDisconnectPresenter.goToMainMenuButton`・`InitializeScenePipeline.backToMainMenuButton`・接続失敗時の `SceneManager.LoadScene(MainMenu)` を整理し、エラー復帰フローを ShutdownCoordinator 主導の UI に統合する
+- `Steps_RunInPhaseThenRegistrationOrder` テストを要素数 17 以上に拡張し、stable sort 契約を明示的に回帰テスト化する
+- `Task.Delay(Timeout)` を `CancellationToken` でキャンセル可能にして完了側パスでリソースを即解放する
+- サーバー側に `Register_AfterShutdown_IsIgnored` テストを追加してクライアントと対称化する
