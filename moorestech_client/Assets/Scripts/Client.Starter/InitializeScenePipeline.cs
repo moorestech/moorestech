@@ -196,7 +196,10 @@ namespace Client.Starter
                 
                 //Vanilla APIの作成
                 vanillaApi = new VanillaApi(exchangeManager, packetSender, serverCommunicator, playerConnectionSetting, _proprieties.LocalServerProcess);
-                
+                // VContainer 経由ではなく手動生成のため Initialize を明示的に呼んで終了ステップを登録する
+                // Manually invoke Initialize because VanillaApi is not resolved via VContainer; this registers shutdown steps
+                vanillaApi.Initialize();
+
                 //最初に必要なデータを取得
                 // Fetch the initial data bundle
                 handshakeResponse = await vanillaApi.Response.InitialHandShake(playerConnectionSetting.PlayerId, default);

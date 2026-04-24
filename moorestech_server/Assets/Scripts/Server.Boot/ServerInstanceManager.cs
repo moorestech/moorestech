@@ -39,20 +39,24 @@ namespace Server.Boot
             // Register stop-accepting, stop-update, and subsystem dispose into the shutdown pipeline
             ShutdownCoordinator.Register(ShutdownPhase.StopAcceptingConnections, "Server.CancelTokens",
                 () => { _cancellationTokenSource?.Cancel(); return UniTask.CompletedTask; });
-            ShutdownCoordinator.Register(ShutdownPhase.StopUpdate, "Server.JoinThreads",
-                () => { JoinThreads(); return UniTask.CompletedTask; });
+            ShutdownCoordinator.Register(ShutdownPhase.StopUpdate, "Server.JoinThreads", JoinThreadsAsync);
             ShutdownCoordinator.Register(ShutdownPhase.DisposeSubsystems, "Server.GameUpdater.Dispose",
                 () => { GameUpdater.Dispose(); return UniTask.CompletedTask; });
         }
 
-        // 両スレッドは CancellationToken を監視しているので Cancel 後の自然終了を待つ
-        // Both threads observe CancellationToken; wait for natural exit after Cancel
-        private void JoinThreads()
+        // 両スレッドは CancellationToken を監視しているので Cancel 後の自然終了を並列に待つ
+        // Both threads observe CancellationToken; wait for natural exit in parallel after Cancel
+        private async UniTask JoinThreadsAsync()
         {
-            if (_connectionUpdateThread != null && !_connectionUpdateThread.Join(ThreadJoinTimeout))
-                Debug.LogWarning("[ServerInstanceManager] connection update thread did not exit within timeout");
-            if (_gameUpdateThread != null && !_gameUpdateThread.Join(ThreadJoinTimeout))
-                Debug.LogWarning("[ServerInstanceManager] game update thread did not exit within timeout");
+            await UniTask.WhenAll(
+                UniTask.RunOnThreadPool(() => JoinOne(_connectionUpdateThread, "connection update thread")),
+                UniTask.RunOnThreadPool(() => JoinOne(_gameUpdateThread, "game update thread")));
+        }
+
+        private static void JoinOne(Thread thread, string label)
+        {
+            if (thread != null && !thread.Join(ThreadJoinTimeout))
+                Debug.LogWarning($"[ServerInstanceManager] {label} did not exit within timeout");
         }
 
         private static (Thread connectionUpdateThread, Thread gameUpdateThread, CancellationTokenSource cancellationTokenSource) StartInternal(string[] args)
