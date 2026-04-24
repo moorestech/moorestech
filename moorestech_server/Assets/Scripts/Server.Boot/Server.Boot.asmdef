@@ -37,7 +37,8 @@
         "Game.Paths",
         "Game.Research",
         "Game.Action",
-        "UniRx"
+        "UniRx",
+        "UniTask"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
