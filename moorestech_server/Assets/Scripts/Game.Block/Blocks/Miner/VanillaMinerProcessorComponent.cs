@@ -15,7 +15,6 @@ using Game.Block.Interface.Component;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.State;
 using Game.Context;
-using Game.EnergySystem;
 using Game.Map.Interface.Vein;
 using MessagePack;
 using Mooresmaster.Model.MineSettingsModule;
@@ -27,7 +26,7 @@ namespace Game.Block.Blocks.Miner
     public class VanillaMinerProcessorComponent : IOpenableBlockInventoryComponent, IBlockSaveState, IBlockStateObservable, IUpdatableBlockComponent
     {
         public bool IsDestroy { get; private set; }
-        public ElectricPower RequestEnergy { get; }
+        public float RequestEnergy { get; }
         public IObservable<Unit> OnChangeBlockState => _blockStateChangeSubject;
         private Subject<Unit> _blockStateChangeSubject = new();
         
@@ -41,7 +40,7 @@ namespace Game.Block.Blocks.Miner
         // 次のエネルギー供給かアップデートがあるまでは_currentPowerを維持しておきたいのでこのフラグを使う
         // Use this flag because you want to keep _currentPower until the next energy supply or update
         private bool _usedPower;
-        private ElectricPower _currentPower;
+        private float _currentPower;
 
         private uint _defaultMiningTicks;
         private uint _remainingTicks;
@@ -49,7 +48,7 @@ namespace Game.Block.Blocks.Miner
         private VanillaMinerState _lastMinerState;
         private VanillaMinerState _currentState = VanillaMinerState.Idle;
         
-        public VanillaMinerProcessorComponent(BlockInstanceId blockInstanceId, ElectricPower requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo, MineSettings mineSettings)
+        public VanillaMinerProcessorComponent(BlockInstanceId blockInstanceId, float requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo, MineSettings mineSettings)
         {
             _blockInstanceId = blockInstanceId;
             RequestEnergy = requestPower;
@@ -83,7 +82,7 @@ namespace Game.Block.Blocks.Miner
             #endregion
         }
         
-        public VanillaMinerProcessorComponent(Dictionary<string, string> componentStates, BlockInstanceId blockInstanceId, ElectricPower requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo, MineSettings mineSettings)
+        public VanillaMinerProcessorComponent(Dictionary<string, string> componentStates, BlockInstanceId blockInstanceId, float requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo, MineSettings mineSettings)
             : this(blockInstanceId, requestPower, outputSlotCount, openableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo, mineSettings)
         {
             var saveJsonObject = JsonConvert.DeserializeObject<VanillaElectricMinerSaveJsonObject>(componentStates[SaveKey]);
@@ -101,7 +100,7 @@ namespace Game.Block.Blocks.Miner
             _remainingTicks = GameUpdater.SecondsToTicks(saveJsonObject.RemainingSeconds);
         }
         
-        public void SupplyPower(ElectricPower power)
+        public void SupplyPower(float power)
         {
             BlockException.CheckDestroy(this);
             
@@ -139,7 +138,7 @@ namespace Game.Block.Blocks.Miner
             if (_usedPower)
             {
                 _usedPower = false;
-                _currentPower = new ElectricPower(0);
+                _currentPower = 0f;
             }
             
             MinerProgressUpdate();
@@ -243,7 +242,7 @@ namespace Game.Block.Blocks.Miner
             BlockStateDetail GetMachineBlockStateDetail()
             {
                 var processingRate = _defaultMiningTicks > 0 ? 1 - (float)_remainingTicks / _defaultMiningTicks : 0;
-                var stateDetail = new CommonMachineBlockStateDetail(_currentPower.AsPrimitive(), RequestEnergy.AsPrimitive(), processingRate, _currentState.ToStr(), _lastMinerState.ToStr());
+                var stateDetail = new CommonMachineBlockStateDetail(_currentPower, RequestEnergy, processingRate, _currentState.ToStr(), _lastMinerState.ToStr());
                 var stateDetailBytes = MessagePackSerializer.Serialize(stateDetail);
                 return new BlockStateDetail(CommonMachineBlockStateDetail.BlockStateDetailKey, stateDetailBytes);
             }

@@ -7,7 +7,6 @@ using Game.Block.Blocks.Util;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
-using Game.EnergySystem;
 using Game.Map.Interface.MapObject;
 using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.MapObjectMineSettingsModule;
@@ -17,7 +16,7 @@ namespace Game.Block.Blocks.MapObjectMiner
 {
     public class VanillaGearMapObjectMinerProcessorComponent : IUpdatableBlockComponent, IBlockSaveState
     {
-        private readonly ElectricPower _requestEnergy;
+        private readonly float _requestEnergy;
         private readonly VanillaChestComponent _vanillaChestComponent;
         
         // 採掘対象
@@ -25,11 +24,11 @@ namespace Game.Block.Blocks.MapObjectMiner
         private readonly List<Guid> _miningTargetGuids;
         private readonly Dictionary<Guid, MiningTargetInfo> _miningTargetInfos;
         
-        private ElectricPower _currentPower;
+        private float _currentPower;
         
         public VanillaGearMapObjectMinerProcessorComponent(BlockPositionInfo blockPositionInfo, GearMapObjectMinerBlockParam blockParam, VanillaChestComponent vanillaChestComponent)
         {
-            _requestEnergy = new ElectricPower((float)(blockParam.GearConsumption.BaseTorque * blockParam.GearConsumption.BaseRpm));
+            _requestEnergy = (float)(blockParam.GearConsumption.BaseTorque * blockParam.GearConsumption.BaseRpm);
             _vanillaChestComponent = vanillaChestComponent;
             
             var minPos = blockPositionInfo.MinPos - blockParam.MiningAreaRange;
@@ -80,11 +79,11 @@ namespace Game.Block.Blocks.MapObjectMiner
             }
         }
         
-        public void SupplyPower(ElectricPower currentElectricPower)
+        public void SupplyPower(float currentPower)
         {
             BlockException.CheckDestroy(this);
-            
-            _currentPower = currentElectricPower;
+
+            _currentPower = currentPower;
         }
         
         public void Update()

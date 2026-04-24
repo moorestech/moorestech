@@ -5,7 +5,6 @@ using Game.Block.Blocks.Util;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
-using Game.EnergySystem;
 using MessagePack;
 using Mooresmaster.Model.MachineRecipesModule;
 using UniRx;
@@ -25,12 +24,12 @@ namespace Game.Block.Blocks.Machine
         private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
         private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
 
-        public readonly ElectricPower RequestPower;
+        public readonly float RequestPower;
 
         // 次のエネルギー供給かアップデートがあるまでは_currentPowerを維持しておきたいのでこのフラグを使う
         // Use this flag because you want to keep _currentPower until the next energy supply or update
         private bool _usedPower;
-        private ElectricPower _currentPower;
+        private float _currentPower;
         private ProcessState _lastState = ProcessState.Idle;
         private MachineRecipeMasterElement _processingRecipe;
         private uint _processingRecipeTicks;
@@ -39,7 +38,7 @@ namespace Game.Block.Blocks.Machine
         public VanillaMachineProcessorComponent(
             VanillaMachineInputInventory vanillaMachineInputInventory,
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
-            MachineRecipeMasterElement machineRecipe, ElectricPower requestPower)
+            MachineRecipeMasterElement machineRecipe, float requestPower)
         {
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
@@ -51,7 +50,7 @@ namespace Game.Block.Blocks.Machine
             VanillaMachineInputInventory vanillaMachineInputInventory,
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
             ProcessState currentState, uint remainingTicks, MachineRecipeMasterElement processingRecipe,
-            ElectricPower requestPower)
+            float requestPower)
         {
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
@@ -75,13 +74,13 @@ namespace Game.Block.Blocks.Machine
             if (processingRate < 0f) processingRate = 0f;
             else if (processingRate > 1f) processingRate = 1f;
 
-            var commonMachineBlock = CommonMachineBlockStateDetail.CreateState(_currentPower.AsPrimitive(), RequestPower.AsPrimitive(), processingRate, CurrentState.ToStr(), _lastState.ToStr());
+            var commonMachineBlock = CommonMachineBlockStateDetail.CreateState(_currentPower, RequestPower, processingRate, CurrentState.ToStr(), _lastState.ToStr());
             var machineBlock = MachineBlockStateDetail.CreateState(processingRate, _processingRecipe?.MachineRecipeGuid ?? Guid.Empty);
 
             return new[] { commonMachineBlock, machineBlock };
         }
         
-        public void SupplyPower(ElectricPower power)
+        public void SupplyPower(float power)
         {
             BlockException.CheckDestroy(this);
             _usedPower = false;
@@ -101,7 +100,7 @@ namespace Game.Block.Blocks.Machine
             if (_usedPower)
             {
                 _usedPower = false;
-                _currentPower = new ElectricPower(0);
+                _currentPower = 0f;
             }
             
             switch (CurrentState)

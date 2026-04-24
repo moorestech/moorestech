@@ -18,7 +18,7 @@ namespace Game.Block.Blocks.Miner
 
         private void OnGearUpdate(GearUpdateType gearUpdateType)
         {
-            _vanillaMinerProcessorComponent.SupplyPower(_gearEnergyTransformer.GetCurrentSuppliedPower());
+            _vanillaMinerProcessorComponent.SupplyPower(_gearEnergyTransformer.GetCurrentSuppliedPower().AsPrimitive());
         }
 
         public bool IsDestroy { get; private set; }

@@ -24,7 +24,7 @@ namespace Game.Block.Blocks.Machine
 
         private void OnGearUpdate(GearUpdateType gearUpdateType)
         {
-            _vanillaMachineProcessorComponent.SupplyPower(_gearEnergyTransformer.GetCurrentSuppliedPower());
+            _vanillaMachineProcessorComponent.SupplyPower(_gearEnergyTransformer.GetCurrentSuppliedPower().AsPrimitive());
         }
 
         public bool IsDestroy { get; private set; }
