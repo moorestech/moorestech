@@ -26,14 +26,6 @@ defineInterface:
   properties:
   - key: itemSlotCount
     type: integer
-- interfaceName: IGearMachineParam
-  properties:
-  - key: requireTorque
-    type: number
-    default: 1
-  - key: requiredRpm
-    type: number
-    default: 5
 - interfaceName: IMinerParam
   properties:
   - key: outputItemSlotCount
@@ -290,9 +282,8 @@ properties:
         - key: teethCount
           type: integer
           default: 10
-        - key: requireTorque
-          type: number
-          default: 1
+        - key: gearConsumption
+          ref: gearConsumption
         - key: overloadMaxRpm
           type: number
           default: 0
@@ -313,9 +304,8 @@ properties:
         - IGearConnectors
         - IGearOverloadParam
         properties:
-        - key: requireTorque
-          type: number
-          default: 1
+        - key: gearConsumption
+          ref: gearConsumption
         - key: overloadMaxRpm
           type: number
           default: 0
@@ -341,13 +331,14 @@ properties:
         - key: maxConnectionCount
           type: integer
           default: 5
+        - key: gearConsumption
+          ref: gearConsumption
         - key: gear
           ref: gear
       - when: GearMachine
         type: object
         implementationInterface:
         - IMachineParam
-        - IGearMachineParam
         - IInventoryConnectors
         - IGearConnectors
         properties:
@@ -362,12 +353,8 @@ properties:
         - key: teethCount
           type: integer
           default: 10
-        - key: requireTorque
-          type: number
-          default: 1
-        - key: requiredRpm
-          type: number
-          default: 5
+        - key: gearConsumption
+          ref: gearConsumption
         - key: gear
           ref: gear
         - key: inputTankCount
@@ -489,9 +476,8 @@ properties:
         - key: beltConveyorSpeed
           type: number
           default: 2
-        - key: requireTorquePerRpm
-          type: number
-          default: 0.002
+        - key: gearConsumption
+          ref: gearConsumption
         - key: slopeType
           type: enum
           options:
@@ -517,7 +503,6 @@ properties:
       - when: GearMiner
         type: object
         implementationInterface:
-        - IGearMachineParam
         - IMinerParam
         - IInventoryConnectors
         - IGearConnectors
@@ -525,12 +510,8 @@ properties:
         - key: teethCount
           type: integer
           default: 10
-        - key: requireTorque
-          type: number
-          default: 1
-        - key: requiredRpm
-          type: number
-          default: 5
+        - key: gearConsumption
+          ref: gearConsumption
         - key: outputItemSlotCount
           type: integer
           default: 3
@@ -544,19 +525,14 @@ properties:
         type: object
         implementationInterface:
         - IChestParam
-        - IGearMachineParam
         - IInventoryConnectors
         - IGearConnectors
         properties:
         - key: teethCount
           type: integer
           default: 10
-        - key: requireTorque
-          type: number
-          default: 1
-        - key: requiredRpm
-          type: number
-          default: 5
+        - key: gearConsumption
+          ref: gearConsumption
         - key: itemSlotCount
           type: integer
           default: 3
@@ -718,12 +694,8 @@ properties:
         - key: innerTankCapacity
           type: number
           default: 100
-        - key: requireTorque
-          type: number
-          default: 1
-        - key: requiredRpm
-          type: number
-          default: 5
+        - key: gearConsumption
+          ref: gearConsumption
         - key: fluidInventoryConnectors
           ref: fluidInventoryConnects
         - key: gear
@@ -749,12 +721,8 @@ properties:
         - key: teethCount
           type: integer
           default: 10
-        - key: requiredRpm
-          type: number
-          default: 120
-        - key: requiredTorque
-          type: number
-          default: 100
+        - key: gearConsumption
+          ref: gearConsumption
         - key: maxGeneratedPower
           type: number
           default: 100

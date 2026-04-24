@@ -4,6 +4,7 @@ using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Blocks.Chest;
+using Game.Block.Blocks.Gear;
 using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -222,7 +223,9 @@ namespace Tests.CombinedTest.Core
             {
                 // スプリッターに歯車エネルギーを供給する
                 // Supply gear energy to splitter
-                gearBeltConveyorComponent.SupplyPower(new RPM(20), new Torque(20 * splitterParam.RequireTorquePerRpm), true);
+                var consumption = splitterParam.GearConsumption;
+                var requiredTorqueAt20 = GearConsumptionCalculator.CalcRequiredTorque(consumption, new RPM(20));
+                gearBeltConveyorComponent.SupplyPower(new RPM(20), requiredTorqueAt20, true);
                 GameUpdater.UpdateOneTick();
             }
             

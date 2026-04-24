@@ -13,7 +13,7 @@ namespace Game.Block.Blocks.Gear
         public bool GenerateIsClockwise { get; }
         
         public SimpleGearGeneratorComponent(SimpleGearGeneratorBlockParam simpleGearGeneratorBlockParam, BlockInstanceId blockInstanceId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent) :
-            base(new Torque(0), blockInstanceId, connectorComponent)
+            base(null, blockInstanceId, connectorComponent)
         {
             TeethCount = simpleGearGeneratorBlockParam.TeethCount;
             GenerateRpm = new RPM(simpleGearGeneratorBlockParam.GenerateRpm);

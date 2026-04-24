@@ -1023,7 +1023,6 @@
       "name": "SmallTestGear",
       "blockType": "Gear",
       "blockParam": {
-        "requireTorque": 0,
         "overloadMaxRpm": 10,
         "overloadMaxTorque": 10,
         "destructionCheckInterval": 0.01,
@@ -1090,6 +1089,13 @@
               "connectorGuid": "f2a52ab6-299d-4da8-a3b5-dd9877ad8a49"
             }
           ]
+        },
+        "gearConsumption": {
+          "baseTorque": 0,
+          "baseRpm": 5,
+          "minimumRpm": 0,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
         }
       },
       "itemGuid": "00000000-0000-0000-1234-000000000014",
@@ -1122,7 +1128,6 @@
       "name": "BigTestGear",
       "blockType": "Gear",
       "blockParam": {
-        "requireTorque": 0,
         "teethCount": 20,
         "gear": {
           "gearConnects": [
@@ -1231,7 +1236,14 @@
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
-        "baseDestructionProbability": 0
+        "baseDestructionProbability": 0,
+        "gearConsumption": {
+          "baseTorque": 0,
+          "baseRpm": 5,
+          "minimumRpm": 0,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
+        }
       },
       "itemGuid": "16000000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-00000000000d",
@@ -1263,7 +1275,6 @@
       "name": "TestShaft",
       "blockType": "Shaft",
       "blockParam": {
-        "requireTorque": 0.1,
         "gear": {
           "gearConnects": [
             {
@@ -1295,7 +1306,14 @@
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
-        "baseDestructionProbability": 0
+        "baseDestructionProbability": 0,
+        "gearConsumption": {
+          "baseTorque": 0.1,
+          "baseRpm": 5,
+          "minimumRpm": 0,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
+        }
       },
       "itemGuid": "17000000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-00000000000e",
@@ -1366,6 +1384,13 @@
               "connectorGuid": "e0f629c1-18c1-4085-ad94-1cea75b6de57"
             }
           ]
+        },
+        "gearConsumption": {
+          "baseTorque": 0,
+          "baseRpm": 5,
+          "minimumRpm": 0,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
         }
       },
       "itemGuid": "7f2b0f6c-1d8a-4e37-9c3a-b9da1abbe7b7",
@@ -1398,8 +1423,6 @@
       "name": "TestGearMachine",
       "blockType": "GearMachine",
       "blockParam": {
-        "requiredRpm": 10,
-        "requireTorque": 0.1,
         "teethCount": 10,
         "outputSlotCount": 3,
         "inputSlotCount": 2,
@@ -1520,7 +1543,14 @@
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
-        "baseDestructionProbability": 0
+        "baseDestructionProbability": 0,
+        "gearConsumption": {
+          "baseRpm": 10,
+          "minimumRpm": 0,
+          "baseTorque": 0.1,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
+        }
       },
       "itemGuid": "18000000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-00000000000f",
@@ -1708,7 +1738,6 @@
       "itemGuid": "11200000-0000-0000-0000-000000000000",
       "blockType": "Gear",
       "blockParam": {
-        "requireTorque": 1,
         "teethCount": 10,
         "gear": {
           "gearConnects": [
@@ -1775,7 +1804,14 @@
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
-        "baseDestructionProbability": 0
+        "baseDestructionProbability": 0,
+        "gearConsumption": {
+          "baseTorque": 1,
+          "baseRpm": 5,
+          "minimumRpm": 0,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
+        }
       },
       "name": "Teeth10RequireTorqueTestGear",
       "blockGuid": "00000000-0000-0000-0000-000000000012",
@@ -1808,7 +1844,6 @@
       "itemGuid": "11300000-0000-0000-0000-000000000000",
       "blockType": "Gear",
       "blockParam": {
-        "requireTorque": 1,
         "teethCount": 20,
         "gear": {
           "gearConnects": [
@@ -1875,7 +1910,14 @@
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
-        "baseDestructionProbability": 0
+        "baseDestructionProbability": 0,
+        "gearConsumption": {
+          "baseTorque": 1,
+          "baseRpm": 5,
+          "minimumRpm": 0,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
+        }
       },
       "blockGuid": "00000000-0000-0000-0000-000000000013",
       "overrideVerticalBlock": {}
@@ -1968,7 +2010,6 @@
       "blockParam": {
         "beltConveyorItemCount": 4,
         "beltConveyorSpeed": 0.25,
-        "requireTorquePerRpm": 0.002,
         "overloadMaxRpm": 10,
         "overloadMaxTorque": 10,
         "destructionCheckInterval": 0.01,
@@ -1979,18 +2020,42 @@
             {
               "connectType": "Inventory",
               "connectorGuid": "5ae77921-ab7e-4eda-91a0-81dd09ec131b",
-              "offset": [0, 0, 0],
-              "directions": [[0, 0, -1]],
-              "connectOption": { "inventoryOptions": [] }
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ],
           "outputConnects": [
             {
               "connectType": "Inventory",
               "connectorGuid": "e52edf59-03f1-4beb-a77f-7d47bfb224c2",
-              "offset": [0, 0, 0],
-              "directions": [[0, 0, 1]],
-              "connectOption": { "inventoryOptions": [] }
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
             }
           ]
         },
@@ -1999,11 +2064,45 @@
             {
               "connectType": "Gear",
               "connectorGuid": "79243017-2300-4b39-b145-ab024c959800",
-              "offset": [0, 0, 0],
-              "directions": [[1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1]],
-              "connectOption": { "isReverse": false }
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "isReverse": false
+              }
             }
           ]
+        },
+        "gearConsumption": {
+          "baseRpm": 500,
+          "minimumRpm": 0,
+          "baseTorque": 1,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
         }
       },
       "itemGuid": "30000000-0000-0000-0000-000000000000",
@@ -2021,7 +2120,6 @@
       "blockParam": {
         "beltConveyorItemCount": 4,
         "beltConveyorSpeed": 0.25,
-        "requireTorquePerRpm": 0.002,
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
@@ -2158,6 +2256,13 @@
               }
             }
           ]
+        },
+        "gearConsumption": {
+          "baseRpm": 500,
+          "minimumRpm": 0,
+          "baseTorque": 1,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
         }
       },
       "itemGuid": "11800000-0000-0000-0000-000000000000",
@@ -2600,9 +2705,7 @@
           ],
           "inputConnects": []
         },
-        "requiredRpm": 10,
         "teethCount": 10,
-        "requireTorque": 1,
         "mineSettings": [
           {
             "time": 1,
@@ -2612,7 +2715,14 @@
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
-        "baseDestructionProbability": 0
+        "baseDestructionProbability": 0,
+        "gearConsumption": {
+          "baseRpm": 10,
+          "minimumRpm": 0,
+          "baseTorque": 1,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
+        }
       },
       "blockSize": [
         1,
@@ -2799,8 +2909,6 @@
       "blockType": "GearMapObjectMiner",
       "blockParam": {
         "itemSlotCount": 3,
-        "requiredRpm": 5,
-        "requireTorque": 1,
         "teethCount": 10,
         "miningAreaRange": [
           3,
@@ -2864,7 +2972,14 @@
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
-        "baseDestructionProbability": 0
+        "baseDestructionProbability": 0,
+        "gearConsumption": {
+          "baseRpm": 5,
+          "minimumRpm": 0,
+          "baseTorque": 1,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
+        }
       },
       "name": "TestGearMapObjectMiner",
       "blockGuid": "00000000-0000-0000-0000-000000000027",
@@ -3447,8 +3562,6 @@
           }
         ],
         "innerTankCapacity": 100,
-        "requireTorque": 5,
-        "requiredRpm": 10,
         "fluidInventoryConnectors": {
           "outflowConnects": [
             {
@@ -3530,7 +3643,14 @@
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
-        "baseDestructionProbability": 0
+        "baseDestructionProbability": 0,
+        "gearConsumption": {
+          "baseRpm": 10,
+          "minimumRpm": 0,
+          "baseTorque": 5,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
+        }
       }
     },
     {
@@ -3617,8 +3737,6 @@
       "blockUIAddressablesPath": "",
       "blockParam": {
         "teethCount": 10,
-        "requiredRpm": 120,
-        "requiredTorque": 100,
         "maxGeneratedPower": 100,
         "gear": {
           "gearConnects": [
@@ -3661,7 +3779,14 @@
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
-        "baseDestructionProbability": 0
+        "baseDestructionProbability": 0,
+        "gearConsumption": {
+          "baseRpm": 120,
+          "minimumRpm": 0,
+          "baseTorque": 100,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
+        }
       },
       "overrideVerticalBlock": {}
     },
@@ -3674,7 +3799,6 @@
       "name": "GearBeltConveyorSplitter",
       "blockType": "GearBeltConveyor",
       "blockParam": {
-        "requireTorquePerRpm": 0.1,
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
@@ -3812,10 +3936,13 @@
           ]
         },
         "slopeType": "Straight",
-        "overloadMaxRpm": 0,
-        "overloadMaxTorque": 0,
-        "destructionCheckInterval": 1,
-        "baseDestructionProbability": 0
+        "gearConsumption": {
+          "baseRpm": 500,
+          "minimumRpm": 0,
+          "baseTorque": 1,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
+        }
       },
       "itemGuid": "fa9df7cd-b3ba-4df0-9f86-f477e1a8a30e",
       "blockGuid": "eccb9f59-4439-4caf-9ae8-67da50549040",
