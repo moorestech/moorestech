@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -43,9 +44,11 @@ namespace Client.Common.Shutdown
         {
             List<(ShutdownPhase phase, string name, Func<UniTask> step)> snapshot;
             lock (_lock) { snapshot = new List<(ShutdownPhase, string, Func<UniTask>)>(_steps); }
-            snapshot.Sort((a, b) => a.phase.CompareTo(b.phase));
+            // OrderBy は stable なので同一フェーズ内の登録順が保たれる
+            // OrderBy is stable, so registration order within the same phase is preserved
+            var sorted = snapshot.OrderBy(s => s.phase).ToList();
 
-            foreach (var (phase, name, step) in snapshot)
+            foreach (var (phase, name, step) in sorted)
             {
                 Debug.Log($"[ShutdownCoordinator] [{phase}] {name} start");
                 try
