@@ -14,6 +14,7 @@ using static Server.Protocol.PacketResponse.RailConnectionEditProtocol;
 using static Server.Protocol.PacketResponse.PlaceTrainCarOnRailProtocol;
 using static Server.Protocol.PacketResponse.SubscribeInventoryProtocol;
 using static Server.Protocol.PacketResponse.GearChainConnectionEditProtocol;
+using static Server.Protocol.PacketResponse.TrainCarRidingInputProtocol;
 
 namespace Client.Network.API
 {
@@ -131,6 +132,12 @@ namespace Client.Network.API
         {
             var railPositionSnapshot = new RailPositionSnapshotMessagePack(railPosition?.CreateSaveSnapshot());
             var request = new PlaceTrainOnRailRequestMessagePack(railPositionSnapshot, hotBarSlot, _playerId);
+            _packetSender.Send(request);
+        }
+
+        public void SendTrainCarRidingInput(TrainCarInstanceId ridingTrainCarInstanceId, bool w, bool a, bool s, bool d)
+        {
+            var request = new TrainCarRidingInputMessagePack(_playerId, ridingTrainCarInstanceId.AsPrimitive(), w, a, s, d);
             _packetSender.Send(request);
         }
         

@@ -60,7 +60,9 @@ namespace Client.Starter
     public class MainGameStarter : LifetimeScope
     {
         // Hierarchy上にある依存解決が必要なものをまとめたところ
+        // Collect dependencies on hierarchy here
         //TODO regionでちゃんと分類分けしたい
+        // TODO classify this properly with regions
         
         [Header("InHierarchy")] [SerializeField]
         private Camera mainCamera;
@@ -155,6 +157,7 @@ namespace Client.Starter
             builder.RegisterEntryPoint<SkitFireManager>();
             builder.RegisterEntryPoint<RailGraphCacheNetworkHandler>();
             builder.RegisterEntryPoint<RailGraphConnectionNetworkHandler>();
+            builder.RegisterEntryPoint<TrainCarRidingInputSender>();
             builder.RegisterEntryPoint<TrainUnitSnapshotEventNetworkHandler>();
             builder.RegisterEntryPoint<TrainUnitTickDiffBundleEventNetworkHandler>();
             
@@ -199,6 +202,7 @@ namespace Client.Starter
             builder.Register<RailGraphClientCache>(Lifetime.Singleton);
             builder.Register<ClientStationReferenceRegistry>(Lifetime.Singleton).AsSelf().As<IInitializable>().As<IDisposable>();
             builder.Register<RailGraphSnapshotApplier>(Lifetime.Singleton).AsSelf().As<IInitializable>();
+            builder.Register<TrainCarRidingState>(Lifetime.Singleton);
             builder.Register<TrainUnitClientCache>(Lifetime.Singleton);
             builder.Register<TrainUnitTickState>(Lifetime.Singleton);
             builder.Register<TrainUnitFutureMessageBuffer>(Lifetime.Singleton);
