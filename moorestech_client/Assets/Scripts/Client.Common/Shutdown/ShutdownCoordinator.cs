@@ -15,6 +15,14 @@ namespace Client.Common.Shutdown
         private static readonly List<(ShutdownPhase phase, string name, Func<UniTask> step)> _steps = new();
         private static Task _shutdownTask;
 
+        // Reload Domain = disabled でも静的状態を初期化し、次プレイセッションで Register が ignored にならないようにする
+        // Reset static state even when Reload Domain is disabled, so the next play session can Register participants
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetOnPlaySessionStart()
+        {
+            lock (_lock) { _steps.Clear(); _shutdownTask = null; }
+        }
+
         public static void Register(ShutdownPhase phase, string name, Func<UniTask> step)
         {
             lock (_lock)
@@ -51,6 +59,8 @@ namespace Client.Common.Shutdown
             foreach (var (phase, name, step) in sorted)
             {
                 Debug.Log($"[ShutdownCoordinator] [{phase}] {name} start");
+                // try-catch はここだけの例外。1 ステップ失敗でもパイプラインを継続して残りの片付けを完遂させる設計契約
+                // Intentional try-catch: shutdown must continue even if a step throws, so the remaining cleanup runs
                 try
                 {
                     await step();

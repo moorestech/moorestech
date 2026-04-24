@@ -7,11 +7,23 @@ namespace Tests.UnitTest.Boot
 {
     public class ShutdownCoordinatorTest
     {
+        private bool _savedIgnoreFailingMessages;
+
         [SetUp]
-        public void SetUp() => ShutdownCoordinator.ResetForTests();
+        public void SetUp()
+        {
+            ShutdownCoordinator.ResetForTests();
+            _savedIgnoreFailingMessages = UnityEngine.TestTools.LogAssert.ignoreFailingMessages;
+        }
 
         [TearDown]
-        public void TearDown() => ShutdownCoordinator.ResetForTests();
+        public void TearDown()
+        {
+            ShutdownCoordinator.ResetForTests();
+            // テスト間で LogAssert の設定が漏れないよう元に戻す
+            // Restore LogAssert setting so the flag does not leak to subsequent tests
+            UnityEngine.TestTools.LogAssert.ignoreFailingMessages = _savedIgnoreFailingMessages;
+        }
 
         [Test]
         public async System.Threading.Tasks.Task Steps_RunInPhaseThenRegistrationOrder()

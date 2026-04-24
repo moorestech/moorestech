@@ -56,7 +56,7 @@ namespace Client.Network.API
             return new InitialHandshakeResponse(initialHandShake, responses);
         }
 
-        public async UniTask SaveAsync(CancellationToken ct = default)
+        public async UniTask SaveAsync(CancellationToken ct)
         {
             // サーバーにセーブ要求を送り、完了 ACK まで待つ
             // Send save request and await the server's completion ACK

@@ -34,10 +34,14 @@ namespace Server.Boot.Shutdown
         }
 #endif
 
+        // パイプラインを背景スレッドで走らせる。メインスレッドで待つと、
+        // PlayerLoopTiming に戻る UniTask 継続がメインスレッドの解放を待って deadlock するため
+        // Run the pipeline on a background thread; waiting on the main thread deadlocks
+        // any UniTask continuation that resumes on PlayerLoopTiming
         private static void TriggerBlocking()
         {
-            var task = ShutdownCoordinator.ShutdownAsync().AsTask();
-            Task.WhenAny(task, Task.Delay(Timeout)).GetAwaiter().GetResult();
+            var task = Task.Run(() => ShutdownCoordinator.ShutdownAsync().AsTask());
+            task.Wait(Timeout);
             if (task.IsFaulted) Debug.LogException(task.Exception?.GetBaseException());
             if (!task.IsCompleted) Debug.LogWarning("[ApplicationShutdownBridge] shutdown timed out");
         }

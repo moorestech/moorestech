@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Threading;
 using Client.Common.Shutdown;
 using Client.Network.Settings;
 using Cysharp.Threading.Tasks;
@@ -34,7 +35,7 @@ namespace Client.Network.API
             // 終了パイプラインに Save ACK → ソケット切断 → ローカルプロセス kill を登録
             // Register save ACK, socket close, and local server kill into the shutdown pipeline
             ShutdownCoordinator.Register(ShutdownPhase.BeforeDisconnect, "VanillaApi.Save",
-                async () => await Response.SaveAsync());
+                async () => await Response.SaveAsync(CancellationToken.None));
             ShutdownCoordinator.Register(ShutdownPhase.Disconnect, "VanillaApi.Close",
                 () => { _serverCommunicator.Close(); return UniTask.CompletedTask; });
             ShutdownCoordinator.Register(ShutdownPhase.DisposeSubsystems, "VanillaApi.KillLocalServer",
