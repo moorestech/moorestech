@@ -1,4 +1,5 @@
 using Client.Common.Asset;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 #if UNITY_EDITOR
@@ -35,10 +36,12 @@ namespace Client.DebugSystem
             SceneManager.sceneLoaded -= OnSceneLoaded;
             SceneManager.sceneLoaded += OnSceneLoaded;
             
-            // アプリ終了時にAddressables参照を解放する
-            // Release Addressables reference on app quit.
-            Application.quitting -= OnApplicationQuitting;
-            Application.quitting += OnApplicationQuitting;
+            // 終了パイプラインに Addressables 解放を登録
+            // Register Addressables release into the shutdown pipeline
+            Client.Common.Shutdown.ShutdownCoordinator.Register(
+                Client.Common.Shutdown.ShutdownPhase.DisposeSubsystems,
+                "DebugObjects.ReleaseAddressables",
+                () => { ReleaseDebugObjectsAsset(); return UniTask.CompletedTask; });
         }
         
         private static async void OnSceneLoaded(Scene scene, LoadSceneMode _)
@@ -98,10 +101,10 @@ namespace Client.DebugSystem
             popupTransform.gameObject.SetActive(true);
         }
         
-        private static void OnApplicationQuitting()
+        private static void ReleaseDebugObjectsAsset()
         {
-            // 保持したAddressables参照を明示解放する
-            // Explicitly release held Addressables reference.
+            // 保持した Addressables 参照を明示解放する
+            // Explicitly release held Addressables reference
             if (_debugObjectsAsset == null) return;
             _debugObjectsAsset.Dispose();
             _debugObjectsAsset = null;
