@@ -60,8 +60,8 @@ namespace Tests.CombinedTest.Core
                 // Set tick count before processing
                 GameUpdater.RunFrames(1);
 
-                var requiredRpm = new RPM(gearMachineParam.RequiredRpm);
-                var requiredTorque = new Torque(gearMachineParam.RequireTorque);
+                var requiredRpm = new RPM((float)gearMachineParam.GearConsumption.BaseRpm);
+                var requiredTorque = new Torque((float)gearMachineParam.GearConsumption.BaseTorque);
                 gearEnergyTransformer.SupplyPower(requiredRpm, requiredTorque, true);
                 machineProcessor.Update();
             }
@@ -115,9 +115,9 @@ namespace Tests.CombinedTest.Core
                 // Set tick count before processing
                 GameUpdater.RunFrames(1);
 
-                var rpm = new RPM(gearMachineParam.RequiredRpm / 2f);
-                lackRpmGearMachine.SupplyPower(rpm, new Torque(gearMachineParam.RequireTorque), true);
-                lackTorqueGearMachine.SupplyPower(new RPM(gearMachineParam.RequiredRpm), (Torque)gearMachineParam.RequireTorque / 2f, true);
+                var rpm = new RPM((float)gearMachineParam.GearConsumption.BaseRpm / 2f);
+                lackRpmGearMachine.SupplyPower(rpm, new Torque((float)gearMachineParam.GearConsumption.BaseTorque), true);
+                lackTorqueGearMachine.SupplyPower(new RPM((float)gearMachineParam.GearConsumption.BaseRpm), new Torque((float)gearMachineParam.GearConsumption.BaseTorque) / 2f, true);
 
                 lackRpmProcessor.Update();
                 lackTorqueProcessor.Update();

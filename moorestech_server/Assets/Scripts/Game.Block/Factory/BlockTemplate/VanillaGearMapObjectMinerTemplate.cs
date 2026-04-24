@@ -40,7 +40,7 @@ namespace Game.Block.Factory.BlockTemplate
             // Components required for gear connection
             var gearConnectSetting = minerParam.Gear.GearConnects;
             var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(gearConnectSetting, gearConnectSetting, blockPositionInfo);
-            var gearEnergyTransformer = new GearEnergyTransformer(new Torque(minerParam.RequireTorque), blockInstanceId, gearConnector);
+            var gearEnergyTransformer = new GearEnergyTransformer(minerParam.GearConsumption, blockInstanceId, gearConnector);
             
             // MapObject採掘機
             // MapObject Miner
@@ -48,7 +48,7 @@ namespace Game.Block.Factory.BlockTemplate
                 new VanillaGearMapObjectMinerProcessorComponent(blockPositionInfo, minerParam, chestComponent) :
                 new VanillaGearMapObjectMinerProcessorComponent(componentStates, blockPositionInfo, minerParam, chestComponent);
             
-            var gearMinerComponent = new VanillaGearMapObjectMinerComponent(gearEnergyTransformer, minerParam, gearMapObjectMinerProcessorComponent);
+            var gearMinerComponent = new VanillaGearMapObjectMinerComponent(gearEnergyTransformer, gearMapObjectMinerProcessorComponent);
             
             var components = new List<IBlockComponent>
             {
