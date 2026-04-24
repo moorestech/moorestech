@@ -8,7 +8,6 @@ using Game.Block.Component;
 using Game.Block.Event;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
-using Game.EnergySystem;
 using Game.Gear.Common;
 using Mooresmaster.Model.BlocksModule;
 
@@ -46,7 +45,7 @@ namespace Game.Block.Factory.BlockTemplate
             var gearConsumption = machineParam.GearConsumption;
             var gearEnergyTransformer = new GearEnergyTransformer(gearConsumption, blockInstanceId, gearConnector);
 
-            var requirePower = new ElectricPower((float)(gearConsumption.BaseTorque * gearConsumption.BaseRpm));
+            var requirePower = (float)(gearConsumption.BaseTorque * gearConsumption.BaseRpm);
             
             // パラメーターをロードするか、新規作成する
             // Load the parameters or create new ones

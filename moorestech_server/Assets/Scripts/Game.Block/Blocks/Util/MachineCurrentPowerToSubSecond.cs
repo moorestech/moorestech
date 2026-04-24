@@ -1,6 +1,5 @@
 using System;
 using Core.Update;
-using Game.EnergySystem;
 
 namespace Game.Block.Blocks.Util
 {
@@ -14,15 +13,15 @@ namespace Game.Block.Blocks.Util
         private static readonly Random SharedRandom = new(RandomSeed);
         // tick数を電力比率で調整して返す（確率的な丸め処理を含む）
         // Return ticks adjusted by power ratio (with probabilistic rounding)
-        public static uint GetSubTicks(ElectricPower currentPower, ElectricPower requiredPower)
+        public static uint GetSubTicks(float currentPower, float requiredPower)
         {
             // 必要電力が0の時は1tickをそのまま返す
             // When required power is 0, return 1 tick
-            if (requiredPower.AsPrimitive() == 0) return 1;
+            if (requiredPower == 0f) return 1;
 
             // 現在の電力量を必要電力で割った割合でtick数を計算
             // Calculate effective ticks based on power ratio
-            var powerRatio = currentPower.AsPrimitive() / (double)requiredPower.AsPrimitive();
+            var powerRatio = currentPower / (double)requiredPower;
 
             // 整数部と小数部に分離し、小数部は確率的に丸める
             // Split into integer and fractional parts, round fractionally probabilistically
