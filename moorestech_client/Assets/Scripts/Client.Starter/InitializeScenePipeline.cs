@@ -61,9 +61,9 @@ namespace Client.Starter
         private async UniTask Initialize()
         {
             // ---- Web UI サーバーの起動（最序盤）----
-            // GameShutdownEvent の購読は WebUiHost 側で 1 度だけ張られる
+            // Web UI 停止は ShutdownCoordinator が一元管理する
             // ---- Web UI server bootstrap (earliest phase) ----
-            // The GameShutdownEvent subscription is installed once inside WebUiHost itself
+            // Web UI stop is centrally managed by ShutdownCoordinator
             await Client.WebUiHost.Boot.WebUiHost.StartAsync();
 
             var args = CliConvert.Parse<StartServerSettings>(_proprieties.CreateLocalServerArgs);

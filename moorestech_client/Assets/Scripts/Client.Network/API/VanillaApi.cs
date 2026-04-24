@@ -40,10 +40,5 @@ namespace Client.Network.API
             ShutdownCoordinator.Register(ShutdownPhase.DisposeSubsystems, "VanillaApi.KillLocalServer",
                 () => { _localServerProcess?.Kill(); return UniTask.CompletedTask; });
         }
-
-        // Task 20 で BackToMainMenu 削除後に本メソッドも削除する
-        // Will be removed together with BackToMainMenu in Task 20
-        [System.Obsolete("Use ShutdownCoordinator.ShutdownAsync() instead. Removed in Task 20.")]
-        public void Disconnect() { }
     }
 }

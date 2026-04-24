@@ -61,13 +61,7 @@ namespace Client.Network.API
             var request = new OneClickCraft.RequestOneClickCraftProtocolMessagePack(_playerId, craftRecipeId);
             _packetSender.Send(request);
         }
-        
-        public void Save()
-        {
-            var request = new SaveProtocol.SaveRequestMessagePack();
-            _packetSender.Send(request);
-        }
-        
+
         public void AttackMapObject(int mapObjectInstanceId, int attackDamage)
         {
             var request = new MapObjectAcquisitionProtocol.GetMapObjectProtocolProtocolMessagePack(_playerId, mapObjectInstanceId, attackDamage);
