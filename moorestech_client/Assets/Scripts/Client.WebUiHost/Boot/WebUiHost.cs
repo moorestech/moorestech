@@ -64,9 +64,11 @@ namespace Client.WebUiHost.Boot
                 _kestrel = null;
             }
 
-            // 残存 Vite のセーフティネット
-            // Safety net in case any lingering Vite process still holds the port
+            // 残存 Vite のセーフティネット（Editor 専用。Standalone ビルドでは ViteProcess.KillAnyLingering は存在しない）
+            // Safety net for lingering Vite (editor-only; KillAnyLingering is not compiled into standalone builds)
+#if UNITY_EDITOR
             ViteProcess.KillAnyLingering();
+#endif
 
             Debug.Log("[WebUiHost] stopped");
         }
