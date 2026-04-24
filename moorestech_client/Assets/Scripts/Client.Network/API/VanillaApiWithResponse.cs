@@ -55,7 +55,15 @@ namespace Client.Network.API
             
             return new InitialHandshakeResponse(initialHandShake, responses);
         }
-        
+
+        public async UniTask SaveAsync(CancellationToken ct = default)
+        {
+            // サーバーにセーブ要求を送り、完了 ACK まで待つ
+            // Send save request and await the server's completion ACK
+            var request = new SaveProtocol.SaveRequestMessagePack();
+            await _packetExchangeManager.GetPacketResponse<SaveProtocol.SaveResponseMessagePack>(request, ct);
+        }
+
         public async UniTask<List<GetMapObjectInfoProtocol.MapObjectsInfoMessagePack>> GetMapObjectInfo(CancellationToken ct)
         {
             var request = new GetMapObjectInfoProtocol.RequestMapObjectInfosMessagePack();
