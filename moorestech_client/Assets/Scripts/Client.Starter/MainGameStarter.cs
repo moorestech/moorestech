@@ -101,7 +101,6 @@ namespace Client.Starter
         [SerializeField] private PlacementPreviewBlockGameObjectController previewBlockController;
         [SerializeField] private RailConnectPreviewObject railConnectPreviewObject;
         [SerializeField] private SaveButton saveButton;
-        [SerializeField] private BackToMainMenu backToMainMenu;
         [SerializeField] private NetworkDisconnectPresenter networkDisconnectPresenter;
         [SerializeField] private ChallengeManager challengeManager;
         
@@ -227,7 +226,6 @@ namespace Client.Starter
             builder.RegisterComponent(pauseMenuObject);
             builder.RegisterComponent(deleteBarObject);
             builder.RegisterComponent(saveButton);
-            builder.RegisterComponent(backToMainMenu);
             builder.RegisterComponent(networkDisconnectPresenter);
             builder.RegisterComponent(mapObjectMiningController);
             
