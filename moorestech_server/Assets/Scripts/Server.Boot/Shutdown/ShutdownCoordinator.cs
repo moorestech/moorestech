@@ -38,9 +38,14 @@ namespace Server.Boot.Shutdown
         {
             lock (_lock)
             {
-                if (_shutdownTask != null) return _shutdownTask.AsUniTask();
+                // AsUniTask(false) で SynchronizationContext をキャプチャしない
+                // Bridge が Task.Run でスレッドプール実行する経路では main thread の
+                // SyncContext が利用不可で TaskScheduler.FromCurrentSynchronizationContext が失敗するため
+                // Do not capture SynchronizationContext: Bridge runs this on a thread pool via Task.Run,
+                // where the main-thread sync context cannot be resolved by TaskScheduler.FromCurrentSynchronizationContext
+                if (_shutdownTask != null) return _shutdownTask.AsUniTask(false);
                 _shutdownTask = RunPipelineAsync().AsTask();
-                return _shutdownTask.AsUniTask();
+                return _shutdownTask.AsUniTask(false);
             }
         }
 
