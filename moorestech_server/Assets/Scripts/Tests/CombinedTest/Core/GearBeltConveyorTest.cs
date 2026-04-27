@@ -151,7 +151,10 @@ namespace Tests.CombinedTest.Core
             // ベルトの速度に相当する時間を超えても搬送されないことを確認する
             // Ensure the item is not transported even after exceeding the belt travel time
             var gearBeltParam = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearBeltConveyor).BlockParam as GearBeltConveyorBlockParam;
-            var previousSpeed = 10f * 1f * gearBeltParam.BeltConveyorSpeed;
+            // 新formula: speed = (rpm/baseRpm) * torqueRate * beltConveyorSpeed
+            // New formula: speed = (rpm/baseRpm) * torqueRate * beltConveyorSpeed
+            var rpmRatioForCheck = 10f / (float)gearBeltParam.GearConsumption.BaseRpm;
+            var previousSpeed = rpmRatioForCheck * 1f * (float)gearBeltParam.BeltConveyorSpeed;
             var timeOfItemEnterToExit = 1f / previousSpeed;
             var updateCount = (int)Math.Ceiling(timeOfItemEnterToExit / 0.1f) + beltConveyorComponent.BeltConveyorItems.Count + 2;
             for (var i = 0; i < updateCount; i++) GameUpdater.RunFrames(GameUpdater.SecondsToTicks(0.1));
