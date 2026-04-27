@@ -1428,7 +1428,7 @@ MonoBehaviour:
       data:
         isReverse: 0
         animator: {fileID: 8605636641784529956}
-        rpm60Speed: 1
+        rpm60Speed: 5
 --- !u!1 &3287602830114821112
 GameObject:
   m_ObjectHideFlags: 0
