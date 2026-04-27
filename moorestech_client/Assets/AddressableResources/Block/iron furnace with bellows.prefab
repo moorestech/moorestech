@@ -1335,6 +1335,8 @@ GameObject:
   m_Component:
   - component: {fileID: 5909471806100412200}
   - component: {fileID: 8605636641784529956}
+  - component: {fileID: 8144882220357583053}
+  - component: {fileID: 4609394579875699860}
   m_Layer: 7
   m_Name: iron furnace with bellows
   m_TagString: Untagged
@@ -1388,6 +1390,45 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &8144882220357583053
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3080275620989080107}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4bb7f8f1958ea4c37b753af86394eb8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.StateProcessor.GearStateChangeProcessorSimulator
+  targetProcessor: {fileID: 4609394579875699860}
+  isSimulating: 0
+  simulateRpm: 60
+  simulateIsClockwise: 1
+--- !u!114 &4609394579875699860
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3080275620989080107}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6672735753cd4c28b00a1822464f8d55, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.StateProcessor.GearStateChangeProcessor
+  rotationInfos:
+  - rid: 3331678083397976064
+  references:
+    version: 2
+    RefIds:
+    - rid: 3331678083397976064
+      type: {class: AnimatorRotationInfo, ns: Client.Game.InGame.BlockSystem.StateProcessor, asm: Client.Game}
+      data:
+        isReverse: 0
+        animator: {fileID: 8605636641784529956}
+        rpm60Speed: 1
 --- !u!1 &3287602830114821112
 GameObject:
   m_ObjectHideFlags: 0
@@ -3582,39 +3623,39 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2750780202867129520, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.004
+      value: -0.014
       objectReference: {fileID: 0}
     - target: {fileID: 2750780202867129520, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 1.223
+      value: 1.287
       objectReference: {fileID: 0}
     - target: {fileID: 2750780202867129520, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.9940457
+      value: 0.9977476
       objectReference: {fileID: 0}
     - target: {fileID: 2750780202867129520, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.10890602
+      value: 0.0669864
       objectReference: {fileID: 0}
     - target: {fileID: 2750780202867129520, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.003533577
+      value: 0.0035141604
       objectReference: {fileID: 0}
     - target: {fileID: 2750780202867129520, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0.0003871327
+      value: 0.0005354607
       objectReference: {fileID: 0}
     - target: {fileID: 2750780202867129520, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: 12.504
+      value: 7.682
       objectReference: {fileID: 0}
     - target: {fileID: 2750780202867129520, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: 0.417
+      value: 0.41
       objectReference: {fileID: 0}
     - target: {fileID: 2750780202867129520, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
-      value: 0.09
+      value: 0.089
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -3838,7 +3879,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2750780202867129520, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.25
+      value: 0.3
       objectReference: {fileID: 0}
     - target: {fileID: 2750780202867129520, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
       propertyPath: m_LocalRotation.w
