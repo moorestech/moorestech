@@ -449,25 +449,9 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 2166917927933167143, guid: e039e23dd6ec87742ac59a0964a66fa0, type: 3}
-      propertyPath: m_Enabled
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2366686171965463955, guid: e039e23dd6ec87742ac59a0964a66fa0, type: 3}
-      propertyPath: m_Enabled
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2744815472301864861, guid: e039e23dd6ec87742ac59a0964a66fa0, type: 3}
-      propertyPath: m_Enabled
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 3080275620989080107, guid: e039e23dd6ec87742ac59a0964a66fa0, type: 3}
       propertyPath: m_Name
       value: iron furnace with bellows
-      objectReference: {fileID: 0}
-    - target: {fileID: 3080275620989080107, guid: e039e23dd6ec87742ac59a0964a66fa0, type: 3}
-      propertyPath: m_IsActive
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5909471806100412200, guid: e039e23dd6ec87742ac59a0964a66fa0, type: 3}
       propertyPath: m_LocalPosition.x
@@ -479,7 +463,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5909471806100412200, guid: e039e23dd6ec87742ac59a0964a66fa0, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5909471806100412200, guid: e039e23dd6ec87742ac59a0964a66fa0, type: 3}
       propertyPath: m_LocalRotation.w
@@ -511,17 +495,9 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: 5909471806100412200, guid: e039e23dd6ec87742ac59a0964a66fa0, type: 3}
-      insertIndex: 6
-      addedObject: {fileID: 2122302002}
+    m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e039e23dd6ec87742ac59a0964a66fa0, type: 3}
---- !u!4 &491389424 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 5909471806100412200, guid: e039e23dd6ec87742ac59a0964a66fa0, type: 3}
-  m_PrefabInstance: {fileID: 491389423}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &491824910
 GameObject:
   m_ObjectHideFlags: 0
@@ -1441,68 +1417,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2028237060}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!1001 &2122302001
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 491389424}
-    m_Modifications:
-    - target: {fileID: 1069051896562662691, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
-      propertyPath: m_Name
-      value: gear belt conveyor_4
-      objectReference: {fileID: 0}
-    - target: {fileID: 2750780202867129520, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 2750780202867129520, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2750780202867129520, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2750780202867129520, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0.7099969
-      objectReference: {fileID: 0}
-    - target: {fileID: 2750780202867129520, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2750780202867129520, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: -0.70420486
-      objectReference: {fileID: 0}
-    - target: {fileID: 2750780202867129520, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2750780202867129520, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2750780202867129520, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: -89.531
-      objectReference: {fileID: 0}
-    - target: {fileID: 2750780202867129520, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
---- !u!4 &2122302002 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 2750780202867129520, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
-  m_PrefabInstance: {fileID: 2122302001}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &2294760600596169148
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1511,6 +1425,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3360860166441533288, guid: 4685e69708529f14084d76cb7178947d, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5472978091728215009, guid: 4685e69708529f14084d76cb7178947d, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -1554,6 +1472,10 @@ PrefabInstance:
     - target: {fileID: 7152712139784919903, guid: 4685e69708529f14084d76cb7178947d, type: 3}
       propertyPath: m_Name
       value: static steam engine
+      objectReference: {fileID: 0}
+    - target: {fileID: 7152712139784919903, guid: 4685e69708529f14084d76cb7178947d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
