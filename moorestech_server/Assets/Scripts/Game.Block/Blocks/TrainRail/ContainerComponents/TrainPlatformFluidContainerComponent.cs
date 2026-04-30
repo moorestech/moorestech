@@ -239,7 +239,7 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
                 fluidContainer.FluidId = FluidMaster.EmptyFluidId;
             }
 
-            fluidContainer.PreviousSourceFluidContainers.Clear();
+            fluidContainer.ClearPreviousSources();
         }
 
         private static double GetFlowRate(ConnectedInfo info)
