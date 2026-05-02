@@ -38,14 +38,18 @@ namespace Game.Fluid
         ///     パイプネットワークにおいて、液体がA→Bに流れた場合、同じ更新サイクル内でB→Aへの逆流を防ぐことで、
         ///     液体が無限ループに陥らず、一方向に正しく伝播するようになる。
         ///     このHashSetには、現在の更新サイクル内でこのコンテナに液体を送ってきたすべてのコンテナが記録される。
-        ///     各更新サイクルの最後（例：FluidPipeComponent.Update）でクリアされる必要がある。
+        ///     各更新サイクルの最後（例：FluidPipeComponent.Update）で ClearPreviousSources を呼び出す必要がある。
         ///
         ///     Temporary source recording to prevent backflow of fluid within the same update cycle.
         ///     In a pipe network, when fluid flows from A to B, preventing backflow from B to A within the same update cycle ensures that the fluid propagates correctly in one direction without falling into an infinite loop.
         ///     This HashSet records all containers that have sent fluid to this container during the current
-        ///     update cycle. It needs to be cleared at the end of each update cycle (e.g., in FluidPipeComponent.Update).
+        ///     update cycle. ClearPreviousSources must be called at the end of each update cycle (e.g., in FluidPipeComponent.Update).
         /// </summary>
-        public readonly HashSet<FluidContainer> PreviousSourceFluidContainers = new();
+        private readonly HashSet<FluidContainer> _previousSourceFluidContainers = new();
+        public bool HasPreviousSources => _previousSourceFluidContainers.Count > 0;
+        public int PreviousSourceCount => _previousSourceFluidContainers.Count;
+        public void ClearPreviousSources() { _previousSourceFluidContainers.Clear(); }
+        
         
         /// <param name="capacity">液体の許容量</param>
         public FluidContainer(double capacity)
@@ -76,7 +80,7 @@ namespace Game.Fluid
             }
             
             // Prevent immediate backflow within the same update cycle
-            if (source != Empty && PreviousSourceFluidContainers.Contains(source))
+            if (source != Empty && _previousSourceFluidContainers.Contains(source))
             {
                 return fluidStack;
             }
@@ -88,7 +92,7 @@ namespace Game.Fluid
                 // FluidContainer.Emptyは特別扱い（シングルトンなので追加しない）
                 if (source != Empty)
                 {
-                    PreviousSourceFluidContainers.Add(source);
+                    _previousSourceFluidContainers.Add(source);
                 }
                 var guid = MasterHolder.FluidMaster.GetFluidMaster(FluidId).FluidGuid;
                 return new FluidStack(fluidStack.Amount - addingAmount, fluidStack.FluidId);
@@ -98,7 +102,7 @@ namespace Game.Fluid
             // FluidContainer.Emptyは特別扱い（シングルトンなので追加しない）
             if (source != Empty)
             {
-                PreviousSourceFluidContainers.Add(source);
+                _previousSourceFluidContainers.Add(source);
             }
             return new FluidStack(0, fluidStack.FluidId);
         }

@@ -24,10 +24,14 @@ namespace Tests.UnitTest.Game
             const double capacity = 100.0;
             const double amount = 42.5;
 
+            // 送信元記録が入った状態を作る（AddLiquid経由で内部HashSetに追加される）
+            // Set up state with a source recording (added to internal HashSet via AddLiquid)
             var original = new FluidContainer(capacity);
             original.FluidId = fluidId;
-            original.Amount = amount;
-            original.PreviousSourceFluidContainers.Add(new FluidContainer(10.0));
+            var sourceContainer = new FluidContainer(10.0);
+            sourceContainer.FluidId = fluidId;
+            original.AddLiquid(new FluidStack(amount, fluidId), sourceContainer);
+            Assert.Greater(original.PreviousSourceCount, 0);
 
             var bytes = MessagePack.MessagePackSerializer.Serialize(original);
             var deserialized = MessagePack.MessagePackSerializer.Deserialize<FluidContainer>(bytes);
@@ -35,7 +39,7 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(capacity, deserialized.Capacity);
             Assert.AreEqual(amount, deserialized.Amount);
             Assert.AreEqual(fluidId, deserialized.FluidId);
-            Assert.AreEqual(0, deserialized.PreviousSourceFluidContainers.Count);
+            Assert.AreEqual(0, deserialized.PreviousSourceCount);
         }
 
         [Test]

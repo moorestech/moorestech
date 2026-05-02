@@ -70,7 +70,7 @@ namespace Game.Block.Blocks.Fluid
         
         public void Update()
         {
-            // PreviousSourceFluidContainersを常にクリアする必要があるため、
+            // 送信元記録を常にクリアする必要があるため、
             // 液体がない場合でもUpdate処理を続ける
             var hasFluid = _fluidContainer.Amount > 0;
             
@@ -84,7 +84,7 @@ namespace Game.Block.Blocks.Fluid
                 ExecuteFlow(targetInventories);
             }
             
-            _fluidContainer.PreviousSourceFluidContainers.Clear();
+            _fluidContainer.ClearPreviousSources();
             if (_fluidContainer.Amount <= 0) _fluidContainer.FluidId = FluidMaster.EmptyFluidId;
             
             // Reset the flag for next update
