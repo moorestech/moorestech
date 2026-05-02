@@ -53,6 +53,8 @@ namespace Game.Block.Blocks.Fluid
             }
         }
 
+        // パイプ内の流体ID/量/容量をBlockStateDetailとして1件返す
+        // Pack the pipe's fluid id/amount/capacity into a single BlockStateDetail entry
         public BlockStateDetail[] GetBlockStateDetails()
         {
             var fluidStateDetail = GetFluidPipeStateDetail();
@@ -71,9 +73,13 @@ namespace Game.Block.Blocks.Fluid
             var beforeAmount = _fluidContainer.Amount;
             var remain = _fluidContainer.AddLiquid(fluidStack, FluidContainer.Empty);
             var accepted = _fluidContainer.Amount - beforeAmount;
-            
+
+            // 容量超過などで一切受け入れられなかったケースは即返す
+            // Bail out when the container rejected everything (e.g. capacity overflow)
             if (accepted < 0) return remain;
-            
+
+            // 受け入れた分をソース別バケットに加算（source==nullはソース不明として Empty バケットへ）
+            // Credit the accepted amount to the matching source bucket (null source falls into the Empty bucket)
             var key = source ?? FluidContainer.Empty;
             var bucket = _pendingBySource.GetValueOrDefault(key);
             bucket.Amount += accepted;
@@ -107,12 +113,17 @@ namespace Game.Block.Blocks.Fluid
             foreach (var key in _pendingBySource.Keys.ToList())
             {
                 if (!_pendingBySource.TryGetValue(key, out var bucket)) continue;
+
+                // 残量0の空バケットは掃除して次へ
+                // Drop empty buckets eagerly so they don't accumulate
                 if (bucket.Amount <= 0)
                 {
                     _pendingBySource.Remove(key);
                     continue;
                 }
 
+                // 流せる隣接が無いtickは詰まりカウンタを進めて降格判定だけ行う
+                // No eligible neighbors this tick: only advance the blocked counter and check for demotion
                 var eligible = GetEligibleTargets(key);
                 if (eligible.Count == 0)
                 {
@@ -148,9 +159,14 @@ namespace Game.Block.Blocks.Fluid
             // FluidContainer 側の同tick重複受信防止記録は引き続きクリア（他コンポーネント互換）
             // Continue clearing the FluidContainer's same-tick source record for compatibility with other consumers
             _fluidContainer.ClearPreviousSources();
+
+            // 全バケットの合計を FluidContainer.Amount に反映、空になった場合は流体IDもクリア
+            // Reflect the bucket total into FluidContainer.Amount and reset the fluid id when fully empty
             _fluidContainer.Amount = SumBuckets();
             if (_fluidContainer.Amount <= 0) _fluidContainer.FluidId = FluidMaster.EmptyFluidId;
 
+            // 実際に流れた分があるtickだけ状態変更を通知
+            // Notify state change only on ticks where actual transfer happened
             if (totalTransferred > 0)
             {
                 _onChangeBlockState.OnNext(Unit.Default);
@@ -160,6 +176,8 @@ namespace Game.Block.Blocks.Fluid
 
             void MergeOrphanSources()
             {
+                // ソース別バケットを走査し、対応する隣接が現在の接続先一覧から消えたものを孤児として収集
+                // Scan per-source buckets and collect ones whose source neighbor is no longer in the connection set
                 List<FluidContainer> orphans = null;
                 foreach (var k in _pendingBySource.Keys)
                 {
@@ -183,6 +201,8 @@ namespace Game.Block.Blocks.Fluid
                 }
                 if (orphans == null) return;
 
+                // 孤児バケットの残量を Empty バケットへ合算し、ソース除外なしで再配分対象にする
+                // Fold orphan amounts into the Empty bucket so they become redistributable without source exclusion
                 foreach (var orphan in orphans)
                 {
                     var bucket = _pendingBySource[orphan];
@@ -196,6 +216,8 @@ namespace Game.Block.Blocks.Fluid
                 }
             }
 
+            // バケットのソースを除外した上で、流量>0の隣接だけを配分対象として返す
+            // Return neighbors with positive flow rate, excluding the bucket's own source
             List<(IFluidInventory inventory, double maxFlowRate)> GetEligibleTargets(FluidContainer sourceKey)
             {
                 var result = new List<(IFluidInventory inventory, double maxFlowRate)>();
@@ -240,6 +262,8 @@ namespace Game.Block.Blocks.Fluid
 
             void TryDemote(FluidContainer key, SourceBucket bucket)
             {
+                // Empty バケット自身は降格対象外、また閾値未満なら何もしない
+                // The Empty bucket cannot be demoted further, and we wait until the blocked threshold is hit
                 if (key == FluidContainer.Empty) return;
                 if (bucket.BlockedTicks < _blockedRetryTicks) return;
 
@@ -282,6 +306,8 @@ namespace Game.Block.Blocks.Fluid
             return new FluidPipeStateDetail(fluidId, (float)amount, (float)capacity);
         }
 
+        // パイプは単一流体しか保持しないため、残量があれば1要素、無ければ空のリストを返す
+        // A pipe only ever holds a single fluid; return one stack when present, otherwise an empty list
         public List<FluidStack> GetFluidInventory()
         {
             var fluidStacks = new List<FluidStack>();
