@@ -74,9 +74,9 @@ namespace Game.Block.Blocks.Fluid
             var remain = _fluidContainer.AddLiquid(fluidStack, FluidContainer.Empty);
             var accepted = _fluidContainer.Amount - beforeAmount;
 
-            // 容量超過などで一切受け入れられなかったケースは即返す
-            // Bail out when the container rejected everything (e.g. capacity overflow)
-            if (accepted < 0) return remain;
+            // 一切受け入れられなかったケース（容量満杯／FluidId不一致／投入量0等）は即返す
+            // Bail out when nothing was accepted (full container, fluid id mismatch, zero stack, etc.)
+            if (accepted <= 0) return remain;
 
             // 受け入れた分をソース別バケットに加算（source==nullはソース不明として Empty バケットへ）
             // Credit the accepted amount to the matching source bucket (null source falls into the Empty bucket)
