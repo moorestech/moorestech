@@ -185,7 +185,7 @@ namespace Game.Block.Blocks.PowerGenerator
                     _fuelFluidContainer.FluidId = FluidMaster.EmptyFluidId;
                 }
 
-                _fuelFluidContainer.PreviousSourceFluidContainers.Clear();
+                _fuelFluidContainer.ClearPreviousSources();
             }
 
             void ClearFuelState()
