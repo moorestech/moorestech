@@ -71,18 +71,20 @@ namespace Game.Block.Blocks.Fluid
             var beforeAmount = _fluidContainer.Amount;
             var remain = _fluidContainer.AddLiquid(fluidStack, FluidContainer.Empty);
             var accepted = _fluidContainer.Amount - beforeAmount;
-
-            if (accepted > 0)
-            {
-                var key = source ?? FluidContainer.Empty;
-                if (!_pendingBySource.TryGetValue(key, out var bucket)) bucket = default;
-                bucket.Amount += accepted;
-                // 新規流入があれば詰まりカウンタはリセット
-                // New inflow resets the blocked-tick counter
-                bucket.BlockedTicks = 0;
-                _pendingBySource[key] = bucket;
-                _onChangeBlockState.OnNext(Unit.Default);
-            }
+            
+            if (accepted < 0) return remain;
+            
+            var key = source ?? FluidContainer.Empty;
+            var bucket = _pendingBySource.GetValueOrDefault(key);
+            bucket.Amount += accepted;
+            
+            // 新規流入があれば詰まりカウンタはリセット
+            // New inflow resets the blocked-tick counter
+            bucket.BlockedTicks = 0;
+            
+            _pendingBySource[key] = bucket;
+            
+            _onChangeBlockState.OnNext(Unit.Default);
             return remain;
         }
 
@@ -186,8 +188,10 @@ namespace Game.Block.Blocks.Fluid
                     var bucket = _pendingBySource[orphan];
                     _pendingBySource.Remove(orphan);
                     if (bucket.Amount <= 0) continue;
-                    if (!_pendingBySource.TryGetValue(FluidContainer.Empty, out var emptyBucket)) emptyBucket = default;
+                    
+                    var emptyBucket = _pendingBySource.GetValueOrDefault(FluidContainer.Empty);
                     emptyBucket.Amount += bucket.Amount;
+                    
                     _pendingBySource[FluidContainer.Empty] = emptyBucket;
                 }
             }
@@ -254,6 +258,18 @@ namespace Game.Block.Blocks.Fluid
                 foreach (var b in _pendingBySource.Values) sum += b.Amount;
                 return sum;
             }
+            
+            // 2つのIFluidInventory間の最大流体搬送速度を取得する。搬送速度は、2つのIFluidInventoryの流体搬送能力の最小値に、1ゲームアップデートの時間(秒)を乗じた値
+            // Get the maximum fluid transfer rate between two IFluidInventories. The transfer rate is the minimum of the two IFluidInventories' flow capacities multiplied by the time per game update (in seconds).
+            double GetMaxFlowRateFromConnection(ConnectedInfo connectedInfo)
+            {
+                var selfOption = connectedInfo.SelfConnector?.ConnectOption as FluidConnectOption;
+                var targetOption = connectedInfo.TargetConnector?.ConnectOption as FluidConnectOption;
+                
+                if (selfOption == null || targetOption == null) throw new ArgumentException();
+                
+                return Math.Min(selfOption.FlowCapacity, targetOption.FlowCapacity) * GameUpdater.SecondsPerTick;
+            }
 
             #endregion
         }
@@ -274,20 +290,6 @@ namespace Game.Block.Blocks.Fluid
                 fluidStacks.Add(new FluidStack(_fluidContainer.Amount, _fluidContainer.FluidId));
             }
             return fluidStacks;
-        }
-
-        /// <summary>
-        ///     2つのIFluidInventory間の最大流体搬送速度を取得する
-        ///    搬送速度は、2つのIFluidInventoryの流体搬送能力の最小値に、1ゲームアップデートの時間(秒)を乗じた値
-        /// </summary>
-        private double GetMaxFlowRateFromConnection(ConnectedInfo connectedInfo)
-        {
-            var selfOption = connectedInfo.SelfConnector?.ConnectOption as FluidConnectOption;
-            var targetOption = connectedInfo.TargetConnector?.ConnectOption as FluidConnectOption;
-
-            if (selfOption == null || targetOption == null) throw new ArgumentException();
-
-            return Math.Min(selfOption.FlowCapacity, targetOption.FlowCapacity) * GameUpdater.SecondsPerTick;
         }
 
         // ソース照合のため、隣接 IFluidInventory が単一の FluidContainer を持つ場合のみ取得
