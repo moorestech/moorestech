@@ -3087,7 +3087,8 @@
             }
           ]
         },
-        "capacity": 100
+        "capacity": 100,
+        "blockedRetryTicks": 3
       },
       "blockSize": [
         1,
@@ -3148,7 +3149,8 @@
             }
           ]
         },
-        "capacity": 100
+        "capacity": 100,
+        "blockedRetryTicks": 3
       },
       "blockSize": [
         1,
