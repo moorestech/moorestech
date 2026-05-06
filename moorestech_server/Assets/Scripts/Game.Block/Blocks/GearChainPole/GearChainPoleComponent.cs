@@ -147,6 +147,7 @@ namespace Game.Block.Blocks.GearChainPole
             if (data == null) return;
 
             _chainTargets.Clear();
+            var restoredConnection = false;
 
             // 接続コスト情報を利用して復元する
             // Restore using connection cost information when available
@@ -162,8 +163,16 @@ namespace Game.Block.Blocks.GearChainPole
                     if (transformer == null) continue;
                     var cost = new GearChainConnectionCost(new ItemId(connection.ItemId), connection.Count);
                     _chainTargets.Add(targetId, (transformer, cost));
+                    restoredConnection = true;
                 }
             }
+
+            // 復元したチェーン接続をギアネットワークへ反映する
+            // Reflect restored chain connections into the gear network
+            if (!restoredConnection) return;
+            GearNetworkDatastore.RemoveGear(this);
+            GearNetworkDatastore.AddGear(this);
+            _onChangeBlockState.OnNext(Unit.Default);
         }
 
         #endregion
