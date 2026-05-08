@@ -15,6 +15,9 @@ const EXEC_OPTS = { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] };
 let input = '';
 process.stdin.on('data', chunk => input += chunk);
 process.stdin.on('end', () => {
+    // 生 stdin を claude-info 等から参照できるようダンプ（best-effort）
+    // Dump raw stdin so claude-info can read full harness state (best-effort)
+    try { fs.writeFileSync(`${process.env.HOME}/.claude/last_statusline_input.json`, input); } catch {}
     try {
         console.log(buildStatusLine(JSON.parse(input || '{}')));
     } catch (error) {
