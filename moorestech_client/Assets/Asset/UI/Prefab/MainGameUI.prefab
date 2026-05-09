@@ -451,9 +451,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: CefUnity.Runtime::CefUnity.Runtime.CefUnityBrowserSample
   _width: 1280
   _height: 720
-  _url: google.com
+  _url: https://google.com
   _rawImage: {fileID: 4882653979629314944}
-  _resolutionScale: 0
+  _resolutionScale: 1
 --- !u!1 &1385292037753341582
 GameObject:
   m_ObjectHideFlags: 0
