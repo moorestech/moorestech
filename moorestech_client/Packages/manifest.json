@@ -41,6 +41,7 @@
     "io.github.hatayama.uloopmcp": "https://github.com/hatayama/uLoopMCP.git?path=/Packages/src",
     "jp.co.cyberagent.smartaddresser": "https://github.com/CyberAgentGameEntertainment/SmartAddresser.git?path=/Assets/SmartAddresser",
     "jp.hadashikick.vcontainer": "https://github.com/hadashiA/VContainer.git?path=VContainer/Assets/VContainer#1.10.0",
+    "jp.juha.cefunitysample": "https://github.com/KurisuJuha/cef-unity-moorestech.git?path=/Assets/CefUnity",
     "org.nuget.microsoft.codeanalysis.csharp": "4.14.0",
     "tech.moores.server": "file:../../moorestech_server/Assets/Scripts",
     "com.unity.modules.accessibility": "1.0.0",
