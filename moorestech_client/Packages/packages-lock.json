@@ -486,7 +486,7 @@
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "fdfda21538eb78cb4fc01e92fc0fc8486bfcde9e"
+      "hash": "eedc5439167bdb0bade794d7530cd55c715a9eaa"
     },
     "org.nuget.microsoft.codeanalysis.analyzers": {
       "version": "3.11.0",
