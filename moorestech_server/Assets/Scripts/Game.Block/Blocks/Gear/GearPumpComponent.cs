@@ -13,12 +13,14 @@ namespace Game.Block.Blocks.Gear
         private readonly GearPumpBlockParam _param;
         private readonly GearEnergyTransformer _gearEnergyTransformer;
         private readonly PumpFluidOutputComponent _output;
+        private readonly BlockPositionInfo _blockPositionInfo;
 
-        public GearPumpComponent(GearPumpBlockParam param, GearEnergyTransformer gearEnergyTransformer, PumpFluidOutputComponent output)
+        public GearPumpComponent(GearPumpBlockParam param, GearEnergyTransformer gearEnergyTransformer, PumpFluidOutputComponent output, BlockPositionInfo blockPositionInfo)
         {
             _param = param;
             _gearEnergyTransformer = gearEnergyTransformer;
             _output = output;
+            _blockPositionInfo = blockPositionInfo;
         }
 
         public void Update()
@@ -30,7 +32,8 @@ namespace Game.Block.Blocks.Gear
             PumpFluidGenerationUtility.GenerateFluids(
                 _param.GenerateFluid.items,
                 _gearEnergyTransformer.GetCurrentOperatingRate(),
-                _output);
+                _output,
+                _blockPositionInfo.OriginalPos);
         }
 
         public bool IsDestroy { get; private set; }

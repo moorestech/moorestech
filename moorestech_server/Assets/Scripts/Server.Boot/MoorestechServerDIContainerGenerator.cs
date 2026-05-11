@@ -110,6 +110,7 @@ namespace Server.Boot
             var mapPath = Path.Combine(options.ServerDataDirectory, "map", "map.json");
             initializerCollection.AddSingleton(JsonConvert.DeserializeObject<MapInfoJson>(File.ReadAllText(mapPath)));
             initializerCollection.AddSingleton<IMapVeinDatastore, MapVeinDatastore>();
+            initializerCollection.AddSingleton<IFluidMapVeinDatastore, FluidMapVeinDatastore>();
             initializerCollection.AddSingleton<IMapObjectDatastore, MapObjectDatastore>();
             initializerCollection.AddSingleton<IMapObjectFactory, MapObjectFactory>();
 
