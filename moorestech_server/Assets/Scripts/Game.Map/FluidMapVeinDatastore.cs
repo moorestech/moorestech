@@ -12,10 +12,6 @@ namespace Game.Map
 
         public FluidMapVeinDatastore(MapInfoJson mapInfoJson)
         {
-            // 既存map.jsonとの互換のためnull許容
-            // Allow null for backward compatibility with legacy map.json
-            if (mapInfoJson.FluidVeins == null) return;
-
             foreach (var veinJson in mapInfoJson.FluidVeins)
             {
                 var fluidId = MasterHolder.FluidMaster.GetFluidIdOrNull(veinJson.VeinFluidGuid);
