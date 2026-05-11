@@ -155,6 +155,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1efaa2708894e41b2bf87cebcaa89746
+    m_Address: Vanilla/Block/Electric_Ore_Crusher
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 21808017c1ff24c35a21821bcbde4e57
     m_Address: Vanilla/UI/Train/CommonTrainInventoryView
     m_ReadOnly: 0
@@ -247,6 +252,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 3e322023f82804c83a252459830ec557
     m_Address: Vanilla/Skit/Animations/anim_idle01_lp
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 423d2d193601b4fbdaf6b98c437e9326
+    m_Address: Vanilla/Block/Electric Mining Machine
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -387,6 +397,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 5d884e7556f41f74f85a834f48830b6e
     m_Address: Vanilla/Block/itemshooter straight
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5f6c0d705933140bdb8d4f3388a6bd82
+    m_Address: Vanilla/Block/Rotary_generator
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -542,11 +557,6 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 8b1d523ce7c92403490cc41115519a02
     m_Address: Vanilla/Block/Shaft Vertical
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 8c9a616c44001473593a4473ce1f2b5c
-    m_Address: Vanilla/Block/GearGenerator
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -710,6 +720,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a9ec6a2b0adb44ff3934771ef5d2c77a
+    m_Address: Vanilla/Block/Oxygen_generator
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: aa6c93f707827450ba679d52727164eb
     m_Address: Vanilla/Block/Electric_pole
     m_ReadOnly: 0
@@ -752,6 +767,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: b6b92dfc21fd142d8b92a23c61b5f13a
     m_Address: Vanilla/Block/Shaft Box
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b77a17a24c794490497d44b584e99453
+    m_Address: Vanilla/Block/ElectricOven
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
