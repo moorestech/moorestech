@@ -19,7 +19,7 @@ public class MapExportAndSetting : EditorWindow
         {
             DefaultSpawnPointJson = GetSpawnPointJson(),
             MapObjects = SetUpMapObjectInfos(),
-            MapVeins = GetMapVeinInfo(),
+            ItemMapVeins = GetItemMapVeinInfo(),
             FluidVeins = GetFluidVeinInfo(),
         };
         
@@ -80,14 +80,14 @@ public class MapExportAndSetting : EditorWindow
             return result;
         }
         
-        List<MapVeinInfoJson> GetMapVeinInfo()
+        List<ItemMapVeinInfoJson> GetItemMapVeinInfo()
         {
-            var veins = FindObjectsOfType<MapVeinGameObject>(true);
-            var result = new List<MapVeinInfoJson>();
+            var veins = FindObjectsOfType<ItemMapVeinGameObject>(true);
+            var result = new List<ItemMapVeinInfoJson>();
 
             foreach (var vein in veins)
             {
-                var config = new MapVeinInfoJson
+                var config = new ItemMapVeinInfoJson
                 {
                     VeinItemGuidStr = vein.VeinItemGuid.ToString(),
                     MinX = vein.MinPosition.x,

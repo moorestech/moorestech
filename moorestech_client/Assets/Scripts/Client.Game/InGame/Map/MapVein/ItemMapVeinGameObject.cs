@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Client.Game.InGame.Map.MapVein
 {
     [ExecuteAlways]
-    public class MapVeinGameObject : MonoBehaviour
+    public class ItemMapVeinGameObject : MonoBehaviour
     {
         public Vector3Int MinPosition => Service.MinPosition(bounds);
         public Vector3Int MaxPosition => Service.MaxPosition(bounds);

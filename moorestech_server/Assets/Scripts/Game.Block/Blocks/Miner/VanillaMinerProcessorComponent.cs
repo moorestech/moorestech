@@ -65,7 +65,7 @@ namespace Game.Block.Blocks.Miner
 
             void SetMiningItem()
             {
-                List<IMapVein> veins = ServerContext.MapVeinDatastore.GetOverVeins(blockPositionInfo.OriginalPos);
+                List<IItemMapVein> veins = ServerContext.ItemMapVeinDatastore.GetOverVeins(blockPositionInfo.OriginalPos);
                 foreach (var vein in veins) _miningItems.Add(itemStackFactory.Create(vein.VeinItemId, 1));
                 if (veins.Count == 0) return;
 
