@@ -20,6 +20,7 @@ public class MapExportAndSetting : EditorWindow
             DefaultSpawnPointJson = GetSpawnPointJson(),
             MapObjects = SetUpMapObjectInfos(),
             MapVeins = GetMapVeinInfo(),
+            FluidVeins = GetFluidVeinInfo(),
         };
         
         // jsonに変換
@@ -83,7 +84,7 @@ public class MapExportAndSetting : EditorWindow
         {
             var veins = FindObjectsOfType<MapVeinGameObject>(true);
             var result = new List<MapVeinInfoJson>();
-            
+
             foreach (var vein in veins)
             {
                 var config = new MapVeinInfoJson
@@ -92,17 +93,41 @@ public class MapExportAndSetting : EditorWindow
                     MinX = vein.MinPosition.x,
                     MinY = vein.MinPosition.y,
                     MinZ = vein.MinPosition.z,
-                    
+
                     MaxX = vein.MaxPosition.x,
                     MaxY = vein.MaxPosition.y,
                     MaxZ = vein.MaxPosition.z,
                 };
                 result.Add(config);
             }
-            
+
             return result;
         }
-        
+
+        List<FluidVeinInfoJson> GetFluidVeinInfo()
+        {
+            var veins = FindObjectsOfType<FluidMapVeinGameObject>(true);
+            var result = new List<FluidVeinInfoJson>();
+
+            foreach (var vein in veins)
+            {
+                var config = new FluidVeinInfoJson
+                {
+                    VeinFluidGuidStr = vein.VeinFluidGuid.ToString(),
+                    MinX = vein.MinPosition.x,
+                    MinY = vein.MinPosition.y,
+                    MinZ = vein.MinPosition.z,
+
+                    MaxX = vein.MaxPosition.x,
+                    MaxY = vein.MaxPosition.y,
+                    MaxZ = vein.MaxPosition.z,
+                };
+                result.Add(config);
+            }
+
+            return result;
+        }
+
         #endregion
     }
     
