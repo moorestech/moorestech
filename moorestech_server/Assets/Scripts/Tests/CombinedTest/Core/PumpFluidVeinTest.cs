@@ -83,7 +83,8 @@ namespace Tests.CombinedTest.Core
         private static IBlock PlacePoweredPump(Vector3Int pos)
         {
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPump, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pump);
+            var added = worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPump, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pump);
+            Assert.IsTrue(added, $"Failed to place pump at {pos}");
 
             // 電力を十分に供給して powerRate=1.0 にする
             // Supply enough power so powerRate = 1.0
