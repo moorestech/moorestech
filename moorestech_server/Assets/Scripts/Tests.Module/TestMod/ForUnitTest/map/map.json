@@ -43,7 +43,7 @@
       "instanceId": 4
     }
   ],
-  "mapVeins": [
+  "itemMapVeins": [
     {
       "veinItemGuid": "00000000-0000-0000-1234-000000000001",
       "xMin": 0,
