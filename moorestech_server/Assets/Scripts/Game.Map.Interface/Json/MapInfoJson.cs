@@ -9,7 +9,7 @@ namespace Game.Map.Interface.Json
     {
         [JsonProperty("defaultSpawnPoint")] public SpawnPointJson DefaultSpawnPointJson;
         [JsonProperty("mapObjects")] public List<MapObjectInfoJson> MapObjects;
-        [JsonProperty("mapVeins")] public List<ItemMapVeinInfoJson> ItemMapVeins;
+        [JsonProperty("itemMapVeins")] public List<ItemMapVeinInfoJson> ItemMapVeins;
         [JsonProperty("fluidVeins")] public List<FluidVeinInfoJson> FluidVeins;
     }
     

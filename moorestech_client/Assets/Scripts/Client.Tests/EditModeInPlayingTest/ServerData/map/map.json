@@ -2883,7 +2883,7 @@
       "z": 1.39915466
     }
   ],
-  "mapVeins": [
+  "itemMapVeins": [
     {
       "veinItemGuid": "b3a8a7af-8612-42bf-9c94-0e95d3bebf70",
       "minX": 3,
