@@ -22,7 +22,9 @@ public class MapVeinGameObjectEditorService
 
         if (EditorGUI.EndChangeCheck())
         {
-            setBoundsAction(new Bounds(_handle.center, _handle.size));
+            // ハンドル中心はワールド座標なのでローカル空間に戻して保存
+            // Convert handle's world-space center back to local space before storing
+            setBoundsAction(new Bounds(_handle.center - service.Transform.position, _handle.size));
             
             Undo.RecordObject(undoTarget, "Change Bounds");
             EditorUtility.SetDirty(undoTarget);

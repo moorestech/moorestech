@@ -29,7 +29,7 @@ namespace Client.Game.InGame.Map.MapVein
 
         private void OnDrawGizmosSelected()
         {
-            Service.DrowGizmo(bounds, Color.blue);
+            Service.DrawGizmo(bounds, Color.blue);
         }
     }
 }

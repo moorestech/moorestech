@@ -12,7 +12,8 @@ namespace Game.Map
 
         public ItemMapVeinDatastore(MapInfoJson mapInfoJson)
         {
-            //configからmap obejctを生成
+            // configからアイテム鉱脈を生成。GUIDが解決できない場合はスキップ
+            // Generate item veins from config; skip entries whose GUID cannot be resolved
             foreach (var veinJson in mapInfoJson.ItemMapVeins)
             {
                 if (!MasterHolder.ItemMaster.ExistItemId(veinJson.VeinItemGuid))

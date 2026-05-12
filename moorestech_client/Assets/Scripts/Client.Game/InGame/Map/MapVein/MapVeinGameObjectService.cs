@@ -43,7 +43,7 @@ namespace Client.Game.InGame.Map.MapVein
 
         // Gizmo描画用のワールド空間Boundsを返す
         // Return world-space bounds for Gizmo rendering
-        public void DrowGizmo(Bounds bounds, Color color)
+        public void DrawGizmo(Bounds bounds, Color color)
         {
             var gizmoBounds = new Bounds();
             gizmoBounds.SetMinMax(MinPosition(bounds), MaxPosition(bounds));

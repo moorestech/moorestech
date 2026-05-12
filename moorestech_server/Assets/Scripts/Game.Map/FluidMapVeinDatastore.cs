@@ -12,6 +12,8 @@ namespace Game.Map
 
         public FluidMapVeinDatastore(MapInfoJson mapInfoJson)
         {
+            // configから液体鉱脈を生成。GUIDが解決できない場合はスキップ
+            // Generate fluid veins from config; skip entries whose GUID cannot be resolved
             foreach (var veinJson in mapInfoJson.FluidVeins)
             {
                 var fluidId = MasterHolder.FluidMaster.GetFluidIdOrNull(veinJson.VeinFluidGuid);
