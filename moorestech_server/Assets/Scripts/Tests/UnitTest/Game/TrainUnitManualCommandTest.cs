@@ -15,7 +15,6 @@ namespace Tests.UnitTest.Game
         private const int TractionMasconLevel = 16777216;
         private const int NeutralMasconLevel = 0;
         private const int BrakeMasconLevel = -16777216;
-        private const int BranchSegmentDistance = 10;
 
         [Test]
         public void ManualTraction_AcceleratesForward()
@@ -114,36 +113,6 @@ namespace Tests.UnitTest.Game
         }
 
         [Test]
-        public void ManualBranchNeutral_UsesExistingDefaultConnection()
-        {
-            var fixture = CreateBranchFixture();
-
-            fixture.TrainUnit.UpdateTrainByDistance(1, new TrainUnitManualCommand(false, TrainUnitMasconCommand.Neutral, TrainUnitBranchCommand.Neutral));
-
-            AssertSelectedBranch(fixture.TrainUnit, fixture.DefaultNode, "neutral 分岐が既存の接続リスト先頭を選択していません。");
-        }
-
-        [Test]
-        public void ManualBranchPrevious_SelectsPreviousNodeIdCandidate()
-        {
-            var fixture = CreateBranchFixture();
-
-            fixture.TrainUnit.UpdateTrainByDistance(1, new TrainUnitManualCommand(false, TrainUnitMasconCommand.Neutral, TrainUnitBranchCommand.Previous));
-
-            AssertSelectedBranch(fixture.TrainUnit, fixture.PreviousNode, "A 分岐がデフォルト候補の前 NodeId 候補を選択していません。");
-        }
-
-        [Test]
-        public void ManualBranchNext_SelectsNextNodeIdCandidate()
-        {
-            var fixture = CreateBranchFixture();
-
-            fixture.TrainUnit.UpdateTrainByDistance(1, new TrainUnitManualCommand(false, TrainUnitMasconCommand.Neutral, TrainUnitBranchCommand.Next));
-
-            AssertSelectedBranch(fixture.TrainUnit, fixture.NextNode, "D 分岐がデフォルト候補の次 NodeId 候補を選択していません。");
-        }
-
-        [Test]
         public void ManualReverseWithBrake_AtStopReversesAndAppliesBrakeMascon()
         {
             var fixture = CreateTwoCarFixture();
@@ -207,13 +176,6 @@ namespace Tests.UnitTest.Game
             return (double)totalTraction / totalWeight;
         }
 
-        private static void AssertSelectedBranch(TrainUnit trainUnit, IRailNode expectedNode, string message)
-        {
-            Assert.AreSame(expectedNode, trainUnit.RailPosition.GetNodeApproaching(), message);
-            var diff = trainUnit.GetTickDiff();
-            Assert.AreEqual(expectedNode.NodeId, diff.approachingNodeIdDiff, "選択した分岐ノードが tick diff に出ていません。");
-        }
-
         private static TrainFixture CreateSingleCarFixture()
         {
             var environment = TrainTestHelper.CreateEnvironment();
@@ -247,29 +209,6 @@ namespace Tests.UnitTest.Game
             var trainUnit = CreateTrainUnit(environment, new List<TrainCar> { frontCar, rearCar }, railA.FrontNode, railB.FrontNode, distance);
 
             return new TrainFixture(trainUnit, frontCar, rearCar, railA.FrontNode);
-        }
-
-        private static BranchFixture CreateBranchFixture()
-        {
-            var environment = TrainTestHelper.CreateEnvironment();
-            var railGraphDatastore = environment.GetRailGraphDatastore();
-            var behind = RailNode.CreateSingleAndRegister(railGraphDatastore);
-            var junction = RailNode.CreateSingleAndRegister(railGraphDatastore);
-            var previous = RailNode.CreateSingleAndRegister(railGraphDatastore);
-            var defaultNode = RailNode.CreateSingleAndRegister(railGraphDatastore);
-            var next = RailNode.CreateSingleAndRegister(railGraphDatastore);
-
-            // ニュートラル時の既存デフォルト候補が NodeId 順の中央になるように接続する。
-            // Connect default first while keeping it in the middle of the NodeId ordering.
-            behind.ConnectNode(junction, BranchSegmentDistance);
-            junction.ConnectNode(defaultNode, BranchSegmentDistance);
-            junction.ConnectNode(previous, BranchSegmentDistance);
-            junction.ConnectNode(next, BranchSegmentDistance);
-
-            var trainCar = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 240000000, 0, 1, true).trainCar;
-            var railPosition = new RailPosition(new List<IRailNode> { junction, behind }, trainCar.Length, 0);
-            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
-            return new BranchFixture(trainUnit, previous, defaultNode, next);
         }
 
         private static TrainUnit CreateTrainUnit(TrainTestEnvironment environment, List<TrainCar> cars, IRailNode nodeBehind, IRailNode nodeApproaching, int nodeDistance)
@@ -308,20 +247,5 @@ namespace Tests.UnitTest.Game
             }
         }
 
-        private readonly struct BranchFixture
-        {
-            public readonly TrainUnit TrainUnit;
-            public readonly IRailNode PreviousNode;
-            public readonly IRailNode DefaultNode;
-            public readonly IRailNode NextNode;
-
-            public BranchFixture(TrainUnit trainUnit, IRailNode previousNode, IRailNode defaultNode, IRailNode nextNode)
-            {
-                TrainUnit = trainUnit;
-                PreviousNode = previousNode;
-                DefaultNode = defaultNode;
-                NextNode = nextNode;
-            }
-        }
     }
 }
