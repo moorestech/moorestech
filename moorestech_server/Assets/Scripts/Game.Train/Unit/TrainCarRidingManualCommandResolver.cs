@@ -17,17 +17,19 @@ namespace Game.Train.Unit
 
         public TrainUnitManualCommand Resolve(TrainUnit trainUnit, uint currentTick)
         {
-            var hasResolvedInput = false;
-            var latestReceivedTick = 0u;
-            var resolvedCommand = TrainUnitManualCommand.Default;
+            var trainDirectionVote = 0;
 
             foreach (var inputState in _inputBuffer.GetLatestInputs())
             {
+                // 期限切れ入力は多数決から除外する。
+                // Exclude expired inputs from the vote.
                 if (IsExpired(inputState, currentTick))
                 {
                     continue;
                 }
 
+                // 対象外の train に乗っている入力は、この train の票にしない。
+                // Do not count inputs riding a different train.
                 if (!_trainUnitLookupDatastore.TryGetTrainUnitByCar(inputState.RidingTrainCarInstanceId, out var ridingTrainUnit))
                 {
                     continue;
@@ -43,16 +45,12 @@ namespace Game.Train.Unit
                     continue;
                 }
 
-                var manualCommand = ResolveManualCommand(trainUnit, ridingTrainCar, inputState);
-                if (!hasResolvedInput || latestReceivedTick <= inputState.ReceivedTick)
-                {
-                    hasResolvedInput = true;
-                    latestReceivedTick = inputState.ReceivedTick;
-                    resolvedCommand = manualCommand;
-                }
+                // 車両向きを考慮して train 前後方向の票へ変換し、全員分を合算する。
+                // Convert each input with car facing into a train direction vote and sum all riders.
+                trainDirectionVote += ResolveTrainDirectionVote(ridingTrainCar, inputState);
             }
 
-            return resolvedCommand;
+            return ResolveManualCommand(trainUnit, trainDirectionVote);
         }
 
         private static bool IsExpired(TrainCarRidingInputBuffer.TrainCarRidingInputState inputState, uint currentTick)
@@ -65,18 +63,27 @@ namespace Game.Train.Unit
             return currentTick - inputState.ReceivedTick >= ManualInputTimeToLiveTicks;
         }
 
-        private static TrainUnitManualCommand ResolveManualCommand(TrainUnit trainUnit, TrainCar ridingTrainCar, TrainCarRidingInputBuffer.TrainCarRidingInputState inputState)
+        private static int ResolveTrainDirectionVote(TrainCar ridingTrainCar, TrainCarRidingInputBuffer.TrainCarRidingInputState inputState)
         {
             if (inputState.W == inputState.S)
             {
-                return TrainUnitManualCommand.Default;
+                return 0;
             }
 
             var wantsTrainForward = inputState.W
                 ? ridingTrainCar.IsFacingForward
                 : !ridingTrainCar.IsFacingForward;
+            return wantsTrainForward ? 1 : -1;
+        }
 
-            if (wantsTrainForward)
+        private static TrainUnitManualCommand ResolveManualCommand(TrainUnit trainUnit, int trainDirectionVote)
+        {
+            if (trainDirectionVote == 0)
+            {
+                return TrainUnitManualCommand.Default;
+            }
+
+            if (trainDirectionVote > 0)
             {
                 return new TrainUnitManualCommand(false, TrainUnitMasconCommand.Accelerate);
             }

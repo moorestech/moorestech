@@ -13,6 +13,53 @@ namespace Tests.UnitTest.Game
     public class TrainCarRidingManualCommandResolverTest
     {
         [Test]
+        public void Resolve_SameTrainConflictingVotes_ReturnsNeutral()
+        {
+            var fixture = CreateForwardFacingFixture();
+            var buffer = new TrainCarRidingInputBuffer();
+            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(1, fixture.RidingCar.TrainCarInstanceId, 10, true, false, false, false));
+            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(2, fixture.RidingCar.TrainCarInstanceId, 10, false, false, true, false));
+            var resolver = new TrainCarRidingManualCommandResolver(fixture.TrainUnitDatastore, buffer);
+
+            var command = resolver.Resolve(fixture.TrainUnit, 10);
+
+            Assert.IsFalse(command.ReverseRequested, "前進票と後退票が同数なら reverse 要求は出さないべきです。");
+            Assert.AreEqual(TrainUnitMasconCommand.Neutral, command.MasconCommand, "前進票と後退票が同数なら neutral になるべきです。");
+        }
+
+        [Test]
+        public void Resolve_SameTrainForwardMajority_ReturnsAccelerate()
+        {
+            var fixture = CreateForwardFacingFixture();
+            var buffer = new TrainCarRidingInputBuffer();
+            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(1, fixture.RidingCar.TrainCarInstanceId, 10, true, false, false, false));
+            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(2, fixture.RidingCar.TrainCarInstanceId, 10, true, false, false, false));
+            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(3, fixture.RidingCar.TrainCarInstanceId, 10, false, false, true, false));
+            var resolver = new TrainCarRidingManualCommandResolver(fixture.TrainUnitDatastore, buffer);
+
+            var command = resolver.Resolve(fixture.TrainUnit, 10);
+
+            Assert.IsFalse(command.ReverseRequested, "前進多数なら reverse 要求は出さないべきです。");
+            Assert.AreEqual(TrainUnitMasconCommand.Accelerate, command.MasconCommand, "前進多数なら traction になるべきです。");
+        }
+
+        [Test]
+        public void Resolve_SameTrainBackwardMajorityAtStop_ReturnsReverseAndTraction()
+        {
+            var fixture = CreateForwardFacingFixture();
+            var buffer = new TrainCarRidingInputBuffer();
+            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(1, fixture.RidingCar.TrainCarInstanceId, 10, false, false, true, false));
+            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(2, fixture.RidingCar.TrainCarInstanceId, 10, false, false, true, false));
+            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(3, fixture.RidingCar.TrainCarInstanceId, 10, true, false, false, false));
+            var resolver = new TrainCarRidingManualCommandResolver(fixture.TrainUnitDatastore, buffer);
+
+            var command = resolver.Resolve(fixture.TrainUnit, 10);
+
+            Assert.IsTrue(command.ReverseRequested, "停止中の後退多数なら reverse 要求を出すべきです。");
+            Assert.AreEqual(TrainUnitMasconCommand.Accelerate, command.MasconCommand, "停止中の後退多数なら reverse 後の traction になるべきです。");
+        }
+
+        [Test]
         public void Resolve_ReverseRequestWhileMoving_ReturnsBrakeUntilStop()
         {
             var fixture = CreateForwardFacingFixture();
