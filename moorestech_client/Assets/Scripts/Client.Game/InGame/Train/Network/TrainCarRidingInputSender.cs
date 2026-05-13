@@ -1,6 +1,5 @@
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Train.Unit;
-using Core.Update;
 using UnityEngine;
 using VContainer.Unity;
 
@@ -8,11 +7,8 @@ namespace Client.Game.InGame.Train.Network
 {
     public sealed class TrainCarRidingInputSender : ITickable
     {
-        private const double TickSeconds = 1d / GameUpdater.TicksPerSecond;
-
         private readonly TrainCarRidingState _trainCarRidingState;
         private readonly TrainUnitClientCache _trainUnitClientCache;
-        private double _elapsedSeconds;
 
         public TrainCarRidingInputSender(TrainCarRidingState trainCarRidingState, TrainUnitClientCache trainUnitClientCache)
         {
@@ -22,21 +18,14 @@ namespace Client.Game.InGame.Train.Network
 
         public void Tick()
         {
-            _elapsedSeconds += Time.deltaTime;
-            while (_elapsedSeconds >= TickSeconds)
-            {
-                _elapsedSeconds -= TickSeconds;
-                SendIfRiding();
-            }
+            SendIfRiding();
         }
 
         private void SendIfRiding()
         {
             var ridingTrainCarInstanceId = _trainCarRidingState.CurrentRidingTrainCarInstanceId;
             if (!ridingTrainCarInstanceId.HasValue)
-            {
                 return;
-            }
 
             // 対象車両が cache から消えたら強制降車する。
             // Force dismount if the target car disappeared from the cache.

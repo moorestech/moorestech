@@ -27,7 +27,7 @@ namespace Game.Block.Factory.BlockTemplate
             var miningSettings = minerParam.MineSettings;
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(minerParam.InventoryConnectors, blockPositionInfo);
             
-            var minerProcessorComponent = new VanillaMinerProcessorComponent(blockInstanceId, requestPower, outputSlot, _blockOpenableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo, miningSettings);
+            var minerProcessorComponent = new VanillaMinerProcessorComponent(blockInstanceId, requestPower.AsPrimitive(), outputSlot, _blockOpenableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo, miningSettings);
             var electricMinerComponent = new VanillaElectricMinerComponent(blockInstanceId, requestPower, minerProcessorComponent);
             var components = new List<IBlockComponent>
             {
@@ -47,7 +47,7 @@ namespace Game.Block.Factory.BlockTemplate
             var miningSettings = minerParam.MineSettings;
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(minerParam.InventoryConnectors, blockPositionInfo);
             
-            var minerProcessorComponent = new VanillaMinerProcessorComponent(componentStates, blockInstanceId, requestPower, outputSlot, _blockOpenableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo, miningSettings);
+            var minerProcessorComponent = new VanillaMinerProcessorComponent(componentStates, blockInstanceId, requestPower.AsPrimitive(), outputSlot, _blockOpenableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo, miningSettings);
             var electricMinerComponent = new VanillaElectricMinerComponent(blockInstanceId, requestPower, minerProcessorComponent);
             var components = new List<IBlockComponent>
             {

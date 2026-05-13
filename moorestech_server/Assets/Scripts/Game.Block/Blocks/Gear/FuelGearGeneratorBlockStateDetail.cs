@@ -16,7 +16,7 @@ namespace Game.Block.Blocks.Gear
         /// <summary>
         /// 現在の状態（Idle, Accelerating, Running, Decelerating）
         /// </summary>
-        [Key(7)] public string State;
+        [Key(7)] public FuelGearGeneratorState State;
         
         /// <summary>
         /// 蒸気消費率（0〜1）
@@ -38,12 +38,11 @@ namespace Game.Block.Blocks.Gear
         public FuelGearGeneratorBlockStateDetail(
             FuelGearGeneratorStateService stateService,
             FuelGearGeneratorFluidComponent fluidComponent,
-            GearNetworkInfo gearNetworkInfo,
             bool isClockwise)
-            : base(isClockwise, stateService.CurrentGeneratedRpm.AsPrimitive(), stateService.CurrentGeneratedTorque.AsPrimitive(), gearNetworkInfo)
+            : base(isClockwise, stateService.CurrentGeneratedRpm.AsPrimitive(), stateService.CurrentGeneratedTorque.AsPrimitive())
         {
             var steamTank = fluidComponent.SteamTank;
-            State = stateService.CurrentState.ToString();
+            State = stateService.CurrentState;
             SteamConsumptionRate = stateService.SteamConsumptionRate;
             SteamAmount = steamTank.Amount;
             SteamFluidId = steamTank.FluidId.AsPrimitive();

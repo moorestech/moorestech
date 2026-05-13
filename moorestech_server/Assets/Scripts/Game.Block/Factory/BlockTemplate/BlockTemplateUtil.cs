@@ -10,7 +10,6 @@ using Game.Block.Event;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
-using Game.EnergySystem;
 using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.InventoryConnectsModule;
 using Newtonsoft.Json;
@@ -66,7 +65,7 @@ namespace Game.Block.Factory.BlockTemplate
         public static VanillaMachineProcessorComponent MachineLoadState(Dictionary<string, string> componentStates,
             VanillaMachineInputInventory vanillaMachineInputInventory,
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
-            ElectricPower requestPower, BlockMasterElement blockMasterElement)
+            float requestPower, BlockMasterElement blockMasterElement)
         {
             var state = componentStates[VanillaMachineSaveComponent.SaveKeyStatic];
             var jsonObject = JsonConvert.DeserializeObject<VanillaMachineJsonObject>(state);

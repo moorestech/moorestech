@@ -49,7 +49,6 @@
       "name": "小さな歯車",
       "blockType": "Gear",
       "blockParam": {
-        "requireTorque": 0,
         "teethCount": 10,
         "gear": {
           "gearConnects": [
@@ -116,7 +115,14 @@
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
-        "baseDestructionProbability": 0
+        "baseDestructionProbability": 0,
+        "gearConsumption": {
+          "baseTorque": 0,
+          "baseRpm": 5,
+          "minimumRpm": 0,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
+        }
       },
       "itemGuid": "19fb4202-de45-49f1-a480-3d154309dd99",
       "blockGuid": "ce060607-996d-4270-87ec-204073f6e3f7",
@@ -199,8 +205,6 @@
       "name": "ふるい",
       "blockType": "GearMachine",
       "blockParam": {
-        "requiredRpm": 5,
-        "requireTorque": 1,
         "teethCount": 10,
         "outputSlotCount": 4,
         "inputSlotCount": 1,
@@ -332,7 +336,14 @@
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
-        "baseDestructionProbability": 0
+        "baseDestructionProbability": 0,
+        "gearConsumption": {
+          "baseRpm": 5,
+          "minimumRpm": 0,
+          "baseTorque": 1,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
+        }
       },
       "itemGuid": "8b7a77d9-bda9-4eb5-85f3-8eefc6f90a84",
       "blockGuid": "db586a13-e960-4414-9d63-85fa07fded7f",
@@ -349,8 +360,6 @@
       "name": "遠心分離機",
       "blockType": "GearMachine",
       "blockParam": {
-        "requiredRpm": 20,
-        "requireTorque": 0.01,
         "teethCount": 10,
         "outputSlotCount": 4,
         "inputSlotCount": 1,
@@ -482,7 +491,14 @@
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
-        "baseDestructionProbability": 0
+        "baseDestructionProbability": 0,
+        "gearConsumption": {
+          "baseRpm": 20,
+          "minimumRpm": 0,
+          "baseTorque": 0.01,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
+        }
       },
       "itemGuid": "1da13d89-8aa1-42f7-8d7f-96ef0d216c2b",
       "blockGuid": "47afbbce-ca2c-4470-8348-3d8c1d887506",
@@ -536,7 +552,6 @@
       "name": "シャフト",
       "blockType": "Shaft",
       "blockParam": {
-        "requireTorque": 0,
         "gear": {
           "gearConnects": [
             {
@@ -567,14 +582,20 @@
         },
         "beltConveyorItemCount": 1,
         "timeOfItemEnterToExit": 1,
-        "requiredRpm": 5,
         "inputSlotCount": 1,
         "teethCount": 10,
         "outputSlotCount": 1,
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
-        "baseDestructionProbability": 0
+        "baseDestructionProbability": 0,
+        "gearConsumption": {
+          "baseTorque": 0,
+          "baseRpm": 5,
+          "minimumRpm": 0,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
+        }
       },
       "itemGuid": "96b45ab2-3345-4fcd-99af-f3dc06605e73",
       "blockGuid": "3dda0801-b12a-4624-b759-2ac3c62969a6",
@@ -656,8 +677,6 @@
       "itemGuid": "4abdae31-6e3b-42c5-a097-4cf6021751ca",
       "blockType": "GearMachine",
       "blockParam": {
-        "requiredRpm": 1,
-        "requireTorque": 4,
         "teethCount": 10,
         "outputSlotCount": 1,
         "inputSlotCount": 1,
@@ -753,7 +772,14 @@
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
-        "baseDestructionProbability": 0
+        "baseDestructionProbability": 0,
+        "gearConsumption": {
+          "baseRpm": 1,
+          "minimumRpm": 0,
+          "baseTorque": 4,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
+        }
       },
       "name": "プレス機",
       "blockGuid": "20ebdedb-da4e-4cee-b9ba-772e6394653c",
@@ -772,8 +798,6 @@
       "blockGuid": "a334d703-9442-4910-a8f8-b914df50df4e",
       "blockType": "GearMachine",
       "blockParam": {
-        "requiredRpm": 5,
-        "requireTorque": 2,
         "teethCount": 10,
         "outputSlotCount": 4,
         "inputSlotCount": 1,
@@ -905,7 +929,14 @@
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
-        "baseDestructionProbability": 0
+        "baseDestructionProbability": 0,
+        "gearConsumption": {
+          "baseRpm": 5,
+          "minimumRpm": 0,
+          "baseTorque": 2,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
+        }
       },
       "blockPrefabAddressablesPath": "Vanilla/Block/stone crasher",
       "blockUIAddressablesPath": "Vanilla/UI/Block/GearMachineBlockInventory",
@@ -920,7 +951,6 @@
       "name": "直線歯車ベルトコンベア",
       "blockType": "GearBeltConveyor",
       "blockParam": {
-        "requireTorquePerRpm": 0.02,
         "beltConveyorSpeed": 0.01,
         "beltConveyorItemCount": 4,
         "gear": {
@@ -1059,7 +1089,14 @@
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
-        "baseDestructionProbability": 0
+        "baseDestructionProbability": 0,
+        "gearConsumption": {
+          "baseRpm": 500,
+          "minimumRpm": 0,
+          "baseTorque": 1,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
+        }
       },
       "itemGuid": "52f09be4-e12b-4674-afec-d183cebed28f",
       "blockGuid": "67255c7b-135d-4c46-95e8-fcf01f151580",
@@ -1081,7 +1118,6 @@
       "name": "上り歯車ベルトコンベア",
       "blockType": "GearBeltConveyor",
       "blockParam": {
-        "requireTorquePerRpm": 0.02,
         "beltConveyorSpeed": 0.01,
         "beltConveyorItemCount": 4,
         "gear": {
@@ -1170,7 +1206,14 @@
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
-        "baseDestructionProbability": 0
+        "baseDestructionProbability": 0,
+        "gearConsumption": {
+          "baseRpm": 500,
+          "minimumRpm": 0,
+          "baseTorque": 1,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
+        }
       },
       "itemGuid": "b3b2cbce-94fb-493a-97b9-a0dbc88d4a41",
       "blockGuid": "11c8a7c9-b4c9-41c6-b52e-4f7b78d7e51d",
@@ -1188,7 +1231,6 @@
       "name": "下り歯車ベルトコンベア",
       "blockType": "GearBeltConveyor",
       "blockParam": {
-        "requireTorquePerRpm": 0.02,
         "beltConveyorSpeed": 0.01,
         "beltConveyorItemCount": 4,
         "gear": {
@@ -1282,7 +1324,14 @@
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
-        "baseDestructionProbability": 0
+        "baseDestructionProbability": 0,
+        "gearConsumption": {
+          "baseRpm": 500,
+          "minimumRpm": 0,
+          "baseTorque": 1,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
+        }
       },
       "itemGuid": "de18ccf5-7560-4733-8416-676a4cdf52ec",
       "blockGuid": "c568f762-ee82-4e5f-8c80-0d70e3cbd8a2",
@@ -1300,7 +1349,6 @@
       "name": "大きな歯車",
       "blockType": "Gear",
       "blockParam": {
-        "requireTorque": 0,
         "teethCount": 40,
         "gear": {
           "gearConnects": [
@@ -1409,7 +1457,14 @@
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
-        "baseDestructionProbability": 0
+        "baseDestructionProbability": 0,
+        "gearConsumption": {
+          "baseTorque": 0,
+          "baseRpm": 5,
+          "minimumRpm": 0,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
+        }
       },
       "initialUnlocked": true,
       "itemGuid": "ba3cf978-dc21-47f9-810e-50f1c26015ed",
@@ -1463,8 +1518,6 @@
           }
         ],
         "teethCount": 10,
-        "requiredRpm": 40,
-        "requireTorque": 1,
         "gear": {
           "gearConnects": [
             {
@@ -1510,7 +1563,14 @@
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
-        "baseDestructionProbability": 0
+        "baseDestructionProbability": 0,
+        "gearConsumption": {
+          "baseRpm": 40,
+          "minimumRpm": 0,
+          "baseTorque": 1,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
+        }
       },
       "blockPrefabAddressablesPath": "Vanilla/Block/bronze_miner",
       "blockUIAddressablesPath": "Vanilla/UI/Block/GearMinerBlockInventory",
@@ -1530,8 +1590,6 @@
       "time": 1,
       "blockType": "GearMachine",
       "blockParam": {
-        "requiredRpm": 1,
-        "requireTorque": 4,
         "teethCount": 10,
         "outputSlotCount": 1,
         "inputSlotCount": 1,
@@ -1627,7 +1685,14 @@
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
-        "baseDestructionProbability": 0
+        "baseDestructionProbability": 0,
+        "gearConsumption": {
+          "baseRpm": 1,
+          "minimumRpm": 0,
+          "baseTorque": 4,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
+        }
       },
       "itemGuid": "2df8862b-dfd1-4e64-b688-952b69212902",
       "name": "圧延機",
@@ -1647,8 +1712,6 @@
       "blockGuid": "4b1808f2-0a5b-41bf-aced-645e4a76b870",
       "blockType": "GearMachine",
       "blockParam": {
-        "requiredRpm": 1,
-        "requireTorque": 4,
         "teethCount": 10,
         "outputSlotCount": 5,
         "inputSlotCount": 5,
@@ -1750,7 +1813,14 @@
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
-        "baseDestructionProbability": 0
+        "baseDestructionProbability": 0,
+        "gearConsumption": {
+          "baseRpm": 1,
+          "minimumRpm": 0,
+          "baseTorque": 4,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
+        }
       },
       "overrideVerticalBlock": {},
       "blockUIAddressablesPath": "Vanilla/UI/Block/GearMachineBlockInventory"
@@ -1764,8 +1834,6 @@
       "name": "ふいご付き精錬炉",
       "blockType": "GearMachine",
       "blockParam": {
-        "requiredRpm": 5,
-        "requireTorque": 1,
         "teethCount": 10,
         "outputSlotCount": 1,
         "inputSlotCount": 1,
@@ -1790,7 +1858,14 @@
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
-        "baseDestructionProbability": 0
+        "baseDestructionProbability": 0,
+        "gearConsumption": {
+          "baseRpm": 5,
+          "minimumRpm": 0,
+          "baseTorque": 1,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
+        }
       },
       "itemGuid": "3fbc5f0e-e39d-4753-9757-e5464284850d",
       "blockGuid": "4ff330a1-ecf4-4687-b782-423f25bd9dbf",
@@ -1809,7 +1884,6 @@
       ],
       "blockType": "Shaft",
       "blockParam": {
-        "requireTorque": 0,
         "gear": {
           "gearConnects": [
             {
@@ -1841,7 +1915,14 @@
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
-        "baseDestructionProbability": 0
+        "baseDestructionProbability": 0,
+        "gearConsumption": {
+          "baseTorque": 0,
+          "baseRpm": 5,
+          "minimumRpm": 0,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
+        }
       },
       "itemGuid": "855ec61a-a6c1-4a37-a885-1c5994ce573b",
       "name": "縦シャフト",
@@ -1861,7 +1942,6 @@
       "name": "シャフトボックス",
       "blockType": "Shaft",
       "blockParam": {
-        "requireTorque": 0,
         "gear": {
           "gearConnects": [
             {
@@ -1913,7 +1993,14 @@
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
-        "baseDestructionProbability": 0
+        "baseDestructionProbability": 0,
+        "gearConsumption": {
+          "baseTorque": 0,
+          "baseRpm": 5,
+          "minimumRpm": 0,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
+        }
       },
       "blockGuid": "b1bddbd5-85c7-4c09-a539-646c34ce9afd",
       "blockPrefabAddressablesPath": "Vanilla/Block/Shaft Box",

@@ -60,6 +60,12 @@ namespace Client.Starter
         
         private async UniTask Initialize()
         {
+            // ---- Web UI サーバーの起動（最序盤）----
+            // GameShutdownEvent の購読は WebUiHost 側で 1 度だけ張られる
+            // ---- Web UI server bootstrap (earliest phase) ----
+            // The GameShutdownEvent subscription is installed once inside WebUiHost itself
+            await Client.WebUiHost.Boot.WebUiHost.StartAsync();
+
             var args = CliConvert.Parse<StartServerSettings>(_proprieties.CreateLocalServerArgs);
             var serverDirectory = args.ServerDataDirectory;
             
@@ -166,6 +172,10 @@ namespace Client.Starter
                 var starter = FindObjectOfType<MainGameStarter>();
                 var resolver = starter.StartGame(handshakeResponse);
                 new ClientDIContext(new DIContainer(resolver));
+
+                // Web UI ゲーム系トピックを Hub にバインド
+                // Bind game-side Web UI topics to the hub
+                Client.WebUiHost.Game.WebUiGameBinder.BindTopics();
 
                 // ゲーム初期化完了イベントを発火
                 // Fire game initialization complete event

@@ -1,9 +1,89 @@
 fileFormatVersion: 2
 guid: ba964340f0034475e9191a784ed672dd
 ModelImporter:
-  serializedVersion: 22200
+  serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Cable
+    second: {fileID: 2100000, guid: 00fc34bd3a3754a968562f3b9d56b36f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Glass
+    second: {fileID: 2100000, guid: 21cf336251fc140d9a47fbae17e73cc9, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Green
+    second: {fileID: 2100000, guid: 88b1601d54ffa4590be2ef3e9758ea66, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Metal
+    second: {fileID: 2100000, guid: 1a09fbaab0942452bbded4050795be2d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Metal_mesh
+    second: {fileID: 2100000, guid: 76872f34475c1499683317e641cfdc03, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Red_LED
+    second: {fileID: 2100000, guid: 7a3a9f2c687f34c44a727b2ed48ac0a9, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Route_Line_Metal_1_Modern
+    second: {fileID: 2100000, guid: 21249a7df7758460bb2fe0959b679e6b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Route_Line_Metal_2
+    second: {fileID: 2100000, guid: 7d6b8787b7049482b93c2d396b8a2fa5, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Route_Line_Metal_2_Modern
+    second: {fileID: 2100000, guid: d22eafdf406b64b49b004b62754d9827, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Route_Line_Metal_3_Modern
+    second: {fileID: 2100000, guid: b11daaf581ca943c7b761f9b6e1620f7, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Route_Line_Modern
+    second: {fileID: 2100000, guid: 67f73f8a0dedc44b3979af103bdf3b01, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Stripe
+    second: {fileID: 2100000, guid: 5f3b83665a3fb4901a91f7f56e5aa67c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: White
+    second: {fileID: 2100000, guid: 88e4607ae503f4189b545ec3940bb206, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Yellow_LED
+    second: {fileID: 2100000, guid: 309cb6248ff3844ba905fd18b052f827, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: yellow
+    second: {fileID: 2100000, guid: 497f363e89a254a768d4de1595a0b437, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: "\u30DE\u30C6\u30EA\u30A2\u30EB"
+    second: {fileID: 2100000, guid: 70fa9e77bbae7451a89a46ec1e69bc80, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
@@ -16,8 +96,6 @@ ModelImporter:
     optimizeGameObjects: 0
     removeConstantScaleCurves: 0
     motionNodeName: 
-    rigImportErrors: 
-    rigImportWarnings: 
     animationImportErrors: 
     animationImportWarnings: 
     animationRetargetingWarnings: 
@@ -58,6 +136,9 @@ ModelImporter:
     maxBonesPerVertex: 4
     minBoneWeight: 0.001
     optimizeBones: 1
+    generateMeshLods: 0
+    meshLodGenerationFlags: 0
+    maximumMeshLod: -1
     meshOptimizationFlags: -1
     indexFormat: 0
     secondaryUVAngleDistortion: 8

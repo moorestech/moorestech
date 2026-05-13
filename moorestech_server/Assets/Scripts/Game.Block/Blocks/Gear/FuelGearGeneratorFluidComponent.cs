@@ -50,7 +50,7 @@ namespace Game.Block.Blocks.Gear
         public void Update()
         {
             // この更新サイクルで補給があったかどうかをチェック
-            _wasRefilledThisUpdate = _fuelTank.PreviousSourceFluidContainers.Count > 0;
+            _wasRefilledThisUpdate = _fuelTank.HasPreviousSources;
             
             // 補給状態を追跡
             if (_wasRefilledThisUpdate)
@@ -68,8 +68,8 @@ namespace Game.Block.Blocks.Gear
                 // Debug.Log($"[FluidComponent] No refill. Consecutive: {_consecutiveUpdatesWithoutRefill}, Disconnected: {IsPipeDisconnected}");
             }
             
-            // タンクのPreviousSourceFluidContainersをクリア
-            _fuelTank.PreviousSourceFluidContainers.Clear();
+            // タンクの送信元記録をクリア
+            _fuelTank.ClearPreviousSources();
             
             // タンクが空の場合はFluidIdをリセット
             if (_fuelTank.Amount <= 0)

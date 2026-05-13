@@ -48,12 +48,12 @@ namespace Tests.CombinedTest.Core
             const float testSeconds = 4f;
             var testTicks = (int)(testSeconds * GameUpdater.TicksPerSecond);
 
-            // 1) フルパワー（RequiredRpm / RequireTorque を満たす）
+            // 1) フルパワー（BaseRpm / BaseTorque を満たす）
             // +XにSimpleGearGeneratorを設置し、ExtensionでRPM/Torqueを設定
             world.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, new Vector3Int(1, 0, 0), BlockDirection.East, Array.Empty<BlockCreateParam>(), out var generatorBlock);
             var simpleGenerator = generatorBlock.GetComponent<global::Game.Block.Blocks.Gear.SimpleGearGeneratorComponent>();
-            simpleGenerator.SetGenerateRpm(pumpParam.RequiredRpm);
-            simpleGenerator.SetGenerateTorque(pumpParam.RequireTorque);
+            simpleGenerator.SetGenerateRpm((float)pumpParam.GearConsumption.BaseRpm);
+            simpleGenerator.SetGenerateTorque((float)pumpParam.GearConsumption.BaseTorque);
 
             for (var i = 0; i < testTicks; i++) GameUpdater.RunFrames(1);
 
@@ -72,9 +72,9 @@ namespace Tests.CombinedTest.Core
             world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, -1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out pipeNegZ);
 
             // ジェネレーターのRPMだけ半減（トルクは維持）
-            var halfRpm = new RPM(Math.Max(0.0f, pumpParam.RequiredRpm / 2f));
+            var halfRpm = new RPM(Math.Max(0.0f, (float)pumpParam.GearConsumption.BaseRpm / 2f));
             simpleGenerator.SetGenerateRpm(halfRpm.AsPrimitive());
-            simpleGenerator.SetGenerateTorque(pumpParam.RequireTorque);
+            simpleGenerator.SetGenerateTorque((float)pumpParam.GearConsumption.BaseTorque);
             for (var i = 0; i < testTicks; i++) GameUpdater.RunFrames(1);
 
             var halfAmount = GetPipeAmount(pipeNegX) + GetPipeAmount(pipePosZ) + GetPipeAmount(pipeNegZ);

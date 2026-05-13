@@ -32,7 +32,7 @@ namespace Tests.CombinedTest.Core
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
             // 手動で鉱石の設定を行う
-            var (_, pos) = GetMapVein();
+            var (_, pos) = GetItemMapVein();
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricMinerId, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             var miner = worldBlockDatastore.GetBlock(pos);
             var minerComponent = miner.GetComponent<VanillaMinerProcessorComponent>();
@@ -91,13 +91,13 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(2, chestComponent.InventoryItems[0].Count);
         }
         
-        public static (IMapVein mapVein, Vector3Int pos) GetMapVein()
+        public static (IItemMapVein mapVein, Vector3Int pos) GetItemMapVein()
         {
             var pos = new Vector3Int(0, 0);
             for (var i = 0; i < 500; i++)
             for (var j = 0; j < 500; j++)
             {
-                List<IMapVein> veins = ServerContext.MapVeinDatastore.GetOverVeins(new Vector3Int(i, j));
+                List<IItemMapVein> veins = ServerContext.ItemMapVeinDatastore.GetOverVeins(new Vector3Int(i, j));
                 if (veins.Count == 0) continue;
                 
                 return (veins[0], new Vector3Int(i, j));

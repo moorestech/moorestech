@@ -11,6 +11,8 @@ using Game.CraftTree.Models;
 using Game.Research;
 using Game.Train.RailPositions;
 using Game.Train.Unit;
+using Game.Block.Interface;
+using Game.Gear.Common;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using Server.Util.MessagePack;
@@ -149,8 +151,11 @@ namespace Client.Network.API
         public async UniTask<WorldDataResponse> GetWorldData(CancellationToken ct)
         {
             var request = new RequestWorldDataProtocol.RequestWorldDataMessagePack(_playerConnectionSetting.PlayerId);
-            var response = await _packetExchangeManager.GetPacketResponse<RequestWorldDataProtocol.ResponseWorldDataMessagePack>(request, ct);
-            
+            var (response, reason) = await _packetExchangeManager.GetPacketResponseWithReason<RequestWorldDataProtocol.ResponseWorldDataMessagePack>(request, ct);
+            // 正常終了以外（タイムアウト等）はスキップし、呼び出し側 (WorldDataHandler) の null ガードに委ねる
+            // Return null unless the exchange completed successfully so the caller (WorldDataHandler) can skip this update cycle
+            if (reason != PacketWaitCompletionReason.Received) return null;
+
             return ParseWorldResponse(response);
             
             #region Internal
@@ -251,6 +256,14 @@ namespace Client.Network.API
             return CreateStacks(response.Items);
         }
 
+        // 指定ブロックが属するギアネットワークの現時点の集約値を取得する
+        // Fetch current aggregate info of the gear network that the given block belongs to
+        public async UniTask<GetGearNetworkInfoProtocol.ResponseGetGearNetworkInfoMessagePack> GetGearNetworkInfo(BlockInstanceId blockInstanceId, CancellationToken ct)
+        {
+            var request = new GetGearNetworkInfoProtocol.RequestGetGearNetworkInfoMessagePack(blockInstanceId);
+            return await _packetExchangeManager.GetPacketResponse<GetGearNetworkInfoProtocol.ResponseGetGearNetworkInfoMessagePack>(request, ct);
+        }
+
         public async UniTask<RailConnectionEditProtocol.ResponseRailConnectionEditMessagePack> DisconnectRailAsync(
             int playerId,
             int fromNodeId,
@@ -275,8 +288,6 @@ namespace Client.Network.API
             return await _packetExchangeManager.GetPacketResponse<RailConnectWithPlacePierProtocol.RailConnectWithPlacePierResponse>(request, ct);
         }
         
-        #region Internal
-        
         private List<IItemStack> CreateStacks(ItemMessagePack[] items)
         {
             // メッセージパックからアイテムスタックを生成
@@ -290,7 +301,5 @@ namespace Client.Network.API
             }
             return stacks;
         }
-        
-        #endregion
     }
 }

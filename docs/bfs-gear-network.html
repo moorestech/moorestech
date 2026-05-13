@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BFSはなぜ連結成分を漏れなく列挙できるのか — Gear Network Edition</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'Noto Sans JP', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Menlo', 'monospace'],
+          },
+          colors: {
+            paper: '#F8F6F1',
+            ink: '#0F172A',
+            inkSoft: '#475569',
+            rule: '#E2E1DA',
+            accent: '#1E40AF',
+            accentSoft: '#3B82F6',
+            amber: '#D97706',
+            emerald: '#059669',
+            rose: '#DB2777',
+            slate: '#64748B',
+          },
+        },
+      },
+    };
+  </script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    :root { color-scheme: light; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', 'Noto Sans JP', sans-serif; background: #F8F6F1; color: #0F172A; }
+    pre, code { font-family: 'JetBrains Mono', 'Menlo', monospace; }
+    .num { font-feature-settings: 'tnum' 1, 'lnum' 1; letter-spacing: -0.01em; }
+    .chapter-num { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1; }
+    .grid-paper {
+      background-image:
+        linear-gradient(to right, rgba(15,23,42,0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(15,23,42,0.04) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    .fade-in { animation: fadeIn 0.45s ease-out; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .pulse-ring { animation: pulseRing 1.6s ease-out infinite; transform-origin: center; transform-box: fill-box; }
+    @keyframes pulseRing {
+      0%   { opacity: 0.9; transform: scale(1); }
+      70%  { opacity: 0; transform: scale(1.8); }
+      100% { opacity: 0; transform: scale(1.8); }
+    }
+    details summary { cursor: pointer; list-style: none; }
+    details summary::-webkit-details-marker { display: none; }
+    .hover-lift { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .hover-lift:hover { transform: translateY(-2px); }
+    .no-select { user-select: none; }
+  </style>
+</head>
+<body class="antialiased">
+  <div id="root"></div>
+
+  <script type="text/babel" data-type="module">
+    const { useState, useMemo, useEffect, useRef } = React;
+
+    /* ─────────────────────────────────────────
+       Icons (inline SVG, line-based, no emoji)
+       ───────────────────────────────────────── */
+    const Icon = ({ d, size = 20, stroke = 1.6, className = '' }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width={size} height={size}
+           fill="none" stroke="currentColor" strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round"
+           className={className}>
+        <path d={d} />
+      </svg>
+    );
+    const IconArrowDown = (p) => <Icon {...p} d="M12 5v14M5 12l7 7 7-7" />;
+    const IconChevronRight = (p) => <Icon {...p} d="M9 6l6 6-6 6" />;
+    const IconChevronLeft = (p) => <Icon {...p} d="M15 6l-6 6 6 6" />;
+    const IconRefresh = (p) => <Icon {...p} d="M21 12a9 9 0 1 1-3.22-6.93M21 5v5h-5" />;
+    const IconPlay = (p) => <Icon {...p} d="M6 4l14 8-14 8z" />;
+    const IconPause = (p) => <Icon {...p} d="M7 5v14M17 5v14" />;
+    const IconLink = (p) => <Icon {...p} d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 1 0-5.66-5.66l-1 1M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 1 0 5.66 5.66l1-1" />;
+    const IconCheck = (p) => <Icon {...p} d="M5 13l4 4L19 7" />;
+    const IconX = (p) => <Icon {...p} d="M6 6l12 12M18 6L6 18" />;
+    const IconDot = (p) => <Icon {...p} d="M12 12h.01" stroke={4} />;
+    const IconCog = (p) => <Icon {...p} d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06A2 2 0 1 1 4.27 16.96l.06-.06A1.65 1.65 0 0 0 4.66 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.66 1.65 1.65 0 0 0 10 3.15V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.13.3.2.62.2.95v.1c0 .33.07.65.2.95z" stroke={1.2} />;
+    const IconQueue = (p) => <Icon {...p} d="M4 7h16M4 12h16M4 17h10" />;
+    const IconSet = (p) => <Icon {...p} d="M8 6a4 4 0 0 0 0 12M16 6a4 4 0 0 1 0 12" />;
+    const IconWave = (p) => <Icon {...p} d="M2 12c3-4 5 4 8 0s5 4 8 0 3-4 4-4" />;
+    const IconBook = (p) => <Icon {...p} d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />;
+
+    /* ─────────────────────────────────────────
+       Utility: classnames
+       ───────────────────────────────────────── */
+    const cx = (...c) => c.filter(Boolean).join(' ');
+
+    /* ─────────────────────────────────────────
+       Section wrapper
+       ───────────────────────────────────────── */
+    const Section = ({ chapter, kicker, title, children, tone = 'paper' }) => (
+      <section className={cx(
+        'w-full border-t border-rule',
+        tone === 'paper' && 'bg-paper',
+        tone === 'ink' && 'bg-ink text-paper',
+        tone === 'soft' && 'bg-white/60',
+      )}>
+        <div className="max-w-5xl mx-auto px-6 md:px-10 py-20 md:py-28">
+          {chapter && (
+            <div className="flex items-baseline gap-3 mb-4">
+              <span className={cx('chapter-num text-xs font-mono tracking-widest',
+                tone === 'ink' ? 'text-paper/60' : 'text-inkSoft')}>
+                {chapter}
+              </span>
+              {kicker && (
+                <span className={cx('text-xs uppercase tracking-[0.2em] font-semibold',
+                  tone === 'ink' ? 'text-amber' : 'text-accent')}>
+                  {kicker}
+                </span>
+              )}
+            </div>
+          )}
+          {title && (
+            <h2 className={cx('text-3xl md:text-4xl font-bold leading-tight tracking-tight mb-8 md:mb-10',
+              tone === 'ink' ? 'text-paper' : 'text-ink')}>
+              {title}
+            </h2>
+          )}
+          {children}
+        </div>
+      </section>
+    );
+
+    /* ─────────────────────────────────────────
+       Hero
+       ───────────────────────────────────────── */
+    const Hero = () => (
+      <header className="relative bg-paper grid-paper border-b border-rule">
+        <div className="max-w-5xl mx-auto px-6 md:px-10 pt-20 pb-28 md:pt-28 md:pb-36">
+          <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.25em] text-inkSoft font-semibold mb-10">
+            <span className="w-8 h-px bg-inkSoft"></span>
+            <span>Computational Proof / Technical Explainer</span>
+          </div>
+          <h1 className="text-4xl md:text-6xl font-extrabold leading-[1.1] tracking-tight mb-8">
+            BFSはなぜ<br className="hidden md:block"/>
+            <span className="text-accent">連結成分を漏れなく</span><br className="hidden md:block"/>
+            列挙できるのか。
+          </h1>
+          <p className="text-lg md:text-xl text-inkSoft leading-relaxed max-w-2xl mb-12">
+            ギアネットワーク分断問題から学ぶ、幅優先探索の正当性・終端性・完全性。<br/>
+            1,294 ギアの連結網に 1 つ穴を開けたとき、残された網は何個の島に分かれるのか——その答えを O(V+E) で返すアルゴリズムの骨組みを、図と手順で最後まで追い切る。
+          </p>
+
+          <div className="grid md:grid-cols-3 gap-4 mt-12">
+            {[
+              { n: '01', t: '訪問済みマーク', d: '同じノードを二度起点にしない。HashSet へ追加できた瞬間「初訪問」と確定する。' },
+              { n: '02', t: 'キューでの境界制御', d: 'これから処理するノードを順番待ちさせる。処理のたび新しい波紋が外側へ広がる。' },
+              { n: '03', t: '外側ループ', d: '一つの島を舐め終わった後、到達できなかった残りから次の起点を選び直す。島をまたいでも漏れない。' },
+            ].map(({ n, t, d }) => (
+              <div key={n} className="border border-rule bg-white/60 p-5 hover-lift">
+                <div className="text-xs font-mono text-accent mb-2">{n}</div>
+                <div className="font-bold text-lg mb-1">{t}</div>
+                <div className="text-sm text-inkSoft leading-relaxed">{d}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-16 flex items-center gap-3 text-sm text-inkSoft">
+            <IconArrowDown size={18} />
+            <span>縦スクロールで最後まで、論理の流れをそのまま辿れる構成にしています。</span>
+          </div>
+        </div>
+      </header>
+    );
+
+    /* ─────────────────────────────────────────
+       Chapter 01 — 問題の発端
+       ───────────────────────────────────────── */
+    const Chapter01 = () => (
+      <Section chapter="01 / 08" kicker="Problem Setup" title="なぜ BFS が必要になったのか">
+        <div className="grid md:grid-cols-5 gap-10 mb-10">
+          <div className="md:col-span-3 space-y-5 text-[15px] leading-relaxed text-ink">
+            <p>
+              moorestech サーバーではギア（歯車・シャフト・生成器）同士が接続して <span className="font-semibold">ギアネットワーク</span> を構成する。1 つのネットワークは 1 台の発電機に支配され、接続するすべての歯車へトルクと回転を供給する。
+            </p>
+            <p>
+              プレイヤーが網の <span className="font-semibold">内側にあるシャフトを破壊</span> すると、残った網は<br/>
+              <span className="text-inkSoft">(a)</span> 穴が空いても 1 つの網のまま、もしくは<br/>
+              <span className="text-inkSoft">(b)</span> 切り離されて 2 つ以上の独立した網に分裂する。
+            </p>
+            <p>
+              ゲームの整合性のためには、削除直後にこれを判定し、分裂していれば<span className="font-semibold">成分ごとに新しいネットワークを再構築</span> しなければならない。
+            </p>
+          </div>
+          <div className="md:col-span-2">
+            <SvgSplitTeaser />
+          </div>
+        </div>
+
+        <div className="border border-rule bg-white/70 p-6 md:p-8">
+          <div className="text-xs uppercase tracking-widest text-rose font-semibold mb-3">旧実装の問題</div>
+          <div className="grid md:grid-cols-2 gap-6 items-start">
+            <div className="text-[15px] leading-relaxed">
+              旧 <code className="bg-ink/5 px-1.5 py-0.5 rounded text-[13px]">RemoveGear</code> は「ネットワーク内の全ギアを dict から抜いて、もう一度 <code className="bg-ink/5 px-1.5 py-0.5 rounded text-[13px]">AddGear</code> で再構築」という乱暴な手続きを取っていた。
+              結果、内部の <code className="bg-ink/5 px-1.5 py-0.5 rounded text-[13px]">MergeNetworks</code> が N 回呼ばれ、そのたびに Dictionary 全件スキャン <span className="font-mono">O(M²)</span> が走る。
+            </div>
+            <div className="font-mono text-[13px] bg-ink text-paper p-5 rounded-sm">
+              <div className="text-amber/80 mb-2">// 旧実装の計算量</div>
+              <div>N = 削除ネット内ギア数</div>
+              <div>M = ワールド全ギア数</div>
+              <div className="mt-2">cost ≈ O(N × M²)</div>
+              <div className="mt-2 text-rose">= 1294 × 1887² ≈ 4.6×10⁹ ops</div>
+              <div className="mt-2 text-inkSoft">→ メインスレッド 10 秒超停止</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 text-[15px] leading-relaxed">
+          メインスレッドが 10 秒止まれば、同じスレッドでパケット処理を回している通信システムは応答不能になる。クライアント側の <code className="bg-ink/5 px-1.5 py-0.5 rounded text-[13px]">PacketExchangeManager</code> が 10 秒タイムアウトで <code className="bg-ink/5 px-1.5 py-0.5 rounded text-[13px]">null</code> を返し、その null を null ガードせずに参照したコードが NullReferenceException を投げる——この連鎖が、ユーザーの観測した不具合の正体だった。
+        </div>
+      </Section>
+    );
+
+    const SvgSplitTeaser = () => (
+      <svg viewBox="0 0 320 280" className="w-full h-auto">
+        <defs>
+          <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#64748B" />
+          </marker>
+        </defs>
+        <g>
+          <text x="20" y="20" fontSize="11" fill="#64748B" fontWeight="600" letterSpacing="0.1em">BEFORE</text>
+          {[[40,60],[90,60],[140,60],[190,60],[240,60]].map(([x,y],i)=>(
+            <g key={`b${i}`}>
+              <line x1={x} y1={y} x2={(i<4)?x+42:x} y2={y} stroke="#0F172A" strokeWidth="1.5" opacity={i<4?1:0}/>
+              <circle cx={x} cy={y} r="12" fill="#F8F6F1" stroke="#0F172A" strokeWidth="1.6"/>
+            </g>
+          ))}
+        </g>
+        <g transform="translate(0,60)">
+          <line x1="155" y1="40" x2="155" y2="80" stroke="#64748B" strokeWidth="1.5" markerEnd="url(#arr)"/>
+          <text x="165" y="66" fontSize="11" fill="#64748B">中央のギアを削除</text>
+        </g>
+        <g transform="translate(0,140)">
+          <text x="20" y="20" fontSize="11" fill="#64748B" fontWeight="600" letterSpacing="0.1em">AFTER</text>
+          {[[40,60],[90,60],[140,60]].map(([x,y],i)=>(
+            <g key={`a1${i}`}>
+              <line x1={x} y1={y} x2={(i<2)?x+42:x} y2={y} stroke="#059669" strokeWidth="1.6" opacity={i<2?1:0}/>
+              <circle cx={x} cy={y} r="12" fill="#ECFDF5" stroke="#059669" strokeWidth="1.6"/>
+            </g>
+          ))}
+          <circle cx={190} cy={60} r="12" fill="none" stroke="#DB2777" strokeWidth="1.6" strokeDasharray="3 3"/>
+          <line x1={180} y1={50} x2={200} y2={70} stroke="#DB2777" strokeWidth="1.6"/>
+          <line x1={200} y1={50} x2={180} y2={70} stroke="#DB2777" strokeWidth="1.6"/>
+          {[[240,60],[290,60]].map(([x,y],i)=>(
+            <g key={`a2${i}`}>
+              <line x1={x} y1={y} x2={(i<1)?x+42:x} y2={y} stroke="#1E40AF" strokeWidth="1.6" opacity={i<1?1:0}/>
+              <circle cx={x} cy={y} r="12" fill="#EFF6FF" stroke="#1E40AF" strokeWidth="1.6"/>
+            </g>
+          ))}
+          <text x="40" y="100" fontSize="11" fill="#059669" fontWeight="600">成分 A</text>
+          <text x="240" y="100" fontSize="11" fill="#1E40AF" fontWeight="600">成分 B</text>
+        </g>
+      </svg>
+    );
+
+    /* ─────────────────────────────────────────
+       Chapter 02 — グラフとしてのギアネット
+       ───────────────────────────────────────── */
+    const Chapter02 = () => (
+      <Section chapter="02 / 08" kicker="Graph Abstraction" title="ギアネットを「グラフ」として捉え直す">
+        <div className="grid md:grid-cols-2 gap-10 items-start">
+          <div className="space-y-5 text-[15px] leading-relaxed">
+            <p>
+              ギア 1 個を <span className="font-semibold">ノード (頂点)</span>、噛み合い・シャフト伝達などの接続 1 本を <span className="font-semibold">エッジ (辺)</span> と読み替える。これで世界は無向グラフ <span className="font-mono">G = (V, E)</span> になる。
+            </p>
+            <p>
+              ギア削除の判定問題はこう言い換えられる——
+            </p>
+            <div className="border-l-4 border-accent pl-4 py-2 bg-white/60 font-medium text-ink">
+              「ノード <span className="font-mono">v</span> を取り除いたあとの <span className="font-mono">G − v</span> は、何個の連結成分を持つか？」
+            </div>
+            <p>
+              この抽象化が効く瞬間、「ゲーム固有の特殊ケース」はすべて消え、問題はグラフ理論の古典的連結性判定に帰着する。教科書と同じ戦略を取れる。
+            </p>
+          </div>
+          <div className="bg-white/60 border border-rule p-6">
+            <div className="text-xs uppercase tracking-widest text-inkSoft font-semibold mb-4">Graph Model</div>
+            <SvgGraphModel />
+            <div className="mt-5 grid grid-cols-2 gap-3 text-[13px]">
+              <div>
+                <div className="font-semibold">V (Vertices)</div>
+                <div className="text-inkSoft">シャフト、歯車、ジェネレータの個体</div>
+              </div>
+              <div>
+                <div className="font-semibold">E (Edges)</div>
+                <div className="text-inkSoft">噛み合い・伝達の接続 1 本</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Section>
+    );
+
+    const SvgGraphModel = () => (
+      <svg viewBox="0 0 320 200" className="w-full h-auto">
+        {[
+          [40,50,100,50],[100,50,160,50],[160,50,160,120],[160,120,220,120],[220,120,280,120],[100,50,100,120],
+        ].map(([x1,y1,x2,y2],i)=> (
+          <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#0F172A" strokeWidth="1.5"/>
+        ))}
+        {[
+          [40,50,'N₀'],[100,50,'N₁'],[160,50,'N₂'],[100,120,'N₃'],[160,120,'N₄'],[220,120,'N₅'],[280,120,'N₆'],
+        ].map(([x,y,label],i)=>(
+          <g key={i}>
+            <circle cx={x} cy={y} r={14} fill="#F8F6F1" stroke="#0F172A" strokeWidth="1.8"/>
+            <text x={x} y={y+4} textAnchor="middle" fontSize="10" fontFamily="JetBrains Mono" fontWeight="600">{label}</text>
+          </g>
+        ))}
+      </svg>
+    );
+
+    /* ─────────────────────────────────────────
+       Chapter 03 — 連結成分とは
+       ───────────────────────────────────────── */
+    const Chapter03 = () => (
+      <Section chapter="03 / 08" kicker="Definition" title="連結成分 (Connected Component) の数学的定義">
+        <div className="grid md:grid-cols-5 gap-10 items-start">
+          <div className="md:col-span-3 space-y-5 text-[15px] leading-relaxed">
+            <div className="border-l-4 border-ink pl-5 py-1">
+              <div className="text-xs uppercase tracking-widest text-inkSoft font-semibold">連結</div>
+              <div className="font-medium">任意の 2 ノード <span className="font-mono">u, v ∈ V</span> が、辺を辿って行き来できる。</div>
+            </div>
+            <div className="border-l-4 border-ink pl-5 py-1">
+              <div className="text-xs uppercase tracking-widest text-inkSoft font-semibold">連結成分</div>
+              <div className="font-medium">グラフ G の「極大連結部分グラフ」。これ以上ノードを足すと連結でなくなる、ギリギリの集合。</div>
+            </div>
+            <p>
+              一つのグラフが完全に連結なら成分は <span className="font-mono">1</span> 個。島が分かれていればその数だけ成分がある。
+              「ネットワーク分裂の検出」は、<span className="font-semibold">G − v の連結成分を列挙する</span> 作業そのもの。
+            </p>
+            <p className="text-inkSoft">
+              ここで重要なのは、成分は <span className="font-semibold">排他的・網羅的</span> であること（各ノードはちょうど 1 つの成分に属する）。だから「A 成分に属するなら B 成分には属さない」「どこの成分にも属さないノードは存在しない」が保証される。
+            </p>
+          </div>
+          <div className="md:col-span-2 bg-white/60 border border-rule p-6">
+            <div className="text-xs uppercase tracking-widest text-inkSoft font-semibold mb-4">3 成分に分かれたグラフの例</div>
+            <SvgThreeComponents />
+          </div>
+        </div>
+      </Section>
+    );
+
+    const SvgThreeComponents = () => {
+      const comps = [
+        { color: '#059669', bg: '#ECFDF5', nodes: [[30,40],[80,40],[55,80]], edges: [[0,1],[0,2],[1,2]] },
+        { color: '#1E40AF', bg: '#EFF6FF', nodes: [[150,60],[200,60]], edges: [[0,1]] },
+        { color: '#D97706', bg: '#FEF3C7', nodes: [[260,30],[260,80],[260,130]], edges: [[0,1],[1,2]] },
+      ];
+      return (
+        <svg viewBox="0 0 310 180" className="w-full h-auto">
+          {comps.map((c, ci) => (
+            <g key={ci}>
+              {c.edges.map(([a,b],i)=>(
+                <line key={i} x1={c.nodes[a][0]} y1={c.nodes[a][1]} x2={c.nodes[b][0]} y2={c.nodes[b][1]} stroke={c.color} strokeWidth="1.6"/>
+              ))}
+              {c.nodes.map(([x,y],i)=>(
+                <circle key={i} cx={x} cy={y} r={11} fill={c.bg} stroke={c.color} strokeWidth="1.8"/>
+              ))}
+            </g>
+          ))}
+          <text x="20" y="160" fontSize="11" fill="#059669" fontWeight="600">成分 A</text>
+          <text x="155" y="160" fontSize="11" fill="#1E40AF" fontWeight="600">成分 B</text>
+          <text x="250" y="160" fontSize="11" fill="#D97706" fontWeight="600">成分 C</text>
+        </svg>
+      );
+    };
+
+    /* ─────────────────────────────────────────
+       Chapter 04 — BFSの直感
+       ───────────────────────────────────────── */
+    const Chapter04 = () => (
+      <Section chapter="04 / 08" kicker="Intuition" title="BFS は「水面に落とした石」である">
+        <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div className="space-y-5 text-[15px] leading-relaxed">
+            <p>
+              BFS (Breadth-First Search / 幅優先探索) を一言で言えば、<span className="font-semibold">ある点から同心円状に外へ波紋を広げる</span> 探索。
+            </p>
+            <p>
+              石を投げ入れた点から 1 歩の位置にあるノードを全部訪問する。そこから 1 歩の位置（石から 2 歩）を全部訪問する。そこから 1 歩——と続く。すでに濡れた場所には波紋は戻らない。
+            </p>
+            <p>
+              「同心円状」を実現する道具が <span className="font-mono font-semibold">Queue (FIFO)</span> 。先に見つけた（近い）ノードを先に処理する。Stack (LIFO) を使うと同じ探索は「とにかく深く潜る」DFS (Depth-First Search / 深さ優先) になる。
+            </p>
+            <p className="text-inkSoft">
+              正しさの観点では両者は等価。連結成分列挙のタスクに関しては、どちらも同じ集合を返す。
+            </p>
+          </div>
+          <div className="flex justify-center">
+            <SvgRipple />
+          </div>
+        </div>
+      </Section>
+    );
+
+    const SvgRipple = () => (
+      <svg viewBox="0 0 280 280" className="w-72 h-72">
+        <circle cx="140" cy="140" r="18" fill="#1E40AF"/>
+        {[40, 70, 100, 130].map((r,i)=>(
+          <circle key={i} cx="140" cy="140" r={r} fill="none" stroke="#1E40AF" strokeWidth="1.5" opacity={0.55 - i*0.1}/>
+        ))}
+        {[
+          [140,30,'d=3'],[30,140,'d=3'],[140,250,'d=3'],[250,140,'d=3'],
+          [90,90,'d=2'],[190,90,'d=2'],[90,190,'d=2'],[190,190,'d=2'],
+          [140,90,'d=1'],[90,140,'d=1'],[140,190,'d=1'],[190,140,'d=1'],
+        ].map(([x,y,label],i)=>(
+          <g key={i}>
+            <circle cx={x} cy={y} r="10" fill="#F8F6F1" stroke="#1E40AF" strokeWidth="1.5"/>
+            <text x={x} y={y+3} textAnchor="middle" fontSize="8" fontFamily="JetBrains Mono" fill="#1E40AF">{label}</text>
+          </g>
+        ))}
+        <text x="140" y="145" textAnchor="middle" fontSize="10" fontFamily="JetBrains Mono" fill="#F8F6F1" fontWeight="700">start</text>
+      </svg>
+    );
+
+    /* ─────────────────────────────────────────
+       Chapter 05 — 3つの道具
+       ───────────────────────────────────────── */
+    const Chapter05 = () => (
+      <Section chapter="05 / 08" kicker="The Three Data Structures" title="BFS を駆動する 3 つの道具">
+        <div className="grid md:grid-cols-3 gap-5">
+          {[
+            {
+              icon: <IconQueue />,
+              name: 'queue',
+              type: 'Queue<IGearEnergyTransformer>',
+              role: '処理順の行列',
+              desc: '次に訪問するノードを FIFO で並べる。先に入れたものから出る。「今から広がる波紋の先端」をキューが表す。',
+              color: 'text-accent',
+            },
+            {
+              icon: <IconSet />,
+              name: 'visited',
+              type: 'HashSet<BlockInstanceId>',
+              role: '再訪防止マーク',
+              desc: '一度 queue に積んだ瞬間に visited に登録する。これで同じノードを 2 回探索しない・2 回キューに積まない。',
+              color: 'text-emerald',
+            },
+            {
+              icon: <IconWave />,
+              name: 'memberSet',
+              type: 'HashSet<BlockInstanceId>',
+              role: '探索の境界',
+              desc: '残存ギア集合。接続を辿った先がこの集合の外（＝削除ギアや別ネット）なら辺ごと弾く。探索の「国境線」。',
+              color: 'text-amber',
+            },
+          ].map(({icon, name, type, role, desc, color}) => (
+            <div key={name} className="border border-rule bg-white/70 p-6 hover-lift">
+              <div className={cx('flex items-center gap-2 mb-3', color)}>
+                <div className="w-10 h-10 border border-current flex items-center justify-center">{icon}</div>
+                <div className="font-mono font-bold text-lg">{name}</div>
+              </div>
+              <div className="font-mono text-[11px] text-inkSoft mb-3">{type}</div>
+              <div className="font-semibold text-[15px] mb-2">{role}</div>
+              <div className="text-sm text-inkSoft leading-relaxed">{desc}</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-10 border border-rule bg-ink text-paper p-6 font-mono text-[13px] leading-relaxed overflow-auto">
+<pre>{`// この 3 つだけで完結する
+var components = new List<List<IGearEnergyTransformer>>();   // 結果
+var visited    = new HashSet<BlockInstanceId>();             // 再訪防止
+var queue      = new Queue<IGearEnergyTransformer>();        // 処理順
+// memberSet は FindComponents の引数として外から渡される`}</pre>
+        </div>
+      </Section>
+    );
+
+    /* ─────────────────────────────────────────
+       Chapter 06 — ステップバイステップ・トレース
+       ───────────────────────────────────────── */
+    const TRACE_NODES = {
+      N0: [80,  70],
+      N1: [160, 70],
+      N2: [240, 70],
+      X:  [320, 70],
+      N3: [400, 70],
+      N4: [480, 70],
+      N5: [240, 160],
+      N6: [400, 160],
+    };
+    const TRACE_EDGES = [
+      ['N0','N1'],['N1','N2'],['N2','X'],['X','N3'],['N3','N4'],['N2','N5'],['N3','N6'],
+    ];
+    const MEMBER_SET = ['N0','N1','N2','N3','N4','N5','N6'];
+
+    const TRACE_STEPS = [
+      {
+        queue: [], visited: [], current: null, comp: [], comps: [],
+        title: '初期状態',
+        note: '削除ギア X は既に network から除去済み。残存集合 = {N0..N6}。外側ループを開始する。',
+      },
+      {
+        queue: ['N0'], visited: ['N0'], current: null, comp: [], comps: [],
+        title: '外側ループ: N0 を起点に採用',
+        note: 'allGears[0]=N0 を visited へ登録できたので、この成分の BFS 起点として queue へ投入する。',
+      },
+      {
+        queue: ['N1'], visited: ['N0','N1'], current: 'N0', comp: ['N0'], comps: [],
+        title: 'N0 を dequeue、隣接 N1 を登録',
+        note: 'N0 を成分に加える。接続先 N1 は memberSet 内かつ visited に無いので、登録して queue へ。',
+      },
+      {
+        queue: ['N2'], visited: ['N0','N1','N2'], current: 'N1', comp: ['N0','N1'], comps: [],
+        title: 'N1 を dequeue、N2 を登録',
+        note: 'N1 の隣接は N0 (既訪問→skip) と N2 (未訪問→登録)。N2 を queue へ。',
+      },
+      {
+        queue: ['N5'], visited: ['N0','N1','N2','N5'], current: 'N2', comp: ['N0','N1','N2'], comps: [],
+        title: 'N2 を dequeue、境界で X を遮断、N5 を登録',
+        note: 'N2 の隣接は N1 (既訪問→skip), X (memberSet 外→境界で遮断), N5 (未訪問→登録)。BFS は「削除ギアの向こう側」へ決して越境しない。',
+        highlight: 'boundary',
+      },
+      {
+        queue: [], visited: ['N0','N1','N2','N5'], current: 'N5', comp: ['N0','N1','N2','N5'], comps: [],
+        title: 'N5 を dequeue、queue が空に',
+        note: 'N5 の隣接は N2 のみで既訪問。queue が空になったため、この起点から到達できる全ノードを回収し切った。',
+      },
+      {
+        queue: [], visited: ['N0','N1','N2','N5'], current: null, comp: [], comps: [['N0','N1','N2','N5']],
+        title: '第一成分 {N0, N1, N2, N5} を確定',
+        note: '成分を結果リストへ追加。外側ループへ戻り、次の未訪問ノードを探す。',
+      },
+      {
+        queue: ['N3'], visited: ['N0','N1','N2','N5','N3'], current: null, comp: [], comps: [['N0','N1','N2','N5']],
+        title: '外側ループ: N3 を次の起点に採用',
+        note: 'allGears を順に見て、N3 が visited に無いことを発見。新しい成分の BFS 起点として採用する。',
+      },
+      {
+        queue: ['N4','N6'], visited: ['N0','N1','N2','N5','N3','N4','N6'], current: 'N3', comp: ['N3'], comps: [['N0','N1','N2','N5']],
+        title: 'N3 を dequeue、N4 / N6 を登録',
+        note: 'N3 の隣接は X (境界で遮断), N4 (登録), N6 (登録)。ここでも X への辺は BFS を第一成分側へ連れ戻さない。',
+        highlight: 'boundary',
+      },
+      {
+        queue: ['N6'], visited: ['N0','N1','N2','N5','N3','N4','N6'], current: 'N4', comp: ['N3','N4'], comps: [['N0','N1','N2','N5']],
+        title: 'N4 を dequeue',
+        note: 'N4 の隣接は N3 のみで既訪問。',
+      },
+      {
+        queue: [], visited: ['N0','N1','N2','N5','N3','N4','N6'], current: 'N6', comp: ['N3','N4','N6'], comps: [['N0','N1','N2','N5']],
+        title: 'N6 を dequeue、queue が空に',
+        note: 'N6 の隣接は N3 のみで既訪問。queue 空。',
+      },
+      {
+        queue: [], visited: ['N0','N1','N2','N5','N3','N4','N6'], current: null, comp: [], comps: [['N0','N1','N2','N5'],['N3','N4','N6']],
+        title: '第二成分 {N3, N4, N6} を確定',
+        note: '成分を結果リストへ追加。外側ループは残り全ノードが visited 済みであることを確認して終了。',
+      },
+      {
+        queue: [], visited: ['N0','N1','N2','N5','N3','N4','N6'], current: null, comp: [], comps: [['N0','N1','N2','N5'],['N3','N4','N6']],
+        title: '完了: 2 成分に分離',
+        note: '削除ギア X を境にネットワークが 2 つの独立成分に分裂したことを、全ノードを 1 回ずつ訪問するだけで判定した。',
+        done: true,
+      },
+    ];
+
+    const TraceGraph = ({ step }) => {
+      const compColors = ['#059669','#1E40AF','#D97706'];
+      const nodeStatus = (id) => {
+        if (id === 'X') return { kind: 'removed' };
+        for (let i = 0; i < step.comps.length; i++) {
+          if (step.comps[i].includes(id)) return { kind: 'finalComp', comp: i };
+        }
+        if (step.comp.includes(id)) return { kind: 'currentComp' };
+        if (step.current === id) return { kind: 'current' };
+        if (step.queue.includes(id)) return { kind: 'queued' };
+        if (step.visited.includes(id)) return { kind: 'visited' };
+        return { kind: 'unvisited' };
+      };
+      const nodeStyle = (status) => {
+        switch (status.kind) {
+          case 'removed': return { fill: '#FEE2E2', stroke: '#DB2777', dash: '4 3' };
+          case 'currentComp': return { fill: '#ECFDF5', stroke: '#059669' };
+          case 'finalComp': return { fill: status.comp === 0 ? '#ECFDF5' : '#EFF6FF', stroke: compColors[status.comp] };
+          case 'current': return { fill: '#DBEAFE', stroke: '#1E40AF', ring: true };
+          case 'queued': return { fill: '#FEF3C7', stroke: '#D97706' };
+          case 'visited': return { fill: '#E0E7FF', stroke: '#1E40AF' };
+          default: return { fill: '#F8F6F1', stroke: '#94A3B8' };
+        }
+      };
+      const edgeCrossesBoundary = ([a,b]) => a === 'X' || b === 'X';
+      const highlightBoundary = step.highlight === 'boundary';
+
+      return (
+        <svg viewBox="0 0 560 220" className="w-full h-auto no-select">
+          <rect x="12" y="12" width="536" height="196" fill="none" stroke="#E2E1DA" strokeWidth="1" strokeDasharray="2 3" />
+          <text x="24" y="30" fontSize="10" fill="#94A3B8" fontWeight="600" letterSpacing="0.1em">MEMBER SET (remaining gears)</text>
+          {TRACE_EDGES.map(([a,b], i) => {
+            const [x1,y1] = TRACE_NODES[a];
+            const [x2,y2] = TRACE_NODES[b];
+            const isBoundary = edgeCrossesBoundary([a,b]);
+            return (
+              <line key={i} x1={x1} y1={y1} x2={x2} y2={y2}
+                stroke={isBoundary ? '#DB2777' : '#475569'}
+                strokeWidth={isBoundary && highlightBoundary ? 2.5 : 1.6}
+                strokeDasharray={isBoundary ? '5 4' : undefined}
+                opacity={isBoundary ? 0.85 : 1}/>
+            );
+          })}
+          {Object.entries(TRACE_NODES).map(([id, [x,y]]) => {
+            const status = nodeStatus(id);
+            const style = nodeStyle(status);
+            return (
+              <g key={id}>
+                {style.ring && (
+                  <circle cx={x} cy={y} r={18} fill="none" stroke="#1E40AF" strokeWidth="2" className="pulse-ring"/>
+                )}
+                <circle cx={x} cy={y} r={17} fill={style.fill} stroke={style.stroke} strokeWidth={2} strokeDasharray={style.dash}/>
+                <text x={x} y={y+4} textAnchor="middle" fontSize="11" fontFamily="JetBrains Mono" fontWeight="600" fill={style.stroke}>
+                  {id === 'X' ? '×' : id}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
+      );
+    };
+
+    const StateColumn = ({ title, items, color = '#1E40AF', mono = true }) => (
+      <div>
+        <div className="text-[10px] uppercase tracking-widest text-inkSoft font-bold mb-2">{title}</div>
+        <div className={cx('min-h-[44px] border border-rule bg-white/60 p-3 flex flex-wrap gap-1.5', mono && 'font-mono text-[12px]')}>
+          {items.length === 0 ? <span className="text-slate italic">(empty)</span> :
+            items.map((it, i) => (
+              <span key={i} className="px-2 py-0.5 rounded-sm border"
+                    style={{ borderColor: color, color: color, background: color + '10' }}>
+                {it}
+              </span>
+            ))
+          }
+        </div>
+      </div>
+    );
+
+    const Chapter06 = () => {
+      const [idx, setIdx] = useState(0);
+      const step = TRACE_STEPS[idx];
+      const total = TRACE_STEPS.length;
+
+      return (
+        <Section chapter="06 / 08" kicker="Interactive Trace" title="8 ノードの連結網で、BFS を実演する">
+          <div className="space-y-6 text-[15px] leading-relaxed mb-8">
+            <p>
+              削除ギア X を挟んで 8 ノードからなるネットワーク。X を取り除いた後、残された 7 ノードは 2 つの独立成分に分かれる。その検出過程を、ボタンで 1 ステップずつ進めながら追いかける。
+            </p>
+            <p className="text-inkSoft">
+              キューとビジットセットの中身、いまどのノードを処理しているか、すでに確定した成分は何か——全てが下のボードに同期表示される。
+            </p>
+          </div>
+
+          <div className="border border-rule bg-paper">
+            <div className="p-6 border-b border-rule bg-white/40">
+              <TraceGraph step={step} />
+            </div>
+
+            <div className="p-6 grid md:grid-cols-3 gap-4 border-b border-rule">
+              <StateColumn title="queue (FIFO)" items={step.queue} color="#D97706" />
+              <StateColumn title="visited (HashSet)" items={step.visited} color="#1E40AF" />
+              <StateColumn title="current component (building)" items={step.comp} color="#059669" />
+            </div>
+
+            <div className="p-6 border-b border-rule">
+              <div className="text-[10px] uppercase tracking-widest text-inkSoft font-bold mb-2">確定した連結成分</div>
+              {step.comps.length === 0
+                ? <div className="text-slate italic text-[13px]">まだありません</div>
+                : <div className="flex flex-wrap gap-2">
+                    {step.comps.map((c, i) => (
+                      <div key={i} className="px-3 py-1.5 border font-mono text-[13px]"
+                           style={{ borderColor: i === 0 ? '#059669' : '#1E40AF',
+                                    color: i === 0 ? '#059669' : '#1E40AF',
+                                    background: (i === 0 ? '#059669' : '#1E40AF') + '10' }}>
+                        #{i+1} {'{ '}{c.join(', ')}{' }'}
+                      </div>
+                    ))}
+                  </div>}
+            </div>
+
+            <div className="p-6 bg-white/40">
+              <div className="flex items-start gap-6">
+                <div className="num text-5xl font-extrabold text-accent w-20 flex-shrink-0">
+                  {String(idx).padStart(2,'0')}
+                </div>
+                <div className="flex-1">
+                  <div className="text-xl font-bold mb-2">{step.title}</div>
+                  <div className="text-[15px] text-inkSoft leading-relaxed">{step.note}</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 bg-ink text-paper flex flex-wrap items-center gap-3">
+              <button
+                onClick={() => setIdx(0)}
+                className="flex items-center gap-1.5 px-3 py-2 border border-paper/30 hover:bg-paper/10 text-sm"
+              >
+                <IconRefresh size={15} /> 最初に戻る
+              </button>
+              <button
+                onClick={() => setIdx(Math.max(0, idx-1))}
+                disabled={idx === 0}
+                className="flex items-center gap-1.5 px-3 py-2 border border-paper/30 hover:bg-paper/10 disabled:opacity-30 text-sm"
+              >
+                <IconChevronLeft size={15} /> 戻る
+              </button>
+              <button
+                onClick={() => setIdx(Math.min(total-1, idx+1))}
+                disabled={idx === total-1}
+                className="flex items-center gap-1.5 px-3 py-2 border border-amber text-amber hover:bg-amber/10 disabled:opacity-30 text-sm font-semibold"
+              >
+                次のステップへ <IconChevronRight size={15} />
+              </button>
+              <div className="flex-1"></div>
+              <div className="text-xs text-paper/60 font-mono num">
+                STEP {String(idx+1).padStart(2,'0')} / {String(total).padStart(2,'0')}
+              </div>
+            </div>
+          </div>
+        </Section>
+      );
+    };
+
+    /* ─────────────────────────────────────────
+       Chapter 07 — 正当性の証明
+       ───────────────────────────────────────── */
+    const Chapter07 = () => (
+      <Section chapter="07 / 08" kicker="Why it works" title="なぜ BFS は、漏らさず・余計に触らず、必ず終わるのか">
+        <div className="space-y-10">
+          <Lemma
+            num="Lemma 1"
+            title="完全性 — 到達可能なノードは必ず訪問される"
+            claim="起点 s から memberSet 内で到達可能なノード集合を R(s) と置く。BFS 終了時、R(s) ⊂ visited。"
+            proof={[
+              '基底: s は最初に visited に入り queue にも入る。R(s) の要素うち最短距離 0 のノードは s のみなので成立。',
+              '帰納: 距離 k の全ノードが visited に入っているとする。距離 k+1 のノード v を任意に取る。v は距離 k のどれかのノード u と辺で繋がっている。',
+              'u が処理されたとき、u の全隣接が走査される。v が memberSet 内なら境界判定を通過し、visited に未登録なら登録され queue に積まれる。v は R(s) の元（memberSet 内）なので、必ずこの条件を満たす。',
+              'よって距離 k+1 のノードも全て visited に入る。帰納法により距離 ∞ まで、R(s) の全要素が visited に含まれる。',
+            ]}
+          />
+
+          <Lemma
+            num="Lemma 2"
+            title="健全性 — 到達できないノードは訪問されない"
+            claim="BFS 1 回の実行中、起点 s から memberSet 経由で到達できないノードが component に追加されることはない。"
+            proof={[
+              'queue に入るノードは起点 s または、既に queue に入ったノードからの隣接のみ。',
+              'memberSet 外のノードへの辺は境界判定で遮断されるため、memberSet 外のノードが queue に入ることは無い。',
+              'したがって queue、および component に追加されるノードは全て「s から memberSet 内の辺列で到達可能」のものに限られる。',
+            ]}
+          />
+
+          <Lemma
+            num="Lemma 3"
+            title="終端性 — アルゴリズムは必ず停止する"
+            claim="FindComponents は有限時間で終了する。"
+            proof={[
+              'HashSet の Add が true を返すのは初回のみ。したがって同じノードが visited に 2 回入ることはない。',
+              'queue へ積む条件は visited.Add が true を返した直後だけなので、同じノードが queue に積まれる回数も高々 1 回。',
+              '有限集合 memberSet の全ノードが 1 回ずつ queue に積まれ、1 回ずつ dequeue されれば内側 while が終了する。外側 foreach も有限長なので全体が停止する。',
+            ]}
+          />
+
+          <Lemma
+            num="Lemma 4"
+            title="網羅性 — 外側ループがすべての成分を発見する"
+            claim="FindComponents は、allGears が持つ全ての連結成分をちょうど 1 回ずつ返す。"
+            proof={[
+              '各ノードは visited に入っていない状態で外側 foreach に遭遇して初めて「起点」になる。',
+              'Lemma 1 より、起点 s が属する連結成分の全ノードは 1 回の内側 BFS で visited に入る。',
+              '外側 foreach が次に起点を選ぶのは、別成分のノードに到達したとき（＝visited に無いノード）。これを繰り返すことで、全成分がちょうど 1 回ずつ起点化される。',
+              'Lemma 2 より、各起点の BFS は自成分以外を触らない。よって得られる components は真の連結成分リストと一致する。',
+            ]}
+          />
+        </div>
+      </Section>
+    );
+
+    const Lemma = ({ num, title, claim, proof }) => (
+      <div className="border border-rule bg-white/70 p-6 md:p-8">
+        <div className="flex items-start gap-6 mb-4">
+          <div className="text-[11px] uppercase tracking-widest text-accent font-bold font-mono flex-shrink-0 w-24 pt-1">{num}</div>
+          <div className="flex-1">
+            <div className="text-xl md:text-2xl font-bold mb-3 leading-tight">{title}</div>
+            <div className="border-l-4 border-accent pl-4 py-1 bg-accent/5 text-[15px] leading-relaxed italic">
+              {claim}
+            </div>
+          </div>
+        </div>
+        <details className="mt-5">
+          <summary className="flex items-center gap-2 text-sm font-semibold text-accent hover:underline">
+            <IconBook size={14} /> 証明スケッチを開く
+          </summary>
+          <ol className="mt-4 space-y-3 text-[14px] leading-relaxed list-decimal pl-5 text-inkSoft">
+            {proof.map((p, i) => <li key={i}>{p}</li>)}
+          </ol>
+        </details>
+      </div>
+    );
+
+    /* ─────────────────────────────────────────
+       Chapter 08 — 計算量・DFS 比較・コード対応・落とし穴
+       ───────────────────────────────────────── */
+    const Chapter08 = () => (
+      <Section chapter="08 / 08" kicker="Closing" title="計算量・DFS との等価性・コード対応・落とし穴" tone="ink">
+
+        <div className="grid md:grid-cols-2 gap-6 mb-12">
+          <div className="border border-paper/20 bg-paper/5 p-6">
+            <div className="text-xs uppercase tracking-widest text-amber font-bold mb-3">計算量の内訳</div>
+            <table className="w-full text-[14px]">
+              <tbody>
+                <tr className="border-b border-paper/10"><td className="py-2.5 pr-4 text-paper/70">各ノードの visited 登録</td><td className="py-2.5 font-mono text-right">高々 1 回</td></tr>
+                <tr className="border-b border-paper/10"><td className="py-2.5 pr-4 text-paper/70">各ノードの queue 積み込み</td><td className="py-2.5 font-mono text-right">高々 1 回</td></tr>
+                <tr className="border-b border-paper/10"><td className="py-2.5 pr-4 text-paper/70">各ノードの dequeue</td><td className="py-2.5 font-mono text-right">高々 1 回</td></tr>
+                <tr className="border-b border-paper/10"><td className="py-2.5 pr-4 text-paper/70">各辺の走査</td><td className="py-2.5 font-mono text-right">高々 2 回 (両端)</td></tr>
+                <tr><td className="py-2.5 pr-4 font-semibold text-amber">合計</td><td className="py-2.5 font-mono text-right font-bold text-amber">O(V + E)</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div className="border border-paper/20 bg-paper/5 p-6">
+            <div className="text-xs uppercase tracking-widest text-emerald font-bold mb-3">旧実装との比較 (N=1294, M=1887)</div>
+            <div className="space-y-4 text-[14px]">
+              <div>
+                <div className="text-paper/70 mb-1">旧 <span className="font-mono">RemoveGear</span> (全破壊・全再構築)</div>
+                <div className="font-mono text-rose text-lg">O(N × M²) ≈ 4.6×10⁹ ops</div>
+                <div className="text-xs text-paper/50 mt-1">メインスレッド 10 秒超停止</div>
+              </div>
+              <div className="border-t border-paper/10 pt-4">
+                <div className="text-paper/70 mb-1">新 <span className="font-mono">RemoveGear</span> (BFS ベース)</div>
+                <div className="font-mono text-emerald text-lg">O(V + E) ≈ 数千 ops</div>
+                <div className="text-xs text-paper/50 mt-1">体感 0 ms</div>
+              </div>
+              <div className="font-mono text-[11px] text-amber pt-2 border-t border-paper/10">速度差 6 桁超</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="border border-paper/20 bg-paper/5 p-6 mb-12">
+          <div className="text-xs uppercase tracking-widest text-amber font-bold mb-4">BFS と DFS の等価性</div>
+          <div className="grid md:grid-cols-2 gap-6 text-[14px]">
+            <div>
+              <div className="font-mono font-bold text-lg mb-2 text-accentSoft">BFS — Queue (FIFO)</div>
+              <ul className="space-y-2 text-paper/70 list-disc pl-5">
+                <li>探索が同心円状に外へ広がる</li>
+                <li>見つかる順に「起点からの距離」が単調増加</li>
+                <li>最短距離計算の副産物として有用</li>
+              </ul>
+            </div>
+            <div>
+              <div className="font-mono font-bold text-lg mb-2 text-amber">DFS — Stack (LIFO)</div>
+              <ul className="space-y-2 text-paper/70 list-disc pl-5">
+                <li>探索が一本道で深く潜り、行き止まりで戻る</li>
+                <li>直感的に「迷路を辿る」に近い</li>
+                <li>再帰実装はスタック溢れリスクあり。反復 Stack 推奨</li>
+              </ul>
+            </div>
+          </div>
+          <div className="mt-6 pt-5 border-t border-paper/10 text-[14px] text-paper/70 leading-relaxed">
+            <span className="text-amber font-semibold">連結成分の列挙に限れば両者は等価。</span>
+            返す成分集合は同じ、計算量も同じ <span className="font-mono">O(V+E)</span>。キューをスタックに置き換えても Lemma 1–4 はそのまま成立する。今回の実装で BFS を選んだのは習慣的な理由で、特段の優位性はない。
+          </div>
+        </div>
+
+        <div className="border border-paper/20 bg-paper/5 p-6 mb-12">
+          <div className="text-xs uppercase tracking-widest text-emerald font-bold mb-4">ソースコード対応</div>
+          <div className="font-mono text-[12px] leading-[1.55] overflow-auto whitespace-pre text-paper/90"><code>{String.raw`static List<List<IGearEnergyTransformer>> FindComponents(
+    List<IGearEnergyTransformer> allGears,
+    HashSet<BlockInstanceId>     memberSet)
+{
+    var components = new List<List<IGearEnergyTransformer>>();   // ← Lemma 4 の出力列
+    var visited    = new HashSet<BlockInstanceId>();              // ← visited
+    var queue      = new Queue<IGearEnergyTransformer>();         // ← 波紋の先端
+
+    foreach (var start in allGears)                                // ← 外側ループ / Lemma 4
+    {
+        if (!visited.Add(start.BlockInstanceId)) continue;         // ← 既起点ならスキップ
+
+        var component = new List<IGearEnergyTransformer>();
+        queue.Clear();
+        queue.Enqueue(start);
+
+        while (queue.Count > 0)                                    // ← 内側 BFS / Lemma 1,2,3
+        {
+            var current = queue.Dequeue();
+            component.Add(current);
+
+            foreach (var connect in current.GetGearConnects())
+            {
+                var neighborId = connect.Transformer.BlockInstanceId;
+                if (!memberSet.Contains(neighborId)) continue;      // ← 境界で遮断 / Lemma 2
+                if (!visited.Add(neighborId))        continue;      // ← 判定 + 登録を原子化
+                queue.Enqueue(connect.Transformer);
+            }
+        }
+        components.Add(component);
+    }
+    return components;
+}`}</code></div>
+        </div>
+
+        <div className="border border-paper/20 bg-paper/5 p-6 mb-12">
+          <div className="text-xs uppercase tracking-widest text-rose font-bold mb-4">落とし穴チェックリスト</div>
+          <ul className="space-y-4 text-[14px] text-paper/80">
+            <li className="flex gap-3">
+              <IconX size={18} className="text-rose flex-shrink-0 mt-0.5" />
+              <div>
+                <span className="font-semibold text-paper">「dequeue した瞬間に visited に入れる」は誤り。</span>
+                dequeue 前、enqueue する瞬間に visited に入れないと、同じノードが queue に複数回積まれて爆発する。今回の実装では <span className="font-mono">visited.Add(neighborId)</span> の戻り値が true のときだけ enqueue することで、判定と登録をアトミックに 1 行で済ませている。
+              </div>
+            </li>
+            <li className="flex gap-3">
+              <IconX size={18} className="text-rose flex-shrink-0 mt-0.5" />
+              <div>
+                <span className="font-semibold text-paper">memberSet のチェックを忘れると別ネットへ染み出す。</span>
+                ギアは削除後もしばらくは接続情報を保持しうるし、別ネットへの辺が誤って返ることもある。memberSet (残存ギア集合) で境界を閉じることで、BFS が自分の分析対象を越境しない。
+              </div>
+            </li>
+            <li className="flex gap-3">
+              <IconX size={18} className="text-rose flex-shrink-0 mt-0.5" />
+              <div>
+                <span className="font-semibold text-paper">再帰 DFS はスタック深さで事故る。</span>
+                1,294 ギアが鎖状に繋がった局所ケースでは深さがそのまま再帰段数になる。反復 BFS / 反復 DFS のどちらかにすること。
+              </div>
+            </li>
+            <li className="flex gap-3">
+              <IconX size={18} className="text-rose flex-shrink-0 mt-0.5" />
+              <div>
+                <span className="font-semibold text-paper">成分が 1 つだけの時に map を書き換えるのは無駄。</span>
+                BFS 完走後に <span className="font-mono">components.Count == 1</span> なら分裂しておらず既存ネットをそのまま維持できる。Dictionary への書き込み 0 回で済む高速パスを忘れずに。
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div className="border border-amber/30 bg-amber/5 p-6">
+          <div className="text-xs uppercase tracking-widest text-amber font-bold mb-3">結論</div>
+          <div className="text-[15px] leading-relaxed text-paper/90">
+            BFS が連結成分を漏れなく・余計になく・必ず有限時間で列挙できるのは、<span className="text-amber font-semibold">visited による冪等化</span>・<span className="text-amber font-semibold">queue による順序管理</span>・<span className="text-amber font-semibold">外側ループによる残滓回収</span>・<span className="text-amber font-semibold">memberSet による境界制御</span> の 4 点がそれぞれ独立した役割を果たしているから。
+            どれか 1 つが欠けると上で並べた Lemma が崩れ、正しさか性能かのどちらかを失う。逆にこの 4 点が揃っている実装は、ギアの規模が 10 倍になっても計算量が O(V+E) のまま保たれ、サーバーの応答性能は維持される。
+          </div>
+        </div>
+      </Section>
+    );
+
+    /* ─────────────────────────────────────────
+       Sources / Footer
+       ───────────────────────────────────────── */
+    const Sources = () => (
+      <section className="bg-paper border-t border-rule">
+        <div className="max-w-5xl mx-auto px-6 md:px-10 py-16">
+          <div className="text-[11px] uppercase tracking-[0.25em] text-inkSoft font-bold mb-6">Sources / 参考</div>
+          <ul className="divide-y divide-rule border border-rule">
+            {[
+              { label: 'GearNetworkDatastore.cs — 本実装本体', href: '../moorestech_server/Assets/Scripts/Game.Gear/Common/GearNetworkDatastore.cs', meta: 'local file' },
+              { label: 'GearNetworkTest.cs — 分離挙動の回帰テスト', href: '../moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/GearNetworkTest.cs', meta: 'local file' },
+              { label: 'Breadth-First Search — Wikipedia', href: 'https://en.wikipedia.org/wiki/Breadth-first_search', meta: 'en.wikipedia.org' },
+              { label: 'Connected Component (Graph Theory) — Wikipedia', href: 'https://en.wikipedia.org/wiki/Connected_component_(graph_theory)', meta: 'en.wikipedia.org' },
+              { label: 'Introduction to Algorithms, 3rd ed. — CLRS, Chapter 22 Elementary Graph Algorithms', href: 'https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/', meta: 'MIT Press' },
+            ].map(({ label, href, meta }) => (
+              <li key={href}>
+                <a href={href} className="flex items-center gap-3 py-4 px-4 hover:bg-white/80 transition-colors" target="_blank" rel="noopener">
+                  <IconLink size={16} className="text-accent flex-shrink-0"/>
+                  <span className="flex-1 text-[14px]">{label}</span>
+                  <span className="text-[11px] font-mono text-inkSoft">{meta}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-10 flex items-center justify-between text-[11px] text-inkSoft font-mono">
+            <span>moorestech / gear-network-bfs-explainer</span>
+            <span>v1.0 · 2026-04-21</span>
+          </div>
+        </div>
+      </section>
+    );
+
+    /* ─────────────────────────────────────────
+       App
+       ───────────────────────────────────────── */
+    function App() {
+      return (
+        <div className="min-h-screen">
+          <Hero />
+          <Chapter01 />
+          <Chapter02 />
+          <Chapter03 />
+          <Chapter04 />
+          <Chapter05 />
+          <Chapter06 />
+          <Chapter07 />
+          <Chapter08 />
+          <Sources />
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
