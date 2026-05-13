@@ -184,8 +184,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26e54e5a728a9234ab24fcf1460ed8a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  MoveSpeed: 4
-  SprintSpeed: 10
+  MoveSpeed: 3.5
+  SprintSpeed: 7.5
   RotationSmoothTime: 0.12
   SpeedChangeRate: 10
   JumpHeight: 1.2
@@ -872,7 +872,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8492713126852730732, guid: 5635b42f628d34f4fa97c03bfe9d0d36, type: 3}
       propertyPath: serializeData2.selectionData.maxConnectionDistance
-      value: 0.075966656
+      value: 0.07596666
       objectReference: {fileID: 0}
     - target: {fileID: 8492713126852730732, guid: 5635b42f628d34f4fa97c03bfe9d0d36, type: 3}
       propertyPath: serializeData2.selectionData.positions.Array.data[0].x

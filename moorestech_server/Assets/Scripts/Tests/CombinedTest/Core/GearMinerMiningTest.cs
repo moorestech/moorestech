@@ -39,7 +39,7 @@ namespace Tests.CombinedTest.Core
             
             // 鉱石を採掘するための鉱脈を探す
             // Locate a map vein (resource deposit) to mine.
-            var (mapVein, position) = MinerMiningTest.GetMapVein();
+            var (mapVein, position) = MinerMiningTest.GetItemMapVein();
             Assert.NotNull(mapVein, "No map vein found for mining.");
 
             // 鉱脈の位置に歯車採掘機を追加する

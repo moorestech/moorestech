@@ -63,21 +63,32 @@ namespace Client.Game.InGame.UI.UIState.State
 
             void LogClickedBlockInfo()
             {
-                if (!BlockClickDetectUtil.TryGetCursorOnBlock(out var blockObject))
+                // スタックトレースを一時的に無効化してログ出力
+                // Temporarily disable stack trace for this log
+                var previous = Application.GetStackTraceLogType(LogType.Log);
+                Application.SetStackTraceLogType(LogType.Log, StackTraceLogType.None);
+                try
                 {
-                    Debug.Log("[DebugBlockInfo] カーソル下にブロックが見つかりませんでした。");
-                    return;
-                }
+                    if (!BlockClickDetectUtil.TryGetCursorOnBlock(out var blockObject))
+                    {
+                        Debug.Log("[DebugBlockInfo] カーソル下にブロックが見つかりませんでした。");
+                        return;
+                    }
 
-                var master = blockObject.BlockMasterElement;
-                var pos = blockObject.BlockPosInfo.OriginalPos;
-                Debug.Log(
-                    $"[DebugBlockInfo] Name={master.Name} " +
-                    $"BlockId={blockObject.BlockId} " +
-                    $"InstanceId={blockObject.BlockInstanceId} " +
-                    $"Guid={master.BlockGuid} " +
-                    $"Pos={pos} " +
-                    $"Direction={blockObject.BlockPosInfo.BlockDirection}");
+                    var master = blockObject.BlockMasterElement;
+                    var pos = blockObject.BlockPosInfo.OriginalPos;
+                    Debug.Log(
+                        $"[DebugBlockInfo] Name={master.Name} " +
+                        $"BlockId={blockObject.BlockId} " +
+                        $"InstanceId={blockObject.BlockInstanceId} " +
+                        $"Guid={master.BlockGuid} " +
+                        $"Pos={pos} " +
+                        $"Direction={blockObject.BlockPosInfo.BlockDirection}");
+                }
+                finally
+                {
+                    Application.SetStackTraceLogType(LogType.Log, previous);
+                }
             }
 
             #endregion
