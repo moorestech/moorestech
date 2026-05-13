@@ -45,6 +45,7 @@ namespace Game.Train.Unit
         private int _previousMasconLevel = 0;// キー入力と差分通知関連
         private bool _isDockingSpeedForcedToZero;//ドッキングした瞬間強制速度0になるのでmasconlevel差分通知ではズレが生じる
         private int _pendingApproachingNodeId;
+        private bool _isReversedThisTick;
         public TrainUnit(
             RailPosition initialPosition,
             List<TrainCar> cars,
@@ -72,6 +73,7 @@ namespace Game.Train.Unit
         public void Reverse()
         {
             _railPosition?.Reverse();
+            _isReversedThisTick = !_isReversedThisTick;
             if (_cars == null)
                 return;
             _cars.Reverse();
@@ -85,6 +87,7 @@ namespace Game.Train.Unit
             _previousMasconLevel = masconLevel;
             _isDockingSpeedForcedToZero = false;
             _pendingApproachingNodeId = -1;
+            _isReversedThisTick = false;
         }
         
         public int Update()
@@ -422,7 +425,7 @@ namespace Game.Train.Unit
         
         // masconLevel などの差分を抽出する。
         // Extract mascon and other per-tick diffs.
-        public (int,bool,int) GetTickDiff()
+        public (int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeIdDiff, bool isReversedThisTick) GetTickDiff()
         {
             var ret1 = masconLevel - _previousMasconLevel;
             _previousMasconLevel = masconLevel;
@@ -430,7 +433,9 @@ namespace Game.Train.Unit
             _isDockingSpeedForcedToZero = false;
             var ret3 = _pendingApproachingNodeId;
             _pendingApproachingNodeId = -1;
-            return (ret1, ret2, ret3);
+            var ret4 = _isReversedThisTick;
+            _isReversedThisTick = false;
+            return (ret1, ret2, ret3, ret4);
         }
 
         public void DiagramValidation() 
