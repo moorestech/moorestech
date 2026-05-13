@@ -47,7 +47,7 @@ namespace Game.Block.Blocks.GearChainPole
             _param = param;
             BlockInstanceId = blockInstanceId;
             _connectorComponent = connectorComponent;
-            _gearService = new SimpleGearService(blockInstanceId);
+            _gearService = new SimpleGearService();
             _gearService.OnGearUpdate.Subscribe(_ => _onChangeBlockState.OnNext(Unit.Default));
             
             _componentStates = componentStates;
@@ -147,23 +147,29 @@ namespace Game.Block.Blocks.GearChainPole
             if (data == null) return;
 
             _chainTargets.Clear();
-
+            
             // 接続コスト情報を利用して復元する
             // Restore using connection cost information when available
-            if (data.Connections is { Count: > 0 })
+            if (data.Connections is not { Count: > 0 }) return;
+            
+            
+            foreach (var connection in data.Connections)
             {
-                foreach (var connection in data.Connections)
-                {
-                    if (connection.TargetBlockInstanceId == BlockInstanceId.AsPrimitive()) continue;
-                    if (_chainTargets.Count >= _param.MaxConnectionCount) break;
-                    var targetId = new BlockInstanceId(connection.TargetBlockInstanceId);
-                    if (_chainTargets.ContainsKey(targetId)) continue;
-                    var transformer = ResolveChainTarget(targetId);
-                    if (transformer == null) continue;
-                    var cost = new GearChainConnectionCost(new ItemId(connection.ItemId), connection.Count);
-                    _chainTargets.Add(targetId, (transformer, cost));
-                }
+                if (connection.TargetBlockInstanceId == BlockInstanceId.AsPrimitive()) continue;
+                if (_chainTargets.Count >= _param.MaxConnectionCount) break;
+                var targetId = new BlockInstanceId(connection.TargetBlockInstanceId);
+                if (_chainTargets.ContainsKey(targetId)) continue;
+                var transformer = ResolveChainTarget(targetId);
+                if (transformer == null) continue;
+                var cost = new GearChainConnectionCost(new ItemId(connection.ItemId), connection.Count);
+                _chainTargets.Add(targetId, (transformer, cost));
             }
+            
+            // 復元したチェーン接続をギアネットワークへ反映する
+            // Reflect restored chain connections into the gear network
+            GearNetworkDatastore.RemoveGear(this);
+            GearNetworkDatastore.AddGear(this);
+            _onChangeBlockState.OnNext(Unit.Default);
         }
 
         #endregion
@@ -194,9 +200,9 @@ namespace Game.Block.Blocks.GearChainPole
 
         public Torque GetRequiredTorque(RPM rpm, bool isClockwise)
         {
-            // チェーンポール自体は負荷を持たない
-            // Chain pole itself does not consume torque
-            return new Torque(0);
+            // マスタ設定のgearConsumptionに従って必要トルクを算出（baseTorque=0で消費ゼロ維持可能）
+            // Calculate required torque from gearConsumption master (baseTorque=0 keeps zero consumption)
+            return GearConsumptionCalculator.CalcRequiredTorque(_param.GearConsumption, rpm);
         }
 
         public BlockInstanceId BlockInstanceId { get; }

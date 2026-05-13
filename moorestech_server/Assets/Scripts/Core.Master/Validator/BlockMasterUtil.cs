@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Mooresmaster.Model.BlocksModule;
+using Mooresmaster.Model.GearConsumptionModule;
 
 namespace Core.Master.Validator
 {
@@ -14,6 +15,7 @@ namespace Core.Master.Validator
             errorLogs += BlockParamValidation();
             errorLogs += OverrideVerticalBlockValidation();
             errorLogs += GearChainItemsValidation();
+            errorLogs += GearConsumptionValidation();
             return string.IsNullOrEmpty(errorLogs);
 
             #region Internal
@@ -198,9 +200,64 @@ namespace Core.Master.Validator
                 return logs;
             }
 
+            string GearConsumptionValidation()
+            {
+                // 全BlockParamのGearConsumptionを検証する
+                // Validate GearConsumption on every block param that has one
+                var logs = "";
+                foreach (var block in blocks.Data)
+                {
+                    var consumption = ExtractGearConsumption(block.BlockParam);
+                    if (consumption == null) continue;
+                    if (!ValidateGearConsumption(consumption, out var error)) continue;
+                    logs += $"[BlockMaster] Name:{block.Name} has invalid GearConsumption: {error}\n";
+                }
+                return logs;
+
+                bool ValidateGearConsumption(GearConsumption c, out string error)
+                {
+                    if (c.BaseRpm <= 0)
+                    {
+                        error = $"baseRpm must be > 0 (got {c.BaseRpm})";
+                        return true;
+                    }
+                    if (c.MinimumRpm < 0)
+                    {
+                        error = $"minimumRpm must be >= 0 (got {c.MinimumRpm})";
+                        return true;
+                    }
+                    if (c.MinimumRpm > c.BaseRpm)
+                    {
+                        error = $"minimumRpm ({c.MinimumRpm}) must be <= baseRpm ({c.BaseRpm})";
+                        return true;
+                    }
+                    error = null;
+                    return false;
+                }
+            }
+
             bool ExistsBlockGuid(Guid blockGuid)
             {
                 return Array.Exists(blocks.Data, b => b.BlockGuid == blockGuid);
+            }
+
+            GearConsumption ExtractGearConsumption(object blockParam)
+            {
+                // gearConsumptionを持つ全BlockParam型を列挙して取り出す
+                // Enumerate every BlockParam type that carries a gearConsumption and return it
+                return blockParam switch
+                {
+                    GearBlockParam gear => gear.GearConsumption,
+                    ShaftBlockParam shaft => shaft.GearConsumption,
+                    GearChainPoleBlockParam chainPole => chainPole.GearConsumption,
+                    GearMachineBlockParam machine => machine.GearConsumption,
+                    GearBeltConveyorBlockParam belt => belt.GearConsumption,
+                    GearMinerBlockParam miner => miner.GearConsumption,
+                    GearMapObjectMinerBlockParam mapMiner => mapMiner.GearConsumption,
+                    GearPumpBlockParam pump => pump.GearConsumption,
+                    GearElectricGeneratorBlockParam electric => electric.GearConsumption,
+                    _ => null,
+                };
             }
 
             #endregion

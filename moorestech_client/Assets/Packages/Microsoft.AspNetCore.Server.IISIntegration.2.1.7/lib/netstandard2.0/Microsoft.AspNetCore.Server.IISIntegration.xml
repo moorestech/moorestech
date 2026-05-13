@@ -1,0 +1,119 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Microsoft.AspNetCore.Server.IISIntegration</name>
+    </assembly>
+    <members>
+        <member name="P:Microsoft.AspNetCore.Builder.IISOptions.AutomaticAuthentication">
+            <summary>
+            If true the middleware should set HttpContext.User. If false the middleware will only provide an
+            identity when explicitly requested by the AuthenticationScheme.
+            Note Windows Authentication must also be enabled in IIS for this to work.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Builder.IISOptions.AuthenticationDisplayName">
+            <summary>
+            Sets the display name shown to users on login pages. The default is null.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Builder.IISOptions.ForwardWindowsAuthentication">
+            <summary>
+            Used to indicate if the authentication handler should be registered. This is only done if ANCM indicates
+            IIS has a non-anonymous authentication enabled, or for back compat with ANCMs that did not provide this information.
+            </summary>
+        </member>
+        <member name="P:Microsoft.AspNetCore.Builder.IISOptions.ForwardClientCertificate">
+            <summary>
+            Populates the ITLSConnectionFeature if the MS-ASPNETCORE-CLIENTCERT request header is present.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Hosting.WebHostBuilderIISExtensions.UseIISIntegration(Microsoft.AspNetCore.Hosting.IWebHostBuilder)">
+            <summary>
+            Configures the port and base path the server should listen on when running behind AspNetCoreModule.
+            The app will also be configured to capture startup errors.
+            </summary>
+            <param name="hostBuilder"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Microsoft.AspNetCore.HttpSys.Internal.SocketAddress">
+            <devdoc>
+               <para>
+                  This class is used when subclassing EndPoint, and provides indication
+                  on how to format the memory buffers that winsock uses for network addresses.
+               </para>
+            </devdoc>
+        </member>
+        <member name="M:Microsoft.AspNetCore.HttpSys.Internal.SocketAddress.#ctor(System.Net.Sockets.AddressFamily,System.Int32)">
+            <devdoc>
+               <para>[To be supplied.]</para>
+            </devdoc>
+        </member>
+        <member name="P:Microsoft.AspNetCore.HttpSys.Internal.SocketAddress.Item(System.Int32)">
+            <devdoc>
+               <para>[To be supplied.]</para>
+            </devdoc>
+        </member>
+        <member name="M:Microsoft.AspNetCore.HttpSys.Internal.RawUrlHelper.GetPath(System.Byte[])">
+            <summary>
+            Find the segment of the URI byte array which represents the path.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.HttpSys.Internal.RawUrlHelper.FindHttpOrHttps(System.Byte[])">
+            <summary>
+            Compare the beginning portion of the raw URL byte array to https:// and http://
+            </summary>
+            <param name="raw">The byte array represents the raw URI</param>
+            <returns>Length of the matched bytes, 0 if it is not matched.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.HttpSys.Internal.RequestUriBuilder.Unescape(System.ArraySegment{System.Byte})">
+            <summary>
+            Unescape a given path string in place. The given path string  may contain escaped char.
+            </summary>
+            <param name="rawPath">The raw path string to be unescaped</param>
+            <returns>The unescaped path string</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.HttpSys.Internal.RequestUriBuilder.DecodeCore(System.Int32@,System.Int32@,System.Int32,System.Byte[])">
+            <summary>
+            Unescape the percent-encodings
+            </summary>
+            <param name="reader">The iterator point to the first % char</param>
+            <param name="writer">The place to write to</param>
+            <param name="end">The end of the buffer</param>
+            <param name="buffer">The byte array</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.HttpSys.Internal.RequestUriBuilder.UnescapePercentEncoding(System.Int32@,System.Int32,System.Byte[])">
+            <summary>
+            Read the percent-encoding and try unescape it.
+            
+            The operation first peek at the character the <paramref name="scan"/> 
+            iterator points at. If it is % the <paramref name="scan"/> is then 
+            moved on to scan the following to characters. If the two following 
+            characters are hexadecimal literals they will be unescaped and the 
+            value will be returned.
+            
+            If the first character is not % the <paramref name="scan"/> iterator 
+            will be removed beyond the location of % and -1 will be returned.
+            
+            If the following two characters can't be successfully unescaped the 
+            <paramref name="scan"/> iterator will be move behind the % and -1 
+            will be returned.
+            </summary>
+            <param name="scan">The value to read</param>
+            <param name="end">The end of the buffer</param>
+            <param name="buffer">The byte array</param>
+            <returns>The unescaped byte if success. Otherwise return -1.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.HttpSys.Internal.RequestUriBuilder.ReadHex(System.Int32@,System.Int32,System.Byte[])">
+            <summary>
+            Read the next char and convert it into hexadecimal value.
+            
+            The <paramref name="scan"/> iterator will be moved to the next
+            byte no matter no matter whether the operation successes.
+            </summary>
+            <param name="scan">The value to read</param>
+            <param name="end">The end of the buffer</param>
+            <param name="buffer">The byte array</param>
+            <returns>The hexadecimal value if successes, otherwise -1.</returns>
+        </member>
+    </members>
+</doc>

@@ -1,5 +1,6 @@
 using System.Threading;
 using Client.Common;
+using Client.Game.Common;
 using Client.Game.InGame.Context;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -39,6 +40,9 @@ namespace Client.Game.InGame.Presenter.PauseMenu
             ClientContext.VanillaApi.SendOnly.Save();
             Thread.Sleep(50);
             ClientContext.VanillaApi.Disconnect();
+            // Web UI 等、ゲーム終了に同期したい購読者へ通知
+            // Notify subscribers tied to game shutdown (e.g. Web UI)
+            GameShutdownEvent.FireGameShutdown();
         }
     }
 }

@@ -1,10 +1,8 @@
-using System;
-using Core.Master;
+using System.Collections.Generic;
 using Core.Update;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.EnergySystem;
-using Game.Fluid;
 using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 
@@ -15,16 +13,16 @@ namespace Game.Block.Blocks.Pump
     /// </summary>
     public class ElectricPumpProcessorComponent : IUpdatableBlockComponent
     {
-        private readonly ElectricPumpBlockParam _param;
         private readonly PumpFluidOutputComponent _output;
         private readonly ElectricPower _requiredPower;
+        private readonly List<FluidGenerationEntry> _entries;
         private ElectricPower _currentPower;
 
-        public ElectricPumpProcessorComponent(ElectricPumpBlockParam param, PumpFluidOutputComponent output)
+        public ElectricPumpProcessorComponent(ElectricPumpBlockParam param, PumpFluidOutputComponent output, BlockPositionInfo blockPositionInfo)
         {
-            _param = param;
             _output = output;
             _requiredPower = new ElectricPower(Mathf.Max(0.0001f, param.RequiredPower));
+            _entries = PumpFluidGenerationUtility.ResolveGenerationEntries(param.GenerateFluid.items, blockPositionInfo.OriginalPos);
         }
 
         public void SupplyPower(ElectricPower power)
@@ -41,11 +39,7 @@ namespace Game.Block.Blocks.Pump
             var supplied = Mathf.Max(0f, _currentPower.AsPrimitive());
             var powerRate = required <= 0f ? 0f : Mathf.Clamp01(supplied / required);
 
-            // 電力比率に応じて生成テーブルを走査し、内部タンクへ蓄える
-            PumpFluidGenerationUtility.GenerateFluids(
-                _param.GenerateFluid.items,
-                powerRate,
-                _output);
+            PumpFluidGenerationUtility.GenerateFluids(_entries, powerRate, _output);
 
             _currentPower = new ElectricPower(0);
         }

@@ -36,7 +36,7 @@ namespace Game.Block.Blocks.Gear
             IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent,
             FuelGearGeneratorItemComponent itemComponent,
             FuelGearGeneratorFluidComponent fluidComponent)
-            : base(new Torque(0), blockInstanceId, connectorComponent)
+            : base(null, blockInstanceId, connectorComponent)
         {
             _fluidComponent = fluidComponent;
             _fuelService = new FuelGearGeneratorFuelService(param, itemComponent.InventoryService, fluidComponent);
@@ -115,7 +115,7 @@ namespace Game.Block.Blocks.Gear
             
             BlockStateDetail CreateFuelGearGeneratorStateDetail()
             {
-                var gearGenerator = new FuelGearGeneratorBlockStateDetail(_stateService, _fluidComponent, network.CurrentGearNetworkInfo, GenerateIsClockwise);
+                var gearGenerator = new FuelGearGeneratorBlockStateDetail(_stateService, _fluidComponent, GenerateIsClockwise);
                 return new BlockStateDetail(FuelGearGeneratorBlockStateDetail.FuelGearGeneratorBlockStateDetailKey, MessagePackSerializer.Serialize(gearGenerator));
             }
             
