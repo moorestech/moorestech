@@ -656,6 +656,9 @@ properties:
         - key: capacity
           type: number
           default: 100
+        - key: blockedRetryTicks
+          type: integer
+          default: 3
       - when: BaseCamp
         type: object
         properties:

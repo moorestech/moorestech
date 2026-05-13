@@ -114,27 +114,24 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
 
             // 面に垂直な軸は面が整数グリッド上にあるためRoundToIntで浮動小数点誤差を吸収
             // Axis perpendicular to the face uses RoundToInt to absorb floating-point imprecision (face is on integer grid)
-            switch (surfaceType.Value)
+            var snapped = surfaceType.Value switch
             {
-                case PreviewSurfaceType.YX_Origin:
-                    // 既存ブロックの-Z面 → 新ブロックは-Z方向へ、原点は face - size
-                    // -Z face → new block origin = face - size
-                    return new Vector3Int(SnapParallelX(), SnapParallelY(), Mathf.RoundToInt(hitPoint.z) - rotatedSize.z);
-                case PreviewSurfaceType.YX_Z:
-                    // 既存ブロックの+Z面 → 新ブロックは+Z方向へ、原点は face
-                    // +Z face → new block origin = face
-                    return new Vector3Int(SnapParallelX(), SnapParallelY(), Mathf.RoundToInt(hitPoint.z));
-                case PreviewSurfaceType.YZ_Origin:
-                    return new Vector3Int(Mathf.RoundToInt(hitPoint.x) - rotatedSize.x, SnapParallelY(), SnapParallelZ());
-                case PreviewSurfaceType.YZ_X:
-                    return new Vector3Int(Mathf.RoundToInt(hitPoint.x), SnapParallelY(), SnapParallelZ());
-                case PreviewSurfaceType.XZ_Origin:
-                    return new Vector3Int(SnapParallelX(), Mathf.RoundToInt(hitPoint.y) - rotatedSize.y, SnapParallelZ());
-                case PreviewSurfaceType.XZ_Y:
-                    return new Vector3Int(SnapParallelX(), Mathf.RoundToInt(hitPoint.y), SnapParallelZ());
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+                // 既存ブロックの-Z面 → 新ブロックは-Z方向へ、原点は face - size
+                // -Z face → new block origin = face - size
+                PreviewSurfaceType.YX_Origin => new Vector3Int(SnapParallelX(), SnapParallelY(), Mathf.RoundToInt(hitPoint.z) - rotatedSize.z),
+                // 既存ブロックの+Z面 → 新ブロックは+Z方向へ、原点は face
+                // +Z face → new block origin = face
+                PreviewSurfaceType.YX_Z => new Vector3Int(SnapParallelX(), SnapParallelY(), Mathf.RoundToInt(hitPoint.z)),
+                PreviewSurfaceType.YZ_Origin => new Vector3Int(Mathf.RoundToInt(hitPoint.x) - rotatedSize.x, SnapParallelY(), SnapParallelZ()),
+                PreviewSurfaceType.YZ_X => new Vector3Int(Mathf.RoundToInt(hitPoint.x), SnapParallelY(), SnapParallelZ()),
+                PreviewSurfaceType.XZ_Origin => new Vector3Int(SnapParallelX(), Mathf.RoundToInt(hitPoint.y) - rotatedSize.y, SnapParallelZ()),
+                PreviewSurfaceType.XZ_Y => new Vector3Int(SnapParallelX(), Mathf.RoundToInt(hitPoint.y), SnapParallelZ()),
+                _ => throw new ArgumentOutOfRangeException(),
+            };
+
+            // Q/Eの上下オフセットを面ヒット時にも一括で反映する
+            // Apply Q/E vertical offset uniformly even when hitting an existing block face
+            return snapped + new Vector3Int(0, heightOffset, 0);
         }
         
         public static void SendPlaceProtocol(List<PlaceInfo> currentPlaceInfos, PlaceSystemUpdateContext context)

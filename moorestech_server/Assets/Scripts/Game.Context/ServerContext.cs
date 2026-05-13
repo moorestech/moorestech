@@ -17,7 +17,8 @@ namespace Game.Context
         public static IBlockFactory BlockFactory { get; private set; }
         
         public static IWorldBlockDatastore WorldBlockDatastore { get; private set; }
-        public static IMapVeinDatastore MapVeinDatastore { get; private set; }
+        public static IItemMapVeinDatastore ItemMapVeinDatastore { get; private set; }
+        public static IFluidMapVeinDatastore FluidMapVeinDatastore { get; private set; }
         public static IMapObjectDatastore MapObjectDatastore { get; private set; }
         
         public static IWorldBlockUpdateEvent WorldBlockUpdateEvent { get; private set; }
@@ -38,7 +39,8 @@ namespace Game.Context
             ItemStackFactory = initializeServiceProvider.GetService<IItemStackFactory>();
             BlockFactory = initializeServiceProvider.GetService<IBlockFactory>();
             WorldBlockDatastore = initializeServiceProvider.GetService<IWorldBlockDatastore>();
-            MapVeinDatastore = initializeServiceProvider.GetService<IMapVeinDatastore>();
+            ItemMapVeinDatastore = initializeServiceProvider.GetService<IItemMapVeinDatastore>();
+            FluidMapVeinDatastore = initializeServiceProvider.GetService<IFluidMapVeinDatastore>();
             WorldBlockUpdateEvent = initializeServiceProvider.GetService<IWorldBlockUpdateEvent>();
             BlockOpenableInventoryUpdateEvent = initializeServiceProvider.GetService<IBlockOpenableInventoryUpdateEvent>();
             MapObjectDatastore = initializeServiceProvider.GetService<IMapObjectDatastore>();

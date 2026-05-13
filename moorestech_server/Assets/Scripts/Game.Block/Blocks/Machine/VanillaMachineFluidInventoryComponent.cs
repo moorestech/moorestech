@@ -46,10 +46,10 @@ namespace Game.Block.Blocks.Machine
             // 出力: 機械からパイプへ流体を転送
             TransferFromMachineToPipes();
             
-            // 入力タンクのPreviousSourceFluidContainersをクリア
+            // 入力タンクの送信元記録をクリア
             foreach (var container in _inputInventory.FluidInputSlot)
             {
-                container.PreviousSourceFluidContainers.Clear();
+                container.ClearPreviousSources();
                 
                 // タンクが空の場合はFluidIdをリセット
                 if (container.Amount <= 0)
@@ -58,10 +58,10 @@ namespace Game.Block.Blocks.Machine
                 }
             }
             
-            // 出力タンクのPreviousSourceFluidContainersをクリア
+            // 出力タンクの送信元記録をクリア
             foreach (var container in _outputInventory.FluidOutputSlot)
             {
-                container.PreviousSourceFluidContainers.Clear();
+                container.ClearPreviousSources();
                 
                 // タンクが空の場合はFluidIdをリセット
                 if (container.Amount <= 0)

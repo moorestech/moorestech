@@ -69,7 +69,7 @@ namespace Game.Block.Blocks.Pump
             }
 
             // maintenance
-            _tank.PreviousSourceFluidContainers.Clear();
+            _tank.ClearPreviousSources();
             if (_tank.Amount <= 0)
             {
                 _tank.FluidId = FluidMaster.EmptyFluidId;

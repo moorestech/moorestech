@@ -9,7 +9,8 @@ namespace Game.Map.Interface.Json
     {
         [JsonProperty("defaultSpawnPoint")] public SpawnPointJson DefaultSpawnPointJson;
         [JsonProperty("mapObjects")] public List<MapObjectInfoJson> MapObjects;
-        [JsonProperty("mapVeins")] public List<MapVeinInfoJson> MapVeins;
+        [JsonProperty("itemMapVeins")] public List<ItemMapVeinInfoJson> ItemMapVeins;
+        [JsonProperty("fluidVeins")] public List<FluidVeinInfoJson> FluidVeins;
     }
     
     public class MapObjectInfoJson
@@ -25,7 +26,7 @@ namespace Game.Map.Interface.Json
         [JsonIgnore] public Vector3 Position => new(X, Y, Z);
     }
     
-    public class MapVeinInfoJson
+    public class ItemMapVeinInfoJson
     {
         [JsonProperty("veinItemGuid")] public string VeinItemGuidStr;
         [JsonIgnore] public Guid VeinItemGuid => Guid.Parse(VeinItemGuidStr);
@@ -41,6 +42,22 @@ namespace Game.Map.Interface.Json
         [JsonProperty("maxZ")] public int MaxZ;
     }
     
+    public class FluidVeinInfoJson
+    {
+        [JsonProperty("veinFluidGuid")] public string VeinFluidGuidStr;
+        [JsonIgnore] public Guid VeinFluidGuid => Guid.Parse(VeinFluidGuidStr);
+
+        [JsonIgnore] public Vector3Int MinPosition => new(MinX, MinY, MinZ);
+        [JsonProperty("minX")] public int MinX;
+        [JsonProperty("minY")] public int MinY;
+        [JsonProperty("minZ")] public int MinZ;
+
+        [JsonIgnore] public Vector3Int MaxPosition => new(MaxX, MaxY, MaxZ);
+        [JsonProperty("maxX")] public int MaxX;
+        [JsonProperty("maxY")] public int MaxY;
+        [JsonProperty("maxZ")] public int MaxZ;
+    }
+
     public class SpawnPointJson
     {
         [JsonProperty("x")] public float X;
