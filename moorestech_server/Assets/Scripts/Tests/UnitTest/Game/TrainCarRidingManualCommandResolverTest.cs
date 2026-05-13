@@ -16,15 +16,15 @@ namespace Tests.UnitTest.Game
         public void Resolve_ReverseRequestWhileMoving_ReturnsBrakeUntilStop()
         {
             var fixture = CreateForwardFacingFixture();
-            RunTicks(fixture.TrainUnit, 8, new TrainUnitManualCommand(false, 1));
+            RunTicks(fixture.TrainUnit, 8, new TrainUnitManualCommand(false, TrainUnitMasconCommand.Accelerate));
 
             var buffer = new TrainCarRidingInputBuffer();
             buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(1, fixture.RidingCar.TrainCarInstanceId, 10, false, false, true, false));
             var resolver = new TrainCarRidingManualCommandResolver(fixture.TrainUnitDatastore, buffer);
 
-            var command = resolver.Resolve(fixture.TrainUnit);
+            var command = resolver.Resolve(fixture.TrainUnit, 10);
             Assert.IsFalse(command.ReverseRequested, "走行中の後退要求はまず brake になるべきです。");
-            Assert.AreEqual(-1, command.MasconCommand, "走行中の後退要求が brake に解決されていません。");
+            Assert.AreEqual(TrainUnitMasconCommand.Brake, command.MasconCommand, "走行中の後退要求が brake に解決されていません。");
         }
 
         [Test]
@@ -36,9 +36,9 @@ namespace Tests.UnitTest.Game
             buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(1, fixture.RidingCar.TrainCarInstanceId, 10, false, false, true, false));
             var resolver = new TrainCarRidingManualCommandResolver(fixture.TrainUnitDatastore, buffer);
 
-            var command = resolver.Resolve(fixture.TrainUnit);
+            var command = resolver.Resolve(fixture.TrainUnit, 10);
             Assert.IsTrue(command.ReverseRequested, "停止中の後退要求は reverse 付きで解決されるべきです。");
-            Assert.AreEqual(1, command.MasconCommand, "停止中の後退要求は reverse 後の traction に解決されるべきです。");
+            Assert.AreEqual(TrainUnitMasconCommand.Accelerate, command.MasconCommand, "停止中の後退要求は reverse 後の traction に解決されるべきです。");
         }
 
         [Test]
@@ -50,9 +50,9 @@ namespace Tests.UnitTest.Game
             buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(1, fixture.RidingCar.TrainCarInstanceId, 10, true, false, false, false));
             var resolver = new TrainCarRidingManualCommandResolver(fixture.TrainUnitDatastore, buffer);
 
-            var command = resolver.Resolve(fixture.TrainUnit);
+            var command = resolver.Resolve(fixture.TrainUnit, 10);
             Assert.IsTrue(command.ReverseRequested, "後ろ向き車両での W は train 後退なので reverse 付きになるべきです。");
-            Assert.AreEqual(1, command.MasconCommand, "反転後の traction が解決されていません。");
+            Assert.AreEqual(TrainUnitMasconCommand.Accelerate, command.MasconCommand, "反転後の traction が解決されていません。");
         }
 
         [Test]
@@ -70,12 +70,26 @@ namespace Tests.UnitTest.Game
             buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(2, secondFixture.RidingCar.TrainCarInstanceId, 11, false, false, true, false));
             var resolver = new TrainCarRidingManualCommandResolver(datastore, buffer);
 
-            var firstCommand = resolver.Resolve(firstFixture.TrainUnit);
-            var secondCommand = resolver.Resolve(secondFixture.TrainUnit);
+            var firstCommand = resolver.Resolve(firstFixture.TrainUnit, 11);
+            var secondCommand = resolver.Resolve(secondFixture.TrainUnit, 11);
 
-            Assert.AreEqual(1, firstCommand.MasconCommand, "他 train の新しい入力で対象 train の command が汚染されています。");
-            Assert.AreEqual(1, secondCommand.MasconCommand, "対象 train の最新入力が解決されていません。");
+            Assert.AreEqual(TrainUnitMasconCommand.Accelerate, firstCommand.MasconCommand, "他 train の新しい入力で対象 train の command が汚染されています。");
+            Assert.AreEqual(TrainUnitMasconCommand.Accelerate, secondCommand.MasconCommand, "対象 train の最新入力が解決されていません。");
             Assert.IsTrue(secondCommand.ReverseRequested, "停止中の後退要求が reverse 付きで解決されていません。");
+        }
+
+        [Test]
+        public void Resolve_InputAtTimeToLiveBoundary_ReturnsDefault()
+        {
+            var fixture = CreateForwardFacingFixture();
+            var buffer = new TrainCarRidingInputBuffer();
+            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(1, fixture.RidingCar.TrainCarInstanceId, 10, true, false, false, false));
+            var resolver = new TrainCarRidingManualCommandResolver(fixture.TrainUnitDatastore, buffer);
+
+            var command = resolver.Resolve(fixture.TrainUnit, 30);
+
+            Assert.IsFalse(command.ReverseRequested, "20 tick 経過した入力は reverse 要求として扱わないべきです。");
+            Assert.AreEqual(TrainUnitMasconCommand.Neutral, command.MasconCommand, "20 tick 経過した入力は neutral として扱うべきです。");
         }
 
         private static void RunTicks(TrainUnit trainUnit, int tickCount, TrainUnitManualCommand manualCommand)

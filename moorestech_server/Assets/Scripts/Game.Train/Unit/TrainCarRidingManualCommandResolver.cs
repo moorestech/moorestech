@@ -2,6 +2,10 @@ namespace Game.Train.Unit
 {
     public sealed class TrainCarRidingManualCommandResolver
     {
+        // 乗車入力は受信tickから20tick未満だけ有効とし、通信断や降車漏れで入力が残り続けるのを防ぐ。
+        // Riding input is valid for fewer than 20 server ticks to prevent stale controls after disconnects or missed dismounts.
+        private const uint ManualInputTimeToLiveTicks = 20;
+
         private readonly ITrainUnitLookupDatastore _trainUnitLookupDatastore;
         private readonly TrainCarRidingInputBuffer _inputBuffer;
 
@@ -11,7 +15,7 @@ namespace Game.Train.Unit
             _inputBuffer = inputBuffer;
         }
 
-        public TrainUnitManualCommand Resolve(TrainUnit trainUnit)
+        public TrainUnitManualCommand Resolve(TrainUnit trainUnit, uint currentTick)
         {
             var hasResolvedInput = false;
             var latestReceivedTick = 0u;
@@ -19,6 +23,11 @@ namespace Game.Train.Unit
 
             foreach (var inputState in _inputBuffer.GetLatestInputs())
             {
+                if (IsExpired(inputState, currentTick))
+                {
+                    continue;
+                }
+
                 if (!_trainUnitLookupDatastore.TryGetTrainUnitByCar(inputState.RidingTrainCarInstanceId, out var ridingTrainUnit))
                 {
                     continue;
@@ -46,6 +55,16 @@ namespace Game.Train.Unit
             return resolvedCommand;
         }
 
+        private static bool IsExpired(TrainCarRidingInputBuffer.TrainCarRidingInputState inputState, uint currentTick)
+        {
+            if (currentTick < inputState.ReceivedTick)
+            {
+                return false;
+            }
+
+            return currentTick - inputState.ReceivedTick >= ManualInputTimeToLiveTicks;
+        }
+
         private static TrainUnitManualCommand ResolveManualCommand(TrainUnit trainUnit, TrainCar ridingTrainCar, TrainCarRidingInputBuffer.TrainCarRidingInputState inputState)
         {
             if (inputState.W == inputState.S)
@@ -59,15 +78,15 @@ namespace Game.Train.Unit
 
             if (wantsTrainForward)
             {
-                return new TrainUnitManualCommand(false, 1);
+                return new TrainUnitManualCommand(false, TrainUnitMasconCommand.Accelerate);
             }
 
             if (trainUnit.CurrentSpeed > 0)
             {
-                return new TrainUnitManualCommand(false, -1);
+                return new TrainUnitManualCommand(false, TrainUnitMasconCommand.Brake);
             }
 
-            return new TrainUnitManualCommand(true, 1);
+            return new TrainUnitManualCommand(true, TrainUnitMasconCommand.Accelerate);
         }
     }
 }
