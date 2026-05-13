@@ -18,6 +18,7 @@ namespace Game.Train.Unit
         public TrainUnitManualCommand Resolve(TrainUnit trainUnit, uint currentTick)
         {
             var trainDirectionVote = 0;
+            var branchSelectionVote = 0;
 
             foreach (var inputState in _inputBuffer.GetLatestInputs())
             {
@@ -48,9 +49,12 @@ namespace Game.Train.Unit
                 // 車両向きを考慮して train 前後方向の票へ変換し、全員分を合算する。
                 // Convert each input with car facing into a train direction vote and sum all riders.
                 trainDirectionVote += ResolveTrainDirectionVote(ridingTrainCar, inputState);
+                // A/D は次の分岐候補選択の票として扱い、同数ならニュートラルに戻す。
+                // Treat A/D as votes for the next branch candidate, and fall back to neutral on ties.
+                branchSelectionVote += ResolveBranchSelectionVote(inputState);
             }
 
-            return ResolveManualCommand(trainUnit, trainDirectionVote);
+            return ResolveManualCommand(trainUnit, trainDirectionVote, branchSelectionVote);
         }
 
         private static bool IsExpired(TrainCarRidingInputBuffer.TrainCarRidingInputState inputState, uint currentTick)
@@ -76,24 +80,50 @@ namespace Game.Train.Unit
             return wantsTrainForward ? 1 : -1;
         }
 
-        private static TrainUnitManualCommand ResolveManualCommand(TrainUnit trainUnit, int trainDirectionVote)
+        private static int ResolveBranchSelectionVote(TrainCarRidingInputBuffer.TrainCarRidingInputState inputState)
         {
+            if (inputState.A == inputState.D)
+            {
+                return 0;
+            }
+
+            return inputState.A ? -1 : 1;
+        }
+
+        private static TrainUnitManualCommand ResolveManualCommand(TrainUnit trainUnit, int trainDirectionVote, int branchSelectionVote)
+        {
+            var branchCommand = ResolveBranchCommand(branchSelectionVote);
             if (trainDirectionVote == 0)
             {
-                return TrainUnitManualCommand.Default;
+                return new TrainUnitManualCommand(false, TrainUnitMasconCommand.Neutral, branchCommand);
             }
 
             if (trainDirectionVote > 0)
             {
-                return new TrainUnitManualCommand(false, TrainUnitMasconCommand.Accelerate);
+                return new TrainUnitManualCommand(false, TrainUnitMasconCommand.Accelerate, branchCommand);
             }
 
             if (trainUnit.CurrentSpeed > 0)
             {
-                return new TrainUnitManualCommand(false, TrainUnitMasconCommand.Brake);
+                return new TrainUnitManualCommand(false, TrainUnitMasconCommand.Brake, branchCommand);
             }
 
-            return new TrainUnitManualCommand(true, TrainUnitMasconCommand.Accelerate);
+            return new TrainUnitManualCommand(true, TrainUnitMasconCommand.Accelerate, branchCommand);
+        }
+
+        private static TrainUnitBranchCommand ResolveBranchCommand(int branchSelectionVote)
+        {
+            if (branchSelectionVote < 0)
+            {
+                return TrainUnitBranchCommand.Previous;
+            }
+
+            if (branchSelectionVote > 0)
+            {
+                return TrainUnitBranchCommand.Next;
+            }
+
+            return TrainUnitBranchCommand.Neutral;
         }
     }
 }

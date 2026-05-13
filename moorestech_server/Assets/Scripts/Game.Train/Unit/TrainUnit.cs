@@ -157,7 +157,7 @@ namespace Game.Train.Unit
             // マスコン確定後に進む距離を算出する。
             // Calculate the travel distance after the mascon decision.
             var distanceToMove = SimulateMotionStep();
-            return UpdateTrainByDistance(distanceToMove);
+            return UpdateTrainByDistance(distanceToMove, manualCommand);
         }
 
         // キー操作系。
@@ -229,7 +229,14 @@ namespace Game.Train.Unit
         // Advance by the requested distance and return the actual traveled amount.
         // 目的地は常に最新の trainDiagram を参照し、目的地が null なら上の制御で auto-run を解除する。
         // Always reference the latest train diagram, and let the outer flow disable auto-run when the destination becomes null.
-        public int UpdateTrainByDistance(int distanceToMove) 
+        // 既存呼び出しでは分岐入力なしの手動移動として扱う。
+        // Existing callers move without manual branch input.
+        public int UpdateTrainByDistance(int distanceToMove)
+        {
+            return UpdateTrainByDistance(distanceToMove, TrainUnitManualCommand.Default);
+        }
+
+        public int UpdateTrainByDistance(int distanceToMove, TrainUnitManualCommand manualCommand)
         {
             // 進行メインループ。
             // Main movement loop.
@@ -299,15 +306,17 @@ namespace Game.Train.Unit
                 }
                 else
                 {
-                    // manual 時は approaching から最初の接続ノードを選んで先頭に積む。
-                    // In manual mode, pick the first connected node from the approaching node.
+                    // manual 時は approaching から入力に応じた接続ノードを選んで先頭に積む。
+                    // In manual mode, pick a connected node from the approaching node based on input.
                     var nextNodelist = approaching.ConnectedNodes.ToList();
                     if (nextNodelist.Count == 0)
                     {
                         _currentSpeed = 0;
                         break;//もう進めない
                     }
-                    var nextNode = nextNodelist[0];
+                    // A/D があれば既存デフォルト候補を基準に deterministic な前後候補を選ぶ。
+                    // When A/D is present, choose a deterministic neighboring candidate around the current default.
+                    var nextNode = SelectManualBranchNode(nextNodelist, manualCommand.BranchCommand);
                     _railPosition.AddNodeToHead(nextNode);
                     _pendingApproachingNodeId = nextNode.NodeId;
                 }
@@ -319,6 +328,58 @@ namespace Game.Train.Unit
                 }
             }
             return totalMoved;
+        }
+
+        private static IRailNode SelectManualBranchNode(IReadOnlyList<IRailNode> connectedNodes, TrainUnitBranchCommand branchCommand)
+        {
+            if (connectedNodes.Count == 1 || branchCommand == TrainUnitBranchCommand.Neutral)
+            {
+                return connectedNodes[0];
+            }
+
+            // ニュートラル時の既存デフォルト候補を基準に、NodeId順で前後候補を選ぶ。
+            // Choose previous/next by NodeId order around the existing neutral default candidate.
+            var defaultNode = connectedNodes[0];
+            var sortedNodes = BuildSortedBranchCandidates(connectedNodes);
+            if (branchCommand == TrainUnitBranchCommand.Previous)
+            {
+                return SelectPreviousBranchNode(sortedNodes, defaultNode.NodeId);
+            }
+
+            return SelectNextBranchNode(sortedNodes, defaultNode.NodeId);
+        }
+
+        private static List<IRailNode> BuildSortedBranchCandidates(IReadOnlyList<IRailNode> connectedNodes)
+        {
+            var sortedNodes = connectedNodes.ToList();
+            sortedNodes.Sort((left, right) => left.NodeId.CompareTo(right.NodeId));
+            return sortedNodes;
+        }
+
+        private static IRailNode SelectPreviousBranchNode(IReadOnlyList<IRailNode> sortedNodes, int defaultNodeId)
+        {
+            for (var i = sortedNodes.Count - 1; i >= 0; i--)
+            {
+                if (sortedNodes[i].NodeId < defaultNodeId)
+                {
+                    return sortedNodes[i];
+                }
+            }
+
+            return sortedNodes[sortedNodes.Count - 1];
+        }
+
+        private static IRailNode SelectNextBranchNode(IReadOnlyList<IRailNode> sortedNodes, int defaultNodeId)
+        {
+            for (var i = 0; i < sortedNodes.Count; i++)
+            {
+                if (sortedNodes[i].NodeId > defaultNodeId)
+                {
+                    return sortedNodes[i];
+                }
+            }
+
+            return sortedNodes[0];
         }
 
         // 毎フレーム燃料在庫を確認しながら加速力を計算する。
