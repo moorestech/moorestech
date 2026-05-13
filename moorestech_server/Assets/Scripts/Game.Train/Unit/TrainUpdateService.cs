@@ -68,7 +68,7 @@ namespace Game.Train.Unit
             //simulation
             foreach (var trainUnit in _trainUnitLookupDatastore.GetRegisteredTrains())
             {
-                var manualCommand = _trainCarRidingManualCommandResolver.Resolve(trainUnit);
+                var manualCommand = _trainCarRidingManualCommandResolver.Resolve(trainUnit, _executedTick);
                 trainUnit.Update(manualCommand);
             }
 
