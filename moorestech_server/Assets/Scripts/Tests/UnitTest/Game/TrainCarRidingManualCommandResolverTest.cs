@@ -103,6 +103,37 @@ namespace Tests.UnitTest.Game
         }
 
         [Test]
+        public void Resolve_SameTrainBranchNextMajority_ReturnsBranchNext()
+        {
+            var fixture = CreateForwardFacingFixture();
+            var buffer = new TrainCarRidingInputBuffer();
+            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(1, fixture.RidingCar.TrainCarInstanceId, 10, false, false, false, true));
+            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(2, fixture.RidingCar.TrainCarInstanceId, 10, false, false, false, true));
+            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(3, fixture.RidingCar.TrainCarInstanceId, 10, false, true, false, false));
+            var resolver = new TrainCarRidingManualCommandResolver(fixture.TrainUnitDatastore, buffer);
+
+            var command = resolver.Resolve(fixture.TrainUnit, 10);
+
+            Assert.AreEqual(TrainUnitMasconCommand.Neutral, command.MasconCommand, "A/D だけの入力で mascon が変化しています。");
+            Assert.AreEqual(TrainUnitBranchCommand.Next, command.BranchCommand, "D 多数が next 分岐選択に解決されていません。");
+        }
+
+        [Test]
+        public void Resolve_SameTrainConflictingBranchVotes_ReturnsNeutralBranch()
+        {
+            var fixture = CreateForwardFacingFixture();
+            var buffer = new TrainCarRidingInputBuffer();
+            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(1, fixture.RidingCar.TrainCarInstanceId, 10, false, true, false, false));
+            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(2, fixture.RidingCar.TrainCarInstanceId, 10, false, false, false, true));
+            var resolver = new TrainCarRidingManualCommandResolver(fixture.TrainUnitDatastore, buffer);
+
+            var command = resolver.Resolve(fixture.TrainUnit, 10);
+
+            Assert.AreEqual(TrainUnitMasconCommand.Neutral, command.MasconCommand, "A/D 同数だけの入力で mascon が変化しています。");
+            Assert.AreEqual(TrainUnitBranchCommand.Neutral, command.BranchCommand, "A/D 同数が neutral 分岐選択に解決されていません。");
+        }
+
+        [Test]
         public void Resolve_NewerTickOnOtherTrain_WinsOnlyForOwningTrain()
         {
             var firstFixture = CreateForwardFacingFixture();
