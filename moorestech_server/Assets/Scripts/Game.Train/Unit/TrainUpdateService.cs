@@ -105,20 +105,20 @@ namespace Game.Train.Unit
                 var diffs = new List<TrainTickDiffData>();
                 foreach (var trainUnit in _trainUnitLookupDatastore.GetRegisteredTrains())
                 {
-                    var (masconLevelDiff, isNowDockingSpeedZero, approachingNodeIdDiff) = trainUnit.GetTickDiff();
-                    if (!HasDiff(masconLevelDiff, isNowDockingSpeedZero, approachingNodeIdDiff))
+                    var (masconLevelDiff, isNowDockingSpeedZero, approachingNodeIdDiff, isReversedThisTick) = trainUnit.GetTickDiff();
+                    if (!HasDiff(masconLevelDiff, isNowDockingSpeedZero, approachingNodeIdDiff, isReversedThisTick))
                     {
                         continue;
                     }
-                    diffs.Add(new TrainTickDiffData(trainUnit.TrainInstanceId, masconLevelDiff, isNowDockingSpeedZero, approachingNodeIdDiff));
+                    diffs.Add(new TrainTickDiffData(trainUnit.TrainInstanceId, masconLevelDiff, isNowDockingSpeedZero, approachingNodeIdDiff, isReversedThisTick));
                 }
                 // 差分0件でもsim実行トリガとして同tickイベントを送る。
                 // Emit the same-tick event even when diffs are empty as a simulation trigger.
                 _onPreSimulationDiffEvent.OnNext((tick, diffs));
                 
-                bool HasDiff(int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeIdDiff)
+                bool HasDiff(int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeIdDiff, bool isReversedThisTick)
                 {
-                    return masconLevelDiff != 0 || isNowDockingSpeedZero || approachingNodeIdDiff != -1;
+                    return masconLevelDiff != 0 || isNowDockingSpeedZero || approachingNodeIdDiff != -1 || isReversedThisTick;
                 }
             }
             #endregion
@@ -202,13 +202,15 @@ namespace Game.Train.Unit
             public int MasconLevelDiff { get; }
             public bool IsNowDockingSpeedZero { get; }
             public int ApproachingNodeIdDiff { get; }
+            public bool IsReversedThisTick { get; }
 
-            public TrainTickDiffData(TrainInstanceId trainInstanceId, int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeIdDiff)
+            public TrainTickDiffData(TrainInstanceId trainInstanceId, int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeIdDiff, bool isReversedThisTick)
             {
                 TrainInstanceId = trainInstanceId;
                 MasconLevelDiff = masconLevelDiff;
                 IsNowDockingSpeedZero = isNowDockingSpeedZero;
                 ApproachingNodeIdDiff = approachingNodeIdDiff;
+                IsReversedThisTick = isReversedThisTick;
             }
         }
 

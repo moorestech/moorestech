@@ -73,6 +73,21 @@ namespace Tests.UnitTest.Game
         }
 
         [Test]
+        public void ManualReverse_EmitsReverseTickDiffOnce()
+        {
+            var fixture = CreateTwoCarFixture();
+            fixture.TrainUnit.Update(new TrainUnitManualCommand(true, TrainUnitMasconCommand.Neutral));
+
+            // reverse は次 tick のクライアント simulation 前に一度だけ通知する
+            // Reverse is notified once before the client simulation for the same tick
+            var firstDiff = fixture.TrainUnit.GetTickDiff();
+            var secondDiff = fixture.TrainUnit.GetTickDiff();
+
+            Assert.IsTrue(firstDiff.isReversedThisTick, "manual reverse が reverse tick diff に含まれていません。");
+            Assert.IsFalse(secondDiff.isReversedThisTick, "reverse tick diff が消費後も残り続けています。");
+        }
+
+        [Test]
         public void ManualCommand_IsIgnoredDuringAutoRun()
         {
             var fixture = CreateTwoCarFixture();
@@ -184,8 +199,8 @@ namespace Tests.UnitTest.Game
         private static void AssertSelectedBranch(TrainUnit trainUnit, IRailNode expectedNode, string message)
         {
             Assert.AreSame(expectedNode, trainUnit.RailPosition.GetNodeApproaching(), message);
-            var (_, _, approachingNodeIdDiff) = trainUnit.GetTickDiff();
-            Assert.AreEqual(expectedNode.NodeId, approachingNodeIdDiff, "選択した分岐ノードが tick diff に出ていません。");
+            var diff = trainUnit.GetTickDiff();
+            Assert.AreEqual(expectedNode.NodeId, diff.approachingNodeIdDiff, "選択した分岐ノードが tick diff に出ていません。");
         }
 
         private static TrainFixture CreateSingleCarFixture()
