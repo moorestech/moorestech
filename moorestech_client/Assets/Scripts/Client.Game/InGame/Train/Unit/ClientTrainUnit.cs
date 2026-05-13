@@ -185,7 +185,7 @@ namespace Client.Game.InGame.Train.Unit
                         {
                             return (trainCarSnapshot.Weight, 0);
                         }
-                        return (trainCarSnapshot.Weight, trainCarSnapshot.IsFacingForward ? trainElement.TractionForce : 0);
+                        return (trainCarSnapshot.Weight, trainElement.TractionForce);
                     }
                 }
             }
