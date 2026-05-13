@@ -50,6 +50,17 @@ namespace Tests.UnitTest.Game
         }
 
         [Test]
+        public void ManualReverseSingleCar_AcceleratesWhenFacingBackward()
+        {
+            var fixture = CreateSingleCarFixture();
+            fixture.TrainUnit.Update(new TrainUnitManualCommand(true, TrainUnitMasconCommand.Accelerate));
+
+            Assert.IsFalse(fixture.FrontCar.IsFacingForward, "single car should face backward after reverse.");
+            Assert.AreEqual(TractionMasconLevel, fixture.TrainUnit.masconLevel, "reverse traction should apply positive mascon.");
+            Assert.Greater(fixture.TrainUnit.CurrentSpeed, 0d, "backward-facing railcar should still produce traction.");
+        }
+
+        [Test]
         public void ManualReverseWhileMoving_IsIgnored()
         {
             var fixture = CreateTwoCarFixture();
