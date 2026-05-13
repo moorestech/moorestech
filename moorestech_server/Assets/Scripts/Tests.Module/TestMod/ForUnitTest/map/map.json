@@ -43,13 +43,35 @@
       "instanceId": 4
     }
   ],
-  "mapVeins": [
+  "itemMapVeins": [
     {
       "veinItemGuid": "00000000-0000-0000-1234-000000000001",
       "xMin": 0,
       "xMax": 0,
       "yMin": 5,
       "yMax": 5
+    }
+  ],
+  "fluidVeins": [
+    {
+      "#memo": "原点周辺はWater Vein。既存ポンプテストが原点配置を前提",
+      "veinFluidGuid": "00000000-0000-0000-1234-000000000001",
+      "minX": 0,
+      "minY": 0,
+      "minZ": 0,
+      "maxX": 10,
+      "maxY": 0,
+      "maxZ": 0
+    },
+    {
+      "#memo": "(20,0,0)はSteam Vein。PumpFluidVeinTestのマスタ不一致ケース用",
+      "veinFluidGuid": "00000000-0000-0000-1234-000000000002",
+      "minX": 20,
+      "minY": 0,
+      "minZ": 0,
+      "maxX": 20,
+      "maxY": 0,
+      "maxZ": 0
     }
   ]
 }

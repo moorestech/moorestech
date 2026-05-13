@@ -19,7 +19,8 @@ public class MapExportAndSetting : EditorWindow
         {
             DefaultSpawnPointJson = GetSpawnPointJson(),
             MapObjects = SetUpMapObjectInfos(),
-            MapVeins = GetMapVeinInfo(),
+            ItemMapVeins = GetItemMapVeinInfo(),
+            FluidVeins = GetFluidVeinInfo(),
         };
         
         // jsonに変換
@@ -79,30 +80,54 @@ public class MapExportAndSetting : EditorWindow
             return result;
         }
         
-        List<MapVeinInfoJson> GetMapVeinInfo()
+        List<ItemMapVeinInfoJson> GetItemMapVeinInfo()
         {
-            var veins = FindObjectsOfType<MapVeinGameObject>(true);
-            var result = new List<MapVeinInfoJson>();
-            
+            var veins = FindObjectsOfType<ItemMapVeinGameObject>(true);
+            var result = new List<ItemMapVeinInfoJson>();
+
             foreach (var vein in veins)
             {
-                var config = new MapVeinInfoJson
+                var config = new ItemMapVeinInfoJson
                 {
                     VeinItemGuidStr = vein.VeinItemGuid.ToString(),
                     MinX = vein.MinPosition.x,
                     MinY = vein.MinPosition.y,
                     MinZ = vein.MinPosition.z,
-                    
+
                     MaxX = vein.MaxPosition.x,
                     MaxY = vein.MaxPosition.y,
                     MaxZ = vein.MaxPosition.z,
                 };
                 result.Add(config);
             }
-            
+
             return result;
         }
-        
+
+        List<FluidVeinInfoJson> GetFluidVeinInfo()
+        {
+            var veins = FindObjectsOfType<FluidMapVeinGameObject>(true);
+            var result = new List<FluidVeinInfoJson>();
+
+            foreach (var vein in veins)
+            {
+                var config = new FluidVeinInfoJson
+                {
+                    VeinFluidGuidStr = vein.VeinFluidGuid.ToString(),
+                    MinX = vein.MinPosition.x,
+                    MinY = vein.MinPosition.y,
+                    MinZ = vein.MinPosition.z,
+
+                    MaxX = vein.MaxPosition.x,
+                    MaxY = vein.MaxPosition.y,
+                    MaxZ = vein.MaxPosition.z,
+                };
+                result.Add(config);
+            }
+
+            return result;
+        }
+
         #endregion
     }
     
