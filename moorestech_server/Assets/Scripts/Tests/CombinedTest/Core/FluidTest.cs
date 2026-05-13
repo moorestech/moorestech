@@ -443,16 +443,126 @@ namespace Tests.CombinedTest.Core
             // Each frame advances exactly 1 tick
             for (var i = 0; i < steps; i++) GameUpdater.RunFrames(1);
             
-            // 最初のtick: 液体移動なし（AddLiquidによるreceiveフラグが立っている）
-            // First tick: no fluid movement (both pipes have receive flag from initial AddLiquid)
-            // 2〜10tick目: 両パイプの状態が変化（送信側と受信側）
-            // Ticks 2-10: both pipes change state (sender and receiver)
-            // 合計: 0 + 9*2 = 18回の状態変更
-            // Total: 0 + 9*2 = 18 state changes
-            Assert.AreEqual(18, callCount);
+            // ソース別バケット導入後、毎tickで両パイプが送受信を行うため
+            // pipe0.Update→pipe1受信(1)+pipe0送信(2)、pipe1.Update→pipe0受信(3)+pipe1送信(4) の計4回
+            // After per-source bucket distribution, each pipe sends and receives every tick
+            // pipe0.Update -> pipe1 receive + pipe0 send, pipe1.Update -> pipe0 receive + pipe1 send = 4 per tick
+            // 合計: 4 * 10 = 40回の状態変更
+            // Total: 4 * 10 = 40 state changes
+            Assert.AreEqual(40, callCount);
         }
+
+        // 入力元（ソース）として記録された隣接へは戻さず、それ以外の隣接へ均等に配分されることを確認
+        // Ensure liquid attributed to a source is not returned to that source, but is split equally among the other neighbors
+        [Test]
+        public void FluidSourceExclusionTest()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+
+            // X中心の+型配置。A=西、B=東、C=上の3隣接。
+            // Plus-shaped layout: X at center with A (west), B (east), C (up).
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var xBlock);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(-1, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var aBlock);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(1, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var bBlock);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 1, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var cBlock);
+
+            var x = xBlock.GetComponent<FluidPipeComponent>();
+            var a = aBlock.GetComponent<FluidPipeComponent>();
+            var b = bBlock.GetComponent<FluidPipeComponent>();
+            var c = cBlock.GetComponent<FluidPipeComponent>();
+
+            // A から X へ流入したと記録させる
+            // Inject into X claiming A as the source
+            x.AddLiquid(new FluidStack(30d, FluidId), a.GetFluidContainer());
+
+            // 降格(N=3)前の範囲で動作確認するため2tickのみ進行
+            // Run only 2 ticks so the source bucket has not yet been demoted to sourceless
+            for (var i = 0; i < 2; i++) GameUpdater.RunFrames(1);
+
+            // A は除外されるため受け取らない
+            // A is excluded as the source and must not receive
+            Assert.AreEqual(0d, a.GetAmount(), 0.001d);
+            // B, C は等分で受け取る（flowCapacity=10/sec, tick=0.05s, 2tick → 1.0）
+            // B and C receive equal shares (flowCapacity 10/sec * 2 ticks at 0.05s = 1.0 each)
+            Assert.AreEqual(1d, b.GetAmount(), 0.01d);
+            Assert.AreEqual(1d, c.GetAmount(), 0.01d);
+        }
+
+        // 多入力時：A=30, B=50 を同時投入。X-A,B,C 連結。Aの分はB,Cへ、Bの分はA,Cへそれぞれ等分
+        // Multi-source: when X simultaneously receives 30 from A and 50 from B, A's share goes to B,C and B's share goes to A,C
+        [Test]
+        public void FluidMultiSourceSplitTest()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var xBlock);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(-1, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var aBlock);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(1, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var bBlock);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 1, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var cBlock);
+
+            var x = xBlock.GetComponent<FluidPipeComponent>();
+            var a = aBlock.GetComponent<FluidPipeComponent>();
+            var b = bBlock.GetComponent<FluidPipeComponent>();
+            var c = cBlock.GetComponent<FluidPipeComponent>();
+
+            // 同tick内で2つのソースから受信させる
+            // Receive from two sources within the same tick
+            x.AddLiquid(new FluidStack(30d, FluidId), a.GetFluidContainer());
+            x.AddLiquid(new FluidStack(50d, FluidId), b.GetFluidContainer());
+
+            // 降格前の範囲で2tick進行
+            // Run 2 ticks while no bucket has been demoted yet
+            for (var i = 0; i < 2; i++) GameUpdater.RunFrames(1);
+
+            // 各tickでA bucket→{B,C}に0.5ずつ、B bucket→{A,C}に0.5ずつ
+            // Each tick distributes 0.5 from A's bucket to {B,C} and 0.5 from B's bucket to {A,C}
+            // 2tick合計: A=1.0(Bから)、B=1.0(Aから)、C=2.0(両方から)
+            // Totals over 2 ticks: A=1.0 (from B's bucket), B=1.0 (from A's bucket), C=2.0 (from both)
+            Assert.AreEqual(1d, a.GetAmount(), 0.01d);
+            Assert.AreEqual(1d, b.GetAmount(), 0.01d);
+            Assert.AreEqual(2d, c.GetAmount(), 0.01d);
+            Assert.AreEqual(76d, x.GetAmount(), 0.01d);
+        }
+
+        // 流せる先がない場合、Nティック詰まったら入力ソースなしへ降格して元のソースへ流れ戻ることを確認
+        // After N ticks of no progress, the bucket demotes to sourceless and starts flowing back to the original source
+        [Test]
+        public void FluidBlockedRefluxTest()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+
+            // 線形A-X、Xの隣接はAのみ
+            // Linear A-X layout, X has only A as neighbor
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var aBlock);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(1, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var xBlock);
+
+            var a = aBlock.GetComponent<FluidPipeComponent>();
+            var x = xBlock.GetComponent<FluidPipeComponent>();
+
+            // Aから流入したとして10をXへ投入
+            // Inject 10 into X attributed to A
+            x.AddLiquid(new FluidStack(10d, FluidId), a.GetFluidContainer());
+
+            // N=3ティック詰まりが続く間、AはX由来の液体を受け取らないこと
+            // While the bucket is blocked for the first N=3 ticks, A must not receive
+            for (var i = 0; i < 3; i++) GameUpdater.RunFrames(1);
+            Assert.AreEqual(0d, a.GetAmount(), 0.001d);
+            Assert.AreEqual(10d, x.GetAmount(), 0.001d);
+
+            // 4ティック目以降、降格後のEmptyバケットからAへ流れ戻ることを確認
+            // From tick 4 onward the demoted Empty bucket distributes back to A
+            for (var i = 0; i < 5; i++) GameUpdater.RunFrames(1);
+            Assert.Greater(a.GetAmount(), 0d);
+        }
+
     }
-    
+
     public static class FluidPipeExtension
     {
         public static FluidContainer GetFluidContainer(this FluidPipeComponent fluidPipe){

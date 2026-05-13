@@ -2009,7 +2009,7 @@
       "blockType": "GearBeltConveyor",
       "blockParam": {
         "beltConveyorItemCount": 4,
-        "beltConveyorSpeed": 0.25,
+        "beltConveyorSpeed": 2.5,
         "overloadMaxRpm": 10,
         "overloadMaxTorque": 10,
         "destructionCheckInterval": 0.01,
@@ -2098,9 +2098,9 @@
           ]
         },
         "gearConsumption": {
-          "baseRpm": 500,
+          "baseRpm": 10,
           "minimumRpm": 0,
-          "baseTorque": 1,
+          "baseTorque": 0.02,
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585
         }
@@ -2119,7 +2119,7 @@
       "blockType": "GearBeltConveyor",
       "blockParam": {
         "beltConveyorItemCount": 4,
-        "beltConveyorSpeed": 0.25,
+        "beltConveyorSpeed": 2.5,
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
@@ -2258,9 +2258,9 @@
           ]
         },
         "gearConsumption": {
-          "baseRpm": 500,
+          "baseRpm": 10,
           "minimumRpm": 0,
-          "baseTorque": 1,
+          "baseTorque": 0.02,
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585
         }
@@ -3087,7 +3087,8 @@
             }
           ]
         },
-        "capacity": 100
+        "capacity": 100,
+        "blockedRetryTicks": 3
       },
       "blockSize": [
         1,
@@ -3148,7 +3149,8 @@
             }
           ]
         },
-        "capacity": 100
+        "capacity": 100,
+        "blockedRetryTicks": 3
       },
       "blockSize": [
         1,
@@ -3803,7 +3805,7 @@
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
         "baseDestructionProbability": 0,
-        "beltConveyorSpeed": 2,
+        "beltConveyorSpeed": 20,
         "beltConveyorItemCount": 4,
         "gear": {
           "gearConnects": [
@@ -3937,9 +3939,9 @@
         },
         "slopeType": "Straight",
         "gearConsumption": {
-          "baseRpm": 500,
+          "baseRpm": 10,
           "minimumRpm": 0,
-          "baseTorque": 1,
+          "baseTorque": 1.0,
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585
         }

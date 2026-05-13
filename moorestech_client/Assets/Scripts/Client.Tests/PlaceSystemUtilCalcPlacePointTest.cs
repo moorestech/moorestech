@@ -199,5 +199,37 @@ namespace Client.Tests
 
             Assert.AreEqual(new Vector3Int(5, 4, 5), pos);
         }
+
+        // Q/Eで設定するheightOffsetが面ヒット時にもY軸へ反映されること
+        // heightOffset (set by Q/E) must shift Y on face-hit cases too
+        [Test]
+        public void XZ_Y_上面_heightOffset_2_でY方向に持ち上がること()
+        {
+            var hitPoint = new Vector3(5.5f, 6.0f, 5.5f);
+
+            var pos = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, 2, BlockDirection.North, PreviewSurfaceType.XZ_Y);
+
+            Assert.AreEqual(new Vector3Int(5, 8, 5), pos);
+        }
+
+        [Test]
+        public void YX_Z_南面_heightOffset_negative1_でY方向に下がること()
+        {
+            var hitPoint = new Vector3(5.5f, 5.5f, 6.0f);
+
+            var pos = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, -1, BlockDirection.North, PreviewSurfaceType.YX_Z);
+
+            Assert.AreEqual(new Vector3Int(5, 4, 6), pos);
+        }
+
+        [Test]
+        public void YZ_X_東面_heightOffset_3_でY方向に持ち上がること()
+        {
+            var hitPoint = new Vector3(6.0f, 5.5f, 5.5f);
+
+            var pos = PlaceSystemUtil.CalcPlacePoint(MakeUnitBlock(), hitPoint, 3, BlockDirection.North, PreviewSurfaceType.YZ_X);
+
+            Assert.AreEqual(new Vector3Int(6, 8, 5), pos);
+        }
     }
 }
