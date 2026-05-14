@@ -75,7 +75,7 @@ namespace Server.Protocol.PacketResponse
                 // 列車カーのインベントリを生成
                 // Build the train car inventory
                 if (trainCar.Container is ItemTrainCarContainer container)
-                    return ResponseInventoryRequestProtocolMessagePack.CreateSuccess(InventoryType.Train, identifier, container.InventoryItems.Select(stack => stack.Stack).ToArray());
+                    return ResponseInventoryRequestProtocolMessagePack.CreateSuccess(InventoryType.Train, identifier, container.InventoryItems.ToArray());
                 return ResponseInventoryRequestProtocolMessagePack.CreateContainerNotFound(InventoryType.Train, identifier);
             }
 

@@ -10,7 +10,7 @@ namespace Tests.UnitTest.Game
     public class TrainCarInventoryTest
     {
         [Test]
-        public void EnumerateInventory_ReturnsSlotIndicesAndStacks()
+        public void EnumerateInventory_ReturnsAllSlotStacks()
         {
             TrainTestHelper.CreateEnvironment();
 
@@ -18,14 +18,13 @@ namespace Tests.UnitTest.Game
 
             var filledStack = ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 2);
             container.SetItem(1, filledStack);
-            
+
             var inventorySnapshot = container.InventoryItems;
 
-            Assert.AreEqual(3, inventorySnapshot.Length, "Expected EnumerateInventory to return all inventory slots.");
-            Assert.AreEqual(0, inventorySnapshot[0].Index, "First slot index should be 0.");
-            Assert.AreEqual(1, inventorySnapshot[1].Index, "Second slot index should be 1.");
-            Assert.AreEqual(2, inventorySnapshot[2].Index, "Third slot index should be 2.");
-            Assert.AreEqual(filledStack, inventorySnapshot[1].Stack, "Enumerated stack should match the stack assigned to the slot.");
+            Assert.AreEqual(3, inventorySnapshot.Count, "Expected InventoryItems to return all inventory slots.");
+            Assert.AreEqual(ItemMaster.EmptyItemId, inventorySnapshot[0].Id, "First slot should remain empty.");
+            Assert.AreEqual(filledStack, inventorySnapshot[1], "Slot stack should match the assigned stack.");
+            Assert.AreEqual(ItemMaster.EmptyItemId, inventorySnapshot[2].Id, "Third slot should remain empty.");
         }
 
         [Test]

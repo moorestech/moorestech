@@ -102,12 +102,17 @@ namespace Server.Protocol.PacketResponse
 
             IOpenableInventory ResolveTrainInventory(InventoryIdentifierMessagePack identifier)
             {
-                // 列車カーのアイテムコンテナを操作可能なインベントリに変換
-                // Adapt the target train car item container to an openable inventory.
+                // 列車カーのアイテムコンテナをIOpenableInventoryとして返す
+                // Return the target train car item container as IOpenableInventory.
                 var trainCarInstanceId = new TrainCarInstanceId(long.Parse(identifier.TrainCarInstanceId));
                 if (!_trainUnitLookupDatastore.TryGetTrainCar(trainCarInstanceId, out var trainCar)) return null;
                 if (trainCar.Container is not ItemTrainCarContainer itemContainer) return null;
-                return new TrainCarItemOpenableInventory(trainCarInstanceId, itemContainer, _trainUpdateEvent.InvokeInventoryUpdate);
+
+                // 更新通知を本リクエストの列車にバインドする
+                // Bind the inventory update callback to this train car.
+                itemContainer.OnInventoryUpdated = (slot, stack) =>
+                    _trainUpdateEvent.InvokeInventoryUpdate(new TrainInventoryUpdateEventProperties(trainCarInstanceId, slot, stack));
+                return itemContainer;
             }
 
             #endregion

@@ -14,7 +14,7 @@ namespace Server.Util.MessagePack
             MessagePackSerializer.DefaultOptions = MessagePackSerializerOptions.Standard.WithResolver(CompositeResolver.Create(
                 new IMessagePackFormatter[]
                 {
-                    new ItemTrainCarContainerSlotFormatter()
+                    new ItemTrainCarContainerFormatter()
                 },
                 new IFormatterResolver[]
                 {
