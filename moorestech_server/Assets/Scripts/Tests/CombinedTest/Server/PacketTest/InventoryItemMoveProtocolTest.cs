@@ -116,7 +116,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                 ItemMoveInventoryInfo.CreateSubInventory(InventoryIdentifierMessagePack.CreateTrainMessage(trainCar.TrainCarInstanceId.AsPrimitive())), 1 + PlayerInventoryConst.MainInventorySize,
                 ItemMoveInventoryInfo.CreateGrab(), 0));
 
-            Assert.AreEqual(itemStackFactory.Create(new ItemId(1), 3), itemContainer.InventoryItems[1].Stack);
+            Assert.AreEqual(itemStackFactory.Create(new ItemId(1), 3), itemContainer.InventoryItems[1]);
             Assert.AreEqual(itemStackFactory.Create(new ItemId(1), 7), grabInventory.GetItem(0));
 
             // 手持ちから列車へ戻す
@@ -125,7 +125,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                 ItemMoveInventoryInfo.CreateGrab(), 0,
                 ItemMoveInventoryInfo.CreateSubInventory(InventoryIdentifierMessagePack.CreateTrainMessage(trainCar.TrainCarInstanceId.AsPrimitive())), 1 + PlayerInventoryConst.MainInventorySize));
 
-            Assert.AreEqual(itemStackFactory.Create(new ItemId(1), 8), itemContainer.InventoryItems[1].Stack);
+            Assert.AreEqual(itemStackFactory.Create(new ItemId(1), 8), itemContainer.InventoryItems[1]);
             Assert.AreEqual(itemStackFactory.Create(new ItemId(1), 2), grabInventory.GetItem(0));
 
             #region Internal

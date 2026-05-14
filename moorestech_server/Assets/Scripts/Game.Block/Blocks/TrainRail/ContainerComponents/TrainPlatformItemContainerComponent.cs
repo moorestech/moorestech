@@ -126,9 +126,9 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
 
             var remaining = itemStack;
             var slots = Container!.InventoryItems;
-            for (var i = 0; i < slots.Length; i++)
+            for (var i = 0; i < slots.Count; i++)
             {
-                var slot = slots[i].Stack;
+                var slot = slots[i];
                 if (!slot.IsAllowedToAddWithRemain(remaining)) continue;
 
                 var result = slot.AddItem(remaining);
@@ -145,7 +145,7 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
         {
             if (Container == null) return true;
 
-            var slotsCopy = Container.InventoryItems.ToArray().Select(s => s.Stack).ToList();
+            var slotsCopy = Container.InventoryItems.ToList();
             foreach (var itemStack in itemStacks)
             {
                 var remaining = itemStack;
@@ -170,7 +170,7 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
         {
             if (Container == null) return ServerContext.ItemStackFactory.CreatEmpty();
 
-            return Container.InventoryItems[slot].Stack;
+            return Container.InventoryItems[slot];
         }
 
         public void SetItem(int slot, IItemStack stack)
@@ -217,9 +217,9 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
             if (Container == null) return;
 
             var slots = Container.InventoryItems;
-            for (var i = 0; i < slots.Length; i++)
+            for (var i = 0; i < slots.Count; i++)
             {
-                var setItem = _blockInventoryInserter.InsertItem(slots[i].Stack);
+                var setItem = _blockInventoryInserter.InsertItem(slots[i]);
                 Container.SetItem(i, setItem);
             }
         }
