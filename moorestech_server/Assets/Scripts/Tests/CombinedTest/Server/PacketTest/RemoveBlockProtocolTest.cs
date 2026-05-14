@@ -46,7 +46,9 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // プロトコルを使ってブロックを削除
             // Remove block using protocol
-            packet.GetPacketResponse(RemoveBlock(new Vector3Int(0, 0), PlayerId));
+            var response = GetRemoveBlockResponse(packet.GetPacketResponse(RemoveBlock(new Vector3Int(0, 0), PlayerId)));
+            Assert.True(response.Success);
+            Assert.AreEqual(RemoveBlockFailureReason.None, response.FailureReason);
 
             // 削除したブロックがワールドに存在しないことを確認
             // Verify removed block no longer exists in world
@@ -103,7 +105,9 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // プロトコルを使ってブロックを削除
             // Try to remove block using protocol
-            packet.GetPacketResponse(RemoveBlock(new Vector3Int(0, 0), PlayerId));
+            var response = GetRemoveBlockResponse(packet.GetPacketResponse(RemoveBlock(new Vector3Int(0, 0), PlayerId)));
+            Assert.False(response.Success);
+            Assert.AreEqual(RemoveBlockFailureReason.Unknown, response.FailureReason);
 
             // 新しい仕様：全てのアイテムが入らない場合はブロックは削除されない
             // New spec: Block is not removed if not all items can fit
@@ -142,7 +146,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             
             //プロトコルを使ってブロックを削除
-            packet.GetPacketResponse(RemoveBlock(new Vector3Int(0, 0), PlayerId));
+            var response = GetRemoveBlockResponse(packet.GetPacketResponse(RemoveBlock(new Vector3Int(0, 0), PlayerId)));
+            Assert.False(response.Success);
+            Assert.AreEqual(RemoveBlockFailureReason.Unknown, response.FailureReason);
             
             
             //ブロックが削除できていないことを検証
@@ -165,7 +171,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             // RailPositionを登録して手動削除ガードの監視対象にする
             // Register a RailPosition so the manual removal guard can observe it.
             CreateTrainOnNode(environment, railA.FrontNode);
-            environment.PacketResponseCreator.GetPacketResponse(RemoveBlock(railPos, PlayerId));
+            var response = GetRemoveBlockResponse(environment.PacketResponseCreator.GetPacketResponse(RemoveBlock(railPos, PlayerId)));
+            Assert.False(response.Success);
+            Assert.AreEqual(RemoveBlockFailureReason.NodeInUseByTrain, response.FailureReason);
 
             // ブロックとレール接続が残り、橋脚削除で列車位置が壊れないことを確認する
             // Verify the block and rail connection remain so train position is preserved.
@@ -183,7 +191,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 列車に使われていない橋脚は通常どおり削除できる
             // A pier unused by trains can still be removed normally.
             TrainTestHelper.PlaceRail(environment, railPos, BlockDirection.East);
-            environment.PacketResponseCreator.GetPacketResponse(RemoveBlock(railPos, PlayerId));
+            var response = GetRemoveBlockResponse(environment.PacketResponseCreator.GetPacketResponse(RemoveBlock(railPos, PlayerId)));
+            Assert.True(response.Success);
+            Assert.AreEqual(RemoveBlockFailureReason.None, response.FailureReason);
 
             Assert.False(worldBlock.Exists(railPos));
         }
@@ -192,6 +202,12 @@ namespace Tests.CombinedTest.Server.PacketTest
         private byte[] RemoveBlock(Vector3Int pos, int playerId)
         {
             return MessagePackSerializer.Serialize(new RemoveBlockProtocolMessagePack(playerId, pos));
+        }
+
+        private static RemoveBlockResponseMessagePack GetRemoveBlockResponse(List<byte[]> responsePackets)
+        {
+            Assert.AreEqual(1, responsePackets.Count);
+            return MessagePackSerializer.Deserialize<RemoveBlockResponseMessagePack>(responsePackets[0]);
         }
 
         private static void ConnectBidirectional(RailComponent from, RailComponent to, int distance)
