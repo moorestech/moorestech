@@ -20,20 +20,20 @@ namespace Server.Protocol.PacketResponse
     public class InventoryRequestProtocol : IPacketResponse
     {
         public const string ProtocolTag = "va:invReq";
-        
+
         private readonly ITrainUnitLookupDatastore _trainUnitLookupDatastore;
-        
+
         public InventoryRequestProtocol(ServiceProvider serviceProvider)
         {
             _trainUnitLookupDatastore = serviceProvider.GetService<ITrainUnitLookupDatastore>();
         }
-        
+
         public ProtocolMessagePackBase GetResponse(byte[] payload)
         {
             // リクエストをデシリアライズ
             // Deserialize request
             var request = MessagePackSerializer.Deserialize<RequestInventoryRequestProtocolMessagePack>(payload);
-            
+
             // 識別子ごとのインベントリを判定取得
             // Dispatch inventory retrieval by identifier type
             return request.Identifier.InventoryType switch
@@ -42,9 +42,9 @@ namespace Server.Protocol.PacketResponse
                 InventoryType.Train => CreateTrainResponse(request.Identifier),
                 _ => throw new ArgumentException($"Unknown inventory type: {request.Identifier.InventoryType}")
             };
-            
+
             #region Internal
-            
+
             ResponseInventoryRequestProtocolMessagePack CreateBlockResponse(InventoryIdentifierMessagePack identifier)
             {
                 // ブロック情報を取得
@@ -52,18 +52,18 @@ namespace Server.Protocol.PacketResponse
                 var position = identifier.BlockPosition.Vector3Int;
                 var datastore = ServerContext.WorldBlockDatastore;
                 var block = datastore.GetBlock(position);
-                
-                if (block == null)  return new ResponseInventoryRequestProtocolMessagePack(InventoryType.Block, identifier, Array.Empty<IItemStack>());
-                
+
+                if (block == null)  return ResponseInventoryRequestProtocolMessagePack.CreateSuccess(InventoryType.Block, identifier, Array.Empty<IItemStack>());
+
                 // インベントリ要素を抽出
                 // Collect inventory items
                 var items = datastore.ExistsComponent<IOpenableBlockInventoryComponent>(position)
                     ? datastore.GetBlock<IOpenableBlockInventoryComponent>(position).InventoryItems
                     : Array.Empty<IItemStack>();
-                
+
                 return new ResponseInventoryRequestProtocolMessagePack(InventoryType.Block, identifier, items);
             }
-            
+
             ResponseInventoryRequestProtocolMessagePack CreateTrainResponse(InventoryIdentifierMessagePack identifier)
             {
                 // 列車カーを探索
@@ -71,61 +71,90 @@ namespace Server.Protocol.PacketResponse
                 var trainCarInstanceId = new TrainCarInstanceId(long.Parse(identifier.TrainCarInstanceId));
                 if (!_trainUnitLookupDatastore.TryGetTrainCar(trainCarInstanceId, out var trainCar))
                     return new ResponseInventoryRequestProtocolMessagePack(InventoryType.Train, identifier, Array.Empty<IItemStack>());
-                
+
                 // 列車カーのインベントリを生成
                 // Build the train car inventory
-                if (trainCar.Container is ItemTrainCarContainer container) 
-                    return new ResponseInventoryRequestProtocolMessagePack(InventoryType.Train, identifier, container.InventoryItems.Select(stack => stack.Stack).ToArray());
-                return new ResponseInventoryRequestProtocolMessagePack(InventoryType.Train, identifier, Array.Empty<IItemStack>());
+                if (trainCar.Container is ItemTrainCarContainer container)
+                    return ResponseInventoryRequestProtocolMessagePack.CreateSuccess(InventoryType.Train, identifier, container.InventoryItems.Select(stack => stack.Stack).ToArray());
+                return ResponseInventoryRequestProtocolMessagePack.CreateContainerNotFound(InventoryType.Train, identifier);
             }
-            
+
             #endregion
         }
-        
-        
+
+
         [MessagePackObject]
         public class RequestInventoryRequestProtocolMessagePack : ProtocolMessagePackBase
         {
             [Key(2)] public InventoryIdentifierMessagePack Identifier { get; set; }
-            
-            
+
+
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public RequestInventoryRequestProtocolMessagePack() { }
-            
+
             public RequestInventoryRequestProtocolMessagePack(InventoryIdentifierMessagePack identifier)
             {
                 Tag = ProtocolTag;
                 Identifier = identifier;
             }
         }
-        
+
         [MessagePackObject]
         public class ResponseInventoryRequestProtocolMessagePack : ProtocolMessagePackBase
         {
             [Key(2)] public InventoryType InventoryType { get; set; }
             [Key(3)] public InventoryIdentifierMessagePack Identifier { get; set; }
             [Key(4)] public ItemMessagePack[] Items { get; set; }
-            
-            
+            [Key(5)] public InventoryRequestResult Result { get; set; }
+
+
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ResponseInventoryRequestProtocolMessagePack() { }
-            
+
             public ResponseInventoryRequestProtocolMessagePack(InventoryType inventoryType, InventoryIdentifierMessagePack identifier, IReadOnlyList<IItemStack> items)
+                : this(inventoryType, identifier, items, InventoryRequestResult.Success)
+            {
+            }
+
+            public ResponseInventoryRequestProtocolMessagePack(InventoryType inventoryType, InventoryIdentifierMessagePack identifier, IReadOnlyList<IItemStack> items, InventoryRequestResult result)
             {
                 Tag = ProtocolTag;
                 InventoryType = inventoryType;
                 Identifier = identifier;
                 Items = items.Select(item => new ItemMessagePack(item)).ToArray();
+                Result = result;
             }
-            
-            
+
+
             public ResponseInventoryRequestProtocolMessagePack(InventoryType inventoryType, InventoryIdentifierMessagePack identifier, ItemMessagePack[] items)
+                : this(inventoryType, identifier, items, InventoryRequestResult.Success)
+            {
+            }
+
+            public ResponseInventoryRequestProtocolMessagePack(InventoryType inventoryType, InventoryIdentifierMessagePack identifier, ItemMessagePack[] items, InventoryRequestResult result)
             {
                 Tag = ProtocolTag;
                 InventoryType = inventoryType;
                 Identifier = identifier;
                 Items = items;
+                Result = result;
+            }
+
+            public static ResponseInventoryRequestProtocolMessagePack CreateSuccess(InventoryType inventoryType, InventoryIdentifierMessagePack identifier, IReadOnlyList<IItemStack> items)
+            {
+                return new ResponseInventoryRequestProtocolMessagePack(inventoryType, identifier, items, InventoryRequestResult.Success);
+            }
+
+            public static ResponseInventoryRequestProtocolMessagePack CreateContainerNotFound(InventoryType inventoryType, InventoryIdentifierMessagePack identifier)
+            {
+                return new ResponseInventoryRequestProtocolMessagePack(inventoryType, identifier, Array.Empty<IItemStack>(), InventoryRequestResult.ContainerNotFound);
             }
         }
+    }
+
+    public enum InventoryRequestResult
+    {
+        Success = 0,
+        ContainerNotFound = 1
     }
 }
