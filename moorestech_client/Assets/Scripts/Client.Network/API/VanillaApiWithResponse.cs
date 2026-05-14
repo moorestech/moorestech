@@ -196,6 +196,12 @@ namespace Client.Network.API
             
             return response.State;
         }
+
+        public async UniTask<RemoveBlockProtocol.RemoveBlockResponseMessagePack> BlockRemove(Vector3Int pos, CancellationToken ct)
+        {
+            var request = new RemoveBlockProtocol.RemoveBlockProtocolMessagePack(_playerConnectionSetting.PlayerId, pos);
+            return await _packetExchangeManager.GetPacketResponse<RemoveBlockProtocol.RemoveBlockResponseMessagePack>(request, ct);
+        }
         
         // Renamed method to reflect its broader scope
         public async UniTask<UnlockStateResponse> GetUnlockState(CancellationToken ct)

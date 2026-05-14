@@ -35,21 +35,20 @@ namespace Server.Protocol.PacketResponse
             var data = MessagePackSerializer.Deserialize<RemoveBlockProtocolMessagePack>(payload);
             
             var block = ServerContext.WorldBlockDatastore.GetBlock(data.Pos);
-            if (block == null) return null;
+            if (block == null) return RemoveBlockResponseMessagePack.CreateFailure(RemoveBlockFailureReason.Unknown);
             var itemId = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId).ItemGuid;
-            if (!CanManualRemoveBlock(block)) return null;
+            if (!CanManualRemoveBlock(block)) return RemoveBlockResponseMessagePack.CreateFailure(RemoveBlockFailureReason.NodeInUseByTrain);
                 
             // 破壊した後のアイテムをインベントリに挿入できるかチェック
             // Check if items after destruction can be inserted into inventory
-            if (!TryInsertRefundItems(out var refundItems)) return null;
+            if (!TryInsertRefundItems(out var refundItems)) return RemoveBlockResponseMessagePack.CreateFailure(RemoveBlockFailureReason.Unknown);
             
             // 削除処理
             // Deletion process
             ServerContext.WorldBlockDatastore.RemoveBlock(data.Pos, BlockRemoveReason.ManualRemove);
             InsertItemsToPlayerInventory(refundItems);
             
-            
-            return null;
+            return RemoveBlockResponseMessagePack.CreateSuccess();
             
             #region Internal
 
@@ -139,6 +138,40 @@ namespace Server.Protocol.PacketResponse
                 PlayerId = playerId;
                 Pos = new Vector3IntMessagePack(pos);
             }
+        }
+
+        [MessagePackObject]
+        public class RemoveBlockResponseMessagePack : ProtocolMessagePackBase
+        {
+            [Key(2)] public bool Success { get; set; }
+            [Key(3)] public RemoveBlockFailureReason FailureReason { get; set; }
+
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public RemoveBlockResponseMessagePack() { Tag = ProtocolTag; }
+
+            public RemoveBlockResponseMessagePack(bool success, RemoveBlockFailureReason failureReason)
+            {
+                Tag = ProtocolTag;
+                Success = success;
+                FailureReason = failureReason;
+            }
+
+            public static RemoveBlockResponseMessagePack CreateSuccess()
+            {
+                return new RemoveBlockResponseMessagePack(true, RemoveBlockFailureReason.None);
+            }
+
+            public static RemoveBlockResponseMessagePack CreateFailure(RemoveBlockFailureReason failureReason)
+            {
+                return new RemoveBlockResponseMessagePack(false, failureReason);
+            }
+        }
+
+        public enum RemoveBlockFailureReason
+        {
+            None,
+            NodeInUseByTrain,
+            Unknown,
         }
     }
 }
