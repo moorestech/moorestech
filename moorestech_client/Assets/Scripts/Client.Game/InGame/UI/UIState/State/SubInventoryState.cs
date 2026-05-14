@@ -1,22 +1,17 @@
-using System;
-using System.Collections.Generic;
 using System.Threading;
 using Client.Common.Asset;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.Inventory;
-using Client.Game.InGame.UI.Inventory.Block;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Input;
-using Core.Item.Interface;
 using Cysharp.Threading.Tasks;
 using Game.Context;
 using MessagePack;
 using Server.Event.EventReceive.UnifiedInventoryEvent;
 using Server.Util.MessagePack;
-using UniRx;
 using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState.State
@@ -28,29 +23,29 @@ namespace Client.Game.InGame.UI.UIState.State
     public class SubInventoryState : IUIState
     {
         private readonly PlayerInventoryViewController _playerInventoryViewController;
-        
+
         private ISubInventorySource _subInventorySource;
-        
+
         private ISubInventoryView _currentView;
         private CancellationTokenSource _loadInventoryCts;
         private bool _shouldClose = false;
-        
-        
+
+
         public SubInventoryState(PlayerInventoryViewController playerInventoryViewController)
         {
             _playerInventoryViewController = playerInventoryViewController;
-            
+
             // 統一インベントリ更新イベントを購読
             // Subscribe to unified inventory update event
             ClientContext.VanillaApi.Event.SubscribeEventResponse(UnifiedInventoryEventPacket.EventTag, OnUnifiedInventoryEvent);
         }
-        
+
         private void OnUnifiedInventoryEvent(byte[] payload)
         {
             if (_currentView == null) return;
-            
+
             var packet = MessagePackSerializer.Deserialize<UnifiedInventoryEventMessagePack>(payload);
-            
+
             if (packet.EventType == InventoryEventType.Update)
             {
                 // アイテムを更新
@@ -64,7 +59,7 @@ namespace Client.Game.InGame.UI.UIState.State
                 _shouldClose = true;
             }
         }
-        
+
         public UITransitContext GetNextUpdate()
         {
             if (_shouldClose || InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.OpenInventory.GetKeyDown)
@@ -78,7 +73,7 @@ namespace Client.Game.InGame.UI.UIState.State
         public void OnEnter(UITransitContext context)
         {
             _shouldClose = false;
-            
+
             // サブインベントリソースを取得
             // Get sub inventory source
             _subInventorySource = context.GetContext<ISubInventorySource>();
@@ -87,19 +82,19 @@ namespace Client.Game.InGame.UI.UIState.State
                 Debug.LogError("SubInventoryState: サブインベントリソースが指定されていません");
                 return;
             }
-            
+
             // サブインベントリを生成し、データを取得、表示する
             // Create sub inventory, fetch data, and display
             LoadInventory().Forget();
             KeyControlDescription.Instance.SetText("Esc: インベントリを閉じる");
-            
+
             #region Internal
-            
+
             async UniTask LoadInventory()
             {
                 _loadInventoryCts = new CancellationTokenSource();
                 var ct = _loadInventoryCts.Token;
-                
+
                 // UI Prefabをロード
                 // Load UI Prefab
                 using var loadedInventory = await AddressableLoader.LoadAsync<GameObject>(_subInventorySource.UIPrefabAddressablePath, ct);
@@ -108,50 +103,49 @@ namespace Client.Game.InGame.UI.UIState.State
                     Debug.LogError($"SubInventoryState: インベントリビューのロードに失敗しました Path:{_subInventorySource.UIPrefabAddressablePath}");
                     return;
                 }
-                
+
                 // カーソルを表示
                 // Show cursor
                 InputManager.MouseCursorVisible(true);
-                
+
                 // インベントリデータを取得
                 // Fetch inventory data and initialize
-                var inventoryData = await ClientContext.VanillaApi.Response.GetInventory(_subInventorySource.InventoryIdentifier, ct);
-                
+                var inventoryResponse = await ClientContext.VanillaApi.Response.GetInventory(_subInventorySource.InventoryIdentifier, ct);
+
                 // UIオブジェクトを生成し初期化
                 // Instantiate UI object
                 var instantiatedView = ClientDIContext.DIContainer.Instantiate(loadedInventory.Asset, _playerInventoryViewController.SubInventoryParent);
                 _currentView = instantiatedView.GetComponent<ISubInventoryView>();
-                _subInventorySource.ExecuteInitialize(_currentView);
-                _currentView.UpdateItemList(inventoryData);
-                
+                _subInventorySource.ExecuteInitialize(_currentView, inventoryResponse);
+
                 // インベントリビューを表示
                 // Show inventory view
                 _playerInventoryViewController.SetActive(true);
                 _playerInventoryViewController.SetSubInventory(_currentView);
-                
+
                 // インベントリの更新を購読
                 // Subscribe to inventory updates
                 ClientContext.VanillaApi.SendOnly.SubscribeInventory(_subInventorySource.InventoryIdentifier, true);
             }
-            
+
             #endregion
         }
-        
+
         public void OnExit()
         {
             // キャンセル
             // Cancel
             _loadInventoryCts?.Cancel();
             _loadInventoryCts?.Dispose();
-            
+
             // インベントリ更新の購読を解除
             // Unsubscribe from inventory updates
             ClientContext.VanillaApi.SendOnly.SubscribeInventory(_subInventorySource.InventoryIdentifier, false);
-            
+
             // サブインベントリ登録を解除
             // Unregister sub inventory
             _playerInventoryViewController.SetSubInventory(new EmptySubInventory());
-            
+
             // インベントリを閉じる
             // Close inventory
             _playerInventoryViewController.SetActive(false);
@@ -161,4 +155,3 @@ namespace Client.Game.InGame.UI.UIState.State
         }
     }
 }
-

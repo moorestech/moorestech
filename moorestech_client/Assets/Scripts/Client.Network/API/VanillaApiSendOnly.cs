@@ -44,12 +44,6 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
         
-        public void BlockRemove(Vector3Int pos)
-        {
-            var request = new RemoveBlockProtocol.RemoveBlockProtocolMessagePack(_playerId, pos);
-            _packetSender.Send(request);
-        }
-        
         public void SendPlayerPosition(Vector3 pos)
         {
             var request = new SetPlayerCoordinateProtocol.PlayerCoordinateSendProtocolMessagePack(_playerId, pos);

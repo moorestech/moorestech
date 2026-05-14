@@ -1,16 +1,17 @@
 using System;
-using System.Collections.Generic;
 using Core.Inventory;
 using Game.Block.Interface.Component;
 using Game.Context;
 using Game.PlayerInventory.Interface;
+using Game.Train.Event;
+using Game.Train.Unit;
+using Game.Train.Unit.Containers;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using Server.Protocol.PacketResponse.Util.InventoryService;
 using Server.Util.MessagePack;
-using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -20,14 +21,18 @@ namespace Server.Protocol.PacketResponse
     public class InventoryItemMoveProtocol : IPacketResponse
     {
         public const string ProtocolTag = "va:invItemMove";
-        
+
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
-        
+        private readonly ITrainUnitLookupDatastore _trainUnitLookupDatastore;
+        private readonly TrainUpdateEvent _trainUpdateEvent;
+
         public InventoryItemMoveProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
+            _trainUnitLookupDatastore = serviceProvider.GetService<ITrainUnitLookupDatastore>();
+            _trainUpdateEvent = (TrainUpdateEvent)serviceProvider.GetService<ITrainUpdateEvent>();
         }
-        
+
         public ProtocolMessagePackBase GetResponse(byte[] payload)
         {
             var data = MessagePackSerializer.Deserialize<InventoryItemMoveProtocolMessagePack>(payload);
@@ -63,44 +68,51 @@ namespace Server.Protocol.PacketResponse
 
         private IOpenableInventory GetInventory(ItemMoveInventoryType inventoryType, int playerId, InventoryIdentifierMessagePack inventoryIdentifier)
         {
-            IOpenableInventory inventory = null;
-            switch (inventoryType)
+            return inventoryType switch
             {
-                case ItemMoveInventoryType.MainInventory:
-                    inventory = _playerInventoryDataStore.GetInventoryData(playerId).MainOpenableInventory;
-                    break;
-                case ItemMoveInventoryType.GrabInventory:
-                    inventory = _playerInventoryDataStore.GetInventoryData(playerId).GrabInventory;
-                    break;
-                case ItemMoveInventoryType.SubInventory:
-                    // ブロック/列車インベントリの場合はInventoryIdentifierから情報を取得
-                    // Get information from InventoryIdentifier for block/train inventory
-                    if (inventoryIdentifier == null) return null;
+                ItemMoveInventoryType.MainInventory => _playerInventoryDataStore.GetInventoryData(playerId).MainOpenableInventory,
+                ItemMoveInventoryType.GrabInventory => _playerInventoryDataStore.GetInventoryData(playerId).GrabInventory,
+                ItemMoveInventoryType.SubInventory => ResolveSubInventory(inventoryIdentifier),
+                _ => null,
+            };
 
-                    // InventoryIdentifierのタイプに応じて処理を分岐
-                    // Branch processing according to InventoryIdentifier type
-                    switch (inventoryIdentifier.InventoryType)
-                    {
-                        case Server.Util.MessagePack.InventoryType.Block:
-                            var pos = inventoryIdentifier.BlockPosition.Vector3Int;
-                            inventory = ServerContext.WorldBlockDatastore.ExistsComponent<IOpenableBlockInventoryComponent>(pos)
-                                ? ServerContext.WorldBlockDatastore.GetBlock<IOpenableBlockInventoryComponent>(pos)
-                                : null;
-                            break;
-                        case Server.Util.MessagePack.InventoryType.Train:
-                            // TODO: 列車インベントリの取得処理を実装
-                            // TODO: Implement train inventory retrieval
-                            // 現時点では列車インベントリシステムが完全には実装されていないため、nullを返す
-                            // Currently returns null as train inventory system is not fully implemented
-                            inventory = null;
-                            break;
-                    }
-                    break;
+            #region Internal
+
+            IOpenableInventory ResolveSubInventory(InventoryIdentifierMessagePack identifier)
+            {
+                // ブロック/列車インベントリの場合はInventoryIdentifierから情報を取得
+                // Get information from InventoryIdentifier for block/train inventory.
+                if (identifier == null) return null;
+
+                return identifier.InventoryType switch
+                {
+                    InventoryType.Block => ResolveBlockInventory(identifier),
+                    InventoryType.Train => ResolveTrainInventory(identifier),
+                    _ => null,
+                };
             }
 
-            return inventory;
+            IOpenableInventory ResolveBlockInventory(InventoryIdentifierMessagePack identifier)
+            {
+                var pos = identifier.BlockPosition.Vector3Int;
+                return ServerContext.WorldBlockDatastore.ExistsComponent<IOpenableBlockInventoryComponent>(pos)
+                    ? ServerContext.WorldBlockDatastore.GetBlock<IOpenableBlockInventoryComponent>(pos)
+                    : null;
+            }
+
+            IOpenableInventory ResolveTrainInventory(InventoryIdentifierMessagePack identifier)
+            {
+                // 列車カーのアイテムコンテナを操作可能なインベントリに変換
+                // Adapt the target train car item container to an openable inventory.
+                var trainCarInstanceId = new TrainCarInstanceId(long.Parse(identifier.TrainCarInstanceId));
+                if (!_trainUnitLookupDatastore.TryGetTrainCar(trainCarInstanceId, out var trainCar)) return null;
+                if (trainCar.Container is not ItemTrainCarContainer itemContainer) return null;
+                return new TrainCarItemOpenableInventory(trainCarInstanceId, itemContainer, _trainUpdateEvent.InvokeInventoryUpdate);
+            }
+
+            #endregion
         }
-        
+
         [MessagePackObject]
         public class InventoryItemMoveProtocolMessagePack : ProtocolMessagePackBase
         {
@@ -110,8 +122,8 @@ namespace Server.Protocol.PacketResponse
             [IgnoreMember] public ItemMoveType ItemMoveType => (ItemMoveType)ItemMoveTypeId;
             [Key(5)] public ItemMoveInventoryInfoMessagePack FromInventory { get; set; }
             [Key(6)] public ItemMoveInventoryInfoMessagePack ToInventory { get; set; }
-            
-            
+
+
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public InventoryItemMoveProtocolMessagePack() { }
             public InventoryItemMoveProtocolMessagePack(int playerId, int count, ItemMoveType itemMoveType,
@@ -121,13 +133,13 @@ namespace Server.Protocol.PacketResponse
                 Tag = ProtocolTag;
                 PlayerId = playerId;
                 Count = count;
-                
+
                 ItemMoveTypeId = (int)itemMoveType;
                 FromInventory = new ItemMoveInventoryInfoMessagePack(inventory, fromSlot);
                 ToInventory = new ItemMoveInventoryInfoMessagePack(toInventory, toSlot);
             }
         }
-        
+
         [MessagePackObject]
         public class ItemMoveInventoryInfoMessagePack
         {

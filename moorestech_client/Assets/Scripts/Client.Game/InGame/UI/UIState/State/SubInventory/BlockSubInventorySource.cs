@@ -1,6 +1,7 @@
 using Client.Game.InGame.Block;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Block;
+using Client.Network.API;
 using Server.Util.MessagePack;
 
 namespace Client.Game.InGame.UI.UIState.State.SubInventory
@@ -18,10 +19,11 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
             InventoryIdentifier = InventoryIdentifierMessagePack.CreateBlockMessage(blockGameObject.BlockPosInfo.OriginalPos);
         }
         
-        public void ExecuteInitialize(ISubInventoryView subInventoryView)
+        public void ExecuteInitialize(ISubInventoryView subInventoryView, InventoryResponse inventoryResponse)
         {
-            ((IBlockInventoryView) subInventoryView).Initialize(_blockGameObject);
+            ((IBlockInventoryView)subInventoryView).Initialize(_blockGameObject);
+            subInventoryView.UpdateItemList(inventoryResponse.Items);
         }
     }
-    
+
 }
