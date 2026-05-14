@@ -56,6 +56,9 @@ namespace Client.Game.InGame.Block
             var response = await ClientContext.VanillaApi.Response.BlockRemove(blockPosition, this.GetCancellationTokenOnDestroy());
             _isDeleteRequesting = false;
 
+
+            // TODO 基盤通知システムができたらそちらの方に移行する
+
             // 削除拒否理由を既存の削除UIツールチップに渡す
             // Pass the denial reason to the existing delete UI tooltip flow.
             if (response == null || response.Success) return;
