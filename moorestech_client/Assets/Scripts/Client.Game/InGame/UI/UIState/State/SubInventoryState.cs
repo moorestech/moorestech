@@ -1,23 +1,17 @@
-using System;
-using System.Collections.Generic;
 using System.Threading;
 using Client.Common.Asset;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.Inventory;
-using Client.Game.InGame.UI.Inventory.Block;
 using Client.Game.InGame.UI.Inventory.Main;
-using Client.Game.InGame.UI.Inventory.Train;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Input;
-using Core.Item.Interface;
 using Cysharp.Threading.Tasks;
 using Game.Context;
 using MessagePack;
 using Server.Event.EventReceive.UnifiedInventoryEvent;
 using Server.Util.MessagePack;
-using UniRx;
 using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState.State
@@ -122,22 +116,7 @@ namespace Client.Game.InGame.UI.UIState.State
                 // Instantiate UI object
                 var instantiatedView = ClientDIContext.DIContainer.Instantiate(loadedInventory.Asset, _playerInventoryViewController.SubInventoryParent);
                 _currentView = instantiatedView.GetComponent<ISubInventoryView>();
-
-                // コンテナがある場合のみ通常のスロットUIを初期化する
-                // Initialize the normal slot UI only when the container exists
-                if (inventoryResponse.HasContainer)
-                {
-                    _subInventorySource.ExecuteInitialize(_currentView);
-                    _currentView.UpdateItemList(inventoryResponse.Items);
-                }
-                else if (_currentView is TrainInventoryView trainInventoryView)
-                {
-                    trainInventoryView.ShowContainerMissingMessage("この列車にはアイテムコンテナがありません");
-                }
-                else
-                {
-                    _currentView.UpdateItemList(inventoryResponse.Items);
-                }
+                _subInventorySource.ExecuteInitialize(_currentView, inventoryResponse);
 
                 // インベントリビューを表示
                 // Show inventory view
@@ -146,10 +125,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
                 // インベントリの更新を購読
                 // Subscribe to inventory updates
-                if (inventoryResponse.HasContainer)
-                {
-                    ClientContext.VanillaApi.SendOnly.SubscribeInventory(_subInventorySource.InventoryIdentifier, true);
-                }
+                ClientContext.VanillaApi.SendOnly.SubscribeInventory(_subInventorySource.InventoryIdentifier, true);
             }
 
             #endregion

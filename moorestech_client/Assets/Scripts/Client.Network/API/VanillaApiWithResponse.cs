@@ -253,7 +253,7 @@ namespace Client.Network.API
         {
             var request = new InventoryRequestProtocol.RequestInventoryRequestProtocolMessagePack(identifier);
             var response = await _packetExchangeManager.GetPacketResponse<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(request, ct);
-            return new InventoryResponse(CreateStacks(response.Items), response.Result);
+            return new InventoryResponse(response.Identifier, CreateStacks(response.Items), response.Result);
         }
 
         // 指定ブロックが属するギアネットワークの現時点の集約値を取得する
@@ -305,12 +305,13 @@ namespace Client.Network.API
 
     public class InventoryResponse
     {
+        public InventoryIdentifierMessagePack Identifier { get; }
         public List<IItemStack> Items { get; }
         public InventoryRequestResult Result { get; }
-        public bool HasContainer => Result == InventoryRequestResult.Success;
 
-        public InventoryResponse(List<IItemStack> items, InventoryRequestResult result)
+        public InventoryResponse(InventoryIdentifierMessagePack identifier, List<IItemStack> items, InventoryRequestResult result)
         {
+            Identifier = identifier;
             Items = items;
             Result = result;
         }

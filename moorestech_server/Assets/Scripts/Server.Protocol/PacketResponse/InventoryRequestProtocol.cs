@@ -70,7 +70,7 @@ namespace Server.Protocol.PacketResponse
                 // Find the target train car
                 var trainCarInstanceId = new TrainCarInstanceId(long.Parse(identifier.TrainCarInstanceId));
                 if (!_trainUnitLookupDatastore.TryGetTrainCar(trainCarInstanceId, out var trainCar))
-                    return new ResponseInventoryRequestProtocolMessagePack(InventoryType.Train, identifier, Array.Empty<IItemStack>());
+                    return ResponseInventoryRequestProtocolMessagePack.CreateTrainCarNotFound(identifier);
 
                 // 列車カーのインベントリを生成
                 // Build the train car inventory
@@ -111,32 +111,12 @@ namespace Server.Protocol.PacketResponse
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ResponseInventoryRequestProtocolMessagePack() { }
 
-            public ResponseInventoryRequestProtocolMessagePack(InventoryType inventoryType, InventoryIdentifierMessagePack identifier, IReadOnlyList<IItemStack> items)
-                : this(inventoryType, identifier, items, InventoryRequestResult.Success)
-            {
-            }
-
-            public ResponseInventoryRequestProtocolMessagePack(InventoryType inventoryType, InventoryIdentifierMessagePack identifier, IReadOnlyList<IItemStack> items, InventoryRequestResult result)
+            public ResponseInventoryRequestProtocolMessagePack(InventoryType inventoryType, InventoryIdentifierMessagePack identifier, IReadOnlyList<IItemStack> items, InventoryRequestResult result = InventoryRequestResult.Success)
             {
                 Tag = ProtocolTag;
                 InventoryType = inventoryType;
                 Identifier = identifier;
                 Items = items.Select(item => new ItemMessagePack(item)).ToArray();
-                Result = result;
-            }
-
-
-            public ResponseInventoryRequestProtocolMessagePack(InventoryType inventoryType, InventoryIdentifierMessagePack identifier, ItemMessagePack[] items)
-                : this(inventoryType, identifier, items, InventoryRequestResult.Success)
-            {
-            }
-
-            public ResponseInventoryRequestProtocolMessagePack(InventoryType inventoryType, InventoryIdentifierMessagePack identifier, ItemMessagePack[] items, InventoryRequestResult result)
-            {
-                Tag = ProtocolTag;
-                InventoryType = inventoryType;
-                Identifier = identifier;
-                Items = items;
                 Result = result;
             }
 
@@ -149,12 +129,18 @@ namespace Server.Protocol.PacketResponse
             {
                 return new ResponseInventoryRequestProtocolMessagePack(inventoryType, identifier, Array.Empty<IItemStack>(), InventoryRequestResult.ContainerNotFound);
             }
+
+            public static ResponseInventoryRequestProtocolMessagePack CreateTrainCarNotFound(InventoryIdentifierMessagePack identifier)
+            {
+                return new ResponseInventoryRequestProtocolMessagePack(InventoryType.Train, identifier, Array.Empty<IItemStack>(), InventoryRequestResult.TrainCarNotFound);
+            }
         }
     }
 
     public enum InventoryRequestResult
     {
         Success = 0,
-        ContainerNotFound = 1
+        ContainerNotFound = 1,
+        TrainCarNotFound = 2
     }
 }
