@@ -255,6 +255,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3f926b5e4f3ef4cb79a3487deb1bfe83
+    m_Address: Vanilla/Train/CargoCar
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 423d2d193601b4fbdaf6b98c437e9326
     m_Address: Vanilla/Block/Electric Mining Machine
     m_ReadOnly: 0
@@ -472,6 +477,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 70c49cd34505a4bc18005cb7c0f879cd
     m_Address: Vanilla/Block/Wood_Processing_Machine
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 70effdac903794eb6ab798c626211c4d
+    m_Address: Vanilla/Train/Locomotive
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -711,7 +721,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a9517533a59e349e58410e285b51ee0a
-    m_Address: Vanilla/Block/StationBlock
+    m_Address: Vanilla/Block/Station_Locomotive
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -797,6 +807,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: bbb696b242c00184fa25aa90c771adf2
     m_Address: Vanilla/Block/Primitive_Blast_Furnace
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: bf61998599293402a9a8317983fb6a09
+    m_Address: Vanilla/Block/Station_Cargo
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

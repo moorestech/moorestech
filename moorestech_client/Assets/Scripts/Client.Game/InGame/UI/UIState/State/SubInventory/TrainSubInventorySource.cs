@@ -1,6 +1,8 @@
 using Client.Game.InGame.Train.View.Object;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Train;
+using Client.Network.API;
+using Server.Protocol.PacketResponse;
 using Server.Util.MessagePack;
 
 namespace Client.Game.InGame.UI.UIState.State.SubInventory
@@ -18,9 +20,28 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
             InventoryIdentifier = InventoryIdentifierMessagePack.CreateTrainMessage(trainCarEntityObject.TrainCarInstanceId.AsPrimitive());
         }
         
-        public void ExecuteInitialize(ISubInventoryView subInventoryView)
+        public void ExecuteInitialize(ISubInventoryView subInventoryView, InventoryResponse inventoryResponse)
         {
-            ((ITrainInventoryView)subInventoryView).Initialize(_trainCarEntityObject);
+            var trainInventoryView = (ITrainInventoryView)subInventoryView;
+            switch (inventoryResponse.Result)
+            {
+                case InventoryRequestResult.Success:
+                    trainInventoryView.Initialize(_trainCarEntityObject);
+                    trainInventoryView.UpdateItemList(inventoryResponse.Items);
+                    return;
+                case InventoryRequestResult.ContainerNotFound:
+                    trainInventoryView.HideSlotObjects();
+                    trainInventoryView.ShowMessage(TrainInventoryMessageType.ContainerMissing);
+                    return;
+                case InventoryRequestResult.TrainCarNotFound:
+                    trainInventoryView.HideSlotObjects();
+                    trainInventoryView.ShowMessage(TrainInventoryMessageType.TrainCarMissing);
+                    return;
+                default:
+                    trainInventoryView.HideSlotObjects();
+                    trainInventoryView.ShowMessage(TrainInventoryMessageType.OpenFailed);
+                    return;
+            }
         }
     }
 }
