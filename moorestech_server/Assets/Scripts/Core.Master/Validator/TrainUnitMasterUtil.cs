@@ -10,6 +10,7 @@ namespace Core.Master.Validator
         public static bool Validate(Train train, out string errorLogs)
         {
             errorLogs = "";
+            errorLogs += TrainCarWeightValidation();
             errorLogs += TrainCarValidation();
             return string.IsNullOrEmpty(errorLogs);
 
@@ -32,6 +33,20 @@ namespace Core.Master.Validator
                     if (itemId == null)
                     {
                         logs += $"[TrainMaster] Invalid RailItemGuid:{railItem.ItemGuid}\n";
+                    }
+                }
+
+                return logs;
+            }
+
+            string TrainCarWeightValidation()
+            {
+                var logs = "";
+                foreach (var trainCar in train.TrainCars)
+                {
+                    if (trainCar.Weight <= 0)
+                    {
+                        logs += $"[TrainUnitMaster] TrainCar:{trainCar.TrainCarGuid} has invalid Weight:{trainCar.Weight}\n";
                     }
                 }
 
