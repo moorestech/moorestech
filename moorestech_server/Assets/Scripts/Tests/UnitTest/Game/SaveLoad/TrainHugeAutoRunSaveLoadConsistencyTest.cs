@@ -259,7 +259,7 @@ namespace Tests.UnitTest.Game.SaveLoad
                 
                 var cars = new List<TrainCar>
                 {
-                    new TrainCar(trainCarMaster)
+                    new TrainCar(trainCarMaster, true)
                 };
 
                 var train = new TrainUnit(railPosition, cars, environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());

@@ -10,19 +10,23 @@ using Mooresmaster.Model.TrainModule;
 
 namespace Game.Train.Unit.Containers
 {
-    public class ItemTrainCarContainer : IOpenableInventory, ITrainCarContainer, IFuelProviderTrainCarContainer
+    public class ItemTrainCarContainer : IOpenableInventory, IFuelProviderTrainCarContainer
     {
         public IReadOnlyList<IItemStack> InventoryItems => _itemDataStoreService.InventoryItems;
 
-        // 列車インベントリの更新通知。外部（InventoryItemMoveProtocol等）から差し込む。
-        // External hook for inventory updates (assigned by InventoryItemMoveProtocol etc.).
-        public Action<int, IItemStack> OnInventoryUpdated { get; set; }
+        // 通知の宛先は装着中の列車。Attach/Detach経由でのみ更新される
+        // The current owning car; populated only through Attach/Detach lifecycle hooks.
+        private TrainCar _attachedCar;
 
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
 
         private ItemTrainCarContainer(int slotNumber)
         {
-            _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, slotNumber);
+            _itemDataStoreService = new OpenableInventoryItemDataStoreService(
+                (slot, itemStack) =>
+                {
+                    _attachedCar?.NotifyInventoryUpdate(slot, itemStack);
+                }, ServerContext.ItemStackFactory, slotNumber);
         }
 
         private ItemTrainCarContainer(IItemStack[] inventoryItems) : this(inventoryItems.Length)
@@ -33,9 +37,14 @@ namespace Game.Train.Unit.Containers
             }
         }
 
-        private void InvokeEvent(int slot, IItemStack itemStack)
+        public void OnAttachedToCar(TrainCar trainCar)
         {
-            OnInventoryUpdated?.Invoke(slot, itemStack);
+            _attachedCar = trainCar;
+        }
+
+        public void OnDetachedFromCar()
+        {
+            _attachedCar = null;
         }
 
         public int GetWeight()
@@ -77,30 +86,8 @@ namespace Game.Train.Unit.Containers
 
         public bool CanInsert(ItemTrainCarContainer other)
         {
-            var otherItems = other._itemDataStoreService.InventoryItems;
-            if (otherItems.All(stack => stack.Id == ItemMaster.EmptyItemId)) return false;
-
-            var slotCount = _itemDataStoreService.GetSlotSize();
-            for (var i = 0; i < otherItems.Count; i++)
-            {
-                var sourceItem = otherItems[i];
-                if (sourceItem.Id == ItemMaster.EmptyItemId) continue;
-
-                // 空スロットがあれば任意のアイテムを受け入れ可能
-                // Any empty slot can accept any item.
-                for (var j = 0; j < slotCount; j++)
-                {
-                    var slot = _itemDataStoreService.GetItem(j);
-                    if (slot.Id == ItemMaster.EmptyItemId) return true;
-                    if (slot.Id != sourceItem.Id) continue;
-
-                    // 同一アイテムでスタックに余裕があれば挿入可能
-                    // Same-item slot with remaining capacity accepts the item.
-                    if (slot.Count < MasterHolder.ItemMaster.GetItemMaster(slot.Id).MaxStack) return true;
-                }
-            }
-
-            return false;
+            var otherItems = new List<IItemStack>(other._itemDataStoreService.InventoryItems);
+            return InsertionCheck(otherItems);
         }
 
         public void MergeFrom(ItemTrainCarContainer other)
@@ -111,8 +98,6 @@ namespace Game.Train.Unit.Containers
                 var sourceItem = other._itemDataStoreService.GetItem(i);
                 if (sourceItem.Id == ItemMaster.EmptyItemId) continue;
 
-                // 本コンテナへ挿入し、余ったぶんを元スロットへ戻す
-                // Insert into this container and write the remainder back to the same slot.
                 var remainder = _itemDataStoreService.InsertItem(sourceItem);
                 other._itemDataStoreService.SetItem(i, remainder);
             }

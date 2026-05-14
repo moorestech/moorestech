@@ -3,7 +3,6 @@ using Core.Inventory;
 using Game.Block.Interface.Component;
 using Game.Context;
 using Game.PlayerInventory.Interface;
-using Game.Train.Event;
 using Game.Train.Unit;
 using Game.Train.Unit.Containers;
 using Game.World.Interface.DataStore;
@@ -24,13 +23,11 @@ namespace Server.Protocol.PacketResponse
 
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly ITrainUnitLookupDatastore _trainUnitLookupDatastore;
-        private readonly TrainUpdateEvent _trainUpdateEvent;
 
         public InventoryItemMoveProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
             _trainUnitLookupDatastore = serviceProvider.GetService<ITrainUnitLookupDatastore>();
-            _trainUpdateEvent = (TrainUpdateEvent)serviceProvider.GetService<ITrainUpdateEvent>();
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload)
@@ -107,11 +104,6 @@ namespace Server.Protocol.PacketResponse
                 var trainCarInstanceId = new TrainCarInstanceId(long.Parse(identifier.TrainCarInstanceId));
                 if (!_trainUnitLookupDatastore.TryGetTrainCar(trainCarInstanceId, out var trainCar)) return null;
                 if (trainCar.Container is not ItemTrainCarContainer itemContainer) return null;
-
-                // 更新通知を本リクエストの列車にバインドする
-                // Bind the inventory update callback to this train car.
-                itemContainer.OnInventoryUpdated = (slot, stack) =>
-                    _trainUpdateEvent.InvokeInventoryUpdate(new TrainInventoryUpdateEventProperties(trainCarInstanceId, slot, stack));
                 return itemContainer;
             }
 
