@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using Core.Item.Interface;
 using Core.Master;
+using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
 using Game.PlayerInventory.Interface;
+using Game.Train.RailPositions;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,11 +21,13 @@ namespace Server.Protocol.PacketResponse
         public const string ProtocolTag = "va:removeBlock";
         
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
+        private readonly TrainRailPositionManager _railPositionManager;
         
         
         public RemoveBlockProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
+            _railPositionManager = serviceProvider.GetService<TrainRailPositionManager>();
         }
         
         public ProtocolMessagePackBase GetResponse(byte[] payload)
@@ -33,6 +37,7 @@ namespace Server.Protocol.PacketResponse
             var block = ServerContext.WorldBlockDatastore.GetBlock(data.Pos);
             if (block == null) return null;
             var itemId = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId).ItemGuid;
+            if (!CanManualRemoveBlock(block)) return null;
                 
             // 破壊した後のアイテムをインベントリに挿入できるかチェック
             // Check if items after destruction can be inserted into inventory
@@ -47,6 +52,31 @@ namespace Server.Protocol.PacketResponse
             return null;
             
             #region Internal
+
+            bool CanManualRemoveBlock(IBlock targetBlock)
+            {
+                var railComponents = targetBlock.ComponentManager.GetComponents<RailComponent>();
+                if (railComponents.Count == 0) return true;
+
+                // レール系ブロックは列車位置が保持するノードを壊せない
+                // Rail blocks cannot remove nodes currently held by train positions.
+                for (var i = 0; i < railComponents.Count; i++)
+                {
+                    if (!CanManualRemoveRailComponent(railComponents[i])) return false;
+                }
+
+                return true;
+            }
+
+            bool CanManualRemoveRailComponent(RailComponent railComponent)
+            {
+                // 橋脚削除はFront/Back両ノードの削除と同義として扱う
+                // Removing a pier is equivalent to removing both front and back nodes.
+                if (!_railPositionManager.CanRemoveNode(railComponent.FrontNode)) return false;
+                if (!_railPositionManager.CanRemoveNode(railComponent.BackNode)) return false;
+
+                return true;
+            }
             
             bool TryInsertRefundItems(out List<IItemStack> items)
             {
