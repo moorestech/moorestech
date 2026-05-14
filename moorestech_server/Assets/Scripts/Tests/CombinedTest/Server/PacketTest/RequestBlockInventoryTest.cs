@@ -17,7 +17,6 @@ using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;
 using System;
-using Game.Train.Unit.Containers;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -98,6 +97,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(responseBytes);
 
             Assert.AreEqual(InventoryType.Train, data.InventoryType); // inventory type
+            Assert.AreEqual(InventoryRequestResult.Success, data.Result); // request result
             Assert.AreEqual(3, data.Items.Length); // slot count
             Assert.AreEqual(1, data.Items[0].Id.AsPrimitive());
             Assert.AreEqual(7, data.Items[0].Count);

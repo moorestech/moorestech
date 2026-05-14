@@ -10,7 +10,9 @@ namespace Client.Game.InGame.UI.Inventory.Train
 {
     public class TrainInventoryView : MonoBehaviour, ITrainInventoryView
     {
-        private const string ContainerMissingMessageObjectName = "ContainerMissingMessage";
+        private const string ContainerMissingMessage = "この列車にはアイテムコンテナがありません";
+        private const string TrainCarMissingMessage = "列車が見つかりません";
+        private const string OpenFailedMessage = "列車インベントリを開けません";
 
         public IReadOnlyList<ItemSlotView> SubInventorySlotObjects => _subInventorySlotObjects;
         public int Count => _subInventorySlotObjects.Count;
@@ -19,13 +21,15 @@ namespace Client.Game.InGame.UI.Inventory.Train
 
 
         [SerializeField] private Transform slotParentTransform;
+
+        [SerializeField] private TMP_Text containerMissingMessageText;
+
         private readonly List<ItemSlotView> _subInventorySlotObjects = new();
-        private TMP_Text _containerMissingMessageText;
 
 
         public void Initialize(TrainCarEntityObject trainCarEntity)
         {
-            HideContainerMissingMessage();
+            containerMissingMessageText.gameObject.SetActive(false);
             ISubInventoryIdentifier = new TrainInventorySubInventoryIdentifier(trainCarEntity.TrainCarInstanceId.AsPrimitive());
             for (int i = 0; i < trainCarEntity.TrainCarMasterElement.InventorySlots; i++)
             {
@@ -34,16 +38,25 @@ namespace Client.Game.InGame.UI.Inventory.Train
             }
         }
 
-        public void ShowContainerMissingMessage(string message)
+        public void HideSlotObjects()
         {
             SubInventory.Clear();
             ClearSlotObjects();
+        }
 
-            // 列車にアイテムコンテナがないことをUI内に表示する
-            // Show within the UI that this train has no item container
-            var messageText = GetOrCreateContainerMissingMessageText();
-            messageText.text = message;
-            messageText.gameObject.SetActive(true);
+        public void ShowMessage(TrainInventoryMessageType messageType)
+        {
+            // 表示種別に応じてView内部で文言を決定する
+            // Resolve the display text inside the view based on the message type
+            var message = messageType switch
+            {
+                TrainInventoryMessageType.ContainerMissing => ContainerMissingMessage,
+                TrainInventoryMessageType.TrainCarMissing => TrainCarMissingMessage,
+                TrainInventoryMessageType.OpenFailed => OpenFailedMessage,
+                _ => OpenFailedMessage
+            };
+            containerMissingMessageText.text = message;
+            containerMissingMessageText.gameObject.SetActive(true);
         }
 
         public void UpdateItemList(List<IItemStack> response)
@@ -77,34 +90,6 @@ namespace Client.Game.InGame.UI.Inventory.Train
             }
 
             _subInventorySlotObjects.Clear();
-        }
-
-        private void HideContainerMissingMessage()
-        {
-            if (_containerMissingMessageText == null) return;
-            _containerMissingMessageText.gameObject.SetActive(false);
-        }
-
-        private TMP_Text GetOrCreateContainerMissingMessageText()
-        {
-            if (_containerMissingMessageText != null) return _containerMissingMessageText;
-
-            // Prefabを直接編集せず、実行時にメッセージ用テキストを追加する
-            // Add the message text at runtime without editing the prefab asset
-            var messageObject = new GameObject(ContainerMissingMessageObjectName, typeof(RectTransform));
-            messageObject.transform.SetParent(transform, false);
-            var rectTransform = (RectTransform)messageObject.transform;
-            rectTransform.anchorMin = Vector2.zero;
-            rectTransform.anchorMax = Vector2.one;
-            rectTransform.offsetMin = Vector2.zero;
-            rectTransform.offsetMax = Vector2.zero;
-
-            _containerMissingMessageText = messageObject.AddComponent<TextMeshProUGUI>();
-            _containerMissingMessageText.alignment = TextAlignmentOptions.Center;
-            _containerMissingMessageText.fontSize = 24;
-            _containerMissingMessageText.color = Color.white;
-            _containerMissingMessageText.raycastTarget = false;
-            return _containerMissingMessageText;
         }
     }
 }

@@ -1,4 +1,5 @@
 using Client.Game.InGame.UI.Inventory;
+using Client.Network.API;
 using Server.Util.MessagePack;
 
 namespace Client.Game.InGame.UI.UIState.State.SubInventory
@@ -18,6 +19,6 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
         /// インベントリソースの内部で、固有のサブインベントリオブジェクトの初期化を行う
         /// Within the inventory source, initialize the specific sub-inventory object
         /// </summary>
-        void ExecuteInitialize(ISubInventoryView subInventoryView);
+        void ExecuteInitialize(ISubInventoryView subInventoryView, InventoryResponse inventoryResponse);
     }
 }
