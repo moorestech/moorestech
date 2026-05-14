@@ -74,19 +74,23 @@ namespace Server.Boot
     public class MoorestechServerDIContainerGenerator
     {
         //TODO セーブファイルのディレクトリもここで指定できるようにする
+        // TODO allow the save file directory to be configured here as well.
         public (PacketResponseCreator, ServiceProvider) Create(MoorestechServerDIContainerOptions options)
         {
             GameUpdater.ResetUpdate();
 
             //必要な各種インスタンスを手動で作成
+            // Manually construct the required bootstrap instances.
             var modDirectory = Path.Combine(options.ServerDataDirectory, "mods");
 
             // マスターをロード
+            // Load master data.
             var modResource = new ModsResource(modDirectory);
             var masterJsonFileContainer = new MasterJsonFileContainer(ModJsonStringLoader.GetMasterString(modResource));
             MasterHolder.Load(masterJsonFileContainer);
 
             // ServerContext用のインスタンスを登録
+            // Register instances used by ServerContext.
             var initializerCollection = new ServiceCollection();
             initializerCollection.AddSingleton(masterJsonFileContainer);
             initializerCollection.AddSingleton<IItemStackFactory, ItemStackFactory>();
@@ -119,9 +123,11 @@ namespace Server.Boot
 
 
             //コンフィグ、ファクトリーのインスタンスを登録
+            // Register config and factory instances.
             var services = new ServiceCollection();
 
             //ゲームプレイに必要なクラスのインスタンスを生成
+            // Register gameplay services.
             services.AddSingleton<EventProtocolProvider, EventProtocolProvider>();
             services.AddSingleton<IWorldSettingsDatastore, WorldSettingsDatastore>();
             services.AddSingleton<IPlayerInventoryDataStore, PlayerInventoryDataStore>();
@@ -160,20 +166,25 @@ namespace Server.Boot
             services.AddSingleton<TrainDockingStateRestorer>();
             services.AddSingleton<ITrainUpdateEvent, TrainUpdateEvent>();
             services.AddSingleton<ITrainUnitSnapshotNotifyEvent, TrainUnitSnapshotNotifyEvent>();
+            services.AddSingleton<TrainCarRidingInputBuffer>();
+            services.AddSingleton<TrainCarRidingManualCommandResolver>();
             services.AddSingleton<TrainUpdateService>();
 
             //JSONファイルのセーブシステムの読み込み
+            // Register JSON save system services.
             services.AddSingleton(modResource);
             services.AddSingleton<IWorldSaveDataSaver, WorldSaverForJson>();
             services.AddSingleton<IWorldSaveDataLoader, WorldLoaderFromJson>();
             services.AddSingleton(options.saveJsonFilePath);
 
             //イベントを登録
+            // Register events.
             services.AddSingleton<IMainInventoryUpdateEvent, MainInventoryUpdateEvent>();
             services.AddSingleton<IGrabInventoryUpdateEvent, GrabInventoryUpdateEvent>();
             services.AddSingleton<CraftEvent, CraftEvent>();
 
             //イベントレシーバーを登録
+            // Register event receivers.
             services.AddSingleton<ChangeBlockStateEventPacket>();
             services.AddSingleton<MainInventoryUpdateEventPacket>();
             services.AddSingleton<UnifiedInventoryEventPacket>();
@@ -195,6 +206,7 @@ namespace Server.Boot
             services.AddSingleton<RailConnectionRemovedEventPacket>();
             
             //データのセーブシステム
+            // Register data save helpers.
             services.AddSingleton<AssembleSaveJsonText, AssembleSaveJsonText>();
 
 
@@ -202,7 +214,9 @@ namespace Server.Boot
             var packetResponse = new PacketResponseCreator(serviceProvider);
 
             //イベントレシーバーをインスタンス化する
+            // Materialize event receivers eagerly.
             //TODO この辺を解決するDIコンテナを探す VContinerのRegisterEntryPoint的な
+            // TODO find a DI pattern similar to VContainer RegisterEntryPoint for this area.
             serviceProvider.GetService<MainInventoryUpdateEventPacket>();
             serviceProvider.GetService<UnifiedInventoryEventPacket>();
             serviceProvider.GetService<GrabInventoryUpdateEventPacket>();
@@ -230,6 +244,7 @@ namespace Server.Boot
             serverContext.SetMainServiceProvider(serviceProvider);
             
             // MessagePackResolverを登録
+            // Register the MessagePack resolver.
             MessagePackInitializer.Initialize();
 
             return (packetResponse, serviceProvider);
