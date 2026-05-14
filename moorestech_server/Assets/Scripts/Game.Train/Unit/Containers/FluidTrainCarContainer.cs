@@ -32,5 +32,10 @@ namespace Game.Train.Unit.Containers
         {
             return Container.Amount < double.Epsilon;
         }
+
+        // 液体コンテナは現状通知バインドを持たないためno-op
+        // Fluid container has no notification binding today; both hooks are no-op.
+        public void OnAttachedToCar(TrainCar trainCar) { }
+        public void OnDetachedFromCar() { }
     }
 }

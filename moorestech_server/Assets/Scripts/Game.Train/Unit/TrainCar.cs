@@ -1,10 +1,12 @@
 using System;
+using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Context;
 using Game.Train.Diagram;
 using Game.Train.Event;
 using Game.Train.SaveLoad;
+using Game.Train.Unit.Containers;
 using JetBrains.Annotations;
 using MessagePack;
 using Mooresmaster.Model.TrainModule;
@@ -39,8 +41,7 @@ namespace Game.Train.Unit
         
         private readonly TrainUpdateEvent _trainUpdateEvent;
 
-        //TODO燃料スロット数削除について修正は今後
-        public TrainCar(TrainCarMasterElement trainCarMaster, bool isFacingForward = true, int fuelSlots = 0)
+        public TrainCar(TrainCarMasterElement trainCarMaster, bool isFacingForward)
         {
             TrainCarMasterElement = trainCarMaster;
             TractionForce = trainCarMaster.TractionForce;
@@ -90,7 +91,14 @@ namespace Game.Train.Unit
         
         public void SetContainer(ITrainCarContainer container)
         {
+            Container?.OnDetachedFromCar();
             Container = container;
+            Container?.OnAttachedToCar(this);
+        }
+
+        internal void NotifyInventoryUpdate(int slot, IItemStack itemStack)
+        {
+            _trainUpdateEvent.InvokeInventoryUpdate(new TrainInventoryUpdateEventProperties(_trainCarInstanceId, slot, itemStack));
         }
 
         public TrainCarSaveData CreateTrainCarSaveData()
@@ -131,7 +139,10 @@ namespace Game.Train.Unit
                 }
             }
             
-            car.Container = MessagePackSerializer.Deserialize<ITrainCarContainer>(MessagePackSerializer.ConvertFromJson(data.ContainerSaveData));
+            // ロード時もSetContainer経由で通知バインドを行う
+            // Restore via SetContainer so the notification binding is established on load.
+            var restoredContainer = MessagePackSerializer.Deserialize<ITrainCarContainer>(MessagePackSerializer.ConvertFromJson(data.ContainerSaveData));
+            car.SetContainer(restoredContainer);
 
             car.RemainFuelTime = data.RemainFuelTime;
             
@@ -140,6 +151,9 @@ namespace Game.Train.Unit
 
         public void Destroy()
         {
+            // 通知バインドを解除し、Container参照も切る
+            // Release the notification binding and clear the container reference.
+            SetContainer(null);
             _trainUpdateEvent.InvokeTrainCarRemoved(_trainCarInstanceId);
         }
         

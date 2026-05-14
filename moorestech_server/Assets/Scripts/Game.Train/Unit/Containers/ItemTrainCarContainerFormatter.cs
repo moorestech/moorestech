@@ -36,7 +36,15 @@ namespace Game.Train.Unit.Containers
             var stacks = new IItemStack[length];
             for (var i = 0; i < length; i++)
             {
-                reader.ReadArrayHeader();
+                // 各スロットエントリは[itemId, count]の2要素配列。違う長さは破損データとして拒否する
+                // Each slot entry is a 2-element [itemId, count] array; reject anything else as corrupt data.
+                var entryLength = reader.ReadArrayHeader();
+                if (entryLength != 2)
+                {
+                    throw new MessagePackSerializationException(
+                        $"ItemTrainCarContainer slot entry must be a 2-element array, got {entryLength} at slot {i}.");
+                }
+
                 var id = MessagePackSerializer.Deserialize<ItemId>(ref reader, options);
                 var count = reader.ReadInt32();
                 stacks[i] = ServerContext.ItemStackFactory.Create(id, count);
