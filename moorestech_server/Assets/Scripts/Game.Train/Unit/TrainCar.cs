@@ -70,7 +70,7 @@ namespace Game.Train.Unit
                 if (RemainFuelTime <= 0) return (weight, 0);
             }
             
-            var tractionForce = IsFacingForward ? TractionForce : 0;
+            var tractionForce = TractionForce;
             return (weight, tractionForce);
         }
 
