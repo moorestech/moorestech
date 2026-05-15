@@ -6,10 +6,12 @@ using Game.Context;
 using Game.Train.Diagram;
 using Game.Train.Event;
 using Game.Train.SaveLoad;
+using Game.Train.Unit.Containers;
 using JetBrains.Annotations;
 using MessagePack;
 using Mooresmaster.Model.TrainModule;
 using UnityEngine;
+using FluidContainer = Game.Fluid.FluidContainer;
 
 namespace Game.Train.Unit
 {
@@ -93,6 +95,24 @@ namespace Game.Train.Unit
             Container?.OnDetachedFromCar();
             Container = container;
             Container?.OnAttachedToCar(this);
+        }
+
+        // マスタのdefaultContainerType指定に従って初期コンテナを装着する
+        // Attaches the default container specified by master's defaultContainerType.
+        public void AttachDefaultContainerFromMaster()
+        {
+            var master = TrainCarMasterElement;
+            switch (master.DefaultContainerType)
+            {
+                case "Item":
+                    SetContainer(ItemTrainCarContainer.CreateWithEmptySlots(master.InventorySlots));
+                    break;
+                case "Fluid":
+                    SetContainer(new FluidTrainCarContainer(new FluidContainer(master.FluidCapacity)));
+                    break;
+                // None または未指定はコンテナ無し
+                // None or unspecified leaves the car without a container.
+            }
         }
 
         internal void NotifyInventoryUpdate(int slot, IItemStack itemStack)
