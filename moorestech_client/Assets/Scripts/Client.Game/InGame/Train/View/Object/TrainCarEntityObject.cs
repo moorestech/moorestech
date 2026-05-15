@@ -14,20 +14,15 @@ namespace Client.Game.InGame.Train.View.Object
     {
         public TrainCarInstanceId TrainCarInstanceId { get; private set; }
         public TrainCarMasterElement TrainCarMasterElement { get; set; }
-        private const float ModelYawOffsetDegrees = -90f;
         /// <summary>
         /// モデル中心の前後オフセット
         /// Model forward center offset
         /// </summary>
-        public float ModelForwardCenterOffset { get; private set; }
+        public float ModelForwardCenterOffset => _poseService.ModelForwardCenterOffset;
         private bool _debugAutoRun = false;//////////////////
 
         private RendererMaterialReplacerController _rendererMaterialReplacerController;
-        private Rigidbody _poseRigidbody;
-        private Vector3 _requestedPosition;
-        private Quaternion _requestedRotation = Quaternion.identity;
-        private bool _hasRequestedPose;
-        private bool _hasAppliedInitialPose;
+        private TrainCarPoseService _poseService;
 
         /// <summary>
         /// 初期化を行う
@@ -37,37 +32,11 @@ namespace Client.Game.InGame.Train.View.Object
         {
             _debugAutoRun = DebugParameters.GetValueOrDefaultBool(DebugConst.TrainAutoRunKey);//////////////////
             _rendererMaterialReplacerController = new RendererMaterialReplacerController(gameObject);
-            // 列車Colliderの移動を物理エンジンへ渡すためRigidbodyをkinematicに設定する
-            // Configure the required Rigidbody so train collider movement is handled by physics
-            ConfigurePoseRigidbody();
-            // モデル中心の前後オフセットをキャッシュする
-            // Cache the model forward center offset
-            ModelForwardCenterOffset = ResolveModelForwardCenterOffset();
-            
-            #region Internal
-            float ResolveModelForwardCenterOffset()
-            {
-                // レンダラの境界中心から前後オフセットを算出する
-                // Compute forward offset from renderer bounds center
-                var renderers = GetComponentsInChildren<Renderer>(true);
-                var combined = renderers[0].bounds;
-                for (var i = 1; i < renderers.Length; i++) combined.Encapsulate(renderers[i].bounds);
-                var localForwardAxis = Quaternion.Euler(0f, -ModelYawOffsetDegrees, 0f) * Vector3.forward;
-                var localCenter = transform.InverseTransformPoint(combined.center);
-                return Vector3.Dot(localCenter, localForwardAxis);
-            }
-
-            void ConfigurePoseRigidbody()
-            {
-                // RequireComponentで保証されているRigidbodyをkinematic用に設定する
-                // Configure the RequireComponent-guaranteed Rigidbody for kinematic pose driving
-                _poseRigidbody = GetComponent<Rigidbody>();
-                _poseRigidbody.isKinematic = true;
-                _poseRigidbody.useGravity = false;
-                _poseRigidbody.interpolation = RigidbodyInterpolation.Interpolate;
-                _poseRigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
-            }
-            #endregion
+            // Rigidbody/姿勢制御をサービスへ委譲する
+            // Delegate rigidbody and pose control to the service
+            var rigidbody = GetComponent<Rigidbody>();
+            var renderers = GetComponentsInChildren<Renderer>(true);
+            _poseService = new TrainCarPoseService(rigidbody, transform, renderers);
         }
 
         public void SetTrain(TrainCarInstanceId trainCarInstanceId, TrainCarMasterElement trainCarMasterElement)
@@ -75,29 +44,15 @@ namespace Client.Game.InGame.Train.View.Object
             TrainCarInstanceId = trainCarInstanceId;
             TrainCarMasterElement = trainCarMasterElement;
         }
-        
-        
+
+
         /// <summary>
         /// 物理更新で反映する列車姿勢を設定する
         /// Set the train pose to apply during physics updates
         /// </summary>
         public void SetDirectPose(Vector3 position, Quaternion rotation)
         {
-            _requestedPosition = position;
-            _requestedRotation = rotation;
-            _hasRequestedPose = true;
-
-            // 初回だけ物理補間せずに正しい位置へ配置する
-            // Snap only the first pose so the train starts at the correct location
-            if (_hasAppliedInitialPose)
-            {
-                return;
-            }
-
-            _poseRigidbody.position = position;
-            _poseRigidbody.rotation = rotation;
-            transform.SetPositionAndRotation(position, rotation);
-            _hasAppliedInitialPose = true;
+            _poseService.RequestPose(position, rotation);
         }
 
         /// <summary>
@@ -128,17 +83,7 @@ namespace Client.Game.InGame.Train.View.Object
 
         private void FixedUpdate()
         {
-            // 姿勢要求が届くまで物理更新は行わない
-            // Skip physics movement until a pose request is available
-            if (!_hasRequestedPose)
-            {
-                return;
-            }
-
-            // kinematic Rigidbody経由でCollider移動を物理エンジンへ反映する
-            // Apply collider movement through the kinematic Rigidbody
-            _poseRigidbody.MovePosition(_requestedPosition);
-            _poseRigidbody.MoveRotation(_requestedRotation);
+            _poseService.ApplyToPhysics();
         }
 
         // 自動運転（AutoRun）の状態をサーバへ送信するローカル関数
