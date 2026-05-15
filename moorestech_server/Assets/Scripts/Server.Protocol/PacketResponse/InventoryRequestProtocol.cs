@@ -53,15 +53,15 @@ namespace Server.Protocol.PacketResponse
                 var datastore = ServerContext.WorldBlockDatastore;
                 var block = datastore.GetBlock(position);
 
-                if (block == null)  return ResponseInventoryRequestProtocolMessagePack.CreateSuccess(InventoryType.Block, identifier, Array.Empty<IItemStack>());
+                if (block == null) return ResponseInventoryRequestProtocolMessagePack.CreateBlockNotFound(identifier);
 
                 // インベントリ要素を抽出
                 // Collect inventory items
-                var items = datastore.ExistsComponent<IOpenableBlockInventoryComponent>(position)
-                    ? datastore.GetBlock<IOpenableBlockInventoryComponent>(position).InventoryItems
-                    : Array.Empty<IItemStack>();
+                if (!datastore.ExistsComponent<IOpenableBlockInventoryComponent>(position))
+                    return ResponseInventoryRequestProtocolMessagePack.CreateContainerNotFound(InventoryType.Block, identifier);
 
-                return new ResponseInventoryRequestProtocolMessagePack(InventoryType.Block, identifier, items);
+                var items = datastore.GetBlock<IOpenableBlockInventoryComponent>(position).InventoryItems;
+                return ResponseInventoryRequestProtocolMessagePack.CreateSuccess(InventoryType.Block, identifier, items);
             }
 
             ResponseInventoryRequestProtocolMessagePack CreateTrainResponse(InventoryIdentifierMessagePack identifier)
@@ -134,6 +134,11 @@ namespace Server.Protocol.PacketResponse
             {
                 return new ResponseInventoryRequestProtocolMessagePack(InventoryType.Train, identifier, Array.Empty<IItemStack>(), InventoryRequestResult.TrainCarNotFound);
             }
+
+            public static ResponseInventoryRequestProtocolMessagePack CreateBlockNotFound(InventoryIdentifierMessagePack identifier)
+            {
+                return new ResponseInventoryRequestProtocolMessagePack(InventoryType.Block, identifier, Array.Empty<IItemStack>(), InventoryRequestResult.BlockNotFound);
+            }
         }
     }
 
@@ -141,6 +146,7 @@ namespace Server.Protocol.PacketResponse
     {
         Success = 0,
         ContainerNotFound = 1,
-        TrainCarNotFound = 2
+        TrainCarNotFound = 2,
+        BlockNotFound = 3
     }
 }
