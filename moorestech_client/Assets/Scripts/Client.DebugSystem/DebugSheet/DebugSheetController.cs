@@ -80,6 +80,7 @@ namespace Client.DebugSystem
             rootPage.AddBoolWithSave(false, MapObjectSuperMineLabel, MapObjectSuperMineKey);
             rootPage.AddBoolWithSave(false, FixCraftTimeLabel, FixCraftTimeKey);
             rootPage.AddBoolWithSave(false, TrainAutoRunLabel, TrainAutoRunKey);
+            rootPage.AddBoolWithSave(false, TrainUnitDebugOverlayLabel, TrainUnitDebugOverlayKey);
             rootPage.AddBoolWithSave(false, PlacePreviewKeepLabel, PlacePreviewKeepKey);
         }
         public static void CloseDebugSheet()
