@@ -82,6 +82,7 @@ namespace StarterAssets
 		// moving platform tracking
 		private Rigidbody _trackedPlatformRigidbody;
 		private Vector3 _trackedPlatformPosition;
+		private Quaternion _trackedPlatformRotation = Quaternion.identity;
 		private static readonly Collider[] _platformOverlapBuffer = new Collider[8];
 
 		// animation IDs
@@ -248,12 +249,12 @@ namespace StarterAssets
 
 			Vector3 targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
 
-			// 足元のkinematic Rigidbody（列車など）の前フレームからの移動量を取得する
-			// Resolve the per-frame delta of the kinematic Rigidbody beneath the player (e.g. trains)
-			Vector3 platformDelta = ResolveMovingPlatformDelta();
+			// 足元のkinematic Rigidbody（列車など）の前フレームからの移動量を取得し、衝突解消で吸収されないように直接反映する
+			// Resolve the per-frame delta of the kinematic Rigidbody beneath the player and apply it bypassing collision resolve
+			ApplyPlatformDelta(ResolveMovingPlatformDelta());
 
 			// move the player
-			_controller.Move(targetDirection.normalized * (_speed * Time.deltaTime) + new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime + platformDelta);
+			_controller.Move(targetDirection.normalized * (_speed * Time.deltaTime) + new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
 
 			// update animator if using character
 			if (_hasAnimator)
@@ -275,9 +276,9 @@ namespace StarterAssets
 
 		private Vector3 ResolveMovingPlatformDelta()
 		{
-			// 接地していない時、または既に親オブジェクト経由で追従中の場合は適用しない
-			// Skip platform follow while airborne or when already parented (e.g. ForceRide)
-			if (!Grounded || transform.parent != null)
+			// 接地していない、またはForceRide等で既にkinematic Rigidbody配下に親付けされている場合は適用しない
+			// Skip when airborne or already parented under a kinematic Rigidbody (e.g. ForceRide)
+			if (!Grounded || IsParentedToKinematicRigidbody())
 			{
 				_trackedPlatformRigidbody = null;
 				return Vector3.zero;
@@ -288,25 +289,53 @@ namespace StarterAssets
 			Vector3 delta = Vector3.zero;
 			if (platform != null && platform == _trackedPlatformRigidbody)
 			{
-				// 同じ足場が前フレームから動いた量だけプレイヤーを追従させる
-				// Carry the player along by the platform's movement since the last frame
-				delta = platform.position - _trackedPlatformPosition;
+				// 前フレームの平台ローカルでのプレイヤー位置を、現フレームの平台ワールドへ再投影する
+				// Reproject the player's prior platform-local position into the current platform world (handles curve rotation)
+				Vector3 localOffset = Quaternion.Inverse(_trackedPlatformRotation) * (transform.position - _trackedPlatformPosition);
+				Vector3 expectedNewWorld = platform.transform.position + platform.transform.rotation * localOffset;
+				delta = expectedNewWorld - transform.position;
 			}
 
 			_trackedPlatformRigidbody = platform;
 			if (platform != null)
 			{
-				_trackedPlatformPosition = platform.position;
+				_trackedPlatformPosition = platform.transform.position;
+				_trackedPlatformRotation = platform.transform.rotation;
 			}
 			return delta;
 		}
 
+		private void ApplyPlatformDelta(Vector3 platformDelta)
+		{
+			// CharacterControllerの衝突解消が水平deltaを吸収するため、enable切り替えでバイパスして直接transformへ書き込む
+			// Bypass CharacterController collision resolve by toggling enabled around a direct transform write
+			if (platformDelta.sqrMagnitude <= 0f)
+			{
+				return;
+			}
+			_controller.enabled = false;
+			transform.position += platformDelta;
+			_controller.enabled = true;
+		}
+
+		private bool IsParentedToKinematicRigidbody()
+		{
+			// シーン階層上の単なる親付け（PlayerSystem等）は通し、kinematic Rigidbody直下のときだけ弾く
+			// Allow normal scene-hierarchy parenting; only block when nested under a kinematic Rigidbody
+			if (transform.parent == null)
+			{
+				return false;
+			}
+			var parentRigidbody = transform.parent.GetComponentInParent<Rigidbody>();
+			return parentRigidbody != null && parentRigidbody.isKinematic;
+		}
+
 		private Rigidbody FindGroundKinematicRigidbody()
 		{
-			// 接地判定と同じ球で足元のColliderを探索する
-			// Probe the same grounded sphere to find colliders under the player
+			// 接地判定と同じ球・同じレイヤで足元のColliderを探索する
+			// Probe the same grounded sphere and layers used by GroundedCheck
 			Vector3 spherePosition = new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z);
-			int count = Physics.OverlapSphereNonAlloc(spherePosition, GroundedRadius, _platformOverlapBuffer, ~0, QueryTriggerInteraction.Ignore);
+			int count = Physics.OverlapSphereNonAlloc(spherePosition, GroundedRadius, _platformOverlapBuffer, GroundLayers, QueryTriggerInteraction.Ignore);
 			for (int i = 0; i < count; i++)
 			{
 				var rb = _platformOverlapBuffer[i].attachedRigidbody;
