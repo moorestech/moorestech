@@ -64,8 +64,10 @@ namespace Tests.UnitTest.Game
             Assert.IsTrue(unloadingBlock.ComponentManager.TryGetComponent<TrainPlatformItemContainerComponent>(out var unloadingContainer),
                 "荷降ろしプラットフォームのインベントリコンポーネントが見つかりません。");
             
-            Assert.IsNull(loadingContainer.Container);
-            Assert.IsNull(unloadingContainer.Container);
+            Assert.IsNotNull(loadingContainer.Container, "積込プラットフォームの空コンテナが初期化されていません。");
+            Assert.IsNotNull(unloadingContainer.Container, "荷降ろしプラットフォームの空コンテナが初期化されていません。");
+            Assert.IsTrue(loadingContainer.Container.IsEmpty(), "積込プラットフォームの初期コンテナが空ではありません。");
+            Assert.IsTrue(unloadingContainer.Container.IsEmpty(), "荷降ろしプラットフォームの初期コンテナが空ではありません。");
             
             var loaderTrainPlatformTransfer = loadingBlock.GetComponent<TrainPlatformTransferComponent>();
             var unloaderTrainPlatformTransfer = unloadingBlock.GetComponent<TrainPlatformTransferComponent>();
