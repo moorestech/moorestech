@@ -11,6 +11,7 @@ using Game.CraftTree.Models;
 using Game.Research;
 using Game.Train.RailPositions;
 using Game.Train.Unit;
+using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
 using Game.Gear.Common;
 using Server.Event.EventReceive;
@@ -268,6 +269,15 @@ namespace Client.Network.API
         {
             var request = new GetGearNetworkInfoProtocol.RequestGetGearNetworkInfoMessagePack(blockInstanceId);
             return await _packetExchangeManager.GetPacketResponse<GetGearNetworkInfoProtocol.ResponseGetGearNetworkInfoMessagePack>(request, ct);
+        }
+
+        // 貨物プラットフォームのロード/アンロードモードを切り替える
+        // Switch the load/unload transfer mode of a train platform block
+        public async UniTask<SetTrainPlatformTransferModeProtocol.SetTrainPlatformTransferModeResponse> SetTrainPlatformTransferMode(
+            Vector3Int position, TrainPlatformTransferComponent.TransferMode mode, CancellationToken ct)
+        {
+            var request = new SetTrainPlatformTransferModeProtocol.SetTrainPlatformTransferModeRequest(position, mode);
+            return await _packetExchangeManager.GetPacketResponse<SetTrainPlatformTransferModeProtocol.SetTrainPlatformTransferModeResponse>(request, ct);
         }
 
         public async UniTask<RailConnectionEditProtocol.ResponseRailConnectionEditMessagePack> DisconnectRailAsync(
