@@ -9,6 +9,7 @@ using Game.Train.RailGraph;
 using Game.Train.RailPositions;
 using Game.Train.Unit;
 using MessagePack;
+using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol.PacketResponse;
@@ -52,6 +53,44 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             Assert.AreEqual(4, data.Items[2].Id.AsPrimitive());
             Assert.AreEqual(5, data.Items[2].Count);
+        }
+
+        [Test]
+        public void TrainItemPlatformInventoryRequestReturnsConfiguredEmptySlots()
+        {
+            // 空の貨物PFでもUI用にマスタ定義分の空スロットを返す
+            // Return configured empty slots for UI even when the cargo platform has no container
+            var environment = TrainTestHelper.CreateEnvironment();
+            var position = new Vector3Int(10, 20, 0);
+            TrainTestHelper.PlaceBlock(environment, ForUnitTestModBlockId.TestTrainItemPlatform, position, BlockDirection.North);
+
+            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestBlock(position))[0];
+            var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(responseBytes);
+            var param = (TrainItemPlatformBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainItemPlatform).BlockParam;
+
+            Assert.AreEqual(InventoryType.Block, data.InventoryType);
+            Assert.AreEqual(InventoryRequestResult.Success, data.Result);
+            Assert.AreEqual(param.ItemSlotCount, data.Items.Length);
+            Assert.IsTrue(data.Items.All(item => item.Id.AsPrimitive() == 0 && item.Count == 0));
+        }
+
+        [Test]
+        public void TrainStationInventoryRequestReturnsConfiguredEmptySlots()
+        {
+            // 空の駅でもUI用にマスタ定義分の空スロットを返す
+            // Return configured empty slots for UI even when the station has no container
+            var environment = TrainTestHelper.CreateEnvironment();
+            var position = new Vector3Int(30, 20, 0);
+            TrainTestHelper.PlaceBlock(environment, ForUnitTestModBlockId.TestTrainStation, position, BlockDirection.North);
+
+            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestBlock(position))[0];
+            var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(responseBytes);
+            var param = (TrainStationBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainStation).BlockParam;
+
+            Assert.AreEqual(InventoryType.Block, data.InventoryType);
+            Assert.AreEqual(InventoryRequestResult.Success, data.Result);
+            Assert.AreEqual(param.ItemSlotCount, data.Items.Length);
+            Assert.IsTrue(data.Items.All(item => item.Id.AsPrimitive() == 0 && item.Count == 0));
         }
 
         private byte[] RequestBlock(Vector3Int pos)

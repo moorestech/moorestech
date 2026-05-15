@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using Core.Item.Interface;
+using Core.Master;
 using Game.Block.Blocks.Connector;
 using Game.Block.Interface.Component;
 using Game.Context;
@@ -11,8 +13,9 @@ using MessagePack;
 
 namespace Game.Block.Blocks.TrainRail.ContainerComponents
 {
-    public class TrainPlatformItemContainerComponent : IUpdatableBlockComponent, IBlockInventory, IBlockSaveState
+    public class TrainPlatformItemContainerComponent : IUpdatableBlockComponent, IOpenableBlockInventoryComponent, IBlockSaveState
     {
+        public IReadOnlyList<IItemStack> InventoryItems => Container?.InventoryItems ?? CreateEmptySlotItems();
         public bool IsDestroy { get; private set; }
         [CanBeNull] public ItemTrainCarContainer Container { get; private set; }
         private readonly TrainPlatformDockingComponent _dockingComponent;
@@ -122,8 +125,7 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
         
         public IItemStack InsertItem(IItemStack itemStack, InsertItemContext context)
         {
-            if (Container == null) Container = ItemTrainCarContainer.CreateWithEmptySlots(_slotsCount);
-
+            EnsureContainer();
             var remaining = itemStack;
             var slots = Container!.InventoryItems;
             for (var i = 0; i < slots.Count; i++)
@@ -139,6 +141,24 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
             }
 
             return remaining;
+        }
+
+        public IItemStack InsertItem(IItemStack itemStack)
+        {
+            EnsureContainer();
+            return Container!.InsertItem(itemStack);
+        }
+
+        public IItemStack InsertItem(ItemId itemId, int count)
+        {
+            EnsureContainer();
+            return Container!.InsertItem(itemId, count);
+        }
+
+        public List<IItemStack> InsertItem(List<IItemStack> itemStacks)
+        {
+            EnsureContainer();
+            return Container!.InsertItem(itemStacks);
         }
 
         public bool InsertionCheck(List<IItemStack> itemStacks)
@@ -175,14 +195,36 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
 
         public void SetItem(int slot, IItemStack stack)
         {
-            if (Container == null) Container = ItemTrainCarContainer.CreateWithEmptySlots(_slotsCount);
-
+            EnsureContainer();
             Container.SetItem(slot, stack);
+        }
+
+        public void SetItem(int slot, ItemId itemId, int count)
+        {
+            EnsureContainer();
+            Container!.SetItem(slot, itemId, count);
+        }
+
+        public IItemStack ReplaceItem(int slot, IItemStack itemStack)
+        {
+            EnsureContainer();
+            return Container!.ReplaceItem(slot, itemStack);
+        }
+
+        public IItemStack ReplaceItem(int slot, ItemId itemId, int count)
+        {
+            EnsureContainer();
+            return Container!.ReplaceItem(slot, itemId, count);
         }
 
         public int GetSlotSize()
         {
             return _slotsCount;
+        }
+
+        public ReadOnlyCollection<IItemStack> CreateCopiedItems()
+        {
+            return new ReadOnlyCollection<IItemStack>(InventoryItems.ToList());
         }
         
         private bool IsTargetContainer([CanBeNull] out ItemTrainCarContainer trainCarContainer)
@@ -222,6 +264,20 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
                 var setItem = _blockInventoryInserter.InsertItem(slots[i]);
                 Container.SetItem(i, setItem);
             }
+        }
+
+        private void EnsureContainer()
+        {
+            if (Container == null) Container = ItemTrainCarContainer.CreateWithEmptySlots(_slotsCount);
+        }
+
+        private IReadOnlyList<IItemStack> CreateEmptySlotItems()
+        {
+            // UI表示用の空スロットはプラットフォームに実コンテナを生成しない
+            // Empty slots for UI display must not create a real platform container
+            var items = new List<IItemStack>(_slotsCount);
+            for (var i = 0; i < _slotsCount; i++) items.Add(ServerContext.ItemStackFactory.CreatEmpty());
+            return items;
         }
 
         public void Destroy()
