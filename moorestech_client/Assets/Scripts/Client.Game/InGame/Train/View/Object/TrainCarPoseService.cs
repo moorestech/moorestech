@@ -98,6 +98,7 @@ namespace Client.Game.InGame.Train.View.Object
 
             // kinematic Rigidbody経由でCollider移動を物理エンジンへ反映する
             // Apply collider movement through the kinematic Rigidbody
+            _rigidbody.interpolation = RigidbodyInterpolation.Extrapolate;
             _rigidbody.MovePosition(_requestedPosition);
             _rigidbody.MoveRotation(_requestedRotation);
         }
