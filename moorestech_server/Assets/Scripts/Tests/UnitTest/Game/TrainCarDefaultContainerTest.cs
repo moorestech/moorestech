@@ -7,12 +7,12 @@ using Tests.Util;
 
 namespace Tests.UnitTest.Game
 {
-    // マスタ指定のdefaultContainerTypeに応じてTrainCarへ既定コンテナが装着されることを検証する
-    // Verifies that TrainCar receives the default container specified by master's defaultContainerType.
+    // マスタ指定のdefaultContainerTypeに応じてTrainCar生成時に既定コンテナが装着されることを検証する
+    // Verifies that constructing TrainCar attaches the default container specified by master's defaultContainerType.
     public class TrainCarDefaultContainerTest
     {
         [Test]
-        public void AttachDefaultContainer_None_LeavesContainerNull()
+        public void DefaultContainer_None_LeavesContainerNull()
         {
             // TrainCarコンストラクタはServerContext経由でITrainUpdateEventを取得するため最小環境を生成する
             // TrainCar's constructor resolves ITrainUpdateEvent via ServerContext, so build a minimal environment.
@@ -21,13 +21,11 @@ namespace Tests.UnitTest.Game
             var element = CreateMaster("None", inventorySlots: 5, fluidCapacity: 0f);
             var car = new TrainCar(element, isFacingForward: true);
 
-            car.AttachDefaultContainerFromMaster();
-
             Assert.IsNull(car.Container, "Noneの場合はコンテナが装着されないべき / Container must remain null for None");
         }
 
         [Test]
-        public void AttachDefaultContainer_Item_AttachesItemTrainCarContainer()
+        public void DefaultContainer_Item_AttachesItemTrainCarContainer()
         {
             TrainTestHelper.CreateEnvironment();
 
@@ -35,23 +33,19 @@ namespace Tests.UnitTest.Game
             var element = CreateMaster("Item", inventorySlots: slotCount, fluidCapacity: 0f);
             var car = new TrainCar(element, isFacingForward: true);
 
-            car.AttachDefaultContainerFromMaster();
-
             Assert.IsInstanceOf<ItemTrainCarContainer>(car.Container, "Itemの場合はItemTrainCarContainerが装着されるべき / Item must yield ItemTrainCarContainer");
             var itemContainer = (ItemTrainCarContainer)car.Container;
             Assert.AreEqual(slotCount, itemContainer.GetSlotSize(), "inventorySlotsと一致するスロット数で生成されるべき / Slot count must match inventorySlots");
         }
 
         [Test]
-        public void AttachDefaultContainer_Fluid_AttachesFluidTrainCarContainerWithCapacity()
+        public void DefaultContainer_Fluid_AttachesFluidTrainCarContainerWithCapacity()
         {
             TrainTestHelper.CreateEnvironment();
 
             const float capacity = 1250f;
             var element = CreateMaster("Fluid", inventorySlots: 0, fluidCapacity: capacity);
             var car = new TrainCar(element, isFacingForward: true);
-
-            car.AttachDefaultContainerFromMaster();
 
             Assert.IsInstanceOf<FluidTrainCarContainer>(car.Container, "Fluidの場合はFluidTrainCarContainerが装着されるべき / Fluid must yield FluidTrainCarContainer");
             var fluidContainer = (FluidTrainCarContainer)car.Container;

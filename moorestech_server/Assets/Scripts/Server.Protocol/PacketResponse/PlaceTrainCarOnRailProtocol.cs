@@ -99,12 +99,9 @@ namespace Server.Protocol.PacketResponse
                         return false;
                     }
                     
-                    // 単一車両の列車編成を生成する
-                    // Create a single-car train unit
+                    // 単一車両の列車編成を生成する(コンテナ装着はTrainCarコンストラクタ内で自動)
+                    // Create a single-car train unit (container is attached inside TrainCar constructor).
                     var trainCar = new TrainCar(trainCarMaster, true);
-                    // マスタ指定のデフォルトコンテナを装着する
-                    // Attach the default container specified by master.
-                    trainCar.AttachDefaultContainerFromMaster();
                     trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, _railPositionManager, _diagramManager);
                     return true;
                 }

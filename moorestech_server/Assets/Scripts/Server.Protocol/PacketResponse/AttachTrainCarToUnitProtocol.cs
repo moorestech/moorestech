@@ -115,10 +115,7 @@ namespace Server.Protocol.PacketResponse
                 // 追加車両を作成する 自分の接続面が前、相手の接続面も前なら接続後の自分の向きはunitからみて反対向きになる->facingforwardはfalse
                 // Create attaching car. Facing forward is false if both self and target connection sides are front, which means the attached car will face opposite direction from unit perspective after attachment.
                 attachingCar = new TrainCar(trainCarMaster, request.AttachCarFacingForward ^ request.AttachToTargetTrainHead);
-                // マスタ指定のデフォルトコンテナを装着する
-                // Attach the default container specified by master.
-                attachingCar.AttachDefaultContainerFromMaster();
-                
+
                 // attachingRailPositionは接続先編成からみた方向に正規化する
                 // Normalize attachingRailPosition so that its direction matches the connecting train unit. When the car is not facing forward relative to the unit, the physical front of the car lies on the opposite side, so we reverse the rail position to keep "head" and "rear" consistent with the target train's travel direction.
                 if (!attachingCar.IsFacingForward)
