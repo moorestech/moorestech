@@ -1,19 +1,6 @@
 ---
 name: unity-runtime-bug-hunt
-description: >-
-  Unity Editor PlayMode 中のランタイム挙動不具合・例外・応答不能の原因特定スキル。uloop execute-dynamic-code
-  でランタイム状態を広く浅くダンプし、JetBrains Rider debugger で狭く深く変数/BPヒットを観測する。
-  Use when: (1) ユーザーのメッセージに PlayMode 実行時のランタイム例外スタックトレースが貼られている
-  （NullReferenceException / TimeoutException / IndexOutOfRangeException 等）
-  (2) 「〇〇するとエラー/例外が出る」「破壊/生成したら固まった」などプレイ操作と異常の因果が絡む
-  (3) クライアント-サーバー通信のタイムアウト・応答 null・"Receive null"・パケット未返信・サーバー固まり
-  (4) 「動かない」「反応しない」「呼ばれない」「途中で止まる」「期待した動きにならない」「なぜ〇〇にならない？」といった実行フロー系
-  (5) 「ランタイム状態/実行中のインスタンスを見て」「実行中のコンポーネント状態を確認」
-  (6) null の直接源は分かるが、なぜその値が null かがランタイム状態依存（別スレッド/サーバー側/非同期/他インスタンス）。
-  ユーザーが "debug" / "breakpoint" を明示しなくても上記いずれかに該当すれば起動する。
-  Skip when: (a) コンパイルエラーや型エラー（静的バグ）
-  (b) null の原因が静的初期化漏れと即特定できる（フィールド未初期化がソース読むだけで自明等）
-  (c) テスト入力値の誤りなどコード読解だけで完結するケース。迷ったら起動する（起動コスト低、起動漏れコスト高）。
+description: Unity Editor PlayMode 中のランタイム挙動不具合・例外・応答不能の原因特定スキル。uloop execute-dynamic-code でランタイム状態を広く浅くダンプし、JetBrains Rider debugger で狭く深く変数/BPヒットを観測する。TRIGGER when: (1) ユーザーのメッセージに PlayMode 実行時のランタイム例外スタックトレースが貼られている（NullReferenceException / TimeoutException / IndexOutOfRangeException 等）(2) 「〇〇するとエラー/例外が出る」「破壊/生成したら固まった」などプレイ操作と異常の因果が絡む (3) クライアント-サーバー通信のタイムアウト・応答 null・"Receive null"・パケット未返信・サーバー固まり (4) 「動かない」「反応しない」「呼ばれない」「途中で止まる」「期待した動きにならない」「なぜ〇〇にならない？」といった実行フロー系 (5) 「ランタイム状態/実行中のインスタンスを見て」「実行中のコンポーネント状態を確認」 (6) null の直接源は分かるが、なぜその値が null かがランタイム状態依存（別スレッド/サーバー側/非同期/他インスタンス）。ユーザーが "debug" / "breakpoint" を明示しなくても上記いずれかに該当すれば起動する。SKIP when: (a) コンパイルエラーや型エラー（静的バグ） (b) null の原因が静的初期化漏れと即特定できる（フィールド未初期化がソース読むだけで自明等） (c) テスト入力値の誤りなどコード読解だけで完結するケース。迷ったら起動する（起動コスト低、起動漏れコスト高）。
 ---
 
 # unity-runtime-bug-hunt
@@ -137,6 +124,20 @@ _items[i] is Core.Item.Implementation.ItemStack
 
 **internal クラスでも namespace.Class まで書けば参照できる。** エラーメッセージが出たら `Grep` で namespace を確認して付け直す。
 
+### Step 5.5. コード修正に入る前に PlayMode を停止する
+
+原因が特定できて `.cs` を編集する段階に入る場合、**修正に手を付ける前に必ず PlayMode を停止する**。
+
+```bash
+uloop control-play-mode --action stop --project-path ./{project}
+```
+
+**理由:** PlayMode 中に C# ファイルを編集すると Unity は中途半端な domain reload を試み、走行中の世界とロード後の世界が混在して状態が壊れる。配置済みオブジェクトが古いクラス定義のまま動き続け、新しいインターフェース実装は反映されないなど、再現困難なバグが派生する（詳細 G9）。
+
+**例外:** 1ファイルも触らず、再度ランタイム観測だけする場合は停止不要。あくまで「`.cs` / `.asmdef` を Edit/Write する直前」で停止する。
+
+**順序:** Step 5 で原因特定 → **Step 5.5 で PlayMode 停止** → コード修正 → `uloop compile` → ユーザーに「PlayMode を再開して再確認してください」と伝える → Step 6 で後片付け。
+
 ### Step 6. 毎回必ず後片付けする
 
 以下を **必ず** 実行する。残すと次回セッションで誤ヒット・誤診断・Unity freeze を引き起こす。
@@ -204,6 +205,21 @@ return ctx == null ? "null" : $"OK count={ctx.BlockMasterDictionary.Count}";
 `ServerContext` / `ClientContext` / 静的 singleton など、「見えるかどうか」が構成依存の対象は **プロジェクトごとに [references/project-api-cheatsheet.md](references/project-api-cheatsheet.md) に in-process 可否を記載する**。未登録なら probe してから追記する。
 
 **黄金律の再掲:** 「見えない」は推論でなく probe の結果として宣言する。推論で諦めると、余計なインストゥルメント提案や別 Unity 起動提案で時間を溶かす。
+
+### G9: PlayMode 中に `.cs` を絶対に編集しない
+
+**症状:** コード修正後に再観測すると配置済みオブジェクトの挙動が想定と食い違う、`is` 判定が新しいインターフェースを認識しない、再現テストが通るのに PlayMode で動かない、Unity がフリーズする・例外をあげる。
+
+**原因:** Unity は PlayMode 中に `.cs` を保存されると **scripts compiled in PlayMode** モードに入る。既に走っている世界のオブジェクトは古いクラス定義のまま動き、ある瞬間から新クラスにすり替わる（あるいは Domain Reload が無効なら**永久にすり替わらない**）。コネクタ機構やインベントリのように「他のコンポーネントを `is` / `as` で型判定して接続を確立する」コードはここで壊滅的に壊れる（古いインスタンスは新インターフェースを実装していないとみなされる）。
+
+**対処:**
+- **編集前に必ず `uloop control-play-mode --action stop`** を実行する（Step 5.5）
+- ユーザーが手動で PlayMode を回している時も、編集に入る瞬間に「PlayMode を停止します」と一言入れて停止する
+- 編集 → `uloop compile` → ユーザーに **「PlayMode を再開して再確認してください」** と明示的に依頼する
+
+**やってはいけないこと:**
+- 「コンパイルが通ったから大丈夫」と思って PlayMode を回したまま放置する
+- 編集前停止を「面倒だから」とスキップする（一回壊れると原因切り分けに数十分かかる）
 
 ## 典型的な調査フロー例
 
