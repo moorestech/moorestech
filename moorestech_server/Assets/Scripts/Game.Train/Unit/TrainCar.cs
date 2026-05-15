@@ -49,9 +49,31 @@ namespace Game.Train.Unit
             Length = TrainLengthConverter.ToRailUnits(trainCarMaster.Length);
             IsFacingForward = isFacingForward;
             dockingblock = null;
-            Container = null;
-            
+
             _trainUpdateEvent = (TrainUpdateEvent)ServerContext.GetService<ITrainUpdateEvent>();
+
+            // マスタ指定のデフォルトコンテナを装着する(セーブ復元時はRestoreTrainCar内のSetContainerで上書きされる)
+            // Attach the default container per master spec; RestoreTrainCar's SetContainer overrides it on load.
+            AttachDefaultContainerFromMaster();
+
+            #region Internal
+
+            void AttachDefaultContainerFromMaster()
+            {
+                switch (trainCarMaster.DefaultContainerType)
+                {
+                    case "Item":
+                        SetContainer(ItemTrainCarContainer.CreateWithEmptySlots(trainCarMaster.InventorySlots));
+                        break;
+                    case "Fluid":
+                        SetContainer(new FluidTrainCarContainer(new FluidContainer(trainCarMaster.FluidCapacity)));
+                        break;
+                    // None または未指定はコンテナ無し
+                    // None or unspecified leaves the car without a container.
+                }
+            }
+
+            #endregion
         }
         
         public void ConsumeFuel(double time, int masconLevel)
@@ -95,24 +117,6 @@ namespace Game.Train.Unit
             Container?.OnDetachedFromCar();
             Container = container;
             Container?.OnAttachedToCar(this);
-        }
-
-        // マスタのdefaultContainerType指定に従って初期コンテナを装着する
-        // Attaches the default container specified by master's defaultContainerType.
-        public void AttachDefaultContainerFromMaster()
-        {
-            var master = TrainCarMasterElement;
-            switch (master.DefaultContainerType)
-            {
-                case "Item":
-                    SetContainer(ItemTrainCarContainer.CreateWithEmptySlots(master.InventorySlots));
-                    break;
-                case "Fluid":
-                    SetContainer(new FluidTrainCarContainer(new FluidContainer(master.FluidCapacity)));
-                    break;
-                // None または未指定はコンテナ無し
-                // None or unspecified leaves the car without a container.
-            }
         }
 
         internal void NotifyInventoryUpdate(int slot, IItemStack itemStack)
