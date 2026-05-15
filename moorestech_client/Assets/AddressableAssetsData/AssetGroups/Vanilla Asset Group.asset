@@ -475,6 +475,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 70b893615cb814fc897f9a766003500c
+    m_Address: Vanilla/UI/Block/TrainFluidPlatformBlockInventory
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 70c49cd34505a4bc18005cb7c0f879cd
     m_Address: Vanilla/Block/Wood_Processing_Machine
     m_ReadOnly: 0
@@ -497,6 +502,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 764764c4c5bb8b043a34afd794f9c161
     m_Address: Vanilla/Block/Old/generator mk3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 77840e2a726d7490385a017d5af840f2
+    m_Address: Vanilla/UI/Block/TrainStationBlockInventory
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -617,6 +627,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 93488f5c5617e46d6bc796276b24f16b
     m_Address: Vanilla/UI/Block/BaseCampInventory
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 936de12a568ce4c6ca2d50711007f371
+    m_Address: Vanilla/UI/Block/TrainItemPlatformBlockInventory
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
