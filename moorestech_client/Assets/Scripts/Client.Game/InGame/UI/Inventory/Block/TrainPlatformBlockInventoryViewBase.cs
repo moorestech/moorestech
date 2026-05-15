@@ -2,16 +2,14 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Cysharp.Threading.Tasks;
 using Game.Block.Blocks.TrainRail;
-using Server.Protocol.PacketResponse;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Client.Game.InGame.UI.Inventory.Block
 {
-    // 貨物プラットフォーム系UIの共通基底クラス
-    // モード表示・トグルボタン・StateDetail監視・モード切替リクエスト送信を担う
-    // Common base for cargo platform UIs: shows current mode, toggles via button, watches StateDetail and posts mode-change requests
+    // 貨物プラットフォーム系UIの共通基底: モード表示・トグル送信・StateDetail監視を担う
+    // Common base for cargo platform UIs: mode display, toggle posting, and StateDetail watching
     public abstract class TrainPlatformBlockInventoryViewBase : CommonBlockInventoryViewBase
     {
         [SerializeField] private Button toggleModeButton;
@@ -28,32 +26,24 @@ namespace Client.Game.InGame.UI.Inventory.Block
             base.Initialize(blockGameObject);
             BlockGameObject = blockGameObject;
 
-            if (toggleModeButton != null)
-            {
-                toggleModeButton.onClick.AddListener(OnToggleClicked);
-            }
-            UpdateModeText(currentModeFallback: TrainPlatformTransferComponent.TransferMode.LoadToTrain);
+            toggleModeButton.onClick.AddListener(OnToggleClicked);
+            UpdateModeText();
         }
 
         protected virtual void Update()
         {
-            UpdateModeText(currentModeFallback: TrainPlatformTransferComponent.TransferMode.LoadToTrain);
+            UpdateModeText();
         }
 
-        #region Internal
-
-        private void UpdateModeText(TrainPlatformTransferComponent.TransferMode currentModeFallback)
+        private void UpdateModeText()
         {
-            // サーバーから受信した現在モードを取得し、未受信ならフォールバック
-            // Read the latest mode from StateDetail; fall back when nothing has been received yet
+            // サーバーから受信した現在モードを取得し、未受信時のみLoadToTrainで仮表示
+            // Read the latest mode from StateDetail; fall back to LoadToTrain until the first packet arrives
             var state = BlockGameObject.GetStateDetail<TrainPlatformTransferStateDetail>(TrainPlatformTransferStateDetail.BlockStateDetailKey);
-            var mode = state?.Mode ?? currentModeFallback;
-            if (currentModeText != null)
-            {
-                currentModeText.text = mode == TrainPlatformTransferComponent.TransferMode.LoadToTrain
-                    ? "ロード（ブロック→列車）"
-                    : "アンロード（列車→ブロック）";
-            }
+            var mode = state?.Mode ?? TrainPlatformTransferComponent.TransferMode.LoadToTrain;
+            currentModeText.text = mode == TrainPlatformTransferComponent.TransferMode.LoadToTrain
+                ? "ロード（ブロック→列車）"
+                : "アンロード（列車→ブロック）";
         }
 
         private void OnToggleClicked()
@@ -65,8 +55,10 @@ namespace Client.Game.InGame.UI.Inventory.Block
         private async UniTask SendToggle()
         {
             _isSending = true;
-            if (toggleModeButton != null) toggleModeButton.interactable = false;
+            toggleModeButton.interactable = false;
 
+            // finallyで状態を必ず戻す
+            // Always restore UI state via finally
             try
             {
                 // 現在モードの反対を要求
@@ -81,20 +73,18 @@ namespace Client.Game.InGame.UI.Inventory.Block
                 var response = await ClientContext.VanillaApi.Response.SetTrainPlatformTransferMode(
                     BlockGameObject.BlockPosInfo.OriginalPos, next, ct);
 
+                // 成功時はサーバーからのStateDetail配信でUIが追従するため、ここでは何もしない
+                // On success, the StateDetail broadcast will update the UI automatically
                 if (response == null || !response.Success)
                 {
                     Debug.LogWarning($"TrainPlatform mode change failed. reason={response?.FailureReason}");
                 }
-                // 成功時はサーバーからのStateDetail配信でUIが追従するため、ここでは何もしない
-                // On success, the StateDetail broadcast will update the UI automatically
             }
             finally
             {
                 _isSending = false;
-                if (toggleModeButton != null) toggleModeButton.interactable = true;
+                toggleModeButton.interactable = true;
             }
         }
-
-        #endregion
     }
 }

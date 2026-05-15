@@ -8,9 +8,8 @@ using UnityEngine;
 
 namespace Client.Game.InGame.UI.Inventory.Block
 {
-    // アイテム貨物プラットフォーム/駅用UI
-    // ChestBlockInventoryViewと同じパターンでアイテムスロットを生成し、加えて基底のトグル機能を持つ
-    // UI for item cargo platforms and stations. Builds item slots like ChestBlockInventoryView and inherits the mode toggle from the base
+    // アイテム貨物プラットフォーム/駅用UI: ChestUIと同パターンでスロット生成し、基底からトグル機能を継承
+    // UI for item cargo platforms and stations: builds slots like ChestUI and inherits the mode toggle
     public class TrainItemPlatformBlockInventoryView : TrainPlatformBlockInventoryViewBase
     {
         [SerializeField] private RectTransform itemSlotsParent;
@@ -21,7 +20,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
 
             // アイテムスロット数の取得元はブロック種別ごとに異なる
             // Resolve the item slot count differently per block param type
-            int slotCount = ResolveSlotCount(blockGameObject);
+            int slotCount = ResolveSlotCount();
             if (slotCount <= 0)
             {
                 var blockName = blockGameObject.BlockMasterElement.Name;
@@ -39,22 +38,22 @@ namespace Client.Game.InGame.UI.Inventory.Block
             }
 
             UpdateItemList(itemList);
-        }
 
-        #region Internal
+            #region Internal
 
-        private static int ResolveSlotCount(BlockGameObject blockGameObject)
-        {
-            // 貨物プラットフォームと駅はそれぞれ独自のBlockParamを持つが、どちらもItemSlotCountを露出している
-            // Cargo platform and station have distinct BlockParam types; both expose ItemSlotCount
-            switch (blockGameObject.BlockMasterElement.BlockParam)
+            int ResolveSlotCount()
             {
-                case TrainItemPlatformBlockParam item: return item.ItemSlotCount;
-                case TrainStationBlockParam station: return station.ItemSlotCount;
-                default: return 0;
+                // 貨物PFと駅はそれぞれ独自BlockParamを持つが、どちらもItemSlotCountを露出する
+                // Cargo platform and station expose ItemSlotCount via distinct BlockParam types
+                switch (blockGameObject.BlockMasterElement.BlockParam)
+                {
+                    case TrainItemPlatformBlockParam item: return item.ItemSlotCount;
+                    case TrainStationBlockParam station: return station.ItemSlotCount;
+                    default: return 0;
+                }
             }
-        }
 
-        #endregion
+            #endregion
+        }
     }
 }

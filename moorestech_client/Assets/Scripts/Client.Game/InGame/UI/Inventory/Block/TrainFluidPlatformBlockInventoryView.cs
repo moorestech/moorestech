@@ -5,9 +5,8 @@ using UnityEngine;
 
 namespace Client.Game.InGame.UI.Inventory.Block
 {
-    // 液体貨物プラットフォーム用UI
-    // モード切替に加え、容量を表示する。現在液体量のライブ表示はFluidContainerStateDetail未整備のため省略
-    // UI for fluid cargo platforms. Provides mode toggle + capacity label. Live fluid amount is omitted until a dedicated state detail exists
+    // 液体貨物プラットフォーム用UI: 容量(static)を表示し、基底からトグル機能を継承
+    // UI for fluid cargo platforms: shows static capacity and inherits the mode toggle
     public class TrainFluidPlatformBlockInventoryView : TrainPlatformBlockInventoryViewBase
     {
         [SerializeField] private TMP_Text capacityText;
@@ -24,10 +23,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
                 return;
             }
 
-            if (capacityText != null)
-            {
-                capacityText.text = $"容量: {param.Capacity}";
-            }
+            capacityText.text = $"容量: {param.Capacity}";
         }
     }
 }
