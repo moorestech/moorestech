@@ -69,8 +69,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             var loadedContainer = loadedCar.Container as ItemTrainCarContainer;
             Assert.IsNotNull(loadedContainer, "ロード後のコンテナが存在しないか、ItemTrainCarContainerにキャストできません。");
             var loadedStack = loadedContainer.InventoryItems[0];
-            Assert.AreEqual(expectedItem.Id, loadedStack.Stack.Id, "ロード後の貨車インベントリIDが一致しません。");
-            Assert.AreEqual(expectedItem.Count, loadedStack.Stack.Count, "ロード後の貨車インベントリ個数が一致しません。");
+            Assert.AreEqual(expectedItem.Id, loadedStack.Id, "ロード後の貨車インベントリIDが一致しません。");
+            Assert.AreEqual(expectedItem.Count, loadedStack.Count, "ロード後の貨車インベントリ個数が一致しません。");
 
             CleanupTrains(loadEnv, loadedTrains);
         }
@@ -222,8 +222,8 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             var loadedCar = train.Cars[0];
             var loadedStack = (loadedCar.Container as ItemTrainCarContainer)!.InventoryItems[0];
-            Assert.AreEqual(expected.InventoryItemId, loadedStack.Stack.Id, "貨車インベントリIDが一致しません。");
-            Assert.AreEqual(expected.InventoryCount, loadedStack.Stack.Count, "貨車インベントリ個数が一致しません。");
+            Assert.AreEqual(expected.InventoryItemId, loadedStack.Id, "貨車インベントリIDが一致しません。");
+            Assert.AreEqual(expected.InventoryCount, loadedStack.Count, "貨車インベントリ個数が一致しません。");
 
             Assert.AreEqual(expected.IsDocked, train.trainUnitStationDocking.IsDocked, "ドッキング状態が一致しません。");
 
@@ -322,8 +322,8 @@ namespace Tests.UnitTest.Game.SaveLoad
                     waitRemaining,
                     activeEntry.Node.StationRef.NodeRole,
                     activeEntry.Node.StationRef.NodeSide,
-                    stack.Stack.Id,
-                    stack.Stack.Count,
+                    stack.Id,
+                    stack.Count,
                     train.trainUnitStationDocking.IsDocked,
                     dockingBlockPosition);
             }

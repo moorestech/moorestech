@@ -31,6 +31,16 @@ properties:
       default: 1
     - key: length
       type: integer
+    - key: defaultContainerType
+      type: enum
+      options:
+      - None
+      - Item
+      - Fluid
+      default: None
+    - key: fluidCapacity
+      type: number
+      default: 0
     - key: trainFuelItems
       type: array
       optional: true

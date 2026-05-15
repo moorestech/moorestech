@@ -259,7 +259,7 @@ namespace Tests.UnitTest.Game.SaveLoad
                 
                 var cars = new List<TrainCar>
                 {
-                    new TrainCar(trainCarMaster)
+                    new TrainCar(trainCarMaster, true)
                 };
 
                 var train = new TrainUnit(railPosition, cars, environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
@@ -362,7 +362,7 @@ namespace Tests.UnitTest.Game.SaveLoad
                     itemGuidBytes[i] = (byte)UnityEngine.Random.Range(0, 256);
                 }
 
-                return new TrainCarMasterElement(index, new Guid(trainCarGuidBytes), new Guid(itemGuidBytes), null, 320, tractionForce, 0, length, null, null);
+                return new TrainCarMasterElement(index, new Guid(trainCarGuidBytes), new Guid(itemGuidBytes), null, 320, tractionForce, 0, length, "None", 0f, null, null);
             }).ToArray());
         }
         
