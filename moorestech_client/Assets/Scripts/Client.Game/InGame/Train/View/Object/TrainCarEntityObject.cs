@@ -22,6 +22,12 @@ namespace Client.Game.InGame.Train.View.Object
         private bool _debugAutoRun = false;//////////////////
 
         private RendererMaterialReplacerController _rendererMaterialReplacerController;
+        private Rigidbody _poseRigidbody;
+        private Vector3 _requestedPosition;
+        private Quaternion _requestedRotation = Quaternion.identity;
+        private bool _hasRequestedPose;
+        private bool _hasAppliedInitialPose;
+        private bool _hasConfiguredPoseRigidbody;
 
         /// <summary>
         /// 初期化を行う
@@ -31,6 +37,9 @@ namespace Client.Game.InGame.Train.View.Object
         {
             _debugAutoRun = DebugParameters.GetValueOrDefaultBool(DebugConst.TrainAutoRunKey);//////////////////
             _rendererMaterialReplacerController = new RendererMaterialReplacerController(gameObject);
+            // 列車Colliderの移動を物理エンジンへ渡すためのRigidbodyを確保する
+            // Ensure a Rigidbody so train collider movement is handled by physics
+            EnsurePoseRigidbody();
             // モデル中心の前後オフセットをキャッシュする
             // Cache the model forward center offset
             ModelForwardCenterOffset = ResolveModelForwardCenterOffset();
@@ -58,12 +67,27 @@ namespace Client.Game.InGame.Train.View.Object
         
         
         /// <summary>
-        /// 即座に位置と角度を設定する（補間なし）
-        /// Set position and rotation immediately (without interpolation)
+        /// 物理更新で反映する列車姿勢を設定する
+        /// Set the train pose to apply during physics updates
         /// </summary>
         public void SetDirectPose(Vector3 position, Quaternion rotation)
         {
+            EnsurePoseRigidbody();
+            _requestedPosition = position;
+            _requestedRotation = rotation;
+            _hasRequestedPose = true;
+
+            // 初回だけ物理補間せずに正しい位置へ配置する
+            // Snap only the first pose so the train starts at the correct location
+            if (_hasAppliedInitialPose)
+            {
+                return;
+            }
+
+            _poseRigidbody.position = position;
+            _poseRigidbody.rotation = rotation;
             transform.SetPositionAndRotation(position, rotation);
+            _hasAppliedInitialPose = true;
         }
 
         /// <summary>
@@ -90,6 +114,49 @@ namespace Client.Game.InGame.Train.View.Object
                 OnTrainAutoRunChanged(_debugAutoRun);
                 Debug.Log($"[Debug] Train auto run changed: {_debugAutoRun}");
             }
+        }
+
+        private void FixedUpdate()
+        {
+            // 姿勢要求が届くまで物理更新は行わない
+            // Skip physics movement until a pose request is available
+            if (!_hasRequestedPose)
+            {
+                return;
+            }
+
+            // kinematic Rigidbody経由でCollider移動を物理エンジンへ反映する
+            // Apply collider movement through the kinematic Rigidbody
+            EnsurePoseRigidbody();
+            _poseRigidbody.MovePosition(_requestedPosition);
+            _poseRigidbody.MoveRotation(_requestedRotation);
+        }
+
+        private void EnsurePoseRigidbody()
+        {
+            // 既存Rigidbodyがあれば設定だけを揃えて再利用する
+            // Reuse an existing Rigidbody and normalize the required settings
+            if (_poseRigidbody == null)
+            {
+                _hasConfiguredPoseRigidbody = false;
+                _poseRigidbody = GetComponent<Rigidbody>();
+                if (_poseRigidbody == null)
+                {
+                    _poseRigidbody = gameObject.AddComponent<Rigidbody>();
+                }
+            }
+            if (_hasConfiguredPoseRigidbody)
+            {
+                return;
+            }
+
+            // 列車はサーバー同期姿勢で動くため、重力や力では動かさない
+            // The train follows server-synced poses, not gravity or forces
+            _poseRigidbody.isKinematic = true;
+            _poseRigidbody.useGravity = false;
+            _poseRigidbody.interpolation = RigidbodyInterpolation.Interpolate;
+            _poseRigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
+            _hasConfiguredPoseRigidbody = true;
         }
 
         // 自動運転（AutoRun）の状態をサーバへ送信するローカル関数
