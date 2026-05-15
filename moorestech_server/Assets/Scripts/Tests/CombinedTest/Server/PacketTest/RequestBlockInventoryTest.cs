@@ -93,6 +93,39 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.IsTrue(data.Items.All(item => item.Id.AsPrimitive() == 0 && item.Count == 0));
         }
 
+        [Test]
+        public void BlockInventoryRequestWithoutBlockReturnsBlockNotFound()
+        {
+            // 存在しないブロックへの要求は成功扱いにしない
+            // Requests for missing blocks must not be reported as success
+            var environment = TrainTestHelper.CreateEnvironment();
+            var position = new Vector3Int(999, 20, 0);
+
+            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestBlock(position))[0];
+            var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(responseBytes);
+
+            Assert.AreEqual(InventoryType.Block, data.InventoryType);
+            Assert.AreEqual(InventoryRequestResult.BlockNotFound, data.Result);
+            Assert.AreEqual(0, data.Items.Length);
+        }
+
+        [Test]
+        public void BlockInventoryRequestWithoutOpenableInventoryReturnsContainerNotFound()
+        {
+            // インベントリを持たないブロックへの要求は成功扱いにしない
+            // Requests for blocks without openable inventory must not be reported as success
+            var environment = TrainTestHelper.CreateEnvironment();
+            var position = new Vector3Int(40, 20, 0);
+            TrainTestHelper.PlaceBlock(environment, ForUnitTestModBlockId.TestTrainRail, position, BlockDirection.North);
+
+            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestBlock(position))[0];
+            var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(responseBytes);
+
+            Assert.AreEqual(InventoryType.Block, data.InventoryType);
+            Assert.AreEqual(InventoryRequestResult.ContainerNotFound, data.Result);
+            Assert.AreEqual(0, data.Items.Length);
+        }
+
         private byte[] RequestBlock(Vector3Int pos)
         {
             var identifier = InventoryIdentifierMessagePack.CreateBlockMessage(pos);
