@@ -32,7 +32,32 @@ namespace Client.Game.InGame.Train.View.Object
             ConfigureRigidbody();
             // モデル中心の前後オフセットをキャッシュする
             // Cache the model forward center offset
-            ModelForwardCenterOffset = ResolveModelForwardCenterOffset(renderers, transform);
+            ModelForwardCenterOffset = ResolveModelForwardCenterOffset();
+
+            #region Internal
+
+            void ConfigureRigidbody()
+            {
+                // 列車Colliderの移動を物理エンジンへ渡すためRigidbodyをkinematicに設定する
+                // Set the Rigidbody kinematic so train collider movement is handled by physics
+                _rigidbody.isKinematic = true;
+                _rigidbody.useGravity = false;
+                _rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
+                _rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
+            }
+
+            float ResolveModelForwardCenterOffset()
+            {
+                // レンダラの境界中心から前後オフセットを算出する
+                // Compute forward offset from renderer bounds center
+                var combined = renderers[0].bounds;
+                for (var i = 1; i < renderers.Length; i++) combined.Encapsulate(renderers[i].bounds);
+                var localForwardAxis = Quaternion.Euler(0f, -ModelYawOffsetDegrees, 0f) * Vector3.forward;
+                var localCenter = transform.InverseTransformPoint(combined.center);
+                return Vector3.Dot(localCenter, localForwardAxis);
+            }
+
+            #endregion
         }
 
         /// <summary>
@@ -75,27 +100,6 @@ namespace Client.Game.InGame.Train.View.Object
             // Apply collider movement through the kinematic Rigidbody
             _rigidbody.MovePosition(_requestedPosition);
             _rigidbody.MoveRotation(_requestedRotation);
-        }
-
-        private void ConfigureRigidbody()
-        {
-            // 列車Colliderの移動を物理エンジンへ渡すためRigidbodyをkinematicに設定する
-            // Set the Rigidbody kinematic so train collider movement is handled by physics
-            _rigidbody.isKinematic = true;
-            _rigidbody.useGravity = false;
-            _rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
-            _rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
-        }
-
-        private static float ResolveModelForwardCenterOffset(Renderer[] renderers, Transform transform)
-        {
-            // レンダラの境界中心から前後オフセットを算出する
-            // Compute forward offset from renderer bounds center
-            var combined = renderers[0].bounds;
-            for (var i = 1; i < renderers.Length; i++) combined.Encapsulate(renderers[i].bounds);
-            var localForwardAxis = Quaternion.Euler(0f, -ModelYawOffsetDegrees, 0f) * Vector3.forward;
-            var localCenter = transform.InverseTransformPoint(combined.center);
-            return Vector3.Dot(localCenter, localForwardAxis);
         }
     }
 }
