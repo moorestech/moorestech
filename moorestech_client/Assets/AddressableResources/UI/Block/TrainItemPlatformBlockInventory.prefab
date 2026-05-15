@@ -32,6 +32,8 @@ RectTransform:
   - {fileID: 2280124229954438255}
   - {fileID: 4514274129862906707}
   - {fileID: 3669111064874092032}
+  - {fileID: 9014479339194863809}
+  - {fileID: 4845192384896580036}
   m_Father: {fileID: 8641687428890373615}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -344,17 +346,17 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6865042151265807299}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 8641687428890373615}
+  m_Father: {fileID: 3369540920260616310}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -110}
-  m_SizeDelta: {x: -90, y: 36}
+  m_AnchoredPosition: {x: 0, y: -105.61871}
+  m_SizeDelta: {x: 923, y: 36}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!222 &5495392624017580545
 CanvasRenderer:
@@ -486,8 +488,6 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3369540920260616310}
-  - {fileID: 9014479339194863809}
-  - {fileID: 4845192384896580036}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -536,17 +536,17 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7925482756102984071}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 7275950629437414740}
-  m_Father: {fileID: 8641687428890373615}
+  m_Father: {fileID: 3369540920260616310}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0, y: -150}
+  m_AnchoredPosition: {x: 0, y: -145.61871}
   m_SizeDelta: {x: 220, y: 44}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!222 &1189639082499986767
