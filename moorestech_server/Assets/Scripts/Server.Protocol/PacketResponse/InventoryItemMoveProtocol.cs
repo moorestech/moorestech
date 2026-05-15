@@ -3,7 +3,6 @@ using Core.Inventory;
 using Game.Block.Interface.Component;
 using Game.Context;
 using Game.PlayerInventory.Interface;
-using Game.Train.Event;
 using Game.Train.Unit;
 using Game.Train.Unit.Containers;
 using Game.World.Interface.DataStore;
@@ -24,13 +23,11 @@ namespace Server.Protocol.PacketResponse
 
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly ITrainUnitLookupDatastore _trainUnitLookupDatastore;
-        private readonly TrainUpdateEvent _trainUpdateEvent;
 
         public InventoryItemMoveProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
             _trainUnitLookupDatastore = serviceProvider.GetService<ITrainUnitLookupDatastore>();
-            _trainUpdateEvent = (TrainUpdateEvent)serviceProvider.GetService<ITrainUpdateEvent>();
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload)
@@ -102,12 +99,12 @@ namespace Server.Protocol.PacketResponse
 
             IOpenableInventory ResolveTrainInventory(InventoryIdentifierMessagePack identifier)
             {
-                // 列車カーのアイテムコンテナを操作可能なインベントリに変換
-                // Adapt the target train car item container to an openable inventory.
+                // 列車カーのアイテムコンテナをIOpenableInventoryとして返す
+                // Return the target train car item container as IOpenableInventory.
                 var trainCarInstanceId = new TrainCarInstanceId(long.Parse(identifier.TrainCarInstanceId));
                 if (!_trainUnitLookupDatastore.TryGetTrainCar(trainCarInstanceId, out var trainCar)) return null;
                 if (trainCar.Container is not ItemTrainCarContainer itemContainer) return null;
-                return new TrainCarItemOpenableInventory(trainCarInstanceId, itemContainer, _trainUpdateEvent.InvokeInventoryUpdate);
+                return itemContainer;
             }
 
             #endregion
