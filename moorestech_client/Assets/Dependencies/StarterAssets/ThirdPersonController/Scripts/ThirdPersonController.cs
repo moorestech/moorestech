@@ -79,6 +79,11 @@ namespace StarterAssets
 		private float _jumpTimeoutDelta;
 		private float _fallTimeoutDelta;
 
+		// moving platform tracking
+		private Rigidbody _trackedPlatformRigidbody;
+		private Vector3 _trackedPlatformPosition;
+		private static readonly Collider[] _platformOverlapBuffer = new Collider[8];
+
 		// animation IDs
 		private int _animIDSpeed;
 		private int _animIDGrounded;
@@ -243,8 +248,12 @@ namespace StarterAssets
 
 			Vector3 targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
 
+			// 足元のkinematic Rigidbody（列車など）の前フレームからの移動量を取得する
+			// Resolve the per-frame delta of the kinematic Rigidbody beneath the player (e.g. trains)
+			Vector3 platformDelta = ResolveMovingPlatformDelta();
+
 			// move the player
-			_controller.Move(targetDirection.normalized * (_speed * Time.deltaTime) + new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
+			_controller.Move(targetDirection.normalized * (_speed * Time.deltaTime) + new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime + platformDelta);
 
 			// update animator if using character
 			if (_hasAnimator)
@@ -259,6 +268,54 @@ namespace StarterAssets
 			_controller.enabled = false;
 			transform.position = position;
 			_controller.enabled = true;
+			// ワープ後は古い足場の差分を残さないよう追従状態をリセットする
+			// Reset platform tracking after warp so stale deltas don't leak through
+			_trackedPlatformRigidbody = null;
+		}
+
+		private Vector3 ResolveMovingPlatformDelta()
+		{
+			// 接地していない時、または既に親オブジェクト経由で追従中の場合は適用しない
+			// Skip platform follow while airborne or when already parented (e.g. ForceRide)
+			if (!Grounded || transform.parent != null)
+			{
+				_trackedPlatformRigidbody = null;
+				return Vector3.zero;
+			}
+
+			Rigidbody platform = FindGroundKinematicRigidbody();
+
+			Vector3 delta = Vector3.zero;
+			if (platform != null && platform == _trackedPlatformRigidbody)
+			{
+				// 同じ足場が前フレームから動いた量だけプレイヤーを追従させる
+				// Carry the player along by the platform's movement since the last frame
+				delta = platform.position - _trackedPlatformPosition;
+			}
+
+			_trackedPlatformRigidbody = platform;
+			if (platform != null)
+			{
+				_trackedPlatformPosition = platform.position;
+			}
+			return delta;
+		}
+
+		private Rigidbody FindGroundKinematicRigidbody()
+		{
+			// 接地判定と同じ球で足元のColliderを探索する
+			// Probe the same grounded sphere to find colliders under the player
+			Vector3 spherePosition = new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z);
+			int count = Physics.OverlapSphereNonAlloc(spherePosition, GroundedRadius, _platformOverlapBuffer, ~0, QueryTriggerInteraction.Ignore);
+			for (int i = 0; i < count; i++)
+			{
+				var rb = _platformOverlapBuffer[i].attachedRigidbody;
+				if (rb != null && rb.isKinematic)
+				{
+					return rb;
+				}
+			}
+			return null;
 		}
 
 		private void JumpAndGravity()
