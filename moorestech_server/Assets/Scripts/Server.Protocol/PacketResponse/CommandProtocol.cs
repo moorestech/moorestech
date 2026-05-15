@@ -91,9 +91,9 @@ namespace Server.Protocol.PacketResponse
                         
                         var fuel = trainCar.TrainCarMasterElement.TrainFuelItems[0];
                         
-                        for (var j = 0; j < itemTrainCarContainer.InventoryItems.Length; j++)
+                        for (var j = 0; j < itemTrainCarContainer.InventoryItems.Count; j++)
                         {
-                            var stack = itemTrainCarContainer.InventoryItems[j].Stack;
+                            var stack = itemTrainCarContainer.InventoryItems[j];
                             if (stack.Id == ItemMaster.EmptyItemId) emptySlotIndex = j;
                         }
                         

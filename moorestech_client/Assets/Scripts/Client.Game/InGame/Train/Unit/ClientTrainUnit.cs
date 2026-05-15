@@ -51,18 +51,31 @@ namespace Client.Game.InGame.Train.Unit
 
         // pre sim差分イベントを反映する
         // Apply pre-simulation diff values from the server.
-        public void ApplyPreSimulationDiff(int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeId)
+        public bool ApplyPreSimulationDiff(int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeId, bool isReversedThisTick)
         {
+            // reverse は同 tick の速度・距離シミュレーション前に反映する
+            // Apply reverse before the same-tick velocity and distance simulation
+            if (isReversedThisTick)
+            {
+                ApplyReverseDiff();
+            }
+
+            // マスコンと分岐目標をサーバー通知値に合わせる
+            // Align mascon and branch target with server-notified values
             MasconLevel += masconLevelDiff;
             if (approachingNodeId != -1)
             {
                 _railGraphTraversalProvider.TryGetNode(approachingNodeId, out _simulationTargetNode);
             }
+
+            // ドッキング停止はこの tick の移動処理内で消化する
+            // Consume docking stop inside this tick's movement step
             if (isNowDockingSpeedZero)
             {
                 // このtickのシミュレーション内でドッキング停止処理を実行する
                 _isDockingStopPendingForTick = true;
             }
+            return isReversedThisTick;
         }
 
         // 指定したTrainCarを現在の列車スナップショットから削除する
@@ -172,7 +185,7 @@ namespace Client.Game.InGame.Train.Unit
                         {
                             return (trainCarSnapshot.Weight, 0);
                         }
-                        return (trainCarSnapshot.Weight, trainCarSnapshot.IsFacingForward ? trainElement.TractionForce : 0);
+                        return (trainCarSnapshot.Weight, trainElement.TractionForce);
                     }
                 }
             }
@@ -266,6 +279,32 @@ namespace Client.Game.InGame.Train.Unit
                 return (false, null);
             }
             return (true, newPath);
+        }
+
+        private void ApplyReverseDiff()
+        {
+            // RailPosition の向きをサーバーの TrainUnit.Reverse と同じように反転する
+            // Reverse RailPosition the same way as server-side TrainUnit.Reverse
+            RailPosition?.Reverse();
+            _simulationTargetNode = RailPosition?.GetNodeApproaching();
+
+            // 車両順と各車両の向きを同時に反転し、見た目の向きが打ち消される状態を再現する
+            // Reverse car order and per-car facing together to reproduce the visual-canceling state
+            var localCars = _cars ?? Array.Empty<TrainCarSnapshot>();
+            if (localCars.Count == 0)
+            {
+                return;
+            }
+
+            // readonly snapshot なので反転後の配列を新規構築する
+            // Rebuild readonly snapshots into a reversed array
+            var reversedCars = new TrainCarSnapshot[localCars.Count];
+            for (var i = 0; i < localCars.Count; i++)
+            {
+                var source = localCars[localCars.Count - 1 - i];
+                reversedCars[i] = new TrainCarSnapshot(source.TrainCarInstanceId, source.TrainCarMasterId, !source.IsFacingForward, source.HasFuel, source.Weight);
+            }
+            _cars = reversedCars;
         }
     }
 }

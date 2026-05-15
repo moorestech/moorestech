@@ -45,18 +45,20 @@ namespace Game.Train.RailPositions
             }
         }
         // 全てのrailpositionに対して削除したいノードが1つもなかったらtrue
+        // Return true only when no registered rail position contains the node.
         public bool CanRemoveNode(RailNode nodeToRemove) 
         {
-            bool found = false;
             foreach (var position in _list)
             {
+                // 対象ノードを列車が保持しているなら削除不可にする
+                // Reject removal when any train position keeps the target node.
                 if (position.ContainsNode(nodeToRemove))
                 {
-                    found = true;
-                    break;
+                    return false;
                 }
             }
-            return found;
+
+            return true;
         }
         // 全てのrailpositionに対して削除したい辺が1つもなかったらtrue
         public bool CanRemoveEdge(RailNode from, RailNode to)
