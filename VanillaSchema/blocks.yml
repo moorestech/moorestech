@@ -561,6 +561,7 @@ properties:
       - when: TrainStation
         type: object
         implementationInterface:
+        - IChestParam
         - IInventoryConnectors
         properties:
         - key: entryRailPosition
@@ -591,6 +592,7 @@ properties:
       - when: TrainItemPlatform
         type: object
         implementationInterface:
+        - IChestParam
         - IInventoryConnectors
         properties:
         - key: entryRailPosition
