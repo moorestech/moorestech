@@ -9,19 +9,20 @@ using UnityEngine;
 
 namespace Client.Game.InGame.Train.View.Object
 {
+    [RequireComponent(typeof(Rigidbody))]
     public class TrainCarEntityObject : MonoBehaviour
     {
         public TrainCarInstanceId TrainCarInstanceId { get; private set; }
         public TrainCarMasterElement TrainCarMasterElement { get; set; }
-        private const float ModelYawOffsetDegrees = -90f;
         /// <summary>
         /// モデル中心の前後オフセット
         /// Model forward center offset
         /// </summary>
-        public float ModelForwardCenterOffset { get; private set; }
+        public float ModelForwardCenterOffset => _poseService.ModelForwardCenterOffset;
         private bool _debugAutoRun = false;//////////////////
 
         private RendererMaterialReplacerController _rendererMaterialReplacerController;
+        private TrainCarPoseService _poseService;
 
         /// <summary>
         /// 初期化を行う
@@ -31,23 +32,11 @@ namespace Client.Game.InGame.Train.View.Object
         {
             _debugAutoRun = DebugParameters.GetValueOrDefaultBool(DebugConst.TrainAutoRunKey);//////////////////
             _rendererMaterialReplacerController = new RendererMaterialReplacerController(gameObject);
-            // モデル中心の前後オフセットをキャッシュする
-            // Cache the model forward center offset
-            ModelForwardCenterOffset = ResolveModelForwardCenterOffset();
-            
-            #region Internal
-            float ResolveModelForwardCenterOffset()
-            {
-                // レンダラの境界中心から前後オフセットを算出する
-                // Compute forward offset from renderer bounds center
-                var renderers = GetComponentsInChildren<Renderer>(true);
-                var combined = renderers[0].bounds;
-                for (var i = 1; i < renderers.Length; i++) combined.Encapsulate(renderers[i].bounds);
-                var localForwardAxis = Quaternion.Euler(0f, -ModelYawOffsetDegrees, 0f) * Vector3.forward;
-                var localCenter = transform.InverseTransformPoint(combined.center);
-                return Vector3.Dot(localCenter, localForwardAxis);
-            }
-            #endregion
+            // Rigidbody/姿勢制御をサービスへ委譲する
+            // Delegate rigidbody and pose control to the service
+            var rigidbody = GetComponent<Rigidbody>();
+            var renderers = GetComponentsInChildren<Renderer>(true);
+            _poseService = new TrainCarPoseService(rigidbody, transform, renderers);
         }
 
         public void SetTrain(TrainCarInstanceId trainCarInstanceId, TrainCarMasterElement trainCarMasterElement)
@@ -55,15 +44,15 @@ namespace Client.Game.InGame.Train.View.Object
             TrainCarInstanceId = trainCarInstanceId;
             TrainCarMasterElement = trainCarMasterElement;
         }
-        
-        
+
+
         /// <summary>
-        /// 即座に位置と角度を設定する（補間なし）
-        /// Set position and rotation immediately (without interpolation)
+        /// 物理更新で反映する列車姿勢を設定する
+        /// Set the train pose to apply during physics updates
         /// </summary>
         public void SetDirectPose(Vector3 position, Quaternion rotation)
         {
-            transform.SetPositionAndRotation(position, rotation);
+            _poseService.RequestPose(position, rotation);
         }
 
         /// <summary>
@@ -90,6 +79,11 @@ namespace Client.Game.InGame.Train.View.Object
                 OnTrainAutoRunChanged(_debugAutoRun);
                 Debug.Log($"[Debug] Train auto run changed: {_debugAutoRun}");
             }
+        }
+
+        private void FixedUpdate()
+        {
+            _poseService.ApplyToPhysics();
         }
 
         // 自動運転（AutoRun）の状態をサーバへ送信するローカル関数

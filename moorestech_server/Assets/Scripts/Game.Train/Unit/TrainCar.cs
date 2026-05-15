@@ -1,14 +1,17 @@
 using System;
+using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Context;
 using Game.Train.Diagram;
 using Game.Train.Event;
 using Game.Train.SaveLoad;
+using Game.Train.Unit.Containers;
 using JetBrains.Annotations;
 using MessagePack;
 using Mooresmaster.Model.TrainModule;
 using UnityEngine;
+using FluidContainer = Game.Fluid.FluidContainer;
 
 namespace Game.Train.Unit
 {
@@ -39,17 +42,38 @@ namespace Game.Train.Unit
         
         private readonly TrainUpdateEvent _trainUpdateEvent;
 
-        //TODO燃料スロット数削除について修正は今後
-        public TrainCar(TrainCarMasterElement trainCarMaster, bool isFacingForward = true, int fuelSlots = 0)
+        public TrainCar(TrainCarMasterElement trainCarMaster, bool isFacingForward)
         {
             TrainCarMasterElement = trainCarMaster;
             TractionForce = trainCarMaster.TractionForce;
             Length = TrainLengthConverter.ToRailUnits(trainCarMaster.Length);
             IsFacingForward = isFacingForward;
             dockingblock = null;
-            Container = null;
-            
+
             _trainUpdateEvent = (TrainUpdateEvent)ServerContext.GetService<ITrainUpdateEvent>();
+
+            // マスタ指定のデフォルトコンテナを装着する(セーブ復元時はRestoreTrainCar内のSetContainerで上書きされる)
+            // Attach the default container per master spec; RestoreTrainCar's SetContainer overrides it on load.
+            AttachDefaultContainerFromMaster();
+
+            #region Internal
+
+            void AttachDefaultContainerFromMaster()
+            {
+                switch (trainCarMaster.DefaultContainerType)
+                {
+                    case "Item":
+                        SetContainer(ItemTrainCarContainer.CreateWithEmptySlots(trainCarMaster.InventorySlots));
+                        break;
+                    case "Fluid":
+                        SetContainer(new FluidTrainCarContainer(new FluidContainer(trainCarMaster.FluidCapacity)));
+                        break;
+                    // None または未指定はコンテナ無し
+                    // None or unspecified leaves the car without a container.
+                }
+            }
+
+            #endregion
         }
         
         public void ConsumeFuel(double time, int masconLevel)
@@ -70,7 +94,7 @@ namespace Game.Train.Unit
                 if (RemainFuelTime <= 0) return (weight, 0);
             }
             
-            var tractionForce = IsFacingForward ? TractionForce : 0;
+            var tractionForce = TractionForce;
             return (weight, tractionForce);
         }
 
@@ -90,7 +114,14 @@ namespace Game.Train.Unit
         
         public void SetContainer(ITrainCarContainer container)
         {
+            Container?.OnDetachedFromCar();
             Container = container;
+            Container?.OnAttachedToCar(this);
+        }
+
+        internal void NotifyInventoryUpdate(int slot, IItemStack itemStack)
+        {
+            _trainUpdateEvent.InvokeInventoryUpdate(new TrainInventoryUpdateEventProperties(_trainCarInstanceId, slot, itemStack));
         }
 
         public TrainCarSaveData CreateTrainCarSaveData()
@@ -131,7 +162,10 @@ namespace Game.Train.Unit
                 }
             }
             
-            car.Container = MessagePackSerializer.Deserialize<ITrainCarContainer>(MessagePackSerializer.ConvertFromJson(data.ContainerSaveData));
+            // ロード時もSetContainer経由で通知バインドを行う
+            // Restore via SetContainer so the notification binding is established on load.
+            var restoredContainer = MessagePackSerializer.Deserialize<ITrainCarContainer>(MessagePackSerializer.ConvertFromJson(data.ContainerSaveData));
+            car.SetContainer(restoredContainer);
 
             car.RemainFuelTime = data.RemainFuelTime;
             
@@ -140,6 +174,9 @@ namespace Game.Train.Unit
 
         public void Destroy()
         {
+            // 通知バインドを解除し、Container参照も切る
+            // Release the notification binding and clear the container reference.
+            SetContainer(null);
             _trainUpdateEvent.InvokeTrainCarRemoved(_trainCarInstanceId);
         }
         

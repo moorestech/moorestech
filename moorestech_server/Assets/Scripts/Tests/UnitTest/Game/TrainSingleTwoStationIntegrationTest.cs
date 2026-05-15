@@ -116,7 +116,7 @@ namespace Tests.UnitTest.Game
                 "積込プラットフォームにドッキング中に列車インベントリが満杯になりませんでした");
 
             var depletedStack = loadingContainer.Container!.InventoryItems[0];
-            Assert.AreEqual(ItemMaster.EmptyItemId, depletedStack.Stack.Id, "積込プラットフォームが列車へ全量を移送できていません。");
+            Assert.AreEqual(ItemMaster.EmptyItemId, depletedStack.Id, "積込プラットフォームが列車へ全量を移送できていません。");
 
             AdvanceUntil(trainUnit, tickCargoArms, () => !trainUnit.trainUnitStationDocking.IsDocked, maxIterations: 120,
                 "積込完了後に列車が出発しませんでした");
@@ -130,8 +130,8 @@ namespace Tests.UnitTest.Game
                 "荷降ろしプラットフォームにドッキング中に列車インベントリが空になりませんでした");
 
             var receivedStack = unloadingContainer.Container!.InventoryItems[0];
-            Assert.AreEqual(ForUnitTestItemId.ItemId1, receivedStack.Stack.Id, "荷降ろしプラットフォームが輸送アイテムを受け取っていません。");
-            Assert.AreEqual(maxStack, receivedStack.Stack.Count,
+            Assert.AreEqual(ForUnitTestItemId.ItemId1, receivedStack.Id, "荷降ろしプラットフォームが輸送アイテムを受け取っていません。");
+            Assert.AreEqual(maxStack, receivedStack.Count,
                 "荷降ろしプラットフォームが列車から全量を受け取っていません。");
 
             AdvanceUntil(trainUnit, tickCargoArms, () => !trainUnit.trainUnitStationDocking.IsDocked, maxIterations: 120,

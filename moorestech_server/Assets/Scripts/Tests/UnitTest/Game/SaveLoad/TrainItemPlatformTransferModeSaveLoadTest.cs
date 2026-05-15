@@ -83,8 +83,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             var platformStack = loadedInventory.GetItem(0);
             Assert.AreEqual(ItemMaster.EmptyItemId, platformStack.Id, "ロード後にアニメーション進捗が復元されず、予定tickで一括移送されませんでした。");
             var carStack = (loadedCar.Container as ItemTrainCarContainer)!.InventoryItems[0];
-            Assert.AreEqual(ForUnitTestItemId.ItemId1, carStack.Stack.Id, "ロード後に列車側へアイテムが移送されていません。");
-            Assert.AreEqual(maxStack, carStack.Stack.Count, "ロード後に列車側へ全量移送されていません。");
+            Assert.AreEqual(ForUnitTestItemId.ItemId1, carStack.Id, "ロード後に列車側へアイテムが移送されていません。");
+            Assert.AreEqual(maxStack, carStack.Count, "ロード後に列車側へ全量移送されていません。");
 
             loadedTrain.trainUnitStationDocking.UndockFromStation();
             loadEnvironment.GetTrainDiagramManager().UnregisterDiagram(loadedTrain.trainDiagram);

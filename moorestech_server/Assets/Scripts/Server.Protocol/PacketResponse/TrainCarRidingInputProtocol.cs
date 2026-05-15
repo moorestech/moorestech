@@ -1,4 +1,5 @@
 using System;
+using Game.Train.Unit;
 using MessagePack;
 using Server.Util.MessagePack;
 
@@ -6,11 +7,28 @@ namespace Server.Protocol.PacketResponse
 {
     public class TrainCarRidingInputProtocol : IPacketResponse
     {
+        private readonly TrainCarRidingInputBuffer _inputBuffer;
+        private readonly TrainUpdateService _trainUpdateService;
+
         public const string ProtocolTag = "va:trainCarRidingInput";
+
+        public TrainCarRidingInputProtocol(TrainCarRidingInputBuffer inputBuffer, TrainUpdateService trainUpdateService)
+        {
+            _inputBuffer = inputBuffer;
+            _trainUpdateService = trainUpdateService;
+        }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload)
         {
-            MessagePackSerializer.Deserialize<TrainCarRidingInputMessagePack>(payload);
+            var input = MessagePackSerializer.Deserialize<TrainCarRidingInputMessagePack>(payload);
+            _inputBuffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(
+                input.PlayerId,
+                new TrainCarInstanceId(input.RidingTrainCarInstanceId),
+                _trainUpdateService.GetCurrentTick(),
+                input.W,
+                input.A,
+                input.S,
+                input.D));
             return null;
         }
 

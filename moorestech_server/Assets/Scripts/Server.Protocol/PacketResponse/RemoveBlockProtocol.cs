@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using Core.Item.Interface;
 using Core.Master;
+using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
 using Game.PlayerInventory.Interface;
+using Game.Train.RailPositions;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,11 +21,13 @@ namespace Server.Protocol.PacketResponse
         public const string ProtocolTag = "va:removeBlock";
         
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
+        private readonly TrainRailPositionManager _railPositionManager;
         
         
         public RemoveBlockProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
+            _railPositionManager = serviceProvider.GetService<TrainRailPositionManager>();
         }
         
         public ProtocolMessagePackBase GetResponse(byte[] payload)
@@ -31,22 +35,47 @@ namespace Server.Protocol.PacketResponse
             var data = MessagePackSerializer.Deserialize<RemoveBlockProtocolMessagePack>(payload);
             
             var block = ServerContext.WorldBlockDatastore.GetBlock(data.Pos);
-            if (block == null) return null;
+            if (block == null) return RemoveBlockResponseMessagePack.CreateFailure(RemoveBlockFailureReason.Unknown);
             var itemId = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId).ItemGuid;
+            if (!CanManualRemoveBlock(block)) return RemoveBlockResponseMessagePack.CreateFailure(RemoveBlockFailureReason.NodeInUseByTrain);
                 
             // 破壊した後のアイテムをインベントリに挿入できるかチェック
             // Check if items after destruction can be inserted into inventory
-            if (!TryInsertRefundItems(out var refundItems)) return null;
+            if (!TryInsertRefundItems(out var refundItems)) return RemoveBlockResponseMessagePack.CreateFailure(RemoveBlockFailureReason.Unknown);
             
             // 削除処理
             // Deletion process
             ServerContext.WorldBlockDatastore.RemoveBlock(data.Pos, BlockRemoveReason.ManualRemove);
             InsertItemsToPlayerInventory(refundItems);
             
-            
-            return null;
+            return RemoveBlockResponseMessagePack.CreateSuccess();
             
             #region Internal
+
+            bool CanManualRemoveBlock(IBlock targetBlock)
+            {
+                var railComponents = targetBlock.ComponentManager.GetComponents<RailComponent>();
+                if (railComponents.Count == 0) return true;
+
+                // レール系ブロックは列車位置が保持するノードを壊せない
+                // Rail blocks cannot remove nodes currently held by train positions.
+                for (var i = 0; i < railComponents.Count; i++)
+                {
+                    if (!CanManualRemoveRailComponent(railComponents[i])) return false;
+                }
+
+                return true;
+            }
+
+            bool CanManualRemoveRailComponent(RailComponent railComponent)
+            {
+                // 橋脚削除はFront/Back両ノードの削除と同義として扱う
+                // Removing a pier is equivalent to removing both front and back nodes.
+                if (!_railPositionManager.CanRemoveNode(railComponent.FrontNode)) return false;
+                if (!_railPositionManager.CanRemoveNode(railComponent.BackNode)) return false;
+
+                return true;
+            }
             
             bool TryInsertRefundItems(out List<IItemStack> items)
             {
@@ -109,6 +138,40 @@ namespace Server.Protocol.PacketResponse
                 PlayerId = playerId;
                 Pos = new Vector3IntMessagePack(pos);
             }
+        }
+
+        [MessagePackObject]
+        public class RemoveBlockResponseMessagePack : ProtocolMessagePackBase
+        {
+            [Key(2)] public bool Success { get; set; }
+            [Key(3)] public RemoveBlockFailureReason FailureReason { get; set; }
+
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public RemoveBlockResponseMessagePack() { Tag = ProtocolTag; }
+
+            public RemoveBlockResponseMessagePack(bool success, RemoveBlockFailureReason failureReason)
+            {
+                Tag = ProtocolTag;
+                Success = success;
+                FailureReason = failureReason;
+            }
+
+            public static RemoveBlockResponseMessagePack CreateSuccess()
+            {
+                return new RemoveBlockResponseMessagePack(true, RemoveBlockFailureReason.None);
+            }
+
+            public static RemoveBlockResponseMessagePack CreateFailure(RemoveBlockFailureReason failureReason)
+            {
+                return new RemoveBlockResponseMessagePack(false, failureReason);
+            }
+        }
+
+        public enum RemoveBlockFailureReason
+        {
+            None,
+            NodeInUseByTrain,
+            Unknown,
         }
     }
 }

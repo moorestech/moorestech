@@ -79,8 +79,8 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(ItemMaster.EmptyItemId, remainingStack.Id, "駅インベントリのスロットが移送後も空になっていません。");
             
             var carStack = itemContainer.InventoryItems[0];
-            Assert.AreEqual(ForUnitTestItemId.ItemId1, carStack.Stack.Id, "列車貨車が駅のアイテムを受け取っていません。");
-            Assert.AreEqual(maxStack, carStack.Stack.Count, "列車貨車が駅インベントリの全量を受け取っていません。");
+            Assert.AreEqual(ForUnitTestItemId.ItemId1, carStack.Id, "列車貨車が駅のアイテムを受け取っていません。");
+            Assert.AreEqual(maxStack, carStack.Count, "列車貨車が駅インベントリの全量を受け取っていません。");
 
             env.GetTrainDiagramManager().UnregisterDiagram(trainUnit.trainDiagram);
             env.GetITrainUnitMutationDatastore().UnregisterTrain(trainUnit);
@@ -144,8 +144,8 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(ItemMaster.EmptyItemId, remainingStack.Id, "貨物プラットフォームのインベントリスロットが移送後も空になっていません。");
 
             var carStack = itemContainer.InventoryItems[0];
-            Assert.AreEqual(ForUnitTestItemId.ItemId1, carStack.Stack.Id, "列車貨車が貨物プラットフォームのアイテムを受け取っていません。");
-            Assert.AreEqual(maxStack, carStack.Stack.Count, "列車貨車が貨物プラットフォームから全量を受け取っていません。");
+            Assert.AreEqual(ForUnitTestItemId.ItemId1, carStack.Id, "列車貨車が貨物プラットフォームのアイテムを受け取っていません。");
+            Assert.AreEqual(maxStack, carStack.Count, "列車貨車が貨物プラットフォームから全量を受け取っていません。");
         }
 
         [Test]
@@ -213,7 +213,7 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(maxStack, cargoStack.Count, "貨物プラットフォームが列車の積荷を全量受け取っていません。");
 
             var remainingCarStack = itemContainer.InventoryItems[0];
-            Assert.AreEqual(ItemMaster.EmptyItemId, remainingCarStack.Stack.Id, "荷降ろし後も列車貨車のインベントリが空になっていません。");
+            Assert.AreEqual(ItemMaster.EmptyItemId, remainingCarStack.Id, "荷降ろし後も列車貨車のインベントリが空になっていません。");
         }
 
         [Test]
@@ -287,11 +287,11 @@ namespace Tests.UnitTest.Game
             var firstCarStack = firstCarContainer.InventoryItems[0];
             
             
-            Assert.AreEqual(ForUnitTestItemId.ItemId1, firstCarStack.Stack.Id, "1列車目が駅のアイテムを受け取っていません。");
-            Assert.AreEqual(maxStack, firstCarStack.Stack.Count, "1列車目が駅インベントリの全量を受け取っていません。");
+            Assert.AreEqual(ForUnitTestItemId.ItemId1, firstCarStack.Id, "1列車目が駅のアイテムを受け取っていません。");
+            Assert.AreEqual(maxStack, firstCarStack.Count, "1列車目が駅インベントリの全量を受け取っていません。");
 
             var secondCarStack = secondCarContainer.InventoryItems[0];
-            Assert.AreEqual(ItemMaster.EmptyItemId, secondCarStack.Stack.Id, "2列車目のインベントリが空のまま維持されていません。");
+            Assert.AreEqual(ItemMaster.EmptyItemId, secondCarStack.Id, "2列車目のインベントリが空のまま維持されていません。");
 
             firstTrain.trainUnitStationDocking.UndockFromStation();
             secondTrain.trainUnitStationDocking.UndockFromStation();

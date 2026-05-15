@@ -33,7 +33,7 @@ namespace Client.Editor.Toolbar
     internal static class ToolbarOverlayPositioner
     {
         private const string OverlayInitVersionKey = "moorestech_ToolbarOverlayInitVersion";
-        private const int CurrentOverlayInitVersion = 1;
+        private const int CurrentOverlayInitVersion = 2;
 
         private static bool _positioned;
 
@@ -71,6 +71,7 @@ namespace Client.Editor.Toolbar
             Overlay timeScale = null;
             Overlay sceneReload = null;
             Overlay home = null;
+            Overlay branchName = null;
 
             foreach (var o in overlayList)
             {
@@ -79,6 +80,7 @@ namespace Client.Editor.Toolbar
                 if (id.Contains("TimeScale")) timeScale = o;
                 if (id.Contains("Scene Reload")) sceneReload = o;
                 if (id.Contains("moorestech/Home")) home = o;
+                if (id.Contains("moorestech/Branch Name")) branchName = o;
             }
 
             if (playMode == null || timeScale == null || sceneReload == null || home == null) return;
@@ -86,21 +88,48 @@ namespace Client.Editor.Toolbar
             var dockBefore = typeof(Overlay).GetMethod("DockBefore", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             var dockAfter = typeof(Overlay).GetMethod("DockAfter", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
-            // 配置順: SceneReload → Home → PlayMode → TimeScale
-            // Order: SceneReload → Home → PlayMode → TimeScale
+            // 配置順: BranchName → SceneReload → Home → PlayMode → TimeScale
+            // Order: BranchName → SceneReload → Home → PlayMode → TimeScale
             dockBefore?.Invoke(sceneReload, new object[] { playMode });
             dockBefore?.Invoke(home, new object[] { playMode });
             dockAfter?.Invoke(timeScale, new object[] { playMode });
 
+            if (branchName != null)
+            {
+                // BranchNameは別セクション(BeforeSpacer)で生成されるため、SceneReloadと同じMiddleセクションへ強制移動する
+                // BranchName is created in a separate section (BeforeSpacer); force-move it into the Middle section that holds SceneReload
+                DockIntoMiddleSection(branchName, sceneReload);
+            }
+
             _positioned = true;
             EditorApplication.update -= TryPosition;
+        }
+
+        private static void DockIntoMiddleSection(Overlay overlay, Overlay anchor)
+        {
+            var assembly = typeof(Overlay).Assembly;
+            var sectionType = assembly.GetType("UnityEditor.Overlays.OverlayContainerSection");
+            var hintType = assembly.GetType("UnityEditor.Overlays.DockingHint");
+            if (sectionType == null || hintType == null) return;
+
+            var containerProp = typeof(Overlay).GetProperty("container", BindingFlags.NonPublic | BindingFlags.Instance);
+            var container = containerProp?.GetValue(anchor);
+            if (container == null) return;
+
+            var dockAt = typeof(Overlay).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                .FirstOrDefault(m => m.Name == "DockAt" && m.GetParameters().Length == 4);
+            if (dockAt == null) return;
+
+            var middle = System.Enum.Parse(sectionType, "Middle");
+            var beforeHint = System.Enum.Parse(hintType, "DockedBefore");
+            dockAt.Invoke(overlay, new[] { container, middle, (object)0, beforeHint });
         }
 
         private static void AutoShowOverlaysIfNeeded(System.Collections.Generic.List<Overlay> overlayList)
         {
             // バージョンが一致する場合は初期化済みなのでスキップ
             // Skip if already initialized at current version
-            if (EditorPrefs.GetInt(OverlayInitVersionKey, 0) >= CurrentOverlayInitVersion) return;
+            if (CurrentOverlayInitVersion <= EditorPrefs.GetInt(OverlayInitVersionKey, 0)) return;
 
             var displayedProp = typeof(Overlay).GetProperty("displayed", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             if (displayedProp == null) return;

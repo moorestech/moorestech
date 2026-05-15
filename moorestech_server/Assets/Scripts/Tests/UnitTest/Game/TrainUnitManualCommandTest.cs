@@ -49,6 +49,17 @@ namespace Tests.UnitTest.Game
         }
 
         [Test]
+        public void ManualReverseSingleCar_AcceleratesWhenFacingBackward()
+        {
+            var fixture = CreateSingleCarFixture();
+            fixture.TrainUnit.Update(new TrainUnitManualCommand(true, TrainUnitMasconCommand.Accelerate));
+
+            Assert.IsFalse(fixture.FrontCar.IsFacingForward, "single car should face backward after reverse.");
+            Assert.AreEqual(TractionMasconLevel, fixture.TrainUnit.masconLevel, "reverse traction should apply positive mascon.");
+            Assert.Greater(fixture.TrainUnit.CurrentSpeed, 0d, "backward-facing railcar should still produce traction.");
+        }
+
+        [Test]
         public void ManualReverseWhileMoving_IsIgnored()
         {
             var fixture = CreateTwoCarFixture();
@@ -69,6 +80,21 @@ namespace Tests.UnitTest.Game
             Assert.AreSame(fixture.RearCar, fixture.TrainUnit.Cars[0], "neutral 付き reverse で編成順序が反転していません。");
             Assert.AreEqual(NeutralMasconLevel, fixture.TrainUnit.masconLevel, "manual neutral が masconLevel=0 に変換されていません。");
             Assert.AreEqual(0d, fixture.TrainUnit.CurrentSpeed, "neutral 付き reverse で加速してしまっています。");
+        }
+
+        [Test]
+        public void ManualReverse_EmitsReverseTickDiffOnce()
+        {
+            var fixture = CreateTwoCarFixture();
+            fixture.TrainUnit.Update(new TrainUnitManualCommand(true, TrainUnitMasconCommand.Neutral));
+
+            // reverse は次 tick のクライアント simulation 前に一度だけ通知する
+            // Reverse is notified once before the client simulation for the same tick
+            var firstDiff = fixture.TrainUnit.GetTickDiff();
+            var secondDiff = fixture.TrainUnit.GetTickDiff();
+
+            Assert.IsTrue(firstDiff.isReversedThisTick, "manual reverse が reverse tick diff に含まれていません。");
+            Assert.IsFalse(secondDiff.isReversedThisTick, "reverse tick diff が消費後も残り続けています。");
         }
 
         [Test]
@@ -220,5 +246,6 @@ namespace Tests.UnitTest.Game
                 DestinationNode = destinationNode;
             }
         }
+
     }
 }

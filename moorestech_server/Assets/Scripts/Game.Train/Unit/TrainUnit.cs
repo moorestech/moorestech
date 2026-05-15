@@ -45,6 +45,7 @@ namespace Game.Train.Unit
         private int _previousMasconLevel = 0;// キー入力と差分通知関連
         private bool _isDockingSpeedForcedToZero;//ドッキングした瞬間強制速度0になるのでmasconlevel差分通知ではズレが生じる
         private int _pendingApproachingNodeId;
+        private bool _isReversedThisTick;
         public TrainUnit(
             RailPosition initialPosition,
             List<TrainCar> cars,
@@ -72,6 +73,7 @@ namespace Game.Train.Unit
         public void Reverse()
         {
             _railPosition?.Reverse();
+            _isReversedThisTick = !_isReversedThisTick;
             if (_cars == null)
                 return;
             _cars.Reverse();
@@ -85,6 +87,7 @@ namespace Game.Train.Unit
             _previousMasconLevel = masconLevel;
             _isDockingSpeedForcedToZero = false;
             _pendingApproachingNodeId = -1;
+            _isReversedThisTick = false;
         }
         
         public int Update()
@@ -157,7 +160,7 @@ namespace Game.Train.Unit
             // マスコン確定後に進む距離を算出する。
             // Calculate the travel distance after the mascon decision.
             var distanceToMove = SimulateMotionStep();
-            return UpdateTrainByDistance(distanceToMove);
+            return UpdateTrainByDistance(distanceToMove, manualCommand);
         }
 
         // キー操作系。
@@ -173,8 +176,8 @@ namespace Game.Train.Unit
 
         private static int ConvertManualMasconCommandToMasconLevel(TrainUnitMasconCommand masconCommand)
         {
-            // TrainUnit ローカル manual command を既存の masconLevel に変換する。
-            // Convert TrainUnit-local manual commands into the legacy masconLevel scale.
+            // TrainUnit ローカル manual command enum を既存の masconLevel に変換する。
+            // Convert TrainUnit-local manual command enum into the legacy masconLevel scale.
             switch (masconCommand)
             {
                 case TrainUnitMasconCommand.Brake:
@@ -229,7 +232,14 @@ namespace Game.Train.Unit
         // Advance by the requested distance and return the actual traveled amount.
         // 目的地は常に最新の trainDiagram を参照し、目的地が null なら上の制御で auto-run を解除する。
         // Always reference the latest train diagram, and let the outer flow disable auto-run when the destination becomes null.
-        public int UpdateTrainByDistance(int distanceToMove) 
+        // 既存呼び出しでは分岐入力なしの手動移動として扱う。
+        // Existing callers move without manual branch input.
+        public int UpdateTrainByDistance(int distanceToMove)
+        {
+            return UpdateTrainByDistance(distanceToMove, TrainUnitManualCommand.Default);
+        }
+
+        public int UpdateTrainByDistance(int distanceToMove, TrainUnitManualCommand manualCommand)
         {
             // 進行メインループ。
             // Main movement loop.
@@ -299,15 +309,17 @@ namespace Game.Train.Unit
                 }
                 else
                 {
-                    // manual 時は approaching から最初の接続ノードを選んで先頭に積む。
-                    // In manual mode, pick the first connected node from the approaching node.
+                    // manual 時は approaching から入力に応じた接続ノードを選んで先頭に積む。
+                    // In manual mode, pick a connected node from the approaching node based on input.
                     var nextNodelist = approaching.ConnectedNodes.ToList();
                     if (nextNodelist.Count == 0)
                     {
                         _currentSpeed = 0;
                         break;//もう進めない
                     }
-                    var nextNode = nextNodelist[0];
+                    // A/D があれば既存デフォルト候補を基準に deterministic な前後候補を選ぶ。
+                    // When A/D is present, choose a deterministic neighboring candidate around the current default.
+                    var nextNode = SelectManualBranchNode(nextNodelist, manualCommand.BranchCommand);
                     _railPosition.AddNodeToHead(nextNode);
                     _pendingApproachingNodeId = nextNode.NodeId;
                 }
@@ -319,6 +331,58 @@ namespace Game.Train.Unit
                 }
             }
             return totalMoved;
+        }
+
+        private static IRailNode SelectManualBranchNode(IReadOnlyList<IRailNode> connectedNodes, TrainUnitBranchCommand branchCommand)
+        {
+            if (connectedNodes.Count == 1 || branchCommand == TrainUnitBranchCommand.Neutral)
+            {
+                return connectedNodes[0];
+            }
+
+            // ニュートラル時の既存デフォルト候補を基準に、NodeId順で前後候補を選ぶ。
+            // Choose previous/next by NodeId order around the existing neutral default candidate.
+            var defaultNode = connectedNodes[0];
+            var sortedNodes = BuildSortedBranchCandidates(connectedNodes);
+            if (branchCommand == TrainUnitBranchCommand.Previous)
+            {
+                return SelectPreviousBranchNode(sortedNodes, defaultNode.NodeId);
+            }
+
+            return SelectNextBranchNode(sortedNodes, defaultNode.NodeId);
+        }
+
+        private static List<IRailNode> BuildSortedBranchCandidates(IReadOnlyList<IRailNode> connectedNodes)
+        {
+            var sortedNodes = connectedNodes.ToList();
+            sortedNodes.Sort((left, right) => left.NodeId.CompareTo(right.NodeId));
+            return sortedNodes;
+        }
+
+        private static IRailNode SelectPreviousBranchNode(IReadOnlyList<IRailNode> sortedNodes, int defaultNodeId)
+        {
+            for (var i = sortedNodes.Count - 1; i >= 0; i--)
+            {
+                if (sortedNodes[i].NodeId < defaultNodeId)
+                {
+                    return sortedNodes[i];
+                }
+            }
+
+            return sortedNodes[sortedNodes.Count - 1];
+        }
+
+        private static IRailNode SelectNextBranchNode(IReadOnlyList<IRailNode> sortedNodes, int defaultNodeId)
+        {
+            for (var i = 0; i < sortedNodes.Count; i++)
+            {
+                if (sortedNodes[i].NodeId > defaultNodeId)
+                {
+                    return sortedNodes[i];
+                }
+            }
+
+            return sortedNodes[0];
         }
 
         // 毎フレーム燃料在庫を確認しながら加速力を計算する。
@@ -361,7 +425,7 @@ namespace Game.Train.Unit
         
         // masconLevel などの差分を抽出する。
         // Extract mascon and other per-tick diffs.
-        public (int,bool,int) GetTickDiff()
+        public (int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeIdDiff, bool isReversedThisTick) GetTickDiff()
         {
             var ret1 = masconLevel - _previousMasconLevel;
             _previousMasconLevel = masconLevel;
@@ -369,7 +433,9 @@ namespace Game.Train.Unit
             _isDockingSpeedForcedToZero = false;
             var ret3 = _pendingApproachingNodeId;
             _pendingApproachingNodeId = -1;
-            return (ret1, ret2, ret3);
+            var ret4 = _isReversedThisTick;
+            _isReversedThisTick = false;
+            return (ret1, ret2, ret3, ret4);
         }
 
         public void DiagramValidation() 

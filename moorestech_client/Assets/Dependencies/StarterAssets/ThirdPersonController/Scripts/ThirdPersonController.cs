@@ -79,6 +79,9 @@ namespace StarterAssets
 		private float _jumpTimeoutDelta;
 		private float _fallTimeoutDelta;
 
+		// moving platform tracking
+		private PlayerPlatformFollowService _platformFollowService;
+
 		// animation IDs
 		private int _animIDSpeed;
 		private int _animIDGrounded;
@@ -100,9 +103,12 @@ namespace StarterAssets
             _hasAnimator = _animator;
             _controller = GetComponent<CharacterController>();
             _input = GetComponent<StarterAssetsInputs>();
-            
+            // 足場追従処理を専用サービスへ委譲する
+            // Delegate moving-platform follow logic to its dedicated service
+            _platformFollowService = new PlayerPlatformFollowService(transform, _controller);
+
             AssignAnimationIDs();
-            
+
             // reset our timeouts on start
             _jumpTimeoutDelta = JumpTimeout;
             _fallTimeoutDelta = FallTimeout;
@@ -243,6 +249,10 @@ namespace StarterAssets
 
 			Vector3 targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
 
+			// 足場追従はサービスへ委譲する
+			// Delegate platform follow handling to the service
+			_platformFollowService.ApplyPlatformFollow(Grounded, GroundedOffset, GroundedRadius, GroundLayers);
+
 			// move the player
 			_controller.Move(targetDirection.normalized * (_speed * Time.deltaTime) + new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
 
@@ -259,6 +269,9 @@ namespace StarterAssets
 			_controller.enabled = false;
 			transform.position = position;
 			_controller.enabled = true;
+			// ワープ後は古い足場の差分を残さないよう追従状態をリセットする
+			// Reset platform tracking after warp so stale deltas don't leak through
+			_platformFollowService.ResetTracking();
 		}
 
 		private void JumpAndGravity()

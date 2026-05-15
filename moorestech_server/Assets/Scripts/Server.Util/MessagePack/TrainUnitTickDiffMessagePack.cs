@@ -13,6 +13,7 @@ namespace Server.Util.MessagePack
         [Key(1)] public int MasconLevelDiff { get; set; }
         [Key(2)] public bool IsNowDockingSpeedZero { get; set; }
         [Key(3)] public int ApproachingNodeIdDiff { get; set; }
+        [Key(4)] public bool IsReversedThisTick { get; set; }
 
         [Obsolete("Reserved for MessagePack.")]
         public TrainUnitTickDiffMessagePack()
@@ -25,6 +26,7 @@ namespace Server.Util.MessagePack
             MasconLevelDiff = diff.MasconLevelDiff;
             IsNowDockingSpeedZero = diff.IsNowDockingSpeedZero;
             ApproachingNodeIdDiff = diff.ApproachingNodeIdDiff;
+            IsReversedThisTick = diff.IsReversedThisTick;
         }
     }
 }
