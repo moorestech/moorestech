@@ -27,7 +27,6 @@ namespace Client.Game.InGame.Train.View.Object
         private Quaternion _requestedRotation = Quaternion.identity;
         private bool _hasRequestedPose;
         private bool _hasAppliedInitialPose;
-        private bool _hasConfiguredPoseRigidbody;
 
         /// <summary>
         /// 初期化を行う
@@ -72,7 +71,6 @@ namespace Client.Game.InGame.Train.View.Object
         /// </summary>
         public void SetDirectPose(Vector3 position, Quaternion rotation)
         {
-            EnsurePoseRigidbody();
             _requestedPosition = position;
             _requestedRotation = rotation;
             _hasRequestedPose = true;
@@ -127,27 +125,18 @@ namespace Client.Game.InGame.Train.View.Object
 
             // kinematic Rigidbody経由でCollider移動を物理エンジンへ反映する
             // Apply collider movement through the kinematic Rigidbody
-            EnsurePoseRigidbody();
             _poseRigidbody.MovePosition(_requestedPosition);
             _poseRigidbody.MoveRotation(_requestedRotation);
         }
 
         private void EnsurePoseRigidbody()
         {
-            // 既存Rigidbodyがあれば設定だけを揃えて再利用する
-            // Reuse an existing Rigidbody and normalize the required settings
+            // 既存Rigidbodyがあれば再利用し、無ければ追加する
+            // Reuse an existing Rigidbody or add one if missing
+            _poseRigidbody = GetComponent<Rigidbody>();
             if (_poseRigidbody == null)
             {
-                _hasConfiguredPoseRigidbody = false;
-                _poseRigidbody = GetComponent<Rigidbody>();
-                if (_poseRigidbody == null)
-                {
-                    _poseRigidbody = gameObject.AddComponent<Rigidbody>();
-                }
-            }
-            if (_hasConfiguredPoseRigidbody)
-            {
-                return;
+                _poseRigidbody = gameObject.AddComponent<Rigidbody>();
             }
 
             // 列車はサーバー同期姿勢で動くため、重力や力では動かさない
@@ -156,7 +145,6 @@ namespace Client.Game.InGame.Train.View.Object
             _poseRigidbody.useGravity = false;
             _poseRigidbody.interpolation = RigidbodyInterpolation.Interpolate;
             _poseRigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
-            _hasConfiguredPoseRigidbody = true;
         }
 
         // 自動運転（AutoRun）の状態をサーバへ送信するローカル関数
