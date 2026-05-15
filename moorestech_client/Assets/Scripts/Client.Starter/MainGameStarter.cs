@@ -36,6 +36,7 @@ using Client.Game.InGame.UnlockState;
 using Client.Game.InGame.World;
 using Client.Game.InGame.Train.Network;
 using Client.Game.InGame.Train.RailGraph;
+using Client.Game.InGame.Train.DebugView;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Train.View;
 using Client.Game.InGame.Train.View.Object;
@@ -210,6 +211,7 @@ namespace Client.Starter
             builder.Register<TrainUnitSnapshotApplier>(Lifetime.Singleton).AsSelf().As<IInitializable>();
             builder.Register<TrainUnitClientSimulator>(Lifetime.Singleton).As<ITickable>();
             builder.Register<TrainUnitHashVerifier>(Lifetime.Singleton).As<ITrainUnitHashTickGate>().As<IDisposable>();
+            builder.Register<TrainUnitDebugOverlayPresenter>(Lifetime.Singleton).As<ITickable>().As<IDisposable>();
             
             
             //Hierarchy上にあるcomponent
