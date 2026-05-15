@@ -6,7 +6,6 @@ using Game.Context;
 using Game.Train.Diagram;
 using Game.Train.Event;
 using Game.Train.SaveLoad;
-using Game.Train.Unit.Containers;
 using JetBrains.Annotations;
 using MessagePack;
 using Mooresmaster.Model.TrainModule;
