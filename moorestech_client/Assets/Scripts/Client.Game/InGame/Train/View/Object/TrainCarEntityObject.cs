@@ -9,6 +9,7 @@ using UnityEngine;
 
 namespace Client.Game.InGame.Train.View.Object
 {
+    [RequireComponent(typeof(Rigidbody))]
     public class TrainCarEntityObject : MonoBehaviour
     {
         public TrainCarInstanceId TrainCarInstanceId { get; private set; }
@@ -36,9 +37,9 @@ namespace Client.Game.InGame.Train.View.Object
         {
             _debugAutoRun = DebugParameters.GetValueOrDefaultBool(DebugConst.TrainAutoRunKey);//////////////////
             _rendererMaterialReplacerController = new RendererMaterialReplacerController(gameObject);
-            // 列車Colliderの移動を物理エンジンへ渡すためのRigidbodyを確保する
-            // Ensure a Rigidbody so train collider movement is handled by physics
-            EnsurePoseRigidbody();
+            // 列車Colliderの移動を物理エンジンへ渡すためRigidbodyをkinematicに設定する
+            // Configure the required Rigidbody so train collider movement is handled by physics
+            ConfigurePoseRigidbody();
             // モデル中心の前後オフセットをキャッシュする
             // Cache the model forward center offset
             ModelForwardCenterOffset = ResolveModelForwardCenterOffset();
@@ -54,6 +55,17 @@ namespace Client.Game.InGame.Train.View.Object
                 var localForwardAxis = Quaternion.Euler(0f, -ModelYawOffsetDegrees, 0f) * Vector3.forward;
                 var localCenter = transform.InverseTransformPoint(combined.center);
                 return Vector3.Dot(localCenter, localForwardAxis);
+            }
+
+            void ConfigurePoseRigidbody()
+            {
+                // RequireComponentで保証されているRigidbodyをkinematic用に設定する
+                // Configure the RequireComponent-guaranteed Rigidbody for kinematic pose driving
+                _poseRigidbody = GetComponent<Rigidbody>();
+                _poseRigidbody.isKinematic = true;
+                _poseRigidbody.useGravity = false;
+                _poseRigidbody.interpolation = RigidbodyInterpolation.Interpolate;
+                _poseRigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
             }
             #endregion
         }
@@ -127,24 +139,6 @@ namespace Client.Game.InGame.Train.View.Object
             // Apply collider movement through the kinematic Rigidbody
             _poseRigidbody.MovePosition(_requestedPosition);
             _poseRigidbody.MoveRotation(_requestedRotation);
-        }
-
-        private void EnsurePoseRigidbody()
-        {
-            // 既存Rigidbodyがあれば再利用し、無ければ追加する
-            // Reuse an existing Rigidbody or add one if missing
-            _poseRigidbody = GetComponent<Rigidbody>();
-            if (_poseRigidbody == null)
-            {
-                _poseRigidbody = gameObject.AddComponent<Rigidbody>();
-            }
-
-            // 列車はサーバー同期姿勢で動くため、重力や力では動かさない
-            // The train follows server-synced poses, not gravity or forces
-            _poseRigidbody.isKinematic = true;
-            _poseRigidbody.useGravity = false;
-            _poseRigidbody.interpolation = RigidbodyInterpolation.Interpolate;
-            _poseRigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
         }
 
         // 自動運転（AutoRun）の状態をサーバへ送信するローカル関数
